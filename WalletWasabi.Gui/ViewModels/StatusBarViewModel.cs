@@ -1,4 +1,4 @@
-﻿using Avalonia.Threading;
+using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin.Protocol;
@@ -329,19 +329,22 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		public void RemoveStatus(string status)
+		public void RemoveStatus(params string[] statuses)
 		{
-			status = Guard.Correct(status);
-			if (status == "")
-			{
-				return;
-			}
-
 			lock (StatusQueueLock)
 			{
-				if (StatusQueue.Remove(status))
+				foreach (var statusRaw in statuses)
 				{
-					RefreshStatusNoLock();
+					var status = Guard.Correct(statusRaw);
+					if (status == "")
+					{
+						return;
+					}
+
+					if (StatusQueue.Remove(status))
+					{
+						RefreshStatusNoLock();
+					}
 				}
 			}
 		}

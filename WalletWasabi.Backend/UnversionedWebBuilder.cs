@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,11 +8,11 @@ namespace WalletWasabi.Backend
 {
 	public static class UnversionedWebBuilder
 	{
-#if DEBUG
-		public static string RootFolder { get; } = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\wwwroot"));
-#else
-		public static string RootFolder { get; } = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "wwwroot"));
-#endif
+		public static string DebugRootFolder { get; } = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\wwwroot"));
+		public static string PublishedRootFolder { get; } = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "wwwroot"));
+
+		public static string RootFolder { get; } = Directory.Exists(PublishedRootFolder) ? PublishedRootFolder : DebugRootFolder;
+
 		public static string UnversionedFolder { get; } = Path.GetFullPath(Path.Combine(RootFolder, "unversioned"));
 
 		public static string CreateFilePath(string fileName) => Path.Combine(UnversionedFolder, fileName);

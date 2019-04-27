@@ -1,4 +1,4 @@
-﻿using Avalonia.Threading;
+using Avalonia.Threading;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -138,7 +138,21 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 							}
 
 							// Stop enumerating after you find one. Hardware wallets are acting up, sometimes fingerprint doesn't arrive for example.
-							break;
+							bool ledgerNotReady = hwis.Any(x => x.Type == HardwareWalletType.Ledger && !x.Ready);
+							if (ledgerNotReady) // For Ledger you have to log into your "Bitcoin" account.
+							{
+								LoadWalletViewModelHardware.SetWarningMessage("Log into your Bitcoin account on your Ledger. If you're already logged in, log out and log in again.");
+								continue;
+							}
+							else if (hwis.Any(x => x.Type == HardwareWalletType.Ledger && x.Ready))
+							{
+								LoadWalletViewModelHardware.SetWarningMessage("To have a smooth user experience consider turning off your Ledger screensaver.");
+								break;
+							}
+							else
+							{
+								break;
+							}
 							//foreach (var hwi in hwis)
 							//{
 							//	// https://github.com/zkSNACKs/WalletWasabi/issues/1344#issuecomment-484607454

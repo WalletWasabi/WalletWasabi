@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.BitcoinCore;
 using NBitcoin.DataEncoders;
 using NBitcoin.Policy;
@@ -106,7 +106,7 @@ namespace WalletWasabi.Services
 			BlockFolderLock = new AsyncLock();
 			BlockDownloadLock = new AsyncLock();
 
-			KeyManager.AssertCleanKeysIndexed(21);
+			KeyManager.AssertCleanKeysIndexed();
 			KeyManager.AssertLockedInternalKeysIndexed(14);
 
 			_running = 0;
@@ -371,7 +371,7 @@ namespace WalletWasabi.Services
 			label = Guard.Correct(label);
 
 			// Make sure there's always 21 clean keys generated and indexed.
-			KeyManager.AssertCleanKeysIndexed(21, false);
+			KeyManager.AssertCleanKeysIndexed(isInternal: false);
 
 			IEnumerable<HdPubKey> keys = KeyManager.GetKeys(KeyState.Clean, isInternal: false);
 			if (dontTouch != null)
@@ -635,7 +635,7 @@ namespace WalletWasabi.Services
 						}
 
 						// Make sure there's always 21 clean keys generated and indexed.
-						KeyManager.AssertCleanKeysIndexed(21, foundKey.IsInternal);
+						KeyManager.AssertCleanKeysIndexed(isInternal: foundKey.IsInternal);
 
 						if (foundKey.IsInternal)
 						{
@@ -736,14 +736,13 @@ namespace WalletWasabi.Services
 						// Try to get block information from local running Core node first.
 						try
 						{
-							if (LocalBitcoinCoreNode is null || !LocalBitcoinCoreNode.IsConnected)
+							if (LocalBitcoinCoreNode is null || !LocalBitcoinCoreNode.IsConnected && Network != Network.RegTest) // If RegTest then we're already connected don't try again.
 							{
 								DisconnectDisposeNullLocalBitcoinCoreNode();
 								using (var handshakeTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancel))
 								{
 									handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
-									var nodeConnectionParameters = new NodeConnectionParameters()
-									{
+									var nodeConnectionParameters = new NodeConnectionParameters() {
 										ConnectCancellation = handshakeTimeout.Token,
 										IsRelay = false
 									};
@@ -1169,7 +1168,7 @@ namespace WalletWasabi.Services
 
 			if (customChange is null)
 			{
-				KeyManager.AssertCleanKeysIndexed(21, true);
+				KeyManager.AssertCleanKeysIndexed(isInternal: true);
 				KeyManager.AssertLockedInternalKeysIndexed(14);
 				var changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).RandomElement();
 

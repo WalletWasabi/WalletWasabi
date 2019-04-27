@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.RPC;
 using Nito.AsyncEx;
 using System;
@@ -59,15 +59,16 @@ namespace WalletWasabi.Services
 			{
 				try
 				{
+					var getTxTasks = new List<(Task<Transaction> txTask, string line)>();
+					var batch = RpcClient.PrepareBatch();
+
 					var toRemove = new List<string>();
 					string[] allLines = File.ReadAllLines(CoinJoinsFilePath);
 					foreach (string line in allLines)
 					{
 						try
 						{
-							uint256 txHash = new uint256(line);
-							RPCResponse getRawTransactionResponse = RpcClient.SendCommand(RPCOperations.getrawtransaction, txHash.ToString(), true);
-							CoinJoins.Add(txHash);
+							getTxTasks.Add((batch.GetRawTransactionAsync(uint256.Parse(line)), line));
 						}
 						catch (Exception ex)
 						{
@@ -76,6 +77,27 @@ namespace WalletWasabi.Services
 							var logEntry = ex is RPCException rpce && rpce.RPCCode == RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY
 								? $"CoinJoins file contains invalid transaction ID {line}"
 								: $"CoinJoins file got corrupted. Deleting offending line \"{line.Substring(0, 20)}\".";
+
+							Logger.LogWarning<CcjCoordinator>($"{logEntry}. {ex.GetType()}: {ex.Message}");
+						}
+					}
+
+					batch.SendBatchAsync().GetAwaiter().GetResult();
+
+					foreach (var task in getTxTasks)
+					{
+						try
+						{
+							var tx = task.txTask.GetAwaiter().GetResult();
+							CoinJoins.Add(tx.GetHash());
+						}
+						catch (Exception ex)
+						{
+							toRemove.Add(task.line);
+
+							var logEntry = ex is RPCException rpce && rpce.RPCCode == RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY
+								? $"CoinJoins file contains invalid transaction ID {task.line}"
+								: $"CoinJoins file got corrupted. Deleting offending line \"{task.line.Substring(0, 20)}\".";
 
 							Logger.LogWarning<CcjCoordinator>($"{logEntry}. {ex.GetType()}: {ex.Message}");
 						}
