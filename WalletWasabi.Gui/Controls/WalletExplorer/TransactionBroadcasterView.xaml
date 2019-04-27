@@ -31,16 +31,7 @@
           </StackPanel>
         </DockPanel>
 
-        <Border BorderThickness="1" BorderBrush="{DynamicResource ThemeBorderHighBrush}" Background="Transparent" Margin="0,8,0,8" Padding="4">
-          <i:Interaction.Behaviors>
-            <behaviors:CommandOnClickReleaseBehavior Command="{Binding PasteCommand}" />
-          </i:Interaction.Behaviors>
-          <controls:ExtendedTextBox BorderThickness="0" Margin="0" Padding="0" Text="{Binding TransactionString}" IsReadOnly="{Binding IsBusy}" Watermark="Click here to insert from clipboard" TextWrapping="Wrap" AcceptsReturn="True" CaretIndex="{Binding CaretIndex}">
-            <i:Interaction.Behaviors>
-              <behaviors:CommandOnClickReleaseBehavior Command="{Binding PasteCommand}" />
-            </i:Interaction.Behaviors>
-          </controls:ExtendedTextBox>
-        </Border>
+        <controls:MultiTextBox  Text="{Binding TransactionString}" IsReadOnly="{Binding IsBusy}" Watermark="Click here to insert from clipboard" TextWrapping="Wrap" AcceptsReturn="True" />
       </DockPanel>
     </Grid>
   </controls:GroupBox>
