@@ -36,7 +36,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				new CoinJoinTabViewModel(this),
 				new HistoryTabViewModel(this),
 				new WalletInfoViewModel(this),
-				new TransactionViewerViewModel(this),
 				new TransactionBroadcasterViewModel(this),
 			};
 
