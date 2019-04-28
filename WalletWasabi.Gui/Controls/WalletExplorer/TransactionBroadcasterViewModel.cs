@@ -1,4 +1,5 @@
-﻿using Avalonia;
+using Avalonia;
+using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Reactive;
@@ -96,9 +97,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Disposables = new CompositeDisposable();
 
-			this.WhenAnyValue(x => x.TransactionString)
-				.Throttle(TimeSpan.FromSeconds(1))
-				.Subscribe(async (text) => await OnTransactionTextChangedAsync(text));
+			// Automatic sending after Text change removed for now.
+
+			//this.WhenAnyValue(x => x.TransactionString)
+			//	.Throttle(TimeSpan.FromSeconds(1))
+			//	.Subscribe(async (text) => await OnTransactionTextChangedAsync(text));
 
 			base.OnOpen();
 		}
@@ -138,9 +141,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				IsBusy = true;
 				ButtonText = "Broadcasting Transaction...";
 
-				// TODO: Parse transaction and broadcast it.
+				var signedPsbt = PSBT.Parse(TransactionString, Global.WalletService.Network);
 
-				await Task.Delay(3000);
+				if (!signedPsbt.IsAllFinalized())
+				{
+					signedPsbt.Finalize();
+				}
+
+				var signedTransaction = signedPsbt.ExtractSmartTransaction();
+				await Task.Run(async () => await Global.WalletService.SendTransactionAsync(signedTransaction));
+
+				SuccessMessage = "Transaction is successfully sent!";
 			}
 			catch (Exception ex)
 			{
