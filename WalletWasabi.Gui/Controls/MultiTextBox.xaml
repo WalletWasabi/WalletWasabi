@@ -47,7 +47,8 @@
 
               <DataValidationErrors>
                 <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
-                            VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
+                            VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}"
+                            IsVisible="{TemplateBinding TextVisible}">
 
                   <Panel>
                     <TextBlock Name="watermark"

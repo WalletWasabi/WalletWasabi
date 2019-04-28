@@ -6,11 +6,9 @@ using Avalonia.Data;
 using Avalonia.Styling;
 using ReactiveUI;
 using System;
-using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,6 +35,9 @@ namespace WalletWasabi.Gui.Controls
 		public static readonly StyledProperty<bool> CopyOnClickProperty =
 		AvaloniaProperty.Register<MultiTextBox, bool>(nameof(CopyOnClick), defaultBindingMode: BindingMode.TwoWay);
 
+		public static readonly StyledProperty<bool> TextVisibleProperty =
+		AvaloniaProperty.Register<MultiTextBox, bool>(nameof(TextVisible), defaultBindingMode: BindingMode.TwoWay);
+
 		public bool ClipboardNotificationVisible
 		{
 			get => GetValue(ClipboardNotificationVisibleProperty);
@@ -61,6 +62,12 @@ namespace WalletWasabi.Gui.Controls
 			set => SetValue(CopyOnClickProperty, value);
 		}
 
+		public bool TextVisible
+		{
+			get => GetValue(TextVisibleProperty);
+			set => SetValue(TextVisibleProperty, value);
+		}
+
 		public ReactiveCommand<Unit, Unit> CopyToClipboardCommand { get; }
 
 		public MultiTextBox()
@@ -73,6 +80,25 @@ namespace WalletWasabi.Gui.Controls
 			CopyToClipboardCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				await CopyToClipboardAsync();
+			});
+		}
+
+		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
+		{
+			base.OnTemplateApplied(e);
+			var text = e.NameScope.Get<TextPresenter>("PART_TextPresenter");
+			var border = e.NameScope.Get<Border>("border");
+
+			Observable.FromEventPattern(text, nameof(text.PointerPressed))
+				.Merge(Observable.FromEventPattern(border, nameof(text.PointerPressed)))
+				.Subscribe(async _ =>
+				{
+					await OnClickedAsync();
+				}).DisposeWith(Disposables);
+
+			this.WhenAnyValue(x => x.ClipboardNotificationVisible).Subscribe(visible =>
+			{
+				TextVisible = !visible;
 			});
 		}
 
@@ -132,20 +158,6 @@ namespace WalletWasabi.Gui.Controls
 			{
 				Logging.Logger.LogWarning<MultiTextBox>(ex);
 			}
-		}
-
-		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
-		{
-			base.OnTemplateApplied(e);
-			var text = e.NameScope.Get<TextPresenter>("PART_TextPresenter");
-			var border = e.NameScope.Get<Border>("border");
-
-			Observable.FromEventPattern(text, nameof(text.PointerPressed))
-				.Merge(Observable.FromEventPattern(border, nameof(text.PointerPressed)))
-				.Subscribe(async _ =>
-				{
-					await OnClickedAsync();
-				}).DisposeWith(Disposables);
 		}
 
 		private async Task OnClickedAsync()
