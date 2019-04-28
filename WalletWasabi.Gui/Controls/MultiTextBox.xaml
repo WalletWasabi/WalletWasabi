@@ -81,7 +81,10 @@
   <Style Selector="controls|MultiTextBox:error /template/ Border#border">
     <Setter Property="BorderBrush" Value="{DynamicResource ErrorBrush}" />
   </Style>
-  <Style Selector="controls|MultiTextBox">
+  <!--<Style Selector="controls|MultiTextBox">
+    <Setter Property="Cursor" Value="IBeam" />
+  </Style>-->
+  <Style Selector="TextPresenter">
     <Setter Property="Cursor" Value="IBeam" />
   </Style>
 </Styles>
