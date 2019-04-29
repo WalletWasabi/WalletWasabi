@@ -1,4 +1,4 @@
-﻿using Avalonia.Threading;
+using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using System;
@@ -167,6 +167,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				PeersRegistered = 0;
 				PeersNeeded = 100;
 			}
+
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(x =>
+			{
+				this.RaisePropertyChanged(nameof(AmountQueued));
+				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+			}).DisposeWith(Disposables);
 
 			base.OnOpen();
 		}
@@ -464,6 +470,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _targetPrivacy;
 			set => this.RaiseAndSetIfChanged(ref _targetPrivacy, value);
+		}
+
+		public bool IsLurkingWifeMode
+		{
+			get => Global.UiConfig.LurkingWifeMode is true;
 		}
 
 		public ReactiveCommand<Unit, Unit> EnqueueCommand { get; }

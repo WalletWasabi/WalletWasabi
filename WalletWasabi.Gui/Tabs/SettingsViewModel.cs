@@ -1,4 +1,4 @@
-﻿using Avalonia.Threading;
+using Avalonia.Threading;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -160,9 +160,9 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _useTorText, value);
 		}
 
-		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode == true;
+		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
 
-		public string LurkingWifeModeText => Global.UiConfig.LurkingWifeMode == true ? "On" : "Off";
+		public string LurkingWifeModeText => Global.UiConfig.LurkingWifeMode is true ? "On" : "Off";
 
 		private void Save()
 		{
