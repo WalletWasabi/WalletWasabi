@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -32,7 +32,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
 			{
-				if (Global.UiConfig.Autocopy is false || transaction is null)
+				if (Global.UiConfig?.Autocopy is false || transaction is null)
 				{
 					return;
 				}
@@ -95,8 +95,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
 				Transactions?.Clear();
 
-				var trs = txRecordList.Select(txr => new TransactionInfo
-				{
+				var trs = txRecordList.Select(txr => new TransactionInfo {
 					DateTime = txr.dateTime.ToLocalTime(),
 					Confirmed = txr.height != WalletWasabi.Models.Height.MemPool && txr.height != WalletWasabi.Models.Height.Unknown,
 					AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
