@@ -20,17 +20,6 @@ namespace WalletWasabi.Gui.Shell.Commands
 		{
 			var walletManagerCommand = ReactiveCommand.Create(OnWalletManager);
 
-			var transactionBroadcasterCommand = ReactiveCommand.Create(() =>
-			{
-				var txbc = IoC.Get<IShell>().Documents.OfType<TransactionBroadcasterViewModel>().FirstOrDefault();
-				if (txbc is null)
-				{
-					txbc = new TransactionBroadcasterViewModel(null);
-					IoC.Get<IShell>().AddDocument(txbc);
-				}
-				IoC.Get<IShell>().Select(txbc);
-			});
-
 			var settingsCommand = ReactiveCommand.Create(() =>
 			{
 				IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel());
@@ -38,7 +27,6 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 			Observable
 				.Merge(walletManagerCommand.ThrownExceptions)
-				.Merge(transactionBroadcasterCommand.ThrownExceptions)
 				.Merge(settingsCommand.ThrownExceptions)
 				.Subscribe(OnFileOpenException);
 
@@ -46,11 +34,6 @@ namespace WalletWasabi.Gui.Shell.Commands
 				"Wallet Manager",
 				commandIconService.GetCompletionKindImage("WalletManager"),
 				walletManagerCommand);
-
-			TransactionBroadcasterCommand = new CommandDefinition(
-				"Transaction Broadcaster",
-				commandIconService.GetCompletionKindImage("TransactionBroadcaster"),
-				transactionBroadcasterCommand);
 
 			SettingsCommand = new CommandDefinition(
 				"Settings",
@@ -78,9 +61,6 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		[ExportCommandDefinition("Tools.WalletManager")]
 		public CommandDefinition WalletManagerCommand { get; }
-
-		[ExportCommandDefinition("Tools.TransactionBroadcaster")]
-		public CommandDefinition TransactionBroadcasterCommand { get; }
 
 		[ExportCommandDefinition("Tools.Settings")]
 		public CommandDefinition SettingsCommand { get; }

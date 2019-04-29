@@ -1,4 +1,4 @@
-﻿using AvalonStudio.MainMenu;
+using AvalonStudio.MainMenu;
 using AvalonStudio.Menus;
 using System;
 using System.Collections.Generic;
@@ -44,13 +44,8 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[DefaultGroup("Managers")]
 		public IMenuItem WalletManager => MenuItemFactory.CreateCommandMenuItem("Tools.WalletManager");
 
-		[ExportMainMenuItem("Tools", "Transaction Broadcaster")]
-		[DefaultOrder(1)]
-		[DefaultGroup("Managers")]
-		public IMenuItem TransactionBroadcaster => MenuItemFactory.CreateCommandMenuItem("Tools.TransactionBroadcaster");
-
 		[ExportMainMenuItem("Tools", "Settings")]
-		[DefaultOrder(2)]
+		[DefaultOrder(1)]
 		[DefaultGroup("Settings")]
 		public IMenuItem Settings => MenuItemFactory.CreateCommandMenuItem("Tools.Settings");
 
