@@ -29,15 +29,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SetBalance(Name);
 
-			Actions = new ObservableCollection<WalletActionViewModel>
+			Actions = new ObservableCollection<WalletActionViewModel>();
+
+			// If hardware wallet then we need the Send tab.
+			if (walletService?.KeyManager?.IsHardwareWallet is true)
 			{
-				new SendTabViewModel(this, walletService.KeyManager.IsWatchOnly),
-				new ReceiveTabViewModel(this),
-				new CoinJoinTabViewModel(this),
-				new HistoryTabViewModel(this),
-				new WalletInfoViewModel(this),
-				new TransactionBroadcasterViewModel(this),
-			};
+				Actions.Add(new SendTabViewModel(this));
+			}
+			// If not hardware wallet, but neither watch only then we also need the send tab.
+			else if (walletService?.KeyManager?.IsWatchOnly is false)
+			{
+				Actions.Add(new SendTabViewModel(this));
+			}
+
+			Actions.Add(new ReceiveTabViewModel(this));
+			Actions.Add(new CoinJoinTabViewModel(this));
+			Actions.Add(new HistoryTabViewModel(this));
+			Actions.Add(new WalletInfoViewModel(this));
+			Actions.Add(new SendTabViewModel(this, isTransactionBuilder: true));
+			Actions.Add(new TransactionBroadcasterViewModel(this));
 
 			Actions?.OfType<SendTabViewModel>()?.FirstOrDefault()?.DisplayActionTab();
 			if (receiveDominant)

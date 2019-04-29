@@ -30,9 +30,26 @@
         <TreeDataTemplate DataType="ViewModels:SendTabViewModel">
           <Button BorderThickness="0" Background="Transparent"  Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <DrawingPresenter Width="20" Height="20">
+              <DrawingPresenter Width="20" Height="20" IsVisible="{Binding !IsTransactionBuilder}">
                 <DrawingPresenter.Drawing>
                   <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1 M 25.3333,52.25L 50.6667,52.25L 50.6667,45.9167L 55.4167,45.9167L 55.4167,57L 50.6667,57L 25.3333,57L 20.5833,57L 20.5833,45.9167L 25.3333,45.9167L 25.3333,52.25 Z M 34.8333,49.0834L 41.1667,49.0834L 41.1666,28.5L 49.0833,38L 49.0833,28.5L 38,15.8334L 26.9167,28.5L 26.9167,38L 34.8333,28.5L 34.8333,49.0834 Z " />
+                </DrawingPresenter.Drawing>
+              </DrawingPresenter>
+              <DrawingPresenter Width="20" Height="20" IsVisible="{Binding IsTransactionBuilder}">
+                <DrawingPresenter.Drawing>
+                  <DrawingGroup>
+                    <DrawingGroup.Children>
+                      <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,15.969L0,15.969 0,0 16,0z" />
+                      <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8.6742,0.0997000000000003L2.1452,3.3977 2.1452,4.1227 0.00020000000000131,4.1227 0.00020000000000131,9.1137 2.0002,9.1137 2.1452,9.1147 2.1452,10.5517 2.0002,10.6967 2.0002,15.9997 7.0002,15.9997 7.0002,14.4777 9.3012,15.9247 9.7892,15.9247 16.0002,11.3787 16.0002,3.4077 9.7182,0.0997000000000003z" />
+                      <GeometryDrawing Brush="#FF414141" Geometry="F1M14.1201,10.3652L10.0931,13.2652 10.0931,7.8562 14.1201,5.2212z M9.0861,13.4312L9.0861,13.4552 9.0721,13.4432 9.0581,13.4552 9.0581,13.4312 4.1111,10.2072 4.1111,5.0212 9.1261,7.8222 9.1261,13.4062z M9.1261,1.9112L13.9251,4.2762 9.4481,6.9622 4.6131,4.2042z M15.0001,10.7952L15.0001,3.9172 9.1971,0.856199999999999 3.1441,3.9172 3.1441,10.7952 9.5211,14.8122z" />
+                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M9.126,1.9116L13.925,4.2756 9.448,6.9616 4.613,4.2036z"></GeometryDrawing>
+                      <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M7,4.0303L3,4.0303 0,4.0303 0,9.0303 2,9.0303 3,9.0473 3,9.6163 2,10.6163 2,16.0003 7,16.0003 7,12.0003 7,10.6163 6,9.6163 6,8.0303C6,7.4793 6.449,7.0303 7,7.0303 7.451,7.0303 7.847,7.3403 7.962,7.7833L8.019,8.0003 9.839,8.0003 9.896,7.7903C9.966,7.5283 10,7.2803 10,7.0303 10,5.3763 8.654,4.0303 7,4.0303" />
+                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M9.0859,13.4316L9.0859,13.4546 9.0719,13.4436 9.0589,13.4546 9.0589,13.4316 4.1109,10.2066 4.1109,5.0216 9.1259,7.8216 9.1259,13.4066z"></GeometryDrawing>
+                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M14.1201,10.3652L10.0931,13.2652 10.0931,7.8562 14.1201,5.2212z"></GeometryDrawing>
+                      <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M7,3.9155L3,3.9155 0,3.9155 0,8.9155 2,8.9155 3,8.9315 3,9.5015 2,10.5015 2,15.8845 7,15.8845 7,11.8845 7,10.5015 6,9.5015 6,7.9155C6,7.3635 6.449,6.9155 7,6.9155 7.451,6.9155 7.847,7.2255 7.962,7.6685L8.019,7.8855 9.839,7.8855 9.896,7.6755C9.966,7.4135 10,7.1645 10,6.9155 10,5.2615 8.654,3.9155 7,3.9155" />
+                      <GeometryDrawing Brush="#FF414141" Geometry="F1M5,8.0303C5,6.9263 5.896,6.0303 7,6.0303 7.931,6.0303 8.705,6.6693 8.93,7.5293L8.93,7.5313C8.973,7.3713 9,7.2043 9,7.0303 9,5.9263 8.104,5.0303 7,5.0303L4,5.0303C4,5.5823 3.553,6.0303 3,6.0303 2.957,6.0303 2.918,6.0173 2.876,6.0123L2.876,6.0053C2.639,5.9743 2.428,5.8613 2.271,5.6973 2.236,5.6593 2.211,5.6133 2.182,5.5703 2.075,5.4143 2,5.2353 2,5.0303L1,5.0303 1,8.0303 2,8.0303C2,7.5223,2.385,7.1193,2.876,7.0553L2.876,7.0303 3,7.0303C3.553,7.0303,4,7.4783,4,8.0303L4,10.0303 3,11.0303 3,15.0303 6,15.0303 6,11.0303 5,10.0303z" />
+                    </DrawingGroup.Children>
+                  </DrawingGroup>
                 </DrawingPresenter.Drawing>
               </DrawingPresenter>
               <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
