@@ -1,4 +1,5 @@
 using Avalonia;
+using AvalonStudio.Documents;
 using NBitcoin;
 using ReactiveUI;
 using System;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class TransactionBroadcasterViewModel : WalletActionViewModel
+	public class TransactionBroadcasterViewModel : WalletActionViewModel, IDocumentTabViewModel
 	{
 		private string _transactionString;
 		private string _errorMessage;

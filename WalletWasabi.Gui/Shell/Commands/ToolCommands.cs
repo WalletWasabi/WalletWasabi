@@ -1,4 +1,4 @@
-﻿using AvalonStudio.Commands;
+using AvalonStudio.Commands;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
@@ -7,6 +7,7 @@ using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
+using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Tabs;
 using WalletWasabi.Gui.Tabs.WalletManager;
 
@@ -21,7 +22,13 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 			var transactionBroadcasterCommand = ReactiveCommand.Create(() =>
 			{
-				//IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel());
+				var txbc = IoC.Get<IShell>().Documents.OfType<TransactionBroadcasterViewModel>().FirstOrDefault();
+				if (txbc is null)
+				{
+					txbc = new TransactionBroadcasterViewModel(null);
+					IoC.Get<IShell>().AddDocument(txbc);
+				}
+				IoC.Get<IShell>().Select(txbc);
 			});
 
 			var settingsCommand = ReactiveCommand.Create(() =>
