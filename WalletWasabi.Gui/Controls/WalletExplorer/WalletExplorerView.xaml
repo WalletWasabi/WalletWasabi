@@ -129,7 +129,7 @@
                   </DrawingGroup>
                 </DrawingPresenter.Drawing>
               </DrawingPresenter>
-              <TextBlock Text="Advanced: Info" Height="19" VerticalAlignment="Center" />
+              <TextBlock Text="Wallet Info" Height="19" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
         </TreeDataTemplate>
@@ -159,7 +159,7 @@
                   </DrawingGroup>
                 </DrawingPresenter.Drawing>
               </DrawingPresenter>
-              <TextBlock Text="Advanced: Transaction Broadcaster" Height="19" VerticalAlignment="Center" />
+              <TextBlock Text="Broadcast Transaction" Height="19" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
         </TreeDataTemplate>
