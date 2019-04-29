@@ -1,4 +1,4 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -20,6 +20,13 @@ namespace WalletWasabi.Gui.Converters
 			try
 			{
 				// If minimized, then go with Maximized, because at start it shouldn't run with minimized.
+				if (reader.Value is string s)
+				{
+					if (string.IsNullOrWhiteSpace(s))
+					{
+						return WindowState.Maximized;
+					}
+				}
 				if (reader.Value is null)
 				{
 					return WindowState.Maximized;
