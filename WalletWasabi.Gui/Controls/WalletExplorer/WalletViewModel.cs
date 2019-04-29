@@ -49,7 +49,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Actions.Add(new SendTabViewModel(this, isTransactionBuilder: true));
 			Actions.Add(new TransactionBroadcasterViewModel(this));
 
-			Actions?.OfType<SendTabViewModel>()?.FirstOrDefault()?.DisplayActionTab();
+			Actions?.OfType<SendTabViewModel>()?.FirstOrDefault()?.DisplayActionTab(); // If watchnonly this'll select and open the transaction builder.
 			if (receiveDominant)
 			{
 				Actions?.OfType<CoinJoinTabViewModel>()?.FirstOrDefault()?.DisplayActionTab();
