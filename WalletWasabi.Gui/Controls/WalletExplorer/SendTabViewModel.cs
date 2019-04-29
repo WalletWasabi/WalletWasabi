@@ -279,15 +279,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (IsTransactionBuilder)
 					{
-						var txviewer = IoC.Get<IShell>().Documents.OfType<TransactionViewerViewModel>().FirstOrDefault();
+						var txviewer = IoC.Get<IShell>()?.Documents?.OfType<TransactionViewerViewModel>()?.FirstOrDefault(x => x.Id == Id);
 						if (txviewer is null)
 						{
-							txviewer = new TransactionViewerViewModel(null);
+							txviewer = new TransactionViewerViewModel(Wallet);
 							IoC.Get<IShell>().AddDocument(txviewer);
 						}
 						IoC.Get<IShell>().Select(txviewer);
 
-						txviewer.UpdatePsbt(result.Psbt, result.Transaction);
+						txviewer.Update(result);
 
 						TryResetInputsOnSuccess("Transaction is successfully built!");
 						return;

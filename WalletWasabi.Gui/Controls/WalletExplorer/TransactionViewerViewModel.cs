@@ -79,13 +79,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			return base.OnClose();
 		}
 
-		public void UpdatePsbt(PSBT psbt, SmartTransaction transaction)
+		public void Update(BuildTransactionResult result)
 		{
 			try
 			{
-				PsbtJsonText = psbt.ToString();
-				TransactionHexText = transaction?.Transaction.ToHex();
-				PsbtBase64Text = psbt.ToBase64();
+				PsbtJsonText = result.Psbt.ToString();
+				TransactionHexText = result.Transaction.Transaction.ToHex();
+				PsbtBase64Text = result.Psbt.ToBase64();
 			}
 			catch (Exception ex)
 			{
