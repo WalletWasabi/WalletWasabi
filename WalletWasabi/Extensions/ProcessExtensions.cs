@@ -11,10 +11,9 @@ namespace System.Diagnostics
 	{
 		public static async Task WaitForExitAsync(this Process process, CancellationToken cancellationToken)
 		{
-			while (!cancellationToken.IsCancellationRequested)
+			while (!process.HasExited)
 			{
-				await Task.Delay(500, cancellationToken);
-				if (process.HasExited) break;
+				await Task.Delay(100, cancellationToken);
 			}
 		}
 	}
