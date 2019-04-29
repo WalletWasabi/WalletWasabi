@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 			Observable
 				.Merge(walletManagerCommand.ThrownExceptions)
 				.Merge(settingsCommand.ThrownExceptions)
-				.Subscribe(OnFileOpenException);
+				.Subscribe(OnException);
 
 			WalletManagerCommand = new CommandDefinition(
 				"Wallet Manager",
@@ -54,7 +54,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 			}
 		}
 
-		private void OnFileOpenException(Exception ex)
+		private void OnException(Exception ex)
 		{
 			Logging.Logger.LogError<ToolCommands>(ex);
 		}
