@@ -161,7 +161,11 @@ namespace WalletWasabi.Hwi
 						}
 					))
 					{
-						await process.WaitForExitAsync();
+						using (var cancel = new CancellationTokenSource(TimeSpan.FromSeconds(60)))
+						{
+							await process.WaitForExitAsync(cancel.Token);
+						}
+
 						if (process.ExitCode != 0)
 						{
 							throw new IOException($"Command: {command} exited with exit code: {process.ExitCode}, instead of 0.");
