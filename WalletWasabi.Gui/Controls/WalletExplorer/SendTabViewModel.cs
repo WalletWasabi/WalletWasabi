@@ -81,7 +81,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public SendTabViewModel(WalletViewModel walletViewModel, bool isTransactionBuilder = false)
-			: base(isTransactionBuilder ? "Transaction Builder" : "Send", walletViewModel)
+			: base(isTransactionBuilder ? "Advanced: Transaction Builder" : "Send", walletViewModel)
 		{
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 			Label = "";

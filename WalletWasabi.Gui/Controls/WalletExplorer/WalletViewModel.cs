@@ -39,18 +39,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				new TransactionBroadcasterViewModel(this),
 			};
 
-			Actions[0].DisplayActionTab();
+			Actions?.OfType<SendTabViewModel>()?.FirstOrDefault()?.DisplayActionTab();
 			if (receiveDominant)
 			{
-				Actions[2].DisplayActionTab();
-				Actions[3].DisplayActionTab();
-				Actions[1].DisplayActionTab();
+				Actions?.OfType<CoinJoinTabViewModel>()?.FirstOrDefault()?.DisplayActionTab();
+				Actions?.OfType<HistoryTabViewModel>()?.FirstOrDefault()?.DisplayActionTab();
+				Actions?.OfType<ReceiveTabViewModel>()?.FirstOrDefault()?.DisplayActionTab(); // So receive should be shown to the user.
 			}
 			else
 			{
-				Actions[1].DisplayActionTab();
-				Actions[2].DisplayActionTab();
-				Actions[3].DisplayActionTab();
+				Actions?.OfType<ReceiveTabViewModel>()?.FirstOrDefault()?.DisplayActionTab();
+				Actions?.OfType<CoinJoinTabViewModel>()?.FirstOrDefault()?.DisplayActionTab();
+				Actions?.OfType<HistoryTabViewModel>()?.FirstOrDefault()?.DisplayActionTab(); // So history should be shown to the user.
 			}
 
 			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
