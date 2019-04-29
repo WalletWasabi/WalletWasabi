@@ -289,6 +289,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 						txviewer.UpdatePsbt(result.Psbt, result.Transaction);
 
+						TryResetInputsOnSuccess("Transaction is successfully built!");
 						return;
 					}
 
@@ -340,12 +341,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(signedTransaction));
 
-					ResetMax();
-					Address = "";
-					Label = "";
-					Password = "";
-
-					SetSuccessMessage("Transaction is successfully sent!");
+					TryResetInputsOnSuccess("Transaction is successfully sent!");
 				}
 				catch (InsufficientBalanceException ex)
 				{
@@ -685,6 +681,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IgnoreAmountChanges = false;
 
 			LabelToolTip = "Start labelling today and your privacy will thank you tomorrow!";
+		}
+
+		private void TryResetInputsOnSuccess(string successMessage)
+		{
+			try
+			{
+				ResetMax();
+				Address = "";
+				Label = "";
+				Password = "";
+
+				SetSuccessMessage(successMessage);
+			}
+			catch (Exception ex)
+			{
+				Logging.Logger.LogInfo<SendTabViewModel>(ex);
+			}
 		}
 
 		public CoinListViewModel CoinList { get; }
