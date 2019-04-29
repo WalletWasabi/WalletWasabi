@@ -163,6 +163,14 @@
             </StackPanel>
           </Button>
         </TreeDataTemplate>
+
+        <TreeDataTemplate DataType="ViewModels:WalletAdvancedViewModel" ItemsSource="{Binding Items}">
+          <Button BorderThickness="0" Background="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="Advancede" Height="19" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </TreeDataTemplate>
       </TreeView.DataTemplates>
     </TreeView>
   </Grid>

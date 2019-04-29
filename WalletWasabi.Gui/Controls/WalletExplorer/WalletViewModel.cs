@@ -45,9 +45,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Actions.Add(new ReceiveTabViewModel(this));
 			Actions.Add(new CoinJoinTabViewModel(this));
 			Actions.Add(new HistoryTabViewModel(this));
-			Actions.Add(new WalletInfoViewModel(this));
-			Actions.Add(new SendTabViewModel(this, isTransactionBuilder: true));
-			Actions.Add(new TransactionBroadcasterViewModel(this));
+
+			var advanced = new WalletAdvancedViewModel(this);
+			Actions.Add(advanced);
+			advanced.Items.Add(new WalletInfoViewModel(this));
+			advanced.Items.Add(new SendTabViewModel(this, isTransactionBuilder: true));
+			advanced.Items.Add(new TransactionBroadcasterViewModel(this));
+
+			// Open and select tabs.
 
 			Actions?.OfType<SendTabViewModel>()?.FirstOrDefault()?.DisplayActionTab();
 			if (receiveDominant)
