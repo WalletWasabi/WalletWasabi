@@ -30,7 +30,11 @@ namespace WalletWasabi.Hwi
 		public static async Task<bool> SetupAsync(HardwareWalletInfo hardwareWalletInfo)
 		{
 			var networkString = Network == Network.Main ? "" : "--testnet";
-			JToken jtok = await SendCommandAsync($"{networkString} --device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" --interactive setup");
+			JToken jtok = null;
+			using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
+			{
+				jtok = await SendCommandAsync($"{networkString} --device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" --interactive setup", cts.Token);
+			}
 			JObject json = jtok as JObject;
 			var success = json.Value<bool>("success");
 			return success;
@@ -42,7 +46,11 @@ namespace WalletWasabi.Hwi
 			var networkString = Network == Network.Main ? "" : "--testnet";
 			try
 			{
-				JToken jtok = await SendCommandAsync($"{networkString} --device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" signtx {psbtString}", isMutexPriority: true);
+				JToken jtok = null;
+				using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
+				{
+					jtok = await SendCommandAsync($"{networkString} --device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" signtx {psbtString}", cts.Token, isMutexPriority: true);
+				}
 				JObject json = jtok as JObject;
 				var signedPsbtString = json.Value<string>("psbt");
 				var signedPsbt = PSBT.Parse(signedPsbtString, Network);
@@ -74,7 +82,11 @@ namespace WalletWasabi.Hwi
 		public static async Task<ExtPubKey> GetXpubAsync(HardwareWalletInfo hardwareWalletInfo)
 		{
 			var networkString = Network == Network.Main ? "" : "--testnet ";
-			JToken jtok = await SendCommandAsync($"{networkString}--device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" getxpub m/84h/0h/0h");
+			JToken jtok = null;
+			using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(60)))
+			{
+				jtok = await SendCommandAsync($"{networkString}--device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" getxpub m/84h/0h/0h", cts.Token);
+			}
 			JObject json = jtok as JObject;
 			string xpub = json.Value<string>("xpub");
 
@@ -85,7 +97,11 @@ namespace WalletWasabi.Hwi
 
 		public static async Task<IEnumerable<HardwareWalletInfo>> EnumerateAsync()
 		{
-			JToken jtok = await SendCommandAsync("enumerate");
+			JToken jtok = null;
+			using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(60)))
+			{
+				jtok = await SendCommandAsync("enumerate", cts.Token);
+			}
 			JArray jarr = jtok as JArray;
 			var hwis = new List<HardwareWalletInfo>();
 			foreach (JObject json in jarr)
@@ -105,9 +121,16 @@ namespace WalletWasabi.Hwi
 			return hwis;
 		}
 
-		public static async Task<JToken> SendCommandAsync(string command, bool isMutexPriority = false)
+		/// <summary>
+		/// Sends command using the hwi process.
+		/// </summary>
+		/// <param name="cancellationToken">Cancel the current operation.</param>
+		/// <param name="command">Command to send in string format.</param>
+		/// <param name="isMutexPriority">You can add priority to your command among hwi calls. For example if multiply wasabi instances are running both use the same hwi process with isMutexPriority you will more likely to get it.</param>
+		/// <returns></returns>
+		public static async Task<JToken> SendCommandAsync(string command, CancellationToken cancellationToken, bool isMutexPriority = false)
 		{
-			using (await AsyncLock.LockAsync())
+			using (await AsyncLock.LockAsync(cancellationToken))
 			using (var mutex = new Mutex(false, MutexName)) // It could be even improved more if this Mutex would also look at which hardware wallet the operation is going towards (enumerate sends to all.)
 			{
 				var mutexAcquired = false;
@@ -122,7 +145,7 @@ namespace WalletWasabi.Hwi
 						if (!mutexAcquired)
 						{
 							var rand = Random.Next(1, 100);
-							await Task.Delay(isMutexPriority ? (100 + rand) : (1000 + rand));
+							await Task.Delay(isMutexPriority ? (100 + rand) : (1000 + rand), cancellationToken);
 						}
 						else
 						{
@@ -161,10 +184,7 @@ namespace WalletWasabi.Hwi
 						}
 					))
 					{
-						using (var cancel = new CancellationTokenSource(TimeSpan.FromSeconds(60)))
-						{
-							await process.WaitForExitAsync(cancel.Token);
-						}
+						await process.WaitForExitAsync(cancellationToken);
 
 						if (process.ExitCode != 0)
 						{
