@@ -19,6 +19,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableCollection<WalletActionViewModel> _actions;
 
 		private string _title;
+		private bool _isExpanded;
+
+		public bool IsExpanded
+		{
+			get => _isExpanded;
+			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
+		}
 
 		public WalletViewModel(WalletService walletService, bool receiveDominant)
 			: base(Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath))
@@ -94,6 +101,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				SetBalance(Name);
 			}).DisposeWith(Disposables);
+
+			IsExpanded = true;
 		}
 
 		public void OnWalletClosed()

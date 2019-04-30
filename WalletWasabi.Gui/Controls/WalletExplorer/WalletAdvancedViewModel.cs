@@ -1,5 +1,6 @@
 using ReactiveUI;
 using System.Collections.ObjectModel;
+using System.Reactive;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -7,9 +8,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private ObservableCollection<WalletActionViewModel> _items;
 
+		private bool _isExpanded;
+
+		public ReactiveCommand<Unit, Unit> ExpandItCommand { get; }
+
+		public bool IsExpanded
+		{
+			get => _isExpanded;
+			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
+		}
+
 		public WalletAdvancedViewModel(WalletViewModel walletViewModel) : base(walletViewModel.Name, walletViewModel)
 		{
 			Items = new ObservableCollection<WalletActionViewModel>();
+			ExpandItCommand = ReactiveCommand.Create(() => { IsExpanded = !IsExpanded; });
 		}
 
 		public ObservableCollection<WalletActionViewModel> Items

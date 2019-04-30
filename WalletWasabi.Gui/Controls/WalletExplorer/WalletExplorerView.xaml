@@ -5,7 +5,7 @@
     <TreeView BorderThickness="0" Items="{Binding Wallets}" SelectedItem="{Binding SelectedItem}">
       <TreeView.Styles>
         <Style Selector="TreeViewItem">
-          <Setter Property="IsExpanded" Value="True" />
+          <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
         </Style>
       </TreeView.Styles>
       <TreeView.DataTemplates>
@@ -165,7 +165,7 @@
         </TreeDataTemplate>
 
         <TreeDataTemplate DataType="ViewModels:WalletAdvancedViewModel" ItemsSource="{Binding Items}">
-          <Button BorderThickness="0" Background="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+          <Button BorderThickness="0" Background="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding ExpandItCommand}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <DrawingPresenter Width="20" Height="20">
                 <DrawingPresenter.Drawing>
