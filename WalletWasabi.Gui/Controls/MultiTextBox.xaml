@@ -84,7 +84,4 @@
   <!--<Style Selector="controls|MultiTextBox">
     <Setter Property="Cursor" Value="IBeam" />
   </Style>-->
-  <Style Selector="TextPresenter">
-    <Setter Property="Cursor" Value="IBeam" />
-  </Style>
 </Styles>

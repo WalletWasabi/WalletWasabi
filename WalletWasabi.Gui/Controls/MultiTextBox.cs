@@ -99,6 +99,10 @@ namespace WalletWasabi.Gui.Controls
 			base.OnTemplateApplied(e);
 			var text = e.NameScope.Get<TextPresenter>("PART_TextPresenter");
 			var border = e.NameScope.Get<Border>("border");
+			if (!IsSelectable)
+			{
+				text.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Ibeam);
+			}
 
 			Observable.FromEventPattern(text, nameof(text.PointerPressed))
 				.Merge(Observable.FromEventPattern(border, nameof(text.PointerPressed)))
