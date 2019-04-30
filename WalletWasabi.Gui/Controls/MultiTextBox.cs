@@ -91,9 +91,21 @@ namespace WalletWasabi.Gui.Controls
 
 			Observable.FromEventPattern(text, nameof(text.PointerPressed))
 				.Merge(Observable.FromEventPattern(border, nameof(text.PointerPressed)))
-				.Subscribe(async _ =>
+				.Throttle(TimeSpan.FromMilliseconds(500))
+				.Subscribe(async x =>
 				{
-					await OnClickedAsync();
+					try
+					{
+						var eargs = x.EventArgs as Avalonia.Input.PointerPressedEventArgs;
+						if (eargs.MouseButton == Avalonia.Input.MouseButton.Left)
+						{
+							await OnClickedAsync();
+						}
+					}
+					catch (Exception ex)
+					{
+						Logging.Logger.LogInfo<MultiTextBox>(ex);
+					}
 				}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.ClipboardNotificationVisible).Subscribe(visible =>
