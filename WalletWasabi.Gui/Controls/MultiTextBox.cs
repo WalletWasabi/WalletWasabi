@@ -4,6 +4,7 @@ using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Styling;
+using Avalonia.Threading;
 using ReactiveUI;
 using System;
 using System.Reactive;
@@ -91,7 +92,7 @@ namespace WalletWasabi.Gui.Controls
 
 			Observable.FromEventPattern(text, nameof(text.PointerPressed))
 				.Merge(Observable.FromEventPattern(border, nameof(text.PointerPressed)))
-				.Throttle(TimeSpan.FromMilliseconds(500))
+				.Throttle(TimeSpan.FromMilliseconds(500), RxApp.MainThreadScheduler)
 				.Subscribe(async x =>
 				{
 					try
