@@ -17,7 +17,7 @@
       </Grid.RowDefinitions>
 
       <DockPanel Grid.Row="0" LastChildFill="True" Margin="0 8">
-        <controls:MultiTextBox  Text="{Binding PsbtJsonText}" CopyOnClick="False" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
+        <controls:MultiTextBox  Text="{Binding PsbtJsonText}" CopyOnClick="True" IsSelectable="False" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
       </DockPanel>
 
       <DockPanel Grid.Row="1" LastChildFill="True" Margin="0 8">

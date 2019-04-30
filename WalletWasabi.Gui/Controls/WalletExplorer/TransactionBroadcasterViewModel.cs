@@ -145,6 +145,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				await Task.Run(async () => await Global.WalletService.SendTransactionAsync(transaction));
 
 				SuccessMessage = "Transaction is successfully sent!";
+				TransactionString = "";
 			}
 			catch (Exception ex)
 			{
