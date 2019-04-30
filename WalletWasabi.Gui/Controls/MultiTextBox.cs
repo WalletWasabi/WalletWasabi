@@ -99,14 +99,14 @@ namespace WalletWasabi.Gui.Controls
 			base.OnTemplateApplied(e);
 			var text = e.NameScope.Get<TextPresenter>("PART_TextPresenter");
 			var border = e.NameScope.Get<Border>("border");
-			if (!IsSelectable)
+			if (IsSelectable)
 			{
 				text.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Ibeam);
 			}
 
 			Observable.FromEventPattern(text, nameof(text.PointerPressed))
 				.Merge(Observable.FromEventPattern(border, nameof(text.PointerPressed)))
-				.Throttle(TimeSpan.FromMilliseconds(500), RxApp.MainThreadScheduler)
+				.Throttle(TimeSpan.FromMilliseconds(100), RxApp.MainThreadScheduler)
 				.Subscribe(async x =>
 				{
 					try
@@ -132,7 +132,8 @@ namespace WalletWasabi.Gui.Controls
 			{
 				if (!IsSelectable)
 				{
-					SelectionStart = 0;
+					SelectionEnd = CaretIndex;
+					SelectionStart = CaretIndex;
 				}
 			});
 
@@ -140,7 +141,8 @@ namespace WalletWasabi.Gui.Controls
 			{
 				if (!IsSelectable)
 				{
-					SelectionEnd = 0;
+					SelectionEnd = CaretIndex;
+					SelectionStart = CaretIndex;
 				}
 			});
 		}
@@ -227,7 +229,22 @@ namespace WalletWasabi.Gui.Controls
 
 		protected override Task CopyAsync()
 		{
-			return CopyToClipboardAsync();
+			if (IsSelectable)
+			{
+				var selection = GetSelection();
+				if (string.IsNullOrWhiteSpace(selection))
+				{
+					return CopyToClipboardAsync();
+				}
+				else
+				{
+					return base.CopyAsync();
+				}
+			}
+			else
+			{
+				return CopyToClipboardAsync();
+			}
 		}
 
 		protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)

@@ -78,7 +78,7 @@ namespace WalletWasabi.Gui.Controls
 			OnTextInput(new TextInputEventArgs { Text = text });
 		}
 
-		private string GetSelection()
+		protected string GetSelection()
 		{
 			var text = Text;
 
@@ -130,7 +130,7 @@ namespace WalletWasabi.Gui.Controls
 		{
 			return new DrawingPresenter {
 				Drawing = new GeometryDrawing {
-					Brush = Brushes.LightGray,
+					Brush = Brush.Parse("#22B14C"),
 					Geometry = CopyIcon
 				},
 				Width = 16,
