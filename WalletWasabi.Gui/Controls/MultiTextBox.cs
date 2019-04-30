@@ -164,13 +164,16 @@ namespace WalletWasabi.Gui.Controls
 		{
 			try
 			{
-				if (CopyOnClick)
+				if (Global.UiConfig?.Autocopy is true)
 				{
-					await CopyToClipboardAsync();
-				}
-				if (PasteOnClick)
-				{
-					await PasteFromClipboardAsync();
+					if (CopyOnClick)
+					{
+						await CopyToClipboardAsync();
+					}
+					if (PasteOnClick)
+					{
+						await PasteFromClipboardAsync();
+					}
 				}
 			}
 			catch (Exception ex)
