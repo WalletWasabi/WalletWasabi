@@ -142,7 +142,7 @@ namespace WalletWasabi.Gui.Controls
 		{
 			return new DrawingPresenter {
 				Drawing = new GeometryDrawing {
-					Brush = Brushes.LightGray,
+					Brush = Brush.Parse("#22B14C"),
 					Geometry = PasteIcon
 				},
 				Width = 16,
