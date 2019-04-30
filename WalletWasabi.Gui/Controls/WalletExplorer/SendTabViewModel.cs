@@ -56,8 +56,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _amountToolTip;
 		private bool _isBusy;
 		private bool _isHardwareBusy;
-		private string _warningMessage;
-		private string _successMessage;
 		private const string SendTransactionButtonTextString = "Send Transaction";
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
 		private const string SendingTransactionButtonTextString = "Sending Transaction...";
@@ -625,36 +623,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private void SetWarningMessage(string message)
-		{
-			SuccessMessage = "";
-			WarningMessage = message;
-
-			Dispatcher.UIThread.PostLogException(async () =>
-			{
-				await Task.Delay(7000);
-				if (WarningMessage == message)
-				{
-					WarningMessage = "";
-				}
-			});
-		}
-
-		private void SetSuccessMessage(string message)
-		{
-			SuccessMessage = message;
-			WarningMessage = "";
-
-			Dispatcher.UIThread.PostLogException(async () =>
-			{
-				await Task.Delay(7000);
-				if (SuccessMessage == message)
-				{
-					SuccessMessage = "";
-				}
-			});
-		}
-
 		private void SetMax()
 		{
 			if (IsMax)
@@ -722,12 +690,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private async Task DoDequeueAsync(IEnumerable<CoinViewModel> selectedCoins)
 		{
-			WarningMessage = "";
-
 			if (!selectedCoins.Any())
 			{
 				SetWarningMessage("No coins are selected to dequeue.");
 				return;
+			}
+			else
+			{
+				SetWarningMessage("");
 			}
 
 			try
@@ -962,18 +932,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _labelToolTip;
 			set => this.RaiseAndSetIfChanged(ref _labelToolTip, value);
-		}
-
-		public string WarningMessage
-		{
-			get => _warningMessage;
-			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
-		}
-
-		public string SuccessMessage
-		{
-			get => _successMessage;
-			set => this.RaiseAndSetIfChanged(ref _successMessage, value);
 		}
 
 		public string FeeToolTip

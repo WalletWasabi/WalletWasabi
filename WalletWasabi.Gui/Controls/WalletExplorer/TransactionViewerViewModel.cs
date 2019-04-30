@@ -12,8 +12,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class TransactionViewerViewModel : WalletActionViewModel
 	{
-		private string _errorMessage;
-		private string _successMessage;
 		private string _psbtJsonText;
 		private string _psbtHexText;
 		private string _psbtBase64Text;
@@ -38,25 +36,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _psbtBase64Text, value);
 		}
 
-		public string ErrorMessage
-		{
-			get => _errorMessage;
-			set => this.RaiseAndSetIfChanged(ref _errorMessage, value);
-		}
-
-		public string SuccessMessage
-		{
-			get => _successMessage;
-			set => this.RaiseAndSetIfChanged(ref _successMessage, value);
-		}
-
 		public TransactionViewerViewModel(WalletViewModel walletViewModel) : base("Transaction", walletViewModel)
 		{
 		}
 
 		private void OnException(Exception ex)
 		{
-			ErrorMessage = ex.ToTypeMessageString();
+			SetWarningMessage(ex.ToTypeMessageString());
 		}
 
 		public override void OnOpen()

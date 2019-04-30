@@ -14,8 +14,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	public class TransactionBroadcasterViewModel : WalletActionViewModel, IDocumentTabViewModel
 	{
 		private string _transactionString;
-		private string _errorMessage;
-		private string _successMessage;
 		private bool _isBusy;
 		private string _buttonText;
 		private int _caretIndex;
@@ -28,18 +26,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _transactionString;
 			set => this.RaiseAndSetIfChanged(ref _transactionString, value);
-		}
-
-		public string ErrorMessage
-		{
-			get => _errorMessage;
-			set => this.RaiseAndSetIfChanged(ref _errorMessage, value);
-		}
-
-		public string SuccessMessage
-		{
-			get => _successMessage;
-			set => this.RaiseAndSetIfChanged(ref _successMessage, value);
 		}
 
 		public bool IsBusy
@@ -87,7 +73,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void OnException(Exception ex)
 		{
-			ErrorMessage = ex.ToTypeMessageString();
+			SetWarningMessage(ex.ToTypeMessageString());
 		}
 
 		public override void OnOpen()
@@ -144,7 +130,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				await Task.Run(async () => await Global.WalletService.SendTransactionAsync(transaction));
 
-				SuccessMessage = "Transaction is successfully sent!";
+				SetSuccessMessage("Transaction is successfully sent!");
 				TransactionString = "";
 			}
 			catch (Exception ex)
