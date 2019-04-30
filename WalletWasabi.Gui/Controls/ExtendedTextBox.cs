@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
@@ -101,7 +101,7 @@ namespace WalletWasabi.Gui.Controls
 			return text.Substring(start, end - start);
 		}
 
-		private async Task CopyAsync()
+		protected virtual async Task CopyAsync()
 		{
 			var selection = GetSelection();
 
@@ -128,10 +128,8 @@ namespace WalletWasabi.Gui.Controls
 
 		private static DrawingPresenter GetCopyPresenter()
 		{
-			return new DrawingPresenter
-			{
-				Drawing = new GeometryDrawing
-				{
+			return new DrawingPresenter {
+				Drawing = new GeometryDrawing {
 					Brush = Brushes.LightGray,
 					Geometry = CopyIcon
 				},
@@ -142,10 +140,8 @@ namespace WalletWasabi.Gui.Controls
 
 		private static DrawingPresenter GetPastePresenter()
 		{
-			return new DrawingPresenter
-			{
-				Drawing = new GeometryDrawing
-				{
+			return new DrawingPresenter {
+				Drawing = new GeometryDrawing {
 					Brush = Brushes.LightGray,
 					Geometry = PasteIcon
 				},
@@ -158,8 +154,7 @@ namespace WalletWasabi.Gui.Controls
 		{
 			base.OnTemplateApplied(e);
 
-			ContextMenu = new ContextMenu
-			{
+			ContextMenu = new ContextMenu {
 				DataContext = this,
 				Items = new Avalonia.Controls.Controls()
 			};

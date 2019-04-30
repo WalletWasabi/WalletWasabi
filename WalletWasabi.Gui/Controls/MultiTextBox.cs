@@ -39,6 +39,9 @@ namespace WalletWasabi.Gui.Controls
 		public static readonly StyledProperty<bool> TextVisibleProperty =
 		AvaloniaProperty.Register<MultiTextBox, bool>(nameof(TextVisible), defaultBindingMode: BindingMode.TwoWay);
 
+		public static readonly StyledProperty<bool> IsSelectableProperty =
+		AvaloniaProperty.Register<MultiTextBox, bool>(nameof(IsSelectable), defaultBindingMode: BindingMode.TwoWay);
+
 		public bool ClipboardNotificationVisible
 		{
 			get => GetValue(ClipboardNotificationVisibleProperty);
@@ -69,12 +72,19 @@ namespace WalletWasabi.Gui.Controls
 			set => SetValue(TextVisibleProperty, value);
 		}
 
+		public bool IsSelectable
+		{
+			get => GetValue(IsSelectableProperty);
+			set => SetValue(IsSelectableProperty, value);
+		}
+
 		public ReactiveCommand<Unit, Unit> CopyToClipboardCommand { get; }
 
 		public MultiTextBox()
 		{
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
+			IsSelectable = true;
 
 			Disposables = new CompositeDisposable();
 
@@ -112,6 +122,22 @@ namespace WalletWasabi.Gui.Controls
 			this.WhenAnyValue(x => x.ClipboardNotificationVisible).Subscribe(visible =>
 			{
 				TextVisible = !visible;
+			});
+
+			this.WhenAnyValue(x => x.SelectionStart).Subscribe(s =>
+			{
+				if (!IsSelectable)
+				{
+					SelectionStart = 0;
+				}
+			});
+
+			this.WhenAnyValue(x => x.SelectionEnd).Subscribe(s =>
+			{
+				if (!IsSelectable)
+				{
+					SelectionEnd = 0;
+				}
 			});
 		}
 
@@ -193,6 +219,11 @@ namespace WalletWasabi.Gui.Controls
 			{
 				Logging.Logger.LogWarning<MultiTextBox>(ex);
 			}
+		}
+
+		protected override Task CopyAsync()
+		{
+			return CopyToClipboardAsync();
 		}
 
 		protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
