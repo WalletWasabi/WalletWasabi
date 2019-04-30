@@ -7,6 +7,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -117,24 +118,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			return base.OnClose();
 		}
 
-		private async Task OnTransactionTextChangedAsync(string text)
-		{
-			try
-			{
-				if (string.IsNullOrWhiteSpace(text))
-				{
-					TransactionString = "";
-					return;
-				}
-
-				await BroadcastTransactionCommand.Execute();
-			}
-			catch (Exception ex)
-			{
-				OnException(ex);
-			}
-		}
-
 		private async Task OnDoTransactionBroadcastAsync()
 		{
 			try
@@ -142,15 +125,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				IsBusy = true;
 				ButtonText = "Broadcasting Transaction...";
 
-				var signedPsbt = PSBT.Parse(TransactionString, Global.WalletService.Network);
-
-				if (!signedPsbt.IsAllFinalized())
+				SmartTransaction transaction;
+				try
 				{
-					signedPsbt.Finalize();
+					var signedPsbt = PSBT.Parse(TransactionString, Global.WalletService?.Network ?? Network.Main);
+
+					if (!signedPsbt.IsAllFinalized())
+					{
+						signedPsbt.Finalize();
+					}
+
+					transaction = signedPsbt.ExtractSmartTransaction();
+				}
+				catch
+				{
+					transaction = new SmartTransaction(Transaction.Parse(TransactionString, Global.WalletService?.Network ?? Network.Main), WalletWasabi.Models.Height.Unknown);
 				}
 
-				var signedTransaction = signedPsbt.ExtractSmartTransaction();
-				await Task.Run(async () => await Global.WalletService.SendTransactionAsync(signedTransaction));
+				await Task.Run(async () => await Global.WalletService.SendTransactionAsync(transaction));
 
 				SuccessMessage = "Transaction is successfully sent!";
 			}
