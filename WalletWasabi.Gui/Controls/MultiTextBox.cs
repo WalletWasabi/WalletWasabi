@@ -91,7 +91,7 @@ namespace WalletWasabi.Gui.Controls
 
 			CopyToClipboardCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				await CopyToClipboardAsync();
+				await TryCopyToClipboardAsync();
 			});
 		}
 
@@ -135,7 +135,7 @@ namespace WalletWasabi.Gui.Controls
 			});
 		}
 
-		public async Task CopyToClipboardAsync()
+		public async Task TryCopyToClipboardAsync()
 		{
 			try
 			{
@@ -180,7 +180,7 @@ namespace WalletWasabi.Gui.Controls
 			}
 		}
 
-		public async Task PasteFromClipboardAsync()
+		public async Task TryPasteFromClipboardAsync()
 		{
 			try
 			{
@@ -203,11 +203,11 @@ namespace WalletWasabi.Gui.Controls
 				{
 					if (CopyOnClick)
 					{
-						await CopyToClipboardAsync();
+						await TryCopyToClipboardAsync();
 					}
 					if (PasteOnClick)
 					{
-						await PasteFromClipboardAsync();
+						await TryPasteFromClipboardAsync();
 					}
 				}
 			}
@@ -224,7 +224,7 @@ namespace WalletWasabi.Gui.Controls
 				var selection = GetSelection();
 				if (string.IsNullOrWhiteSpace(selection))
 				{
-					return CopyToClipboardAsync();
+					return TryCopyToClipboardAsync();
 				}
 				else
 				{
@@ -233,7 +233,7 @@ namespace WalletWasabi.Gui.Controls
 			}
 			else
 			{
-				return CopyToClipboardAsync();
+				return TryCopyToClipboardAsync();
 			}
 		}
 
