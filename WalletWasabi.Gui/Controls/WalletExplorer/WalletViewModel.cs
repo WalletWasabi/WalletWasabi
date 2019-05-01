@@ -38,41 +38,51 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Actions = new ObservableCollection<WalletActionViewModel>();
 
+			SendTabViewModel sendTab = null;
 			// If hardware wallet then we need the Send tab.
 			if (walletService?.KeyManager?.IsHardwareWallet is true)
 			{
-				Actions.Add(new SendTabViewModel(this));
+				sendTab = new SendTabViewModel(this);
+				Actions.Add(sendTab);
 			}
 			// If not hardware wallet, but neither watch only then we also need the send tab.
 			else if (walletService?.KeyManager?.IsWatchOnly is false)
 			{
-				Actions.Add(new SendTabViewModel(this));
+				sendTab = new SendTabViewModel(this);
+				Actions.Add(sendTab);
 			}
 
-			Actions.Add(new ReceiveTabViewModel(this));
-			Actions.Add(new CoinJoinTabViewModel(this));
-			Actions.Add(new HistoryTabViewModel(this));
+			ReceiveTabViewModel receiveTab = new ReceiveTabViewModel(this);
+			CoinJoinTabViewModel coinjoinTab = new CoinJoinTabViewModel(this);
+			HistoryTabViewModel historyTab = new HistoryTabViewModel(this);
 
-			var advanced = new WalletAdvancedViewModel(this);
-			Actions.Add(advanced);
-			advanced.Items.Add(new WalletInfoViewModel(this));
-			advanced.Items.Add(new SendTabViewModel(this, isTransactionBuilder: true));
-			advanced.Items.Add(new TransactionBroadcasterViewModel(this));
+			var advancedAction = new WalletAdvancedViewModel(this);
+			WalletInfoViewModel infoTab = new WalletInfoViewModel(this);
+			SendTabViewModel buildTab = new SendTabViewModel(this, isTransactionBuilder: true);
+			TransactionBroadcasterViewModel broadcastTab = new TransactionBroadcasterViewModel(this);
+
+			Actions.Add(receiveTab);
+			Actions.Add(coinjoinTab);
+			Actions.Add(historyTab);
+
+			Actions.Add(advancedAction);
+			advancedAction.Items.Add(infoTab);
+			advancedAction.Items.Add(buildTab);
+			advancedAction.Items.Add(broadcastTab);
 
 			// Open and select tabs.
-
-			Actions?.OfType<SendTabViewModel>()?.FirstOrDefault()?.DisplayActionTab(); // If watchnonly this'll select and open the transaction builder.
+			sendTab?.DisplayActionTab();
 			if (receiveDominant)
 			{
-				Actions?.OfType<CoinJoinTabViewModel>()?.FirstOrDefault()?.DisplayActionTab();
-				Actions?.OfType<HistoryTabViewModel>()?.FirstOrDefault()?.DisplayActionTab();
-				Actions?.OfType<ReceiveTabViewModel>()?.FirstOrDefault()?.DisplayActionTab(); // So receive should be shown to the user.
+				coinjoinTab.DisplayActionTab();
+				historyTab.DisplayActionTab();
+				receiveTab.DisplayActionTab(); // So receive should be shown to the user.
 			}
 			else
 			{
-				Actions?.OfType<ReceiveTabViewModel>()?.FirstOrDefault()?.DisplayActionTab();
-				Actions?.OfType<CoinJoinTabViewModel>()?.FirstOrDefault()?.DisplayActionTab();
-				Actions?.OfType<HistoryTabViewModel>()?.FirstOrDefault()?.DisplayActionTab(); // So history should be shown to the user.
+				receiveTab.DisplayActionTab();
+				coinjoinTab.DisplayActionTab();
+				historyTab.DisplayActionTab(); // So history should be shown to the user.
 			}
 
 			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
