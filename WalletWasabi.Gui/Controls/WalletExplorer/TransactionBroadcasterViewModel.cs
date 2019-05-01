@@ -86,12 +86,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Disposables = new CompositeDisposable();
 
-			// Automatic sending after Text change removed for now.
-
-			//this.WhenAnyValue(x => x.TransactionString)
-			//	.Throttle(TimeSpan.FromSeconds(1))
-			//	.Subscribe(async (text) => await OnTransactionTextChangedAsync(text));
-
 			base.OnOpen();
 		}
 
