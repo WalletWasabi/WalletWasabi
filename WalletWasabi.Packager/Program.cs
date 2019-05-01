@@ -668,6 +668,28 @@ namespace WalletWasabi.Packager
 					Directory.Move(publishedFolder, newFolderPath);
 					publishedFolder = newFolderPath;
 
+					var assetsUdevRulesFolder = Path.Combine(GuiProjectDirectory, "Assets", "udev");
+					var assetsUdevRulesInfo = new DirectoryInfo(assetsUdevRulesFolder);
+					var tarUdevFolder = Path.Combine(publishedFolder, "udev");
+					Directory.CreateDirectory(tarUdevFolder);
+					foreach (var file in assetsUdevRulesInfo.EnumerateFiles())
+					{
+						file.CopyTo(Path.Combine(tarUdevFolder, file.Name));
+					}
+
+					var installUdevsScriptPath = Path.Combine(tarUdevFolder, "install-udevs.sh");
+					var installUdevsScriptContent = $"#!/bin/bash\n\n" +
+												"if [[ $EUID -ne 0 ]]; then\n" +
+												"  echo \"Please run as root\"\n" +
+												"  exit\n" +
+												"fi\n" +
+												"cp -r ./ /etc/udev/rules.d/\n" +
+												"groupadd plugdev &>/dev/null\n" +
+												"usermod -aG plugdev `logname` &>/dev/null\n" +
+												"udevadm trigger\n" +
+												"udevadm control --reload-rules\n";
+					File.WriteAllText(installUdevsScriptPath, installUdevsScriptContent, Encoding.ASCII);
+
 					using (var process = Process.Start(new ProcessStartInfo {
 						FileName = "cmd",
 						RedirectStandardInput = true,
@@ -718,8 +740,6 @@ namespace WalletWasabi.Packager
 						}
 					}
 
-					var assetsUdevRulesFolder = Path.Combine(GuiProjectDirectory, "Assets", "udev");
-					var assetsUdevRulesInfo = new DirectoryInfo(assetsUdevRulesFolder);
 					foreach (var file in assetsUdevRulesInfo.EnumerateFiles())
 					{
 						file.CopyTo(Path.Combine(debEtcUdevRulesFolderPath, file.Name));
@@ -759,12 +779,10 @@ namespace WalletWasabi.Packager
 
 					var postInitScriptPath = Path.Combine(debianFolderPath, "postinit");
 					var postInitScriptContent = $"#!/bin/sh\n" +
-												"PLUGDEV_GROUP=`groups | grep plugdev`\n" +
-												"LOGGED_IN_GROUP=`groups $(logname) | grep plugdev`\n" +
-												"if [ -z \"$PLUGDEV_GROUP\" ]; then groupadd plugdev; fi\n" +
-												"if [ -z \"$LOGGED_IN_GROUP\" ]; then usermod -aG plugdev `logname`; fi\n" +
+												"groupadd plugdev &>/dev/null\n" +
+												"usermod -aG plugdev `logname` &>/dev/null\n" +
 												"udevadm trigger\n" +
-												"udevadm control --reload-rules¬";
+												"udevadm control --reload-rules\n";
 
 					File.WriteAllText(postInitScriptPath, postInitScriptContent, Encoding.ASCII);
 
