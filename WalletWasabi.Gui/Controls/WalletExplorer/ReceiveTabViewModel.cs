@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls.Notifications;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using ReactiveUI;
@@ -45,7 +46,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Label = Label.Trim(',', ' ').Trim();
 				if (string.IsNullOrWhiteSpace(Label))
 				{
-					Application.Current.MainWindow.LocalNotificationManager?.Show("Test", "Main");
+					MainWindowViewModel.Instance.NotificationManager?.Show(new NotificationContent { Title = "Warning!", Message = "Label Is Required!", Type = NotificationType.Information });
 					LabelRequiredNotificationVisible = true;
 					LabelRequiredNotificationOpacity = 1;
 
@@ -77,9 +78,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					Label = "";
 				});
-
-
-				Application.Current.MainWindow.LocalNotificationManager?.Show("Test", "Main");
 			});
 
 			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));

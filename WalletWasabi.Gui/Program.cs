@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Threading;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
@@ -21,13 +21,13 @@ namespace WalletWasabi.Gui
 #pragma warning restore IDE1006 // Naming Styles
 		{
 			StatusBarViewModel statusBar = null;
-			bool runGui = false;
+			bool runGui = true;
 			try
 			{
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-				runGui = await CommandInterpreter.ExecuteCommandsAsync(args);
+				//runGui = await CommandInterpreter.ExecuteCommandsAsync(args);
 				if (!runGui)
 				{
 					return;
@@ -94,7 +94,7 @@ namespace WalletWasabi.Gui
 			{
 				result
 					.UseWin32()
-					.UseSkia();
+					.UseDirect2D1();
 			}
 			else
 			{

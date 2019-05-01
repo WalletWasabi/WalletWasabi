@@ -54,7 +54,7 @@ namespace WalletWasabi.Gui.ViewModels
 			internal set => this.RaiseAndSetIfChanged(ref _statusBar, value);
 		}
 
-		public INotificationManager LocalNotificationManager
+		public INotificationManager NotificationManager
 		{
 			get { return _localNotificationManager; }
 			set { this.RaiseAndSetIfChanged(ref _localNotificationManager, value); }

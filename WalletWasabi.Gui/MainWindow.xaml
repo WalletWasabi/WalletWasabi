@@ -18,7 +18,9 @@
                       Width ="{Binding Width}" Height ="{Binding Height}"
                       WindowState ="{Binding WindowState}"
                       UseLayoutRounding="True" RenderOptions.BitmapInterpolationMode="HighQuality"
-                      id:DragBehavior.IsEnabled="False" id:DropBehavior.IsEnabled="False" LocalNotificationManager="{Binding LocalNotificationManager, Mode=TwoWay}">
+                      id:DragBehavior.IsEnabled="False" id:DropBehavior.IsEnabled="False" 
+                      LocalNotificationManager="{Binding NotificationManager, Mode=OneWayToSource}"
+                      NotificationArea.Position="TopRight" NotificationArea.MaxItems="4">
   <cont:MetroWindow.TitleBarContent>
     <menu:MainMenuView DataContext="{Binding Shell.MainMenu}" Margin="4 0 0 0"  Foreground="{DynamicResource ThemeForegroundBrush}" VerticalAlignment="Stretch" FontSize="13" />
   </cont:MetroWindow.TitleBarContent>
@@ -37,6 +39,5 @@
       <shell:ShellView DataContext="{Binding Shell}" />
     </DockPanel>
     <wasabi:ModalDialog DataContext="{Binding ModalDialog}" />
-    <NotificationArea Name="Main" Position="TopRight" MaxItems="3" />
   </Panel>
 </cont:MetroWindow>
