@@ -61,9 +61,7 @@ namespace WalletWasabi.Gui.Behaviors
 
 		public async Task<(bool isAddress, string address)> IsThereABitcoinAddressOnTheClipboardAsync()
 		{
-			var clipboard = (IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard));
-			Task<string> clipboardTask = clipboard.GetTextAsync();
-			string text = await clipboardTask;
+			string text = await Application.Current.Clipboard.GetTextAsync();
 			if (string.IsNullOrEmpty(text) || text.Length > 100)
 			{
 				return (false, null);

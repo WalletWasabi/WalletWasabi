@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
@@ -220,9 +220,7 @@ namespace WalletWasabi.Gui.Controls
 
 				if (paste)
 				{
-					var clipboard = (IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard));
-					Task<string> clipboardTask = clipboard.GetTextAsync();
-					string text = await clipboardTask;
+					string text = await Application.Current.Clipboard.GetTextAsync();
 					if (!string.IsNullOrEmpty(text))
 					{
 						e.Handled = OnTextInput(text);

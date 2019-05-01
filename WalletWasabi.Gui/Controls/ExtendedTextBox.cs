@@ -68,7 +68,7 @@ namespace WalletWasabi.Gui.Controls
 
 		private async Task PasteAsync()
 		{
-			var text = await ((IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard))).GetTextAsync();
+			var text = await Application.Current.Clipboard.GetTextAsync();
 
 			if (text is null)
 			{
@@ -112,8 +112,7 @@ namespace WalletWasabi.Gui.Controls
 
 			if (!string.IsNullOrWhiteSpace(selection))
 			{
-				await ((IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard)))
-					.SetTextAsync(selection);
+				await Application.Current.Clipboard.SetTextAsync(selection);
 			}
 		}
 
