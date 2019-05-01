@@ -1,27 +1,26 @@
 using Avalonia.Data.Converters;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
 
 namespace WalletWasabi.Gui.Converters
 {
-	public class LurkingWifeModeStringConverter : IValueConverter
+	public class InverseBooleanConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (Global.UiConfig.LurkingWifeMode is true)
+			if (value is bool boolean)
 			{
-				int len = 10;
-				if (int.TryParse(parameter.ToString(), out int newLength))
+				if (boolean)
 				{
-					len = newLength;
+					return false;
 				}
-
-				return new string(Enumerable.Repeat('#', len).ToArray());
+				else
+				{
+					return true;
+				}
 			}
-			return value;
+
+			throw new InvalidOperationException();
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

@@ -21,6 +21,7 @@
     <StyleInclude Source="avares://WalletWasabi.Gui/Styles/Styles.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Icons/Icons.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Controls/NoparaPasswordBox.xaml" />
+    <StyleInclude Source="avares://WalletWasabi.Gui/Controls/MultiTextBox.xaml" />
   </Application.Styles>
   <Application.DataTemplates>
     <DataTemplate DataType="Views:MainView">
