@@ -31,10 +31,10 @@ namespace WalletWasabi.Gui
 {
 	public static class Global
 	{
-		public static string DataDir { get; }
-		public static string TorLogsFile { get; }
-		public static string WalletsDir { get; }
-		public static string WalletBackupsDir { get; }
+		public static string DataDir { get; internal set; }
+		public static string TorLogsFile { get; private set; }
+		public static string WalletsDir { get; private set; }
+		public static string WalletBackupsDir { get; private set; }
 
 		public static string IndexFilePath { get; private set; }
 		public static Config Config { get; private set; }
@@ -59,7 +59,12 @@ namespace WalletWasabi.Gui
 
 		static Global()
 		{
-			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+			SetDataDir(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")));
+		}
+
+		public static void SetDataDir(string datadir)
+		{
+			DataDir = datadir;
 			TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
 			WalletsDir = Path.Combine(DataDir, "Wallets");
 			WalletBackupsDir = Path.Combine(DataDir, "WalletBackups");

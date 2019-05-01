@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
@@ -12,13 +12,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class TransactionViewModel : ViewModelBase
 	{
-		private TransactionInfo _model;
+		private TransactionInfo Model { get; }
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
 
 		public TransactionViewModel(TransactionInfo model)
 		{
-			_model = model;
+			Model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
 		}
@@ -30,17 +30,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.RaisePropertyChanged(nameof(DateTime));
 		}
 
-		public string DateTime => _model.DateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+		public string DateTime => Model.DateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 
-		public bool Confirmed => _model.Confirmed;
+		public bool Confirmed => Model.Confirmed;
 
-		public string AmountBtc => _model.AmountBtc;
+		public string AmountBtc => Model.AmountBtc;
 
-		public Money Amount => Money.TryParse(_model.AmountBtc, out Money money) ? money : Money.Zero;
+		public Money Amount => Money.TryParse(Model.AmountBtc, out Money money) ? money : Money.Zero;
 
-		public string Label => _model.Label;
+		public string Label => Model.Label;
 
-		public string TransactionId => _model.TransactionId;
+		public string TransactionId => Model.TransactionId;
 
 		public bool ClipboardNotificationVisible
 		{

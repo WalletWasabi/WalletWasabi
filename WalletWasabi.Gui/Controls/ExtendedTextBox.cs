@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
@@ -68,7 +68,7 @@ namespace WalletWasabi.Gui.Controls
 
 		private async Task PasteAsync()
 		{
-			var text = await ((IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard))).GetTextAsync();
+			var text = await Application.Current.Clipboard.GetTextAsync();
 
 			if (text is null)
 			{
@@ -78,7 +78,7 @@ namespace WalletWasabi.Gui.Controls
 			OnTextInput(new TextInputEventArgs { Text = text });
 		}
 
-		private string GetSelection()
+		protected string GetSelection()
 		{
 			var text = Text;
 
@@ -101,7 +101,7 @@ namespace WalletWasabi.Gui.Controls
 			return text.Substring(start, end - start);
 		}
 
-		private async Task CopyAsync()
+		protected virtual async Task CopyAsync()
 		{
 			var selection = GetSelection();
 
@@ -112,8 +112,7 @@ namespace WalletWasabi.Gui.Controls
 
 			if (!string.IsNullOrWhiteSpace(selection))
 			{
-				await ((IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard)))
-					.SetTextAsync(selection);
+				await Application.Current.Clipboard.SetTextAsync(selection);
 			}
 		}
 
@@ -128,11 +127,9 @@ namespace WalletWasabi.Gui.Controls
 
 		private static DrawingPresenter GetCopyPresenter()
 		{
-			return new DrawingPresenter
-			{
-				Drawing = new GeometryDrawing
-				{
-					Brush = Brushes.LightGray,
+			return new DrawingPresenter {
+				Drawing = new GeometryDrawing {
+					Brush = Brush.Parse("#22B14C"),
 					Geometry = CopyIcon
 				},
 				Width = 16,
@@ -142,11 +139,9 @@ namespace WalletWasabi.Gui.Controls
 
 		private static DrawingPresenter GetPastePresenter()
 		{
-			return new DrawingPresenter
-			{
-				Drawing = new GeometryDrawing
-				{
-					Brush = Brushes.LightGray,
+			return new DrawingPresenter {
+				Drawing = new GeometryDrawing {
+					Brush = Brush.Parse("#22B14C"),
 					Geometry = PasteIcon
 				},
 				Width = 16,
@@ -158,8 +153,7 @@ namespace WalletWasabi.Gui.Controls
 		{
 			base.OnTemplateApplied(e);
 
-			ContextMenu = new ContextMenu
-			{
+			ContextMenu = new ContextMenu {
 				DataContext = this,
 				Items = new Avalonia.Controls.Controls()
 			};
