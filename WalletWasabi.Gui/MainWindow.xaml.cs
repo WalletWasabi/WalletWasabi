@@ -20,7 +20,7 @@ using WalletWasabi.Hwi;
 
 namespace WalletWasabi.Gui
 {
-	public class MainWindow : MetroWindow
+	public class MainWindow : Window
 	{
 		public bool IsQuitPending { get; private set; }
 

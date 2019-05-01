@@ -1,4 +1,4 @@
-﻿<cont:MetroWindow xmlns="https://github.com/avaloniaui"
+﻿<Window xmlns="https://github.com/avaloniaui"
                       xmlns:cont="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"
                       xmlns:wasabi="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
                       xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
@@ -19,10 +19,10 @@
                       WindowState ="{Binding WindowState}"
                       UseLayoutRounding="True" RenderOptions.BitmapInterpolationMode="HighQuality"
                       id:DragBehavior.IsEnabled="False" id:DropBehavior.IsEnabled="False">
-  <cont:MetroWindow.TitleBarContent>
+  <!--<Window.TitleBarContent>
     <menu:MainMenuView DataContext="{Binding Shell.MainMenu}" Margin="4 0 0 0"  Foreground="{DynamicResource ThemeForegroundBrush}" VerticalAlignment="Stretch" FontSize="13" />
-  </cont:MetroWindow.TitleBarContent>
-  <cont:MetroWindow.Styles>
+  </Window.TitleBarContent>-->
+  <Window.Styles>
     <Style Selector="Menu > MenuItem:selected /template/ Border#root">
       <Setter Property="Background" Value="{DynamicResource ThemeControlMidBrush}" />
     </Style>
@@ -30,7 +30,7 @@
     <Style Selector="Menu > MenuItem">
       <Setter Property="Padding" Value="7 0" />
     </Style>
-  </cont:MetroWindow.Styles>
+  </Window.Styles>
   <Grid>
     <DockPanel LastChildFill="True">
       <wasabi:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" />
@@ -38,4 +38,4 @@
     </DockPanel>
     <wasabi:ModalDialog DataContext="{Binding ModalDialog}" />
   </Grid>
-</cont:MetroWindow>
+</Window>
