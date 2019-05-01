@@ -1,0 +1,38 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom"
+             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
+             xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450">
+  <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
+    <Grid Classes="content">
+      <DockPanel LastChildFill="True">
+
+        <TextBlock DockPanel.Dock="Top" Text="PSBT or Transaction Hex" FontWeight="Bold" />
+
+        <DockPanel DockPanel.Dock="Bottom" LastChildFill="True">
+          <Button DockPanel.Dock="Right" Command="{Binding BroadcastTransactionCommand}">
+            <StackPanel Orientation="Horizontal">
+              <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
+
+              <TextBlock Text ="{Binding ButtonText}">
+              </TextBlock>
+            </StackPanel>
+          </Button>
+
+          <StackPanel Orientation="Vertical">
+            <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
+            <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
+          </StackPanel>
+        </DockPanel>
+
+        <controls:MultiTextBox Text="{Binding TransactionString}" PasteOnClick="True" IsSelectable="False" IsReadOnly="{Binding IsBusy}" Margin="0 8" Watermark="Click here to copy from clipboard!" TextWrapping="Wrap" AcceptsReturn="True" />
+      </DockPanel>
+    </Grid>
+  </controls:GroupBox>
+</UserControl>

@@ -1212,7 +1212,7 @@ namespace WalletWasabi.Services
 			Logger.LogInfo<WalletService>("Signing transaction...");
 			TransactionBuilder builder = Network.CreateTransactionBuilder();
 			// It must be watch only, too, because if we have the key and also hardware wallet, we don't care we can sign.
-			bool sign = !(KeyManager.IsWatchOnly && KeyManager.IsHardwareWallet);
+			bool sign = !KeyManager.IsWatchOnly;
 			if (sign)
 			{
 				// 8. Get signing keys

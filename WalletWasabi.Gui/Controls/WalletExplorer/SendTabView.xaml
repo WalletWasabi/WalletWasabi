@@ -96,19 +96,8 @@
               </StackPanel>
             </StackPanel>
           </StackPanel>
-          <StackPanel IsVisible="{Binding !IsWatchOnly}" Spacing="10" Orientation="Horizontal">
-            <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" MaxWidth="173" />
-            <DockPanel VerticalAlignment="Top" LastChildFill="True">
-              <Button Command="{Binding BuildTransactionCommand}" DockPanel.Dock="Right">
-                <StackPanel Orientation="Horizontal">
-                  <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
-                  <TextBlock Text="{Binding BuildTransactionButtonText}" />
-                </StackPanel>
-              </Button>
-              <Grid></Grid>
-            </DockPanel>
-          </StackPanel>
-          <StackPanel IsVisible="{Binding IsHardwareWallet}" Spacing="10" Orientation="Horizontal">
+          <StackPanel Spacing="10" Orientation="Horizontal">
+            <controls:NoparaPasswordBox Password="{Binding Password}" IsVisible="{Binding !IsWatchOnly}" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" MaxWidth="173" />
             <DockPanel VerticalAlignment="Top" LastChildFill="True">
               <Button Command="{Binding BuildTransactionCommand}" DockPanel.Dock="Right">
                 <StackPanel Orientation="Horizontal">

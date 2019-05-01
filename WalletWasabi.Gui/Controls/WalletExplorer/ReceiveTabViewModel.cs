@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using ReactiveUI;
@@ -82,7 +82,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
 			{
-				if (Global.UiConfig.Autocopy is false || address is null)
+				if (Global.UiConfig?.Autocopy is false || address is null)
 				{
 					return;
 				}
@@ -119,8 +119,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				try
 				{
-					await ((IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard)))
-						.SetTextAsync(SelectedAddress.Label ?? string.Empty);
+					await Application.Current.Clipboard.SetTextAsync(SelectedAddress.Label ?? string.Empty);
 				}
 				catch (Exception)
 				{ }

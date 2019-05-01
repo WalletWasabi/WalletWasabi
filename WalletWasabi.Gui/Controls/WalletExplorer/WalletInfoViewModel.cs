@@ -1,4 +1,4 @@
-﻿using Avalonia.Threading;
+using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using System;
@@ -22,12 +22,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _extendedMasterZprv;
 		private string _extendedAccountPrivateKey;
 		private string _extendedAccountZprv;
-		private string _warningMessage;
 
 		public WalletInfoViewModel(WalletViewModel walletViewModel) : base(walletViewModel.Name, walletViewModel)
 		{
 			ClearSensitiveData(true);
-			_warningMessage = "";
+			SetWarningMessage("");
 
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
@@ -120,12 +119,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _extendedAccountZprv, value);
 		}
 
-		public string WarningMessage
-		{
-			get => _warningMessage;
-			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
-		}
-
 		private void SetSensitiveData(string extendedMasterPrivateKey, string extendedAccountPrivateKey, string extendedMasterZprv, string extendedAccountZprv)
 		{
 			ExtendedMasterPrivateKey = extendedMasterPrivateKey;
@@ -192,30 +185,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			ClearSensitiveData(true);
 			return base.OnClose();
-		}
-
-		private void SetWarningMessage(string message)
-		{
-			WarningMessage = message;
-
-			Dispatcher.UIThread.PostLogException(async () =>
-			{
-				try
-				{
-					await Task.Delay(7000, Closing.Token);
-				}
-				catch (TaskCanceledException)
-				{
-					// Ignore
-				}
-				finally
-				{
-					if (WarningMessage == message)
-					{
-						WarningMessage = "";
-					}
-				}
-			});
 		}
 	}
 }

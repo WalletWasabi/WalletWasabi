@@ -32,7 +32,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _peersNeeded;
 		private string _password;
 		private Money _amountQueued;
-		private string _warningMessage;
 		private bool _isEnqueueBusy;
 		private bool _isDequeueBusy;
 		private string _enqueueButtonText;
@@ -192,7 +191,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IsDequeueBusy = true;
 			try
 			{
-				WarningMessage = "";
+				SetWarningMessage("");
 
 				if (!selectedCoins.Any())
 				{
@@ -230,7 +229,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IsEnqueueBusy = true;
 			try
 			{
-				WarningMessage = "";
+				SetWarningMessage("");
 				Password = Guard.Correct(Password);
 
 				if (!selectedCoins.Any())
@@ -342,20 +341,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global.ChaumianClient.DeactivateFrequentStatusProcessingIfNotMixing();
 		}
 
-		private void SetWarningMessage(string message)
-		{
-			WarningMessage = message;
-
-			Dispatcher.UIThread.PostLogException(async () =>
-			{
-				await Task.Delay(7000);
-				if (WarningMessage == message)
-				{
-					WarningMessage = "";
-				}
-			});
-		}
-
 		public string Password
 		{
 			get => _password;
@@ -428,12 +413,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _peersNeeded;
 			set => this.RaiseAndSetIfChanged(ref _peersNeeded, value);
-		}
-
-		public string WarningMessage
-		{
-			get => _warningMessage;
-			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
 		}
 
 		public bool IsEnqueueBusy
