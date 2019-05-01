@@ -277,7 +277,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (IsTransactionBuilder)
 					{
-						var txviewer = IoC.Get<IShell>()?.Documents?.OfType<TransactionViewerViewModel>()?.FirstOrDefault(x => x.Id == Id);
+						var txviewer = IoC.Get<IShell>().Documents?.OfType<TransactionViewerViewModel>()?.FirstOrDefault(x => x.Wallet.Id == Wallet.Id);
 						if (txviewer is null)
 						{
 							txviewer = new TransactionViewerViewModel(Wallet);
