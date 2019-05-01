@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
+using Avalonia.Input;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using ReactiveUI;
@@ -101,27 +102,14 @@ namespace WalletWasabi.Gui.Controls
 			var border = e.NameScope.Get<Border>("border");
 			if (IsSelectable)
 			{
-				text.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Ibeam);
+				text.Cursor = new Cursor(Avalonia.Input.StandardCursorType.Ibeam);
 			}
 
 			Observable.FromEventPattern(text, nameof(text.PointerPressed))
 				.Merge(Observable.FromEventPattern(border, nameof(text.PointerPressed)))
 				.Throttle(TimeSpan.FromMilliseconds(100), RxApp.MainThreadScheduler)
-				.Subscribe(async x =>
-				{
-					try
-					{
-						var eargs = x.EventArgs as Avalonia.Input.PointerPressedEventArgs;
-						if (eargs.MouseButton == Avalonia.Input.MouseButton.Left)
-						{
-							await OnClickedAsync();
-						}
-					}
-					catch (Exception ex)
-					{
-						Logging.Logger.LogInfo<MultiTextBox>(ex);
-					}
-				}).DisposeWith(Disposables);
+				.Subscribe(async x => await OnClickedAsync(x))
+				.DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.ClipboardNotificationVisible).Subscribe(visible =>
 			{
@@ -205,11 +193,13 @@ namespace WalletWasabi.Gui.Controls
 			}
 		}
 
-		private async Task OnClickedAsync()
+		private async Task OnClickedAsync(EventPattern<object> eventPattern)
 		{
 			try
 			{
-				if (Global.UiConfig?.Autocopy is true)
+				var eventArgs = eventPattern?.EventArgs as PointerPressedEventArgs;
+
+				if (Global.UiConfig?.Autocopy is true && eventArgs?.MouseButton == MouseButton.Left)
 				{
 					if (CopyOnClick)
 					{
