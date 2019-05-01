@@ -20,19 +20,19 @@ namespace WalletWasabi.Gui.Converters
 			try
 			{
 				// If minimized, then go with Maximized, because at start it shouldn't run with minimized.
-				if (reader.Value is string s)
-				{
-					if (string.IsNullOrWhiteSpace(s))
-					{
-						return WindowState.Maximized;
-					}
-				}
-				if (reader.Value is null)
+				var value = reader.Value as string;
+
+				if (string.IsNullOrWhiteSpace(value))
 				{
 					return WindowState.Maximized;
 				}
 
-				string windowStateString = ((string)reader.Value).Trim();
+				if (value is null)
+				{
+					return WindowState.Maximized;
+				}
+
+				string windowStateString = value.Trim();
 				if (WindowState.Normal.ToString().Equals(windowStateString, StringComparison.OrdinalIgnoreCase)
 					|| "normal".Equals(windowStateString, StringComparison.OrdinalIgnoreCase)
 					|| "norm".Equals(windowStateString, StringComparison.OrdinalIgnoreCase))
