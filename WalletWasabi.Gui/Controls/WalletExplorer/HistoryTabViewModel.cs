@@ -53,7 +53,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (Disposables != null)
 			{
-				throw new Exception("Histroy Tab was opened before it was closed.");
+				throw new Exception("History Tab was opened before it was closed.");
 			}
 
 			Disposables = new CompositeDisposable();
