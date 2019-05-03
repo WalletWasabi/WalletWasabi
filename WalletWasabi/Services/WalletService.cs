@@ -23,12 +23,14 @@ using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Stores;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
 	public class WalletService : IDisposable
 	{
+		public BitcoinStore BitcoinStore { get; }
 		public KeyManager KeyManager { get; }
 		public WasabiSynchronizer Synchronizer { get; }
 		public CcjClient ChaumianClient { get; }
@@ -78,6 +80,7 @@ namespace WalletWasabi.Services
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
 		public WalletService(
+			BitcoinStore bitcoinStore,
 			KeyManager keyManager,
 			WasabiSynchronizer syncer,
 			CcjClient chaumianClient,
@@ -86,6 +89,7 @@ namespace WalletWasabi.Services
 			string workFolderDir,
 			ServiceConfiguration serviceConfiguration)
 		{
+			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
 			Synchronizer = Guard.NotNull(nameof(syncer), syncer);
@@ -273,7 +277,7 @@ namespace WalletWasabi.Services
 				}
 
 				// Go through the filters and que to download the matches.
-				foreach (FilterModel filterModel in Synchronizer.GetFilters().Where(x => !(x.Filter is null) && x.BlockHeight > bestKeyManagerHeight)) // Filter can be null if there is no bech32 tx.
+				foreach (FilterModel filterModel in BitcoinStore.IndexStore.GetFilters().Where(x => !(x.Filter is null) && x.BlockHeight > bestKeyManagerHeight)) // Filter can be null if there is no bech32 tx.
 				{
 					await ProcessFilterModelAsync(filterModel, cancel);
 				}

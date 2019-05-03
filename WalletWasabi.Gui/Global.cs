@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Threading;
 using NBitcoin;
 using NBitcoin.Protocol;
@@ -25,6 +25,7 @@ using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Stores;
 using WalletWasabi.TorSocks5;
 
 namespace WalletWasabi.Gui
@@ -36,7 +37,7 @@ namespace WalletWasabi.Gui
 		public static string WalletsDir { get; }
 		public static string WalletBackupsDir { get; }
 
-		public static string IndexFilePath { get; private set; }
+		public static BitcoinStore BitcoinStore { get; private set; }
 		public static Config Config { get; private set; }
 
 		public static string AddressManagerFilePath { get; private set; }
@@ -128,7 +129,8 @@ namespace WalletWasabi.Gui
 			await Config.LoadOrCreateDefaultFileAsync();
 			Logger.LogInfo<Config>("Config is successfully initialized.");
 
-			IndexFilePath = Path.Combine(DataDir, $"Index{Network}.dat");
+			BitcoinStore = new BitcoinStore();
+			await BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
 
 			AppDomain.CurrentDomain.ProcessExit += async (s, e) => await TryDesperateDequeueAllCoinsAsync();
 			Console.CancelKeyPress += async (s, e) =>
@@ -228,8 +230,7 @@ namespace WalletWasabi.Gui
 				}
 			}
 
-			var addressManagerBehavior = new AddressManagerBehavior(AddressManager)
-			{
+			var addressManagerBehavior = new AddressManagerBehavior(AddressManager) {
 				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
 			};
 			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
@@ -272,11 +273,11 @@ namespace WalletWasabi.Gui
 
 			if (Config.UseTor.Value)
 			{
-				Synchronizer = new WasabiSynchronizer(Network, IndexFilePath, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
 			}
 			else
 			{
-				Synchronizer = new WasabiSynchronizer(Network, IndexFilePath, Config.GetFallbackBackendUri(), null);
+				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
 			}
 
 			UpdateChecker = new UpdateChecker(Synchronizer.WasabiClient);
@@ -344,7 +345,7 @@ namespace WalletWasabi.Gui
 			{
 				ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, Config.GetFallbackBackendUri(), null);
 			}
-			WalletService = new WalletService(keyManager, Synchronizer, ChaumianClient, MemPoolService, Nodes, DataDir, Config.ServiceConfiguration);
+			WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, MemPoolService, Nodes, DataDir, Config.ServiceConfiguration);
 
 			ChaumianClient.Start();
 			Logger.LogInfo("Start Chaumian CoinJoin service...");
@@ -411,8 +412,7 @@ namespace WalletWasabi.Gui
 			KeyManager keyManager;
 
 			// Set the LastAccessTime.
-			new FileInfo(walletFullPath)
-			{
+			new FileInfo(walletFullPath) {
 				LastAccessTime = DateTime.Now
 			};
 
@@ -441,8 +441,7 @@ namespace WalletWasabi.Gui
 						// else
 
 						string amountString = coin.Amount.ToString(false, true);
-						using (var process = Process.Start(new ProcessStartInfo
-						{
+						using (var process = Process.Start(new ProcessStartInfo {
 							FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
 							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e \"display notification \\\"Received {amountString} BTC\\\" with title \\\"Wasabi\\\"\"" : $"--expire-time=3000 \"Wasabi\" \"Received {amountString} BTC\"",
 							CreateNoWindow = true

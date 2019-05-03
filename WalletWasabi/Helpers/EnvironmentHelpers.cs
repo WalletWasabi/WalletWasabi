@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -32,6 +32,7 @@ namespace WalletWasabi.Helpers
 			}
 		}
 
+		// Do not change the output of this function. Backwards compatibility depends on it.
 		public static string GetDataDir(string appName)
 		{
 			string directory;
@@ -133,8 +134,7 @@ namespace WalletWasabi.Helpers
 			var escapedArgs = cmd.Replace("\"", "\\\"");
 
 			using (var process = Process.Start(
-				new ProcessStartInfo
-				{
+				new ProcessStartInfo {
 					FileName = "/bin/sh",
 					Arguments = $"-c \"{escapedArgs}\"",
 					RedirectStandardOutput = true,

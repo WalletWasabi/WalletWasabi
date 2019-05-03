@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.BouncyCastle.Math;
 using NBitcoin.Crypto;
 using NBitcoin.Protocol;
@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Security;
 using System.Text;
 using System.Threading;
@@ -27,6 +28,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Services;
+using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.TorSocks5;
 using WalletWasabi.WebClients.Wasabi;
@@ -70,7 +72,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		private async Task<(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration)> InitializeTestEnvironmentAsync(int numberOfBlocksToGenerate)
+		private async Task<(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore)> InitializeTestEnvironmentAsync(int numberOfBlocksToGenerate, [CallerMemberName] string caller = null)
 		{
 			await AssertFiltersInitializedAsync(); // Make sure fitlers are created on the server side.
 			if (numberOfBlocksToGenerate != 0)
@@ -81,7 +83,10 @@ namespace WalletWasabi.Tests
 
 			var network = Backend.Global.RpcClient.Network;
 			var serviceConfiguration = new ServiceConfiguration(2, 2, 21, 50, RegTestFixture.BackendRegTestNode.Endpoint);
-			return ("password", Backend.Global.RpcClient, network, Backend.Global.Coordinator, serviceConfiguration);
+			var bitcoinStore = new BitcoinStore();
+			var dir = Path.Combine(Global.DataDir, caller);
+			await bitcoinStore.InitializeAsync(dir, network);
+			return ("password", Backend.Global.RpcClient, network, Backend.Global.Coordinator, serviceConfiguration, bitcoinStore);
 		}
 
 		#region BackendTests
@@ -117,7 +122,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task BroadcastReplayTxAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
 			var utxos = await rpc.ListUnspentAsync();
 			var utxo = utxos[0];
@@ -137,7 +142,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task BroadcastInvalidTxAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
 			var content = new StringContent($"''", Encoding.UTF8, "application/json");
 
@@ -155,7 +160,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task FilterBuilderTestAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
 			var indexBuilderServiceDir = Path.Combine(Global.DataDir, nameof(IndexBuilderService));
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
@@ -224,7 +229,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task AllFeeEstimateRpcAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
 			var estimations = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
 			Assert.Equal(144, estimations.Estimations.Count);
@@ -250,7 +255,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task MempoolAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
 			var memPoolService = new MemPoolService();
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
@@ -298,11 +303,11 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task FilterDownloaderTestAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
 			var indexFilePath = Path.Combine(Global.DataDir, nameof(FilterDownloaderTestAsync), $"Index{rpc.Network}.dat");
 
-			using (var synchronizer = new WasabiSynchronizer(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint), null))
+			using (var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null))
 			{
 				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5), 1000);
 
@@ -310,7 +315,7 @@ namespace WalletWasabi.Tests
 
 				var times = 0;
 				int filterCount;
-				while ((filterCount = synchronizer.CountFilters()) < 102)
+				while ((filterCount = bitcoinStore.IndexStore.CountFilters()) < 102)
 				{
 					if (times > 500) // 30 sec
 					{
@@ -323,7 +328,7 @@ namespace WalletWasabi.Tests
 				// Test later synchronization.
 				RegTestFixture.BackendRegTestNode.Generate(10);
 				times = 0;
-				while ((filterCount = synchronizer.CountFilters()) < 112)
+				while ((filterCount = bitcoinStore.IndexStore.CountFilters()) < 112)
 				{
 					if (times > 500) // 30 sec
 					{
@@ -335,10 +340,10 @@ namespace WalletWasabi.Tests
 
 				// Test correct number of filters is received.
 				var hundredthHash = await rpc.GetBlockHashAsync(100);
-				Assert.Equal(new Height(100), synchronizer.TryGetHeight(hundredthHash));
+				Assert.Equal(new Height(100), bitcoinStore.IndexStore.TryGetHeight(hundredthHash));
 
 				// Test filter block hashes are correct.
-				var filters = synchronizer.GetFilters().ToArray();
+				var filters = bitcoinStore.IndexStore.GetFilters().ToArray();
 				for (int i = 0; i < 101; i++)
 				{
 					var expectedHash = await rpc.GetBlockHashAsync(i);
@@ -353,7 +358,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task ReorgTestAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
 			var keyManager = KeyManager.CreateNew(out _, password);
 
@@ -374,7 +379,7 @@ namespace WalletWasabi.Tests
 			var node = RegTestFixture.BackendRegTestNode;
 			var indexFilePath = Path.Combine(Global.DataDir, nameof(ReorgTestAsync), $"Index{rpc.Network}.dat");
 
-			using (var synchronizer = new WasabiSynchronizer(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint), null))
+			using (var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null))
 			{
 				try
 				{
@@ -383,7 +388,7 @@ namespace WalletWasabi.Tests
 					synchronizer.Reorged += ReorgTestAsync_Downloader_Reorged;
 
 					// Test initial synchronization.
-					await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), synchronizer);
+					await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), bitcoinStore);
 
 					var indexLines = await File.ReadAllLinesAsync(indexFilePath);
 					var lastFilter = indexLines.Last();
@@ -407,7 +412,7 @@ namespace WalletWasabi.Tests
 					var tx1bumpRes = await rpc.BumpFeeAsync(tx1); // RBF it
 
 					await rpc.GenerateAsync(5);
-					await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), synchronizer);
+					await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), bitcoinStore);
 
 					utxoLines = await File.ReadAllTextAsync(utxoPath);
 					Assert.Contains(tx1bumpRes.TransactionId.ToString(), utxoLines); // assert the tx1bump is the correct tx
@@ -422,7 +427,7 @@ namespace WalletWasabi.Tests
 					Assert.DoesNotContain(tipBlock.HashPrevBlock.ToString(), indexLines);
 
 					// Test filter block hashes are correct after fork.
-					var filters = synchronizer.GetFilters().ToArray();
+					var filters = bitcoinStore.IndexStore.GetFilters().ToArray();
 					var blockCountIncludingGenesis = await rpc.GetBlockCountAsync() + 1;
 					for (int i = 0; i < blockCountIncludingGenesis; i++)
 					{
@@ -456,12 +461,12 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		private async Task WaitForIndexesToSyncAsync(TimeSpan timeout, WasabiSynchronizer synchronizer)
+		private async Task WaitForIndexesToSyncAsync(TimeSpan timeout, BitcoinStore bitcoinStore)
 		{
 			var bestHash = await Backend.Global.RpcClient.GetBestBlockHashAsync();
 
 			var times = 0;
-			while (synchronizer.GetFilters().SingleOrDefault(x => x.BlockHash == bestHash) is null)
+			while (bitcoinStore.IndexStore.GetFilters().SingleOrDefault(x => x.BlockHash == bestHash) is null)
 			{
 				if (times > timeout.TotalSeconds)
 				{
@@ -487,7 +492,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task WalletTestsAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
 			// Create the services.
 			// 1. Create connection service.
@@ -502,7 +507,7 @@ namespace WalletWasabi.Tests
 
 			// 3. Create wasabi synchronizer service.
 			var indexFilePath = Path.Combine(Global.DataDir, nameof(WalletTestsAsync), $"Index{rpc.Network}.dat");
-			var synchronizer = new WasabiSynchronizer(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint), null);
+			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
@@ -512,7 +517,7 @@ namespace WalletWasabi.Tests
 
 			// 5. Create wallet service.
 			var workDir = Path.Combine(Global.DataDir, nameof(WalletTestsAsync));
-			var wallet = new WalletService(keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
+			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			// Get some money, make it confirm.
@@ -717,7 +722,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task SendTestsFromHiddenWalletAsync() // These tests are taken from HiddenWallet, they were tests on the testnet.
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
 			// Create the services.
 			// 1. Create connection service.
@@ -731,7 +736,7 @@ namespace WalletWasabi.Tests
 
 			// 3. Create wasabi synchronizer service.
 			var indexFilePath = Path.Combine(Global.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Index{rpc.Network}.dat");
-			var synchronizer = new WasabiSynchronizer(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint), null);
+			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
@@ -741,7 +746,7 @@ namespace WalletWasabi.Tests
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(Global.DataDir, nameof(SendTestsFromHiddenWalletAsync));
-			var wallet = new WalletService(keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
+			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			// Get some money, make it confirm.
@@ -1161,7 +1166,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task BuildTransactionValidationsTestAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
 			// Create the services.
 			// 1. Create connection service.
@@ -1175,7 +1180,7 @@ namespace WalletWasabi.Tests
 
 			// 3. Create wasabi synchronizer service.
 			var indexFilePath = Path.Combine(Global.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Index{rpc.Network}.dat");
-			var synchronizer = new WasabiSynchronizer(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint), null);
+			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
@@ -1185,7 +1190,7 @@ namespace WalletWasabi.Tests
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(Global.DataDir, nameof(SendTestsFromHiddenWalletAsync));
-			var wallet = new WalletService(keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
+			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			var scp = new Key().ScriptPubKey;
@@ -1325,7 +1330,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task BuildTransactionReorgsTestAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
 			// Create the services.
 			// 1. Create connection service.
@@ -1339,7 +1344,7 @@ namespace WalletWasabi.Tests
 
 			// 3. Create wasabi synchronizer service.
 			var indexFilePath = Path.Combine(Global.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Index{rpc.Network}.dat");
-			var synchronizer = new WasabiSynchronizer(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint), null);
+			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
@@ -1349,7 +1354,7 @@ namespace WalletWasabi.Tests
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(Global.DataDir, nameof(SendTestsFromHiddenWalletAsync));
-			var wallet = new WalletService(keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
+			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			Assert.Empty(wallet.Coins);
@@ -1490,7 +1495,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task SpendUnconfirmedTxTestAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
 			// Create the services.
 			// 1. Create connection service.
@@ -1506,7 +1511,7 @@ namespace WalletWasabi.Tests
 			var indexFilePath = Path.Combine(Global.DataDir, nameof(SendTestsFromHiddenWalletAsync),
 				$"Index{rpc.Network}.dat");
 			var synchronizer =
-				new WasabiSynchronizer(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint), null);
+				new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
@@ -1516,7 +1521,7 @@ namespace WalletWasabi.Tests
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(Global.DataDir, nameof(SendTestsFromHiddenWalletAsync));
-			var wallet = new WalletService(keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
+			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			Assert.Empty(wallet.Coins);
@@ -1659,7 +1664,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task ReplaceByFeeTxTestAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
 			// Create the services.
 			// 1. Create connection service.
@@ -1675,7 +1680,7 @@ namespace WalletWasabi.Tests
 			var indexFilePath = Path.Combine(Global.DataDir, nameof(SendTestsFromHiddenWalletAsync),
 				$"Index{rpc.Network}.dat");
 			var synchronizer =
-				new WasabiSynchronizer(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint), null);
+				new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
@@ -1685,7 +1690,7 @@ namespace WalletWasabi.Tests
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(Global.DataDir, nameof(SendTestsFromHiddenWalletAsync));
-			var wallet = new WalletService(keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
+			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			Assert.Empty(wallet.Coins);
@@ -1768,7 +1773,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CcjCoordinatorCtorTestsAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
 			Logger.TurnOff(); // turn off at the end, otherwise, the tests logs would have of warnings
 
@@ -1818,7 +1823,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CcjTestsAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
 			Money denomination = Money.Coins(0.2m);
 			decimal coordinatorFeePercent = 0.2m;
@@ -1858,8 +1863,7 @@ namespace WalletWasabi.Tests
 				}
 
 				// Inputs request tests
-				var inputsRequest = new InputsRequest
-				{
+				var inputsRequest = new InputsRequest {
 					BlindedOutputScripts = null,
 					ChangeOutputAddress = null,
 					Inputs = null,
@@ -2338,7 +2342,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CcjEqualInputTestsAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
 			Money denomination = Money.Coins(0.1m);
 			decimal coordinatorFeePercent = 0.0002m;
@@ -2486,7 +2490,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task NotingTestsAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
 			Money denomination = Money.Coins(1m);
 			decimal coordinatorFeePercent = 0.1m;
@@ -2567,7 +2571,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task BanningTestsAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
 			Money denomination = Money.Coins(0.1m);
 			decimal coordinatorFeePercent = 0.1m;
@@ -2769,7 +2773,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task Ccj100ParticipantsTestsAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
 			Money denomination = Money.Coins(0.1m);
 			decimal coordinatorFeePercent = 0.003m;
@@ -2986,10 +2990,10 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CcjFeeTestsAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
 			var indexFilePath = Path.Combine(Global.DataDir, nameof(CcjFeeTestsAsync), $"Index{network}.dat");
-			var synchronizer = new WasabiSynchronizer(network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint), null);
+			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
 			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
 
 			Money denomination = Money.Coins(0.9m);
@@ -3111,10 +3115,10 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CcjClientTestsAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
 			var indexFilePath = Path.Combine(Global.DataDir, nameof(CcjClientTestsAsync), $"Index{network}.dat");
-			var synchronizer = new WasabiSynchronizer(network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint), null);
+			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
 			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
 
 			Money denomination = Money.Coins(0.1m);
@@ -3188,7 +3192,7 @@ namespace WalletWasabi.Tests
 				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
 				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, "");
 				Assert.False(smartCoin1.CoinJoinInProgress);
-				await chaumianClient1.DequeueCoinsFromMixAsync(new []{smartCoin1, smartCoin2}, "");
+				await chaumianClient1.DequeueCoinsFromMixAsync(new[] { smartCoin1, smartCoin2 }, "");
 				Assert.False(smartCoin1.CoinJoinInProgress);
 				Assert.False(smartCoin2.CoinJoinInProgress);
 				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
@@ -3268,7 +3272,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CoinJoinMultipleRoundTestsAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(3);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(3);
 
 			Money denomination = Money.Coins(0.1m);
 			decimal coordinatorFeePercent = 0.1m;
@@ -3297,10 +3301,10 @@ namespace WalletWasabi.Tests
 
 			// 3. Create wasabi synchronizer service.
 			var indexFilePath = Path.Combine(Global.DataDir, nameof(CoinJoinMultipleRoundTestsAsync), $"Index{network}.dat");
-			var synchronizer = new WasabiSynchronizer(network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint), null);
+			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
 
 			var indexFilePath2 = Path.Combine(Global.DataDir, nameof(CoinJoinMultipleRoundTestsAsync), $"Index{network}2.dat");
-			var synchronizer2 = new WasabiSynchronizer(network, indexFilePath2, new Uri(RegTestFixture.BackendEndPoint), null);
+			var synchronizer2 = new WasabiSynchronizer(network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
@@ -3314,11 +3318,11 @@ namespace WalletWasabi.Tests
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(Global.DataDir, nameof(CoinJoinMultipleRoundTestsAsync));
-			var wallet = new WalletService(keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
+			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			var workDir2 = Path.Combine(Global.DataDir, $"{nameof(CoinJoinMultipleRoundTestsAsync)}2");
-			var wallet2 = new WalletService(keyManager2, synchronizer2, chaumianClient2, memPoolService2, nodes2, workDir2, serviceConfiguration);
+			var wallet2 = new WalletService(bitcoinStore, keyManager2, synchronizer2, chaumianClient2, memPoolService2, nodes2, workDir2, serviceConfiguration);
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("fundZeroLink");

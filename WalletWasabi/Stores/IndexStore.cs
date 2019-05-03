@@ -40,6 +40,8 @@ namespace WalletWasabi.Stores
 
 			Index = new List<FilterModel>();
 
+			TryEnsureBackwardsCompatibility();
+
 			if (Network == Network.RegTest)
 			{
 				IoHelpers.BetterDelete(IndexFilePath); // RegTest is not a global ledger, better to delete it.
@@ -47,8 +49,7 @@ namespace WalletWasabi.Stores
 
 			if (!File.Exists(IndexFilePath))
 			{
-				Index.Add(StartingFilter);
-				await File.WriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToHeightlessLine()));
+				await File.WriteAllLinesAsync(IndexFilePath, new[] { StartingFilter.ToHeightlessLine() });
 			}
 
 			var height = StartingHeight;
@@ -68,5 +69,51 @@ namespace WalletWasabi.Stores
 				await File.WriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToHeightlessLine()));
 			}
 		}
+
+		private void TryEnsureBackwardsCompatibility()
+		{
+			try
+			{
+				// Before Wasabi 1.1.5
+				var oldIndexFilepath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), $"Index{Network}.dat");
+				if (File.Exists(oldIndexFilepath))
+				{
+					File.Move(oldIndexFilepath, IndexFilePath);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<IndexStore>($"Backwards compatibility couldn't be ensured. Exception: {ex.ToString()}");
+			}
+		}
+
+		public async Task AddNewFilterAsync(FilterModel filter)
+		{
+			Index.Add(filter);
+			await File.AppendAllLinesAsync(IndexFilePath, new[] { filter.ToHeightlessLine() });
+		}
+
+		public async Task RemoveLastFilterAsync()
+		{
+			Index.RemoveLast();
+			await File.WriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToHeightlessLine()));
+		}
+
+		public FilterModel GetLastFilter()
+		{
+			return Index.Last();
+		}
+
+		public Height? TryGetHeight(uint256 blockHash)
+		{
+			return Index.FirstOrDefault(x => x.BlockHash == blockHash)?.BlockHeight;
+		}
+
+		public IEnumerable<FilterModel> GetFilters()
+		{
+			return Index.ToList();
+		}
+
+		public int CountFilters() => Index.Count;
 	}
 }
