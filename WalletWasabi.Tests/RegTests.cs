@@ -315,7 +315,7 @@ namespace WalletWasabi.Tests
 
 				var times = 0;
 				int filterCount;
-				while ((filterCount = bitcoinStore.IndexStore.CountFilters()) < 102)
+				while ((filterCount = await bitcoinStore.IndexStore.CountFiltersAsync()) < 102)
 				{
 					if (times > 500) // 30 sec
 					{
@@ -328,7 +328,7 @@ namespace WalletWasabi.Tests
 				// Test later synchronization.
 				RegTestFixture.BackendRegTestNode.Generate(10);
 				times = 0;
-				while ((filterCount = bitcoinStore.IndexStore.CountFilters()) < 112)
+				while ((filterCount = await bitcoinStore.IndexStore.CountFiltersAsync()) < 112)
 				{
 					if (times > 500) // 30 sec
 					{
@@ -340,10 +340,10 @@ namespace WalletWasabi.Tests
 
 				// Test correct number of filters is received.
 				var hundredthHash = await rpc.GetBlockHashAsync(100);
-				Assert.Equal(new Height(100), bitcoinStore.IndexStore.TryGetHeight(hundredthHash));
+				Assert.Equal(new Height(100), await bitcoinStore.IndexStore.TryGetHeightAsync(hundredthHash));
 
 				// Test filter block hashes are correct.
-				var filters = bitcoinStore.IndexStore.GetFilters().ToArray();
+				var filters = (await bitcoinStore.IndexStore.GetFiltersAsync()).ToArray();
 				for (int i = 0; i < 101; i++)
 				{
 					var expectedHash = await rpc.GetBlockHashAsync(i);
@@ -384,12 +384,12 @@ namespace WalletWasabi.Tests
 				{
 					synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 1000);
 
-					synchronizer.Reorged += ReorgTestAsync_Downloader_Reorged;
+					bitcoinStore.IndexStore.Reorged += ReorgTestAsync_Downloader_Reorged;
 
 					// Test initial synchronization.
 					await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), bitcoinStore);
 
-					var indexLines = bitcoinStore.IndexStore.GetFilters().Select(filter => filter.ToHeightlessLine()).ToArray();
+					var indexLines = (await bitcoinStore.IndexStore.GetFiltersAsync()).Select(filter => filter.ToHeightlessLine()).ToArray();
 					var lastFilter = indexLines.Last();
 					var tip = await rpc.GetBestBlockHashAsync();
 					Assert.StartsWith(tip.ToString(), indexLines.Last());
@@ -421,12 +421,12 @@ namespace WalletWasabi.Tests
 					Assert.DoesNotContain(tx4.ToString(), utxoLines);
 					Assert.DoesNotContain(tx5.ToString(), utxoLines);
 
-					indexLines = bitcoinStore.IndexStore.GetFilters().Select(filter => filter.ToHeightlessLine()).ToArray();
+					indexLines = (await bitcoinStore.IndexStore.GetFiltersAsync()).Select(filter => filter.ToHeightlessLine()).ToArray();
 					Assert.DoesNotContain(tip.ToString(), indexLines);
 					Assert.DoesNotContain(tipBlock.HashPrevBlock.ToString(), indexLines);
 
 					// Test filter block hashes are correct after fork.
-					var filters = bitcoinStore.IndexStore.GetFilters().ToArray();
+					var filters = (await bitcoinStore.IndexStore.GetFiltersAsync()).ToArray();
 					var blockCountIncludingGenesis = await rpc.GetBlockCountAsync() + 1;
 					for (int i = 0; i < blockCountIncludingGenesis; i++)
 					{
@@ -455,7 +455,7 @@ namespace WalletWasabi.Tests
 				}
 				finally
 				{
-					synchronizer.Reorged -= ReorgTestAsync_Downloader_Reorged;
+					bitcoinStore.IndexStore.Reorged -= ReorgTestAsync_Downloader_Reorged;
 				}
 			}
 		}
@@ -465,7 +465,7 @@ namespace WalletWasabi.Tests
 			var bestHash = await Backend.Global.RpcClient.GetBestBlockHashAsync();
 
 			var times = 0;
-			while (bitcoinStore.IndexStore.GetFilters().SingleOrDefault(x => x.BlockHash == bestHash) is null)
+			while ((await bitcoinStore.IndexStore.GetFiltersAsync()).SingleOrDefault(x => x.BlockHash == bestHash) is null)
 			{
 				if (times > timeout.TotalSeconds)
 				{
@@ -545,7 +545,7 @@ namespace WalletWasabi.Tests
 				Assert.Single(wallet.Coins);
 				var firstCoin = wallet.Coins.Single();
 				Assert.Equal(Money.Coins(0.1m), firstCoin.Amount);
-				Assert.Equal(synchronizer.BestKnownFilter.BlockHeight, firstCoin.Height);
+				Assert.Equal((await bitcoinStore.IndexStore.GetBestKnownFilterAsync()).BlockHeight, firstCoin.Height);
 				Assert.InRange(firstCoin.Index, 0U, 1U);
 				Assert.False(firstCoin.Unavailable);
 				Assert.Equal("foo label", firstCoin.Label);
@@ -574,9 +574,9 @@ namespace WalletWasabi.Tests
 				var thirdCoin = wallet.Coins.OrderBy(x => x.Height).Last();
 				Assert.Equal(Money.Coins(0.01m), secondCoin.Amount);
 				Assert.Equal(Money.Coins(0.02m), thirdCoin.Amount);
-				Assert.Equal(synchronizer.BestKnownFilter.BlockHeight.Value - 2, firstCoin.Height.Value);
-				Assert.Equal(synchronizer.BestKnownFilter.BlockHeight.Value - 1, secondCoin.Height.Value);
-				Assert.Equal(synchronizer.BestKnownFilter.BlockHeight, thirdCoin.Height);
+				Assert.Equal((await bitcoinStore.IndexStore.GetBestKnownFilterAsync()).BlockHeight.Value - 2, firstCoin.Height.Value);
+				Assert.Equal((await bitcoinStore.IndexStore.GetBestKnownFilterAsync()).BlockHeight.Value - 1, secondCoin.Height.Value);
+				Assert.Equal((await bitcoinStore.IndexStore.GetBestKnownFilterAsync()).BlockHeight, thirdCoin.Height);
 				Assert.False(thirdCoin.Unavailable);
 				Assert.Equal("foo label", firstCoin.Label);
 				Assert.Equal("bar label", secondCoin.Label);
@@ -633,7 +633,7 @@ namespace WalletWasabi.Tests
 				var rbfCoin = wallet.Coins.Where(x => x.TransactionId == tx4bumpRes.TransactionId).Single();
 
 				Assert.Equal(Money.Coins(0.03m), rbfCoin.Amount);
-				Assert.Equal(synchronizer.BestKnownFilter.BlockHeight.Value - 2, rbfCoin.Height.Value);
+				Assert.Equal((await bitcoinStore.IndexStore.GetBestKnownFilterAsync()).BlockHeight.Value - 2, rbfCoin.Height.Value);
 				Assert.False(rbfCoin.Unavailable);
 				Assert.Equal("bar label", rbfCoin.Label);
 				Assert.Equal(key2.P2wpkhScript, rbfCoin.ScriptPubKey);
@@ -667,7 +667,7 @@ namespace WalletWasabi.Tests
 				await rpc.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 				var res = await rpc.GetTxOutAsync(mempoolCoin.TransactionId, (int)mempoolCoin.Index, true);
-				Assert.Equal(synchronizer.BestKnownFilter.BlockHeight, mempoolCoin.Height);
+				Assert.Equal((await bitcoinStore.IndexStore.GetBestKnownFilterAsync()).BlockHeight, mempoolCoin.Height);
 			}
 			finally
 			{
@@ -1084,7 +1084,7 @@ namespace WalletWasabi.Tests
 				await rpc.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
-				var bestHeight = wallet.Synchronizer.BestKnownFilter.BlockHeight;
+				var bestHeight = (await bitcoinStore.IndexStore.GetBestKnownFilterAsync()).BlockHeight;
 				Assert.Contains($"{Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Constants.ChangeOfSpecialLabelEnd}", wallet.Coins.Where(x => x.Height == bestHeight).Select(x => x.Label));
 				Assert.Contains($"{Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Constants.ChangeOfSpecialLabelEnd}", keyManager.GetKeys().Select(x => x.Label));
 

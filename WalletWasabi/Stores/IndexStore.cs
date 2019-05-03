@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Helpers;
@@ -26,6 +27,11 @@ namespace WalletWasabi.Stores
 		private FilterModel StartingFilter { get; set; }
 		private Height StartingHeight { get; set; }
 		private List<FilterModel> Index { get; set; }
+		private SemaphoreSlim Semaphore { get; set; }
+
+		public event EventHandler<FilterModel> Reorged;
+
+		public event EventHandler<FilterModel> NewFilter;
 
 		public async Task InitializeAsync(string workFolderPath, Network network)
 		{
@@ -39,6 +45,8 @@ namespace WalletWasabi.Stores
 			StartingHeight = StartingFilters.GetStartingHeight(Network);
 
 			Index = new List<FilterModel>();
+
+			Semaphore = new SemaphoreSlim(1);
 
 			TryEnsureBackwardsCompatibility();
 
@@ -89,31 +97,104 @@ namespace WalletWasabi.Stores
 
 		public async Task AddNewFilterAsync(FilterModel filter)
 		{
-			Index.Add(filter);
-			await File.AppendAllLinesAsync(IndexFilePath, new[] { filter.ToHeightlessLine() });
+			try
+			{
+				await Semaphore.WaitAsync();
+
+				Index.Add(filter);
+				await File.AppendAllLinesAsync(IndexFilePath, new[] { filter.ToHeightlessLine() });
+			}
+			finally
+			{
+				Semaphore.Release();
+			}
+
+			NewFilter?.Invoke(this, filter);
 		}
 
-		public async Task RemoveLastFilterAsync()
+		public async Task<FilterModel> RemoveLastFilterAsync()
 		{
-			Index.RemoveLast();
-			await File.WriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToHeightlessLine()));
+			FilterModel filter = null;
+			try
+			{
+				await Semaphore.WaitAsync();
+
+				filter = Index.Last();
+				Index.RemoveLast();
+				await File.WriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToHeightlessLine()));
+			}
+			finally
+			{
+				Semaphore.Release();
+			}
+
+			Reorged?.Invoke(this, filter);
+
+			return filter;
 		}
 
-		public FilterModel GetLastFilter()
+		public async Task<FilterModel> GetBestKnownFilterAsync()
 		{
-			return Index.Last();
+			FilterModel ret = null;
+			try
+			{
+				await Semaphore.WaitAsync();
+
+				ret = Index.Last();
+			}
+			finally
+			{
+				Semaphore.Release();
+			}
+			return ret;
 		}
 
-		public Height? TryGetHeight(uint256 blockHash)
+		public async Task<Height?> TryGetHeightAsync(uint256 blockHash)
 		{
-			return Index.FirstOrDefault(x => x.BlockHash == blockHash)?.BlockHeight;
+			Height? ret = null;
+			try
+			{
+				await Semaphore.WaitAsync();
+
+				ret = Index.FirstOrDefault(x => x.BlockHash == blockHash)?.BlockHeight;
+			}
+			finally
+			{
+				Semaphore.Release();
+			}
+			return ret;
 		}
 
-		public IEnumerable<FilterModel> GetFilters()
+		public async Task<IEnumerable<FilterModel>> GetFiltersAsync()
 		{
-			return Index.ToList();
+			List<FilterModel> ret = null;
+			try
+			{
+				await Semaphore.WaitAsync();
+
+				ret = Index.ToList();
+			}
+			finally
+			{
+				Semaphore.Release();
+			}
+			return ret;
 		}
 
-		public int CountFilters() => Index.Count;
+		public async Task<int> CountFiltersAsync()
+		{
+			int ret;
+			try
+			{
+				await Semaphore.WaitAsync();
+
+				ret = Index.Count;
+			}
+			finally
+			{
+				Semaphore.Release();
+			}
+			return ret;
+		}
 	}
 }

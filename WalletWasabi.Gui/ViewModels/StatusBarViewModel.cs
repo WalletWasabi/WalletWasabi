@@ -53,7 +53,7 @@ namespace WalletWasabi.Gui.ViewModels
 			Nodes = nodes;
 			Synchronizer = synchronizer;
 			BlocksLeft = 0;
-			FiltersLeft = synchronizer.GetFiltersLeft();
+			FiltersLeft = 0;
 			UseTor = Global.Config.UseTor.Value; // Don't make it dynamic, because if you change this config settings only next time will it activate.
 
 			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Added))
@@ -76,9 +76,9 @@ namespace WalletWasabi.Gui.ViewModels
 					BlocksLeft = x.EventArgs;
 				}).DisposeWith(Disposables);
 
-			Observable.FromEventPattern(synchronizer, nameof(synchronizer.NewFilter)).Subscribe(x =>
+			Observable.FromEventPattern(synchronizer, nameof(synchronizer.BitcoinStore.IndexStore.NewFilter)).Subscribe(async x =>
 			{
-				FiltersLeft = Synchronizer.GetFiltersLeft();
+				FiltersLeft = await Synchronizer.GetFiltersLeftAsync();
 			}).DisposeWith(Disposables);
 
 			synchronizer.WhenAnyValue(x => x.TorStatus).Subscribe(status =>
@@ -92,9 +92,9 @@ namespace WalletWasabi.Gui.ViewModels
 				Backend = Synchronizer.BackendStatus;
 			}).DisposeWith(Disposables);
 
-			synchronizer.WhenAnyValue(x => x.BestBlockchainHeight).Subscribe(_ =>
+			synchronizer.WhenAnyValue(x => x.BestBlockchainHeight).Subscribe(async _ =>
 			{
-				FiltersLeft = Synchronizer.GetFiltersLeft();
+				FiltersLeft = await Synchronizer.GetFiltersLeftAsync();
 			}).DisposeWith(Disposables);
 
 			synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Subscribe(usd =>

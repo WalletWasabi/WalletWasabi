@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.RPC;
 using Nito.AsyncEx;
 using System;
@@ -83,22 +83,6 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private FilterModel _bestKnownFilter;
-
-		public FilterModel BestKnownFilter
-		{
-			get => _bestKnownFilter;
-
-			private set
-			{
-				if (_bestKnownFilter != value)
-				{
-					_bestKnownFilter = value;
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BestKnownFilter)));
-				}
-			}
-		}
-
 		private TorStatus _torStatus;
 
 		public TorStatus TorStatus
@@ -141,13 +125,8 @@ namespace WalletWasabi.Services
 		public void EnableRequests() => Interlocked.Exchange(ref _blockRequests, 0);
 
 		public BitcoinStore BitcoinStore { get; private set; }
-		private AsyncLock IndexLock { get; set; }
 
 		public event PropertyChangedEventHandler PropertyChanged;
-
-		public event EventHandler<FilterModel> Reorged;
-
-		public event EventHandler<FilterModel> NewFilter;
 
 		public event EventHandler<bool> ResponseArrivedIsGenSocksServFail;
 
@@ -193,9 +172,6 @@ namespace WalletWasabi.Services
 			Cancel = new CancellationTokenSource();
 			BestBlockchainHeight = Height.Unknown;
 			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
-			IndexLock = new AsyncLock();
-
-			BestKnownFilter = bitcoinStore.IndexStore.GetLastFilter();
 		}
 
 		public void Start(TimeSpan requestInterval, TimeSpan feeQueryRequestInterval, int maxFiltersToSyncAtInitialization)
@@ -239,7 +215,8 @@ namespace WalletWasabi.Services
 									return;
 								}
 
-								response = await WasabiClient.GetSynchronizeAsync(BestKnownFilter.BlockHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
+								var bestKnownFilter = await BitcoinStore.IndexStore.GetBestKnownFilterAsync();
+								response = await WasabiClient.GetSynchronizeAsync(bestKnownFilter.BlockHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
 								// NOT GenSocksServErr
 								BackendStatus = BackendStatus.Connected;
 								TorStatus = TorStatus.Running;
@@ -291,42 +268,28 @@ namespace WalletWasabi.Services
 
 							if (response.FiltersResponseState == FiltersResponseState.NewFilters)
 							{
-								List<FilterModel> filtersList = response.Filters.ToList(); // performance
+								var filters = response.Filters; // performance
 
-								for (int i = 0; i < filtersList.Count; i++)
+								foreach (var filter in filters)
 								{
-									FilterModel filterModel;
-									using (await IndexLock.LockAsync())
-									{
-										filterModel = filtersList[i];
-										await BitcoinStore.IndexStore.AddNewFilterAsync(filterModel);
-										BestKnownFilter = filterModel;
-									}
-
-									NewFilter?.Invoke(this, filterModel);
+									await BitcoinStore.IndexStore.AddNewFilterAsync(filter);
 								}
 
-								if (filtersList.Count == 1)
+								if (filters.Count() == 1)
 								{
-									Logger.LogInfo<WasabiSynchronizer>($"Downloaded filter for block {filtersList.First().BlockHeight}.");
+									Logger.LogInfo<WasabiSynchronizer>($"Downloaded filter for block {filters.First().BlockHeight}.");
 								}
 								else
 								{
-									Logger.LogInfo<WasabiSynchronizer>($"Downloaded filters for blocks from {filtersList.First().BlockHeight} to {filtersList.Last().BlockHeight}.");
+									Logger.LogInfo<WasabiSynchronizer>($"Downloaded filters for blocks from {filters.First().BlockHeight} to {filters.Last().BlockHeight}.");
 								}
 							}
 							else if (response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
 							{
 								// Reorg happened
-								var reorgedFilter = BestKnownFilter;
-								Logger.LogInfo<WasabiSynchronizer>($"REORG Invalid Block: {reorgedFilter.BlockHash}");
 								// 1. Rollback index
-								using (await IndexLock.LockAsync())
-								{
-									await BitcoinStore.IndexStore.RemoveLastFilterAsync();
-									BestKnownFilter = BitcoinStore.IndexStore.GetLastFilter();
-								}
-								Reorged?.Invoke(this, reorgedFilter);
+								FilterModel reorgedFilter = await BitcoinStore.IndexStore.RemoveLastFilterAsync();
+								Logger.LogInfo<WasabiSynchronizer>($"REORG Invalid Block: {reorgedFilter.BlockHash}");
 
 								ignoreRequestInterval = true;
 							}
@@ -436,13 +399,14 @@ namespace WalletWasabi.Services
 			ResponseArrivedIsGenSocksServFail?.Invoke(this, false);
 		}
 
-		public int GetFiltersLeft()
+		public async Task<int> GetFiltersLeftAsync()
 		{
-			if (BestBlockchainHeight == Height.Unknown || BestBlockchainHeight == Height.MemPool || BestKnownFilter.BlockHeight == Height.Unknown || BestKnownFilter.BlockHeight == Height.MemPool)
+			var bestKnownFilter = await BitcoinStore.IndexStore.GetBestKnownFilterAsync();
+			if (BestBlockchainHeight == Height.Unknown || BestBlockchainHeight == Height.MemPool || bestKnownFilter.BlockHeight == Height.Unknown || bestKnownFilter.BlockHeight == Height.MemPool)
 			{
 				return -1;
 			}
-			return BestBlockchainHeight.Value - BestKnownFilter.BlockHeight.Value;
+			return BestBlockchainHeight.Value - bestKnownFilter.BlockHeight.Value;
 		}
 
 		public Money GetFeeRate(int feeTarget)

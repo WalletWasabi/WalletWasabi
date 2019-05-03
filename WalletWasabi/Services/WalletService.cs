@@ -147,8 +147,8 @@ namespace WalletWasabi.Services
 			}
 			TransactionsFilePath = Path.Combine(TransactionsFolderPath, $"{walletName}Transactions.json");
 
-			Synchronizer.NewFilter += IndexDownloader_NewFilterAsync;
-			Synchronizer.Reorged += IndexDownloader_Reorged;
+			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
+			BitcoinStore.IndexStore.Reorged += IndexDownloader_Reorged;
 			MemPool.TransactionReceived += MemPool_TransactionReceived;
 		}
 
@@ -240,7 +240,7 @@ namespace WalletWasabi.Services
 						return;
 					}
 					// Make sure fully synced and this filter is the lastest filter.
-					if (Synchronizer.GetFiltersLeft() != 0 || Synchronizer.BestKnownFilter.BlockHash != filterModel.BlockHash)
+					if (await Synchronizer.GetFiltersLeftAsync() != 0 || (await BitcoinStore.IndexStore.GetBestKnownFilterAsync()).BlockHash != filterModel.BlockHash)
 					{
 						return;
 					}
@@ -277,7 +277,7 @@ namespace WalletWasabi.Services
 				}
 
 				// Go through the filters and que to download the matches.
-				foreach (FilterModel filterModel in BitcoinStore.IndexStore.GetFilters().Where(x => !(x.Filter is null) && x.BlockHeight > bestKeyManagerHeight)) // Filter can be null if there is no bech32 tx.
+				foreach (FilterModel filterModel in (await BitcoinStore.IndexStore.GetFiltersAsync()).Where(x => !(x.Filter is null) && x.BlockHeight > bestKeyManagerHeight)) // Filter can be null if there is no bech32 tx.
 				{
 					await ProcessFilterModelAsync(filterModel, cancel);
 				}
@@ -1623,8 +1623,8 @@ namespace WalletWasabi.Services
 			{
 				if (disposing)
 				{
-					Synchronizer.NewFilter -= IndexDownloader_NewFilterAsync;
-					Synchronizer.Reorged -= IndexDownloader_Reorged;
+					BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
+					BitcoinStore.IndexStore.Reorged -= IndexDownloader_Reorged;
 					MemPool.TransactionReceived -= MemPool_TransactionReceived;
 					Coins.CollectionChanged -= Coins_CollectionChanged;
 					lock (TransactionProcessingLock)
