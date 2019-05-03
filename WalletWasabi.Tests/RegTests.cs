@@ -377,7 +377,6 @@ namespace WalletWasabi.Tests
 			_reorgTestAsync_ReorgCount = 0;
 
 			var node = RegTestFixture.BackendRegTestNode;
-			var indexFilePath = Path.Combine(Global.DataDir, nameof(ReorgTestAsync), $"Index{rpc.Network}.dat");
 
 			using (var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null))
 			{
@@ -390,7 +389,7 @@ namespace WalletWasabi.Tests
 					// Test initial synchronization.
 					await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), bitcoinStore);
 
-					var indexLines = await File.ReadAllLinesAsync(indexFilePath);
+					var indexLines = bitcoinStore.IndexStore.GetFilters().Select(filter => filter.ToHeightlessLine()).ToArray();
 					var lastFilter = indexLines.Last();
 					var tip = await rpc.GetBestBlockHashAsync();
 					Assert.StartsWith(tip.ToString(), indexLines.Last());
@@ -422,7 +421,7 @@ namespace WalletWasabi.Tests
 					Assert.DoesNotContain(tx4.ToString(), utxoLines);
 					Assert.DoesNotContain(tx5.ToString(), utxoLines);
 
-					indexLines = await File.ReadAllLinesAsync(indexFilePath);
+					indexLines = bitcoinStore.IndexStore.GetFilters().Select(filter => filter.ToHeightlessLine()).ToArray();
 					Assert.DoesNotContain(tip.ToString(), indexLines);
 					Assert.DoesNotContain(tipBlock.HashPrevBlock.ToString(), indexLines);
 
