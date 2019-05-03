@@ -1,6 +1,10 @@
+using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
+using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Stores
 {
@@ -10,5 +14,21 @@ namespace WalletWasabi.Stores
 	/// </summary>
 	public class BitcoinStore
 	{
+		private string WorkFolderPath { get; set; }
+		private Network Network { get; set; }
+
+		public IndexStore IndexStore { get; private set; }
+
+		public async Task InitializeAsync(string workFolderPath, Network network)
+		{
+			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
+			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
+
+			Network = Guard.NotNull(nameof(network), network);
+
+			IndexStore = new IndexStore();
+			var indexStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString());
+			await IndexStore.InitializeAsync(indexStoreFolderPath, Network);
+		}
 	}
 }

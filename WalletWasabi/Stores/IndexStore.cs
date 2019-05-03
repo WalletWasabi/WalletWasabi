@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 
@@ -24,13 +25,13 @@ namespace WalletWasabi.Stores
 
 		private FilterModel StartingFilter { get; set; }
 		private Height StartingHeight { get; set; }
-
-		private object IndexLock { get; set; }
 		private List<FilterModel> Index { get; set; }
 
 		public async Task InitializeAsync(string workFolderPath, Network network)
 		{
 			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
+			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
+
 			Network = Guard.NotNull(nameof(network), network);
 			IndexFilePath = Path.Combine(WorkFolderPath, IndexFileName);
 
@@ -38,8 +39,6 @@ namespace WalletWasabi.Stores
 			StartingHeight = StartingFilters.GetStartingHeight(Network);
 
 			Index = new List<FilterModel>();
-
-			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
 			if (Network == Network.RegTest)
 			{
