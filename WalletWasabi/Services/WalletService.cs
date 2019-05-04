@@ -190,7 +190,7 @@ namespace WalletWasabi.Services
 					DeleteBlock(invalidBlockHash);
 					var blockState = KeyManager.TryRemoveBlockState(invalidBlockHash);
 					ProcessedBlocks.TryRemove(invalidBlockHash, out _);
-					if (blockState.BlockHeight != default(Height))
+					if (blockState != null && blockState.BlockHeight != default(Height))
 					{
 						foreach (var toRemove in Coins.Where(x => x.Height == blockState.BlockHeight).Distinct().ToList())
 						{
