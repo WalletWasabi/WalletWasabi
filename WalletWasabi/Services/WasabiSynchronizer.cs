@@ -268,14 +268,9 @@ namespace WalletWasabi.Services
 
 							if (response.FiltersResponseState == FiltersResponseState.NewFilters)
 							{
-								var filters = response.Filters; // performance
+								var filters = response.Filters.ToArray(); // performance
 
-								foreach (var filter in filters)
-								{
-									await BitcoinStore.IndexStore.AddNewFilterAsync(filter, toFile: false);
-								}
-
-								await BitcoinStore.IndexStore.ToFileAsync();
+								await BitcoinStore.IndexStore.AddNewFiltersAsync(filters);
 
 								if (filters.Count() == 1)
 								{
@@ -290,7 +285,7 @@ namespace WalletWasabi.Services
 							{
 								// Reorg happened
 								// 1. Rollback index
-								FilterModel reorgedFilter = await BitcoinStore.IndexStore.RemoveLastFilterAsync(toFile: true);
+								FilterModel reorgedFilter = await BitcoinStore.IndexStore.RemoveLastFilterAsync();
 								Logger.LogInfo<WasabiSynchronizer>($"REORG Invalid Block: {reorgedFilter.BlockHash}");
 
 								ignoreRequestInterval = true;
