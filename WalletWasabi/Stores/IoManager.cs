@@ -138,6 +138,11 @@ namespace WalletWasabi.Stores
 			{
 				File.Delete(OldFilePath);
 			}
+
+			if (File.Exists(DigestFilePath))
+			{
+				File.Delete(DigestFilePath);
+			}
 		}
 
 		public bool TryReplaceMeWith(string sourcePath)

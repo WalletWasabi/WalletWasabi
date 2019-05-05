@@ -76,7 +76,7 @@ namespace WalletWasabi.Gui.ViewModels
 					BlocksLeft = x.EventArgs;
 				}).DisposeWith(Disposables);
 
-			Observable.FromEventPattern(synchronizer, nameof(synchronizer.BitcoinStore.IndexStore.NewFilter)).Subscribe(async x =>
+			Observable.FromEventPattern(synchronizer.BitcoinStore.IndexStore, nameof(synchronizer.BitcoinStore.IndexStore.NewFilter)).Subscribe(async x =>
 			{
 				FiltersLeft = await Synchronizer.GetFiltersLeftAsync();
 			}).DisposeWith(Disposables);
