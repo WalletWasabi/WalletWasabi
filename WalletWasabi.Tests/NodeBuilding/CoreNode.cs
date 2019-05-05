@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
 using NBitcoin.RPC;
@@ -158,27 +158,32 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		private readonly AsyncLock KillerLock = new AsyncLock();
 
-		public async Task KillAsync(bool cleanFolder = true)
+		public async Task TryKillAsync(bool cleanFolder = true)
 		{
-			using (await KillerLock.LockAsync())
+			try
 			{
-				try
+				using (await KillerLock.LockAsync())
 				{
-					await CreateRpcClient().StopAsync();
-					if (!Process.WaitForExit(20000))
+					try
 					{
-						//log this
+						await CreateRpcClient().StopAsync();
+						if (!Process.WaitForExit(20000))
+						{
+							//log this
+						}
 					}
-				}
-				catch (Exception)
-				{ }
+					catch (Exception)
+					{ }
 
-				State = CoreNodeState.Killed;
+					State = CoreNodeState.Killed;
+				}
+				if (cleanFolder)
+				{
+					await IoHelpers.DeleteRecursivelyWithMagicDustAsync(Folder);
+				}
 			}
-			if (cleanFolder)
-			{
-				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(Folder);
-			}
+			catch
+			{ }
 		}
 
 		public async Task BroadcastBlocksAsync(IEnumerable<Block> blocks)

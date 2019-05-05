@@ -199,7 +199,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 		{
 			foreach (CoreNode node in Nodes)
 			{
-				node?.KillAsync().GetAwaiter().GetResult();
+				node?.TryKillAsync().GetAwaiter().GetResult();
 			}
 
 			foreach (IDisposable disposable in Disposables)

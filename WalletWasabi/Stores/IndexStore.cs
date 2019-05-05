@@ -22,7 +22,6 @@ namespace WalletWasabi.Stores
 		private const string IndexFileName = "Index.dat";
 		private string WorkFolderPath { get; set; }
 		private Network Network { get; set; }
-		private string IndexFilePath { get; set; }
 		private IoManager IndexFileManager { get; set; }
 
 		private FilterModel StartingFilter { get; set; }
@@ -39,8 +38,8 @@ namespace WalletWasabi.Stores
 			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 
 			Network = Guard.NotNull(nameof(network), network);
-			IndexFilePath = Path.Combine(WorkFolderPath, IndexFileName);
-			IndexFileManager = new IoManager(IndexFilePath);
+			var indexFilePath = Path.Combine(WorkFolderPath, IndexFileName);
+			IndexFileManager = new IoManager(indexFilePath);
 
 			StartingFilter = StartingFilters.GetStartingFilter(Network);
 			StartingHeight = StartingFilters.GetStartingHeight(Network);
@@ -49,7 +48,7 @@ namespace WalletWasabi.Stores
 
 			Semaphore = new SemaphoreSlim(1);
 
-			await IndexFileManager.WrapInSemaphoreAsync(async () =>
+			await IndexFileManager.WrapInMutexAsync(async () =>
 			{
 				IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
@@ -57,18 +56,18 @@ namespace WalletWasabi.Stores
 
 				if (Network == Network.RegTest)
 				{
-					IoHelpers.BetterDelete(IndexFilePath); // RegTest is not a global ledger, better to delete it.
+					IndexFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
 				}
 
-				if (!File.Exists(IndexFilePath))
+				if (!IndexFileManager.Exists())
 				{
-					await File.WriteAllLinesAsync(IndexFilePath, new[] { StartingFilter.ToHeightlessLine() });
+					await IndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToHeightlessLine() });
 				}
 
 				var height = StartingHeight;
 				try
 				{
-					foreach (var line in await File.ReadAllLinesAsync(IndexFilePath))
+					foreach (var line in await IndexFileManager.ReadAllLinesAsync())
 					{
 						var filter = FilterModel.FromHeightlessLine(line, height);
 						height++;
@@ -79,7 +78,7 @@ namespace WalletWasabi.Stores
 				{
 					// We found a corrupted entry. Stop here.
 					// Fix the currupted file.
-					await File.WriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToHeightlessLine()));
+					await IndexFileManager.WriteAllLinesAsync(Index.Select(x => x.ToHeightlessLine()));
 				}
 			});
 		}
@@ -90,10 +89,7 @@ namespace WalletWasabi.Stores
 			{
 				// Before Wasabi 1.1.5
 				var oldIndexFilepath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), $"Index{Network}.dat");
-				if (File.Exists(oldIndexFilepath))
-				{
-					File.Move(oldIndexFilepath, IndexFilePath);
-				}
+				IndexFileManager.TryReplaceMeWith(oldIndexFilepath);
 			}
 			catch (Exception ex)
 			{
@@ -108,9 +104,9 @@ namespace WalletWasabi.Stores
 				await Semaphore.WaitAsync();
 
 				Index.Add(filter);
-				await IndexFileManager.WrapInSemaphoreAsync(async () =>
+				await IndexFileManager.WrapInMutexAsync(async () =>
 				{
-					await File.AppendAllLinesAsync(IndexFilePath, new[] { filter.ToHeightlessLine() });
+					await IndexFileManager.AppendAllLinesAsync(new[] { filter.ToHeightlessLine() });
 				});
 			}
 			finally
@@ -130,9 +126,9 @@ namespace WalletWasabi.Stores
 
 				filter = Index.Last();
 				Index.RemoveLast();
-				await IndexFileManager.WrapInSemaphoreAsync(async () =>
+				await IndexFileManager.WrapInMutexAsync(async () =>
 				{
-					await File.WriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToHeightlessLine()));
+					await IndexFileManager.WriteAllLinesAsync(Index.Select(x => x.ToHeightlessLine()));
 				});
 			}
 			finally
