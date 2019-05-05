@@ -10,7 +10,6 @@ using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Services
 {
-
 	public class UtxoReferee
 	{
 		private IUtxoProvider _utxoProvider;
