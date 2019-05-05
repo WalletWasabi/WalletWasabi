@@ -51,9 +51,11 @@ namespace WalletWasabi.Services
 			CoinJoins = new List<uint256>();
 			CoinJoinsLock = new AsyncLock();
 
-			Directory.CreateDirectory(FolderPath);
-
-			UtxoReferee = new UtxoReferee(Network, FolderPath, RpcClient, RoundConfig);
+			var bannedUtxoFilePath = Path.Combine(FolderPath, $"BannedUtxos{Network}.txt");
+			var bannedUtxoRepository = new BannedUtxoRepository(bannedUtxoFilePath);
+			var utxoProvider = new UtxoProvider(RpcClient);
+			var dosConfig = CcjDenialOfServiceConfig.FromCcjRoundConfig(RoundConfig);
+			UtxoReferee = new UtxoReferee(bannedUtxoRepository,  utxoProvider, dosConfig);
 
 			if (File.Exists(CoinJoinsFilePath))
 			{
@@ -181,13 +183,13 @@ namespace WalletWasabi.Services
 				{
 					if (!AnyRunningRoundContainsInput(prevOut, out _))
 					{
-						int newSeverity = foundElem.Value.severity + 1;
+						int newSeverity = foundElem.Severity + 1;
 						await UtxoReferee.UnbanAsync(prevOut); // since it's not an UTXO anymore
 
 						if (RoundConfig.DosSeverity >= newSeverity)
 						{
 							var txCoins = tx.Outputs.AsIndexedOutputs().Select(x => x.ToCoin().Outpoint);
-							await UtxoReferee.BanUtxosAsync(newSeverity, foundElem.Value.timeOfBan, forceNoted: foundElem.Value.isNoted, foundElem.Value.bannedForRound, txCoins.ToArray());
+							await UtxoReferee.BanUtxosAsync(newSeverity, foundElem.TimeOfBan, forceNoted: foundElem.IsNoted, foundElem.BannedForRound, txCoins.ToArray());
 						}
 					}
 				}
