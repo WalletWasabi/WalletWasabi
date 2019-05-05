@@ -106,7 +106,7 @@ namespace WalletWasabi.Stores
 				Index.Add(filter);
 				await IndexFileManager.WrapInMutexAsync(async () =>
 				{
-					await IndexFileManager.AppendAllLinesAsync(new[] { filter.ToHeightlessLine() });
+					await IndexFileManager.WriteAllLinesAsync(Index.Select(x => x.ToHeightlessLine()));
 				});
 			}
 			finally

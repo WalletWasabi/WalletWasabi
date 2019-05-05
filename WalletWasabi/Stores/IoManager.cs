@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Stores
 {
@@ -16,6 +18,7 @@ namespace WalletWasabi.Stores
 		public string OriginalFilePath { get; }
 		public string OldFilePath { get; }
 		public string NewFilePath { get; }
+		public string DigestFilePath { get; }
 
 		public string FileName { get; }
 		public string FileNameWithoutExtension { get; }
@@ -23,12 +26,14 @@ namespace WalletWasabi.Stores
 
 		private const string OldExtension = ".old";
 		private const string NewExtension = ".new";
+		private const string DigestExtension = ".dig";
 
 		public IoManager(string filePath)
 		{
 			OriginalFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath, trim: true);
 			OldFilePath = $"{OriginalFilePath}{OldExtension}";
 			NewFilePath = $"{OriginalFilePath}{NewExtension}";
+			DigestFilePath = $"{OriginalFilePath}{DigestExtension}";
 
 			FileName = Path.GetFileName(OriginalFilePath);
 			FileNameWithoutExtension = Path.GetFileNameWithoutExtension(OriginalFilePath);
@@ -218,21 +223,53 @@ namespace WalletWasabi.Stores
 
 		public async Task WriteAllLinesAsync(IEnumerable<string> contents, CancellationToken cancellationToken = default)
 		{
-			await File.WriteAllLinesAsync(NewFilePath, contents, cancellationToken);
-			SafeMoveNewToOriginal();
-		}
-
-		public async Task AppendAllLinesAsync(IEnumerable<string> contents, CancellationToken cancellationToken = default)
-		{
-			// Make sure the NewFilePath exists.
-			if (TryGetSafestFileVersion(out string safestFilePath) && safestFilePath != NewFilePath)
+			byte[] hash = null;
+			try
 			{
-				File.Copy(safestFilePath, NewFilePath, overwrite: true);
+				IEnumerable<byte[]> arrays = contents.Select(x => Encoding.ASCII.GetBytes(x));
+				byte[] bytes = ByteHelpers.Combine(arrays);
+				hash = IoHelpers.GetHash(bytes);
+				if (File.Exists(DigestFilePath))
+				{
+					var digest = await File.ReadAllBytesAsync(DigestFilePath, cancellationToken);
+					if (ByteHelpers.CompareFastUnsafe(hash, digest))
+					{
+						return;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<IoManager>("Failed to read digest.");
+				Logger.LogInfo<IoManager>(ex);
 			}
 
-			await File.AppendAllLinesAsync(NewFilePath, contents, cancellationToken);
+			await File.WriteAllLinesAsync(NewFilePath, contents, cancellationToken);
 			SafeMoveNewToOriginal();
+
+			try
+			{
+				await File.WriteAllBytesAsync(DigestFilePath, hash);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<IoManager>("Failed to create digest.");
+				Logger.LogInfo<IoManager>(ex);
+			}
 		}
+
+		// Can't compute hash for append.
+		//public async Task AppendAllLinesAsync(IEnumerable<string> contents, CancellationToken cancellationToken = default)
+		//{
+		//	// Make sure the NewFilePath exists.
+		//	if (TryGetSafestFileVersion(out string safestFilePath) && safestFilePath != NewFilePath)
+		//	{
+		//		File.Copy(safestFilePath, NewFilePath, overwrite: true);
+		//	}
+
+		//	await File.AppendAllLinesAsync(NewFilePath, contents, cancellationToken);
+		//	SafeMoveNewToOriginal();
+		//}
 
 		public async Task<string[]> ReadAllLinesAsync(CancellationToken cancellationToken = default)
 		{
