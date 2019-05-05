@@ -97,17 +97,17 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		public async Task AddNewFilterAsync(FilterModel filter)
+		public async Task AddNewFilterAsync(FilterModel filter, bool toFile)
 		{
 			try
 			{
 				await Semaphore.WaitAsync();
 
 				Index.Add(filter);
-				await IndexFileManager.WrapInMutexAsync(async () =>
+				if (toFile)
 				{
-					await IndexFileManager.WriteAllLinesAsync(Index.Select(x => x.ToHeightlessLine()));
-				});
+					await ToFileNoSemaphoreAsync();
+				}
 			}
 			finally
 			{
@@ -117,7 +117,7 @@ namespace WalletWasabi.Stores
 			NewFilter?.Invoke(this, filter);
 		}
 
-		public async Task<FilterModel> RemoveLastFilterAsync()
+		public async Task<FilterModel> RemoveLastFilterAsync(bool toFile)
 		{
 			FilterModel filter = null;
 			try
@@ -126,10 +126,10 @@ namespace WalletWasabi.Stores
 
 				filter = Index.Last();
 				Index.RemoveLast();
-				await IndexFileManager.WrapInMutexAsync(async () =>
+				if (toFile)
 				{
-					await IndexFileManager.WriteAllLinesAsync(Index.Select(x => x.ToHeightlessLine()));
-				});
+					await ToFileNoSemaphoreAsync();
+				}
 			}
 			finally
 			{
@@ -139,6 +139,28 @@ namespace WalletWasabi.Stores
 			Reorged?.Invoke(this, filter);
 
 			return filter;
+		}
+
+		private async Task ToFileNoSemaphoreAsync()
+		{
+			await IndexFileManager.WrapInMutexAsync(async () =>
+			{
+				await IndexFileManager.WriteAllLinesAsync(Index.Select(x => x.ToHeightlessLine()));
+			});
+		}
+
+		public async Task ToFileAsync()
+		{
+			try
+			{
+				await Semaphore.WaitAsync();
+
+				await ToFileNoSemaphoreAsync();
+			}
+			finally
+			{
+				Semaphore.Release();
+			}
 		}
 
 		public async Task<FilterModel> GetBestKnownFilterAsync()
