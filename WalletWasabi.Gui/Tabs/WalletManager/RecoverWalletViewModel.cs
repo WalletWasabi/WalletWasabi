@@ -1,4 +1,4 @@
-﻿using AvalonStudio.Extensibility;
+using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
@@ -151,7 +151,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			get => _caretIndex;
 			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
 		}
-		
+
 		public bool ShowAdvancedOptions
 		{
 			get => _showAdvancedOptions;

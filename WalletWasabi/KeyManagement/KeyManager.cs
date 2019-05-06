@@ -48,7 +48,7 @@ namespace WalletWasabi.KeyManagement
 
 		[JsonProperty(Order = 8)]
 		private List<HdPubKey> HdPubKeys { get; }
-		
+
 		[JsonProperty(Order = 9)]
 		[JsonConverter(typeof(KeyPathJsonConverter))]
 		public KeyPath AccountKeyPath { get; private set; }
@@ -177,7 +177,7 @@ namespace WalletWasabi.KeyManagement
 			var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 
 			HDFingerprint masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
-			
+
 			KeyPath keyPath = accountKeyPath ?? DefaultAccountKeyPath;
 			ExtPubKey extPubKey = extKey.Derive(keyPath).Neuter();
 			return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, true, minGapLimit, new BlockchainState(), filePath, keyPath);
