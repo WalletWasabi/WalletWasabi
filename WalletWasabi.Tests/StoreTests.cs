@@ -63,17 +63,23 @@ namespace WalletWasabi.Tests
 
 			// Read back the content and check.
 
+			bool IsStringArraysEqual(string[] lines1, string[] lines2)
+			{
+				if (lines1.Length != lines2.Length) return false;
+
+				for (int i = 0; i < lines1.Length; i++)
+				{
+					string line = lines2[i];
+					var readline = lines1[i];
+
+					if (!line.Equals(readline)) return false;
+				}
+				return true;
+			}
+
 			var readLines = await ioman1.ReadAllLinesAsync();
 
-			Assert.Equal(readLines.Length, lines.Count);
-
-			for (int i = 0; i < lines.Count; i++)
-			{
-				string line = lines[i];
-				var readline = readLines[i];
-
-				Assert.Equal(readline, line);
-			}
+			Assert.True(IsStringArraysEqual(readLines, lines.ToArray()));
 
 			// Check digest file, and write only differ logic.
 
@@ -95,7 +101,7 @@ namespace WalletWasabi.Tests
 
 			// Mutex tests.
 
-			// Acquire the Mutex.
+			// Acquire the Mutex with a background thread.
 
 			var myTask = Task.Run(async () =>
 			{
@@ -117,8 +123,31 @@ namespace WalletWasabi.Tests
 				timeOfAcquired = DateTime.Now;
 			});
 
+			Assert.True(myTask.IsCompletedSuccessfully);
+
 			var elapsed = timeOfAcquired - timeOfstart;
 			Assert.InRange(elapsed, TimeSpan.FromMilliseconds(2000), TimeSpan.FromMilliseconds(4000));
+
+			// Simulate file write error and recovery logic.
+
+			// We have only *.new and *.old files.
+			File.Copy(ioman1.OriginalFilePath, ioman1.OldFilePath);
+			File.Move(ioman1.OriginalFilePath, ioman1.NewFilePath);
+
+			// At this point there is now OriginalFile.
+
+			var newFile = await ioman1.ReadAllLinesAsync();
+
+			Assert.True(IsStringArraysEqual(newFile, lines.ToArray()));
+
+			ioman1.DeleteMe();
+
+			Assert.False(ioman1.Exists());
+
+			// Check if directory is empty.
+
+			var fileCount = Directory.EnumerateFiles(Path.GetDirectoryName(ioman1.OriginalFilePath)).Count();
+			Assert.Equal(0, fileCount);
 		}
 	}
 }
