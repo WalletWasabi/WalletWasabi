@@ -40,14 +40,33 @@ namespace WalletWasabi.Tests
 				lines.Add(line);
 			}
 
-			// Single thread file operations
+			// Single thread file operations.
 
 			IoManager ioman1 = new IoManager(file1);
+
+			// Delete the file if Exist.
 
 			ioman1.DeleteMe();
 			Assert.False(ioman1.Exists());
 
+			// Write the data to the file.
+
 			await ioman1.WriteAllLinesAsync(lines);
+			Assert.True(ioman1.Exists());
+
+			// Read back the content and check.
+
+			var readLines = await ioman1.ReadAllLinesAsync();
+
+			Assert.Equal(readLines.Length, lines.Count);
+
+			for (int i = 0; i < lines.Count; i++)
+			{
+				string line = lines[i];
+				var readline = readLines[i];
+
+				Assert.Equal(readline, line);
+			}
 		}
 	}
 }
