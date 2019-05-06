@@ -140,6 +140,18 @@ namespace WalletWasabi.Tests
 
 			Assert.True(IsStringArraysEqual(newFile, lines.ToArray()));
 
+			// Add one more line to have different data.
+			lines.Add("Lorem ipsum dolor sit amet, consectetur adipiscing elit.");
+
+			await ioman1.WriteAllLinesAsync(lines);
+
+			// Check recovery mechanism.
+
+			Assert.True(
+				File.Exists(ioman1.OriginalFilePath) &&
+				!File.Exists(ioman1.OldFilePath) &&
+				!File.Exists(ioman1.NewFilePath));
+
 			ioman1.DeleteMe();
 
 			Assert.False(ioman1.Exists());
@@ -148,6 +160,46 @@ namespace WalletWasabi.Tests
 
 			var fileCount = Directory.EnumerateFiles(Path.GetDirectoryName(ioman1.OriginalFilePath)).Count();
 			Assert.Equal(0, fileCount);
+
+			// Check Mutex usage on simultaneous file writes.
+
+			IoManager ioman2 = new IoManager(file2);
+
+			await Task.Run(async () =>
+			{
+				await ioman1.WrapInMutexAsync(async () =>
+				{
+					// Should not be a problem because they using different Mutexes.
+					await ioman2.WrapInMutexAsync(async () =>
+					{
+						await ioman1.WriteAllLinesAsync(lines);
+						await ioman2.WriteAllLinesAsync(lines);
+						ioman1.DeleteMe();
+						ioman2.DeleteMe();
+					});
+				});
+			});
+
+			// TryReplace test.
+			var dummyFilePath = $"{ioman1.OriginalFilePath}dummy";
+			var dummyContent = new string[]
+			{
+				"banana",
+				"peach"
+			};
+			await File.WriteAllLinesAsync(dummyFilePath, dummyContent);
+
+			await ioman1.WriteAllLinesAsync(lines);
+
+			ioman1.TryReplaceMeWith(dummyFilePath);
+
+			var fruits = await ioman1.ReadAllLinesAsync();
+
+			Assert.True(IsStringArraysEqual(dummyContent, fruits));
+
+			Assert.False(File.Exists(dummyFilePath));
+
+			ioman1.DeleteMe();
 		}
 	}
 }
