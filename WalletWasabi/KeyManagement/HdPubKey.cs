@@ -1,5 +1,4 @@
-﻿using NBitcoin;
-using NBitcoin.JsonConverters;
+using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using WalletWasabi.Helpers;
@@ -125,15 +124,9 @@ namespace WalletWasabi.KeyManagement
 
 		public override int GetHashCode() => HashCode;
 
-		public static bool operator ==(HdPubKey x, HdPubKey y)
-		{
-			return x?.PubKeyHash == y?.PubKeyHash;
-		}
+		public static bool operator ==(HdPubKey x, HdPubKey y) => x?.PubKeyHash == y?.PubKeyHash;
 
-		public static bool operator !=(HdPubKey x, HdPubKey y)
-		{
-			return !(x == y);
-		}
+		public static bool operator !=(HdPubKey x, HdPubKey y) => !(x == y);
 
 		#endregion Equality
 	}

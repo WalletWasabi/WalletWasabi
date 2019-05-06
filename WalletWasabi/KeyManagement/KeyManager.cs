@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Security;
 using System.Text;
-using NBitcoin.JsonConverters;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.JsonConverters;
@@ -27,7 +26,7 @@ namespace WalletWasabi.KeyManagement
 		public byte[] ChainCode { get; }
 
 		[JsonProperty(Order = 3)]
-		[JsonConverter(typeof(JsonConverters.HDFingerprintJsonConverter))]
+		[JsonConverter(typeof(HDFingerprintJsonConverter))]
 		public HDFingerprint? MasterFingerprint { get; private set; }
 
 		[JsonProperty(Order = 4)]
