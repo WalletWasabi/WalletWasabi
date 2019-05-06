@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.RPC;
 using Nito.AsyncEx;
 using System;
@@ -21,12 +21,12 @@ namespace WalletWasabi.Tests.NodeBuilding
 		public static readonly AsyncLock Lock = new AsyncLock();
 		public static string WorkingDirectory { get; private set; }
 
-		public static async Task<NodeBuilder> CreateAsync([CallerMemberName]string caller = null, string version = "0.17.1")
+		public static async Task<NodeBuilder> CreateAsync([CallerMemberName]string caller = null, string version = "0.18.0")
 		{
 			using (await Lock.LockAsync())
 			{
 				WorkingDirectory = Path.Combine(Global.DataDir, caller);
-				version = version ?? "0.17.1";
+				version = version ?? "0.18.0";
 				var path = await EnsureDownloadedAsync(version);
 				return new NodeBuilder(WorkingDirectory, path);
 			}
@@ -74,7 +74,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 					return bitcoind;
 				}
 
-				zip = Path.Combine(Global.DataDir, $"bitcoin-{version}-win32.zip");
+				zip = Path.Combine(Global.DataDir, $"bitcoin-{version}-win64.zip");
 				string url = string.Format("https://bitcoincore.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
 				using (var client = new HttpClient())
 				{

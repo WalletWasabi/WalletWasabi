@@ -24,6 +24,7 @@ namespace WalletWasabi.Gui
 			bool runGui = true;
 			try
 			{
+				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
@@ -32,7 +33,6 @@ namespace WalletWasabi.Gui
 				{
 					return;
 				}
-				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
 				Logger.LogStarting("Wasabi GUI");
 
 				BuildAvaloniaApp()

@@ -450,6 +450,10 @@ namespace Mono.Options
 				{
 					return await Help.InvokeAsync(extra);
 				}
+				if (arguments.All(x => !x.Contains("version")))
+				{
+					Out.WriteLine(Options.MessageLocalizer($"Use `{Suite} help` for usage."));
+				}
 				return 1;
 			}
 			var command = GetCommand(extra);
