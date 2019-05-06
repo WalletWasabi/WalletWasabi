@@ -59,9 +59,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					ValidationMessage = $"Min Gap Limit cannot be smaller than {KeyManager.AbsoluteMinGapLimit - 1}.";
 				}
-				else if (MinGapLimit > KeyManager.AbsoluteMaxGapLimit)
+				else if (MinGapLimit > 1_000_000)
 				{
-					ValidationMessage = $"Min Gap Limit cannot be larger than {KeyManager.AbsoluteMaxGapLimit}.";
+					ValidationMessage = $"Min Gap Limit cannot be larger than {1_000_000}.";
 				}
 				else if (!TryParseKeyPath(AccountKeyPath))
 				{

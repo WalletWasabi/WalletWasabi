@@ -75,7 +75,6 @@ namespace WalletWasabi.KeyManagement
 		public HardwareWalletInfo HardwareWalletInfo { get; set; }
 
 		public const int AbsoluteMinGapLimit = 21;
-		public const int AbsoluteMaxGapLimit = 1_000_000;
 
 		[JsonConstructor]
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, bool? passwordVerified, int? minGapLimit, BlockchainState blockchainState, string filePath = null, KeyPath accountKeyPath = null)
