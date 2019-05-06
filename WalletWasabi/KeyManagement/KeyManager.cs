@@ -40,16 +40,16 @@ namespace WalletWasabi.KeyManagement
 		public int? MinGapLimit { get; private set; }
 
 		[JsonProperty(Order = 7)]
+		[JsonConverter(typeof(KeyPathJsonConverter))]
+		public KeyPath AccountKeyPath { get; private set; }
+
+		[JsonProperty(Order = 8)]
 		private BlockchainState BlockchainState { get; }
 
 		private object BlockchainStateLock { get; }
 
-		[JsonProperty(Order = 8)]
-		private List<HdPubKey> HdPubKeys { get; }
-
 		[JsonProperty(Order = 9)]
-		[JsonConverter(typeof(KeyPathJsonConverter))]
-		public KeyPath AccountKeyPath { get; private set; }
+		private List<HdPubKey> HdPubKeys { get; }
 
 		private object HdPubKeysLock { get; }
 
@@ -310,7 +310,7 @@ namespace WalletWasabi.KeyManagement
 
 			// Example text to handle: "ExtPubKey": "03BF8271268000000013B9013C881FE456DDF524764F6322F611B03CF6".
 			var extpubkeyline = File.ReadLines(filePath) // Enumerated read.
-				.Take(10) // Limit reads to x lines.
+				.Take(21) // Limit reads to x lines.
 				.FirstOrDefault(line => line.Contains("\"ExtPubKey\": \"", StringComparison.InvariantCulture));
 
 			if (string.IsNullOrEmpty(extpubkeyline))
@@ -342,7 +342,7 @@ namespace WalletWasabi.KeyManagement
 
 			// Example text to handle: "ExtPubKey": "03BF8271268000000013B9013C881FE456DDF524764F6322F611B03CF6".
 			var masterfpline = File.ReadLines(filePath) // Enumerated read.
-				.Take(10) // Limit reads to x lines.
+				.Take(21) // Limit reads to x lines.
 				.FirstOrDefault(line => line.Contains("\"MasterFingerprint\": \"", StringComparison.InvariantCulture));
 
 			if (string.IsNullOrEmpty(masterfpline))
