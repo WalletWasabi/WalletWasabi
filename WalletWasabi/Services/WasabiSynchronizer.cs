@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
@@ -302,7 +302,7 @@ namespace WalletWasabi.Services
 							catch (Exception ex)
 							{
 								TorStatus = TorStatus.Running;
-								BackendStatus = BackendStatus.NotConnected;
+								BackendStatus = BackendStatus.Connected;
 								HandleIfGenSocksServFail(ex);
 								throw;
 							}
