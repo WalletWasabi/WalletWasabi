@@ -49,10 +49,16 @@ namespace WalletWasabi.Tests
 			ioman1.DeleteMe();
 			Assert.False(ioman1.Exists());
 
+			Assert.False(File.Exists(ioman1.DigestFilePath));
+
 			// Write the data to the file.
 
 			await ioman1.WriteAllLinesAsync(lines);
 			Assert.True(ioman1.Exists());
+
+			// Check if the digest file is created.
+
+			Assert.True(File.Exists(ioman1.DigestFilePath));
 
 			// Read back the content and check.
 
@@ -66,6 +72,22 @@ namespace WalletWasabi.Tests
 				var readline = readLines[i];
 
 				Assert.Equal(readline, line);
+			}
+
+			// Check digest file, and write only differ logic.
+
+			using (File.OpenWrite(ioman1.OriginalFilePath))
+			{
+				// Should be OK because the same data is written.
+				await ioman1.WriteAllLinesAsync(lines);
+			}
+
+			lines.Add("Lorem ipsum dolor sit amet, consectetur adipiscing elit.");
+
+			using (File.OpenWrite(ioman1.OriginalFilePath))
+			{
+				// Should fail because different data is written.
+				await Assert.ThrowsAsync<IOException>(async () => await ioman1.WriteAllLinesAsync(lines));
 			}
 		}
 	}
