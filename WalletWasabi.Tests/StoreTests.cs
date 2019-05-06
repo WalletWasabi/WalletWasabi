@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Stores;
 using Xunit;
@@ -89,6 +90,35 @@ namespace WalletWasabi.Tests
 				// Should fail because different data is written.
 				await Assert.ThrowsAsync<IOException>(async () => await ioman1.WriteAllLinesAsync(lines));
 			}
+
+			await ioman1.WriteAllLinesAsync(lines);
+
+			// Mutex tests.
+
+			// Acquire the Mutex.
+
+			var myTask = Task.Run(async () =>
+			{
+				await ioman1.WrapInMutexAsync(async () =>
+				{
+					await Task.Delay(3000);
+				});
+			});
+
+			// Wait for the Task.Run to Acquire the Mutex.
+			await Task.Delay(100);
+
+			// Try to get the Mutex and save the time.
+			DateTime timeOfstart = DateTime.Now;
+			DateTime timeOfAcquired = default;
+
+			await ioman1.WrapInMutexAsync(() =>
+			{
+				timeOfAcquired = DateTime.Now;
+			});
+
+			var elapsed = timeOfAcquired - timeOfstart;
+			Assert.InRange(elapsed, TimeSpan.FromMilliseconds(2000), TimeSpan.FromMilliseconds(4000));
 		}
 	}
 }
