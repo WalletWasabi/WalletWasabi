@@ -17,13 +17,12 @@
           <StackPanel IsVisible="{Binding IsHardwareWallet}" Spacing="8">
             <StackPanel>
               <TextBlock Text="Limitations?" FontWeight="Bold" />
-              <TextBlock Text="- This is an EXPERIMENTAL feature." />
               <TextBlock Text="- Currently all hardware wallets on the market are incompatible with coinjoins." />
               <TextBlock Text="- Only bech32 keypaths are supported, so your legacy hardware wallet transactions won't show up in Wasabi." />
             </StackPanel>
             <StackPanel>
               <TextBlock Text="Which hardware wallets are currently supported?" FontWeight="Bold" />
-              <TextBlock Text="- Coldcard Mark1, Ledger Nano S and Trezor Model T." TextWrapping="Wrap" />
+              <TextBlock Text="- Coldcard Mk1, Mk2, Ledger Nano S and Trezor Model T." TextWrapping="Wrap" />
               <TextBlock Text="- While other hardware wallets may also work, they were not tested by Wasabi developers." TextWrapping="Wrap" />
             </StackPanel>
           </StackPanel>
