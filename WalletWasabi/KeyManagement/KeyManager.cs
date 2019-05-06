@@ -12,7 +12,6 @@ using WalletWasabi.Hwi.Models;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using HDFingerprintJsonConverter = WalletWasabi.JsonConverters.HDFingerprintJsonConverter;
 
 namespace WalletWasabi.KeyManagement
 {
@@ -28,7 +27,7 @@ namespace WalletWasabi.KeyManagement
 		public byte[] ChainCode { get; }
 
 		[JsonProperty(Order = 3)]
-		[JsonConverter(typeof(HDFingerprintJsonConverter))]
+		[JsonConverter(typeof(JsonConverters.HDFingerprintJsonConverter))]
 		public HDFingerprint? MasterFingerprint { get; private set; }
 
 		[JsonProperty(Order = 4)]
