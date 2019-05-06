@@ -1,0 +1,181 @@
+FAQ for [Wasabi Wallet](https://github.com/zkSNACKs/WalletWasabi)
+By [6102bitcoin](https://twitter.com/6102bitcoin)
+
+Note: Many of these Q&A have been copied from real users, see footer for acknowledgements. 
+
+# Index
+- Pre-Install
+- Install
+- Pre-Mix
+- Mixing
+- Post-Mix
+- Meta
+- Acknowledgements
+
+# Pre-Install
+
+### Who is behind Wasabi?
+
+The Company that is developing Wasabi is zkSNACKs LTD ([twitter](@Zksnacks_LTD) | [website](https://zksnacks.com/))
+
+The following people are listed on the company website:
+
+| Name						| Twitter 						 																		| Position							|
+| ----------------| --------------------------------------------------------|	----------------------|
+| Hajdú Gergely 	|	[@gergely_hajdu](https://twitter.com/gergely_hajdu) 		| CEO & Co-Founder			|
+| Harmat Bálint		|	[@bharmat84](https://twitter.com/bharmat84) 						| CEO & Co-Founder			|
+| Adam Ficsor			|	[@nopara73](https://twitter.com/nopara73)								| CTO										|
+| Lucas Ontivero	| [@lontivero](https://twitter.com/)											| Lead Engineer					|
+
+Other people have contributed to the code:
+- David Molnar ([@molnardavid84](https://twitter.com/molnardavid84))
+- Dan Walmsley ([@danwalmsley](https://github.com/danwalmsley))
+
+# Install
+
+### How do I install Wasabi?
+
+Follow [this guide](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/InstallInstructions.md)
+
+If you use Windows there is a [video guide](https://youtu.be/D8U53PFEsVk).
+
+### Do I need to run Tor?
+
+All Wasabi network traffic goes via Tor by default - no need to set up Tor yourself. If you do already have Tor, and it is running, then Wasabi will try to use that first.  
+
+# Pre-Mix
+
+### My wallet can't send to Bech32 addresses - what wallets can I use instead? 
+
+Wasabi generates Bech32 addresses only. These addresses start with the characters bc1... Some wallets/exchanges don't yet support this type of address and my give an error message (e.g. "unknown bitcoin address"). The solution is to manage your funds with a wallet which does support Bech32. Of [all the wallets](https://en.bitcoin.it/wiki/Bech32_adoption) that support Bech32, only the following wallets have Coin Control;
+
+| Platform 						| Recommended 																					| Other										|
+| ---------						| -----------------------------------------------------	|------------------------	|
+| Mobile (Android)		| [Samourai](https://samouraiwallet.com/)								| [Electrum](https://play.google.com/store/apps/details?id=org.electrum.electrum)								|
+| Desktop 						| [Bitcoin Core](https://bitcoincore.org/en/download/)	| [Electrum](https://electrum.org)	|
+
+I am not aware of any wallets for iOS which support coin control. If you are aware of any other Wallets with coin control please make a pull request.
+
+Be careful. If you send all your coins from an old wallet to a new wallet (from the table above) in one transaction then you will merge all your coins which is bad for privacy. Instead, **import your seed into one of the wallets in the table.**
+
+# Mixing
+
+### What are the fees?
+
+You pay currently pay a fee of 0.003% * Anonymity set. If the coin anonymity set of a coin is 50 then you paid 0.003% * 50 (=0.15%). If you set the target anonymity set to 53 then wasabi will continue mixing until this is reached, so you may end up with an anonymity set of say 60, and you will pay 0.003% * 60 (=0.18%).
+
+### What is the Anonymity Set?
+
+The anonymity set is effectively the size of the group you are hiding in. 
+
+If 3 people take part in a CoinJoin (with equal size inputs) and there are 3 outputs then each of those output coins has an anonymity set of 3.
+
+```
+0.1 BTC (Alice)       0.1 BTC (Anon set 3)
+0.3 BTC (Bob) 	  ->  0.1 BTC (Anon set 3)
+0.4 BTC (Charlie)     0.1 BTC (Anon set 3)
+                      0.2 BTC (Change Coin Bob)
+                      0.3 BTC (Change Coin Charlie)
+```
+
+There is no way to know which of the anon set output coins are owned by which of the input owners.
+All an observer knows is that a specific anon set output coin is owned by one of the owners of one of the input Coins i.e. 3 people - hence an anonymity set of 3.
+
+### How Do I change the default number of mixing rounds (the Anonymity Set)?
+
+Go to File>Open>Config and change the value of **N** in "MixUntilAnonymitySet": **N** to the Anonymity Set you desire. More is better, (arguably only up to a point). Remember that you pay a fee proportional to the Anonymity Set.
+
+### Can I mix more than the round's minimum? ###
+
+Yes. 
+In a round with a ~0.1 BTC minimum, you could mix ~ 0.3 BTC and get a ~ 0.1 BTC output & a ~ 0.2 BTC output.
+Similarly, with a 0.7 BTC input you would expect the following outputs: ~ 0.1, ~ 0.2, ~ 0.4 BTC. The possible values of equal output that can be created are 0.1 x 2^n where is a positive integer (or zero).
+
+### Why is the minimum mixing amount a weird number?
+
+The output value changes each round to ensure that you can que a coin and have it remix (mix over and over again - increasing the anonymity set, improving privacy). As a result the round mixing amount will often be a specific number which generally decreases as the rounds proceed, with a reset once a lower bound is reached. 
+
+# Post-Mix
+
+### What do I do now that I have mixed my coins?
+
+Wasabi is a very good wallet, and it is advisable to manage your funds using the wallet once you have mixed. If you are going to send your funds to another wallet (say, a mobile wallet for convenience) then there are a couple of important things to consider.
+- Unless the wallet has coin control you will merge your coins which damages privacy. 
+- Unless the wallet connects to your own full node you will leak information to the server supplying the blocks/filters.
+As a result, there are few wallets that are suitable. 
+
+Personally, I recommend sending your Zerolink Change to [Samourai Wallet](https://samouraiwallet.com/) or [Blockstream Green](https://blockstream.com/green/) for small-spends where you are less concerned about revealing any information. 
+
+### Can I recombine my mixed coins?
+
+It is advisable to limit the recombining of mixed coins because it can only decrease the privacy of said coins. This links all the consolidated UTXOs in one transaction, creating only one output, which then clearly controls all these funds. That said, if you combine less than 1 BTC it is less likely to reveal your pre-coinjoin transaction history. The potential issue comes when you spend that coin. Depending on what you do with the coin you might reduce the privacy of the resulting change (if you send half your coin to an exchange for example, as they will know that you own the coin change). As a result it is best not to recombine ALL your mixed change, though you may wish to recombine some coins if you are planning on hodling for many years as this will reduce the fees required to spend the coins later.
+
+### Am I safe to send my mixed coins to my hardware wallet?
+
+Most hardware wallets communicate with servers to provide you with your balance. This reveals your public key to the server, which damages your privacy - the hardware company can now theoretically link together all your addresses. As a result **it is not recommended** that you send your mixed coins to an address associated with your hardware wallet unless you are confident that you have set up your hardware wallet in a way that it does not communicate with a 3rd party server (see below). 
+
+You can however manage your hardware wallet with the Wasabi interface.
+
+### How can I set up my hardware wallet with Wasabi properly?
+
+You can currently use the following hardware wallets **with Wasabi directly**.
+- Coldcard
+- Trezor Model T
+- Ledger Nano S
+
+Alternately you can use [electrum personal server](https://github.com/chris-belcher/electrum-personal-server). 
+
+### Will I have issues spending my mixed coins? 
+
+Not at the moment, if Wasabi and other CoinJoin tools are used by enough people it is likely that this will never be an issue. See this more [comprehensive answer](https://www.reddit.com/r/WasabiWallet/comments/bggy03/will_coinjoined_coins_be_blacklisted_in_the_future/ell04nn?utm_source=share&utm_medium=web2x). Reports of users having their account banned by Bitfinex are being [investigated](https://www.reddit.com/r/WasabiWallet/comments/bggy03/will_coinjoined_coins_be_blacklisted_in_the_future/elld52h?utm_source=share&utm_medium=web2x), though it has been [confirmed](https://old.reddit.com/r/WasabiWallet/comments/beqj8r/bitfinex_lock_account/el99fun/) that this is not a universal rule being applied and appears only have affected a [single user](https://old.reddit.com/r/WasabiWallet/comments/beqj8r/bitfinex_lock_account/).
+
+|	Exchange	|	Most recent Confirmed Accepted CoinJoin	|	Source																											|
+|	--------	|	---------------------------------------	|	-------																											|
+|	Coinbase	| 18/01/2019															|	[Link](https://twitter.com/a48/status/1086265253212639232) 	|
+
+**Note: This is for reference only, and by nature this is not evidence that you will be fine sending a mixed output to the exchange, only that someone else has at some time in the past. Also - don't use coinbase.**
+
+### What do I do with the Zerolink change?
+
+There are no hard and fast rules for what to do with the change. It is important to note that the change may be linked to your identity and should be treated as a kind of toxic waste (handled with great care).
+
+**Warning**
+Mixing change from multiple originating sources **will decrease your privacy** because it will link these transactions. This is true even if you mix it with a mixed coin. It is very important that you don't send different coins to the same receiving address, even if performed as separate transactions - as this will also link the coins damaging your privacy.
+
+**Your Options**
+- If you don't care about linking the history of the coins because they are all from the same source then you could combine them in a mix (que all the change from the same source until you reach the minimum input required to mix, currently ~ 0.1 BTC).  
+- Mix with [Joinmarket](https://github.com/JoinMarket-Org/joinmarket-clientserver).
+- Donate them (e.g. [to the EFF](https://www.eff.org/))
+- Spend them on something that isn't a particular privacy risk (eg. gift cards).
+- Open a lightning channel. 
+- The ultimate solution is to 'close the loop' i.e. spend a change coin without merging it with other coins don't generate it in the first place by sending whole coins. 
+
+# Meta
+
+### Does Wasabi have a warrant canary?
+
+The nature of Wasabi is that you shouldn't need to trust the devs or the wasabi coordinating server, as you can verify that the code does leak information to anyone. The dev's have gone to great lengths in an attempt to ensure that the coordinator can't steal funds or harvest information (for example, the outputs sent from your wasabi wallet are blinded, meaning that even the wasabi server can't link the outputs to the inputs). 
+
+The only known possible 'malicious' actions that the server *could* perform are two sides of the same coin;
+- blacklisted UTXO's
+Though this would not affect the users who are able to successfully mix with other 'honest/real' peers. 
+- Sybil Attack 
+The follow-up concern is the inverse of the above. It is possible that the server could *only* include one 'honest/real' coin in the mix and supply the other coins themselves. This would give a false sense of security, **but it would not worsen the existing privacy of the coin**. It has been argued that this 'attack' would be very costly in terms of fees because the number of coins being mixed is verifiable. Though it is true that fees would have to be paid to zkSNACKs every round this does not matter if it is zkSNACKs that is acting maliciously (as they get the funds back). Typical rounds currently have <100 people per mix, with the minimum input being ~0.1 BTC with a fee of 0.003% per anonymity set. Taking the 'worst case' (100 people, each mixing 0.1 BTC) gives 0.03 BTC per round. This is not prohibitive and is thus a valid concern. That said, if multiple chain-analysis companies attempt to flood the zkSNACKs mix (to decrease the true anonymity set) they will hinder each other's efforts (unless they are cooperating). 
+
+# Errors
+
+### 'Backend won't connect'
+
+All Wasabi network traffic goes via Tor. When Tor has issues Wasabi has issues. If the Tor Hidden Service directory does down (which is does occasionally) Wasabi now has a fall-back back to the coordinator server without a hidden service (but still over Tor). It is easiest to wait and try again some hours later. Alternatively you can go to the config file and change replace "MainNetBackendUriV3": "http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/", with "MainNetBackendUriV3": "https://wasabiwallet.io/",
+
+# Acknowledgements
+
+Thanks to the developers of Wasabi - you make it possible for me to spend bitcoin without having to worry about other people knowing how little bitcoin I can afford.
+
+Thanks to the following people for the help that they have provided to wasabi users on the wasabi subreddit which I have condensed into this FAQ.
+- [iLoveStableCoins](https://www.reddit.com/user/iLoveStableCoins) a regular poster to the wasabi wallet subreddit. (May now be an employee of [zkSNACKs!](https://old.reddit.com/r/WasabiWallet/comments/b08yme/could_chainalysis_be_participating_with_49_inputs/eifa5fe/))
+- Adam Ficsor ([@nopara73](https://twitter.com/nopara73))
+- Lucas Ontivero ([@lontivero](https://twitter.com/lontivero/))
+- Max Hillebrand ([@hillebrandmax](https://twitter.com/HillebrandMax/)) for fixes made in the [original repo](https://github.com/6102bitcoin/FAQ/blob/master/wasabi.md).
+
+Please issue pull requests if you have suggestions.
