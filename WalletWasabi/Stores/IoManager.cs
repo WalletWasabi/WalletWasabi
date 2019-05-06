@@ -249,11 +249,15 @@ namespace WalletWasabi.Stores
 				Logger.LogInfo<IoManager>(ex);
 			}
 
+			IoHelpers.EnsureContainingDirectoryExists(NewFilePath);
+
 			await File.WriteAllLinesAsync(NewFilePath, contents, cancellationToken);
 			SafeMoveNewToOriginal();
 
 			try
 			{
+				IoHelpers.EnsureContainingDirectoryExists(DigestFilePath);
+
 				await File.WriteAllBytesAsync(DigestFilePath, hash);
 			}
 			catch (Exception ex)
