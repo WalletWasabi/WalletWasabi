@@ -55,9 +55,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					ValidationMessage = "The account key path is not valid.";
 				}
-				else if (MinGapLimit < KeyManager.AbsoluteMinGapLimit - 1)
+				else if (MinGapLimit < KeyManager.AbsoluteMinGapLimit)
 				{
-					ValidationMessage = $"Min Gap Limit cannot be smaller than {KeyManager.AbsoluteMinGapLimit - 1}.";
+					ValidationMessage = $"Min Gap Limit cannot be smaller than {KeyManager.AbsoluteMinGapLimit}.";
 				}
 				else if (MinGapLimit > 1_000_000)
 				{
@@ -73,7 +73,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					try
 					{
 						var mnemonic = new Mnemonic(MnemonicWords);
-						KeyManager.Recover(mnemonic, Password, walletFilePath, keyPath, MinGapLimit + 1);
+						KeyManager.Recover(mnemonic, Password, walletFilePath, keyPath, MinGapLimit);
 
 						owner.SelectLoadWallet();
 					}
@@ -197,7 +197,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			ValidationMessage = null;
 			ShowAdvancedOptions = false;
 			AccountKeyPath = $"m/{KeyManager.DefaultAccountKeyPath}";
-			MinGapLimit = KeyManager.AbsoluteMinGapLimit - 1;
+			MinGapLimit = KeyManager.AbsoluteMinGapLimit;
 		}
 
 		private void UpdateSuggestions(string words)
