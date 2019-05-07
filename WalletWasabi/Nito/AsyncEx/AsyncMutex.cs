@@ -59,6 +59,7 @@ namespace Nito.AsyncEx
 
 		public async Task<IDisposable> LockAsync(CancellationToken cancellationToken = default)
 		{
+			Exception inner = null;
 			if (await TryGetLockAsync(cancellationToken))
 			{
 				try
@@ -93,13 +94,14 @@ namespace Nito.AsyncEx
 				catch (Exception ex)
 				{
 					Logger.LogError($"{ex.ToTypeMessageString()} in {ShortName}", nameof(AsyncMutex));
+					inner = ex;
 					// Let it go.
 				}
 
 				Semaphore?.Dispose();
 				Interlocked.Exchange(ref _isSemaphoreInitialized, 0);
 			}
-			throw new IOException($"Couldn't acquire system wide mutex on {ShortName}");
+			throw new IOException($"Couldn't acquire system wide mutex on {ShortName}", inner);
 		}
 
 		private void ReleaseLock()
