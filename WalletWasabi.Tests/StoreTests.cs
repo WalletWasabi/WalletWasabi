@@ -188,10 +188,10 @@ namespace WalletWasabi.Tests
 
 			var myTask = Task.Run(async () =>
 			{
-				await ioman1.WrapInMutexAsync(async () =>
+				using (await ioman1.Mutex.LockAsync())
 				{
 					await Task.Delay(3000);
-				});
+				}
 			});
 
 			// Wait for the Task.Run to Acquire the Mutex.
@@ -201,10 +201,10 @@ namespace WalletWasabi.Tests
 			DateTime timeOfstart = DateTime.Now;
 			DateTime timeOfAcquired = default;
 
-			await ioman1.WrapInMutexAsync(() =>
+			using (await ioman1.Mutex.LockAsync())
 			{
 				timeOfAcquired = DateTime.Now;
-			});
+			}
 
 			Assert.True(myTask.IsCompletedSuccessfully);
 
@@ -250,17 +250,17 @@ namespace WalletWasabi.Tests
 
 			await Task.Run(async () =>
 			{
-				await ioman1.WrapInMutexAsync(async () =>
+				using (await ioman1.Mutex.LockAsync())
 				{
 					// Should not be a problem because they using different Mutexes.
-					await ioman2.WrapInMutexAsync(async () =>
+					using (await ioman2.Mutex.LockAsync())
 					{
 						await ioman1.WriteAllLinesAsync(lines);
 						await ioman2.WriteAllLinesAsync(lines);
 						ioman1.DeleteMe();
 						ioman2.DeleteMe();
-					});
-				});
+					}
+				}
 			});
 
 			// TryReplace test.

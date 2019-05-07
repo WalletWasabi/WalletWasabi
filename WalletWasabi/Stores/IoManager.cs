@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Nito.AsyncEx;
 
 namespace WalletWasabi.Stores
 {
@@ -22,7 +23,7 @@ namespace WalletWasabi.Stores
 
 		public string FileName { get; }
 		public string FileNameWithoutExtension { get; }
-		private string MutexName { get; }
+		public AsyncMutex Mutex { get; }
 
 		private const string OldExtension = ".old";
 		private const string NewExtension = ".new";
@@ -47,78 +48,8 @@ namespace WalletWasabi.Stores
 			// Within a terminal server session, two mutexes whose names differ only by their prefixes are separate mutexes,
 			// and both are visible to all processes in the terminal server session.
 			// That is, the prefix names "Global\" and "Local\" describe the scope of the mutex name relative to terminal server sessions, not relative to processes.
-			MutexName = $"Global\\4AA0E5A2-A94F-4B92-B962-F2BBC7A68323-{FileNameWithoutExtension}";
+			Mutex = new AsyncMutex(FileNameWithoutExtension);
 		}
-
-		#region Mutexes
-
-		public async Task WrapInMutexAsync(Func<Task> todo)
-		{
-			using (var semaphore = new Semaphore(1, 1, MutexName))
-			{
-				await AcquireMutexAsync(semaphore);
-
-				try
-				{
-					await todo();
-				}
-				finally
-				{
-					semaphore.Release();
-				}
-			}
-		}
-
-		private async Task AcquireMutexAsync(Semaphore semaphore)
-		{
-			bool semaphoreAcquired = false;
-			try
-			{
-				// acquire the mutex (or timeout after 60 seconds)
-				// will return false if it timed out
-				var start = DateTime.Now;
-				while (DateTime.Now - start < TimeSpan.FromSeconds(90))
-				{
-					semaphoreAcquired = semaphore.WaitOne(1);
-
-					if (semaphoreAcquired)
-					{
-						break;
-					}
-					await Task.Delay(1000);
-				}
-			}
-			catch (AbandonedMutexException)
-			{
-				// abandoned mutexes are still acquired, we just need
-				// to handle the exception and treat it as acquisition
-				semaphoreAcquired = true;
-			}
-
-			if (semaphoreAcquired == false)
-			{
-				throw new IOException("Couldn't acquire Semaphore on the file.");
-			}
-		}
-
-		public async Task WrapInMutexAsync(Action todo)
-		{
-			using (var semaphore = new Semaphore(1, 1, MutexName))
-			{
-				await AcquireMutexAsync(semaphore);
-
-				try
-				{
-					todo();
-				}
-				finally
-				{
-					semaphore.Release();
-				}
-			}
-		}
-
-		#endregion Mutexes
 
 		#region IoOperations
 

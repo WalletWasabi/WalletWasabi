@@ -51,7 +51,7 @@ namespace WalletWasabi.Stores
 
 			using (await IndexLock.LockAsync())
 			{
-				await IndexFileManager.WrapInMutexAsync(async () =>
+				using (await IndexFileManager.Mutex.LockAsync())
 				{
 					IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
@@ -83,7 +83,7 @@ namespace WalletWasabi.Stores
 						// Fix the currupted file.
 						await IndexFileManager.WriteAllLinesAsync(Index.Select(x => x.ToHeightlessLine()));
 					}
-				});
+				}
 			}
 		}
 
@@ -137,10 +137,10 @@ namespace WalletWasabi.Stores
 
 		private async Task ToFileNoSemaphoreAsync()
 		{
-			await IndexFileManager.WrapInMutexAsync(async () =>
+			using (await IndexFileManager.Mutex.LockAsync())
 			{
 				await IndexFileManager.WriteAllLinesAsync(Index.Select(x => x.ToHeightlessLine()));
-			});
+			}
 		}
 
 		public async Task<FilterModel> GetBestKnownFilterAsync()
