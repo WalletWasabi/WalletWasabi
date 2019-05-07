@@ -1,4 +1,3 @@
-using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Stores
+namespace WalletWasabi.Nito.AsyncEx
 {
 	public class AsyncMutex
 	{

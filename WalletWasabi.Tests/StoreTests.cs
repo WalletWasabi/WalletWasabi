@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Nito.AsyncEx;
 using WalletWasabi.Stores;
 using Xunit;
 
