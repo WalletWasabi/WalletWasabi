@@ -462,8 +462,9 @@ namespace WalletWasabi.Gui
 			{
 				WalletService.Coins.CollectionChanged -= Coins_CollectionChanged;
 			}
-			try{
-				CancelWalletServiceInitialization?.Cancel();
+			try
+			{
+				CancelWalletServiceInitialization.Cancel();
 			}
 			catch(ObjectDisposedException)
 			{
