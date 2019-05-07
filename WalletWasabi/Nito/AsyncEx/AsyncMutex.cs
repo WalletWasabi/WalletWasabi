@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Nito.AsyncEx
+namespace Nito.AsyncEx
 {
 	public class AsyncMutex
 	{
