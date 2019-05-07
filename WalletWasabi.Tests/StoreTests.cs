@@ -298,7 +298,7 @@ namespace WalletWasabi.Tests
 				StringBuilder builder = new StringBuilder();
 				var rnd = new Random();
 				char ch;
-				for (int i = 0; i < rnd.Next(10, 100); i++)
+				for (int i = 0; i < rnd.Next(10, 1000); i++)
 				{
 					ch = Convert.ToChar(Convert.ToInt32(Math.Floor(26 * rnd.NextDouble() + 65)));
 					builder.Append(ch);
@@ -321,21 +321,21 @@ namespace WalletWasabi.Tests
 
 			var t1 = new Thread(async () =>
 			{
-				for (var i = 0; i < 100; i++)
+				for (var i = 0; i < 1000; i++)
 				{
 					await WriteNextLineAsync();
 				}
 			});
 			var t2 = new Thread(async () =>
 			{
-				for (var i = 0; i < 100; i++)
+				for (var i = 0; i < 1000; i++)
 				{
 					await WriteNextLineAsync();
 				}
 			});
 			var t3 = new Thread(async () =>
 			{
-				for (var i = 0; i < 100; i++)
+				for (var i = 0; i < 1000; i++)
 				{
 					await WriteNextLineAsync();
 				}
