@@ -1,4 +1,5 @@
 using NBitcoin;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,6 +22,87 @@ namespace WalletWasabi.Tests
 			var dir = Path.Combine(Global.DataDir, nameof(IndexStoreTestsAsync));
 			var network = Network.Main;
 			await indexStore.InitializeAsync(dir, network);
+		}
+
+		[Fact]
+		public async Task AsyncMutexTestsAsync()
+		{
+			AsyncMutex asyncMutex = new AsyncMutex("mutex1");
+
+			// Cannot be IDisposable because the pattern is like Nito's AsyncLock.
+			Assert.False(asyncMutex is IDisposable);
+
+			// Use the mutex two times after each other.
+			using (await asyncMutex.LockAsync())
+			{
+				await Task.Delay(1);
+			}
+
+			using (await asyncMutex.LockAsync())
+			{
+				await Task.Delay(1);
+			}
+
+			// Acquire the Mutex with a background thread.
+
+			var myTask = Task.Run(async () =>
+			{
+				using (await asyncMutex.LockAsync())
+				{
+					await Task.Delay(3000);
+				}
+			});
+
+			// Wait for the Task.Run to Acquire the Mutex.
+			await Task.Delay(100);
+
+			// Try to get the Mutex and save the time.
+			DateTime timeOfstart = DateTime.Now;
+			DateTime timeOfAcquired = default;
+
+			using (await asyncMutex.LockAsync())
+			{
+				timeOfAcquired = DateTime.Now;
+			};
+
+			Assert.True(myTask.IsCompletedSuccessfully);
+
+			var elapsed = timeOfAcquired - timeOfstart;
+			Assert.InRange(elapsed, TimeSpan.FromMilliseconds(2000), TimeSpan.FromMilliseconds(4000));
+
+			// Standard Mutex test.
+			int cnt = 0;
+			List<int> numbers = new List<int>();
+			var rand = new Random();
+			async Task TestLockAsync()
+			{
+				using (await asyncMutex.LockAsync())
+				{
+					cnt++;
+
+					await Task.Delay(rand.Next(5));
+					numbers.Add(cnt);
+				}
+			}
+
+			var tasks = new List<Task>();
+
+			for (int i = 0; i < 100; i++)
+			{
+				var task = TestLockAsync();
+
+				tasks.Add(task);
+			}
+
+			await Task.WhenAll(tasks);
+
+			Assert.Equal(100, numbers.Count);
+			for (int i = 1; i < 100; i++)
+			{
+				var prevnum = numbers[i - 1];
+				var num = numbers[i];
+				Assert.Equal(prevnum + 1, num);
+			}
 		}
 
 		[Fact]
