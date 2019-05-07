@@ -1,4 +1,5 @@
 using NBitcoin;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,7 +28,7 @@ namespace WalletWasabi.Stores
 		private FilterModel StartingFilter { get; set; }
 		private Height StartingHeight { get; set; }
 		private List<FilterModel> Index { get; set; }
-		private SemaphoreSlim Semaphore { get; set; }
+		private AsyncLock IndexLock { get; set; }
 
 		public event EventHandler<FilterModel> Reorged;
 
@@ -46,41 +47,44 @@ namespace WalletWasabi.Stores
 
 			Index = new List<FilterModel>();
 
-			Semaphore = new SemaphoreSlim(1);
+			IndexLock = new AsyncLock();
 
-			await IndexFileManager.WrapInMutexAsync(async () =>
+			using (await IndexLock.LockAsync())
 			{
-				IoHelpers.EnsureDirectoryExists(WorkFolderPath);
-
-				TryEnsureBackwardsCompatibility();
-
-				if (Network == Network.RegTest)
+				await IndexFileManager.WrapInMutexAsync(async () =>
 				{
-					IndexFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
-				}
+					IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
-				if (!IndexFileManager.Exists())
-				{
-					await IndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToHeightlessLine() });
-				}
+					TryEnsureBackwardsCompatibility();
 
-				var height = StartingHeight;
-				try
-				{
-					foreach (var line in await IndexFileManager.ReadAllLinesAsync())
+					if (Network == Network.RegTest)
 					{
-						var filter = FilterModel.FromHeightlessLine(line, height);
-						height++;
-						Index.Add(filter);
+						IndexFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
 					}
-				}
-				catch (FormatException)
-				{
-					// We found a corrupted entry. Stop here.
-					// Fix the currupted file.
-					await IndexFileManager.WriteAllLinesAsync(Index.Select(x => x.ToHeightlessLine()));
-				}
-			});
+
+					if (!IndexFileManager.Exists())
+					{
+						await IndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToHeightlessLine() });
+					}
+
+					var height = StartingHeight;
+					try
+					{
+						foreach (var line in await IndexFileManager.ReadAllLinesAsync())
+						{
+							var filter = FilterModel.FromHeightlessLine(line, height);
+							height++;
+							Index.Add(filter);
+						}
+					}
+					catch (FormatException)
+					{
+						// We found a corrupted entry. Stop here.
+						// Fix the currupted file.
+						await IndexFileManager.WriteAllLinesAsync(Index.Select(x => x.ToHeightlessLine()));
+					}
+				});
+			}
 		}
 
 		private void TryEnsureBackwardsCompatibility()
@@ -101,46 +105,29 @@ namespace WalletWasabi.Stores
 		{
 			foreach (var filter in filters)
 			{
-				try
+				using (await IndexLock.LockAsync())
 				{
-					await Semaphore.WaitAsync();
-
 					Index.Add(filter);
-				}
-				finally
-				{
-					Semaphore.Release();
 				}
 
 				NewFilter?.Invoke(this, filter); // Event always outside the lock.
 			}
 
-			try
+			using (await IndexLock.LockAsync())
 			{
-				await Semaphore.WaitAsync();
-
 				await ToFileNoSemaphoreAsync();
-			}
-			finally
-			{
-				Semaphore.Release();
 			}
 		}
 
 		public async Task<FilterModel> RemoveLastFilterAsync()
 		{
 			FilterModel filter = null;
-			try
-			{
-				await Semaphore.WaitAsync();
 
+			using (await IndexLock.LockAsync())
+			{
 				filter = Index.Last();
 				Index.RemoveLast();
 				await ToFileNoSemaphoreAsync();
-			}
-			finally
-			{
-				Semaphore.Release();
 			}
 
 			Reorged?.Invoke(this, filter);
@@ -159,15 +146,10 @@ namespace WalletWasabi.Stores
 		public async Task<FilterModel> GetBestKnownFilterAsync()
 		{
 			FilterModel ret = null;
-			try
-			{
-				await Semaphore.WaitAsync();
 
-				ret = Index.Last();
-			}
-			finally
+			using (await IndexLock.LockAsync())
 			{
-				Semaphore.Release();
+				ret = Index.Last();
 			}
 			return ret;
 		}
@@ -175,15 +157,10 @@ namespace WalletWasabi.Stores
 		public async Task<Height?> TryGetHeightAsync(uint256 blockHash)
 		{
 			Height? ret = null;
-			try
-			{
-				await Semaphore.WaitAsync();
 
-				ret = Index.FirstOrDefault(x => x.BlockHash == blockHash)?.BlockHeight;
-			}
-			finally
+			using (await IndexLock.LockAsync())
 			{
-				Semaphore.Release();
+				ret = Index.FirstOrDefault(x => x.BlockHash == blockHash)?.BlockHeight;
 			}
 			return ret;
 		}
@@ -191,15 +168,10 @@ namespace WalletWasabi.Stores
 		public async Task<IEnumerable<FilterModel>> GetFiltersAsync()
 		{
 			List<FilterModel> ret = null;
-			try
-			{
-				await Semaphore.WaitAsync();
 
-				ret = Index.ToList();
-			}
-			finally
+			using (await IndexLock.LockAsync())
 			{
-				Semaphore.Release();
+				ret = Index.ToList();
 			}
 			return ret;
 		}
@@ -207,15 +179,10 @@ namespace WalletWasabi.Stores
 		public async Task<int> CountFiltersAsync()
 		{
 			int ret;
-			try
-			{
-				await Semaphore.WaitAsync();
 
-				ret = Index.Count;
-			}
-			finally
+			using (await IndexLock.LockAsync())
 			{
-				Semaphore.Release();
+				ret = Index.Count;
 			}
 			return ret;
 		}
