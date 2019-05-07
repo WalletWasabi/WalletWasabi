@@ -14,9 +14,11 @@ namespace WalletWasabi.Stores
 		private string ShortName { get; set; }
 		private int PollInterval { get; }
 		private string FullName { get; set; }
-		private Semaphore Semaphore { get; set; }
 
-		public AsyncMutex(string name, int pollInterval = 1000)
+		private Semaphore Semaphore { get; set; }
+		private int _isSemaphoreInitialized;
+
+		public AsyncMutex(string name, int pollInterval = 100)
 		{
 			// https://docs.microsoft.com/en-us/dotnet/api/system.threading.mutex?view=netframework-4.8
 			// On a server that is running Terminal Services, a named system mutex can have two levels of visibility.
@@ -30,53 +32,81 @@ namespace WalletWasabi.Stores
 			ShortName = name;
 			PollInterval = pollInterval;
 			FullName = $"Global\\4AA0E5A2-A94F-4B92-B962-F2BBC7A68323-{name}";
+			_isSemaphoreInitialized = 0;
+		}
+
+		private async Task<bool> TryGetLockAsync(CancellationToken cancellationToken)
+		{
+			try
+			{
+				var start = DateTime.Now;
+				while (DateTime.Now - start < TimeSpan.FromSeconds(90))
+				{
+					var res = Interlocked.CompareExchange(ref _isSemaphoreInitialized, 1, 0);
+					if (res == 0)
+					{
+						// We have the local lock.
+						return true;
+					}
+					await Task.Delay(PollInterval, cancellationToken);
+				}
+			}
+			catch (Exception)
+			{
+				return false;
+			}
+			return false;
 		}
 
 		public async Task<IDisposable> LockAsync(CancellationToken cancellationToken = default)
 		{
-			try
+			if (await TryGetLockAsync(cancellationToken))
 			{
-				Semaphore = new Semaphore(1, 1, FullName);
-				// acquire the mutex (or timeout after 60 seconds)
-				// will return false if it timed out
-				var start = DateTime.Now;
-				while (DateTime.Now - start < TimeSpan.FromSeconds(90))
+				try
 				{
-					bool semaphoreAcquired = Semaphore.WaitOne(1);
-
-					if (semaphoreAcquired)
+					Semaphore = new Semaphore(1, 1, FullName);
+					// acquire the mutex (or timeout after 60 seconds)
+					// will return false if it timed out
+					var start = DateTime.Now;
+					while (DateTime.Now - start < TimeSpan.FromSeconds(90))
 					{
-						return new Key(this);
+						bool semaphoreAcquired = Semaphore.WaitOne(1);
+
+						if (semaphoreAcquired)
+						{
+							return new Key(this);
+						}
+						await Task.Delay(PollInterval, cancellationToken);
 					}
-					await Task.Delay(PollInterval, cancellationToken);
+					// Let it go.
 				}
-				// Let it go.
-			}
-			catch (TaskCanceledException)
-			{
-				// Let it go.
-			}
-			catch (AbandonedMutexException)
-			{
-				// abandoned mutexes are still acquired, we just need
-				// to handle the exception and treat it as acquisition
-				Logger.LogWarning($"AbandonedMutexException in {ShortName}", nameof(AsyncMutex));
-				return new Key(this);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError($"{ex.ToTypeMessageString()} in {ShortName}", nameof(AsyncMutex));
-				// Let it go.
-			}
+				catch (TaskCanceledException)
+				{
+					// Let it go.
+				}
+				catch (AbandonedMutexException)
+				{
+					// abandoned mutexes are still acquired, we just need
+					// to handle the exception and treat it as acquisition
+					Logger.LogWarning($"AbandonedMutexException in {ShortName}", nameof(AsyncMutex));
+					return new Key(this);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError($"{ex.ToTypeMessageString()} in {ShortName}", nameof(AsyncMutex));
+					// Let it go.
+				}
 
-			Semaphore?.Dispose();
-
+				Semaphore?.Dispose();
+				Interlocked.Exchange(ref _isSemaphoreInitialized, 0);
+			}
 			throw new IOException($"Couldn't acquire system wide mutex on {ShortName}");
 		}
 
 		private void ReleaseLock()
 		{
 			Semaphore?.Dispose();
+			Interlocked.Exchange(ref _isSemaphoreInitialized, 0);
 		}
 
 		/// <summary>
