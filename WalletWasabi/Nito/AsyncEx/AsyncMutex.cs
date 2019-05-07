@@ -14,8 +14,8 @@ namespace Nito.AsyncEx
 		private int PollInterval { get; }
 		private string FullName { get; set; }
 
-		private Semaphore Semaphore { get; set; }
-		private int _isSemaphoreInitialized;
+		private Mutex Mutex { get; set; }
+		private int _isMutexInitialized;
 
 		public AsyncMutex(string name, int pollInterval = 100)
 		{
@@ -31,7 +31,7 @@ namespace Nito.AsyncEx
 			ShortName = name;
 			PollInterval = pollInterval;
 			FullName = $"Global\\4AA0E5A2-A94F-4B92-B962-F2BBC7A68323-{name}";
-			_isSemaphoreInitialized = 0;
+			_isMutexInitialized = 0;
 		}
 
 		private async Task<bool> TryGetLockAsync(CancellationToken cancellationToken)
@@ -41,7 +41,7 @@ namespace Nito.AsyncEx
 				var start = DateTime.Now;
 				while (DateTime.Now - start < TimeSpan.FromSeconds(90))
 				{
-					var res = Interlocked.CompareExchange(ref _isSemaphoreInitialized, 1, 0);
+					var res = Interlocked.CompareExchange(ref _isMutexInitialized, 1, 0);
 					if (res == 0)
 					{
 						// We have the local lock.
@@ -59,19 +59,20 @@ namespace Nito.AsyncEx
 
 		public async Task<IDisposable> LockAsync(CancellationToken cancellationToken = default)
 		{
+			Exception inner = null;
 			if (await TryGetLockAsync(cancellationToken))
 			{
 				try
 				{
-					Semaphore = new Semaphore(1, 1, FullName);
+					Mutex = new Mutex(false, FullName);
 					// acquire the mutex (or timeout after 60 seconds)
 					// will return false if it timed out
 					var start = DateTime.Now;
 					while (DateTime.Now - start < TimeSpan.FromSeconds(90))
 					{
-						bool semaphoreAcquired = Semaphore.WaitOne(1);
+						bool acquired = Mutex.WaitOne(1);
 
-						if (semaphoreAcquired)
+						if (acquired)
 						{
 							return new Key(this);
 						}
@@ -93,19 +94,20 @@ namespace Nito.AsyncEx
 				catch (Exception ex)
 				{
 					Logger.LogError($"{ex.ToTypeMessageString()} in {ShortName}", nameof(AsyncMutex));
+					inner = ex;
 					// Let it go.
 				}
 
-				Semaphore?.Dispose();
-				Interlocked.Exchange(ref _isSemaphoreInitialized, 0);
+				Mutex?.Dispose();
+				Interlocked.Exchange(ref _isMutexInitialized, 0);
 			}
-			throw new IOException($"Couldn't acquire system wide mutex on {ShortName}");
+			throw new IOException($"Couldn't acquire system wide mutex on {ShortName}", inner);
 		}
 
 		private void ReleaseLock()
 		{
-			Semaphore?.Dispose();
-			Interlocked.Exchange(ref _isSemaphoreInitialized, 0);
+			Mutex?.Dispose();
+			Interlocked.Exchange(ref _isMutexInitialized, 0);
 		}
 
 		/// <summary>
