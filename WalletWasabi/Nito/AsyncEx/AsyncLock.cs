@@ -1,4 +1,4 @@
-﻿using Nito.AsyncEx.Synchronous;
+using Nito.AsyncEx.Synchronous;
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -88,10 +88,7 @@ namespace Nito.AsyncEx
 		/// <summary>
 		/// Gets a semi-unique identifier for this asynchronous lock.
 		/// </summary>
-		public int Id
-		{
-			get { return IdManager<AsyncLock>.GetId(ref _id); }
-		}
+		public int Id => IdManager<AsyncLock>.GetId(ref _id);
 
 		/// <summary>
 		/// Asynchronously acquires the lock. Returns a disposable that releases the lock when disposed.
@@ -201,11 +198,11 @@ namespace Nito.AsyncEx
 				Mutex = mutex;
 			}
 
-			public int Id { get { return Mutex.Id; } }
+			public int Id => Mutex.Id;
 
-			public bool Taken { get { return Mutex._taken; } }
+			public bool Taken => Mutex._taken;
 
-			public IAsyncWaitQueue<IDisposable> WaitQueue { get { return Mutex.Queue; } }
+			public IAsyncWaitQueue<IDisposable> WaitQueue => Mutex.Queue;
 		}
 
 		// ReSharper restore UnusedMember.Local

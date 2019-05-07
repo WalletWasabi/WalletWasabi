@@ -1,4 +1,4 @@
-﻿using Nito.AsyncEx.Synchronous;
+using Nito.AsyncEx.Synchronous;
 using System;
 using System.Threading.Tasks;
 

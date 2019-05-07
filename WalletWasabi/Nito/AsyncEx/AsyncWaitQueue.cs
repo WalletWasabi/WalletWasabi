@@ -1,4 +1,4 @@
-﻿using Nito.Collections;
+using Nito.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -96,15 +96,9 @@ namespace Nito.AsyncEx
 	{
 		private readonly Deque<TaskCompletionSource<T>> Queue = new Deque<TaskCompletionSource<T>>();
 
-		private int Count
-		{
-			get { return Queue.Count; }
-		}
+		private int Count => Queue.Count;
 
-		bool IAsyncWaitQueue<T>.IsEmpty
-		{
-			get { return Count == 0; }
-		}
+		bool IAsyncWaitQueue<T>.IsEmpty => Count == 0;
 
 		Task<T> IAsyncWaitQueue<T>.Enqueue()
 		{

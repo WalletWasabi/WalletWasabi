@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -36,10 +36,7 @@ namespace Nito.AsyncEx
 		/// Implicit conversion to the underlying task.
 		/// </summary>
 		/// <param name="source">The awaitable wrapper.</param>
-		public static implicit operator Task<T>(AwaitableDisposable<T> source)
-		{
-			return source.AsTask();
-		}
+		public static implicit operator Task<T>(AwaitableDisposable<T> source) => source.AsTask();
 
 		/// <summary>
 		/// Infrastructure. Returns the task awaiter for the underlying task.
