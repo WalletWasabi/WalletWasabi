@@ -468,6 +468,7 @@ namespace WalletWasabi.Gui
 			}
 			catch(ObjectDisposedException)
 			{
+				Logger.LogWarning($"{nameof(CancelWalletServiceInitialization)} is disposed. This can occur due to an error while processing the wallet.");
 			}
 			CancelWalletServiceInitialization = null;
 
