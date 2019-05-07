@@ -35,8 +35,22 @@ namespace WalletWasabi.Tests
 			// Use the mutex two times after each other.
 			using (await asyncMutex.LockAsync())
 			{
-				await Task.Delay(1);
+				await Task.Run(async () =>
+				{
+					await Task.Delay(100).ConfigureAwait(false);
+				}).ConfigureAwait(false);
 			}
+
+			// Release the Mutex from another thread.
+
+			var disposable = await asyncMutex.LockAsync();
+
+			var myThread = new Thread(new ThreadStart(() =>
+			 {
+				 disposable.Dispose();
+			 }));
+			myThread.Start();
+			myThread.Join();
 
 			using (await asyncMutex.LockAsync())
 			{
@@ -284,71 +298,71 @@ namespace WalletWasabi.Tests
 			ioman1.DeleteMe();
 		}
 
-		[Fact]
-		public async Task IoTestsAsync()
-		{
-			var file1 = Path.Combine(Global.DataDir, nameof(IoTestsAsync), $"file.dat");
+		//[Fact]
+		//public async Task IoTestsAsync()
+		//{
+		//	var file1 = Path.Combine(Global.DataDir, nameof(IoTestsAsync), $"file.dat");
 
-			IoManager ioman1 = new IoManager(file1);
-			ioman1.DeleteMe();
-			await ioman1.WriteAllLinesAsync(new string[0]);
+		//	IoManager ioman1 = new IoManager(file1);
+		//	ioman1.DeleteMe();
+		//	await ioman1.WriteAllLinesAsync(new string[0]);
 
-			string RandomString()
-			{
-				StringBuilder builder = new StringBuilder();
-				var rnd = new Random();
-				char ch;
-				for (int i = 0; i < rnd.Next(10, 1000); i++)
-				{
-					ch = Convert.ToChar(Convert.ToInt32(Math.Floor(26 * rnd.NextDouble() + 65)));
-					builder.Append(ch);
-				}
-				return builder.ToString();
-			};
+		//	string RandomString()
+		//	{
+		//		StringBuilder builder = new StringBuilder();
+		//		var rnd = new Random();
+		//		char ch;
+		//		for (int i = 0; i < rnd.Next(10, 1000); i++)
+		//		{
+		//			ch = Convert.ToChar(Convert.ToInt32(Math.Floor(26 * rnd.NextDouble() + 65)));
+		//			builder.Append(ch);
+		//		}
+		//		return builder.ToString();
+		//	};
 
-			var list = new List<string>();
-			async Task WriteNextLineAsync()
-			{
-				var next = RandomString();
-				lock (list)
-				{
-					list.Add(next);
-				}
-				var lines = (await ioman1.ReadAllLinesAsync()).ToList();
-				lines.Add(next);
-				await ioman1.WriteAllLinesAsync(lines);
-			};
+		//	var list = new List<string>();
+		//	async Task WriteNextLineAsync()
+		//	{
+		//		var next = RandomString();
+		//		lock (list)
+		//		{
+		//			list.Add(next);
+		//		}
+		//		var lines = (await ioman1.ReadAllLinesAsync()).ToList();
+		//		lines.Add(next);
+		//		await ioman1.WriteAllLinesAsync(lines);
+		//	};
 
-			var t1 = new Thread(async () =>
-			{
-				for (var i = 0; i < 1000; i++)
-				{
-					await WriteNextLineAsync();
-				}
-			});
-			var t2 = new Thread(async () =>
-			{
-				for (var i = 0; i < 1000; i++)
-				{
-					await WriteNextLineAsync();
-				}
-			});
-			var t3 = new Thread(async () =>
-			{
-				for (var i = 0; i < 1000; i++)
-				{
-					await WriteNextLineAsync();
-				}
-			});
-			t1.Start();
-			t2.Start();
-			t3.Start();
-			t1.Join();
-			t2.Join();
-			t3.Join();
-			var alllines = File.ReadAllLines(file1);
-			var diff = alllines.Except(list);
-			Assert.Empty(diff);
-		}
+		//	var t1 = new Thread(async () =>
+		//	{
+		//		for (var i = 0; i < 1000; i++)
+		//		{
+		//			await WriteNextLineAsync();
+		//		}
+		//	});
+		//	var t2 = new Thread(async () =>
+		//	{
+		//		for (var i = 0; i < 1000; i++)
+		//		{
+		//			await WriteNextLineAsync();
+		//		}
+		//	});
+		//	var t3 = new Thread(async () =>
+		//	{
+		//		for (var i = 0; i < 1000; i++)
+		//		{
+		//			await WriteNextLineAsync();
+		//		}
+		//	});
+		//	t1.Start();
+		//	t2.Start();
+		//	t3.Start();
+		//	t1.Join();
+		//	t2.Join();
+		//	t3.Join();
+		//	var alllines = File.ReadAllLines(file1);
+		//	var diff = alllines.Except(list);
+		//	Assert.Empty(diff);
+		//}
 	}
 }
