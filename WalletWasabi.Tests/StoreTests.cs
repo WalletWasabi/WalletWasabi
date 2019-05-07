@@ -307,10 +307,10 @@ namespace WalletWasabi.Tests
 			ioman1.DeleteMe();
 			await ioman1.WriteAllLinesAsync(new string[0]);
 
+			var rnd = new Random();
 			string RandomString()
 			{
 				StringBuilder builder = new StringBuilder();
-				var rnd = new Random();
 				char ch;
 				for (int i = 0; i < rnd.Next(10, 1000); i++)
 				{
