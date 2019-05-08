@@ -23,7 +23,7 @@ Members as of 2019.05.08:
 | ------------------| --------------------------------------------------------|	-----------------------|
 | Gergely Hajdú 	| [@gergely_hajdu](https://twitter.com/gergely_hajdu) 	  | Co-CEO & Co-Founder	   |
 | Bálint Harmat		| [@bharmat84](https://twitter.com/bharmat84) 			  | Co-CEO & Co-Founder    |
-| Adam Ficsór		| [@nopara73](https://twitter.com/nopara73)	              | Developer & Co-Founder |
+| Ádám Ficsór		| [@nopara73](https://twitter.com/nopara73)	              | Developer & Co-Founder |
 | Lucas Ontivero	| [@lontivero](https://twitter.com/)                      | Developer & Co-Founder |
 | Dan Walmsley   	| ([@danwalmsley](https://github.com/danwalmsley))        | Developer              |
 | Dávid Molnár   	| ([@molnardavid84](https://twitter.com/molnardavid84))   | Developer              |
