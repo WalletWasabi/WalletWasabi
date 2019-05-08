@@ -1,9 +1,10 @@
-﻿using Nito.AsyncEx;
+using Nito.AsyncEx;
 using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Security;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
@@ -132,6 +133,10 @@ namespace WalletWasabi.TorSocks5
 							{
 								throw new OperationCanceledException(tce.Message, tce, cancel);
 							}
+						}
+						catch (SocketException ex3) when (ex3.ErrorCode == (int)SocketError.ConnectionRefused)
+						{
+							throw new ConnectionException("Connection was refused.", ex3);
 						}
 
 						cancel.ThrowIfCancellationRequested();
