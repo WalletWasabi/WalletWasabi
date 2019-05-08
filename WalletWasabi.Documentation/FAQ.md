@@ -16,20 +16,17 @@ Note: Many of these Q&A have been copied from real users, see footer for acknowl
 
 ### Who is behind Wasabi?
 
-The Company that is developing Wasabi is zkSNACKs LTD ([twitter](@Zksnacks_LTD) | [website](https://zksnacks.com/))
+The Company that is developing Wasabi is zkSNACKs LTD ([twitter](@Zksnacks_LTD) | [website](https://zksnacks.com/))  
+Members as of 2019.05.08:
 
-The following people are listed on the company website:
-
-| Name						| Twitter 						 																		| Position							|
-| ----------------| --------------------------------------------------------|	----------------------|
-| Hajdú Gergely 	|	[@gergely_hajdu](https://twitter.com/gergely_hajdu) 		| CEO & Co-Founder			|
-| Harmat Bálint		|	[@bharmat84](https://twitter.com/bharmat84) 						| CEO & Co-Founder			|
-| Adam Ficsor			|	[@nopara73](https://twitter.com/nopara73)								| CTO										|
-| Lucas Ontivero	| [@lontivero](https://twitter.com/)											| Lead Engineer					|
-
-Other people have contributed to the code:
-- David Molnar ([@molnardavid84](https://twitter.com/molnardavid84))
-- Dan Walmsley ([@danwalmsley](https://github.com/danwalmsley))
+| Name              | Twitter                                                 | Position			   |
+| ------------------| --------------------------------------------------------|	-----------------------|
+| Gergely Hajdú 	| [@gergely_hajdu](https://twitter.com/gergely_hajdu) 	  | Co-CEO & Co-Founder	   |
+| Bálint Harmat		| [@bharmat84](https://twitter.com/bharmat84) 			  | Co-CEO & Co-Founder    |
+| Adam Ficsór		| [@nopara73](https://twitter.com/nopara73)	              | Developer & Co-Founder |
+| Lucas Ontivero	| [@lontivero](https://twitter.com/)                      | Developer & Co-Founder |
+| Dan Walmsley   	| ([@danwalmsley](https://github.com/danwalmsley))        | Developer              |
+| Dávid Molnár   	| ([@molnardavid84](https://twitter.com/molnardavid84))   | Developer              |
 
 # Install
 
