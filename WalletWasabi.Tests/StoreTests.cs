@@ -377,9 +377,12 @@ namespace WalletWasabi.Tests
 				{
 					list.Add(next);
 				}
-				var lines = (await ioman1.ReadAllLinesAsync()).ToList();
-				lines.Add(next);
-				await ioman1.WriteAllLinesAsync(lines);
+				using (await ioman1.Mutex.LockAsync())
+				{
+					var lines = (await ioman1.ReadAllLinesAsync()).ToList();
+					lines.Add(next);
+					await ioman1.WriteAllLinesAsync(lines);
+				}
 			};
 
 			var t1 = new Thread(async () =>
