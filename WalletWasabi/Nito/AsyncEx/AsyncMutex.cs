@@ -64,7 +64,13 @@ namespace Nito.AsyncEx
 			{
 				try
 				{
-					Mutex = new Mutex(false, FullName);
+					Mutex = new Mutex(false, FullName, out bool isNewCreated);
+
+					if (!isNewCreated)
+					{
+						throw new InvalidOperationException($"Mutex with the same name ({ShortName}) already exists, choose another name.");
+					}
+
 					// acquire the mutex (or timeout after 60 seconds)
 					// will return false if it timed out
 					var start = DateTime.Now;

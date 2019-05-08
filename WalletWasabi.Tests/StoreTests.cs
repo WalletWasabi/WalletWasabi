@@ -117,6 +117,33 @@ namespace WalletWasabi.Tests
 				var num = numbers[i];
 				Assert.Equal(prevnum + 1, num);
 			}
+
+			// Different AsyncMutex object but same name.
+
+			AsyncMutex asyncMutex2 = new AsyncMutex("mutex1");
+
+			// Acquire the first mutex with a background thread and hold it for a while.
+			var myTask2 = Task.Run(async () =>
+			{
+				using (await asyncMutex.LockAsync())
+				{
+					await Task.Delay(3000);
+				}
+			});
+
+			// Make sure the task started.
+			await Task.Delay(100);
+
+			// Now try to acquire another AsyncMutex object but with the same name! Should throw an exception.
+			await Assert.ThrowsAsync<IOException>(async () =>
+			{
+				using (await asyncMutex2.LockAsync())
+				{
+				}
+			});
+
+			await myTask2;
+			Assert.True(myTask2.IsCompletedSuccessfully);
 		}
 
 		[Fact]
