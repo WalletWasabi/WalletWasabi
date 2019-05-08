@@ -179,14 +179,36 @@ namespace WalletWasabi.Tests
 
 			// Check digest file, and write only differ logic.
 
-			using (File.OpenWrite(ioman1.OriginalFilePath))
-			{
-				// Should be OK because the same data is written.
-				await ioman1.WriteAllLinesAsync(lines);
-			}
+			// Write the same content, file should not be written.
+			var currentDate = File.GetLastWriteTimeUtc(ioman1.OriginalFilePath);
+			await Task.Delay(500);
+			await ioman1.WriteAllLinesAsync(lines);
+			var noChangeDate = File.GetLastWriteTimeUtc(ioman1.OriginalFilePath);
+			Assert.Equal(currentDate, noChangeDate);
 
+			// Write different content, file should be written.
+			currentDate = File.GetLastWriteTimeUtc(ioman1.OriginalFilePath);
+			await Task.Delay(500);
 			lines.Add("Lorem ipsum dolor sit amet, consectetur adipiscing elit.");
+			await ioman1.WriteAllLinesAsync(lines);
+			var newContentDate = File.GetLastWriteTimeUtc(ioman1.OriginalFilePath);
+			Assert.NotEqual(currentDate, newContentDate);
 
+			/* The next test is commented out because on mac and on linux File.Open does not lock the file
+			 * it can be still written by the ioman1.WriteAllLinesAsync(). Tried with FileShare.None FileShare.Delete
+			 * FileStream.Lock none of them are working or caused not supported on this platform exception.
+			 * So there is no OP system way to garantee that the file won't be written during another write operation.
+			 * For example git is using lock files to solve this problem. We are using system wide mutexes.
+			 * For now there is no other way to do this. Some useful links :
+			 * https://stackoverflow.com/questions/2751734/how-do-filesystems-handle-concurrent-read-write
+			 * https://github.com/dotnet/corefx/issues/5964
+			 */
+
+			//using (File.OpenWrite(ioman1.OriginalFilePath))
+			//{
+			//	// Should be OK because the same data is written.
+			//	await ioman1.WriteAllLinesAsync(lines);
+			//}
 			//using (File.OpenWrite(ioman1.OriginalFilePath))
 			//{
 			//	// Should fail because different data is written.
