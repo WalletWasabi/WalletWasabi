@@ -464,7 +464,7 @@ namespace WalletWasabi.Gui
 			}
 			try
 			{
-				CancelWalletServiceInitialization.Cancel();
+				CancelWalletServiceInitialization?.Cancel();
 			}
 			catch(ObjectDisposedException)
 			{
