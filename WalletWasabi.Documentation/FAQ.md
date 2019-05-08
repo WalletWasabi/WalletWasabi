@@ -144,7 +144,11 @@ The follow-up concern is the inverse of the above. It is possible that the serve
 
 ### 'Backend won't connect'
 
-All Wasabi network traffic goes via Tor. When Tor has issues Wasabi has issues. If the Tor Hidden Service directory does down (which is does occasionally) Wasabi now has a fall-back back to the coordinator server without a hidden service (but still over Tor). It is easiest to wait and try again some hours later. Alternatively you can go to the config file and change replace "MainNetBackendUriV3": "http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/", with "MainNetBackendUriV3": "https://wasabiwallet.io/",
+All Wasabi network traffic goes via Tor. When Tor has issues Wasabi has issues. If the Tor Hidden Service directory does down (which is does occasionally) Wasabi now has a fall-back back to the coordinator server without a hidden service (but still over Tor). 
+
+**It is easiest to wait and try again some hours later.**
+
+Alternatively, you can turn off Tor in the Settings. Note that in this case you are still private, **except when you coinjoin** and **when you broadcast a transaction**. In the first case, the coordinator would learn the links between your inputs and outputs based on your IP address, in the second case, if you happen to broadcast a transaction of yours to a full node that is spying on you, it will learn the link between your transaction and your IP address.
 
 # Acknowledgements
 
