@@ -99,7 +99,6 @@ namespace Nito.AsyncEx
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError($"{ex.ToTypeMessageString()} in {ShortName}", nameof(AsyncMutex));
 					inner = ex;
 					// Let it go.
 				}
