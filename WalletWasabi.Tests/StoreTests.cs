@@ -120,9 +120,13 @@ namespace WalletWasabi.Tests
 				var num = numbers[i];
 				Assert.Equal(prevnum + 1, num);
 			}
+		}
 
+		[Fact]
+		public async Task AsyncMutexSameNameTestsAsync()
+		{
 			// Different AsyncMutex object but same name.
-
+			AsyncMutex asyncMutex = new AsyncMutex("mutex1");
 			AsyncMutex asyncMutex2 = new AsyncMutex("mutex1");
 
 			// Acquire the first mutex with a background thread and hold it for a while.
