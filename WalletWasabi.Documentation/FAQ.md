@@ -34,11 +34,11 @@ Members as of 2019.05.08:
 
 Follow [this guide](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/InstallInstructions.md)
 
-If you use Windows there is a [video guide](https://youtu.be/D8U53PFEsVk).
 
 ### Do I need to run Tor?
 
 All Wasabi network traffic goes via Tor by default - no need to set up Tor yourself. If you do already have Tor, and it is running, then Wasabi will try to use that first.  
+You can turn off Tor in the Settings. Note that in this case you are still private, except when you coinjoin and when you broacast a transaction. In the first case, the coordinator would learn the links between your inputs and outputs based on your IP address, in the second case, if you happen to broadcast a transaction of yours to a full node that is spying on you, it will learn the link between your transaction and your IP address.
 
 # Pre-Mix
 
@@ -59,7 +59,9 @@ Be careful. If you send all your coins from an old wallet to a new wallet (from 
 
 ### What are the fees?
 
-You pay currently pay a fee of 0.003% * Anonymity set. If the coin anonymity set of a coin is 50 then you paid 0.003% * 50 (=0.15%). If you set the target anonymity set to 53 then wasabi will continue mixing until this is reached, so you may end up with an anonymity set of say 60, and you will pay 0.003% * 60 (=0.18%).
+You currently pay a fee of 0.003% * anonymity set. If the anonymity set of a coin is 50 then you paid 0.003% * 50 (=0.15%). If you set the target anonymity set to 53 then wasabi will continue mixing until this is reached, so you may end up with an anonymity set of say 60, and you will pay 0.003% * 60 (=0.18%).  
+There are also edge cases where you don't pay the full fee or where you pay more. For example if you're the smallest registrant to a round, you'll never pay a fee. Also when you are remixing if you cannot pay the full fee with your input, then you only pay as much as you have, but if the change amount leftover would be too small, then that's also added to the fee. Currently the minimum change amount to be payed out is 0.7% of the base denomination (~0.1BTC.)  
+It is also possible that you get more back from mixing than you put in. This happens when network fees go down from when the round started and when the round ended. In this case, the difference is split between the active outputs of the mix.
 
 ### What is the Anonymity Set?
 
@@ -76,7 +78,8 @@ If 3 people take part in a CoinJoin (with equal size inputs) and there are 3 out
 ```
 
 There is no way to know which of the anon set output coins are owned by which of the input owners.
-All an observer knows is that a specific anon set output coin is owned by one of the owners of one of the input Coins i.e. 3 people - hence an anonymity set of 3.
+All an observer knows is that a specific anon set output coin is owned by one of the owners of one of the input Coins i.e. 3 people - hence an anonymity set of 3.  
+Your Wasabi software has limited information on what the anonymity set should be, so the anonymity set that the software presents you is just an estimation, not an accurate value. With Wasabi we are trying to do lower estimations, rather than upper ones.
 
 ### How Do I change the default number of mixing rounds (the Anonymity Set)?
 
@@ -101,17 +104,18 @@ Wasabi is a very good wallet, and it is advisable to manage your funds using the
 - Unless the wallet connects to your own full node you will leak information to the server supplying the blocks/filters.
 As a result, there are few wallets that are suitable. 
 
-Personally, I recommend sending your Zerolink Change to [Samourai Wallet](https://samouraiwallet.com/) or [Blockstream Green](https://blockstream.com/green/) for small-spends where you are less concerned about revealing any information. 
 
 ### Can I recombine my mixed coins?
 
 It is advisable to limit the recombining of mixed coins because it can only decrease the privacy of said coins. This links all the consolidated UTXOs in one transaction, creating only one output, which then clearly controls all these funds. That said, if you combine less than 1 BTC it is less likely to reveal your pre-coinjoin transaction history. The potential issue comes when you spend that coin. Depending on what you do with the coin you might reduce the privacy of the resulting change (if you send half your coin to an exchange for example, as they will know that you own the coin change). As a result it is best not to recombine ALL your mixed change, though you may wish to recombine some coins if you are planning on hodling for many years as this will reduce the fees required to spend the coins later.
 
+If you'd like to dive into the details of this topic, you can [read more here.](https://old.reddit.com/r/WasabiWallet/comments/avxbjy/combining_mixed_coins_privacy_megathread/)
+
 ### Am I safe to send my mixed coins to my hardware wallet?
 
 Most hardware wallets communicate with servers to provide you with your balance. This reveals your public key to the server, which damages your privacy - the hardware company can now theoretically link together all your addresses. As a result **it is not recommended** that you send your mixed coins to an address associated with your hardware wallet unless you are confident that you have set up your hardware wallet in a way that it does not communicate with a 3rd party server (see below). 
 
-You can however manage your hardware wallet with the Wasabi interface.
+You can however manage your hardware wallet with the Wasabi interface. Alternatively you can use your hardware wallet with Electrum, which connects to your Bitcoin Core full node through [Electrum Personal Server](https://github.com/chris-belcher/electrum-personal-server).
 
 ### How can I set up my hardware wallet with Wasabi properly?
 
@@ -120,7 +124,6 @@ You can currently use the following hardware wallets **with Wasabi directly**.
 - Trezor Model T
 - Ledger Nano S
 
-Alternately you can use [electrum personal server](https://github.com/chris-belcher/electrum-personal-server). 
 
 ### Will I have issues spending my mixed coins? 
 
