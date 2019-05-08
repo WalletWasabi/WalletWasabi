@@ -118,7 +118,9 @@ Not at the moment, if Wasabi and other CoinJoin tools are used by enough people 
 There are no hard and fast rules for what to do with the change. It is important to note that the change may be linked to your identity and should be treated as a kind of toxic waste (handled with great care).
 
 **Warning**
-Mixing change from multiple originating sources **will decrease your privacy** because it will link these transactions. This is true even if you mix it with a mixed coin. It is very important that you don't send different coins to the same receiving address, even if performed as separate transactions - as this will also link the coins damaging your privacy.
+You want to avoid mixing change coins where possible. If you mix change you will **decrease your privacy** because the transactions that created the change will now be linked. Note that this is also true if you mix your change with a mixed coin. 
+
+It is very important that you don't send different coins to the same receiving address (even if performed as separate transactions) as this will also link the coins together, damaging your privacy.
 
 **Your Options**
 - If you don't care about linking the history of the coins because they are all from the same source then you could combine them in a mix (que all the change from the same source until you reach the minimum input required to mix, currently ~ 0.1 BTC).  
