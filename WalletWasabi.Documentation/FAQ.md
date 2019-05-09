@@ -71,13 +71,22 @@ In the Wallet GUI, go to File>Open>Config and in the last 4 lines you see:
 "PrivacyLevelSome": 2,
 "PrivacyLevelFine": 21,
 "PrivacyLevelStrong": 50`
-You can change the three values of the desired anon set of the yellow, green and checkmark shield button in the GUI. The `MixUntilAnonymitySet` is the last selected value from previous use. More is better, (arguably only up to a point). Remember that you pay a [fee](https://github.com/6102bitcoin/FAQ/blob/master/wasabi.md#what-are-the-fees) proportional to the Anonymity Set.
+You can change the three values of the desired anon set of the yellow, green and checkmark shield button in the GUI. The `MixUntilAnonymitySet` is the last selected value from previous use. More is better, (arguably only up to a point). Remember that you pay a [fee](https://github.com/6102bitcoin/FAQ/blob/master/wasabi.md#what-are-the-fees) proportional to the Anonymity Set. [See more here](https://youtu.be/gWo2RAkIVrE?t=191).
 
 ### Can I mix more than the round's minimum? ###
 
 Yes. 
 In a round with a ~0.1 BTC minimum, you could mix ~ 0.3 BTC and get a ~ 0.1 BTC output & a ~ 0.2 BTC output.
-Similarly, with a 0.7 BTC input you would expect the following outputs: ~ 0.1, ~ 0.2, ~ 0.4 BTC. The possible values of equal output that can be created are 0.1 x 2^n where is a positive integer (or zero).
+Similarly, with a 0.7 BTC input you would expect the following outputs: ~ 0.1, ~ 0.2, ~ 0.4 BTC. The possible values of equal output that can be created are 0.1 x 2^n where is a positive integer (or zero).  [See more here](https://youtu.be/PKtxzSLPWFU) and [here](https://youtu.be/3Ezru07J674).
+
+### How do I connect my own full node to Wasabi?
+
+There is currently a basic implementation of connecting your full node to Wasabi. The server will still send you [BIP 158 block filters](https://github.com/bitcoin/bips/blob/master/bip-0158.mediawiki), and when you realize that a block contains a transaction of yours, then you pull this block from your own full node, instead of a random P2P node. Thus, you can verify that in this actually is a valid block including your transaction. One attack vector could be that Wasabi lies to you and give you wrong filters that exclude your transaction, thus you would see in the wallet less coins than you actually control. [BIP 157 solves this](https://github.com/bitcoin/bips/blob/master/bip-0157.mediawiki).
+When your full node is on the same hardware [computer, laptop] as your Wasabi wallet, then it will automatically recognize it and pull blocks from there. If your node is on a remote device [raspberry pi, nodl, server], then you can specify your local IP in line 11 of the config file. [See more here](https://youtu.be/gWo2RAkIVrE).
+
+### How do I upgrade Wasabi?
+
+You can download the software build for the different operating systems on the main [website](https://wasabiwallet.io) or better over [tor](http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion). Make sure you also download the signatures of the build and verify them for [Adam Ficsor's public key.](https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt) For step by step instructions, follow [this guie](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/InstallInstructions.md) or [see this video](https://youtu.be/DUc9A76rwX4).
 
 ### Why is the minimum mixing amount a weird number?
 
@@ -97,7 +106,7 @@ As a result, there are few wallets that are suitable.
 
 It is advisable to limit the recombining of mixed coins because it can only decrease the privacy of said coins. This links all the consolidated UTXOs in one transaction, creating only one output, which then clearly controls all these funds. That said, if you combine less than 1 BTC it is less likely to reveal your pre-coinjoin transaction history. The potential issue comes when you spend that coin. Depending on what you do with the coin you might reduce the privacy of the resulting change (if you send half your coin to an exchange for example, as they will know that you own the coin change). As a result it is best not to recombine ALL your mixed change, though you may wish to recombine some coins if you are planning on hodling for many years as this will reduce the fees required to spend the coins later.
 
-If you'd like to dive into the details of this topic, you can [read more here.](https://old.reddit.com/r/WasabiWallet/comments/avxbjy/combining_mixed_coins_privacy_megathread/)
+If you'd like to dive into the details of this topic, you can [read more here](https://old.reddit.com/r/WasabiWallet/comments/avxbjy/combining_mixed_coins_privacy_megathread/) and [see more here](https://www.youtube.com/watch?v=Tk8-N1kHa4g).
 
 ### Am I safe to send my mixed coins to my hardware wallet?
 
@@ -107,7 +116,7 @@ You can however manage your hardware wallet with the Wasabi interface. Alternati
 
 ### How can I set up my hardware wallet with Wasabi properly?
 
-You can use popular hardware wallets **with Wasabi directly** including Coldcard, Trezor and Ledger devices.
+You can use popular hardware wallets **with Wasabi directly** including Coldcard, Trezor and Ledger devices. Simply plug in the device, and select `Hardware Wallet` in the starting page of Wasabi. You will be able to send and receive bitcoin, but you won't be able to coinjoin the funds directly. For this, the private key needs to be hot in Wasabi. You can also import and export PSBT over SD card to communicate with your ColdCard Wallet.
 
 ### Will I have issues spending my mixed coins? 
 
