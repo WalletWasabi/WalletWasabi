@@ -15,7 +15,7 @@ namespace WalletWasabi.Tests
 {
 	public class StoreTests
 	{
-		//[Fact]
+		[Fact]
 		public async Task IndexStoreTestsAsync()
 		{
 			await Task.Delay(1);
