@@ -393,69 +393,43 @@ namespace WalletWasabi.Tests
 				}
 			};
 
-			//var t1 = new Thread(() =>
-			//{
-			//	for (var i = 0; i < 500; i++)
-			//	{
-			//		/* We have to block the Thread.
-			//		 * If we use async/await pattern then Join() function at the end will indicate that the Thread is finished -
-			//		 * which is not true bacause the WriteNextLineAsync() is not yet finished. The reason is that await will return execution
-			//		 * the to the calling thread it is detected as the thread is done. t1 and t2 and t3 will still run in parallel!
-			//		 */
-			//		WriteNextLineAsync().Wait();
-			//	}
-			//});
-			//var t2 = new Thread(() =>
-			//  {
-			//   for (var i = 0; i < 500; i++)
-			//   {
-			//	   WriteNextLineAsync().Wait();
-			//   }
-			//  });
-			//var t3 = new Thread(() =>
-			//  {
-			//   for (var i = 0; i < 500; i++)
-			//   {
-			//	   WriteNextLineAsync().Wait();
-			//   }
-			//  });
-
-			//t1.Start();
-			//t2.Start();
-			//t3.Start();
-			//await Task.Delay(100);
-			//t1.Join();
-			//t2.Join();
-			//t3.Join();
-			//Assert.False(t1.IsAlive);
-			//Assert.False(t2.IsAlive);
-			//Assert.False(t3.IsAlive);
-
-			var t1 = Task.Run(async () =>
+			var t1 = new Thread(() =>
 			{
 				for (var i = 0; i < 500; i++)
 				{
-					await WriteNextLineAsync();
+					/* We have to block the Thread.
+					 * If we use async/await pattern then Join() function at the end will indicate that the Thread is finished -
+					 * which is not true bacause the WriteNextLineAsync() is not yet finished. The reason is that await will return execution
+					 * the to the calling thread it is detected as the thread is done. t1 and t2 and t3 will still run in parallel!
+					 */
+					WriteNextLineAsync().Wait();
 				}
 			});
+			var t2 = new Thread(() =>
+			  {
+				  for (var i = 0; i < 500; i++)
+				  {
+					  WriteNextLineAsync().Wait();
+				  }
+			  });
+			var t3 = new Thread(() =>
+			  {
+				  for (var i = 0; i < 500; i++)
+				  {
+					  WriteNextLineAsync().Wait();
+				  }
+			  });
 
-			var t2 = Task.Run(async () =>
-			{
-				for (var i = 0; i < 500; i++)
-				{
-					await WriteNextLineAsync();
-				}
-			});
-
-			var t3 = Task.Run(async () =>
-			{
-				for (var i = 0; i < 500; i++)
-				{
-					await WriteNextLineAsync();
-				}
-			});
-
-			Task.WaitAll(t1, t2, t3);
+			t1.Start();
+			// t2.Start();
+			// t3.Start();
+			await Task.Delay(100);
+			t1.Join();
+			// t2.Join();
+			// t3.Join();
+			Assert.False(t1.IsAlive);
+			Assert.False(t2.IsAlive);
+			Assert.False(t3.IsAlive);
 
 			var alllines = File.ReadAllLines(file1);
 			Assert.NotEmpty(alllines);
