@@ -385,14 +385,15 @@ namespace WalletWasabi.Tests
 			var list = new List<string>();
 			async Task WriteNextLineAsync()
 			{
-				var next = RandomString();
-				lock (list)
+				List<string> lines = null;
+				string next = RandomString();
+				using (await ioman1.Mutex.LockAsync())
 				{
 					list.Add(next);
+					lines = (await ioman1.ReadAllLinesAsync()).ToList();
 				}
 				using (await ioman1.Mutex.LockAsync())
 				{
-					var lines = (await ioman1.ReadAllLinesAsync()).ToList();
 					lines.Add(next);
 					await ioman1.WriteAllLinesAsync(lines);
 				}
@@ -400,23 +401,35 @@ namespace WalletWasabi.Tests
 
 			var t1 = new Thread(() =>
 			{
-				for (var i = 0; i < 500; i++)
+				try
 				{
-					/* We have to block the Thread.
-					 * If we use async/await pattern then Join() function at the end will indicate that the Thread is finished -
-					 * which is not true bacause the WriteNextLineAsync() is not yet finished. The reason is that await will return execution
-					 * the to the calling thread it is detected as the thread is done. t1 and t2 and t3 will still run in parallel!
-					 */
-					WriteNextLineAsync().Wait();
+					for (var i = 0; i < 500; i++)
+					{
+						/* We have to block the Thread.
+						 * If we use async/await pattern then Join() function at the end will indicate that the Thread is finished -
+						 * which is not true bacause the WriteNextLineAsync() is not yet finished. The reason is that await will return execution
+						 * the to the calling thread it is detected as the thread is done. t1 and t2 and t3 will still run in parallel!
+						 */
+						WriteNextLineAsync().Wait();
+					}
+				}
+				catch (Exception ex)
+				{
 				}
 			});
 			var t2 = new Thread(() =>
-			  {
-				  for (var i = 0; i < 500; i++)
-				  {
-					  WriteNextLineAsync().Wait();
-				  }
-			  });
+			{
+				try
+				{
+					for (var i = 0; i < 500; i++)
+					{
+						WriteNextLineAsync().Wait();
+					}
+				}
+				catch (Exception ex)
+				{
+				}
+			});
 			var t3 = new Thread(() =>
 			  {
 				  for (var i = 0; i < 500; i++)
