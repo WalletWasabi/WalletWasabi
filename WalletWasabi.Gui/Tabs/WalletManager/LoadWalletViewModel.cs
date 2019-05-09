@@ -64,10 +64,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			WalletLock = new object();
 
 			this.WhenAnyValue(x => x.SelectedWallet)
-				.Subscribe(selectedWallet => SetWalletStates());
+				.Subscribe(selectedWallet => TrySetWalletStates());
 
 			this.WhenAnyValue(x => x.IsWalletOpened)
-				.Subscribe(isWalletOpened => SetWalletStates());
+				.Subscribe(isWalletOpened => TrySetWalletStates());
+
+			this.WhenAnyValue(x => x.IsBusy)
+				.Subscribe(x => TrySetWalletStates());
 
 			this.WhenAnyValue(x => x.Password).Subscribe(async x =>
 			{
@@ -221,19 +224,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public bool IsBusy
 		{
 			get => _isBusy;
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _isBusy, value);
-
-				try
-				{
-					SetWalletStates();
-				}
-				catch (Exception ex)
-				{
-					Logger.LogInfo<LoadWalletViewModel>(ex);
-				}
-			}
+			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
 		}
 
 		public bool IsHardwareBusy
@@ -245,7 +236,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				try
 				{
-					SetWalletStates();
+					TrySetWalletStates();
 				}
 				catch (Exception ex)
 				{
@@ -276,27 +267,37 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 
 				SelectedWallet = Wallets.FirstOrDefault();
-				SetWalletStates();
+				TrySetWalletStates();
 			}
 		}
 
-		private void SetWalletStates()
+		private bool TrySetWalletStates()
 		{
-			IsWalletSelected = SelectedWallet != null;
-			CanTestPassword = IsWalletSelected;
-
-			IsWalletOpened = Global.WalletService != null;
-			// If not busy loading.
-			// And wallet is selected.
-			// And no wallet is opened.
-			CanLoadWallet = !IsBusy && IsWalletSelected && !IsWalletOpened;
-
-			if (IsWalletOpened)
+			try
 			{
-				SetWarningMessage("There is already an open wallet. Restart the application in order to open a different one.");
+				IsWalletSelected = SelectedWallet != null;
+				CanTestPassword = IsWalletSelected;
+
+				IsWalletOpened = Global.WalletService != null;
+				// If not busy loading.
+				// And wallet is selected.
+				// And no wallet is opened.
+				CanLoadWallet = !IsBusy && IsWalletSelected && !IsWalletOpened;
+
+				if (IsWalletOpened)
+				{
+					SetWarningMessage("There is already an open wallet. Restart the application in order to open a different one.");
+				}
+
+				SetLoadButtonText();
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<LoadWalletViewModel>(ex);
 			}
 
-			SetLoadButtonText();
+			return false;
 		}
 
 		public ReactiveCommand<Unit, Unit> LoadCommand { get; }
@@ -346,7 +347,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				if (changed)
 				{
-					SetWalletStates();
+					TrySetWalletStates();
 				}
 
 				if (hwis.Any())
@@ -569,9 +570,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 			finally
 			{
-				IsBusy = false;
 				MainWindowViewModel.Instance.StatusBar.RemoveStatus(loadingStatusText);
-				SetWalletStates();
+				IsBusy = false;
 			}
 		}
 
