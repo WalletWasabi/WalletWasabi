@@ -362,7 +362,10 @@ namespace WalletWasabi.Tests
 
 			IoManager ioman1 = new IoManager(file1);
 			ioman1.DeleteMe();
-			await ioman1.WriteAllLinesAsync(new string[0]);
+
+			Assert.False(ioman1.Exists());
+
+			// await ioman1.WriteAllLinesAsync(new string[0]);
 
 			string RandomString()
 			{
