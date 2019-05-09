@@ -407,7 +407,7 @@ namespace WalletWasabi.Tests
 					 * which is not true bacause the WriteNextLineAsync() is not yet finished. The reason is that await will return execution
 					 * the to the calling thread it is detected as the thread is done. t1 and t2 and t3 will still run in parallel!
 					 */
-					//WriteNextLineAsync().Wait();
+					WriteNextLineAsync().Wait();
 				}
 			});
 			var t2 = new Thread(() =>
