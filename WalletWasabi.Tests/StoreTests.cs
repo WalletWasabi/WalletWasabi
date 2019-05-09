@@ -16,15 +16,15 @@ namespace WalletWasabi.Tests
 	public class StoreTests
 	{
 		//[Fact]
-		//public async Task IndexStoreTestsAsync()
-		//{
-		//	await Task.Delay(1);
-		//	var indexStore = new IndexStore();
+		public async Task IndexStoreTestsAsync()
+		{
+			await Task.Delay(1);
+			var indexStore = new IndexStore();
 
-		//	var dir = Path.Combine(Global.DataDir, nameof(IndexStoreTestsAsync));
-		//	var network = Network.Main;
-		//	await indexStore.InitializeAsync(dir, network);
-		//}
+			var dir = Path.Combine(Global.DataDir, nameof(IndexStoreTestsAsync));
+			var network = Network.Main;
+			await indexStore.InitializeAsync(dir, network);
+		}
 
 		[Fact]
 		public async Task AsyncMutexTestsAsync()
