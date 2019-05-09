@@ -76,8 +76,8 @@ You can change the three values of the desired anon set of the yellow, green and
 ### Can I mix more than the round's minimum? ###
 
 Yes. 
-In a round with a ~0.1 BTC minimum, you could mix ~ 0.3 BTC and get a ~ 0.1 BTC output & a ~ 0.2 BTC output.
-Similarly, with a 0.7 BTC input you would expect the following outputs: ~ 0.1, ~ 0.2, ~ 0.4 BTC. The possible values of equal output that can be created are 0.1 x 2^n where is a positive integer (or zero).  [See more here](https://youtu.be/PKtxzSLPWFU) and [here](https://youtu.be/3Ezru07J674).
+In a round with a ~0.1 BTC minimum, you could mix ~ 0.3 BTC and get a ~0.1 BTC output & a ~ 0.2 BTC output.
+Similarly, with a 0.7 BTC input you would expect the following outputs: ~0.1, ~0.2, ~0.4 BTC. The possible values of equal output that can be created are 0.1 x 2^n where is a positive integer (or zero).  [See more here](https://youtu.be/PKtxzSLPWFU) and [here](https://youtu.be/3Ezru07J674).
 
 ### How do I connect my own full node to Wasabi?
 
@@ -90,7 +90,7 @@ You can download the software build for the different operating systems on the m
 
 ### Why is the minimum mixing amount a weird number?
 
-The output value changes each round to ensure that you can que a coin and have it remix (mix over and over again - increasing the anonymity set, improving privacy). As a result the round mixing amount will often be a specific number which generally decreases as the rounds proceed, with a reset once a lower bound is reached. 
+The output value changes each round to ensure that you can queue a coin and have it remix (mix over and over again - increasing the anonymity set, improving privacy). As a result the round mixing amount will often be a specific number which generally decreases as the rounds proceed, with a reset once a lower bound is reached. 
 
 # Post-Mix
 
@@ -155,7 +155,7 @@ The follow-up concern is the inverse of the above. It is possible that the serve
 
 ### 'Backend won't connect'
 
-All Wasabi network traffic goes via Tor. When Tor has issues Wasabi has issues. If the Tor Hidden Service directory does down (which is does occasionally) Wasabi now has a fall-back back to the coordinator server without a hidden service (but still over Tor). 
+All Wasabi network traffic goes via Tor. When Tor has issues Wasabi has issues. If the Tor Hidden Service directory goes down (which is does occasionally) Wasabi now has a fall-back back to the coordinator server without a hidden service (but still over Tor). 
 
 **It is easiest to wait and try again some hours later.**
 
