@@ -437,17 +437,18 @@ namespace WalletWasabi.Tests
 			  {
 				  for (var i = 0; i < 500; i++)
 				  {
-					  //WriteNextLineAsync().Wait();
+					  WriteNextLineAsync().Wait();
 				  }
 			  });
 
 			t1.Start();
 			t2.Start();
-			// t3.Start();
-			await Task.Delay(100);
+			t3.Start();
+			await Task.Delay(5000);
 			t1.Join();
 			t2.Join();
-			// t3.Join();
+			t3.Join();
+
 			Assert.False(t1.IsAlive);
 			Assert.False(t2.IsAlive);
 			Assert.False(t3.IsAlive);
