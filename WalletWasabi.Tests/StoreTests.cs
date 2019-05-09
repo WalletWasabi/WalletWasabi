@@ -442,10 +442,12 @@ namespace WalletWasabi.Tests
 			  });
 
 			t1.Start();
+			await Task.Delay(100);
+			t1.Join();
 			t2.Start();
 			// t3.Start();
 			await Task.Delay(100);
-			t1.Join();
+
 			t2.Join();
 			// t3.Join();
 			Assert.False(t1.IsAlive);
