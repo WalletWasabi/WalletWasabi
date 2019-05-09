@@ -15,16 +15,16 @@ namespace WalletWasabi.Tests
 {
 	public class StoreTests
 	{
-		[Fact]
-		public async Task IndexStoreTestsAsync()
-		{
-			await Task.Delay(1);
-			var indexStore = new IndexStore();
+		//[Fact]
+		//public async Task IndexStoreTestsAsync()
+		//{
+		//	await Task.Delay(1);
+		//	var indexStore = new IndexStore();
 
-			var dir = Path.Combine(Global.DataDir, nameof(IndexStoreTestsAsync));
-			var network = Network.Main;
-			await indexStore.InitializeAsync(dir, network);
-		}
+		//	var dir = Path.Combine(Global.DataDir, nameof(IndexStoreTestsAsync));
+		//	var network = Network.Main;
+		//	await indexStore.InitializeAsync(dir, network);
+		//}
 
 		[Fact]
 		public async Task AsyncMutexTestsAsync()
@@ -364,6 +364,7 @@ namespace WalletWasabi.Tests
 			ioman1.DeleteMe();
 
 			Assert.False(ioman1.Exists());
+
 			using (await ioman1.Mutex.LockAsync())
 			{
 				await ioman1.WriteAllLinesAsync(new string[0]);
@@ -415,6 +416,7 @@ namespace WalletWasabi.Tests
 				}
 				catch (Exception ex)
 				{
+					Logger.LogWarning<IoManager>($"Test fail: {ex.ToTypeMessageString()}");
 				}
 			});
 			var t2 = new Thread(() =>
@@ -428,6 +430,7 @@ namespace WalletWasabi.Tests
 				}
 				catch (Exception ex)
 				{
+					Logger.LogWarning<IoManager>($"Test fail: {ex.ToTypeMessageString()}");
 				}
 			});
 			var t3 = new Thread(() =>
