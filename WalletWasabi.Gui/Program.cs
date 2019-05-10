@@ -103,7 +103,7 @@ namespace WalletWasabi.Gui
 
 			return result
 				.With(new Win32PlatformOptions { AllowEglInitialization = true, UseDeferredRendering = true })
-				.With(new X11PlatformOptions { UseGpu = true, UseEGL = true })
+				.With(new X11PlatformOptions { UseGpu = true })
 				.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = true })
 				.With(new MacOSPlatformOptions { ShowInDock = true });
 		}

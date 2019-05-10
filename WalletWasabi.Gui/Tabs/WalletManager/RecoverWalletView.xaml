@@ -29,6 +29,18 @@
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
+          <StackPanel Spacing="16">
+            <CheckBox IsChecked="{Binding ShowAdvancedOptions, Mode=TwoWay}">
+              <TextBlock Text="Show Advanced Options" />
+            </CheckBox>
+            <StackPanel IsVisible="{Binding ShowAdvancedOptions}">
+              <controls:ExtendedTextBox Text="{Binding AccountKeyPath}" Watermark="Account Key Path" UseFloatingWatermark="True" />
+              <TextBlock Text="Note that, Wasabi can only monitor native SegWit (bech32) addresses." Classes="warningMessage" />
+            </StackPanel>
+            <StackPanel IsVisible="{Binding ShowAdvancedOptions}">
+              <controls:ExtendedTextBox Text="{Binding MinGapLimit}" Watermark="Minimum Gap Limit" UseFloatingWatermark="True" />
+            </StackPanel>
+          </StackPanel>
         </StackPanel>
       </Grid>
     </controls:GroupBox>
