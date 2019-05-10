@@ -12,7 +12,6 @@ namespace WalletWasabi.Gui.ViewModels
 	{
 		private ModalDialogViewModelBase _modalDialog;
 		private bool _canClose = true;
-		private INotificationManager _localNotificationManager;
 
 		private string _title = "Wasabi Wallet";
 
@@ -52,12 +51,6 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			get => _statusBar;
 			internal set => this.RaiseAndSetIfChanged(ref _statusBar, value);
-		}
-
-		public INotificationManager NotificationManager
-		{
-			get { return _localNotificationManager; }
-			set { this.RaiseAndSetIfChanged(ref _localNotificationManager, value); }
 		}
 
 		public MainWindowViewModel()

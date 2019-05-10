@@ -1,11 +1,13 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Notifications;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Extensibility.Theme;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Controls;
+using Splat;
 using System;
 using System.ComponentModel;
 using System.IO;
@@ -30,6 +32,12 @@ namespace WalletWasabi.Gui
 #if DEBUG
 			this.AttachDevTools();
 #endif
+			Locator.CurrentMutable.RegisterConstant<INotificationManager>(
+				new WindowNotificationManager(this) {
+					Position = NotificationPosition.BottomRight,
+					MaxItems = 4,
+					Margin = new Thickness (0, 0, 15, 40)
+				});
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{

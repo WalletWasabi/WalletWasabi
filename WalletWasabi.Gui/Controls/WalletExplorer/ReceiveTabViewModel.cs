@@ -3,6 +3,7 @@ using Avalonia.Controls.Notifications;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -46,7 +47,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Label = Label.Trim(',', ' ').Trim();
 				if (string.IsNullOrWhiteSpace(Label))
 				{
-					MainWindowViewModel.Instance.NotificationManager?.Show(new NotificationContent { Title = "Warning!", Message = "Label Is Required!", Type = NotificationType.Information });
+					Locator.Current.GetService<INotificationManager>()?.Show(new Avalonia.Controls.Notifications.Notification("Warning!", "Label Is Required!", NotificationType.Information));
+
 					LabelRequiredNotificationVisible = true;
 					LabelRequiredNotificationOpacity = 1;
 

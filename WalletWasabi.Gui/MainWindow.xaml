@@ -18,9 +18,7 @@
                       Width ="{Binding Width}" Height ="{Binding Height}"
                       WindowState ="{Binding WindowState}"
                       UseLayoutRounding="True" RenderOptions.BitmapInterpolationMode="HighQuality"
-                      id:DragBehavior.IsEnabled="False" id:DropBehavior.IsEnabled="False" 
-                      LocalNotificationManager="{Binding NotificationManager, Mode=OneWayToSource}"
-                      NotificationArea.Position="TopRight" NotificationArea.MaxItems="4">
+                      id:DragBehavior.IsEnabled="False" id:DropBehavior.IsEnabled="False">
   <cont:MetroWindow.TitleBarContent>
     <menu:MainMenuView DataContext="{Binding Shell.MainMenu}" Margin="4 0 0 0"  Foreground="{DynamicResource ThemeForegroundBrush}" VerticalAlignment="Stretch" FontSize="13" />
   </cont:MetroWindow.TitleBarContent>
