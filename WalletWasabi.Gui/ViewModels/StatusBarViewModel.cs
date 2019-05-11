@@ -312,40 +312,54 @@ namespace WalletWasabi.Gui.ViewModels
 		private List<string> StatusQueue { get; } = new List<string>();
 		private object StatusQueueLock { get; } = new object();
 
-		public void AddStatus(string status)
+		public void TryAddStatus(string status)
 		{
-			status = Guard.Correct(status);
-			if (status == "")
+			try
 			{
-				return;
-			}
+				status = Guard.Correct(status);
+				if (status == "")
+				{
+					return;
+				}
 
-			lock (StatusQueueLock)
+				lock (StatusQueueLock)
+				{
+					// Make sure it's the last status.
+					StatusQueue.Remove(status);
+					StatusQueue.Add(status);
+					RefreshStatusNoLock();
+				}
+			}
+			catch (Exception ex)
 			{
-				// Make sure it's the last status.
-				StatusQueue.Remove(status);
-				StatusQueue.Add(status);
-				RefreshStatusNoLock();
+				Logging.Logger.LogWarning<StatusBarViewModel>(ex);
 			}
 		}
 
-		public void RemoveStatus(params string[] statuses)
+		public void TryRemoveStatus(params string[] statuses)
 		{
-			lock (StatusQueueLock)
+			try
 			{
-				foreach (var statusRaw in statuses)
+				lock (StatusQueueLock)
 				{
-					var status = Guard.Correct(statusRaw);
-					if (status == "")
+					foreach (var statusRaw in statuses)
 					{
-						return;
-					}
+						var status = Guard.Correct(statusRaw);
+						if (status == "")
+						{
+							return;
+						}
 
-					if (StatusQueue.Remove(status))
-					{
-						RefreshStatusNoLock();
+						if (StatusQueue.Remove(status))
+						{
+							RefreshStatusNoLock();
+						}
 					}
 				}
+			}
+			catch (Exception ex)
+			{
+				Logging.Logger.LogWarning<StatusBarViewModel>(ex);
 			}
 		}
 
