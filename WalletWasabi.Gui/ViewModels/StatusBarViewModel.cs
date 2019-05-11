@@ -2,6 +2,7 @@ using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin.Protocol;
+using Nito.AsyncEx;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -33,6 +34,7 @@ namespace WalletWasabi.Gui.ViewModels
 	public class StatusBarViewModel : ViewModelBase
 	{
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
+		private AsyncLock StatusTextAnimationLock { get; }
 		private NodesCollection Nodes { get; }
 		private WasabiSynchronizer Synchronizer { get; }
 
@@ -58,6 +60,7 @@ namespace WalletWasabi.Gui.ViewModels
 			BlocksLeft = 0;
 			FiltersLeft = synchronizer.GetFiltersLeft();
 			UseTor = Global.Config.UseTor.Value; // Don't make it dynamic, because if you change this config settings only next time will it activate.
+			StatusTextAnimationLock = new AsyncLock();
 
 			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Added))
 				.Subscribe(x =>
@@ -148,24 +151,27 @@ namespace WalletWasabi.Gui.ViewModels
 
 			this.WhenAnyValue(x => x.StatusText).Subscribe(async status =>
 			{
-				if (status.EndsWith(".")) // Then do animation.
+				using (await StatusTextAnimationLock.LockAsync()) // Without this lock the status get stuck once in a while.
 				{
-					string nextAnimation = null;
-					if (status.EndsWith("..."))
+					if (status.EndsWith(".")) // Then do animation.
 					{
-						nextAnimation = status.TrimEnd("..", StringComparison.Ordinal);
-					}
-					else if (status.EndsWith("..") || status.EndsWith("."))
-					{
-						nextAnimation = $"{status}.";
-					}
-
-					if (nextAnimation != null)
-					{
-						await Task.Delay(1000);
-						if (StatusText == status) // If still the same.
+						string nextAnimation = null;
+						if (status.EndsWith("..."))
 						{
-							StatusText = nextAnimation;
+							nextAnimation = status.TrimEnd("..", StringComparison.Ordinal);
+						}
+						else if (status.EndsWith("..") || status.EndsWith("."))
+						{
+							nextAnimation = $"{status}.";
+						}
+
+						if (nextAnimation != null)
+						{
+							await Task.Delay(1000);
+							if (StatusText == status) // If still the same.
+							{
+								StatusText = nextAnimation;
+							}
 						}
 					}
 				}
