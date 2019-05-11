@@ -112,11 +112,6 @@ namespace WalletWasabi.Stores
 
 				NewFilter?.Invoke(this, filter); // Event always outside the lock.
 			}
-
-			using (await IndexLock.LockAsync())
-			{
-				await ToFileNoSemaphoreAsync();
-			}
 		}
 
 		public async Task<FilterModel> RemoveLastFilterAsync()
@@ -127,7 +122,6 @@ namespace WalletWasabi.Stores
 			{
 				filter = Index.Last();
 				Index.RemoveLast();
-				await ToFileNoSemaphoreAsync();
 			}
 
 			Reorged?.Invoke(this, filter);
@@ -135,11 +129,52 @@ namespace WalletWasabi.Stores
 			return filter;
 		}
 
-		private async Task ToFileNoSemaphoreAsync()
+		private int _throttleId;
+
+		/// <summary>
+		/// It'll LogError the exceptions.
+		/// If cancelled, it'll LogTrace the exception.
+		/// </summary>
+		public async Task TryCommitToFileAsync(TimeSpan throttle, CancellationToken cancel)
 		{
-			using (await IndexFileManager.Mutex.LockAsync())
+			try
 			{
-				await IndexFileManager.WriteAllLinesAsync(Index.Select(x => x.ToHeightlessLine()));
+				// If throttle is requested, then throttle.
+				if (throttle != TimeSpan.Zero)
+				{
+					// Increment the throttle ID and remember the incremented value.
+					int incremented = Interlocked.Increment(ref _throttleId);
+					await Task.Delay(throttle, cancel);
+
+					// If the _throttleId is still the incremented value, then I am the latest CommitToFileAsync request.
+					//	In this case I want to make the _throttledId 0 and go ahead and do the writeline.
+					// If the _throttledId is not the incremented value anymore then I am not the latest request here,
+					//	So just return, the latest request will do the file write in its own time.
+					if (Interlocked.CompareExchange(ref _throttleId, 0, incremented) != incremented)
+					{
+						return;
+					}
+				}
+				else
+				{
+					Interlocked.Exchange(ref _throttleId, 0); // So to notified the currently throttled threads that they don't have to run.
+				}
+
+				using (await IndexFileManager.Mutex.LockAsync(cancel))
+				using (await IndexLock.LockAsync(cancel))
+				{
+					await IndexFileManager.WriteAllLinesAsync(Index.Select(x => x.ToHeightlessLine())); // Don't feed the cancellationToken here I always want this to finish running for safety.
+				}
+			}
+			catch (Exception ex) when (ex is OperationCanceledException
+												|| ex is TaskCanceledException
+												|| ex is TimeoutException)
+			{
+				Logger.LogTrace<IndexStore>(ex);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError<IndexStore>(ex);
 			}
 		}
 
