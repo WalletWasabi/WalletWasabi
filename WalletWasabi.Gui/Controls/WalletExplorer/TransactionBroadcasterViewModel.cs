@@ -124,7 +124,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					transaction = new SmartTransaction(Transaction.Parse(TransactionString, Global.Network ?? Network.Main), WalletWasabi.Models.Height.Unknown);
 				}
 
-				MainWindowViewModel.Instance.StatusBar.AddStatus(broadcastingTransactionStatusText);
+				MainWindowViewModel.Instance.StatusBar.TryAddStatus(broadcastingTransactionStatusText);
 				await Task.Run(async () => await Global.WalletService.SendTransactionAsync(transaction));
 
 				SetSuccessMessage("Transaction is successfully sent!");
@@ -136,7 +136,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			finally
 			{
-				MainWindowViewModel.Instance.StatusBar.RemoveStatus(broadcastingTransactionStatusText);
+				MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(broadcastingTransactionStatusText);
 				IsBusy = false;
 				ButtonText = "Broadcast Transaction";
 			}
