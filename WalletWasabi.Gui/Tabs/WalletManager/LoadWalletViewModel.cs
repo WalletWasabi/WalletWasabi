@@ -394,19 +394,19 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						try
 						{
 							IsHardwareBusy = true;
-							MainWindowViewModel.Instance.StatusBar.AddStatus(settingUpHardwareWalletStatusText);
+							MainWindowViewModel.Instance.StatusBar.TryAddStatus(settingUpHardwareWalletStatusText);
 							if (!await HwiProcessManager.SetupAsync(selectedWallet.HardwareWalletInfo))
 							{
 								throw new Exception("Setup failed.");
 							}
 
-							MainWindowViewModel.Instance.StatusBar.AddStatus(connectingToHardwareWalletStatusText);
+							MainWindowViewModel.Instance.StatusBar.TryAddStatus(connectingToHardwareWalletStatusText);
 							hwis = await HwiProcessManager.EnumerateAsync();
 						}
 						finally
 						{
 							IsHardwareBusy = false;
-							MainWindowViewModel.Instance.StatusBar.RemoveStatus(settingUpHardwareWalletStatusText, connectingToHardwareWalletStatusText);
+							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(settingUpHardwareWalletStatusText, connectingToHardwareWalletStatusText);
 						}
 
 						TryRefreshHardwareWallets(hwis);
@@ -424,12 +424,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						ExtPubKey extPubKey;
 						try
 						{
-							MainWindowViewModel.Instance.StatusBar.AddStatus(acquiringXpubFromHardwareWalletStatusText);
+							MainWindowViewModel.Instance.StatusBar.TryAddStatus(acquiringXpubFromHardwareWalletStatusText);
 							extPubKey = await HwiProcessManager.GetXpubAsync(selectedWallet.HardwareWalletInfo);
 						}
 						finally
 						{
-							MainWindowViewModel.Instance.StatusBar.RemoveStatus(acquiringXpubFromHardwareWalletStatusText);
+							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(acquiringXpubFromHardwareWalletStatusText);
 						}
 
 						Logger.LogInfo<LoadWalletViewModel>("Hardware wallet wasn't used previously on this computer. Creating new wallet file.");
@@ -533,7 +533,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			try
 			{
 				IsBusy = true;
-				MainWindowViewModel.Instance.StatusBar.AddStatus(loadingStatusText);
+				MainWindowViewModel.Instance.StatusBar.TryAddStatus(loadingStatusText);
 
 				var keyManager = await LoadKeyManagerAsync(IsPasswordRequired, IsHardwareWallet);
 				if (keyManager is null)
@@ -570,7 +570,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 			finally
 			{
-				MainWindowViewModel.Instance.StatusBar.RemoveStatus(loadingStatusText);
+				MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(loadingStatusText);
 				IsBusy = false;
 			}
 		}
