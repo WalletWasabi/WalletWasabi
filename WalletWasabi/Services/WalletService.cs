@@ -184,7 +184,7 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				using (HandleFiltersLock.Lock())
+				using (await HandleFiltersLock.LockAsync())
 				{
 					uint256 invalidBlockHash = invalidFilter.BlockHash;
 					await DeleteBlockAsync(invalidBlockHash);
@@ -223,7 +223,7 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				using (HandleFiltersLock.Lock())
+				using (await HandleFiltersLock.LockAsync())
 				{
 					if (filterModel.Filter != null && !KeyManager.CointainsBlockState(filterModel.BlockHash))
 					{
@@ -263,7 +263,7 @@ namespace WalletWasabi.Services
 
 			await RuntimeParams.LoadAsync();
 
-			using (HandleFiltersLock.Lock())
+			using (await HandleFiltersLock.LockAsync())
 			{
 				// Go through the keymanager's index.
 				KeyManager.AssertNetworkOrClearBlockstate(Network);
