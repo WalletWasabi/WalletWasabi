@@ -148,7 +148,7 @@ namespace WalletWasabi.Services
 			TransactionsFilePath = Path.Combine(TransactionsFolderPath, $"{walletName}Transactions.json");
 
 			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
-			BitcoinStore.IndexStore.Reorged += IndexDownloader_Reorged;
+			BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
 			MemPool.TransactionReceived += MemPool_TransactionReceived;
 		}
 
@@ -180,14 +180,14 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private void IndexDownloader_Reorged(object sender, FilterModel invalidFilter)
+		private async void IndexDownloader_ReorgedAsync(object sender, FilterModel invalidFilter)
 		{
 			try
 			{
 				using (HandleFiltersLock.Lock())
 				{
 					uint256 invalidBlockHash = invalidFilter.BlockHash;
-					DeleteBlock(invalidBlockHash);
+					await DeleteBlockAsync(invalidBlockHash);
 					var blockState = KeyManager.TryRemoveBlockState(invalidBlockHash);
 					ProcessedBlocks.TryRemove(invalidBlockHash, out _);
 					if (blockState != null && blockState.BlockHeight != default(Height))
@@ -958,11 +958,11 @@ namespace WalletWasabi.Services
 		/// <remarks>
 		/// Use it at reorgs.
 		/// </remarks>
-		public void DeleteBlock(uint256 hash)
+		public async Task DeleteBlockAsync(uint256 hash)
 		{
 			try
 			{
-				using (BlockFolderLock.Lock())
+				using (await BlockFolderLock.LockAsync())
 				{
 					var filePaths = Directory.EnumerateFiles(BlocksFolderPath);
 					var fileNames = filePaths.Select(x => Path.GetFileName(x));
@@ -1624,7 +1624,7 @@ namespace WalletWasabi.Services
 				if (disposing)
 				{
 					BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
-					BitcoinStore.IndexStore.Reorged -= IndexDownloader_Reorged;
+					BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
 					MemPool.TransactionReceived -= MemPool_TransactionReceived;
 					Coins.CollectionChanged -= Coins_CollectionChanged;
 					lock (TransactionProcessingLock)
