@@ -211,7 +211,7 @@ namespace WalletWasabi.Backend.Controllers
 						if (getTxOutResponse.Confirmations <= 0)
 						{
 							// If it spends a CJ then it may be acceptable to register.
-							if (!Coordinator.ContainsCoinJoin(inputProof.Input.TransactionId))
+							if (!await Coordinator.ContainsCoinJoinAsync(inputProof.Input.TransactionId))
 							{
 								return BadRequest("Provided input is neither confirmed, nor is from an unconfirmed coinjoin.");
 							}
