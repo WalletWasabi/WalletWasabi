@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.RPC;
 using Newtonsoft.Json.Linq;
@@ -1087,7 +1087,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			var alicesRemoved = new List<Alice>();
 			var key = new Key();
 
-			using (RoundSynchronizerLock.Lock())
+			using (await RoundSynchronizerLock.LockAsync())
 			{
 				if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
 				{
