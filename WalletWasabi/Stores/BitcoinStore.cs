@@ -18,6 +18,7 @@ namespace WalletWasabi.Stores
 		private Network Network { get; set; }
 
 		public IndexStore IndexStore { get; private set; }
+		public HashChain HashChain { get; private set; }
 
 		public async Task InitializeAsync(string workFolderPath, Network network)
 		{
@@ -29,6 +30,7 @@ namespace WalletWasabi.Stores
 			IndexStore = new IndexStore();
 			var indexStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString());
 			await IndexStore.InitializeAsync(indexStoreFolderPath, Network);
+			HashChain = IndexStore.HashChain;
 		}
 	}
 }

@@ -545,7 +545,7 @@ namespace WalletWasabi.Tests
 				Assert.Single(wallet.Coins);
 				var firstCoin = wallet.Coins.Single();
 				Assert.Equal(Money.Coins(0.1m), firstCoin.Amount);
-				Assert.Equal((await bitcoinStore.IndexStore.GetBestKnownFilterAsync()).BlockHeight, firstCoin.Height);
+				Assert.Equal(new Height(bitcoinStore.HashChain.TipHeight), firstCoin.Height);
 				Assert.InRange(firstCoin.Index, 0U, 1U);
 				Assert.False(firstCoin.Unavailable);
 				Assert.Equal("foo label", firstCoin.Label);
@@ -574,9 +574,9 @@ namespace WalletWasabi.Tests
 				var thirdCoin = wallet.Coins.OrderBy(x => x.Height).Last();
 				Assert.Equal(Money.Coins(0.01m), secondCoin.Amount);
 				Assert.Equal(Money.Coins(0.02m), thirdCoin.Amount);
-				Assert.Equal((await bitcoinStore.IndexStore.GetBestKnownFilterAsync()).BlockHeight.Value - 2, firstCoin.Height.Value);
-				Assert.Equal((await bitcoinStore.IndexStore.GetBestKnownFilterAsync()).BlockHeight.Value - 1, secondCoin.Height.Value);
-				Assert.Equal((await bitcoinStore.IndexStore.GetBestKnownFilterAsync()).BlockHeight, thirdCoin.Height);
+				Assert.Equal(new Height(bitcoinStore.HashChain.TipHeight).Value - 2, firstCoin.Height.Value);
+				Assert.Equal(new Height(bitcoinStore.HashChain.TipHeight).Value - 1, secondCoin.Height.Value);
+				Assert.Equal(new Height(bitcoinStore.HashChain.TipHeight), thirdCoin.Height);
 				Assert.False(thirdCoin.Unavailable);
 				Assert.Equal("foo label", firstCoin.Label);
 				Assert.Equal("bar label", secondCoin.Label);
@@ -633,7 +633,7 @@ namespace WalletWasabi.Tests
 				var rbfCoin = wallet.Coins.Where(x => x.TransactionId == tx4bumpRes.TransactionId).Single();
 
 				Assert.Equal(Money.Coins(0.03m), rbfCoin.Amount);
-				Assert.Equal((await bitcoinStore.IndexStore.GetBestKnownFilterAsync()).BlockHeight.Value - 2, rbfCoin.Height.Value);
+				Assert.Equal(new Height(bitcoinStore.HashChain.TipHeight).Value - 2, rbfCoin.Height.Value);
 				Assert.False(rbfCoin.Unavailable);
 				Assert.Equal("bar label", rbfCoin.Label);
 				Assert.Equal(key2.P2wpkhScript, rbfCoin.ScriptPubKey);
@@ -667,7 +667,7 @@ namespace WalletWasabi.Tests
 				await rpc.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 				var res = await rpc.GetTxOutAsync(mempoolCoin.TransactionId, (int)mempoolCoin.Index, true);
-				Assert.Equal((await bitcoinStore.IndexStore.GetBestKnownFilterAsync()).BlockHeight, mempoolCoin.Height);
+				Assert.Equal(new Height(bitcoinStore.HashChain.TipHeight), mempoolCoin.Height);
 			}
 			finally
 			{
@@ -1084,7 +1084,7 @@ namespace WalletWasabi.Tests
 				await rpc.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
-				var bestHeight = (await bitcoinStore.IndexStore.GetBestKnownFilterAsync()).BlockHeight;
+				var bestHeight = new Height(bitcoinStore.HashChain.TipHeight);
 				Assert.Contains($"{Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Constants.ChangeOfSpecialLabelEnd}", wallet.Coins.Where(x => x.Height == bestHeight).Select(x => x.Label));
 				Assert.Contains($"{Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Constants.ChangeOfSpecialLabelEnd}", keyManager.GetKeys().Select(x => x.Label));
 

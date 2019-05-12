@@ -24,6 +24,7 @@ namespace WalletWasabi.Stores
 		private string WorkFolderPath { get; set; }
 		private Network Network { get; set; }
 		private IoManager IndexFileManager { get; set; }
+		public HashChain HashChain { get; private set; }
 
 		private FilterModel StartingFilter { get; set; }
 		private Height StartingHeight { get; set; }
@@ -46,6 +47,7 @@ namespace WalletWasabi.Stores
 			StartingHeight = StartingFilters.GetStartingHeight(Network);
 
 			Index = new List<FilterModel>();
+			HashChain = new HashChain();
 
 			IndexLock = new AsyncLock();
 
@@ -75,6 +77,7 @@ namespace WalletWasabi.Stores
 							var filter = FilterModel.FromHeightlessLine(line, height);
 							height++;
 							Index.Add(filter);
+							HashChain.AddOrReplace(filter.BlockHeight.Value, filter.BlockHash);
 						}
 					}
 					catch (FormatException)
@@ -108,6 +111,7 @@ namespace WalletWasabi.Stores
 				using (await IndexLock.LockAsync())
 				{
 					Index.Add(filter);
+					HashChain.AddOrReplace(filter.BlockHeight.Value, filter.BlockHash);
 				}
 
 				NewFilter?.Invoke(this, filter); // Event always outside the lock.
@@ -122,6 +126,7 @@ namespace WalletWasabi.Stores
 			{
 				filter = Index.Last();
 				Index.RemoveLast();
+				HashChain.RemoveLast();
 			}
 
 			Reorged?.Invoke(this, filter);
@@ -176,17 +181,6 @@ namespace WalletWasabi.Stores
 			{
 				Logger.LogError<IndexStore>(ex);
 			}
-		}
-
-		public async Task<FilterModel> GetBestKnownFilterAsync()
-		{
-			FilterModel ret = null;
-
-			using (await IndexLock.LockAsync())
-			{
-				ret = Index.Last();
-			}
-			return ret;
 		}
 
 		public async Task<Height?> TryGetHeightAsync(uint256 blockHash)

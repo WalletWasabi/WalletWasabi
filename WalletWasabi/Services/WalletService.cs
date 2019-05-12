@@ -235,12 +235,12 @@ namespace WalletWasabi.Services
 				do
 				{
 					await Task.Delay(100);
-					if (Synchronizer is null)
+					if (Synchronizer is null || BitcoinStore?.HashChain is null)
 					{
 						return;
 					}
 					// Make sure fully synced and this filter is the lastest filter.
-					if (await Synchronizer.GetFiltersLeftAsync() != 0 || (await BitcoinStore.IndexStore.GetBestKnownFilterAsync()).BlockHash != filterModel.BlockHash)
+					if (BitcoinStore.HashChain.HashesLeft != 0 || BitcoinStore.HashChain.TipHash != filterModel.BlockHash)
 					{
 						return;
 					}

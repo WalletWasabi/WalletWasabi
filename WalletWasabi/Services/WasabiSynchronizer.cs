@@ -32,22 +32,6 @@ namespace WalletWasabi.Services
 
 		public Network Network { get; private set; }
 
-		private Height _bestBlockchainHeight;
-
-		public Height BestBlockchainHeight
-		{
-			get => _bestBlockchainHeight;
-
-			private set
-			{
-				if (_bestBlockchainHeight != value)
-				{
-					_bestBlockchainHeight = value;
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BestBlockchainHeight)));
-				}
-			}
-		}
-
 		private decimal _usdExchangeRate;
 
 		/// <summary>
@@ -170,7 +154,6 @@ namespace WalletWasabi.Services
 			LastResponse = null;
 			_running = 0;
 			Cancel = new CancellationTokenSource();
-			BestBlockchainHeight = Height.Unknown;
 			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
 		}
 
@@ -215,8 +198,7 @@ namespace WalletWasabi.Services
 									return;
 								}
 
-								var bestKnownFilter = await BitcoinStore.IndexStore.GetBestKnownFilterAsync();
-								response = await WasabiClient.GetSynchronizeAsync(bestKnownFilter.BlockHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
+								response = await WasabiClient.GetSynchronizeAsync(BitcoinStore.HashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
 								// NOT GenSocksServErr
 								BackendStatus = BackendStatus.Connected;
 								TorStatus = TorStatus.Running;
@@ -259,7 +241,7 @@ namespace WalletWasabi.Services
 								ignoreRequestInterval = false;
 							}
 
-							BestBlockchainHeight = response.BestHeight;
+							BitcoinStore.HashChain.UpdateServerTipHeight(response.BestHeight);
 							ExchangeRate exchangeRate = response.ExchangeRates.FirstOrDefault();
 							if (exchangeRate != default && exchangeRate.Rate != 0)
 							{
@@ -397,16 +379,6 @@ namespace WalletWasabi.Services
 		private void DoNotGenSocksServFail()
 		{
 			ResponseArrivedIsGenSocksServFail?.Invoke(this, false);
-		}
-
-		public async Task<int> GetFiltersLeftAsync()
-		{
-			var bestKnownFilter = await BitcoinStore.IndexStore.GetBestKnownFilterAsync();
-			if (BestBlockchainHeight == Height.Unknown || BestBlockchainHeight == Height.MemPool || bestKnownFilter.BlockHeight == Height.Unknown || bestKnownFilter.BlockHeight == Height.MemPool)
-			{
-				return -1;
-			}
-			return BestBlockchainHeight.Value - bestKnownFilter.BlockHeight.Value;
 		}
 
 		public Money GetFeeRate(int feeTarget)

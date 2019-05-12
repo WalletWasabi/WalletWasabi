@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Globalization;
@@ -80,7 +80,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					RefreshSmartCoinStatus();
 				}).DisposeWith(Disposables);
 
-			Global.Synchronizer.WhenAnyValue(x => x.BestBlockchainHeight)
+			Global.BitcoinStore.HashChain.WhenAnyValue(x => x.ServerTipHeight)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
@@ -113,7 +113,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public string Address => Model.ScriptPubKey.GetDestinationAddress(Global.Network).ToString();
 
 		public int Confirmations => Model.Height.Type == HeightType.Chain
-			? Global.Synchronizer.BestBlockchainHeight.Value - Model.Height.Value + 1
+			? Global.BitcoinStore.HashChain.TipHeight - Model.Height.Value + 1
 			: 0;
 
 		public bool IsSelected
