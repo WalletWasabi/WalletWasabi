@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using System;
 using System.IO;
 using System.Security;
@@ -72,10 +72,15 @@ namespace WalletWasabi.Tests
 			Assert.Equal(manager.EncryptedSecret, sameManager.EncryptedSecret);
 			Assert.Equal(manager.ExtPubKey, sameManager.ExtPubKey);
 
-			var differentManager = KeyManager.Recover(mnemonic, "differentPassword");
+			var differentManager = KeyManager.Recover(mnemonic, "differentPassword", null, KeyPath.Parse("m/999'/999'/999'"), 55);
 			Assert.NotEqual(manager.ChainCode, differentManager.ChainCode);
 			Assert.NotEqual(manager.EncryptedSecret, differentManager.EncryptedSecret);
 			Assert.NotEqual(manager.ExtPubKey, differentManager.ExtPubKey);
+
+			differentManager.AssertCleanKeysIndexed();
+			var newKey = differentManager.GenerateNewKey("some-label", KeyState.Clean, true, false);
+			Assert.Equal(newKey.Index, differentManager.MinGapLimit);
+			Assert.Equal("999'/999'/999'/1/55", newKey.FullKeyPath.ToString());
 		}
 
 		[Fact]
