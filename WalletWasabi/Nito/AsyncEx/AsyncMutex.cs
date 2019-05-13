@@ -11,7 +11,6 @@ namespace Nito.AsyncEx
 	public class AsyncMutex
 	{
 		private string ShortName { get; set; }
-		private int PollInterval { get; }
 		private string FullName { get; set; }
 
 		private Mutex Mutex { get; set; }
@@ -24,7 +23,7 @@ namespace Nito.AsyncEx
 
 		private static object AsyncLocksLock { get; } = new object();
 
-		public AsyncMutex(string name, int pollInterval = 100)
+		public AsyncMutex(string name)
 		{
 			// https://docs.microsoft.com/en-us/dotnet/api/system.threading.mutex?view=netframework-4.8
 			// On a server that is running Terminal Services, a named system mutex can have two levels of visibility.
@@ -36,7 +35,6 @@ namespace Nito.AsyncEx
 			// and both are visible to all processes in the terminal server session.
 			// That is, the prefix names "Global\" and "Local\" describe the scope of the mutex name relative to terminal server sessions, not relative to processes.
 			ShortName = name;
-			PollInterval = pollInterval;
 			FullName = $"Global\\4AA0E5A2-A94F-4B92-B962-F2BBC7A68323-{name}";
 			Mutex = null;
 
@@ -55,7 +53,7 @@ namespace Nito.AsyncEx
 			}
 		}
 
-		public async Task<IDisposable> LockAsync(CancellationToken cancellationToken = default)
+		public async Task<IDisposable> LockAsync(CancellationToken cancellationToken = default, int pollInterval = 100)
 		{
 			Exception inner = null;
 
@@ -75,7 +73,7 @@ namespace Nito.AsyncEx
 					{
 						return new Key(this);
 					}
-					await Task.Delay(PollInterval, cancellationToken);
+					await Task.Delay(pollInterval, cancellationToken);
 				}
 				// Let it go.
 			}
@@ -97,9 +95,7 @@ namespace Nito.AsyncEx
 				// Let it go.
 			}
 
-			Mutex?.Dispose();
-			Mutex = null;
-			AsyncLock.ReleaseLock();
+			ReleaseLock();
 
 			throw new IOException($"Couldn't acquire system wide mutex on {ShortName}", inner);
 		}
