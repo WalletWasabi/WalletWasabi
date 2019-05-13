@@ -63,8 +63,12 @@ namespace Nito.AsyncEx
 		private Exception LatestHoldLockException { get; set; }
 		private object LatestHoldLockExceptionLock { get; } = new object();
 
-		private void HoldLock()
+		private void HoldLock(object cancellationTokenObj)
 		{
+			CancellationToken ct = cancellationTokenObj is CancellationToken ?
+				(CancellationToken)cancellationTokenObj :
+				CancellationToken.None;
+
 			while (true)
 			{
 				try
@@ -80,7 +84,26 @@ namespace Nito.AsyncEx
 						}
 						else
 						{
-							bool acquired = Mutex.WaitOne(90000);
+							DateTime start = DateTime.Now;
+							bool acquired = false;
+
+							while (DateTime.Now - start > TimeSpan.FromSeconds(90))
+							{
+								acquired = Mutex.WaitOne(1000);
+
+								if (acquired)
+								{
+									break;
+								}
+
+								if (ct != CancellationToken.None)
+								{
+									if (ct.IsCancellationRequested)
+									{
+										throw new OperationCanceledException();
+									}
+								}
+							}
 
 							if (acquired)
 							{
@@ -159,14 +182,11 @@ namespace Nito.AsyncEx
 					throw new InvalidOperationException($"Thread should not be alive.");
 				}
 
-				MutexThread = new Thread(new ThreadStart(() =>
-				{
-					HoldLock();
-				}));
+				MutexThread = new Thread(new ParameterizedThreadStart(HoldLock));
 
 				MutexThread.Name = $"MutexThread";
 
-				MutexThread.Start();
+				MutexThread.Start(cancellationToken);
 				await SetCommandAsync(1, cancellationToken, pollInterval);
 
 				return new Key(this);
