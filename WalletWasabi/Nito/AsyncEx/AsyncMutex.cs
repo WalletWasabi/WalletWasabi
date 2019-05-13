@@ -17,6 +17,13 @@ namespace Nito.AsyncEx
 		private Mutex Mutex { get; set; }
 		private AsyncLock AsyncLock { get; set; }
 
+		/// <summary>
+		/// string: mutex name
+		/// </summary>
+		private static Dictionary<string, AsyncLock> AsyncLocks { get; } = new Dictionary<string, AsyncLock>();
+
+		private static object AsyncLocksLock { get; } = new object();
+
 		public AsyncMutex(string name, int pollInterval = 100)
 		{
 			// https://docs.microsoft.com/en-us/dotnet/api/system.threading.mutex?view=netframework-4.8
@@ -32,7 +39,20 @@ namespace Nito.AsyncEx
 			PollInterval = pollInterval;
 			FullName = $"Global\\4AA0E5A2-A94F-4B92-B962-F2BBC7A68323-{name}";
 			Mutex = null;
-			AsyncLock = new AsyncLock();
+
+			// If we already have an asynclock with this fullname then just use it and don't create a new one.
+			lock (AsyncLocksLock)
+			{
+				if (AsyncLocks.TryGetValue(FullName, out AsyncLock asyncLock))
+				{
+					AsyncLock = asyncLock;
+				}
+				else
+				{
+					AsyncLock = new AsyncLock();
+					AsyncLocks.Add(FullName, AsyncLock);
+				}
+			}
 		}
 
 		public async Task<IDisposable> LockAsync(CancellationToken cancellationToken = default)
