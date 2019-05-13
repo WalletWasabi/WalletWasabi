@@ -119,6 +119,35 @@ namespace WalletWasabi.Tests
 				var num = numbers[i];
 				Assert.Equal(prevnum + 1, num);
 			}
+
+			var mutex = new AsyncMutex("foo");
+			using (await mutex.LockAsync())
+			{
+				using (var cts = new CancellationTokenSource(100))
+				{
+					await Assert.ThrowsAsync<IOException>(async () =>
+					{
+						using (await mutex.LockAsync(cts.Token))
+						{
+						}
+					});
+				}
+			}
+
+			//var mutex = new AsyncMutex("foo");
+			//using (await mutex.LockAsync())
+			//{
+			//	using (var cts = new CancellationTokenSource(100))
+			//	{
+			//		var mutex2 = new AsyncMutex("foo");
+			//		await Assert.ThrowsAsync<IOException>(async () =>
+			//		{
+			//			using (await mutex2.LockAsync(cts.Token))
+			//			{
+			//			}
+			//		});
+			//	}
+			//}
 		}
 
 		[Fact]

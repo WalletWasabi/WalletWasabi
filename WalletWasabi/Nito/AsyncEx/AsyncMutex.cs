@@ -15,7 +15,7 @@ namespace Nito.AsyncEx
 		private string FullName { get; set; }
 
 		private Mutex Mutex { get; set; }
-		private int _isMutexInitialized;
+		private AsyncLock AsyncLock { get; set; }
 
 		public AsyncMutex(string name, int pollInterval = 100)
 		{
@@ -31,83 +31,64 @@ namespace Nito.AsyncEx
 			ShortName = name;
 			PollInterval = pollInterval;
 			FullName = $"Global\\4AA0E5A2-A94F-4B92-B962-F2BBC7A68323-{name}";
-			_isMutexInitialized = 0;
-		}
-
-		private async Task<bool> TryGetLockAsync(CancellationToken cancellationToken)
-		{
-			try
-			{
-				var start = DateTime.Now;
-				while (DateTime.Now - start < TimeSpan.FromSeconds(90))
-				{
-					var res = Interlocked.CompareExchange(ref _isMutexInitialized, 1, 0);
-					if (res == 0)
-					{
-						// We have the local lock.
-						return true;
-					}
-					await Task.Delay(PollInterval, cancellationToken);
-				}
-			}
-			catch (Exception)
-			{
-				return false;
-			}
-			return false;
+			Mutex = null;
+			AsyncLock = new AsyncLock();
 		}
 
 		public async Task<IDisposable> LockAsync(CancellationToken cancellationToken = default)
 		{
 			Exception inner = null;
-			if (await TryGetLockAsync(cancellationToken))
+
+			try
 			{
-				try
+				await AsyncLock.LockAsync(cancellationToken);
+
+				Mutex = new Mutex(false, FullName);
+				// acquire the mutex (or timeout after 60 seconds)
+				// will return false if it timed out
+				var start = DateTime.Now;
+				while (DateTime.Now - start < TimeSpan.FromSeconds(90))
 				{
-					Mutex = new Mutex(false, FullName);
-					// acquire the mutex (or timeout after 60 seconds)
-					// will return false if it timed out
-					var start = DateTime.Now;
-					while (DateTime.Now - start < TimeSpan.FromSeconds(90))
+					bool acquired = Mutex.WaitOne(1);
+
+					if (acquired)
 					{
-						bool acquired = Mutex.WaitOne(1);
-
-						if (acquired)
-						{
-							return new Key(this);
-						}
-						await Task.Delay(PollInterval, cancellationToken);
+						return new Key(this);
 					}
-					// Let it go.
+					await Task.Delay(PollInterval, cancellationToken);
 				}
-				catch (TaskCanceledException)
-				{
-					// Let it go.
-				}
-				catch (AbandonedMutexException)
-				{
-					// abandoned mutexes are still acquired, we just need
-					// to handle the exception and treat it as acquisition
-					Logger.LogWarning($"AbandonedMutexException in {ShortName}", nameof(AsyncMutex));
-					return new Key(this);
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError($"{ex.ToTypeMessageString()} in {ShortName}", nameof(AsyncMutex));
-					inner = ex;
-					// Let it go.
-				}
-
-				Mutex?.Dispose();
-				Interlocked.Exchange(ref _isMutexInitialized, 0);
+				// Let it go.
 			}
+			catch (TaskCanceledException)
+			{
+				// Let it go.
+			}
+			catch (AbandonedMutexException)
+			{
+				// abandoned mutexes are still acquired, we just need
+				// to handle the exception and treat it as acquisition
+				Logger.LogWarning($"AbandonedMutexException in {ShortName}", nameof(AsyncMutex));
+				return new Key(this);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError($"{ex.ToTypeMessageString()} in {ShortName}", nameof(AsyncMutex));
+				inner = ex;
+				// Let it go.
+			}
+
+			Mutex?.Dispose();
+			Mutex = null;
+			AsyncLock.ReleaseLock();
+
 			throw new IOException($"Couldn't acquire system wide mutex on {ShortName}", inner);
 		}
 
 		private void ReleaseLock()
 		{
 			Mutex?.Dispose();
-			Interlocked.Exchange(ref _isMutexInitialized, 0);
+			Mutex = null;
+			AsyncLock.ReleaseLock();
 		}
 
 		/// <summary>
