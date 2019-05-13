@@ -63,7 +63,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					ValidationMessage = $"Min Gap Limit cannot be larger than {1_000_000}.";
 				}
-				else if (KeyPath.TryParse(AccountKeyPath, out KeyPath keyPath))
+				else if (!KeyPath.TryParse(AccountKeyPath, out KeyPath keyPath))
+				{
+					ValidationMessage = "The account key path is not a valid derivation path.";
+				}
+				else
 				{
 					try
 					{
@@ -77,10 +81,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						ValidationMessage = ex.ToTypeMessageString();
 						Logger.LogError<LoadWalletViewModel>(ex);
 					}
-				}
-				else
-				{
-					ValidationMessage = "The account key path is not a valid derivation path.";
 				}
 			});
 
