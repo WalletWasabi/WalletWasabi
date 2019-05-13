@@ -149,6 +149,11 @@ namespace Nito.AsyncEx
 			{
 				await AsyncLock.LockAsync(cancellationToken);
 
+				if (MutexThread?.IsAlive == true)
+				{
+					throw new InvalidOperationException($"Thread should not be alive.");
+				}
+
 				MutexThread = new Thread(new ThreadStart(() =>
 				{
 					HoldLock();
@@ -184,7 +189,16 @@ namespace Nito.AsyncEx
 		private void ReleaseLock()
 		{
 			SetCommand(2);
-			MutexThread?.Join();
+
+			if (MutexThread != null)
+			{
+				if (!MutexThread.IsAlive)
+				{
+					throw new InvalidOperationException($"Thread should be alive.");
+				}
+				MutexThread.Join();
+			}
+
 			AsyncLock?.ReleaseLock();
 		}
 
