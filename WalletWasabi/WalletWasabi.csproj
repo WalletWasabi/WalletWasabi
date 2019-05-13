@@ -22,7 +22,8 @@
 
   <ItemGroup>
 	<PackageReference Include="NBitcoin" Version="4.1.2.12" />
-    <PackageReference Include="Microsoft.Win32.Registry" Version="4.5.0" />  </ItemGroup>
+    <PackageReference Include="Microsoft.Win32.Registry" Version="4.5.0" />
+    <PackageReference Include="System.Threading.AccessControl" Version="4.5.0" />  </ItemGroup>
   <ItemGroup>
     <Folder Include="Gma\QrCodeNet\Encoding\ReedSolomon\" />
   </ItemGroup>

@@ -386,9 +386,6 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task IoTestsAsync()
 		{
-			// ToDo: This test terminates on Linux in an unexplainable way: https://github.com/zkSNACKs/WalletWasabi/pull/1405#issuecomment-490870883
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) return;
-
 			var file1 = Path.Combine(Global.DataDir, nameof(IoTestsAsync), $"file.dat");
 
 			IoManager ioman1 = new IoManager(file1);
