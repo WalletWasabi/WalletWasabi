@@ -36,7 +36,7 @@ You can run Wasabi by executing `./wassabee`.
 After first run, a working directory will be created: `~/.walletwasabi/`. Among others, here is where your wallet files and your logs reside.
 
 ## Hardware Wallet Support
-It could be necessary to install the udev rules for the HW devices if this is the first time Wasabi is being installed in the system. In this case, after extract the `.tar.gz` file, go to udev folder and run the `./install-udevs.sh` script.
+With the `.tar.gz` Linux package, if your hardware wallet does not get recognized, you have to install the `udev` rules: https://github.com/bitcoin-core/HWI/tree/master/udev
 
 # OSX
 
