@@ -76,7 +76,7 @@ namespace Nito.AsyncEx
 						Mutex = new Mutex(initiallyOwned: true, FullName, out bool createdNew);
 						if (createdNew)
 						{
-							return;
+							continue;
 						}
 						else
 						{
@@ -84,7 +84,7 @@ namespace Nito.AsyncEx
 
 							if (acquired)
 							{
-								return;
+								continue;
 							}
 						}
 					}

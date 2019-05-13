@@ -423,7 +423,7 @@ namespace WalletWasabi.Tests
 
 			var t1 = new Thread(() =>
 			{
-				for (var i = 0; i < 2; i++)
+				for (var i = 0; i < 500; i++)
 				{
 					/* We have to block the Thread.
 					 * If we use async/await pattern then Join() function at the end will indicate that the Thread is finished -
@@ -435,14 +435,14 @@ namespace WalletWasabi.Tests
 			});
 			var t2 = new Thread(() =>
 			{
-				for (var i = 0; i < 2; i++)
+				for (var i = 0; i < 500; i++)
 				{
 					WriteNextLineAsync().Wait();
 				}
 			});
 			var t3 = new Thread(() =>
 			{
-				for (var i = 0; i < 2; i++)
+				for (var i = 0; i < 500; i++)
 				{
 					WriteNextLineAsync().Wait();
 				}
