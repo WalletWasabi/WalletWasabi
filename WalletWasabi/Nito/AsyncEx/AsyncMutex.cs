@@ -61,19 +61,26 @@ namespace Nito.AsyncEx
 			{
 				await AsyncLock.LockAsync(cancellationToken);
 
-				Mutex = new Mutex(false, FullName);
-				// acquire the mutex (or timeout after 60 seconds)
-				// will return false if it timed out
-				var start = DateTime.Now;
-				while (DateTime.Now - start < TimeSpan.FromSeconds(90))
+				Mutex = new Mutex(initiallyOwned: true, FullName, out bool createdNew);
+				if (createdNew)
 				{
-					bool acquired = Mutex.WaitOne(1);
-
-					if (acquired)
+					return new Key(this);
+				}
+				else
+				{
+					// acquire the mutex (or timeout after 60 seconds)
+					// will return false if it timed out
+					var start = DateTime.Now;
+					while (DateTime.Now - start < TimeSpan.FromSeconds(90))
 					{
-						return new Key(this);
+						bool acquired = Mutex.WaitOne(1);
+
+						if (acquired)
+						{
+							return new Key(this);
+						}
+						await Task.Delay(pollInterval, cancellationToken);
 					}
-					await Task.Delay(pollInterval, cancellationToken);
 				}
 				// Let it go.
 			}
@@ -102,6 +109,14 @@ namespace Nito.AsyncEx
 
 		private void ReleaseLock()
 		{
+			//Mutex?.ReleaseMutex();
+			try
+			{
+				Mutex?.ReleaseMutex();
+			}
+			catch (ApplicationException)
+			{
+			}
 			Mutex?.Dispose();
 			Mutex = null;
 			AsyncLock.ReleaseLock();
