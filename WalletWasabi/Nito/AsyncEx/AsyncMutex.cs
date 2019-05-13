@@ -1,4 +1,3 @@
-using Medallion.Threading;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,8 +11,17 @@ namespace Nito.AsyncEx
 	public class AsyncMutex
 	{
 		private string ShortName { get; set; }
-		private SystemDistributedLock SystemDistributedLock { get; set; }
-		private IDisposable SystemDistributedLockDisposable { get; set; }
+		private string FullName { get; set; }
+
+		private Mutex Mutex { get; set; }
+		private AsyncLock AsyncLock { get; set; }
+
+		/// <summary>
+		/// string: mutex name
+		/// </summary>
+		private static Dictionary<string, AsyncLock> AsyncLocks { get; } = new Dictionary<string, AsyncLock>();
+
+		private static object AsyncLocksLock { get; } = new object();
 
 		public AsyncMutex(string name)
 		{
@@ -27,8 +35,79 @@ namespace Nito.AsyncEx
 			// and both are visible to all processes in the terminal server session.
 			// That is, the prefix names "Global\" and "Local\" describe the scope of the mutex name relative to terminal server sessions, not relative to processes.
 			ShortName = name;
-			SystemDistributedLock = new SystemDistributedLock($"4AA0E5A2-A94F-4B92-B962-F2BBC7A68323-{name}");
-			SystemDistributedLockDisposable = null;
+			FullName = $"Global\\4AA0E5A2-A94F-4B92-B962-F2BBC7A68323-{name}";
+			Mutex = null;
+
+			// If we already have an asynclock with this fullname then just use it and don't create a new one.
+			lock (AsyncLocksLock)
+			{
+				if (AsyncLocks.TryGetValue(FullName, out AsyncLock asyncLock))
+				{
+					AsyncLock = asyncLock;
+				}
+				else
+				{
+					AsyncLock = new AsyncLock();
+					AsyncLocks.Add(FullName, AsyncLock);
+				}
+			}
+
+			MyThread = new Thread(new ThreadStart(() =>
+			{
+				HoldLock();
+			}));
+			MyThread.Start();
+		}
+
+		private Thread MyThread { get; }
+		private int _command;
+		private ManualResetEvent ToDo { get; } = new ManualResetEvent(false);
+		private ManualResetEvent Acquired { get; } = new ManualResetEvent(false);
+		private ManualResetEvent Released { get; } = new ManualResetEvent(false);
+
+		private void HoldLock()
+		{
+			try
+			{
+				while (true)
+				{
+					ToDo.WaitOne();
+
+					if (_command == 1)
+					{
+						Acquired.Reset();
+						Mutex = new Mutex(initiallyOwned: true, FullName, out bool createdNew);
+						if (createdNew)
+						{
+							Acquired.Set();
+						}
+						else
+						{
+							bool acquired = Mutex.WaitOne(90000);
+
+							if (acquired)
+							{
+								Acquired.Set();
+							}
+						}
+					}
+					else if (_command == 2)
+					{
+						Mutex?.ReleaseMutex();
+						Mutex?.Dispose();
+						Mutex = null;
+						Released.Set();
+					}
+
+					_command = 0;
+
+					ToDo.Reset();
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError<AsyncMutex>(ex);
+			}
 		}
 
 		public async Task<IDisposable> LockAsync(CancellationToken cancellationToken = default, int pollInterval = 100)
@@ -37,7 +116,15 @@ namespace Nito.AsyncEx
 
 			try
 			{
-				SystemDistributedLockDisposable = await SystemDistributedLock.AcquireAsync(cancellationToken: cancellationToken);
+				await AsyncLock.LockAsync(cancellationToken);
+				_command = 1;
+				Acquired.Reset();
+				ToDo.Set();
+				while (!Acquired.WaitOne(1))
+				{
+					await Task.Delay(pollInterval, cancellationToken);
+				}
+
 				return new Key(this);
 			}
 			catch (TaskCanceledException)
@@ -65,8 +152,23 @@ namespace Nito.AsyncEx
 
 		private void ReleaseLock()
 		{
-			SystemDistributedLockDisposable?.Dispose();
-			SystemDistributedLockDisposable = null;
+			_command = 2;
+			Released.Reset();
+			ToDo.Set();
+			Released.WaitOne();
+			AsyncLock?.ReleaseLock();
+
+			//Mutex?.ReleaseMutex();
+			////try
+			////{
+			////	Mutex?.ReleaseMutex();
+			////}
+			////catch (ApplicationException)
+			////{
+			////}
+			//Mutex?.Dispose();
+			//Mutex = null;
+			//AsyncLock?.ReleaseLock();
 		}
 
 		/// <summary>
