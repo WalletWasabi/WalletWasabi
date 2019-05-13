@@ -115,6 +115,11 @@ namespace Nito.AsyncEx
 
 		private async Task SetCommandAsync(int command, CancellationToken cancellationToken, int pollInterval)
 		{
+			if (!(MutexThread?.IsAlive == true))
+			{
+				throw new InvalidOperationException($"Thread should be alive.");
+			}
+
 			Interlocked.Exchange(ref _command, command);
 			lock (LatestHoldLockExceptionLock)
 			{
@@ -158,6 +163,9 @@ namespace Nito.AsyncEx
 				{
 					HoldLock();
 				}));
+
+				MutexThread.Name = $"MutexThread";
+
 				MutexThread.Start();
 				await SetCommandAsync(1, cancellationToken, pollInterval);
 
@@ -188,16 +196,17 @@ namespace Nito.AsyncEx
 
 		private void ReleaseLock()
 		{
-			SetCommand(2);
-
 			if (MutexThread != null)
 			{
 				if (!MutexThread.IsAlive)
 				{
 					throw new InvalidOperationException($"Thread should be alive.");
 				}
-				MutexThread.Join();
 			}
+
+			SetCommand(2);
+
+			MutexThread?.Join();
 
 			AsyncLock?.ReleaseLock();
 		}
