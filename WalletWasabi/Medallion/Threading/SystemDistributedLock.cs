@@ -316,15 +316,15 @@ namespace Medallion.Threading
 		private EventWaitHandle CreateEvent()
 		{
 			// based on http://stackoverflow.com/questions/2590334/creating-a-cross-process-eventwaithandle
-			var security = new EventWaitHandleSecurity();
-			// allow anyone to wait on and signal this lock
-			security.AddAccessRule(
-				new EventWaitHandleAccessRule(
-					new SecurityIdentifier(WellKnownSidType.WorldSid, domainSid: null),
-					EventWaitHandleRights.FullControl, // doesn't seem to work without this :-/
-					AccessControlType.Allow
-				)
-			);
+			//var security = new EventWaitHandleSecurity();
+			//// allow anyone to wait on and signal this lock
+			//security.AddAccessRule(
+			//	new EventWaitHandleAccessRule(
+			//		new SecurityIdentifier(WellKnownSidType.WorldSid, domainSid: null),
+			//		EventWaitHandleRights.FullControl, // doesn't seem to work without this :-/
+			//		AccessControlType.Allow
+			//	)
+			//);
 			var @event = new EventWaitHandle(
 				// if we create, start as unlocked
 				initialState: true,
@@ -333,7 +333,7 @@ namespace Medallion.Threading
 				name: LockName,
 				createdNew: out _
 			);
-			@event.SetAccessControl(security);
+			//@event.SetAccessControl(security);
 
 			return @event;
 		}
