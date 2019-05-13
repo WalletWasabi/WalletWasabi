@@ -15,13 +15,14 @@ namespace Nito.AsyncEx
 
 		private Mutex Mutex { get; set; }
 		private AsyncLock AsyncLock { get; set; }
+		private Thread MutexThread { get; set; }
 
 		/// <summary>
 		/// string: mutex name
 		/// </summary>
-		private static Dictionary<string, AsyncLock> AsyncLocks { get; } = new Dictionary<string, AsyncLock>();
+		private static Dictionary<string, AsyncMutex> AsyncMutexes { get; } = new Dictionary<string, AsyncMutex>();
 
-		private static object AsyncLocksLock { get; } = new object();
+		private static object AsyncMutexesLock { get; } = new object();
 
 		public AsyncMutex(string name)
 		{
@@ -37,49 +38,45 @@ namespace Nito.AsyncEx
 			ShortName = name;
 			FullName = $"Global\\4AA0E5A2-A94F-4B92-B962-F2BBC7A68323-{name}";
 			Mutex = null;
+			MutexThread = null;
 
 			// If we already have an asynclock with this fullname then just use it and don't create a new one.
-			lock (AsyncLocksLock)
+			lock (AsyncMutexesLock)
 			{
-				if (AsyncLocks.TryGetValue(FullName, out AsyncLock asyncLock))
+				if (AsyncMutexes.TryGetValue(FullName, out AsyncMutex asyncMutex))
 				{
-					AsyncLock = asyncLock;
+					AsyncLock = asyncMutex.AsyncLock;
 				}
 				else
 				{
 					AsyncLock = new AsyncLock();
-					AsyncLocks.Add(FullName, AsyncLock);
+
+					AsyncMutexes.Add(FullName, this);
 				}
 			}
-
-			MyThread = new Thread(new ThreadStart(() =>
-			{
-				HoldLock();
-			}));
-			MyThread.Start();
 		}
 
-		private Thread MyThread { get; }
 		private int _command;
 		private ManualResetEvent ToDo { get; } = new ManualResetEvent(false);
-		private ManualResetEvent Acquired { get; } = new ManualResetEvent(false);
-		private ManualResetEvent Released { get; } = new ManualResetEvent(false);
+		private ManualResetEvent Done { get; } = new ManualResetEvent(false);
+
+		private Exception LatestHoldLockException { get; set; }
+		private object LatestHoldLockExceptionLock { get; } = new object();
 
 		private void HoldLock()
 		{
-			try
+			while (true)
 			{
-				while (true)
+				try
 				{
 					ToDo.WaitOne();
 
-					if (_command == 1)
+					if (Interlocked.CompareExchange(ref _command, 0, 1) == 1)
 					{
-						Acquired.Reset();
 						Mutex = new Mutex(initiallyOwned: true, FullName, out bool createdNew);
 						if (createdNew)
 						{
-							Acquired.Set();
+							return;
 						}
 						else
 						{
@@ -87,27 +84,61 @@ namespace Nito.AsyncEx
 
 							if (acquired)
 							{
-								Acquired.Set();
+								return;
 							}
 						}
 					}
-					else if (_command == 2)
+					else if (Interlocked.CompareExchange(ref _command, 0, 2) == 2)
 					{
 						Mutex?.ReleaseMutex();
 						Mutex?.Dispose();
 						Mutex = null;
-						Released.Set();
+						return;
 					}
 
-					_command = 0;
-
+					throw new NotImplementedException();
+				}
+				catch (Exception ex)
+				{
+					lock (LatestHoldLockExceptionLock)
+					{
+						LatestHoldLockException = ex;
+					}
+				}
+				finally
+				{
 					ToDo.Reset();
+					Done.Set();
 				}
 			}
-			catch (Exception ex)
+		}
+
+		private async Task SetCommandAsync(int command, CancellationToken cancellationToken, int pollInterval)
+		{
+			Interlocked.Exchange(ref _command, command);
+			lock (LatestHoldLockExceptionLock)
 			{
-				Logger.LogError<AsyncMutex>(ex);
+				LatestHoldLockException = null;
 			}
+			Done.Reset();
+			ToDo.Set();
+			while (!Done.WaitOne(1))
+			{
+				await Task.Delay(pollInterval, cancellationToken);
+			}
+			lock (LatestHoldLockExceptionLock)
+			{
+				if (LatestHoldLockException != null)
+				{
+					throw LatestHoldLockException;
+				}
+			}
+		}
+
+		private void SetCommand(int command)
+		{
+			Interlocked.Exchange(ref _command, command);
+			ToDo.Set();
 		}
 
 		public async Task<IDisposable> LockAsync(CancellationToken cancellationToken = default, int pollInterval = 100)
@@ -117,13 +148,13 @@ namespace Nito.AsyncEx
 			try
 			{
 				await AsyncLock.LockAsync(cancellationToken);
-				_command = 1;
-				Acquired.Reset();
-				ToDo.Set();
-				while (!Acquired.WaitOne(1))
+
+				MutexThread = new Thread(new ThreadStart(() =>
 				{
-					await Task.Delay(pollInterval, cancellationToken);
-				}
+					HoldLock();
+				}));
+				MutexThread.Start();
+				await SetCommandAsync(1, cancellationToken, pollInterval);
 
 				return new Key(this);
 			}
@@ -152,23 +183,9 @@ namespace Nito.AsyncEx
 
 		private void ReleaseLock()
 		{
-			_command = 2;
-			Released.Reset();
-			ToDo.Set();
-			Released.WaitOne();
+			SetCommand(2);
+			MutexThread?.Join();
 			AsyncLock?.ReleaseLock();
-
-			//Mutex?.ReleaseMutex();
-			////try
-			////{
-			////	Mutex?.ReleaseMutex();
-			////}
-			////catch (ApplicationException)
-			////{
-			////}
-			//Mutex?.Dispose();
-			//Mutex = null;
-			//AsyncLock?.ReleaseLock();
 		}
 
 		/// <summary>
@@ -197,7 +214,14 @@ namespace Nito.AsyncEx
 				{
 					if (disposing)
 					{
-						AsyncMutex?.ReleaseLock();
+						try
+						{
+							AsyncMutex.ReleaseLock();
+						}
+						catch (Exception ex)
+						{
+							Logger.LogWarning<AsyncMutex>(ex);
+						}
 					}
 
 					AsyncMutex = null;
