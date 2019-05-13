@@ -204,7 +204,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				try
 				{
 					IsBusy = true;
-					MainWindowViewModel.Instance.StatusBar.AddStatus(buildingTransactionStatusText);
+					MainWindowViewModel.Instance.StatusBar.TryAddStatus(buildingTransactionStatusText);
 
 					Password = Guard.Correct(Password);
 					Label = Label.Trim(',', ' ').Trim();
@@ -256,7 +256,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					const string dequeuingSelectedCoinsStatusText = "Dequeueing selected coins...";
 					try
 					{
-						MainWindowViewModel.Instance.StatusBar.AddStatus(dequeuingSelectedCoinsStatusText);
+						MainWindowViewModel.Instance.StatusBar.TryAddStatus(dequeuingSelectedCoinsStatusText);
 						TxoRef[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => x.Model.GetTxoRef()).ToArray();
 						if (toDequeue != null && toDequeue.Any())
 						{
@@ -270,7 +270,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					finally
 					{
-						MainWindowViewModel.Instance.StatusBar.RemoveStatus(dequeuingSelectedCoinsStatusText);
+						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(dequeuingSelectedCoinsStatusText);
 					}
 
 					var result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, FeeTarget, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
@@ -291,7 +291,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						return;
 					}
 
-					MainWindowViewModel.Instance.StatusBar.AddStatus(signingTransactionStatusText);
+					MainWindowViewModel.Instance.StatusBar.TryAddStatus(signingTransactionStatusText);
 					SmartTransaction signedTransaction = result.Transaction;
 
 					if (IsHardwareWallet && !result.Signed) // If hardware but still has a privkey then it's password, then meh.
@@ -302,7 +302,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						try
 						{
 							IsHardwareBusy = true;
-							MainWindowViewModel.Instance.StatusBar.AddStatus(connectingToHardwareWalletStatusText);
+							MainWindowViewModel.Instance.StatusBar.TryAddStatus(connectingToHardwareWalletStatusText);
 							// If we have no hardware wallet info then try refresh it. If we failed, then tha's a problem.
 							if (KeyManager.HardwareWalletInfo is null && !await TryRefreshHardwareWalletInfoAsync(KeyManager))
 							{
@@ -310,14 +310,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 								return;
 							}
 
-							MainWindowViewModel.Instance.StatusBar.AddStatus(acquiringSignatureFromHardwareWalletStatusText);
+							MainWindowViewModel.Instance.StatusBar.TryAddStatus(acquiringSignatureFromHardwareWalletStatusText);
 							signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
 						}
 						catch (IOException ex) when (ex.Message.Contains("device not found", StringComparison.OrdinalIgnoreCase)
 													|| ex.Message.Contains("Invalid status 6f04", StringComparison.OrdinalIgnoreCase) // It comes when device asleep too.
 													|| ex.Message.Contains("Device is asleep", StringComparison.OrdinalIgnoreCase))
 						{
-							MainWindowViewModel.Instance.StatusBar.AddStatus(connectingToHardwareWalletStatusText);
+							MainWindowViewModel.Instance.StatusBar.TryAddStatus(connectingToHardwareWalletStatusText);
 							// The user may changed USB port. Try again with new enumeration.
 							if (!await TryRefreshHardwareWalletInfoAsync(KeyManager))
 							{
@@ -325,19 +325,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 								return;
 							}
 
-							MainWindowViewModel.Instance.StatusBar.AddStatus(acquiringSignatureFromHardwareWalletStatusText);
+							MainWindowViewModel.Instance.StatusBar.TryAddStatus(acquiringSignatureFromHardwareWalletStatusText);
 							signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
 						}
 						finally
 						{
-							MainWindowViewModel.Instance.StatusBar.RemoveStatus(connectingToHardwareWalletStatusText, acquiringSignatureFromHardwareWalletStatusText);
+							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(connectingToHardwareWalletStatusText, acquiringSignatureFromHardwareWalletStatusText);
 							IsHardwareBusy = false;
 						}
 
 						signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction.Height);
 					}
 
-					MainWindowViewModel.Instance.StatusBar.AddStatus(broadcastingTransactionStatusText);
+					MainWindowViewModel.Instance.StatusBar.TryAddStatus(broadcastingTransactionStatusText);
 					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(signedTransaction));
 
 					TryResetInputsOnSuccess("Transaction is successfully sent!");
@@ -353,7 +353,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				finally
 				{
-					MainWindowViewModel.Instance.StatusBar.RemoveStatus(buildingTransactionStatusText, signingTransactionStatusText, broadcastingTransactionStatusText);
+					MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(buildingTransactionStatusText, signingTransactionStatusText, broadcastingTransactionStatusText);
 					IsBusy = false;
 				}
 			},
