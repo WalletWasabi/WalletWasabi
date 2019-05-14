@@ -149,7 +149,10 @@ namespace WalletWasabi.Stores
 				{
 					// Increment the throttle ID and remember the incremented value.
 					int incremented = Interlocked.Increment(ref _throttleId);
-					await Task.Delay(throttle, cancel);
+					if (incremented < 21)
+					{
+						await Task.Delay(throttle, cancel);
+					}
 
 					// If the _throttleId is still the incremented value, then I am the latest CommitToFileAsync request.
 					//	In this case I want to make the _throttledId 0 and go ahead and do the writeline.
