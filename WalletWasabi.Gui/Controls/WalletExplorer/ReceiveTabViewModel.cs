@@ -47,8 +47,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Label = Label.Trim(',', ' ').Trim();
 				if (string.IsNullOrWhiteSpace(Label))
 				{
-					Locator.Current.GetService<INotificationManager>()?.Show(new Avalonia.Controls.Notifications.Notification("Warning!", "Label Is Required!", NotificationType.Information));
-
 					LabelRequiredNotificationVisible = true;
 					LabelRequiredNotificationOpacity = 1;
 
