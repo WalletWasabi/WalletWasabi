@@ -63,8 +63,12 @@ namespace Nito.AsyncEx
 		private Exception LatestHoldLockException { get; set; }
 		private object LatestHoldLockExceptionLock { get; } = new object();
 
-		private void HoldLock()
+		private void HoldLock(object cancellationTokenObj)
 		{
+			CancellationToken ct = cancellationTokenObj is CancellationToken ?
+				(CancellationToken)cancellationTokenObj :
+				CancellationToken.None;
+
 			while (true)
 			{
 				try
@@ -80,7 +84,26 @@ namespace Nito.AsyncEx
 						}
 						else
 						{
-							bool acquired = Mutex.WaitOne(90000);
+							DateTime start = DateTime.Now;
+							bool acquired = false;
+
+							while (DateTime.Now - start > TimeSpan.FromSeconds(90))
+							{
+								acquired = Mutex.WaitOne(1000);
+
+								if (acquired)
+								{
+									break;
+								}
+
+								if (ct != CancellationToken.None)
+								{
+									if (ct.IsCancellationRequested)
+									{
+										throw new OperationCanceledException();
+									}
+								}
+							}
 
 							if (acquired)
 							{
@@ -115,6 +138,11 @@ namespace Nito.AsyncEx
 
 		private async Task SetCommandAsync(int command, CancellationToken cancellationToken, int pollInterval)
 		{
+			if (!(MutexThread?.IsAlive == true))
+			{
+				throw new InvalidOperationException($"Thread should be alive.");
+			}
+
 			Interlocked.Exchange(ref _command, command);
 			lock (LatestHoldLockExceptionLock)
 			{
@@ -149,11 +177,16 @@ namespace Nito.AsyncEx
 			{
 				await AsyncLock.LockAsync(cancellationToken);
 
-				MutexThread = new Thread(new ThreadStart(() =>
+				if (MutexThread?.IsAlive == true)
 				{
-					HoldLock();
-				}));
-				MutexThread.Start();
+					throw new InvalidOperationException($"Thread should not be alive.");
+				}
+
+				MutexThread = new Thread(new ParameterizedThreadStart(HoldLock));
+
+				MutexThread.Name = $"MutexThread";
+
+				MutexThread.Start(cancellationToken);
 				await SetCommandAsync(1, cancellationToken, pollInterval);
 
 				return new Key(this);
@@ -183,8 +216,18 @@ namespace Nito.AsyncEx
 
 		private void ReleaseLock()
 		{
+			if (MutexThread != null)
+			{
+				if (!MutexThread.IsAlive)
+				{
+					throw new InvalidOperationException($"Thread should be alive.");
+				}
+			}
+
 			SetCommand(2);
+
 			MutexThread?.Join();
+
 			AsyncLock?.ReleaseLock();
 		}
 
