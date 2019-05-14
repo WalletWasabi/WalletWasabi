@@ -21,14 +21,14 @@ namespace WalletWasabi.Gui
 #pragma warning restore IDE1006 // Naming Styles
 		{
 			StatusBarViewModel statusBar = null;
-			bool runGui = true;
+			bool runGui = false;
 			try
 			{
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-				//runGui = await CommandInterpreter.ExecuteCommandsAsync(args);
+				runGui = await CommandInterpreter.ExecuteCommandsAsync(args);
 				if (!runGui)
 				{
 					return;
@@ -94,7 +94,7 @@ namespace WalletWasabi.Gui
 			{
 				result
 					.UseWin32()
-					.UseDirect2D1();
+					.UseSkia();
 			}
 			else
 			{
