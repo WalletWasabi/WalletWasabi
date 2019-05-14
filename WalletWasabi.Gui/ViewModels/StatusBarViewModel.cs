@@ -160,7 +160,7 @@ namespace WalletWasabi.Gui.ViewModels
 						{
 							nextAnimation = status.TrimEnd("..", StringComparison.Ordinal);
 						}
-						else if (status.EndsWith("..") || status.EndsWith("."))
+						else if (status.EndsWith("."))
 						{
 							nextAnimation = $"{status}.";
 						}
