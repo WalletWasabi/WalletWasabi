@@ -2,6 +2,7 @@ using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin.Protocol;
+using Nito.AsyncEx;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,9 @@ using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Converters;
 using WalletWasabi.Gui.Dialogs;
+using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Tabs;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
@@ -32,6 +35,7 @@ namespace WalletWasabi.Gui.ViewModels
 	public class StatusBarViewModel : ViewModelBase
 	{
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
+		private AsyncLock StatusTextAnimationLock { get; }
 		private NodesCollection Nodes { get; }
 		private WasabiSynchronizer Synchronizer { get; }
 		private HashChain HashChain { get; }
@@ -47,7 +51,8 @@ namespace WalletWasabi.Gui.ViewModels
 		private int _filtersLeft;
 		private int _blocksLeft;
 		private string _btcPrice;
-		private string _status;
+		private StatusBarStatus _status;
+		private string _statusText;
 
 		public StatusBarViewModel(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
 		{
@@ -58,6 +63,7 @@ namespace WalletWasabi.Gui.ViewModels
 			BlocksLeft = 0;
 			FiltersLeft = 0;
 			UseTor = Global.Config.UseTor.Value; // Don't make it dynamic, because if you change this config settings only next time will it activate.
+			StatusTextAnimationLock = new AsyncLock();
 
 			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Added))
 				.Subscribe(x =>
@@ -136,26 +142,34 @@ namespace WalletWasabi.Gui.ViewModels
 				RefreshStatus();
 			});
 
-			this.WhenAnyValue(x => x.Status).Subscribe(async status =>
+			this.WhenAnyValue(x => x.Status).Subscribe(status =>
 			{
-				if (status.EndsWith(".")) // Then do animation.
-				{
-					string nextAnimation = null;
-					if (status.EndsWith("..."))
-					{
-						nextAnimation = status.TrimEnd("..", StringComparison.Ordinal);
-					}
-					else if (status.EndsWith("..") || status.EndsWith("."))
-					{
-						nextAnimation = $"{status}.";
-					}
+				StatusText = StatusBarStatusStringConverter.Convert(status);
+			});
 
-					if (nextAnimation != null)
+			this.WhenAnyValue(x => x.StatusText).Subscribe(async status =>
+			{
+				using (await StatusTextAnimationLock.LockAsync()) // Without this lock the status get stuck once in a while.
+				{
+					if (status.EndsWith(".")) // Then do animation.
 					{
-						await Task.Delay(1000);
-						if (Status == status) // If still the same.
+						string nextAnimation = null;
+						if (status.EndsWith("..."))
 						{
-							Status = nextAnimation;
+							nextAnimation = status.TrimEnd("..", StringComparison.Ordinal);
+						}
+						else if (status.EndsWith("."))
+						{
+							nextAnimation = $"{status}.";
+						}
+
+						if (nextAnimation != null)
+						{
+							await Task.Delay(1000);
+							if (StatusText == status) // If still the same.
+							{
+								StatusText = nextAnimation;
+							}
 						}
 					}
 				}
@@ -259,10 +273,16 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _btcPrice, value);
 		}
 
-		public string Status
+		public StatusBarStatus Status
 		{
 			get => _status;
 			set => this.RaiseAndSetIfChanged(ref _status, value);
+		}
+
+		public string StatusText
+		{
+			get => _statusText;
+			set => this.RaiseAndSetIfChanged(ref _statusText, value);
 		}
 
 		private void OnResponseArrivedIsGenSocksServFail(bool isGenSocksServFail)
@@ -307,19 +327,13 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		private List<string> StatusQueue { get; } = new List<string>();
+		private List<StatusBarStatus> StatusQueue { get; } = new List<StatusBarStatus>();
 		private object StatusQueueLock { get; } = new object();
 
-		public void TryAddStatus(string status)
+		public void TryAddStatus(StatusBarStatus status)
 		{
 			try
 			{
-				status = Guard.Correct(status);
-				if (status == "")
-				{
-					return;
-				}
-
 				lock (StatusQueueLock)
 				{
 					// Make sure it's the last status.
@@ -334,20 +348,14 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		public void TryRemoveStatus(params string[] statuses)
+		public void TryRemoveStatus(params StatusBarStatus[] statuses)
 		{
 			try
 			{
 				lock (StatusQueueLock)
 				{
-					foreach (var statusRaw in statuses)
+					foreach (StatusBarStatus status in statuses)
 					{
-						var status = Guard.Correct(statusRaw);
-						if (status == "")
-						{
-							return;
-						}
-
 						if (StatusQueue.Remove(status))
 						{
 							RefreshStatusNoLock();
@@ -365,7 +373,7 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			lock (StatusQueueLock)
 			{
-				if (!SetPriorityStatus())
+				if (!TrySetPriorityStatus())
 				{
 					SetCustomStatusOrReady();
 				}
@@ -374,7 +382,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private void RefreshStatusNoLock()
 		{
-			if (!SetPriorityStatus())
+			if (!TrySetPriorityStatus())
 			{
 				SetCustomStatusOrReady();
 			}
@@ -382,34 +390,33 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private void SetCustomStatusOrReady()
 		{
-			var status = StatusQueue.LastOrDefault();
-			if (status is null)
+			if (StatusQueue.Any())
 			{
-				Status = "Ready";
+				Status = StatusQueue.Last();
 			}
 			else
 			{
-				Status = status;
+				Status = StatusBarStatus.Ready;
 			}
 		}
 
-		private bool SetPriorityStatus()
+		private bool TrySetPriorityStatus()
 		{
 			if (UpdateStatus == UpdateStatus.Critical)
 			{
-				Status = "THE BACKEND WAS UPGRADED WITH BREAKING CHANGES - PLEASE UPDATE YOUR SOFTWARE";
+				Status = StatusBarStatus.CriticalUpdate;
 			}
 			else if (UpdateStatus == UpdateStatus.Optional)
 			{
-				Status = "New Version Is Available";
+				Status = StatusBarStatus.OptionalUpdate;
 			}
 			else if (Tor == TorStatus.NotRunning || Backend != BackendStatus.Connected || Peers < 1)
 			{
-				Status = "Connecting...";
+				Status = StatusBarStatus.Connecting;
 			}
 			else if (FiltersLeft != 0 || BlocksLeft != 0)
 			{
-				Status = "Synchronizing...";
+				Status = StatusBarStatus.Synchronizing;
 			}
 			else
 			{
