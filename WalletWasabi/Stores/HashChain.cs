@@ -18,6 +18,7 @@ namespace WalletWasabi.Stores
 		private uint256 _tipHash;
 		private int _serverTipHeight;
 		private int _hashesLeft;
+		private int _hashesCount;
 
 		private SortedDictionary<int, uint256> Chain { get; }
 		private object Lock { get; }
@@ -74,11 +75,23 @@ namespace WalletWasabi.Stores
 			}
 		}
 
+		public int HashCount
+		{
+			get => _hashesCount;
+			private set
+			{
+				if (_hashesCount != value)
+				{
+					_hashesCount = value;
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HashCount)));
+				}
+			}
+		}
+
 		public HashChain()
 		{
 			Chain = new SortedDictionary<int, uint256>();
 			Lock = new object();
-			ServerTipHeight = 0;
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -90,6 +103,7 @@ namespace WalletWasabi.Stores
 				Chain.AddOrReplace(height, hash);
 				TipHeight = height;
 				TipHash = hash;
+				HashCount = Chain.Count;
 				SetHashesLeft();
 			}
 		}
@@ -109,6 +123,7 @@ namespace WalletWasabi.Stores
 					var last = Chain.Last();
 					TipHeight = last.Key;
 					TipHash = last.Value;
+					HashCount = Chain.Count;
 					SetHashesLeft();
 				}
 			}

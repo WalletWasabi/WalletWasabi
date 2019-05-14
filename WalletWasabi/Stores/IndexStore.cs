@@ -183,17 +183,6 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		public async Task<Height?> TryGetHeightAsync(uint256 blockHash)
-		{
-			Height? ret = null;
-
-			using (await IndexLock.LockAsync())
-			{
-				ret = Index.FirstOrDefault(x => x.BlockHash == blockHash)?.BlockHeight;
-			}
-			return ret;
-		}
-
 		public async Task<IEnumerable<FilterModel>> GetFiltersAsync()
 		{
 			List<FilterModel> ret = null;
@@ -201,17 +190,6 @@ namespace WalletWasabi.Stores
 			using (await IndexLock.LockAsync())
 			{
 				ret = Index.ToList();
-			}
-			return ret;
-		}
-
-		public async Task<int> CountFiltersAsync()
-		{
-			int ret;
-
-			using (await IndexLock.LockAsync())
-			{
-				ret = Index.Count;
 			}
 			return ret;
 		}
