@@ -63,13 +63,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					ValidationMessage = $"Min Gap Limit cannot be larger than {1_000_000}.";
 				}
-				else if (!TryParseKeyPath(AccountKeyPath))
+				else if (!KeyPath.TryParse(AccountKeyPath, out KeyPath keyPath))
 				{
 					ValidationMessage = "The account key path is not a valid derivation path.";
 				}
 				else
 				{
-					KeyPath keyPath = KeyPath.Parse(AccountKeyPath);
 					try
 					{
 						var mnemonic = new Mnemonic(MnemonicWords);
@@ -242,19 +241,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			CaretIndex = MnemonicWords.Length;
 
 			Suggestions.Clear();
-		}
-
-		private bool TryParseKeyPath(string keyPath)
-		{
-			try
-			{
-				KeyPath.Parse(keyPath);
-				return true;
-			}
-			catch (FormatException)
-			{
-				return false;
-			}
 		}
 
 		private static IEnumerable<string> EnglishWords { get; } = Wordlist.English.GetWords();
