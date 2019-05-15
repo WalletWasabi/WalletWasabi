@@ -69,23 +69,33 @@ namespace WalletWasabi.Stores
 						await IndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToHeightlessLine() });
 					}
 
-					var height = StartingHeight;
 					try
 					{
-						foreach (var line in await IndexFileManager.ReadAllLinesAsync())
-						{
-							var filter = FilterModel.FromHeightlessLine(line, height);
-							height++;
-							Index.Add(filter);
-							HashChain.AddOrReplace(filter.BlockHeight.Value, filter.BlockHash);
-						}
+						await InitializeFiltersAsync();
 					}
 					catch (FormatException)
 					{
 						// We found a corrupted entry. Stop here.
 						// Fix the currupted file.
 						await IndexFileManager.WriteAllLinesAsync(Index.Select(x => x.ToHeightlessLine()));
+						await InitializeFiltersAsync();
 					}
+				}
+			}
+		}
+
+		private async Task InitializeFiltersAsync()
+		{
+			using (var sr = IndexFileManager.OpenText())
+			{
+				Height height = StartingHeight;
+				while (!sr.EndOfStream)
+				{
+					var line = await sr.ReadLineAsync();
+					var filter = FilterModel.FromHeightlessLine(line, height);
+					height++;
+					Index.Add(filter);
+					HashChain.AddOrReplace(filter.BlockHeight.Value, filter.BlockHash);
 				}
 			}
 		}

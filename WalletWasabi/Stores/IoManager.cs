@@ -221,6 +221,17 @@ namespace WalletWasabi.Stores
 			return await File.ReadAllLinesAsync(filePath, cancellationToken);
 		}
 
+		public StreamReader OpenText()
+		{
+			var filePath = OriginalFilePath;
+			if (TryGetSafestFileVersion(out string safestFilePath))
+			{
+				filePath = safestFilePath;
+			}
+
+			return File.OpenText(filePath);
+		}
+
 		#endregion IoOperations
 	}
 }
