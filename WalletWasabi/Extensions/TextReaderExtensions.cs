@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -41,15 +41,6 @@ namespace System.IO
 			}
 
 			return null;
-		}
-
-		public static Task<string> ReadLineAsync(this TextReader me, bool strictCRLF = false, CancellationToken ctsToken = default)
-		{
-			return Task<string>.Factory.StartNew(state =>
-			{
-				return ((TextReader)state).ReadLine(strictCRLF);
-			},
-			me, ctsToken, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
 		}
 
 		public static string ReadPart(this TextReader me, char separator)
