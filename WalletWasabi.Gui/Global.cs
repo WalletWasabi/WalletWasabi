@@ -1,9 +1,11 @@
-﻿using Avalonia;
+using Avalonia;
+using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using NBitcoin.Protocol.Connectors;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -228,8 +230,7 @@ namespace WalletWasabi.Gui
 				}
 			}
 
-			var addressManagerBehavior = new AddressManagerBehavior(AddressManager)
-			{
+			var addressManagerBehavior = new AddressManagerBehavior(AddressManager) {
 				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
 			};
 			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
@@ -411,8 +412,7 @@ namespace WalletWasabi.Gui
 			KeyManager keyManager;
 
 			// Set the LastAccessTime.
-			new FileInfo(walletFullPath)
-			{
+			new FileInfo(walletFullPath) {
 				LastAccessTime = DateTime.Now
 			};
 
@@ -425,28 +425,15 @@ namespace WalletWasabi.Gui
 		{
 			try
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || UiConfig?.LurkingWifeMode.Value is true)
-				{
-					return;
-				}
-
 				if (e.Action == NotifyCollectionChangedAction.Add)
 				{
 					foreach (SmartCoin coin in e.NewItems)
 					{
-						//if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSDescription.StartsWith("Microsoft Windows 10"))
-						//{
-						//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
-						//}
-						// else
-
 						string amountString = coin.Amount.ToString(false, true);
-						using (var process = Process.Start(new ProcessStartInfo
+						Dispatcher.UIThread.PostLogException(() => // Otherwise you get call from invalid thread and the software crashes (even though the exception is caught below!)
 						{
-							FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
-							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e \"display notification \\\"Received {amountString} BTC\\\" with title \\\"Wasabi\\\"\"" : $"--expire-time=3000 \"Wasabi\" \"Received {amountString} BTC\"",
-							CreateNoWindow = true
-						})) { };
+							Locator.Current.GetService<INotificationManager>()?.Show(new Notification("Received", $"{amountString} BTC", NotificationType.Information, TimeSpan.FromSeconds(7)));
+						});
 					}
 				}
 			}
