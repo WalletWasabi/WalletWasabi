@@ -104,7 +104,7 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		public async Task AddNewFiltersAsync(params FilterModel[] filters)
+		public async Task AddNewFiltersAsync(IEnumerable<FilterModel> filters, CancellationToken cancel)
 		{
 			foreach (var filter in filters)
 			{
@@ -116,9 +116,11 @@ namespace WalletWasabi.Stores
 
 				NewFilter?.Invoke(this, filter); // Event always outside the lock.
 			}
+
+			_ = TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel);
 		}
 
-		public async Task<FilterModel> RemoveLastFilterAsync()
+		public async Task<FilterModel> RemoveLastFilterAsync(CancellationToken cancel)
 		{
 			FilterModel filter = null;
 
@@ -131,6 +133,8 @@ namespace WalletWasabi.Stores
 
 			Reorged?.Invoke(this, filter);
 
+			_ = TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel);
+
 			return filter;
 		}
 
@@ -140,7 +144,7 @@ namespace WalletWasabi.Stores
 		/// It'll LogError the exceptions.
 		/// If cancelled, it'll LogTrace the exception.
 		/// </summary>
-		public async Task TryCommitToFileAsync(TimeSpan throttle, CancellationToken cancel)
+		private async Task TryCommitToFileAsync(TimeSpan throttle, CancellationToken cancel)
 		{
 			try
 			{

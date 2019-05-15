@@ -250,9 +250,9 @@ namespace WalletWasabi.Services
 
 							if (response.FiltersResponseState == FiltersResponseState.NewFilters)
 							{
-								var filters = response.Filters.ToArray(); // performance
+								var filters = response.Filters;
 
-								await BitcoinStore.IndexStore.AddNewFiltersAsync(filters);
+								await BitcoinStore.IndexStore.AddNewFiltersAsync(filters, Cancel.Token);
 
 								if (filters.Count() == 1)
 								{
@@ -262,17 +262,15 @@ namespace WalletWasabi.Services
 								{
 									Logger.LogInfo<WasabiSynchronizer>($"Downloaded filters for blocks from {filters.First().BlockHeight} to {filters.Last().BlockHeight}.");
 								}
-								_ = BitcoinStore.IndexStore.TryCommitToFileAsync(TimeSpan.FromSeconds(3), Cancel.Token);
 							}
 							else if (response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
 							{
 								// Reorg happened
 								// 1. Rollback index
-								FilterModel reorgedFilter = await BitcoinStore.IndexStore.RemoveLastFilterAsync();
+								FilterModel reorgedFilter = await BitcoinStore.IndexStore.RemoveLastFilterAsync(Cancel.Token);
 								Logger.LogInfo<WasabiSynchronizer>($"REORG Invalid Block: {reorgedFilter.BlockHash}");
 
 								ignoreRequestInterval = true;
-								_ = BitcoinStore.IndexStore.TryCommitToFileAsync(TimeSpan.FromSeconds(3), Cancel.Token);
 							}
 							else if (response.FiltersResponseState == FiltersResponseState.NoNewFilter)
 							{
