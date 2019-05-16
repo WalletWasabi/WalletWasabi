@@ -22,11 +22,7 @@
             <controls:SortingArrow Grid.Column="2" Command="{Binding SortCommand}" Text="Amount (BTC)" SortDirection="{Binding AmountSortDirection}" />
             <controls:SortingArrow Grid.Column="3" Command="{Binding SortCommand}" Text="Transaction ID" SortDirection="{Binding TransactionSortDirection}" />
           </Grid>
-          <Grid>
-            <StackPanel ZIndex="2" Orientation="Horizontal" VerticalAlignment="Top" IsVisible="{Binding IsFirstLoading}">
-              <controls:Spinner Height="20" Width="20" IsVisible="True" Margin ="8" />
-              <TextBlock Text="Loading..." VerticalAlignment="Center" />
-            </StackPanel>
+          <controls:BusyIndicator Text="Loading..." IsBusy="{Binding IsFirstLoading}">
             <ListBox Items="{Binding Transactions}" SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}" ZIndex="1">
               <ListBox.ItemTemplate>
                 <DataTemplate>
@@ -57,7 +53,7 @@
                 </DataTemplate>
               </ListBox.ItemTemplate>
             </ListBox>
-          </Grid>
+          </controls:BusyIndicator>
         </DockPanel>
       </DockPanel>
     </Grid>
