@@ -1294,7 +1294,8 @@ namespace WalletWasabi.Services
 
 					if (KeyManager.MasterFingerprint.HasValue)
 					{
-						psbt.AddKeyPath(KeyManager.MasterFingerprint.Value, coin.HdPubKey.PubKey, coin.HdPubKey.FullKeyPath, coin.ScriptPubKey);
+						var rootKeyPath = new RootedKeyPath(KeyManager.MasterFingerprint.Value, coin.HdPubKey.FullKeyPath);
+						psbt.AddKeyPath(coin.HdPubKey.PubKey, rootKeyPath, coin.ScriptPubKey);
 					}
 				}
 			}
