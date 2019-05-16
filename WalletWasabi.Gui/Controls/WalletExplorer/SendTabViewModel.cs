@@ -196,169 +196,171 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay);
 
-			BuildTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
+			BuildTransactionCommand = ReactiveCommand.CreateFromTask(async () => await BuildTransactionAsync(),
+			(this).WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
+				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy));
+		}
+
+		private async Task BuildTransactionAsync()
+		{
+			const string buildingTransactionStatusText = "Building transaction...";
+			const string signingTransactionStatusText = "Signing transaction...";
+			const string broadcastingTransactionStatusText = "Broadcasting transaction...";
+			try
 			{
-				const string buildingTransactionStatusText = "Building transaction...";
-				const string signingTransactionStatusText = "Signing transaction...";
-				const string broadcastingTransactionStatusText = "Broadcasting transaction...";
+				IsBusy = true;
+				MainWindowViewModel.Instance.StatusBar.AddStatus(buildingTransactionStatusText);
+
+				Password = Guard.Correct(Password);
+				Label = Label.Trim(',', ' ').Trim();
+				if (!IsMax && string.IsNullOrWhiteSpace(Label))
+				{
+					SetWarningMessage("Label is required.");
+					return;
+				}
+
+				var selectedCoinViewModels = CoinList.Coins.Where(cvm => cvm.IsSelected);
+				var selectedCoinReferences = selectedCoinViewModels.Select(cvm => new TxoRef(cvm.Model.TransactionId, cvm.Model.Index)).ToList();
+
+				if (!selectedCoinReferences.Any())
+				{
+					SetWarningMessage("No coins are selected to spend.");
+					return;
+				}
+
+				BitcoinAddress address;
 				try
 				{
-					IsBusy = true;
-					MainWindowViewModel.Instance.StatusBar.AddStatus(buildingTransactionStatusText);
-
-					Password = Guard.Correct(Password);
-					Label = Label.Trim(',', ' ').Trim();
-					if (!IsMax && string.IsNullOrWhiteSpace(Label))
-					{
-						SetWarningMessage("Label is required.");
-						return;
-					}
-
-					var selectedCoinViewModels = CoinList.Coins.Where(cvm => cvm.IsSelected);
-					var selectedCoinReferences = selectedCoinViewModels.Select(cvm => new TxoRef(cvm.Model.TransactionId, cvm.Model.Index)).ToList();
-
-					if (!selectedCoinReferences.Any())
-					{
-						SetWarningMessage("No coins are selected to spend.");
-						return;
-					}
-
-					BitcoinAddress address;
-					try
-					{
-						address = BitcoinAddress.Create(Address.Trim(), Global.Network);
-					}
-					catch (FormatException)
-					{
-						SetWarningMessage("Invalid address.");
-						return;
-					}
-
-					var script = address.ScriptPubKey;
-					var amount = Money.Zero;
-					if (!IsMax)
-					{
-						if (!Money.TryParse(Amount, out amount) || amount == Money.Zero)
-						{
-							SetWarningMessage($"Invalid amount.");
-							return;
-						}
-
-						if (amount == selectedCoinViewModels.Sum(x => x.Amount))
-						{
-							SetWarningMessage("Looks like you want to spend a whole coin. Try Max button instead.");
-							return;
-						}
-					}
-					var label = Label;
-					var operation = new WalletService.Operation(script, amount, label);
-
-					const string dequeuingSelectedCoinsStatusText = "Dequeueing selected coins...";
-					try
-					{
-						MainWindowViewModel.Instance.StatusBar.AddStatus(dequeuingSelectedCoinsStatusText);
-						TxoRef[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => x.Model.GetTxoRef()).ToArray();
-						if (toDequeue != null && toDequeue.Any())
-						{
-							await Global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, "Coin is used in a spending transaction built by the user.");
-						}
-					}
-					catch
-					{
-						SetWarningMessage("Spending coins those are being actively mixed is not allowed.");
-						return;
-					}
-					finally
-					{
-						MainWindowViewModel.Instance.StatusBar.RemoveStatus(dequeuingSelectedCoinsStatusText);
-					}
-
-					var result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, FeeTarget, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
-
-					if (IsTransactionBuilder)
-					{
-						var txviewer = IoC.Get<IShell>().Documents?.OfType<TransactionViewerViewModel>()?.FirstOrDefault(x => x.Wallet.Id == Wallet.Id);
-						if (txviewer is null)
-						{
-							txviewer = new TransactionViewerViewModel(Wallet);
-							IoC.Get<IShell>().AddDocument(txviewer);
-						}
-						IoC.Get<IShell>().Select(txviewer);
-
-						txviewer.Update(result);
-
-						TryResetInputsOnSuccess("Transaction is successfully built!");
-						return;
-					}
-
-					MainWindowViewModel.Instance.StatusBar.AddStatus(signingTransactionStatusText);
-					SmartTransaction signedTransaction = result.Transaction;
-
-					if (IsHardwareWallet && !result.Signed) // If hardware but still has a privkey then it's password, then meh.
-					{
-						const string connectingToHardwareWalletStatusText = "Connecting to hardware wallet...";
-						const string acquiringSignatureFromHardwareWalletStatusText = "Acquiring signature from hardware wallet...";
-						PSBT signedPsbt = null;
-						try
-						{
-							IsHardwareBusy = true;
-							MainWindowViewModel.Instance.StatusBar.AddStatus(connectingToHardwareWalletStatusText);
-							// If we have no hardware wallet info then try refresh it. If we failed, then tha's a problem.
-							if (KeyManager.HardwareWalletInfo is null && !await TryRefreshHardwareWalletInfoAsync(KeyManager))
-							{
-								SetWarningMessage("Could not find hardware wallet. Make sure it's plugged in and you're logged in with your PIN.");
-								return;
-							}
-
-							MainWindowViewModel.Instance.StatusBar.AddStatus(acquiringSignatureFromHardwareWalletStatusText);
-							signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
-						}
-						catch (IOException ex) when (ex.Message.Contains("device not found", StringComparison.OrdinalIgnoreCase)
-													|| ex.Message.Contains("Invalid status 6f04", StringComparison.OrdinalIgnoreCase) // It comes when device asleep too.
-													|| ex.Message.Contains("Device is asleep", StringComparison.OrdinalIgnoreCase))
-						{
-							MainWindowViewModel.Instance.StatusBar.AddStatus(connectingToHardwareWalletStatusText);
-							// The user may changed USB port. Try again with new enumeration.
-							if (!await TryRefreshHardwareWalletInfoAsync(KeyManager))
-							{
-								SetWarningMessage("Could not find hardware wallet. Make sure it's plugged in and you're logged in with your PIN.");
-								return;
-							}
-
-							MainWindowViewModel.Instance.StatusBar.AddStatus(acquiringSignatureFromHardwareWalletStatusText);
-							signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
-						}
-						finally
-						{
-							MainWindowViewModel.Instance.StatusBar.RemoveStatus(connectingToHardwareWalletStatusText, acquiringSignatureFromHardwareWalletStatusText);
-							IsHardwareBusy = false;
-						}
-
-						signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction.Height);
-					}
-
-					MainWindowViewModel.Instance.StatusBar.AddStatus(broadcastingTransactionStatusText);
-					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(signedTransaction));
-
-					TryResetInputsOnSuccess("Transaction is successfully sent!");
+					address = BitcoinAddress.Create(Address.Trim(), Global.Network);
 				}
-				catch (InsufficientBalanceException ex)
+				catch (FormatException)
 				{
-					Money needed = ex.Minimum - ex.Actual;
-					SetWarningMessage($"Not enough coins selected. You need an estimated {needed.ToString(false, true)} BTC more to make this transaction.");
+					SetWarningMessage("Invalid address.");
+					return;
 				}
-				catch (Exception ex)
+
+				var script = address.ScriptPubKey;
+				var amount = Money.Zero;
+				if (!IsMax)
 				{
-					SetWarningMessage(ex.ToTypeMessageString());
+					if (!Money.TryParse(Amount, out amount) || amount == Money.Zero)
+					{
+						SetWarningMessage($"Invalid amount.");
+						return;
+					}
+
+					if (amount == selectedCoinViewModels.Sum(x => x.Amount))
+					{
+						SetWarningMessage("Looks like you want to spend a whole coin. Try Max button instead.");
+						return;
+					}
+				}
+				var label = Label;
+				var operation = new WalletService.Operation(script, amount, label);
+
+				const string dequeuingSelectedCoinsStatusText = "Dequeueing selected coins...";
+				try
+				{
+					MainWindowViewModel.Instance.StatusBar.AddStatus(dequeuingSelectedCoinsStatusText);
+					TxoRef[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => x.Model.GetTxoRef()).ToArray();
+					if (toDequeue != null && toDequeue.Any())
+					{
+						await Global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, "Coin is used in a spending transaction built by the user.");
+					}
+				}
+				catch
+				{
+					SetWarningMessage("Spending coins those are being actively mixed is not allowed.");
+					return;
 				}
 				finally
 				{
-					MainWindowViewModel.Instance.StatusBar.RemoveStatus(buildingTransactionStatusText, signingTransactionStatusText, broadcastingTransactionStatusText);
-					IsBusy = false;
+					MainWindowViewModel.Instance.StatusBar.RemoveStatus(dequeuingSelectedCoinsStatusText);
 				}
-			},
-			this.WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
-				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy));
+
+				var result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, FeeTarget, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
+
+				if (IsTransactionBuilder)
+				{
+					var txviewer = IoC.Get<IShell>().Documents?.OfType<TransactionViewerViewModel>()?.FirstOrDefault(x => x.Wallet.Id == Wallet.Id);
+					if (txviewer is null)
+					{
+						txviewer = new TransactionViewerViewModel(Wallet);
+						IoC.Get<IShell>().AddDocument(txviewer);
+					}
+					IoC.Get<IShell>().Select(txviewer);
+
+					txviewer.Update(result);
+
+					TryResetInputsOnSuccess("Transaction is successfully built!");
+					return;
+				}
+
+				MainWindowViewModel.Instance.StatusBar.AddStatus(signingTransactionStatusText);
+				SmartTransaction signedTransaction = result.Transaction;
+
+				if (IsHardwareWallet && !result.Signed) // If hardware but still has a privkey then it's password, then meh.
+				{
+					const string connectingToHardwareWalletStatusText = "Connecting to hardware wallet...";
+					const string acquiringSignatureFromHardwareWalletStatusText = "Acquiring signature from hardware wallet...";
+					PSBT signedPsbt = null;
+					try
+					{
+						IsHardwareBusy = true;
+						MainWindowViewModel.Instance.StatusBar.AddStatus(connectingToHardwareWalletStatusText);
+						// If we have no hardware wallet info then try refresh it. If we failed, then tha's a problem.
+						if (KeyManager.HardwareWalletInfo is null && !await TryRefreshHardwareWalletInfoAsync(KeyManager))
+						{
+							SetWarningMessage("Could not find hardware wallet. Make sure it's plugged in and you're logged in with your PIN.");
+							return;
+						}
+
+						MainWindowViewModel.Instance.StatusBar.AddStatus(acquiringSignatureFromHardwareWalletStatusText);
+						signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
+					}
+					catch (IOException ex) when (ex.Message.Contains("device not found", StringComparison.OrdinalIgnoreCase)
+												|| ex.Message.Contains("Invalid status 6f04", StringComparison.OrdinalIgnoreCase) // It comes when device asleep too.
+												|| ex.Message.Contains("Device is asleep", StringComparison.OrdinalIgnoreCase))
+					{
+						MainWindowViewModel.Instance.StatusBar.AddStatus(connectingToHardwareWalletStatusText);
+						// The user may changed USB port. Try again with new enumeration.
+						if (!await TryRefreshHardwareWalletInfoAsync(KeyManager))
+						{
+							SetWarningMessage("Could not find hardware wallet. Make sure it's plugged in and you're logged in with your PIN.");
+							return;
+						}
+
+						MainWindowViewModel.Instance.StatusBar.AddStatus(acquiringSignatureFromHardwareWalletStatusText);
+						signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
+					}
+					finally
+					{
+						MainWindowViewModel.Instance.StatusBar.RemoveStatus(connectingToHardwareWalletStatusText, acquiringSignatureFromHardwareWalletStatusText);
+						IsHardwareBusy = false;
+					}
+
+					signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction.Height);
+				}
+
+				MainWindowViewModel.Instance.StatusBar.AddStatus(broadcastingTransactionStatusText);
+				await Task.Run(async () => await Global.WalletService.SendTransactionAsync(signedTransaction));
+
+				TryResetInputsOnSuccess("Transaction is successfully sent!");
+			}
+			catch (InsufficientBalanceException ex)
+			{
+				Money needed = ex.Minimum - ex.Actual;
+				SetWarningMessage($"Not enough coins selected. You need an estimated {needed.ToString(false, true)} BTC more to make this transaction.");
+			}
+			catch (Exception ex)
+			{
+				SetWarningMessage(ex.ToTypeMessageString());
+			}
+			finally
+			{
+				MainWindowViewModel.Instance.StatusBar.RemoveStatus(buildingTransactionStatusText, signingTransactionStatusText, broadcastingTransactionStatusText);
+				IsBusy = false;
+			}
 		}
 
 		private async Task<bool> TryRefreshHardwareWalletInfoAsync(KeyManager keyManager)
