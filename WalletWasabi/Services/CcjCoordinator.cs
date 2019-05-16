@@ -307,7 +307,7 @@ namespace WalletWasabi.Services
 							feePerInputs = fees.feePerInputs;
 							feePerOutputs = fees.feePerOutputs;
 
-							Money newDenominationToGetInWithactiveOutputs = activeOutputAmount - (feePerInputs + 2 * feePerOutputs);
+							Money newDenominationToGetInWithactiveOutputs = activeOutputAmount - (feePerInputs + (2 * feePerOutputs));
 							if (newDenominationToGetInWithactiveOutputs < RoundConfig.Denomination)
 							{
 								if (newDenominationToGetInWithactiveOutputs > Money.Coins(0.01m))
