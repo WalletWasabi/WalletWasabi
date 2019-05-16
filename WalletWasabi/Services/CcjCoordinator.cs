@@ -181,13 +181,13 @@ namespace WalletWasabi.Services
 				{
 					if (!AnyRunningRoundContainsInput(prevOut, out _))
 					{
-						int newSeverity = foundElem.Value.severity + 1;
+						int newSeverity = foundElem.Severity + 1;
 						await UtxoReferee.UnbanAsync(prevOut); // since it's not an UTXO anymore
 
 						if (RoundConfig.DosSeverity >= newSeverity)
 						{
 							var txCoins = tx.Outputs.AsIndexedOutputs().Select(x => x.ToCoin().Outpoint);
-							await UtxoReferee.BanUtxosAsync(newSeverity, foundElem.Value.timeOfBan, forceNoted: foundElem.Value.isNoted, foundElem.Value.bannedForRound, txCoins.ToArray());
+							await UtxoReferee.BanUtxosAsync(newSeverity, foundElem.TimeOfBan, forceNoted: foundElem.IsNoted, foundElem.BannedForRound, txCoins.ToArray());
 						}
 					}
 				}
