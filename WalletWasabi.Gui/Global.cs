@@ -29,6 +29,8 @@ using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.Models;
+using WalletWasabi.Gui.Rpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
@@ -76,6 +78,8 @@ namespace WalletWasabi.Gui
 		public UiConfig UiConfig { get; private set; }
 
 		public Network Network => Config.Network;
+
+		public static JsonRpcServer RpcServer { get; private set; }
 
 		public Global()
 		{
@@ -188,22 +192,7 @@ namespace WalletWasabi.Gui
 				#region ProcessKillSubscription
 
 				AppDomain.CurrentDomain.ProcessExit += async (s, e) => await TryDesperateDequeueAllCoinsAsync();
-				Console.CancelKeyPress += async (s, e) =>
-				{
-					e.Cancel = true;
-					Logger.LogWarning("Process was signaled for killing.");
-
-					KillRequested = true;
-					await TryDesperateDequeueAllCoinsAsync();
-					Dispatcher.UIThread.PostLogException(() =>
-					{
-						var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
-						window?.Close();
-					});
-					await DisposeAsync();
-
-					Logger.LogSoftwareStopped("Wasabi");
-				};
+				Console.CancelKeyPress += async (s, e) => { e.Cancel = true; await StopAndExitAsync(); };
 
 				#endregion ProcessKillSubscription
 
@@ -359,6 +348,18 @@ namespace WalletWasabi.Gui
 
 				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, Nodes, BitcoinCoreNode?.RpcClient);
 				CoinJoinProcessor = new CoinJoinProcessor(Synchronizer, BitcoinCoreNode?.RpcClient);
+
+				#region JsonRpcServerInitialization
+
+				var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config);
+				if (jsonRpcServerConfig.IsEnabled)
+				{
+					RpcServer = new JsonRpcServer(this, jsonRpcServerConfig);
+					RpcServer.Start();
+				}
+
+				#endregion JsonRpcServerInitialization
+
 			}
 			catch (Exception ex)
 			{
@@ -371,6 +372,22 @@ namespace WalletWasabi.Gui
 			{
 				InitializationCompleted = true;
 			}
+		}
+
+		internal async Task StopAndExitAsync()
+		{
+			Logger.LogWarning("Process was signaled for killing.", nameof(Global));
+
+			KillRequested = true;
+			await TryDesperateDequeueAllCoinsAsync();
+			Dispatcher.UIThread.PostLogException(() =>
+			{
+				var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+				window?.Close();
+			});
+			await DisposeAsync();
+
+			Logger.LogSoftwareStopped("Wasabi");
 		}
 
 		private async Task<AddressManagerBehavior> InitializeAddressManagerBehaviorAsync()
@@ -785,6 +802,12 @@ namespace WalletWasabi.Gui
 				}
 
 				await DisposeInWalletDependentServicesAsync();
+
+				if (RpcServer != null)
+				{
+					RpcServer.Stop();
+					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
+				}
 
 				var feeProviders = FeeProviders;
 				if (feeProviders is { })
