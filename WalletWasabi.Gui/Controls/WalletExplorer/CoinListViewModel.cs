@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
@@ -355,10 +356,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
-			InitList = ReactiveCommand.Create(() =>
-			{
-				OnOpen();
-			});
+			InitList = ReactiveCommand.CreateFromTask(async () =>
+		   {
+			   // We have to wait for the UI to became visible to the user.
+			   await Task.Delay(1000);
+			   OnOpen();
+		   });
 
 			InitList.ThrownExceptions.Subscribe(ex => Logging.Logger.LogError<CoinListViewModel>(ex));
 		}

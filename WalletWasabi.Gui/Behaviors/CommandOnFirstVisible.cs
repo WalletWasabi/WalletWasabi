@@ -23,10 +23,8 @@ namespace WalletWasabi.Gui.Behaviors
 
 			Observable.FromEventPattern(AssociatedObject, nameof(AssociatedObject.AttachedToVisualTree))
 			.Take(1) // Only on first appearance.
-			.Subscribe(async args =>
+			.Subscribe(_ =>
 			{
-				// We have to wait for the UI to became visible to the user.
-				await Task.Delay(1000);
 				ExecuteCommand();
 			}).DisposeWith(Disposables);
 		}
