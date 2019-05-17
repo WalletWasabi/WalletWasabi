@@ -404,14 +404,12 @@ namespace WalletWasabi.Gui.ViewModels
         private void RefreshStatusNoLock()
         {
             if (!TrySetPriorityStatus())
-
             {
                 SetCustomStatusOrReady();
             }
         }
 
         private void SetCustomStatusOrReady()
-
         {
             if (StatusQueue.Any())
             {
@@ -439,12 +437,10 @@ namespace WalletWasabi.Gui.ViewModels
                 Status = StatusBarStatus.Connecting;
             }
             else if (FiltersLeft != 0 || BlocksLeft != 0)
-
             {
                 Status = StatusBarStatus.Synchronizing;
             }
             else
-
             {
                 return false;
             }
@@ -453,14 +449,12 @@ namespace WalletWasabi.Gui.ViewModels
         }
 
         private void SetPeers(int peers)
-
         {
             // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it's seem to the user that peers are connected over clearnet, while they don't.
             Peers = Tor == TorStatus.NotRunning ? 0 : peers;
         }
 
         private void SetTor(TorStatus tor)
-
         {
             // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it's seem to the user that peers are connected over clearnet, while they don't.
             Tor = UseTor ? tor : TorStatus.TurnedOff;
@@ -486,11 +480,11 @@ namespace WalletWasabi.Gui.ViewModels
         // This code added to correctly implement the disposable pattern.
 
         public void Dispose()
-
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
         }
+
 
         #endregion IDisposable Support
     }
