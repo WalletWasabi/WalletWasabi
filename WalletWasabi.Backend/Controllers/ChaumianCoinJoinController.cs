@@ -179,7 +179,7 @@ namespace WalletWasabi.Backend.Controllers
 						var bannedElem = await Coordinator.UtxoReferee.TryGetBannedAsync(outpoint, notedToo: false);
 						if (bannedElem != null)
 						{
-							return BadRequest($"Input is banned from participation for {(int)bannedElem.Value.bannedRemaining.TotalMinutes} minutes: {inputProof.Input.Index}:{inputProof.Input.TransactionId}.");
+							return BadRequest($"Input is banned from participation for {(int)bannedElem.BannedRemaining.TotalMinutes} minutes: {inputProof.Input.Index}:{inputProof.Input.TransactionId}.");
 						}
 
 						var txoutResponseTask = batch.GetTxOutAsync(inputProof.Input.TransactionId, (int)inputProof.Input.Index, includeMempool: true);
