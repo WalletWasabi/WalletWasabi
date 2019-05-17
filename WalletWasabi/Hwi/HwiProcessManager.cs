@@ -154,7 +154,7 @@ namespace WalletWasabi.Hwi
 						}
 					))
 					{
-						await process.WaitForExitAsync(cancellationToken);
+						await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false); // TODO: https://github.com/zkSNACKs/WalletWasabi/issues/1452;
 
 						if (process.ExitCode != 0)
 						{
