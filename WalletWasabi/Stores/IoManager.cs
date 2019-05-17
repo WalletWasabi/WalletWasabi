@@ -164,11 +164,14 @@ namespace WalletWasabi.Stores
 			return TryGetSafestFileVersion(out _);
 		}
 
-		public async Task WriteAllLinesAsync(IEnumerable<string> contents, CancellationToken cancellationToken = default)
+		public async Task WriteAllLinesAsync(IEnumerable<string> contents, CancellationToken cancellationToken = default, bool dismissNullOrEmptyContent = true)
 		{
-			if (contents is null || !contents.Any())
+			if (dismissNullOrEmptyContent)
 			{
-				return;
+				if (contents is null || !contents.Any())
+				{
+					return;
+				}
 			}
 
 			byte[] hash = null;

@@ -386,11 +386,11 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task IoTestsAsync()
 		{
-			var file1 = Path.Combine(Global.DataDir, nameof(IoTestsAsync), $"file.dat");
+			var file = Path.Combine(Global.DataDir, nameof(IoTestsAsync), $"file.dat");
 
-			IoManager ioman1 = new IoManager(file1);
-			ioman1.DeleteMe();
-			await ioman1.WriteAllLinesAsync(new string[0]);
+			IoManager ioman = new IoManager(file);
+			ioman.DeleteMe();
+			await ioman.WriteAllLinesAsync(new string[0], dismissNullOrEmptyContent: false);
 
 			string RandomString()
 			{
@@ -413,11 +413,11 @@ namespace WalletWasabi.Tests
 				{
 					list.Add(next);
 				}
-				using (await ioman1.Mutex.LockAsync())
+				using (await ioman.Mutex.LockAsync())
 				{
-					var lines = (await ioman1.ReadAllLinesAsync()).ToList();
+					var lines = (await ioman.ReadAllLinesAsync()).ToList();
 					lines.Add(next);
-					await ioman1.WriteAllLinesAsync(lines);
+					await ioman.WriteAllLinesAsync(lines);
 				}
 			};
 
@@ -459,14 +459,14 @@ namespace WalletWasabi.Tests
 			Assert.False(t2.IsAlive);
 			Assert.False(t3.IsAlive);
 
-			var alllines = File.ReadAllLines(file1);
-			Assert.NotEmpty(alllines);
+			var allLines = File.ReadAllLines(file);
+			Assert.NotEmpty(allLines);
 
 			/* Lines were added to the list and to the file parallel so the two data should be equal.
 			 * If we "substract" them from each other we should get empty array.
 			 */
 
-			var diff = alllines.Except(list);
+			var diff = allLines.Except(list);
 			Assert.Empty(diff);
 		}
 	}
