@@ -35,6 +35,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool? _selectNonPrivateCheckBoxState;
 		private GridLength _coinJoinStatusWidth;
 		private SortOrder _clustersSortDirection;
+		private bool _isCoinListLoading;
 
 		public ReactiveCommand<Unit, Unit> EnqueueCoin { get; }
 		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
@@ -104,6 +105,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _clustersSortDirection;
 			set => this.RaiseAndSetIfChanged(ref _clustersSortDirection, value);
+		}
+
+		public bool IsCoinListLoading
+		{
+			get => _isCoinListLoading;
+			set => this.RaiseAndSetIfChanged(ref _isCoinListLoading, value);
 		}
 
 		private void RefreshOrdering()
@@ -216,6 +223,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			RemovedCoinViewModels = new List<CoinViewModel>();
 
 			AmountSortDirection = SortOrder.Decreasing;
+			IsCoinListLoading = true;
 			RefreshOrdering();
 
 			var sortChanged = this.WhenValueChanged(@this => MyComparer).Select(_ => MyComparer);
@@ -351,66 +359,77 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				OnOpen();
 			});
+
+			InitList.ThrownExceptions.Subscribe(ex => Logging.Logger.LogError<CoinListViewModel>(ex));
 		}
 
 		private void OnOpen()
 		{
-			if (Disposables != null)
+			try
 			{
-				throw new Exception("CoinList opened before previous closed.");
-			}
-
-			Disposables = new CompositeDisposable();
-
-			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent))
-			{
-				var newCoinVm = new CoinViewModel(this, sc);
-				newCoinVm.SubscribeEvents();
-				RootList.Add(newCoinVm);
-			}
-
-			Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
+				if (Disposables != null)
 				{
-					var e = x.EventArgs;
-					try
+					throw new Exception("CoinList opened before previous closed.");
+				}
+
+				IsCoinListLoading = true;
+
+				Disposables = new CompositeDisposable();
+
+				foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent))
+				{
+					var newCoinVm = new CoinViewModel(this, sc);
+					newCoinVm.SubscribeEvents();
+					RootList.Add(newCoinVm);
+				}
+
+				Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(x =>
 					{
-						switch (e.Action)
+						var e = x.EventArgs;
+						try
 						{
-							case NotifyCollectionChangedAction.Add:
-								foreach (SmartCoin c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent && !sc.IsDust))
-								{
-									var newCoinVm = new CoinViewModel(this, c);
-									newCoinVm.SubscribeEvents();
-									RootList.Add(newCoinVm);
-								}
-								break;
-
-							case NotifyCollectionChangedAction.Remove:
-								foreach (var c in e.OldItems.Cast<SmartCoin>())
-								{
-									CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == c);
-									if (toRemove != default)
+							switch (e.Action)
+							{
+								case NotifyCollectionChangedAction.Add:
+									foreach (SmartCoin c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent && !sc.IsDust))
 									{
-										RootList.Remove(toRemove);
+										var newCoinVm = new CoinViewModel(this, c);
+										newCoinVm.SubscribeEvents();
+										RootList.Add(newCoinVm);
 									}
-								}
-								break;
+									break;
 
-							case NotifyCollectionChangedAction.Reset:
-								ClearRootList();
-								break;
+								case NotifyCollectionChangedAction.Remove:
+									foreach (var c in e.OldItems.Cast<SmartCoin>())
+									{
+										CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == c);
+										if (toRemove != default)
+										{
+											RootList.Remove(toRemove);
+										}
+									}
+									break;
+
+								case NotifyCollectionChangedAction.Reset:
+									ClearRootList();
+									break;
+							}
 						}
-					}
-					catch (Exception ex)
-					{
-						Logging.Logger.LogDebug<Dispatcher>(ex);
-					}
-				}).DisposeWith(Disposables);
+						catch (Exception ex)
+						{
+							Logging.Logger.LogDebug<Dispatcher>(ex);
+						}
+					}).DisposeWith(Disposables);
 
-			SetSelections();
-			SetCoinJoinStatusWidth();
+				SetSelections();
+				SetCoinJoinStatusWidth();
+			}
+			finally
+			{
+				IsCoinListLoading = false;
+			}
 		}
 
 		private void ClearRootList() => RootList.Clear();
