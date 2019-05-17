@@ -249,7 +249,7 @@ namespace WalletWasabi.Stores
 			return await File.ReadAllLinesAsync(filePath, cancellationToken);
 		}
 
-		public StreamReader OpenText()
+		public StreamReader OpenText(int bufferSize)
 		{
 			var filePath = OriginalFilePath;
 			if (TryGetSafestFileVersion(out string safestFilePath))
@@ -257,7 +257,8 @@ namespace WalletWasabi.Stores
 				filePath = safestFilePath;
 			}
 
-			return File.OpenText(filePath);
+			var fs = File.OpenRead(filePath);
+			return new StreamReader(fs, Encoding.ASCII, detectEncodingFromByteOrderMarks: true, bufferSize: bufferSize, leaveOpen: false);
 		}
 
 		#endregion IoOperations

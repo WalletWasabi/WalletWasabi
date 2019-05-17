@@ -86,7 +86,7 @@ namespace WalletWasabi.Stores
 
 		private async Task InitializeFiltersAsync()
 		{
-			using (var sr = IndexFileManager.OpenText())
+			using (var sr = IndexFileManager.OpenText(16384))
 			{
 				Height height = StartingHeight;
 				while (!sr.EndOfStream)
