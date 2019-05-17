@@ -244,12 +244,10 @@ namespace WalletWasabi.Gui.ViewModels
 		public bool UpdateAvailable
 		{
 			get => _updateAvailable;
-
 			set => this.RaiseAndSetIfChanged(ref _updateAvailable, value);
 		}
 
 		public bool CriticalUpdateAvailable
-
 		{
 			get => _criticalUpdateAvailable;
 			set => this.RaiseAndSetIfChanged(ref _criticalUpdateAvailable, value);
@@ -363,7 +361,6 @@ namespace WalletWasabi.Gui.ViewModels
 				}
 			}
 			catch (Exception ex)
-
 			{
 				Logging.Logger.LogWarning<StatusBarViewModel>(ex);
 			}
@@ -432,7 +429,6 @@ namespace WalletWasabi.Gui.ViewModels
 				Status = StatusBarStatus.OptionalUpdate;
 			}
 			else if (Tor == TorStatus.NotRunning || Backend != BackendStatus.Connected || Peers < 1)
-
 			{
 				Status = StatusBarStatus.Connecting;
 			}
