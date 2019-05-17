@@ -1,4 +1,4 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
@@ -42,6 +42,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> SelectPrivateCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SelectNonPrivateCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
+		public ReactiveCommand<Unit, Unit> InitList { get; }
 
 		public event EventHandler DequeueCoinsPressed;
 
@@ -345,9 +346,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						break;
 				}
 			});
+
+			InitList = ReactiveCommand.Create(() =>
+			{
+				OnOpen();
+			});
 		}
 
-		public void OnOpen()
+		private void OnOpen()
 		{
 			Disposables = new CompositeDisposable();
 
