@@ -166,6 +166,11 @@ namespace WalletWasabi.Stores
 
 		public async Task WriteAllLinesAsync(IEnumerable<string> contents, CancellationToken cancellationToken = default)
 		{
+			if (contents is null || !contents.Any())
+			{
+				return;
+			}
+
 			byte[] hash = null;
 			try
 			{

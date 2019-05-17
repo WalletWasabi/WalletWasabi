@@ -20,10 +20,10 @@ namespace WalletWasabi.Stores
 	/// </summary>
 	public class IndexStore
 	{
-		private const string IndexFileName = "Index.dat";
 		private string WorkFolderPath { get; set; }
 		private Network Network { get; set; }
-		private IoManager IndexFileManager { get; set; }
+		private IoManager MatureIndexFileManager { get; set; }
+		private IoManager ImmatureIndexFileManager { get; set; }
 		public HashChain HashChain { get; private set; }
 
 		private FilterModel StartingFilter { get; set; }
@@ -40,8 +40,10 @@ namespace WalletWasabi.Stores
 			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 
 			Network = Guard.NotNull(nameof(network), network);
-			var indexFilePath = Path.Combine(WorkFolderPath, IndexFileName);
-			IndexFileManager = new IoManager(indexFilePath, digestRandomIndex: -1);
+			var indexFilePath = Path.Combine(WorkFolderPath, "MatureIndex.dat");
+			MatureIndexFileManager = new IoManager(indexFilePath, digestRandomIndex: -1);
+			var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
+			ImmatureIndexFileManager = new IoManager(immatureIndexFilePath, digestRandomIndex: -1);
 
 			StartingFilter = StartingFilters.GetStartingFilter(Network);
 			StartingHeight = StartingFilters.GetStartingHeight(Network);
@@ -53,20 +55,22 @@ namespace WalletWasabi.Stores
 
 			using (await IndexLock.LockAsync())
 			{
-				using (await IndexFileManager.Mutex.LockAsync())
+				using (await MatureIndexFileManager.Mutex.LockAsync())
+				using (await ImmatureIndexFileManager.Mutex.LockAsync())
 				{
 					IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
-					TryEnsureBackwardsCompatibility();
+					await TryEnsureBackwardsCompatibilityAsync();
 
 					if (Network == Network.RegTest)
 					{
-						IndexFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
+						MatureIndexFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
+						ImmatureIndexFileManager.DeleteMe();
 					}
 
-					if (!IndexFileManager.Exists())
+					if (!MatureIndexFileManager.Exists())
 					{
-						await IndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToHeightlessLine() });
+						await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToHeightlessLine() });
 					}
 
 					try
@@ -77,8 +81,12 @@ namespace WalletWasabi.Stores
 					{
 						// We found a corrupted entry. Stop here.
 						// Fix the currupted file.
-						await IndexFileManager.WriteAllLinesAsync(Index.Select(x => x.ToHeightlessLine()));
-						await InitializeFiltersAsync();
+						var allLines = Index.Select(x => x.ToHeightlessLine());
+						var matureLines = allLines.SkipLast(100);
+						var immatureLines = allLines.TakeLast(100);
+						await MatureIndexFileManager.WriteAllLinesAsync(matureLines);
+						await ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines);
+						// Don't call InitializeFiltersAsync here!!!
 					}
 				}
 			}
@@ -86,27 +94,56 @@ namespace WalletWasabi.Stores
 
 		private async Task InitializeFiltersAsync()
 		{
-			using (var sr = IndexFileManager.OpenText(16384))
+			Height height = StartingHeight;
+
+			if (MatureIndexFileManager.Exists())
 			{
-				Height height = StartingHeight;
-				while (!sr.EndOfStream)
+				using (var sr = MatureIndexFileManager.OpenText(16384))
 				{
-					var line = await sr.ReadLineAsync();
-					var filter = FilterModel.FromHeightlessLine(line, height);
+					while (!sr.EndOfStream)
+					{
+						var line = await sr.ReadLineAsync();
+						ProcessLine(height, line);
+						height++;
+					}
+				}
+			}
+
+			if (ImmatureIndexFileManager.Exists())
+			{
+				foreach (var line in await ImmatureIndexFileManager.ReadAllLinesAsync()) // We can load ImmatureIndexFileManager to the memory, no problem.
+				{
+					ProcessLine(height, line);
 					height++;
-					Index.Add(filter);
-					HashChain.AddOrReplace(filter.BlockHeight.Value, filter.BlockHash);
 				}
 			}
 		}
 
-		private void TryEnsureBackwardsCompatibility()
+		private void ProcessLine(Height height, string line)
+		{
+			var filter = FilterModel.FromHeightlessLine(line, height);
+			Index.Add(filter);
+			HashChain.AddOrReplace(filter.BlockHeight.Value, filter.BlockHash);
+		}
+
+		private async Task TryEnsureBackwardsCompatibilityAsync()
 		{
 			try
 			{
 				// Before Wasabi 1.1.5
 				var oldIndexFilepath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), $"Index{Network}.dat");
-				IndexFileManager.TryReplaceMeWith(oldIndexFilepath);
+
+				if (File.Exists(oldIndexFilepath))
+				{
+					string[] allLines = await File.ReadAllLinesAsync(oldIndexFilepath);
+					var matureLines = allLines.SkipLast(100);
+					var immatureLines = allLines.TakeLast(100);
+
+					await MatureIndexFileManager.WriteAllLinesAsync(matureLines);
+					await ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines);
+
+					File.Delete(oldIndexFilepath);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -182,10 +219,16 @@ namespace WalletWasabi.Stores
 					Interlocked.Exchange(ref _throttleId, 0); // So to notified the currently throttled threads that they don't have to run.
 				}
 
-				using (await IndexFileManager.Mutex.LockAsync(cancel))
+				using (await MatureIndexFileManager.Mutex.LockAsync(cancel))
+				using (await ImmatureIndexFileManager.Mutex.LockAsync(cancel))
 				using (await IndexLock.LockAsync(cancel))
 				{
-					await IndexFileManager.WriteAllLinesAsync(Index.Select(x => x.ToHeightlessLine())); // Don't feed the cancellationToken here I always want this to finish running for safety.
+					// Don't feed the cancellationToken here I always want this to finish running for safety.
+					var allLines = Index.Select(x => x.ToHeightlessLine());
+					var matureLines = allLines.SkipLast(100);
+					var immatureLines = allLines.TakeLast(100);
+					await MatureIndexFileManager.WriteAllLinesAsync(matureLines);
+					await ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines);
 				}
 			}
 			catch (Exception ex) when (ex is OperationCanceledException
