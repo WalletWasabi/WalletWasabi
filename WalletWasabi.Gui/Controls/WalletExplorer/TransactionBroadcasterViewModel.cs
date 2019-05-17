@@ -7,6 +7,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
 
@@ -101,7 +102,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private async Task OnDoTransactionBroadcastAsync()
 		{
-			const string broadcastingTransactionStatusText = "Broadcasting transaction...";
 			try
 			{
 				IsBusy = true;
@@ -124,7 +124,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					transaction = new SmartTransaction(Transaction.Parse(TransactionString, Global.Network ?? Network.Main), WalletWasabi.Models.Height.Unknown);
 				}
 
-				MainWindowViewModel.Instance.StatusBar.AddStatus(broadcastingTransactionStatusText);
+				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
 				await Task.Run(async () => await Global.WalletService.SendTransactionAsync(transaction));
 
 				SetSuccessMessage("Transaction is successfully sent!");
@@ -136,7 +136,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			finally
 			{
-				MainWindowViewModel.Instance.StatusBar.RemoveStatus(broadcastingTransactionStatusText);
+				MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.BroadcastingTransaction);
 				IsBusy = false;
 				ButtonText = "Broadcast Transaction";
 			}
