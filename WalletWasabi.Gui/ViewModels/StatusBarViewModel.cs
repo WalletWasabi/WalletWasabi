@@ -25,443 +25,473 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Gui.ViewModels
 {
-	public enum UpdateStatus
-	{
-		Latest,
-		Optional,
-		Critical
-	}
+    public enum UpdateStatus
+    {
+        Latest,
+        Optional,
+        Critical
+    }
 
-	public class StatusBarViewModel : ViewModelBase
-	{
-		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
-		private AsyncLock StatusTextAnimationLock { get; }
-		private NodesCollection Nodes { get; }
-		private WasabiSynchronizer Synchronizer { get; }
-		private HashChain HashChain { get; }
+    public class StatusBarViewModel : ViewModelBase
+    {
+        private CompositeDisposable Disposables { get; } = new CompositeDisposable();
+        private AsyncLock StatusTextAnimationLock { get; set; }
+        private NodesCollection Nodes { get; set; }
+        private WasabiSynchronizer Synchronizer { get; set; }
+        private HashChain HashChain { get; set; }
 
-		private bool UseTor { get; }
+        private bool UseTor { get; set; }
 
-		private UpdateStatus _updateStatus;
-		private bool _updateAvailable;
-		private bool _criticalUpdateAvailable;
-		private BackendStatus _backend;
-		private TorStatus _tor;
-		private int _peers;
-		private int _filtersLeft;
-		private int _blocksLeft;
-		private string _btcPrice;
-		private StatusBarStatus _status;
-		private string _statusText;
+        private UpdateStatus _updateStatus;
+        private bool _updateAvailable;
+        private bool _criticalUpdateAvailable;
+        private BackendStatus _backend;
+        private TorStatus _tor;
+        private int _peers;
+        private int _filtersLeft;
+        private int _blocksLeft;
+        private string _btcPrice;
+        private StatusBarStatus _status;
+        private string _statusText;
 
-		public StatusBarViewModel(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
-		{
-			UpdateStatus = UpdateStatus.Latest;
-			Nodes = nodes;
-			Synchronizer = synchronizer;
-			HashChain = synchronizer.BitcoinStore.HashChain;
-			BlocksLeft = 0;
-			FiltersLeft = 0;
-			UseTor = Global.Config.UseTor.Value; // Don't make it dynamic, because if you change this config settings only next time will it activate.
-			StatusTextAnimationLock = new AsyncLock();
+        public StatusBarViewModel()
+        {
+            UpdateStatus = UpdateStatus.Latest;
+            UpdateAvailable = false;
+            CriticalUpdateAvailable = false;
+            Backend = BackendStatus.NotConnected;
+            UseTor = false;
+            Tor = TorStatus.NotRunning;
+            Peers = 0;
+            FiltersLeft = 0;
+            BlocksLeft = 0;
+            BtcPrice = "$0";
+            StatusText = "";
 
-			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Added))
-				.Subscribe(x =>
-				{
-					SetPeers(Nodes.Count);
-				}).DisposeWith(Disposables);
+            StatusTextAnimationLock = new AsyncLock();
 
-			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed))
-				.Subscribe(x =>
-				{
-					SetPeers(Nodes.Count);
-				}).DisposeWith(Disposables);
+            this.WhenAnyValue(x => x.Status).Subscribe(status =>
 
-			SetPeers(Nodes.Count);
+            {
+                StatusText = StatusBarStatusStringConverter.Convert(status);
+            });
 
-			Observable.FromEventPattern<int>(typeof(WalletService), nameof(WalletService.ConcurrentBlockDownloadNumberChanged))
-				.Subscribe(x =>
-				{
-					BlocksLeft = x.EventArgs;
-				}).DisposeWith(Disposables);
+            this.WhenAnyValue(x => x.StatusText).Subscribe(async status =>
+            {
+                using (await StatusTextAnimationLock.LockAsync()) // Without this lock the status get stuck once in a while.
+                {
+                    if (status.EndsWith(".")) // Then do animation.
+                    {
+                        string nextAnimation = null;
+                        if (status.EndsWith("..."))
+                        {
+                            nextAnimation = status.TrimEnd("..", StringComparison.Ordinal);
+                        }
+                        else if (status.EndsWith("."))
+                        {
+                            nextAnimation = $"{status}.";
+                        }
 
-			synchronizer.WhenAnyValue(x => x.TorStatus).Subscribe(status =>
-			{
-				SetTor(status);
-				SetPeers(Nodes.Count);
-			}).DisposeWith(Disposables);
+                        if (nextAnimation != null)
+                        {
+                            await Task.Delay(1000);
+                            if (StatusText == status) // If still the same.
+                            {
+                                StatusText = nextAnimation;
+                            }
+                        }
+                    }
+                }
+            });
 
-			synchronizer.WhenAnyValue(x => x.BackendStatus).Subscribe(_ =>
-			{
-				Backend = Synchronizer.BackendStatus;
-			}).DisposeWith(Disposables);
+            Status = StatusBarStatus.Loading;
+        }
 
-			HashChain.WhenAnyValue(x => x.HashesLeft).Subscribe(x =>
-			{
-				FiltersLeft = x;
-			}).DisposeWith(Disposables);
+        public void Initialize(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
+        {
+            Nodes = nodes;
+            Synchronizer = synchronizer;
+            HashChain = synchronizer.BitcoinStore.HashChain;
+            UseTor = Global.Config.UseTor.Value; // Don't make it dynamic, because if you change this config settings only next time will it activate.
 
-			synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Subscribe(usd =>
-			{
-				BtcPrice = $"${(long)usd}";
-			}).DisposeWith(Disposables);
+            Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Added))
+                .Subscribe(x =>
+                {
+                    SetPeers(Nodes.Count);
+                }).DisposeWith(Disposables);
 
-			Observable.FromEventPattern<bool>(synchronizer, nameof(synchronizer.ResponseArrivedIsGenSocksServFail))
-				.Subscribe(e =>
-				{
-					OnResponseArrivedIsGenSocksServFail(e.EventArgs);
-				}).DisposeWith(Disposables);
+            Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed))
+                .Subscribe(x =>
+                {
+                    SetPeers(Nodes.Count);
+                }).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.BlocksLeft).Subscribe(blocks =>
-			{
-				RefreshStatus();
-			});
+            SetPeers(Nodes.Count);
 
-			this.WhenAnyValue(x => x.FiltersLeft).Subscribe(filters =>
-			{
-				RefreshStatus();
-			});
+            Observable.FromEventPattern<int>(typeof(WalletService), nameof(WalletService.ConcurrentBlockDownloadNumberChanged))
+                .Subscribe(x =>
+                {
+                    BlocksLeft = x.EventArgs;
+                }).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.Tor).Subscribe(tor =>
-			{
-				RefreshStatus();
-			});
+            Synchronizer.WhenAnyValue(x => x.TorStatus).Subscribe(status =>
+            {
+                SetTor(status);
+                SetPeers(Nodes.Count);
+            }).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.Backend).Subscribe(backend =>
-			{
-				RefreshStatus();
-			});
+            Synchronizer.WhenAnyValue(x => x.BackendStatus).Subscribe(_ =>
+            {
+                Backend = Synchronizer.BackendStatus;
+            }).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.Peers).Subscribe(peers =>
-			{
-				RefreshStatus();
-			});
+            HashChain.WhenAnyValue(x => x.HashesLeft).Subscribe(x =>
+            {
+                FiltersLeft = x;
+            }).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.UpdateStatus).Subscribe(_ =>
-			{
-				RefreshStatus();
-			});
+            Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Subscribe(usd =>
+            {
+                BtcPrice = $"${(long)usd}";
+            }).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.Status).Subscribe(status =>
-			{
-				StatusText = StatusBarStatusStringConverter.Convert(status);
-			});
+            Observable.FromEventPattern<bool>(Synchronizer, nameof(Synchronizer.ResponseArrivedIsGenSocksServFail))
+                .Subscribe(e =>
+                {
+                    OnResponseArrivedIsGenSocksServFail(e.EventArgs);
+                }).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.StatusText).Subscribe(async status =>
-			{
-				using (await StatusTextAnimationLock.LockAsync()) // Without this lock the status get stuck once in a while.
-				{
-					if (status.EndsWith(".")) // Then do animation.
-					{
-						string nextAnimation = null;
-						if (status.EndsWith("..."))
-						{
-							nextAnimation = status.TrimEnd("..", StringComparison.Ordinal);
-						}
-						else if (status.EndsWith("."))
-						{
-							nextAnimation = $"{status}.";
-						}
+            this.WhenAnyValue(x => x.BlocksLeft).Subscribe(blocks =>
+            {
+                RefreshStatus();
+            });
 
-						if (nextAnimation != null)
-						{
-							await Task.Delay(1000);
-							if (StatusText == status) // If still the same.
-							{
-								StatusText = nextAnimation;
-							}
-						}
-					}
-				}
-			});
+            this.WhenAnyValue(x => x.FiltersLeft).Subscribe(filters =>
+            {
+                RefreshStatus();
+            });
 
-			UpdateCommand = ReactiveCommand.Create(() =>
-			{
-				try
-				{
-					IoHelpers.OpenBrowser("https://wasabiwallet.io/#download");
-				}
-				catch (Exception ex)
-				{
-					Logging.Logger.LogWarning<StatusBarViewModel>(ex);
-					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
-				}
-			}, this.WhenAnyValue(x => x.UpdateStatus).Select(x => x != UpdateStatus.Latest));
+            this.WhenAnyValue(x => x.Tor).Subscribe(tor =>
+            {
+                RefreshStatus();
+            });
 
-			updateChecker.Start(TimeSpan.FromMinutes(7),
-				() =>
-				{
-					UpdateStatus = UpdateStatus.Critical;
-					return Task.CompletedTask;
-				},
-				() =>
-				{
-					if (UpdateStatus != UpdateStatus.Critical)
-					{
-						UpdateStatus = UpdateStatus.Optional;
-					}
-					return Task.CompletedTask;
-				});
-		}
+            this.WhenAnyValue(x => x.Backend).Subscribe(backend =>
+            {
+                RefreshStatus();
+            });
 
-		public ReactiveCommand<Unit, Unit> UpdateCommand { get; }
+            this.WhenAnyValue(x => x.Peers).Subscribe(peers =>
+            {
+                RefreshStatus();
+            });
 
-		public UpdateStatus UpdateStatus
-		{
-			get => _updateStatus;
-			set
-			{
-				if (value != UpdateStatus.Latest)
-				{
-					UpdateAvailable = true;
+            this.WhenAnyValue(x => x.UpdateStatus).Subscribe(_ =>
+            {
+                RefreshStatus();
+            });
 
-					if (value == UpdateStatus.Critical)
-					{
-						CriticalUpdateAvailable = true;
-					}
-				}
+            UpdateCommand = ReactiveCommand.Create(() =>
+            {
+                try
+                {
+                    IoHelpers.OpenBrowser("https://wasabiwallet.io/#download");
+                }
+                catch (Exception ex)
+                {
+                    Logging.Logger.LogWarning<StatusBarViewModel>(ex);
+                    IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
+                }
+            }, this.WhenAnyValue(x => x.UpdateStatus).Select(x => x != UpdateStatus.Latest));
 
-				this.RaiseAndSetIfChanged(ref _updateStatus, value);
-			}
-		}
+            updateChecker.Start(TimeSpan.FromMinutes(7),
+                () =>
+                {
+                    UpdateStatus = UpdateStatus.Critical;
+                    return Task.CompletedTask;
+                },
+                () =>
+                {
+                    if (UpdateStatus != UpdateStatus.Critical)
+                    {
+                        UpdateStatus = UpdateStatus.Optional;
+                    }
+                    return Task.CompletedTask;
+                });
+        }
 
-		public bool UpdateAvailable
-		{
-			get => _updateAvailable;
-			set => this.RaiseAndSetIfChanged(ref _updateAvailable, value);
-		}
+        public ReactiveCommand<Unit, Unit> UpdateCommand { get; set; }
 
-		public bool CriticalUpdateAvailable
-		{
-			get => _criticalUpdateAvailable;
-			set => this.RaiseAndSetIfChanged(ref _criticalUpdateAvailable, value);
-		}
+        public UpdateStatus UpdateStatus
+        {
+            get => _updateStatus;
+            set
+            {
+                if (value != UpdateStatus.Latest)
+                {
+                    UpdateAvailable = true;
 
-		public BackendStatus Backend
-		{
-			get => _backend;
-			set => this.RaiseAndSetIfChanged(ref _backend, value);
-		}
+                    if (value == UpdateStatus.Critical)
+                    {
+                        CriticalUpdateAvailable = true;
+                    }
+                }
 
-		public TorStatus Tor
-		{
-			get => _tor;
-			set => this.RaiseAndSetIfChanged(ref _tor, value);
-		}
+                this.RaiseAndSetIfChanged(ref _updateStatus, value);
+            }
+        }
 
-		public int Peers
-		{
-			get => _peers;
-			set => this.RaiseAndSetIfChanged(ref _peers, value);
-		}
+        public bool UpdateAvailable
+        {
+            get => _updateAvailable;
 
-		public int FiltersLeft
-		{
-			get => _filtersLeft;
-			set => this.RaiseAndSetIfChanged(ref _filtersLeft, value);
-		}
+            set => this.RaiseAndSetIfChanged(ref _updateAvailable, value);
+        }
 
-		public int BlocksLeft
-		{
-			get => _blocksLeft;
-			set => this.RaiseAndSetIfChanged(ref _blocksLeft, value);
-		}
+        public bool CriticalUpdateAvailable
 
-		public string BtcPrice
-		{
-			get => _btcPrice;
-			set => this.RaiseAndSetIfChanged(ref _btcPrice, value);
-		}
+        {
+            get => _criticalUpdateAvailable;
+            set => this.RaiseAndSetIfChanged(ref _criticalUpdateAvailable, value);
+        }
 
-		public StatusBarStatus Status
-		{
-			get => _status;
-			set => this.RaiseAndSetIfChanged(ref _status, value);
-		}
+        public BackendStatus Backend
+        {
+            get => _backend;
+            set => this.RaiseAndSetIfChanged(ref _backend, value);
+        }
 
-		public string StatusText
-		{
-			get => _statusText;
-			set => this.RaiseAndSetIfChanged(ref _statusText, value);
-		}
+        public TorStatus Tor
+        {
+            get => _tor;
+            set => this.RaiseAndSetIfChanged(ref _tor, value);
+        }
 
-		private void OnResponseArrivedIsGenSocksServFail(bool isGenSocksServFail)
-		{
-			if (isGenSocksServFail)
-			{
-				// Is close band present?
-				if (MainWindowViewModel.Instance.ModalDialog != null)
-				{
-					// Do nothing.
-				}
-				else
-				{
-					// Show GenSocksServFail dialog on OS-es we suspect Tor is outdated.
-					var osDesc = RuntimeInformation.OSDescription;
-					if (osDesc.Contains("16.04.1-Ubuntu", StringComparison.InvariantCultureIgnoreCase)
-						|| osDesc.Contains("16.04.0-Ubuntu", StringComparison.InvariantCultureIgnoreCase))
-					{
-						MainWindowViewModel.Instance.ShowDialogAsync(new GenSocksServFailDialogViewModel()).GetAwaiter().GetResult();
-					}
-				}
-			}
-			else
-			{
-				// Is close band present?
-				if (MainWindowViewModel.Instance.ModalDialog != null)
-				{
-					// Is it GenSocksServFail dialog?
-					if (MainWindowViewModel.Instance.ModalDialog is GenSocksServFailDialogViewModel)
-					{
-						MainWindowViewModel.Instance.ModalDialog.Close(true);
-					}
-					else
-					{
-						// Do nothing.
-					}
-				}
-				else
-				{
-					// Do nothing.
-				}
-			}
-		}
+        public int Peers
+        {
+            get => _peers;
+            set => this.RaiseAndSetIfChanged(ref _peers, value);
+        }
 
-		private List<StatusBarStatus> StatusQueue { get; } = new List<StatusBarStatus>();
-		private object StatusQueueLock { get; } = new object();
+        public int FiltersLeft
+        {
+            get => _filtersLeft;
+            set => this.RaiseAndSetIfChanged(ref _filtersLeft, value);
+        }
 
-		public void TryAddStatus(StatusBarStatus status)
-		{
-			try
-			{
-				lock (StatusQueueLock)
-				{
-					// Make sure it's the last status.
-					StatusQueue.Remove(status);
-					StatusQueue.Add(status);
-					RefreshStatusNoLock();
-				}
-			}
-			catch (Exception ex)
-			{
-				Logging.Logger.LogWarning<StatusBarViewModel>(ex);
-			}
-		}
+        public int BlocksLeft
+        {
+            get => _blocksLeft;
+            set => this.RaiseAndSetIfChanged(ref _blocksLeft, value);
+        }
 
-		public void TryRemoveStatus(params StatusBarStatus[] statuses)
-		{
-			try
-			{
-				lock (StatusQueueLock)
-				{
-					foreach (StatusBarStatus status in statuses)
-					{
-						if (StatusQueue.Remove(status))
-						{
-							RefreshStatusNoLock();
-						}
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				Logging.Logger.LogWarning<StatusBarViewModel>(ex);
-			}
-		}
+        public string BtcPrice
+        {
+            get => _btcPrice;
+            set => this.RaiseAndSetIfChanged(ref _btcPrice, value);
+        }
 
-		private void RefreshStatus()
-		{
-			lock (StatusQueueLock)
-			{
-				if (!TrySetPriorityStatus())
-				{
-					SetCustomStatusOrReady();
-				}
-			}
-		}
+        public StatusBarStatus Status
+        {
+            get => _status;
+            set => this.RaiseAndSetIfChanged(ref _status, value);
+        }
 
-		private void RefreshStatusNoLock()
-		{
-			if (!TrySetPriorityStatus())
-			{
-				SetCustomStatusOrReady();
-			}
-		}
+        public string StatusText
+        {
+            get => _statusText;
 
-		private void SetCustomStatusOrReady()
-		{
-			if (StatusQueue.Any())
-			{
-				Status = StatusQueue.Last();
-			}
-			else
-			{
-				Status = StatusBarStatus.Ready;
-			}
-		}
+            set => this.RaiseAndSetIfChanged(ref _statusText, value);
+        }
 
-		private bool TrySetPriorityStatus()
-		{
-			if (UpdateStatus == UpdateStatus.Critical)
-			{
-				Status = StatusBarStatus.CriticalUpdate;
-			}
-			else if (UpdateStatus == UpdateStatus.Optional)
-			{
-				Status = StatusBarStatus.OptionalUpdate;
-			}
-			else if (Tor == TorStatus.NotRunning || Backend != BackendStatus.Connected || Peers < 1)
-			{
-				Status = StatusBarStatus.Connecting;
-			}
-			else if (FiltersLeft != 0 || BlocksLeft != 0)
-			{
-				Status = StatusBarStatus.Synchronizing;
-			}
-			else
-			{
-				return false;
-			}
+        private void OnResponseArrivedIsGenSocksServFail(bool isGenSocksServFail)
+        {
+            if (isGenSocksServFail)
+            {
+                // Is close band present?
+                if (MainWindowViewModel.Instance.ModalDialog != null)
+                {
+                    // Do nothing.
+                }
+                else
+                {
+                    // Show GenSocksServFail dialog on OS-es we suspect Tor is outdated.
+                    var osDesc = RuntimeInformation.OSDescription;
+                    if (osDesc.Contains("16.04.1-Ubuntu", StringComparison.InvariantCultureIgnoreCase)
+                        || osDesc.Contains("16.04.0-Ubuntu", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        MainWindowViewModel.Instance.ShowDialogAsync(new GenSocksServFailDialogViewModel()).GetAwaiter().GetResult();
+                    }
+                }
+            }
+            else
+            {
+                // Is close band present?
+                if (MainWindowViewModel.Instance.ModalDialog != null)
+                {
+                    // Is it GenSocksServFail dialog?
+                    if (MainWindowViewModel.Instance.ModalDialog is GenSocksServFailDialogViewModel)
+                    {
+                        MainWindowViewModel.Instance.ModalDialog.Close(true);
+                    }
+                    else
+                    {
+                        // Do nothing.
+                    }
+                }
+                else
+                {
+                    // Do nothing.
+                }
+            }
+        }
 
-			return true;
-		}
+        private List<StatusBarStatus> StatusQueue { get; } = new List<StatusBarStatus>();
 
-		private void SetPeers(int peers)
-		{
-			// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it's seem to the user that peers are connected over clearnet, while they don't.
-			Peers = Tor == TorStatus.NotRunning ? 0 : peers;
-		}
+        private object StatusQueueLock { get; } = new object();
 
-		private void SetTor(TorStatus tor)
-		{
-			// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it's seem to the user that peers are connected over clearnet, while they don't.
-			Tor = UseTor ? tor : TorStatus.TurnedOff;
-		}
+        public void TryAddStatus(StatusBarStatus status)
+        {
+            try
+            {
+                lock (StatusQueueLock)
+                {
+                    // Make sure it's the last status.
+                    StatusQueue.Remove(status);
+                    StatusQueue.Add(status);
+                    RefreshStatusNoLock();
+                }
+            }
+            catch (Exception ex)
 
-		#region IDisposable Support
+            {
+                Logging.Logger.LogWarning<StatusBarViewModel>(ex);
+            }
+        }
 
-		private volatile bool _disposedValue = false; // To detect redundant calls
+        public void TryRemoveStatus(params StatusBarStatus[] statuses)
+        {
+            try
+            {
+                lock (StatusQueueLock)
+                {
+                    foreach (StatusBarStatus status in statuses)
+                    {
+                        if (StatusQueue.Remove(status))
+                        {
+                            RefreshStatusNoLock();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.Logger.LogWarning<StatusBarViewModel>(ex);
+            }
+        }
 
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Disposables?.Dispose();
-				}
+        private void RefreshStatus()
+        {
+            lock (StatusQueueLock)
+            {
+                if (!TrySetPriorityStatus())
+                {
+                    SetCustomStatusOrReady();
+                }
+            }
+        }
 
-				_disposedValue = true;
-			}
-		}
+        private void RefreshStatusNoLock()
+        {
+            if (!TrySetPriorityStatus())
 
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
+            {
+                SetCustomStatusOrReady();
+            }
+        }
 
-		#endregion IDisposable Support
-	}
+        private void SetCustomStatusOrReady()
+
+        {
+            if (StatusQueue.Any())
+            {
+                Status = StatusQueue.Last();
+            }
+            else
+            {
+                Status = StatusBarStatus.Ready;
+            }
+        }
+
+        private bool TrySetPriorityStatus()
+        {
+            if (UpdateStatus == UpdateStatus.Critical)
+            {
+                Status = StatusBarStatus.CriticalUpdate;
+            }
+            else if (UpdateStatus == UpdateStatus.Optional)
+            {
+                Status = StatusBarStatus.OptionalUpdate;
+            }
+            else if (Tor == TorStatus.NotRunning || Backend != BackendStatus.Connected || Peers < 1)
+
+            {
+                Status = StatusBarStatus.Connecting;
+            }
+            else if (FiltersLeft != 0 || BlocksLeft != 0)
+
+            {
+                Status = StatusBarStatus.Synchronizing;
+            }
+            else
+
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private void SetPeers(int peers)
+
+        {
+            // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it's seem to the user that peers are connected over clearnet, while they don't.
+            Peers = Tor == TorStatus.NotRunning ? 0 : peers;
+        }
+
+        private void SetTor(TorStatus tor)
+
+        {
+            // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it's seem to the user that peers are connected over clearnet, while they don't.
+            Tor = UseTor ? tor : TorStatus.TurnedOff;
+        }
+
+        #region IDisposable Support
+
+        private volatile bool _disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    Disposables?.Dispose();
+                }
+
+                _disposedValue = true;
+            }
+        }
+
+        // This code added to correctly implement the disposable pattern.
+
+        public void Dispose()
+
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+        }
+
+        #endregion IDisposable Support
+    }
 }

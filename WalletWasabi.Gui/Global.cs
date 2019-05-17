@@ -125,12 +125,35 @@ namespace WalletWasabi.Gui
 			AddressManager = null;
 			TorManager = null;
 
+			#region ConfigInitialization
+
 			Config = new Config(Path.Combine(DataDir, "Config.json"));
 			await Config.LoadOrCreateDefaultFileAsync();
 			Logger.LogInfo<Config>("Config is successfully initialized.");
 
+			#endregion ConfigInitialization
+
 			BitcoinStore = new BitcoinStore();
-			await BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
+			var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
+			var hwiInitTask = HwiProcessManager.InitializeAsync(DataDir, Network);
+
+			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
+			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
+			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
+			var connectionParameters = new NodeConnectionParameters();
+
+			if (Config.UseTor.Value)
+			{
+				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+			}
+			else
+			{
+				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
+			}
+
+			UpdateChecker = new UpdateChecker(Synchronizer.WasabiClient);
+
+			#region ProcessKillSubscription
 
 			AppDomain.CurrentDomain.ProcessExit += async (s, e) => await TryDesperateDequeueAllCoinsAsync();
 			Console.CancelKeyPress += async (s, e) =>
@@ -146,10 +169,9 @@ namespace WalletWasabi.Gui
 				});
 			};
 
-			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
-			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
-			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
-			var connectionParameters = new NodeConnectionParameters();
+			#endregion ProcessKillSubscription
+
+			#region TorProcessInitialization
 
 			if (Config.UseTor.Value)
 			{
@@ -161,19 +183,14 @@ namespace WalletWasabi.Gui
 			}
 			TorManager.Start(false, DataDir);
 
-			try
-			{
-				await HwiProcessManager.InitializeAsync(DataDir, Network);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex, nameof(Global));
-			}
-
 			var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
 			TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), DataDir, fallbackRequestTestUri);
 
 			Logger.LogInfo<TorProcessManager>($"{nameof(TorProcessManager)} is initialized.");
+
+			#endregion TorProcessInitialization
+
+			#region AddressManagerInitialization
 
 			var needsToDiscoverPeers = true;
 			if (Network == Network.RegTest)
@@ -234,8 +251,36 @@ namespace WalletWasabi.Gui
 				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
 			};
 			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
+
+			#endregion AddressManagerInitialization
+
+			#region MempoolInitialization
+
 			MemPoolService = new MemPoolService();
 			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(MemPoolService));
+
+			#endregion MempoolInitialization
+
+			#region HwiProcessInitialization
+
+			try
+			{
+				await hwiInitTask;
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex, nameof(Global));
+			}
+
+			#endregion HwiProcessInitialization
+
+			#region BitcoinStoreInitialization
+
+			await bstoreInitTask;
+
+			#endregion BitcoinStoreInitialization
+
+			#region P2PInitialization
 
 			if (Network == Network.RegTest)
 			{
@@ -271,17 +316,6 @@ namespace WalletWasabi.Gui
 				RegTestMemPoolServingNode = null;
 			}
 
-			if (Config.UseTor.Value)
-			{
-				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
-			}
-			else
-			{
-				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
-			}
-
-			UpdateChecker = new UpdateChecker(Synchronizer.WasabiClient);
-
 			Nodes.Connect();
 			Logger.LogInfo("Start connecting to nodes...");
 
@@ -290,6 +324,10 @@ namespace WalletWasabi.Gui
 				RegTestMemPoolServingNode.VersionHandshake();
 				Logger.LogInfo("Start connecting to mempool serving regtest node...");
 			}
+
+			#endregion P2PInitialization
+
+			#region SynchronizerInitialization
 
 			var requestInterval = TimeSpan.FromSeconds(30);
 			if (Network == Network.RegTest)
@@ -301,6 +339,8 @@ namespace WalletWasabi.Gui
 
 			Synchronizer.Start(requestInterval, TimeSpan.FromMinutes(5), maxFiltSyncCount);
 			Logger.LogInfo("Start synchronizing filters...");
+
+			#endregion SynchronizerInitialization
 		}
 
 		private static async Task AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager addressManager)
