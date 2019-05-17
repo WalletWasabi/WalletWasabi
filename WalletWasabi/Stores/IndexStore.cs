@@ -41,7 +41,7 @@ namespace WalletWasabi.Stores
 
 			Network = Guard.NotNull(nameof(network), network);
 			var indexFilePath = Path.Combine(WorkFolderPath, IndexFileName);
-			IndexFileManager = new IoManager(indexFilePath);
+			IndexFileManager = new IoManager(indexFilePath, digestRandomIndex: -1);
 
 			StartingFilter = StartingFilters.GetStartingFilter(Network);
 			StartingHeight = StartingFilters.GetStartingHeight(Network);

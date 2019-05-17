@@ -21,6 +21,11 @@ namespace WalletWasabi.Stores
 		public string NewFilePath { get; }
 		public string DigestFilePath { get; }
 
+		/// <summary>
+		/// Use the random index of the line to create digest faster. -1 is special value, it means the last character. If null then hash whole file.
+		/// </summary>
+		private int? DigestRandomIndex { get; }
+
 		public string FileName { get; }
 		public string FileNameWithoutExtension { get; }
 		public AsyncMutex Mutex { get; }
@@ -29,8 +34,10 @@ namespace WalletWasabi.Stores
 		private const string NewExtension = ".new";
 		private const string DigestExtension = ".dig";
 
-		public IoManager(string filePath)
+		/// <param name="digestRandomIndex">Use the random index of the line to create digest faster. -1 is special value, it means the last character. If null then hash whole file.</param>
+		public IoManager(string filePath, int? digestRandomIndex = null)
 		{
+			DigestRandomIndex = digestRandomIndex;
 			OriginalFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath, trim: true);
 			OldFilePath = $"{OriginalFilePath}{OldExtension}";
 			NewFilePath = $"{OriginalFilePath}{NewExtension}";
@@ -162,8 +169,42 @@ namespace WalletWasabi.Stores
 			byte[] hash = null;
 			try
 			{
-				IEnumerable<byte[]> arrays = contents.Select(x => Encoding.ASCII.GetBytes(x));
-				byte[] bytes = ByteHelpers.Combine(arrays);
+				byte[] bytes;
+				var byteArrayBuilder = new ByteArrayBuilder();
+				if (DigestRandomIndex.HasValue)
+				{
+					foreach (var line in contents)
+					{
+						if (string.IsNullOrWhiteSpace(line))
+						{
+							byteArrayBuilder.Append(0);
+						}
+						else
+						{
+							int index;
+							if (DigestRandomIndex == -1 || DigestRandomIndex >= line.Length) // Last char.
+							{
+								index = line.Length - 1;
+							}
+							else
+							{
+								index = DigestRandomIndex.Value;
+							}
+
+							var c = line[index];
+							var b = (byte)c;
+							byteArrayBuilder.Append(b);
+						}
+					}
+
+					bytes = byteArrayBuilder.ToArray();
+				}
+				else
+				{
+					IEnumerable<byte[]> arrays = contents.Select(x => string.IsNullOrWhiteSpace(x) ? new byte[] { 0 } : Encoding.ASCII.GetBytes(x));
+					bytes = ByteHelpers.Combine(arrays);
+				}
+
 				hash = IoHelpers.GetHash(bytes);
 				if (File.Exists(DigestFilePath))
 				{
@@ -197,19 +238,6 @@ namespace WalletWasabi.Stores
 				Logger.LogInfo<IoManager>(ex);
 			}
 		}
-
-		// Can't compute hash for append.
-		//public async Task AppendAllLinesAsync(IEnumerable<string> contents, CancellationToken cancellationToken = default)
-		//{
-		//	// Make sure the NewFilePath exists.
-		//	if (TryGetSafestFileVersion(out string safestFilePath) && safestFilePath != NewFilePath)
-		//	{
-		//		File.Copy(safestFilePath, NewFilePath, overwrite: true);
-		//	}
-
-		//	await File.AppendAllLinesAsync(NewFilePath, contents, cancellationToken);
-		//	SafeMoveNewToOriginal();
-		//}
 
 		public async Task<string[]> ReadAllLinesAsync(CancellationToken cancellationToken = default)
 		{
