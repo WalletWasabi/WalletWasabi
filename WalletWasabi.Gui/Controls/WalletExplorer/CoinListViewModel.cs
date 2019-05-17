@@ -355,6 +355,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void OnOpen()
 		{
+			if (Disposables != null)
+			{
+				throw new Exception("CoinList opened before previous closed.");
+			}
+
 			Disposables = new CompositeDisposable();
 
 			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent))
