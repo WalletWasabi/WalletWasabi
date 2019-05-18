@@ -164,11 +164,11 @@ namespace WalletWasabi.Stores
 			return TryGetSafestFileVersion(out _);
 		}
 
-		public async Task WriteAllLinesAsync(IEnumerable<string> contents, CancellationToken cancellationToken = default, bool dismissNullOrEmptyContent = true)
+		public async Task WriteAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default, bool dismissNullOrEmptyContent = true)
 		{
 			if (dismissNullOrEmptyContent)
 			{
-				if (contents is null || !contents.Any())
+				if (lines is null || !lines.Any())
 				{
 					return;
 				}
@@ -181,39 +181,22 @@ namespace WalletWasabi.Stores
 				var byteArrayBuilder = new ByteArrayBuilder();
 				if (DigestRandomIndex.HasValue)
 				{
-					foreach (var line in contents)
+					foreach (var line in lines)
 					{
-						if (string.IsNullOrWhiteSpace(line))
-						{
-							byteArrayBuilder.Append(0);
-						}
-						else
-						{
-							int index;
-							if (DigestRandomIndex == -1 || DigestRandomIndex >= line.Length) // Last char.
-							{
-								index = line.Length - 1;
-							}
-							else
-							{
-								index = DigestRandomIndex.Value;
-							}
-
-							var c = line[index];
-							var b = (byte)c;
-							byteArrayBuilder.Append(b);
-						}
+						ContinueBuildHashWithRandomIndex(byteArrayBuilder, line);
 					}
-
-					bytes = byteArrayBuilder.ToArray();
 				}
 				else
 				{
-					IEnumerable<byte[]> arrays = contents.Select(x => string.IsNullOrWhiteSpace(x) ? new byte[] { 0 } : Encoding.ASCII.GetBytes(x));
-					bytes = ByteHelpers.Combine(arrays);
+					foreach (var line in lines)
+					{
+						ContinueBuildHash(byteArrayBuilder, line);
+					}
 				}
 
-				hash = IoHelpers.GetHash(bytes);
+				bytes = byteArrayBuilder.ToArray();
+
+				hash = ByteHelpers.GetHash(bytes);
 				if (File.Exists(DigestFilePath))
 				{
 					var digest = await File.ReadAllBytesAsync(DigestFilePath, cancellationToken);
@@ -231,9 +214,50 @@ namespace WalletWasabi.Stores
 
 			IoHelpers.EnsureContainingDirectoryExists(NewFilePath);
 
-			await File.WriteAllLinesAsync(NewFilePath, contents, cancellationToken);
+			await File.WriteAllLinesAsync(NewFilePath, lines, cancellationToken);
 			SafeMoveNewToOriginal();
+			await WriteOutHashAsync(hash);
+		}
 
+		private void ContinueBuildHash(ByteArrayBuilder byteArrayBuilder, string line)
+		{
+			if (string.IsNullOrWhiteSpace(line))
+			{
+				byteArrayBuilder.Append(0);
+			}
+			else
+			{
+				var b = Encoding.ASCII.GetBytes(line);
+				byteArrayBuilder.Append(b);
+			}
+		}
+
+		private void ContinueBuildHashWithRandomIndex(ByteArrayBuilder byteArrayBuilder, string line)
+		{
+			if (string.IsNullOrWhiteSpace(line))
+			{
+				byteArrayBuilder.Append(0);
+			}
+			else
+			{
+				int index;
+				if (DigestRandomIndex == -1 || DigestRandomIndex >= line.Length) // Last char.
+				{
+					index = line.Length - 1;
+				}
+				else
+				{
+					index = DigestRandomIndex.Value;
+				}
+
+				var c = line[index];
+				var b = (byte)c;
+				byteArrayBuilder.Append(b);
+			}
+		}
+
+		private async Task WriteOutHashAsync(byte[] hash)
+		{
 			try
 			{
 				IoHelpers.EnsureContainingDirectoryExists(DigestFilePath);
@@ -245,6 +269,105 @@ namespace WalletWasabi.Stores
 				Logger.LogWarning<IoManager>("Failed to create digest.");
 				Logger.LogInfo<IoManager>(ex);
 			}
+		}
+
+		public async Task AppendAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default)
+		{
+			if (lines is null || !lines.Any())
+			{
+				return;
+			}
+
+			IoHelpers.EnsureContainingDirectoryExists(NewFilePath);
+
+			byte[] hash = null;
+			byte[] bytes;
+			var byteArrayBuilder = new ByteArrayBuilder();
+
+			var linesArray = lines.ToArray();
+			var linesIndex = 0;
+			var lineCounter = 0;
+
+			using (var sr = OpenText(16384))
+			using (var fs = File.OpenWrite(NewFilePath))
+			using (var sw = new StreamWriter(fs, Encoding.ASCII))
+			{
+				sw.AutoFlush = false;
+
+				// 1. First copy.
+				while (!sr.EndOfStream)
+				{
+					var line = await sr.ReadLineAsync();
+
+					if (linesArray[linesIndex] == line) // If the line is a line we want to write, then we know that someone else have worked into the file.
+					{
+						linesIndex++;
+						continue;
+					}
+
+					await sw.WriteLineAsync(line);
+
+					lineCounter++;
+					if (lineCounter > 1000)
+					{
+						await sw.FlushAsync();
+						lineCounter = 0;
+					}
+
+					if (DigestRandomIndex.HasValue)
+					{
+						ContinueBuildHashWithRandomIndex(byteArrayBuilder, line);
+					}
+					else
+					{
+						ContinueBuildHash(byteArrayBuilder, line);
+					}
+
+					cancellationToken.ThrowIfCancellationRequested();
+				}
+
+				// 2. Then append.
+				foreach (var line in lines.Skip(linesIndex))
+				{
+					await sw.WriteLineAsync(line);
+
+					if (DigestRandomIndex.HasValue)
+					{
+						ContinueBuildHashWithRandomIndex(byteArrayBuilder, line);
+					}
+					else
+					{
+						ContinueBuildHash(byteArrayBuilder, line);
+					}
+
+					cancellationToken.ThrowIfCancellationRequested();
+				}
+
+				bytes = byteArrayBuilder.ToArray();
+
+				await sw.FlushAsync();
+			}
+
+			try
+			{
+				hash = ByteHelpers.GetHash(bytes);
+				if (File.Exists(DigestFilePath))
+				{
+					var digest = await File.ReadAllBytesAsync(DigestFilePath, cancellationToken);
+					if (ByteHelpers.CompareFastUnsafe(hash, digest))
+					{
+						return;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<IoManager>("Failed to read digest.");
+				Logger.LogInfo<IoManager>(ex);
+			}
+
+			SafeMoveNewToOriginal();
+			await WriteOutHashAsync(hash);
 		}
 
 		public async Task<string[]> ReadAllLinesAsync(CancellationToken cancellationToken = default)

@@ -342,15 +342,15 @@ namespace WalletWasabi.Tests
 				Assert.Equal(blockCount + 10, bitcoinStore.HashChain.HashCount);
 
 				// Test filter block hashes are correct.
-				var filters = (await bitcoinStore.IndexStore.GetFiltersAsync()).ToArray();
-				for (int i = 0; i < 101; i++)
-				{
-					var expectedHash = await rpc.GetBlockHashAsync(i);
-					var filter = filters[i];
-					Assert.Equal(i, filter.BlockHeight.Value);
-					Assert.Equal(expectedHash, filter.BlockHash);
-					Assert.Null(filter.Filter);
-				}
+				//var filters = (await bitcoinStore.IndexStore.GetFiltersAsync()).ToArray();
+				//for (int i = 0; i < 101; i++)
+				//{
+				//	var expectedHash = await rpc.GetBlockHashAsync(i);
+				//	var filter = filters[i];
+				//	Assert.Equal(i, filter.BlockHeight.Value);
+				//	Assert.Equal(expectedHash, filter.BlockHash);
+				//	Assert.Null(filter.Filter);
+				//}
 			}
 		}
 
@@ -388,12 +388,10 @@ namespace WalletWasabi.Tests
 					// Test initial synchronization.
 					await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), bitcoinStore);
 
-					var indexLines = (await bitcoinStore.IndexStore.GetFiltersAsync()).Select(filter => filter.ToHeightlessLine()).ToArray();
-					var lastFilter = indexLines.Last();
 					var tip = await rpc.GetBestBlockHashAsync();
-					Assert.StartsWith(tip.ToString(), indexLines.Last());
+					Assert.Equal(tip, bitcoinStore.HashChain.TipHash);
 					var tipBlock = await rpc.GetBlockHeaderAsync(tip);
-					Assert.Contains(tipBlock.HashPrevBlock.ToString(), indexLines.TakeLast(2).First());
+					Assert.Equal(tipBlock.HashPrevBlock, bitcoinStore.HashChain.GetChain().Select(x => x.hash).ToArray()[bitcoinStore.HashChain.HashCount - 2]);
 
 					var utxoPath = Backend.Global.IndexBuilderService.Bech32UtxoSetFilePath;
 					var utxoLines = await File.ReadAllTextAsync(utxoPath);
@@ -420,32 +418,32 @@ namespace WalletWasabi.Tests
 					Assert.DoesNotContain(tx4.ToString(), utxoLines);
 					Assert.DoesNotContain(tx5.ToString(), utxoLines);
 
-					indexLines = (await bitcoinStore.IndexStore.GetFiltersAsync()).Select(filter => filter.ToHeightlessLine()).ToArray();
-					Assert.DoesNotContain(tip.ToString(), indexLines);
-					Assert.DoesNotContain(tipBlock.HashPrevBlock.ToString(), indexLines);
+					var hashes = bitcoinStore.HashChain.GetChain().Select(x => x.hash).ToArray();
+					Assert.DoesNotContain(tip, hashes);
+					Assert.DoesNotContain(tipBlock.HashPrevBlock, hashes);
 
 					// Test filter block hashes are correct after fork.
-					var filters = (await bitcoinStore.IndexStore.GetFiltersAsync()).ToArray();
-					var blockCountIncludingGenesis = await rpc.GetBlockCountAsync() + 1;
-					for (int i = 0; i < blockCountIncludingGenesis; i++)
-					{
-						var expectedHash = await rpc.GetBlockHashAsync(i);
-						var filter = filters[i];
-						Assert.Equal(i, filter.BlockHeight.Value);
-						Assert.Equal(expectedHash, filter.BlockHash);
-						if (i < 101) // Later other tests may fill the filter.
-						{
-							Assert.Null(filter.Filter);
-						}
-					}
+					//var filters = (await bitcoinStore.IndexStore.GetFiltersAsync()).ToArray();
+					//var blockCountIncludingGenesis = await rpc.GetBlockCountAsync() + 1;
+					//for (int i = 0; i < blockCountIncludingGenesis; i++)
+					//{
+					//	var expectedHash = await rpc.GetBlockHashAsync(i);
+					//	var filter = filters[i];
+					//	Assert.Equal(i, filter.BlockHeight.Value);
+					//	Assert.Equal(expectedHash, filter.BlockHash);
+					//	if (i < 101) // Later other tests may fill the filter.
+					//	{
+					//		Assert.Null(filter.Filter);
+					//	}
+					//}
 
 					// Test the serialization, too.
 					tip = await rpc.GetBestBlockHashAsync();
 					var blockHash = tip;
-					for (var i = 0; i < indexLines.Length; i++)
+					for (var i = 0; i < hashes.Length; i++)
 					{
 						var block = await rpc.GetBlockHeaderAsync(blockHash);
-						Assert.Contains(blockHash.ToString(), indexLines[indexLines.Length - i - 1]);
+						Assert.Equal(blockHash, hashes[hashes.Length - i - 1]);
 						blockHash = block.HashPrevBlock;
 					}
 
@@ -464,7 +462,7 @@ namespace WalletWasabi.Tests
 			var bestHash = await Backend.Global.RpcClient.GetBestBlockHashAsync();
 
 			var times = 0;
-			while ((await bitcoinStore.IndexStore.GetFiltersAsync()).SingleOrDefault(x => x.BlockHash == bestHash) is null)
+			while (bitcoinStore.HashChain.TipHash != bestHash)
 			{
 				if (times > timeout.TotalSeconds)
 				{

@@ -28,7 +28,7 @@ namespace WalletWasabi.Stores
 
 		private FilterModel StartingFilter { get; set; }
 		private Height StartingHeight { get; set; }
-		private List<FilterModel> Index { get; set; }
+		private List<FilterModel> ImmatureFilters { get; set; }
 		private AsyncLock IndexLock { get; set; }
 
 		public event EventHandler<FilterModel> Reorged;
@@ -48,7 +48,7 @@ namespace WalletWasabi.Stores
 			StartingFilter = StartingFilters.GetStartingFilter(Network);
 			StartingHeight = StartingFilters.GetStartingHeight(Network);
 
-			Index = new List<FilterModel>();
+			ImmatureFilters = new List<FilterModel>(150);
 			HashChain = new HashChain();
 
 			IndexLock = new AsyncLock();
@@ -73,56 +73,63 @@ namespace WalletWasabi.Stores
 						await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToHeightlessLine() });
 					}
 
-					try
-					{
-						await InitializeFiltersAsync();
-					}
-					catch (FormatException)
-					{
-						// We found a corrupted entry. Stop here.
-						// Fix the currupted file.
-						var allLines = Index.Select(x => x.ToHeightlessLine());
-						var matureLines = allLines.SkipLast(100);
-						var immatureLines = allLines.TakeLast(100);
-						await MatureIndexFileManager.WriteAllLinesAsync(matureLines);
-						await ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines);
-						// Don't call InitializeFiltersAsync here!!!
-					}
+					await InitializeFiltersAsync();
 				}
 			}
 		}
 
 		private async Task InitializeFiltersAsync()
 		{
-			Height height = StartingHeight;
-
-			if (MatureIndexFileManager.Exists())
+			try
 			{
-				using (var sr = MatureIndexFileManager.OpenText(16384))
+				Height height = StartingHeight;
+
+				if (MatureIndexFileManager.Exists())
 				{
-					while (!sr.EndOfStream)
+					using (var sr = MatureIndexFileManager.OpenText(16384))
 					{
-						var line = await sr.ReadLineAsync();
-						ProcessLine(height, line);
+						while (!sr.EndOfStream)
+						{
+							var line = await sr.ReadLineAsync();
+							ProcessLine(height, line, enqueue: false);
+							height++;
+						}
+					}
+				}
+
+				if (ImmatureIndexFileManager.Exists())
+				{
+					foreach (var line in await ImmatureIndexFileManager.ReadAllLinesAsync()) // We can load ImmatureIndexFileManager to the memory, no problem.
+					{
+						ProcessLine(height, line, enqueue: true);
 						height++;
 					}
 				}
 			}
-
-			if (ImmatureIndexFileManager.Exists())
+			catch
 			{
-				foreach (var line in await ImmatureIndexFileManager.ReadAllLinesAsync()) // We can load ImmatureIndexFileManager to the memory, no problem.
-				{
-					ProcessLine(height, line);
-					height++;
-				}
+				// We found a corrupted entry. Stop here.
+				// Delete the currupted file.
+				// Don't try to autocorrect, because the internal data structures are throwing events those may confuse the consumers of those events.
+				Logger.LogError<IndexStore>("An index file got corrupted. Deleting index files...");
+				MatureIndexFileManager.DeleteMe();
+				ImmatureIndexFileManager.DeleteMe();
+				throw;
 			}
 		}
 
-		private void ProcessLine(Height height, string line)
+		private void ProcessLine(Height height, string line, bool enqueue)
 		{
 			var filter = FilterModel.FromHeightlessLine(line, height);
-			Index.Add(filter);
+			ProcessFilter(filter, enqueue);
+		}
+
+		private void ProcessFilter(FilterModel filter, bool enqueue)
+		{
+			if (enqueue)
+			{
+				ImmatureFilters.Add(filter);
+			}
 			HashChain.AddOrReplace(filter.BlockHeight.Value, filter.BlockHash);
 		}
 
@@ -157,8 +164,7 @@ namespace WalletWasabi.Stores
 			{
 				using (await IndexLock.LockAsync())
 				{
-					Index.Add(filter);
-					HashChain.AddOrReplace(filter.BlockHeight.Value, filter.BlockHash);
+					ProcessFilter(filter, enqueue: true);
 				}
 
 				NewFilter?.Invoke(this, filter); // Event always outside the lock.
@@ -173,8 +179,8 @@ namespace WalletWasabi.Stores
 
 			using (await IndexLock.LockAsync())
 			{
-				filter = Index.Last();
-				Index.RemoveLast();
+				filter = ImmatureFilters.Last();
+				ImmatureFilters.RemoveLast();
 				HashChain.RemoveLast();
 			}
 
@@ -224,10 +230,10 @@ namespace WalletWasabi.Stores
 				using (await IndexLock.LockAsync(cancel))
 				{
 					// Don't feed the cancellationToken here I always want this to finish running for safety.
-					var allLines = Index.Select(x => x.ToHeightlessLine());
-					var matureLines = allLines.SkipLast(100);
-					var immatureLines = allLines.TakeLast(100);
-					await MatureIndexFileManager.WriteAllLinesAsync(matureLines);
+					var currentImmatureLines = ImmatureFilters.Select(x => x.ToHeightlessLine());
+					var matureLinesToAppend = currentImmatureLines.SkipLast(100);
+					var immatureLines = currentImmatureLines.TakeLast(100);
+					await MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend);
 					await ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines);
 				}
 			}
@@ -243,15 +249,53 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		public async Task<IEnumerable<FilterModel>> GetFiltersAsync()
-		{
-			List<FilterModel> ret = null;
+		//public async Task<IEnumerable<FilterModel>> GetFiltersAsync()
+		//{
+		//	List<FilterModel> ret = null;
 
-			using (await IndexLock.LockAsync())
+		//	using (await IndexLock.LockAsync())
+		//	{
+		//		ret = Index.ToList();
+		//	}
+		//	return ret;
+		//}
+
+		public async Task UseLinesAsync(Action<FilterModel, CancellationToken> todo, CancellationToken cancel)
+		{
+			using (await MatureIndexFileManager.Mutex.LockAsync(cancel))
+			using (await IndexLock.LockAsync(cancel))
 			{
-				ret = Index.ToList();
+				Height height = StartingHeight;
+				var firstImmatureLine = ImmatureFilters.FirstOrDefault()?.ToHeightlessLine();
+
+				if (MatureIndexFileManager.Exists())
+				{
+					using (var sr = MatureIndexFileManager.OpenText(16384))
+					{
+						while (!sr.EndOfStream)
+						{
+							var line = await sr.ReadLineAsync();
+
+							if (firstImmatureLine == line)
+							{
+								break; // Let's use our the immature filters from here on. The content is the same, just someone else modified the file.
+							}
+
+							var filter = FilterModel.FromHeightlessLine(line, height);
+
+							todo(filter, cancel);
+							height++;
+
+							cancel.ThrowIfCancellationRequested();
+						}
+					}
+				}
+
+				foreach (FilterModel filter in ImmatureFilters)
+				{
+					todo(filter, cancel);
+				}
 			}
-			return ret;
 		}
 	}
 }

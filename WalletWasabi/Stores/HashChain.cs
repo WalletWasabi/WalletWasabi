@@ -137,5 +137,13 @@ namespace WalletWasabi.Stores
 				HashesLeft = ServerTipHeight - TipHeight;
 			}
 		}
+
+		public (int height, uint256 hash)[] GetChain()
+		{
+			lock (Lock)
+			{
+				return Chain.Select(x => (x.Key, x.Value)).ToArray();
+			}
+		}
 	}
 }

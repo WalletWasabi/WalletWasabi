@@ -95,15 +95,7 @@ namespace System.IO
 		public static byte[] GetHashFile(string filePath)
 		{
 			var bytes = File.ReadAllBytes(filePath);
-			return GetHash(bytes);
-		}
-
-		public static byte[] GetHash(byte[] bytes)
-		{
-			using (var sha = new SHA256Managed())
-			{
-				return sha.ComputeHash(bytes, 0, bytes.Length);
-			}
+			return ByteHelpers.GetHash(bytes);
 		}
 
 		public static bool CheckExpectedHash(string filePath, string sourceFolderPath)

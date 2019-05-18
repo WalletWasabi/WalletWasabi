@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 
 namespace System
 {
@@ -168,6 +169,14 @@ namespace System
 			}
 
 			return bytes;
+		}
+
+		public static byte[] GetHash(byte[] bytes)
+		{
+			using (var sha = new SHA256Managed())
+			{
+				return sha.ComputeHash(bytes, 0, bytes.Length);
+			}
 		}
 	}
 }
