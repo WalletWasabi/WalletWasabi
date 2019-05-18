@@ -428,8 +428,8 @@ namespace WalletWasabi.Tests
 					Assert.Equal(tip, filterTip.BlockHash);
 
 					// Test filter block hashes are correct after fork.
-					var filters = (await bitcoinStore.IndexStore.GetFiltersAsync(new Height(0), Height.MemPool, CancellationToken.None)).ToArray();
 					var blockCountIncludingGenesis = await rpc.GetBlockCountAsync() + 1;
+					var filters = (await bitcoinStore.IndexStore.GetFiltersAsync(new Height(0), new Height(blockCountIncludingGenesis - 1), CancellationToken.None)).ToArray();
 					for (int i = 0; i < blockCountIncludingGenesis; i++)
 					{
 						var expectedHash = await rpc.GetBlockHashAsync(i);

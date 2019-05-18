@@ -234,6 +234,10 @@ namespace WalletWasabi.Stores
 					var immatureLines = currentImmatureLines.TakeLast(100);
 					await MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend);
 					await ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines);
+					while (ImmatureFilters.Count > 100)
+					{
+						ImmatureFilters.RemoveFirst();
+					}
 				}
 			}
 			catch (Exception ex) when (ex is OperationCanceledException
@@ -262,7 +266,7 @@ namespace WalletWasabi.Stores
 				{
 					ret = new List<FilterModel>();
 					Height height = StartingHeight;
-					var firstImmatureLine = ImmatureFilters.FirstOrDefault()?.ToHeightlessLine();
+					var firstImmatureHeight = ImmatureFilters.FirstOrDefault()?.BlockHeight;
 
 					using (await MatureIndexFileManager.Mutex.LockAsync(cancel))
 					{
@@ -274,7 +278,7 @@ namespace WalletWasabi.Stores
 								{
 									var line = await sr.ReadLineAsync();
 
-									if (firstImmatureLine == line)
+									if (firstImmatureHeight == height)
 									{
 										break; // Let's use our the immature filters from here on. The content is the same, just someone else modified the file.
 									}
@@ -310,7 +314,7 @@ namespace WalletWasabi.Stores
 			using (await IndexLock.LockAsync(cancel))
 			{
 				Height height = StartingHeight;
-				var firstImmatureLine = ImmatureFilters.FirstOrDefault()?.ToHeightlessLine();
+				var firstImmatureHeight = ImmatureFilters.FirstOrDefault()?.BlockHeight;
 
 				if (MatureIndexFileManager.Exists())
 				{
@@ -320,7 +324,7 @@ namespace WalletWasabi.Stores
 						{
 							var line = await sr.ReadLineAsync();
 
-							if (firstImmatureLine == line)
+							if (firstImmatureHeight == height)
 							{
 								break; // Let's use our the immature filters from here on. The content is the same, just someone else modified the file.
 							}
