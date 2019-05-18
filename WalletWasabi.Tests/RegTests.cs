@@ -342,15 +342,15 @@ namespace WalletWasabi.Tests
 				Assert.Equal(blockCount + 10, bitcoinStore.HashChain.HashCount);
 
 				// Test filter block hashes are correct.
-				//var filters = (await bitcoinStore.IndexStore.GetFiltersAsync()).ToArray();
-				//for (int i = 0; i < 101; i++)
-				//{
-				//	var expectedHash = await rpc.GetBlockHashAsync(i);
-				//	var filter = filters[i];
-				//	Assert.Equal(i, filter.BlockHeight.Value);
-				//	Assert.Equal(expectedHash, filter.BlockHash);
-				//	Assert.Null(filter.Filter);
-				//}
+				var filters = (await bitcoinStore.IndexStore.GetFiltersAsync(new Height(0), Height.MemPool, CancellationToken.None)).ToArray();
+				for (int i = 0; i < 101; i++)
+				{
+					var expectedHash = await rpc.GetBlockHashAsync(i);
+					var filter = filters[i];
+					Assert.Equal(i, filter.BlockHeight.Value);
+					Assert.Equal(expectedHash, filter.BlockHash);
+					Assert.Null(filter.Filter);
+				}
 			}
 		}
 
@@ -422,20 +422,25 @@ namespace WalletWasabi.Tests
 					Assert.DoesNotContain(tip, hashes);
 					Assert.DoesNotContain(tipBlock.HashPrevBlock, hashes);
 
+					tip = await rpc.GetBestBlockHashAsync();
+					Assert.Equal(tip, bitcoinStore.HashChain.TipHash);
+					var filterTip = (await bitcoinStore.IndexStore.GetFiltersAsync(new Height(0), Height.MemPool, CancellationToken.None)).Last();
+					Assert.Equal(tip, filterTip.BlockHash);
+
 					// Test filter block hashes are correct after fork.
-					//var filters = (await bitcoinStore.IndexStore.GetFiltersAsync()).ToArray();
-					//var blockCountIncludingGenesis = await rpc.GetBlockCountAsync() + 1;
-					//for (int i = 0; i < blockCountIncludingGenesis; i++)
-					//{
-					//	var expectedHash = await rpc.GetBlockHashAsync(i);
-					//	var filter = filters[i];
-					//	Assert.Equal(i, filter.BlockHeight.Value);
-					//	Assert.Equal(expectedHash, filter.BlockHash);
-					//	if (i < 101) // Later other tests may fill the filter.
-					//	{
-					//		Assert.Null(filter.Filter);
-					//	}
-					//}
+					var filters = (await bitcoinStore.IndexStore.GetFiltersAsync(new Height(0), Height.MemPool, CancellationToken.None)).ToArray();
+					var blockCountIncludingGenesis = await rpc.GetBlockCountAsync() + 1;
+					for (int i = 0; i < blockCountIncludingGenesis; i++)
+					{
+						var expectedHash = await rpc.GetBlockHashAsync(i);
+						var filter = filters[i];
+						Assert.Equal(i, filter.BlockHeight.Value);
+						Assert.Equal(expectedHash, filter.BlockHash);
+						if (i < 101) // Later other tests may fill the filter.
+						{
+							Assert.Null(filter.Filter);
+						}
+					}
 
 					// Test the serialization, too.
 					tip = await rpc.GetBestBlockHashAsync();

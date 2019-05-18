@@ -277,7 +277,7 @@ namespace WalletWasabi.Services
 				}
 
 				// Go through the filters and que to download the matches.
-				await BitcoinStore.IndexStore.UseLinesAsync(async (filterModel, c) =>
+				await BitcoinStore.IndexStore.UseFilterModelsAsync(async (filterModel, c) =>
 				{
 					if (filterModel.Filter != null && filterModel.BlockHeight > bestKeyManagerHeight) // Filter can be null if there is no bech32 tx.
 					{

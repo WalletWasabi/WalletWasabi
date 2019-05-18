@@ -22,7 +22,7 @@ namespace WalletWasabi.Tests
 
 			var dir = Path.Combine(Global.DataDir, nameof(IndexStoreTestsAsync));
 			var network = Network.Main;
-			await indexStore.InitializeAsync(dir, network);
+			await indexStore.InitializeAsync(dir, network, new HashChain());
 		}
 
 		[Fact]

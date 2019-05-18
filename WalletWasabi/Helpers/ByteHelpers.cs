@@ -170,13 +170,5 @@ namespace System
 
 			return bytes;
 		}
-
-		public static byte[] GetHash(byte[] bytes)
-		{
-			using (var sha = new SHA256Managed())
-			{
-				return sha.ComputeHash(bytes, 0, bytes.Length);
-			}
-		}
 	}
 }

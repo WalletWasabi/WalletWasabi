@@ -44,6 +44,7 @@ namespace WalletWasabi.Stores
 			DigestFilePath = $"{OriginalFilePath}{DigestExtension}";
 
 			FileName = Path.GetFileName(OriginalFilePath);
+			var shortHash = HashHelpers.GenerateSha256Hash(OriginalFilePath).Take(7);
 			FileNameWithoutExtension = Path.GetFileNameWithoutExtension(OriginalFilePath);
 
 			// https://docs.microsoft.com/en-us/dotnet/api/system.threading.mutex?view=netframework-4.8
@@ -55,7 +56,7 @@ namespace WalletWasabi.Stores
 			// Within a terminal server session, two mutexes whose names differ only by their prefixes are separate mutexes,
 			// and both are visible to all processes in the terminal server session.
 			// That is, the prefix names "Global\" and "Local\" describe the scope of the mutex name relative to terminal server sessions, not relative to processes.
-			Mutex = new AsyncMutex(FileNameWithoutExtension);
+			Mutex = new AsyncMutex($"{FileNameWithoutExtension}-{shortHash}");
 		}
 
 		#region IoOperations
@@ -196,7 +197,7 @@ namespace WalletWasabi.Stores
 
 				bytes = byteArrayBuilder.ToArray();
 
-				hash = ByteHelpers.GetHash(bytes);
+				hash = HashHelpers.GenerateSha256Hash(bytes);
 				if (File.Exists(DigestFilePath))
 				{
 					var digest = await File.ReadAllBytesAsync(DigestFilePath, cancellationToken);
@@ -350,7 +351,7 @@ namespace WalletWasabi.Stores
 
 			try
 			{
-				hash = ByteHelpers.GetHash(bytes);
+				hash = HashHelpers.GenerateSha256Hash(bytes);
 				if (File.Exists(DigestFilePath))
 				{
 					var digest = await File.ReadAllBytesAsync(DigestFilePath, cancellationToken);

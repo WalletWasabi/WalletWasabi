@@ -29,8 +29,8 @@ namespace WalletWasabi.Stores
 
 			IndexStore = new IndexStore();
 			var indexStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString());
-			await IndexStore.InitializeAsync(indexStoreFolderPath, Network);
-			HashChain = IndexStore.HashChain;
+			HashChain = new HashChain();
+			await IndexStore.InitializeAsync(indexStoreFolderPath, Network, HashChain);
 		}
 	}
 }

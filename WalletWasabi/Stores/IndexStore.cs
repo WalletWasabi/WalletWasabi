@@ -35,11 +35,11 @@ namespace WalletWasabi.Stores
 
 		public event EventHandler<FilterModel> NewFilter;
 
-		public async Task InitializeAsync(string workFolderPath, Network network)
+		public async Task InitializeAsync(string workFolderPath, Network network, HashChain hashChain)
 		{
 			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-
 			Network = Guard.NotNull(nameof(network), network);
+			HashChain = Guard.NotNull(nameof(hashChain), hashChain);
 			var indexFilePath = Path.Combine(WorkFolderPath, "MatureIndex.dat");
 			MatureIndexFileManager = new IoManager(indexFilePath, digestRandomIndex: -1);
 			var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
@@ -49,7 +49,6 @@ namespace WalletWasabi.Stores
 			StartingHeight = StartingFilters.GetStartingHeight(Network);
 
 			ImmatureFilters = new List<FilterModel>(150);
-			HashChain = new HashChain();
 
 			IndexLock = new AsyncLock();
 
@@ -249,18 +248,63 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		//public async Task<IEnumerable<FilterModel>> GetFiltersAsync()
-		//{
-		//	List<FilterModel> ret = null;
+		public async Task<IEnumerable<FilterModel>> GetFiltersAsync(Height from, Height to, CancellationToken cancel)
+		{
+			List<FilterModel> ret = null;
 
-		//	using (await IndexLock.LockAsync())
-		//	{
-		//		ret = Index.ToList();
-		//	}
-		//	return ret;
-		//}
+			using (await IndexLock.LockAsync(cancel))
+			{
+				if (ImmatureFilters.Any(x => x.BlockHeight == from))
+				{
+					ret = ImmatureFilters.Where(x => x.BlockHeight >= from && x.BlockHeight <= to).ToList();
+				}
+				else
+				{
+					ret = new List<FilterModel>();
+					Height height = StartingHeight;
+					var firstImmatureLine = ImmatureFilters.FirstOrDefault()?.ToHeightlessLine();
 
-		public async Task UseLinesAsync(Action<FilterModel, CancellationToken> todo, CancellationToken cancel)
+					using (await MatureIndexFileManager.Mutex.LockAsync(cancel))
+					{
+						if (MatureIndexFileManager.Exists())
+						{
+							using (var sr = MatureIndexFileManager.OpenText(16384))
+							{
+								while (!sr.EndOfStream)
+								{
+									var line = await sr.ReadLineAsync();
+
+									if (firstImmatureLine == line)
+									{
+										break; // Let's use our the immature filters from here on. The content is the same, just someone else modified the file.
+									}
+
+									var filter = FilterModel.FromHeightlessLine(line, height);
+
+									if (filter.BlockHeight >= from && filter.BlockHeight <= to)
+									{
+										ret.Add(filter);
+									}
+
+									height++;
+
+									cancel.ThrowIfCancellationRequested();
+								}
+							}
+						}
+
+						foreach (FilterModel filter in ImmatureFilters)
+						{
+							ret.Add(filter);
+						}
+					}
+				}
+			}
+
+			return ret;
+		}
+
+		public async Task UseFilterModelsAsync(Action<FilterModel, CancellationToken> todo, CancellationToken cancel)
 		{
 			using (await MatureIndexFileManager.Mutex.LockAsync(cancel))
 			using (await IndexLock.LockAsync(cancel))
