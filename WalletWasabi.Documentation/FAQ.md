@@ -3,15 +3,6 @@ By [6102bitcoin](https://twitter.com/6102bitcoin)
 
 Note: Many of these Q&A have been copied from real users, see footer for acknowledgements. 
 
-# Index
-- Pre-Install
-- Install
-- Pre-Mix
-- Mixing
-- Post-Mix
-- Meta
-- Acknowledgements
-
 # Pre-Install
 
 ### Who is behind Wasabi?
@@ -34,7 +25,7 @@ You can turn off Tor in the Settings. Note that in this case you are still priva
 
 ### My wallet can't send to Bech32 addresses - what wallets can I use instead? 
 
-Wasabi generates Bech32 addresses only. These addresses start with the characters bc1... Some wallets/exchanges don't yet support this type of address and my give an error message (e.g. "unknown bitcoin address"). The solution is to manage your funds with a wallet which does support Bech32, [see list](https://en.bitcoin.it/wiki/Bech32_adoption).
+Wasabi generates Bech32 addresses only, also known as bc1 addresses or native SegWit addresses. These addresses start with the characters `bc1...` Some wallets/exchanges don't yet support this type of address and may give an error message (e.g. "unknown bitcoin address"). The solution is to manage your funds with a wallet which does support Bech32, [see list](https://en.bitcoin.it/wiki/Bech32_adoption).
 
 Be careful, if you send all your coins from an old wallet to a new wallet (from the table above) in one transaction then you will merge all your coins which is bad for privacy - instead, **send the coins individually** or if possible **import the seed in the new wallet**.
 
@@ -66,17 +57,21 @@ Your Wasabi software has limited information on what the anonymity set should be
 
 ### How Do I change the default number of mixing rounds (the Anonymity Set)?
 
-In the Wallet GUI, go to File>Open>Config and in the last 4 lines you see:
-`"MixUntilAnonymitySet": 50,
+In the Wallet GUI, go to `File`>`Open`>`Config File` and in the last 4 lines you see:
+
+```json
+"MixUntilAnonymitySet": 50,
 "PrivacyLevelSome": 2,
 "PrivacyLevelFine": 21,
-"PrivacyLevelStrong": 50`
-You can change the three values of the desired anon set of the yellow, green and checkmark shield button in the GUI. The `MixUntilAnonymitySet` is the last selected value from previous use. More is better, (arguably only up to a point). Remember that you pay a [fee](https://github.com/6102bitcoin/FAQ/blob/master/wasabi.md#what-are-the-fees) proportional to the Anonymity Set. [See more here](https://youtu.be/gWo2RAkIVrE?t=191).
+"PrivacyLevelStrong": 50
+```
+
+You can change the three `PrivacyLevelX` values of the desired anon set of the yellow, green and checkmark shield button in the GUI. The `MixUntilAnonymitySet` is the last selected value from previous use. Remember that you pay a [fee](https://github.com/6102bitcoin/FAQ/blob/master/wasabi.md#what-are-the-fees) proportional to the Anonymity Set. [See more here](https://youtu.be/gWo2RAkIVrE?t=191).
 
 ### Can I mix more than the round's minimum? ###
 
-Yes. 
-In a round with a ~0.1 BTC minimum, you could mix ~ 0.3 BTC and get a ~0.1 BTC output & a ~ 0.2 BTC output.
+Yes.  
+In a round with a ~0.1 BTC minimum, you could mix ~0.3 BTC and get a ~0.1 BTC output & a ~ 0.2 BTC output.
 Similarly, with a 0.7 BTC input you would expect the following outputs: ~0.1, ~0.2, ~0.4 BTC. The possible values of equal output that can be created are 0.1 x 2^n where is a positive integer (or zero).  [See more here](https://youtu.be/PKtxzSLPWFU) and [here](https://youtu.be/3Ezru07J674).
 
 ### How do I connect my own full node to Wasabi?
@@ -86,11 +81,11 @@ When your full node is on the same hardware [computer, laptop] as your Wasabi wa
 
 ### How do I upgrade Wasabi?
 
-You can download the software build for the different operating systems on the main [website](https://wasabiwallet.io) or better over [tor](http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion). Make sure you also download the signatures of the build and verify them for [Adam Ficsor's public key.](https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt) For step by step instructions, follow [this guie](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/InstallInstructions.md) or [see this video](https://youtu.be/DUc9A76rwX4).
+You can download the software build for the different operating systems on the main [website](https://wasabiwallet.io) or better over [Tor](http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion). Make sure you also download the signatures of the build and verify them for [Adam Ficsor's public key.](https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt) For step by step instructions, follow [this guie](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/InstallInstructions.md) or [see this video](https://youtu.be/DUc9A76rwX4).
 
 ### Why is the minimum mixing amount a weird number?
 
-The output value changes each round to ensure that you can queue a coin and have it remix (mix over and over again - increasing the anonymity set, improving privacy). As a result the round mixing amount will often be a specific number which generally decreases as the rounds proceed, with a reset once a lower bound is reached. 
+The output value changes each round to ensure that you can enqueue a coin and have it remix (mix over and over again - increasing the anonymity set, improving privacy). As a result the round mixing amount will often be a specific number which generally decreases as the rounds proceed, with a reset once a lower bound is reached. 
 
 # Post-Mix
 
@@ -116,7 +111,7 @@ You can however manage your hardware wallet with the Wasabi interface. Alternati
 
 ### How can I set up my hardware wallet with Wasabi properly?
 
-You can use popular hardware wallets **with Wasabi directly** including Coldcard, Trezor and Ledger devices. Simply plug in the device, and select `Hardware Wallet` in the starting page of Wasabi. You will be able to send and receive bitcoin, but you won't be able to coinjoin the funds directly. For this, the private key needs to be hot in Wasabi. You can also import and export PSBT over SD card to communicate with your ColdCard Wallet.
+You can use popular hardware wallets **with Wasabi directly** including Coldcard, Trezor and Ledger devices. Plug in the device, and select `Hardware Wallet` in the starting page of Wasabi. You will be able to send and receive bitcoin, but you won't be able to coinjoin the funds directly. For this, the private key needs to be hot in Wasabi. You can also import and export PSBT over SD card to communicate with your ColdCard Wallet.
 
 ### Will I have issues spending my mixed coins? 
 
@@ -127,9 +122,9 @@ Not at the moment, if Wasabi and other CoinJoin tools are used by enough people 
 There are no hard and fast rules for what to do with the change. It is important to note that the change may be linked to your identity and should be treated as a kind of toxic waste (handled with great care).
 
 **Warning**
-You want to avoid mixing change coins where possible. If you mix change you will **decrease your privacy** because the transactions that created the change will now be linked. Note that this is also true if you mix your change with a mixed coin. 
+You want to avoid mixing change coins where possible. If you mix change you will **decrease your privacy** because the transactions that created the change will now be linked. Note that this is also true if you mix your change with a mixed coin. If you still decide to do these, note that mass deanonymization of changes are [probably computationally infeasible](https://www.comsys.rwth-aachen.de/fileadmin/papers/2017/2017-maurer-trustcom-coinjoin.pdf), but targeted deanonymization will always be possible.
 
-It is very important that you don't send different coins to the same receiving address (even if performed as separate transactions) as this will also link the coins together, damaging your privacy.
+It is also important that you don't send different coins to the same receiving address (even if performed as separate transactions) as this will also link the coins together, damaging your privacy.
 
 **Your Options**
 - If you don't care about linking the history of the coins because they are all from the same source then you could combine them in a mix (que all the change from the same source until you reach the minimum input required to mix, currently ~ 0.1 BTC).  
@@ -143,13 +138,17 @@ It is very important that you don't send different coins to the same receiving a
 
 ### Does Wasabi have a warrant canary?
 
-The nature of Wasabi is that you shouldn't need to trust the devs or the wasabi coordinating server, as you can verify that the code does leak information to anyone. The dev's have gone to great lengths in an attempt to ensure that the coordinator can't steal funds or harvest information (for example, the outputs sent from your wasabi wallet are blinded, meaning that even the wasabi server can't link the outputs to the inputs). 
+The nature of Wasabi is that you shouldn't need to trust the devs or the wasabi coordinating server, as you can verify that the code does leak information to anyone. The dev's have gone to great lengths in an attempt to ensure that the coordinator can't steal funds nor harvest information (for example, the outputs sent from your wasabi wallet are blinded, meaning that even the wasabi server can't link the outputs to the inputs). 
 
 The only known possible 'malicious' actions that the server *could* perform are two sides of the same coin;
 - blacklisted UTXO's
 Though this would not affect the users who are able to successfully mix with other 'honest/real' peers. 
 - Targeted Sybil Attack 
 The follow-up concern is the inverse of the above. It is possible that the server could *only* include one 'honest/real' coin in the mix and supply the other coins themselves. This would give a false sense of security, **but it would not worsen the existing privacy of the coin**. It would also be noticable to all users excluding the user being targeted as their coins would not be mixed. It has been argued that this 'attack' would be very costly in terms of fees because the number of coins being mixed is verifiable. Though it is true that fees would have to be paid to zkSNACKs every round this does not matter if it is zkSNACKs that is acting maliciously (as they get the funds back). Typical rounds currently have <100 people per mix, with the minimum input being ~0.1 BTC with a fee of 0.003% per anonymity set. Taking the 'worst case' (100 people, each mixing 0.1 BTC) gives 0.03 BTC per round. This is not prohibitive and is thus a valid concern. That said, if multiple chain-analysis companies attempt to flood the zkSNACKs mix (to decrease the true anonymity set) they will hinder each other's efforts (unless they are cooperating). See [here](https://github.com/nopara73/ZeroLink/#e-sybil-attack) for more info.
+
+### Where can I learn more about Wasabi?
+
+User created content on Wasabi can be found [in our Dojo](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Community/Dojo.md).
 
 # Errors
 
