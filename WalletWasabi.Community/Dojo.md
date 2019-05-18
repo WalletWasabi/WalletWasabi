@@ -48,8 +48,9 @@ You can only be promoted by someone two belts above you. Consequently you can pr
 | canalfixe        | [Twitter][25]               | [Video: How to anonymize your Bitcoin with Wasabi wallet][26] | 2019-01: white belt by nopara73 |
 | 402PaymentReq    | [Twitter][27]               | [In-Depth, Funny And Addictive Wasabi Video Series][28] | 2019-01: white belt by Max Hillebrand |
 | Transisto        | [GitHub][31]                | [Extensive Wasabi Testing][32]           | 2019-02: white belt by nopara73 |
-| Matt Odell    | [Twitter][38]               | [Interview  with Nopara][39] and starting [#WasabiWednesday][40]| 2019-04: white belt by Max Hillebrand |
-| Marty Bent    | [Twitter][41]               | [Interview  with Nopara][39]| 2019-04: white belt by Max Hillebrand |
+| Matt Odell       | [Twitter][38]               | [Interview  with Nopara][39] and starting [#WasabiWednesday][40]| 2019-04: white belt by Max Hillebrand |
+| Marty Bent       | [Twitter][41]               | [Interview  with Nopara][39]| 2019-04: white belt by Max Hillebrand        |
+| 6102bitcoin      | [Twitter][42]               | [Created FAQ][43]| 2019-05: white belt by nopara73                         |
 
 [1]: https://twitter.com/NicolasDorier/
 [2]: https://github.com/NicolasDorier/
@@ -90,3 +91,5 @@ You can only be promoted by someone two belts above you. Consequently you can pr
 [39]: https://anchor.fm/tales-from-the-crypt/episodes/Rabbit-Hole-Recap-Week-of-2019-03-11-e3f6ef
 [40]: https://twitter.com/matt_odell/status/1098280232308654080?s=20
 [41]: https://twitter.com/martybent
+[42]: https://twitter.com/6102bitcoin
+[43]: https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/FAQ.md
