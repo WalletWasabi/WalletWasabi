@@ -1,4 +1,6 @@
 using Avalonia.Threading;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
 using System;
@@ -54,11 +56,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _amountToolTip;
 		private bool _isBusy;
 		private bool _isHardwareBusy;
-		private string _warningMessage;
-		private string _successMessage;
-		private const string BuildTransactionButtonTextString = "Send Transaction";
+		private const string SendTransactionButtonTextString = "Send Transaction";
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
-		private const string BuildingTransactionButtonTextString = "Sending Transaction...";
+		private const string SendingTransactionButtonTextString = "Sending Transaction...";
+		private const string BuildTransactionButtonTextString = "Build Transaction";
+		private const string BuildingTransactionButtonTextString = "Building Transaction...";
+
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private FeeDisplayFormat _feeDisplayFormat;
@@ -75,20 +78,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public SendTabViewModel(WalletViewModel walletViewModel)
-			: base("Send", walletViewModel)
+		public SendTabViewModel(WalletViewModel walletViewModel, bool isTransactionBuilder = false)
+			: base(isTransactionBuilder ? "Build Transaction" : "Send", walletViewModel)
 		{
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 			Label = "";
 			AllSelectedAmount = Money.Zero;
 			UsdExchangeRate = Global.Synchronizer.UsdExchangeRate;
+			IsTransactionBuilder = isTransactionBuilder;
 			SetAmountWatermarkAndToolTip(Money.Zero);
 
 			CoinList = new CoinListViewModel();
 			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged)).Subscribe(_ => SetFeesAndTexts());
 			Observable.FromEventPattern(CoinList, nameof(CoinList.DequeueCoinsPressed)).Subscribe(_ => OnCoinsListDequeueCoinsPressedAsync());
 
-			BuildTransactionButtonText = BuildTransactionButtonTextString;
+			BuildTransactionButtonText = IsTransactionBuilder ? BuildTransactionButtonTextString : SendTransactionButtonTextString;
 
 			ResetMax();
 			SetFeeTargetLimits();
@@ -194,13 +198,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			BuildTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				const string buildingTransactionStatusText = "Building transaction...";
-				const string signingTransactionStatusText = "Signing transaction...";
-				const string broadcastingTransactionStatusText = "Broadcasting transaction...";
 				try
 				{
 					IsBusy = true;
-					MainWindowViewModel.Instance.StatusBar.AddStatus(buildingTransactionStatusText);
+					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BuildingTransaction);
 
 					Password = Guard.Correct(Password);
 					Label = Label.Trim(',', ' ').Trim();
@@ -249,10 +250,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					var label = Label;
 					var operation = new WalletService.Operation(script, amount, label);
 
-					const string dequeuingSelectedCoinsStatusText = "Dequeueing selected coins...";
 					try
 					{
-						MainWindowViewModel.Instance.StatusBar.AddStatus(dequeuingSelectedCoinsStatusText);
+						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.DequeuingSelectedCoins);
 						TxoRef[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => x.Model.GetTxoRef()).ToArray();
 						if (toDequeue != null && toDequeue.Any())
 						{
@@ -266,23 +266,37 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					finally
 					{
-						MainWindowViewModel.Instance.StatusBar.RemoveStatus(dequeuingSelectedCoinsStatusText);
+						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.DequeuingSelectedCoins);
 					}
 
-					BuildTransactionResult result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, FeeTarget, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
+					var result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, FeeTarget, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 
-					MainWindowViewModel.Instance.StatusBar.AddStatus(signingTransactionStatusText);
+					if (IsTransactionBuilder)
+					{
+						var txviewer = IoC.Get<IShell>().Documents?.OfType<TransactionViewerViewModel>()?.FirstOrDefault(x => x.Wallet.Id == Wallet.Id);
+						if (txviewer is null)
+						{
+							txviewer = new TransactionViewerViewModel(Wallet);
+							IoC.Get<IShell>().AddDocument(txviewer);
+						}
+						IoC.Get<IShell>().Select(txviewer);
+
+						txviewer.Update(result);
+
+						TryResetInputsOnSuccess("Transaction is successfully built!");
+						return;
+					}
+
+					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.SigningTransaction);
 					SmartTransaction signedTransaction = result.Transaction;
 
 					if (IsHardwareWallet && !result.Signed) // If hardware but still has a privkey then it's password, then meh.
 					{
-						const string connectingToHardwareWalletStatusText = "Connecting to hardware wallet...";
-						const string acquiringSignatureFromHardwareWalletStatusText = "Acquiring signature from hardware wallet...";
 						PSBT signedPsbt = null;
 						try
 						{
 							IsHardwareBusy = true;
-							MainWindowViewModel.Instance.StatusBar.AddStatus(connectingToHardwareWalletStatusText);
+							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.ConnectingToHardwareWallet);
 							// If we have no hardware wallet info then try refresh it. If we failed, then tha's a problem.
 							if (KeyManager.HardwareWalletInfo is null && !await TryRefreshHardwareWalletInfoAsync(KeyManager))
 							{
@@ -290,14 +304,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 								return;
 							}
 
-							MainWindowViewModel.Instance.StatusBar.AddStatus(acquiringSignatureFromHardwareWalletStatusText);
+							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.AcquiringSignatureFromHardwareWallet);
 							signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
 						}
 						catch (IOException ex) when (ex.Message.Contains("device not found", StringComparison.OrdinalIgnoreCase)
 													|| ex.Message.Contains("Invalid status 6f04", StringComparison.OrdinalIgnoreCase) // It comes when device asleep too.
 													|| ex.Message.Contains("Device is asleep", StringComparison.OrdinalIgnoreCase))
 						{
-							MainWindowViewModel.Instance.StatusBar.AddStatus(connectingToHardwareWalletStatusText);
+							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.ConnectingToHardwareWallet);
 							// The user may changed USB port. Try again with new enumeration.
 							if (!await TryRefreshHardwareWalletInfoAsync(KeyManager))
 							{
@@ -305,27 +319,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 								return;
 							}
 
-							MainWindowViewModel.Instance.StatusBar.AddStatus(acquiringSignatureFromHardwareWalletStatusText);
+							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.AcquiringSignatureFromHardwareWallet);
 							signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
 						}
 						finally
 						{
-							MainWindowViewModel.Instance.StatusBar.RemoveStatus(connectingToHardwareWalletStatusText, acquiringSignatureFromHardwareWalletStatusText);
+							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.ConnectingToHardwareWallet, StatusBarStatus.AcquiringSignatureFromHardwareWallet);
 							IsHardwareBusy = false;
 						}
 
 						signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction.Height);
 					}
 
-					MainWindowViewModel.Instance.StatusBar.AddStatus(broadcastingTransactionStatusText);
+					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
 					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(signedTransaction));
 
-					ResetMax();
-					Address = "";
-					Label = "";
-					Password = "";
-
-					SetSuccessMessage("Transaction is successfully sent!");
+					TryResetInputsOnSuccess("Transaction is successfully sent!");
 				}
 				catch (InsufficientBalanceException ex)
 				{
@@ -338,7 +347,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				finally
 				{
-					MainWindowViewModel.Instance.StatusBar.RemoveStatus(buildingTransactionStatusText, signingTransactionStatusText, broadcastingTransactionStatusText);
+					MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.BuildingTransaction, StatusBarStatus.SigningTransaction, StatusBarStatus.BroadcastingTransaction);
 					IsBusy = false;
 				}
 			},
@@ -367,17 +376,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetSendText()
 		{
+			if (IsTransactionBuilder)
+			{
+				BuildTransactionButtonText = IsBusy ? BuildingTransactionButtonTextString : BuildTransactionButtonTextString;
+				return;
+			}
+
 			if (IsHardwareBusy)
 			{
 				BuildTransactionButtonText = WaitingForHardwareWalletButtonTextString;
 			}
 			else if (IsBusy)
 			{
-				BuildTransactionButtonText = BuildingTransactionButtonTextString;
+				BuildTransactionButtonText = SendingTransactionButtonTextString;
 			}
 			else
 			{
-				BuildTransactionButtonText = BuildTransactionButtonTextString;
+				BuildTransactionButtonText = SendTransactionButtonTextString;
 			}
 		}
 
@@ -603,36 +618,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private void SetWarningMessage(string message)
-		{
-			SuccessMessage = "";
-			WarningMessage = message;
-
-			Dispatcher.UIThread.PostLogException(async () =>
-			{
-				await Task.Delay(7000);
-				if (WarningMessage == message)
-				{
-					WarningMessage = "";
-				}
-			});
-		}
-
-		private void SetSuccessMessage(string message)
-		{
-			SuccessMessage = message;
-			WarningMessage = "";
-
-			Dispatcher.UIThread.PostLogException(async () =>
-			{
-				await Task.Delay(7000);
-				if (SuccessMessage == message)
-				{
-					SuccessMessage = "";
-				}
-			});
-		}
-
 		private void SetMax()
 		{
 			if (IsMax)
@@ -661,6 +646,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			LabelToolTip = "Start labelling today and your privacy will thank you tomorrow!";
 		}
 
+		private void TryResetInputsOnSuccess(string successMessage)
+		{
+			try
+			{
+				ResetMax();
+				Address = "";
+				Label = "";
+				Password = "";
+
+				SetSuccessMessage(successMessage);
+			}
+			catch (Exception ex)
+			{
+				Logging.Logger.LogInfo<SendTabViewModel>(ex);
+			}
+		}
+
 		public CoinListViewModel CoinList { get; }
 
 		private async void OnCoinsListDequeueCoinsPressedAsync()
@@ -683,12 +685,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private async Task DoDequeueAsync(IEnumerable<CoinViewModel> selectedCoins)
 		{
-			WarningMessage = "";
-
 			if (!selectedCoins.Any())
 			{
 				SetWarningMessage("No coins are selected to dequeue.");
 				return;
+			}
+			else
+			{
+				SetWarningMessage("");
 			}
 
 			try
@@ -925,18 +929,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _labelToolTip, value);
 		}
 
-		public string WarningMessage
-		{
-			get => _warningMessage;
-			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
-		}
-
-		public string SuccessMessage
-		{
-			get => _successMessage;
-			set => this.RaiseAndSetIfChanged(ref _successMessage, value);
-		}
-
 		public string FeeToolTip
 		{
 			get => _feeToolTip;
@@ -960,6 +952,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> MaxCommand { get; }
 
 		public ReactiveCommand<Unit, Unit> FeeRateCommand { get; }
+		public bool IsTransactionBuilder { get; }
 
 		public override void OnOpen()
 		{

@@ -101,11 +101,14 @@ namespace WalletWasabi.Gui
 				{
 					try
 					{
-						Global.UiConfig.WindowState = WindowState;
-						Global.UiConfig.Width = Width;
-						Global.UiConfig.Height = Height;
-						await Global.UiConfig.ToFileAsync();
-						Logging.Logger.LogInfo<UiConfig>("UiConfig is saved.");
+						if (Global.UiConfig != null) // UiConfig not yet loaded.
+						{
+							Global.UiConfig.WindowState = WindowState;
+							Global.UiConfig.Width = Width;
+							Global.UiConfig.Height = Height;
+							await Global.UiConfig.ToFileAsync();
+							Logging.Logger.LogInfo<UiConfig>("UiConfig is saved.");
+						}
 					}
 					catch (Exception ex)
 					{

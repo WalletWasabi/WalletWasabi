@@ -11,11 +11,6 @@
         <Grid Classes="content">
           <StackPanel Orientation="Vertical" Spacing="2">
             <StackPanel IsVisible="{Binding !IsWatchOnly}" Orientation="Horizontal">
-              <TextBlock Text="Encrypted Extended Master Private Key: " />
-              <controls:ExtendedTextBox Text="{Binding EncryptedExtendedMasterPrivateKey , ConverterParameter=40, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock" />
-            </StackPanel>
-
-            <StackPanel IsVisible="{Binding !IsWatchOnly}" Orientation="Horizontal">
               <TextBlock Text="Extended Master Private Key: " />
               <controls:ExtendedTextBox Text="{Binding ExtendedMasterPrivateKey}" Classes="selectableTextBlock" />
             </StackPanel>
@@ -23,6 +18,11 @@
             <StackPanel IsVisible="{Binding !IsWatchOnly}" Orientation="Horizontal">
               <TextBlock Text="Extended Master zprv: " />
               <controls:ExtendedTextBox Text="{Binding ExtendedMasterZprv}" Classes="selectableTextBlock" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Extended Master Fingerprint: " />
+              <controls:ExtendedTextBox Text="{Binding MasterKeyFingerprint}" Classes="selectableTextBlock" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal">

@@ -1,8 +1,9 @@
-﻿using AvalonStudio.Documents;
+using AvalonStudio.Documents;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using Dock.Model;
 using ReactiveUI;
+using System;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -17,7 +18,7 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 		}
 
-		public string Id { get; set; }
+		public Guid Id { get; set; } = Guid.NewGuid();
 		public virtual string Title { get; set; }
 		public object Context { get; set; }
 		public double Width { get; set; }

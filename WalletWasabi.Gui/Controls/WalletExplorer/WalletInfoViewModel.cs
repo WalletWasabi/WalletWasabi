@@ -1,4 +1,4 @@
-﻿using Avalonia.Threading;
+using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using System;
@@ -22,12 +22,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _extendedMasterZprv;
 		private string _extendedAccountPrivateKey;
 		private string _extendedAccountZprv;
-		private string _warningMessage;
 
 		public WalletInfoViewModel(WalletViewModel walletViewModel) : base(walletViewModel.Name, walletViewModel)
 		{
 			ClearSensitiveData(true);
-			_warningMessage = "";
+			SetWarningMessage("");
 
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
@@ -86,9 +85,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string ExtendedAccountPublicKey => KeyManager.ExtPubKey.ToString(Global.Network);
 		public string ExtendedAccountZpub => KeyManager.ExtPubKey.ToZpub(Global.Network);
-		public string EncryptedExtendedMasterPrivateKey => KeyManager?.EncryptedSecret?.ToWif() ?? "";
 		public string AccountKeyPath => $"m/{KeyManager.AccountKeyPath.ToString()}";
-
+		public string MasterKeyFingerprint => KeyManager.MasterFingerprint.ToString();
 		public ReactiveCommand<Unit, Unit> ShowSensitiveKeysCommand { get; }
 
 		public string Password
@@ -119,12 +117,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _extendedAccountZprv;
 			set => this.RaiseAndSetIfChanged(ref _extendedAccountZprv, value);
-		}
-
-		public string WarningMessage
-		{
-			get => _warningMessage;
-			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
 		}
 
 		private void SetSensitiveData(string extendedMasterPrivateKey, string extendedAccountPrivateKey, string extendedMasterZprv, string extendedAccountZprv)
@@ -164,7 +156,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
-				this.RaisePropertyChanged(nameof(EncryptedExtendedMasterPrivateKey));
 				this.RaisePropertyChanged(nameof(ExtendedAccountPublicKey));
 				this.RaisePropertyChanged(nameof(ExtendedAccountZpub));
 			}).DisposeWith(Disposables);
@@ -194,30 +185,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			ClearSensitiveData(true);
 			return base.OnClose();
-		}
-
-		private void SetWarningMessage(string message)
-		{
-			WarningMessage = message;
-
-			Dispatcher.UIThread.PostLogException(async () =>
-			{
-				try
-				{
-					await Task.Delay(7000, Closing.Token);
-				}
-				catch (TaskCanceledException)
-				{
-					// Ignore
-				}
-				finally
-				{
-					if (WarningMessage == message)
-					{
-						WarningMessage = "";
-					}
-				}
-			});
 		}
 	}
 }

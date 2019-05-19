@@ -19,6 +19,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableCollection<WalletActionViewModel> _actions;
 
 		private string _title;
+		private bool _isExpanded;
+
+		public bool IsExpanded
+		{
+			get => _isExpanded;
+			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
+		}
 
 		public WalletViewModel(WalletService walletService, bool receiveDominant)
 			: base(Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath))
@@ -29,27 +36,53 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SetBalance(Name);
 
-			Actions = new ObservableCollection<WalletActionViewModel>
-			{
-				new SendTabViewModel(this),
-				new ReceiveTabViewModel(this),
-				new CoinJoinTabViewModel(this),
-				new HistoryTabViewModel(this),
-				new WalletInfoViewModel(this)
-			};
+			Actions = new ObservableCollection<WalletActionViewModel>();
 
-			Actions[0].DisplayActionTab();
+			SendTabViewModel sendTab = null;
+			// If hardware wallet then we need the Send tab.
+			if (walletService?.KeyManager?.IsHardwareWallet is true)
+			{
+				sendTab = new SendTabViewModel(this);
+				Actions.Add(sendTab);
+			}
+			// If not hardware wallet, but neither watch only then we also need the send tab.
+			else if (walletService?.KeyManager?.IsWatchOnly is false)
+			{
+				sendTab = new SendTabViewModel(this);
+				Actions.Add(sendTab);
+			}
+
+			ReceiveTabViewModel receiveTab = new ReceiveTabViewModel(this);
+			CoinJoinTabViewModel coinjoinTab = new CoinJoinTabViewModel(this);
+			HistoryTabViewModel historyTab = new HistoryTabViewModel(this);
+
+			var advancedAction = new WalletAdvancedViewModel(this);
+			WalletInfoViewModel infoTab = new WalletInfoViewModel(this);
+			SendTabViewModel buildTab = new SendTabViewModel(this, isTransactionBuilder: true);
+			TransactionBroadcasterViewModel broadcastTab = new TransactionBroadcasterViewModel(this);
+
+			Actions.Add(receiveTab);
+			Actions.Add(coinjoinTab);
+			Actions.Add(historyTab);
+
+			Actions.Add(advancedAction);
+			advancedAction.Items.Add(infoTab);
+			advancedAction.Items.Add(buildTab);
+			advancedAction.Items.Add(broadcastTab);
+
+			// Open and select tabs.
+			sendTab?.DisplayActionTab();
 			if (receiveDominant)
 			{
-				Actions[2].DisplayActionTab();
-				Actions[3].DisplayActionTab();
-				Actions[1].DisplayActionTab();
+				coinjoinTab.DisplayActionTab();
+				historyTab.DisplayActionTab();
+				receiveTab.DisplayActionTab(); // So receive should be shown to the user.
 			}
 			else
 			{
-				Actions[1].DisplayActionTab();
-				Actions[2].DisplayActionTab();
-				Actions[3].DisplayActionTab();
+				receiveTab.DisplayActionTab();
+				coinjoinTab.DisplayActionTab();
+				historyTab.DisplayActionTab(); // So history should be shown to the user.
 			}
 
 			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -78,6 +111,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				SetBalance(Name);
 			}).DisposeWith(Disposables);
+
+			IsExpanded = true;
 		}
 
 		public void OnWalletClosed()

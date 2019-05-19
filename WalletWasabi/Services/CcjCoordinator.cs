@@ -181,13 +181,13 @@ namespace WalletWasabi.Services
 				{
 					if (!AnyRunningRoundContainsInput(prevOut, out _))
 					{
-						int newSeverity = foundElem.Value.severity + 1;
+						int newSeverity = foundElem.Severity + 1;
 						await UtxoReferee.UnbanAsync(prevOut); // since it's not an UTXO anymore
 
 						if (RoundConfig.DosSeverity >= newSeverity)
 						{
 							var txCoins = tx.Outputs.AsIndexedOutputs().Select(x => x.ToCoin().Outpoint);
-							await UtxoReferee.BanUtxosAsync(newSeverity, foundElem.Value.timeOfBan, forceNoted: foundElem.Value.isNoted, foundElem.Value.bannedForRound, txCoins.ToArray());
+							await UtxoReferee.BanUtxosAsync(newSeverity, foundElem.TimeOfBan, forceNoted: foundElem.IsNoted, foundElem.BannedForRound, txCoins.ToArray());
 						}
 					}
 				}
@@ -307,7 +307,7 @@ namespace WalletWasabi.Services
 							feePerInputs = fees.feePerInputs;
 							feePerOutputs = fees.feePerOutputs;
 
-							Money newDenominationToGetInWithactiveOutputs = activeOutputAmount - (feePerInputs + 2 * feePerOutputs);
+							Money newDenominationToGetInWithactiveOutputs = activeOutputAmount - (feePerInputs + (2 * feePerOutputs));
 							if (newDenominationToGetInWithactiveOutputs < RoundConfig.Denomination)
 							{
 								if (newDenominationToGetInWithactiveOutputs > Money.Coins(0.01m))

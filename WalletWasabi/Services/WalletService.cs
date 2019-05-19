@@ -186,7 +186,7 @@ namespace WalletWasabi.Services
 					DeleteBlock(invalidBlockHash);
 					var blockState = KeyManager.TryRemoveBlockState(invalidBlockHash);
 					ProcessedBlocks.TryRemove(invalidBlockHash, out _);
-					if (blockState.BlockHeight != default(Height))
+					if (blockState != null && blockState.BlockHeight != default(Height))
 					{
 						foreach (var toRemove in Coins.Where(x => x.Height == blockState.BlockHeight).Distinct().ToList())
 						{
@@ -1212,7 +1212,7 @@ namespace WalletWasabi.Services
 			Logger.LogInfo<WalletService>("Signing transaction...");
 			TransactionBuilder builder = Network.CreateTransactionBuilder();
 			// It must be watch only, too, because if we have the key and also hardware wallet, we don't care we can sign.
-			bool sign = !(KeyManager.IsWatchOnly && KeyManager.IsHardwareWallet);
+			bool sign = !KeyManager.IsWatchOnly;
 			if (sign)
 			{
 				// 8. Get signing keys
@@ -1294,7 +1294,8 @@ namespace WalletWasabi.Services
 
 					if (KeyManager.MasterFingerprint.HasValue)
 					{
-						psbt.AddKeyPath(KeyManager.MasterFingerprint.Value, coin.HdPubKey.PubKey, coin.HdPubKey.FullKeyPath, coin.ScriptPubKey);
+						var rootKeyPath = new RootedKeyPath(KeyManager.MasterFingerprint.Value, coin.HdPubKey.FullKeyPath);
+						psbt.AddKeyPath(coin.HdPubKey.PubKey, rootKeyPath, coin.ScriptPubKey);
 					}
 				}
 			}

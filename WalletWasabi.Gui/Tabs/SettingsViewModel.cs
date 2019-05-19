@@ -1,4 +1,4 @@
-﻿using Avalonia.Threading;
+using Avalonia.Threading;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -31,7 +31,7 @@ namespace WalletWasabi.Gui.Tabs
 		public SettingsViewModel() : base("Settings")
 		{
 			var config = new Config(Global.Config.FilePath);
-			Autocopy = (bool)Global.UiConfig.Autocopy;
+			Autocopy = Global.UiConfig?.Autocopy is true;
 
 			this.WhenAnyValue(x => x.Network, x => x.TorHost, x => x.TorPort, x => x.UseTor).Subscribe(x => Save());
 
@@ -98,17 +98,12 @@ namespace WalletWasabi.Gui.Tabs
 			return base.OnClose();
 		}
 
-		public IEnumerable<string> Networks
+		public IEnumerable<string> Networks => new[]
 		{
-			get
-			{
-				return new[]{
-					  "Main"
-					, "TestNet"
-					, "RegTest"
-				};
-			}
-		}
+			"Main",
+			"TestNet",
+			"RegTest"
+		};
 
 		public string Network
 		{
@@ -160,9 +155,9 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _useTorText, value);
 		}
 
-		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode == true;
+		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
 
-		public string LurkingWifeModeText => Global.UiConfig.LurkingWifeMode == true ? "On" : "Off";
+		public string LurkingWifeModeText => Global.UiConfig.LurkingWifeMode is true ? "On" : "Off";
 
 		private void Save()
 		{
