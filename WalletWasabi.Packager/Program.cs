@@ -540,7 +540,7 @@ namespace WalletWasabi.Packager
 					string infoFilePath = Path.Combine(macContentsDir, "Info.plist");
 
 					Directory.CreateDirectory(resourcesDir);
-					var iconpath = Path.Combine(GuiProjectDirectory, "Assets", "WasabiLogo.icns");
+					var iconpath = Path.Combine(GuiProjectDirectory, "Assets", "Images", "WasabiLogo.icns");
 					File.Copy(iconpath, Path.Combine(resourcesDir, "WasabiLogo.icns"));
 
 					string infoContent = $@"<?xml version=""1.0"" encoding=""UTF-8""?>
