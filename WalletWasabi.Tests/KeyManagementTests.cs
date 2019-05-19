@@ -16,49 +16,49 @@ namespace WalletWasabi.Tests
 		{
 			string password = "password";
 			var manager = KeyManager.CreateNew(out Mnemonic mnemonic, password);
-			//var manager2 = KeyManager.CreateNew(out Mnemonic mnemonic2, "");
-			//var manager3 = KeyManager.CreateNew(out _, "P@ssw0rdé");
+			var manager2 = KeyManager.CreateNew(out Mnemonic mnemonic2, "");
+			var manager3 = KeyManager.CreateNew(out _, "P@ssw0rdé");
 
-			//Assert.Equal(12, mnemonic.ToString().Split(' ').Length);
-			//Assert.Equal(12, mnemonic2.ToString().Split(' ').Length);
-			//Assert.Equal(12, mnemonic2.ToString().Split(' ').Length);
+			Assert.Equal(12, mnemonic.ToString().Split(' ').Length);
+			Assert.Equal(12, mnemonic2.ToString().Split(' ').Length);
+			Assert.Equal(12, mnemonic2.ToString().Split(' ').Length);
 
-			//Assert.NotNull(manager.ChainCode);
-			//Assert.NotNull(manager.EncryptedSecret);
-			//Assert.NotNull(manager.ExtPubKey);
+			Assert.NotNull(manager.ChainCode);
+			Assert.NotNull(manager.EncryptedSecret);
+			Assert.NotNull(manager.ExtPubKey);
 
-			//Assert.NotNull(manager2.ChainCode);
-			//Assert.NotNull(manager2.EncryptedSecret);
-			//Assert.NotNull(manager2.ExtPubKey);
+			Assert.NotNull(manager2.ChainCode);
+			Assert.NotNull(manager2.EncryptedSecret);
+			Assert.NotNull(manager2.ExtPubKey);
 
-			//Assert.NotNull(manager3.ChainCode);
-			//Assert.NotNull(manager3.EncryptedSecret);
-			//Assert.NotNull(manager3.ExtPubKey);
+			Assert.NotNull(manager3.ChainCode);
+			Assert.NotNull(manager3.EncryptedSecret);
+			Assert.NotNull(manager3.ExtPubKey);
 
-			//var sameManager = new KeyManager(manager.EncryptedSecret, manager.ChainCode, manager.MasterFingerprint, manager.ExtPubKey, true, null, new BlockchainState());
-			//var sameManager2 = new KeyManager(manager.EncryptedSecret, manager.ChainCode, password);
-			//Logger.TurnOff();
-			//Assert.Throws<SecurityException>(() => new KeyManager(manager.EncryptedSecret, manager.ChainCode, "differentPassword"));
-			//Logger.TurnOn();
+			var sameManager = new KeyManager(manager.EncryptedSecret, manager.ChainCode, manager.MasterFingerprint, manager.ExtPubKey, true, null, new BlockchainState());
+			var sameManager2 = new KeyManager(manager.EncryptedSecret, manager.ChainCode, password);
+			Logger.TurnOff();
+			Assert.Throws<SecurityException>(() => new KeyManager(manager.EncryptedSecret, manager.ChainCode, "differentPassword"));
+			Logger.TurnOn();
 
-			//Assert.Equal(manager.ChainCode, sameManager.ChainCode);
-			//Assert.Equal(manager.EncryptedSecret, sameManager.EncryptedSecret);
-			//Assert.Equal(manager.ExtPubKey, sameManager.ExtPubKey);
+			Assert.Equal(manager.ChainCode, sameManager.ChainCode);
+			Assert.Equal(manager.EncryptedSecret, sameManager.EncryptedSecret);
+			Assert.Equal(manager.ExtPubKey, sameManager.ExtPubKey);
 
-			//Assert.Equal(manager.ChainCode, sameManager2.ChainCode);
-			//Assert.Equal(manager.EncryptedSecret, sameManager2.EncryptedSecret);
-			//Assert.Equal(manager.ExtPubKey, sameManager2.ExtPubKey);
+			Assert.Equal(manager.ChainCode, sameManager2.ChainCode);
+			Assert.Equal(manager.EncryptedSecret, sameManager2.EncryptedSecret);
+			Assert.Equal(manager.ExtPubKey, sameManager2.ExtPubKey);
 
-			//var differentManager = KeyManager.CreateNew(out Mnemonic mnemonic4, password);
-			//Assert.NotEqual(mnemonic, mnemonic4);
-			//Assert.NotEqual(manager.ChainCode, differentManager.ChainCode);
-			//Assert.NotEqual(manager.EncryptedSecret, differentManager.EncryptedSecret);
-			//Assert.NotEqual(manager.ExtPubKey, differentManager.ExtPubKey);
+			var differentManager = KeyManager.CreateNew(out Mnemonic mnemonic4, password);
+			Assert.NotEqual(mnemonic, mnemonic4);
+			Assert.NotEqual(manager.ChainCode, differentManager.ChainCode);
+			Assert.NotEqual(manager.EncryptedSecret, differentManager.EncryptedSecret);
+			Assert.NotEqual(manager.ExtPubKey, differentManager.ExtPubKey);
 
-			//var manager5 = new KeyManager(manager2.EncryptedSecret, manager2.ChainCode, password: null);
-			//Assert.Equal(manager2.ChainCode, manager5.ChainCode);
-			//Assert.Equal(manager2.EncryptedSecret, manager5.EncryptedSecret);
-			//Assert.Equal(manager2.ExtPubKey, manager5.ExtPubKey);
+			var manager5 = new KeyManager(manager2.EncryptedSecret, manager2.ChainCode, password: null);
+			Assert.Equal(manager2.ChainCode, manager5.ChainCode);
+			Assert.Equal(manager2.EncryptedSecret, manager5.EncryptedSecret);
+			Assert.Equal(manager2.ExtPubKey, manager5.ExtPubKey);
 		}
 
 		[Fact]
