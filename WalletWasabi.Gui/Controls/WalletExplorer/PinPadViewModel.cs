@@ -34,10 +34,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public PinPadViewModel(WalletViewModel walletViewModel) : base("Pin Pad", walletViewModel)
 		{
-			SendPinCommand = ReactiveCommand.CreateFromTask(async () =>
+			SendPinCommand = ReactiveCommand.Create(() =>
 			{
-				var sendTab = IoC.Get<IShell>().Documents.OfType<SendTabViewModel>().FirstOrDefault();
-				sendTab.DisplayActionTab();
 				OnClose();
 			},
 			this.WhenAny(x => x.MaskedPin, (maskedPin) => (!string.IsNullOrWhiteSpace(maskedPin.Value))));
