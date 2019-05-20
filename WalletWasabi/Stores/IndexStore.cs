@@ -256,96 +256,46 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		public async Task<IEnumerable<FilterModel>> GetFiltersAsync(Height from, Height to, CancellationToken cancel)
+		public async Task ForeachFiltersAsync(Action<FilterModel> todo, Height fromHeight)
 		{
-			List<FilterModel> ret = null;
-
-			using (await IndexLock.LockAsync(cancel))
+			using (await MatureIndexFileManager.Mutex.LockAsync())
+			using (await IndexLock.LockAsync())
 			{
-				if (ImmatureFilters.Any(x => x.BlockHeight == from))
-				{
-					ret = ImmatureFilters.Where(x => x.BlockHeight >= from && x.BlockHeight <= to).ToList();
-				}
-				else
-				{
-					ret = new List<FilterModel>();
-					Height height = StartingHeight;
-					var firstImmatureHeight = ImmatureFilters.FirstOrDefault()?.BlockHeight;
-
-					using (await MatureIndexFileManager.Mutex.LockAsync(cancel))
-					{
-						if (MatureIndexFileManager.Exists())
-						{
-							using (var sr = MatureIndexFileManager.OpenText(16384))
-							{
-								while (!sr.EndOfStream)
-								{
-									var line = await sr.ReadLineAsync();
-
-									if (firstImmatureHeight == height)
-									{
-										break; // Let's use our the immature filters from here on. The content is the same, just someone else modified the file.
-									}
-
-									var filter = FilterModel.FromHeightlessLine(line, height);
-
-									if (filter.BlockHeight >= from && filter.BlockHeight <= to)
-									{
-										ret.Add(filter);
-									}
-
-									height++;
-
-									cancel.ThrowIfCancellationRequested();
-								}
-							}
-						}
-
-						foreach (FilterModel filter in ImmatureFilters)
-						{
-							ret.Add(filter);
-						}
-					}
-				}
-			}
-
-			return ret;
-		}
-
-		public async Task UseFilterModelsAsync(Action<FilterModel, CancellationToken> todo, CancellationToken cancel)
-		{
-			using (await MatureIndexFileManager.Mutex.LockAsync(cancel))
-			using (await IndexLock.LockAsync(cancel))
-			{
-				Height height = StartingHeight;
 				var firstImmatureHeight = ImmatureFilters.FirstOrDefault()?.BlockHeight;
-
-				if (MatureIndexFileManager.Exists())
+				if (!firstImmatureHeight.HasValue || firstImmatureHeight.Value > fromHeight)
 				{
-					using (var sr = MatureIndexFileManager.OpenText(16384))
+					if (MatureIndexFileManager.Exists())
 					{
-						while (!sr.EndOfStream)
+						Height height = StartingHeight;
+						using (var sr = MatureIndexFileManager.OpenText(16384))
 						{
-							var line = await sr.ReadLineAsync();
-
-							if (firstImmatureHeight == height)
+							while (!sr.EndOfStream)
 							{
-								break; // Let's use our the immature filters from here on. The content is the same, just someone else modified the file.
+								var line = await sr.ReadLineAsync();
+
+								if (firstImmatureHeight == height)
+								{
+									break; // Let's use our the immature filters from here on. The content is the same, just someone else modified the file.
+								}
+
+								if (height < fromHeight.Value)
+								{
+									height++;
+									continue;
+								}
+
+								var filter = FilterModel.FromHeightlessLine(line, height);
+
+								todo(filter);
+								height++;
 							}
-
-							var filter = FilterModel.FromHeightlessLine(line, height);
-
-							todo(filter, cancel);
-							height++;
-
-							cancel.ThrowIfCancellationRequested();
 						}
 					}
 				}
 
 				foreach (FilterModel filter in ImmatureFilters)
 				{
-					todo(filter, cancel);
+					todo(filter);
 				}
 			}
 		}
