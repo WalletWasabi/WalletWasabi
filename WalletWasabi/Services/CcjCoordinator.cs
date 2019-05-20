@@ -433,9 +433,9 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public bool ContainsCoinJoin(uint256 hash)
+		public async Task<bool> ContainsCoinJoinAsync(uint256 hash)
 		{
-			using (CoinJoinsLock.Lock())
+			using (await CoinJoinsLock.LockAsync())
 			{
 				return CoinJoins.Contains(hash);
 			}

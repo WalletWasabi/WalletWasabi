@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -79,10 +79,7 @@ namespace Nito.Collections
 		/// Gets a value indicating whether this list is read-only. This implementation always returns <c>false</c>.
 		/// </summary>
 		/// <returns>true if this list is read-only; otherwise, false.</returns>
-		bool ICollection<T>.IsReadOnly
-		{
-			get { return false; }
-		}
+		bool ICollection<T>.IsReadOnly => false;
 
 		/// <summary>
 		/// Gets or sets the item at the specified index.
@@ -354,15 +351,9 @@ namespace Nito.Collections
 			Insert(index, (T)value);
 		}
 
-		bool System.Collections.IList.IsFixedSize
-		{
-			get { return false; }
-		}
+		bool System.Collections.IList.IsFixedSize => false;
 
-		bool System.Collections.IList.IsReadOnly
-		{
-			get { return false; }
-		}
+		bool System.Collections.IList.IsReadOnly => false;
 
 		void System.Collections.IList.Remove(object value)
 		{
@@ -374,10 +365,7 @@ namespace Nito.Collections
 
 		object System.Collections.IList.this[int index]
 		{
-			get
-			{
-				return this[index];
-			}
+			get => this[index];
 
 			set
 			{
@@ -418,15 +406,9 @@ namespace Nito.Collections
 			}
 		}
 
-		bool System.Collections.ICollection.IsSynchronized
-		{
-			get { return false; }
-		}
+		bool System.Collections.ICollection.IsSynchronized => false;
 
-		object System.Collections.ICollection.SyncRoot
-		{
-			get { return this; }
-		}
+		object System.Collections.ICollection.SyncRoot => this;
 
 		#endregion ObjectListImplementations
 
@@ -491,30 +473,19 @@ namespace Nito.Collections
 		/// <summary>
 		/// Gets a value indicating whether this instance is empty.
 		/// </summary>
-		private bool IsEmpty
-		{
-			get { return Count == 0; }
-		}
+		private bool IsEmpty => Count == 0;
 
 		/// <summary>
 		/// Gets a value indicating whether this instance is at full capacity.
 		/// </summary>
-		private bool IsFull
-		{
-			get { return Count == Capacity; }
-		}
+		private bool IsFull => Count == Capacity;
 
 		/// <summary>
 		/// Gets a value indicating whether the buffer is "split" (meaning the beginning of the view is at a later index in <see cref="_buffer"/> than the end).
 		/// </summary>
-		private bool IsSplit
-		{
-			get
-			{
+		private bool IsSplit =>
 				// Overflow-safe version of "(offset + Count) > Capacity"
-				return _offset > (Capacity - Count);
-			}
-		}
+				_offset > (Capacity - Count);
 
 		/// <summary>
 		/// Gets or sets the capacity for this deque. This value must always be greater than zero, and this property cannot be set to a value less than <see cref="Count"/>.
@@ -522,10 +493,7 @@ namespace Nito.Collections
 		/// <exception cref="InvalidOperationException"><c>Capacity</c> cannot be set to a value less than <see cref="Count"/>.</exception>
 		public int Capacity
 		{
-			get
-			{
-				return _buffer.Length;
-			}
+			get => _buffer.Length;
 
 			set
 			{
@@ -938,13 +906,7 @@ namespace Nito.Collections
 			}
 
 			[DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-			public T[] Items
-			{
-				get
-				{
-					return Deque.ToArray();
-				}
-			}
+			public T[] Items => Deque.ToArray();
 		}
 	}
 }

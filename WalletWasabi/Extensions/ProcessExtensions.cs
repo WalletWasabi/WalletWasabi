@@ -13,7 +13,7 @@ namespace System.Diagnostics
 		{
 			while (!process.HasExited)
 			{
-				await Task.Delay(100, cancellationToken);
+				await Task.Delay(100, cancellationToken).ConfigureAwait(false); // TODO: https://github.com/zkSNACKs/WalletWasabi/issues/1452
 			}
 		}
 	}

@@ -267,12 +267,12 @@ namespace WalletWasabi.KeyManagement
 		{
 			filePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath);
 
-			if (!IoHelpers.TryGetSafestFileVersion(filePath, out var safestFile))
+			if (!File.Exists(filePath))
 			{
 				throw new FileNotFoundException($"Wallet file not found at: `{filePath}`.");
 			}
 
-			string jsonString = File.ReadAllText(safestFile, Encoding.UTF8);
+			string jsonString = File.ReadAllText(filePath, Encoding.UTF8);
 			var km = JsonConvert.DeserializeObject<KeyManager>(jsonString);
 
 			km.SetFilePath(filePath);
