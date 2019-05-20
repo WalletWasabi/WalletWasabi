@@ -180,6 +180,10 @@ namespace WalletWasabi.Stores
 			{
 				filter = ImmatureFilters.Last();
 				ImmatureFilters.RemoveLast();
+				if (HashChain.TipHeight != filter.BlockHeight.Value)
+				{
+					throw new InvalidOperationException("HashChain and ImmatureFilters are not in sync.");
+				}
 				HashChain.RemoveLast();
 			}
 
