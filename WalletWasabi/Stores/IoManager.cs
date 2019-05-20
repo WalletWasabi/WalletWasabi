@@ -340,25 +340,13 @@ namespace WalletWasabi.Stores
 
 		private void ContinueBuildHash(ByteArrayBuilder byteArrayBuilder, string line)
 		{
-			if (DigestRandomIndex.HasValue)
+			if (string.IsNullOrWhiteSpace(line))
 			{
-				if (string.IsNullOrWhiteSpace(line))
-				{
-					byteArrayBuilder.Append(0);
-				}
-				else
-				{
-					var b = Encoding.ASCII.GetBytes(line);
-					byteArrayBuilder.Append(b);
-				}
+				byteArrayBuilder.Append(0);
 			}
 			else
 			{
-				if (string.IsNullOrWhiteSpace(line))
-				{
-					byteArrayBuilder.Append(0);
-				}
-				else
+				if (DigestRandomIndex.HasValue)
 				{
 					int index;
 					if (DigestRandomIndex == -1 || DigestRandomIndex >= line.Length) // Last char.
@@ -372,6 +360,11 @@ namespace WalletWasabi.Stores
 
 					var c = line[index];
 					var b = (byte)c;
+					byteArrayBuilder.Append(b);
+				}
+				else
+				{
+					var b = Encoding.ASCII.GetBytes(line);
 					byteArrayBuilder.Append(b);
 				}
 			}
