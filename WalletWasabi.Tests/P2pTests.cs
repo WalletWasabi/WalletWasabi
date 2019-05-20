@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using NBitcoin.RPC;
@@ -16,6 +16,7 @@ using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Stores;
 using WalletWasabi.Tests.NodeBuilding;
 using WalletWasabi.Tests.XunitConfiguration;
 using Xunit;
@@ -77,9 +78,13 @@ namespace WalletWasabi.Tests
 
 			var nodes = new NodesGroup(network, connectionParameters, requirements: Helpers.Constants.NodeRequirements);
 
+			BitcoinStore bitcoinStore = new BitcoinStore();
+			await bitcoinStore.InitializeAsync(Path.Combine(Global.DataDir, nameof(TestServicesAsync)), network);
+
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
-			WasabiSynchronizer syncer = new WasabiSynchronizer(network, Path.Combine(Global.DataDir, nameof(TestServicesAsync), "IndexDownloader.txt"), new Uri("http://localhost:12345"), Global.TorSocks5Endpoint);
+			WasabiSynchronizer syncer = new WasabiSynchronizer(network, bitcoinStore, new Uri("http://localhost:12345"), Global.TorSocks5Endpoint);
 			WalletService walletService = new WalletService(
+			   bitcoinStore,
 			   keyManager,
 			   syncer,
 			   new CcjClient(syncer, network, keyManager, new Uri("http://localhost:12345"), Global.TorSocks5Endpoint),
@@ -139,7 +144,7 @@ namespace WalletWasabi.Tests
 				// So next test will download the block.
 				foreach (var hash in blocksToDownload)
 				{
-					walletService?.DeleteBlock(hash);
+					await walletService?.DeleteBlockAsync(hash);
 				}
 				walletService?.Dispose();
 

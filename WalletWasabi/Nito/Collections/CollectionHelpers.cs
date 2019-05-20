@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -40,13 +40,7 @@ namespace Nito.Collections
 				Collection = collection ?? throw new ArgumentNullException(nameof(collection));
 			}
 
-			public int Count
-			{
-				get
-				{
-					return Collection.Count;
-				}
-			}
+			public int Count => Collection.Count;
 
 			public IEnumerator<T> GetEnumerator()
 			{
@@ -71,13 +65,7 @@ namespace Nito.Collections
 				Collection = collection ?? throw new ArgumentNullException(nameof(collection));
 			}
 
-			public int Count
-			{
-				get
-				{
-					return Collection.Count;
-				}
-			}
+			public int Count => Collection.Count;
 
 			public IEnumerator<T> GetEnumerator()
 			{
