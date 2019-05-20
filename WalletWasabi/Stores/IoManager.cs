@@ -44,7 +44,7 @@ namespace WalletWasabi.Stores
 			DigestFilePath = $"{OriginalFilePath}{DigestExtension}";
 
 			FileName = Path.GetFileName(OriginalFilePath);
-			var shortHash = HashHelpers.GenerateSha256Hash(OriginalFilePath).Take(7);
+			var shortHash = HashHelpers.GenerateSha256Hash(OriginalFilePath).Substring(0, 7);
 			FileNameWithoutExtension = Path.GetFileNameWithoutExtension(OriginalFilePath);
 
 			// https://docs.microsoft.com/en-us/dotnet/api/system.threading.mutex?view=netframework-4.8
