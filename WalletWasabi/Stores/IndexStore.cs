@@ -295,7 +295,7 @@ namespace WalletWasabi.Stores
 
 				foreach (FilterModel filter in ImmatureFilters)
 				{
-					todo(filter);
+					await todo(filter);
 				}
 			}
 		}
