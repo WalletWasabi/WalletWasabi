@@ -180,23 +180,12 @@ namespace WalletWasabi.Stores
 			{
 				byte[] bytes;
 				var byteArrayBuilder = new ByteArrayBuilder();
-				if (DigestRandomIndex.HasValue)
+				foreach (var line in lines)
 				{
-					foreach (var line in lines)
-					{
-						ContinueBuildHashWithRandomIndex(byteArrayBuilder, line);
-					}
-				}
-				else
-				{
-					foreach (var line in lines)
-					{
-						ContinueBuildHash(byteArrayBuilder, line);
-					}
+					ContinueBuildHash(byteArrayBuilder, line);
 				}
 
 				bytes = byteArrayBuilder.ToArray();
-
 				hash = HashHelpers.GenerateSha256Hash(bytes);
 				if (File.Exists(DigestFilePath))
 				{
@@ -218,43 +207,6 @@ namespace WalletWasabi.Stores
 			await File.WriteAllLinesAsync(NewFilePath, lines, cancellationToken);
 			SafeMoveNewToOriginal();
 			await WriteOutHashAsync(hash);
-		}
-
-		private void ContinueBuildHash(ByteArrayBuilder byteArrayBuilder, string line)
-		{
-			if (string.IsNullOrWhiteSpace(line))
-			{
-				byteArrayBuilder.Append(0);
-			}
-			else
-			{
-				var b = Encoding.ASCII.GetBytes(line);
-				byteArrayBuilder.Append(b);
-			}
-		}
-
-		private void ContinueBuildHashWithRandomIndex(ByteArrayBuilder byteArrayBuilder, string line)
-		{
-			if (string.IsNullOrWhiteSpace(line))
-			{
-				byteArrayBuilder.Append(0);
-			}
-			else
-			{
-				int index;
-				if (DigestRandomIndex == -1 || DigestRandomIndex >= line.Length) // Last char.
-				{
-					index = line.Length - 1;
-				}
-				else
-				{
-					index = DigestRandomIndex.Value;
-				}
-
-				var c = line[index];
-				var b = (byte)c;
-				byteArrayBuilder.Append(b);
-			}
 		}
 
 		private async Task WriteOutHashAsync(byte[] hash)
@@ -304,15 +256,6 @@ namespace WalletWasabi.Stores
 				{
 					var line = await sr.ReadLineAsync();
 
-					if (DigestRandomIndex.HasValue)
-					{
-						ContinueBuildHashWithRandomIndex(byteArrayBuilder, line);
-					}
-					else
-					{
-						ContinueBuildHash(byteArrayBuilder, line);
-					}
-
 					if (linesArray[linesIndex] == line) // If the line is a line we want to write, then we know that someone else have worked into the file.
 					{
 						linesIndex++;
@@ -328,6 +271,8 @@ namespace WalletWasabi.Stores
 						lineCounter = 0;
 					}
 
+					ContinueBuildHash(byteArrayBuilder, line);
+
 					cancellationToken.ThrowIfCancellationRequested();
 				}
 
@@ -336,25 +281,17 @@ namespace WalletWasabi.Stores
 				{
 					await sw.WriteLineAsync(line);
 
-					if (DigestRandomIndex.HasValue)
-					{
-						ContinueBuildHashWithRandomIndex(byteArrayBuilder, line);
-					}
-					else
-					{
-						ContinueBuildHash(byteArrayBuilder, line);
-					}
+					ContinueBuildHash(byteArrayBuilder, line);
 
 					cancellationToken.ThrowIfCancellationRequested();
 				}
-
-				bytes = byteArrayBuilder.ToArray();
 
 				await sw.FlushAsync();
 			}
 
 			try
 			{
+				bytes = byteArrayBuilder.ToArray();
 				hash = HashHelpers.GenerateSha256Hash(bytes);
 				if (File.Exists(DigestFilePath))
 				{
@@ -398,5 +335,48 @@ namespace WalletWasabi.Stores
 		}
 
 		#endregion IoOperations
+
+		#region HashBuilding
+
+		private void ContinueBuildHash(ByteArrayBuilder byteArrayBuilder, string line)
+		{
+			if (DigestRandomIndex.HasValue)
+			{
+				if (string.IsNullOrWhiteSpace(line))
+				{
+					byteArrayBuilder.Append(0);
+				}
+				else
+				{
+					var b = Encoding.ASCII.GetBytes(line);
+					byteArrayBuilder.Append(b);
+				}
+			}
+			else
+			{
+				if (string.IsNullOrWhiteSpace(line))
+				{
+					byteArrayBuilder.Append(0);
+				}
+				else
+				{
+					int index;
+					if (DigestRandomIndex == -1 || DigestRandomIndex >= line.Length) // Last char.
+					{
+						index = line.Length - 1;
+					}
+					else
+					{
+						index = DigestRandomIndex.Value;
+					}
+
+					var c = line[index];
+					var b = (byte)c;
+					byteArrayBuilder.Append(b);
+				}
+			}
+		}
+
+		#endregion HashBuilding
 	}
 }
