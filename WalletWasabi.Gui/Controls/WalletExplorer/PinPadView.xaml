@@ -1,0 +1,33 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Gui.Controls.WalletExplorer.PinpadView"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+
+  <controls:GroupBox Title="{Binding Title}" BorderThickness="0" Classes="docTabContainer">
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition />
+        <RowDefinition />
+        <RowDefinition />
+        <RowDefinition />
+      </Grid.RowDefinitions>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition />
+        <ColumnDefinition />
+        <ColumnDefinition />
+      </Grid.ColumnDefinitions>
+      <Button Grid.Row="0" Grid.Column="0" Content=" " />
+      <Button Grid.Row="0" Grid.Column="1" Content=" " />
+      <Button Grid.Row="0" Grid.Column="2" Content=" " />
+      <Button Grid.Row="1" Grid.Column="0" Content=" " />
+      <Button Grid.Row="1" Grid.Column="1" Content=" " />
+      <Button Grid.Row="1" Grid.Column="2" Content=" " />
+      <Button Grid.Row="2" Grid.Column="0" Content=" " />
+      <Button Grid.Row="2" Grid.Column="1" Content=" " />
+      <Button Grid.Row="2" Grid.Column="2" Content=" " />
+    </Grid>
+  </controls:GroupBox>
+</UserControl>
