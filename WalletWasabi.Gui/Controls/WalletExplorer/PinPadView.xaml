@@ -5,29 +5,43 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Gui.Controls.WalletExplorer.PinpadView"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+  <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
+    <DockPanel LastChildFill ="True">
+      <controls:NoparaPasswordBox DockPanel.Dock="Top" Margin="4 20">
+      </controls:NoparaPasswordBox>
+      <StackPanel>
+        <Button DockPanel.Dock="Bottom" Margin="4 20" Content ="Send PIN to Device" />
+        <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
+        <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
+      </StackPanel>
 
-  <controls:GroupBox Title="{Binding Title}" BorderThickness="0" Classes="docTabContainer">
-    <Grid>
-      <Grid.RowDefinitions>
-        <RowDefinition />
-        <RowDefinition />
-        <RowDefinition />
-        <RowDefinition />
-      </Grid.RowDefinitions>
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition />
-        <ColumnDefinition />
-        <ColumnDefinition />
-      </Grid.ColumnDefinitions>
-      <Button Grid.Row="0" Grid.Column="0" Content=" " />
-      <Button Grid.Row="0" Grid.Column="1" Content=" " />
-      <Button Grid.Row="0" Grid.Column="2" Content=" " />
-      <Button Grid.Row="1" Grid.Column="0" Content=" " />
-      <Button Grid.Row="1" Grid.Column="1" Content=" " />
-      <Button Grid.Row="1" Grid.Column="2" Content=" " />
-      <Button Grid.Row="2" Grid.Column="0" Content=" " />
-      <Button Grid.Row="2" Grid.Column="1" Content=" " />
-      <Button Grid.Row="2" Grid.Column="2" Content=" " />
-    </Grid>
+      <Grid>
+        <Grid.Styles>
+          <Style Selector="Button">
+            <Setter Property="Margin" Value="4" />
+          </Style>
+        </Grid.Styles>
+        <Grid.RowDefinitions>
+          <RowDefinition />
+          <RowDefinition />
+          <RowDefinition />
+          <RowDefinition />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition />
+          <ColumnDefinition />
+          <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <Button Grid.Row="0" Grid.Column="0" Content=" " Command />
+        <Button Grid.Row="0" Grid.Column="1" Content=" " />
+        <Button Grid.Row="0" Grid.Column="2" Content=" " />
+        <Button Grid.Row="1" Grid.Column="0" Content=" " />
+        <Button Grid.Row="1" Grid.Column="1" Content=" " />
+        <Button Grid.Row="1" Grid.Column="2" Content=" " />
+        <Button Grid.Row="2" Grid.Column="0" Content=" " />
+        <Button Grid.Row="2" Grid.Column="1" Content=" " />
+        <Button Grid.Row="2" Grid.Column="2" Content=" " />
+      </Grid>
+    </DockPanel>
   </controls:GroupBox>
 </UserControl>

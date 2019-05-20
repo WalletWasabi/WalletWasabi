@@ -8,7 +8,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		public PinPadView()
 		{
-			this.InitializeComponent();
+			InitializeComponent();
 		}
 
 		private void InitializeComponent()
