@@ -26,6 +26,32 @@ namespace WalletWasabi.Hwi
 		public static string HwiPath { get; private set; }
 		public static Network Network { get; private set; }
 
+		public static async Task<bool> PromptPinAsync(HardwareWalletInfo hardwareWalletInfo)
+		{
+			var networkString = Network == Network.Main ? "" : "--testnet";
+			JToken jtok = null;
+			using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
+			{
+				jtok = await SendCommandAsync($"{networkString} --device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" promptpin", cts.Token);
+			}
+			JObject json = jtok as JObject;
+			var success = json.Value<bool>("success");
+			return success;
+		}
+
+		public static async Task<bool> SendPinAsync(HardwareWalletInfo hardwareWalletInfo, int pin)
+		{
+			var networkString = Network == Network.Main ? "" : "--testnet";
+			JToken jtok = null;
+			using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
+			{
+				jtok = await SendCommandAsync($"{networkString} --device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" sendpin {pin}", cts.Token);
+			}
+			JObject json = jtok as JObject;
+			var success = json.Value<bool>("success");
+			return success;
+		}
+
 		public static async Task<bool> SetupAsync(HardwareWalletInfo hardwareWalletInfo)
 		{
 			var networkString = Network == Network.Main ? "" : "--testnet";
