@@ -118,6 +118,8 @@ namespace WalletWasabi.Gui
 			}
 		}
 
+		private static bool Initialized { get; set; } = false;
+
 		public static async Task InitializeNoWalletAsync()
 		{
 			WalletService = null;
@@ -341,6 +343,8 @@ namespace WalletWasabi.Gui
 			Logger.LogInfo("Start synchronizing filters...");
 
 			#endregion SynchronizerInitialization
+
+			Initialized = true;
 		}
 
 		private static async Task AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager addressManager)
@@ -377,6 +381,11 @@ namespace WalletWasabi.Gui
 
 		public static async Task InitializeWalletServiceAsync(KeyManager keyManager)
 		{
+			while (!Initialized)
+			{
+				await Task.Delay(100);
+			}
+
 			if (Config.UseTor.Value)
 			{
 				ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
