@@ -256,7 +256,7 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		public async Task ForeachFiltersAsync(Action<FilterModel> todo, Height fromHeight)
+		public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight)
 		{
 			using (await MatureIndexFileManager.Mutex.LockAsync())
 			using (await IndexLock.LockAsync())
@@ -286,7 +286,7 @@ namespace WalletWasabi.Stores
 
 								var filter = FilterModel.FromHeightlessLine(line, height);
 
-								todo(filter);
+								await todo(filter);
 								height++;
 							}
 						}
