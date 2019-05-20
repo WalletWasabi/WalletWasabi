@@ -85,7 +85,11 @@ namespace WalletWasabi.Gui.Controls
 				if (string.IsNullOrEmpty(x)) // Clean the password box.
 				{
 					Sb.Clear();
-					OnTextInput(x);
+				}
+				else
+				{
+					Sb.Clear();
+					Sb.Append(Password);
 				}
 			});
 
@@ -102,8 +106,12 @@ namespace WalletWasabi.Gui.Controls
 			this.WhenAnyValue(x => x.IsPasswordVisible).Subscribe(IsVisible =>
 			{
 				PaintText();
-			}
-			);
+			});
+
+			this.WhenAnyValue(x => x.Password).Subscribe(passw =>
+			{
+				PaintText();
+			});
 
 			string fontName = "SimSun"; // https://docs.microsoft.com/en-us/typography/font-list/simsun
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
