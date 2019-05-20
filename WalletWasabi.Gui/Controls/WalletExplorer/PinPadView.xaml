@@ -7,10 +7,10 @@
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
   <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
     <DockPanel LastChildFill ="True">
-      <controls:NoparaPasswordBox DockPanel.Dock="Top" Margin="4 20">
+      <controls:NoparaPasswordBox DockPanel.Dock="Top" Margin="4 20" Password="{Binding MaskedPin}" Watermark="The PIN layout is displayed on your Trezor." UseFloatingWatermark="True">
       </controls:NoparaPasswordBox>
-      <StackPanel>
-        <Button DockPanel.Dock="Bottom" Margin="4 20" Content ="Send PIN to Device" />
+      <StackPanel DockPanel.Dock="Bottom">
+        <Button Margin="4 20" Content ="Send PIN to Device" Command="{Binding SendPinCommand}" />
         <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
         <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
       </StackPanel>
@@ -25,22 +25,21 @@
           <RowDefinition />
           <RowDefinition />
           <RowDefinition />
-          <RowDefinition />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
           <ColumnDefinition />
           <ColumnDefinition />
           <ColumnDefinition />
         </Grid.ColumnDefinitions>
-        <Button Grid.Row="0" Grid.Column="0" Content=" " Command />
-        <Button Grid.Row="0" Grid.Column="1" Content=" " />
-        <Button Grid.Row="0" Grid.Column="2" Content=" " />
-        <Button Grid.Row="1" Grid.Column="0" Content=" " />
-        <Button Grid.Row="1" Grid.Column="1" Content=" " />
-        <Button Grid.Row="1" Grid.Column="2" Content=" " />
-        <Button Grid.Row="2" Grid.Column="0" Content=" " />
-        <Button Grid.Row="2" Grid.Column="1" Content=" " />
-        <Button Grid.Row="2" Grid.Column="2" Content=" " />
+        <Button Grid.Row="0" Grid.Column="0" Content=" " Command="{Binding KeyPadCommand}" CommandParameter="7" />
+        <Button Grid.Row="0" Grid.Column="1" Content=" " Command="{Binding KeyPadCommand}" CommandParameter="8" />
+        <Button Grid.Row="0" Grid.Column="2" Content=" " Command="{Binding KeyPadCommand}" CommandParameter="9" />
+        <Button Grid.Row="1" Grid.Column="0" Content=" " Command="{Binding KeyPadCommand}" CommandParameter="4" />
+        <Button Grid.Row="1" Grid.Column="1" Content=" " Command="{Binding KeyPadCommand}" CommandParameter="5" />
+        <Button Grid.Row="1" Grid.Column="2" Content=" " Command="{Binding KeyPadCommand}" CommandParameter="6" />
+        <Button Grid.Row="2" Grid.Column="0" Content=" " Command="{Binding KeyPadCommand}" CommandParameter="1" />
+        <Button Grid.Row="2" Grid.Column="1" Content=" " Command="{Binding KeyPadCommand}" CommandParameter="2" />
+        <Button Grid.Row="2" Grid.Column="2" Content=" " Command="{Binding KeyPadCommand}" CommandParameter="3" />
       </Grid>
     </DockPanel>
   </controls:GroupBox>
