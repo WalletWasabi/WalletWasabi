@@ -175,24 +175,42 @@ namespace WalletWasabi.Stores
 				}
 			}
 
+			var byteArrayBuilder = new ByteArrayBuilder();
+			foreach (var line in lines)
+			{
+				ContinueBuildHash(byteArrayBuilder, line);
+			}
+
+			var res = await WorkWithHashAsync(byteArrayBuilder, cancellationToken);
+			if (res.same)
+			{
+				return;
+			}
+
+			IoHelpers.EnsureContainingDirectoryExists(NewFilePath);
+
+			await File.WriteAllLinesAsync(NewFilePath, lines, cancellationToken);
+			SafeMoveNewToOriginal();
+			await WriteOutHashAsync(res.hash);
+		}
+
+		private async Task<(bool same, byte[] hash)> WorkWithHashAsync(ByteArrayBuilder byteArrayBuilder, CancellationToken cancellationToken)
+		{
 			byte[] hash = null;
 			try
 			{
-				byte[] bytes;
-				var byteArrayBuilder = new ByteArrayBuilder();
-				foreach (var line in lines)
-				{
-					ContinueBuildHash(byteArrayBuilder, line);
-				}
-
-				bytes = byteArrayBuilder.ToArray();
+				var bytes = byteArrayBuilder.ToArray();
 				hash = HashHelpers.GenerateSha256Hash(bytes);
 				if (File.Exists(DigestFilePath))
 				{
 					var digest = await File.ReadAllBytesAsync(DigestFilePath, cancellationToken);
 					if (ByteHelpers.CompareFastUnsafe(hash, digest))
 					{
-						return;
+						if (File.Exists(NewFilePath))
+						{
+							File.Delete(NewFilePath);
+						}
+						return (true, hash);
 					}
 				}
 			}
@@ -202,11 +220,7 @@ namespace WalletWasabi.Stores
 				Logger.LogInfo<IoManager>(ex);
 			}
 
-			IoHelpers.EnsureContainingDirectoryExists(NewFilePath);
-
-			await File.WriteAllLinesAsync(NewFilePath, lines, cancellationToken);
-			SafeMoveNewToOriginal();
-			await WriteOutHashAsync(hash);
+			return (false, hash);
 		}
 
 		private async Task WriteOutHashAsync(byte[] hash)
@@ -237,8 +251,6 @@ namespace WalletWasabi.Stores
 				File.Delete(NewFilePath);
 			}
 
-			byte[] hash = null;
-			byte[] bytes;
 			var byteArrayBuilder = new ByteArrayBuilder();
 
 			var linesArray = lines.ToArray();
@@ -289,27 +301,14 @@ namespace WalletWasabi.Stores
 				await sw.FlushAsync();
 			}
 
-			try
+			var res = await WorkWithHashAsync(byteArrayBuilder, cancellationToken);
+			if (res.same)
 			{
-				bytes = byteArrayBuilder.ToArray();
-				hash = HashHelpers.GenerateSha256Hash(bytes);
-				if (File.Exists(DigestFilePath))
-				{
-					var digest = await File.ReadAllBytesAsync(DigestFilePath, cancellationToken);
-					if (ByteHelpers.CompareFastUnsafe(hash, digest))
-					{
-						return;
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning<IoManager>("Failed to read digest.");
-				Logger.LogInfo<IoManager>(ex);
+				return;
 			}
 
 			SafeMoveNewToOriginal();
-			await WriteOutHashAsync(hash);
+			await WriteOutHashAsync(res.hash);
 		}
 
 		public async Task<string[]> ReadAllLinesAsync(CancellationToken cancellationToken = default)
