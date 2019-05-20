@@ -304,6 +304,15 @@ namespace WalletWasabi.Stores
 				{
 					var line = await sr.ReadLineAsync();
 
+					if (DigestRandomIndex.HasValue)
+					{
+						ContinueBuildHashWithRandomIndex(byteArrayBuilder, line);
+					}
+					else
+					{
+						ContinueBuildHash(byteArrayBuilder, line);
+					}
+
 					if (linesArray[linesIndex] == line) // If the line is a line we want to write, then we know that someone else have worked into the file.
 					{
 						linesIndex++;
@@ -319,20 +328,11 @@ namespace WalletWasabi.Stores
 						lineCounter = 0;
 					}
 
-					if (DigestRandomIndex.HasValue)
-					{
-						ContinueBuildHashWithRandomIndex(byteArrayBuilder, line);
-					}
-					else
-					{
-						ContinueBuildHash(byteArrayBuilder, line);
-					}
-
 					cancellationToken.ThrowIfCancellationRequested();
 				}
 
 				// 2. Then append.
-				foreach (var line in lines.Skip(linesIndex))
+				foreach (var line in lines)
 				{
 					await sw.WriteLineAsync(line);
 
