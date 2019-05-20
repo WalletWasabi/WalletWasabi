@@ -280,6 +280,10 @@ namespace WalletWasabi.Stores
 			}
 
 			IoHelpers.EnsureContainingDirectoryExists(NewFilePath);
+			if (File.Exists(NewFilePath))
+			{
+				File.Delete(NewFilePath);
+			}
 
 			byte[] hash = null;
 			byte[] bytes;
