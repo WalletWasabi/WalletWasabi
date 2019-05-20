@@ -410,10 +410,18 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						TryRefreshHardwareWallets(hwis);
 						return await LoadKeyManagerAsync(requirePassword, isHardwareWallet);
 					}
+					else if (selectedWallet.HardwareWalletInfo.NeedPin)
+					{
+						if (!await HwiProcessManager.PromptPinAsync(selectedWallet.HardwareWalletInfo))
+						{
+							throw new IOException("promptpin request failed.");
+						}
+						selectedWallet.HardwareWalletInfo.SetNeedPinFalse();
+					}
 
 					if (selectedWallet.HardwareWalletInfo.MasterFingerprint is null)
 					{
-						throw new InvalidOperationException("Hardware wallet didn't provided a master fingerprint.");
+						throw new InvalidOperationException("Hardware wallet didn't provide a master fingerprint.");
 					}
 
 					if (!TryFindWalletByMasterFingerprint(selectedWallet.HardwareWalletInfo.MasterFingerprint.Value, out walletName))
