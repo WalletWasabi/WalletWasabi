@@ -1,7 +1,10 @@
 using Avalonia.Threading;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -33,6 +36,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			SendPinCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
+				var sendTab = IoC.Get<IShell>().Documents.OfType<SendTabViewModel>().FirstOrDefault();
+				sendTab.DisplayActionTab();
+				OnClose();
 			},
 			this.WhenAny(x => x.MaskedPin, (maskedPin) => (!string.IsNullOrWhiteSpace(maskedPin.Value))));
 
