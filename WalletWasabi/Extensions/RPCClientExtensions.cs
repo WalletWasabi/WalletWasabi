@@ -212,7 +212,7 @@ namespace NBitcoin.RPC
 		public static async Task<bool> AnyUnconfirmedAsync(this RPCClient rpcClient, ISet<uint256> transactionHashes)
 		{
 			uint256[] unconfirmedTransactionHashes = await rpcClient.GetRawMempoolAsync();
-			if (unconfirmedTransactionHashes.Any(x => transactionHashes.Contains(x)))
+			if (transactionHashes.Intersect(unconfirmedTransactionHashes).Any()) // If there are common elements, then there's unconfirmed.
 			{
 				return true;
 			}
