@@ -204,5 +204,22 @@ namespace NBitcoin.RPC
 			}
 			return (true, "");
 		}
+
+		/// <summary>
+		/// Decides if any of the transactions are unconfirmed using getrawmempool.
+		/// This is efficient when many transaction ids are provided.
+		/// </summary>
+		public static async Task<bool> AnyUnconfirmedAsync(this RPCClient rpcClient, ISet<uint256> transactionHashes)
+		{
+			uint256[] unconfirmedTransactionHashes = await rpcClient.GetRawMempoolAsync();
+			if (unconfirmedTransactionHashes.Any(x => transactionHashes.Contains(x)))
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
 	}
 }

@@ -24,7 +24,16 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public RPCClient RpcClient { get; }
 		public Network Network => RpcClient.Network;
 
-		public int ConfirmationTarget { get; }
+		/// <summary>
+		/// The confirmation target that will be used and possibly modified before final build.
+		/// </summary>
+		public int AdjustedConfirmationTarget { get; private set; }
+
+		/// <summary>
+		/// The confirmation target that is present in the config file.
+		/// </summary>
+		public int ConfiguredConfirmationTarget { get; }
+
 		public decimal CoordinatorFeePercent { get; }
 		public int AnonymitySet { get; private set; }
 
@@ -136,7 +145,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public UtxoReferee UtxoReferee { get; }
 
-		public CcjRound(RPCClient rpc, UtxoReferee utxoReferee, CcjRoundConfig config, int confirmationTarget)
+		public CcjRound(RPCClient rpc, UtxoReferee utxoReferee, CcjRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget)
 		{
 			try
 			{
@@ -146,7 +155,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				UtxoReferee = Guard.NotNull(nameof(utxoReferee), utxoReferee);
 				Guard.NotNull(nameof(config), config);
 
-				ConfirmationTarget = confirmationTarget;
+				AdjustedConfirmationTarget = adjustedConfirmationTarget;
+				ConfiguredConfirmationTarget = configuredConfirmationTarget;
 				CoordinatorFeePercent = (decimal)config.CoordinatorFeePercent;
 				AnonymitySet = (int)config.AnonymitySet;
 				InputRegistrationTimeout = TimeSpan.FromSeconds((long)config.InputRegistrationTimeout);
@@ -178,7 +188,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 				Logger.LogInfo<CcjRound>($"New round ({RoundId}) is created.\n\t" +
 					$"BaseDenomination: {MixingLevels.GetBaseDenomination().ToString(false, true)} BTC.\n\t" +
-					$"{nameof(ConfirmationTarget)}: {ConfirmationTarget}.\n\t" +
+					$"{nameof(AdjustedConfirmationTarget)}: {AdjustedConfirmationTarget}.\n\t" +
 					$"{nameof(CoordinatorFeePercent)}: {CoordinatorFeePercent}%.\n\t" +
 					$"{nameof(AnonymitySet)}: {AnonymitySet}.");
 			}
@@ -210,7 +220,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						// Calculate fees.
 						if (feePerInputs is null || feePerOutputs is null)
 						{
-							(Money feePerInputs, Money feePerOutputs) fees = await CalculateFeesAsync(RpcClient, ConfirmationTarget);
+							(Money feePerInputs, Money feePerOutputs) fees = await CalculateFeesAsync(RpcClient, AdjustedConfirmationTarget);
 							FeePerInputs = feePerInputs ?? fees.feePerInputs;
 							FeePerOutputs = feePerOutputs ?? fees.feePerOutputs;
 						}
@@ -383,7 +393,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							.BuildTransaction(false);
 
 						// 8. Try optimize fees.
-						await OptimizeFeesAsync(spentCoins);
+						await TryOptimizeFeesAsync(spentCoins);
 
 						SignedCoinJoin = Transaction.Parse(UnsignedCoinJoin.ToHex(), Network);
 
@@ -670,10 +680,12 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			return acceptedBlindedOutputScriptsCount;
 		}
 
-		private async Task OptimizeFeesAsync(IEnumerable<Coin> spentCoins)
+		private async Task TryOptimizeFeesAsync(IEnumerable<Coin> spentCoins)
 		{
 			try
 			{
+				await TryOptimizeConfirmationTargetAsync(spentCoins.Select(x => x.Outpoint.Hash).ToHashSet());
+
 				// 8.1. Estimate the current FeeRate. Note, there are no signatures yet!
 				int estimatedSigSizeBytes = UnsignedCoinJoin.Inputs.Count * Constants.P2wpkhInputSizeInBytes;
 				int estimatedFinalTxSize = UnsignedCoinJoin.GetSerializedSize() + estimatedSigSizeBytes;
@@ -682,7 +694,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				FeeRate currentFeeRate = fee is null ? null : new FeeRate(fee, estimatedFinalTxSize);
 
 				// 8.2. Get the most optimal FeeRate.
-				EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
+				EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(AdjustedConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
 				if (estimateSmartFeeResponse is null)
 				{
 					throw new InvalidOperationException("FeeRate is not yet initialized");
@@ -726,7 +738,32 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<CcjRound>("Couldn't optimize fees. Fallback to normal fees.");
+				Logger.LogWarning<CcjRound>("Failed to optimize fees. Fallback to normal fees.");
+				Logger.LogWarning<CcjRound>(ex);
+			}
+		}
+
+		private async Task TryOptimizeConfirmationTargetAsync(ISet<uint256> transactionHashes)
+		{
+			try
+			{
+				// If the transaction doesn't spend unconfirmed coins then the confirmation target can be the one that's been set in the config.
+				var originalConfirmationTarget = AdjustedConfirmationTarget;
+
+				if (await RpcClient.AnyUnconfirmedAsync(transactionHashes))
+				{
+					return;
+				}
+				else
+				{
+					AdjustedConfirmationTarget = ConfiguredConfirmationTarget;
+				}
+
+				Logger.LogInfo<CcjRound>($"Confirmation target is optimized from {originalConfirmationTarget} sat/b to {AdjustedConfirmationTarget} sat/b.");
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<CcjRound>($"Failed to optimize confirmation target. Fallback using the original one: {AdjustedConfirmationTarget} sat/b.");
 				Logger.LogWarning<CcjRound>(ex);
 			}
 		}

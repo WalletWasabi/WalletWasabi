@@ -209,13 +209,13 @@ namespace WalletWasabi.Services
 
 				if (runningRoundCount == 0)
 				{
-					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget);
+					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget.Value);
 					round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					round.StatusChanged += Round_StatusChangedAsync;
 					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration, feePerInputs, feePerOutputs);
 					Rounds.Add(round);
 
-					var round2 = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget);
+					var round2 = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget.Value);
 					round2.StatusChanged += Round_StatusChangedAsync;
 					round2.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					await round2.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration, feePerInputs, feePerOutputs);
@@ -223,7 +223,7 @@ namespace WalletWasabi.Services
 				}
 				else if (runningRoundCount == 1)
 				{
-					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget);
+					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget.Value);
 					round.StatusChanged += Round_StatusChangedAsync;
 					round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration, feePerInputs, feePerOutputs);
@@ -257,7 +257,7 @@ namespace WalletWasabi.Services
 				int confirmationTarget = RoundConfig.ConfirmationTarget.Value;
 				for (int i = 0; i < unconfirmedCoinJoinsCount; i++)
 				{
-					confirmationTarget /= 2;
+					confirmationTarget = (int)(confirmationTarget * 0.7);
 				}
 
 				confirmationTarget = Math.Max(confirmationTarget, 2); // Conf target should never be less than 2.
