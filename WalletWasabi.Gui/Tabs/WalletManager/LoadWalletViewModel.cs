@@ -422,11 +422,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 							pinpad = new PinPadViewModel(null);
 							IoC.Get<IShell>().AddOrSelectDocument(pinpad);
 						}
-						pinpad.DisplayActionTab();
-						while (pinpad.IsSelected)
-						{
-							await Task.Delay(100);
-						}
+						var result = await pinpad.ShowDialogAsync();
+
 						var maskedPin = pinpad.MaskedPin;
 						await HwiProcessManager.SendPinAsync(selectedWallet.HardwareWalletInfo, int.Parse(maskedPin));
 						selectedWallet.HardwareWalletInfo.SetNeedPinFalse();
