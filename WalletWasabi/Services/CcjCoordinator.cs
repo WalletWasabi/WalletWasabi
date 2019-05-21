@@ -257,7 +257,7 @@ namespace WalletWasabi.Services
 				int confirmationTarget = RoundConfig.ConfirmationTarget.Value;
 				for (int i = 0; i < unconfirmedCoinJoinsCount; i++)
 				{
-					confirmationTarget = (int)(confirmationTarget * 0.7);
+					confirmationTarget = (int)(confirmationTarget * RoundConfig.ConfirmationTargetReductionRate.Value);
 				}
 
 				confirmationTarget = Math.Max(confirmationTarget, 2); // Conf target should never be less than 2.
