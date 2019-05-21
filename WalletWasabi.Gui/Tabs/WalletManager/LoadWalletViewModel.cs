@@ -366,6 +366,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			try
 			{
+				SetValidationMessage("");
 				CanTestPassword = false;
 				var password = Guard.Correct(Password); // Don't let whitespaces to the beginning and to the end.
 				Password = ""; // Clear password field.
@@ -416,17 +417,56 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						{
 							throw new IOException("promptpin request failed.");
 						}
-						var pinpad = IoC.Get<IShell>().Documents.OfType<PinPadViewModel>().FirstOrDefault();
+
+						PinPadViewModel pinpad = IoC.Get<IShell>().Documents.OfType<PinPadViewModel>().FirstOrDefault();
 						if (pinpad is null)
 						{
 							pinpad = new PinPadViewModel(null);
 							IoC.Get<IShell>().AddOrSelectDocument(pinpad);
 						}
 						var result = await pinpad.ShowDialogAsync();
+						if (!(result is true))
+						{
+							SetValidationMessage("PIN wasn't provided.");
+							return null;
+						}
 
 						var maskedPin = pinpad.MaskedPin;
-						await HwiProcessManager.SendPinAsync(selectedWallet.HardwareWalletInfo, int.Parse(maskedPin));
-						selectedWallet.HardwareWalletInfo.SetNeedPinFalse();
+						if (!await HwiProcessManager.SendPinAsync(selectedWallet.HardwareWalletInfo, maskedPin))
+						{
+							SetValidationMessage("Wrong PIN.");
+							return null;
+						}
+						var p = selectedWallet.HardwareWalletInfo.Path;
+						var t = selectedWallet.HardwareWalletInfo.Type;
+						var enumRes = await HwiProcessManager.EnumerateAsync();
+						TryRefreshHardwareWallets(enumRes);
+						selectedWallet = Wallets.FirstOrDefault(x => x.HardwareWalletInfo.Type == t && x.HardwareWalletInfo.Path == p);
+						if (selectedWallet is null)
+						{
+							SetValidationMessage("Couldn't find the hardware wallet you are working with. Did you disconnect it?");
+							return null;
+						}
+						else
+						{
+							SelectedWallet = selectedWallet;
+						}
+
+						if (!selectedWallet.HardwareWalletInfo.Initialized)
+						{
+							SetValidationMessage("Hardware wallet is not initialized.");
+							return null;
+						}
+						if (!selectedWallet.HardwareWalletInfo.Ready)
+						{
+							SetValidationMessage("Hardware wallet is not ready.");
+							return null;
+						}
+						if (selectedWallet.HardwareWalletInfo.NeedPin)
+						{
+							SetValidationMessage("Hardware wallet still needs a PIN.");
+							return null;
+						}
 					}
 
 					if (selectedWallet.HardwareWalletInfo.MasterFingerprint is null)
@@ -492,6 +532,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 			catch (Exception ex)
 			{
+				if (ex is IOException && ex.Message.Contains("promptpin", StringComparison.Ordinal))
+				{
+					// This happens for example when the PIN is cleared (timeout, disconnect) after the enumeration and the xpub wasn't yet acquired at all, so we reenumerate.
+					// This will still show up the error, but at least this'll make sure that the new hardware wallet state is shown in the GUI, so they can click Load again.
+					var enumRes = await HwiProcessManager.EnumerateAsync();
+					TryRefreshHardwareWallets(enumRes);
+				}
+
 				// Initialization failed.
 				SetValidationMessage(ex.ToTypeMessageString());
 				Logger.LogError<LoadWalletViewModel>(ex);
@@ -547,6 +595,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			try
 			{
 				IsBusy = true;
+				SetValidationMessage("");
 				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.Loading);
 
 				var keyManager = await LoadKeyManagerAsync(IsPasswordRequired, IsHardwareWallet);

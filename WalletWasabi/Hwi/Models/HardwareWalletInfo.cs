@@ -52,17 +52,11 @@ namespace WalletWasabi.Hwi.Models
 
 		public HDFingerprint? MasterFingerprint { get; }
 		public bool Initialized { get; }
-		public bool NeedPin { get; private set; }
+		public bool NeedPin { get; }
 		public bool Ready { get; }
 		public string SerialNumber { get; }
 		public HardwareWalletType Type { get; }
 		public string Path { get; }
-		public string Error { get; private set; }
-
-		public void SetNeedPinFalse()
-		{
-			NeedPin = false;
-			Error = "";
-		}
+		public string Error { get; }
 	}
 }

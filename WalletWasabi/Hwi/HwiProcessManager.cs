@@ -39,7 +39,7 @@ namespace WalletWasabi.Hwi
 			return success;
 		}
 
-		public static async Task<bool> SendPinAsync(HardwareWalletInfo hardwareWalletInfo, int pin)
+		public static async Task<bool> SendPinAsync(HardwareWalletInfo hardwareWalletInfo, string pin)
 		{
 			var networkString = Network == Network.Main ? "" : "--testnet";
 			JToken jtok = null;
