@@ -760,7 +760,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				var dependents = await RpcClient.GetAllDependentsAsync(transactionHashes, includingProvided: true, likelyProvidedManyConfirmedOnes: true);
 				AdjustedConfirmationTarget = AdjustConfirmationTarget(dependents.Count, ConfiguredConfirmationTarget, ConfiguredConfirmationTargetReductionRate); ;
 
-				Logger.LogInfo<CcjRound>($"Confirmation target is optimized from {originalConfirmationTarget} sat/b to {AdjustedConfirmationTarget} sat/b.");
+				if (originalConfirmationTarget != AdjustedConfirmationTarget)
+				{
+					Logger.LogInfo<CcjRound>($"Confirmation target is optimized from {originalConfirmationTarget} sat/b to {AdjustedConfirmationTarget} sat/b.");
+				}
 			}
 			catch (Exception ex)
 			{
