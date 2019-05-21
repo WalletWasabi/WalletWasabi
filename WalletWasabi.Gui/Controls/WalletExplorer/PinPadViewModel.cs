@@ -36,7 +36,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			SendPinCommand = ReactiveCommand.Create(() =>
 			{
-				OnClose();
+				Close();
 			},
 			this.WhenAny(x => x.MaskedPin, (maskedPin) => (!string.IsNullOrWhiteSpace(maskedPin.Value))));
 
