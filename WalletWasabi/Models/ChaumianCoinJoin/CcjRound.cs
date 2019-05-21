@@ -34,6 +34,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		/// </summary>
 		public int ConfiguredConfirmationTarget { get; }
 
+		/// <summary>
+		/// The rate of confirmation target reduction rate that is present in the config file.
+		/// </summary>
+		public double ConfiguredConfirmationTargetReductionRate { get; }
+
 		public decimal CoordinatorFeePercent { get; }
 		public int AnonymitySet { get; private set; }
 
@@ -145,7 +150,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public UtxoReferee UtxoReferee { get; }
 
-		public CcjRound(RPCClient rpc, UtxoReferee utxoReferee, CcjRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget)
+		public CcjRound(RPCClient rpc, UtxoReferee utxoReferee, CcjRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget, double configuredConfirmationTargetReductionRate)
 		{
 			try
 			{
@@ -157,6 +162,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 				AdjustedConfirmationTarget = adjustedConfirmationTarget;
 				ConfiguredConfirmationTarget = configuredConfirmationTarget;
+				ConfiguredConfirmationTargetReductionRate = configuredConfirmationTargetReductionRate;
 				CoordinatorFeePercent = (decimal)config.CoordinatorFeePercent;
 				AnonymitySet = (int)config.AnonymitySet;
 				InputRegistrationTimeout = TimeSpan.FromSeconds((long)config.InputRegistrationTimeout);
@@ -750,14 +756,9 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				// If the transaction doesn't spend unconfirmed coins then the confirmation target can be the one that's been set in the config.
 				var originalConfirmationTarget = AdjustedConfirmationTarget;
 
-				if (await RpcClient.AnyUnconfirmedAsync(transactionHashes))
-				{
-					return;
-				}
-				else
-				{
-					AdjustedConfirmationTarget = ConfiguredConfirmationTarget;
-				}
+				// Note that only dependents matter, spenders doesn't matter much or at all, they just make this transaction to be faster to confirm faster.
+				var dependents = await RpcClient.GetAllDependentsAsync(transactionHashes, includingProvided: true, likelyProvidedManyConfirmedOnes: true);
+				AdjustedConfirmationTarget = AdjustConfirmationTarget(dependents.Count, ConfiguredConfirmationTarget, ConfiguredConfirmationTargetReductionRate); ;
 
 				Logger.LogInfo<CcjRound>($"Confirmation target is optimized from {originalConfirmationTarget} sat/b to {AdjustedConfirmationTarget} sat/b.");
 			}
@@ -1019,6 +1020,17 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					}
 				});
 			}
+		}
+
+		public static int AdjustConfirmationTarget(int unconfirmedCount, int startingConfirmationTarget, double confirmationTargetReductionRate)
+		{
+			for (int i = 0; i < unconfirmedCount; i++)
+			{
+				startingConfirmationTarget = (int)(startingConfirmationTarget * confirmationTargetReductionRate);
+			}
+
+			startingConfirmationTarget = Math.Max(startingConfirmationTarget, 2); // Conf target should never be less than 2.
+			return startingConfirmationTarget;
 		}
 
 		#region Modifiers

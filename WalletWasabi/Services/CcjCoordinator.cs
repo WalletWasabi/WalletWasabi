@@ -209,13 +209,13 @@ namespace WalletWasabi.Services
 
 				if (runningRoundCount == 0)
 				{
-					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget.Value);
+					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget.Value, RoundConfig.ConfirmationTargetReductionRate.Value);
 					round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					round.StatusChanged += Round_StatusChangedAsync;
 					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration, feePerInputs, feePerOutputs);
 					Rounds.Add(round);
 
-					var round2 = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget.Value);
+					var round2 = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget.Value, RoundConfig.ConfirmationTargetReductionRate.Value);
 					round2.StatusChanged += Round_StatusChangedAsync;
 					round2.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					await round2.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration, feePerInputs, feePerOutputs);
@@ -223,7 +223,7 @@ namespace WalletWasabi.Services
 				}
 				else if (runningRoundCount == 1)
 				{
-					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget.Value);
+					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget.Value, RoundConfig.ConfirmationTargetReductionRate.Value);
 					round.StatusChanged += Round_StatusChangedAsync;
 					round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration, feePerInputs, feePerOutputs);
@@ -254,13 +254,7 @@ namespace WalletWasabi.Services
 					unconfirmedCoinJoinsCount = CoinJoins.Intersect(mempoolHashes).Count();
 				}
 
-				int confirmationTarget = RoundConfig.ConfirmationTarget.Value;
-				for (int i = 0; i < unconfirmedCoinJoinsCount; i++)
-				{
-					confirmationTarget = (int)(confirmationTarget * RoundConfig.ConfirmationTargetReductionRate.Value);
-				}
-
-				confirmationTarget = Math.Max(confirmationTarget, 2); // Conf target should never be less than 2.
+				int confirmationTarget = CcjRound.AdjustConfirmationTarget(unconfirmedCoinJoinsCount, RoundConfig.ConfirmationTarget.Value, RoundConfig.ConfirmationTargetReductionRate.Value);
 				return confirmationTarget;
 			}
 			catch (Exception ex)
