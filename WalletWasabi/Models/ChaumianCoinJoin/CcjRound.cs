@@ -762,12 +762,12 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 				if (originalConfirmationTarget != AdjustedConfirmationTarget)
 				{
-					Logger.LogInfo<CcjRound>($"Confirmation target is optimized from {originalConfirmationTarget} sat/b to {AdjustedConfirmationTarget} sat/b.");
+					Logger.LogInfo<CcjRound>($"Confirmation target is optimized from {originalConfirmationTarget} blocks to {AdjustedConfirmationTarget} blocks.");
 				}
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<CcjRound>($"Failed to optimize confirmation target. Fallback using the original one: {AdjustedConfirmationTarget} sat/b.");
+				Logger.LogWarning<CcjRound>($"Failed to optimize confirmation target. Fallback using the original one: {AdjustedConfirmationTarget} blocks.");
 				Logger.LogWarning<CcjRound>(ex);
 			}
 		}
