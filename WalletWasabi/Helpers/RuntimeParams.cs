@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Nito.AsyncEx;
 using System;
 using System.IO;
@@ -53,7 +53,7 @@ namespace WalletWasabi.Helpers
 		{
 			try
 			{
-				using (await AsyncLock.LockAsync())
+				using (await AsyncLock.LockAsync().ConfigureAwait(false))
 				{
 					if (!Directory.Exists(FileDir))
 					{
@@ -63,7 +63,7 @@ namespace WalletWasabi.Helpers
 					string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
 					await File.WriteAllTextAsync(FilePath,
 					jsonString,
-					Encoding.UTF8);
+					Encoding.UTF8).ConfigureAwait(false);
 				}
 			}
 			catch (Exception ex)
@@ -79,10 +79,10 @@ namespace WalletWasabi.Helpers
 				if (!File.Exists(FilePath))
 				{
 					var file = new RuntimeParams();
-					await file.SaveAsync();
+					await file.SaveAsync().ConfigureAwait(false);
 				}
 
-				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
+				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8).ConfigureAwait(false);
 				InternalInstance = JsonConvert.DeserializeObject<RuntimeParams>(jsonString);
 				return;
 			}

@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
@@ -47,7 +47,7 @@ namespace WalletWasabi.WebClients.SmartBit
 
 		public async Task PushTransactionAsync(Transaction transaction, CancellationToken cancel)
 		{
-			using (await AsyncLock.LockAsync(cancel))
+			using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
 			{
 				var content = new StringContent(
 					new JObject(new JProperty("hex", transaction.ToHex())).ToString(),
@@ -55,30 +55,30 @@ namespace WalletWasabi.WebClients.SmartBit
 					"application/json");
 
 				HttpResponseMessage response =
-						await HttpClient.PostAsync("blockchain/pushtx", content, cancel);
+						await HttpClient.PostAsync("blockchain/pushtx", content, cancel).ConfigureAwait(false);
 
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
 					throw new HttpRequestException(response.StatusCode.ToString());
 				}
 
-				string responseString = await response.Content.ReadAsStringAsync();
+				string responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 				AssertSuccess(responseString);
 			}
 		}
 
 		public async Task<IEnumerable<SmartBitExchangeRate>> GetExchangeRatesAsync(CancellationToken cancel)
 		{
-			using (await AsyncLock.LockAsync(cancel))
+			using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
 			using (HttpResponseMessage response =
-					await HttpClient.GetAsync("exchange-rates", HttpCompletionOption.ResponseContentRead, cancel))
+					await HttpClient.GetAsync("exchange-rates", HttpCompletionOption.ResponseContentRead, cancel).ConfigureAwait(false))
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
 					throw new HttpRequestException(response.StatusCode.ToString());
 				}
 
-				string responseString = await response.Content.ReadAsStringAsync();
+				string responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 				AssertSuccess(responseString);
 
 				var exchangeRates = JObject.Parse(responseString).Value<JArray>("exchange_rates");

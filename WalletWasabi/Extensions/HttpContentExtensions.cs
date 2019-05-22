@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System.Threading.Tasks;
 
 namespace System.Net.Http
@@ -12,7 +12,7 @@ namespace System.Net.Http
 				return default;
 			}
 
-			var jsonString = await me.ReadAsStringAsync();
+			var jsonString = await me.ReadAsStringAsync().ConfigureAwait(false);
 			return JsonConvert.DeserializeObject<T>(jsonString);
 		}
 	}

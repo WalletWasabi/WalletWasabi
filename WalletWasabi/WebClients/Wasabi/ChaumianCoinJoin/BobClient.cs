@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.Crypto;
 using System;
 using System.Net;
@@ -31,7 +31,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			Guard.MinimumAndNotNull(nameof(level), level, 0);
 
 			var request = new OutputRequest { OutputAddress = activeOutputAddress, UnblindedSignature = unblindedSignature, Level = level };
-			using (var response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Constants.BackendMajorVersion}/btc/chaumiancoinjoin/output?roundId={roundId}", request.ToHttpStringContent()))
+			using (var response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Constants.BackendMajorVersion}/btc/chaumiancoinjoin/output?roundId={roundId}", request.ToHttpStringContent()).ConfigureAwait(false))
 			{
 				if (response.StatusCode == HttpStatusCode.Conflict)
 				{
@@ -39,7 +39,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 				}
 				else if (response.StatusCode != HttpStatusCode.NoContent)
 				{
-					await response.ThrowRequestExceptionFromContentAsync();
+					await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 				}
 
 				return true;

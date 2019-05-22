@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,18 +30,18 @@ namespace System.Net.Http
 			//					CRLF
 			//					[message - body]
 
-			string startLine = await HttpMessageHelper.ReadStartLineAsync(requestStream, ctsToken);
+			string startLine = await HttpMessageHelper.ReadStartLineAsync(requestStream, ctsToken).ConfigureAwait(false);
 
 			var requestLine = RequestLine.CreateNew(startLine);
 			var request = new HttpRequestMessage(requestLine.Method, requestLine.URI);
 
-			string headers = await HttpMessageHelper.ReadHeadersAsync(requestStream, ctsToken);
+			string headers = await HttpMessageHelper.ReadHeadersAsync(requestStream, ctsToken).ConfigureAwait(false);
 
 			var headerSection = HeaderSection.CreateNew(headers);
 			var headerStruct = headerSection.ToHttpRequestHeaders();
 
 			HttpMessageHelper.AssertValidHeaders(headerStruct.RequestHeaders, headerStruct.ContentHeaders);
-			byte[] contentBytes = await HttpMessageHelper.GetContentBytesAsync(requestStream, headerStruct, ctsToken);
+			byte[] contentBytes = await HttpMessageHelper.GetContentBytesAsync(requestStream, headerStruct, ctsToken).ConfigureAwait(false);
 			contentBytes = HttpMessageHelper.HandleGzipCompression(headerStruct.ContentHeaders, contentBytes);
 			request.Content = contentBytes is null ? null : new ByteArrayContent(contentBytes);
 
@@ -95,7 +95,7 @@ namespace System.Net.Http
 					headers += headerSection.ToString(endWithTwoCRLF: false);
 				}
 
-				messageBody = await me.Content.ReadAsStringAsync();
+				messageBody = await me.Content.ReadAsStringAsync().ConfigureAwait(false);
 			}
 
 			return startLine + headers + CRLF + messageBody;
@@ -103,8 +103,7 @@ namespace System.Net.Http
 
 		public static async Task<HttpRequestMessage> CloneAsync(this HttpRequestMessage me)
 		{
-			var newMessage = new HttpRequestMessage(me.Method, me.RequestUri)
-			{
+			var newMessage = new HttpRequestMessage(me.Method, me.RequestUri) {
 				Version = me.Version
 			};
 
@@ -119,7 +118,7 @@ namespace System.Net.Http
 			}
 
 			var ms = new MemoryStream();
-			await me.Content.CopyToAsync(ms);
+			await me.Content.CopyToAsync(ms).ConfigureAwait(false);
 			ms.Position = 0;
 			var newContent = new StreamContent(ms);
 

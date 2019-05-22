@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -29,7 +29,7 @@ namespace System.Net.Http
 			int read = 0;
 			while (read >= 0)
 			{
-				read = await stream.ReadByteAsync(ctsToken);
+				read = await stream.ReadByteAsync(ctsToken).ConfigureAwait(false);
 				bab.Append((byte)read);
 				if (Encoding.ASCII.GetBytes(LF)[0] == (byte)read)
 				{
@@ -54,7 +54,7 @@ namespace System.Net.Http
 			builder.Append(headers);
 			while (true)
 			{
-				string header = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken);
+				string header = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken).ConfigureAwait(false);
 
 				if (header is null)
 				{
@@ -99,7 +99,7 @@ namespace System.Net.Http
 			var bab = new ByteArrayBuilder();
 			while (true)
 			{
-				int ch = await stream.ReadByteAsync(ctsToken);
+				int ch = await stream.ReadByteAsync(ctsToken).ConfigureAwait(false);
 				if (ch == -1)
 				{
 					break;
@@ -107,7 +107,7 @@ namespace System.Net.Http
 
 				if (ch == '\r')
 				{
-					var ch2 = await stream.ReadByteAsync(ctsToken);
+					var ch2 = await stream.ReadByteAsync(ctsToken).ConfigureAwait(false);
 					if (ch2 == '\n')
 					{
 						return bab.ToString(encoding);
@@ -161,7 +161,7 @@ namespace System.Net.Http
 				// All transfer-coding names are case-insensitive
 				if ("chunked".Equals(headerStruct.RequestHeaders.TransferEncoding.Last().Value, StringComparison.OrdinalIgnoreCase))
 				{
-					return await GetDecodedChunkedContentBytesAsync(stream, headerStruct, ctsToken);
+					return await GetDecodedChunkedContentBytesAsync(stream, headerStruct, ctsToken).ConfigureAwait(false);
 				}
 				// https://tools.ietf.org/html/rfc7230#section-3.3.3
 				// If a Transfer - Encoding header field is present in a response and
@@ -172,7 +172,7 @@ namespace System.Net.Http
 				// the final encoding, the message body length cannot be determined
 				// reliably; the server MUST respond with the 400(Bad Request)
 				// status code and then close the connection.
-				return await GetBytesTillEndAsync(stream, ctsToken);
+				return await GetBytesTillEndAsync(stream, ctsToken).ConfigureAwait(false);
 			}
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
 			// 5.If a valid Content - Length header field is present without
@@ -184,7 +184,7 @@ namespace System.Net.Http
 			if (headerStruct.ContentHeaders.Contains("Content-Length"))
 			{
 				long? contentLength = headerStruct.ContentHeaders?.ContentLength;
-				return await ReadBytesTillLengthAsync(stream, contentLength, ctsToken);
+				return await ReadBytesTillLengthAsync(stream, contentLength, ctsToken).ConfigureAwait(false);
 			}
 
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
@@ -239,7 +239,7 @@ namespace System.Net.Http
 				// All transfer-coding names are case-insensitive
 				if ("chunked".Equals(headerStruct.ResponseHeaders.TransferEncoding.Last().Value, StringComparison.OrdinalIgnoreCase))
 				{
-					return await GetDecodedChunkedContentBytesAsync(stream, headerStruct, ctsToken);
+					return await GetDecodedChunkedContentBytesAsync(stream, headerStruct, ctsToken).ConfigureAwait(false);
 				}
 				// https://tools.ietf.org/html/rfc7230#section-3.3.3
 				// If a Transfer - Encoding header field is present in a response and
@@ -250,7 +250,7 @@ namespace System.Net.Http
 				// the final encoding, the message body length cannot be determined
 				// reliably; the server MUST respond with the 400(Bad Request)
 				// status code and then close the connection.
-				return await GetBytesTillEndAsync(stream, ctsToken);
+				return await GetBytesTillEndAsync(stream, ctsToken).ConfigureAwait(false);
 			}
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
 			// 5.If a valid Content - Length header field is present without
@@ -263,7 +263,7 @@ namespace System.Net.Http
 			{
 				long? contentLength = headerStruct.ContentHeaders?.ContentLength;
 
-				return await ReadBytesTillLengthAsync(stream, contentLength, ctsToken);
+				return await ReadBytesTillLengthAsync(stream, contentLength, ctsToken).ConfigureAwait(false);
 			}
 
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
@@ -273,17 +273,17 @@ namespace System.Net.Http
 			// body length, so the message body length is determined by the
 			// number of octets received prior to the server closing the
 			// connection.
-			return await GetBytesTillEndAsync(stream, ctsToken);
+			return await GetBytesTillEndAsync(stream, ctsToken).ConfigureAwait(false);
 		}
 
 		private static async Task<byte[]> GetDecodedChunkedContentBytesAsync(Stream stream, HttpRequestContentHeaders headerStruct, CancellationToken ctsToken = default)
 		{
-			return await GetDecodedChunkedContentBytesAsync(stream, headerStruct, null, ctsToken);
+			return await GetDecodedChunkedContentBytesAsync(stream, headerStruct, null, ctsToken).ConfigureAwait(false);
 		}
 
 		private static async Task<byte[]> GetDecodedChunkedContentBytesAsync(Stream stream, HttpResponseContentHeaders headerStruct, CancellationToken ctsToken = default)
 		{
-			return await GetDecodedChunkedContentBytesAsync(stream, null, headerStruct, ctsToken);
+			return await GetDecodedChunkedContentBytesAsync(stream, null, headerStruct, ctsToken).ConfigureAwait(false);
 		}
 
 		private static async Task<byte[]> GetDecodedChunkedContentBytesAsync(Stream stream, HttpRequestContentHeaders requestHeaders, HttpResponseContentHeaders responseHeaders, CancellationToken ctsToken = default)
@@ -321,7 +321,7 @@ namespace System.Net.Http
 			// Remove "chunked" from Transfer-Encoding
 			// Remove Trailer from existing header fields
 			long length = 0;
-			var firstChunkLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken: ctsToken);
+			var firstChunkLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken: ctsToken).ConfigureAwait(false);
 			ParseFistChunkLine(firstChunkLine, out long chunkSize, out _);
 			// We will not do anything with the chunk extensions, because:
 			// https://tools.ietf.org/html/rfc7230#section-4.1.1
@@ -334,8 +334,8 @@ namespace System.Net.Http
 			// by a trailer, and finally terminated by an empty line.
 			while (chunkSize > 0)
 			{
-				var chunkData = await ReadBytesTillLengthAsync(stream, chunkSize, ctsToken);
-				if (await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken) != "")
+				var chunkData = await ReadBytesTillLengthAsync(stream, chunkSize, ctsToken).ConfigureAwait(false);
+				if (await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken).ConfigureAwait(false) != "")
 				{
 					throw new FormatException("Chunk does not end with CRLF.");
 				}
@@ -344,7 +344,7 @@ namespace System.Net.Http
 
 				length += chunkSize;
 
-				firstChunkLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken: ctsToken);
+				firstChunkLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken: ctsToken).ConfigureAwait(false);
 				ParseFistChunkLine(firstChunkLine, out long cs, out _);
 				chunkSize = cs;
 			}
@@ -353,7 +353,7 @@ namespace System.Net.Http
 			// A trailer allows the sender to include additional fields at the end
 			// of a chunked message in order to supply metadata that might be
 			// dynamically generated while the message body is sent
-			string trailerHeaders = await ReadHeadersAsync(stream, ctsToken);
+			string trailerHeaders = await ReadHeadersAsync(stream, ctsToken).ConfigureAwait(false);
 			var trailerHeaderSection = HeaderSection.CreateNew(trailerHeaders);
 			RemoveInvalidTrailers(trailerHeaderSection);
 			if (responseHeaders != null)
@@ -463,7 +463,7 @@ namespace System.Net.Http
 			var bab = new ByteArrayBuilder();
 			while (true)
 			{
-				int read = await stream.ReadByteAsync(ctsToken);
+				int read = await stream.ReadByteAsync(ctsToken).ConfigureAwait(false);
 				if (read == -1)
 				{
 					return bab.ToArray();
@@ -487,7 +487,7 @@ namespace System.Net.Http
 			}
 
 			var allData = new byte[(int)length];
-			var num = await stream.ReadBlockAsync(allData, (int)length, ctsToken);
+			var num = await stream.ReadBlockAsync(allData, (int)length, ctsToken).ConfigureAwait(false);
 			if (num < (int)length)
 			{
 				// https://tools.ietf.org/html/rfc7230#section-3.3.3

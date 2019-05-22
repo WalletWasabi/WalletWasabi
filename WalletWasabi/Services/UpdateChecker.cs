@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Exceptions;
@@ -40,26 +40,26 @@ namespace WalletWasabi.Services
 					{
 						try
 						{
-							(bool backendCompatible, bool clientUpToDate) updates = await WasabiClient.CheckUpdatesAsync(Stop.Token);
+							(bool backendCompatible, bool clientUpToDate) updates = await WasabiClient.CheckUpdatesAsync(Stop.Token).ConfigureAwait(false);
 
-							if (!updates.backendCompatible)
+							if (!updates.backendCompatible && executeIfBackendIncompatible != null)
 							{
-								await executeIfBackendIncompatible?.Invoke();
+								await executeIfBackendIncompatible.Invoke().ConfigureAwait(false);
 							}
 
-							if (!updates.clientUpToDate)
+							if (!updates.clientUpToDate && executeIfClientOutOfDate != null)
 							{
-								await executeIfClientOutOfDate?.Invoke();
+								await executeIfClientOutOfDate.Invoke().ConfigureAwait(false);
 							}
 
-							await Task.Delay(period, Stop.Token);
+							await Task.Delay(period, Stop.Token).ConfigureAwait(false);
 						}
 						catch (ConnectionException ex)
 						{
 							Logger.LogError<UpdateChecker>(ex);
 							try
 							{
-								await Task.Delay(period, Stop.Token); // Give other threads time to do stuff, update check is not crucial.
+								await Task.Delay(period, Stop.Token).ConfigureAwait(false); // Give other threads time to do stuff, update check is not crucial.
 							}
 							catch (TaskCanceledException ex2)
 							{

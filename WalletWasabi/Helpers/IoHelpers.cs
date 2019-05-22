@@ -40,7 +40,7 @@ namespace System.IO
 					Logger.LogDebug($"Gnomes prevent deletion of {destinationDir}! Applying magic dust, attempt #{gnomes}.", nameof(IoHelpers));
 
 					// see http://stackoverflow.com/questions/329355/cannot-delete-directory-with-directory-deletepath-true for more magic
-					await Task.Delay(100);
+					await Task.Delay(100).ConfigureAwait(false);
 					continue;
 				}
 				catch (UnauthorizedAccessException)
@@ -53,7 +53,7 @@ namespace System.IO
 					Logger.LogDebug($"Gnomes prevent deletion of {destinationDir}! Applying magic dust, attempt #{gnomes}.", nameof(IoHelpers));
 
 					// see http://stackoverflow.com/questions/329355/cannot-delete-directory-with-directory-deletepath-true for more magic
-					await Task.Delay(100);
+					await Task.Delay(100).ConfigureAwait(false);
 					continue;
 				}
 				return;
@@ -69,7 +69,7 @@ namespace System.IO
 			}
 			catch (UnauthorizedAccessException)
 			{
-				await Task.Delay(100);
+				await Task.Delay(100).ConfigureAwait(false);
 				ZipFile.ExtractToDirectory(src, dest);
 			}
 		}

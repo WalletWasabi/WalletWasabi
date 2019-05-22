@@ -32,7 +32,7 @@ namespace WalletWasabi.Hwi
 			JToken jtok = null;
 			using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
 			{
-				jtok = await SendCommandAsync($"{networkString} --device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" promptpin", cts.Token);
+				jtok = await SendCommandAsync($"{networkString} --device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" promptpin", cts.Token).ConfigureAwait(false);
 			}
 			JObject json = jtok as JObject;
 			var success = json.Value<bool>("success");
@@ -45,7 +45,7 @@ namespace WalletWasabi.Hwi
 			JToken jtok = null;
 			using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
 			{
-				jtok = await SendCommandAsync($"{networkString} --device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" sendpin {pin}", cts.Token);
+				jtok = await SendCommandAsync($"{networkString} --device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" sendpin {pin}", cts.Token).ConfigureAwait(false);
 			}
 			JObject json = jtok as JObject;
 			var success = json.Value<bool>("success");
@@ -58,7 +58,7 @@ namespace WalletWasabi.Hwi
 			JToken jtok = null;
 			using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
 			{
-				jtok = await SendCommandAsync($"{networkString} --device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" --interactive setup", cts.Token);
+				jtok = await SendCommandAsync($"{networkString} --device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" --interactive setup", cts.Token).ConfigureAwait(false);
 			}
 			JObject json = jtok as JObject;
 			var success = json.Value<bool>("success");
@@ -74,7 +74,7 @@ namespace WalletWasabi.Hwi
 				JToken jtok = null;
 				using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
 				{
-					jtok = await SendCommandAsync($"{networkString} --device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" signtx {psbtString}", cts.Token, isMutexPriority: true);
+					jtok = await SendCommandAsync($"{networkString} --device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" signtx {psbtString}", cts.Token, isMutexPriority: true).ConfigureAwait(false);
 				}
 				JObject json = jtok as JObject;
 				var signedPsbtString = json.Value<string>("psbt");
@@ -110,7 +110,7 @@ namespace WalletWasabi.Hwi
 			JToken jtok = null;
 			using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(60)))
 			{
-				jtok = await SendCommandAsync($"{networkString}--device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" getxpub m/84h/0h/0h", cts.Token);
+				jtok = await SendCommandAsync($"{networkString}--device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" getxpub m/84h/0h/0h", cts.Token).ConfigureAwait(false);
 			}
 			JObject json = jtok as JObject;
 			string xpub = json.Value<string>("xpub");
@@ -125,7 +125,7 @@ namespace WalletWasabi.Hwi
 			JToken jtok = null;
 			using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(60)))
 			{
-				jtok = await SendCommandAsync("enumerate", cts.Token);
+				jtok = await SendCommandAsync("enumerate", cts.Token).ConfigureAwait(false);
 			}
 			JArray jarr = jtok as JArray;
 			var hwis = new List<HardwareWalletInfo>();
@@ -161,7 +161,7 @@ namespace WalletWasabi.Hwi
 			{
 				var rand = Random.Next(1, 100);
 				var delay = isMutexPriority ? (100 + rand) : (1000 + rand);
-				using (await AsyncMutex.LockAsync(cancellationToken, delay)) // It could be even improved more if this Mutex would also look at which hardware wallet the operation is going towards (enumerate sends to all.)
+				using (await AsyncMutex.LockAsync(cancellationToken, delay).ConfigureAwait(false)) // It could be even improved more if this Mutex would also look at which hardware wallet the operation is going towards (enumerate sends to all.)
 				{
 					if (!File.Exists(HwiPath))
 					{
@@ -187,7 +187,7 @@ namespace WalletWasabi.Hwi
 							throw new IOException($"Command: {command} exited with exit code: {process.ExitCode}, instead of 0.");
 						}
 
-						string response = await process.StandardOutput.ReadToEndAsync();
+						string response = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
 						var jToken = JToken.Parse(response);
 						if (jToken is JObject json)
 						{
@@ -234,7 +234,7 @@ namespace WalletWasabi.Hwi
 			if (!File.Exists(hwiPath))
 			{
 				Logger.LogInfo($"HWI instance NOT found at {hwiPath}. Attempting to acquire it...", nameof(HwiProcessManager));
-				await InstallHwiAsync(fullBaseDirectory, hwiDir);
+				await InstallHwiAsync(fullBaseDirectory, hwiDir).ConfigureAwait(false);
 			}
 			else if (!IoHelpers.CheckExpectedHash(hwiPath, Path.Combine(fullBaseDirectory, "Hwi", "Software")))
 			{
@@ -247,7 +247,7 @@ namespace WalletWasabi.Hwi
 				}
 				Directory.Move(hwiDir, backupHwiDir);
 
-				await InstallHwiAsync(fullBaseDirectory, hwiDir);
+				await InstallHwiAsync(fullBaseDirectory, hwiDir).ConfigureAwait(false);
 			}
 			else
 			{
@@ -267,13 +267,13 @@ namespace WalletWasabi.Hwi
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
 				string hwiLinuxZip = Path.Combine(hwiSoftwareDir, "hwi-linux64.zip");
-				await IoHelpers.BetterExtractZipToDirectoryAsync(hwiLinuxZip, hwiDir);
+				await IoHelpers.BetterExtractZipToDirectoryAsync(hwiLinuxZip, hwiDir).ConfigureAwait(false);
 				Logger.LogInfo($"Extracted {hwiLinuxZip} to {hwiDir}.", nameof(HwiProcessManager));
 			}
 			else // OSX
 			{
 				string hwiOsxZip = Path.Combine(hwiSoftwareDir, "hwi-osx64.zip");
-				await IoHelpers.BetterExtractZipToDirectoryAsync(hwiOsxZip, hwiDir);
+				await IoHelpers.BetterExtractZipToDirectoryAsync(hwiOsxZip, hwiDir).ConfigureAwait(false);
 				Logger.LogInfo($"Extracted {hwiOsxZip} to {hwiDir}.", nameof(HwiProcessManager));
 			}
 

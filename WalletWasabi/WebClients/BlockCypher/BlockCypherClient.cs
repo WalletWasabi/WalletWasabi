@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using Newtonsoft.Json;
 using Nito.AsyncEx;
 using System;
@@ -44,16 +44,16 @@ namespace WalletWasabi.WebClients.BlockCypher
 
 		public async Task<BlockCypherGeneralInformation> GetGeneralInformationAsync(CancellationToken cancel)
 		{
-			using (await AsyncLock.LockAsync())
+			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			using (HttpResponseMessage response =
-					 await HttpClient.GetAsync("", HttpCompletionOption.ResponseContentRead, cancel))
+					 await HttpClient.GetAsync("", HttpCompletionOption.ResponseContentRead, cancel).ConfigureAwait(false))
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
 					throw new HttpRequestException(response.StatusCode.ToString());
 				}
 
-				string jsonString = await response.Content.ReadAsStringAsync();
+				string jsonString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 				return JsonConvert.DeserializeObject<BlockCypherGeneralInformation>(jsonString);
 			}
 		}

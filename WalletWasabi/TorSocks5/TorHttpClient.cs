@@ -95,11 +95,11 @@ namespace WalletWasabi.TorSocks5
 
 			try
 			{
-				using (await AsyncLock.LockAsync(cancel))
+				using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
 				{
 					try
 					{
-						HttpResponseMessage ret = await SendAsync(request);
+						HttpResponseMessage ret = await SendAsync(request).ConfigureAwait(false);
 						TorDoesntWorkSince = null;
 						return ret;
 					}
@@ -113,7 +113,7 @@ namespace WalletWasabi.TorSocks5
 						cancel.ThrowIfCancellationRequested();
 						try
 						{
-							HttpResponseMessage ret2 = await SendAsync(request);
+							HttpResponseMessage ret2 = await SendAsync(request).ConfigureAwait(false);
 							TorDoesntWorkSince = null;
 							return ret2;
 						}
@@ -127,7 +127,7 @@ namespace WalletWasabi.TorSocks5
 
 							try
 							{
-								await Task.Delay(1000, cancel);
+								await Task.Delay(1000, cancel).ConfigureAwait(false);
 							}
 							catch (TaskCanceledException tce)
 							{
@@ -141,7 +141,7 @@ namespace WalletWasabi.TorSocks5
 
 						cancel.ThrowIfCancellationRequested();
 
-						HttpResponseMessage ret3 = await SendAsync(request);
+						HttpResponseMessage ret3 = await SendAsync(request).ConfigureAwait(false);
 						TorDoesntWorkSince = null;
 						return ret3;
 					}
@@ -194,9 +194,9 @@ namespace WalletWasabi.TorSocks5
 			if (TorSocks5Client is null || !TorSocks5Client.IsConnected)
 			{
 				TorSocks5Client = new TorSocks5Client(TorSocks5EndPoint);
-				await TorSocks5Client.ConnectAsync();
-				await TorSocks5Client.HandshakeAsync(IsolateStream);
-				await TorSocks5Client.ConnectToDestinationAsync(host, request.RequestUri.Port);
+				await TorSocks5Client.ConnectAsync().ConfigureAwait(false);
+				await TorSocks5Client.HandshakeAsync(IsolateStream).ConfigureAwait(false);
+				await TorSocks5Client.ConnectToDestinationAsync(host, request.RequestUri.Port).ConfigureAwait(false);
 
 				Stream stream = TorSocks5Client.TcpClient.GetStream();
 				if (request.RequestUri.Scheme == "https")
@@ -226,7 +226,7 @@ namespace WalletWasabi.TorSocks5
 							host,
 							new X509CertificateCollection(),
 							SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
-							checkCertificateRevocation: true);
+							checkCertificateRevocation: true).ConfigureAwait(false);
 					stream = sslStream;
 				}
 
@@ -256,21 +256,21 @@ namespace WalletWasabi.TorSocks5
 					{
 						if (request.Content.Headers.ContentLength is null)
 						{
-							request.Content.Headers.ContentLength = (await request.Content.ReadAsStringAsync()).Length;
+							request.Content.Headers.ContentLength = (await request.Content.ReadAsStringAsync().ConfigureAwait(false)).Length;
 						}
 					}
 				}
 			}
 
-			var requestString = await request.ToHttpStringAsync();
+			var requestString = await request.ToHttpStringAsync().ConfigureAwait(false);
 
 			var bytes = Encoding.UTF8.GetBytes(requestString);
 
-			await TorSocks5Client.Stream.WriteAsync(bytes, 0, bytes.Length);
-			await TorSocks5Client.Stream.FlushAsync();
+			await TorSocks5Client.Stream.WriteAsync(bytes, 0, bytes.Length).ConfigureAwait(false);
+			await TorSocks5Client.Stream.FlushAsync().ConfigureAwait(false);
 			using (var httpResponseMessage = new HttpResponseMessage())
 			{
-				return await HttpResponseMessageExtensions.CreateNewAsync(TorSocks5Client.Stream, request.Method);
+				return await HttpResponseMessageExtensions.CreateNewAsync(TorSocks5Client.Stream, request.Method).ConfigureAwait(false);
 			}
 		}
 

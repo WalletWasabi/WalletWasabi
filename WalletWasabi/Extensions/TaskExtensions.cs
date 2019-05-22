@@ -1,4 +1,4 @@
-﻿namespace System.Threading.Tasks
+namespace System.Threading.Tasks
 {
 	public static class TaskExtensions
 	{
@@ -16,7 +16,7 @@
 						s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs))
 			{
 				// If the task waited on is the cancellation token...
-				if (me != await Task.WhenAny(me, tcs.Task))
+				if (me != await Task.WhenAny(me, tcs.Task).ConfigureAwait(false))
 				{
 					if (waitForGracefulTermination <= 0)
 					{
@@ -26,14 +26,14 @@
 					{
 						using (var cts = new CancellationTokenSource(waitForGracefulTermination))
 						{
-							return await me.WithAwaitCancellationAsync(cts.Token);
+							return await me.WithAwaitCancellationAsync(cts.Token).ConfigureAwait(false);
 						}
 					}
 				}
 			}
 
 			// Wait for one or the other to complete.
-			return await me;
+			return await me.ConfigureAwait(false);
 		}
 	}
 }

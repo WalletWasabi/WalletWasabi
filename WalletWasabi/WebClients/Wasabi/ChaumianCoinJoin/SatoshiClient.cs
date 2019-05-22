@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -24,14 +24,14 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 
 		public async Task<IEnumerable<CcjRunningRoundState>> GetAllRoundStatesAsync()
 		{
-			using (var response = await TorClient.SendAsync(HttpMethod.Get, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/states/"))
+			using (var response = await TorClient.SendAsync(HttpMethod.Get, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/states/").ConfigureAwait(false))
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
-					await response.ThrowRequestExceptionFromContentAsync();
+					await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 				}
 
-				var states = await response.Content.ReadAsJsonAsync<IEnumerable<CcjRunningRoundState>>();
+				var states = await response.Content.ReadAsJsonAsync<IEnumerable<CcjRunningRoundState>>().ConfigureAwait(false);
 
 				return states;
 			}
@@ -39,13 +39,13 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 
 		public async Task<CcjRunningRoundState> GetRoundStateAsync(long roundId)
 		{
-			IEnumerable<CcjRunningRoundState> states = await GetAllRoundStatesAsync();
+			IEnumerable<CcjRunningRoundState> states = await GetAllRoundStatesAsync().ConfigureAwait(false);
 			return states.Single(x => x.RoundId == roundId);
 		}
 
 		public async Task<CcjRunningRoundState> GetRegistrableRoundStateAsync()
 		{
-			IEnumerable<CcjRunningRoundState> states = await GetAllRoundStatesAsync();
+			IEnumerable<CcjRunningRoundState> states = await GetAllRoundStatesAsync().ConfigureAwait(false);
 			return states.First(x => x.Phase == CcjRoundPhase.InputRegistration);
 		}
 	}

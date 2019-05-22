@@ -17,14 +17,14 @@ public static class TorHttpClientExtensions
 		{
 			response?.Dispose();
 			cancel.ThrowIfCancellationRequested();
-			response = await client.SendAsync(method, relativeUri, content, cancel: cancel);
+			response = await client.SendAsync(method, relativeUri, content, cancel: cancel).ConfigureAwait(false);
 			if (response.StatusCode == expectedCode)
 			{
 				break;
 			}
 			try
 			{
-				await Task.Delay(1000, cancel);
+				await Task.Delay(1000, cancel).ConfigureAwait(false);
 			}
 			catch (TaskCanceledException ex)
 			{

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -19,8 +19,8 @@ namespace WalletWasabi.WebClients.ItBit
 			using (var httpClient = new HttpClient())
 			{
 				httpClient.BaseAddress = new Uri("https://api.itbit.com");
-				var response = await httpClient.GetAsync("v1/markets/XBTUSD/ticker");
-				var data = await response.Content.ReadAsJsonAsync<ItBitExchangeRateInfo>();
+				var response = await httpClient.GetAsync("v1/markets/XBTUSD/ticker").ConfigureAwait(false);
+				var data = await response.Content.ReadAsJsonAsync<ItBitExchangeRateInfo>().ConfigureAwait(false);
 
 				var exchangeRates = new List<ExchangeRate>
 				{

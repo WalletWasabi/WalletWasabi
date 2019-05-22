@@ -202,7 +202,7 @@ namespace Nito.AsyncEx
 			while (!Done.WaitOne(1))
 			{
 				// Waiting for Done asynchronously.
-				await Task.Delay(pollInterval, cancellationToken);
+				await Task.Delay(pollInterval, cancellationToken).ConfigureAwait(false);
 			}
 			lock (LatestHoldLockExceptionLock)
 			{
@@ -234,7 +234,7 @@ namespace Nito.AsyncEx
 			try
 			{
 				// Local lock for thread safety.
-				await AsyncLock.LockAsync(cancellationToken);
+				await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false);
 
 				if (MutexThread?.IsAlive == true)
 				{
@@ -248,7 +248,7 @@ namespace Nito.AsyncEx
 				MutexThread.Start(cancellationToken);
 
 				// Create the mutex and acquire it.
-				await SetCommandAsync(1, cancellationToken, pollInterval);
+				await SetCommandAsync(1, cancellationToken, pollInterval).ConfigureAwait(false);
 
 				return new Key(this);
 			}

@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System;
@@ -37,7 +37,7 @@ namespace WalletWasabi.Services
 			{
 				if (message.Message.Payload is GetDataPayload getDataPayload)
 				{
-					await ProcessGetDataAsync(node, getDataPayload);
+					await ProcessGetDataAsync(node, getDataPayload).ConfigureAwait(false);
 					return;
 				}
 
@@ -49,7 +49,7 @@ namespace WalletWasabi.Services
 
 				if (message.Message.Payload is InvPayload invPayload)
 				{
-					await ProcessInvAsync(node, invPayload);
+					await ProcessInvAsync(node, invPayload).ConfigureAwait(false);
 					return;
 				}
 			}
@@ -90,7 +90,7 @@ namespace WalletWasabi.Services
 						}
 						else
 						{
-							await node.SendMessageAsync(txPayload);
+							await node.SendMessageAsync(txPayload).ConfigureAwait(false);
 							entry.MakeBroadcasted();
 							Logger.LogInfo<MemPoolBehavior>($"Successfully served transaction to node ({node.RemoteSocketEndpoint}): {entry.TransactionId}.");
 						}
@@ -143,7 +143,7 @@ namespace WalletWasabi.Services
 			if (getDataPayload.Inventory.Any() && node.IsConnected)
 			{
 				// ask for the whole transaction
-				await node.SendMessageAsync(getDataPayload);
+				await node.SendMessageAsync(getDataPayload).ConfigureAwait(false);
 			}
 		}
 

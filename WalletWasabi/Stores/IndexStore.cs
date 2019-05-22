@@ -52,14 +52,14 @@ namespace WalletWasabi.Stores
 
 			IndexLock = new AsyncLock();
 
-			using (await IndexLock.LockAsync())
+			using (await IndexLock.LockAsync().ConfigureAwait(false))
 			{
-				using (await MatureIndexFileManager.Mutex.LockAsync())
-				using (await ImmatureIndexFileManager.Mutex.LockAsync())
+				using (await MatureIndexFileManager.Mutex.LockAsync().ConfigureAwait(false))
+				using (await ImmatureIndexFileManager.Mutex.LockAsync().ConfigureAwait(false))
 				{
 					IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
-					await TryEnsureBackwardsCompatibilityAsync();
+					await TryEnsureBackwardsCompatibilityAsync().ConfigureAwait(false);
 
 					if (Network == Network.RegTest)
 					{
@@ -69,10 +69,10 @@ namespace WalletWasabi.Stores
 
 					if (!MatureIndexFileManager.Exists())
 					{
-						await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToHeightlessLine() });
+						await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToHeightlessLine() }).ConfigureAwait(false);
 					}
 
-					await InitializeFiltersAsync();
+					await InitializeFiltersAsync().ConfigureAwait(false);
 				}
 			}
 		}
@@ -89,7 +89,7 @@ namespace WalletWasabi.Stores
 					{
 						while (!sr.EndOfStream)
 						{
-							var line = await sr.ReadLineAsync();
+							var line = await sr.ReadLineAsync().ConfigureAwait(false);
 							ProcessLine(height, line, enqueue: false);
 							height++;
 						}
@@ -98,7 +98,7 @@ namespace WalletWasabi.Stores
 
 				if (ImmatureIndexFileManager.Exists())
 				{
-					foreach (var line in await ImmatureIndexFileManager.ReadAllLinesAsync()) // We can load ImmatureIndexFileManager to the memory, no problem.
+					foreach (var line in await ImmatureIndexFileManager.ReadAllLinesAsync().ConfigureAwait(false)) // We can load ImmatureIndexFileManager to the memory, no problem.
 					{
 						ProcessLine(height, line, enqueue: true);
 						height++;
@@ -141,12 +141,12 @@ namespace WalletWasabi.Stores
 
 				if (File.Exists(oldIndexFilepath))
 				{
-					string[] allLines = await File.ReadAllLinesAsync(oldIndexFilepath);
+					string[] allLines = await File.ReadAllLinesAsync(oldIndexFilepath).ConfigureAwait(false);
 					var matureLines = allLines.SkipLast(100);
 					var immatureLines = allLines.TakeLast(100);
 
-					await MatureIndexFileManager.WriteAllLinesAsync(matureLines);
-					await ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines);
+					await MatureIndexFileManager.WriteAllLinesAsync(matureLines).ConfigureAwait(false);
+					await ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines).ConfigureAwait(false);
 
 					File.Delete(oldIndexFilepath);
 				}
@@ -161,7 +161,7 @@ namespace WalletWasabi.Stores
 		{
 			foreach (var filter in filters)
 			{
-				using (await IndexLock.LockAsync())
+				using (await IndexLock.LockAsync().ConfigureAwait(false))
 				{
 					ProcessFilter(filter, enqueue: true);
 				}
@@ -176,7 +176,7 @@ namespace WalletWasabi.Stores
 		{
 			FilterModel filter = null;
 
-			using (await IndexLock.LockAsync())
+			using (await IndexLock.LockAsync().ConfigureAwait(false))
 			{
 				filter = ImmatureFilters.Last();
 				ImmatureFilters.RemoveLast();
@@ -211,7 +211,7 @@ namespace WalletWasabi.Stores
 					int incremented = Interlocked.Increment(ref _throttleId);
 					if (incremented < 21)
 					{
-						await Task.Delay(throttle, cancel);
+						await Task.Delay(throttle, cancel).ConfigureAwait(false);
 					}
 
 					// If the _throttleId is still the incremented value, then I am the latest CommitToFileAsync request.
@@ -228,16 +228,16 @@ namespace WalletWasabi.Stores
 					Interlocked.Exchange(ref _throttleId, 0); // So to notified the currently throttled threads that they don't have to run.
 				}
 
-				using (await MatureIndexFileManager.Mutex.LockAsync(cancel))
-				using (await ImmatureIndexFileManager.Mutex.LockAsync(cancel))
-				using (await IndexLock.LockAsync(cancel))
+				using (await MatureIndexFileManager.Mutex.LockAsync(cancel).ConfigureAwait(false))
+				using (await ImmatureIndexFileManager.Mutex.LockAsync(cancel).ConfigureAwait(false))
+				using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
 				{
 					// Don't feed the cancellationToken here I always want this to finish running for safety.
 					var currentImmatureLines = ImmatureFilters.Select(x => x.ToHeightlessLine());
 					var matureLinesToAppend = currentImmatureLines.SkipLast(100);
 					var immatureLines = currentImmatureLines.TakeLast(100);
-					await MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend);
-					await ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines);
+					await MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend).ConfigureAwait(false);
+					await ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines).ConfigureAwait(false);
 					while (ImmatureFilters.Count > 100)
 					{
 						ImmatureFilters.RemoveFirst();
@@ -258,8 +258,8 @@ namespace WalletWasabi.Stores
 
 		public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight)
 		{
-			using (await MatureIndexFileManager.Mutex.LockAsync())
-			using (await IndexLock.LockAsync())
+			using (await MatureIndexFileManager.Mutex.LockAsync().ConfigureAwait(false))
+			using (await IndexLock.LockAsync().ConfigureAwait(false))
 			{
 				var firstImmatureHeight = ImmatureFilters.FirstOrDefault()?.BlockHeight;
 				if (!firstImmatureHeight.HasValue || firstImmatureHeight.Value > fromHeight)
@@ -271,7 +271,7 @@ namespace WalletWasabi.Stores
 						{
 							while (!sr.EndOfStream)
 							{
-								var line = await sr.ReadLineAsync();
+								var line = await sr.ReadLineAsync().ConfigureAwait(false);
 
 								if (firstImmatureHeight == height)
 								{
@@ -286,7 +286,7 @@ namespace WalletWasabi.Stores
 
 								var filter = FilterModel.FromHeightlessLine(line, height);
 
-								await todo(filter);
+								await todo(filter).ConfigureAwait(false);
 								height++;
 							}
 						}
@@ -295,7 +295,7 @@ namespace WalletWasabi.Stores
 
 				foreach (FilterModel filter in ImmatureFilters)
 				{
-					await todo(filter);
+					await todo(filter).ConfigureAwait(false);
 				}
 			}
 		}

@@ -180,7 +180,7 @@ namespace WalletWasabi.Services
 						{
 							while (AreRequestsBlocked())
 							{
-								await Task.Delay(3000, Cancel.Token);
+								await Task.Delay(3000, Cancel.Token).ConfigureAwait(false);
 							}
 
 							EstimateSmartFeeMode? estimateMode = null;
@@ -198,7 +198,7 @@ namespace WalletWasabi.Services
 									return;
 								}
 
-								response = await WasabiClient.GetSynchronizeAsync(BitcoinStore.HashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
+								response = await WasabiClient.GetSynchronizeAsync(BitcoinStore.HashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300).ConfigureAwait(false);
 								// NOT GenSocksServErr
 								BackendStatus = BackendStatus.Connected;
 								TorStatus = TorStatus.Running;
@@ -252,7 +252,7 @@ namespace WalletWasabi.Services
 							{
 								var filters = response.Filters;
 
-								await BitcoinStore.IndexStore.AddNewFiltersAsync(filters, Cancel.Token);
+								await BitcoinStore.IndexStore.AddNewFiltersAsync(filters, Cancel.Token).ConfigureAwait(false);
 
 								if (filters.Count() == 1)
 								{
@@ -267,7 +267,7 @@ namespace WalletWasabi.Services
 							{
 								// Reorg happened
 								// 1. Rollback index
-								FilterModel reorgedFilter = await BitcoinStore.IndexStore.RemoveLastFilterAsync(Cancel.Token);
+								FilterModel reorgedFilter = await BitcoinStore.IndexStore.RemoveLastFilterAsync(Cancel.Token).ConfigureAwait(false);
 								Logger.LogInfo<WasabiSynchronizer>($"REORG Invalid Block: {reorgedFilter.BlockHash}");
 
 								ignoreRequestInterval = true;
@@ -285,7 +285,7 @@ namespace WalletWasabi.Services
 							Logger.LogError<CcjClient>(ex);
 							try
 							{
-								await Task.Delay(3000, Cancel.Token); // Give other threads time to do stuff.
+								await Task.Delay(3000, Cancel.Token).ConfigureAwait(false); // Give other threads time to do stuff.
 							}
 							catch (TaskCanceledException ex2)
 							{
@@ -309,7 +309,7 @@ namespace WalletWasabi.Services
 								try
 								{
 									int delay = (int)Math.Min(requestInterval.TotalMilliseconds, MaxRequestIntervalForMixing.TotalMilliseconds);
-									await Task.Delay(delay, Cancel.Token); // Ask for new index in every requestInterval.
+									await Task.Delay(delay, Cancel.Token).ConfigureAwait(false); // Ask for new index in every requestInterval.
 								}
 								catch (TaskCanceledException ex)
 								{

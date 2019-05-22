@@ -181,7 +181,7 @@ namespace WalletWasabi.Stores
 				ContinueBuildHash(byteArrayBuilder, line);
 			}
 
-			var res = await WorkWithHashAsync(byteArrayBuilder, cancellationToken);
+			var res = await WorkWithHashAsync(byteArrayBuilder, cancellationToken).ConfigureAwait(false);
 			if (res.same)
 			{
 				return;
@@ -189,9 +189,9 @@ namespace WalletWasabi.Stores
 
 			IoHelpers.EnsureContainingDirectoryExists(NewFilePath);
 
-			await File.WriteAllLinesAsync(NewFilePath, lines, cancellationToken);
+			await File.WriteAllLinesAsync(NewFilePath, lines, cancellationToken).ConfigureAwait(false);
 			SafeMoveNewToOriginal();
-			await WriteOutHashAsync(res.hash);
+			await WriteOutHashAsync(res.hash).ConfigureAwait(false);
 		}
 
 		private async Task<(bool same, byte[] hash)> WorkWithHashAsync(ByteArrayBuilder byteArrayBuilder, CancellationToken cancellationToken)
@@ -203,7 +203,7 @@ namespace WalletWasabi.Stores
 				hash = HashHelpers.GenerateSha256Hash(bytes);
 				if (File.Exists(DigestFilePath))
 				{
-					var digest = await File.ReadAllBytesAsync(DigestFilePath, cancellationToken);
+					var digest = await File.ReadAllBytesAsync(DigestFilePath, cancellationToken).ConfigureAwait(false);
 					if (ByteHelpers.CompareFastUnsafe(hash, digest))
 					{
 						if (File.Exists(NewFilePath))
@@ -229,7 +229,7 @@ namespace WalletWasabi.Stores
 			{
 				IoHelpers.EnsureContainingDirectoryExists(DigestFilePath);
 
-				await File.WriteAllBytesAsync(DigestFilePath, hash);
+				await File.WriteAllBytesAsync(DigestFilePath, hash).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -266,7 +266,7 @@ namespace WalletWasabi.Stores
 				// 1. First copy.
 				while (!sr.EndOfStream)
 				{
-					var line = await sr.ReadLineAsync();
+					var line = await sr.ReadLineAsync().ConfigureAwait(false);
 
 					if (linesArray[linesIndex] == line) // If the line is a line we want to write, then we know that someone else have worked into the file.
 					{
@@ -274,12 +274,12 @@ namespace WalletWasabi.Stores
 						continue;
 					}
 
-					await sw.WriteLineAsync(line);
+					await sw.WriteLineAsync(line).ConfigureAwait(false);
 
 					lineCounter++;
 					if (lineCounter > 1000)
 					{
-						await sw.FlushAsync();
+						await sw.FlushAsync().ConfigureAwait(false);
 						lineCounter = 0;
 					}
 
@@ -291,24 +291,24 @@ namespace WalletWasabi.Stores
 				// 2. Then append.
 				foreach (var line in lines)
 				{
-					await sw.WriteLineAsync(line);
+					await sw.WriteLineAsync(line).ConfigureAwait(false);
 
 					ContinueBuildHash(byteArrayBuilder, line);
 
 					cancellationToken.ThrowIfCancellationRequested();
 				}
 
-				await sw.FlushAsync();
+				await sw.FlushAsync().ConfigureAwait(false);
 			}
 
-			var res = await WorkWithHashAsync(byteArrayBuilder, cancellationToken);
+			var res = await WorkWithHashAsync(byteArrayBuilder, cancellationToken).ConfigureAwait(false);
 			if (res.same)
 			{
 				return;
 			}
 
 			SafeMoveNewToOriginal();
-			await WriteOutHashAsync(res.hash);
+			await WriteOutHashAsync(res.hash).ConfigureAwait(false);
 		}
 
 		public async Task<string[]> ReadAllLinesAsync(CancellationToken cancellationToken = default)
@@ -318,7 +318,7 @@ namespace WalletWasabi.Stores
 			{
 				filePath = safestFilePath;
 			}
-			return await File.ReadAllLinesAsync(filePath, cancellationToken);
+			return await File.ReadAllLinesAsync(filePath, cancellationToken).ConfigureAwait(false);
 		}
 
 		public StreamReader OpenText(int bufferSize)

@@ -208,7 +208,7 @@ namespace NBitcoin
 
 		public static async Task StopAsync(this RPCClient rpc)
 		{
-			await rpc.SendCommandAsync("stop");
+			await rpc.SendCommandAsync("stop").ConfigureAwait(false);
 		}
 
 		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt)

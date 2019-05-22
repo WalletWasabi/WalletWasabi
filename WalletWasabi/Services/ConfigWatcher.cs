@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
@@ -42,13 +42,16 @@ namespace WalletWasabi.Services
 					{
 						try
 						{
-							await Task.Delay(period, Stop.Token);
+							await Task.Delay(period, Stop.Token).ConfigureAwait(false);
 
-							if (await Config.CheckFileChangeAsync())
+							if (await Config.CheckFileChangeAsync().ConfigureAwait(false))
 							{
-								await Config.LoadOrCreateDefaultFileAsync();
+								await Config.LoadOrCreateDefaultFileAsync().ConfigureAwait(false);
 
-								await executeWhenChangedAsync?.Invoke();
+								if (executeWhenChangedAsync != null)
+								{
+									await executeWhenChangedAsync.Invoke().ConfigureAwait(false);
+								}
 							}
 						}
 						catch (TaskCanceledException ex)
@@ -74,7 +77,7 @@ namespace WalletWasabi.Services
 			Stop?.Cancel();
 			while (IsStopping)
 			{
-				await Task.Delay(50);
+				await Task.Delay(50).ConfigureAwait(false);
 			}
 			Stop?.Dispose();
 		}

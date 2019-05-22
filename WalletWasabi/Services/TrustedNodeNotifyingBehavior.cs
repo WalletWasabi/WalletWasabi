@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System;
@@ -57,7 +57,7 @@ namespace WalletWasabi.Services
 					if (payload.Inventory.Any() && node.IsConnected)
 					{
 						// ask for the whole transaction
-						await node.SendMessageAsync(payload);
+						await node.SendMessageAsync(payload).ConfigureAwait(false);
 					}
 				}
 				else if (message.Message.Payload is TxPayload txPayload)

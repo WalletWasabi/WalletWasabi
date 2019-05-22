@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +18,7 @@ namespace WalletWasabi.WebClients.SmartBit
 
 		public async Task<List<ExchangeRate>> GetExchangeRateAsync()
 		{
-			var rates = await Client.GetExchangeRatesAsync(CancellationToken.None);
+			var rates = await Client.GetExchangeRatesAsync(CancellationToken.None).ConfigureAwait(false);
 			var rate = rates.Single(x => x.Code == "USD");
 
 			var exchangeRates = new List<ExchangeRate>

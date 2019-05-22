@@ -36,9 +36,9 @@ namespace Nito.AsyncEx
 	/// private readonly AsyncLock _mutex = new AsyncLock();
 	/// public async Task DoStuffAsync()
 	/// {
-	///     using (await _mutex.LockAsync())
+	///     using (await _mutex.LockAsync().ConfigureAwait(false))
 	///     {
-	///         await Task.Delay(TimeSpan.FromSeconds(1));
+	///         await Task.Delay(TimeSpan.FromSeconds(1).ConfigureAwait(false));
 	///     }
 	/// }
 	/// </code>

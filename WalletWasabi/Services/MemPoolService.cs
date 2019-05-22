@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.Protocol;
 using System;
 using System.Collections.Generic;
@@ -119,7 +119,7 @@ namespace WalletWasabi.Services
 				using (var client = new WasabiClient(destAction, torSocks))
 				{
 					var compactness = 10;
-					var allMempoolHashes = await client.GetMempoolHashesAsync(compactness);
+					var allMempoolHashes = await client.GetMempoolHashesAsync(compactness).ConfigureAwait(false);
 
 					var toRemove = TransactionHashes.Where(x => !allMempoolHashes.Any(y => y == x.ToString().Substring(0, compactness)));
 					foreach (uint256 tx in toRemove)
@@ -177,7 +177,7 @@ namespace WalletWasabi.Services
 					}
 
 					Logger.LogInfo<MemPoolService>($"Not all nodes were in a connected state. Delaying mempool cleanup for {delay.TotalSeconds} seconds...");
-					await Task.Delay(delay, cancel);
+					await Task.Delay(delay, cancel).ConfigureAwait(false);
 				}
 
 				Logger.LogInfo<MemPoolService>("Start cleaning out mempool...");

@@ -92,7 +92,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
 			await File.WriteAllTextAsync(FilePath,
 			jsonString,
-			Encoding.UTF8);
+			Encoding.UTF8).ConfigureAwait(false);
 		}
 
 		/// <inheritdoc />
@@ -120,13 +120,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 			else
 			{
-				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
+				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8).ConfigureAwait(false);
 				var config = JsonConvert.DeserializeObject<CcjRoundConfig>(jsonString);
 
 				UpdateOrDefault(config);
 			}
 
-			await ToFileAsync();
+			await ToFileAsync().ConfigureAwait(false);
 		}
 
 		public void UpdateOrDefault(CcjRoundConfig config)
@@ -156,7 +156,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				throw new FileNotFoundException($"{nameof(CcjRoundConfig)} file did not exist at path: `{FilePath}`.");
 			}
 
-			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
+			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8).ConfigureAwait(false);
 			var config = JsonConvert.DeserializeObject<CcjRoundConfig>(jsonString);
 
 			if (Denomination != config.Denomination)

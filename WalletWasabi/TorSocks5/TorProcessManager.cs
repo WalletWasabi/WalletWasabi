@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -121,8 +121,7 @@ namespace WalletWasabi.TorSocks5
 
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
-							TorProcess = Process.Start(new ProcessStartInfo
-							{
+							TorProcess = Process.Start(new ProcessStartInfo {
 								FileName = torPath,
 								Arguments = torArguments,
 								UseShellExecute = false,
@@ -203,8 +202,8 @@ namespace WalletWasabi.TorSocks5
 			{
 				try
 				{
-					await client.ConnectAsync();
-					await client.HandshakeAsync();
+					await client.ConnectAsync().ConfigureAwait(false);
+					await client.HandshakeAsync().ConfigureAwait(false);
 				}
 				catch (ConnectionException)
 				{
@@ -225,8 +224,8 @@ namespace WalletWasabi.TorSocks5
 			{
 				try
 				{
-					await client.ConnectAsync();
-					await client.HandshakeAsync();
+					await client.ConnectAsync().ConfigureAwait(false);
+					await client.HandshakeAsync().ConfigureAwait(false);
 				}
 				catch (ConnectionException)
 				{
@@ -282,7 +281,7 @@ namespace WalletWasabi.TorSocks5
 											using (var client = new TorHttpClient(baseUri, TorSocks5EndPoint))
 											{
 												var message = new HttpRequestMessage(HttpMethod.Get, fallBackTestRequestUri);
-												await client.SendAsync(message, Stop.Token);
+												await client.SendAsync(message, Stop.Token).ConfigureAwait(false);
 											}
 
 											// Check if it changed in the meantime...

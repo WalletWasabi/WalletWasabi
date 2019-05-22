@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,18 +30,18 @@ namespace System.Net.Http
 			//					CRLF
 			//					[message - body]
 
-			string startLine = await HttpMessageHelper.ReadStartLineAsync(responseStream);
+			string startLine = await HttpMessageHelper.ReadStartLineAsync(responseStream).ConfigureAwait(false);
 
 			var statusLine = StatusLine.CreateNew(startLine);
 			var response = new HttpResponseMessage(statusLine.StatusCode);
 
-			string headers = await HttpMessageHelper.ReadHeadersAsync(responseStream);
+			string headers = await HttpMessageHelper.ReadHeadersAsync(responseStream).ConfigureAwait(false);
 
 			var headerSection = HeaderSection.CreateNew(headers);
 			var headerStruct = headerSection.ToHttpResponseHeaders();
 
 			HttpMessageHelper.AssertValidHeaders(headerStruct.ResponseHeaders, headerStruct.ContentHeaders);
-			byte[] contentBytes = await HttpMessageHelper.GetContentBytesAsync(responseStream, headerStruct, requestMethod, statusLine);
+			byte[] contentBytes = await HttpMessageHelper.GetContentBytesAsync(responseStream, headerStruct, requestMethod, statusLine).ConfigureAwait(false);
 			contentBytes = HttpMessageHelper.HandleGzipCompression(headerStruct.ContentHeaders, contentBytes);
 			response.Content = contentBytes is null ? null : new ByteArrayContent(contentBytes);
 
@@ -55,7 +55,7 @@ namespace System.Net.Http
 
 		public static async Task<Stream> ToStreamAsync(this HttpResponseMessage me)
 		{
-			return new MemoryStream(Encoding.UTF8.GetBytes(await me.ToHttpStringAsync()));
+			return new MemoryStream(Encoding.UTF8.GetBytes(await me.ToHttpStringAsync().ConfigureAwait(false)));
 		}
 
 		public static async Task<string> ToHttpStringAsync(this HttpResponseMessage me)
@@ -78,7 +78,7 @@ namespace System.Net.Http
 					headers += headerSection.ToString(endWithTwoCRLF: false);
 				}
 
-				messageBody = await me.Content.ReadAsStringAsync();
+				messageBody = await me.Content.ReadAsStringAsync().ConfigureAwait(false);
 			}
 
 			return startLine + headers + CRLF + messageBody;
@@ -86,7 +86,7 @@ namespace System.Net.Http
 
 		public static async Task ThrowRequestExceptionFromContentAsync(this HttpResponseMessage me)
 		{
-			var error = await me.Content.ReadAsJsonAsync<string>();
+			var error = await me.Content.ReadAsJsonAsync<string>().ConfigureAwait(false);
 			string errorMessage = error is null ? string.Empty : $"\n{error}";
 			throw new HttpRequestException($"{me.StatusCode.ToReasonString()}{errorMessage}");
 		}

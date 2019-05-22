@@ -200,7 +200,7 @@ namespace WalletWasabi.Services
 					Interlocked.Increment(ref _runner);
 					while (Interlocked.Read(ref _runner) != 1)
 					{
-						await Task.Delay(100);
+						await Task.Delay(100).ConfigureAwait(false);
 					}
 
 					if (Interlocked.Read(ref _running) >= 2)
@@ -221,12 +221,12 @@ namespace WalletWasabi.Services
 								// If we didn't yet initialized syncInfo, do so.
 								if (syncInfo is null)
 								{
-									syncInfo = await GetSyncInfoAsync();
+									syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
 								}
 
 								Height heightToRequest = StartingHeight;
 								uint256 currentHash = null;
-								using (await IndexLock.LockAsync())
+								using (await IndexLock.LockAsync().ConfigureAwait(false))
 								{
 									if (Index.Count != 0)
 									{
@@ -239,7 +239,7 @@ namespace WalletWasabi.Services
 								// If not synchronized or already 5 min passed since last update, get the latest blockchain info.
 								if (!syncInfo.IsCoreSynchornized || (syncInfo.BlockchainInfoUpdated - DateTimeOffset.UtcNow) > TimeSpan.FromMinutes(5))
 								{
-									syncInfo = await GetSyncInfoAsync();
+									syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
 								}
 
 								if (syncInfo.BlockCount - heightToRequest <= 100)
@@ -247,7 +247,7 @@ namespace WalletWasabi.Services
 									// Both Wasabi and our Core node is in sync. Start doing stuff through P2P from now on.
 									if (syncInfo.IsCoreSynchornized && syncInfo.BlockCount == heightToRequest - 1)
 									{
-										syncInfo = await GetSyncInfoAsync();
+										syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
 										// Double it to make sure not to accidentally miss any notification.
 										if (syncInfo.IsCoreSynchornized && syncInfo.BlockCount == heightToRequest - 1)
 										{
@@ -261,7 +261,7 @@ namespace WalletWasabi.Services
 									isImmature = true;
 								}
 
-								Block block = await RpcClient.GetBlockAsync(heightToRequest);
+								Block block = await RpcClient.GetBlockAsync(heightToRequest).ConfigureAwait(false);
 
 								// Reorg check, except if we're requesting the starting height, because then the "currentHash" wouldn't exist.
 
@@ -270,7 +270,7 @@ namespace WalletWasabi.Services
 									// Reorg can happen only when immature. (If it'd not be immature, that'd be a huge issue.)
 									if (isImmature)
 									{
-										await ReorgOneAsync();
+										await ReorgOneAsync().ConfigureAwait(false);
 									}
 									else
 									{
@@ -345,8 +345,8 @@ namespace WalletWasabi.Services
 									Filter = filter
 								};
 
-								await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToHeightlessLine() });
-								using (await IndexLock.LockAsync())
+								await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToHeightlessLine() }).ConfigureAwait(false);
+								using (await IndexLock.LockAsync().ConfigureAwait(false))
 								{
 									Index.Add(filterModel);
 								}
@@ -355,7 +355,7 @@ namespace WalletWasabi.Services
 									File.Delete(Bech32UtxoSetFilePath);
 								}
 								await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet
-									.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes())));
+									.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes()))).ConfigureAwait(false);
 
 								// If not close to the tip, just log debug.
 								// Use height.Value instead of simply height, because it cannot be negative height.
@@ -389,7 +389,7 @@ namespace WalletWasabi.Services
 
 		private async Task<SyncInfo> GetSyncInfoAsync()
 		{
-			var bcinfo = await RpcClient.GetBlockchainInfoAsync();
+			var bcinfo = await RpcClient.GetBlockchainInfoAsync().ConfigureAwait(false);
 			var pbcinfo = new SyncInfo(bcinfo);
 			return pbcinfo;
 		}
@@ -410,15 +410,15 @@ namespace WalletWasabi.Services
 		private async Task ReorgOneAsync()
 		{
 			// 1. Rollback index
-			using (await IndexLock.LockAsync())
+			using (await IndexLock.LockAsync().ConfigureAwait(false))
 			{
 				Logger.LogInfo<IndexBuilderService>($"REORG invalid block: {Index.Last().BlockHash}");
 				Index.RemoveLast();
 			}
 
 			// 2. Serialize Index. (Remove last line.)
-			var lines = await File.ReadAllLinesAsync(IndexFilePath);
-			await File.WriteAllLinesAsync(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
+			var lines = await File.ReadAllLinesAsync(IndexFilePath).ConfigureAwait(false);
+			await File.WriteAllLinesAsync(IndexFilePath, lines.Take(lines.Length - 1).ToArray()).ConfigureAwait(false);
 
 			// 3. Rollback Bech32UtxoSet
 			if (Bech32UtxoSetHistory.Count != 0)
@@ -428,7 +428,7 @@ namespace WalletWasabi.Services
 
 				// 4. Serialize Bech32UtxoSet.
 				await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet
-					.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes())));
+					.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes()))).ConfigureAwait(false);
 			}
 		}
 
@@ -487,7 +487,7 @@ namespace WalletWasabi.Services
 			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
 			while (IsStopping)
 			{
-				await Task.Delay(50);
+				await Task.Delay(50).ConfigureAwait(false);
 			}
 		}
 	}

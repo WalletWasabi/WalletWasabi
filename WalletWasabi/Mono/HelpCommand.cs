@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -208,7 +208,7 @@ namespace Mono.Options
 				command.Options.WriteOptionDescriptions(CommandSet.Out);
 				return 0;
 			}
-			return await command.InvokeAsync(new[] { "--help" });
+			return await command.InvokeAsync(new[] { "--help" }).ConfigureAwait(false);
 		}
 
 		private List<KeyValuePair<string, Command>> GetCommands()

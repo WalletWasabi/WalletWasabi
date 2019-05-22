@@ -184,10 +184,10 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				using (await HandleFiltersLock.LockAsync())
+				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
 				{
 					uint256 invalidBlockHash = invalidFilter.BlockHash;
-					await DeleteBlockAsync(invalidBlockHash);
+					await DeleteBlockAsync(invalidBlockHash).ConfigureAwait(false);
 					var blockState = KeyManager.TryRemoveBlockState(invalidBlockHash);
 					ProcessedBlocks.TryRemove(invalidBlockHash, out _);
 					if (blockState != null && blockState.BlockHeight != default(Height))
@@ -223,18 +223,18 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				using (await HandleFiltersLock.LockAsync())
+				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
 				{
 					if (filterModel.Filter != null && !KeyManager.CointainsBlockState(filterModel.BlockHash))
 					{
-						await ProcessFilterModelAsync(filterModel, CancellationToken.None);
+						await ProcessFilterModelAsync(filterModel, CancellationToken.None).ConfigureAwait(false);
 					}
 				}
 				NewFilterProcessed?.Invoke(this, filterModel);
 
 				do
 				{
-					await Task.Delay(100);
+					await Task.Delay(100).ConfigureAwait(false);
 					if (Synchronizer is null || BitcoinStore?.HashChain is null)
 					{
 						return;
@@ -246,7 +246,10 @@ namespace WalletWasabi.Services
 					}
 				} while (Synchronizer.AreRequestsBlocked()); // If requests are blocked, delay mempool cleanup, because coinjoin answers are always priority.
 
-				await MemPool?.TryPerformMempoolCleanupAsync(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint);
+				if (MemPool != null)
+				{
+					await MemPool.TryPerformMempoolCleanupAsync(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint).ConfigureAwait(false);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -261,9 +264,9 @@ namespace WalletWasabi.Services
 				throw new NotSupportedException($"{nameof(Synchronizer)} is not running.");
 			}
 
-			await RuntimeParams.LoadAsync();
+			await RuntimeParams.LoadAsync().ConfigureAwait(false);
 
-			using (await HandleFiltersLock.LockAsync())
+			using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
 			{
 				// Go through the keymanager's index.
 				KeyManager.AssertNetworkOrClearBlockstate(Network);
@@ -271,7 +274,7 @@ namespace WalletWasabi.Services
 
 				foreach (var blockstate in KeyManager.GetTransactionIndex())
 				{
-					var block = await GetOrDownloadBlockAsync(blockstate.BlockHash, cancel);
+					var block = await GetOrDownloadBlockAsync(blockstate.BlockHash, cancel).ConfigureAwait(false);
 
 					ProcessBlock(blockstate.BlockHeight, block, blockstate.TransactionIndices);
 				}
@@ -281,9 +284,9 @@ namespace WalletWasabi.Services
 				{
 					if (filterModel.Filter != null) // Filter can be null if there is no bech32 tx.
 					{
-						await ProcessFilterModelAsync(filterModel, cancel);
+						await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false);
 					}
-				}, new Height(bestKeyManagerHeight.Value + 1));
+				}, new Height(bestKeyManagerHeight.Value + 1)).ConfigureAwait(false);
 
 				// Load in dummy mempool
 				if (File.Exists(TransactionsFilePath))
@@ -314,7 +317,7 @@ namespace WalletWasabi.Services
 								{
 									var compactness = 10;
 
-									var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
+									var mempoolHashes = await client.GetMempoolHashesAsync(compactness).ConfigureAwait(false);
 
 									var mempoolSet = mempoolHashes.ToHashSet();
 
@@ -368,7 +371,7 @@ namespace WalletWasabi.Services
 				return;
 			}
 
-			Block currentBlock = await GetOrDownloadBlockAsync(filterModel.BlockHash, cancel); // Wait until not downloaded.
+			Block currentBlock = await GetOrDownloadBlockAsync(filterModel.BlockHash, cancel).ConfigureAwait(false); // Wait until not downloaded.
 
 			ProcessBlock(filterModel.BlockHeight, currentBlock);
 		}
@@ -632,7 +635,7 @@ namespace WalletWasabi.Services
 							{
 								try
 								{
-									await ChaumianClient.QueueCoinsToMixAsync(newCoin);
+									await ChaumianClient.QueueCoinsToMixAsync(newCoin).ConfigureAwait(false);
 								}
 								catch (Exception ex)
 								{
@@ -701,7 +704,7 @@ namespace WalletWasabi.Services
 		public async Task<Block> GetOrDownloadBlockAsync(uint256 hash, CancellationToken cancel)
 		{
 			// Try get the block
-			using (await BlockFolderLock.LockAsync())
+			using (await BlockFolderLock.LockAsync().ConfigureAwait(false))
 			{
 				var encoder = new HexEncoder();
 				foreach (var filePath in Directory.EnumerateFiles(BlocksFolderPath))
@@ -715,7 +718,7 @@ namespace WalletWasabi.Services
 
 					if (hash == new uint256(fileName))
 					{
-						var blockBytes = await File.ReadAllBytesAsync(filePath);
+						var blockBytes = await File.ReadAllBytesAsync(filePath).ConfigureAwait(false);
 						try
 						{
 							return Block.Load(blockBytes, Synchronizer.Network);
@@ -733,7 +736,7 @@ namespace WalletWasabi.Services
 
 			// Download the block
 			Block block = null;
-			using (await BlockDownloadLock.LockAsync())
+			using (await BlockDownloadLock.LockAsync().ConfigureAwait(false))
 			{
 				while (true)
 				{
@@ -762,7 +765,7 @@ namespace WalletWasabi.Services
 									}
 
 									var localIpEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
-									var localNode = await Node.ConnectAsync(Network, localIpEndPoint, nodeConnectionParameters);
+									var localNode = await Node.ConnectAsync(Network, localIpEndPoint, nodeConnectionParameters).ConfigureAwait(false);
 									try
 									{
 										Logger.LogInfo<WalletService>($"TCP Connection succeeded, handshaking...");
@@ -831,19 +834,19 @@ namespace WalletWasabi.Services
 						// If no connection, wait then continue.
 						while (Nodes.ConnectedNodes.Count == 0)
 						{
-							await Task.Delay(100);
+							await Task.Delay(100).ConfigureAwait(false);
 						}
 
 						Node node = Nodes.ConnectedNodes.RandomElement();
 						if (node == default(Node))
 						{
-							await Task.Delay(100);
+							await Task.Delay(100).ConfigureAwait(false);
 							continue;
 						}
 
 						if (!node.IsConnected && !(Synchronizer.Network != Network.RegTest))
 						{
-							await Task.Delay(100);
+							await Task.Delay(100).ConfigureAwait(false);
 							continue;
 						}
 
@@ -876,7 +879,7 @@ namespace WalletWasabi.Services
 								node.DisconnectAsync("Thank you!");
 							}
 
-							await NodeTimeoutsAsync(false);
+							await NodeTimeoutsAsync(false).ConfigureAwait(false);
 						}
 						catch (Exception ex) when (ex is OperationCanceledException
 												|| ex is TaskCanceledException
@@ -884,7 +887,7 @@ namespace WalletWasabi.Services
 						{
 							Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because block download took too long.");
 
-							await NodeTimeoutsAsync(true);
+							await NodeTimeoutsAsync(true).ConfigureAwait(false);
 
 							node.DisconnectAsync("Block download took too long.");
 							continue;
@@ -911,10 +914,10 @@ namespace WalletWasabi.Services
 				}
 			}
 			// Save the block
-			using (await BlockFolderLock.LockAsync())
+			using (await BlockFolderLock.LockAsync().ConfigureAwait(false))
 			{
 				var path = Path.Combine(BlocksFolderPath, hash.ToString());
-				await File.WriteAllBytesAsync(path, block.ToBytes());
+				await File.WriteAllBytesAsync(path, block.ToBytes()).ConfigureAwait(false);
 			}
 
 			return block;
@@ -965,7 +968,7 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				using (await BlockFolderLock.LockAsync())
+				using (await BlockFolderLock.LockAsync().ConfigureAwait(false))
 				{
 					var filePaths = Directory.EnumerateFiles(BlocksFolderPath);
 					var fileNames = filePaths.Select(x => Path.GetFileName(x));
@@ -985,7 +988,7 @@ namespace WalletWasabi.Services
 
 		public async Task<int> CountBlocksAsync()
 		{
-			using (await BlockFolderLock.LockAsync())
+			using (await BlockFolderLock.LockAsync().ConfigureAwait(false))
 			{
 				return Directory.EnumerateFiles(BlocksFolderPath).Count();
 			}
@@ -1414,13 +1417,13 @@ namespace WalletWasabi.Services
 					Node node = Nodes.ConnectedNodes.RandomElement();
 					if (node == default(Node))
 					{
-						await Task.Delay(100);
+						await Task.Delay(100).ConfigureAwait(false);
 						continue;
 					}
 
 					if (!node.IsConnected)
 					{
-						await Task.Delay(100);
+						await Task.Delay(100).ConfigureAwait(false);
 						continue;
 					}
 
@@ -1430,7 +1433,7 @@ namespace WalletWasabi.Services
 					// Give 7 seconds to send the inv payload.
 					using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(7)))
 					{
-						await node.SendMessageAsync(invPayload).WithCancellation(cts.Token); // ToDo: It's dangerous way to cancel. Implement proper cancellation to NBitcoin!
+						await node.SendMessageAsync(invPayload).WithCancellation(cts.Token).ConfigureAwait(false); // ToDo: It's dangerous way to cancel. Implement proper cancellation to NBitcoin!
 					}
 
 					// Give 7 seconds for serving.
@@ -1442,7 +1445,7 @@ namespace WalletWasabi.Services
 						{
 							throw new TimeoutException("Didn't serve the transaction.");
 						}
-						await Task.Delay(1000);
+						await Task.Delay(1000).ConfigureAwait(false);
 						timeout++;
 					}
 					node.DisconnectAsync("Thank you!");
@@ -1456,7 +1459,7 @@ namespace WalletWasabi.Services
 						{
 							throw new TimeoutException("Didn't serve the transaction.");
 						}
-						await Task.Delay(1000);
+						await Task.Delay(1000).ConfigureAwait(false);
 						timeout++;
 					}
 					Logger.LogInfo<MemPoolBehavior>($"Transaction is successfully propagated: {transaction.GetHash()}.");
@@ -1473,7 +1476,7 @@ namespace WalletWasabi.Services
 				{
 					try
 					{
-						await client.BroadcastAsync(transaction);
+						await client.BroadcastAsync(transaction).ConfigureAwait(false);
 					}
 					catch (HttpRequestException ex2) when (ex2.Message.Contains("txn-mempool-conflict", StringComparison.InvariantCultureIgnoreCase))
 					{
@@ -1611,7 +1614,7 @@ namespace WalletWasabi.Services
 			}
 
 			RuntimeParams.Instance.NetworkNodeTimeout = timeout;
-			await RuntimeParams.Instance.SaveAsync();
+			await RuntimeParams.Instance.SaveAsync().ConfigureAwait(false);
 
 			Logger.LogInfo<WalletService>($"Current timeout value used on block download is: {timeout} seconds.");
 		}
