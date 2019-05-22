@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -121,8 +121,7 @@ namespace WalletWasabi.TorSocks5
 
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
-							TorProcess = Process.Start(new ProcessStartInfo
-							{
+							TorProcess = Process.Start(new ProcessStartInfo {
 								FileName = torPath,
 								Arguments = torArguments,
 								UseShellExecute = false,

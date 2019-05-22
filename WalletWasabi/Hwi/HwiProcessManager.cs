@@ -163,42 +163,49 @@ namespace WalletWasabi.Hwi
 				var delay = isMutexPriority ? (100 + rand) : (1000 + rand);
 				using (await AsyncMutex.LockAsync(cancellationToken, delay)) // It could be even improved more if this Mutex would also look at which hardware wallet the operation is going towards (enumerate sends to all.)
 				{
-					if (!File.Exists(HwiPath))
+					try
 					{
-						var exeName = Path.GetFileName(HwiPath);
-						throw new FileNotFoundException($"{exeName} not found at {HwiPath}. Maybe it was removed by antivirus software!");
-					}
-
-					using (var process = Process.Start(
-						new ProcessStartInfo {
-							FileName = HwiPath,
-							Arguments = command,
-							RedirectStandardOutput = true,
-							UseShellExecute = false,
-							CreateNoWindow = true,
-							WindowStyle = ProcessWindowStyle.Hidden
-						}
-					))
-					{
-						await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false); // TODO: https://github.com/zkSNACKs/WalletWasabi/issues/1452;
-
-						if (process.ExitCode != 0)
+						if (!File.Exists(HwiPath))
 						{
-							throw new IOException($"Command: {command} exited with exit code: {process.ExitCode}, instead of 0.");
+							var exeName = Path.GetFileName(HwiPath);
+							throw new FileNotFoundException($"{exeName} not found at {HwiPath}. Maybe it was removed by antivirus software!");
 						}
 
-						string response = await process.StandardOutput.ReadToEndAsync();
-						var jToken = JToken.Parse(response);
-						if (jToken is JObject json)
-						{
-							if (json.TryGetValue("error", out JToken err))
-							{
-								var errString = err.ToString();
-								throw new IOException(errString);
+						using (var process = Process.Start(
+							new ProcessStartInfo {
+								FileName = HwiPath,
+								Arguments = command,
+								RedirectStandardOutput = true,
+								UseShellExecute = false,
+								CreateNoWindow = true,
+								WindowStyle = ProcessWindowStyle.Hidden
 							}
-						}
+						))
+						{
+							await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false); // TODO: https://github.com/zkSNACKs/WalletWasabi/issues/1452;
 
-						return jToken;
+							if (process.ExitCode != 0)
+							{
+								throw new IOException($"Command: {command} exited with exit code: {process.ExitCode}, instead of 0.");
+							}
+
+							string response = await process.StandardOutput.ReadToEndAsync();
+							var jToken = JToken.Parse(response);
+							if (jToken is JObject json)
+							{
+								if (json.TryGetValue("error", out JToken err))
+								{
+									var errString = err.ToString();
+									throw new IOException(errString);
+								}
+							}
+
+							return jToken;
+						}
+					}
+					catch (Exception)
+					{
+						return null;
 					}
 				}
 			}

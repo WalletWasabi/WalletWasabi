@@ -86,6 +86,19 @@ namespace WalletWasabi.Gui
 					Global.ChaumianClient.IsQuitPending = true; // indicate -> do not add any more alices to the coinjoin
 				}
 
+				foreach (var mut in Nito.AsyncEx.AsyncMutex.AsyncMutexes)
+				{
+					mut.Value.IsDisposed = true;
+				}
+
+				bool end = false;
+				do
+				{
+					end = !Nito.AsyncEx.AsyncMutex.AsyncMutexes.Where(x => x.Value.IsLocked).Any();
+					await Task.Delay(10);
+				}
+				while (!end);
+
 				if (!MainWindowViewModel.Instance.CanClose)
 				{
 					var dialog = new CannotCloseDialogViewModel();

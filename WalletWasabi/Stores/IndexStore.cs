@@ -57,22 +57,28 @@ namespace WalletWasabi.Stores
 				using (await MatureIndexFileManager.Mutex.LockAsync())
 				using (await ImmatureIndexFileManager.Mutex.LockAsync())
 				{
-					IoHelpers.EnsureDirectoryExists(WorkFolderPath);
-
-					await TryEnsureBackwardsCompatibilityAsync();
-
-					if (Network == Network.RegTest)
+					try
 					{
-						MatureIndexFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
-						ImmatureIndexFileManager.DeleteMe();
-					}
+						IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
-					if (!MatureIndexFileManager.Exists())
+						await TryEnsureBackwardsCompatibilityAsync();
+
+						if (Network == Network.RegTest)
+						{
+							MatureIndexFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
+							ImmatureIndexFileManager.DeleteMe();
+						}
+
+						if (!MatureIndexFileManager.Exists())
+						{
+							await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToHeightlessLine() });
+						}
+
+						await InitializeFiltersAsync();
+					}
+					catch (Exception)
 					{
-						await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToHeightlessLine() });
 					}
-
-					await InitializeFiltersAsync();
 				}
 			}
 		}
@@ -232,15 +238,21 @@ namespace WalletWasabi.Stores
 				using (await ImmatureIndexFileManager.Mutex.LockAsync(cancel))
 				using (await IndexLock.LockAsync(cancel))
 				{
-					// Don't feed the cancellationToken here I always want this to finish running for safety.
-					var currentImmatureLines = ImmatureFilters.Select(x => x.ToHeightlessLine());
-					var matureLinesToAppend = currentImmatureLines.SkipLast(100);
-					var immatureLines = currentImmatureLines.TakeLast(100);
-					await MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend);
-					await ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines);
-					while (ImmatureFilters.Count > 100)
+					try
 					{
-						ImmatureFilters.RemoveFirst();
+						// Don't feed the cancellationToken here I always want this to finish running for safety.
+						var currentImmatureLines = ImmatureFilters.Select(x => x.ToHeightlessLine());
+						var matureLinesToAppend = currentImmatureLines.SkipLast(100);
+						var immatureLines = currentImmatureLines.TakeLast(100);
+						await MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend);
+						await ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines);
+						while (ImmatureFilters.Count > 100)
+						{
+							ImmatureFilters.RemoveFirst();
+						}
+					}
+					catch (Exception)
+					{
 					}
 				}
 			}

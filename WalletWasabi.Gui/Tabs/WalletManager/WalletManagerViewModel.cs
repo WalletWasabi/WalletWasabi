@@ -95,9 +95,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			Dispatcher.UIThread.PostLogException(async () =>
 			{
-				await RefreshHardwareWalletListAsync();
-				HardwareWalletRefreshCancel?.Dispose();
-				HardwareWalletRefreshCancel = null;
+				try
+				{
+					await RefreshHardwareWalletListAsync();
+					HardwareWalletRefreshCancel?.Dispose();
+					HardwareWalletRefreshCancel = null;
+				}
+				catch (Exception)
+				{
+				}
 			});
 		}
 

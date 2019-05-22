@@ -38,9 +38,13 @@ namespace Nito.AsyncEx
 		/// <summary>
 		/// Static storage for local mutexes. It can be used to get an already existing AsyncLock by name of the mutex.
 		/// </summary>
-		private static Dictionary<string, AsyncMutex> AsyncMutexes { get; } = new Dictionary<string, AsyncMutex>();
+		public static Dictionary<string, AsyncMutex> AsyncMutexes { get; } = new Dictionary<string, AsyncMutex>();
 
 		private static object AsyncMutexesLock { get; } = new object();
+
+		public bool IsLocked { get; set; }
+
+		public bool IsDisposed { get; set; }
 
 		public AsyncMutex(string name)
 		{
@@ -229,13 +233,15 @@ namespace Nito.AsyncEx
 		/// <returns>The IDisposable await-able Task.</returns>
 		public async Task<IDisposable> LockAsync(CancellationToken cancellationToken = default, int pollInterval = 100)
 		{
+			if (IsDisposed) throw new InvalidOperationException($"Disposed!");
 			Exception inner = null;
-
+			Logger.LogTrace($"AsyncMutex {ShortName}: locking.", nameof(AsyncMutex));
+			IsLocked = true;
 			try
 			{
 				// Local lock for thread safety.
 				await AsyncLock.LockAsync(cancellationToken);
-
+				if (IsDisposed) throw new InvalidOperationException($"Disposed!");
 				if (MutexThread?.IsAlive == true)
 				{
 					throw new InvalidOperationException($"Thread should not be alive.");
@@ -249,7 +255,8 @@ namespace Nito.AsyncEx
 
 				// Create the mutex and acquire it.
 				await SetCommandAsync(1, cancellationToken, pollInterval);
-
+				if (IsDisposed) throw new InvalidOperationException($"Disposed!");
+				Logger.LogTrace($"AsyncMutex {ShortName}: acquired.", nameof(AsyncMutex));
 				return new Key(this);
 			}
 			catch (TaskCanceledException)
@@ -278,6 +285,7 @@ namespace Nito.AsyncEx
 
 		private void ReleaseLock()
 		{
+			Logger.LogTrace($"AsyncMutex {ShortName}: releasing.", nameof(AsyncMutex));
 			if (MutexThread != null)
 			{
 				if (!MutexThread.IsAlive)
@@ -293,6 +301,8 @@ namespace Nito.AsyncEx
 
 			// Release the local lock.
 			AsyncLock?.ReleaseLock();
+			IsLocked = false;
+			Logger.LogTrace($"AsyncMutex {ShortName}: released.", nameof(AsyncMutex));
 		}
 
 		/// <summary>

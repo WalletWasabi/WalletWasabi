@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -59,7 +59,7 @@ namespace WalletWasabi.Logging
 			SetModes(LogMode.Console, LogMode.File);
 
 #else
-			SetMinimumLevel(LogLevel.Debug);
+			SetMinimumLevel(LogLevel.Trace);
 			SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
 #endif
 		}
