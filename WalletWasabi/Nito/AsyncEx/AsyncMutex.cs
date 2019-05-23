@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +11,20 @@ namespace Nito.AsyncEx
 {
 	public class AsyncMutex
 	{
+		/// <summary>
+		/// I did this because enum cannot be Interlocked easily.
+		/// </summary>
+		public enum AsyncLockStatus
+		{
+			StatusUninitialized = 0,
+			StatusReady = 1,
+			StatusAcquiring = 2,
+			StatusAcquired = 3,
+			StatusReleasing = 4,
+		}
+
+		private int _status;
+
 		/// <summary>
 		/// Short name of the mutex. This string added to the end of the mutex name.
 		/// </summary>
@@ -74,6 +89,7 @@ namespace Nito.AsyncEx
 					AsyncMutexes.Add(FullName, this);
 				}
 			}
+			ChangeStatus(AsyncLockStatus.StatusReady, AsyncLockStatus.StatusUninitialized);
 		}
 
 		private int _command;
@@ -220,6 +236,21 @@ namespace Nito.AsyncEx
 			ToDo.Set();
 		}
 
+		private void ChangeStatus(AsyncLockStatus newStatus, AsyncLockStatus expectedPreviousStatus)
+		{
+			ChangeStatus(newStatus, new[] { expectedPreviousStatus });
+		}
+
+		private void ChangeStatus(AsyncLockStatus newStatus, AsyncLockStatus[] expectedPreviousStatuses)
+		{
+			var prevstatus = Interlocked.Exchange(ref _status, (int)newStatus);
+
+			if (!expectedPreviousStatuses.Contains((AsyncLockStatus)prevstatus))
+			{
+				throw new InvalidOperationException($"Previous AsyncLock state was unexpected: prev:{((AsyncLockStatus)prevstatus).ToString()} now:{((AsyncLockStatus)_status).ToString()}.");
+			}
+		}
+
 		/// <summary>
 		/// The Lock mechanism designed for standard using blocks. This lock is thread and interprocess safe.
 		/// You can create and use it from anywhere.
@@ -247,8 +278,26 @@ namespace Nito.AsyncEx
 
 				MutexThread.Start(cancellationToken);
 
-				// Create the mutex and acquire it.
-				await SetCommandAsync(1, cancellationToken, pollInterval);
+				ChangeStatus(AsyncLockStatus.StatusAcquiring, AsyncLockStatus.StatusReady);
+
+				// Thread is running from now.
+
+				try
+				{
+					// Create the mutex and acquire it.
+					await SetCommandAsync(1, cancellationToken, pollInterval);
+				}
+				catch (Exception ex)
+				{
+					// If the thread is still alive we must stop it
+					StopThread();
+
+					ChangeStatus(AsyncLockStatus.StatusReady, AsyncLockStatus.StatusAcquiring);
+
+					throw ex;
+				}
+
+				ChangeStatus(AsyncLockStatus.StatusAcquired, AsyncLockStatus.StatusAcquiring);
 
 				return new Key(this);
 			}
@@ -270,29 +319,57 @@ namespace Nito.AsyncEx
 				// Let it go.
 			}
 
-			// If something failed then release all.
-			ReleaseLock();
+			// Release the local lock.
+			AsyncLock.ReleaseLock();
 
 			throw new IOException($"Couldn't acquire system wide mutex on {ShortName}", inner);
 		}
 
+		private void StopThread()
+		{
+			try
+			{
+				var start = DateTime.Now;
+				while (MutexThread.IsAlive)
+				{
+					SetCommand(2);
+					MutexThread?.Join(TimeSpan.FromSeconds(1));
+
+					if (DateTime.Now - start > TimeSpan.FromSeconds(10))
+					{
+						throw new TimeoutException("Could not stop MutexThread, aborting it.");
+					}
+				}
+
+				// Successfully stopped the thread.
+				return;
+			}
+			catch (Exception)
+			{
+				// Let it go...
+			}
+
+			// Final solution, abort the thread.
+
+			MutexThread.Abort();
+		}
+
 		private void ReleaseLock()
 		{
-			if (MutexThread != null)
+			if (MutexThread != null && !MutexThread.IsAlive)
 			{
-				if (!MutexThread.IsAlive)
-				{
-					throw new InvalidOperationException($"Thread should be alive.");
-				}
+				throw new InvalidOperationException($"Thread should be alive.");
 			}
-			// Send release command to the mutex-thread.
-			SetCommand(2);
 
-			// Wait for it.
-			MutexThread?.Join();
+			// On multiply call we will get an exception. This is not a dispose so we can throw here.
+			ChangeStatus(AsyncLockStatus.StatusReleasing, AsyncLockStatus.StatusAcquired);
+
+			StopThread();
 
 			// Release the local lock.
 			AsyncLock?.ReleaseLock();
+
+			ChangeStatus(AsyncLockStatus.StatusReady, AsyncLockStatus.StatusReleasing);
 		}
 
 		/// <summary>
