@@ -292,7 +292,7 @@ namespace WalletWasabi.Gui.ViewModels
 		public StatusBarStatus Status
 		{
 			get => _status;
-			set => this.RaiseAndSetIfChanged(ref _status, value);
+			set => Dispatcher.UIThread.PostLogException(() => this.RaiseAndSetIfChanged(ref _status, value));
 		}
 
 		public string StatusText
