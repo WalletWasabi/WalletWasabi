@@ -176,7 +176,7 @@ namespace Nito.AsyncEx
 						return; // End of the Thread.
 					}
 
-					throw new NotImplementedException();
+					throw new NotImplementedException($"Command not found: ({_command}) at {FullName}");
 				}
 				catch (Exception ex)
 				{
