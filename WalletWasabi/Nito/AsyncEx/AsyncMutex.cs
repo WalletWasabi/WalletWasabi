@@ -139,8 +139,10 @@ namespace Nito.AsyncEx
 							bool acquired = false;
 
 							// Timeout logic.
-							while (DateTime.Now - start > TimeSpan.FromSeconds(90))
+							while (true)
 							{
+								if (DateTime.Now - start > TimeSpan.FromSeconds(90))
+									throw new TimeoutException("Could not acquire mutex in time");
 								// Block for n ms and try to acquire the mutex. Blocking is not a problem
 								// we are on our own thread.
 								acquired = Mutex.WaitOne(1000);
@@ -176,7 +178,8 @@ namespace Nito.AsyncEx
 						return; // End of the Thread.
 					}
 
-					throw new NotImplementedException($"Command not found: ({_command}) at {FullName}");
+					// If we get here something went wrong.
+					throw new NotImplementedException($"AsyncMutex thread operation failed in {ShortName}");
 				}
 				catch (Exception ex)
 				{
@@ -185,6 +188,8 @@ namespace Nito.AsyncEx
 					{
 						LatestHoldLockException = ex;
 					}
+					// Terminate the Thread.
+					return;
 				}
 				finally
 				{
