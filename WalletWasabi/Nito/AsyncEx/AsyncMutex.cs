@@ -289,6 +289,7 @@ namespace Nito.AsyncEx
 				}
 				catch (Exception ex)
 				{
+					Logger.LogWarning<AsyncMutex>(ex);
 					// If the thread is still alive we must stop it
 					StopThread();
 
@@ -344,14 +345,15 @@ namespace Nito.AsyncEx
 				// Successfully stopped the thread.
 				return;
 			}
-			catch (Exception)
+			catch (Exception ex)
 			{
 				// Let it go...
+				Logger.LogWarning<AsyncMutex>(ex);
 			}
 
 			// Final solution, abort the thread.
 
-			MutexThread.Abort();
+			// MutexThread.Abort(); // Not supported on Linux!
 		}
 
 		private void ReleaseLock()
