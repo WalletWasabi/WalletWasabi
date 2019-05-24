@@ -368,7 +368,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						switch (e.Action)
 						{
 							case NotifyCollectionChangedAction.Add:
-								foreach (SmartCoin c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent && !sc.IsDust))
+								foreach (SmartCoin c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent))
 								{
 									var newCoinVm = new CoinViewModel(this, c);
 									newCoinVm.SubscribeEvents();
