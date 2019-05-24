@@ -103,8 +103,6 @@ namespace WalletWasabi.Gui.ViewModels
 					}
 				}
 			});
-
-			Status = StatusBarStatus.Loading;
 		}
 
 		public void Initialize(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
@@ -408,14 +406,17 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private void SetCustomStatusOrReady()
 		{
-			if (StatusQueue.Any())
+			Dispatcher.UIThread.PostLogException(() =>
 			{
-				Status = StatusQueue.Last();
-			}
-			else
-			{
-				Status = StatusBarStatus.Ready;
-			}
+				if (StatusQueue.Any())
+				{
+					Status = StatusQueue.Last();
+				}
+				else
+				{
+					Status = StatusBarStatus.Ready;
+				}
+			});
 		}
 
 		private bool TrySetPriorityStatus()
