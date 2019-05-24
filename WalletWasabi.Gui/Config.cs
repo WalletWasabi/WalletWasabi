@@ -1,5 +1,4 @@
-﻿using NBitcoin;
-using NBitcoin.JsonConverters;
+using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -10,6 +9,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
+using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.TorSocks5;
@@ -135,6 +135,10 @@ namespace WalletWasabi.Gui
 				}
 			}
 		}
+
+		[JsonProperty(PropertyName = "DustThreshold")]
+		[JsonConverter(typeof(MoneyBtcJsonConverter))]
+		public Money DustThreshold { get; internal set; }
 
 		private Uri _backendUri;
 		private Uri _fallbackBackendUri;
@@ -279,7 +283,8 @@ namespace WalletWasabi.Gui
 			int? mixUntilAnonymitySet,
 			int? privacyLevelSome,
 			int? privacyLevelFine,
-			int? privacyLevelStrong)
+			int? privacyLevelStrong,
+			Money dustThreshold)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 
@@ -306,7 +311,9 @@ namespace WalletWasabi.Gui
 			PrivacyLevelFine = Guard.NotNull(nameof(privacyLevelFine), privacyLevelFine);
 			PrivacyLevelStrong = Guard.NotNull(nameof(privacyLevelStrong), privacyLevelStrong);
 
-			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint());
+			DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
+
+			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint(), DustThreshold);
 		}
 
 		/// <inheritdoc />
@@ -348,6 +355,7 @@ namespace WalletWasabi.Gui
 			PrivacyLevelSome = 2;
 			PrivacyLevelFine = 21;
 			PrivacyLevelStrong = 50;
+			DustThreshold = Money.Coins(0.0001m);
 
 			if (!File.Exists(FilePath))
 			{
@@ -358,7 +366,7 @@ namespace WalletWasabi.Gui
 				await LoadFileAsync();
 			}
 
-			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint());
+			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint(), DustThreshold);
 
 			// Just debug convenience.
 			_backendUri = GetCurrentBackendUri();
@@ -394,6 +402,8 @@ namespace WalletWasabi.Gui
 			PrivacyLevelSome = config.PrivacyLevelSome ?? PrivacyLevelSome;
 			PrivacyLevelFine = config.PrivacyLevelFine ?? PrivacyLevelFine;
 			PrivacyLevelStrong = config.PrivacyLevelStrong ?? PrivacyLevelStrong;
+
+			DustThreshold = config.DustThreshold ?? DustThreshold;
 
 			ServiceConfiguration = config.ServiceConfiguration ?? ServiceConfiguration;
 
@@ -492,6 +502,11 @@ namespace WalletWasabi.Gui
 				return true;
 			}
 			if (PrivacyLevelStrong != config.PrivacyLevelStrong)
+			{
+				return true;
+			}
+
+			if (DustThreshold != config.DustThreshold)
 			{
 				return true;
 			}
