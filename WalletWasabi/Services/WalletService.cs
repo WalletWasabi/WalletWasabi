@@ -619,7 +619,7 @@ namespace WalletWasabi.Services
 						}
 					}
 
-					if(output.Value <= Constants.DustThreshold)
+					if (output.Value <= ServiceConfiguration.DustThreshold)
 					{
 						continue;
 					}
