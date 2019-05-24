@@ -54,29 +54,68 @@ namespace WalletWasabi.Tests
 			var blocksFolderPath = Path.Combine(Global.DataDir, "Blocks", network.ToString());
 			var connectionParameters = new NodeConnectionParameters();
 			AddressManager addressManager = null;
-			try
+			if (network == Network.RegTest)
 			{
-				addressManager = AddressManager.LoadPeerFile(addressManagerFilePath);
-				Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{addressManagerFilePath}`.");
-			}
-			catch (DirectoryNotFoundException ex)
-			{
-				Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{addressManagerFilePath}`. Initializing new one.");
-				Logger.LogTrace<AddressManager>(ex);
 				addressManager = new AddressManager();
+				Logger.LogInfo<AddressManager>($"Fake {nameof(AddressManager)} is initialized on the RegTest.");
 			}
-			catch (FileNotFoundException ex)
+			else
 			{
-				Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{addressManagerFilePath}`. Initializing new one.");
-				Logger.LogTrace<AddressManager>(ex);
-				addressManager = new AddressManager();
+				try
+				{
+					addressManager = AddressManager.LoadPeerFile(addressManagerFilePath);
+
+					// The most of the times we don't need to discover new peers. Instead, we can connect to
+					// some of those that we already discovered in the past. In this case we assume that we
+					// assume that discovering new peers could be necessary if out address manager has less
+					// than 500 addresses. A 500 addresses could be okay because previously we tried with
+					// 200 and only one user reported he/she was not able to connect (there could be many others,
+					// of course).
+					// On the other side, increasing this number forces users that do not need to discover more peers
+					// to spend resources (CPU/bandwith) to discover new peers.
+					Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{addressManagerFilePath}`.");
+				}
+				catch (DirectoryNotFoundException ex)
+				{
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{addressManagerFilePath}`. Initializing new one.");
+					Logger.LogTrace<AddressManager>(ex);
+					addressManager = new AddressManager();
+				}
+				catch (FileNotFoundException ex)
+				{
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{addressManagerFilePath}`. Initializing new one.");
+					Logger.LogTrace<AddressManager>(ex);
+					addressManager = new AddressManager();
+				}
+				catch (OverflowException ex)
+				{
+					// https://github.com/zkSNACKs/WalletWasabi/issues/712
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} has thrown `{nameof(OverflowException)}`. Attempting to autocorrect.");
+					File.Delete(addressManagerFilePath);
+					Logger.LogTrace<AddressManager>(ex);
+					addressManager = new AddressManager();
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} autocorrection is successful.");
+				}
+				catch (FormatException ex)
+				{
+					// https://github.com/zkSNACKs/WalletWasabi/issues/880
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} has thrown `{nameof(FormatException)}`. Attempting to autocorrect.");
+					File.Delete(addressManagerFilePath);
+					Logger.LogTrace<AddressManager>(ex);
+					addressManager = new AddressManager();
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} autocorrection is successful.");
+				}
 			}
 
-			connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
+			var addressManagerBehavior = new AddressManagerBehavior(addressManager) {
+				Mode = AddressManagerBehaviorMode.Discover
+			};
+			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
+
 			var memPoolService = new MemPoolService();
 			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(memPoolService));
 
-			var nodes = new NodesGroup(network, connectionParameters, requirements: Helpers.Constants.NodeRequirements);
+			var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
 
 			BitcoinStore bitcoinStore = new BitcoinStore();
 			await bitcoinStore.InitializeAsync(Path.Combine(Global.DataDir, nameof(TestServicesAsync)), network);
