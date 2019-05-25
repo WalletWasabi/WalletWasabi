@@ -612,8 +612,11 @@ namespace WalletWasabi.Gui
 					try
 					{
 						var wm = IoC.Get<IShell>().Documents.OfType<WalletManagerViewModel>().FirstOrDefault();
-						wm.OnClose();
-						Logger.LogInfo($"{nameof(WalletManagerViewModel)} closed, hwi enumeration stopped.", nameof(Global));
+						if (wm != null)
+						{
+							wm.OnClose();
+							Logger.LogInfo($"{nameof(WalletManagerViewModel)} closed, hwi enumeration stopped.", nameof(Global));
+						}
 					}
 					catch (Exception ex)
 					{
