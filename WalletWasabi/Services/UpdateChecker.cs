@@ -104,7 +104,7 @@ namespace WalletWasabi.Services
 			}
 			catch (ObjectDisposedException)
 			{
-
+				// If the CancellationToken disposed.
 			}
 
 			DateTime start = DateTime.Now;
