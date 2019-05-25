@@ -177,6 +177,11 @@ namespace WalletWasabi.Services
 					EnableRequests();
 					while (IsRunning)
 					{
+						if (_disposedValue)
+						{
+							return;
+						}
+
 						try
 						{
 							while (AreRequestsBlocked())

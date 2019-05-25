@@ -39,6 +39,11 @@ namespace WalletWasabi.Services
 				{
 					while (IsRunning)
 					{
+						if (_disposedValue)
+						{
+							return;
+						}
+
 						try
 						{
 							(bool backendCompatible, bool clientUpToDate) updates = await WasabiClient.CheckUpdatesAsync(Stop.Token);
