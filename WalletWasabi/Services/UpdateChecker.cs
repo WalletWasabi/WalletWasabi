@@ -99,9 +99,15 @@ namespace WalletWasabi.Services
 		{
 			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
 			Stop?.Cancel();
+			DateTime start = DateTime.Now;
 			while (!IsStopped)
 			{
 				await Task.Delay(50);
+				if (DateTime.Now - start > TimeSpan.FromSeconds(60))
+				{
+					Logger.LogInfo<WasabiSynchronizer>($"Cannot Stop service.");
+					return;
+				}
 			}
 		}
 
@@ -119,9 +125,15 @@ namespace WalletWasabi.Services
 					{
 						Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
 						Stop?.Cancel();
+						DateTime start = DateTime.Now;
 						while (IsStopping)
 						{
 							Task.Delay(50).GetAwaiter().GetResult();
+							if (DateTime.Now - start > TimeSpan.FromSeconds(60))
+							{
+								Logger.LogInfo<WasabiSynchronizer>($"Cannot Stop service.");
+								return;
+							}
 						}
 					}
 					Stop?.Dispose();
