@@ -4,6 +4,7 @@ using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using NBitcoin.Protocol.Connectors;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -541,55 +542,71 @@ namespace WalletWasabi.Gui
 			}
 		}
 
+		private static volatile bool DisposedValue = false; // To detect redundant calls
+
 		public static async Task DisposeAsync()
 		{
-			try
+			if (!DisposedValue)
 			{
-				await DisposeInWalletDependentServicesAsync();
-
-				if (UpdateChecker != null)
+				try
 				{
-					UpdateChecker?.Dispose();
-					Logger.LogInfo($"{nameof(UpdateChecker)} is stopped.", nameof(Global));
-				}
+					await DisposeInWalletDependentServicesAsync();
 
-				if (Synchronizer != null)
-				{
-					Synchronizer?.Dispose();
-					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.", nameof(Global));
-				}
-
-				if (AddressManagerFilePath != null)
-				{
-					IoHelpers.EnsureContainingDirectoryExists(AddressManagerFilePath);
-					if (AddressManager != null)
+					if (UpdateChecker != null)
 					{
-						AddressManager?.SavePeerFile(AddressManagerFilePath, Config.Network);
-						Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.", nameof(Global));
+						UpdateChecker?.Dispose();
+						Logger.LogInfo($"{nameof(UpdateChecker)} is stopped.", nameof(Global));
+					}
+
+					if (Synchronizer != null)
+					{
+						Synchronizer?.Dispose();
+						Logger.LogInfo($"{nameof(Synchronizer)} is stopped.", nameof(Global));
+					}
+
+					if (AddressManagerFilePath != null)
+					{
+						IoHelpers.EnsureContainingDirectoryExists(AddressManagerFilePath);
+						if (AddressManager != null)
+						{
+							AddressManager?.SavePeerFile(AddressManagerFilePath, Config.Network);
+							Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.", nameof(Global));
+						}
+					}
+
+					if (Nodes != null)
+					{
+						Nodes?.Dispose();
+						Logger.LogInfo($"{nameof(Nodes)} are disposed.", nameof(Global));
+					}
+
+					if (RegTestMemPoolServingNode != null)
+					{
+						RegTestMemPoolServingNode.Disconnect();
+						Logger.LogInfo($"{nameof(RegTestMemPoolServingNode)} is disposed.", nameof(Global));
+					}
+
+					if (TorManager != null)
+					{
+						TorManager?.Dispose();
+						Logger.LogInfo($"{nameof(TorManager)} is stopped.", nameof(Global));
+					}
+					try
+					{
+						await AsyncMutex.WaitForAllMutexToCloseAsync();
+						Logger.LogInfo($"{nameof(AsyncMutex)}(es) are stopped.", nameof(Global));
+					}
+					catch (Exception ex)
+					{
+						Logger.LogInfo($"Error during stopping {nameof(AsyncMutex)}: {ex.ToTypeMessageString()}", nameof(Global));
 					}
 				}
-
-				if (Nodes != null)
+				catch (Exception ex)
 				{
-					Nodes?.Dispose();
-					Logger.LogInfo($"{nameof(Nodes)} are disposed.", nameof(Global));
+					Logger.LogWarning(ex, nameof(Global));
 				}
 
-				if (RegTestMemPoolServingNode != null)
-				{
-					RegTestMemPoolServingNode.Disconnect();
-					Logger.LogInfo($"{nameof(RegTestMemPoolServingNode)} is disposed.", nameof(Global));
-				}
-
-				if (TorManager != null)
-				{
-					TorManager?.Dispose();
-					Logger.LogInfo($"{nameof(TorManager)} is stopped.", nameof(Global));
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning(ex, nameof(Global));
+				DisposedValue = true;
 			}
 		}
 	}

@@ -115,6 +115,9 @@ namespace WalletWasabi.Gui
 						Logging.Logger.LogWarning<MainWindow>(ex);
 					}
 					Interlocked.Exchange(ref _closingState, 2); //now we can close the app
+
+					await Global.DisposeAsync();
+
 					Close(); // start the closing process. Will call MainWindow_ClosingAsync again!
 				}
 				//let's go to finally

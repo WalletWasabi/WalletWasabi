@@ -50,6 +50,14 @@ namespace Nito.AsyncEx
 		/// </summary>
 		private Thread MutexThread { get; set; }
 
+		public bool IsAlive
+		{
+			get
+			{
+				return MutexThread.IsAlive;
+			}
+		}
+
 		/// <summary>
 		/// Static storage for local mutexes. It can be used to get an already existing AsyncLock by name of the mutex.
 		/// </summary>
@@ -377,6 +385,29 @@ namespace Nito.AsyncEx
 			AsyncLock?.ReleaseLock();
 
 			ChangeStatus(AsyncLockStatus.StatusReady, AsyncLockStatus.StatusReleasing);
+		}
+
+		public static async Task WaitForAllMutexToCloseAsync()
+		{
+			DateTime start = DateTime.Now;
+			while (true)
+			{
+				lock (AsyncMutexesLock)
+				{
+					bool stillRunning = AsyncMutexes.Where(am => am.Value.IsAlive).Any();
+					if (!stillRunning)
+					{
+						return;
+					}
+				}
+				await Task.Delay(200);
+				if (DateTime.Now - start > TimeSpan.FromSeconds(60))
+				{
+					var mutexesAlive = AsyncMutexes.Where(am => am.Value.IsAlive).Select(m => m.Value.ShortName);
+					var names = string.Join(", ", mutexesAlive);
+					throw new TimeoutException($"Asyncmutex(es) still alive after Timeout: {names}");
+				}
+			}
 		}
 
 		/// <summary>
