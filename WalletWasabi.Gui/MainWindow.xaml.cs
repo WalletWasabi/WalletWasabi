@@ -22,8 +22,6 @@ namespace WalletWasabi.Gui
 {
 	public class MainWindow : MetroWindow
 	{
-		public bool IsQuitPending { get; private set; }
-
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -115,7 +113,7 @@ namespace WalletWasabi.Gui
 						Logging.Logger.LogWarning<MainWindow>(ex);
 					}
 					Interlocked.Exchange(ref _closingState, 2); //now we can close the app
-
+					MainWindowViewModel.Instance.IsQuitPending = true;
 					await Global.DisposeAsync();
 
 					Close(); // start the closing process. Will call MainWindow_ClosingAsync again!

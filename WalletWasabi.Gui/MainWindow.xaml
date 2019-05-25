@@ -10,6 +10,7 @@
                       xmlns:idc="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
                       xmlns:beh="clr-namespace:AvalonStudio.Utils.Behaviors;assembly=AvalonStudio.Utils"
                       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
                       Icon="resm:WalletWasabi.Gui.Assets.WasabiLogo256.png?assembly=WalletWasabi.Gui"
                       Title="{Binding Title}"
                       MinWidth="1100" MinHeight="530"
@@ -32,10 +33,18 @@
     </Style>
   </cont:MetroWindow.Styles>
   <Grid>
-    <DockPanel LastChildFill="True">
-      <wasabi:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" />
-      <shell:ShellView DataContext="{Binding Shell}" />
-    </DockPanel>
-    <wasabi:ModalDialog DataContext="{Binding ModalDialog}" />
+    <Grid IsVisible="{Binding !IsQuitPending}">
+      <DockPanel LastChildFill="True">
+        <wasabi:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" />
+        <shell:ShellView DataContext="{Binding Shell}" />
+      </DockPanel>
+      <wasabi:ModalDialog DataContext="{Binding ModalDialog}" />
+    </Grid>
+    <Grid IsVisible="{Binding IsQuitPending}">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <controls:Spinner Height="20" Width="20" Margin="0 0 8 0" />
+        <TextBlock Text="Exiting" />
+      </StackPanel>
+    </Grid>
   </Grid>
 </cont:MetroWindow>

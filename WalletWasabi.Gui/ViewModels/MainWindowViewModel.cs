@@ -1,4 +1,4 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Extensibility.Dialogs;
 using AvalonStudio.Shell;
@@ -13,6 +13,14 @@ namespace WalletWasabi.Gui.ViewModels
 		private bool _canClose = true;
 
 		private string _title = "Wasabi Wallet";
+
+		private bool _isQuitPending;
+
+		public bool IsQuitPending
+		{
+			get => _isQuitPending;
+			set => this.RaiseAndSetIfChanged(ref _isQuitPending, value);
+		}
 
 		public string Title
 		{
