@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Exceptions;
@@ -16,6 +16,7 @@ namespace WalletWasabi.Services
 
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
+		public bool IsStopped => Interlocked.Read(ref _running) == 3;
 
 		private CancellationTokenSource Stop { get; }
 
@@ -85,6 +86,16 @@ namespace WalletWasabi.Services
 			});
 		}
 
+		public async Task StopAsync()
+		{
+			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
+			Stop?.Cancel();
+			while (IsStopped)
+			{
+				await Task.Delay(50);
+			}
+		}
+
 		#region IDisposable Support
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
@@ -95,11 +106,14 @@ namespace WalletWasabi.Services
 			{
 				if (disposing)
 				{
-					Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
-					Stop?.Cancel();
-					while (IsStopping)
+					if (!IsStopped)
 					{
-						Task.Delay(50).GetAwaiter().GetResult();
+						Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
+						Stop?.Cancel();
+						while (IsStopping)
+						{
+							Task.Delay(50).GetAwaiter().GetResult();
+						}
 					}
 					Stop?.Dispose();
 				}

@@ -114,6 +114,7 @@ namespace WalletWasabi.Gui
 					}
 					Interlocked.Exchange(ref _closingState, 2); //now we can close the app
 					MainWindowViewModel.Instance.IsQuitPending = true;
+					ShellViewModel.Instance.MainMenu.IsVisible = false;
 					await Global.DisposeAsync();
 
 					Close(); // start the closing process. Will call MainWindow_ClosingAsync again!

@@ -1,5 +1,7 @@
 using Avalonia;
 using Avalonia.Threading;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
@@ -19,6 +21,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Gui.Dialogs;
+using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
@@ -554,12 +557,14 @@ namespace WalletWasabi.Gui
 
 					if (UpdateChecker != null)
 					{
+						UpdateChecker?.StopAsync();
 						UpdateChecker?.Dispose();
 						Logger.LogInfo($"{nameof(UpdateChecker)} is stopped.", nameof(Global));
 					}
 
 					if (Synchronizer != null)
 					{
+						await Synchronizer?.StopAsync();
 						Synchronizer?.Dispose();
 						Logger.LogInfo($"{nameof(Synchronizer)} is stopped.", nameof(Global));
 					}
@@ -591,6 +596,18 @@ namespace WalletWasabi.Gui
 						TorManager?.Dispose();
 						Logger.LogInfo($"{nameof(TorManager)} is stopped.", nameof(Global));
 					}
+
+					try
+					{
+						var wm = IoC.Get<IShell>().Documents.OfType<WalletManagerViewModel>().FirstOrDefault();
+						wm.OnClose();
+						Logger.LogInfo($"{nameof(WalletManagerViewModel)} closed, hwi enumeration stopped.", nameof(Global));
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError($"Error during stopping {nameof(AsyncMutex)}: {ex.ToTypeMessageString()}", nameof(Global));
+					}
+
 					try
 					{
 						await AsyncMutex.WaitForAllMutexToCloseAsync();
