@@ -8,6 +8,8 @@ Wasabi wallet protects the encrypted secret key with the same technology used to
 
 ## Usage
 
+To use Wasabi's command line tools on Windows you have to use `wassabeed.exe` that's inside your `Program Files\WasabiWallet`. On Linux and OSX you can use the same software that you use for launching the GUI (`wassabee`).
+
 Let's start giving a glance to the command `help`:
 
 ```
