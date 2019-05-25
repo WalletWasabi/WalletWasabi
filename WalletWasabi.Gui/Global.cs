@@ -322,6 +322,11 @@ namespace WalletWasabi.Gui
 				RegTestMemPoolServingNode = null;
 			}
 
+			if (DisposingValue)
+			{
+				return;
+			}
+
 			Nodes.Connect();
 			Logger.LogInfo("Start connecting to nodes...");
 
@@ -335,6 +340,11 @@ namespace WalletWasabi.Gui
 
 			#region SynchronizerInitialization
 
+			if (DisposingValue)
+			{
+				return;
+			}
+
 			var requestInterval = TimeSpan.FromSeconds(30);
 			if (Network == Network.RegTest)
 			{
@@ -342,7 +352,7 @@ namespace WalletWasabi.Gui
 			}
 
 			int maxFiltSyncCount = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
-
+			
 			Synchronizer.Start(requestInterval, TimeSpan.FromMinutes(5), maxFiltSyncCount);
 			Logger.LogInfo("Start synchronizing filters...");
 
@@ -545,12 +555,14 @@ namespace WalletWasabi.Gui
 			}
 		}
 
+		private static volatile bool DisposingValue = false; // To detect redundant calls
 		private static volatile bool DisposedValue = false; // To detect redundant calls
 
 		public static async Task DisposeAsync()
 		{
 			if (!DisposedValue)
 			{
+				DisposingValue = true;
 				try
 				{
 					await DisposeInWalletDependentServicesAsync();

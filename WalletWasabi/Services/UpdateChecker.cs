@@ -98,7 +98,15 @@ namespace WalletWasabi.Services
 		public async Task StopAsync()
 		{
 			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
-			Stop?.Cancel();
+			try
+			{
+				Stop?.Cancel();
+			}
+			catch (ObjectDisposedException)
+			{
+
+			}
+
 			DateTime start = DateTime.Now;
 			while (!IsStopped)
 			{
