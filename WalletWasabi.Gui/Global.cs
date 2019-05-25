@@ -557,7 +557,7 @@ namespace WalletWasabi.Gui
 
 					if (UpdateChecker != null)
 					{
-						UpdateChecker?.StopAsync();
+						await UpdateChecker?.StopAsync();
 						UpdateChecker?.Dispose();
 						Logger.LogInfo($"{nameof(UpdateChecker)} is stopped.", nameof(Global));
 					}
