@@ -417,6 +417,7 @@ namespace Nito.AsyncEx
 					{
 						return;
 					}
+					Logger.LogDebug($"Waiting for: {string.Join(", ", AsyncMutexes.Where(am => am.Value.IsAlive).Select(m => m.Value.ShortName))}", nameof(AsyncMutex));
 				}
 				await Task.Delay(200);
 				if (DateTime.Now - start > TimeSpan.FromSeconds(60))
