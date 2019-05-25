@@ -298,6 +298,42 @@ namespace WalletWasabi.KeyManagement
 			return km;
 		}
 
+		public static bool TryGetEncryptedSecretFromFile(string filePath, out BitcoinEncryptedSecretNoEC encryptedSecret)
+		{
+			encryptedSecret = default;
+			filePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath);
+
+			if (!File.Exists(filePath))
+			{
+				throw new FileNotFoundException($"Wallet file not found at: `{filePath}`.");
+			}
+
+			// Example text to handle: "ExtPubKey": "03BF8271268000000013B9013C881FE456DDF524764F6322F611B03CF6".
+			var encryptedSecretline = File.ReadLines(filePath) // Enumerated read.
+				.Take(21) // Limit reads to x lines.
+				.FirstOrDefault(line => line.Contains("\"EncryptedSecret\": \"", StringComparison.OrdinalIgnoreCase));
+
+			if (string.IsNullOrEmpty(encryptedSecretline))
+			{
+				return false;
+			}
+
+			var parts = encryptedSecretline.Split("\"EncryptedSecret\": \"");
+			if (parts.Length != 2)
+			{
+				throw new FormatException($"Could not split line: {encryptedSecretline}");
+			}
+
+			var encsec = parts[1].TrimEnd(',', '"');
+			if (string.IsNullOrEmpty(encsec) || encsec.Equals("null", StringComparison.OrdinalIgnoreCase))
+			{
+				return false;
+			}
+
+			encryptedSecret = new BitcoinEncryptedSecretNoEC(encsec);
+			return true;
+		}
+
 		public static bool TryGetExtPubKeyFromFile(string filePath, out ExtPubKey extPubKey)
 		{
 			extPubKey = default;
@@ -311,7 +347,7 @@ namespace WalletWasabi.KeyManagement
 			// Example text to handle: "ExtPubKey": "03BF8271268000000013B9013C881FE456DDF524764F6322F611B03CF6".
 			var extpubkeyline = File.ReadLines(filePath) // Enumerated read.
 				.Take(21) // Limit reads to x lines.
-				.FirstOrDefault(line => line.Contains("\"ExtPubKey\": \"", StringComparison.InvariantCulture));
+				.FirstOrDefault(line => line.Contains("\"ExtPubKey\": \"", StringComparison.OrdinalIgnoreCase));
 
 			if (string.IsNullOrEmpty(extpubkeyline))
 			{
@@ -325,6 +361,10 @@ namespace WalletWasabi.KeyManagement
 			}
 
 			var xpub = parts[1].TrimEnd(',', '"');
+			if (string.IsNullOrEmpty(xpub) || xpub.Equals("null", StringComparison.OrdinalIgnoreCase))
+			{
+				return false;
+			}
 
 			extPubKey = NBitcoinHelpers.BetterParseExtPubKey(xpub);
 			return true;
@@ -343,7 +383,7 @@ namespace WalletWasabi.KeyManagement
 			// Example text to handle: "ExtPubKey": "03BF8271268000000013B9013C881FE456DDF524764F6322F611B03CF6".
 			var masterfpline = File.ReadLines(filePath) // Enumerated read.
 				.Take(21) // Limit reads to x lines.
-				.FirstOrDefault(line => line.Contains("\"MasterFingerprint\": \"", StringComparison.InvariantCulture));
+				.FirstOrDefault(line => line.Contains("\"MasterFingerprint\": \"", StringComparison.OrdinalIgnoreCase));
 
 			if (string.IsNullOrEmpty(masterfpline))
 			{
@@ -357,6 +397,10 @@ namespace WalletWasabi.KeyManagement
 			}
 
 			var hex = parts[1].TrimEnd(',', '"');
+			if (string.IsNullOrEmpty(hex) || hex.Equals("null", StringComparison.OrdinalIgnoreCase))
+			{
+				return false;
+			}
 
 			var mfp = new HDFingerprint(ByteHelpers.FromHex(hex));
 			masterFingerprint = mfp;
