@@ -90,7 +90,7 @@ namespace WalletWasabi.Services
 		{
 			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
 			Stop?.Cancel();
-			while (IsStopped)
+			while (!IsStopped)
 			{
 				await Task.Delay(50);
 			}
