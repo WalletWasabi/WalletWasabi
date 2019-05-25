@@ -58,6 +58,11 @@ namespace Nito.AsyncEx
 			}
 		}
 
+		public bool IsQuitPending
+		{
+			get; set;
+		}
+
 		/// <summary>
 		/// Static storage for local mutexes. It can be used to get an already existing AsyncLock by name of the mutex.
 		/// </summary>
@@ -277,6 +282,11 @@ namespace Nito.AsyncEx
 
 			try
 			{
+				if (IsQuitPending)
+				{
+					throw new OperationCanceledException($"AsyncMutex.LockAsync failed because quit is pending on: {ShortName}");
+				}
+
 				// Local lock for thread safety.
 				await AsyncLock.LockAsync(cancellationToken);
 
@@ -390,6 +400,14 @@ namespace Nito.AsyncEx
 		public static async Task WaitForAllMutexToCloseAsync()
 		{
 			DateTime start = DateTime.Now;
+			lock (AsyncMutexesLock)
+			{
+				foreach (var mutex in AsyncMutexes)
+				{
+					mutex.Value.IsQuitPending = true;
+				}
+			}
+
 			while (true)
 			{
 				lock (AsyncMutexesLock)

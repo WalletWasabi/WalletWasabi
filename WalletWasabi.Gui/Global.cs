@@ -598,7 +598,7 @@ namespace WalletWasabi.Gui
 					}
 					catch (Exception ex)
 					{
-						Logger.LogInfo($"Error during stopping {nameof(AsyncMutex)}: {ex.ToTypeMessageString()}", nameof(Global));
+						Logger.LogError($"Error during stopping {nameof(AsyncMutex)}: {ex.ToTypeMessageString()}", nameof(Global));
 					}
 				}
 				catch (Exception ex)
