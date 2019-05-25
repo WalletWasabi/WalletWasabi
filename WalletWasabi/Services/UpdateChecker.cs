@@ -16,7 +16,7 @@ namespace WalletWasabi.Services
 
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
-		public bool IsStopped => Interlocked.Read(ref _running) == 3;
+		public bool IsStopped => Interlocked.Read(ref _running) == 3 || Interlocked.Read(ref _running) == 0;
 
 		private CancellationTokenSource Stop { get; }
 
@@ -72,6 +72,10 @@ namespace WalletWasabi.Services
 												|| ex is TimeoutException)
 						{
 							Logger.LogTrace<UpdateChecker>(ex);
+						}
+						catch (ObjectDisposedException)
+						{
+							return;
 						}
 						catch (Exception ex)
 						{

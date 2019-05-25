@@ -123,7 +123,7 @@ namespace WalletWasabi.Services
 
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
-		public bool IsStopped => Interlocked.Read(ref _running) == 3;
+		public bool IsStopped => Interlocked.Read(ref _running) == 3 || Interlocked.Read(ref _running) == 0;
 
 		private CancellationTokenSource Cancel { get; set; }
 
@@ -299,6 +299,10 @@ namespace WalletWasabi.Services
 						{
 							Logger.LogTrace<WasabiSynchronizer>(ex);
 						}
+						catch (ObjectDisposedException)
+						{
+							return;
+						}
 						catch (Exception ex)
 						{
 							Logger.LogError<WasabiSynchronizer>(ex);
@@ -315,6 +319,10 @@ namespace WalletWasabi.Services
 								catch (TaskCanceledException ex)
 								{
 									Logger.LogTrace<CcjClient>(ex);
+								}
+								catch (ObjectDisposedException)
+								{
+									// If the CancellationToken disposed meanwhile.
 								}
 							}
 						}
