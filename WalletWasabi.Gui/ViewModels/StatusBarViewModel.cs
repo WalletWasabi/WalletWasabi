@@ -361,14 +361,17 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private void SetCustomStatusOrReady()
 		{
-			if (StatusQueue.Any())
+			Dispatcher.UIThread.PostLogException(() =>
 			{
-				Status = StatusQueue.Last();
-			}
-			else
-			{
-				Status = StatusBarStatus.Ready;
-			}
+				if (StatusQueue.Any())
+				{
+					Status = StatusQueue.Last();
+				}
+				else
+				{
+					Status = StatusBarStatus.Ready;
+				}
+			});
 		}
 
 		private bool TrySetPriorityStatus()
