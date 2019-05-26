@@ -51,6 +51,8 @@ namespace WalletWasabi.Gui.ViewModels
 		private int _blocksLeft;
 		private string _btcPrice;
 		private StatusBarStatus _status;
+		private List<StatusBarStatus> StatusQueue { get; } = new List<StatusBarStatus>();
+		private object StatusQueueLock { get; } = new object();
 
 		public StatusBarViewModel()
 		{
@@ -297,10 +299,6 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		private List<StatusBarStatus> StatusQueue { get; } = new List<StatusBarStatus>();
-
-		private object StatusQueueLock { get; } = new object();
-
 		public void TryAddStatus(StatusBarStatus status)
 		{
 			try
@@ -344,34 +342,31 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			lock (StatusQueueLock)
 			{
-				if (!TrySetPriorityStatus())
-				{
-					SetCustomStatusOrReady();
-				}
+				RefreshStatusNoLock();
 			}
 		}
 
 		private void RefreshStatusNoLock()
 		{
-			if (!TrySetPriorityStatus())
+			Dispatcher.UIThread.PostLogException(() =>
 			{
-				SetCustomStatusOrReady();
-			}
+				if (!TrySetPriorityStatus())
+				{
+					SetCustomStatusOrReady();
+				}
+			});
 		}
 
 		private void SetCustomStatusOrReady()
 		{
-			Dispatcher.UIThread.PostLogException(() =>
+			if (StatusQueue.Any())
 			{
-				if (StatusQueue.Any())
-				{
-					Status = StatusQueue.Last();
-				}
-				else
-				{
-					Status = StatusBarStatus.Ready;
-				}
-			});
+				Status = StatusQueue.Last();
+			}
+			else
+			{
+				Status = StatusBarStatus.Ready;
+			}
 		}
 
 		private bool TrySetPriorityStatus()
@@ -402,14 +397,20 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private void SetPeers(int peers)
 		{
-			// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it's seem to the user that peers are connected over clearnet, while they don't.
-			Peers = Tor == TorStatus.NotRunning ? 0 : peers;
+			Dispatcher.UIThread.PostLogException(() =>
+			{
+				// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it's seem to the user that peers are connected over clearnet, while they don't.
+				Peers = Tor == TorStatus.NotRunning ? 0 : peers;
+			});
 		}
 
 		private void SetTor(TorStatus tor)
 		{
-			// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it's seem to the user that peers are connected over clearnet, while they don't.
-			Tor = UseTor ? tor : TorStatus.TurnedOff;
+			Dispatcher.UIThread.PostLogException(() =>
+			{
+				// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it's seem to the user that peers are connected over clearnet, while they don't.
+				Tor = UseTor ? tor : TorStatus.TurnedOff;
+			});
 		}
 
 		#region IDisposable Support
