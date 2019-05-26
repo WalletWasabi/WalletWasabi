@@ -77,12 +77,14 @@ namespace WalletWasabi.Gui.ViewModels
 			UseTor = Global.Config.UseTor.Value; // Don't make it dynamic, because if you change this config settings only next time will it activate.
 
 			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Added))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
 					SetPeers(Nodes.Count);
 				}).DisposeWith(Disposables);
 
 			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
 					SetPeers(Nodes.Count);
@@ -91,67 +93,89 @@ namespace WalletWasabi.Gui.ViewModels
 			SetPeers(Nodes.Count);
 
 			Observable.FromEventPattern<int>(typeof(WalletService), nameof(WalletService.ConcurrentBlockDownloadNumberChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
 					BlocksLeft = x.EventArgs;
 				}).DisposeWith(Disposables);
 
-			Synchronizer.WhenAnyValue(x => x.TorStatus).Subscribe(status =>
-			{
-				SetTor(status);
-				SetPeers(Nodes.Count);
-			}).DisposeWith(Disposables);
+			Synchronizer.WhenAnyValue(x => x.TorStatus)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(status =>
+				{
+					SetTor(status);
+					SetPeers(Nodes.Count);
+				}).DisposeWith(Disposables);
 
-			Synchronizer.WhenAnyValue(x => x.BackendStatus).Subscribe(_ =>
-			{
-				Backend = Synchronizer.BackendStatus;
-			}).DisposeWith(Disposables);
+			Synchronizer.WhenAnyValue(x => x.BackendStatus)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					Backend = Synchronizer.BackendStatus;
+				}).DisposeWith(Disposables);
 
-			HashChain.WhenAnyValue(x => x.HashesLeft).Subscribe(x =>
-			{
-				FiltersLeft = x;
-			}).DisposeWith(Disposables);
+			HashChain.WhenAnyValue(x => x.HashesLeft)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					FiltersLeft = x;
+				}).DisposeWith(Disposables);
 
-			Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Subscribe(usd =>
-			{
-				BtcPrice = $"${(long)usd}";
-			}).DisposeWith(Disposables);
+			Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(usd =>
+				{
+					BtcPrice = $"${(long)usd}";
+				}).DisposeWith(Disposables);
 
 			Observable.FromEventPattern<bool>(Synchronizer, nameof(Synchronizer.ResponseArrivedIsGenSocksServFail))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(e =>
 				{
 					OnResponseArrivedIsGenSocksServFail(e.EventArgs);
 				}).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.BlocksLeft).Subscribe(blocks =>
-			{
-				RefreshStatus();
-			});
+			this.WhenAnyValue(x => x.BlocksLeft)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(blocks =>
+				{
+					RefreshStatus();
+				});
 
-			this.WhenAnyValue(x => x.FiltersLeft).Subscribe(filters =>
-			{
-				RefreshStatus();
-			});
+			this.WhenAnyValue(x => x.FiltersLeft)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(filters =>
+				{
+					RefreshStatus();
+				});
 
-			this.WhenAnyValue(x => x.Tor).Subscribe(tor =>
-			{
-				RefreshStatus();
-			});
+			this.WhenAnyValue(x => x.Tor)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(tor =>
+				{
+					RefreshStatus();
+				});
 
-			this.WhenAnyValue(x => x.Backend).Subscribe(backend =>
-			{
-				RefreshStatus();
-			});
+			this.WhenAnyValue(x => x.Backend)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(backend =>
+				{
+					RefreshStatus();
+				});
 
-			this.WhenAnyValue(x => x.Peers).Subscribe(peers =>
-			{
-				RefreshStatus();
-			});
+			this.WhenAnyValue(x => x.Peers)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(peers =>
+				{
+					RefreshStatus();
+				});
 
-			this.WhenAnyValue(x => x.UpdateStatus).Subscribe(_ =>
-			{
-				RefreshStatus();
-			});
+			this.WhenAnyValue(x => x.UpdateStatus)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					RefreshStatus();
+				});
 
 			UpdateCommand = ReactiveCommand.Create(() =>
 			{
@@ -164,7 +188,9 @@ namespace WalletWasabi.Gui.ViewModels
 					Logging.Logger.LogWarning<StatusBarViewModel>(ex);
 					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
 				}
-			}, this.WhenAnyValue(x => x.UpdateStatus).Select(x => x != UpdateStatus.Latest));
+			}, this.WhenAnyValue(x => x.UpdateStatus)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Select(x => x != UpdateStatus.Latest));
 
 			updateChecker.Start(TimeSpan.FromMinutes(7),
 				() =>
@@ -348,13 +374,10 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private void RefreshStatusNoLock()
 		{
-			Dispatcher.UIThread.PostLogException(() =>
+			if (!TrySetPriorityStatus())
 			{
-				if (!TrySetPriorityStatus())
-				{
-					SetCustomStatusOrReady();
-				}
-			});
+				SetCustomStatusOrReady();
+			}
 		}
 
 		private void SetCustomStatusOrReady()
@@ -397,20 +420,14 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private void SetPeers(int peers)
 		{
-			Dispatcher.UIThread.PostLogException(() =>
-			{
-				// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it's seem to the user that peers are connected over clearnet, while they don't.
-				Peers = Tor == TorStatus.NotRunning ? 0 : peers;
-			});
+			// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it's seem to the user that peers are connected over clearnet, while they don't.
+			Peers = Tor == TorStatus.NotRunning ? 0 : peers;
 		}
 
 		private void SetTor(TorStatus tor)
 		{
-			Dispatcher.UIThread.PostLogException(() =>
-			{
-				// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it's seem to the user that peers are connected over clearnet, while they don't.
-				Tor = UseTor ? tor : TorStatus.TurnedOff;
-			});
+			// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it's seem to the user that peers are connected over clearnet, while they don't.
+			Tor = UseTor ? tor : TorStatus.TurnedOff;
 		}
 
 		#region IDisposable Support

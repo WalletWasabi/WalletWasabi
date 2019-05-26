@@ -213,7 +213,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			AmountSortDirection = SortOrder.Decreasing;
 			RefreshOrdering();
 
-			var sortChanged = this.WhenValueChanged(@this => MyComparer).Select(_ => MyComparer);
+			var sortChanged = this.WhenValueChanged(@this => MyComparer)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Select(_ => MyComparer);
 
 			RootList = new SourceList<CoinViewModel>();
 			RootList.Connect()
@@ -225,56 +227,52 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SortCommand = ReactiveCommand.Create(() => RefreshOrdering());
 
-			this.WhenAnyValue(x => x.AmountSortDirection).Subscribe(x =>
+			this.WhenAnyValue(x => x.AmountSortDirection)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
 			{
-				Dispatcher.UIThread.PostLogException(() =>
+				if (x != SortOrder.None)
 				{
-					if (x != SortOrder.None)
-					{
-						PrivacySortDirection = SortOrder.None;
-						StatusSortDirection = SortOrder.None;
-						ClustersSortDirection = SortOrder.None;
-					}
-				});
+					PrivacySortDirection = SortOrder.None;
+					StatusSortDirection = SortOrder.None;
+					ClustersSortDirection = SortOrder.None;
+				}
 			});
 
-			this.WhenAnyValue(x => x.ClustersSortDirection).Subscribe(x =>
+			this.WhenAnyValue(x => x.ClustersSortDirection)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
 			{
-				Dispatcher.UIThread.PostLogException(() =>
+				if (x != SortOrder.None)
 				{
-					if (x != SortOrder.None)
-					{
-						AmountSortDirection = SortOrder.None;
-						StatusSortDirection = SortOrder.None;
-						PrivacySortDirection = SortOrder.None;
-					}
-				});
+					AmountSortDirection = SortOrder.None;
+					StatusSortDirection = SortOrder.None;
+					PrivacySortDirection = SortOrder.None;
+				}
 			});
 
-			this.WhenAnyValue(x => x.StatusSortDirection).Subscribe(x =>
+			this.WhenAnyValue(x => x.StatusSortDirection)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
 			{
-				Dispatcher.UIThread.PostLogException(() =>
+				if (x != SortOrder.None)
 				{
-					if (x != SortOrder.None)
-					{
-						AmountSortDirection = SortOrder.None;
-						PrivacySortDirection = SortOrder.None;
-						ClustersSortDirection = SortOrder.None;
-					}
-				});
+					AmountSortDirection = SortOrder.None;
+					PrivacySortDirection = SortOrder.None;
+					ClustersSortDirection = SortOrder.None;
+				}
 			});
 
-			this.WhenAnyValue(x => x.PrivacySortDirection).Subscribe(x =>
+			this.WhenAnyValue(x => x.PrivacySortDirection)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
 			{
-				Dispatcher.UIThread.PostLogException(() =>
+				if (x != SortOrder.None)
 				{
-					if (x != SortOrder.None)
-					{
-						AmountSortDirection = SortOrder.None;
-						StatusSortDirection = SortOrder.None;
-						ClustersSortDirection = SortOrder.None;
-					}
-				});
+					AmountSortDirection = SortOrder.None;
+					StatusSortDirection = SortOrder.None;
+					ClustersSortDirection = SortOrder.None;
+				}
 			});
 
 			EnqueueCoin = ReactiveCommand.Create(() =>
@@ -294,7 +292,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				DequeueCoinsPressed?.Invoke(this, EventArgs.Empty);
-			}, this.WhenAnyValue(x => x.CanDeqeue));
+			}, this.WhenAnyValue(x => x.CanDeqeue)
+				.ObserveOn(RxApp.MainThreadScheduler));
 
 			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
 			{
@@ -421,33 +420,27 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetSelections()
 		{
-			Dispatcher.UIThread.PostLogException(() =>
-			{
-				SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
-				SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= Global.Config.PrivacyLevelStrong);
-				SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong);
-			});
+			SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
+			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= Global.Config.PrivacyLevelStrong);
+			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong);
 		}
 
 		private void SetCoinJoinStatusWidth()
 		{
-			Dispatcher.UIThread.PostLogException(() =>
-			{
-				if (Coins.Any(x => x.Status == SmartCoinStatus.MixingConnectionConfirmation
+			if (Coins.Any(x => x.Status == SmartCoinStatus.MixingConnectionConfirmation
 				 || x.Status == SmartCoinStatus.MixingInputRegistration
 				 || x.Status == SmartCoinStatus.MixingOnWaitingList
 				 || x.Status == SmartCoinStatus.MixingOutputRegistration
 				 || x.Status == SmartCoinStatus.MixingSigning
 				 || x.Status == SmartCoinStatus.MixingWaitingForConfirmation
 				 || x.Status == SmartCoinStatus.SpentAccordingToBackend))
-				{
-					CoinJoinStatusWidth = new GridLength(180);
-				}
-				else
-				{
-					CoinJoinStatusWidth = new GridLength(0);
-				}
-			});
+			{
+				CoinJoinStatusWidth = new GridLength(180);
+			}
+			else
+			{
+				CoinJoinStatusWidth = new GridLength(0);
+			}
 		}
 
 		public void OnCoinIsSelectedChanged(CoinViewModel cvm)
@@ -463,13 +456,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void OnCoinUnspentChanged(CoinViewModel cvm)
 		{
-			Dispatcher.UIThread.PostLogException(() =>
+			if (!cvm.Unspent)
 			{
-				if (!cvm.Unspent)
-				{
-					RootList.Remove(cvm);
-				}
-			});
+				RootList.Remove(cvm);
+			}
 
 			SetSelections();
 			SetCoinJoinStatusWidth();
