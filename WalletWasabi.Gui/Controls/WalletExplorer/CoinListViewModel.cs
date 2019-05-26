@@ -444,7 +444,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void OnCoinStatusChanged()
 		{
-			SetCoinJoinStatusWidth();
+				Dispatcher.UIThread.Post(() =>
+				{
+					SetCoinJoinStatusWidth();
+				});			
 		}
 
 		public void OnCoinUnspentChanged(CoinViewModel cvm)
@@ -457,8 +460,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 			}
 
-			SetSelections();
-			SetCoinJoinStatusWidth();
+			Dispatcher.UIThread.Post(() =>
+			{
+				SetSelections();
+				SetCoinJoinStatusWidth();
+			});	
 		}
 	}
 }

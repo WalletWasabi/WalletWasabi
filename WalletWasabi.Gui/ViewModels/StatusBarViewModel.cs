@@ -117,7 +117,7 @@ namespace WalletWasabi.Gui.ViewModels
 			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Added))
 				.Subscribe(x =>
 				{
-					SetPeers(Nodes.Count);
+					//SetPeers(Nodes.Count);
 				}).DisposeWith(Disposables);
 
 			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed))

@@ -637,7 +637,7 @@ namespace WalletWasabi.Services
 							{
 								try
 								{
-									await ChaumianClient.QueueCoinsToMixAsync(newCoin);
+									await ChaumianClient.QueueCoinsToMixAsync(newCoin).ConfigureAwait(false);
 								}
 								catch (Exception ex)
 								{
