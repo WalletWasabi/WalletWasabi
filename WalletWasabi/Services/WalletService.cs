@@ -622,6 +622,11 @@ namespace WalletWasabi.Services
 						}
 					}
 
+					if (output.Value <= ServiceConfiguration.DustThreshold)
+					{
+						continue;
+					}
+
 					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Don't inherit locked status from key, that's different.
 																																																												   // If we didn't have it.
 					if (Coins.TryAdd(newCoin))
@@ -629,7 +634,7 @@ namespace WalletWasabi.Services
 						TransactionCache.TryAdd(tx);
 
 						// If it's being mixed and anonset is not sufficient, then queue it.
-						if (newCoin.Unspent && !newCoin.IsDust && ChaumianClient.HasIngredients && newCoin.Label.StartsWith("ZeroLink", StringComparison.Ordinal) && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet)
+						if (newCoin.Unspent && ChaumianClient.HasIngredients && newCoin.Label.StartsWith("ZeroLink", StringComparison.Ordinal) && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet)
 						{
 							Task.Run(async () =>
 							{
@@ -1530,7 +1535,7 @@ namespace WalletWasabi.Services
 
 			try
 			{
-				var unspentCoins = Coins.Where(c => c.Unspent && !c.IsDust); //refreshing unspent coins clusters only
+				var unspentCoins = Coins.Where(c => c.Unspent); //refreshing unspent coins clusters only
 				if (unspentCoins.Any())
 				{
 					ILookup<Script, SmartCoin> lookupScriptPubKey = Coins.ToLookup(c => c.ScriptPubKey, c => c);
