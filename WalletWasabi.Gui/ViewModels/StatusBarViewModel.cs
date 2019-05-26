@@ -35,7 +35,6 @@ namespace WalletWasabi.Gui.ViewModels
 	public class StatusBarViewModel : ViewModelBase
 	{
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
-		private AsyncLock StatusTextAnimationLock { get; set; }
 		private NodesCollection Nodes { get; set; }
 		private WasabiSynchronizer Synchronizer { get; set; }
 		private HashChain HashChain { get; set; }
@@ -52,7 +51,6 @@ namespace WalletWasabi.Gui.ViewModels
 		private int _blocksLeft;
 		private string _btcPrice;
 		private StatusBarStatus _status;
-		private string _statusText;
 
 		public StatusBarViewModel()
 		{
@@ -66,44 +64,6 @@ namespace WalletWasabi.Gui.ViewModels
 			FiltersLeft = 0;
 			BlocksLeft = 0;
 			BtcPrice = "$0";
-			StatusText = "";
-
-			StatusTextAnimationLock = new AsyncLock();
-
-			this.WhenAnyValue(x => x.Status).Subscribe(status =>
-
-			{
-				StatusText = StatusBarStatusStringConverter.Convert(status);
-			});
-
-			this.WhenAnyValue(x => x.StatusText).Subscribe(async status =>
-			{
-				using (await StatusTextAnimationLock.LockAsync()) // Without this lock the status get stuck once in a while.
-				{
-					if (status.EndsWith(".")) // Then do animation.
-					{
-						string nextAnimation = null;
-						if (status.EndsWith("..."))
-						{
-							nextAnimation = status.TrimEnd("..", StringComparison.Ordinal);
-						}
-						else if (status.EndsWith("."))
-						{
-							nextAnimation = $"{status}.";
-						}
-
-						if (nextAnimation != null)
-						{
-							await Task.Delay(1000);
-							if (StatusText == status) // If still the same.
-							{
-								StatusText = nextAnimation;
-							}
-						}
-					}
-				}
-			});
-
 			Status = StatusBarStatus.Loading;
 		}
 
@@ -293,13 +253,6 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			get => _status;
 			set => this.RaiseAndSetIfChanged(ref _status, value);
-		}
-
-		public string StatusText
-		{
-			get => _statusText;
-
-			set => this.RaiseAndSetIfChanged(ref _statusText, value);
 		}
 
 		private void OnResponseArrivedIsGenSocksServFail(bool isGenSocksServFail)
