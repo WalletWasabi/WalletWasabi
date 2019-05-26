@@ -1,4 +1,4 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
@@ -46,8 +46,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public event EventHandler DequeueCoinsPressed;
 
 		public event EventHandler<CoinViewModel> SelectionChanged;
-
-		private List<CoinViewModel> RemovedCoinViewModels { get; }
 
 		public ReadOnlyObservableCollection<CoinViewModel> Coins => _coinViewModels;
 
@@ -212,8 +210,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CoinListViewModel()
 		{
-			RemovedCoinViewModels = new List<CoinViewModel>();
-
 			AmountSortDirection = SortOrder.Decreasing;
 			RefreshOrdering();
 
@@ -231,42 +227,54 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.AmountSortDirection).Subscribe(x =>
 			{
-				if (x != SortOrder.None)
+				Dispatcher.UIThread.PostLogException(() =>
 				{
-					PrivacySortDirection = SortOrder.None;
-					StatusSortDirection = SortOrder.None;
-					ClustersSortDirection = SortOrder.None;
-				}
+					if (x != SortOrder.None)
+					{
+						PrivacySortDirection = SortOrder.None;
+						StatusSortDirection = SortOrder.None;
+						ClustersSortDirection = SortOrder.None;
+					}
+				});
 			});
 
 			this.WhenAnyValue(x => x.ClustersSortDirection).Subscribe(x =>
 			{
-				if (x != SortOrder.None)
+				Dispatcher.UIThread.PostLogException(() =>
 				{
-					AmountSortDirection = SortOrder.None;
-					StatusSortDirection = SortOrder.None;
-					PrivacySortDirection = SortOrder.None;
-				}
+					if (x != SortOrder.None)
+					{
+						AmountSortDirection = SortOrder.None;
+						StatusSortDirection = SortOrder.None;
+						PrivacySortDirection = SortOrder.None;
+					}
+				});
 			});
 
 			this.WhenAnyValue(x => x.StatusSortDirection).Subscribe(x =>
 			{
-				if (x != SortOrder.None)
+				Dispatcher.UIThread.PostLogException(() =>
 				{
-					AmountSortDirection = SortOrder.None;
-					PrivacySortDirection = SortOrder.None;
-					ClustersSortDirection = SortOrder.None;
-				}
+					if (x != SortOrder.None)
+					{
+						AmountSortDirection = SortOrder.None;
+						PrivacySortDirection = SortOrder.None;
+						ClustersSortDirection = SortOrder.None;
+					}
+				});
 			});
 
 			this.WhenAnyValue(x => x.PrivacySortDirection).Subscribe(x =>
 			{
-				if (x != SortOrder.None)
+				Dispatcher.UIThread.PostLogException(() =>
 				{
-					AmountSortDirection = SortOrder.None;
-					StatusSortDirection = SortOrder.None;
-					ClustersSortDirection = SortOrder.None;
-				}
+					if (x != SortOrder.None)
+					{
+						AmountSortDirection = SortOrder.None;
+						StatusSortDirection = SortOrder.None;
+						ClustersSortDirection = SortOrder.None;
+					}
+				});
 			});
 
 			EnqueueCoin = ReactiveCommand.Create(() =>
@@ -413,27 +421,33 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetSelections()
 		{
-			SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
-			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= Global.Config.PrivacyLevelStrong);
-			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong);
+			Dispatcher.UIThread.PostLogException(() =>
+			{
+				SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
+				SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= Global.Config.PrivacyLevelStrong);
+				SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong);
+			});
 		}
 
 		private void SetCoinJoinStatusWidth()
 		{
-			if (Coins.Any(x => x.Status == SmartCoinStatus.MixingConnectionConfirmation
+			Dispatcher.UIThread.PostLogException(() =>
+			{
+				if (Coins.Any(x => x.Status == SmartCoinStatus.MixingConnectionConfirmation
 				 || x.Status == SmartCoinStatus.MixingInputRegistration
 				 || x.Status == SmartCoinStatus.MixingOnWaitingList
 				 || x.Status == SmartCoinStatus.MixingOutputRegistration
 				 || x.Status == SmartCoinStatus.MixingSigning
 				 || x.Status == SmartCoinStatus.MixingWaitingForConfirmation
 				 || x.Status == SmartCoinStatus.SpentAccordingToBackend))
-			{
-				CoinJoinStatusWidth = new GridLength(180);
-			}
-			else
-			{
-				CoinJoinStatusWidth = new GridLength(0);
-			}
+				{
+					CoinJoinStatusWidth = new GridLength(180);
+				}
+				else
+				{
+					CoinJoinStatusWidth = new GridLength(0);
+				}
+			});
 		}
 
 		public void OnCoinIsSelectedChanged(CoinViewModel cvm)
@@ -449,13 +463,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void OnCoinUnspentChanged(CoinViewModel cvm)
 		{
-			if (!cvm.Unspent)
+			Dispatcher.UIThread.PostLogException(() =>
 			{
-				Dispatcher.UIThread.Post(() =>
+				if (!cvm.Unspent)
 				{
 					RootList.Remove(cvm);
-				});
-			}
+				}
+			});
 
 			SetSelections();
 			SetCoinJoinStatusWidth();
