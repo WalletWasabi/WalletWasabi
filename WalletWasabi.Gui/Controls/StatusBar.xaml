@@ -160,7 +160,7 @@
             </DrawingPresenter.Drawing>
           </DrawingPresenter>
         </Grid>
-        <TextBlock Text="{Binding StatusText}" />
+        <TextBlock Text="{Binding Status, Converter={StaticResource StatusBarStatusStringConverter}}" />
       </StackPanel>
     </DockPanel>
   </Grid>

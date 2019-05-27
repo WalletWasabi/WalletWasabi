@@ -100,7 +100,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			SetFeesAndTexts();
 
-			this.WhenAnyValue(x => x.Amount).Subscribe(amount =>
+			this.WhenAnyValue(x => x.Amount)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(amount =>
 			{
 				if (!IgnoreAmountChanges)
 				{
@@ -127,10 +129,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (betterAmount != amount)
 					{
-						Dispatcher.UIThread.PostLogException(() =>
-						{
-							Amount = betterAmount;
-						});
+						Amount = betterAmount;
 					}
 				}
 
@@ -146,17 +145,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SetFeesAndTexts();
 			});
 
-			(this).WhenAnyValue(x => x.IsBusy).Subscribe(_ =>
+			(this).WhenAnyValue(x => x.IsBusy)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
 			{
 				SetSendText();
 			});
 
-			(this).WhenAnyValue(x => x.IsHardwareBusy).Subscribe(_ =>
+			(this).WhenAnyValue(x => x.IsHardwareBusy)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
 			{
 				SetSendText();
 			});
 
-			this.WhenAnyValue(x => x.Password).Subscribe(x =>
+			this.WhenAnyValue(x => x.Password)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
 			{
 				try
 				{
@@ -175,11 +180,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
-			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
+			this.WhenAnyValue(x => x.Label)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => UpdateSuggestions(x));
 
-			this.WhenAnyValue(x => x.FeeTarget).Subscribe(_ => SetFeesAndTexts());
+			this.WhenAnyValue(x => x.FeeTarget)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => SetFeesAndTexts());
 
-			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
+			this.WhenAnyValue(x => x.CaretIndex)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
 			{
 				if (Label is null)
 				{
@@ -358,7 +369,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			},
 			this.WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
-				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy));
+				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy)
+				.ObserveOn(RxApp.MainThreadScheduler));
 		}
 
 		private async Task<(bool success, string error)> TryRefreshHardwareWalletInfoAsync(KeyManager keyManager)

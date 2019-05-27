@@ -665,6 +665,12 @@ namespace WalletWasabi.Services
 			// If any of our inputs have exposed address relationship then prefer that.
 			allLockedInternalKeys = keysToSurelyRegister.Concat(allLockedInternalKeys).Distinct();
 
+			// Prefer not to bloat the wallet:
+			if (allLockedInternalKeys.Count() <= maximumMixingLevelCount)
+			{
+				allLockedInternalKeys = allLockedInternalKeys.Concat(keysTryNotToRegister).Distinct();
+			}
+
 			var newKeys = new List<HdPubKey>();
 			for (int i = allLockedInternalKeys.Count(); i <= maximumMixingLevelCount + 1; i++)
 			{
