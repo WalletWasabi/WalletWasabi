@@ -123,8 +123,14 @@ namespace WalletWasabi.Services
 
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
-		public bool IsStopped => Interlocked.Read(ref _running) == 3 || Interlocked.Read(ref _running) == 0;
-
+		public bool IsStopped
+		{
+			get
+			{
+				var isStopped = Interlocked.Read(ref _running);
+				return isStopped == 3 || isStopped == 0;
+			}
+		}
 		private CancellationTokenSource Cancel { get; set; }
 
 		#endregion MembersPropertiesEvents
