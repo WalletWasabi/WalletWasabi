@@ -263,7 +263,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				foreach (var file in walletFiles)
 				{
 					var wallet = new LoadWalletEntry(Path.GetFileNameWithoutExtension(file.FullName));
-					Wallets.Add(wallet);
+					if (IsPasswordRequired)
+					{
+						if (KeyManager.TryGetEncryptedSecretFromFile(file.FullName, out _))
+						{
+							Wallets.Add(wallet);
+						}
+					}
+					else
+					{
+						Wallets.Add(wallet);
+					}
 				}
 
 				SelectedWallet = Wallets.FirstOrDefault();
