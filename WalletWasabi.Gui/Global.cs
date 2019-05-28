@@ -408,12 +408,11 @@ namespace WalletWasabi.Gui
 				Logger.LogInfo("Starting WalletService...");
 				await WalletService.InitializeAsync(CancelWalletServiceInitialization.Token);
 				Logger.LogInfo("WalletService started.");
-			}
-			CancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
-			if (WalletService?.Coins != null)
-			{
+
+				CancelWalletServiceInitialization.Token.ThrowIfCancellationRequested();
 				WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
 			}
+			CancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
 		}
 
 		public static string GetWalletFullPath(string walletName)
