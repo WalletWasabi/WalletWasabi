@@ -25,6 +25,8 @@ namespace Nito.AsyncEx
 
 		private int _status;
 
+		public bool IsQuitPending { get; set; }
+
 		/// <summary>
 		/// Short name of the mutex. This string added to the end of the mutex name.
 		/// </summary>
@@ -49,6 +51,8 @@ namespace Nito.AsyncEx
 		/// Separate thread for the mutex where it is created and released.
 		/// </summary>
 		private Thread MutexThread { get; set; }
+
+		private bool IsAlive => MutexThread?.IsAlive is true;
 
 		/// <summary>
 		/// Static storage for local mutexes. It can be used to get an already existing AsyncLock by name of the mutex.
@@ -208,7 +212,7 @@ namespace Nito.AsyncEx
 		/// <returns></returns>
 		private async Task SetCommandAsync(int command, CancellationToken cancellationToken, int pollInterval)
 		{
-			if (!(MutexThread?.IsAlive == true))
+			if (!IsAlive)
 			{
 				throw new InvalidOperationException($"Thread should be alive.");
 			}
@@ -269,10 +273,15 @@ namespace Nito.AsyncEx
 
 			try
 			{
+				if (IsQuitPending)
+				{
+					throw new OperationCanceledException($"AsyncMutex.LockAsync failed because quit is pending on: {ShortName}");
+				}
+
 				// Local lock for thread safety.
 				await AsyncLock.LockAsync(cancellationToken);
 
-				if (MutexThread?.IsAlive == true)
+				if (IsAlive)
 				{
 					throw new InvalidOperationException($"Thread should not be alive.");
 				}
@@ -336,7 +345,7 @@ namespace Nito.AsyncEx
 			try
 			{
 				var start = DateTime.Now;
-				while (MutexThread.IsAlive)
+				while (IsAlive)
 				{
 					SetCommand(2);
 					MutexThread?.Join(TimeSpan.FromSeconds(1));
@@ -363,7 +372,7 @@ namespace Nito.AsyncEx
 
 		private void ReleaseLock()
 		{
-			if (MutexThread != null && !MutexThread.IsAlive)
+			if (!IsAlive)
 			{
 				throw new InvalidOperationException($"Thread should be alive.");
 			}
@@ -377,6 +386,38 @@ namespace Nito.AsyncEx
 			AsyncLock?.ReleaseLock();
 
 			ChangeStatus(AsyncLockStatus.StatusReady, AsyncLockStatus.StatusReleasing);
+		}
+
+		public static async Task WaitForAllMutexToCloseAsync()
+		{
+			DateTime start = DateTime.Now;
+			lock (AsyncMutexesLock)
+			{
+				foreach (var mutex in AsyncMutexes)
+				{
+					mutex.Value.IsQuitPending = true;
+				}
+			}
+
+			while (true)
+			{
+				lock (AsyncMutexesLock)
+				{
+					bool stillRunning = AsyncMutexes.Where(am => am.Value.IsAlive).Any();
+					if (!stillRunning)
+					{
+						return;
+					}
+					Logger.LogDebug($"Waiting for: {string.Join(", ", AsyncMutexes.Where(am => am.Value.IsAlive).Select(m => m.Value.ShortName))}", nameof(AsyncMutex));
+				}
+				await Task.Delay(200);
+				if (DateTime.Now - start > TimeSpan.FromSeconds(60))
+				{
+					var mutexesAlive = AsyncMutexes.Where(am => am.Value.IsAlive).Select(m => m.Value.ShortName);
+					var names = string.Join(", ", mutexesAlive);
+					throw new TimeoutException($"Asyncmutex(es) still alive after Timeout: {names}");
+				}
+			}
 		}
 
 		/// <summary>

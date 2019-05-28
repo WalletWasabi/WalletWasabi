@@ -57,7 +57,6 @@ namespace WalletWasabi.Services
 		private long _running;
 
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
-		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
 		private long _statusProcessing;
 
@@ -117,7 +116,10 @@ namespace WalletWasabi.Services
 
 		public void Start()
 		{
-			Interlocked.Exchange(ref _running, 1);
+			if (Interlocked.CompareExchange(ref _running, 1, 0) != 0)
+			{
+				return;
+			}
 
 			// The client is asking for status periodically, randomly between every 0.2 * connConfTimeout and 0.7 * connConfTimeout.
 			// - if the GUI is at the mixer tab -Activate(), DeactivateIfNotMixing().
@@ -1047,12 +1049,13 @@ namespace WalletWasabi.Services
 
 			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
 			Cancel?.Cancel();
-			while (IsStopping)
+			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
 			{
-				Task.Delay(50).GetAwaiter().GetResult(); // DO NOT MAKE IT ASYNC (.NET Core threading brainfart)
+				await Task.Delay(50);
 			}
 
 			Cancel?.Dispose();
+			Cancel = null;
 
 			using (await MixLock.LockAsync())
 			{

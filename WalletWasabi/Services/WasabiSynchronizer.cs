@@ -22,7 +22,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
-	public class WasabiSynchronizer : IDisposable, INotifyPropertyChanged
+	public class WasabiSynchronizer : INotifyPropertyChanged
 	{
 		#region MembersPropertiesEvents
 
@@ -122,7 +122,6 @@ namespace WalletWasabi.Services
 		private long _running;
 
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
-		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
 		private CancellationTokenSource Cancel { get; set; }
 
@@ -165,7 +164,10 @@ namespace WalletWasabi.Services
 
 			MaxRequestIntervalForMixing = requestInterval; // Let's start with this, it'll be modified from outside.
 
-			Interlocked.Exchange(ref _running, 1);
+			if (Interlocked.CompareExchange(ref _running, 1, 0) != 0)
+			{
+				return;
+			}
 
 			Task.Run(async () =>
 			{
@@ -362,41 +364,21 @@ namespace WalletWasabi.Services
 
 		#endregion Methods
 
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
+		public async Task StopAsync()
 		{
-			if (!_disposedValue)
+			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
+			Cancel?.Cancel();
+			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
 			{
-				if (disposing)
-				{
-					Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
-					Cancel?.Cancel();
-					while (IsStopping)
-					{
-						Task.Delay(50).GetAwaiter().GetResult(); // DO NOT MAKE IT ASYNC (.NET Core threading brainfart)
-					}
-
-					Cancel?.Dispose();
-					WasabiClient?.Dispose();
-
-					EnableRequests(); // Enable requests (it's possible something is being blocked outside the class by AreRequestsBlocked.
-				}
-
-				_disposedValue = true;
+				await Task.Delay(50);
 			}
-		}
 
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-			// GC.SuppressFinalize(this);
-		}
+			Cancel?.Dispose();
+			Cancel = null;
+			WasabiClient?.Dispose();
+			WasabiClient = null;
 
-		#endregion IDisposable Support
+			EnableRequests(); // Enable requests (it's possible something is being blocked outside the class by AreRequestsBlocked.
+		}
 	}
 }

@@ -113,7 +113,6 @@ namespace WalletWasabi.Services
 		private Dictionary<OutPoint, Script> Bech32UtxoSet { get; }
 		private List<ActionHistoryHelper> Bech32UtxoSetHistory { get; }
 
-		private FilterModel StartingFilter { get; set; }
 		private Height StartingHeight { get; set; }
 
 		/// <summary>
@@ -122,7 +121,6 @@ namespace WalletWasabi.Services
 		private long _running;
 
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
-		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
 		public IndexBuilderService(RPCClient rpc, TrustedNodeNotifyingBehavior trustedNodeNotifyingBehavior, string indexFilePath, string bech32UtxoSetFilePath)
 		{
@@ -136,7 +134,6 @@ namespace WalletWasabi.Services
 			Index = new List<FilterModel>();
 			IndexLock = new AsyncLock();
 
-			StartingFilter = StartingFilters.GetStartingFilter(RpcClient.Network);
 			StartingHeight = StartingFilters.GetStartingHeight(RpcClient.Network);
 
 			_running = 0;
@@ -485,7 +482,8 @@ namespace WalletWasabi.Services
 			}
 
 			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
-			while (IsStopping)
+
+			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
 			{
 				await Task.Delay(50);
 			}

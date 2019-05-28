@@ -157,6 +157,8 @@ namespace WalletWasabi.Tests
 				addressManager?.SavePeerFile(addressManagerFilePath, network);
 				Logger.LogInfo<P2pTests>($"Saved {nameof(AddressManager)} to `{addressManagerFilePath}`.");
 				nodes?.Dispose();
+
+				await syncer?.StopAsync();
 			}
 		}
 

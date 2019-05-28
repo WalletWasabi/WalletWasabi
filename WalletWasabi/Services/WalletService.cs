@@ -71,14 +71,6 @@ namespace WalletWasabi.Services
 
 		public Network Network => Synchronizer.Network;
 
-		/// <summary>
-		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
-		/// </summary>
-		private long _running;
-
-		public bool IsRunning => Interlocked.Read(ref _running) == 1;
-		public bool IsStopping => Interlocked.Read(ref _running) == 2;
-
 		public WalletService(
 			BitcoinStore bitcoinStore,
 			KeyManager keyManager,
@@ -112,8 +104,6 @@ namespace WalletWasabi.Services
 
 			KeyManager.AssertCleanKeysIndexed();
 			KeyManager.AssertLockedInternalKeysIndexed(14);
-
-			_running = 0;
 
 			if (Directory.Exists(BlocksFolderPath))
 			{
@@ -246,7 +236,7 @@ namespace WalletWasabi.Services
 					}
 				} while (Synchronizer.AreRequestsBlocked()); // If requests are blocked, delay mempool cleanup, because coinjoin answers are always priority.
 
-				await MemPool?.TryPerformMempoolCleanupAsync(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint);
+				await MemPool?.TryPerformMempoolCleanupAsync(Synchronizer?.WasabiClient?.TorClient?.DestinationUriAction, Synchronizer?.WasabiClient?.TorClient?.TorSocks5EndPoint);
 			}
 			catch (Exception ex)
 			{
