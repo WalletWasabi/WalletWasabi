@@ -637,7 +637,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					// Initialization failed.
 					SetValidationMessage(ex.ToTypeMessageString());
-					Logger.LogError<LoadWalletViewModel>(ex);
+					if (!(ex is OperationCanceledException))
+					{
+						Logger.LogError<LoadWalletViewModel>(ex);
+					}
 					await Global.DisposeInWalletDependentServicesAsync();
 				}
 			}

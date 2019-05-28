@@ -387,7 +387,7 @@ namespace WalletWasabi.Gui
 		{
 			while (!Initialized)
 			{
-				await Task.Delay(100);
+				await Task.Delay(100, CancelWalletServiceInitialization.Token);
 			}
 
 			if (Config.UseTor.Value)
