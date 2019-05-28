@@ -410,7 +410,10 @@ namespace WalletWasabi.Gui
 				Logger.LogInfo("WalletService started.");
 			}
 			CancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
-			WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
+			if (WalletService?.Coins != null)
+			{
+				WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
+			}
 		}
 
 		public static string GetWalletFullPath(string walletName)
