@@ -1,4 +1,4 @@
-﻿using AvalonStudio.MainMenu;
+using AvalonStudio.MainMenu;
 using AvalonStudio.Menus;
 using System;
 using System.Collections.Generic;
@@ -67,18 +67,23 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[DefaultGroup("Support")]
 		public IMenuItem ReportBug => MenuItemFactory.CreateCommandMenuItem("Help.ReportBug");
 
-		[ExportMainMenuItem("Help", "Privacy Policy")]
+		[ExportMainMenuItem("Help", "FAQ")]
 		[DefaultOrder(4)]
+		[DefaultGroup("Support")]
+		public IMenuItem Faq => MenuItemFactory.CreateCommandMenuItem("Help.Faq");
+
+		[ExportMainMenuItem("Help", "Privacy Policy")]
+		[DefaultOrder(5)]
 		[DefaultGroup("Legal")]
 		public IMenuItem PrivacyPolicy => MenuItemFactory.CreateCommandMenuItem("Help.PrivacyPolicy");
 
 		[ExportMainMenuItem("Help", "Terms And Conditions")]
-		[DefaultOrder(5)]
+		[DefaultOrder(6)]
 		[DefaultGroup("Legal")]
 		public IMenuItem TermsAndConditions => MenuItemFactory.CreateCommandMenuItem("Help.TermsAndConditions");
 
 		[ExportMainMenuItem("Help", "Legal Issues")]
-		[DefaultOrder(6)]
+		[DefaultOrder(7)]
 		[DefaultGroup("Legal")]
 		public IMenuItem LegalIssues => MenuItemFactory.CreateCommandMenuItem("Help.LegalIssues");
 

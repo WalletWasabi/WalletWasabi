@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
 using NBitcoin.BouncyCastle.Math;
@@ -60,8 +60,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			foreach (CcjRound round in Coordinator.GetRunningRounds())
 			{
-				var state = new CcjRunningRoundState
-				{
+				var state = new CcjRunningRoundState {
 					Phase = round.Phase,
 					SchnorrPubKeys = round.MixingLevels.SchnorrPubKeys,
 					Denomination = round.MixingLevels.GetBaseDenomination(),
@@ -180,7 +179,7 @@ namespace WalletWasabi.Backend.Controllers
 						var bannedElem = await Coordinator.UtxoReferee.TryGetBannedAsync(outpoint, notedToo: false);
 						if (bannedElem != null)
 						{
-							return BadRequest($"Input is banned from participation for {(int)bannedElem.Value.bannedRemaining.TotalMinutes} minutes: {inputProof.Input.Index}:{inputProof.Input.TransactionId}.");
+							return BadRequest($"Input is banned from participation for {(int)bannedElem.BannedRemaining.TotalMinutes} minutes: {inputProof.Input.Index}:{inputProof.Input.TransactionId}.");
 						}
 
 						var txoutResponseTask = batch.GetTxOutAsync(inputProof.Input.TransactionId, (int)inputProof.Input.Index, includeMempool: true);
@@ -212,7 +211,7 @@ namespace WalletWasabi.Backend.Controllers
 						if (getTxOutResponse.Confirmations <= 0)
 						{
 							// If it spends a CJ then it may be acceptable to register.
-							if (!Coordinator.ContainsCoinJoin(inputProof.Input.TransactionId))
+							if (!await Coordinator.ContainsCoinJoinAsync(inputProof.Input.TransactionId))
 							{
 								return BadRequest("Provided input is neither confirmed, nor is from an unconfirmed coinjoin.");
 							}
@@ -328,8 +327,7 @@ namespace WalletWasabi.Backend.Controllers
 						}
 					}
 
-					var resp = new InputsResponse
-					{
+					var resp = new InputsResponse {
 						UniqueId = alice.UniqueId,
 						RoundId = round.RoundId
 					};
@@ -374,8 +372,7 @@ namespace WalletWasabi.Backend.Controllers
 			CcjRoundPhase phase = round.Phase;
 
 			// Start building the response.
-			var resp = new ConnConfResp
-			{
+			var resp = new ConnConfResp {
 				CurrentPhase = phase
 			};
 

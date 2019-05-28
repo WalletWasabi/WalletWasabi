@@ -22,6 +22,11 @@
             </StackPanel>
 
             <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Extended Master Fingerprint: " />
+              <controls:ExtendedTextBox Text="{Binding MasterKeyFingerprint}" Classes="selectableTextBlock" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal">
               <TextBlock Text="Account Key Path: " />
               <controls:ExtendedTextBox Text="{Binding AccountKeyPath}" Classes="selectableTextBlock" />
             </StackPanel>

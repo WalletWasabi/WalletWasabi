@@ -30,6 +30,10 @@
             <TextBlock Text="Bug Report: " />
             <controls:ExtendedTextBox Text="https://github.com/zkSNACKs/WalletWasabi/issues/" Classes="selectableTextBlock hyperLink" />
           </StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="FAQ: " />
+            <controls:ExtendedTextBox Text="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/FAQ.md" Classes="selectableTextBlock hyperLink" />
+          </StackPanel>
         </StackPanel>
       </Grid>
     </StackPanel>

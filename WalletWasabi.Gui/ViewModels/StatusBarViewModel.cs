@@ -21,6 +21,7 @@ using WalletWasabi.Gui.Tabs;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Stores;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -34,11 +35,11 @@ namespace WalletWasabi.Gui.ViewModels
 	public class StatusBarViewModel : ViewModelBase
 	{
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
-		private AsyncLock StatusTextAnimationLock { get; }
-		private NodesCollection Nodes { get; }
-		private WasabiSynchronizer Synchronizer { get; }
+		private NodesCollection Nodes { get; set; }
+		private WasabiSynchronizer Synchronizer { get; set; }
+		private HashChain HashChain { get; set; }
 
-		private bool UseTor { get; }
+		private bool UseTor { get; set; }
 
 		private UpdateStatus _updateStatus;
 		private bool _updateAvailable;
@@ -50,25 +51,40 @@ namespace WalletWasabi.Gui.ViewModels
 		private int _blocksLeft;
 		private string _btcPrice;
 		private StatusBarStatus _status;
-		private string _statusText;
+		private List<StatusBarStatus> StatusQueue { get; } = new List<StatusBarStatus>();
+		private object StatusQueueLock { get; } = new object();
 
-		public StatusBarViewModel(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
+		public StatusBarViewModel()
 		{
 			UpdateStatus = UpdateStatus.Latest;
+			UpdateAvailable = false;
+			CriticalUpdateAvailable = false;
+			Backend = BackendStatus.NotConnected;
+			UseTor = false;
+			Tor = TorStatus.NotRunning;
+			Peers = 0;
+			FiltersLeft = 0;
+			BlocksLeft = 0;
+			BtcPrice = "$0";
+			Status = StatusBarStatus.Loading;
+		}
+
+		public void Initialize(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
+		{
 			Nodes = nodes;
 			Synchronizer = synchronizer;
-			BlocksLeft = 0;
-			FiltersLeft = synchronizer.GetFiltersLeft();
+			HashChain = synchronizer.BitcoinStore.HashChain;
 			UseTor = Global.Config.UseTor.Value; // Don't make it dynamic, because if you change this config settings only next time will it activate.
-			StatusTextAnimationLock = new AsyncLock();
 
 			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Added))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
 					SetPeers(Nodes.Count);
 				}).DisposeWith(Disposables);
 
 			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
 					SetPeers(Nodes.Count);
@@ -77,105 +93,89 @@ namespace WalletWasabi.Gui.ViewModels
 			SetPeers(Nodes.Count);
 
 			Observable.FromEventPattern<int>(typeof(WalletService), nameof(WalletService.ConcurrentBlockDownloadNumberChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
 					BlocksLeft = x.EventArgs;
 				}).DisposeWith(Disposables);
 
-			Observable.FromEventPattern(synchronizer, nameof(synchronizer.NewFilter)).Subscribe(x =>
-			{
-				FiltersLeft = Synchronizer.GetFiltersLeft();
-			}).DisposeWith(Disposables);
+			Synchronizer.WhenAnyValue(x => x.TorStatus)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(status =>
+				{
+					SetTor(status);
+					SetPeers(Nodes.Count);
+				}).DisposeWith(Disposables);
 
-			synchronizer.WhenAnyValue(x => x.TorStatus).Subscribe(status =>
-			{
-				SetTor(status);
-				SetPeers(Nodes.Count);
-			}).DisposeWith(Disposables);
+			Synchronizer.WhenAnyValue(x => x.BackendStatus)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					Backend = Synchronizer.BackendStatus;
+				}).DisposeWith(Disposables);
 
-			synchronizer.WhenAnyValue(x => x.BackendStatus).Subscribe(_ =>
-			{
-				Backend = Synchronizer.BackendStatus;
-			}).DisposeWith(Disposables);
+			HashChain.WhenAnyValue(x => x.HashesLeft)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					FiltersLeft = x;
+				}).DisposeWith(Disposables);
 
-			synchronizer.WhenAnyValue(x => x.BestBlockchainHeight).Subscribe(_ =>
-			{
-				FiltersLeft = Synchronizer.GetFiltersLeft();
-			}).DisposeWith(Disposables);
+			Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(usd =>
+				{
+					BtcPrice = $"${(long)usd}";
+				}).DisposeWith(Disposables);
 
-			synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Subscribe(usd =>
-			{
-				BtcPrice = $"${(long)usd}";
-			}).DisposeWith(Disposables);
-
-			Observable.FromEventPattern<bool>(synchronizer, nameof(synchronizer.ResponseArrivedIsGenSocksServFail))
+			Observable.FromEventPattern<bool>(Synchronizer, nameof(Synchronizer.ResponseArrivedIsGenSocksServFail))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(e =>
 				{
 					OnResponseArrivedIsGenSocksServFail(e.EventArgs);
 				}).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.BlocksLeft).Subscribe(blocks =>
-			{
-				RefreshStatus();
-			});
-
-			this.WhenAnyValue(x => x.FiltersLeft).Subscribe(filters =>
-			{
-				RefreshStatus();
-			});
-
-			this.WhenAnyValue(x => x.Tor).Subscribe(tor =>
-			{
-				RefreshStatus();
-			});
-
-			this.WhenAnyValue(x => x.Backend).Subscribe(backend =>
-			{
-				RefreshStatus();
-			});
-
-			this.WhenAnyValue(x => x.Peers).Subscribe(peers =>
-			{
-				RefreshStatus();
-			});
-
-			this.WhenAnyValue(x => x.UpdateStatus).Subscribe(_ =>
-			{
-				RefreshStatus();
-			});
-
-			this.WhenAnyValue(x => x.Status).Subscribe(status =>
-			{
-				StatusText = StatusBarStatusStringConverter.Convert(status);
-			});
-
-			this.WhenAnyValue(x => x.StatusText).Subscribe(async status =>
-			{
-				using (await StatusTextAnimationLock.LockAsync()) // Without this lock the status get stuck once in a while.
+			this.WhenAnyValue(x => x.BlocksLeft)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(blocks =>
 				{
-					if (status.EndsWith(".")) // Then do animation.
-					{
-						string nextAnimation = null;
-						if (status.EndsWith("..."))
-						{
-							nextAnimation = status.TrimEnd("..", StringComparison.Ordinal);
-						}
-						else if (status.EndsWith("."))
-						{
-							nextAnimation = $"{status}.";
-						}
+					RefreshStatus();
+				});
 
-						if (nextAnimation != null)
-						{
-							await Task.Delay(1000);
-							if (StatusText == status) // If still the same.
-							{
-								StatusText = nextAnimation;
-							}
-						}
-					}
-				}
-			});
+			this.WhenAnyValue(x => x.FiltersLeft)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(filters =>
+				{
+					RefreshStatus();
+				});
+
+			this.WhenAnyValue(x => x.Tor)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(tor =>
+				{
+					RefreshStatus();
+				});
+
+			this.WhenAnyValue(x => x.Backend)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(backend =>
+				{
+					RefreshStatus();
+				});
+
+			this.WhenAnyValue(x => x.Peers)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(peers =>
+				{
+					RefreshStatus();
+				});
+
+			this.WhenAnyValue(x => x.UpdateStatus)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					RefreshStatus();
+				});
 
 			UpdateCommand = ReactiveCommand.Create(() =>
 			{
@@ -188,7 +188,9 @@ namespace WalletWasabi.Gui.ViewModels
 					Logging.Logger.LogWarning<StatusBarViewModel>(ex);
 					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
 				}
-			}, this.WhenAnyValue(x => x.UpdateStatus).Select(x => x != UpdateStatus.Latest));
+			}, this.WhenAnyValue(x => x.UpdateStatus)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Select(x => x != UpdateStatus.Latest));
 
 			updateChecker.Start(TimeSpan.FromMinutes(7),
 				() =>
@@ -206,7 +208,7 @@ namespace WalletWasabi.Gui.ViewModels
 				});
 		}
 
-		public ReactiveCommand<Unit, Unit> UpdateCommand { get; }
+		public ReactiveCommand<Unit, Unit> UpdateCommand { get; set; }
 
 		public UpdateStatus UpdateStatus
 		{
@@ -281,12 +283,6 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _status, value);
 		}
 
-		public string StatusText
-		{
-			get => _statusText;
-			set => this.RaiseAndSetIfChanged(ref _statusText, value);
-		}
-
 		private void OnResponseArrivedIsGenSocksServFail(bool isGenSocksServFail)
 		{
 			if (isGenSocksServFail)
@@ -328,9 +324,6 @@ namespace WalletWasabi.Gui.ViewModels
 				}
 			}
 		}
-
-		private List<StatusBarStatus> StatusQueue { get; } = new List<StatusBarStatus>();
-		private object StatusQueueLock { get; } = new object();
 
 		public void TryAddStatus(StatusBarStatus status)
 		{
@@ -375,10 +368,7 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			lock (StatusQueueLock)
 			{
-				if (!TrySetPriorityStatus())
-				{
-					SetCustomStatusOrReady();
-				}
+				RefreshStatusNoLock();
 			}
 		}
 
@@ -457,7 +447,6 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		// This code added to correctly implement the disposable pattern.
 		public void Dispose()
 		{
 			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.

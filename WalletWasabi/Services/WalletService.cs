@@ -23,12 +23,14 @@ using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Stores;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
 	public class WalletService : IDisposable
 	{
+		public BitcoinStore BitcoinStore { get; }
 		public KeyManager KeyManager { get; }
 		public WasabiSynchronizer Synchronizer { get; }
 		public CcjClient ChaumianClient { get; }
@@ -69,15 +71,8 @@ namespace WalletWasabi.Services
 
 		public Network Network => Synchronizer.Network;
 
-		/// <summary>
-		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
-		/// </summary>
-		private long _running;
-
-		public bool IsRunning => Interlocked.Read(ref _running) == 1;
-		public bool IsStopping => Interlocked.Read(ref _running) == 2;
-
 		public WalletService(
+			BitcoinStore bitcoinStore,
 			KeyManager keyManager,
 			WasabiSynchronizer syncer,
 			CcjClient chaumianClient,
@@ -86,6 +81,7 @@ namespace WalletWasabi.Services
 			string workFolderDir,
 			ServiceConfiguration serviceConfiguration)
 		{
+			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
 			Synchronizer = Guard.NotNull(nameof(syncer), syncer);
@@ -108,8 +104,6 @@ namespace WalletWasabi.Services
 
 			KeyManager.AssertCleanKeysIndexed();
 			KeyManager.AssertLockedInternalKeysIndexed(14);
-
-			_running = 0;
 
 			if (Directory.Exists(BlocksFolderPath))
 			{
@@ -143,8 +137,8 @@ namespace WalletWasabi.Services
 			}
 			TransactionsFilePath = Path.Combine(TransactionsFolderPath, $"{walletName}Transactions.json");
 
-			Synchronizer.NewFilter += IndexDownloader_NewFilterAsync;
-			Synchronizer.Reorged += IndexDownloader_Reorged;
+			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
+			BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
 			MemPool.TransactionReceived += MemPool_TransactionReceived;
 		}
 
@@ -176,14 +170,14 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private void IndexDownloader_Reorged(object sender, FilterModel invalidFilter)
+		private async void IndexDownloader_ReorgedAsync(object sender, FilterModel invalidFilter)
 		{
 			try
 			{
-				using (HandleFiltersLock.Lock())
+				using (await HandleFiltersLock.LockAsync())
 				{
 					uint256 invalidBlockHash = invalidFilter.BlockHash;
-					DeleteBlock(invalidBlockHash);
+					await DeleteBlockAsync(invalidBlockHash);
 					var blockState = KeyManager.TryRemoveBlockState(invalidBlockHash);
 					ProcessedBlocks.TryRemove(invalidBlockHash, out _);
 					if (blockState != null && blockState.BlockHeight != default(Height))
@@ -219,7 +213,7 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				using (HandleFiltersLock.Lock())
+				using (await HandleFiltersLock.LockAsync())
 				{
 					if (filterModel.Filter != null && !KeyManager.CointainsBlockState(filterModel.BlockHash))
 					{
@@ -231,18 +225,18 @@ namespace WalletWasabi.Services
 				do
 				{
 					await Task.Delay(100);
-					if (Synchronizer is null)
+					if (Synchronizer is null || BitcoinStore?.HashChain is null)
 					{
 						return;
 					}
 					// Make sure fully synced and this filter is the lastest filter.
-					if (Synchronizer.GetFiltersLeft() != 0 || Synchronizer.BestKnownFilter.BlockHash != filterModel.BlockHash)
+					if (BitcoinStore.HashChain.HashesLeft != 0 || BitcoinStore.HashChain.TipHash != filterModel.BlockHash)
 					{
 						return;
 					}
 				} while (Synchronizer.AreRequestsBlocked()); // If requests are blocked, delay mempool cleanup, because coinjoin answers are always priority.
 
-				await MemPool?.TryPerformMempoolCleanupAsync(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint);
+				await MemPool?.TryPerformMempoolCleanupAsync(Synchronizer?.WasabiClient?.TorClient?.DestinationUriAction, Synchronizer?.WasabiClient?.TorClient?.TorSocks5EndPoint);
 			}
 			catch (Exception ex)
 			{
@@ -259,7 +253,7 @@ namespace WalletWasabi.Services
 
 			await RuntimeParams.LoadAsync();
 
-			using (HandleFiltersLock.Lock())
+			using (await HandleFiltersLock.LockAsync())
 			{
 				// Go through the keymanager's index.
 				KeyManager.AssertNetworkOrClearBlockstate(Network);
@@ -273,10 +267,13 @@ namespace WalletWasabi.Services
 				}
 
 				// Go through the filters and que to download the matches.
-				foreach (FilterModel filterModel in Synchronizer.GetFilters().Where(x => !(x.Filter is null) && x.BlockHeight > bestKeyManagerHeight)) // Filter can be null if there is no bech32 tx.
+				await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) =>
 				{
-					await ProcessFilterModelAsync(filterModel, cancel);
-				}
+					if (filterModel.Filter != null) // Filter can be null if there is no bech32 tx.
+					{
+						await ProcessFilterModelAsync(filterModel, cancel);
+					}
+				}, new Height(bestKeyManagerHeight.Value + 1));
 
 				// Load in dummy mempool
 				if (File.Exists(TransactionsFilePath))
@@ -612,6 +609,11 @@ namespace WalletWasabi.Services
 						}
 					}
 
+					if (output.Value <= ServiceConfiguration.DustThreshold)
+					{
+						continue;
+					}
+
 					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Don't inherit locked status from key, that's different.
 																																																												   // If we didn't have it.
 					if (Coins.TryAdd(newCoin))
@@ -619,7 +621,7 @@ namespace WalletWasabi.Services
 						TransactionCache.TryAdd(tx);
 
 						// If it's being mixed and anonset is not sufficient, then queue it.
-						if (newCoin.Unspent && !newCoin.IsDust && ChaumianClient.HasIngredients && newCoin.Label.StartsWith("ZeroLink", StringComparison.Ordinal) && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet)
+						if (newCoin.Unspent && ChaumianClient.HasIngredients && newCoin.Label.StartsWith("ZeroLink", StringComparison.Ordinal) && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet)
 						{
 							Task.Run(async () =>
 							{
@@ -954,11 +956,11 @@ namespace WalletWasabi.Services
 		/// <remarks>
 		/// Use it at reorgs.
 		/// </remarks>
-		public void DeleteBlock(uint256 hash)
+		public async Task DeleteBlockAsync(uint256 hash)
 		{
 			try
 			{
-				using (BlockFolderLock.Lock())
+				using (await BlockFolderLock.LockAsync())
 				{
 					var filePaths = Directory.EnumerateFiles(BlocksFolderPath);
 					var fileNames = filePaths.Select(x => Path.GetFileName(x));
@@ -1294,7 +1296,8 @@ namespace WalletWasabi.Services
 
 					if (KeyManager.MasterFingerprint.HasValue)
 					{
-						psbt.AddKeyPath(KeyManager.MasterFingerprint.Value, coin.HdPubKey.PubKey, coin.HdPubKey.FullKeyPath, coin.ScriptPubKey);
+						var rootKeyPath = new RootedKeyPath(KeyManager.MasterFingerprint.Value, coin.HdPubKey.FullKeyPath);
+						psbt.AddKeyPath(coin.HdPubKey.PubKey, rootKeyPath, coin.ScriptPubKey);
 					}
 				}
 			}
@@ -1519,7 +1522,7 @@ namespace WalletWasabi.Services
 
 			try
 			{
-				var unspentCoins = Coins.Where(c => c.Unspent && !c.IsDust); //refreshing unspent coins clusters only
+				var unspentCoins = Coins.Where(c => c.Unspent); //refreshing unspent coins clusters only
 				if (unspentCoins.Any())
 				{
 					ILookup<Script, SmartCoin> lookupScriptPubKey = Coins.ToLookup(c => c.ScriptPubKey, c => c);
@@ -1619,8 +1622,8 @@ namespace WalletWasabi.Services
 			{
 				if (disposing)
 				{
-					Synchronizer.NewFilter -= IndexDownloader_NewFilterAsync;
-					Synchronizer.Reorged -= IndexDownloader_Reorged;
+					BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
+					BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
 					MemPool.TransactionReceived -= MemPool_TransactionReceived;
 					Coins.CollectionChanged -= Coins_CollectionChanged;
 					lock (TransactionProcessingLock)

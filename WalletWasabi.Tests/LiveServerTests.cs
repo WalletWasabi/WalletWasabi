@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Services;
+using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.TorSocks5;
 using WalletWasabi.WebClients.Wasabi;
@@ -49,7 +50,7 @@ namespace WalletWasabi.Tests
 		{
 			using (var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.TorSocks5Endpoint))
 			{
-				var filterModel = WasabiSynchronizer.GetStartingFilter(Network.GetNetwork(networkType.ToString()));
+				var filterModel = StartingFilters.GetStartingFilter(Network.GetNetwork(networkType.ToString()));
 
 				FiltersResponse filtersResponse = await client.GetFiltersAsync(filterModel.BlockHash, 2);
 

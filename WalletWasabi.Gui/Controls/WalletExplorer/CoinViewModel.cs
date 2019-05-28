@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Globalization;
@@ -20,7 +20,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SmartCoinStatus _status;
 		private ObservableAsPropertyHelper<bool> _coinJoinInProgress;
 		private ObservableAsPropertyHelper<bool> _unspent;
-		private ObservableAsPropertyHelper<string> _clusters;
 		private ObservableAsPropertyHelper<bool> _confirmed;
 		private ObservableAsPropertyHelper<bool> _unavailable;
 		private CoinListViewModel _owner;
@@ -42,13 +41,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			//TODO defer subscription to when accessed (will be faster in ui.)
 			_coinJoinInProgress = Model.WhenAnyValue(x => x.CoinJoinInProgress)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.ToProperty(this, x => x.CoinJoinInProgress)
 				.DisposeWith(Disposables);
 
 			_unspent = Model.WhenAnyValue(x => x.Unspent).ToProperty(this, x => x.Unspent, scheduler: RxApp.MainThreadScheduler)
-				.DisposeWith(Disposables);
-
-			_clusters = Model.WhenAnyValue(x => x.Clusters).ToProperty(this, x => x.Clusters, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
 			_confirmed = Model.WhenAnyValue(x => x.Confirmed).ToProperty(this, x => x.Confirmed, scheduler: RxApp.MainThreadScheduler)
@@ -57,17 +54,27 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_unavailable = Model.WhenAnyValue(x => x.Unavailable).ToProperty(this, x => x.Unavailable, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.Status).Subscribe(_ => this.RaisePropertyChanged(nameof(ToolTip)));
+			this.WhenAnyValue(x => x.Status)
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(ToolTip)));
 
-			this.WhenAnyValue(x => x.Confirmed, x => x.CoinJoinInProgress, x => x.Confirmations).Subscribe(_ => RefreshSmartCoinStatus());
+			this.WhenAnyValue(x => x.Confirmed, x => x.CoinJoinInProgress, x => x.Confirmations)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => RefreshSmartCoinStatus());
 
-			this.WhenAnyValue(x => x.IsSelected).Subscribe(_ => _owner.OnCoinIsSelectedChanged(this));
+			this.WhenAnyValue(x => x.IsSelected)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => _owner.OnCoinIsSelectedChanged(this));
 
-			this.WhenAnyValue(x => x.Status).Subscribe(_ => _owner.OnCoinStatusChanged());
+			this.WhenAnyValue(x => x.Status)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => _owner.OnCoinStatusChanged());
 
-			this.WhenAnyValue(x => x.Unspent).Subscribe(_ => _owner.OnCoinUnspentChanged(this));
+			this.WhenAnyValue(x => x.Unspent)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => _owner.OnCoinUnspentChanged(this));
 
-			Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend).ObserveOn(RxApp.MainThreadScheduler)
+			Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => RefreshSmartCoinStatus())
 				.DisposeWith(Disposables);
 
@@ -80,14 +87,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					RefreshSmartCoinStatus();
 				}).DisposeWith(Disposables);
 
-			Global.Synchronizer.WhenAnyValue(x => x.BestBlockchainHeight)
+			Global.BitcoinStore.HashChain.WhenAnyValue(x => x.ServerTipHeight)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
 					this.RaisePropertyChanged(nameof(Confirmations));
 				}).DisposeWith(Disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(AmountBtc));
 				this.RaisePropertyChanged(nameof(Clusters));
@@ -113,7 +122,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public string Address => Model.ScriptPubKey.GetDestinationAddress(Global.Network).ToString();
 
 		public int Confirmations => Model.Height.Type == HeightType.Chain
-			? Global.Synchronizer.BestBlockchainHeight.Value - Model.Height.Value + 1
+			? Global.BitcoinStore.HashChain.TipHeight - Model.Height.Value + 1
 			: 0;
 
 		public bool IsSelected

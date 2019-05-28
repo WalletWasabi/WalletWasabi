@@ -86,7 +86,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public string ExtendedAccountPublicKey => KeyManager.ExtPubKey.ToString(Global.Network);
 		public string ExtendedAccountZpub => KeyManager.ExtPubKey.ToZpub(Global.Network);
 		public string AccountKeyPath => $"m/{KeyManager.AccountKeyPath.ToString()}";
-
+		public string MasterKeyFingerprint => KeyManager.MasterFingerprint.ToString();
 		public ReactiveCommand<Unit, Unit> ShowSensitiveKeysCommand { get; }
 
 		public string Password

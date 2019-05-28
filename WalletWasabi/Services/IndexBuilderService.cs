@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.RPC;
 using Nito.AsyncEx;
@@ -12,6 +12,7 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Stores;
 
 namespace WalletWasabi.Services
 {
@@ -112,28 +113,7 @@ namespace WalletWasabi.Services
 		private Dictionary<OutPoint, Script> Bech32UtxoSet { get; }
 		private List<ActionHistoryHelper> Bech32UtxoSetHistory { get; }
 
-		public static Height GetStartingHeight(Network network) // First possible bech32 transaction ever.
-		{
-			if (network == Network.Main)
-			{
-				return new Height(481824);
-			}
-			if (network == Network.TestNet)
-			{
-				return new Height(828575);
-			}
-			if (network == Network.RegTest)
-			{
-				return new Height(0);
-			}
-			throw new NotSupportedException($"{network} is not supported.");
-		}
-
-		public Height StartingHeight => GetStartingHeight(RpcClient.Network);
-
-		public static FilterModel GetStartingFilter(Network network) => WasabiSynchronizer.GetStartingFilter(network);
-
-		public FilterModel StartingFilter => GetStartingFilter(RpcClient.Network);
+		private Height StartingHeight { get; set; }
 
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
@@ -141,7 +121,6 @@ namespace WalletWasabi.Services
 		private long _running;
 
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
-		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
 		public IndexBuilderService(RPCClient rpc, TrustedNodeNotifyingBehavior trustedNodeNotifyingBehavior, string indexFilePath, string bech32UtxoSetFilePath)
 		{
@@ -154,6 +133,8 @@ namespace WalletWasabi.Services
 			Bech32UtxoSetHistory = new List<ActionHistoryHelper>(capacity: 100);
 			Index = new List<FilterModel>();
 			IndexLock = new AsyncLock();
+
+			StartingHeight = StartingFilters.GetStartingHeight(RpcClient.Network);
 
 			_running = 0;
 
@@ -355,8 +336,7 @@ namespace WalletWasabi.Services
 										.Build();
 								}
 
-								var filterModel = new FilterModel
-								{
+								var filterModel = new FilterModel {
 									BlockHash = block.GetHash(),
 									BlockHeight = heightToRequest,
 									Filter = filter
@@ -502,7 +482,8 @@ namespace WalletWasabi.Services
 			}
 
 			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
-			while (IsStopping)
+
+			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
 			{
 				await Task.Delay(50);
 			}

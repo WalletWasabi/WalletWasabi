@@ -33,22 +33,18 @@ namespace WalletWasabi.Gui.Behaviors
 				{
 					case TextBoxState.NormalTextBoxOperation:
 						{
-							ToolTip.SetTip(AssociatedObject, _originalToolTipText);
-							ToolTip.SetIsOpen(AssociatedObject, false);
 							AssociatedObject.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Ibeam);
 						}
 						break;
 
 					case TextBoxState.AddressInsert:
 						{
-							ToolTip.SetTip(AssociatedObject, "Click to paste address from clipboard");
 							AssociatedObject.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Arrow);
 						}
 						break;
 
 					case TextBoxState.SelectAll:
 						{
-							ToolTip.SetTip(AssociatedObject, "Click to select all");
 							AssociatedObject.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Arrow);
 						}
 						break;
@@ -56,7 +52,6 @@ namespace WalletWasabi.Gui.Behaviors
 			}
 		}
 
-		private string _originalToolTipText;
 		private TextBoxState _textBoxState = TextBoxState.None;
 
 		public async Task<(bool isAddress, string address)> IsThereABitcoinAddressOnTheClipboardAsync()
@@ -81,8 +76,6 @@ namespace WalletWasabi.Gui.Behaviors
 
 		protected override void OnAttached()
 		{
-			_originalToolTipText = (string)ToolTip.GetTip(AssociatedObject);
-
 			Disposables?.Dispose();
 
 			Disposables = new CompositeDisposable
@@ -145,7 +138,6 @@ namespace WalletWasabi.Gui.Behaviors
 						if (result.isAddress)
 						{
 							MyTextBoxState = TextBoxState.AddressInsert;
-							ToolTip.SetIsOpen(AssociatedObject, true);
 						}
 						else
 						{

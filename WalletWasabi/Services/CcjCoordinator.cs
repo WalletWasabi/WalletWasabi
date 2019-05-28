@@ -181,13 +181,13 @@ namespace WalletWasabi.Services
 				{
 					if (!AnyRunningRoundContainsInput(prevOut, out _))
 					{
-						int newSeverity = foundElem.Value.severity + 1;
+						int newSeverity = foundElem.Severity + 1;
 						await UtxoReferee.UnbanAsync(prevOut); // since it's not an UTXO anymore
 
 						if (RoundConfig.DosSeverity >= newSeverity)
 						{
 							var txCoins = tx.Outputs.AsIndexedOutputs().Select(x => x.ToCoin().Outpoint);
-							await UtxoReferee.BanUtxosAsync(newSeverity, foundElem.Value.timeOfBan, forceNoted: foundElem.Value.isNoted, foundElem.Value.bannedForRound, txCoins.ToArray());
+							await UtxoReferee.BanUtxosAsync(newSeverity, foundElem.TimeOfBan, forceNoted: foundElem.IsNoted, foundElem.BannedForRound, txCoins.ToArray());
 						}
 					}
 				}
@@ -209,13 +209,13 @@ namespace WalletWasabi.Services
 
 				if (runningRoundCount == 0)
 				{
-					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget);
+					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget.Value, RoundConfig.ConfirmationTargetReductionRate.Value);
 					round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					round.StatusChanged += Round_StatusChangedAsync;
 					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration, feePerInputs, feePerOutputs);
 					Rounds.Add(round);
 
-					var round2 = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget);
+					var round2 = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget.Value, RoundConfig.ConfirmationTargetReductionRate.Value);
 					round2.StatusChanged += Round_StatusChangedAsync;
 					round2.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					await round2.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration, feePerInputs, feePerOutputs);
@@ -223,7 +223,7 @@ namespace WalletWasabi.Services
 				}
 				else if (runningRoundCount == 1)
 				{
-					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget);
+					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget.Value, RoundConfig.ConfirmationTargetReductionRate.Value);
 					round.StatusChanged += Round_StatusChangedAsync;
 					round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration, feePerInputs, feePerOutputs);
@@ -254,13 +254,7 @@ namespace WalletWasabi.Services
 					unconfirmedCoinJoinsCount = CoinJoins.Intersect(mempoolHashes).Count();
 				}
 
-				int confirmationTarget = RoundConfig.ConfirmationTarget.Value;
-				for (int i = 0; i < unconfirmedCoinJoinsCount; i++)
-				{
-					confirmationTarget /= 2;
-				}
-
-				confirmationTarget = Math.Max(confirmationTarget, 2); // Conf target should never be less than 2.
+				int confirmationTarget = CcjRound.AdjustConfirmationTarget(unconfirmedCoinJoinsCount, RoundConfig.ConfirmationTarget.Value, RoundConfig.ConfirmationTargetReductionRate.Value);
 				return confirmationTarget;
 			}
 			catch (Exception ex)
@@ -307,7 +301,7 @@ namespace WalletWasabi.Services
 							feePerInputs = fees.feePerInputs;
 							feePerOutputs = fees.feePerOutputs;
 
-							Money newDenominationToGetInWithactiveOutputs = activeOutputAmount - (feePerInputs + 2 * feePerOutputs);
+							Money newDenominationToGetInWithactiveOutputs = activeOutputAmount - (feePerInputs + (2 * feePerOutputs));
 							if (newDenominationToGetInWithactiveOutputs < RoundConfig.Denomination)
 							{
 								if (newDenominationToGetInWithactiveOutputs > Money.Coins(0.01m))
@@ -433,9 +427,9 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public bool ContainsCoinJoin(uint256 hash)
+		public async Task<bool> ContainsCoinJoinAsync(uint256 hash)
 		{
-			using (CoinJoinsLock.Lock())
+			using (await CoinJoinsLock.LockAsync())
 			{
 				return CoinJoins.Contains(hash);
 			}
