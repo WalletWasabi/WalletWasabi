@@ -387,9 +387,10 @@ namespace WalletWasabi.Gui
 		{
 			using (CancelWalletServiceInitialization = new CancellationTokenSource())
 			{
+				var token = CancelWalletServiceInitialization.Token;
 				while (!Initialized)
 				{
-					await Task.Delay(100, CancelWalletServiceInitialization.Token);
+					await Task.Delay(100, token);
 				}
 
 				if (Config.UseTor.Value)
@@ -406,10 +407,10 @@ namespace WalletWasabi.Gui
 				Logger.LogInfo("Start Chaumian CoinJoin service...");
 
 				Logger.LogInfo("Starting WalletService...");
-				await WalletService.InitializeAsync(CancelWalletServiceInitialization.Token);
+				await WalletService.InitializeAsync(token);
 				Logger.LogInfo("WalletService started.");
 
-				CancelWalletServiceInitialization.Token.ThrowIfCancellationRequested();
+				token.ThrowIfCancellationRequested();
 				WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
 			}
 			CancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
