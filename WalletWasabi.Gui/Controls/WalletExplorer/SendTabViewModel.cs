@@ -65,8 +65,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private FeeDisplayFormat _feeDisplayFormat;
 
-		private bool IgnoreAmountChanges { get; set; }
-
 		private FeeDisplayFormat FeeDisplayFormat
 		{
 			get => _feeDisplayFormat;
@@ -87,10 +85,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			UsdExchangeRate = Global.Synchronizer?.UsdExchangeRate ?? UsdExchangeRate;
 			IsMax = false;
 			LabelToolTip = "Start labelling today and your privacy will thank you tomorrow!";
-
-			IgnoreAmountChanges = true;
 			Amount = "0.0";
-			IgnoreAmountChanges = false;
 		}
 
 		public SendTabViewModel(WalletViewModel walletViewModel, bool isTransactionBuilder = false)
@@ -119,13 +114,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(amount =>
 			{
-				if (!IgnoreAmountChanges)
+				if (!IsMax)
 				{
-					IsMax = false;
-
 					// Correct amount
 					Regex digitsOnly = new Regex(@"[^\d,.]");
 					string betterAmount = digitsOnly.Replace(amount, ""); // Make it digits , and . only.
+
 					betterAmount = betterAmount.Replace(',', '.');
 					int countBetterAmount = betterAmount.Count(x => x == '.');
 					if (countBetterAmount > 1) // Don't enable typing two dots.
@@ -231,9 +225,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					else
 					{
-						IgnoreAmountChanges = true;
 						Amount = "0.0";
-						IgnoreAmountChanges = false;
 
 						LabelToolTip = "Start labelling today and your privacy will thank you tomorrow!";
 					}
@@ -642,7 +634,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetAmountIfMax()
 		{
-			IgnoreAmountChanges = true;
 			if (IsMax)
 			{
 				if (AllSelectedAmount == Money.Zero)
@@ -654,8 +645,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Amount = $"~ {AllSelectedAmount.ToString(false, true)}";
 				}
 			}
-
-			IgnoreAmountChanges = false;
 		}
 
 		private void SetFees(AllFeeEstimate allFeeEstimate, int feeTarget)
