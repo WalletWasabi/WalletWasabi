@@ -554,12 +554,17 @@ namespace WalletWasabi.Gui
 
 		public static async Task DisposeAsync()
 		{
-			if (Interlocked.CompareExchange(ref Dispose, 1, 0) == 1)
+			var compareRes = Interlocked.CompareExchange(ref Dispose, 1, 0);
+			if (compareRes == 1)
 			{
 				while (Interlocked.Read(ref Dispose) != 2)
 				{
 					await Task.Delay(50);
 				}
+				return;
+			}
+			else if (compareRes == 2)
+			{
 				return;
 			}
 
