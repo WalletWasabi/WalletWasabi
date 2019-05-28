@@ -385,26 +385,26 @@ namespace WalletWasabi.Gui
 
 		public static async Task InitializeWalletServiceAsync(KeyManager keyManager)
 		{
-			while (!Initialized)
-			{
-				await Task.Delay(100, CancelWalletServiceInitialization.Token);
-			}
-
-			if (Config.UseTor.Value)
-			{
-				ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
-			}
-			else
-			{
-				ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, Config.GetFallbackBackendUri(), null);
-			}
-			WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, MemPoolService, Nodes, DataDir, Config.ServiceConfiguration);
-
-			ChaumianClient.Start();
-			Logger.LogInfo("Start Chaumian CoinJoin service...");
-
 			using (CancelWalletServiceInitialization = new CancellationTokenSource())
 			{
+				while (!Initialized)
+				{
+					await Task.Delay(100, CancelWalletServiceInitialization.Token);
+				}
+
+				if (Config.UseTor.Value)
+				{
+					ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+				}
+				else
+				{
+					ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, Config.GetFallbackBackendUri(), null);
+				}
+				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, MemPoolService, Nodes, DataDir, Config.ServiceConfiguration);
+
+				ChaumianClient.Start();
+				Logger.LogInfo("Start Chaumian CoinJoin service...");
+
 				Logger.LogInfo("Starting WalletService...");
 				await WalletService.InitializeAsync(CancelWalletServiceInitialization.Token);
 				Logger.LogInfo("WalletService started.");
