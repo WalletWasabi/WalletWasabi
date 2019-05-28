@@ -34,7 +34,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private string _buildTransactionButtonText;
 		private bool _isMax;
-		private string _maxClear;
 		private string _amount;
 		private int _feeTarget;
 		private int _minimumFeeTarget;
@@ -78,23 +77,39 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
+		private void ResetUi()
+		{
+			_suggestions = new ObservableCollection<SuggestionViewModel>();
+			Address = "";
+			Label = "";
+			Password = "";
+			AllSelectedAmount = Money.Zero;
+			UsdExchangeRate = Global.Synchronizer?.UsdExchangeRate ?? UsdExchangeRate;
+			IsMax = false;
+			LabelToolTip = "Start labelling today and your privacy will thank you tomorrow!";
+
+			IgnoreAmountChanges = true;
+			Amount = "0.0";
+			IgnoreAmountChanges = false;
+		}
+
 		public SendTabViewModel(WalletViewModel walletViewModel, bool isTransactionBuilder = false)
 			: base(isTransactionBuilder ? "Build Transaction" : "Send", walletViewModel)
 		{
-			_suggestions = new ObservableCollection<SuggestionViewModel>();
-			Label = "";
-			AllSelectedAmount = Money.Zero;
-			UsdExchangeRate = Global.Synchronizer.UsdExchangeRate;
 			IsTransactionBuilder = isTransactionBuilder;
+			BuildTransactionButtonText = IsTransactionBuilder ? BuildTransactionButtonTextString : SendTransactionButtonTextString;
+
+			ResetUi();
 			SetAmountWatermarkAndToolTip(Money.Zero);
 
 			CoinList = new CoinListViewModel();
-			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged)).Subscribe(_ => SetFeesAndTexts());
-			Observable.FromEventPattern(CoinList, nameof(CoinList.DequeueCoinsPressed)).Subscribe(_ => OnCoinsListDequeueCoinsPressedAsync());
+			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => SetFeesAndTexts());
+			Observable.FromEventPattern(CoinList, nameof(CoinList.DequeueCoinsPressed))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => OnCoinsListDequeueCoinsPressedAsync());
 
-			BuildTransactionButtonText = IsTransactionBuilder ? BuildTransactionButtonTextString : SendTransactionButtonTextString;
-
-			ResetMax();
 			SetFeeTargetLimits();
 			FeeTarget = Global.UiConfig.FeeTarget ?? MinimumFeeTarget;
 			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
@@ -203,9 +218,28 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
-			MaxCommand = ReactiveCommand.Create(SetMax);
+			MaxCommand = ReactiveCommand.Create(() => { IsMax = !IsMax; }, outputScheduler: RxApp.MainThreadScheduler);
+			this.WhenAnyValue(x => x.IsMax)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					if (IsMax)
+					{
+						SetAmountIfMax();
 
-			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay);
+						LabelToolTip = "Spending whole coins doesn't generate change, thus labeling is unnecessary.";
+					}
+					else
+					{
+						IgnoreAmountChanges = true;
+						Amount = "0.0";
+						IgnoreAmountChanges = false;
+
+						LabelToolTip = "Start labelling today and your privacy will thank you tomorrow!";
+					}
+				});
+
+			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay, outputScheduler: RxApp.MainThreadScheduler);
 
 			BuildTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -700,42 +734,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private void SetMax()
-		{
-			if (IsMax)
-			{
-				ResetMax();
-				return;
-			}
-
-			IsMax = true;
-			MaxClear = "Clear";
-
-			SetAmountIfMax();
-
-			LabelToolTip = "Spending whole coins doesn't generate change, thus labeling is unnecessary.";
-		}
-
-		private void ResetMax()
-		{
-			IsMax = false;
-			MaxClear = "Max";
-
-			IgnoreAmountChanges = true;
-			Amount = "0.0";
-			IgnoreAmountChanges = false;
-
-			LabelToolTip = "Start labelling today and your privacy will thank you tomorrow!";
-		}
-
 		private void TryResetInputsOnSuccess(string successMessage)
 		{
 			try
 			{
-				ResetMax();
-				Address = "";
-				Label = "";
-				Password = "";
+				ResetUi();
 
 				SetSuccessMessage(successMessage);
 			}
@@ -819,12 +822,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _isMax;
 			set => this.RaiseAndSetIfChanged(ref _isMax, value);
-		}
-
-		public string MaxClear
-		{
-			get => _maxClear;
-			set => this.RaiseAndSetIfChanged(ref _maxClear, value);
 		}
 
 		public string Amount
