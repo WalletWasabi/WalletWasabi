@@ -261,21 +261,36 @@ namespace WalletWasabi.Stores
 			using (var sw = new StreamWriter(fs, Encoding.ASCII, Constants.BigFileReadWriteBufferSize))
 			{
 				// 1. First copy.
-				while (!sr.EndOfStream)
+				if (!sr.EndOfStream)
 				{
-					var line = await sr.ReadLineAsync();
-
-					if (linesArray[linesIndex] == line) // If the line is a line we want to write, then we know that someone else have worked into the file.
+					var lineTask = sr.ReadLineAsync();
+					Task wTask = Task.CompletedTask;
+					string line = null;
+					while (lineTask != null)
 					{
-						linesIndex++;
-						continue;
+						if (line is null)
+						{
+							line = await lineTask;
+						}
+
+						lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
+
+						if (linesArray[linesIndex] == line) // If the line is a line we want to write, then we know that someone else have worked into the file.
+						{
+							linesIndex++;
+							continue;
+						}
+
+						await wTask;
+						wTask = sw.WriteLineAsync(line);
+
+						ContinueBuildHash(byteArrayBuilder, line);
+
+						cancellationToken.ThrowIfCancellationRequested();
+
+						line = null;
 					}
-
-					await sw.WriteLineAsync(line);
-
-					ContinueBuildHash(byteArrayBuilder, line);
-
-					cancellationToken.ThrowIfCancellationRequested();
+					await wTask;
 				}
 				await sw.FlushAsync();
 
