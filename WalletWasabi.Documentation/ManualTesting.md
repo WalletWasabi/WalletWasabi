@@ -49,23 +49,28 @@ Look at the terminal. Wait until log messages stop and you will get back your bl
 1.
   * Run Wasabi.
   * Immediately after the UI pops up, press the X button.
+  * Wait until exit.
 2.
   * Run Wasabi.
   * Wait until Backend connected.
   * Press the X button.
+  * Wait until exit.
 3.
   * Delete all files from DataFolder/Client/BitcoinStore/Main
   * Run Wasabi.
   * Wait until Missing Filter less than 50000.
   * Press the X button.
+  * Wait until exit.
 4.
   * Run Wasabi.
   * Wait until Backend connected.
   * Press the File / Exit.
+  * Wait until exit.
 5.
   * Run Wasabi.
   * Wait until Backend connected.
   * Go to Terminal and press Ctrl-C.
+  * Wait until exit.
   
 ## Filter downloading tests
 
