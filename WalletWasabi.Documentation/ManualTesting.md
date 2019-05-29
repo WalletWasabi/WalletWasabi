@@ -8,20 +8,13 @@ Someone must go through this document before every release on Windows 10, Ubuntu
 
 ## Setup
 
-### How to get the latest release?
+See this quick tutorial for getting the latest release and for updating:
 
 https://github.com/zkSNACKs/WalletWasabi#build-from-source-code
 
 #### Run Wasabi in Release Mode
 
 Run Wasabi with `dotnet run -c Release` from the `WalletWasabi.Gui` folder.
-
-#### Update Wasabi
-
-```sh
-git pull
-git submodule update --init --recursive 
-```
 
 ### How to checkout a pull request?
 
