@@ -257,7 +257,7 @@ namespace WalletWasabi.Stores
 			var linesIndex = 0;
 			var lineCounter = 0;
 
-			using (var sr = OpenText(16384))
+			using (var sr = OpenText())
 			using (var fs = File.OpenWrite(NewFilePath))
 			using (var sw = new StreamWriter(fs, Encoding.ASCII))
 			{
@@ -321,7 +321,13 @@ namespace WalletWasabi.Stores
 			return await File.ReadAllLinesAsync(filePath, cancellationToken);
 		}
 
-		public StreamReader OpenText(int bufferSize)
+		/// <summary>
+		/// Open text file and read a specified amount of data. This method is useful when you want async/await read/write
+		/// but in a performant way.
+		/// </summary>
+		/// <returns>The StreamReader where you can use ReadLineAsync() for example.</returns>
+		/// <param name="bufferSize">Size of the bytes to handle sync way. The default is 1Mb.</param>
+		public StreamReader OpenText(int bufferSize = 1*1024*1024)
 		{
 			var filePath = OriginalFilePath;
 			if (TryGetSafestFileVersion(out string safestFilePath))

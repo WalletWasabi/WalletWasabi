@@ -85,7 +85,7 @@ namespace WalletWasabi.Stores
 
 				if (MatureIndexFileManager.Exists())
 				{
-					using (var sr = MatureIndexFileManager.OpenText(16384))
+					using (var sr = MatureIndexFileManager.OpenText())
 					{
 						while (!sr.EndOfStream)
 						{
@@ -267,7 +267,7 @@ namespace WalletWasabi.Stores
 					if (MatureIndexFileManager.Exists())
 					{
 						Height height = StartingHeight;
-						using (var sr = MatureIndexFileManager.OpenText(16384))
+						using (var sr = MatureIndexFileManager.OpenText())
 						{
 							while (!sr.EndOfStream)
 							{
