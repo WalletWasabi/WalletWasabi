@@ -29,7 +29,31 @@ git submodule update --init --recursive
 
 If someone made a change to the pull request and you want to go through the tests again, first checkout the master branch `git checkout master` then continue with the same procedure described in the "How to checkout a pull request?" part. It will update your branch.
 
+### DataFolder location?
+
+Open Wasabi and go to Main Menu / File / Open / Data Folder.
+
+### How to check error?
+
+Standart procedure: look at the terminal. If there is something ERROR or WARNING that is probably an error.
+Special case: always defined at the specific test case.
+
 # Workflow
+
+## Wasabi GUI exit test
+
+1.
+  * Run Wasabi.
+  * Immediately after the UI pops up, press the X button.
+2.
+  * Run Wasabi.
+  * Wait until Backend connected.
+  * Press the X button.
+3.
+  * Delete all files from DataFolder/Client/BitcoinStore/Main
+  * Run Wasabi.
+  * Wait until Missing Filter less than 50000.
+  * Press the X button.
 
 # Checklist
 
