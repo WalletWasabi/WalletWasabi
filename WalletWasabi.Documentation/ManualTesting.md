@@ -22,12 +22,12 @@ Clone & Restore & Build
 ```sh
 git clone https://github.com/zkSNACKs/WalletWasabi.git --recursive
 cd WalletWasabi/WalletWasabi.Gui
-dotnet build
+dotnet build -c Release
 ```
 
 #### Run Wasabi
 
-Run Wasabi with `dotnet run` from the `WalletWasabi.Gui` folder.
+Run Wasabi with `dotnet run -c Release` from the `WalletWasabi.Gui` folder.
 
 #### Update Wasabi
 
