@@ -85,11 +85,24 @@ namespace WalletWasabi.Stores
 				{
 					using (var sr = MatureIndexFileManager.OpenText())
 					{
-						while (!sr.EndOfStream)
+						if (!sr.EndOfStream)
 						{
-							var line = await sr.ReadLineAsync();
-							ProcessLine(height, line, enqueue: false);
-							height++;
+							var lineTask = sr.ReadLineAsync();
+							string line = null;
+							while (lineTask != null)
+							{
+								if (line is null)
+								{
+									line = await lineTask;
+								}
+
+								lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
+
+								ProcessLine(height, line, enqueue: false);
+								height++;
+
+								line = null;
+							}
 						}
 					}
 				}
@@ -231,15 +244,15 @@ namespace WalletWasabi.Stores
 				using (await IndexLock.LockAsync(cancel))
 				{
 					// Don't feed the cancellationToken here I always want this to finish running for safety.
-					var currentImmatureLines = ImmatureFilters.Select(x => x.ToHeightlessLine());
+					var currentImmatureLines = ImmatureFilters.Select(x => x.ToHeightlessLine()).ToArray();// So we don't read on ImmatureFilters while removing them.
 					var matureLinesToAppend = currentImmatureLines.SkipLast(100);
 					var immatureLines = currentImmatureLines.TakeLast(100);
-					await MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend);
-					await ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines);
+					var tasks = new Task[] { MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend), ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines) };
 					while (ImmatureFilters.Count > 100)
 					{
 						ImmatureFilters.RemoveFirst();
 					}
+					await Task.WhenAll(tasks);
 				}
 			}
 			catch (Exception ex) when (ex is OperationCanceledException
@@ -267,6 +280,44 @@ namespace WalletWasabi.Stores
 						Height height = StartingHeight;
 						using (var sr = MatureIndexFileManager.OpenText())
 						{
+							if (!sr.EndOfStream)
+							{
+								var lineTask = sr.ReadLineAsync();
+								Task tTask = Task.CompletedTask;
+								string line = null;
+								while (lineTask != null)
+								{
+									if (firstImmatureHeight == height)
+									{
+										break; // Let's use our the immature filters from here on. The content is the same, just someone else modified the file.
+									}
+
+									if (line is null)
+									{
+										line = await lineTask;
+									}
+
+									lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
+
+									if (height < fromHeight.Value)
+									{
+										height++;
+										line = null;
+										continue;
+									}
+
+									var filter = FilterModel.FromHeightlessLine(line, height);
+
+									await tTask;
+									tTask = todo(filter);
+
+									height++;
+
+									line = null;
+								}
+								await tTask;
+							}
+
 							while (!sr.EndOfStream)
 							{
 								var line = await sr.ReadLineAsync();
