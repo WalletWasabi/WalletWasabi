@@ -196,7 +196,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			ValidationMessage = null;
 			ShowAdvancedOptions = false;
 			AccountKeyPath = $"m/{KeyManager.DefaultAccountKeyPath}";
-			MinGapLimit = KeyManager.AbsoluteMinGapLimit;
+			MinGapLimit = KeyManager.AbsoluteMinGapLimit * 3;
 		}
 
 		private void UpdateSuggestions(string words)
