@@ -73,8 +73,6 @@ This is the template one can fill out and copypaste under a pull request.
 
 **Operating System**:
 
-- foo
-- bar
-- buz
+- Wasabi GUI exit test
 
 ---TEMPLATE END---
