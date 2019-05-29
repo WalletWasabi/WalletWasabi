@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Nito.AsyncEx;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using Nito.AsyncEx;
 
 namespace WalletWasabi.Stores
 {
@@ -255,13 +255,11 @@ namespace WalletWasabi.Stores
 
 			var linesArray = lines.ToArray();
 			var linesIndex = 0;
-			var lineCounter = 0;
 
 			using (var sr = OpenText())
 			using (var fs = File.OpenWrite(NewFilePath))
-			using (var sw = new StreamWriter(fs, Encoding.ASCII))
+			using (var sw = new StreamWriter(fs, Encoding.ASCII, Constants.BigFileReadWriteBufferSize))
 			{
-				sw.AutoFlush = false;
 
 				// 1. First copy.
 				while (!sr.EndOfStream)
@@ -276,17 +274,11 @@ namespace WalletWasabi.Stores
 
 					await sw.WriteLineAsync(line);
 
-					lineCounter++;
-					if (lineCounter > 1000)
-					{
-						await sw.FlushAsync();
-						lineCounter = 0;
-					}
-
 					ContinueBuildHash(byteArrayBuilder, line);
 
 					cancellationToken.ThrowIfCancellationRequested();
 				}
+				await sw.FlushAsync();
 
 				// 2. Then append.
 				foreach (var line in lines)
@@ -327,7 +319,7 @@ namespace WalletWasabi.Stores
 		/// </summary>
 		/// <returns>The StreamReader where you can use ReadLineAsync() for example.</returns>
 		/// <param name="bufferSize">Size of the bytes to handle sync way. The default is 1Mb.</param>
-		public StreamReader OpenText(int bufferSize = 1*1024*1024)
+		public StreamReader OpenText(int bufferSize = Constants.BigFileReadWriteBufferSize)
 		{
 			var filePath = OriginalFilePath;
 			if (TryGetSafestFileVersion(out string safestFilePath))
