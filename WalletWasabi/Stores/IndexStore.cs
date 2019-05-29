@@ -53,27 +53,25 @@ namespace WalletWasabi.Stores
 			IndexLock = new AsyncLock();
 
 			using (await IndexLock.LockAsync())
+			using (await MatureIndexFileManager.Mutex.LockAsync())
+			using (await ImmatureIndexFileManager.Mutex.LockAsync())
 			{
-				using (await MatureIndexFileManager.Mutex.LockAsync())
-				using (await ImmatureIndexFileManager.Mutex.LockAsync())
+				IoHelpers.EnsureDirectoryExists(WorkFolderPath);
+
+				await TryEnsureBackwardsCompatibilityAsync();
+
+				if (Network == Network.RegTest)
 				{
-					IoHelpers.EnsureDirectoryExists(WorkFolderPath);
-
-					await TryEnsureBackwardsCompatibilityAsync();
-
-					if (Network == Network.RegTest)
-					{
-						MatureIndexFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
-						ImmatureIndexFileManager.DeleteMe();
-					}
-
-					if (!MatureIndexFileManager.Exists())
-					{
-						await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToHeightlessLine() });
-					}
-
-					await InitializeFiltersAsync();
+					MatureIndexFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
+					ImmatureIndexFileManager.DeleteMe();
 				}
+
+				if (!MatureIndexFileManager.Exists())
+				{
+					await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToHeightlessLine() });
+				}
+
+				await InitializeFiltersAsync();
 			}
 		}
 

@@ -260,7 +260,6 @@ namespace WalletWasabi.Stores
 			using (var fs = File.OpenWrite(NewFilePath))
 			using (var sw = new StreamWriter(fs, Encoding.ASCII, Constants.BigFileReadWriteBufferSize))
 			{
-
 				// 1. First copy.
 				while (!sr.EndOfStream)
 				{
@@ -281,7 +280,7 @@ namespace WalletWasabi.Stores
 				await sw.FlushAsync();
 
 				// 2. Then append.
-				foreach (var line in lines)
+				foreach (var line in linesArray)
 				{
 					await sw.WriteLineAsync(line);
 
