@@ -44,7 +44,7 @@ Look at the terminal. Wait until log messages stop and you will get back your bl
 
 # Workflow
 
-## Wasabi GUI exit tests
+## GUI exit tests
 
 1.
   * Run Wasabi.
@@ -66,6 +66,16 @@ Look at the terminal. Wait until log messages stop and you will get back your bl
   * Run Wasabi.
   * Wait until Backend connected.
   * Go to Terminal and press Ctrl-C.
+  
+## Filter downloading tests
+
+1.
+  * Delete all files from DataFolder/Client/BitcoinStore/Main
+  * Run Wasabi and Start timer.
+  * Wait until Backend connected and all filter downloaded.
+  * Timer should be less than 5 minutes.
+  * Restart the application.
+  * Filter download should not start again.
 
 # Checklist
 
