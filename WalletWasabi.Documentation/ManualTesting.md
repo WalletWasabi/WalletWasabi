@@ -38,22 +38,49 @@ Open Wasabi and go to Main Menu / File / Open / Data Folder.
 Standart procedure: look at the terminal. If there is something ERROR or WARNING that is probably an error.
 Special case: always defined at the specific test case.
 
+### How to determine if the application is exited?
+
+Look at the terminal. Wait until log messages stop and you will get back your blinking cursor. If nothing happens appearingly try to press enter. If the application hanged you can also check it in process manager. If it is still running there might be an endless loop which is an error and don't let the application to close.
+
 # Workflow
 
-## Wasabi GUI exit test
+## GUI exit tests
 
 1.
   * Run Wasabi.
   * Immediately after the UI pops up, press the X button.
+  * Wait until exit.
 2.
   * Run Wasabi.
   * Wait until Backend connected.
   * Press the X button.
+  * Wait until exit.
 3.
   * Delete all files from DataFolder/Client/BitcoinStore/Main
   * Run Wasabi.
   * Wait until Missing Filter less than 50000.
   * Press the X button.
+  * Wait until exit.
+4.
+  * Run Wasabi.
+  * Wait until Backend connected.
+  * Press the File / Exit.
+  * Wait until exit.
+5.
+  * Run Wasabi.
+  * Wait until Backend connected.
+  * Go to Terminal and press Ctrl-C.
+  * Wait until exit.
+  
+## Filter downloading tests
+
+1.
+  * Delete all files from DataFolder/Client/BitcoinStore/Main
+  * Run Wasabi and Start timer.
+  * Wait until Backend connected and all filter downloaded.
+  * Timer should be less than 5 minutes.
+  * Restart the application.
+  * Filter download should not start again.
 
 # Checklist
 
@@ -73,6 +100,7 @@ This is the template one can fill out and copypaste under a pull request.
 
 **Operating System**:
 
-- **pass** Wasabi GUI exit test
+- Wasabi GUI exit test
+- Filter downloading tests
 
 ---TEMPLATE END---
