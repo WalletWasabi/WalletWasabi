@@ -30,6 +30,10 @@ namespace WalletWasabi.Gui.Models
 			{
 				WalletName = hwi.Type.ToString() + $" - Device Not Ready";
 			}
+			else if (hwi.NeedPin)
+			{
+				WalletName = hwi.Type.ToString();
+			}
 			else
 			{
 				WalletName = hwi.Type.ToString() + $" - Error: {hwi.Error}";

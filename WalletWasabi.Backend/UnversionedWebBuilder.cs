@@ -41,21 +41,6 @@ namespace WalletWasabi.Backend
 			File.WriteAllText(onionPath, content);
 		}
 
-		public static void UpdateMixedTextHtml(Money amount)
-		{
-			var filePath = CreateFilePath("mixed-text.html");
-
-			var moneyString = amount.ToString(false, false);
-			int index = moneyString.IndexOf(".");
-			if (index > 0)
-			{
-				moneyString = moneyString.Substring(0, index);
-			}
-			var content = HtmlStartLine + $"<h2 class=\"text-center\">Wasabi made over <span style=\"padding-left:5px; padding-right:5px; display:inline-block\" class=\"inline border border-dark rounded bg-muted\">{moneyString} BTC</span> fungible since August 1, 2018.</h2>";
-
-			File.WriteAllText(filePath, content);
-		}
-
 		public static void UpdateCoinJoinsHtml(IEnumerable<string> coinJoins)
 		{
 			var filePath = CreateFilePath("coinjoins-table.html");

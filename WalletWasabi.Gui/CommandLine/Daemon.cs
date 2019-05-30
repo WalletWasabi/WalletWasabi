@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -51,7 +51,16 @@ namespace WalletWasabi.Gui.CommandLine
 				Logger.LogInfo("Correct password.");
 
 				await Global.InitializeNoWalletAsync();
+				if (Global.KillRequested)
+				{
+					return;
+				}
+
 				await Global.InitializeWalletServiceAsync(keyManager);
+				if (Global.KillRequested)
+				{
+					return;
+				}
 
 				await TryQueueCoinsToMixAsync(mixAll, password);
 
@@ -84,11 +93,21 @@ namespace WalletWasabi.Gui.CommandLine
 					mixing = anyCoinsQueued || keepMixAlive;
 				} while (mixing);
 
-				await Global.ChaumianClient.DequeueAllCoinsFromMixAsync("Stopping Wasabi.");
+				if (!Global.KillRequested) // This only has to run if it finishes by itself. Otherwise the Ctrl+c runs it.
+				{
+					await Global.ChaumianClient?.DequeueAllCoinsFromMixAsync("Stopping Wasabi.");
+				}
+			}
+			catch
+			{
+				if (!Global.KillRequested)
+				{
+					throw;
+				}
 			}
 			finally
 			{
-				Logger.LogInfo($"Wasabi Daemon stopped gracefully.", Logger.InstanceGuid.ToString());
+				Logger.LogInfo($"Daemon stopped.");
 			}
 		}
 

@@ -50,8 +50,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public event EventHandler<CoinViewModel> SelectionChanged;
 
-		private List<CoinViewModel> RemovedCoinViewModels { get; }
-
 		public ReadOnlyObservableCollection<CoinViewModel> Coins => _coinViewModels;
 
 		private SortExpressionComparer<CoinViewModel> MyComparer
@@ -221,13 +219,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CoinListViewModel()
 		{
-			RemovedCoinViewModels = new List<CoinViewModel>();
-
 			AmountSortDirection = SortOrder.Decreasing;
 			IsCoinListLoading = true;
 			RefreshOrdering();
 
-			var sortChanged = this.WhenValueChanged(@this => MyComparer).Select(_ => MyComparer);
+			var sortChanged = this.WhenValueChanged(@this => MyComparer)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Select(_ => MyComparer);
 
 			RootList = new SourceList<CoinViewModel>();
 			RootList.Connect()
@@ -239,7 +237,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SortCommand = ReactiveCommand.Create(() => RefreshOrdering());
 
-			this.WhenAnyValue(x => x.AmountSortDirection).Subscribe(x =>
+			this.WhenAnyValue(x => x.AmountSortDirection)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
 			{
 				if (x != SortOrder.None)
 				{
@@ -249,7 +249,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
-			this.WhenAnyValue(x => x.ClustersSortDirection).Subscribe(x =>
+			this.WhenAnyValue(x => x.ClustersSortDirection)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
 			{
 				if (x != SortOrder.None)
 				{
@@ -259,7 +261,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
-			this.WhenAnyValue(x => x.StatusSortDirection).Subscribe(x =>
+			this.WhenAnyValue(x => x.StatusSortDirection)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
 			{
 				if (x != SortOrder.None)
 				{
@@ -269,7 +273,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
-			this.WhenAnyValue(x => x.PrivacySortDirection).Subscribe(x =>
+			this.WhenAnyValue(x => x.PrivacySortDirection)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
 			{
 				if (x != SortOrder.None)
 				{
@@ -296,7 +302,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				DequeueCoinsPressed?.Invoke(this, EventArgs.Empty);
-			}, this.WhenAnyValue(x => x.CanDeqeue));
+			}, this.WhenAnyValue(x => x.CanDeqeue)
+				.ObserveOn(RxApp.MainThreadScheduler));
 
 			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
 			{
@@ -396,7 +403,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							switch (e.Action)
 							{
 								case NotifyCollectionChangedAction.Add:
-									foreach (SmartCoin c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent && !sc.IsDust))
+									foreach (SmartCoin c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent))
 									{
 										var newCoinVm = new CoinViewModel(this, c);
 										newCoinVm.SubscribeEvents();
@@ -410,7 +417,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 										CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == c);
 										if (toRemove != default)
 										{
-											RootList.Remove(toRemove);
+											if (toRemove != default)
+											{
+												RootList.Remove(toRemove);
+											}
 										}
 									}
 									break;
@@ -484,10 +494,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			if (!cvm.Unspent)
 			{
-				Dispatcher.UIThread.Post(() =>
-				{
-					RootList.Remove(cvm);
-				});
+				RootList.Remove(cvm);
 			}
 
 			SetSelections();

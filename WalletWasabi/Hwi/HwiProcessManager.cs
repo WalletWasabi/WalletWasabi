@@ -21,11 +21,36 @@ namespace WalletWasabi.Hwi
 	/// </summary>
 	public static class HwiProcessManager
 	{
-		public const string MutexName = "Global\\FE5C8D9C-E000-495F-8175-A8713E449B2E";
 		private static Random Random { get; } = new Random();
-		public static AsyncLock AsyncLock { get; } = new AsyncLock();
+		public static AsyncMutex AsyncMutex { get; } = new AsyncMutex("hwi");
 		public static string HwiPath { get; private set; }
 		public static Network Network { get; private set; }
+
+		public static async Task<bool> PromptPinAsync(HardwareWalletInfo hardwareWalletInfo)
+		{
+			var networkString = Network == Network.Main ? "" : "--testnet";
+			JToken jtok = null;
+			using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
+			{
+				jtok = await SendCommandAsync($"{networkString} --device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" promptpin", cts.Token);
+			}
+			JObject json = jtok as JObject;
+			var success = json.Value<bool>("success");
+			return success;
+		}
+
+		public static async Task<bool> SendPinAsync(HardwareWalletInfo hardwareWalletInfo, string pin)
+		{
+			var networkString = Network == Network.Main ? "" : "--testnet";
+			JToken jtok = null;
+			using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
+			{
+				jtok = await SendCommandAsync($"{networkString} --device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" sendpin {pin}", cts.Token);
+			}
+			JObject json = jtok as JObject;
+			var success = json.Value<bool>("success");
+			return success;
+		}
 
 		public static async Task<bool> SetupAsync(HardwareWalletInfo hardwareWalletInfo)
 		{
@@ -134,119 +159,46 @@ namespace WalletWasabi.Hwi
 		{
 			try
 			{
-				using (await AsyncLock.LockAsync())
-				using (var mutex = new Mutex(false, MutexName)) // It could be even improved more if this Mutex would also look at which hardware wallet the operation is going towards (enumerate sends to all.)
+				var rand = Random.Next(1, 100);
+				var delay = isMutexPriority ? (100 + rand) : (1000 + rand);
+				using (await AsyncMutex.LockAsync(cancellationToken, delay)) // It could be even improved more if this Mutex would also look at which hardware wallet the operation is going towards (enumerate sends to all.)
 				{
-					var mutexAcquired = false;
-					try
+					if (!File.Exists(HwiPath))
 					{
-						// acquire the mutex (or timeout after 60 seconds)
-						// will return false if it timed out
-						var start = DateTime.Now;
-						while (DateTime.Now - start < TimeSpan.FromSeconds(90))
-						{
-							mutexAcquired = mutex.WaitOne(1);
-							if (!mutexAcquired)
-							{
-								var rand = Random.Next(1, 100);
-								await Task.Delay(isMutexPriority ? (100 + rand) : (1000 + rand), cancellationToken);
-							}
-							else
-							{
-								break;
-							}
+						var exeName = Path.GetFileName(HwiPath);
+						throw new FileNotFoundException($"{exeName} not found at {HwiPath}. Maybe it was removed by antivirus software!");
+					}
+
+					using (var process = Process.Start(
+						new ProcessStartInfo {
+							FileName = HwiPath,
+							Arguments = command,
+							RedirectStandardOutput = true,
+							UseShellExecute = false,
+							CreateNoWindow = true,
+							WindowStyle = ProcessWindowStyle.Hidden
 						}
-					}
-					catch (AbandonedMutexException)
+					))
 					{
-						// abandoned mutexes are still acquired, we just need
-						// to handle the exception and treat it as acquisition
-						mutexAcquired = true;
-					}
+						await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false); // TODO: https://github.com/zkSNACKs/WalletWasabi/issues/1452;
 
-					if (mutexAcquired == false)
-					{
-						throw new IOException("Couldn't acquire Mutex on the file.");
-					}
-
-					try
-					{
-						if (!File.Exists(HwiPath))
+						if (process.ExitCode != 0)
 						{
-							var exeName = Path.GetFileName(HwiPath);
-							throw new FileNotFoundException($"{exeName} not found at {HwiPath}. Maybe it was removed by antivirus software!");
+							throw new IOException($"Command: {command} exited with exit code: {process.ExitCode}, instead of 0.");
 						}
 
-						using (var process = Process.Start(
-							new ProcessStartInfo {
-								FileName = HwiPath,
-								Arguments = command,
-								RedirectStandardOutput = true,
-								UseShellExecute = false,
-								CreateNoWindow = true,
-								WindowStyle = ProcessWindowStyle.Hidden
-							}
-						))
+						string response = await process.StandardOutput.ReadToEndAsync();
+						var jToken = JToken.Parse(response);
+						if (jToken is JObject json)
 						{
-							await process.WaitForExitAsync(cancellationToken);
-
-							if (process.ExitCode != 0)
+							if (json.TryGetValue("error", out JToken err))
 							{
-								throw new IOException($"Command: {command} exited with exit code: {process.ExitCode}, instead of 0.");
+								var errString = err.ToString();
+								throw new IOException(errString);
 							}
-
-							string response = await process.StandardOutput.ReadToEndAsync();
-							var jToken = JToken.Parse(response);
-							if (jToken is JObject json)
-							{
-								if (json.TryGetValue("error", out JToken err))
-								{
-									var errString = err.ToString();
-									throw new IOException(errString);
-								}
-							}
-
-							return jToken;
-
-							//if (command == "enumerate")
-							//{
-							//	//string response = "[{\"fingerprint\": \"8038ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8338ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"keepkey\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8038ecd2\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"}]";
-							//	string response = "[{\"fingerprint\": \"8038ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8338ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"keepkey\", \"path\": \"0001:0005:00\"}]";
-							//	var jToken = JToken.Parse(response);
-							//	return jToken;
-							//}
-							//if (command.Contains("getxpub", StringComparison.OrdinalIgnoreCase))
-							//{
-							//	string response = "{\"xpub\": \"xpub6DP9afdc7qsz7s7mwAvciAR2dV6vPC3gyiQbqKDzDcPAq3UQChKPimHc3uCYfTTkpoXdwRTFnVTBdFpM9ysbf6KV34uMqkD3zXr6FzkJtcB\"}";
-							//	var jToken = JToken.Parse(response);
-							//	return jToken;
-							//}
-							//else
-							//{
-							//	string response = await process.StandardOutput.ReadToEndAsync();
-							//	var jToken = JToken.Parse(response);
-							//	string err = null;
-							//	try
-							//	{
-							//		JObject json = jToken as JObject;
-							//		err = json.Value<string>("error");
-							//	}
-							//	catch (Exception ex)
-							//	{
-							//		Logger.LogTrace(ex, nameof(HwiProcessManager));
-							//	}
-							//	if (err != null)
-							//	{
-							//		throw new IOException(err);
-							//	}
-
-							//	return jToken;
-							//}
 						}
-					}
-					finally
-					{
-						mutex.ReleaseMutex();
+
+						return jToken;
 					}
 				}
 			}

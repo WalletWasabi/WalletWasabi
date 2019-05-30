@@ -28,6 +28,8 @@ namespace WalletWasabi.Hwi.Models
 
 			Ready = true;
 			Initialized = true;
+			NeedPin = false;
+
 			if (Error != null)
 			{
 				if (Error.Contains("Not initialized", StringComparison.OrdinalIgnoreCase))
@@ -41,11 +43,16 @@ namespace WalletWasabi.Hwi.Models
 				{
 					Ready = false;
 				}
+				else if (Error.Contains("Unlock by using 'promptpin' and then 'sendpin'"))
+				{
+					NeedPin = true;
+				}
 			}
 		}
 
 		public HDFingerprint? MasterFingerprint { get; }
 		public bool Initialized { get; }
+		public bool NeedPin { get; }
 		public bool Ready { get; }
 		public string SerialNumber { get; }
 		public HardwareWalletType Type { get; }

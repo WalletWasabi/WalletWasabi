@@ -43,7 +43,6 @@ namespace WalletWasabi.Models
 		private HdPubKey _hdPubKey;
 
 		private ISecret _secret;
-		private bool _isDust;
 		private string _clusters;
 
 		private bool _confirmed;
@@ -298,22 +297,6 @@ namespace WalletWasabi.Models
 			}
 		}
 
-		[JsonProperty]
-		public bool IsDust
-		{
-			get => _isDust;
-			private set
-			{
-				if (value != _isDust)
-				{
-					_isDust = value;
-					OnPropertyChanged(nameof(IsDust));
-
-					SetUnavailable();
-				}
-			}
-		}
-
 		public string Clusters
 		{
 			get => _clusters;
@@ -409,12 +392,7 @@ namespace WalletWasabi.Models
 
 		private void SetUnavailable()
 		{
-			Unavailable = !Unspent || SpentAccordingToBackend || CoinJoinInProgress || IsDust;
-		}
-
-		private void SetIsDust(Money dustThreshold)
-		{
-			IsDust = Amount <= dustThreshold;
+			Unavailable = !Unspent || SpentAccordingToBackend || CoinJoinInProgress;
 		}
 
 		#endregion PropertySetters
@@ -464,7 +442,6 @@ namespace WalletWasabi.Models
 			SetUnspent();
 			SetIsBanned();
 			SetUnavailable();
-			SetIsDust(Constants.DustThreshold);
 		}
 
 		#endregion Constructors

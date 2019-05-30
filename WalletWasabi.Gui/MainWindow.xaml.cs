@@ -109,11 +109,22 @@ namespace WalletWasabi.Gui
 							await Global.UiConfig.ToFileAsync();
 							Logging.Logger.LogInfo<UiConfig>("UiConfig is saved.");
 						}
+
+						Hide();
+						var wm = IoC.Get<IShell>().Documents?.OfType<WalletManagerViewModel>().FirstOrDefault();
+						if (wm != null)
+						{
+							wm.OnClose();
+							Logging.Logger.LogInfo<MainWindowViewModel>($"{nameof(WalletManagerViewModel)} closed, hwi enumeration stopped.");
+						}
+
+						await Global.DisposeAsync();
 					}
 					catch (Exception ex)
 					{
 						Logging.Logger.LogWarning<MainWindow>(ex);
 					}
+
 					Interlocked.Exchange(ref _closingState, 2); //now we can close the app
 					Close(); // start the closing process. Will call MainWindow_ClosingAsync again!
 				}

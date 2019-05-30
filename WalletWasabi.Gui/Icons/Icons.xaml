@@ -104,6 +104,14 @@
           <GeometryDrawing Brush="#FFEFEFF0" Geometry="F1M9,9L7,9 7,5 9,5z M9,12L7,12 7,10 9,10z M10,5L10,2 3,2 3,14 13,14 13,5z" />
         </DrawingGroup.Children>
       </DrawingGroup>
+
+      <DrawingGroup x:Key="Faq">
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M7,8L6,8 6,6C6,4.841 7.051,4 8.5,4 9.949,4 11,4.841 11,6L11,7C11,7.739,10.598,8.385,10,8.731L10,11 7,11z" />
+          <GeometryDrawing Brush="#FF414141" Geometry="F1M9,9L8,9 8,10 9,10z M9,8.5L8,8.5 8,8C8,7.449,8.449,7,9,7L9,6C8.92,5.956 8.748,5.898 8.5,5.898 8.252,5.898 8.08,5.956 8,6L8,7 7,7 7,6C7,5.42 7.631,5 8.5,5 9.369,5 10,5.42 10,6L10,7C10,7.551,9.551,8,9,8z" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+
       <DrawingGroup x:Key="PrivacyPolicy">
         <DrawingGroup.Children>
           <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -115,6 +123,7 @@
           <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M7.25,6C7.941,6,8.5,5.552,8.5,5L6,5C6,5.552,6.559,6,7.25,6" />
         </DrawingGroup.Children>
       </DrawingGroup>
+
       <DrawingGroup x:Key="TermsAndConditions">
         <DrawingGroup.Children>
           <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
