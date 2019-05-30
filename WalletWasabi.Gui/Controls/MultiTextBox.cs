@@ -207,6 +207,11 @@ namespace WalletWasabi.Gui.Controls
 					}
 					if (PasteOnClick)
 					{
+						if (!string.IsNullOrEmpty(Text))
+						{
+							return;
+						}
+
 						await TryPasteFromClipboardAsync();
 					}
 				}
