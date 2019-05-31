@@ -15,7 +15,6 @@ namespace WalletWasabi.Backend
 {
 	public class Program
 	{
-		private static Money TotalVolume { get; set; } = Money.Zero;
 		private static List<string> Last5CoinJoins { get; set; } = new List<string>();
 		private static object UpdateUnversionedLock { get; } = new object();
 
@@ -53,33 +52,9 @@ namespace WalletWasabi.Backend
 					UnversionedWebBuilder.CreateDownloadTextWithVersionHtml();
 					UnversionedWebBuilder.CloneAndUpdateOnionIndexHtml();
 
-					var getTxTasks = new List<Task<Transaction>>();
-					var batch = Global.RpcClient.PrepareBatch();
-
 					if (File.Exists(Global.Coordinator.CoinJoinsFilePath))
 					{
 						string[] allLines = File.ReadAllLines(Global.Coordinator.CoinJoinsFilePath);
-						foreach (string txId in allLines)
-						{
-							getTxTasks.Add(batch.GetRawTransactionAsync(uint256.Parse(txId)));
-						}
-						await batch.SendBatchAsync();
-
-						foreach (var task in getTxTasks)
-						{
-							try
-							{
-								var tx = await task;
-								var volume = tx.GetIndistinguishableOutputs(includeSingle: false).Sum(x => x.count * x.value);
-								TotalVolume += volume;
-							}
-							catch (Exception ex)
-							{
-								Logger.LogWarning(ex, nameof(Program));
-							}
-						}
-
-						UnversionedWebBuilder.UpdateMixedTextHtml(TotalVolume);
 						Last5CoinJoins = allLines.TakeLast(5).Reverse().ToList();
 						UnversionedWebBuilder.UpdateCoinJoinsHtml(Last5CoinJoins);
 					}
@@ -124,10 +99,6 @@ namespace WalletWasabi.Backend
 			{
 				lock (UpdateUnversionedLock)
 				{
-					Money volume = tx.GetIndistinguishableOutputs(includeSingle: false).Sum(x => x.count * x.value);
-					TotalVolume += volume;
-					UnversionedWebBuilder.UpdateMixedTextHtml(TotalVolume);
-
 					if (Last5CoinJoins.Count > 4)
 					{
 						Last5CoinJoins.RemoveLast();

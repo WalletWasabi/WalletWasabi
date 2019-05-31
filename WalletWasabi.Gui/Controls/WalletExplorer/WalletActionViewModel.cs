@@ -14,6 +14,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private string _warningMessage;
 		private string _successMessage;
+		private object _dialogResult;
 		public WalletViewModel Wallet { get; }
 
 		public WalletService WalletService => Wallet.WalletService;
@@ -33,6 +34,30 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public void DisplayActionTab()
 		{
 			IoC.Get<IShell>().AddOrSelectDocument(this);
+		}
+
+		public void Select()
+		{
+			IoC.Get<IShell>().Select(this);
+		}
+
+		public void Close()
+		{
+			OnClose();
+		}
+
+		public async Task<object> ShowDialogAsync()
+		{
+			DialogResult = null;
+			DisplayActionTab();
+
+			while (!IsClosed)
+			{
+				if (!IsSelected) // Prevent de-selection of tab.
+					Select();
+				await Task.Delay(100);
+			}
+			return DialogResult;
 		}
 
 		protected void SetWarningMessage(string message)
@@ -85,6 +110,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _successMessage;
 			set => this.RaiseAndSetIfChanged(ref _successMessage, value);
+		}
+
+		public object DialogResult
+		{
+			get => _dialogResult;
+			set => this.RaiseAndSetIfChanged(ref _dialogResult, value);
 		}
 	}
 }

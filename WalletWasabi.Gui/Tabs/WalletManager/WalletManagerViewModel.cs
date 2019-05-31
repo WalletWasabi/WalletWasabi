@@ -113,7 +113,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					try
 					{
-						if (LoadWalletViewModelDesktop.IsWalletOpened || LoadWalletViewModelHardware.IsWalletOpened)
+						if (LoadWalletViewModelDesktop.IsWalletOpened || LoadWalletViewModelHardware.IsWalletOpened || HwiProcessManager.HwiPath is null)
 						{
 							continue; // Will wait 3sec, because of the finally.
 						}

@@ -52,7 +52,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					Dispatcher.UIThread.PostLogException(async () =>
 					{
-						await Task.Delay(1000);
+						await Task.Delay(TimeSpan.FromSeconds(4));
 						LabelRequiredNotificationOpacity = 0;
 					});
 

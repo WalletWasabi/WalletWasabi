@@ -149,7 +149,7 @@ pico ~/.bitcoin/bitcoin.conf
 ```sh
 testnet=[0/1]
 
-[main/test].maxuploadtarget=144
+[main/test].rpcworkqueue=64
 
 [main/test].txindex=1
 

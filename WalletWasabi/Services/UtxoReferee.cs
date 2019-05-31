@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.RPC;
 using System;
 using System.Collections.Concurrent;
@@ -9,16 +9,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Services
 {
 	public class UtxoReferee
 	{
-		/// <summary>
-		/// Key: banned utxo, Value: severity level, time of ban, if it's only in noted status, which round it disrupted
-		/// </summary>
-		private ConcurrentDictionary<OutPoint, (int severity, DateTimeOffset timeOfBan, bool isNoted, long bannedForRound)> BannedUtxos { get; }
+		private ConcurrentDictionary<OutPoint, BannedUtxoRecord> BannedUtxos { get; }
 
 		public string BannedUtxosFilePath => Path.Combine(FolderPath, $"BannedUtxos{Network}.txt");
 
@@ -36,7 +34,7 @@ namespace WalletWasabi.Services
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
 			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
 
-			BannedUtxos = new ConcurrentDictionary<OutPoint, (int severity, DateTimeOffset timeOfBan, bool isNoted, long bannedForRound)>();
+			BannedUtxos = new ConcurrentDictionary<OutPoint, BannedUtxoRecord>();
 
 			Directory.CreateDirectory(FolderPath);
 
@@ -48,9 +46,9 @@ namespace WalletWasabi.Services
 					string[] allLines = File.ReadAllLines(BannedUtxosFilePath);
 					foreach (string line in allLines)
 					{
-						var bannedRecord = BannedRecordFromLine(line);
+						var bannedRecord = BannedUtxoRecord.FromString(line);
 
-						GetTxOutResponse getTxOutResponse = RpcClient.GetTxOut(bannedRecord.utxo.Hash, (int)bannedRecord.utxo.N, includeMempool: true);
+						GetTxOutResponse getTxOutResponse = RpcClient.GetTxOut(bannedRecord.Utxo.Hash, (int)bannedRecord.Utxo.N, includeMempool: true);
 
 						// Check if inputs are unspent.
 						if (getTxOutResponse is null)
@@ -59,7 +57,7 @@ namespace WalletWasabi.Services
 						}
 						else
 						{
-							BannedUtxos.TryAdd(bannedRecord.utxo, (bannedRecord.severity, bannedRecord.timeOfBan, bannedRecord.isNoted, bannedRecord.bannedForRound));
+							BannedUtxos.TryAdd(bannedRecord.Utxo, bannedRecord);
 						}
 					}
 
@@ -94,12 +92,12 @@ namespace WalletWasabi.Services
 			var updated = false;
 			foreach (var utxo in toBan)
 			{
-				(int severity, DateTimeOffset timeOfBan, bool isNoted, long bannedForRound)? foundElem = null;
-				if (BannedUtxos.TryGetValue(utxo, out (int severity, DateTimeOffset timeOfBan, bool isNoted, long bannedForRound) fe))
+				BannedUtxoRecord foundElem = null;
+				if (BannedUtxos.TryGetValue(utxo, out BannedUtxoRecord fe))
 				{
 					foundElem = fe;
-					bool bannedForTheSameRound = foundElem.Value.bannedForRound == bannedForRound;
-					if (bannedForTheSameRound && (!forceNoted || foundElem.Value.isNoted))
+					bool bannedForTheSameRound = foundElem.BannedForRound == bannedForRound;
+					if (bannedForTheSameRound && (!forceNoted || foundElem.IsNoted))
 					{
 						continue; // We would be simply duplicating this ban.
 					}
@@ -114,7 +112,7 @@ namespace WalletWasabi.Services
 				{
 					if (RoundConfig.DosNoteBeforeBan.Value)
 					{
-						if (foundElem.HasValue)
+						if (foundElem != null)
 						{
 							isNoted = false;
 						}
@@ -124,17 +122,19 @@ namespace WalletWasabi.Services
 						isNoted = false;
 					}
 				}
-				if (BannedUtxos.TryAdd(utxo, (severity, timeOfBan, isNoted, bannedForRound)))
+
+				var newElem = new BannedUtxoRecord(utxo, severity, timeOfBan, isNoted, bannedForRound);
+				if (BannedUtxos.TryAdd(newElem.Utxo, newElem))
 				{
-					string line = BannedRecordToLine(utxo, severity, timeOfBan, isNoted, bannedForRound);
+					string line = newElem.ToString();
 					lines.Add(line);
 				}
 				else
 				{
 					var elem = BannedUtxos[utxo];
-					if (elem.isNoted != isNoted || elem.bannedForRound != bannedForRound)
+					if (elem.IsNoted != isNoted || elem.BannedForRound != bannedForRound)
 					{
-						BannedUtxos[utxo] = (elem.severity, elem.timeOfBan, isNoted, bannedForRound);
+						BannedUtxos[utxo] = new BannedUtxoRecord(elem.Utxo, elem.Severity, elem.TimeOfBan, isNoted, bannedForRound);
 						updated = true;
 					}
 				}
@@ -144,7 +144,7 @@ namespace WalletWasabi.Services
 
 			if (updated) // If at any time we set updated then we must update the whole thing.
 			{
-				var allLines = BannedUtxos.Select(x => $"{x.Value.timeOfBan.ToString(CultureInfo.InvariantCulture)}:{x.Value.severity}:{x.Key.N}:{x.Key.Hash}:{x.Value.isNoted}:{x.Value.bannedForRound}");
+				var allLines = BannedUtxos.Select(x => $"{x.Value.TimeOfBan.ToString(CultureInfo.InvariantCulture)}:{x.Value.Severity}:{x.Key.N}:{x.Key.Hash}:{x.Value.IsNoted}:{x.Value.BannedForRound}");
 				await File.WriteAllLinesAsync(BannedUtxosFilePath, allLines);
 			}
 			else if (lines.Count != 0) // If we don't have to update the whole thing, we must check if we added a line and so only append.
@@ -157,26 +157,25 @@ namespace WalletWasabi.Services
 		{
 			if (BannedUtxos.TryRemove(output, out _))
 			{
-				IEnumerable<string> lines = BannedUtxos.Select(x => BannedRecordToLine(x.Key, x.Value.severity, x.Value.timeOfBan, x.Value.isNoted, x.Value.bannedForRound));
+				IEnumerable<string> lines = BannedUtxos.Select(x => x.ToString());
 				await File.WriteAllLinesAsync(BannedUtxosFilePath, lines);
 				Logger.LogInfo<UtxoReferee>($"UTXO unbanned: {output.N}:{output.Hash}.");
 			}
 		}
 
-		public async Task<(int severity, TimeSpan bannedRemaining, DateTimeOffset timeOfBan, bool isNoted, long bannedForRound)?> TryGetBannedAsync(OutPoint outpoint, bool notedToo)
+		public async Task<BannedUtxoRecord> TryGetBannedAsync(OutPoint outpoint, bool notedToo)
 		{
-			if (BannedUtxos.TryGetValue(outpoint, out (int severity, DateTimeOffset timeOfBan, bool isNoted, long bannedForRound) bannedElem))
+			if (BannedUtxos.TryGetValue(outpoint, out BannedUtxoRecord bannedElem))
 			{
 				int maxBan = (int)TimeSpan.FromHours(RoundConfig.DosDurationHours.Value).TotalMinutes;
-				var bannedRemaining = DateTimeOffset.UtcNow - bannedElem.timeOfBan;
-				int banLeftMinutes = maxBan - (int)bannedRemaining.TotalMinutes;
+				int banLeftMinutes = maxBan - (int)bannedElem.BannedRemaining.TotalMinutes;
 				if (banLeftMinutes > 0)
 				{
-					if (bannedElem.isNoted)
+					if (bannedElem.IsNoted)
 					{
 						if (notedToo)
 						{
-							return (bannedElem.severity, bannedRemaining, bannedElem.timeOfBan, true, bannedElem.bannedForRound);
+							return new BannedUtxoRecord(bannedElem.Utxo, bannedElem.Severity, bannedElem.TimeOfBan, true, bannedElem.BannedForRound);
 						}
 						else
 						{
@@ -185,7 +184,7 @@ namespace WalletWasabi.Services
 					}
 					else
 					{
-						return (bannedElem.severity, bannedRemaining, bannedElem.timeOfBan, false, bannedElem.bannedForRound);
+						return new BannedUtxoRecord(bannedElem.Utxo, bannedElem.Severity, bannedElem.TimeOfBan, false, bannedElem.BannedForRound);
 					}
 				}
 				else
@@ -204,7 +203,7 @@ namespace WalletWasabi.Services
 			}
 			else
 			{
-				return BannedUtxos.Count(x => !x.Value.isNoted);
+				return BannedUtxos.Count(x => !x.Value.IsNoted);
 			}
 		}
 
@@ -212,24 +211,6 @@ namespace WalletWasabi.Services
 		{
 			BannedUtxos.Clear();
 			File.Delete(BannedUtxosFilePath);
-		}
-
-		internal static string BannedRecordToLine(OutPoint utxo, int severity, DateTimeOffset timeOfBan, bool isNoted, long bannedForRound)
-		{
-			return $"{timeOfBan.ToString("yyyy-MM-dd HH-mm-ss")}:{severity}:{utxo.N}:{utxo.Hash}:{isNoted}:{bannedForRound}";
-		}
-
-		internal static (OutPoint utxo, int severity, DateTimeOffset timeOfBan, bool isNoted, long bannedForRound) BannedRecordFromLine(string line)
-		{
-			var parts = line.Split(':');
-			var isNoted = bool.Parse(parts[4]);
-			var bannedForRound = long.Parse(parts[5]);
-			var utxo = new OutPoint(new uint256(parts[3]), int.Parse(parts[2]));
-			var severity = int.Parse(parts[1]);
-			var timeParts = parts[0].Split('-', ' ').Select(x => int.Parse(x)).ToArray();
-			var timeOfBan = new DateTimeOffset(timeParts[0], timeParts[1], timeParts[2], timeParts[3], timeParts[4], timeParts[5], TimeSpan.Zero);
-
-			return (utxo, severity, timeOfBan, isNoted, bannedForRound);
 		}
 	}
 }

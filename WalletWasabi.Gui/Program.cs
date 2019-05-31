@@ -39,12 +39,12 @@ namespace WalletWasabi.Gui
 					.BeforeStarting(async builder =>
 					{
 						MainWindowViewModel.Instance = new MainWindowViewModel();
+						statusBar = new StatusBarViewModel();
+						MainWindowViewModel.Instance.StatusBar = statusBar;
 
 						await Global.InitializeNoWalletAsync();
 
-						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.Synchronizer, Global.UpdateChecker);
-
-						MainWindowViewModel.Instance.StatusBar = statusBar;
+						statusBar.Initialize(Global.Nodes.ConnectedNodes, Global.Synchronizer, Global.UpdateChecker);
 
 						if (Global.Network != Network.Main)
 						{
