@@ -1,4 +1,5 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl x:Class="WalletWasabi.Gui.Controls.WalletExplorer.HistoryTabView"
+             xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
@@ -40,11 +41,6 @@
 
                   <Grid IsVisible="{Binding ClipboardNotificationVisible}" Grid.Column="3">
                     <Grid Opacity="{Binding ClipboardNotificationOpacity}">
-                      <Grid.Transitions>
-                        <DoubleTransition Property="Opacity"
-                              Easing="CircularEaseIn"
-                              Duration="0:0:0.5" />
-                      </Grid.Transitions>
                       <TextBlock Text="Copied" Foreground="White" FontWeight="Bold" />
                     </Grid>
                   </Grid>

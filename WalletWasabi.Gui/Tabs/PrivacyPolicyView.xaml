@@ -1,4 +1,6 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl x:Class="WalletWasabi.Gui.Tabs.PrivacyPolicyView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
   <controls:GroupBox Title="{Binding Title}" BorderThickness="0" Classes="docTabContainer">
     <Grid Classes="content" Margin="0 10 0 0">

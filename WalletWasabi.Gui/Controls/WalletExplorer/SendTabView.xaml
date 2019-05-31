@@ -1,4 +1,5 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl x:Class="WalletWasabi.Gui.Controls.WalletExplorer.SendTabView"
+             xmlns="https://github.com/avaloniaui"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
@@ -47,7 +48,7 @@
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <Button Focusable="False" Content="{Binding Word}" Command="{Binding OnSelected}" IsPressed ="{Binding IsHighLighted}" />
+                  <Button Focusable="False" Content="{Binding Word}" Command="{Binding OnSelected}" />
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>

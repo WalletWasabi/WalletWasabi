@@ -1,4 +1,5 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl x:Class="WalletWasabi.Gui.Controls.WalletExplorer.ReceiveTabView"
+             xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
@@ -38,7 +39,7 @@
                   </ItemsControl.ItemsPanel>
                   <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                      <Button Focusable="False" Content="{Binding Word}" Command="{Binding OnSelected}" IsPressed ="{Binding IsHighLighted}" />
+                      <Button Focusable="False" Content="{Binding Word}" Command="{Binding OnSelected}" />
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -48,12 +49,7 @@
             </Grid>
 
             <Grid IsVisible="{Binding LabelRequiredNotificationVisible}">
-              <Grid Opacity="{Binding LabelRequiredNotificationOpacity}">
-                <Grid.Transitions>
-                  <DoubleTransition Property="Opacity"
-                        Easing="CircularEaseIn"
-                        Duration="0:0:0.5" />
-                </Grid.Transitions>
+              <Grid Opacity="{Binding LabelRequiredNotificationOpacity}">                
                 <TextBlock Classes="warningMessage" Text="Label Is Required!" VerticalAlignment="Center" HorizontalAlignment="Center" />
               </Grid>
             </Grid>
@@ -111,11 +107,6 @@
 
                     <Grid IsVisible="{Binding ClipboardNotificationVisible}">
                       <Grid Opacity="{Binding ClipboardNotificationOpacity}">
-                        <Grid.Transitions>
-                          <DoubleTransition Property="Opacity"
-                                Easing="CircularEaseIn"
-                                Duration="0:0:0.5" />
-                        </Grid.Transitions>
                         <TextBlock Text="Copied" Foreground="White" FontWeight="Bold" />
                       </Grid>
                     </Grid>
