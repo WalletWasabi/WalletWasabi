@@ -9,11 +9,11 @@ jobs:
   - task: DotNetCoreCLI@2
     inputs:
       command: build
-      arguments: --configuration Release
+      arguments: --configuration Debug
   - task: DotNetCoreCLI@2
     inputs:
       command: build
-      arguments: --configuration Debug
+      arguments: --configuration Release
   - task: DotNetCoreCLI@2
     inputs:
       command: test
