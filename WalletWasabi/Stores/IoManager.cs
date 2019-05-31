@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Nito.AsyncEx;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using Nito.AsyncEx;
 
 namespace WalletWasabi.Stores
 {
@@ -255,41 +255,47 @@ namespace WalletWasabi.Stores
 
 			var linesArray = lines.ToArray();
 			var linesIndex = 0;
-			var lineCounter = 0;
 
-			using (var sr = OpenText(16384))
+			using (var sr = OpenText())
 			using (var fs = File.OpenWrite(NewFilePath))
-			using (var sw = new StreamWriter(fs, Encoding.ASCII))
+			using (var sw = new StreamWriter(fs, Encoding.ASCII, Constants.BigFileReadWriteBufferSize))
 			{
-				sw.AutoFlush = false;
-
 				// 1. First copy.
-				while (!sr.EndOfStream)
+				if (!sr.EndOfStream)
 				{
-					var line = await sr.ReadLineAsync();
-
-					if (linesArray[linesIndex] == line) // If the line is a line we want to write, then we know that someone else have worked into the file.
+					var lineTask = sr.ReadLineAsync();
+					Task wTask = Task.CompletedTask;
+					string line = null;
+					while (lineTask != null)
 					{
-						linesIndex++;
-						continue;
+						if (line is null)
+						{
+							line = await lineTask;
+						}
+
+						lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
+
+						if (linesArray[linesIndex] == line) // If the line is a line we want to write, then we know that someone else have worked into the file.
+						{
+							linesIndex++;
+							continue;
+						}
+
+						await wTask;
+						wTask = sw.WriteLineAsync(line);
+
+						ContinueBuildHash(byteArrayBuilder, line);
+
+						cancellationToken.ThrowIfCancellationRequested();
+
+						line = null;
 					}
-
-					await sw.WriteLineAsync(line);
-
-					lineCounter++;
-					if (lineCounter > 1000)
-					{
-						await sw.FlushAsync();
-						lineCounter = 0;
-					}
-
-					ContinueBuildHash(byteArrayBuilder, line);
-
-					cancellationToken.ThrowIfCancellationRequested();
+					await wTask;
 				}
+				await sw.FlushAsync();
 
 				// 2. Then append.
-				foreach (var line in lines)
+				foreach (var line in linesArray)
 				{
 					await sw.WriteLineAsync(line);
 
@@ -321,7 +327,13 @@ namespace WalletWasabi.Stores
 			return await File.ReadAllLinesAsync(filePath, cancellationToken);
 		}
 
-		public StreamReader OpenText(int bufferSize)
+		/// <summary>
+		/// Open text file and read a specified amount of data. This method is useful when you want async/await read/write
+		/// but in a performant way.
+		/// </summary>
+		/// <returns>The StreamReader where you can use ReadLineAsync() for example.</returns>
+		/// <param name="bufferSize">Size of the bytes to handle sync way. The default is 1Mb.</param>
+		public StreamReader OpenText(int bufferSize = Constants.BigFileReadWriteBufferSize)
 		{
 			var filePath = OriginalFilePath;
 			if (TryGetSafestFileVersion(out string safestFilePath))

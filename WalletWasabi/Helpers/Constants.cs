@@ -7,7 +7,7 @@ namespace WalletWasabi.Helpers
 {
 	public static class Constants
 	{
-		public static readonly Version ClientVersion = new Version(1, 1, 4);
+		public static readonly Version ClientVersion = new Version(1, 1, 5);
 		public const string BackendMajorVersion = "3";
 		public static readonly VersionsResponse VersionsResponse = new VersionsResponse { ClientVersion = ClientVersion.ToString(), BackenMajordVersion = BackendMajorVersion };
 
@@ -72,5 +72,6 @@ namespace WalletWasabi.Helpers
 
 		public const string ChangeOfSpecialLabelStart = "change of (";
 		public const string ChangeOfSpecialLabelEnd = ")";
+		public const int BigFileReadWriteBufferSize = 1 * 1024 * 1024;
 	}
 }
