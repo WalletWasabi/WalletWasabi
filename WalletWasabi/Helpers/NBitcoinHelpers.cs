@@ -1,8 +1,12 @@
-﻿using NBitcoin;
+using NBitcoin;
+using NBitcoin.Crypto;
+using NBitcoin.Protocol;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Helpers
 {
@@ -69,6 +73,35 @@ namespace WalletWasabi.Helpers
 				epk = new ExtPubKey(ByteHelpers.FromHex(extPubKeyString)); // Starts with "ExtPubKey": "hexbytes...
 			}
 			return epk;
+		}
+
+		public static async Task<AddressManager> LoadAddressManagerFromPeerFileAsync(string filePath, Network expectedNetwork = null)
+		{
+			byte[] data, hash;
+			using (var fs = File.Open(filePath, FileMode.Open, FileAccess.Read))
+			{
+				data = new byte[fs.Length - 32];
+				await fs.ReadAsync(data, 0, data.Length);
+				hash = new byte[32];
+				await fs.ReadAsync(hash, 0, 32);
+			}
+			var actual = Hashes.Hash256(data);
+			var expected = new uint256(hash);
+			if (expected != actual)
+				throw new FormatException("Invalid address manager file");
+
+			BitcoinStream stream = new BitcoinStream(data);
+			stream.Type = SerializationType.Disk;
+			uint magic = 0;
+			stream.ReadWrite(ref magic);
+			if (expectedNetwork != null && expectedNetwork.Magic != magic)
+			{
+				throw new FormatException("This file is not for the expected network");
+			}
+
+			var addrman = new AddressManager();
+			addrman.ReadWrite(stream);
+			return addrman;
 		}
 	}
 }
