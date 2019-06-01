@@ -19,7 +19,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public BitcoinAddress ChangeAddress { get; }
 
-		public IEnumerable<(BitcoinAddress address, UnblindedSignature signature, int mixingLevel)> ActiveOutputs { get; set; }
+		public IEnumerable<ActiveOutput> ActiveOutputs { get; set; }
 
 		public IEnumerable<SmartCoin> CoinsRegistered { get; }
 
@@ -31,7 +31,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			CoinsRegistered = Guard.NotNullOrEmpty(nameof(coinsRegistereds), coinsRegistereds);
 			ChangeAddress = Guard.NotNull(nameof(changeAddress), changeAddress);
 
-			ActiveOutputs = Enumerable.Empty<(BitcoinAddress address, UnblindedSignature signature, int mixingLevel)>();
+			ActiveOutputs = Enumerable.Empty<ActiveOutput>();
 		}
 
 		public bool IsPhaseActionsComleted(CcjRoundPhase phase) => CompletedPhase >= phase;
