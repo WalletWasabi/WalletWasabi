@@ -3,30 +3,30 @@ using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-    public class CommandOnDoubleClickBehavior : CommandBasedBehavior<Control>
-    {
-        private CompositeDisposable _disposables;
+	public class CommandOnDoubleClickBehavior : CommandBasedBehavior<Control>
+	{
+		private CompositeDisposable Disposables { get; set; }
 
-        protected override void OnAttached()
-        {
-            _disposables = new CompositeDisposable();
+		protected override void OnAttached()
+		{
+			Disposables = new CompositeDisposable();
 
-            base.OnAttached();
+			base.OnAttached();
 
-            _disposables.Add(AssociatedObject.AddHandler(Control.PointerPressedEvent, (sender, e) =>
-            {
-                if(e.ClickCount == 2)
-                {
-                    e.Handled = ExecuteCommand();
-                }
-            }));
-        }
+			Disposables.Add(AssociatedObject.AddHandler(Control.PointerPressedEvent, (sender, e) =>
+			{
+				if (e.ClickCount == 2)
+				{
+					e.Handled = ExecuteCommand();
+				}
+			}));
+		}
 
-        protected override void OnDetaching()
-        {
-            base.OnDetaching();
+		protected override void OnDetaching()
+		{
+			base.OnDetaching();
 
-            _disposables.Dispose();
-        }
-    }
+			Disposables?.Dispose();
+		}
+	}
 }
