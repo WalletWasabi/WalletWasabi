@@ -43,7 +43,7 @@
                 </DrawingPresenter.Drawing>
               </DrawingPresenter>
             </Grid>
-            <TextBlock Text="{Binding BlocksLeft, StringFormat='Missing Blocks: \{0\}'}" Foreground="{Binding BlocksLeft, ConverterParameter=BlocksLeft, Converter={StaticResource StatusColorConverter}}" />
+            <TextBlock Text="{Binding BlocksLeft, StringFormat=Missing Blocks: \{0\}}" Foreground="{Binding BlocksLeft, ConverterParameter=BlocksLeft, Converter={StaticResource StatusColorConverter}}" />
           </StackPanel>
         </Panel>
 
@@ -63,7 +63,7 @@
                 </DrawingPresenter.Drawing>
               </DrawingPresenter>
             </Grid>
-            <TextBlock Text="{Binding FiltersLeft, StringFormat='Missing Filters: \{0\}', Converter={StaticResource FilterLeftValueConverter}}" Foreground="{Binding FiltersLeft, ConverterParameter=FiltersLeft, Converter={StaticResource StatusColorConverter}}" />
+            <TextBlock Text="{Binding FiltersLeft, StringFormat=Missing Filters: \{0\}, Converter={StaticResource FilterLeftValueConverter}}" Foreground="{Binding FiltersLeft, ConverterParameter=FiltersLeft, Converter={StaticResource StatusColorConverter}}" />
           </StackPanel>
         </Panel>
 
@@ -91,7 +91,7 @@
               </DrawingPresenter.Drawing>
             </DrawingPresenter>
           </Grid>
-          <TextBlock Text="{Binding Tor, StringFormat='Tor is \{0\}', Converter={StaticResource PascalToPhraseConverter}}" Foreground="{Binding Tor, ConverterParameter=Tor, Converter={StaticResource StatusColorConverter}}" />
+          <TextBlock Text="{Binding Tor, StringFormat=Tor is \{0\}, Converter={StaticResource PascalToPhraseConverter}}" Foreground="{Binding Tor, ConverterParameter=Tor, Converter={StaticResource StatusColorConverter}}" />
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding !CriticalUpdateAvailable}">
@@ -121,7 +121,7 @@
               </DrawingPresenter.Drawing>
             </DrawingPresenter>
           </Grid>
-          <TextBlock Text="{Binding Backend, StringFormat='Backend is \{0\}', Converter={StaticResource PascalToPhraseConverter}}" Foreground="{Binding Backend, ConverterParameter=Backend, Converter={StaticResource StatusColorConverter}}" />
+          <TextBlock Text="{Binding Backend, StringFormat=Backend is \{0\}, Converter={StaticResource PascalToPhraseConverter}}" Foreground="{Binding Backend, ConverterParameter=Backend, Converter={StaticResource StatusColorConverter}}" />
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding !CriticalUpdateAvailable}">
@@ -139,7 +139,7 @@
               </DrawingPresenter.Drawing>
             </DrawingPresenter>
           </Grid>
-          <TextBlock Text="{Binding Peers, StringFormat='Peers: \{0\}'}" Foreground="{Binding Peers, ConverterParameter=Peers, Converter={StaticResource StatusColorConverter}}" />
+          <TextBlock Text="{Binding Peers, StringFormat=Peers: \{0\}}" Foreground="{Binding Peers, ConverterParameter=Peers, Converter={StaticResource StatusColorConverter}}" />
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Spacing="0" IsVisible="{Binding !CriticalUpdateAvailable}">
