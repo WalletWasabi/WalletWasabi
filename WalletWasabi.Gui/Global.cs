@@ -139,9 +139,10 @@ namespace WalletWasabi.Gui
 			BitcoinStore = new BitcoinStore();
 			var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
 			var hwiInitTask = HwiProcessManager.InitializeAsync(DataDir, Network);
-
 			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
+			var addrManTask = InitializeAddressManagerBehaviorAsync();
+
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
 			var connectionParameters = new NodeConnectionParameters();
 
@@ -196,70 +197,6 @@ namespace WalletWasabi.Gui
 
 			#endregion TorProcessInitialization
 
-			#region AddressManagerInitialization
-
-			var needsToDiscoverPeers = true;
-			if (Network == Network.RegTest)
-			{
-				AddressManager = new AddressManager();
-				Logger.LogInfo<AddressManager>($"Fake {nameof(AddressManager)} is initialized on the RegTest.");
-			}
-			else
-			{
-				try
-				{
-					AddressManager = AddressManager.LoadPeerFile(AddressManagerFilePath);
-
-					// The most of the times we don't need to discover new peers. Instead, we can connect to
-					// some of those that we already discovered in the past. In this case we assume that we
-					// assume that discovering new peers could be necessary if out address manager has less
-					// than 500 addresses. A 500 addresses could be okay because previously we tried with
-					// 200 and only one user reported he/she was not able to connect (there could be many others,
-					// of course).
-					// On the other side, increasing this number forces users that do not need to discover more peers
-					// to spend resources (CPU/bandwith) to discover new peers.
-					needsToDiscoverPeers = Config.UseTor == true || AddressManager.Count < 500;
-					Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
-				}
-				catch (DirectoryNotFoundException ex)
-				{
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
-					Logger.LogTrace<AddressManager>(ex);
-					AddressManager = new AddressManager();
-				}
-				catch (FileNotFoundException ex)
-				{
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
-					Logger.LogTrace<AddressManager>(ex);
-					AddressManager = new AddressManager();
-				}
-				catch (OverflowException ex)
-				{
-					// https://github.com/zkSNACKs/WalletWasabi/issues/712
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} has thrown `{nameof(OverflowException)}`. Attempting to autocorrect.");
-					File.Delete(AddressManagerFilePath);
-					Logger.LogTrace<AddressManager>(ex);
-					AddressManager = new AddressManager();
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} autocorrection is successful.");
-				}
-				catch (FormatException ex)
-				{
-					// https://github.com/zkSNACKs/WalletWasabi/issues/880
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} has thrown `{nameof(FormatException)}`. Attempting to autocorrect.");
-					File.Delete(AddressManagerFilePath);
-					Logger.LogTrace<AddressManager>(ex);
-					AddressManager = new AddressManager();
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} autocorrection is successful.");
-				}
-			}
-
-			var addressManagerBehavior = new AddressManagerBehavior(AddressManager) {
-				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
-			};
-			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
-
-			#endregion AddressManagerInitialization
-
 			#region MempoolInitialization
 
 			MemPoolService = new MemPoolService();
@@ -285,6 +222,13 @@ namespace WalletWasabi.Gui
 			await bstoreInitTask;
 
 			#endregion BitcoinStoreInitialization
+
+			#region AddressManagerInitialization
+
+			AddressManagerBehavior addressManagerBehavior = await addrManTask;
+			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
+
+			#endregion AddressManagerInitialization
 
 			#region P2PInitialization
 
@@ -349,6 +293,69 @@ namespace WalletWasabi.Gui
 			#endregion SynchronizerInitialization
 
 			Initialized = true;
+		}
+
+		private static async Task<AddressManagerBehavior> InitializeAddressManagerBehaviorAsync()
+		{
+			var needsToDiscoverPeers = true;
+			if (Network == Network.RegTest)
+			{
+				AddressManager = new AddressManager();
+				Logger.LogInfo<AddressManager>($"Fake {nameof(AddressManager)} is initialized on the RegTest.");
+			}
+			else
+			{
+				try
+				{
+					AddressManager = await NBitcoinHelpers.LoadAddressManagerFromPeerFileAsync(AddressManagerFilePath);
+
+					// The most of the times we don't need to discover new peers. Instead, we can connect to
+					// some of those that we already discovered in the past. In this case we assume that we
+					// assume that discovering new peers could be necessary if out address manager has less
+					// than 500 addresses. A 500 addresses could be okay because previously we tried with
+					// 200 and only one user reported he/she was not able to connect (there could be many others,
+					// of course).
+					// On the other side, increasing this number forces users that do not need to discover more peers
+					// to spend resources (CPU/bandwith) to discover new peers.
+					needsToDiscoverPeers = Config.UseTor == true || AddressManager.Count < 500;
+					Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
+				}
+				catch (DirectoryNotFoundException ex)
+				{
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
+					Logger.LogTrace<AddressManager>(ex);
+					AddressManager = new AddressManager();
+				}
+				catch (FileNotFoundException ex)
+				{
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
+					Logger.LogTrace<AddressManager>(ex);
+					AddressManager = new AddressManager();
+				}
+				catch (OverflowException ex)
+				{
+					// https://github.com/zkSNACKs/WalletWasabi/issues/712
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} has thrown `{nameof(OverflowException)}`. Attempting to autocorrect.");
+					File.Delete(AddressManagerFilePath);
+					Logger.LogTrace<AddressManager>(ex);
+					AddressManager = new AddressManager();
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} autocorrection is successful.");
+				}
+				catch (FormatException ex)
+				{
+					// https://github.com/zkSNACKs/WalletWasabi/issues/880
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} has thrown `{nameof(FormatException)}`. Attempting to autocorrect.");
+					File.Delete(AddressManagerFilePath);
+					Logger.LogTrace<AddressManager>(ex);
+					AddressManager = new AddressManager();
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} autocorrection is successful.");
+				}
+			}
+
+			var addressManagerBehavior = new AddressManagerBehavior(AddressManager) {
+				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
+			};
+			return addressManagerBehavior;
 		}
 
 		private static async Task AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager addressManager)
