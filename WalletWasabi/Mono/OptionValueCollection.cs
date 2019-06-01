@@ -292,14 +292,22 @@ namespace Mono.Options
 		private void AssertValid(int index)
 		{
 			if (C.Option is null)
+			{
 				throw new InvalidOperationException("OptionContext.Option is null.");
+			}
+
 			if (index >= C.Option.MaxValueCount)
+			{
 				throw new ArgumentOutOfRangeException("index");
+			}
+
 			if (C.Option.OptionValueType == OptionValueType.Required &&
 					index >= Values.Count)
+			{
 				throw new OptionException(string.Format(
 							C.OptionSet.MessageLocalizer("Missing required value for option '{0}'."), C.OptionName),
 						C.OptionName);
+			}
 		}
 
 		public string this[int index]

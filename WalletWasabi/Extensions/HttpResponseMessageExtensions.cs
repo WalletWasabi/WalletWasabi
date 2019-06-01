@@ -1,8 +1,8 @@
-﻿using WalletWasabi.Http.Models;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Http.Models;
 using static WalletWasabi.Http.Constants;
 
 namespace System.Net.Http
@@ -84,7 +84,7 @@ namespace System.Net.Http
 			return startLine + headers + CRLF + messageBody;
 		}
 
-		public async static Task ThrowRequestExceptionFromContentAsync(this HttpResponseMessage me)
+		public static async Task ThrowRequestExceptionFromContentAsync(this HttpResponseMessage me)
 		{
 			var error = await me.Content.ReadAsJsonAsync<string>();
 			string errorMessage = error is null ? string.Empty : $"\n{error}";

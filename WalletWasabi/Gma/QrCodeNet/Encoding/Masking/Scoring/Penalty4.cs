@@ -19,7 +19,9 @@
 				for (int i = 0; i < width; i++)
 				{
 					if (matrix[i, j])
+					{
 						DarkBitCount++;
+					}
 				}
 			}
 

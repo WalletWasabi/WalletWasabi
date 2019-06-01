@@ -1,12 +1,12 @@
-﻿using NBitcoin;
+using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using WalletWasabi.JsonConverters;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
+using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
@@ -23,6 +23,9 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		[JsonProperty(PropertyName = "ConfirmationTarget")]
 		public int? ConfirmationTarget { get; internal set; }
+
+		[JsonProperty(PropertyName = "ConfirmationTargetReductionRate")]
+		public double? ConfirmationTargetReductionRate { get; internal set; }
 
 		[JsonProperty(PropertyName = "CoordinatorFeePercent")]
 		public decimal? CoordinatorFeePercent { get; internal set; }
@@ -63,11 +66,12 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			SetFilePath(filePath);
 		}
 
-		public CcjRoundConfig(Money denomination, int? confirmationTarget, decimal? coordinatorFeePercent, int? anonymitySet, long? inputRegistrationTimeout, long? connectionConfirmationTimeout, long? outputRegistrationTimeout, long? signingTimeout, int? dosSeverity, long? dosDurationHours, bool? dosNoteBeforeBan, int? maximumMixingLevelCount)
+		public CcjRoundConfig(Money denomination, int? confirmationTarget, double? confirmationTargetReductionRate, decimal? coordinatorFeePercent, int? anonymitySet, long? inputRegistrationTimeout, long? connectionConfirmationTimeout, long? outputRegistrationTimeout, long? signingTimeout, int? dosSeverity, long? dosDurationHours, bool? dosNoteBeforeBan, int? maximumMixingLevelCount)
 		{
 			FilePath = null;
 			Denomination = Guard.NotNull(nameof(denomination), denomination);
 			ConfirmationTarget = Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
+			ConfirmationTargetReductionRate = Guard.NotNull(nameof(confirmationTargetReductionRate), confirmationTargetReductionRate);
 			CoordinatorFeePercent = Guard.NotNull(nameof(coordinatorFeePercent), coordinatorFeePercent);
 			AnonymitySet = Guard.NotNull(nameof(anonymitySet), anonymitySet);
 			InputRegistrationTimeout = Guard.NotNull(nameof(inputRegistrationTimeout), inputRegistrationTimeout);
@@ -98,6 +102,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			Denomination = Money.Coins(0.1m);
 			ConfirmationTarget = 144; // 1 day
+			ConfirmationTargetReductionRate = 0.7;
 			CoordinatorFeePercent = 0.003m; // Coordinator fee percent is per anonymity set.
 			AnonymitySet = 100;
 			InputRegistrationTimeout = 604800; // One week
@@ -128,6 +133,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			Denomination = config.Denomination ?? Denomination;
 			ConfirmationTarget = config.ConfirmationTarget ?? ConfirmationTarget;
+			ConfirmationTargetReductionRate = config.ConfirmationTargetReductionRate ?? ConfirmationTargetReductionRate;
 			CoordinatorFeePercent = config.CoordinatorFeePercent ?? CoordinatorFeePercent;
 			AnonymitySet = config.AnonymitySet ?? AnonymitySet;
 			InputRegistrationTimeout = config.InputRegistrationTimeout ?? InputRegistrationTimeout;
@@ -158,6 +164,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				return true;
 			}
 			if (ConfirmationTarget != config.ConfirmationTarget)
+			{
+				return true;
+			}
+			if (ConfirmationTargetReductionRate != config.ConfirmationTargetReductionRate)
 			{
 				return true;
 			}
@@ -214,7 +224,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		/// <inheritdoc />
 		public void AssertFilePathSet()
 		{
-			if (FilePath is null) throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
+			if (FilePath is null)
+			{
+				throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
+			}
 		}
 	}
 }

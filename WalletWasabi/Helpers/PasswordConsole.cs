@@ -25,7 +25,7 @@ namespace WalletWasabi.Helpers
 				{
 					if (sb.Length > 0)
 					{
-						Console.Write("\b\0\b");
+						Console.Write("\b \b");
 						sb.Length--;
 					}
 

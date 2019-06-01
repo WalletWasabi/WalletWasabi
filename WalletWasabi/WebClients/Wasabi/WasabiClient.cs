@@ -1,16 +1,17 @@
-﻿using System;
+﻿using NBitcoin;
+using NBitcoin.RPC;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Threading.Tasks;
-using NBitcoin;
-using WalletWasabi.Backend.Models;
-using WalletWasabi.Bases;
-using WalletWasabi.Models;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
-using NBitcoin.RPC;
+using WalletWasabi.Bases;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.WebClients.Wasabi
 {
@@ -127,6 +128,51 @@ namespace WalletWasabi.WebClients.Wasabi
 		public async Task BroadcastAsync(SmartTransaction transaction)
 		{
 			await BroadcastAsync(transaction.Transaction);
+		}
+
+		public async Task<IEnumerable<uint256>> GetMempoolHashesAsync(CancellationToken cancel = default)
+		{
+			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
+																	HttpStatusCode.OK,
+																	$"/api/v{Helpers.Constants.BackendMajorVersion}/btc/blockchain/mempool-hashes",
+																	cancel: cancel))
+			{
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					await response.ThrowRequestExceptionFromContentAsync();
+				}
+
+				using (HttpContent content = response.Content)
+				{
+					var strings = await content.ReadAsJsonAsync<IEnumerable<string>>();
+					var ret = strings.Select(x => new uint256(x));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Gets mempool hashes, but strips the last x characters of each hash.
+		/// </summary>
+		/// <param name="compactness">1 to 64</param>
+		public async Task<IEnumerable<string>> GetMempoolHashesAsync(int compactness, CancellationToken cancel = default)
+		{
+			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
+																	HttpStatusCode.OK,
+																	$"/api/v{Helpers.Constants.BackendMajorVersion}/btc/blockchain/mempool-hashes?compactness={compactness}",
+																	cancel: cancel))
+			{
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					await response.ThrowRequestExceptionFromContentAsync();
+				}
+
+				using (HttpContent content = response.Content)
+				{
+					var strings = await content.ReadAsJsonAsync<IEnumerable<string>>();
+					return strings;
+				}
+			}
 		}
 
 		#endregion blockchain

@@ -3,6 +3,7 @@ using AvalonStudio.Extensibility.Dialogs;
 using ReactiveUI;
 using System;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,8 +39,8 @@ namespace WalletWasabi.Gui.Dialogs
 			set => this.RaiseAndSetIfChanged(ref _operationMessage, value);
 		}
 
-		public new ReactiveCommand OKCommand { get; set; }
-		public new ReactiveCommand CancelCommand { get; set; }
+		public new ReactiveCommand<Unit, Unit> OKCommand { get; set; }
+		public new ReactiveCommand<Unit, Unit> CancelCommand { get; set; }
 
 		//http://blog.stephencleary.com/2013/01/async-oop-2-constructors.html
 		public Task Initialization { get; private set; }
@@ -81,7 +82,7 @@ namespace WalletWasabi.Gui.Dialogs
 
 		public override void OnOpen()
 		{
-			if(Disposables != null)
+			if (Disposables != null)
 			{
 				throw new Exception("Dialog opened before it was closed (cannotclose)");
 			}
@@ -97,7 +98,7 @@ namespace WalletWasabi.Gui.Dialogs
 
 		public override void OnClose()
 		{
-			Disposables.Dispose();
+			Disposables?.Dispose();
 			Disposables = null;
 			base.OnClose();
 		}
@@ -147,7 +148,7 @@ namespace WalletWasabi.Gui.Dialogs
 									break;
 								}
 
-								await Global.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }); //dequeue coins one-by-one to check cancel flag more frequently
+								await Global.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }, "Closing Wasabi."); // Dequeue coins one-by-one to check cancel flag more frequently.
 							}
 							catch (Exception ex)
 							{

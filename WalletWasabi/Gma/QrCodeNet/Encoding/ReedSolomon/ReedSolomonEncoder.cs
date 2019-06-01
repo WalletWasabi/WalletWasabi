@@ -15,11 +15,20 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			int dataLength = dataBytes.Length;
 			if (generatorPoly is null)
+			{
 				throw new ArgumentNullException("generator", "GeneratorPolynomial var is null");
+			}
+
 			if (dataLength == 0)
+			{
 				throw new ArgumentException("There is no data bytes to encode");
+			}
+
 			if (numECBytes <= 0)
+			{
 				throw new ArgumentException("No Error Correction bytes");
+			}
+
 			int[] toEncode = ConvertToIntArray(dataBytes, dataLength, numECBytes);
 
 			Polynomial generator = generatorPoly.GetGenerator(numECBytes);
@@ -62,13 +71,16 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			int remainderLength = remainder.Length;
 			if (remainderLength > numECBytes)
+			{
 				throw new ArgumentException("Num of remainder bytes can not larger than numECBytes");
+			}
+
 			int numZeroCoeffs = numECBytes - remainderLength;
 
 			byte[] resultArray = new byte[numECBytes];
 			for (int index = 0; index < numZeroCoeffs; index++)
 			{
-				resultArray[index] = (byte)0;
+				resultArray[index] = 0;
 			}
 
 			for (int rIndex = 0; rIndex < remainderLength; rIndex++)

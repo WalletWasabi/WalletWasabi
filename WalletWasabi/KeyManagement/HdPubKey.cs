@@ -1,9 +1,8 @@
-﻿using WalletWasabi.JsonConverters;
-using WalletWasabi.Helpers;
 using NBitcoin;
-using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
 using System;
+using WalletWasabi.Helpers;
+using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.KeyManagement
 {
@@ -65,13 +64,20 @@ namespace WalletWasabi.KeyManagement
 			{
 				IsInternal = true;
 			}
-			else throw new ArgumentException(nameof(FullKeyPath));
+			else
+			{
+				throw new ArgumentException(nameof(FullKeyPath));
+			}
 		}
 
 		public void SetLabel(string label, KeyManager kmToFile = null)
 		{
 			label = Guard.Correct(label);
-			if (Label == label) return;
+			if (Label == label)
+			{
+				return;
+			}
+
 			Label = label;
 
 			kmToFile?.ToFile();
@@ -79,7 +85,11 @@ namespace WalletWasabi.KeyManagement
 
 		public void SetKeyState(KeyState state, KeyManager kmToFile = null)
 		{
-			if (KeyState == state) return;
+			if (KeyState == state)
+			{
+				return;
+			}
+
 			KeyState = state;
 
 			kmToFile?.ToFile();
@@ -114,15 +124,9 @@ namespace WalletWasabi.KeyManagement
 
 		public override int GetHashCode() => HashCode;
 
-		public static bool operator ==(HdPubKey x, HdPubKey y)
-		{
-			return x?.PubKeyHash == y?.PubKeyHash;
-		}
+		public static bool operator ==(HdPubKey x, HdPubKey y) => x?.PubKeyHash == y?.PubKeyHash;
 
-		public static bool operator !=(HdPubKey x, HdPubKey y)
-		{
-			return !(x == y);
-		}
+		public static bool operator !=(HdPubKey x, HdPubKey y) => !(x == y);
 
 		#endregion Equality
 	}

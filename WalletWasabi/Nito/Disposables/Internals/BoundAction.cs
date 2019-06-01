@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 
 namespace Nito.Disposables.Internals
@@ -44,11 +44,16 @@ namespace Nito.Disposables.Internals
 			{
 				var original = Interlocked.CompareExchange(ref _field, _field, _field);
 				if (original is null)
+				{
 					return false;
+				}
+
 				var updatedContext = new BoundAction(original, contextUpdater);
 				var result = Interlocked.CompareExchange(ref _field, updatedContext, original);
 				if (ReferenceEquals(original, result))
+				{
 					return true;
+				}
 			}
 		}
 
@@ -65,22 +70,22 @@ namespace Nito.Disposables.Internals
 
 		private sealed class BoundAction : IBoundAction
 		{
-			private readonly Action<T> _action;
-			private readonly T _context;
+			private readonly Action<T> Action;
+			private readonly T Context;
 
 			public BoundAction(Action<T> action, T context)
 			{
-				_action = action;
-				_context = context;
+				Action = action;
+				Context = context;
 			}
 
 			public BoundAction(BoundAction originalBoundAction, Func<T, T> contextUpdater)
 			{
-				_action = originalBoundAction._action;
-				_context = contextUpdater(originalBoundAction._context);
+				Action = originalBoundAction.Action;
+				Context = contextUpdater(originalBoundAction.Context);
 			}
 
-			public void Invoke() => _action?.Invoke(_context);
+			public void Invoke() => Action?.Invoke(Context);
 		}
 	}
 }

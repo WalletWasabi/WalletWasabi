@@ -1,11 +1,12 @@
 ﻿using NBitcoin;
 using ReactiveUI;
+using System.Reactive;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
 	internal class GenerateWalletSuccessViewModel : CategoryViewModel
-	{ 
+	{
 		private string _mnemonicWords;
 
 		public GenerateWalletSuccessViewModel(WalletManagerViewModel owner, Mnemonic mnemonic) : base("Wallet Generated Successfully!")
@@ -24,7 +25,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _mnemonicWords, value);
 		}
 
-		public ReactiveCommand ConfirmCommand { get; }
+		public ReactiveCommand<Unit, Unit> ConfirmCommand { get; }
 
 		public override void OnCategorySelected()
 		{

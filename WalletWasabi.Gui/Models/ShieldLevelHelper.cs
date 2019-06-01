@@ -16,14 +16,40 @@ namespace WalletWasabi.Gui.Models
 
 		public static TargetPrivacy GetTargetPrivacy(int? mixUntilAnonymitySet)
 		{
-			if (mixUntilAnonymitySet == Global.Config.PrivacyLevelSome) return TargetPrivacy.Some;
-			if (mixUntilAnonymitySet == Global.Config.PrivacyLevelFine) return TargetPrivacy.Fine;
-			if (mixUntilAnonymitySet == Global.Config.PrivacyLevelStrong) return TargetPrivacy.Strong;
+			if (mixUntilAnonymitySet == Global.Config.PrivacyLevelSome)
+			{
+				return TargetPrivacy.Some;
+			}
+
+			if (mixUntilAnonymitySet == Global.Config.PrivacyLevelFine)
+			{
+				return TargetPrivacy.Fine;
+			}
+
+			if (mixUntilAnonymitySet == Global.Config.PrivacyLevelStrong)
+			{
+				return TargetPrivacy.Strong;
+			}
 			//the levels changed in the config file, adjust
-			if (mixUntilAnonymitySet < Global.Config.PrivacyLevelSome) return TargetPrivacy.None; //choose the lower
-			if (mixUntilAnonymitySet < Global.Config.PrivacyLevelFine) return TargetPrivacy.Some;
-			if (mixUntilAnonymitySet < Global.Config.PrivacyLevelStrong) return TargetPrivacy.Fine;
-			if (mixUntilAnonymitySet > Global.Config.PrivacyLevelFine) return TargetPrivacy.Strong;
+			if (mixUntilAnonymitySet < Global.Config.PrivacyLevelSome)
+			{
+				return TargetPrivacy.None; //choose the lower
+			}
+
+			if (mixUntilAnonymitySet < Global.Config.PrivacyLevelFine)
+			{
+				return TargetPrivacy.Some;
+			}
+
+			if (mixUntilAnonymitySet < Global.Config.PrivacyLevelStrong)
+			{
+				return TargetPrivacy.Fine;
+			}
+
+			if (mixUntilAnonymitySet > Global.Config.PrivacyLevelFine)
+			{
+				return TargetPrivacy.Strong;
+			}
 
 			return TargetPrivacy.None;
 		}

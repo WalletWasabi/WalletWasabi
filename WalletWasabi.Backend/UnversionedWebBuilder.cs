@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,11 +8,11 @@ namespace WalletWasabi.Backend
 {
 	public static class UnversionedWebBuilder
 	{
-#if DEBUG
-		public static string RootFolder { get; } = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\wwwroot"));
-#else
-		public static string RootFolder { get; } = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "wwwroot"));
-#endif
+		public static string DebugRootFolder { get; } = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\wwwroot"));
+		public static string PublishedRootFolder { get; } = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "wwwroot"));
+
+		public static string RootFolder { get; } = Directory.Exists(PublishedRootFolder) ? PublishedRootFolder : DebugRootFolder;
+
 		public static string UnversionedFolder { get; } = Path.GetFullPath(Path.Combine(RootFolder, "unversioned"));
 
 		public static string CreateFilePath(string fileName) => Path.Combine(UnversionedFolder, fileName);
@@ -39,21 +39,6 @@ namespace WalletWasabi.Backend
 			content = content.Replace("images/tor-browser.png", "images/chrome-browser.png", StringComparison.Ordinal);
 
 			File.WriteAllText(onionPath, content);
-		}
-
-		public static void UpdateMixedTextHtml(Money amount)
-		{
-			var filePath = CreateFilePath("mixed-text.html");
-
-			var moneyString = amount.ToString(false, false);
-			int index = moneyString.IndexOf(".");
-			if (index > 0)
-			{
-				moneyString = moneyString.Substring(0, index);
-			}
-			var content = HtmlStartLine + $"<h2 class=\"text-center\">Wasabi made over <span style=\"padding-left:5px; padding-right:5px; display:inline-block\" class=\"inline border border-dark rounded bg-muted\">{moneyString} BTC</span> fungible since August 1, 2018.</h2>";
-
-			File.WriteAllText(filePath, content);
 		}
 
 		public static void UpdateCoinJoinsHtml(IEnumerable<string> coinJoins)

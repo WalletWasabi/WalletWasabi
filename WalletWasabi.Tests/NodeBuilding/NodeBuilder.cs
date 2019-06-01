@@ -1,14 +1,18 @@
-﻿using Nito.AsyncEx;
+using NBitcoin;
+using NBitcoin.RPC;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using WalletWasabi.Logging;
 using WalletWasabi.Tests.XunitConfiguration;
 
 namespace WalletWasabi.Tests.NodeBuilding
@@ -18,15 +22,13 @@ namespace WalletWasabi.Tests.NodeBuilding
 		public static readonly AsyncLock Lock = new AsyncLock();
 		public static string WorkingDirectory { get; private set; }
 
-		public static async Task<NodeBuilder> CreateAsync([CallerMemberName]string caller = null, string version = "0.17.1")
+		public static async Task<NodeBuilder> CreateAsync([CallerMemberName]string caller = null, string version = "0.18.0")
 		{
 			using (await Lock.LockAsync())
 			{
-				WorkingDirectory = Path.Combine(SharedFixture.DataDir, caller);
-				version = version ?? "0.17.1";
+				WorkingDirectory = Path.Combine(Global.DataDir, caller);
+				version = version ?? "0.18.0";
 				var path = await EnsureDownloadedAsync(version);
-				await TryRemoveWorkingDirectoryAsync();
-				Directory.CreateDirectory(WorkingDirectory);
 				return new NodeBuilder(WorkingDirectory, path);
 			}
 		}
@@ -39,6 +41,10 @@ namespace WalletWasabi.Tests.NodeBuilding
 			}
 			catch (DirectoryNotFoundException)
 			{
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError<NodeBuilder>(ex);
 			}
 		}
 
@@ -55,7 +61,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			string bitcoindFolderName = $"bitcoin-{version}";
 
 			// Remove old bitcoind folders.
-			IEnumerable<string> existingBitcoindFolderPaths = Directory.EnumerateDirectories(SharedFixture.DataDir, "bitcoin-*", SearchOption.TopDirectoryOnly);
+			IEnumerable<string> existingBitcoindFolderPaths = Directory.EnumerateDirectories(Global.DataDir, "bitcoin-*", SearchOption.TopDirectoryOnly);
 			foreach (string dirPath in existingBitcoindFolderPaths)
 			{
 				string dirName = Path.GetFileName(dirPath);
@@ -67,13 +73,13 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				bitcoind = Path.Combine(SharedFixture.DataDir, bitcoindFolderName, "bin", "bitcoind.exe");
+				bitcoind = Path.Combine(Global.DataDir, bitcoindFolderName, "bin", "bitcoind.exe");
 				if (File.Exists(bitcoind))
 				{
 					return bitcoind;
 				}
 
-				zip = Path.Combine(SharedFixture.DataDir, $"bitcoin-{version}-win32.zip");
+				zip = Path.Combine(Global.DataDir, $"bitcoin-{version}-win64.zip");
 				string url = string.Format("https://bitcoincore.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
 				using (var client = new HttpClient())
 				{
@@ -85,15 +91,15 @@ namespace WalletWasabi.Tests.NodeBuilding
 			}
 			else
 			{
-				bitcoind = Path.Combine(SharedFixture.DataDir, bitcoindFolderName, "bin", "bitcoind");
+				bitcoind = Path.Combine(Global.DataDir, bitcoindFolderName, "bin", "bitcoind");
 				if (File.Exists(bitcoind))
 				{
 					return bitcoind;
 				}
 
 				zip = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ?
-					Path.Combine(SharedFixture.DataDir, $"bitcoin-{version}-x86_64-linux-gnu.tar.gz")
-					: Path.Combine(SharedFixture.DataDir, $"bitcoin-{version}-osx64.tar.gz");
+					Path.Combine(Global.DataDir, $"bitcoin-{version}-x86_64-linux-gnu.tar.gz")
+					: Path.Combine(Global.DataDir, $"bitcoin-{version}-osx64.tar.gz");
 
 				string url = string.Format("https://bitcoincore.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
 				using (var client = new HttpClient())
@@ -102,7 +108,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 					var data = await client.GetByteArrayAsync(url);
 					await File.WriteAllBytesAsync(zip, data);
 
-					using (var process = Process.Start("tar", "-zxvf " + zip + " -C " + SharedFixture.DataDir))
+					using (var process = Process.Start("tar", "-zxvf " + zip + " -C " + Global.DataDir))
 					{
 						process.WaitForExit();
 					}
@@ -112,12 +118,12 @@ namespace WalletWasabi.Tests.NodeBuilding
 			return bitcoind;
 		}
 
-		private int _last = 0;
-		private readonly string _root;
+		private int Last { get; set; }
+		private string Root { get; }
 
 		public NodeBuilder(string root, string bitcoindPath)
 		{
-			_root = root;
+			Root = root;
 			BitcoinD = bitcoindPath;
 		}
 
@@ -127,11 +133,52 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		public async Task<CoreNode> CreateNodeAsync(bool start = false)
 		{
-			var child = Path.Combine(_root, _last.ToString());
-			_last++;
+			var child = Path.Combine(Root, Last.ToString());
+			Last++;
 			try
 			{
+				var cfgPath = Path.Combine(child, "data", "bitcoin.conf");
+				if (File.Exists(cfgPath))
+				{
+					var config = NodeConfigParameters.Load(cfgPath);
+					var rpcPort = config["regtest.rpcport"];
+					var rpcUser = config["regtest.rpcuser"];
+					var rpcPassword = config["regtest.rpcpassword"];
+					var pidFileName = config["regtest.pid"];
+					var credentials = new NetworkCredential(rpcUser, rpcPassword);
+
+					try
+					{
+						var rpc = new RPCClient(credentials, new Uri("http://127.0.0.1:" + rpcPort + "/"), Network.RegTest);
+						await rpc.StopAsync();
+
+						var pidFile = Path.Combine(child, "data", "regtest", pidFileName);
+						if (File.Exists(pidFile))
+						{
+							var pid = File.ReadAllText(pidFile);
+							using (var process = Process.GetProcessById(int.Parse(pid)))
+							{
+								process.WaitForExit();
+							}
+						}
+						else
+						{
+							var allProcesses = Process.GetProcesses();
+							var bitcoindProcesses = allProcesses.Where(x => x.ProcessName.Contains("bitcoind"));
+							if (bitcoindProcesses.Count() == 1)
+							{
+								var bitcoind = bitcoindProcesses.First();
+								bitcoind.WaitForExit();
+							}
+						}
+					}
+					catch (Exception)
+					{
+					}
+				}
 				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(child);
+				await TryRemoveWorkingDirectoryAsync();
+				Directory.CreateDirectory(WorkingDirectory);
 			}
 			catch (DirectoryNotFoundException)
 			{
@@ -157,22 +204,22 @@ namespace WalletWasabi.Tests.NodeBuilding
 		{
 			foreach (CoreNode node in Nodes)
 			{
-				node.Kill();
+				node?.TryKillAsync().GetAwaiter().GetResult();
 			}
 
-			foreach (IDisposable disposable in _disposables)
+			foreach (IDisposable disposable in Disposables)
 			{
-				disposable.Dispose();
+				disposable?.Dispose();
 			}
 
 			TryRemoveWorkingDirectoryAsync().GetAwaiter().GetResult();
 		}
 
-		private List<IDisposable> _disposables = new List<IDisposable>();
+		private List<IDisposable> Disposables { get; } = new List<IDisposable>();
 
 		internal void AddDisposable(IDisposable group)
 		{
-			_disposables.Add(group);
+			Disposables.Add(group);
 		}
 	}
 }

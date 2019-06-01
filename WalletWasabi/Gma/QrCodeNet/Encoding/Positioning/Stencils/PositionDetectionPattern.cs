@@ -7,7 +7,7 @@
 		{
 		}
 
-		private static readonly bool[,] S_PositionDetection = new[,]
+		private static bool[,] PositionDetection { get; } = new[,]
 																		 {
 																			 { O, O, O, O, O, O, O, O, O },
 																			 { O, X, X, X, X, X, X, X, O },
@@ -20,7 +20,7 @@
 																			 { O, O, O, O, O, O, O, O, O }
 																		 };
 
-		public override bool[,] Stencil => S_PositionDetection;
+		public override bool[,] Stencil => PositionDetection;
 
 		public override void ApplyTo(TriStateMatrix matrix)
 		{

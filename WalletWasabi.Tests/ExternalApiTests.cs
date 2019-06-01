@@ -16,15 +16,8 @@ using Xunit;
 
 namespace WalletWasabi.Tests
 {
-	public class ExternalApiTests : IClassFixture<SharedFixture>
+	public class ExternalApiTests
 	{
-		public SharedFixture SharedFixture { get; }
-
-		public ExternalApiTests(SharedFixture sharedFixture)
-		{
-			SharedFixture = sharedFixture;
-		}
-
 		[Theory]
 		[InlineData("test")]
 		[InlineData("main")]

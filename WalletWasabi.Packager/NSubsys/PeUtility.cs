@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace NSubsys
 {
@@ -221,10 +221,7 @@ namespace NSubsys
 			[FieldOffset(36)]
 			public DataSectionFlags Characteristics;
 
-			public string Section
-			{
-				get { return new string(Name); }
-			}
+			public string Section => new string(Name);
 		}
 
 		[Flags]
@@ -465,7 +462,7 @@ namespace NSubsys
 			// Add 4 bytes to the offset
 			Stream.Seek(_dosHeader.e_lfanew, SeekOrigin.Begin);
 
-			uint ntHeadersSignature = reader.ReadUInt32();
+			reader.ReadUInt32(); // ntHeadersSignature
 			FileHeader = FromBinaryReader<IMAGE_FILE_HEADER>(reader);
 			MainHeaderOffset = Stream.Position;
 			if (Is32BitHeader)
@@ -506,7 +503,7 @@ namespace NSubsys
 
 		public void Dispose()
 		{
-			Stream.Dispose();
+			Stream?.Dispose();
 		}
 
 		#endregion Public Methods

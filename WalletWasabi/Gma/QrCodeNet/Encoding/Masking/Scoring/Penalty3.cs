@@ -33,13 +33,15 @@
 							j += 4;
 						}
 						else
+						{
 							j += 4;
+						}
 					}
 					else
 					{
 						for (int num = 4; num > 0; num--)
 						{
-							bit = bit = isHorizontal ? matrix[j + num, i]
+							bit = isHorizontal ? matrix[j + num, i]
 								: matrix[i, j + num];
 							if (!bit)
 							{
@@ -47,7 +49,9 @@
 								break;
 							}
 							if (num == 1)
+							{
 								j += 5;
+							}
 						}
 					}
 				}
@@ -65,19 +69,29 @@
 				bit = isHorizontal ? matrix[j + num, i]
 					: matrix[i, j + num];
 				if (!bit)
+				{
 					return 0;
+				}
 			}
 			//Check for left side and right side x ( xoxxxox ).
 			if ((j - 1) < 0 || (j + 1) >= matrix.Width)
+			{
 				return 0;
+			}
+
 			bit = isHorizontal ? matrix[j + 5, i]
 				: matrix[i, j + 5];
 			if (!bit)
+			{
 				return 0;
+			}
+
 			bit = isHorizontal ? matrix[j - 1, i]
 				: matrix[i, j - 1];
 			if (!bit)
+			{
 				return 0;
+			}
 
 			if ((j - 5) >= 0)
 			{
@@ -86,9 +100,14 @@
 					bit = isHorizontal ? matrix[j + num, i]
 						: matrix[i, j + num];
 					if (bit)
+					{
 						break;
+					}
+
 					if (num == -5)
+					{
 						return 40;
+					}
 				}
 			}
 
@@ -99,12 +118,16 @@
 					bit = isHorizontal ? matrix[j + num, i]
 						: matrix[i, j + num];
 					if (bit)
+					{
 						return 0;
+					}
 				}
 				return 40;
 			}
 			else
+			{
 				return 0;
+			}
 		}
 	}
 }

@@ -21,11 +21,17 @@
 			int mid = (lowBoundary + highBoundary) / 2;
 			int shiftResult = num >> mid;
 			if (shiftResult == 1)
+			{
 				return mid;
+			}
 			else if (shiftResult < 1)
+			{
 				return BinarySearchPos(num, lowBoundary, mid);
+			}
 			else
+			{
 				return BinarySearchPos(num, mid, highBoundary);
+			}
 		}
 
 		/// <summary>

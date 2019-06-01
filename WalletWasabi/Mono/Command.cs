@@ -158,6 +158,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Mono.Options
 {
@@ -174,7 +175,9 @@ namespace Mono.Options
 		public Command(string name, string help = null)
 		{
 			if (string.IsNullOrEmpty(name))
+			{
 				throw new ArgumentNullException(nameof(name));
+			}
 
 			Name = NormalizeCommandName(name);
 			Help = help;
@@ -200,11 +203,11 @@ namespace Mono.Options
 			return value.ToString();
 		}
 
-		public virtual int Invoke(IEnumerable<string> arguments)
+		public virtual Task<int> InvokeAsync(IEnumerable<string> arguments)
 		{
 			var rest = Options?.Parse(arguments) ?? arguments;
 			Run?.Invoke(rest);
-			return 0;
+			return Task.FromResult(0);
 		}
 	}
 }

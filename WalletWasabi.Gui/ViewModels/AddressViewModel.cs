@@ -12,15 +12,14 @@ namespace WalletWasabi.Gui.ViewModels
 {
 	public class AddressViewModel : ViewModelBase, IDisposable
 	{
+		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
+
 		private bool _isExpanded;
 		private bool[,] _qrCode;
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
-		private long _copyNotificationsInprocess = 0;
 
 		public HdPubKey Model { get; }
-
-		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 
 		public AddressViewModel(HdPubKey model)
 		{
@@ -42,8 +41,8 @@ namespace WalletWasabi.Gui.ViewModels
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
-				this.RaisePropertyChanged(nameof(AddressPrivate));
-				this.RaisePropertyChanged(nameof(LabelPrivate));
+				this.RaisePropertyChanged(nameof(Address));
+				this.RaisePropertyChanged(nameof(Label));
 			}).DisposeWith(Disposables);
 		}
 
@@ -67,11 +66,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public string Label => Model.Label;
 
-		public string LabelPrivate => Global.UiConfig.LurkingWifeMode == true ? "###########" : Label;
-
 		public string Address => Model.GetP2wpkhAddress(Global.Network).ToString();
-
-		public string AddressPrivate => Global.UiConfig.LurkingWifeMode == true ? "###########################" : Address;
 
 		public string Pubkey => Model.PubKey.ToString();
 
@@ -83,34 +78,47 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _qrCode, value);
 		}
 
-		public void CopyToClipboard()
+		public CancellationTokenSource CancelClipboardNotification { get; set; }
+
+		public async Task TryCopyToClipboardAsync()
 		{
-			Application.Current.Clipboard.SetTextAsync(Address).GetAwaiter().GetResult();
-
-			Interlocked.Increment(ref _copyNotificationsInprocess);
-			ClipboardNotificationVisible = true;
-			ClipboardNotificationOpacity = 1;
-
-			Dispatcher.UIThread.PostLogException(async () =>
+			try
 			{
-				try
+				CancelClipboardNotification?.Cancel();
+				while (CancelClipboardNotification != null)
 				{
-					await Task.Delay(1000);
-					if (Interlocked.Read(ref _copyNotificationsInprocess) <= 1)
-					{
-						ClipboardNotificationOpacity = 0;
-						await Task.Delay(1000);
-						if (Interlocked.Read(ref _copyNotificationsInprocess) <= 1)
-						{
-							ClipboardNotificationVisible = false;
-						}
-					}
+					await Task.Delay(50);
 				}
-				finally
-				{
-					Interlocked.Decrement(ref _copyNotificationsInprocess);
-				}
-			});
+				CancelClipboardNotification = new CancellationTokenSource();
+
+				var cancelToken = CancelClipboardNotification.Token;
+
+				await Application.Current.Clipboard.SetTextAsync(Address);
+				cancelToken.ThrowIfCancellationRequested();
+
+				ClipboardNotificationVisible = true;
+				ClipboardNotificationOpacity = 1;
+
+				await Task.Delay(1000, cancelToken);
+				ClipboardNotificationOpacity = 0;
+				await Task.Delay(1000, cancelToken);
+				ClipboardNotificationVisible = false;
+			}
+			catch (Exception ex) when (ex is OperationCanceledException
+									|| ex is TaskCanceledException
+									|| ex is TimeoutException)
+			{
+				Logging.Logger.LogTrace<AddressViewModel>(ex);
+			}
+			catch (Exception ex)
+			{
+				Logging.Logger.LogWarning<AddressViewModel>(ex);
+			}
+			finally
+			{
+				CancelClipboardNotification?.Dispose();
+				CancelClipboardNotification = null;
+			}
 		}
 
 		#region IDisposable Support

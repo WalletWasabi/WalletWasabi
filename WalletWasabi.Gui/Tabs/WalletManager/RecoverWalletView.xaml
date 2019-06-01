@@ -8,11 +8,11 @@
         <StackPanel Spacing="8">
           <StackPanel>
             <TextBlock Text="Heads Up!" FontWeight="Bold" />
-            <TextBlock Text="At recovery, the wallet is unable to check if your password is correct or not. If you provide the wrong password, a wallet will be recovered with the provided mnemonic and password combination." TextWrapping="Wrap" />
+            <TextBlock Text="At recovery, the wallet is unable to check if your password is correct or not. If you provide the wrong password, a wallet will be recovered with the provided Recovery Words and password combination." TextWrapping="Wrap" />
           </StackPanel>
           <controls:ExtendedTextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
           <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" />
-          <controls:ExtendedTextBox Text="{Binding MnemonicWords}" Watermark="MnemonicWords" UseFloatingWatermark="True" CaretIndex="{Binding CaretIndex, Mode=TwoWay}">
+          <controls:ExtendedTextBox Text="{Binding MnemonicWords}" Watermark="Recovery Words" UseFloatingWatermark="True" CaretIndex="{Binding CaretIndex, Mode=TwoWay}">
             <i:Interaction.Behaviors>
               <behaviors:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />
             </i:Interaction.Behaviors>
@@ -29,6 +29,18 @@
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
+          <StackPanel Spacing="16">
+            <CheckBox IsChecked="{Binding ShowAdvancedOptions, Mode=TwoWay}">
+              <TextBlock Text="Show Advanced Options" />
+            </CheckBox>
+            <StackPanel IsVisible="{Binding ShowAdvancedOptions}">
+              <controls:ExtendedTextBox Text="{Binding AccountKeyPath}" Watermark="Account Key Path" UseFloatingWatermark="True" />
+              <TextBlock Text="Note that, Wasabi can only monitor native SegWit (bech32) addresses." Classes="warningMessage" />
+            </StackPanel>
+            <StackPanel IsVisible="{Binding ShowAdvancedOptions}">
+              <controls:ExtendedTextBox Text="{Binding MinGapLimit}" Watermark="Minimum Gap Limit" UseFloatingWatermark="True" />
+            </StackPanel>
+          </StackPanel>
         </StackPanel>
       </Grid>
     </controls:GroupBox>

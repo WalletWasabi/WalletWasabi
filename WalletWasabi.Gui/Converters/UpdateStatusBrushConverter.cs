@@ -1,8 +1,8 @@
-﻿using System;
-using System.Globalization;
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using System;
+using System.Globalization;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Converters

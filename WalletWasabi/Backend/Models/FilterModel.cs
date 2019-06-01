@@ -61,29 +61,34 @@ namespace WalletWasabi.Backend.Models
 			Guard.NotNullOrEmptyOrWhitespace(nameof(line), line);
 			string[] parts = line.Split(':');
 
+			GolombRiceFilter filter;
 			if (parts.Length <= 1)
 			{
 				throw new ArgumentException(nameof(line), line);
 			}
 			else if (parts.Length == 2) // no bech here
 			{
-				return new FilterModel
-				{
-					BlockHeight = new Height(parts[0]),
-					BlockHash = new uint256(parts[1]),
-					Filter = null
-				};
+				filter = null;
+			}
+			else
+			{
+				var data = Encoders.Hex.DecodeData(parts[2]);
+				filter = new GolombRiceFilter(data, 20, 1 << 20);
 			}
 
-			var data = Encoders.Hex.DecodeData(parts[2]);
-			var filter = new GolombRiceFilter(data, 20, 1 << 20);
-
-			return new FilterModel
+			if (Height.TryParse(parts[0], out Height blockHeight))
 			{
-				BlockHeight = new Height(parts[0]),
-				BlockHash = new uint256(parts[1]),
-				Filter = filter
-			};
+				return new FilterModel
+				{
+					BlockHeight = blockHeight,
+					BlockHash = new uint256(parts[1]),
+					Filter = filter
+				};
+			}
+			else
+			{
+				throw new FormatException("Couldn't parse Height.");
+			}
 		}
 
 		public static FilterModel FromHeightlessLine(string line, Height height)

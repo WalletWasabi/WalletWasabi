@@ -209,7 +209,10 @@ namespace Mono.Options
 								c = line[i];
 
 								if (c == end)
+								{
 									break;
+								}
+
 								arg.Append(c);
 							}
 						}
@@ -222,7 +225,9 @@ namespace Mono.Options
 							}
 						}
 						else
+						{
 							arg.Append(c);
+						}
 					}
 					if (arg.Length > 0)
 					{
@@ -234,7 +239,9 @@ namespace Mono.Options
 			finally
 			{
 				if (close)
-					reader.Dispose();
+				{
+					reader?.Dispose();
+				}
 			}
 		}
 	}

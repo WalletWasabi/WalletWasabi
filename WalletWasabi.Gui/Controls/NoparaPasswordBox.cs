@@ -1,12 +1,16 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Styling;
+using ReactiveUI;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
+using System.Reactive;
+using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,9 +21,9 @@ namespace WalletWasabi.Gui.Controls
 {
 	public class NoparaPasswordBox : ExtendedTextBox, IStyleable
 	{
-		Type IStyleable.StyleKey => typeof(TextBox);
+		Type IStyleable.StyleKey => typeof(NoparaPasswordBox);
 
-		public static readonly string[] Titles =
+		public static string[] Titles { get; } =
 		{
 			"这个笨老外不知道自己在写什么。", // This silly foreigner does not know what he is writing.
 			"法式炸薯条法式炸薯条法式炸薯条", //French fries, french fries, french fries
@@ -31,15 +35,16 @@ namespace WalletWasabi.Gui.Controls
 			"如果你是只宠物小精灵，我就选你。" //If you were a Pokemon, I'd choose you.
 		};
 
-		private static readonly Key[] SuppressedKeys =
+		private static Key[] SuppressedKeys { get; } =
 			{ Key.LeftCtrl, Key.RightCtrl, Key.LeftAlt, Key.RightAlt, Key.LeftShift, Key.RightShift, Key.Escape, Key.CapsLock, Key.NumLock, Key.LWin, Key.RWin,
 			Key.Left,Key.Right,Key.Up,Key.Down  };
 
 		private bool _supressChanges;
 		private string _displayText = "";
-		private Random _random = new Random();
-		private StringBuilder _sb = new StringBuilder();
-		private HashSet<Key> _supressedKeys;
+		private Random Random { get; } = new Random();
+		private StringBuilder Sb { get; } = new StringBuilder();
+		private HashSet<Key> SupressedKeys { get; }
+		private Button _presenter;
 
 		public int SelectionLength => Math.Abs(SelectionEnd - SelectionStart);
 
@@ -61,6 +66,15 @@ namespace WalletWasabi.Gui.Controls
 			set => SetValue(FixedPasswordTextProperty, value);
 		}
 
+		public static readonly StyledProperty<bool> IsPasswordVisibleProperty =
+			AvaloniaProperty.Register<NoparaPasswordBox, bool>(nameof(IsPasswordVisible), defaultBindingMode: BindingMode.TwoWay);
+
+		public bool IsPasswordVisible
+		{
+			get => GetValue(IsPasswordVisibleProperty);
+			set => SetValue(IsPasswordVisibleProperty, value);
+		}
+
 		protected override bool IsCopyEnabled => false;
 
 		public NoparaPasswordBox()
@@ -68,10 +82,14 @@ namespace WalletWasabi.Gui.Controls
 			this.GetObservable(PasswordProperty).Subscribe(x =>
 			{
 				Password = x;
-				if (string.IsNullOrEmpty(x)) //clean the passwordbox
+				if (string.IsNullOrEmpty(x)) // Clean the password box.
 				{
-					_sb.Clear();
-					OnTextInput(x);
+					Sb.Clear();
+				}
+				else
+				{
+					Sb.Clear();
+					Sb.Append(Password);
 				}
 			});
 
@@ -80,16 +98,30 @@ namespace WalletWasabi.Gui.Controls
 				FixedPasswordText = x;
 			});
 
-			string fontName = "SimSun"; //https://docs.microsoft.com/en-us/typography/font-list/simsun
+			this.GetObservable(IsPasswordVisibleProperty).Subscribe(x =>
+			{
+				IsPasswordVisible = x;
+			});
+
+			this.WhenAnyValue(x => x.IsPasswordVisible).Subscribe(IsVisible =>
+			{
+				PaintText();
+			});
+
+			this.WhenAnyValue(x => x.Password).Subscribe(passw =>
+			{
+				PaintText();
+			});
+
+			string fontName = "SimSun"; // https://docs.microsoft.com/en-us/typography/font-list/simsun
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				fontName = "PingFang TC"; //https://en.wikipedia.org/wiki/List_of_typefaces_included_with_macOS
+				fontName = "PingFang TC"; // https://en.wikipedia.org/wiki/List_of_typefaces_included_with_macOS
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				fontName = "Noto Sans CJK TC"; //https://www.pinyinjoe.com/linux/ubuntu-10-chinese-fonts-openoffice-language-features.htm
-											   //The best and simplest way is to use console command (this command should be available for all ubuntu-based distributions)
-											   //fc - list
+				fontName = "Noto Sans CJK TC"; // https://www.pinyinjoe.com/linux/ubuntu-10-chinese-fonts-openoffice-language-features.htm
+											   // The best and simplest way is to use console command (this command should be available for all ubuntu-based distributions).
 			}
 
 			try
@@ -97,7 +129,7 @@ namespace WalletWasabi.Gui.Controls
 				var fontTester = SKTypeface.FromFamilyName(fontName);
 				if (fontTester.FamilyName == fontName)
 				{
-					FontFamily = FontFamily.Parse(fontName); //use the font
+					FontFamily = FontFamily.Parse(fontName); // Use the font.
 				}
 				else
 				{
@@ -106,30 +138,16 @@ namespace WalletWasabi.Gui.Controls
 			}
 			catch (Exception)
 			{
-				PasswordChar = '*'; //use passwordchar instead
+				PasswordChar = '*'; // Use password char instead.
 			}
-			_supressedKeys = new HashSet<Key>(SuppressedKeys);
+			SupressedKeys = new HashSet<Key>(SuppressedKeys);
 			RefreshCapsLockWarning();
 		}
 
 		private void RefreshCapsLockWarning()
 		{
+			// Waiting for Avalonia to implement detection of Caps-Lock button state.
 			return;
-			//if (Console.CapsLock) //only runs properly on windows!
-			//{
-			//	ToolTip.SetTip(this, "Caps lock on!");
-			//	ToolTip.SetPlacement(this, PlacementMode.Bottom);
-			//	if (IsFocused)
-			//	{
-			//		ToolTip.SetIsOpen(this, true);
-			//	}
-			//}
-			//else
-			//{
-			//	ToolTip.SetTip(this, null);
-			//	ToolTip.SetPlacement(this, PlacementMode.Pointer);
-			//	ToolTip.SetIsOpen(this, false);
-			//}
 		}
 
 		private void GenerateNewRandomSequence()
@@ -142,18 +160,24 @@ namespace WalletWasabi.Gui.Controls
 				{
 					ls.AddRange(Titles);
 				}
-				else ls.Add(FixedPasswordText);
+				else
+				{
+					ls.Add(FixedPasswordText);
+				}
 
 				do
 				{
-					var s = ls[_random.Next(0, ls.Count - 1)];
+					var s = ls[Random.Next(0, ls.Count - 1)];
 					sb.Append(s);
 					ls.Remove(s);
-					if (sb.Length >= Constants.MaxPasswordLength) break;
+					if (sb.Length >= Constants.MaxPasswordLength)
+					{
+						break;
+					}
 				}
 				while (ls.Count > 0);
 			}
-			while (sb.Length < Constants.MaxPasswordLength); //generate more text using the same sentences
+			while (sb.Length < Constants.MaxPasswordLength); // Generate more text using the same sentences.
 			_displayText = sb.ToString();
 		}
 
@@ -161,15 +185,15 @@ namespace WalletWasabi.Gui.Controls
 		{
 			try
 			{
-				if (e.Key == Key.Capital || e.Key == Key.CapsLock) //on windows capslock is Key.Capital
+				if (e.Key == Key.Capital || e.Key == Key.CapsLock) // On windows Caps-Lock is Key.Capital.
 				{
 					RefreshCapsLockWarning();
 				}
-				if (_supressedKeys.Contains(e.Key))
+				if (SupressedKeys.Contains(e.Key))
 				{
 					return;
 				}
-				//prevent copy
+				// Prevent copy.
 				if ((e.Key == Key.C || e.Key == Key.X || e.Key == Key.Insert) && (e.Modifiers == InputModifiers.Control || e.Modifiers == InputModifiers.Windows))
 				{
 					return;
@@ -177,7 +201,7 @@ namespace WalletWasabi.Gui.Controls
 
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 				{
-					if (e.Key == Key.V && e.Modifiers == InputModifiers.Control) //prevent paste
+					if (e.Key == Key.V && e.Modifiers == InputModifiers.Control) // Prevent paste.
 					{
 						return;
 					}
@@ -188,50 +212,54 @@ namespace WalletWasabi.Gui.Controls
 				{
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 					{
-						if (e.Modifiers == InputModifiers.Windows) paste = true;
+						if (e.Modifiers == InputModifiers.Windows)
+						{
+							paste = true;
+						}
 					}
 					else
 					{
-						if (e.Modifiers == InputModifiers.Control) paste = true;
+						if (e.Modifiers == InputModifiers.Control)
+						{
+							paste = true;
+						}
 					}
 				}
 
-				if (paste) //paste
+				if (paste)
 				{
-					var clipboard = (IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard));
-					Task<string> clipboardTask = clipboard.GetTextAsync();
-					string text = await clipboardTask;
+					string text = await Application.Current.Clipboard.GetTextAsync();
 					if (!string.IsNullOrEmpty(text))
 					{
 						e.Handled = OnTextInput(text);
 					}
 				}
-				else if (e.Key == Key.Back && _sb.Length > 0) //backspace button -> delete from the end
+				else if (e.Key == Key.Back && Sb.Length > 0) // Backspace button -> delete from the end.
 				{
 					if (SelectionLength != 0)
 					{
-						_sb.Clear();
+						Sb.Clear();
 					}
 					else
 					{
 						if (CaretIndex == Text.Length)
 						{
-							_sb.Remove(_sb.Length - 1, 1);
+							Sb.Remove(Sb.Length - 1, 1);
 						}
 					}
 					e.Handled = true;
 				}
-				else if (e.Key == Key.Delete && _sb.Length > 0) //delete button -> delete from the beginning
+				else if (e.Key == Key.Delete && Sb.Length > 0) //Delete button -> delete from the beginning.
 				{
 					if (SelectionLength != 0)
 					{
-						_sb.Clear();
+						Sb.Clear();
 					}
 					else
 					{
 						if (CaretIndex == 0)
 						{
-							_sb.Remove(0, 1);
+							Sb.Remove(0, 1);
 						}
 					}
 					e.Handled = true;
@@ -239,7 +267,10 @@ namespace WalletWasabi.Gui.Controls
 				else
 				{
 					if (SelectionLength != 0)
-						_sb.Clear();
+					{
+						Sb.Clear();
+					}
+
 					base.OnKeyDown(e);
 				}
 				PaintText();
@@ -257,21 +288,32 @@ namespace WalletWasabi.Gui.Controls
 
 		private bool OnTextInput(string text)
 		{
-			if (_supressChanges) return true; //avoid recursive calls
+			if (_supressChanges)
+			{
+				return true; // Avoid recursive calls.
+			}
+
 			bool handledCorrectly = true;
 			if (SelectionLength != 0)
 			{
-				_sb.Clear();
-				_supressChanges = true; //avoid recursive calls
+				Sb.Clear();
+				_supressChanges = true; // Avoid recursive calls.
 				SelectionStart = SelectionEnd = CaretIndex = 0;
 				_supressChanges = false;
 			}
-			if (CaretIndex == 0) _sb.Insert(0, text);
-			else _sb.Append(text);
-			if (_sb.Length > Constants.MaxPasswordLength) //ensure the maximum length
+			if (CaretIndex == 0)
 			{
-				_sb.Remove(Constants.MaxPasswordLength, _sb.Length - Constants.MaxPasswordLength);
-				handledCorrectly = false; //should play beep sound not working on windows
+				Sb.Insert(0, text);
+			}
+			else
+			{
+				Sb.Append(text);
+			}
+
+			if (Sb.Length > Constants.MaxPasswordLength) // Ensure the maximum length.
+			{
+				Sb.Remove(Constants.MaxPasswordLength, Sb.Length - Constants.MaxPasswordLength);
+				handledCorrectly = false; // Should play beep sound not working on windows.
 			}
 			PaintText();
 			return handledCorrectly;
@@ -279,7 +321,10 @@ namespace WalletWasabi.Gui.Controls
 
 		protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs e)
 		{
-			if (_supressChanges) return;
+			if (_supressChanges)
+			{
+				return;
+			}
 
 			if (e.Property.Name == nameof(CaretIndex))
 			{
@@ -300,21 +345,29 @@ namespace WalletWasabi.Gui.Controls
 				}
 			}
 			else
+			{
 				base.OnPropertyChanged(e);
+			}
 		}
 
 		private void PaintText()
 		{
-			if(string.IsNullOrEmpty(_displayText))
+			if (string.IsNullOrEmpty(_displayText))
+			{
 				GenerateNewRandomSequence();
-				
-			Password = _sb.ToString();
-			Text = _displayText.Substring(0, _sb.Length);
+			}
+
+			Password = Sb.ToString();
+			Text = _displayText.Substring(0, Sb.Length);
+			if (IsPasswordVisible)
+			{
+				Text = Password;
+			}
 
 			_supressChanges = true;
 			try
 			{
-				//Text = Password; //for debugging
+				// Text = Password; //for debugging
 				CaretIndex = Text.Length;
 			}
 			finally
@@ -325,9 +378,25 @@ namespace WalletWasabi.Gui.Controls
 
 		protected override void OnGotFocus(GotFocusEventArgs e)
 		{
-			if (string.IsNullOrEmpty(Text)) GenerateNewRandomSequence();
+			if (string.IsNullOrEmpty(Text))
+			{
+				GenerateNewRandomSequence();
+			}
+
 			base.OnGotFocus(e);
 			RefreshCapsLockWarning();
+		}
+
+		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
+		{
+			base.OnTemplateApplied(e);
+			_presenter = e.NameScope.Get<Button>("PART_MaskedButton");
+
+			_presenter.WhenAnyValue(x => x.IsPressed)
+				.Subscribe(isPressed =>
+				{
+					IsPasswordVisible = isPressed;
+				});
 		}
 	}
 }

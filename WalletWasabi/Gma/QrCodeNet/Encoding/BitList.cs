@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Gma.QrCodeNet.Encoding
 {
@@ -54,7 +54,10 @@ namespace Gma.QrCodeNet.Encoding
 			get
 			{
 				if (index < 0 || index >= Count)
+				{
 					throw new ArgumentOutOfRangeException(nameof(index), "Index out of range");
+				}
+
 				int value_Renamed = List[index >> 3] & 0xff;
 				return ((value_Renamed >> (7 - (index & 0x7))) & 1) == 1;
 			}
@@ -70,7 +73,9 @@ namespace Gma.QrCodeNet.Encoding
 			int numBitsinLastByte = Count & 0x7;
 			//Add one more byte to List when we have no bits in the last byte.
 			if (numBitsinLastByte == 0)
+			{
 				List.Add(0);
+			}
 
 			List[Count >> 3] |= (byte)(ToBit(item) << (7 - numBitsinLastByte));
 			Count++;
@@ -87,7 +92,10 @@ namespace Gma.QrCodeNet.Encoding
 		internal void Add(int value, int bitCount)
 		{
 			if (bitCount < 0 || bitCount > 32)
+			{
 				throw new ArgumentOutOfRangeException(nameof(bitCount), "bitCount must greater or equal to 0");
+			}
+
 			int numBitsLeft = bitCount;
 
 			while (numBitsLeft > 0)

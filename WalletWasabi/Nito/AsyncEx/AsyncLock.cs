@@ -1,8 +1,8 @@
-﻿using System;
+using Nito.AsyncEx.Synchronous;
+using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Nito.AsyncEx.Synchronous;
 
 // Written by Stephen Cleary: https://github.com/StephenCleary/AsyncEx/blob/master/src/Nito.AsyncEx.Coordination/AsyncLock.cs
 // Original idea from Stephen Toub: http://blogs.msdn.com/b/pfxteam/archive/2012/02/12/10266988.aspx
@@ -13,7 +13,7 @@ namespace Nito.AsyncEx
 	/// A mutual exclusion lock that is compatible with async. Note that this lock is <b>not</b> recursive!
 	/// </summary>
 	/// <remarks>
-	/// <para>This is the <c>async</c>-ready almost-equivalent of the <c>lock</c> keyword or the <see cref="Mutex"/> type, similar to <a href="http://blogs.msdn.com/b/pfxteam/archive/2012/02/12/10266988.aspx">Stephen Toub's AsyncLock</a>. It's only <i>almost</i> equivalent because the <c>lock</c> keyword permits reentrancy, which is not currently possible to do with an <c>async</c>-ready lock.</para>
+	/// <para>This is the <c>async</c>-ready almost-equivalent of the <c>lock</c> keyword or the <see cref="System.Threading.Mutex"/> type, similar to <a href="http://blogs.msdn.com/b/pfxteam/archive/2012/02/12/10266988.aspx">Stephen Toub's AsyncLock</a>. It's only <i>almost</i> equivalent because the <c>lock</c> keyword permits reentrancy, which is not currently possible to do with an <c>async</c>-ready lock.</para>
 	/// <para>An <see cref="AsyncLock"/> is either taken or not. The lock can be asynchronously acquired by calling <see autoUpgrade="true" cref="LockAsync()"/>, and it is released by disposing the result of that task. <see cref="LockAsync(CancellationToken)"/> takes an optional <see cref="CancellationToken"/>, which can be used to cancel the acquiring of the lock.</para>
 	/// <para>The task returned from <see autoUpgrade="true" cref="LockAsync()"/> will enter the <c>Completed</c> state when it has acquired the <see cref="AsyncLock"/>. That same task will enter the <c>Canceled</c> state if the <see cref="CancellationToken"/> is signaled before the wait is satisfied; in that case, the <see cref="AsyncLock"/> is not taken by that task.</para>
 	/// <para>You can call <see cref="Lock(CancellationToken)"/> or <see cref="LockAsync(CancellationToken)"/> with an already-cancelled <see cref="CancellationToken"/> to attempt to acquire the <see cref="AsyncLock"/> immediately without actually entering the wait queue.</para>
@@ -55,7 +55,7 @@ namespace Nito.AsyncEx
 		/// <summary>
 		/// The queue of TCSs that other tasks are awaiting to acquire the lock.
 		/// </summary>
-		private readonly IAsyncWaitQueue<IDisposable> _queue;
+		private readonly IAsyncWaitQueue<IDisposable> Queue;
 
 		/// <summary>
 		/// The semi-unique identifier for this instance. This is 0 if the id has not yet been created.
@@ -65,7 +65,7 @@ namespace Nito.AsyncEx
 		/// <summary>
 		/// The object used for mutual exclusion.
 		/// </summary>
-		private readonly object _mutex;
+		private readonly object Mutex;
 
 		/// <summary>
 		/// Creates a new async-compatible mutual exclusion lock.
@@ -81,17 +81,14 @@ namespace Nito.AsyncEx
 		/// <param name="queue">The wait queue used to manage waiters. This may be <c>null</c> to use a default (FIFO) queue.</param>
 		public AsyncLock(IAsyncWaitQueue<IDisposable> queue)
 		{
-			_queue = queue ?? new DefaultAsyncWaitQueue<IDisposable>();
-			_mutex = new object();
+			Queue = queue ?? new DefaultAsyncWaitQueue<IDisposable>();
+			Mutex = new object();
 		}
 
 		/// <summary>
 		/// Gets a semi-unique identifier for this asynchronous lock.
 		/// </summary>
-		public int Id
-		{
-			get { return IdManager<AsyncLock>.GetId(ref _id); }
-		}
+		public int Id => IdManager<AsyncLock>.GetId(ref _id);
 
 		/// <summary>
 		/// Asynchronously acquires the lock. Returns a disposable that releases the lock when disposed.
@@ -100,7 +97,7 @@ namespace Nito.AsyncEx
 		/// <returns>A disposable that releases the lock when disposed.</returns>
 		private Task<IDisposable> RequestLockAsync(CancellationToken cancellationToken)
 		{
-			lock (_mutex)
+			lock (Mutex)
 			{
 				if (!_taken)
 				{
@@ -111,7 +108,7 @@ namespace Nito.AsyncEx
 				else
 				{
 					// Wait for the lock to become available or cancellation.
-					return _queue.Enqueue(_mutex, cancellationToken);
+					return Queue.Enqueue(Mutex, cancellationToken);
 				}
 			}
 		}
@@ -157,12 +154,16 @@ namespace Nito.AsyncEx
 		/// </summary>
 		internal void ReleaseLock()
 		{
-			lock (_mutex)
+			lock (Mutex)
 			{
-				if (_queue.IsEmpty)
+				if (Queue.IsEmpty)
+				{
 					_taken = false;
+				}
 				else
-					_queue.Dequeue(new Key(this));
+				{
+					Queue.Dequeue(new Key(this));
+				}
 			}
 		}
 
@@ -190,18 +191,18 @@ namespace Nito.AsyncEx
 		[DebuggerNonUserCode]
 		private sealed class DebugView
 		{
-			private readonly AsyncLock _mutex;
+			private readonly AsyncLock Mutex;
 
 			public DebugView(AsyncLock mutex)
 			{
-				_mutex = mutex;
+				Mutex = mutex;
 			}
 
-			public int Id { get { return _mutex.Id; } }
+			public int Id => Mutex.Id;
 
-			public bool Taken { get { return _mutex._taken; } }
+			public bool Taken => Mutex._taken;
 
-			public IAsyncWaitQueue<IDisposable> WaitQueue { get { return _mutex._queue; } }
+			public IAsyncWaitQueue<IDisposable> WaitQueue => Mutex.Queue;
 		}
 
 		// ReSharper restore UnusedMember.Local

@@ -58,7 +58,11 @@ namespace System
 
 		public string ToString(Encoding encoding)
 		{
-			if (Length == 0) return "";
+			if (Length == 0)
+			{
+				return "";
+			}
+
 			return encoding.GetString(ToArray());
 		}
 

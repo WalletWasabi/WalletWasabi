@@ -1,18 +1,18 @@
-﻿using NBitcoin;
-using NBitcoin.JsonConverters;
+using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using System.Net;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
+using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
-using WalletWasabi.TorSocks5;
 using WalletWasabi.Models;
+using WalletWasabi.TorSocks5;
 
 namespace WalletWasabi.Gui
 {
@@ -136,6 +136,10 @@ namespace WalletWasabi.Gui
 			}
 		}
 
+		[JsonProperty(PropertyName = "DustThreshold")]
+		[JsonConverter(typeof(MoneyBtcJsonConverter))]
+		public Money DustThreshold { get; internal set; }
+
 		private Uri _backendUri;
 		private Uri _fallbackBackendUri;
 
@@ -148,7 +152,10 @@ namespace WalletWasabi.Gui
 				return GetFallbackBackendUri();
 			}
 
-			if (_backendUri != null) return _backendUri;
+			if (_backendUri != null)
+			{
+				return _backendUri;
+			}
 
 			if (Network == Network.Main)
 			{
@@ -168,7 +175,10 @@ namespace WalletWasabi.Gui
 
 		public Uri GetFallbackBackendUri()
 		{
-			if (_fallbackBackendUri != null) return _fallbackBackendUri;
+			if (_fallbackBackendUri != null)
+			{
+				return _fallbackBackendUri;
+			}
 
 			if (Network == Network.Main)
 			{
@@ -191,7 +201,7 @@ namespace WalletWasabi.Gui
 		private int? _privacyLevelSome;
 		private int? _privacyLevelFine;
 		private int? _privacyLevelStrong;
-		private IPEndPoint _bitcoinCoreEndPoint;
+		private EndPoint _bitcoinCoreEndPoint;
 
 		public IPEndPoint GetTorSocks5EndPoint()
 		{
@@ -204,29 +214,40 @@ namespace WalletWasabi.Gui
 			return _torSocks5EndPoint;
 		}
 
-		public IPEndPoint GetBitcoinCoreEndPoint()
+		public EndPoint GetBitcoinCoreEndPoint()
 		{
 			if (_bitcoinCoreEndPoint is null)
 			{
-				IPAddress host;
-				int? port;
-				if (Network == Network.Main)
+				IPAddress ipHost;
+				string dnsHost = null;
+				int? port = null;
+				try
 				{
-					host = IPAddress.Parse(MainNetBitcoinCoreHost);
-					port = MainNetBitcoinCorePort;
-				}
-				else if (Network == Network.TestNet)
-				{
-					host = IPAddress.Parse(TestNetBitcoinCoreHost);
-					port = TestNetBitcoinCorePort;
-				}
-				else // if (Network == Network.RegTest)
-				{
-					host = IPAddress.Parse(RegTestBitcoinCoreHost);
-					port = RegTestBitcoinCorePort;
-				}
+					if (Network == Network.Main)
+					{
+						port = MainNetBitcoinCorePort;
+						dnsHost = MainNetBitcoinCoreHost;
+						ipHost = IPAddress.Parse(MainNetBitcoinCoreHost);
+					}
+					else if (Network == Network.TestNet)
+					{
+						port = TestNetBitcoinCorePort;
+						dnsHost = TestNetBitcoinCoreHost;
+						ipHost = IPAddress.Parse(TestNetBitcoinCoreHost);
+					}
+					else // if (Network == Network.RegTest)
+					{
+						port = RegTestBitcoinCorePort;
+						dnsHost = RegTestBitcoinCoreHost;
+						ipHost = IPAddress.Parse(RegTestBitcoinCoreHost);
+					}
 
-				_bitcoinCoreEndPoint = new IPEndPoint(host, port ?? Network.DefaultPort);
+					_bitcoinCoreEndPoint = new IPEndPoint(ipHost, port ?? Network.DefaultPort);
+				}
+				catch
+				{
+					_bitcoinCoreEndPoint = new DnsEndPoint(dnsHost, port ?? Network.DefaultPort);
+				}
 			}
 
 			return _bitcoinCoreEndPoint;
@@ -262,7 +283,8 @@ namespace WalletWasabi.Gui
 			int? mixUntilAnonymitySet,
 			int? privacyLevelSome,
 			int? privacyLevelFine,
-			int? privacyLevelStrong)
+			int? privacyLevelStrong,
+			Money dustThreshold)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 
@@ -289,7 +311,9 @@ namespace WalletWasabi.Gui
 			PrivacyLevelFine = Guard.NotNull(nameof(privacyLevelFine), privacyLevelFine);
 			PrivacyLevelStrong = Guard.NotNull(nameof(privacyLevelStrong), privacyLevelStrong);
 
-			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint());
+			DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
+
+			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint(), DustThreshold);
 		}
 
 		/// <inheritdoc />
@@ -331,6 +355,7 @@ namespace WalletWasabi.Gui
 			PrivacyLevelSome = 2;
 			PrivacyLevelFine = 21;
 			PrivacyLevelStrong = 50;
+			DustThreshold = Money.Coins(0.0001m);
 
 			if (!File.Exists(FilePath))
 			{
@@ -341,7 +366,7 @@ namespace WalletWasabi.Gui
 				await LoadFileAsync();
 			}
 
-			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint());
+			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint(), DustThreshold);
 
 			// Just debug convenience.
 			_backendUri = GetCurrentBackendUri();
@@ -377,6 +402,8 @@ namespace WalletWasabi.Gui
 			PrivacyLevelSome = config.PrivacyLevelSome ?? PrivacyLevelSome;
 			PrivacyLevelFine = config.PrivacyLevelFine ?? PrivacyLevelFine;
 			PrivacyLevelStrong = config.PrivacyLevelStrong ?? PrivacyLevelStrong;
+
+			DustThreshold = config.DustThreshold ?? DustThreshold;
 
 			ServiceConfiguration = config.ServiceConfiguration ?? ServiceConfiguration;
 
@@ -479,6 +506,11 @@ namespace WalletWasabi.Gui
 				return true;
 			}
 
+			if (DustThreshold != config.DustThreshold)
+			{
+				return true;
+			}
+
 			return false;
 		}
 
@@ -491,7 +523,10 @@ namespace WalletWasabi.Gui
 		/// <inheritdoc />
 		public void AssertFilePathSet()
 		{
-			if (FilePath is null) throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
+			if (FilePath is null)
+			{
+				throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
+			}
 		}
 	}
 }

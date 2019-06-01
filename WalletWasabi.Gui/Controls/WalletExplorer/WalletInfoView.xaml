@@ -10,19 +10,19 @@
       <controls:GroupBox Title="Keys" TextBlock.FontSize="16" Padding="30" Margin="0 10 0 0">
         <Grid Classes="content">
           <StackPanel Orientation="Vertical" Spacing="2">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="Encrypted Extended Master Private Key: " />
-              <controls:ExtendedTextBox Text="{Binding EncryptedExtendedMasterPrivateKey , ConverterParameter=40, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock" />
-            </StackPanel>
-
-            <StackPanel Orientation="Horizontal">
+            <StackPanel IsVisible="{Binding !IsWatchOnly}" Orientation="Horizontal">
               <TextBlock Text="Extended Master Private Key: " />
               <controls:ExtendedTextBox Text="{Binding ExtendedMasterPrivateKey}" Classes="selectableTextBlock" />
             </StackPanel>
 
-            <StackPanel Orientation="Horizontal">
+            <StackPanel IsVisible="{Binding !IsWatchOnly}" Orientation="Horizontal">
               <TextBlock Text="Extended Master zprv: " />
               <controls:ExtendedTextBox Text="{Binding ExtendedMasterZprv}" Classes="selectableTextBlock" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Extended Master Fingerprint: " />
+              <controls:ExtendedTextBox Text="{Binding MasterKeyFingerprint}" Classes="selectableTextBlock" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal">
@@ -30,12 +30,12 @@
               <controls:ExtendedTextBox Text="{Binding AccountKeyPath}" Classes="selectableTextBlock" />
             </StackPanel>
 
-            <StackPanel Orientation="Horizontal">
+            <StackPanel IsVisible="{Binding !IsWatchOnly}" Orientation="Horizontal">
               <TextBlock Text="Extended Account Private Key: " />
               <controls:ExtendedTextBox Text="{Binding ExtendedAccountPrivateKey}" Classes="selectableTextBlock" />
             </StackPanel>
 
-            <StackPanel Orientation="Horizontal">
+            <StackPanel IsVisible="{Binding !IsWatchOnly}" Orientation="Horizontal">
               <TextBlock Text="Extended Account zprv: " />
               <controls:ExtendedTextBox Text="{Binding ExtendedAccountZprv}" Classes="selectableTextBlock" />
             </StackPanel>
@@ -50,7 +50,7 @@
               <controls:ExtendedTextBox Text="{Binding ExtendedAccountZpub, ConverterParameter=60, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock" />
             </StackPanel>
 
-            <StackPanel Margin="0 10 0 0" Spacing="10" Orientation="Horizontal">
+            <StackPanel IsVisible="{Binding !IsWatchOnly}" Margin="0 10 0 0" Spacing="10" Orientation="Horizontal">
               <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" MaxWidth="173" />
               <DockPanel VerticalAlignment="Top" LastChildFill="True">
                 <Button Command="{Binding ShowSensitiveKeysCommand}" DockPanel.Dock="Right">

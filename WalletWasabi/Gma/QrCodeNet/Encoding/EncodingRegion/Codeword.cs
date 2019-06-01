@@ -20,7 +20,10 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 			{
 				//Skip vertical timing pattern
 				if (x == 6)
+				{
 					x -= 1;
+				}
+
 				while (y >= 0 && y < sWidth)
 				{
 					for (int xOffset = 0; xOffset < 2; xOffset++)
@@ -39,7 +42,9 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 								bitIndex++;
 							}
 							else
+							{
 								bit = false;
+							}
 
 							tsMatrix[xPos, y, MatrixStatus.Data] = bit;
 						}
@@ -52,7 +57,9 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 			}
 
 			if (bitIndex != codewordsSize)
+			{
 				throw new Exception($"Not all bits from codewords consumed by matrix: {bitIndex} / {codewordsSize}");
+			}
 		}
 
 		internal static int NextY(int y, int directionUp)

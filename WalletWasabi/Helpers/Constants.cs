@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.Protocol;
 using System;
 using WalletWasabi.Backend.Models.Responses;
@@ -7,7 +7,7 @@ namespace WalletWasabi.Helpers
 {
 	public static class Constants
 	{
-		public static readonly Version ClientVersion = new Version(1, 1, 3);
+		public static readonly Version ClientVersion = new Version(1, 1, 5);
 		public const string BackendMajorVersion = "3";
 		public static readonly VersionsResponse VersionsResponse = new VersionsResponse { ClientVersion = ClientVersion.ToString(), BackenMajordVersion = BackendMajorVersion };
 
@@ -15,18 +15,29 @@ namespace WalletWasabi.Helpers
 
 		public const int MaxPasswordLength = 150;
 
-		public static readonly NodeRequirement NodeRequirements = new NodeRequirement
-		{
+		public static readonly NodeRequirement NodeRequirements = new NodeRequirement {
 			RequiredServices = NodeServices.NODE_WITNESS,
 			MinVersion = ProtocolVersion_WITNESS_VERSION,
 			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true, SupportMempoolQuery = true }
 		};
 
-		public static readonly NodeRequirement LocalNodeRequirements = new NodeRequirement
-		{
+		public static readonly NodeRequirement LocalNodeRequirements = new NodeRequirement {
 			RequiredServices = NodeServices.NODE_WITNESS,
 			MinVersion = ProtocolVersion_WITNESS_VERSION,
 			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true }
+		};
+
+		public static readonly NodeRequirement LocalBackendNodeRequirements = new NodeRequirement {
+			RequiredServices = NodeServices.NODE_WITNESS,
+			MinVersion = ProtocolVersion_WITNESS_VERSION,
+			MinProtocolCapabilities = new ProtocolCapabilities {
+				SupportGetBlock = true,
+				SupportWitness = true,
+				SupportMempoolQuery = true,
+				SupportSendHeaders = true,
+				SupportPingPong = true,
+				PeerTooOld = true
+			}
 		};
 
 		public const int P2wpkhInputSizeInBytes = 41;
@@ -61,7 +72,6 @@ namespace WalletWasabi.Helpers
 
 		public const string ChangeOfSpecialLabelStart = "change of (";
 		public const string ChangeOfSpecialLabelEnd = ")";
-
-		public static Money DustThreshold = Money.Coins(0.0001m);
+		public const int BigFileReadWriteBufferSize = 1 * 1024 * 1024;
 	}
 }

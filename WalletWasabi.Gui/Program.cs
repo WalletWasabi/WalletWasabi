@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Threading;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
@@ -21,30 +21,34 @@ namespace WalletWasabi.Gui
 #pragma warning restore IDE1006 // Naming Styles
 		{
 			StatusBarViewModel statusBar = null;
+			bool runGui = false;
 			try
 			{
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-				if (!await Daemon.RunAsyncReturnTrueIfContinueWithGuiAsync(args))
+				runGui = await CommandInterpreter.ExecuteCommandsAsync(args);
+				if (!runGui)
 				{
 					return;
 				}
+				Logger.LogStarting("Wasabi GUI");
+
 				BuildAvaloniaApp()
 					.BeforeStarting(async builder =>
 					{
 						MainWindowViewModel.Instance = new MainWindowViewModel();
-
-						await Global.InitializeNoUiAsync();
-
-						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.Synchronizer, Global.UpdateChecker);
-
+						statusBar = new StatusBarViewModel();
 						MainWindowViewModel.Instance.StatusBar = statusBar;
 
-						if (Global.Synchronizer.Network != Network.Main)
+						await Global.InitializeNoWalletAsync();
+
+						statusBar.Initialize(Global.Nodes.ConnectedNodes, Global.Synchronizer, Global.UpdateChecker);
+
+						if (Global.Network != Network.Main)
 						{
-							MainWindowViewModel.Instance.Title += $" - {Global.Synchronizer.Network}";
+							MainWindowViewModel.Instance.Title += $" - {Global.Network}";
 						}
 
 						Dispatcher.UIThread.Post(() =>
@@ -64,6 +68,11 @@ namespace WalletWasabi.Gui
 				await Global.DisposeAsync();
 				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
+
+				if (runGui)
+				{
+					Logger.LogInfo($"Wasabi GUI stopped gracefully.", Logger.InstanceGuid.ToString());
+				}
 			}
 		}
 
@@ -84,7 +93,7 @@ namespace WalletWasabi.Gui
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				result
-					.UseWin32(true, true)
+					.UseWin32()
 					.UseSkia();
 			}
 			else
@@ -92,7 +101,11 @@ namespace WalletWasabi.Gui
 				result.UsePlatformDetect();
 			}
 
-			return result;
+			return result
+				.With(new Win32PlatformOptions { AllowEglInitialization = true, UseDeferredRendering = true })
+				.With(new X11PlatformOptions { UseGpu = true })
+				.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = true })
+				.With(new MacOSPlatformOptions { ShowInDock = true });
 		}
 	}
 }

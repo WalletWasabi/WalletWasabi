@@ -20,7 +20,7 @@ After first run, a working directory will be created: `%appdata%\WalletWasabi\`.
 
 Check out [Max's video tutorial](https://www.youtube.com/watch?v=DUc9A76rwX4) or follow the instructions:
 
-After downloading the `.deb` package install it by running double clicking on it or running `sudo dpkg -i Wasabi-1.1.3.deb`.
+After downloading the `.deb` package install it by running double clicking on it or running `sudo dpkg -i Wasabi-1.1.5.deb`.
 
 After first run, a working directory will be created: `~/.walletwasabi/`. Among others, here is where your wallet files and your logs reside.
 
@@ -30,7 +30,7 @@ Check out this short, to-the-point [video guide](https://www.youtube.com/watch?v
 
 ![](https://imgur.com/wsJ66Qt.png)
 
-Download the Linux archive and extract it, while keeping the file permissions: `tar -pxzf WasabiLinux-1.1.3.tar.gz`.
+Download the Linux archive and extract it, while keeping the file permissions: `tar -pxzf WasabiLinux-1.1.5.tar.gz`.
 You can run Wasabi by executing `./wassabee`.
 
 After first run, a working directory will be created: `~/.walletwasabi/`. Among others, here is where your wallet files and your logs reside.
@@ -72,3 +72,67 @@ If the message returned says Good signature and that it was signed by `Ficsór �
 Remember to check again the PGP signature every time you make a new download.
 
 If you trust nopara73's key and you are faimiliar with the [Web Of Trust](https://security.stackexchange.com/questions/147447/gpg-why-is-my-trusted-key-not-certified-with-a-trusted-signature), please consider also [validating it](https://www.gnupg.org/gph/en/manual/x334.html).
+
+## GPG Verification with GUI
+
+If you prefer Graphical user interface this guide is yours. There is also a nice video guide [here](https://youtu.be/D8U53PFEsVk?t=45). 
+
+1. Download Gpg4win from https://www.gnupg.org/download/index.html
+2. Install Gpg4win 
+
+![Install Gpg4win](https://i.imgur.com/YKDdw1k.png)
+
+3. Download Wasabi latest __release__ and the corresponding __.asc__ file.
+
+4. Double click on .asc file or right click More GpgEX options / Verify (if the context menu is missing restart computer)
+
+![](https://i.imgur.com/fJME8Yh.png)
+
+5. Press Search.
+
+![](https://i.imgur.com/cj00rev.png)
+
+6. Wait until Ficsór Ádám's, adam.ficsor73@gmail.com appears. Who is this guy? The owner of WasabiWallet AKA [nopara73]( https://github.com/nopara73)
+
+![](https://i.imgur.com/B3WZn1n.png)
+
+7. Add Ádám's certificate. (on the next release you can skip previous steps because the cert will be there)
+
+![](https://i.imgur.com/9zGpuI6.png)
+
+8. Select all and Verify the fingerprint: `21D7 CA45 565D BCCE BE45  115D B4B7 2266 C47E 075E`
+
+![](https://i.imgur.com/PfdbegY.png)
+
+9. Press next, next, next. If there is an error you can try to import key manually, navigate to section: [Import key manually](https://github.com/molnard/WalletWasabi/blob/patch-3/WalletWasabi.Documentation/Guides/InstallInstructions.md#import-key-manually)
+
+9. Successful validation. The file was signed by the developer.
+
+![Imgur](https://i.imgur.com/7e0O9dQ.png)
+
+10. You can install Wasabi with the msi.
+
+### Import key manually
+
+1. Open this site, you will find the developer(nopara73) public key there [nopara73's PGP](https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt). Press Copy
+
+![Imgur](https://i.imgur.com/zLVqhOu.png)
+
+2. Create a TXT file pgp.txt 
+
+![Create txt file](https://i.imgur.com/F8LMu6W.png), 
+
+3. Open it and right click and paste. It looks like this:
+
+![Imgur](https://i.imgur.com/82XiHce.png)
+
+4. Save the file and close.
+
+5. Right click on pgp.txt. In the context menu navigate to More GpgEx options/Import keys (if the context menu is missing restart computer)
+
+![Imgur](https://i.imgur.com/qmuF3Hx.png)
+
+6. Kleopatra pops up and Ficsór Ádám's key imported. Press OK and Close Kleopatra
+
+![Imgur](https://i.imgur.com/EICwNWq.png)
+

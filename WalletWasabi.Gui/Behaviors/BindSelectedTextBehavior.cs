@@ -24,7 +24,10 @@ namespace WalletWasabi.Gui.Behaviors
 		{
 			var text = AssociatedObject.Text;
 			if (string.IsNullOrEmpty(text))
+			{
 				return "";
+			}
+
 			var selectionStart = AssociatedObject.SelectionStart;
 			var selectionEnd = AssociatedObject.SelectionEnd;
 			var start = Math.Min(selectionStart, selectionEnd);

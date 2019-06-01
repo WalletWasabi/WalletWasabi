@@ -8,13 +8,13 @@
 
 		internal int ErrorCorrectionCodewordsPerBlock { get; private set; }
 
-		private ErrorCorrectionBlock[] _m_ECBlock;
+		private ErrorCorrectionBlock[] ECBlock { get; }
 
 		internal ErrorCorrectionBlocks(int numErrorCorrectionCodewords, ErrorCorrectionBlock ecBlock)
 			: this()
 		{
 			NumErrorCorrectionCodewards = numErrorCorrectionCodewords;
-			_m_ECBlock = new ErrorCorrectionBlock[] { ecBlock };
+			ECBlock = new ErrorCorrectionBlock[] { ecBlock };
 
 			Initialize();
 		}
@@ -23,7 +23,7 @@
 			: this()
 		{
 			NumErrorCorrectionCodewards = numErrorCorrectionCodewords;
-			_m_ECBlock = new ErrorCorrectionBlock[] { ecBlock1, ecBlock2 };
+			ECBlock = new ErrorCorrectionBlock[] { ecBlock1, ecBlock2 };
 
 			Initialize();
 		}
@@ -31,21 +31,23 @@
 		/// <summary>
 		/// Get Error Correction Blocks
 		/// </summary>
-		internal ErrorCorrectionBlock[] GetECBlocks() => _m_ECBlock;
+		internal ErrorCorrectionBlock[] GetECBlocks() => ECBlock;
 
 		/// <summary>
 		/// Initialize for NumBlocks and ErrorCorrectionCodewordsPerBlock
 		/// </summary>
 		private void Initialize()
 		{
-			if (_m_ECBlock is null)
+			if (ECBlock is null)
+			{
 				throw new System.ArgumentNullException("ErrorCorrectionBlocks array doesn't contain any value");
+			}
 
 			NumBlocks = 0;
-			int blockLength = _m_ECBlock.Length;
+			int blockLength = ECBlock.Length;
 			for (int i = 0; i < blockLength; i++)
 			{
-				NumBlocks += _m_ECBlock[i].NumErrorCorrectionBlock;
+				NumBlocks += ECBlock[i].NumErrorCorrectionBlock;
 			}
 
 			ErrorCorrectionCodewordsPerBlock = NumErrorCorrectionCodewards / NumBlocks;

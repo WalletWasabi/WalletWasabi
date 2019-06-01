@@ -1,4 +1,5 @@
-﻿using System;
+using Microsoft.Win32;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -10,8 +11,8 @@ namespace WalletWasabi.Helpers
 	{
 		private const int ProcessorCountRefreshIntervalMs = 30000;
 
-		private static volatile int _processorCount;
-		private static volatile int _lastProcessorCountRefreshTicks;
+		private static volatile int InternalProcessorCount;
+		private static volatile int LastProcessorCountRefreshTicks;
 
 		/// <summary>
 		/// https://github.com/i3arnon/ConcurrentHashSet/blob/master/src/ConcurrentHashSet/PlatformHelper.cs
@@ -21,19 +22,20 @@ namespace WalletWasabi.Helpers
 			get
 			{
 				var now = Environment.TickCount;
-				if (_processorCount == 0 || now - _lastProcessorCountRefreshTicks >= ProcessorCountRefreshIntervalMs)
+				if (InternalProcessorCount == 0 || now - LastProcessorCountRefreshTicks >= ProcessorCountRefreshIntervalMs)
 				{
-					_processorCount = Environment.ProcessorCount;
-					_lastProcessorCountRefreshTicks = now;
+					InternalProcessorCount = Environment.ProcessorCount;
+					LastProcessorCountRefreshTicks = now;
 				}
 
-				return _processorCount;
+				return InternalProcessorCount;
 			}
 		}
 
+		// Do not change the output of this function. Backwards compatibility depends on it.
 		public static string GetDataDir(string appName)
 		{
-			string directory = null;
+			string directory;
 
 			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
@@ -62,7 +64,10 @@ namespace WalletWasabi.Helpers
 				}
 			}
 
-			if (Directory.Exists(directory)) return directory;
+			if (Directory.Exists(directory))
+			{
+				return directory;
+			}
 
 			Logger.LogInfo($"Creating data directory at `{directory}`.");
 			Directory.CreateDirectory(directory);
@@ -129,8 +134,7 @@ namespace WalletWasabi.Helpers
 			var escapedArgs = cmd.Replace("\"", "\\\"");
 
 			using (var process = Process.Start(
-				new ProcessStartInfo
-				{
+				new ProcessStartInfo {
 					FileName = "/bin/sh",
 					Arguments = $"-c \"{escapedArgs}\"",
 					RedirectStandardOutput = true,
@@ -149,6 +153,31 @@ namespace WalletWasabi.Helpers
 					}
 				}
 			}
+		}
+
+		public static bool IsFileTypeAssociated(string fileExtension)
+		{
+			// Source article: https://edi.wang/post/2019/3/4/read-and-write-windows-registry-in-net-core
+
+			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				throw new InvalidOperationException("Operation only supported on windows.");
+			}
+
+			fileExtension = fileExtension.TrimStart('.'); // Remove . if added by the caller.
+
+			using (RegistryKey key = Registry.ClassesRoot.OpenSubKey($".{fileExtension}"))
+			{
+				if (key != null)
+				{
+					object val = key.GetValue(null); // Read the (Default) value.
+					if (val != null)
+					{
+						return true;
+					}
+				}
+			}
+			return false;
 		}
 	}
 }

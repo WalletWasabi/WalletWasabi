@@ -10,18 +10,13 @@
 		/// </summary>
 		internal override int PenaltyCalculate(BitMatrix matrix)
 		{
-			MatrixSize size = matrix.Size;
-			int penaltyValue = 0;
-
-			penaltyValue = PenaltyCalculation(matrix, true) + PenaltyCalculation(matrix, false);
+			int penaltyValue = PenaltyCalculation(matrix, true) + PenaltyCalculation(matrix, false);
 			return penaltyValue;
 		}
 
 		private int PenaltyCalculation(BitMatrix matrix, bool isHorizontal)
 		{
 			int penalty = 0;
-			int numSameBitCell = 0;
-
 			int width = matrix.Width;
 
 			int i = 0;
@@ -33,7 +28,7 @@
 				{
 					bool preBit = isHorizontal ? matrix[j + 4, i]
 						: matrix[i, j + 4];
-					numSameBitCell = 1;
+					int numSameBitCell = 1;
 
 					for (int x = 1; x <= 4; x++)
 					{
@@ -50,7 +45,9 @@
 					}
 
 					if (numSameBitCell == 1)
+					{
 						j += 4;
+					}
 					else
 					{
 						int x = 5;
@@ -59,7 +56,9 @@
 							bool bit = isHorizontal ? matrix[j + x, i]
 								: matrix[i, j + x];
 							if (bit == preBit)
+							{
 								numSameBitCell++;
+							}
 							else
 							{
 								break;

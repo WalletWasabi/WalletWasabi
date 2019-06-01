@@ -1,20 +1,21 @@
-﻿using WalletWasabi.Exceptions;
-using WalletWasabi.Helpers;
-using WalletWasabi.Http.Models;
-using WalletWasabi.Logging;
-using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
 using Nito.AsyncEx;
 using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Security;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
+using WalletWasabi.Exceptions;
+using WalletWasabi.Helpers;
+using WalletWasabi.Http.Models;
+using WalletWasabi.Logging;
+using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
 
 namespace WalletWasabi.TorSocks5
 {
@@ -43,6 +44,7 @@ namespace WalletWasabi.TorSocks5
 		public Uri DestinationUri => DestinationUriAction();
 		public Func<Uri> DestinationUriAction { get; private set; }
 		public IPEndPoint TorSocks5EndPoint { get; private set; }
+		public bool IsTorUsed => TorSocks5EndPoint != null;
 
 		public bool IsolateStream { get; private set; }
 
@@ -131,6 +133,10 @@ namespace WalletWasabi.TorSocks5
 							{
 								throw new OperationCanceledException(tce.Message, tce, cancel);
 							}
+						}
+						catch (SocketException ex3) when (ex3.ErrorCode == (int)SocketError.ConnectionRefused)
+						{
+							throw new ConnectionException("Connection was refused.", ex3);
 						}
 
 						cancel.ThrowIfCancellationRequested();

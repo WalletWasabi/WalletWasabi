@@ -13,7 +13,7 @@ namespace WalletWasabi.Backend.Middlewares
 	{
 		#region Fields
 
-		private readonly RequestDelegate _next;
+		private readonly RequestDelegate Next;
 
 		#endregion Fields
 
@@ -21,7 +21,7 @@ namespace WalletWasabi.Backend.Middlewares
 
 		public HeadMethodMiddleware(RequestDelegate next)
 		{
-			_next = next ?? throw new ArgumentNullException(nameof(next));
+			Next = next ?? throw new ArgumentNullException(nameof(next));
 		}
 
 		#endregion Constructor
@@ -40,7 +40,7 @@ namespace WalletWasabi.Backend.Middlewares
 				context.Response.Body = Stream.Null;
 			}
 
-			await _next(context);
+			await Next(context);
 
 			if (methodSwitched)
 			{

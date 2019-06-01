@@ -2,9 +2,9 @@
             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
   <DockPanel LastChildFill="True">
     <StackPanel DockPanel.Dock="Bottom" Spacing="10">
-      <controls:GroupBox IsVisible="{Binding RequirePassword}" TextBlock.FontSize="30" Padding="30" Margin="20 0">
+      <controls:GroupBox IsVisible="{Binding !IsDesktopWallet}" TextBlock.FontSize="30" Padding="30" Margin="20 0">
         <Grid Classes="content">
-          <StackPanel Spacing="8">
+          <StackPanel IsVisible="{Binding IsPasswordRequired}" Spacing="8">
             <StackPanel>
               <TextBlock Text="Select a wallet to test its password!" FontWeight="Bold" />
             </StackPanel>
@@ -14,18 +14,30 @@
               <TextBlock Text="We received numerous reports on losing or mistyping passwords. This experiment aims to disrupt users' typical workflow at wallet generation, forcing them to pay more attention than otherwise would." TextWrapping="Wrap" />
             </StackPanel>
           </StackPanel>
+          <StackPanel IsVisible="{Binding IsHardwareWallet}" Spacing="8">
+            <StackPanel>
+              <TextBlock Text="Limitations?" FontWeight="Bold" />
+              <TextBlock Text="- Currently all hardware wallets on the market are incompatible with coinjoins." />
+              <TextBlock Text="- Only bech32 keypaths are supported, so your legacy hardware wallet transactions won't show up in Wasabi." />
+            </StackPanel>
+            <StackPanel>
+              <TextBlock Text="Which hardware wallets are currently supported?" FontWeight="Bold" />
+              <TextBlock Text="- Coldcard Mk1, Mk2, Ledger Nano S, Trezor One and Trezor T." TextWrapping="Wrap" />
+              <TextBlock Text="- While other hardware wallets may also work, they were not tested by Wasabi developers." TextWrapping="Wrap" />
+            </StackPanel>
+          </StackPanel>
         </Grid>
       </controls:GroupBox>
       <StackPanel DockPanel.Dock="Bottom" Margin="20 10">
         <DockPanel LastChildFill="True">
-          <Button IsVisible="{Binding RequirePassword}" Content="Test Password" Command="{Binding TestPasswordCommand}" DockPanel.Dock="Right" Margin="10 0 0 0" />
+          <Button IsVisible="{Binding IsPasswordRequired}" Content="Test Password" Command="{Binding TestPasswordCommand}" DockPanel.Dock="Right" Margin="10 0 0 0" />
           <Button Command="{Binding LoadCommand}" DockPanel.Dock="Right">
             <StackPanel Orientation="Horizontal">
               <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
               <TextBlock Text="{Binding LoadButtonText}" />
             </StackPanel>
           </Button>
-          <Button IsVisible="{Binding !RequirePassword}" Command="{Binding OpenFolderCommand}" DockPanel.Dock="Right" Margin="0 0 10 0">
+          <Button IsVisible="{Binding IsDesktopWallet}" Command="{Binding OpenFolderCommand}" DockPanel.Dock="Right" Margin="0 0 10 0">
             <StackPanel Orientation="Horizontal" Spacing="8">
               <DrawingPresenter Width="28">
                 <DrawingPresenter.Drawing>
@@ -43,9 +55,22 @@
       </StackPanel>
     </StackPanel>
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" BorderThickness="0">
-      <Grid Classes="content">
-        <ListBox Items="{Binding Wallets}" SelectedItem="{Binding SelectedWallet, Mode=TwoWay}" />
-      </Grid>
+      <DockPanel LastChildFill="True">
+        <Grid Classes="content" DockPanel.Dock="Top" IsVisible="{Binding IsHwWalletSearchTextVisible}" Margin="10">
+          <StackPanel Spacing="8">
+            <StackPanel Orientation="Horizontal">
+              <controls:Spinner Height="15" Width="15" Margin="0 0 8 0" />
+              <TextBlock Text="Looking for hardware wallets..." FontWeight="Bold" />
+            </StackPanel>
+            <TextBlock Text="Make sure you set up and logged into the device, usually with a PIN. Some hardware wallets are picky about their USB cables, so you may want to try out multiple ones." TextWrapping="Wrap" />
+            <TextBlock IsVisible="{Binding IsLinux}" Text="Also make sure that you properly applied udev rules. These are necessary for the devices to be reachable on Linux environments:" TextWrapping="Wrap" />
+            <controls:ExtendedTextBox IsVisible="{Binding IsLinux}" Text="https://github.com/bitcoin-core/HWI/tree/master/udev" Classes="selectableTextBlock hyperLink" />
+          </StackPanel>
+        </Grid>
+        <Grid Classes="content">
+          <ListBox Items="{Binding Wallets}" SelectedItem="{Binding SelectedWallet, Mode=TwoWay}" />
+        </Grid>
+      </DockPanel>
     </controls:GroupBox>
   </DockPanel>
 </UserControl>

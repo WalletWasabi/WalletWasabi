@@ -1,6 +1,7 @@
 ﻿using NBitcoin;
 using Newtonsoft.Json;
 using System;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.JsonConverters
 {
@@ -16,17 +17,7 @@ namespace WalletWasabi.JsonConverters
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
 			var s = (string)reader.Value;
-			ExtPubKey epk;
-
-			try
-			{
-				epk = ExtPubKey.Parse(s);
-			}
-			catch
-			{
-				// Try hex, Old wallet format was like this.
-				epk = new ExtPubKey(ByteHelpers.FromHex(s));
-			}
+			ExtPubKey epk = NBitcoinHelpers.BetterParseExtPubKey(s);
 			return epk;
 		}
 

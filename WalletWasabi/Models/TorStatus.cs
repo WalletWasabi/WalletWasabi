@@ -3,6 +3,7 @@
 	public enum TorStatus
 	{
 		NotRunning,
+		TurnedOff,
 		Running
 	}
 }

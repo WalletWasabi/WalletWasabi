@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using ReactiveUI;
@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -17,6 +18,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class ReceiveTabViewModel : WalletActionViewModel
 	{
+		private CompositeDisposable Disposables { get; set; }
+
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
 		private string _label;
@@ -24,11 +27,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _labelRequiredNotificationVisible;
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
-		private CompositeDisposable _disposables;
 
-		public ReactiveCommand CopyAddress { get; }
-		public ReactiveCommand CopyLabel { get; }
-		public ReactiveCommand ShowQrCode { get; }
+		public ReactiveCommand<Unit, Unit> CopyAddress { get; }
+		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
+		public ReactiveCommand<Unit, Unit> ShowQrCode { get; }
 
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
@@ -48,7 +50,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					Dispatcher.UIThread.PostLogException(async () =>
 					{
-						await Task.Delay(1000);
+						await Task.Delay(TimeSpan.FromSeconds(4));
 						LabelRequiredNotificationOpacity = 0;
 					});
 
@@ -78,17 +80,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
 
-			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(address =>
+			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
 			{
-				if (Global.UiConfig.Autocopy is true)
+				if (Global.UiConfig?.Autocopy is false || address is null)
 				{
-					address?.CopyToClipboard();
+					return;
 				}
+
+				await address.TryCopyToClipboardAsync();
 			});
 
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{
-				if (Label is null) return;
+				if (Label is null)
+				{
+					return;
+				}
+
 				if (CaretIndex != Label.Length)
 				{
 					CaretIndex = Label.Length;
@@ -97,22 +105,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			var isCoinListItemSelected = this.WhenAnyValue(x => x.SelectedAddress).Select(coin => coin != null);
 
-			CopyAddress = ReactiveCommand.Create(() =>
+			CopyAddress = ReactiveCommand.CreateFromTask(async () =>
 			{
-				try
+				if (SelectedAddress is null)
 				{
-					SelectedAddress?.CopyToClipboard();
+					return;
 				}
-				catch (Exception)
-				{ }
+
+				await SelectedAddress.TryCopyToClipboardAsync();
 			}, isCoinListItemSelected);
 
 			CopyLabel = ReactiveCommand.CreateFromTask(async () =>
 			{
 				try
 				{
-					await ((IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard)))
-						.SetTextAsync(SelectedAddress.Label ?? string.Empty);
+					await Application.Current.Clipboard.SetTextAsync(SelectedAddress.Label ?? string.Empty);
 				}
 				catch (Exception)
 				{ }
@@ -135,25 +142,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnOpen();
 
-			if (_disposables != null)
+			if (Disposables != null)
 			{
 				throw new Exception("Receive tab opened before last one was closed.");
 			}
 
-			_disposables = new CompositeDisposable();
+			Disposables = new CompositeDisposable();
 
 			Observable.FromEventPattern(Global.WalletService.Coins,
 				nameof(Global.WalletService.Coins.CollectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(o => InitializeAddresses())
-				.DisposeWith(_disposables);
+				.DisposeWith(Disposables);
 		}
 
 		public override bool OnClose()
 		{
-			_disposables.Dispose();
+			Disposables.Dispose();
 
-			_disposables = null;
+			Disposables = null;
 
 			return base.OnClose();
 		}
@@ -262,6 +269,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Suggestions.Clear();
 		}
 
-		public ReactiveCommand GenerateCommand { get; }
+		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
 	}
 }

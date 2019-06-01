@@ -1,5 +1,5 @@
-﻿using System;
 using Newtonsoft.Json;
+using System;
 
 namespace WalletWasabi.JsonConverters
 {
@@ -18,7 +18,14 @@ namespace WalletWasabi.JsonConverters
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			return Convert.FromBase64String((string)reader.Value);
+			var value = reader.Value as string;
+
+			if (string.IsNullOrWhiteSpace(value))
+			{
+				return null;
+			}
+
+			return Convert.FromBase64String(value);
 		}
 
 		/// <inheritdoc />

@@ -9,10 +9,29 @@
             <controls:ExtendedTextBox Text="{Binding VersionText}" Classes="selectableTextBlock" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
-            <TextBlock Text="To get the latest version, please visit: " />
-            <controls:ExtendedTextBox Text="https://github.com/zkSNACKs/WalletWasabi/releases/" Classes="selectableTextBlock hyperLink" />
+            <TextBlock Text="Clearnet Website: " />
+            <controls:ExtendedTextBox Text="https://wasabiwallet.io/" Classes="selectableTextBlock hyperLink" />
           </StackPanel>
-          <TextBlock Text="Consider using Tor Browser to protect your privacy." />
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Tor Website: " />
+            <controls:ExtendedTextBox Text="http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion" Classes="selectableTextBlock hyperLink" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Source Code: " />
+            <controls:ExtendedTextBox Text="https://github.com/zkSNACKs/WalletWasabi/" Classes="selectableTextBlock hyperLink" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Customer Support: " />
+            <controls:ExtendedTextBox Text="https://www.reddit.com/r/WasabiWallet/" Classes="selectableTextBlock hyperLink" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Bug Report: " />
+            <controls:ExtendedTextBox Text="https://github.com/zkSNACKs/WalletWasabi/issues/" Classes="selectableTextBlock hyperLink" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="FAQ: " />
+            <controls:ExtendedTextBox Text="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/FAQ.md" Classes="selectableTextBlock hyperLink" />
+          </StackPanel>
         </StackPanel>
       </Grid>
     </StackPanel>

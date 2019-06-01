@@ -41,7 +41,9 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 				return 0;
 			}
 			else
+			{
 				throw new InvalidOperationException($"Unexpected version: {version}");
+			}
 		}
 	}
 }

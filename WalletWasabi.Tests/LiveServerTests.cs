@@ -1,10 +1,11 @@
+using NBitcoin;
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Services;
+using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.TorSocks5;
 using WalletWasabi.WebClients.Wasabi;
@@ -14,18 +15,15 @@ using Xunit;
 namespace WalletWasabi.Tests
 {
 	[Collection("LiveServerTests collection")]
-	public class LiveServerTests : IClassFixture<SharedFixture>
+	public class LiveServerTests
 	{
-		private SharedFixture SharedFixture { get; }
-
 		private LiveServerTestsFixture LiveServerTestsFixture { get; }
 
-		public LiveServerTests(SharedFixture sharedFixture, LiveServerTestsFixture liveServerTestsFixture)
+		public LiveServerTests(LiveServerTestsFixture liveServerTestsFixture)
 		{
-			SharedFixture = sharedFixture;
 			LiveServerTestsFixture = liveServerTestsFixture;
 
-			var torManager = new TorProcessManager(SharedFixture.TorSocks5Endpoint, SharedFixture.TorLogsFile);
+			var torManager = new TorProcessManager(Global.TorSocks5Endpoint, Global.TorLogsFile);
 			torManager.Start(ensureRunning: true, dataDir: Path.GetFullPath(AppContext.BaseDirectory));
 			Task.Delay(3000).GetAwaiter().GetResult();
 		}
@@ -37,7 +35,7 @@ namespace WalletWasabi.Tests
 		[InlineData(NetworkType.Testnet)]
 		public async Task GetFeesAsync(NetworkType networkType)
 		{
-			using (var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], SharedFixture.TorSocks5Endpoint))
+			using (var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.TorSocks5Endpoint))
 			{
 				var feeEstimationPairs = await client.GetFeesAsync(1000);
 
@@ -50,9 +48,9 @@ namespace WalletWasabi.Tests
 		[InlineData(NetworkType.Testnet)]
 		public async Task GetFiltersAsync(NetworkType networkType)
 		{
-			using (var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], SharedFixture.TorSocks5Endpoint))
+			using (var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.TorSocks5Endpoint))
 			{
-				var filterModel = WasabiSynchronizer.GetStartingFilter(Network.GetNetwork(networkType.ToString()));
+				var filterModel = StartingFilters.GetStartingFilter(Network.GetNetwork(networkType.ToString()));
 
 				FiltersResponse filtersResponse = await client.GetFiltersAsync(filterModel.BlockHash, 2);
 
@@ -66,7 +64,7 @@ namespace WalletWasabi.Tests
 		[InlineData(NetworkType.Testnet)]
 		public async Task GetAllRoundStatesAsync(NetworkType networkType)
 		{
-			using (var client = new SatoshiClient(LiveServerTestsFixture.UriMappings[networkType], SharedFixture.TorSocks5Endpoint))
+			using (var client = new SatoshiClient(LiveServerTestsFixture.UriMappings[networkType], Global.TorSocks5Endpoint))
 			{
 				var states = await client.GetAllRoundStatesAsync();
 				Assert.True(states.NotNullAndNotEmpty());
@@ -83,7 +81,7 @@ namespace WalletWasabi.Tests
 		[InlineData(NetworkType.Testnet)]
 		public async Task GetExchangeRateAsync(NetworkType networkType) // xunit wtf: If this function is called GetExchangeRatesAsync, it'll stuck on 1 CPU VMs (Manjuro, Fedora)
 		{
-			using (var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], SharedFixture.TorSocks5Endpoint))
+			using (var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.TorSocks5Endpoint))
 			{
 				var exchangeRates = await client.GetExchangeRatesAsync();
 

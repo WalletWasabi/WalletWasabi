@@ -1,39 +1,28 @@
 ﻿using System;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Models
 {
 	public struct Height : IEquatable<Height>, IEquatable<int>, IComparable<Height>, IComparable<int>
 	{
 		public HeightType Type { get; }
-		private readonly int _value;
 
 		/// <summary>
 		/// Gets the height value according to the Height type.
 		/// </summary>
-		public int Value
-		{
-			get
-			{
-				if (Type == HeightType.Chain)
-					return _value;
-				if (Type == HeightType.MemPool)
-					return int.MaxValue - 1;
-				//if(Type == HeightType.Unknown)
-				return int.MaxValue;
-			}
-		}
+		public int Value { get; }
 
 		/// <summary>
 		/// Gets a new Height instance for mempool
 		/// </summary>
 		/// <returns></returns>
-		public readonly static Height MemPool = new Height(HeightType.MemPool);
+		public static Height MemPool { get; } = new Height(HeightType.MemPool);
 
 		/// <summary>
 		/// Gets a new Height instance for unknown (no chain, no mempool)
 		/// </summary>
 		/// <returns></returns>
-		public readonly static Height Unknown = new Height(HeightType.Unknown);
+		public static Height Unknown { get; } = new Height(HeightType.Unknown);
 
 		/// <summary>
 		/// Creates and initializes a new Height instance
@@ -46,27 +35,66 @@ namespace WalletWasabi.Models
 		/// <exception href="ArgumentException">When height value is less than zero.</exception>
 		public Height(int height)
 		{
-			if (height < 0) throw new ArgumentException($"{nameof(height)} : {height} cannot be < 0");
-			if (height == Unknown.Value) Type = HeightType.Unknown;
-			else if (height == MemPool.Value) Type = HeightType.MemPool;
-			else Type = HeightType.Chain;
-			_value = height;
+			if (height < 0)
+			{
+				throw new ArgumentException($"{nameof(height)} : {height} cannot be < 0");
+			}
+
+			if (height == Unknown.Value)
+			{
+				Type = HeightType.Unknown;
+			}
+			else if (height == MemPool.Value)
+			{
+				Type = HeightType.MemPool;
+			}
+			else
+			{
+				Type = HeightType.Chain;
+			}
+
+			Value = height;
 		}
 
-		/// <summary>
-		/// Creates and initializes a new Height instance
-		/// </summary>
 		/// <param name="heightOrHeightType">The height numerical value as its string representation
 		/// or well the strings "MemPool" or "Unknown" for the default initial height of those Heights.
 		/// </param>
-		public Height(string heightOrHeightType)
+		public static bool TryParse(string heightOrHeightType, out Height height)
 		{
-			var trimmed = heightOrHeightType.Trim();
-			if (trimmed == HeightType.MemPool.ToString())
-				this = MemPool;
-			else if (trimmed == HeightType.Unknown.ToString())
-				this = Unknown;
-			else this = new Height(int.Parse(trimmed));
+			height = default;
+
+			var correct = Guard.Correct(heightOrHeightType);
+			if (correct == "")
+			{
+				return false;
+			}
+
+			if (HeightType.MemPool.ToString().Equals(correct, StringComparison.OrdinalIgnoreCase))
+			{
+				height = MemPool;
+				return true;
+			}
+			else if (HeightType.Unknown.ToString().Equals(correct, StringComparison.OrdinalIgnoreCase))
+			{
+				height = Unknown;
+				return true;
+			}
+			else if (int.TryParse(correct, out int h))
+			{
+				try
+				{
+					height = new Height(h);
+					return true;
+				}
+				catch
+				{
+					return false;
+				}
+			}
+			else
+			{
+				return false;
+			}
 		}
 
 		/// <summary>
@@ -76,21 +104,16 @@ namespace WalletWasabi.Models
 		/// <exception href="NotSupportedException">When type is equal to HeightType.Chain.</exception>
 		public Height(HeightType type)
 		{
-			if (type == HeightType.Chain) throw new NotSupportedException($"For {type} height must be specified");
-			Type = type;
-			_value = (Type == HeightType.MemPool)
-				? MemPool.Value
-				: Unknown.Value;
-		}
+			if (type == HeightType.Chain)
+			{
+				throw new NotSupportedException($"For {type} height must be specified");
+			}
 
-		/// <summary>
-		/// Constructor for copy
-		/// </summary>
-		/// <param name="height">The height to be copied.</param>
-		public Height(Height height)
-		{
-			_value = height._value;
-			Type = height.Type;
+			Type = type;
+
+			Value = (Type == HeightType.MemPool)
+				? int.MaxValue - 1
+				: int.MaxValue;
 		}
 
 		/// <summary>
@@ -114,7 +137,11 @@ namespace WalletWasabi.Models
 		/// <inheritdoc/>
 		public override string ToString()
 		{
-			if (Type == HeightType.Chain) return Value.ToString();
+			if (Type == HeightType.Chain)
+			{
+				return Value.ToString();
+			}
+
 			return Type.ToString();
 		}
 
@@ -360,12 +387,5 @@ namespace WalletWasabi.Models
 		}
 
 		#endregion MathOperations
-	}
-
-	public enum HeightType
-	{
-		Chain,
-		MemPool,
-		Unknown
 	}
 }

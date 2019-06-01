@@ -1,5 +1,6 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.RPC;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -16,11 +17,12 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Stores;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
-	public class WasabiSynchronizer : IDisposable, INotifyPropertyChanged
+	public class WasabiSynchronizer : INotifyPropertyChanged
 	{
 		#region MembersPropertiesEvents
 
@@ -29,22 +31,6 @@ namespace WalletWasabi.Services
 		public WasabiClient WasabiClient { get; private set; }
 
 		public Network Network { get; private set; }
-
-		private Height _bestBlockchainHeight;
-
-		public Height BestBlockchainHeight
-		{
-			get => _bestBlockchainHeight;
-
-			private set
-			{
-				if (_bestBlockchainHeight != value)
-				{
-					_bestBlockchainHeight = value;
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BestBlockchainHeight)));
-				}
-			}
-		}
 
 		private decimal _usdExchangeRate;
 
@@ -77,22 +63,6 @@ namespace WalletWasabi.Services
 				{
 					_allFeeEstimate = value;
 					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AllFeeEstimate)));
-				}
-			}
-		}
-
-		private FilterModel _bestKnownFilter;
-
-		public FilterModel BestKnownFilter
-		{
-			get => _bestKnownFilter;
-
-			private set
-			{
-				if (_bestKnownFilter != value)
-				{
-					_bestKnownFilter = value;
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BestKnownFilter)));
 				}
 			}
 		}
@@ -132,19 +102,15 @@ namespace WalletWasabi.Services
 		public TimeSpan MaxRequestIntervalForMixing { get; set; }
 		private long _blockRequests; // There are priority requests in queue.
 
+		public bool AreRequestsBlocked() => Interlocked.Read(ref _blockRequests) == 1;
+
 		public void BlockRequests() => Interlocked.Exchange(ref _blockRequests, 1);
 
 		public void EnableRequests() => Interlocked.Exchange(ref _blockRequests, 0);
 
-		public string IndexFilePath { get; private set; }
-		private List<FilterModel> Index { get; set; }
-		private object IndexLock { get; set; }
+		public BitcoinStore BitcoinStore { get; private set; }
 
 		public event PropertyChangedEventHandler PropertyChanged;
-
-		public event EventHandler<FilterModel> Reorged;
-
-		public event EventHandler<FilterModel> NewFilter;
 
 		public event EventHandler<bool> ResponseArrivedIsGenSocksServFail;
 
@@ -156,7 +122,6 @@ namespace WalletWasabi.Services
 		private long _running;
 
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
-		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
 		private CancellationTokenSource Cancel { get; set; }
 
@@ -164,74 +129,31 @@ namespace WalletWasabi.Services
 
 		#region ConstructorsAndInitializers
 
-		public WasabiSynchronizer(Network network, string indexFilePath, WasabiClient client)
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, WasabiClient client)
 		{
-			CreateNew(network, indexFilePath, client);
+			CreateNew(network, bitcoinStore, client);
 		}
 
-		public WasabiSynchronizer(Network network, string indexFilePath, Func<Uri> baseUriAction, IPEndPoint torSocks5EndPoint)
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Func<Uri> baseUriAction, IPEndPoint torSocks5EndPoint)
 		{
 			var client = new WasabiClient(baseUriAction, torSocks5EndPoint);
-			CreateNew(network, indexFilePath, client);
+			CreateNew(network, bitcoinStore, client);
 		}
 
-		public WasabiSynchronizer(Network network, string indexFilePath, Uri baseUri, IPEndPoint torSocks5EndPoint)
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, IPEndPoint torSocks5EndPoint)
 		{
 			var client = new WasabiClient(baseUri, torSocks5EndPoint);
-			CreateNew(network, indexFilePath, client);
+			CreateNew(network, bitcoinStore, client);
 		}
 
-		private void CreateNew(Network network, string indexFilePath, WasabiClient client)
+		private void CreateNew(Network network, BitcoinStore bitcoinStore, WasabiClient client)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			WasabiClient = Guard.NotNull(nameof(client), client);
 			LastResponse = null;
 			_running = 0;
 			Cancel = new CancellationTokenSource();
-			BestBlockchainHeight = Height.Unknown;
-			IndexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath, trim: true);
-			Index = new List<FilterModel>();
-			IndexLock = new object();
-
-			IoHelpers.EnsureContainingDirectoryExists(indexFilePath);
-			if (File.Exists(IndexFilePath))
-			{
-				if (Network == Network.RegTest)
-				{
-					File.Delete(IndexFilePath); // RegTest is not a global ledger, better to delete it.
-					Index.Add(StartingFilter);
-					IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToHeightlessLine()));
-				}
-				else
-				{
-					var height = StartingHeight;
-					try
-					{
-						if (IoHelpers.TryGetSafestFileVersion(IndexFilePath, out var safestFileVerion))
-						{
-							foreach (var line in File.ReadAllLines(safestFileVerion))
-							{
-								var filter = FilterModel.FromHeightlessLine(line, height);
-								height++;
-								Index.Add(filter);
-							}
-						}
-					}
-					catch (FormatException)
-					{
-						// We found a corrupted entry. Stop here.
-						// Fix the currupted file.
-						IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToHeightlessLine()));
-					}
-				}
-			}
-			else
-			{
-				Index.Add(StartingFilter);
-				IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToHeightlessLine()));
-			}
-
-			BestKnownFilter = Index.Last();
+			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
 		}
 
 		public void Start(TimeSpan requestInterval, TimeSpan feeQueryRequestInterval, int maxFiltersToSyncAtInitialization)
@@ -242,7 +164,10 @@ namespace WalletWasabi.Services
 
 			MaxRequestIntervalForMixing = requestInterval; // Let's start with this, it'll be modified from outside.
 
-			Interlocked.Exchange(ref _running, 1);
+			if (Interlocked.CompareExchange(ref _running, 1, 0) != 0)
+			{
+				return;
+			}
 
 			Task.Run(async () =>
 			{
@@ -255,13 +180,7 @@ namespace WalletWasabi.Services
 					{
 						try
 						{
-							// If stop was requested return.
-							if (!IsRunning)
-							{
-								return;
-							}
-
-							while (Interlocked.Read(ref _blockRequests) == 1)
+							while (AreRequestsBlocked())
 							{
 								await Task.Delay(3000, Cancel.Token);
 							}
@@ -273,12 +192,15 @@ namespace WalletWasabi.Services
 								estimateMode = EstimateSmartFeeMode.Conservative;
 							}
 
-							FilterModel startingFilter = BestKnownFilter;
-
 							SynchronizeResponse response;
 							try
 							{
-								response = await WasabiClient.GetSynchronizeAsync(BestKnownFilter.BlockHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
+								if (!IsRunning)
+								{
+									return;
+								}
+
+								response = await WasabiClient.GetSynchronizeAsync(BitcoinStore.HashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
 								// NOT GenSocksServErr
 								BackendStatus = BackendStatus.Connected;
 								TorStatus = TorStatus.Running;
@@ -321,7 +243,7 @@ namespace WalletWasabi.Services
 								ignoreRequestInterval = false;
 							}
 
-							BestBlockchainHeight = response.BestHeight;
+							BitcoinStore.HashChain.UpdateServerTipHeight(response.BestHeight);
 							ExchangeRate exchangeRate = response.ExchangeRates.FirstOrDefault();
 							if (exchangeRate != default && exchangeRate.Rate != 0)
 							{
@@ -330,56 +252,25 @@ namespace WalletWasabi.Services
 
 							if (response.FiltersResponseState == FiltersResponseState.NewFilters)
 							{
-								List<FilterModel> filtersList = response.Filters.ToList(); // performance
+								var filters = response.Filters;
 
-								for (int i = 0; i < filtersList.Count; i++)
+								await BitcoinStore.IndexStore.AddNewFiltersAsync(filters, Cancel.Token);
+
+								if (filters.Count() == 1)
 								{
-									FilterModel filterModel;
-									lock (IndexLock)
-									{
-										filterModel = filtersList[i];
-										Index.Add(filterModel);
-										BestKnownFilter = filterModel;
-									}
-
-									NewFilter?.Invoke(this, filterModel);
+									Logger.LogInfo<WasabiSynchronizer>($"Downloaded filter for block {filters.First().BlockHeight}.");
 								}
-
-								lock (IndexLock)
+								else
 								{
-									IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToHeightlessLine()));
-									var startingFilterHeightPlusOne = startingFilter.BlockHeight + 1;
-									var bestKnownFilterHeight = BestKnownFilter.BlockHeight;
-									if (startingFilterHeightPlusOne == bestKnownFilterHeight)
-									{
-										Logger.LogInfo<WasabiSynchronizer>($"Downloaded filter for block {startingFilterHeightPlusOne}.");
-									}
-									else
-									{
-										Logger.LogInfo<WasabiSynchronizer>($"Downloaded filters for blocks from {startingFilterHeightPlusOne} to {bestKnownFilterHeight}.");
-									}
+									Logger.LogInfo<WasabiSynchronizer>($"Downloaded filters for blocks from {filters.First().BlockHeight} to {filters.Last().BlockHeight}.");
 								}
 							}
 							else if (response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
 							{
 								// Reorg happened
-								var reorgedFilter = BestKnownFilter;
-								Logger.LogInfo<WasabiSynchronizer>($"REORG Invalid Block: {reorgedFilter.BlockHash}");
 								// 1. Rollback index
-								lock (IndexLock)
-								{
-									Index.RemoveLast();
-									BestKnownFilter = Index.Last();
-								}
-								Reorged?.Invoke(this, reorgedFilter);
-
-								// 2. Serialize Index. (Remove last line.)
-								string[] lines = null;
-								if (IoHelpers.TryGetSafestFileVersion(IndexFilePath, out var safestFileVerion))
-								{
-									lines = File.ReadAllLines(safestFileVerion);
-								}
-								IoHelpers.SafeWriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray()); // It's not async for a reason, I think.
+								FilterModel reorgedFilter = await BitcoinStore.IndexStore.RemoveLastFilterAsync(Cancel.Token);
+								Logger.LogInfo<WasabiSynchronizer>($"REORG Invalid Block: {reorgedFilter.BlockHash}");
 
 								ignoreRequestInterval = true;
 							}
@@ -391,28 +282,27 @@ namespace WalletWasabi.Services
 							LastResponse = response;
 							ResponseArrived?.Invoke(this, response);
 						}
+						catch (ConnectionException ex)
+						{
+							Logger.LogError<CcjClient>(ex);
+							try
+							{
+								await Task.Delay(3000, Cancel.Token); // Give other threads time to do stuff.
+							}
+							catch (TaskCanceledException ex2)
+							{
+								Logger.LogTrace<CcjClient>(ex2);
+							}
+						}
+						catch (Exception ex) when (ex is OperationCanceledException
+												|| ex is TaskCanceledException
+												|| ex is TimeoutException)
+						{
+							Logger.LogTrace<WasabiSynchronizer>(ex);
+						}
 						catch (Exception ex)
 						{
-							if (ex is ConnectionException)
-							{
-								Logger.LogError<CcjClient>(ex);
-								try
-								{
-									await Task.Delay(3000, Cancel.Token); // Give other threads time to do stuff.
-								}
-								catch (TaskCanceledException ex2)
-								{
-									Logger.LogTrace<CcjClient>(ex2);
-								}
-							}
-							else if (ex is TaskCanceledException || ex is OperationCanceledException || ex is TimeoutException)
-							{
-								Logger.LogTrace<WasabiSynchronizer>(ex);
-							}
-							else
-							{
-								Logger.LogError<WasabiSynchronizer>(ex);
-							}
+							Logger.LogError<WasabiSynchronizer>(ex);
 						}
 						finally
 						{
@@ -433,10 +323,7 @@ namespace WalletWasabi.Services
 				}
 				finally
 				{
-					if (IsStopping)
-					{
-						Interlocked.Exchange(ref _running, 3);
-					}
+					Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
 				}
 			});
 		}
@@ -444,29 +331,6 @@ namespace WalletWasabi.Services
 		#endregion ConstructorsAndInitializers
 
 		#region Methods
-
-		public static FilterModel GetStartingFilter(Network network)
-		{
-			if (network == Network.Main)
-			{
-				return FilterModel.FromHeightlessLine("0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893:02832810ec08a0", GetStartingHeight(network));
-			}
-			if (network == Network.TestNet)
-			{
-				return FilterModel.FromHeightlessLine("00000000000f0d5edcaeba823db17f366be49a80d91d15b77747c2e017b8c20a:017821b8", GetStartingHeight(network));
-			}
-			if (network == Network.RegTest)
-			{
-				return FilterModel.FromHeightlessLine("0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206", GetStartingHeight(network));
-			}
-			throw new NotSupportedException($"{network} is not supported.");
-		}
-
-		public FilterModel StartingFilter => GetStartingFilter(Network);
-
-		public static Height GetStartingHeight(Network network) => IndexBuilderService.GetStartingHeight(network);
-
-		public Height StartingHeight => GetStartingHeight(Network);
 
 		private void HandleIfGenSocksServFail(Exception ex)
 		{
@@ -493,76 +357,32 @@ namespace WalletWasabi.Services
 			ResponseArrivedIsGenSocksServFail?.Invoke(this, false);
 		}
 
-		public Height? TryGetHeight(uint256 blockHash)
-		{
-			lock (IndexLock)
-			{
-				return Index.FirstOrDefault(x => x.BlockHash == blockHash)?.BlockHeight;
-			}
-		}
-
-		public int GetFiltersLeft()
-		{
-			if (BestBlockchainHeight == Height.Unknown || BestBlockchainHeight == Height.MemPool || BestKnownFilter.BlockHeight == Height.Unknown || BestKnownFilter.BlockHeight == Height.MemPool)
-			{
-				return -1;
-			}
-			return BestBlockchainHeight.Value - BestKnownFilter.BlockHeight.Value;
-		}
-
-		public IEnumerable<FilterModel> GetFilters()
-		{
-			lock (IndexLock)
-			{
-				return Index.ToList();
-			}
-		}
-
-		public int CountFilters() => Index.Count;
-
 		public Money GetFeeRate(int feeTarget)
 		{
+			if (AllFeeEstimate is null)
+			{
+				throw new InvalidOperationException("Cannot get fee estimations.");
+			}
 			return AllFeeEstimate.GetFeeRate(feeTarget);
 		}
 
 		#endregion Methods
 
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
+		public async Task StopAsync()
 		{
-			if (!_disposedValue)
+			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
+			Cancel?.Cancel();
+			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
 			{
-				if (disposing)
-				{
-					if (IsRunning)
-					{
-						Interlocked.Exchange(ref _running, 2);
-					}
-					Cancel?.Cancel();
-					while (IsStopping)
-					{
-						Task.Delay(50).GetAwaiter().GetResult(); // DO NOT MAKE IT ASYNC (.NET Core threading brainfart)
-					}
-
-					Cancel?.Dispose();
-					WasabiClient?.Dispose();
-				}
-
-				_disposedValue = true;
+				await Task.Delay(50);
 			}
-		}
 
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-			// GC.SuppressFinalize(this);
-		}
+			Cancel?.Dispose();
+			Cancel = null;
+			WasabiClient?.Dispose();
+			WasabiClient = null;
 
-		#endregion IDisposable Support
+			EnableRequests(); // Enable requests (it's possible something is being blocked outside the class by AreRequestsBlocked.
+		}
 	}
 }

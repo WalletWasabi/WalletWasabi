@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using Newtonsoft.Json;
 using System;
 
@@ -15,7 +15,14 @@ namespace WalletWasabi.JsonConverters
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			return new BitcoinEncryptedSecretNoEC((string)reader.Value);
+			var value = reader.Value as string;
+
+			if (string.IsNullOrWhiteSpace(value))
+			{
+				return null;
+			}
+
+			return new BitcoinEncryptedSecretNoEC(value);
 		}
 
 		/// <inheritdoc />

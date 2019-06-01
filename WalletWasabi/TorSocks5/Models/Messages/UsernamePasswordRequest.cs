@@ -1,9 +1,9 @@
-﻿using WalletWasabi.Bases;
-using WalletWasabi.TorSocks5.TorSocks5.Models.Fields.ByteArrayFields;
-using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
-using System;
+﻿using System;
 using System.Linq;
+using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
+using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
+using WalletWasabi.TorSocks5.TorSocks5.Models.Fields.ByteArrayFields;
 
 namespace WalletWasabi.TorSocks5.Models.Messages
 {

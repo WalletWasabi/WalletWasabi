@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
 using System.Globalization;
 
@@ -15,12 +15,14 @@ namespace WalletWasabi.JsonConverters
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			if (reader.Value is null)
+			var value = reader.Value as string;
+
+			if (string.IsNullOrWhiteSpace(value))
 			{
 				return null;
 			}
 
-			string time = reader.Value.ToString().Trim();
+			string time = value.Trim();
 			return DateTimeOffset.Parse(time, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
 		}
 

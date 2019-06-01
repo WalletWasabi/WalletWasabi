@@ -15,7 +15,10 @@ namespace WalletWasabi.Http.Models
 			try
 			{
 				var parts = protocolString.Trim().Split(new char[] { '/' });
-				if (parts.Length != 2) throw new FormatException($"Wrong {nameof(HttpProtocol)} format: {protocolString}.");
+				if (parts.Length != 2)
+				{
+					throw new FormatException($"Wrong {nameof(HttpProtocol)} format: {protocolString}.");
+				}
 
 				if (parts[1].Split(new char[] { '.' }).Length != 2)
 				{

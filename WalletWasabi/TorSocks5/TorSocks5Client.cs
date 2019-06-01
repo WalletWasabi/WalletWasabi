@@ -1,16 +1,16 @@
 ﻿using Nito.AsyncEx;
 using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using System.IO;
-using WalletWasabi.Logging;
-using WalletWasabi.Helpers;
 using WalletWasabi.Exceptions;
-using WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields;
+using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
 using WalletWasabi.TorSocks5.Models.Messages;
+using WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields;
 using WalletWasabi.TorSocks5.TorSocks5.Models.Fields.ByteArrayFields;
 
 namespace WalletWasabi.TorSocks5
@@ -84,7 +84,10 @@ namespace WalletWasabi.TorSocks5
 
 		internal async Task ConnectAsync()
 		{
-			if (TorSocks5EndPoint is null) return;
+			if (TorSocks5EndPoint is null)
+			{
+				return;
+			}
 
 			using (await AsyncLock.LockAsync())
 			{
@@ -128,7 +131,10 @@ namespace WalletWasabi.TorSocks5
 		/// <param name="identity">Isolates streams by identity. If identity is empty string, it won't isolate stream.</param>
 		internal async Task HandshakeAsync(string identity)
 		{
-			if (TorSocks5EndPoint is null) return;
+			if (TorSocks5EndPoint is null)
+			{
+				return;
+			}
 
 			Guard.NotNull(nameof(identity), identity);
 
@@ -184,7 +190,7 @@ namespace WalletWasabi.TorSocks5
 					throw new NotSupportedException($"Authentication version {userNamePasswordResponse.Ver.Value} is not supported. Only version {usernamePasswordRequest.Ver} is supported.");
 				}
 
-				if (!userNamePasswordResponse.Status.IsSuccess()) // In Tor authentication is different, this will never happen;
+				if (!userNamePasswordResponse.Status.IsSuccess()) // Tor authentication is different, this will never happen;
 				{
 					// https://tools.ietf.org/html/rfc1929#section-2
 					// A STATUS field of X'00' indicates success. If the server returns a

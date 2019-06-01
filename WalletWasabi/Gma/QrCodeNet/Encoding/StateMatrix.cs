@@ -2,18 +2,18 @@
 {
 	public sealed class StateMatrix
 	{
-		private readonly MatrixStatus[,] _m_matrixStatus;
+		private MatrixStatus[,] MatrixStatus { get; }
 
 		public StateMatrix(int width)
 		{
 			Width = width;
-			_m_matrixStatus = new MatrixStatus[width, width];
+			MatrixStatus = new MatrixStatus[width, width];
 		}
 
 		public MatrixStatus this[int x, int y]
 		{
-			get => _m_matrixStatus[x, y];
-			set => _m_matrixStatus[x, y] = value;
+			get => MatrixStatus[x, y];
+			set => MatrixStatus[x, y] = value;
 		}
 
 		internal MatrixStatus this[MatrixPoint point]

@@ -1,4 +1,6 @@
 ﻿using NBitcoin;
+using NBitcoin.BouncyCastle.Math;
+using NBitcoin.Crypto;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -6,17 +8,15 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.Logging;
 using WalletWasabi.Bases;
-using System.Threading;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Logging;
 using WalletWasabi.Models.ChaumianCoinJoin;
-using NBitcoin.BouncyCastle.Math;
-using NBitcoin.Crypto;
 using static NBitcoin.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
@@ -108,7 +108,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			}
 			catch
 			{
-				client.Dispose();
+				client?.Dispose();
 				throw;
 			}
 		}
@@ -211,15 +211,9 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 						}
 					}
 				}
-				catch (TaskCanceledException) // If couldn't do it within 3 seconds then it'll likely time out and take it as unconfirmed.
-				{
-					return;
-				}
-				catch (OperationCanceledException) // If couldn't do it within 3 seconds then it'll likely time out and take it as unconfirmed.
-				{
-					return;
-				}
-				catch (TimeoutException) // If couldn't do it within 3 seconds then it'll likely time out and take it as unconfirmed.
+				catch (Exception ex) when (ex is OperationCanceledException // If couldn't do it within 3 seconds then it'll likely time out and take it as unconfirmed.
+										|| ex is TaskCanceledException
+										|| ex is TimeoutException)
 				{
 					return;
 				}

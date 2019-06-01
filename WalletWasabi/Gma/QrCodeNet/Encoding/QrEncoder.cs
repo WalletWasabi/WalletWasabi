@@ -35,7 +35,9 @@ namespace Gma.QrCodeNet.Encoding
 				throw new InputOutOfBoundaryException("Input should not be empty or null");
 			}
 			else
+			{
 				return new QrCode(QRCodeEncode.Encode(content, ErrorCorrectionLevel));
+			}
 		}
 
 		/// <summary>
@@ -68,7 +70,9 @@ namespace Gma.QrCodeNet.Encoding
 				throw new InputOutOfBoundaryException("Input should not be empty or null");
 			}
 			else
+			{
 				return new QrCode(QRCodeEncode.Encode(content, ErrorCorrectionLevel));
+			}
 		}
 
 		/// <summary>

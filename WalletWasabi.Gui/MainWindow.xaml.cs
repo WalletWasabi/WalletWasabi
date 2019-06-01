@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Hwi;
 
 namespace WalletWasabi.Gui
 {
@@ -47,17 +48,16 @@ namespace WalletWasabi.Gui
 			AvaloniaXamlLoader.Load(this);
 		}
 
-		private long _closingState;
+		private int _closingState;
 
 		private async void MainWindow_ClosingAsync(object sender, CancelEventArgs e)
 		{
 			try
 			{
 				e.Cancel = true;
-				switch (Interlocked.Read(ref _closingState))
+				switch (Interlocked.CompareExchange(ref _closingState, 1, 0))
 				{
 					case 0:
-						Interlocked.Increment(ref _closingState);
 						await ClosingAsync();
 						break;
 
@@ -101,16 +101,30 @@ namespace WalletWasabi.Gui
 				{
 					try
 					{
-						Global.UiConfig.WindowState = WindowState;
-						Global.UiConfig.Width = Width;
-						Global.UiConfig.Height = Height;
-						await Global.UiConfig.ToFileAsync();
-						Logging.Logger.LogInfo<UiConfig>("UiConfig is saved.");
+						if (Global.UiConfig != null) // UiConfig not yet loaded.
+						{
+							Global.UiConfig.WindowState = WindowState;
+							Global.UiConfig.Width = Width;
+							Global.UiConfig.Height = Height;
+							await Global.UiConfig.ToFileAsync();
+							Logging.Logger.LogInfo<UiConfig>("UiConfig is saved.");
+						}
+
+						Hide();
+						var wm = IoC.Get<IShell>().Documents?.OfType<WalletManagerViewModel>().FirstOrDefault();
+						if (wm != null)
+						{
+							wm.OnClose();
+							Logging.Logger.LogInfo<MainWindowViewModel>($"{nameof(WalletManagerViewModel)} closed, hwi enumeration stopped.");
+						}
+
+						await Global.DisposeAsync();
 					}
 					catch (Exception ex)
 					{
 						Logging.Logger.LogWarning<MainWindow>(ex);
 					}
+
 					Interlocked.Exchange(ref _closingState, 2); //now we can close the app
 					Close(); // start the closing process. Will call MainWindow_ClosingAsync again!
 				}
@@ -169,12 +183,12 @@ namespace WalletWasabi.Gui
 
 		private void DisplayWalletManager()
 		{
-			var isAnyWalletAvailable = Directory.Exists(Global.WalletsDir) && Directory.EnumerateFiles(Global.WalletsDir).Any();
-
 			var walletManagerViewModel = new WalletManagerViewModel();
 			IoC.Get<IShell>().AddDocument(walletManagerViewModel);
 
-			if (isAnyWalletAvailable)
+			var isAnyDesktopWalletAvailable = Directory.Exists(Global.WalletsDir) && Directory.EnumerateFiles(Global.WalletsDir).Any();
+
+			if (isAnyDesktopWalletAvailable)
 			{
 				walletManagerViewModel.SelectLoadWallet();
 			}

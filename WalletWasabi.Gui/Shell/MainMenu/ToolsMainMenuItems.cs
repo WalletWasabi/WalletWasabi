@@ -1,4 +1,4 @@
-﻿using AvalonStudio.MainMenu;
+using AvalonStudio.MainMenu;
 using AvalonStudio.Menus;
 using System;
 using System.Collections.Generic;
@@ -9,19 +9,19 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 {
 	internal class ToolsMainMenuItems
 	{
-		private IMenuItemFactory _menuItemFactory;
+		private IMenuItemFactory MenuItemFactory { get; }
 
 		[ImportingConstructor]
 		public ToolsMainMenuItems(IMenuItemFactory menuItemFactory)
 		{
-			_menuItemFactory = menuItemFactory;
+			MenuItemFactory = menuItemFactory;
 		}
 
 		#region MainMenu
 
 		[ExportMainMenuItem("Tools")]
 		[DefaultOrder(1)]
-		public IMenuItem Tools => _menuItemFactory.CreateHeaderMenuItem("Tools", null);
+		public IMenuItem Tools => MenuItemFactory.CreateHeaderMenuItem("Tools", null);
 
 		#endregion MainMenu
 
@@ -42,12 +42,12 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[ExportMainMenuItem("Tools", "Wallet Manager")]
 		[DefaultOrder(0)]
 		[DefaultGroup("Managers")]
-		public IMenuItem WalletManager => _menuItemFactory.CreateCommandMenuItem("Tools.WalletManager");
+		public IMenuItem WalletManager => MenuItemFactory.CreateCommandMenuItem("Tools.WalletManager");
 
 		[ExportMainMenuItem("Tools", "Settings")]
 		[DefaultOrder(1)]
 		[DefaultGroup("Settings")]
-		public IMenuItem Settings => _menuItemFactory.CreateCommandMenuItem("Tools.Settings");
+		public IMenuItem Settings => MenuItemFactory.CreateCommandMenuItem("Tools.Settings");
 
 		#endregion MenuItem
 	}

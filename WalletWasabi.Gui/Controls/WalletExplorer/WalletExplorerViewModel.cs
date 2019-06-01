@@ -46,7 +46,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			var walletName = Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath);
 			if (_wallets.Any(x => x.Title == walletName))
+			{
 				return;
+			}
 
 			WalletViewModel walletViewModel = new WalletViewModel(walletService, receiveDominant);
 			_wallets.Add(walletViewModel);

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using NBitcoin;
 using NBitcoin.RPC;
@@ -15,7 +15,6 @@ namespace WalletWasabi.Backend
 {
 	public class Program
 	{
-		private static Money TotalVolume { get; set; } = Money.Zero;
 		private static List<string> Last5CoinJoins { get; set; } = new List<string>();
 		private static object UpdateUnversionedLock { get; } = new object();
 
@@ -27,6 +26,8 @@ namespace WalletWasabi.Backend
 			try
 			{
 				Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
+				Logger.LogStarting("Wasabi Backend");
+
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 				var configFilePath = Path.Combine(Global.DataDir, "Config.json");
@@ -51,35 +52,13 @@ namespace WalletWasabi.Backend
 					UnversionedWebBuilder.CreateDownloadTextWithVersionHtml();
 					UnversionedWebBuilder.CloneAndUpdateOnionIndexHtml();
 
-					var getTxTasks = new List<Task<Transaction>>();
-					var batch = Global.RpcClient.PrepareBatch();
-
-					string[] allLines = File.ReadAllLines(Global.Coordinator.CoinJoinsFilePath);
-					foreach (string txId in allLines)
+					if (File.Exists(Global.Coordinator.CoinJoinsFilePath))
 					{
-						getTxTasks.Add(batch.GetRawTransactionAsync(uint256.Parse(txId)));
-					}
-					var waiting = Task.WhenAll(getTxTasks);
-					await batch.SendBatchAsync();
-					await waiting;
-
-					foreach(var task in getTxTasks)
-					{
-						try
-						{
-							var tx = await task; 
-							var volume = tx.GetIndistinguishableOutputs(includeSingle: false).Sum(x => x.count * x.value);
-							TotalVolume += volume;
-						}
-						catch (Exception ex)
-						{
-							Logger.LogWarning(ex, nameof(Program));
-						}
+						string[] allLines = File.ReadAllLines(Global.Coordinator.CoinJoinsFilePath);
+						Last5CoinJoins = allLines.TakeLast(5).Reverse().ToList();
+						UnversionedWebBuilder.UpdateCoinJoinsHtml(Last5CoinJoins);
 					}
 
-					UnversionedWebBuilder.UpdateMixedTextHtml(TotalVolume);
-					Last5CoinJoins = allLines.TakeLast(5).Reverse().ToList();
-					UnversionedWebBuilder.UpdateCoinJoinsHtml(Last5CoinJoins);
 					Global.Coordinator.CoinJoinBroadcasted += Coordinator_CoinJoinBroadcasted;
 				}
 				catch (Exception ex)
@@ -101,6 +80,7 @@ namespace WalletWasabi.Backend
 			{
 				Logger.LogCritical<Program>(ex);
 			}
+			// Note: Don't do finally here. Dispose in Startup.cs.
 		}
 
 		private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
@@ -119,10 +99,6 @@ namespace WalletWasabi.Backend
 			{
 				lock (UpdateUnversionedLock)
 				{
-					Money volume = tx.GetIndistinguishableOutputs(includeSingle: false).Sum(x => x.count * x.value);
-					TotalVolume += volume;
-					UnversionedWebBuilder.UpdateMixedTextHtml(TotalVolume);
-
 					if (Last5CoinJoins.Count > 4)
 					{
 						Last5CoinJoins.RemoveLast();

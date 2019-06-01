@@ -1,18 +1,27 @@
-﻿using Avalonia.Threading;
+using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin.Protocol;
+using Nito.AsyncEx;
 using ReactiveUI;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Converters;
 using WalletWasabi.Gui.Dialogs;
+using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Tabs;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Stores;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -25,7 +34,12 @@ namespace WalletWasabi.Gui.ViewModels
 
 	public class StatusBarViewModel : ViewModelBase
 	{
-		private CompositeDisposable Disposables { get; }
+		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
+		private NodesCollection Nodes { get; set; }
+		private WasabiSynchronizer Synchronizer { get; set; }
+		private HashChain HashChain { get; set; }
+
+		private bool UseTor { get; set; }
 
 		private UpdateStatus _updateStatus;
 		private bool _updateAvailable;
@@ -36,123 +50,165 @@ namespace WalletWasabi.Gui.ViewModels
 		private int _filtersLeft;
 		private int _blocksLeft;
 		private string _btcPrice;
-		private string _status;
-		private long _clientOutOfDate;
-		private long _backendIncompatible;
+		private StatusBarStatus _status;
+		private List<StatusBarStatus> StatusQueue { get; } = new List<StatusBarStatus>();
+		private object StatusQueueLock { get; } = new object();
 
-		public StatusBarViewModel(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
+		public StatusBarViewModel()
 		{
-			Disposables = new CompositeDisposable();
-
-			_clientOutOfDate = 0;
-			_backendIncompatible = 0;
-
 			UpdateStatus = UpdateStatus.Latest;
-			Peers = nodes.Count;
+			UpdateAvailable = false;
+			CriticalUpdateAvailable = false;
+			Backend = BackendStatus.NotConnected;
+			UseTor = false;
+			Tor = TorStatus.NotRunning;
+			Peers = 0;
+			FiltersLeft = 0;
 			BlocksLeft = 0;
-			FiltersLeft = synchronizer.GetFiltersLeft();
+			BtcPrice = "$0";
+			Status = StatusBarStatus.Loading;
+		}
+
+		public void Initialize(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
+		{
+			Nodes = nodes;
+			Synchronizer = synchronizer;
+			HashChain = synchronizer.BitcoinStore.HashChain;
+			UseTor = Global.Config.UseTor.Value; // Don't make it dynamic, because if you change this config settings only next time will it activate.
 
 			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Added))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
-					Peers = nodes.Count;
+					SetPeers(Nodes.Count);
 				}).DisposeWith(Disposables);
 
 			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
-					Peers = nodes.Count;
+					SetPeers(Nodes.Count);
 				}).DisposeWith(Disposables);
 
+			SetPeers(Nodes.Count);
+
 			Observable.FromEventPattern<int>(typeof(WalletService), nameof(WalletService.ConcurrentBlockDownloadNumberChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
 					BlocksLeft = x.EventArgs;
 				}).DisposeWith(Disposables);
 
-			Observable.FromEventPattern(synchronizer, nameof(synchronizer.NewFilter)).Subscribe(x =>
-			{
-				FiltersLeft = synchronizer.GetFiltersLeft();
-			}).DisposeWith(Disposables);
+			Synchronizer.WhenAnyValue(x => x.TorStatus)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(status =>
+				{
+					SetTor(status);
+					SetPeers(Nodes.Count);
+				}).DisposeWith(Disposables);
 
-			synchronizer.WhenAnyValue(x => x.TorStatus).Subscribe(_ =>
-			{
-				Tor = synchronizer.TorStatus;
-			}).DisposeWith(Disposables);
+			Synchronizer.WhenAnyValue(x => x.BackendStatus)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					Backend = Synchronizer.BackendStatus;
+				}).DisposeWith(Disposables);
 
-			synchronizer.WhenAnyValue(x => x.BackendStatus).Subscribe(_ =>
-			{
-				Backend = synchronizer.BackendStatus;
-			}).DisposeWith(Disposables);
+			HashChain.WhenAnyValue(x => x.HashesLeft)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					FiltersLeft = x;
+				}).DisposeWith(Disposables);
 
-			synchronizer.WhenAnyValue(x => x.BestBlockchainHeight).Subscribe(_ =>
-			{
-				FiltersLeft = synchronizer.GetFiltersLeft();
-			}).DisposeWith(Disposables);
+			Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(usd =>
+				{
+					BtcPrice = $"${(long)usd}";
+				}).DisposeWith(Disposables);
 
-			synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Subscribe(_ =>
-			{
-				BtcPrice = $"${(long)synchronizer.UsdExchangeRate}";
-			}).DisposeWith(Disposables);
-
-			Observable.FromEventPattern<bool>(synchronizer, nameof(synchronizer.ResponseArrivedIsGenSocksServFail))
+			Observable.FromEventPattern<bool>(Synchronizer, nameof(Synchronizer.ResponseArrivedIsGenSocksServFail))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(e =>
 				{
 					OnResponseArrivedIsGenSocksServFail(e.EventArgs);
 				}).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.BlocksLeft).Subscribe(blocks =>
-			{
-				SetStatusAndDoUpdateActions();
-			});
+			this.WhenAnyValue(x => x.BlocksLeft)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(blocks =>
+				{
+					RefreshStatus();
+				});
 
-			this.WhenAnyValue(x => x.FiltersLeft).Subscribe(filters =>
-			{
-				SetStatusAndDoUpdateActions();
-			});
+			this.WhenAnyValue(x => x.FiltersLeft)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(filters =>
+				{
+					RefreshStatus();
+				});
 
-			this.WhenAnyValue(x => x.Tor).Subscribe(tor =>
-			{
-				SetStatusAndDoUpdateActions();
-			});
+			this.WhenAnyValue(x => x.Tor)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(tor =>
+				{
+					RefreshStatus();
+				});
 
-			this.WhenAnyValue(x => x.Backend).Subscribe(backend =>
-			{
-				SetStatusAndDoUpdateActions();
-			});
+			this.WhenAnyValue(x => x.Backend)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(backend =>
+				{
+					RefreshStatus();
+				});
 
-			this.WhenAnyValue(x => x.Peers).Subscribe(peers =>
-			{
-				SetStatusAndDoUpdateActions();
-			});
+			this.WhenAnyValue(x => x.Peers)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(peers =>
+				{
+					RefreshStatus();
+				});
+
+			this.WhenAnyValue(x => x.UpdateStatus)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					RefreshStatus();
+				});
 
 			UpdateCommand = ReactiveCommand.Create(() =>
 			{
-				IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
-			}, this.WhenAnyValue(x => x.UpdateStatus).Select(x => x != UpdateStatus.Latest));
+				try
+				{
+					IoHelpers.OpenBrowser("https://wasabiwallet.io/#download");
+				}
+				catch (Exception ex)
+				{
+					Logging.Logger.LogWarning<StatusBarViewModel>(ex);
+					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
+				}
+			}, this.WhenAnyValue(x => x.UpdateStatus)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Select(x => x != UpdateStatus.Latest));
 
 			updateChecker.Start(TimeSpan.FromMinutes(7),
 				() =>
 				{
-					Interlocked.Exchange(ref _backendIncompatible, 1);
-					Dispatcher.UIThread.PostLogException(() =>
-					{
-						SetStatusAndDoUpdateActions();
-					});
+					UpdateStatus = UpdateStatus.Critical;
 					return Task.CompletedTask;
 				},
 				() =>
 				{
-					Interlocked.Exchange(ref _clientOutOfDate, 1);
-					Dispatcher.UIThread.PostLogException(() =>
+					if (UpdateStatus != UpdateStatus.Critical)
 					{
-						SetStatusAndDoUpdateActions();
-					});
+						UpdateStatus = UpdateStatus.Optional;
+					}
 					return Task.CompletedTask;
 				});
 		}
 
-		public ReactiveCommand UpdateCommand { get; }
+		public ReactiveCommand<Unit, Unit> UpdateCommand { get; set; }
 
 		public UpdateStatus UpdateStatus
 		{
@@ -221,7 +277,7 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _btcPrice, value);
 		}
 
-		public string Status
+		public StatusBarStatus Status
 		{
 			get => _status;
 			set => this.RaiseAndSetIfChanged(ref _status, value);
@@ -243,7 +299,7 @@ namespace WalletWasabi.Gui.ViewModels
 					if (osDesc.Contains("16.04.1-Ubuntu", StringComparison.InvariantCultureIgnoreCase)
 						|| osDesc.Contains("16.04.0-Ubuntu", StringComparison.InvariantCultureIgnoreCase))
 					{
-						MainWindowViewModel.Instance.ShowDialogAsync(new GenSocksServFailDialogViewModel()).GetAwaiter();
+						MainWindowViewModel.Instance.ShowDialogAsync(new GenSocksServFailDialogViewModel()).GetAwaiter().GetResult();
 					}
 				}
 			}
@@ -269,30 +325,109 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		private void SetStatusAndDoUpdateActions()
+		public void TryAddStatus(StatusBarStatus status)
 		{
-			if (Interlocked.Read(ref _backendIncompatible) != 0)
+			try
 			{
-				Status = "THE BACKEND WAS UPGRADED WITH BREAKING CHANGES - PLEASE UPDATE YOUR SOFTWARE";
-				UpdateStatus = UpdateStatus.Critical;
+				lock (StatusQueueLock)
+				{
+					// Make sure it's the last status.
+					StatusQueue.Remove(status);
+					StatusQueue.Add(status);
+					RefreshStatusNoLock();
+				}
 			}
-			else if (Interlocked.Read(ref _clientOutOfDate) != 0)
+			catch (Exception ex)
 			{
-				Status = "New Version Is Available";
-				UpdateStatus = UpdateStatus.Optional;
+				Logging.Logger.LogWarning<StatusBarViewModel>(ex);
 			}
-			else if (Tor != TorStatus.Running || Backend != BackendStatus.Connected || Peers < 1)
+		}
+
+		public void TryRemoveStatus(params StatusBarStatus[] statuses)
+		{
+			try
 			{
-				Status = "Connecting...";
+				lock (StatusQueueLock)
+				{
+					foreach (StatusBarStatus status in statuses)
+					{
+						if (StatusQueue.Remove(status))
+						{
+							RefreshStatusNoLock();
+						}
+					}
+				}
 			}
-			else if (FiltersLeft != 0 || BlocksLeft != 0)
+			catch (Exception ex)
 			{
-				Status = "Synchronizing...";
+				Logging.Logger.LogWarning<StatusBarViewModel>(ex);
+			}
+		}
+
+		private void RefreshStatus()
+		{
+			lock (StatusQueueLock)
+			{
+				RefreshStatusNoLock();
+			}
+		}
+
+		private void RefreshStatusNoLock()
+		{
+			if (!TrySetPriorityStatus())
+			{
+				SetCustomStatusOrReady();
+			}
+		}
+
+		private void SetCustomStatusOrReady()
+		{
+			if (StatusQueue.Any())
+			{
+				Status = StatusQueue.Last();
 			}
 			else
 			{
-				Status = "Ready";
+				Status = StatusBarStatus.Ready;
 			}
+		}
+
+		private bool TrySetPriorityStatus()
+		{
+			if (UpdateStatus == UpdateStatus.Critical)
+			{
+				Status = StatusBarStatus.CriticalUpdate;
+			}
+			else if (UpdateStatus == UpdateStatus.Optional)
+			{
+				Status = StatusBarStatus.OptionalUpdate;
+			}
+			else if (Tor == TorStatus.NotRunning || Backend != BackendStatus.Connected || Peers < 1)
+			{
+				Status = StatusBarStatus.Connecting;
+			}
+			else if (FiltersLeft != 0 || BlocksLeft != 0)
+			{
+				Status = StatusBarStatus.Synchronizing;
+			}
+			else
+			{
+				return false;
+			}
+
+			return true;
+		}
+
+		private void SetPeers(int peers)
+		{
+			// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it's seem to the user that peers are connected over clearnet, while they don't.
+			Peers = Tor == TorStatus.NotRunning ? 0 : peers;
+		}
+
+		private void SetTor(TorStatus tor)
+		{
+			// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it's seem to the user that peers are connected over clearnet, while they don't.
+			Tor = UseTor ? tor : TorStatus.TurnedOff;
 		}
 
 		#region IDisposable Support
@@ -312,7 +447,6 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		// This code added to correctly implement the disposable pattern.
 		public void Dispose()
 		{
 			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.

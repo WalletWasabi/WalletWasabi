@@ -1,7 +1,7 @@
-﻿using System;
+﻿using ReactiveUI;
+using System;
 using System.Collections.Generic;
 using System.Text;
-using ReactiveUI;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {

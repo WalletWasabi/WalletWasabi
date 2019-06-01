@@ -8,6 +8,7 @@
              Name="ReceiveTabViewerUserControl">
   <UserControl.Resources>
     <converters:CoinItemExpanderColorConverter x:Key="CoinItemExpanderColorConverter" />
+    <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
   </UserControl.Resources>
   <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
     <Grid Classes="content">
@@ -105,7 +106,7 @@
                     </StackPanel>
                   </Expander>
                   <Grid ColumnDefinitions="400, *, 100" Margin="30 0 0 0">
-                    <TextBlock IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding AddressPrivate}">
+                    <TextBlock IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding Address, ConverterParameter=27, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}">
                     </TextBlock>
 
                     <Grid IsVisible="{Binding ClipboardNotificationVisible}">
@@ -119,7 +120,7 @@
                       </Grid>
                     </Grid>
 
-                    <TextBlock Text="{Binding LabelPrivate}" Grid.Column="1" />
+                    <TextBlock Text="{Binding Label, ConverterParameter=11, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="1" />
                   </Grid>
                 </Grid>
               </DataTemplate>

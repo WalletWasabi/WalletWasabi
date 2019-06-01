@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using NBitcoin;
 using System;
+using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend;
 using WalletWasabi.Logging;
@@ -29,11 +31,11 @@ namespace WalletWasabi.Tests.XunitConfiguration
 
 			var rpc = BackendRegTestNode.CreateRpcClient();
 
-			var config = new Config(rpc.Network, rpc.Authentication);
+			var config = new Config(rpc.Network, rpc.Authentication, IPAddress.Loopback.ToString(), IPAddress.Loopback.ToString(), BackendRegTestNode.Endpoint.Address.ToString(), Network.Main.DefaultPort, Network.TestNet.DefaultPort, BackendRegTestNode.Endpoint.Port);
 
-			var roundConfig = new CcjRoundConfig(Money.Coins(0.1m), 144, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
+			var roundConfig = new CcjRoundConfig(Money.Coins(0.1m), 144, 0.7, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
 
-			Global.InitializeAsync(config, roundConfig, rpc).GetAwaiter().GetResult();
+			Backend.Global.InitializeAsync(config, roundConfig, rpc).GetAwaiter().GetResult();
 
 			BackendEndPoint = $"http://localhost:{new Random().Next(37130, 38000)}/";
 			BackendHost = WebHost.CreateDefaultBuilder()
@@ -42,7 +44,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 					.Build();
 
 			var hostInitializationTask = BackendHost.RunAsync();
-			Logger.LogInfo<SharedFixture>($"Started Backend webhost: {BackendEndPoint}");
+			Logger.LogInfo($"Started Backend webhost: {BackendEndPoint}", nameof(Global));
 
 			var delayTask = Task.Delay(3000);
 			Task.WaitAny(delayTask, hostInitializationTask); // Wait for server to initialize (Without this OSX CI will fail)
@@ -52,9 +54,9 @@ namespace WalletWasabi.Tests.XunitConfiguration
 		{
 			// Cleanup tests...
 
-			BackendHost?.StopAsync();
+			BackendHost?.StopAsync().GetAwaiter().GetResult();
 			BackendHost?.Dispose();
-			BackendRegTestNode?.Kill(cleanFolder: true);
+			BackendRegTestNode?.TryKillAsync(cleanFolder: true).GetAwaiter().GetResult();
 			BackendNodeBuilder?.Dispose();
 		}
 	}

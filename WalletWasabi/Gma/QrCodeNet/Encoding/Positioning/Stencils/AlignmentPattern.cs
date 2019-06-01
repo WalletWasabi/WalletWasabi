@@ -1,11 +1,11 @@
-﻿using System.Linq;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 {
 	internal class AlignmentPattern : PatternStencilBase
 	{
-		private static readonly bool[,] S_AlignmentPattern = new[,]
+		private static bool[,] AlignmentPatternArray { get; } = new[,]
 																		  {
 																			  { X, X, X, X, X },
 																			  { X, O, O, O, X },
@@ -21,7 +21,7 @@ namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 
 		public override bool[,] Stencil
 		{
-			get { return S_AlignmentPattern; }
+			get { return AlignmentPatternArray; }
 		}
 
 		public override void ApplyTo(TriStateMatrix matrix)
@@ -54,11 +54,11 @@ namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 
 		private static IEnumerable<byte> GetPatternCoordinatesByVersion(int version)
 		{
-			return S_AlignmentPatternCoordinatesByVersion[version];
+			return AlignmentPatternCoordinatesByVersion[version];
 		}
 
 		//Table E.1 — Row/column coordinates of center module of Alignment Patterns
-		private static readonly byte[][] S_AlignmentPatternCoordinatesByVersion = new[]
+		private static byte[][] AlignmentPatternCoordinatesByVersion { get; } = new[]
 																						 {
 																							 null,
 																							 new byte[] {} ,

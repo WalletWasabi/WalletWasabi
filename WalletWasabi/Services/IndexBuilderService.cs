@@ -1,8 +1,5 @@
-﻿using WalletWasabi.Backend.Models;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
-using WalletWasabi.Models;
 using NBitcoin;
+using NBitcoin.Protocol;
 using NBitcoin.RPC;
 using Nito.AsyncEx;
 using System;
@@ -11,23 +8,16 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Backend.Models;
+using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
+using WalletWasabi.Models;
+using WalletWasabi.Stores;
 
 namespace WalletWasabi.Services
 {
 	public class IndexBuilderService
 	{
-		public RPCClient RpcClient { get; }
-		public string IndexFilePath { get; }
-		public string Bech32UtxoSetFilePath { get; }
-
-		private List<FilterModel> Index { get; }
-		private AsyncLock IndexLock { get; }
-
-		private Dictionary<OutPoint, Script> Bech32UtxoSet { get; }
-		private List<ActionHistoryHelper> Bech32UtxoSetHistory { get; }
-
-		public event EventHandler<Block> NewBlock;
-
 		private class ActionHistoryHelper
 		{
 			public enum Operation
@@ -95,28 +85,35 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public static Height GetStartingHeight(Network network) // First possible bech32 transaction ever.
+		private class SyncInfo
 		{
-			if (network == Network.Main)
+			public BlockchainInfo BlockchainInfo { get; }
+			public int BlockCount { get; }
+			public DateTimeOffset BlockchainInfoUpdated { get; }
+			public bool IsCoreSynchornized { get; }
+
+			public SyncInfo(BlockchainInfo bcinfo)
 			{
-				return new Height(481824);
+				Guard.NotNull(nameof(bcinfo), bcinfo);
+				BlockCount = (int)bcinfo.Blocks;
+				int headerCount = (int)bcinfo.Headers;
+				BlockchainInfoUpdated = DateTimeOffset.UtcNow;
+				IsCoreSynchornized = BlockCount == headerCount;
 			}
-			if (network == Network.TestNet)
-			{
-				return new Height(828575);
-			}
-			if (network == Network.RegTest)
-			{
-				return new Height(0);
-			}
-			throw new NotSupportedException($"{network} is not supported.");
 		}
 
-		public Height StartingHeight => GetStartingHeight(RpcClient.Network);
+		public RPCClient RpcClient { get; }
+		public TrustedNodeNotifyingBehavior TrustedNodeNotifyingBehavior { get; }
+		public string IndexFilePath { get; }
+		public string Bech32UtxoSetFilePath { get; }
 
-		public static FilterModel GetStartingFilter(Network network) => WasabiSynchronizer.GetStartingFilter(network);
+		private List<FilterModel> Index { get; }
+		private AsyncLock IndexLock { get; }
 
-		public FilterModel StartingFilter => GetStartingFilter(RpcClient.Network);
+		private Dictionary<OutPoint, Script> Bech32UtxoSet { get; }
+		private List<ActionHistoryHelper> Bech32UtxoSetHistory { get; }
+
+		private Height StartingHeight { get; set; }
 
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
@@ -124,11 +121,11 @@ namespace WalletWasabi.Services
 		private long _running;
 
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
-		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
-		public IndexBuilderService(RPCClient rpc, string indexFilePath, string bech32UtxoSetFilePath)
+		public IndexBuilderService(RPCClient rpc, TrustedNodeNotifyingBehavior trustedNodeNotifyingBehavior, string indexFilePath, string bech32UtxoSetFilePath)
 		{
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
+			TrustedNodeNotifyingBehavior = Guard.NotNull(nameof(trustedNodeNotifyingBehavior), trustedNodeNotifyingBehavior);
 			IndexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
 			Bech32UtxoSetFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(bech32UtxoSetFilePath), bech32UtxoSetFilePath);
 
@@ -136,6 +133,8 @@ namespace WalletWasabi.Services
 			Bech32UtxoSetHistory = new List<ActionHistoryHelper>(capacity: 100);
 			Index = new List<FilterModel>();
 			IndexLock = new AsyncLock();
+
+			StartingHeight = StartingFilters.GetStartingHeight(RpcClient.Network);
 
 			_running = 0;
 
@@ -178,194 +177,265 @@ namespace WalletWasabi.Services
 					}
 				}
 			}
+
+			TrustedNodeNotifyingBehavior.BlockInv += TrustedNodeNotifyingBehavior_BlockInv;
 		}
+
+		private long _runner;
 
 		public void Synchronize()
 		{
-			Interlocked.Exchange(ref _running, 1);
-
 			Task.Run(async () =>
 			{
 				try
 				{
-					var blockCount = await RpcClient.GetBlockCountAsync();
-					var isIIB = true; // Initial Index Building phase
-
-					while (IsRunning)
+					if (Interlocked.Read(ref _runner) >= 2)
 					{
-						try
+						return;
+					}
+
+					Interlocked.Increment(ref _runner);
+					while (Interlocked.Read(ref _runner) != 1)
+					{
+						await Task.Delay(100);
+					}
+
+					if (Interlocked.Read(ref _running) >= 2)
+					{
+						return;
+					}
+
+					try
+					{
+						Interlocked.Exchange(ref _running, 1);
+
+						var isImmature = false; // The last 100 blocks are reorgable. (Assume it is mature at first.)
+						SyncInfo syncInfo = null;
+						while (IsRunning)
 						{
-							// If stop was requested return.
-							if (IsRunning == false) return;
-
-							Height height = StartingHeight;
-							uint256 prevHash = null;
-							using (await IndexLock.LockAsync())
-							{
-								if (Index.Count != 0)
-								{
-									var lastIndex = Index.Last();
-									height = lastIndex.BlockHeight + 1;
-									prevHash = lastIndex.BlockHash;
-								}
-							}
-
-							if (blockCount - height <= 100)
-							{
-								isIIB = false;
-							}
-
-							Block block = null;
 							try
 							{
-								block = await RpcClient.GetBlockAsync(height);
-							}
-							catch (RPCException) // if the block didn't come yet
-							{
-								await Task.Delay(1000);
-								continue;
-							}
-
-							if (blockCount - height <= 2)
-							{
-								NewBlock?.Invoke(this, block);
-							}
-
-							if (prevHash != null)
-							{
-								// In case of reorg:
-								if (prevHash != block.Header.HashPrevBlock && !isIIB) // There is no reorg in IIB
+								// If we didn't yet initialized syncInfo, do so.
+								if (syncInfo is null)
 								{
-									Logger.LogInfo<IndexBuilderService>($"REORG Invalid Block: {prevHash}");
-									// 1. Rollback index
-									using (await IndexLock.LockAsync())
+									syncInfo = await GetSyncInfoAsync();
+								}
+
+								Height heightToRequest = StartingHeight;
+								uint256 currentHash = null;
+								using (await IndexLock.LockAsync())
+								{
+									if (Index.Count != 0)
 									{
-										Index.RemoveLast();
+										var lastIndex = Index.Last();
+										heightToRequest = lastIndex.BlockHeight + 1;
+										currentHash = lastIndex.BlockHash;
+									}
+								}
+
+								// If not synchronized or already 5 min passed since last update, get the latest blockchain info.
+								if (!syncInfo.IsCoreSynchornized || (syncInfo.BlockchainInfoUpdated - DateTimeOffset.UtcNow) > TimeSpan.FromMinutes(5))
+								{
+									syncInfo = await GetSyncInfoAsync();
+								}
+
+								if (syncInfo.BlockCount - heightToRequest <= 100)
+								{
+									// Both Wasabi and our Core node is in sync. Start doing stuff through P2P from now on.
+									if (syncInfo.IsCoreSynchornized && syncInfo.BlockCount == heightToRequest - 1)
+									{
+										syncInfo = await GetSyncInfoAsync();
+										// Double it to make sure not to accidentally miss any notification.
+										if (syncInfo.IsCoreSynchornized && syncInfo.BlockCount == heightToRequest - 1)
+										{
+											// Mark the process notstarted, so it can be started again and finally block can mark it is stopped.
+											Interlocked.Exchange(ref _running, 0);
+											return;
+										}
 									}
 
-									// 2. Serialize Index. (Remove last line.)
-									var lines = File.ReadAllLines(IndexFilePath);
-									File.WriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
+									// Mark the synchronizing process is working with immature blocks from now on.
+									isImmature = true;
+								}
 
-									// 3. Rollback Bech32UtxoSet
-									if (Bech32UtxoSetHistory.Count != 0)
+								Block block = await RpcClient.GetBlockAsync(heightToRequest);
+
+								// Reorg check, except if we're requesting the starting height, because then the "currentHash" wouldn't exist.
+
+								if (heightToRequest != StartingHeight && currentHash != block.Header.HashPrevBlock)
+								{
+									// Reorg can happen only when immature. (If it'd not be immature, that'd be a huge issue.)
+									if (isImmature)
 									{
-										Bech32UtxoSetHistory.Last().Rollback(Bech32UtxoSet); // The Bech32UtxoSet MUST be recovered to its previous state.
-										Bech32UtxoSetHistory.RemoveLast();
-
-										// 4. Serialize Bech32UtxoSet.
-										await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet
-											.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes())));
+										await ReorgOneAsync();
+									}
+									else
+									{
+										Logger.LogCritical<IndexBuilderService>("This is something serious! Over 100 block reorg is noticed! We cannot handle that!");
 									}
 
-									// 5. Skip the current block.
+									// Skip the current block.
 									continue;
 								}
-							}
 
-							if (!isIIB)
-							{
-								if (Bech32UtxoSetHistory.Count >= 100)
+								if (isImmature)
 								{
-									Bech32UtxoSetHistory.RemoveFirst();
+									PrepareBech32UtxoSetHistory();
 								}
-								Bech32UtxoSetHistory.Add(new ActionHistoryHelper());
-							}
 
-							var scripts = new HashSet<Script>();
+								var scripts = new HashSet<Script>();
 
-							foreach (var tx in block.Transactions)
-							{
-								// If stop was requested return.
-								// Because this tx iteration can take even minutes
-								// It doesn't need to be accessed with a thread safe fasion with Interlocked through IsRunning, this may have some performance benefit
-								if (_running != 1) return;
-
-								for (int i = 0; i < tx.Outputs.Count; i++)
+								foreach (var tx in block.Transactions)
 								{
-									var output = tx.Outputs[i];
-									if (!output.ScriptPubKey.IsPayToScriptHash && output.ScriptPubKey.IsWitness)
+									// If stop was requested return.
+									// Because this tx iteration can take even minutes
+									// It doesn't need to be accessed with a thread safe fasion with Interlocked through IsRunning, this may have some performance benefit
+									if (_running != 1)
 									{
-										var outpoint = new OutPoint(tx.GetHash(), i);
-										Bech32UtxoSet.Add(outpoint, output.ScriptPubKey);
-										if (!isIIB)
+										return;
+									}
+
+									for (int i = 0; i < tx.Outputs.Count; i++)
+									{
+										var output = tx.Outputs[i];
+										if (!output.ScriptPubKey.IsPayToScriptHash && output.ScriptPubKey.IsWitness)
 										{
-											Bech32UtxoSetHistory.Last().StoreAction(ActionHistoryHelper.Operation.Add, outpoint, output.ScriptPubKey);
+											var outpoint = new OutPoint(tx.GetHash(), i);
+											Bech32UtxoSet.Add(outpoint, output.ScriptPubKey);
+											if (isImmature)
+											{
+												Bech32UtxoSetHistory.Last().StoreAction(ActionHistoryHelper.Operation.Add, outpoint, output.ScriptPubKey);
+											}
+											scripts.Add(output.ScriptPubKey);
 										}
-										scripts.Add(output.ScriptPubKey);
+									}
+
+									foreach (var input in tx.Inputs)
+									{
+										OutPoint prevOut = input.PrevOut;
+										if (Bech32UtxoSet.TryGetValue(prevOut, out Script foundScript))
+										{
+											Bech32UtxoSet.Remove(prevOut);
+											if (isImmature)
+											{
+												Bech32UtxoSetHistory.Last().StoreAction(ActionHistoryHelper.Operation.Remove, prevOut, foundScript);
+											}
+											scripts.Add(foundScript);
+										}
 									}
 								}
 
-								foreach (var input in tx.Inputs)
+								GolombRiceFilter filter = null;
+								if (scripts.Count != 0)
 								{
-									OutPoint prevOut = input.PrevOut;
-									if (Bech32UtxoSet.TryGetValue(prevOut, out Script foundScript))
-									{
-										Bech32UtxoSet.Remove(prevOut);
-										if (!isIIB)
-										{
-											Bech32UtxoSetHistory.Last().StoreAction(ActionHistoryHelper.Operation.Remove, prevOut, foundScript);
-										}
-										scripts.Add(foundScript);
-									}
+									filter = new GolombRiceFilterBuilder()
+										.SetKey(block.GetHash())
+										.SetP(20)
+										.SetM(1 << 20)
+										.AddEntries(scripts.Select(x => x.ToCompressedBytes()))
+										.Build();
+								}
+
+								var filterModel = new FilterModel {
+									BlockHash = block.GetHash(),
+									BlockHeight = heightToRequest,
+									Filter = filter
+								};
+
+								await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToHeightlessLine() });
+								using (await IndexLock.LockAsync())
+								{
+									Index.Add(filterModel);
+								}
+								if (File.Exists(Bech32UtxoSetFilePath))
+								{
+									File.Delete(Bech32UtxoSetFilePath);
+								}
+								await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet
+									.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes())));
+
+								// If not close to the tip, just log debug.
+								// Use height.Value instead of simply height, because it cannot be negative height.
+								if (syncInfo.BlockCount - heightToRequest.Value <= 3 || heightToRequest % 100 == 0)
+								{
+									Logger.LogInfo<IndexBuilderService>($"Created filter for block: {heightToRequest}.");
+								}
+								else
+								{
+									Logger.LogDebug<IndexBuilderService>($"Created filter for block: {heightToRequest}.");
 								}
 							}
-
-							GolombRiceFilter filter = null;
-							if (scripts.Count != 0)
+							catch (Exception ex)
 							{
-								filter = new GolombRiceFilterBuilder()
-									.SetKey(block.GetHash())
-									.SetP(20)
-									.SetM(1 << 20)
-									.AddEntries(scripts.Select(x => x.ToCompressedBytes()))
-									.Build();
-							}
-
-							var filterModel = new FilterModel
-							{
-								BlockHash = block.GetHash(),
-								BlockHeight = height,
-								Filter = filter
-							};
-
-							await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToHeightlessLine() });
-							using (await IndexLock.LockAsync())
-							{
-								Index.Add(filterModel);
-							}
-							if (File.Exists(Bech32UtxoSetFilePath))
-							{
-								File.Delete(Bech32UtxoSetFilePath);
-							}
-							await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet
-								.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes())));
-
-							// If not close to the tip, just log debug.
-							// Use height.Value instead of simply height, because it cannot be negative height.
-							if (blockCount - height.Value <= 3 || height % 100 == 0)
-							{
-								Logger.LogInfo<IndexBuilderService>($"Created filter for block: {height}.");
-							}
-							else
-							{
-								Logger.LogDebug<IndexBuilderService>($"Created filter for block: {height}.");
+								Logger.LogDebug<IndexBuilderService>(ex);
 							}
 						}
-						catch (Exception ex)
-						{
-							Logger.LogDebug<IndexBuilderService>(ex);
-						}
+					}
+					finally
+					{
+						Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
+						Interlocked.Decrement(ref _runner);
 					}
 				}
-				finally
+				catch (Exception ex)
 				{
-					if (IsStopping)
-					{
-						Interlocked.Exchange(ref _running, 3);
-					}
+					Logger.LogError<IndexBuilderService>($"Synchronization attempt failed to start: {ex}");
 				}
 			});
+		}
+
+		private async Task<SyncInfo> GetSyncInfoAsync()
+		{
+			var bcinfo = await RpcClient.GetBlockchainInfoAsync();
+			var pbcinfo = new SyncInfo(bcinfo);
+			return pbcinfo;
+		}
+
+		private void TrustedNodeNotifyingBehavior_BlockInv(object sender, uint256 e)
+		{
+			try
+			{
+				// Run sync every time a block notification arrives. Synchronizer will stop when it finishes.
+				Synchronize();
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError<IndexBuilderService>(ex);
+			}
+		}
+
+		private async Task ReorgOneAsync()
+		{
+			// 1. Rollback index
+			using (await IndexLock.LockAsync())
+			{
+				Logger.LogInfo<IndexBuilderService>($"REORG invalid block: {Index.Last().BlockHash}");
+				Index.RemoveLast();
+			}
+
+			// 2. Serialize Index. (Remove last line.)
+			var lines = await File.ReadAllLinesAsync(IndexFilePath);
+			await File.WriteAllLinesAsync(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
+
+			// 3. Rollback Bech32UtxoSet
+			if (Bech32UtxoSetHistory.Count != 0)
+			{
+				Bech32UtxoSetHistory.Last().Rollback(Bech32UtxoSet); // The Bech32UtxoSet MUST be recovered to its previous state.
+				Bech32UtxoSetHistory.RemoveLast();
+
+				// 4. Serialize Bech32UtxoSet.
+				await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet
+					.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes())));
+			}
+		}
+
+		private void PrepareBech32UtxoSetHistory()
+		{
+			if (Bech32UtxoSetHistory.Count >= 100)
+			{
+				Bech32UtxoSetHistory.RemoveFirst();
+			}
+			Bech32UtxoSetHistory.Add(new ActionHistoryHelper());
 		}
 
 		public (Height bestHeight, IEnumerable<FilterModel> filters) GetFilterLinesExcluding(uint256 bestKnownBlockHash, int count, out bool found)
@@ -406,11 +476,14 @@ namespace WalletWasabi.Services
 
 		public async Task StopAsync()
 		{
-			if (IsRunning)
+			if (TrustedNodeNotifyingBehavior != null)
 			{
-				Interlocked.Exchange(ref _running, 2);
+				TrustedNodeNotifyingBehavior.BlockInv -= TrustedNodeNotifyingBehavior_BlockInv;
 			}
-			while (IsStopping)
+
+			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
+
+			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
 			{
 				await Task.Delay(50);
 			}

@@ -1,10 +1,11 @@
-﻿using Avalonia.Threading;
+using Avalonia.Threading;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Reactive;
 using System.Reactive.Disposables;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
@@ -13,6 +14,8 @@ namespace WalletWasabi.Gui.Tabs
 {
 	internal class SettingsViewModel : WasabiDocumentTabViewModel
 	{
+		private CompositeDisposable Disposables { get; set; }
+
 		private string _network;
 		private string _torHost;
 		private string _torPort;
@@ -21,15 +24,14 @@ namespace WalletWasabi.Gui.Tabs
 		private bool _useTor;
 		private string _useTorText;
 		private bool _isModified;
-		private CompositeDisposable _disposables;
 
-		public ReactiveCommand OpenConfigFileCommand { get; }
-		public ReactiveCommand LurkingWifeModeCommand { get; }
+		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
+		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
 
 		public SettingsViewModel() : base("Settings")
 		{
 			var config = new Config(Global.Config.FilePath);
-			Autocopy = (bool)Global.UiConfig.Autocopy;
+			Autocopy = Global.UiConfig?.Autocopy is true;
 
 			this.WhenAnyValue(x => x.Network, x => x.TorHost, x => x.TorPort, x => x.UseTor).Subscribe(x => Save());
 
@@ -72,41 +74,36 @@ namespace WalletWasabi.Gui.Tabs
 
 		public override void OnOpen()
 		{
-			if (_disposables != null)
+			if (Disposables != null)
 			{
 				throw new Exception("Settings was opened before it was closed.");
 			}
 
-			_disposables = new CompositeDisposable();
+			Disposables = new CompositeDisposable();
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(LurkingWifeMode));
 				this.RaisePropertyChanged(nameof(LurkingWifeModeText));
-			}).DisposeWith(_disposables);
+			}).DisposeWith(Disposables);
 
 			base.OnOpen();
 		}
 
 		public override bool OnClose()
 		{
-			_disposables.Dispose();
-			_disposables = null;
+			Disposables?.Dispose();
+			Disposables = null;
 
 			return base.OnClose();
 		}
 
-		public IEnumerable<string> Networks
+		public IEnumerable<string> Networks => new[]
 		{
-			get
-			{
-				return new[]{
-					  "Main"
-					, "TestNet"
-					, "RegTest"
-				};
-			}
-		}
+			"Main",
+			"TestNet",
+			"RegTest"
+		};
 
 		public string Network
 		{
@@ -158,16 +155,23 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _useTorText, value);
 		}
 
-		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode == true;
+		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
 
-		public string LurkingWifeModeText => Global.UiConfig.LurkingWifeMode == true ? "On" : "Off";
+		public string LurkingWifeModeText => Global.UiConfig.LurkingWifeMode is true ? "On" : "Off";
 
 		private void Save()
 		{
 			var isValid = string.IsNullOrEmpty(ValidateTorHost()) &&
 							string.IsNullOrEmpty(ValidateTorPort());
-			if (!isValid) return;
-			if (string.IsNullOrWhiteSpace(Network)) return;
+			if (!isValid)
+			{
+				return;
+			}
+
+			if (string.IsNullOrWhiteSpace(Network))
+			{
+				return;
+			}
 
 			var config = new Config(Global.Config.FilePath);
 
@@ -202,7 +206,7 @@ namespace WalletWasabi.Gui.Tabs
 			}
 
 			var torHost = TorHost.Trim();
-			if (Uri.TryCreate(torHost, UriKind.Absolute, out var uri))
+			if (Uri.TryCreate(torHost, UriKind.Absolute, out _))
 			{
 				return string.Empty;
 			}
@@ -226,7 +230,7 @@ namespace WalletWasabi.Gui.Tabs
 			}
 
 			var torPort = TorPort.Trim();
-			if (ushort.TryParse(torPort, out var port))
+			if (ushort.TryParse(torPort, out _))
 			{
 				return string.Empty;
 			}

@@ -1,10 +1,11 @@
-﻿using WalletWasabi.Crypto;
-using WalletWasabi.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading;
+using WalletWasabi.Crypto;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Logging
 {
@@ -24,7 +25,13 @@ namespace WalletWasabi.Logging
 
 		public static string FileEntryEncryptionPassword { get; private set; } = null;
 
-		private static long _loggerFailed = 0;
+		/// <summary>
+		/// You can use it to identify which software instance created a log entry.
+		/// It gets created automatically, but you have to use it manually.
+		/// </summary>
+		public static Guid InstanceGuid { get; } = Guid.NewGuid();
+
+		private static int LoggingFailedCount = 0;
 
 		private static readonly object Lock = new object();
 
@@ -49,7 +56,8 @@ namespace WalletWasabi.Logging
 
 #if RELEASE
 			SetMinimumLevel(LogLevel.Info);
-			SetModes(LogMode.File);
+			SetModes(LogMode.Console, LogMode.File);
+
 #else
 			SetMinimumLevel(LogLevel.Debug);
 			SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
@@ -65,7 +73,11 @@ namespace WalletWasabi.Logging
 				Modes.Clear();
 			}
 
-			if (modes is null) return;
+			if (modes is null)
+			{
+				return;
+			}
+
 			foreach (var mode in modes)
 			{
 				Modes.Add(mode);
@@ -112,7 +124,7 @@ namespace WalletWasabi.Logging
 
 		#region GeneralLoggingMethods
 
-		private static void Log(LogLevel level, string message, string category)
+		private static void Log(LogLevel level, string message, string category, int additionalEntrySeparators = 0, bool additionalEntrySeparatorsLogFileOnlyMode = true)
 		{
 			try
 			{
@@ -129,22 +141,37 @@ namespace WalletWasabi.Logging
 				message = string.IsNullOrWhiteSpace(message) ? "" : message;
 				category = string.IsNullOrWhiteSpace(category) ? "" : category;
 
-				var finalLogMessage = "";
+				var messageBuilder = new StringBuilder();
+				messageBuilder.Append($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {level.ToString().ToUpperInvariant()}");
+
 				if (message != "" && category != "") // If none of them empty.
 				{
-					finalLogMessage = $"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {level.ToString().ToUpperInvariant()} {category}: {message}{EntrySeparator}";
+					messageBuilder.Append($" {category}: {message}{EntrySeparator}");
 				}
 				else if (message == "" && category != "")  // If only the message is empty.
 				{
-					finalLogMessage = $"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {level.ToString().ToUpperInvariant()} {category}{EntrySeparator}";
+					messageBuilder.Append($" {category}{EntrySeparator}");
 				}
 				else if (message != "" && category == "") // If only the category is empty.
 				{
-					finalLogMessage = $"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {level.ToString().ToUpperInvariant()}: {message}{EntrySeparator}";
+					messageBuilder.Append($": {message}{EntrySeparator}");
 				}
 				else // if (message == "" && category == "") // If both empty. It probably never happens though.
 				{
-					finalLogMessage = $"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {level.ToString().ToUpperInvariant()}{EntrySeparator}";
+					messageBuilder.Append($"{EntrySeparator}");
+				}
+
+				var finalMessage = messageBuilder.ToString();
+
+				for (int i = 0; i < additionalEntrySeparators; i++)
+				{
+					messageBuilder.Insert(0, EntrySeparator);
+				}
+
+				var finalFileMessage = messageBuilder.ToString();
+				if (!additionalEntrySeparatorsLogFileOnlyMode)
+				{
+					finalMessage = finalFileMessage;
 				}
 
 				lock (Lock)
@@ -169,17 +196,20 @@ namespace WalletWasabi.Logging
 							}
 
 							Console.ForegroundColor = color;
-							Console.Write(finalLogMessage);
+							Console.Write(finalMessage);
 							Console.ResetColor();
 						}
 					}
 
 					if (Modes.Contains(LogMode.Console))
 					{
-						Debug.Write(finalLogMessage);
+						Debug.Write(finalMessage);
 					}
 
-					if (!Modes.Contains(LogMode.File)) return;
+					if (!Modes.Contains(LogMode.File))
+					{
+						return;
+					}
 
 					IoHelpers.EnsureContainingDirectoryExists(FilePath);
 
@@ -195,26 +225,26 @@ namespace WalletWasabi.Logging
 					if (FileEntryEncryptionPassword != null)
 					{
 						// take the separator down and add a comma (not base64)
-						var replacedSeparatorWithCommaMessage = finalLogMessage.Substring(0, finalLogMessage.Length - EntrySeparator.Length);
+						var replacedSeparatorWithCommaMessage = finalFileMessage.Substring(0, finalFileMessage.Length - EntrySeparator.Length);
 						var encryptedLogMessage = StringCipher.Encrypt(replacedSeparatorWithCommaMessage, FileEntryEncryptionPassword) + ',';
 
 						File.AppendAllText(FilePath, encryptedLogMessage);
 					}
 					else
 					{
-						File.AppendAllText(FilePath, finalLogMessage);
+						File.AppendAllText(FilePath, finalFileMessage);
 					}
 				}
 			}
 			catch (Exception ex)
 			{
-				Interlocked.Increment(ref _loggerFailed);
-				if (Interlocked.Read(ref _loggerFailed) > 1)
+				if (Interlocked.Increment(ref LoggingFailedCount) == 1) // If it only failed the first time, try log the failure.
 				{
-					Interlocked.Exchange(ref _loggerFailed, 0);
-					return;
+					LogDebug($"Logging failed: {ex}", $"{nameof(Logger)}.{nameof(Logging)}.{nameof(Logger)}");
 				}
-				LogDebug($"Logging failed: {ex}", $"{nameof(Logger)}.{nameof(Logging)}.{nameof(Logger)}");
+				// If logging the failure is successful then clear the failure counter.
+				// If it's not the first time the logging failed, then we don't try to log logging failure, so clear the failure counter.
+				Interlocked.Exchange(ref LoggingFailedCount, 0);
 			}
 		}
 
@@ -363,6 +393,12 @@ namespace WalletWasabi.Logging
 		#endregion DebugLoggingMethods
 
 		#region InfoLoggingMethods
+
+		/// <summary>
+		/// Logs software start with category InstanceGuid and insert three newlines.
+		/// </summary>
+		/// <param name="appName">The name of the app.</param>
+		public static void LogStarting(string appName) => Log(LogLevel.Info, $"{appName} is starting...", category: InstanceGuid.ToString(), additionalEntrySeparators: 3, additionalEntrySeparatorsLogFileOnlyMode: true);
 
 		/// <summary>
 		/// For tracking the general flow of the application.

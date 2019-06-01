@@ -29,7 +29,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			rKey = Guard.NotNull(nameof(rKey), rKey);
 			SchnorrKey = new SchnorrKey(signerKey, rKey);
 
-			Signer = Signer.Create(SchnorrKey);
+			Signer = SchnorrKey.CreateSigner();
 		}
 
 		[JsonConstructor]
@@ -38,7 +38,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			Denomination = Guard.NotNull(nameof(denomination), denomination);
 			SchnorrKey = Guard.NotNull(nameof(schnorrKey), schnorrKey);
 
-			Signer = Signer.Create(SchnorrKey);
+			Signer = SchnorrKey.CreateSigner();
 		}
 
 		public Signer Signer { get; }

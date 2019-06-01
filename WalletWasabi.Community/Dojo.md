@@ -18,12 +18,18 @@ You can only be promoted by someone two belts above you. Consequently you can pr
 |----------------|--------------------------|---------------|------------|
 | Nicolas Dorier | [Twitter][1] [GitHub][2] | [NBitcoin][3] |            |
 
+### Yellow Belts
+
+
+| Wasabika       | Contact                    | Achievements                           | Promotions                     |
+|----------------|----------------------------|----------------------------------------|--------------------------------|
+| Max Hillebrand | [Twitter][5] [GitHub][37]              | [All Wasabi Videos][6], [Wasabi Tutorials][34], [Wasabi Interviews][35], [Zero Link Framework Reading][36]           | [2019-04][33]: yellow belt by nopara73 |
+
 ### Blue Belts
 
 
 | Wasabika       | Contact                    | Achievements                           | Promotions                     |
 |----------------|----------------------------|----------------------------------------|--------------------------------|
-| Max Hillebrand | [Twitter][5]               | [Wasabi Video Series][6]               | 2018-12: blue belt by nopara73 |
 | Mark Rex       | [Twitter][7] [GitHub][8]   | [GroupSend Research][9]                | 2018-12: blue belt by nopara73 |
 | nothingmuch    | [Twitter][10] [GitHub][11] | [Unequal Amount Mixing for ZeroLink using Preferred Value Series Fixed Denominations Research][12] | 2018-12: blue belt by nopara73 |
 | KevinKelbie    | [Twitter][29]              | [Wasabi Python Library (Outdated)][30] | 2019-19: blue belt by nopara73 |
@@ -42,12 +48,15 @@ You can only be promoted by someone two belts above you. Consequently you can pr
 | canalfixe        | [Twitter][25]               | [Video: How to anonymize your Bitcoin with Wasabi wallet][26] | 2019-01: white belt by nopara73 |
 | 402PaymentReq    | [Twitter][27]               | [In-Depth, Funny And Addictive Wasabi Video Series][28] | 2019-01: white belt by Max Hillebrand |
 | Transisto        | [GitHub][31]                | [Extensive Wasabi Testing][32]           | 2019-02: white belt by nopara73 |
+| Matt Odell       | [Twitter][38]               | [Interview  with Nopara][39] and starting [#WasabiWednesday][40]| 2019-04: white belt by Max Hillebrand |
+| Marty Bent       | [Twitter][41]               | [Interview  with Nopara][39]| 2019-04: white belt by Max Hillebrand        |
+| 6102bitcoin      | [Twitter][42]               | [Created FAQ][43]| 2019-05: white belt by nopara73                         |
 
 [1]: https://twitter.com/NicolasDorier/
 [2]: https://github.com/NicolasDorier/
 [3]: https://github.com/MetacoSA/NBitcoin/
 [5]: https://twitter.com/HillebrandMax/
-[6]: https://www.youtube.com/watch?v=y8wQK-Ndl3Q&list=PLPj3KCksGbSaEmjU0sywoTYDVYYSu8LsS
+[6]: https://www.youtube.com/playlist?list=PLPj3KCksGbSaEmjU0sywoTYDVYYSu8LsS
 [7]: https://twitter.com/mark_rex_h/
 [8]: https://github.com/rexmint/
 [9]: https://github.com/zkSNACKs/Meta/issues/29
@@ -73,3 +82,14 @@ You can only be promoted by someone two belts above you. Consequently you can pr
 [30]: https://github.com/KevinKelbie/zerolink-util/
 [31]: https://github.com/Transisto/
 [32]: https://github.com/zkSNACKs/WalletWasabi/issues?utf8=%E2%9C%93&q=is%3Aissue+author%3ATransisto
+[33]: https://twitter.com/nopara73/status/1114540283914522626
+[34]: https://www.youtube.com/playlist?list=PLPj3KCksGbSYCFAf3SZbzaJ3ud_nfjlSq
+[35]: https://www.youtube.com/playlist?list=PLPj3KCksGbSZcK35ftoBUcPvYuOHdWQss
+[36]: https://www.youtube.com/playlist?list=PLPj3KCksGbSZG8f4_ubui5I1VB7VGX2Cy
+[37]: https://github.com/maxhillebrand/
+[38]: https://twitter.com/matt_odell
+[39]: https://anchor.fm/tales-from-the-crypt/episodes/Rabbit-Hole-Recap-Week-of-2019-03-11-e3f6ef
+[40]: https://twitter.com/matt_odell/status/1098280232308654080?s=20
+[41]: https://twitter.com/martybent
+[42]: https://twitter.com/6102bitcoin
+[43]: https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/FAQ.md

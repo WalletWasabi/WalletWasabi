@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.RPC;
 using Newtonsoft.Json.Linq;
@@ -24,7 +24,21 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public RPCClient RpcClient { get; }
 		public Network Network => RpcClient.Network;
 
-		public int ConfirmationTarget { get; }
+		/// <summary>
+		/// The confirmation target that will be used and possibly modified before final build.
+		/// </summary>
+		public int AdjustedConfirmationTarget { get; private set; }
+
+		/// <summary>
+		/// The confirmation target that is present in the config file.
+		/// </summary>
+		public int ConfiguredConfirmationTarget { get; }
+
+		/// <summary>
+		/// The rate of confirmation target reduction rate that is present in the config file.
+		/// </summary>
+		public double ConfiguredConfirmationTargetReductionRate { get; }
+
 		public decimal CoordinatorFeePercent { get; }
 		public int AnonymitySet { get; private set; }
 
@@ -136,18 +150,19 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public UtxoReferee UtxoReferee { get; }
 
-		public CcjRound(RPCClient rpc, UtxoReferee utxoReferee, CcjRoundConfig config)
+		public CcjRound(RPCClient rpc, UtxoReferee utxoReferee, CcjRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget, double configuredConfirmationTargetReductionRate)
 		{
 			try
 			{
-				Interlocked.Increment(ref RoundCount);
-				RoundId = Interlocked.Read(ref RoundCount);
+				RoundId = Interlocked.Increment(ref RoundCount);
 
 				RpcClient = Guard.NotNull(nameof(rpc), rpc);
 				UtxoReferee = Guard.NotNull(nameof(utxoReferee), utxoReferee);
 				Guard.NotNull(nameof(config), config);
 
-				ConfirmationTarget = (int)config.ConfirmationTarget;
+				AdjustedConfirmationTarget = adjustedConfirmationTarget;
+				ConfiguredConfirmationTarget = configuredConfirmationTarget;
+				ConfiguredConfirmationTargetReductionRate = configuredConfirmationTargetReductionRate;
 				CoordinatorFeePercent = (decimal)config.CoordinatorFeePercent;
 				AnonymitySet = (int)config.AnonymitySet;
 				InputRegistrationTimeout = TimeSpan.FromSeconds((long)config.InputRegistrationTimeout);
@@ -179,7 +194,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 				Logger.LogInfo<CcjRound>($"New round ({RoundId}) is created.\n\t" +
 					$"BaseDenomination: {MixingLevels.GetBaseDenomination().ToString(false, true)} BTC.\n\t" +
-					$"{nameof(ConfirmationTarget)}: {ConfirmationTarget}.\n\t" +
+					$"{nameof(AdjustedConfirmationTarget)}: {AdjustedConfirmationTarget}.\n\t" +
 					$"{nameof(CoordinatorFeePercent)}: {CoordinatorFeePercent}%.\n\t" +
 					$"{nameof(AnonymitySet)}: {AnonymitySet}.");
 			}
@@ -211,7 +226,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						// Calculate fees.
 						if (feePerInputs is null || feePerOutputs is null)
 						{
-							(Money feePerInputs, Money feePerOutputs) fees = await CalculateFeesAsync(RpcClient, ConfirmationTarget);
+							(Money feePerInputs, Money feePerOutputs) fees = await CalculateFeesAsync(RpcClient, AdjustedConfirmationTarget);
 							FeePerInputs = feePerInputs ?? fees.feePerInputs;
 							FeePerOutputs = feePerOutputs ?? fees.feePerOutputs;
 						}
@@ -272,7 +287,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							foreach (MixingLevel level in MixingLevels.GetLevelsExceptBase())
 							{
 								IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == level);
-								if (bobsOnThisLevel.Count() <= 1) break;
+								if (bobsOnThisLevel.Count() <= 1)
+								{
+									break;
+								}
 
 								foreach (Bob bob in bobsOnThisLevel)
 								{
@@ -304,7 +322,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							foreach (MixingLevel level in MixingLevels.GetLevelsExceptBase())
 							{
 								var denominationOutputCount = transaction.Outputs.Count(x => x.Value == level.Denomination);
-								if (denominationOutputCount <= 1) break;
+								if (denominationOutputCount <= 1)
+								{
+									break;
+								}
 
 								Money coordinatorLevelFeePerAlice = level.Denomination.Percentage(CoordinatorFeePercent * denominationOutputCount);
 								coordinatorFee += coordinatorLevelFeePerAlice * denominationOutputCount;
@@ -332,7 +353,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 								{
 									MixingLevel level = MixingLevels.GetLevel(i);
 									var denominationOutputCount = transaction.Outputs.Count(x => x.Value == level.Denomination);
-									if (denominationOutputCount <= 1) break;
+									if (denominationOutputCount <= 1)
+									{
+										break;
+									}
 
 									changeAmount -= FeePerOutputs;
 									changeAmount -= level.Denomination;
@@ -375,7 +399,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							.BuildTransaction(false);
 
 						// 8. Try optimize fees.
-						await OptimizeFeesAsync(spentCoins);
+						await TryOptimizeFeesAsync(spentCoins);
 
 						SignedCoinJoin = Transaction.Parse(UnsignedCoinJoin.ToHex(), Network);
 
@@ -396,124 +420,129 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				}
 			}
 
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-			Task.Run(async () =>
-			{
-				TimeSpan timeout;
-				switch (expectedPhase)
-				{
-					case CcjRoundPhase.InputRegistration:
-						timeout = InputRegistrationTimeout;
-						break;
+			_ = Task.Run(async () =>
+			  {
+				  try
+				  {
+					  TimeSpan timeout;
+					  switch (expectedPhase)
+					  {
+						  case CcjRoundPhase.InputRegistration:
+							  timeout = InputRegistrationTimeout;
+							  break;
 
-					case CcjRoundPhase.ConnectionConfirmation:
-						timeout = ConnectionConfirmationTimeout;
-						break;
+						  case CcjRoundPhase.ConnectionConfirmation:
+							  timeout = ConnectionConfirmationTimeout;
+							  break;
 
-					case CcjRoundPhase.OutputRegistration:
-						timeout = OutputRegistrationTimeout;
-						break;
+						  case CcjRoundPhase.OutputRegistration:
+							  timeout = OutputRegistrationTimeout;
+							  break;
 
-					case CcjRoundPhase.Signing:
-						timeout = SigningTimeout;
-						break;
+						  case CcjRoundPhase.Signing:
+							  timeout = SigningTimeout;
+							  break;
 
-					default: throw new InvalidOperationException("This is impossible to happen.");
-				}
+						  default: throw new InvalidOperationException("This is impossible to happen.");
+					  }
 
-				// Delay asynchronously to the requested timeout.
-				await Task.Delay(timeout);
+					  // Delay asynchronously to the requested timeout.
+					  await Task.Delay(timeout);
 
-				var executeRunAbortion = false;
-				using (await RoundSynchronizerLock.LockAsync())
-				{
-					executeRunAbortion = Status == CcjRoundStatus.Running && Phase == expectedPhase;
-				}
-				if (executeRunAbortion)
-				{
-					PhaseTimeoutLog.TryAdd((RoundId, Phase), DateTimeOffset.UtcNow);
-					string timedOutLogString = $"Round ({RoundId}): {expectedPhase.ToString()} timed out after {timeout.TotalSeconds} seconds.";
+					  var executeRunAbortion = false;
+					  using (await RoundSynchronizerLock.LockAsync())
+					  {
+						  executeRunAbortion = Status == CcjRoundStatus.Running && Phase == expectedPhase;
+					  }
+					  if (executeRunAbortion)
+					  {
+						  PhaseTimeoutLog.TryAdd((RoundId, Phase), DateTimeOffset.UtcNow);
+						  string timedOutLogString = $"Round ({RoundId}): {expectedPhase.ToString()} timed out after {timeout.TotalSeconds} seconds.";
 
-					if (expectedPhase == CcjRoundPhase.ConnectionConfirmation)
-					{
-						Logger.LogInfo<CcjRound>(timedOutLogString);
-					}
-					else if (expectedPhase == CcjRoundPhase.OutputRegistration)
-					{
-						Logger.LogInfo<CcjRound>($"{timedOutLogString} Progressing to signing phase to blame...");
-					}
-					else
-					{
-						Logger.LogInfo<CcjRound>($"{timedOutLogString} Aborting...");
-					}
+						  if (expectedPhase == CcjRoundPhase.ConnectionConfirmation)
+						  {
+							  Logger.LogInfo<CcjRound>(timedOutLogString);
+						  }
+						  else if (expectedPhase == CcjRoundPhase.OutputRegistration)
+						  {
+							  Logger.LogInfo<CcjRound>($"{timedOutLogString} Progressing to signing phase to blame...");
+						  }
+						  else
+						  {
+							  Logger.LogInfo<CcjRound>($"{timedOutLogString} Aborting...");
+						  }
 
-					// This will happen outside the lock.
-					Task.Run(async () =>
-					{
-						try
-						{
-							switch (expectedPhase)
-							{
-								case CcjRoundPhase.InputRegistration:
-									{
-										// Only abort if less than two one Alice is registered.
-										// Don't ban anyone, it's ok if they lost connection.
-										await RemoveAlicesIfAnInputRefusedByMempoolAsync();
-										int aliceCountAfterInputRegistrationTimeout = CountAlices();
-										if (aliceCountAfterInputRegistrationTimeout < 2)
-										{
-											Abort(nameof(CcjRound), $"Only {aliceCountAfterInputRegistrationTimeout} Alices registered.");
-										}
-										else
-										{
-											UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
-											// Progress to the next phase, which will be ConnectionConfirmation
-											await ExecuteNextPhaseAsync(CcjRoundPhase.ConnectionConfirmation);
-										}
-									}
-									break;
+						  // This will happen outside the lock.
+						  _ = Task.Run(async () =>
+							  {
+								  try
+								  {
+									  switch (expectedPhase)
+									  {
+										  case CcjRoundPhase.InputRegistration:
+											  {
+												  // Only abort if less than two one Alice is registered.
+												  // Don't ban anyone, it's ok if they lost connection.
+												  await RemoveAlicesIfAnInputRefusedByMempoolAsync();
+												  int aliceCountAfterInputRegistrationTimeout = CountAlices();
+												  if (aliceCountAfterInputRegistrationTimeout < 2)
+												  {
+													  Abort(nameof(CcjRound), $"Only {aliceCountAfterInputRegistrationTimeout} Alices registered.");
+												  }
+												  else
+												  {
+													  UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
+													  // Progress to the next phase, which will be ConnectionConfirmation
+													  await ExecuteNextPhaseAsync(CcjRoundPhase.ConnectionConfirmation);
+												  }
+											  }
+											  break;
 
-								case CcjRoundPhase.ConnectionConfirmation:
-									{
-										IEnumerable<Alice> alicesToBan = GetAlicesBy(AliceState.InputsRegistered);
+										  case CcjRoundPhase.ConnectionConfirmation:
+											  {
+												  IEnumerable<Alice> alicesToBan = GetAlicesBy(AliceState.InputsRegistered);
 
-										await ProgressToOutputRegistrationOrFailAsync(alicesToBan.ToArray());
-									}
-									break;
+												  await ProgressToOutputRegistrationOrFailAsync(alicesToBan.ToArray());
+											  }
+											  break;
 
-								case CcjRoundPhase.OutputRegistration:
-									{
-										// Output registration never aborts.
-										// We don't know which Alice to ban.
-										// Therefore proceed to signing, and whichever Alice doesn't sign, ban her.
-										await ExecuteNextPhaseAsync(CcjRoundPhase.Signing);
-									}
-									break;
+										  case CcjRoundPhase.OutputRegistration:
+											  {
+												  // Output registration never aborts.
+												  // We don't know which Alice to ban.
+												  // Therefore proceed to signing, and whichever Alice doesn't sign, ban her.
+												  await ExecuteNextPhaseAsync(CcjRoundPhase.Signing);
+											  }
+											  break;
 
-								case CcjRoundPhase.Signing:
-									{
-										Alice[] alicesToBan = GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: true).ToArray();
+										  case CcjRoundPhase.Signing:
+											  {
+												  Alice[] alicesToBan = GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: true).ToArray();
 
-										if (alicesToBan.Any())
-										{
-											await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, alicesToBan.SelectMany(x => x.Inputs.Select(y => y.Outpoint)).ToArray());
-										}
+												  if (alicesToBan.Any())
+												  {
+													  await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, alicesToBan.SelectMany(x => x.Inputs.Select(y => y.Outpoint)).ToArray());
+												  }
 
-										Abort(nameof(CcjRound), $"{alicesToBan.Length} Alices did not sign.");
-									}
-									break;
+												  Abort(nameof(CcjRound), $"{alicesToBan.Length} Alices did not sign.");
+											  }
+											  break;
 
-								default: throw new InvalidOperationException("This is impossible to happen.");
-							}
-						}
-						catch (Exception ex)
-						{
-							Logger.LogWarning<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timeout failed with exception: {ex}");
-						}
-					});
-				}
-			});
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+										  default: throw new InvalidOperationException("This is impossible to happen.");
+									  }
+								  }
+								  catch (Exception ex)
+								  {
+									  Logger.LogWarning<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timeout failed with exception: {ex}");
+								  }
+							  });
+					  }
+				  }
+				  catch (Exception ex)
+				  {
+					  Logger.LogWarning<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timeout failed with exception: {ex}");
+				  }
+			  });
 		}
 
 		private Money CalculateNewDenomination()
@@ -565,7 +594,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			bool tinkerWithAdditionalMixingLevels = !Alices.All(x => x.BlindedOutputScripts.Length == 1);
 			foreach (Alice alice in Alices)
 			{
-				if (!tinkerWithAdditionalMixingLevels) break;
+				if (!tinkerWithAdditionalMixingLevels)
+				{
+					break;
+				}
 
 				// Check if inputs have enough coins.
 				Money networkFeeToPay = (alice.Inputs.Count() * FeePerInputs) + (2 * FeePerOutputs);
@@ -654,10 +686,12 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			return acceptedBlindedOutputScriptsCount;
 		}
 
-		private async Task OptimizeFeesAsync(List<Coin> spentCoins)
+		private async Task TryOptimizeFeesAsync(IEnumerable<Coin> spentCoins)
 		{
 			try
 			{
+				await TryOptimizeConfirmationTargetAsync(spentCoins.Select(x => x.Outpoint.Hash).ToHashSet());
+
 				// 8.1. Estimate the current FeeRate. Note, there are no signatures yet!
 				int estimatedSigSizeBytes = UnsignedCoinJoin.Inputs.Count * Constants.P2wpkhInputSizeInBytes;
 				int estimatedFinalTxSize = UnsignedCoinJoin.GetSerializedSize() + estimatedSigSizeBytes;
@@ -666,8 +700,12 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				FeeRate currentFeeRate = fee is null ? null : new FeeRate(fee, estimatedFinalTxSize);
 
 				// 8.2. Get the most optimal FeeRate.
-				EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
-				if (estimateSmartFeeResponse is null) throw new InvalidOperationException("FeeRate is not yet initialized");
+				EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(AdjustedConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
+				if (estimateSmartFeeResponse is null)
+				{
+					throw new InvalidOperationException("FeeRate is not yet initialized");
+				}
+
 				FeeRate optimalFeeRate = estimateSmartFeeResponse.FeeRate;
 
 				if (optimalFeeRate != null && optimalFeeRate != FeeRate.Zero && currentFeeRate != null && currentFeeRate != FeeRate.Zero) // This would be really strange if it'd happen.
@@ -706,7 +744,30 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<CcjRound>("Couldn't optimize fees. Fallback to normal fees.");
+				Logger.LogWarning<CcjRound>("Failed to optimize fees. Fallback to normal fees.");
+				Logger.LogWarning<CcjRound>(ex);
+			}
+		}
+
+		private async Task TryOptimizeConfirmationTargetAsync(ISet<uint256> transactionHashes)
+		{
+			try
+			{
+				// If the transaction doesn't spend unconfirmed coins then the confirmation target can be the one that's been set in the config.
+				var originalConfirmationTarget = AdjustedConfirmationTarget;
+
+				// Note that only dependents matter, spenders doesn't matter much or at all, they just make this transaction to be faster to confirm faster.
+				var dependents = await RpcClient.GetAllDependentsAsync(transactionHashes, includingProvided: true, likelyProvidedManyConfirmedOnes: true);
+				AdjustedConfirmationTarget = AdjustConfirmationTarget(dependents.Count, ConfiguredConfirmationTarget, ConfiguredConfirmationTargetReductionRate);
+
+				if (originalConfirmationTarget != AdjustedConfirmationTarget)
+				{
+					Logger.LogInfo<CcjRound>($"Confirmation target is optimized from {originalConfirmationTarget} blocks to {AdjustedConfirmationTarget} blocks.");
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<CcjRound>($"Failed to optimize confirmation target. Fallback using the original one: {AdjustedConfirmationTarget} blocks.");
 				Logger.LogWarning<CcjRound>(ex);
 			}
 		}
@@ -723,7 +784,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			try
 			{
 				var estimateSmartFeeResponse = await rpc.EstimateSmartFeeAsync(confirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
-				if (estimateSmartFeeResponse is null) throw new InvalidOperationException("FeeRate is not yet initialized");
+				if (estimateSmartFeeResponse is null)
+				{
+					throw new InvalidOperationException("FeeRate is not yet initialized");
+				}
+
 				var feeRate = estimateSmartFeeResponse.FeeRate;
 				Money feePerBytes = (feeRate.FeePerK / 1000);
 
@@ -960,6 +1025,17 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
+		public static int AdjustConfirmationTarget(int unconfirmedCount, int startingConfirmationTarget, double confirmationTargetReductionRate)
+		{
+			for (int i = 0; i < unconfirmedCount; i++)
+			{
+				startingConfirmationTarget = (int)(startingConfirmationTarget * confirmationTargetReductionRate);
+			}
+
+			startingConfirmationTarget = Math.Max(startingConfirmationTarget, 2); // Conf target should never be less than 2.
+			return startingConfirmationTarget;
+		}
+
 		#region Modifiers
 
 		public async Task BroadcastCoinJoinIfFullySignedAsync()
@@ -1063,7 +1139,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			var alicesRemoved = new List<Alice>();
 			var key = new Key();
 
-			using (RoundSynchronizerLock.Lock())
+			using (await RoundSynchronizerLock.LockAsync())
 			{
 				if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
 				{

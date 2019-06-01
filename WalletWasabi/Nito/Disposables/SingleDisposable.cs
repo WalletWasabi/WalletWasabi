@@ -1,6 +1,6 @@
-﻿using System;
-using System.Threading;
 using Nito.Disposables.Internals;
+using System;
+using System.Threading;
 
 namespace Nito.Disposables
 {
@@ -16,9 +16,9 @@ namespace Nito.Disposables
 		/// <summary>
 		/// The context. This is never <c>null</c>. This is empty if this instance has already been disposed (or is being disposed).
 		/// </summary>
-		private readonly BoundActionField<T> _context;
+		private readonly BoundActionField<T> Context;
 
-		private readonly ManualResetEventSlim _mre = new ManualResetEventSlim();
+		private readonly ManualResetEventSlim Mre = new ManualResetEventSlim();
 
 		/// <summary>
 		/// Creates a disposable for the specified context.
@@ -26,18 +26,18 @@ namespace Nito.Disposables
 		/// <param name="context">The context passed to <see cref="Dispose(T)"/>.</param>
 		protected SingleDisposable(T context)
 		{
-			_context = new BoundActionField<T>(Dispose, context);
+			Context = new BoundActionField<T>(Dispose, context);
 		}
 
 		/// <summary>
 		/// Whether this instance is currently disposing or has been disposed.
 		/// </summary>
-		public bool IsDisposeStarted => _context.IsEmpty;
+		public bool IsDisposeStarted => Context.IsEmpty;
 
 		/// <summary>
 		/// Whether this instance is disposed (finished disposing).
 		/// </summary>
-		public bool IsDisposed => _mre.IsSet;
+		public bool IsDisposed => Mre.IsSet;
 
 		/// <summary>
 		/// Whether this instance is currently disposing, but not finished yet.
@@ -58,10 +58,10 @@ namespace Nito.Disposables
 		/// </remarks>
 		public void Dispose()
 		{
-			var context = _context.TryGetAndUnset();
+			var context = Context.TryGetAndUnset();
 			if (context is null)
 			{
-				_mre.Wait();
+				Mre.Wait();
 				return;
 			}
 			try
@@ -70,7 +70,7 @@ namespace Nito.Disposables
 			}
 			finally
 			{
-				_mre.Set();
+				Mre.Set();
 			}
 		}
 
@@ -78,6 +78,6 @@ namespace Nito.Disposables
 		/// Attempts to update the stored context. This method returns <c>false</c> if this instance has already been disposed (or is being disposed).
 		/// </summary>
 		/// <param name="contextUpdater">The function used to update an existing context. This may be called more than once if more than one thread attempts to simultanously update the context.</param>
-		protected bool TryUpdateContext(Func<T, T> contextUpdater) => _context.TryUpdateContext(contextUpdater);
+		protected bool TryUpdateContext(Func<T, T> contextUpdater) => Context.TryUpdateContext(contextUpdater);
 	}
 }

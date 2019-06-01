@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
@@ -15,9 +15,8 @@ namespace WalletWasabi.Services
 		private long _running;
 
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
-		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
-		private CancellationTokenSource Stop { get; }
+		private CancellationTokenSource Stop { get; set; }
 
 		public IConfig Config { get; }
 
@@ -32,7 +31,10 @@ namespace WalletWasabi.Services
 
 		public void Start(TimeSpan period, Func<Task> executeWhenChangedAsync)
 		{
-			Interlocked.Exchange(ref _running, 1);
+			if (Interlocked.CompareExchange(ref _running, 1, 0) != 0)
+			{
+				return;
+			}
 
 			Task.Run(async () =>
 			{
@@ -42,9 +44,6 @@ namespace WalletWasabi.Services
 					{
 						try
 						{
-							// If stop was requested return.
-							if (!IsRunning) return;
-
 							await Task.Delay(period, Stop.Token);
 
 							if (await Config.CheckFileChangeAsync())
@@ -66,26 +65,22 @@ namespace WalletWasabi.Services
 				}
 				finally
 				{
-					if (IsStopping)
-					{
-						Interlocked.Exchange(ref _running, 3);
-					}
+					Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
 				}
 			});
 		}
 
 		public async Task StopAsync()
 		{
-			if (IsRunning)
-			{
-				Interlocked.Exchange(ref _running, 2);
-			}
+			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
 			Stop?.Cancel();
-			while (IsStopping)
+			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
 			{
 				await Task.Delay(50);
 			}
+
 			Stop?.Dispose();
+			Stop = null;
 		}
 	}
 }

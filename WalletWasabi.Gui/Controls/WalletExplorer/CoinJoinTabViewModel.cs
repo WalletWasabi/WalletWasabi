@@ -1,23 +1,28 @@
-﻿using Avalonia.Threading;
+using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
+using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models.ChaumianCoinJoin;
+using WalletWasabi.Services;
 using static WalletWasabi.Gui.Models.ShieldLevelHelper;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinJoinTabViewModel : WalletActionViewModel
 	{
+		private CompositeDisposable Disposables { get; set; }
+
 		private long _roundId;
 		private int _successfulRoundCount;
 		private CcjRoundPhase _phase;
@@ -27,7 +32,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _peersNeeded;
 		private string _password;
 		private Money _amountQueued;
-		private string _warningMessage;
 		private bool _isEnqueueBusy;
 		private bool _isDequeueBusy;
 		private string _enqueueButtonText;
@@ -38,7 +42,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private const string DequeuingButtonTextString = "Dequeuing coins...";
 		private int _coinJoinUntilAnonimitySet;
 		private TargetPrivacy _targetPrivacy;
-		private CompositeDisposable _disposables;
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
@@ -51,9 +54,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			AmountQueued = Money.Zero; // Global.ChaumianClient.State.SumAllQueuedCoinAmounts();
 
-			EnqueueCommand = ReactiveCommand.Create(async () => await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected)));
+			EnqueueCommand = ReactiveCommand.CreateFromTask(async () => await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected)));
 
-			DequeueCommand = ReactiveCommand.Create(async () => await DoDequeueAsync(CoinsList.Coins.Where(c => c.IsSelected)));
+			DequeueCommand = ReactiveCommand.CreateFromTask(async () => await DoDequeueAsync(CoinsList.Coins.Where(c => c.IsSelected)));
 
 			PrivacySomeCommand = ReactiveCommand.Create(() => TargetPrivacy = TargetPrivacy.Some);
 
@@ -61,7 +64,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			PrivacyStrongCommand = ReactiveCommand.Create(() => TargetPrivacy = TargetPrivacy.Strong);
 
-			TargetButtonCommand = ReactiveCommand.Create(async () =>
+			TargetButtonCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				switch (TargetPrivacy)
 				{
@@ -123,12 +126,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			CoinsList.OnOpen();
 
-			if (_disposables != null)
+			if (Disposables != null)
 			{
 				throw new Exception("CoinJoin tab opened before previous closed.");
 			}
 
-			_disposables = new CompositeDisposable();
+			Disposables = new CompositeDisposable();
 
 			TargetPrivacy = GetTargetPrivacy(Global.Config.MixUntilAnonymitySet);
 
@@ -143,7 +146,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated)))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => UpdateStates())
-				.DisposeWith(_disposables);
+				.DisposeWith(Disposables);
 
 			CcjClientRound mostAdvancedRound = Global.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
 
@@ -164,6 +167,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				PeersNeeded = 100;
 			}
 
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(x =>
+			{
+				this.RaisePropertyChanged(nameof(AmountQueued));
+				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+			}).DisposeWith(Disposables);
+
 			base.OnOpen();
 		}
 
@@ -171,9 +180,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			CoinsList.OnClose();
 
-			_disposables.Dispose();
-
-			_disposables = null;
+			Disposables?.Dispose();
+			Disposables = null;
 
 			return base.OnClose();
 		}
@@ -183,7 +191,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IsDequeueBusy = true;
 			try
 			{
-				WarningMessage = "";
+				SetWarningMessage("");
 
 				if (!selectedCoins.Any())
 				{
@@ -193,7 +201,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				try
 				{
-					await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray());
+					await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray(), "Dequeued by the user.");
 				}
 				catch (Exception ex)
 				{
@@ -221,7 +229,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IsEnqueueBusy = true;
 			try
 			{
-				WarningMessage = "";
+				SetWarningMessage("");
 				Password = Guard.Correct(Password);
 
 				if (!selectedCoins.Any())
@@ -285,6 +293,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 #pragma warning disable CS0618 // Type or member is obsolete
+
 		private void UpdateRequiredBtcLabel(CcjClientRound registrableRound)
 #pragma warning restore CS0618 // Type or member is obsolete
 		{
@@ -332,20 +341,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global.ChaumianClient.DeactivateFrequentStatusProcessingIfNotMixing();
 		}
 
-		private void SetWarningMessage(string message)
-		{
-			WarningMessage = message;
-
-			Dispatcher.UIThread.PostLogException(async () =>
-			{
-				await Task.Delay(7000);
-				if (WarningMessage == message)
-				{
-					WarningMessage = "";
-				}
-			});
-		}
-
 		public string Password
 		{
 			get => _password;
@@ -359,7 +354,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			try
 			{
 				var selectedCoin = CoinsList.SelectedCoin;
-				if (selectedCoin is null) return;
+				if (selectedCoin is null)
+				{
+					return;
+				}
+
 				await DoDequeueAsync(new[] { selectedCoin });
 			}
 			catch (Exception ex)
@@ -416,12 +415,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _peersNeeded, value);
 		}
 
-		public string WarningMessage
-		{
-			get => _warningMessage;
-			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
-		}
-
 		public bool IsEnqueueBusy
 		{
 			get => _isEnqueueBusy;
@@ -458,13 +451,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _targetPrivacy, value);
 		}
 
-		public ReactiveCommand EnqueueCommand { get; }
+		public bool IsLurkingWifeMode
+		{
+			get => Global.UiConfig.LurkingWifeMode is true;
+		}
 
-		public ReactiveCommand DequeueCommand { get; }
+		public ReactiveCommand<Unit, Unit> EnqueueCommand { get; }
 
-		public ReactiveCommand PrivacySomeCommand { get; }
-		public ReactiveCommand PrivacyFineCommand { get; }
-		public ReactiveCommand PrivacyStrongCommand { get; }
-		public ReactiveCommand TargetButtonCommand { get; }
+		public ReactiveCommand<Unit, Unit> DequeueCommand { get; }
+
+		public ReactiveCommand<Unit, TargetPrivacy> PrivacySomeCommand { get; }
+		public ReactiveCommand<Unit, TargetPrivacy> PrivacyFineCommand { get; }
+		public ReactiveCommand<Unit, TargetPrivacy> PrivacyStrongCommand { get; }
+		public ReactiveCommand<Unit, Unit> TargetButtonCommand { get; }
 	}
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -14,7 +14,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.TorSocks5
 {
-	public class TorProcessManager : IDisposable
+	public class TorProcessManager
 	{
 		/// <summary>
 		/// If null then it's just a mock, clearnet is used.
@@ -45,7 +45,10 @@ namespace WalletWasabi.TorSocks5
 
 		public void Start(bool ensureRunning, string dataDir)
 		{
-			if (TorSocks5EndPoint == null) return;
+			if (TorSocks5EndPoint == null)
+			{
+				return;
+			}
 
 			new Thread(delegate () // Don't ask. This is the only way it worked on Win10/Ubuntu18.04/Manjuro(1 processor VM)/Fedora(1 processor VM)
 			{
@@ -90,7 +93,7 @@ namespace WalletWasabi.TorSocks5
 							Logger.LogInfo<TorProcessManager>($"Tor instance NOT found at {torPath}. Attempting to acquire it...");
 							InstallTor(fullBaseDirectory, torDir);
 						}
-						else if (new FileInfo(torPath).CreationTimeUtc < new DateTime(2019, 01, 26, 0, 0, 0, 0, DateTimeKind.Utc))
+						else if (!IoHelpers.CheckExpectedHash(torPath, Path.Combine(fullBaseDirectory, "TorDaemons")))
 						{
 							Logger.LogInfo<TorProcessManager>($"Updating Tor...");
 
@@ -118,8 +121,7 @@ namespace WalletWasabi.TorSocks5
 
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
-							TorProcess = Process.Start(new ProcessStartInfo
-							{
+							TorProcess = Process.Start(new ProcessStartInfo {
 								FileName = torPath,
 								Arguments = torArguments,
 								UseShellExecute = false,
@@ -175,7 +177,7 @@ namespace WalletWasabi.TorSocks5
 			{
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 				{
-					string torLinuxZip = torLinuxZip = Path.Combine(torDaemonsDir, "tor-linux64.zip");
+					string torLinuxZip = Path.Combine(torDaemonsDir, "tor-linux64.zip");
 					IoHelpers.BetterExtractZipToDirectoryAsync(torLinuxZip, torDir).GetAwaiter().GetResult();
 					Logger.LogInfo<TorProcessManager>($"Extracted {torLinuxZip} to {torDir}.");
 				}
@@ -187,7 +189,7 @@ namespace WalletWasabi.TorSocks5
 				}
 
 				// Make sure there's sufficient permission.
-				string chmodTorDirCmd = $"chmod -R 777 {torDir}";
+				string chmodTorDirCmd = $"chmod -R 750 {torDir}";
 				EnvironmentHelpers.ShellExec(chmodTorDirCmd);
 				Logger.LogInfo<TorProcessManager>($"Shell command executed: {chmodTorDirCmd}.");
 			}
@@ -213,7 +215,10 @@ namespace WalletWasabi.TorSocks5
 
 		public async Task<bool> IsTorRunningAsync()
 		{
-			if (TorSocks5EndPoint == null) return true;
+			if (TorSocks5EndPoint == null)
+			{
+				return true;
+			}
 
 			using (var client = new TorSocks5Client(TorSocks5EndPoint))
 			{
@@ -238,16 +243,21 @@ namespace WalletWasabi.TorSocks5
 		private long _running;
 
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
-		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
-		private CancellationTokenSource Stop { get; }
+		private CancellationTokenSource Stop { get; set; }
 
 		public void StartMonitor(TimeSpan torMisbehaviorCheckPeriod, TimeSpan checkIfRunningAfterTorMisbehavedFor, string dataDirToStartWith, Uri fallBackTestRequestUri)
 		{
-			if (TorSocks5EndPoint == null) return;
+			if (TorSocks5EndPoint == null)
+			{
+				return;
+			}
 
 			Logger.LogInfo<TorProcessManager>("Starting Tor monitor...");
-			Interlocked.Exchange(ref _running, 1);
+			if (Interlocked.CompareExchange(ref _running, 1, 0) != 0)
+			{
+				return;
+			}
 
 			Task.Run(async () =>
 			{
@@ -257,9 +267,6 @@ namespace WalletWasabi.TorSocks5
 					{
 						try
 						{
-							// If stop was requested return.
-							if (IsRunning == false) return;
-
 							await Task.Delay(torMisbehaviorCheckPeriod, Stop.Token).ConfigureAwait(false);
 
 							if (TorHttpClient.TorDoesntWorkSince != null) // If Tor misbehaves.
@@ -296,15 +303,9 @@ namespace WalletWasabi.TorSocks5
 								}
 							}
 						}
-						catch (TaskCanceledException ex)
-						{
-							Logger.LogTrace<TorProcessManager>(ex);
-						}
-						catch (OperationCanceledException ex)
-						{
-							Logger.LogTrace<TorProcessManager>(ex);
-						}
-						catch (TimeoutException ex)
+						catch (Exception ex) when (ex is OperationCanceledException
+												|| ex is TaskCanceledException
+												|| ex is TimeoutException)
 						{
 							Logger.LogTrace<TorProcessManager>(ex);
 						}
@@ -316,52 +317,30 @@ namespace WalletWasabi.TorSocks5
 				}
 				finally
 				{
-					if (IsStopping)
-					{
-						Interlocked.Exchange(ref _running, 3);
-					}
+					Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
 				}
 			});
 		}
 
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
+		public async Task StopAsync()
 		{
-			if (!_disposedValue)
+			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
+
+			if (TorSocks5EndPoint == null)
 			{
-				if (disposing)
-				{
-					if (IsRunning)
-					{
-						Interlocked.Exchange(ref _running, 2);
-					}
-
-					if (TorSocks5EndPoint == null) Interlocked.Exchange(ref _running, 3);
-
-					Stop?.Cancel();
-					while (IsStopping)
-					{
-						Task.Delay(50).GetAwaiter().GetResult(); // DO NOT MAKE IT ASYNC (.NET Core threading brainfart)
-					}
-					Stop?.Dispose();
-					TorProcess?.Dispose();
-				}
-
-				_disposedValue = true;
+				Interlocked.Exchange(ref _running, 3);
 			}
-		}
 
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
+			Stop?.Cancel();
+			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
+			{
+				await Task.Delay(50);
+			}
+			Stop?.Dispose();
+			Stop = null;
+			TorProcess?.Dispose();
+			TorProcess = null;
 		}
-
-		#endregion IDisposable Support
 
 		#endregion Monitor
 	}

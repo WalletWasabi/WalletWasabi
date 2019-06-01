@@ -1,5 +1,4 @@
-﻿using WalletWasabi.WebClients.BlockCypher.Models;
-using NBitcoin;
+﻿using NBitcoin;
 using Newtonsoft.Json;
 using Nito.AsyncEx;
 using System;
@@ -7,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.WebClients.BlockCypher.Models;
 
 namespace WalletWasabi.WebClients.BlockCypher
 {
@@ -15,7 +15,7 @@ namespace WalletWasabi.WebClients.BlockCypher
 		public Network Network { get; }
 		private HttpClient HttpClient { get; }
 		public Uri BaseAddress => HttpClient.BaseAddress;
-		private readonly AsyncLock _asyncLock = new AsyncLock();
+		private AsyncLock AsyncLock { get; } = new AsyncLock();
 
 		public BlockCypherClient(Network network, HttpMessageHandler handler = null, bool disposeHandler = false)
 		{
@@ -36,16 +36,22 @@ namespace WalletWasabi.WebClients.BlockCypher
 			{
 				HttpClient.BaseAddress = new Uri("http://api.blockcypher.com/v1/btc/test3");
 			}
-			else throw new NotSupportedException($"{network} is not supported");
+			else
+			{
+				throw new NotSupportedException($"{network} is not supported");
+			}
 		}
 
 		public async Task<BlockCypherGeneralInformation> GetGeneralInformationAsync(CancellationToken cancel)
 		{
-			using (await _asyncLock.LockAsync())
+			using (await AsyncLock.LockAsync())
 			using (HttpResponseMessage response =
 					 await HttpClient.GetAsync("", HttpCompletionOption.ResponseContentRead, cancel))
 			{
-				if (response.StatusCode != HttpStatusCode.OK) throw new HttpRequestException(response.StatusCode.ToString());
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					throw new HttpRequestException(response.StatusCode.ToString());
+				}
 
 				string jsonString = await response.Content.ReadAsStringAsync();
 				return JsonConvert.DeserializeObject<BlockCypherGeneralInformation>(jsonString);

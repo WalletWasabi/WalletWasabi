@@ -10,6 +10,8 @@
     <converters:PhaseStringConverter x:Key="PhaseStringConverter" />
     <converters:PhaseColorConverter x:Key="PhaseColorConverter" />
     <converters:PrivacyLevelValueConverter x:Key="PrivacyLevelValueConverter" />
+    <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
+    <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
   </UserControl.Resources>
   <Grid Margin="20">
     <Grid.RowDefinitions>
@@ -39,7 +41,8 @@
             </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding AmountQueued, Converter={StaticResource CoinJoinedVisibilityConverter}}">
               <TextBlock Text="You have queued" />
-              <TextBlock Foreground="YellowGreen" Text="{Binding AmountQueued, Converter={StaticResource MoneyStringConverter}}" />
+              <TextBlock Foreground="YellowGreen" IsVisible="{Binding IsLurkingWifeMode, Converter={StaticResource InverseBooleanConverter}}" Text="{Binding AmountQueued, Converter={StaticResource MoneyStringConverter}}"  />
+              <TextBlock Foreground="YellowGreen" IsVisible="{Binding IsLurkingWifeMode}" Text="{Binding AmountQueued, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
               <TextBlock Foreground="YellowGreen" Text="BTC" />
               <TextBlock Text="for CoinJoin." />
             </StackPanel>
@@ -83,6 +86,7 @@
         </ScrollViewer>
       </controls:GroupBox>
       <controls:GroupBox Grid.Row="0" Grid.Column="0" Title="CoinJoin" Padding="5" Margin="0 5 5 0">
+
         <Grid Grid.Row="0" Grid.Column="0" Classes="content">
           <Grid.RowDefinitions>
             <RowDefinition Height="150" />
@@ -91,7 +95,12 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
-          <StackPanel Grid.Column="0" Spacing="10">
+          <StackPanel IsVisible="{Binding IsWatchOnly}" Grid.Column="0" Spacing="8">
+            <StackPanel IsVisible="{Binding IsHardwareWallet}" VerticalAlignment="Center">
+              <TextBlock Text="Hardware wallets cannot coinjoin :(" />
+            </StackPanel>
+          </StackPanel>
+          <StackPanel IsVisible="{Binding !IsWatchOnly}" Grid.Column="0" Spacing="10">
             <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" Margin="0 20 0 0" />
             <DockPanel Grid.Row="0" Grid.Column="1" LastChildFill="True" IsEnabled="{Binding !IsEnqueueBusy}">
               <Button Command="{Binding EnqueueCommand}" DockPanel.Dock="Right">

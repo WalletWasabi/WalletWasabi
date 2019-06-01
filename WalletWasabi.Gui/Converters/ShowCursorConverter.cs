@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Avalonia.Data.Converters;
+using Avalonia.Input;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
-using Avalonia.Data.Converters;
-using Avalonia.Input;
 
 namespace WalletWasabi.Gui.Converters
 {

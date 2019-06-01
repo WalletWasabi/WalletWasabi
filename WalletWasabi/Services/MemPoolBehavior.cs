@@ -1,12 +1,12 @@
-﻿using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
-using WalletWasabi.Models;
-using NBitcoin;
+﻿using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Services
 {
@@ -35,9 +35,15 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
+				if (message.Message.Payload is GetDataPayload getDataPayload)
+				{
+					await ProcessGetDataAsync(node, getDataPayload);
+					return;
+				}
+
 				if (message.Message.Payload is TxPayload txPayload)
 				{
-					ProcessTxPayload(txPayload);
+					ProcessTx(txPayload);
 					return;
 				}
 
@@ -58,36 +64,92 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private async Task ProcessInvAsync(Node node, InvPayload invPayload)
+		private async Task ProcessGetDataAsync(Node node, GetDataPayload payload)
 		{
-			if (invPayload.Inventory.Count > MAX_INV_SIZE)
+			if (payload.Inventory.Count > MAX_INV_SIZE)
 			{
-				Logger.LogDebug($"Received inventory too big. {nameof(MAX_INV_SIZE)}: {MAX_INV_SIZE}, Node: {node.RemoteSocketEndpoint}");
+				Logger.LogDebug<MemPoolBehavior>($"Received inventory too big. {nameof(MAX_INV_SIZE)}: {MAX_INV_SIZE}, Node: {node.RemoteSocketEndpoint}");
 				return;
 			}
 
-			var payload = new GetDataPayload();
-			foreach (var inv in invPayload.Inventory.Where(inv => inv.Type.HasFlag(InventoryType.MSG_TX)))
+			foreach (var inv in payload.Inventory.Where(inv => inv.Type.HasFlag(InventoryType.MSG_TX)))
 			{
+				if (MemPoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry entry)) // If we have the transaction to be broadcasted then broadcast it now.
+				{
+					if (entry.NodeRemoteSocketEndpoint != node.RemoteSocketEndpoint.ToString())
+					{
+						continue; // Would be strange. It could be some kind of attack.
+					}
+
+					try
+					{
+						var txPayload = new TxPayload(entry.Transaction);
+						if (!node.IsConnected)
+						{
+							Logger.LogInfo<MemPoolBehavior>($"Couldn't serve transaction. Node ({node.RemoteSocketEndpoint}) is not connected anymore: {entry.TransactionId}.");
+						}
+						else
+						{
+							await node.SendMessageAsync(txPayload);
+							entry.MakeBroadcasted();
+							Logger.LogInfo<MemPoolBehavior>($"Successfully served transaction to node ({node.RemoteSocketEndpoint}): {entry.TransactionId}.");
+						}
+					}
+					catch (Exception ex)
+					{
+						Logger.LogInfo<MemPoolBehavior>(ex);
+					}
+				}
+			}
+		}
+
+		private async Task ProcessInvAsync(Node node, InvPayload payload)
+		{
+			if (payload.Inventory.Count > MAX_INV_SIZE)
+			{
+				Logger.LogDebug<MemPoolBehavior>($"Received inventory too big. {nameof(MAX_INV_SIZE)}: {MAX_INV_SIZE}, Node: {node.RemoteSocketEndpoint}");
+				return;
+			}
+
+			var getDataPayload = new GetDataPayload();
+			foreach (var inv in payload.Inventory.Where(inv => inv.Type.HasFlag(InventoryType.MSG_TX)))
+			{
+				if (MemPoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry entry)) // If we have the transaction then adjust confirmation.
+				{
+					try
+					{
+						if (entry.NodeRemoteSocketEndpoint == node.RemoteSocketEndpoint.ToString())
+						{
+							continue; // Wtf, why are you trying to broadcast it back to us?
+						}
+
+						entry.ConfirmPropagationOnce();
+					}
+					catch (Exception ex)
+					{
+						Logger.LogInfo<MemPoolBehavior>(ex);
+					}
+				}
+
 				// if we already have it continue;
 				if (!MemPoolService.TransactionHashes.TryAdd(inv.Hash))
 				{
 					continue;
 				}
 
-				payload.Inventory.Add(inv);
+				getDataPayload.Inventory.Add(inv);
 			}
 
-			if (node.IsConnected)
+			if (getDataPayload.Inventory.Any() && node.IsConnected)
 			{
 				// ask for the whole transaction
-				await node.SendMessageAsync(payload);
+				await node.SendMessageAsync(getDataPayload);
 			}
 		}
 
-		private void ProcessTxPayload(TxPayload transactionPayload)
+		private void ProcessTx(TxPayload payload)
 		{
-			Transaction transaction = transactionPayload.Object;
+			Transaction transaction = payload.Object;
 			MemPoolService.OnTransactionReceived(new SmartTransaction(transaction, Height.MemPool));
 		}
 

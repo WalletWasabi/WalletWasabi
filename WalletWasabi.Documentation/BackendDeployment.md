@@ -9,6 +9,8 @@ sudo systemctl stop walletwasabi.service
 sudo killall tor
 bitcoin-cli stop
 sudo apt-get upgrade -y && sudo apt-get autoremove -y
+sudo reboot
+set DOTNET_CLI_TELEMETRY_OPTOUT=1
 bitcoind
 bitcoin-cli getblockchaininfo
 tor
@@ -16,7 +18,7 @@ sudo service nginx start
 dotnet publish ~/WalletWasabi/WalletWasabi.Backend --configuration Release --self-contained false
 sudo systemctl start walletwasabi.service
 pgrep -ilfa tor && pgrep -ilfa bitcoin && pgrep -ilfa wasabi && pgrep -ilfa nginx
-tail -1000 ~/.walletwasabi/backend/Logs.txt
+tail -10000 ~/.walletwasabi/backend/Logs.txt
 ```
 
 # 1. Create Remote Server
@@ -147,7 +149,7 @@ pico ~/.bitcoin/bitcoin.conf
 ```sh
 testnet=[0/1]
 
-[main/test].maxuploadtarget=144
+[main/test].rpcworkqueue=64
 
 [main/test].txindex=1
 
@@ -155,6 +157,7 @@ testnet=[0/1]
 [main/test].server=1
 [main/test].rpcuser=bitcoinuser
 [main/test].rpcpassword=password
+[main/test].whitebind=127.0.0.1:[8333/18333]
 ```
 https://bitcoincore.org/en/releases/0.17.0/
 https://medium.com/@loopring/how-to-run-lighting-btc-node-and-start-mining-b55c4bab8ad  
@@ -217,7 +220,7 @@ WantedBy=multi-user.target
 sudo systemctl enable walletwasabi.service
 sudo systemctl start walletwasabi.service
 systemctl status walletwasabi.service
-tail -1000 .walletwasabi/backend/Logs.txt
+tail -10000 .walletwasabi/backend/Logs.txt
 ```
 
 ## Tor
@@ -304,6 +307,6 @@ http://www.wasabiwallet.io/
 
 ```sh
 tail -f ~/.bitcoin/debug.log
-tail -1000 .walletwasabi/backend/Logs.txt
+tail -10000 .walletwasabi/backend/Logs.txt
 du -bsh .walletwasabi/backend/IndexBuilderService/*
 ```

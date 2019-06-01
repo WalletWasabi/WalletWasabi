@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using System;
 using System.IO;
 using System.Security;
@@ -9,15 +9,8 @@ using Xunit;
 
 namespace WalletWasabi.Tests
 {
-	public class KeyManagementTests : IClassFixture<SharedFixture>
+	public class KeyManagementTests
 	{
-		private SharedFixture SharedFixture { get; }
-
-		public KeyManagementTests(SharedFixture sharedFixture)
-		{
-			SharedFixture = sharedFixture;
-		}
-
 		[Fact]
 		public void CanCreateNew()
 		{
@@ -42,7 +35,7 @@ namespace WalletWasabi.Tests
 			Assert.NotNull(manager3.EncryptedSecret);
 			Assert.NotNull(manager3.ExtPubKey);
 
-			var sameManager = new KeyManager(manager.EncryptedSecret, manager.ChainCode, manager.ExtPubKey);
+			var sameManager = new KeyManager(manager.EncryptedSecret, manager.ChainCode, manager.MasterFingerprint, manager.ExtPubKey, true, null, new BlockchainState());
 			var sameManager2 = new KeyManager(manager.EncryptedSecret, manager.ChainCode, password);
 			Logger.TurnOff();
 			Assert.Throws<SecurityException>(() => new KeyManager(manager.EncryptedSecret, manager.ChainCode, "differentPassword"));
@@ -79,10 +72,15 @@ namespace WalletWasabi.Tests
 			Assert.Equal(manager.EncryptedSecret, sameManager.EncryptedSecret);
 			Assert.Equal(manager.ExtPubKey, sameManager.ExtPubKey);
 
-			var differentManager = KeyManager.Recover(mnemonic, "differentPassword");
+			var differentManager = KeyManager.Recover(mnemonic, "differentPassword", null, KeyPath.Parse("m/999'/999'/999'"), 55);
 			Assert.NotEqual(manager.ChainCode, differentManager.ChainCode);
 			Assert.NotEqual(manager.EncryptedSecret, differentManager.EncryptedSecret);
 			Assert.NotEqual(manager.ExtPubKey, differentManager.ExtPubKey);
+
+			differentManager.AssertCleanKeysIndexed();
+			var newKey = differentManager.GenerateNewKey("some-label", KeyState.Clean, true, false);
+			Assert.Equal(newKey.Index, differentManager.MinGapLimit);
+			Assert.Equal("999'/999'/999'/1/55", newKey.FullKeyPath.ToString());
 		}
 
 		[Fact]
@@ -90,7 +88,7 @@ namespace WalletWasabi.Tests
 		{
 			string password = "password";
 
-			var filePath = Path.Combine(SharedFixture.DataDir, nameof(CanSerialize), "Wallet.json");
+			var filePath = Path.Combine(Global.DataDir, nameof(CanSerialize), "Wallet.json");
 			DeleteFileAndDirectoryIfExists(filePath);
 
 			Logger.TurnOff();

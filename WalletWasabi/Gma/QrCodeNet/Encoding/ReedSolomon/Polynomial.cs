@@ -19,7 +19,9 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 			int coefficientsLength = coefficients.Length;
 
 			if (coefficientsLength == 0 || coefficients is null)
+			{
 				throw new ArithmeticException("Can not create empty Polynomial");
+			}
 
 			GField = gfield;
 
@@ -34,7 +36,9 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 				}
 
 				if (firstNonZeroIndex == coefficientsLength)
+				{
 					Coefficients = new int[] { 0 };
+				}
 				else
 				{
 					int newLength = coefficientsLength - firstNonZeroIndex;
@@ -71,23 +75,34 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 				throw new ArgumentException("Polynomial can not perform AddOrSubtract as they don't have same Primitive for GaloisField256");
 			}
 			if (IsMonomialZero)
+			{
 				return other;
+			}
 			else if (other.IsMonomialZero)
+			{
 				return this;
+			}
 
 			int otherLength = other.Coefficients.Length;
 			int thisLength = Coefficients.Length;
 
 			if (otherLength > thisLength)
+			{
 				return CoefficientXor(Coefficients, other.Coefficients);
+			}
 			else
+			{
 				return CoefficientXor(other.Coefficients, Coefficients);
+			}
 		}
 
 		internal Polynomial CoefficientXor(int[] smallerCoefficients, int[] largerCoefficients)
 		{
 			if (smallerCoefficients.Length > largerCoefficients.Length)
+			{
 				throw new ArgumentException("Can not perform CoefficientXor method as smaller Coefficients length is larger than larger one.");
+			}
+
 			int targetLength = largerCoefficients.Length;
 			int[] xorCoefficient = new int[targetLength];
 			int lengthDiff = largerCoefficients.Length - smallerCoefficients.Length;
@@ -113,7 +128,9 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 				throw new ArgumentException("Polynomial can not perform Multiply as they don't have same Primitive for GaloisField256");
 			}
 			if (IsMonomialZero || other.IsMonomialZero)
+			{
 				return new Polynomial(GField, new int[] { 0 });
+			}
 
 			int[] aCoefficients = Coefficients;
 			int aLength = aCoefficients.Length;
@@ -182,7 +199,9 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 			int bLength = other.Coefficients.Length;
 
 			if (aLength < bLength)
+			{
 				return new PolyDivideStruct(new Polynomial(GField, new int[] { 0 }), this);
+			}
 			else
 			{
 				//quotient coefficients

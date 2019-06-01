@@ -1,8 +1,10 @@
 using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
+using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Models.ChaumianCoinJoin;
@@ -130,7 +132,7 @@ namespace NBitcoin
 			return requester.BlindMessage(msg, RPubKey, signerPubKey);
 		}
 
-		public static Signer Create(this Signer signer, SchnorrKey schnorrKey)
+		public static Signer CreateSigner(this SchnorrKey schnorrKey)
 		{
 			var k = Guard.NotNull(nameof(schnorrKey.SignerKey), schnorrKey.SignerKey);
 			var r = Guard.NotNull(nameof(schnorrKey.Rkey), schnorrKey.Rkey);
@@ -202,6 +204,22 @@ namespace NBitcoin
 				: new byte[] { (0x04), (0x5F), (0x18), (0xBC) };
 
 			return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
+		}
+
+		public static async Task StopAsync(this RPCClient rpc)
+		{
+			await rpc.SendCommandAsync("stop");
+		}
+
+		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt)
+		{
+			return psbt.ExtractSmartTransaction(Height.Unknown);
+		}
+
+		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt, Height height)
+		{
+			var extractedTx = psbt.ExtractTransaction();
+			return new SmartTransaction(extractedTx, height);
 		}
 	}
 }

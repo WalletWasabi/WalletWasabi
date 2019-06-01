@@ -1,19 +1,19 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using NBitcoin;
+using Swashbuckle.AspNetCore.Swagger;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using WalletWasabi.WebClients;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Swashbuckle.AspNetCore.Swagger;
-using WalletWasabi.Logging;
-using WalletWasabi.Interfaces;
 using WalletWasabi.Backend.Middlewares;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using NBitcoin;
 using WalletWasabi.Helpers;
+using WalletWasabi.Interfaces;
+using WalletWasabi.Logging;
+using WalletWasabi.WebClients;
 
 namespace WalletWasabi.Backend
 {
@@ -55,7 +55,10 @@ namespace WalletWasabi.Backend
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+#pragma warning disable IDE0060 // Remove unused parameter
+
 		public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+#pragma warning restore IDE0060 // Remove unused parameter
 		{
 			app.UseStaticFiles();
 
@@ -91,25 +94,25 @@ namespace WalletWasabi.Backend
 			Global.Coordinator?.Dispose();
 			Logger.LogInfo<Startup>("Coordinator is disposed.");
 
-			var stopTasks = new List<Task>();
-
 			if (Global.IndexBuilderService != null)
 			{
-				Global.IndexBuilderService.NewBlock -= Global.IndexBuilderService_NewBlockAsync;
-
-				var t = Global.IndexBuilderService.StopAsync();
-				stopTasks.Add(t);
+				await Global.IndexBuilderService.StopAsync();
+				Logger.LogInfo<Startup>("IndexBuilderService is disposed.");
 			}
 
 			if (Global.RoundConfigWatcher != null)
 			{
-				var t = Global.RoundConfigWatcher.StopAsync();
-				stopTasks.Add(t);
+				await Global.RoundConfigWatcher.StopAsync();
+				Logger.LogInfo<Startup>("RoundConfigWatcher is disposed.");
 			}
 
-			await Task.WhenAll(stopTasks);
-			Logger.LogInfo<Startup>("IndexBuilderService is disposed.");
-			Logger.LogInfo<Startup>("RoundConfigWatcher is disposed.");
+			if (Global.LocalNode != null)
+			{
+				Global.DisconnectDisposeNullLocalNode();
+				Logger.LogInfo<Startup>("LocalNode is disposed.");
+			}
+
+			Logger.LogInfo($"Wasabi Backend stopped gracefully.", Logger.InstanceGuid.ToString());
 		}
 	}
 }

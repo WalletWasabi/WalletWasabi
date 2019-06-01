@@ -14,7 +14,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 	/// <remarks>ISO/IEC 18004:2000 Chapter 8.4.4 Page 22</remarks>
 	internal class EightBitByteEncoder : EncoderBase
 	{
-		private const string _defaultEncoding = QRCodeConstantVariable.DefaultEncoding;
+		private const string DefaultEncoding = QRCodeConstantVariable.DefaultEncoding;
 
 		internal string Encoding { get; private set; }
 
@@ -24,12 +24,12 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		/// <param name="encoding">Default encoding is "iso-8859-1"</param>
 		internal EightBitByteEncoder(string encoding) : base()
 		{
-			Encoding = encoding ?? _defaultEncoding;
+			Encoding = encoding ?? DefaultEncoding;
 		}
 
 		internal EightBitByteEncoder() : base()
 		{
-			Encoding = _defaultEncoding;
+			Encoding = DefaultEncoding;
 		}
 
 		protected byte[] EncodeContent(string content, string encoding) => System.Text.Encoding.GetEncoding(encoding).GetBytes(content);

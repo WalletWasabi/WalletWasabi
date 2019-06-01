@@ -8,6 +8,7 @@
              xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
   <UserControl.Resources>
     <converters:AmountForegroundConverter x:Key="AmountForegroundConverter" />
+    <converters:MaxClearBoolStringConverter x:Key="MaxClearBoolStringConverter" />
   </UserControl.Resources>
   <i:Interaction.Behaviors>
     <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedCoin}" />
@@ -52,7 +53,7 @@
             </ItemsControl>
           </StackPanel>
           <StackPanel Orientation="Horizontal" Spacing="10">
-            <Button Content="{Binding MaxClear}" Command="{Binding MaxCommand}" VerticalAlignment="Top" Height="40" />
+            <Button Content="{Binding IsMax, Converter={StaticResource MaxClearBoolStringConverter}}" Command="{Binding MaxCommand}" VerticalAlignment="Top" Height="40" />
             <controls:ExtendedTextBox Foreground="{Binding IsMax, Converter={StaticResource AmountForegroundConverter}}" IsReadOnly="{Binding IsMax}" Text="{Binding Amount}" ToolTip.Tip="{Binding AmountToolTip}" Watermark="{Binding AmountWatermarkText}" UseFloatingWatermark="True" MinWidth="124" MinHeight="46" />
             <StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="10">
@@ -97,7 +98,7 @@
             </StackPanel>
           </StackPanel>
           <StackPanel Spacing="10" Orientation="Horizontal">
-            <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" MaxWidth="173" />
+            <controls:NoparaPasswordBox Password="{Binding Password}" IsVisible="{Binding !IsWatchOnly}" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" MaxWidth="173" />
             <DockPanel VerticalAlignment="Top" LastChildFill="True">
               <Button Command="{Binding BuildTransactionCommand}" DockPanel.Dock="Right">
                 <StackPanel Orientation="Horizontal">
