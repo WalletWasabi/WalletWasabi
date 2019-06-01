@@ -50,6 +50,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private int _filtersLeft;
 		private int _blocksLeft;
 		private string _btcPrice;
+		private StatusBarStatus _statusBacking;
 		private StatusBarStatus _status;
 		private List<StatusBarStatus> StatusQueue { get; } = new List<StatusBarStatus>();
 		private object StatusQueueLock { get; } = new object();
@@ -66,7 +67,8 @@ namespace WalletWasabi.Gui.ViewModels
 			FiltersLeft = 0;
 			BlocksLeft = 0;
 			BtcPrice = "$0";
-			Status = StatusBarStatus.Loading;
+			StatusBacking = StatusBarStatus.Loading;
+			Status = StatusBacking;
 		}
 
 		public void Initialize(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
@@ -75,6 +77,10 @@ namespace WalletWasabi.Gui.ViewModels
 			Synchronizer = synchronizer;
 			HashChain = synchronizer.BitcoinStore.HashChain;
 			UseTor = Global.Config.UseTor.Value; // Don't make it dynamic, because if you change this config settings only next time will it activate.
+
+			this.WhenAnyValue(x => x.StatusBacking)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => Status = x);
 
 			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Added))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -277,6 +283,18 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _btcPrice, value);
 		}
 
+		/// <summary>
+		/// This can be modified on any thread.
+		/// </summary>
+		public StatusBarStatus StatusBacking
+		{
+			get => _statusBacking;
+			set => this.RaiseAndSetIfChanged(ref _statusBacking, value);
+		}
+
+		/// <summary>
+		/// This can only be modified on UI thread.
+		/// </summary>
 		public StatusBarStatus Status
 		{
 			get => _status;
@@ -384,11 +402,11 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			if (StatusQueue.Any())
 			{
-				Status = StatusQueue.Last();
+				StatusBacking = StatusQueue.Last();
 			}
 			else
 			{
-				Status = StatusBarStatus.Ready;
+				StatusBacking = StatusBarStatus.Ready;
 			}
 		}
 
@@ -396,19 +414,19 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			if (UpdateStatus == UpdateStatus.Critical)
 			{
-				Status = StatusBarStatus.CriticalUpdate;
+				StatusBacking = StatusBarStatus.CriticalUpdate;
 			}
 			else if (UpdateStatus == UpdateStatus.Optional)
 			{
-				Status = StatusBarStatus.OptionalUpdate;
+				StatusBacking = StatusBarStatus.OptionalUpdate;
 			}
 			else if (Tor == TorStatus.NotRunning || Backend != BackendStatus.Connected || Peers < 1)
 			{
-				Status = StatusBarStatus.Connecting;
+				StatusBacking = StatusBarStatus.Connecting;
 			}
 			else if (FiltersLeft != 0 || BlocksLeft != 0)
 			{
-				Status = StatusBarStatus.Synchronizing;
+				StatusBacking = StatusBarStatus.Synchronizing;
 			}
 			else
 			{
