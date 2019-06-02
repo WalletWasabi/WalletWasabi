@@ -13,12 +13,9 @@ namespace WalletWasabi.Gui.Behaviors
 
 			base.OnAttached();
 
-			Disposables.Add(AssociatedObject.AddHandler(Control.PointerPressedEvent, (sender, e) =>
+			Disposables.Add(AssociatedObject.AddHandler(Control.DoubleTappedEvent, (sender, e) =>
 			{
-				if (e.ClickCount == 2)
-				{
-					e.Handled = ExecuteCommand();
-				}
+				e.Handled = ExecuteCommand();
 			}));
 		}
 
