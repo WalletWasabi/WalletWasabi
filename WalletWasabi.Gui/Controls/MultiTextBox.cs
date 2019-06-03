@@ -207,7 +207,7 @@ namespace WalletWasabi.Gui.Controls
 					}
 					if (PasteOnClick)
 					{
-						if (!string.IsNullOrEmpty(Text))
+						if (!string.IsNullOrWhiteSpace(Text))
 						{
 							return;
 						}
