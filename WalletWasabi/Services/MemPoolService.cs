@@ -120,8 +120,10 @@ namespace WalletWasabi.Services
 				{
 					var compactness = 10;
 					var allMempoolHashes = await client.GetMempoolHashesAsync(compactness);
+					var allMempoolHashesHashSet = allMempoolHashes.ToHashSet();
 
-					var toRemove = TransactionHashes.Where(x => !allMempoolHashes.Any(y => y == x.ToString().Substring(0, compactness)));
+					var toRemove = TransactionHashes.Where(x => !allMempoolHashesHashSet.Contains(x.ToString().Substring(0, compactness)));
+
 					foreach (uint256 tx in toRemove)
 					{
 						TransactionHashes.TryRemove(tx);
@@ -222,12 +224,18 @@ namespace WalletWasabi.Services
 					}
 				}
 
-				uint256[] toRemove = TransactionHashes.Except(allTxs).ToArray();
-				foreach (uint256 tx in toRemove)
+				int removedTxCount = 0;
+				foreach (uint256 tx in TransactionHashes)
 				{
-					TransactionHashes.TryRemove(tx);
+					if(!allTxs.Contains(tx))
+					{
+						if(TransactionHashes.TryRemove(tx))
+						{
+							removedTxCount++;
+						}
+					}
 				}
-				Logger.LogInfo<MemPoolService>($"{toRemove.Count()} transactions were cleaned from mempool.");
+				Logger.LogInfo<MemPoolService>($"{removedTxCount} transactions were cleaned from mempool.");
 
 				return true;
 			}
