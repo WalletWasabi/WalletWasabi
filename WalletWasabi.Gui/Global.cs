@@ -627,14 +627,17 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(TorManager)} is stopped.", nameof(Global));
 				}
 
-				try
+				if (AsyncMutex.IsAny)
 				{
-					await AsyncMutex.WaitForAllMutexToCloseAsync();
-					Logger.LogInfo($"{nameof(AsyncMutex)}(es) are stopped.", nameof(Global));
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError($"Error during stopping {nameof(AsyncMutex)}: {ex}", nameof(Global));
+					try
+					{
+						await AsyncMutex.WaitForAllMutexToCloseAsync();
+						Logger.LogInfo($"{nameof(AsyncMutex)}(es) are stopped.", nameof(Global));
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError($"Error during stopping {nameof(AsyncMutex)}: {ex}", nameof(Global));
+					}
 				}
 			}
 			catch (Exception ex)
