@@ -124,7 +124,7 @@ namespace WalletWasabi.Services
 
 					var toRemove = TransactionHashes.Where(x => !allMempoolHashesHashSet.Contains(x.ToString().Substring(0, compactness)));
 
-					foreach (uint256 tx in toRemove)
+					foreach (uint256 tx in toRemove.ToArray())
 					{
 						TransactionHashes.TryRemove(tx);
 					}
@@ -225,7 +225,7 @@ namespace WalletWasabi.Services
 				}
 
 				int removedTxCount = 0;
-				foreach (uint256 tx in TransactionHashes)
+				foreach (uint256 tx in TransactionHashes.ToArray())
 				{
 					if(!allTxs.Contains(tx))
 					{
