@@ -61,13 +61,7 @@ namespace Nito.AsyncEx
 
 		private static object AsyncMutexesLock { get; } = new object();
 
-		public static bool IsAny
-		{
-			get
-			{
-				return AsyncMutexes.Any();
-			}
-		}
+		public static bool IsAny => AsyncMutexes.Any();
 
 		public AsyncMutex(string name)
 		{
