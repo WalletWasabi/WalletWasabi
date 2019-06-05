@@ -120,9 +120,8 @@ namespace WalletWasabi.Services
 				{
 					var compactness = 10;
 					var allMempoolHashes = await client.GetMempoolHashesAsync(compactness);
-					var allMempoolHashesHashSet = allMempoolHashes.ToHashSet();
 
-					var toRemove = TransactionHashes.Where(x => !allMempoolHashesHashSet.Contains(x.ToString().Substring(0, compactness)));
+					var toRemove = TransactionHashes.Where(x => !allMempoolHashes.Contains(x.ToString().Substring(0, compactness)));
 
 					foreach (uint256 tx in toRemove.ToArray())
 					{

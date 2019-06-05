@@ -306,11 +306,9 @@ namespace WalletWasabi.Services
 
 									var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
 
-									var mempoolSet = mempoolHashes.ToHashSet();
-
 									foreach (var tx in transactions)
 									{
-										if (mempoolSet.Any(x => x == tx.GetHash().ToString().Substring(0, compactness)))
+										if (mempoolHashes.Any(x => x == tx.GetHash().ToString().Substring(0, compactness)))
 										{
 											tx.SetHeight(Height.MemPool);
 											ProcessTransaction(tx);
