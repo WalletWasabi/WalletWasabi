@@ -108,7 +108,7 @@ namespace WalletWasabi.KeyManagement
 
 		public bool HasLabel { get; private set; }
 
-		public BitcoinPubKeyAddress GetP2pkhAddress(Network network) => PubKey.GetAddress(network);
+		public BitcoinPubKeyAddress GetP2pkhAddress(Network network) => (BitcoinPubKeyAddress)PubKey.GetAddress(ScriptPubKeyType.Legacy, network);
 
 		public BitcoinWitPubKeyAddress GetP2wpkhAddress(Network network) => PubKey.GetSegwitAddress(network);
 
