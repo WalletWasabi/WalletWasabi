@@ -203,7 +203,6 @@ namespace WalletWasabi.Gui.Tabs
 			get => _dustThreshold;
 			set => this.RaiseAndSetIfChanged(ref _dustThreshold, value);
 		}
-		
 
 		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
 
