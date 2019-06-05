@@ -6,7 +6,6 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Styling;
 using ReactiveUI;
-using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Reactive;
@@ -126,15 +125,15 @@ namespace WalletWasabi.Gui.Controls
 
 			try
 			{
-				var fontTester = SKTypeface.FromFamilyName(fontName);
-				if (fontTester.FamilyName == fontName)
-				{
+				
+				//if (fontTester.FamilyName == fontName)
+				//{
 					FontFamily = FontFamily.Parse(fontName); // Use the font.
-				}
-				else
-				{
-					throw new FormatException("font is missing fallback to default font");
-				}
+				//}
+				//else
+				//{
+				//	throw new FormatException("font is missing fallback to default font");
+				//}
 			}
 			catch (Exception)
 			{

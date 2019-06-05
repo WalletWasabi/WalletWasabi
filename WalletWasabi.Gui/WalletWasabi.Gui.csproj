@@ -58,13 +58,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="AvalonStudio.Shell" Version="0.8.0" />
 	<PackageReference Include="Avalonia.Angle.Windows.Natives" Version="2.1.0.2019013001" />
+	<PackageReference Include="System.Composition.AttributedModel" Version="1.2.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WalletWasabi.Dependencies\AvalonStudio.Shell\src\AvalonStudio.Shell.Extensibility\AvalonStudio.Shell.Extensibility.csproj" />
-    <ProjectReference Include="..\WalletWasabi.Dependencies\AvalonStudio.Shell\src\AvalonStudio.Shell\AvalonStudio.Shell.csproj" />
     <ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
   </ItemGroup>
 

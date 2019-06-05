@@ -1,7 +1,0 @@
-<Project>
-
- <PropertyGroup>
-   <Deterministic>true</Deterministic>
- </PropertyGroup>
-
-</Project>
