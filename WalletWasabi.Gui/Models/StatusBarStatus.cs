@@ -4,21 +4,24 @@ using System.Text;
 
 namespace WalletWasabi.Gui.Models
 {
+	/// <summary>
+	/// Order matter: piority the lower.
+	/// </summary>
 	public enum StatusBarStatus
 	{
-		Ready,
 		CriticalUpdate,
 		OptionalUpdate,
 		Connecting,
 		Synchronizing,
 		Loading,
-		SettingUpHardwareWallet,
-		ConnectingToHardwareWallet,
-		AcquiringXpubFromHardwareWallet,
-		AcquiringSignatureFromHardwareWallet,
-		BuildingTransaction,
-		SigningTransaction,
 		BroadcastingTransaction,
-		DequeuingSelectedCoins
+		SigningTransaction,
+		AcquiringSignatureFromHardwareWallet,
+		AcquiringXpubFromHardwareWallet,
+		ConnectingToHardwareWallet,
+		SettingUpHardwareWallet,
+		BuildingTransaction,
+		DequeuingSelectedCoins,
+		Ready
 	}
 }
