@@ -308,7 +308,7 @@ namespace WalletWasabi.Services
 
 									foreach (var tx in transactions)
 									{
-										if (mempoolHashes.Any(x => x == tx.GetHash().ToString().Substring(0, compactness)))
+										if (mempoolHashes.Contains(tx.GetHash().ToString().Substring(0, compactness)))
 										{
 											tx.SetHeight(Height.MemPool);
 											ProcessTransaction(tx);
