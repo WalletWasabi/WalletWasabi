@@ -1,4 +1,5 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl x:Class="WalletWasabi.Gui.Controls.WalletExplorer.TransactionBroadcasterView"
+             xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -31,7 +32,7 @@
           </StackPanel>
         </DockPanel>
 
-        <controls:MultiTextBox Text="{Binding TransactionString}" PasteOnClick="True" IsSelectable="False" IsReadOnly="{Binding IsBusy}" Margin="0 8" Watermark="Click here to copy from clipboard!" TextWrapping="Wrap" AcceptsReturn="True" />
+        <controls:MultiTextBox Text="{Binding TransactionString}" PasteOnClick="True" IsReadOnly="{Binding IsBusy}" Margin="0 8" Watermark="Click here to copy from clipboard!" TextWrapping="Wrap" AcceptsReturn="True" />
       </DockPanel>
     </Grid>
   </controls:GroupBox>

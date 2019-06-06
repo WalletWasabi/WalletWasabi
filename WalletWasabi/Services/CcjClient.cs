@@ -340,7 +340,7 @@ namespace WalletWasabi.Services
 		{
 			TxOut[] myOutputs = unsignedCoinJoin.Outputs
 				.Where(x => x.ScriptPubKey == ongoingRound.Registration.ChangeAddress.ScriptPubKey
-					|| ongoingRound.Registration.ActiveOutputs.Select(y => y.address.ScriptPubKey).Contains(x.ScriptPubKey))
+					|| ongoingRound.Registration.ActiveOutputs.Select(y => y.Address.ScriptPubKey).Contains(x.ScriptPubKey))
 					.ToArray();
 			Money amountBack = myOutputs.Sum(y => y.Value);
 
@@ -415,11 +415,11 @@ namespace WalletWasabi.Services
 
 			var shuffledOutputs = ongoingRound.Registration.ActiveOutputs.ToList();
 			shuffledOutputs.Shuffle();
-			foreach ((BitcoinAddress address, UnblindedSignature signature, int mixingLevel) activeOutput in shuffledOutputs)
+			foreach (var activeOutput in shuffledOutputs)
 			{
 				using (var bobClient = new BobClient(CcjHostUriAction, TorSocks5EndPoint))
 				{
-					if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput.address, activeOutput.signature, activeOutput.mixingLevel))
+					if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput))
 					{
 						Logger.LogWarning<AliceClient>($"Round ({ongoingRound.State.RoundId}) Bobs did not have enough time to post outputs before timeout. If you see this message, contact nopara73, so he can optimize the phase timeout periods to the worst Internet/Tor connections, which may be yours.)");
 						break;
@@ -430,7 +430,7 @@ namespace WalletWasabi.Services
 					{
 						if (ExposedLinks.ContainsKey(input)) // Should never not contain, but oh well, let's not disrupt the round for this.
 						{
-							var found = ExposedLinks[input].FirstOrDefault(x => x.Key.GetP2wpkhAddress(Network) == activeOutput.address);
+							var found = ExposedLinks[input].FirstOrDefault(x => x.Key.GetP2wpkhAddress(Network) == activeOutput.Address);
 							if (found != default)
 							{
 								found.IsBlinded = false;
@@ -438,7 +438,7 @@ namespace WalletWasabi.Services
 							else
 							{
 								// Should never happen, but oh well we can autocorrect it so why not.
-								ExposedLinks[input] = ExposedLinks[input].Append(new HdPubKeyBlindedPair(KeyManager.GetKeyForScriptPubKey(activeOutput.address.ScriptPubKey), false));
+								ExposedLinks[input] = ExposedLinks[input].Append(new HdPubKeyBlindedPair(KeyManager.GetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey), false));
 							}
 						}
 					}

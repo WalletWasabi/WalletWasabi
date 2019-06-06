@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.BouncyCastle.Math;
 using NBitcoin.Crypto;
 using Newtonsoft.Json;
@@ -139,8 +139,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			Func<Uri> baseUriAction,
 			IPEndPoint torSocks5EndPoint)
 		{
-			var request = new InputsRequest
-			{
+			var request = new InputsRequest {
 				RoundId = roundId,
 				BlindedOutputScripts = blindedOutputScriptHashes,
 				ChangeOutputAddress = changeOutput,
@@ -149,7 +148,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			return await CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, request, baseUriAction, torSocks5EndPoint);
 		}
 
-		public async Task<(CcjRoundPhase currentPhase, IEnumerable<(BitcoinAddress output, UnblindedSignature signature, int level)> activeOutputs)> PostConfirmationAsync()
+		public async Task<(CcjRoundPhase currentPhase, IEnumerable<ActiveOutput> activeOutputs)> PostConfirmationAsync()
 		{
 			using (HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId={UniqueId}&roundId={RoundId}"))
 			{
@@ -161,7 +160,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 				ConnConfResp resp = await response.Content.ReadAsJsonAsync<ConnConfResp>();
 				Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection. Phase: {resp.CurrentPhase}.");
 
-				var activeOutputs = new List<(BitcoinAddress output, UnblindedSignature signature, int level)>();
+				var activeOutputs = new List<ActiveOutput>();
 				if (resp.BlindedOutputSignatures != null && resp.BlindedOutputSignatures.Any())
 				{
 					var unblindedSignatures = new List<UnblindedSignature>();
@@ -189,7 +188,9 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 						var sig = unblindedSignatures[i];
 						var addr = RegisteredAddresses[i];
 						var lvl = i;
-						activeOutputs.Add((addr, sig, lvl));
+
+						var actOut = new ActiveOutput(addr, sig, lvl);
+						activeOutputs.Add(actOut);
 					}
 				}
 
