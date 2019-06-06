@@ -6,6 +6,7 @@ using Nito.AsyncEx;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
@@ -47,13 +48,11 @@ namespace WalletWasabi.Gui.ViewModels
 		private BackendStatus _backend;
 		private TorStatus _tor;
 		private int _peers;
-		private int _filtersLeft;
+		private ObservableAsPropertyHelper<int> _filtersLeft;
 		private int _blocksLeft;
 		private string _btcPrice;
-		private StatusBarStatus _statusBacking;
-		private StatusBarStatus _status;
-		private List<StatusBarStatus> StatusQueue { get; } = new List<StatusBarStatus>();
-		private object StatusQueueLock { get; } = new object();
+		private ObservableAsPropertyHelper<StatusBarStatus> _status;
+		private StatusBarStatusSet ActiveStatuses { get; }
 
 		public StatusBarViewModel()
 		{
@@ -64,11 +63,9 @@ namespace WalletWasabi.Gui.ViewModels
 			UseTor = false;
 			Tor = TorStatus.NotRunning;
 			Peers = 0;
-			FiltersLeft = 0;
 			BlocksLeft = 0;
 			BtcPrice = "$0";
-			StatusBacking = StatusBarStatus.Loading;
-			Status = StatusBacking;
+			ActiveStatuses = new StatusBarStatusSet();
 		}
 
 		public void Initialize(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
@@ -78,9 +75,10 @@ namespace WalletWasabi.Gui.ViewModels
 			HashChain = synchronizer.BitcoinStore.HashChain;
 			UseTor = Global.Config.UseTor.Value; // Don't make it dynamic, because if you change this config settings only next time will it activate.
 
-			this.WhenAnyValue(x => x.StatusBacking)
+			_status = ActiveStatuses.WhenAnyValue(x => x.CurrentStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => Status = x);
+				.ToProperty(this, x => x.Status)
+				.DisposeWith(Disposables);
 
 			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Added))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -120,12 +118,10 @@ namespace WalletWasabi.Gui.ViewModels
 					Backend = Synchronizer.BackendStatus;
 				}).DisposeWith(Disposables);
 
-			HashChain.WhenAnyValue(x => x.HashesLeft)
+			_filtersLeft = HashChain.WhenAnyValue(x => x.HashesLeft)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					FiltersLeft = x;
-				}).DisposeWith(Disposables);
+				.ToProperty(this, x => x.FiltersLeft)
+				.DisposeWith(Disposables);
 
 			Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -141,46 +137,57 @@ namespace WalletWasabi.Gui.ViewModels
 					OnResponseArrivedIsGenSocksServFail(e.EventArgs);
 				}).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.BlocksLeft)
+			this.WhenAnyValue(x => x.FiltersLeft, x => x.BlocksLeft)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(blocks =>
+				.Subscribe(tup =>
 				{
-					RefreshStatus();
+					(int filtersLeft, int blocksLeft) = tup.ToValueTuple();
+					if (filtersLeft == 0 && blocksLeft == 0)
+					{
+						TryRemoveStatus(StatusBarStatus.Synchronizing);
+					}
+					else
+					{
+						TryAddStatus(StatusBarStatus.Synchronizing);
+					}
 				});
 
-			this.WhenAnyValue(x => x.FiltersLeft)
+			this.WhenAnyValue(x => x.Tor, x => x.Backend, x => x.Peers)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(filters =>
+				.Subscribe(tup =>
 				{
-					RefreshStatus();
-				});
-
-			this.WhenAnyValue(x => x.Tor)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(tor =>
-				{
-					RefreshStatus();
-				});
-
-			this.WhenAnyValue(x => x.Backend)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(backend =>
-				{
-					RefreshStatus();
-				});
-
-			this.WhenAnyValue(x => x.Peers)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(peers =>
-				{
-					RefreshStatus();
+					(TorStatus tor, BackendStatus backend, int peers) = tup.ToValueTuple();
+					if (tor == TorStatus.NotRunning || backend != BackendStatus.Connected || peers < 1)
+					{
+						TryAddStatus(StatusBarStatus.Connecting);
+					}
+					else
+					{
+						TryRemoveStatus(StatusBarStatus.Connecting);
+					}
 				});
 
 			this.WhenAnyValue(x => x.UpdateStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
+				.Subscribe(x =>
 				{
-					RefreshStatus();
+					if (x == UpdateStatus.Critical)
+					{
+						TryAddStatus(StatusBarStatus.CriticalUpdate);
+					}
+					else
+					{
+						TryRemoveStatus(StatusBarStatus.CriticalUpdate);
+					}
+
+					if (x == UpdateStatus.Optional)
+					{
+						TryAddStatus(StatusBarStatus.OptionalUpdate);
+					}
+					else
+					{
+						TryRemoveStatus(StatusBarStatus.OptionalUpdate);
+					}
 				});
 
 			UpdateCommand = ReactiveCommand.Create(() =>
@@ -197,6 +204,7 @@ namespace WalletWasabi.Gui.ViewModels
 			}, this.WhenAnyValue(x => x.UpdateStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => x != UpdateStatus.Latest));
+			this.RaisePropertyChanged(nameof(UpdateCommand)); // The binding happens after the constructor. So, if the command is not in constructor, then we need this line.
 
 			updateChecker.Start(TimeSpan.FromMinutes(7),
 				() =>
@@ -265,11 +273,7 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _peers, value);
 		}
 
-		public int FiltersLeft
-		{
-			get => _filtersLeft;
-			set => this.RaiseAndSetIfChanged(ref _filtersLeft, value);
-		}
+		public int FiltersLeft => _filtersLeft?.Value ?? 0;
 
 		public int BlocksLeft
 		{
@@ -283,23 +287,7 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _btcPrice, value);
 		}
 
-		/// <summary>
-		/// This can be modified on any thread.
-		/// </summary>
-		public StatusBarStatus StatusBacking
-		{
-			get => _statusBacking;
-			set => this.RaiseAndSetIfChanged(ref _statusBacking, value);
-		}
-
-		/// <summary>
-		/// This can only be modified on UI thread.
-		/// </summary>
-		public StatusBarStatus Status
-		{
-			get => _status;
-			set => this.RaiseAndSetIfChanged(ref _status, value);
-		}
+		public StatusBarStatus Status => _status?.Value ?? StatusBarStatus.Loading;
 
 		private void OnResponseArrivedIsGenSocksServFail(bool isGenSocksServFail)
 		{
@@ -347,13 +335,7 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			try
 			{
-				lock (StatusQueueLock)
-				{
-					// Make sure it's the last status.
-					StatusQueue.Remove(status);
-					StatusQueue.Add(status);
-					RefreshStatusNoLock();
-				}
+				ActiveStatuses.TryAddStatus(status);
 			}
 			catch (Exception ex)
 			{
@@ -365,75 +347,12 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			try
 			{
-				lock (StatusQueueLock)
-				{
-					foreach (StatusBarStatus status in statuses)
-					{
-						if (StatusQueue.Remove(status))
-						{
-							RefreshStatusNoLock();
-						}
-					}
-				}
+				ActiveStatuses.TryRemoveStatus(statuses);
 			}
 			catch (Exception ex)
 			{
 				Logging.Logger.LogWarning<StatusBarViewModel>(ex);
 			}
-		}
-
-		private void RefreshStatus()
-		{
-			lock (StatusQueueLock)
-			{
-				RefreshStatusNoLock();
-			}
-		}
-
-		private void RefreshStatusNoLock()
-		{
-			if (!TrySetPriorityStatus())
-			{
-				SetCustomStatusOrReady();
-			}
-		}
-
-		private void SetCustomStatusOrReady()
-		{
-			if (StatusQueue.Any())
-			{
-				StatusBacking = StatusQueue.Last();
-			}
-			else
-			{
-				StatusBacking = StatusBarStatus.Ready;
-			}
-		}
-
-		private bool TrySetPriorityStatus()
-		{
-			if (UpdateStatus == UpdateStatus.Critical)
-			{
-				StatusBacking = StatusBarStatus.CriticalUpdate;
-			}
-			else if (UpdateStatus == UpdateStatus.Optional)
-			{
-				StatusBacking = StatusBarStatus.OptionalUpdate;
-			}
-			else if (Tor == TorStatus.NotRunning || Backend != BackendStatus.Connected || Peers < 1)
-			{
-				StatusBacking = StatusBarStatus.Connecting;
-			}
-			else if (FiltersLeft != 0 || BlocksLeft != 0)
-			{
-				StatusBacking = StatusBarStatus.Synchronizing;
-			}
-			else
-			{
-				return false;
-			}
-
-			return true;
 		}
 
 		private void SetPeers(int peers)

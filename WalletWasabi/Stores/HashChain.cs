@@ -134,7 +134,7 @@ namespace WalletWasabi.Stores
 			lock (Lock)
 			{
 				ServerTipHeight = height;
-				HashesLeft = ServerTipHeight - TipHeight;
+				SetHashesLeft();
 			}
 		}
 
