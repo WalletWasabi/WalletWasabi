@@ -4,18 +4,18 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
+using Avalonia.Media;
 using Avalonia.Styling;
 using ReactiveUI;
-using SkiaSharp;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
-using FontFamily = Avalonia.Media.FontFamily;
 
 namespace WalletWasabi.Gui.Controls
 {
@@ -126,14 +126,14 @@ namespace WalletWasabi.Gui.Controls
 
 			try
 			{
-				var fontTester = SKTypeface.FromFamilyName(fontName);
-				if (fontTester.FamilyName == fontName)
+				FontFamily ff = FontFamily.SystemFontFamilies.FirstOrDefault(x => x.Name == fontName);
+				if (ff != default)
 				{
-					FontFamily = FontFamily.Parse(fontName); // Use the font.
+					FontFamily = ff; // Use the font.
 				}
 				else
 				{
-					throw new FormatException("font is missing fallback to default font");
+					throw new FormatException("Font is missing. Fallback to default font.");
 				}
 			}
 			catch (Exception)

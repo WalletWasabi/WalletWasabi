@@ -22,7 +22,6 @@ Check the id of the pull requesest.
 ```sh
 git fetch origin/ID/branch:yourbranchname
 git checkout yourbranchname
-git submodule update --init --recursive
 ```
 
 #### Updating a pull request
