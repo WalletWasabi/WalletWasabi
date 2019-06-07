@@ -125,15 +125,7 @@ namespace WalletWasabi.Gui.Controls
 
 			try
 			{
-				
-				//if (fontTester.FamilyName == fontName)
-				//{
-					FontFamily = FontFamily.Parse(fontName); // Use the font.
-				//}
-				//else
-				//{
-				//	throw new FormatException("font is missing fallback to default font");
-				//}
+				FontFamily = FontFamily.Parse(fontName); // Use the font.
 			}
 			catch (Exception)
 			{
