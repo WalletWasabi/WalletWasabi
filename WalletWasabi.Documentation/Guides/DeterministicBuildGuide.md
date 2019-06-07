@@ -9,7 +9,7 @@ In order to reproduce Wasabi's builds you need a Git, a Windows 10 and the versi
 # 2. Reproduce Builds
 
 ```sh
-git clone https://github.com/zkSNACKs/WalletWasabi.git --recursive
+git clone https://github.com/zkSNACKs/WalletWasabi.git
 git checkout {hash of the release} // This works from 1.1.3 release, https://github.com/zkSNACKs/WalletWasabi/releases
 cd WalletWasabi/WalletWasabi.Packager/
 dotnet restore
