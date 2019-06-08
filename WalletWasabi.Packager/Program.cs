@@ -346,16 +346,6 @@ namespace WalletWasabi.Packager
 			using (var process = Process.Start(new ProcessStartInfo {
 				FileName = "cmd",
 				RedirectStandardInput = true,
-				WorkingDirectory = SolutionDirectory
-			}))
-			{
-				process.StandardInput.WriteLine("git submodule update --init --recursive && exit");
-				process.WaitForExit();
-			}
-
-			using (var process = Process.Start(new ProcessStartInfo {
-				FileName = "cmd",
-				RedirectStandardInput = true,
 				WorkingDirectory = GuiProjectDirectory
 			}))
 			{

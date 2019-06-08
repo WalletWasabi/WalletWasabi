@@ -359,6 +359,10 @@ namespace WalletWasabi.Services
 
 		public Money GetFeeRate(int feeTarget)
 		{
+			if (AllFeeEstimate is null)
+			{
+				throw new InvalidOperationException("Cannot get fee estimations.");
+			}
 			return AllFeeEstimate.GetFeeRate(feeTarget);
 		}
 

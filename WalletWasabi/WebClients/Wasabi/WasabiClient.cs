@@ -155,7 +155,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// Gets mempool hashes, but strips the last x characters of each hash.
 		/// </summary>
 		/// <param name="compactness">1 to 64</param>
-		public async Task<IEnumerable<string>> GetMempoolHashesAsync(int compactness, CancellationToken cancel = default)
+		public async Task<ISet<string>> GetMempoolHashesAsync(int compactness, CancellationToken cancel = default)
 		{
 			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
 																	HttpStatusCode.OK,
@@ -169,7 +169,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 				using (HttpContent content = response.Content)
 				{
-					var strings = await content.ReadAsJsonAsync<IEnumerable<string>>();
+					var strings = await content.ReadAsJsonAsync<ISet<string>>();
 					return strings;
 				}
 			}

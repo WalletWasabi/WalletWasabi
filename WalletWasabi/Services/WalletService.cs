@@ -306,17 +306,15 @@ namespace WalletWasabi.Services
 
 									var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
 
-									var mempoolSet = mempoolHashes.ToHashSet();
-
 									foreach (var tx in transactions)
 									{
-										if (mempoolSet.Any(x => x == tx.GetHash().ToString().Substring(0, compactness)))
+										if (mempoolHashes.Contains(tx.GetHash().ToString().Substring(0, compactness)))
 										{
 											tx.SetHeight(Height.MemPool);
 											ProcessTransaction(tx);
 											MemPool.TransactionHashes.TryAdd(tx.GetHash());
 
-											Logger.LogInfo<WalletService>($"Transaction was successfully tested against the backend's mempool hahses: {tx.GetHash()}.");
+											Logger.LogInfo<WalletService>($"Transaction was successfully tested against the backend's mempool hashes: {tx.GetHash()}.");
 										}
 									}
 								}

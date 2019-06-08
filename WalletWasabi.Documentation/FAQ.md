@@ -117,12 +117,12 @@ You can use popular hardware wallets **with Wasabi directly** including Coldcard
 
 Not at the moment, if Wasabi and other CoinJoin tools are used by enough people it is likely that this will never be an issue. See this more [comprehensive answer](https://www.reddit.com/r/WasabiWallet/comments/bggy03/will_coinjoined_coins_be_blacklisted_in_the_future/ell04nn?utm_source=share&utm_medium=web2x). 
 
-### What do I do with the Zerolink change?
+### What do I do with small changes?
 
-There are no hard and fast rules for what to do with the change. It is important to note that the change may be linked to your identity and should be treated as a kind of toxic waste (handled with great care).
+There are no hard and fast rules for what to do with the change. Generally try avoid the change and use the Max button extensively at sending. The most problematic type of change is what has `anonymity set 1` (red shield.) You should treat it as a kind of toxic waste (handled with great care).
 
 **Warning**
-You want to avoid mixing change coins where possible. If you mix change you will **decrease your privacy** because the transactions that created the change will now be linked. Note that this is also true if you mix your change with a mixed coin. If you still decide to do these, note that mass deanonymization of changes are [probably computationally infeasible](https://www.comsys.rwth-aachen.de/fileadmin/papers/2017/2017-maurer-trustcom-coinjoin.pdf), but targeted deanonymization will always be possible.
+You want to avoid merging `anonimity set 1 coins` with `anonymity set > 1 coins` whereever possible, because this will link your `anonymity set > 1 coin` to the coin you merge it with. Note that, this is also true if you merge them in a mix, however that's slightly less problematic, because some blockchain analysis techniques become [computationally infeasible](https://www.comsys.rwth-aachen.de/fileadmin/papers/2017/2017-maurer-trustcom-coinjoin.pdf).
 
 It is also important that you don't send different coins to the same receiving address (even if performed as separate transactions) as this will also link the coins together, damaging your privacy.
 
@@ -136,9 +136,13 @@ It is also important that you don't send different coins to the same receiving a
 
 # Meta
 
+### Where's the coordinator's source code?
+
+https://github.com/zkSNACKs/WalletWasabi/tree/master/WalletWasabi.Backend
+
 ### Does Wasabi have a warrant canary?
 
-The nature of Wasabi is that you shouldn't need to trust the devs or the wasabi coordinating server, as you can verify that the code does leak information to anyone. The dev's have gone to great lengths in an attempt to ensure that the coordinator can't steal funds nor harvest information (for example, the outputs sent from your wasabi wallet are blinded, meaning that even the wasabi server can't link the outputs to the inputs). 
+The nature of Wasabi is that you shouldn't need to trust the devs or the wasabi coordinating server, as you can verify that the code does not leak information to anyone. The dev's have gone to great lengths in an attempt to ensure that the coordinator can't steal funds nor harvest information (for example, the outputs sent from your wasabi wallet are blinded, meaning that even the wasabi server can't link the outputs to the inputs). 
 
 The only known possible 'malicious' actions that the server *could* perform are two sides of the same coin;
 - blacklisted UTXO's

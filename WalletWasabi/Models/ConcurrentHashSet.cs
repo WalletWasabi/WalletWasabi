@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -488,7 +488,7 @@ namespace WalletWasabi.Models
 					Node previous = null;
 					for (var current = tables.Buckets[bucketNo]; current != null; current = current.Next)
 					{
-						Debug.Assert(previous is null && current == tables.Buckets[bucketNo] || previous.Next == current);
+						Debug.Assert((previous is null && current == tables.Buckets[bucketNo]) || previous.Next == current);
 						if (hashcode == current.Hashcode && Comparer.Equals(current.Item, item))
 						{
 							return false;
