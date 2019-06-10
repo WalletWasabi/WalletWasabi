@@ -73,12 +73,9 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			{
 				foreach (TxoRef txo in txos)
 				{
-					if (WaitingList.Keys.Any(x => x.GetTxoRef() == txo))
-					{
-						return true;
-					}
-
-					if (Rounds.Any(x => x.CoinsRegistered.Any(y => y.GetTxoRef() == txo)))
+					if (WaitingList.Keys
+						.Concat(Rounds.SelectMany(x => x.CoinsRegistered))
+						.Any(x => x.GetTxoRef() == txo))
 					{
 						return true;
 					}
