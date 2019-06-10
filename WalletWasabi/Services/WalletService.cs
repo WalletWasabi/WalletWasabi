@@ -619,7 +619,7 @@ namespace WalletWasabi.Services
 						TransactionCache.TryAdd(tx);
 
 						// If it's being mixed and anonset is not sufficient, then queue it.
-						if (newCoin.Unspent && ChaumianClient.HasIngredients && newCoin.Label.StartsWith("ZeroLink", StringComparison.Ordinal) && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet)
+						if (newCoin.Unspent && ChaumianClient.HasIngredients && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet && SpendsEnqueued(tx.Transaction))
 						{
 							Task.Run(async () =>
 							{
@@ -674,6 +674,24 @@ namespace WalletWasabi.Services
 			}
 
 			return walletRelevant;
+		}
+
+		/// <summary>
+		/// Tests if a transaction already spends an enqueued coin or not.
+		/// </summary>
+		private bool SpendsEnqueued(Transaction transaction)
+		{
+			foreach (var input in transaction.Inputs)
+			{
+				// If it's enqueued.
+				var enqueued = ChaumianClient.State.GetSingleOrDefaultCoin(new TxoRef(input.PrevOut.Hash, input.PrevOut.N));
+				if (enqueued != null)
+				{
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		public Node LocalBitcoinCoreNode
