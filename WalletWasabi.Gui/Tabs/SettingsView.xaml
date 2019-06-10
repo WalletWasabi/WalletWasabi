@@ -48,20 +48,27 @@
 
         <controls:GroupBox Title="Anonymity" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
           <StackPanel Spacing="10" Orientation="Vertical">
-            <StackPanel Margin="0 10">
-              <TextBlock>Some</TextBlock>
-              <TextBox Text="{Binding SomePrivacyLevel}"/>
-            </StackPanel>
-
-            <StackPanel Margin="0 10">
-              <TextBlock>Fine</TextBlock>
-              <TextBox Text="{Binding FinePrivacyLevel}"/>
-            </StackPanel>
-
-            <StackPanel Margin="0 10">
-              <TextBlock>Strong</TextBlock>
-              <TextBox Text="{Binding StrongPrivacyLevel}"/>
-            </StackPanel>
+            <Grid Margin="0 10" ColumnDefinitions="20, *">
+              <DrawingPresenter Height="18" Width="18" Grid.Column="0"
+                  Margin="0 0 10 10"
+                  VerticalAlignment="Center" HorizontalAlignment="Center"
+                  Drawing="{DynamicResource PrivacySome}" />
+              <TextBox Text="{Binding SomePrivacyLevel}" Grid.Column="1"/>
+            </Grid>
+            <Grid Margin="0 10" ColumnDefinitions="20, *">
+              <DrawingPresenter Height="18" Width="18" Grid.Column="0"
+                  Margin="0 0 10 10"
+                  VerticalAlignment="Center" HorizontalAlignment="Center"
+                  Drawing="{DynamicResource PrivacyFine}" />
+              <TextBox Text="{Binding FinePrivacyLevel}" Grid.Column="1"/>
+            </Grid>
+            <Grid Margin="0 10" ColumnDefinitions="20, *">
+              <DrawingPresenter Height="18" Width="18" Grid.Column="0"
+                  Margin="0 0 10 10"
+                  VerticalAlignment="Center" HorizontalAlignment="Center"
+                  Drawing="{DynamicResource PrivacyStrong}" />
+              <TextBox Text="{Binding StrongPrivacyLevel}" Grid.Column="1"/>
+            </Grid>
           </StackPanel>
         </controls:GroupBox>
 
