@@ -355,7 +355,10 @@ namespace WalletWasabi.Services
 
 			Block currentBlock = await GetOrDownloadBlockAsync(filterModel.BlockHash, cancel); // Wait until not downloaded.
 
-			await ProcessBlockAsync(filterModel.BlockHeight, currentBlock);
+			if (await ProcessBlockAsync(filterModel.BlockHeight, currentBlock))
+			{
+				SerializeTransactionCache();
+			}
 		}
 
 		public HdPubKey GetReceiveKey(string label, IEnumerable<HdPubKey> dontTouch = null)
@@ -452,8 +455,9 @@ namespace WalletWasabi.Services
 			return clusters;
 		}
 
-		private async Task ProcessBlockAsync(Height height, Block block, IEnumerable<int> filterByTxIds = null)
+		private async Task<bool> ProcessBlockAsync(Height height, Block block, IEnumerable<int> filterByTxIds = null)
 		{
+			var ret = false;
 			if (filterByTxIds is null)
 			{
 				var relevantIndicies = new List<int>();
@@ -463,6 +467,7 @@ namespace WalletWasabi.Services
 					if (await ProcessTransactionAsync(new SmartTransaction(tx, height)))
 					{
 						relevantIndicies.Add(i);
+						ret = true;
 					}
 				}
 
@@ -481,13 +486,18 @@ namespace WalletWasabi.Services
 				foreach (var i in filterByTxIds.OrderBy(x => x))
 				{
 					Transaction tx = block.Transactions[i];
-					await ProcessTransactionAsync(new SmartTransaction(tx, height));
+					if (await ProcessTransactionAsync(new SmartTransaction(tx, height)))
+					{
+						ret = true;
+					}
 				}
 			}
 
 			ProcessedBlocks.TryAdd(block.GetHash(), (height, block.Header.BlockTime));
 
 			NewBlockProcessed?.Invoke(this, block);
+
+			return ret;
 		}
 
 		private async Task<bool> ProcessTransactionAsync(SmartTransaction tx)
