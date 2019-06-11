@@ -41,13 +41,13 @@ namespace WalletWasabi.Gui.Tabs
 			var config = new Config(Global.Config.FilePath);
 			Autocopy = Global.UiConfig?.Autocopy is true;
 
-			this.WhenAnyValue(x => x.Network, 
+			this.WhenAnyValue(x => x.Network,
 				x => x.TorHost, x => x.TorPort, x => x.UseTor)
 				.Subscribe(x => Save());
 
 			this.WhenAnyValue(
 				x => x.SomePrivacyLevel, x => x.FinePrivacyLevel, x => x.StrongPrivacyLevel,
-				x=> x.DustThreshold)
+				x => x.DustThreshold)
 				.Subscribe(x => Save());
 
 			this.WhenAnyValue(x => x.Autocopy).Subscribe(x =>
@@ -236,15 +236,14 @@ namespace WalletWasabi.Gui.Tabs
 				var torHost = TorHost;
 				var torSocks5Port = int.TryParse(TorPort, out var port) ? (int?)port : null;
 				var useTor = UseTor;
-				int level;
-				var somePrivacyLevel  = int.TryParse(SomePrivacyLevel,   out level) ? (int?)level : null;
-				var finePrivacyLevel  = int.TryParse(FinePrivacyLevel,   out level) ? (int?)level : null;
-				var strongPrivacyLevel= int.TryParse(StrongPrivacyLevel, out level) ? (int?)level : null;
-				var dustThreshold= decimal.TryParse(DustThreshold, out var threshold) ? (decimal?)threshold : null;
+				var somePrivacyLevel = int.TryParse(SomePrivacyLevel, out int level) ? (int?)level : null;
+				var finePrivacyLevel = int.TryParse(FinePrivacyLevel, out level) ? (int?)level : null;
+				var strongPrivacyLevel = int.TryParse(StrongPrivacyLevel, out level) ? (int?)level : null;
+				var dustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? (decimal?)threshold : null;
 
-				if (config.Network != network 
-					|| config.TorHost != torHost 
-					|| config.TorSocks5Port != torSocks5Port 
+				if (config.Network != network
+					|| config.TorHost != torHost
+					|| config.TorSocks5Port != torSocks5Port
 					|| config.UseTor != useTor
 					|| config.PrivacyLevelSome != somePrivacyLevel
 					|| config.PrivacyLevelFine != finePrivacyLevel
@@ -257,7 +256,7 @@ namespace WalletWasabi.Gui.Tabs
 					config.UseTor = useTor;
 					config.PrivacyLevelSome = somePrivacyLevel;
 					config.PrivacyLevelFine = finePrivacyLevel;
-					config.PrivacyLevelStrong= strongPrivacyLevel;
+					config.PrivacyLevelStrong = strongPrivacyLevel;
 					config.DustThreshold = Money.Coins(dustThreshold.Value);
 
 					await config.ToFileAsync();
@@ -309,14 +308,16 @@ namespace WalletWasabi.Gui.Tabs
 
 		public string ValidateSomePrivacyLevel()
 			=> ValidatePrivacyLevel(SomePrivacyLevel);
+
 		public string ValidateFinePrivacyLevel()
 			=> ValidatePrivacyLevel(FinePrivacyLevel);
+
 		public string ValidateStrongPrivacyLevel()
 			=> ValidatePrivacyLevel(StrongPrivacyLevel);
 
 		public string ValidatePrivacyLevel(string value)
 		{
-			if(string.IsNullOrWhiteSpace(value))
+			if (string.IsNullOrWhiteSpace(value))
 			{
 				return string.Empty;
 			}
@@ -331,7 +332,7 @@ namespace WalletWasabi.Gui.Tabs
 
 		public string ValidateDustThreshold()
 		{
-			if(string.IsNullOrWhiteSpace(DustThreshold))
+			if (string.IsNullOrWhiteSpace(DustThreshold))
 			{
 				return string.Empty;
 			}
