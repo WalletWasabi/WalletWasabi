@@ -34,6 +34,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public void DisplayActionTab()
 		{
 			IoC.Get<IShell>().AddOrSelectDocument(this);
+			IoC.Get<IShell>().Select(this);
+		}
+
+		public void AddActionTab()
+		{
+			IoC.Get<IShell>().AddDocument(this,select: false);
 		}
 
 		public void Select()

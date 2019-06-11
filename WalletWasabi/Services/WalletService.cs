@@ -314,7 +314,7 @@ namespace WalletWasabi.Services
 											ProcessTransaction(tx);
 											MemPool.TransactionHashes.TryAdd(tx.GetHash());
 
-											Logger.LogInfo<WalletService>($"Transaction was successfully tested against the backend's mempool hahses: {tx.GetHash()}.");
+											Logger.LogInfo<WalletService>($"Transaction was successfully tested against the backend's mempool hashes: {tx.GetHash()}.");
 										}
 									}
 								}
@@ -619,7 +619,7 @@ namespace WalletWasabi.Services
 						TransactionCache.TryAdd(tx);
 
 						// If it's being mixed and anonset is not sufficient, then queue it.
-						if (newCoin.Unspent && ChaumianClient.HasIngredients && newCoin.Label.StartsWith("ZeroLink", StringComparison.Ordinal) && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet)
+						if (newCoin.Unspent && ChaumianClient.HasIngredients && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet && ChaumianClient.State.Contains(newCoin.SpentOutputs))
 						{
 							Task.Run(async () =>
 							{
