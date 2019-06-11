@@ -71,17 +71,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			advancedAction.Items.Add(broadcastTab);
 
 			// Open and select tabs.
-			sendTab?.DisplayActionTab();
+			sendTab?.AddActionTab();
 			if (receiveDominant)
 			{
-				coinjoinTab.DisplayActionTab();
-				historyTab.DisplayActionTab();
+				coinjoinTab.AddActionTab();
+				historyTab.AddActionTab();
 				receiveTab.DisplayActionTab(); // So receive should be shown to the user.
 			}
 			else
 			{
-				receiveTab.DisplayActionTab();
-				coinjoinTab.DisplayActionTab();
+				receiveTab.AddActionTab();
+				coinjoinTab.AddActionTab();
 				historyTab.DisplayActionTab(); // So history should be shown to the user.
 			}
 
