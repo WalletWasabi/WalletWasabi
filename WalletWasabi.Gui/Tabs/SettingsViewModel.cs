@@ -248,7 +248,7 @@ namespace WalletWasabi.Gui.Tabs
 					|| config.PrivacyLevelSome != somePrivacyLevel
 					|| config.PrivacyLevelFine != finePrivacyLevel
 					|| config.PrivacyLevelStrong != strongPrivacyLevel
-					|| config.DustThreshold.ToUnit(NBitcoin.MoneyUnit.BTC) != dustThreshold)
+					|| config.DustThreshold.ToUnit(MoneyUnit.BTC) != dustThreshold)
 				{
 					config.Network = network;
 					config.TorHost = torHost;
