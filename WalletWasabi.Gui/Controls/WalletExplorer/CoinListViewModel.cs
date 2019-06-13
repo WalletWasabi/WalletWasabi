@@ -36,6 +36,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private GridLength _coinJoinStatusWidth;
 		private SortOrder _clustersSortDirection;
 		private decimal _totalAmount;
+		private bool _isAnyCoinSelected;
 
 		public ReactiveCommand<Unit, Unit> EnqueueCoin { get; }
 		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
@@ -110,6 +111,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set
 			{
 				this.RaiseAndSetIfChanged(ref _totalAmount, value);
+			}
+		}
+
+		public bool IsAnyCoinSelected
+		{
+			get => _isAnyCoinSelected;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _isAnyCoinSelected, value);
 			}
 		}
 
@@ -285,6 +295,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(TotalAmount));
+			});
+
 			EnqueueCoin = ReactiveCommand.Create(() =>
 			{
 				if (SelectedCoin is null)
@@ -458,6 +475,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SetSelections();
 			SelectionChanged?.Invoke(this, cvm);
 			TotalAmount = Coins.Where(x=>x.IsSelected).Sum(x=>x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC));
+			IsAnyCoinSelected = TotalAmount > 0m;
 		}
 
 		public void OnCoinStatusChanged()

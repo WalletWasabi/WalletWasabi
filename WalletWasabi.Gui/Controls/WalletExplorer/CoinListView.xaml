@@ -50,10 +50,12 @@
         <CheckBox Content = "Select All" IsThreeState="True" IsChecked = "{Binding SelectAllCheckBoxState}" Command="{Binding SelectAllCheckBoxCommand}" />
         <CheckBox Content = "Select All Private" IsThreeState="True" IsChecked = "{Binding SelectPrivateCheckBoxState}" Command="{Binding SelectPrivateCheckBoxCommand}" ToolTip.Tip="Coins those acquired the strongest privacy shield." />
         <CheckBox Content = "Select All Non-Private" IsThreeState="True" IsChecked = "{Binding SelectNonPrivateCheckBoxState}" Command="{Binding SelectNonPrivateCheckBoxCommand}" ToolTip.Tip="Coins those do not have the strongest privacy shield." />
-        <TextBlock Text = "|" />
-        <TextBlock Text = "Selected Amount:" />
-        <TextBlock Text = "{Binding TotalAmount}" />
-        <TextBlock Text = "BTC" />
+        <StackPanel Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal" IsVisible="{Binding IsAnyCoinSelected}">
+          <TextBlock Text = "|" />
+          <TextBlock Text = "Selected Amount:" />
+          <TextBlock Text = "{Binding TotalAmount, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}}" />
+          <TextBlock Text = "BTC" />
+        </StackPanel>
       </StackPanel>
       <ListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
         <ListBox.ContextMenu>
