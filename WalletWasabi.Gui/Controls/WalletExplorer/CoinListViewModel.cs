@@ -35,6 +35,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool? _selectNonPrivateCheckBoxState;
 		private GridLength _coinJoinStatusWidth;
 		private SortOrder _clustersSortDirection;
+		private decimal _totalAmount;
 
 		public ReactiveCommand<Unit, Unit> EnqueueCoin { get; }
 		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
@@ -101,6 +102,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _clustersSortDirection;
 			set => this.RaiseAndSetIfChanged(ref _clustersSortDirection, value);
+		}
+
+		public decimal TotalAmount
+		{
+			get => _totalAmount;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _totalAmount, value);
+			}
 		}
 
 		private void RefreshOrdering()
@@ -447,6 +457,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			SetSelections();
 			SelectionChanged?.Invoke(this, cvm);
+			TotalAmount = Coins.Where(x=>x.IsSelected).Sum(x=>x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC));
 		}
 
 		public void OnCoinStatusChanged()
