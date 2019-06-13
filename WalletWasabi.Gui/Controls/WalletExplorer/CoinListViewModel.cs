@@ -295,13 +295,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(TotalAmount));
-			});
-
 			EnqueueCoin = ReactiveCommand.Create(() =>
 			{
 				if (SelectedCoin is null)
@@ -392,6 +385,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				RootList.Add(newCoinVm);
 			}
 
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(TotalAmount));
+			}).DisposeWith(Disposables);
+
+			this.WhenAnyValue(x => x.TotalAmount)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+			{
+				IsAnyCoinSelected = x > 0m;
+			});
+
 			Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
@@ -475,7 +482,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SetSelections();
 			SelectionChanged?.Invoke(this, cvm);
 			TotalAmount = Coins.Where(x=>x.IsSelected).Sum(x=>x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC));
-			IsAnyCoinSelected = TotalAmount > 0m;
 		}
 
 		public void OnCoinStatusChanged()
