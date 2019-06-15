@@ -21,7 +21,7 @@ namespace WalletWasabi.Gui.Converters
 
 				return new string(Enumerable.Repeat('#', len).ToArray());
 			}
-			return value;
+			return value.ToString();
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
