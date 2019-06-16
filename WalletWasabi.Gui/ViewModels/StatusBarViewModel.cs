@@ -119,6 +119,7 @@ namespace WalletWasabi.Gui.ViewModels
 				}).DisposeWith(Disposables);
 
 			_filtersLeft = HashChain.WhenAnyValue(x => x.HashesLeft)
+				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.ToProperty(this, x => x.FiltersLeft)
 				.DisposeWith(Disposables);
