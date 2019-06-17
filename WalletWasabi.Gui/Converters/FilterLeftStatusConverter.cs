@@ -1,4 +1,4 @@
-﻿using Avalonia.Data.Converters;
+using Avalonia.Data.Converters;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -6,13 +6,24 @@ using System.Text;
 
 namespace WalletWasabi.Gui.Converters
 {
-	public class FilterLeftValueConverter : IValueConverter
+	public class FilterLeftStatusConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if (value is int integer)
 			{
-				return integer == -1 ? "--" : value.ToString();
+				if (integer <= 0)
+				{
+					return "";
+				}
+				else if (integer == 1)
+				{
+					return "Downloading a filter...";
+				}
+				else
+				{
+					return $"Downloading {value} filters...";
+				}
 			}
 
 			throw new InvalidOperationException();

@@ -5,7 +5,7 @@
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              Height="25">
   <UserControl.Resources>
-    <converters:FilterLeftValueConverter x:Key="FilterLeftValueConverter" />
+    <converters:FilterLeftStatusConverter x:Key="FilterLeftStatusConverter" />
     <converters:StatusColorConverter x:Key="StatusColorConverter" />
     <converters:UpdateStatusBrushConverter x:Key="UpdateStatusBrushConverter" />
     <converters:ShowCursorConverter x:Key="ShowCursorConverter" />
@@ -43,7 +43,7 @@
                 </DrawingPresenter.Drawing>
               </DrawingPresenter>
             </Grid>
-            <TextBlock Text="{Binding BlocksLeft, StringFormat=Missing Blocks: \{0\}}" Foreground="{Binding BlocksLeft, ConverterParameter=BlocksLeft, Converter={StaticResource StatusColorConverter}}" />
+            <TextBlock Text="Downloading a block..." Foreground="{Binding BlocksLeft, ConverterParameter=BlocksLeft, Converter={StaticResource StatusColorConverter}}" />
           </StackPanel>
         </Panel>
 
@@ -63,7 +63,7 @@
                 </DrawingPresenter.Drawing>
               </DrawingPresenter>
             </Grid>
-            <TextBlock Text="{Binding FiltersLeft, StringFormat=Missing Filters: \{0\}, Converter={StaticResource FilterLeftValueConverter}}" Foreground="{Binding FiltersLeft, ConverterParameter=FiltersLeft, Converter={StaticResource StatusColorConverter}}" />
+            <TextBlock Text="{Binding FiltersLeft, Converter={StaticResource FilterLeftStatusConverter}}" Foreground="{Binding FiltersLeft, ConverterParameter=FiltersLeft, Converter={StaticResource StatusColorConverter}}" />
           </StackPanel>
         </Panel>
 
