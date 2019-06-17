@@ -791,7 +791,7 @@ namespace WalletWasabi.Services
 
 							Block blockFromLocalNode = null;
 							// Should timeout faster. Not sure if it should ever fail though. Maybe let's keep like this later for remote node connection.
-							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RuntimeParams.Instance.NetworkNodeTimeout))) // 1/2 ADSL	512 kbit/s	00:00:32
+							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RuntimeParams.Instance.NetworkNodeTimeout)))
 							{
 								blockFromLocalNode = await LocalBitcoinCoreNode.DownloadBlockAsync(hash, cts.Token);
 							}
@@ -844,7 +844,7 @@ namespace WalletWasabi.Services
 						{
 							ConcurrentBlockDownloadNumberChanged?.Invoke(this, Interlocked.Increment(ref ConcurrentBlockDownload));
 
-							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RuntimeParams.Instance.NetworkNodeTimeout))) // 1/2 ADSL	512 kbit/s	00:00:32
+							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RuntimeParams.Instance.NetworkNodeTimeout)))
 							{
 								block = await node.DownloadBlockAsync(hash, cts.Token);
 							}
@@ -1555,7 +1555,9 @@ namespace WalletWasabi.Services
 				Encoding.UTF8);
 		}
 
-		// Current timeout used when downloading a block from the remote node. It is defined in seconds.
+		/// <summary>
+		/// Current timeout used when downloading a block from the remote node. It is defined in seconds.
+		/// </summary>
 		private async Task NodeTimeoutsAsync(bool increaseDecrease)
 		{
 			if (increaseDecrease)

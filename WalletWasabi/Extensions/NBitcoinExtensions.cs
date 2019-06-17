@@ -16,12 +16,13 @@ namespace NBitcoin
 {
 	public static class NBitcoinExtensions
 	{
-		public static async Task<Block> DownloadBlockAsync(this Node node, uint256 hash, CancellationToken cancellationToken = default)
+		public static async Task<Block> DownloadBlockAsync(this Node node, uint256 hash, CancellationToken cancellationToken)
 		{
 			using (var listener = node.CreateListener())
 			{
 				var getdata = new GetDataPayload(new InventoryVector(node.AddSupportedOptions(InventoryType.MSG_BLOCK), hash));
 				await node.SendMessageAsync(getdata);
+				cancellationToken.ThrowIfCancellationRequested();
 
 				// Bitcoin Core processes the messages sequentially and does not send a NOTFOUND message if the remote node is pruned and the data not available.
 				// A good way to get any feedback about whether the node knows the block or not is to send a ping request.
@@ -30,6 +31,7 @@ namespace NBitcoin
 				await node.SendMessageAsync(new PingPayload() { Nonce = pingNonce });
 				while (true)
 				{
+					cancellationToken.ThrowIfCancellationRequested();
 					var message = listener.ReceiveMessage(cancellationToken);
 					if (message.Message.Payload is NotFoundPayload ||
 						(message.Message.Payload is PongPayload p && p.Nonce == pingNonce))
