@@ -57,7 +57,7 @@
           <TextBlock Text = "BTC" />
         </StackPanel>
       </StackPanel>
-      <ListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
+      <ListBox Items="{Binding Coins}" VirtualizationMode="Simple" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
         <ListBox.ContextMenu>
           <ContextMenu>
             <!--Enqueuing needs password, TODO: jump to password box OR display pw box in context menu + send button-->
