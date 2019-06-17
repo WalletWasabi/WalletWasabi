@@ -2,6 +2,8 @@
 
 We are happy to announce an experiment, called: **The Wasabi Contribution Game**, where we will be distributing 1 BTC among contributors of this repository in proportion to their contributions.
 
+![](https://i.imgur.com/0GwL58Z.png)
+
 ## Rules
 
 - Checking the current status of the game: https://github.com/zkSNACKs/WalletWasabi/graphs/contributors?from=2019-06-25&to=2019-07-25&type=d and https://github.com/zkSNACKs/WalletWasabi/graphs/contributors?from=2019-06-25&to=2019-07-25&type=a
