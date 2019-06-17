@@ -54,7 +54,7 @@
                         Easing="CircularEaseIn"
                         Duration="0:0:0.5" />
                 </Grid.Transitions>
-                <TextBlock Classes="warningMessage" Text="Label Is Required!" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                <TextBlock Classes="warningMessage" Text="Label Is Required! (Max Length: 1000)" VerticalAlignment="Center" HorizontalAlignment="Center" />
               </Grid>
             </Grid>
           </DockPanel>

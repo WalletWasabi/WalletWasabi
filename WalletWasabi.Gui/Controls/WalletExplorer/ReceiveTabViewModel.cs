@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.KeyManagement;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -43,7 +44,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			GenerateCommand = ReactiveCommand.Create(() =>
 			{
 				Label = Label.Trim(',', ' ').Trim();
-				if (string.IsNullOrWhiteSpace(Label))
+				if (string.IsNullOrWhiteSpace(Label) || Label.Length > Constants.MaxLabelLength)
 				{
 					LabelRequiredNotificationVisible = true;
 					LabelRequiredNotificationOpacity = 1;
