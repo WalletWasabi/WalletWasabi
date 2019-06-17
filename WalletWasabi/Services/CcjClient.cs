@@ -358,7 +358,8 @@ namespace WalletWasabi.Services
 				var mineCount = myOutputs.Count(x => x.Value == denomPair.value);
 
 				Money denomination = denomPair.value;
-				Money expectedCoordinatorFee = denomination.Percentage(ongoingRound.State.CoordinatorFeePercent * denomPair.count);
+				int anonset = Math.Min(110, denomPair.count); // https://github.com/zkSNACKs/WalletWasabi/issues/1379
+				Money expectedCoordinatorFee = denomination.Percentage(ongoingRound.State.CoordinatorFeePercent * anonset);
 				for (int i = 0; i < mineCount; i++)
 				{
 					minAmountBack -= expectedCoordinatorFee; // Minus expected coordinator fee.

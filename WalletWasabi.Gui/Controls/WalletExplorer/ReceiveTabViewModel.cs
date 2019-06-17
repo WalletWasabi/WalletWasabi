@@ -168,8 +168,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void InitializeAddresses()
 		{
 			_addresses?.Clear();
+			var walletService = Global.WalletService;
 
-			foreach (HdPubKey key in Global.WalletService.KeyManager.GetKeys(x =>
+			if(walletService == null)
+			{
+				return;
+			}
+
+			foreach (HdPubKey key in walletService.KeyManager.GetKeys(x =>
 																		x.HasLabel
 																		&& !x.IsInternal
 																		&& x.KeyState == KeyState.Clean)

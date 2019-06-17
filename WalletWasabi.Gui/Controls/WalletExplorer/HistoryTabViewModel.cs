@@ -22,20 +22,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
-		private bool _isFirstLoading;
 
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
-
-		public bool IsFirstLoading
-		{
-			get => _isFirstLoading;
-			set => this.RaiseAndSetIfChanged(ref _isFirstLoading, value);
-		}
 
 		public HistoryTabViewModel(WalletViewModel walletViewModel)
 			: base("History", walletViewModel)
 		{
-			IsFirstLoading = true;
 			Transactions = new ObservableCollection<TransactionViewModel>();
 
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
@@ -61,7 +53,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (Disposables != null)
 			{
-				throw new Exception("History Tab was opened before it was closed.");
+				throw new Exception("Histroy Tab was opened before it was closed.");
 			}
 
 			Disposables = new CompositeDisposable();
@@ -122,7 +114,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 				RefreshOrdering();
-				IsFirstLoading = false;
 			}
 			catch (Exception ex)
 			{
@@ -132,39 +123,32 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private static List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)> BuildTxRecordList()
 		{
+			var walletService = Global.WalletService;
+
 			List<Transaction> trs = new List<Transaction>();
 			var txRecordList = new List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)>();
-			foreach (SmartCoin coin in Global.WalletService.Coins)
+
+			if(walletService == null)
+			{
+				return txRecordList;
+			}
+
+			foreach (SmartCoin coin in walletService.Coins)
 			{
 				var found = txRecordList.FirstOrDefault(x => x.transactionId == coin.TransactionId);
 
-				if (Global.WalletService is null)
-				{
-					break; // Disposed meanwhile.
-				}
-
-				SmartTransaction foundTransaction = Global.WalletService?.TransactionCache?.FirstOrDefault(x => x.GetHash() == coin.TransactionId);
+				SmartTransaction foundTransaction = walletService.TransactionCache?.FirstOrDefault(x => x.GetHash() == coin.TransactionId);
 				if (foundTransaction is null)
 				{
-					if (Global.WalletService is null)
-					{
-						break; // Disposed meanwhile.
-					}
-
 					continue;
 				}
 
 				DateTimeOffset dateTime;
 				if (foundTransaction.Height.Type == HeightType.Chain)
 				{
-					if (Global.WalletService is null)
+					if (walletService.ProcessedBlocks.Any(x => x.Value.height == foundTransaction.Height))
 					{
-						break; //  Disposed meanwhile. Actually caught an NRE here.
-					}
-
-					if (Global.WalletService.ProcessedBlocks.Any(x => x.Value.height == foundTransaction.Height))
-					{
-						dateTime = Global.WalletService.ProcessedBlocks.First(x => x.Value.height == foundTransaction.Height).Value.dateTime;
+						dateTime = walletService.ProcessedBlocks.First(x => x.Value.height == foundTransaction.Height).Value.dateTime;
 					}
 					else
 					{
@@ -189,16 +173,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				if (coin.SpenderTransactionId != null)
 				{
-					SmartTransaction foundSpenderTransaction = Global.WalletService.TransactionCache.First(x => x.GetHash() == coin.SpenderTransactionId);
+					SmartTransaction foundSpenderTransaction = walletService.TransactionCache.First(x => x.GetHash() == coin.SpenderTransactionId);
 					if (foundSpenderTransaction.Height.Type == HeightType.Chain)
 					{
-						if (Global.WalletService?.ProcessedBlocks != null) // NullReferenceException appeared here.
+						if (walletService.ProcessedBlocks != null) // NullReferenceException appeared here.
 						{
-							if (Global.WalletService.ProcessedBlocks.Any(x => x.Value.height == foundSpenderTransaction.Height))
+							if (walletService.ProcessedBlocks.Any(x => x.Value.height == foundSpenderTransaction.Height))
 							{
-								if (Global.WalletService?.ProcessedBlocks != null) // NullReferenceException appeared here.
+								if (walletService.ProcessedBlocks != null) // NullReferenceException appeared here.
 								{
-									dateTime = Global.WalletService.ProcessedBlocks.First(x => x.Value.height == foundSpenderTransaction.Height).Value.dateTime;
+									dateTime = walletService.ProcessedBlocks.First(x => x.Value.height == foundSpenderTransaction.Height).Value.dateTime;
 								}
 								else
 								{

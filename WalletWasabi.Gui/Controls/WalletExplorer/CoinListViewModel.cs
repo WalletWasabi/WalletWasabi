@@ -11,7 +11,6 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
@@ -36,7 +35,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool? _selectNonPrivateCheckBoxState;
 		private GridLength _coinJoinStatusWidth;
 		private SortOrder _clustersSortDirection;
-		private bool _isCoinListLoading;
+		private decimal _totalAmount;
+		private bool _isAnyCoinSelected;
 
 		public ReactiveCommand<Unit, Unit> EnqueueCoin { get; }
 		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
@@ -44,7 +44,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> SelectPrivateCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SelectNonPrivateCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
-		public ReactiveCommand<Unit, Unit> InitList { get; }
 
 		public event EventHandler DequeueCoinsPressed;
 
@@ -106,10 +105,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _clustersSortDirection, value);
 		}
 
-		public bool IsCoinListLoading
+		public decimal TotalAmount
 		{
-			get => _isCoinListLoading;
-			set => this.RaiseAndSetIfChanged(ref _isCoinListLoading, value);
+			get => _totalAmount;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _totalAmount, value);
+			}
+		}
+
+		public bool IsAnyCoinSelected
+		{
+			get => _isAnyCoinSelected;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _isAnyCoinSelected, value);
+			}
 		}
 
 		private void RefreshOrdering()
@@ -220,7 +231,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public CoinListViewModel()
 		{
 			AmountSortDirection = SortOrder.Decreasing;
-			IsCoinListLoading = true;
 			RefreshOrdering();
 
 			var sortChanged = this.WhenValueChanged(@this => MyComparer)
@@ -362,6 +372,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						break;
 				}
 			});
+		   });
 
 			InitList = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -374,76 +385,73 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			InitList.ThrownExceptions.Subscribe(ex => Logging.Logger.LogError<CoinListViewModel>(ex));
 		}
 
-		private void OnOpen()
+		public void OnOpen()
 		{
-			try
+			Disposables = new CompositeDisposable();
+
+			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent))
 			{
-				if (Disposables != null)
+				var newCoinVm = new CoinViewModel(this, sc);
+				newCoinVm.SubscribeEvents();
+				RootList.Add(newCoinVm);
+			}
+
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(TotalAmount));
+			}).DisposeWith(Disposables);
+
+			this.WhenAnyValue(x => x.TotalAmount)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+			{
+				IsAnyCoinSelected = x > 0m;
+			});
+
+			Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
 				{
-					throw new Exception("CoinList opened before previous closed.");
-				}
-
-				IsCoinListLoading = true;
-
-				Disposables = new CompositeDisposable();
-
-				foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent))
-				{
-					var newCoinVm = new CoinViewModel(this, sc);
-					newCoinVm.SubscribeEvents();
-					RootList.Add(newCoinVm);
-				}
-
-				Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
-					.ObserveOn(RxApp.MainThreadScheduler)
-					.Subscribe(x =>
+					var e = x.EventArgs;
+					try
 					{
-						var e = x.EventArgs;
-						try
+						switch (e.Action)
 						{
-							switch (e.Action)
-							{
-								case NotifyCollectionChangedAction.Add:
-									foreach (SmartCoin c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent))
+							case NotifyCollectionChangedAction.Add:
+								foreach (SmartCoin c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent))
+								{
+									var newCoinVm = new CoinViewModel(this, c);
+									newCoinVm.SubscribeEvents();
+									RootList.Add(newCoinVm);
+								}
+								break;
+
+							case NotifyCollectionChangedAction.Remove:
+								foreach (var c in e.OldItems.Cast<SmartCoin>())
+								{
+									CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == c);
+									if (toRemove != default)
 									{
-										var newCoinVm = new CoinViewModel(this, c);
-										newCoinVm.SubscribeEvents();
-										RootList.Add(newCoinVm);
+										RootList.Remove(toRemove);
 									}
-									break;
+								}
+								break;
 
-								case NotifyCollectionChangedAction.Remove:
-									foreach (var c in e.OldItems.Cast<SmartCoin>())
-									{
-										CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == c);
-										if (toRemove != default)
-										{
-											if (toRemove != default)
-											{
-												RootList.Remove(toRemove);
-											}
-										}
-									}
-									break;
-
-								case NotifyCollectionChangedAction.Reset:
-									ClearRootList();
-									break;
-							}
+							case NotifyCollectionChangedAction.Reset:
+								ClearRootList();
+								break;
 						}
-						catch (Exception ex)
-						{
-							Logging.Logger.LogDebug<Dispatcher>(ex);
-						}
-					}).DisposeWith(Disposables);
+					}
+					catch (Exception ex)
+					{
+						Logging.Logger.LogDebug<Dispatcher>(ex);
+					}
+				}).DisposeWith(Disposables);
 
-				SetSelections();
-				SetCoinJoinStatusWidth();
-			}
-			finally
-			{
-				IsCoinListLoading = false;
-			}
+			SetSelections();
+			SetCoinJoinStatusWidth();
 		}
 
 		private void ClearRootList() => RootList.Clear();
@@ -485,6 +493,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			SetSelections();
 			SelectionChanged?.Invoke(this, cvm);
+			TotalAmount = Coins.Where(x=>x.IsSelected).Sum(x=>x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC));
 		}
 
 		public void OnCoinStatusChanged()

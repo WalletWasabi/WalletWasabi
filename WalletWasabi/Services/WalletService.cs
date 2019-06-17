@@ -139,7 +139,7 @@ namespace WalletWasabi.Services
 
 			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
 			BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
-			MemPool.TransactionReceived += MemPool_TransactionReceived;
+			MemPool.TransactionReceived += MemPool_TransactionReceivedAsync;
 		}
 
 		private void Coins_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -147,18 +147,15 @@ namespace WalletWasabi.Services
 			RefreshCoinHistories();
 		}
 
-		private static object TransactionProcessingLock { get; } = new object();
+		private static AsyncLock TransactionProcessingLock { get; } = new AsyncLock();
 
-		private void MemPool_TransactionReceived(object sender, SmartTransaction tx)
+		private async void MemPool_TransactionReceivedAsync(object sender, SmartTransaction tx)
 		{
 			try
 			{
-				lock (TransactionProcessingLock)
+				using (await TransactionProcessingLock.LockAsync())
 				{
-					var prevCount = TransactionCache.Count;
-					ProcessTransaction(tx);
-
-					if (prevCount != TransactionCache.Count)
+					if (await ProcessTransactionAsync(tx))
 					{
 						SerializeTransactionCache();
 					}
@@ -263,7 +260,7 @@ namespace WalletWasabi.Services
 				{
 					var block = await GetOrDownloadBlockAsync(blockstate.BlockHash, cancel);
 
-					ProcessBlock(blockstate.BlockHeight, block, blockstate.TransactionIndices);
+					await ProcessBlockAsync(blockstate.BlockHeight, block, blockstate.TransactionIndices);
 				}
 
 				// Go through the filters and que to download the matches.
@@ -311,7 +308,7 @@ namespace WalletWasabi.Services
 										if (mempoolHashes.Contains(tx.GetHash().ToString().Substring(0, compactness)))
 										{
 											tx.SetHeight(Height.MemPool);
-											ProcessTransaction(tx);
+											await ProcessTransactionAsync(tx);
 											MemPool.TransactionHashes.TryAdd(tx.GetHash());
 
 											Logger.LogInfo<WalletService>($"Transaction was successfully tested against the backend's mempool hashes: {tx.GetHash()}.");
@@ -325,7 +322,7 @@ namespace WalletWasabi.Services
 								foreach (var tx in transactions)
 								{
 									tx.SetHeight(Height.MemPool);
-									ProcessTransaction(tx);
+									await ProcessTransactionAsync(tx);
 									MemPool.TransactionHashes.TryAdd(tx.GetHash());
 								}
 
@@ -358,7 +355,10 @@ namespace WalletWasabi.Services
 
 			Block currentBlock = await GetOrDownloadBlockAsync(filterModel.BlockHash, cancel); // Wait until not downloaded.
 
-			ProcessBlock(filterModel.BlockHeight, currentBlock);
+			if (await ProcessBlockAsync(filterModel.BlockHeight, currentBlock))
+			{
+				SerializeTransactionCache();
+			}
 		}
 
 		public HdPubKey GetReceiveKey(string label, IEnumerable<HdPubKey> dontTouch = null)
@@ -455,17 +455,19 @@ namespace WalletWasabi.Services
 			return clusters;
 		}
 
-		private void ProcessBlock(Height height, Block block, IEnumerable<int> filterByTxIds = null)
+		private async Task<bool> ProcessBlockAsync(Height height, Block block, IEnumerable<int> filterByTxIds = null)
 		{
+			var ret = false;
 			if (filterByTxIds is null)
 			{
 				var relevantIndicies = new List<int>();
 				for (int i = 0; i < block.Transactions.Count; i++)
 				{
 					Transaction tx = block.Transactions[i];
-					if (ProcessTransaction(new SmartTransaction(tx, height)))
+					if (await ProcessTransactionAsync(new SmartTransaction(tx, height)))
 					{
 						relevantIndicies.Add(i);
+						ret = true;
 					}
 				}
 
@@ -484,16 +486,21 @@ namespace WalletWasabi.Services
 				foreach (var i in filterByTxIds.OrderBy(x => x))
 				{
 					Transaction tx = block.Transactions[i];
-					ProcessTransaction(new SmartTransaction(tx, height));
+					if (await ProcessTransactionAsync(new SmartTransaction(tx, height)))
+					{
+						ret = true;
+					}
 				}
 			}
 
 			ProcessedBlocks.TryAdd(block.GetHash(), (height, block.Header.BlockTime));
 
 			NewBlockProcessed?.Invoke(this, block);
+
+			return ret;
 		}
 
-		private bool ProcessTransaction(SmartTransaction tx)
+		private async Task<bool> ProcessTransactionAsync(SmartTransaction tx)
 		{
 			uint256 txId = tx.GetHash();
 			var walletRelevant = false;
@@ -619,19 +626,16 @@ namespace WalletWasabi.Services
 						TransactionCache.TryAdd(tx);
 
 						// If it's being mixed and anonset is not sufficient, then queue it.
-						if (newCoin.Unspent && ChaumianClient.HasIngredients && newCoin.Label.StartsWith("ZeroLink", StringComparison.Ordinal) && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet)
+						if (newCoin.Unspent && ChaumianClient.HasIngredients && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet && ChaumianClient.State.Contains(newCoin.SpentOutputs))
 						{
-							Task.Run(async () =>
+							try
 							{
-								try
-								{
-									await ChaumianClient.QueueCoinsToMixAsync(newCoin);
-								}
-								catch (Exception ex)
-								{
-									Logger.LogError<WalletService>(ex);
-								}
-							});
+								await ChaumianClient.QueueCoinsToMixAsync(newCoin);
+							}
+							catch (Exception ex)
+							{
+								Logger.LogError<WalletService>(ex);
+							}
 						}
 
 						// Make sure there's always 21 clean keys generated and indexed.
@@ -787,16 +791,12 @@ namespace WalletWasabi.Services
 
 							Block blockFromLocalNode = null;
 							// Should timeout faster. Not sure if it should ever fail though. Maybe let's keep like this later for remote node connection.
-							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(64))) // 1/2 ADSL	512 kbit/s	00:00:32
+							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RuntimeParams.Instance.NetworkNodeTimeout)))
 							{
-								blockFromLocalNode = LocalBitcoinCoreNode.GetBlocks(new uint256[] { hash }, cts.Token)?.Single();
+								blockFromLocalNode = await LocalBitcoinCoreNode.DownloadBlockAsync(hash, cts.Token);
 							}
 
-							if (blockFromLocalNode is null)
-							{
-								throw new InvalidOperationException($"Disconnected local node, because couldn't parse received block.");
-							}
-							else if (!blockFromLocalNode.Check())
+							if (!blockFromLocalNode.Check())
 							{
 								throw new InvalidOperationException($"Disconnected node, because block invalid block received!");
 							}
@@ -844,16 +844,9 @@ namespace WalletWasabi.Services
 						{
 							ConcurrentBlockDownloadNumberChanged?.Invoke(this, Interlocked.Increment(ref ConcurrentBlockDownload));
 
-							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RuntimeParams.Instance.NetworkNodeTimeout))) // 1/2 ADSL	512 kbit/s	00:00:32
+							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RuntimeParams.Instance.NetworkNodeTimeout)))
 							{
-								block = node.GetBlocks(new uint256[] { hash }, cts.Token)?.Single();
-							}
-
-							if (block is null)
-							{
-								Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because couldn't parse received block.");
-								node.DisconnectAsync("Couldn't parse block.");
-								continue;
+								block = await node.DownloadBlockAsync(hash, cts.Token);
 							}
 
 							if (!block.Check())
@@ -1487,7 +1480,7 @@ namespace WalletWasabi.Services
 					}
 				}
 
-				ProcessTransaction(new SmartTransaction(transaction.Transaction, Height.MemPool));
+				await ProcessTransactionAsync(new SmartTransaction(transaction.Transaction, Height.MemPool));
 				MemPool.TransactionHashes.TryAdd(transaction.GetHash());
 
 				Logger.LogInfo<WalletService>($"Transaction is successfully broadcasted to backend: {transaction.GetHash()}.");
@@ -1562,7 +1555,9 @@ namespace WalletWasabi.Services
 				Encoding.UTF8);
 		}
 
-		// Current timeout used when downloading a block from the remote node. It is defined in seconds.
+		/// <summary>
+		/// Current timeout used when downloading a block from the remote node. It is defined in seconds.
+		/// </summary>
 		private async Task NodeTimeoutsAsync(bool increaseDecrease)
 		{
 			if (increaseDecrease)
@@ -1622,12 +1617,8 @@ namespace WalletWasabi.Services
 				{
 					BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
 					BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
-					MemPool.TransactionReceived -= MemPool_TransactionReceived;
+					MemPool.TransactionReceived -= MemPool_TransactionReceivedAsync;
 					Coins.CollectionChanged -= Coins_CollectionChanged;
-					lock (TransactionProcessingLock)
-					{
-						SerializeTransactionCache();
-					}
 
 					DisconnectDisposeNullLocalBitcoinCoreNode();
 				}

@@ -1059,6 +1059,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SetFeesAndTexts();
 			}).DisposeWith(Disposables);
 
+			CoinList.OnOpen();
+
 			base.OnOpen();
 		}
 

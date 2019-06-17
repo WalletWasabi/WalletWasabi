@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -65,6 +65,24 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			{
 				return WaitingList.ContainsKey(coin) || Rounds.Any(x => x.CoinsRegistered.Contains(coin));
 			}
+		}
+
+		public bool Contains(params TxoRef[] txos)
+		{
+			lock (StateLock)
+			{
+				foreach (TxoRef txo in txos)
+				{
+					if (WaitingList.Keys
+						.Concat(Rounds.SelectMany(x => x.CoinsRegistered))
+						.Any(x => x.GetTxoRef() == txo))
+					{
+						return true;
+					}
+				}
+			}
+
+			return false;
 		}
 
 		public SmartCoin GetSingleOrDefaultFromWaitingList(SmartCoin coin)
