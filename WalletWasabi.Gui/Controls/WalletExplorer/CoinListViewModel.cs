@@ -364,11 +364,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			});
 
 			InitList = ReactiveCommand.CreateFromTask(async () =>
-		   {
-			   // We have to wait for the UI to became visible to the user.
-			   await Task.Delay(1000);
-			   OnOpen();
-		   });
+			{
+				IsCoinListLoading = true;
+				// We have to wait for the UI to became visible to the user.
+				await Task.Delay(1000);
+				OnOpen();
+			});
 
 			InitList.ThrownExceptions.Subscribe(ex => Logging.Logger.LogError<CoinListViewModel>(ex));
 		}
@@ -452,6 +453,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ClearRootList();
 
 			Disposables?.Dispose();
+			Disposables = null;
 		}
 
 		private void SetSelections()
