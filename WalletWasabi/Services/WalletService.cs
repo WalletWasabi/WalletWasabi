@@ -781,7 +781,8 @@ namespace WalletWasabi.Services
 									handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
 									var nodeConnectionParameters = new NodeConnectionParameters() {
 										ConnectCancellation = handshakeTimeout.Token,
-										IsRelay = false
+										IsRelay = false,
+										UserAgent = $"/Wasabi:{Constants.ClientVersion}/"
 									};
 
 									// If an onion was added must try to use Tor.
