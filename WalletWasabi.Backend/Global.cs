@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.RPC;
 using System;
@@ -13,32 +13,33 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Backend
 {
-	public static class Global
+	public class Global
 	{
-		public static string DataDir { get; }
+		public static Global Instance { get; } = new Global();
+		public string DataDir { get; }
 
-		public static RPCClient RpcClient { get; private set; }
+		public RPCClient RpcClient { get; private set; }
 
-		public static Node LocalNode { get; private set; }
+		public Node LocalNode { get; private set; }
 
-		public static TrustedNodeNotifyingBehavior TrustedNodeNotifyingBehavior { get; private set; }
+		public TrustedNodeNotifyingBehavior TrustedNodeNotifyingBehavior { get; private set; }
 
-		public static IndexBuilderService IndexBuilderService { get; private set; }
+		public IndexBuilderService IndexBuilderService { get; private set; }
 
-		public static CcjCoordinator Coordinator { get; private set; }
+		public CcjCoordinator Coordinator { get; private set; }
 
-		public static ConfigWatcher RoundConfigWatcher { get; private set; }
+		public ConfigWatcher RoundConfigWatcher { get; private set; }
 
-		public static Config Config { get; private set; }
+		public Config Config { get; private set; }
 
-		public static CcjRoundConfig RoundConfig { get; private set; }
+		public CcjRoundConfig RoundConfig { get; private set; }
 
-		static Global()
+		public Global()
 		{
 			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
 		}
 
-		public static async Task InitializeAsync(Config config, CcjRoundConfig roundConfig, RPCClient rpc)
+		public async Task InitializeAsync(Config config, CcjRoundConfig roundConfig, RPCClient rpc)
 		{
 			Config = Guard.NotNull(nameof(config), config);
 			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
@@ -84,7 +85,7 @@ namespace WalletWasabi.Backend
 			}
 		}
 
-		public static void DisconnectDisposeNullLocalNode()
+		public void DisconnectDisposeNullLocalNode()
 		{
 			if (LocalNode != null)
 			{
@@ -122,7 +123,7 @@ namespace WalletWasabi.Backend
 			}
 		}
 
-		private static async Task InitializeP2pAsync(Network network, EndPoint endPoint)
+		private async Task InitializeP2pAsync(Network network, EndPoint endPoint)
 		{
 			Guard.NotNull(nameof(network), network);
 			Guard.NotNull(nameof(endPoint), endPoint);
@@ -130,8 +131,7 @@ namespace WalletWasabi.Backend
 			using (var handshakeTimeout = new CancellationTokenSource())
 			{
 				handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
-				var nodeConnectionParameters = new NodeConnectionParameters()
-				{
+				var nodeConnectionParameters = new NodeConnectionParameters() {
 					ConnectCancellation = handshakeTimeout.Token,
 					IsRelay = true
 				};
@@ -169,7 +169,7 @@ namespace WalletWasabi.Backend
 			}
 		}
 
-		private static async Task AssertRpcNodeFullyInitializedAsync()
+		private async Task AssertRpcNodeFullyInitializedAsync()
 		{
 			try
 			{

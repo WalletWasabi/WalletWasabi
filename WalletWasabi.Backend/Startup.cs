@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,8 +33,7 @@ namespace WalletWasabi.Backend
 			// Register the Swagger generator, defining one or more Swagger documents
 			services.AddSwaggerGen(c =>
 			{
-				c.SwaggerDoc($"v{Constants.BackendMajorVersion}", new Info
-				{
+				c.SwaggerDoc($"v{Constants.BackendMajorVersion}", new Info {
 					Version = $"v{Constants.BackendMajorVersion}",
 					Title = "Wasabi Wallet API",
 					Description = "Privacy focused, ZeroLink compliant Bitcoin Web API.",
@@ -91,24 +90,24 @@ namespace WalletWasabi.Backend
 
 		private async Task CleanupAsync()
 		{
-			Global.Coordinator?.Dispose();
+			Global.Instance.Coordinator?.Dispose();
 			Logger.LogInfo<Startup>("Coordinator is disposed.");
 
-			if (Global.IndexBuilderService != null)
+			if (Global.Instance.IndexBuilderService != null)
 			{
-				await Global.IndexBuilderService.StopAsync();
+				await Global.Instance.IndexBuilderService.StopAsync();
 				Logger.LogInfo<Startup>("IndexBuilderService is disposed.");
 			}
 
-			if (Global.RoundConfigWatcher != null)
+			if (Global.Instance.RoundConfigWatcher != null)
 			{
-				await Global.RoundConfigWatcher.StopAsync();
+				await Global.Instance.RoundConfigWatcher.StopAsync();
 				Logger.LogInfo<Startup>("RoundConfigWatcher is disposed.");
 			}
 
-			if (Global.LocalNode != null)
+			if (Global.Instance.LocalNode != null)
 			{
-				Global.DisconnectDisposeNullLocalNode();
+				Global.Instance.DisconnectDisposeNullLocalNode();
 				Logger.LogInfo<Startup>("LocalNode is disposed.");
 			}
 

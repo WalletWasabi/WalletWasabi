@@ -1,4 +1,4 @@
-﻿using Avalonia.Threading;
+using Avalonia.Threading;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -12,7 +12,7 @@ namespace WalletWasabi.Gui
 		{
 			for (int i = 0; i < int.MaxValue; i++)
 			{
-				if (!File.Exists(Path.Combine(Global.WalletsDir, $"Wallet{i}.json")))
+				if (!File.Exists(Path.Combine(Global.Instance.WalletsDir, $"Wallet{i}.json")))
 				{
 					return $"Wallet{i}";
 				}
@@ -26,7 +26,7 @@ namespace WalletWasabi.Gui
 			for (int i = 0; i < int.MaxValue; i++)
 			{
 				var name = $"{hwi.Type}{i}";
-				if (!File.Exists(Path.Combine(Global.WalletsDir, $"{name}.json")))
+				if (!File.Exists(Path.Combine(Global.Instance.WalletsDir, $"{name}.json")))
 				{
 					return name;
 				}

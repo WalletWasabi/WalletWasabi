@@ -272,3 +272,4 @@ lcov.info
 \.DS_Store
 *.DS_Store
 /WalletWasabi.Backend/wwwroot/onion-index.html
+/NuGet.Config

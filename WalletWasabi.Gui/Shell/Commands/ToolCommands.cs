@@ -44,7 +44,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 		private void OnWalletManager()
 		{
 			var walletManagerViewModel = IoC.Get<IShell>().GetOrCreate<WalletManagerViewModel>();
-			if (Directory.Exists(Global.WalletsDir) && Directory.EnumerateFiles(Global.WalletsDir).Any())
+			if (Directory.Exists(Global.Instance.WalletsDir) && Directory.EnumerateFiles(Global.Instance.WalletsDir).Any())
 			{
 				walletManagerViewModel.SelectLoadWallet();
 			}

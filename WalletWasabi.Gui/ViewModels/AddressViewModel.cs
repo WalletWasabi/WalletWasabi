@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Threading;
 using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
@@ -39,7 +39,7 @@ namespace WalletWasabi.Gui.ViewModels
 				QrCode = x.Result;
 			});
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
+			Global.Instance.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(Address));
 				this.RaisePropertyChanged(nameof(Label));
@@ -66,7 +66,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public string Label => Model.Label;
 
-		public string Address => Model.GetP2wpkhAddress(Global.Network).ToString();
+		public string Address => Model.GetP2wpkhAddress(Global.Instance.Network).ToString();
 
 		public string Pubkey => Model.PubKey.ToString();
 

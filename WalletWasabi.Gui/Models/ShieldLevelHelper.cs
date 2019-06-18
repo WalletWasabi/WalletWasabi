@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -16,37 +16,37 @@ namespace WalletWasabi.Gui.Models
 
 		public static TargetPrivacy GetTargetPrivacy(int? mixUntilAnonymitySet)
 		{
-			if (mixUntilAnonymitySet == Global.Config.PrivacyLevelSome)
+			if (mixUntilAnonymitySet == Global.Instance.Config.PrivacyLevelSome)
 			{
 				return TargetPrivacy.Some;
 			}
 
-			if (mixUntilAnonymitySet == Global.Config.PrivacyLevelFine)
+			if (mixUntilAnonymitySet == Global.Instance.Config.PrivacyLevelFine)
 			{
 				return TargetPrivacy.Fine;
 			}
 
-			if (mixUntilAnonymitySet == Global.Config.PrivacyLevelStrong)
+			if (mixUntilAnonymitySet == Global.Instance.Config.PrivacyLevelStrong)
 			{
 				return TargetPrivacy.Strong;
 			}
 			//the levels changed in the config file, adjust
-			if (mixUntilAnonymitySet < Global.Config.PrivacyLevelSome)
+			if (mixUntilAnonymitySet < Global.Instance.Config.PrivacyLevelSome)
 			{
 				return TargetPrivacy.None; //choose the lower
 			}
 
-			if (mixUntilAnonymitySet < Global.Config.PrivacyLevelFine)
+			if (mixUntilAnonymitySet < Global.Instance.Config.PrivacyLevelFine)
 			{
 				return TargetPrivacy.Some;
 			}
 
-			if (mixUntilAnonymitySet < Global.Config.PrivacyLevelStrong)
+			if (mixUntilAnonymitySet < Global.Instance.Config.PrivacyLevelStrong)
 			{
 				return TargetPrivacy.Fine;
 			}
 
-			if (mixUntilAnonymitySet > Global.Config.PrivacyLevelFine)
+			if (mixUntilAnonymitySet > Global.Instance.Config.PrivacyLevelFine)
 			{
 				return TargetPrivacy.Strong;
 			}
@@ -62,13 +62,13 @@ namespace WalletWasabi.Gui.Models
 					return 0;
 
 				case TargetPrivacy.Some:
-					return Global.Config.PrivacyLevelSome.Value;
+					return Global.Instance.Config.PrivacyLevelSome.Value;
 
 				case TargetPrivacy.Fine:
-					return Global.Config.PrivacyLevelFine.Value;
+					return Global.Instance.Config.PrivacyLevelFine.Value;
 
 				case TargetPrivacy.Strong:
-					return Global.Config.PrivacyLevelStrong.Value;
+					return Global.Instance.Config.PrivacyLevelStrong.Value;
 			}
 			return 0;
 		}

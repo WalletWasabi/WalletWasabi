@@ -11,7 +11,7 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (Global.UiConfig.LurkingWifeMode is true)
+			if (Global.Instance.UiConfig.LurkingWifeMode is true)
 			{
 				int len = 10;
 				if (int.TryParse(parameter.ToString(), out int newLength))

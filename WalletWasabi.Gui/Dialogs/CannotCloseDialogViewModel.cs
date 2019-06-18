@@ -1,4 +1,4 @@
-﻿using Avalonia.Threading;
+using Avalonia.Threading;
 using AvalonStudio.Extensibility.Dialogs;
 using ReactiveUI;
 using System;
@@ -132,12 +132,12 @@ namespace WalletWasabi.Gui.Dialogs
 
 					try
 					{
-						if (Global.WalletService is null || Global.ChaumianClient is null)
+						if (Global.Instance.WalletService is null || Global.Instance.ChaumianClient is null)
 						{
 							return;
 						}
 
-						SmartCoin[] enqueuedCoins = Global.WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
+						SmartCoin[] enqueuedCoins = Global.Instance.WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
 						Exception latestException = null;
 						foreach (var coin in enqueuedCoins)
 						{
@@ -148,7 +148,7 @@ namespace WalletWasabi.Gui.Dialogs
 									break;
 								}
 
-								await Global.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }, "Closing Wasabi."); // Dequeue coins one-by-one to check cancel flag more frequently.
+								await Global.Instance.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }, "Closing Wasabi."); // Dequeue coins one-by-one to check cancel flag more frequently.
 							}
 							catch (Exception ex)
 							{

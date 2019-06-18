@@ -88,7 +88,7 @@ namespace WalletWasabi.Tests
 		{
 			string password = "password";
 
-			var filePath = Path.Combine(Global.DataDir, nameof(CanSerialize), "Wallet.json");
+			var filePath = Path.Combine(Global.Instance.DataDir, nameof(CanSerialize), "Wallet.json");
 			DeleteFileAndDirectoryIfExists(filePath);
 
 			Logger.TurnOff();

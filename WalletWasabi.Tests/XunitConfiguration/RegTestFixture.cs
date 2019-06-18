@@ -35,7 +35,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 
 			var roundConfig = new CcjRoundConfig(Money.Coins(0.1m), 144, 0.7, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
 
-			Backend.Global.InitializeAsync(config, roundConfig, rpc).GetAwaiter().GetResult();
+			Backend.Global.Instance.InitializeAsync(config, roundConfig, rpc).GetAwaiter().GetResult();
 
 			BackendEndPoint = $"http://localhost:{new Random().Next(37130, 38000)}/";
 			BackendHost = WebHost.CreateDefaultBuilder()

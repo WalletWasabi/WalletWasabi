@@ -199,7 +199,7 @@ namespace WalletWasabi.Gui.Controls
 			{
 				var eventArgs = eventPattern?.EventArgs as PointerPressedEventArgs;
 
-				if (Global.UiConfig?.Autocopy is true && eventArgs?.MouseButton == MouseButton.Left)
+				if (Global.Instance.UiConfig?.Autocopy is true && eventArgs?.MouseButton == MouseButton.Left)
 				{
 					if (CopyOnClick)
 					{

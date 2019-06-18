@@ -31,35 +31,36 @@ using WalletWasabi.TorSocks5;
 
 namespace WalletWasabi.Gui
 {
-	public static class Global
+	public class Global
 	{
-		public static string DataDir { get; }
-		public static string TorLogsFile { get; }
-		public static string WalletsDir { get; }
-		public static string WalletBackupsDir { get; }
+		public static Global Instance { get; } = new Global();
+		public string DataDir { get; }
+		public string TorLogsFile { get; }
+		public string WalletsDir { get; }
+		public string WalletBackupsDir { get; }
 
-		public static BitcoinStore BitcoinStore { get; private set; }
-		public static Config Config { get; private set; }
+		public BitcoinStore BitcoinStore { get; private set; }
+		public Config Config { get; private set; }
 
-		public static string AddressManagerFilePath { get; private set; }
-		public static AddressManager AddressManager { get; private set; }
-		public static MemPoolService MemPoolService { get; private set; }
+		public string AddressManagerFilePath { get; private set; }
+		public AddressManager AddressManager { get; private set; }
+		public MemPoolService MemPoolService { get; private set; }
 
-		public static NodesGroup Nodes { get; private set; }
-		public static WasabiSynchronizer Synchronizer { get; private set; }
-		public static CcjClient ChaumianClient { get; private set; }
-		public static WalletService WalletService { get; private set; }
-		public static Node RegTestMemPoolServingNode { get; private set; }
-		public static UpdateChecker UpdateChecker { get; private set; }
-		public static TorProcessManager TorManager { get; private set; }
+		public NodesGroup Nodes { get; private set; }
+		public WasabiSynchronizer Synchronizer { get; private set; }
+		public CcjClient ChaumianClient { get; private set; }
+		public WalletService WalletService { get; private set; }
+		public Node RegTestMemPoolServingNode { get; private set; }
+		public UpdateChecker UpdateChecker { get; private set; }
+		public TorProcessManager TorManager { get; private set; }
 
-		public static bool KillRequested { get; private set; } = false;
+		public bool KillRequested { get; private set; } = false;
 
-		public static UiConfig UiConfig { get; private set; }
+		public UiConfig UiConfig { get; private set; }
 
-		public static Network Network => Config.Network;
+		public Network Network => Config.Network;
 
-		static Global()
+		Global()
 		{
 			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 			TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
@@ -71,18 +72,18 @@ namespace WalletWasabi.Gui
 			Directory.CreateDirectory(WalletBackupsDir);
 		}
 
-		public static void InitializeUiConfig(UiConfig uiConfig)
+		public void InitializeUiConfig(UiConfig uiConfig)
 		{
 			UiConfig = Guard.NotNull(nameof(uiConfig), uiConfig);
 		}
 
-		private static int IsDesperateDequeuing = 0;
+		private int _isDesperateDequeuing = 0;
 
-		public static async Task TryDesperateDequeueAllCoinsAsync()
+		public async Task TryDesperateDequeueAllCoinsAsync()
 		{
 			// If already desperate dequeueing then return.
 			// If not desperate dequeueing then make sure we're doing that.
-			if (Interlocked.CompareExchange(ref IsDesperateDequeuing, 1, 0) == 1)
+			if (Interlocked.CompareExchange(ref _isDesperateDequeuing, 1, 0) == 1)
 			{
 				return;
 			}
@@ -100,11 +101,11 @@ namespace WalletWasabi.Gui
 			}
 			finally
 			{
-				Interlocked.Exchange(ref IsDesperateDequeuing, 0);
+				Interlocked.Exchange(ref _isDesperateDequeuing, 0);
 			}
 		}
 
-		public static async Task DesperateDequeueAllCoinsAsync()
+		public async Task DesperateDequeueAllCoinsAsync()
 		{
 			if (WalletService is null || ChaumianClient is null)
 			{
@@ -119,9 +120,9 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private static bool Initialized { get; set; } = false;
+		private bool Initialized { get; set; } = false;
 
-		public static async Task InitializeNoWalletAsync()
+		public async Task InitializeNoWalletAsync()
 		{
 			WalletService = null;
 			ChaumianClient = null;
@@ -295,7 +296,7 @@ namespace WalletWasabi.Gui
 			Initialized = true;
 		}
 
-		private static async Task<AddressManagerBehavior> InitializeAddressManagerBehaviorAsync()
+		private async Task<AddressManagerBehavior> InitializeAddressManagerBehaviorAsync()
 		{
 			var needsToDiscoverPeers = true;
 			if (Network == Network.RegTest)
@@ -358,7 +359,7 @@ namespace WalletWasabi.Gui
 			return addressManagerBehavior;
 		}
 
-		private static async Task AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager addressManager)
+		private async Task AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager addressManager)
 		{
 			if (Network == Network.RegTest)
 			{
@@ -388,13 +389,13 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private static CancellationTokenSource CancelWalletServiceInitialization = null;
+		private CancellationTokenSource _cancelWalletServiceInitialization = null;
 
-		public static async Task InitializeWalletServiceAsync(KeyManager keyManager)
+		public async Task InitializeWalletServiceAsync(KeyManager keyManager)
 		{
-			using (CancelWalletServiceInitialization = new CancellationTokenSource())
+			using (_cancelWalletServiceInitialization = new CancellationTokenSource())
 			{
-				var token = CancelWalletServiceInitialization.Token;
+				var token = _cancelWalletServiceInitialization.Token;
 				while (!Initialized)
 				{
 					await Task.Delay(100, token);
@@ -420,22 +421,22 @@ namespace WalletWasabi.Gui
 				token.ThrowIfCancellationRequested();
 				WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
 			}
-			CancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
+			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
 		}
 
-		public static string GetWalletFullPath(string walletName)
+		public string GetWalletFullPath(string walletName)
 		{
 			walletName = walletName.TrimEnd(".json", StringComparison.OrdinalIgnoreCase);
 			return Path.Combine(WalletsDir, walletName + ".json");
 		}
 
-		public static string GetWalletBackupFullPath(string walletName)
+		public string GetWalletBackupFullPath(string walletName)
 		{
 			walletName = walletName.TrimEnd(".json", StringComparison.OrdinalIgnoreCase);
 			return Path.Combine(WalletBackupsDir, walletName + ".json");
 		}
 
-		public static KeyManager LoadKeyManager(string walletFullPath, string walletBackupFullPath)
+		public KeyManager LoadKeyManager(string walletFullPath, string walletBackupFullPath)
 		{
 			try
 			{
@@ -470,7 +471,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		public static KeyManager LoadKeyManager(string walletFullPath)
+		public KeyManager LoadKeyManager(string walletFullPath)
 		{
 			KeyManager keyManager;
 
@@ -484,7 +485,7 @@ namespace WalletWasabi.Gui
 			return keyManager;
 		}
 
-		private static void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+		private void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
 			try
 			{
@@ -518,7 +519,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		public static async Task DisposeInWalletDependentServicesAsync()
+		public async Task DisposeInWalletDependentServicesAsync()
 		{
 			if (WalletService != null)
 			{
@@ -526,13 +527,13 @@ namespace WalletWasabi.Gui
 			}
 			try
 			{
-				CancelWalletServiceInitialization?.Cancel();
+				_cancelWalletServiceInitialization?.Cancel();
 			}
 			catch (ObjectDisposedException)
 			{
-				Logger.LogWarning($"{nameof(CancelWalletServiceInitialization)} is disposed. This can occur due to an error while processing the wallet.", nameof(Global));
+				Logger.LogWarning($"{nameof(_cancelWalletServiceInitialization)} is disposed. This can occur due to an error while processing the wallet.", nameof(Global));
 			}
-			CancelWalletServiceInitialization = null;
+			_cancelWalletServiceInitialization = null;
 
 			if (WalletService != null)
 			{
@@ -560,14 +561,14 @@ namespace WalletWasabi.Gui
 		/// 1: somebody called
 		/// 2: call finished
 		/// </summary>
-		private static long Dispose = 0; // To detect redundant calls
+		private long _dispose = 0; // To detect redundant calls
 
-		public static async Task DisposeAsync()
+		public async Task DisposeAsync()
 		{
-			var compareRes = Interlocked.CompareExchange(ref Dispose, 1, 0);
+			var compareRes = Interlocked.CompareExchange(ref _dispose, 1, 0);
 			if (compareRes == 1)
 			{
-				while (Interlocked.Read(ref Dispose) != 2)
+				while (Interlocked.Read(ref _dispose) != 2)
 				{
 					await Task.Delay(50);
 				}
@@ -646,7 +647,7 @@ namespace WalletWasabi.Gui
 			}
 			finally
 			{
-				Interlocked.Exchange(ref Dispose, 2);
+				Interlocked.Exchange(ref _dispose, 2);
 			}
 		}
 	}
