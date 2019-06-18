@@ -18,6 +18,8 @@ namespace NBitcoin
 	{
 		public static async Task<Block> DownloadBlockAsync(this Node node, uint256 hash, CancellationToken cancellationToken)
 		{
+			if (node.State == NodeState.Connected)
+				node.VersionHandshake(cancellationToken);
 			using (var listener = node.CreateListener())
 			{
 				var getdata = new GetDataPayload(new InventoryVector(node.AddSupportedOptions(InventoryType.MSG_BLOCK), hash));

@@ -806,7 +806,7 @@ namespace WalletWasabi.Services
 
 							Block blockFromLocalNode = null;
 							// Should timeout faster. Not sure if it should ever fail though. Maybe let's keep like this later for remote node connection.
-							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RuntimeParams.Instance.NetworkNodeTimeout)))
+							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(64)))
 							{
 								blockFromLocalNode = await LocalBitcoinCoreNode.DownloadBlockAsync(hash, cts.Token);
 							}
