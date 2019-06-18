@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -8,15 +8,17 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Tests
 {
-	public static class Global
+	public class Global
 	{
-		public static IPEndPoint TorSocks5Endpoint { get; }
+		public static Global Instance { get; } = new Global();
 
-		public static string DataDir { get; }
+		public IPEndPoint TorSocks5Endpoint { get; }
 
-		public static string TorLogsFile { get; }
+		public string DataDir { get; }
 
-		static Global()
+		public string TorLogsFile { get; }
+
+		public Global()
 		{
 			TorSocks5Endpoint = new IPEndPoint(IPAddress.Loopback, 9050);
 
