@@ -698,7 +698,10 @@ namespace WalletWasabi.Tests
 			finally
 			{
 				wallet.NewFilterProcessed -= Wallet_NewFilterProcessed;
-				wallet?.Dispose();
+				if (wallet != null)
+				{
+					await wallet.StopAsync();
+				}
 				// Dispose wasabi synchronizer service.
 				await synchronizer?.StopAsync();
 
@@ -1172,7 +1175,10 @@ namespace WalletWasabi.Tests
 			finally
 			{
 				wallet.NewFilterProcessed -= Wallet_NewFilterProcessed;
-				wallet?.Dispose();
+				if (wallet != null)
+				{
+					await wallet.StopAsync();
+				}
 				// Dispose wasabi synchronizer service.
 				await synchronizer?.StopAsync();
 				// Dispose connection service.
@@ -1335,7 +1341,10 @@ namespace WalletWasabi.Tests
 			}
 			finally
 			{
-				wallet?.Dispose();
+				if (wallet != null)
+				{
+					await wallet.StopAsync();
+				}
 				// Dispose wasabi synchronizer service.
 				await synchronizer?.StopAsync();
 				// Dispose connection service.
@@ -1499,7 +1508,10 @@ namespace WalletWasabi.Tests
 			}
 			finally
 			{
-				wallet?.Dispose();
+				if (wallet != null)
+				{
+					await wallet.StopAsync();
+				}
 				// Dispose wasabi synchronizer service.
 				await synchronizer?.StopAsync();
 				// Dispose connection service.
@@ -1665,7 +1677,10 @@ namespace WalletWasabi.Tests
 			}
 			finally
 			{
-				wallet?.Dispose();
+				if (wallet != null)
+				{
+					await wallet.StopAsync();
+				}
 				// Dispose wasabi synchronizer service.
 				await synchronizer?.StopAsync();
 				// Dispose connection service.
@@ -1771,7 +1786,10 @@ namespace WalletWasabi.Tests
 			}
 			finally
 			{
-				wallet?.Dispose();
+				if (wallet != null)
+				{
+					await wallet.StopAsync();
+				}
 				// Dispose wasabi synchronizer service.
 				await synchronizer?.StopAsync();
 				// Dispose connection service.
@@ -3435,7 +3453,10 @@ namespace WalletWasabi.Tests
 			finally
 			{
 				wallet.NewFilterProcessed -= Wallet_NewFilterProcessed;
-				wallet?.Dispose();
+				if (wallet != null)
+				{
+					await wallet.StopAsync();
+				}
 				// Dispose connection service.
 				nodes?.Dispose();
 				// Dispose mempool serving node.
@@ -3445,7 +3466,10 @@ namespace WalletWasabi.Tests
 				{
 					await chaumianClient.StopAsync();
 				}
-				wallet2?.Dispose();
+				if (wallet2 != null)
+				{
+					await wallet2.StopAsync();
+				}
 				// Dispose wasabi synchronizer service.
 				await synchronizer?.StopAsync();
 				// Dispose connection service.
