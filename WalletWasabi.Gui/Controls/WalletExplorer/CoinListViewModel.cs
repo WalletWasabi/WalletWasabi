@@ -301,7 +301,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					return;
 				}
-				//await Global.ChaumianClient.QueueCoinsToMixAsync()
+				//await Global.Instance.ChaumianClient.QueueCoinsToMixAsync()
 			});
 
 			DequeueCoin = ReactiveCommand.Create(() =>
@@ -317,7 +317,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
 			{
-				//Global.WalletService.Coins.First(c => c.Unspent).Unspent = false;
+				//Global.Instance.WalletService.Coins.First(c => c.Unspent).Unspent = false;
 				switch (SelectAllCheckBoxState)
 				{
 					case true:
@@ -340,15 +340,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				switch (SelectPrivateCheckBoxState)
 				{
 					case true:
-						SelectAllCoins(true, x => x.AnonymitySet >= Global.Config.PrivacyLevelStrong);
+						SelectAllCoins(true, x => x.AnonymitySet >= Global.Instance.Config.PrivacyLevelStrong);
 						break;
 
 					case false:
-						SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.PrivacyLevelStrong);
+						SelectAllCoins(false, x => x.AnonymitySet >= Global.Instance.Config.PrivacyLevelStrong);
 						break;
 
 					case null:
-						SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.PrivacyLevelStrong);
+						SelectAllCoins(false, x => x.AnonymitySet >= Global.Instance.Config.PrivacyLevelStrong);
 						SelectPrivateCheckBoxState = false;
 						break;
 				}
@@ -359,15 +359,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				switch (SelectNonPrivateCheckBoxState)
 				{
 					case true:
-						SelectAllCoins(true, x => x.AnonymitySet < Global.Config.PrivacyLevelStrong);
+						SelectAllCoins(true, x => x.AnonymitySet < Global.Instance.Config.PrivacyLevelStrong);
 						break;
 
 					case false:
-						SelectAllCoins(false, x => x.AnonymitySet < Global.Config.PrivacyLevelStrong);
+						SelectAllCoins(false, x => x.AnonymitySet < Global.Instance.Config.PrivacyLevelStrong);
 						break;
 
 					case null:
-						SelectAllCoins(false, x => x.AnonymitySet < Global.Config.PrivacyLevelStrong);
+						SelectAllCoins(false, x => x.AnonymitySet < Global.Instance.Config.PrivacyLevelStrong);
 						SelectNonPrivateCheckBoxState = false;
 						break;
 				}
@@ -378,14 +378,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Disposables = new CompositeDisposable();
 
-			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent))
+			foreach (var sc in Global.Instance.WalletService.Coins.Where(sc => sc.Unspent))
 			{
 				var newCoinVm = new CoinViewModel(this, sc);
 				newCoinVm.SubscribeEvents();
 				RootList.Add(newCoinVm);
 			}
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
+			Global.Instance.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 			{
@@ -399,7 +399,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				IsAnyCoinSelected = x > 0m;
 			});
 
-			Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
+			Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(Global.Instance.WalletService.Coins, nameof(Global.Instance.WalletService.Coins.CollectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
@@ -455,8 +455,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void SetSelections()
 		{
 			SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
-			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= Global.Config.PrivacyLevelStrong);
-			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong);
+			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= Global.Instance.Config.PrivacyLevelStrong);
+			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < Global.Instance.Config.PrivacyLevelStrong);
 		}
 
 		private void SetCoinJoinStatusWidth()

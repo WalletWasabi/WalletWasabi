@@ -79,22 +79,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.DisposeWith(Disposables);
 
 			Observable.FromEventPattern(
-				Global.ChaumianClient,
-				nameof(Global.ChaumianClient.StateUpdated))
+				Global.Instance.ChaumianClient,
+				nameof(Global.Instance.ChaumianClient.StateUpdated))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
 					RefreshSmartCoinStatus();
 				}).DisposeWith(Disposables);
 
-			Global.BitcoinStore.HashChain.WhenAnyValue(x => x.ServerTipHeight)
+			Global.Instance.BitcoinStore.HashChain.WhenAnyValue(x => x.ServerTipHeight)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
 					this.RaisePropertyChanged(nameof(Confirmations));
 				}).DisposeWith(Disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
+			Global.Instance.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 			{
@@ -119,10 +119,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public bool Unspent => _unspent?.Value ?? false;
 
-		public string Address => Model.ScriptPubKey.GetDestinationAddress(Global.Network).ToString();
+		public string Address => Model.ScriptPubKey.GetDestinationAddress(Global.Instance.Network).ToString();
 
 		public int Confirmations => Model.Height.Type == HeightType.Chain
-			? Global.BitcoinStore.HashChain.TipHeight - Model.Height.Value + 1
+			? Global.Instance.BitcoinStore.HashChain.TipHeight - Model.Height.Value + 1
 			: 0;
 
 		public bool IsSelected
@@ -192,7 +192,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return SmartCoinStatus.MixingBanned;
 			}
 
-			CcjClientState clientState = Global.ChaumianClient.State;
+			CcjClientState clientState = Global.Instance.ChaumianClient.State;
 
 			if (Model.CoinJoinInProgress)
 			{

@@ -17,7 +17,7 @@ namespace WalletWasabi.Gui.CommandLine
 			var showHelp = false;
 			var showVersion = false;
 
-			Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
+			Logger.InitializeDefaults(Path.Combine(Global.Instance.DataDir, "Logs.txt"));
 
 			if (args.Length == 0)
 			{

@@ -65,7 +65,7 @@ namespace WalletWasabi.Gui.Behaviors
 			text = text.Trim();
 			try
 			{
-				var bitcoinAddress = BitcoinAddress.Create(text, Global.Network);
+				var bitcoinAddress = BitcoinAddress.Create(text, Global.Instance.Network);
 				return (true, bitcoinAddress.ToString());
 			}
 			catch (FormatException)

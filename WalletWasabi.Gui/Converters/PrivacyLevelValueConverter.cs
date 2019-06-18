@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using AvalonStudio.Commands;
@@ -37,15 +37,15 @@ namespace WalletWasabi.Gui.Converters
 			if (value is int integer)
 			{
 				string shield;
-				if (integer < Global.Config.PrivacyLevelSome)
+				if (integer < Global.Instance.Config.PrivacyLevelSome)
 				{
 					shield = "Critical";
 				}
-				else if (integer < Global.Config.PrivacyLevelFine)
+				else if (integer < Global.Instance.Config.PrivacyLevelFine)
 				{
 					shield = "Some";
 				}
-				else if (integer < Global.Config.PrivacyLevelStrong)
+				else if (integer < Global.Instance.Config.PrivacyLevelStrong)
 				{
 					shield = "Fine";
 				}

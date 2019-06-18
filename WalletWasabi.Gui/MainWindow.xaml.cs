@@ -81,9 +81,9 @@ namespace WalletWasabi.Gui
 			bool closeApplication = false;
 			try
 			{
-				if (Global.ChaumianClient != null)
+				if (Global.Instance.ChaumianClient != null)
 				{
-					Global.ChaumianClient.IsQuitPending = true; // indicate -> do not add any more alices to the coinjoin
+					Global.Instance.ChaumianClient.IsQuitPending = true; // indicate -> do not add any more alices to the coinjoin
 				}
 
 				if (!MainWindowViewModel.Instance.CanClose)
@@ -101,12 +101,12 @@ namespace WalletWasabi.Gui
 				{
 					try
 					{
-						if (Global.UiConfig != null) // UiConfig not yet loaded.
+						if (Global.Instance.UiConfig != null) // UiConfig not yet loaded.
 						{
-							Global.UiConfig.WindowState = WindowState;
-							Global.UiConfig.Width = Width;
-							Global.UiConfig.Height = Height;
-							await Global.UiConfig.ToFileAsync();
+							Global.Instance.UiConfig.WindowState = WindowState;
+							Global.Instance.UiConfig.Width = Width;
+							Global.Instance.UiConfig.Height = Height;
+							await Global.Instance.UiConfig.ToFileAsync();
 							Logging.Logger.LogInfo<UiConfig>("UiConfig is saved.");
 						}
 
@@ -118,7 +118,7 @@ namespace WalletWasabi.Gui
 							Logging.Logger.LogInfo<MainWindowViewModel>($"{nameof(WalletManagerViewModel)} closed, hwi enumeration stopped.");
 						}
 
-						await Global.DisposeAsync();
+						await Global.Instance.DisposeAsync();
 					}
 					catch (Exception ex)
 					{
@@ -140,9 +140,9 @@ namespace WalletWasabi.Gui
 				if (!closeApplication) //we are not closing the application for some reason
 				{
 					Interlocked.Exchange(ref _closingState, 0);
-					if (Global.ChaumianClient != null)
+					if (Global.Instance.ChaumianClient != null)
 					{
-						Global.ChaumianClient.IsQuitPending = false; //re-enable enqueuing coins
+						Global.Instance.ChaumianClient.IsQuitPending = false; //re-enable enqueuing coins
 					}
 				}
 			}
@@ -157,10 +157,10 @@ namespace WalletWasabi.Gui
 			{
 				Activated -= OnActivated;
 
-				var uiConfigFilePath = Path.Combine(Global.DataDir, "UiConfig.json");
+				var uiConfigFilePath = Path.Combine(Global.Instance.DataDir, "UiConfig.json");
 				var uiConfig = new UiConfig(uiConfigFilePath);
 				await uiConfig.LoadOrCreateDefaultFileAsync();
-				Global.InitializeUiConfig(uiConfig);
+				Global.Instance.InitializeUiConfig(uiConfig);
 				Logging.Logger.LogInfo<UiConfig>("UiConfig is successfully initialized.");
 
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -186,7 +186,7 @@ namespace WalletWasabi.Gui
 			var walletManagerViewModel = new WalletManagerViewModel();
 			IoC.Get<IShell>().AddDocument(walletManagerViewModel);
 
-			var isAnyDesktopWalletAvailable = Directory.Exists(Global.WalletsDir) && Directory.EnumerateFiles(Global.WalletsDir).Any();
+			var isAnyDesktopWalletAvailable = Directory.Exists(Global.Instance.WalletsDir) && Directory.EnumerateFiles(Global.Instance.WalletsDir).Any();
 
 			if (isAnyDesktopWalletAvailable)
 			{

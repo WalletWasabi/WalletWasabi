@@ -24,7 +24,7 @@ namespace WalletWasabi.Gui
 			bool runGui = false;
 			try
 			{
-				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
+				Platform.BaseDirectory = Path.Combine(Global.Instance.DataDir, "Gui");
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
@@ -42,13 +42,13 @@ namespace WalletWasabi.Gui
 						statusBar = new StatusBarViewModel();
 						MainWindowViewModel.Instance.StatusBar = statusBar;
 
-						await Global.InitializeNoWalletAsync();
+						await Global.Instance.InitializeNoWalletAsync();
 
-						statusBar.Initialize(Global.Nodes.ConnectedNodes, Global.Synchronizer, Global.UpdateChecker);
+						statusBar.Initialize(Global.Instance.Nodes.ConnectedNodes, Global.Instance.Synchronizer, Global.Instance.UpdateChecker);
 
-						if (Global.Network != Network.Main)
+						if (Global.Instance.Network != Network.Main)
 						{
-							MainWindowViewModel.Instance.Title += $" - {Global.Network}";
+							MainWindowViewModel.Instance.Title += $" - {Global.Instance.Network}";
 						}
 
 						Dispatcher.UIThread.Post(() =>
@@ -65,7 +65,7 @@ namespace WalletWasabi.Gui
 			finally
 			{
 				statusBar?.Dispose();
-				await Global.DisposeAsync();
+				await Global.Instance.DisposeAsync();
 				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 

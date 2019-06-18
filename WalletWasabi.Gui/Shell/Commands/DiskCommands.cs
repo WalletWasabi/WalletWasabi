@@ -1,4 +1,4 @@
-﻿using AvalonStudio.Commands;
+using AvalonStudio.Commands;
 using ReactiveUI;
 using System;
 using System.Composition;
@@ -54,12 +54,12 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnOpenDataFolder()
 		{
-			IoHelpers.OpenFolderInFileExplorer(Global.DataDir);
+			IoHelpers.OpenFolderInFileExplorer(Global.Instance.DataDir);
 		}
 
 		private void OnOpenWalletsFolder()
 		{
-			IoHelpers.OpenFolderInFileExplorer(Global.WalletsDir);
+			IoHelpers.OpenFolderInFileExplorer(Global.Instance.WalletsDir);
 		}
 
 		private void OnOpenLogFile()
@@ -69,12 +69,12 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnOpenTorLogFile()
 		{
-			IoHelpers.OpenFileInTextEditor(Global.TorLogsFile);
+			IoHelpers.OpenFileInTextEditor(Global.Instance.TorLogsFile);
 		}
 
 		private void OnOpenConfigFile()
 		{
-			IoHelpers.OpenFileInTextEditor(Global.Config.FilePath);
+			IoHelpers.OpenFileInTextEditor(Global.Instance.Config.FilePath);
 		}
 
 		private void OnFileOpenException(Exception ex)

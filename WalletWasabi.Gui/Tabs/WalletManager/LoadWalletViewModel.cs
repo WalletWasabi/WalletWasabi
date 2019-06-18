@@ -258,7 +258,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				Password = "";
 				SetValidationMessage("");
 
-				var directoryInfo = new DirectoryInfo(Global.WalletsDir);
+				var directoryInfo = new DirectoryInfo(Global.Instance.WalletsDir);
 				var walletFiles = directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
 				foreach (var file in walletFiles)
 				{
@@ -288,7 +288,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				IsWalletSelected = SelectedWallet != null;
 				CanTestPassword = IsWalletSelected;
 
-				IsWalletOpened = Global.WalletService != null;
+				IsWalletOpened = Global.Instance.WalletService != null;
 				// If not busy loading.
 				// And wallet is selected.
 				// And no wallet is opened.
@@ -500,13 +500,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						Logger.LogInfo<LoadWalletViewModel>("Hardware wallet wasn't used previously on this computer. Creating new wallet file.");
 
 						walletName = Utils.GetNextHardwareWalletName(selectedWallet.HardwareWalletInfo);
-						var path = Global.GetWalletFullPath(walletName);
+						var path = Global.Instance.GetWalletFullPath(walletName);
 						KeyManager.CreateNewHardwareWalletWatchOnly(selectedWallet.HardwareWalletInfo.MasterFingerprint.Value, extPubKey, path);
 					}
 				}
 
-				var walletFullPath = Global.GetWalletFullPath(walletName);
-				var walletBackupFullPath = Global.GetWalletBackupFullPath(walletName);
+				var walletFullPath = Global.Instance.GetWalletFullPath(walletName);
+				var walletBackupFullPath = Global.Instance.GetWalletBackupFullPath(walletName);
 				if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
 				{
 					// The selected wallet is not available any more (someone deleted it?).
@@ -515,7 +515,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					return null;
 				}
 
-				KeyManager keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
+				KeyManager keyManager = Global.Instance.LoadKeyManager(walletFullPath, walletBackupFullPath);
 				keyManager.HardwareWalletInfo = selectedWallet.HardwareWalletInfo;
 
 				if (!requirePassword && keyManager.PasswordVerified == false)
@@ -567,8 +567,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			// Start searching for the real wallet name.
 			walletName = null;
 
-			var walletFiles = new DirectoryInfo(Global.WalletsDir);
-			var walletBackupFiles = new DirectoryInfo(Global.WalletBackupsDir);
+			var walletFiles = new DirectoryInfo(Global.Instance.WalletsDir);
+			var walletBackupFiles = new DirectoryInfo(Global.Instance.WalletBackupsDir);
 
 			List<FileInfo> walletFileNames = new List<FileInfo>();
 
@@ -618,19 +618,19 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					await Task.Run(async () =>
 					{
-						await Global.InitializeWalletServiceAsync(keyManager);
+						await Global.Instance.InitializeWalletServiceAsync(keyManager);
 					});
 					// Successffully initialized.
 					Owner.OnClose();
 					// Open Wallet Explorer tabs
-					if (Global.WalletService.Coins.Any())
+					if (Global.Instance.WalletService.Coins.Any())
 					{
 						// If already have coins then open with History tab first.
-						IoC.Get<WalletExplorerViewModel>().OpenWallet(Global.WalletService, receiveDominant: false);
+						IoC.Get<WalletExplorerViewModel>().OpenWallet(Global.Instance.WalletService, receiveDominant: false);
 					}
 					else // Else open with Receive tab first.
 					{
-						IoC.Get<WalletExplorerViewModel>().OpenWallet(Global.WalletService, receiveDominant: true);
+						IoC.Get<WalletExplorerViewModel>().OpenWallet(Global.Instance.WalletService, receiveDominant: true);
 					}
 				}
 				catch (Exception ex)
@@ -641,7 +641,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					{
 						Logger.LogError<LoadWalletViewModel>(ex);
 					}
-					await Global.DisposeInWalletDependentServicesAsync();
+					await Global.Instance.DisposeInWalletDependentServicesAsync();
 				}
 			}
 			finally
@@ -655,7 +655,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public void OpenWalletsFolder()
 		{
-			var path = Global.WalletsDir;
+			var path = Global.Instance.WalletsDir;
 			IoHelpers.OpenFolderInFileExplorer(path);
 		}
 	}

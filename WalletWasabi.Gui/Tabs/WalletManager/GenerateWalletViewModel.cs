@@ -1,4 +1,4 @@
-﻿using AvalonStudio.Extensibility;
+using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
@@ -65,7 +65,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				return;
 			}
 
-			string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
+			string walletFilePath = Path.Combine(Global.Instance.WalletsDir, $"{WalletName}.json");
 			Password = Guard.Correct(Password); // Don't let whitespaces to the beginning and to the end.
 
 			if (!TermsAccepted)
