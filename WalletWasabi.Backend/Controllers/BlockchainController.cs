@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.RPC;
@@ -23,9 +23,9 @@ namespace WalletWasabi.Backend.Controllers
 	{
 		private IMemoryCache Cache { get; }
 
-		private static RPCClient RpcClient => Global.RpcClient;
+		private static RPCClient RpcClient => Global.Instance.RpcClient;
 
-		private static Network Network => Global.Config.Network;
+		private static Network Network => Global.Instance.Config.Network;
 
 		public BlockchainController(IMemoryCache memoryCache)
 		{
@@ -182,7 +182,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			if (!Cache.TryGetValue(cacheKey, out IEnumerable<string> hashes))
 			{
-				uint256[] transactionHashes = await Global.RpcClient.GetRawMempoolAsync();
+				uint256[] transactionHashes = await Global.Instance.RpcClient.GetRawMempoolAsync();
 
 				hashes = transactionHashes.Select(x => x.ToString());
 
@@ -278,7 +278,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			var knownHash = new uint256(bestKnownBlockHash);
 
-			(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
+			(Height bestHeight, IEnumerable<FilterModel> filters) = Global.Instance.IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
 
 			if (!found)
 			{

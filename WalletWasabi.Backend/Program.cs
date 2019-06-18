@@ -25,17 +25,17 @@ namespace WalletWasabi.Backend
 		{
 			try
 			{
-				Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
+				Logger.InitializeDefaults(Path.Combine(Global.Instance.DataDir, "Logs.txt"));
 				Logger.LogStarting("Wasabi Backend");
 
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
-				var configFilePath = Path.Combine(Global.DataDir, "Config.json");
+				var configFilePath = Path.Combine(Global.Instance.DataDir, "Config.json");
 				var config = new Config(configFilePath);
 				await config.LoadOrCreateDefaultFileAsync();
 				Logger.LogInfo<Config>("Config is successfully initialized.");
 
-				var roundConfigFilePath = Path.Combine(Global.DataDir, "CcjRoundConfig.json");
+				var roundConfigFilePath = Path.Combine(Global.Instance.DataDir, "CcjRoundConfig.json");
 				var roundConfig = new CcjRoundConfig(roundConfigFilePath);
 				await roundConfig.LoadOrCreateDefaultFileAsync();
 				Logger.LogInfo<CcjRoundConfig>("RoundConfig is successfully initialized.");
@@ -44,7 +44,7 @@ namespace WalletWasabi.Backend
 						credentials: RPCCredentialString.Parse(config.BitcoinRpcConnectionString),
 						network: config.Network);
 
-				await Global.InitializeAsync(config, roundConfig, rpc);
+				await Global.Instance.InitializeAsync(config, roundConfig, rpc);
 
 				try
 				{
@@ -52,14 +52,14 @@ namespace WalletWasabi.Backend
 					UnversionedWebBuilder.CreateDownloadTextWithVersionHtml();
 					UnversionedWebBuilder.CloneAndUpdateOnionIndexHtml();
 
-					if (File.Exists(Global.Coordinator.CoinJoinsFilePath))
+					if (File.Exists(Global.Instance.Coordinator.CoinJoinsFilePath))
 					{
-						string[] allLines = File.ReadAllLines(Global.Coordinator.CoinJoinsFilePath);
+						string[] allLines = File.ReadAllLines(Global.Instance.Coordinator.CoinJoinsFilePath);
 						Last5CoinJoins = allLines.TakeLast(5).Reverse().ToList();
 						UnversionedWebBuilder.UpdateCoinJoinsHtml(Last5CoinJoins);
 					}
 
-					Global.Coordinator.CoinJoinBroadcasted += Coordinator_CoinJoinBroadcasted;
+					Global.Instance.Coordinator.CoinJoinBroadcasted += Coordinator_CoinJoinBroadcasted;
 				}
 				catch (Exception ex)
 				{

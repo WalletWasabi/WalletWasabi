@@ -51,7 +51,7 @@ namespace WalletWasabi.Tests
 
 		private async Task AssertFiltersInitializedAsync()
 		{
-			var firstHash = await Backend.Global.RpcClient.GetBlockHashAsync(0);
+			var firstHash = await Backend.Global.Instance.RpcClient.GetBlockHashAsync(0);
 			while (true)
 			{
 				using (var client = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint), null))
@@ -77,16 +77,16 @@ namespace WalletWasabi.Tests
 			await AssertFiltersInitializedAsync(); // Make sure fitlers are created on the server side.
 			if (numberOfBlocksToGenerate != 0)
 			{
-				await Backend.Global.RpcClient.GenerateAsync(numberOfBlocksToGenerate); // Make sure everything is confirmed.
+				await Backend.Global.Instance.RpcClient.GenerateAsync(numberOfBlocksToGenerate); // Make sure everything is confirmed.
 			}
-			Backend.Global.Coordinator.UtxoReferee.Clear();
+			Backend.Global.Instance.Coordinator.UtxoReferee.Clear();
 
-			var network = Backend.Global.RpcClient.Network;
+			var network = Backend.Global.Instance.RpcClient.Network;
 			var serviceConfiguration = new ServiceConfiguration(2, 2, 21, 50, RegTestFixture.BackendRegTestNode.Endpoint, Money.Coins(0.0001m));
 			var bitcoinStore = new BitcoinStore();
 			var dir = Path.Combine(Global.Instance.DataDir, caller);
 			await bitcoinStore.InitializeAsync(dir, network);
-			return ("password", Backend.Global.RpcClient, network, Backend.Global.Coordinator, serviceConfiguration, bitcoinStore);
+			return ("password", Backend.Global.Instance.RpcClient, network, Backend.Global.Instance.Coordinator, serviceConfiguration, bitcoinStore);
 		}
 
 		#region BackendTests
@@ -166,7 +166,7 @@ namespace WalletWasabi.Tests
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
 			var utxoSetFilePath = Path.Combine(indexBuilderServiceDir, $"UtxoSet{rpc.Network}.dat");
 
-			var indexBuilderService = new IndexBuilderService(rpc, Backend.Global.TrustedNodeNotifyingBehavior, indexFilePath, utxoSetFilePath);
+			var indexBuilderService = new IndexBuilderService(rpc, Backend.Global.Instance.TrustedNodeNotifyingBehavior, indexFilePath, utxoSetFilePath);
 			try
 			{
 				indexBuilderService.Synchronize();
@@ -404,7 +404,7 @@ namespace WalletWasabi.Tests
 				var tipBlock = await rpc.GetBlockHeaderAsync(tip);
 				Assert.Equal(tipBlock.HashPrevBlock, bitcoinStore.HashChain.GetChain().Select(x => x.hash).ToArray()[bitcoinStore.HashChain.HashCount - 2]);
 
-				var utxoPath = Backend.Global.IndexBuilderService.Bech32UtxoSetFilePath;
+				var utxoPath = Backend.Global.Instance.IndexBuilderService.Bech32UtxoSetFilePath;
 				var utxoLines = await File.ReadAllTextAsync(utxoPath);
 				Assert.Contains(tx1.ToString(), utxoLines);
 				Assert.Contains(tx2.ToString(), utxoLines);
@@ -489,7 +489,7 @@ namespace WalletWasabi.Tests
 
 		private async Task WaitForIndexesToSyncAsync(TimeSpan timeout, BitcoinStore bitcoinStore)
 		{
-			var bestHash = await Backend.Global.RpcClient.GetBestBlockHashAsync();
+			var bestHash = await Backend.Global.Instance.RpcClient.GetBestBlockHashAsync();
 
 			var times = 0;
 			while (bitcoinStore.HashChain.TipHash != bestHash)
@@ -522,7 +522,7 @@ namespace WalletWasabi.Tests
 
 			// Create the services.
 			// 1. Create connection service.
-			var nodes = new NodesGroup(Backend.Global.Config.Network, requirements: Constants.NodeRequirements);
+			var nodes = new NodesGroup(Backend.Global.Instance.Config.Network, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
@@ -751,7 +751,7 @@ namespace WalletWasabi.Tests
 
 			// Create the services.
 			// 1. Create connection service.
-			var nodes = new NodesGroup(Backend.Global.Config.Network, requirements: Constants.NodeRequirements);
+			var nodes = new NodesGroup(Backend.Global.Instance.Config.Network, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
@@ -1194,7 +1194,7 @@ namespace WalletWasabi.Tests
 
 			// Create the services.
 			// 1. Create connection service.
-			var nodes = new NodesGroup(Backend.Global.Config.Network, requirements: Constants.NodeRequirements);
+			var nodes = new NodesGroup(Backend.Global.Instance.Config.Network, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
@@ -1357,7 +1357,7 @@ namespace WalletWasabi.Tests
 
 			// Create the services.
 			// 1. Create connection service.
-			var nodes = new NodesGroup(Backend.Global.Config.Network, requirements: Constants.NodeRequirements);
+			var nodes = new NodesGroup(Backend.Global.Instance.Config.Network, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
@@ -1521,7 +1521,7 @@ namespace WalletWasabi.Tests
 
 			// Create the services.
 			// 1. Create connection service.
-			var nodes = new NodesGroup(Backend.Global.Config.Network, requirements: Constants.NodeRequirements);
+			var nodes = new NodesGroup(Backend.Global.Instance.Config.Network, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
@@ -1687,7 +1687,7 @@ namespace WalletWasabi.Tests
 
 			// Create the services.
 			// 1. Create connection service.
-			var nodes = new NodesGroup(Backend.Global.Config.Network, requirements: Constants.NodeRequirements);
+			var nodes = new NodesGroup(Backend.Global.Instance.Config.Network, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
@@ -1809,7 +1809,7 @@ namespace WalletWasabi.Tests
 				mempoolTxId.ToString()
 			});
 
-			using (var coordinatorToTest = new CcjCoordinator(network, Backend.Global.TrustedNodeNotifyingBehavior, folder, rpc, coordinator.RoundConfig))
+			using (var coordinatorToTest = new CcjCoordinator(network, Backend.Global.Instance.TrustedNodeNotifyingBehavior, folder, rpc, coordinator.RoundConfig))
 			{
 				var txIds = await File.ReadAllLinesAsync(cjfile);
 
@@ -1824,7 +1824,7 @@ namespace WalletWasabi.Tests
 				"This line is invalid (the file is corrupted)",
 				offchainTxId.ToString(),
 			});
-				var coordinatorToTest2 = new CcjCoordinator(network, Backend.Global.TrustedNodeNotifyingBehavior, folder, rpc, coordinatorToTest.RoundConfig);
+				var coordinatorToTest2 = new CcjCoordinator(network, Backend.Global.Instance.TrustedNodeNotifyingBehavior, folder, rpc, coordinatorToTest.RoundConfig);
 				coordinatorToTest2?.Dispose();
 				txIds = await File.ReadAllLinesAsync(cjfile);
 				Assert.Single(txIds);
@@ -3298,10 +3298,10 @@ namespace WalletWasabi.Tests
 
 			// Create the services.
 			// 1. Create connection service.
-			var nodes = new NodesGroup(Backend.Global.Config.Network, requirements: Constants.NodeRequirements);
+			var nodes = new NodesGroup(Backend.Global.Instance.Config.Network, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
-			var nodes2 = new NodesGroup(Backend.Global.Config.Network, requirements: Constants.NodeRequirements);
+			var nodes2 = new NodesGroup(Backend.Global.Instance.Config.Network, requirements: Constants.NodeRequirements);
 			nodes2.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
