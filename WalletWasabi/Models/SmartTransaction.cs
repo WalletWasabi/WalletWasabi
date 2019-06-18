@@ -1,6 +1,8 @@
-﻿using NBitcoin;
+using NBitcoin;
 using Newtonsoft.Json;
 using System;
+using System.Globalization;
+using System.Text;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 
@@ -144,6 +146,49 @@ namespace WalletWasabi.Models
 			}
 
 			return rc;
+		}
+
+		public string ToLine()
+		{
+			var builder = new StringBuilder();
+			builder.Append(Transaction.ToHex());
+			builder.Append(":");
+			builder.Append(Height.ToString());
+			builder.Append(":");
+			builder.Append(Label.Replace(':', ';')); // Just in case;
+			builder.Append(":");
+			DateTimeOffset fistSeen = FirstSeenIfMemPoolTime ?? DateTimeOffset.UtcNow;
+			builder.Append(fistSeen.ToString(CultureInfo.InvariantCulture));
+			builder.Append(":");
+			builder.Append(IsReplacement);
+
+			return builder.ToString();
+		}
+
+		public static SmartTransaction FromLine(string line)
+		{
+			Guard.NotNullOrEmptyOrWhitespace(nameof(line), line);
+			string[] parts = line.Split(':');
+
+			var tx = Transaction.Parse(parts[0], Network.Main);
+
+			Height height;
+			if (Height.TryParse(parts[1], out Height h))
+			{
+				height = h;
+			}
+			else
+			{
+				throw new FormatException("Couldn't parse Height.");
+			}
+
+			string label = parts[2];
+
+			DateTimeOffset firstSeen = DateTimeOffset.Parse(parts[3], CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
+
+			bool isReplacement = bool.Parse(parts[4]);
+
+			return new SmartTransaction(tx, height, label, firstSeen, isReplacement);
 		}
 
 		public static bool operator !=(Transaction tx1, SmartTransaction tx2)
