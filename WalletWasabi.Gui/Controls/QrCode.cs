@@ -1,19 +1,8 @@
 using Avalonia;
-using Avalonia.Collections;
 using Avalonia.Controls;
-using Avalonia.Controls.Templates;
-using Avalonia.Data;
-using Avalonia.Input;
-using Avalonia.Interactivity;
-using Avalonia.Layout;
-using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Metadata;
-using Avalonia.Rendering;
-using Avalonia.Styling;
-using Avalonia.VisualTree;
 using System;
-using System.Collections.Generic;
 
 namespace WalletWasabi.Gui.Controls
 {
@@ -45,16 +34,16 @@ namespace WalletWasabi.Gui.Controls
 
 			if (source != null)
 			{
-				var h = source.GetUpperBound(0);
-				var w = source.GetUpperBound(1);
+				var h = source.GetUpperBound(0) + 1;
+				var w = source.GetUpperBound(1) + 1;
 
-				var minDimension = (float)Math.Min(w, h);
+				var minDimension = Math.Min(w, h);
 				var minBound = Math.Min(Bounds.Width, Bounds.Height);
-				var factor = minBound / minDimension;
+				var factor = (float)minBound / minDimension;
 
-				for (var i = 0; i <= h; i++)
+				for (var i = 0; i < h; i++)
 				{
-					for (var j = 0; j <= w; j++)
+					for (var j = 0; j < w; j++)
 					{
 						var cellValue = source[i, j];
 						var color = cellValue ? Brushes.Black : Brushes.White;
