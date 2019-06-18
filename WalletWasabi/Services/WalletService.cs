@@ -9,6 +9,7 @@ using Nito.AsyncEx;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -30,6 +31,26 @@ namespace WalletWasabi.Services
 {
 	public class WalletService : IDisposable
 	{
+		public static event EventHandler<bool> DownloadingBlockChanged;
+
+		// So we will make sure when blocks are downloading with multiple wallet services, they don't conflict.
+		private static AsyncLock BlockDownloadLock { get; } = new AsyncLock();
+
+		private static bool DownloadingBlockBacking;
+
+		public static bool DownloadingBlock
+		{
+			get => DownloadingBlockBacking;
+			set
+			{
+				if (value != DownloadingBlockBacking)
+				{
+					DownloadingBlockBacking = value;
+					DownloadingBlockChanged?.Invoke(null, value);
+				}
+			}
+		}
+
 		public BitcoinStore BitcoinStore { get; }
 		public KeyManager KeyManager { get; }
 		public WasabiSynchronizer Synchronizer { get; }
@@ -42,18 +63,10 @@ namespace WalletWasabi.Services
 		public string TransactionsFilePath { get; }
 
 		private AsyncLock HandleFiltersLock { get; }
-		private AsyncLock BlockDownloadLock { get; }
+
 		private AsyncLock BlockFolderLock { get; }
 
 		private int NodeTimeouts { get; set; }
-
-		// These are static functions, so we will make sure when blocks are downloading with multiple wallet services, they don't conflict.
-		private static int ConcurrentBlockDownload = 0;
-
-		/// <summary>
-		/// int: number of blocks being downloaded in parallel, not the number of blocks left to download!
-		/// </summary>
-		public static event EventHandler<int> ConcurrentBlockDownloadNumberChanged;
 
 		public ServiceConfiguration ServiceConfiguration { get; }
 
@@ -100,7 +113,6 @@ namespace WalletWasabi.Services
 			RuntimeParams.SetDataDir(workFolderDir);
 
 			BlockFolderLock = new AsyncLock();
-			BlockDownloadLock = new AsyncLock();
 
 			KeyManager.AssertCleanKeysIndexed();
 			KeyManager.AssertLockedInternalKeysIndexed(14);
@@ -730,8 +742,11 @@ namespace WalletWasabi.Services
 
 			// Download the block
 			Block block = null;
-			using (await BlockDownloadLock.LockAsync())
+			try
 			{
+				await BlockDownloadLock.LockAsync();
+				DownloadingBlock = true;
+
 				while (true)
 				{
 					cancel.ThrowIfCancellationRequested();
@@ -846,8 +861,6 @@ namespace WalletWasabi.Services
 
 						try
 						{
-							ConcurrentBlockDownloadNumberChanged?.Invoke(this, Interlocked.Increment(ref ConcurrentBlockDownload));
-
 							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RuntimeParams.Instance.NetworkNodeTimeout))) // 1/2 ADSL	512 kbit/s	00:00:32
 							{
 								block = node.GetBlocks(new uint256[] { hash }, cts.Token)?.Single();
@@ -893,11 +906,6 @@ namespace WalletWasabi.Services
 							node.DisconnectAsync("Block download failed.");
 							continue;
 						}
-						finally
-						{
-							var concurrentBlockDownload = Interlocked.Decrement(ref ConcurrentBlockDownload);
-							ConcurrentBlockDownloadNumberChanged?.Invoke(this, concurrentBlockDownload);
-						}
 
 						break; // If got this far break, then we have the block, it's valid. Break.
 					}
@@ -906,12 +914,18 @@ namespace WalletWasabi.Services
 						Logger.LogDebug<WalletService>(ex);
 					}
 				}
+
+				// Save the block
+				using (await BlockFolderLock.LockAsync())
+				{
+					var path = Path.Combine(BlocksFolderPath, hash.ToString());
+					await File.WriteAllBytesAsync(path, block.ToBytes());
+				}
 			}
-			// Save the block
-			using (await BlockFolderLock.LockAsync())
+			finally
 			{
-				var path = Path.Combine(BlocksFolderPath, hash.ToString());
-				await File.WriteAllBytesAsync(path, block.ToBytes());
+				DownloadingBlock = false;
+				BlockDownloadLock.ReleaseLock();
 			}
 
 			return block;
