@@ -25,7 +25,7 @@
           <TextBlock Text="{Binding ShowNetwork}" />
         </StackPanel>
 
-        <Panel IsVisible="{Binding BlocksLeft, Converter={StaticResource ShouldDisplayValueConverter}}">
+        <Panel IsVisible="{Binding DownloadingBlock}">
           <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding !CriticalUpdateAvailable}">
             <Grid Height="10" Width="10">
               <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -43,7 +43,7 @@
                 </DrawingPresenter.Drawing>
               </DrawingPresenter>
             </Grid>
-            <TextBlock Text="Downloading a block..." Foreground="{Binding BlocksLeft, ConverterParameter=BlocksLeft, Converter={StaticResource StatusColorConverter}}" />
+            <TextBlock Text="Downloading a block..." Foreground="{Binding DownloadingBlock, ConverterParameter=DownloadingBlock, Converter={StaticResource StatusColorConverter}}" />
           </StackPanel>
         </Panel>
 

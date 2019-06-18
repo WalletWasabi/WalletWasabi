@@ -49,9 +49,10 @@ namespace WalletWasabi.Gui.ViewModels
 		private TorStatus _tor;
 		private int _peers;
 		private ObservableAsPropertyHelper<int> _filtersLeft;
-		private int _blocksLeft;
 		private string _btcPrice;
 		private ObservableAsPropertyHelper<StatusBarStatus> _status;
+		private bool _downloadingBlock;
+
 		private StatusBarStatusSet ActiveStatuses { get; }
 
 		public StatusBarViewModel()
@@ -63,7 +64,6 @@ namespace WalletWasabi.Gui.ViewModels
 			UseTor = false;
 			Tor = TorStatus.NotRunning;
 			Peers = 0;
-			BlocksLeft = 0;
 			BtcPrice = "$0";
 			ActiveStatuses = new StatusBarStatusSet();
 		}
@@ -96,12 +96,10 @@ namespace WalletWasabi.Gui.ViewModels
 
 			SetPeers(Nodes.Count);
 
-			Observable.FromEventPattern<int>(typeof(WalletService), nameof(WalletService.ConcurrentBlockDownloadNumberChanged))
+			Observable.FromEventPattern<bool>(typeof(WalletService), nameof(WalletService.DownloadingBlockChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					BlocksLeft = x.EventArgs;
-				}).DisposeWith(Disposables);
+				.Subscribe(x => DownloadingBlock = x.EventArgs)
+				.DisposeWith(Disposables);
 
 			Synchronizer.WhenAnyValue(x => x.TorStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -138,12 +136,12 @@ namespace WalletWasabi.Gui.ViewModels
 					OnResponseArrivedIsGenSocksServFail(e.EventArgs);
 				}).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.FiltersLeft, x => x.BlocksLeft)
+			this.WhenAnyValue(x => x.FiltersLeft, x => x.DownloadingBlock)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(tup =>
 				{
-					(int filtersLeft, int blocksLeft) = tup.ToValueTuple();
-					if (filtersLeft == 0 && blocksLeft == 0)
+					(int filtersLeft, bool downloadingBlock) = tup.ToValueTuple();
+					if (filtersLeft == 0 && !downloadingBlock)
 					{
 						TryRemoveStatus(StatusBarStatus.Synchronizing);
 					}
@@ -276,12 +274,6 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public int FiltersLeft => _filtersLeft?.Value ?? 0;
 
-		public int BlocksLeft
-		{
-			get => _blocksLeft;
-			set => this.RaiseAndSetIfChanged(ref _blocksLeft, value);
-		}
-
 		public string BtcPrice
 		{
 			get => _btcPrice;
@@ -289,6 +281,12 @@ namespace WalletWasabi.Gui.ViewModels
 		}
 
 		public StatusBarStatus Status => _status?.Value ?? StatusBarStatus.Loading;
+
+		public bool DownloadingBlock
+		{
+			get => _downloadingBlock;
+			set => this.RaiseAndSetIfChanged(ref _downloadingBlock, value);
+		}
 
 		private void OnResponseArrivedIsGenSocksServFail(bool isGenSocksServFail)
 		{

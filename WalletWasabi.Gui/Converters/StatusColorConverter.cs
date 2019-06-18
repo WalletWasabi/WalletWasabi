@@ -1,4 +1,4 @@
-﻿using Avalonia.Data.Converters;
+using Avalonia.Data.Converters;
 using Avalonia.Media;
 using AvalonStudio.Extensibility.Theme;
 using System;
@@ -18,8 +18,8 @@ namespace WalletWasabi.Gui.Converters
 				case "Tor" when Enum.Parse<TorStatus>(value.ToString()) != TorStatus.Running:
 				case "Backend" when Enum.Parse<BackendStatus>(value.ToString()) == BackendStatus.NotConnected:
 				case "Peers" when (int)value == 0:
-				case "FiltersLeft" when value.ToString() != "0": // need to cover "--"
-				case "BlocksLeft" when (int)value != 0:
+				case "FiltersLeft" when value.ToString() != "0":
+				case "DownloadingBlock" when value is true:
 					return Brushes.Yellow;
 
 				default:
