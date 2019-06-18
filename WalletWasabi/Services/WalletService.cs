@@ -791,12 +791,16 @@ namespace WalletWasabi.Services
 
 							Block blockFromLocalNode = null;
 							// Should timeout faster. Not sure if it should ever fail though. Maybe let's keep like this later for remote node connection.
-							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RuntimeParams.Instance.NetworkNodeTimeout)))
+							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(64))) // 1/2 ADSL	512 kbit/s	00:00:32
 							{
-								blockFromLocalNode = await LocalBitcoinCoreNode.DownloadBlockAsync(hash, cts.Token);
+								blockFromLocalNode = LocalBitcoinCoreNode.GetBlocks(new uint256[] { hash }, cts.Token)?.Single();
 							}
 
-							if (!blockFromLocalNode.Check())
+							if (blockFromLocalNode is null)
+							{
+								throw new InvalidOperationException($"Disconnected local node, because couldn't parse received block.");
+							}
+							else if (!blockFromLocalNode.Check())
 							{
 								throw new InvalidOperationException($"Disconnected node, because block invalid block received!");
 							}
@@ -844,9 +848,16 @@ namespace WalletWasabi.Services
 						{
 							ConcurrentBlockDownloadNumberChanged?.Invoke(this, Interlocked.Increment(ref ConcurrentBlockDownload));
 
-							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RuntimeParams.Instance.NetworkNodeTimeout)))
+							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RuntimeParams.Instance.NetworkNodeTimeout))) // 1/2 ADSL	512 kbit/s	00:00:32
 							{
-								block = await node.DownloadBlockAsync(hash, cts.Token);
+								block = node.GetBlocks(new uint256[] { hash }, cts.Token)?.Single();
+							}
+
+							if (block is null)
+							{
+								Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because couldn't parse received block.");
+								node.DisconnectAsync("Couldn't parse block.");
+								continue;
 							}
 
 							if (!block.Check())
@@ -1555,9 +1566,7 @@ namespace WalletWasabi.Services
 				Encoding.UTF8);
 		}
 
-		/// <summary>
-		/// Current timeout used when downloading a block from the remote node. It is defined in seconds.
-		/// </summary>
+		// Current timeout used when downloading a block from the remote node. It is defined in seconds.
 		private async Task NodeTimeoutsAsync(bool increaseDecrease)
 		{
 			if (increaseDecrease)
