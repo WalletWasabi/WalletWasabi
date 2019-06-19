@@ -7,6 +7,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
+using WalletWasabi.Gui.Models;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
@@ -527,14 +528,6 @@ namespace WalletWasabi.Gui
 			{
 				throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
 			}
-		}
-
-		public enum TargetPrivacy
-		{
-			None,
-			Some,
-			Fine,
-			Strong,
 		}
 
 		public TargetPrivacy GetTargetPrivacy()
