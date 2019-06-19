@@ -150,7 +150,14 @@ namespace WalletWasabi.Stores
 		{
 			lock (Lock)
 			{
-				return Chain.FirstOrDefault(x => x.Value == hash).Key;
+				int height = Chain.FirstOrDefault(x => x.Value == hash).Key;
+				if (height == default // Default int will be 0. We don't know if this refers to the 0th hash or it just means the hash wasn't found.
+					&& !Chain.ContainsKey(height)) // So let's check if the height contains or not.
+				{
+					return null;
+				}
+
+				return height;
 			}
 		}
 	}
