@@ -48,6 +48,15 @@ namespace WalletWasabi.Gui
 			AvaloniaXamlLoader.Load(this);
 		}
 
+		protected override void OnDataContextEndUpdate()
+		{
+			if (Global.Instance == null)
+				return;
+			Application.Current.Resources.AddOrReplace(Global.GlobalResourceKey, Global.Instance);
+			Application.Current.Resources.AddOrReplace(Global.ConfigResourceKey, Global.Instance.Config);
+			Application.Current.Resources.AddOrReplace(Global.UIConfigResourceKey, Global.Instance.UiConfig);
+		}
+
 		private int _closingState;
 
 		private async void MainWindow_ClosingAsync(object sender, CancelEventArgs e)
@@ -161,6 +170,7 @@ namespace WalletWasabi.Gui
 				var uiConfig = new UiConfig(uiConfigFilePath);
 				await uiConfig.LoadOrCreateDefaultFileAsync();
 				Global.Instance.InitializeUiConfig(uiConfig);
+				Application.Current.Resources.AddOrReplace(Global.UIConfigResourceKey, Global.Instance.UiConfig);
 				Logging.Logger.LogInfo<UiConfig>("UiConfig is successfully initialized.");
 
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
