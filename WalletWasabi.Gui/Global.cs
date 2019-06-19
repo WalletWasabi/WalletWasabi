@@ -63,7 +63,7 @@ namespace WalletWasabi.Gui
 
 		public Network Network => Config.Network;
 
-		Global()
+		private Global()
 		{
 			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 			TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
@@ -148,7 +148,7 @@ namespace WalletWasabi.Gui
 			var addrManTask = InitializeAddressManagerBehaviorAsync();
 
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
-			var connectionParameters = new NodeConnectionParameters{ UserAgent = "/Satoshi:0.18.0/" };
+			var connectionParameters = new NodeConnectionParameters { UserAgent = "/Satoshi:0.18.0/" };
 
 			if (Config.UseTor.Value)
 			{
@@ -656,6 +656,7 @@ namespace WalletWasabi.Gui
 				Interlocked.Exchange(ref _dispose, 2);
 			}
 		}
+
 		public string GetNextWalletName()
 		{
 			for (int i = 0; i < int.MaxValue; i++)
