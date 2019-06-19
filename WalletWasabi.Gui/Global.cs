@@ -653,5 +653,31 @@ namespace WalletWasabi.Gui
 				Interlocked.Exchange(ref _dispose, 2);
 			}
 		}
+		public string GetNextWalletName()
+		{
+			for (int i = 0; i < int.MaxValue; i++)
+			{
+				if (!File.Exists(Path.Combine(WalletsDir, $"Wallet{i}.json")))
+				{
+					return $"Wallet{i}";
+				}
+			}
+
+			throw new NotSupportedException("This is impossible.");
+		}
+
+		public string GetNextHardwareWalletName(Hwi.Models.HardwareWalletInfo hwi)
+		{
+			for (int i = 0; i < int.MaxValue; i++)
+			{
+				var name = $"{hwi.Type}{i}";
+				if (!File.Exists(Path.Combine(WalletsDir, $"{name}.json")))
+				{
+					return name;
+				}
+			}
+
+			throw new NotSupportedException("This is impossible.");
+		}
 	}
 }

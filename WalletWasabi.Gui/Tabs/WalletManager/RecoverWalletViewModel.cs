@@ -192,7 +192,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			Password = null;
 			MnemonicWords = "";
-			WalletName = Utils.GetNextWalletName();
+			WalletName = Global.Instance.GetNextWalletName();
 			ValidationMessage = null;
 			ShowAdvancedOptions = false;
 			AccountKeyPath = $"m/{KeyManager.DefaultAccountKeyPath}";
