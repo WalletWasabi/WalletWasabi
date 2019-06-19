@@ -145,5 +145,13 @@ namespace WalletWasabi.Stores
 				return Chain.Select(x => (x.Key, x.Value)).ToArray();
 			}
 		}
+
+		public int? GetHeightOrDefault(uint256 hash)
+		{
+			lock (Lock)
+			{
+				return Chain.FirstOrDefault(x => x.Value == hash).Key;
+			}
+		}
 	}
 }

@@ -271,7 +271,6 @@ namespace WalletWasabi.Services
 				foreach (var blockstate in KeyManager.GetTransactionIndex())
 				{
 					var block = await GetOrDownloadBlockAsync(blockstate.BlockHash, cancel);
-
 					await ProcessBlockAsync(blockstate.BlockHeight, block, blockstate.TransactionIndices);
 				}
 

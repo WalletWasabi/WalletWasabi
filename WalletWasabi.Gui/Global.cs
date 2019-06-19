@@ -60,7 +60,7 @@ namespace WalletWasabi.Gui
 
 		public Network Network => Config.Network;
 
-		Global()
+		private Global()
 		{
 			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 			TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
@@ -145,7 +145,7 @@ namespace WalletWasabi.Gui
 			var addrManTask = InitializeAddressManagerBehaviorAsync();
 
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
-			var connectionParameters = new NodeConnectionParameters{ UserAgent = "/Satoshi:0.18.0/" };
+			var connectionParameters = new NodeConnectionParameters { UserAgent = "/Satoshi:0.18.0/" };
 
 			if (Config.UseTor.Value)
 			{
@@ -409,6 +409,9 @@ namespace WalletWasabi.Gui
 				{
 					ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, Config.GetFallbackBackendUri(), null);
 				}
+
+				keyManager.CorrectBlockHeights(BitcoinStore.HashChain); // Block heights are wrong sometimes. It's a hack. We have to retroactively fix existing wallets, but also we have to figure out where we ruin the block heights.
+
 				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, MemPoolService, Nodes, DataDir, Config.ServiceConfiguration);
 
 				ChaumianClient.Start();
