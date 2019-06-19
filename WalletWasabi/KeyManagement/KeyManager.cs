@@ -686,6 +686,7 @@ namespace WalletWasabi.KeyManagement
 				if (toRemove.Any())
 				{
 					ToFileNoBlockchainStateLock();
+					Logger.LogInfo<KeyManager>($"Corrected {toRemove.Count} heights.");
 				}
 			}
 		}
