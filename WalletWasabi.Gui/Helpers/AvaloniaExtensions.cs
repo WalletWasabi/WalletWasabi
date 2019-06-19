@@ -9,11 +9,6 @@ namespace Avalonia
 {
 	public static class AvaloniaExtensions
 	{
-		public static T GetDocument<T>(this IShell shell)
-		{
-			return shell.Documents.OfType<T>().Single();
-		}
-
 		public static void AddOrReplace(this IResourceDictionary resources, object key, object value)
 		{
 			if (resources.TryGetResource(key.ToString(), out _))
