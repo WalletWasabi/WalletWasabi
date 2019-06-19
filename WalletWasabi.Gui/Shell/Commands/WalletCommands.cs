@@ -6,6 +6,7 @@ using AvalonStudio.Shell;
 using ReactiveUI;
 using System.Composition;
 using WalletWasabi.Gui.Tabs.WalletManager;
+using Avalonia;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {

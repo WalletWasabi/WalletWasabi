@@ -5,7 +5,7 @@ using System.Text;
 using AvalonStudio.Shell;
 using Avalonia.Controls;
 
-namespace System
+namespace Avalonia
 {
 	public static class AvaloniaExtensions
 	{
