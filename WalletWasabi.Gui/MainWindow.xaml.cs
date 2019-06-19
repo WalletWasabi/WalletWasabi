@@ -6,6 +6,7 @@ using AvalonStudio.Extensibility;
 using AvalonStudio.Extensibility.Theme;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Controls;
+using NBitcoin;
 using System;
 using System.ComponentModel;
 using System.IO;
@@ -50,8 +51,11 @@ namespace WalletWasabi.Gui
 
 		protected override void OnDataContextEndUpdate()
 		{
-			if (Global.Instance == null)
+			if (Global.Instance is null)
+			{
 				return;
+			}
+
 			Application.Current.Resources.AddOrReplace(Global.GlobalResourceKey, Global.Instance);
 			Application.Current.Resources.AddOrReplace(Global.ConfigResourceKey, Global.Instance.Config);
 			Application.Current.Resources.AddOrReplace(Global.UiConfigResourceKey, Global.Instance.UiConfig);
