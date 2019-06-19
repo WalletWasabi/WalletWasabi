@@ -54,7 +54,7 @@ namespace WalletWasabi.Gui
 				return;
 			Application.Current.Resources.AddOrReplace(Global.GlobalResourceKey, Global.Instance);
 			Application.Current.Resources.AddOrReplace(Global.ConfigResourceKey, Global.Instance.Config);
-			Application.Current.Resources.AddOrReplace(Global.UIConfigResourceKey, Global.Instance.UiConfig);
+			Application.Current.Resources.AddOrReplace(Global.UiConfigResourceKey, Global.Instance.UiConfig);
 		}
 
 		private int _closingState;
@@ -170,7 +170,7 @@ namespace WalletWasabi.Gui
 				var uiConfig = new UiConfig(uiConfigFilePath);
 				await uiConfig.LoadOrCreateDefaultFileAsync();
 				Global.Instance.InitializeUiConfig(uiConfig);
-				Application.Current.Resources.AddOrReplace(Global.UIConfigResourceKey, Global.Instance.UiConfig);
+				Application.Current.Resources.AddOrReplace(Global.UiConfigResourceKey, Global.Instance.UiConfig);
 				Logging.Logger.LogInfo<UiConfig>("UiConfig is successfully initialized.");
 
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

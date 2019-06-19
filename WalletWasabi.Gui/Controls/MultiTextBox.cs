@@ -198,7 +198,7 @@ namespace WalletWasabi.Gui.Controls
 			try
 			{
 				var eventArgs = eventPattern?.EventArgs as PointerPressedEventArgs;
-				var uiConfig = Application.Current.Resources[Global.UIConfigResourceKey] as UiConfig;
+				var uiConfig = Application.Current.Resources[Global.UiConfigResourceKey] as UiConfig;
 				if (uiConfig?.Autocopy is true && eventArgs?.MouseButton == MouseButton.Left)
 				{
 					if (CopyOnClick)
