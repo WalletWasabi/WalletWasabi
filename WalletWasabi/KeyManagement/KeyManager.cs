@@ -11,6 +11,7 @@ using WalletWasabi.Hwi.Models;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Stores;
 
 namespace WalletWasabi.KeyManagement
 {
@@ -654,6 +655,41 @@ namespace WalletWasabi.KeyManagement
 		}
 
 		#region BlockchainState
+
+		public void CorrectBlockHeights(HashChain hashChain)
+		{
+			lock (BlockchainStateLock)
+			{
+				// Block heights are wrong sometimes. It's a hack. We have to retroactively fix existing wallets, but also we have to figure out where we ruin the block heights.
+				// Assert the correct height.
+				var toRemove = new List<uint256>();
+				var toAdd = new List<BlockState>();
+				foreach (var state in BlockchainState.BlockStates)
+				{
+					if (hashChain.TryGetHeight(state.BlockHash, out int foundHeight) && foundHeight != state.BlockHeight.Value)
+					{
+						toRemove.Add(state.BlockHash);
+						toAdd.Add(new BlockState(state.BlockHash, new Height(foundHeight), state.TransactionIndices));
+					}
+				}
+
+				foreach (var rem in toRemove)
+				{
+					TryRemoveBlockState(rem);
+				}
+
+				foreach (var add in toAdd)
+				{
+					AddBlockState(add, setItsHeightToBest: false);
+				}
+
+				if (toRemove.Any())
+				{
+					ToFileNoBlockchainStateLock();
+					Logger.LogInfo<KeyManager>($"Corrected {toRemove.Count} heights.");
+				}
+			}
+		}
 
 		public Height GetBestHeight()
 		{
