@@ -7,6 +7,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
+using WalletWasabi.Gui.Models;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
@@ -527,6 +528,65 @@ namespace WalletWasabi.Gui
 			{
 				throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
 			}
+		}
+
+		public TargetPrivacy GetTargetPrivacy()
+		{
+			if (MixUntilAnonymitySet == PrivacyLevelSome)
+			{
+				return TargetPrivacy.Some;
+			}
+
+			if (MixUntilAnonymitySet == PrivacyLevelFine)
+			{
+				return TargetPrivacy.Fine;
+			}
+
+			if (MixUntilAnonymitySet == PrivacyLevelStrong)
+			{
+				return TargetPrivacy.Strong;
+			}
+			//the levels changed in the config file, adjust
+			if (MixUntilAnonymitySet < PrivacyLevelSome)
+			{
+				return TargetPrivacy.None; //choose the lower
+			}
+
+			if (MixUntilAnonymitySet < PrivacyLevelFine)
+			{
+				return TargetPrivacy.Some;
+			}
+
+			if (MixUntilAnonymitySet < PrivacyLevelStrong)
+			{
+				return TargetPrivacy.Fine;
+			}
+
+			if (MixUntilAnonymitySet > PrivacyLevelFine)
+			{
+				return TargetPrivacy.Strong;
+			}
+
+			return TargetPrivacy.None;
+		}
+
+		public int GetTargetLevel(TargetPrivacy target)
+		{
+			switch (target)
+			{
+				case TargetPrivacy.None:
+					return 0;
+
+				case TargetPrivacy.Some:
+					return PrivacyLevelSome.Value;
+
+				case TargetPrivacy.Fine:
+					return PrivacyLevelFine.Value;
+
+				case TargetPrivacy.Strong:
+					return PrivacyLevelStrong.Value;
+			}
+			return 0;
 		}
 	}
 }

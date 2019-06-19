@@ -33,6 +33,13 @@ namespace WalletWasabi.Gui
 {
 	public class Global
 	{
+		public const string GlobalResourceKey = "Wasabi.Ui.Global";
+		public const string ConfigResourceKey = "Wasabi.Ui.Config";
+		public const string UiConfigResourceKey = "Wasabi.Ui.UiConfig";
+
+		public const string ThemeBackgroundBrushResourceKey = "ThemeBackgroundBrush";
+		public const string ApplicationAccentForegroundBrushResourceKey = "ApplicationAccentForegroundBrush";
+
 		public static Global Instance { get; } = new Global();
 		public string DataDir { get; }
 		public string TorLogsFile { get; }
@@ -655,6 +662,33 @@ namespace WalletWasabi.Gui
 			{
 				Interlocked.Exchange(ref _dispose, 2);
 			}
+		}
+
+		public string GetNextWalletName()
+		{
+			for (int i = 0; i < int.MaxValue; i++)
+			{
+				if (!File.Exists(Path.Combine(WalletsDir, $"Wallet{i}.json")))
+				{
+					return $"Wallet{i}";
+				}
+			}
+
+			throw new NotSupportedException("This is impossible.");
+		}
+
+		public string GetNextHardwareWalletName(Hwi.Models.HardwareWalletInfo hwi)
+		{
+			for (int i = 0; i < int.MaxValue; i++)
+			{
+				var name = $"{hwi.Type}{i}";
+				if (!File.Exists(Path.Combine(WalletsDir, $"{name}.json")))
+				{
+					return name;
+				}
+			}
+
+			throw new NotSupportedException("This is impossible.");
 		}
 	}
 }

@@ -6,6 +6,7 @@ using AvalonStudio.Extensibility;
 using AvalonStudio.Extensibility.Theme;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Controls;
+using NBitcoin;
 using System;
 using System.ComponentModel;
 using System.IO;
@@ -46,6 +47,18 @@ namespace WalletWasabi.Gui
 			Activated += OnActivated;
 			Closing += MainWindow_ClosingAsync;
 			AvaloniaXamlLoader.Load(this);
+		}
+
+		protected override void OnDataContextEndUpdate()
+		{
+			if (Global.Instance is null)
+			{
+				return;
+			}
+
+			Application.Current.Resources.AddOrReplace(Global.GlobalResourceKey, Global.Instance);
+			Application.Current.Resources.AddOrReplace(Global.ConfigResourceKey, Global.Instance.Config);
+			Application.Current.Resources.AddOrReplace(Global.UiConfigResourceKey, Global.Instance.UiConfig);
 		}
 
 		private int _closingState;
@@ -161,6 +174,7 @@ namespace WalletWasabi.Gui
 				var uiConfig = new UiConfig(uiConfigFilePath);
 				await uiConfig.LoadOrCreateDefaultFileAsync();
 				Global.Instance.InitializeUiConfig(uiConfig);
+				Application.Current.Resources.AddOrReplace(Global.UiConfigResourceKey, Global.Instance.UiConfig);
 				Logging.Logger.LogInfo<UiConfig>("UiConfig is successfully initialized.");
 
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

@@ -156,7 +156,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			base.OnCategorySelected();
 
 			Password = "";
-			WalletName = Utils.GetNextWalletName();
+			WalletName = Global.Instance.GetNextWalletName();
 			TermsAccepted = false;
 			ValidationMessage = "";
 		}
