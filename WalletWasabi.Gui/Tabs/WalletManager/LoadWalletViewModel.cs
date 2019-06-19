@@ -47,6 +47,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
 		private WalletManagerViewModel Owner { get; }
+		public Global Global => Owner.Global;
 		public LoadWalletType LoadWalletType { get; }
 
 		public bool IsPasswordRequired => LoadWalletType == LoadWalletType.Password;
@@ -258,7 +259,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				Password = "";
 				SetValidationMessage("");
 
-				var directoryInfo = new DirectoryInfo(Global.Instance.WalletsDir);
+				var directoryInfo = new DirectoryInfo(Global.WalletsDir);
 				var walletFiles = directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
 				foreach (var file in walletFiles)
 				{
@@ -288,7 +289,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				IsWalletSelected = SelectedWallet != null;
 				CanTestPassword = IsWalletSelected;
 
-				IsWalletOpened = Global.Instance.WalletService != null;
+				IsWalletOpened = Global.WalletService != null;
 				// If not busy loading.
 				// And wallet is selected.
 				// And no wallet is opened.
@@ -499,14 +500,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 						Logger.LogInfo<LoadWalletViewModel>("Hardware wallet wasn't used previously on this computer. Creating new wallet file.");
 
-						walletName = Global.Instance.GetNextHardwareWalletName(selectedWallet.HardwareWalletInfo);
-						var path = Global.Instance.GetWalletFullPath(walletName);
+						walletName = Global.GetNextHardwareWalletName(selectedWallet.HardwareWalletInfo);
+						var path = Global.GetWalletFullPath(walletName);
 						KeyManager.CreateNewHardwareWalletWatchOnly(selectedWallet.HardwareWalletInfo.MasterFingerprint.Value, extPubKey, path);
 					}
 				}
 
-				var walletFullPath = Global.Instance.GetWalletFullPath(walletName);
-				var walletBackupFullPath = Global.Instance.GetWalletBackupFullPath(walletName);
+				var walletFullPath = Global.GetWalletFullPath(walletName);
+				var walletBackupFullPath = Global.GetWalletBackupFullPath(walletName);
 				if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
 				{
 					// The selected wallet is not available any more (someone deleted it?).
@@ -515,7 +516,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					return null;
 				}
 
-				KeyManager keyManager = Global.Instance.LoadKeyManager(walletFullPath, walletBackupFullPath);
+				KeyManager keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
 				keyManager.HardwareWalletInfo = selectedWallet.HardwareWalletInfo;
 
 				if (!requirePassword && keyManager.PasswordVerified == false)
@@ -562,13 +563,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 		}
 
-		private static bool TryFindWalletByMasterFingerprint(HDFingerprint masterFingerprint, out string walletName)
+		private bool TryFindWalletByMasterFingerprint(HDFingerprint masterFingerprint, out string walletName)
 		{
 			// Start searching for the real wallet name.
 			walletName = null;
 
-			var walletFiles = new DirectoryInfo(Global.Instance.WalletsDir);
-			var walletBackupFiles = new DirectoryInfo(Global.Instance.WalletBackupsDir);
+			var walletFiles = new DirectoryInfo(Global.WalletsDir);
+			var walletBackupFiles = new DirectoryInfo(Global.WalletBackupsDir);
 
 			List<FileInfo> walletFileNames = new List<FileInfo>();
 
@@ -618,19 +619,19 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					await Task.Run(async () =>
 					{
-						await Global.Instance.InitializeWalletServiceAsync(keyManager);
+						await Global.InitializeWalletServiceAsync(keyManager);
 					});
 					// Successffully initialized.
 					Owner.OnClose();
 					// Open Wallet Explorer tabs
-					if (Global.Instance.WalletService.Coins.Any())
+					if (Global.WalletService.Coins.Any())
 					{
 						// If already have coins then open with History tab first.
-						IoC.Get<WalletExplorerViewModel>().OpenWallet(Global.Instance.WalletService, receiveDominant: false);
+						IoC.Get<WalletExplorerViewModel>().OpenWallet(Global.WalletService, receiveDominant: false);
 					}
 					else // Else open with Receive tab first.
 					{
-						IoC.Get<WalletExplorerViewModel>().OpenWallet(Global.Instance.WalletService, receiveDominant: true);
+						IoC.Get<WalletExplorerViewModel>().OpenWallet(Global.WalletService, receiveDominant: true);
 					}
 				}
 				catch (Exception ex)
@@ -641,7 +642,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					{
 						Logger.LogError<LoadWalletViewModel>(ex);
 					}
-					await Global.Instance.DisposeInWalletDependentServicesAsync();
+					await Global.DisposeInWalletDependentServicesAsync();
 				}
 			}
 			finally
@@ -655,7 +656,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public void OpenWalletsFolder()
 		{
-			var path = Global.Instance.WalletsDir;
+			var path = Global.WalletsDir;
 			IoHelpers.OpenFolderInFileExplorer(path);
 		}
 	}

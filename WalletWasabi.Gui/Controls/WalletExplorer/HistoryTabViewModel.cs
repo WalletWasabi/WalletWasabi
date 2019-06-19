@@ -32,7 +32,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
 			{
-				if (Global.Instance.UiConfig?.Autocopy is false || transaction is null)
+				if (Global.UiConfig?.Autocopy is false || transaction is null)
 				{
 					return;
 				}
@@ -58,15 +58,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Disposables = new CompositeDisposable();
 
-			Observable.FromEventPattern(Global.Instance.WalletService.Coins, nameof(Global.Instance.WalletService.Coins.CollectionChanged))
-				.Merge(Observable.FromEventPattern(Global.Instance.WalletService, nameof(Global.Instance.WalletService.NewBlockProcessed)))
-				.Merge(Observable.FromEventPattern(Global.Instance.WalletService, nameof(Global.Instance.WalletService.CoinSpentOrSpenderConfirmed)))
+			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
+				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed)))
+				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed)))
 				.Throttle(TimeSpan.FromSeconds(5))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async _ => await TryRewriteTableAsync())
 				.DisposeWith(Disposables);
 
-			Global.Instance.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(x =>
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(x =>
 			{
 				foreach (var transaction in Transactions)
 				{
@@ -121,9 +121,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private static List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)> BuildTxRecordList()
+		private List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)> BuildTxRecordList()
 		{
-			var walletService = Global.Instance.WalletService;
+			var walletService = Global.WalletService;
 
 			List<Transaction> trs = new List<Transaction>();
 			var txRecordList = new List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)>();

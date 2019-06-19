@@ -1,4 +1,4 @@
-﻿using Avalonia.Diagnostics.ViewModels;
+using Avalonia.Diagnostics.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,7 +8,7 @@ namespace WalletWasabi.Gui.Tabs
 {
 	internal class AboutViewModel : WasabiDocumentTabViewModel
 	{
-		public AboutViewModel() : base("About")
+		public AboutViewModel(Global global) : base(global, "About")
 		{
 			Version = Helpers.Constants.ClientVersion;
 		}

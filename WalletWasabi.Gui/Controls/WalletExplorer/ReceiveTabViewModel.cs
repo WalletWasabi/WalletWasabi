@@ -60,7 +60,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Dispatcher.UIThread.PostLogException(() =>
 				{
 					var label = Label;
-					HdPubKey newKey = Global.Instance.WalletService.GetReceiveKey(label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
+					HdPubKey newKey = Global.WalletService.GetReceiveKey(label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
 
 					AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
 					if (found != default)
@@ -68,7 +68,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						Addresses.Remove(found);
 					}
 
-					var newAddress = new AddressViewModel(newKey);
+					var newAddress = new AddressViewModel(newKey, Global);
 
 					Addresses.Insert(0, newAddress);
 
@@ -82,7 +82,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
 			{
-				if (Global.Instance.UiConfig?.Autocopy is false || address is null)
+				if (Global.UiConfig?.Autocopy is false || address is null)
 				{
 					return;
 				}
@@ -149,8 +149,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Disposables = new CompositeDisposable();
 
-			Observable.FromEventPattern(Global.Instance.WalletService.Coins,
-				nameof(Global.Instance.WalletService.Coins.CollectionChanged))
+			Observable.FromEventPattern(Global.WalletService.Coins,
+				nameof(Global.WalletService.Coins.CollectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(o => InitializeAddresses())
 				.DisposeWith(Disposables);
@@ -168,7 +168,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void InitializeAddresses()
 		{
 			_addresses?.Clear();
-			var walletService = Global.Instance.WalletService;
+			var walletService = Global.WalletService;
 
 			if(walletService == null)
 			{
@@ -181,7 +181,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 																		&& x.KeyState == KeyState.Clean)
 																	.Reverse())
 			{
-				_addresses.Add(new AddressViewModel(key));
+				_addresses.Add(new AddressViewModel(key, Global));
 			}
 		}
 
@@ -244,7 +244,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return;
 			}
 
-			string[] nonSpecialLabels = Global.Instance.WalletService.GetNonSpecialLabels().ToArray();
+			string[] nonSpecialLabels = Global.WalletService.GetNonSpecialLabels().ToArray();
 			IEnumerable<string> suggestedWords = nonSpecialLabels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
 				.Union(nonSpecialLabels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
 				.Except(enteredWordList)

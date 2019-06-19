@@ -36,10 +36,10 @@ namespace WalletWasabi.Gui.Tabs
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
 
-		public SettingsViewModel() : base("Settings")
+		public SettingsViewModel(Global global) : base(global, "Settings")
 		{
-			var config = new Config(Global.Instance.Config.FilePath);
-			Autocopy = Global.Instance.UiConfig?.Autocopy is true;
+			var config = new Config(Global.Config.FilePath);
+			Autocopy = Global.UiConfig?.Autocopy is true;
 
 			this.WhenAnyValue(x => x.Network,
 				x => x.TorHost, x => x.TorPort, x => x.UseTor)
@@ -54,8 +54,8 @@ namespace WalletWasabi.Gui.Tabs
 			{
 				Dispatcher.UIThread.PostLogException(async () =>
 				{
-					Global.Instance.UiConfig.Autocopy = x;
-					await Global.Instance.UiConfig.ToFileAsync();
+					Global.UiConfig.Autocopy = x;
+					await Global.UiConfig.ToFileAsync();
 
 					AutocopyText = x ? "On" : "Off";
 				});
@@ -81,15 +81,15 @@ namespace WalletWasabi.Gui.Tabs
 
 				DustThreshold = config.DustThreshold.ToString();
 
-				IsModified = await Global.Instance.Config.CheckFileChangeAsync();
+				IsModified = await Global.Config.CheckFileChangeAsync();
 			});
 
 			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
 
 			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				Global.Instance.UiConfig.LurkingWifeMode = !LurkingWifeMode;
-				await Global.Instance.UiConfig.ToFileAsync();
+				Global.UiConfig.LurkingWifeMode = !LurkingWifeMode;
+				await Global.UiConfig.ToFileAsync();
 			});
 		}
 
@@ -102,7 +102,7 @@ namespace WalletWasabi.Gui.Tabs
 
 			Disposables = new CompositeDisposable();
 
-			Global.Instance.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(LurkingWifeMode));
 				this.RaisePropertyChanged(nameof(LurkingWifeModeText));
@@ -204,9 +204,9 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _dustThreshold, value);
 		}
 
-		public bool LurkingWifeMode => Global.Instance.UiConfig.LurkingWifeMode is true;
+		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
 
-		public string LurkingWifeModeText => Global.Instance.UiConfig.LurkingWifeMode is true ? "On" : "Off";
+		public string LurkingWifeModeText => Global.UiConfig.LurkingWifeMode is true ? "On" : "Off";
 
 		private void Save()
 		{
@@ -226,7 +226,7 @@ namespace WalletWasabi.Gui.Tabs
 				return;
 			}
 
-			var config = new Config(Global.Instance.Config.FilePath);
+			var config = new Config(Global.Config.FilePath);
 
 			Dispatcher.UIThread.PostLogException(async () =>
 			{
@@ -261,7 +261,7 @@ namespace WalletWasabi.Gui.Tabs
 
 					await config.ToFileAsync();
 
-					IsModified = await Global.Instance.Config.CheckFileChangeAsync();
+					IsModified = await Global.Config.CheckFileChangeAsync();
 				}
 			});
 		}
@@ -347,7 +347,7 @@ namespace WalletWasabi.Gui.Tabs
 
 		private void OpenConfigFile()
 		{
-			IoHelpers.OpenFileInTextEditor(Global.Instance.Config.FilePath);
+			IoHelpers.OpenFileInTextEditor(Global.Config.FilePath);
 		}
 	}
 }

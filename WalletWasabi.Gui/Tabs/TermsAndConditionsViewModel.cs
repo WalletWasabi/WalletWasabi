@@ -1,4 +1,4 @@
-﻿using Avalonia.Diagnostics.ViewModels;
+using Avalonia.Diagnostics.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,7 +8,7 @@ namespace WalletWasabi.Gui.Tabs
 {
 	internal class TermsAndConditionsViewModel : WasabiDocumentTabViewModel
 	{
-		public TermsAndConditionsViewModel() : base("Terms and Conditions")
+		public TermsAndConditionsViewModel(Global global) : base(global, "Terms and Conditions")
 		{
 			TermsAndConditions = @"
 PLEASE READ THESE TERMS OF USE CAREFULLY. BY CLICKING AGREE, OR BY ACCESSING OR DOWNLOADING OUR SOFTWARE (AS DEFINED BELOW), YOU AGREE TO BE BOUND BY THESE TERMS OF USE AND ALL TERMS INCORPORATED BY REFERENCE.

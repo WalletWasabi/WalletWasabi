@@ -3,6 +3,7 @@ using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +14,8 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
+	[Export]
+	[Shared]
 	internal class WalletManagerViewModel : WasabiDocumentTabViewModel
 	{
 		private ObservableCollection<CategoryViewModel> _categories;
@@ -20,8 +23,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private ViewModelBase _currentView;
 		private LoadWalletViewModel LoadWalletViewModelDesktop { get; }
 		private LoadWalletViewModel LoadWalletViewModelHardware { get; }
-
-		public WalletManagerViewModel() : base("Wallet Manager")
+		[ImportingConstructor]
+		public WalletManagerViewModel(AvaloniaGlobalComponent global) : base(global.Global, "Wallet Manager")
 		{
 			LoadWalletViewModelDesktop = new LoadWalletViewModel(this, LoadWalletType.Desktop);
 			LoadWalletViewModelHardware = new LoadWalletViewModel(this, LoadWalletType.Hardware);

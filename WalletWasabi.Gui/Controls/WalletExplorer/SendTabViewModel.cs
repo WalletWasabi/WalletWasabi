@@ -71,7 +71,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set
 			{
 				_feeDisplayFormat = value;
-				Global.Instance.UiConfig.FeeDisplayFormat = (int)value;
+				Global.UiConfig.FeeDisplayFormat = (int)value;
 			}
 		}
 
@@ -82,7 +82,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Label = "";
 			Password = "";
 			AllSelectedAmount = Money.Zero;
-			UsdExchangeRate = Global.Instance.Synchronizer?.UsdExchangeRate ?? UsdExchangeRate;
+			UsdExchangeRate = Global.Synchronizer?.UsdExchangeRate ?? UsdExchangeRate;
 			IsMax = false;
 			LabelToolTip = "Start labelling today and your privacy will thank you tomorrow!";
 			Amount = "0.0";
@@ -97,7 +97,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ResetUi();
 			SetAmountWatermarkAndToolTip(Money.Zero);
 
-			CoinList = new CoinListViewModel();
+			CoinList = new CoinListViewModel(Global);
 			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SetFeesAndTexts());
@@ -106,8 +106,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(_ => OnCoinsListDequeueCoinsPressedAsync());
 
 			SetFeeTargetLimits();
-			FeeTarget = Global.Instance.UiConfig.FeeTarget ?? MinimumFeeTarget;
-			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.Instance.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
+			FeeTarget = Global.UiConfig.FeeTarget ?? MinimumFeeTarget;
+			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			SetFeesAndTexts();
 
 			this.WhenAnyValue(x => x.Amount)
@@ -260,7 +260,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					BitcoinAddress address;
 					try
 					{
-						address = BitcoinAddress.Create(Address.Trim(), Global.Instance.Network);
+						address = BitcoinAddress.Create(Address.Trim(), Global.Network);
 					}
 					catch (FormatException)
 					{
@@ -293,7 +293,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						TxoRef[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => x.Model.GetTxoRef()).ToArray();
 						if (toDequeue != null && toDequeue.Any())
 						{
-							await Global.Instance.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, "Coin is used in a spending transaction built by the user.");
+							await Global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, "Coin is used in a spending transaction built by the user.");
 						}
 					}
 					catch
@@ -306,7 +306,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.DequeuingSelectedCoins);
 					}
 
-					var result = await Task.Run(() => Global.Instance.WalletService.BuildTransaction(Password, new[] { operation }, FeeTarget, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
+					var result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, FeeTarget, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 
 					if (IsTransactionBuilder)
 					{
@@ -375,7 +375,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
-					await Task.Run(async () => await Global.Instance.WalletService.SendTransactionAsync(signedTransaction));
+					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(signedTransaction));
 
 					TryResetInputsOnSuccess("Transaction is successfully sent!");
 				}
@@ -546,7 +546,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFeesAndTexts()
 		{
-			AllFeeEstimate allFeeEstimate = Global.Instance.Synchronizer?.AllFeeEstimate;
+			AllFeeEstimate allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
 
 			var feeTarget = FeeTarget;
 
@@ -709,7 +709,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFeeTargetLimits()
 		{
-			var allFeeEstimate = Global.Instance.Synchronizer?.AllFeeEstimate;
+			var allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
 
 			if (allFeeEstimate != null)
 			{
@@ -771,7 +771,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			try
 			{
-				await Global.Instance.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray(), "Dequeued by the user.");
+				await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray(), "Dequeued by the user.");
 			}
 			catch (Exception ex)
 			{
@@ -825,7 +825,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set
 			{
 				this.RaiseAndSetIfChanged(ref _feeTarget, value);
-				Global.Instance.UiConfig.FeeTarget = value;
+				Global.UiConfig.FeeTarget = value;
 			}
 		}
 
@@ -924,7 +924,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return;
 			}
 
-			string[] nonSpecialLabels = Global.Instance.WalletService.GetNonSpecialLabels().ToArray();
+			string[] nonSpecialLabels = Global.WalletService.GetNonSpecialLabels().ToArray();
 			IEnumerable<string> suggestedWords = nonSpecialLabels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
 				.Union(nonSpecialLabels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
 				.Except(enteredWordList)
@@ -967,7 +967,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				var trimmed = Address.Trim();
 				try
 				{
-					BitcoinAddress.Create(trimmed, Global.Instance.Network);
+					BitcoinAddress.Create(trimmed, Global.Network);
 					return "";
 				}
 				catch
@@ -1031,7 +1031,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Disposables = new CompositeDisposable();
 
-			Global.Instance.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate).Subscribe(_ =>
+			Global.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate).Subscribe(_ =>
 			{
 				SetFeeTargetLimits();
 
@@ -1047,9 +1047,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SetFeesAndTexts();
 			}).DisposeWith(Disposables);
 
-			Global.Instance.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Subscribe(_ =>
+			Global.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Subscribe(_ =>
 			{
-				var exchangeRate = Global.Instance.Synchronizer.UsdExchangeRate;
+				var exchangeRate = Global.Synchronizer.UsdExchangeRate;
 
 				if (exchangeRate != 0)
 				{

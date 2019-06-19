@@ -20,6 +20,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private bool _termsAccepted;
 		private string _validationMessage;
 		public WalletManagerViewModel Owner { get; }
+		public Global Global => Owner.Global;
 
 		public GenerateWalletViewModel(WalletManagerViewModel owner) : base("Generate Wallet")
 		{
@@ -65,7 +66,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				return;
 			}
 
-			string walletFilePath = Path.Combine(Global.Instance.WalletsDir, $"{WalletName}.json");
+			string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
 			Password = Guard.Correct(Password); // Don't let whitespaces to the beginning and to the end.
 
 			if (!TermsAccepted)
@@ -138,17 +139,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public void OnTermsClicked()
 		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel());
+			IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel(Global));
 		}
 
 		public void OnPrivacyClicked()
 		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel());
+			IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel(Global));
 		}
 
 		public void OnLegalClicked()
 		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel());
+			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel(Global));
 		}
 
 		public override void OnCategorySelected()
@@ -156,7 +157,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			base.OnCategorySelected();
 
 			Password = "";
-			WalletName = Global.Instance.GetNextWalletName();
+			WalletName = Global.GetNextWalletName();
 			TermsAccepted = false;
 			ValidationMessage = "";
 		}

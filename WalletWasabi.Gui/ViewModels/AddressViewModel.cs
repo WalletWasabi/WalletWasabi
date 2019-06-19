@@ -20,9 +20,10 @@ namespace WalletWasabi.Gui.ViewModels
 		private double _clipboardNotificationOpacity;
 
 		public HdPubKey Model { get; }
-
-		public AddressViewModel(HdPubKey model)
+		public Global Global { get; }
+		public AddressViewModel(HdPubKey model, Global global)
 		{
+			Global = global;
 			Model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
@@ -39,7 +40,7 @@ namespace WalletWasabi.Gui.ViewModels
 				QrCode = x.Result;
 			});
 
-			Global.Instance.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(Address));
 				this.RaisePropertyChanged(nameof(Label));
@@ -66,7 +67,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public string Label => Model.Label;
 
-		public string Address => Model.GetP2wpkhAddress(Global.Instance.Network).ToString();
+		public string Address => Model.GetP2wpkhAddress(Global.Network).ToString();
 
 		public string Pubkey => Model.PubKey.ToString();
 
