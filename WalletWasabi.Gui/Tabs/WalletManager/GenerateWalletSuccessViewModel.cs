@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using ReactiveUI;
 using System.Reactive;
 using WalletWasabi.Gui.ViewModels;

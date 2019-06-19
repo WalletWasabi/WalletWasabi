@@ -499,7 +499,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 						Logger.LogInfo<LoadWalletViewModel>("Hardware wallet wasn't used previously on this computer. Creating new wallet file.");
 
-						walletName = Utils.GetNextHardwareWalletName(selectedWallet.HardwareWalletInfo);
+						walletName = Global.Instance.GetNextHardwareWalletName(selectedWallet.HardwareWalletInfo);
 						var path = Global.Instance.GetWalletFullPath(walletName);
 						KeyManager.CreateNewHardwareWalletWatchOnly(selectedWallet.HardwareWalletInfo.MasterFingerprint.Value, extPubKey, path);
 					}

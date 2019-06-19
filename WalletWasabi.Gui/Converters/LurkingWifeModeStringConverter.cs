@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Data.Converters;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,8 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (Global.Instance.UiConfig.LurkingWifeMode is true)
+			var uiConfig = Application.Current.Resources[Global.UiConfigResourceKey] as UiConfig;
+			if (uiConfig.LurkingWifeMode is true)
 			{
 				int len = 10;
 				if (int.TryParse(parameter.ToString(), out int newLength))
