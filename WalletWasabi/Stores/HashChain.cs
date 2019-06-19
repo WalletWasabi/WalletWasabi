@@ -146,18 +146,21 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		public int? GetHeightOrDefault(uint256 hash)
+		public bool TryGetHeight(uint256 hash, out int Height)
 		{
 			lock (Lock)
 			{
-				int height = Chain.FirstOrDefault(x => x.Value == hash).Key;
-				if (height == default // Default int will be 0. We don't know if this refers to the 0th hash or it just means the hash wasn't found.
-					&& !Chain.ContainsKey(height)) // So let's check if the height contains or not.
+				Height = Chain.FirstOrDefault(x => x.Value == hash).Key;
+				// Default int will be 0. We don't know if this refers to the 0th hash or it just means the hash wasn't found.
+				// So let's check if the height contains or not.
+				if (Height == default)
 				{
-					return null;
+					if (Chain[Height] != hash)
+					{
+						return false;
+					}
 				}
-
-				return height;
+				return true;
 			}
 		}
 	}

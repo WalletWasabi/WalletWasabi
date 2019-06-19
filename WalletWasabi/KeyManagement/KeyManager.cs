@@ -666,11 +666,10 @@ namespace WalletWasabi.KeyManagement
 				var toAdd = new List<BlockState>();
 				foreach (var state in BlockchainState.BlockStates)
 				{
-					int? foundHeight = hashChain.GetHeightOrDefault(state.BlockHash);
-					if (foundHeight.HasValue && foundHeight.Value != state.BlockHeight.Value)
+					if (hashChain.TryGetHeight(state.BlockHash, out int foundHeight) && foundHeight != state.BlockHeight.Value)
 					{
 						toRemove.Add(state.BlockHash);
-						toAdd.Add(new BlockState(state.BlockHash, new Height(foundHeight.Value), state.TransactionIndices));
+						toAdd.Add(new BlockState(state.BlockHash, new Height(foundHeight), state.TransactionIndices));
 					}
 				}
 
