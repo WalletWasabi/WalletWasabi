@@ -15,7 +15,7 @@ using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Services;
-using static WalletWasabi.Gui.Models.ShieldLevelHelper;
+using static WalletWasabi.Gui.Config;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -118,7 +118,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.TargetPrivacy).Subscribe(target =>
 			{
-				CoinJoinUntilAnonimitySet = GetTargetLevel(target);
+				CoinJoinUntilAnonimitySet = Global.Instance.Config.GetTargetLevel(target);
 			});
 		}
 
@@ -133,7 +133,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Disposables = new CompositeDisposable();
 
-			TargetPrivacy = GetTargetPrivacy(Global.Instance.Config.MixUntilAnonymitySet);
+			TargetPrivacy = Global.Instance.Config.GetTargetPrivacy();
 
 			var registrableRound = Global.Instance.ChaumianClient.State.GetRegistrableRoundOrDefault();
 
