@@ -34,7 +34,7 @@ namespace WalletWasabi.Gui.Converters
 
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			var config = (Config)Application.Current.Resources[Global.ConfigResourceKey];
+			var config = Application.Current.Resources[Global.ConfigResourceKey] as Config;
 			if (value is int integer)
 			{
 				string shield;

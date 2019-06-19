@@ -12,7 +12,7 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			var uiConfig = (UiConfig)Application.Current.Resources[Global.UiConfigResourceKey];
+			var uiConfig = Application.Current.Resources[Global.UiConfigResourceKey] as UiConfig;
 			if (uiConfig.LurkingWifeMode is true)
 			{
 				int len = 10;

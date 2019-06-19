@@ -33,9 +33,13 @@ namespace WalletWasabi.Gui
 {
 	public class Global
 	{
-		public static string GlobalResourceKey = "Wasabi.Ui.Global";
-		public static string ConfigResourceKey = "Wasabi.Ui.Config";
-		public static string UiConfigResourceKey = "Wasabi.Ui.UiConfig";
+		public const string GlobalResourceKey = "Wasabi.Ui.Global";
+		public const string ConfigResourceKey = "Wasabi.Ui.Config";
+		public const string UiConfigResourceKey = "Wasabi.Ui.UiConfig";
+
+		public const string ThemeBackgroundBrushResourceKey = "ThemeBackgroundBrush";
+		public const string ApplicationAccentForegroundBrushResourceKey = "ApplicationAccentForegroundBrush";
+
 		public static Global Instance { get; } = new Global();
 		public string DataDir { get; }
 		public string TorLogsFile { get; }

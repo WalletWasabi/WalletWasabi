@@ -17,7 +17,7 @@ namespace WalletWasabi.Gui.Converters
 			{
 				throw new ArgumentException($"Unknown '{parameter}' value");
 			}
-			var global = (Global)Application.Current.Resources[Global.GlobalResourceKey];
+			var global = Application.Current.Resources[Global.GlobalResourceKey] as Global;
 			var phaseError = global.ChaumianClient.State.IsInErrorState;
 
 			return ((CcjRoundPhase)p <= (CcjRoundPhase)value)

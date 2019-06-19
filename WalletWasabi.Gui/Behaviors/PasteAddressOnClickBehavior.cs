@@ -56,7 +56,8 @@ namespace WalletWasabi.Gui.Behaviors
 
 		public async Task<(bool isAddress, string address)> IsThereABitcoinAddressOnTheClipboardAsync()
 		{
-			var network = ((Global)Application.Current.Resources[Global.GlobalResourceKey]).Network;
+			var global = Application.Current.Resources[Global.GlobalResourceKey] as Global;
+			var network = global.Network;
 			string text = await Application.Current.Clipboard.GetTextAsync();
 			if (string.IsNullOrEmpty(text) || text.Length > 100)
 			{
