@@ -1,4 +1,6 @@
-﻿using AvalonStudio.Commands;
+using AvalonStudio.Commands;
+using System.Linq;
+using System;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
@@ -30,17 +32,17 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnGenerateWallet()
 		{
-			IoC.Get<IShell>().GetOrCreate<WalletManagerViewModel>().SelectGenerateWallet();
+			IoC.Get<IShell>().GetDocument<WalletManagerViewModel>().SelectGenerateWallet();
 		}
 
 		private void OnRecoverWallet()
 		{
-			IoC.Get<IShell>().GetOrCreate<WalletManagerViewModel>().SelectRecoverWallet();
+			IoC.Get<IShell>().GetDocument<WalletManagerViewModel>().SelectRecoverWallet();
 		}
 
 		private void OnLoadWallet()
 		{
-			IoC.Get<IShell>().GetOrCreate<WalletManagerViewModel>().SelectLoadWallet();
+			IoC.Get<IShell>().GetDocument<WalletManagerViewModel>().SelectLoadWallet();
 		}
 
 		[ExportCommandDefinition("File.GenerateWallet")]
