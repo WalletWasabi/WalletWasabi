@@ -47,6 +47,14 @@
           </StackPanel>
         </Panel>
 
+        <Panel IsVisible="{Binding BlockDownloadedLocally}">
+          <StackPanel Orientation="Horizontal">
+            <Canvas Width="10" Height="10">
+              <Ellipse Fill="Green" Width="10" Height="10" ToolTip.Tip="Latest block was fetched from local node." ToolTip.Placement="Right"  ToolTip.VerticalOffset="-30"/>
+            </Canvas>
+          </StackPanel>
+        </Panel>
+
         <Panel IsVisible="{Binding FiltersLeft, Converter={StaticResource ShouldDisplayValueConverter}}">
           <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding !CriticalUpdateAvailable}">
             <Grid Height="10" Width="10">

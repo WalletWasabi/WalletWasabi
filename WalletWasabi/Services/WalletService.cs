@@ -51,6 +51,23 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		public static event EventHandler<bool> BlockDownloaded;
+
+		private static bool BlockDownloadedLocallyBacking;
+
+		public static bool BlockDownloadedLocally
+		{
+			get => BlockDownloadedLocallyBacking;
+			set
+			{
+				if (value != BlockDownloadedLocallyBacking)
+				{
+					BlockDownloadedLocallyBacking = value;
+					BlockDownloaded?.Invoke(null, value);
+				}
+			}
+		}
+
 		public BitcoinStore BitcoinStore { get; }
 		public KeyManager KeyManager { get; }
 		public WasabiSynchronizer Synchronizer { get; }
@@ -843,7 +860,9 @@ namespace WalletWasabi.Services
 								throw new InvalidOperationException($"Disconnected node, because block invalid block received!");
 							}
 
+
 							block = blockFromLocalNode;
+							BlockDownloadedLocally = true;
 							Logger.LogInfo<WalletService>($"Block acquired from local P2P connection: {hash}");
 							break;
 						}
@@ -896,6 +915,7 @@ namespace WalletWasabi.Services
 								continue;
 							}
 
+							BlockDownloadedLocally = false;
 							if (Nodes.ConnectedNodes.Count > 1) // So to minimize risking missing unconfirmed transactions.
 							{
 								Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}. Block downloaded: {block.GetHash()}");
