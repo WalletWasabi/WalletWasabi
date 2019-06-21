@@ -207,33 +207,59 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			var coins = WaitingList
 				.Where(x => x.Value <= DateTimeOffset.UtcNow)
 				.Select(x => x.Key) // Only if registering coins is already allowed.
-				.Where(confirmationPredicate);
+				.Where(confirmationPredicate)
+				.ToList(); // So to not redo it in every cycle.
+
+			bool perfectMode = true;
 
 			for (int i = 1; i <= maximumInputCountPerPeer; i++) // The smallest number of coins we can register the better it is.
 			{
-				var linq = coins.GetPermutations(i);
-				linq = linq.Where(x => x.Sum(y => y.Amount) >= amountNeededExceptInputFees + (feePerInputs * i)); // If the sum reaches the minimum amount.
+				List<IEnumerable<SmartCoin>> coinGroups;
+				Money amountNeeded = amountNeededExceptInputFees + (feePerInputs * i); // If the sum reaches the minimum amount.
+				if (perfectMode)
+				{
+					DateTimeOffset start = DateTimeOffset.UtcNow;
+
+					coinGroups = coins.GetPermutations(i, amountNeeded).ToList();
+
+					if (DateTimeOffset.UtcNow - start > TimeSpan.FromMilliseconds(10)) // If the permutations took long then then if there's a nextTime, calculating permutations would be too CPU intensive.
+					{
+						perfectMode = false;
+					}
+				}
+				else // Do the largest valid combination.
+				{
+					IEnumerable<SmartCoin> highestValueEnumeration = coins.OrderByDescending(x => x.Amount).Take(i);
+					if (highestValueEnumeration.Sum(x => x.Amount) >= amountNeeded)
+					{
+						coinGroups = new List<IEnumerable<SmartCoin>> { highestValueEnumeration };
+					}
+					else
+					{
+						coinGroups = new List<IEnumerable<SmartCoin>>();
+					}
+				}
 
 				if (i == 1) // If only one coin is to be registered.
 				{
 					// Prefer the largest one, so more mixing volume is more likely.
-					linq = linq.OrderByDescending(x => x.Sum(y => y.Amount));
+					coinGroups = coinGroups.OrderByDescending(x => x.Sum(y => y.Amount)).ToList();
 
 					// Try to register with the smallest anonymity set, so new unmixed coins come to the mix.
-					linq = linq.OrderBy(x => x.Sum(y => y.AnonymitySet));
+					coinGroups = coinGroups.OrderBy(x => x.Sum(y => y.AnonymitySet)).ToList();
 				}
 				else // Else coin merging will happen.
 				{
 					// Prefer the lowest amount sum, so perfect mix should be more likely.
-					linq = linq.OrderBy(x => x.Sum(y => y.Amount));
+					coinGroups = coinGroups.OrderBy(x => x.Sum(y => y.Amount)).ToList();
 
 					// Try to register the largest anonymity set, so red and green coins input merging should be less likely.
-					linq = linq.OrderByDescending(x => x.Sum(y => y.AnonymitySet));
+					coinGroups = coinGroups.OrderByDescending(x => x.Sum(y => y.AnonymitySet)).ToList();
 				}
 
-				linq = linq.OrderBy(x => x.Count(y => y.Confirmed == false)); // Where the lowest amount of unconfirmed coins there are.
+				coinGroups = coinGroups.OrderBy(x => x.Count(y => y.Confirmed == false)).ToList(); // Where the lowest amount of unconfirmed coins there are.
 
-				IEnumerable<SmartCoin> best = linq.FirstOrDefault();
+				IEnumerable<SmartCoin> best = coinGroups.FirstOrDefault();
 
 				if (best != default)
 				{
