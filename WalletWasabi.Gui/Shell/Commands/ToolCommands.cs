@@ -15,14 +15,17 @@ namespace WalletWasabi.Gui.Shell.Commands
 {
 	internal class ToolCommands
 	{
+		public Global Global { get; }
+
 		[ImportingConstructor]
-		public ToolCommands(CommandIconService commandIconService)
+		public ToolCommands(CommandIconService commandIconService, AvaloniaGlobalComponent global)
 		{
+			Global = global.Global;
 			var walletManagerCommand = ReactiveCommand.Create(OnWalletManager);
 
 			var settingsCommand = ReactiveCommand.Create(() =>
 			{
-				IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel());
+				IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel(Global));
 			});
 
 			Observable
@@ -44,7 +47,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 		private void OnWalletManager()
 		{
 			var walletManagerViewModel = IoC.Get<IShell>().GetOrCreate<WalletManagerViewModel>();
-			if (Directory.Exists(Global.Instance.WalletsDir) && Directory.EnumerateFiles(Global.Instance.WalletsDir).Any())
+			if (Directory.Exists(Global.WalletsDir) && Directory.EnumerateFiles(Global.WalletsDir).Any())
 			{
 				walletManagerViewModel.SelectLoadWallet();
 			}

@@ -23,6 +23,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<bool> _confirmed;
 		private ObservableAsPropertyHelper<bool> _unavailable;
 		private CoinListViewModel _owner;
+		public Global Global => _owner.Global;
 
 		public CoinViewModel(CoinListViewModel owner, SmartCoin model)
 		{
@@ -81,22 +82,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.DisposeWith(Disposables);
 
 			Observable.FromEventPattern(
-				Global.Instance.ChaumianClient,
-				nameof(Global.Instance.ChaumianClient.StateUpdated))
+				Global.ChaumianClient,
+				nameof(Global.ChaumianClient.StateUpdated))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
 					RefreshSmartCoinStatus();
 				}).DisposeWith(Disposables);
 
-			Global.Instance.BitcoinStore.HashChain.WhenAnyValue(x => x.ServerTipHeight)
+			Global.BitcoinStore.HashChain.WhenAnyValue(x => x.ServerTipHeight)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
 					this.RaisePropertyChanged(nameof(Confirmations));
 				}).DisposeWith(Disposables);
 
-			Global.Instance.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 			{
@@ -121,10 +122,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public bool Unspent => _unspent?.Value ?? false;
 
-		public string Address => Model.ScriptPubKey.GetDestinationAddress(Global.Instance.Network).ToString();
+		public string Address => Model.ScriptPubKey.GetDestinationAddress(Global.Network).ToString();
 
 		public int Confirmations => Model.Height.Type == HeightType.Chain
-			? Global.Instance.BitcoinStore.HashChain.TipHeight - Model.Height.Value + 1
+			? Global.BitcoinStore.HashChain.TipHeight - Model.Height.Value + 1
 			: 0;
 
 		public bool IsSelected
@@ -194,7 +195,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return SmartCoinStatus.MixingBanned;
 			}
 
-			CcjClientState clientState = Global.Instance.ChaumianClient.State;
+			CcjClientState clientState = Global.ChaumianClient.State;
 
 			if (Model.CoinJoinInProgress)
 			{

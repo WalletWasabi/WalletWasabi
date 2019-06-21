@@ -11,14 +11,16 @@ namespace WalletWasabi.Gui.CommandLine
 	{
 		public string WalletName { get; set; }
 		public string EncryptedSecret { get; set; }
+		public Daemon Daemon { get; }
 		public string Language { get; set; }
 		public bool UseNumbers { get; set; }
 		public bool UseSymbols { get; set; }
 		public bool ShowHelp { get; set; }
 
-		public PasswordFinderCommand()
+		public PasswordFinderCommand(Daemon daemon)
 			: base("findpassword", "Try to find typos in provided password.")
 		{
+			Daemon = daemon;
 			Language = "en";
 
 			Options = new OptionSet() {

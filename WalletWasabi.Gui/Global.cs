@@ -40,7 +40,6 @@ namespace WalletWasabi.Gui
 		public const string ThemeBackgroundBrushResourceKey = "ThemeBackgroundBrush";
 		public const string ApplicationAccentForegroundBrushResourceKey = "ApplicationAccentForegroundBrush";
 
-		public static Global Instance { get; } = new Global();
 		public string DataDir { get; }
 		public string TorLogsFile { get; }
 		public string WalletsDir { get; }
@@ -67,7 +66,7 @@ namespace WalletWasabi.Gui
 
 		public Network Network => Config.Network;
 
-		private Global()
+		public Global()
 		{
 			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 			TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");

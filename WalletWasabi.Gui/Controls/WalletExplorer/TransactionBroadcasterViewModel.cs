@@ -110,7 +110,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SmartTransaction transaction;
 				try
 				{
-					var signedPsbt = PSBT.Parse(TransactionString, Global.Instance.Network ?? Network.Main);
+					var signedPsbt = PSBT.Parse(TransactionString, Global.Network ?? Network.Main);
 
 					if (!signedPsbt.IsAllFinalized())
 					{
@@ -121,11 +121,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch
 				{
-					transaction = new SmartTransaction(Transaction.Parse(TransactionString, Global.Instance.Network ?? Network.Main), WalletWasabi.Models.Height.Unknown);
+					transaction = new SmartTransaction(Transaction.Parse(TransactionString, Global.Network ?? Network.Main), WalletWasabi.Models.Height.Unknown);
 				}
 
 				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
-				await Task.Run(async () => await Global.Instance.WalletService.SendTransactionAsync(transaction));
+				await Task.Run(async () => await Global.WalletService.SendTransactionAsync(transaction));
 
 				SetSuccessMessage("Transaction is successfully sent!");
 				TransactionString = "";

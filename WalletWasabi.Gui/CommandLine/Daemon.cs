@@ -12,7 +12,14 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	public class Daemon
 	{
-		internal static async Task RunAsync(string walletName, bool mixAll, bool keepMixAlive)
+		public Global Global { get; }
+
+		public Daemon(Global global)
+		{
+			Global = global;
+		}
+
+		internal async Task RunAsync(string walletName, bool mixAll, bool keepMixAlive)
 		{
 			try
 			{
@@ -50,14 +57,14 @@ namespace WalletWasabi.Gui.CommandLine
 
 				Logger.LogInfo("Correct password.");
 
-				await Global.Instance.InitializeNoWalletAsync();
-				if (Global.Instance.KillRequested)
+				await Global.InitializeNoWalletAsync();
+				if (Global.KillRequested)
 				{
 					return;
 				}
 
-				await Global.Instance.InitializeWalletServiceAsync(keyManager);
-				if (Global.Instance.KillRequested)
+				await Global.InitializeWalletServiceAsync(keyManager);
+				if (Global.KillRequested)
 				{
 					return;
 				}
@@ -67,25 +74,25 @@ namespace WalletWasabi.Gui.CommandLine
 				bool mixing;
 				do
 				{
-					if (Global.Instance.KillRequested)
+					if (Global.KillRequested)
 					{
 						break;
 					}
 
 					await Task.Delay(3000);
-					if (Global.Instance.KillRequested)
+					if (Global.KillRequested)
 					{
 						break;
 					}
 
-					bool anyCoinsQueued = Global.Instance.ChaumianClient.State.AnyCoinsQueued();
+					bool anyCoinsQueued = Global.ChaumianClient.State.AnyCoinsQueued();
 
 					if (!anyCoinsQueued && keepMixAlive) // If no coins queued and mixing is asked to be kept alive then try to queue coins.
 					{
 						await TryQueueCoinsToMixAsync(mixAll, password);
 					}
 
-					if (Global.Instance.KillRequested)
+					if (Global.KillRequested)
 					{
 						break;
 					}
@@ -93,14 +100,14 @@ namespace WalletWasabi.Gui.CommandLine
 					mixing = anyCoinsQueued || keepMixAlive;
 				} while (mixing);
 
-				if (!Global.Instance.KillRequested) // This only has to run if it finishes by itself. Otherwise the Ctrl+c runs it.
+				if (!Global.KillRequested) // This only has to run if it finishes by itself. Otherwise the Ctrl+c runs it.
 				{
-					await Global.Instance.ChaumianClient?.DequeueAllCoinsFromMixAsync("Stopping Wasabi.");
+					await Global.ChaumianClient?.DequeueAllCoinsFromMixAsync("Stopping Wasabi.");
 				}
 			}
 			catch
 			{
-				if (!Global.Instance.KillRequested)
+				if (!Global.KillRequested)
 				{
 					throw;
 				}
@@ -111,15 +118,15 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 		}
 
-		public static KeyManager TryGetKeymanagerFromWalletName(string walletName)
+		public KeyManager TryGetKeymanagerFromWalletName(string walletName)
 		{
 			try
 			{
 				KeyManager keyManager = null;
 				if (walletName != null)
 				{
-					var walletFullPath = Global.Instance.GetWalletFullPath(walletName);
-					var walletBackupFullPath = Global.Instance.GetWalletBackupFullPath(walletName);
+					var walletFullPath = Global.GetWalletFullPath(walletName);
+					var walletBackupFullPath = Global.GetWalletBackupFullPath(walletName);
 					if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
 					{
 						// The selected wallet is not available any more (someone deleted it?).
@@ -129,7 +136,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 					try
 					{
-						keyManager = Global.Instance.LoadKeyManager(walletFullPath, walletBackupFullPath);
+						keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
 					}
 					catch (Exception ex)
 					{
@@ -153,17 +160,17 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 		}
 
-		private static async Task TryQueueCoinsToMixAsync(bool mixAll, string password)
+		private async Task TryQueueCoinsToMixAsync(bool mixAll, string password)
 		{
 			try
 			{
 				if (mixAll)
 				{
-					await Global.Instance.ChaumianClient.QueueCoinsToMixAsync(password, Global.Instance.WalletService.Coins.Where(x => !x.Unavailable).ToArray());
+					await Global.ChaumianClient.QueueCoinsToMixAsync(password, Global.WalletService.Coins.Where(x => !x.Unavailable).ToArray());
 				}
 				else
 				{
-					await Global.Instance.ChaumianClient.QueueCoinsToMixAsync(password, Global.Instance.WalletService.Coins.Where(x => !x.Unavailable && x.AnonymitySet < Global.Instance.WalletService.ServiceConfiguration.MixUntilAnonymitySet).ToArray());
+					await Global.ChaumianClient.QueueCoinsToMixAsync(password, Global.WalletService.Coins.Where(x => !x.Unavailable && x.AnonymitySet < Global.WalletService.ServiceConfiguration.MixUntilAnonymitySet).ToArray());
 				}
 			}
 			catch (Exception ex)

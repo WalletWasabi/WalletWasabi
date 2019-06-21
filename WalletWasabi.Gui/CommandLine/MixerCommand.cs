@@ -12,10 +12,12 @@ namespace WalletWasabi.Gui.CommandLine
 		public bool MixAll { get; set; }
 		public bool KeepMixAlive { get; set; }
 		public bool ShowHelp { get; set; }
+		public Daemon Daemon { get; }
 
-		public MixerCommand()
+		public MixerCommand(Daemon daemon)
 			: base("mix", "Start mixing without the GUI with the specified wallet.")
 		{
+			Daemon = daemon;
 			Options = new OptionSet() {
 				"usage: mix --wallet:WalletName --mixall --keepalive",
 				"",

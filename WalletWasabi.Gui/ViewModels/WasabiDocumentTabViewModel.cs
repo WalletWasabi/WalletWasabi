@@ -10,15 +10,18 @@ namespace WalletWasabi.Gui.ViewModels
 {
 	public abstract class WasabiDocumentTabViewModel : ViewModelBase, IDocumentTabViewModel
 	{
-		public WasabiDocumentTabViewModel(string title)
+		public WasabiDocumentTabViewModel(Global global, string title)
 		{
 			Title = title;
+			Global = global ?? throw new ArgumentNullException(nameof(global));
 		}
 
-		public WasabiDocumentTabViewModel()
+		public WasabiDocumentTabViewModel(Global global)
 		{
+			Global = global ?? throw new ArgumentNullException(nameof(global));
 		}
 
+		public Global Global { get; }
 		public Guid Id { get; set; } = Guid.NewGuid();
 		public virtual string Title { get; set; }
 		public object Context { get; set; }
