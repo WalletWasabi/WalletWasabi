@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using NBitcoin;
+using System.Collections.Generic;
+using WalletWasabi.Models;
 
 namespace System.Linq
 {
@@ -94,6 +96,33 @@ namespace System.Linq
 					foreach (var result in items.Skip(i + 1).GetPermutations(count - 1))
 					{
 						yield return new T[] { item }.Concat(result);
+					}
+				}
+
+				++i;
+			}
+		}
+
+		public static IEnumerable<IEnumerable<SmartCoin>> GetPermutations(this IEnumerable<SmartCoin> items, int count, Money minAmount)
+		{
+			int i = 0;
+			foreach (var item in items)
+			{
+				if (count == 1)
+				{
+					if (item.Amount >= minAmount)
+					{
+						yield return new SmartCoin[] { item };
+					}
+				}
+				else
+				{
+					foreach (var result in items.Skip(i + 1).GetPermutations(count - 1))
+					{
+						if (item.Amount + result.Sum(x => x.Amount) >= minAmount)
+						{
+							yield return new SmartCoin[] { item }.Concat(result);
+						}
 					}
 				}
 
