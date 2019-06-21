@@ -109,19 +109,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public decimal TotalAmount
 		{
 			get => _totalAmount;
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _totalAmount, value);
-			}
+			set => this.RaiseAndSetIfChanged(ref _totalAmount, value);
 		}
 
 		public bool IsAnyCoinSelected
 		{
 			get => _isAnyCoinSelected;
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _isAnyCoinSelected, value);
-			}
+			set => this.RaiseAndSetIfChanged(ref _isAnyCoinSelected, value);
 		}
 
 		private void RefreshOrdering()
@@ -241,7 +235,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			RootList = new SourceList<CoinViewModel>();
 			RootList.Connect()
-				.OnItemRemoved(x => x.UnsubscribeEvents())
 				.Sort(MyComparer, comparerChanged: sortChanged, resetThreshold: 5)
 				.Bind(out _coinViewModels)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -426,12 +419,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 									if (toRemove != default)
 									{
 										RootList.Remove(toRemove);
+										toRemove.UnsubscribeEvents();
 									}
 								}
 								break;
 
 							case NotifyCollectionChangedAction.Reset:
-								ClearRootList();
+								{
+									ClearRootList();
+								}
 								break;
 						}
 					}
@@ -445,13 +441,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SetCoinJoinStatusWidth();
 		}
 
-		private void ClearRootList() => RootList.Clear();
+		private void ClearRootList()
+		{
+			IEnumerable<CoinViewModel> toRemoves = RootList?.Items?.ToList() ?? Enumerable.Empty<CoinViewModel>(); // Clone so we can unsubscribe after clear.
+			RootList?.Clear();
+
+			foreach (CoinViewModel toRemove in toRemoves)
+			{
+				toRemove.UnsubscribeEvents();
+			}
+		}
 
 		public void OnClose()
 		{
 			ClearRootList();
 
 			Disposables?.Dispose();
+			Disposables = null;
 		}
 
 		private void SetSelections()
@@ -483,7 +489,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			SetSelections();
 			SelectionChanged?.Invoke(this, cvm);
-			TotalAmount = Coins.Where(x=>x.IsSelected).Sum(x=>x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC));
+			TotalAmount = Coins.Where(x => x.IsSelected).Sum(x => x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC));
 		}
 
 		public void OnCoinStatusChanged()
