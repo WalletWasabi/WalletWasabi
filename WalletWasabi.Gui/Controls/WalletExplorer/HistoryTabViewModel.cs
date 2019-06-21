@@ -128,7 +128,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			List<Transaction> trs = new List<Transaction>();
 			var txRecordList = new List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)>();
 
-			if(walletService == null)
+			if (walletService == null)
 			{
 				return txRecordList;
 			}

@@ -26,6 +26,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _isExpanded;
 			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
 		}
+
 		public WalletViewModel(Global global, bool receiveDominant)
 			: base(global, Path.GetFileNameWithoutExtension(global.WalletService.KeyManager.FilePath))
 		{

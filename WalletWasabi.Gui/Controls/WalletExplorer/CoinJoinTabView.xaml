@@ -41,7 +41,7 @@
             </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding AmountQueued, Converter={StaticResource CoinJoinedVisibilityConverter}}">
               <TextBlock Text="You have queued" />
-              <TextBlock Foreground="YellowGreen" IsVisible="{Binding IsLurkingWifeMode, Converter={StaticResource InverseBooleanConverter}}" Text="{Binding AmountQueued, Converter={StaticResource MoneyStringConverter}}"  />
+              <TextBlock Foreground="YellowGreen" IsVisible="{Binding IsLurkingWifeMode, Converter={StaticResource InverseBooleanConverter}}" Text="{Binding AmountQueued, Converter={StaticResource MoneyStringConverter}}" />
               <TextBlock Foreground="YellowGreen" IsVisible="{Binding IsLurkingWifeMode}" Text="{Binding AmountQueued, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
               <TextBlock Foreground="YellowGreen" Text="BTC" />
               <TextBlock Text="for CoinJoin." />

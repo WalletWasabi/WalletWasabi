@@ -20,6 +20,7 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			Global = global ?? throw new ArgumentNullException(nameof(global));
 		}
+
 		public Global Global { get; }
 		public Guid Id { get; set; } = Guid.NewGuid();
 		public virtual string Title { get; set; }

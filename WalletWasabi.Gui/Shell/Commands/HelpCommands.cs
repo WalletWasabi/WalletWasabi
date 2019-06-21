@@ -17,6 +17,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 	internal class HelpCommands
 	{
 		public Global Global { get; }
+
 		[ImportingConstructor]
 		public HelpCommands(CommandIconService commandIconService, AvaloniaGlobalComponent global)
 		{

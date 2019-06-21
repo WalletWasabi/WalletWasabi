@@ -42,6 +42,7 @@ namespace WalletWasabi.Gui
 				(PlatformImpl as Avalonia.Native.WindowImpl).SetTitleBarColor(color);
 			}
 		}
+
 		public Global Global => (DataContext as MainWindowViewModel)?.Global;
 
 		private void InitializeComponent()

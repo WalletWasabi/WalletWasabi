@@ -21,6 +21,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public HdPubKey Model { get; }
 		public Global Global { get; }
+
 		public AddressViewModel(HdPubKey model, Global global)
 		{
 			Global = global;

@@ -83,6 +83,7 @@ namespace WalletWasabi.Gui.ViewModels
 			get => _canClose;
 			set => this.RaiseAndSetIfChanged(ref _canClose, value);
 		}
+
 		public Global Global { get; internal set; }
 	}
 }

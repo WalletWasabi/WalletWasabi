@@ -27,6 +27,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private int _minGapLimit;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		public Global Global { get; }
+
 		public RecoverWalletViewModel(WalletManagerViewModel owner) : base("Recover Wallet")
 		{
 			Global = owner.Global;

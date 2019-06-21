@@ -23,6 +23,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private ViewModelBase _currentView;
 		private LoadWalletViewModel LoadWalletViewModelDesktop { get; }
 		private LoadWalletViewModel LoadWalletViewModelHardware { get; }
+
 		[ImportingConstructor]
 		public WalletManagerViewModel(AvaloniaGlobalComponent global) : base(global.Global, "Wallet Manager")
 		{

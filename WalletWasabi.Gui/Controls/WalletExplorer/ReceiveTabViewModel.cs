@@ -170,7 +170,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_addresses?.Clear();
 			var walletService = Global.WalletService;
 
-			if(walletService == null)
+			if (walletService == null)
 			{
 				return;
 			}

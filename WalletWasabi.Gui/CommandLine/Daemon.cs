@@ -12,11 +12,13 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	public class Daemon
 	{
-		public Global Global { get;  }
+		public Global Global { get; }
+
 		public Daemon(Global global)
 		{
 			Global = global;
 		}
+
 		internal async Task RunAsync(string walletName, bool mixAll, bool keepMixAlive)
 		{
 			try

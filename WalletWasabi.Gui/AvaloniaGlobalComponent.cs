@@ -13,6 +13,7 @@ namespace WalletWasabi.Gui
 		// Avalonia, we can't use Avalonia's IoC to create our singleton as it will
 		// create a new instance.
 		public static Global AvaloniaInstance { get; set; }
+
 		public Global Global => AvaloniaInstance;
 	}
 }

@@ -24,6 +24,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<bool> _unavailable;
 		private CoinListViewModel _owner;
 		public Global Global => _owner.Global;
+
 		public CoinViewModel(CoinListViewModel owner, SmartCoin model)
 		{
 			Model = model;

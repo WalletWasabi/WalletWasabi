@@ -28,6 +28,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		[Import]
 		public AvaloniaGlobalComponent GlobalComponent { get; set; }
+
 		public Global Global => GlobalComponent?.Global;
 
 		private ObservableCollection<WalletViewModel> _wallets;
