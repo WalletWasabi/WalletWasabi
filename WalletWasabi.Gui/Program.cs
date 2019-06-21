@@ -27,6 +27,7 @@ namespace WalletWasabi.Gui
 			{
 				Global = new Global();
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
+				AvaloniaGlobalComponent.AvaloniaInstance = Global;
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
@@ -41,7 +42,6 @@ namespace WalletWasabi.Gui
 					.BeforeStarting(async builder =>
 					{
 						MainWindowViewModel.Instance = new MainWindowViewModel();
-						AvaloniaGlobalComponent.AvaloniaInstance = Global;
 						MainWindowViewModel.Instance.Global = Global;
 						statusBar = new StatusBarViewModel(Global);
 						MainWindowViewModel.Instance.StatusBar = statusBar;
