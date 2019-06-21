@@ -424,6 +424,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 									if (toRemove != default)
 									{
 										RootList.Remove(toRemove);
+										toRemove.UnsubscribeEvents();
 									}
 								}
 								break;
