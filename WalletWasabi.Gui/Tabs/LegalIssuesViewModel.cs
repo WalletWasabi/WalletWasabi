@@ -7,7 +7,7 @@ namespace WalletWasabi.Gui.Tabs
 {
 	internal class LegalIssuesViewModel : WasabiDocumentTabViewModel
 	{
-		public LegalIssuesViewModel() : base("Legal Issues")
+		public LegalIssuesViewModel(Global global) : base(global, "Legal Issues")
 		{
 			LegalIssues = @"
 Legal statement of Wasabi Wallet

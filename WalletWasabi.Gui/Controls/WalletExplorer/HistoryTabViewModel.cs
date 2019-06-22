@@ -121,14 +121,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private static List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)> BuildTxRecordList()
+		private List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)> BuildTxRecordList()
 		{
 			var walletService = Global.WalletService;
 
 			List<Transaction> trs = new List<Transaction>();
 			var txRecordList = new List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)>();
 
-			if(walletService == null)
+			if (walletService == null)
 			{
 				return txRecordList;
 			}

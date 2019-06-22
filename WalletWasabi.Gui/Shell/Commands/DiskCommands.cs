@@ -1,4 +1,4 @@
-﻿using AvalonStudio.Commands;
+using AvalonStudio.Commands;
 using ReactiveUI;
 using System;
 using System.Composition;
@@ -9,9 +9,12 @@ namespace WalletWasabi.Gui.Shell.Commands
 {
 	internal class DiskCommands
 	{
+		private readonly Global Global;
+
 		[ImportingConstructor]
-		public DiskCommands(CommandIconService commandIconService)
+		public DiskCommands(CommandIconService commandIconService, AvaloniaGlobalComponent global)
 		{
+			Global = global.Global;
 			var onOpenDataFolder = ReactiveCommand.Create(OnOpenDataFolder);
 			var onOpenWalletsFolder = ReactiveCommand.Create(OnOpenWalletsFolder);
 			var onOpenLogFile = ReactiveCommand.Create(OnOpenLogFile);

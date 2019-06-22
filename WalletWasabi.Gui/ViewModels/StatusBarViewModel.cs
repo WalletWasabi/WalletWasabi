@@ -52,11 +52,12 @@ namespace WalletWasabi.Gui.ViewModels
 		private string _btcPrice;
 		private ObservableAsPropertyHelper<StatusBarStatus> _status;
 		private bool _downloadingBlock;
-
+		public Global Global { get; }
 		private StatusBarStatusSet ActiveStatuses { get; }
 
-		public StatusBarViewModel()
+		public StatusBarViewModel(Global global)
 		{
+			Global = global;
 			UpdateStatus = UpdateStatus.Latest;
 			UpdateAvailable = false;
 			CriticalUpdateAvailable = false;
@@ -198,7 +199,7 @@ namespace WalletWasabi.Gui.ViewModels
 				catch (Exception ex)
 				{
 					Logging.Logger.LogWarning<StatusBarViewModel>(ex);
-					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
+					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
 				}
 			}, this.WhenAnyValue(x => x.UpdateStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)

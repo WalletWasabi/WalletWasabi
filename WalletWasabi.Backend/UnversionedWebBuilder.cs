@@ -51,7 +51,7 @@ namespace WalletWasabi.Backend
 			var endContent = "</ul>";
 			string blockstreamPath;
 			string onionBlockstreamPath;
-			if (Global.Config.Network == Network.TestNet)
+			if (Global.Instance.Config.Network == Network.TestNet)
 			{
 				blockstreamPath = "https://blockstream.info/testnet/tx/";
 				onionBlockstreamPath = "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion/testnet/tx/";

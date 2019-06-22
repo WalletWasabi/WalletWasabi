@@ -68,7 +68,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						Addresses.Remove(found);
 					}
 
-					var newAddress = new AddressViewModel(newKey);
+					var newAddress = new AddressViewModel(newKey, Global);
 
 					Addresses.Insert(0, newAddress);
 
@@ -170,7 +170,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_addresses?.Clear();
 			var walletService = Global.WalletService;
 
-			if(walletService == null)
+			if (walletService == null)
 			{
 				return;
 			}
@@ -181,7 +181,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 																		&& x.KeyState == KeyState.Clean)
 																	.Reverse())
 			{
-				_addresses.Add(new AddressViewModel(key));
+				_addresses.Add(new AddressViewModel(key, Global));
 			}
 		}
 

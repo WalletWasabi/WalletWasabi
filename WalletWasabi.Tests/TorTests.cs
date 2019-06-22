@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -16,7 +16,7 @@ namespace WalletWasabi.Tests
 	{
 		public TorTests()
 		{
-			var torManager = new TorProcessManager(Global.TorSocks5Endpoint, Global.TorLogsFile);
+			var torManager = new TorProcessManager(Global.Instance.TorSocks5Endpoint, Global.Instance.TorLogsFile);
 			torManager.Start(ensureRunning: true, dataDir: Path.GetFullPath(AppContext.BaseDirectory));
 			Task.Delay(3000).GetAwaiter().GetResult();
 		}
@@ -24,7 +24,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CanDoRequestManyDifferentAsync()
 		{
-			using (var client = new TorHttpClient(new Uri("http://api.qbit.ninja"), Global.TorSocks5Endpoint))
+			using (var client = new TorHttpClient(new Uri("http://api.qbit.ninja"), Global.Instance.TorSocks5Endpoint))
 			{
 				await QBitTestAsync(client, 10, alterRequests: true);
 			}
@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CanRequestChunkEncodedAsync()
 		{
-			using (var client = new TorHttpClient(new Uri("https://jigsaw.w3.org/"), Global.TorSocks5Endpoint))
+			using (var client = new TorHttpClient(new Uri("https://jigsaw.w3.org/"), Global.Instance.TorSocks5Endpoint))
 			{
 				var response = await client.SendAsync(HttpMethod.Get, "/HTTP/ChunkedScript");
 				var content = await response.Content.ReadAsStringAsync();
@@ -55,7 +55,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CanDoBasicPostHttpsRequestAsync()
 		{
-			using (var client = new TorHttpClient(new Uri("https://api.smartbit.com.au"), Global.TorSocks5Endpoint))
+			using (var client = new TorHttpClient(new Uri("https://api.smartbit.com.au"), Global.Instance.TorSocks5Endpoint))
 			{
 				HttpContent content = new StringContent("{\"hex\": \"01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff2d03a58605204d696e656420627920416e74506f6f6c20757361311f10b53620558903d80272a70c0000724c0600ffffffff010f9e5096000000001976a9142ef12bd2ac1416406d0e132e5bc8d0b02df3861b88ac00000000\"}");
 
@@ -82,7 +82,7 @@ namespace WalletWasabi.Tests
 			}
 
 			// 2. Get Tor IP
-			using (var client = new TorHttpClient(new Uri(requestUri), Global.TorSocks5Endpoint))
+			using (var client = new TorHttpClient(new Uri(requestUri), Global.Instance.TorSocks5Endpoint))
 			{
 				var content = await (await client.SendAsync(HttpMethod.Get, "")).Content.ReadAsStringAsync();
 				var gotIp = IPAddress.TryParse(content.Replace("\n", ""), out torIp);
@@ -95,7 +95,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CanDoHttpsAsync()
 		{
-			using (var client = new TorHttpClient(new Uri("https://slack.com"), Global.TorSocks5Endpoint))
+			using (var client = new TorHttpClient(new Uri("https://slack.com"), Global.Instance.TorSocks5Endpoint))
 			{
 				var content =
 					await (await client.SendAsync(HttpMethod.Get, "api/api.test")).Content.ReadAsStringAsync();
@@ -107,7 +107,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CanDoIpAddressAsync()
 		{
-			using (var client = new TorHttpClient(new Uri("http://172.217.6.142"), Global.TorSocks5Endpoint))
+			using (var client = new TorHttpClient(new Uri("http://172.217.6.142"), Global.Instance.TorSocks5Endpoint))
 			{
 				var content = await (await client.SendAsync(HttpMethod.Get, "")).Content.ReadAsStringAsync();
 
@@ -118,7 +118,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CanRequestInRowAsync()
 		{
-			using (var client = new TorHttpClient(new Uri("http://api.qbit.ninja"), Global.TorSocks5Endpoint))
+			using (var client = new TorHttpClient(new Uri("http://api.qbit.ninja"), Global.Instance.TorSocks5Endpoint))
 			{
 				await (await client.SendAsync(HttpMethod.Get, "/transactions/38d4cfeb57d6685753b7a3b3534c3cb576c34ca7344cd4582f9613ebf0c2b02a?format=json&headeronly=true")).Content.ReadAsStringAsync();
 				await (await client.SendAsync(HttpMethod.Get, "/balances/15sYbVpRh6dyWycZMwPdxJWD4xbfxReeHe?unspentonly=true")).Content.ReadAsStringAsync();
@@ -129,7 +129,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CanRequestOnionV2Async()
 		{
-			using (var client = new TorHttpClient(new Uri("http://expyuzz4wqqyqhjn.onion/"), Global.TorSocks5Endpoint))
+			using (var client = new TorHttpClient(new Uri("http://expyuzz4wqqyqhjn.onion/"), Global.Instance.TorSocks5Endpoint))
 			{
 				HttpResponseMessage response = await client.SendAsync(HttpMethod.Get, "");
 				var content = await response.Content.ReadAsStringAsync();
@@ -143,7 +143,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CanRequestOnionV3Async()
 		{
-			using (var client = new TorHttpClient(new Uri("http://dds6qkxpwdeubwucdiaord2xgbbeyds25rbsgr73tbfpqpt4a6vjwsyd.onion"), Global.TorSocks5Endpoint))
+			using (var client = new TorHttpClient(new Uri("http://dds6qkxpwdeubwucdiaord2xgbbeyds25rbsgr73tbfpqpt4a6vjwsyd.onion"), Global.Instance.TorSocks5Endpoint))
 			{
 				HttpResponseMessage response = await client.SendAsync(HttpMethod.Get, "");
 				var content = await response.Content.ReadAsStringAsync();
@@ -157,9 +157,9 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task DoesntIsolateStreamsAsync()
 		{
-			using (var c1 = new TorHttpClient(new Uri("http://api.ipify.org"), Global.TorSocks5Endpoint))
-			using (var c2 = new TorHttpClient(new Uri("http://api.ipify.org"), Global.TorSocks5Endpoint))
-			using (var c3 = new TorHttpClient(new Uri("http://api.ipify.org"), Global.TorSocks5Endpoint))
+			using (var c1 = new TorHttpClient(new Uri("http://api.ipify.org"), Global.Instance.TorSocks5Endpoint))
+			using (var c2 = new TorHttpClient(new Uri("http://api.ipify.org"), Global.Instance.TorSocks5Endpoint))
+			using (var c3 = new TorHttpClient(new Uri("http://api.ipify.org"), Global.Instance.TorSocks5Endpoint))
 			{
 				var t1 = c1.SendAsync(HttpMethod.Get, "");
 				var t2 = c2.SendAsync(HttpMethod.Get, "");
@@ -179,9 +179,9 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task IsolatesStreamsAsync()
 		{
-			using (var c1 = new TorHttpClient(new Uri("http://api.ipify.org"), Global.TorSocks5Endpoint, isolateStream: true))
-			using (var c2 = new TorHttpClient(new Uri("http://api.ipify.org"), Global.TorSocks5Endpoint, isolateStream: true))
-			using (var c3 = new TorHttpClient(new Uri("http://api.ipify.org"), Global.TorSocks5Endpoint, isolateStream: true))
+			using (var c1 = new TorHttpClient(new Uri("http://api.ipify.org"), Global.Instance.TorSocks5Endpoint, isolateStream: true))
+			using (var c2 = new TorHttpClient(new Uri("http://api.ipify.org"), Global.Instance.TorSocks5Endpoint, isolateStream: true))
+			using (var c3 = new TorHttpClient(new Uri("http://api.ipify.org"), Global.Instance.TorSocks5Endpoint, isolateStream: true))
 			{
 				var t1 = c1.SendAsync(HttpMethod.Get, "");
 				var t2 = c2.SendAsync(HttpMethod.Get, "");
@@ -216,7 +216,7 @@ namespace WalletWasabi.Tests
 				var task = client.SendAsync(HttpMethod.Get, relativetUri);
 				if (alterRequests)
 				{
-					using (var ipClient = new TorHttpClient(new Uri("https://api.ipify.org/"), Global.TorSocks5Endpoint))
+					using (var ipClient = new TorHttpClient(new Uri("https://api.ipify.org/"), Global.Instance.TorSocks5Endpoint))
 					{
 						var task2 = ipClient.SendAsync(HttpMethod.Get, "/");
 						tasks.Add(task2);

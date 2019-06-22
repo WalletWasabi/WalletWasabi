@@ -56,6 +56,8 @@ namespace WalletWasabi.Gui.Behaviors
 
 		public async Task<(bool isAddress, string address)> IsThereABitcoinAddressOnTheClipboardAsync()
 		{
+			var global = Application.Current.Resources[Global.GlobalResourceKey] as Global;
+			var network = global.Network;
 			string text = await Application.Current.Clipboard.GetTextAsync();
 			if (string.IsNullOrEmpty(text) || text.Length > 100)
 			{
@@ -65,7 +67,7 @@ namespace WalletWasabi.Gui.Behaviors
 			text = text.Trim();
 			try
 			{
-				var bitcoinAddress = BitcoinAddress.Create(text, Global.Network);
+				var bitcoinAddress = BitcoinAddress.Create(text, network);
 				return (true, bitcoinAddress.ToString());
 			}
 			catch (FormatException)

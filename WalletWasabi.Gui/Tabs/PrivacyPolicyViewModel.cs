@@ -8,7 +8,7 @@ namespace WalletWasabi.Gui.Tabs
 {
 	internal class PrivacyPolicyViewModel : WasabiDocumentTabViewModel
 	{
-		public PrivacyPolicyViewModel() : base("Privacy Policy")
+		public PrivacyPolicyViewModel(Global global) : base(global, "Privacy Policy")
 		{
 			PrivacyPolicy = @"
 Thank you for your interest in zkSNACKs. The protection of your privacy and thus the protection of your (personal) data is Our highest priority. This policy describes the ways zkSNACKs collect, store, use and protect personal information. The purpose of this policy is to ensure that zkSNACKs complies with applicable European Union (EU) and other statutory data protection laws and regulations, and ensures that users are provided privacy protection.

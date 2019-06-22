@@ -12,7 +12,14 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	public class Daemon
 	{
-		internal static async Task RunAsync(string walletName, bool mixAll, bool keepMixAlive)
+		public Global Global { get; }
+
+		public Daemon(Global global)
+		{
+			Global = global;
+		}
+
+		internal async Task RunAsync(string walletName, bool mixAll, bool keepMixAlive)
 		{
 			try
 			{
@@ -111,7 +118,7 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 		}
 
-		public static KeyManager TryGetKeymanagerFromWalletName(string walletName)
+		public KeyManager TryGetKeymanagerFromWalletName(string walletName)
 		{
 			try
 			{
@@ -153,7 +160,7 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 		}
 
-		private static async Task TryQueueCoinsToMixAsync(bool mixAll, string password)
+		private async Task TryQueueCoinsToMixAsync(bool mixAll, string password)
 		{
 			try
 			{

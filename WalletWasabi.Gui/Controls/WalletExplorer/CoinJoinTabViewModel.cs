@@ -9,13 +9,13 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Services;
-using static WalletWasabi.Gui.Models.ShieldLevelHelper;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -48,7 +48,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Password = "";
 
-			CoinsList = new CoinListViewModel();
+			CoinsList = new CoinListViewModel(Global);
 
 			Observable.FromEventPattern(CoinsList, nameof(CoinsList.DequeueCoinsPressed)).Subscribe(_ => OnCoinsListDequeueCoinsPressedAsync());
 
@@ -118,7 +118,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.TargetPrivacy).Subscribe(target =>
 			{
-				CoinJoinUntilAnonimitySet = GetTargetLevel(target);
+				CoinJoinUntilAnonimitySet = Global.Config.GetTargetLevel(target);
 			});
 		}
 
@@ -133,7 +133,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Disposables = new CompositeDisposable();
 
-			TargetPrivacy = GetTargetPrivacy(Global.Config.MixUntilAnonymitySet);
+			TargetPrivacy = Global.Config.GetTargetPrivacy();
 
 			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
 
@@ -451,10 +451,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _targetPrivacy, value);
 		}
 
-		public bool IsLurkingWifeMode
-		{
-			get => Global.UiConfig.LurkingWifeMode is true;
-		}
+		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
 
 		public ReactiveCommand<Unit, Unit> EnqueueCommand { get; }
 

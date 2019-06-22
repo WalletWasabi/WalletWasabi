@@ -26,7 +26,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 		{
 			using (await Lock.LockAsync())
 			{
-				WorkingDirectory = Path.Combine(Global.DataDir, caller);
+				WorkingDirectory = Path.Combine(Global.Instance.DataDir, caller);
 				version = version ?? "0.18.0";
 				var path = await EnsureDownloadedAsync(version);
 				return new NodeBuilder(WorkingDirectory, path);
@@ -61,7 +61,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			string bitcoindFolderName = $"bitcoin-{version}";
 
 			// Remove old bitcoind folders.
-			IEnumerable<string> existingBitcoindFolderPaths = Directory.EnumerateDirectories(Global.DataDir, "bitcoin-*", SearchOption.TopDirectoryOnly);
+			IEnumerable<string> existingBitcoindFolderPaths = Directory.EnumerateDirectories(Global.Instance.DataDir, "bitcoin-*", SearchOption.TopDirectoryOnly);
 			foreach (string dirPath in existingBitcoindFolderPaths)
 			{
 				string dirName = Path.GetFileName(dirPath);
@@ -73,13 +73,13 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				bitcoind = Path.Combine(Global.DataDir, bitcoindFolderName, "bin", "bitcoind.exe");
+				bitcoind = Path.Combine(Global.Instance.DataDir, bitcoindFolderName, "bin", "bitcoind.exe");
 				if (File.Exists(bitcoind))
 				{
 					return bitcoind;
 				}
 
-				zip = Path.Combine(Global.DataDir, $"bitcoin-{version}-win64.zip");
+				zip = Path.Combine(Global.Instance.DataDir, $"bitcoin-{version}-win64.zip");
 				string url = string.Format("https://bitcoincore.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
 				using (var client = new HttpClient())
 				{
@@ -91,15 +91,15 @@ namespace WalletWasabi.Tests.NodeBuilding
 			}
 			else
 			{
-				bitcoind = Path.Combine(Global.DataDir, bitcoindFolderName, "bin", "bitcoind");
+				bitcoind = Path.Combine(Global.Instance.DataDir, bitcoindFolderName, "bin", "bitcoind");
 				if (File.Exists(bitcoind))
 				{
 					return bitcoind;
 				}
 
 				zip = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ?
-					Path.Combine(Global.DataDir, $"bitcoin-{version}-x86_64-linux-gnu.tar.gz")
-					: Path.Combine(Global.DataDir, $"bitcoin-{version}-osx64.tar.gz");
+					Path.Combine(Global.Instance.DataDir, $"bitcoin-{version}-x86_64-linux-gnu.tar.gz")
+					: Path.Combine(Global.Instance.DataDir, $"bitcoin-{version}-osx64.tar.gz");
 
 				string url = string.Format("https://bitcoincore.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
 				using (var client = new HttpClient())
@@ -108,7 +108,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 					var data = await client.GetByteArrayAsync(url);
 					await File.WriteAllBytesAsync(zip, data);
 
-					using (var process = Process.Start("tar", "-zxvf " + zip + " -C " + Global.DataDir))
+					using (var process = Process.Start("tar", "-zxvf " + zip + " -C " + Global.Instance.DataDir))
 					{
 						process.WaitForExit();
 					}

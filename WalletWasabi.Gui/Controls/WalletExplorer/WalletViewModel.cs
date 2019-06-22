@@ -27,10 +27,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
 		}
 
-		public WalletViewModel(WalletService walletService, bool receiveDominant)
-			: base(Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath))
+		public WalletViewModel(Global global, bool receiveDominant)
+			: base(global, Path.GetFileNameWithoutExtension(global.WalletService.KeyManager.FilePath))
 		{
-			WalletService = walletService;
+			WalletService = global.WalletService;
 			var keyManager = WalletService.KeyManager;
 			Name = Path.GetFileNameWithoutExtension(keyManager.FilePath);
 
@@ -40,13 +40,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SendTabViewModel sendTab = null;
 			// If hardware wallet then we need the Send tab.
-			if (walletService?.KeyManager?.IsHardwareWallet is true)
+			if (WalletService?.KeyManager?.IsHardwareWallet is true)
 			{
 				sendTab = new SendTabViewModel(this);
 				Actions.Add(sendTab);
 			}
 			// If not hardware wallet, but neither watch only then we also need the send tab.
-			else if (walletService?.KeyManager?.IsWatchOnly is false)
+			else if (WalletService?.KeyManager?.IsWatchOnly is false)
 			{
 				sendTab = new SendTabViewModel(this);
 				Actions.Add(sendTab);

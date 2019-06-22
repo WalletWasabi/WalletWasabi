@@ -15,6 +15,7 @@ namespace WalletWasabi.Gui
 {
 	internal class Program
 	{
+		private static Global Global;
 #pragma warning disable IDE1006 // Naming Styles
 
 		private static async Task Main(string[] args)
@@ -24,11 +25,13 @@ namespace WalletWasabi.Gui
 			bool runGui = false;
 			try
 			{
+				Global = new Global();
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
+				AvaloniaGlobalComponent.AvaloniaInstance = Global;
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-				runGui = await CommandInterpreter.ExecuteCommandsAsync(args);
+				runGui = await CommandInterpreter.ExecuteCommandsAsync(Global, args);
 				if (!runGui)
 				{
 					return;
@@ -39,7 +42,8 @@ namespace WalletWasabi.Gui
 					.BeforeStarting(async builder =>
 					{
 						MainWindowViewModel.Instance = new MainWindowViewModel();
-						statusBar = new StatusBarViewModel();
+						MainWindowViewModel.Instance.Global = Global;
+						statusBar = new StatusBarViewModel(Global);
 						MainWindowViewModel.Instance.StatusBar = statusBar;
 
 						await Global.InitializeNoWalletAsync();
@@ -50,7 +54,6 @@ namespace WalletWasabi.Gui
 						{
 							MainWindowViewModel.Instance.Title += $" - {Global.Network}";
 						}
-
 						Dispatcher.UIThread.Post(() =>
 						{
 							GC.Collect();

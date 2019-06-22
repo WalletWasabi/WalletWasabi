@@ -23,6 +23,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<bool> _confirmed;
 		private ObservableAsPropertyHelper<bool> _unavailable;
 		private CoinListViewModel _owner;
+		public Global Global => _owner.Global;
 
 		public CoinViewModel(CoinListViewModel owner, SmartCoin model)
 		{
@@ -41,17 +42,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			//TODO defer subscription to when accessed (will be faster in ui.)
 			_coinJoinInProgress = Model.WhenAnyValue(x => x.CoinJoinInProgress)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.ToProperty(this, x => x.CoinJoinInProgress)
+				.ToProperty(this, x => x.CoinJoinInProgress, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
-			_unspent = Model.WhenAnyValue(x => x.Unspent).ToProperty(this, x => x.Unspent, scheduler: RxApp.MainThreadScheduler)
+			_unspent = Model.WhenAnyValue(x => x.Unspent)
+				.ToProperty(this, x => x.Unspent, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
-			_confirmed = Model.WhenAnyValue(x => x.Confirmed).ToProperty(this, x => x.Confirmed, scheduler: RxApp.MainThreadScheduler)
+			_confirmed = Model.WhenAnyValue(x => x.Confirmed)
+				.ToProperty(this, x => x.Confirmed, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
-			_unavailable = Model.WhenAnyValue(x => x.Unavailable).ToProperty(this, x => x.Unavailable, scheduler: RxApp.MainThreadScheduler)
+			_unavailable = Model.WhenAnyValue(x => x.Unavailable)
+				.ToProperty(this, x => x.Unavailable, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.Status)

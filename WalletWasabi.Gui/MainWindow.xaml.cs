@@ -6,8 +6,10 @@ using AvalonStudio.Extensibility;
 using AvalonStudio.Extensibility.Theme;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Controls;
+using NBitcoin;
 using System;
 using System.ComponentModel;
+using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -41,11 +43,22 @@ namespace WalletWasabi.Gui
 			}
 		}
 
+		public Global Global => (DataContext as MainWindowViewModel)?.Global;
+
 		private void InitializeComponent()
 		{
 			Activated += OnActivated;
 			Closing += MainWindow_ClosingAsync;
 			AvaloniaXamlLoader.Load(this);
+		}
+
+		protected override void OnDataContextEndUpdate()
+		{
+			if (Global == null)
+				return;
+			Application.Current.Resources.AddOrReplace(Global.GlobalResourceKey, Global);
+			Application.Current.Resources.AddOrReplace(Global.ConfigResourceKey, Global.Config);
+			Application.Current.Resources.AddOrReplace(Global.UiConfigResourceKey, Global.UiConfig);
 		}
 
 		private int _closingState;
@@ -88,7 +101,7 @@ namespace WalletWasabi.Gui
 
 				if (!MainWindowViewModel.Instance.CanClose)
 				{
-					var dialog = new CannotCloseDialogViewModel();
+					var dialog = new CannotCloseDialogViewModel(Global);
 
 					closeApplication = await MainWindowViewModel.Instance.ShowDialogAsync(dialog); // start the deque process with a dialog
 				}
@@ -161,6 +174,7 @@ namespace WalletWasabi.Gui
 				var uiConfig = new UiConfig(uiConfigFilePath);
 				await uiConfig.LoadOrCreateDefaultFileAsync();
 				Global.InitializeUiConfig(uiConfig);
+				Application.Current.Resources.AddOrReplace(Global.UiConfigResourceKey, Global.UiConfig);
 				Logging.Logger.LogInfo<UiConfig>("UiConfig is successfully initialized.");
 
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -183,7 +197,7 @@ namespace WalletWasabi.Gui
 
 		private void DisplayWalletManager()
 		{
-			var walletManagerViewModel = new WalletManagerViewModel();
+			var walletManagerViewModel = IoC.Get<WalletManagerViewModel>();
 			IoC.Get<IShell>().AddDocument(walletManagerViewModel);
 
 			var isAnyDesktopWalletAvailable = Directory.Exists(Global.WalletsDir) && Directory.EnumerateFiles(Global.WalletsDir).Any();

@@ -26,9 +26,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _accountKeyPath;
 		private int _minGapLimit;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
+		public Global Global { get; }
 
 		public RecoverWalletViewModel(WalletManagerViewModel owner) : base("Recover Wallet")
 		{
+			Global = owner.Global;
 			MnemonicWords = "";
 
 			RecoverCommand = ReactiveCommand.Create(() =>
@@ -173,17 +175,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public void OnTermsClicked()
 		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel());
+			IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel(Global));
 		}
 
 		public void OnPrivacyClicked()
 		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel());
+			IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel(Global));
 		}
 
 		public void OnLegalClicked()
 		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel());
+			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel(Global));
 		}
 
 		public override void OnCategorySelected()
@@ -192,7 +194,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			Password = null;
 			MnemonicWords = "";
-			WalletName = Utils.GetNextWalletName();
+
+			WalletName = Global.GetNextWalletName();
+
 			ValidationMessage = null;
 			ShowAdvancedOptions = false;
 			AccountKeyPath = $"m/{KeyManager.DefaultAccountKeyPath}";

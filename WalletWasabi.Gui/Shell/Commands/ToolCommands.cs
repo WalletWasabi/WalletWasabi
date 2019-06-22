@@ -15,14 +15,17 @@ namespace WalletWasabi.Gui.Shell.Commands
 {
 	internal class ToolCommands
 	{
+		public Global Global { get; }
+
 		[ImportingConstructor]
-		public ToolCommands(CommandIconService commandIconService)
+		public ToolCommands(CommandIconService commandIconService, AvaloniaGlobalComponent global)
 		{
+			Global = global.Global;
 			var walletManagerCommand = ReactiveCommand.Create(OnWalletManager);
 
 			var settingsCommand = ReactiveCommand.Create(() =>
 			{
-				IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel());
+				IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel(Global));
 			});
 
 			Observable

@@ -47,6 +47,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
 		private WalletManagerViewModel Owner { get; }
+		public Global Global => Owner.Global;
 		public LoadWalletType LoadWalletType { get; }
 
 		public bool IsPasswordRequired => LoadWalletType == LoadWalletType.Password;
@@ -499,7 +500,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 						Logger.LogInfo<LoadWalletViewModel>("Hardware wallet wasn't used previously on this computer. Creating new wallet file.");
 
-						walletName = Utils.GetNextHardwareWalletName(selectedWallet.HardwareWalletInfo);
+						walletName = Global.GetNextHardwareWalletName(selectedWallet.HardwareWalletInfo);
 						var path = Global.GetWalletFullPath(walletName);
 						KeyManager.CreateNewHardwareWalletWatchOnly(selectedWallet.HardwareWalletInfo.MasterFingerprint.Value, extPubKey, path);
 					}
@@ -562,7 +563,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 		}
 
-		private static bool TryFindWalletByMasterFingerprint(HDFingerprint masterFingerprint, out string walletName)
+		private bool TryFindWalletByMasterFingerprint(HDFingerprint masterFingerprint, out string walletName)
 		{
 			// Start searching for the real wallet name.
 			walletName = null;

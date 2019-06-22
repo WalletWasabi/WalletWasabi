@@ -1,4 +1,5 @@
-﻿using Avalonia.Data.Converters;
+using Avalonia;
+using Avalonia.Data.Converters;
 using Avalonia.Media;
 using System;
 using System.Collections.Generic;
@@ -16,8 +17,8 @@ namespace WalletWasabi.Gui.Converters
 			{
 				throw new ArgumentException($"Unknown '{parameter}' value");
 			}
-
-			var phaseError = Global.ChaumianClient.State.IsInErrorState;
+			var global = Application.Current.Resources[Global.GlobalResourceKey] as Global;
+			var phaseError = global.ChaumianClient.State.IsInErrorState;
 
 			return ((CcjRoundPhase)p <= (CcjRoundPhase)value)
 				? (phaseError ? Brushes.IndianRed : Brushes.Green)

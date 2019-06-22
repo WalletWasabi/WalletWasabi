@@ -12,12 +12,12 @@ namespace WalletWasabi.Gui.CommandLine
 	public static class CommandInterpreter
 	{
 		/// <returns>If the GUI should run or not.</returns>
-		public static async Task<bool> ExecuteCommandsAsync(string[] args)
+		public static async Task<bool> ExecuteCommandsAsync(Global global, string[] args)
 		{
 			var showHelp = false;
 			var showVersion = false;
-
-			Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
+			var daemon = new Daemon(global);
+			Logger.InitializeDefaults(Path.Combine(daemon.Global.DataDir, "Logs.txt"));
 
 			if (args.Length == 0)
 			{
@@ -36,8 +36,8 @@ namespace WalletWasabi.Gui.CommandLine
 					"",
 					"Available commands are:",
 					"",
-					new MixerCommand(),
-					new PasswordFinderCommand()
+					new MixerCommand(daemon),
+					new PasswordFinderCommand(daemon)
 				};
 
 			EnsureBackwardCompatibilityWithOldParameters(ref args);

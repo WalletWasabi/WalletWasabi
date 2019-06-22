@@ -36,7 +36,7 @@ namespace WalletWasabi.Gui.Tabs
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
 
-		public SettingsViewModel() : base("Settings")
+		public SettingsViewModel(Global global) : base(global, "Settings")
 		{
 			var config = new Config(Global.Config.FilePath);
 			Autocopy = Global.UiConfig?.Autocopy is true;

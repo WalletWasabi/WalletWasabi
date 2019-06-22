@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using AvalonStudio.Commands;
@@ -34,18 +34,19 @@ namespace WalletWasabi.Gui.Converters
 
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
+			var config = Application.Current.Resources[Global.ConfigResourceKey] as Config;
 			if (value is int integer)
 			{
 				string shield;
-				if (integer < Global.Config.PrivacyLevelSome)
+				if (integer < config.PrivacyLevelSome)
 				{
 					shield = "Critical";
 				}
-				else if (integer < Global.Config.PrivacyLevelFine)
+				else if (integer < config.PrivacyLevelFine)
 				{
 					shield = "Some";
 				}
-				else if (integer < Global.Config.PrivacyLevelStrong)
+				else if (integer < config.PrivacyLevelStrong)
 				{
 					shield = "Fine";
 				}

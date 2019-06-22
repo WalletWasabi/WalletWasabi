@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Threading;
 using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
@@ -20,9 +20,11 @@ namespace WalletWasabi.Gui.ViewModels
 		private double _clipboardNotificationOpacity;
 
 		public HdPubKey Model { get; }
+		public Global Global { get; }
 
-		public AddressViewModel(HdPubKey model)
+		public AddressViewModel(HdPubKey model, Global global)
 		{
+			Global = global;
 			Model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;

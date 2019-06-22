@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using NBitcoin;
@@ -17,7 +17,7 @@ namespace WalletWasabi.Gui.Converters
 			{
 				if (expanded)
 				{
-					return Application.Current.Resources["ThemeBackgroundBrush"];
+					return Application.Current.Resources[Global.ThemeBackgroundBrushResourceKey] as IBrush;
 				}
 
 				return Brushes.Transparent;
