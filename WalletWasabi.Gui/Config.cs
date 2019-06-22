@@ -69,6 +69,15 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "RegTestBitcoinCorePort")]
 		public int? RegTestBitcoinCorePort { get; internal set; }
 
+		[JsonProperty(PropertyName = "MainNetFetchFromLocalOnly")]
+		public bool MainNetFetchFromLocalOnly { get; internal set; }
+
+		[JsonProperty(PropertyName = "TestNetFetchFromLocalOnly")]
+		public bool TestNetFetchFromLocalOnly { get; internal set; }
+
+		[JsonProperty(PropertyName = "RegTestFetchFromLocalOnly")]
+		public bool RegTestFetchFromLocalOnly { get; internal set; }
+
 		[JsonProperty(PropertyName = "MixUntilAnonymitySet")]
 		public int? MixUntilAnonymitySet
 		{
@@ -450,7 +459,18 @@ namespace WalletWasabi.Gui
 			{
 				return true;
 			}
-
+			if (MainNetFetchFromLocalOnly != config.MainNetFetchFromLocalOnly)
+			{
+				return true;
+			}
+			if (TestNetFetchFromLocalOnly != config.TestNetFetchFromLocalOnly)
+			{
+				return true;
+			}
+			if (RegTestFetchFromLocalOnly != config.RegTestFetchFromLocalOnly)
+			{
+				return true;
+			}
 			if (UseTor != config.UseTor)
 			{
 				return true;

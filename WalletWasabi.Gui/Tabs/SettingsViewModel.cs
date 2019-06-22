@@ -22,12 +22,12 @@ namespace WalletWasabi.Gui.Tabs
 		private string _network;
 		private string _torHost;
 		private string _torPort;
+		private string _localNodeHost;
+		private string _localNodePort;
+		private bool _fetchBlocksFromMyNodeOnly;
 		private bool _autocopy;
-		private string _autocopyText;
 		private bool _useTor;
-		private string _useTorText;
 		private bool _isModified;
-
 		private string _somePrivacyLevel;
 		private string _finePrivacyLevel;
 		private string _strongPrivacyLevel;
@@ -41,8 +41,25 @@ namespace WalletWasabi.Gui.Tabs
 			var config = new Config(Global.Config.FilePath);
 			Autocopy = Global.UiConfig?.Autocopy is true;
 
+			this.WhenAnyValue(x => x.Network)
+				.Subscribe(x => {
+					var (configLocalHost, configLocalPort, fetchFromLocalOnly) = Network == NBitcoin.Network.Main.Name 
+						? (config.MainNetBitcoinCoreHost, config.MainNetBitcoinCorePort, config.MainNetFetchFromLocalOnly)
+						: (Network == NBitcoin.Network.TestNet.Name 
+							? (config.TestNetBitcoinCoreHost, config.TestNetBitcoinCorePort, config.TestNetFetchFromLocalOnly)
+							: (config.RegTestBitcoinCoreHost, config.RegTestBitcoinCorePort, config.RegTestFetchFromLocalOnly));
+
+					LocalNodeHost = configLocalHost;
+					LocalNodePort = configLocalPort.ToString();
+					FetchBlocksFromMyNodeOnly = fetchFromLocalOnly;
+				});
+
 			this.WhenAnyValue(x => x.Network,
 				x => x.TorHost, x => x.TorPort, x => x.UseTor)
+				.Subscribe(x => Save());
+
+			this.WhenAnyValue( x => x.FetchBlocksFromMyNodeOnly,
+				x => x.LocalNodeHost, x => x.LocalNodePort)
 				.Subscribe(x => Save());
 
 			this.WhenAnyValue(
@@ -56,14 +73,7 @@ namespace WalletWasabi.Gui.Tabs
 				{
 					Global.UiConfig.Autocopy = x;
 					await Global.UiConfig.ToFileAsync();
-
-					AutocopyText = x ? "On" : "Off";
 				});
-			});
-
-			this.WhenAnyValue(x => x.UseTor).Subscribe(x =>
-			{
-				UseTorText = x ? "On" : "Off";
 			});
 
 			Dispatcher.UIThread.PostLogException(async () =>
@@ -73,7 +83,7 @@ namespace WalletWasabi.Gui.Tabs
 				Network = config.Network.ToString();
 				TorHost = config.TorHost;
 				TorPort = config.TorSocks5Port.ToString();
-				UseTor = config.UseTor.Value;
+				UseTor  = config.UseTor.Value;
 
 				SomePrivacyLevel = config.PrivacyLevelSome.ToString();
 				FinePrivacyLevel = config.PrivacyLevelFine.ToString();
@@ -105,7 +115,6 @@ namespace WalletWasabi.Gui.Tabs
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(LurkingWifeMode));
-				this.RaisePropertyChanged(nameof(LurkingWifeModeText));
 			}).DisposeWith(Disposables);
 
 			base.OnOpen();
@@ -146,6 +155,26 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _torPort, value);
 		}
 
+		[ValidateMethod(nameof(ValidateLocalNodeHost))]
+		public string LocalNodeHost
+		{
+			get => _localNodeHost;
+			set => this.RaiseAndSetIfChanged(ref _localNodeHost, value);
+		}
+
+		[ValidateMethod(nameof(ValidateLocalNodePort))]
+		public string LocalNodePort
+		{
+			get => _localNodePort;
+			set => this.RaiseAndSetIfChanged(ref _localNodePort, value);
+		}
+
+		public bool FetchBlocksFromMyNodeOnly
+		{
+			get => _fetchBlocksFromMyNodeOnly;
+			set => this.RaiseAndSetIfChanged(ref _fetchBlocksFromMyNodeOnly, value);
+		}
+		
 		public bool IsModified
 		{
 			get => _isModified;
@@ -158,22 +187,10 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _autocopy, value);
 		}
 
-		public string AutocopyText
-		{
-			get => _autocopyText;
-			set => this.RaiseAndSetIfChanged(ref _autocopyText, value);
-		}
-
 		public bool UseTor
 		{
 			get => _useTor;
 			set => this.RaiseAndSetIfChanged(ref _useTor, value);
-		}
-
-		public string UseTorText
-		{
-			get => _useTorText;
-			set => this.RaiseAndSetIfChanged(ref _useTorText, value);
 		}
 
 		[ValidateMethod(nameof(ValidateSomePrivacyLevel))]
@@ -206,12 +223,12 @@ namespace WalletWasabi.Gui.Tabs
 
 		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
 
-		public string LurkingWifeModeText => Global.UiConfig.LurkingWifeMode is true ? "On" : "Off";
-
 		private void Save()
 		{
-			var isValid = string.IsNullOrEmpty(ValidateTorHost()) &&
-							string.IsNullOrEmpty(ValidateTorPort());
+			var isValid = string.IsNullOrEmpty(ValidateTorHost())
+						&& string.IsNullOrEmpty(ValidateTorPort())
+						&& string.IsNullOrEmpty(ValidateLocalNodeHost())
+						&& string.IsNullOrEmpty(ValidateLocalNodePort());
 			if (!isValid)
 			{
 				return;
@@ -234,12 +251,21 @@ namespace WalletWasabi.Gui.Tabs
 
 				var network = NBitcoin.Network.GetNetwork(Network);
 				var torHost = TorHost;
+				var localNodeHost = LocalNodeHost;
+				var localNodePort = LocalNodePort;
+				var fetchFromLocalOnly = FetchBlocksFromMyNodeOnly;
 				var torSocks5Port = int.TryParse(TorPort, out var port) ? (int?)port : null;
 				var useTor = UseTor;
 				var somePrivacyLevel = int.TryParse(SomePrivacyLevel, out int level) ? (int?)level : null;
 				var finePrivacyLevel = int.TryParse(FinePrivacyLevel, out level) ? (int?)level : null;
 				var strongPrivacyLevel = int.TryParse(StrongPrivacyLevel, out level) ? (int?)level : null;
 				var dustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? (decimal?)threshold : null;
+
+				var (configLocalHost, configLocalPort, configFetchFromLocalOnly) = network == NBitcoin.Network.Main 
+					? (config.MainNetBitcoinCoreHost, config.MainNetBitcoinCorePort, config.MainNetFetchFromLocalOnly)
+					: (network == NBitcoin.Network.TestNet 
+						? (config.TestNetBitcoinCoreHost, config.TestNetBitcoinCorePort, config.TestNetFetchFromLocalOnly)
+						: (config.RegTestBitcoinCoreHost, config.RegTestBitcoinCorePort, config.RegTestFetchFromLocalOnly));
 
 				if (config.Network != network
 					|| config.TorHost != torHost
@@ -248,7 +274,11 @@ namespace WalletWasabi.Gui.Tabs
 					|| config.PrivacyLevelSome != somePrivacyLevel
 					|| config.PrivacyLevelFine != finePrivacyLevel
 					|| config.PrivacyLevelStrong != strongPrivacyLevel
-					|| config.DustThreshold.ToUnit(MoneyUnit.BTC) != dustThreshold)
+					|| config.DustThreshold.ToUnit(MoneyUnit.BTC) != dustThreshold
+					|| configLocalHost != localNodeHost
+					|| configLocalPort.ToString() != localNodePort
+					|| configFetchFromLocalOnly != fetchFromLocalOnly
+				)
 				{
 					config.Network = network;
 					config.TorHost = torHost;
@@ -259,6 +289,25 @@ namespace WalletWasabi.Gui.Tabs
 					config.PrivacyLevelStrong = strongPrivacyLevel;
 					config.DustThreshold = Money.Coins(dustThreshold.Value);
 
+					switch(network.Name)
+					{
+						case "Main":
+							config.MainNetBitcoinCoreHost = localNodeHost;
+							config.MainNetBitcoinCorePort = int.Parse(localNodePort);
+							config.MainNetFetchFromLocalOnly = fetchFromLocalOnly;
+							break;
+						case "TestNet":
+							config.TestNetBitcoinCoreHost = localNodeHost;
+							config.TestNetBitcoinCorePort = int.Parse(localNodePort);
+							config.TestNetFetchFromLocalOnly = fetchFromLocalOnly;
+							break;
+						case "RegTest":
+							config.RegTestBitcoinCoreHost = localNodeHost;
+							config.RegTestBitcoinCorePort = int.Parse(localNodePort);
+							config.RegTestFetchFromLocalOnly = fetchFromLocalOnly;
+							break;
+					}
+
 					await config.ToFileAsync();
 
 					IsModified = await Global.Config.CheckFileChangeAsync();
@@ -267,44 +316,16 @@ namespace WalletWasabi.Gui.Tabs
 		}
 
 		public string ValidateTorHost()
-		{
-			if (string.IsNullOrWhiteSpace(TorHost))
-			{
-				return string.Empty;
-			}
+			=> ValidateHost(TorHost);
 
-			var torHost = TorHost.Trim();
-			if (Uri.TryCreate(torHost, UriKind.Absolute, out _))
-			{
-				return string.Empty;
-			}
-			if (IPAddress.TryParse(torHost, out var ip))
-			{
-				if (ip.AddressFamily == AddressFamily.InterNetworkV6 && !Socket.OSSupportsIPv6)
-				{
-					return "OS does not support IPv6 addresses.";
-				}
-				return string.Empty;
-			}
-
-			return "Invalid host.";
-		}
+		public string ValidateLocalNodeHost()
+			=> ValidateHost(LocalNodeHost);
 
 		public string ValidateTorPort()
-		{
-			if (string.IsNullOrEmpty(TorPort))
-			{
-				return string.Empty;
-			}
+			=> ValidatePort(TorPort);
 
-			var torPort = TorPort.Trim();
-			if (ushort.TryParse(torPort, out _))
-			{
-				return string.Empty;
-			}
-
-			return "Invalid port.";
-		}
+		public string ValidateLocalNodePort()
+			=> ValidatePort(LocalNodePort);
 
 		public string ValidateSomePrivacyLevel()
 			=> ValidatePrivacyLevel(SomePrivacyLevel);
@@ -343,6 +364,46 @@ namespace WalletWasabi.Gui.Tabs
 			}
 
 			return "Invalid dust amount.";
+		}
+
+		public string ValidateHost(string host)
+		{
+			if (string.IsNullOrWhiteSpace(host))
+			{
+				return string.Empty;
+			}
+
+			var theHost = host.Trim();
+			if (Uri.TryCreate(theHost, UriKind.Absolute, out _))
+			{
+				return string.Empty;
+			}
+			if (IPAddress.TryParse(theHost, out var ip))
+			{
+				if (ip.AddressFamily == AddressFamily.InterNetworkV6 && !Socket.OSSupportsIPv6)
+				{
+					return "OS does not support IPv6 addresses.";
+				}
+				return string.Empty;
+			}
+
+			return "Invalid host.";
+		}
+
+		public string ValidatePort(string port)
+		{
+			if (string.IsNullOrEmpty(port))
+			{
+				return string.Empty;
+			}
+
+			var thePort = port.Trim();
+			if (ushort.TryParse(thePort, out _))
+			{
+				return string.Empty;
+			}
+
+			return "Invalid port.";
 		}
 
 		private void OpenConfigFile()
