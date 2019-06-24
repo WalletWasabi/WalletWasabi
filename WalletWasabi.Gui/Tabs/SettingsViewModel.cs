@@ -23,11 +23,8 @@ namespace WalletWasabi.Gui.Tabs
 		private string _torHost;
 		private string _torPort;
 		private bool _autocopy;
-		private string _autocopyText;
 		private bool _useTor;
-		private string _useTorText;
 		private bool _isModified;
-
 		private string _somePrivacyLevel;
 		private string _finePrivacyLevel;
 		private string _strongPrivacyLevel;
@@ -56,14 +53,7 @@ namespace WalletWasabi.Gui.Tabs
 				{
 					Global.UiConfig.Autocopy = x;
 					await Global.UiConfig.ToFileAsync();
-
-					AutocopyText = x ? "On" : "Off";
 				});
-			});
-
-			this.WhenAnyValue(x => x.UseTor).Subscribe(x =>
-			{
-				UseTorText = x ? "On" : "Off";
 			});
 
 			Dispatcher.UIThread.PostLogException(async () =>
@@ -105,7 +95,6 @@ namespace WalletWasabi.Gui.Tabs
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(LurkingWifeMode));
-				this.RaisePropertyChanged(nameof(LurkingWifeModeText));
 			}).DisposeWith(Disposables);
 
 			base.OnOpen();
@@ -158,22 +147,10 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _autocopy, value);
 		}
 
-		public string AutocopyText
-		{
-			get => _autocopyText;
-			set => this.RaiseAndSetIfChanged(ref _autocopyText, value);
-		}
-
 		public bool UseTor
 		{
 			get => _useTor;
 			set => this.RaiseAndSetIfChanged(ref _useTor, value);
-		}
-
-		public string UseTorText
-		{
-			get => _useTorText;
-			set => this.RaiseAndSetIfChanged(ref _useTorText, value);
 		}
 
 		[ValidateMethod(nameof(ValidateSomePrivacyLevel))]
@@ -205,8 +182,6 @@ namespace WalletWasabi.Gui.Tabs
 		}
 
 		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
-
-		public string LurkingWifeModeText => Global.UiConfig.LurkingWifeMode is true ? "On" : "Off";
 
 		private void Save()
 		{
