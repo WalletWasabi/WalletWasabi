@@ -20,6 +20,8 @@ namespace WalletWasabi.Stores
 		public IndexStore IndexStore { get; private set; }
 		public HashChain HashChain { get; private set; }
 
+		public MempoolStore MempoolStore { get; private set; }
+
 		public async Task InitializeAsync(string workFolderPath, Network network)
 		{
 			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
@@ -28,9 +30,18 @@ namespace WalletWasabi.Stores
 			Network = Guard.NotNull(nameof(network), network);
 
 			IndexStore = new IndexStore();
-			var indexStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString());
+			MempoolStore = new MempoolStore();
+			var indexStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString(), "IndexStore");
+			var mempoolStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString(), "MempoolStore");
 			HashChain = new HashChain();
-			await IndexStore.InitializeAsync(indexStoreFolderPath, Network, HashChain);
+
+			var initTasks = new List<Task>
+			{
+				IndexStore.InitializeAsync(indexStoreFolderPath, Network, HashChain),
+				MempoolStore.InitializeAsync(mempoolStoreFolderPath, Network)
+			};
+
+			await Task.WhenAll(initTasks);
 		}
 	}
 }

@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using System.Collections.Generic;
 using WalletWasabi.Models;
 
@@ -129,5 +129,11 @@ namespace System.Linq
 				++i;
 			}
 		}
+
+		public static IEnumerable<SmartTransaction> OrderByBlockchain(this IEnumerable<SmartTransaction> me)
+			=> me
+				.OrderBy(x => x.Height)
+				.ThenBy(x => x.BlockIndex)
+				.ThenBy(x => x.FirstSeenIfMemPoolTime ?? DateTime.UtcNow);
 	}
 }
