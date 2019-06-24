@@ -250,10 +250,10 @@ namespace NBitcoin
 			return psbt.ExtractSmartTransaction(Height.Unknown);
 		}
 
-		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt, Height height)
+		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt, Height height, uint256 blockHash = null, int blockIndex = 0)
 		{
 			var extractedTx = psbt.ExtractTransaction();
-			return new SmartTransaction(extractedTx, height);
+			return new SmartTransaction(extractedTx, height, blockHash, blockIndex);
 		}
 	}
 }

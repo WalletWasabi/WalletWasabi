@@ -488,7 +488,7 @@ namespace WalletWasabi.Services
 					for (int i = 0; i < block.Transactions.Count; i++)
 					{
 						Transaction tx = block.Transactions[i];
-						if (await ProcessTransactionAsync(new SmartTransaction(tx, height)))
+						if (await ProcessTransactionAsync(new SmartTransaction(tx, height, block.GetHash(), i)))
 						{
 							relevantIndicies.Add(i);
 							ret = true;
@@ -510,7 +510,7 @@ namespace WalletWasabi.Services
 					foreach (var i in filterByTxIds.OrderBy(x => x))
 					{
 						Transaction tx = block.Transactions[i];
-						if (await ProcessTransactionAsync(new SmartTransaction(tx, height)))
+						if (await ProcessTransactionAsync(new SmartTransaction(tx, height, block.GetHash(), i)))
 						{
 							ret = true;
 						}
@@ -545,7 +545,7 @@ namespace WalletWasabi.Services
 					SmartTransaction foundTx = TransactionCache.FirstOrDefault(x => x == tx);
 					if (foundTx != default(SmartTransaction)) // Must check again, because it's a concurrent collection!
 					{
-						foundTx.SetHeight(tx.Height);
+						foundTx.SetHeight(tx.Height, tx.BlockHash, tx.BlockIndex);
 						walletRelevant = true;
 						justUpdate = true; // No need to check for double spend, we already processed this transaction, just update it.
 					}

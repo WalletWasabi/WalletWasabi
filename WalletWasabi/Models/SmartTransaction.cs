@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using WalletWasabi.Helpers;
@@ -18,6 +18,13 @@ namespace WalletWasabi.Models
 		[JsonProperty]
 		[JsonConverter(typeof(HeightJsonConverter))]
 		public Height Height { get; private set; }
+
+		[JsonProperty]
+		[JsonConverter(typeof(Uint256JsonConverter))]
+		public uint256 BlockHash { get; private set; }
+
+		[JsonProperty]
+		public int BlockIndex { get; private set; }
 
 		[JsonProperty]
 		public string Label { get; set; }
@@ -56,12 +63,12 @@ namespace WalletWasabi.Models
 		}
 
 		[JsonConstructor]
-		public SmartTransaction(Transaction transaction, Height height, string label = "", DateTimeOffset? firstSeenIfMemPoolTime = null, bool isReplacement = false)
+		public SmartTransaction(Transaction transaction, Height height, uint256 blockHash = null, int blockIndex = 0, string label = "", DateTimeOffset? firstSeenIfMemPoolTime = null, bool isReplacement = false)
 		{
 			Transaction = transaction;
 			Label = Guard.Correct(label);
 
-			SetHeight(height);
+			SetHeight(height, blockHash, blockIndex);
 			if (firstSeenIfMemPoolTime != null)
 			{
 				FirstSeenIfMemPoolTime = firstSeenIfMemPoolTime;
@@ -69,7 +76,7 @@ namespace WalletWasabi.Models
 			IsReplacement = isReplacement;
 		}
 
-		public void SetHeight(Height height)
+		public void SetHeight(Height height, uint256 blockHash = null, int blockIndex = 0)
 		{
 			Height = height;
 			if (height == Height.MemPool)
@@ -80,6 +87,9 @@ namespace WalletWasabi.Models
 			{
 				FirstSeenIfMemPoolTime = null;
 			}
+
+			BlockHash = blockHash;
+			BlockIndex = blockIndex;
 		}
 
 		public void SetReplacement()
