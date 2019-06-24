@@ -397,18 +397,18 @@ namespace WalletWasabi.Tests
 			// Check digest file, and write only differ logic.
 
 			// Write the same content, file should not be written.
-			var currentDate = File.GetLastWriteTimeUtc(ioman1.OriginalFilePath);
+			var currentDate = File.GetLastWriteTimeUtc(ioman1.FilePath);
 			await Task.Delay(500);
 			await ioman1.WriteAllLinesAsync(lines);
-			var noChangeDate = File.GetLastWriteTimeUtc(ioman1.OriginalFilePath);
+			var noChangeDate = File.GetLastWriteTimeUtc(ioman1.FilePath);
 			Assert.Equal(currentDate, noChangeDate);
 
 			// Write different content, file should be written.
-			currentDate = File.GetLastWriteTimeUtc(ioman1.OriginalFilePath);
+			currentDate = File.GetLastWriteTimeUtc(ioman1.FilePath);
 			await Task.Delay(500);
 			lines.Add("Lorem ipsum dolor sit amet, consectetur adipiscing elit.");
 			await ioman1.WriteAllLinesAsync(lines);
-			var newContentDate = File.GetLastWriteTimeUtc(ioman1.OriginalFilePath);
+			var newContentDate = File.GetLastWriteTimeUtc(ioman1.FilePath);
 			Assert.NotEqual(currentDate, newContentDate);
 
 			/* The next test is commented out because on mac and on linux File.Open does not lock the file
@@ -466,8 +466,8 @@ namespace WalletWasabi.Tests
 			// Simulate file write error and recovery logic.
 
 			// We have only *.new and *.old files.
-			File.Copy(ioman1.OriginalFilePath, ioman1.OldFilePath);
-			File.Move(ioman1.OriginalFilePath, ioman1.NewFilePath);
+			File.Copy(ioman1.FilePath, ioman1.OldFilePath);
+			File.Move(ioman1.FilePath, ioman1.NewFilePath);
 
 			// At this point there is now OriginalFile.
 
@@ -483,7 +483,7 @@ namespace WalletWasabi.Tests
 			// Check recovery mechanism.
 
 			Assert.True(
-				File.Exists(ioman1.OriginalFilePath) &&
+				File.Exists(ioman1.FilePath) &&
 				!File.Exists(ioman1.OldFilePath) &&
 				!File.Exists(ioman1.NewFilePath));
 
@@ -493,7 +493,7 @@ namespace WalletWasabi.Tests
 
 			// Check if directory is empty.
 
-			var fileCount = Directory.EnumerateFiles(Path.GetDirectoryName(ioman1.OriginalFilePath)).Count();
+			var fileCount = Directory.EnumerateFiles(Path.GetDirectoryName(ioman1.FilePath)).Count();
 			Assert.Equal(0, fileCount);
 
 			// Check Mutex usage on simultaneous file writes.
@@ -516,7 +516,7 @@ namespace WalletWasabi.Tests
 			});
 
 			// TryReplace test.
-			var dummyFilePath = $"{ioman1.OriginalFilePath}dummy";
+			var dummyFilePath = $"{ioman1.FilePath}dummy";
 			var dummyContent = new string[]
 			{
 				"banana",

@@ -14,9 +14,8 @@ namespace WalletWasabi.Stores
 	/// <summary>
 	/// Safely manager file operations.
 	/// </summary>
-	public class IoManager
+	public class IoManager : FileAsyncMutexProvider
 	{
-		public string OriginalFilePath { get; }
 		public string OldFilePath { get; }
 		public string NewFilePath { get; }
 		public string DigestFilePath { get; }
@@ -26,46 +25,26 @@ namespace WalletWasabi.Stores
 		/// </summary>
 		private int? DigestRandomIndex { get; }
 
-		public string FileName { get; }
-		public string FileNameWithoutExtension { get; }
-		public AsyncMutex Mutex { get; }
-
 		private const string OldExtension = ".old";
 		private const string NewExtension = ".new";
 		private const string DigestExtension = ".dig";
 
 		/// <param name="digestRandomIndex">Use the random index of the line to create digest faster. -1 is special value, it means the last character. If null then hash whole file.</param>
-		public IoManager(string filePath, int? digestRandomIndex = null)
+		public IoManager(string filePath, int? digestRandomIndex = null) : base(filePath)
 		{
 			DigestRandomIndex = digestRandomIndex;
-			OriginalFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath, trim: true);
-			OldFilePath = $"{OriginalFilePath}{OldExtension}";
-			NewFilePath = $"{OriginalFilePath}{NewExtension}";
-			DigestFilePath = $"{OriginalFilePath}{DigestExtension}";
-
-			FileName = Path.GetFileName(OriginalFilePath);
-			var shortHash = HashHelpers.GenerateSha256Hash(OriginalFilePath).Substring(0, 7);
-			FileNameWithoutExtension = Path.GetFileNameWithoutExtension(OriginalFilePath);
-
-			// https://docs.microsoft.com/en-us/dotnet/api/system.threading.mutex?view=netframework-4.8
-			// On a server that is running Terminal Services, a named system mutex can have two levels of visibility.
-			// If its name begins with the prefix "Global\", the mutex is visible in all terminal server sessions.
-			// If its name begins with the prefix "Local\", the mutex is visible only in the terminal server session where it was created.
-			// In that case, a separate mutex with the same name can exist in each of the other terminal server sessions on the server.
-			// If you do not specify a prefix when you create a named mutex, it takes the prefix "Local\".
-			// Within a terminal server session, two mutexes whose names differ only by their prefixes are separate mutexes,
-			// and both are visible to all processes in the terminal server session.
-			// That is, the prefix names "Global\" and "Local\" describe the scope of the mutex name relative to terminal server sessions, not relative to processes.
-			Mutex = new AsyncMutex($"{FileNameWithoutExtension}-{shortHash}");
+			OldFilePath = $"{FilePath}{OldExtension}";
+			NewFilePath = $"{FilePath}{NewExtension}";
+			DigestFilePath = $"{FilePath}{DigestExtension}";
 		}
 
 		#region IoOperations
 
 		public void DeleteMe()
 		{
-			if (File.Exists(OriginalFilePath))
+			if (File.Exists(FilePath))
 			{
-				File.Delete(OriginalFilePath);
+				File.Delete(FilePath);
 			}
 
 			if (File.Exists(NewFilePath))
@@ -107,17 +86,17 @@ namespace WalletWasabi.Stores
 		/// </summary>
 		private void SafeMoveToOriginal(string source)
 		{
-			if (File.Exists(OriginalFilePath))
+			if (File.Exists(FilePath))
 			{
 				if (File.Exists(OldFilePath))
 				{
 					File.Delete(OldFilePath);
 				}
 
-				File.Move(OriginalFilePath, OldFilePath);
+				File.Move(FilePath, OldFilePath);
 			}
 
-			File.Move(source, OriginalFilePath);
+			File.Move(source, FilePath);
 
 			if (File.Exists(OldFilePath))
 			{
@@ -132,10 +111,10 @@ namespace WalletWasabi.Stores
 		{
 			// If foo.data and foo.data.new exist, load foo.data; foo.data.new may be broken (e.g. power off during write).
 			bool newExists = File.Exists(NewFilePath);
-			bool originalExists = File.Exists(OriginalFilePath);
+			bool originalExists = File.Exists(FilePath);
 			if (newExists && originalExists)
 			{
-				safestFilePath = OriginalFilePath;
+				safestFilePath = FilePath;
 				return true;
 			}
 
@@ -152,7 +131,7 @@ namespace WalletWasabi.Stores
 			// if (File.Exists(originalPath) && File.Exists(oldPath))
 			if (originalExists)
 			{
-				safestFilePath = OriginalFilePath;
+				safestFilePath = FilePath;
 				return true;
 			}
 
@@ -319,7 +298,7 @@ namespace WalletWasabi.Stores
 
 		public async Task<string[]> ReadAllLinesAsync(CancellationToken cancellationToken = default)
 		{
-			var filePath = OriginalFilePath;
+			var filePath = FilePath;
 			if (TryGetSafestFileVersion(out string safestFilePath))
 			{
 				filePath = safestFilePath;
@@ -335,7 +314,7 @@ namespace WalletWasabi.Stores
 		/// <param name="bufferSize">Size of the bytes to handle sync way. The default is 1Mb.</param>
 		public StreamReader OpenText(int bufferSize = Constants.BigFileReadWriteBufferSize)
 		{
-			var filePath = OriginalFilePath;
+			var filePath = FilePath;
 			if (TryGetSafestFileVersion(out string safestFilePath))
 			{
 				filePath = safestFilePath;
