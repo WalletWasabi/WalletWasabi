@@ -356,7 +356,7 @@ namespace WalletWasabi.Tests
 
 			// Single thread file operations.
 
-			IoManager ioman1 = new IoManager(file1);
+			SafeIoManager ioman1 = new SafeIoManager(file1);
 
 			// Delete the file if Exist.
 
@@ -498,7 +498,7 @@ namespace WalletWasabi.Tests
 
 			// Check Mutex usage on simultaneous file writes.
 
-			IoManager ioman2 = new IoManager(file2);
+			SafeIoManager ioman2 = new SafeIoManager(file2);
 
 			await Task.Run(async () =>
 			{
@@ -542,7 +542,7 @@ namespace WalletWasabi.Tests
 		{
 			var file = Path.Combine(Global.Instance.DataDir, nameof(IoTestsAsync), $"file.dat");
 
-			IoManager ioman = new IoManager(file);
+			SafeIoManager ioman = new SafeIoManager(file);
 			ioman.DeleteMe();
 			await ioman.WriteAllLinesAsync(new string[0], dismissNullOrEmptyContent: false);
 

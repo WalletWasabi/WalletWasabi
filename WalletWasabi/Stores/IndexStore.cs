@@ -22,8 +22,8 @@ namespace WalletWasabi.Stores
 	{
 		private string WorkFolderPath { get; set; }
 		private Network Network { get; set; }
-		private IoManager MatureIndexFileManager { get; set; }
-		private IoManager ImmatureIndexFileManager { get; set; }
+		private SafeIoManager MatureIndexFileManager { get; set; }
+		private SafeIoManager ImmatureIndexFileManager { get; set; }
 		public HashChain HashChain { get; private set; }
 
 		private FilterModel StartingFilter { get; set; }
@@ -41,9 +41,9 @@ namespace WalletWasabi.Stores
 			Network = Guard.NotNull(nameof(network), network);
 			HashChain = Guard.NotNull(nameof(hashChain), hashChain);
 			var indexFilePath = Path.Combine(WorkFolderPath, "MatureIndex.dat");
-			MatureIndexFileManager = new IoManager(indexFilePath, digestRandomIndex: -1);
+			MatureIndexFileManager = new SafeIoManager(indexFilePath, digestRandomIndex: -1);
 			var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
-			ImmatureIndexFileManager = new IoManager(immatureIndexFilePath, digestRandomIndex: -1);
+			ImmatureIndexFileManager = new SafeIoManager(immatureIndexFilePath, digestRandomIndex: -1);
 
 			StartingFilter = StartingFilters.GetStartingFilter(Network);
 			StartingHeight = StartingFilters.GetStartingHeight(Network);

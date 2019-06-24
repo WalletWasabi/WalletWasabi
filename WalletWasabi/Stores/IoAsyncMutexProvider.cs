@@ -7,7 +7,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Stores
 {
-	public abstract class FileAsyncMutexProvider
+	public class IoAsyncMutexProvider
 	{
 		public string FilePath { get; }
 
@@ -15,7 +15,7 @@ namespace WalletWasabi.Stores
 		public string FileNameWithoutExtension { get; }
 		public AsyncMutex Mutex { get; }
 
-		public FileAsyncMutexProvider(string filePath)
+		public IoAsyncMutexProvider(string filePath)
 		{
 			FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath, trim: true);
 
