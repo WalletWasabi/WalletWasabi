@@ -32,7 +32,7 @@ namespace WalletWasabi.Gui.ViewModels
 			// TODO fix this performance issue this should only be generated when accessed.
 			Task.Run(() =>
 			{
-				var encoder = new QrEncoder(ErrorCorrectionLevel.M);
+				var encoder = new QrEncoder();
 				encoder.TryEncode(Address, out var qrCode);
 
 				return qrCode.Matrix.InternalArray;
