@@ -10,14 +10,7 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is bool boolean)
 			{
-				if (boolean)
-				{
-					return "On";
-				}
-				else
-				{
-					return "Off";
-				}
+				return (boolean) ? "On" : "Off";
 			}
 
 			throw new InvalidOperationException();
