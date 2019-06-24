@@ -7,12 +7,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.Stores
+namespace WalletWasabi.Io
 {
-	public class IoManager : IoAsyncMutexProvider
+	public class IoManager
 	{
-		public IoManager(string filePath) : base(filePath)
+		public string FilePath { get; }
+
+		public string FileName { get; }
+		public string FileNameWithoutExtension { get; }
+		public IoManager(string filePath)
 		{
+			FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath, trim: true);
+			FileName = Path.GetFileName(FilePath);
+			FileNameWithoutExtension = Path.GetFileNameWithoutExtension(FilePath);
 		}
 
 		#region IoOperations

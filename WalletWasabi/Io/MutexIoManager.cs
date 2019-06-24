@@ -5,23 +5,15 @@ using System.IO;
 using System.Text;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.Stores
+namespace WalletWasabi.Io
 {
-	public class IoAsyncMutexProvider
+	public class MutexIoManager : IoManager
 	{
-		public string FilePath { get; }
-
-		public string FileName { get; }
-		public string FileNameWithoutExtension { get; }
 		public AsyncMutex Mutex { get; }
 
-		public IoAsyncMutexProvider(string filePath)
+		public MutexIoManager(string filePath) : base(filePath)
 		{
-			FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath, trim: true);
-
-			FileName = Path.GetFileName(FilePath);
 			var shortHash = HashHelpers.GenerateSha256Hash(FilePath).Substring(0, 7);
-			FileNameWithoutExtension = Path.GetFileNameWithoutExtension(FilePath);
 
 			// https://docs.microsoft.com/en-us/dotnet/api/system.threading.mutex?view=netframework-4.8
 			// On a server that is running Terminal Services, a named system mutex can have two levels of visibility.

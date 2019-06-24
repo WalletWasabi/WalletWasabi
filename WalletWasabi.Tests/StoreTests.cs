@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Io;
 using WalletWasabi.Stores;
 using Xunit;
 using Xunit.Sdk;
@@ -356,7 +357,7 @@ namespace WalletWasabi.Tests
 
 			// Single thread file operations.
 
-			SafeIoManager ioman1 = new SafeIoManager(file1);
+			DigestableSafeMutexIoManager ioman1 = new DigestableSafeMutexIoManager(file1);
 
 			// Delete the file if Exist.
 
@@ -498,7 +499,7 @@ namespace WalletWasabi.Tests
 
 			// Check Mutex usage on simultaneous file writes.
 
-			SafeIoManager ioman2 = new SafeIoManager(file2);
+			DigestableSafeMutexIoManager ioman2 = new DigestableSafeMutexIoManager(file2);
 
 			await Task.Run(async () =>
 			{
@@ -542,7 +543,7 @@ namespace WalletWasabi.Tests
 		{
 			var file = Path.Combine(Global.Instance.DataDir, nameof(IoTestsAsync), $"file.dat");
 
-			SafeIoManager ioman = new SafeIoManager(file);
+			DigestableSafeMutexIoManager ioman = new DigestableSafeMutexIoManager(file);
 			ioman.DeleteMe();
 			await ioman.WriteAllLinesAsync(new string[0], dismissNullOrEmptyContent: false);
 

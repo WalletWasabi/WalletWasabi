@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Helpers;
+using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -22,8 +23,8 @@ namespace WalletWasabi.Stores
 	{
 		private string WorkFolderPath { get; set; }
 		private Network Network { get; set; }
-		private SafeIoManager MatureIndexFileManager { get; set; }
-		private SafeIoManager ImmatureIndexFileManager { get; set; }
+		private DigestableSafeMutexIoManager MatureIndexFileManager { get; set; }
+		private DigestableSafeMutexIoManager ImmatureIndexFileManager { get; set; }
 		public HashChain HashChain { get; private set; }
 
 		private FilterModel StartingFilter { get; set; }
@@ -41,9 +42,9 @@ namespace WalletWasabi.Stores
 			Network = Guard.NotNull(nameof(network), network);
 			HashChain = Guard.NotNull(nameof(hashChain), hashChain);
 			var indexFilePath = Path.Combine(WorkFolderPath, "MatureIndex.dat");
-			MatureIndexFileManager = new SafeIoManager(indexFilePath, digestRandomIndex: -1);
+			MatureIndexFileManager = new DigestableSafeMutexIoManager(indexFilePath, digestRandomIndex: -1);
 			var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
-			ImmatureIndexFileManager = new SafeIoManager(immatureIndexFilePath, digestRandomIndex: -1);
+			ImmatureIndexFileManager = new DigestableSafeMutexIoManager(immatureIndexFilePath, digestRandomIndex: -1);
 
 			StartingFilter = StartingFilters.GetStartingFilter(Network);
 			StartingHeight = StartingFilters.GetStartingHeight(Network);
