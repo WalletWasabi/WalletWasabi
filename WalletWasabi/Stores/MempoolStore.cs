@@ -30,7 +30,7 @@ namespace WalletWasabi.Stores
 		{
 			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 			Network = Guard.NotNull(nameof(network), network);
-			var mempoolFilePath = Path.Combine(WorkFolderPath, "WalletMempool.dat");
+			var mempoolFilePath = Path.Combine(WorkFolderPath, "WalletMempool.json");
 			WalletMempoolFileManager = new MutexIoManager(mempoolFilePath);
 
 			MempoolLock = new AsyncLock();
@@ -60,7 +60,7 @@ namespace WalletWasabi.Stores
 			{
 				if (WalletMempoolFileManager.Exists())
 				{
-					string jsonString = await File.ReadAllTextAsync(WalletMempoolFileManager.FileName, Encoding.UTF8);
+					string jsonString = await File.ReadAllTextAsync(WalletMempoolFileManager.FilePath, Encoding.UTF8);
 					IEnumerable<SmartTransaction> transactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?
 						.OrderByBlockchain();
 
@@ -101,17 +101,17 @@ namespace WalletWasabi.Stores
 								.Where(x => !x.Confirmed)? // Only unconfirmed ones.
 								.OrderByBlockchain();
 
-							var mempoolCountBefore = Mempool.Count;
+							var mempoolCountBefore = WalletMempool.Count;
 							foreach (var tx in transactions)
 							{
 								WalletMempool.Add(tx);
 								Mempool.Add(tx.GetHash());
 							}
 
-							if (mempoolCountBefore != Mempool.Count)
+							if (mempoolCountBefore != WalletMempool.Count)
 							{
-								string serializedJsonString = JsonConvert.SerializeObject(WalletMempool.OrderByBlockchain());
-								await File.WriteAllTextAsync(WalletMempoolFileManager.FileName, serializedJsonString);
+								string serializedJsonString = JsonConvert.SerializeObject(WalletMempool.OrderByBlockchain(), Formatting.Indented);
+								await File.WriteAllTextAsync(WalletMempoolFileManager.FilePath, serializedJsonString, Encoding.UTF8);
 							}
 
 							// Uncomment this deletion if this code would be merged to the master. The developer forgot it.
