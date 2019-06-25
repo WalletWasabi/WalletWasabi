@@ -50,8 +50,8 @@ Note that for a 4 characters length password it took more than a minute to find.
 
 * __language__ (default: en) specify the alphabet to use and that's important because the number of possible combinations for each character in the password grows rapidily depending on the alphabet used. Just as an example, while the *Italian* charset is "abcdefghimnopqrstuvxyzABCDEFGHILMNOPQRSTUVXYZ", the *French* charset is "aâàbcçdæeéèëœfghiîïjkmnoôpqrstuùüvwxyÿzAÂÀBCÇDÆEÉÈËŒFGHIÎÏJKMNOÔPQRSTUÙÜVWXYŸZ". 
 
-* __numbers__ (default: true) is for indicating that our password contains, or could contain, at least one digit. This increases the charset in 10 (from 0 to 9).
+* __numbers__ (default: true) is for indicating that our password contains, or could contain, at least one digit. This increases the charset by 10 (from 0 to 9).
 
-* __symbols__ (default: true) is for indicating that our password contains, or could contain, at least one symbol. This increases the charset in 34 (|!¡@$¿?_-\"#$/%&()´+*=[]{},;:.^`<>). Note that not all symbols are available but only the most common ones instead.
+* __symbols__ (default: true) is for indicating that our password contains, or could contain, at least one symbol. This increases the charset by 34 (|!¡@$¿?_-\"#$/%&()´+*=[]{},;:.^`<>). Note that not all symbols are available but only the most common ones instead.
 
 
