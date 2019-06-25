@@ -21,33 +21,31 @@ namespace WalletWasabi.Stores
 	{
 		private string WorkFolderPath { get; set; }
 		private Network Network { get; set; }
-		private MutexIoManager WalletMempoolFileManager { get; set; }
-		private HashSet<SmartTransaction> WalletMempool { get; set; }
-		private HashSet<uint256> Mempool { get; set; }
+		private MutexIoManager MempoolTransactionsFileManager { get; set; }
+
+		public MempoolCache MempoolCache { get; private set; }
 		private AsyncLock MempoolLock { get; set; }
 
 		public async Task InitializeAsync(string workFolderPath, Network network)
 		{
 			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 			Network = Guard.NotNull(nameof(network), network);
-			var mempoolFilePath = Path.Combine(WorkFolderPath, "WalletMempool.json");
-			WalletMempoolFileManager = new MutexIoManager(mempoolFilePath);
+			var mempoolFilePath = Path.Combine(WorkFolderPath, "MempoolTransactions.json");
+			MempoolTransactionsFileManager = new MutexIoManager(mempoolFilePath);
+			MempoolCache = new MempoolCache();
 
 			MempoolLock = new AsyncLock();
 
 			using (await MempoolLock.LockAsync())
-			using (await WalletMempoolFileManager.Mutex.LockAsync())
+			using (await MempoolTransactionsFileManager.Mutex.LockAsync())
 			{
-				Mempool = new HashSet<uint256>();
-				WalletMempool = new HashSet<SmartTransaction>();
-
 				IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
 				await TryEnsureBackwardsCompatibilityAsync();
 
 				if (Network == Network.RegTest)
 				{
-					WalletMempoolFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
+					MempoolTransactionsFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
 				}
 
 				await InitializeMempoolAsync();
@@ -58,17 +56,11 @@ namespace WalletWasabi.Stores
 		{
 			try
 			{
-				if (WalletMempoolFileManager.Exists())
+				if (MempoolTransactionsFileManager.Exists())
 				{
-					string jsonString = await File.ReadAllTextAsync(WalletMempoolFileManager.FilePath, Encoding.UTF8);
-					IEnumerable<SmartTransaction> transactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?
-						.OrderByBlockchain();
-
-					foreach (var tx in transactions)
-					{
-						WalletMempool.Add(tx);
-						Mempool.Add(tx.GetHash());
-					}
+					string jsonString = await File.ReadAllTextAsync(MempoolTransactionsFileManager.FilePath, Encoding.UTF8);
+					var transactions = MempoolCache.MempoolTransactionsFromJson(jsonString).ToArray();
+					MempoolCache.TryAddHashesAndTransactions(transactions);
 				}
 			}
 			catch
@@ -77,7 +69,7 @@ namespace WalletWasabi.Stores
 				// Delete the currupted file.
 				// Don't try to autocorrect, because the internal data structures are throwing events those may confuse the consumers of those events.
 				Logger.LogError<IndexStore>("Mempool file got corrupted. Deleting...");
-				WalletMempoolFileManager.DeleteMe();
+				MempoolTransactionsFileManager.DeleteMe();
 				throw;
 			}
 		}
@@ -97,24 +89,12 @@ namespace WalletWasabi.Stores
 						try
 						{
 							string jsonString = await File.ReadAllTextAsync(txFile, Encoding.UTF8);
-							var transactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?
-								.Where(x => !x.Confirmed)? // Only unconfirmed ones.
-								.OrderByBlockchain();
+							var transactions = MempoolCache.MempoolTransactionsFromJson(jsonString)?.ToArray();
 
-							var walletMempoolUpdated = false;
-							foreach (var tx in transactions)
+							if (MempoolCache.TryAddHashesAndTransactions(transactions))
 							{
-								Mempool.Add(tx.GetHash());
-								if (WalletMempool.Add(tx))
-								{
-									walletMempoolUpdated = true;
-								}
-							}
-
-							if (walletMempoolUpdated)
-							{
-								string serializedJsonString = JsonConvert.SerializeObject(WalletMempool.OrderByBlockchain(), Formatting.Indented);
-								await File.WriteAllTextAsync(WalletMempoolFileManager.FilePath, serializedJsonString, Encoding.UTF8);
+								string serializedJsonString = MempoolCache.MempoolTransactionsToJson();
+								await File.WriteAllTextAsync(MempoolTransactionsFileManager.FilePath, serializedJsonString, Encoding.UTF8);
 							}
 
 							// Uncomment this deletion if this code would be merged to the master. The developer forgot it.
@@ -144,70 +124,72 @@ namespace WalletWasabi.Stores
 
 		#region MempoolOperations
 
-		public async void ProcessAsync(params uint256[] txids)
+		public async Task<(int removedHashCount, int removedTxCount)> CleanupAsync(ISet<string> allMempoolHashes, int compactness)
+		{
+			if (allMempoolHashes is null || !allMempoolHashes.Any())
+			{
+				return (0, 0);
+			}
+
+			using (await MempoolLock.LockAsync())
+			{
+				var removedCounts = MempoolCache.Cleanup(allMempoolHashes, compactness);
+
+				if (removedCounts.removedTxCount > 0)
+				{
+					await SerializeTransactionsAsync();
+				}
+
+				return removedCounts;
+			}
+		}
+
+		public async Task ProcessAsync(params uint256[] txids)
 		{
 			using (await MempoolLock.LockAsync())
 			{
-				foreach (var txid in txids)
+				MempoolCache.TryAddHashes(txids);
+			}
+		}
+
+		public async Task ProcessAsync(params SmartTransaction[] txs)
+		{
+			using (await MempoolLock.LockAsync())
+			{
+				if (MempoolCache.TryAddHashesAndTransactions(txs))
 				{
-					Mempool.Add(txid);
+					await SerializeTransactionsAsync();
 				}
 			}
 		}
 
-		public async void ProcessAsync(bool isWalletRelevant, params SmartTransaction[] txs)
+		private async Task SerializeTransactionsAsync()
 		{
-			using (await MempoolLock.LockAsync())
+			using (await MempoolTransactionsFileManager.Mutex.LockAsync())
 			{
-				var walletMempoolUpdated = false;
-
-				foreach (var tx in txs)
+				try
 				{
-					Mempool.Add(tx.GetHash());
-					if (isWalletRelevant)
+					// Serialize, but first read it out.
+					string jsonString = await File.ReadAllTextAsync(MempoolTransactionsFileManager.FilePath, Encoding.UTF8);
+					var transactions = MempoolCache.MempoolTransactionsFromJson(jsonString)?.ToArray();
+
+					// If the two are already the same then some other software instance already added it.
+					if (MempoolCache.SetEquals(transactions))
 					{
-						if (WalletMempool.Add(tx))
-						{
-							walletMempoolUpdated = true;
-						}
+						return;
 					}
+
+					// If another software instance added more to the serialized file, then add them to our mempool, too.
+					MempoolCache.TryAddHashesAndTransactions(transactions);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError<MempoolStore>(ex);
 				}
 
-				if (walletMempoolUpdated)
-				{
-					using (await WalletMempoolFileManager.Mutex.LockAsync())
-					{
-						try
-						{
-							// Serialize, but first read it out.
-							string jsonString = await File.ReadAllTextAsync(WalletMempoolFileManager.FilePath, Encoding.UTF8);
-							var transactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?
-								.Where(x => !x.Confirmed)? // Only unconfirmed ones.
-								.OrderByBlockchain();
-
-							// If the two are already the same then some other software instance already added it.
-							if (WalletMempool.Intersect(transactions).Count() == WalletMempool.Count)
-							{
-								return;
-							}
-
-							// If another software instance added more to the serialized file, then add them to our mempool, too.
-							foreach (var tx in transactions)
-							{
-								Mempool.Add(tx.GetHash());
-								WalletMempool.Add(tx);
-							}
-						}
-						catch (Exception ex)
-						{
-							Logger.LogError<MempoolStore>(ex);
-						}
-
-						// Finally serialize.
-						string serializedJsonString = JsonConvert.SerializeObject(WalletMempool.OrderByBlockchain(), Formatting.Indented);
-						await File.WriteAllTextAsync(WalletMempoolFileManager.FilePath, serializedJsonString, Encoding.UTF8);
-					}
-				}
+				// Finally serialize.
+				string serializedJsonString = MempoolCache.MempoolTransactionsToJson();
+				await File.WriteAllTextAsync(MempoolTransactionsFileManager.FilePath, serializedJsonString, Encoding.UTF8);
 			}
 		}
 

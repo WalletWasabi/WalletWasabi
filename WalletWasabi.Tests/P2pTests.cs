@@ -72,14 +72,14 @@ namespace WalletWasabi.Tests
 				addressManager = new AddressManager();
 			}
 
+			BitcoinStore bitcoinStore = new BitcoinStore();
+			await bitcoinStore.InitializeAsync(Path.Combine(Global.Instance.DataDir, nameof(TestServicesAsync)), network);
+
 			connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
-			var memPoolService = new MemPoolService();
+			var memPoolService = new MemPoolService(bitcoinStore);
 			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(memPoolService));
 
 			var nodes = new NodesGroup(network, connectionParameters, requirements: Helpers.Constants.NodeRequirements);
-
-			BitcoinStore bitcoinStore = new BitcoinStore();
-			await bitcoinStore.InitializeAsync(Path.Combine(Global.Instance.DataDir, nameof(TestServicesAsync)), network);
 
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
 			WasabiSynchronizer syncer = new WasabiSynchronizer(network, bitcoinStore, new Uri("http://localhost:12345"), Global.Instance.TorSocks5Endpoint);

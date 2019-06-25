@@ -79,6 +79,8 @@ namespace WalletWasabi.Models
 			IsReplacement = isReplacement;
 		}
 
+		#endregion Constructors
+
 		public void SetHeight(Height height, uint256 blockHash = null, int blockIndex = 0)
 		{
 			Height = height;
@@ -102,7 +104,30 @@ namespace WalletWasabi.Models
 
 		public bool HasLabel() => !string.IsNullOrWhiteSpace(Label);
 
-		#endregion Constructors
+		/// <summary>
+		/// First looks at height, then block index, then mempool firstseen.
+		/// </summary>
+		public static IComparer<SmartTransaction> GetBlockchainComparer()
+		{
+			return Comparer<SmartTransaction>.Create((a, b) =>
+			{
+				var heightCompareResult = a.Height.CompareTo(b.Height);
+				if (heightCompareResult != 0)
+				{
+					return heightCompareResult;
+				}
+
+				// If mempool this should be 0, so they should be equal so no worry about it.
+				var blockIndexCompareResult = a.BlockIndex.CompareTo(b.BlockIndex);
+				if (blockIndexCompareResult != 0)
+				{
+					return blockIndexCompareResult;
+				}
+
+				var firstSeenCompareResult = (a.FirstSeenIfMemPoolTime ?? DateTime.UtcNow).CompareTo(b.FirstSeenIfMemPoolTime ?? DateTime.UtcNow);
+				return firstSeenCompareResult;
+			});
+		}
 
 		#region Equality
 

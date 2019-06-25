@@ -18,9 +18,10 @@ namespace WalletWasabi.Stores
 		private Network Network { get; set; }
 
 		public IndexStore IndexStore { get; private set; }
-		public HashChain HashChain { get; private set; }
+		public HashChain HashChain => IndexStore?.HashChain;
 
 		public MempoolStore MempoolStore { get; private set; }
+		public MempoolCache MempoolCache => MempoolStore?.MempoolCache;
 
 		public async Task InitializeAsync(string workFolderPath, Network network)
 		{
@@ -33,11 +34,10 @@ namespace WalletWasabi.Stores
 			MempoolStore = new MempoolStore();
 			var indexStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString(), "IndexStore");
 			var mempoolStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString(), "MempoolStore");
-			HashChain = new HashChain();
 
 			var initTasks = new List<Task>
 			{
-				IndexStore.InitializeAsync(indexStoreFolderPath, Network, HashChain),
+				IndexStore.InitializeAsync(indexStoreFolderPath, Network),
 				MempoolStore.InitializeAsync(mempoolStoreFolderPath, Network)
 			};
 

@@ -1521,7 +1521,6 @@ namespace WalletWasabi.Services
 					{
 						SerializeTransactionCache();
 					}
-
 					MemPool.TransactionHashes.TryAdd(transaction.GetHash());
 				}
 

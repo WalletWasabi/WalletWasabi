@@ -204,9 +204,15 @@ namespace WalletWasabi.Gui
 
 			#endregion TorProcessInitialization
 
+			#region BitcoinStoreInitialization
+
+			await bstoreInitTask;
+
+			#endregion BitcoinStoreInitialization
+
 			#region MempoolInitialization
 
-			MemPoolService = new MemPoolService();
+			MemPoolService = new MemPoolService(BitcoinStore);
 			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(MemPoolService));
 
 			#endregion MempoolInitialization
@@ -223,12 +229,6 @@ namespace WalletWasabi.Gui
 			}
 
 			#endregion HwiProcessInitialization
-
-			#region BitcoinStoreInitialization
-
-			await bstoreInitTask;
-
-			#endregion BitcoinStoreInitialization
 
 			#region AddressManagerInitialization
 

@@ -14,6 +14,8 @@ namespace WalletWasabi.Stores
 	/// </summary>
 	public class HashChain : INotifyPropertyChanged
 	{
+		public event PropertyChangedEventHandler PropertyChanged;
+
 		private int _tipHeight;
 		private uint256 _tipHash;
 		private int _serverTipHeight;
@@ -93,8 +95,6 @@ namespace WalletWasabi.Stores
 			Chain = new SortedDictionary<int, uint256>();
 			Lock = new object();
 		}
-
-		public event PropertyChangedEventHandler PropertyChanged;
 
 		public void AddOrReplace(int height, uint256 hash)
 		{

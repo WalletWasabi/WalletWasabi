@@ -130,7 +130,7 @@ namespace System.Linq
 			}
 		}
 
-		public static IEnumerable<SmartTransaction> OrderByBlockchain(this IEnumerable<SmartTransaction> me)
+		public static IOrderedEnumerable<SmartTransaction> OrderByBlockchain(this IEnumerable<SmartTransaction> me)
 			=> me
 				.OrderBy(x => x.Height)
 				.ThenBy(x => x.BlockIndex)

@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System;
@@ -132,7 +132,7 @@ namespace WalletWasabi.Services
 				}
 
 				// if we already have it continue;
-				if (!MemPoolService.TransactionHashes.TryAdd(inv.Hash))
+				if (!MemPoolService.MempoolCache.TryAddHashes(inv.Hash))
 				{
 					continue;
 				}

@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.Protocol;
 using System;
 using System.Collections.Generic;
@@ -6,18 +6,22 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Stores;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
 	public class MemPoolService
 	{
-		public ConcurrentHashSet<uint256> TransactionHashes { get; }
-
 		// Transactions those we would reply to INV messages.
 		private List<TransactionBroadcastEntry> BroadcastStore { get; }
+
+		public BitcoinStore BitcoinStore { get; }
+		public MempoolStore MempoolStore => BitcoinStore?.MempoolStore;
+		public MempoolCache MempoolCache => MempoolStore?.MempoolCache;
 
 		private object BroadcastStoreLock { get; }
 
@@ -25,9 +29,9 @@ namespace WalletWasabi.Services
 
 		internal void OnTransactionReceived(SmartTransaction transaction) => TransactionReceived?.Invoke(this, transaction);
 
-		public MemPoolService()
+		public MemPoolService(BitcoinStore bitcoinStore)
 		{
-			TransactionHashes = new ConcurrentHashSet<uint256>();
+			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
 			BroadcastStore = new List<TransactionBroadcastEntry>();
 			BroadcastStoreLock = new object();
 			_cleanupInProcess = 0;
@@ -110,7 +114,7 @@ namespace WalletWasabi.Services
 			// This function is designed to prevent forever growing mempool.
 			try
 			{
-				if (!TransactionHashes.Any())
+				if (MempoolCache.IsEmpty)
 				{
 					return true; // There's nothing to cleanup.
 				}
@@ -119,20 +123,12 @@ namespace WalletWasabi.Services
 				using (var client = new WasabiClient(destAction, torSocks))
 				{
 					var compactness = 10;
-					var allMempoolHashes = await client.GetMempoolHashesAsync(compactness);
+					ISet<string> allMempoolHashes = await client.GetMempoolHashesAsync(compactness);
 
-					var toRemove = TransactionHashes.Where(x => !allMempoolHashes.Contains(x.ToString().Substring(0, compactness)));
+					(int removedHashCount, int removedTxCount) = await BitcoinStore.MempoolStore.CleanupAsync(allMempoolHashes, compactness);
 
-					int removedTxCount = 0;
-					foreach (uint256 tx in toRemove)
-					{
-						if (TransactionHashes.TryRemove(tx))
-						{
-							removedTxCount++;
-						}
-					}
-
-					Logger.LogInfo<MemPoolService>($"{removedTxCount} transactions were cleaned from mempool.");
+					Logger.LogInfo<MemPoolService>($"{removedHashCount} transaction hashes were cleaned from mempool.");
+					Logger.LogInfo<MemPoolService>($"{removedTxCount} wallet relevant transactions were cleaned from mempool.");
 				}
 
 				return true;
@@ -140,118 +136,6 @@ namespace WalletWasabi.Services
 			catch (Exception ex)
 			{
 				Logger.LogWarning<MemPoolService>(ex);
-			}
-			finally
-			{
-				Interlocked.Exchange(ref _cleanupInProcess, 0);
-			}
-
-			return false;
-		}
-
-		/// <summary>
-		/// Tries to perform mempool cleanup with the help of the connected nodes.
-		/// NOTE: This results in heavy network activity! https://github.com/zkSNACKs/WalletWasabi/issues/1273
-		/// </summary>
-		public async Task<bool> TryPerformMempoolCleanupAsync(NodesGroup nodes, CancellationToken cancel)
-		{
-			// If already cleaning, then no need to run it that often.
-			if (Interlocked.CompareExchange(ref _cleanupInProcess, 1, 0) == 1)
-			{
-				return false;
-			}
-
-			// This function is designed to prevent forever growing mempool.
-			try
-			{
-				if (!TransactionHashes.Any())
-				{
-					return true; // There's nothing to cleanup.
-				}
-
-				var delay = TimeSpan.FromMinutes(1);
-				if (nodes?.ConnectedNodes is null)
-				{
-					return false;
-				}
-
-				while (nodes.ConnectedNodes.Count != nodes.MaximumNodeConnection && nodes.ConnectedNodes.All(x => x.IsConnected))
-				{
-					if (cancel.IsCancellationRequested)
-					{
-						return false;
-					}
-
-					Logger.LogInfo<MemPoolService>($"Not all nodes were in a connected state. Delaying mempool cleanup for {delay.TotalSeconds} seconds...");
-					await Task.Delay(delay, cancel);
-				}
-
-				Logger.LogInfo<MemPoolService>("Start cleaning out mempool...");
-
-				var allTxs = new HashSet<uint256>();
-				foreach (Node node in nodes.ConnectedNodes)
-				{
-					try
-					{
-						if (!node.IsConnected)
-						{
-							continue;
-						}
-
-						if (cancel.IsCancellationRequested)
-						{
-							return false;
-						}
-
-						uint256[] txs = node.GetMempool(cancel);
-						if (cancel.IsCancellationRequested)
-						{
-							return false;
-						}
-
-						allTxs.UnionWith(txs);
-						if (cancel.IsCancellationRequested)
-						{
-							return false;
-						}
-					}
-					catch (Exception ex) when ((ex is InvalidOperationException && ex.Message.StartsWith("The node is not in a connected state", StringComparison.InvariantCultureIgnoreCase))
-											|| ex is OperationCanceledException
-											|| ex is TaskCanceledException
-											|| ex is TimeoutException)
-					{
-						Logger.LogTrace<MemPoolService>(ex);
-					}
-					catch (Exception ex)
-					{
-						Logger.LogDebug<MemPoolService>(ex);
-					}
-				}
-
-				int removedTxCount = 0;
-				foreach (uint256 tx in TransactionHashes.ToArray())
-				{
-					if (!allTxs.Contains(tx))
-					{
-						if (TransactionHashes.TryRemove(tx))
-						{
-							removedTxCount++;
-						}
-					}
-				}
-				Logger.LogInfo<MemPoolService>($"{removedTxCount} transactions were cleaned from mempool.");
-
-				return true;
-			}
-			catch (Exception ex) when (ex is OperationCanceledException
-									|| ex is TaskCanceledException
-									|| ex is TimeoutException)
-			{
-				Logger.LogTrace<MemPoolService>(ex);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogDebug<MemPoolService>(ex);
 			}
 			finally
 			{
