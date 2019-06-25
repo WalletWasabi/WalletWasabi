@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -383,6 +384,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					Money needed = ex.Minimum - ex.Actual;
 					SetWarningMessage($"Not enough coins selected. You need an estimated {needed.ToString(false, true)} BTC more to make this transaction.");
+				}
+				catch (HttpRequestException ex)
+				{
+					SetWarningMessage(ex.ToUserFriendlyString());
 				}
 				catch (Exception ex)
 				{
