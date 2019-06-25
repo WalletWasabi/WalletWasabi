@@ -101,14 +101,17 @@ namespace WalletWasabi.Stores
 								.Where(x => !x.Confirmed)? // Only unconfirmed ones.
 								.OrderByBlockchain();
 
-							var mempoolCountBefore = WalletMempool.Count;
+							var walletMempoolUpdated = false;
 							foreach (var tx in transactions)
 							{
-								WalletMempool.Add(tx);
 								Mempool.Add(tx.GetHash());
+								if (WalletMempool.Add(tx))
+								{
+									walletMempoolUpdated = true;
+								}
 							}
 
-							if (mempoolCountBefore != WalletMempool.Count)
+							if (walletMempoolUpdated)
 							{
 								string serializedJsonString = JsonConvert.SerializeObject(WalletMempool.OrderByBlockchain(), Formatting.Indented);
 								await File.WriteAllTextAsync(WalletMempoolFileManager.FilePath, serializedJsonString, Encoding.UTF8);
@@ -138,5 +141,76 @@ namespace WalletWasabi.Stores
 				Logger.LogWarning<IndexStore>($"Backwards compatibility couldn't be ensured. Exception: {ex.ToString()}");
 			}
 		}
+
+		#region MempoolOperations
+
+		public async void ProcessAsync(params uint256[] txids)
+		{
+			using (await MempoolLock.LockAsync())
+			{
+				foreach (var txid in txids)
+				{
+					Mempool.Add(txid);
+				}
+			}
+		}
+
+		public async void ProcessAsync(bool isWalletRelevant, params SmartTransaction[] txs)
+		{
+			using (await MempoolLock.LockAsync())
+			{
+				var walletMempoolUpdated = false;
+
+				foreach (var tx in txs)
+				{
+					Mempool.Add(tx.GetHash());
+					if (isWalletRelevant)
+					{
+						if (WalletMempool.Add(tx))
+						{
+							walletMempoolUpdated = true;
+						}
+					}
+				}
+
+				if (walletMempoolUpdated)
+				{
+					using (await WalletMempoolFileManager.Mutex.LockAsync())
+					{
+						try
+						{
+							// Serialize, but first read it out.
+							string jsonString = await File.ReadAllTextAsync(WalletMempoolFileManager.FilePath, Encoding.UTF8);
+							var transactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?
+								.Where(x => !x.Confirmed)? // Only unconfirmed ones.
+								.OrderByBlockchain();
+
+							// If the two are already the same then some other software instance already added it.
+							if (WalletMempool.Intersect(transactions).Count() == WalletMempool.Count)
+							{
+								return;
+							}
+
+							// If another software instance added more to the serialized file, then add them to our mempool, too.
+							foreach (var tx in transactions)
+							{
+								Mempool.Add(tx.GetHash());
+								WalletMempool.Add(tx);
+							}
+						}
+						catch (Exception ex)
+						{
+							Logger.LogError<MempoolStore>(ex);
+						}
+
+						// Finally serialize.
+						string serializedJsonString = JsonConvert.SerializeObject(WalletMempool.OrderByBlockchain(), Formatting.Indented);
+						await File.WriteAllTextAsync(WalletMempoolFileManager.FilePath, serializedJsonString, Encoding.UTF8);
+					}
+				}
+			}
+		}
+
+		#endregion MempoolOperations
 	}
 }
