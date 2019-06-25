@@ -8,7 +8,6 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
-using WalletWasabi.Gui.Utils;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 
