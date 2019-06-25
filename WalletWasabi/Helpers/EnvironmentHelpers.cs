@@ -33,10 +33,13 @@ namespace WalletWasabi.Helpers
 		}
 
 		// Do not change the output of this function. Backwards compatibility depends on it.
+		private static string DataDirBacking = null;
+
 		public static string GetDataDir(string appName)
 		{
-			string directory;
+			if (DataDirBacking != null) return DataDirBacking;
 
+			string directory;
 			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				var home = Environment.GetEnvironmentVariable("HOME");
@@ -66,12 +69,14 @@ namespace WalletWasabi.Helpers
 
 			if (Directory.Exists(directory))
 			{
+				DataDirBacking = directory;
 				return directory;
 			}
 
 			Logger.LogInfo($"Creating data directory at `{directory}`.");
 			Directory.CreateDirectory(directory);
 
+			DataDirBacking = directory;
 			return directory;
 		}
 
