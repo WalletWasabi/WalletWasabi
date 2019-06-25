@@ -116,6 +116,8 @@ namespace WalletWasabi.Gui
 				{
 
 				}
+
+				result.UsePlatformDetect();
 			}
 			else
 			{
