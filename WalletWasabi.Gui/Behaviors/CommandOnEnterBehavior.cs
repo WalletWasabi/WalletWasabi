@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Behaviors
@@ -19,7 +20,7 @@ namespace WalletWasabi.Gui.Behaviors
 				{
 					e.Handled = ExecuteCommand();
 				}
-			}));
+			}, RoutingStrategies.Tunnel));
 		}
 
 		protected override void OnDetaching()

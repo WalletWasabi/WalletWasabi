@@ -387,7 +387,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (HttpRequestException ex)
 				{
-					SetWarningMessage(ex.ToUserFriendlyString())
+					SetWarningMessage(ex.ToUserFriendlyString());
 				}
 				catch (Exception ex)
 				{
