@@ -103,18 +103,9 @@ namespace WalletWasabi.Gui
 			}
 			else if(RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				try
+				if(Utils.DetectLLVMPipeRasterizer())
 				{
-					var shellResult = ShellUtils.ExecuteShellCommand("glxinfo | grep renderer", "");
-
-					if(!string.IsNullOrWhiteSpace(shellResult.Output) && shellResult.Output.Contains("llvmpipe"))
-					{
-						useGpuLinux = false;
-					}
-				}
-				catch (Exception e)
-				{
-
+					useGpuLinux = false;
 				}
 
 				result.UsePlatformDetect();
