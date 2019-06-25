@@ -13,10 +13,10 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Stores
 {
-    /// <summary>
-    /// Manages to store the filters safely.
-    /// </summary>
-    public class IndexStore
+	/// <summary>
+	/// Manages to store the filters safely.
+	/// </summary>
+	public class IndexStore
 	{
 		private string WorkFolderPath { get; set; }
 		private Network Network { get; set; }

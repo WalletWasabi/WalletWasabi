@@ -3,7 +3,7 @@ using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-    public class CommandOnClickBehavior : CommandBasedBehavior<InputElement>
+	public class CommandOnClickBehavior : CommandBasedBehavior<InputElement>
 	{
 		private CompositeDisposable Disposables { get; set; }
 

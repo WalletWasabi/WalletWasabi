@@ -5,7 +5,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-    public class TransactionViewerViewModel : WalletActionViewModel
+	public class TransactionViewerViewModel : WalletActionViewModel
 	{
 		private string _psbtJsonText;
 		private string _psbtHexText;

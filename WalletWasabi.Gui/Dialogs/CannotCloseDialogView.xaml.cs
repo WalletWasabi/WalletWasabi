@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Gui.Dialogs
 {
-    internal class CannotCloseDialogView : UserControl
+	internal class CannotCloseDialogView : UserControl
 	{
 		public CannotCloseDialogView()
 		{

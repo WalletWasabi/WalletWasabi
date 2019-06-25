@@ -8,7 +8,7 @@ using WalletWasabi.Models;
 
 namespace NBitcoin.RPC
 {
-    public static class RPCClientExtensions
+	public static class RPCClientExtensions
 	{
 		/// <summary>
 		/// Waits for a specific new block and returns useful info about it.

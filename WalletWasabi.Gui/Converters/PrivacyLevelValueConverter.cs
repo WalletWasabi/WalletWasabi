@@ -7,7 +7,7 @@ using System.Globalization;
 
 namespace WalletWasabi.Gui.Converters
 {
-    public class PrivacyLevelValueConverter : IValueConverter
+	public class PrivacyLevelValueConverter : IValueConverter
 	{
 		private static readonly Dictionary<string, DrawingGroup> Cache = new Dictionary<string, DrawingGroup>();
 

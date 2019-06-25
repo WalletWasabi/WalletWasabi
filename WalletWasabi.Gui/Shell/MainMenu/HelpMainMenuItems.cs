@@ -4,7 +4,7 @@ using System.Composition;
 
 namespace WalletWasabi.Gui.Shell.MainMenu
 {
-    internal class HelpMainMenuItems
+	internal class HelpMainMenuItems
 	{
 		private IMenuItemFactory MenuItemFactory { get; }
 

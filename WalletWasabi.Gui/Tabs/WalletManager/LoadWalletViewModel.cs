@@ -21,7 +21,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
-    internal class LoadWalletViewModel : CategoryViewModel
+	internal class LoadWalletViewModel : CategoryViewModel
 	{
 		private ObservableCollection<LoadWalletEntry> _wallets;
 		private string _password;

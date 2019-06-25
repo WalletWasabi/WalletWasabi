@@ -16,7 +16,7 @@ using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-    public class CoinJoinTabViewModel : WalletActionViewModel
+	public class CoinJoinTabViewModel : WalletActionViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
 

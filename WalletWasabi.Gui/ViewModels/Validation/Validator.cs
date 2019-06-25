@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace WalletWasabi.Gui.ViewModels.Validation
 {
-    public static class Validator
+	public static class Validator
 	{
 		public static List<string> ValidateAllProperties(object instance)
 		{

@@ -1,9 +1,9 @@
 namespace WalletWasabi.Gui.Models
 {
-    /// <summary>
-    /// Order matter: piority the lower.
-    /// </summary>
-    public enum StatusBarStatus
+	/// <summary>
+	/// Order matter: piority the lower.
+	/// </summary>
+	public enum StatusBarStatus
 	{
 		CriticalUpdate,
 		OptionalUpdate,

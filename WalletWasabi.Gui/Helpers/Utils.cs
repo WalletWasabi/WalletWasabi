@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui
 {
-    public static class Utils
+	public static class Utils
 	{
 		public static void PostLogException(this Dispatcher dispatcher, Func<Task> action, DispatcherPriority priority = DispatcherPriority.Normal)
 		{

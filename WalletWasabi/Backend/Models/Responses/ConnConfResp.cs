@@ -7,7 +7,7 @@ using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Backend.Models.Responses
 {
-    public class ConnConfResp
+	public class ConnConfResp
 	{
 		[JsonProperty(ItemConverterType = typeof(Uint256JsonConverter))]
 		public IEnumerable<uint256> BlindedOutputSignatures { get; set; }

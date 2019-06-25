@@ -1,6 +1,6 @@
 ﻿namespace WalletWasabi.Gui.Models
 {
-    public enum SmartCoinStatus
+	public enum SmartCoinStatus
 	{
 		Unconfirmed, // The coin is unconfirmed.
 		Confirmed, // The coin is confirmed.

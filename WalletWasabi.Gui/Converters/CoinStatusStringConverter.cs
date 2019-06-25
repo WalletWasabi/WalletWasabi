@@ -5,7 +5,7 @@ using WalletWasabi.Gui.Models;
 
 namespace WalletWasabi.Gui.Converters
 {
-    public class CoinStatusStringConverter : IValueConverter
+	public class CoinStatusStringConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{

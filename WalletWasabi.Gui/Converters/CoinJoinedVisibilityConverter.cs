@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace WalletWasabi.Gui.Converters
 {
-    public class CoinJoinedVisibilityConverter : IValueConverter
+	public class CoinJoinedVisibilityConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{

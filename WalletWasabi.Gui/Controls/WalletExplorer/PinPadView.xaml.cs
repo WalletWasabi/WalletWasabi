@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-    public class PinPadView : UserControl
+	public class PinPadView : UserControl
 	{
 		public PinPadView()
 		{

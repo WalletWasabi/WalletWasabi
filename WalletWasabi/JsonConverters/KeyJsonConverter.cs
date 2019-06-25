@@ -4,7 +4,7 @@ using System;
 
 namespace WalletWasabi.JsonConverters
 {
-    public class KeyJsonConverter : JsonConverter
+	public class KeyJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)

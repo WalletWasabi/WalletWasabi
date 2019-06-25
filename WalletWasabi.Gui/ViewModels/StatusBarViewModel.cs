@@ -19,7 +19,7 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Gui.ViewModels
 {
-    public enum UpdateStatus
+	public enum UpdateStatus
 	{
 		Latest,
 		Optional,

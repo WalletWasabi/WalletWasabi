@@ -7,7 +7,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Converters
 {
-    public class StatusColorConverter : IValueConverter
+	public class StatusColorConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{

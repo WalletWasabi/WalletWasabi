@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-    internal class PasteAddressOnClickBehavior : Behavior<TextBox>
+	internal class PasteAddressOnClickBehavior : Behavior<TextBox>
 	{
 		private CompositeDisposable Disposables { get; set; }
 

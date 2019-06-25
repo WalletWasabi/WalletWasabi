@@ -12,7 +12,7 @@ using WalletWasabi.Gui.Tabs.WalletManager;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
-    internal class ToolCommands
+	internal class ToolCommands
 	{
 		public Global Global { get; }
 

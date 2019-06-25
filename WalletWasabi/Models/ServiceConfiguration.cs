@@ -4,7 +4,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Models
 {
-    public class ServiceConfiguration
+	public class ServiceConfiguration
 	{
 		public int MixUntilAnonymitySet { get; set; }
 		public int PrivacyLevelSome { get; set; }

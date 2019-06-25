@@ -15,7 +15,7 @@ using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-    public class ReceiveTabViewModel : WalletActionViewModel
+	public class ReceiveTabViewModel : WalletActionViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
 

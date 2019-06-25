@@ -5,7 +5,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Backend.Models.Responses
 {
-    public class SynchronizeResponse
+	public class SynchronizeResponse
 	{
 		public FiltersResponseState FiltersResponseState { get; set; }
 

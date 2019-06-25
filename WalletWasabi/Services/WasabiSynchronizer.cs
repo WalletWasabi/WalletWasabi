@@ -17,7 +17,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
-    public class WasabiSynchronizer : INotifyPropertyChanged
+	public class WasabiSynchronizer : INotifyPropertyChanged
 	{
 		#region MembersPropertiesEvents
 

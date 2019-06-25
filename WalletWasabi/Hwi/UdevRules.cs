@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace WalletWasabi.Hwi
 {
-    public static class UdevRules
+	public static class UdevRules
 	{
 		public static readonly string[] RuleFileNames =
 		{

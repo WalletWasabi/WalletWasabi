@@ -15,7 +15,7 @@ using static NBitcoin.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {
-    public class CcjRound
+	public class CcjRound
 	{
 		public static long RoundCount;
 		public long RoundId { get; }

@@ -4,7 +4,7 @@ using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Backend.Models.Responses
 {
-    public class InputsResponse
+	public class InputsResponse
 	{
 		[JsonConverter(typeof(GuidJsonConverter))]
 		public Guid UniqueId { get; set; }

@@ -22,10 +22,10 @@ using static NBitcoin.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.Backend.Controllers
 {
-    /// <summary>
-    /// To interact with the Chaumian CoinJoin Coordinator.
-    /// </summary>
-    [Produces("application/json")]
+	/// <summary>
+	/// To interact with the Chaumian CoinJoin Coordinator.
+	/// </summary>
+	[Produces("application/json")]
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class ChaumianCoinJoinController : Controller
 	{

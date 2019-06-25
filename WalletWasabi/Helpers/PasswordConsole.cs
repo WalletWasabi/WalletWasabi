@@ -3,7 +3,7 @@ using System.Text;
 
 namespace WalletWasabi.Helpers
 {
-    public class PasswordConsole
+	public class PasswordConsole
 	{
 		/// <summary>
 		/// Gets the console password.

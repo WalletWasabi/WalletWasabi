@@ -9,7 +9,7 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-    public class TransactionViewModel : ViewModelBase
+	public class TransactionViewModel : ViewModelBase
 	{
 		private TransactionInfo Model { get; }
 		private bool _clipboardNotificationVisible;

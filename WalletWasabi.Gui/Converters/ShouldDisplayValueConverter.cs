@@ -4,7 +4,7 @@ using System.Globalization;
 
 namespace WalletWasabi.Gui.Converters
 {
-    public class ShouldDisplayValueConverter : IValueConverter
+	public class ShouldDisplayValueConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{

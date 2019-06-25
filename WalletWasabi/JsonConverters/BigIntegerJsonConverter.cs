@@ -5,7 +5,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.JsonConverters
 {
-    public class BigIntegerJsonConverter : JsonConverter
+	public class BigIntegerJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)

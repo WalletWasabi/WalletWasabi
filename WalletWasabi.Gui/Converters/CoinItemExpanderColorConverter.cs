@@ -6,7 +6,7 @@ using System.Globalization;
 
 namespace WalletWasabi.Gui.Converters
 {
-    public class CoinItemExpanderColorConverter : IValueConverter
+	public class CoinItemExpanderColorConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{

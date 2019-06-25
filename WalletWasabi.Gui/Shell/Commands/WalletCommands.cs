@@ -8,7 +8,7 @@ using WalletWasabi.Gui.Tabs.WalletManager;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
-    internal class WalletCommands
+	internal class WalletCommands
 	{
 		[ImportingConstructor]
 		public WalletCommands(CommandIconService commandIconService)

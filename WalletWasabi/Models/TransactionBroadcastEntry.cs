@@ -2,7 +2,7 @@
 
 namespace WalletWasabi.Models
 {
-    public class TransactionBroadcastEntry
+	public class TransactionBroadcastEntry
 	{
 		public Transaction Transaction { get; }
 		public uint256 TransactionId { get; }

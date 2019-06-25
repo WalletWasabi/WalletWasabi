@@ -2,7 +2,7 @@ using System.Composition;
 
 namespace WalletWasabi.Gui
 {
-    [Export]
+	[Export]
 	[Shared]
 	public class AvaloniaGlobalComponent
 	{

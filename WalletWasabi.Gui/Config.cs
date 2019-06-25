@@ -15,7 +15,7 @@ using WalletWasabi.TorSocks5;
 
 namespace WalletWasabi.Gui
 {
-    [JsonObject(MemberSerialization.OptIn)]
+	[JsonObject(MemberSerialization.OptIn)]
 	public class Config : IConfig
 	{
 		/// <inheritdoc />

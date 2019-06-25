@@ -9,7 +9,7 @@ using WalletWasabi.Gui.Tabs.WalletManager;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-    internal class SuggestionBehavior : Behavior<TextBox>
+	internal class SuggestionBehavior : Behavior<TextBox>
 	{
 		private CompositeDisposable Disposables { get; set; }
 

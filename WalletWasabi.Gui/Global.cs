@@ -26,7 +26,7 @@ using WalletWasabi.TorSocks5;
 
 namespace WalletWasabi.Gui
 {
-    public class Global
+	public class Global
 	{
 		public const string GlobalResourceKey = "Wasabi.Ui.Global";
 		public const string ConfigResourceKey = "Wasabi.Ui.Config";

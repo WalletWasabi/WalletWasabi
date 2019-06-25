@@ -6,7 +6,7 @@ using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {
-    [JsonObject(MemberSerialization.OptIn)]
+	[JsonObject(MemberSerialization.OptIn)]
 	public class SchnorrKey : IEquatable<SchnorrKey>
 	{
 		[JsonConstructor]

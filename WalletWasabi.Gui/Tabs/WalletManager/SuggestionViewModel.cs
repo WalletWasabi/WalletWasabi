@@ -3,7 +3,7 @@ using System;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
-    public class SuggestionViewModel : ReactiveObject
+	public class SuggestionViewModel : ReactiveObject
 	{
 		public string Word { get; }
 		public Action<string> OnSelection { get; }

@@ -3,7 +3,7 @@ using System;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-    public class TransactionInfo : ReactiveObject
+	public class TransactionInfo : ReactiveObject
 	{
 		private bool _confirmed;
 		private DateTimeOffset _dateTime;

@@ -6,7 +6,7 @@ using System;
 
 namespace WalletWasabi.JsonConverters
 {
-    public class UnblindedSignatureJsonConverter : JsonConverter
+	public class UnblindedSignatureJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)

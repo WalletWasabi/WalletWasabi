@@ -8,7 +8,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Helpers
 {
-    public class RuntimeParams
+	public class RuntimeParams
 	{
 		[JsonProperty(PropertyName = "NetworkNodeTimeout")]
 		public int NetworkNodeTimeout { get; set; } = 64;

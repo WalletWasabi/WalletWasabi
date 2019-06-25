@@ -6,7 +6,7 @@ using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-    internal class PinPadViewModel : WalletActionViewModel
+	internal class PinPadViewModel : WalletActionViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
 		private string _maskedPin;

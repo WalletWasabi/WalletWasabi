@@ -7,7 +7,7 @@ using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {
-    public class ClientRoundRegistration : IDisposable
+	public class ClientRoundRegistration : IDisposable
 	{
 		/// <summary>
 		/// Completed all the necessary actions in the phase.

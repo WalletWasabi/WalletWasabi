@@ -1,6 +1,6 @@
 ﻿namespace WalletWasabi.Gui.Tabs.WalletManager
 {
-    public enum LoadWalletType
+	public enum LoadWalletType
 	{
 		Desktop,
 		Password,

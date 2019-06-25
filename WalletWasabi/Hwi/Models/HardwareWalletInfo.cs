@@ -4,7 +4,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Hwi.Models
 {
-    public class HardwareWalletInfo
+	public class HardwareWalletInfo
 	{
 		public HardwareWalletInfo(string masterFingerprint, string serialNumber, HardwareWalletType type, string path, string error)
 		{

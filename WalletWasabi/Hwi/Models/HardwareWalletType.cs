@@ -1,6 +1,6 @@
 ﻿namespace WalletWasabi.Hwi.Models
 {
-    public enum HardwareWalletType
+	public enum HardwareWalletType
 	{
 		Trezor,
 		Ledger,

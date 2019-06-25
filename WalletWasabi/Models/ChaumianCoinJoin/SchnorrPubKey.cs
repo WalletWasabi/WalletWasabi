@@ -7,7 +7,7 @@ using static NBitcoin.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {
-    [JsonObject(MemberSerialization.OptIn)]
+	[JsonObject(MemberSerialization.OptIn)]
 	public class SchnorrPubKey : IEquatable<SchnorrPubKey>
 	{
 		[JsonConstructor]

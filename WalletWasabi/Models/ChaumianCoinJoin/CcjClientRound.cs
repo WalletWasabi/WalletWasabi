@@ -5,7 +5,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {
-    public class CcjClientRound
+	public class CcjClientRound
 	{
 		public CcjRunningRoundState State { get; set; }
 

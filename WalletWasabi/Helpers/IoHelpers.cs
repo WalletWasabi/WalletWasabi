@@ -7,7 +7,7 @@ using WalletWasabi.Logging;
 
 namespace System.IO
 {
-    public static class IoHelpers
+	public static class IoHelpers
 	{
 		private const string OldExtension = ".old";
 		private const string NewExtension = ".new";

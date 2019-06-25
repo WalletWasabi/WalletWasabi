@@ -7,7 +7,7 @@ using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Gui.Converters
 {
-    public class PhaseColorConverter : IValueConverter
+	public class PhaseColorConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{

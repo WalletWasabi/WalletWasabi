@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace WalletWasabi.Gui.Models
 {
-    public class StatusBarStatusSet : ReactiveObject
+	public class StatusBarStatusSet : ReactiveObject
 	{
 		private StatusBarStatus _status;
 

@@ -20,7 +20,7 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui
 {
-    public class MainWindow : MetroWindow
+	public class MainWindow : MetroWindow
 	{
 		public bool IsQuitPending { get; private set; }
 

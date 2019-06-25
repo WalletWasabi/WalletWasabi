@@ -12,7 +12,7 @@ using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-    public class WalletInfoViewModel : WalletActionViewModel
+	public class WalletInfoViewModel : WalletActionViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
 

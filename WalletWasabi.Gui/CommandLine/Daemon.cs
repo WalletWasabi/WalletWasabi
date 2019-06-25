@@ -8,7 +8,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.CommandLine
 {
-    public class Daemon
+	public class Daemon
 	{
 		public Global Global { get; }
 
