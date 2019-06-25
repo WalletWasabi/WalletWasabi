@@ -1,12 +1,10 @@
 using Avalonia.Controls;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace WalletWasabi.Gui.Converters
 {
-	public class WindowStateAfterSartJsonConverter : JsonConverter
+    public class WindowStateAfterSartJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)

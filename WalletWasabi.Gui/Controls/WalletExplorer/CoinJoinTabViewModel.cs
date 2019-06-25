@@ -1,4 +1,3 @@
-using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using System;
@@ -12,14 +11,12 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models.ChaumianCoinJoin;
-using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class CoinJoinTabViewModel : WalletActionViewModel
+    public class CoinJoinTabViewModel : WalletActionViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
 

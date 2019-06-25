@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.Composition;
-using System.Text;
 
 namespace WalletWasabi.Gui
 {
-	[Export]
+    [Export]
 	[Shared]
 	public class AvaloniaGlobalComponent
 	{

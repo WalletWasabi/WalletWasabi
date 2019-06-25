@@ -1,13 +1,11 @@
 ﻿using Avalonia.Data.Converters;
 using NBitcoin;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 
 namespace WalletWasabi.Gui.Converters
 {
-	public class MoneyStringConverter : IValueConverter
+    public class MoneyStringConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{

@@ -1,16 +1,13 @@
 ﻿using NBitcoin;
-using NBitcoin.Crypto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Helpers;
 using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {
-	public class ClientRoundRegistration : IDisposable
+    public class ClientRoundRegistration : IDisposable
 	{
 		/// <summary>
 		/// Completed all the necessary actions in the phase.

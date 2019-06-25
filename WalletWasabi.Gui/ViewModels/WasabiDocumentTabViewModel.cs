@@ -4,11 +4,10 @@ using AvalonStudio.Shell;
 using Dock.Model;
 using ReactiveUI;
 using System;
-using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.ViewModels
 {
-	public abstract class WasabiDocumentTabViewModel : ViewModelBase, IDocumentTabViewModel
+    public abstract class WasabiDocumentTabViewModel : ViewModelBase, IDocumentTabViewModel
 	{
 		public WasabiDocumentTabViewModel(Global global, string title)
 		{

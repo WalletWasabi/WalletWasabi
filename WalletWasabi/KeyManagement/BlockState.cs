@@ -3,13 +3,12 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.KeyManagement
 {
-	[JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn)]
 	public class BlockState : IComparable<BlockState>
 	{
 		[JsonProperty(Order = 1)]

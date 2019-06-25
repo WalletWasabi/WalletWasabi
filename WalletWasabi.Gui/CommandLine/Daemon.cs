@@ -1,8 +1,6 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
@@ -10,7 +8,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.CommandLine
 {
-	public class Daemon
+    public class Daemon
 	{
 		public Global Global { get; }
 

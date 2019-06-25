@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace WalletWasabi.Gui.Models
+﻿namespace WalletWasabi.Gui.Models
 {
-	public enum SmartCoinStatus
+    public enum SmartCoinStatus
 	{
 		Unconfirmed, // The coin is unconfirmed.
 		Confirmed, // The coin is confirmed.

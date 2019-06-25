@@ -1,8 +1,6 @@
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -10,7 +8,7 @@ using WalletWasabi.Models;
 
 namespace NBitcoin.RPC
 {
-	public static class RPCClientExtensions
+    public static class RPCClientExtensions
 	{
 		/// <summary>
 		/// Waits for a specific new block and returns useful info about it.

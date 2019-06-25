@@ -5,9 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
@@ -16,10 +14,10 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Hwi
 {
-	/// <summary>
-	/// https://github.com/bitcoin-core/HWI
-	/// </summary>
-	public static class HwiProcessManager
+    /// <summary>
+    /// https://github.com/bitcoin-core/HWI
+    /// </summary>
+    public static class HwiProcessManager
 	{
 		private static Random Random { get; } = new Random();
 		public static AsyncMutex AsyncMutex { get; } = new AsyncMutex("hwi");

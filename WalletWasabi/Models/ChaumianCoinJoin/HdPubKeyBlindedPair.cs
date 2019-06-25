@@ -1,15 +1,10 @@
-﻿using NBitcoin;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Newtonsoft.Json;
 using WalletWasabi.Helpers;
-using WalletWasabi.JsonConverters;
 using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {
-	[JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn)]
 	public class HdPubKeyBlindedPair
 	{
 		[JsonProperty]

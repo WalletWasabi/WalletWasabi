@@ -1,23 +1,18 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
-using NBitcoin.BouncyCastle.Math;
 using NBitcoin.Crypto;
-using NBitcoin.Protocol;
 using NBitcoin.RPC;
-using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -27,10 +22,10 @@ using static NBitcoin.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.Backend.Controllers
 {
-	/// <summary>
-	/// To interact with the Chaumian CoinJoin Coordinator.
-	/// </summary>
-	[Produces("application/json")]
+    /// <summary>
+    /// To interact with the Chaumian CoinJoin Coordinator.
+    /// </summary>
+    [Produces("application/json")]
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class ChaumianCoinJoinController : Controller
 	{

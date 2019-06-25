@@ -1,5 +1,4 @@
 using Avalonia;
-using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using ReactiveUI;
 using System;
@@ -16,7 +15,7 @@ using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class ReceiveTabViewModel : WalletActionViewModel
+    public class ReceiveTabViewModel : WalletActionViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
 

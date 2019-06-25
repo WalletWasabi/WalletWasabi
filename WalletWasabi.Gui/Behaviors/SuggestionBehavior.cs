@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Xaml.Interactivity;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -10,7 +9,7 @@ using WalletWasabi.Gui.Tabs.WalletManager;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-	internal class SuggestionBehavior : Behavior<TextBox>
+    internal class SuggestionBehavior : Behavior<TextBox>
 	{
 		private CompositeDisposable Disposables { get; set; }
 

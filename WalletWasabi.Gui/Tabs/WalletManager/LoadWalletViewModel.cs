@@ -1,10 +1,6 @@
-using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Nito.AsyncEx;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -13,8 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Models;
@@ -27,7 +21,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
-	internal class LoadWalletViewModel : CategoryViewModel
+    internal class LoadWalletViewModel : CategoryViewModel
 	{
 		private ObservableCollection<LoadWalletEntry> _wallets;
 		private string _password;

@@ -3,16 +3,13 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using WalletWasabi.Helpers;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Stores
 {
-	/// <summary>
-	/// High performance chain index and cache.
-	/// </summary>
-	public class HashChain : INotifyPropertyChanged
+    /// <summary>
+    /// High performance chain index and cache.
+    /// </summary>
+    public class HashChain : INotifyPropertyChanged
 	{
 		private int _tipHeight;
 		private uint256 _tipHash;

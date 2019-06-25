@@ -1,12 +1,9 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace WalletWasabi.Gui.Dialogs
 {
-	internal class CannotCloseDialogView : UserControl
+    internal class CannotCloseDialogView : UserControl
 	{
 		public CannotCloseDialogView()
 		{

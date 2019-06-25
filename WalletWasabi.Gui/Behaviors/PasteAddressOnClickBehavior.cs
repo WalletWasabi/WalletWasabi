@@ -1,6 +1,5 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
 using NBitcoin;
@@ -11,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-	internal class PasteAddressOnClickBehavior : Behavior<TextBox>
+    internal class PasteAddressOnClickBehavior : Behavior<TextBox>
 	{
 		private CompositeDisposable Disposables { get; set; }
 

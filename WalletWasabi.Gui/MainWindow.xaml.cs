@@ -9,7 +9,6 @@ using AvalonStudio.Shell.Controls;
 using NBitcoin;
 using System;
 using System.ComponentModel;
-using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -18,11 +17,10 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Hwi;
 
 namespace WalletWasabi.Gui
 {
-	public class MainWindow : MetroWindow
+    public class MainWindow : MetroWindow
 	{
 		public bool IsQuitPending { get; private set; }
 

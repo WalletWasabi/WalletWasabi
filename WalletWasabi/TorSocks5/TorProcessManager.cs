@@ -10,7 +10,6 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
-using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.TorSocks5
 {

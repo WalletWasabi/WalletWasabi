@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace WalletWasabi.Models
+﻿namespace WalletWasabi.Models
 {
-	public enum HeightType
+    public enum HeightType
 	{
 		Chain,
 		MemPool,

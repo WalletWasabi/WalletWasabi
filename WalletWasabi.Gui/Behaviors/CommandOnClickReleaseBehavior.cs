@@ -1,10 +1,9 @@
-﻿using Avalonia.Controls;
-using Avalonia.Input;
+﻿using Avalonia.Input;
 using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-	public class CommandOnClickReleaseBehavior : CommandBasedBehavior<InputElement>
+    public class CommandOnClickReleaseBehavior : CommandBasedBehavior<InputElement>
 	{
 		private CompositeDisposable Disposables { get; set; }
 

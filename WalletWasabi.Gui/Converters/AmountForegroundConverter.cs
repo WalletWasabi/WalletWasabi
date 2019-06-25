@@ -1,13 +1,11 @@
 ﻿using Avalonia.Data.Converters;
 using Avalonia.Media;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 
 namespace WalletWasabi.Gui.Converters
 {
-	public class AmountForegroundConverter : IValueConverter
+    public class AmountForegroundConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{

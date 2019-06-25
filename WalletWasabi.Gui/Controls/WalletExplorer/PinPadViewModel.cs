@@ -1,18 +1,12 @@
-using Avalonia.Threading;
-using AvalonStudio.Extensibility;
-using AvalonStudio.Shell;
 using ReactiveUI;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Text;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	internal class PinPadViewModel : WalletActionViewModel
+    internal class PinPadViewModel : WalletActionViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
 		private string _maskedPin;

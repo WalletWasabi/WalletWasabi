@@ -2,14 +2,12 @@ using Avalonia.Data.Converters;
 using Avalonia.Media;
 using AvalonStudio.Extensibility.Theme;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Converters
 {
-	public class StatusColorConverter : IValueConverter
+    public class StatusColorConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{

@@ -1,14 +1,9 @@
 using NBitcoin;
 using NBitcoin.RPC;
-using Nito.AsyncEx;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -22,7 +17,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
-	public class WasabiSynchronizer : INotifyPropertyChanged
+    public class WasabiSynchronizer : INotifyPropertyChanged
 	{
 		#region MembersPropertiesEvents
 

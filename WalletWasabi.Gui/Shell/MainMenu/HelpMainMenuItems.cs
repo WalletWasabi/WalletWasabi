@@ -1,13 +1,10 @@
 using AvalonStudio.MainMenu;
 using AvalonStudio.Menus;
-using System;
-using System.Collections.Generic;
 using System.Composition;
-using System.Text;
 
 namespace WalletWasabi.Gui.Shell.MainMenu
 {
-	internal class HelpMainMenuItems
+    internal class HelpMainMenuItems
 	{
 		private IMenuItemFactory MenuItemFactory { get; }
 

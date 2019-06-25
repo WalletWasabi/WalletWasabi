@@ -2,14 +2,13 @@ using Mono.Options;
 using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.CommandLine
 {
-	public static class CommandInterpreter
+    public static class CommandInterpreter
 	{
 		/// <returns>If the GUI should run or not.</returns>
 		public static async Task<bool> ExecuteCommandsAsync(Global global, string[] args)

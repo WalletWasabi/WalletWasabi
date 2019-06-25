@@ -1,12 +1,10 @@
 using Avalonia.Threading;
 using System;
-using System.IO;
 using System.Threading.Tasks;
-using WalletWasabi.Hwi.Models;
 
 namespace WalletWasabi.Gui
 {
-	public static class Utils
+    public static class Utils
 	{
 		public static void PostLogException(this Dispatcher dispatcher, Func<Task> action, DispatcherPriority priority = DispatcherPriority.Normal)
 		{

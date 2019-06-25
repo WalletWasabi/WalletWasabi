@@ -1,11 +1,9 @@
 using ReactiveUI;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
-	public class SuggestionViewModel : ReactiveObject
+    public class SuggestionViewModel : ReactiveObject
 	{
 		public string Word { get; }
 		public Action<string> OnSelection { get; }

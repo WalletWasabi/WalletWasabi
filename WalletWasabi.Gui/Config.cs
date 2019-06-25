@@ -1,12 +1,10 @@
 using NBitcoin;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using WalletWasabi.Crypto;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
@@ -17,7 +15,7 @@ using WalletWasabi.TorSocks5;
 
 namespace WalletWasabi.Gui
 {
-	[JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn)]
 	public class Config : IConfig
 	{
 		/// <inheritdoc />

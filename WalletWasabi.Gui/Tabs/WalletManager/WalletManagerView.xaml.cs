@@ -1,14 +1,9 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using AvalonStudio.Extensibility;
-using AvalonStudio.Shell;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
-	internal class WalletManagerView : UserControl
+    internal class WalletManagerView : UserControl
 	{
 		public WalletManagerView()
 		{

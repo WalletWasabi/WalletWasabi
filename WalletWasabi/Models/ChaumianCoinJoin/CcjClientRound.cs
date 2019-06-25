@@ -1,14 +1,11 @@
-﻿using NBitcoin;
-using NBitcoin.Crypto;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Helpers;
-using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {
-	public class CcjClientRound
+    public class CcjClientRound
 	{
 		public CcjRunningRoundState State { get; set; }
 

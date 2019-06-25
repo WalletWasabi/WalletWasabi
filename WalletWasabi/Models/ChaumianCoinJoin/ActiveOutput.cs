@@ -1,13 +1,10 @@
 using NBitcoin;
 using NBitcoin.Crypto;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {
-	public class ActiveOutput
+    public class ActiveOutput
 	{
 		public BitcoinAddress Address { get; }
 		public UnblindedSignature Signature { get; }

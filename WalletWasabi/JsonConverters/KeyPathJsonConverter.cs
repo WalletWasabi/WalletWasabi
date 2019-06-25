@@ -1,12 +1,10 @@
 using NBitcoin;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class KeyPathJsonConverter : JsonConverter
+    public class KeyPathJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)

@@ -1,13 +1,10 @@
 using ReactiveUI;
-using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
 
 namespace WalletWasabi.Gui.Models
 {
-	public class StatusBarStatusSet : ReactiveObject
+    public class StatusBarStatusSet : ReactiveObject
 	{
 		private StatusBarStatus _status;
 

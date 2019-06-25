@@ -1,10 +1,9 @@
-﻿using Avalonia;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Gui.Dialogs
 {
-	public class GenSocksServFailDialogView : UserControl
+    public class GenSocksServFailDialogView : UserControl
 	{
 		public GenSocksServFailDialogView()
 		{

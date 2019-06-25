@@ -9,11 +9,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
-using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class WalletInfoViewModel : WalletActionViewModel
+    public class WalletInfoViewModel : WalletActionViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
 

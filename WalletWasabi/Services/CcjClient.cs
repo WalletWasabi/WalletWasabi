@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.BouncyCastle.Math;
 using NBitcoin.Crypto;
 using Nito.AsyncEx;
 using System;

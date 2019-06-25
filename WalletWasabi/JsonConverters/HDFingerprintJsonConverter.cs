@@ -1,12 +1,10 @@
 ﻿using NBitcoin;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class HDFingerprintJsonConverter : JsonConverter
+    public class HDFingerprintJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)

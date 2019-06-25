@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace WalletWasabi.Hwi
 {
-	public static class UdevRules
+    public static class UdevRules
 	{
 		public static readonly string[] RuleFileNames =
 		{

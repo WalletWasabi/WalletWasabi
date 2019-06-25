@@ -1,7 +1,6 @@
 using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.RPC;
-using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Concurrent;
@@ -16,7 +15,7 @@ using static NBitcoin.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {
-	public class CcjRound
+    public class CcjRound
 	{
 		public static long RoundCount;
 		public long RoundId { get; }

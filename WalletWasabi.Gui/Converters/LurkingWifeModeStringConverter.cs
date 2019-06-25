@@ -1,14 +1,12 @@
 using Avalonia;
 using Avalonia.Data.Converters;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 
 namespace WalletWasabi.Gui.Converters
 {
-	public class LurkingWifeModeStringConverter : IValueConverter
+    public class LurkingWifeModeStringConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{

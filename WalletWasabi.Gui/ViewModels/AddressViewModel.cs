@@ -1,5 +1,4 @@
 using Avalonia;
-using Avalonia.Threading;
 using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
 using System;
@@ -10,7 +9,7 @@ using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui.ViewModels
 {
-	public class AddressViewModel : ViewModelBase, IDisposable
+    public class AddressViewModel : ViewModelBase, IDisposable
 	{
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 

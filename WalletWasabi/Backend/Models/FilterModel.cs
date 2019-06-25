@@ -6,13 +6,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
-using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Backend.Models
 {
-	public class FilterModel
+    public class FilterModel
 	{
 		[JsonConverter(typeof(HeightJsonConverter))]
 		public Height BlockHeight { get; set; }

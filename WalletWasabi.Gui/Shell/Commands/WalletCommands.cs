@@ -1,16 +1,14 @@
 using AvalonStudio.Commands;
-using System.Linq;
 using System;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
 using System.Composition;
 using WalletWasabi.Gui.Tabs.WalletManager;
-using Avalonia;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
-	internal class WalletCommands
+    internal class WalletCommands
 	{
 		[ImportingConstructor]
 		public WalletCommands(CommandIconService commandIconService)

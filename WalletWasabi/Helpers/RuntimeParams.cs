@@ -3,13 +3,12 @@ using Nito.AsyncEx;
 using System;
 using System.IO;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Helpers
 {
-	public class RuntimeParams
+    public class RuntimeParams
 	{
 		[JsonProperty(PropertyName = "NetworkNodeTimeout")]
 		public int NetworkNodeTimeout { get; set; } = 64;

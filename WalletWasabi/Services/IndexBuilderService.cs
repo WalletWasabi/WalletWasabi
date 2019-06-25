@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.Protocol;
 using NBitcoin.RPC;
 using Nito.AsyncEx;
 using System;

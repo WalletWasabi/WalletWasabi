@@ -1,12 +1,11 @@
-﻿using NBitcoin;
-using NBitcoin.BouncyCastle.Math;
+﻿using NBitcoin.BouncyCastle.Math;
 using Newtonsoft.Json;
 using System;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class BigIntegerJsonConverter : JsonConverter
+    public class BigIntegerJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)

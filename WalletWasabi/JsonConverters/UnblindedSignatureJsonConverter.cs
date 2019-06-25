@@ -1,5 +1,4 @@
-﻿using NBitcoin;
-using NBitcoin.BouncyCastle.Math;
+﻿using NBitcoin.BouncyCastle.Math;
 using NBitcoin.Crypto;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -7,7 +6,7 @@ using System;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class UnblindedSignatureJsonConverter : JsonConverter
+    public class UnblindedSignatureJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)

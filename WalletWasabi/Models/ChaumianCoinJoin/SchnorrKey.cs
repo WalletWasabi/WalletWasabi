@@ -1,14 +1,12 @@
 ﻿using NBitcoin;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {
-	[JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn)]
 	public class SchnorrKey : IEquatable<SchnorrKey>
 	{
 		[JsonConstructor]

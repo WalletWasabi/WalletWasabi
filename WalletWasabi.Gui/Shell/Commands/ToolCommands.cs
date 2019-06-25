@@ -7,13 +7,12 @@ using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
-using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Tabs;
 using WalletWasabi.Gui.Tabs.WalletManager;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
-	internal class ToolCommands
+    internal class ToolCommands
 	{
 		public Global Global { get; }
 

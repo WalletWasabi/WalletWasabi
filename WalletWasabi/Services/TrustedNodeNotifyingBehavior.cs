@@ -2,9 +2,7 @@
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services

@@ -1,16 +1,13 @@
 using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
-using AvalonStudio.Commands;
 using System;
 using System.Collections.Generic;
-using System.Composition;
-using System.Drawing;
 using System.Globalization;
 
 namespace WalletWasabi.Gui.Converters
 {
-	public class PrivacyLevelValueConverter : IValueConverter
+    public class PrivacyLevelValueConverter : IValueConverter
 	{
 		private static readonly Dictionary<string, DrawingGroup> Cache = new Dictionary<string, DrawingGroup>();
 

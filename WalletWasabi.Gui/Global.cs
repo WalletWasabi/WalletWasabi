@@ -6,7 +6,6 @@ using NBitcoin.Protocol.Behaviors;
 using NBitcoin.Protocol.Connectors;
 using Nito.AsyncEx;
 using System;
-using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
@@ -14,12 +13,8 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Crypto;
-using WalletWasabi.Gui.Dialogs;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
 using WalletWasabi.KeyManagement;
@@ -31,7 +26,7 @@ using WalletWasabi.TorSocks5;
 
 namespace WalletWasabi.Gui
 {
-	public class Global
+    public class Global
 	{
 		public const string GlobalResourceKey = "Wasabi.Ui.Global";
 		public const string ConfigResourceKey = "Wasabi.Ui.Config";

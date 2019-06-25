@@ -1,4 +1,3 @@
-using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin;
@@ -29,7 +28,7 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class SendTabViewModel : WalletActionViewModel
+    public class SendTabViewModel : WalletActionViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
 

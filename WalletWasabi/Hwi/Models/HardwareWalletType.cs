@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace WalletWasabi.Hwi.Models
+﻿namespace WalletWasabi.Hwi.Models
 {
-	public enum HardwareWalletType
+    public enum HardwareWalletType
 	{
 		Trezor,
 		Ledger,

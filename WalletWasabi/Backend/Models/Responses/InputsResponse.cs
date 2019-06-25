@@ -1,13 +1,10 @@
-﻿using NBitcoin.BouncyCastle.Math;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Backend.Models.Responses
 {
-	public class InputsResponse
+    public class InputsResponse
 	{
 		[JsonConverter(typeof(GuidJsonConverter))]
 		public Guid UniqueId { get; set; }

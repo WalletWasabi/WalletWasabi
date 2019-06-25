@@ -1,5 +1,4 @@
 ﻿using NBitcoin;
-using NBitcoin.BouncyCastle.Math;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +6,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {
-	public class Alice
+    public class Alice
 	{
 		public DateTimeOffset LastSeen { get; set; }
 
