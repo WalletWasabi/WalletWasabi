@@ -14,7 +14,7 @@ using WalletWasabi.Gui.ViewModels.Validation;
 
 namespace WalletWasabi.Gui.Tabs
 {
-    internal class SettingsViewModel : WasabiDocumentTabViewModel
+	internal class SettingsViewModel : WasabiDocumentTabViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
 
@@ -40,10 +40,11 @@ namespace WalletWasabi.Gui.Tabs
 			Autocopy = Global.UiConfig?.Autocopy is true;
 
 			this.WhenAnyValue(x => x.Network)
-				.Subscribe(x => {
-					var (configLocalHost, configLocalPort) = Network == NBitcoin.Network.Main.Name 
+				.Subscribe(x =>
+				{
+					var (configLocalHost, configLocalPort) = Network == NBitcoin.Network.Main.Name
 						? (config.MainNetBitcoinCoreHost, config.MainNetBitcoinCorePort)
-						: (Network == NBitcoin.Network.TestNet.Name 
+						: (Network == NBitcoin.Network.TestNet.Name
 							? (config.TestNetBitcoinCoreHost, config.TestNetBitcoinCorePort)
 							: (config.RegTestBitcoinCoreHost, config.RegTestBitcoinCorePort));
 
@@ -80,7 +81,7 @@ namespace WalletWasabi.Gui.Tabs
 				Network = config.Network.ToString();
 				TorHost = config.TorHost;
 				TorPort = config.TorSocks5Port.ToString();
-				UseTor  = config.UseTor.Value;
+				UseTor = config.UseTor.Value;
 
 				SomePrivacyLevel = config.PrivacyLevelSome.ToString();
 				FinePrivacyLevel = config.PrivacyLevelFine.ToString();
@@ -251,9 +252,9 @@ namespace WalletWasabi.Gui.Tabs
 				var strongPrivacyLevel = int.TryParse(StrongPrivacyLevel, out level) ? (int?)level : null;
 				var dustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? (decimal?)threshold : null;
 
-				var (configLocalHost, configLocalPort) = network == NBitcoin.Network.Main 
+				var (configLocalHost, configLocalPort) = network == NBitcoin.Network.Main
 					? (config.MainNetBitcoinCoreHost, config.MainNetBitcoinCorePort)
-					: (network == NBitcoin.Network.TestNet 
+					: (network == NBitcoin.Network.TestNet
 						? (config.TestNetBitcoinCoreHost, config.TestNetBitcoinCorePort)
 						: (config.RegTestBitcoinCoreHost, config.RegTestBitcoinCorePort));
 
@@ -278,16 +279,18 @@ namespace WalletWasabi.Gui.Tabs
 					config.PrivacyLevelStrong = strongPrivacyLevel;
 					config.DustThreshold = Money.Coins(dustThreshold.Value);
 
-					switch(network.Name)
+					switch (network.Name)
 					{
 						case "Main":
 							config.MainNetBitcoinCoreHost = localNodeHost;
 							config.MainNetBitcoinCorePort = int.Parse(localNodePort);
 							break;
+
 						case "TestNet":
 							config.TestNetBitcoinCoreHost = localNodeHost;
 							config.TestNetBitcoinCorePort = int.Parse(localNodePort);
 							break;
+
 						case "RegTest":
 							config.RegTestBitcoinCoreHost = localNodeHost;
 							config.RegTestBitcoinCorePort = int.Parse(localNodePort);
