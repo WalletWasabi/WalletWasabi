@@ -162,7 +162,7 @@ www.zksnacks.com(*)
 (*) We recommend you to use Tor browser in order to protect your privacy.
 			";
 
-			TermsAndConditions += new string('\n', 100);
+			TermsAndConditions += new string('\n', 5);
 		}
 
 		public string TermsAndConditions { get; }

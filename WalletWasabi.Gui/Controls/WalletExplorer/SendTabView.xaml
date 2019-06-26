@@ -98,7 +98,11 @@
             </StackPanel>
           </StackPanel>
           <StackPanel Spacing="10" Orientation="Horizontal">
-            <controls:NoparaPasswordBox Password="{Binding Password}" IsVisible="{Binding !IsWatchOnly}" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" MaxWidth="173" />
+            <controls:NoparaPasswordBox Password="{Binding Password}" IsVisible="{Binding !IsWatchOnly}" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" MaxWidth="173">
+              <i:Interaction.Behaviors>
+                <behaviors:CommandOnEnterBehavior Command="{Binding BuildTransactionCommand}" />
+              </i:Interaction.Behaviors>
+            </controls:NoparaPasswordBox>
             <DockPanel VerticalAlignment="Top" LastChildFill="True">
               <Button Command="{Binding BuildTransactionCommand}" DockPanel.Dock="Right">
                 <StackPanel Orientation="Horizontal">
