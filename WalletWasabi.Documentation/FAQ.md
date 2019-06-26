@@ -5,7 +5,7 @@ Note: Many of these Q&A have been copied from real users, see footer for acknowl
 
 # Pre-Install
 
-### Who is behind Wasabi? 
+### Who is behind Wasabi?
 
 The Company that is developing Wasabi is zkSNACKs LTD ([twitter](https://twitter.com/@Zksnacks_LTD) | [website](https://zksnacks.com/))  
 
