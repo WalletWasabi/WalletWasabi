@@ -20,8 +20,6 @@ namespace WalletWasabi.Gui.Controls
 						true,
 						(e.InputModifiers & InputModifiers.Shift) != 0,
 						(e.InputModifiers & InputModifiers.Control) != 0);
-
-					
 				}
 			}, Avalonia.Interactivity.RoutingStrategies.Tunnel, true);
 		}
