@@ -44,7 +44,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			DateSortDirection = SortOrder.Decreasing;
 
-			_ = TryRewriteTableAsync();
+			//_ = TryRewriteTableAsync();
 		}
 
 		public override void OnOpen()
@@ -58,13 +58,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Disposables = new CompositeDisposable();
 
-			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
-				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed)))
-				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed)))
-				.Throttle(TimeSpan.FromSeconds(5))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(async _ => await TryRewriteTableAsync())
-				.DisposeWith(Disposables);
+			//Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
+			//	.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed)))
+			//	.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed)))
+			//	.Throttle(TimeSpan.FromSeconds(5))
+			//	.ObserveOn(RxApp.MainThreadScheduler)
+			//	.Subscribe(async _ => await TryRewriteTableAsync())
+			//	.DisposeWith(Disposables);
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(x =>
 			{
@@ -83,143 +83,143 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			return base.OnClose();
 		}
 
-		private async Task TryRewriteTableAsync()
-		{
-			try
-			{
-				var txRecordList = await Task.Run(() =>
-				{
-					return BuildTxRecordList();
-				});
+		//private async Task TryRewriteTableAsync()
+		//{
+		//	try
+		//	{
+		//		var txRecordList = await Task.Run(() =>
+		//		{
+		//			return BuildTxRecordList();
+		//		});
 
-				var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
-				Transactions?.Clear();
+		//		var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
+		//		Transactions?.Clear();
 
-				var trs = txRecordList.Select(txr => new TransactionInfo {
-					DateTime = txr.dateTime.ToLocalTime(),
-					Confirmed = txr.height.Type == HeightType.Chain,
-					AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
-					Label = txr.label,
-					TransactionId = txr.transactionId.ToString()
-				}).Select(ti => new TransactionViewModel(ti));
+		//		var trs = txRecordList.Select(txr => new TransactionInfo {
+		//			DateTime = txr.dateTime.ToLocalTime(),
+		//			Confirmed = txr.height.Type == HeightType.Chain,
+		//			AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
+		//			Label = txr.label,
+		//			TransactionId = txr.transactionId.ToString()
+		//		}).Select(ti => new TransactionViewModel(ti));
 
-				Transactions = new ObservableCollection<TransactionViewModel>(trs);
+		//		Transactions = new ObservableCollection<TransactionViewModel>(trs);
 
-				if (Transactions.Count > 0 && !(rememberSelectedTransactionId is null))
-				{
-					var txToSelect = Transactions.FirstOrDefault(x => x.TransactionId == rememberSelectedTransactionId);
-					if (txToSelect != default)
-					{
-						SelectedTransaction = txToSelect;
-					}
-				}
-				RefreshOrdering();
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError<HistoryTabViewModel>($"Error while RewriteTable on HistoryTab:  {ex}.");
-			}
-		}
+		//		if (Transactions.Count > 0 && !(rememberSelectedTransactionId is null))
+		//		{
+		//			var txToSelect = Transactions.FirstOrDefault(x => x.TransactionId == rememberSelectedTransactionId);
+		//			if (txToSelect != default)
+		//			{
+		//				SelectedTransaction = txToSelect;
+		//			}
+		//		}
+		//		RefreshOrdering();
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		Logger.LogError<HistoryTabViewModel>($"Error while RewriteTable on HistoryTab:  {ex}.");
+		//	}
+		//}
 
-		private List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)> BuildTxRecordList()
-		{
-			var walletService = Global.WalletService;
+		//private List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)> BuildTxRecordList()
+		//{
+		//	var walletService = Global.WalletService;
 
-			List<Transaction> trs = new List<Transaction>();
-			var txRecordList = new List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)>();
+		//	List<Transaction> trs = new List<Transaction>();
+		//	var txRecordList = new List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)>();
 
-			if (walletService == null)
-			{
-				return txRecordList;
-			}
+		//	if (walletService == null)
+		//	{
+		//		return txRecordList;
+		//	}
 
-			foreach (SmartCoin coin in walletService.Coins)
-			{
-				var found = txRecordList.FirstOrDefault(x => x.transactionId == coin.TransactionId);
+		//	foreach (SmartCoin coin in walletService.Coins)
+		//	{
+		//		var found = txRecordList.FirstOrDefault(x => x.transactionId == coin.TransactionId);
 
-				SmartTransaction foundTransaction = walletService.TransactionCache?.FirstOrDefault(x => x.GetHash() == coin.TransactionId);
-				if (foundTransaction is null)
-				{
-					continue;
-				}
+		//		SmartTransaction foundTransaction = walletService.TransactionCache?.FirstOrDefault(x => x.GetHash() == coin.TransactionId);
+		//		if (foundTransaction is null)
+		//		{
+		//			continue;
+		//		}
 
-				DateTimeOffset dateTime;
-				if (foundTransaction.Height.Type == HeightType.Chain)
-				{
-					if (walletService.ProcessedBlocks.Any(x => x.Value.height == foundTransaction.Height))
-					{
-						dateTime = walletService.ProcessedBlocks.First(x => x.Value.height == foundTransaction.Height).Value.dateTime;
-					}
-					else
-					{
-						dateTime = DateTimeOffset.UtcNow;
-					}
-				}
-				else
-				{
-					dateTime = foundTransaction.FirstSeenIfMemPoolTime ?? DateTimeOffset.UtcNow;
-				}
-				if (found != default) // if found
-				{
-					txRecordList.Remove(found);
-					var foundLabel = found.label != string.Empty ? found.label + ", " : "";
-					var newRecord = (dateTime, found.height, found.amount + coin.Amount, $"{foundLabel}{coin.Label}", coin.TransactionId);
-					txRecordList.Add(newRecord);
-				}
-				else
-				{
-					txRecordList.Add((dateTime, coin.Height, coin.Amount, coin.Label, coin.TransactionId));
-				}
+		//		DateTimeOffset dateTime;
+		//		if (foundTransaction.Height.Type == HeightType.Chain)
+		//		{
+		//			if (walletService.ProcessedBlocks.Any(x => x.Value.height == foundTransaction.Height))
+		//			{
+		//				dateTime = walletService.ProcessedBlocks.First(x => x.Value.height == foundTransaction.Height).Value.dateTime;
+		//			}
+		//			else
+		//			{
+		//				dateTime = DateTimeOffset.UtcNow;
+		//			}
+		//		}
+		//		else
+		//		{
+		//			dateTime = foundTransaction.FirstSeenIfMemPoolTime ?? DateTimeOffset.UtcNow;
+		//		}
+		//		if (found != default) // if found
+		//		{
+		//			txRecordList.Remove(found);
+		//			var foundLabel = found.label != string.Empty ? found.label + ", " : "";
+		//			var newRecord = (dateTime, found.height, found.amount + coin.Amount, $"{foundLabel}{coin.Label}", coin.TransactionId);
+		//			txRecordList.Add(newRecord);
+		//		}
+		//		else
+		//		{
+		//			txRecordList.Add((dateTime, coin.Height, coin.Amount, coin.Label, coin.TransactionId));
+		//		}
 
-				if (coin.SpenderTransactionId != null)
-				{
-					SmartTransaction foundSpenderTransaction = walletService.TransactionCache.First(x => x.GetHash() == coin.SpenderTransactionId);
-					if (foundSpenderTransaction.Height.Type == HeightType.Chain)
-					{
-						if (walletService.ProcessedBlocks != null) // NullReferenceException appeared here.
-						{
-							if (walletService.ProcessedBlocks.Any(x => x.Value.height == foundSpenderTransaction.Height))
-							{
-								if (walletService.ProcessedBlocks != null) // NullReferenceException appeared here.
-								{
-									dateTime = walletService.ProcessedBlocks.First(x => x.Value.height == foundSpenderTransaction.Height).Value.dateTime;
-								}
-								else
-								{
-									dateTime = DateTimeOffset.UtcNow;
-								}
-							}
-							else
-							{
-								dateTime = DateTimeOffset.UtcNow;
-							}
-						}
-						else
-						{
-							dateTime = DateTimeOffset.UtcNow;
-						}
-					}
-					else
-					{
-						dateTime = foundSpenderTransaction.FirstSeenIfMemPoolTime ?? DateTimeOffset.UtcNow;
-					}
+		//		if (coin.SpenderTransactionId != null)
+		//		{
+		//			SmartTransaction foundSpenderTransaction = walletService.TransactionCache.First(x => x.GetHash() == coin.SpenderTransactionId);
+		//			if (foundSpenderTransaction.Height.Type == HeightType.Chain)
+		//			{
+		//				if (walletService.ProcessedBlocks != null) // NullReferenceException appeared here.
+		//				{
+		//					if (walletService.ProcessedBlocks.Any(x => x.Value.height == foundSpenderTransaction.Height))
+		//					{
+		//						if (walletService.ProcessedBlocks != null) // NullReferenceException appeared here.
+		//						{
+		//							dateTime = walletService.ProcessedBlocks.First(x => x.Value.height == foundSpenderTransaction.Height).Value.dateTime;
+		//						}
+		//						else
+		//						{
+		//							dateTime = DateTimeOffset.UtcNow;
+		//						}
+		//					}
+		//					else
+		//					{
+		//						dateTime = DateTimeOffset.UtcNow;
+		//					}
+		//				}
+		//				else
+		//				{
+		//					dateTime = DateTimeOffset.UtcNow;
+		//				}
+		//			}
+		//			else
+		//			{
+		//				dateTime = foundSpenderTransaction.FirstSeenIfMemPoolTime ?? DateTimeOffset.UtcNow;
+		//			}
 
-					var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.transactionId == coin.SpenderTransactionId);
-					if (foundSpenderCoin != default) // if found
-					{
-						txRecordList.Remove(foundSpenderCoin);
-						var newRecord = (dateTime, foundSpenderTransaction.Height, foundSpenderCoin.amount - coin.Amount, foundSpenderCoin.label, coin.SpenderTransactionId);
-						txRecordList.Add(newRecord);
-					}
-					else
-					{
-						txRecordList.Add((dateTime, foundSpenderTransaction.Height, (Money.Zero - coin.Amount), "", coin.SpenderTransactionId));
-					}
-				}
-			}
-			txRecordList = txRecordList.OrderByDescending(x => x.dateTime).ThenBy(x => x.amount).ToList();
-			return txRecordList;
-		}
+		//			var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.transactionId == coin.SpenderTransactionId);
+		//			if (foundSpenderCoin != default) // if found
+		//			{
+		//				txRecordList.Remove(foundSpenderCoin);
+		//				var newRecord = (dateTime, foundSpenderTransaction.Height, foundSpenderCoin.amount - coin.Amount, foundSpenderCoin.label, coin.SpenderTransactionId);
+		//				txRecordList.Add(newRecord);
+		//			}
+		//			else
+		//			{
+		//				txRecordList.Add((dateTime, foundSpenderTransaction.Height, (Money.Zero - coin.Amount), "", coin.SpenderTransactionId));
+		//			}
+		//		}
+		//	}
+		//	txRecordList = txRecordList.OrderByDescending(x => x.dateTime).ThenBy(x => x.amount).ToList();
+		//	return txRecordList;
+		//}
 
 		public ObservableCollection<TransactionViewModel> Transactions
 		{

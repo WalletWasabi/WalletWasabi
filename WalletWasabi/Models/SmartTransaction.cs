@@ -143,10 +143,7 @@ namespace WalletWasabi.Models
 			return GetHash().GetHashCode();
 		}
 
-		public static bool operator !=(SmartTransaction tx1, SmartTransaction tx2)
-		{
-			return !(tx1 == tx2);
-		}
+		public static bool operator !=(SmartTransaction tx1, SmartTransaction tx2) => !(tx1 == tx2);
 
 		public static bool operator ==(SmartTransaction tx1, SmartTransaction tx2)
 		{
@@ -184,10 +181,7 @@ namespace WalletWasabi.Models
 			return rc;
 		}
 
-		public static bool operator !=(Transaction tx1, SmartTransaction tx2)
-		{
-			return !(tx1 == tx2);
-		}
+		public static bool operator !=(Transaction tx1, SmartTransaction tx2) => !(tx1 == tx2);
 
 		public static bool operator ==(SmartTransaction tx1, Transaction tx2)
 		{
@@ -205,10 +199,7 @@ namespace WalletWasabi.Models
 			return rc;
 		}
 
-		public static bool operator !=(SmartTransaction tx1, Transaction tx2)
-		{
-			return !(tx1 == tx2);
-		}
+		public static bool operator !=(SmartTransaction tx1, Transaction tx2) => !(tx1 == tx2);
 
 		#endregion Equality
 	}

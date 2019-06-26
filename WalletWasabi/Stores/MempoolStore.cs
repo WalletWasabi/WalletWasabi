@@ -133,14 +133,34 @@ namespace WalletWasabi.Stores
 
 			using (await MempoolLock.LockAsync())
 			{
-				var removedCounts = MempoolCache.Cleanup(allMempoolHashes, compactness);
+				var removed = MempoolCache.Cleanup(allMempoolHashes, compactness);
 
-				if (removedCounts.removedTxCount > 0)
+				if (removed.removedTxs.Any())
 				{
-					await SerializeTransactionsAsync();
+					await SerializeTransactionsAsync(removed.removedTxs.ToArray());
 				}
 
-				return removedCounts;
+				return (removed.removedHashCount, removed.removedTxs.Count());
+			}
+		}
+
+		public async Task<(int removedHashCount, int removedTxCount)> RemoveAsync(params uint256[] toRemove)
+		{
+			if (toRemove is null || !toRemove.Any())
+			{
+				return (0, 0);
+			}
+
+			using (await MempoolLock.LockAsync())
+			{
+				var removed = MempoolCache.Remove(toRemove);
+
+				if (removed.removedTxs.Any())
+				{
+					await SerializeTransactionsAsync(removed.removedTxs.ToArray());
+				}
+
+				return (removed.removedHashCount, removed.removedTxs.Count());
 			}
 		}
 
@@ -163,7 +183,7 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		private async Task SerializeTransactionsAsync()
+		private async Task SerializeTransactionsAsync(params uint256[] except)
 		{
 			using (await MempoolTransactionsFileManager.Mutex.LockAsync())
 			{
@@ -171,7 +191,8 @@ namespace WalletWasabi.Stores
 				{
 					// Serialize, but first read it out.
 					string jsonString = await File.ReadAllTextAsync(MempoolTransactionsFileManager.FilePath, Encoding.UTF8);
-					var transactions = MempoolCache.MempoolTransactionsFromJson(jsonString)?.ToArray();
+					var transactions = MempoolCache.MempoolTransactionsFromJson(jsonString, except)?
+						.ToArray();
 
 					// If the two are already the same then some other software instance already added it.
 					if (MempoolCache.SetEquals(transactions))
@@ -190,6 +211,26 @@ namespace WalletWasabi.Stores
 				// Finally serialize.
 				string serializedJsonString = MempoolCache.MempoolTransactionsToJson();
 				await File.WriteAllTextAsync(MempoolTransactionsFileManager.FilePath, serializedJsonString, Encoding.UTF8);
+			}
+		}
+
+		public async Task<(bool removedHash, bool removedTx)> ConfirmAsync(uint256 toConfirm, Height height, uint256 blockHash, int blockIndex)
+		{
+			if (toConfirm is null)
+			{
+				return (false, false);
+			}
+
+			using (await MempoolLock.LockAsync())
+			{
+				var removedCounts = MempoolCache.Confirm(toConfirm, height, blockHash, blockIndex);
+
+				if (removedCounts.removedTx)
+				{
+					await SerializeTransactionsAsync(toConfirm);
+				}
+
+				return removedCounts;
 			}
 		}
 

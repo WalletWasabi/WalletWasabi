@@ -59,8 +59,6 @@ namespace WalletWasabi.Services
 
 		public NodesGroup Nodes { get; }
 		public string BlocksFolderPath { get; }
-		public string TransactionsFolderPath { get; }
-		public string TransactionsFilePath { get; }
 
 		private AsyncLock HandleFiltersLock { get; }
 
@@ -73,8 +71,6 @@ namespace WalletWasabi.Services
 		public ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)> ProcessedBlocks { get; }
 
 		public ObservableConcurrentHashSet<SmartCoin> Coins { get; }
-
-		public ConcurrentHashSet<SmartTransaction> TransactionCache { get; }
 
 		public event EventHandler<FilterModel> NewFilterProcessed;
 
@@ -106,10 +102,8 @@ namespace WalletWasabi.Services
 			HandleFiltersLock = new AsyncLock();
 
 			Coins = new ObservableConcurrentHashSet<SmartCoin>();
-			TransactionCache = new ConcurrentHashSet<SmartTransaction>();
 
 			BlocksFolderPath = Path.Combine(workFolderDir, "Blocks", Network.ToString());
-			TransactionsFolderPath = Path.Combine(workFolderDir, "Transactions", Network.ToString());
 			RuntimeParams.SetDataDir(workFolderDir);
 
 			BlockFolderLock = new AsyncLock();
@@ -129,29 +123,9 @@ namespace WalletWasabi.Services
 			{
 				Directory.CreateDirectory(BlocksFolderPath);
 			}
-			if (Directory.Exists(TransactionsFolderPath))
-			{
-				if (Synchronizer.Network == Network.RegTest)
-				{
-					Directory.Delete(TransactionsFolderPath, true);
-					Directory.CreateDirectory(TransactionsFolderPath);
-				}
-			}
-			else
-			{
-				Directory.CreateDirectory(TransactionsFolderPath);
-			}
-
-			var walletName = "UnnamedWallet";
-			if (!string.IsNullOrWhiteSpace(KeyManager.FilePath))
-			{
-				walletName = Path.GetFileNameWithoutExtension(KeyManager.FilePath);
-			}
-			TransactionsFilePath = Path.Combine(TransactionsFolderPath, $"{walletName}Transactions.json");
 
 			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
 			BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
-			MemPool.TransactionReceived += MemPool_TransactionReceivedAsync;
 		}
 
 		private void Coins_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -167,10 +141,7 @@ namespace WalletWasabi.Services
 			{
 				using (await TransactionProcessingLock.LockAsync())
 				{
-					if (await ProcessTransactionAsync(tx))
-					{
-						SerializeTransactionCache();
-					}
+					await ProcessTransactionAsync(tx);
 				}
 			}
 			catch (Exception ex)
@@ -193,7 +164,7 @@ namespace WalletWasabi.Services
 					{
 						foreach (var toRemove in Coins.Where(x => x.Height == blockState.BlockHeight).Distinct().ToList())
 						{
-							RemoveCoinRecursively(toRemove);
+							await RemoveCoinRecursivelyAsync(toRemove);
 						}
 					}
 				}
@@ -204,18 +175,18 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private void RemoveCoinRecursively(SmartCoin toRemove)
+		private async Task RemoveCoinRecursivelyAsync(SmartCoin toRemove)
 		{
 			if (toRemove.SpenderTransactionId != null)
 			{
 				foreach (var toAlsoRemove in Coins.Where(x => x.TransactionId == toRemove.SpenderTransactionId).Distinct().ToList())
 				{
-					RemoveCoinRecursively(toAlsoRemove);
+					await RemoveCoinRecursivelyAsync(toAlsoRemove);
 				}
 			}
 
 			Coins.TryRemove(toRemove);
-			MemPool.TransactionHashes.TryRemove(toRemove.SpenderTransactionId);
+			await BitcoinStore.MempoolStore.RemoveAsync(toRemove.SpenderTransactionId);
 		}
 
 		private async void IndexDownloader_NewFilterAsync(object sender, FilterModel filterModel)
@@ -284,81 +255,30 @@ namespace WalletWasabi.Services
 				}, new Height(bestKeyManagerHeight.Value + 1));
 
 				// Load in dummy mempool
-				if (File.Exists(TransactionsFilePath))
+				try
 				{
-					try
+					var mempoolTransactions = BitcoinStore.MempoolCache.GetTransactions();
+					foreach (var tx in mempoolTransactions)
 					{
-						SmartTransaction[] transactions = null;
 						try
 						{
-							string jsonString = File.ReadAllText(TransactionsFilePath, Encoding.UTF8);
-							transactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?
-								.Where(x => !x.Confirmed)? // Only unconfirmed ones.
-								.OrderBy(x => x.Height)? // Order by height first (it's mempool or unknown)
-								.ThenBy(x => x.FirstSeenIfMemPoolTime ?? DateTime.UtcNow)
-								.ToArray(); // Order by the time of first seen.
+							await ProcessTransactionAsync(tx);
 						}
 						catch (Exception ex)
 						{
 							Logger.LogWarning<WalletService>(ex);
-							Logger.LogWarning<WalletService>($"Transaction cache got corrupted. Deleting {TransactionsFilePath}.");
-							File.Delete(TransactionsFilePath);
-						}
-
-						if (transactions != null && transactions.Any())
-						{
-							try
-							{
-								using (await TransactionProcessingLock.LockAsync())
-								using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
-								{
-									var compactness = 10;
-
-									var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
-
-									var cnt = 0;
-									foreach (var tx in transactions)
-									{
-										if (mempoolHashes.Contains(tx.GetHash().ToString().Substring(0, compactness)))
-										{
-											tx.SetHeight(Height.MemPool);
-											await ProcessTransactionAsync(tx);
-											MemPool.TransactionHashes.TryAdd(tx.GetHash());
-
-											Logger.LogInfo<WalletService>($"Transaction was successfully tested against the backend's mempool hashes: {tx.GetHash()}.");
-											cnt++;
-										}
-									}
-
-									UnconfirmedTransactionsInitialized = true;
-
-									if (cnt != transactions.Count())
-									{
-										SerializeTransactionCache();
-									}
-								}
-							}
-							catch
-							{
-								// When there's a connection failure don't clean the transactions, add it to processing.
-								foreach (var tx in transactions)
-								{
-									tx.SetHeight(Height.MemPool);
-									await ProcessTransactionAsync(tx);
-									MemPool.TransactionHashes.TryAdd(tx.GetHash());
-								}
-
-								throw;
-							}
 						}
 					}
-					catch (Exception ex)
-					{
-						Logger.LogWarning<WalletService>(ex);
-					}
+
+					await MemPool?.TryPerformMempoolCleanupAsync(Synchronizer?.WasabiClient?.TorClient?.DestinationUriAction, Synchronizer?.WasabiClient?.TorClient?.TorSocks5EndPoint);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogWarning<WalletService>(ex);
 				}
 			}
 			Coins.CollectionChanged += Coins_CollectionChanged;
+			MemPool.TransactionReceived += MemPool_TransactionReceivedAsync;
 			RefreshCoinHistories();
 		}
 
@@ -377,10 +297,7 @@ namespace WalletWasabi.Services
 
 			Block currentBlock = await GetOrDownloadBlockAsync(filterModel.BlockHash, cancel); // Wait until not downloaded.
 
-			if (await ProcessBlockAsync(filterModel.BlockHeight, currentBlock))
-			{
-				SerializeTransactionCache();
-			}
+			await ProcessBlockAsync(filterModel.BlockHeight, currentBlock);
 		}
 
 		public HdPubKey GetReceiveKey(string label, IEnumerable<HdPubKey> dontTouch = null)
@@ -530,179 +447,186 @@ namespace WalletWasabi.Services
 			uint256 txId = tx.GetHash();
 			var walletRelevant = false;
 
-			bool justUpdate = false;
-			if (tx.Confirmed)
+			try
 			{
-				MemPool.TransactionHashes.TryRemove(txId); // If we have in mempool, remove.
-				if (!tx.Transaction.PossiblyNativeSegWitInvolved())
+				bool justUpdate = false;
+				if (tx.Confirmed)
 				{
-					return false; // We don't care about non-witness transactions for other than mempool cleanup.
-				}
-
-				bool isFoundTx = TransactionCache.Contains(tx); // If we have in cache, update height.
-				if (isFoundTx)
-				{
-					SmartTransaction foundTx = TransactionCache.FirstOrDefault(x => x == tx);
-					if (foundTx != default(SmartTransaction)) // Must check again, because it's a concurrent collection!
+					(bool removedHash, bool removedTx) = await MemPool.MempoolStore.ConfirmAsync(txId, tx.Height, tx.BlockHash, tx.BlockIndex); // If we have in mempool, confirm.
+					if (removedTx)
 					{
-						foundTx.SetHeight(tx.Height, tx.BlockHash, tx.BlockIndex);
-						walletRelevant = true;
-						justUpdate = true; // No need to check for double spend, we already processed this transaction, just update it.
+						justUpdate = true;
+					}
+
+					if (!tx.Transaction.PossiblyNativeSegWitInvolved())
+					{
+						walletRelevant = false; // We don't care about non-witness transactions for other than mempool cleanup.
+						return walletRelevant;
 					}
 				}
-			}
-			else if (!tx.Transaction.PossiblyNativeSegWitInvolved())
-			{
-				return false; // We don't care about non-witness transactions for other than mempool cleanup.
-			}
-
-			if (!justUpdate && !tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
-			{
-				var doubleSpends = new List<SmartCoin>();
-				foreach (SmartCoin coin in Coins)
+				else if (!tx.Transaction.PossiblyNativeSegWitInvolved())
 				{
-					var spent = false;
-					foreach (TxoRef spentOutput in coin.SpentOutputs)
+					walletRelevant = false; // We don't care about non-witness transactions for other than mempool cleanup.
+					return walletRelevant;
+				}
+
+				if (!justUpdate && !tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
+				{
+					var doubleSpends = new List<SmartCoin>();
+					foreach (SmartCoin coin in Coins)
 					{
-						foreach (TxIn txin in tx.Transaction.Inputs)
+						var spent = false;
+						foreach (TxoRef spentOutput in coin.SpentOutputs)
 						{
-							if (spentOutput.TransactionId == txin.PrevOut.Hash && spentOutput.Index == txin.PrevOut.N) // Don't do (spentOutput == txin.PrevOut), it's faster this way, because it won't check for null.
+							foreach (TxIn txin in tx.Transaction.Inputs)
 							{
-								doubleSpends.Add(coin);
-								spent = true;
-								walletRelevant = true;
+								if (spentOutput.TransactionId == txin.PrevOut.Hash && spentOutput.Index == txin.PrevOut.N) // Don't do (spentOutput == txin.PrevOut), it's faster this way, because it won't check for null.
+								{
+									doubleSpends.Add(coin);
+									spent = true;
+									walletRelevant = true;
+									break;
+								}
+							}
+							if (spent)
+							{
 								break;
 							}
 						}
-						if (spent)
-						{
-							break;
-						}
 					}
-				}
 
-				if (doubleSpends.Any())
-				{
-					if (tx.Height == Height.MemPool)
+					if (doubleSpends.Any())
 					{
-						// if the received transaction is spending at least one input already
-						// spent by a previous unconfirmed transaction signaling RBF then it is not a double
-						// spanding transaction but a replacement transaction.
-						if (doubleSpends.Any(x => x.IsReplaceable))
+						if (tx.Height == Height.MemPool)
 						{
-							// remove double spent coins (if other coin spends it, remove that too and so on)
-							// will add later if they came to our keys
-							foreach (SmartCoin doubleSpentCoin in doubleSpends.Where(x => !x.Confirmed))
+							// if the received transaction is spending at least one input already
+							// spent by a previous unconfirmed transaction signaling RBF then it is not a double
+							// spanding transaction but a replacement transaction.
+							if (doubleSpends.Any(x => x.IsReplaceable))
 							{
-								RemoveCoinRecursively(doubleSpentCoin);
+								// remove double spent coins (if other coin spends it, remove that too and so on)
+								// will add later if they came to our keys
+								foreach (SmartCoin doubleSpentCoin in doubleSpends.Where(x => !x.Confirmed))
+								{
+									await RemoveCoinRecursivelyAsync(doubleSpentCoin);
+								}
+								tx.SetReplacement();
+								walletRelevant = true;
 							}
-							tx.SetReplacement();
+							else
+							{
+								walletRelevant = false;
+								return walletRelevant;
+							}
+						}
+						else // new confirmation always enjoys priority
+						{
+							// remove double spent coins recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
+							foreach (SmartCoin doubleSpentCoin in doubleSpends)
+							{
+								await RemoveCoinRecursivelyAsync(doubleSpentCoin);
+							}
 							walletRelevant = true;
 						}
-						else
-						{
-							return false;
-						}
 					}
-					else // new confirmation always enjoys priority
+				}
+
+				for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
+				{
+					// If transaction received to any of the wallet keys:
+					var output = tx.Transaction.Outputs[i];
+					HdPubKey foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
+					if (foundKey != default)
 					{
-						// remove double spent coins recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
-						foreach (SmartCoin doubleSpentCoin in doubleSpends)
-						{
-							RemoveCoinRecursively(doubleSpentCoin);
-						}
 						walletRelevant = true;
+
+						foundKey.SetKeyState(KeyState.Used, KeyManager);
+						List<SmartCoin> spentOwnCoins = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
+						var anonset = tx.Transaction.GetAnonymitySet(i);
+						if (spentOwnCoins.Count != 0)
+						{
+							anonset += spentOwnCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because don't count own.
+
+							// Cleanup exposed links where the txo has been spent.
+							foreach (var input in spentOwnCoins.Select(x => x.GetTxoRef()))
+							{
+								ChaumianClient.ExposedLinks.TryRemove(input, out _);
+							}
+						}
+
+						if (output.Value <= ServiceConfiguration.DustThreshold)
+						{
+							continue;
+						}
+
+						SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Don't inherit locked status from key, that's different.
+																																																													   // If we didn't have it.
+						if (Coins.TryAdd(newCoin))
+						{
+							// If it's being mixed and anonset is not sufficient, then queue it.
+							if (newCoin.Unspent && ChaumianClient.HasIngredients && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet && ChaumianClient.State.Contains(newCoin.SpentOutputs))
+							{
+								try
+								{
+									await ChaumianClient.QueueCoinsToMixAsync(newCoin);
+								}
+								catch (Exception ex)
+								{
+									Logger.LogError<WalletService>(ex);
+								}
+							}
+
+							// Make sure there's always 21 clean keys generated and indexed.
+							KeyManager.AssertCleanKeysIndexed(isInternal: foundKey.IsInternal);
+
+							if (foundKey.IsInternal)
+							{
+								// Make sure there's always 14 internal locked keys generated and indexed.
+								KeyManager.AssertLockedInternalKeysIndexed(14);
+							}
+						}
+						else // If we had this coin already.
+						{
+							if (newCoin.Height != Height.MemPool) // Update the height of this old coin we already had.
+							{
+								SmartCoin oldCoin = Coins.FirstOrDefault(x => x.TransactionId == txId && x.Index == i);
+								if (oldCoin != null) // Just to be sure, it is a concurrent collection.
+								{
+									oldCoin.Height = newCoin.Height;
+								}
+							}
+						}
 					}
 				}
-			}
 
-			for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
-			{
-				// If transaction received to any of the wallet keys:
-				var output = tx.Transaction.Outputs[i];
-				HdPubKey foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
-				if (foundKey != default)
+				// If spends any of our coin
+				for (var i = 0; i < tx.Transaction.Inputs.Count; i++)
 				{
-					walletRelevant = true;
+					var input = tx.Transaction.Inputs[i];
 
-					foundKey.SetKeyState(KeyState.Used, KeyManager);
-					List<SmartCoin> spentOwnCoins = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
-					var anonset = tx.Transaction.GetAnonymitySet(i);
-					if (spentOwnCoins.Count != 0)
+					var foundCoin = Coins.FirstOrDefault(x => x.TransactionId == input.PrevOut.Hash && x.Index == input.PrevOut.N);
+					if (foundCoin != null)
 					{
-						anonset += spentOwnCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because don't count own.
+						walletRelevant = true;
 
-						// Cleanup exposed links where the txo has been spent.
-						foreach (var input in spentOwnCoins.Select(x => x.GetTxoRef()))
-						{
-							ChaumianClient.ExposedLinks.TryRemove(input, out _);
-						}
-					}
-
-					if (output.Value <= ServiceConfiguration.DustThreshold)
-					{
-						continue;
-					}
-
-					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Don't inherit locked status from key, that's different.
-																																																												   // If we didn't have it.
-					if (Coins.TryAdd(newCoin))
-					{
-						TransactionCache.TryAdd(tx);
-
-						// If it's being mixed and anonset is not sufficient, then queue it.
-						if (newCoin.Unspent && ChaumianClient.HasIngredients && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet && ChaumianClient.State.Contains(newCoin.SpentOutputs))
-						{
-							try
-							{
-								await ChaumianClient.QueueCoinsToMixAsync(newCoin);
-							}
-							catch (Exception ex)
-							{
-								Logger.LogError<WalletService>(ex);
-							}
-						}
-
-						// Make sure there's always 21 clean keys generated and indexed.
-						KeyManager.AssertCleanKeysIndexed(isInternal: foundKey.IsInternal);
-
-						if (foundKey.IsInternal)
-						{
-							// Make sure there's always 14 internal locked keys generated and indexed.
-							KeyManager.AssertLockedInternalKeysIndexed(14);
-						}
-					}
-					else // If we had this coin already.
-					{
-						if (newCoin.Height != Height.MemPool) // Update the height of this old coin we already had.
-						{
-							SmartCoin oldCoin = Coins.FirstOrDefault(x => x.TransactionId == txId && x.Index == i);
-							if (oldCoin != null) // Just to be sure, it is a concurrent collection.
-							{
-								oldCoin.Height = newCoin.Height;
-							}
-						}
+						foundCoin.SpenderTransactionId = txId;
+						CoinSpentOrSpenderConfirmed?.Invoke(this, foundCoin);
 					}
 				}
-			}
 
-			// If spends any of our coin
-			for (var i = 0; i < tx.Transaction.Inputs.Count; i++)
+				return walletRelevant;
+			}
+			finally
 			{
-				var input = tx.Transaction.Inputs[i];
-
-				var foundCoin = Coins.FirstOrDefault(x => x.TransactionId == input.PrevOut.Hash && x.Index == input.PrevOut.N);
-				if (foundCoin != null)
+				if (walletRelevant && !tx.Confirmed)
 				{
-					walletRelevant = true;
-
-					foundCoin.SpenderTransactionId = txId;
-					TransactionCache.TryAdd(tx);
-					CoinSpentOrSpenderConfirmed?.Invoke(this, foundCoin);
+					await BitcoinStore.MempoolStore.ProcessAsync(tx);
+				}
+				else
+				{
+					await BitcoinStore.MempoolStore.ProcessAsync(txId);
 				}
 			}
-
-			return walletRelevant;
 		}
 
 		private Node _localBitcoinCoreNode = null;
@@ -720,8 +644,6 @@ namespace WalletWasabi.Services
 			}
 			private set => _localBitcoinCoreNode = value;
 		}
-
-		public bool UnconfirmedTransactionsInitialized { get; private set; }
 
 		/// <exception cref="OperationCanceledException"></exception>
 		public async Task<Block> GetOrDownloadBlockAsync(uint256 hash, CancellationToken cancel)
@@ -1517,11 +1439,7 @@ namespace WalletWasabi.Services
 
 				using (await TransactionProcessingLock.LockAsync())
 				{
-					if (await ProcessTransactionAsync(new SmartTransaction(transaction.Transaction, Height.MemPool)))
-					{
-						SerializeTransactionCache();
-					}
-					MemPool.TransactionHashes.TryAdd(transaction.GetHash());
+					await ProcessTransactionAsync(new SmartTransaction(transaction.Transaction, Height.MemPool));
 				}
 
 				Logger.LogInfo<WalletService>($"Transaction is successfully broadcasted to backend: {transaction.GetHash()}.");
@@ -1586,20 +1504,6 @@ namespace WalletWasabi.Services
 					RefreshCoinHistories();
 				}
 			}
-		}
-
-		private void SerializeTransactionCache()
-		{
-			if (!UnconfirmedTransactionsInitialized) // If unconfirmed ones are not yet initialized, then don't serialize because unconfirmed are going to be lost.
-			{
-				return;
-			}
-
-			IoHelpers.EnsureContainingDirectoryExists(TransactionsFilePath);
-			string jsonString = JsonConvert.SerializeObject(TransactionCache.OrderBy(x => x.Height).ThenBy(x => x.FirstSeenIfMemPoolTime ?? DateTime.UtcNow), Formatting.Indented);
-			File.WriteAllText(TransactionsFilePath,
-				jsonString,
-				Encoding.UTF8);
 		}
 
 		/// <summary>

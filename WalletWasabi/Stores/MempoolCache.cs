@@ -127,28 +127,30 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		public static IOrderedEnumerable<SmartTransaction> MempoolTransactionsFromJson(string jsonString)
+		public static IOrderedEnumerable<SmartTransaction> MempoolTransactionsFromJson(string jsonString, params uint256[] except)
 			=> JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?
-				.Where(x => !x.Confirmed)?
+				.Where(x => !x.Confirmed && !except.Contains(x.GetHash()))?
 				.OrderByBlockchain();
 
-		public (int removedHashCount, int removedTxCount) Cleanup(ISet<string> allMempoolHashes, int compactness)
+		public (int removedHashCount, IEnumerable<uint256> removedTxs) Cleanup(ISet<string> allMempoolHashes, int compactness)
 		{
 			if (allMempoolHashes is null || !allMempoolHashes.Any())
 			{
-				return (0, 0);
+				return (0, Enumerable.Empty<uint256>());
 			}
 
 			int removedHashCount = 0;
-			int removedTxCount = 0;
+			HashSet<uint256> removedTxs = new HashSet<uint256>();
+
 			lock (Lock)
 			{
 				if (IsEmpty)
 				{
-					return (0, 0);
+					return (0, Enumerable.Empty<uint256>());
 				}
 
-				IEnumerable<uint256> toRemove = MempoolHashes.Where(x => !allMempoolHashes.Contains(x.ToString().Substring(0, compactness)));
+				IEnumerable<uint256> toRemove = MempoolHashes.Where(x => !allMempoolHashes.Contains(x.ToString().Substring(0, compactness))).
+					ToArray(); // Because we use this to modify collection.
 
 				foreach (uint256 tx in toRemove)
 				{
@@ -157,12 +159,93 @@ namespace WalletWasabi.Stores
 						removedHashCount++;
 					}
 
-					removedTxCount += MempoolTransactions.RemoveWhere(x => x.GetHash() == tx);
+					if (MempoolTransactions.RemoveWhere(x => x.GetHash() == tx) > 0)
+					{
+						removedTxs.Add(tx);
+					}
 				}
 
 				IsEmpty = MempoolHashes.Count == 0;
 			}
-			return (removedHashCount, removedTxCount)
+
+			return (removedHashCount, removedTxs);
+		}
+
+		public (int removedHashCount, IEnumerable<uint256> removedTxs) Remove(params uint256[] toRemove)
+		{
+			if (toRemove is null || !toRemove.Any())
+			{
+				return (0, Enumerable.Empty<uint256>());
+			}
+
+			int removedHashCount = 0;
+			HashSet<uint256> removedTxs = new HashSet<uint256>();
+			lock (Lock)
+			{
+				if (IsEmpty)
+				{
+					return (0, Enumerable.Empty<uint256>());
+				}
+
+				foreach (uint256 tx in toRemove)
+				{
+					if (MempoolHashes.Remove(tx))
+					{
+						removedHashCount++;
+					}
+
+					if (MempoolTransactions.RemoveWhere(x => x.GetHash() == tx) > 0)
+					{
+						removedTxs.Add(tx);
+					}
+				}
+
+				IsEmpty = MempoolHashes.Count == 0;
+			}
+
+			return (removedHashCount, removedTxs);
+		}
+
+		public (bool removedHash, bool removedTx) Confirm(uint256 toConfirm, Height height, uint256 blockHash, int blockIndex)
+		{
+			if (toConfirm is null)
+			{
+				return (false, false);
+			}
+
+			bool removedHash = false;
+			bool removedTx = false;
+			lock (Lock)
+			{
+				if (IsEmpty)
+				{
+					return (false, false);
+				}
+
+				if (MempoolHashes.Remove(toConfirm))
+				{
+					removedHash = true;
+				}
+
+				var stx = MempoolTransactions.FirstOrDefault(x => x.GetHash() == toConfirm);
+				if (!(stx is null))
+				{
+					MempoolTransactions.Remove(stx);
+					stx.SetHeight(height, blockHash, blockIndex);
+					removedTx = true;
+				}
+
+				IsEmpty = MempoolHashes.Count == 0;
+			}
+			return (removedHash, removedTx);
+		}
+
+		public SmartTransaction[] GetTransactions()
+		{
+			lock (Lock)
+			{
+				return MempoolTransactions.ToArray();
+			}
 		}
 	}
 }

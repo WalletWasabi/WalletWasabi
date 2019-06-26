@@ -177,7 +177,7 @@ namespace WalletWasabi.Tests
 
 			var dir = Path.Combine(Global.Instance.DataDir, nameof(IndexStoreTestsAsync));
 			var network = Network.Main;
-			await indexStore.InitializeAsync(dir, network, new HashChain());
+			await indexStore.InitializeAsync(dir, network);
 		}
 
 		[Fact]

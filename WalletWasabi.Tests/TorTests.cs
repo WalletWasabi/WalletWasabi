@@ -30,16 +30,16 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact]
-		public async Task CanRequestChunkEncodedAsync()
-		{
-			using (var client = new TorHttpClient(new Uri("https://jigsaw.w3.org/"), Global.Instance.TorSocks5Endpoint))
-			{
-				var response = await client.SendAsync(HttpMethod.Get, "/HTTP/ChunkedScript");
-				var content = await response.Content.ReadAsStringAsync();
-				Assert.Equal(1000, Regex.Matches(content, "01234567890123456789012345678901234567890123456789012345678901234567890").Count);
-			}
-		}
+		//[Fact]
+		//public async Task CanRequestChunkEncodedAsync()
+		//{
+		//	using (var client = new TorHttpClient(new Uri("https://jigsaw.w3.org/"), Global.Instance.TorSocks5Endpoint))
+		//	{
+		//		var response = await client.SendAsync(HttpMethod.Get, "/HTTP/ChunkedScript");
+		//		var content = await response.Content.ReadAsStringAsync();
+		//		Assert.Equal(1000, Regex.Matches(content, "01234567890123456789012345678901234567890123456789012345678901234567890").Count);
+		//	}
+		//}
 
 		[Fact]
 		public async Task CanRequestClearnetAsync()

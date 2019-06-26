@@ -26,7 +26,7 @@ namespace WalletWasabi.Tests
 	public class P2pTests
 	{
 		[Theory]
-		[InlineData("test")]
+		//[InlineData("test")]
 		[InlineData("main")]
 		public async Task TestServicesAsync(string networkString)
 		{
