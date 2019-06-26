@@ -5,48 +5,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using WalletWasabi.Gui.Models;
 
-namespace WalletWasabi.Gui
+namespace WalletWasabi.Gui.Helpers
 {
-	public enum ShellType
-	{
-		Generic,
-		Windows,
-		Unix
-	}
-
-	public struct ShellExecuteResult
-	{
-		public int ExitCode { get; set; }
-		public string Output { get; set; }
-		public string ErrorOutput { get; set; }
-	}
-
-	public static class Utils
-	{
-		public static bool DetectLLVMPipeRasterizer()
-		{
-			try
-			{
-				var shellResult = ShellUtils.ExecuteShellCommand("glxinfo | grep renderer", "");
-
-				if (!string.IsNullOrWhiteSpace(shellResult.Output) && shellResult.Output.Contains("llvmpipe"))
-				{
-					return true;
-				}
-			}
-			catch (Exception)
-			{
-				// do nothing
-			}
-
-			return false;
-		}
-	}
-
 	public static class ShellUtils
 	{
-		private static ShellType ExecutorType = ShellType.Generic;
+		private static ShellType ExecutorType { get; } = ShellType.Generic;
 
 		static ShellUtils()
 		{

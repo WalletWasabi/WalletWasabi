@@ -101,9 +101,9 @@ namespace WalletWasabi.Gui
 					.UseWin32()
 					.UseSkia();
 			}
-			else if(RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				if(Utils.DetectLLVMPipeRasterizer())
+				if (Helpers.Utils.DetectLLVMPipeRasterizer())
 				{
 					useGpuLinux = false;
 				}
