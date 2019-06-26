@@ -81,7 +81,7 @@ When your full node is on the same hardware [computer, laptop] as your Wasabi wa
 
 ### How do I upgrade Wasabi?
 
-You can download the software build for the different operating systems on the main [website](https://wasabiwallet.io) or better over [Tor](http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion). Make sure you also download the signatures of the build and verify them for [Adam Ficsor's public key.](https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt) For step by step instructions, follow [this guie](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/InstallInstructions.md) or [see this video](https://youtu.be/DUc9A76rwX4).
+You can download the software build for the different operating systems on the main [website](https://wasabiwallet.io) or better over [Tor](http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion). Make sure you also download the signatures of the build and verify them for [Adam Ficsor's public key.](https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt) For step by step instructions, follow [this guide](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/InstallInstructions.md) or [see this video](https://youtu.be/DUc9A76rwX4).
 
 ### Why is the minimum mixing amount a weird number?
 
@@ -122,7 +122,7 @@ Not at the moment, if Wasabi and other CoinJoin tools are used by enough people 
 There are no hard and fast rules for what to do with the change. Generally try avoid the change and use the Max button extensively at sending. The most problematic type of change is what has `anonymity set 1` (red shield.) You should treat it as a kind of toxic waste (handled with great care).
 
 **Warning**
-You want to avoid merging `anonimity set 1 coins` with `anonymity set > 1 coins` whereever possible, because this will link your `anonymity set > 1 coin` to the coin you merge it with. Note that, this is also true if you merge them in a mix, however that's slightly less problematic, because some blockchain analysis techniques become [computationally infeasible](https://www.comsys.rwth-aachen.de/fileadmin/papers/2017/2017-maurer-trustcom-coinjoin.pdf).
+You want to avoid merging `anonimity set 1 coins` with `anonymity set > 1 coins` wherever possible, because this will link your `anonymity set > 1 coin` to the coin you merge it with. Note that, this is also true if you merge them in a mix, however that's slightly less problematic, because some blockchain analysis techniques become [computationally infeasible](https://www.comsys.rwth-aachen.de/fileadmin/papers/2017/2017-maurer-trustcom-coinjoin.pdf).
 
 It is also important that you don't send different coins to the same receiving address (even if performed as separate transactions) as this will also link the coins together, damaging your privacy.
 
@@ -158,7 +158,7 @@ User created content on Wasabi can be found [in our Dojo](https://github.com/zkS
 
 ### 'Backend won't connect'
 
-All Wasabi network traffic goes via Tor. When Tor has issues Wasabi has issues. If the Tor Hidden Service directory goes down (which is does occasionally) Wasabi now has a fall-back back to the coordinator server without a hidden service (but still over Tor). 
+All Wasabi network traffic goes via Tor. When Tor has issues Wasabi has issues. If the Tor Hidden Service directory goes down (which it does occasionally) Wasabi now has a fall-back back to the coordinator server without a hidden service (but still over Tor). 
 
 **It is easiest to wait and try again some hours later.**
 
