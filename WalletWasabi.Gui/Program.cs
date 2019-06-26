@@ -91,6 +91,8 @@ namespace WalletWasabi.Gui
 
 		private static AppBuilder BuildAvaloniaApp()
 		{
+			bool useGpuLinux = true;
+
 			var result = AppBuilder.Configure<App>();
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -99,6 +101,15 @@ namespace WalletWasabi.Gui
 					.UseWin32()
 					.UseSkia();
 			}
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			{
+				if (Helpers.Utils.DetectLLVMPipeRasterizer())
+				{
+					useGpuLinux = false;
+				}
+
+				result.UsePlatformDetect();
+			}
 			else
 			{
 				result.UsePlatformDetect();
@@ -106,7 +117,7 @@ namespace WalletWasabi.Gui
 
 			return result
 				.With(new Win32PlatformOptions { AllowEglInitialization = true, UseDeferredRendering = true })
-				.With(new X11PlatformOptions { UseGpu = true })
+				.With(new X11PlatformOptions { UseGpu = useGpuLinux })
 				.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = true })
 				.With(new MacOSPlatformOptions { ShowInDock = true });
 		}
