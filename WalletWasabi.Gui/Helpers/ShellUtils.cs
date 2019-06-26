@@ -61,7 +61,6 @@ namespace WalletWasabi.Gui.Helpers
 					WorkingDirectory = workingDirectory
 				}
 			})
-
 			{
 				if (!includeSystemPaths)
 				{
