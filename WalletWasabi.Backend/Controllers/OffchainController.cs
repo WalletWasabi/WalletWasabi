@@ -51,7 +51,7 @@ namespace WalletWasabi.Backend.Controllers
 		{
 			var cacheKey = nameof(GetExchangeRatesCollectionAsync);
 
-			if (!Cache.TryGetValue(cacheKey, out IEnumerable<ExchangeRate> exchangeRates))
+			if (!Cache.TryGetValue(cacheKey, out IEnumerable<ExchangeRate> exchangeRates) && Global.Instance.Config.Network == NBitcoin.Network.Main)
 			{
 				exchangeRates = await ExchangeRateProvider.GetExchangeRateAsync();
 
