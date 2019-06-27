@@ -1,6 +1,7 @@
-﻿using NBitcoin;
+using NBitcoin;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 
@@ -18,6 +19,13 @@ namespace WalletWasabi.Models
 		[JsonProperty]
 		[JsonConverter(typeof(HeightJsonConverter))]
 		public Height Height { get; private set; }
+
+		[JsonProperty]
+		[JsonConverter(typeof(Uint256JsonConverter))]
+		public uint256 BlockHash { get; private set; }
+
+		[JsonProperty]
+		public int BlockIndex { get; private set; }
 
 		[JsonProperty]
 		public string Label { get; set; }
@@ -51,17 +59,13 @@ namespace WalletWasabi.Models
 
 		#region Constructors
 
-		public SmartTransaction()
-		{
-		}
-
 		[JsonConstructor]
-		public SmartTransaction(Transaction transaction, Height height, string label = "", DateTimeOffset? firstSeenIfMemPoolTime = null, bool isReplacement = false)
+		public SmartTransaction(Transaction transaction, Height height, uint256 blockHash = null, int blockIndex = 0, string label = "", DateTimeOffset? firstSeenIfMemPoolTime = null, bool isReplacement = false)
 		{
 			Transaction = transaction;
 			Label = Guard.Correct(label);
 
-			SetHeight(height);
+			SetHeight(height, blockHash, blockIndex);
 			if (firstSeenIfMemPoolTime != null)
 			{
 				FirstSeenIfMemPoolTime = firstSeenIfMemPoolTime;
@@ -69,7 +73,9 @@ namespace WalletWasabi.Models
 			IsReplacement = isReplacement;
 		}
 
-		public void SetHeight(Height height)
+		#endregion Constructors
+
+		public void SetHeight(Height height, uint256 blockHash = null, int blockIndex = 0)
 		{
 			Height = height;
 			if (height == Height.MemPool)
@@ -80,6 +86,9 @@ namespace WalletWasabi.Models
 			{
 				FirstSeenIfMemPoolTime = null;
 			}
+
+			BlockHash = blockHash;
+			BlockIndex = blockIndex;
 		}
 
 		public void SetReplacement()
@@ -89,7 +98,30 @@ namespace WalletWasabi.Models
 
 		public bool HasLabel() => !string.IsNullOrWhiteSpace(Label);
 
-		#endregion Constructors
+		/// <summary>
+		/// First looks at height, then block index, then mempool firstseen.
+		/// </summary>
+		public static IComparer<SmartTransaction> GetBlockchainComparer()
+		{
+			return Comparer<SmartTransaction>.Create((a, b) =>
+			{
+				var heightCompareResult = a.Height.CompareTo(b.Height);
+				if (heightCompareResult != 0)
+				{
+					return heightCompareResult;
+				}
+
+				// If mempool this should be 0, so they should be equal so no worry about it.
+				var blockIndexCompareResult = a.BlockIndex.CompareTo(b.BlockIndex);
+				if (blockIndexCompareResult != 0)
+				{
+					return blockIndexCompareResult;
+				}
+
+				var firstSeenCompareResult = (a.FirstSeenIfMemPoolTime ?? DateTime.UtcNow).CompareTo(b.FirstSeenIfMemPoolTime ?? DateTime.UtcNow);
+				return firstSeenCompareResult;
+			});
+		}
 
 		#region Equality
 
@@ -100,15 +132,9 @@ namespace WalletWasabi.Models
 		public override bool Equals(object obj) =>
 			(obj is SmartTransaction && this == (SmartTransaction)obj);
 
-		public override int GetHashCode()
-		{
-			return GetHash().GetHashCode();
-		}
+		public override int GetHashCode() => GetHash().GetHashCode();
 
-		public static bool operator !=(SmartTransaction tx1, SmartTransaction tx2)
-		{
-			return !(tx1 == tx2);
-		}
+		public static bool operator !=(SmartTransaction tx1, SmartTransaction tx2) => !(tx1 == tx2);
 
 		public static bool operator ==(SmartTransaction tx1, SmartTransaction tx2)
 		{
@@ -146,10 +172,7 @@ namespace WalletWasabi.Models
 			return rc;
 		}
 
-		public static bool operator !=(Transaction tx1, SmartTransaction tx2)
-		{
-			return !(tx1 == tx2);
-		}
+		public static bool operator !=(Transaction tx1, SmartTransaction tx2) => !(tx1 == tx2);
 
 		public static bool operator ==(SmartTransaction tx1, Transaction tx2)
 		{
@@ -167,10 +190,7 @@ namespace WalletWasabi.Models
 			return rc;
 		}
 
-		public static bool operator !=(SmartTransaction tx1, Transaction tx2)
-		{
-			return !(tx1 == tx2);
-		}
+		public static bool operator !=(SmartTransaction tx1, Transaction tx2) => !(tx1 == tx2);
 
 		#endregion Equality
 	}
