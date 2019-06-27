@@ -44,8 +44,10 @@ dotnet restore && dotnet build
 ## In-Wallet
 
 1. Generate a new wallet.
-2. Backup the mnemonic words.
-3. Load the wallet you've just generated.
+  a. Enter a wallet name and a password. 
+  b. Tick the box to agree to the Terms and Conditions, Privacy Policy and Legal Issues documents, then click on „Generate”.
+2. Backup the mnemonic words (Make sure that you write down the mnemonics preferably on a piece of paper, then click on the tab „I wrote down my Recovery Words!”).
+3. Load the wallet you've just generated (Select your wallet, write your password in the tab at the bottom, then click on „Load Wallet” at the bottom right).
 4. Generate a new Receive Address and fund it with 0.11 BTC.
 5. Wait until the filters are synchronized (5 minutes), so you'll see the incoming transaction.
 6. Wait until your transaction is confirmed.
