@@ -4,13 +4,13 @@
   <Grid Classes="content">
     <DockPanel>
       <Grid DockPanel.Dock="Left" Width="200">
-        <ListBox Items="{Binding Categories}" SelectedItem="{Binding SelectedCategory, Mode=TwoWay}" BorderThickness="0 0 1 0">
-          <ListBox.ItemTemplate>
+        <controls:ExtendedListBox Items="{Binding Categories}" SelectedItem="{Binding SelectedCategory, Mode=TwoWay}" BorderThickness="0 0 1 0">
+          <controls:ExtendedListBox.ItemTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding Title}" />
             </DataTemplate>
-          </ListBox.ItemTemplate>
-        </ListBox>
+          </controls:ExtendedListBox.ItemTemplate>
+        </controls:ExtendedListBox>
       </Grid>
       <Grid>
         <cont:ViewModelViewHost DataContext="{Binding CurrentView}" Margin="4" />
