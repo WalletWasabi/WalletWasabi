@@ -78,6 +78,17 @@ Look at the terminal. Wait until log messages stop and you will get back your bl
   * Wait until Backend connected and all filter downloaded.
   * Restart the application.
   * Filter download should not start again.
+  
+## Context menu and selection tests
+
+1.
+  * Run Wasabi.
+  * Load one of your wallets. 
+  * Go to the "Receive" tab.
+  * If you don't have any addresses, then generate a couple.
+  * Select an address by right clicking on it. Make sure that the context menu pops up, and the address is highlighted.
+  * Then select another address by right clicking on it, and make sure again that the context menu pops up, and the address is highlighted.
+ 
 
 # Checklist
 
@@ -99,5 +110,6 @@ This is the template one can fill out and copypaste under a pull request.
 
 - **pass** Wasabi GUI exit test
 - **pass** Filter downloading tests
+- **pass** Context menu and selection tests
 
 ---TEMPLATE END---
