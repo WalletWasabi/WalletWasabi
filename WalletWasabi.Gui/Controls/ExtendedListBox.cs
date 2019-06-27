@@ -11,7 +11,7 @@ namespace WalletWasabi.Gui.Controls
 
 		public ExtendedListBox()
 		{
-			AddHandler<PointerPressedEventArgs>(PointerPressedEvent, (sender, e) =>
+			AddHandler(PointerPressedEvent, (sender, e) =>
 			{
 				if (e.MouseButton == MouseButton.Left || e.MouseButton == MouseButton.Right)
 				{
