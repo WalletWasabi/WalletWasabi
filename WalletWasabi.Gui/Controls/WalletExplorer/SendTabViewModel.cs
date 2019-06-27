@@ -379,6 +379,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(signedTransaction));
 
 					TryResetInputsOnSuccess("Transaction is successfully sent!");
+					string clipboardText = await Avalonia.Application.Current.Clipboard.GetTextAsync();
+					if (!string.IsNullOrEmpty(clipboardText) && clipboardText.Length <= 100)
+					{			
+						clipboardText = clipboardText.Trim();
+						try
+						{
+							var bitcoinAddress = BitcoinAddress.Create(clipboardText, Global.Network);
+							await Avalonia.Application.Current.Clipboard.ClearAsync();
+						}
+						catch (FormatException)
+						{}
+					}
 				}
 				catch (InsufficientBalanceException ex)
 				{
