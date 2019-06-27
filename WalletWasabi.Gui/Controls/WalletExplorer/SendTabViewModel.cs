@@ -376,7 +376,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
-					await Global.WalletService.SendTransactionAsync(signedTransaction);
+					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(signedTransaction));
 
 					TryResetInputsOnSuccess("Transaction is successfully sent!");
 				}
