@@ -9,7 +9,7 @@
             <TextBlock Text="You cannot recover your wallet without your password. Therefore we strongly advise you to use a password that you will not forget." TextWrapping="Wrap" />
           </StackPanel>
           <controls:ExtendedTextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
-          <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Choose a password" UseFloatingWatermark="True" />
+          <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Choose a password (Max 150 characters)" UseFloatingWatermark="True" />
         </StackPanel>
       </Grid>
     </controls:GroupBox>
