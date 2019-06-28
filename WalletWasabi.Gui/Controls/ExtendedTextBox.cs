@@ -3,8 +3,10 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
+using Avalonia.Threading;
 using AvalonStudio.Extensibility.Theme;
 using ReactiveUI;
 using System;
@@ -169,6 +171,23 @@ namespace WalletWasabi.Gui.Controls
 				CreatePasteItem();
 				menuItems.Add(_pasteItem);
 			}
+		}
+
+		protected override void OnLostFocus(RoutedEventArgs e)
+		{
+			// Dispatch so that if there is a context menu, it can open before the selection gets cleared.
+			// This is a workaround, fix inside avalonia to come in next release.
+			Dispatcher.UIThread.Post(() =>
+			{
+				if (ContextMenu != null && ContextMenu.IsOpen)
+				{
+					// Do not call base method, as this will clear selection.
+				}
+				else
+				{
+					base.OnLostFocus(e);
+				}
+			});
 		}
 
 		private void CreatePasteItem()
