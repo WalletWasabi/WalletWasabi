@@ -57,8 +57,8 @@
           <TextBlock Text = "BTC" />
         </StackPanel>
       </StackPanel>
-      <ListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
-        <ListBox.ContextMenu>
+      <controls:ExtendedListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
+        <controls:ExtendedListBox.ContextMenu>
           <ContextMenu>
             <!--Enqueuing needs password, TODO: jump to password box OR display pw box in context menu + send button-->
             <MenuItem  Command="{Binding EnqueueCoin}" IsVisible="false">
@@ -81,8 +81,8 @@
               </MenuItem.Icon>
             </MenuItem>
           </ContextMenu>
-        </ListBox.ContextMenu>
-        <ListBox.ItemTemplate>
+        </controls:ExtendedListBox.ContextMenu>
+        <controls:ExtendedListBox.ItemTemplate>
           <DataTemplate>
             <Grid>
               <Expander Name="coinExpander" ExpandDirection="Down" Classes="coloredExpander"  Background="{Binding ElementName=coinExpander, Path=IsExpanded, Converter={StaticResource CoinItemExpanderColorConverter}}">
@@ -142,8 +142,8 @@
               </Grid>
             </Grid>
           </DataTemplate>
-        </ListBox.ItemTemplate>
-      </ListBox>
+        </controls:ExtendedListBox.ItemTemplate>
+      </controls:ExtendedListBox>
     </DockPanel>
   </Grid>
 </UserControl>
