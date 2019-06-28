@@ -253,7 +253,7 @@ namespace NBitcoin
 		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt, Height height, uint256 blockHash = null, int blockIndex = 0, string label = "", DateTimeOffset? firstSeenIfMemPoolTime = null, bool isReplacement = false)
 		{
 			var extractedTx = psbt.ExtractTransaction();
-			return new SmartTransaction(extractedTx, height);
+			return new SmartTransaction(extractedTx, height, blockHash, blockIndex, label, firstSeenIfMemPoolTime, isReplacement);
 		}
 	}
 }
