@@ -55,6 +55,7 @@
           <TextBlock Text = "Selected Amount:" />
           <TextBlock Text = "{Binding TotalAmount, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}}" />
           <TextBlock Text = "BTC" />
+          <TextBlock Text ="Merging red coins with non-red coins exposes common ownership." Classes="warningMessage" IsVisible="{Binding LabelExposeCommonOwnershipWarning}" />
         </StackPanel>
       </StackPanel>
       <controls:ExtendedListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">

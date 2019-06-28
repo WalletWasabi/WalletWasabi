@@ -37,6 +37,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _clustersSortDirection;
 		private decimal _totalAmount;
 		private bool _isAnyCoinSelected;
+		private bool _labelExposeCommonOwnershipWarning;
 		public Global Global { get; }
 
 		public ReactiveCommand<Unit, Unit> EnqueueCoin { get; }
@@ -118,6 +119,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _isAnyCoinSelected, value);
 		}
 
+		public bool LabelExposeCommonOwnershipWarning
+		{
+			get => _labelExposeCommonOwnershipWarning;
+			set => this.RaiseAndSetIfChanged(backingField: ref _labelExposeCommonOwnershipWarning, value);
+		}
 		private void RefreshOrdering()
 		{
 			if (AmountSortDirection != SortOrder.None)
@@ -490,6 +496,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SetSelections();
 			SelectionChanged?.Invoke(this, cvm);
 			TotalAmount = Coins.Where(x => x.IsSelected).Sum(x => x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC));
+			LabelExposeCommonOwnershipWarning =
+				Coins.Any(c =>
+					c.AnonymitySet == 1 && c.IsSelected
+					&& Coins.Any(x => x.AnonymitySet > 1 && x.IsSelected));
 		}
 
 		public void OnCoinStatusChanged()
