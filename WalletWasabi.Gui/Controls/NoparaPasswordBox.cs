@@ -243,7 +243,7 @@ namespace WalletWasabi.Gui.Controls
 						e.Handled = OnTextInput(text, true);
 						if (!e.Handled)
 						{
-							DisplayWarning("Password too long (Max 150 characters)");
+							_ = DisplayWarningAsync("Password too long (Max 150 characters)");
 						}
 					}
 				}
@@ -367,7 +367,7 @@ namespace WalletWasabi.Gui.Controls
 			}
 		}
 
-		private async void DisplayWarning(string message)
+		private async Task DisplayWarningAsync(string message)
 		{
 			WarningMessage = message;
 			await Task.Delay(2000); // 2 seconds
