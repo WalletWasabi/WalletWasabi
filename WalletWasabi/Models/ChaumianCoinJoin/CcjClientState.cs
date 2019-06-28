@@ -261,9 +261,42 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 				IEnumerable<SmartCoin> best = coinGroups.FirstOrDefault();
 
+				var bestSet = best.ToHashSet();
+
 				if (best != default)
 				{
-					return best.Select(x => x.GetTxoRef()).ToArray();
+					// Generating toxic change leads to mass merging so it's better to merge sooner in coinjoin than the user do it himself in a non-CJ.
+					// The best selection's anonset should not be lowered by this merge.
+					int bestMinAnonset = bestSet.Min(x => x.AnonymitySet);
+					var bestSum = Money.Satoshis(bestSet.Sum(x => x.Amount));
+
+					if (!bestSum.Almost(amountNeeded, Money.Coins(0.0001m)))
+					{
+						IEnumerable<SmartCoin> coinsThoseCanBeConsolidated = coins
+							.Except(bestSet) // Get all the registrable coins, except the already chosen ones.
+							.Where(x =>
+								x.AnonymitySet >= bestMinAnonset // The anonset must be at least equal to the bestSet's anonset so we don't ruin the change's after mix anonset.
+								&& x.AnonymitySet > 1 // Red coins should never be merged.
+								&& x.Amount < amountNeeded // The amount need to be smaller than the amountNeeded (so to make sure this is toxic change.)
+								&& (bestSum + x.Amount) > amountNeeded) // Sanity check that the amount added don't ruin the registration.
+							.OrderBy(x => x.Amount); // Choose the smallest ones.
+
+						var bestCoinsToAdd = Enumerable.Empty<SmartCoin>();
+						if (coinsThoseCanBeConsolidated.Count() > 1) // Because the last one change should not be circulating, ruining privacy.
+						{
+							bestCoinsToAdd = coinsThoseCanBeConsolidated.Take(1);
+						}
+
+						foreach (SmartCoin coin in bestCoinsToAdd)
+						{
+							if (bestSet.Count < maximumInputCountPerPeer) // Ensure limits.
+							{
+								bestSet.Add(coin);
+							}
+						}
+					}
+
+					return bestSet.Select(x => x.GetTxoRef()).ToArray();
 				}
 			}
 
