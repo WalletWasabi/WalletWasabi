@@ -21,6 +21,10 @@
             <controls:ExtendedTextBox Text="https://github.com/zkSNACKs/WalletWasabi/" Classes="selectableTextBlock hyperLink" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Status Page: " />
+            <controls:ExtendedTextBox Text="https://status.wasabiwallet.io/" Classes="selectableTextBlock hyperLink" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal">
             <TextBlock Text="Customer Support: " />
             <controls:ExtendedTextBox Text="https://www.reddit.com/r/WasabiWallet/" Classes="selectableTextBlock hyperLink" />
           </StackPanel>

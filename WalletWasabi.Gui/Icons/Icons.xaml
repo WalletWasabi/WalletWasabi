@@ -88,6 +88,15 @@
         </DrawingGroup.Children>
       </DrawingGroup>
 
+      <DrawingGroup x:Key="StatusPage">
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8,0C3.589,0 0,3.589 0,8 0,12.411 3.589,16 8,16 12.411,16 16,12.411 16,8 16,3.589 12.411,0 8,0" />
+          <GeometryDrawing Brush="#FFFFFFFF" Geometry="F1M14,8C14,11.309 11.309,14 8,14 4.691,14 2,11.309 2,8 2,4.691 4.691,2 8,2 11.309,2 14,4.691 14,8" />
+          <GeometryDrawing Brush="#FF1BA1E2" Geometry="F1M7,7.5L9,7.5 9,12 7,12z M7,4L9,4 9,5.5 7,5.5z M8,14C4.691,14 2,11.309 2,8 2,4.691 4.691,2 8,2 11.309,2 14,4.691 14,8 14,11.309 11.309,14 8,14 M8,1C4.14,1 1,4.14 1,8 1,11.859 4.14,15 8,15 11.859,15 15,11.859 15,8 15,4.14 11.859,1 8,1" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+
       <DrawingGroup x:Key="CustomerSupport">
         <DrawingGroup.Children>
           <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
