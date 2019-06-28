@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
@@ -33,6 +33,11 @@ namespace WalletWasabi.Gui.Controls
 			_titlePresenter = e.NameScope.Find<ContentPresenter>("PART_TitlePresenter");
 
 			_border = e.NameScope.Find<Border>("PART_Border");
+		}
+
+		protected override Size MeasureOverride(Size availableSize)
+		{
+			return availableSize;
 		}
 
 		protected override Size ArrangeOverride(Size finalSize)
