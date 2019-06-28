@@ -1505,9 +1505,12 @@ namespace WalletWasabi.Services
 					{
 						await client.BroadcastAsync(transaction);
 					}
-					catch (HttpRequestException ex2) when (ex2.Message.Contains("txn-mempool-conflict", StringComparison.InvariantCultureIgnoreCase))
+					catch (HttpRequestException ex2) when (
+						ex2.Message.Contains("bad-txns-inputs-missingorspent", StringComparison.InvariantCultureIgnoreCase)
+						|| ex2.Message.Contains("missing-inputs", StringComparison.InvariantCultureIgnoreCase)
+						|| ex2.Message.Contains("txn-mempool-conflict", StringComparison.InvariantCultureIgnoreCase))
 					{
-						if (transaction.Transaction.Inputs.Count == 1)
+						if (transaction.Transaction.Inputs.Count == 1) // If we tried to only spend one coin, then we can mark it as spent. If there were more coins, then we don't know.
 						{
 							OutPoint input = transaction.Transaction.Inputs.First().PrevOut;
 							SmartCoin coin = Coins.FirstOrDefault(x => x.TransactionId == input.Hash && x.Index == input.N);
@@ -1516,11 +1519,6 @@ namespace WalletWasabi.Services
 								coin.SpentAccordingToBackend = true;
 							}
 						}
-						throw new HttpRequestException("Coin has been already spent.");
-					}
-					catch (HttpRequestException ex2) when (ex2.Message.Contains("too-long-mempool-chain", StringComparison.InvariantCultureIgnoreCase))
-					{
-						throw new HttpRequestException("There are too many unconfirmed transactions. Please wait for confirmation.");
 					}
 				}
 
