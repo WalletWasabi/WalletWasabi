@@ -1,5 +1,6 @@
 using Avalonia.Threading;
 using NBitcoin;
+using Nito.AsyncEx;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -30,6 +31,7 @@ namespace WalletWasabi.Gui.Tabs
 		private string _finePrivacyLevel;
 		private string _strongPrivacyLevel;
 		private string _dustThreshold;
+		private AsyncLock _configLock = new AsyncLock();
 
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
@@ -40,8 +42,10 @@ namespace WalletWasabi.Gui.Tabs
 			Autocopy = Global.UiConfig?.Autocopy is true;
 
 			this.WhenAnyValue(x => x.Network)
-				.Subscribe(x =>
+				.Subscribe(async _ =>
 				{
+					await config.LoadFileAsync();
+
 					var (configLocalHost, configLocalPort) = Network == NBitcoin.Network.Main.Name
 						? (config.MainNetBitcoinCoreHost, config.MainNetBitcoinCorePort)
 						: (Network == NBitcoin.Network.TestNet.Name
@@ -217,6 +221,7 @@ namespace WalletWasabi.Gui.Tabs
 
 		private void Save()
 		{
+
 			var isValid = string.IsNullOrEmpty(ValidateTorHost())
 						&& string.IsNullOrEmpty(ValidateTorPort())
 						&& string.IsNullOrEmpty(ValidateLocalNodeHost())
@@ -239,65 +244,68 @@ namespace WalletWasabi.Gui.Tabs
 
 			Dispatcher.UIThread.PostLogException(async () =>
 			{
-				await config.LoadFileAsync();
+				using (await _configLock.LockAsync())
+				{ 
+					await config.LoadFileAsync();
 
-				var network = NBitcoin.Network.GetNetwork(Network);
-				var torHost = TorHost;
-				var localNodeHost = LocalNodeHost;
-				var localNodePort = LocalNodePort;
-				var torSocks5Port = int.TryParse(TorPort, out var port) ? (int?)port : null;
-				var useTor = UseTor;
-				var somePrivacyLevel = int.TryParse(SomePrivacyLevel, out int level) ? (int?)level : null;
-				var finePrivacyLevel = int.TryParse(FinePrivacyLevel, out level) ? (int?)level : null;
-				var strongPrivacyLevel = int.TryParse(StrongPrivacyLevel, out level) ? (int?)level : null;
-				var dustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? (decimal?)threshold : null;
+					var network = NBitcoin.Network.GetNetwork(Network);
+					var torHost = TorHost;
+					var localNodeHost = LocalNodeHost;
+					var localNodePort = LocalNodePort;
+					var torSocks5Port = int.TryParse(TorPort, out var port) ? (int?)port : null;
+					var useTor = UseTor;
+					var somePrivacyLevel = int.TryParse(SomePrivacyLevel, out int level) ? (int?)level : null;
+					var finePrivacyLevel = int.TryParse(FinePrivacyLevel, out level) ? (int?)level : null;
+					var strongPrivacyLevel = int.TryParse(StrongPrivacyLevel, out level) ? (int?)level : null;
+					var dustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? (decimal?)threshold : null;
 
-				var (configLocalHost, configLocalPort) = network == NBitcoin.Network.Main
-					? (config.MainNetBitcoinCoreHost, config.MainNetBitcoinCorePort)
-					: (network == NBitcoin.Network.TestNet
-						? (config.TestNetBitcoinCoreHost, config.TestNetBitcoinCorePort)
-						: (config.RegTestBitcoinCoreHost, config.RegTestBitcoinCorePort));
+					var (configLocalHost, configLocalPort) = network == NBitcoin.Network.Main
+						? (config.MainNetBitcoinCoreHost, config.MainNetBitcoinCorePort)
+						: (network == NBitcoin.Network.TestNet
+							? (config.TestNetBitcoinCoreHost, config.TestNetBitcoinCorePort)
+							: (config.RegTestBitcoinCoreHost, config.RegTestBitcoinCorePort));
 
-				if (config.Network != network
-					|| config.TorHost != torHost
-					|| config.TorSocks5Port != torSocks5Port
-					|| config.UseTor != useTor
-					|| config.PrivacyLevelSome != somePrivacyLevel
-					|| config.PrivacyLevelFine != finePrivacyLevel
-					|| config.PrivacyLevelStrong != strongPrivacyLevel
-					|| config.DustThreshold.ToUnit(MoneyUnit.BTC) != dustThreshold
-					|| configLocalHost != localNodeHost
-					|| configLocalPort.ToString() != localNodePort
-				)
-				{
-					config.Network = network;
-					config.TorHost = torHost;
-					config.TorSocks5Port = torSocks5Port;
-					config.UseTor = useTor;
-					config.PrivacyLevelSome = somePrivacyLevel;
-					config.PrivacyLevelFine = finePrivacyLevel;
-					config.PrivacyLevelStrong = strongPrivacyLevel;
-					config.DustThreshold = Money.Coins(dustThreshold.Value);
-
-					switch (network.Name)
+					if (config.Network != network
+						|| config.TorHost != torHost
+						|| config.TorSocks5Port != torSocks5Port
+						|| config.UseTor != useTor
+						|| config.PrivacyLevelSome != somePrivacyLevel
+						|| config.PrivacyLevelFine != finePrivacyLevel
+						|| config.PrivacyLevelStrong != strongPrivacyLevel
+						|| config.DustThreshold.ToUnit(MoneyUnit.BTC) != dustThreshold
+						|| configLocalHost != localNodeHost
+						|| configLocalPort.ToString() != localNodePort
+					)
 					{
-						case "Main":
-							config.MainNetBitcoinCoreHost = localNodeHost;
-							config.MainNetBitcoinCorePort = int.Parse(localNodePort);
-							break;
+						config.Network = network;
+						config.TorHost = torHost;
+						config.TorSocks5Port = torSocks5Port;
+						config.UseTor = useTor;
+						config.PrivacyLevelSome = somePrivacyLevel;
+						config.PrivacyLevelFine = finePrivacyLevel;
+						config.PrivacyLevelStrong = strongPrivacyLevel;
+						config.DustThreshold = Money.Coins(dustThreshold.Value);
 
-						case "TestNet":
-							config.TestNetBitcoinCoreHost = localNodeHost;
-							config.TestNetBitcoinCorePort = int.Parse(localNodePort);
-							break;
+						switch (network.Name)
+						{
+							case "Main":
+								config.MainNetBitcoinCoreHost = localNodeHost;
+								config.MainNetBitcoinCorePort = int.Parse(localNodePort);
+								break;
 
-						case "RegTest":
-							config.RegTestBitcoinCoreHost = localNodeHost;
-							config.RegTestBitcoinCorePort = int.Parse(localNodePort);
-							break;
+							case "TestNet":
+								config.TestNetBitcoinCoreHost = localNodeHost;
+								config.TestNetBitcoinCorePort = int.Parse(localNodePort);
+								break;
+
+							case "RegTest":
+								config.RegTestBitcoinCoreHost = localNodeHost;
+								config.RegTestBitcoinCorePort = int.Parse(localNodePort);
+								break;
+						}
+
+						await config.ToFileAsync();
 					}
-
-					await config.ToFileAsync();
 
 					IsModified = await Global.Config.CheckFileChangeAsync();
 				}
