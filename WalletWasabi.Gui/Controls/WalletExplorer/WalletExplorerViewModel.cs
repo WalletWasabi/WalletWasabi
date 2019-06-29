@@ -1,4 +1,4 @@
-﻿using AvalonStudio.Extensibility;
+using AvalonStudio.Extensibility;
 using AvalonStudio.MVVM;
 using AvalonStudio.Shell;
 using ReactiveUI;
@@ -26,6 +26,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_wallets = new ObservableCollection<WalletViewModel>();
 		}
 
+		[Import]
+		public AvaloniaGlobalComponent GlobalComponent { get; set; }
+
+		public Global Global => GlobalComponent?.Global;
+
 		private ObservableCollection<WalletViewModel> _wallets;
 
 		public ObservableCollection<WalletViewModel> Wallets
@@ -50,7 +55,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return;
 			}
 
-			WalletViewModel walletViewModel = new WalletViewModel(walletService, receiveDominant);
+			WalletViewModel walletViewModel = new WalletViewModel(Global, receiveDominant);
 			_wallets.Add(walletViewModel);
 			walletViewModel.OnWalletOpened();
 

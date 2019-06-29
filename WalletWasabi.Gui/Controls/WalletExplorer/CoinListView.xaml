@@ -55,10 +55,11 @@
           <TextBlock Text = "Selected Amount:" />
           <TextBlock Text = "{Binding TotalAmount, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}}" />
           <TextBlock Text = "BTC" />
+          <TextBlock Text ="Merging red coins with non-red coins exposes common ownership." Classes="warningMessage" IsVisible="{Binding LabelExposeCommonOwnershipWarning}" />
         </StackPanel>
       </StackPanel>
-      <ListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
-        <ListBox.ContextMenu>
+      <controls:ExtendedListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
+        <controls:ExtendedListBox.ContextMenu>
           <ContextMenu>
             <!--Enqueuing needs password, TODO: jump to password box OR display pw box in context menu + send button-->
             <MenuItem  Command="{Binding EnqueueCoin}" IsVisible="false">
@@ -81,36 +82,36 @@
               </MenuItem.Icon>
             </MenuItem>
           </ContextMenu>
-        </ListBox.ContextMenu>
-        <ListBox.ItemTemplate>
+        </controls:ExtendedListBox.ContextMenu>
+        <controls:ExtendedListBox.ItemTemplate>
           <DataTemplate>
             <Grid>
               <Expander Name="coinExpander" ExpandDirection="Down" Classes="coloredExpander"  Background="{Binding ElementName=coinExpander, Path=IsExpanded, Converter={StaticResource CoinItemExpanderColorConverter}}">
                 <Grid HorizontalAlignment="Left" ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" MaxWidth="800" Margin="35 10 0 25">
-                    <TextBlock Text="Transaction Id:" Grid.Row="0" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding TransactionId}" Background="Transparent" Grid.Column="1" Grid.Row="0" />
+                  <TextBlock Text="Transaction Id:" Grid.Row="0" />
+                  <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding TransactionId}" Background="Transparent" Grid.Column="1" Grid.Row="0" />
 
-                    <TextBlock Text="Output Index:" Grid.Row="1" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding OutputIndex}"  Grid.Column="1" Grid.Row="1" />
+                  <TextBlock Text="Output Index:" Grid.Row="1" />
+                  <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding OutputIndex}"  Grid.Column="1" Grid.Row="1" />
 
-                    <TextBlock Text="Label:" Grid.Row="2" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Label}"  Grid.Column="1" Grid.Row="2" />
+                  <TextBlock Text="Label:" Grid.Row="2" />
+                  <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Label}"  Grid.Column="1" Grid.Row="2" />
 
-                    <TextBlock Text="Address:" Grid.Row="3" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Address}"  Grid.Column="1" Grid.Row="3" />
+                  <TextBlock Text="Address:" Grid.Row="3" />
+                  <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Address}"  Grid.Column="1" Grid.Row="3" />
 
-                    <TextBlock Text="Confirmations:" Grid.Row="4" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Confirmations}"  Grid.Column="1" Grid.Row="4" />
+                  <TextBlock Text="Confirmations:" Grid.Row="4" />
+                  <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Confirmations}"  Grid.Column="1" Grid.Row="4" />
 
-                    <TextBlock Text="Anonymity Set:" Grid.Row="5" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding AnonymitySet}"  Grid.Column="1" Grid.Row="5" />
+                  <TextBlock Text="Anonymity Set:" Grid.Row="5" />
+                  <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding AnonymitySet}"  Grid.Column="1" Grid.Row="5" />
 
-                    <TextBlock Text="Key Path:" Grid.Row="6" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding KeyPath}"  Grid.Column="1" Grid.Row="6" />
+                  <TextBlock Text="Key Path:" Grid.Row="6" />
+                  <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding KeyPath}"  Grid.Column="1" Grid.Row="6" />
 
-                    <TextBlock Text="Public Key:" Grid.Row="7" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding PubKey}"  Grid.Column="1" Grid.Row="7" />
-                  </Grid>
+                  <TextBlock Text="Public Key:" Grid.Row="7" />
+                  <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding PubKey}"  Grid.Column="1" Grid.Row="7" />
+                </Grid>
               </Expander>
 
               <Grid Margin="30 0 0 0" VerticalAlignment="Top">
@@ -142,8 +143,8 @@
               </Grid>
             </Grid>
           </DataTemplate>
-        </ListBox.ItemTemplate>
-      </ListBox>
+        </controls:ExtendedListBox.ItemTemplate>
+      </controls:ExtendedListBox>
     </DockPanel>
   </Grid>
 </UserControl>

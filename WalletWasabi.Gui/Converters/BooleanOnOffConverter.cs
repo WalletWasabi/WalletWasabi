@@ -1,26 +1,16 @@
-using Avalonia;
-using Avalonia.Data.Converters;
-using Avalonia.Media;
-using NBitcoin;
+﻿using Avalonia.Data.Converters;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 
 namespace WalletWasabi.Gui.Converters
 {
-	public class CoinItemExpanderColorConverter : IValueConverter
+    public class BooleanOnOffConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is bool expanded)
+			if (value is bool boolean)
 			{
-				if (expanded)
-				{
-					return Application.Current.Resources[Global.ThemeBackgroundBrushResourceKey] as IBrush;
-				}
-
-				return Brushes.Transparent;
+				return (boolean) ? "On" : "Off";
 			}
 
 			throw new InvalidOperationException();

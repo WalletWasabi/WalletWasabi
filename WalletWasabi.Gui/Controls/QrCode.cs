@@ -46,8 +46,8 @@ namespace WalletWasabi.Gui.Controls
 					for (var j = 0; j < w; j++)
 					{
 						var cellValue = source[i, j];
-						var color = cellValue ? Brushes.Black : Brushes.White;
 						var rect = new Rect(i * factor, j * factor, factor, factor);
+						var color = cellValue ? Brushes.Black : Brushes.White;
 						context.FillRectangle(color, rect);
 					}
 				}

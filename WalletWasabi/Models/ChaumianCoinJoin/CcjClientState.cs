@@ -207,37 +207,94 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			var coins = WaitingList
 				.Where(x => x.Value <= DateTimeOffset.UtcNow)
 				.Select(x => x.Key) // Only if registering coins is already allowed.
-				.Where(confirmationPredicate);
+				.Where(confirmationPredicate)
+				.ToList(); // So to not redo it in every cycle.
+
+			bool lazyMode = false;
 
 			for (int i = 1; i <= maximumInputCountPerPeer; i++) // The smallest number of coins we can register the better it is.
 			{
-				var linq = coins.GetPermutations(i);
-				linq = linq.Where(x => x.Sum(y => y.Amount) >= amountNeededExceptInputFees + (feePerInputs * i)); // If the sum reaches the minimum amount.
+				List<IEnumerable<SmartCoin>> coinGroups;
+				Money amountNeeded = amountNeededExceptInputFees + (feePerInputs * i); // If the sum reaches the minimum amount.
+
+				if (lazyMode) // Do the largest valid combination.
+				{
+					IEnumerable<SmartCoin> highestValueEnumeration = coins.OrderByDescending(x => x.Amount).Take(i);
+					if (highestValueEnumeration.Sum(x => x.Amount) >= amountNeeded)
+					{
+						coinGroups = new List<IEnumerable<SmartCoin>> { highestValueEnumeration };
+					}
+					else
+					{
+						coinGroups = new List<IEnumerable<SmartCoin>>();
+					}
+				}
+				else
+				{
+					DateTimeOffset start = DateTimeOffset.UtcNow;
+
+					coinGroups = coins.GetPermutations(i, amountNeeded).ToList();
+
+					if (DateTimeOffset.UtcNow - start > TimeSpan.FromMilliseconds(10)) // If the permutations took long then then if there's a nextTime, calculating permutations would be too CPU intensive.
+					{
+						lazyMode = true;
+					}
+				}
 
 				if (i == 1) // If only one coin is to be registered.
 				{
 					// Prefer the largest one, so more mixing volume is more likely.
-					linq = linq.OrderByDescending(x => x.Sum(y => y.Amount));
+					coinGroups = coinGroups.OrderByDescending(x => x.Sum(y => y.Amount)).ToList();
 
 					// Try to register with the smallest anonymity set, so new unmixed coins come to the mix.
-					linq = linq.OrderBy(x => x.Sum(y => y.AnonymitySet));
+					coinGroups = coinGroups.OrderBy(x => x.Sum(y => y.AnonymitySet)).ToList();
 				}
 				else // Else coin merging will happen.
 				{
 					// Prefer the lowest amount sum, so perfect mix should be more likely.
-					linq = linq.OrderBy(x => x.Sum(y => y.Amount));
+					coinGroups = coinGroups.OrderBy(x => x.Sum(y => y.Amount)).ToList();
 
 					// Try to register the largest anonymity set, so red and green coins input merging should be less likely.
-					linq = linq.OrderByDescending(x => x.Sum(y => y.AnonymitySet));
+					coinGroups = coinGroups.OrderByDescending(x => x.Sum(y => y.AnonymitySet)).ToList();
 				}
 
-				linq = linq.OrderBy(x => x.Count(y => y.Confirmed == false)); // Where the lowest amount of unconfirmed coins there are.
+				coinGroups = coinGroups.OrderBy(x => x.Count(y => y.Confirmed == false)).ToList(); // Where the lowest amount of unconfirmed coins there are.
 
-				IEnumerable<SmartCoin> best = linq.FirstOrDefault();
+				IEnumerable<SmartCoin> best = coinGroups.FirstOrDefault();
 
 				if (best != default)
 				{
-					return best.Select(x => x.GetTxoRef()).ToArray();
+					var bestSet = best.ToHashSet();
+
+					// -- OPPORTUNISTIC CONSOLIDATION --
+					// https://github.com/zkSNACKs/WalletWasabi/issues/1651
+					if (bestSet.Count < maximumInputCountPerPeer) // Ensure limits.
+					{
+						// Generating toxic change leads to mass merging so it's better to merge sooner in coinjoin than the user do it himself in a non-CJ.
+						// The best selection's anonset should not be lowered by this merge.
+						int bestMinAnonset = bestSet.Min(x => x.AnonymitySet);
+						var bestSum = Money.Satoshis(bestSet.Sum(x => x.Amount));
+
+						if (!bestSum.Almost(amountNeeded, Money.Coins(0.0001m)))
+						{
+							IEnumerable<SmartCoin> coinsThoseCanBeConsolidated = coins
+								.Except(bestSet) // Get all the registrable coins, except the already chosen ones.
+								.Where(x =>
+									x.AnonymitySet >= bestMinAnonset // The anonset must be at least equal to the bestSet's anonset so we don't ruin the change's after mix anonset.
+									&& x.AnonymitySet > 1 // Red coins should never be merged.
+									&& x.Amount < amountNeeded // The amount need to be smaller than the amountNeeded (so to make sure this is toxic change.)
+									&& (bestSum + x.Amount) > amountNeeded) // Sanity check that the amount added don't ruin the registration.
+								.OrderBy(x => x.Amount); // Choose the smallest ones.
+
+							if (coinsThoseCanBeConsolidated.Count() > 1) // Because the last one change should not be circulating, ruining privacy.
+							{
+								var bestCoinToAdd = coinsThoseCanBeConsolidated.First();
+								bestSet.Add(bestCoinToAdd);
+							}
+						}
+					}
+
+					return bestSet.Select(x => x.GetTxoRef()).ToArray();
 				}
 			}
 

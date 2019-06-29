@@ -27,10 +27,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
 		}
 
-		public WalletViewModel(WalletService walletService, bool receiveDominant)
-			: base(Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath))
+		public WalletViewModel(Global global, bool receiveDominant)
+			: base(global, Path.GetFileNameWithoutExtension(global.WalletService.KeyManager.FilePath))
 		{
-			WalletService = walletService;
+			WalletService = global.WalletService;
 			var keyManager = WalletService.KeyManager;
 			Name = Path.GetFileNameWithoutExtension(keyManager.FilePath);
 
@@ -40,13 +40,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SendTabViewModel sendTab = null;
 			// If hardware wallet then we need the Send tab.
-			if (walletService?.KeyManager?.IsHardwareWallet is true)
+			if (WalletService?.KeyManager?.IsHardwareWallet is true)
 			{
 				sendTab = new SendTabViewModel(this);
 				Actions.Add(sendTab);
 			}
 			// If not hardware wallet, but neither watch only then we also need the send tab.
-			else if (walletService?.KeyManager?.IsWatchOnly is false)
+			else if (WalletService?.KeyManager?.IsWatchOnly is false)
 			{
 				sendTab = new SendTabViewModel(this);
 				Actions.Add(sendTab);
@@ -87,8 +87,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				Global.Instance.UiConfig.LurkingWifeMode = !Global.Instance.UiConfig.LurkingWifeMode;
-				await Global.Instance.UiConfig.ToFileAsync();
+				Global.UiConfig.LurkingWifeMode = !Global.UiConfig.LurkingWifeMode;
+				await Global.UiConfig.ToFileAsync();
 			});
 		}
 
@@ -101,13 +101,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Disposables = new CompositeDisposable();
 
-			Observable.FromEventPattern(Global.Instance.WalletService.Coins, nameof(Global.Instance.WalletService.Coins.CollectionChanged))
-				.Merge(Observable.FromEventPattern(Global.Instance.WalletService, nameof(Global.Instance.WalletService.CoinSpentOrSpenderConfirmed)))
+			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
+				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed)))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(o => SetBalance(Name))
 				.DisposeWith(Disposables);
 
-			Global.Instance.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(x =>
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(x =>
 			{
 				SetBalance(Name);
 			}).DisposeWith(Disposables);
@@ -142,7 +142,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Money balance = Enumerable.Where(WalletService.Coins, c => c.Unspent && !c.SpentAccordingToBackend).Sum(c => (long?)c.Amount) ?? 0;
 
-			Title = $"{walletName} ({(Global.Instance.UiConfig.LurkingWifeMode.Value ? "#########" : balance.ToString(false, true))} BTC)";
+			Title = $"{walletName} ({(Global.UiConfig.LurkingWifeMode.Value ? "#########" : balance.ToString(false, true))} BTC)";
 		}
 	}
 }

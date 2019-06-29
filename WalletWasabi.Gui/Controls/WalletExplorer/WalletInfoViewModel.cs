@@ -55,10 +55,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					var secret = KeyManager.GetMasterExtKey(Password);
 					Password = "";
 
-					string master = secret.GetWif(Global.Instance.Network).ToWif();
-					string account = secret.Derive(KeyManager.AccountKeyPath).GetWif(Global.Instance.Network).ToWif();
-					string masterZ = secret.ToZPrv(Global.Instance.Network);
-					string accountZ = secret.Derive(KeyManager.AccountKeyPath).ToZPrv(Global.Instance.Network);
+					string master = secret.GetWif(Global.Network).ToWif();
+					string account = secret.Derive(KeyManager.AccountKeyPath).GetWif(Global.Network).ToWif();
+					string masterZ = secret.ToZPrv(Global.Network);
+					string accountZ = secret.Derive(KeyManager.AccountKeyPath).ToZPrv(Global.Network);
 					SetSensitiveData(master, account, masterZ, accountZ);
 				}
 				catch (Exception ex)
@@ -83,8 +83,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CancellationTokenSource Closing { private set; get; }
 
-		public string ExtendedAccountPublicKey => KeyManager.ExtPubKey.ToString(Global.Instance.Network);
-		public string ExtendedAccountZpub => KeyManager.ExtPubKey.ToZpub(Global.Instance.Network);
+		public string ExtendedAccountPublicKey => KeyManager.ExtPubKey.ToString(Global.Network);
+		public string ExtendedAccountZpub => KeyManager.ExtPubKey.ToZpub(Global.Network);
 		public string AccountKeyPath => $"m/{KeyManager.AccountKeyPath.ToString()}";
 		public string MasterKeyFingerprint => KeyManager.MasterFingerprint.ToString();
 		public ReactiveCommand<Unit, Unit> ShowSensitiveKeysCommand { get; }
@@ -154,7 +154,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Closing = new CancellationTokenSource();
 
-			Global.Instance.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(ExtendedAccountPublicKey));
 				this.RaisePropertyChanged(nameof(ExtendedAccountZpub));

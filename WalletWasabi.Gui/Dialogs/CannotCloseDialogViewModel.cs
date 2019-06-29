@@ -33,6 +33,8 @@ namespace WalletWasabi.Gui.Dialogs
 			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
 		}
 
+		private readonly Global Global;
+
 		public string OperationMessage
 		{
 			get => _operationMessage;
@@ -45,8 +47,9 @@ namespace WalletWasabi.Gui.Dialogs
 		//http://blog.stephencleary.com/2013/01/async-oop-2-constructors.html
 		public Task Initialization { get; private set; }
 
-		public CannotCloseDialogViewModel() : base("", false, false)
+		public CannotCloseDialogViewModel(Global global) : base("", false, false)
 		{
+			Global = global;
 			OperationMessage = "Dequeuing coins...Please wait";
 			var canCancel = this.WhenAnyValue(x => x.IsBusy);
 			var canOk = this.WhenAnyValue(x => x.IsBusy, (isbusy) => !isbusy);
@@ -132,12 +135,12 @@ namespace WalletWasabi.Gui.Dialogs
 
 					try
 					{
-						if (Global.Instance.WalletService is null || Global.Instance.ChaumianClient is null)
+						if (Global.WalletService is null || Global.ChaumianClient is null)
 						{
 							return;
 						}
 
-						SmartCoin[] enqueuedCoins = Global.Instance.WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
+						SmartCoin[] enqueuedCoins = Global.WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
 						Exception latestException = null;
 						foreach (var coin in enqueuedCoins)
 						{
@@ -148,7 +151,7 @@ namespace WalletWasabi.Gui.Dialogs
 									break;
 								}
 
-								await Global.Instance.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }, "Closing Wasabi."); // Dequeue coins one-by-one to check cancel flag more frequently.
+								await Global.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }, "Closing Wasabi."); // Dequeue coins one-by-one to check cancel flag more frequently.
 							}
 							catch (Exception ex)
 							{

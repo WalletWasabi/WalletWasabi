@@ -22,8 +22,8 @@
             <controls:SortingArrow Grid.Column="2" Command="{Binding SortCommand}" Text="Amount (BTC)" SortDirection="{Binding AmountSortDirection}" />
             <controls:SortingArrow Grid.Column="3" Command="{Binding SortCommand}" Text="Transaction ID" SortDirection="{Binding TransactionSortDirection}" />
           </Grid>
-          <ListBox Items="{Binding Transactions}" SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}">
-            <ListBox.ItemTemplate>
+          <controls:ExtendedListBox Items="{Binding Transactions}" SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}">
+            <controls:ExtendedListBox.ItemTemplate>
               <DataTemplate>
                 <Grid ColumnDefinitions="40, 160, 150, *">
                   <Grid.Styles>
@@ -50,8 +50,8 @@
                   </Grid>
                 </Grid>
               </DataTemplate>
-            </ListBox.ItemTemplate>
-          </ListBox>
+            </controls:ExtendedListBox.ItemTemplate>
+          </controls:ExtendedListBox>
         </DockPanel>
       </DockPanel>
     </Grid>

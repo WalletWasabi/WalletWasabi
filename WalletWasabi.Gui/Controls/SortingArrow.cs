@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
@@ -34,14 +34,13 @@ namespace WalletWasabi.Gui.Controls
 		{
 			if (!Design.IsDesignMode)
 			{
-				Background = (IBrush)Application.Current.Resources["ThemeBackgroundBrush"];
+				Background = Application.Current.Resources[Global.ThemeBackgroundBrushResourceKey] as IBrush;
 			}
 
 			HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
-			IconPath = new Path
-			{
+			IconPath = new Path {
 				Stretch = Stretch.Fill,
-				Stroke = Design.IsDesignMode ? Brushes.White : (IBrush)Application.Current.Resources["ApplicationAccentForegroundBrush"],
+				Stroke = Design.IsDesignMode ? Brushes.White : Application.Current.Resources[Global.ApplicationAccentForegroundBrushResourceKey] as IBrush,
 				StrokeThickness = 0.8,
 				Width = 10,
 				Height = 10,
@@ -50,8 +49,7 @@ namespace WalletWasabi.Gui.Controls
 			};
 			TextBox = new TextBlock();
 
-			Grid stackPnl = new Grid
-			{
+			Grid stackPnl = new Grid {
 				Children =
 				{
 					new StackPanel

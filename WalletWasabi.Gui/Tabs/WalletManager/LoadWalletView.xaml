@@ -70,8 +70,8 @@
           </StackPanel>
         </Grid>
         <Grid Classes="content">
-          <ListBox Items="{Binding Wallets}" SelectedItem="{Binding SelectedWallet, Mode=TwoWay}">
-            <ListBox.ItemTemplate>
+          <controls:ExtendedListBox Items="{Binding Wallets}" SelectedItem="{Binding SelectedWallet, Mode=TwoWay}">
+            <controls:ExtendedListBox.ItemTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding WalletName}">
                   <i:Interaction.Behaviors>
@@ -79,8 +79,8 @@
                   </i:Interaction.Behaviors>
                 </TextBlock>
               </DataTemplate>
-            </ListBox.ItemTemplate>
-          </ListBox>
+            </controls:ExtendedListBox.ItemTemplate>
+          </controls:ExtendedListBox>
         </Grid>
       </DockPanel>
     </controls:GroupBox>

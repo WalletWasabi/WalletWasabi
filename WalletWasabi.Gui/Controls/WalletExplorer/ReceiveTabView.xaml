@@ -62,8 +62,8 @@
             <TextBlock Text="Label:" />
             <TextBlock Text="Address:" Grid.Column="1" Margin="20 0 0 0" />
           </Grid>
-          <ListBox Grid.Row="2" Items="{Binding Addresses}" SelectedItem="{Binding SelectedAddress, Mode=TwoWay}" VirtualizationMode="None">
-            <ListBox.ContextMenu>
+          <controls:ExtendedListBox Grid.Row="2" Items="{Binding Addresses}" SelectedItem="{Binding SelectedAddress, Mode=TwoWay}" VirtualizationMode="None">
+            <controls:ExtendedListBox.ContextMenu>
               <ContextMenu>
                 <MenuItem Header="Show QR code" Command="{Binding ShowQrCode}">
                   <MenuItem.Icon>
@@ -88,14 +88,14 @@
                   </MenuItem.Icon>
                 </MenuItem>
               </ContextMenu>
-            </ListBox.ContextMenu>
-            <ListBox.ItemTemplate>
+            </controls:ExtendedListBox.ContextMenu>
+            <controls:ExtendedListBox.ItemTemplate>
               <DataTemplate>
                 <Grid>
                   <Expander Name="coinExpander" ExpandDirection="Down" IsExpanded="{Binding IsExpanded}" Classes="coloredExpander" Background="{Binding ElementName=coinExpander, Path=IsExpanded, Converter={StaticResource CoinItemExpanderColorConverter}}">
                     <StackPanel Orientation="Horizontal" Spacing="16" Margin="35 10 0 25">
-                      <Panel Height="180" Background="#FFFEFEFE">
-                        <controls:QrCode Matrix="{Binding QrCode}" HorizontalAlignment="Left" Margin="14" />
+                      <Panel Height="220" Background="#FFFEFEFE">
+                        <controls:QrCode Matrix="{Binding QrCode}" HorizontalAlignment="Left" Margin="20" />
                       </Panel>
                       <Grid ColumnDefinitions="140, *" RowDefinitions="22,22" Margin="6">
                         <TextBlock Text="Public key:" Grid.Row="0" Grid.Column="0" />
@@ -124,8 +124,8 @@
                   </Grid>
                 </Grid>
               </DataTemplate>
-            </ListBox.ItemTemplate>
-          </ListBox>
+            </controls:ExtendedListBox.ItemTemplate>
+          </controls:ExtendedListBox>
         </Grid>
       </DockPanel>
     </Grid>

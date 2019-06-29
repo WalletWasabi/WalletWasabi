@@ -8,11 +8,11 @@ namespace WalletWasabi.Gui.Tabs
 {
 	internal class PrivacyPolicyViewModel : WasabiDocumentTabViewModel
 	{
-		public PrivacyPolicyViewModel() : base("Privacy Policy")
+		public PrivacyPolicyViewModel(Global global) : base(global, "Privacy Policy")
 		{
 			PrivacyPolicy = @"";
 
-			PrivacyPolicy += new string('\n', 100);
+			PrivacyPolicy += new string('\n', 5);
 		}
 
 		public string PrivacyPolicy { get; }

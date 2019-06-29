@@ -1,4 +1,4 @@
-﻿using Avalonia.Diagnostics.ViewModels;
+using Avalonia.Diagnostics.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,11 +8,11 @@ namespace WalletWasabi.Gui.Tabs
 {
 	internal class TermsAndConditionsViewModel : WasabiDocumentTabViewModel
 	{
-		public TermsAndConditionsViewModel() : base("Terms and Conditions")
+		public TermsAndConditionsViewModel(Global global) : base(global, "Terms and Conditions")
 		{
 			TermsAndConditions = @"";
 
-			TermsAndConditions += new string('\n', 100);
+			TermsAndConditions += new string('\n', 5);
 		}
 
 		public string TermsAndConditions { get; }

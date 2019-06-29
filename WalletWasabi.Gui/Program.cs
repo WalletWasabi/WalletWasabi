@@ -15,6 +15,7 @@ namespace WalletWasabi.Gui
 {
 	internal class Program
 	{
+		private static Global Global;
 #pragma warning disable IDE1006 // Naming Styles
 
 		private static async Task Main(string[] args)
@@ -24,11 +25,13 @@ namespace WalletWasabi.Gui
 			bool runGui = false;
 			try
 			{
-				Platform.BaseDirectory = Path.Combine(Global.Instance.DataDir, "Gui");
+				Global = new Global();
+				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
+				AvaloniaGlobalComponent.AvaloniaInstance = Global;
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-				runGui = await CommandInterpreter.ExecuteCommandsAsync(args);
+				runGui = await CommandInterpreter.ExecuteCommandsAsync(Global, args);
 				if (!runGui)
 				{
 					return;
@@ -39,18 +42,18 @@ namespace WalletWasabi.Gui
 					.BeforeStarting(async builder =>
 					{
 						MainWindowViewModel.Instance = new MainWindowViewModel();
-						statusBar = new StatusBarViewModel();
+						MainWindowViewModel.Instance.Global = Global;
+						statusBar = new StatusBarViewModel(Global);
 						MainWindowViewModel.Instance.StatusBar = statusBar;
 
-						await Global.Instance.InitializeNoWalletAsync();
+						await Global.InitializeNoWalletAsync();
 
-						statusBar.Initialize(Global.Instance.Nodes.ConnectedNodes, Global.Instance.Synchronizer, Global.Instance.UpdateChecker);
+						statusBar.Initialize(Global.Nodes.ConnectedNodes, Global.Synchronizer, Global.UpdateChecker);
 
-						if (Global.Instance.Network != Network.Main)
+						if (Global.Network != Network.Main)
 						{
-							MainWindowViewModel.Instance.Title += $" - {Global.Instance.Network}";
+							MainWindowViewModel.Instance.Title += $" - {Global.Network}";
 						}
-
 						Dispatcher.UIThread.Post(() =>
 						{
 							GC.Collect();
@@ -65,7 +68,7 @@ namespace WalletWasabi.Gui
 			finally
 			{
 				statusBar?.Dispose();
-				await Global.Instance.DisposeAsync();
+				await Global.DisposeAsync();
 				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 
@@ -88,6 +91,8 @@ namespace WalletWasabi.Gui
 
 		private static AppBuilder BuildAvaloniaApp()
 		{
+			bool useGpuLinux = true;
+
 			var result = AppBuilder.Configure<App>();
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -96,6 +101,15 @@ namespace WalletWasabi.Gui
 					.UseWin32()
 					.UseSkia();
 			}
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			{
+				if (Helpers.Utils.DetectLLVMPipeRasterizer())
+				{
+					useGpuLinux = false;
+				}
+
+				result.UsePlatformDetect();
+			}
 			else
 			{
 				result.UsePlatformDetect();
@@ -103,7 +117,7 @@ namespace WalletWasabi.Gui
 
 			return result
 				.With(new Win32PlatformOptions { AllowEglInitialization = true, UseDeferredRendering = true })
-				.With(new X11PlatformOptions { UseGpu = true })
+				.With(new X11PlatformOptions { UseGpu = useGpuLinux })
 				.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = true })
 				.With(new MacOSPlatformOptions { ShowInDock = true });
 		}
