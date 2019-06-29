@@ -9,12 +9,13 @@
              xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450">
   <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
-    <Grid Classes="content">
+    <Grid Classes="content" ScrollViewer.VerticalScrollBarVisibility="Auto">
 
       <Grid.RowDefinitions>
         <RowDefinition Height="1*" />
         <RowDefinition Height="1*" />
         <RowDefinition Height="1*" />
+        <RowDefinition Height="0.1*" />
       </Grid.RowDefinitions>
 
       <DockPanel Grid.Row="0" LastChildFill="True" Margin="0 8">
@@ -29,6 +30,10 @@
       <DockPanel Grid.Row="2" LastChildFill="True" Margin="0 8">
         <TextBlock DockPanel.Dock="Top" Text="PSBT Base64 String" FontWeight="Bold" Margin="0 0 0 8" />
         <controls:MultiTextBox  Text="{Binding PsbtBase64Text}" CopyOnClick="True" IsSelectable="False" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
+      </DockPanel>
+
+      <DockPanel Grid.Row="3" DockPanel.Dock="Bottom" LastChildFill="True" Margin="0 8">
+        <Button DockPanel.Dock="Right" Command="{Binding ExportBinaryPsbtCommand}" Content="Export Binary PSBT" />
       </DockPanel>
     </Grid>
   </controls:GroupBox>
