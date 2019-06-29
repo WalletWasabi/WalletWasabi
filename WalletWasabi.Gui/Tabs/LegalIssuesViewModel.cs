@@ -50,8 +50,6 @@ COUNTRY OF RESIDENCE
 
 In case if you are a Gibraltar residence person and willing to use Wasabi Wallet please inform us in advance on the following e-mail address: legal@zksnacks.com.
 			";
-
-			LegalIssues += new string('\n', 5);
 		}
 
 		public string LegalIssues { get; }
