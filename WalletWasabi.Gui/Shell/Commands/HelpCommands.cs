@@ -30,21 +30,21 @@ namespace WalletWasabi.Gui.Shell.Commands
 					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
 				}));
 
-				StatusPageCommand = new CommandDefinition(
-				"Status Page",
-				commandIconService.GetCompletionKindImage("StatusPage"),
-				ReactiveCommand.Create(() =>
+			StatusPageCommand = new CommandDefinition(
+			"Status Page",
+			commandIconService.GetCompletionKindImage("StatusPage"),
+			ReactiveCommand.Create(() =>
+			{
+				try
 				{
-					try
-					{
-						IoHelpers.OpenBrowser("https://status.wasabiwallet.io/");
-					}
-					catch (Exception ex)
-					{
-						Logging.Logger.LogWarning<HelpCommands>(ex);
-						IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
-					}
-				}));
+					IoHelpers.OpenBrowser("https://status.wasabiwallet.io/");
+				}
+				catch (Exception ex)
+				{
+					Logging.Logger.LogWarning<HelpCommands>(ex);
+					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
+				}
+			}));
 
 			CustomerSupportCommand = new CommandDefinition(
 				"Customer Support",
