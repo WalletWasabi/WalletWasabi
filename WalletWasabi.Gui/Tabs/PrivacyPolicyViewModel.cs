@@ -1,20 +1,30 @@
-using Avalonia.Diagnostics.ViewModels;
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.IO;
+using Avalonia;
+using Avalonia.Platform;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Tabs
 {
-	internal class PrivacyPolicyViewModel : WasabiDocumentTabViewModel
-	{
-		public PrivacyPolicyViewModel(Global global) : base(global, "Privacy Policy")
-		{
-			PrivacyPolicy = @"";
+    internal class PrivacyPolicyViewModel : WasabiDocumentTabViewModel
+    {
+        private static string privacyPolicyText;
 
-			PrivacyPolicy += new string('\n', 5);
-		}
+        public PrivacyPolicyViewModel(Global global) : base(global, "Privacy Policy")
+        {
+            if (privacyPolicyText == null)
+            {
+                var target = new Uri("resm:WalletWasabi.Gui.Assets.PrivacyPolicy.txt");
+                var assetLocator = AvaloniaLocator.Current.GetService<IAssetLoader>();
 
-		public string PrivacyPolicy { get; }
-	}
+                using (var stream = assetLocator.Open(target))
+                using (var reader = new StreamReader(stream))
+                {
+                    privacyPolicyText = reader.ReadToEnd();
+                }
+            }
+        }
+
+        public string PrivacyPolicy => privacyPolicyText;
+    }
 }
