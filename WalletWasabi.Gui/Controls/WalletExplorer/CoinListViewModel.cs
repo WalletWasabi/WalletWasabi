@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
@@ -37,14 +38,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _clustersSortDirection;
 		private decimal _totalAmount;
 		private bool _isAnyCoinSelected;
+		private bool _isCoinListLoading;
+		private bool _labelExposeCommonOwnershipWarning;
 		public Global Global { get; }
-
+		public CoinListContainerType CoinListContainerType { get; }
 		public ReactiveCommand<Unit, Unit> EnqueueCoin { get; }
 		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
 		public ReactiveCommand<Unit, Unit> SelectAllCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SelectPrivateCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SelectNonPrivateCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
+		public ReactiveCommand<Unit, Unit> InitList { get; }
 
 		public event EventHandler DequeueCoinsPressed;
 
@@ -82,6 +86,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _selectPrivateCheckBoxState, value);
 		}
 
+		public bool IsCoinListLoading
+		{
+			get => _isCoinListLoading;
+			set => this.RaiseAndSetIfChanged(ref _isCoinListLoading, value);
+		}
+
 		public SortOrder StatusSortDirection
 		{
 			get => _statusSortDirection;
@@ -116,6 +126,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _isAnyCoinSelected;
 			set => this.RaiseAndSetIfChanged(ref _isAnyCoinSelected, value);
+		}
+
+		public bool LabelExposeCommonOwnershipWarning
+		{
+			get => _labelExposeCommonOwnershipWarning;
+			set => this.RaiseAndSetIfChanged(backingField: ref _labelExposeCommonOwnershipWarning, value);
 		}
 
 		private void RefreshOrdering()
@@ -223,10 +239,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public CoinListViewModel(Global global)
+		public CoinListViewModel(Global global, CoinListContainerType coinListContainerType)
 		{
 			Global = global;
+			CoinListContainerType = coinListContainerType;
 			AmountSortDirection = SortOrder.Decreasing;
+			IsCoinListLoading = true;
 			RefreshOrdering();
 
 			var sortChanged = this.WhenValueChanged(@this => MyComparer)
@@ -367,10 +385,32 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						break;
 				}
 			});
+
+			InitList = ReactiveCommand.CreateFromTask(async () =>
+			{
+				try
+				{
+					IsCoinListLoading = true;
+					// We have to wait for the UI to became visible to the user.
+					await Task.Delay(800); // Let other tasks run to display the gui.
+					OnOpen();
+				}
+				finally
+				{
+					IsCoinListLoading = false;
+				}
+			}, outputScheduler: RxApp.MainThreadScheduler);
+
+			InitList.ThrownExceptions.Subscribe(ex => Logging.Logger.LogError<CoinListViewModel>(ex));
 		}
 
-		public void OnOpen()
+		private void OnOpen()
 		{
+			if (Disposables != null)
+			{
+				throw new Exception("CoinList opened before previous closed.");
+			}
+
 			Disposables = new CompositeDisposable();
 
 			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent))
@@ -490,6 +530,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SetSelections();
 			SelectionChanged?.Invoke(this, cvm);
 			TotalAmount = Coins.Where(x => x.IsSelected).Sum(x => x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC));
+			LabelExposeCommonOwnershipWarning = CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel ?
+				false // Because in CoinJoin the selection algorithm makes sure not to combine red with non-red.
+				: Coins.Any(c =>
+					  c.AnonymitySet == 1 && c.IsSelected
+					  && Coins.Any(x => x.AnonymitySet > 1 && x.IsSelected));
 		}
 
 		public void OnCoinStatusChanged()

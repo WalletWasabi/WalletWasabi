@@ -22,12 +22,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
+		private bool _isFirstLoading;
+
+		public bool IsFirstLoading
+		{
+			get => _isFirstLoading;
+			set => this.RaiseAndSetIfChanged(ref _isFirstLoading, value);
+		}
 
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 
 		public HistoryTabViewModel(WalletViewModel walletViewModel)
 			: base("History", walletViewModel)
 		{
+			IsFirstLoading = true;
+
 			Transactions = new ObservableCollection<TransactionViewModel>();
 
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
@@ -53,7 +62,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (Disposables != null)
 			{
-				throw new Exception("Histroy Tab was opened before it was closed.");
+				throw new Exception("History Tab was opened before it was closed.");
 			}
 
 			Disposables = new CompositeDisposable();
@@ -118,6 +127,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			catch (Exception ex)
 			{
 				Logger.LogError<HistoryTabViewModel>($"Error while RewriteTable on HistoryTab:  {ex}.");
+			}
+			finally
+			{
+				IsFirstLoading = false;
 			}
 		}
 
