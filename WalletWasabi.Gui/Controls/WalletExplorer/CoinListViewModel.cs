@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
@@ -37,6 +38,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _clustersSortDirection;
 		private decimal _totalAmount;
 		private bool _isAnyCoinSelected;
+		private bool _isCoinListLoading;
 		private bool _labelExposeCommonOwnershipWarning;
 		public Global Global { get; }
 		public CoinListContainerType CoinListContainerType { get; }
@@ -46,6 +48,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> SelectPrivateCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SelectNonPrivateCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
+		public ReactiveCommand<Unit, Unit> InitList { get; }
 
 		public event EventHandler DequeueCoinsPressed;
 
@@ -81,6 +84,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _selectPrivateCheckBoxState;
 			set => this.RaiseAndSetIfChanged(ref _selectPrivateCheckBoxState, value);
+		}
+
+		public bool IsCoinListLoading
+		{
+			get => _isCoinListLoading;
+			set => this.RaiseAndSetIfChanged(ref _isCoinListLoading, value);
 		}
 
 		public SortOrder StatusSortDirection
@@ -235,6 +244,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global = global;
 			CoinListContainerType = coinListContainerType;
 			AmountSortDirection = SortOrder.Decreasing;
+			IsCoinListLoading = true;
 			RefreshOrdering();
 
 			var sortChanged = this.WhenValueChanged(@this => MyComparer)
@@ -375,10 +385,32 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						break;
 				}
 			});
+
+			InitList = ReactiveCommand.CreateFromTask(async () =>
+			{
+				try
+				{
+					IsCoinListLoading = true;
+					// We have to wait for the UI to became visible to the user.
+					await Task.Delay(800); // Let other tasks run to display the gui.
+					OnOpen();
+				}
+				finally
+				{
+					IsCoinListLoading = false;
+				}
+			}, outputScheduler: RxApp.MainThreadScheduler);
+
+			InitList.ThrownExceptions.Subscribe(ex => Logging.Logger.LogError<CoinListViewModel>(ex));
 		}
 
-		public void OnOpen()
+		private void OnOpen()
 		{
+			if (Disposables != null)
+			{
+				throw new Exception("CoinList opened before previous closed.");
+			}
+
 			Disposables = new CompositeDisposable();
 
 			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent))
