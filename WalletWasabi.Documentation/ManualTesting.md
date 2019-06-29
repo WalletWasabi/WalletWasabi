@@ -113,3 +113,12 @@ This is the template one can fill out and copypaste under a pull request.
 - **pass** Context menu and selection tests
 
 ---TEMPLATE END---
+
+# Pull Request Review Template (EXPERIMENTAL)
+
+- **pass** Does CodeFactor pass?
+- **pass** Does the PR fix the issue it is claiming to fix?
+- **pass** Does the PR fix the issue with the best UX?
+- **pass** Is there code smell?
+- **pass** Does the PR highlight a new issue?
+- **pass** Does the PR introduce a new issue?
