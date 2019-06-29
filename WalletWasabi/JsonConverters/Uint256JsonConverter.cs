@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using WalletWasabi.Helpers;
@@ -24,7 +24,7 @@ namespace WalletWasabi.JsonConverters
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			writer.WriteValue(((uint256)value).ToString());
+			writer.WriteValue(((uint256)value)?.ToString());
 		}
 	}
 }
