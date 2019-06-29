@@ -264,8 +264,8 @@ namespace WalletWasabi.Services
 
 			using (await HandleFiltersLock.LockAsync())
 			{
-				SmartTransaction[] unconfirmedTransactions = null;
-				SmartTransaction[] confirmedTransactions = null;
+				var unconfirmedTransactions = new SmartTransaction[0];
+				var confirmedTransactions = new SmartTransaction[0];
 
 				if (File.Exists(TransactionsFilePath))
 				{

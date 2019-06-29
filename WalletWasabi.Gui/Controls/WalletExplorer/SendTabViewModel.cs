@@ -98,7 +98,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ResetUi();
 			SetAmountWatermarkAndToolTip(Money.Zero);
 
-			CoinList = new CoinListViewModel(Global);
+			CoinList = new CoinListViewModel(Global, CoinListContainerType.SendTabViewModel);
 			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SetFeesAndTexts());
