@@ -1,5 +1,6 @@
 using Microsoft.Win32;
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -32,14 +33,15 @@ namespace WalletWasabi.Helpers
 			}
 		}
 
-		private static string DataDirBacking = null;
+		// appName, dataDir
+		private static ConcurrentDictionary<string, string> DataDirDict { get; } = new ConcurrentDictionary<string, string>();
 
 		// Do not change the output of this function. Backwards compatibility depends on it.
 		public static string GetDataDir(string appName)
 		{
-			if (DataDirBacking != null)
+			if (DataDirDict.TryGetValue(appName, out string dataDir))
 			{
-				return DataDirBacking;
+				return dataDir;
 			}
 
 			string directory;
@@ -73,14 +75,14 @@ namespace WalletWasabi.Helpers
 
 			if (Directory.Exists(directory))
 			{
-				DataDirBacking = directory;
+				DataDirDict.TryAdd(appName, directory);
 				return directory;
 			}
 
 			Logger.LogInfo($"Creating data directory at `{directory}`.");
 			Directory.CreateDirectory(directory);
 
-			DataDirBacking = directory;
+			DataDirDict.TryAdd(appName, directory);
 			return directory;
 		}
 
