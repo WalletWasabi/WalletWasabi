@@ -399,7 +399,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					IsCoinListLoading = false;
 				}
-			});
+			}, outputScheduler: RxApp.MainThreadScheduler);
 
 			InitList.ThrownExceptions.Subscribe(ex => Logging.Logger.LogError<CoinListViewModel>(ex));
 		}
