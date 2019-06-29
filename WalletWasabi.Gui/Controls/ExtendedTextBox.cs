@@ -177,7 +177,7 @@ namespace WalletWasabi.Gui.Controls
 		{
 			// Dispatch so that if there is a context menu, it can open before the selection gets cleared.
 			// This is a workaround, fix inside avalonia to come in next release.
-			Dispatcher.UIThread.Post(() =>
+			Dispatcher.UIThread.PostLogException(() =>
 			{
 				if (ContextMenu != null && ContextMenu.IsOpen)
 				{
