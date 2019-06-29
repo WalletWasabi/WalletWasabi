@@ -221,7 +221,6 @@ namespace WalletWasabi.Gui.Tabs
 
 		private void Save()
 		{
-
 			var isValid = string.IsNullOrEmpty(ValidateTorHost())
 						&& string.IsNullOrEmpty(ValidateTorPort())
 						&& string.IsNullOrEmpty(ValidateLocalNodeHost())
