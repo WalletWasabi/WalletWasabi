@@ -71,7 +71,6 @@ namespace WalletWasabi.Gui.Tabs
 				.Subscribe(x => Save());
 
 			this.WhenAnyValue(x => x.Autocopy)
-				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async x =>
 			{
 				Global.UiConfig.Autocopy = x;
@@ -102,7 +101,7 @@ namespace WalletWasabi.Gui.Tabs
 			{
 				Global.UiConfig.LurkingWifeMode = !LurkingWifeMode;
 				await Global.UiConfig.ToFileAsync();
-			}, outputScheduler: RxApp.MainThreadScheduler);
+			});
 		}
 
 		public override void OnOpen()
