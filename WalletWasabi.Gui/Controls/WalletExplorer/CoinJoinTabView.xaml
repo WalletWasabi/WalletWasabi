@@ -14,6 +14,7 @@
     <converters:PrivacyLevelValueConverter x:Key="PrivacyLevelValueConverter" />
     <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
     <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+    <converters:TimeSpanStringConverter x:Key="TimeSpanStringConverter" />
   </UserControl.Resources>
   <Grid Margin="20">
     <Grid.RowDefinitions>
@@ -69,19 +70,19 @@
                 <TextBlock VerticalAlignment="Center" Foreground="YellowGreen" Text="{Binding Phase, Converter={StaticResource PhaseStringConverter}}" />
               </StackPanel>
               <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Spacing="4">
-                <TextBlock Text="Number of Registered Peers:" />
+                <TextBlock Text="Registration Ends:" />
               </StackPanel>
               <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                <TextBlock Foreground="YellowGreen" Text="{Binding TimeLeftTillRoundTimeout, Converter={StaticResource TimeSpanStringConverter}}" />
+              </StackPanel>
+              <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" Spacing="4">
+                <TextBlock Text="Number of Registered Peers:" />
+              </StackPanel>
+              <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="4">
                 <TextBlock Foreground="YellowGreen" Text="{Binding PeersRegistered}" />
                 <TextBlock Text="/" />
                 <TextBlock Text="{Binding PeersNeeded}" />
                 <ProgressBar Minimum="0" Maximum="{Binding PeersNeeded}" Value="{Binding PeersRegistered}" />
-              </StackPanel>
-              <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" Spacing="4">
-                <TextBlock Text="Number of Successful Rounds:" />
-              </StackPanel>
-              <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="4">
-                <TextBlock Foreground="YellowGreen" Text="{Binding SuccessfulRoundCount}" />
               </StackPanel>
             </Grid>
           </StackPanel>
@@ -103,7 +104,7 @@
             </StackPanel>
           </StackPanel>
           <StackPanel IsVisible="{Binding !IsWatchOnly}" Grid.Column="0" Spacing="10">
-            <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" Margin="0 20 0 0" >
+            <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" Margin="0 20 0 0">
               <i:Interaction.Behaviors>
                 <behaviors:CommandOnEnterBehavior Command="{Binding EnqueueCommand}" />
               </i:Interaction.Behaviors>

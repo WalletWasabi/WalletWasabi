@@ -141,6 +141,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public TimeSpan AliceRegistrationTimeout => ConnectionConfirmationTimeout;
 
 		public TimeSpan InputRegistrationTimeout { get; }
+		public DateTimeOffset InputRegistrationTimesout { get; set; }
 
 		public TimeSpan ConnectionConfirmationTimeout { get; }
 
@@ -166,6 +167,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				CoordinatorFeePercent = (decimal)config.CoordinatorFeePercent;
 				AnonymitySet = (int)config.AnonymitySet;
 				InputRegistrationTimeout = TimeSpan.FromSeconds((long)config.InputRegistrationTimeout);
+				SetInputRegistrationTimesout();
 				ConnectionConfirmationTimeout = TimeSpan.FromSeconds((long)config.ConnectionConfirmationTimeout);
 				OutputRegistrationTimeout = TimeSpan.FromSeconds((long)config.OutputRegistrationTimeout);
 				SigningTimeout = TimeSpan.FromSeconds((long)config.SigningTimeout);
@@ -204,6 +206,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				Logger.LogError<CcjRound>(ex);
 				throw;
 			}
+		}
+
+		private void SetInputRegistrationTimesout()
+		{
+			InputRegistrationTimesout = DateTimeOffset.UtcNow + InputRegistrationTimeout;
 		}
 
 		public static ConcurrentDictionary<(long roundId, CcjRoundPhase phase), DateTimeOffset> PhaseTimeoutLog { get; } = new ConcurrentDictionary<(long roundId, CcjRoundPhase phase), DateTimeOffset>();
@@ -428,7 +435,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					  switch (expectedPhase)
 					  {
 						  case CcjRoundPhase.InputRegistration:
-							  timeout = InputRegistrationTimeout;
+							  {
+								  SetInputRegistrationTimesout(); // Update it, it's going to be slightly more accurate.
+								  timeout = InputRegistrationTimeout;
+							  }
 							  break;
 
 						  case CcjRoundPhase.ConnectionConfirmation:
