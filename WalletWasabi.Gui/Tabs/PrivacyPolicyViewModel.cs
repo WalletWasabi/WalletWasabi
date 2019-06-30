@@ -8,11 +8,11 @@ namespace WalletWasabi.Gui.Tabs
 {
 	internal class PrivacyPolicyViewModel : WasabiDocumentTabViewModel
 	{
-		private static string privacyPolicyText;
+		private static string PrivacyPolicyText;
 
 		public PrivacyPolicyViewModel(Global global) : base(global, "Privacy Policy")
 		{
-			if (privacyPolicyText == null)
+			if (PrivacyPolicyText == null)
 			{
 				var target = new Uri("resm:WalletWasabi.Gui.Assets.PrivacyPolicy.txt");
 				var assetLocator = AvaloniaLocator.Current.GetService<IAssetLoader>();
@@ -20,11 +20,11 @@ namespace WalletWasabi.Gui.Tabs
 				using (var stream = assetLocator.Open(target))
 				using (var reader = new StreamReader(stream))
 				{
-					privacyPolicyText = reader.ReadToEnd();
+					PrivacyPolicyText = reader.ReadToEnd();
 				}
 			}
 		}
 
-		public string PrivacyPolicy => privacyPolicyText;
+		public string PrivacyPolicy => PrivacyPolicyText;
 	}
 }

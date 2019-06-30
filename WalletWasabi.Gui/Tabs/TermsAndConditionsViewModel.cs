@@ -8,11 +8,11 @@ namespace WalletWasabi.Gui.Tabs
 {
 	internal class TermsAndConditionsViewModel : WasabiDocumentTabViewModel
 	{
-		private static string termsAndConditionsText;
+		private static string TermsAndConditionsText;
 
 		public TermsAndConditionsViewModel(Global global) : base(global, "Terms and Conditions")
 		{
-			if (termsAndConditionsText == null)
+			if (TermsAndConditionsText == null)
 			{
 				var target = new Uri("resm:WalletWasabi.Gui.Assets.TermsAndConditions.txt");
 				var assetLocator = AvaloniaLocator.Current.GetService<IAssetLoader>();
@@ -20,11 +20,11 @@ namespace WalletWasabi.Gui.Tabs
 				using (var stream = assetLocator.Open(target))
 				using (var reader = new StreamReader(stream))
 				{
-					termsAndConditionsText = reader.ReadToEnd();
+					TermsAndConditionsText = reader.ReadToEnd();
 				}
 			}
 		}
 
-		public string TermsAndConditions => termsAndConditionsText;
+		public string TermsAndConditions => TermsAndConditionsText;
 	}
 }
