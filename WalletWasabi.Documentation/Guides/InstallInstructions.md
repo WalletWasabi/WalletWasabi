@@ -71,7 +71,7 @@ If the message returned says Good signature and that it was signed by `Fics√≥r √
  
 Remember to check again the PGP signature every time you make a new download.
 
-If you trust nopara73's key and you are faimiliar with the [Web Of Trust](https://security.stackexchange.com/questions/147447/gpg-why-is-my-trusted-key-not-certified-with-a-trusted-signature), please consider also [validating it](https://www.gnupg.org/gph/en/manual/x334.html).
+If you trust nopara73's key and you are familiar with the [Web Of Trust](https://security.stackexchange.com/questions/147447/gpg-why-is-my-trusted-key-not-certified-with-a-trusted-signature), please consider also [validating it](https://www.gnupg.org/gph/en/manual/x334.html).
 
 ## GPG Verification with GUI
 

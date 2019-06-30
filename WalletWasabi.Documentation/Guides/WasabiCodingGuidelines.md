@@ -202,8 +202,8 @@ Prefer binding user interactions to [commands](https://reactiveui.net/docs/guide
 ```
 
 
-Reactive command doesnt have any unmanaged resources.
-Dispose in Reactive command doesnt mean release unmanaged resources, it simply means unsubscribe.
+Reactive command doesn't have any unmanaged resources.
+Dispose in Reactive command doesn't mean release unmanaged resources, it simply means unsubscribe.
 Reactive command is on the same object that is subscribing, so GC will handle everything.
 So no memory leak here.
 [See this comment from the author of RxUI...](https://github.com/reactiveui/ReactiveUI/issues/20#issuecomment-1324201)
@@ -227,7 +227,7 @@ Use awaitable locks if possible. The library `Nito.AsyncEx` contains tools to do
 	if (FeeService is null) return;
 ```
 
-Use `is null` instead of `==null`. It was a performace consideration in the past but from C# 7.0 two operators behave the same. The Roslyn compiler has been updated to make the behavior of the two operator the same __when there is no overloaded equality operator__. [Please see the code in the current compiler results (M1 and M2 in the code)](http://tryroslyn.azurewebsites.net/#b:master/f:%3Eilr/K4Zwlgdg5gBAygTxAFwKYFsDcAoADsAIwBswBjGUogQxBBgGEYBvbGNmAge06JgFkAjAApOBAFapSyGAA8AlDAC8APlkwwdCMCJEcASC49+AJhHjJ0+UtUylimFp04AvkA==) that shows what happens when there is no overloaded equality comparer. They both now have the better performing == behavior. If there is an overloaded equality comparer, [the code still differs](https://stackoverflow.com/questions/40676426/what-is-the-difference-between-x-is-null-and-x-null).
+Use `is null` instead of `==null`. It was a performance consideration in the past but from C# 7.0 two operators behave the same. The Roslyn compiler has been updated to make the behavior of the two operator the same __when there is no overloaded equality operator__. [Please see the code in the current compiler results (M1 and M2 in the code)](http://tryroslyn.azurewebsites.net/#b:master/f:%3Eilr/K4Zwlgdg5gBAygTxAFwKYFsDcAoADsAIwBswBjGUogQxBBgGEYBvbGNmAge06JgFkAjAApOBAFapSyGAA8AlDAC8APlkwwdCMCJEcASC49+AJhHjJ0+UtUylimFp04AvkA==) that shows what happens when there is no overloaded equality comparer. They both now have the better performing == behavior. If there is an overloaded equality comparer, [the code still differs](https://stackoverflow.com/questions/40676426/what-is-the-difference-between-x-is-null-and-x-null).
 
 
 ## !!!WANTED!!! 10000 Dollar Reward Dead or Alive! 
