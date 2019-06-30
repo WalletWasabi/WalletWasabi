@@ -164,8 +164,13 @@ namespace WalletWasabi.Stores
 					var oldFilePath = Path.Combine(oldIndexFolderPath, fileName);
 					if (File.Exists(oldFilePath))
 					{
-						File.Copy(oldFilePath, oldFilePath.Replace(oldIndexFolderPath, WorkFolderPath), true);
-						File.Delete(oldFilePath);
+						string newFilePath = oldFilePath.Replace(oldIndexFolderPath, WorkFolderPath);
+						if (File.Exists(newFilePath))
+						{
+							File.Delete(newFilePath);
+						}
+
+						File.Move(oldFilePath, newFilePath);
 					}
 				}
 
