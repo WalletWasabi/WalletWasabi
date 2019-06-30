@@ -77,7 +77,7 @@ In the same way we did for the client part, we need to create a launcher and a t
    "type": "coreclr",
    "request": "launch",
    "preLaunchTask": "build",
-   "program": "${workspaceFolder}sabi.Backend/bin/Debug/netcoreapp2.2/WalletWasabi.dll",
+   "program": "${workspaceFolder}WalletWasabi.Backend/bin/Debug/netcoreapp2.2/WalletWasabi.dll",
    "args": [],
    "cwd": "${workspaceFolder}/WalletWasabi.Backend",
    "stopAtEntry": false,
@@ -113,7 +113,7 @@ As before, we need to create a task for compiling the backend project before exe
    "type": "process",
    "args": [
       "build",
-      "${workspaceFolder}asabi.Backend/WalletWasabi.Backend.csproj"
+      "${workspaceFolder}WalletWasabi.Backend/WalletWasabi.Backend.csproj"
    ],
    "problemMatcher": "$msCompile"
 }
