@@ -42,6 +42,7 @@ namespace WalletWasabi.Gui.Tabs
 			Autocopy = Global.UiConfig?.Autocopy is true;
 
 			this.WhenAnyValue(x => x.Network)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async _ =>
 				{
 					await config.LoadFileAsync();
@@ -69,13 +70,12 @@ namespace WalletWasabi.Gui.Tabs
 				x => x.DustThreshold)
 				.Subscribe(x => Save());
 
-			this.WhenAnyValue(x => x.Autocopy).Subscribe(x =>
+			this.WhenAnyValue(x => x.Autocopy)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(async x =>
 			{
-				Dispatcher.UIThread.PostLogException(async () =>
-				{
-					Global.UiConfig.Autocopy = x;
-					await Global.UiConfig.ToFileAsync();
-				});
+				Global.UiConfig.Autocopy = x;
+				await Global.UiConfig.ToFileAsync();
 			});
 
 			Dispatcher.UIThread.PostLogException(async () =>
@@ -102,7 +102,7 @@ namespace WalletWasabi.Gui.Tabs
 			{
 				Global.UiConfig.LurkingWifeMode = !LurkingWifeMode;
 				await Global.UiConfig.ToFileAsync();
-			});
+			}, outputScheduler: RxApp.MainThreadScheduler);
 		}
 
 		public override void OnOpen()
