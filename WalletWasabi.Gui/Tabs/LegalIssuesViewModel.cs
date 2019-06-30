@@ -8,23 +8,18 @@ namespace WalletWasabi.Gui.Tabs
 {
 	internal class LegalIssuesViewModel : WasabiDocumentTabViewModel
 	{
-		private static string LegalIssuesText;
+		public string LegalIssues { get; }
 
 		public LegalIssuesViewModel(Global global) : base(global, "Legal Issues")
 		{
-			if (LegalIssuesText == null)
-			{
-				var target = new Uri("resm:WalletWasabi.Gui.Assets.LegalIssues.txt");
-				var assetLocator = AvaloniaLocator.Current.GetService<IAssetLoader>();
+			var target = new Uri("resm:WalletWasabi.Gui.Assets.LegalIssues.txt");
+			var assetLocator = AvaloniaLocator.Current.GetService<IAssetLoader>();
 
-				using (var stream = assetLocator.Open(target))
-				using (var reader = new StreamReader(stream))
-				{
-					LegalIssuesText = reader.ReadToEnd();
-				}
+			using (var stream = assetLocator.Open(target))
+			using (var reader = new StreamReader(stream))
+			{
+				LegalIssues = reader.ReadToEnd();
 			}
 		}
-
-		public string LegalIssues => LegalIssuesText;
 	}
 }
