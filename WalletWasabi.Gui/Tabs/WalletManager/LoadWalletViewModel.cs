@@ -1,3 +1,5 @@
+using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
@@ -96,10 +98,39 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			LoadCommand = ReactiveCommand.CreateFromTask(async () => await LoadWalletAsync(), this.WhenAnyValue(x => x.CanLoadWallet));
 			TestPasswordCommand = ReactiveCommand.CreateFromTask(async () => await LoadKeyManagerAsync(requirePassword: true, isHardwareWallet: false), this.WhenAnyValue(x => x.CanTestPassword));
 			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
+			ImportCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				try
+				{
+					var ofd = new OpenFileDialog();
+					var selected = await ofd.ShowAsync(Application.Current.MainWindow);
+					if (selected != null && selected.Any())
+					{
+						var path = selected.First();
+						var jsonString = await File.ReadAllTextAsync(path);
+						var json = JObject.Parse(jsonString);
+						var xpubString = json["ExtPubKey"].ToString();
+						var mfpString = json["MasterFingerprint"].ToString();
+						HDFingerprint mfp = NBitcoinHelpers.BetterParseHDFingerprint(mfpString);
+						ExtPubKey extPubKey = NBitcoinHelpers.BetterParseExtPubKey(xpubString);
+						Logger.LogInfo<LoadWalletViewModel>("Creating new wallet file.");
+						var walletName = Global.GetNextHardwareWalletName();
+						var walletFullPath = Global.GetWalletFullPath(walletName);
+						KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath);
+						owner.SelectLoadWallet();
+					}
+				}
+				catch (Exception ex)
+				{
+					SetWarningMessage(ex.ToTypeMessageString());
+					Logger.LogError<TransactionBroadcasterViewModel>(ex);
+				}
+			}, outputScheduler: RxApp.MainThreadScheduler);
 
 			LoadCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning<LoadWalletViewModel>(ex));
 			TestPasswordCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning<LoadWalletViewModel>(ex));
 			OpenFolderCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning<LoadWalletViewModel>(ex));
+			ImportCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning<LoadWalletViewModel>(ex));
 
 			SetLoadButtonText();
 
@@ -313,6 +344,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public ReactiveCommand<Unit, Unit> LoadCommand { get; }
 		public ReactiveCommand<Unit, KeyManager> TestPasswordCommand { get; }
+		public ReactiveCommand<Unit, Unit> ImportCommand { get; set; }
 
 		public void TryRefreshHardwareWallets(IEnumerable<HardwareWalletInfo> hwis)
 		{

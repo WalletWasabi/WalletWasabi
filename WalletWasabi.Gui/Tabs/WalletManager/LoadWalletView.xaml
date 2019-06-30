@@ -39,6 +39,7 @@
               <TextBlock Text="{Binding LoadButtonText}" />
             </StackPanel>
           </Button>
+          <Button IsVisible="{Binding IsHardwareWallet}" Content="Import Wallet File" Command="{Binding ImportCommand}" DockPanel.Dock="Right" Margin="0 0 10 0" />
           <Button IsVisible="{Binding IsDesktopWallet}" Command="{Binding OpenFolderCommand}" DockPanel.Dock="Right" Margin="0 0 10 0">
             <StackPanel Orientation="Horizontal" Spacing="8">
               <DrawingPresenter Width="28">

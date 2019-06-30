@@ -75,6 +75,24 @@ namespace WalletWasabi.Helpers
 			return epk;
 		}
 
+		public static HDFingerprint BetterParseHDFingerprint(string hdFingerPrintString)
+		{
+			hdFingerPrintString = Guard.NotNullOrEmptyOrWhitespace(nameof(hdFingerPrintString), hdFingerPrintString, trim: true);
+
+			HDFingerprint hdfp;
+			try
+			{
+				var hdfpu = uint.Parse(hdFingerPrintString);
+				hdfp = new HDFingerprint(hdfpu);
+			}
+			catch
+			{
+				// Try hex, Old wallet format was like this.
+				hdfp = new HDFingerprint(ByteHelpers.FromHex(hdFingerPrintString));
+			}
+			return hdfp;
+		}
+
 		public static async Task<AddressManager> LoadAddressManagerFromPeerFileAsync(string filePath, Network expectedNetwork = null)
 		{
 			byte[] data, hash;
