@@ -31,7 +31,7 @@ namespace WalletWasabi.Gui.Tabs
 		private string _finePrivacyLevel;
 		private string _strongPrivacyLevel;
 		private string _dustThreshold;
-		private AsyncLock _configLock = new AsyncLock();
+		private AsyncLock ConfigLock { get; } = new AsyncLock();
 
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
@@ -243,8 +243,8 @@ namespace WalletWasabi.Gui.Tabs
 
 			Dispatcher.UIThread.PostLogException(async () =>
 			{
-				using (await _configLock.LockAsync())
-				{ 
+				using (await ConfigLock.LockAsync())
+				{
 					await config.LoadFileAsync();
 
 					var network = NBitcoin.Network.GetNetwork(Network);

@@ -28,14 +28,13 @@
                     <TextBlock>Host</TextBlock>
                     <TextBox Text="{Binding LocalNodeHost}" />
                   </StackPanel>
-                  <Separator/>
+                  <Separator />
                   <StackPanel Spacing="5">
                     <TextBlock>Port</TextBlock>
                     <TextBox Text="{Binding LocalNodePort}" />
                   </StackPanel>
                 </StackPanel>
               </controls:GroupBox>
-
             </StackPanel>
           </controls:GroupBox>
 
