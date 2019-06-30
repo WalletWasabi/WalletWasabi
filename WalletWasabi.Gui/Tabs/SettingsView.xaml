@@ -21,6 +21,20 @@
                 <TextBlock>Network</TextBlock>
                 <DropDown Items="{Binding Networks}" SelectedItem="{Binding Network}" />
               </StackPanel>
+
+              <controls:GroupBox Title="{Binding Network, StringFormat=My Node for \{0\} }" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+                <StackPanel Orientation="Vertical" Spacing="5">
+                  <StackPanel Margin="0 10" Spacing="5">
+                    <TextBlock>Host</TextBlock>
+                    <TextBox Text="{Binding LocalNodeHost}" />
+                  </StackPanel>
+                  <Separator />
+                  <StackPanel Spacing="5">
+                    <TextBlock>Port</TextBlock>
+                    <TextBox Text="{Binding LocalNodePort}" />
+                  </StackPanel>
+                </StackPanel>
+              </controls:GroupBox>
             </StackPanel>
           </controls:GroupBox>
 
@@ -54,7 +68,7 @@
             </StackPanel>
           </controls:GroupBox>
 
-          <controls:GroupBox Title="Anonymity" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+          <controls:GroupBox Title="Anonymity Levels" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
             <StackPanel Orientation="Vertical" Spacing="5">
               <Grid Margin="0 10" ColumnDefinitions="30, *">
                 <DrawingPresenter Height="24" Width="24" Grid.Column="0"

@@ -78,7 +78,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void ResetUi()
 		{
-			_suggestions = new ObservableCollection<SuggestionViewModel>();
+			Suggestions = new ObservableCollection<SuggestionViewModel>();
 			Address = "";
 			Label = "";
 			Password = "";
@@ -1063,8 +1063,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				SetFeesAndTexts();
 			}).DisposeWith(Disposables);
-
-			CoinList.OnOpen();
 
 			base.OnOpen();
 		}

@@ -124,8 +124,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnOpen()
 		{
-			CoinsList.OnOpen();
-
 			if (Disposables != null)
 			{
 				throw new Exception("CoinJoin tab opened before previous closed.");
