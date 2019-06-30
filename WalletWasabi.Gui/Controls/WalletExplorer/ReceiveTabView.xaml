@@ -18,7 +18,7 @@
 
             <Grid ColumnDefinitions="*,300" DockPanel.Dock="Top" Margin="0 0 0 10">
               <StackPanel Spacing="8">
-                <controls:ExtendedTextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label (Required)" CaretIndex="{Binding CaretIndex, Mode=TwoWay}" UseFloatingWatermark="True" Grid.Column="0" Margin="0 0 10 0">
+                <controls:ExtendedTextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label (Required)" CaretIndex="{Binding CaretIndex}" UseFloatingWatermark="True" Grid.Column="0" Margin="0 0 10 0">
                   <i:Interaction.Behaviors>
                     <behaviors:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />
                     <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
@@ -62,8 +62,8 @@
             <TextBlock Text="Label:" />
             <TextBlock Text="Address:" Grid.Column="1" Margin="20 0 0 0" />
           </Grid>
-          <ListBox Grid.Row="2" Items="{Binding Addresses}" SelectedItem="{Binding SelectedAddress, Mode=TwoWay}" VirtualizationMode="None">
-            <ListBox.ContextMenu>
+          <controls:ExtendedListBox Grid.Row="2" Items="{Binding Addresses}" SelectedItem="{Binding SelectedAddress, Mode=TwoWay}" VirtualizationMode="None">
+            <controls:ExtendedListBox.ContextMenu>
               <ContextMenu>
                 <MenuItem Header="Show QR code" Command="{Binding ShowQrCode}">
                   <MenuItem.Icon>
@@ -88,8 +88,8 @@
                   </MenuItem.Icon>
                 </MenuItem>
               </ContextMenu>
-            </ListBox.ContextMenu>
-            <ListBox.ItemTemplate>
+            </controls:ExtendedListBox.ContextMenu>
+            <controls:ExtendedListBox.ItemTemplate>
               <DataTemplate>
                 <Grid>
                   <Expander Name="coinExpander" ExpandDirection="Down" IsExpanded="{Binding IsExpanded}" Classes="coloredExpander" Background="{Binding ElementName=coinExpander, Path=IsExpanded, Converter={StaticResource CoinItemExpanderColorConverter}}">
@@ -124,8 +124,8 @@
                   </Grid>
                 </Grid>
               </DataTemplate>
-            </ListBox.ItemTemplate>
-          </ListBox>
+            </controls:ExtendedListBox.ItemTemplate>
+          </controls:ExtendedListBox>
         </Grid>
       </DockPanel>
     </Grid>

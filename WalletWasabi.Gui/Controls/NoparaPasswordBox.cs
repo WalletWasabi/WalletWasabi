@@ -75,6 +75,15 @@ namespace WalletWasabi.Gui.Controls
 			set => SetValue(IsPasswordVisibleProperty, value);
 		}
 
+		public static readonly StyledProperty<string> WarningMessageProperty =
+			AvaloniaProperty.Register<NoparaPasswordBox, string>(nameof(WarningMessage), defaultBindingMode: BindingMode.TwoWay);
+
+		public string WarningMessage
+		{
+			get => GetValue(WarningMessageProperty);
+			set => SetValue(WarningMessageProperty, value);
+		}
+
 		protected override bool IsCopyEnabled => false;
 
 		public NoparaPasswordBox()
@@ -231,7 +240,11 @@ namespace WalletWasabi.Gui.Controls
 					string text = await Application.Current.Clipboard.GetTextAsync();
 					if (!string.IsNullOrEmpty(text))
 					{
-						e.Handled = OnTextInput(text);
+						e.Handled = OnTextInput(text, true);
+						if (!e.Handled)
+						{
+							_ = DisplayWarningAsync("Password too long (Max 150 characters)");
+						}
 					}
 				}
 				else if (e.Key == Key.Back && Sb.Length > 0) // Backspace button -> delete from the end.
@@ -283,10 +296,10 @@ namespace WalletWasabi.Gui.Controls
 
 		protected override void OnTextInput(TextInputEventArgs e)
 		{
-			e.Handled = OnTextInput(e.Text);
+			e.Handled = OnTextInput(e.Text, false);
 		}
 
-		private bool OnTextInput(string text)
+		private bool OnTextInput(string text, bool isPaste)
 		{
 			if (_supressChanges)
 			{
@@ -301,7 +314,11 @@ namespace WalletWasabi.Gui.Controls
 				SelectionStart = SelectionEnd = CaretIndex = 0;
 				_supressChanges = false;
 			}
-			if (CaretIndex == 0)
+			if (isPaste && Sb.Length + text.Length > Constants.MaxPasswordLength) // Don't allow pastes that would be too long
+			{
+				handledCorrectly = false;
+			}
+			else if (CaretIndex == 0)
 			{
 				Sb.Insert(0, text);
 			}
@@ -310,7 +327,7 @@ namespace WalletWasabi.Gui.Controls
 				Sb.Append(text);
 			}
 
-			if (Sb.Length > Constants.MaxPasswordLength) // Ensure the maximum length.
+			if (handledCorrectly && Sb.Length > Constants.MaxPasswordLength) // Ensure the maximum length.
 			{
 				Sb.Remove(Constants.MaxPasswordLength, Sb.Length - Constants.MaxPasswordLength);
 				handledCorrectly = false; // Should play beep sound not working on windows.
@@ -348,6 +365,13 @@ namespace WalletWasabi.Gui.Controls
 			{
 				base.OnPropertyChanged(e);
 			}
+		}
+
+		private async Task DisplayWarningAsync(string message)
+		{
+			WarningMessage = message;
+			await Task.Delay(2000); // 2 seconds
+			WarningMessage = "";
 		}
 
 		private void PaintText()

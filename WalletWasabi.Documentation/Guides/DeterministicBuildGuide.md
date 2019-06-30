@@ -14,7 +14,7 @@ git checkout {hash of the release} // This works from 1.1.3 release, https://git
 cd WalletWasabi/WalletWasabi.Packager/
 dotnet restore
 dotnet build
-dotnet run --onlybinaries
+dotnet run -- --onlybinaries
 ```
 
 This will build our binaries for Windows, OSX and Linux from source code and open them in a file explorer for you.

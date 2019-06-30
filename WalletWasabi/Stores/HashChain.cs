@@ -23,6 +23,8 @@ namespace WalletWasabi.Stores
 		private SortedDictionary<int, uint256> Chain { get; }
 		private object Lock { get; }
 
+		public event PropertyChangedEventHandler PropertyChanged;
+
 		public int TipHeight
 		{
 			get => _tipHeight;
@@ -93,8 +95,6 @@ namespace WalletWasabi.Stores
 			Chain = new SortedDictionary<int, uint256>();
 			Lock = new object();
 		}
-
-		public event PropertyChangedEventHandler PropertyChanged;
 
 		public void AddOrReplace(int height, uint256 hash)
 		{

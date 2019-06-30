@@ -264,14 +264,43 @@ namespace WalletWasabi.Services
 
 			using (await HandleFiltersLock.LockAsync())
 			{
+				var unconfirmedTransactions = new SmartTransaction[0];
+				var confirmedTransactions = new SmartTransaction[0];
+
+				if (File.Exists(TransactionsFilePath))
+				{
+					try
+					{
+						IEnumerable<SmartTransaction> transactions = null;
+						string jsonString = File.ReadAllText(TransactionsFilePath, Encoding.UTF8);
+						transactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?
+							.OrderByBlockchain();
+
+						confirmedTransactions = transactions?
+							.Where(x => x.Confirmed)?
+							.ToArray() ?? new SmartTransaction[0];
+
+						unconfirmedTransactions = transactions?
+							.Where(x => !x.Confirmed)?
+							.ToArray() ?? new SmartTransaction[0];
+					}
+					catch (Exception ex)
+					{
+						Logger.LogWarning<WalletService>(ex);
+						Logger.LogWarning<WalletService>($"Transaction cache got corrupted. Deleting {TransactionsFilePath}.");
+						File.Delete(TransactionsFilePath);
+					}
+				}
+
 				// Go through the keymanager's index.
 				KeyManager.AssertNetworkOrClearBlockstate(Network);
 				Height bestKeyManagerHeight = KeyManager.GetBestHeight();
 
-				foreach (var blockstate in KeyManager.GetTransactionIndex())
+				foreach (BlockState blockstate in KeyManager.GetTransactionIndex())
 				{
+					var relevantTransactions = confirmedTransactions.Where(x => x.BlockHash == blockstate.BlockHash).ToArray();
 					var block = await GetOrDownloadBlockAsync(blockstate.BlockHash, cancel);
-					await ProcessBlockAsync(blockstate.BlockHeight, block, blockstate.TransactionIndices);
+					await ProcessBlockAsync(blockstate.BlockHeight, block, blockstate.TransactionIndices, relevantTransactions);
 				}
 
 				// Go through the filters and que to download the matches.
@@ -284,78 +313,60 @@ namespace WalletWasabi.Services
 				}, new Height(bestKeyManagerHeight.Value + 1));
 
 				// Load in dummy mempool
-				if (File.Exists(TransactionsFilePath))
+				try
 				{
-					try
+					if (unconfirmedTransactions != null && unconfirmedTransactions.Any())
 					{
-						SmartTransaction[] transactions = null;
 						try
 						{
-							string jsonString = File.ReadAllText(TransactionsFilePath, Encoding.UTF8);
-							transactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?
-								.Where(x => !x.Confirmed)? // Only unconfirmed ones.
-								.OrderBy(x => x.Height)? // Order by height first (it's mempool or unknown)
-								.ThenBy(x => x.FirstSeenIfMemPoolTime ?? DateTime.UtcNow)
-								.ToArray(); // Order by the time of first seen.
-						}
-						catch (Exception ex)
-						{
-							Logger.LogWarning<WalletService>(ex);
-							Logger.LogWarning<WalletService>($"Transaction cache got corrupted. Deleting {TransactionsFilePath}.");
-							File.Delete(TransactionsFilePath);
-						}
-
-						if (transactions != null && transactions.Any())
-						{
-							try
+							using (await TransactionProcessingLock.LockAsync())
+							using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
 							{
-								using (await TransactionProcessingLock.LockAsync())
-								using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
+								var compactness = 10;
+
+								var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
+
+								var cnt = 0;
+								foreach (var tx in unconfirmedTransactions)
 								{
-									var compactness = 10;
-
-									var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
-
-									var cnt = 0;
-									foreach (var tx in transactions)
+									if (mempoolHashes.Contains(tx.GetHash().ToString().Substring(0, compactness)))
 									{
-										if (mempoolHashes.Contains(tx.GetHash().ToString().Substring(0, compactness)))
-										{
-											tx.SetHeight(Height.MemPool);
-											await ProcessTransactionAsync(tx);
-											MemPool.TransactionHashes.TryAdd(tx.GetHash());
+										tx.SetHeight(Height.MemPool);
+										await ProcessTransactionAsync(tx);
+										MemPool.TransactionHashes.TryAdd(tx.GetHash());
 
-											Logger.LogInfo<WalletService>($"Transaction was successfully tested against the backend's mempool hashes: {tx.GetHash()}.");
-											cnt++;
-										}
-									}
-
-									UnconfirmedTransactionsInitialized = true;
-
-									if (cnt != transactions.Count())
-									{
-										SerializeTransactionCache();
+										Logger.LogInfo<WalletService>($"Transaction was successfully tested against the backend's mempool hashes: {tx.GetHash()}.");
+										cnt++;
 									}
 								}
-							}
-							catch
-							{
-								// When there's a connection failure don't clean the transactions, add it to processing.
-								foreach (var tx in transactions)
-								{
-									tx.SetHeight(Height.MemPool);
-									await ProcessTransactionAsync(tx);
-									MemPool.TransactionHashes.TryAdd(tx.GetHash());
-								}
 
-								throw;
+								if (cnt != unconfirmedTransactions.Count())
+								{
+									SerializeTransactionCache();
+								}
 							}
 						}
+						catch
+						{
+							// When there's a connection failure don't clean the transactions, add it to processing.
+							foreach (var tx in unconfirmedTransactions)
+							{
+								tx.SetHeight(Height.MemPool);
+								await ProcessTransactionAsync(tx);
+								MemPool.TransactionHashes.TryAdd(tx.GetHash());
+							}
+
+							throw;
+						}
 					}
-					catch (Exception ex)
-					{
-						Logger.LogWarning<WalletService>(ex);
-					}
+				}
+				catch (Exception ex)
+				{
+					Logger.LogWarning<WalletService>(ex);
+				}
+				finally
+				{
+					UnconfirmedTransactionsInitialized = true;
 				}
 			}
 			Coins.CollectionChanged += Coins_CollectionChanged;
@@ -477,7 +488,7 @@ namespace WalletWasabi.Services
 			return clusters;
 		}
 
-		private async Task<bool> ProcessBlockAsync(Height height, Block block, IEnumerable<int> filterByTxIds = null)
+		private async Task<bool> ProcessBlockAsync(Height height, Block block, IEnumerable<int> filterByTxIds = null, IEnumerable<SmartTransaction> skeletonBlock = null)
 		{
 			var ret = false;
 			using (await TransactionProcessingLock.LockAsync())
@@ -488,7 +499,7 @@ namespace WalletWasabi.Services
 					for (int i = 0; i < block.Transactions.Count; i++)
 					{
 						Transaction tx = block.Transactions[i];
-						if (await ProcessTransactionAsync(new SmartTransaction(tx, height)))
+						if (await ProcessTransactionAsync(new SmartTransaction(tx, height, block.GetHash(), i)))
 						{
 							relevantIndicies.Add(i);
 							ret = true;
@@ -509,8 +520,8 @@ namespace WalletWasabi.Services
 				{
 					foreach (var i in filterByTxIds.OrderBy(x => x))
 					{
-						Transaction tx = block.Transactions[i];
-						if (await ProcessTransactionAsync(new SmartTransaction(tx, height)))
+						var tx = skeletonBlock?.FirstOrDefault(x => x.BlockIndex == i) ?? new SmartTransaction(block.Transactions[i], height, block.GetHash(), i);
+						if (await ProcessTransactionAsync(tx))
 						{
 							ret = true;
 						}
@@ -545,7 +556,7 @@ namespace WalletWasabi.Services
 					SmartTransaction foundTx = TransactionCache.FirstOrDefault(x => x == tx);
 					if (foundTx != default(SmartTransaction)) // Must check again, because it's a concurrent collection!
 					{
-						foundTx.SetHeight(tx.Height);
+						foundTx.SetHeight(tx.Height, tx.BlockHash, tx.BlockIndex);
 						walletRelevant = true;
 						justUpdate = true; // No need to check for double spend, we already processed this transaction, just update it.
 					}
@@ -720,8 +731,6 @@ namespace WalletWasabi.Services
 			}
 			private set => _localBitcoinCoreNode = value;
 		}
-
-		public bool UnconfirmedTransactionsInitialized { get; private set; }
 
 		/// <exception cref="OperationCanceledException"></exception>
 		public async Task<Block> GetOrDownloadBlockAsync(uint256 hash, CancellationToken cancel)
@@ -1496,9 +1505,12 @@ namespace WalletWasabi.Services
 					{
 						await client.BroadcastAsync(transaction);
 					}
-					catch (HttpRequestException ex2) when (ex2.Message.Contains("txn-mempool-conflict", StringComparison.InvariantCultureIgnoreCase))
+					catch (HttpRequestException ex2) when (
+						ex2.Message.Contains("bad-txns-inputs-missingorspent", StringComparison.InvariantCultureIgnoreCase)
+						|| ex2.Message.Contains("missing-inputs", StringComparison.InvariantCultureIgnoreCase)
+						|| ex2.Message.Contains("txn-mempool-conflict", StringComparison.InvariantCultureIgnoreCase))
 					{
-						if (transaction.Transaction.Inputs.Count == 1)
+						if (transaction.Transaction.Inputs.Count == 1) // If we tried to only spend one coin, then we can mark it as spent. If there were more coins, then we don't know.
 						{
 							OutPoint input = transaction.Transaction.Inputs.First().PrevOut;
 							SmartCoin coin = Coins.FirstOrDefault(x => x.TransactionId == input.Hash && x.Index == input.N);
@@ -1507,11 +1519,6 @@ namespace WalletWasabi.Services
 								coin.SpentAccordingToBackend = true;
 							}
 						}
-						throw new HttpRequestException("Coin has been already spent.");
-					}
-					catch (HttpRequestException ex2) when (ex2.Message.Contains("too-long-mempool-chain", StringComparison.InvariantCultureIgnoreCase))
-					{
-						throw new HttpRequestException("There are too many unconfirmed transactions. Please wait for confirmation.");
 					}
 				}
 
@@ -1589,6 +1596,8 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		public bool UnconfirmedTransactionsInitialized { get; private set; } = false;
+
 		private void SerializeTransactionCache()
 		{
 			if (!UnconfirmedTransactionsInitialized) // If unconfirmed ones are not yet initialized, then don't serialize because unconfirmed are going to be lost.
@@ -1597,7 +1606,7 @@ namespace WalletWasabi.Services
 			}
 
 			IoHelpers.EnsureContainingDirectoryExists(TransactionsFilePath);
-			string jsonString = JsonConvert.SerializeObject(TransactionCache.OrderBy(x => x.Height).ThenBy(x => x.FirstSeenIfMemPoolTime ?? DateTime.UtcNow), Formatting.Indented);
+			string jsonString = JsonConvert.SerializeObject(TransactionCache.OrderByBlockchain(), Formatting.Indented);
 			File.WriteAllText(TransactionsFilePath,
 				jsonString,
 				Encoding.UTF8);

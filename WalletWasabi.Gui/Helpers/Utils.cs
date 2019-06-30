@@ -4,38 +4,27 @@ using System.IO;
 using System.Threading.Tasks;
 using WalletWasabi.Hwi.Models;
 
-namespace WalletWasabi.Gui
+namespace WalletWasabi.Gui.Helpers
 {
 	public static class Utils
 	{
-		public static void PostLogException(this Dispatcher dispatcher, Func<Task> action, DispatcherPriority priority = DispatcherPriority.Normal)
+		public static bool DetectLLVMPipeRasterizer()
 		{
-			dispatcher.Post(async () =>
+			try
 			{
-				try
-				{
-					await action();
-				}
-				catch (Exception ex)
-				{
-					Logging.Logger.LogDebug<Dispatcher>(ex);
-				}
-			}, priority);
-		}
+				var shellResult = ShellUtils.ExecuteShellCommand("glxinfo | grep renderer", "");
 
-		public static void PostLogException(this Dispatcher dispatcher, Action action, DispatcherPriority priority = DispatcherPriority.Normal)
-		{
-			dispatcher.Post(() =>
+				if (!string.IsNullOrWhiteSpace(shellResult.Output) && shellResult.Output.Contains("llvmpipe"))
+				{
+					return true;
+				}
+			}
+			catch (Exception)
 			{
-				try
-				{
-					action();
-				}
-				catch (Exception ex)
-				{
-					Logging.Logger.LogDebug<Dispatcher>(ex);
-				}
-			}, priority);
+				// do nothing
+			}
+
+			return false;
 		}
 	}
 }

@@ -78,7 +78,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void ResetUi()
 		{
-			_suggestions = new ObservableCollection<SuggestionViewModel>();
+			Suggestions = new ObservableCollection<SuggestionViewModel>();
 			Address = "";
 			Label = "";
 			Password = "";
@@ -98,7 +98,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ResetUi();
 			SetAmountWatermarkAndToolTip(Money.Zero);
 
-			CoinList = new CoinListViewModel(Global);
+			CoinList = new CoinListViewModel(Global, CoinListContainerType.SendTabViewModel);
 			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SetFeesAndTexts());
@@ -372,7 +372,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							IsHardwareBusy = false;
 						}
 
-						signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction.Height);
+						signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction.Height, result.Transaction.BlockHash, result.Transaction.BlockIndex, result.Transaction.Label, result.Transaction.FirstSeenIfMemPoolTime, result.Transaction.IsReplacement);
 					}
 
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
@@ -1063,8 +1063,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				SetFeesAndTexts();
 			}).DisposeWith(Disposables);
-
-			CoinList.OnOpen();
 
 			base.OnOpen();
 		}
