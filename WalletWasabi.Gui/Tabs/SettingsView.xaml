@@ -54,11 +54,8 @@
             </StackPanel>
           </controls:GroupBox>
 
-          <controls:GroupBox Title="Anonymity Set Target" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+          <controls:GroupBox Title="Anonymity Levels" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
             <StackPanel Orientation="Vertical" Spacing="5">
-              <ToolTip.Tip>
-                Coins will be automatically re-registered for Coin Joins until this anonymity set target is reached.
-              </ToolTip.Tip>
               <Grid Margin="0 10" ColumnDefinitions="30, *">
                 <DrawingPresenter Height="24" Width="24" Grid.Column="0"
                     Margin="0 0 10 10"
