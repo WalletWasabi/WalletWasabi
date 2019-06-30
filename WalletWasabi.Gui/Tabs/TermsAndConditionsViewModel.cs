@@ -3,23 +3,19 @@ using System.IO;
 using Avalonia;
 using Avalonia.Platform;
 using WalletWasabi.Gui.ViewModels;
+using ReactiveUI;
+using System.Threading.Tasks;
+using System.Linq.Expressions;
+using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
+using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Tabs
 {
-	internal class TermsAndConditionsViewModel : WasabiDocumentTabViewModel
+	public class TermsAndConditionsViewModel : TextViewModelBase
 	{
-		public string TermsAndConditions { get; }
-
-		public TermsAndConditionsViewModel(Global global) : base(global, "Terms and Conditions")
+		public TermsAndConditionsViewModel(Global global) : base(global, "Terms and Conditions", new Uri("resm:WalletWasabi.Gui.Assets.TermsAndConditions.txt"))
 		{
-			var target = new Uri("resm:WalletWasabi.Gui.Assets.TermsAndConditions.txt");
-			var assetLocator = AvaloniaLocator.Current.GetService<IAssetLoader>();
-
-			using (var stream = assetLocator.Open(target))
-			using (var reader = new StreamReader(stream))
-			{
-				TermsAndConditions = reader.ReadToEnd();
-			}
 		}
 	}
 }

@@ -6,20 +6,10 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Tabs
 {
-	internal class PrivacyPolicyViewModel : WasabiDocumentTabViewModel
+	public class PrivacyPolicyViewModel : TextViewModelBase
 	{
-		public string PrivacyPolicy { get; }
-
-		public PrivacyPolicyViewModel(Global global) : base(global, "Privacy Policy")
+		public PrivacyPolicyViewModel(Global global) : base(global, "Privacy Policy", new Uri("resm:WalletWasabi.Gui.Assets.PrivacyPolicy.txt"))
 		{
-			var target = new Uri("resm:WalletWasabi.Gui.Assets.PrivacyPolicy.txt");
-			var assetLocator = AvaloniaLocator.Current.GetService<IAssetLoader>();
-
-			using (var stream = assetLocator.Open(target))
-			using (var reader = new StreamReader(stream))
-			{
-				PrivacyPolicy = reader.ReadToEnd();
-			}
 		}
 	}
 }

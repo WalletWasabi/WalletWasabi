@@ -6,20 +6,10 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Tabs
 {
-	internal class LegalIssuesViewModel : WasabiDocumentTabViewModel
+	public class LegalIssuesViewModel : TextViewModelBase
 	{
-		public string LegalIssues { get; }
-
-		public LegalIssuesViewModel(Global global) : base(global, "Legal Issues")
+		public LegalIssuesViewModel(Global global) : base(global, "Legal Issues", new Uri("resm:WalletWasabi.Gui.Assets.LegalIssues.txt"))
 		{
-			var target = new Uri("resm:WalletWasabi.Gui.Assets.LegalIssues.txt");
-			var assetLocator = AvaloniaLocator.Current.GetService<IAssetLoader>();
-
-			using (var stream = assetLocator.Open(target))
-			using (var reader = new StreamReader(stream))
-			{
-				LegalIssues = reader.ReadToEnd();
-			}
 		}
 	}
 }
