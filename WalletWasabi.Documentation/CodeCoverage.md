@@ -18,6 +18,7 @@ dotnet test /p:AltCover=true /p:AltCoverLcovReport=lcov.info
 ```
 
 As a result we get a `lcov.info` file containing the covered lines. In order to be able to see what lines
+are covered we need to install a `vscode extension` called  [Coverage Glutters](https://github.com/ryanluker/vscode-coverage-gutters).
 
 Run vscode and click on "Watch":
 
