@@ -148,18 +148,42 @@ namespace WalletWasabi.Stores
 			try
 			{
 				// Before Wasabi 1.1.5
-				var oldIndexFilepath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), $"Index{Network}.dat");
+				var oldIndexFilePath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), $"Index{Network}.dat");
 
-				if (File.Exists(oldIndexFilepath))
+				// Before Wasabi 1.1.6
+				var oldFileNames = new[] {
+					"ImmatureIndex.dat" ,
+					"ImmatureIndex.dat.dig",
+					"MatureIndex.dat",
+					"MatureIndex.dat.dig"
+				};
+				var oldIndexFolderPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), "BitcoinStore", Network.ToString());
+
+				foreach (var fileName in oldFileNames)
 				{
-					string[] allLines = await File.ReadAllLinesAsync(oldIndexFilepath);
+					var oldFilePath = Path.Combine(oldIndexFolderPath, fileName);
+					if (File.Exists(oldFilePath))
+					{
+						string newFilePath = oldFilePath.Replace(oldIndexFolderPath, WorkFolderPath);
+						if (File.Exists(newFilePath))
+						{
+							File.Delete(newFilePath);
+						}
+
+						File.Move(oldFilePath, newFilePath);
+					}
+				}
+
+				if (File.Exists(oldIndexFilePath))
+				{
+					string[] allLines = await File.ReadAllLinesAsync(oldIndexFilePath);
 					var matureLines = allLines.SkipLast(100);
 					var immatureLines = allLines.TakeLast(100);
 
 					await MatureIndexFileManager.WriteAllLinesAsync(matureLines);
 					await ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines);
 
-					File.Delete(oldIndexFilepath);
+					File.Delete(oldIndexFilePath);
 				}
 			}
 			catch (Exception ex)
