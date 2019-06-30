@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace WalletWasabi.Gui.Models
+﻿namespace WalletWasabi.Gui.Models
 {
 	public enum SmartCoinStatus
 	{

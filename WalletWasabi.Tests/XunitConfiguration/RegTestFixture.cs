@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Hosting;
 using NBitcoin;
 using System;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend;
 using WalletWasabi.Logging;

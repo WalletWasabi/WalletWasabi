@@ -155,9 +155,6 @@
 // with `--help` as an option.
 //
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using MessageLocalizerConverter = System.Converter<string, string>;
 
 namespace Mono.Options

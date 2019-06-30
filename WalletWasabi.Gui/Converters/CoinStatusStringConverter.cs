@@ -1,11 +1,7 @@
 ﻿using Avalonia.Data.Converters;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
-using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Models;
-using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Gui.Converters
 {

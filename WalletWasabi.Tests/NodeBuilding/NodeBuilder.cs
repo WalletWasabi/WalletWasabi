@@ -13,7 +13,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
-using WalletWasabi.Tests.XunitConfiguration;
 
 namespace WalletWasabi.Tests.NodeBuilding
 {

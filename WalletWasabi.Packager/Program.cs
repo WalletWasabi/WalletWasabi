@@ -2,17 +2,12 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NSubsys;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Packager

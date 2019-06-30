@@ -155,10 +155,6 @@
 // with `--help` as an option.
 //
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Mono.Options
 {
 	public delegate void OptionAction<TKey, TValue>(TKey key, TValue value);

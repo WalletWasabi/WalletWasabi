@@ -1,5 +1,4 @@
 using Avalonia;
-using Avalonia.Threading;
 using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
 using System;

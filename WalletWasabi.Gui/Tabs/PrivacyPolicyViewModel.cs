@@ -1,7 +1,4 @@
 using System;
-using System.IO;
-using Avalonia;
-using Avalonia.Platform;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Tabs

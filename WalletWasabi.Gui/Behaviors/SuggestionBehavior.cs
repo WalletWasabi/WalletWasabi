@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Xaml.Interactivity;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;

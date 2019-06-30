@@ -1,7 +1,6 @@
 using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.RPC;
-using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Concurrent;

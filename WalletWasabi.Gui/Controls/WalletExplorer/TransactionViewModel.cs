@@ -1,5 +1,4 @@
 using Avalonia;
-using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using System;

@@ -5,7 +5,6 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Styling;
-using Avalonia.Threading;
 using ReactiveUI;
 using System;
 using System.Reactive;

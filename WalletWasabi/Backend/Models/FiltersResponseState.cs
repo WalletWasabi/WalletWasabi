@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace WalletWasabi.Backend.Models
+﻿namespace WalletWasabi.Backend.Models
 {
 	public enum FiltersResponseState
 	{

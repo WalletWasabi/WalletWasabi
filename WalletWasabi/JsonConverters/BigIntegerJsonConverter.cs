@@ -1,5 +1,4 @@
-﻿using NBitcoin;
-using NBitcoin.BouncyCastle.Math;
+﻿using NBitcoin.BouncyCastle.Math;
 using Newtonsoft.Json;
 using System;
 using WalletWasabi.Helpers;

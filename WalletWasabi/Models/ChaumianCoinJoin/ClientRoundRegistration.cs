@@ -1,10 +1,7 @@
 ﻿using NBitcoin;
-using NBitcoin.Crypto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Helpers;
 using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 

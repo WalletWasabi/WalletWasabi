@@ -155,10 +155,6 @@
 // with `--help` as an option.
 //
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Mono.Options
 {
 	public class HelpOption : Option

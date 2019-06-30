@@ -2,12 +2,10 @@ using Avalonia;
 using Avalonia.Platform;
 using ReactiveUI;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.ViewModels

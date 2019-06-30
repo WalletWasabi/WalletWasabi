@@ -1,12 +1,9 @@
 ﻿using NBitcoin;
-using NBitcoin.BouncyCastle.Math;
 using NBitcoin.Crypto;
-using System;
 using System.Security.Cryptography;
 using System.Text;
 using WalletWasabi.Crypto;
 using WalletWasabi.Logging;
-using WalletWasabi.Tests.XunitConfiguration;
 using Xunit;
 using static NBitcoin.Crypto.SchnorrBlinding;
 

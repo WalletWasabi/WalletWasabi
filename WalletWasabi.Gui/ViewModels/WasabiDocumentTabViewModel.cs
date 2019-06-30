@@ -4,7 +4,6 @@ using AvalonStudio.Shell;
 using Dock.Model;
 using ReactiveUI;
 using System;
-using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.ViewModels
 {

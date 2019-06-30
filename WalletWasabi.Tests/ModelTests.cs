@@ -1,21 +1,12 @@
 using NBitcoin;
-using NBitcoin.BouncyCastle.Math;
 using NBitcoin.RPC;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading;
-using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.JsonConverters;
 using WalletWasabi.Models;
-using WalletWasabi.Models.ChaumianCoinJoin;
-using WalletWasabi.Services;
-using WalletWasabi.Tests.XunitConfiguration;
-using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 using Xunit;
 
 namespace WalletWasabi.Tests

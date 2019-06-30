@@ -1,5 +1,4 @@
 ﻿using NBitcoin;
-using NBitcoin.Protocol;
 using System;
 using System.Collections.Generic;
 using System.Linq;

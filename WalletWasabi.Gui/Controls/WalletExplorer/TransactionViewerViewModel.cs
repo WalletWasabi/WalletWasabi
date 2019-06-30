@@ -1,11 +1,6 @@
-using Avalonia;
-using NBitcoin;
 using ReactiveUI;
 using System;
-using System.Reactive;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
