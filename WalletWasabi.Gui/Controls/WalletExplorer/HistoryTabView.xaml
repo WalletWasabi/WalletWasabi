@@ -22,36 +22,38 @@
             <controls:SortingArrow Grid.Column="2" Command="{Binding SortCommand}" Text="Amount (BTC)" SortDirection="{Binding AmountSortDirection}" />
             <controls:SortingArrow Grid.Column="3" Command="{Binding SortCommand}" Text="Transaction ID" SortDirection="{Binding TransactionSortDirection}" />
           </Grid>
-          <controls:ExtendedListBox Items="{Binding Transactions}" SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}">
-            <controls:ExtendedListBox.ItemTemplate>
-              <DataTemplate>
-                <Grid ColumnDefinitions="40, 160, 150, *">
-                  <Grid.Styles>
-                    <Style Selector="TextBlock">
-                      <Setter Property="VerticalAlignment" Value="Center" />
-                    </Style>
-                  </Grid.Styles>
-                  <Border Background="Transparent" IsVisible="{Binding Confirmed}" Grid.Column="0" ToolTip.Tip="Confirmed">
-                    <Path HorizontalAlignment="Center" Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16" Stretch="Fill" />
-                  </Border>
-                  <TextBlock Text="{Binding DateTime, ConverterParameter=11, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="1" />
-                  <TextBlock Text="{Binding AmountBtc, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="2" Foreground="{Binding AmountBtc, Converter={StaticResource MoneyBrushConverter}}" />
-                  <TextBlock IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding TransactionId, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="3" />
+          <controls:BusyIndicator Text="Loading..." IsBusy="{Binding IsFirstLoading}">
+            <controls:ExtendedListBox Items="{Binding Transactions}" SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}">
+              <controls:ExtendedListBox.ItemTemplate>
+                <DataTemplate>
+                  <Grid ColumnDefinitions="40, 160, 150, *">
+                    <Grid.Styles>
+                      <Style Selector="TextBlock">
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                      </Style>
+                    </Grid.Styles>
+                    <Border Background="Transparent" IsVisible="{Binding Confirmed}" Grid.Column="0" ToolTip.Tip="Confirmed">
+                      <Path HorizontalAlignment="Center" Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16" Stretch="Fill" />
+                    </Border>
+                    <TextBlock Text="{Binding DateTime, ConverterParameter=11, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="1" />
+                    <TextBlock Text="{Binding AmountBtc, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="2" Foreground="{Binding AmountBtc, Converter={StaticResource MoneyBrushConverter}}" />
+                    <TextBlock IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding TransactionId, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="3" />
 
-                  <Grid IsVisible="{Binding ClipboardNotificationVisible}" Grid.Column="3">
-                    <Grid Opacity="{Binding ClipboardNotificationOpacity}">
-                      <Grid.Transitions>
-                        <DoubleTransition Property="Opacity"
+                    <Grid IsVisible="{Binding ClipboardNotificationVisible}" Grid.Column="3">
+                      <Grid Opacity="{Binding ClipboardNotificationOpacity}">
+                        <Grid.Transitions>
+                          <DoubleTransition Property="Opacity"
                               Easing="CircularEaseIn"
                               Duration="0:0:0.5" />
-                      </Grid.Transitions>
-                      <TextBlock Text="Copied" Foreground="White" FontWeight="Bold" />
+                        </Grid.Transitions>
+                        <TextBlock Text="Copied" Foreground="White" FontWeight="Bold" />
+                      </Grid>
                     </Grid>
                   </Grid>
-                </Grid>
-              </DataTemplate>
-            </controls:ExtendedListBox.ItemTemplate>
-          </controls:ExtendedListBox>
+                </DataTemplate>
+              </controls:ExtendedListBox.ItemTemplate>
+            </controls:ExtendedListBox>
+          </controls:BusyIndicator>
         </DockPanel>
       </DockPanel>
     </Grid>

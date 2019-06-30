@@ -1,5 +1,7 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui">
   <UserControl.Resources>
@@ -51,7 +53,11 @@
             </StackPanel>
 
             <StackPanel IsVisible="{Binding !IsWatchOnly}" Margin="0 10 0 0" Spacing="10" Orientation="Horizontal">
-              <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" MaxWidth="173" />
+              <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" MaxWidth="173">
+                <i:Interaction.Behaviors>
+                  <behaviors:CommandOnEnterBehavior Command="{Binding ShowSensitiveKeysCommand}" />
+                </i:Interaction.Behaviors>
+              </controls:NoparaPasswordBox>
               <DockPanel VerticalAlignment="Top" LastChildFill="True">
                 <Button Command="{Binding ShowSensitiveKeysCommand}" DockPanel.Dock="Right">
                   Show Sensitive Keys

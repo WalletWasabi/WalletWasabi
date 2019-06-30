@@ -48,7 +48,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Password = "";
 
-			CoinsList = new CoinListViewModel(Global);
+			CoinsList = new CoinListViewModel(Global, CoinListContainerType.CoinJoinTabViewModel);
 
 			Observable.FromEventPattern(CoinsList, nameof(CoinsList.DequeueCoinsPressed)).Subscribe(_ => OnCoinsListDequeueCoinsPressedAsync());
 
@@ -124,8 +124,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnOpen()
 		{
-			CoinsList.OnOpen();
-
 			if (Disposables != null)
 			{
 				throw new Exception("CoinJoin tab opened before previous closed.");
