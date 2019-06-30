@@ -12,7 +12,7 @@ using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Tabs
 {
-	public class TermsAndConditionsViewModel : TextViewModelBase
+	public class TermsAndConditionsViewModel : TextResourceViewModelBase
 	{
 		public TermsAndConditionsViewModel(Global global) : base(global, "Terms and Conditions", new Uri("resm:WalletWasabi.Gui.Assets.TermsAndConditions.txt"))
 		{

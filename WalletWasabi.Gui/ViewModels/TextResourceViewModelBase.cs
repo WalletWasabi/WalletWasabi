@@ -9,17 +9,16 @@ using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Text;
 using System.Threading.Tasks;
-using WalletWasabi.Gui.ViewModels;
 
-namespace WalletWasabi.Gui.Tabs
+namespace WalletWasabi.Gui.ViewModels
 {
-	public abstract class TextViewModelBase : WasabiDocumentTabViewModel
+	public abstract class TextResourceViewModelBase : WasabiDocumentTabViewModel
 	{
 		protected CompositeDisposable Disposables { get; private set; } = new CompositeDisposable();
 
 		public string _text;
 
-		public TextViewModelBase(Global global, string title, Uri target) : base(global, title)
+		public TextResourceViewModelBase(Global global, string title, Uri target) : base(global, title)
 		{
 			Text = "";
 
