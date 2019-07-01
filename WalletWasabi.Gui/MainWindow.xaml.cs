@@ -55,7 +55,10 @@ namespace WalletWasabi.Gui
 		protected override void OnDataContextEndUpdate()
 		{
 			if (Global is null)
+			{
 				return;
+			}
+
 			Application.Current.Resources.AddOrReplace(Global.GlobalResourceKey, Global);
 			Application.Current.Resources.AddOrReplace(Global.ConfigResourceKey, Global.Config);
 			Application.Current.Resources.AddOrReplace(Global.UiConfigResourceKey, Global.UiConfig);
