@@ -10,19 +10,14 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is bool boolean)
+			if (value is bool isMax)
 			{
-				if (boolean)
-				{
-					return "Clear";
-				}
-				else
-				{
-					return "Max";
-				}
+				return isMax ? "Clear" : "Max";
 			}
-
-			throw new InvalidOperationException();
+			else
+			{
+				throw new TypeArgumentException(value, typeof(bool), nameof(value));
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
