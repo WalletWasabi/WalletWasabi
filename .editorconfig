@@ -89,10 +89,16 @@ dotnet_style_object_initializer = false:warning
 dotnet_style_collection_initializer = true:error
 dotnet_style_explicit_tuple_names = true:error
 
-csharp_prefer_simple_default_expression = true : error
+csharp_prefer_simple_default_expression = true:error
 
 csharp_indent_case_contents = true:warning
 csharp_indent_switch_labels = true:warning
+
+#prefer 'is null' for reference equality checks
+dotnet_style_prefer_is_null_check_over_reference_equality_method = true:error
+
+#prefer braces
+csharp_prefer_braces = true:error
 
 
 # name all constant fields using PascalCase

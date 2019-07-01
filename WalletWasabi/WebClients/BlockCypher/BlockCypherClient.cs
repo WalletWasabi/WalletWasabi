@@ -30,11 +30,11 @@ namespace WalletWasabi.WebClients.BlockCypher
 			}
 			if (network == Network.Main)
 			{
-				HttpClient.BaseAddress = new Uri("http://api.blockcypher.com/v1/btc/main");
+				HttpClient.BaseAddress = new Uri("https://api.blockcypher.com/v1/btc/main");
 			}
 			else if (network == Network.TestNet)
 			{
-				HttpClient.BaseAddress = new Uri("http://api.blockcypher.com/v1/btc/test3");
+				HttpClient.BaseAddress = new Uri("https://api.blockcypher.com/v1/btc/test3");
 			}
 			else
 			{

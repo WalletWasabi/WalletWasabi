@@ -122,7 +122,9 @@ namespace WalletWasabi.Gui.Helpers
 		public static string ResolveFullExecutablePath(string fileName, bool returnNullOnFailure = true, params string[] extraPaths)
 		{
 			if (File.Exists(fileName))
+			{
 				return Path.GetFullPath(fileName);
+			}
 
 			if (ExecutorType == ShellType.Windows)
 			{
@@ -133,7 +135,9 @@ namespace WalletWasabi.Gui.Helpers
 				{
 					var fullPath = Path.Combine(path, fileName);
 					if (File.Exists(fullPath))
+					{
 						return fullPath;
+					}
 				}
 			}
 			else

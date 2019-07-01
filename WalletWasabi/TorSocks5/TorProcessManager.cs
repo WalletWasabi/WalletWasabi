@@ -45,7 +45,7 @@ namespace WalletWasabi.TorSocks5
 
 		public void Start(bool ensureRunning, string dataDir)
 		{
-			if (TorSocks5EndPoint == null)
+			if (TorSocks5EndPoint is null)
 			{
 				return;
 			}
@@ -215,7 +215,7 @@ namespace WalletWasabi.TorSocks5
 
 		public async Task<bool> IsTorRunningAsync()
 		{
-			if (TorSocks5EndPoint == null)
+			if (TorSocks5EndPoint is null)
 			{
 				return true;
 			}
@@ -248,7 +248,7 @@ namespace WalletWasabi.TorSocks5
 
 		public void StartMonitor(TimeSpan torMisbehaviorCheckPeriod, TimeSpan checkIfRunningAfterTorMisbehavedFor, string dataDirToStartWith, Uri fallBackTestRequestUri)
 		{
-			if (TorSocks5EndPoint == null)
+			if (TorSocks5EndPoint is null)
 			{
 				return;
 			}
@@ -326,7 +326,7 @@ namespace WalletWasabi.TorSocks5
 		{
 			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
 
-			if (TorSocks5EndPoint == null)
+			if (TorSocks5EndPoint is null)
 			{
 				Interlocked.Exchange(ref _running, 3);
 			}

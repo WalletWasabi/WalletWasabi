@@ -28,7 +28,7 @@ namespace WalletWasabi.Stores
 			Network = Guard.NotNull(nameof(network), network);
 
 			IndexStore = new IndexStore();
-			var indexStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString());
+			var indexStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString(), "IndexStore");
 			HashChain = new HashChain();
 			await IndexStore.InitializeAsync(indexStoreFolderPath, Network, HashChain);
 		}

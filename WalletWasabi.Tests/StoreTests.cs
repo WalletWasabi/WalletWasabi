@@ -378,14 +378,20 @@ namespace WalletWasabi.Tests
 
 			bool IsStringArraysEqual(string[] lines1, string[] lines2)
 			{
-				if (lines1.Length != lines2.Length) return false;
+				if (lines1.Length != lines2.Length)
+				{
+					return false;
+				}
 
 				for (int i = 0; i < lines1.Length; i++)
 				{
 					string line = lines2[i];
 					var readline = lines1[i];
 
-					if (!line.Equals(readline)) return false;
+					if (!line.Equals(readline))
+					{
+						return false;
+					}
 				}
 				return true;
 			}

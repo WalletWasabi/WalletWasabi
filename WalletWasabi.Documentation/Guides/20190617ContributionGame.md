@@ -19,6 +19,6 @@ We are happy to announce an experiment, called: **The Wasabi Contribution Game**
 - Number of commits DO NOT count.
 - The sum of additions and deletions DO count.
 - Only merged pull requests count.
-- Merges of the maintainer (nopara73) may screw the results. We'll investigate this and if we find this to be the case, the maintainer's merges will either be discounted or the maintainer will be disqualified.
+- Merges of the maintainer (nopara73) may skew the results. We'll investigate this and if we find this to be the case, the maintainer's merges will either be discounted or the maintainer will be disqualified.
 - If someone is found intentionally manipulating the results, she or he will be disqualified. We do not plan to actively look for reasons to disqualify anyone, we would like to trust in the honesty of all contributors.
 - Keep checking your GitHub bells, because at the end of the game we will open an issue, in that tagging all the contributors, describing where they should send their BTC addresses for the payouts.

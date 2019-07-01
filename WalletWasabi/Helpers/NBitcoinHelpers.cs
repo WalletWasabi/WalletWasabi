@@ -106,7 +106,9 @@ namespace WalletWasabi.Helpers
 			var actual = Hashes.Hash256(data);
 			var expected = new uint256(hash);
 			if (expected != actual)
+			{
 				throw new FormatException("Invalid address manager file");
+			}
 
 			BitcoinStream stream = new BitcoinStream(data);
 			stream.Type = SerializationType.Disk;

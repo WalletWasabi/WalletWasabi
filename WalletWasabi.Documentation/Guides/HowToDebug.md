@@ -16,7 +16,7 @@ Open the command palette in VS Code (press <kbd>F1</kbd>) and type `ext install 
 
 
 ### 3: Open the WalletWasabi directory in VS Code
-Go to `File->Open Folder` and open the WalletWasabi directory in Visual Studio Code. The Wasabi vscode settings forces to download the latest omnisharp versions everytime the folder is opened and this can take a while.
+Go to `File->Open Folder` and open the WalletWasabi directory in Visual Studio Code. The Wasabi vscode settings forces to download the latest omnisharp versions every time the folder is opened and this can take a while.
 
 After this step we are ready to start configuring the the build tasks and the launches.
 
@@ -28,7 +28,7 @@ Here we are going to focus on how to debug the client component first and the ba
 
 ### Wasabi Client
 
-Lets start creating the launcher (it goes into the `.vscode/launch.json` file). This file is the one that contains the list of projects that can be launched, how to do it, what tasks have to be executed previousle to the launching, etc. 
+Lets start creating the launcher (it goes into the `.vscode/launch.json` file). This file is the one that contains the list of projects that can be launched, how to do it, what tasks have to be executed previously to the launching, etc.
 
 ```json
 {
@@ -69,7 +69,7 @@ After these two files are created press (CTRL+SHIFT+D) to go to the debugger, se
 
 ### Wasabi Backend
 
-In the same way we did for the client part, we need to create a launcher and a task for running and debugging the server-side component. Lets start with the lancher. Add the following launcher to the array of `configurations` in the `.vscode/lauch.json` 
+In the same way we did for the client part, we need to create a launcher and a task for running and debugging the server-side component. Lets start with the lancher. Add the following launcher to the array of `configurations` in the `.vscode/launch.json` 
 
 ```json
 {
@@ -77,7 +77,7 @@ In the same way we did for the client part, we need to create a launcher and a t
    "type": "coreclr",
    "request": "launch",
    "preLaunchTask": "build",
-   "program": "${workspaceFolder}sabi.Backend/bin/Debug/netcoreapp2.2/WalletWasabi.dll",
+   "program": "${workspaceFolder}WalletWasabi.Backend/bin/Debug/netcoreapp2.2/WalletWasabi.dll",
    "args": [],
    "cwd": "${workspaceFolder}/WalletWasabi.Backend",
    "stopAtEntry": false,
@@ -113,7 +113,7 @@ As before, we need to create a task for compiling the backend project before exe
    "type": "process",
    "args": [
       "build",
-      "${workspaceFolder}asabi.Backend/WalletWasabi.Backend.csproj"
+      "${workspaceFolder}WalletWasabi.Backend/WalletWasabi.Backend.csproj"
    ],
    "problemMatcher": "$msCompile"
 }
