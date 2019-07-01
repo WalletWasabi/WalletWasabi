@@ -60,7 +60,7 @@ namespace WalletWasabi.Tests
 				{
 					response = await client.GetGeneralInformationAsync(CancellationToken.None);
 				}
-				catch // stupid CI internet conenction sometimes fails
+				catch // stupid CI internet connection sometimes fails
 				{
 					await Task.Delay(3000);
 					response = await client.GetGeneralInformationAsync(CancellationToken.None);
