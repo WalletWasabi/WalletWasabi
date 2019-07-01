@@ -98,7 +98,6 @@ namespace WalletWasabi.Gui.ViewModels
 			set { this.RaiseAndSetIfChanged(ref _inEditMode, value); }
 		}
 
-
 		public string Address => Model.GetP2wpkhAddress(Global.Network).ToString();
 
 		public string Pubkey => Model.PubKey.ToString();

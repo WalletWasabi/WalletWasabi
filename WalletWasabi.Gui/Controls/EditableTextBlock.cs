@@ -165,7 +165,6 @@ namespace WalletWasabi.Gui.Controls
 			ReadMode = false;
 			InEditMode = true;
 
-			
             _root.MouseDevice.Capture(_textBox);
             _textBox.CaretIndex = Text.Length;
             _textBox.SelectionStart = 0;
