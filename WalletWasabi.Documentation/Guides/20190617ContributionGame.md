@@ -6,6 +6,10 @@ We are happy to announce an experiment, called: **The Wasabi Contribution Game**
 
 ## Update (2019-06-28)
 
+PR https://github.com/zkSNACKs/WalletWasabi/pull/1661 moved around large files. 49+154+50 lines have been removed and added, so 506 lines will come down from @jmacato's score.
+
+## Update (2019-06-28)
+
 - The originally postend links on additions and deletions doesn't work, due to a GitHub bug. It seems like the timeframe specified is lagging behind 5 days, so it may appear that nobody contributed, yet it's 28 already and there were many contributions, so the adjusted links are:
 - For additions: https://github.com/zkSNACKs/WalletWasabi/graphs/contributors?from=2019-06-20&to=2019-07-20&type=a
 - For deletions: https://github.com/zkSNACKs/WalletWasabi/graphs/contributors?from=2019-06-20&to=2019-07-20&type=d
