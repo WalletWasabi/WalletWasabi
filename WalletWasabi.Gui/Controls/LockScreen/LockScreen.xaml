@@ -1,0 +1,5 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <lockscreen:SlideLock/>
+</UserControl>

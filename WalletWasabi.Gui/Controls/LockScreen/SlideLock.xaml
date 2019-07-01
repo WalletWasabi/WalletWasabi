@@ -1,0 +1,16 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <UserControl.Clock>
+    <Clock/>
+  </UserControl.Clock>
+  <Grid>
+    <Thumb x:Name="PART_DragThumb">
+      <Thumb.Template>
+        <ControlTemplate>
+          <Border Background="Blue"/>
+        </ControlTemplate>
+      </Thumb.Template>
+    </Thumb>
+  </Grid>
+</UserControl>

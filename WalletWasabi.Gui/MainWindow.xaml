@@ -1,6 +1,7 @@
 ﻿<cont:MetroWindow xmlns="https://github.com/avaloniaui"
                       xmlns:cont="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"
                       xmlns:wasabi="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+                      xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
                       xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
                       xmlns:shell="clr-namespace:AvalonStudio.Shell;assembly=AvalonStudio.Shell"
                       xmlns:menu="clr-namespace:AvalonStudio.Shell.Extensibility.MainMenu.Views;assembly=AvalonStudio.Shell.Extensibility"
@@ -37,5 +38,6 @@
       <shell:ShellView DataContext="{Binding Shell}" />
     </DockPanel>
     <wasabi:ModalDialog DataContext="{Binding ModalDialog}" />
+    <lockscreen:LockScreen/>
   </Grid>
 </cont:MetroWindow>
