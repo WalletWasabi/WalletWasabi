@@ -15,6 +15,7 @@
     <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
     <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
     <converters:TimeSpanStringConverter x:Key="TimeSpanStringConverter" />
+    <converters:TimeSpanVisibilityConverter x:Key="TimeSpanVisibilityConverter" />
   </UserControl.Resources>
   <Grid Margin="20">
     <Grid.RowDefinitions>
@@ -69,10 +70,10 @@
               <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="4" Margin="0 12">
                 <TextBlock VerticalAlignment="Center" Foreground="YellowGreen" Text="{Binding Phase, Converter={StaticResource PhaseStringConverter}}" />
               </StackPanel>
-              <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Spacing="4">
-                <TextBlock Text="Registration Ends:" />
+              <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Spacing="4" IsVisible="{Binding TimeLeftTillRoundTimeout, Converter={StaticResource TimeSpanVisibilityConverter}}">
+                <TextBlock Text="Registration Ends In:" />
               </StackPanel>
-              <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="4">
+              <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="4" IsVisible="{Binding TimeLeftTillRoundTimeout, Converter={StaticResource TimeSpanVisibilityConverter}}">
                 <TextBlock Foreground="YellowGreen" Text="{Binding TimeLeftTillRoundTimeout, Converter={StaticResource TimeSpanStringConverter}}" />
               </StackPanel>
               <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" Spacing="4">

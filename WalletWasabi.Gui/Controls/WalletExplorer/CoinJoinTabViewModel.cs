@@ -171,7 +171,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				RoundId = mostAdvancedRound.State.RoundId;
 				Phase = mostAdvancedRound.State.Phase;
-				RoundTimesout = mostAdvancedRound.State.InputRegistrationTimesout;
+				RoundTimesout = mostAdvancedRound.State.Phase == CcjRoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
 				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
 				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
 			}
@@ -301,7 +301,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				if (!Global.ChaumianClient.State.IsInErrorState)
 				{
 					Phase = mostAdvancedRound.State.Phase;
-					RoundTimesout = mostAdvancedRound.State.InputRegistrationTimesout;
+					RoundTimesout = mostAdvancedRound.State.Phase == CcjRoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
 				}
 				this.RaisePropertyChanged(nameof(Phase));
 				this.RaisePropertyChanged(nameof(RoundTimesout));
