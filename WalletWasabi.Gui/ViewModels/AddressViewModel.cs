@@ -29,17 +29,7 @@ namespace WalletWasabi.Gui.ViewModels
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
 
-			// TODO fix this performance issue this should only be generated when accessed.
-			Task.Run(() =>
-			{
-				var encoder = new QrEncoder();
-				encoder.TryEncode(Address, out var qrCode);
-
-				return qrCode.Matrix.InternalArray;
-			}).ContinueWith(x =>
-			{
-				QrCode = x.Result;
-			});
+			this.WhenAnyValue(x => x.IsExpanded).Subscribe(x => GenerateQrCode());
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
@@ -81,6 +71,23 @@ namespace WalletWasabi.Gui.ViewModels
 		}
 
 		public CancellationTokenSource CancelClipboardNotification { get; set; }
+
+		public void GenerateQrCode()
+		{
+			if (QrCode is null)
+			{
+				Task.Run(() =>
+				{
+					var encoder = new QrEncoder();
+					encoder.TryEncode(Address, out var qrCode);
+
+					return qrCode.Matrix.InternalArray;
+				}).ContinueWith(x =>
+				{
+					QrCode = x.Result;
+				});
+			}
+		}
 
 		public async Task TryCopyToClipboardAsync()
 		{
