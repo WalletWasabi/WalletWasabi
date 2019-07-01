@@ -148,7 +148,9 @@ namespace Nito.AsyncEx
 							while (true)
 							{
 								if (DateTime.Now - start > TimeSpan.FromSeconds(90))
+								{
 									throw new TimeoutException("Could not acquire mutex in time");
+								}
 								// Block for n ms and try to acquire the mutex. Blocking is not a problem
 								// we are on our own thread.
 								acquired = Mutex.WaitOne(1000);

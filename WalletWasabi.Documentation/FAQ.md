@@ -19,7 +19,7 @@ Follow [this guide](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletW
 ### Do I need to run Tor?
 
 All Wasabi network traffic goes via Tor by default - no need to set up Tor yourself. If you do already have Tor, and it is running, then Wasabi will try to use that first.  
-You can turn off Tor in the Settings. Note that in this case you are still private, except when you coinjoin and when you broacast a transaction. In the first case, the coordinator would learn the links between your inputs and outputs based on your IP address, in the second case, if you happen to broadcast a transaction of yours to a full node that is spying on you, it will learn the link between your transaction and your IP address.
+You can turn off Tor in the Settings. Note that in this case you are still private, except when you coinjoin and when you broadcast a transaction. In the first case, the coordinator would learn the links between your inputs and outputs based on your IP address, in the second case, if you happen to broadcast a transaction of yours to a full node that is spying on you, it will learn the link between your transaction and your IP address.
 
 # Pre-Mix
 
@@ -122,7 +122,7 @@ Not at the moment, if Wasabi and other CoinJoin tools are used by enough people 
 There are no hard and fast rules for what to do with the change. Generally try avoid the change and use the Max button extensively at sending. The most problematic type of change is what has `anonymity set 1` (red shield.) You should treat it as a kind of toxic waste (handled with great care).
 
 **Warning**
-You want to avoid merging `anonimity set 1 coins` with `anonymity set > 1 coins` wherever possible, because this will link your `anonymity set > 1 coin` to the coin you merge it with. Note that, this is also true if you merge them in a mix, however that's slightly less problematic, because some blockchain analysis techniques become [computationally infeasible](https://www.comsys.rwth-aachen.de/fileadmin/papers/2017/2017-maurer-trustcom-coinjoin.pdf).
+You want to avoid merging `anonymity set 1 coins` with `anonymity set > 1 coins` wherever possible, because this will link your `anonymity set > 1 coin` to the coin you merge it with. Note that, this is also true if you merge them in a mix, however that's slightly less problematic, because some blockchain analysis techniques become [computationally infeasible](https://www.comsys.rwth-aachen.de/fileadmin/papers/2017/2017-maurer-trustcom-coinjoin.pdf).
 
 It is also important that you don't send different coins to the same receiving address (even if performed as separate transactions) as this will also link the coins together, damaging your privacy.
 
