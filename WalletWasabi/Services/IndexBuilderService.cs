@@ -298,7 +298,7 @@ namespace WalletWasabi.Services
 									for (int i = 0; i < tx.Outputs.Count; i++)
 									{
 										var output = tx.Outputs[i];
-										if (!output.ScriptPubKey.IsPayToScriptHash && output.ScriptPubKey.IsWitness)
+										if (output.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
 										{
 											var outpoint = new OutPoint(tx.GetHash(), i);
 											Bech32UtxoSet.Add(outpoint, output.ScriptPubKey);

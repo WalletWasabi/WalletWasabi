@@ -94,7 +94,7 @@ namespace NBitcoin
 			}
 			foreach (TxOut output in me.Outputs)
 			{
-				if (output.ScriptPubKey.IsWitness)
+				if (output.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
 				{
 					return true;
 				}
