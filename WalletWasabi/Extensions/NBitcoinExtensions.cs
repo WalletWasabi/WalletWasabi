@@ -80,7 +80,7 @@ namespace NBitcoin
 		/// <summary>
 		/// Based on transaction data, it decides if it's possible that native segwit script played a par in this transaction.
 		/// </summary>
-		public static bool PossiblyNativeSegWitInvolved(this Transaction me)
+		public static bool PossiblyP2WPKHInvolved(this Transaction me)
 		{
 			// We omit Guard, because it's performance critical in Wasabi.
 			// We start with the inputs, because, this check is faster.
