@@ -24,8 +24,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private CompositeDisposable Disposables { get; set; }
 
 		private long _roundId;
-		private int _successfulRoundCount;
 		private CcjRoundPhase _phase;
+		private DateTimeOffset _roundTimesout;
+		private TimeSpan _timeLeftTillRoundTimeout;
 		private Money _requiredBTC;
 		private string _coordinatorFeePercent;
 		private int _peersRegistered;
@@ -47,6 +48,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			: base("CoinJoin", walletViewModel)
 		{
 			Password = "";
+			TimeLeftTillRoundTimeout = TimeSpan.Zero;
 
 			CoinsList = new CoinListViewModel(Global, CoinListContainerType.CoinJoinTabViewModel);
 
@@ -120,6 +122,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				CoinJoinUntilAnonimitySet = Global.Config.GetTargetLevel(target);
 			});
+
+			this.WhenAnyValue(x => x.RoundTimesout)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					TimeSpan left = x - DateTimeOffset.UtcNow;
+					TimeLeftTillRoundTimeout = left > TimeSpan.Zero ? left : TimeSpan.Zero; // Make sure cannot be less than zero.
+				});
+
+			this.WhenAnyValue(x => x.TimeLeftTillRoundTimeout)
+				.Throttle(TimeSpan.FromSeconds(1))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					var next = TimeLeftTillRoundTimeout - TimeSpan.FromSeconds(1);
+					TimeLeftTillRoundTimeout = next > TimeSpan.Zero ? next : TimeSpan.Zero; // Make sure cannot be less than zero.
+				});
 		}
 
 		public override void OnOpen()
@@ -151,16 +170,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (mostAdvancedRound != default)
 			{
 				RoundId = mostAdvancedRound.State.RoundId;
-				SuccessfulRoundCount = mostAdvancedRound.State.SuccessfulRoundCount;
 				Phase = mostAdvancedRound.State.Phase;
+				RoundTimesout = mostAdvancedRound.State.Phase == CcjRoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
 				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
 				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
 			}
 			else
 			{
 				RoundId = -1;
-				SuccessfulRoundCount = -1;
 				Phase = CcjRoundPhase.InputRegistration;
+				RoundTimesout = DateTimeOffset.UtcNow;
 				PeersRegistered = 0;
 				PeersNeeded = 100;
 			}
@@ -279,12 +298,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (mostAdvancedRound != default)
 			{
 				RoundId = mostAdvancedRound.State.RoundId;
-				SuccessfulRoundCount = mostAdvancedRound.State.SuccessfulRoundCount;
 				if (!Global.ChaumianClient.State.IsInErrorState)
 				{
 					Phase = mostAdvancedRound.State.Phase;
+					RoundTimesout = mostAdvancedRound.State.Phase == CcjRoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
 				}
 				this.RaisePropertyChanged(nameof(Phase));
+				this.RaisePropertyChanged(nameof(RoundTimesout));
 				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
 				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
 			}
@@ -377,16 +397,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _roundId, value);
 		}
 
-		public int SuccessfulRoundCount
-		{
-			get => _successfulRoundCount;
-			set => this.RaiseAndSetIfChanged(ref _successfulRoundCount, value);
-		}
-
 		public CcjRoundPhase Phase
 		{
 			get => _phase;
 			set => this.RaiseAndSetIfChanged(ref _phase, value);
+		}
+
+		public DateTimeOffset RoundTimesout
+		{
+			get => _roundTimesout;
+			set => this.RaiseAndSetIfChanged(ref _roundTimesout, value);
+		}
+
+		public TimeSpan TimeLeftTillRoundTimeout
+		{
+			get => _timeLeftTillRoundTimeout;
+			set => this.RaiseAndSetIfChanged(ref _timeLeftTillRoundTimeout, value);
 		}
 
 		public Money RequiredBTC

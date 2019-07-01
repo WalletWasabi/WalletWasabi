@@ -5,6 +5,7 @@ using Nito.AsyncEx;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -195,6 +196,7 @@ namespace WalletWasabi.Services
 		private async Task TryProcessStatusAsync(IEnumerable<CcjRunningRoundState> states)
 		{
 			states = states ?? Enumerable.Empty<CcjRunningRoundState>();
+
 			if (Interlocked.Read(ref _statusProcessing) == 1) // It's ok to wait for status processing next time.
 			{
 				return;
