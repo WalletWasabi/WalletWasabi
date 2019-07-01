@@ -340,12 +340,12 @@ namespace Nito.Collections
 		{
 			if (value is null && default(T) != null)
 			{
-				throw new ArgumentNullException("value", "Value cannot be null.");
+				throw new ArgumentNullException(nameof(value), "Value cannot be null.");
 			}
 
 			if (!IsT(value))
 			{
-				throw new ArgumentException("Value is of incorrect type.", "value");
+				throw new ArgumentException("Value is of incorrect type.", nameof(value));
 			}
 
 			Insert(index, (T)value);

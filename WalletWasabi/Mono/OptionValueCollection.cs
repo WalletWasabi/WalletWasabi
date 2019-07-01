@@ -298,7 +298,7 @@ namespace Mono.Options
 
 			if (index >= C.Option.MaxValueCount)
 			{
-				throw new ArgumentOutOfRangeException("index");
+				throw new ArgumentOutOfRangeException(nameof(index));
 			}
 
 			if (C.Option.OptionValueType == OptionValueType.Required &&
