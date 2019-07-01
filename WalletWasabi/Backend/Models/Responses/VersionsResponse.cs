@@ -4,6 +4,6 @@
 	{
 		public string ClientVersion { get; set; }
 
-		public string BackenMajordVersion { get; set; }
+		public string BackendMajorVersion { get; set; }
 	}
 }
