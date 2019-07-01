@@ -178,17 +178,17 @@ namespace Mono.Options
 		{
 			if (prototype is null)
 			{
-				throw new ArgumentNullException("prototype");
+				throw new ArgumentNullException(nameof(prototype));
 			}
 
 			if (prototype.Length == 0)
 			{
-				throw new ArgumentException("Cannot be the empty string.", "prototype");
+				throw new ArgumentException("Cannot be the empty string.", nameof(prototype));
 			}
 
 			if (maxValueCount < 0)
 			{
-				throw new ArgumentOutOfRangeException("maxValueCount");
+				throw new ArgumentOutOfRangeException(nameof(maxValueCount));
 			}
 
 			Prototype = prototype;
@@ -213,14 +213,14 @@ namespace Mono.Options
 				throw new ArgumentException(
 						"Cannot provide maxValueCount of 0 for OptionValueType.Required or " +
 							"OptionValueType.Optional.",
-						"maxValueCount");
+						nameof(maxValueCount));
 			}
 
 			if (OptionValueType == OptionValueType.None && maxValueCount > 1)
 			{
 				throw new ArgumentException(
 						string.Format("Cannot provide maxValueCount of {0} for OptionValueType.None.", maxValueCount),
-						"maxValueCount");
+						nameof(maxValueCount));
 			}
 
 			if (Array.IndexOf(Names, "<>") >= 0 &&
@@ -229,7 +229,7 @@ namespace Mono.Options
 			{
 				throw new ArgumentException(
 						"The default option handler '<>' cannot require values.",
-						"prototype");
+						nameof(prototype));
 			}
 		}
 

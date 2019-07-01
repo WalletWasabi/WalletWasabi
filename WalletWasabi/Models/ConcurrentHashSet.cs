@@ -16,7 +16,7 @@ namespace WalletWasabi.Models
 	/// concurrently from multiple threads.
 	/// https://github.com/i3arnon/ConcurrentHashSet/
 	/// </remarks>
-	[DebuggerDisplay("Count = {Count}")]
+	[DebuggerDisplay("Count = {" + nameof(Count) + "}")]
 	public class ConcurrentHashSet<T> : IReadOnlyCollection<T>, ICollection<T>
 	{
 		private const int DefaultCapacity = 31;
