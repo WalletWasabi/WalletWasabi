@@ -59,8 +59,10 @@ namespace WalletWasabi.Gui.Converters
 				}
 				return builder.ToString();
 			}
-
-			throw new InvalidOperationException();
+			else
+			{
+				throw new TypeArgumentException(value, typeof(TimeSpan), nameof(value));
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

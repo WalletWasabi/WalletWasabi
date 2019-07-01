@@ -34,9 +34,9 @@ namespace WalletWasabi.Gui.Converters
 
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			var config = Application.Current.Resources[Global.ConfigResourceKey] as Config;
 			if (value is int integer)
 			{
+				var config = Application.Current.Resources[Global.ConfigResourceKey] as Config;
 				string shield;
 				if (integer < config.PrivacyLevelSome)
 				{
@@ -57,8 +57,10 @@ namespace WalletWasabi.Gui.Converters
 				var icon = GetIconByName($"Privacy{shield}");
 				return new { Icon = icon, ToolTip = $"Anonymity Set: {integer}" };
 			}
-
-			throw new InvalidOperationException();
+			else
+			{
+				throw new TypeArgumentException(value, typeof(int), nameof(value));
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

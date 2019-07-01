@@ -12,10 +12,12 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is TimeSpan ts)
 			{
-				return ts == TimeSpan.Zero ? false : true;
+				return ts != TimeSpan.Zero;
 			}
-
-			throw new InvalidOperationException();
+			else
+			{
+				throw new TypeArgumentException(value, typeof(TimeSpan), nameof(value));
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
