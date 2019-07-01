@@ -59,6 +59,7 @@ namespace WalletWasabi.Gui
 		public Node RegTestMemPoolServingNode { get; private set; }
 		public UpdateChecker UpdateChecker { get; private set; }
 		public TorProcessManager TorManager { get; private set; }
+		public HwiService HwiService { get; private set; }
 
 		public bool KillRequested { get; private set; } = false;
 
@@ -142,6 +143,8 @@ namespace WalletWasabi.Gui
 			Logger.LogInfo<Config>("Config is successfully initialized.");
 
 			#endregion ConfigInitialization
+
+			HwiService = new HwiService();
 
 			BitcoinStore = new BitcoinStore();
 			var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
@@ -601,6 +604,12 @@ namespace WalletWasabi.Gui
 			try
 			{
 				await DisposeInWalletDependentServicesAsync();
+
+				if (HwiService != null)
+				{
+					await HwiService.StopAsync();
+					Logger.LogInfo($"{nameof(HwiService)} is stopped.", nameof(Global));
+				}
 
 				if (UpdateChecker != null)
 				{
