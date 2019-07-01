@@ -10,7 +10,7 @@
                     <TextBox Text="{TemplateBinding EditText, Mode=TwoWay}" 
                              IsVisible="{TemplateBinding InEditMode}" 
                              Name="PART_TextBox" 
-                             Background="{TemplateBinding Background}"
+                             Background="{DynamicResource ThemeControlBackgroundBrush}"
                              Foreground="{TemplateBinding Foreground}" 
                              VerticalAlignment="Center" 
                              BorderThickness="{TemplateBinding BorderThickness}" 
