@@ -173,7 +173,7 @@ namespace Mono.Options
 		{
 			if (widths is null)
 			{
-				throw new ArgumentNullException("widths");
+				throw new ArgumentNullException(nameof(widths));
 			}
 
 			return CreateWrappedLinesIterator(self, widths);
