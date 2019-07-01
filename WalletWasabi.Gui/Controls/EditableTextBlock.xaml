@@ -6,7 +6,7 @@
         <Setter Property="Template">
             <ControlTemplate>
                 <Grid>
-                    <TextBlock Text="{TemplateBinding Text}" VerticalAlignment="Center" Name="PART_TextBlock" Margin="1 0 0 0" />
+                    <TextBlock Text="{TemplateBinding Text}" IsVisible="{TemplateBinding ReadMode}"  VerticalAlignment="Center" Name="PART_TextBlock" Margin="1 0 0 0" />
                     <TextBox Text="{TemplateBinding EditText, Mode=TwoWay}" 
                              IsVisible="{TemplateBinding InEditMode}" 
                              Name="PART_TextBox" 

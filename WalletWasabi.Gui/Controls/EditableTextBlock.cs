@@ -113,7 +113,16 @@ namespace WalletWasabi.Gui.Controls
             set { SetValue(InEditModeProperty, value); }
         }
 
-        protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
+		public static readonly StyledProperty<bool> ReadModeProperty =
+			AvaloniaProperty.Register<EditableTextBlock, bool>(nameof(ReadMode), defaultValue:true, defaultBindingMode: BindingMode.TwoWay);
+
+		public bool ReadMode
+		{
+			get { return GetValue(ReadModeProperty); }
+			set { SetValue(ReadModeProperty, value); }
+		}
+
+		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
         {
             base.OnTemplateApplied(e);
 
@@ -153,7 +162,9 @@ namespace WalletWasabi.Gui.Controls
         private void EnterEditMode()
         {
             EditText = Text;
-            InEditMode = true;
+			ReadMode = false;
+			InEditMode = true;
+
 			
             _root.MouseDevice.Capture(_textBox);
             _textBox.CaretIndex = Text.Length;
@@ -174,6 +185,7 @@ namespace WalletWasabi.Gui.Controls
             }
 
             InEditMode = false;
+			ReadMode = true;
             _root.MouseDevice.Capture(null);
         }        
     }
