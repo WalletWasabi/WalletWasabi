@@ -48,7 +48,7 @@ namespace WalletWasabi.Backend.Models.Responses
 		public Money CalculateRequiredAmount(params Money[] queuedCoinAmounts)
 		{
 			var tried = new List<Money>();
-			Money baseMinimum = Denomination + (FeePerOutputs * 2);// + (Denomination.Percentange(CoordinatorFeePercent) * RequiredPeerCount);
+			Money baseMinimum = Denomination + (FeePerOutputs * 2); // + (Denomination.Percentange(CoordinatorFeePercent) * RequiredPeerCount);
 			if (queuedCoinAmounts != default)
 			{
 				foreach (Money amount in queuedCoinAmounts.OrderByDescending(x => x))
@@ -69,7 +69,7 @@ namespace WalletWasabi.Backend.Models.Responses
 		public bool HaveEnoughQueued(params Money[] queuedCoinAmounts)
 		{
 			var tried = new List<Money>();
-			Money baseMinimum = Denomination + (FeePerOutputs * 2);// + (Denomination.Percentange(CoordinatorFeePercent) * RequiredPeerCount);
+			Money baseMinimum = Denomination + (FeePerOutputs * 2); // + (Denomination.Percentange(CoordinatorFeePercent) * RequiredPeerCount);
 
 			if (queuedCoinAmounts != default)
 			{
