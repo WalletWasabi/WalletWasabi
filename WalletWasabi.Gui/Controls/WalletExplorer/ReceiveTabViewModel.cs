@@ -31,6 +31,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> CopyAddress { get; }
 		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
 		public ReactiveCommand<Unit, Unit> ShowQrCode { get; }
+		public ReactiveCommand<Unit, Unit> ReLabelCommand { get; }
 
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
@@ -133,6 +134,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (Exception)
 				{ }
+			}, isCoinListItemSelected);
+
+			ReLabelCommand = ReactiveCommand.Create(() =>
+			{
+				SelectedAddress.InEditMode = true;
 			}, isCoinListItemSelected);
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
