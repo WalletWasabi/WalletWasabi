@@ -103,6 +103,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				this.RaisePropertyChanged(nameof(AmountBtc));
 				this.RaisePropertyChanged(nameof(Clusters));
+				this.RaisePropertyChanged(nameof(AnonymitySet));
 			}).DisposeWith(Disposables);
 		}
 

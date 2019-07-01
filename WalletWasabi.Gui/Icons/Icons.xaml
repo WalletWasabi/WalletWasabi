@@ -143,6 +143,14 @@
       </DrawingGroup>
 
       <!-- Anonimity icons -->
+      <DrawingGroup x:Key="PrivacyHide">
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8.2754,15.9219L8.0004,15.9999 7.7244,15.9219C1.6084,14.1719,0.698399999999999,7.3389,1.0724,3.9709L1.1314,3.4369 8.0004,-9.99999999997669E-05 14.8684,3.4369 14.9274,3.9709C15.3014,7.3389,14.3914,14.1719,8.2754,15.9219" />
+          <GeometryDrawing Brush="#FF919191" Geometry="F1M13.9512,4L8.0002,1 2.0492,4C2.0492,4 1.0572,13 8.0002,15 14.9422,13 13.9512,4 13.9512,4" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+
       <DrawingGroup x:Key="PrivacyCritical">
         <DrawingGroup.Children>
           <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />

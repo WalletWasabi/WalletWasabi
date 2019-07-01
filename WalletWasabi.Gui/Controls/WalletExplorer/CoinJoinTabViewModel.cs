@@ -118,7 +118,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.TargetPrivacy).Subscribe(target =>
 			{
-				CoinJoinUntilAnonimitySet = Global.Config.GetTargetLevel(target);
+				CoinJoinUntilAnonimitySet = -Global.Config.GetTargetLevel(target);
 			});
 		}
 

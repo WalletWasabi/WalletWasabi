@@ -35,18 +35,24 @@ namespace WalletWasabi.Gui.Converters
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			var config = Application.Current.Resources[Global.ConfigResourceKey] as Config;
+			var uiConfig = Application.Current.Resources[Global.UiConfigResourceKey] as UiConfig;
 			if (value is int integer)
 			{
+				// If value is negative, LurkingWifeMode should not be taken into account
 				string shield;
-				if (integer < config.PrivacyLevelSome)
+				if (uiConfig.LurkingWifeMode is true && integer > 0)
+				{
+					shield = "Hide";
+				}
+				else if (Math.Abs(integer) < config.PrivacyLevelSome)
 				{
 					shield = "Critical";
 				}
-				else if (integer < config.PrivacyLevelFine)
+				else if (Math.Abs(integer) < config.PrivacyLevelFine)
 				{
 					shield = "Some";
 				}
-				else if (integer < config.PrivacyLevelStrong)
+				else if (Math.Abs(integer) < config.PrivacyLevelStrong)
 				{
 					shield = "Fine";
 				}
@@ -55,7 +61,7 @@ namespace WalletWasabi.Gui.Converters
 					shield = "Strong";
 				}
 				var icon = GetIconByName($"Privacy{shield}");
-				return new { Icon = icon, ToolTip = $"Anonymity Set: {integer}" };
+				return new { Icon = icon, ToolTip = $"Anonymity Set: {Math.Abs(integer)}" };
 			}
 
 			throw new InvalidOperationException();
