@@ -545,7 +545,7 @@ namespace WalletWasabi.Services
 			if (tx.Confirmed)
 			{
 				MemPool.TransactionHashes.TryRemove(txId); // If we have in mempool, remove.
-				if (!tx.Transaction.PossiblyNativeSegWitInvolved())
+				if (!tx.Transaction.PossiblyP2WPKHInvolved())
 				{
 					return false; // We don't care about non-witness transactions for other than mempool cleanup.
 				}
@@ -562,7 +562,7 @@ namespace WalletWasabi.Services
 					}
 				}
 			}
-			else if (!tx.Transaction.PossiblyNativeSegWitInvolved())
+			else if (!tx.Transaction.PossiblyP2WPKHInvolved())
 			{
 				return false; // We don't care about non-witness transactions for other than mempool cleanup.
 			}
