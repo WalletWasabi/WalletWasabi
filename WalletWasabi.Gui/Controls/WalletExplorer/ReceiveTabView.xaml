@@ -63,6 +63,11 @@
             <TextBlock Text="Address:" Grid.Column="1" Margin="20 0 0 0" />
           </Grid>
           <controls:ExtendedListBox Grid.Row="2" Items="{Binding Addresses}" SelectedItem="{Binding SelectedAddress, Mode=TwoWay}" VirtualizationMode="None">
+            <controls:ExtendedListBox.Styles>
+              <Style Selector="ListBoxItem">
+                <Setter Property="Padding" Value="0 0 5 0" />
+              </Style>
+            </controls:ExtendedListBox.Styles>
             <controls:ExtendedListBox.ContextMenu>
               <ContextMenu>
                 <MenuItem Header="Show QR code" Command="{Binding ShowQrCode}">
