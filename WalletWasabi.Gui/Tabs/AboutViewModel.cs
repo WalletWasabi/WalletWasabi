@@ -5,14 +5,31 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Text;
 using WalletWasabi.Gui.ViewModels;
+using System.IO;
+using ReactiveUI;
+using System.Reactive;
 
 namespace WalletWasabi.Gui.Tabs
 {
 	internal class AboutViewModel : WasabiDocumentTabViewModel
 	{
+		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
+
 		public AboutViewModel(Global global) : base(global, "About")
 		{
 			Version = WalletWasabi.Helpers.Constants.ClientVersion;
+
+			OpenBrowserCommand = ReactiveCommand.Create<string>(x =>
+			{
+				try
+				{
+					IoHelpers.OpenBrowser(x);
+				}
+				catch (Exception ex)
+				{
+					Logging.Logger.LogError<AboutViewModel>(ex);
+				}
+			});
 		}
 
 		public Version Version { get; }
@@ -30,53 +47,5 @@ namespace WalletWasabi.Gui.Tabs
 		public string BugReportLink => "https://github.com/zkSNACKs/WalletWasabi/issues/";
 
 		public string FAQLink => "https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/FAQ.md";
-
-		public void OnClearnetClicked()
-		{
-			OpenLink(ClearnetLink);
-		}
-
-		public void OnSourceCodeClicked()
-		{
-			OpenLink(SourceCodeLink);
-		}
-
-		public void OnCustomerSupportClicked()
-		{
-			OpenLink(CustomerSupportLink);
-		}
-
-		public void OnBugReportClicked()
-		{
-			OpenLink(BugReportLink);
-		}
-
-		public void OnFAQClicked()
-		{
-			OpenLink(FAQLink);
-		}
-
-		public void OpenLink(string url)
-		{
-			try
-			{
-				Process.Start(url);
-			}
-			catch
-			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-				{
-					Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
-				}
-				else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-				{
-					Process.Start("xdg-open", url);
-				}
-				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-				{
-					Process.Start("open", url);
-				}
-			}
-		}
 	}
 }

@@ -10,7 +10,7 @@
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Clearnet Website: " />
-            <Button Content="{Binding ClearnetLink}" Classes="activeHyperLink" Command="{Binding OnClearnetClicked}" />
+            <Button Content="{Binding ClearnetLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding ClearnetLink}" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Tor Website: " />
@@ -18,19 +18,19 @@
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Source Code: " />
-            <Button Content="{Binding SourceCodeLink}" Classes="activeHyperLink" Command="{Binding OnSourceCodeClicked}" />
+            <Button Content="{Binding SourceCodeLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding SourceCodeLink}" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Customer Support: " />
-            <Button Content="{Binding CustomerSupportLink}" Classes="activeHyperLink" Command="{Binding OnCustomerSupportClicked}" />
+            <Button Content="{Binding CustomerSupportLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding CustomerSupportLink}" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Bug Report: " />
-            <Button Content="{Binding BugReportLink}" Classes="activeHyperLink" Command="{Binding OnBugReportClicked}" />
+            <Button Content="{Binding BugReportLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding BugReportLink}" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="FAQ: " />
-            <Button Content="{Binding FAQLink}" Classes="activeHyperLink" Command="{Binding OnFAQClicked}" />
+            <Button Content="{Binding FAQLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding FAQLink}" />
           </StackPanel>
         </StackPanel>
       </Grid>
