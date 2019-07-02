@@ -4,9 +4,9 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 {
     internal class LockScreenImpl : UserControl
     {
-		internal virtual void Reset()
-		{
+        internal virtual void Reset()
+        {
             IsHitTestVisible = true;
-		}
+        }
     }
 }
