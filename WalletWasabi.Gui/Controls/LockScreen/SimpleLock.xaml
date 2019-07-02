@@ -1,0 +1,53 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+  xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <UserControl.Styles>
+    <Style Selector="Grid.Locking">
+      <Style.Animations>
+        <Animation
+          FillMode="Both"
+          Duration="0:0:1.5"
+          Easing="QuarticEaseInOut"
+          IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Opacity" Value="0"/>
+            <Setter Property="TranslateTransform.Y" Value="-100"/>
+            <Setter Property="IsHitTestVisible" Value="False"/>
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Opacity" Value="1"/>
+            <Setter Property="TranslateTransform.Y" Value="0"/>
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="Grid.Unlocking">
+      <Style.Animations>
+        <Animation
+          FillMode="Both"
+          Duration="0:0:1.5"
+          Easing="QuarticEaseInOut"
+          IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Opacity" Value="0"/>
+            <Setter Property="TranslateTransform.Y" Value="-100"/>
+            <Setter Property="IsHitTestVisible" Value="True"/>
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Opacity" Value="1"/>
+            <Setter Property="TranslateTransform.Y" Value="0"/>
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+  </UserControl.Styles>
+  <Grid>
+    <Grid x:Name="Shade" Background="{DynamicResource ThemeBackgroundBrush}">
+      <Button x:Name="UnlockButton"
+        Width="100"
+        Height="100"
+        VerticalAlignment="Center"
+        Content="Unlock"/>
+    </Grid>
+  </Grid>
+</UserControl>

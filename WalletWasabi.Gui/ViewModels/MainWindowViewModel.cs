@@ -52,6 +52,14 @@ namespace WalletWasabi.Gui.ViewModels
 			internal set => this.RaiseAndSetIfChanged(ref _statusBar, value);
 		}
 
+		private LockScreenViewModel _lockScreen;
+
+		public LockScreenViewModel LockScreen
+		{
+			get => _lockScreen;
+			internal set => this.RaiseAndSetIfChanged(ref _lockScreen, value);
+		}
+
 		public MainWindowViewModel()
 		{
 			Shell = IoC.Get<IShell>();

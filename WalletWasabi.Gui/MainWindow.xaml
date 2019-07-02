@@ -38,6 +38,6 @@
       <shell:ShellView DataContext="{Binding Shell}" />
     </DockPanel>
     <wasabi:ModalDialog DataContext="{Binding ModalDialog}" />
-    <lockscreen:LockScreen/>
+    <lockscreen:LockScreen DataContext="{Binding LockScreen}"/>
   </Grid>
 </cont:MetroWindow>

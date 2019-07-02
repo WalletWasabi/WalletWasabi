@@ -22,6 +22,8 @@ namespace WalletWasabi.Gui
 #pragma warning restore IDE1006 // Naming Styles
 		{
 			StatusBarViewModel statusBar = null;
+			LockScreenViewModel lockScreen = null;
+
 			bool runGui = false;
 			try
 			{
@@ -45,11 +47,14 @@ namespace WalletWasabi.Gui
 						MainWindowViewModel.Instance.Global = Global;
 						statusBar = new StatusBarViewModel(Global);
 						MainWindowViewModel.Instance.StatusBar = statusBar;
+						lockScreen = new LockScreenViewModel(Global);
+						MainWindowViewModel.Instance.LockScreen = lockScreen;
 
 						await Global.InitializeNoWalletAsync();
 
 						statusBar.Initialize(Global.Nodes.ConnectedNodes, Global.Synchronizer, Global.UpdateChecker);
-
+						lockScreen.Initialize();
+						
 						if (Global.Network != Network.Main)
 						{
 							MainWindowViewModel.Instance.Title += $" - {Global.Network}";

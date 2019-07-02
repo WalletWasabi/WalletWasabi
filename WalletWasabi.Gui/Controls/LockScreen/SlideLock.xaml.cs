@@ -68,6 +68,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
                 this.PseudoClasses.Add(":unlocked");
                 UnlockInProgress = false;
                 UnlockDone = true;
+				IsLocked = false;
                 return;
             }
 
@@ -82,16 +83,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
                 Offset *= 1 - Stiffness;
             }
         }
-
-        private new void Reset()
-        {
-            UnlockDone = false;
-            UnlockInProgress = false;
-            UserDragInProgress = false;
-            Offset = 0;
-            base.Reset();
-        }
-
+ 
         private void OnDragStarted(object sender, VectorEventArgs e)
         {
             UserDragInProgress = true;
@@ -114,5 +106,6 @@ namespace WalletWasabi.Gui.Controls.LockScreen
         {
             AvaloniaXamlLoader.Load(this);
         }
+
     }
 }

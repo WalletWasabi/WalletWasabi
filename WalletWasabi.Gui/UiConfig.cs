@@ -21,7 +21,7 @@ namespace WalletWasabi.Gui
     {
         private bool? _lurkingWifeMode;
         private bool? _lockScreenActive;
-		private LockScreenType _lockScreenType;
+		private LockScreenType? _lockScreenType;
 
         /// <inheritdoc />
         public string FilePath { get; private set; }
@@ -60,7 +60,7 @@ namespace WalletWasabi.Gui
         }
 
         [JsonProperty(PropertyName = "LockScreenType")]
-        public LockScreenType LockScreenType
+        public LockScreenType? LockScreenType
         {
             get => _lockScreenType;
             set => this.RaiseAndSetIfChanged(ref _lockScreenType, value);
@@ -119,7 +119,7 @@ namespace WalletWasabi.Gui
             LurkingWifeMode = false;
 			LockScreenActive = false;
 			LockScreenPinHash = "";
-			LockScreenType = LockScreenType.SlideLock;
+			LockScreenType = Models.LockScreenType.SlideLock;
 
             if (!File.Exists(FilePath))
             {
@@ -145,6 +145,10 @@ namespace WalletWasabi.Gui
             FeeDisplayFormat = config.FeeDisplayFormat ?? FeeDisplayFormat;
             Autocopy = config.Autocopy ?? Autocopy;
             LurkingWifeMode = config.LurkingWifeMode ?? LurkingWifeMode;
+            LockScreenActive = config.LockScreenActive ?? LockScreenActive;
+            LockScreenPinHash = config.LockScreenPinHash ?? LockScreenPinHash;
+            LockScreenType = config.LockScreenType ?? LockScreenType;
+			
         }
 
         /// <inheritdoc />

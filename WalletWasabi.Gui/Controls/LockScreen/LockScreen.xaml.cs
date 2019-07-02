@@ -11,6 +11,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		public LockScreen()
 		{
 			InitializeComponent();
+			
 		}
 
 		private void InitializeComponent()
