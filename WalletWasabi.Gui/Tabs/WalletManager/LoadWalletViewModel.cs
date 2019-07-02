@@ -98,7 +98,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			LoadCommand = ReactiveCommand.CreateFromTask(async () => await LoadWalletAsync(), this.WhenAnyValue(x => x.CanLoadWallet));
 			TestPasswordCommand = ReactiveCommand.CreateFromTask(async () => await LoadKeyManagerAsync(requirePassword: true, isHardwareWallet: false), this.WhenAnyValue(x => x.CanTestPassword));
 			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
-			ImportCommand = ReactiveCommand.CreateFromTask(async () =>
+			ImportColdcardCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				try
 				{
@@ -111,10 +111,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						var json = JObject.Parse(jsonString);
 						var xpubString = json["ExtPubKey"].ToString();
 						var mfpString = json["MasterFingerprint"].ToString();
-						HDFingerprint mfp = NBitcoinHelpers.BetterParseHDFingerprint(mfpString, reverseByteOrder: true);
+						HDFingerprint mfp = NBitcoinHelpers.BetterParseHDFingerprint(mfpString, reverseByteOrder: true); // Coldcard improperly implemented Wasabi skeleton fingerpring, so we must reverse byte order.
 						ExtPubKey extPubKey = NBitcoinHelpers.BetterParseExtPubKey(xpubString);
 						Logger.LogInfo<LoadWalletViewModel>("Creating new wallet file.");
-						var walletName = Global.GetNextHardwareWalletName();
+						var walletName = Global.GetNextHardwareWalletName(customPrefix: "Coldcard");
 						var walletFullPath = Global.GetWalletFullPath(walletName);
 						KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath);
 						owner.SelectLoadWallet();
@@ -130,7 +130,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			LoadCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning<LoadWalletViewModel>(ex));
 			TestPasswordCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning<LoadWalletViewModel>(ex));
 			OpenFolderCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning<LoadWalletViewModel>(ex));
-			ImportCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning<LoadWalletViewModel>(ex));
+			ImportColdcardCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning<LoadWalletViewModel>(ex));
 
 			SetLoadButtonText();
 
@@ -344,7 +344,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public ReactiveCommand<Unit, Unit> LoadCommand { get; }
 		public ReactiveCommand<Unit, KeyManager> TestPasswordCommand { get; }
-		public ReactiveCommand<Unit, Unit> ImportCommand { get; set; }
+		public ReactiveCommand<Unit, Unit> ImportColdcardCommand { get; set; }
 
 		public void TryRefreshHardwareWallets(IEnumerable<HardwareWalletInfo> hwis)
 		{
