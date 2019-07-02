@@ -2,13 +2,12 @@
   xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <UserControl.Styles>
-    <Style Selector="Grid.Locking">
+    <Style Selector="Grid.Locked">
       <Style.Animations>
         <Animation
           FillMode="Both"
           Duration="0:0:1.5"
-          Easing="QuarticEaseInOut"
-          IterationCount="Infinite">
+          Easing="QuarticEaseInOut">
           <KeyFrame Cue="0%">
             <Setter Property="Opacity" Value="0"/>
             <Setter Property="TranslateTransform.Y" Value="-100"/>
@@ -21,21 +20,19 @@
         </Animation>
       </Style.Animations>
     </Style>
-    <Style Selector="Grid.Unlocking">
+    <Style Selector="Grid.Unlocked">
       <Style.Animations>
         <Animation
           FillMode="Both"
           Duration="0:0:1.5"
-          Easing="QuarticEaseInOut"
-          IterationCount="Infinite">
+          Easing="QuarticEaseInOut">
           <KeyFrame Cue="0%">
-            <Setter Property="Opacity" Value="0"/>
-            <Setter Property="TranslateTransform.Y" Value="-100"/>
+            <Setter Property="Opacity" Value="1"/>
             <Setter Property="IsHitTestVisible" Value="True"/>
           </KeyFrame>
           <KeyFrame Cue="100%">
-            <Setter Property="Opacity" Value="1"/>
-            <Setter Property="TranslateTransform.Y" Value="0"/>
+            <Setter Property="Opacity" Value="0"/>
+            <Setter Property="TranslateTransform.Y" Value="-100"/>
           </KeyFrame>
         </Animation>
       </Style.Animations>
