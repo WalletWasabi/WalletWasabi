@@ -1,4 +1,4 @@
-﻿<Styles xmlns="https://github.com/avaloniaui"
+<Styles xmlns="https://github.com/avaloniaui"
         xmlns:dock="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
 		xmlns:shell="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -223,5 +223,22 @@
   </Style>
   <Style Selector="TextBox:focus /template/ Border#border">
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighBrush}" />
+  </Style>
+
+  <Style Selector="Expander:pointerover /template/ ToggleButton#PART_toggle">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border BorderThickness="1">
+          <Grid ColumnDefinitions="Auto,Auto">
+            <Border Background="{DynamicResource ThemeBackgroundBrush}" Grid.Column="0" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+              <Path Fill="{DynamicResource ThemeForegroundBrush}"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      Data="M 0 2 L 4 6 L 0 10 Z" />
+            </Border>
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
   </Style>
 </Styles>
