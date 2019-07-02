@@ -197,37 +197,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool? GetCheckBoxesSelectedState(Func<CoinViewModel, bool> coinFilterPredicate)
 		{
 			var coins = Coins.Where(coinFilterPredicate).ToArray();
-			bool IsAllSelected = true;
-			foreach (CoinViewModel coin in coins)
-			{
-				if (!coin.IsSelected)
-				{
-					IsAllSelected = false;
-					break;
-				}
-			}
+			bool isAllSelected = coins.All(coin => coin.IsSelected);
 
-			bool IsAllDeselected = true;
-			foreach (CoinViewModel coin in coins)
-			{
-				if (coin.IsSelected)
-				{
-					IsAllDeselected = false;
-					break;
-				}
-			}
+			bool isAllDeselected = coins.All(coin => !coin.IsSelected);
 
-			if (IsAllDeselected)
+			if (isAllDeselected)
 			{
 				return false;
 			}
 
-			if (IsAllSelected)
+			if (isAllSelected)
 			{
 				return true;
 			}
 
-			return null;
+			return false;
 		}
 
 		private void SelectAllCoins(bool valueOfSelected, Func<CoinViewModel, bool> coinFilterPredicate)
@@ -246,6 +230,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			AmountSortDirection = SortOrder.Decreasing;
 			IsCoinListLoading = true;
 			RefreshOrdering();
+
+			// otherwise they're all selected on load
+			SelectAllCheckBoxState = false;
+			SelectPrivateCheckBoxState = false;
+			SelectNonPrivateCheckBoxState = false;
 
 			var sortChanged = this.WhenValueChanged(@this => MyComparer)
 				.ObserveOn(RxApp.MainThreadScheduler)
