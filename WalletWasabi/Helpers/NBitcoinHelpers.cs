@@ -75,7 +75,7 @@ namespace WalletWasabi.Helpers
 			return epk;
 		}
 
-		public static HDFingerprint BetterParseHDFingerprint(string hdFingerPrintString)
+		public static HDFingerprint BetterParseHDFingerprint(string hdFingerPrintString, bool reverseByteOrder = false)
 		{
 			hdFingerPrintString = Guard.NotNullOrEmptyOrWhitespace(nameof(hdFingerPrintString), hdFingerPrintString, trim: true);
 
@@ -88,7 +88,15 @@ namespace WalletWasabi.Helpers
 			catch
 			{
 				// Try hex, Old wallet format was like this.
-				hdfp = new HDFingerprint(ByteHelpers.FromHex(hdFingerPrintString));
+				var bytes = ByteHelpers.FromHex(hdFingerPrintString);
+				if (reverseByteOrder)
+				{
+					hdfp = new HDFingerprint(bytes.Reverse().ToArray());
+				}
+				else
+				{
+					hdfp = new HDFingerprint(bytes);
+				}
 			}
 			return hdfp;
 		}

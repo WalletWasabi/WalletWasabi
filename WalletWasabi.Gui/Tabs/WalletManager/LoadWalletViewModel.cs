@@ -111,7 +111,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						var json = JObject.Parse(jsonString);
 						var xpubString = json["ExtPubKey"].ToString();
 						var mfpString = json["MasterFingerprint"].ToString();
-						HDFingerprint mfp = NBitcoinHelpers.BetterParseHDFingerprint(mfpString);
+						HDFingerprint mfp = NBitcoinHelpers.BetterParseHDFingerprint(mfpString, reverseByteOrder: true);
 						ExtPubKey extPubKey = NBitcoinHelpers.BetterParseExtPubKey(xpubString);
 						Logger.LogInfo<LoadWalletViewModel>("Creating new wallet file.");
 						var walletName = Global.GetNextHardwareWalletName();
