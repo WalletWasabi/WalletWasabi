@@ -55,7 +55,7 @@ namespace WalletWasabi.Gui.ViewModels
 			this.WhenAnyValue(x => x.Label)
 				.Subscribe(newLabel =>
 				{
-					if(InEditMode)
+					if (InEditMode)
 					{
 						KeyManager keyManager = Global.WalletService.KeyManager;
 						HdPubKey hdPubKey = keyManager.GetKeys(x => Model == x).FirstOrDefault();
