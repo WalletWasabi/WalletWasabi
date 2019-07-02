@@ -1,6 +1,7 @@
-﻿using NBitcoin;
+using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.JsonConverters;
@@ -15,6 +16,9 @@ namespace WalletWasabi.Backend.Models.Responses
 
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money Denomination { get; set; }
+
+		[JsonConverter(typeof(BlockCypherDateTimeOffsetJsonConverter))]
+		public DateTimeOffset InputRegistrationTimesout { get; set; }
 
 		public IEnumerable<SchnorrPubKey> SchnorrPubKeys { get; set; }
 
@@ -44,7 +48,7 @@ namespace WalletWasabi.Backend.Models.Responses
 		public Money CalculateRequiredAmount(params Money[] queuedCoinAmounts)
 		{
 			var tried = new List<Money>();
-			Money baseMinimum = Denomination + (FeePerOutputs * 2);// + (Denomination.Percentange(CoordinatorFeePercent) * RequiredPeerCount);
+			Money baseMinimum = Denomination + (FeePerOutputs * 2); // + (Denomination.Percentange(CoordinatorFeePercent) * RequiredPeerCount);
 			if (queuedCoinAmounts != default)
 			{
 				foreach (Money amount in queuedCoinAmounts.OrderByDescending(x => x))
@@ -65,7 +69,7 @@ namespace WalletWasabi.Backend.Models.Responses
 		public bool HaveEnoughQueued(params Money[] queuedCoinAmounts)
 		{
 			var tried = new List<Money>();
-			Money baseMinimum = Denomination + (FeePerOutputs * 2);// + (Denomination.Percentange(CoordinatorFeePercent) * RequiredPeerCount);
+			Money baseMinimum = Denomination + (FeePerOutputs * 2); // + (Denomination.Percentange(CoordinatorFeePercent) * RequiredPeerCount);
 
 			if (queuedCoinAmounts != default)
 			{

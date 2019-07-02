@@ -1,4 +1,4 @@
-﻿using Avalonia.Data.Converters;
+using Avalonia.Data.Converters;
 using Avalonia.Media;
 using System;
 using System.Collections.Generic;
@@ -28,9 +28,13 @@ namespace WalletWasabi.Gui.Converters
 					case SmartCoinStatus.MixingSigning: return Brushes.DarkGreen;
 					case SmartCoinStatus.SpentAccordingToBackend: return Brushes.IndianRed;
 					case SmartCoinStatus.MixingWaitingForConfirmation: return Brushes.LightYellow;
+					default: throw new NotSupportedException(); // Or rather not implemented?
 				}
 			}
-			throw new InvalidOperationException();
+			else
+			{
+				throw new TypeArgumentException(value, typeof(SmartCoinStatus), nameof(value));
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
