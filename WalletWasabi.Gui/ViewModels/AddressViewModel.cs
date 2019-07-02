@@ -88,14 +88,14 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public string Label
 		{
-			get { return _label; }
-			set { this.RaiseAndSetIfChanged(ref _label, value); }
+			get => _label;
+			set => this.RaiseAndSetIfChanged(ref _label, value);
 		}
 
 		public bool InEditMode
 		{
-			get { return _inEditMode; }
-			set { this.RaiseAndSetIfChanged(ref _inEditMode, value); }
+			get => _inEditMode;
+			set => this.RaiseAndSetIfChanged(ref _inEditMode, value);
 		}
 
 		public string Address => Model.GetP2wpkhAddress(Global.Network).ToString();

@@ -139,7 +139,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ReLabelCommand = ReactiveCommand.Create(() =>
 			{
 				SelectedAddress.InEditMode = true;
-			}, isCoinListItemSelected);
+			}, isCoinListItemSelected, outputScheduler: RxApp.MainThreadScheduler);
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
