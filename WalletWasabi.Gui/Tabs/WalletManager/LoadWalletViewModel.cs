@@ -517,21 +517,25 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						throw new InvalidOperationException("Hardware wallet didn't provide a master fingerprint.");
 					}
 
-					if (!TryFindWalletByMasterFingerprint(selectedWallet.HardwareWalletInfo.MasterFingerprint.Value, out walletName))
+					ExtPubKey extPubKey;
+					try
 					{
-						ExtPubKey extPubKey;
-						try
-						{
-							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.AcquiringXpubFromHardwareWallet);
-							extPubKey = await HwiProcessManager.GetXpubAsync(selectedWallet.HardwareWalletInfo);
-						}
-						finally
-						{
-							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.AcquiringXpubFromHardwareWallet);
-						}
+						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.AcquiringXpubFromHardwareWallet);
+						extPubKey = await HwiProcessManager.GetXpubAsync(selectedWallet.HardwareWalletInfo);
+					}
+					finally
+					{
+						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.AcquiringXpubFromHardwareWallet);
+					}
 
-						Logger.LogInfo<LoadWalletViewModel>("Hardware wallet wasn't used previously on this computer. Creating new wallet file.");
+					Logger.LogInfo<LoadWalletViewModel>("Hardware wallet wasn't used previously on this computer. Creating new wallet file.");
 
+					if (TryFindWalletByExtPubKey(extPubKey, out string wn))
+					{
+						walletName = wn;
+					}
+					else
+					{
 						walletName = Global.GetNextHardwareWalletName(selectedWallet.HardwareWalletInfo);
 						var path = Global.GetWalletFullPath(walletName);
 						KeyManager.CreateNewHardwareWalletWatchOnly(selectedWallet.HardwareWalletInfo.MasterFingerprint.Value, extPubKey, path);
@@ -595,7 +599,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 		}
 
-		private bool TryFindWalletByMasterFingerprint(HDFingerprint masterFingerprint, out string walletName)
+		private bool TryFindWalletByExtPubKey(ExtPubKey extPubKey, out string walletName)
 		{
 			// Start searching for the real wallet name.
 			walletName = null;
@@ -620,9 +624,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			foreach (FileInfo walletFile in walletFileNames)
 			{
 				if (walletFile?.Extension?.Equals(".json", StringComparison.OrdinalIgnoreCase) is true
-					&& KeyManager.TryGetMasterFingerprintFromFile(walletFile.FullName, out HDFingerprint fp))
+					&& KeyManager.TryGetExtPubKeyFromFile(walletFile.FullName, out ExtPubKey epk))
 				{
-					if (fp == masterFingerprint) // We already had it.
+					if (epk == extPubKey) // We already had it.
 					{
 						walletName = walletFile.Name;
 						return true;
