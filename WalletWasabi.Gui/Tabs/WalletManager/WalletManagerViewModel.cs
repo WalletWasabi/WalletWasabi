@@ -156,11 +156,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					else if (hwis.Any(x => x.Type == HardwareWalletType.Ledger && x.Ready))
 					{
 						LoadWalletViewModelHardware.SetWarningMessage("To have a smooth user experience consider turning off your Ledger screensaver.");
-						_ = Global.HwiService.StopAsync();
+						_ = Global.HwiService.StopAsync(); // Just make it stop we don't have to wait for it.
 					}
 					else
 					{
-						_ = Global.HwiService.StopAsync();
+						_ = Global.HwiService.StopAsync(); // Just make it stop we don't have to wait for it.
 					}
 					//foreach (var hwi in hwis)
 					//{
@@ -182,7 +182,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public override bool OnClose()
 		{
-			_ = Global.HwiService.StopAsync();
+			_ = Global.HwiService.StopAsync(); // Just make it stop we don't have to wait for it.
 
 			Disposables.Dispose();
 

@@ -85,6 +85,7 @@ namespace WalletWasabi.Services
 
 			Cancel?.Dispose();
 			Cancel = null;
+			Interlocked.CompareExchange(ref _running, 0, 3); // Can be restarted later.
 		}
 	}
 }
