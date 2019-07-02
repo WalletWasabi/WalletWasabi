@@ -177,21 +177,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool? GetCheckBoxesSelectedState(Func<CoinViewModel, bool> coinFilterPredicate)
 		{
 			var coins = Coins.Where(coinFilterPredicate).ToArray();
-			bool isAllSelected = coins.All(coin => coin.IsSelected);
 
+			bool isAllSelected = coins.All(coin => coin.IsSelected);
 			bool isAllDeselected = coins.All(coin => !coin.IsSelected);
 
-			if (isAllDeselected)
-			{
-				return false;
-			}
-
-			if (isAllSelected)
-			{
-				return true;
-			}
-
-			return false;
+			return isAllSelected && !isAllDeselected;
 		}
 
 		private void SelectAllCoins(bool valueOfSelected, Func<CoinViewModel, bool> coinFilterPredicate)
