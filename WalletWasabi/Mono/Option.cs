@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -329,14 +329,16 @@ namespace Mono.Options
 				return OptionValueType.None;
 			}
 
-			if (MaxValueCount <= 1 && seps.Count != 0)
+			if (MaxValueCount <= 1)
 			{
-				throw new ArgumentException(
+				if (seps.Count != 0)
+				{
+					throw new ArgumentException(
 						string.Format("Cannot provide key/value separators for Options taking {0} value(s).", MaxValueCount),
 						"prototype");
+				}
 			}
-
-			if (MaxValueCount > 1)
+			else
 			{
 				if (seps.Count == 0)
 				{

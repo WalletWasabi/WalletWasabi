@@ -254,72 +254,70 @@ namespace WalletWasabi.TorSocks5
 			}
 
 			Logger.LogInfo<TorProcessManager>("Starting Tor monitor...");
-			if (Interlocked.CompareExchange(ref _running, 1, 0) != 0)
+			if (Interlocked.CompareExchange(ref _running, 1, 0) == 0)
 			{
-				return;
-			}
-
-			Task.Run(async () =>
-			{
-				try
+				Task.Run(async () =>
 				{
-					while (IsRunning)
+					try
 					{
-						try
+						while (IsRunning)
 						{
-							await Task.Delay(torMisbehaviorCheckPeriod, Stop.Token).ConfigureAwait(false);
-
-							if (TorHttpClient.TorDoesntWorkSince != null) // If Tor misbehaves.
+							try
 							{
-								TimeSpan torMisbehavedFor = (DateTimeOffset.UtcNow - TorHttpClient.TorDoesntWorkSince) ?? TimeSpan.Zero;
+								await Task.Delay(torMisbehaviorCheckPeriod, Stop.Token).ConfigureAwait(false);
 
-								if (torMisbehavedFor > checkIfRunningAfterTorMisbehavedFor)
+								if (TorHttpClient.TorDoesntWorkSince != null) // If Tor misbehaves.
 								{
-									if (TorHttpClient.LatestTorException is TorSocks5FailureResponseException torEx)
-									{
-										if (torEx.RepField == RepField.HostUnreachable)
-										{
-											Uri baseUri = new Uri($"{fallBackTestRequestUri.Scheme}://{fallBackTestRequestUri.DnsSafeHost}");
-											using (var client = new TorHttpClient(baseUri, TorSocks5EndPoint))
-											{
-												var message = new HttpRequestMessage(HttpMethod.Get, fallBackTestRequestUri);
-												await client.SendAsync(message, Stop.Token);
-											}
+									TimeSpan torMisbehavedFor = (DateTimeOffset.UtcNow - TorHttpClient.TorDoesntWorkSince) ?? TimeSpan.Zero;
 
-											// Check if it changed in the meantime...
-											if (TorHttpClient.LatestTorException is TorSocks5FailureResponseException torEx2 && torEx2.RepField == RepField.HostUnreachable)
+									if (torMisbehavedFor > checkIfRunningAfterTorMisbehavedFor)
+									{
+										if (TorHttpClient.LatestTorException is TorSocks5FailureResponseException torEx)
+										{
+											if (torEx.RepField == RepField.HostUnreachable)
 											{
-												// Fallback here...
-												RequestFallbackAddressUsage = true;
+												Uri baseUri = new Uri($"{fallBackTestRequestUri.Scheme}://{fallBackTestRequestUri.DnsSafeHost}");
+												using (var client = new TorHttpClient(baseUri, TorSocks5EndPoint))
+												{
+													var message = new HttpRequestMessage(HttpMethod.Get, fallBackTestRequestUri);
+													await client.SendAsync(message, Stop.Token);
+												}
+
+												// Check if it changed in the meantime...
+												if (TorHttpClient.LatestTorException is TorSocks5FailureResponseException torEx2 && torEx2.RepField == RepField.HostUnreachable)
+												{
+													// Fallback here...
+													RequestFallbackAddressUsage = true;
+												}
 											}
 										}
-									}
-									else
-									{
-										Logger.LogInfo<TorProcessManager>($"Tor didn't work properly for {(int)torMisbehavedFor.TotalSeconds} seconds. Maybe it crashed. Attempting to start it...");
-										Start(true, dataDirToStartWith); // Try starting Tor, if doesn't work it'll be another issue.
-										await Task.Delay(14000, Stop.Token).ConfigureAwait(false);
+										else
+										{
+											Logger.LogInfo<TorProcessManager>($"Tor didn't work properly for {(int)torMisbehavedFor.TotalSeconds} seconds. Maybe it crashed. Attempting to start it...");
+											Start(true, dataDirToStartWith); // Try starting Tor, if doesn't work it'll be another issue.
+											await Task.Delay(14000, Stop.Token).ConfigureAwait(false);
+										}
 									}
 								}
 							}
-						}
-						catch (Exception ex) when (ex is OperationCanceledException
-												|| ex is TaskCanceledException
-												|| ex is TimeoutException)
-						{
-							Logger.LogTrace<TorProcessManager>(ex);
-						}
-						catch (Exception ex)
-						{
-							Logger.LogDebug<TorProcessManager>(ex);
+							catch (Exception ex) when (ex is OperationCanceledException
+													|| ex is TaskCanceledException
+													|| ex is TimeoutException)
+							{
+								Logger.LogTrace<TorProcessManager>(ex);
+							}
+							catch (Exception ex)
+							{
+								Logger.LogDebug<TorProcessManager>(ex);
+							}
 						}
 					}
-				}
-				finally
-				{
-					Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
-				}
-			});
+					finally
+					{
+						Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
+					}
+				});
+			}
 		}
 
 		public async Task StopAsync()

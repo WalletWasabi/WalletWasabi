@@ -31,43 +31,41 @@ namespace WalletWasabi.Services
 
 		public void Start(TimeSpan period, Func<Task> executeWhenChangedAsync)
 		{
-			if (Interlocked.CompareExchange(ref _running, 1, 0) != 0)
+			if (Interlocked.CompareExchange(ref _running, 1, 0) == 0)
 			{
-				return;
-			}
-
-			Task.Run(async () =>
-			{
-				try
+				Task.Run(async () =>
 				{
-					while (IsRunning)
+					try
 					{
-						try
+						while (IsRunning)
 						{
-							await Task.Delay(period, Stop.Token);
-
-							if (await Config.CheckFileChangeAsync())
+							try
 							{
-								await Config.LoadOrCreateDefaultFileAsync();
+								await Task.Delay(period, Stop.Token);
 
-								await executeWhenChangedAsync?.Invoke();
+								if (await Config.CheckFileChangeAsync())
+								{
+									await Config.LoadOrCreateDefaultFileAsync();
+
+									await executeWhenChangedAsync?.Invoke();
+								}
+							}
+							catch (TaskCanceledException ex)
+							{
+								Logger.LogTrace<ConfigWatcher>(ex);
+							}
+							catch (Exception ex)
+							{
+								Logger.LogDebug<ConfigWatcher>(ex);
 							}
 						}
-						catch (TaskCanceledException ex)
-						{
-							Logger.LogTrace<ConfigWatcher>(ex);
-						}
-						catch (Exception ex)
-						{
-							Logger.LogDebug<ConfigWatcher>(ex);
-						}
 					}
-				}
-				finally
-				{
-					Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
-				}
-			});
+					finally
+					{
+						Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
+					}
+				});
+			}
 		}
 
 		public async Task StopAsync()

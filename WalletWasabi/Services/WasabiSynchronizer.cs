@@ -164,168 +164,166 @@ namespace WalletWasabi.Services
 
 			MaxRequestIntervalForMixing = requestInterval; // Let's start with this, it'll be modified from outside.
 
-			if (Interlocked.CompareExchange(ref _running, 1, 0) != 0)
+			if (Interlocked.CompareExchange(ref _running, 1, 0) == 0)
 			{
-				return;
-			}
-
-			Task.Run(async () =>
-			{
-				try
+				Task.Run(async () =>
 				{
-					DateTimeOffset lastFeeQueried = DateTimeOffset.UtcNow - feeQueryRequestInterval;
-					bool ignoreRequestInterval = false;
-					EnableRequests();
-					while (IsRunning)
+					try
 					{
-						try
+						DateTimeOffset lastFeeQueried = DateTimeOffset.UtcNow - feeQueryRequestInterval;
+						bool ignoreRequestInterval = false;
+						EnableRequests();
+						while (IsRunning)
 						{
-							while (AreRequestsBlocked())
-							{
-								await Task.Delay(3000, Cancel.Token);
-							}
-
-							EstimateSmartFeeMode? estimateMode = null;
-							TimeSpan elapsed = DateTimeOffset.UtcNow - lastFeeQueried;
-							if (elapsed >= feeQueryRequestInterval)
-							{
-								estimateMode = EstimateSmartFeeMode.Conservative;
-							}
-
-							SynchronizeResponse response;
 							try
 							{
-								if (!IsRunning)
+								while (AreRequestsBlocked())
 								{
-									return;
+									await Task.Delay(3000, Cancel.Token);
 								}
 
-								response = await WasabiClient.GetSynchronizeAsync(BitcoinStore.HashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
-								// NOT GenSocksServErr
-								BackendStatus = BackendStatus.Connected;
-								TorStatus = TorStatus.Running;
-								DoNotGenSocksServFail();
-							}
-							catch (ConnectionException ex)
-							{
-								TorStatus = TorStatus.NotRunning;
-								BackendStatus = BackendStatus.NotConnected;
-								HandleIfGenSocksServFail(ex);
-								throw;
-							}
-							catch (TorSocks5FailureResponseException ex)
-							{
-								TorStatus = TorStatus.Running;
-								BackendStatus = BackendStatus.NotConnected;
-								HandleIfGenSocksServFail(ex);
-								throw;
-							}
-							catch (Exception ex)
-							{
-								TorStatus = TorStatus.Running;
-								BackendStatus = BackendStatus.Connected;
-								HandleIfGenSocksServFail(ex);
-								throw;
-							}
-
-							if (response.AllFeeEstimate != null && response.AllFeeEstimate.Estimations.Any())
-							{
-								lastFeeQueried = DateTimeOffset.UtcNow;
-								AllFeeEstimate = response.AllFeeEstimate;
-							}
-
-							if (response.Filters.Count() == maxFiltersToSyncAtInitialization)
-							{
-								ignoreRequestInterval = true;
-							}
-							else
-							{
-								ignoreRequestInterval = false;
-							}
-
-							BitcoinStore.HashChain.UpdateServerTipHeight(response.BestHeight);
-							ExchangeRate exchangeRate = response.ExchangeRates.FirstOrDefault();
-							if (exchangeRate != default && exchangeRate.Rate != 0)
-							{
-								UsdExchangeRate = exchangeRate.Rate;
-							}
-
-							if (response.FiltersResponseState == FiltersResponseState.NewFilters)
-							{
-								var filters = response.Filters;
-
-								await BitcoinStore.IndexStore.AddNewFiltersAsync(filters, Cancel.Token);
-
-								if (filters.Count() == 1)
+								EstimateSmartFeeMode? estimateMode = null;
+								TimeSpan elapsed = DateTimeOffset.UtcNow - lastFeeQueried;
+								if (elapsed >= feeQueryRequestInterval)
 								{
-									Logger.LogInfo<WasabiSynchronizer>($"Downloaded filter for block {filters.First().BlockHeight}.");
+									estimateMode = EstimateSmartFeeMode.Conservative;
+								}
+
+								SynchronizeResponse response;
+								try
+								{
+									if (!IsRunning)
+									{
+										return;
+									}
+
+									response = await WasabiClient.GetSynchronizeAsync(BitcoinStore.HashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
+									// NOT GenSocksServErr
+									BackendStatus = BackendStatus.Connected;
+									TorStatus = TorStatus.Running;
+									DoNotGenSocksServFail();
+								}
+								catch (ConnectionException ex)
+								{
+									TorStatus = TorStatus.NotRunning;
+									BackendStatus = BackendStatus.NotConnected;
+									HandleIfGenSocksServFail(ex);
+									throw;
+								}
+								catch (TorSocks5FailureResponseException ex)
+								{
+									TorStatus = TorStatus.Running;
+									BackendStatus = BackendStatus.NotConnected;
+									HandleIfGenSocksServFail(ex);
+									throw;
+								}
+								catch (Exception ex)
+								{
+									TorStatus = TorStatus.Running;
+									BackendStatus = BackendStatus.Connected;
+									HandleIfGenSocksServFail(ex);
+									throw;
+								}
+
+								if (response.AllFeeEstimate != null && response.AllFeeEstimate.Estimations.Any())
+								{
+									lastFeeQueried = DateTimeOffset.UtcNow;
+									AllFeeEstimate = response.AllFeeEstimate;
+								}
+
+								if (response.Filters.Count() == maxFiltersToSyncAtInitialization)
+								{
+									ignoreRequestInterval = true;
 								}
 								else
 								{
-									Logger.LogInfo<WasabiSynchronizer>($"Downloaded filters for blocks from {filters.First().BlockHeight} to {filters.Last().BlockHeight}.");
+									ignoreRequestInterval = false;
 								}
-							}
-							else if (response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
-							{
-								// Reorg happened
-								// 1. Rollback index
-								FilterModel reorgedFilter = await BitcoinStore.IndexStore.RemoveLastFilterAsync(Cancel.Token);
-								Logger.LogInfo<WasabiSynchronizer>($"REORG Invalid Block: {reorgedFilter.BlockHash}");
 
-								ignoreRequestInterval = true;
-							}
-							else if (response.FiltersResponseState == FiltersResponseState.NoNewFilter)
-							{
-								// We are syced.
-							}
+								BitcoinStore.HashChain.UpdateServerTipHeight(response.BestHeight);
+								ExchangeRate exchangeRate = response.ExchangeRates.FirstOrDefault();
+								if (exchangeRate != default && exchangeRate.Rate != 0)
+								{
+									UsdExchangeRate = exchangeRate.Rate;
+								}
 
-							LastResponse = response;
-							ResponseArrived?.Invoke(this, response);
-						}
-						catch (ConnectionException ex)
-						{
-							Logger.LogError<CcjClient>(ex);
-							try
-							{
-								await Task.Delay(3000, Cancel.Token); // Give other threads time to do stuff.
+								if (response.FiltersResponseState == FiltersResponseState.NewFilters)
+								{
+									var filters = response.Filters;
+
+									await BitcoinStore.IndexStore.AddNewFiltersAsync(filters, Cancel.Token);
+
+									if (filters.Count() == 1)
+									{
+										Logger.LogInfo<WasabiSynchronizer>($"Downloaded filter for block {filters.First().BlockHeight}.");
+									}
+									else
+									{
+										Logger.LogInfo<WasabiSynchronizer>($"Downloaded filters for blocks from {filters.First().BlockHeight} to {filters.Last().BlockHeight}.");
+									}
+								}
+								else if (response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
+								{
+									// Reorg happened
+									// 1. Rollback index
+									FilterModel reorgedFilter = await BitcoinStore.IndexStore.RemoveLastFilterAsync(Cancel.Token);
+									Logger.LogInfo<WasabiSynchronizer>($"REORG Invalid Block: {reorgedFilter.BlockHash}");
+
+									ignoreRequestInterval = true;
+								}
+								else if (response.FiltersResponseState == FiltersResponseState.NoNewFilter)
+								{
+									// We are synced.
+								}
+
+								LastResponse = response;
+								ResponseArrived?.Invoke(this, response);
 							}
-							catch (TaskCanceledException ex2)
+							catch (ConnectionException ex)
 							{
-								Logger.LogTrace<CcjClient>(ex2);
-							}
-						}
-						catch (Exception ex) when (ex is OperationCanceledException
-												|| ex is TaskCanceledException
-												|| ex is TimeoutException)
-						{
-							Logger.LogTrace<WasabiSynchronizer>(ex);
-						}
-						catch (Exception ex)
-						{
-							Logger.LogError<WasabiSynchronizer>(ex);
-						}
-						finally
-						{
-							if (IsRunning && !ignoreRequestInterval)
-							{
+								Logger.LogError<CcjClient>(ex);
 								try
 								{
-									int delay = (int)Math.Min(requestInterval.TotalMilliseconds, MaxRequestIntervalForMixing.TotalMilliseconds);
-									await Task.Delay(delay, Cancel.Token); // Ask for new index in every requestInterval.
+									await Task.Delay(3000, Cancel.Token); // Give other threads time to do stuff.
 								}
-								catch (TaskCanceledException ex)
+								catch (TaskCanceledException ex2)
 								{
-									Logger.LogTrace<CcjClient>(ex);
+									Logger.LogTrace<CcjClient>(ex2);
+								}
+							}
+							catch (Exception ex) when (ex is OperationCanceledException
+													|| ex is TaskCanceledException
+													|| ex is TimeoutException)
+							{
+								Logger.LogTrace<WasabiSynchronizer>(ex);
+							}
+							catch (Exception ex)
+							{
+								Logger.LogError<WasabiSynchronizer>(ex);
+							}
+							finally
+							{
+								if (IsRunning && !ignoreRequestInterval)
+								{
+									try
+									{
+										int delay = (int)Math.Min(requestInterval.TotalMilliseconds, MaxRequestIntervalForMixing.TotalMilliseconds);
+										await Task.Delay(delay, Cancel.Token); // Ask for new index in every requestInterval.
+									}
+									catch (TaskCanceledException ex)
+									{
+										Logger.LogTrace<CcjClient>(ex);
+									}
 								}
 							}
 						}
 					}
-				}
-				finally
-				{
-					Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
-				}
-			});
+					finally
+					{
+						Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
+					}
+				});
+			}
 		}
 
 		#endregion ConstructorsAndInitializers

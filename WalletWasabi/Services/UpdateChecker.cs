@@ -29,62 +29,60 @@ namespace WalletWasabi.Services
 
 		public void Start(TimeSpan period, Func<Task> executeIfBackendIncompatible, Func<Task> executeIfClientOutOfDate)
 		{
-			if (Interlocked.CompareExchange(ref _running, 1, 0) != 0)
+			if (Interlocked.CompareExchange(ref _running, 1, 0) == 0)
 			{
-				return;
-			}
-
-			Task.Run(async () =>
-			{
-				try
+				Task.Run(async () =>
 				{
-					while (IsRunning)
+					try
 					{
-						try
+						while (IsRunning)
 						{
-							(bool backendCompatible, bool clientUpToDate) updates = await WasabiClient.CheckUpdatesAsync(Stop.Token);
-
-							if (!updates.backendCompatible)
-							{
-								await executeIfBackendIncompatible?.Invoke();
-							}
-
-							if (!updates.clientUpToDate)
-							{
-								await executeIfClientOutOfDate?.Invoke();
-							}
-
-							await Task.Delay(period, Stop.Token);
-						}
-						catch (ConnectionException ex)
-						{
-							Logger.LogError<UpdateChecker>(ex);
 							try
 							{
-								await Task.Delay(period, Stop.Token); // Give other threads time to do stuff, update check is not crucial.
+								(bool backendCompatible, bool clientUpToDate) updates = await WasabiClient.CheckUpdatesAsync(Stop.Token);
+
+								if (!updates.backendCompatible)
+								{
+									await executeIfBackendIncompatible?.Invoke();
+								}
+
+								if (!updates.clientUpToDate)
+								{
+									await executeIfClientOutOfDate?.Invoke();
+								}
+
+								await Task.Delay(period, Stop.Token);
 							}
-							catch (TaskCanceledException ex2)
+							catch (ConnectionException ex)
 							{
-								Logger.LogTrace<UpdateChecker>(ex2);
+								Logger.LogError<UpdateChecker>(ex);
+								try
+								{
+									await Task.Delay(period, Stop.Token); // Give other threads time to do stuff, update check is not crucial.
+								}
+								catch (TaskCanceledException ex2)
+								{
+									Logger.LogTrace<UpdateChecker>(ex2);
+								}
 							}
-						}
-						catch (Exception ex) when (ex is OperationCanceledException
-												|| ex is TaskCanceledException
-												|| ex is TimeoutException)
-						{
-							Logger.LogTrace<UpdateChecker>(ex);
-						}
-						catch (Exception ex)
-						{
-							Logger.LogDebug<UpdateChecker>(ex);
+							catch (Exception ex) when (ex is OperationCanceledException
+													|| ex is TaskCanceledException
+													|| ex is TimeoutException)
+							{
+								Logger.LogTrace<UpdateChecker>(ex);
+							}
+							catch (Exception ex)
+							{
+								Logger.LogDebug<UpdateChecker>(ex);
+							}
 						}
 					}
-				}
-				finally
-				{
-					Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
-				}
-			});
+					finally
+					{
+						Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
+					}
+				});
+			}
 		}
 
 		public async Task StopAsync()
