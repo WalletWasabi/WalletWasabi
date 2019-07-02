@@ -62,6 +62,11 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[DefaultOrder(3)]
 		public IMenuItem Open => MenuItemFactory.CreateHeaderMenuItem("Open", null);
 
+		[ExportMainMenuItem("File", "Lock Screen")]
+		[DefaultOrder(4)]
+		[DefaultGroup("Exit")]
+		public IMenuItem LockScreen => MenuItemFactory.CreateCommandMenuItem("File.LockScreen");
+
 		[ExportMainMenuItem("File", "Exit")]
 		[DefaultOrder(4)]
 		[DefaultGroup("Exit")]
