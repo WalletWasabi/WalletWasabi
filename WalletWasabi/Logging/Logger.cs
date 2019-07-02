@@ -127,21 +127,27 @@ namespace WalletWasabi.Logging
 				var messageBuilder = new StringBuilder();
 				messageBuilder.Append($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {level.ToString().ToUpperInvariant()}");
 
-				if (message != "" && category != "") // If none of them empty.
+				if (message == "")
 				{
-					messageBuilder.Append($" {category}: {message}{EntrySeparator}");
+					if (category == "") // If both empty. It probably never happens though.
+					{
+						messageBuilder.Append($"{EntrySeparator}");
+					}
+					else // If only the message is empty.
+					{
+						messageBuilder.Append($" {category}{EntrySeparator}");
+					}
 				}
-				else if (message == "" && category != "")  // If only the message is empty.
+				else
 				{
-					messageBuilder.Append($" {category}{EntrySeparator}");
-				}
-				else if (message != "" && category == "") // If only the category is empty.
-				{
-					messageBuilder.Append($": {message}{EntrySeparator}");
-				}
-				else // if (message == "" && category == "") // If both empty. It probably never happens though.
-				{
-					messageBuilder.Append($"{EntrySeparator}");
+					if (category == "") // If only the category is empty.
+					{
+						messageBuilder.Append($": {message}{EntrySeparator}");
+					}
+					else // If none of them empty.
+					{
+						messageBuilder.Append($" {category}: {message}{EntrySeparator}");
+					}
 				}
 
 				var finalMessage = messageBuilder.ToString();
