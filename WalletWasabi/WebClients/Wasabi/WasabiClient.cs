@@ -218,7 +218,7 @@ namespace WalletWasabi.WebClients.Wasabi
 				using (HttpContent content = response.Content)
 				{
 					var resp = await content.ReadAsJsonAsync<VersionsResponse>();
-					return (Version.Parse(resp.ClientVersion), int.Parse(resp.BackenMajordVersion));
+					return (Version.Parse(resp.ClientVersion), int.Parse(resp.BackendMajorVersion));
 				}
 			}
 		}
