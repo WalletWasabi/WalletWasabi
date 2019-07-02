@@ -72,7 +72,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public bool CanDeqeue => SelectedCoin is null ? false : SelectedCoin.CoinJoinInProgress;
+		public bool CanDeqeue => SelectedCoin?.CoinJoinInProgress ?? false;
 
 		public bool? SelectAllCheckBoxState
 		{
@@ -138,47 +138,27 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			if (AmountSortDirection != SortOrder.None)
 			{
-				if (AmountSortDirection == SortOrder.Increasing)
-				{
-					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.Amount);
-				}
-				else
-				{
-					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.Amount);
-				}
+				MyComparer = AmountSortDirection == SortOrder.Increasing
+					? SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.Amount) 
+					: SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.Amount);
 			}
 			else if (PrivacySortDirection != SortOrder.None)
 			{
-				if (PrivacySortDirection == SortOrder.Increasing)
-				{
-					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.AnonymitySet);
-				}
-				else
-				{
-					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.AnonymitySet);
-				}
+				MyComparer = PrivacySortDirection == SortOrder.Increasing
+					? SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.AnonymitySet)
+					: SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.AnonymitySet);
 			}
 			else if (ClustersSortDirection != SortOrder.None)
 			{
-				if (ClustersSortDirection == SortOrder.Increasing)
-				{
-					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.Clusters);
-				}
-				else
-				{
-					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.Clusters);
-				}
+				MyComparer = ClustersSortDirection == SortOrder.Increasing
+					? SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.Clusters) 
+					: SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.Clusters);
 			}
 			else if (StatusSortDirection != SortOrder.None)
 			{
-				if (StatusSortDirection == SortOrder.Increasing)
-				{
-					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.Status);
-				}
-				else
-				{
-					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.Status);
-				}
+				MyComparer = StatusSortDirection == SortOrder.Increasing 
+					? SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.Status) 
+					: SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.Status);
 			}
 		}
 
