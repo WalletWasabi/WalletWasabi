@@ -176,8 +176,8 @@ namespace Mono.Options
 			(Values as ICollection).CopyTo(array, index);
 		}
 
-		bool ICollection.IsSynchronized { get { return (Values as ICollection).IsSynchronized; } }
-		object ICollection.SyncRoot { get { return (Values as ICollection).SyncRoot; } }
+		bool ICollection.IsSynchronized => (Values as ICollection).IsSynchronized;
+		object ICollection.SyncRoot => (Values as ICollection).SyncRoot;
 
 		#endregion ICollection
 
@@ -208,8 +208,8 @@ namespace Mono.Options
 			return Values.Remove(item);
 		}
 
-		public int Count { get { return Values.Count; } }
-		public bool IsReadOnly { get { return false; } }
+		public int Count => Values.Count;
+		public bool IsReadOnly => false;
 
 		#endregion ICollection<T>
 
@@ -263,7 +263,7 @@ namespace Mono.Options
 			(Values as IList).RemoveAt(index);
 		}
 
-		bool IList.IsFixedSize { get { return false; } }
+		bool IList.IsFixedSize => false;
 
 		public List<string> Values { get; set; } = new List<string>();
 		public OptionContext C { get; set; }
