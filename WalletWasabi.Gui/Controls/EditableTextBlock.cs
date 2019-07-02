@@ -99,7 +99,7 @@ namespace WalletWasabi.Gui.Controls
 		public static readonly DirectProperty<EditableTextBlock, string> TextProperty = TextBlock.TextProperty.AddOwner<EditableTextBlock>(
 				o => o.Text,
 				(o, v) => o.Text = v,
-				defaultBindingMode: BindingMode.TwoWay,
+				defaultBindingMode: BindingMode.OneWay,
 				enableDataValidation: true);
 
 		[Content]
@@ -134,12 +134,21 @@ namespace WalletWasabi.Gui.Controls
 		}
 
 		public static readonly StyledProperty<bool> ReadModeProperty =
-			AvaloniaProperty.Register<EditableTextBlock, bool>(nameof(ReadMode), defaultValue: true, defaultBindingMode: BindingMode.TwoWay);
+			AvaloniaProperty.Register<EditableTextBlock, bool>(nameof(ReadMode), defaultValue: true, defaultBindingMode: BindingMode.TwoWay);		
 
 		public bool ReadMode
 		{
 			get { return GetValue(ReadModeProperty); }
 			set { SetValue(ReadModeProperty, value); }
+		}
+
+		public static readonly StyledProperty<bool> ReadOnlyModeProperty =
+			AvaloniaProperty.Register<EditableTextBlock, bool>(nameof(ReadOnlyMode), defaultValue: true, defaultBindingMode: BindingMode.TwoWay);
+
+		public bool ReadOnlyMode
+		{
+			get { return GetValue(ReadOnlyModeProperty); }
+			set { SetValue(ReadOnlyModeProperty, value); }
 		}
 
 		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
@@ -181,19 +190,26 @@ namespace WalletWasabi.Gui.Controls
 
 		private void EnterEditMode()
 		{
-			EditText = Text;
-			ReadMode = false;
-			InEditMode = true;
-
-			_root.MouseDevice.Capture(_textBox);
-			_textBox.CaretIndex = Text.Length;
-			_textBox.SelectionStart = 0;
-			_textBox.SelectionEnd = Text.Length;
-
-			Dispatcher.UIThread.InvokeAsync(() =>
+			if (!ReadOnlyMode)
 			{
-				_textBox.Focus();
-			});
+				EditText = Text;
+				ReadMode = false;
+				InEditMode = true;
+
+				_root.MouseDevice.Capture(_textBox);
+				_textBox.CaretIndex = Text.Length;
+				_textBox.SelectionStart = 0;
+				_textBox.SelectionEnd = Text.Length;
+
+				Dispatcher.UIThread.InvokeAsync(() =>
+				{
+					_textBox.Focus();
+				});
+			}
+			else
+			{
+				InEditMode = false;
+			}
 		}
 
 		private void ExitEditMode(bool restore = false)

@@ -129,7 +129,9 @@
                       </Grid>
                     </Grid>
 
-                    <controls:EditableTextBlock Text="{Binding Label, Mode=TwoWay}" InEditMode="{Binding InEditMode}"  Grid.Column="1" />
+                    <controls:EditableTextBlock Text="{Binding Label, ConverterParameter=27, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" 
+                                                InEditMode="{Binding InEditMode}"  
+                                                ReadOnlyMode="{Binding IsLurkingWifeMode}" Grid.Column="1" />
                   </Grid>
                 </Grid>
               </DataTemplate>
