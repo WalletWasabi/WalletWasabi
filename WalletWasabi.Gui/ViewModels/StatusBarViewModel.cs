@@ -52,7 +52,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private string _btcPrice;
 		private ObservableAsPropertyHelper<StatusBarStatus> _status;
 		private bool _downloadingBlock;
-		private bool _blockDownloadedLocally;
+		private BlockDownloadingStatus _blockDownloadingStatus;
 		public Global Global { get; }
 		private StatusBarStatusSet ActiveStatuses { get; }
 
@@ -103,9 +103,9 @@ namespace WalletWasabi.Gui.ViewModels
 				.Subscribe(x => DownloadingBlock = x.EventArgs)
 				.DisposeWith(Disposables);
 
-			Observable.FromEventPattern<bool>(typeof(WalletService), nameof(WalletService.BlockDownloaded))
+			Observable.FromEventPattern<BlockDownloadingStatus>(typeof(WalletService), nameof(WalletService.BlockDownloading))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => BlockDownloadedLocally = x.EventArgs)
+				.Subscribe(x => BlockDownloadingStatus = x.EventArgs)
 				.DisposeWith(Disposables);
 
 			Synchronizer.WhenAnyValue(x => x.TorStatus)
@@ -295,10 +295,10 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _downloadingBlock, value);
 		}
 
-		public bool BlockDownloadedLocally
+		public BlockDownloadingStatus BlockDownloadingStatus
 		{
-			get => _blockDownloadedLocally;
-			set => this.RaiseAndSetIfChanged(ref _blockDownloadedLocally, value);
+			get => _blockDownloadingStatus;
+			set => this.RaiseAndSetIfChanged(ref _blockDownloadingStatus, value);
 		}
 
 		private void OnResponseArrivedIsGenSocksServFail(bool isGenSocksServFail)

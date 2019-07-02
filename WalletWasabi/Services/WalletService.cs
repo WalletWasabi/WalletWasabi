@@ -29,6 +29,14 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
+	public enum BlockDownloadingStatus
+	{
+		None,
+		DownloadedFromLocal,
+		DownloadedFromRemote,
+		NoDownloadedRestricted
+	}
+
 	public class WalletService
 	{
 		public static event EventHandler<bool> DownloadingBlockChanged;
@@ -51,19 +59,19 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public static event EventHandler<bool> BlockDownloaded;
+		public static event EventHandler<BlockDownloadingStatus> BlockDownloading;
 
-		private static bool BlockDownloadedLocallyBacking;
+		private static BlockDownloadingStatus BlockDownloadStatusBacking;
 
-		public static bool BlockDownloadedLocally
+		public static BlockDownloadingStatus BlockDownloadStatus
 		{
-			get => BlockDownloadedLocallyBacking;
+			get => BlockDownloadStatusBacking;
 			set
 			{
-				if (value != BlockDownloadedLocallyBacking)
+				if (value != BlockDownloadStatusBacking)
 				{
-					BlockDownloadedLocallyBacking = value;
-					BlockDownloaded?.Invoke(null, value);
+					BlockDownloadStatusBacking = value;
+					BlockDownloading?.Invoke(null, value);
 				}
 			}
 		}
@@ -165,6 +173,8 @@ namespace WalletWasabi.Services
 				walletName = Path.GetFileNameWithoutExtension(KeyManager.FilePath);
 			}
 			TransactionsFilePath = Path.Combine(TransactionsFolderPath, $"{walletName}Transactions.json");
+
+			BlockDownloadStatus = BlockDownloadingStatus.None;
 
 			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
 			BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
@@ -860,9 +870,8 @@ namespace WalletWasabi.Services
 								throw new InvalidOperationException($"Disconnected node, because block invalid block received!");
 							}
 
-
 							block = blockFromLocalNode;
-							BlockDownloadedLocally = true;
+							BlockDownloadStatus = BlockDownloadingStatus.DownloadedFromLocal;
 							Logger.LogInfo<WalletService>($"Block acquired from local P2P connection: {hash}");
 							break;
 						}
@@ -881,6 +890,17 @@ namespace WalletWasabi.Services
 							}
 						}
 						cancel.ThrowIfCancellationRequested();
+
+						if (ServiceConfiguration.FetchFromLocalOnly)
+						{
+							if( BlockDownloadStatus != BlockDownloadingStatus.NoDownloadedRestricted )
+							{
+								BlockDownloadStatus = BlockDownloadingStatus.NoDownloadedRestricted;
+								Logger.LogInfo<WalletService>($"Can not download block from remote peers because FetchFromLocalOnly is turned on.");
+							}
+							await Task.Delay(500);
+							continue;
+						}
 
 						// If no connection, wait then continue.
 						while (Nodes.ConnectedNodes.Count == 0)
@@ -915,7 +935,7 @@ namespace WalletWasabi.Services
 								continue;
 							}
 
-							BlockDownloadedLocally = false;
+							BlockDownloadStatus = BlockDownloadingStatus.DownloadedFromRemote;
 							if (Nodes.ConnectedNodes.Count > 1) // So to minimize risking missing unconfirmed transactions.
 							{
 								Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}. Block downloaded: {block.GetHash()}");
