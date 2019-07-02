@@ -106,6 +106,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 			});
 
+			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
+			{
+				if (CaretIndex != MnemonicWords.Length)
+				{
+					CaretIndex = MnemonicWords.Length;
+				}
+			});
+
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
 
