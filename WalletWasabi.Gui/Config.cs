@@ -67,6 +67,15 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "RegTestBitcoinCorePort")]
 		public int? RegTestBitcoinCorePort { get; internal set; }
 
+		[JsonProperty(PropertyName = "MainNetFetchFromLocalOnly")]
+		public bool MainNetFetchFromLocalOnly { get; internal set; }
+
+		[JsonProperty(PropertyName = "TestNetFetchFromLocalOnly")]
+		public bool TestNetFetchFromLocalOnly { get; internal set; }
+
+		[JsonProperty(PropertyName = "RegTestFetchFromLocalOnly")]
+		public bool RegTestFetchFromLocalOnly { get; internal set; }
+
 		[JsonProperty(PropertyName = "MixUntilAnonymitySet")]
 		public int? MixUntilAnonymitySet
 		{
@@ -349,6 +358,9 @@ namespace WalletWasabi.Gui
 			MainNetBitcoinCorePort = Network.Main.DefaultPort;
 			TestNetBitcoinCorePort = Network.TestNet.DefaultPort;
 			RegTestBitcoinCorePort = Network.RegTest.DefaultPort;
+			MainNetFetchFromLocalOnly = false;
+			TestNetFetchFromLocalOnly = false;
+			RegTestFetchFromLocalOnly = false;
 
 			MixUntilAnonymitySet = 50;
 			PrivacyLevelSome = 2;
@@ -396,6 +408,9 @@ namespace WalletWasabi.Gui
 			MainNetBitcoinCorePort = config.MainNetBitcoinCorePort ?? MainNetBitcoinCorePort;
 			TestNetBitcoinCorePort = config.TestNetBitcoinCorePort ?? TestNetBitcoinCorePort;
 			RegTestBitcoinCorePort = config.RegTestBitcoinCorePort ?? RegTestBitcoinCorePort;
+			MainNetFetchFromLocalOnly = config.MainNetFetchFromLocalOnly;
+			TestNetFetchFromLocalOnly = config.TestNetFetchFromLocalOnly;
+			RegTestFetchFromLocalOnly = config.RegTestFetchFromLocalOnly;
 
 			MixUntilAnonymitySet = config.MixUntilAnonymitySet ?? MixUntilAnonymitySet;
 			PrivacyLevelSome = config.PrivacyLevelSome ?? PrivacyLevelSome;
@@ -447,6 +462,18 @@ namespace WalletWasabi.Gui
 			if (!RegTestBackendUriV3.Equals(config.RegTestBackendUriV3, StringComparison.OrdinalIgnoreCase))
 			{
 				return true;
+			}
+			if (MainNetFetchFromLocalOnly != config.MainNetFetchFromLocalOnly)
+			{
+					return true;
+			}
+			if (TestNetFetchFromLocalOnly != config.TestNetFetchFromLocalOnly)
+			{
+					return true;
+			}
+			if (RegTestFetchFromLocalOnly != config.RegTestFetchFromLocalOnly)
+			{
+					return true;
 			}
 			if (UseTor != config.UseTor)
 			{
