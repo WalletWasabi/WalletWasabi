@@ -1,4 +1,4 @@
-﻿using Avalonia.Data.Converters;
+using Avalonia.Data.Converters;
 using NBitcoin;
 using System;
 using System.Collections.Generic;
@@ -15,8 +15,10 @@ namespace WalletWasabi.Gui.Converters
 			{
 				return money > Money.Zero;
 			}
-
-			throw new InvalidOperationException();
+			else
+			{
+				throw new TypeArgumentException(value, typeof(Money), nameof(value));
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

@@ -1,19 +1,21 @@
-﻿using Avalonia.Data.Converters;
+using Avalonia.Data.Converters;
 using System;
 using System.Globalization;
 
 namespace WalletWasabi.Gui.Converters
 {
-    public class BooleanOnOffConverter : IValueConverter
+	public class BooleanOnOffConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is bool boolean)
+			if (value is bool on)
 			{
-				return (boolean) ? "On" : "Off";
+				return on ? "On" : "Off";
 			}
-
-			throw new InvalidOperationException();
+			else
+			{
+				throw new TypeArgumentException(value, typeof(bool), nameof(value));
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

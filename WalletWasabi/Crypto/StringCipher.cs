@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -56,7 +57,7 @@ namespace WalletWasabi.Crypto
 					writer.Write(iv);
 					using (var hmac = new HMACSHA256(key))
 					{
-						var authenticationCode = hmac.ComputeHash(cipherTextBytes);
+						var authenticationCode = hmac.ComputeHash(iv.Concat(cipherTextBytes).ToArray());
 						writer.Write(authenticationCode);
 					}
 					writer.Write(cipherTextBytes);
@@ -93,7 +94,7 @@ namespace WalletWasabi.Crypto
 
 					using (var hmac = new HMACSHA256(key))
 					{
-						var calculatedAuthenticationCode = hmac.ComputeHash(cipher);
+						var calculatedAuthenticationCode = hmac.ComputeHash(iv.Concat(cipher).ToArray());
 						for (var i = 0; i < calculatedAuthenticationCode.Length; i++)
 						{
 							if (calculatedAuthenticationCode[i] != authenticationCode[i])

@@ -25,8 +25,10 @@ namespace WalletWasabi.Gui.Converters
 					return $"Downloading {value} filters...";
 				}
 			}
-
-			throw new InvalidOperationException();
+			else
+			{
+				throw new TypeArgumentException(value, typeof(int), nameof(value));
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

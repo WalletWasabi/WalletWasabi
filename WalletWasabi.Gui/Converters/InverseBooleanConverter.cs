@@ -10,17 +10,12 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is bool boolean)
 			{
-				if (boolean)
-				{
-					return false;
-				}
-				else
-				{
-					return true;
-				}
+				return boolean ? false : true;
 			}
-
-			throw new InvalidOperationException();
+			else
+			{
+				throw new TypeArgumentException(value, typeof(bool), nameof(value));
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
