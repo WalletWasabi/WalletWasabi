@@ -19,7 +19,7 @@ namespace System
 			}
 		}
 
-		public static Dictionary<string, string> BitcoinCoreTransalations { get; } = new Dictionary<string, string> {
+		public static Dictionary<string, string> BitcoinCoreTranslations { get; } = new Dictionary<string, string> {
 			["too-long-mempool-chain"] = "At least one coin you are trying to spend is part of long or heavy chain of unconfirmed transactions. You must wait for some previous transactions to confirm.",
 			["bad-txns-inputs-missingorspent"] = "At least one coin you are trying to spend is already spent.",
 			["missing-inputs"] = "At least one coin you are trying to spend is already spent.",
@@ -38,7 +38,7 @@ namespace System
 			}
 			else
 			{
-				foreach (KeyValuePair<string, string> pair in BitcoinCoreTransalations)
+				foreach (KeyValuePair<string, string> pair in BitcoinCoreTranslations)
 				{
 					if (trimmed.Contains(pair.Key, StringComparison.InvariantCultureIgnoreCase))
 					{

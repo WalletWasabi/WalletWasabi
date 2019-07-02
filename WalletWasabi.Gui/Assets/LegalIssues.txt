@@ -28,7 +28,7 @@ The Wasabi Wallet does not store, send or receive bitcoins. This is because Bitc
 LIMITATION OF LIABILITY
 =======================
 
-Unless otherwise required by law, in no event shall the owners of, or contributors to, the Wasabi wallet be liable for any damages of any kind, including, but not limited to, loss of use, loss of profits, or loss of data arising out of or in any way connected with the use of the Wallet.
+Unless otherwise required by law, in no event shall the owners of, or contributors to, the Wasabi Wallet be liable for any damages of any kind, including, but not limited to, loss of use, loss of profits, or loss of data arising out of or in any way connected with the use of the Wallet.
 
 WASABI WALLET’S TRADEMARKS
 ==========================
@@ -38,7 +38,7 @@ WASABI WALLET’S TRADEMARKS
 COUNTRY OF RESIDENCE
 ====================
 
-In case if you are a Gibraltar residence person and willing to use Wasabi Wallet please inform us in advance on the following e-mail address: legal@zksnacks.com.
+In case if you are a Gibraltar resident person and willing to use Wasabi Wallet please inform us in advance on the following e-mail address: legal@zksnacks.com.
 
 
 
