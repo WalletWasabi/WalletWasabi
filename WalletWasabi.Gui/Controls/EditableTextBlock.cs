@@ -99,7 +99,7 @@ namespace WalletWasabi.Gui.Controls
 		public static readonly DirectProperty<EditableTextBlock, string> TextProperty = TextBlock.TextProperty.AddOwner<EditableTextBlock>(
 				o => o.Text,
 				(o, v) => o.Text = v,
-				defaultBindingMode: BindingMode.OneWay,
+				defaultBindingMode: BindingMode.TwoWay,
 				enableDataValidation: true);
 
 		[Content]
