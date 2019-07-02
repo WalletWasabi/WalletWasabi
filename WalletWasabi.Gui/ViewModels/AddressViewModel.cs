@@ -4,6 +4,7 @@ using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
 using System;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.KeyManagement;
@@ -16,6 +17,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private bool _isExpanded;
 		private bool[,] _qrCode;
+		private bool[,] _qrCodeBacking;
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
 
@@ -29,7 +31,28 @@ namespace WalletWasabi.Gui.ViewModels
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
 
-			this.WhenAnyValue(x => x.IsExpanded).Subscribe(x => GenerateQrCode());
+			this.WhenAnyValue(x => x.IsExpanded)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(x =>
+				{
+					try
+					{
+						if (x == true && QrCodeBacking is null)
+						{
+							var encoder = new QrEncoder();
+							encoder.TryEncode(Address, out var qrCode);
+							QrCodeBacking = qrCode.Matrix.InternalArray;
+						}
+					}
+					catch (Exception ex)
+					{
+						Logging.Logger.LogError<AddressViewModel>(ex);
+					}
+				});
+
+			this.WhenAnyValue(x => x.QrCodeBacking)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => QrCode = x);
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
@@ -70,24 +93,13 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _qrCode, value);
 		}
 
-		public CancellationTokenSource CancelClipboardNotification { get; set; }
-
-		public void GenerateQrCode()
+		public bool[,] QrCodeBacking
 		{
-			if (QrCode is null)
-			{
-				Task.Run(() =>
-				{
-					var encoder = new QrEncoder();
-					encoder.TryEncode(Address, out var qrCode);
-
-					return qrCode.Matrix.InternalArray;
-				}).ContinueWith(x =>
-				{
-					QrCode = x.Result;
-				});
-			}
+			get => _qrCodeBacking;
+			set => this.RaiseAndSetIfChanged(ref _qrCodeBacking, value);
 		}
+
+		public CancellationTokenSource CancelClipboardNotification { get; set; }
 
 		public async Task TryCopyToClipboardAsync()
 		{
