@@ -197,9 +197,9 @@ namespace WalletWasabi.Gui.Controls
 				InEditMode = true;
 
 				_root.MouseDevice.Capture(_textBox);
-				_textBox.CaretIndex = Text.Length;
 				_textBox.SelectionStart = 0;
 				_textBox.SelectionEnd = Text.Length;
+				_textBox.CaretIndex = Text.Length;
 
 				Dispatcher.UIThread.InvokeAsync(() =>
 				{
