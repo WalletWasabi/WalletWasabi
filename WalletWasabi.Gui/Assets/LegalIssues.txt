@@ -18,17 +18,17 @@ The investment in Bitcoin can lead to loss of money over short or even long peri
 COMPLIANCE WITH TAX OBLIGATIONS
 ===============================
 
-The users of the Wallet are solely responsible to determine what, if any, taxes apply to their Bitcoin transactions. The owners of, or contributors to, the Wallet are NOT responsible for determining the taxes that apply to Bitcoin transactions.
+The users of the wallet are solely responsible to determine what, if any, taxes apply to their Bitcoin transactions. The owners of, or contributors to, the wallet are NOT responsible for determining the taxes that apply to Bitcoin transactions.
 
 WASABI WALLET DOES NOT STORE, SEND, OR RECEIVE BITCOINS
 =======================================================
 
-The Wasabi Wallet does not store, send or receive bitcoins. This is because Bitcoins exist only by virtue of the ownership record maintained in the Bitcoin network. Any transfer of title in bitcoins occurs within a decentralized Bitcoin network, and not on the Wasabi Wallet.
+The Wasabi Wallet does not store, send or receive bitcoins. This is because bitcoins exist only by virtue of the ownership record maintained in the Bitcoin network. Any transfer of title in bitcoins occurs within a decentralized Bitcoin network, and not on the Wasabi Wallet.
 
 LIMITATION OF LIABILITY
 =======================
 
-Unless otherwise required by law, in no event shall the owners of, or contributors to, the Wasabi Wallet be liable for any damages of any kind, including, but not limited to, loss of use, loss of profits, or loss of data arising out of or in any way connected with the use of the Wallet.
+Unless otherwise required by law, in no event shall the owners of, or contributors to, the Wasabi Wallet be liable for any damages of any kind, including, but not limited to, loss of use, loss of profits, or loss of data arising out of or in any way connected with the use of the wallet.
 
 WASABI WALLET’S TRADEMARKS
 ==========================
