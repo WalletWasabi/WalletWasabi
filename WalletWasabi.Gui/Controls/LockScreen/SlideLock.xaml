@@ -27,7 +27,7 @@
       <Style Selector="Border.Chev1">
         <Style.Animations>
           <Animation Duration="0:0:1.5"
-            Easing="CubicEaseInOut"
+            Easing="QuarticEaseInOut"
             IterationCount="Infinite">
             <KeyFrame Cue="0%">
               <Setter Property="Opacity" Value="0"/>
@@ -48,7 +48,7 @@
         <Style.Animations>
           <Animation Delay="0:0:0.3"
             Duration="0:0:1.5"
-            Easing="CubicEaseInOut"
+            Easing="QuarticEaseInOut"
             IterationCount="Infinite">
             <KeyFrame Cue="0%">
               <Setter Property="Opacity" Value="0"/>
@@ -69,7 +69,7 @@
         <Style.Animations>
           <Animation Delay="0:0:0.6"
             Duration="0:0:1.5"
-            Easing="CubicEaseInOut"
+            Easing="QuarticEaseInOut"
             IterationCount="Infinite">
             <KeyFrame Cue="0%">
               <Setter Property="Opacity" Value="0"/>
