@@ -1,0 +1,76 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:ViewModels="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui"
+             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui">
+  <UserControl.Resources>
+    <converters:CoinJoinedVisibilityConverter x:Key="CoinJoinedVisibilityConverter" />
+    <converters:MoneyStringConverter x:Key="MoneyStringConverter" />
+    <converters:PhaseStringConverter x:Key="PhaseStringConverter" />
+    <converters:PhaseColorConverter x:Key="PhaseColorConverter" />
+    <converters:PrivacyLevelValueConverter x:Key="PrivacyLevelValueConverter" />
+    <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
+    <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+    <converters:TimeSpanStringConverter x:Key="TimeSpanStringConverter" />
+    <converters:TimeSpanVisibilityConverter x:Key="TimeSpanVisibilityConverter" />
+  </UserControl.Resources>
+  <Border Background="{DynamicResource ThemeBackgroundBrush}" BorderThickness="1" BorderBrush="{DynamicResource ThemeBorderBrush}">
+    <StackPanel>
+      <TextBlock Text="Coin Join Status" />
+      <Grid>
+        <ScrollViewer>
+          <StackPanel Orientation="Vertical">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <TextBlock Text="Minimum" />
+              <TextBlock Foreground="YellowGreen" Text="{Binding RequiredBTC, Converter={StaticResource MoneyStringConverter}}" />
+              <TextBlock Foreground="YellowGreen" Text="BTC" />
+              <TextBlock Text="is required to be queued for CoinJoin." />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding AmountQueued, Converter={StaticResource CoinJoinedVisibilityConverter}}">
+              <TextBlock Text="You have queued" />
+              <TextBlock Foreground="YellowGreen" IsVisible="{Binding IsLurkingWifeMode, Converter={StaticResource InverseBooleanConverter}}" Text="{Binding AmountQueued, Converter={StaticResource MoneyStringConverter}}" />
+              <TextBlock Foreground="YellowGreen" IsVisible="{Binding IsLurkingWifeMode}" Text="{Binding AmountQueued, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
+              <TextBlock Foreground="YellowGreen" Text="BTC" />
+              <TextBlock Text="for CoinJoin." />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <TextBlock Text="Coordinator Fee:" />
+              <TextBlock Text="{Binding CoordinatorFeePercent}" />
+              <TextBlock Text="% per anonymity set." />
+            </StackPanel>
+            <Grid ColumnDefinitions="210, *" RowDefinitions="50, 20, 20">
+              <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="4" Margin="0 12">
+                <Canvas Height="20" Width="200">
+                  <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=InputRegistration, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="0" />
+                  <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=ConnectionConfirmation, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="50" />
+                  <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=OutputRegistration, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="100" />
+                  <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=Signing, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="150" />
+                  <Line StartPoint="20,10" EndPoint="50,10" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=InputRegistration, Converter={StaticResource PhaseColorConverter}}" />
+                  <Line StartPoint="70,10" EndPoint="100,10" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=ConnectionConfirmation, Converter={StaticResource PhaseColorConverter}}" />
+                  <Line StartPoint="120,10" EndPoint="150,10" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=OutputRegistration, Converter={StaticResource PhaseColorConverter}}" />
+                </Canvas>
+              </StackPanel>
+              <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="4" Margin="0 12">
+                <TextBlock VerticalAlignment="Center" Foreground="YellowGreen" Text="{Binding Phase, Converter={StaticResource PhaseStringConverter}}" />
+              </StackPanel>
+              <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Spacing="4" IsVisible="{Binding TimeLeftTillRoundTimeout, Converter={StaticResource TimeSpanVisibilityConverter}}">
+                <TextBlock Text="Registration Ends In:" />
+              </StackPanel>
+              <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="4" IsVisible="{Binding TimeLeftTillRoundTimeout, Converter={StaticResource TimeSpanVisibilityConverter}}">
+                <TextBlock Foreground="YellowGreen" Text="{Binding TimeLeftTillRoundTimeout, Converter={StaticResource TimeSpanStringConverter}}" />
+              </StackPanel>
+              <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" Spacing="4">
+                <TextBlock Text="Number of Registered Peers:" />
+              </StackPanel>
+              <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                <TextBlock Foreground="YellowGreen" Text="{Binding PeersRegistered}" />
+                <TextBlock Text="/" />
+                <TextBlock Text="{Binding PeersNeeded}" />
+                <ProgressBar Minimum="0" Maximum="{Binding PeersNeeded}" Value="{Binding PeersRegistered}" />
+              </StackPanel>
+            </Grid>
+          </StackPanel>
+        </ScrollViewer>
+      </Grid>
+    </StackPanel>
+  </Border>
+</UserControl>

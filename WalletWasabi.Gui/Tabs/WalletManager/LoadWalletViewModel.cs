@@ -609,18 +609,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				SetValidationMessage("");
 				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.Loading);
 
-				var keyManager = await LoadKeyManagerAsync(IsPasswordRequired, IsHardwareWallet);
-				if (keyManager is null)
-				{
-					return;
-				}
-
 				try
 				{
-					await Task.Run(async () =>
-					{
-						await Global.InitializeWalletServiceAsync(keyManager);
-					});
 					// Successffully initialized.
 					Owner.OnClose();
 					// Open Wallet Explorer tabs

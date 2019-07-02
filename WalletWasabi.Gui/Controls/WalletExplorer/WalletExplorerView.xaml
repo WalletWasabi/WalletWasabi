@@ -1,7 +1,8 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
             xmlns:ViewModels="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
 
-  <Grid>
+  <DockPanel LastChildFill="True">
+    <ViewModels:CoinJoinStatusView DockPanel.Dock="Bottom" DataContext="{Binding CoinJoinStatus}" />
     <TreeView BorderThickness="0" Items="{Binding Wallets}" SelectedItem="{Binding SelectedItem}">
       <TreeView.Styles>
         <Style Selector="TreeViewItem">
@@ -187,5 +188,5 @@
         </TreeDataTemplate>
       </TreeView.DataTemplates>
     </TreeView>
-  </Grid>
+  </DockPanel>
 </UserControl>

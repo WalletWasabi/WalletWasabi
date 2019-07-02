@@ -17,6 +17,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	[Shared]
 	public class WalletExplorerViewModel : ToolViewModel, IActivatableExtension
 	{
+		private CoinJoinStatusViewModel _coinJoinStatus;
+
 		public override Location DefaultLocation => Location.Right;
 
 		public WalletExplorerViewModel()
@@ -24,6 +26,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Title = "Wallet Explorer";
 
 			_wallets = new ObservableCollection<WalletViewModel>();
+
+			CoinJoinStatus = new CoinJoinStatusViewModel();
 		}
 
 		[Import]
@@ -61,6 +65,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			// TODO if we ever implement closing a wallet OnWalletClosed needs to be called
 			// to prevent memory leaks.
+		}
+
+		public CoinJoinStatusViewModel CoinJoinStatus
+		{
+			get { return _coinJoinStatus; }
+			set { this.RaiseAndSetIfChanged(ref _coinJoinStatus, value); }
 		}
 
 		public void BeforeActivation()
