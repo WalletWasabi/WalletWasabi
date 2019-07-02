@@ -48,6 +48,8 @@ namespace WalletWasabi.Gui.ViewModels
 
         public void Initialize()
         {
+            OnLockScreenTypeChange(Global.UiConfig.LockScreenType);
+
             Global.UiConfig.WhenAnyValue(x => x.LockScreenActive)
                            .Subscribe(OnLockScreenActiveChange)
                            .DisposeWith(Disposables);
@@ -56,12 +58,9 @@ namespace WalletWasabi.Gui.ViewModels
                            .Subscribe(OnLockScreenTypeChange)
                            .DisposeWith(Disposables);
 
-            OnLockScreenTypeChange(Global.UiConfig.LockScreenType);
-
             ActiveLockScreen.WhenAnyValue(x => x.IsLocked)
                             .Subscribe(ActiveLockScreenIsLockedChanged)
                             .DisposeWith(Disposables);
-
         }
 
         private void ActiveLockScreenIsLockedChanged(bool obj)
@@ -73,7 +72,8 @@ namespace WalletWasabi.Gui.ViewModels
         // Registers oncoming changes from settings
         private void OnLockScreenActiveChange(bool? obj)
         {
-            if (ActiveLockScreen is null) return;
+            if (ActiveLockScreen is null) 
+				return;
 
             if (ActiveLockScreen.IsLocked != obj)
                 ActiveLockScreen.IsLocked = obj ?? false;

@@ -18,8 +18,8 @@ namespace WalletWasabi.Gui.Controls.LockScreen
         public SimpleLock()
         {
             InitializeComponent();
+			
             var unlockButton = this.FindControl<Button>("UnlockButton");
-
             this.Shade = this.FindControl<Grid>("Shade");
 
             unlockButton.Click += unlockButton_Clicked;
@@ -28,17 +28,27 @@ namespace WalletWasabi.Gui.Controls.LockScreen
                 .Subscribe(IsLockedChanged);
         }
 
-        private void IsLockedChanged(bool obj)
+        private void IsLockedChanged(bool isLocked)
         {
-            if (obj)
+            if (isLocked)
             {
+                if (Shade.Classes.Contains("Locked"))
+                    return;
+
                 Shade.Classes.Add("Locked");
                 Shade.Classes.Remove("Unlocked");
+
+                this.IsHitTestVisible = true;
             }
             else
             {
+                if (Shade.Classes.Contains("Unlocked"))
+                    return;
+
                 Shade.Classes.Add("Unlocked");
                 Shade.Classes.Remove("Locked");
+
+                this.IsHitTestVisible = false;
             }
         }
 
