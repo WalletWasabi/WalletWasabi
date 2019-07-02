@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 
@@ -24,26 +24,26 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 		public static string ValidateProperty(object instance, string propertyName)
 		{
 			var property = ReflectionHelper.GetPropertyInfo(instance, propertyName);
-
-			if (property != null)
+			if (property is null)
+			{
+				return string.Empty;
+			}
+			else
 			{
 				return ValidateMethod(instance, property);
 			}
-
-			return string.Empty;
 		}
 
 		private static string ValidateMethod(object instance, PropertyInfo property)
 		{
 			var vma = ReflectionHelper.GetAttribute<ValidateMethodAttribute>(property);
-
-			if (vma != null)
+			if (vma is null)
 			{
-				return ReflectionHelper.InvokeMethod<string>(instance, vma.MethodName);
+				return string.Empty;
 			}
 			else
 			{
-				return string.Empty;
+				return ReflectionHelper.InvokeMethod<string>(instance, vma.MethodName);
 			}
 		}
 	}

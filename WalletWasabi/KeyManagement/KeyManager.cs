@@ -495,19 +495,28 @@ namespace WalletWasabi.KeyManagement
 
 		public IEnumerable<HdPubKey> GetKeys(KeyState? keyState = null, bool? isInternal = null)
 		{
-			if (keyState is null && isInternal is null)
+			if (keyState is null)
 			{
-				return GetKeys(x => true);
+				if (isInternal is null)
+				{
+					return GetKeys(x => true);
+				}
+				else
+				{
+					return GetKeys(x => x.IsInternal == isInternal);
+				}
 			}
-			if (isInternal is null && keyState != null)
+			else
 			{
-				return GetKeys(x => x.KeyState == keyState);
+				if (isInternal is null)
+				{
+					return GetKeys(x => x.KeyState == keyState);
+				}
+				else
+				{
+					return GetKeys(x => x.IsInternal == isInternal && x.KeyState == keyState);
+				}
 			}
-			else if (keyState is null)
-			{
-				return GetKeys(x => x.IsInternal == isInternal);
-			}
-			return GetKeys(x => x.IsInternal == isInternal && x.KeyState == keyState);
 		}
 
 		public IEnumerable<byte[]> GetPubKeyScriptBytes()
@@ -751,16 +760,7 @@ namespace WalletWasabi.KeyManagement
 				// Note same hash diff height makes no sense.
 
 				BlockState foundWithHash = BlockchainState.BlockStates.FirstOrDefault(x => x.BlockHash == state.BlockHash);
-				if (foundWithHash != null)
-				{
-					IEnumerable<int> newIndices = state.TransactionIndices.Where(x => !foundWithHash.TransactionIndices.Contains(x));
-					if (newIndices.Any())
-					{
-						foundWithHash.TransactionIndices.AddRange(newIndices);
-						foundWithHash.TransactionIndices.Sort();
-					}
-				}
-				else
+				if (foundWithHash is null)
 				{
 					BlockState foundWithHeight = BlockchainState.BlockStates.FirstOrDefault(x => x.BlockHeight == state.BlockHeight);
 					if (foundWithHeight != null)
@@ -770,6 +770,15 @@ namespace WalletWasabi.KeyManagement
 
 					BlockchainState.BlockStates.Add(state);
 					BlockchainState.BlockStates.Sort();
+				}
+				else
+				{
+					IEnumerable<int> newIndices = state.TransactionIndices.Where(x => !foundWithHash.TransactionIndices.Contains(x));
+					if (newIndices.Any())
+					{
+						foundWithHash.TransactionIndices.AddRange(newIndices);
+						foundWithHash.TransactionIndices.Sort();
+					}
 				}
 
 				if (setItsHeightToBest)

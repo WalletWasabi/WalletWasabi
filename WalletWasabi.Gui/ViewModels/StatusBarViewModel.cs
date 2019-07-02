@@ -293,12 +293,8 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			if (isGenSocksServFail)
 			{
-				// Is close band present?
-				if (MainWindowViewModel.Instance.ModalDialog != null)
-				{
-					// Do nothing.
-				}
-				else
+				// Is close band not present?
+				if (MainWindowViewModel.Instance.ModalDialog is null)
 				{
 					// Show GenSocksServFail dialog on OS-es we suspect Tor is outdated.
 					var osDesc = RuntimeInformation.OSDescription;
@@ -308,11 +304,19 @@ namespace WalletWasabi.Gui.ViewModels
 						MainWindowViewModel.Instance.ShowDialogAsync(new GenSocksServFailDialogViewModel()).GetAwaiter().GetResult();
 					}
 				}
+				else
+				{
+					// Do nothing.
+				}
 			}
 			else
 			{
-				// Is close band present?
-				if (MainWindowViewModel.Instance.ModalDialog != null)
+				// Is close band not present?
+				if (MainWindowViewModel.Instance.ModalDialog is null)
+				{
+					// Do nothing.
+				}
+				else
 				{
 					// Is it GenSocksServFail dialog?
 					if (MainWindowViewModel.Instance.ModalDialog is GenSocksServFailDialogViewModel)
@@ -323,10 +327,6 @@ namespace WalletWasabi.Gui.ViewModels
 					{
 						// Do nothing.
 					}
-				}
-				else
-				{
-					// Do nothing.
 				}
 			}
 		}

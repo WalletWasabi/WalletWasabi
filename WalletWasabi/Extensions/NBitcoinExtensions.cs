@@ -182,13 +182,13 @@ namespace NBitcoin
 		public static void AddWithOptimize(this TxOutList me, Money money, Script scriptPubKey)
 		{
 			TxOut found = me.FirstOrDefault(x => x.ScriptPubKey == scriptPubKey);
-			if (found != null)
+			if (found is null)
 			{
-				found.Value += money;
+				me.Add(money, scriptPubKey);
 			}
 			else
 			{
-				me.Add(money, scriptPubKey);
+				found.Value += money;
 			}
 		}
 

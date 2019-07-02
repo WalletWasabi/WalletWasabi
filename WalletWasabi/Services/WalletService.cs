@@ -1092,7 +1092,18 @@ namespace WalletWasabi.Services
 
 			// Get allowed coins to spend.
 			List<SmartCoin> allowedSmartCoinInputs; // Inputs those can be used to build the transaction.
-			if (allowedInputs != null) // If allowedInputs are specified then select the coins from them.
+			if (allowedInputs is null)
+			{
+				if (allowUnconfirmed)
+				{
+					allowedSmartCoinInputs = Coins.Where(x => !x.Unavailable).ToList();
+				}
+				else
+				{
+					allowedSmartCoinInputs = Coins.Where(x => !x.Unavailable && x.Confirmed).ToList();
+				}
+			}
+			else // If allowedInputs are specified then select the coins from them.
 			{
 				if (!allowedInputs.Any())
 				{
@@ -1106,17 +1117,6 @@ namespace WalletWasabi.Services
 				else
 				{
 					allowedSmartCoinInputs = Coins.Where(x => !x.Unavailable && x.Confirmed && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
-				}
-			}
-			else
-			{
-				if (allowUnconfirmed)
-				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.Unavailable).ToList();
-				}
-				else
-				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.Unavailable && x.Confirmed).ToList();
 				}
 			}
 
@@ -1292,14 +1292,14 @@ namespace WalletWasabi.Services
 				var foundKey = KeyManager.GetKeys(KeyState.Clean).FirstOrDefault(x => output.ScriptPubKey == x.P2wpkhScript);
 				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, anonset, pubKey: foundKey);
 
-				if (foundKey != null)
+				if (foundKey is null)
 				{
-					coin.Label = changeLabel;
-					innerWalletOutputs.Add(coin);
+					outerWalletOutputs.Add(coin);
 				}
 				else
 				{
-					outerWalletOutputs.Add(coin);
+					coin.Label = changeLabel;
+					innerWalletOutputs.Add(coin);
 				}
 			}
 

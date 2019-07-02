@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using Newtonsoft.Json;
 using Nito.AsyncEx;
 using System;
@@ -20,13 +20,13 @@ namespace WalletWasabi.WebClients.BlockCypher
 		public BlockCypherClient(Network network, HttpMessageHandler handler = null, bool disposeHandler = false)
 		{
 			Network = network ?? throw new ArgumentNullException(nameof(network));
-			if (handler != null)
+			if (handler is null)
 			{
-				HttpClient = new HttpClient(handler, disposeHandler);
+				HttpClient = new HttpClient();
 			}
 			else
 			{
-				HttpClient = new HttpClient();
+				HttpClient = new HttpClient(handler, disposeHandler);
 			}
 			if (network == Network.Main)
 			{

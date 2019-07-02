@@ -36,7 +36,7 @@ namespace WalletWasabi.Gui.Behaviors
 					HandleAutoUpdate();
 					e.Handled = true;
 				}
-				if (e.Key == Avalonia.Input.Key.Down)
+				else if (e.Key == Avalonia.Input.Key.Down)
 				{
 					if (SuggestionItems != null)
 					{
@@ -67,7 +67,7 @@ namespace WalletWasabi.Gui.Behaviors
 						e.Handled = true;
 					}
 				}
-				if (e.Key == Avalonia.Input.Key.Up)
+				else if (e.Key == Avalonia.Input.Key.Up)
 				{
 					if (SuggestionItems != null)
 					{
@@ -78,7 +78,7 @@ namespace WalletWasabi.Gui.Behaviors
 						e.Handled = true;
 					}
 				}
-				if (e.Key == Avalonia.Input.Key.Enter)
+				else if (e.Key == Avalonia.Input.Key.Enter)
 				{
 					if (SuggestionItems != null)
 					{

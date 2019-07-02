@@ -123,7 +123,12 @@ namespace WalletWasabi.Gui.CommandLine
 			try
 			{
 				KeyManager keyManager = null;
-				if (walletName != null)
+				if (walletName is null)
+				{
+					Logger.LogCritical("Wallet was not supplied. Add --wallet:WalletName", nameof(Daemon));
+					return null;
+				}
+				else
 				{
 					var walletFullPath = Global.GetWalletFullPath(walletName);
 					var walletBackupFullPath = Global.GetWalletBackupFullPath(walletName);
@@ -143,15 +148,15 @@ namespace WalletWasabi.Gui.CommandLine
 						Logger.LogCritical(ex, nameof(Daemon));
 						return null;
 					}
-				}
 
-				if (keyManager is null)
-				{
-					Logger.LogCritical("Wallet was not supplied. Add --wallet:WalletName", nameof(Daemon));
-					return null;
-				}
+					if (keyManager is null)
+					{
+						Logger.LogCritical("Wallet was not supplied. Add --wallet:WalletName", nameof(Daemon));
+						return null;
+					}
 
-				return keyManager;
+					return keyManager;
+				}
 			}
 			catch (Exception ex)
 			{

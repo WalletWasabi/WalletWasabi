@@ -80,11 +80,7 @@ namespace NBitcoin.RPC
 			if (tryOtherFeeRates)
 			{
 				EstimateSmartFeeResponse response = await rpc.TryEstimateSmartFeeAsync(confirmationTarget, estimateMode);
-				if (response != null)
-				{
-					return response;
-				}
-				else
+				if (response is null)
 				{
 					// Hopefully Bitcoin Core brainfart: https://github.com/bitcoin/bitcoin/issues/14431
 					for (int i = 2; i <= 1008; i++)
@@ -95,6 +91,10 @@ namespace NBitcoin.RPC
 							return response;
 						}
 					}
+				}
+				else
+				{
+					return response;
 				}
 				// Let's try one more time, whatever.
 			}

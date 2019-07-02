@@ -718,16 +718,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void SetFeeTargetLimits()
 		{
 			var allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
-
-			if (allFeeEstimate != null)
-			{
-				MinimumFeeTarget = allFeeEstimate.Estimations.Min(x => x.Key); // This should be always 2, but bugs will be seen at least if it isn't.
-				MaximumFeeTarget = allFeeEstimate.Estimations.Max(x => x.Key);
-			}
-			else
+			if (allFeeEstimate is null)
 			{
 				MinimumFeeTarget = 2;
 				MaximumFeeTarget = 1008;
+			}
+			else
+			{
+				MinimumFeeTarget = allFeeEstimate.Estimations.Min(x => x.Key); // This should be always 2, but bugs will be seen at least if it isn't.
+				MaximumFeeTarget = allFeeEstimate.Estimations.Max(x => x.Key);
 			}
 		}
 

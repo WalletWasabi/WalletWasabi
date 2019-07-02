@@ -185,13 +185,7 @@ namespace WalletWasabi.TorSocks5
 			// in forwarded messages.
 			request.Version = HttpProtocol.HTTP11.Version;
 
-			if (TorSocks5Client != null && !TorSocks5Client.IsConnected)
-			{
-				TorSocks5Client?.Dispose();
-				TorSocks5Client = null;
-			}
-
-			if (TorSocks5Client is null || !TorSocks5Client.IsConnected)
+			if (TorSocks5Client is null)
 			{
 				TorSocks5Client = new TorSocks5Client(TorSocks5EndPoint);
 				await TorSocks5Client.ConnectAsync();
@@ -232,6 +226,15 @@ namespace WalletWasabi.TorSocks5
 
 				TorSocks5Client.Stream = stream;
 			}
+			else
+			{
+				if (!TorSocks5Client.IsConnected)
+				{
+					TorSocks5Client?.Dispose();
+					TorSocks5Client = null;
+				}
+			}
+
 			cancel.ThrowIfCancellationRequested();
 
 			// https://tools.ietf.org/html/rfc7230#section-3.3.2
