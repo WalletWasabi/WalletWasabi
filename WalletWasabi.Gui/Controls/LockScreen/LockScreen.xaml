@@ -1,5 +1,18 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <UserControl.Styles>
+    <Style Selector=":unlocked">
+      <Style.Animations>
+        <Animation Duration="0:0:0.5"
+                   FillMode="Forward">
+          <KeyFrame Cue="100%">
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="IsHitTestVisible" Value="False"/>
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+  </UserControl.Styles>
   <lockscreen:SlideLock/>
 </UserControl>

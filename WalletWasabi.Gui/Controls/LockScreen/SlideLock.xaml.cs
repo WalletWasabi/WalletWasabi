@@ -5,14 +5,16 @@ using Avalonia.Input;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Controls.Primitives;
+using ReactiveUI;
+using Avalonia;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
-    internal class SlideLock : UserControl
+    internal class SlideLock : LockScreenImpl
     {
         private Thumb DragThumb;
         private TranslateTransform DragThumbTransform;
-        private bool UnlockInProgress = false;
+        private bool UserDragInProgress, UnlockInProgress, UnlockDone;
 
         private double _offset = 0;
         private double Offset
@@ -21,6 +23,8 @@ namespace WalletWasabi.Gui.Controls.LockScreen
             set => OnOffsetChanged(value);
         }
 
+        private const double ThresholdPercent = 1 / 6d;
+        private double RealThreshold;
         private const double Stiffness = 0.12d;
 
         public SlideLock()
@@ -28,14 +32,25 @@ namespace WalletWasabi.Gui.Controls.LockScreen
             InitializeComponent();
 
             this.DragThumb = this.FindControl<Thumb>("PART_DragThumb");
-			DragThumbTransform = new TranslateTransform();
+            DragThumbTransform = new TranslateTransform();
 
             DragThumb.DragCompleted += OnDragCompleted;
             DragThumb.DragDelta += OnDragDelta;
             DragThumb.DragStarted += OnDragStarted;
-			DragThumb.RenderTransform = DragThumbTransform;
+            DragThumb.RenderTransform = DragThumbTransform;
+
+            this.WhenAnyValue(x => x.Bounds)
+                .Subscribe(OnBoundsChange);
+
+            OnBoundsChange(this.Bounds);
 
             Clock.Subscribe(OnClockTick);
+        }
+
+        private void OnBoundsChange(Rect obj)
+        {
+            var newHeight = obj.Height;
+            RealThreshold = newHeight * ThresholdPercent;
         }
 
         private void OnOffsetChanged(double value)
@@ -46,26 +61,53 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
         private void OnClockTick(TimeSpan CurrentTime)
         {
-            if (!UnlockInProgress & Offset != 0)
+            if (UnlockDone) return;
+
+            if (!UserDragInProgress & UnlockInProgress)
+            {
+                this.PseudoClasses.Add(":unlocked");
+                UnlockInProgress = false;
+                UnlockDone = true;
+                return;
+            }
+
+            if (!UserDragInProgress & Math.Abs(Offset) > RealThreshold)
+            {
+                UnlockInProgress = true;
+                return;
+            }
+
+            if (!UserDragInProgress && Offset != 0)
             {
                 Offset *= 1 - Stiffness;
             }
         }
 
+        private new void Reset()
+        {
+            UnlockDone = false;
+            UnlockInProgress = false;
+            UserDragInProgress = false;
+            Offset = 0;
+            base.Reset();
+        }
+
         private void OnDragStarted(object sender, VectorEventArgs e)
         {
-            UnlockInProgress = true;
+            UserDragInProgress = true;
         }
 
         private void OnDragDelta(object sender, VectorEventArgs e)
         {
             if (e.Vector.Y < 0)
+            {
                 this.Offset = e.Vector.Y;
+            }
         }
 
         private void OnDragCompleted(object sender, VectorEventArgs e)
         {
-            UnlockInProgress = false;
+            UserDragInProgress = false;
         }
 
         private void InitializeComponent()
