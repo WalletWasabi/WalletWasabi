@@ -209,7 +209,6 @@ namespace WalletWasabi.Gui
 		private int? _privacyLevelSome;
 		private int? _privacyLevelFine;
 		private int? _privacyLevelStrong;
-		private EndPoint _bitcoinCoreEndPoint;
 
 		public IPEndPoint GetTorSocks5EndPoint()
 		{
@@ -222,44 +221,47 @@ namespace WalletWasabi.Gui
 			return _torSocks5EndPoint;
 		}
 
-		public EndPoint GetBitcoinCoreEndPoint()
+		public (EndPoint, bool) GetBitcoinCoreConnectivityParameters()
 		{
-			if (_bitcoinCoreEndPoint is null)
+			EndPoint bitcoinCoreEndPoint;
+			IPAddress ipHost;
+			string dnsHost = null;
+			int? port = null;
+			bool fetchFromLocalOnly;
+			try
 			{
-				IPAddress ipHost;
-				string dnsHost = null;
-				int? port = null;
-				try
+				if (Network == Network.Main)
 				{
-					if (Network == Network.Main)
-					{
-						port = MainNetBitcoinCorePort;
-						dnsHost = MainNetBitcoinCoreHost;
-						ipHost = IPAddress.Parse(MainNetBitcoinCoreHost);
-					}
-					else if (Network == Network.TestNet)
-					{
-						port = TestNetBitcoinCorePort;
-						dnsHost = TestNetBitcoinCoreHost;
-						ipHost = IPAddress.Parse(TestNetBitcoinCoreHost);
-					}
-					else // if (Network == Network.RegTest)
-					{
-						port = RegTestBitcoinCorePort;
-						dnsHost = RegTestBitcoinCoreHost;
-						ipHost = IPAddress.Parse(RegTestBitcoinCoreHost);
-					}
+					port = MainNetBitcoinCorePort;
+					dnsHost = MainNetBitcoinCoreHost;
+					ipHost = IPAddress.Parse(MainNetBitcoinCoreHost);
+					fetchFromLocalOnly = MainNetFetchFromLocalOnly;
+				}
+				else if (Network == Network.TestNet)
+				{
+					port = TestNetBitcoinCorePort;
+					dnsHost = TestNetBitcoinCoreHost;
+					ipHost = IPAddress.Parse(TestNetBitcoinCoreHost);
+					fetchFromLocalOnly = TestNetFetchFromLocalOnly;
+				}
+				else // if (Network == Network.RegTest)
+				{
+					port = RegTestBitcoinCorePort;
+					dnsHost = RegTestBitcoinCoreHost;
+					ipHost = IPAddress.Parse(RegTestBitcoinCoreHost);
+					fetchFromLocalOnly = RegTestFetchFromLocalOnly;
+				}
 
-					_bitcoinCoreEndPoint = new IPEndPoint(ipHost, port ?? Network.DefaultPort);
-				}
-				catch
-				{
-					_bitcoinCoreEndPoint = new DnsEndPoint(dnsHost, port ?? Network.DefaultPort);
-				}
+				bitcoinCoreEndPoint = new IPEndPoint(ipHost, port ?? Network.DefaultPort);
 			}
-
-			return _bitcoinCoreEndPoint;
+			catch
+			{
+				bitcoinCoreEndPoint = new DnsEndPoint(dnsHost, port ?? Network.DefaultPort);
+				fetchFromLocalOnly = false;
+			}
+			return (bitcoinCoreEndPoint, fetchFromLocalOnly);
 		}
+
 
 		public Config()
 		{
@@ -321,7 +323,8 @@ namespace WalletWasabi.Gui
 
 			DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
 
-			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint(), DustThreshold);
+			var (coreEndPoint, fetchFromLocalOnly) = GetBitcoinCoreConnectivityParameters();
+			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, coreEndPoint, fetchFromLocalOnly, DustThreshold);
 		}
 
 		/// <inheritdoc />
@@ -377,7 +380,8 @@ namespace WalletWasabi.Gui
 				await LoadFileAsync();
 			}
 
-			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint(), DustThreshold);
+			var (coreEndPoint, fetchFromLocalOnly) = GetBitcoinCoreConnectivityParameters();
+			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, coreEndPoint, fetchFromLocalOnly, DustThreshold);
 
 			// Just debug convenience.
 			_backendUri = GetCurrentBackendUri();

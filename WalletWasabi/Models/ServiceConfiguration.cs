@@ -14,6 +14,7 @@ namespace WalletWasabi.Models
 		public int PrivacyLevelFine { get; set; }
 		public int PrivacyLevelStrong { get; set; }
 		public EndPoint BitcoinCoreEndPoint { get; set; }
+		public bool FetchFromLocalOnly { get; set; }
 		public Money DustThreshold { get; set; }
 
 		public ServiceConfiguration(
@@ -22,6 +23,7 @@ namespace WalletWasabi.Models
 			int privacyLevelFine,
 			int privacyLevelStrong,
 			EndPoint bitcoinCoreEndPoint,
+			bool fetchFromLocalOnly,
 			Money dustThreshold)
 		{
 			MixUntilAnonymitySet = Guard.NotNull(nameof(mixUntilAnonymitySet), mixUntilAnonymitySet);
@@ -29,6 +31,7 @@ namespace WalletWasabi.Models
 			PrivacyLevelFine = Guard.NotNull(nameof(privacyLevelFine), privacyLevelFine);
 			PrivacyLevelStrong = Guard.NotNull(nameof(privacyLevelStrong), privacyLevelStrong);
 			BitcoinCoreEndPoint = Guard.NotNull(nameof(bitcoinCoreEndPoint), bitcoinCoreEndPoint);
+			FetchFromLocalOnly = fetchFromLocalOnly;
 			DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
 		}
 	}
