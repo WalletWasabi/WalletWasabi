@@ -71,6 +71,27 @@ namespace WalletWasabi.Gui.Controls
 					{
 						ExitEditMode();
 					}
+					else
+					{
+						e.Device.Capture(_textBox);
+					}
+				}
+			}, RoutingStrategies.Tunnel);
+
+			AddHandler(PointerReleasedEvent, (sender, e) =>
+			{
+				if (InEditMode)
+				{
+					var hit = this.InputHitTest(e.GetPosition(this));
+
+					if (hit == null)
+					{
+						ExitEditMode();
+					}
+					else
+					{
+						e.Device.Capture(_textBox);
+					}
 				}
 			}, RoutingStrategies.Tunnel);
 		}
