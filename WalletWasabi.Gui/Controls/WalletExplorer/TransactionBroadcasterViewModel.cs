@@ -92,6 +92,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						catch
 						{
 							var text = await File.ReadAllTextAsync(path);
+							text = text.Trim();
 							try
 							{
 								psbt = PSBT.Parse(text, Global.Network);
