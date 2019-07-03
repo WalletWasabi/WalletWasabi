@@ -1,5 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
+using Avalonia.Input;
 using Avalonia.Xaml.Interactivity;
 using System;
 using System.Collections.Generic;
@@ -15,7 +17,7 @@ namespace WalletWasabi.Gui.Behaviors
 		private CompositeDisposable Disposables { get; set; }
 
 		private static readonly AvaloniaProperty<IEnumerable<SuggestionViewModel>> SuggestionItemsProperty =
-			AvaloniaProperty.Register<SuggestionBehavior, IEnumerable<SuggestionViewModel>>(nameof(SuggestionItems), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+			AvaloniaProperty.Register<SuggestionBehavior, IEnumerable<SuggestionViewModel>>(nameof(SuggestionItems), defaultBindingMode: BindingMode.TwoWay);
 
 		public IEnumerable<SuggestionViewModel> SuggestionItems
 		{
@@ -31,12 +33,12 @@ namespace WalletWasabi.Gui.Behaviors
 
 			Disposables.Add(AssociatedObject.AddHandler(TextBox.KeyDownEvent, (sender, e) =>
 			{
-				if (e.Key == Avalonia.Input.Key.Tab)
+				if (e.Key == Key.Tab)
 				{
 					HandleAutoUpdate();
 					e.Handled = true;
 				}
-				if (e.Key == Avalonia.Input.Key.Down)
+				if (e.Key == Key.Down)
 				{
 					if (SuggestionItems != null)
 					{
@@ -67,7 +69,7 @@ namespace WalletWasabi.Gui.Behaviors
 						e.Handled = true;
 					}
 				}
-				if (e.Key == Avalonia.Input.Key.Up)
+				if (e.Key == Key.Up)
 				{
 					if (SuggestionItems != null)
 					{
@@ -78,7 +80,7 @@ namespace WalletWasabi.Gui.Behaviors
 						e.Handled = true;
 					}
 				}
-				if (e.Key == Avalonia.Input.Key.Enter)
+				if (e.Key == Key.Enter)
 				{
 					if (SuggestionItems != null)
 					{
