@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
@@ -33,19 +34,19 @@ namespace WalletWasabi.Gui.Behaviors
 				{
 					case TextBoxState.NormalTextBoxOperation:
 						{
-							AssociatedObject.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Ibeam);
+							AssociatedObject.Cursor = new Cursor(StandardCursorType.Ibeam);
 						}
 						break;
 
 					case TextBoxState.AddressInsert:
 						{
-							AssociatedObject.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Arrow);
+							AssociatedObject.Cursor = new Cursor(StandardCursorType.Arrow);
 						}
 						break;
 
 					case TextBoxState.SelectAll:
 						{
-							AssociatedObject.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Arrow);
+							AssociatedObject.Cursor = new Cursor(StandardCursorType.Arrow);
 						}
 						break;
 				}
