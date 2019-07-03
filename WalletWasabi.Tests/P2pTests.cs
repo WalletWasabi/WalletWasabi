@@ -91,7 +91,7 @@ namespace WalletWasabi.Tests
 			   memPoolService,
 			   nodes,
 			   Global.Instance.DataDir,
-			   new ServiceConfiguration(50, 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(0.0001m)));
+			   new ServiceConfiguration(50, 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), false, Money.Coins(0.0001m)));
 			Assert.True(Directory.Exists(blocksFolderPath));
 
 			try

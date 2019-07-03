@@ -262,7 +262,6 @@ namespace WalletWasabi.Gui
 			return (bitcoinCoreEndPoint, fetchFromLocalOnly);
 		}
 
-
 		public Config()
 		{
 			_backendUri = null;

@@ -1,16 +1,11 @@
 using Avalonia.Data.Converters;
-using Avalonia.Media;
-using AvalonStudio.Extensibility.Theme;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
-using WalletWasabi.Models;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Converters
 {
-    public class BlockDownloadingStatusColorConverter : IValueConverter
+    public class BlockDownloadingStatusTipConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
@@ -18,15 +13,15 @@ namespace WalletWasabi.Gui.Converters
 			switch (status)
 			{
 				case BlockDownloadingStatus.None: 
-					return Brushes.Gray;
+					return "No block was requested yet.";
 				case BlockDownloadingStatus.DownloadedFromLocal:
-					return Brushes.Green;
+					return "Latest block was downloaded from local node.";
 				case BlockDownloadingStatus.DownloadedFromRemote:
-					return Brushes.GreenYellow;
+					return "Latest block was downloaded from a remote node.";
 				case BlockDownloadingStatus.NoDownloadedRestricted:
-					return Brushes.Red;
+					return "No block downloaded. Cannot connect to local node.";
 				default:
-					return Brushes.Black;
+					return "";
 			}
 		}
 
