@@ -21,7 +21,7 @@
                       UseLayoutRounding="True" RenderOptions.BitmapInterpolationMode="HighQuality"
                       id:DragBehavior.IsEnabled="False" id:DropBehavior.IsEnabled="False">
   <cont:MetroWindow.TitleBarContent>
-    <menu:MainMenuView DataContext="{Binding Shell.MainMenu}" Margin="4 0 0 0"  Foreground="{DynamicResource ThemeForegroundBrush}" VerticalAlignment="Stretch" FontSize="13" />
+    <menu:MainMenuView IsVisible="{Binding !$parent[cont|MetroWindow].DataContext.LockScreen.IsLocked}" DataContext="{Binding Shell.MainMenu}" Margin="4 0 0 0"  Foreground="{DynamicResource ThemeForegroundBrush}" VerticalAlignment="Stretch" FontSize="13" />
   </cont:MetroWindow.TitleBarContent>
   <cont:MetroWindow.Styles>
     <Style Selector="Menu > MenuItem:selected /template/ Border#root">

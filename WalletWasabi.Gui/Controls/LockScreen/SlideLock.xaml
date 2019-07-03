@@ -9,7 +9,6 @@
       <Styles.Resources>
         <Template x:Key="Chevron">
           <Path Stretch="Uniform"
-            Opacity="{Binding $parent[Border].Opacity}"
             Fill="{DynamicResource ThemeForegroundBrush}"
             Data="M 478.97852 464.25977 
                   L 446.12109 470.33203 
@@ -92,6 +91,7 @@
       <Style Selector="Grid#Shade">
         <Setter Property="Opacity" Value="0"/>
         <Setter Property="TranslateTransform.Y" Value="-100"/>
+        <Setter Property="IsHitTestVisible" Value="False"/>
       </Style>
 
       <Style Selector="Grid.Locked">
@@ -139,7 +139,7 @@
     <Thumb x:Name="PART_DragThumb">
       <Thumb.Template>
         <ControlTemplate>
-          <Border Background="Transparent"/>
+          <Border Background="Transparent" IsHitTestVisible="{Binding IsLocked}"/>
         </ControlTemplate>
       </Thumb.Template>
     </Thumb>
