@@ -9,8 +9,8 @@ namespace WalletWasabi.Gui.Models
     /// </summary>
     public enum LockScreenType
     {
-        Simple,
         SlideLock,
-        PINLock,
+		PINLock,
+        Simple,
     }
 }

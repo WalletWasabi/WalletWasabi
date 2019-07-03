@@ -12,9 +12,14 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 {
     internal class SlideLock : LockScreenImpl
     {
+        private Grid Shade;
         private Thumb DragThumb;
-        private TranslateTransform DragThumbTransform;
-        private bool UserDragInProgress, UnlockInProgress, UnlockDone;
+        private TranslateTransform TargetTransform;
+        private bool UserDragInProgress, StopSpring;
+
+        private const double ThresholdPercent = 1 / 6d;
+        private double RealThreshold;
+        private const double Stiffness = 0.12d;
 
         private double _offset = 0;
         private double Offset
@@ -23,21 +28,19 @@ namespace WalletWasabi.Gui.Controls.LockScreen
             set => OnOffsetChanged(value);
         }
 
-        private const double ThresholdPercent = 1 / 6d;
-        private double RealThreshold;
-        private const double Stiffness = 0.12d;
-
-        public SlideLock()
+        public SlideLock() : base()
         {
             InitializeComponent();
 
+            this.Shade = this.FindControl<Grid>("Shade");
             this.DragThumb = this.FindControl<Thumb>("PART_DragThumb");
-            DragThumbTransform = new TranslateTransform();
+
+            TargetTransform = new TranslateTransform();
 
             DragThumb.DragCompleted += OnDragCompleted;
             DragThumb.DragDelta += OnDragDelta;
             DragThumb.DragStarted += OnDragStarted;
-            DragThumb.RenderTransform = DragThumbTransform;
+            Shade.RenderTransform = TargetTransform;
 
             this.WhenAnyValue(x => x.Bounds)
                 .Subscribe(OnBoundsChange);
@@ -45,6 +48,11 @@ namespace WalletWasabi.Gui.Controls.LockScreen
             OnBoundsChange(this.Bounds);
 
             Clock.Subscribe(OnClockTick);
+        }
+
+        private void InitializeComponent()
+        {
+            AvaloniaXamlLoader.Load(this);
         }
 
         private void OnBoundsChange(Rect obj)
@@ -56,34 +64,24 @@ namespace WalletWasabi.Gui.Controls.LockScreen
         private void OnOffsetChanged(double value)
         {
             _offset = value;
-            DragThumbTransform.Y = _offset;
+            TargetTransform.Y = _offset;
         }
 
         private void OnClockTick(TimeSpan CurrentTime)
         {
-            if (UnlockDone) return;
-
-            if (!UserDragInProgress & UnlockInProgress)
-            {
-                this.PseudoClasses.Add(":unlocked");
-                UnlockInProgress = false;
-                UnlockDone = true;
-				IsLocked = false;
-                return;
-            }
-
             if (!UserDragInProgress & Math.Abs(Offset) > RealThreshold)
             {
-                UnlockInProgress = true;
+                IsLocked = false;
+                StopSpring = true;
                 return;
             }
 
-            if (!UserDragInProgress && Offset != 0)
+            if (IsLocked & !UserDragInProgress & Offset != 0)
             {
                 Offset *= 1 - Stiffness;
             }
         }
- 
+
         private void OnDragStarted(object sender, VectorEventArgs e)
         {
             UserDragInProgress = true;
@@ -102,19 +100,18 @@ namespace WalletWasabi.Gui.Controls.LockScreen
             UserDragInProgress = false;
         }
 
-        private void InitializeComponent()
-        {
-            AvaloniaXamlLoader.Load(this);
-        }
-
         public override void DoLock()
         {
-            throw new NotImplementedException();
+            Shade.Classes.Add("Locked");
+            Shade.Classes.Remove("Unlocked");
+			Offset = 0;
+            UserDragInProgress = false;
         }
 
         public override void DoUnlock()
         {
-            throw new NotImplementedException();
+            Shade.Classes.Add("Unlocked");
+            Shade.Classes.Remove("Locked");
         }
     }
 }

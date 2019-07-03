@@ -50,13 +50,18 @@ namespace WalletWasabi.Gui.Controls.LockScreen
         {
             switch (obj)
             {
-                case LockScreenType.Simple:
+                case LockScreenType.SlideLock:
+                    CurrentLockScreen = new SlideLock();
+                    break;
+                case LockScreenType.PINLock:
+                    CurrentLockScreen = new PINLock();
+                    break;
+                default:
                     CurrentLockScreen = new SimpleLock();
-                    LockScreenHost.Content = CurrentLockScreen;
-					break;
-				case LockScreenType.SlideLock:
                     break;
             }
+
+            LockScreenHost.Content = CurrentLockScreen;
 
             ScreenImplDisposables?.Dispose();
             ScreenImplDisposables = new CompositeDisposable();

@@ -9,6 +9,7 @@
       <Styles.Resources>
         <Template x:Key="Chevron">
           <Path Stretch="Uniform"
+            Opacity="{Binding $parent[Border].Opacity}"
             Fill="{DynamicResource ThemeForegroundBrush}"
             Data="M 478.97852 464.25977 
                   L 446.12109 470.33203 
@@ -19,6 +20,7 @@
                   L 478.97852 464.25977 z "/>
         </Template>
       </Styles.Resources>
+
       <Style Selector="Border.Chevron">
         <Setter Property="Width" Value="103"/>
         <Setter Property="Height" Value="50"/>
@@ -34,7 +36,7 @@
               <Setter Property="TranslateTransform.Y" Value="100"/>
             </KeyFrame>
             <KeyFrame Cue="90%">
-              <Setter Property="Opacity" Value="{Binding $parent[UserControl].Opacity}"/>
+              <Setter Property="Opacity" Value="{Binding #Shade.Opacity}"/>
               <Setter Property="TranslateTransform.Y" Value="0"/>
             </KeyFrame>
             <KeyFrame Cue="100%">
@@ -55,7 +57,7 @@
               <Setter Property="TranslateTransform.Y" Value="100"/>
             </KeyFrame>
             <KeyFrame Cue="90%">
-              <Setter Property="Opacity" Value="{Binding $parent[UserControl].Opacity}"/>
+              <Setter Property="Opacity" Value="{Binding #Shade.Opacity}"/>
               <Setter Property="TranslateTransform.Y" Value="0"/>
             </KeyFrame>
             <KeyFrame Cue="100%">
@@ -76,7 +78,7 @@
               <Setter Property="TranslateTransform.Y" Value="100"/>
             </KeyFrame>
             <KeyFrame Cue="90%">
-              <Setter Property="Opacity" Value="{Binding $parent[UserControl].Opacity}"/>
+              <Setter Property="Opacity" Value="{Binding #Shade.Opacity}"/>
               <Setter Property="TranslateTransform.Y" Value="0"/>
             </KeyFrame>
             <KeyFrame Cue="100%">
@@ -86,22 +88,58 @@
           </Animation>
         </Style.Animations>
       </Style>
+
+      <Style Selector="Grid#Shade">
+        <Setter Property="Opacity" Value="0"/>
+        <Setter Property="TranslateTransform.Y" Value="-100"/>
+      </Style>
+
+      <Style Selector="Grid.Locked">
+        <Style.Animations>
+          <Animation
+            FillMode="Both"
+            Duration="0:0:1.5"
+            Easing="QuarticEaseInOut">
+            <KeyFrame Cue="100%">
+              <Setter Property="Opacity" Value="1"/>
+              <Setter Property="TranslateTransform.Y" Value="0"/>
+              <Setter Property="IsHitTestVisible" Value="True"/>
+            </KeyFrame>
+          </Animation>
+        </Style.Animations>
+      </Style>
+
+      <Style Selector="Grid.Unlocked">
+        <Style.Animations>
+          <Animation
+            FillMode="Both"
+            Duration="0:0:1.5"
+            Easing="QuarticEaseInOut">
+            <KeyFrame Cue="100%">
+              <Setter Property="Opacity" Value="0"/>
+              <Setter Property="TranslateTransform.Y" Value="-100"/>
+              <Setter Property="IsHitTestVisible" Value="False"/>
+            </KeyFrame>
+          </Animation>
+        </Style.Animations>
+      </Style>
     </Styles>
   </UserControl.Styles>
   <Grid>
+    <Grid x:Name="Shade" Background="{DynamicResource ThemeBackgroundBrush}">
+      <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Grid>
+          <Border Classes="Chevron Chev1"/>
+          <Border Classes="Chevron Chev2"/>
+          <Border Classes="Chevron Chev3"/>
+        </Grid>
+        <TextBlock Margin="0,110,0,0" Text="Drag and slide up to unlock."/>
+      </StackPanel>
+    </Grid>
     <Thumb x:Name="PART_DragThumb">
       <Thumb.Template>
         <ControlTemplate>
-          <Grid Background="{DynamicResource ThemeBackgroundBrush}">
-            <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center">
-              <Grid>
-                <Border Classes="Chevron Chev1"/>
-                <Border Classes="Chevron Chev2"/>
-                <Border Classes="Chevron Chev3"/>
-              </Grid>
-              <TextBlock Margin="0,110,0,0" Text="Drag and slide up to unlock."/>
-            </StackPanel>
-          </Grid>
+          <Border Background="Transparent"/>
         </ControlTemplate>
       </Thumb.Template>
     </Thumb>
