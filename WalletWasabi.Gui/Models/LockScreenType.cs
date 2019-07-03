@@ -11,6 +11,5 @@ namespace WalletWasabi.Gui.Models
     {
         SlideLock,
 		PINLock,
-        Simple,
     }
 }

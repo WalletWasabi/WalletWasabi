@@ -11,11 +11,13 @@ namespace WalletWasabi.Gui.Controls.LockScreen
     internal class LockScreen : UserControl
     {
         private bool _isLocked;
+        private string _pinHash;
+
         private LockScreenType _activeLockScreenType;
         private ContentControl LockScreenHost;
         private LockScreenImpl CurrentLockScreen;
         private CompositeDisposable ScreenImplDisposables;
-
+		
         public static readonly DirectProperty<LockScreen, LockScreenType> ActiveLockScreenTypeProperty =
             AvaloniaProperty.RegisterDirect<LockScreen, LockScreenType>(nameof(ActiveLockScreenType),
                                                                         o => o.ActiveLockScreenType,
@@ -36,6 +38,16 @@ namespace WalletWasabi.Gui.Controls.LockScreen
             set => this.SetAndRaise(IsLockedProperty, ref _isLocked, value);
         }
 
+        public static readonly DirectProperty<LockScreen, string> PINHashProperty =
+            AvaloniaProperty.RegisterDirect<LockScreen, string>(nameof(PINHash),
+                                                              o => o.PINHash,
+                                                              (o, v) => o.PINHash = v);
+        public string PINHash
+        {
+            get => _pinHash;
+            set => this.SetAndRaise(PINHashProperty, ref _pinHash, value);
+        }
+
         public LockScreen()
         {
             InitializeComponent();
@@ -48,23 +60,27 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
         private void OnActiveLockScreenTypeChanged(LockScreenType obj)
         {
+
+            ScreenImplDisposables?.Dispose();
+            ScreenImplDisposables = new CompositeDisposable();
+
             switch (obj)
             {
-                case LockScreenType.SlideLock:
-                    CurrentLockScreen = new SlideLock();
-                    break;
                 case LockScreenType.PINLock:
-                    CurrentLockScreen = new PINLock();
+                    var pinLock = new PINLock();
+                    CurrentLockScreen = pinLock;
+
+                    this.WhenAnyValue(x => x.PINHash)
+                        .Subscribe(y => pinLock.PINHash = y)
+						.DisposeWith(ScreenImplDisposables);
+
                     break;
                 default:
-                    CurrentLockScreen = new SimpleLock();
+                    CurrentLockScreen = new SlideLock();
                     break;
             }
 
             LockScreenHost.Content = CurrentLockScreen;
-
-            ScreenImplDisposables?.Dispose();
-            ScreenImplDisposables = new CompositeDisposable();
 
             this.WhenAnyValue(x => x.IsLocked)
                 .BindTo(CurrentLockScreen, y => y.IsLocked)

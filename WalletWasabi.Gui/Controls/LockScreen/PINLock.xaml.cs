@@ -8,6 +8,9 @@ using Avalonia.Controls.Primitives;
 using ReactiveUI;
 using Avalonia;
 using Avalonia.Interactivity;
+using System.Reactive.Linq;
+using System.Security.Cryptography;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
@@ -15,19 +18,34 @@ namespace WalletWasabi.Gui.Controls.LockScreen
     {
         public Grid Shade { get; }
 
+        private NoparaPasswordBox PinLockPwdBox;
+
+        internal string PINHash { get; set; }
+
         public PINLock() : base()
         {
             InitializeComponent();
-
-            var unlockButton = this.FindControl<Button>("UnlockButton");
+			
             this.Shade = this.FindControl<Grid>("Shade");
+            this.PinLockPwdBox = this.FindControl<NoparaPasswordBox>("PinLockPwdBox");
 
-            unlockButton.Click += unlockButton_Clicked;
+            PinLockPwdBox.WhenAnyValue(x => x.Password)
+                         .Select(Guard.Correct)
+                         .Where(x => x != string.Empty)
+                         .DistinctUntilChanged()
+                         .Throttle(TimeSpan.FromSeconds(1d))
+                         .ObserveOn(RxApp.MainThreadScheduler)
+                         .Subscribe(CheckPIN);
         }
 
-        private void unlockButton_Clicked(object sender, RoutedEventArgs e)
+        private void CheckPIN(string obj)
         {
-            this.IsLocked = false;
+            var currentHash = HashHelpers.GenerateSha256Hash(obj);
+            if (currentHash == PINHash)
+            {
+                PinLockPwdBox.Password = "";
+                this.IsLocked = false;
+            }
         }
 
         private void InitializeComponent()

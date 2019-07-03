@@ -31,6 +31,13 @@ namespace WalletWasabi.Gui.ViewModels
             set => this.RaiseAndSetIfChanged(ref _isLocked, value);
         }
 
+        private string _pinHash;
+        public string PINHash
+        {
+            get => _pinHash;
+            set => this.RaiseAndSetIfChanged(ref _pinHash, value);
+        }
+
         public void Initialize()
         {
             Global.UiConfig.WhenAnyValue(x => x.LockScreenActive)
@@ -43,6 +50,10 @@ namespace WalletWasabi.Gui.ViewModels
 
             Global.UiConfig.WhenAnyValue(x => x.LockScreenType)
                            .BindTo(this, y => y.ActiveLockScreen)
+                           .DisposeWith(Disposables);
+
+            Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash)
+                           .BindTo(this, y => y.PINHash)
                            .DisposeWith(Disposables);
         }
     }

@@ -1,4 +1,5 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
+  xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
   xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <UserControl.Styles>
@@ -13,7 +14,10 @@
         <Animation
           FillMode="Both"
           Duration="0:0:1.5"
-          Easing="QuarticEaseInOut"> 
+          Easing="QuarticEaseInOut">
+          <KeyFrame Cue="0%">
+            <Setter Property="IsHitTestVisible" Value="True"/>
+          </KeyFrame>
           <KeyFrame Cue="100%">
             <Setter Property="Opacity" Value="1"/>
             <Setter Property="TranslateTransform.Y" Value="0"/>
@@ -29,6 +33,9 @@
           FillMode="Both"
           Duration="0:0:1.5"
           Easing="QuarticEaseInOut">
+          <KeyFrame Cue="0%">
+            <Setter Property="IsHitTestVisible" Value="False"/>
+          </KeyFrame>
           <KeyFrame Cue="100%">
             <Setter Property="Opacity" Value="0"/>
             <Setter Property="TranslateTransform.Y" Value="-100"/>
@@ -37,15 +44,18 @@
         </Animation>
       </Style.Animations>
     </Style>
-    
+
+    <Style Selector="controls|NoparaPasswordBox">
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="HorizontalAlignment" Value="Center"/>
+      <Setter Property="Watermark" Value="Enter your 4-digit PIN here."/>
+      <Setter Property="MinWidth" Value="100"/>
+    </Style>
+
   </UserControl.Styles>
   <Grid>
     <Grid x:Name="Shade" Classes="Unlocked" Background="{DynamicResource ThemeBackgroundBrush}">
-      <Button x:Name="UnlockButton"
-        Width="100"
-        Height="100"
-        VerticalAlignment="Center"
-        Content="Unlock"/>
+      <controls:NoparaPasswordBox x:Name="PinLockPwdBox"/>
     </Grid>
   </Grid>
 </UserControl>
