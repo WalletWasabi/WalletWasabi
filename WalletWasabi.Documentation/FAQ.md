@@ -29,7 +29,7 @@ This depends how you handle your transactions after the coinjoin. There are mult
 Another deanonymizing scenario happens when you combine mixed outputs with unmixed ones when sending (a third party will able to make the connection between them as belonging to the same sender). Fortunately, Wasabi’s user interface does make a strong effort to prevent that.  
 
 The practice of being careful with your post-mix outputs is commonly referred to as “coin control”. You can read more about it here: https://medium.com/@nopara73/coin-control-is-must-learn-if-you-care-about-your-privacy-in-bitcoin-33b9a5f224a2. 
-See also “Can I recombine my mixed coins?” in the “post-mix” section of this FAQ
+See also “Can I recombine my mixed coins?” in the “post-mix” section of this FAQ.
 
 ### Can I hurt my privacy using Wasabi?
 
