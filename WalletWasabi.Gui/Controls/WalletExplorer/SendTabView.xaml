@@ -36,7 +36,7 @@
             </i:Interaction.Behaviors>
           </controls:ExtendedTextBox>
           <StackPanel Spacing="8">
-            <controls:ExtendedTextBox x:Name="LabelTextBox" Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True" IsReadOnly="{Binding IsMax}" ToolTip.Tip="{Binding LabelToolTip}" CaretIndex="{Binding CaretIndex, Mode=TwoWay}">
+            <controls:ExtendedTextBox x:Name="LabelTextBox" Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True" IsReadOnly="{Binding IsMax}" ToolTip.Tip="{Binding LabelToolTip}" CaretIndex="{Binding CaretIndex}">
               <i:Interaction.Behaviors>
                 <behaviors:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />
                 <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />

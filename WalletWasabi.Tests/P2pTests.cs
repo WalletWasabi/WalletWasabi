@@ -76,7 +76,7 @@ namespace WalletWasabi.Tests
 			var memPoolService = new MemPoolService();
 			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(memPoolService));
 
-			var nodes = new NodesGroup(network, connectionParameters, requirements: Helpers.Constants.NodeRequirements);
+			var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
 
 			BitcoinStore bitcoinStore = new BitcoinStore();
 			await bitcoinStore.InitializeAsync(Path.Combine(Global.Instance.DataDir, nameof(TestServicesAsync)), network);

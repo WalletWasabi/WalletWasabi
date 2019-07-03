@@ -38,6 +38,7 @@ namespace WalletWasabi.Gui.Converters
 			{
 				var config = Application.Current.Resources[Global.ConfigResourceKey] as Config;
 				string shield;
+				string toolTip = null;
 				if (integer < config.PrivacyLevelSome)
 				{
 					shield = "Critical";
@@ -50,12 +51,19 @@ namespace WalletWasabi.Gui.Converters
 				{
 					shield = "Fine";
 				}
-				else
+				else if (integer < 9000)
 				{
 					shield = "Strong";
 				}
+				else // It's Over 9000!
+				{
+					shield = "Saiyan";
+					toolTip = "It's over 9000!!!";
+				}
+
+				toolTip = toolTip ?? $"Anonymity Set: {integer}";
 				var icon = GetIconByName($"Privacy{shield}");
-				return new { Icon = icon, ToolTip = $"Anonymity Set: {integer}" };
+				return new { Icon = icon, ToolTip = toolTip };
 			}
 			else
 			{

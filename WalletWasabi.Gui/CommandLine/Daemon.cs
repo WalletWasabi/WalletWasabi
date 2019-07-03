@@ -130,7 +130,7 @@ namespace WalletWasabi.Gui.CommandLine
 					if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
 					{
 						// The selected wallet is not available any more (someone deleted it?).
-						Logger.LogCritical("The selected wallet doesn't exsist, did you delete it?", nameof(Daemon));
+						Logger.LogCritical("The selected wallet doesn't exist, did you delete it?", nameof(Daemon));
 						return null;
 					}
 
