@@ -182,7 +182,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			bool isAllSelected = coins.All(coin => coin.IsSelected);
 			bool isAllDeselected = coins.All(coin => !coin.IsSelected);
 
-			return isAllSelected && !isAllDeselected;
+			if (isAllDeselected)
+			{
+				return false;
+			}
+
+			if (isAllSelected)
+			{
+				return true;
+			}
+
+			return null;
 		}
 
 		private void SelectAllCoins(bool valueOfSelected, Func<CoinViewModel, bool> coinFilterPredicate)
