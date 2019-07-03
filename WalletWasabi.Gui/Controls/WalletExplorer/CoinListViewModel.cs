@@ -136,29 +136,30 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void RefreshOrdering()
 		{
+			var sortExpression = new SortExpressionComparer<CoinViewModel>();
 			if (AmountSortDirection != SortOrder.None)
 			{
 				MyComparer = AmountSortDirection == SortOrder.Increasing
-					? SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.Amount) 
-					: SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.Amount);
+					? sortExpression.ThenByAscending(cvm => cvm.Amount)
+					: sortExpression.ThenByDescending(cvm => cvm.Amount);
 			}
 			else if (PrivacySortDirection != SortOrder.None)
 			{
 				MyComparer = PrivacySortDirection == SortOrder.Increasing
-					? SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.AnonymitySet)
-					: SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.AnonymitySet);
+					? sortExpression.ThenByAscending(cvm => cvm.AnonymitySet)
+					: sortExpression.ThenByDescending(cvm => cvm.AnonymitySet);
 			}
 			else if (ClustersSortDirection != SortOrder.None)
 			{
 				MyComparer = ClustersSortDirection == SortOrder.Increasing
-					? SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.Clusters) 
-					: SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.Clusters);
+					? sortExpression.ThenByAscending(cvm => cvm.Clusters)
+					: sortExpression.ThenByDescending(cvm => cvm.Clusters);
 			}
 			else if (StatusSortDirection != SortOrder.None)
 			{
 				MyComparer = StatusSortDirection == SortOrder.Increasing 
-					? SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.Status) 
-					: SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.Status);
+					? sortExpression.ThenByAscending(cvm => cvm.Status) 
+					: sortExpression.ThenByDescending(cvm => cvm.Status);
 			}
 		}
 
