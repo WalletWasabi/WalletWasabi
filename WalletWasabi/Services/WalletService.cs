@@ -840,7 +840,7 @@ namespace WalletWasabi.Services
 
 							if (!blockFromLocalNode.Check())
 							{
-								throw new InvalidOperationException($"Disconnected node, because block invalid block received!");
+								throw new InvalidOperationException($"Disconnected node, because invalid block received!");
 							}
 
 							block = blockFromLocalNode;
@@ -891,7 +891,7 @@ namespace WalletWasabi.Services
 
 							if (!block.Check())
 							{
-								Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because block invalid block received.");
+								Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.");
 								node.DisconnectAsync("Invalid block received.");
 								continue;
 							}

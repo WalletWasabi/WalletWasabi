@@ -276,7 +276,7 @@ namespace WalletWasabi.Services
 							}
 							else if (response.FiltersResponseState == FiltersResponseState.NoNewFilter)
 							{
-								// We are syced.
+								// We are synced.
 							}
 
 							LastResponse = response;
