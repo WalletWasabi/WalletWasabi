@@ -52,7 +52,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				try
 				{
-					if (IsShow)
+					if (ShowSensitiveKeys)
 					{
 						ClearSensitiveData(true);
 					}
@@ -82,7 +82,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ExtendedMasterZprv = "";
 			ExtendedAccountPrivateKey = "";
 			ExtendedAccountZprv = "";
-			IsShow = false;
+			ShowSensitiveKeys = false;
 
 			if (passwordToo)
 			{
@@ -98,7 +98,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public string MasterKeyFingerprint => KeyManager.MasterFingerprint.ToString();
 		public ReactiveCommand<Unit, Unit> ToggleSensitiveKeysCommand { get; }
 
-		public bool IsShow
+		public bool ShowSensitiveKeys
 		{
 			get => _showSensitiveKeys;
 			set => this.RaiseAndSetIfChanged(ref _showSensitiveKeys, value);
@@ -140,7 +140,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ExtendedAccountPrivateKey = extendedAccountPrivateKey;
 			ExtendedMasterZprv = extendedMasterZprv;
 			ExtendedAccountZprv = extendedAccountZprv;
-			IsShow = true;
+			ShowSensitiveKeys = true;
 
 			Dispatcher.UIThread.PostLogException(async () =>
 			{
