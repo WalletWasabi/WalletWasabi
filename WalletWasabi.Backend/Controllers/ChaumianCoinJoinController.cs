@@ -170,7 +170,7 @@ namespace WalletWasabi.Backend.Controllers
 						}
 						if (Coordinator.AnyRunningRoundContainsInput(inputProof.Input.ToOutPoint(), out List<Alice> tnr))
 						{
-							if (tr.Union(tnr).Count() > tr.Count())
+							if (tr.Union(tnr).Count() > tr.Count)
 							{
 								return BadRequest("Input is already registered in another round.");
 							}
@@ -257,7 +257,7 @@ namespace WalletWasabi.Backend.Controllers
 					var acceptedBlindedOutputScripts = new List<uint256>();
 
 					// Calculate expected networkfee to pay after base denomination.
-					int inputCount = inputs.Count();
+					int inputCount = inputs.Count;
 					Money networkFeeToPayAfterBaseDenomination = (inputCount * round.FeePerInputs) + (2 * round.FeePerOutputs);
 
 					// Check if inputs have enough coins.

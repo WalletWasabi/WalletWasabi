@@ -637,7 +637,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 					if (changeAmount < Money.Zero)
 					{
-						if (acceptedBlindedOutputScriptsCount < alice.BlindedOutputScripts.Count())
+						if (acceptedBlindedOutputScriptsCount < alice.BlindedOutputScripts.Length)
 						{
 							tinkerWithAdditionalMixingLevels = false;
 						}

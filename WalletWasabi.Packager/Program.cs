@@ -696,7 +696,7 @@ namespace WalletWasabi.Packager
 					foreach (var file in assetsInfo.EnumerateFiles())
 					{
 						var number = file.Name.Split(new string[] { "WasabiLogo", ".png" }, StringSplitOptions.RemoveEmptyEntries);
-						if (number.Count() == 1 && int.TryParse(number.First(), out int size))
+						if (number.Length == 1 && int.TryParse(number.First(), out int size))
 						{
 							string destFolder = Path.Combine(debUsrShareIconsFolderPath, $"{size}x{size}", "apps");
 							Directory.CreateDirectory(destFolder);
