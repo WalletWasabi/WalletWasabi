@@ -50,9 +50,13 @@ namespace WalletWasabi.Gui.Converters
 				{
 					shield = "Fine";
 				}
-				else
+				else if (integer < 9000)
 				{
 					shield = "Strong";
+				}
+				else // It's Over 9000!
+				{
+					shield = "Super";
 				}
 				var icon = GetIconByName($"Privacy{shield}");
 				return new { Icon = icon, ToolTip = $"Anonymity Set: {integer}" };
