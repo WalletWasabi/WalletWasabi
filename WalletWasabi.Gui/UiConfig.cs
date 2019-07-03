@@ -148,7 +148,6 @@ namespace WalletWasabi.Gui
             LockScreenActive = config.LockScreenActive ?? LockScreenActive;
             LockScreenPinHash = config.LockScreenPinHash ?? LockScreenPinHash;
             LockScreenType = config.LockScreenType ?? LockScreenType;
-			
         }
 
         /// <inheritdoc />

@@ -23,7 +23,6 @@ namespace WalletWasabi.Gui.Controls.LockScreen
             this.Shade = this.FindControl<Grid>("Shade");
 
             unlockButton.Click += unlockButton_Clicked;
-
         }
 
         private void unlockButton_Clicked(object sender, RoutedEventArgs e)

@@ -26,7 +26,6 @@ namespace WalletWasabi.Gui.Shell.Commands
                "Lock Screen",
                commandIconService.GetCompletionKindImage("Lock"),
                lockScreen);
-
         }
 
         private void OnLockScreen()
