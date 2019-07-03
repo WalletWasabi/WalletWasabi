@@ -26,19 +26,18 @@ namespace Nito.AsyncEx
 			}
 
 			var ret = @this.Enqueue();
-			if (!token.CanBeCanceled)
+			if (token.CanBeCanceled)
 			{
-				return ret;
+				var registration = token.Register(() =>
+				{
+					lock (mutex)
+					{
+						@this.TryCancel(ret, token);
+					}
+				}, useSynchronizationContext: false);
+				ret.ContinueWith(_ => registration.Dispose(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
 			}
 
-			var registration = token.Register(() =>
-			{
-				lock (mutex)
-				{
-					@this.TryCancel(ret, token);
-				}
-			}, useSynchronizationContext: false);
-			ret.ContinueWith(_ => registration.Dispose(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
 			return ret;
 		}
 	}

@@ -17,12 +17,14 @@ namespace WalletWasabi.Gui.ViewModels
 		public IEnumerable GetErrors(string propertyName)
 		{
 			var errorString = Validator.ValidateProperty(this, propertyName);
-			if (!string.IsNullOrEmpty(errorString))
+			if (string.IsNullOrEmpty(errorString))
+			{
+				return null;
+			}
+			else
 			{
 				return new List<string> { errorString };
 			}
-
-			return null;
 		}
 
 		protected void NotifyErrorsChanged(string propertyName)

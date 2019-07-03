@@ -238,22 +238,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var enteredWordList = words.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim());
 			var lastWord = enteredWordList?.LastOrDefault()?.Replace("\t", "") ?? "";
 
-			if (!lastWord.Any())
+			if (lastWord.Any())
+			{
+				string[] nonSpecialLabels = Global.WalletService.GetNonSpecialLabels().ToArray();
+				IEnumerable<string> suggestedWords = nonSpecialLabels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
+					.Union(nonSpecialLabels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
+					.Except(enteredWordList)
+					.Take(3);
+
+				Suggestions.Clear();
+				foreach (var suggestion in suggestedWords)
+				{
+					Suggestions.Add(new SuggestionViewModel(suggestion, OnAddWord));
+				}
+			}
+			else
 			{
 				Suggestions.Clear();
-				return;
-			}
-
-			string[] nonSpecialLabels = Global.WalletService.GetNonSpecialLabels().ToArray();
-			IEnumerable<string> suggestedWords = nonSpecialLabels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
-				.Union(nonSpecialLabels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
-				.Except(enteredWordList)
-				.Take(3);
-
-			Suggestions.Clear();
-			foreach (var suggestion in suggestedWords)
-			{
-				Suggestions.Add(new SuggestionViewModel(suggestion, OnAddWord));
 			}
 		}
 

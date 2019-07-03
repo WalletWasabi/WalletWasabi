@@ -60,40 +60,44 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			WalletName = Guard.Correct(WalletName);
 
-			if (!ValidateWalletName(WalletName))
+			if (ValidateWalletName(WalletName))
 			{
-				ValidationMessage = $"The name {WalletName} is not valid.";
-				return;
-			}
+				string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
+				Password = Guard.Correct(Password); // Don't let whitespaces to the beginning and to the end.
 
-			string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
-			Password = Guard.Correct(Password); // Don't let whitespaces to the beginning and to the end.
+				if (TermsAccepted)
+				{
+					if (string.IsNullOrWhiteSpace(WalletName))
+					{
+						ValidationMessage = $"The name {WalletName} is not valid.";
+					}
+					else if (File.Exists(walletFilePath))
+					{
+						ValidationMessage = $"The name {WalletName} is already taken.";
+					}
+					else
+					{
+						try
+						{
+							KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
 
-			if (!TermsAccepted)
-			{
-				ValidationMessage = "Terms are not accepted.";
-			}
-			else if (string.IsNullOrWhiteSpace(WalletName))
-			{
-				ValidationMessage = $"The name {WalletName} is not valid.";
-			}
-			else if (File.Exists(walletFilePath))
-			{
-				ValidationMessage = $"The name {WalletName} is already taken.";
+							Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, mnemonic);
+						}
+						catch (Exception ex)
+						{
+							ValidationMessage = ex.ToTypeMessageString();
+							Logger.LogError<GenerateWalletViewModel>(ex);
+						}
+					}
+				}
+				else
+				{
+					ValidationMessage = "Terms are not accepted.";
+				}
 			}
 			else
 			{
-				try
-				{
-					KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
-
-					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, mnemonic);
-				}
-				catch (Exception ex)
-				{
-					ValidationMessage = ex.ToTypeMessageString();
-					Logger.LogError<GenerateWalletViewModel>(ex);
-				}
+				ValidationMessage = $"The name {WalletName} is not valid.";
 			}
 		}
 

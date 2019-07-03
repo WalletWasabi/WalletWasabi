@@ -116,15 +116,13 @@ namespace WalletWasabi.Packager
 					var json = (JObject)JsonConvert.DeserializeObject(responseString);
 					foreach (JProperty node in json["nodes"])
 					{
-						if (!node.Name.ToString().Contains(".onion"))
+						if (node.Name.ToString().Contains(".onion"))
 						{
-							continue;
-						}
-
-						var userAgent = ((JArray)node.Value)[1].ToString();
-						if (userAgent.Contains("Satoshi:0.16") || userAgent.Contains("Satoshi:0.17"))
-						{
-							Console.WriteLine(node.Name);
+							var userAgent = ((JArray)node.Value)[1].ToString();
+							if (userAgent.Contains("Satoshi:0.16") || userAgent.Contains("Satoshi:0.17"))
+							{
+								Console.WriteLine(node.Name);
+							}
 						}
 					}
 				}

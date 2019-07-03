@@ -398,7 +398,67 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						return null;
 					}
 
-					if (!selectedWallet.HardwareWalletInfo.Initialized)
+					if (selectedWallet.HardwareWalletInfo.Initialized)
+					{
+						if (selectedWallet.HardwareWalletInfo.NeedPin)
+						{
+							if (!await HwiProcessManager.PromptPinAsync(selectedWallet.HardwareWalletInfo))
+							{
+								throw new IOException("promptpin request failed.");
+							}
+
+							PinPadViewModel pinpad = IoC.Get<IShell>().Documents.OfType<PinPadViewModel>().FirstOrDefault();
+							if (pinpad is null)
+							{
+								pinpad = new PinPadViewModel(null);
+								IoC.Get<IShell>().AddOrSelectDocument(pinpad);
+							}
+							var result = await pinpad.ShowDialogAsync();
+							if (!(result is true))
+							{
+								SetValidationMessage("PIN wasn't provided.");
+								return null;
+							}
+
+							var maskedPin = pinpad.MaskedPin;
+							if (!await HwiProcessManager.SendPinAsync(selectedWallet.HardwareWalletInfo, maskedPin))
+							{
+								SetValidationMessage("Wrong PIN.");
+								return null;
+							}
+							var p = selectedWallet.HardwareWalletInfo.Path;
+							var t = selectedWallet.HardwareWalletInfo.Type;
+							var enumRes = await HwiProcessManager.EnumerateAsync();
+							TryRefreshHardwareWallets(enumRes);
+							selectedWallet = Wallets.FirstOrDefault(x => x.HardwareWalletInfo.Type == t && x.HardwareWalletInfo.Path == p);
+							if (selectedWallet is null)
+							{
+								SetValidationMessage("Couldn't find the hardware wallet you are working with. Did you disconnect it?");
+								return null;
+							}
+							else
+							{
+								SelectedWallet = selectedWallet;
+							}
+
+							if (!selectedWallet.HardwareWalletInfo.Initialized)
+							{
+								SetValidationMessage("Hardware wallet is not initialized.");
+								return null;
+							}
+							if (!selectedWallet.HardwareWalletInfo.Ready)
+							{
+								SetValidationMessage("Hardware wallet is not ready.");
+								return null;
+							}
+							if (selectedWallet.HardwareWalletInfo.NeedPin)
+							{
+								SetValidationMessage("Hardware wallet still needs a PIN.");
+								return null;
+							}
+						}
+					}
+					else
 					{
 						IEnumerable<HardwareWalletInfo> hwis;
 						try
@@ -421,63 +481,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 						TryRefreshHardwareWallets(hwis);
 						return await LoadKeyManagerAsync(requirePassword, isHardwareWallet);
-					}
-					else if (selectedWallet.HardwareWalletInfo.NeedPin)
-					{
-						if (!await HwiProcessManager.PromptPinAsync(selectedWallet.HardwareWalletInfo))
-						{
-							throw new IOException("promptpin request failed.");
-						}
-
-						PinPadViewModel pinpad = IoC.Get<IShell>().Documents.OfType<PinPadViewModel>().FirstOrDefault();
-						if (pinpad is null)
-						{
-							pinpad = new PinPadViewModel(null);
-							IoC.Get<IShell>().AddOrSelectDocument(pinpad);
-						}
-						var result = await pinpad.ShowDialogAsync();
-						if (!(result is true))
-						{
-							SetValidationMessage("PIN wasn't provided.");
-							return null;
-						}
-
-						var maskedPin = pinpad.MaskedPin;
-						if (!await HwiProcessManager.SendPinAsync(selectedWallet.HardwareWalletInfo, maskedPin))
-						{
-							SetValidationMessage("Wrong PIN.");
-							return null;
-						}
-						var p = selectedWallet.HardwareWalletInfo.Path;
-						var t = selectedWallet.HardwareWalletInfo.Type;
-						var enumRes = await HwiProcessManager.EnumerateAsync();
-						TryRefreshHardwareWallets(enumRes);
-						selectedWallet = Wallets.FirstOrDefault(x => x.HardwareWalletInfo.Type == t && x.HardwareWalletInfo.Path == p);
-						if (selectedWallet is null)
-						{
-							SetValidationMessage("Couldn't find the hardware wallet you are working with. Did you disconnect it?");
-							return null;
-						}
-						else
-						{
-							SelectedWallet = selectedWallet;
-						}
-
-						if (!selectedWallet.HardwareWalletInfo.Initialized)
-						{
-							SetValidationMessage("Hardware wallet is not initialized.");
-							return null;
-						}
-						if (!selectedWallet.HardwareWalletInfo.Ready)
-						{
-							SetValidationMessage("Hardware wallet is not ready.");
-							return null;
-						}
-						if (selectedWallet.HardwareWalletInfo.NeedPin)
-						{
-							SetValidationMessage("Hardware wallet still needs a PIN.");
-							return null;
-						}
 					}
 
 					if (selectedWallet.HardwareWalletInfo.MasterFingerprint is null)

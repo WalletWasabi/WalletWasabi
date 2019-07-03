@@ -1,4 +1,4 @@
-﻿using Nito.AsyncEx;
+using Nito.AsyncEx;
 using System;
 using System.IO;
 using System.Linq;
@@ -113,13 +113,13 @@ namespace WalletWasabi.TorSocks5
 		/// </summary>
 		internal async Task HandshakeAsync(bool isolateStream = true)
 		{
-			if (!isolateStream)
+			if (isolateStream)
 			{
-				await HandshakeAsync("");
+				await HandshakeAsync(RandomString.Generate(21));
 			}
 			else
 			{
-				await HandshakeAsync(RandomString.Generate(21));
+				await HandshakeAsync("");
 			}
 		}
 

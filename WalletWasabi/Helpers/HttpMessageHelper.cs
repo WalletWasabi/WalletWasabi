@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -536,14 +536,12 @@ namespace System.Net.Http
 
 		public static void CopyHeaders(HttpHeaders source, HttpHeaders destination)
 		{
-			if (!source.NotNullAndNotEmpty())
+			if (source.NotNullAndNotEmpty())
 			{
-				return;
-			}
-
-			foreach (var header in source)
-			{
-				destination.TryAddWithoutValidation(header.Key, header.Value);
+				foreach (var header in source)
+				{
+					destination.TryAddWithoutValidation(header.Key, header.Value);
+				}
 			}
 		}
 	}

@@ -427,11 +427,7 @@ namespace WalletWasabi.KeyManagement
 				}
 
 				KeyPath path;
-				if (!relevantHdPubKeys.Any())
-				{
-					path = new KeyPath($"{change}/0");
-				}
-				else
+				if (relevantHdPubKeys.Any())
 				{
 					int largestIndex = relevantHdPubKeys.Max(x => x.Index);
 					List<int> missingIndexes = Enumerable.Range(0, largestIndex).Except(relevantHdPubKeys.Select(x => x.Index)).ToList();
@@ -444,6 +440,10 @@ namespace WalletWasabi.KeyManagement
 					{
 						path = relevantHdPubKeys.First(x => x.Index == largestIndex).NonHardenedKeyPath.Increment();
 					}
+				}
+				else
+				{
+					path = new KeyPath($"{change}/0");
 				}
 
 				var fullPath = AccountKeyPath.Derive(path);

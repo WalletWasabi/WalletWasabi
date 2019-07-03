@@ -139,11 +139,7 @@ namespace WalletWasabi.Backend
 			TestNetBitcoinCorePort = Network.TestNet.DefaultPort;
 			RegTestBitcoinCorePort = Network.RegTest.DefaultPort;
 
-			if (!File.Exists(FilePath))
-			{
-				Logger.LogInfo<Config>($"{nameof(Config)} file did not exist. Created at path: `{FilePath}`.");
-			}
-			else
+			if (File.Exists(FilePath))
 			{
 				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
 				var config = JsonConvert.DeserializeObject<Config>(jsonString);
@@ -157,6 +153,10 @@ namespace WalletWasabi.Backend
 				MainNetBitcoinCorePort = config.MainNetBitcoinCorePort ?? MainNetBitcoinCorePort;
 				TestNetBitcoinCorePort = config.TestNetBitcoinCorePort ?? TestNetBitcoinCorePort;
 				RegTestBitcoinCorePort = config.RegTestBitcoinCorePort ?? RegTestBitcoinCorePort;
+			}
+			else
+			{
+				Logger.LogInfo<Config>($"{nameof(Config)} file did not exist. Created at path: `{FilePath}`.");
 			}
 
 			await ToFileAsync();
@@ -175,41 +175,21 @@ namespace WalletWasabi.Backend
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
 			var config = JsonConvert.DeserializeObject<Config>(jsonString);
 
-			if (Network != config.Network)
+			if (Network == config.Network
+				&& BitcoinRpcConnectionString == config.BitcoinRpcConnectionString
+				&& MainNetBitcoinCoreHost.Equals(config.MainNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase)
+				&& TestNetBitcoinCoreHost.Equals(config.TestNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase)
+				&& RegTestBitcoinCoreHost.Equals(config.RegTestBitcoinCoreHost, StringComparison.OrdinalIgnoreCase)
+				&& MainNetBitcoinCorePort == config.MainNetBitcoinCorePort
+				&& TestNetBitcoinCorePort == config.TestNetBitcoinCorePort
+				&& RegTestBitcoinCorePort == config.RegTestBitcoinCorePort)
+			{
+				return false;
+			}
+			else
 			{
 				return true;
 			}
-			if (BitcoinRpcConnectionString != config.BitcoinRpcConnectionString)
-			{
-				return true;
-			}
-
-			if (!MainNetBitcoinCoreHost.Equals(config.MainNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!TestNetBitcoinCoreHost.Equals(config.TestNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!RegTestBitcoinCoreHost.Equals(config.RegTestBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (MainNetBitcoinCorePort != config.MainNetBitcoinCorePort)
-			{
-				return true;
-			}
-			if (TestNetBitcoinCorePort != config.TestNetBitcoinCorePort)
-			{
-				return true;
-			}
-			if (RegTestBitcoinCorePort != config.RegTestBitcoinCorePort)
-			{
-				return true;
-			}
-
-			return false;
 		}
 
 		/// <inheritdoc />

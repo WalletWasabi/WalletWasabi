@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System;
@@ -84,15 +84,15 @@ namespace WalletWasabi.Services
 					try
 					{
 						var txPayload = new TxPayload(entry.Transaction);
-						if (!node.IsConnected)
-						{
-							Logger.LogInfo<MemPoolBehavior>($"Couldn't serve transaction. Node ({node.RemoteSocketEndpoint}) is not connected anymore: {entry.TransactionId}.");
-						}
-						else
+						if (node.IsConnected)
 						{
 							await node.SendMessageAsync(txPayload);
 							entry.MakeBroadcasted();
 							Logger.LogInfo<MemPoolBehavior>($"Successfully served transaction to node ({node.RemoteSocketEndpoint}): {entry.TransactionId}.");
+						}
+						else
+						{
+							Logger.LogInfo<MemPoolBehavior>($"Couldn't serve transaction. Node ({node.RemoteSocketEndpoint}) is not connected anymore: {entry.TransactionId}.");
 						}
 					}
 					catch (Exception ex)
@@ -131,13 +131,11 @@ namespace WalletWasabi.Services
 					}
 				}
 
-				// if we already have it continue;
-				if (!MemPoolService.TransactionHashes.TryAdd(inv.Hash))
+				// if we don't have it
+				if (MemPoolService.TransactionHashes.TryAdd(inv.Hash))
 				{
-					continue;
+					getDataPayload.Inventory.Add(inv);
 				}
-
-				getDataPayload.Inventory.Add(inv);
 			}
 
 			if (getDataPayload.Inventory.Any() && node.IsConnected)

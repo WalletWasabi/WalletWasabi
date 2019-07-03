@@ -46,30 +46,30 @@ namespace WalletWasabi.Helpers
 
 			string directory;
 
-			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				var home = Environment.GetEnvironmentVariable("HOME");
-				if (!string.IsNullOrEmpty(home))
-				{
-					directory = Path.Combine(home, "." + appName.ToLowerInvariant());
-					Logger.LogInfo($"Using HOME environment variable for initializing application data at `{directory}`.");
-				}
-				else
+				var localAppData = Environment.GetEnvironmentVariable("APPDATA");
+				if (string.IsNullOrEmpty(localAppData))
 				{
 					throw new DirectoryNotFoundException("Could not find suitable datadir.");
 				}
-			}
-			else
-			{
-				var localAppData = Environment.GetEnvironmentVariable("APPDATA");
-				if (!string.IsNullOrEmpty(localAppData))
+				else
 				{
 					directory = Path.Combine(localAppData, appName);
 					Logger.LogInfo($"Using APPDATA environment variable for initializing application data at `{directory}`.");
 				}
-				else
+			}
+			else
+			{
+				var home = Environment.GetEnvironmentVariable("HOME");
+				if (string.IsNullOrEmpty(home))
 				{
 					throw new DirectoryNotFoundException("Could not find suitable datadir.");
+				}
+				else
+				{
+					directory = Path.Combine(home, "." + appName.ToLowerInvariant());
+					Logger.LogInfo($"Using HOME environment variable for initializing application data at `{directory}`.");
 				}
 			}
 
@@ -96,19 +96,23 @@ namespace WalletWasabi.Helpers
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
 					var localAppData = Environment.GetEnvironmentVariable("APPDATA");
-					if (!string.IsNullOrEmpty(localAppData))
+					if (string.IsNullOrEmpty(localAppData))
 					{
-						directory = Path.Combine(localAppData, "Bitcoin");
+						throw new DirectoryNotFoundException("Could not find suitable default Bitcoin Core datadir.");
 					}
 					else
 					{
-						throw new DirectoryNotFoundException("Could not find suitable default Bitcoin Core datadir.");
+						directory = Path.Combine(localAppData, "Bitcoin");
 					}
 				}
 				else
 				{
 					var home = Environment.GetEnvironmentVariable("HOME");
-					if (!string.IsNullOrEmpty(home))
+					if (string.IsNullOrEmpty(home))
+					{
+						throw new DirectoryNotFoundException("Could not find suitable default Bitcoin Core datadir.");
+					}
+					else
 					{
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 						{
@@ -118,10 +122,6 @@ namespace WalletWasabi.Helpers
 						{
 							directory = Path.Combine(home, ".bitcoin");
 						}
-					}
-					else
-					{
-						throw new DirectoryNotFoundException("Could not find suitable default Bitcoin Core datadir.");
 					}
 				}
 

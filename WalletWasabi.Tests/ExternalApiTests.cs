@@ -23,22 +23,24 @@ namespace WalletWasabi.Tests
 		[InlineData("main")]
 		public async Task SmartBitTestsAsync(string networkString)
 		{
-			if (!await TestAsync("https://api.smartbit.com.au/v1/blockchain/stats"))
+			if (await TestAsync("https://api.smartbit.com.au/v1/blockchain/stats"))
 			{
-				return; // If website doesn't work, don't bother failing.
+				var network = Network.GetNetwork(networkString);
+				using (var client = new SmartBitClient(network))
+				{
+					IEnumerable<SmartBitExchangeRate> rates = rates = await client.GetExchangeRatesAsync(CancellationToken.None);
+
+					Assert.Contains("AUD", rates.Select(x => x.Code));
+					Assert.Contains("USD", rates.Select(x => x.Code));
+
+					Logger.TurnOff();
+					await Assert.ThrowsAsync<HttpRequestException>(async () => await client.PushTransactionAsync(network.Consensus.ConsensusFactory.CreateTransaction(), CancellationToken.None));
+					Logger.TurnOn();
+				}
 			}
-
-			var network = Network.GetNetwork(networkString);
-			using (var client = new SmartBitClient(network))
+			else // If website doesn't work, don't bother failing.
 			{
-				IEnumerable<SmartBitExchangeRate> rates = rates = await client.GetExchangeRatesAsync(CancellationToken.None);
-
-				Assert.Contains("AUD", rates.Select(x => x.Code));
-				Assert.Contains("USD", rates.Select(x => x.Code));
-
-				Logger.TurnOff();
-				await Assert.ThrowsAsync<HttpRequestException>(async () => await client.PushTransactionAsync(network.Consensus.ConsensusFactory.CreateTransaction(), CancellationToken.None));
-				Logger.TurnOn();
+				return;
 			}
 		}
 
@@ -47,43 +49,45 @@ namespace WalletWasabi.Tests
 		[InlineData("main")]
 		public async Task BlockCypherTestsAsync(string networkString)
 		{
-			if (!await TestAsync("https://api.blockcypher.com/v1/btc/main"))
+			if (await TestAsync("https://api.blockcypher.com/v1/btc/main"))
 			{
-				return; // If website doesn't work, don't bother failing.
+				var network = Network.GetNetwork(networkString);
+				using (var client = new BlockCypherClient(network))
+				{
+					BlockCypherGeneralInformation response = null;
+					try
+					{
+						response = await client.GetGeneralInformationAsync(CancellationToken.None);
+					}
+					catch // stupid CI internet connection sometimes fails
+					{
+						await Task.Delay(3000);
+						response = await client.GetGeneralInformationAsync(CancellationToken.None);
+					}
+					Assert.NotNull(response.Hash);
+					Assert.NotNull(response.LastForkHash);
+					Assert.NotNull(response.PreviousHash);
+					Assert.True(response.UnconfirmedCount > 0);
+					Assert.InRange(response.LowFee.FeePerK, Money.Zero, response.MediumFee.FeePerK);
+					Assert.InRange(response.MediumFee.FeePerK, response.LowFee.FeePerK, response.HighFee.FeePerK);
+					Assert.InRange(response.HighFee.FeePerK, response.MediumFee.FeePerK, Money.Coins(0.1m));
+					Assert.True(response.Height >= 491999);
+					Assert.Equal(new Uri(client.BaseAddress.ToString() + "/blocks/" + response.Hash), response.LatestUrl);
+					Assert.Equal(new Uri(client.BaseAddress.ToString() + "/blocks/" + response.PreviousHash), response.PreviousUrl);
+					if (network == Network.Main)
+					{
+						Assert.Equal("BTC.main", response.Name);
+					}
+					else
+					{
+						Assert.Equal("BTC.test3", response.Name);
+					}
+					Assert.True(response.PeerCount > 0);
+				}
 			}
-
-			var network = Network.GetNetwork(networkString);
-			using (var client = new BlockCypherClient(network))
+			else // If website doesn't work, don't bother failing.
 			{
-				BlockCypherGeneralInformation response = null;
-				try
-				{
-					response = await client.GetGeneralInformationAsync(CancellationToken.None);
-				}
-				catch // stupid CI internet connection sometimes fails
-				{
-					await Task.Delay(3000);
-					response = await client.GetGeneralInformationAsync(CancellationToken.None);
-				}
-				Assert.NotNull(response.Hash);
-				Assert.NotNull(response.LastForkHash);
-				Assert.NotNull(response.PreviousHash);
-				Assert.True(response.UnconfirmedCount > 0);
-				Assert.InRange(response.LowFee.FeePerK, Money.Zero, response.MediumFee.FeePerK);
-				Assert.InRange(response.MediumFee.FeePerK, response.LowFee.FeePerK, response.HighFee.FeePerK);
-				Assert.InRange(response.HighFee.FeePerK, response.MediumFee.FeePerK, Money.Coins(0.1m));
-				Assert.True(response.Height >= 491999);
-				Assert.Equal(new Uri(client.BaseAddress.ToString() + "/blocks/" + response.Hash), response.LatestUrl);
-				Assert.Equal(new Uri(client.BaseAddress.ToString() + "/blocks/" + response.PreviousHash), response.PreviousUrl);
-				if (network == Network.Main)
-				{
-					Assert.Equal("BTC.main", response.Name);
-				}
-				else
-				{
-					Assert.Equal("BTC.test3", response.Name);
-				}
-				Assert.True(response.PeerCount > 0);
+				return;
 			}
 		}
 

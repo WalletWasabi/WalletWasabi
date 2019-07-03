@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
@@ -39,12 +39,14 @@ namespace WalletWasabi.Backend.Controllers
 		{
 			IEnumerable<ExchangeRate> exchangeRates = await GetExchangeRatesCollectionAsync();
 
-			if (!exchangeRates.Any())
+			if (exchangeRates.Any())
+			{
+				return Ok(exchangeRates);
+			}
+			else
 			{
 				return NotFound("Exchange rates are not available.");
 			}
-
-			return Ok(exchangeRates);
 		}
 
 		internal async Task<IEnumerable<ExchangeRate>> GetExchangeRatesCollectionAsync()

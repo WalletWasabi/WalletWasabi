@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
 using NBitcoin.RPC;
 using System;
@@ -58,18 +58,21 @@ namespace WalletWasabi.Backend.Controllers
 			response.Filters = Enumerable.Empty<FilterModel>();
 			response.BestHeight = bestHeight;
 
-			if (!found)
+			if (found)
 			{
-				response.FiltersResponseState = FiltersResponseState.BestKnownHashNotFound;
-			}
-			else if (!filters.Any())
-			{
-				response.FiltersResponseState = FiltersResponseState.NoNewFilter;
+				if (filters.Any())
+				{
+					response.FiltersResponseState = FiltersResponseState.NewFilters;
+					response.Filters = filters;
+				}
+				else
+				{
+					response.FiltersResponseState = FiltersResponseState.NoNewFilter;
+				}
 			}
 			else
 			{
-				response.FiltersResponseState = FiltersResponseState.NewFilters;
-				response.Filters = filters;
+				response.FiltersResponseState = FiltersResponseState.BestKnownHashNotFound;
 			}
 
 			response.CcjRoundStates = ChaumianCoinJoinController.GetStatesCollection();

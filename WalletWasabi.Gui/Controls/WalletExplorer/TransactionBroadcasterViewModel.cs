@@ -54,13 +54,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				if (!string.IsNullOrEmpty(TransactionString))
+				if (string.IsNullOrEmpty(TransactionString))
+				{
+					var textToPaste = await Application.Current.Clipboard.GetTextAsync();
+					TransactionString = textToPaste;
+				}
+				else
 				{
 					return;
 				}
-
-				var textToPaste = await Application.Current.Clipboard.GetTextAsync();
-				TransactionString = textToPaste;
 			});
 
 			BroadcastTransactionCommand = ReactiveCommand.CreateFromTask(async () =>

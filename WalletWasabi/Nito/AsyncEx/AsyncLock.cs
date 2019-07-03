@@ -99,16 +99,16 @@ namespace Nito.AsyncEx
 		{
 			lock (Mutex)
 			{
-				if (!_taken)
+				if (_taken)
+				{
+					// Wait for the lock to become available or cancellation.
+					return Queue.Enqueue(Mutex, cancellationToken);
+				}
+				else
 				{
 					// If the lock is available, take it immediately.
 					_taken = true;
 					return Task.FromResult<IDisposable>(new Key(this));
-				}
-				else
-				{
-					// Wait for the lock to become available or cancellation.
-					return Queue.Enqueue(Mutex, cancellationToken);
 				}
 			}
 		}

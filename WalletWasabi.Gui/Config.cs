@@ -356,13 +356,13 @@ namespace WalletWasabi.Gui
 			PrivacyLevelStrong = 50;
 			DustThreshold = Money.Coins(0.0001m);
 
-			if (!File.Exists(FilePath))
+			if (File.Exists(FilePath))
 			{
-				Logger.LogInfo<Config>($"{nameof(Config)} file did not exist. Created at path: `{FilePath}`.");
+				await LoadFileAsync();
 			}
 			else
 			{
-				await LoadFileAsync();
+				Logger.LogInfo<Config>($"{nameof(Config)} file did not exist. Created at path: `{FilePath}`.");
 			}
 
 			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint(), DustThreshold);
@@ -423,93 +423,33 @@ namespace WalletWasabi.Gui
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
 			var config = JsonConvert.DeserializeObject<Config>(jsonString);
 
-			if (Network != config.Network)
+			if (Network == config.Network
+				&& MainNetBackendUriV3.Equals(config.MainNetBackendUriV3, StringComparison.OrdinalIgnoreCase)
+				&& TestNetBackendUriV3.Equals(config.TestNetBackendUriV3, StringComparison.OrdinalIgnoreCase)
+				&& MainNetFallbackBackendUri.Equals(config.MainNetFallbackBackendUri, StringComparison.OrdinalIgnoreCase)
+				&& TestNetFallbackBackendUri.Equals(config.TestNetFallbackBackendUri, StringComparison.OrdinalIgnoreCase)
+				&& RegTestBackendUriV3.Equals(config.RegTestBackendUriV3, StringComparison.OrdinalIgnoreCase)
+				&& UseTor == config.UseTor
+				&& TorHost.Equals(config.TorHost, StringComparison.Ordinal)
+				&& TorSocks5Port == config.TorSocks5Port
+				&& MainNetBitcoinCoreHost.Equals(config.MainNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase)
+				&& TestNetBitcoinCoreHost.Equals(config.TestNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase)
+				&& RegTestBitcoinCoreHost.Equals(config.RegTestBitcoinCoreHost, StringComparison.OrdinalIgnoreCase)
+				&& MainNetBitcoinCorePort == config.MainNetBitcoinCorePort
+				&& TestNetBitcoinCorePort == config.TestNetBitcoinCorePort
+				&& RegTestBitcoinCorePort == config.RegTestBitcoinCorePort
+				&& MixUntilAnonymitySet == config.MixUntilAnonymitySet
+				&& PrivacyLevelSome == config.PrivacyLevelSome
+				&& PrivacyLevelFine == config.PrivacyLevelFine
+				&& PrivacyLevelStrong == config.PrivacyLevelStrong
+				&& DustThreshold == config.DustThreshold)
+			{
+				return false;
+			}
+			else
 			{
 				return true;
 			}
-
-			if (!MainNetBackendUriV3.Equals(config.MainNetBackendUriV3, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!TestNetBackendUriV3.Equals(config.TestNetBackendUriV3, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!MainNetFallbackBackendUri.Equals(config.MainNetFallbackBackendUri, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!TestNetFallbackBackendUri.Equals(config.TestNetFallbackBackendUri, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!RegTestBackendUriV3.Equals(config.RegTestBackendUriV3, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (UseTor != config.UseTor)
-			{
-				return true;
-			}
-
-			if (!TorHost.Equals(config.TorHost, StringComparison.Ordinal))
-			{
-				return true;
-			}
-			if (TorSocks5Port != config.TorSocks5Port)
-			{
-				return true;
-			}
-
-			if (!MainNetBitcoinCoreHost.Equals(config.MainNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!TestNetBitcoinCoreHost.Equals(config.TestNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!RegTestBitcoinCoreHost.Equals(config.RegTestBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (MainNetBitcoinCorePort != config.MainNetBitcoinCorePort)
-			{
-				return true;
-			}
-			if (TestNetBitcoinCorePort != config.TestNetBitcoinCorePort)
-			{
-				return true;
-			}
-			if (RegTestBitcoinCorePort != config.RegTestBitcoinCorePort)
-			{
-				return true;
-			}
-
-			if (MixUntilAnonymitySet != config.MixUntilAnonymitySet)
-			{
-				return true;
-			}
-			if (PrivacyLevelSome != config.PrivacyLevelSome)
-			{
-				return true;
-			}
-			if (PrivacyLevelFine != config.PrivacyLevelFine)
-			{
-				return true;
-			}
-			if (PrivacyLevelStrong != config.PrivacyLevelStrong)
-			{
-				return true;
-			}
-
-			if (DustThreshold != config.DustThreshold)
-			{
-				return true;
-			}
-
-			return false;
 		}
 
 		/// <inheritdoc />

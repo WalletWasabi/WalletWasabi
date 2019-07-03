@@ -210,28 +210,30 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				SetWarningMessage("");
 
-				if (!selectedCoins.Any())
+				if (selectedCoins.Any())
+				{
+					try
+					{
+						await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray(), "Dequeued by the user.");
+					}
+					catch (Exception ex)
+					{
+						Logger.LogWarning<CoinJoinTabViewModel>(ex);
+						var builder = new StringBuilder(ex.ToTypeMessageString());
+						if (ex is AggregateException aggex)
+						{
+							foreach (var iex in aggex.InnerExceptions)
+							{
+								builder.Append(Environment.NewLine + iex.ToTypeMessageString());
+							}
+						}
+						SetWarningMessage(builder.ToString());
+						return;
+					}
+				}
+				else
 				{
 					SetWarningMessage("No coins are selected to dequeue.");
-					return;
-				}
-
-				try
-				{
-					await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray(), "Dequeued by the user.");
-				}
-				catch (Exception ex)
-				{
-					Logger.LogWarning<CoinJoinTabViewModel>(ex);
-					var builder = new StringBuilder(ex.ToTypeMessageString());
-					if (ex is AggregateException aggex)
-					{
-						foreach (var iex in aggex.InnerExceptions)
-						{
-							builder.Append(Environment.NewLine + iex.ToTypeMessageString());
-						}
-					}
-					SetWarningMessage(builder.ToString());
 					return;
 				}
 			}
@@ -249,33 +251,35 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SetWarningMessage("");
 				Password = Guard.Correct(Password);
 
-				if (!selectedCoins.Any())
+				if (selectedCoins.Any())
+				{
+					try
+					{
+						await Global.ChaumianClient.QueueCoinsToMixAsync(Password, selectedCoins.Select(c => c.Model).ToArray());
+					}
+					catch (Exception ex)
+					{
+						Logger.LogWarning<CoinJoinTabViewModel>(ex);
+						var builder = new StringBuilder(ex.ToTypeMessageString());
+						if (ex is AggregateException aggex)
+						{
+							foreach (var iex in aggex.InnerExceptions)
+							{
+								builder.Append(Environment.NewLine + iex.ToTypeMessageString());
+							}
+						}
+						SetWarningMessage(builder.ToString());
+						Password = string.Empty;
+						return;
+					}
+
+					Password = string.Empty;
+				}
+				else
 				{
 					SetWarningMessage("No coins are selected to enqueue.");
 					return;
 				}
-
-				try
-				{
-					await Global.ChaumianClient.QueueCoinsToMixAsync(Password, selectedCoins.Select(c => c.Model).ToArray());
-				}
-				catch (Exception ex)
-				{
-					Logger.LogWarning<CoinJoinTabViewModel>(ex);
-					var builder = new StringBuilder(ex.ToTypeMessageString());
-					if (ex is AggregateException aggex)
-					{
-						foreach (var iex in aggex.InnerExceptions)
-						{
-							builder.Append(Environment.NewLine + iex.ToTypeMessageString());
-						}
-					}
-					SetWarningMessage(builder.ToString());
-					Password = string.Empty;
-					return;
-				}
-
-				Password = string.Empty;
 			}
 			finally
 			{

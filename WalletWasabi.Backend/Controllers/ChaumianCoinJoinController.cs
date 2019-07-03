@@ -274,21 +274,23 @@ namespace WalletWasabi.Backend.Controllers
 					var moneySoFar = Money.Zero;
 					for (int i = 1; i < blindedOutputCount; i++)
 					{
-						if (!round.MixingLevels.TryGetDenomination(i, out Money denomination))
+						if (round.MixingLevels.TryGetDenomination(i, out Money denomination))
+						{
+							Money coordinatorFee = denomination.Percentage(round.CoordinatorFeePercent * round.AnonymitySet); // It should be the number of bobs, but we must make sure they'd have money to pay all.
+							changeAmount -= (denomination + round.FeePerOutputs + coordinatorFee);
+							networkFeeToPay += round.FeePerOutputs;
+
+							if (changeAmount < Money.Zero)
+							{
+								break;
+							}
+
+							acceptedBlindedOutputScripts.Add(blindedOutputs[i]);
+						}
+						else
 						{
 							break;
 						}
-
-						Money coordinatorFee = denomination.Percentage(round.CoordinatorFeePercent * round.AnonymitySet); // It should be the number of bobs, but we must make sure they'd have money to pay all.
-						changeAmount -= (denomination + round.FeePerOutputs + coordinatorFee);
-						networkFeeToPay += round.FeePerOutputs;
-
-						if (changeAmount < Money.Zero)
-						{
-							break;
-						}
-
-						acceptedBlindedOutputScripts.Add(blindedOutputs[i]);
 					}
 
 					// Make sure Alice checks work.
