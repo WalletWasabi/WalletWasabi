@@ -7,7 +7,7 @@ Note: Many of these Q&A have been copied from real users, see footer for acknowl
 
 ### What is a “coinjoin”?
 
-A mechanism (proposed by Greg Maxwell) by which multiple participants combine their coins (or UTXOs, to be more precise) into one large transaction with multiple inputs and multiple outputs. An observer cannot determine which output belongs to which input, and neither can the participants themselves. This makes it very difficult for outside parties to trace where a particular coin originated and where it was sent to (as opposed to regular bitcoin transactions, where there is usually one sender and one receiver).  
+A mechanism (proposed by Greg Maxwell) by which multiple participants combine their coins (or UTXOs, to be more precise) into one large transaction with multiple inputs and multiple outputs. An observer cannot determine which output belongs to which input, and neither can the participants themselves. This makes it very difficult for outside parties to trace where a particular coin originated from and where it was sent to (as opposed to regular bitcoin transactions, where there is usually one sender and one receiver).  
 
 In very simple terms, coinjoin means: “when you want to make a transaction, find someone else who also wants to make a transaction and make a joint transaction together”.  
 
@@ -24,7 +24,7 @@ Note that for a coinjoin to happen there needs to be a sufficient number of part
 
 ### Will my coins be fully private after mixing with Wasabi?
 
-This depends how you handle your transactions after the coinjoin. There are multiple ways how you can unintentionally undo the mixing by being careless. F.ex, if you make a 1.8 btc transaction into Wasabi, do the coinjoin, and then make one single outgoing transaction of 1.8 btc (minus fees), a third party observer can reasonably assume that both transactions very likely belong to one single entity, due to both amounts being virtually the same even though if they have been through a coinjoin. In this scenario, Wasabi will barely make any improvement to your privacy (it might still have a mild protective effect against unsophisticated observers).  
+This depends how you handle your outputs after the coinjoin. There are multiple ways how you can unintentionally undo the mixing by being careless. F.ex, if you make a 1.8 btc transaction into Wasabi, do the coinjoin, and then make one single outgoing transaction of 1.8 btc (minus fees), a third party observer can reasonably assume that both transactions belong to one single entity, due to both amounts being virtually the same even though if they have been through a coinjoin. In this scenario, Wasabi will barely make any improvement to your privacy (it might still have a mild protective effect against unsophisticated observers).  
 
 Another deanonymizing scenario happens when you combine mixed outputs with unmixed ones when sending (a third party will able to make the connection between them as belonging to the same sender). Fortunately, Wasabi’s user interface does make a strong effort to prevent that.  
 
