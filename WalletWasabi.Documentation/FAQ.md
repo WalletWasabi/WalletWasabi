@@ -17,7 +17,7 @@ See also: https://en.bitcoin.it/wiki/CoinJoin
 
 No, Wasabi's coinjoin implementation is trustless by design. The participants don’t need to trust each other or any third party. Both the sending address (before the coinjoin) and the receiving address (after the coinjoin) are controlled by your own private key. Wasabi merely coordinates the process of combining the inputs of the participants into one single transaction, but the wallet can neither steal your coins, nor figure out which outputs belong to which inputs (look up “[Chaumian Coinjoin](https://github.com/nopara73/ZeroLink#ii-chaumian-coinjoin)” if you want to know more).  
 
-### I want to purchase something anonymously. Does coinjoin happen at the point of payment?
+### I want to purchase something anonymously. Does coinjoin happen at the time of payment?
 
 No, you should coinjoin at some point before that. After the coinjoin, your coins will be at new addresses which are unlinked from the previous addresses. From there you can make transactions at any time you wish, as with any other regular bitcoin transaction.  
 Note that for a coinjoin to happen there needs to be a sufficient number of participants. This might take a few hours during which you need to leave Wasabi open on your computer (so the wallet can sign the transaction when the required number of participants is reached). 
