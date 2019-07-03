@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -22,8 +22,6 @@ namespace WalletWasabi.Logging
 		public static string FilePath { get; private set; } = "Log.txt";
 
 		public static string EntrySeparator { get; private set; } = Environment.NewLine;
-
-		public static string FileEntryEncryptionPassword { get; private set; } = null;
 
 		/// <summary>
 		/// You can use it to identify which software instance created a log entry.
@@ -88,8 +86,6 @@ namespace WalletWasabi.Logging
 
 		public static void SetEntrySeparator(string entrySeparator) => EntrySeparator = Guard.NotNull(nameof(entrySeparator), entrySeparator);
 
-		public static void SetFileEntryEncryptionPassword(string password) => FileEntryEncryptionPassword = password;
-
 		/// <summary>
 		/// KB
 		/// </summary>
@@ -104,19 +100,6 @@ namespace WalletWasabi.Logging
 		public static void TurnOn() => Interlocked.Exchange(ref On, 1);
 
 		public static bool IsOn() => Interlocked.Read(ref On) == 1;
-
-		public static void DecryptLogEntries(string destination)
-		{
-			var encrypted = File.ReadAllText(FilePath);
-
-			IoHelpers.EnsureContainingDirectoryExists(destination);
-
-			foreach (var entry in encrypted.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
-			{
-				var decryptedEntry = StringCipher.Decrypt(entry, FileEntryEncryptionPassword);
-				File.AppendAllText(destination, $"{decryptedEntry}{EntrySeparator}");
-			}
-		}
 
 		#endregion Methods
 
@@ -144,21 +127,27 @@ namespace WalletWasabi.Logging
 				var messageBuilder = new StringBuilder();
 				messageBuilder.Append($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {level.ToString().ToUpperInvariant()}");
 
-				if (message != "" && category != "") // If none of them empty.
+				if (message == "")
 				{
-					messageBuilder.Append($" {category}: {message}{EntrySeparator}");
+					if (category == "") // If both empty. It probably never happens though.
+					{
+						messageBuilder.Append($"{EntrySeparator}");
+					}
+					else // If only the message is empty.
+					{
+						messageBuilder.Append($" {category}{EntrySeparator}");
+					}
 				}
-				else if (message == "" && category != "")  // If only the message is empty.
+				else
 				{
-					messageBuilder.Append($" {category}{EntrySeparator}");
-				}
-				else if (message != "" && category == "") // If only the category is empty.
-				{
-					messageBuilder.Append($": {message}{EntrySeparator}");
-				}
-				else // if (message == "" && category == "") // If both empty. It probably never happens though.
-				{
-					messageBuilder.Append($"{EntrySeparator}");
+					if (category == "") // If only the category is empty.
+					{
+						messageBuilder.Append($": {message}{EntrySeparator}");
+					}
+					else // If none of them empty.
+					{
+						messageBuilder.Append($" {category}: {message}{EntrySeparator}");
+					}
 				}
 
 				var finalMessage = messageBuilder.ToString();
@@ -222,18 +211,7 @@ namespace WalletWasabi.Logging
 						}
 					}
 
-					if (FileEntryEncryptionPassword != null)
-					{
-						// take the separator down and add a comma (not base64)
-						var replacedSeparatorWithCommaMessage = finalFileMessage.Substring(0, finalFileMessage.Length - EntrySeparator.Length);
-						var encryptedLogMessage = StringCipher.Encrypt(replacedSeparatorWithCommaMessage, FileEntryEncryptionPassword) + ',';
-
-						File.AppendAllText(FilePath, encryptedLogMessage);
-					}
-					else
-					{
-						File.AppendAllText(FilePath, finalFileMessage);
-					}
+					File.AppendAllText(FilePath, finalFileMessage);
 				}
 			}
 			catch (Exception ex)

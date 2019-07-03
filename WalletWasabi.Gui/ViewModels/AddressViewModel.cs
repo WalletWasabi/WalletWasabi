@@ -4,6 +4,7 @@ using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
 using System;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.KeyManagement;
@@ -16,6 +17,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private bool _isExpanded;
 		private bool[,] _qrCode;
+		private bool[,] _qrCodeBacking;
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
 
@@ -29,17 +31,28 @@ namespace WalletWasabi.Gui.ViewModels
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
 
-			// TODO fix this performance issue this should only be generated when accessed.
-			Task.Run(() =>
-			{
-				var encoder = new QrEncoder();
-				encoder.TryEncode(Address, out var qrCode);
+			this.WhenAnyValue(x => x.IsExpanded)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(x =>
+				{
+					try
+					{
+						if (x == true && QrCodeBacking is null)
+						{
+							var encoder = new QrEncoder();
+							encoder.TryEncode(Address, out var qrCode);
+							QrCodeBacking = qrCode.Matrix.InternalArray;
+						}
+					}
+					catch (Exception ex)
+					{
+						Logging.Logger.LogError<AddressViewModel>(ex);
+					}
+				});
 
-				return qrCode.Matrix.InternalArray;
-			}).ContinueWith(x =>
-			{
-				QrCode = x.Result;
-			});
+			this.WhenAnyValue(x => x.QrCodeBacking)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => QrCode = x);
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
@@ -78,6 +91,12 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			get => _qrCode;
 			set => this.RaiseAndSetIfChanged(ref _qrCode, value);
+		}
+
+		public bool[,] QrCodeBacking
+		{
+			get => _qrCodeBacking;
+			set => this.RaiseAndSetIfChanged(ref _qrCodeBacking, value);
 		}
 
 		public CancellationTokenSource CancelClipboardNotification { get; set; }

@@ -19,7 +19,10 @@ namespace NBitcoin
 		public static async Task<Block> DownloadBlockAsync(this Node node, uint256 hash, CancellationToken cancellationToken)
 		{
 			if (node.State == NodeState.Connected)
+			{
 				node.VersionHandshake(cancellationToken);
+			}
+
 			using (var listener = node.CreateListener())
 			{
 				var getdata = new GetDataPayload(new InventoryVector(node.AddSupportedOptions(InventoryType.MSG_BLOCK), hash));
@@ -77,7 +80,7 @@ namespace NBitcoin
 		/// <summary>
 		/// Based on transaction data, it decides if it's possible that native segwit script played a par in this transaction.
 		/// </summary>
-		public static bool PossiblyNativeSegWitInvolved(this Transaction me)
+		public static bool PossiblyP2WPKHInvolved(this Transaction me)
 		{
 			// We omit Guard, because it's performance critical in Wasabi.
 			// We start with the inputs, because, this check is faster.
@@ -91,7 +94,7 @@ namespace NBitcoin
 			}
 			foreach (TxOut output in me.Outputs)
 			{
-				if (output.ScriptPubKey.IsWitness)
+				if (output.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
 				{
 					return true;
 				}

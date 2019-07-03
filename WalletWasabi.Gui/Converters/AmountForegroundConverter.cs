@@ -1,4 +1,4 @@
-﻿using Avalonia.Data.Converters;
+using Avalonia.Data.Converters;
 using Avalonia.Media;
 using System;
 using System.Collections.Generic;
@@ -11,19 +11,14 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is bool boolean)
+			if (value is bool isMax)
 			{
-				if (boolean)
-				{
-					return Brushes.ForestGreen;
-				}
-				else
-				{
-					return Brushes.White;
-				}
+				return isMax ? Brushes.ForestGreen : Brushes.White;
 			}
-
-			throw new InvalidOperationException();
+			else
+			{
+				throw new TypeArgumentException(value, typeof(bool), nameof(value));
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

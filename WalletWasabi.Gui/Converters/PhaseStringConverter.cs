@@ -1,4 +1,4 @@
-﻿using Avalonia.Data.Converters;
+using Avalonia.Data.Converters;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -13,27 +13,19 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is CcjRoundPhase phase)
 			{
-				if (phase == CcjRoundPhase.InputRegistration)
+				switch (phase)
 				{
-					return "Registration";
+					case CcjRoundPhase.InputRegistration: return "Registration";
+					case CcjRoundPhase.ConnectionConfirmation: return "Connection Confirmation";
+					case CcjRoundPhase.OutputRegistration: return "Output Registration";
+					case CcjRoundPhase.Signing: return "Signing";
+					default: return "";
 				}
-				else if (phase == CcjRoundPhase.ConnectionConfirmation)
-				{
-					return "Connection Confirmation";
-				}
-				else if (phase == CcjRoundPhase.OutputRegistration)
-				{
-					return "Output Registration";
-				}
-				else if (phase == CcjRoundPhase.Signing)
-				{
-					return "Signing";
-				}
-
-				throw new InvalidOperationException();
 			}
-
-			throw new InvalidOperationException();
+			else
+			{
+				throw new TypeArgumentException(value, typeof(CcjRoundPhase), nameof(value));
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

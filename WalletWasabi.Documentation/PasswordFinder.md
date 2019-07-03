@@ -48,7 +48,7 @@ Note that you can also specify an encrypted secret instead of the wallet file. T
 
 Note that for a 4 characters length password it took more than a minute to find. Moreover, the process is heavy in CPU and for that reason it can be a good idea to use the best combination of parameters to reduce the search space.
 
-* __language__ (default: en) specify the alphabet to use and that's important because the number of possible combinations for each character in the password grows rapidily depending on the alphabet used. Just as an example, while the *Italian* charset is "abcdefghimnopqrstuvxyzABCDEFGHILMNOPQRSTUVXYZ", the *French* charset is "aâàbcçdæeéèëœfghiîïjkmnoôpqrstuùüvwxyÿzAÂÀBCÇDÆEÉÈËŒFGHIÎÏJKMNOÔPQRSTUÙÜVWXYŸZ". 
+* __language__ (default: en) specify the alphabet to use and that's important because the number of possible combinations for each character in the password grows rapidly depending on the alphabet used. Just as an example, while the *Italian* charset is "abcdefghimnopqrstuvxyzABCDEFGHILMNOPQRSTUVXYZ", the *French* charset is "aâàbcçdæeéèëœfghiîïjkmnoôpqrstuùüvwxyÿzAÂÀBCÇDÆEÉÈËŒFGHIÎÏJKMNOÔPQRSTUÙÜVWXYŸZ". 
 
 * __numbers__ (default: true) is for indicating that our password contains, or could contain, at least one digit. This increases the charset by 10 (from 0 to 9).
 

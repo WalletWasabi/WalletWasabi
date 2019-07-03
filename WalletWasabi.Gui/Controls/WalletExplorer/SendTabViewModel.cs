@@ -78,7 +78,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void ResetUi()
 		{
-			_suggestions = new ObservableCollection<SuggestionViewModel>();
+			Suggestions = new ObservableCollection<SuggestionViewModel>();
 			Address = "";
 			Label = "";
 			Password = "";
@@ -416,7 +416,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			var fingerprint = keyManager.MasterFingerprint;
 
-			if (fingerprint is null) return (false, "This wallet is a watch-only wallet.");
+			if (fingerprint is null)
+			{
+				return (false, "This wallet is a watch-only wallet.");
+			}
 
 			keyManager.HardwareWalletInfo = hwis.FirstOrDefault(x => x.MasterFingerprint == fingerprint);
 

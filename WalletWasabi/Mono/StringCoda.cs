@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -173,7 +173,7 @@ namespace Mono.Options
 		{
 			if (widths is null)
 			{
-				throw new ArgumentNullException("widths");
+				throw new ArgumentNullException(nameof(widths));
 			}
 
 			return CreateWrappedLinesIterator(self, widths);
@@ -246,7 +246,7 @@ namespace Mono.Options
 
 		private static int GetLineEnd(int start, int length, string description)
 		{
-			int end = System.Math.Min(start + length, description.Length);
+			int end = Math.Min(start + length, description.Length);
 			int sep = -1;
 			for (int i = start; i < end; ++i)
 			{

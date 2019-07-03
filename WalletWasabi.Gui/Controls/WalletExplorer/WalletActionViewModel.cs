@@ -54,7 +54,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			while (!IsClosed)
 			{
 				if (!IsSelected) // Prevent de-selection of tab.
+				{
 					Select();
+				}
 				await Task.Delay(100);
 			}
 			return DialogResult;

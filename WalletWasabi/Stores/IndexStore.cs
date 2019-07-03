@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Helpers;
+using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -22,8 +23,8 @@ namespace WalletWasabi.Stores
 	{
 		private string WorkFolderPath { get; set; }
 		private Network Network { get; set; }
-		private IoManager MatureIndexFileManager { get; set; }
-		private IoManager ImmatureIndexFileManager { get; set; }
+		private DigestableSafeMutexIoManager MatureIndexFileManager { get; set; }
+		private DigestableSafeMutexIoManager ImmatureIndexFileManager { get; set; }
 		public HashChain HashChain { get; private set; }
 
 		private FilterModel StartingFilter { get; set; }
@@ -41,9 +42,9 @@ namespace WalletWasabi.Stores
 			Network = Guard.NotNull(nameof(network), network);
 			HashChain = Guard.NotNull(nameof(hashChain), hashChain);
 			var indexFilePath = Path.Combine(WorkFolderPath, "MatureIndex.dat");
-			MatureIndexFileManager = new IoManager(indexFilePath, digestRandomIndex: -1);
+			MatureIndexFileManager = new DigestableSafeMutexIoManager(indexFilePath, digestRandomIndex: -1);
 			var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
-			ImmatureIndexFileManager = new IoManager(immatureIndexFilePath, digestRandomIndex: -1);
+			ImmatureIndexFileManager = new DigestableSafeMutexIoManager(immatureIndexFilePath, digestRandomIndex: -1);
 
 			StartingFilter = StartingFilters.GetStartingFilter(Network);
 			StartingHeight = StartingFilters.GetStartingHeight(Network);
@@ -148,18 +149,42 @@ namespace WalletWasabi.Stores
 			try
 			{
 				// Before Wasabi 1.1.5
-				var oldIndexFilepath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), $"Index{Network}.dat");
+				var oldIndexFilePath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), $"Index{Network}.dat");
 
-				if (File.Exists(oldIndexFilepath))
+				// Before Wasabi 1.1.6
+				var oldFileNames = new[] {
+					"ImmatureIndex.dat" ,
+					"ImmatureIndex.dat.dig",
+					"MatureIndex.dat",
+					"MatureIndex.dat.dig"
+				};
+				var oldIndexFolderPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), "BitcoinStore", Network.ToString());
+
+				foreach (var fileName in oldFileNames)
 				{
-					string[] allLines = await File.ReadAllLinesAsync(oldIndexFilepath);
+					var oldFilePath = Path.Combine(oldIndexFolderPath, fileName);
+					if (File.Exists(oldFilePath))
+					{
+						string newFilePath = oldFilePath.Replace(oldIndexFolderPath, WorkFolderPath);
+						if (File.Exists(newFilePath))
+						{
+							File.Delete(newFilePath);
+						}
+
+						File.Move(oldFilePath, newFilePath);
+					}
+				}
+
+				if (File.Exists(oldIndexFilePath))
+				{
+					string[] allLines = await File.ReadAllLinesAsync(oldIndexFilePath);
 					var matureLines = allLines.SkipLast(100);
 					var immatureLines = allLines.TakeLast(100);
 
 					await MatureIndexFileManager.WriteAllLinesAsync(matureLines);
 					await ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines);
 
-					File.Delete(oldIndexFilepath);
+					File.Delete(oldIndexFilePath);
 				}
 			}
 			catch (Exception ex)

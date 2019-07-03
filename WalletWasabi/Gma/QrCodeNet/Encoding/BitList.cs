@@ -124,12 +124,6 @@ namespace Gma.QrCodeNet.Encoding
 
 		internal int Count { get; private set; }
 
-		internal int SizeInByte
-		{
-			get
-			{
-				return (Count + 7) >> 3;
-			}
-		}
+		internal int SizeInByte => (Count + 7) >> 3;
 	}
 }
