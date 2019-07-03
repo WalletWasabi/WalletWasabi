@@ -77,7 +77,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				try
 				{
-					var ofd = new OpenFileDialog();
+					var ofd = new OpenFileDialog {
+						AllowMultiple = false,
+						Title = "Import Transaction"
+					};
+
 					var selected = await ofd.ShowAsync(Application.Current.MainWindow);
 					if (selected != null && selected.Any())
 					{

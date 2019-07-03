@@ -60,9 +60,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				try
 				{
-					var sfd = new SaveFileDialog();
-					sfd.DefaultExtension = "psbt";
-					sfd.InitialFileName = TxId;
+					var sfd = new SaveFileDialog {
+						DefaultExtension = "psbt",
+						InitialFileName = TxId,
+						Title = "Export Binary PSBT"
+					};
+
 					string file = await sfd.ShowAsync(Application.Current.MainWindow);
 					if (!string.IsNullOrWhiteSpace(file))
 					{
