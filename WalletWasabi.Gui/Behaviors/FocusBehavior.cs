@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Xaml.Interactivity;
 using System;
 using System.Reactive.Disposables;
@@ -11,7 +12,7 @@ namespace WalletWasabi.Gui.Behaviors
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 
 		private static readonly AvaloniaProperty<bool> IsFocusedProperty =
-			AvaloniaProperty.Register<FocusBehavior, bool>(nameof(IsFocused), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+			AvaloniaProperty.Register<FocusBehavior, bool>(nameof(IsFocused), defaultBindingMode: BindingMode.TwoWay);
 
 		public bool IsFocused
 		{

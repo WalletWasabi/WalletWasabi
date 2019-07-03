@@ -102,7 +102,7 @@ namespace WalletWasabi.Gui.Controls
 			var border = e.NameScope.Get<Border>("border");
 			if (IsSelectable)
 			{
-				text.Cursor = new Cursor(Avalonia.Input.StandardCursorType.Ibeam);
+				text.Cursor = new Cursor(StandardCursorType.Ibeam);
 			}
 
 			Observable.FromEventPattern(text, nameof(text.PointerPressed))
