@@ -388,7 +388,7 @@ namespace WalletWasabi.Gui
 			onions.Shuffle();
 			foreach (var onion in onions.Take(60))
 			{
-				if (NBitcoin.Utils.TryParseEndpoint(onion, Network.DefaultPort, out var endpoint))
+				if (Utils.TryParseEndpoint(onion, Network.DefaultPort, out var endpoint))
 				{
 					await addressManager.AddAsync(endpoint);
 				}

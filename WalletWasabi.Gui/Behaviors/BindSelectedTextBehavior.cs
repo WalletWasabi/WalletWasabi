@@ -1,5 +1,6 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Xaml.Interactivity;
 using System;
 using System.Reactive.Disposables;
@@ -12,7 +13,7 @@ namespace WalletWasabi.Gui.Behaviors
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 
 		private static readonly AvaloniaProperty<string> SelectedTextProperty =
-			AvaloniaProperty.Register<BindSelectedTextBehavior, string>(nameof(SelectedText), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+			AvaloniaProperty.Register<BindSelectedTextBehavior, string>(nameof(SelectedText), defaultBindingMode: BindingMode.TwoWay);
 
 		public string SelectedText
 		{

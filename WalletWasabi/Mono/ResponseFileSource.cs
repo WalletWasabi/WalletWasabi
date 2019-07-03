@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -177,7 +177,7 @@ namespace Mono.Options
 				replacement = null;
 				return false;
 			}
-			replacement = ArgumentSource.GetArgumentsFromFile(value.Substring(1));
+			replacement = GetArgumentsFromFile(value.Substring(1));
 			return true;
 		}
 	}
