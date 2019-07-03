@@ -202,7 +202,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IsCoinListLoading = true;
 			RefreshOrdering();
 
-			// otherwise they're all selected on load
+			// Otherwise they're all selected on load.
 			SelectAllCheckBoxState = false;
 			SelectPrivateCheckBoxState = false;
 			SelectNonPrivateCheckBoxState = false;
