@@ -38,7 +38,6 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
         public override void DoLock()
         {
-
             Shade.Classes.Add("Locked");
             Shade.Classes.Remove("Unlocked");
         }
