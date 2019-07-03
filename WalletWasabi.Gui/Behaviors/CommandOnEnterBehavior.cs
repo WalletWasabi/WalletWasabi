@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using System.Reactive.Disposables;
 
@@ -16,7 +17,7 @@ namespace WalletWasabi.Gui.Behaviors
 
 			Disposables.Add(AssociatedObject.AddHandler(TextBox.KeyDownEvent, (sender, e) =>
 			{
-				if (e.Key == Avalonia.Input.Key.Enter)
+				if (e.Key == Key.Enter)
 				{
 					e.Handled = ExecuteCommand();
 				}
