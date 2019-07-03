@@ -86,7 +86,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 			});
 
-			this.WhenAnyValue(x => x.MnemonicWords).Subscribe(x => UpdateSuggestions(x));
+			this.WhenAnyValue(x => x.MnemonicWords).Subscribe(UpdateSuggestions);
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
 				try

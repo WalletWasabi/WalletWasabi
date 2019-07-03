@@ -150,9 +150,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 			}, outputScheduler: RxApp.MainThreadScheduler);
 
-			LoadCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning<LoadWalletViewModel>(ex));
-			TestPasswordCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning<LoadWalletViewModel>(ex));
-			OpenFolderCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning<LoadWalletViewModel>(ex));
+			LoadCommand.ThrownExceptions.Subscribe(Logger.LogWarning<LoadWalletViewModel>);
+			TestPasswordCommand.ThrownExceptions.Subscribe(Logger.LogWarning<LoadWalletViewModel>);
+			OpenFolderCommand.ThrownExceptions.Subscribe(Logger.LogWarning<LoadWalletViewModel>);
 			ImportColdcardCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning<LoadWalletViewModel>(ex));
 
 			SetLoadButtonText();

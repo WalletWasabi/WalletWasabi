@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using AvalonStudio.Commands;
 using ReactiveUI;
 using System;
@@ -16,7 +16,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 		{
 			var exit = ReactiveCommand.Create(OnExit);
 
-			exit.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<ExitCommands>(ex));
+			exit.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<ExitCommands>);
 
 			ExitCommand = new CommandDefinition(
 			   "Exit",

@@ -995,7 +995,7 @@ namespace WalletWasabi.Services
 				using (await BlockFolderLock.LockAsync())
 				{
 					var filePaths = Directory.EnumerateFiles(BlocksFolderPath);
-					var fileNames = filePaths.Select(x => Path.GetFileName(x));
+					var fileNames = filePaths.Select(Path.GetFileName);
 					var hashes = fileNames.Select(x => new uint256(x));
 
 					if (hashes.Contains(hash))
