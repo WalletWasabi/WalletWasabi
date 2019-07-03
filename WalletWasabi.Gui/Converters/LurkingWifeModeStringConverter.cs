@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui.Converters
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			return value.ToString();
+			return value?.ToString() ?? "";
 		}
 	}
 }
