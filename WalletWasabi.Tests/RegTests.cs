@@ -836,7 +836,7 @@ namespace WalletWasabi.Tests
 
 				Script receive = wallet.GetReceiveKey("Basic").P2wpkhScript;
 				Money amountToSend = wallet.Coins.Where(x => !x.Unavailable).Sum(x => x.Amount) / 2;
-				var res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true);
+				var res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, Constants.SevenDaysConfirmationTarget, allowUnconfirmed: true);
 
 				foreach (SmartCoin coin in res.SpentCoins)
 				{
@@ -884,7 +884,7 @@ namespace WalletWasabi.Tests
 
 				receive = wallet.GetReceiveKey("SubtractFeeFromAmount").P2wpkhScript;
 				amountToSend = wallet.Coins.Where(x => !x.Unavailable).Sum(x => x.Amount) / 3;
-				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
+				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, Constants.SevenDaysConfirmationTarget, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -917,7 +917,7 @@ namespace WalletWasabi.Tests
 
 				#region LowFee
 
-				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true);
+				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, Constants.SevenDaysConfirmationTarget, allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -1022,7 +1022,7 @@ namespace WalletWasabi.Tests
 				#region MaxAmount
 
 				receive = wallet.GetReceiveKey("MaxAmount").P2wpkhScript;
-				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008, allowUnconfirmed: true);
+				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, Constants.SevenDaysConfirmationTarget, allowUnconfirmed: true);
 
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Empty(res.OuterWalletOutputs);
@@ -1050,7 +1050,7 @@ namespace WalletWasabi.Tests
 				receive = wallet.GetReceiveKey("InputSelection").P2wpkhScript;
 
 				var inputCountBefore = res.SpentCoins.Count();
-				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008,
+				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, Constants.SevenDaysConfirmationTarget,
 					allowUnconfirmed: true,
 					allowedInputs: wallet.Coins.Where(x => !x.Unavailable).Select(x => new TxoRef(x.TransactionId, x.Index)).Take(1));
 
@@ -1070,7 +1070,7 @@ namespace WalletWasabi.Tests
 
 				Assert.Single(res.Transaction.Transaction.Outputs);
 
-				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008,
+				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, Constants.SevenDaysConfirmationTarget,
 					allowUnconfirmed: true,
 					allowedInputs: new[] { res.SpentCoins.Select(x => new TxoRef(x.TransactionId, x.Index)).First() });
 
@@ -1086,7 +1086,7 @@ namespace WalletWasabi.Tests
 
 				#region Labeling
 
-				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "my label") }, 1008,
+				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "my label") }, Constants.SevenDaysConfirmationTarget,
 					allowUnconfirmed: true);
 
 				Assert.Single(res.InnerWalletOutputs);
@@ -1096,7 +1096,7 @@ namespace WalletWasabi.Tests
 				res = wallet.BuildTransaction(password, new[] {
 					new WalletService.Operation(new Key().ScriptPubKey, amountToSend, "outgoing"),
 					new WalletService.Operation(new Key().ScriptPubKey, amountToSend, "outgoing2")
-				}, 1008,
+				}, Constants.SevenDaysConfirmationTarget,
 					allowUnconfirmed: true);
 
 				Assert.Single(res.InnerWalletOutputs);
@@ -1270,12 +1270,12 @@ namespace WalletWasabi.Tests
 			var toSendWithTwoZeros = new[]{
 				new WalletService.Operation(scp, Money.Zero, "zero"),
 				new WalletService.Operation(scp, Money.Zero, "zero") };
-			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(password, toSendWithTwoZeros, 1008, false));
+			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(password, toSendWithTwoZeros, Constants.SevenDaysConfirmationTarget, false));
 
 			// cannot specify spend all and custom change
 			var spendAll = new[]{
 				new WalletService.Operation(scp, Money.Zero, "spendAll") };
-			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(password, spendAll, 1008, false, customChange: new Key().ScriptPubKey));
+			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(password, spendAll, Constants.SevenDaysConfirmationTarget, false, customChange: new Key().ScriptPubKey));
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("foo label");
