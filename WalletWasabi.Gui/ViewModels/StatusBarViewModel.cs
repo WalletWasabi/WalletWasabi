@@ -304,28 +304,16 @@ namespace WalletWasabi.Gui.ViewModels
 						MainWindowViewModel.Instance.ShowDialogAsync(new GenSocksServFailDialogViewModel()).GetAwaiter().GetResult();
 					}
 				}
-				else
-				{
-					// Do nothing.
-				}
 			}
 			else
 			{
-				// Is close band not present?
-				if (MainWindowViewModel.Instance.ModalDialog is null)
-				{
-					// Do nothing.
-				}
-				else
+				// Is close band present?
+				if (MainWindowViewModel.Instance.ModalDialog != null)
 				{
 					// Is it GenSocksServFail dialog?
 					if (MainWindowViewModel.Instance.ModalDialog is GenSocksServFailDialogViewModel)
 					{
 						MainWindowViewModel.Instance.ModalDialog.Close(true);
-					}
-					else
-					{
-						// Do nothing.
 					}
 				}
 			}
