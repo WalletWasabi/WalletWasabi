@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -454,7 +454,7 @@ namespace NSubsys
 		public PeUtility(string filePath)
 		{
 			// Read in the DLL or EXE and get the timestamp
-			Stream = new FileStream(filePath, System.IO.FileMode.Open, System.IO.FileAccess.ReadWrite);
+			Stream = new FileStream(filePath, FileMode.Open, FileAccess.ReadWrite);
 
 			BinaryReader reader = new BinaryReader(Stream);
 			_dosHeader = FromBinaryReader<IMAGE_DOS_HEADER>(reader);
