@@ -1,6 +1,8 @@
-using ReactiveUI; 
-using System.Reactive.Disposables; 
-using WalletWasabi.Gui.Models; 
+using ReactiveUI;
+using System.Reactive.Disposables;
+using WalletWasabi.Gui.Models;
+
+using System;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -36,8 +38,8 @@ namespace WalletWasabi.Gui.ViewModels
                            .DisposeWith(Disposables);
 
             this.WhenAnyValue(x => x.IsLocked)
-                .BindTo(Global.UiConfig, y => y.LockScreenActive)
-                .DisposeWith(Disposables);
+                           .BindTo(Global.UiConfig, y => y.LockScreenActive)
+                		   .DisposeWith(Disposables);
 
             Global.UiConfig.WhenAnyValue(x => x.LockScreenType)
                            .BindTo(this, y => y.ActiveLockScreen)

@@ -107,5 +107,14 @@ namespace WalletWasabi.Gui.Controls.LockScreen
             AvaloniaXamlLoader.Load(this);
         }
 
+        public override void DoLock()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void DoUnlock()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

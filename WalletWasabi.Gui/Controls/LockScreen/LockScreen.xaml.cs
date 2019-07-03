@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reactive.Disposables;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
@@ -13,7 +14,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
         private LockScreenType _activeLockScreenType;
         private ContentControl LockScreenHost;
         private LockScreenImpl CurrentLockScreen;
-
+        private CompositeDisposable ScreenImplDisposables;
 
         public static readonly DirectProperty<LockScreen, LockScreenType> ActiveLockScreenTypeProperty =
             AvaloniaProperty.RegisterDirect<LockScreen, LockScreenType>(nameof(ActiveLockScreenType),
@@ -43,13 +44,6 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
             this.WhenAnyValue(x => x.ActiveLockScreenType)
                 .Subscribe(OnActiveLockScreenTypeChanged);
-
-            this.WhenAnyValue(x => x.IsLocked)
-                .Subscribe(y =>
-                {
-                    if (CurrentLockScreen is null) return;
-                    CurrentLockScreen.IsLocked = y;
-                });
         }
 
         private void OnActiveLockScreenTypeChanged(LockScreenType obj)
@@ -57,12 +51,23 @@ namespace WalletWasabi.Gui.Controls.LockScreen
             switch (obj)
             {
                 case LockScreenType.Simple:
-
                     CurrentLockScreen = new SimpleLock();
                     LockScreenHost.Content = CurrentLockScreen;
-                    CurrentLockScreen.IsLocked = true;
+					break;
+				case LockScreenType.SlideLock:
                     break;
             }
+
+            ScreenImplDisposables?.Dispose();
+            ScreenImplDisposables = new CompositeDisposable();
+
+            this.WhenAnyValue(x => x.IsLocked)
+                .BindTo(CurrentLockScreen, y => y.IsLocked)
+                .DisposeWith(ScreenImplDisposables);
+
+            CurrentLockScreen.WhenAnyValue(x => x.IsLocked)
+                .BindTo(this, y => y.IsLocked)
+                .DisposeWith(ScreenImplDisposables);
         }
 
         private void InitializeComponent()
