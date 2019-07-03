@@ -6,6 +6,7 @@
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui">
   <UserControl.Resources>
     <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
+    <converters:ShowHideSensitiveKeysBoolConverter x:Key="ShowHideSensitiveKeysBoolConverter" />
   </UserControl.Resources>
   <controls:GroupBox Title="{Binding Title}" BorderThickness="0" Classes="docTabContainer">
     <StackPanel>
@@ -55,13 +56,11 @@
             <StackPanel IsVisible="{Binding !IsWatchOnly}" Margin="0 10 0 0" Spacing="10" Orientation="Horizontal">
               <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" MaxWidth="173">
                 <i:Interaction.Behaviors>
-                  <behaviors:CommandOnEnterBehavior Command="{Binding ShowSensitiveKeysCommand}" />
+                  <behaviors:CommandOnEnterBehavior Command="{Binding ToggleSensitiveKeysCommand}" />
                 </i:Interaction.Behaviors>
               </controls:NoparaPasswordBox>
               <DockPanel VerticalAlignment="Top" LastChildFill="True">
-                <Button Command="{Binding ShowSensitiveKeysCommand}" DockPanel.Dock="Right">
-                  Show Sensitive Keys
-                </Button>
+                <Button Content="{Binding ShowSensitiveKeys, Converter={StaticResource ShowHideSensitiveKeysBoolConverter}}" Command="{Binding ToggleSensitiveKeysCommand}" DockPanel.Dock="Right" />
                 <Grid></Grid>
               </DockPanel>
               <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
