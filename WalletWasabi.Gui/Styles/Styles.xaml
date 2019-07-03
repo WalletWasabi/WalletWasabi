@@ -225,88 +225,27 @@
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighBrush}" />
   </Style>
 
-  <Style Selector="ListBoxItem:pointerover:selected Grid Expander /template/ ToggleButton#PART_toggle">
-    <Setter Property="Template">
-      <ControlTemplate>
-        <Border BorderThickness="1">
-          <Grid ColumnDefinitions="Auto,Auto">
-            <Border Background="{DynamicResource ThemeHighlightBrush}" Grid.Column="0" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center">
-              <Path Fill="{DynamicResource ThemeForegroundBrush}"
-                      HorizontalAlignment="Center"
-                      VerticalAlignment="Center"
-                      Data="M 0 2 L 4 6 L 0 10 Z" />
-            </Border>
-          </Grid>
-        </Border>
-      </ControlTemplate>
-    </Setter>
+  <Style Selector="ListBoxItem:pointerover:selected Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ThemeHighlightBrush}"/>
   </Style>
 
-  <Style Selector="ListBoxItem:selected Grid Expander /template/ ToggleButton#PART_toggle">
-    <Setter Property="Template">
-      <ControlTemplate>
-        <Border BorderThickness="1">
-          <Grid ColumnDefinitions="Auto,Auto">
-            <Border Background="{DynamicResource ApplicationAccentBrushLow}" Grid.Column="0" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center">
-              <Path Fill="{DynamicResource ThemeForegroundBrush}"
-                      HorizontalAlignment="Center"
-                      VerticalAlignment="Center"
-                      Data="M 0 2 L 4 6 L 0 10 Z" />
-            </Border>
-          </Grid>
-        </Border>
-      </ControlTemplate>
-    </Setter>
+  <Style Selector="ListBoxItem:selected Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ApplicationAccentBrushLow}" />
   </Style>
 
-  <Style Selector="ListBoxItem:selected:pointerover Grid Expander /template/ ToggleButton#PART_toggle">
-    <Setter Property="Template">
-      <ControlTemplate>
-        <Border BorderThickness="1">
-          <Grid ColumnDefinitions="Auto,Auto">
-            <Border Background="{DynamicResource ApplicationAccentBrushLow}" Grid.Column="0" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center">
-              <Path Fill="{DynamicResource ThemeForegroundBrush}"
-                      HorizontalAlignment="Center"
-                      VerticalAlignment="Center"
-                      Data="M 0 2 L 4 6 L 0 10 Z" />
-            </Border>
-          </Grid>
-        </Border>
-      </ControlTemplate>
-    </Setter>
+  <Style Selector="ListBoxItem:selected:pointerover Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ApplicationAccentBrushLow}" />
   </Style>
 
-  <Style Selector="ListBoxItem:pointerover Grid Expander:expanded /template/ ToggleButton#PART_toggle">
-    <Setter Property="Template">
-      <ControlTemplate>
-        <Border BorderThickness="1">
-          <Grid ColumnDefinitions="Auto,Auto">
-            <Border Background="{DynamicResource ThemeBackgroundBrush}" Grid.Column="0" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center">
-              <Path Fill="{DynamicResource ThemeForegroundBrush}"
-                      HorizontalAlignment="Center"
-                      VerticalAlignment="Center"
-                      Data="M 0 2 L 4 6 L 0 10 Z" />
-            </Border>
-          </Grid>
-        </Border>
-      </ControlTemplate>
-    </Setter>
+  <Style Selector="ListBoxItem:pointerover Grid Expander:expanded /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}"/>
   </Style>
 
-  <Style Selector="ListBoxItem:selected:pointerover Grid Expander:expanded /template/ ToggleButton#PART_toggle">
-    <Setter Property="Template">
-      <ControlTemplate>
-        <Border BorderThickness="1">
-          <Grid ColumnDefinitions="Auto,Auto">
-            <Border Background="{DynamicResource ThemeBackgroundBrush}" Grid.Column="0" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center">
-              <Path Fill="{DynamicResource ThemeForegroundBrush}"
-                      HorizontalAlignment="Center"
-                      VerticalAlignment="Center"
-                      Data="M 0 2 L 4 6 L 0 10 Z" />
-            </Border>
-          </Grid>
-        </Border>
-      </ControlTemplate>
-    </Setter>
+  <Style Selector="ListBoxItem:selected:pointerover Grid Expander:expanded /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}"/>
+  </Style>
+
+  <Style Selector="ListBoxItem:selected Grid Expander:expanded /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}"/>
   </Style>
 </Styles>
