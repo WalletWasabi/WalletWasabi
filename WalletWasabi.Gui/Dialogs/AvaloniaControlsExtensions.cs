@@ -30,7 +30,6 @@ namespace Avalonia.Controls
 			{
 				try
 				{
-					throw new Exception();
 					return await ShowOpenSaveFileDialogAsync(me, parent);
 				}
 				catch (Exception ex)
