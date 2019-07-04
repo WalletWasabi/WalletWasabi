@@ -129,8 +129,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					TimeSpan left = x - DateTimeOffset.UtcNow;
 					TimeLeftTillRoundTimeout = left > TimeSpan.Zero ? left : TimeSpan.Zero; // Make sure cannot be less than zero.
-				});				
-				
+				});
 		}
 
 		public override void OnOpen()
@@ -191,7 +190,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					TimeSpan left = RoundTimesout - DateTimeOffset.UtcNow;
 					TimeLeftTillRoundTimeout = left > TimeSpan.Zero ? left : TimeSpan.Zero; // Make sure cannot be less than zero.
 				}).DisposeWith(Disposables);
-
 		}
 
 		public override bool OnClose()
