@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -648,9 +648,8 @@ namespace Mono.Options
 			}
 			else if (c.OptionValues.Count > c.Option.MaxValueCount)
 			{
-				throw new OptionException(MessageLocalizer(string.Format(
-								"Error: Found {0} option values when expecting {1}.",
-								c.OptionValues.Count, c.Option.MaxValueCount)),
+				throw new OptionException(MessageLocalizer(
+						$"Error: Found {c.OptionValues.Count} option values when expecting {c.Option.MaxValueCount}."),
 						c.OptionName);
 			}
 		}

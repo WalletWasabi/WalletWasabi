@@ -87,8 +87,8 @@ namespace WalletWasabi.Gui
 
 		public async Task TryDesperateDequeueAllCoinsAsync()
 		{
-			// If already desperate dequeueing then return.
-			// If not desperate dequeueing then make sure we're doing that.
+			// If already desperate dequeuing then return.
+			// If not desperate dequeuing then make sure we're doing that.
 			if (Interlocked.CompareExchange(ref _isDesperateDequeuing, 1, 0) == 1)
 			{
 				return;

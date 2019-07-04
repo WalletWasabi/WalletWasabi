@@ -56,13 +56,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _amountToolTip;
 		private bool _isBusy;
 		private bool _isHardwareBusy;
+		private int _caretIndex;
+
 		private const string SendTransactionButtonTextString = "Send Transaction";
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
 		private const string SendingTransactionButtonTextString = "Sending Transaction...";
 		private const string BuildTransactionButtonTextString = "Build Transaction";
 		private const string BuildingTransactionButtonTextString = "Building Transaction...";
 
-		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private FeeDisplayFormat _feeDisplayFormat;
 
@@ -197,21 +198,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.WhenAnyValue(x => x.FeeTarget)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SetFeesAndTexts());
-
-			this.WhenAnyValue(x => x.CaretIndex)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-			{
-				if (Label is null)
-				{
-					return;
-				}
-
-				if (CaretIndex != Label.Length)
-				{
-					CaretIndex = Label.Length;
-				}
-			});
 
 			MaxCommand = ReactiveCommand.Create(() => { IsMax = !IsMax; }, outputScheduler: RxApp.MainThreadScheduler);
 			this.WhenAnyValue(x => x.IsMax)
@@ -586,7 +572,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				var h = feeTarget / 6;
 				ConfirmationExpectedText = $"{h} {IfPlural(h, "hour", "hours")}";
 			}
-			else if (feeTarget >= 145 && feeTarget < 1008) // days
+			else if (feeTarget >= 145 && feeTarget < Constants.SevenDaysConfirmationTarget) // days
 			{
 				var d = feeTarget / 144;
 				ConfirmationExpectedText = $"{d} {IfPlural(d, "day", "days")}";
@@ -727,7 +713,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			else
 			{
 				MinimumFeeTarget = 2;
-				MaximumFeeTarget = 1008;
+				MaximumFeeTarget = Constants.SevenDaysConfirmationTarget;
 			}
 		}
 

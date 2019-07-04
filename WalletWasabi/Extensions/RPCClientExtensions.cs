@@ -52,7 +52,7 @@ namespace NBitcoin.RPC
 				{
 					Logger.LogTrace<RPCClient>(ex);
 					// Hopefully Bitcoin Core brainfart: https://github.com/bitcoin/bitcoin/issues/14431
-					for (int i = 2; i <= 1008; i++)
+					for (int i = 2; i <= Constants.SevenDaysConfirmationTarget; i++)
 					{
 						try
 						{
@@ -87,7 +87,7 @@ namespace NBitcoin.RPC
 				else
 				{
 					// Hopefully Bitcoin Core brainfart: https://github.com/bitcoin/bitcoin/issues/14431
-					for (int i = 2; i <= 1008; i++)
+					for (int i = 2; i <= Constants.SevenDaysConfirmationTarget; i++)
 					{
 						response = await rpc.TryEstimateSmartFeeAsync(i, estimateMode);
 						if (response != null)
@@ -104,17 +104,17 @@ namespace NBitcoin.RPC
 
 		private static EstimateSmartFeeResponse SimulateRegTestFeeEstimation(int confirmationTarget, EstimateSmartFeeMode estimateMode)
 		{
-			int staoshiPerBytes;
+			int satoshiPerBytes;
 			if (estimateMode == EstimateSmartFeeMode.Conservative)
 			{
-				staoshiPerBytes = ((1008 + 1 + 6) - confirmationTarget) / 7;
+				satoshiPerBytes = ((Constants.SevenDaysConfirmationTarget + 1 + 6) - confirmationTarget) / 7;
 			}
 			else // Economical
 			{
-				staoshiPerBytes = ((1008 + 1 + 5) - confirmationTarget) / 7;
+				satoshiPerBytes = ((Constants.SevenDaysConfirmationTarget + 1 + 5) - confirmationTarget) / 7;
 			}
 
-			Money feePerK = new Money(staoshiPerBytes * 1000, MoneyUnit.Satoshi);
+			Money feePerK = new Money(satoshiPerBytes * 1000, MoneyUnit.Satoshi);
 			FeeRate feeRate = new FeeRate(feePerK);
 			var resp = new EstimateSmartFeeResponse { Blocks = confirmationTarget, FeeRate = feeRate };
 			return resp;
@@ -122,7 +122,7 @@ namespace NBitcoin.RPC
 
 		public static async Task<AllFeeEstimate> EstimateAllFeeAsync(this RPCClient rpc, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tolerateBitcoinCoreBrainfuck = true)
 		{
-			var estimations = await rpc.EstimateHalfFeesAsync(new Dictionary<int, int>(), 2, 0, 1008, 0, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck);
+			var estimations = await rpc.EstimateHalfFeesAsync(new Dictionary<int, int>(), 2, 0, Constants.SevenDaysConfirmationTarget, 0, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck);
 			var allFeeEstimate = new AllFeeEstimate(estimateMode, estimations);
 			return allFeeEstimate;
 		}
