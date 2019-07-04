@@ -67,48 +67,48 @@ namespace WalletWasabi.TorSocks5
 							return;
 						}
 
-						var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
-						if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-						{
-							if (!fullBaseDirectory.StartsWith('/'))
-							{
-								fullBaseDirectory.Insert(0, "/");
-							}
-						}
-
 						var torDir = Path.Combine(dataDir, "tor");
-
 						var torPath = "";
+						var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
+
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
 							torPath = $@"{torDir}\Tor\tor.exe";
 						}
 						else // Linux or OSX
 						{
+							if (!fullBaseDirectory.StartsWith('/'))
+							{
+								fullBaseDirectory.Insert(0, "/");
+							}
+
 							torPath = $@"{torDir}/Tor/tor";
 						}
 
-						if (!File.Exists(torPath))
+						if (File.Exists(torPath))
 						{
-							Logger.LogInfo<TorProcessManager>($"Tor instance NOT found at {torPath}. Attempting to acquire it...");
-							InstallTor(fullBaseDirectory, torDir);
-						}
-						else if (!IoHelpers.CheckExpectedHash(torPath, Path.Combine(fullBaseDirectory, "TorDaemons")))
-						{
-							Logger.LogInfo<TorProcessManager>($"Updating Tor...");
-
-							string backupTorDir = $"{torDir}_backup";
-							if (Directory.Exists(backupTorDir))
+							if (IoHelpers.CheckExpectedHash(torPath, Path.Combine(fullBaseDirectory, "TorDaemons")))
 							{
-								Directory.Delete(backupTorDir, true);
+								Logger.LogInfo<TorProcessManager>($"Tor instance found at {torPath}.");
 							}
-							Directory.Move(torDir, backupTorDir);
+							else
+							{
+								Logger.LogInfo<TorProcessManager>($"Updating Tor...");
 
-							InstallTor(fullBaseDirectory, torDir);
+								string backupTorDir = $"{torDir}_backup";
+								if (Directory.Exists(backupTorDir))
+								{
+									Directory.Delete(backupTorDir, true);
+								}
+								Directory.Move(torDir, backupTorDir);
+
+								InstallTor(fullBaseDirectory, torDir);
+							}
 						}
 						else
 						{
-							Logger.LogInfo<TorProcessManager>($"Tor instance found at {torPath}.");
+							Logger.LogInfo<TorProcessManager>($"Tor instance NOT found at {torPath}. Attempting to acquire it...");
+							InstallTor(fullBaseDirectory, torDir);
 						}
 
 						string torArguments = $"--SOCKSPort {TorSocks5EndPoint}";
