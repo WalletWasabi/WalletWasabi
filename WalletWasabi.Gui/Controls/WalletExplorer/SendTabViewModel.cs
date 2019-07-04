@@ -572,7 +572,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				var h = feeTarget / 6;
 				ConfirmationExpectedText = $"{h} {IfPlural(h, "hour", "hours")}";
 			}
-			else if (feeTarget >= 145 && feeTarget < 1008) // days
+			else if (feeTarget >= 145 && feeTarget < Constants.SevenDaysConfirmationTarget) // days
 			{
 				var d = feeTarget / 144;
 				ConfirmationExpectedText = $"{d} {IfPlural(d, "day", "days")}";
@@ -713,7 +713,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			else
 			{
 				MinimumFeeTarget = 2;
-				MaximumFeeTarget = 1008;
+				MaximumFeeTarget = Constants.SevenDaysConfirmationTarget;
 			}
 		}
 
