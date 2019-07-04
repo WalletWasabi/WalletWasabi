@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -189,15 +189,18 @@ namespace Mono.Options
 			var space = false;
 			for (int i = 0; i < name.Length; ++i)
 			{
-				if (!char.IsWhiteSpace(name, i))
+				if (char.IsWhiteSpace(name, i))
+				{
+					if (!space)
+					{
+						space = true;
+						value.Append(' ');
+					}
+				}
+				else
 				{
 					space = false;
 					value.Append(name[i]);
-				}
-				else if (!space)
-				{
-					space = true;
-					value.Append(' ');
 				}
 			}
 			return value.ToString();

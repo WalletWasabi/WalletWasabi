@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -532,13 +532,11 @@ namespace Mono.Options
 		{
 			foreach (ArgumentSource source in Sources)
 			{
-				if (!source.GetArguments(argument, out IEnumerable<string> replacement))
+				if (source.GetArguments(argument, out IEnumerable<string> replacement))
 				{
-					continue;
+					ae.Add(replacement);
+					return true;
 				}
-
-				ae.Add(replacement);
-				return true;
 			}
 			return false;
 		}
@@ -568,18 +566,19 @@ namespace Mono.Options
 
 			flag = name = sep = value = null;
 			Match m = ValueOption.Match(argument);
-			if (!m.Success)
+			if (m.Success)
 			{
-				return false;
+				flag = m.Groups["flag"].Value;
+				name = m.Groups["name"].Value;
+				if (m.Groups["sep"].Success && m.Groups["value"].Success)
+				{
+					sep = m.Groups["sep"].Value;
+					value = m.Groups["value"].Value;
+				}
+				return true;
 			}
-			flag = m.Groups["flag"].Value;
-			name = m.Groups["name"].Value;
-			if (m.Groups["sep"].Success && m.Groups["value"].Success)
-			{
-				sep = m.Groups["sep"].Value;
-				value = m.Groups["value"].Value;
-			}
-			return true;
+
+			return false;
 		}
 
 		protected virtual bool Parse(string argument, OptionContext c)
