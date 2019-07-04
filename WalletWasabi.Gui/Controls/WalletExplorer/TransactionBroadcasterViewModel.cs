@@ -1,8 +1,12 @@
 using Avalonia;
+using Avalonia.Controls;
 using AvalonStudio.Documents;
+using AvalonStudio.Extensibility;
 using NBitcoin;
 using ReactiveUI;
 using System;
+using System.IO;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -23,6 +27,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private CompositeDisposable Disposables { get; set; }
 		public ReactiveCommand<Unit, Unit> PasteCommand { get; set; }
 		public ReactiveCommand<Unit, Unit> BroadcastTransactionCommand { get; set; }
+		public ReactiveCommand<Unit, Unit> ImportTransactionCommand { get; set; }
 
 		public string TransactionString
 		{
@@ -67,6 +72,62 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				await OnDoTransactionBroadcastAsync();
 			});
+
+			ImportTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				try
+				{
+					var ofd = new OpenFileDialog {
+						AllowMultiple = false,
+						Title = "Import Transaction"
+					};
+
+					var selected = await ofd.ShowAsync(Application.Current.MainWindow, fallBack: true);
+					if (selected != null && selected.Any())
+					{
+						var path = selected.First();
+						var psbtBytes = await File.ReadAllBytesAsync(path);
+						PSBT psbt = null;
+						Transaction transaction = null;
+						try
+						{
+							psbt = PSBT.Load(psbtBytes, Global.Network);
+						}
+						catch
+						{
+							var text = await File.ReadAllTextAsync(path);
+							text = text.Trim();
+							try
+							{
+								psbt = PSBT.Parse(text, Global.Network);
+							}
+							catch
+							{
+								transaction = Transaction.Parse(text, Global.Network);
+							}
+						}
+
+						if (psbt != null)
+						{
+							if (!psbt.IsAllFinalized())
+							{
+								psbt.Finalize();
+							}
+
+							TransactionString = psbt.ToBase64();
+						}
+						else
+						{
+							TransactionString = transaction.ToHex();
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					SetWarningMessage(ex.ToTypeMessageString());
+					Logging.Logger.LogError<TransactionBroadcasterViewModel>(ex);
+				}
+			}, outputScheduler: RxApp.MainThreadScheduler);
 
 			Observable.Merge(PasteCommand.ThrownExceptions)
 				.Merge(BroadcastTransactionCommand.ThrownExceptions)

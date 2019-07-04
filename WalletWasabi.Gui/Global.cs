@@ -683,11 +683,15 @@ namespace WalletWasabi.Gui
 			throw new NotSupportedException("This is impossible.");
 		}
 
-		public string GetNextHardwareWalletName(Hwi.Models.HardwareWalletInfo hwi)
+		public string GetNextHardwareWalletName(Hwi.Models.HardwareWalletInfo hwi = null, string customPrefix = null)
 		{
+			var prefix = customPrefix is null ?
+				(hwi is null ? "HardwareWallet" : hwi.Type.ToString())
+				: customPrefix;
+
 			for (int i = 0; i < int.MaxValue; i++)
 			{
-				var name = $"{hwi.Type}{i}";
+				var name = $"{prefix}{i}";
 				if (!File.Exists(Path.Combine(WalletsDir, $"{name}.json")))
 				{
 					return name;
