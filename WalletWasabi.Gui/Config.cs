@@ -201,7 +201,6 @@ namespace WalletWasabi.Gui
 		private int? _privacyLevelSome;
 		private int? _privacyLevelFine;
 		private int? _privacyLevelStrong;
-		private EndPoint _bitcoinCoreEndPoint;
 
 		public IPEndPoint GetTorSocks5EndPoint()
 		{
@@ -214,43 +213,99 @@ namespace WalletWasabi.Gui
 			return _torSocks5EndPoint;
 		}
 
-		public EndPoint GetBitcoinCoreEndPoint()
+		public void SetEndpoint(string host, int? port)
 		{
-			if (_bitcoinCoreEndPoint is null)
+			if (Network == Network.Main)
 			{
-				IPAddress ipHost;
-				string dnsHost = null;
-				int? port = null;
-				try
-				{
-					if (Network == Network.Main)
-					{
-						port = MainNetBitcoinCorePort;
-						dnsHost = MainNetBitcoinCoreHost;
-						ipHost = IPAddress.Parse(MainNetBitcoinCoreHost);
-					}
-					else if (Network == Network.TestNet)
-					{
-						port = TestNetBitcoinCorePort;
-						dnsHost = TestNetBitcoinCoreHost;
-						ipHost = IPAddress.Parse(TestNetBitcoinCoreHost);
-					}
-					else // if (Network == Network.RegTest)
-					{
-						port = RegTestBitcoinCorePort;
-						dnsHost = RegTestBitcoinCoreHost;
-						ipHost = IPAddress.Parse(RegTestBitcoinCoreHost);
-					}
+				MainNetBitcoinCoreHost = host;
+				MainNetBitcoinCorePort = port;
+			}
+			else if (Network == Network.TestNet)
+			{
+				TestNetBitcoinCoreHost = host;
+				TestNetBitcoinCorePort = port;
+			}
+			else if (Network == Network.RegTest)
+			{
+				RegTestBitcoinCoreHost = host;
+				RegTestBitcoinCorePort = port;
+			}
+			else
+			{
+				throw new NotSupportedException($"Unsupported Network");
+			}
+		}
 
-					_bitcoinCoreEndPoint = new IPEndPoint(ipHost, port ?? Network.DefaultPort);
-				}
-				catch
-				{
-					_bitcoinCoreEndPoint = new DnsEndPoint(dnsHost, port ?? Network.DefaultPort);
-				}
+		public (string Host, int Port) GetEndpoint()
+		{
+			var defaultHost = IPAddress.Loopback.ToString();
+			var host = defaultHost;
+			var port = Network.DefaultPort;
+			if (Network == Network.Main)
+			{
+				host = MainNetBitcoinCoreHost ?? host;
+				port = MainNetBitcoinCorePort ?? port;
+			}
+			else if (Network == Network.TestNet)
+			{
+				host = TestNetBitcoinCoreHost ?? host;
+				port = TestNetBitcoinCorePort ?? port;
+			}
+			else if (Network == Network.RegTest)
+			{
+				host = RegTestBitcoinCoreHost ?? host;
+				port = RegTestBitcoinCorePort ?? port;
+			}
+			else
+			{
+				throw new NotSupportedException($"Unsupported Network");
 			}
 
-			return _bitcoinCoreEndPoint;
+			if (!TryNormalizeP2PHost(host, out host))
+			{
+				host = defaultHost;
+			}
+			return (host, port);
+		}
+
+		public static bool TryNormalizeP2PHost(string host, out string result)
+		{
+			host = host.Trim();
+			if (Uri.TryCreate(host, UriKind.Absolute, out var uri))
+			{
+				if (!uri.Scheme.Equals("bitcoin-p2p", StringComparison.OrdinalIgnoreCase) &&
+					!uri.Scheme.Equals("tcp", StringComparison.OrdinalIgnoreCase))
+				{
+					result = string.Empty;
+					return false;
+				}
+				result = uri.Authority;
+				return true;
+			}
+			try
+			{
+				result = NBitcoin.Utils.ParseEndpoint(host, 9999).ToEndpointString();
+				return true;
+			}
+			catch
+			{
+				result = string.Empty;
+				return false;
+			}
+		}
+
+		public EndPoint GetBitcoinCoreEndPoint()
+		{
+			var endpoint = GetEndpoint();
+			try
+			{
+
+				return NBitcoin.Utils.ParseEndpoint(endpoint.Host, endpoint.Port);
+			}
+			catch
+			{
+				return new IPEndPoint(IPAddress.Loopback, endpoint.Port);
+			}
 		}
 
 		public Config()
@@ -372,7 +427,6 @@ namespace WalletWasabi.Gui
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
 			var newConfig = JsonConvert.DeserializeObject<JObject>(jsonString);
 			var currentConfig = JObject.FromObject(this);
-
 			return !JToken.DeepEquals(newConfig, currentConfig);
 		}
 

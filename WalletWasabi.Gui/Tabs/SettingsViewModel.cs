@@ -47,14 +47,9 @@ namespace WalletWasabi.Gui.Tabs
 				{
 					await config.LoadFileAsync();
 
-					var (configLocalHost, configLocalPort) = Network == NBitcoin.Network.Main.Name
-						? (config.MainNetBitcoinCoreHost, config.MainNetBitcoinCorePort)
-						: (Network == NBitcoin.Network.TestNet.Name
-							? (config.TestNetBitcoinCoreHost, config.TestNetBitcoinCorePort)
-							: (config.RegTestBitcoinCoreHost, config.RegTestBitcoinCorePort));
-
-					LocalNodeHost = configLocalHost;
-					LocalNodePort = configLocalPort.ToString();
+					var endpoint = config.GetEndpoint();
+					LocalNodeHost = endpoint.Host;
+					LocalNodePort = endpoint.Port.ToString();
 				});
 
 			this.WhenAnyValue(x => x.Network,
@@ -249,6 +244,7 @@ namespace WalletWasabi.Gui.Tabs
 					var network = NBitcoin.Network.GetNetwork(Network);
 					var torHost = TorHost;
 					var localNodeHost = LocalNodeHost;
+					Config.TryNormalizeP2PHost(localNodeHost, out localNodeHost);
 					var localNodePort = LocalNodePort;
 					var torSocks5Port = int.TryParse(TorPort, out var port) ? (int?)port : null;
 					var useTor = UseTor;
@@ -257,13 +253,11 @@ namespace WalletWasabi.Gui.Tabs
 					var strongPrivacyLevel = int.TryParse(StrongPrivacyLevel, out level) ? (int?)level : null;
 					var dustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? (decimal?)threshold : null;
 
-					var (configLocalHost, configLocalPort) = network == NBitcoin.Network.Main
-						? (config.MainNetBitcoinCoreHost, config.MainNetBitcoinCorePort)
-						: (network == NBitcoin.Network.TestNet
-							? (config.TestNetBitcoinCoreHost, config.TestNetBitcoinCorePort)
-							: (config.RegTestBitcoinCoreHost, config.RegTestBitcoinCorePort));
+					var currentNetwork = config.Network;
+					config.Network = network;
+					var (configLocalHost, configLocalPort) = config.GetEndpoint();
 
-					if (config.Network != network
+					if (currentNetwork != network
 						|| config.TorHost != torHost
 						|| config.TorSocks5Port != torSocks5Port
 						|| config.UseTor != useTor
@@ -275,7 +269,7 @@ namespace WalletWasabi.Gui.Tabs
 						|| configLocalPort.ToString() != localNodePort
 					)
 					{
-						config.Network = network;
+						
 						config.TorHost = torHost;
 						config.TorSocks5Port = torSocks5Port;
 						config.UseTor = useTor;
@@ -283,25 +277,7 @@ namespace WalletWasabi.Gui.Tabs
 						config.PrivacyLevelFine = finePrivacyLevel;
 						config.PrivacyLevelStrong = strongPrivacyLevel;
 						config.DustThreshold = Money.Coins(dustThreshold.Value);
-
-						switch (network.Name)
-						{
-							case "Main":
-								config.MainNetBitcoinCoreHost = localNodeHost;
-								config.MainNetBitcoinCorePort = int.Parse(localNodePort);
-								break;
-
-							case "TestNet":
-								config.TestNetBitcoinCoreHost = localNodeHost;
-								config.TestNetBitcoinCorePort = int.Parse(localNodePort);
-								break;
-
-							case "RegTest":
-								config.RegTestBitcoinCoreHost = localNodeHost;
-								config.RegTestBitcoinCorePort = int.Parse(localNodePort);
-								break;
-						}
-
+						config.SetEndpoint(localNodeHost, int.TryParse(localNodePort, out var p) ? new int?(p) : null);
 						await config.ToFileAsync();
 					}
 
@@ -311,10 +287,10 @@ namespace WalletWasabi.Gui.Tabs
 		}
 
 		public string ValidateTorHost()
-			=> ValidateHost(TorHost);
+			=> ValidateHost(TorHost, false);
 
 		public string ValidateLocalNodeHost()
-			=> ValidateHost(LocalNodeHost);
+			=> ValidateHost(LocalNodeHost, true);
 
 		public string ValidateTorPort()
 			=> ValidatePort(TorPort);
@@ -361,27 +337,42 @@ namespace WalletWasabi.Gui.Tabs
 			return "Invalid dust amount.";
 		}
 
-		public string ValidateHost(string host)
+		public string ValidateHost(string host, bool p2p)
 		{
 			if (string.IsNullOrWhiteSpace(host))
 			{
 				return string.Empty;
 			}
-
-			var theHost = host.Trim();
-			if (Uri.TryCreate(theHost, UriKind.Absolute, out _))
+			try
 			{
-				return string.Empty;
-			}
-			if (IPAddress.TryParse(theHost, out var ip))
-			{
-				if (ip.AddressFamily == AddressFamily.InterNetworkV6 && !Socket.OSSupportsIPv6)
+				if (p2p && !Config.TryNormalizeP2PHost(host, out host))
+				{
+					return "Invalid host";
+				}
+				
+				var endpoint = NBitcoin.Utils.ParseEndpoint(host, 9999);
+				if (endpoint.IsTor() && endpoint is DnsEndPoint dnsEndPoint)
+				{
+					try
+					{
+						var dnsHost = dnsEndPoint.Host;
+						NBitcoin.DataEncoders.Encoders.Base32.DecodeData(dnsHost.Remove(dnsHost.Length - ".onion".Length));
+					}
+					catch
+					{
+						return "Invalid onion host.";
+					}
+				}
+				if (endpoint is IPEndPoint ip &&
+					ip.Address.AddressFamily == AddressFamily.InterNetworkV6 &&
+					!endpoint.IsTor() && // Onioncat address would work even if the OS does not support IPv6
+					!Socket.OSSupportsIPv6)
 				{
 					return "OS does not support IPv6 addresses.";
 				}
 				return string.Empty;
 			}
-
+			catch { }
 			return "Invalid host.";
 		}
 
