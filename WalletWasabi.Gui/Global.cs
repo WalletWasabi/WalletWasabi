@@ -153,7 +153,7 @@ namespace WalletWasabi.Gui
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
 			var connectionParameters = new NodeConnectionParameters { UserAgent = "/Satoshi:0.18.0/" };
 
-			if (Config.UseTor.Value)
+			if (Config.UseTor)
 			{
 				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
 			}
@@ -187,7 +187,7 @@ namespace WalletWasabi.Gui
 
 			#region TorProcessInitialization
 
-			if (Config.UseTor.Value)
+			if (Config.UseTor)
 			{
 				TorManager = new TorProcessManager(Config.GetTorSocks5EndPoint(), TorLogsFile);
 			}
@@ -258,7 +258,7 @@ namespace WalletWasabi.Gui
 			}
 			else
 			{
-				if (Config.UseTor is true)
+				if (Config.UseTor)
 				{
 					// onlyForOnionHosts: false - Connect to clearnet IPs through Tor, too.
 					connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.GetTorSocks5EndPoint(), onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
@@ -324,7 +324,7 @@ namespace WalletWasabi.Gui
 					// of course).
 					// On the other side, increasing this number forces users that do not need to discover more peers
 					// to spend resources (CPU/bandwith) to discover new peers.
-					needsToDiscoverPeers = Config.UseTor is true || AddressManager.Count < 500;
+					needsToDiscoverPeers = Config.UseTor || AddressManager.Count < 500;
 					Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
 				}
 				catch (DirectoryNotFoundException ex)
@@ -407,7 +407,7 @@ namespace WalletWasabi.Gui
 					await Task.Delay(100, token);
 				}
 
-				if (Config.UseTor.Value)
+				if (Config.UseTor)
 				{
 					ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
 				}
@@ -425,7 +425,7 @@ namespace WalletWasabi.Gui
 					Logger.LogWarning(ex, nameof(Global));
 				}
 
-				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, MempoolService, Nodes, DataDir, Config.ServiceConfiguration);
+				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, MempoolService, Nodes, DataDir, Config.GetServiceConfiguration());
 
 				ChaumianClient.Start();
 				Logger.LogInfo("Start Chaumian CoinJoin service...");

@@ -2,6 +2,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -19,131 +20,120 @@ namespace WalletWasabi.Gui
 	[JsonObject(MemberSerialization.OptIn)]
 	public class Config : IConfig
 	{
+		public const int DefaultPrivacyLevelSome = 2;
+		public const int DefaultPrivacyLevelFine = 21;
+		public const int DefaultPrivacyLevelStrong = 50;
+		public const int DefaultMixUntilAnonymitySet = 50;
+		public const int DefaultTorSock5Port = 9050;
+		public static readonly Money DefaultDustThreshold = Money.Coins(0.0001m);
+
 		/// <inheritdoc />
 		public string FilePath { get; private set; }
 
 		[JsonProperty(PropertyName = "Network")]
 		[JsonConverter(typeof(NetworkJsonConverter))]
-		public Network Network { get; internal set; }
+		public Network Network
+		{
+			get
+			{
+				return _network ?? Network.Main;
+			}
+			internal set
+			{
+				_network = value;
+			}
+		}
+		private Network _network;
 
-		[JsonProperty(PropertyName = "MainNetBackendUriV3")]
+		[DefaultValue("http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/")]
+		[JsonProperty(PropertyName = "MainNetBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public string MainNetBackendUriV3 { get; private set; }
 
-		[JsonProperty(PropertyName = "TestNetBackendUriV3")]
+		[DefaultValue("http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/")]
+		[JsonProperty(PropertyName = "TestNetBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public string TestNetBackendUriV3 { get; private set; }
 
-		[JsonProperty(PropertyName = "MainNetFallbackBackendUri")]
+		[DefaultValue("https://wasabiwallet.io/")]
+		[JsonProperty(PropertyName = "MainNetFallbackBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public string MainNetFallbackBackendUri { get; private set; }
 
-		[JsonProperty(PropertyName = "TestNetFallbackBackendUri")]
+		[DefaultValue("https://wasabiwallet.co/")]
+		[JsonProperty(PropertyName = "TestNetFallbackBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public string TestNetFallbackBackendUri { get; private set; }
 
-		[JsonProperty(PropertyName = "RegTestBackendUriV3")]
+		[DefaultValue("http://localhost:37127/")]
+		[JsonProperty(PropertyName = "RegTestBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public string RegTestBackendUriV3 { get; private set; }
 
-		[JsonProperty(PropertyName = "UseTor")]
-		public bool? UseTor { get; internal set; }
+		[DefaultValue(true)]
+		[JsonProperty(PropertyName = "UseTor", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool UseTor { get; internal set; }
 
-		[JsonProperty(PropertyName = "TorHost")]
+		[DefaultValue("127.0.0.1")]
+		[JsonProperty(PropertyName = "TorHost", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public string TorHost { get; internal set; }
 
-		[JsonProperty(PropertyName = "TorSocks5Port")]
-		public int? TorSocks5Port { get; internal set; }
+		[DefaultValue(DefaultTorSock5Port)]
+		[JsonProperty(PropertyName = "TorSocks5Port", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int TorSocks5Port { get; internal set; }
 
-		[JsonProperty(PropertyName = "MainNetBitcoinCoreHost")]
+		[DefaultValue("127.0.0.1")]
+		[JsonProperty(PropertyName = "MainNetBitcoinCoreHost", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public string MainNetBitcoinCoreHost { get; internal set; }
 
-		[JsonProperty(PropertyName = "TestNetBitcoinCoreHost")]
+		[DefaultValue("127.0.0.1")]
+		[JsonProperty(PropertyName = "TestNetBitcoinCoreHost", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public string TestNetBitcoinCoreHost { get; internal set; }
 
-		[JsonProperty(PropertyName = "RegTestBitcoinCoreHost")]
+		[DefaultValue("127.0.0.1")]
+		[JsonProperty(PropertyName = "RegTestBitcoinCoreHost", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public string RegTestBitcoinCoreHost { get; internal set; }
 
-		[JsonProperty(PropertyName = "MainNetBitcoinCorePort")]
-		public int? MainNetBitcoinCorePort { get; internal set; }
+		[DefaultValue(8333)]
+		[JsonProperty(PropertyName = "MainNetBitcoinCorePort", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int MainNetBitcoinCorePort { get; internal set; }
 
-		[JsonProperty(PropertyName = "TestNetBitcoinCorePort")]
-		public int? TestNetBitcoinCorePort { get; internal set; }
+		[DefaultValue(18333)]
+		[JsonProperty(PropertyName = "TestNetBitcoinCorePort", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int TestNetBitcoinCorePort { get; internal set; }
 
-		[JsonProperty(PropertyName = "RegTestBitcoinCorePort")]
-		public int? RegTestBitcoinCorePort { get; internal set; }
+		[DefaultValue(18443)]
+		[JsonProperty(PropertyName = "RegTestBitcoinCorePort", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int RegTestBitcoinCorePort { get; internal set; }
 
-		[JsonProperty(PropertyName = "MixUntilAnonymitySet")]
-		public int? MixUntilAnonymitySet
-		{
-			get => _mixUntilAnonymitySet;
-			internal set
-			{
-				if (_mixUntilAnonymitySet != value)
-				{
-					_mixUntilAnonymitySet = value;
-					if (value.HasValue && ServiceConfiguration != default)
-					{
-						ServiceConfiguration.MixUntilAnonymitySet = value.Value;
-					}
-				}
-			}
-		}
+		[DefaultValue(DefaultMixUntilAnonymitySet)]
+		[JsonProperty(PropertyName = "MixUntilAnonymitySet", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int MixUntilAnonymitySet { get; internal set; }
 
-		[JsonProperty(PropertyName = "PrivacyLevelSome")]
-		public int? PrivacyLevelSome
-		{
-			get => _privacyLevelSome;
-			internal set
-			{
-				if (_privacyLevelSome != value)
-				{
-					_privacyLevelSome = value;
-					if (value.HasValue && ServiceConfiguration != default)
-					{
-						ServiceConfiguration.PrivacyLevelSome = value.Value;
-					}
-				}
-			}
-		}
+		[DefaultValue(DefaultPrivacyLevelSome)]
+		[JsonProperty(PropertyName = "PrivacyLevelSome", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int PrivacyLevelSome { get; internal set; }
 
-		[JsonProperty(PropertyName = "PrivacyLevelFine")]
-		public int? PrivacyLevelFine
-		{
-			get => _privacyLevelFine;
-			internal set
-			{
-				if (_privacyLevelFine != value)
-				{
-					_privacyLevelFine = value;
-					if (value.HasValue && ServiceConfiguration != default)
-					{
-						ServiceConfiguration.PrivacyLevelFine = value.Value;
-					}
-				}
-			}
-		}
+		[DefaultValue(DefaultPrivacyLevelFine)]
+		[JsonProperty(PropertyName = "PrivacyLevelFine", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int PrivacyLevelFine { get; internal set; }
 
-		[JsonProperty(PropertyName = "PrivacyLevelStrong")]
-		public int? PrivacyLevelStrong
-		{
-			get => _privacyLevelStrong;
-			internal set
-			{
-				if (_privacyLevelStrong != value)
-				{
-					_privacyLevelStrong = value;
-					if (value.HasValue && ServiceConfiguration != default)
-					{
-						ServiceConfiguration.PrivacyLevelStrong = value.Value;
-					}
-				}
-			}
-		}
+		[DefaultValue(DefaultPrivacyLevelStrong)]
+		[JsonProperty(PropertyName = "PrivacyLevelStrong", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int PrivacyLevelStrong { get; internal set; }
 
 		[JsonProperty(PropertyName = "DustThreshold")]
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
-		public Money DustThreshold { get; internal set; }
+		public Money DustThreshold
+		{
+			get
+			{
+				return _dustThreshold ?? DefaultDustThreshold;
+			}
+			internal set
+			{
+				_dustThreshold = value;
+			}
+		}
+		private Money _dustThreshold;
 
 		private Uri _backendUri;
 		private Uri _fallbackBackendUri;
-
-		public ServiceConfiguration ServiceConfiguration { get; private set; }
 
 		public Uri GetCurrentBackendUri()
 		{
@@ -197,10 +187,6 @@ namespace WalletWasabi.Gui
 		}
 
 		private IPEndPoint _torSocks5EndPoint;
-		private int? _mixUntilAnonymitySet;
-		private int? _privacyLevelSome;
-		private int? _privacyLevelFine;
-		private int? _privacyLevelStrong;
 
 		public IPEndPoint GetTorSocks5EndPoint()
 		{
@@ -218,17 +204,17 @@ namespace WalletWasabi.Gui
 			if (Network == Network.Main)
 			{
 				MainNetBitcoinCoreHost = host;
-				MainNetBitcoinCorePort = port;
+				MainNetBitcoinCorePort = port ?? Network.Main.DefaultPort;
 			}
 			else if (Network == Network.TestNet)
 			{
 				TestNetBitcoinCoreHost = host;
-				TestNetBitcoinCorePort = port;
+				TestNetBitcoinCorePort = port ?? Network.TestNet.DefaultPort;
 			}
 			else if (Network == Network.RegTest)
 			{
 				RegTestBitcoinCoreHost = host;
-				RegTestBitcoinCorePort = port;
+				RegTestBitcoinCorePort = port ?? Network.RegTest.DefaultPort;
 			}
 			else
 			{
@@ -244,34 +230,30 @@ namespace WalletWasabi.Gui
 			if (Network == Network.Main)
 			{
 				host = MainNetBitcoinCoreHost ?? host;
-				port = MainNetBitcoinCorePort ?? port;
+				port = MainNetBitcoinCorePort;
 			}
 			else if (Network == Network.TestNet)
 			{
 				host = TestNetBitcoinCoreHost ?? host;
-				port = TestNetBitcoinCorePort ?? port;
+				port = TestNetBitcoinCorePort;
 			}
 			else if (Network == Network.RegTest)
 			{
 				host = RegTestBitcoinCoreHost ?? host;
-				port = RegTestBitcoinCorePort ?? port;
+				port = RegTestBitcoinCorePort;
 			}
 			else
 			{
 				throw new NotSupportedException($"Unsupported Network");
 			}
-
-			if (!TryNormalizeP2PHost(host, out host))
-			{
-				host = defaultHost;
-			}
+			host = TryNormalizeP2PHost(host, out string normalized) ? normalized : defaultHost;
 			return (host, port);
 		}
 
 		public static bool TryNormalizeP2PHost(string host, out string result)
 		{
 			host = host.Trim();
-			if (Uri.TryCreate(host, UriKind.Absolute, out var uri))
+			if (Uri.TryCreate(host, UriKind.Absolute, out var uri) && uri.HostNameType != UriHostNameType.Unknown)
 			{
 				if (!uri.Scheme.Equals("bitcoin-p2p", StringComparison.OrdinalIgnoreCase) &&
 					!uri.Scheme.Equals("tcp", StringComparison.OrdinalIgnoreCase))
@@ -299,7 +281,6 @@ namespace WalletWasabi.Gui
 			var endpoint = GetEndpoint();
 			try
 			{
-
 				return NBitcoin.Utils.ParseEndpoint(endpoint.Host, endpoint.Port);
 			}
 			catch
@@ -334,31 +315,7 @@ namespace WalletWasabi.Gui
 		public async Task LoadOrCreateDefaultFileAsync()
 		{
 			AssertFilePathSet();
-
-			Network = Network.Main;
-
-			MainNetBackendUriV3 = "http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/";
-			TestNetBackendUriV3 = "http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/";
-			MainNetFallbackBackendUri = "https://wasabiwallet.io/";
-			TestNetFallbackBackendUri = "https://wasabiwallet.co/";
-			RegTestBackendUriV3 = "http://localhost:37127/";
-
-			UseTor = true;
-			TorHost = IPAddress.Loopback.ToString();
-			TorSocks5Port = 9050;
-
-			MainNetBitcoinCoreHost = IPAddress.Loopback.ToString();
-			TestNetBitcoinCoreHost = IPAddress.Loopback.ToString();
-			RegTestBitcoinCoreHost = IPAddress.Loopback.ToString();
-			MainNetBitcoinCorePort = Network.Main.DefaultPort;
-			TestNetBitcoinCorePort = Network.TestNet.DefaultPort;
-			RegTestBitcoinCorePort = Network.RegTest.DefaultPort;
-
-			MixUntilAnonymitySet = 50;
-			PrivacyLevelSome = 2;
-			PrivacyLevelFine = 21;
-			PrivacyLevelStrong = 50;
-			DustThreshold = Money.Coins(0.0001m);
+			JsonConvert.PopulateObject("{}", this);
 
 			if (!File.Exists(FilePath))
 			{
@@ -368,50 +325,29 @@ namespace WalletWasabi.Gui
 			{
 				await LoadFileAsync();
 			}
-
-			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint(), DustThreshold);
-
 			// Just debug convenience.
 			_backendUri = GetCurrentBackendUri();
-
 			await ToFileAsync();
+		}
+
+		public ServiceConfiguration GetServiceConfiguration()
+		{
+			return new ServiceConfiguration(MixUntilAnonymitySet, PrivacyLevelSome, PrivacyLevelFine, PrivacyLevelStrong, GetBitcoinCoreEndPoint(), DustThreshold);
 		}
 
 		public async Task LoadFileAsync()
 		{
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
 			var config = JsonConvert.DeserializeObject<Config>(jsonString);
-
-			Network = config.Network ?? Network;
-
-			MainNetBackendUriV3 = config.MainNetBackendUriV3 ?? MainNetBackendUriV3;
-			TestNetBackendUriV3 = config.TestNetBackendUriV3 ?? TestNetBackendUriV3;
-			MainNetFallbackBackendUri = config.MainNetFallbackBackendUri ?? MainNetFallbackBackendUri;
-			TestNetFallbackBackendUri = config.TestNetFallbackBackendUri ?? TestNetFallbackBackendUri;
-			RegTestBackendUriV3 = config.RegTestBackendUriV3 ?? RegTestBackendUriV3;
-
-			UseTor = config.UseTor ?? UseTor;
-			TorHost = config.TorHost ?? TorHost;
-			TorSocks5Port = config.TorSocks5Port ?? TorSocks5Port;
-
-			MainNetBitcoinCoreHost = config.MainNetBitcoinCoreHost ?? MainNetBitcoinCoreHost;
-			TestNetBitcoinCoreHost = config.TestNetBitcoinCoreHost ?? TestNetBitcoinCoreHost;
-			RegTestBitcoinCoreHost = config.RegTestBitcoinCoreHost ?? RegTestBitcoinCoreHost;
-			MainNetBitcoinCorePort = config.MainNetBitcoinCorePort ?? MainNetBitcoinCorePort;
-			TestNetBitcoinCorePort = config.TestNetBitcoinCorePort ?? TestNetBitcoinCorePort;
-			RegTestBitcoinCorePort = config.RegTestBitcoinCorePort ?? RegTestBitcoinCorePort;
-
-			MixUntilAnonymitySet = config.MixUntilAnonymitySet ?? MixUntilAnonymitySet;
-			PrivacyLevelSome = config.PrivacyLevelSome ?? PrivacyLevelSome;
-			PrivacyLevelFine = config.PrivacyLevelFine ?? PrivacyLevelFine;
-			PrivacyLevelStrong = config.PrivacyLevelStrong ?? PrivacyLevelStrong;
-
-			DustThreshold = config.DustThreshold ?? DustThreshold;
-
-			ServiceConfiguration = config.ServiceConfiguration ?? ServiceConfiguration;
-
+			JsonConvert.PopulateObject(jsonString, this);
 			// Just debug convenience.
 			_backendUri = GetCurrentBackendUri();
+		}
+
+		public void CopyFrom(Config config)
+		{
+			var configSerialized = JsonConvert.SerializeObject(config);
+			JsonConvert.PopulateObject(configSerialized, this);
 		}
 
 		/// <inheritdoc />
@@ -425,9 +361,15 @@ namespace WalletWasabi.Gui
 			}
 
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-			var newConfig = JsonConvert.DeserializeObject<JObject>(jsonString);
+			var newConfig = JsonConvert.DeserializeObject<Config>(jsonString);
+			return !AreDeepEqual(newConfig);
+		}
+
+		public bool AreDeepEqual(Config otherConfig)
+		{
 			var currentConfig = JObject.FromObject(this);
-			return !JToken.DeepEquals(newConfig, currentConfig);
+			var otherConfigJson = JObject.FromObject(otherConfig);
+			return JToken.DeepEquals(otherConfigJson, currentConfig);
 		}
 
 		/// <inheritdoc />
@@ -493,13 +435,13 @@ namespace WalletWasabi.Gui
 					return 0;
 
 				case TargetPrivacy.Some:
-					return PrivacyLevelSome.Value;
+					return PrivacyLevelSome;
 
 				case TargetPrivacy.Fine:
-					return PrivacyLevelFine.Value;
+					return PrivacyLevelFine;
 
 				case TargetPrivacy.Strong:
-					return PrivacyLevelStrong.Value;
+					return PrivacyLevelStrong;
 			}
 			return 0;
 		}

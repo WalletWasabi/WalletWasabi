@@ -38,19 +38,7 @@ namespace WalletWasabi.Gui.Tabs
 
 		public SettingsViewModel(Global global) : base(global, "Settings")
 		{
-			var config = new Config(Global.Config.FilePath);
 			Autocopy = Global.UiConfig?.Autocopy is true;
-
-			this.WhenAnyValue(x => x.Network)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(async _ =>
-				{
-					await config.LoadFileAsync();
-
-					var endpoint = config.GetEndpoint();
-					LocalNodeHost = endpoint.Host;
-					LocalNodePort = endpoint.Port.ToString();
-				});
 
 			this.WhenAnyValue(x => x.Network,
 				x => x.TorHost, x => x.TorPort, x => x.UseTor)
@@ -74,18 +62,23 @@ namespace WalletWasabi.Gui.Tabs
 
 			Dispatcher.UIThread.PostLogException(async () =>
 			{
+				var config = new Config(Global.Config.FilePath);
 				await config.LoadFileAsync();
 
 				Network = config.Network.ToString();
 				TorHost = config.TorHost;
 				TorPort = config.TorSocks5Port.ToString();
-				UseTor = config.UseTor.Value;
+				UseTor = config.UseTor;
 
 				SomePrivacyLevel = config.PrivacyLevelSome.ToString();
 				FinePrivacyLevel = config.PrivacyLevelFine.ToString();
 				StrongPrivacyLevel = config.PrivacyLevelStrong.ToString();
 
 				DustThreshold = config.DustThreshold.ToString();
+
+				var endpoint = config.GetEndpoint();
+				LocalNodeHost = endpoint.Host;
+				LocalNodePort = endpoint.Port.ToString();
 
 				IsModified = await Global.Config.CheckFileChangeAsync();
 			});
@@ -234,7 +227,6 @@ namespace WalletWasabi.Gui.Tabs
 			}
 
 			var config = new Config(Global.Config.FilePath);
-
 			Dispatcher.UIThread.PostLogException(async () =>
 			{
 				using (await ConfigLock.LockAsync())
@@ -242,46 +234,29 @@ namespace WalletWasabi.Gui.Tabs
 					await config.LoadFileAsync();
 
 					var network = NBitcoin.Network.GetNetwork(Network);
-					var torHost = TorHost;
-					var localNodeHost = LocalNodeHost;
-					Config.TryNormalizeP2PHost(localNodeHost, out localNodeHost);
-					var localNodePort = LocalNodePort;
-					var torSocks5Port = int.TryParse(TorPort, out var port) ? (int?)port : null;
-					var useTor = UseTor;
-					var somePrivacyLevel = int.TryParse(SomePrivacyLevel, out int level) ? (int?)level : null;
-					var finePrivacyLevel = int.TryParse(FinePrivacyLevel, out level) ? (int?)level : null;
-					var strongPrivacyLevel = int.TryParse(StrongPrivacyLevel, out level) ? (int?)level : null;
-					var dustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? (decimal?)threshold : null;
-
-					var currentNetwork = config.Network;
-					config.Network = network;
-					var (configLocalHost, configLocalPort) = config.GetEndpoint();
-
-					if (currentNetwork != network
-						|| config.TorHost != torHost
-						|| config.TorSocks5Port != torSocks5Port
-						|| config.UseTor != useTor
-						|| config.PrivacyLevelSome != somePrivacyLevel
-						|| config.PrivacyLevelFine != finePrivacyLevel
-						|| config.PrivacyLevelStrong != strongPrivacyLevel
-						|| config.DustThreshold.ToUnit(MoneyUnit.BTC) != dustThreshold
-						|| configLocalHost != localNodeHost
-						|| configLocalPort.ToString() != localNodePort
-					)
+					if (network == config.Network)
 					{
-						
-						config.TorHost = torHost;
-						config.TorSocks5Port = torSocks5Port;
-						config.UseTor = useTor;
-						config.PrivacyLevelSome = somePrivacyLevel;
-						config.PrivacyLevelFine = finePrivacyLevel;
-						config.PrivacyLevelStrong = strongPrivacyLevel;
-						config.DustThreshold = Money.Coins(dustThreshold.Value);
-						config.SetEndpoint(localNodeHost, int.TryParse(localNodePort, out var p) ? new int?(p) : null);
-						await config.ToFileAsync();
-					}
+						config.TorHost = TorHost;
+						config.TorSocks5Port = int.TryParse(TorPort, out var port) ? port : Config.DefaultTorSock5Port;
+						config.UseTor = UseTor;
+						config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? Money.Coins(threshold) : Config.DefaultDustThreshold;
+						config.PrivacyLevelSome = int.TryParse(SomePrivacyLevel, out int level) ? level : Config.DefaultPrivacyLevelSome;
+						config.PrivacyLevelStrong = int.TryParse(StrongPrivacyLevel, out level) ? level : Config.DefaultPrivacyLevelStrong;
+						config.PrivacyLevelFine = int.TryParse(FinePrivacyLevel, out level) ? level : Config.DefaultPrivacyLevelFine;
 
-					IsModified = await Global.Config.CheckFileChangeAsync();
+						var localNodeHost = LocalNodeHost;
+						Config.TryNormalizeP2PHost(localNodeHost, out localNodeHost);
+						config.SetEndpoint(localNodeHost, int.TryParse(LocalNodePort, out var p) ? new int?(p) : null);
+					}
+					else
+					{
+						config.Network = network;
+						var endpoint = config.GetEndpoint();
+						LocalNodeHost = endpoint.Host;
+						LocalNodePort = endpoint.Port.ToString();
+					}
+					await config.ToFileAsync();
+					IsModified = !Global.Config.AreDeepEqual(config);
 				}
 			});
 		}
