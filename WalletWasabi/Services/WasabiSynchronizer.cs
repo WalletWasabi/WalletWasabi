@@ -274,10 +274,6 @@ namespace WalletWasabi.Services
 
 								ignoreRequestInterval = true;
 							}
-							else if (response.FiltersResponseState == FiltersResponseState.NoNewFilter)
-							{
-								// We are synced.
-							}
 
 							LastResponse = response;
 							ResponseArrived?.Invoke(this, response);
