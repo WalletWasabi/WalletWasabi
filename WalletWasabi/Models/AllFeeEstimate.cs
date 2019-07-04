@@ -41,9 +41,9 @@ namespace WalletWasabi.Models
 
 		public Money GetFeeRate(int feeTarget)
 		{
+			// Where the target is still under or equals to the the requested target.
 			int satoshiPerByte = Estimations
-				.Where(x => x.Key <= feeTarget) // Where the target is still under or equals to the the requested target.
-				.Last() // The last should be the largest feeTarget.
+				.Last(x => x.Key <= feeTarget) // The last should be the largest feeTarget.
 				.Value;
 
 			return Money.Satoshis(satoshiPerByte);
