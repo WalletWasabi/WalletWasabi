@@ -1,4 +1,4 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using Newtonsoft.Json;
 using ReactiveUI;
 using System;
@@ -94,13 +94,13 @@ namespace WalletWasabi.Gui
 			Autocopy = true;
 			LurkingWifeMode = false;
 
-			if (!File.Exists(FilePath))
+			if (File.Exists(FilePath))
 			{
-				Logging.Logger.LogInfo<Config>($"{nameof(Config)} file did not exist. Created at path: `{FilePath}`.");
+				await LoadFileAsync();
 			}
 			else
 			{
-				await LoadFileAsync();
+				Logging.Logger.LogInfo<Config>($"{nameof(Config)} file did not exist. Created at path: `{FilePath}`.");
 			}
 
 			await ToFileAsync();
@@ -133,42 +133,20 @@ namespace WalletWasabi.Gui
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
 			var config = JsonConvert.DeserializeObject<UiConfig>(jsonString);
 
-			if (WindowState != config.WindowState)
+			if (WindowState == config.WindowState
+				&& Height == config.Height
+				&& Width == config.Width
+				&& FeeTarget == config.FeeTarget
+				&& FeeDisplayFormat == config.FeeDisplayFormat
+				&& Autocopy == config.Autocopy
+				&& LurkingWifeMode == config.LurkingWifeMode)
+			{
+				return false;
+			}
+			else
 			{
 				return true;
 			}
-
-			if (Height != config.Height)
-			{
-				return true;
-			}
-
-			if (Width != config.Width)
-			{
-				return true;
-			}
-
-			if (FeeTarget != config.FeeTarget)
-			{
-				return true;
-			}
-
-			if (FeeDisplayFormat != config.FeeDisplayFormat)
-			{
-				return true;
-			}
-
-			if (Autocopy != config.Autocopy)
-			{
-				return true;
-			}
-
-			if (LurkingWifeMode != config.LurkingWifeMode)
-			{
-				return true;
-			}
-
-			return false;
 		}
 
 		/// <inheritdoc />

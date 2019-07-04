@@ -114,16 +114,16 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			DosNoteBeforeBan = true;
 			MaximumMixingLevelCount = 11;
 
-			if (!File.Exists(FilePath))
-			{
-				Logger.LogInfo<CcjRoundConfig>($"{nameof(CcjRoundConfig)} file did not exist. Created at path: `{FilePath}`.");
-			}
-			else
+			if (File.Exists(FilePath))
 			{
 				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
 				var config = JsonConvert.DeserializeObject<CcjRoundConfig>(jsonString);
 
 				UpdateOrDefault(config);
+			}
+			else
+			{
+				Logger.LogInfo<CcjRoundConfig>($"{nameof(CcjRoundConfig)} file did not exist. Created at path: `{FilePath}`.");
 			}
 
 			await ToFileAsync();
