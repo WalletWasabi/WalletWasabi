@@ -110,14 +110,7 @@ namespace WalletWasabi.Backend
 					finally
 					{
 						LocalNode = null;
-						try
-						{
-							Logger.LogInfo<WalletService>("Local Bitcoin Node is disconnected.");
-						}
-						catch (Exception)
-						{
-							throw;
-						}
+						Logger.LogInfo<WalletService>("Local Bitcoin Node is disconnected.");
 					}
 				}
 			}

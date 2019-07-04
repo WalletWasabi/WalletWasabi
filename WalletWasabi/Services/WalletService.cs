@@ -972,14 +972,7 @@ namespace WalletWasabi.Services
 					finally
 					{
 						LocalBitcoinCoreNode = null;
-						try
-						{
-							Logger.LogInfo<WalletService>("Local Bitcoin Core disconnected.");
-						}
-						catch (Exception)
-						{
-							throw;
-						}
+						Logger.LogInfo<WalletService>("Local Bitcoin Core disconnected.");
 					}
 				}
 			}
