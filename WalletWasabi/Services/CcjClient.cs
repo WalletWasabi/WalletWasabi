@@ -1081,9 +1081,8 @@ namespace WalletWasabi.Services
 					catch (Exception ex)
 					{
 						Logger.LogError<CcjClient>("Couldn't dequeue all coins. Some coins will likely be banned from mixing.");
-						if (ex is AggregateException)
+						if (ex is AggregateException aggrEx)
 						{
-							var aggrEx = ex as AggregateException;
 							foreach (var innerEx in aggrEx.InnerExceptions)
 							{
 								Logger.LogError<CcjClient>(innerEx);
