@@ -343,14 +343,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.ConnectingToHardwareWallet);
 							// The user may changed USB port. Try again with new enumeration.
 							var refRes = await TryRefreshHardwareWalletInfoAsync(KeyManager);
-							if (!refRes.success)
+							if (refRes.success)
+							{
+								MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.AcquiringSignatureFromHardwareWallet);
+								signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
+							}
+							else
 							{
 								SetWarningMessage(refRes.error);
 								return;
 							}
-
-							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.AcquiringSignatureFromHardwareWallet);
-							signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
 						}
 						finally
 						{
@@ -753,14 +755,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private async Task DoDequeueAsync(IEnumerable<CoinViewModel> selectedCoins)
 		{
-			if (!selectedCoins.Any())
+			if (selectedCoins.Any())
 			{
-				SetWarningMessage("No coins are selected to dequeue.");
-				return;
+				SetWarningMessage("");
 			}
 			else
 			{
-				SetWarningMessage("");
+				SetWarningMessage("No coins are selected to dequeue.");
+				return;
 			}
 
 			try
@@ -911,23 +913,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			var enteredWordList = words.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim());
 			var lastWord = enteredWordList?.LastOrDefault()?.Replace("\t", "") ?? "";
+			if (lastWord.Any())
+			{
+				string[] nonSpecialLabels = Global.WalletService.GetNonSpecialLabels().ToArray();
+				IEnumerable<string> suggestedWords = nonSpecialLabels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
+					.Union(nonSpecialLabels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
+					.Except(enteredWordList)
+					.Take(3);
 
-			if (!lastWord.Any())
+				Suggestions.Clear();
+				foreach (var suggestion in suggestedWords)
+				{
+					Suggestions.Add(new SuggestionViewModel(suggestion, OnAddWord));
+				}
+			}
+			else
 			{
 				Suggestions.Clear();
-				return;
-			}
-
-			string[] nonSpecialLabels = Global.WalletService.GetNonSpecialLabels().ToArray();
-			IEnumerable<string> suggestedWords = nonSpecialLabels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
-				.Union(nonSpecialLabels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
-				.Except(enteredWordList)
-				.Take(3);
-
-			Suggestions.Clear();
-			foreach (var suggestion in suggestedWords)
-			{
-				Suggestions.Add(new SuggestionViewModel(suggestion, OnAddWord));
 			}
 		}
 
