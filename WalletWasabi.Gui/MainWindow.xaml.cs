@@ -103,15 +103,15 @@ namespace WalletWasabi.Gui
 					Global.ChaumianClient.IsQuitPending = true; // indicate -> do not add any more alices to the coinjoin
 				}
 
-				if (!MainWindowViewModel.Instance.CanClose)
+				if (MainWindowViewModel.Instance.CanClose)
+				{
+					closeApplication = true;
+				}
+				else
 				{
 					var dialog = new CannotCloseDialogViewModel(Global);
 
 					closeApplication = await MainWindowViewModel.Instance.ShowDialogAsync(dialog); // start the deque process with a dialog
-				}
-				else
-				{
-					closeApplication = true;
 				}
 
 				if (closeApplication)
