@@ -1,4 +1,4 @@
-﻿namespace Gma.QrCodeNet.Encoding.Versions
+namespace Gma.QrCodeNet.Encoding.Versions
 {
 	public static class VersionTable
 	{
@@ -14,13 +14,13 @@
 
 		internal static QRCodeVersion GetVersionByWidth(int matrixWidth)
 		{
-			if ((matrixWidth - 17) % 4 != 0)
+			if ((matrixWidth - 17) % 4 == 0)
 			{
-				throw new System.ArgumentException("Incorrect matrix width");
+				return GetVersionByNum((matrixWidth - 17) / 4);
 			}
 			else
 			{
-				return GetVersionByNum((matrixWidth - 17) / 4);
+				throw new System.ArgumentException("Incorrect matrix width");
 			}
 		}
 
