@@ -35,7 +35,7 @@ namespace WalletWasabi.Gui.Converters
 
 namespace WalletWasabi.Gui.Converters
 {
-	public static class BoolConverters
+	public static class BooleanConverters
 	{
 		public static readonly IValueConverter Not =
 			new FuncValueConverter<bool, bool>(x => !x);
