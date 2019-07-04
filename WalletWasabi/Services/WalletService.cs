@@ -340,7 +340,7 @@ namespace WalletWasabi.Services
 									}
 								}
 
-								if (cnt != unconfirmedTransactions.Count())
+								if (cnt != unconfirmedTransactions.Length)
 								{
 									SerializeTransactionCache();
 								}
