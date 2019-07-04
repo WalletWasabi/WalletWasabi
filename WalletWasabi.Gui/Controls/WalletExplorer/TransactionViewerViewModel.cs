@@ -67,7 +67,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						Title = "Export Binary PSBT"
 					};
 
-					string fileFullName = await sfd.ShowAsync(Application.Current.MainWindow);
+					string fileFullName = await sfd.ShowAsync(Application.Current.MainWindow, fallBack: true);
 					if (!string.IsNullOrWhiteSpace(fileFullName))
 					{
 						var ext = Path.GetExtension(fileFullName);

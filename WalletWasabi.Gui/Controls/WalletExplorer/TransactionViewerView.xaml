@@ -11,7 +11,13 @@
   <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
     <DockPanel LastChildFill="True">
       <Grid Classes="content" DockPanel.Dock="Bottom">
-        <Button HorizontalAlignment="Right" Command="{Binding ExportBinaryPsbtCommand}" Content="Export Binary PSBT" />
+        <DockPanel LastChildFill="True">
+          <Button DockPanel.Dock="Right" Command="{Binding ExportBinaryPsbtCommand}" Content="Export Binary PSBT" />
+          <StackPanel Orientation="Vertical">
+            <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
+            <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
+          </StackPanel>
+        </DockPanel>
       </Grid>
       <Grid Classes="content" ScrollViewer.VerticalScrollBarVisibility="Auto">
 

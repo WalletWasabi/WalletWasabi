@@ -11,7 +11,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Dialogs
 {
-	internal class CannotCloseDialogViewModel : ModalDialogViewModelBase
+	public class CannotCloseDialogViewModel : ModalDialogViewModelBase
 	{
 		private bool _isBusy;
 		private string _warningMessage;
@@ -63,8 +63,7 @@ namespace WalletWasabi.Gui.Dialogs
 				}
 				// OK pressed.
 				Close(false);
-			},
-			canOk);
+			}, canOk);
 
 			CancelCommand = ReactiveCommand.CreateFromTask(async () =>
 			{

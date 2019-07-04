@@ -19,6 +19,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls.WalletExplorer;
+using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
@@ -106,7 +107,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						AllowMultiple = false,
 						Title = "Import Coldcard"
 					};
-					var selected = await ofd.ShowAsync(Application.Current.MainWindow);
+					var selected = await ofd.ShowAsync(Application.Current.MainWindow, fallBack: true);
 					if (selected != null && selected.Any())
 					{
 						var path = selected.First();

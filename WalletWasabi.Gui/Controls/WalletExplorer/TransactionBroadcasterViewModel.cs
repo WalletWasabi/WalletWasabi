@@ -82,7 +82,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						Title = "Import Transaction"
 					};
 
-					var selected = await ofd.ShowAsync(Application.Current.MainWindow);
+					var selected = await ofd.ShowAsync(Application.Current.MainWindow, fallBack: true);
 					if (selected != null && selected.Any())
 					{
 						var path = selected.First();
