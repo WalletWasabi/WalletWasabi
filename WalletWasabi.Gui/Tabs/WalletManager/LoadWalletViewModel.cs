@@ -145,7 +145,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				catch (Exception ex)
 				{
 					SetWarningMessage(ex.ToTypeMessageString());
-					Logger.LogError<TransactionBroadcasterViewModel>(ex);
+					Logger.LogError<LoadWalletViewModel>(ex);
 				}
 			}, outputScheduler: RxApp.MainThreadScheduler);
 
