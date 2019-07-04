@@ -469,7 +469,7 @@ namespace WalletWasabi.Gui
 					$"Wallet Filepath: {walletFullPath}\n" +
 					$"Trying to recover it from backup.\n" +
 					$"Backup path: {walletBackupFullPath}\n" +
-					$"Exception: {ex.ToString()}");
+					$"Exception: {ex}");
 				if (File.Exists(walletFullPath))
 				{
 					string corruptedWalletBackupPath = Path.Combine(WalletBackupsDir, $"{Path.GetFileName(walletFullPath)}_CorruptedBackup");

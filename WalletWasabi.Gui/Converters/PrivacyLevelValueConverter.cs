@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (!Cache.TryGetValue(icon, out var image))
 			{
-				if (Application.Current.Styles.TryGetResource(icon.ToString(), out object resource))
+				if (Application.Current.Styles.TryGetResource(icon, out object resource))
 				{
 					image = resource as DrawingGroup;
 					Cache.Add(icon, image);
