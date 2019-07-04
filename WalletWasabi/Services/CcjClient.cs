@@ -144,28 +144,26 @@ namespace WalletWasabi.Services
 							{
 								await DequeueSpentCoinsFromMixNoLockAsync();
 
-								// If stop was requested return.
-								if (!IsRunning)
+								// If stop was not requested.
+								if (IsRunning)
 								{
-									return;
-								}
+									// if mixing >= connConf
+									if (State.GetActivelyMixingRounds().Any())
+									{
+										int delaySeconds = new Random().Next(2, 7);
+										Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromSeconds(delaySeconds);
+									}
+									else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || State.GetPassivelyMixingRounds().Any() || State.GetWaitingListCount() > 0)
+									{
+										double rand = double.Parse($"0.{new Random().Next(2, 6)}"); // randomly between every 0.2 * connConfTimeout - 7 and 0.6 * connConfTimeout
+										int delaySeconds = Math.Max(0, (int)(rand * State.GetSmallestRegistrationTimeout() - 7));
 
-								// if mixing >= connConf
-								if (State.GetActivelyMixingRounds().Any())
-								{
-									int delaySeconds = new Random().Next(2, 7);
-									Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromSeconds(delaySeconds);
-								}
-								else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || State.GetPassivelyMixingRounds().Any() || State.GetWaitingListCount() > 0)
-								{
-									double rand = double.Parse($"0.{new Random().Next(2, 6)}"); // randomly between every 0.2 * connConfTimeout - 7 and 0.6 * connConfTimeout
-									int delaySeconds = Math.Max(0, (int)(rand * State.GetSmallestRegistrationTimeout() - 7));
-
-									Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromSeconds(delaySeconds);
-								}
-								else // dormant
-								{
-									Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromMinutes(3);
+										Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromSeconds(delaySeconds);
+									}
+									else // dormant
+									{
+										Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromMinutes(3);
+									}
 								}
 							}
 						}
@@ -852,20 +850,22 @@ namespace WalletWasabi.Services
 
 		private string SaltSoup()
 		{
-			if (!HasIngredients)
+			if (HasIngredients)
+			{
+				string res;
+				lock (RefrigeratorLock)
+				{
+					res = StringCipher.Decrypt(Soup, Salt);
+				}
+
+				Cook(res);
+
+				return res;
+			}
+			else
 			{
 				return null;
 			}
-
-			string res;
-			lock (RefrigeratorLock)
-			{
-				res = StringCipher.Decrypt(Soup, Salt);
-			}
-
-			Cook(res);
-
-			return res;
 		}
 
 		private void Cook(string ingredients)
@@ -996,14 +996,13 @@ namespace WalletWasabi.Services
 
 					if (round.CoinsRegistered.Contains(coinToDequeue))
 					{
-						if (!coinToDequeue.Unspent) // If coin was spent, well that sucks, except if it was spent by the tumbler in signing phase.
-						{
-							State.ClearRoundRegistration(round.State.RoundId);
-							continue;
-						}
-						else
+						if (coinToDequeue.Unspent)
 						{
 							exceptions.Add(new NotSupportedException($"Cannot deque coin in {round.State.Phase} phase. Coin: {coinToDequeue.Index}:{coinToDequeue.TransactionId}."));
+						}
+						else // If coin was spent, well that sucks, except if it was spent by the tumbler in signing phase.
+						{
+							State.ClearRoundRegistration(round.State.RoundId);
 						}
 					}
 				}

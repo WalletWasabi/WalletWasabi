@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.Protocol;
 using System;
 using System.Collections.Generic;
@@ -110,29 +110,27 @@ namespace WalletWasabi.Services
 			// This function is designed to prevent forever growing mempool.
 			try
 			{
-				if (!TransactionHashes.Any())
+				if (TransactionHashes.Any())
 				{
-					return true; // There's nothing to cleanup.
-				}
-
-				Logger.LogInfo<MemPoolService>("Start cleaning out mempool...");
-				using (var client = new WasabiClient(destAction, torSocks))
-				{
-					var compactness = 10;
-					var allMempoolHashes = await client.GetMempoolHashesAsync(compactness);
-
-					var toRemove = TransactionHashes.Where(x => !allMempoolHashes.Contains(x.ToString().Substring(0, compactness)));
-
-					int removedTxCount = 0;
-					foreach (uint256 tx in toRemove)
+					Logger.LogInfo<MemPoolService>("Start cleaning out mempool...");
+					using (var client = new WasabiClient(destAction, torSocks))
 					{
-						if (TransactionHashes.TryRemove(tx))
-						{
-							removedTxCount++;
-						}
-					}
+						var compactness = 10;
+						var allMempoolHashes = await client.GetMempoolHashesAsync(compactness);
 
-					Logger.LogInfo<MemPoolService>($"{removedTxCount} transactions were cleaned from mempool.");
+						var toRemove = TransactionHashes.Where(x => !allMempoolHashes.Contains(x.ToString().Substring(0, compactness)));
+
+						int removedTxCount = 0;
+						foreach (uint256 tx in toRemove)
+						{
+							if (TransactionHashes.TryRemove(tx))
+							{
+								removedTxCount++;
+							}
+						}
+
+						Logger.LogInfo<MemPoolService>($"{removedTxCount} transactions were cleaned from mempool.");
+					}
 				}
 
 				return true;

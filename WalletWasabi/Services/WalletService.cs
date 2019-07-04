@@ -381,16 +381,14 @@ namespace WalletWasabi.Services
 			}
 
 			var matchFound = filterModel.Filter.MatchAny(KeyManager.GetPubKeyScriptBytes(), filterModel.FilterKey);
-			if (!matchFound)
+			if (matchFound)
 			{
-				return;
-			}
+				Block currentBlock = await GetOrDownloadBlockAsync(filterModel.BlockHash, cancel); // Wait until not downloaded.
 
-			Block currentBlock = await GetOrDownloadBlockAsync(filterModel.BlockHash, cancel); // Wait until not downloaded.
-
-			if (await ProcessBlockAsync(filterModel.BlockHeight, currentBlock))
-			{
-				SerializeTransactionCache();
+				if (await ProcessBlockAsync(filterModel.BlockHeight, currentBlock))
+				{
+					SerializeTransactionCache();
+				}
 			}
 		}
 
@@ -545,21 +543,23 @@ namespace WalletWasabi.Services
 			if (tx.Confirmed)
 			{
 				MemPool.TransactionHashes.TryRemove(txId); // If we have in mempool, remove.
-				if (!tx.Transaction.PossiblyP2WPKHInvolved())
+				if (tx.Transaction.PossiblyP2WPKHInvolved())
+				{
+					bool isFoundTx = TransactionCache.Contains(tx); // If we have in cache, update height.
+					if (isFoundTx)
+					{
+						SmartTransaction foundTx = TransactionCache.FirstOrDefault(x => x == tx);
+						if (foundTx != default(SmartTransaction)) // Must check again, because it's a concurrent collection!
+						{
+							foundTx.SetHeight(tx.Height, tx.BlockHash, tx.BlockIndex);
+							walletRelevant = true;
+							justUpdate = true; // No need to check for double spend, we already processed this transaction, just update it.
+						}
+					}
+				}
+				else
 				{
 					return false; // We don't care about non-witness transactions for other than mempool cleanup.
-				}
-
-				bool isFoundTx = TransactionCache.Contains(tx); // If we have in cache, update height.
-				if (isFoundTx)
-				{
-					SmartTransaction foundTx = TransactionCache.FirstOrDefault(x => x == tx);
-					if (foundTx != default(SmartTransaction)) // Must check again, because it's a concurrent collection!
-					{
-						foundTx.SetHeight(tx.Height, tx.BlockHash, tx.BlockIndex);
-						walletRelevant = true;
-						justUpdate = true; // No need to check for double spend, we already processed this transaction, just update it.
-					}
 				}
 			}
 			else if (!tx.Transaction.PossiblyP2WPKHInvolved())
@@ -742,25 +742,26 @@ namespace WalletWasabi.Services
 				foreach (var filePath in Directory.EnumerateFiles(BlocksFolderPath))
 				{
 					var fileName = Path.GetFileName(filePath);
-					if (!encoder.IsValid(fileName))
+					if (encoder.IsValid(fileName))
+					{
+						if (hash == new uint256(fileName))
+						{
+							var blockBytes = await File.ReadAllBytesAsync(filePath);
+							try
+							{
+								return Block.Load(blockBytes, Synchronizer.Network);
+							}
+							catch (Exception)
+							{
+								// In case the block file is corrupted we get an EndOfStreamException exception
+								// Ignore any error and continue by re-downloading the block.
+								break;
+							}
+						}
+					}
+					else
 					{
 						Logger.LogTrace<WalletService>($"Filename is not a hash: {fileName}.");
-						continue;
-					}
-
-					if (hash == new uint256(fileName))
-					{
-						var blockBytes = await File.ReadAllBytesAsync(filePath);
-						try
-						{
-							return Block.Load(blockBytes, Synchronizer.Network);
-						}
-						catch (Exception)
-						{
-							// In case the block file is corrupted we get an EndOfStreamException exception
-							// Ignore any error and continue by re-downloading the block.
-							break;
-						}
 					}
 				}
 			}
@@ -840,7 +841,7 @@ namespace WalletWasabi.Services
 
 							if (!blockFromLocalNode.Check())
 							{
-								throw new InvalidOperationException($"Disconnected node, because invalid block received!");
+								throw new InvalidOperationException($"Disconnected node, because block invalid block received!");
 							}
 
 							block = blockFromLocalNode;
@@ -891,7 +892,7 @@ namespace WalletWasabi.Services
 
 							if (!block.Check())
 							{
-								Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.");
+								Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because block invalid block received.");
 								node.DisconnectAsync("Invalid block received.");
 								continue;
 							}
@@ -1600,16 +1601,14 @@ namespace WalletWasabi.Services
 
 		private void SerializeTransactionCache()
 		{
-			if (!UnconfirmedTransactionsInitialized) // If unconfirmed ones are not yet initialized, then don't serialize because unconfirmed are going to be lost.
+			if (UnconfirmedTransactionsInitialized)
 			{
-				return;
+				IoHelpers.EnsureContainingDirectoryExists(TransactionsFilePath);
+				string jsonString = JsonConvert.SerializeObject(TransactionCache.OrderByBlockchain(), Formatting.Indented);
+				File.WriteAllText(TransactionsFilePath,
+					jsonString,
+					Encoding.UTF8);
 			}
-
-			IoHelpers.EnsureContainingDirectoryExists(TransactionsFilePath);
-			string jsonString = JsonConvert.SerializeObject(TransactionCache.OrderByBlockchain(), Formatting.Indented);
-			File.WriteAllText(TransactionsFilePath,
-				jsonString,
-				Encoding.UTF8);
 		}
 
 		/// <summary>
