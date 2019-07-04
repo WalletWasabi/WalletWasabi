@@ -153,7 +153,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			LoadCommand.ThrownExceptions.Subscribe(Logger.LogWarning<LoadWalletViewModel>);
 			TestPasswordCommand.ThrownExceptions.Subscribe(Logger.LogWarning<LoadWalletViewModel>);
 			OpenFolderCommand.ThrownExceptions.Subscribe(Logger.LogWarning<LoadWalletViewModel>);
-			ImportColdcardCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning<LoadWalletViewModel>(ex));
+			ImportColdcardCommand.ThrownExceptions.Subscribe(Logger.LogWarning<LoadWalletViewModel>);
 
 			SetLoadButtonText();
 
