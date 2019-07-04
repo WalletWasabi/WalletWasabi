@@ -19,7 +19,6 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private bool _isExpanded;
 		private bool[,] _qrCode;
-		private bool[,] _qrCodeBacking;
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
 		private string _label;
@@ -42,11 +41,11 @@ namespace WalletWasabi.Gui.ViewModels
 				{
 					try
 					{
-						if (x == true && QrCodeBacking is null)
+						if (x == true && QrCode is null)
 						{
 							var encoder = new QrEncoder();
 							encoder.TryEncode(Address, out var qrCode);
-							QrCodeBacking = qrCode.Matrix.InternalArray;
+							Dispatcher.UIThread.PostLogException(() => QrCode = qrCode.Matrix.InternalArray);
 						}
 					}
 					catch (Exception ex)
@@ -54,10 +53,6 @@ namespace WalletWasabi.Gui.ViewModels
 						Logging.Logger.LogError<AddressViewModel>(ex);
 					}
 				});
-
-			this.WhenAnyValue(x => x.QrCodeBacking)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => QrCode = x);
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
@@ -130,12 +125,6 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			get => _qrCode;
 			set => this.RaiseAndSetIfChanged(ref _qrCode, value);
-		}
-
-		public bool[,] QrCodeBacking
-		{
-			get => _qrCodeBacking;
-			set => this.RaiseAndSetIfChanged(ref _qrCodeBacking, value);
 		}
 
 		public CancellationTokenSource CancelClipboardNotification { get; set; }

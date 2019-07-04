@@ -401,6 +401,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						// 7. Shuffle. NBitcoin's shuffle doesn't work: https://github.com/MetacoSA/NBitcoin/issues/713
 						transaction.Inputs.Shuffle();
 						transaction.Outputs.Shuffle();
+						transaction.Outputs.SortByAmount(); // So the coinjoin looks better in block explorer.
 
 						// 8. Create the unsigned transaction.
 						var builder = Network.CreateTransactionBuilder();
@@ -637,7 +638,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 					if (changeAmount < Money.Zero)
 					{
-						if (acceptedBlindedOutputScriptsCount < alice.BlindedOutputScripts.Count())
+						if (acceptedBlindedOutputScriptsCount < alice.BlindedOutputScripts.Length)
 						{
 							tinkerWithAdditionalMixingLevels = false;
 						}

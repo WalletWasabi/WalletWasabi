@@ -87,8 +87,8 @@ namespace WalletWasabi.Gui
 
 		public async Task TryDesperateDequeueAllCoinsAsync()
 		{
-			// If already desperate dequeueing then return.
-			// If not desperate dequeueing then make sure we're doing that.
+			// If already desperate dequeuing then return.
+			// If not desperate dequeuing then make sure we're doing that.
 			if (Interlocked.CompareExchange(ref _isDesperateDequeuing, 1, 0) == 1)
 			{
 				return;
@@ -683,11 +683,15 @@ namespace WalletWasabi.Gui
 			throw new NotSupportedException("This is impossible.");
 		}
 
-		public string GetNextHardwareWalletName(Hwi.Models.HardwareWalletInfo hwi)
+		public string GetNextHardwareWalletName(Hwi.Models.HardwareWalletInfo hwi = null, string customPrefix = null)
 		{
+			var prefix = customPrefix is null ?
+				(hwi is null ? "HardwareWallet" : hwi.Type.ToString())
+				: customPrefix;
+
 			for (int i = 0; i < int.MaxValue; i++)
 			{
-				var name = $"{hwi.Type}{i}";
+				var name = $"{prefix}{i}";
 				if (!File.Exists(Path.Combine(WalletsDir, $"{name}.json")))
 				{
 					return name;
