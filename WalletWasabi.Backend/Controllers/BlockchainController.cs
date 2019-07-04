@@ -280,23 +280,26 @@ namespace WalletWasabi.Backend.Controllers
 
 			(Height bestHeight, IEnumerable<FilterModel> filters) = Global.Instance.IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
 
-			if (!found)
+			if (found)
+			{
+				if (filters.Any())
+				{
+					var response = new FiltersResponse {
+						BestHeight = bestHeight,
+						Filters = filters
+					};
+
+					return Ok(response);
+				}
+				else
+				{
+					return NoContent();
+				}
+			}
+			else
 			{
 				return NotFound($"Provided {nameof(bestKnownBlockHash)} is not found: {bestKnownBlockHash}.");
 			}
-
-			if (!filters.Any())
-			{
-				return NoContent();
-			}
-
-			var response = new FiltersResponse
-			{
-				BestHeight = bestHeight,
-				Filters = filters
-			};
-
-			return Ok(response);
 		}
 
 		private async Task<EstimateSmartFeeResponse> GetEstimateSmartFeeAsync(int target, EstimateSmartFeeMode mode)
