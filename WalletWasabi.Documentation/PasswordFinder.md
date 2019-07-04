@@ -52,6 +52,6 @@ Note that for a 4 characters length password it took more than a minute to find.
 
 * __numbers__ (default: true) is for indicating that our password contains, or could contain, at least one digit. This increases the charset by 10 (from 0 to 9).
 
-* __symbols__ (default: true) is for indicating that our password contains, or could contain, at least one symbol. This increases the charset by 34 (|!¡@$¿?_-\"#$/%&()´+*=[]{},;:.^`<>). Note that only the most common used characters are available
+* __symbols__ (default: true) is for indicating that our password contains, or could contain, at least one symbol. This increases the charset by 34 (|!¡@$¿?_-\"#$/%&()´+*=[]{},;:.^`<>). Note that only the most commonly used characters are available
 
 
