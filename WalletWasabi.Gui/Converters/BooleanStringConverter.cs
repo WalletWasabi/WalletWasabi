@@ -44,5 +44,7 @@ namespace WalletWasabi.Gui.Converters
 			=> new FuncValueConverter<bool, string>(x => x ? trueString : falseString);
 
 		public static readonly IValueConverter OnOff = Stringify("On", "Off");
+		public static readonly IValueConverter ClearMax = Stringify("Clear", "Max");
+		public static readonly IValueConverter HideShow = Stringify("Hide", "Show");
 	}
 }
