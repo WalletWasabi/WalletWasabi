@@ -73,5 +73,7 @@ namespace WalletWasabi.Helpers
 		public const string ChangeOfSpecialLabelStart = "change of (";
 		public const string ChangeOfSpecialLabelEnd = ")";
 		public const int BigFileReadWriteBufferSize = 1 * 1024 * 1024;
+
+		public const int SevenDaysConfirmationTarget = 1008;
 	}
 }

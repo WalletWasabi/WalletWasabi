@@ -230,7 +230,7 @@ namespace Mono.Options
 				if (curWidth < minWidth.Length)
 				{
 					throw new ArgumentOutOfRangeException("widths",
-							string.Format("Element must be >= {0}, was {1}.", minWidth.Length, curWidth));
+						$"Element must be >= {minWidth.Length}, was {curWidth}.");
 				}
 
 				return curWidth;
