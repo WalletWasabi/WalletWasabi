@@ -81,7 +81,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					catch (Exception ex)
 					{
 						ValidationMessage = ex.ToTypeMessageString();
-						Logger.LogError<LoadWalletViewModel>(ex);
+						Logger.LogError<RecoverWalletViewModel>(ex);
 					}
 				}
 			});
@@ -103,14 +103,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				catch (Exception ex)
 				{
 					Logger.LogTrace(ex);
-				}
-			});
-
-			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
-			{
-				if (CaretIndex != MnemonicWords.Length)
-				{
-					CaretIndex = MnemonicWords.Length;
 				}
 			});
 

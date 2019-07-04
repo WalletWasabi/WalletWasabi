@@ -1,7 +1,10 @@
 using Avalonia;
+using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
 using System;
+using System.IO;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -12,11 +15,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class TransactionViewerViewModel : WalletActionViewModel
 	{
+		private CompositeDisposable Disposables { get; set; }
+
+		private string _txid;
 		private string _psbtJsonText;
 		private string _psbtHexText;
 		private string _psbtBase64Text;
+		private byte[] _psbtBytes;
+		public ReactiveCommand<Unit, Unit> ExportBinaryPsbtCommand { get; set; }
 
-		private CompositeDisposable Disposables { get; set; }
+		public string TxId
+		{
+			get => _txid;
+			set => this.RaiseAndSetIfChanged(ref _txid, value);
+		}
 
 		public string PsbtJsonText
 		{
@@ -36,8 +48,42 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _psbtBase64Text, value);
 		}
 
+		public byte[] PsbtBytes
+		{
+			get => _psbtBytes;
+			set => this.RaiseAndSetIfChanged(ref _psbtBytes, value);
+		}
+
 		public TransactionViewerViewModel(WalletViewModel walletViewModel) : base("Transaction", walletViewModel)
 		{
+			ExportBinaryPsbtCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				try
+				{
+					var psbtExtension = "psbt";
+					var sfd = new SaveFileDialog {
+						DefaultExtension = psbtExtension,
+						InitialFileName = TxId,
+						Title = "Export Binary PSBT"
+					};
+
+					string fileFullName = await sfd.ShowAsync(Application.Current.MainWindow, fallBack: true);
+					if (!string.IsNullOrWhiteSpace(fileFullName))
+					{
+						var ext = Path.GetExtension(fileFullName);
+						if (string.IsNullOrWhiteSpace(ext))
+						{
+							fileFullName = $"{fileFullName}.{psbtExtension}";
+						}
+						await File.WriteAllBytesAsync(fileFullName, PsbtBytes);
+					}
+				}
+				catch (Exception ex)
+				{
+					SetWarningMessage(ex.ToTypeMessageString());
+					Logging.Logger.LogError<TransactionViewerViewModel>(ex);
+				}
+			}, outputScheduler: RxApp.MainThreadScheduler);
 		}
 
 		private void OnException(Exception ex)
@@ -69,9 +115,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			try
 			{
+				TxId = result.Transaction.GetHash().ToString();
 				PsbtJsonText = result.Psbt.ToString();
 				TransactionHexText = result.Transaction.Transaction.ToHex();
 				PsbtBase64Text = result.Psbt.ToBase64();
+				PsbtBytes = result.Psbt.ToBytes();
 			}
 			catch (Exception ex)
 			{

@@ -90,19 +90,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				await address.TryCopyToClipboardAsync();
 			});
 
-			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
-			{
-				if (Label is null)
-				{
-					return;
-				}
-
-				if (CaretIndex != Label.Length)
-				{
-					CaretIndex = Label.Length;
-				}
-			});
-
 			var isCoinListItemSelected = this.WhenAnyValue(x => x.SelectedAddress).Select(coin => coin != null);
 
 			CopyAddress = ReactiveCommand.CreateFromTask(async () =>

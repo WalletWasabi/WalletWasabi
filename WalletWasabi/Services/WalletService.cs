@@ -840,7 +840,7 @@ namespace WalletWasabi.Services
 
 							if (!blockFromLocalNode.Check())
 							{
-								throw new InvalidOperationException($"Disconnected node, because block invalid block received!");
+								throw new InvalidOperationException($"Disconnected node, because invalid block received!");
 							}
 
 							block = blockFromLocalNode;
@@ -891,7 +891,7 @@ namespace WalletWasabi.Services
 
 							if (!block.Check())
 							{
-								Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because block invalid block received.");
+								Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.");
 								node.DisconnectAsync("Invalid block received.");
 								continue;
 							}
@@ -1073,7 +1073,7 @@ namespace WalletWasabi.Services
 			{
 				throw new ArgumentException($"{nameof(customChange)} and send all to destination cannot be specified the same time.");
 			}
-			Guard.InRangeAndNotNull(nameof(feeTarget), feeTarget, 0, 1008); // Allow 0 and 1, and correct later.
+			Guard.InRangeAndNotNull(nameof(feeTarget), feeTarget, 0, Constants.SevenDaysConfirmationTarget); // Allow 0 and 1, and correct later.
 			if (feeTarget < 2) // Correct 0 and 1 to 2.
 			{
 				feeTarget = 2;

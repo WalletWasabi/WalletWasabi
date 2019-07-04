@@ -130,19 +130,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					TimeSpan left = x - DateTimeOffset.UtcNow;
 					TimeLeftTillRoundTimeout = left > TimeSpan.Zero ? left : TimeSpan.Zero; // Make sure cannot be less than zero.
 				});
-
-			this.WhenAnyValue(x => x.TimeLeftTillRoundTimeout)
-				.Throttle(TimeSpan.FromSeconds(1))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					var next = TimeLeftTillRoundTimeout - TimeSpan.FromSeconds(1);
-					TimeLeftTillRoundTimeout = next > TimeSpan.Zero ? next : TimeSpan.Zero; // Make sure cannot be less than zero.
-				});
 		}
 
 		public override void OnOpen()
 		{
+			base.OnOpen();
+
 			if (Disposables != null)
 			{
 				throw new Exception("CoinJoin tab opened before previous closed.");
@@ -190,7 +183,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
 			}).DisposeWith(Disposables);
 
-			base.OnOpen();
+			Observable.Interval(TimeSpan.FromSeconds(1))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					TimeSpan left = RoundTimesout - DateTimeOffset.UtcNow;
+					TimeLeftTillRoundTimeout = left > TimeSpan.Zero ? left : TimeSpan.Zero; // Make sure cannot be less than zero.
+				}).DisposeWith(Disposables);
 		}
 
 		public override bool OnClose()

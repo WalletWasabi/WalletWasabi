@@ -12,7 +12,7 @@
           </StackPanel>
           <controls:ExtendedTextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
           <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" />
-          <controls:ExtendedTextBox Text="{Binding MnemonicWords}" Watermark="Recovery Words" UseFloatingWatermark="True" CaretIndex="{Binding CaretIndex, Mode=TwoWay}">
+          <controls:ExtendedTextBox Text="{Binding MnemonicWords}" Watermark="Recovery Words" UseFloatingWatermark="True" CaretIndex="{Binding CaretIndex}">
             <i:Interaction.Behaviors>
               <behaviors:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />
             </i:Interaction.Behaviors>
