@@ -126,7 +126,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ChangeLabelCommand = ReactiveCommand.Create(() =>
 			{
 				SelectedAddress.InEditMode = true;
-			}, isCoinListItemSelected, outputScheduler: RxApp.MainThreadScheduler);
+			});
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
