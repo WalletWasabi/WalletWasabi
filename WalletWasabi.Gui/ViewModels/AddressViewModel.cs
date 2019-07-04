@@ -3,6 +3,8 @@ using Avalonia.Threading;
 using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
 using System;
+using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
@@ -19,6 +21,8 @@ namespace WalletWasabi.Gui.ViewModels
 		private bool[,] _qrCode;
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
+		private string _label;
+		private bool _inEditMode;
 
 		public HdPubKey Model { get; }
 		public Global Global { get; }
@@ -29,6 +33,7 @@ namespace WalletWasabi.Gui.ViewModels
 			Model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
+			Label = model.Label;
 
 			this.WhenAnyValue(x => x.IsExpanded)
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -51,10 +56,28 @@ namespace WalletWasabi.Gui.ViewModels
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
+				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
 				this.RaisePropertyChanged(nameof(Address));
 				this.RaisePropertyChanged(nameof(Label));
 			}).DisposeWith(Disposables);
+
+			this.WhenAnyValue(x => x.Label)
+				.Subscribe(newLabel =>
+				{
+					if (InEditMode)
+					{
+						KeyManager keyManager = Global.WalletService.KeyManager;
+						HdPubKey hdPubKey = keyManager.GetKeys(x => Model == x).FirstOrDefault();
+
+						if (hdPubKey != default)
+						{
+							hdPubKey.SetLabel(newLabel, kmToFile: keyManager);
+						}
+					}
+				});
 		}
+
+		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
 
 		public bool ClipboardNotificationVisible
 		{
@@ -74,7 +97,23 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
 		}
 
-		public string Label => Model.Label;
+		public string Label
+		{
+			get => _label;
+			set
+			{
+				if (!IsLurkingWifeMode)
+				{
+					this.RaiseAndSetIfChanged(ref _label, value);
+				}
+			}
+		}
+
+		public bool InEditMode
+		{
+			get => _inEditMode;
+			set => this.RaiseAndSetIfChanged(ref _inEditMode, value);
+		}
 
 		public string Address => Model.GetP2wpkhAddress(Global.Network).ToString();
 
