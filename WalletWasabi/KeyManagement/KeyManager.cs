@@ -805,7 +805,7 @@ namespace WalletWasabi.KeyManagement
 
 					if (lastNetwork != null)
 					{
-						Logger.LogWarning<KeyManager>($"Wallet is opened on {expectednetwork.ToString()}. Last time it was opened on {lastNetwork.ToString()}.");
+						Logger.LogWarning<KeyManager>($"Wallet is opened on {expectednetwork}. Last time it was opened on {lastNetwork}.");
 					}
 					Logger.LogInfo<KeyManager>("Blockchain cache is cleared.");
 				}

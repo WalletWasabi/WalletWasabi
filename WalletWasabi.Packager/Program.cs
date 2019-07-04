@@ -116,7 +116,7 @@ namespace WalletWasabi.Packager
 					var json = (JObject)JsonConvert.DeserializeObject(responseString);
 					foreach (JProperty node in json["nodes"])
 					{
-						if (!node.Name.ToString().Contains(".onion"))
+						if (!node.Name.Contains(".onion"))
 						{
 							continue;
 						}
