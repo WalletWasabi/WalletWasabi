@@ -1,4 +1,4 @@
-﻿namespace Gma.QrCodeNet.Encoding.Masking.Scoring
+namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 {
 	/// <summary>
 	/// ISO/IEC 18004:2000 Chapter 8.8.2 Page 52
@@ -23,21 +23,7 @@
 				{
 					bit = isHorizontal ? matrix[j + 4, i]
 						: matrix[i, j + 4];
-					if (!bit)
-					{
-						bit = isHorizontal ? matrix[j, i]
-							: matrix[i, j];
-						if (!bit)
-						{
-							penalty += PatternCheck(matrix, i, j, isHorizontal);
-							j += 4;
-						}
-						else
-						{
-							j += 4;
-						}
-					}
-					else
+					if (bit)
 					{
 						for (int num = 4; num > 0; num--)
 						{
@@ -53,6 +39,17 @@
 								j += 5;
 							}
 						}
+					}
+					else
+					{
+						bit = isHorizontal ? matrix[j, i]
+							: matrix[i, j];
+						if (!bit)
+						{
+							penalty += PatternCheck(matrix, i, j, isHorizontal);
+						}
+
+						j += 4;
 					}
 				}
 				j = 0;

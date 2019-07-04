@@ -213,7 +213,12 @@ namespace WalletWasabi.Hwi
 			Network = network;
 
 			var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
-			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				HwiPath = Path.Combine(fullBaseDirectory, "Hwi", "Software", "hwi-win64", "hwi.exe");
+				return;
+			}
+			else
 			{
 				if (!fullBaseDirectory.StartsWith('/'))
 				{
@@ -221,40 +226,37 @@ namespace WalletWasabi.Hwi
 				}
 			}
 
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				HwiPath = Path.Combine(fullBaseDirectory, "Hwi", "Software", "hwi-win64", "hwi.exe");
-				return;
-			}
-
 			var hwiDir = Path.Combine(dataDir, "hwi");
 
 			string hwiPath = $@"{hwiDir}/hwi";
 
-			if (!File.Exists(hwiPath))
+			if (File.Exists(hwiPath))
 			{
-				Logger.LogInfo($"HWI instance NOT found at {hwiPath}. Attempting to acquire it...", nameof(HwiProcessManager));
-				await InstallHwiAsync(fullBaseDirectory, hwiDir);
-			}
-			else if (!IoHelpers.CheckExpectedHash(hwiPath, Path.Combine(fullBaseDirectory, "Hwi", "Software")))
-			{
-				Logger.LogInfo($"Updating HWI...", nameof(HwiProcessManager));
-
-				string backupHwiDir = $"{hwiDir}_backup";
-				if (Directory.Exists(backupHwiDir))
+				if (IoHelpers.CheckExpectedHash(hwiPath, Path.Combine(fullBaseDirectory, "Hwi", "Software")))
 				{
-					Directory.Delete(backupHwiDir, true);
+					if (logFound)
+					{
+						Logger.LogInfo($"HWI instance found at {hwiPath}.", nameof(HwiProcessManager));
+					}
 				}
-				Directory.Move(hwiDir, backupHwiDir);
+				else
+				{
+					Logger.LogInfo($"Updating HWI...", nameof(HwiProcessManager));
 
-				await InstallHwiAsync(fullBaseDirectory, hwiDir);
+					string backupHwiDir = $"{hwiDir}_backup";
+					if (Directory.Exists(backupHwiDir))
+					{
+						Directory.Delete(backupHwiDir, true);
+					}
+					Directory.Move(hwiDir, backupHwiDir);
+
+					await InstallHwiAsync(fullBaseDirectory, hwiDir);
+				}
 			}
 			else
 			{
-				if (logFound)
-				{
-					Logger.LogInfo($"HWI instance found at {hwiPath}.", nameof(HwiProcessManager));
-				}
+				Logger.LogInfo($"HWI instance NOT found at {hwiPath}. Attempting to acquire it...", nameof(HwiProcessManager));
+				await InstallHwiAsync(fullBaseDirectory, hwiDir);
 			}
 
 			HwiPath = hwiPath;
