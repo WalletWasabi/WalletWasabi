@@ -487,7 +487,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						PinPadViewModel pinpad = IoC.Get<IShell>().Documents.OfType<PinPadViewModel>().FirstOrDefault();
 						if (pinpad is null)
 						{
-							pinpad = new PinPadViewModel(null);
+							pinpad = new PinPadViewModel(Global);
 							IoC.Get<IShell>().AddOrSelectDocument(pinpad);
 						}
 						var result = await pinpad.ShowDialogAsync();
