@@ -37,7 +37,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			this.WhenAnyValue(x => x.IsExpanded)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.First()
+				.Take(1)
 				.Subscribe(x =>
 				{
 					try
