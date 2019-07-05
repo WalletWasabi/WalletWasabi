@@ -353,7 +353,7 @@ namespace WalletWasabi.Gui.Tabs
 				return string.Empty;
 			}
 
-			if (decimal.TryParse(DustThreshold, out _))
+			if (decimal.TryParse(DustThreshold, out var dust) && dust >= 0)
 			{
 				return string.Empty;
 			}
