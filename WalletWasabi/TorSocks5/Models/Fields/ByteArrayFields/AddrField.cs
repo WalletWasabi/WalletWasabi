@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Text;
 using WalletWasabi.Bases;
@@ -76,7 +76,7 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 			{
 				// the address is a version-4 IP address, with a length of 4 octets
 				var parts = dstAddr.Split(".", StringSplitOptions.RemoveEmptyEntries);
-				if (parts.Length != 4 || parts.Any(x => string.IsNullOrWhiteSpace(x)))
+				if (parts.Length != 4 || parts.Any(string.IsNullOrWhiteSpace))
 				{
 					throw new FormatException($"{nameof(dstAddr)} must be have 4 parts. Actual: {parts.Length} parts. Value: {dstAddr}.");
 				}

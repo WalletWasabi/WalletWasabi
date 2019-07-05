@@ -12,7 +12,7 @@ namespace Nito.AsyncEx
 	/// <summary>
 	/// The default wait queue implementation, which uses a double-ended queue.
 	/// </summary>
-	/// <typeparam name="T">The type of the results. If this isn't needed, use <see cref="object"/>.</typeparam>
+	/// <typeparam name="T">The type of the results. If this is not needed, use <see cref="object"/>.</typeparam>
 	[DebuggerDisplay("Count = {Count}")]
 	[DebuggerTypeProxy(typeof(DefaultAsyncWaitQueue<>.DebugView))]
 	public sealed class DefaultAsyncWaitQueue<T> : IAsyncWaitQueue<T>
