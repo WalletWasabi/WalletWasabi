@@ -225,24 +225,24 @@
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighBrush}" />
   </Style>
 
-  <Style Selector="ListBoxItem Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
-    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}"/>
-  </Style>
-  
-  <Style Selector="ListBoxItem:pointerover:selected Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
-    <Setter Property="Background" Value="{DynamicResource ThemeHighlightBrush}"/>
+  <Style Selector="ListBoxItem:pointerover Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ThemeControlHighlightMidBrush}"/>
   </Style>
 
-  <Style Selector="ListBoxItem:selected Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
-    <Setter Property="Background" Value="{DynamicResource ApplicationAccentBrushLow}" />
+  <Style Selector="ListBoxItem:pointerover Grid Expander:expanded /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}"/>
   </Style>
 
   <Style Selector="ListBoxItem:selected:pointerover Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
     <Setter Property="Background" Value="{DynamicResource ApplicationAccentBrushLow}" />
   </Style>
 
-  <Style Selector="ListBoxItem:pointerover Grid Expander:expanded /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
-    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}"/>
+  <Style Selector="ListBoxItem:selected:pointerover Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ThemeHighlightBrush}"/>
+  </Style>
+
+  <Style Selector="ListBoxItem:selected Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ApplicationAccentBrushLow}" />
   </Style>
 
   <Style Selector="ListBoxItem:selected:pointerover Grid Expander:expanded /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
