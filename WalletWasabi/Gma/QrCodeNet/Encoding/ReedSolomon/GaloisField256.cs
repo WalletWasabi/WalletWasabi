@@ -110,7 +110,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 
 			if (gfValueB == 0)
 			{
-				throw new ArgumentException("gfValueB can not be zero");
+				throw new ArgumentException("gfValueB cannot be zero");
 			}
 
 			if (gfValueB == 1)
