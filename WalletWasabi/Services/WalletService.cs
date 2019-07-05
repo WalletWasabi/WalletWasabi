@@ -429,7 +429,7 @@ namespace WalletWasabi.Services
 
 			var clusters = current.Concat(new List<SmartCoin> { coin }).ToList(); // The coin is the first elem in its cluster.
 
-			// If the script is the same then we have a match, no matter of the anonimity set.
+			// If the script is the same then we have a match, no matter of the anonymity set.
 			foreach (var c in lookupScriptPubKey[coin.ScriptPubKey])
 			{
 				if (!clusters.Contains(c))
