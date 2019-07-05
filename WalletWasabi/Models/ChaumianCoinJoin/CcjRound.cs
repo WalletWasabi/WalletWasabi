@@ -1027,7 +1027,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							Alice alice = Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
 							if (alice != default(Alice))
 							{
-								// 4. If LastSeen isn't changed by then, remove Alice.
+								// 4. If LastSeen is not changed by then, remove Alice.
 								if (alice.LastSeen == started)
 								{
 									Alices.Remove(alice);
