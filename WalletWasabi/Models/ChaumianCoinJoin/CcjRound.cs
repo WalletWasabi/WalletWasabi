@@ -813,7 +813,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 			catch (Exception ex)
 			{
-				// If fee hasn't been initialized once, fall back.
+				// If fee has not been initialized once, fall back.
 				if (feePerInputs is null || feePerOutputs is null)
 				{
 					var feePerBytes = Money.Satoshis(100); // 100 satoshi per byte
