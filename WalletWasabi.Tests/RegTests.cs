@@ -232,7 +232,7 @@ namespace WalletWasabi.Tests
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
 			var estimations = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
-			Assert.Equal(144, estimations.Estimations.Count);
+			Assert.Equal(Constants.OneDayConfirmationTarget, estimations.Estimations.Count);
 			Assert.True(estimations.Estimations.First().Key < estimations.Estimations.Last().Key);
 			Assert.True(estimations.Estimations.First().Value > estimations.Estimations.Last().Value);
 			Assert.Equal(EstimateSmartFeeMode.Conservative, estimations.Type);
@@ -496,7 +496,7 @@ namespace WalletWasabi.Tests
 			{
 				if (times > timeout.TotalSeconds)
 				{
-					throw new TimeoutException($"{nameof(WasabiSynchronizer)} test timed out. Filter wasn't downloaded.");
+					throw new TimeoutException($"{nameof(WasabiSynchronizer)} test timed out. Filter was not downloaded.");
 				}
 				await Task.Delay(TimeSpan.FromSeconds(1));
 				times++;
@@ -656,7 +656,7 @@ namespace WalletWasabi.Tests
 				Assert.Equal(4, wallet.Coins.Count);
 				Assert.Empty(wallet.Coins.Where(x => x.TransactionId == txid4));
 				Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == tx4bumpRes.TransactionId));
-				var rbfCoin = wallet.Coins.Where(x => x.TransactionId == tx4bumpRes.TransactionId).Single();
+				var rbfCoin = wallet.Coins.Single(x => x.TransactionId == tx4bumpRes.TransactionId);
 
 				Assert.Equal(Money.Coins(0.03m), rbfCoin.Amount);
 				Assert.Equal(new Height(bitcoinStore.HashChain.TipHeight).Value - 2, rbfCoin.Height.Value);
@@ -686,7 +686,7 @@ namespace WalletWasabi.Tests
 				var txid5 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
 				await Task.Delay(1000); // Wait tx to arrive and get processed.
 				Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == txid5));
-				var mempoolCoin = wallet.Coins.Where(x => x.TransactionId == txid5).Single();
+				var mempoolCoin = wallet.Coins.Single(x => x.TransactionId == txid5);
 				Assert.Equal(Height.MemPool, mempoolCoin.Height);
 
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
@@ -729,7 +729,7 @@ namespace WalletWasabi.Tests
 			{
 				if (times > timeout.TotalSeconds)
 				{
-					throw new TimeoutException($"{nameof(WalletService)} test timed out. Filter wasn't processed. Needed: {numberOfFiltersToWaitFor}, got only: {Interlocked.Read(ref _filtersProcessedByWalletCount)}.");
+					throw new TimeoutException($"{nameof(WalletService)} test timed out. Filter was not processed. Needed: {numberOfFiltersToWaitFor}, got only: {Interlocked.Read(ref _filtersProcessedByWalletCount)}.");
 				}
 				await Task.Delay(TimeSpan.FromSeconds(1));
 				times++;
@@ -836,7 +836,7 @@ namespace WalletWasabi.Tests
 
 				Script receive = wallet.GetReceiveKey("Basic").P2wpkhScript;
 				Money amountToSend = wallet.Coins.Where(x => !x.Unavailable).Sum(x => x.Amount) / 2;
-				var res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true);
+				var res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, Constants.SevenDaysConfirmationTarget, allowUnconfirmed: true);
 
 				foreach (SmartCoin coin in res.SpentCoins)
 				{
@@ -884,7 +884,7 @@ namespace WalletWasabi.Tests
 
 				receive = wallet.GetReceiveKey("SubtractFeeFromAmount").P2wpkhScript;
 				amountToSend = wallet.Coins.Where(x => !x.Unavailable).Sum(x => x.Amount) / 3;
-				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
+				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, Constants.SevenDaysConfirmationTarget, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -917,7 +917,7 @@ namespace WalletWasabi.Tests
 
 				#region LowFee
 
-				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true);
+				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, Constants.SevenDaysConfirmationTarget, allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -950,7 +950,7 @@ namespace WalletWasabi.Tests
 
 				#region MediumFee
 
-				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 144, allowUnconfirmed: true);
+				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, Constants.OneDayConfirmationTarget, allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -1022,7 +1022,7 @@ namespace WalletWasabi.Tests
 				#region MaxAmount
 
 				receive = wallet.GetReceiveKey("MaxAmount").P2wpkhScript;
-				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008, allowUnconfirmed: true);
+				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, Constants.SevenDaysConfirmationTarget, allowUnconfirmed: true);
 
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Empty(res.OuterWalletOutputs);
@@ -1050,7 +1050,7 @@ namespace WalletWasabi.Tests
 				receive = wallet.GetReceiveKey("InputSelection").P2wpkhScript;
 
 				var inputCountBefore = res.SpentCoins.Count();
-				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008,
+				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, Constants.SevenDaysConfirmationTarget,
 					allowUnconfirmed: true,
 					allowedInputs: wallet.Coins.Where(x => !x.Unavailable).Select(x => new TxoRef(x.TransactionId, x.Index)).Take(1));
 
@@ -1070,7 +1070,7 @@ namespace WalletWasabi.Tests
 
 				Assert.Single(res.Transaction.Transaction.Outputs);
 
-				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008,
+				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, Constants.SevenDaysConfirmationTarget,
 					allowUnconfirmed: true,
 					allowedInputs: new[] { res.SpentCoins.Select(x => new TxoRef(x.TransactionId, x.Index)).First() });
 
@@ -1086,7 +1086,7 @@ namespace WalletWasabi.Tests
 
 				#region Labeling
 
-				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "my label") }, 1008,
+				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "my label") }, Constants.SevenDaysConfirmationTarget,
 					allowUnconfirmed: true);
 
 				Assert.Single(res.InnerWalletOutputs);
@@ -1096,7 +1096,7 @@ namespace WalletWasabi.Tests
 				res = wallet.BuildTransaction(password, new[] {
 					new WalletService.Operation(new Key().ScriptPubKey, amountToSend, "outgoing"),
 					new WalletService.Operation(new Key().ScriptPubKey, amountToSend, "outgoing2")
-				}, 1008,
+				}, Constants.SevenDaysConfirmationTarget,
 					allowUnconfirmed: true);
 
 				Assert.Single(res.InnerWalletOutputs);
@@ -1238,7 +1238,7 @@ namespace WalletWasabi.Tests
 			// toSend cannot have a null element
 			Assert.Throws<ArgumentNullException>(() => wallet.BuildTransaction(null, new[] { (WalletService.Operation)null }, 0));
 
-			// toSend cannot have a zero elements
+			// toSend cannot have a zero element
 			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, new WalletService.Operation[0], 0));
 
 			// feeTarget has to be in the range 0 to 1008
@@ -1270,12 +1270,12 @@ namespace WalletWasabi.Tests
 			var toSendWithTwoZeros = new[]{
 				new WalletService.Operation(scp, Money.Zero, "zero"),
 				new WalletService.Operation(scp, Money.Zero, "zero") };
-			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(password, toSendWithTwoZeros, 1008, false));
+			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(password, toSendWithTwoZeros, Constants.SevenDaysConfirmationTarget, false));
 
 			// cannot specify spend all and custom change
 			var spendAll = new[]{
 				new WalletService.Operation(scp, Money.Zero, "spendAll") };
-			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(password, spendAll, 1008, false, customChange: new Key().ScriptPubKey));
+			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(password, spendAll, Constants.SevenDaysConfirmationTarget, false, customChange: new Key().ScriptPubKey));
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("foo label");
@@ -2813,7 +2813,7 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.003m;
 			int anonymitySet = 100;
 			int connectionConfirmationTimeout = 120;
-			var roundConfig = new CcjRoundConfig(denomination, 144, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
+			var roundConfig = new CcjRoundConfig(denomination, Constants.OneDayConfirmationTarget, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 			await rpc.GenerateAsync(100); // So to make sure we have enough money.
@@ -3114,7 +3114,7 @@ namespace WalletWasabi.Tests
 				{
 					if (timeout.IsCompletedSuccessfully)
 					{
-						throw new TimeoutException("CoinJoin wasn't propagated.");
+						throw new TimeoutException("CoinJoin was not propagated.");
 					}
 					await Task.Delay(1000);
 				}
@@ -3245,7 +3245,7 @@ namespace WalletWasabi.Tests
 				{
 					if (timeout.IsCompletedSuccessfully)
 					{
-						throw new TimeoutException("CoinJoin wasn't propagated.");
+						throw new TimeoutException("CoinJoin was not propagated.");
 					}
 					await Task.Delay(1000);
 				}
@@ -3422,13 +3422,13 @@ namespace WalletWasabi.Tests
 				{
 					if (timeout.IsCompletedSuccessfully)
 					{
-						throw new TimeoutException("CoinJoin wasn't propagated or didn't arrive.");
+						throw new TimeoutException("CoinJoin was not propagated or did not arrive.");
 					}
 					await Task.Delay(1000);
 				}
 
 				var times = 0;
-				while (wallet.Coins.Where(x => x.Label == "ZeroLink Change" && x.Unspent).FirstOrDefault() is null)
+				while (wallet.Coins.FirstOrDefault(x => x.Label == "ZeroLink Change" && x.Unspent) is null)
 				{
 					await Task.Delay(1000);
 					times++;

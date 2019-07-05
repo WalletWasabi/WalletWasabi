@@ -1,4 +1,4 @@
-﻿using WalletWasabi.Http.Models;
+using WalletWasabi.Http.Models;
 
 namespace System.Net.Http
 {
@@ -40,13 +40,13 @@ namespace System.Net.Http
 				Port = 443;
 			}
 
-			// Because we want to tolerate http:// and https:// in the host we also want to make sure it doesn't contradict the schame
+			// Because we want to tolerate http:// and https:// in the host we also want to make sure it doesn't contradict the scheme
 			foreach (UriScheme scheme in Enum.GetValues(typeof(UriScheme)))
 			{
 				// if host starts with http:// or https:// then check
 				if (host.StartsWith(scheme.ToString() + "://", StringComparison.OrdinalIgnoreCase))
 				{
-					// if the currently iterated schemen not equals to the provided scheme
+					// if the currently iterated scheme does not equal the provided scheme
 					if (scheme != uriScheme)
 					{
 						throw new FormatException("uriScheme not consistent with host identifier.");

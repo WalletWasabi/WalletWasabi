@@ -407,7 +407,7 @@ namespace Nito.AsyncEx
 			{
 				lock (AsyncMutexesLock)
 				{
-					bool stillRunning = AsyncMutexes.Where(am => am.Value.IsAlive).Any();
+					bool stillRunning = AsyncMutexes.Any(am => am.Value.IsAlive);
 					if (!stillRunning)
 					{
 						return;

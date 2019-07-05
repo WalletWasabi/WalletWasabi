@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
@@ -61,7 +62,7 @@ namespace WalletWasabi.Backend.Controllers
 			{
 				if (int.TryParse(targetParam, out var target))
 				{
-					if (target < 2 || target > 1008)
+					if (target < 2 || target > Constants.SevenDaysConfirmationTarget)
 					{
 						return BadRequest("All requested confirmation target must be >=2 AND <= 1008.");
 					}

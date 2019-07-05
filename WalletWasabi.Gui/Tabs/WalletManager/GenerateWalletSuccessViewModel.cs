@@ -13,10 +13,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			_mnemonicWords = mnemonic.ToString();
 
-			ConfirmCommand = ReactiveCommand.Create(() =>
-			{
-				owner.SelectTestPassword();
-			});
+			ConfirmCommand = ReactiveCommand.Create(owner.SelectTestPassword);
 		}
 
 		public string MnemonicWords

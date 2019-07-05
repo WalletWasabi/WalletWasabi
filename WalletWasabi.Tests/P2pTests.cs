@@ -56,19 +56,25 @@ namespace WalletWasabi.Tests
 			AddressManager addressManager = null;
 			try
 			{
-				addressManager = AddressManager.LoadPeerFile(addressManagerFilePath);
+				addressManager = await NBitcoinHelpers.LoadAddressManagerFromPeerFileAsync(addressManagerFilePath);
 				Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{addressManagerFilePath}`.");
 			}
-			catch (DirectoryNotFoundException ex)
+			catch (DirectoryNotFoundException)
 			{
-				Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{addressManagerFilePath}`. Initializing new one.");
-				Logger.LogTrace<AddressManager>(ex);
 				addressManager = new AddressManager();
 			}
-			catch (FileNotFoundException ex)
+			catch (FileNotFoundException)
 			{
-				Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{addressManagerFilePath}`. Initializing new one.");
-				Logger.LogTrace<AddressManager>(ex);
+				addressManager = new AddressManager();
+			}
+			catch (OverflowException)
+			{
+				File.Delete(addressManagerFilePath);
+				addressManager = new AddressManager();
+			}
+			catch (FormatException)
+			{
+				File.Delete(addressManagerFilePath);
 				addressManager = new AddressManager();
 			}
 
@@ -96,15 +102,11 @@ namespace WalletWasabi.Tests
 
 			try
 			{
-				nodes.ConnectedNodes.Added += ConnectedNodes_Added;
-				nodes.ConnectedNodes.Removed += ConnectedNodes_Removed;
 				memPoolService.TransactionReceived += MemPoolService_TransactionReceived;
 
 				nodes.Connect();
-				// Using the interlocked, not because it makes sense in this context, but to
-				// set an example that these values are often concurrency sensitive
 				var times = 0;
-				while (Interlocked.Read(ref _nodeCount) < 3)
+				while (nodes.ConnectedNodes.Count < 3)
 				{
 					if (times > 4200) // 7 minutes
 					{
