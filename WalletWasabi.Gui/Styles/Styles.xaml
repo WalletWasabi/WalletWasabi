@@ -225,6 +225,10 @@
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighBrush}" />
   </Style>
 
+  <Style Selector="ListBoxItem Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="Green"/>
+  </Style>
+  
   <Style Selector="ListBoxItem:pointerover:selected Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
     <Setter Property="Background" Value="{DynamicResource ThemeHighlightBrush}"/>
   </Style>
