@@ -27,7 +27,7 @@
                   </i:Interaction.Behaviors>
 
                   <ToolTip.Tip>
-                    Start labelling today and your privacy will thank you tomorrow!
+                    Start labeling today and your privacy will thank you tomorrow!
                   </ToolTip.Tip>
                 </controls:ExtendedTextBox>
                 <ItemsControl Items="{Binding Suggestions}">

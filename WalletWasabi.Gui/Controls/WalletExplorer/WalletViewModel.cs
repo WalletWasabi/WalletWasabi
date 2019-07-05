@@ -18,7 +18,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private ObservableCollection<WalletActionViewModel> _actions;
 
-		private string _title;
 		private bool _isExpanded;
 
 		public bool IsExpanded
@@ -123,12 +122,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public string Name { get; }
 
 		public WalletService WalletService { get; }
-
-		public override string Title
-		{
-			get => _title;
-			set => this.RaiseAndSetIfChanged(ref _title, value);
-		}
 
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
 
