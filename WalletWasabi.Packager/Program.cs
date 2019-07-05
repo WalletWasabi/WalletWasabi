@@ -282,7 +282,7 @@ namespace WalletWasabi.Packager
 					var msiPath = Path.Combine(WixProjectDirectory, @"bin\Release\Wasabi.msi");
 					if (!File.Exists(msiPath))
 					{
-						throw new Exception(".msi doesn't exist. Expected path: Wasabi.msi.");
+						throw new Exception(".msi does not exist. Expected path: Wasabi.msi.");
 					}
 					var msiFileName = Path.GetFileNameWithoutExtension(msiPath);
 					var newMsiPath = Path.Combine(BinDistDirectory, $"{msiFileName}-{VersionPrefix}.msi");
@@ -401,7 +401,7 @@ namespace WalletWasabi.Packager
 				//		./bin/[configuration]/[framework]/[runtime]/publish/ for a self-contained deployment.
 				//		If the path is relative, the output directory generated is relative to the project file location, not to the current working directory.
 				// --self-contained
-				//		Publishes the .NET Core runtime with your application so the runtime doesn't need to be installed on the target machine.
+				//		Publishes the .NET Core runtime with your application so the runtime does not need to be installed on the target machine.
 				//		If a runtime identifier is specified, its default value is true. For more information about the different deployment types, see .NET Core application deployment.
 				// -r|--runtime <RUNTIME_IDENTIFIER>
 				//		Publishes the application for a given runtime. This is used when creating a self-contained deployment (SCD).
@@ -504,7 +504,7 @@ namespace WalletWasabi.Packager
 					// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
 					if (OnlyBinaries)
 					{
-						continue; // In Windows build at this moment it doesn't matter though.
+						continue; // In Windows build at this moment it does not matter though.
 					}
 				}
 				else if (target.StartsWith("osx"))
@@ -651,7 +651,7 @@ namespace WalletWasabi.Packager
 					Console.WriteLine("Create Linux .tar.gz");
 					if (!Directory.Exists(publishedFolder))
 					{
-						throw new Exception($"{publishedFolder} doesn't exist.");
+						throw new Exception($"{publishedFolder} does not exist.");
 					}
 					var newFolderName = $"WasabiLinux-{VersionPrefix}";
 					var newFolderPath = Path.Combine(BinDistDirectory, newFolderName);
@@ -705,7 +705,7 @@ namespace WalletWasabi.Packager
 					}
 
 					var controlFilePath = Path.Combine(debianFolderPath, "control");
-					// License format doesn't yet work, but should work in the future, it's work in progress: https://bugs.launchpad.net/ubuntu/+source/software-center/+bug/435183
+					// License format does not yet work, but should work in the future, it's work in progress: https://bugs.launchpad.net/ubuntu/+source/software-center/+bug/435183
 					var controlFileContent = $"Package: {ExecutableName}\n" +
 												$"Priority: optional\n" +
 												$"Section: utils\n" +

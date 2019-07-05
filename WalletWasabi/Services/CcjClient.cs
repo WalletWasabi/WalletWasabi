@@ -619,7 +619,7 @@ namespace WalletWasabi.Services
 				CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
 				if (roundRegistered is null)
 				{
-					// If our SatoshiClient doesn't yet know about the round, because of delay, then delay the round registration.
+					// If our SatoshiClient does not yet know about the round, because of delay, then delay the round registration.
 					DelayedRoundRegistration?.Dispose();
 					DelayedRoundRegistration = registration;
 				}
