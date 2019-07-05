@@ -972,7 +972,7 @@ namespace WalletWasabi.Services
 					finally
 					{
 						LocalBitcoinCoreNode = null;
-						Logger.LogInfo<WalletService>("Local Bitcoin Core disconnected.");
+						Logger.LogInfo<WalletService>("Local Bitcoin Core node disconnected.");
 					}
 				}
 			}
@@ -1064,7 +1064,7 @@ namespace WalletWasabi.Services
 			}
 			if (spendAllCount == 1 && !(customChange is null))
 			{
-				throw new ArgumentException($"{nameof(customChange)} and send all to destination cannot be specified the same time.");
+				throw new ArgumentException($"{nameof(customChange)} and send all to destination cannot be specified at the same time.");
 			}
 			Guard.InRangeAndNotNull(nameof(feeTarget), feeTarget, 0, Constants.SevenDaysConfirmationTarget); // Allow 0 and 1, and correct later.
 			if (feeTarget < 2) // Correct 0 and 1 to 2.

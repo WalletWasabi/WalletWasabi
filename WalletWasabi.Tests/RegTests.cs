@@ -1238,7 +1238,7 @@ namespace WalletWasabi.Tests
 			// toSend cannot have a null element
 			Assert.Throws<ArgumentNullException>(() => wallet.BuildTransaction(null, new[] { (WalletService.Operation)null }, 0));
 
-			// toSend cannot have a zero elements
+			// toSend cannot have a zero element
 			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, new WalletService.Operation[0], 0));
 
 			// feeTarget has to be in the range 0 to 1008
