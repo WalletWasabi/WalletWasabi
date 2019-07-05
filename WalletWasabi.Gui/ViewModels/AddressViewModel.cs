@@ -41,7 +41,7 @@ namespace WalletWasabi.Gui.ViewModels
 				{
 					try
 					{
-						if (x == true && QrCode is null)
+						if (x is true && QrCode is null)
 						{
 							var encoder = new QrEncoder();
 							encoder.TryEncode(Address, out var qrCode);
