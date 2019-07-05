@@ -132,7 +132,7 @@
       </controls:GroupBox>
       <controls:GroupBox Grid.Column="1" Title="Target" Padding="5" Margin="5 0">
         <Button Command="{Binding TargetButtonCommand}">
-          <Grid Background="Transparent" DataContext="{Binding CoinJoinUntilAnonimitySet, Converter={StaticResource PrivacyLevelValueConverter}}">
+          <Grid Background="Transparent" DataContext="{Binding CoinJoinUntilAnonymitySet, Converter={StaticResource PrivacyLevelValueConverter}}">
             <Grid.RowDefinitions>
               <RowDefinition Height="2*"></RowDefinition>
               <RowDefinition Height="*"></RowDefinition>

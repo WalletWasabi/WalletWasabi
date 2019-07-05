@@ -79,7 +79,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 			});
 
-			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
+			this.WhenAnyValue(x => x.Label).Subscribe(UpdateSuggestions);
 
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
 			{

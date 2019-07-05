@@ -293,14 +293,14 @@ namespace WalletWasabi.Services
 				}
 
 				// Go through the keymanager's index.
-				KeyManager.AssertNetworkOrClearBlockstate(Network);
+				KeyManager.AssertNetworkOrClearBlockState(Network);
 				Height bestKeyManagerHeight = KeyManager.GetBestHeight();
 
-				foreach (BlockState blockstate in KeyManager.GetTransactionIndex())
+				foreach (BlockState blockState in KeyManager.GetTransactionIndex())
 				{
-					var relevantTransactions = confirmedTransactions.Where(x => x.BlockHash == blockstate.BlockHash).ToArray();
-					var block = await GetOrDownloadBlockAsync(blockstate.BlockHash, cancel);
-					await ProcessBlockAsync(blockstate.BlockHeight, block, blockstate.TransactionIndices, relevantTransactions);
+					var relevantTransactions = confirmedTransactions.Where(x => x.BlockHash == blockState.BlockHash).ToArray();
+					var block = await GetOrDownloadBlockAsync(blockState.BlockHash, cancel);
+					await ProcessBlockAsync(blockState.BlockHeight, block, blockState.TransactionIndices, relevantTransactions);
 				}
 
 				// Go through the filters and que to download the matches.
@@ -429,7 +429,7 @@ namespace WalletWasabi.Services
 
 			var clusters = current.Concat(new List<SmartCoin> { coin }).ToList(); // The coin is the first elem in its cluster.
 
-			// If the script is the same then we have a match, no matter of the anonimity set.
+			// If the script is the same then we have a match, no matter of the anonymity set.
 			foreach (var c in lookupScriptPubKey[coin.ScriptPubKey])
 			{
 				if (!clusters.Contains(c))
@@ -445,7 +445,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			// If it spends someone and hasn't been sufficiently anonymized.
+			// If it spends someone and has not been sufficiently anonymized.
 			if (coin.AnonymitySet < ServiceConfiguration.PrivacyLevelStrong)
 			{
 				var c = lookupSpenderTransactionId[coin.TransactionId].FirstOrDefault(x => !clusters.Contains(x));
@@ -462,7 +462,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			// If it's being spent by someone and that someone hasn't been sufficiently anonymized.
+			// If it's being spent by someone and that someone has not been sufficiently anonymized.
 			if (!coin.Unspent)
 			{
 				var c = lookupTransactionId[coin.SpenderTransactionId].FirstOrDefault(x => !clusters.Contains(x));
@@ -656,7 +656,7 @@ namespace WalletWasabi.Services
 					}
 
 					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Don't inherit locked status from key, that's different.
-																																																												   // If we didn't have it.
+																																																												   // If we did not have it.
 					if (Coins.TryAdd(newCoin))
 					{
 						TransactionCache.TryAdd(tx);
@@ -854,7 +854,7 @@ namespace WalletWasabi.Services
 
 							if (ex is SocketException)
 							{
-								Logger.LogTrace<WalletService>("Didn't find local listening and running full node instance. Trying to fetch needed block from other source.");
+								Logger.LogTrace<WalletService>("Did not find local listening and running full node instance. Trying to fetch needed block from other source.");
 							}
 							else
 							{
@@ -988,7 +988,7 @@ namespace WalletWasabi.Services
 				using (await BlockFolderLock.LockAsync())
 				{
 					var filePaths = Directory.EnumerateFiles(BlocksFolderPath);
-					var fileNames = filePaths.Select(x => Path.GetFileName(x));
+					var fileNames = filePaths.Select(Path.GetFileName);
 					var hashes = fileNames.Select(x => new uint256(x));
 
 					if (hashes.Contains(hash))
@@ -1463,7 +1463,7 @@ namespace WalletWasabi.Services
 					{
 						if (timeout > 7)
 						{
-							throw new TimeoutException("Didn't serve the transaction.");
+							throw new TimeoutException("Did not serve the transaction.");
 						}
 						await Task.Delay(1000);
 						timeout++;
@@ -1477,7 +1477,7 @@ namespace WalletWasabi.Services
 					{
 						if (timeout > 21)
 						{
-							throw new TimeoutException("Didn't serve the transaction.");
+							throw new TimeoutException("Did not serve the transaction.");
 						}
 						await Task.Delay(1000);
 						timeout++;
