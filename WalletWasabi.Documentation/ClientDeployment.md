@@ -1,7 +1,7 @@
 # 1. Packaging
 
 0. Make sure local .NET Core version is up to date.
-1. Update onion seed list: `dotnet run -- --getonions`
+1. Update the onion seed list to the most reliable ones: `dotnet run -- --reduceonions`
 2. Run tests.
 3. Dump client version.
 4. Run packager in publish mode.

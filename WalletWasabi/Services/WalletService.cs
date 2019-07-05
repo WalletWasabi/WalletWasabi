@@ -340,7 +340,7 @@ namespace WalletWasabi.Services
 									}
 								}
 
-								if (cnt != unconfirmedTransactions.Count())
+								if (cnt != unconfirmedTransactions.Length)
 								{
 									SerializeTransactionCache();
 								}
@@ -448,7 +448,7 @@ namespace WalletWasabi.Services
 			// If it spends someone and hasn't been sufficiently anonymized.
 			if (coin.AnonymitySet < ServiceConfiguration.PrivacyLevelStrong)
 			{
-				var c = lookupSpenderTransactionId[coin.TransactionId].Where(x => !clusters.Contains(x)).FirstOrDefault();
+				var c = lookupSpenderTransactionId[coin.TransactionId].FirstOrDefault(x => !clusters.Contains(x));
 				if (c != default)
 				{
 					var h = GetClusters(c, clusters, lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId);
@@ -465,7 +465,7 @@ namespace WalletWasabi.Services
 			// If it's being spent by someone and that someone hasn't been sufficiently anonymized.
 			if (!coin.Unspent)
 			{
-				var c = lookupTransactionId[coin.SpenderTransactionId].Where(x => !clusters.Contains(x)).FirstOrDefault();
+				var c = lookupTransactionId[coin.SpenderTransactionId].FirstOrDefault(x => !clusters.Contains(x));
 				if (c != default)
 				{
 					if (c.AnonymitySet < ServiceConfiguration.PrivacyLevelStrong)
@@ -656,7 +656,7 @@ namespace WalletWasabi.Services
 					}
 
 					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Don't inherit locked status from key, that's different.
-																																																												   // If we didn't have it.
+																																																												   // If we did not have it.
 					if (Coins.TryAdd(newCoin))
 					{
 						TransactionCache.TryAdd(tx);
@@ -854,7 +854,7 @@ namespace WalletWasabi.Services
 
 							if (ex is SocketException)
 							{
-								Logger.LogTrace<WalletService>("Didn't find local listening and running full node instance. Trying to fetch needed block from other source.");
+								Logger.LogTrace<WalletService>("Did not find local listening and running full node instance. Trying to fetch needed block from other source.");
 							}
 							else
 							{
@@ -972,14 +972,7 @@ namespace WalletWasabi.Services
 					finally
 					{
 						LocalBitcoinCoreNode = null;
-						try
-						{
-							Logger.LogInfo<WalletService>("Local Bitcoin Core disconnected.");
-						}
-						catch (Exception)
-						{
-							throw;
-						}
+						Logger.LogInfo<WalletService>("Local Bitcoin Core disconnected.");
 					}
 				}
 			}
@@ -1470,7 +1463,7 @@ namespace WalletWasabi.Services
 					{
 						if (timeout > 7)
 						{
-							throw new TimeoutException("Didn't serve the transaction.");
+							throw new TimeoutException("Did not serve the transaction.");
 						}
 						await Task.Delay(1000);
 						timeout++;
@@ -1484,7 +1477,7 @@ namespace WalletWasabi.Services
 					{
 						if (timeout > 21)
 						{
-							throw new TimeoutException("Didn't serve the transaction.");
+							throw new TimeoutException("Did not serve the transaction.");
 						}
 						await Task.Delay(1000);
 						timeout++;

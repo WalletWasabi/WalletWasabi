@@ -496,7 +496,7 @@ namespace WalletWasabi.Tests
 			{
 				if (times > timeout.TotalSeconds)
 				{
-					throw new TimeoutException($"{nameof(WasabiSynchronizer)} test timed out. Filter wasn't downloaded.");
+					throw new TimeoutException($"{nameof(WasabiSynchronizer)} test timed out. Filter was not downloaded.");
 				}
 				await Task.Delay(TimeSpan.FromSeconds(1));
 				times++;
@@ -656,7 +656,7 @@ namespace WalletWasabi.Tests
 				Assert.Equal(4, wallet.Coins.Count);
 				Assert.Empty(wallet.Coins.Where(x => x.TransactionId == txid4));
 				Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == tx4bumpRes.TransactionId));
-				var rbfCoin = wallet.Coins.Where(x => x.TransactionId == tx4bumpRes.TransactionId).Single();
+				var rbfCoin = wallet.Coins.Single(x => x.TransactionId == tx4bumpRes.TransactionId);
 
 				Assert.Equal(Money.Coins(0.03m), rbfCoin.Amount);
 				Assert.Equal(new Height(bitcoinStore.HashChain.TipHeight).Value - 2, rbfCoin.Height.Value);
@@ -686,7 +686,7 @@ namespace WalletWasabi.Tests
 				var txid5 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
 				await Task.Delay(1000); // Wait tx to arrive and get processed.
 				Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == txid5));
-				var mempoolCoin = wallet.Coins.Where(x => x.TransactionId == txid5).Single();
+				var mempoolCoin = wallet.Coins.Single(x => x.TransactionId == txid5);
 				Assert.Equal(Height.MemPool, mempoolCoin.Height);
 
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
@@ -729,7 +729,7 @@ namespace WalletWasabi.Tests
 			{
 				if (times > timeout.TotalSeconds)
 				{
-					throw new TimeoutException($"{nameof(WalletService)} test timed out. Filter wasn't processed. Needed: {numberOfFiltersToWaitFor}, got only: {Interlocked.Read(ref _filtersProcessedByWalletCount)}.");
+					throw new TimeoutException($"{nameof(WalletService)} test timed out. Filter was not processed. Needed: {numberOfFiltersToWaitFor}, got only: {Interlocked.Read(ref _filtersProcessedByWalletCount)}.");
 				}
 				await Task.Delay(TimeSpan.FromSeconds(1));
 				times++;
@@ -3114,7 +3114,7 @@ namespace WalletWasabi.Tests
 				{
 					if (timeout.IsCompletedSuccessfully)
 					{
-						throw new TimeoutException("CoinJoin wasn't propagated.");
+						throw new TimeoutException("CoinJoin was not propagated.");
 					}
 					await Task.Delay(1000);
 				}
@@ -3245,7 +3245,7 @@ namespace WalletWasabi.Tests
 				{
 					if (timeout.IsCompletedSuccessfully)
 					{
-						throw new TimeoutException("CoinJoin wasn't propagated.");
+						throw new TimeoutException("CoinJoin was not propagated.");
 					}
 					await Task.Delay(1000);
 				}
@@ -3422,13 +3422,13 @@ namespace WalletWasabi.Tests
 				{
 					if (timeout.IsCompletedSuccessfully)
 					{
-						throw new TimeoutException("CoinJoin wasn't propagated or didn't arrive.");
+						throw new TimeoutException("CoinJoin was not propagated or did not arrive.");
 					}
 					await Task.Delay(1000);
 				}
 
 				var times = 0;
-				while (wallet.Coins.Where(x => x.Label == "ZeroLink Change" && x.Unspent).FirstOrDefault() is null)
+				while (wallet.Coins.FirstOrDefault(x => x.Label == "ZeroLink Change" && x.Unspent) is null)
 				{
 					await Task.Delay(1000);
 					times++;
