@@ -430,7 +430,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					DisplayActionTab();
 					if (!(result is true))
 					{
-						return (false, "PIN wasn't provided.");
+						return (false, "PIN was not provided.");
 					}
 
 					var maskedPin = pinpad.MaskedPin;
