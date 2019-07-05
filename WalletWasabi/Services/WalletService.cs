@@ -445,7 +445,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			// If it spends someone and hasn't been sufficiently anonymized.
+			// If it spends someone and has not been sufficiently anonymized.
 			if (coin.AnonymitySet < ServiceConfiguration.PrivacyLevelStrong)
 			{
 				var c = lookupSpenderTransactionId[coin.TransactionId].FirstOrDefault(x => !clusters.Contains(x));
@@ -462,7 +462,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			// If it's being spent by someone and that someone hasn't been sufficiently anonymized.
+			// If it's being spent by someone and that someone has not been sufficiently anonymized.
 			if (!coin.Unspent)
 			{
 				var c = lookupTransactionId[coin.SpenderTransactionId].FirstOrDefault(x => !clusters.Contains(x));
