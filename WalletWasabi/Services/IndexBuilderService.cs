@@ -289,7 +289,7 @@ namespace WalletWasabi.Services
 								{
 									// If stop was requested return.
 									// Because this tx iteration can take even minutes
-									// It doesn't need to be accessed with a thread safe fasion with Interlocked through IsRunning, this may have some performance benefit
+									// It doesn't need to be accessed with a thread safe fashion with Interlocked through IsRunning, this may have some performance benefit
 									if (_running != 1)
 									{
 										return;
