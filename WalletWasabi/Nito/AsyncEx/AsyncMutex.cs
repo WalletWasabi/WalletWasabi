@@ -290,9 +290,8 @@ namespace Nito.AsyncEx
 					throw new InvalidOperationException($"Thread should not be alive.");
 				}
 
-				MutexThread = new Thread(new ParameterizedThreadStart(HoldLock));
+				MutexThread = new Thread(new ParameterizedThreadStart(HoldLock)) { Name = $"MutexThread" };
 
-				MutexThread.Name = $"MutexThread";
 
 				MutexThread.Start(cancellationToken);
 
