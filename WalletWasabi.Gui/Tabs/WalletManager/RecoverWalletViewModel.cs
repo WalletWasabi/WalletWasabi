@@ -204,15 +204,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 
 			string[] enteredWordList = words.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-			var lastWorld = enteredWordList.LastOrDefault().Replace("\t", "");
-
-			if (lastWorld.Length < 1)
+			var lastWord = enteredWordList.LastOrDefault().Replace("\t", "");
+			if (lastWord.Length < 1)
 			{
 				Suggestions.Clear();
 				return;
 			}
 
-			var suggestedWords = EnglishWords.Where(w => w.StartsWith(lastWorld)).Except(enteredWordList).Take(7);
+			var suggestedWords = EnglishWords.Where(w => w.StartsWith(lastWord)).Except(enteredWordList).Take(7);
 
 			Suggestions.Clear();
 			foreach (var suggestion in suggestedWords)
