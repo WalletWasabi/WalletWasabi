@@ -848,7 +848,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public bool HasIngredients => Salt is null || Soup is null ? false : true;
+		public bool HasIngredients => Salt != null && Soup != null;
 
 		private string SaltSoup()
 		{
