@@ -343,14 +343,19 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				IsWalletSelected = SelectedWallet != null;
 				CanTestPassword = IsWalletSelected;
 
-				IsWalletOpened = Global.WalletService != null;
-				// If not busy loading.
-				// And wallet is selected.
-				// And no wallet is opened.
-				CanLoadWallet = !IsBusy && IsWalletSelected && !IsWalletOpened;
-
-				if (IsWalletOpened)
+				if (Global.WalletService is null)
 				{
+					IsWalletOpened = false;
+
+					// If not busy loading.
+					// And wallet is selected.
+					// And no wallet is opened.
+					CanLoadWallet = !IsBusy && IsWalletSelected;
+				}
+				else
+				{
+					IsWalletOpened = true;
+					CanLoadWallet = false;
 					SetWarningMessage("There is already an open wallet. Restart the application in order to open a different one.");
 				}
 
