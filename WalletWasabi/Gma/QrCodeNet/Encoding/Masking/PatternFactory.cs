@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Gma.QrCodeNet.Encoding.Masking
@@ -36,8 +36,6 @@ namespace Gma.QrCodeNet.Encoding.Masking
 				default:
 					throw new NotSupportedException("This is impossible.");
 			}
-
-			throw new ArgumentException($"Usupported pattern type {maskPatternType}", nameof(maskPatternType));
 		}
 
 		internal IEnumerable<Pattern> AllPatterns()
