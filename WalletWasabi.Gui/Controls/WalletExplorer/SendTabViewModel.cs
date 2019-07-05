@@ -86,7 +86,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			AllSelectedAmount = Money.Zero;
 			UsdExchangeRate = Global.Synchronizer?.UsdExchangeRate ?? UsdExchangeRate;
 			IsMax = false;
-			LabelToolTip = "Start labelling today and your privacy will thank you tomorrow!";
+			LabelToolTip = "Start labeling today and your privacy will thank you tomorrow!";
 			Amount = "0.0";
 		}
 
@@ -214,7 +214,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						Amount = "0.0";
 
-						LabelToolTip = "Start labelling today and your privacy will thank you tomorrow!";
+						LabelToolTip = "Start labeling today and your privacy will thank you tomorrow!";
 					}
 				});
 
