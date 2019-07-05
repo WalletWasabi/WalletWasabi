@@ -26,12 +26,12 @@ namespace NBitcoin.RPC
 		/// <summary>
 		/// Waits for a specific new block and returns useful info about it.
 		/// </summary>
-		/// <param name="blockhash">Block hash to wait for</param>
+		/// <param name="blockHash">Block hash to wait for</param>
 		/// <param name="timeout">(int, optional, default=0) Time in milliseconds to wait for a response. 0 indicates no timeout.</param>
 		/// <returns>Returns the current block on timeout or exit</returns>
-		public static async Task<(Height height, uint256 hash)> WaitForBlockAsync(this RPCClient rpc, uint256 blockhash, long timeout = 0)
+		public static async Task<(Height height, uint256 hash)> WaitForBlockAsync(this RPCClient rpc, uint256 blockHash, long timeout = 0)
 		{
-			var resp = await rpc.SendCommandAsync("waitforblock", blockhash, timeout);
+			var resp = await rpc.SendCommandAsync("waitforblock", blockHash, timeout);
 			return (int.Parse(resp.Result["height"].ToString()), uint256.Parse(resp.Result["hash"].ToString()));
 		}
 

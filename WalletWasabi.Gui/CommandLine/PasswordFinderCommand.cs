@@ -67,7 +67,7 @@ namespace WalletWasabi.Gui.CommandLine
 				}
 				else if (!string.IsNullOrWhiteSpace(WalletName))
 				{
-					KeyManager km = Daemon.TryGetKeymanagerFromWalletName(WalletName);
+					KeyManager km = Daemon.TryGetKeyManagerFromWalletName(WalletName);
 					if (km is null)
 					{
 						error = true;
