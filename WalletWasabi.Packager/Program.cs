@@ -141,7 +141,7 @@ namespace WalletWasabi.Packager
 		private static void ReduceOnions()
 		{
 			var onionFile = Path.Combine(LibraryProjectDirectory, "OnionSeeds", "MainOnionSeeds.txt");
-			var currentOnions = File.ReadAllLines(onionFile);
+			var currentOnions = File.ReadAllLines(onionFile).ToHashSet();
 			using (var httpClient = new HttpClient())
 			{
 				httpClient.BaseAddress = new Uri("https://bitnodes.21.co/api/v1/");
@@ -169,8 +169,7 @@ namespace WalletWasabi.Packager
 							var verString = userAgent.Substring(userAgent.IndexOf("Satoshi:") + 8, 4);
 							var ver = new Version(verString);
 
-							if (currentOnions.Any(x => x.Contains(node.Name, StringComparison.OrdinalIgnoreCase))
-								&& ver >= new Version("0.16"))
+							if (ver >= new Version("0.16") && currentOnions.Contains(node.Name))
 							{
 								Console.WriteLine(node.Name);
 							}
