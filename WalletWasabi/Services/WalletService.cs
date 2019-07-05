@@ -293,14 +293,14 @@ namespace WalletWasabi.Services
 				}
 
 				// Go through the keymanager's index.
-				KeyManager.AssertNetworkOrClearBlockstate(Network);
+				KeyManager.AssertNetworkOrClearBlockState(Network);
 				Height bestKeyManagerHeight = KeyManager.GetBestHeight();
 
-				foreach (BlockState blockstate in KeyManager.GetTransactionIndex())
+				foreach (BlockState blockState in KeyManager.GetTransactionIndex())
 				{
-					var relevantTransactions = confirmedTransactions.Where(x => x.BlockHash == blockstate.BlockHash).ToArray();
-					var block = await GetOrDownloadBlockAsync(blockstate.BlockHash, cancel);
-					await ProcessBlockAsync(blockstate.BlockHeight, block, blockstate.TransactionIndices, relevantTransactions);
+					var relevantTransactions = confirmedTransactions.Where(x => x.BlockHash == blockState.BlockHash).ToArray();
+					var block = await GetOrDownloadBlockAsync(blockState.BlockHash, cancel);
+					await ProcessBlockAsync(blockState.BlockHeight, block, blockState.TransactionIndices, relevantTransactions);
 				}
 
 				// Go through the filters and que to download the matches.

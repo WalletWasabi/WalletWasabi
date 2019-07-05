@@ -791,21 +791,21 @@ namespace WalletWasabi.KeyManagement
 		}
 
 		/// <returns>The network the keymanager was used the last time on.</returns>
-		public void AssertNetworkOrClearBlockstate(Network expectednetwork)
+		public void AssertNetworkOrClearBlockState(Network expectedNetwork)
 		{
 			lock (BlockchainStateLock)
 			{
 				var lastNetwork = BlockchainState.Network;
-				if (lastNetwork is null || lastNetwork != expectednetwork)
+				if (lastNetwork is null || lastNetwork != expectedNetwork)
 				{
-					BlockchainState.Network = expectednetwork;
+					BlockchainState.Network = expectedNetwork;
 					BlockchainState.BestHeight = 0;
 					BlockchainState.BlockStates.Clear();
 					ToFileNoBlockchainStateLock();
 
 					if (lastNetwork != null)
 					{
-						Logger.LogWarning<KeyManager>($"Wallet is opened on {expectednetwork}. Last time it was opened on {lastNetwork}.");
+						Logger.LogWarning<KeyManager>($"Wallet is opened on {expectedNetwork}. Last time it was opened on {lastNetwork}.");
 					}
 					Logger.LogInfo<KeyManager>("Blockchain cache is cleared.");
 				}

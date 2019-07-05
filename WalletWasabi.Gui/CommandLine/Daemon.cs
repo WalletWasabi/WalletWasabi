@@ -25,7 +25,7 @@ namespace WalletWasabi.Gui.CommandLine
 			{
 				Logger.LogStarting("Wasabi Daemon");
 
-				KeyManager keyManager = TryGetKeymanagerFromWalletName(walletName);
+				KeyManager keyManager = TryGetKeyManagerFromWalletName(walletName);
 				if (keyManager is null)
 				{
 					return;
@@ -118,7 +118,7 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 		}
 
-		public KeyManager TryGetKeymanagerFromWalletName(string walletName)
+		public KeyManager TryGetKeyManagerFromWalletName(string walletName)
 		{
 			try
 			{
