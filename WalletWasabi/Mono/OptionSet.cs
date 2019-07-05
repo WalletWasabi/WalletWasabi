@@ -572,12 +572,12 @@ namespace Mono.Options
 			{
 				return false;
 			}
-			flag = m.Groups["flag"].Value;
-			name = m.Groups["name"].Value;
-			if (m.Groups["sep"].Success && m.Groups["value"].Success)
+			flag = m.Groups[nameof(flag)].Value;
+			name = m.Groups[nameof(name)].Value;
+			if (m.Groups[nameof(sep)].Success && m.Groups[nameof(value)].Success)
 			{
-				sep = m.Groups["sep"].Value;
-				value = m.Groups["value"].Value;
+				sep = m.Groups[nameof(sep)].Value;
+				value = m.Groups[nameof(value)].Value;
 			}
 			return true;
 		}
