@@ -537,7 +537,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 					if (selectedWallet.HardwareWalletInfo.MasterFingerprint is null)
 					{
-						throw new InvalidOperationException("Hardware wallet didn't provide a master fingerprint.");
+						throw new InvalidOperationException("Hardware wallet did not provide a master fingerprint.");
 					}
 
 					ExtPubKey extPubKey;

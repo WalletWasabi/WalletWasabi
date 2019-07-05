@@ -3422,7 +3422,7 @@ namespace WalletWasabi.Tests
 				{
 					if (timeout.IsCompletedSuccessfully)
 					{
-						throw new TimeoutException("CoinJoin was not propagated or didn't arrive.");
+						throw new TimeoutException("CoinJoin was not propagated or did not arrive.");
 					}
 					await Task.Delay(1000);
 				}
