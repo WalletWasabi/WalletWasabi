@@ -261,7 +261,7 @@ namespace WalletWasabi.Services
 					CcjClientRound inputRegistrableRound = State.GetRegistrableRoundOrDefault();
 					if (inputRegistrableRound != null)
 					{
-						if (inputRegistrableRound.Registration is null) // If didn't register already, check what can we register.
+						if (inputRegistrableRound.Registration is null) // If did not register already, check what can we register.
 						{
 							await TryRegisterCoinsAsync(inputRegistrableRound);
 						}
@@ -299,7 +299,7 @@ namespace WalletWasabi.Services
 
 				if (ongoingRound.State.Phase == CcjRoundPhase.ConnectionConfirmation)
 				{
-					if (!ongoingRound.Registration.IsPhaseActionsComleted(CcjRoundPhase.ConnectionConfirmation)) // If we didn't already confirmed connection in connection confirmation phase confirm it.
+					if (!ongoingRound.Registration.IsPhaseActionsComleted(CcjRoundPhase.ConnectionConfirmation)) // If we did not already confirmed connection in connection confirmation phase confirm it.
 					{
 						var res = await ongoingRound.Registration.AliceClient.PostConfirmationAsync();
 						if (res.activeOutputs.Any())

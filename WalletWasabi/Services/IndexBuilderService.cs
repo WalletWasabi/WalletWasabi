@@ -215,7 +215,7 @@ namespace WalletWasabi.Services
 						{
 							try
 							{
-								// If we didn't yet initialized syncInfo, do so.
+								// If we did not yet initialized syncInfo, do so.
 								if (syncInfo is null)
 								{
 									syncInfo = await GetSyncInfoAsync();

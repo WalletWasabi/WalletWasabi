@@ -314,7 +314,7 @@ namespace WalletWasabi.Services
 					}
 				}
 
-				// If aborted in signing phase, then ban Alices those didn't sign.
+				// If aborted in signing phase, then ban Alices those did not sign.
 				if (status == CcjRoundStatus.Aborted && round.Phase == CcjRoundPhase.Signing)
 				{
 					IEnumerable<Alice> alicesDidntSign = round.GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: false);

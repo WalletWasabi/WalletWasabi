@@ -656,7 +656,7 @@ namespace WalletWasabi.Services
 					}
 
 					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Don't inherit locked status from key, that's different.
-																																																												   // If we didn't have it.
+																																																												   // If we did not have it.
 					if (Coins.TryAdd(newCoin))
 					{
 						TransactionCache.TryAdd(tx);
@@ -854,7 +854,7 @@ namespace WalletWasabi.Services
 
 							if (ex is SocketException)
 							{
-								Logger.LogTrace<WalletService>("Didn't find local listening and running full node instance. Trying to fetch needed block from other source.");
+								Logger.LogTrace<WalletService>("Did not find local listening and running full node instance. Trying to fetch needed block from other source.");
 							}
 							else
 							{
@@ -1463,7 +1463,7 @@ namespace WalletWasabi.Services
 					{
 						if (timeout > 7)
 						{
-							throw new TimeoutException("Didn't serve the transaction.");
+							throw new TimeoutException("Did not serve the transaction.");
 						}
 						await Task.Delay(1000);
 						timeout++;
@@ -1477,7 +1477,7 @@ namespace WalletWasabi.Services
 					{
 						if (timeout > 21)
 						{
-							throw new TimeoutException("Didn't serve the transaction.");
+							throw new TimeoutException("Did not serve the transaction.");
 						}
 						await Task.Delay(1000);
 						timeout++;
