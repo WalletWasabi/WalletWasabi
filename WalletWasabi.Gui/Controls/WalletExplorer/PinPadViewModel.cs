@@ -9,10 +9,11 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
+using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	internal class PinPadViewModel : WalletActionViewModel
+	internal class PinPadViewModel : WasabiDocumentTabViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
 		private string _maskedPin;
@@ -32,12 +33,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _maskedPin, value);
 		}
 
-		public PinPadViewModel(WalletViewModel walletViewModel) : base("Pin Pad", walletViewModel)
+		public PinPadViewModel(Global global) : base(global, "Pin Pad")
 		{
 			SendPinCommand = ReactiveCommand.Create(() =>
 			{
 				DialogResult = true;
-				Close();
+				OnClose();
 			},
 			this.WhenAny(x => x.MaskedPin, (maskedPin) => (!string.IsNullOrWhiteSpace(maskedPin.Value))));
 

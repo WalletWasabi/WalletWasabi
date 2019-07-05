@@ -247,7 +247,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 			else
 			{
-				if (SelectedWallet?.HardwareWalletInfo != null && !SelectedWallet.HardwareWalletInfo.Initialized) // If the hardware wallet wasn't initialized, then make the button say Setup, not Load.
+				if (SelectedWallet?.HardwareWalletInfo != null && !SelectedWallet.HardwareWalletInfo.Initialized) // If the hardware wallet was not initialized, then make the button say Setup, not Load.
 				{
 					LoadButtonText = "Setup Wallet";
 				}
@@ -487,13 +487,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						PinPadViewModel pinpad = IoC.Get<IShell>().Documents.OfType<PinPadViewModel>().FirstOrDefault();
 						if (pinpad is null)
 						{
-							pinpad = new PinPadViewModel(null);
+							pinpad = new PinPadViewModel(Global);
 							IoC.Get<IShell>().AddOrSelectDocument(pinpad);
 						}
 						var result = await pinpad.ShowDialogAsync();
 						if (!(result is true))
 						{
-							SetValidationMessage("PIN wasn't provided.");
+							SetValidationMessage("PIN was not provided.");
 							return null;
 						}
 
@@ -537,7 +537,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 					if (selectedWallet.HardwareWalletInfo.MasterFingerprint is null)
 					{
-						throw new InvalidOperationException("Hardware wallet didn't provide a master fingerprint.");
+						throw new InvalidOperationException("Hardware wallet did not provide a master fingerprint.");
 					}
 
 					ExtPubKey extPubKey;
@@ -551,7 +551,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.AcquiringXpubFromHardwareWallet);
 					}
 
-					Logger.LogInfo<LoadWalletViewModel>("Hardware wallet wasn't used previously on this computer. Creating new wallet file.");
+					Logger.LogInfo<LoadWalletViewModel>("Hardware wallet was not used previously on this computer. Creating new wallet file.");
 
 					if (TryFindWalletByExtPubKey(extPubKey, out string wn))
 					{
@@ -604,7 +604,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				if (ex is IOException && ex.Message.Contains("promptpin", StringComparison.Ordinal))
 				{
-					// This happens for example when the PIN is cleared (timeout, disconnect) after the enumeration and the xpub wasn't yet acquired at all, so we reenumerate.
+					// This happens for example when the PIN is cleared (timeout, disconnect) after the enumeration and the xpub was not yet acquired at all, so we reenumerate.
 					// This will still show up the error, but at least this'll make sure that the new hardware wallet state is shown in the GUI, so they can click Load again.
 					var enumRes = await HwiProcessManager.EnumerateAsync();
 					TryRefreshHardwareWallets(enumRes);
