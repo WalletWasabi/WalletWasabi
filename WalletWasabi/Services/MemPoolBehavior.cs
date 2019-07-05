@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System;
@@ -10,15 +10,15 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Services
 {
-	public class MemPoolBehavior : NodeBehavior
+	public class MempoolBehavior : NodeBehavior
 	{
 		private const int MAX_INV_SIZE = 50000;
 
-		public MemPoolService MemPoolService { get; }
+		public MempoolService MempoolService { get; }
 
-		public MemPoolBehavior(MemPoolService memPoolService)
+		public MempoolBehavior(MempoolService mempoolService)
 		{
-			MemPoolService = Guard.NotNull(nameof(memPoolService), memPoolService);
+			MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
 		}
 
 		protected override void AttachCore()
@@ -55,12 +55,12 @@ namespace WalletWasabi.Services
 			}
 			catch (OperationCanceledException ex)
 			{
-				Logger.LogDebug<MemPoolBehavior>(ex);
+				Logger.LogDebug<MempoolBehavior>(ex);
 			}
 			catch (Exception ex)
 			{
-				Logger.LogInfo<MemPoolBehavior>($"Ignoring {ex.GetType()}: {ex.Message}");
-				Logger.LogDebug<MemPoolBehavior>(ex);
+				Logger.LogInfo<MempoolBehavior>($"Ignoring {ex.GetType()}: {ex.Message}");
+				Logger.LogDebug<MempoolBehavior>(ex);
 			}
 		}
 
@@ -68,13 +68,13 @@ namespace WalletWasabi.Services
 		{
 			if (payload.Inventory.Count > MAX_INV_SIZE)
 			{
-				Logger.LogDebug<MemPoolBehavior>($"Received inventory too big. {nameof(MAX_INV_SIZE)}: {MAX_INV_SIZE}, Node: {node.RemoteSocketEndpoint}");
+				Logger.LogDebug<MempoolBehavior>($"Received inventory too big. {nameof(MAX_INV_SIZE)}: {MAX_INV_SIZE}, Node: {node.RemoteSocketEndpoint}");
 				return;
 			}
 
 			foreach (var inv in payload.Inventory.Where(inv => inv.Type.HasFlag(InventoryType.MSG_TX)))
 			{
-				if (MemPoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry entry)) // If we have the transaction to be broadcasted then broadcast it now.
+				if (MempoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry entry)) // If we have the transaction to be broadcasted then broadcast it now.
 				{
 					if (entry.NodeRemoteSocketEndpoint != node.RemoteSocketEndpoint.ToString())
 					{
@@ -86,18 +86,18 @@ namespace WalletWasabi.Services
 						var txPayload = new TxPayload(entry.Transaction);
 						if (!node.IsConnected)
 						{
-							Logger.LogInfo<MemPoolBehavior>($"Couldn't serve transaction. Node ({node.RemoteSocketEndpoint}) is not connected anymore: {entry.TransactionId}.");
+							Logger.LogInfo<MempoolBehavior>($"Couldn't serve transaction. Node ({node.RemoteSocketEndpoint}) is not connected anymore: {entry.TransactionId}.");
 						}
 						else
 						{
 							await node.SendMessageAsync(txPayload);
 							entry.MakeBroadcasted();
-							Logger.LogInfo<MemPoolBehavior>($"Successfully served transaction to node ({node.RemoteSocketEndpoint}): {entry.TransactionId}.");
+							Logger.LogInfo<MempoolBehavior>($"Successfully served transaction to node ({node.RemoteSocketEndpoint}): {entry.TransactionId}.");
 						}
 					}
 					catch (Exception ex)
 					{
-						Logger.LogInfo<MemPoolBehavior>(ex);
+						Logger.LogInfo<MempoolBehavior>(ex);
 					}
 				}
 			}
@@ -107,14 +107,14 @@ namespace WalletWasabi.Services
 		{
 			if (payload.Inventory.Count > MAX_INV_SIZE)
 			{
-				Logger.LogDebug<MemPoolBehavior>($"Received inventory too big. {nameof(MAX_INV_SIZE)}: {MAX_INV_SIZE}, Node: {node.RemoteSocketEndpoint}");
+				Logger.LogDebug<MempoolBehavior>($"Received inventory too big. {nameof(MAX_INV_SIZE)}: {MAX_INV_SIZE}, Node: {node.RemoteSocketEndpoint}");
 				return;
 			}
 
 			var getDataPayload = new GetDataPayload();
 			foreach (var inv in payload.Inventory.Where(inv => inv.Type.HasFlag(InventoryType.MSG_TX)))
 			{
-				if (MemPoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry entry)) // If we have the transaction then adjust confirmation.
+				if (MempoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry entry)) // If we have the transaction then adjust confirmation.
 				{
 					try
 					{
@@ -127,12 +127,12 @@ namespace WalletWasabi.Services
 					}
 					catch (Exception ex)
 					{
-						Logger.LogInfo<MemPoolBehavior>(ex);
+						Logger.LogInfo<MempoolBehavior>(ex);
 					}
 				}
 
 				// if we already have it continue;
-				if (!MemPoolService.TransactionHashes.TryAdd(inv.Hash))
+				if (!MempoolService.TransactionHashes.TryAdd(inv.Hash))
 				{
 					continue;
 				}
@@ -150,12 +150,12 @@ namespace WalletWasabi.Services
 		private void ProcessTx(TxPayload payload)
 		{
 			Transaction transaction = payload.Object;
-			MemPoolService.OnTransactionReceived(new SmartTransaction(transaction, Height.MemPool));
+			MempoolService.OnTransactionReceived(new SmartTransaction(transaction, Height.Mempool));
 		}
 
 		public override object Clone()
 		{
-			return new MemPoolBehavior(MemPoolService);
+			return new MempoolBehavior(MempoolService);
 		}
 	}
 }
