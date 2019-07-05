@@ -496,7 +496,7 @@ namespace WalletWasabi.Tests
 			{
 				if (times > timeout.TotalSeconds)
 				{
-					throw new TimeoutException($"{nameof(WasabiSynchronizer)} test timed out. Filter wasn't downloaded.");
+					throw new TimeoutException($"{nameof(WasabiSynchronizer)} test timed out. Filter was not downloaded.");
 				}
 				await Task.Delay(TimeSpan.FromSeconds(1));
 				times++;
@@ -729,7 +729,7 @@ namespace WalletWasabi.Tests
 			{
 				if (times > timeout.TotalSeconds)
 				{
-					throw new TimeoutException($"{nameof(WalletService)} test timed out. Filter wasn't processed. Needed: {numberOfFiltersToWaitFor}, got only: {Interlocked.Read(ref _filtersProcessedByWalletCount)}.");
+					throw new TimeoutException($"{nameof(WalletService)} test timed out. Filter was not processed. Needed: {numberOfFiltersToWaitFor}, got only: {Interlocked.Read(ref _filtersProcessedByWalletCount)}.");
 				}
 				await Task.Delay(TimeSpan.FromSeconds(1));
 				times++;
@@ -3114,7 +3114,7 @@ namespace WalletWasabi.Tests
 				{
 					if (timeout.IsCompletedSuccessfully)
 					{
-						throw new TimeoutException("CoinJoin wasn't propagated.");
+						throw new TimeoutException("CoinJoin was not propagated.");
 					}
 					await Task.Delay(1000);
 				}
@@ -3245,7 +3245,7 @@ namespace WalletWasabi.Tests
 				{
 					if (timeout.IsCompletedSuccessfully)
 					{
-						throw new TimeoutException("CoinJoin wasn't propagated.");
+						throw new TimeoutException("CoinJoin was not propagated.");
 					}
 					await Task.Delay(1000);
 				}
@@ -3422,7 +3422,7 @@ namespace WalletWasabi.Tests
 				{
 					if (timeout.IsCompletedSuccessfully)
 					{
-						throw new TimeoutException("CoinJoin wasn't propagated or didn't arrive.");
+						throw new TimeoutException("CoinJoin was not propagated or didn't arrive.");
 					}
 					await Task.Delay(1000);
 				}
