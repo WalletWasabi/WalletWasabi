@@ -21,7 +21,7 @@ namespace WalletWasabi.TorSocks5
 {
 	public class TorHttpClient : IDisposable
 	{
-		private static DateTimeOffset? TorDoesntWorkSinceBacking = null;
+		private static DateTimeOffset? TorDoesntWorkSinceBacking;
 
 		public static DateTimeOffset? TorDoesntWorkSince
 		{
@@ -39,7 +39,7 @@ namespace WalletWasabi.TorSocks5
 			}
 		}
 
-		public static Exception LatestTorException { get; private set; } = null;
+		public static Exception LatestTorException { get; private set; }
 
 		public Uri DestinationUri => DestinationUriAction();
 		public Func<Uri> DestinationUriAction { get; private set; }
@@ -276,7 +276,7 @@ namespace WalletWasabi.TorSocks5
 
 		#region IDisposable Support
 
-		private volatile bool _disposedValue = false; // To detect redundant calls
+		private volatile bool _disposedValue; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{

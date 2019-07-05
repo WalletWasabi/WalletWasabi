@@ -754,8 +754,8 @@ namespace WalletWasabi.Services
 			Interlocked.Exchange(ref _frequentStatusProcessingIfNotMixing, 0);
 		}
 
-		private string Salt { get; set; } = null;
-		private string Soup { get; set; } = null;
+		private string Salt { get; set; }
+		private string Soup { get; set; }
 		private object RefrigeratorLock { get; } = new object();
 
 		public async Task<IEnumerable<SmartCoin>> QueueCoinsToMixAsync(string password, params SmartCoin[] coins)

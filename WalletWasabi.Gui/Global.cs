@@ -60,7 +60,7 @@ namespace WalletWasabi.Gui
 		public UpdateChecker UpdateChecker { get; private set; }
 		public TorProcessManager TorManager { get; private set; }
 
-		public bool KillRequested { get; private set; } = false;
+		public bool KillRequested { get; private set; }
 
 		public UiConfig UiConfig { get; private set; }
 
@@ -83,7 +83,7 @@ namespace WalletWasabi.Gui
 			UiConfig = Guard.NotNull(nameof(uiConfig), uiConfig);
 		}
 
-		private int _isDesperateDequeuing = 0;
+		private int _isDesperateDequeuing;
 
 		public async Task TryDesperateDequeueAllCoinsAsync()
 		{
@@ -126,7 +126,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private bool Initialized { get; set; } = false;
+		private bool Initialized { get; set; }
 
 		public async Task InitializeNoWalletAsync()
 		{
@@ -395,7 +395,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private CancellationTokenSource _cancelWalletServiceInitialization = null;
+		private CancellationTokenSource _cancelWalletServiceInitialization;
 
 		public async Task InitializeWalletServiceAsync(KeyManager keyManager)
 		{
@@ -580,7 +580,7 @@ namespace WalletWasabi.Gui
 		/// 1: somebody called
 		/// 2: call finished
 		/// </summary>
-		private long _dispose = 0; // To detect redundant calls
+		private long _dispose; // To detect redundant calls
 
 		public async Task DisposeAsync()
 		{

@@ -29,7 +29,7 @@ namespace WalletWasabi.Logging
 		/// </summary>
 		public static Guid InstanceGuid { get; } = Guid.NewGuid();
 
-		private static int LoggingFailedCount = 0;
+		private static int LoggingFailedCount;
 
 		private static readonly object Lock = new object();
 

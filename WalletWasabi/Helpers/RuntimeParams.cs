@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Nito.AsyncEx;
 using System;
 using System.IO;
@@ -16,7 +16,7 @@ namespace WalletWasabi.Helpers
 
 		#region Business logic
 
-		private static RuntimeParams InternalInstance = null;
+		private static RuntimeParams InternalInstance;
 
 		public static RuntimeParams Instance
 		{

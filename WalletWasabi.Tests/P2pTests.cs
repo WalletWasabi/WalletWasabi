@@ -167,7 +167,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		private long _nodeCount = 0;
+		private long _nodeCount;
 
 		private void ConnectedNodes_Added(object sender, NodeEventArgs e)
 		{
@@ -187,7 +187,7 @@ namespace WalletWasabi.Tests
 			Logger.LogTrace<P2pTests>($"Node count: {nodeCount}.");
 		}
 
-		private long _mempoolTransactionCount = 0;
+		private long _mempoolTransactionCount;
 
 		private void MemPoolService_TransactionReceived(object sender, SmartTransaction e)
 		{

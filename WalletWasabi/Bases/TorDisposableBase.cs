@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net;
 using WalletWasabi.TorSocks5;
 
@@ -22,7 +22,7 @@ namespace WalletWasabi.Bases
 
 		#region IDisposable Support
 
-		private volatile bool _disposedValue = false; // To detect redundant calls
+		private volatile bool _disposedValue; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{

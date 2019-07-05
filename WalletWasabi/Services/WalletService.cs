@@ -716,7 +716,7 @@ namespace WalletWasabi.Services
 			return walletRelevant;
 		}
 
-		private Node _localBitcoinCoreNode = null;
+		private Node _localBitcoinCoreNode;
 
 		public Node LocalBitcoinCoreNode
 		{
@@ -1589,7 +1589,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public bool UnconfirmedTransactionsInitialized { get; private set; } = false;
+		public bool UnconfirmedTransactionsInitialized { get; private set; }
 
 		private void SerializeTransactionCache()
 		{

@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui.Controls
 {
 	public class ExtendedTextBox : TextBox, IStyleable
 	{
-		private MenuItem _pasteItem = null;
+		private MenuItem _pasteItem;
 
 		public ExtendedTextBox()
 		{

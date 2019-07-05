@@ -442,7 +442,7 @@ namespace Nito.AsyncEx
 
 			#region IDisposable Support
 
-			private volatile bool _disposedValue = false; // To detect redundant calls
+			private volatile bool _disposedValue; // To detect redundant calls
 
 			private void Dispose(bool disposing)
 			{

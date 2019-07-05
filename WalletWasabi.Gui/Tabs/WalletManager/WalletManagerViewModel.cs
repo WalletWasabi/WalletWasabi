@@ -106,7 +106,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		}
 
 		private CancellationTokenSource HardwareWalletRefreshCancel { get; set; }
-		private bool HwTabAutomaticallySelectedOnce { get; set; } = false;
+		private bool HwTabAutomaticallySelectedOnce { get; set; }
 
 		private async Task RefreshHardwareWalletListAsync()
 		{

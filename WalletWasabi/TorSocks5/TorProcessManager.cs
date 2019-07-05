@@ -23,7 +23,7 @@ namespace WalletWasabi.TorSocks5
 
 		public string LogFile { get; }
 
-		public static bool RequestFallbackAddressUsage { get; private set; } = false;
+		public static bool RequestFallbackAddressUsage { get; private set; }
 
 		public Process TorProcess { get; private set; }
 
