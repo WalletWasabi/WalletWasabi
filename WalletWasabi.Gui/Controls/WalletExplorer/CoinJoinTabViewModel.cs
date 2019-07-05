@@ -41,7 +41,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _dequeueButtonText;
 		private const string DequeueButtonTextString = "Dequeue Selected Coins";
 		private const string DequeuingButtonTextString = "Dequeuing coins...";
-		private int _coinJoinUntilAnonimitySet;
+		private int _coinJoinUntilAnonymitySet;
 		private TargetPrivacy _targetPrivacy;
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
@@ -86,7 +86,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						TargetPrivacy = TargetPrivacy.Some;
 						break;
 				}
-				Global.Config.MixUntilAnonymitySet = CoinJoinUntilAnonimitySet;
+				Global.Config.MixUntilAnonymitySet = CoinJoinUntilAnonymitySet;
 				await Global.Config.ToFileAsync();
 			});
 
@@ -120,7 +120,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.TargetPrivacy).Subscribe(target =>
 			{
-				CoinJoinUntilAnonimitySet = Global.Config.GetTargetLevel(target);
+				CoinJoinUntilAnonymitySet = Global.Config.GetTargetLevel(target);
 			});
 
 			this.WhenAnyValue(x => x.RoundTimesout)
@@ -130,19 +130,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					TimeSpan left = x - DateTimeOffset.UtcNow;
 					TimeLeftTillRoundTimeout = left > TimeSpan.Zero ? left : TimeSpan.Zero; // Make sure cannot be less than zero.
 				});
-
-			this.WhenAnyValue(x => x.TimeLeftTillRoundTimeout)
-				.Throttle(TimeSpan.FromSeconds(1))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					var next = TimeLeftTillRoundTimeout - TimeSpan.FromSeconds(1);
-					TimeLeftTillRoundTimeout = next > TimeSpan.Zero ? next : TimeSpan.Zero; // Make sure cannot be less than zero.
-				});
 		}
 
 		public override void OnOpen()
 		{
+			base.OnOpen();
+
 			if (Disposables != null)
 			{
 				throw new Exception("CoinJoin tab opened before previous closed.");
@@ -190,7 +183,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
 			}).DisposeWith(Disposables);
 
-			base.OnOpen();
+			Observable.Interval(TimeSpan.FromSeconds(1))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					TimeSpan left = RoundTimesout - DateTimeOffset.UtcNow;
+					TimeLeftTillRoundTimeout = left > TimeSpan.Zero ? left : TimeSpan.Zero; // Make sure cannot be less than zero.
+				}).DisposeWith(Disposables);
 		}
 
 		public override bool OnClose()
@@ -463,10 +462,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _dequeueButtonText, value);
 		}
 
-		public int CoinJoinUntilAnonimitySet
+		public int CoinJoinUntilAnonymitySet
 		{
-			get => _coinJoinUntilAnonimitySet;
-			set => this.RaiseAndSetIfChanged(ref _coinJoinUntilAnonimitySet, value);
+			get => _coinJoinUntilAnonymitySet;
+			set => this.RaiseAndSetIfChanged(ref _coinJoinUntilAnonymitySet, value);
 		}
 
 		private TargetPrivacy TargetPrivacy

@@ -41,12 +41,12 @@ namespace WalletWasabi.Models
 
 		public Money GetFeeRate(int feeTarget)
 		{
-			int staoshiPerByte = Estimations
-				.Where(x => x.Key <= feeTarget) // Where the target is still under or equals to the the requested target.
-				.Last() // The last should be the largest feeTarget.
+			// Where the target is still under or equals to the the requested target.
+			int satoshiPerByte = Estimations
+				.Last(x => x.Key <= feeTarget) // The last should be the largest feeTarget.
 				.Value;
 
-			return Money.Satoshis(staoshiPerByte);
+			return Money.Satoshis(satoshiPerByte);
 		}
 
 		#region Equality

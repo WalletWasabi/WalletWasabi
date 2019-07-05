@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Tests.NodeBuilding;
@@ -33,7 +34,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 
 			var config = new Config(rpc.Network, rpc.Authentication, IPAddress.Loopback.ToString(), IPAddress.Loopback.ToString(), BackendRegTestNode.Endpoint.Address.ToString(), Network.Main.DefaultPort, Network.TestNet.DefaultPort, BackendRegTestNode.Endpoint.Port);
 
-			var roundConfig = new CcjRoundConfig(Money.Coins(0.1m), 144, 0.7, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
+			var roundConfig = new CcjRoundConfig(Money.Coins(0.1m), Constants.OneDayConfirmationTarget, 0.7, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
 
 			Backend.Global.Instance.InitializeAsync(config, roundConfig, rpc).GetAwaiter().GetResult();
 

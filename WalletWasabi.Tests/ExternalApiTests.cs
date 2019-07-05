@@ -73,8 +73,8 @@ namespace WalletWasabi.Tests
 				Assert.InRange(response.MediumFee.FeePerK, response.LowFee.FeePerK, response.HighFee.FeePerK);
 				Assert.InRange(response.HighFee.FeePerK, response.MediumFee.FeePerK, Money.Coins(0.1m));
 				Assert.True(response.Height >= 491999);
-				Assert.Equal(new Uri(client.BaseAddress.ToString() + "/blocks/" + response.Hash), response.LatestUrl);
-				Assert.Equal(new Uri(client.BaseAddress.ToString() + "/blocks/" + response.PreviousHash), response.PreviousUrl);
+				Assert.Equal(new Uri(client.BaseAddress + "/blocks/" + response.Hash), response.LatestUrl);
+				Assert.Equal(new Uri(client.BaseAddress + "/blocks/" + response.PreviousHash), response.PreviousUrl);
 				if (network == Network.Main)
 				{
 					Assert.Equal("BTC.main", response.Name);
@@ -102,7 +102,7 @@ namespace WalletWasabi.Tests
 			}
 			catch (Exception ex)
 			{
-				Logger.LogDebug<ExternalApiTests>($"Uri wasn't reachable: {uri}");
+				Logger.LogDebug<ExternalApiTests>($"Uri was not reachable: {uri}");
 				Logger.LogDebug<ExternalApiTests>(ex);
 			}
 			return false;
