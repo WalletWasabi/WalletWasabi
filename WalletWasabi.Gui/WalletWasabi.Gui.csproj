@@ -56,8 +56,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="0.8.1-cibuild0003145-beta" />
-    <PackageReference Include="AvalonStudio.Shell" Version="0.8.0.3" />
+    <PackageReference Include="AvalonStudio.Shell" Version="0.8.1" />
   </ItemGroup>
 
   <ItemGroup>
