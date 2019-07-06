@@ -502,22 +502,22 @@ namespace WalletWasabi.Packager
 				var hwiFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "Hwi", "Software"));
 				// Remove Tor binaries those are not relevant to the platform.
 				var torFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "TorDaemons"));
-				var toNotremove = "";
+				var toNotRemove = "";
 				if (target.StartsWith("win"))
 				{
-					toNotremove = "win";
+					toNotRemove = "win";
 				}
 				else if (target.StartsWith("linux"))
 				{
-					toNotremove = "linux";
+					toNotRemove = "linux";
 				}
 				else if (target.StartsWith("osx"))
 				{
-					toNotremove = "osx";
+					toNotRemove = "osx";
 				}
 				foreach (var file in torFolder.EnumerateFiles().Concat(hwiFolder.EnumerateFiles()))
 				{
-					if (!file.Name.Contains("data", StringComparison.OrdinalIgnoreCase) && !file.Name.Contains(toNotremove, StringComparison.OrdinalIgnoreCase))
+					if (!file.Name.Contains("data", StringComparison.OrdinalIgnoreCase) && !file.Name.Contains(toNotRemove, StringComparison.OrdinalIgnoreCase))
 					{
 						File.Delete(file.FullName);
 					}
@@ -525,7 +525,7 @@ namespace WalletWasabi.Packager
 
 				foreach (var dir in hwiFolder.EnumerateDirectories())
 				{
-					if (!dir.Name.Contains(toNotremove, StringComparison.OrdinalIgnoreCase))
+					if (!dir.Name.Contains(toNotRemove, StringComparison.OrdinalIgnoreCase))
 					{
 						IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir.FullName).GetAwaiter().GetResult();
 					}
