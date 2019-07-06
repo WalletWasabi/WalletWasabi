@@ -1,7 +1,7 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
-             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui">
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+  xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui">
   <UserControl.Resources>
     <converters:BooleanOnOffConverter x:Key="BooleanOnOffConverter" />
   </UserControl.Resources>
@@ -65,6 +65,17 @@
                 <ToggleButton IsChecked="{Binding LurkingWifeMode}" Content="{Binding LurkingWifeMode, Converter={StaticResource BooleanOnOffConverter}}}" Margin="0 0 10 0" Command="{Binding LurkingWifeModeCommand}" />
                 <TextBlock VerticalAlignment="Center">Lurking Wife Mode hides sensitive content.</TextBlock>
               </StackPanel>
+              <controls:GroupBox Title="Screen Lock" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+                <StackPanel Orientation="Vertical" Spacing="5">
+                  <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
+                    <ToggleButton/>
+                    <TextBlock VerticalAlignment="Center">Use PIN to unlock the screen.</TextBlock>
+                  </StackPanel>
+                  <controls:NoparaPasswordBox Watermark="Enter Old PIN Here."/>
+                  <controls:NoparaPasswordBox Watermark="Enter New PIN Here."/>
+                  <Button Content="Confirm"/>
+                </StackPanel>
+              </controls:GroupBox>
             </StackPanel>
           </controls:GroupBox>
 
@@ -72,23 +83,23 @@
             <StackPanel Orientation="Vertical" Spacing="5">
               <Grid Margin="0 10" ColumnDefinitions="30, *">
                 <DrawingPresenter Height="24" Width="24" Grid.Column="0"
-                    Margin="0 0 10 10"
-                    VerticalAlignment="Center" HorizontalAlignment="Center"
-                    Drawing="{DynamicResource PrivacySome}" />
+                  Margin="0 0 10 10"
+                  VerticalAlignment="Center" HorizontalAlignment="Center"
+                  Drawing="{DynamicResource PrivacySome}" />
                 <TextBox Text="{Binding SomePrivacyLevel}" Grid.Column="1" />
               </Grid>
               <Grid Margin="0 10" ColumnDefinitions="30, *">
                 <DrawingPresenter Height="24" Width="24" Grid.Column="0"
-                    Margin="0 0 10 10"
-                    VerticalAlignment="Center" HorizontalAlignment="Center"
-                    Drawing="{DynamicResource PrivacyFine}" />
+                  Margin="0 0 10 10"
+                  VerticalAlignment="Center" HorizontalAlignment="Center"
+                  Drawing="{DynamicResource PrivacyFine}" />
                 <TextBox Text="{Binding FinePrivacyLevel}" Grid.Column="1" />
               </Grid>
               <Grid Margin="0 10" ColumnDefinitions="30, *">
                 <DrawingPresenter Height="24" Width="24" Grid.Column="0"
-                    Margin="0 0 10 10"
-                    VerticalAlignment="Center" HorizontalAlignment="Center"
-                    Drawing="{DynamicResource PrivacyStrong}" />
+                  Margin="0 0 10 10"
+                  VerticalAlignment="Center" HorizontalAlignment="Center"
+                  Drawing="{DynamicResource PrivacyStrong}" />
                 <TextBox Text="{Binding StrongPrivacyLevel}" Grid.Column="1" />
               </Grid>
             </StackPanel>
