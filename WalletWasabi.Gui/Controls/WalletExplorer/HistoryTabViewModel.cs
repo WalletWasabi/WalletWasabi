@@ -49,7 +49,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				await transaction.TryCopyTxIdToClipboardAsync();
 			});
 
-			SortCommand = ReactiveCommand.Create(() => RefreshOrdering());
+			SortCommand = ReactiveCommand.Create(RefreshOrdering);
 
 			DateSortDirection = SortOrder.Decreasing;
 
@@ -96,10 +96,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			try
 			{
-				var txRecordList = await Task.Run(() =>
-				{
-					return BuildTxRecordList();
-				});
+				var txRecordList = await Task.Run(BuildTxRecordList);
 
 				var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
 				Transactions?.Clear();

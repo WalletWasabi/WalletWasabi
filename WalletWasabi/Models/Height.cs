@@ -148,7 +148,7 @@ namespace WalletWasabi.Models
 		#region EqualityAndComparison
 
 		/// <inheritdoc/>
-		public override bool Equals(object obj) => obj is Height && this == (Height)obj;
+		public override bool Equals(object obj) => obj is Height height && this == height;
 
 		/// <inheritdoc/>
 		public bool Equals(Height other) => this == other;

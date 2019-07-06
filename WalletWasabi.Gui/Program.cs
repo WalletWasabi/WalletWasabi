@@ -41,8 +41,7 @@ namespace WalletWasabi.Gui
 				BuildAvaloniaApp()
 					.BeforeStarting(async builder =>
 					{
-						MainWindowViewModel.Instance = new MainWindowViewModel();
-						MainWindowViewModel.Instance.Global = Global;
+						MainWindowViewModel.Instance = new MainWindowViewModel { Global = Global };
 						statusBar = new StatusBarViewModel(Global);
 						MainWindowViewModel.Instance.StatusBar = statusBar;
 
@@ -54,10 +53,7 @@ namespace WalletWasabi.Gui
 						{
 							MainWindowViewModel.Instance.Title += $" - {Global.Network}";
 						}
-						Dispatcher.UIThread.Post(() =>
-						{
-							GC.Collect();
-						});
+						Dispatcher.UIThread.Post(GC.Collect);
 					}).StartShellApp<AppBuilder, MainWindow>("Wasabi Wallet", null, () => MainWindowViewModel.Instance);
 			}
 			catch (Exception ex)

@@ -193,7 +193,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.Label)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => UpdateSuggestions(x));
+				.Subscribe(UpdateSuggestions);
 
 			this.WhenAnyValue(x => x.FeeTarget)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -444,7 +444,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					needsPinWalletInfo = enumRes.FirstOrDefault(x => x.Type == t && x.Path == p);
 					if (needsPinWalletInfo is null)
 					{
-						return (false, "Couldn't find the hardware wallet you are working with. Did you disconnect it?");
+						return (false, "Could not find the hardware wallet you are working with. Did you disconnect it?");
 					}
 					else
 					{
@@ -567,14 +567,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				ConfirmationExpectedText = $"{feeTarget}0 minutes";
 			}
-			else if (feeTarget >= 7 && feeTarget <= 144) // hours
+			else if (feeTarget >= 7 && feeTarget <= Constants.OneDayConfirmationTarget) // hours
 			{
 				var h = feeTarget / 6;
 				ConfirmationExpectedText = $"{h} {IfPlural(h, "hour", "hours")}";
 			}
 			else if (feeTarget >= 145 && feeTarget < Constants.SevenDaysConfirmationTarget) // days
 			{
-				var d = feeTarget / 144;
+				var d = feeTarget / Constants.OneDayConfirmationTarget;
 				ConfirmationExpectedText = $"{d} {IfPlural(d, "day", "days")}";
 			}
 			else if (feeTarget == 10008)

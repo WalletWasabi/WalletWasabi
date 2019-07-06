@@ -293,14 +293,14 @@ namespace WalletWasabi.Services
 				}
 
 				// Go through the keymanager's index.
-				KeyManager.AssertNetworkOrClearBlockstate(Network);
+				KeyManager.AssertNetworkOrClearBlockState(Network);
 				Height bestKeyManagerHeight = KeyManager.GetBestHeight();
 
-				foreach (BlockState blockstate in KeyManager.GetTransactionIndex())
+				foreach (BlockState blockState in KeyManager.GetTransactionIndex())
 				{
-					var relevantTransactions = confirmedTransactions.Where(x => x.BlockHash == blockstate.BlockHash).ToArray();
-					var block = await GetOrDownloadBlockAsync(blockstate.BlockHash, cancel);
-					await ProcessBlockAsync(blockstate.BlockHeight, block, blockstate.TransactionIndices, relevantTransactions);
+					var relevantTransactions = confirmedTransactions.Where(x => x.BlockHash == blockState.BlockHash).ToArray();
+					var block = await GetOrDownloadBlockAsync(blockState.BlockHash, cancel);
+					await ProcessBlockAsync(blockState.BlockHeight, block, blockState.TransactionIndices, relevantTransactions);
 				}
 
 				// Go through the filters and que to download the matches.
@@ -429,7 +429,7 @@ namespace WalletWasabi.Services
 
 			var clusters = current.Concat(new List<SmartCoin> { coin }).ToList(); // The coin is the first elem in its cluster.
 
-			// If the script is the same then we have a match, no matter of the anonimity set.
+			// If the script is the same then we have a match, no matter of the anonymity set.
 			foreach (var c in lookupScriptPubKey[coin.ScriptPubKey])
 			{
 				if (!clusters.Contains(c))
@@ -445,7 +445,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			// If it spends someone and hasn't been sufficiently anonymized.
+			// If it spends someone and has not been sufficiently anonymized.
 			if (coin.AnonymitySet < ServiceConfiguration.PrivacyLevelStrong)
 			{
 				var c = lookupSpenderTransactionId[coin.TransactionId].FirstOrDefault(x => !clusters.Contains(x));
@@ -462,7 +462,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			// If it's being spent by someone and that someone hasn't been sufficiently anonymized.
+			// If it's being spent by someone and that someone has not been sufficiently anonymized.
 			if (!coin.Unspent)
 			{
 				var c = lookupTransactionId[coin.SpenderTransactionId].FirstOrDefault(x => !clusters.Contains(x));
@@ -972,7 +972,7 @@ namespace WalletWasabi.Services
 					finally
 					{
 						LocalBitcoinCoreNode = null;
-						Logger.LogInfo<WalletService>("Local Bitcoin Core disconnected.");
+						Logger.LogInfo<WalletService>("Local Bitcoin Core node disconnected.");
 					}
 				}
 			}
@@ -988,7 +988,7 @@ namespace WalletWasabi.Services
 				using (await BlockFolderLock.LockAsync())
 				{
 					var filePaths = Directory.EnumerateFiles(BlocksFolderPath);
-					var fileNames = filePaths.Select(x => Path.GetFileName(x));
+					var fileNames = filePaths.Select(Path.GetFileName);
 					var hashes = fileNames.Select(x => new uint256(x));
 
 					if (hashes.Contains(hash))
@@ -1064,7 +1064,7 @@ namespace WalletWasabi.Services
 			}
 			if (spendAllCount == 1 && !(customChange is null))
 			{
-				throw new ArgumentException($"{nameof(customChange)} and send all to destination cannot be specified the same time.");
+				throw new ArgumentException($"{nameof(customChange)} and send all to destination cannot be specified at the same time.");
 			}
 			Guard.InRangeAndNotNull(nameof(feeTarget), feeTarget, 0, Constants.SevenDaysConfirmationTarget); // Allow 0 and 1, and correct later.
 			if (feeTarget < 2) // Correct 0 and 1 to 2.
@@ -1489,7 +1489,7 @@ namespace WalletWasabi.Services
 			}
 			catch (Exception ex)
 			{
-				Logger.LogInfo<WalletService>($"Random node couldn't broadcast transaction. Broadcasting with backend... Reason: {ex.Message}");
+				Logger.LogInfo<WalletService>($"Random node could not broadcast transaction. Broadcasting with backend... Reason: {ex.Message}");
 				Logger.LogDebug<WalletService>(ex);
 
 				using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))

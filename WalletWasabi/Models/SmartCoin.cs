@@ -474,7 +474,7 @@ namespace WalletWasabi.Models
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is SmartCoin && this == (SmartCoin)obj;
+		public override bool Equals(object obj) => obj is SmartCoin coin && this == coin;
 
 		public bool Equals(SmartCoin other) => this == other;
 

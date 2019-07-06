@@ -228,7 +228,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe();
 
-			SortCommand = ReactiveCommand.Create(() => RefreshOrdering());
+			SortCommand = ReactiveCommand.Create(RefreshOrdering);
 
 			this.WhenAnyValue(x => x.AmountSortDirection)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -371,7 +371,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}, outputScheduler: RxApp.MainThreadScheduler);
 
-			InitList.ThrownExceptions.Subscribe(ex => Logging.Logger.LogError<CoinListViewModel>(ex));
+			InitList.ThrownExceptions.Subscribe(Logging.Logger.LogError<CoinListViewModel>);
 		}
 
 		private void OnOpen()

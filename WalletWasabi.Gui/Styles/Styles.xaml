@@ -1,4 +1,4 @@
-﻿<Styles xmlns="https://github.com/avaloniaui"
+<Styles xmlns="https://github.com/avaloniaui"
         xmlns:dock="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
 		xmlns:shell="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -223,5 +223,33 @@
   </Style>
   <Style Selector="TextBox:focus /template/ Border#border">
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighBrush}" />
+  </Style>
+
+  <Style Selector="ListBoxItem:pointerover Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ThemeControlHighlightMidBrush}"/>
+  </Style>
+
+  <Style Selector="ListBoxItem:pointerover Grid Expander:expanded /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}"/>
+  </Style>
+
+  <Style Selector="ListBoxItem:selected:pointerover Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ApplicationAccentBrushLow}" />
+  </Style>
+
+  <Style Selector="ListBoxItem:selected:pointerover Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ThemeHighlightBrush}"/>
+  </Style>
+
+  <Style Selector="ListBoxItem:selected Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ApplicationAccentBrushLow}" />
+  </Style>
+
+  <Style Selector="ListBoxItem:selected:pointerover Grid Expander:expanded /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}"/>
+  </Style>
+
+  <Style Selector="ListBoxItem:selected Grid Expander:expanded /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}"/>
   </Style>
 </Styles>
