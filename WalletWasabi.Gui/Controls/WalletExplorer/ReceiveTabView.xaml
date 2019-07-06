@@ -113,7 +113,7 @@
                       </Panel>
                       <Grid ColumnDefinitions="140, *" RowDefinitions="22,22" Margin="6">
                         <TextBlock Text="Public key:" Grid.Row="0" Grid.Column="0" />
-                        <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Pubkey}" Grid.Row="0" Grid.Column="1" />
+                        <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding PubKey}" Grid.Row="0" Grid.Column="1" />
                         <TextBlock Text="Key path:" Grid.Row="1" Grid.Column="0" />
                         <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent"  Text="{Binding KeyPath}" Grid.Row="1" Grid.Column="1" />
                       </Grid>

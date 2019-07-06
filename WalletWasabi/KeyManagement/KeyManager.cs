@@ -58,9 +58,9 @@ namespace WalletWasabi.KeyManagement
 
 		private object HdPubKeyScriptBytesLock { get; }
 
-		private Dictionary<Script, HdPubKey> ScriptHdPubkeyMap { get; }
+		private Dictionary<Script, HdPubKey> ScriptHdPubKeyMap { get; }
 
-		private object ScriptHdPubkeyMapLock { get; }
+		private object ScriptHdPubKeyMapLock { get; }
 
 		// BIP84-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
@@ -81,10 +81,10 @@ namespace WalletWasabi.KeyManagement
 		{
 			HdPubKeys = new List<HdPubKey>();
 			HdPubKeyScriptBytes = new List<byte[]>();
-			ScriptHdPubkeyMap = new Dictionary<Script, HdPubKey>();
+			ScriptHdPubKeyMap = new Dictionary<Script, HdPubKey>();
 			HdPubKeysLock = new object();
 			HdPubKeyScriptBytesLock = new object();
-			ScriptHdPubkeyMapLock = new object();
+			ScriptHdPubKeyMapLock = new object();
 			BlockchainStateLock = new object();
 
 			EncryptedSecret = encryptedSecret;
@@ -108,10 +108,10 @@ namespace WalletWasabi.KeyManagement
 		{
 			HdPubKeys = new List<HdPubKey>();
 			HdPubKeyScriptBytes = new List<byte[]>();
-			ScriptHdPubkeyMap = new Dictionary<Script, HdPubKey>();
+			ScriptHdPubKeyMap = new Dictionary<Script, HdPubKey>();
 			HdPubKeysLock = new object();
 			HdPubKeyScriptBytesLock = new object();
-			ScriptHdPubkeyMapLock = new object();
+			ScriptHdPubKeyMapLock = new object();
 			BlockchainState = new BlockchainState();
 			BlockchainStateLock = new object();
 			HardwareWalletInfo = null;
@@ -282,11 +282,11 @@ namespace WalletWasabi.KeyManagement
 				km.HdPubKeyScriptBytes.AddRange(km.GetKeys(x => true).Select(x => x.P2wpkhScript.ToCompressedBytes()));
 			}
 
-			lock (km.ScriptHdPubkeyMapLock)
+			lock (km.ScriptHdPubKeyMapLock)
 			{
 				foreach (var key in km.GetKeys())
 				{
-					km.ScriptHdPubkeyMap.Add(key.P2wpkhScript, key);
+					km.ScriptHdPubKeyMap.Add(key.P2wpkhScript, key);
 				}
 			}
 
@@ -310,19 +310,19 @@ namespace WalletWasabi.KeyManagement
 			}
 
 			// Example text to handle: "ExtPubKey": "03BF8271268000000013B9013C881FE456DDF524764F6322F611B03CF6".
-			var encryptedSecretline = File.ReadLines(filePath) // Enumerated read.
+			var encryptedSecretLine = File.ReadLines(filePath) // Enumerated read.
 				.Take(21) // Limit reads to x lines.
 				.FirstOrDefault(line => line.Contains("\"EncryptedSecret\": \"", StringComparison.OrdinalIgnoreCase));
 
-			if (string.IsNullOrEmpty(encryptedSecretline))
+			if (string.IsNullOrEmpty(encryptedSecretLine))
 			{
 				return false;
 			}
 
-			var parts = encryptedSecretline.Split("\"EncryptedSecret\": \"");
+			var parts = encryptedSecretLine.Split("\"EncryptedSecret\": \"");
 			if (parts.Length != 2)
 			{
-				throw new FormatException($"Could not split line: {encryptedSecretline}");
+				throw new FormatException($"Could not split line: {encryptedSecretLine}");
 			}
 
 			var encsec = parts[1].TrimEnd(',', '"');
@@ -382,19 +382,19 @@ namespace WalletWasabi.KeyManagement
 			}
 
 			// Example text to handle: "ExtPubKey": "03BF8271268000000013B9013C881FE456DDF524764F6322F611B03CF6".
-			var masterfpline = File.ReadLines(filePath) // Enumerated read.
+			var masterFpLine = File.ReadLines(filePath) // Enumerated read.
 				.Take(21) // Limit reads to x lines.
 				.FirstOrDefault(line => line.Contains("\"MasterFingerprint\": \"", StringComparison.OrdinalIgnoreCase));
 
-			if (string.IsNullOrEmpty(masterfpline))
+			if (string.IsNullOrEmpty(masterFpLine))
 			{
 				return false;
 			}
 
-			var parts = masterfpline.Split("\"MasterFingerprint\": \"");
+			var parts = masterFpLine.Split("\"MasterFingerprint\": \"");
 			if (parts.Length != 2)
 			{
-				throw new FormatException($"Could not split line: {masterfpline}");
+				throw new FormatException($"Could not split line: {masterFpLine}");
 			}
 
 			var hex = parts[1].TrimEnd(',', '"');
@@ -456,9 +456,9 @@ namespace WalletWasabi.KeyManagement
 					HdPubKeyScriptBytes.Add(hdPubKey.P2wpkhScript.ToCompressedBytes());
 				}
 
-				lock (ScriptHdPubkeyMapLock)
+				lock (ScriptHdPubKeyMapLock)
 				{
-					ScriptHdPubkeyMap.Add(hdPubKey.P2wpkhScript, hdPubKey);
+					ScriptHdPubKeyMap.Add(hdPubKey.P2wpkhScript, hdPubKey);
 				}
 
 				if (toFile)
@@ -518,11 +518,11 @@ namespace WalletWasabi.KeyManagement
 			}
 		}
 
-		public HdPubKey GetKeyForScriptPubKey(Script scriptPubkey)
+		public HdPubKey GetKeyForScriptPubKey(Script scriptPubKey)
 		{
-			lock (ScriptHdPubkeyMapLock)
+			lock (ScriptHdPubKeyMapLock)
 			{
-				if (ScriptHdPubkeyMap.TryGetValue(scriptPubkey, out var key))
+				if (ScriptHdPubKeyMap.TryGetValue(scriptPubKey, out var key))
 				{
 					return key;
 				}
