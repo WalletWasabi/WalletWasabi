@@ -292,7 +292,6 @@ namespace Nito.AsyncEx
 
 				MutexThread = new Thread(new ParameterizedThreadStart(HoldLock)) { Name = $"MutexThread" };
 
-
 				MutexThread.Start(cancellationToken);
 
 				ChangeStatus(AsyncLockStatus.StatusAcquiring, AsyncLockStatus.StatusReady);
