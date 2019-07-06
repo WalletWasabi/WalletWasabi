@@ -341,7 +341,7 @@ namespace Nito.AsyncEx
 			// Release the local lock.
 			AsyncLock.ReleaseLock();
 
-			throw new IOException($"Couldn't acquire system wide mutex on {ShortName}", inner);
+			throw new IOException($"Could not acquire system wide mutex on {ShortName}", inner);
 		}
 
 		private void StopThread()

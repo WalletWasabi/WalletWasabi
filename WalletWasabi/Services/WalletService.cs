@@ -1489,7 +1489,7 @@ namespace WalletWasabi.Services
 			}
 			catch (Exception ex)
 			{
-				Logger.LogInfo<WalletService>($"Random node couldn't broadcast transaction. Broadcasting with backend... Reason: {ex.Message}");
+				Logger.LogInfo<WalletService>($"Random node could not broadcast transaction. Broadcasting with backend... Reason: {ex.Message}");
 				Logger.LogDebug<WalletService>(ex);
 
 				using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
