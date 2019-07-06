@@ -3,6 +3,7 @@
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   ActiveLockScreenType="{Binding ActiveLockScreen}"
   IsLocked="{Binding IsLocked, Mode=TwoWay}"
+  IsHitTestVisible="{Binding IsLocked}"
   PINHash="{Binding PINHash}">
   <ContentControl x:Name="LockScreenHost"/>
 </lockscreen:LockScreen>

@@ -103,13 +103,9 @@
             FillMode="Both"
             Duration="0:0:1.5"
             Easing="QuarticEaseInOut">
-            <KeyFrame Cue="0%">
-              <Setter Property="IsHitTestVisible" Value="True"/>
-            </KeyFrame>
             <KeyFrame Cue="100%">
               <Setter Property="Opacity" Value="1"/>
               <Setter Property="TranslateTransform.Y" Value="0"/>
-              <Setter Property="IsHitTestVisible" Value="True"/>
             </KeyFrame>
           </Animation>
         </Style.Animations>
@@ -121,13 +117,9 @@
             FillMode="Both"
             Duration="0:0:1.5"
             Easing="QuarticEaseInOut">
-            <KeyFrame Cue="0%">
-              <Setter Property="IsHitTestVisible" Value="False"/>
-            </KeyFrame>
             <KeyFrame Cue="100%">
               <Setter Property="Opacity" Value="0"/>
               <Setter Property="TranslateTransform.Y" Value="-100"/>
-              <Setter Property="IsHitTestVisible" Value="False"/>
             </KeyFrame>
           </Animation>
         </Style.Animations>
@@ -149,7 +141,7 @@
     <Thumb x:Name="PART_DragThumb">
       <Thumb.Template>
         <ControlTemplate>
-          <Border Background="Transparent" IsHitTestVisible="{Binding IsLocked}"/>
+          <Border Background="Transparent"/>
         </ControlTemplate>
       </Thumb.Template>
     </Thumb>
