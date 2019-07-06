@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.DataEncoders;
 using Newtonsoft.Json;
 using System;
@@ -87,7 +87,7 @@ namespace WalletWasabi.Backend.Models
 			}
 			else
 			{
-				throw new FormatException("Couldn't parse Height.");
+				throw new FormatException("Could not parse Height.");
 			}
 		}
 

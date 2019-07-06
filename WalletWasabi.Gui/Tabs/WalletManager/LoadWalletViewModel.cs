@@ -510,7 +510,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						selectedWallet = Wallets.FirstOrDefault(x => x.HardwareWalletInfo.Type == t && x.HardwareWalletInfo.Path == p);
 						if (selectedWallet is null)
 						{
-							SetValidationMessage("Couldn't find the hardware wallet you are working with. Did you disconnect it?");
+							SetValidationMessage("Could not find the hardware wallet you are working with. Did you disconnect it?");
 							return null;
 						}
 						else

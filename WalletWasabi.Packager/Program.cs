@@ -566,7 +566,7 @@ namespace WalletWasabi.Packager
 					// Don't open console.
 					if (!NSubsysUtil.ProcessFile(newExecutablePath))
 					{
-						Console.WriteLine("ERROR: Couldn't remove console from exe.");
+						Console.WriteLine("ERROR: Could not remove console from exe.");
 					}
 
 					// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
