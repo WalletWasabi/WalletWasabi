@@ -212,7 +212,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 						}
 					}
 				}
-				catch (Exception ex) when (ex is OperationCanceledException // If couldn't do it within 3 seconds then it'll likely time out and take it as unconfirmed.
+				catch (Exception ex) when (ex is OperationCanceledException // If could not do it within 3 seconds then it'll likely time out and take it as unconfirmed.
 										|| ex is TaskCanceledException
 										|| ex is TimeoutException)
 				{

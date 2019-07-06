@@ -186,10 +186,10 @@ namespace Mono.Options
 				yield return string.Empty;
 				yield break;
 			}
-			using (IEnumerator<int> ewidths = widths.GetEnumerator())
+			using (IEnumerator<int> eWidths = widths.GetEnumerator())
 			{
 				bool? hw = null;
-				int width = GetNextWidth(ewidths, int.MaxValue, ref hw);
+				int width = GetNextWidth(eWidths, int.MaxValue, ref hw);
 				int start = 0, end;
 				do
 				{
@@ -215,16 +215,16 @@ namespace Mono.Options
 						++start;
 					}
 
-					width = GetNextWidth(ewidths, width, ref hw);
+					width = GetNextWidth(eWidths, width, ref hw);
 				} while (start < self.Length);
 			}
 		}
 
-		private static int GetNextWidth(IEnumerator<int> ewidths, int curWidth, ref bool? eValid)
+		private static int GetNextWidth(IEnumerator<int> eWidths, int curWidth, ref bool? eValid)
 		{
 			if (!eValid.HasValue || (eValid.HasValue && eValid.Value))
 			{
-				curWidth = (eValid = ewidths.MoveNext()).Value ? ewidths.Current : curWidth;
+				curWidth = (eValid = eWidths.MoveNext()).Value ? eWidths.Current : curWidth;
 				// '.' is any character, - is for a continuation
 				const string minWidth = ".-";
 				if (curWidth < minWidth.Length)

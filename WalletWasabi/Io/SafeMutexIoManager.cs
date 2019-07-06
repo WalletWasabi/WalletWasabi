@@ -43,14 +43,16 @@ namespace WalletWasabi.Io
 
 		public new bool TryReplaceMeWith(string sourcePath)
 		{
-			if (!File.Exists(sourcePath))
+			if (File.Exists(sourcePath))
+			{
+				SafeMoveToOriginal(sourcePath);
+
+				return true;
+			}
+			else
 			{
 				return false;
 			}
-
-			SafeMoveToOriginal(sourcePath);
-
-			return true;
 		}
 
 		// https://stackoverflow.com/a/7957634/2061103
@@ -105,7 +107,7 @@ namespace WalletWasabi.Io
 				return true;
 			}
 
-			// If foo.data and foo.data.old exist, then foo.data should be fine, but again something went wrong, or possibly the file couldn't be deleted.
+			// If foo.data and foo.data.old exist, then foo.data should be fine, but again something went wrong, or possibly the file could not be deleted.
 			// if (File.Exists(originalPath) && File.Exists(oldPath))
 			if (originalExists)
 			{

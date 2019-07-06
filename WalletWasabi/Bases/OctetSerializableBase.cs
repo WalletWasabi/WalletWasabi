@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 
@@ -57,7 +57,7 @@ namespace WalletWasabi.Bases
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is OctetSerializableBase && this == (OctetSerializableBase)obj;
+		public override bool Equals(object obj) => obj is OctetSerializableBase octetSerializableBase && this == octetSerializableBase;
 
 		public bool Equals(OctetSerializableBase other) => this == other;
 

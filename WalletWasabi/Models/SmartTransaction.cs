@@ -130,7 +130,7 @@ namespace WalletWasabi.Models
 		public bool Equals(Transaction other) => GetHash().Equals(other?.GetHash());
 
 		public override bool Equals(object obj) =>
-			(obj is SmartTransaction && this == (SmartTransaction)obj);
+			obj is SmartTransaction transaction && this == transaction;
 
 		public override int GetHashCode() => GetHash().GetHashCode();
 

@@ -142,7 +142,7 @@
         </DrawingGroup.Children>
       </DrawingGroup>
 
-      <!-- Anonimity icons -->
+      <!-- Anonymity icons -->
       <DrawingGroup x:Key="PrivacyCritical">
         <DrawingGroup.Children>
           <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
