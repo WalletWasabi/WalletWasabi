@@ -277,11 +277,11 @@ namespace WalletWasabi.Services
 
 									if (filters.Count() == 1)
 									{
-										Logger.LogInfo<WasabiSynchronizer>($"Downloaded filter for block {filters.First().BlockHeight}.");
+										Logger.LogInfo<WasabiSynchronizer>($"Downloaded filter for block {firstFilter.BlockHeight}.");
 									}
 									else
 									{
-										Logger.LogInfo<WasabiSynchronizer>($"Downloaded filters for blocks from {filters.First().BlockHeight} to {filters.Last().BlockHeight}.");
+										Logger.LogInfo<WasabiSynchronizer>($"Downloaded filters for blocks from {firstFilter.BlockHeight} to {filters.Last().BlockHeight}.");
 									}
 								}
 							}
