@@ -39,13 +39,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SendTabViewModel sendTab = null;
 			// If hardware wallet then we need the Send tab.
-			if (WalletService?.KeyManager?.IsHardwareWallet is true)
-			{
-				sendTab = new SendTabViewModel(this);
-				Actions.Add(sendTab);
-			}
 			// If not hardware wallet, but neither watch only then we also need the send tab.
-			else if (WalletService?.KeyManager?.IsWatchOnly is false)
+			if (WalletService?.KeyManager?.IsHardwareWallet is true || WalletService?.KeyManager?.IsWatchOnly is false)
 			{
 				sendTab = new SendTabViewModel(this);
 				Actions.Add(sendTab);
