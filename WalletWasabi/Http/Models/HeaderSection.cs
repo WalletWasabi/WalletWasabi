@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -192,13 +192,13 @@ namespace WalletWasabi.Http.Models
 			// If this section is not added the Content-Length header will not be set unless...
 			// - I put a break point at the start of the function
 			// - And I explicitly expand the "headers" variable
-			if (headers is HttpContentHeaders)
+			if (headers is HttpContentHeaders contentHeaders)
 			{
-				if (((HttpContentHeaders)headers).ContentLength != null)
+				if (contentHeaders.ContentLength != null)
 				{
 					if (hs.Fields.All(x => x.Name != "Content-Length"))
 					{
-						hs.Fields.Add(new HeaderField("Content-Length", ((HttpContentHeaders)headers).ContentLength.ToString()));
+						hs.Fields.Add(new HeaderField("Content-Length", contentHeaders.ContentLength.ToString()));
 					}
 				}
 			}

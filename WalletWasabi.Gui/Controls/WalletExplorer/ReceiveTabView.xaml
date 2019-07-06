@@ -63,6 +63,11 @@
             <TextBlock Text="Address:" Grid.Column="1" Margin="20 0 0 0" />
           </Grid>
           <controls:ExtendedListBox Grid.Row="2" Items="{Binding Addresses}" SelectedItem="{Binding SelectedAddress, Mode=TwoWay}" VirtualizationMode="None">
+            <controls:ExtendedListBox.Styles>
+              <Style Selector="ListBoxItem">
+                <Setter Property="Padding" Value="0 0 5 0" />
+              </Style>
+            </controls:ExtendedListBox.Styles>
             <controls:ExtendedListBox.ContextMenu>
               <ContextMenu>
                 <MenuItem Header="Show QR code" Command="{Binding ShowQrCode}">
@@ -108,7 +113,7 @@
                       </Panel>
                       <Grid ColumnDefinitions="140, *" RowDefinitions="22,22" Margin="6">
                         <TextBlock Text="Public key:" Grid.Row="0" Grid.Column="0" />
-                        <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Pubkey}" Grid.Row="0" Grid.Column="1" />
+                        <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding PubKey}" Grid.Row="0" Grid.Column="1" />
                         <TextBlock Text="Key path:" Grid.Row="1" Grid.Column="0" />
                         <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent"  Text="{Binding KeyPath}" Grid.Row="1" Grid.Column="1" />
                       </Grid>
