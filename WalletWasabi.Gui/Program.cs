@@ -54,10 +54,7 @@ namespace WalletWasabi.Gui
 						{
 							MainWindowViewModel.Instance.Title += $" - {Global.Network}";
 						}
-						Dispatcher.UIThread.Post(() =>
-						{
-							GC.Collect();
-						});
+						Dispatcher.UIThread.Post(GC.Collect);
 					}).StartShellApp<AppBuilder, MainWindow>("Wasabi Wallet", null, () => MainWindowViewModel.Instance);
 			}
 			catch (Exception ex)

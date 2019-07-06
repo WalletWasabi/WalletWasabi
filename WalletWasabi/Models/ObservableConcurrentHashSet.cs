@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 
@@ -17,12 +17,12 @@ namespace WalletWasabi.Models
 			Lock = new object();
 		}
 
-		// Don't lock here, it results deadlock at wallet loading when filters arent synced.
+		// Don't lock here, it results deadlock at wallet loading when filters are not synced.
 		public int Count => Set.Count;
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-		// Don't lock here, it results deadlock at wallet loading when filters arent synced.
+		// Don't lock here, it results deadlock at wallet loading when filters are not synced.
 		public IEnumerator<T> GetEnumerator() => Set.GetEnumerator();
 
 		public bool TryAdd(T item)
@@ -77,7 +77,7 @@ namespace WalletWasabi.Models
 			}
 		}
 
-		// Don't lock here, it results deadlock at wallet loading when filters arent synced.
+		// Don't lock here, it results deadlock at wallet loading when filters are not synced.
 		public bool Contains(T item) => Set.Contains(item);
 	}
 }
