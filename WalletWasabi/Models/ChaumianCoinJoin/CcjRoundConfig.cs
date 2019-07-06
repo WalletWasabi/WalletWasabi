@@ -101,7 +101,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			AssertFilePathSet();
 
 			Denomination = Money.Coins(0.1m);
-			ConfirmationTarget = 144; // 1 day
+			ConfirmationTarget = Constants.OneDayConfirmationTarget; // 1 day
 			ConfirmationTargetReductionRate = 0.7;
 			CoordinatorFeePercent = 0.003m; // Coordinator fee percent is per anonymity set.
 			AnonymitySet = 100;

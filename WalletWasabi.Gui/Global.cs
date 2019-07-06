@@ -263,7 +263,7 @@ namespace WalletWasabi.Gui
 					// onlyForOnionHosts: false - Connect to clearnet IPs through Tor, too.
 					connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.GetTorSocks5EndPoint(), onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
 					// allowOnlyTorEndpoints: true - Connect only to onions and don't connect to clearnet IPs at all.
-					// This of course makes the first setting unneccessary, but it's better if that's around, in case someone wants to tinker here.
+					// This of course makes the first setting unnecessary, but it's better if that's around, in case someone wants to tinker here.
 					connectionParameters.EndpointConnector = new DefaultEndpointConnector(allowOnlyTorEndpoints: Network == Network.Main);
 
 					await AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager);
@@ -324,7 +324,7 @@ namespace WalletWasabi.Gui
 					// of course).
 					// On the other side, increasing this number forces users that do not need to discover more peers
 					// to spend resources (CPU/bandwith) to discover new peers.
-					needsToDiscoverPeers = Config.UseTor == true || AddressManager.Count < 500;
+					needsToDiscoverPeers = Config.UseTor is true || AddressManager.Count < 500;
 					Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
 				}
 				catch (DirectoryNotFoundException ex)
@@ -469,7 +469,7 @@ namespace WalletWasabi.Gui
 					$"Wallet Filepath: {walletFullPath}\n" +
 					$"Trying to recover it from backup.\n" +
 					$"Backup path: {walletBackupFullPath}\n" +
-					$"Exception: {ex.ToString()}");
+					$"Exception: {ex}");
 				if (File.Exists(walletFullPath))
 				{
 					string corruptedWalletBackupPath = Path.Combine(WalletBackupsDir, $"{Path.GetFileName(walletFullPath)}_CorruptedBackup");
@@ -683,11 +683,15 @@ namespace WalletWasabi.Gui
 			throw new NotSupportedException("This is impossible.");
 		}
 
-		public string GetNextHardwareWalletName(Hwi.Models.HardwareWalletInfo hwi)
+		public string GetNextHardwareWalletName(Hwi.Models.HardwareWalletInfo hwi = null, string customPrefix = null)
 		{
+			var prefix = customPrefix is null ?
+				(hwi is null ? "HardwareWallet" : hwi.Type.ToString())
+				: customPrefix;
+
 			for (int i = 0; i < int.MaxValue; i++)
 			{
-				var name = $"{hwi.Type}{i}";
+				var name = $"{prefix}{i}";
 				if (!File.Exists(Path.Combine(WalletsDir, $"{name}.json")))
 				{
 					return name;

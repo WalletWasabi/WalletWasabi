@@ -3,6 +3,8 @@ using Avalonia.Threading;
 using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
 using System;
+using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
@@ -17,9 +19,10 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private bool _isExpanded;
 		private bool[,] _qrCode;
-		private bool[,] _qrCodeBacking;
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
+		private string _label;
+		private bool _inEditMode;
 
 		public HdPubKey Model { get; }
 		public Global Global { get; }
@@ -30,19 +33,19 @@ namespace WalletWasabi.Gui.ViewModels
 			Model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
+			_label = model.Label;
 
 			this.WhenAnyValue(x => x.IsExpanded)
 				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Where(x => x)
+				.Take(1)
 				.Subscribe(x =>
 				{
 					try
 					{
-						if (x == true && QrCodeBacking is null)
-						{
-							var encoder = new QrEncoder();
-							encoder.TryEncode(Address, out var qrCode);
-							QrCodeBacking = qrCode.Matrix.InternalArray;
-						}
+						var encoder = new QrEncoder();
+						encoder.TryEncode(Address, out var qrCode);
+						Dispatcher.UIThread.PostLogException(() => QrCode = qrCode.Matrix.InternalArray);
 					}
 					catch (Exception ex)
 					{
@@ -50,16 +53,30 @@ namespace WalletWasabi.Gui.ViewModels
 					}
 				});
 
-			this.WhenAnyValue(x => x.QrCodeBacking)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => QrCode = x);
-
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
+				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
 				this.RaisePropertyChanged(nameof(Address));
 				this.RaisePropertyChanged(nameof(Label));
 			}).DisposeWith(Disposables);
+
+			this.WhenAnyValue(x => x.Label)
+				.Subscribe(newLabel =>
+				{
+					if (InEditMode)
+					{
+						KeyManager keyManager = Global.WalletService.KeyManager;
+						HdPubKey hdPubKey = keyManager.GetKeys(x => Model == x).FirstOrDefault();
+
+						if (hdPubKey != default)
+						{
+							hdPubKey.SetLabel(newLabel, kmToFile: keyManager);
+						}
+					}
+				});
 		}
+
+		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
 
 		public bool ClipboardNotificationVisible
 		{
@@ -79,11 +96,27 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
 		}
 
-		public string Label => Model.Label;
+		public string Label
+		{
+			get => _label;
+			set
+			{
+				if (!IsLurkingWifeMode)
+				{
+					this.RaiseAndSetIfChanged(ref _label, value);
+				}
+			}
+		}
+
+		public bool InEditMode
+		{
+			get => _inEditMode;
+			set => this.RaiseAndSetIfChanged(ref _inEditMode, value);
+		}
 
 		public string Address => Model.GetP2wpkhAddress(Global.Network).ToString();
 
-		public string Pubkey => Model.PubKey.ToString();
+		public string PubKey => Model.PubKey.ToString();
 
 		public string KeyPath => Model.FullKeyPath.ToString();
 
@@ -91,12 +124,6 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			get => _qrCode;
 			set => this.RaiseAndSetIfChanged(ref _qrCode, value);
-		}
-
-		public bool[,] QrCodeBacking
-		{
-			get => _qrCodeBacking;
-			set => this.RaiseAndSetIfChanged(ref _qrCodeBacking, value);
 		}
 
 		public CancellationTokenSource CancelClipboardNotification { get; set; }

@@ -22,6 +22,7 @@
     <StyleInclude Source="resm:WalletWasabi.Gui.Controls.NoparaPasswordBox.xaml?assembly=WalletWasabi.Gui" />
     <StyleInclude Source="resm:WalletWasabi.Gui.Controls.MultiTextBox.xaml?assembly=WalletWasabi.Gui" />
     <StyleInclude Source="resm:WalletWasabi.Gui.Controls.BusyIndicator.xaml?assembly=WalletWasabi.Gui" />
+    <StyleInclude Source="resm:WalletWasabi.Gui.Controls.EditableTextBlock.xaml?assembly=WalletWasabi.Gui" />
   </Application.Styles>
   <Application.DataTemplates>
     <DataTemplate DataType="Views:MainView">

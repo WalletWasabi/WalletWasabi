@@ -86,7 +86,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			AllSelectedAmount = Money.Zero;
 			UsdExchangeRate = Global.Synchronizer?.UsdExchangeRate ?? UsdExchangeRate;
 			IsMax = false;
-			LabelToolTip = "Start labelling today and your privacy will thank you tomorrow!";
+			LabelToolTip = "Start labeling today and your privacy will thank you tomorrow!";
 			Amount = "0.0";
 		}
 
@@ -193,7 +193,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.Label)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => UpdateSuggestions(x));
+				.Subscribe(UpdateSuggestions);
 
 			this.WhenAnyValue(x => x.FeeTarget)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -214,7 +214,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						Amount = "0.0";
 
-						LabelToolTip = "Start labelling today and your privacy will thank you tomorrow!";
+						LabelToolTip = "Start labeling today and your privacy will thank you tomorrow!";
 					}
 				});
 
@@ -423,14 +423,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					PinPadViewModel pinpad = IoC.Get<IShell>().Documents.OfType<PinPadViewModel>().FirstOrDefault();
 					if (pinpad is null)
 					{
-						pinpad = new PinPadViewModel(null);
+						pinpad = new PinPadViewModel(Global);
 						IoC.Get<IShell>().AddOrSelectDocument(pinpad);
 					}
 					var result = await pinpad.ShowDialogAsync();
 					DisplayActionTab();
 					if (!(result is true))
 					{
-						return (false, "PIN wasn't provided.");
+						return (false, "PIN was not provided.");
 					}
 
 					var maskedPin = pinpad.MaskedPin;
@@ -444,7 +444,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					needsPinWalletInfo = enumRes.FirstOrDefault(x => x.Type == t && x.Path == p);
 					if (needsPinWalletInfo is null)
 					{
-						return (false, "Couldn't find the hardware wallet you are working with. Did you disconnect it?");
+						return (false, "Could not find the hardware wallet you are working with. Did you disconnect it?");
 					}
 					else
 					{
@@ -567,14 +567,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				ConfirmationExpectedText = $"{feeTarget}0 minutes";
 			}
-			else if (feeTarget >= 7 && feeTarget <= 144) // hours
+			else if (feeTarget >= 7 && feeTarget <= Constants.OneDayConfirmationTarget) // hours
 			{
 				var h = feeTarget / 6;
 				ConfirmationExpectedText = $"{h} {IfPlural(h, "hour", "hours")}";
 			}
-			else if (feeTarget >= 145 && feeTarget < 1008) // days
+			else if (feeTarget >= 145 && feeTarget < Constants.SevenDaysConfirmationTarget) // days
 			{
-				var d = feeTarget / 144;
+				var d = feeTarget / Constants.OneDayConfirmationTarget;
 				ConfirmationExpectedText = $"{d} {IfPlural(d, "day", "days")}";
 			}
 			else if (feeTarget == 10008)
@@ -707,13 +707,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (allFeeEstimate != null)
 			{
-				MinimumFeeTarget = allFeeEstimate.Estimations.Min(x => x.Key); // This should be always 2, but bugs will be seen at least if it isn't.
+				MinimumFeeTarget = allFeeEstimate.Estimations.Min(x => x.Key); // This should be always 2, but bugs will be seen at least if it is not.
 				MaximumFeeTarget = allFeeEstimate.Estimations.Max(x => x.Key);
 			}
 			else
 			{
 				MinimumFeeTarget = 2;
-				MaximumFeeTarget = 1008;
+				MaximumFeeTarget = Constants.SevenDaysConfirmationTarget;
 			}
 		}
 

@@ -14,19 +14,14 @@ namespace WalletWasabi.Gui.ViewModels
 {
 	public abstract class TextResourceViewModelBase : WasabiDocumentTabViewModel
 	{
-		protected CompositeDisposable Disposables { get; private set; } = new CompositeDisposable();
+		protected CompositeDisposable Disposables { get; private set; }
 
 		public string _text;
 
 		public TextResourceViewModelBase(Global global, string title, Uri target) : base(global, title)
 		{
 			Text = "";
-
-			LoadDocumentAsync(target)
-				.ToObservable()
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => Text = x)
-				.DisposeWith(Disposables);
+			Target = target;
 		}
 
 		public string Text
@@ -34,6 +29,8 @@ namespace WalletWasabi.Gui.ViewModels
 			get => _text;
 			set => this.RaiseAndSetIfChanged(ref _text, value);
 		}
+
+		public Uri Target { get; }
 
 		private async Task<string> LoadDocumentAsync(Uri target)
 		{
@@ -46,10 +43,23 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
+		public override void OnOpen()
+		{
+			base.OnOpen();
+
+			Disposables = new CompositeDisposable();
+			LoadDocumentAsync(Target)
+				.ToObservable()
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => Text = x)
+				.DisposeWith(Disposables);
+		}
+
 		public override bool OnClose()
 		{
 			Disposables?.Dispose();
 			Disposables = null;
+
 			return base.OnClose();
 		}
 	}

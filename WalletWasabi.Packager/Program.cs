@@ -66,6 +66,13 @@ namespace WalletWasabi.Packager
 				return;
 			}
 
+			// If I want a list of up to date onions run it with '--getonions'.
+			if (IsReduceOnionsMode(args))
+			{
+				ReduceOnions();
+				return;
+			}
+
 			// Start with digest creation and return if only digest creation.
 			CreateDigests();
 
@@ -116,7 +123,7 @@ namespace WalletWasabi.Packager
 					var json = (JObject)JsonConvert.DeserializeObject(responseString);
 					foreach (JProperty node in json["nodes"])
 					{
-						if (!node.Name.ToString().Contains(".onion"))
+						if (!node.Name.Contains(".onion"))
 						{
 							continue;
 						}
@@ -125,6 +132,50 @@ namespace WalletWasabi.Packager
 						if (userAgent.Contains("Satoshi:0.16") || userAgent.Contains("Satoshi:0.17"))
 						{
 							Console.WriteLine(node.Name);
+						}
+					}
+				}
+			}
+		}
+
+		private static void ReduceOnions()
+		{
+			var onionFile = Path.Combine(LibraryProjectDirectory, "OnionSeeds", "MainOnionSeeds.txt");
+			var currentOnions = File.ReadAllLines(onionFile).ToHashSet();
+			using (var httpClient = new HttpClient())
+			{
+				httpClient.BaseAddress = new Uri("https://bitnodes.21.co/api/v1/");
+
+				using (var response = httpClient.GetAsync("snapshots/latest/", HttpCompletionOption.ResponseContentRead).GetAwaiter().GetResult())
+				{
+					if (response.StatusCode != HttpStatusCode.OK)
+					{
+						throw new HttpRequestException(response.StatusCode.ToString());
+					}
+
+					var responseString = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+					var json = (JObject)JsonConvert.DeserializeObject(responseString);
+					foreach (JProperty node in json["nodes"])
+					{
+						if (!node.Name.Contains(".onion"))
+						{
+							continue;
+						}
+
+						var userAgent = ((JArray)node.Value)[1].ToString();
+
+						try
+						{
+							var verString = userAgent.Substring(userAgent.IndexOf("Satoshi:") + 8, 4);
+							var ver = new Version(verString);
+
+							if (ver >= new Version("0.16") && currentOnions.Contains(node.Name))
+							{
+								Console.WriteLine(node.Name);
+							}
+						}
+						catch
+						{
 						}
 					}
 				}
@@ -244,9 +295,26 @@ namespace WalletWasabi.Packager
 				foreach (var arg in args)
 				{
 					if (arg.Trim().TrimStart('-').Equals("getonions", StringComparison.OrdinalIgnoreCase)
-						|| arg.Trim().TrimStart('-').Equals("onions", StringComparison.OrdinalIgnoreCase)
-						|| arg.Trim().TrimStart('-').Equals("getonion", StringComparison.OrdinalIgnoreCase)
-						|| arg.Trim().TrimStart('-').Equals("onion", StringComparison.OrdinalIgnoreCase))
+						|| arg.Trim().TrimStart('-').Equals("getonion", StringComparison.OrdinalIgnoreCase))
+					{
+						getOnions = true;
+						break;
+					}
+				}
+			}
+
+			return getOnions;
+		}
+
+		private static bool IsReduceOnionsMode(string[] args)
+		{
+			bool getOnions = false;
+			if (args != null)
+			{
+				foreach (var arg in args)
+				{
+					if (arg.Trim().TrimStart('-').Equals("reduceonions", StringComparison.OrdinalIgnoreCase)
+						|| arg.Trim().TrimStart('-').Equals("reduceonion", StringComparison.OrdinalIgnoreCase))
 					{
 						getOnions = true;
 						break;
@@ -498,7 +566,7 @@ namespace WalletWasabi.Packager
 					// Don't open console.
 					if (!NSubsysUtil.ProcessFile(newExecutablePath))
 					{
-						Console.WriteLine("ERROR: Couldn't remove console from exe.");
+						Console.WriteLine("ERROR: Could not remove console from exe.");
 					}
 
 					// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
@@ -696,7 +764,7 @@ namespace WalletWasabi.Packager
 					foreach (var file in assetsInfo.EnumerateFiles())
 					{
 						var number = file.Name.Split(new string[] { "WasabiLogo", ".png" }, StringSplitOptions.RemoveEmptyEntries);
-						if (number.Count() == 1 && int.TryParse(number.First(), out int size))
+						if (number.Length == 1 && int.TryParse(number.First(), out int size))
 						{
 							string destFolder = Path.Combine(debUsrShareIconsFolderPath, $"{size}x{size}", "apps");
 							Directory.CreateDirectory(destFolder);

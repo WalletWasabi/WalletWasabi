@@ -259,7 +259,7 @@ namespace WalletWasabi.Services
 					CcjClientRound inputRegistrableRound = State.GetRegistrableRoundOrDefault();
 					if (inputRegistrableRound != null)
 					{
-						if (inputRegistrableRound.Registration is null) // If didn't register already, check what can we register.
+						if (inputRegistrableRound.Registration is null) // If did not register already, check what can we register.
 						{
 							await TryRegisterCoinsAsync(inputRegistrableRound);
 						}
@@ -297,7 +297,7 @@ namespace WalletWasabi.Services
 
 				if (ongoingRound.State.Phase == CcjRoundPhase.ConnectionConfirmation)
 				{
-					if (!ongoingRound.Registration.IsPhaseActionsComleted(CcjRoundPhase.ConnectionConfirmation)) // If we didn't already confirmed connection in connection confirmation phase confirm it.
+					if (!ongoingRound.Registration.IsPhaseActionsComleted(CcjRoundPhase.ConnectionConfirmation)) // If we did not already confirmed connection in connection confirmation phase confirm it.
 					{
 						var res = await ongoingRound.Registration.AliceClient.PostConfirmationAsync();
 						if (res.activeOutputs.Any())
@@ -588,7 +588,7 @@ namespace WalletWasabi.Services
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("No such running round in InputRegistration.", StringComparison.InvariantCultureIgnoreCase))
 				{
-					Logger.LogInfo<CcjClient>("Client tried to register a round that isn't in InputRegistration anymore. Trying again later.");
+					Logger.LogInfo<CcjClient>("Client tried to register a round that is not in InputRegistration anymore. Trying again later.");
 					aliceClient?.Dispose();
 					return;
 				}
@@ -846,7 +846,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public bool HasIngredients => Salt is null || Soup is null ? false : true;
+		public bool HasIngredients => Salt != null && Soup != null;
 
 		private string SaltSoup()
 		{
@@ -1073,16 +1073,15 @@ namespace WalletWasabi.Services
 						var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 						if (coin is null)
 						{
-							continue; // The coin isn't present anymore. Good. This should never happen though.
+							continue; // The coin is not present anymore. Good. This should never happen though.
 						}
 						await DequeueCoinsFromMixNoLockAsync(coin.GetTxoRef(), "Stopping Wasabi.");
 					}
 					catch (Exception ex)
 					{
-						Logger.LogError<CcjClient>("Couldn't dequeue all coins. Some coins will likely be banned from mixing.");
-						if (ex is AggregateException)
+						Logger.LogError<CcjClient>("Could not dequeue all coins. Some coins will likely be banned from mixing.");
+						if (ex is AggregateException aggrEx)
 						{
-							var aggrEx = ex as AggregateException;
 							foreach (var innerEx in aggrEx.InnerExceptions)
 							{
 								Logger.LogError<CcjClient>(innerEx);

@@ -92,7 +92,7 @@ namespace WalletWasabi.Services
 						}
 						else
 						{
-							Logger.LogInfo<MemPoolBehavior>($"Couldn't serve transaction. Node ({node.RemoteSocketEndpoint}) is not connected anymore: {entry.TransactionId}.");
+							Logger.LogInfo<MemPoolBehavior>($"Could not serve transaction. Node ({node.RemoteSocketEndpoint}) is not connected anymore: {entry.TransactionId}.");
 						}
 					}
 					catch (Exception ex)

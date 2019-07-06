@@ -110,14 +110,7 @@ namespace WalletWasabi.Backend
 					finally
 					{
 						LocalNode = null;
-						try
-						{
-							Logger.LogInfo<WalletService>("Local Bitcoin Node is disconnected.");
-						}
-						catch (Exception)
-						{
-							throw;
-						}
+						Logger.LogInfo<WalletService>("Local Bitcoin node is disconnected.");
 					}
 				}
 			}
@@ -209,7 +202,7 @@ namespace WalletWasabi.Backend
 						var generateBlocksResponse = await RpcClient.GenerateAsync(101);
 						if (generateBlocksResponse is null)
 						{
-							throw new NotSupportedException("Bitcoin Core cannot cannot generate blocks on the RegTest.");
+							throw new NotSupportedException("Bitcoin Core cannot generate blocks on the RegTest.");
 						}
 
 						blockchainInfo = await RpcClient.GetBlockchainInfoAsync();
@@ -224,7 +217,7 @@ namespace WalletWasabi.Backend
 			}
 			catch (WebException)
 			{
-				Logger.LogError($"Bitcoin Core is not running, or incorrect RPC credentials or network is given in the config file: `{Config.FilePath}`.");
+				Logger.LogError($"Bitcoin Core is not running, or incorrect RPC credentials, or network is given in the config file: `{Config.FilePath}`.");
 				throw;
 			}
 		}
