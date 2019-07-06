@@ -15,9 +15,9 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 		/// Process combination of create info bits, BCH error correction bits calculation, embed towards matrix.
 		/// </summary>
 		/// <remarks>ISO/IEC 18004:2000 Chapter 8.9 Page 53</remarks>
-		internal static void EmbedFormatInformation(this TriStateMatrix triMatrix, ErrorCorrectionLevel errorlevel, Pattern pattern)
+		internal static void EmbedFormatInformation(this TriStateMatrix triMatrix, ErrorCorrectionLevel errorLevel, Pattern pattern)
 		{
-			BitList formatInfo = GetFormatInfoBits(errorlevel, pattern);
+			BitList formatInfo = GetFormatInfoBits(errorLevel, pattern);
 			int width = triMatrix.Width;
 			for (int index = 0; index < 15; index++)
 			{
@@ -60,11 +60,11 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 		/// </summary>
 		private const int S_FormatInfoMaskPattern = 0x5412;
 
-		private static BitList GetFormatInfoBits(ErrorCorrectionLevel errorlevel, Pattern pattern)
+		private static BitList GetFormatInfoBits(ErrorCorrectionLevel errorLevel, Pattern pattern)
 		{
 			int formatInfo = (int)pattern.MaskPatternType;
 			//Pattern bits length = 3
-			formatInfo |= GetErrorCorrectionIndicatorBits(errorlevel) << 3;
+			formatInfo |= GetErrorCorrectionIndicatorBits(errorLevel) << 3;
 
 			int bchCode = BCHCalculator.CalculateBCH(formatInfo, S_FormatInfoPoly);
 			//bchCode length = 10
