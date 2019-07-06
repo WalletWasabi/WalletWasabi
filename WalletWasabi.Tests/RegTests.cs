@@ -547,7 +547,7 @@ namespace WalletWasabi.Tests
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("foo label");
-			var txid = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
+			var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
 			await rpc.GenerateAsync(1);
 
 			try
@@ -579,16 +579,16 @@ namespace WalletWasabi.Tests
 				Assert.Null(firstCoin.SpenderTransactionId);
 				Assert.NotNull(firstCoin.SpentOutputs);
 				Assert.NotEmpty(firstCoin.SpentOutputs);
-				Assert.Equal(txid, firstCoin.TransactionId);
+				Assert.Equal(txId, firstCoin.TransactionId);
 				Assert.Single(keyManager.GetKeys(KeyState.Used, false));
 				Assert.Equal("foo label", keyManager.GetKeys(KeyState.Used, false).Single().Label);
 
 				// Get some money, make it confirm.
 				var key2 = wallet.GetReceiveKey("bar label");
-				var txid2 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), Money.Coins(0.01m));
+				var txId2 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), Money.Coins(0.01m));
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(1);
-				var txid3 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), Money.Coins(0.02m));
+				var txId3 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), Money.Coins(0.02m));
 				await rpc.GenerateAsync(1);
 
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 2);
@@ -617,9 +617,9 @@ namespace WalletWasabi.Tests
 				Assert.NotEmpty(firstCoin.SpentOutputs);
 				Assert.NotEmpty(secondCoin.SpentOutputs);
 				Assert.NotEmpty(thirdCoin.SpentOutputs);
-				Assert.Equal(txid, firstCoin.TransactionId);
-				Assert.Equal(txid2, secondCoin.TransactionId);
-				Assert.Equal(txid3, thirdCoin.TransactionId);
+				Assert.Equal(txId, firstCoin.TransactionId);
+				Assert.Equal(txId2, secondCoin.TransactionId);
+				Assert.Equal(txId3, thirdCoin.TransactionId);
 
 				Assert.Equal(2, keyManager.GetKeys(KeyState.Used, false).Count());
 				Assert.Empty(keyManager.GetKeys(KeyState.Used, true));
@@ -636,17 +636,17 @@ namespace WalletWasabi.Tests
 				Assert.Single(keyManager.GetKeys(x => x.Label == "bar label" && x.KeyState == KeyState.Used && !x.IsInternal));
 
 				// REORG TESTS
-				var txid4 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), Money.Coins(0.03m), replaceable: true);
+				var txId4 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), Money.Coins(0.03m), replaceable: true);
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(2);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 2);
 
-				Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == txid4));
+				Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == txId4));
 				var tip = await rpc.GetBestBlockHashAsync();
 				await rpc.InvalidateBlockAsync(tip); // Reorg 1
 				tip = await rpc.GetBestBlockHashAsync();
 				await rpc.InvalidateBlockAsync(tip); // Reorg 2
-				var tx4bumpRes = await rpc.BumpFeeAsync(txid4); // RBF it
+				var tx4bumpRes = await rpc.BumpFeeAsync(txId4); // RBF it
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(3);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 3);
@@ -654,7 +654,7 @@ namespace WalletWasabi.Tests
 				Assert.Equal(4, await wallet.CountBlocksAsync());
 
 				Assert.Equal(4, wallet.Coins.Count);
-				Assert.Empty(wallet.Coins.Where(x => x.TransactionId == txid4));
+				Assert.Empty(wallet.Coins.Where(x => x.TransactionId == txId4));
 				Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == tx4bumpRes.TransactionId));
 				var rbfCoin = wallet.Coins.Single(x => x.TransactionId == tx4bumpRes.TransactionId);
 
@@ -683,10 +683,10 @@ namespace WalletWasabi.Tests
 				Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Label == "bar label"));
 
 				// TEST MEMPOOL
-				var txid5 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
+				var txId5 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
 				await Task.Delay(1000); // Wait tx to arrive and get processed.
-				Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == txid5));
-				var mempoolCoin = wallet.Coins.Single(x => x.TransactionId == txid5);
+				Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == txId5));
+				var mempoolCoin = wallet.Coins.Single(x => x.TransactionId == txId5);
 				Assert.Equal(Height.MemPool, mempoolCoin.Height);
 
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
@@ -778,11 +778,11 @@ namespace WalletWasabi.Tests
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("foo label");
-			var txid = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
-			Assert.NotNull(txid);
+			var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
+			Assert.NotNull(txId);
 			await rpc.GenerateAsync(1);
-			var txid2 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
-			Assert.NotNull(txid2);
+			var txId2 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
+			Assert.NotNull(txId2);
 			await rpc.GenerateAsync(1);
 
 			try
@@ -1279,7 +1279,7 @@ namespace WalletWasabi.Tests
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("foo label");
-			var txid = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
+			var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
 
 			// Generate some coins
 			await rpc.GenerateAsync(2);
@@ -1314,7 +1314,7 @@ namespace WalletWasabi.Tests
 				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, 2, true));
 
 				// Add new money with no confirmation
-				var txid2 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(2m));
+				var txId2 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(2m));
 				await Task.Delay(1000); // Wait tx to arrive and get processed.
 
 				// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are NOT allowed)
@@ -3083,9 +3083,9 @@ namespace WalletWasabi.Tests
 				var keyManager = KeyManager.CreateNew(out _, password);
 				var key = keyManager.GenerateNewKey("foo", KeyState.Clean, false);
 				var bech = key.GetP2wpkhAddress(network);
-				var txid = await rpc.SendToAddressAsync(bech, amount, replaceable: false);
+				var txId = await rpc.SendToAddressAsync(bech, amount, replaceable: false);
 				key.SetKeyState(KeyState.Used);
-				var tx = await rpc.GetRawTransactionAsync(txid);
+				var tx = await rpc.GetRawTransactionAsync(txId);
 				var height = await rpc.GetBlockCountAsync();
 				var bechCoin = tx.Outputs.GetCoins(bech.ScriptPubKey).Single();
 
@@ -3174,18 +3174,18 @@ namespace WalletWasabi.Tests
 			var amount2 = Money.Coins(0.08m);
 			var amount3 = Money.Coins(0.3m);
 			var amount4 = Money.Coins(0.4m);
-			var txid1 = await rpc.SendToAddressAsync(bech1, amount1, replaceable: false);
-			var txid2 = await rpc.SendToAddressAsync(bech2, amount2, replaceable: false);
-			var txid3 = await rpc.SendToAddressAsync(bech3, amount3, replaceable: false);
-			var txid4 = await rpc.SendToAddressAsync(bech4, amount4, replaceable: false);
+			var txId1 = await rpc.SendToAddressAsync(bech1, amount1, replaceable: false);
+			var txId2 = await rpc.SendToAddressAsync(bech2, amount2, replaceable: false);
+			var txId3 = await rpc.SendToAddressAsync(bech3, amount3, replaceable: false);
+			var txId4 = await rpc.SendToAddressAsync(bech4, amount4, replaceable: false);
 			key1.SetKeyState(KeyState.Used);
 			key2.SetKeyState(KeyState.Used);
 			key3.SetKeyState(KeyState.Used);
 			key4.SetKeyState(KeyState.Used);
-			var tx1 = await rpc.GetRawTransactionAsync(txid1);
-			var tx2 = await rpc.GetRawTransactionAsync(txid2);
-			var tx3 = await rpc.GetRawTransactionAsync(txid3);
-			var tx4 = await rpc.GetRawTransactionAsync(txid4);
+			var tx1 = await rpc.GetRawTransactionAsync(txId1);
+			var tx2 = await rpc.GetRawTransactionAsync(txId2);
+			var tx3 = await rpc.GetRawTransactionAsync(txId3);
+			var tx4 = await rpc.GetRawTransactionAsync(txId4);
 			await rpc.GenerateAsync(1);
 			var height = await rpc.GetBlockCountAsync();
 			var bech1Coin = tx1.Outputs.GetCoins(bech1.ScriptPubKey).Single();
@@ -3357,14 +3357,14 @@ namespace WalletWasabi.Tests
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("fundZeroLink");
-			var txid = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
-			Assert.NotNull(txid);
+			var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
+			Assert.NotNull(txId);
 			var key2 = wallet2.GetReceiveKey("fundZeroLink");
 			var key3 = wallet2.GetReceiveKey("fundZeroLink");
 			var key4 = wallet2.GetReceiveKey("fundZeroLink");
-			var txid2 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), Money.Coins(0.11m));
-			var txid3 = await rpc.SendToAddressAsync(key3.GetP2wpkhAddress(network), Money.Coins(0.12m));
-			var txid4 = await rpc.SendToAddressAsync(key4.GetP2wpkhAddress(network), Money.Coins(0.13m));
+			var txId2 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), Money.Coins(0.11m));
+			var txId3 = await rpc.SendToAddressAsync(key3.GetP2wpkhAddress(network), Money.Coins(0.12m));
+			var txId4 = await rpc.SendToAddressAsync(key4.GetP2wpkhAddress(network), Money.Coins(0.13m));
 
 			await rpc.GenerateAsync(1);
 
