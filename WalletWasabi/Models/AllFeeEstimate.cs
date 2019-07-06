@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.RPC;
 using Newtonsoft.Json;
 using System;
@@ -51,7 +51,7 @@ namespace WalletWasabi.Models
 
 		#region Equality
 
-		public override bool Equals(object obj) => obj is AllFeeEstimate && this == (AllFeeEstimate)obj;
+		public override bool Equals(object obj) => obj is AllFeeEstimate feeEstimate && this == feeEstimate;
 
 		public bool Equals(AllFeeEstimate other) => this == other;
 

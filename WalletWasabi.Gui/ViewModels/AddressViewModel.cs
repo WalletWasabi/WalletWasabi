@@ -33,20 +33,19 @@ namespace WalletWasabi.Gui.ViewModels
 			Model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
-			Label = model.Label;
+			_label = model.Label;
 
 			this.WhenAnyValue(x => x.IsExpanded)
 				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Where(x => x)
+				.Take(1)
 				.Subscribe(x =>
 				{
 					try
 					{
-						if (x is true && QrCode is null)
-						{
-							var encoder = new QrEncoder();
-							encoder.TryEncode(Address, out var qrCode);
-							Dispatcher.UIThread.PostLogException(() => QrCode = qrCode.Matrix.InternalArray);
-						}
+						var encoder = new QrEncoder();
+						encoder.TryEncode(Address, out var qrCode);
+						Dispatcher.UIThread.PostLogException(() => QrCode = qrCode.Matrix.InternalArray);
 					}
 					catch (Exception ex)
 					{
@@ -117,7 +116,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public string Address => Model.GetP2wpkhAddress(Global.Network).ToString();
 
-		public string Pubkey => Model.PubKey.ToString();
+		public string PubKey => Model.PubKey.ToString();
 
 		public string KeyPath => Model.FullKeyPath.ToString();
 

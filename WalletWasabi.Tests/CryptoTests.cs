@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.BouncyCastle.Math;
 using NBitcoin.Crypto;
 using System;
@@ -86,13 +86,13 @@ namespace WalletWasabi.Tests
 			// Get the r's pubkey and the key's pubkey.
 			// Blind messages.
 			Requester requester = new Requester();
-			PubKey rPubkey = r.PubKey;
-			PubKey keyPubkey = key.PubKey;
+			PubKey rPubKey = r.PubKey;
+			PubKey keyPubKey = key.PubKey;
 
 			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
 			byte[] hashBytes = Hashes.SHA256(message);
 			uint256 hash = new uint256(hashBytes);
-			uint256 blindedMessageHash = requester.BlindMessage(hash, rPubkey, keyPubkey);
+			uint256 blindedMessageHash = requester.BlindMessage(hash, rPubKey, keyPubKey);
 
 			// Sign the blinded message hash.
 			uint256 blindedSignature = signer.Sign(blindedMessageHash);
@@ -102,7 +102,7 @@ namespace WalletWasabi.Tests
 
 			// verify the original data is signed
 
-			Assert.True(VerifySignature(hash, unblindedSignature, keyPubkey));
+			Assert.True(VerifySignature(hash, unblindedSignature, keyPubKey));
 		}
 
 		[Fact]

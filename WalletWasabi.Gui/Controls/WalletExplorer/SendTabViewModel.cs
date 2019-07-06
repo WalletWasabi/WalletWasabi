@@ -444,7 +444,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					needsPinWalletInfo = enumRes.FirstOrDefault(x => x.Type == t && x.Path == p);
 					if (needsPinWalletInfo is null)
 					{
-						return (false, "Couldn't find the hardware wallet you are working with. Did you disconnect it?");
+						return (false, "Could not find the hardware wallet you are working with. Did you disconnect it?");
 					}
 					else
 					{

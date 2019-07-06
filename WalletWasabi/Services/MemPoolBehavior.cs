@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System;
@@ -86,7 +86,7 @@ namespace WalletWasabi.Services
 						var txPayload = new TxPayload(entry.Transaction);
 						if (!node.IsConnected)
 						{
-							Logger.LogInfo<MemPoolBehavior>($"Couldn't serve transaction. Node ({node.RemoteSocketEndpoint}) is not connected anymore: {entry.TransactionId}.");
+							Logger.LogInfo<MemPoolBehavior>($"Could not serve transaction. Node ({node.RemoteSocketEndpoint}) is not connected anymore: {entry.TransactionId}.");
 						}
 						else
 						{

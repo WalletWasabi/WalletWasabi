@@ -117,8 +117,8 @@ namespace Nito.AsyncEx
 		/// <param name="cancellationTokenObj"></param>
 		private void HoldLock(object cancellationTokenObj)
 		{
-			CancellationToken ct = cancellationTokenObj is CancellationToken ?
-				(CancellationToken)cancellationTokenObj :
+			CancellationToken ct = cancellationTokenObj is CancellationToken token ?
+				token :
 				CancellationToken.None;
 
 			while (true)
@@ -341,7 +341,7 @@ namespace Nito.AsyncEx
 			// Release the local lock.
 			AsyncLock.ReleaseLock();
 
-			throw new IOException($"Couldn't acquire system wide mutex on {ShortName}", inner);
+			throw new IOException($"Could not acquire system wide mutex on {ShortName}", inner);
 		}
 
 		private void StopThread()

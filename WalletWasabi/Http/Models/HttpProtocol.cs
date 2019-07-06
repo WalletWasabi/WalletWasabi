@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 // https://tools.ietf.org/html/rfc7230#section-2.6
 namespace WalletWasabi.Http.Models
@@ -49,7 +49,7 @@ namespace WalletWasabi.Http.Models
 
 		#region Equality
 
-		public override bool Equals(object obj) => obj is HttpProtocol && this == (HttpProtocol)obj;
+		public override bool Equals(object obj) => obj is HttpProtocol protocol && this == protocol;
 
 		public bool Equals(HttpProtocol other) => this == other;
 
