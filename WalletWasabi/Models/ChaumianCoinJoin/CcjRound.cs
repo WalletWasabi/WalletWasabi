@@ -401,6 +401,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						// 7. Shuffle. NBitcoin's shuffle doesn't work: https://github.com/MetacoSA/NBitcoin/issues/713
 						transaction.Inputs.Shuffle();
 						transaction.Outputs.Shuffle();
+						transaction.Outputs.SortByAmount(); // So the coinjoin looks better in block explorer.
 
 						// 8. Create the unsigned transaction.
 						var builder = Network.CreateTransactionBuilder();
@@ -572,7 +573,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			// If he registers many alices at InputRegistration
 			// AND never confirms in connection confirmation
 			// THEN connection confirmation will go with 2 alices in every round
-			// Therefore Alices those didn't confirm, nor requested disconnection should be banned:
+			// Therefore Alices those did not confirm, nor requested disconnection should be banned:
 
 			IEnumerable<Alice> alicesToBan = await RemoveAlicesIfAnInputRefusedByMempoolAsync(); // So ban only those who confirmed participation, yet spent their inputs.
 
@@ -637,7 +638,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 					if (changeAmount < Money.Zero)
 					{
-						if (acceptedBlindedOutputScriptsCount < alice.BlindedOutputScripts.Count())
+						if (acceptedBlindedOutputScriptsCount < alice.BlindedOutputScripts.Length)
 						{
 							tinkerWithAdditionalMixingLevels = false;
 						}
@@ -812,7 +813,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 			catch (Exception ex)
 			{
-				// If fee hasn't been initialized once, fall back.
+				// If fee has not been initialized once, fall back.
 				if (feePerInputs is null || feePerOutputs is null)
 				{
 					var feePerBytes = Money.Satoshis(100); // 100 satoshi per byte
@@ -1026,7 +1027,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							Alice alice = Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
 							if (alice != default(Alice))
 							{
-								// 4. If LastSeen isn't changed by then, remove Alice.
+								// 4. If LastSeen is not changed by then, remove Alice.
 								if (alice.LastSeen == started)
 								{
 									Alices.Remove(alice);

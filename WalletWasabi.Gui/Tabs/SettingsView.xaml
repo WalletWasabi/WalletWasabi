@@ -97,7 +97,7 @@
           <controls:GroupBox Title="Other settings" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
             <StackPanel Orientation="Vertical" Spacing="5">
               <StackPanel Margin="0 10" Spacing="5">
-                <TextBlock ToolTip.Tip="Under the dust threshold coins aren't appearing in the coin lists.">Dust Threshold (BTC)</TextBlock>
+                <TextBlock ToolTip.Tip="Under the dust threshold coins are not appearing in the coin lists.">Dust Threshold (BTC)</TextBlock>
                 <TextBox Text="{Binding DustThreshold}" />
               </StackPanel>
             </StackPanel>

@@ -17,6 +17,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private CompositeDisposable Disposables { get; set; }
 
+		private bool _showSensitiveKeys;
 		private string _password;
 		private string _extendedMasterPrivateKey;
 		private string _extendedMasterZprv;
@@ -47,19 +48,26 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
-			ShowSensitiveKeysCommand = ReactiveCommand.Create(() =>
+			ToggleSensitiveKeysCommand = ReactiveCommand.Create(() =>
 			{
 				try
 				{
-					Password = Guard.Correct(Password);
-					var secret = KeyManager.GetMasterExtKey(Password);
-					Password = "";
+					if (ShowSensitiveKeys)
+					{
+						ClearSensitiveData(true);
+					}
+					else
+					{
+						Password = Guard.Correct(Password);
+						var secret = KeyManager.GetMasterExtKey(Password);
+						Password = "";
 
-					string master = secret.GetWif(Global.Network).ToWif();
-					string account = secret.Derive(KeyManager.AccountKeyPath).GetWif(Global.Network).ToWif();
-					string masterZ = secret.ToZPrv(Global.Network);
-					string accountZ = secret.Derive(KeyManager.AccountKeyPath).ToZPrv(Global.Network);
-					SetSensitiveData(master, account, masterZ, accountZ);
+						string master = secret.GetWif(Global.Network).ToWif();
+						string account = secret.Derive(KeyManager.AccountKeyPath).GetWif(Global.Network).ToWif();
+						string masterZ = secret.ToZPrv(Global.Network);
+						string accountZ = secret.Derive(KeyManager.AccountKeyPath).ToZPrv(Global.Network);
+						SetSensitiveData(master, account, masterZ, accountZ);
+					}
 				}
 				catch (Exception ex)
 				{
@@ -74,6 +82,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ExtendedMasterZprv = "";
 			ExtendedAccountPrivateKey = "";
 			ExtendedAccountZprv = "";
+			ShowSensitiveKeys = false;
 
 			if (passwordToo)
 			{
@@ -85,9 +94,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string ExtendedAccountPublicKey => KeyManager.ExtPubKey.ToString(Global.Network);
 		public string ExtendedAccountZpub => KeyManager.ExtPubKey.ToZpub(Global.Network);
-		public string AccountKeyPath => $"m/{KeyManager.AccountKeyPath.ToString()}";
+		public string AccountKeyPath => $"m/{KeyManager.AccountKeyPath}";
 		public string MasterKeyFingerprint => KeyManager.MasterFingerprint.ToString();
-		public ReactiveCommand<Unit, Unit> ShowSensitiveKeysCommand { get; }
+		public ReactiveCommand<Unit, Unit> ToggleSensitiveKeysCommand { get; }
+
+		public bool ShowSensitiveKeys
+		{
+			get => _showSensitiveKeys;
+			set => this.RaiseAndSetIfChanged(ref _showSensitiveKeys, value);
+		}
 
 		public string Password
 		{
@@ -125,6 +140,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ExtendedAccountPrivateKey = extendedAccountPrivateKey;
 			ExtendedMasterZprv = extendedMasterZprv;
 			ExtendedAccountZprv = extendedAccountZprv;
+			ShowSensitiveKeys = true;
 
 			Dispatcher.UIThread.PostLogException(async () =>
 			{

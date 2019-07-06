@@ -427,11 +427,7 @@ namespace WalletWasabi.KeyManagement
 				}
 
 				KeyPath path;
-				if (!relevantHdPubKeys.Any())
-				{
-					path = new KeyPath($"{change}/0");
-				}
-				else
+				if (relevantHdPubKeys.Any())
 				{
 					int largestIndex = relevantHdPubKeys.Max(x => x.Index);
 					List<int> missingIndexes = Enumerable.Range(0, largestIndex).Except(relevantHdPubKeys.Select(x => x.Index)).ToList();
@@ -444,6 +440,10 @@ namespace WalletWasabi.KeyManagement
 					{
 						path = relevantHdPubKeys.First(x => x.Index == largestIndex).NonHardenedKeyPath.Increment();
 					}
+				}
+				else
+				{
+					path = new KeyPath($"{change}/0");
 				}
 
 				var fullPath = AccountKeyPath.Derive(path);
@@ -791,21 +791,21 @@ namespace WalletWasabi.KeyManagement
 		}
 
 		/// <returns>The network the keymanager was used the last time on.</returns>
-		public void AssertNetworkOrClearBlockstate(Network expectednetwork)
+		public void AssertNetworkOrClearBlockState(Network expectedNetwork)
 		{
 			lock (BlockchainStateLock)
 			{
 				var lastNetwork = BlockchainState.Network;
-				if (lastNetwork is null || lastNetwork != expectednetwork)
+				if (lastNetwork is null || lastNetwork != expectedNetwork)
 				{
-					BlockchainState.Network = expectednetwork;
+					BlockchainState.Network = expectedNetwork;
 					BlockchainState.BestHeight = 0;
 					BlockchainState.BlockStates.Clear();
 					ToFileNoBlockchainStateLock();
 
 					if (lastNetwork != null)
 					{
-						Logger.LogWarning<KeyManager>($"Wallet is opened on {expectednetwork.ToString()}. Last time it was opened on {lastNetwork.ToString()}.");
+						Logger.LogWarning<KeyManager>($"Wallet is opened on {expectedNetwork}. Last time it was opened on {lastNetwork}.");
 					}
 					Logger.LogInfo<KeyManager>("Blockchain cache is cleared.");
 				}

@@ -258,5 +258,10 @@ namespace NBitcoin
 			var extractedTx = psbt.ExtractTransaction();
 			return new SmartTransaction(extractedTx, height, blockHash, blockIndex, label, firstSeenIfMemPoolTime, isReplacement);
 		}
+
+		public static void SortByAmount(this TxOutList list)
+		{
+			list.Sort((x, y) => x.Value.CompareTo(y.Value));
+		}
 	}
 }

@@ -1,4 +1,4 @@
-﻿using Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition;
+using Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition;
 using Gma.QrCodeNet.Encoding.Terminate;
 using Gma.QrCodeNet.Encoding.Versions;
 using System;
@@ -41,7 +41,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			int dataCodewordsCount = dataCodewords.Count;
 			if ((dataCodewordsCount & 0x7) != 0)
 			{
-				throw new ArgumentException("data codewords is not byte sized.");
+				throw new ArgumentException("datacodewords is not byte sized.");
 			}
 			else if (dataCodewordsCount >> 3 != vcStruct.VersionDetail.NumDataBytes)
 			{
@@ -84,7 +84,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			int dataCodewordsCount = dataCodewords.Count;
 			if ((dataCodewordsCount & 0x7) != 0)
 			{
-				throw new ArgumentException("data codewords is not byte sized.");
+				throw new ArgumentException("datacodewords is not byte sized.");
 			}
 			else if (dataCodewordsCount >> 3 != vcStruct.VersionDetail.NumDataBytes)
 			{

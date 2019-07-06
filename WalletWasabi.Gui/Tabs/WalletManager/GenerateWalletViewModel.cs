@@ -26,10 +26,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			Owner = owner;
 
-			GenerateCommand = ReactiveCommand.Create(() =>
-			{
-				DoGenerateCommand();
-			},
+			GenerateCommand = ReactiveCommand.Create(DoGenerateCommand,
 			this.WhenAnyValue(x => x.TermsAccepted));
 
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>

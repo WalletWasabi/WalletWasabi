@@ -189,7 +189,7 @@ namespace WalletWasabi.Stores
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<IndexStore>($"Backwards compatibility couldn't be ensured. Exception: {ex.ToString()}");
+				Logger.LogWarning<IndexStore>($"Backwards compatibility couldn't be ensured. Exception: {ex}");
 			}
 		}
 

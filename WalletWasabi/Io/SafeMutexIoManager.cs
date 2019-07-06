@@ -43,14 +43,16 @@ namespace WalletWasabi.Io
 
 		public new bool TryReplaceMeWith(string sourcePath)
 		{
-			if (!File.Exists(sourcePath))
+			if (File.Exists(sourcePath))
+			{
+				SafeMoveToOriginal(sourcePath);
+
+				return true;
+			}
+			else
 			{
 				return false;
 			}
-
-			SafeMoveToOriginal(sourcePath);
-
-			return true;
 		}
 
 		// https://stackoverflow.com/a/7957634/2061103
