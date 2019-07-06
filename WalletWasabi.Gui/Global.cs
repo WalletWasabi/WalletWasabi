@@ -324,7 +324,7 @@ namespace WalletWasabi.Gui
 					// of course).
 					// On the other side, increasing this number forces users that do not need to discover more peers
 					// to spend resources (CPU/bandwith) to discover new peers.
-					needsToDiscoverPeers = Config.UseTor == true || AddressManager.Count < 500;
+					needsToDiscoverPeers = Config.UseTor is true || AddressManager.Count < 500;
 					Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
 				}
 				catch (DirectoryNotFoundException ex)
