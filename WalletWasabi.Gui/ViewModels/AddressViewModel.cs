@@ -37,16 +37,15 @@ namespace WalletWasabi.Gui.ViewModels
 
 			this.WhenAnyValue(x => x.IsExpanded)
 				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Where(x => x)
+				.Take(1)
 				.Subscribe(x =>
 				{
 					try
 					{
-						if (x == true && QrCode is null)
-						{
-							var encoder = new QrEncoder();
-							encoder.TryEncode(Address, out var qrCode);
-							Dispatcher.UIThread.PostLogException(() => QrCode = qrCode.Matrix.InternalArray);
-						}
+						var encoder = new QrEncoder();
+						encoder.TryEncode(Address, out var qrCode);
+						Dispatcher.UIThread.PostLogException(() => QrCode = qrCode.Matrix.InternalArray);
 					}
 					catch (Exception ex)
 					{
