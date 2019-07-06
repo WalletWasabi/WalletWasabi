@@ -21,6 +21,11 @@
   </UserControl.Styles>
 
   <DockPanel LastChildFill="True">
+    <DockPanel.Styles>
+      <Style Selector="ListBoxItem">
+        <Setter Property="Padding" Value="0 0 5 0" />
+      </Style>
+    </DockPanel.Styles>
     <Grid Classes="content">
       <DockPanel LastChildFill="True" Margin="20">
         <StackPanel DockPanel.Dock="Bottom" Margin="0 10" Spacing="10" HorizontalAlignment="Left">
