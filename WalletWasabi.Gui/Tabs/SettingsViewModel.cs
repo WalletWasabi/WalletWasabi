@@ -27,6 +27,7 @@ namespace WalletWasabi.Gui.Tabs
 		private bool _autocopy;
 		private bool _useTor;
 		private bool _isModified;
+		private bool _enablePINLock;
 		private string _somePrivacyLevel;
 		private string _finePrivacyLevel;
 		private string _strongPrivacyLevel;
@@ -35,7 +36,9 @@ namespace WalletWasabi.Gui.Tabs
 
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
-
+		public ReactiveCommand<Unit, Unit> EnablePINLockCommand { get; }
+		public ReactiveCommand<Unit, Unit> SetPINLockCommand { get; }
+		
 		public SettingsViewModel(Global global) : base(global, "Settings")
 		{
 			var config = new Config(Global.Config.FilePath);
@@ -93,6 +96,8 @@ namespace WalletWasabi.Gui.Tabs
 				DustThreshold = config.DustThreshold.ToString();
 
 				IsModified = await Global.Config.CheckFileChangeAsync();
+
+				EnablePINLock = Global.UiConfig.LockScreenPinHash != string.Empty; 
 			});
 
 			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
@@ -100,6 +105,15 @@ namespace WalletWasabi.Gui.Tabs
 			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				Global.UiConfig.LurkingWifeMode = !LurkingWifeMode;
+				await Global.UiConfig.ToFileAsync();
+			});
+
+			EnablePINLockCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				EnablePINLock = !EnablePINLock;
+
+				
+
 				await Global.UiConfig.ToFileAsync();
 			});
 		}
@@ -217,6 +231,14 @@ namespace WalletWasabi.Gui.Tabs
 		}
 
 		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
+
+
+		public bool EnablePINLock
+		{
+			get => _enablePINLock;
+			set => this.RaiseAndSetIfChanged(ref _enablePINLock, value);
+		}
+
 
 		private void Save()
 		{
@@ -400,8 +422,8 @@ namespace WalletWasabi.Gui.Tabs
 
 			return "Invalid port.";
 		}
-
-		private void OpenConfigFile()
+ 
+ 		private void OpenConfigFile()
 		{
 			IoHelpers.OpenFileInTextEditor(Global.Config.FilePath);
 		}

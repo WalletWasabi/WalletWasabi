@@ -68,12 +68,14 @@
               <controls:GroupBox Title="Screen Lock" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
                 <StackPanel Orientation="Vertical" Spacing="5">
                   <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
-                    <ToggleButton/>
+                    <ToggleButton IsChecked="{Binding EnablePINLock, Mode=OneWay}" Content="{Binding EnablePINLock, Converter={StaticResource BooleanOnOffConverter}}}" Margin="0 0 10 0" Command="{Binding EnablePINLockCommand}" />
                     <TextBlock VerticalAlignment="Center">Use PIN to unlock the screen.</TextBlock>
                   </StackPanel>
-                  <controls:NoparaPasswordBox Watermark="Enter Old PIN Here."/>
-                  <controls:NoparaPasswordBox Watermark="Enter New PIN Here."/>
-                  <Button Content="Confirm"/>
+                  <StackPanel Orientation="Vertical" Spacing="5" IsVisible="{Binding EnablePINLock, Mode=OneWay}">
+                    <controls:NoparaPasswordBox Watermark="Enter Old PIN Here."/>
+                    <controls:NoparaPasswordBox Watermark="Enter New PIN Here."/>
+                    <Button Content="Confirm"/>
+                  </StackPanel>
                 </StackPanel>
               </controls:GroupBox>
             </StackPanel>
