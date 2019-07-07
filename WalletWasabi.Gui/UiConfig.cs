@@ -46,7 +46,6 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "LurkingWifeMode")]
 		public bool LurkingWifeMode
 		{
-
 				get => _lurkingWifeMode ?? false;
 				set => this.RaiseAndSetIfChanged(ref _lurkingWifeMode, value);
 		}

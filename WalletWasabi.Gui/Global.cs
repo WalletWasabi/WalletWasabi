@@ -505,7 +505,7 @@ namespace WalletWasabi.Gui
 		{
 			try
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || UiConfig != null && UiConfig.LurkingWifeMode)
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || (UiConfig != null && UiConfig.LurkingWifeMode))
 				{
 					return;
 				}
