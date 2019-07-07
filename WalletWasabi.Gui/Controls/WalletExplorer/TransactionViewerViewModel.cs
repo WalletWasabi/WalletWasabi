@@ -24,7 +24,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private byte[] _psbtBytes;
 		public ReactiveCommand<Unit, Unit> ExportBinaryPsbtCommand { get; set; }
 
-		public bool? IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
+		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
 
 		public string TxId
 		{
