@@ -16,8 +16,11 @@ namespace WalletWasabi.Tests
 
 			public void Dispose()
 			{
-				_coreNode.CreateRPCClient().Stop();
-				_coreNode.WaitForExit();
+				if (_coreNode.State == NBitcoin.Tests.CoreNodeState.Running)
+				{
+					_coreNode.CreateRPCClient().Stop();
+					_coreNode.WaitForExit();
+				}
 			}
 		}
 

@@ -92,7 +92,7 @@ namespace WalletWasabi.Tests
 				return;
 			}
 
-			var BackendNode = _nodeBuilder.CreateNode();
+			BackendNode = _nodeBuilder.CreateNode();
 			BackendNode.WhiteBind = true;
 			await BackendNode.StartAsync();
 			_resources.Push(BackendNode.AsDisposable());
@@ -201,6 +201,7 @@ namespace WalletWasabi.Tests
 				throw new InvalidOperationException("The coinjoin node should start before the client nodes");
 			}
 			Node.ConfigParameters.Add("connect", $"{_parent.BackendNode.Endpoint.Address}:{_parent.BackendNode.Endpoint.Port}");
+			Node.ConfigParameters.Add("listen", "1");
 			await Node.StartAsync();
 			_mainViewModel = new MainWindowViewModel { Global = GuiGlobal };
 
