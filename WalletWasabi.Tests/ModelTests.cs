@@ -60,14 +60,14 @@ namespace WalletWasabi.Tests
 			var label = "foo";
 
 			var coin = new SmartCoin(txId, index, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index), label, txId);
-			// If the txid or the index differs, equality should think it's a different coin.
+			// If the txId or the index differs, equality should think it's a different coin.
 			var differentCoin = new SmartCoin(txId, index + 1, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index + 1), label, txId);
 			var differentOutput = tx.Outputs[1];
 			var differentSpentOutputs = new[]
 			{
 				new TxoRef(txId, 0)
 			};
-			// If the txid and the index is the same, equality should think it's the same coin.
+			// If the txId and the index is the same, equality should think it's the same coin.
 			var sameCoin = new SmartCoin(txId, index, differentOutput.ScriptPubKey, differentOutput.Value, differentSpentOutputs, Height.Unknown, tx.RBF, tx.GetAnonymitySet(index), "boo", null);
 
 			Assert.Equal(coin, sameCoin);

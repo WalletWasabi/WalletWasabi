@@ -226,7 +226,7 @@ namespace NBitcoin.RPC
 		public static async Task<ISet<uint256>> GetAllDependentsAsync(this RPCClient rpc, IEnumerable<uint256> transactionHashes, bool includingProvided, bool likelyProvidedManyConfirmedOnes)
 		{
 			IEnumerable<uint256> workingTxHashes;
-			if (likelyProvidedManyConfirmedOnes) // If confirmed txids are provided, then do a big check first.
+			if (likelyProvidedManyConfirmedOnes) // If confirmed txIds are provided, then do a big check first.
 			{
 				workingTxHashes = await rpc.GetUnconfirmedAsync(transactionHashes);
 			}
@@ -236,16 +236,16 @@ namespace NBitcoin.RPC
 			}
 
 			var hashSet = new HashSet<uint256>();
-			foreach (var txid in workingTxHashes)
+			foreach (var txId in workingTxHashes)
 			{
-				// Go through all the txids provided and getmempoolentry to get the dependents and the confirmation status.
-				var entry = await rpc.GetMempoolEntryAsync(txid, throwIfNotFound: false);
+				// Go through all the txIds provided and getmempoolentry to get the dependents and the confirmation status.
+				var entry = await rpc.GetMempoolEntryAsync(txId, throwIfNotFound: false);
 				if (entry != null)
 				{
 					// If we asked to include the provided transaction hashes into the result then check which ones are confirmed and do so.
 					if (includingProvided)
 					{
-						hashSet.Add(txid);
+						hashSet.Add(txId);
 					}
 
 					// Get all the dependents of all the dependents except the ones we already know of.

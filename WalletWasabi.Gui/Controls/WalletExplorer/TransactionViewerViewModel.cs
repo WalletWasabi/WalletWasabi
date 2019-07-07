@@ -17,7 +17,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private CompositeDisposable Disposables { get; set; }
 
-		private string _txid;
+		private string _txId;
 		private string _psbtJsonText;
 		private string _psbtHexText;
 		private string _psbtBase64Text;
@@ -26,8 +26,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string TxId
 		{
-			get => _txid;
-			set => this.RaiseAndSetIfChanged(ref _txid, value);
+			get => _txId;
+			set => this.RaiseAndSetIfChanged(ref _txId, value);
 		}
 
 		public string PsbtJsonText
