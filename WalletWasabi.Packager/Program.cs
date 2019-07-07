@@ -121,6 +121,7 @@ namespace WalletWasabi.Packager
 
 					var responseString = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
 					var json = (JObject)JsonConvert.DeserializeObject(responseString);
+					var onions = new List<string>();
 					foreach (JProperty node in json["nodes"])
 					{
 						if (!node.Name.Contains(".onion"))
@@ -131,8 +132,13 @@ namespace WalletWasabi.Packager
 						var userAgent = ((JArray)node.Value)[1].ToString();
 						if (userAgent.Contains("Satoshi:0.16") || userAgent.Contains("Satoshi:0.17"))
 						{
-							Console.WriteLine(node.Name);
+							onions.Add(node.Name);
 						}
+					}
+
+					foreach (var onion in onions.OrderBy(x => x))
+					{
+						Console.WriteLine(onion);
 					}
 				}
 			}
@@ -155,6 +161,7 @@ namespace WalletWasabi.Packager
 
 					var responseString = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
 					var json = (JObject)JsonConvert.DeserializeObject(responseString);
+					var onions = new List<string>();
 					foreach (JProperty node in json["nodes"])
 					{
 						if (!node.Name.Contains(".onion"))
@@ -171,12 +178,17 @@ namespace WalletWasabi.Packager
 
 							if (ver >= new Version("0.16") && currentOnions.Contains(node.Name))
 							{
-								Console.WriteLine(node.Name);
+								onions.Add(node.Name);
 							}
 						}
 						catch
 						{
 						}
+					}
+
+					foreach (var onion in onions.OrderBy(x => x))
+					{
+						Console.WriteLine(onion);
 					}
 				}
 			}
