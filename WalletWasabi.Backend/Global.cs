@@ -15,7 +15,6 @@ namespace WalletWasabi.Backend
 {
 	public class Global
 	{
-		public static Global Instance { get; } = new Global();
 		public string DataDir { get; }
 
 		public RPCClient RpcClient { get; private set; }

@@ -19,6 +19,11 @@ namespace WalletWasabi.Backend.Controllers
 	[Route("api/v" + Helpers.Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class BatchController : Controller
 	{
+		public BatchController(Global backendGlobal)
+		{
+			Global = backendGlobal;
+		}
+		public Global Global { get; }
 		public BlockchainController BlockchainController { get; }
 		public ChaumianCoinJoinController ChaumianCoinJoinController { get; }
 		public HomeController HomeController { get; }
@@ -52,7 +57,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			var knownHash = new uint256(bestKnownBlockHash);
 
-			(Height bestHeight, IEnumerable<FilterModel> filters) = Global.Instance.IndexBuilderService.GetFilterLinesExcluding(knownHash, maxNumberOfFilters, out bool found);
+			(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, maxNumberOfFilters, out bool found);
 
 			var response = new SynchronizeResponse { Filters = Enumerable.Empty<FilterModel>(), BestHeight = bestHeight };
 

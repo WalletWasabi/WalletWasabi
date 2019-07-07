@@ -41,7 +41,7 @@ namespace WalletWasabi.Backend
 			File.WriteAllText(onionPath, content);
 		}
 
-		public static void UpdateCoinJoinsHtml(IEnumerable<string> coinJoins)
+		public static void UpdateCoinJoinsHtml(Global backendGlobal, IEnumerable<string> coinJoins)
 		{
 			var filePath = CreateFilePath("coinjoins-table.html");
 			var onionFilePath = CreateFilePath("onion-coinjoins-table.html");
@@ -51,7 +51,7 @@ namespace WalletWasabi.Backend
 			var endContent = "</ul>";
 			string blockstreamPath;
 			string onionBlockstreamPath;
-			if (Global.Instance.Config.Network == Network.TestNet)
+			if (backendGlobal.Config.Network == Network.TestNet)
 			{
 				blockstreamPath = "https://blockstream.info/testnet/tx/";
 				onionBlockstreamPath = "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion/testnet/tx/";

@@ -25,17 +25,18 @@ namespace WalletWasabi.Backend
 		{
 			try
 			{
-				Logger.InitializeDefaults(Path.Combine(Global.Instance.DataDir, "Logs.txt"));
+				var backendGlobal = new Global();
+				Logger.InitializeDefaults(Path.Combine(backendGlobal.DataDir, "Logs.txt"));
 				Logger.LogStarting("Wasabi Backend");
 
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
-				var configFilePath = Path.Combine(Global.Instance.DataDir, "Config.json");
+				var configFilePath = Path.Combine(backendGlobal.DataDir, "Config.json");
 				var config = new Config(configFilePath);
 				await config.LoadOrCreateDefaultFileAsync();
 				Logger.LogInfo<Config>("Config is successfully initialized.");
 
-				var roundConfigFilePath = Path.Combine(Global.Instance.DataDir, "CcjRoundConfig.json");
+				var roundConfigFilePath = Path.Combine(backendGlobal.DataDir, "CcjRoundConfig.json");
 				var roundConfig = new CcjRoundConfig(roundConfigFilePath);
 				await roundConfig.LoadOrCreateDefaultFileAsync();
 				Logger.LogInfo<CcjRoundConfig>("RoundConfig is successfully initialized.");
@@ -44,7 +45,7 @@ namespace WalletWasabi.Backend
 						credentials: RPCCredentialString.Parse(config.BitcoinRpcConnectionString),
 						network: config.Network);
 
-				await Global.Instance.InitializeAsync(config, roundConfig, rpc);
+				await backendGlobal.InitializeAsync(config, roundConfig, rpc);
 
 				try
 				{
@@ -52,14 +53,14 @@ namespace WalletWasabi.Backend
 					UnversionedWebBuilder.CreateDownloadTextWithVersionHtml();
 					UnversionedWebBuilder.CloneAndUpdateOnionIndexHtml();
 
-					if (File.Exists(Global.Instance.Coordinator.CoinJoinsFilePath))
+					if (File.Exists(backendGlobal.Coordinator.CoinJoinsFilePath))
 					{
-						string[] allLines = File.ReadAllLines(Global.Instance.Coordinator.CoinJoinsFilePath);
+						string[] allLines = File.ReadAllLines(backendGlobal.Coordinator.CoinJoinsFilePath);
 						Last5CoinJoins = allLines.TakeLast(5).Reverse().ToList();
-						UnversionedWebBuilder.UpdateCoinJoinsHtml(Last5CoinJoins);
+						UnversionedWebBuilder.UpdateCoinJoinsHtml(backendGlobal, Last5CoinJoins);
 					}
 
-					Global.Instance.Coordinator.CoinJoinBroadcasted += Coordinator_CoinJoinBroadcasted;
+					backendGlobal.Coordinator.CoinJoinBroadcasted += (s, a) => Coordinator_CoinJoinBroadcasted(s, a, backendGlobal);
 				}
 				catch (Exception ex)
 				{
@@ -93,7 +94,7 @@ namespace WalletWasabi.Backend
 			Logger.LogWarning(e?.ExceptionObject as Exception, "UnhandledException");
 		}
 
-		private static void Coordinator_CoinJoinBroadcasted(object sender, Transaction tx)
+		private static void Coordinator_CoinJoinBroadcasted(object sender, Transaction tx, Global backendGlobal)
 		{
 			try
 			{
@@ -104,7 +105,7 @@ namespace WalletWasabi.Backend
 						Last5CoinJoins.RemoveLast();
 					}
 					Last5CoinJoins.Insert(0, tx.GetHash().ToString());
-					UnversionedWebBuilder.UpdateCoinJoinsHtml(Last5CoinJoins);
+					UnversionedWebBuilder.UpdateCoinJoinsHtml(backendGlobal, Last5CoinJoins);
 				}
 			}
 			catch (Exception ex)
