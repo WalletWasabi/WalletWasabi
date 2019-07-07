@@ -398,7 +398,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							transaction.Outputs.AddWithOptimize(coordinatorFee, coordinatorAddress);
 						}
 
-						// 7. Shuffle. NBitcoin's shuffle doesn't work: https://github.com/MetacoSA/NBitcoin/issues/713
+						// 7. Shuffle. NBitcoin's shuffle does not work: https://github.com/MetacoSA/NBitcoin/issues/713
 						transaction.Inputs.Shuffle();
 						transaction.Outputs.Shuffle();
 						transaction.Outputs.SortByAmount(); // So the coinjoin looks better in block explorer.
@@ -525,7 +525,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 											  {
 												  // Output registration never aborts.
 												  // We don't know which Alice to ban.
-												  // Therefore proceed to signing, and whichever Alice doesn't sign, ban her.
+												  // Therefore proceed to signing, and whichever Alice does not sign, ban her.
 												  await ExecuteNextPhaseAsync(CcjRoundPhase.Signing);
 											  }
 											  break;
@@ -768,10 +768,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			try
 			{
-				// If the transaction doesn't spend unconfirmed coins then the confirmation target can be the one that's been set in the config.
+				// If the transaction does not spend unconfirmed coins then the confirmation target can be the one that's been set in the config.
 				var originalConfirmationTarget = AdjustedConfirmationTarget;
 
-				// Note that only dependents matter, spenders doesn't matter much or at all, they just make this transaction to be faster to confirm faster.
+				// Note that only dependents matter, spenders does not matter much or at all, they just make this transaction to be faster to confirm faster.
 				var dependents = await RpcClient.GetAllDependentsAsync(transactionHashes, includingProvided: true, likelyProvidedManyConfirmedOnes: true);
 				AdjustedConfirmationTarget = AdjustConfirmationTarget(dependents.Count, ConfiguredConfirmationTarget, ConfiguredConfirmationTargetReductionRate);
 

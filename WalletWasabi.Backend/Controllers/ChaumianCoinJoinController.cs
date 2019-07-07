@@ -183,8 +183,8 @@ namespace WalletWasabi.Backend.Controllers
 							return BadRequest($"Input is banned from participation for {(int)bannedElem.BannedRemaining.TotalMinutes} minutes: {inputProof.Input.Index}:{inputProof.Input.TransactionId}.");
 						}
 
-						var txoutResponseTask = batch.GetTxOutAsync(inputProof.Input.TransactionId, (int)inputProof.Input.Index, includeMempool: true);
-						getTxOutResponses.Add((inputProof, txoutResponseTask));
+						var txOutResponseTask = batch.GetTxOutAsync(inputProof.Input.TransactionId, (int)inputProof.Input.Index, includeMempool: true);
+						getTxOutResponses.Add((inputProof, txOutResponseTask));
 					}
 
 					// Perform all RPC request at once
@@ -242,16 +242,16 @@ namespace WalletWasabi.Backend.Controllers
 							return BadRequest("Provided input must be witness_v0_keyhash.");
 						}
 
-						TxOut txout = getTxOutResponse.TxOut;
+						TxOut txOut = getTxOutResponse.TxOut;
 
-						var address = (BitcoinWitPubKeyAddress)txout.ScriptPubKey.GetDestinationAddress(Network);
+						var address = (BitcoinWitPubKeyAddress)txOut.ScriptPubKey.GetDestinationAddress(Network);
 						// Check if proofs are valid.
 						if (!address.VerifyMessage(blindedOutputScriptsHash, inputProof.Proof))
 						{
 							return BadRequest("Provided proof is invalid.");
 						}
 
-						inputs.Add(new Coin(inputProof.Input.ToOutPoint(), txout));
+						inputs.Add(new Coin(inputProof.Input.ToOutPoint(), txOut));
 					}
 
 					var acceptedBlindedOutputScripts = new List<uint256>();

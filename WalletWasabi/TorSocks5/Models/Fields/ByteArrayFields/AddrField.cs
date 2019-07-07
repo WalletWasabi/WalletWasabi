@@ -94,7 +94,7 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 					}
 					else
 					{
-						throw new FormatException($"Couldn't parse the {i}. part of {nameof(dstAddr)} to int. Invalid part: {partInt}. Value of {nameof(dstAddr)}: {dstAddr}.");
+						throw new FormatException($"Could not parse the {i}. part of {nameof(dstAddr)} to int. Invalid part: {partInt}. Value of {nameof(dstAddr)}: {dstAddr}.");
 					}
 				}
 			}
@@ -125,7 +125,7 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 			}
 			else
 			{
-				throw new FormatException($"Couldn't read IPv4 or domain name from {nameof(bytes)}. Value: {bytes}.");
+				throw new FormatException($"Could not read IPv4 or domain name from {nameof(bytes)}. Value: {bytes}.");
 			}
 
 			Atyp = atyp;

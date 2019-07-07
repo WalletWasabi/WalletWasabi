@@ -13,8 +13,8 @@ namespace WalletWasabi.Hwi.Models
 			try
 			{
 				Guard.NotNullOrEmptyOrWhitespace(nameof(masterFingerprint), masterFingerprint);
-				var masterFingerPrintBytes = ByteHelpers.FromHex(masterFingerprint);
-				MasterFingerprint = new HDFingerprint(masterFingerPrintBytes);
+				var masterFingerprintBytes = ByteHelpers.FromHex(masterFingerprint);
+				MasterFingerprint = new HDFingerprint(masterFingerprintBytes);
 			}
 			catch (ArgumentException)
 			{

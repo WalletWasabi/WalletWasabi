@@ -619,7 +619,7 @@ namespace WalletWasabi.Services
 				CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
 				if (roundRegistered is null)
 				{
-					// If our SatoshiClient doesn't yet know about the round, because of delay, then delay the round registration.
+					// If our SatoshiClient does not yet know about the round, because of delay, then delay the round registration.
 					DelayedRoundRegistration?.Dispose();
 					DelayedRoundRegistration = registration;
 				}
@@ -848,7 +848,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public bool HasIngredients => Salt is null || Soup is null ? false : true;
+		public bool HasIngredients => Salt != null && Soup != null;
 
 		private string SaltSoup()
 		{
@@ -1080,10 +1080,9 @@ namespace WalletWasabi.Services
 					}
 					catch (Exception ex)
 					{
-						Logger.LogError<CcjClient>("Couldn't dequeue all coins. Some coins will likely be banned from mixing.");
-						if (ex is AggregateException)
+						Logger.LogError<CcjClient>("Could not dequeue all coins. Some coins will likely be banned from mixing.");
+						if (ex is AggregateException aggrEx)
 						{
-							var aggrEx = ex as AggregateException;
 							foreach (var innerEx in aggrEx.InnerExceptions)
 							{
 								Logger.LogError<CcjClient>(innerEx);

@@ -6,7 +6,7 @@
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui">
   <UserControl.Resources>
     <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
-    <converters:ShowHideSensitiveKeysBoolConverter x:Key="ShowHideSensitiveKeysBoolConverter" />
+    <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
   </UserControl.Resources>
   <controls:GroupBox Title="{Binding Title}" BorderThickness="0" Classes="docTabContainer">
     <StackPanel>
@@ -60,7 +60,8 @@
                 </i:Interaction.Behaviors>
               </controls:NoparaPasswordBox>
               <DockPanel VerticalAlignment="Top" LastChildFill="True">
-                <Button Content="{Binding ShowSensitiveKeys, Converter={StaticResource ShowHideSensitiveKeysBoolConverter}}" Command="{Binding ToggleSensitiveKeysCommand}" DockPanel.Dock="Right" />
+                <Button Content="{Binding ShowSensitiveKeys, StringFormat=\{0\} Sensitive Keys, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Hide:Show}"
+                        Command="{Binding ToggleSensitiveKeysCommand}" DockPanel.Dock="Right" />
                 <Grid></Grid>
               </DockPanel>
               <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />

@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -30,7 +30,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is SchnorrKey && this == (SchnorrKey)obj;
+		public override bool Equals(object obj) => obj is SchnorrKey schnorrKey && this == schnorrKey;
 
 		public bool Equals(SchnorrKey other) => this == other;
 

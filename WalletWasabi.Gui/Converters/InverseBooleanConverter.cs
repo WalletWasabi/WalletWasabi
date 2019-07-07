@@ -10,7 +10,7 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is bool boolean)
 			{
-				return boolean ? false : true;
+				return !boolean;
 			}
 			else
 			{

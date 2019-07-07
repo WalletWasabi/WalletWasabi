@@ -84,7 +84,7 @@ namespace NBitcoin
 		{
 			// We omit Guard, because it's performance critical in Wasabi.
 			// We start with the inputs, because, this check is faster.
-			// Note: by testing performance the order doesn't seem to affect the speed of loading the wallet.
+			// Note: by testing performance the order does not seem to affect the speed of loading the wallet.
 			foreach (TxIn input in me.Inputs)
 			{
 				if (input.ScriptSig is null || input.ScriptSig == Script.Empty)
@@ -213,9 +213,9 @@ namespace NBitcoin
 		/// </summary>
 		public static void AddRangeWithOptimize(this TxOutList me, IEnumerable<TxOut> collection)
 		{
-			foreach (var txout in collection)
+			foreach (var txOut in collection)
 			{
-				me.AddWithOptimize(txout);
+				me.AddWithOptimize(txOut);
 			}
 		}
 
@@ -253,10 +253,10 @@ namespace NBitcoin
 			return psbt.ExtractSmartTransaction(Height.Unknown);
 		}
 
-		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt, Height height, uint256 blockHash = null, int blockIndex = 0, string label = "", DateTimeOffset? firstSeenIfMemPoolTime = null, bool isReplacement = false)
+		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt, Height height, uint256 blockHash = null, int blockIndex = 0, string label = "", DateTimeOffset? firstSeenIfMempoolTime = null, bool isReplacement = false)
 		{
 			var extractedTx = psbt.ExtractTransaction();
-			return new SmartTransaction(extractedTx, height, blockHash, blockIndex, label, firstSeenIfMemPoolTime, isReplacement);
+			return new SmartTransaction(extractedTx, height, blockHash, blockIndex, label, firstSeenIfMempoolTime, isReplacement);
 		}
 
 		public static void SortByAmount(this TxOutList list)

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Models
@@ -16,7 +16,7 @@ namespace WalletWasabi.Models
 		/// Gets a new Height instance for mempool
 		/// </summary>
 		/// <returns></returns>
-		public static Height MemPool { get; } = new Height(HeightType.MemPool);
+		public static Height Mempool { get; } = new Height(HeightType.Mempool);
 
 		/// <summary>
 		/// Gets a new Height instance for unknown (no chain, no mempool)
@@ -28,7 +28,7 @@ namespace WalletWasabi.Models
 		/// Creates and initializes a new Height instance
 		/// </summary>
 		/// <param name="height">The height value to initialize the instance.
-		/// If height value is (Int32.MaxValue -1) then the Height type is setted to MemPool.
+		/// If height value is (Int32.MaxValue -1) then the Height type is setted to Mempool.
 		/// If height value is (Int32.MaxValue) then the Height tpe is setted to Unknown;
 		/// Otherwise the Height type is setted as Chain.
 		/// </param>
@@ -44,9 +44,9 @@ namespace WalletWasabi.Models
 			{
 				Type = HeightType.Unknown;
 			}
-			else if (height == MemPool.Value)
+			else if (height == Mempool.Value)
 			{
-				Type = HeightType.MemPool;
+				Type = HeightType.Mempool;
 			}
 			else
 			{
@@ -57,7 +57,7 @@ namespace WalletWasabi.Models
 		}
 
 		/// <param name="heightOrHeightType">The height numerical value as its string representation
-		/// or well the strings "MemPool" or "Unknown" for the default initial height of those Heights.
+		/// or well the strings "Mempool" or "Unknown" for the default initial height of those Heights.
 		/// </param>
 		public static bool TryParse(string heightOrHeightType, out Height height)
 		{
@@ -69,9 +69,9 @@ namespace WalletWasabi.Models
 				return false;
 			}
 
-			if (HeightType.MemPool.ToString().Equals(correct, StringComparison.OrdinalIgnoreCase))
+			if (HeightType.Mempool.ToString().Equals(correct, StringComparison.OrdinalIgnoreCase))
 			{
-				height = MemPool;
+				height = Mempool;
 				return true;
 			}
 			else if (HeightType.Unknown.ToString().Equals(correct, StringComparison.OrdinalIgnoreCase))
@@ -111,7 +111,7 @@ namespace WalletWasabi.Models
 
 			Type = type;
 
-			Value = (Type == HeightType.MemPool)
+			Value = (Type == HeightType.Mempool)
 				? int.MaxValue - 1
 				: int.MaxValue;
 		}
@@ -148,7 +148,7 @@ namespace WalletWasabi.Models
 		#region EqualityAndComparison
 
 		/// <inheritdoc/>
-		public override bool Equals(object obj) => obj is Height && this == (Height)obj;
+		public override bool Equals(object obj) => obj is Height height && this == height;
 
 		/// <inheritdoc/>
 		public bool Equals(Height other) => this == other;

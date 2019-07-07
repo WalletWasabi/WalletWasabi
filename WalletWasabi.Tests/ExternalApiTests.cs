@@ -38,9 +38,9 @@ namespace WalletWasabi.Tests
 					Logger.TurnOn();
 				}
 			}
-			else // If website doesn't work, don't bother failing.
+			else
 			{
-				return;
+				return; // If website does not work, don't bother failing.
 			}
 		}
 
@@ -72,8 +72,8 @@ namespace WalletWasabi.Tests
 					Assert.InRange(response.MediumFee.FeePerK, response.LowFee.FeePerK, response.HighFee.FeePerK);
 					Assert.InRange(response.HighFee.FeePerK, response.MediumFee.FeePerK, Money.Coins(0.1m));
 					Assert.True(response.Height >= 491999);
-					Assert.Equal(new Uri(client.BaseAddress.ToString() + "/blocks/" + response.Hash), response.LatestUrl);
-					Assert.Equal(new Uri(client.BaseAddress.ToString() + "/blocks/" + response.PreviousHash), response.PreviousUrl);
+					Assert.Equal(new Uri(client.BaseAddress + "/blocks/" + response.Hash), response.LatestUrl);
+					Assert.Equal(new Uri(client.BaseAddress + "/blocks/" + response.PreviousHash), response.PreviousUrl);
 					if (network == Network.Main)
 					{
 						Assert.Equal("BTC.main", response.Name);
@@ -85,9 +85,9 @@ namespace WalletWasabi.Tests
 					Assert.True(response.PeerCount > 0);
 				}
 			}
-			else // If website doesn't work, don't bother failing.
+			else
 			{
-				return;
+				return; // If website does not work, don't bother failing.
 			}
 		}
 

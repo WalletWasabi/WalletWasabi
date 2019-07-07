@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 {
@@ -18,7 +18,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 		private static bool EightBitByteCheck(string encodingName, string content)
 		{
 			int tryEncodePos = TryEncodeEightBitByte(content, encodingName, 0, content.Length);
-			return tryEncodePos == -1 ? true : false;
+			return tryEncodePos == -1;
 		}
 
 		/// <summary>
