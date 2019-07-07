@@ -168,9 +168,9 @@ namespace WalletWasabi.TorSocks5
 				// Username / Password request:
 				var username = identity;
 				var password = identity;
-				var uName = new UNameField(username);
-				var passwd = new PasswdField(password);
-				var usernamePasswordRequest = new UsernamePasswordRequest(uName, passwd);
+				var usernameField = new UsernameField(username);
+				var passwordField = new PasswordField(password);
+				var usernamePasswordRequest = new UsernamePasswordRequest(usernameField, passwordField);
 				sendBuffer = usernamePasswordRequest.ToBytes();
 
 				Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
@@ -230,7 +230,7 @@ namespace WalletWasabi.TorSocks5
 
 			var cmd = CmdField.Connect;
 
-			var dstAddr = new AddrField(host);
+			var dstAddr = new AddressField(host);
 			DestinationHost = dstAddr.DomainOrIPv4;
 
 			var dstPort = new PortField(port);
@@ -441,7 +441,7 @@ namespace WalletWasabi.TorSocks5
 
 			var cmd = CmdField.Resolve;
 
-			var dstAddr = new AddrField(host);
+			var dstAddr = new AddressField(host);
 
 			var dstPort = new PortField(0);
 
@@ -479,7 +479,7 @@ namespace WalletWasabi.TorSocks5
 
 			var cmd = CmdField.ResolvePtr;
 
-			var dstAddr = new AddrField(iPv4.ToString());
+			var dstAddr = new AddressField(iPv4.ToString());
 
 			var dstPort = new PortField(0);
 

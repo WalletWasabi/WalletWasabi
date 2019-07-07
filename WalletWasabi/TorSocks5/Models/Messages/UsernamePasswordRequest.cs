@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
@@ -15,11 +15,11 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 
 		public ULenField ULen { get; set; }
 
-		public UNameField UName { get; set; }
+		public UsernameField Username { get; set; }
 
 		public PLenField PLen { get; set; }
 
-		public PasswdField Passwd { get; set; }
+		public PasswordField Password { get; set; }
 
 		#endregion PropertiesAndMembers
 
@@ -29,16 +29,16 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 		{
 		}
 
-		public UsernamePasswordRequest(UNameField uName, PasswdField passwd)
+		public UsernamePasswordRequest(UsernameField username, PasswordField password)
 		{
 			Ver = AuthVerField.Version1;
-			UName = Guard.NotNull(nameof(uName), uName);
-			Passwd = Guard.NotNull(nameof(passwd), passwd);
+			Username = Guard.NotNull(nameof(username), username);
+			Password = Guard.NotNull(nameof(password), password);
 
 			var pLen = new PLenField();
 			var uLen = new ULenField();
-			pLen.FromPasswdField(passwd);
-			uLen.FromUNameField(uName);
+			pLen.FromPasswordField(password);
+			uLen.FromUsernameField(username);
 			PLen = pLen;
 			ULen = uLen;
 		}
@@ -58,8 +58,8 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			ULen = new ULenField();
 			ULen.FromByte(bytes[1]);
 
-			UName = new UNameField();
-			UName.FromBytes(bytes.Skip(2).Take(ULen.Value).ToArray());
+			Username = new UsernameField();
+			Username.FromBytes(bytes.Skip(2).Take(ULen.Value).ToArray());
 
 			PLen = new PLenField();
 			PLen.FromByte(bytes[1 + ULen.Value]);
@@ -68,10 +68,10 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			{
 				throw new FormatException($"{nameof(PLen)}.{nameof(PLen.Value)} must be {nameof(bytes)}.{nameof(bytes.Length)} - 3 + {nameof(ULen)}.{nameof(ULen.Value)} = {expectedPlenValue}. Actual: {PLen.Value}.");
 			}
-			Passwd.FromBytes(bytes.Skip(3 + ULen.Value).ToArray());
+			Password.FromBytes(bytes.Skip(3 + ULen.Value).ToArray());
 		}
 
-		public override byte[] ToBytes() => ByteHelpers.Combine(new byte[] { Ver.ToByte(), ULen.ToByte() }, UName.ToBytes(), new byte[] { PLen.ToByte() }, Passwd.ToBytes());
+		public override byte[] ToBytes() => ByteHelpers.Combine(new byte[] { Ver.ToByte(), ULen.ToByte() }, Username.ToBytes(), new byte[] { PLen.ToByte() }, Password.ToBytes());
 
 		#endregion Serialization
 	}

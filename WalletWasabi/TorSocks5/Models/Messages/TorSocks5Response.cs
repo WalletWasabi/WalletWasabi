@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
@@ -20,7 +20,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 
 		public AtypField Atyp { get; set; }
 
-		public AddrField BndAddr { get; set; }
+		public AddressField BndAddr { get; set; }
 
 		public PortField BndPort { get; set; }
 
@@ -32,7 +32,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 		{
 		}
 
-		public TorSocks5Response(RepField rep, AddrField bndAddr, PortField bndPort)
+		public TorSocks5Response(RepField rep, AddressField bndAddr, PortField bndPort)
 		{
 			Rep = Guard.NotNull(nameof(rep), rep);
 			BndAddr = Guard.NotNull(nameof(bndAddr), bndAddr);
@@ -63,7 +63,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			Atyp = new AtypField();
 			Atyp.FromByte(bytes[3]);
 
-			BndAddr = new AddrField();
+			BndAddr = new AddressField();
 			BndAddr.FromBytes(bytes.Skip(4).Take(bytes.Length - 4 - 2).ToArray());
 
 			BndPort = new PortField();

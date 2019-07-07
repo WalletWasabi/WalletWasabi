@@ -1,4 +1,4 @@
-﻿using WalletWasabi.Bases;
+using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.TorSocks5.TorSocks5.Models.Fields.ByteArrayFields;
 
@@ -27,9 +27,9 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 
 		#region Serialization
 
-		public void FromUNameField(UNameField uName)
+		public void FromUsernameField(UsernameField username)
 		{
-			ByteValue = (byte)uName.ToBytes().Length;
+			ByteValue = (byte)username.ToBytes().Length;
 		}
 
 		#endregion Serialization

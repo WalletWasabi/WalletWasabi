@@ -1,4 +1,4 @@
-﻿using WalletWasabi.Bases;
+using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.TorSocks5.TorSocks5.Models.Fields.ByteArrayFields;
 
@@ -27,11 +27,11 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 
 		#region Serialization
 
-		public void FromPasswdField(PasswdField passwd)
+		public void FromPasswordField(PasswordField password)
 		{
-			Guard.NotNull(nameof(passwd), passwd);
+			Guard.NotNull(nameof(password), password);
 
-			ByteValue = (byte)passwd.ToBytes().Length;
+			ByteValue = (byte)password.ToBytes().Length;
 		}
 
 		#endregion Serialization

@@ -7,7 +7,7 @@ using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
 
 namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 {
-	public class AddrField : ByteArraySerializableBase
+	public class AddressField : ByteArraySerializableBase
 	{
 		#region PropertiesAndMembers
 
@@ -42,12 +42,12 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 
 		#region ConstructorsAndInitializers
 
-		public AddrField()
+		public AddressField()
 		{
 		}
 
 		/// <param name="dstAddr">domain or IPv4</param>
-		public AddrField(string dstAddr)
+		public AddressField(string dstAddr)
 		{
 			dstAddr = Guard.NotNullOrEmptyOrWhitespace(nameof(dstAddr), dstAddr, true);
 
