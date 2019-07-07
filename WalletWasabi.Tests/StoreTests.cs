@@ -387,9 +387,9 @@ namespace WalletWasabi.Tests
 				for (int i = 0; i < lines1.Length; i++)
 				{
 					string line = lines2[i];
-					var readline = lines1[i];
+					var readLine = lines1[i];
 
-					if (!line.Equals(readline))
+					if (!line.Equals(readLine))
 					{
 						return false;
 					}

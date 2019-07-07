@@ -346,19 +346,19 @@ namespace WalletWasabi.KeyManagement
 			}
 
 			// Example text to handle: "ExtPubKey": "03BF8271268000000013B9013C881FE456DDF524764F6322F611B03CF6".
-			var extpubkeyline = File.ReadLines(filePath) // Enumerated read.
+			var extPubKeyLine = File.ReadLines(filePath) // Enumerated read.
 				.Take(21) // Limit reads to x lines.
 				.FirstOrDefault(line => line.Contains("\"ExtPubKey\": \"", StringComparison.OrdinalIgnoreCase));
 
-			if (string.IsNullOrEmpty(extpubkeyline))
+			if (string.IsNullOrEmpty(extPubKeyLine))
 			{
 				return false;
 			}
 
-			var parts = extpubkeyline.Split("\"ExtPubKey\": \"");
+			var parts = extPubKeyLine.Split("\"ExtPubKey\": \"");
 			if (parts.Length != 2)
 			{
-				throw new FormatException($"Could not split line: {extpubkeyline}");
+				throw new FormatException($"Could not split line: {extPubKeyLine}");
 			}
 
 			var xpub = parts[1].TrimEnd(',', '"');
@@ -566,7 +566,7 @@ namespace WalletWasabi.KeyManagement
 			try
 			{
 				Key secret = EncryptedSecret.GetKey(password);
-				var extkey = new ExtKey(secret, ChainCode);
+				var extKey = new ExtKey(secret, ChainCode);
 
 				// Backwards compatibility:
 				if (MasterFingerprint is null)
@@ -574,7 +574,7 @@ namespace WalletWasabi.KeyManagement
 					MasterFingerprint = secret.PubKey.GetHDFingerPrint();
 				}
 
-				return extkey;
+				return extKey;
 			}
 			catch (SecurityException ex)
 			{
