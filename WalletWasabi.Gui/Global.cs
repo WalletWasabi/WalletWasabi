@@ -66,9 +66,12 @@ namespace WalletWasabi.Gui
 
 		public Network Network => Config.Network;
 
-		public Global()
+		public Global(): this(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")))
 		{
-			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+		}
+		public Global(string datadir)
+		{
+			DataDir = datadir ?? throw new ArgumentNullException(nameof(datadir));
 			TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
 			WalletsDir = Path.Combine(DataDir, "Wallets");
 			WalletBackupsDir = Path.Combine(DataDir, "WalletBackups");
@@ -244,10 +247,10 @@ namespace WalletWasabi.Gui
 				Nodes = new NodesGroup(Network, requirements: Constants.NodeRequirements);
 				try
 				{
-					Node node = await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
+					Node node = await Node.ConnectAsync(Network.RegTest, Config.GetBitcoinCoreEndPoint());
 					Nodes.ConnectedNodes.Add(node);
 
-					RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
+					RegTestMemPoolServingNode = await Node.ConnectAsync(Network.RegTest, Config.GetBitcoinCoreEndPoint());
 
 					RegTestMempoolServingNode.Behaviors.Add(new MempoolBehavior(MempoolService));
 				}

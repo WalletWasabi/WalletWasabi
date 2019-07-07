@@ -55,9 +55,10 @@ namespace WalletWasabi.Gui.ViewModels
 		public Global Global { get; }
 		private StatusBarStatusSet ActiveStatuses { get; }
 
-		public StatusBarViewModel(Global global)
+		public StatusBarViewModel(Global global, MainWindowViewModel mainWindowViewModel)
 		{
 			Global = global;
+			_mainWindowViewModel = mainWindowViewModel;
 			UpdateStatus = UpdateStatus.Latest;
 			UpdateAvailable = false;
 			CriticalUpdateAvailable = false;
@@ -294,7 +295,7 @@ namespace WalletWasabi.Gui.ViewModels
 			if (isGenSocksServFail)
 			{
 				// Is close band present?
-				if (MainWindowViewModel.Instance.ModalDialog != null)
+				if (_mainWindowViewModel.ModalDialog != null)
 				{
 					// Do nothing.
 				}
@@ -305,19 +306,19 @@ namespace WalletWasabi.Gui.ViewModels
 					if (osDesc.Contains("16.04.1-Ubuntu", StringComparison.InvariantCultureIgnoreCase)
 						|| osDesc.Contains("16.04.0-Ubuntu", StringComparison.InvariantCultureIgnoreCase))
 					{
-						MainWindowViewModel.Instance.ShowDialogAsync(new GenSocksServFailDialogViewModel()).GetAwaiter().GetResult();
+						_mainWindowViewModel.ShowDialogAsync(new GenSocksServFailDialogViewModel()).GetAwaiter().GetResult();
 					}
 				}
 			}
 			else
 			{
 				// Is close band present?
-				if (MainWindowViewModel.Instance.ModalDialog != null)
+				if (_mainWindowViewModel.ModalDialog != null)
 				{
 					// Is it GenSocksServFail dialog?
-					if (MainWindowViewModel.Instance.ModalDialog is GenSocksServFailDialogViewModel)
+					if (_mainWindowViewModel.ModalDialog is GenSocksServFailDialogViewModel)
 					{
-						MainWindowViewModel.Instance.ModalDialog.Close(true);
+						_mainWindowViewModel.ModalDialog.Close(true);
 					}
 					else
 					{
@@ -369,6 +370,7 @@ namespace WalletWasabi.Gui.ViewModels
 		#region IDisposable Support
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
+		private readonly MainWindowViewModel _mainWindowViewModel;
 
 		protected virtual void Dispose(bool disposing)
 		{

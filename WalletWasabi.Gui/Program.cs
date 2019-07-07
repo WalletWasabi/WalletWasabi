@@ -6,6 +6,7 @@ using AvalonStudio.Shell.Extensibility.Platforms;
 using NBitcoin;
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
@@ -13,6 +14,7 @@ using WalletWasabi.Gui.Controls.LockScreen;
 using WalletWasabi.Gui.ManagedDialogs;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
+[assembly:InternalsVisibleTo("WalletWasabi.Tests")]
 
 namespace WalletWasabi.Gui
 {
@@ -46,7 +48,7 @@ namespace WalletWasabi.Gui
 					.BeforeStarting(async builder =>
 					{
 						MainWindowViewModel.Instance = new MainWindowViewModel { Global = Global };
-						statusBar = new StatusBarViewModel(Global);
+						statusBar = new StatusBarViewModel(Global, MainWindowViewModel.Instance);
 						MainWindowViewModel.Instance.StatusBar = statusBar;
 						MainWindowViewModel.Instance.LockScreen = new LockScreenViewModel(Global);
 
