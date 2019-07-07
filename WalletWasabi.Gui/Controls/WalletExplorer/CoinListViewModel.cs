@@ -157,8 +157,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			else if (StatusSortDirection != SortOrder.None)
 			{
-				MyComparer = StatusSortDirection == SortOrder.Increasing 
-					? sortExpression.ThenByAscending(cvm => cvm.Status) 
+				MyComparer = StatusSortDirection == SortOrder.Increasing
+					? sortExpression.ThenByAscending(cvm => cvm.Status)
 					: sortExpression.ThenByDescending(cvm => cvm.Status);
 			}
 		}
@@ -428,6 +428,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 									CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == c);
 									if (toRemove != default)
 									{
+										toRemove.IsSelected = false;
 										RootList.Remove(toRemove);
 										toRemove.UnsubscribeEvents();
 									}
@@ -516,7 +517,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			if (!cvm.Unspent)
 			{
+				cvm.IsSelected = false;
 				RootList.Remove(cvm);
+				cvm.UnsubscribeEvents();
 			}
 
 			SetSelections();

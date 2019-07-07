@@ -255,7 +255,7 @@ namespace WalletWasabi.TorSocks5
 				throw new TorSocks5FailureResponseException(connectionResponse.Rep);
 			}
 
-			// Don't check the Bnd. Address and Bnd. Port. because Tor doesn't seem to return any, ever. It returns zeros instead.
+			// Don't check the Bnd. Address and Bnd. Port. because Tor does not seem to return any, ever. It returns zeros instead.
 			// Generally also don't check anything but the success response, according to Socks5 RFC
 
 			// If the reply code(REP value of X'00') indicates a success, and the

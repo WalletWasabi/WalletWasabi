@@ -30,14 +30,14 @@ namespace WalletWasabi.Tests
 
 			// ASSERT EVENTS
 
-			// Assert some functions doesn't raise any events when default.
+			// Assert some functions does not raise any events when default.
 			Assert.Throws<PropertyChangedException>(() =>
 				Assert.PropertyChanged(hashChain,
 					nameof(hashChain.HashCount),
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert RemoveLast doesn't modify nor throw anything when nothing is added.
+						// Assert RemoveLast does not modify nor throw anything when nothing is added.
 						hashChain.RemoveLast();
 						AssertEverythingDefault(hashChain);
 					}));
@@ -47,7 +47,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert RemoveLast doesn't modify nor throw anything when nothing is added.
+						// Assert RemoveLast does not modify nor throw anything when nothing is added.
 						hashChain.RemoveLast();
 						AssertEverythingDefault(hashChain);
 					}));
@@ -57,7 +57,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert RemoveLast doesn't modify nor throw anything when nothing is added.
+						// Assert RemoveLast does not modify nor throw anything when nothing is added.
 						hashChain.RemoveLast();
 						AssertEverythingDefault(hashChain);
 					}));
@@ -67,7 +67,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert RemoveLast doesn't modify nor throw anything when nothing is added.
+						// Assert RemoveLast does not modify nor throw anything when nothing is added.
 						hashChain.RemoveLast();
 						AssertEverythingDefault(hashChain);
 					}));
@@ -77,7 +77,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert RemoveLast doesn't modify nor throw anything when nothing is added.
+						// Assert RemoveLast does not modify nor throw anything when nothing is added.
 						hashChain.RemoveLast();
 						AssertEverythingDefault(hashChain);
 					}));
@@ -109,7 +109,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert update server height doesn't raise unnecessary events.
+						// Assert update server height does not raise unnecessary events.
 						hashChain.UpdateServerTipHeight(newServerHeight);
 					}));
 			newServerHeight++;
@@ -119,7 +119,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert update server height doesn't raise unnecessary events.
+						// Assert update server height does not raise unnecessary events.
 						hashChain.UpdateServerTipHeight(newServerHeight);
 					}));
 			newServerHeight++;
@@ -129,7 +129,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert update server height doesn't raise unnecessary events.
+						// Assert update server height does not raise unnecessary events.
 						hashChain.UpdateServerTipHeight(newServerHeight);
 					}));
 			var sameServerheight = newServerHeight;
@@ -139,7 +139,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert update server height doesn't raise without actually changing.
+						// Assert update server height does not raise without actually changing.
 						hashChain.UpdateServerTipHeight(sameServerheight);
 					}));
 			Assert.Throws<PropertyChangedException>(() =>
@@ -148,7 +148,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert update server height doesn't raise without actually changing.
+						// Assert update server height does not raise without actually changing.
 						hashChain.UpdateServerTipHeight(sameServerheight);
 					}));
 

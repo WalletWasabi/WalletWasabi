@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using static WalletWasabi.Http.Constants;
@@ -22,7 +22,7 @@ namespace WalletWasabi.Http.Models
 			// check if an unexpected crlf in the startlinestring
 			using (var reader = new StringReader(startLineString))
 			{
-				// read to CRLF, if it doesn't end with that it reads to end, if it does, it removes it
+				// read to CRLF, if it does not end with that it reads to end, if it does, it removes it
 				trimmed = reader.ReadLine(strictCRLF: true);
 				// startLineString must end here
 				if (reader.Read() != -1)

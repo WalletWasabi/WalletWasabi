@@ -208,7 +208,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						SetAmountIfMax();
 
-						LabelToolTip = "Spending whole coins doesn't generate change, thus labeling is unnecessary.";
+						LabelToolTip = "Spending whole coins does not generate change, thus labeling is unnecessary.";
 					}
 					else
 					{

@@ -141,7 +141,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 								}
 							}
 
-							// Stop enumerating after you find one. Hardware wallets are acting up, sometimes fingerprint doesn't arrive for example.
+							// Stop enumerating after you find one. Hardware wallets are acting up, sometimes fingerprint does not arrive for example.
 							bool ledgerNotReady = hwis.Any(x => x.Type == HardwareWalletType.Ledger && !x.Ready);
 							if (ledgerNotReady) // For Ledger you have to log into your "Bitcoin" account.
 							{

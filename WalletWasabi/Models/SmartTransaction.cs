@@ -39,7 +39,7 @@ namespace WalletWasabi.Models
 		/// <summary>
 		/// if Height is Mempool it's first seen, else null,
 		/// only exists in memory,
-		/// doesn't affect equality
+		/// does not affect equality
 		/// </summary>
 		[JsonProperty]
 		[JsonConverter(typeof(BlockCypherDateTimeOffsetJsonConverter))]

@@ -95,6 +95,12 @@ namespace WalletWasabi.Gui.Behaviors
 			Disposables.Add(
 				AssociatedObject.GetObservable(TextBox.PointerReleasedEvent).Subscribe(async pointer =>
 				{
+					var uiConfig = Application.Current.Resources[Global.UiConfigResourceKey] as UiConfig;
+					if (!(uiConfig.Autocopy is true))
+					{
+						return;
+					}
+
 					switch (MyTextBoxState)
 					{
 						case TextBoxState.AddressInsert:
@@ -125,6 +131,12 @@ namespace WalletWasabi.Gui.Behaviors
 			Disposables.Add(
 				AssociatedObject.GetObservable(TextBox.PointerEnterEvent).Subscribe(async pointerEnter =>
 				{
+					var uiConfig = Application.Current.Resources[Global.UiConfigResourceKey] as UiConfig;
+					if (!(uiConfig.Autocopy is true))
+					{
+						return;
+					}
+
 					if (!AssociatedObject.IsFocused && MyTextBoxState == TextBoxState.NormalTextBoxOperation)
 					{
 						MyTextBoxState = TextBoxState.None;

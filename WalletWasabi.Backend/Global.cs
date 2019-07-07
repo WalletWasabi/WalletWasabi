@@ -141,7 +141,7 @@ namespace WalletWasabi.Backend
 
 					if (!peerServices.HasFlag(NodeServices.Network) && !peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
 					{
-						throw new InvalidOperationException($"Wasabi cannot use the local node because it doesn't provide blocks.");
+						throw new InvalidOperationException($"Wasabi cannot use the local node because it does not provide blocks.");
 					}
 
 					Logger.LogInfo<Node>($"Handshake completed successfully.");
@@ -149,7 +149,7 @@ namespace WalletWasabi.Backend
 					if (!node.IsConnected)
 					{
 						throw new InvalidOperationException($"Wasabi could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
-							$"Probably this is because the node doesn't support retrieving full blocks or segwit serialization.");
+							$"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
 					}
 					LocalNode = node;
 				}

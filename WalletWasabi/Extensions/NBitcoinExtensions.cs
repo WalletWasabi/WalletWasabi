@@ -84,7 +84,7 @@ namespace NBitcoin
 		{
 			// We omit Guard, because it's performance critical in Wasabi.
 			// We start with the inputs, because, this check is faster.
-			// Note: by testing performance the order doesn't seem to affect the speed of loading the wallet.
+			// Note: by testing performance the order does not seem to affect the speed of loading the wallet.
 			foreach (TxIn input in me.Inputs)
 			{
 				if (input.ScriptSig is null || input.ScriptSig == Script.Empty)
