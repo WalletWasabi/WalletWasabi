@@ -43,9 +43,9 @@ namespace WalletWasabi.Gui.ViewModels
 				{
 					try
 					{
-						var encoder = new QrEncoder();
+						var encoder = new QREncoder();
 						encoder.TryEncode(Address, out var qrCode);
-						Dispatcher.UIThread.PostLogException(() => QrCode = qrCode.Matrix.InternalArray);
+						Dispatcher.UIThread.PostLogException(() => QRCode = qrCode.Matrix.InternalArray);
 					}
 					catch (Exception ex)
 					{
@@ -120,7 +120,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public string KeyPath => Model.FullKeyPath.ToString();
 
-		public bool[,] QrCode
+		public bool[,] QRCode
 		{
 			get => _qrCode;
 			set => this.RaiseAndSetIfChanged(ref _qrCode, value);

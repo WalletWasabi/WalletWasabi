@@ -1,34 +1,34 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Gma.QrCodeNet.Encoding
 {
-	public class QrEncoder
+	public class QREncoder
 	{
 		public ErrorCorrectionLevel ErrorCorrectionLevel { get; set; }
 
 		/// <summary>
-		/// Default QrEncoder will set ErrorCorrectionLevel as M
+		/// Default QREncoder will set ErrorCorrectionLevel as M
 		/// </summary>
-		public QrEncoder()
+		public QREncoder()
 			: this(ErrorCorrectionLevel.M)
 		{
 		}
 
 		/// <summary>
-		/// QrEncoder with parameter ErrorCorrectionLevel.
+		/// QREncoder with parameter ErrorCorrectionLevel.
 		/// </summary>
 		/// <param name="errorCorrectionLevel"></param>
-		public QrEncoder(ErrorCorrectionLevel errorCorrectionLevel)
+		public QREncoder(ErrorCorrectionLevel errorCorrectionLevel)
 		{
 			ErrorCorrectionLevel = errorCorrectionLevel;
 		}
 
 		/// <summary>
-		/// Encode string content to QrCode matrix
+		/// Encode string content to QRCode matrix
 		/// </summary>
 		/// <exception cref="InputOutOfBoundaryException">
 		/// This exception for string content is null, empty or too large</exception>
-		public QrCode Encode(string content)
+		public QRCode Encode(string content)
 		{
 			if (string.IsNullOrEmpty(content))
 			{
@@ -36,7 +36,7 @@ namespace Gma.QrCodeNet.Encoding
 			}
 			else
 			{
-				return new QrCode(QRCodeEncode.Encode(content, ErrorCorrectionLevel));
+				return new QRCode(QRCodeEncode.Encode(content, ErrorCorrectionLevel));
 			}
 		}
 
@@ -44,7 +44,7 @@ namespace Gma.QrCodeNet.Encoding
 		/// Try to encode content
 		/// </summary>
 		/// <returns>False if input content is empty, null or too large.</returns>
-		public bool TryEncode(string content, out QrCode qrCode)
+		public bool TryEncode(string content, out QRCode qrCode)
 		{
 			try
 			{
@@ -53,17 +53,17 @@ namespace Gma.QrCodeNet.Encoding
 			}
 			catch (InputOutOfBoundaryException)
 			{
-				qrCode = new QrCode();
+				qrCode = new QRCode();
 				return false;
 			}
 		}
 
 		/// <summary>
-		/// Encode byte array content to QrCode matrix
+		/// Encode byte array content to QRCode matrix
 		/// </summary>
 		/// <exception cref="InputOutOfBoundaryException">
 		/// This exception for string content is null, empty or too large</exception>
-		public QrCode Encode(IEnumerable<byte> content)
+		public QRCode Encode(IEnumerable<byte> content)
 		{
 			if (content is null)
 			{
@@ -71,7 +71,7 @@ namespace Gma.QrCodeNet.Encoding
 			}
 			else
 			{
-				return new QrCode(QRCodeEncode.Encode(content, ErrorCorrectionLevel));
+				return new QRCode(QRCodeEncode.Encode(content, ErrorCorrectionLevel));
 			}
 		}
 
@@ -79,7 +79,7 @@ namespace Gma.QrCodeNet.Encoding
 		/// Try to encode content
 		/// </summary>
 		/// <returns>False if input content is empty, null or too large.</returns>
-		public bool TryEncode(IEnumerable<byte> content, out QrCode qrCode)
+		public bool TryEncode(IEnumerable<byte> content, out QRCode qrCode)
 		{
 			try
 			{
@@ -88,7 +88,7 @@ namespace Gma.QrCodeNet.Encoding
 			}
 			catch (InputOutOfBoundaryException)
 			{
-				qrCode = new QrCode();
+				qrCode = new QRCode();
 				return false;
 			}
 		}

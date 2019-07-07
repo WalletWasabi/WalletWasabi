@@ -6,15 +6,15 @@ using System;
 
 namespace WalletWasabi.Gui.Controls
 {
-	public class QrCode : Control
+	public class QRCode : Control
 	{
-		static QrCode()
+		static QRCode()
 		{
-			AffectsMeasure<QrCode>(MatrixProperty);
+			AffectsMeasure<QRCode>(MatrixProperty);
 		}
 
-		public static readonly DirectProperty<QrCode, bool[,]> MatrixProperty =
-			AvaloniaProperty.RegisterDirect<QrCode, bool[,]>(
+		public static readonly DirectProperty<QRCode, bool[,]> MatrixProperty =
+			AvaloniaProperty.RegisterDirect<QRCode, bool[,]>(
 				nameof(Matrix),
 				o => o.Matrix,
 				(o, v) => o.Matrix = v);

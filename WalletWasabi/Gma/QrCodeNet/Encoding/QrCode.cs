@@ -1,20 +1,20 @@
-﻿namespace Gma.QrCodeNet.Encoding
+namespace Gma.QrCodeNet.Encoding
 {
 	/// <summary>
 	/// This class contain two variables.
-	/// BitMatrix for QrCode
-	/// isContainMatrix for indicate whether QrCode contains BitMatrix or not.
+	/// BitMatrix for QRCode
+	/// isContainMatrix for indicate whether QRCode contains BitMatrix or not.
 	/// BitMatrix will equal to null if isContainMatrix is false.
 	/// </summary>
-	public class QrCode
+	public class QRCode
 	{
-		internal QrCode(BitMatrix matrix)
+		internal QRCode(BitMatrix matrix)
 		{
 			Matrix = matrix;
 			IsContainMatrix = true;
 		}
 
-		public QrCode()
+		public QRCode()
 		{
 			IsContainMatrix = false;
 			Matrix = null;
