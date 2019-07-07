@@ -79,8 +79,8 @@ namespace WalletWasabi.Tests
 			}
 
 			connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
-			var memPoolService = new MemPoolService();
-			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(memPoolService));
+			var mempoolService = new MempoolService();
+			connectionParameters.TemplateBehaviors.Add(new MempoolBehavior(mempoolService));
 
 			var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
 
@@ -94,7 +94,7 @@ namespace WalletWasabi.Tests
 			   keyManager,
 			   syncer,
 			   new CcjClient(syncer, network, keyManager, new Uri("http://localhost:12345"), Global.Instance.TorSocks5Endpoint),
-			   memPoolService,
+			   mempoolService,
 			   nodes,
 			   Global.Instance.DataDir,
 			   new ServiceConfiguration(50, 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(0.0001m)));
@@ -102,7 +102,7 @@ namespace WalletWasabi.Tests
 
 			try
 			{
-				memPoolService.TransactionReceived += MemPoolService_TransactionReceived;
+				mempoolService.TransactionReceived += MempoolService_TransactionReceived;
 
 				nodes.Connect();
 				var times = 0;
@@ -121,7 +121,7 @@ namespace WalletWasabi.Tests
 				{
 					if (times > 3000) // 3 minutes
 					{
-						throw new TimeoutException($"{nameof(MemPoolService)} test timed out.");
+						throw new TimeoutException($"{nameof(MempoolService)} test timed out.");
 					}
 					await Task.Delay(100);
 					times++;
@@ -141,7 +141,7 @@ namespace WalletWasabi.Tests
 			{
 				nodes.ConnectedNodes.Added -= ConnectedNodes_Added;
 				nodes.ConnectedNodes.Removed -= ConnectedNodes_Removed;
-				memPoolService.TransactionReceived -= MemPoolService_TransactionReceived;
+				mempoolService.TransactionReceived -= MempoolService_TransactionReceived;
 
 				// So next test will download the block.
 				foreach (var hash in blocksToDownload)
@@ -189,7 +189,7 @@ namespace WalletWasabi.Tests
 
 		private long _mempoolTransactionCount = 0;
 
-		private void MemPoolService_TransactionReceived(object sender, SmartTransaction e)
+		private void MempoolService_TransactionReceived(object sender, SmartTransaction e)
 		{
 			Interlocked.Increment(ref _mempoolTransactionCount);
 			Logger.LogDebug<P2pTests>($"Mempool transaction received: {e.GetHash()}.");

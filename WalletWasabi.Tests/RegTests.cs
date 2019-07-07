@@ -257,14 +257,14 @@ namespace WalletWasabi.Tests
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore) = await InitializeTestEnvironmentAsync(1);
 
-			var memPoolService = new MemPoolService();
+			var mempoolService = new MempoolService();
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
-			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
+			node.Behaviors.Add(new MempoolBehavior(mempoolService));
 			node.VersionHandshake();
 
 			try
 			{
-				memPoolService.TransactionReceived += MempoolAsync_MemPoolService_TransactionReceived;
+				mempoolService.TransactionReceived += MempoolAsync_MempoolService_TransactionReceived;
 
 				// Using the interlocked, not because it makes sense in this context, but to
 				// set an example that these values are often concurrency sensitive
@@ -280,7 +280,7 @@ namespace WalletWasabi.Tests
 				{
 					if (times > 100) // 10 seconds
 					{
-						throw new TimeoutException($"{nameof(MemPoolService)} test timed out.");
+						throw new TimeoutException($"{nameof(MempoolService)} test timed out.");
 					}
 					await Task.Delay(100);
 					times++;
@@ -288,13 +288,13 @@ namespace WalletWasabi.Tests
 			}
 			finally
 			{
-				memPoolService.TransactionReceived -= MempoolAsync_MemPoolService_TransactionReceived;
+				mempoolService.TransactionReceived -= MempoolAsync_MempoolService_TransactionReceived;
 			}
 		}
 
 		private long _mempoolTransactionCount = 0;
 
-		private void MempoolAsync_MemPoolService_TransactionReceived(object sender, SmartTransaction e)
+		private void MempoolAsync_MempoolService_TransactionReceived(object sender, SmartTransaction e)
 		{
 			Interlocked.Increment(ref _mempoolTransactionCount);
 			Logger.LogDebug<RegTests>($"Mempool transaction received: {e.GetHash()}.");
@@ -526,10 +526,10 @@ namespace WalletWasabi.Tests
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
-			var memPoolService = new MemPoolService();
-			memPoolService.TransactionReceived += WalletTestsAsync_MemPoolService_TransactionReceived;
+			var mempoolService = new MempoolService();
+			mempoolService.TransactionReceived += WalletTestsAsync_MempoolService_TransactionReceived;
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
-			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
+			node.Behaviors.Add(new MempoolBehavior(mempoolService));
 
 			// 3. Create wasabi synchronizer service.
 			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
@@ -542,7 +542,7 @@ namespace WalletWasabi.Tests
 
 			// 5. Create wallet service.
 			var workDir = Path.Combine(Global.Instance.DataDir, nameof(WalletTestsAsync));
-			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
+			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, mempoolService, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			// Get some money, make it confirm.
@@ -687,7 +687,7 @@ namespace WalletWasabi.Tests
 				await Task.Delay(1000); // Wait tx to arrive and get processed.
 				Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == txid5));
 				var mempoolCoin = wallet.Coins.Single(x => x.TransactionId == txid5);
-				Assert.Equal(Height.MemPool, mempoolCoin.Height);
+				Assert.Equal(Height.Mempool, mempoolCoin.Height);
 
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(1);
@@ -706,7 +706,7 @@ namespace WalletWasabi.Tests
 				await synchronizer?.StopAsync();
 
 				// Dispose mempool service.
-				memPoolService.TransactionReceived -= WalletTestsAsync_MemPoolService_TransactionReceived;
+				mempoolService.TransactionReceived -= WalletTestsAsync_MempoolService_TransactionReceived;
 
 				// Dispose connection service.
 				nodes?.Dispose();
@@ -743,7 +743,7 @@ namespace WalletWasabi.Tests
 			Interlocked.Increment(ref _filtersProcessedByWalletCount);
 		}
 
-		private void WalletTestsAsync_MemPoolService_TransactionReceived(object sender, SmartTransaction e)
+		private void WalletTestsAsync_MempoolService_TransactionReceived(object sender, SmartTransaction e)
 		{
 		}
 
@@ -758,9 +758,9 @@ namespace WalletWasabi.Tests
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
-			var memPoolService = new MemPoolService();
+			var mempoolService = new MempoolService();
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
-			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
+			node.Behaviors.Add(new MempoolBehavior(mempoolService));
 
 			// 3. Create wasabi synchronizer service.
 			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
@@ -773,7 +773,7 @@ namespace WalletWasabi.Tests
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(Global.Instance.DataDir, nameof(SendTestsFromHiddenWalletAsync));
-			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
+			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, mempoolService, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			// Get some money, make it confirm.
@@ -1105,7 +1105,7 @@ namespace WalletWasabi.Tests
 
 				await wallet.SendTransactionAsync(res.Transaction);
 
-				Assert.Contains($"{Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Constants.ChangeOfSpecialLabelEnd}", wallet.Coins.Where(x => x.Height == Height.MemPool).Select(x => x.Label));
+				Assert.Contains($"{Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Constants.ChangeOfSpecialLabelEnd}", wallet.Coins.Where(x => x.Height == Height.Mempool).Select(x => x.Label));
 				Assert.Contains($"{Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Constants.ChangeOfSpecialLabelEnd}", keyManager.GetKeys().Select(x => x.Label));
 
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
@@ -1204,9 +1204,9 @@ namespace WalletWasabi.Tests
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
-			var memPoolService = new MemPoolService();
+			var mempoolService = new MempoolService();
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
-			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
+			node.Behaviors.Add(new MempoolBehavior(mempoolService));
 
 			// 3. Create wasabi synchronizer service.
 			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
@@ -1219,7 +1219,7 @@ namespace WalletWasabi.Tests
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(Global.Instance.DataDir, nameof(SendTestsFromHiddenWalletAsync));
-			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
+			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, mempoolService, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			var scp = new Key().ScriptPubKey;
@@ -1370,9 +1370,9 @@ namespace WalletWasabi.Tests
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
-			var memPoolService = new MemPoolService();
+			var mempoolService = new MempoolService();
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
-			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
+			node.Behaviors.Add(new MempoolBehavior(mempoolService));
 
 			// 3. Create wasabi synchronizer service.
 			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
@@ -1385,7 +1385,7 @@ namespace WalletWasabi.Tests
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(Global.Instance.DataDir, nameof(SendTestsFromHiddenWalletAsync));
-			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
+			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, mempoolService, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			Assert.Empty(wallet.Coins);
@@ -1537,9 +1537,9 @@ namespace WalletWasabi.Tests
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
-			var memPoolService = new MemPoolService();
+			var mempoolService = new MempoolService();
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
-			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
+			node.Behaviors.Add(new MempoolBehavior(mempoolService));
 
 			// 3. Create wasabi synchronizer service.
 			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
@@ -1552,7 +1552,7 @@ namespace WalletWasabi.Tests
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(Global.Instance.DataDir, nameof(SendTestsFromHiddenWalletAsync));
-			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
+			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, mempoolService, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			Assert.Empty(wallet.Coins);
@@ -1706,9 +1706,9 @@ namespace WalletWasabi.Tests
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
-			var memPoolService = new MemPoolService();
+			var mempoolService = new MempoolService();
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
-			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
+			node.Behaviors.Add(new MempoolBehavior(mempoolService));
 
 			// 3. Create wasabi synchronizer service.
 			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
@@ -1721,7 +1721,7 @@ namespace WalletWasabi.Tests
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(Global.Instance.DataDir, nameof(SendTestsFromHiddenWalletAsync));
-			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
+			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, mempoolService, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			Assert.Empty(wallet.Coins);
@@ -3219,7 +3219,7 @@ namespace WalletWasabi.Tests
 				Assert.True(smartCoin2.CoinJoinInProgress);
 
 				// Make sure it does not throw.
-				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 1, new Script(), Money.Parse("3"), new TxoRef[] { new TxoRef((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 0) }, Height.MemPool, replaceable: false, anonymitySet: 1), "");
+				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 1, new Script(), Money.Parse("3"), new TxoRef[] { new TxoRef((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 0) }, Height.Mempool, replaceable: false, anonymitySet: 1), "");
 
 				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
 				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, "");
@@ -3323,13 +3323,13 @@ namespace WalletWasabi.Tests
 			nodes2.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
-			var memPoolService = new MemPoolService();
+			var mempoolService = new MempoolService();
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
-			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
+			node.Behaviors.Add(new MempoolBehavior(mempoolService));
 
-			var memPoolService2 = new MemPoolService();
+			var mempoolService2 = new MempoolService();
 			Node node2 = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
-			node2.Behaviors.Add(new MemPoolBehavior(memPoolService2));
+			node2.Behaviors.Add(new MempoolBehavior(mempoolService2));
 
 			// 3. Create wasabi synchronizer service.
 			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
@@ -3349,11 +3349,11 @@ namespace WalletWasabi.Tests
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(Global.Instance.DataDir, nameof(CoinJoinMultipleRoundTestsAsync));
-			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
+			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, mempoolService, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			var workDir2 = Path.Combine(Global.Instance.DataDir, $"{nameof(CoinJoinMultipleRoundTestsAsync)}2");
-			var wallet2 = new WalletService(bitcoinStore, keyManager2, synchronizer2, chaumianClient2, memPoolService2, nodes2, workDir2, serviceConfiguration);
+			var wallet2 = new WalletService(bitcoinStore, keyManager2, synchronizer2, chaumianClient2, mempoolService2, nodes2, workDir2, serviceConfiguration);
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("fundZeroLink");

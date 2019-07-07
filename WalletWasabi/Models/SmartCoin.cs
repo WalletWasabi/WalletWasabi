@@ -377,7 +377,7 @@ namespace WalletWasabi.Models
 
 		private void SetConfirmed()
 		{
-			Confirmed = Height != Height.MemPool && Height != Height.Unknown;
+			Confirmed = Height != Height.Mempool && Height != Height.Unknown;
 		}
 
 		private void SetUnspent()
