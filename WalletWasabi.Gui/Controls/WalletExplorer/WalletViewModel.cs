@@ -135,7 +135,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Money balance = Enumerable.Where(WalletService.Coins, c => c.Unspent && !c.SpentAccordingToBackend).Sum(c => (long?)c.Amount) ?? 0;
 
-			Title = $"{walletName} ({(Global.UiConfig.LurkingWifeMode.Value ? "#########" : balance.ToString(false, true))} BTC)";
+			Title = $"{walletName} ({(Global.UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
 		}
 	}
 }

@@ -474,7 +474,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _targetPrivacy, value);
 		}
 
-		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
+		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
 
 		public ReactiveCommand<Unit, Unit> EnqueueCommand { get; }
 

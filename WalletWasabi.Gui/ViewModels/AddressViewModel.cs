@@ -76,7 +76,7 @@ namespace WalletWasabi.Gui.ViewModels
 				});
 		}
 
-		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
+		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
 
 		public bool ClipboardNotificationVisible
 		{

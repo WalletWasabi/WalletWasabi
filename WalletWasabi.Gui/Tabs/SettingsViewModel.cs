@@ -216,7 +216,7 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _dustThreshold, value);
 		}
 
-		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
+		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode;
 
 		private void Save()
 		{

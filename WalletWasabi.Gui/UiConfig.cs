@@ -1,4 +1,4 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using Newtonsoft.Json;
 using ReactiveUI;
 using System;
@@ -44,10 +44,11 @@ namespace WalletWasabi.Gui
 		public bool? Autocopy { get; internal set; }
 
 		[JsonProperty(PropertyName = "LurkingWifeMode")]
-		public bool? LurkingWifeMode
+		public bool LurkingWifeMode
 		{
-			get => _lurkingWifeMode;
-			set => this.RaiseAndSetIfChanged(ref _lurkingWifeMode, value);
+
+				get => _lurkingWifeMode ?? false;
+				set => this.RaiseAndSetIfChanged(ref _lurkingWifeMode, value);
 		}
 
 		public UiConfig()
@@ -117,7 +118,7 @@ namespace WalletWasabi.Gui
 			FeeTarget = config.FeeTarget ?? FeeTarget;
 			FeeDisplayFormat = config.FeeDisplayFormat ?? FeeDisplayFormat;
 			Autocopy = config.Autocopy ?? Autocopy;
-			LurkingWifeMode = config.LurkingWifeMode ?? LurkingWifeMode;
+			LurkingWifeMode = config.LurkingWifeMode;
 		}
 
 		/// <inheritdoc />
