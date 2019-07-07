@@ -213,9 +213,9 @@ namespace NBitcoin
 		/// </summary>
 		public static void AddRangeWithOptimize(this TxOutList me, IEnumerable<TxOut> collection)
 		{
-			foreach (var txout in collection)
+			foreach (var txOut in collection)
 			{
-				me.AddWithOptimize(txout);
+				me.AddWithOptimize(txOut);
 			}
 		}
 

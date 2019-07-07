@@ -1396,7 +1396,7 @@ namespace WalletWasabi.Tests
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("foo label");
-			var fundingTxid = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
+			var fundingTxId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
 
 			// Generate some coins
 			await rpc.GenerateAsync(2);
@@ -1460,7 +1460,7 @@ namespace WalletWasabi.Tests
 				await rpc.InvalidateBlockAsync(baseTip);
 				try
 				{
-					await rpc.AbandonTransactionAsync(fundingTxid);
+					await rpc.AbandonTransactionAsync(fundingTxId);
 				}
 				catch
 				{
@@ -1477,7 +1477,7 @@ namespace WalletWasabi.Tests
 				{
 					var block = await rpc.GetBlockAsync(curBlockHash);
 
-					if (block.Transactions.Any(tx => tx.GetHash() == fundingTxid))
+					if (block.Transactions.Any(tx => tx.GetHash() == fundingTxId))
 					{
 						throw new Exception($"Transaction found in block at heigh {blockCount}  hash: {block.GetHash()}");
 					}
@@ -1490,21 +1490,21 @@ namespace WalletWasabi.Tests
 
 				// Get some money, make it confirm.
 				// this is necesary because we are in a fork now.
-				fundingTxid = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m), replaceable: true);
+				fundingTxId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m), replaceable: true);
 				await Task.Delay(1000); // Waits for the funding transaction get to the mempool.
 				Assert.Single(wallet.Coins.Where(x => !x.Confirmed));
 
-				var fundingBumpTxid = await rpc.BumpFeeAsync(fundingTxid);
+				var fundingBumpTxId = await rpc.BumpFeeAsync(fundingTxId);
 				await Task.Delay(2000); // Waits for the funding transaction get to the mempool.
 				Assert.Single(wallet.Coins.Where(x => !x.Confirmed));
-				Assert.Single(wallet.Coins.Where(x => x.TransactionId == fundingBumpTxid.TransactionId));
+				Assert.Single(wallet.Coins.Where(x => x.TransactionId == fundingBumpTxId.TransactionId));
 
 				// Confirm the coin
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
-				Assert.Single(wallet.Coins.Where(x => x.Confirmed && x.TransactionId == fundingBumpTxid.TransactionId));
+				Assert.Single(wallet.Coins.Where(x => x.Confirmed && x.TransactionId == fundingBumpTxId.TransactionId));
 			}
 			finally
 			{
