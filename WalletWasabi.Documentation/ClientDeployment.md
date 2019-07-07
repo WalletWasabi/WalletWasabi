@@ -18,7 +18,7 @@
 # 3. Notify
 
 1. Refresh website download and signature links.
-2. Refresh InstallationGuide download links.
+2. Update InstallationGuide and DeterministicBuildGuide download links.
 3. Make sure CI and CodeFactor checks out.
 4. [Deploy testnet and mainnet backend.](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/BackendDeployment.md#update)
 

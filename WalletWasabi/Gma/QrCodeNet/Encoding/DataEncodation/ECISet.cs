@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Gma.QrCodeNet.Encoding.DataEncodation
@@ -97,7 +97,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			}
 			else
 			{
-				throw new ArgumentOutOfRangeException($"ECI doesn't contain encoding: {encodingName}");
+				throw new ArgumentOutOfRangeException($"ECI does not contain encoding: {encodingName}");
 			}
 		}
 
@@ -114,7 +114,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			}
 			else
 			{
-				throw new ArgumentOutOfRangeException($"ECI doesn't contain value: {ECIValue}");
+				throw new ArgumentOutOfRangeException($"ECI does not contain value: {ECIValue}");
 			}
 		}
 

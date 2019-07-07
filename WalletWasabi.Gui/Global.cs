@@ -50,13 +50,13 @@ namespace WalletWasabi.Gui
 
 		public string AddressManagerFilePath { get; private set; }
 		public AddressManager AddressManager { get; private set; }
-		public MemPoolService MemPoolService { get; private set; }
+		public MempoolService MempoolService { get; private set; }
 
 		public NodesGroup Nodes { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
 		public CcjClient ChaumianClient { get; private set; }
 		public WalletService WalletService { get; private set; }
-		public Node RegTestMemPoolServingNode { get; private set; }
+		public Node RegTestMempoolServingNode { get; private set; }
 		public UpdateChecker UpdateChecker { get; private set; }
 		public TorProcessManager TorManager { get; private set; }
 
@@ -206,8 +206,8 @@ namespace WalletWasabi.Gui
 
 			#region MempoolInitialization
 
-			MemPoolService = new MemPoolService();
-			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(MemPoolService));
+			MempoolService = new MempoolService();
+			connectionParameters.TemplateBehaviors.Add(new MempoolBehavior(MempoolService));
 
 			#endregion MempoolInitialization
 
@@ -247,9 +247,9 @@ namespace WalletWasabi.Gui
 					Node node = await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
 					Nodes.ConnectedNodes.Add(node);
 
-					RegTestMemPoolServingNode = await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
+					RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
 
-					RegTestMemPoolServingNode.Behaviors.Add(new MemPoolBehavior(MemPoolService));
+					RegTestMempoolServingNode.Behaviors.Add(new MempoolBehavior(MempoolService));
 				}
 				catch (SocketException ex)
 				{
@@ -270,15 +270,15 @@ namespace WalletWasabi.Gui
 				}
 				Nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
 
-				RegTestMemPoolServingNode = null;
+				RegTestMempoolServingNode = null;
 			}
 
 			Nodes.Connect();
 			Logger.LogInfo("Start connecting to nodes...");
 
-			if (RegTestMemPoolServingNode != null)
+			if (RegTestMempoolServingNode != null)
 			{
-				RegTestMemPoolServingNode.VersionHandshake();
+				RegTestMempoolServingNode.VersionHandshake();
 				Logger.LogInfo("Start connecting to mempool serving regtest node...");
 			}
 
@@ -425,7 +425,7 @@ namespace WalletWasabi.Gui
 					Logger.LogWarning(ex, nameof(Global));
 				}
 
-				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, MemPoolService, Nodes, DataDir, Config.ServiceConfiguration);
+				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, MempoolService, Nodes, DataDir, Config.ServiceConfiguration);
 
 				ChaumianClient.Start();
 				Logger.LogInfo("Start Chaumian CoinJoin service...");
@@ -635,10 +635,10 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(Nodes)} are disposed.", nameof(Global));
 				}
 
-				if (RegTestMemPoolServingNode != null)
+				if (RegTestMempoolServingNode != null)
 				{
-					RegTestMemPoolServingNode.Disconnect();
-					Logger.LogInfo($"{nameof(RegTestMemPoolServingNode)} is disposed.", nameof(Global));
+					RegTestMempoolServingNode.Disconnect();
+					Logger.LogInfo($"{nameof(RegTestMempoolServingNode)} is disposed.", nameof(Global));
 				}
 
 				if (TorManager != null)

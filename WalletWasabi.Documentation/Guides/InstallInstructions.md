@@ -20,7 +20,7 @@ After first run, a working directory will be created: `%appdata%\WalletWasabi\`.
 
 Check out [Max's video tutorial](https://www.youtube.com/watch?v=DUc9A76rwX4) or follow the instructions:
 
-After downloading the `.deb` package install it by running double clicking on it or running `sudo dpkg -i Wasabi-1.1.5.deb`.
+After downloading the `.deb` package install it by running double clicking on it or running `sudo dpkg -i Wasabi-1.1.6.deb`.
 
 After first run, a working directory will be created: `~/.walletwasabi/`. Among others, here is where your wallet files and your logs reside.
 
@@ -30,7 +30,7 @@ Check out this short, to-the-point [video guide](https://www.youtube.com/watch?v
 
 ![](https://imgur.com/wsJ66Qt.png)
 
-Download the Linux archive and extract it, while keeping the file permissions: `tar -pxzf WasabiLinux-1.1.5.tar.gz`.
+Download the Linux archive and extract it, while keeping the file permissions: `tar -pxzf WasabiLinux-1.1.6.tar.gz`.
 You can run Wasabi by executing `./wassabee`.
 
 After first run, a working directory will be created: `~/.walletwasabi/`. Among others, here is where your wallet files and your logs reside.

@@ -25,7 +25,7 @@ namespace WalletWasabi.Tests
 		{
 			if (!await TestAsync("https://api.smartbit.com.au/v1/blockchain/stats"))
 			{
-				return; // If website doesn't work, don't bother failing.
+				return; // If website does not work, don't bother failing.
 			}
 
 			var network = Network.GetNetwork(networkString);
@@ -49,7 +49,7 @@ namespace WalletWasabi.Tests
 		{
 			if (!await TestAsync("https://api.blockcypher.com/v1/btc/main"))
 			{
-				return; // If website doesn't work, don't bother failing.
+				return; // If website does not work, don't bother failing.
 			}
 
 			var network = Network.GetNetwork(networkString);
