@@ -17,7 +17,7 @@ namespace WalletWasabi.Backend.Models
 		[JsonConverter(typeof(HeightJsonConverter))]
 		public Height BlockHeight { get; set; }
 
-		[JsonConverter(typeof(Uint256JsonConverter))]
+		[JsonConverter(typeof(UInt256JsonConverter))]
 		public uint256 BlockHash { get; set; }
 
 		[JsonConverter(typeof(GolombRiceFilterJsonConverter))]

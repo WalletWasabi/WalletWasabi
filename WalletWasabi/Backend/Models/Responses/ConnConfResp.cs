@@ -12,7 +12,7 @@ namespace WalletWasabi.Backend.Models.Responses
 {
 	public class ConnConfResp
 	{
-		[JsonProperty(ItemConverterType = typeof(Uint256JsonConverter))]
+		[JsonProperty(ItemConverterType = typeof(UInt256JsonConverter))]
 		public IEnumerable<uint256> BlindedOutputSignatures { get; set; }
 
 		[Required]

@@ -13,7 +13,7 @@ namespace WalletWasabi.KeyManagement
 	public class BlockState : IComparable<BlockState>
 	{
 		[JsonProperty(Order = 1)]
-		[JsonConverter(typeof(Uint256JsonConverter))]
+		[JsonConverter(typeof(UInt256JsonConverter))]
 		public uint256 BlockHash { get; }
 
 		[JsonProperty(Order = 2)]

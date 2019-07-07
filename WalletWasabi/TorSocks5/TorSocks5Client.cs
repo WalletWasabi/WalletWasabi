@@ -176,14 +176,14 @@ namespace WalletWasabi.TorSocks5
 				Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
 				receiveBuffer = await SendAsync(sendBuffer, 2);
 
-				var userNamePasswordResponse = new UsernamePasswordResponse();
-				userNamePasswordResponse.FromBytes(receiveBuffer);
-				if (userNamePasswordResponse.Ver != usernamePasswordRequest.Ver)
+				var usernamePasswordResponse = new UsernamePasswordResponse();
+				usernamePasswordResponse.FromBytes(receiveBuffer);
+				if (usernamePasswordResponse.Ver != usernamePasswordRequest.Ver)
 				{
-					throw new NotSupportedException($"Authentication version {userNamePasswordResponse.Ver.Value} is not supported. Only version {usernamePasswordRequest.Ver} is supported.");
+					throw new NotSupportedException($"Authentication version {usernamePasswordResponse.Ver.Value} is not supported. Only version {usernamePasswordRequest.Ver} is supported.");
 				}
 
-				if (!userNamePasswordResponse.Status.IsSuccess()) // Tor authentication is different, this will never happen;
+				if (!usernamePasswordResponse.Status.IsSuccess()) // Tor authentication is different, this will never happen;
 				{
 					// https://tools.ietf.org/html/rfc1929#section-2
 					// A STATUS field of X'00' indicates success. If the server returns a

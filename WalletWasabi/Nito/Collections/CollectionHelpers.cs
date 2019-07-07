@@ -23,19 +23,19 @@ namespace Nito.Collections
 				return new CollectionWrapper<T>(collection);
 			}
 
-			if (source is ICollection nongenericCollection)
+			if (source is ICollection nonGenericCollection)
 			{
-				return new NongenericCollectionWrapper<T>(nongenericCollection);
+				return new NonGenericCollectionWrapper<T>(nonGenericCollection);
 			}
 
 			return new List<T>(source);
 		}
 
-		private sealed class NongenericCollectionWrapper<T> : IReadOnlyCollection<T>
+		private sealed class NonGenericCollectionWrapper<T> : IReadOnlyCollection<T>
 		{
 			private readonly ICollection Collection;
 
-			public NongenericCollectionWrapper(ICollection collection)
+			public NonGenericCollectionWrapper(ICollection collection)
 			{
 				Collection = collection ?? throw new ArgumentNullException(nameof(collection));
 			}
