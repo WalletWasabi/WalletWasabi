@@ -504,8 +504,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			LabelExposeCommonOwnershipWarning = CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel ?
 				false // Because in CoinJoin the selection algorithm makes sure not to combine red with non-red.
 				: Coins.Any(c =>
-					  c.AnonymitySet == 1 && c.IsSelected
-					  && Coins.Any(x => x.AnonymitySet > 1 && x.IsSelected));
+					  c.AnonymitySet < Global.Config.PrivacyLevelSome && c.IsSelected
+					  && Coins.Any(x => x.AnonymitySet >= Global.Config.PrivacyLevelSome && x.IsSelected));
 		}
 
 		public void OnCoinStatusChanged()
