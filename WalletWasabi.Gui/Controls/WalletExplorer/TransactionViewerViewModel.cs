@@ -24,6 +24,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private byte[] _psbtBytes;
 		public ReactiveCommand<Unit, Unit> ExportBinaryPsbtCommand { get; set; }
 
+		public bool? IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
+
 		public string TxId
 		{
 			get => _txId;
@@ -101,6 +103,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Disposables = new CompositeDisposable();
 
 			base.OnOpen();
+
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+				this.RaisePropertyChanged(nameof(PsbtJsonText));
+				this.RaisePropertyChanged(nameof(TransactionHexText));
+				this.RaisePropertyChanged(nameof(PsbtBase64Text));
+			}).DisposeWith(Disposables);
 		}
 
 		public override bool OnClose()
