@@ -311,7 +311,7 @@ namespace WalletWasabi.Models
 			var bucketNo = GetBucket(hashcode, tables.Buckets.Length);
 
 			// We can get away w/out a lock here.
-			// The Volatile.Read ensures that the load of the fields of 'n' doesn't move before the load from buckets[i].
+			// The Volatile.Read ensures that the load of the fields of 'n' does not move before the load from buckets[i].
 			var current = Volatile.Read(ref tables.Buckets[bucketNo]);
 
 			while (current != null)
@@ -393,7 +393,7 @@ namespace WalletWasabi.Models
 
 			for (var i = 0; i < buckets.Length; i++)
 			{
-				// The Volatile.Read ensures that the load of the fields of 'current' doesn't move before the load from buckets[i].
+				// The Volatile.Read ensures that the load of the fields of 'current' does not move before the load from buckets[i].
 				var current = Volatile.Read(ref buckets[i]);
 
 				while (current != null)

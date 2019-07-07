@@ -100,7 +100,7 @@ namespace WalletWasabi.Tests
 
 			manager.ToFile();
 
-			manager.ToFile(); // assert it doesn't throw
+			manager.ToFile(); // assert it does not throw
 
 			var random = new Random();
 

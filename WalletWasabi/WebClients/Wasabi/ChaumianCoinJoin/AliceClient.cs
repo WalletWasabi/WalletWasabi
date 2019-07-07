@@ -83,7 +83,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 					}
 					else
 					{
-						throw new NotSupportedException($"InputRequest roundId doesn't match to the provided roundId: {request.RoundId} != {roundId}.");
+						throw new NotSupportedException($"InputRequest roundId does not match to the provided roundId: {request.RoundId} != {roundId}.");
 					}
 				}
 				using (HttpResponseMessage response = await client.TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))

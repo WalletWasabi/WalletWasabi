@@ -40,7 +40,7 @@ namespace System.Net.Http
 				Port = 443;
 			}
 
-			// Because we want to tolerate http:// and https:// in the host we also want to make sure it doesn't contradict the scheme
+			// Because we want to tolerate http:// and https:// in the host we also want to make sure it does not contradict the scheme
 			foreach (UriScheme scheme in Enum.GetValues(typeof(UriScheme)))
 			{
 				// if host starts with http:// or https:// then check

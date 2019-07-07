@@ -810,7 +810,7 @@ namespace WalletWasabi.Services
 
 										//if(!peerServices.HasFlag(NodeServices.Network) && !peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
 										//{
-										//	throw new InvalidOperationException($"Wasabi cannot use the local node because it doesn't provide blocks.");
+										//	throw new InvalidOperationException($"Wasabi cannot use the local node because it does not provide blocks.");
 										//}
 
 										Logger.LogInfo<WalletService>($"Handshake completed successfully.");
@@ -818,7 +818,7 @@ namespace WalletWasabi.Services
 										if (!localNode.IsConnected)
 										{
 											throw new InvalidOperationException($"Wasabi could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
-												$"Probably this is because the node doesn't support retrieving full blocks or segwit serialization.");
+												$"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
 										}
 										LocalBitcoinCoreNode = localNode;
 									}
@@ -1025,7 +1025,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		/// <param name="toSend">If Money.Zero then spends all available amount. Doesn't generate change.</param>
+		/// <param name="toSend">If Money.Zero then spends all available amount. Does not generate change.</param>
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
 		/// <param name="allowedInputs">Only these inputs allowed to be used to build the transaction. The wallet must know the corresponding private keys.</param>
 		/// <param name="subtractFeeFromAmountIndex">If null, fee is substracted from the change. Otherwise it denotes the index in the toSend array.</param>
@@ -1422,7 +1422,7 @@ namespace WalletWasabi.Services
 
 				if (Network == Network.RegTest)
 				{
-					throw new InvalidOperationException("Transaction broadcasting to nodes doesn't work in RegTest.");
+					throw new InvalidOperationException("Transaction broadcasting to nodes does not work in RegTest.");
 				}
 
 				while (true)
@@ -1627,7 +1627,7 @@ namespace WalletWasabi.Services
 				NodeTimeouts = 0;
 				timeout *= 2;
 			}
-			else if (NodeTimeouts <= -3) // If it doesn't time out 3 times in a row, lower the timeout.
+			else if (NodeTimeouts <= -3) // If it does not time out 3 times in a row, lower the timeout.
 			{
 				NodeTimeouts = 0;
 				timeout = (int)Math.Round(timeout * 0.7);
