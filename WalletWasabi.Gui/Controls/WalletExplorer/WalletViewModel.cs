@@ -38,21 +38,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Actions = new ObservableCollection<WalletActionViewModel>();
 
 			SendTabViewModel sendTab = null;
+			CoinJoinTabViewModel coinjoinTab = null;
 			// If hardware wallet then we need the Send tab.
 			if (WalletService?.KeyManager?.IsHardwareWallet is true)
 			{
 				sendTab = new SendTabViewModel(this);
 				Actions.Add(sendTab);
 			}
-			// If not hardware wallet, but neither watch only then we also need the send tab.
+			// If not hardware wallet, but neither watch only then we also need the send and coinjoin tab.
 			else if (WalletService?.KeyManager?.IsWatchOnly is false)
 			{
 				sendTab = new SendTabViewModel(this);
 				Actions.Add(sendTab);
+				coinjoinTab = new CoinJoinTabViewModel(this);
 			}
 
 			ReceiveTabViewModel receiveTab = new ReceiveTabViewModel(this);
-			CoinJoinTabViewModel coinjoinTab = new CoinJoinTabViewModel(this);
 			HistoryTabViewModel historyTab = new HistoryTabViewModel(this);
 
 			var advancedAction = new WalletAdvancedViewModel(this);
@@ -61,7 +62,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			TransactionBroadcasterViewModel broadcastTab = new TransactionBroadcasterViewModel(this);
 
 			Actions.Add(receiveTab);
-			Actions.Add(coinjoinTab);
+			if (coinjoinTab != null)
+			{
+				Actions.Add(coinjoinTab);
+			}
 			Actions.Add(historyTab);
 
 			Actions.Add(advancedAction);
@@ -73,14 +77,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			sendTab?.DisplayActionTab();
 			if (receiveDominant)
 			{
-				coinjoinTab.DisplayActionTab();
+				coinjoinTab?.DisplayActionTab();
 				historyTab.DisplayActionTab();
 				receiveTab.DisplayActionTab(); // So receive should be shown to the user.
 			}
 			else
 			{
 				receiveTab.DisplayActionTab();
-				coinjoinTab.DisplayActionTab();
+				coinjoinTab?.DisplayActionTab();
 				historyTab.DisplayActionTab(); // So history should be shown to the user.
 			}
 
