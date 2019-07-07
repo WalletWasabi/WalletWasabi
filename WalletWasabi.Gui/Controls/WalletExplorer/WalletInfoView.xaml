@@ -60,8 +60,7 @@
                 </i:Interaction.Behaviors>
               </controls:NoparaPasswordBox>
               <DockPanel VerticalAlignment="Top" LastChildFill="True">
-                <Button Content="{Binding ShowSensitiveKeys, StringFormat=\{0\} Sensitive Keys,
-                        Converter={StaticResource BooleanStringConverter}, ConverterParameter=Hide:Show}" 
+                <Button Content="{Binding ShowSensitiveKeys, StringFormat=\{0\} Sensitive Keys, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Hide:Show}"
                         Command="{Binding ToggleSensitiveKeysCommand}" DockPanel.Dock="Right" />
                 <Grid></Grid>
               </DockPanel>
