@@ -86,7 +86,7 @@ namespace WalletWasabi.Services
 						var txPayload = new TxPayload(entry.Transaction);
 						if (!node.IsConnected)
 						{
-							Logger.LogInfo<MemPoolBehavior>($"Could not serve transaction. Node ({node.RemoteSocketEndpoint}) is not connected anymore: {entry.TransactionId}.");
+							Logger.LogInfo<MempoolBehavior>($"Could not serve transaction. Node ({node.RemoteSocketEndpoint}) is not connected anymore: {entry.TransactionId}.");
 						}
 						else
 						{
