@@ -1,4 +1,5 @@
 using Nito.AsyncEx.Synchronous;
+using Nito.Disposables;
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -170,7 +171,7 @@ namespace Nito.AsyncEx
 		/// <summary>
 		/// The disposable which releases the lock.
 		/// </summary>
-		private sealed class Key : Disposables.SingleDisposable<AsyncLock>
+		private sealed class Key : SingleDisposable<AsyncLock>
 		{
 			/// <summary>
 			/// Creates the key for a lock.

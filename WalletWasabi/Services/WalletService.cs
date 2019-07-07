@@ -9,6 +9,7 @@ using Nito.AsyncEx;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -154,7 +155,7 @@ namespace WalletWasabi.Services
 			Mempool.TransactionReceived += Mempool_TransactionReceivedAsync;
 		}
 
-		private void Coins_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		private void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
 			RefreshCoinHistories();
 		}

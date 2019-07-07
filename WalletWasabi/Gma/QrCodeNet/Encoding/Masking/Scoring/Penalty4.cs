@@ -1,4 +1,6 @@
-﻿namespace Gma.QrCodeNet.Encoding.Masking.Scoring
+using System;
+
+namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 {
 	/// <summary>
 	/// ISO/IEC 18004:2000 Chapter 8.8.2 Page 52
@@ -29,7 +31,7 @@
 
 			double ratio = (double)DarkBitCount / MatrixCount;
 
-			return System.Math.Abs((int)((ratio * 100) - 50)) / 5 * 10;
+			return Math.Abs((int)((ratio * 100) - 50)) / 5 * 10;
 		}
 	}
 }

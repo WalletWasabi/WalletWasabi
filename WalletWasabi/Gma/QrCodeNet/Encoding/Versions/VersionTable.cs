@@ -1,4 +1,6 @@
-﻿namespace Gma.QrCodeNet.Encoding.Versions
+using System;
+
+namespace Gma.QrCodeNet.Encoding.Versions
 {
 	public static class VersionTable
 	{
@@ -6,7 +8,7 @@
 		{
 			if (versionNum < QRCodeConstantVariable.MinVersion || versionNum > QRCodeConstantVariable.MaxVersion)
 			{
-				throw new System.InvalidOperationException($"Unexpected version number: {versionNum}");
+				throw new InvalidOperationException($"Unexpected version number: {versionNum}");
 			}
 
 			return Version[versionNum - 1];
@@ -16,7 +18,7 @@
 		{
 			if ((matrixWidth - 17) % 4 != 0)
 			{
-				throw new System.ArgumentException("Incorrect matrix width");
+				throw new ArgumentException("Incorrect matrix width");
 			}
 			else
 			{
