@@ -19,22 +19,19 @@ namespace WalletWasabi.Backend.Controllers
 	[Route("api/v" + Helpers.Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class BatchController : Controller
 	{
-		public BatchController(Global backendGlobal)
-		{
-			Global = backendGlobal;
-		}
 		public Global Global { get; }
 		public BlockchainController BlockchainController { get; }
 		public ChaumianCoinJoinController ChaumianCoinJoinController { get; }
 		public HomeController HomeController { get; }
 		public OffchainController OffchainController { get; }
 
-		public BatchController(BlockchainController blockchainController, ChaumianCoinJoinController chaumianCoinJoinController, HomeController homeController, OffchainController offchainController)
+		public BatchController(BlockchainController blockchainController, ChaumianCoinJoinController chaumianCoinJoinController, HomeController homeController, OffchainController offchainController, Global backendGlobal)
 		{
 			BlockchainController = blockchainController;
 			ChaumianCoinJoinController = chaumianCoinJoinController;
 			HomeController = homeController;
 			OffchainController = offchainController;
+			Global = backendGlobal;
 		}
 
 		[HttpGet("synchronize")]

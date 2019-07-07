@@ -23,19 +23,15 @@ namespace WalletWasabi.Backend.Controllers
 	public class BlockchainController : Controller
 	{
 		private IMemoryCache Cache { get; }
-
-		BlockchainController(Global backendGlobal)
-		{
-			Global = backendGlobal;
-		}
 		public Global Global { get; }
 		private RPCClient RpcClient => Global.RpcClient;
 
 		private Network Network => Global.Config.Network;
 
-		public BlockchainController(IMemoryCache memoryCache)
+		public BlockchainController(IMemoryCache memoryCache, Global backendGlobal)
 		{
 			Cache = memoryCache;
+			Global = backendGlobal;
 		}
 
 		/// <summary>

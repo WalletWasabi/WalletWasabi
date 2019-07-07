@@ -50,7 +50,7 @@ namespace WalletWasabi.Backend
 
 			services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
 			services.AddSingleton<Global>(new Global());
-
+			services.AddStartupTask<InitConfigStartupTask>();
 			services.AddResponseCompression();
 		}
 

@@ -15,9 +15,6 @@ namespace WalletWasabi.Backend
 {
 	public class Program
 	{
-		private static List<string> Last5CoinJoins { get; set; } = new List<string>();
-		private static object UpdateUnversionedLock { get; } = new object();
-
 #pragma warning disable IDE1006 // Naming Styles
 
 		public static async Task Main(string[] args)
@@ -25,48 +22,6 @@ namespace WalletWasabi.Backend
 		{
 			try
 			{
-				var backendGlobal = new Global();
-				Logger.InitializeDefaults(Path.Combine(backendGlobal.DataDir, "Logs.txt"));
-				Logger.LogStarting("Wasabi Backend");
-
-				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
-				var configFilePath = Path.Combine(backendGlobal.DataDir, "Config.json");
-				var config = new Config(configFilePath);
-				await config.LoadOrCreateDefaultFileAsync();
-				Logger.LogInfo<Config>("Config is successfully initialized.");
-
-				var roundConfigFilePath = Path.Combine(backendGlobal.DataDir, "CcjRoundConfig.json");
-				var roundConfig = new CcjRoundConfig(roundConfigFilePath);
-				await roundConfig.LoadOrCreateDefaultFileAsync();
-				Logger.LogInfo<CcjRoundConfig>("RoundConfig is successfully initialized.");
-
-				var rpc = new RPCClient(
-						credentials: RPCCredentialString.Parse(config.BitcoinRpcConnectionString),
-						network: config.Network);
-
-				await backendGlobal.InitializeAsync(config, roundConfig, rpc);
-
-				try
-				{
-					Directory.CreateDirectory(UnversionedWebBuilder.UnversionedFolder);
-					UnversionedWebBuilder.CreateDownloadTextWithVersionHtml();
-					UnversionedWebBuilder.CloneAndUpdateOnionIndexHtml();
-
-					if (File.Exists(backendGlobal.Coordinator.CoinJoinsFilePath))
-					{
-						string[] allLines = File.ReadAllLines(backendGlobal.Coordinator.CoinJoinsFilePath);
-						Last5CoinJoins = allLines.TakeLast(5).Reverse().ToList();
-						UnversionedWebBuilder.UpdateCoinJoinsHtml(backendGlobal, Last5CoinJoins);
-					}
-
-					backendGlobal.Coordinator.CoinJoinBroadcasted += (s, a) => Coordinator_CoinJoinBroadcasted(s, a, backendGlobal);
-				}
-				catch (Exception ex)
-				{
-					Logger.LogWarning(ex, nameof(Program));
-				}
-
 				var endPoint = "http://localhost:37127/";
 
 				using (var host = WebHost.CreateDefaultBuilder(args)
@@ -74,43 +29,12 @@ namespace WalletWasabi.Backend
 					.UseUrls(endPoint)
 					.Build())
 				{
-					await host.RunAsync();
+					await host.RunWithTasksAsync();
 				}
 			}
 			catch (Exception ex)
 			{
 				Logger.LogCritical<Program>(ex);
-			}
-			// Note: Do not do finally here. Dispose in Startup.cs.
-		}
-
-		private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
-		{
-			Logger.LogWarning(e?.Exception, "UnobservedTaskException");
-		}
-
-		private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-		{
-			Logger.LogWarning(e?.ExceptionObject as Exception, "UnhandledException");
-		}
-
-		private static void Coordinator_CoinJoinBroadcasted(object sender, Transaction tx, Global backendGlobal)
-		{
-			try
-			{
-				lock (UpdateUnversionedLock)
-				{
-					if (Last5CoinJoins.Count > 4)
-					{
-						Last5CoinJoins.RemoveLast();
-					}
-					Last5CoinJoins.Insert(0, tx.GetHash().ToString());
-					UnversionedWebBuilder.UpdateCoinJoinsHtml(backendGlobal, Last5CoinJoins);
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning(ex, nameof(Program));
 			}
 		}
 	}

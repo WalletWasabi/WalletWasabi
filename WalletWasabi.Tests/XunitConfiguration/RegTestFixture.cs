@@ -2,6 +2,7 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using NBitcoin;
 using System;
+using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,27 +32,35 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			BackendRegTestNode = BackendNodeBuilder.Nodes[0];
 
 			var rpc = BackendRegTestNode.CreateRpcClient();
-
-			var config = new Config(rpc.Network, rpc.Authentication, IPAddress.Loopback.ToString(), IPAddress.Loopback.ToString(), BackendRegTestNode.Endpoint.Address.ToString(), Network.Main.DefaultPort, Network.TestNet.DefaultPort, BackendRegTestNode.Endpoint.Port);
+			var connectionString = new NBitcoin.RPC.RPCCredentialString() 
+			{
+				Server = rpc.Address.AbsoluteUri,
+				UserPassword = BackendRegTestNode.Creds
+			}.ToString();
+			var backendGlobal = new Backend.Global();
+			var config = new Config(BackendNodeBuilder.Network, connectionString, IPAddress.Loopback.ToString(), IPAddress.Loopback.ToString(), BackendRegTestNode.Endpoint.Address.ToString(), Network.Main.DefaultPort, Network.TestNet.DefaultPort, BackendRegTestNode.Endpoint.Port, false);
+			var configFilePath = Path.Combine(backendGlobal.DataDir, "Config.json");
+			config.SetFilePath(configFilePath);
+			config.ToFileAsync().GetAwaiter().GetResult();
 
 			var roundConfig = CreateRoundConfig(Money.Coins(0.1m), Constants.OneDayConfirmationTarget, 0.7, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
-
-			var backendGlobal = new Backend.Global();
-			backendGlobal.InitializeAsync(config, roundConfig, rpc).GetAwaiter().GetResult();
+			var roundConfigFilePath = Path.Combine(backendGlobal.DataDir, "CcjRoundConfig.json");
+			roundConfig.SetFilePath(roundConfigFilePath);
+			roundConfig.ToFileAsync().GetAwaiter().GetResult();
 
 			BackendEndPoint = $"http://localhost:{new Random().Next(37130, 38000)}/";
 			BackendHost = WebHost.CreateDefaultBuilder()
 					.UseStartup<Startup>()
+					.UseWebRoot("../../../../WalletWasabi.Backend/wwwroot")
 					.UseUrls(BackendEndPoint)
 					.Build();
-
-			var hostInitializationTask = BackendHost.RunAsync();
+			Global = (Backend.Global)BackendHost.Services.GetService(typeof(Backend.Global));
+			var hostInitializationTask = BackendHost.RunWithTasksAsync();
 			Logger.LogInfo($"Started Backend webhost: {BackendEndPoint}", nameof(Global));
 
 			var delayTask = Task.Delay(3000);
 			Task.WaitAny(delayTask, hostInitializationTask); // Wait for server to initialize (Without this OSX CI will fail)
 		}
-
 		public static CcjRoundConfig CreateRoundConfig(Money denomination,
 												int confirmationTarget,
 												double confirmationTargetReductionRate,
@@ -82,7 +91,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 				MaximumMixingLevelCount = maximumMixingLevelCount,
 			};
 		}
-
+		public Backend.Global Global { get; set; }
 		public void Dispose()
 		{
 			// Cleanup tests...

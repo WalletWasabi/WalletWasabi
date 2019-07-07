@@ -6,20 +6,23 @@ using System.Linq;
 
 namespace WalletWasabi.Backend
 {
-	public static class UnversionedWebBuilder
+	public class UnversionedWebBuilder
 	{
-		public static string DebugRootFolder { get; } = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\wwwroot"));
-		public static string PublishedRootFolder { get; } = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "wwwroot"));
+		public UnversionedWebBuilder(string rootFolder)
+		{
+			RootFolder = rootFolder;
+			UnversionedFolder = Path.GetFullPath(Path.Combine(RootFolder, "unversioned"));
+		}
 
-		public static string RootFolder { get; } = Directory.Exists(PublishedRootFolder) ? PublishedRootFolder : DebugRootFolder;
+		public string RootFolder { get; }
 
-		public static string UnversionedFolder { get; } = Path.GetFullPath(Path.Combine(RootFolder, "unversioned"));
+		public string UnversionedFolder { get; }
 
-		public static string CreateFilePath(string fileName) => Path.Combine(UnversionedFolder, fileName);
+		public string CreateFilePath(string fileName) => Path.Combine(UnversionedFolder, fileName);
 
 		public static string HtmlStartLine { get; } = "<link href=\"../css/bootstrap.css\" rel=\"stylesheet\" type=\"text/css\" />\r\n<link href=\"../css/OpenSansCondensed300700.css\" rel=\"stylesheet\" type=\"text/css\" />\r\n";
 
-		public static void CreateDownloadTextWithVersionHtml()
+		public void CreateDownloadTextWithVersionHtml()
 		{
 			var filePath = CreateFilePath("download-text-with-version.html");
 			var content = HtmlStartLine + $"<h1 class=\"text-center\">Download Wasabi Wallet {Helpers.Constants.ClientVersion}</h1>";
@@ -27,7 +30,7 @@ namespace WalletWasabi.Backend
 			File.WriteAllText(filePath, content);
 		}
 
-		public static void CloneAndUpdateOnionIndexHtml()
+		public void CloneAndUpdateOnionIndexHtml()
 		{
 			var path = Path.Combine(RootFolder, "index.html");
 			var onionPath = Path.Combine(RootFolder, "onion-index.html");
@@ -41,7 +44,7 @@ namespace WalletWasabi.Backend
 			File.WriteAllText(onionPath, content);
 		}
 
-		public static void UpdateCoinJoinsHtml(Global backendGlobal, IEnumerable<string> coinJoins)
+		public void UpdateCoinJoinsHtml(Global backendGlobal, IEnumerable<string> coinJoins)
 		{
 			var filePath = CreateFilePath("coinjoins-table.html");
 			var onionFilePath = CreateFilePath("onion-coinjoins-table.html");

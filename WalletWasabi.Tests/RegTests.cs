@@ -74,7 +74,7 @@ namespace WalletWasabi.Tests
 
 		private async Task<(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global backendGlobal)> InitializeTestEnvironmentAsync(int numberOfBlocksToGenerate, [CallerMemberName] string caller = null)
 		{
-			var global = new Backend.Global();
+			var global = RegTestFixture.Global;
 			await AssertFiltersInitializedAsync(global); // Make sure fitlers are created on the server side.
 			if (numberOfBlocksToGenerate != 0)
 			{

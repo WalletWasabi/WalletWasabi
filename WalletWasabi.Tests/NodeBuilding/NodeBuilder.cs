@@ -146,7 +146,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 					var rpcPassword = config["regtest.rpcpassword"];
 					var pidFileName = config["regtest.pid"];
 					var credentials = new NetworkCredential(rpcUser, rpcPassword);
-
 					try
 					{
 						var rpc = new RPCClient(credentials, new Uri("http://127.0.0.1:" + rpcPort + "/"), Network.RegTest);
@@ -216,6 +215,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 		}
 
 		private List<IDisposable> Disposables { get; } = new List<IDisposable>();
+		public Network Network => NBitcoin.Network.RegTest;
 
 		internal void AddDisposable(IDisposable group)
 		{
