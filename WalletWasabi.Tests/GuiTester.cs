@@ -8,6 +8,14 @@ using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui;
+using System.Net.Sockets;
+using System.Net;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
+using WalletWasabi.Backend;
+using System.Threading;
+using NBitcoin;
+using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Tests
 {
@@ -32,6 +40,10 @@ namespace WalletWasabi.Tests
 				return _testName;
 			}
 		}
+
+		public Uri BackendUri { get; internal set; }
+		public IWebHost BackendHost { get; private set; }
+
 		public static GuiTester Create([CallerMemberName] string testName = null)
 		{
 			AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -52,8 +64,13 @@ namespace WalletWasabi.Tests
 		{
 			_testName = testName;
 			IoHelpers.DeleteRecursivelyWithMagicDustAsync(_testName).GetAwaiter().GetResult();
-			_nodeBuilder = NBitcoin.Tests.NodeBuilder.Create(NodeDownloadData.Bitcoin.v0_18_0, NBitcoin.Network.RegTest, testName);
+			_nodeBuilder = NBitcoin.Tests.NodeBuilder.Create(NodeDownloadData.Bitcoin.v0_18_0, NBitcoin.Network.RegTest, _testName);
 			_resources.Push(_nodeBuilder);
+		}
+
+		public T GetBackendService<T>()
+		{
+			return (T)BackendHost.Services.GetService(typeof(T));
 		}
 
 		public GuiClientTester CreateGuiClient()
@@ -65,8 +82,55 @@ namespace WalletWasabi.Tests
 			return child;
 		}
 
+		public CoreNode BackendNode { get; set; }
+
+		internal bool _started;
+		public async Task StartBackendAsync()
+		{
+			if (_started)
+			{
+				return;
+			}
+
+			var BackendNode = _nodeBuilder.CreateNode();
+			BackendNode.WhiteBind = true;
+			await BackendNode.StartAsync();
+			_resources.Push(BackendNode.AsDisposable());
+			var rpc = BackendNode.CreateRPCClient();
+			var config = new Backend.Config(rpc.Network, rpc.Authentication, IPAddress.Loopback.ToString(), IPAddress.Loopback.ToString(), BackendNode.Endpoint.Address.ToString(), Network.Main.DefaultPort, Network.TestNet.DefaultPort, BackendNode.Endpoint.Port);
+			var roundConfig = new CcjRoundConfig(Money.Coins(0.1m), WalletWasabi.Helpers.Constants.OneDayConfirmationTarget, 0.7, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
+			await Backend.Global.Instance.InitializeAsync(config, roundConfig, rpc);
+
+			BackendUri = new Uri($"http://127.0.0.1:{FreeTcpPort()}/", UriKind.Absolute);
+			BackendHost = WebHost.CreateDefaultBuilder()
+					.UseStartup<Startup>()
+					.UseUrls(BackendUri.AbsoluteUri)
+					.Build();
+			_resources.Push(BackendHost);
+
+			_ = BackendHost.RunAsync();
+			var started = GetBackendService<IApplicationLifetime>().ApplicationStarted;
+			try
+			{
+				await Task.Delay(10_000, started);
+				throw new OperationCanceledException("The backend did not started in 10s");
+			}
+			catch when (started.IsCancellationRequested) { }
+			_started = true;
+		}
+
+		static int FreeTcpPort()
+		{
+			TcpListener l = new TcpListener(IPAddress.Loopback, 0);
+			l.Start();
+			int port = ((IPEndPoint)l.LocalEndpoint).Port;
+			l.Stop();
+			return port;
+		}
+
 		public async Task StartAllAsync()
 		{
+			await StartBackendAsync();
 			foreach (var gui in _guiClients.Select(g => g.StartAsync()).ToArray())
 			{
 				await gui;
@@ -125,16 +189,27 @@ namespace WalletWasabi.Tests
 			}
 		}
 
+		bool _started;
 		public async Task StartAsync()
 		{
+			if (_started)
+			{
+				return;
+			}
+			if (!_parent._started)
+			{
+				throw new InvalidOperationException("The coinjoin node should start before the client nodes");
+			}
+			Node.ConfigParameters.Add("connect", $"{_parent.BackendNode.Endpoint.Address}:{_parent.BackendNode.Endpoint.Port}");
 			await Node.StartAsync();
 			_mainViewModel = new MainWindowViewModel { Global = GuiGlobal };
 
-			var config = new Config(Path.Combine(_dataDir, "Config.json"));
+			var config = new Gui.Config(Path.Combine(_dataDir, "Config.json"));
 			await config.LoadOrCreateDefaultFileAsync();
 			config.Network = _parent.NodeBuilder.Network;
 			config.RegTestBitcoinCorePort = _node.NodeEndpoint.Port;
 			config.RegTestBitcoinCoreHost = _node.NodeEndpoint.Address.ToString();
+			config.RegTestBackendUriV3 = _parent.BackendUri.AbsoluteUri;
 			config.UseTor = false;
 			await config.ToFileAsync();
 
@@ -142,13 +217,13 @@ namespace WalletWasabi.Tests
 
 			var statusBar = new StatusBarViewModel(GuiGlobal, _mainViewModel);
 			statusBar.Initialize(GuiGlobal.Nodes.ConnectedNodes, GuiGlobal.Synchronizer, GuiGlobal.UpdateChecker);
+			_started = true;
 		}
 
 		public void Dispose()
 		{
 			GuiGlobal.DisposeAsync().GetAwaiter().GetResult();
-			_node.Kill();
-			_node.WaitForExit();
+			_node.AsDisposable().Dispose();
 		}
 	}
 }
