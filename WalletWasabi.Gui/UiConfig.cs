@@ -21,7 +21,7 @@ namespace WalletWasabi.Gui
     {
         private bool? _lurkingWifeMode;
         private bool? _lockScreenActive;
-		private LockScreenType? _lockScreenType;
+        private LockScreenType? _lockScreenType;
 
         /// <inheritdoc />
         public string FilePath { get; private set; }
@@ -58,14 +58,7 @@ namespace WalletWasabi.Gui
             get => _lockScreenActive;
             set => this.RaiseAndSetIfChanged(ref _lockScreenActive, value);
         }
-
-        [JsonProperty(PropertyName = "LockScreenType")]
-        public LockScreenType? LockScreenType
-        {
-            get => _lockScreenType;
-            set => this.RaiseAndSetIfChanged(ref _lockScreenType, value);
-        }
-
+ 
         [JsonProperty(PropertyName = "LockScreenPinHash")]
         public string LockScreenPinHash { get; internal set; }
 
@@ -80,7 +73,7 @@ namespace WalletWasabi.Gui
 
         public UiConfig(WindowState windowState, double height, double width, int feeTarget,
                         int feeDisplayFormat, bool autocopy, bool lurkingWifeMode,
-                        bool LockScreenActive, string lockScreenPinHash, LockScreenType lockScreenType)
+                        bool LockScreenActive, string lockScreenPinHash)
         {
             WindowState = Guard.NotNull(nameof(windowState), windowState);
             Height = Guard.NotNull(nameof(height), height);
@@ -90,7 +83,6 @@ namespace WalletWasabi.Gui
             Autocopy = Guard.NotNull(nameof(autocopy), autocopy);
             LurkingWifeMode = Guard.NotNull(nameof(lurkingWifeMode), lurkingWifeMode);
             LockScreenActive = Guard.NotNull(nameof(LockScreenActive), LockScreenActive);
-            LockScreenType = Guard.NotNull(nameof(LockScreenType), lockScreenType);
             LockScreenPinHash = Guard.NotNull(nameof(LockScreenPinHash), lockScreenPinHash);
         }
 
@@ -117,9 +109,8 @@ namespace WalletWasabi.Gui
             FeeDisplayFormat = 0;
             Autocopy = true;
             LurkingWifeMode = false;
-			LockScreenActive = false;
-			LockScreenPinHash = "";
-			LockScreenType = Models.LockScreenType.SlideLock;
+            LockScreenActive = false;
+            LockScreenPinHash = "";
 
             if (!File.Exists(FilePath))
             {
@@ -147,7 +138,6 @@ namespace WalletWasabi.Gui
             LurkingWifeMode = config.LurkingWifeMode ?? LurkingWifeMode;
             LockScreenActive = config.LockScreenActive ?? LockScreenActive;
             LockScreenPinHash = config.LockScreenPinHash ?? LockScreenPinHash;
-            LockScreenType = config.LockScreenType ?? LockScreenType;
         }
 
         /// <inheritdoc />
@@ -202,12 +192,7 @@ namespace WalletWasabi.Gui
             {
                 return true;
             }
-
-            if (LockScreenType != config.LockScreenType)
-            {
-                return true;
-            }
-
+ 
             if (LockScreenPinHash != config.LockScreenPinHash)
             {
                 return true;

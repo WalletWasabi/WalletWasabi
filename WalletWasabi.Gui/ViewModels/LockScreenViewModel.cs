@@ -46,15 +46,25 @@ namespace WalletWasabi.Gui.ViewModels
 
             this.WhenAnyValue(x => x.IsLocked)
                            .BindTo(Global.UiConfig, y => y.LockScreenActive)
-                		   .DisposeWith(Disposables);
-
-            Global.UiConfig.WhenAnyValue(x => x.LockScreenType)
-                           .BindTo(this, y => y.ActiveLockScreen)
                            .DisposeWith(Disposables);
 
             Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash)
-                           .BindTo(this, y => y.PINHash)
+                           .Subscribe(CheckLockScreenType)
                            .DisposeWith(Disposables);
+        }
+
+        private void CheckLockScreenType(string currentHash)
+        {
+            if (currentHash != string.Empty)
+            {
+                ActiveLockScreen = LockScreenType.PINLock;
+            }
+            else
+            {
+                ActiveLockScreen = default(LockScreenType);
+            }
+
+			PINHash = currentHash;
         }
     }
 }
