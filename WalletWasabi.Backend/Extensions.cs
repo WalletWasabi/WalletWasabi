@@ -15,16 +15,7 @@ namespace WalletWasabi.Backend
 			=> services.AddTransient<IStartupTask, T>();
 		public static async Task RunWithTasksAsync(this IWebHost webHost, CancellationToken cancellationToken = default)
 		{
-			// Load all tasks from DI
-			var startupTasks = webHost.Services.GetServices<IStartupTask>();
-
-			// Execute all the tasks
-			foreach (var startupTask in startupTasks)
-			{
-				await startupTask.ExecuteAsync(cancellationToken);
-			}
-
-			// Start the tasks as normal
+			await Task.WhenAll(webHost.Services.GetServices<IStartupTask>().Select(t => t.ExecuteAsync(cancellationToken)).ToArray());
 			await webHost.RunAsync(cancellationToken);
 		}
 	}
