@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Backend
 {
@@ -22,7 +23,7 @@ namespace WalletWasabi.Backend
 		public static void CreateDownloadTextWithVersionHtml()
 		{
 			var filePath = CreateFilePath("download-text-with-version.html");
-			var content = HtmlStartLine + $"<h1 class=\"text-center\">Download Wasabi Wallet {Helpers.Constants.ClientVersion}</h1>";
+			var content = HtmlStartLine + $"<h1 class=\"text-center\">Download Wasabi Wallet {Constants.ClientVersion}</h1>";
 
 			File.WriteAllText(filePath, content);
 		}

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
@@ -24,7 +25,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 
 		public async Task<IEnumerable<CcjRunningRoundState>> GetAllRoundStatesAsync()
 		{
-			using (var response = await TorClient.SendAsync(HttpMethod.Get, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/states/"))
+			using (var response = await TorClient.SendAsync(HttpMethod.Get, $"/api/v{Constants.BackendMajorVersion}/btc/chaumiancoinjoin/states/"))
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 				{

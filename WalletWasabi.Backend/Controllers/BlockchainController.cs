@@ -19,7 +19,7 @@ namespace WalletWasabi.Backend.Controllers
 	/// To interact with the Bitcoin Blockchain.
 	/// </summary>
 	[Produces("application/json")]
-	[Route("api/v" + Helpers.Constants.BackendMajorVersion + "/btc/[controller]")]
+	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class BlockchainController : Controller
 	{
 		private IMemoryCache Cache { get; }

@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Backend.Controllers
 {
@@ -19,7 +20,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(typeof(VersionsResponse), 200)]
 		public VersionsResponse GetVersions()
 		{
-			return Helpers.Constants.VersionsResponse;
+			return Constants.VersionsResponse;
 		}
 	}
 }
