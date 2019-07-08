@@ -57,7 +57,7 @@ namespace WalletWasabi.Backend
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
 #pragma warning disable IDE0060 // Remove unused parameter
 
-		public void Configure(IApplicationBuilder app, IHostingEnvironment env, Global backendGlobal)
+		public void Configure(IApplicationBuilder app, IHostingEnvironment env, Global global)
 #pragma warning restore IDE0060 // Remove unused parameter
 		{
 			app.UseStaticFiles();
@@ -81,34 +81,34 @@ namespace WalletWasabi.Backend
 			app.UseMvc();
 
 			var applicationLifetime = app.ApplicationServices.GetRequiredService<IApplicationLifetime>();
-			applicationLifetime.ApplicationStopping.Register(() => OnShutdown(backendGlobal)); // Don't register async, that won't hold up the shutdown
+			applicationLifetime.ApplicationStopping.Register(() => OnShutdown(global)); // Don't register async, that won't hold up the shutdown
 		}
 
-		private void OnShutdown(Global backendGlobal)
+		private void OnShutdown(Global global)
 		{
-			CleanupAsync(backendGlobal).GetAwaiter().GetResult(); // This is needed, if async function is registered then it won't wait until it finishes
+			CleanupAsync(global).GetAwaiter().GetResult(); // This is needed, if async function is registered then it won't wait until it finishes
 		}
 
-		private async Task CleanupAsync(Global backendGlobal)
+		private async Task CleanupAsync(Global global)
 		{
-			backendGlobal.Coordinator?.Dispose();
+			global.Coordinator?.Dispose();
 			Logger.LogInfo<Startup>("Coordinator is disposed.");
 
-			if (backendGlobal.IndexBuilderService != null)
+			if (global.IndexBuilderService != null)
 			{
-				await backendGlobal.IndexBuilderService.StopAsync();
+				await global.IndexBuilderService.StopAsync();
 				Logger.LogInfo<Startup>("IndexBuilderService is disposed.");
 			}
 
-			if (backendGlobal.RoundConfigWatcher != null)
+			if (global.RoundConfigWatcher != null)
 			{
-				await backendGlobal.RoundConfigWatcher.StopAsync();
+				await global.RoundConfigWatcher.StopAsync();
 				Logger.LogInfo<Startup>("RoundConfigWatcher is disposed.");
 			}
 
-			if (backendGlobal.LocalNode != null)
+			if (global.LocalNode != null)
 			{
-				backendGlobal.DisconnectDisposeNullLocalNode();
+				global.DisconnectDisposeNullLocalNode();
 				Logger.LogInfo<Startup>("LocalNode is disposed.");
 			}
 

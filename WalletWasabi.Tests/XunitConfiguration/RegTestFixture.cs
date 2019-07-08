@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using NBitcoin;
+using NBitcoin.RPC;
 using System;
 using System.IO;
 using System.Net;
@@ -17,12 +18,10 @@ namespace WalletWasabi.Tests.XunitConfiguration
 	public class RegTestFixture : IDisposable
 	{
 		public string BackendEndPoint { get; internal set; }
-
 		public IWebHost BackendHost { get; internal set; }
-
 		public NodeBuilder BackendNodeBuilder { get; internal set; }
-
 		public CoreNode BackendRegTestNode { get; internal set; }
+		public Backend.Global Global { get; }
 
 		public RegTestFixture()
 		{
@@ -32,19 +31,18 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			BackendRegTestNode = BackendNodeBuilder.Nodes[0];
 
 			var rpc = BackendRegTestNode.CreateRpcClient();
-			var connectionString = new NBitcoin.RPC.RPCCredentialString() 
-			{
+			var connectionString = new RPCCredentialString() {
 				Server = rpc.Address.AbsoluteUri,
 				UserPassword = BackendRegTestNode.Creds
 			}.ToString();
-			var backendGlobal = new Backend.Global();
+			var global = new Backend.Global();
 			var config = new Config(BackendNodeBuilder.Network, connectionString, IPAddress.Loopback.ToString(), IPAddress.Loopback.ToString(), BackendRegTestNode.Endpoint.Address.ToString(), Network.Main.DefaultPort, Network.TestNet.DefaultPort, BackendRegTestNode.Endpoint.Port, false);
-			var configFilePath = Path.Combine(backendGlobal.DataDir, "Config.json");
+			var configFilePath = Path.Combine(global.DataDir, "Config.json");
 			config.SetFilePath(configFilePath);
 			config.ToFileAsync().GetAwaiter().GetResult();
 
 			var roundConfig = CreateRoundConfig(Money.Coins(0.1m), Constants.OneDayConfirmationTarget, 0.7, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
-			var roundConfigFilePath = Path.Combine(backendGlobal.DataDir, "CcjRoundConfig.json");
+			var roundConfigFilePath = Path.Combine(global.DataDir, "CcjRoundConfig.json");
 			roundConfig.SetFilePath(roundConfigFilePath);
 			roundConfig.ToFileAsync().GetAwaiter().GetResult();
 
@@ -61,6 +59,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			var delayTask = Task.Delay(3000);
 			Task.WaitAny(delayTask, hostInitializationTask); // Wait for server to initialize (Without this OSX CI will fail)
 		}
+
 		public static CcjRoundConfig CreateRoundConfig(Money denomination,
 												int confirmationTarget,
 												double confirmationTargetReductionRate,
@@ -91,7 +90,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 				MaximumMixingLevelCount = maximumMixingLevelCount,
 			};
 		}
-		public Backend.Global Global { get; set; }
+
 		public void Dispose()
 		{
 			// Cleanup tests...

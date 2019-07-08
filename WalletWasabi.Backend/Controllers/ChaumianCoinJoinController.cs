@@ -34,16 +34,15 @@ namespace WalletWasabi.Backend.Controllers
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class ChaumianCoinJoinController : Controller
 	{
+		public Global Global { get; }
+		private RPCClient RpcClient => Global.RpcClient;
+		private Network Network => Global.Config.Network;
+		private CcjCoordinator Coordinator => Global.Coordinator;
+
 		public ChaumianCoinJoinController(Global global)
 		{
 			Global = global;
 		}
-		public Global Global { get; }
-		private RPCClient RpcClient => Global.RpcClient;
-
-		private Network Network => Global.Config.Network;
-
-		private CcjCoordinator Coordinator => Global.Coordinator;
 
 		/// <summary>
 		/// Satoshi gets various status information.

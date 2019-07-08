@@ -118,7 +118,7 @@ namespace WalletWasabi.Backend
 			MainNetBitcoinCorePort = Guard.NotNull(nameof(mainNetBitcoinCorePort), mainNetBitcoinCorePort);
 			TestNetBitcoinCorePort = Guard.NotNull(nameof(testNetBitcoinCorePort), testNetBitcoinCorePort);
 			RegTestBitcoinCorePort = Guard.NotNull(nameof(regTestBitcoinCorePort), regTestBitcoinCorePort);
-			ListenRoundConfigFileChanges = listenRoundConfigFileChanges.HasValue ? listenRoundConfigFileChanges.Value : true;
+			ListenRoundConfigFileChanges = listenRoundConfigFileChanges ?? true;
 		}
 
 		/// <inheritdoc />

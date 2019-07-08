@@ -8,15 +8,16 @@ namespace WalletWasabi.Backend
 {
 	public class UnversionedWebBuilder
 	{
-		public UnversionedWebBuilder(string rootFolder)
+		public Global Global { get; }
+		public string RootFolder { get; }
+		public string UnversionedFolder { get; }
+
+		public UnversionedWebBuilder(Global global, string rootFolder)
 		{
+			Global = global;
 			RootFolder = rootFolder;
 			UnversionedFolder = Path.GetFullPath(Path.Combine(RootFolder, "unversioned"));
 		}
-
-		public string RootFolder { get; }
-
-		public string UnversionedFolder { get; }
 
 		public string CreateFilePath(string fileName) => Path.Combine(UnversionedFolder, fileName);
 
@@ -44,7 +45,7 @@ namespace WalletWasabi.Backend
 			File.WriteAllText(onionPath, content);
 		}
 
-		public void UpdateCoinJoinsHtml(Global backendGlobal, IEnumerable<string> coinJoins)
+		public void UpdateCoinJoinsHtml(IEnumerable<string> coinJoins)
 		{
 			var filePath = CreateFilePath("coinjoins-table.html");
 			var onionFilePath = CreateFilePath("onion-coinjoins-table.html");
@@ -54,7 +55,7 @@ namespace WalletWasabi.Backend
 			var endContent = "</ul>";
 			string blockstreamPath;
 			string onionBlockstreamPath;
-			if (backendGlobal.Config.Network == Network.TestNet)
+			if (Global.Config.Network == Network.TestNet)
 			{
 				blockstreamPath = "https://blockstream.info/testnet/tx/";
 				onionBlockstreamPath = "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion/testnet/tx/";
