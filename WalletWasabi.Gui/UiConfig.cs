@@ -1,5 +1,6 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -131,44 +132,10 @@ namespace WalletWasabi.Gui
 			}
 
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-			var config = JsonConvert.DeserializeObject<UiConfig>(jsonString);
+			var newConfig = JsonConvert.DeserializeObject<JObject>(jsonString);
+			var currentConfig = JObject.FromObject(this);
 
-			if (WindowState != config.WindowState)
-			{
-				return true;
-			}
-
-			if (Height != config.Height)
-			{
-				return true;
-			}
-
-			if (Width != config.Width)
-			{
-				return true;
-			}
-
-			if (FeeTarget != config.FeeTarget)
-			{
-				return true;
-			}
-
-			if (FeeDisplayFormat != config.FeeDisplayFormat)
-			{
-				return true;
-			}
-
-			if (Autocopy != config.Autocopy)
-			{
-				return true;
-			}
-
-			if (LurkingWifeMode != config.LurkingWifeMode)
-			{
-				return true;
-			}
-
-			return false;
+			return !JToken.DeepEquals(newConfig, currentConfig);
 		}
 
 		/// <inheritdoc />
