@@ -34,7 +34,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 
 			var config = new Config(rpc.Network, rpc.Authentication, IPAddress.Loopback.ToString(), IPAddress.Loopback.ToString(), BackendRegTestNode.Endpoint.Address.ToString(), Network.Main.DefaultPort, Network.TestNet.DefaultPort, BackendRegTestNode.Endpoint.Port);
 
-			var roundConfig = new CcjRoundConfig(Money.Coins(0.1m), Constants.OneDayConfirmationTarget, 0.7, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
+			var roundConfig = CreateRoundConfig(Money.Coins(0.1m), Constants.OneDayConfirmationTarget, 0.7, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
 
 			Backend.Global.Instance.InitializeAsync(config, roundConfig, rpc).GetAwaiter().GetResult();
 
@@ -49,6 +49,38 @@ namespace WalletWasabi.Tests.XunitConfiguration
 
 			var delayTask = Task.Delay(3000);
 			Task.WaitAny(delayTask, hostInitializationTask); // Wait for server to initialize (Without this OSX CI will fail)
+		}
+
+		public static CcjRoundConfig CreateRoundConfig(Money denomination, 
+												int confirmationTarget, 
+												double confirmationTargetReductionRate, 
+												decimal coordinatorFeePercent, 
+												int anonymitySet, 
+												long inputRegistrationTimeout, 
+												long connectionConfirmationTimeout, 
+												long outputRegistrationTimeout, 
+												long signingTimeout, 
+												int dosSeverity, 
+												long dosDurationHours, 
+												bool dosNoteBeforeBan, 
+												int maximumMixingLevelCount)
+		{
+			return new CcjRoundConfig() 
+			{
+				Denomination = denomination,
+				ConfirmationTarget = confirmationTarget,
+				ConfirmationTargetReductionRate = confirmationTargetReductionRate,
+				CoordinatorFeePercent = coordinatorFeePercent,
+				AnonymitySet = anonymitySet,
+				InputRegistrationTimeout = inputRegistrationTimeout,
+				ConnectionConfirmationTimeout = connectionConfirmationTimeout,
+				SigningTimeout = signingTimeout,
+				OutputRegistrationTimeout = outputRegistrationTimeout,
+				DosSeverity = dosSeverity,
+				DosDurationHours = dosDurationHours,
+				DosNoteBeforeBan = dosNoteBeforeBan,
+				MaximumMixingLevelCount = maximumMixingLevelCount,
+			};
 		}
 
 		public void Dispose()
