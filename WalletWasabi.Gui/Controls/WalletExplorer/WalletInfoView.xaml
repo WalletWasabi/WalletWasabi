@@ -15,12 +15,12 @@
           <StackPanel Orientation="Vertical" Spacing="2">
             <StackPanel IsVisible="{Binding !IsWatchOnly}" Orientation="Horizontal">
               <TextBlock Text="Extended Master Private Key: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedMasterPrivateKey}" Classes="selectableTextBlock" />
+              <controls:ExtendedTextBox Text="{Binding ExtendedMasterPrivateKey}" Foreground="Red" Classes="selectableTextBlock" />
             </StackPanel>
 
             <StackPanel IsVisible="{Binding !IsWatchOnly}" Orientation="Horizontal">
               <TextBlock Text="Extended Master zprv: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedMasterZprv}" Classes="selectableTextBlock" />
+              <controls:ExtendedTextBox Text="{Binding ExtendedMasterZprv}" Foreground="Red" Classes="selectableTextBlock" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal">
@@ -35,12 +35,12 @@
 
             <StackPanel IsVisible="{Binding !IsWatchOnly}" Orientation="Horizontal">
               <TextBlock Text="Extended Account Private Key: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedAccountPrivateKey}" Classes="selectableTextBlock" />
+              <controls:ExtendedTextBox Text="{Binding ExtendedAccountPrivateKey}" Foreground="Red" Classes="selectableTextBlock" />
             </StackPanel>
 
             <StackPanel IsVisible="{Binding !IsWatchOnly}" Orientation="Horizontal">
               <TextBlock Text="Extended Account zprv: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedAccountZprv}" Classes="selectableTextBlock" />
+              <controls:ExtendedTextBox Text="{Binding ExtendedAccountZprv}" Foreground="Red" Classes="selectableTextBlock" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal">
