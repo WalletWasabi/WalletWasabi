@@ -59,7 +59,7 @@
           </StackPanel>
           <StackPanel Orientation="Horizontal" Spacing="10">
             <Button Content="{Binding IsMax, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Clear:Max}" Command="{Binding MaxCommand}" VerticalAlignment="Top" Height="40" />
-            <controls:ExtendedTextBox Foreground="{Binding IsMax, Converter={StaticResource AmountForegroundConverter}}" IsReadOnly="{Binding IsMax}" Text="{Binding Amount}" ToolTip.Tip="{Binding AmountToolTip}" Watermark="{Binding AmountWatermarkText}" UseFloatingWatermark="True" MinWidth="124" MinHeight="46" />
+            <controls:ExtendedTextBox Foreground="{Binding Amount, Converter={StaticResource AmountForegroundConverter}}" IsReadOnly="{Binding IsMax}" Text="{Binding Amount}" ToolTip.Tip="{Binding AmountToolTip}" Watermark="{Binding AmountWatermarkText}" UseFloatingWatermark="True" MinWidth="124" MinHeight="46" />
             <StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="10">
                 <TextBlock Text="Fee:" />
