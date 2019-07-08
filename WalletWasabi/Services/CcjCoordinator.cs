@@ -158,7 +158,7 @@ namespace WalletWasabi.Services
 		public async Task ProcessTransactionAsync(Transaction tx)
 		{
 			// This should not be needed until we would only accept unconfirmed CJ outputs an no other unconf outs. But it'll be more bulletproof for future extensions.
-			// Turns out you shouldn't accept RBF at all never. (See below.)
+			// Turns out you should not accept RBF at all never. (See below.)
 
 			// https://github.com/zkSNACKs/WalletWasabi/issues/145
 			//   if a it spends a banned output AND it's not CJ output

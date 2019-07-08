@@ -1485,7 +1485,7 @@ namespace WalletWasabi.Tests
 					blockCount--;
 				}
 
-				// There shouldn't be any `confirmed` coin
+				// There should not be any `confirmed` coin
 				Assert.Empty(wallet.Coins.Where(x => x.Confirmed));
 
 				// Get some money, make it confirm.

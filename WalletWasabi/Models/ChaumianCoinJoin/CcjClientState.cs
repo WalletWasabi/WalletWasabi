@@ -275,7 +275,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						int bestMinAnonset = bestSet.Min(x => x.AnonymitySet);
 						var bestSum = Money.Satoshis(bestSet.Sum(x => x.Amount));
 
-						if (!bestSum.Almost(amountNeeded, Money.Coins(0.0001m)) // Otherwise it wouldn't generate change so consolidation would make no sense.
+						if (!bestSum.Almost(amountNeeded, Money.Coins(0.0001m)) // Otherwise it would not generate change so consolidation would make no sense.
 							&& bestMinAnonset > 1) // Red coins should never be merged.
 						{
 							IEnumerable<SmartCoin> coinsThoseCanBeConsolidated = coins

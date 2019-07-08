@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -59,7 +59,7 @@ namespace NSubsys
 						}
 						else
 						{
-							Console.WriteLine("NSubsys: Can't write changes!");
+							Console.WriteLine("NSubsys: Cannot write changes!");
 							Console.WriteLine("NSubsys: Conversion Failed...");
 						}
 

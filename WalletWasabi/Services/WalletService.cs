@@ -567,7 +567,7 @@ namespace WalletWasabi.Services
 				return false; // We don't care about non-witness transactions for other than mempool cleanup.
 			}
 
-			if (!justUpdate && !tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
+			if (!justUpdate && !tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they should not.
 			{
 				var doubleSpends = new List<SmartCoin>();
 				foreach (SmartCoin coin in Coins)

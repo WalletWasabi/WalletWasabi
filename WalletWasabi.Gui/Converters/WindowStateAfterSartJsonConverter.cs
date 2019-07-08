@@ -19,7 +19,7 @@ namespace WalletWasabi.Gui.Converters
 		{
 			try
 			{
-				// If minimized, then go with Maximized, because at start it shouldn't run with minimized.
+				// If minimized, then go with Maximized, because at start it should not run with minimized.
 				var value = reader.Value as string;
 
 				if (string.IsNullOrWhiteSpace(value))
@@ -29,7 +29,7 @@ namespace WalletWasabi.Gui.Converters
 
 				var windowStateString = value.Trim();
 
-				return windowStateString.StartsWith("norm", StringComparison.OrdinalIgnoreCase) 
+				return windowStateString.StartsWith("norm", StringComparison.OrdinalIgnoreCase)
 					? WindowState.Normal
 					: WindowState.Maximized;
 			}
