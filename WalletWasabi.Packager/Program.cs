@@ -576,7 +576,7 @@ namespace WalletWasabi.Packager
 					File.Copy(newExecutablePath, daemonExePath);
 
 					// Don't open console.
-					if (!NSubsysUtil.ProcessFile(newExecutablePath))
+					if (!NSubSysUtil.ProcessFile(newExecutablePath))
 					{
 						Console.WriteLine("ERROR: Could not remove console from exe.");
 					}
