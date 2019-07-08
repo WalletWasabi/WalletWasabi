@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -572,12 +572,12 @@ namespace Mono.Options
 			{
 				return false;
 			}
-			flag = m.Groups["flag"].Value;
-			name = m.Groups["name"].Value;
-			if (m.Groups["sep"].Success && m.Groups["value"].Success)
+			flag = m.Groups[nameof(flag)].Value;
+			name = m.Groups[nameof(name)].Value;
+			if (m.Groups[nameof(sep)].Success && m.Groups[nameof(value)].Success)
 			{
-				sep = m.Groups["sep"].Value;
-				value = m.Groups["value"].Value;
+				sep = m.Groups[nameof(sep)].Value;
+				value = m.Groups[nameof(value)].Value;
 			}
 			return true;
 		}
@@ -648,9 +648,8 @@ namespace Mono.Options
 			}
 			else if (c.OptionValues.Count > c.Option.MaxValueCount)
 			{
-				throw new OptionException(MessageLocalizer(string.Format(
-								"Error: Found {0} option values when expecting {1}.",
-								c.OptionValues.Count, c.Option.MaxValueCount)),
+				throw new OptionException(MessageLocalizer(
+						$"Error: Found {c.OptionValues.Count} option values when expecting {c.Option.MaxValueCount}."),
 						c.OptionName);
 			}
 		}

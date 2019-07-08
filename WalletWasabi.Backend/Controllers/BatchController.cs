@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
 using NBitcoin.RPC;
 using System;
@@ -54,9 +54,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			(Height bestHeight, IEnumerable<FilterModel> filters) = Global.Instance.IndexBuilderService.GetFilterLinesExcluding(knownHash, maxNumberOfFilters, out bool found);
 
-			var response = new SynchronizeResponse();
-			response.Filters = Enumerable.Empty<FilterModel>();
-			response.BestHeight = bestHeight;
+			var response = new SynchronizeResponse { Filters = Enumerable.Empty<FilterModel>(), BestHeight = bestHeight };
 
 			if (!found)
 			{

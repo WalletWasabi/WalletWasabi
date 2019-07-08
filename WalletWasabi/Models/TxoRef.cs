@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -39,7 +39,7 @@ namespace WalletWasabi.Models
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is TxoRef && this == (TxoRef)obj;
+		public override bool Equals(object obj) => obj is TxoRef txoRef && this == txoRef;
 
 		public bool Equals(TxoRef other) => this == other;
 

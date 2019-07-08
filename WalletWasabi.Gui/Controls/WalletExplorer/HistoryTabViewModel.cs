@@ -49,7 +49,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				await transaction.TryCopyTxIdToClipboardAsync();
 			});
 
-			SortCommand = ReactiveCommand.Create(() => RefreshOrdering());
+			SortCommand = ReactiveCommand.Create(RefreshOrdering);
 
 			DateSortDirection = SortOrder.Decreasing;
 
@@ -96,10 +96,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			try
 			{
-				var txRecordList = await Task.Run(() =>
-				{
-					return BuildTxRecordList();
-				});
+				var txRecordList = await Task.Run(BuildTxRecordList);
 
 				var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
 				Transactions?.Clear();
@@ -170,7 +167,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				else
 				{
-					dateTime = foundTransaction.FirstSeenIfMemPoolTime ?? DateTimeOffset.UtcNow;
+					dateTime = foundTransaction.FirstSeenIfMempoolTime ?? DateTimeOffset.UtcNow;
 				}
 				if (found != default) // if found
 				{
@@ -214,7 +211,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					else
 					{
-						dateTime = foundSpenderTransaction.FirstSeenIfMemPoolTime ?? DateTimeOffset.UtcNow;
+						dateTime = foundSpenderTransaction.FirstSeenIfMempoolTime ?? DateTimeOffset.UtcNow;
 					}
 
 					var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.transactionId == coin.SpenderTransactionId);

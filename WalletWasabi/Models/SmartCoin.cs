@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.ComponentModel;
@@ -233,7 +233,7 @@ namespace WalletWasabi.Models
 			get => _bannedUntilUtc;
 			set
 			{
-				// ToDo: IsBanned doesn't get notified when it gets unbanned.
+				// ToDo: IsBanned does not get notified when it gets unbanned.
 				if (_bannedUntilUtc != value)
 				{
 					_bannedUntilUtc = value;
@@ -244,7 +244,7 @@ namespace WalletWasabi.Models
 		}
 
 		/// <summary>
-		/// If the backend thinks it's spent, but Wasabi doesn't yet know.
+		/// If the backend thinks it's spent, but Wasabi does not yet know.
 		/// </summary>
 		[JsonProperty]
 		public bool SpentAccordingToBackend
@@ -377,7 +377,7 @@ namespace WalletWasabi.Models
 
 		private void SetConfirmed()
 		{
-			Confirmed = Height != Height.MemPool && Height != Height.Unknown;
+			Confirmed = Height != Height.Mempool && Height != Height.Unknown;
 		}
 
 		private void SetUnspent()
@@ -474,7 +474,7 @@ namespace WalletWasabi.Models
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is SmartCoin && this == (SmartCoin)obj;
+		public override bool Equals(object obj) => obj is SmartCoin coin && this == coin;
 
 		public bool Equals(SmartCoin other) => this == other;
 

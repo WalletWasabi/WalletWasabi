@@ -1,5 +1,6 @@
 using NBitcoin;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Text;
@@ -101,7 +102,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			AssertFilePathSet();
 
 			Denomination = Money.Coins(0.1m);
-			ConfirmationTarget = 144; // 1 day
+			ConfirmationTarget = Constants.OneDayConfirmationTarget; // 1 day
 			ConfirmationTargetReductionRate = 0.7;
 			CoordinatorFeePercent = 0.003m; // Coordinator fee percent is per anonymity set.
 			AnonymitySet = 100;
@@ -157,62 +158,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-			var config = JsonConvert.DeserializeObject<CcjRoundConfig>(jsonString);
+			var newConfig = JsonConvert.DeserializeObject<JObject>(jsonString);
+			var currentConfig = JObject.FromObject(this);
 
-			if (Denomination != config.Denomination)
-			{
-				return true;
-			}
-			if (ConfirmationTarget != config.ConfirmationTarget)
-			{
-				return true;
-			}
-			if (ConfirmationTargetReductionRate != config.ConfirmationTargetReductionRate)
-			{
-				return true;
-			}
-			if (CoordinatorFeePercent != config.CoordinatorFeePercent)
-			{
-				return true;
-			}
-			if (AnonymitySet != config.AnonymitySet)
-			{
-				return true;
-			}
-			if (InputRegistrationTimeout != config.InputRegistrationTimeout)
-			{
-				return true;
-			}
-			if (ConnectionConfirmationTimeout != config.ConnectionConfirmationTimeout)
-			{
-				return true;
-			}
-			if (OutputRegistrationTimeout != config.OutputRegistrationTimeout)
-			{
-				return true;
-			}
-			if (SigningTimeout != config.SigningTimeout)
-			{
-				return true;
-			}
-			if (DosSeverity != config.DosSeverity)
-			{
-				return true;
-			}
-			if (DosDurationHours != config.DosDurationHours)
-			{
-				return true;
-			}
-			if (DosNoteBeforeBan != config.DosNoteBeforeBan)
-			{
-				return true;
-			}
-			if (MaximumMixingLevelCount != config.MaximumMixingLevelCount)
-			{
-				return true;
-			}
-
-			return false;
+			return !JToken.DeepEquals(newConfig, currentConfig);
 		}
 
 		/// <inheritdoc />

@@ -170,7 +170,7 @@ namespace WalletWasabi.Backend.Controllers
 						}
 						if (Coordinator.AnyRunningRoundContainsInput(inputProof.Input.ToOutPoint(), out List<Alice> tnr))
 						{
-							if (tr.Union(tnr).Count() > tr.Count())
+							if (tr.Union(tnr).Count() > tr.Count)
 							{
 								return BadRequest("Input is already registered in another round.");
 							}
@@ -183,8 +183,8 @@ namespace WalletWasabi.Backend.Controllers
 							return BadRequest($"Input is banned from participation for {(int)bannedElem.BannedRemaining.TotalMinutes} minutes: {inputProof.Input.Index}:{inputProof.Input.TransactionId}.");
 						}
 
-						var txoutResponseTask = batch.GetTxOutAsync(inputProof.Input.TransactionId, (int)inputProof.Input.Index, includeMempool: true);
-						getTxOutResponses.Add((inputProof, txoutResponseTask));
+						var txOutResponseTask = batch.GetTxOutAsync(inputProof.Input.TransactionId, (int)inputProof.Input.Index, includeMempool: true);
+						getTxOutResponses.Add((inputProof, txOutResponseTask));
 					}
 
 					// Perform all RPC request at once
@@ -242,22 +242,22 @@ namespace WalletWasabi.Backend.Controllers
 							return BadRequest("Provided input must be witness_v0_keyhash.");
 						}
 
-						TxOut txout = getTxOutResponse.TxOut;
+						TxOut txOut = getTxOutResponse.TxOut;
 
-						var address = (BitcoinWitPubKeyAddress)txout.ScriptPubKey.GetDestinationAddress(Network);
+						var address = (BitcoinWitPubKeyAddress)txOut.ScriptPubKey.GetDestinationAddress(Network);
 						// Check if proofs are valid.
 						if (!address.VerifyMessage(blindedOutputScriptsHash, inputProof.Proof))
 						{
 							return BadRequest("Provided proof is invalid.");
 						}
 
-						inputs.Add(new Coin(inputProof.Input.ToOutPoint(), txout));
+						inputs.Add(new Coin(inputProof.Input.ToOutPoint(), txOut));
 					}
 
 					var acceptedBlindedOutputScripts = new List<uint256>();
 
 					// Calculate expected networkfee to pay after base denomination.
-					int inputCount = inputs.Count();
+					int inputCount = inputs.Count;
 					Money networkFeeToPayAfterBaseDenomination = (inputCount * round.FeePerInputs) + (2 * round.FeePerOutputs);
 
 					// Check if inputs have enough coins.

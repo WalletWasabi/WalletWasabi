@@ -8,7 +8,7 @@
              xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
   <UserControl.Resources>
     <converters:AmountForegroundConverter x:Key="AmountForegroundConverter" />
-    <converters:MaxClearBoolStringConverter x:Key="MaxClearBoolStringConverter" />
+    <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
   </UserControl.Resources>
   <i:Interaction.Behaviors>
     <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedCoin}" />
@@ -21,6 +21,11 @@
   </UserControl.Styles>
 
   <DockPanel LastChildFill="True">
+    <DockPanel.Styles>
+      <Style Selector="ListBoxItem">
+        <Setter Property="Padding" Value="0 0 5 0" />
+      </Style>
+    </DockPanel.Styles>
     <Grid Classes="content">
       <DockPanel LastChildFill="True" Margin="20">
         <StackPanel DockPanel.Dock="Bottom" Margin="0 10" Spacing="10" HorizontalAlignment="Left">
@@ -53,7 +58,7 @@
             </ItemsControl>
           </StackPanel>
           <StackPanel Orientation="Horizontal" Spacing="10">
-            <Button Content="{Binding IsMax, Converter={StaticResource MaxClearBoolStringConverter}}" Command="{Binding MaxCommand}" VerticalAlignment="Top" Height="40" />
+            <Button Content="{Binding IsMax, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Clear:Max}" Command="{Binding MaxCommand}" VerticalAlignment="Top" Height="40" />
             <controls:ExtendedTextBox Foreground="{Binding IsMax, Converter={StaticResource AmountForegroundConverter}}" IsReadOnly="{Binding IsMax}" Text="{Binding Amount}" ToolTip.Tip="{Binding AmountToolTip}" Watermark="{Binding AmountWatermarkText}" UseFloatingWatermark="True" MinWidth="124" MinHeight="46" />
             <StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="10">

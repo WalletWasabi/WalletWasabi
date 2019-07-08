@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Gma.QrCodeNet.Encoding.ReedSolomon
 {
@@ -39,7 +39,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		}
 
 		/// <summary>
-		/// Build Generator if we can not find specific degree of generator from cache
+		/// Build Generator if we cannot find specific degree of generator from cache
 		/// </summary>
 		private void BuildGenerator(int degree)
 		{

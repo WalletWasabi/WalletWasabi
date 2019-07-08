@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -52,7 +52,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is MixingLevel && this == (MixingLevel)obj;
+		public override bool Equals(object obj) => obj is MixingLevel level && this == level;
 
 		public bool Equals(MixingLevel other) => this == other;
 

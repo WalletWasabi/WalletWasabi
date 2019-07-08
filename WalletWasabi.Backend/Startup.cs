@@ -85,7 +85,7 @@ namespace WalletWasabi.Backend
 
 		private void OnShutdown()
 		{
-			CleanupAsync().GetAwaiter().GetResult(); // This is needed, if async function is regisered then it won't wait until it finishes
+			CleanupAsync().GetAwaiter().GetResult(); // This is needed, if async function is registered then it won't wait until it finishes
 		}
 
 		private async Task CleanupAsync()

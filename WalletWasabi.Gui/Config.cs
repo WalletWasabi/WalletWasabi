@@ -1,5 +1,6 @@
 using NBitcoin;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Net;
@@ -421,35 +422,10 @@ namespace WalletWasabi.Gui
 			}
 
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-			var config = JsonConvert.DeserializeObject<Config>(jsonString);
+			var newConfig = JsonConvert.DeserializeObject<JObject>(jsonString);
+			var currentConfig = JObject.FromObject(this);
 
-			if (Network == config.Network
-				&& MainNetBackendUriV3.Equals(config.MainNetBackendUriV3, StringComparison.OrdinalIgnoreCase)
-				&& TestNetBackendUriV3.Equals(config.TestNetBackendUriV3, StringComparison.OrdinalIgnoreCase)
-				&& MainNetFallbackBackendUri.Equals(config.MainNetFallbackBackendUri, StringComparison.OrdinalIgnoreCase)
-				&& TestNetFallbackBackendUri.Equals(config.TestNetFallbackBackendUri, StringComparison.OrdinalIgnoreCase)
-				&& RegTestBackendUriV3.Equals(config.RegTestBackendUriV3, StringComparison.OrdinalIgnoreCase)
-				&& UseTor == config.UseTor
-				&& TorHost.Equals(config.TorHost, StringComparison.Ordinal)
-				&& TorSocks5Port == config.TorSocks5Port
-				&& MainNetBitcoinCoreHost.Equals(config.MainNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase)
-				&& TestNetBitcoinCoreHost.Equals(config.TestNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase)
-				&& RegTestBitcoinCoreHost.Equals(config.RegTestBitcoinCoreHost, StringComparison.OrdinalIgnoreCase)
-				&& MainNetBitcoinCorePort == config.MainNetBitcoinCorePort
-				&& TestNetBitcoinCorePort == config.TestNetBitcoinCorePort
-				&& RegTestBitcoinCorePort == config.RegTestBitcoinCorePort
-				&& MixUntilAnonymitySet == config.MixUntilAnonymitySet
-				&& PrivacyLevelSome == config.PrivacyLevelSome
-				&& PrivacyLevelFine == config.PrivacyLevelFine
-				&& PrivacyLevelStrong == config.PrivacyLevelStrong
-				&& DustThreshold == config.DustThreshold)
-			{
-				return false;
-			}
-			else
-			{
-				return true;
-			}
+			return !JToken.DeepEquals(newConfig, currentConfig);
 		}
 
 		/// <inheritdoc />

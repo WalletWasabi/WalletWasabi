@@ -22,7 +22,7 @@ namespace WalletWasabi.Backend
 		public static void CreateDownloadTextWithVersionHtml()
 		{
 			var filePath = CreateFilePath("download-text-with-version.html");
-			var content = HtmlStartLine + $"<h1 class=\"text-center\">Download Wasabi Wallet {Helpers.Constants.ClientVersion.ToString()}</h1>";
+			var content = HtmlStartLine + $"<h1 class=\"text-center\">Download Wasabi Wallet {Helpers.Constants.ClientVersion}</h1>";
 
 			File.WriteAllText(filePath, content);
 		}

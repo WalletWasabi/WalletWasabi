@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Gma.QrCodeNet.Encoding.EncodingRegion
 {
@@ -8,8 +8,8 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 	/// <remarks>ISO/IEC 18004:2000 Chapter 8.10 Page 54</remarks>
 	internal static class VersionInformation
 	{
-		private const int S_VIRectangleHeight = 3;
-		private const int S_VIRectangleWidth = 6;
+		private const int VIRectangleHeight = 3;
+		private const int VIRectangleWidth = 6;
 
 		/// <summary>
 		/// Embed version information to Matrix
@@ -28,13 +28,13 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 
 			int matrixWidth = tsMatrix.Width;
 			//1 cell between version info and position stencil
-			int shiftLength = QRCodeConstantVariable.PositionStencilWidth + S_VIRectangleHeight + 1;
+			int shiftLength = QRCodeConstantVariable.PositionStencilWidth + VIRectangleHeight + 1;
 			//Reverse order input
-			int viIndex = S_LengthDataBits + S_LengthECBits - 1;
+			int viIndex = LengthDataBits + LengthECBits - 1;
 
-			for (int viWidth = 0; viWidth < S_VIRectangleWidth; viWidth++)
+			for (int viWidth = 0; viWidth < VIRectangleWidth; viWidth++)
 			{
-				for (int viHeight = 0; viHeight < S_VIRectangleHeight; viHeight++)
+				for (int viHeight = 0; viHeight < VIRectangleHeight; viHeight++)
 				{
 					bool bit = versionInfo[viIndex];
 					viIndex--;
@@ -46,19 +46,19 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 			}
 		}
 
-		private const int S_LengthDataBits = 6;
-		private const int S_LengthECBits = 12;
-		private const int S_VersionBCHPoly = 0x1f25;
+		private const int LengthDataBits = 6;
+		private const int LengthECBits = 12;
+		private const int VersionBCHPoly = 0x1f25;
 
 		private static BitList VersionInfoBitList(int version)
 		{
 			BitList result = new BitList
 			{
-				{ version, S_LengthDataBits },
-				{ BCHCalculator.CalculateBCH(version, S_VersionBCHPoly), S_LengthECBits }
+				{ version, LengthDataBits },
+				{ BCHCalculator.CalculateBCH(version, VersionBCHPoly), LengthECBits }
 			};
 
-			if (result.Count != (S_LengthECBits + S_LengthDataBits))
+			if (result.Count != (LengthECBits + LengthDataBits))
 			{
 				throw new Exception("Version Info creation error. Result is not 18 bits");
 			}

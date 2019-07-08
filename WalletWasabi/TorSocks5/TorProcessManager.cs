@@ -296,8 +296,8 @@ namespace WalletWasabi.TorSocks5
 									}
 									else
 									{
-										Logger.LogInfo<TorProcessManager>($"Tor didn't work properly for {(int)torMisbehavedFor.TotalSeconds} seconds. Maybe it crashed. Attempting to start it...");
-										Start(true, dataDirToStartWith); // Try starting Tor, if doesn't work it'll be another issue.
+										Logger.LogInfo<TorProcessManager>($"Tor did not work properly for {(int)torMisbehavedFor.TotalSeconds} seconds. Maybe it crashed. Attempting to start it...");
+										Start(true, dataDirToStartWith); // Try starting Tor, if it does not work it'll be another issue.
 										await Task.Delay(14000, Stop.Token).ConfigureAwait(false);
 									}
 								}

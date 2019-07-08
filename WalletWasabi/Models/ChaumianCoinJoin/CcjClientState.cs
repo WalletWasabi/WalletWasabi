@@ -405,10 +405,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			IsInErrorState = false;
 			lock (StateLock)
 			{
-				// Find the rounds those aren't running anymore
+				// Find the rounds those are not running anymore
 				//	Put their coins back to the waiting list
 				//	Remove them
-				// Find the rounds those needs to be updated
+				// Find the rounds those need to be updated
 				//	Update them
 
 				IEnumerable<long> roundsToRemove = Rounds.Select(x => x.State.RoundId).Where(y => !allRunningRoundsStates.Select(z => z.RoundId).Contains(y));
