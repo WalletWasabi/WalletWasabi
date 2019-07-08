@@ -283,24 +283,7 @@ namespace WalletWasabi.Gui.Tabs
 						config.PrivacyLevelFine = finePrivacyLevel;
 						config.PrivacyLevelStrong = strongPrivacyLevel;
 						config.DustThreshold = Money.Coins(dustThreshold.Value);
-
-						switch (network.Name)
-						{
-							case "Main":
-								config.MainNetBitcoinCoreHost = localNodeHost;
-								config.MainNetBitcoinCorePort = int.Parse(localNodePort);
-								break;
-
-							case "TestNet":
-								config.TestNetBitcoinCoreHost = localNodeHost;
-								config.TestNetBitcoinCorePort = int.Parse(localNodePort);
-								break;
-
-							case "RegTest":
-								config.RegTestBitcoinCoreHost = localNodeHost;
-								config.RegTestBitcoinCorePort = int.Parse(localNodePort);
-								break;
-						}
+						config.SetEndpoint(localNodeHost, int.TryParse(localNodePort, out var p) ? new int?(p) : null);
 
 						await config.ToFileAsync();
 					}
