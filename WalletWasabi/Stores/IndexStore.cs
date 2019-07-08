@@ -298,7 +298,7 @@ namespace WalletWasabi.Stores
 				}
 				else
 				{
-					Interlocked.Exchange(ref _throttleId, 0); // So to notified the currently throttled threads that they don't have to run.
+					Interlocked.Exchange(ref _throttleId, 0); // So to notify the currently throttled threads that they don't have to run.
 				}
 
 				using (await MatureIndexFileManager.Mutex.LockAsync(cancel))
