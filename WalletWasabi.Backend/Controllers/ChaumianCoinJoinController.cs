@@ -34,9 +34,9 @@ namespace WalletWasabi.Backend.Controllers
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class ChaumianCoinJoinController : Controller
 	{
-		public ChaumianCoinJoinController(Global backendGlobal)
+		public ChaumianCoinJoinController(Global global)
 		{
-			Global = backendGlobal;
+			Global = global;
 		}
 		public Global Global { get; }
 		private RPCClient RpcClient => Global.RpcClient;

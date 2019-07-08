@@ -28,10 +28,10 @@ namespace WalletWasabi.Backend.Controllers
 
 		private Network Network => Global.Config.Network;
 
-		public BlockchainController(IMemoryCache memoryCache, Global backendGlobal)
+		public BlockchainController(IMemoryCache memoryCache, Global global)
 		{
 			Cache = memoryCache;
-			Global = backendGlobal;
+			Global = global;
 		}
 
 		/// <summary>

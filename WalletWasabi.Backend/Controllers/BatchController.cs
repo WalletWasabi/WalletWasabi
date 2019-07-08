@@ -25,13 +25,13 @@ namespace WalletWasabi.Backend.Controllers
 		public HomeController HomeController { get; }
 		public OffchainController OffchainController { get; }
 
-		public BatchController(BlockchainController blockchainController, ChaumianCoinJoinController chaumianCoinJoinController, HomeController homeController, OffchainController offchainController, Global backendGlobal)
+		public BatchController(BlockchainController blockchainController, ChaumianCoinJoinController chaumianCoinJoinController, HomeController homeController, OffchainController offchainController, Global global)
 		{
 			BlockchainController = blockchainController;
 			ChaumianCoinJoinController = chaumianCoinJoinController;
 			HomeController = homeController;
 			OffchainController = offchainController;
-			Global = backendGlobal;
+			Global = global;
 		}
 
 		[HttpGet("synchronize")]
