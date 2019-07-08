@@ -121,7 +121,7 @@ namespace WalletWasabi.TorSocks5
 		/// https://www.torproject.org/docs/tor-manual.html.en
 		/// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n35
 		/// </summary>
-		/// <param name="identity">Isolates streams by identity. If identity is empty string, it won't isolate stream.</param>
+		/// <param name="identity">Isolates streams by identity. If identity is empty string, it will not isolate stream.</param>
 		internal async Task HandshakeAsync(string identity)
 		{
 			if (TorSocks5EndPoint is null)

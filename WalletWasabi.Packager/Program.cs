@@ -22,7 +22,7 @@ namespace WalletWasabi.Packager
 		// 0. Dump Client version (or else wrong .msi will be created) - Helpers.Constants.ClientVersion
 		// 1. Publish with Packager.
 		// 2. Build WIX project with Release and x64 configuration.
-		// 3. Sign with Packager, set restore true so the password won't be kept.
+		// 3. Sign with Packager, set restore true so the password will not be kept.
 
 		public const bool DoPublish = true;
 		public const bool DoSign = false;

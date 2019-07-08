@@ -421,7 +421,7 @@ namespace WalletWasabi.Tests
 			/* The next test is commented out because on mac and on linux File.Open does not lock the file
 			 * it can be still written by the ioman1.WriteAllLinesAsync(). Tried with FileShare.None FileShare.Delete
 			 * FileStream.Lock none of them are working or caused not supported on this platform exception.
-			 * So there is no OP system way to garantee that the file won't be written during another write operation.
+			 * So there is no OP system way to garantee that the file will not be written during another write operation.
 			 * For example git is using lock files to solve this problem. We are using system wide mutexes.
 			 * For now there is no other way to do this. Some useful links :
 			 * https://stackoverflow.com/questions/2751734/how-do-filesystems-handle-concurrent-read-write

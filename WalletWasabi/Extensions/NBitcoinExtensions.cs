@@ -125,7 +125,7 @@ namespace NBitcoin
 		public static int GetAnonymitySet(this Transaction me, uint outputIndex) => GetAnonymitySet(me, (int)outputIndex);
 
 		/// <summary>
-		/// Careful, if it's in a legacy block then this won't work.
+		/// Careful, if it's in a legacy block then this will not work.
 		/// </summary>
 		public static bool HasWitScript(this TxIn me)
 		{

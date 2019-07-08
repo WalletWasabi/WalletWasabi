@@ -377,7 +377,7 @@ namespace WalletWasabi.Services
 				Money onePercentOfDenomination = baseDenomination.Percentage(1m); // If the change is less than about 1% of the newDenomination then add it to the coordinator fee.
 				Money minimumChangeAmount = Math.Max(minimumOutputAmount, onePercentOfDenomination);
 
-				minAmountBack -= minimumChangeAmount; // Minus coordinator protections (so it won't create bad coinjoins.)
+				minAmountBack -= minimumChangeAmount; // Minus coordinator protections (so it will not create bad coinjoins.)
 			}
 
 			if (amountBack < minAmountBack && !amountBack.Almost(minAmountBack, Money.Satoshis(1000))) // Just in case. Rounding error maybe?

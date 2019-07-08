@@ -437,7 +437,7 @@ namespace WalletWasabi.Gui
 				token.ThrowIfCancellationRequested();
 				WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
 			}
-			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
+			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose will not make it null.
 		}
 
 		public string GetWalletFullPath(string walletName)

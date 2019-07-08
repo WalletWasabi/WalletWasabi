@@ -505,7 +505,7 @@ namespace WalletWasabi.Models
 
 					//
 					// If the number of elements guarded by this lock has exceeded the budget, resize the bucket table.
-					// It is also possible that GrowTable will increase the budget but won't resize the bucket table.
+					// It is also possible that GrowTable will increase the budget but will not resize the bucket table.
 					// That happens if the bucket table is found to be poorly utilized due to a bad hash function.
 					//
 					if (tables.CountPerLock[lockNo] > _budget)

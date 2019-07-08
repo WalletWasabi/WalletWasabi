@@ -2275,7 +2275,7 @@ namespace WalletWasabi.Tests
 					Assert.NotEqual(aliceClient2.UniqueId, aliceClient1.UniqueId);
 
 					var connConfResp = await aliceClient1.PostConfirmationAsync();
-					Assert.Equal(connConfResp.currentPhase, (await aliceClient1.PostConfirmationAsync()).currentPhase); // Make sure it won't throw error for double confirming.
+					Assert.Equal(connConfResp.currentPhase, (await aliceClient1.PostConfirmationAsync()).currentPhase); // Make sure it will not throw error for double confirming.
 					var connConfResp2 = await aliceClient2.PostConfirmationAsync();
 
 					Assert.Equal(connConfResp.currentPhase, connConfResp2.currentPhase);
@@ -2316,7 +2316,7 @@ namespace WalletWasabi.Tests
 
 					Assert.Contains(outputAddress1.ScriptPubKey, unsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey));
 					Assert.Contains(outputAddress2.ScriptPubKey, unsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey));
-					Assert.True(2 == unsignedCoinJoin.Outputs.Count); // Because the two input is equal, so change addresses won't be used, nor coordinator fee will be taken.
+					Assert.True(2 == unsignedCoinJoin.Outputs.Count); // Because the two input is equal, so change addresses will not be used, nor coordinator fee will be taken.
 					Assert.Contains(input1, unsignedCoinJoin.Inputs.Select(x => x.PrevOut));
 					Assert.Contains(input2, unsignedCoinJoin.Inputs.Select(x => x.PrevOut));
 					Assert.True(2 == unsignedCoinJoin.Inputs.Count);
