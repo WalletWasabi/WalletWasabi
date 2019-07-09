@@ -36,7 +36,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 				UserPassword = BackendRegTestNode.Creds
 			}.ToString();
 			var global = new Backend.Global();
-			var config = new Config(BackendNodeBuilder.Network, connectionString, IPAddress.Loopback.ToString(), IPAddress.Loopback.ToString(), BackendRegTestNode.Endpoint.Address.ToString(), Network.Main.DefaultPort, Network.TestNet.DefaultPort, BackendRegTestNode.Endpoint.Port, false);
+			var config = new Config(BackendNodeBuilder.Network, connectionString, IPAddress.Loopback.ToString(), IPAddress.Loopback.ToString(), BackendRegTestNode.Endpoint.Address.ToString(), Network.Main.DefaultPort, Network.TestNet.DefaultPort, BackendRegTestNode.Endpoint.Port);
 			var configFilePath = Path.Combine(global.DataDir, "Config.json");
 			config.SetFilePath(configFilePath);
 			config.ToFileAsync().GetAwaiter().GetResult();

@@ -62,14 +62,14 @@ namespace WalletWasabi.Backend
 			await Coordinator.MakeSureTwoRunningRoundsAsync();
 			Logger.LogInfo<CcjCoordinator>("Chaumian CoinJoin Coordinator is successfully initialized and started two new rounds.");
 
-			if (config.ListenRoundConfigFileChanges && roundConfig.FilePath != null)
+			if (roundConfig.FilePath != null)
 			{
 				RoundConfigWatcher = new ConfigWatcher(RoundConfig);
-				RoundConfigWatcher.Start(TimeSpan.FromSeconds(10), () =>
+				RoundConfigWatcher.Start(TimeSpan.FromSeconds(10), async () =>
 				{
 					try
 					{
-						Coordinator.UpdateRoundConfig(RoundConfig);
+						await Coordinator.RoundConfig.UpdateOrDefaultAsync(RoundConfig, toFile: false);
 
 						Coordinator.AbortAllRoundsInInputRegistration(nameof(ConfigWatcher), $"{nameof(RoundConfig)} has changed.");
 					}
@@ -77,8 +77,6 @@ namespace WalletWasabi.Backend
 					{
 						Logger.LogDebug<ConfigWatcher>(ex);
 					}
-
-					return Task.CompletedTask;
 				}); // Every 10 seconds check the config
 				Logger.LogInfo<ConfigWatcher>($"{nameof(RoundConfigWatcher)} is successfully started.");
 			}

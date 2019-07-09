@@ -45,10 +45,6 @@ namespace WalletWasabi.Backend
 		[JsonProperty(PropertyName = "RegTestBitcoinCorePort")]
 		public int? RegTestBitcoinCorePort { get; internal set; }
 
-		[DefaultValue(true)]
-		[JsonProperty(PropertyName = "ListenRoundConfigFileChanges", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public bool ListenRoundConfigFileChanges { get; set; }
-
 		private EndPoint _bitcoinCoreEndPoint;
 
 		public EndPoint GetBitcoinCoreEndPoint()
@@ -106,8 +102,7 @@ namespace WalletWasabi.Backend
 			string regTestBitcoinCoreHost,
 			int? mainNetBitcoinCorePort,
 			int? testNetBitcoinCorePort,
-			int? regTestBitcoinCorePort,
-			bool? listenRoundConfigFileChanges)
+			int? regTestBitcoinCorePort)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			BitcoinRpcConnectionString = Guard.NotNullOrEmptyOrWhitespace(nameof(bitcoinRpcConnectionString), bitcoinRpcConnectionString);
@@ -118,7 +113,6 @@ namespace WalletWasabi.Backend
 			MainNetBitcoinCorePort = Guard.NotNull(nameof(mainNetBitcoinCorePort), mainNetBitcoinCorePort);
 			TestNetBitcoinCorePort = Guard.NotNull(nameof(testNetBitcoinCorePort), testNetBitcoinCorePort);
 			RegTestBitcoinCorePort = Guard.NotNull(nameof(regTestBitcoinCorePort), regTestBitcoinCorePort);
-			ListenRoundConfigFileChanges = listenRoundConfigFileChanges ?? true;
 		}
 
 		/// <inheritdoc />
@@ -146,7 +140,6 @@ namespace WalletWasabi.Backend
 			MainNetBitcoinCorePort = Network.Main.DefaultPort;
 			TestNetBitcoinCorePort = Network.TestNet.DefaultPort;
 			RegTestBitcoinCorePort = Network.RegTest.DefaultPort;
-			ListenRoundConfigFileChanges = true;
 			if (!File.Exists(FilePath))
 			{
 				Logger.LogInfo<Config>($"{nameof(Config)} file did not exist. Created at path: `{FilePath}`.");
@@ -165,7 +158,6 @@ namespace WalletWasabi.Backend
 				MainNetBitcoinCorePort = config.MainNetBitcoinCorePort ?? MainNetBitcoinCorePort;
 				TestNetBitcoinCorePort = config.TestNetBitcoinCorePort ?? TestNetBitcoinCorePort;
 				RegTestBitcoinCorePort = config.RegTestBitcoinCorePort ?? RegTestBitcoinCorePort;
-				ListenRoundConfigFileChanges = config.ListenRoundConfigFileChanges;
 			}
 
 			await ToFileAsync();
