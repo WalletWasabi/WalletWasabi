@@ -83,7 +83,7 @@ namespace WalletWasabi.Gui.Behaviors
 
 			Disposables = new CompositeDisposable
 			{
-				AssociatedObject.GetObservable(TextBox.IsFocusedProperty).Subscribe(focused =>
+				AssociatedObject.GetObservable(InputElement.IsFocusedProperty).Subscribe(focused =>
 				{
 					if (!focused)
 					{
@@ -93,7 +93,7 @@ namespace WalletWasabi.Gui.Behaviors
 			};
 
 			Disposables.Add(
-				AssociatedObject.GetObservable(TextBox.PointerReleasedEvent).Subscribe(async pointer =>
+				AssociatedObject.GetObservable(InputElement.PointerReleasedEvent).Subscribe(async pointer =>
 				{
 					var uiConfig = Application.Current.Resources[Global.UiConfigResourceKey] as UiConfig;
 					if (!(uiConfig.Autocopy is true))
@@ -129,7 +129,7 @@ namespace WalletWasabi.Gui.Behaviors
 			);
 
 			Disposables.Add(
-				AssociatedObject.GetObservable(TextBox.PointerEnterEvent).Subscribe(async pointerEnter =>
+				AssociatedObject.GetObservable(InputElement.PointerEnterEvent).Subscribe(async pointerEnter =>
 				{
 					var uiConfig = Application.Current.Resources[Global.UiConfigResourceKey] as UiConfig;
 					if (!(uiConfig.Autocopy is true))
