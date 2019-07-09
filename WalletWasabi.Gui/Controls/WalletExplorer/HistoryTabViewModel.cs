@@ -101,7 +101,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
 				Transactions?.Clear();
 
-				var trs = txRecordList.Select(txr => new TransactionInfo {
+				var trs = txRecordList.Select(txr => new TransactionInfo
+				{
 					DateTime = txr.dateTime.ToLocalTime(),
 					Confirmed = txr.height.Type == HeightType.Chain,
 					AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",

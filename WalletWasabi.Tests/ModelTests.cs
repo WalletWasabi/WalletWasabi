@@ -197,7 +197,8 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public void InputsResponseSerialization()
 		{
-			var resp = new InputsResponse {
+			var resp = new InputsResponse
+			{
 				UniqueId = Guid.NewGuid(),
 				RoundId = 1,
 			};

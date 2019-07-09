@@ -15,22 +15,26 @@ namespace WalletWasabi.Helpers
 
 		public const int MaxPasswordLength = 150;
 
-		public static readonly NodeRequirement NodeRequirements = new NodeRequirement {
+		public static readonly NodeRequirement NodeRequirements = new NodeRequirement
+		{
 			RequiredServices = NodeServices.NODE_WITNESS,
 			MinVersion = ProtocolVersion_WITNESS_VERSION,
 			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true, SupportMempoolQuery = true }
 		};
 
-		public static readonly NodeRequirement LocalNodeRequirements = new NodeRequirement {
+		public static readonly NodeRequirement LocalNodeRequirements = new NodeRequirement
+		{
 			RequiredServices = NodeServices.NODE_WITNESS,
 			MinVersion = ProtocolVersion_WITNESS_VERSION,
 			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true }
 		};
 
-		public static readonly NodeRequirement LocalBackendNodeRequirements = new NodeRequirement {
+		public static readonly NodeRequirement LocalBackendNodeRequirements = new NodeRequirement
+		{
 			RequiredServices = NodeServices.NODE_WITNESS,
 			MinVersion = ProtocolVersion_WITNESS_VERSION,
-			MinProtocolCapabilities = new ProtocolCapabilities {
+			MinProtocolCapabilities = new ProtocolCapabilities
+			{
 				SupportGetBlock = true,
 				SupportWitness = true,
 				SupportMempoolQuery = true,

@@ -29,7 +29,7 @@ namespace WalletWasabi.Gui.Converters
 
 				var windowStateString = value.Trim();
 
-				return windowStateString.StartsWith("norm", StringComparison.OrdinalIgnoreCase) 
+				return windowStateString.StartsWith("norm", StringComparison.OrdinalIgnoreCase)
 					? WindowState.Normal
 					: WindowState.Maximized;
 			}
