@@ -79,7 +79,7 @@ namespace Nito.AsyncEx
 			Mutex = null;
 			MutexThread = null;
 
-			// If we already have an asynclock with this fullname then just use it and don't create a new one.
+			// If we already have an asynclock with this fullname then just use it and do not create a new one.
 			lock (AsyncMutexesLock)
 			{
 				if (AsyncMutexes.TryGetValue(FullName, out AsyncMutex asyncMutex))

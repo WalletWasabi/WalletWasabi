@@ -72,7 +72,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			if (Primitive != other.Primitive)
 			{
-				throw new ArgumentException("Polynomial cannot perform AddOrSubtract as they don't have same Primitive for GaloisField256");
+				throw new ArgumentException("Polynomial cannot perform AddOrSubtract as they do not have same Primitive for GaloisField256");
 			}
 			if (IsMonomialZero)
 			{
@@ -125,7 +125,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			if (Primitive != other.Primitive)
 			{
-				throw new ArgumentException("Polynomial cannot perform Multiply as they don't have same Primitive for GaloisField256");
+				throw new ArgumentException("Polynomial cannot perform Multiply as they do not have same Primitive for GaloisField256");
 			}
 			if (IsMonomialZero || other.IsMonomialZero)
 			{
@@ -184,7 +184,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			if (Primitive != other.Primitive)
 			{
-				throw new ArgumentException("Polynomial cannot perform Devide as they don't have same Primitive for GaloisField256");
+				throw new ArgumentException("Polynomial cannot perform Devide as they do not have same Primitive for GaloisField256");
 			}
 			if (other.IsMonomialZero)
 			{

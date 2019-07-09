@@ -147,7 +147,7 @@ namespace WalletWasabi.Services
 				var allLines = BannedUtxos.Select(x => $"{x.Value.TimeOfBan.ToString(CultureInfo.InvariantCulture)}:{x.Value.Severity}:{x.Key.N}:{x.Key.Hash}:{x.Value.IsNoted}:{x.Value.BannedForRound}");
 				await File.WriteAllLinesAsync(BannedUtxosFilePath, allLines);
 			}
-			else if (lines.Count != 0) // If we don't have to update the whole thing, we must check if we added a line and so only append.
+			else if (lines.Count != 0) // If we do not have to update the whole thing, we must check if we added a line and so only append.
 			{
 				await File.AppendAllLinesAsync(BannedUtxosFilePath, lines);
 			}

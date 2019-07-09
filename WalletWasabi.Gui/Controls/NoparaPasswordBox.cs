@@ -31,7 +31,7 @@ namespace WalletWasabi.Gui.Controls
 			"说太多灯泡笑话的人，很快就会心力交瘁。", // Man who tell one too many light bulb jokes soon burn out!
 			"汤面火锅", //Noodle soup, hot pot
 			"你是我见过的最可爱的僵尸。", //You’re the cutest zombie I’ve ever seen.
-			"永不放弃。", //Never don't give up.
+			"永不放弃。", //Never do not give up.
 			"如果你是只宠物小精灵，我就选你。" //If you were a Pokemon, I'd choose you.
 		};
 
@@ -314,7 +314,7 @@ namespace WalletWasabi.Gui.Controls
 				SelectionStart = SelectionEnd = CaretIndex = 0;
 				_supressChanges = false;
 			}
-			if (isPaste && Sb.Length + text.Length > Constants.MaxPasswordLength) // Don't allow pastes that would be too long
+			if (isPaste && Sb.Length + text.Length > Constants.MaxPasswordLength) // Do not allow pastes that would be too long
 			{
 				handledCorrectly = false;
 			}

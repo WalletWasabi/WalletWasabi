@@ -214,18 +214,18 @@ namespace WalletWasabi.Services
 					{
 						CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(DelayedRoundRegistration.AliceClient.RoundId);
 						roundRegistered.Registration = DelayedRoundRegistration;
-						DelayedRoundRegistration = null; // Don't dispose.
+						DelayedRoundRegistration = null; // Do not dispose.
 					}
 
 					await DequeueSpentCoinsFromMixNoLockAsync();
 
 					State.UpdateRoundsByStates(ExposedLinks, states.ToArray());
 
-					// If we don't have enough coin queued to register a round, then dequeue all.
+					// If we do not have enough coin queued to register a round, then dequeue all.
 					CcjClientRound registrableRound = State.GetRegistrableRoundOrDefault();
 					if (registrableRound != default)
 					{
-						// If the coordinator increases fees, don't register. Let the users register manually again.
+						// If the coordinator increases fees, do not register. Let the users register manually again.
 						bool dequeueBecauseCoordinatorFeeChanged = false;
 						if (CoordinatorFeepercentToCheck != default)
 						{

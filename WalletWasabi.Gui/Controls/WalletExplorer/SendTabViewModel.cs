@@ -124,7 +124,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					betterAmount = betterAmount.Replace(',', '.');
 					int countBetterAmount = betterAmount.Count(x => x == '.');
-					if (countBetterAmount > 1) // Don't enable typing two dots.
+					if (countBetterAmount > 1) // Do not enable typing two dots.
 					{
 						var index = betterAmount.IndexOf('.', betterAmount.IndexOf('.') + 1);
 						if (index > 0)
@@ -671,7 +671,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 						vsize = NBitcoinHelpers.CalculateVsizeAssumeSegwit(inNum, 2);
 					}
-					// Else whatever, don't change.
+					// Else whatever, do not change.
 				}
 			}
 

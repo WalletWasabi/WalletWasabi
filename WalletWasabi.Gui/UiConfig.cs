@@ -60,17 +60,6 @@ namespace WalletWasabi.Gui
 			SetFilePath(filePath);
 		}
 
-		public UiConfig(WindowState windowState, double height, double width, int feeTarget, int feeDisplayFormat, bool autocopy, bool lurkingWifeMode)
-		{
-			WindowState = Guard.NotNull(nameof(windowState), windowState);
-			Height = Guard.NotNull(nameof(height), height);
-			Width = Guard.NotNull(nameof(width), width);
-			FeeTarget = Guard.NotNull(nameof(feeTarget), feeTarget);
-			FeeDisplayFormat = Guard.NotNull(nameof(feeDisplayFormat), feeDisplayFormat);
-			Autocopy = Guard.NotNull(nameof(autocopy), autocopy);
-			LurkingWifeMode = Guard.NotNull(nameof(lurkingWifeMode), lurkingWifeMode);
-		}
-
 		/// <inheritdoc />
 		public async Task ToFileAsync()
 		{
