@@ -125,7 +125,8 @@ namespace WalletWasabi.Crypto
 
 		private static AesManaged CreateAES()
 		{
-			var aes = new AesManaged {
+			var aes = new AesManaged
+			{
 				BlockSize = 128,
 				Mode = CipherMode.CBC,
 				Padding = PaddingMode.PKCS7
