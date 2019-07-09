@@ -67,24 +67,21 @@ namespace WalletWasabi.TorSocks5
 							return;
 						}
 
-						var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
-						if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-						{
-							if (!fullBaseDirectory.StartsWith('/'))
-							{
-								fullBaseDirectory.Insert(0, "/");
-							}
-						}
-
 						var torDir = Path.Combine(dataDir, "tor");
-
 						var torPath = "";
+						var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
+
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
 							torPath = $@"{torDir}\Tor\tor.exe";
 						}
 						else // Linux or OSX
 						{
+							if (!fullBaseDirectory.StartsWith('/'))
+							{
+								fullBaseDirectory.Insert(0, "/");
+							}
+
 							torPath = $@"{torDir}/Tor/tor";
 						}
 
