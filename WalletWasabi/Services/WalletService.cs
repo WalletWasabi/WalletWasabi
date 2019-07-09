@@ -33,7 +33,7 @@ namespace WalletWasabi.Services
 	{
 		public static event EventHandler<bool> DownloadingBlockChanged;
 
-		// So we will make sure when blocks are downloading with multiple wallet services, they don't conflict.
+		// So we will make sure when blocks are downloading with multiple wallet services, they do not conflict.
 		private static AsyncLock BlockDownloadLock { get; } = new AsyncLock();
 
 		private static bool DownloadingBlockBacking;
@@ -348,7 +348,7 @@ namespace WalletWasabi.Services
 						}
 						catch
 						{
-							// When there's a connection failure don't clean the transactions, add it to processing.
+							// When there's a connection failure do not clean the transactions, add it to processing.
 							foreach (var tx in unconfirmedTransactions)
 							{
 								tx.SetHeight(Height.Mempool);
@@ -547,7 +547,7 @@ namespace WalletWasabi.Services
 				Mempool.TransactionHashes.TryRemove(txId); // If we have in mempool, remove.
 				if (!tx.Transaction.PossiblyP2WPKHInvolved())
 				{
-					return false; // We don't care about non-witness transactions for other than mempool cleanup.
+					return false; // We do not care about non-witness transactions for other than mempool cleanup.
 				}
 
 				bool isFoundTx = TransactionCache.Contains(tx); // If we have in cache, update height.
@@ -564,7 +564,7 @@ namespace WalletWasabi.Services
 			}
 			else if (!tx.Transaction.PossiblyP2WPKHInvolved())
 			{
-				return false; // We don't care about non-witness transactions for other than mempool cleanup.
+				return false; // We do not care about non-witness transactions for other than mempool cleanup.
 			}
 
 			if (!justUpdate && !tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
@@ -577,7 +577,7 @@ namespace WalletWasabi.Services
 					{
 						foreach (TxIn txIn in tx.Transaction.Inputs)
 						{
-							if (spentOutput.TransactionId == txIn.PrevOut.Hash && spentOutput.Index == txIn.PrevOut.N) // Don't do (spentOutput == txIn.PrevOut), it's faster this way, because it will not check for null.
+							if (spentOutput.TransactionId == txIn.PrevOut.Hash && spentOutput.Index == txIn.PrevOut.N) // Do not do (spentOutput == txIn.PrevOut), it's faster this way, because it will not check for null.
 							{
 								doubleSpends.Add(coin);
 								spent = true;
@@ -641,7 +641,7 @@ namespace WalletWasabi.Services
 					var anonset = tx.Transaction.GetAnonymitySet(i);
 					if (spentOwnCoins.Count != 0)
 					{
-						anonset += spentOwnCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because don't count own.
+						anonset += spentOwnCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because do not count own.
 
 						// Cleanup exposed links where the txo has been spent.
 						foreach (var input in spentOwnCoins.Select(x => x.GetTxoRef()))
@@ -655,7 +655,7 @@ namespace WalletWasabi.Services
 						continue;
 					}
 
-					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Don't inherit locked status from key, that's different.
+					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
 																																																												   // If we did not have it.
 					if (Coins.TryAdd(newCoin))
 					{
@@ -781,7 +781,7 @@ namespace WalletWasabi.Services
 						// Try to get block information from local running Core node first.
 						try
 						{
-							if (LocalBitcoinCoreNode is null || !LocalBitcoinCoreNode.IsConnected && Network != Network.RegTest) // If RegTest then we're already connected don't try again.
+							if (LocalBitcoinCoreNode is null || !LocalBitcoinCoreNode.IsConnected && Network != Network.RegTest) // If RegTest then we're already connected do not try again.
 							{
 								DisconnectDisposeNullLocalBitcoinCoreNode();
 								using (var handshakeTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancel))
@@ -1238,7 +1238,7 @@ namespace WalletWasabi.Services
 			// 9. Build the transaction
 			Logger.LogInfo<WalletService>("Signing transaction...");
 			TransactionBuilder builder = Network.CreateTransactionBuilder();
-			// It must be watch only, too, because if we have the key and also hardware wallet, we don't care we can sign.
+			// It must be watch only, too, because if we have the key and also hardware wallet, we do not care we can sign.
 			bool sign = !KeyManager.IsWatchOnly;
 			if (sign)
 			{
@@ -1367,7 +1367,7 @@ namespace WalletWasabi.Services
 		private bool TrySelectCoins(ref HashSet<SmartCoin> coinsToSpend, Money totalOutAmount, IEnumerable<SmartCoin> unspentCoins)
 		{
 			// If there's no need for input merging, then use the largest selected.
-			// Don't prefer anonymity set. You can assume the user prefers anonymity set manually through the GUI.
+			// Do not prefer anonymity set. You can assume the user prefers anonymity set manually through the GUI.
 			SmartCoin largestCoin = unspentCoins.OrderByDescending(x => x.Amount).FirstOrDefault();
 			if (largestCoin == default)
 			{
@@ -1503,7 +1503,7 @@ namespace WalletWasabi.Services
 						|| ex2.Message.Contains("missing-inputs", StringComparison.InvariantCultureIgnoreCase)
 						|| ex2.Message.Contains("txn-mempool-conflict", StringComparison.InvariantCultureIgnoreCase))
 					{
-						if (transaction.Transaction.Inputs.Count == 1) // If we tried to only spend one coin, then we can mark it as spent. If there were more coins, then we don't know.
+						if (transaction.Transaction.Inputs.Count == 1) // If we tried to only spend one coin, then we can mark it as spent. If there were more coins, then we do not know.
 						{
 							OutPoint input = transaction.Transaction.Inputs.First().PrevOut;
 							SmartCoin coin = Coins.FirstOrDefault(x => x.TransactionId == input.Hash && x.Index == input.N);
@@ -1593,7 +1593,7 @@ namespace WalletWasabi.Services
 
 		private void SerializeTransactionCache()
 		{
-			if (!UnconfirmedTransactionsInitialized) // If unconfirmed ones are not yet initialized, then don't serialize because unconfirmed are going to be lost.
+			if (!UnconfirmedTransactionsInitialized) // If unconfirmed ones are not yet initialized, then do not serialize because unconfirmed are going to be lost.
 			{
 				return;
 			}

@@ -242,7 +242,7 @@ namespace WalletWasabi.Models
 				throw new ArgumentOutOfRangeException(nameof(capacity));
 			}
 
-			// The capacity should be at least as large as the concurrency level. Otherwise, we would have locks that don't guard
+			// The capacity should be at least as large as the concurrency level. Otherwise, we would have locks that do not guard
 			// any buckets.
 			if (capacity < concurrencyLevel)
 			{

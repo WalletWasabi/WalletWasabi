@@ -67,24 +67,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			SetFilePath(filePath);
 		}
 
-		public CcjRoundConfig(Money denomination, int? confirmationTarget, double? confirmationTargetReductionRate, decimal? coordinatorFeePercent, int? anonymitySet, long? inputRegistrationTimeout, long? connectionConfirmationTimeout, long? outputRegistrationTimeout, long? signingTimeout, int? dosSeverity, long? dosDurationHours, bool? dosNoteBeforeBan, int? maximumMixingLevelCount)
-		{
-			FilePath = null;
-			Denomination = Guard.NotNull(nameof(denomination), denomination);
-			ConfirmationTarget = Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
-			ConfirmationTargetReductionRate = Guard.NotNull(nameof(confirmationTargetReductionRate), confirmationTargetReductionRate);
-			CoordinatorFeePercent = Guard.NotNull(nameof(coordinatorFeePercent), coordinatorFeePercent);
-			AnonymitySet = Guard.NotNull(nameof(anonymitySet), anonymitySet);
-			InputRegistrationTimeout = Guard.NotNull(nameof(inputRegistrationTimeout), inputRegistrationTimeout);
-			ConnectionConfirmationTimeout = Guard.NotNull(nameof(connectionConfirmationTimeout), connectionConfirmationTimeout);
-			OutputRegistrationTimeout = Guard.NotNull(nameof(outputRegistrationTimeout), outputRegistrationTimeout);
-			SigningTimeout = Guard.NotNull(nameof(signingTimeout), signingTimeout);
-			DosSeverity = Guard.NotNull(nameof(dosSeverity), dosSeverity);
-			DosDurationHours = Guard.NotNull(nameof(dosDurationHours), dosDurationHours);
-			DosNoteBeforeBan = Guard.NotNull(nameof(dosNoteBeforeBan), dosNoteBeforeBan);
-			MaximumMixingLevelCount = Guard.NotNull(nameof(maximumMixingLevelCount), maximumMixingLevelCount);
-		}
-
 		/// <inheritdoc />
 		public async Task ToFileAsync()
 		{
