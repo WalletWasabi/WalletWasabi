@@ -434,7 +434,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				SetValidationMessage("");
 				CanTestPassword = false;
-				var password = Guard.Correct(Password); // Don't let whitespaces to the beginning and to the end.
+				var password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
 				Password = ""; // Clear password field.
 
 				var selectedWallet = SelectedWallet;
@@ -571,7 +571,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					// The selected wallet is not available any more (someone deleted it?).
 					OnCategorySelected();
-					SetValidationMessage("The selected wallet and its backup don't exist, did you delete them?");
+					SetValidationMessage("The selected wallet and its backup do not exist, did you delete them?");
 					return null;
 				}
 
