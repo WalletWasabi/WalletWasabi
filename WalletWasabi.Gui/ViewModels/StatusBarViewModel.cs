@@ -293,12 +293,8 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			if (isGenSocksServFail)
 			{
-				// Is close band present?
-				if (MainWindowViewModel.Instance.ModalDialog != null)
-				{
-					// Do nothing.
-				}
-				else
+				// Is close band not present?
+				if (MainWindowViewModel.Instance.ModalDialog is null)
 				{
 					// Show GenSocksServFail dialog on OS-es we suspect Tor is outdated.
 					var osDesc = RuntimeInformation.OSDescription;
@@ -319,14 +315,6 @@ namespace WalletWasabi.Gui.ViewModels
 					{
 						MainWindowViewModel.Instance.ModalDialog.Close(true);
 					}
-					else
-					{
-						// Do nothing.
-					}
-				}
-				else
-				{
-					// Do nothing.
 				}
 			}
 		}

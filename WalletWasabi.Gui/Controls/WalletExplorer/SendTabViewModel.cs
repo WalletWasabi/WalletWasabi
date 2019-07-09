@@ -428,7 +428,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					var result = await pinpad.ShowDialogAsync();
 					DisplayActionTab();
-					if (!(result is true))
+					if (result is false)
 					{
 						return (false, "PIN was not provided.");
 					}
@@ -551,7 +551,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					if (feeTarget == target)
 					{
-						feeTarget = target;
 						break;
 					}
 					else if (feeTarget < target)

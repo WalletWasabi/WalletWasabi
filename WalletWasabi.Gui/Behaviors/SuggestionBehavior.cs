@@ -38,7 +38,7 @@ namespace WalletWasabi.Gui.Behaviors
 					HandleAutoUpdate();
 					e.Handled = true;
 				}
-				if (e.Key == Key.Down)
+				else if (e.Key == Key.Down)
 				{
 					if (SuggestionItems != null)
 					{
@@ -69,7 +69,7 @@ namespace WalletWasabi.Gui.Behaviors
 						e.Handled = true;
 					}
 				}
-				if (e.Key == Key.Up)
+				else if (e.Key == Key.Up)
 				{
 					if (SuggestionItems != null)
 					{
@@ -80,7 +80,7 @@ namespace WalletWasabi.Gui.Behaviors
 						e.Handled = true;
 					}
 				}
-				if (e.Key == Key.Enter)
+				else if (e.Key == Key.Enter)
 				{
 					if (SuggestionItems != null)
 					{

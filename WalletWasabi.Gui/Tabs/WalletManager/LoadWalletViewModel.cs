@@ -491,7 +491,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 							IoC.Get<IShell>().AddOrSelectDocument(pinpad);
 						}
 						var result = await pinpad.ShowDialogAsync();
-						if (!(result is true))
+						if (result is false)
 						{
 							SetValidationMessage("PIN was not provided.");
 							return null;
