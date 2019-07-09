@@ -213,7 +213,12 @@ namespace WalletWasabi.Hwi
 			Network = network;
 
 			var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
-			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				HwiPath = Path.Combine(fullBaseDirectory, "Hwi", "Software", "hwi-win64", "hwi.exe");
+				return;
+			}
+			else
 			{
 				if (!fullBaseDirectory.StartsWith('/'))
 				{
@@ -221,14 +226,7 @@ namespace WalletWasabi.Hwi
 				}
 			}
 
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				HwiPath = Path.Combine(fullBaseDirectory, "Hwi", "Software", "hwi-win64", "hwi.exe");
-				return;
-			}
-
 			var hwiDir = Path.Combine(dataDir, "hwi");
-
 			string hwiPath = $@"{hwiDir}/hwi";
 
 			if (!File.Exists(hwiPath))
