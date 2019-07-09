@@ -78,8 +78,7 @@ namespace WalletWasabi.Backend.Models
 
 			if (Height.TryParse(parts[0], out Height blockHeight))
 			{
-				return new FilterModel
-				{
+				return new FilterModel {
 					BlockHeight = blockHeight,
 					BlockHash = new uint256(parts[1]),
 					Filter = filter
@@ -98,8 +97,7 @@ namespace WalletWasabi.Backend.Models
 
 			if (parts.Length == 1) // no bech here
 			{
-				return new FilterModel
-				{
+				return new FilterModel {
 					BlockHeight = Guard.NotNull(nameof(height), height),
 					BlockHash = new uint256(parts[0]),
 					Filter = null
@@ -109,8 +107,7 @@ namespace WalletWasabi.Backend.Models
 			var data = Encoders.Hex.DecodeData(parts[1]);
 			var filter = new GolombRiceFilter(data, 20, 1 << 20);
 
-			return new FilterModel
-			{
+			return new FilterModel {
 				BlockHeight = Guard.NotNull(nameof(height), height),
 				BlockHash = new uint256(parts[0]),
 				Filter = filter
@@ -136,8 +133,7 @@ namespace WalletWasabi.Backend.Models
 			byte[] data = stream.ReadBytes(filterSize);
 			GolombRiceFilter filter = filterSize > 0 ? new GolombRiceFilter(data, 20, 1 << 20) : null;
 
-			return new FilterModel
-			{
+			return new FilterModel {
 				BlockHeight = Guard.NotNull(nameof(height), height),
 				BlockHash = blockHash,
 				Filter = filter

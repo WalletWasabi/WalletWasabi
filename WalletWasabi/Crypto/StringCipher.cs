@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -125,8 +125,7 @@ namespace WalletWasabi.Crypto
 
 		private static AesManaged CreateAES()
 		{
-			var aes = new AesManaged
-			{
+			var aes = new AesManaged {
 				BlockSize = 128,
 				Mode = CipherMode.CBC,
 				Padding = PaddingMode.PKCS7

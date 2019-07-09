@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -103,8 +103,7 @@ namespace System.Net.Http
 
 		public static async Task<HttpRequestMessage> CloneAsync(this HttpRequestMessage me)
 		{
-			var newMessage = new HttpRequestMessage(me.Method, me.RequestUri)
-			{
+			var newMessage = new HttpRequestMessage(me.Method, me.RequestUri) {
 				Version = me.Version
 			};
 

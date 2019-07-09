@@ -111,8 +111,7 @@ namespace WalletWasabi.Tests
 				.SetP(20);
 
 			builder.AddEntries(scripts);
-			return new FilterModel
-			{
+			return new FilterModel {
 				BlockHeight = 0,
 				BlockHash = new uint256(blockHash),
 				Filter = builder.Build()

@@ -125,8 +125,7 @@ namespace WalletWasabi.Http.Models
 
 		public HttpRequestContentHeaders ToHttpRequestHeaders()
 		{
-			using (var message = new HttpRequestMessage
-			{
+			using (var message = new HttpRequestMessage {
 				Content = new ByteArrayContent(new byte[] { })
 			})
 			{
@@ -143,8 +142,7 @@ namespace WalletWasabi.Http.Models
 					}
 				}
 
-				return new HttpRequestContentHeaders
-				{
+				return new HttpRequestContentHeaders {
 					RequestHeaders = message.Headers,
 					ContentHeaders = message.Content.Headers
 				};
@@ -153,8 +151,7 @@ namespace WalletWasabi.Http.Models
 
 		public HttpResponseContentHeaders ToHttpResponseHeaders()
 		{
-			using (var message = new HttpResponseMessage
-			{
+			using (var message = new HttpResponseMessage {
 				Content = new ByteArrayContent(new byte[] { })
 			})
 			{
@@ -171,8 +168,7 @@ namespace WalletWasabi.Http.Models
 					}
 				}
 
-				return new HttpResponseContentHeaders
-				{
+				return new HttpResponseContentHeaders {
 					ResponseHeaders = message.Headers,
 					ContentHeaders = message.Content.Headers
 				};
