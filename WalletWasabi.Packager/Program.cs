@@ -797,6 +797,7 @@ namespace WalletWasabi.Packager
 												$"Architecture: amd64\n" +
 												$"License: Open Source (MIT)\n" +
 												$"Installed-Size: {installedSizeKb}\n" +
+												$"Depends: unzip\n" +
 												$"Description: open-source, non-custodial, privacy focused Bitcoin wallet\n" +
 												$"  Built-in Tor, CoinJoin and Coin Control features.\n";
 
@@ -821,6 +822,16 @@ namespace WalletWasabi.Packager
 														$"{ linuxWasabiWalletFolder.TrimEnd('/')}/{ExecutableName} $@\n";
 
 					File.WriteAllText(wasabiStarterScriptPath, wasabiStarterScriptContent, Encoding.ASCII);
+
+					var hwiSoftwareFolderPath = Path.Combine(newFolderPath, "Hwi/Software");
+					var hwiZipFilePath = Path.Combine(hwiSoftwareFolderPath, "hwi-linux64.zip");
+					var hwiFilePath = Path.Combine(hwiSoftwareFolderPath, "hwi");
+					var wasabiPostInstScriptPath = Path.Combine(debianFolderRelativePath, "postinst");
+					var wasabiPostInstScriptContent = $"#!/bin/sh\n" +
+													  $"unzip {hwiZipFilePath}\n" + 
+													  $"./{hwiFilePath} installudevrules\n";
+
+					File.WriteAllText(wasabiPostInstScriptPath, wasabiPostInstScriptContent, Encoding.ASCII);
 
 					string debExeLinuxPath = Tools.LinuxPathCombine(newFolderRelativePath, ExecutableName);
 					string debDestopFileLinuxPath = Tools.LinuxPathCombine(debUsrAppFolderRelativePath, $"{ExecutableName}.desktop");
