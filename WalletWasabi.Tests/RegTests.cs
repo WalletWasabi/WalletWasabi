@@ -2402,7 +2402,7 @@ namespace WalletWasabi.Tests
 				// INPUS REGISTRATION PHASE --
 				for (var anosetIdx = 0; anosetIdx < anonymitySet; anosetIdx++)
 				{
-					// Create as many outputs as mixin levels (even when we don't have funds enough)
+					// Create as many outputs as mixin levels (even when we do not have funds enough)
 					var outputs = new List<(Requester requester, BitcoinWitPubKeyAddress outputAddress, uint256 blindedScript)>();
 					foreach (var level in round.MixingLevels.Levels)
 					{
@@ -3206,7 +3206,7 @@ namespace WalletWasabi.Tests
 				chaumianClient2.Start();
 
 				smartCoin1.CoinJoinInProgress = true;
-				Assert.False((await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1)).Any()); // Inconsistent internal state, so don't try to add.
+				Assert.False((await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1)).Any()); // Inconsistent internal state, so do not try to add.
 				Assert.True(smartCoin1.CoinJoinInProgress);
 
 				await Assert.ThrowsAsync<SecurityException>(async () => await chaumianClient1.QueueCoinsToMixAsync("asdasdasd", smartCoin1, smartCoin2));

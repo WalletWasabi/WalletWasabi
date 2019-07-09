@@ -223,12 +223,12 @@ namespace WalletWasabi.Tests
 				Assert.Contains(1, set);
 				Assert.Single(set);
 
-				// CollectionChanged don't fire
+				// CollectionChanged do not fire
 				set.TryAdd(1);
 				Assert.Contains(1, set);
 				Assert.Single(set);
 
-				// CollectionChanged don't fire
+				// CollectionChanged do not fire
 				set.TryRemove(2);
 				Assert.Single(set);
 
