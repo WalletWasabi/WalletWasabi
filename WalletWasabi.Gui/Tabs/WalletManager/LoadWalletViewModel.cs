@@ -578,23 +578,26 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				KeyManager keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
 				keyManager.HardwareWalletInfo = selectedWallet.HardwareWalletInfo;
 
-				if (!requirePassword && keyManager.PasswordVerified == false)
-				{
-					Owner.SelectTestPassword();
-					return null;
-				}
 				// Only check requirepassword here, because the above checks are applicable to loadwallet, too and we are using this function from load wallet.
 				if (requirePassword)
 				{
-					if (!keyManager.TestPassword(password))
+					if (keyManager.TestPassword(password))
+					{
+						SetSuccessMessage("Correct password.");
+						keyManager.SetPasswordVerified();
+					}
+					else
 					{
 						SetValidationMessage("Wrong password.");
 						return null;
 					}
-					else
+				}
+				else
+				{
+					if (keyManager.PasswordVerified == false)
 					{
-						SetSuccessMessage("Correct password.");
-						keyManager.SetPasswordVerified();
+						Owner.SelectTestPassword();
+						return null;
 					}
 				}
 

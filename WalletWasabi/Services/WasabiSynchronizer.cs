@@ -298,7 +298,7 @@ namespace WalletWasabi.Services
 							{
 								// We are synced.
 								// Assert index state.
-								if (response.BestHeight > hashChain.TipHeight) // If the server's tip height is larger then ours, we're missing a filter, our index got corrupted.
+								if (response.BestHeight > hashChain.TipHeight) // If the server's tip height is larger than ours, we're missing a filter, our index got corrupted.
 								{
 									await BitcoinStore.IndexStore.RemoveAllImmmatureFiltersAsync(Cancel.Token, deleteAndCrashIfMature: true);
 									// If still bad delete filters and crash the software?
