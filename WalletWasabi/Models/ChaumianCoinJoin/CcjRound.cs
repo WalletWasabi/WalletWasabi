@@ -62,7 +62,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public Transaction SignedCoinJoin { get; private set; }
 
 		private List<Alice> Alices { get; }
-		private List<Bob> Bobs { get; } // Don't make it a hashset or don't make Bob IEquitable!!!
+		private List<Bob> Bobs { get; } // Do not make it a hashset or do not make Bob IEquitable!!!
 
 		private List<UnblindedSignature> RegisteredUnblindedSignatures { get; }
 		private object RegisteredUnblindedSignaturesLock { get; }
@@ -497,7 +497,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 										  case CcjRoundPhase.InputRegistration:
 											  {
 												  // Only abort if less than two one Alice is registered.
-												  // Don't ban anyone, it's ok if they lost connection.
+												  // Do not ban anyone, it's ok if they lost connection.
 												  await RemoveAlicesIfAnInputRefusedByMempoolAsync();
 												  int aliceCountAfterInputRegistrationTimeout = CountAlices();
 												  if (aliceCountAfterInputRegistrationTimeout < 2)
@@ -524,7 +524,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 										  case CcjRoundPhase.OutputRegistration:
 											  {
 												  // Output registration never aborts.
-												  // We don't know which Alice to ban.
+												  // We do not know which Alice to ban.
 												  // Therefore proceed to signing, and whichever Alice does not sign, ban her.
 												  await ExecuteNextPhaseAsync(CcjRoundPhase.Signing);
 											  }

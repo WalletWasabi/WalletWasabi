@@ -80,12 +80,12 @@ namespace WalletWasabi.Backend
 			app.UseMvc();
 
 			var applicationLifetime = app.ApplicationServices.GetRequiredService<IApplicationLifetime>();
-			applicationLifetime.ApplicationStopping.Register(OnShutdown); // Don't register async, that won't hold up the shutdown
+			applicationLifetime.ApplicationStopping.Register(OnShutdown); // Do not register async, that won't hold up the shutdown
 		}
 
 		private void OnShutdown()
 		{
-			CleanupAsync().GetAwaiter().GetResult(); // This is needed, if async function is regisered then it won't wait until it finishes
+			CleanupAsync().GetAwaiter().GetResult(); // This is needed, if async function is registered then it won't wait until it finishes
 		}
 
 		private async Task CleanupAsync()

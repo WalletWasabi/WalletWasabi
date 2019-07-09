@@ -38,7 +38,7 @@ namespace WalletWasabi.TorSocks5
 			TorProcess = null;
 		}
 
-		public static TorProcessManager Mock() // Mock, don't use Tor at all for debug.
+		public static TorProcessManager Mock() // Mock, do not use Tor at all for debug.
 		{
 			return new TorProcessManager(null, null);
 		}
@@ -50,7 +50,7 @@ namespace WalletWasabi.TorSocks5
 				return;
 			}
 
-			new Thread(delegate () // Don't ask. This is the only way it worked on Win10/Ubuntu18.04/Manjuro(1 processor VM)/Fedora(1 processor VM)
+			new Thread(delegate () // Do not ask. This is the only way it worked on Win10/Ubuntu18.04/Manjuro(1 processor VM)/Fedora(1 processor VM)
 			{
 				try
 				{
@@ -297,7 +297,7 @@ namespace WalletWasabi.TorSocks5
 									else
 									{
 										Logger.LogInfo<TorProcessManager>($"Tor did not work properly for {(int)torMisbehavedFor.TotalSeconds} seconds. Maybe it crashed. Attempting to start it...");
-										Start(true, dataDirToStartWith); // Try starting Tor, if does not work it'll be another issue.
+										Start(true, dataDirToStartWith); // Try starting Tor, if it does not work it'll be another issue.
 										await Task.Delay(14000, Stop.Token).ConfigureAwait(false);
 									}
 								}

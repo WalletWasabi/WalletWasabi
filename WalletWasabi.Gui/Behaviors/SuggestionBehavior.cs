@@ -31,7 +31,7 @@ namespace WalletWasabi.Gui.Behaviors
 
 			base.OnAttached();
 
-			Disposables.Add(AssociatedObject.AddHandler(TextBox.KeyDownEvent, (sender, e) =>
+			Disposables.Add(AssociatedObject.AddHandler(InputElement.KeyDownEvent, (sender, e) =>
 			{
 				if (e.Key == Key.Tab)
 				{

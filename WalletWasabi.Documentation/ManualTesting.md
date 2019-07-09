@@ -32,14 +32,14 @@ If someone made a change to the pull request and you want to go through the test
 
 Open Wasabi and go to Main Menu / File / Open / Data Folder.
 
-### How to check error?
+### How to check for errors?
 
-Standard procedure: look at the terminal. If there is something ERROR or WARNING that is probably an error.
+Standard procedure: look at the terminal. If there is something saying ERROR or WARNING, that is probably an error.
 Special case: always defined at the specific test case.
 
 ### How to determine if the application is exited?
 
-Look at the terminal. Wait until log messages stop and the blinking cursor reappears. If nothing happens appearingly try to press enter. If the application hanged you can also check it in process manager. If it is still running there might be an endless loop which is an error and don't let the application to close.
+Look at the terminal. Wait until log messages stop and the blinking cursor reappears. If nothing happens, try to press enter. If the application hanged, you can also check it in process manager. If it is still running, there might be an endless loop: an error which doesn't let the application close.
 
 # Workflow
 

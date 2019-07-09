@@ -1,5 +1,6 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -57,17 +58,6 @@ namespace WalletWasabi.Gui
 		public UiConfig(string filePath)
 		{
 			SetFilePath(filePath);
-		}
-
-		public UiConfig(WindowState windowState, double height, double width, int feeTarget, int feeDisplayFormat, bool autocopy, bool lurkingWifeMode)
-		{
-			WindowState = Guard.NotNull(nameof(windowState), windowState);
-			Height = Guard.NotNull(nameof(height), height);
-			Width = Guard.NotNull(nameof(width), width);
-			FeeTarget = Guard.NotNull(nameof(feeTarget), feeTarget);
-			FeeDisplayFormat = Guard.NotNull(nameof(feeDisplayFormat), feeDisplayFormat);
-			Autocopy = Guard.NotNull(nameof(autocopy), autocopy);
-			LurkingWifeMode = Guard.NotNull(nameof(lurkingWifeMode), lurkingWifeMode);
 		}
 
 		/// <inheritdoc />
@@ -131,44 +121,10 @@ namespace WalletWasabi.Gui
 			}
 
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-			var config = JsonConvert.DeserializeObject<UiConfig>(jsonString);
+			var newConfig = JsonConvert.DeserializeObject<JObject>(jsonString);
+			var currentConfig = JObject.FromObject(this);
 
-			if (WindowState != config.WindowState)
-			{
-				return true;
-			}
-
-			if (Height != config.Height)
-			{
-				return true;
-			}
-
-			if (Width != config.Width)
-			{
-				return true;
-			}
-
-			if (FeeTarget != config.FeeTarget)
-			{
-				return true;
-			}
-
-			if (FeeDisplayFormat != config.FeeDisplayFormat)
-			{
-				return true;
-			}
-
-			if (Autocopy != config.Autocopy)
-			{
-				return true;
-			}
-
-			if (LurkingWifeMode != config.LurkingWifeMode)
-			{
-				return true;
-			}
-
-			return false;
+			return !JToken.DeepEquals(newConfig, currentConfig);
 		}
 
 		/// <inheritdoc />

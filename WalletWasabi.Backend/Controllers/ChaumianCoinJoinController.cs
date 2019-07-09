@@ -392,7 +392,7 @@ namespace WalletWasabi.Backend.Controllers
 
 						alice.BlindedOutputScripts = alice.BlindedOutputScripts.Take(takeBlindCount).ToArray();
 						alice.BlindedOutputSignatures = alice.BlindedOutputSignatures.Take(takeBlindCount).ToArray();
-						resp.BlindedOutputSignatures = alice.BlindedOutputSignatures; // Don't give back more mixing levels than we'll use.
+						resp.BlindedOutputSignatures = alice.BlindedOutputSignatures; // Do not give back more mixing levels than we'll use.
 
 						// Progress round if needed.
 						if (round.AllAlices(AliceState.ConnectionConfirmed))
