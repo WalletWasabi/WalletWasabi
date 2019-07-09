@@ -1,6 +1,6 @@
 # Testing
 
-The goal of this document is to establish a manual testing workflow and a checklist for Wasabi Wallet in order to make sure larger pull requests and releases don't accidentally ruin vital functionality.
+The goal of this document is to establish a manual testing workflow and checklist for Wasabi Wallet in order to make sure larger pull requests and releases don't accidentally ruin vital functionality.
 
 # Environment
 
