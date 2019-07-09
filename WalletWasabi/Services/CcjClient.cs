@@ -299,7 +299,7 @@ namespace WalletWasabi.Services
 
 				if (ongoingRound.State.Phase == CcjRoundPhase.ConnectionConfirmation)
 				{
-					if (!ongoingRound.Registration.IsPhaseActionsComleted(CcjRoundPhase.ConnectionConfirmation)) // If we did not already confirmed connection in connection confirmation phase confirm it.
+					if (!ongoingRound.Registration.IsPhaseActionsComleted(CcjRoundPhase.ConnectionConfirmation)) // If we did not already confirm connection in connection confirmation phase confirm it.
 					{
 						var res = await ongoingRound.Registration.AliceClient.PostConfirmationAsync();
 						if (res.activeOutputs.Any())

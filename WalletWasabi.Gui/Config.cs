@@ -1,5 +1,6 @@
 using NBitcoin;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Net;
@@ -421,95 +422,10 @@ namespace WalletWasabi.Gui
 			}
 
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-			var config = JsonConvert.DeserializeObject<Config>(jsonString);
+			var newConfig = JsonConvert.DeserializeObject<JObject>(jsonString);
+			var currentConfig = JObject.FromObject(this);
 
-			if (Network != config.Network)
-			{
-				return true;
-			}
-
-			if (!MainNetBackendUriV3.Equals(config.MainNetBackendUriV3, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!TestNetBackendUriV3.Equals(config.TestNetBackendUriV3, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!MainNetFallbackBackendUri.Equals(config.MainNetFallbackBackendUri, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!TestNetFallbackBackendUri.Equals(config.TestNetFallbackBackendUri, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!RegTestBackendUriV3.Equals(config.RegTestBackendUriV3, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (UseTor != config.UseTor)
-			{
-				return true;
-			}
-
-			if (!TorHost.Equals(config.TorHost, StringComparison.Ordinal))
-			{
-				return true;
-			}
-			if (TorSocks5Port != config.TorSocks5Port)
-			{
-				return true;
-			}
-
-			if (!MainNetBitcoinCoreHost.Equals(config.MainNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!TestNetBitcoinCoreHost.Equals(config.TestNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!RegTestBitcoinCoreHost.Equals(config.RegTestBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (MainNetBitcoinCorePort != config.MainNetBitcoinCorePort)
-			{
-				return true;
-			}
-			if (TestNetBitcoinCorePort != config.TestNetBitcoinCorePort)
-			{
-				return true;
-			}
-			if (RegTestBitcoinCorePort != config.RegTestBitcoinCorePort)
-			{
-				return true;
-			}
-
-			if (MixUntilAnonymitySet != config.MixUntilAnonymitySet)
-			{
-				return true;
-			}
-			if (PrivacyLevelSome != config.PrivacyLevelSome)
-			{
-				return true;
-			}
-			if (PrivacyLevelFine != config.PrivacyLevelFine)
-			{
-				return true;
-			}
-			if (PrivacyLevelStrong != config.PrivacyLevelStrong)
-			{
-				return true;
-			}
-
-			if (DustThreshold != config.DustThreshold)
-			{
-				return true;
-			}
-
-			return false;
+			return !JToken.DeepEquals(newConfig, currentConfig);
 		}
 
 		/// <inheritdoc />

@@ -1,5 +1,6 @@
 using NBitcoin;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Net;
@@ -173,43 +174,10 @@ namespace WalletWasabi.Backend
 			}
 
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-			var config = JsonConvert.DeserializeObject<Config>(jsonString);
+			var newConfig = JsonConvert.DeserializeObject<JObject>(jsonString);
+			var currentConfig = JObject.FromObject(this);
 
-			if (Network != config.Network)
-			{
-				return true;
-			}
-			if (BitcoinRpcConnectionString != config.BitcoinRpcConnectionString)
-			{
-				return true;
-			}
-
-			if (!MainNetBitcoinCoreHost.Equals(config.MainNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!TestNetBitcoinCoreHost.Equals(config.TestNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!RegTestBitcoinCoreHost.Equals(config.RegTestBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (MainNetBitcoinCorePort != config.MainNetBitcoinCorePort)
-			{
-				return true;
-			}
-			if (TestNetBitcoinCorePort != config.TestNetBitcoinCorePort)
-			{
-				return true;
-			}
-			if (RegTestBitcoinCorePort != config.RegTestBitcoinCorePort)
-			{
-				return true;
-			}
-
-			return false;
+			return !JToken.DeepEquals(newConfig, currentConfig);
 		}
 
 		/// <inheritdoc />
