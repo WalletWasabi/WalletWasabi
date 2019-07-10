@@ -39,7 +39,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private const string EnqueuingButtonTextString = "Queuing coins...";
 		private string _dequeueButtonText;
 		private const string DequeueButtonTextString = "Dequeue Selected Coins";
-		private const string DequeuingButtonTextString = "Dequeuing coins...";
+		private const string DequeueingButtonTextString = "Dequeueing coins...";
 		private int _coinJoinUntilAnonimitySet;
 		private TargetPrivacy _targetPrivacy;
 
@@ -113,7 +113,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(text => EnqueueButtonText = text);
 
 			this.WhenAnyValue(x => x.IsDequeueBusy)
-				.Select(x => x ? DequeuingButtonTextString : DequeueButtonTextString)
+				.Select(x => x ? DequeueingButtonTextString : DequeueButtonTextString)
 				.Subscribe(text => DequeueButtonText = text);
 
 			this.WhenAnyValue(x => x.TargetPrivacy).Subscribe(target =>

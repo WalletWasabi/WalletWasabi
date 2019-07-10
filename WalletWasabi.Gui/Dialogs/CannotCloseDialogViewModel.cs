@@ -50,7 +50,7 @@ namespace WalletWasabi.Gui.Dialogs
 		public CannotCloseDialogViewModel(Global global) : base("", false, false)
 		{
 			Global = global;
-			OperationMessage = "Dequeuing coins...Please wait";
+			OperationMessage = "Dequeueing coins...Please wait";
 			var canCancel = this.WhenAnyValue(x => x.IsBusy);
 			var canOk = this.WhenAnyValue(x => x.IsBusy, (isbusy) => !isbusy);
 
@@ -164,7 +164,7 @@ namespace WalletWasabi.Gui.Dialogs
 							}
 						}
 
-						if (latestException is null) //no exceptions were thrown during the for-each so we are done with dequeuing
+						if (latestException is null) //no exceptions were thrown during the for-each so we are done with Dequeueing
 						{
 							last = true;
 						}

@@ -83,13 +83,13 @@ namespace WalletWasabi.Gui
 			UiConfig = Guard.NotNull(nameof(uiConfig), uiConfig);
 		}
 
-		private int _isDesperateDequeuing = 0;
+		private int _isDesperateDequeueing = 0;
 
 		public async Task TryDesperateDequeueAllCoinsAsync()
 		{
 			// If already desperate dequeueing then return.
 			// If not desperate dequeueing then make sure we're doing that.
-			if (Interlocked.CompareExchange(ref _isDesperateDequeuing, 1, 0) == 1)
+			if (Interlocked.CompareExchange(ref _isDesperateDequeueing, 1, 0) == 1)
 			{
 				return;
 			}
@@ -107,7 +107,7 @@ namespace WalletWasabi.Gui
 			}
 			finally
 			{
-				Interlocked.Exchange(ref _isDesperateDequeuing, 0);
+				Interlocked.Exchange(ref _isDesperateDequeueing, 0);
 			}
 		}
 
