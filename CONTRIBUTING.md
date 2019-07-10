@@ -129,3 +129,5 @@ public class RepositoryViewModel : ReactiveObject
   public bool CanDoIt => _canDoIt?.Value ?? false;
 }
 ```
+
+**DO** always subscribe to these `ObservableAsPropertyHelper`s after their initialization is done.
