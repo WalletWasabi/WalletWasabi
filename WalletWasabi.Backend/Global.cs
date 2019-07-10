@@ -33,9 +33,12 @@ namespace WalletWasabi.Backend
 
 		public CcjRoundConfig RoundConfig { get; private set; }
 
-		public Global()
+		public Global(string dataDir)
 		{
-			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
+			DataDir = dataDir ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
+		}
+		public Global() : this(null)
+		{
 		}
 
 		public async Task InitializeAsync(Config config, CcjRoundConfig roundConfig, RPCClient rpc)

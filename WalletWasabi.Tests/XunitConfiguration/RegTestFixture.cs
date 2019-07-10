@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using NBitcoin;
 using NBitcoin.RPC;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -35,7 +37,12 @@ namespace WalletWasabi.Tests.XunitConfiguration
 				Server = rpc.Address.AbsoluteUri,
 				UserPassword = BackendRegTestNode.Creds
 			}.ToString();
-			var global = new Backend.Global();
+
+			IoHelpers.DeleteRecursivelyWithMagicDustAsync(nameof(RegTestFixture)).GetAwaiter().GetResult();
+			Thread.Sleep(100);
+			Directory.CreateDirectory(nameof(RegTestFixture));
+			Thread.Sleep(100);
+			var global = new Backend.Global(nameof(RegTestFixture));
 			var config = new Config(BackendNodeBuilder.Network, connectionString, IPAddress.Loopback.ToString(), IPAddress.Loopback.ToString(), BackendRegTestNode.Endpoint.Address.ToString(), Network.Main.DefaultPort, Network.TestNet.DefaultPort, BackendRegTestNode.Endpoint.Port);
 			var configFilePath = Path.Combine(global.DataDir, "Config.json");
 			config.SetFilePath(configFilePath);
@@ -46,9 +53,13 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			roundConfig.SetFilePath(roundConfigFilePath);
 			roundConfig.ToFileAsync().GetAwaiter().GetResult();
 
+			var conf = new ConfigurationBuilder()
+				.AddInMemoryCollection(new[] { new KeyValuePair<string,string>("datadir", nameof(RegTestFixture)) })
+				.Build();
 			BackendEndPoint = $"http://localhost:{new Random().Next(37130, 38000)}/";
 			BackendHost = WebHost.CreateDefaultBuilder()
 					.UseStartup<Startup>()
+					.UseConfiguration(conf)
 					.UseWebRoot("../../../../WalletWasabi.Backend/wwwroot")
 					.UseUrls(BackendEndPoint)
 					.Build();
