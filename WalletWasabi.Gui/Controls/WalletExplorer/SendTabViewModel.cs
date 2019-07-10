@@ -100,9 +100,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SetAmountWatermarkAndToolTip(Money.Zero);
 
 			CoinList = new CoinListViewModel(Global, CoinListContainerType.SendTabViewModel);
+
 			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SetFeesAndTexts());
+
 			Observable.FromEventPattern(CoinList, nameof(CoinList.DequeueCoinsPressed))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => OnCoinsListDequeueCoinsPressedAsync());
