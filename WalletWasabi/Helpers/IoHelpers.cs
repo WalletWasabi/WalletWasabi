@@ -124,8 +124,7 @@ namespace System.IO
 		{
 			if (Directory.Exists(dirPath))
 			{
-				using (Process process = Process.Start(new ProcessStartInfo
-				{
+				using (Process process = Process.Start(new ProcessStartInfo {
 					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "explorer.exe" : (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "open" : "xdg-open"),
 					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"\"{dirPath}\"" : dirPath,
 					CreateNoWindow = true
@@ -161,8 +160,7 @@ namespace System.IO
 						if (openWithNotepad)
 						{
 							// Open file using Notepad.
-							using (Process process = Process.Start(new ProcessStartInfo
-							{
+							using (Process process = Process.Start(new ProcessStartInfo {
 								FileName = "notepad.exe",
 								Arguments = filePath,
 								CreateNoWindow = true,
@@ -174,8 +172,7 @@ namespace System.IO
 					}
 
 					// Open file wtih the default editor.
-					using (Process process = Process.Start(new ProcessStartInfo
-					{
+					using (Process process = Process.Start(new ProcessStartInfo {
 						FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? filePath : "open",
 						Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e {filePath}" : "",
 						CreateNoWindow = true,
@@ -195,8 +192,7 @@ namespace System.IO
 			}
 			else
 			{
-				using (Process process = Process.Start(new ProcessStartInfo
-				{
+				using (Process process = Process.Start(new ProcessStartInfo {
 					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? url : "open",
 					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e {url}" : "",
 					CreateNoWindow = true,

@@ -139,8 +139,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			Func<Uri> baseUriAction,
 			IPEndPoint torSocks5EndPoint)
 		{
-			var request = new InputsRequest
-			{
+			var request = new InputsRequest {
 				RoundId = roundId,
 				BlindedOutputScripts = blindedOutputScriptHashes,
 				ChangeOutputAddress = changeOutput,

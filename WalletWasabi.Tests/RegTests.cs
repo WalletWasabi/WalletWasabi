@@ -1897,8 +1897,7 @@ namespace WalletWasabi.Tests
 				}
 
 				// Inputs request tests
-				var inputsRequest = new InputsRequest
-				{
+				var inputsRequest = new InputsRequest {
 					BlindedOutputScripts = null,
 					ChangeOutputAddress = null,
 					Inputs = null,

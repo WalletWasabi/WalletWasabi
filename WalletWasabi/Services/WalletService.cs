@@ -787,8 +787,7 @@ namespace WalletWasabi.Services
 								using (var handshakeTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancel))
 								{
 									handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
-									var nodeConnectionParameters = new NodeConnectionParameters()
-									{
+									var nodeConnectionParameters = new NodeConnectionParameters() {
 										ConnectCancellation = handshakeTimeout.Token,
 										IsRelay = false,
 										UserAgent = $"/Wasabi:{Constants.ClientVersion}/"

@@ -534,8 +534,7 @@ namespace WalletWasabi.Services
 					}
 
 					coin.Secret = coin.Secret ?? KeyManager.GetSecrets(SaltSoup(), coin.ScriptPubKey).Single();
-					var inputProof = new InputProofModel
-					{
+					var inputProof = new InputProofModel {
 						Input = coin.GetTxoRef(),
 						Proof = coin.Secret.PrivateKey.SignCompact(blindedOutputScriptsHash)
 					};
