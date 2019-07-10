@@ -118,7 +118,7 @@ this.WhenAnyValue(...)
 ```cs
 public class RepositoryViewModel : ReactiveObject
 {
-  readonly ObservableAsPropertyHelper<bool> _canDoIt;
+  private ObservableAsPropertyHelper<bool> _canDoIt;
   
   public RepositoryViewModel()
   {
