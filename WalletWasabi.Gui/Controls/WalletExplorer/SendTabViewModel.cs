@@ -45,7 +45,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private Money _estimatedBtcFee;
 		private Money _satoshiPerByteFeeRate;
 		private decimal _feePercentage;
-		private decimal _usdExchangeRate;
+		private ObservableAsPropertyHelper<decimal> _usdExchangeRate;
 		private Money _allSelectedAmount;
 		private string _password;
 		private string _address;
@@ -873,11 +873,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _feePercentage, value);
 		}
 
-		public decimal UsdExchangeRate
-		{
-			get => _usdExchangeRate;
-			set => this.RaiseAndSetIfChanged(ref _usdExchangeRate, value);
-		}
+		public decimal UsdExchangeRate => _usdExchangeRate?.Value ?? 0m;
 
 		public Money AllSelectedAmount
 		{
@@ -1043,17 +1039,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SetFeesAndTexts();
 			}).DisposeWith(Disposables);
 
-			Global.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Subscribe(_ =>
-			{
-				var exchangeRate = Global.Synchronizer.UsdExchangeRate;
+			_usdExchangeRate = Global.Synchronizer
+				.WhenAnyValue(x => x.UsdExchangeRate)
+				.ToProperty(this, x => x.UsdExchangeRate, scheduler: RxApp.MainThreadScheduler)
+				.DisposeWith(Disposables);
 
-				if (exchangeRate != 0)
-				{
-					UsdExchangeRate = exchangeRate;
-				}
-
-				SetFeesAndTexts();
-			}).DisposeWith(Disposables);
+			this.WhenAnyValue(x => x.UsdExchangeRate)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => SetFeesAndTexts());
 
 			base.OnOpen();
 		}

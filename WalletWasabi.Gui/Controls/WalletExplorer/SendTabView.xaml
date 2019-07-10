@@ -59,9 +59,8 @@
           </StackPanel>
           <StackPanel Orientation="Horizontal" Spacing="10">
             <Button Content="{Binding IsMax, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Clear:Max}" Command="{Binding MaxCommand}" VerticalAlignment="Top" Height="40" />
-            <controls:ExtendedTextBox Foreground="{Binding AmountText,
-                                      Converter={StaticResource AmountForegroundConverter}}"
-                                      IsReadOnly="{Binding IsMax}" Text="{Binding AmountText}"
+            <controls:ExtendedTextBox Foreground="{Binding AmountText, Converter={StaticResource AmountForegroundConverter}}"
+                                      IsReadOnly="{Binding IsMax}" Text="{Binding AmountText, Mode=TwoWay}"
                                       ToolTip.Tip="{Binding AmountToolTip}"
                                       Watermark="{Binding AmountWatermarkText}"
                                       UseFloatingWatermark="True"
