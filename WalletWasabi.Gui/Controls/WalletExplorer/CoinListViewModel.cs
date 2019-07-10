@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
+using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -36,7 +37,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool? _selectNonPrivateCheckBoxState;
 		private GridLength _coinJoinStatusWidth;
 		private SortOrder _clustersSortDirection;
-		private decimal _selectedAmount;
+		private Money _selectedAmount;
 		private bool _isAnyCoinSelected;
 		private bool _isCoinListLoading;
 		private bool _labelExposeCommonOwnershipWarning;
@@ -116,7 +117,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _clustersSortDirection, value);
 		}
 
-		public decimal SelectedAmount
+		public Money SelectedAmount
 		{
 			get => _selectedAmount;
 			set => this.RaiseAndSetIfChanged(ref _selectedAmount, value);
@@ -392,17 +393,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(SelectedAmount));
-			}).DisposeWith(Disposables);
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedAmount)))
+				.DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.SelectedAmount)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-			{
-				IsAnyCoinSelected = x > 0m;
-			});
+				.Subscribe(x => IsAnyCoinSelected = x > Money.Zero);
 
 			Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -500,7 +496,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			SetSelections();
 			SelectionChanged?.Invoke(this, cvm);
-			SelectedAmount = Coins.Where(x => x.IsSelected).Sum(x => x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC));
+			SelectedAmount = Coins.Where(x => x.IsSelected).Sum(x => x.Amount);
 			LabelExposeCommonOwnershipWarning = CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel ?
 				false // Because in CoinJoin the selection algorithm makes sure not to combine red with non-red.
 				: Coins.Any(c =>
