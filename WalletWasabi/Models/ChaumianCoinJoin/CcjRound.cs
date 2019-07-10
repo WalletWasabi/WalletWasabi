@@ -441,7 +441,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					  {
 						  case CcjRoundPhase.InputRegistration:
 							  {
-								  SetInputRegistrationTimesout(); // Update it, it's going to be slightly more accurate.
+								  SetInputRegistrationTimesout(); // Update it, it is going to be slightly more accurate.
 								  timeout = InputRegistrationTimeout;
 							  }
 							  break;
@@ -497,7 +497,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 										  case CcjRoundPhase.InputRegistration:
 											  {
 												  // Only abort if less than two one Alice is registered.
-												  // Do not ban anyone, it's ok if they lost connection.
+												  // Do not ban anyone, it is ok if they lost connection.
 												  await RemoveAlicesIfAnInputRefusedByMempoolAsync();
 												  int aliceCountAfterInputRegistrationTimeout = CountAlices();
 												  if (aliceCountAfterInputRegistrationTimeout < 2)
@@ -768,7 +768,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			try
 			{
-				// If the transaction does not spend unconfirmed coins then the confirmation target can be the one that's been set in the config.
+				// If the transaction does not spend unconfirmed coins then the confirmation target can be the one that is been set in the config.
 				var originalConfirmationTarget = AdjustedConfirmationTarget;
 
 				// Note that only dependents matter, spenders does not matter much or at all, they just make this transaction to be faster to confirm faster.
@@ -1142,7 +1142,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					throw new InvalidOperationException("Adding Bob is only allowed in OutputRegistration phase.");
 				}
 
-				// If Bob is already added with the same scriptpubkey and level, that's fine.
+				// If Bob is already added with the same scriptpubkey and level, that is fine.
 				Bobs.Add(bob);
 			}
 

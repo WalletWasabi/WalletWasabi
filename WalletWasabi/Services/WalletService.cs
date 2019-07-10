@@ -348,7 +348,7 @@ namespace WalletWasabi.Services
 						}
 						catch
 						{
-							// When there's a connection failure do not clean the transactions, add it to processing.
+							// When there is a connection failure do not clean the transactions, add it to processing.
 							foreach (var tx in unconfirmedTransactions)
 							{
 								tx.SetHeight(Height.Mempool);
@@ -398,7 +398,7 @@ namespace WalletWasabi.Services
 		{
 			label = Guard.Correct(label);
 
-			// Make sure there's always 21 clean keys generated and indexed.
+			// Make sure there is always 21 clean keys generated and indexed.
 			KeyManager.AssertCleanKeysIndexed(isInternal: false);
 
 			IEnumerable<HdPubKey> keys = KeyManager.GetKeys(KeyState.Clean, isInternal: false);
@@ -412,7 +412,7 @@ namespace WalletWasabi.Services
 			}
 
 			var foundLabelless = keys.FirstOrDefault(x => !x.HasLabel); // Return the first labelless.
-			HdPubKey ret = foundLabelless ?? keys.RandomElement(); // Return the first, because that's the oldest.
+			HdPubKey ret = foundLabelless ?? keys.RandomElement(); // Return the first, because that is the oldest.
 
 			ret.SetLabel(label, KeyManager);
 
@@ -462,7 +462,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			// If it's being spent by someone and that someone has not been sufficiently anonymized.
+			// If it is being spent by someone and that someone has not been sufficiently anonymized.
 			if (!coin.Unspent)
 			{
 				var c = lookupTransactionId[coin.SpenderTransactionId].FirstOrDefault(x => !clusters.Contains(x));
@@ -554,7 +554,7 @@ namespace WalletWasabi.Services
 				if (isFoundTx)
 				{
 					SmartTransaction foundTx = TransactionCache.FirstOrDefault(x => x == tx);
-					if (foundTx != default(SmartTransaction)) // Must check again, because it's a concurrent collection!
+					if (foundTx != default(SmartTransaction)) // Must check again, because it is a concurrent collection!
 					{
 						foundTx.SetHeight(tx.Height, tx.BlockHash, tx.BlockIndex);
 						walletRelevant = true;
@@ -577,7 +577,7 @@ namespace WalletWasabi.Services
 					{
 						foreach (TxIn txIn in tx.Transaction.Inputs)
 						{
-							if (spentOutput.TransactionId == txIn.PrevOut.Hash && spentOutput.Index == txIn.PrevOut.N) // Do not do (spentOutput == txIn.PrevOut), it's faster this way, because it won't check for null.
+							if (spentOutput.TransactionId == txIn.PrevOut.Hash && spentOutput.Index == txIn.PrevOut.N) // Do not do (spentOutput == txIn.PrevOut), it is faster this way, because it won't check for null.
 							{
 								doubleSpends.Add(coin);
 								spent = true;
@@ -655,13 +655,13 @@ namespace WalletWasabi.Services
 						continue;
 					}
 
-					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
+					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that is different.
 																																																												   // If we did not have it.
 					if (Coins.TryAdd(newCoin))
 					{
 						TransactionCache.TryAdd(tx);
 
-						// If it's being mixed and anonset is not sufficient, then queue it.
+						// If it is being mixed and anonset is not sufficient, then queue it.
 						if (newCoin.Unspent && ChaumianClient.HasIngredients && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet && ChaumianClient.State.Contains(newCoin.SpentOutputs))
 						{
 							try
@@ -674,12 +674,12 @@ namespace WalletWasabi.Services
 							}
 						}
 
-						// Make sure there's always 21 clean keys generated and indexed.
+						// Make sure there is always 21 clean keys generated and indexed.
 						KeyManager.AssertCleanKeysIndexed(isInternal: foundKey.IsInternal);
 
 						if (foundKey.IsInternal)
 						{
-							// Make sure there's always 14 internal locked keys generated and indexed.
+							// Make sure there is always 14 internal locked keys generated and indexed.
 							KeyManager.AssertLockedInternalKeysIndexed(14);
 						}
 					}
@@ -787,14 +787,15 @@ namespace WalletWasabi.Services
 								using (var handshakeTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancel))
 								{
 									handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
-									var nodeConnectionParameters = new NodeConnectionParameters() {
+									var nodeConnectionParameters = new NodeConnectionParameters()
+									{
 										ConnectCancellation = handshakeTimeout.Token,
 										IsRelay = false,
 										UserAgent = $"/Wasabi:{Constants.ClientVersion}/"
 									};
 
 									// If an onion was added must try to use Tor.
-									// onlyForOnionHosts should connect to it if it's an onion endpoint automatically and non-Tor endpoints through clearnet/localhost
+									// onlyForOnionHosts should connect to it if it is an onion endpoint automatically and non-Tor endpoints through clearnet/localhost
 									if (Synchronizer.WasabiClient.TorClient.IsTorUsed)
 									{
 										nodeConnectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint, onlyForOnionHosts: true, networkCredential: null, streamIsolation: false));
@@ -832,7 +833,7 @@ namespace WalletWasabi.Services
 							}
 
 							Block blockFromLocalNode = null;
-							// Should timeout faster. Not sure if it should ever fail though. Maybe let's keep like this later for remote node connection.
+							// Should timeout faster. Not sure if it should ever fail though. Maybe let us keep like this later for remote node connection.
 							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(64)))
 							{
 								blockFromLocalNode = await LocalBitcoinCoreNode.DownloadBlockAsync(hash, cts.Token);
@@ -923,7 +924,7 @@ namespace WalletWasabi.Services
 							continue;
 						}
 
-						break; // If got this far break, then we have the block, it's valid. Break.
+						break; // If got this far break, then we have the block, it is valid. Break.
 					}
 					catch (Exception ex)
 					{
@@ -1363,15 +1364,15 @@ namespace WalletWasabi.Services
 			return coinsToSpend;
 		}
 
-		/// <returns>If the selection was successful. If there's enough coins to spend from.</returns>
+		/// <returns>If the selection was successful. If there is enough coins to spend from.</returns>
 		private bool TrySelectCoins(ref HashSet<SmartCoin> coinsToSpend, Money totalOutAmount, IEnumerable<SmartCoin> unspentCoins)
 		{
-			// If there's no need for input merging, then use the largest selected.
+			// If there is no need for input merging, then use the largest selected.
 			// Do not prefer anonymity set. You can assume the user prefers anonymity set manually through the GUI.
 			SmartCoin largestCoin = unspentCoins.OrderByDescending(x => x.Amount).FirstOrDefault();
 			if (largestCoin == default)
 			{
-				return false; // If there's no coin then unsuccessful selection.
+				return false; // If there is no coin then unsuccessful selection.
 			}
 			else // Check if we can do without input merging.
 			{
@@ -1382,7 +1383,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			// If there's a need for input merging.
+			// If there is a need for input merging.
 			foreach (var coin in unspentCoins
 				.OrderByDescending(x => x.AnonymitySet) // Always try to spend/merge the largest anonset coins first.
 				.ThenByDescending(x => x.Amount)) // Then always try to spend by amount.
@@ -1418,7 +1419,7 @@ namespace WalletWasabi.Services
 				Interlocked.Increment(ref SendCount);
 				// Broadcast to a random node.
 				// Wait until it arrives to at least two other nodes.
-				// If something's wrong, fall back broadcasting with backend.
+				// If something is wrong, fall back broadcasting with backend.
 
 				if (Network == Network.RegTest)
 				{
@@ -1453,7 +1454,7 @@ namespace WalletWasabi.Services
 					// Give 7 seconds to send the inv payload.
 					using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(7)))
 					{
-						await node.SendMessageAsync(invPayload).WithCancellation(cts.Token); // ToDo: It's dangerous way to cancel. Implement proper cancellation to NBitcoin!
+						await node.SendMessageAsync(invPayload).WithCancellation(cts.Token); // ToDo: It is dangerous way to cancel. Implement proper cancellation to NBitcoin!
 					}
 
 					// Give 7 seconds for serving.
@@ -1578,7 +1579,7 @@ namespace WalletWasabi.Services
 			}
 			finally
 			{
-				// It's not running anymore, but someone may requested another run.
+				// It is not running anymore, but someone may requested another run.
 				Interlocked.Exchange(ref _refreshCoinHistoriesRunning, 0);
 
 				// Clear the rerun request, too and if it was requested, then rerun.

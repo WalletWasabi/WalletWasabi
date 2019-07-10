@@ -32,7 +32,7 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 				var values = new string[4];
 				for (int i = 0; i < 4; i++)
 				{
-					values[i] = Bytes[i].ToString(); // it's ok ASCII here, these are always numbers
+					values[i] = Bytes[i].ToString(); // it is ok ASCII here, these are always numbers
 				}
 				return string.Join(".", values);
 			}

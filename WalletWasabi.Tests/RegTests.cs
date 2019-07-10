@@ -810,7 +810,7 @@ namespace WalletWasabi.Tests
 					if (waitCount >= 21)
 					{
 						Logger.LogError<RegTests>("Funding transaction to the wallet did not arrive.");
-						return; // Very rarely this test fails. I have no clue why. Probably because all these RegTests are interconnected, anyway let's not bother the CI with it.
+						return; // Very rarely this test fails. I have no clue why. Probably because all these RegTests are interconnected, anyway let us not bother the CI with it.
 					}
 				}
 
@@ -1651,7 +1651,7 @@ namespace WalletWasabi.Tests
 				catch (TimeoutException)
 				{
 					Logger.LogError<RegTests>("Index was not processed.");
-					return; // Very rarely this test fails. I have no clue why. Probably because all these RegTests are interconnected, anyway let's not bother the CI with it.
+					return; // Very rarely this test fails. I have no clue why. Probably because all these RegTests are interconnected, anyway let us not bother the CI with it.
 				}
 
 				// Verify transactions are confirmed in the blockchain
@@ -1897,7 +1897,8 @@ namespace WalletWasabi.Tests
 				}
 
 				// Inputs request tests
-				var inputsRequest = new InputsRequest {
+				var inputsRequest = new InputsRequest
+				{
 					BlindedOutputScripts = null,
 					ChangeOutputAddress = null,
 					Inputs = null,
@@ -2697,7 +2698,7 @@ namespace WalletWasabi.Tests
 				{
 					Assert.Equal(roundId, aliceClient.RoundId);
 				}
-				// Because it's valuetuple.
+				// Because it is valuetuple.
 				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, null));
 			}
 
@@ -2768,7 +2769,7 @@ namespace WalletWasabi.Tests
 				{
 					Assert.Equal(roundId, aliceClient.RoundId);
 				}
-				// Because it's valuetuple.
+				// Because it is valuetuple.
 				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, null));
 			}
 
@@ -2900,7 +2901,7 @@ namespace WalletWasabi.Tests
 				{
 					Assert.Equal(roundId, aliceClient.RoundId);
 				}
-				// Because it's valuetuple.
+				// Because it is valuetuple.
 				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, null));
 			}
 
@@ -2928,7 +2929,7 @@ namespace WalletWasabi.Tests
 					Assert.Equal(roundPhase, resp.currentPhase);
 				}
 
-				// Because it's valuetuple.
+				// Because it is valuetuple.
 				var user = users.ElementAt(k);
 				users.RemoveAt(k);
 				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, user.aliceClient, resp.Item2.First().Signature));

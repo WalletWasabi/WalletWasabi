@@ -162,7 +162,7 @@ namespace WalletWasabi.Services
 			Guard.MinimumAndNotNull(nameof(feeQueryRequestInterval), feeQueryRequestInterval, requestInterval);
 			Guard.MinimumAndNotNull(nameof(maxFiltersToSyncAtInitialization), maxFiltersToSyncAtInitialization, 0);
 
-			MaxRequestIntervalForMixing = requestInterval; // Let's start with this, it'll be modified from outside.
+			MaxRequestIntervalForMixing = requestInterval; // Let us start with this, it'll be modified from outside.
 
 			if (Interlocked.CompareExchange(ref _running, 1, 0) != 0)
 			{
@@ -408,7 +408,7 @@ namespace WalletWasabi.Services
 			WasabiClient?.Dispose();
 			WasabiClient = null;
 
-			EnableRequests(); // Enable requests (it's possible something is being blocked outside the class by AreRequestsBlocked.
+			EnableRequests(); // Enable requests (it is possible something is being blocked outside the class by AreRequestsBlocked.
 		}
 	}
 }

@@ -13,7 +13,7 @@ namespace Nito.AsyncEx
 	/// A mutual exclusion lock that is compatible with async. Note that this lock is <b>not</b> recursive!
 	/// </summary>
 	/// <remarks>
-	/// <para>This is the <c>async</c>-ready almost-equivalent of the <c>lock</c> keyword or the <see cref="System.Threading.Mutex"/> type, similar to <a href="http://blogs.msdn.com/b/pfxteam/archive/2012/02/12/10266988.aspx">Stephen Toub's AsyncLock</a>. It's only <i>almost</i> equivalent because the <c>lock</c> keyword permits reentrancy, which is not currently possible to do with an <c>async</c>-ready lock.</para>
+	/// <para>This is the <c>async</c>-ready almost-equivalent of the <c>lock</c> keyword or the <see cref="System.Threading.Mutex"/> type, similar to <a href="http://blogs.msdn.com/b/pfxteam/archive/2012/02/12/10266988.aspx">Stephen Toub's AsyncLock</a>. It is only <i>almost</i> equivalent because the <c>lock</c> keyword permits reentrancy, which is not currently possible to do with an <c>async</c>-ready lock.</para>
 	/// <para>An <see cref="AsyncLock"/> is either taken or not. The lock can be asynchronously acquired by calling <see autoUpgrade="true" cref="LockAsync()"/>, and it is released by disposing the result of that task. <see cref="LockAsync(CancellationToken)"/> takes an optional <see cref="CancellationToken"/>, which can be used to cancel the acquiring of the lock.</para>
 	/// <para>The task returned from <see autoUpgrade="true" cref="LockAsync()"/> will enter the <c>Completed</c> state when it has acquired the <see cref="AsyncLock"/>. That same task will enter the <c>Canceled</c> state if the <see cref="CancellationToken"/> is signaled before the wait is satisfied; in that case, the <see cref="AsyncLock"/> is not taken by that task.</para>
 	/// <para>You can call <see cref="Lock(CancellationToken)"/> or <see cref="LockAsync(CancellationToken)"/> with an already-cancelled <see cref="CancellationToken"/> to attempt to acquire the <see cref="AsyncLock"/> immediately without actually entering the wait queue.</para>
@@ -30,7 +30,7 @@ namespace Nito.AsyncEx
 	///     }
 	/// }
 	/// </code>
-	/// <para>If we want to replace the blocking operation <c>Thread.Sleep</c> with an asynchronous equivalent, it's not directly possible because of the <c>lock</c> block. We cannot <c>await</c> inside of a <c>lock</c>.</para>
+	/// <para>If we want to replace the blocking operation <c>Thread.Sleep</c> with an asynchronous equivalent, it is not directly possible because of the <c>lock</c> block. We cannot <c>await</c> inside of a <c>lock</c>.</para>
 	/// <para>So, we use the <c>async</c>-compatible <see cref="AsyncLock"/> instead:</para>
 	/// <code>
 	/// private readonly AsyncLock _mutex = new AsyncLock();

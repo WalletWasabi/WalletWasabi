@@ -314,7 +314,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.SigningTransaction);
 					SmartTransaction signedTransaction = result.Transaction;
 
-					if (IsHardwareWallet && !result.Signed) // If hardware but still has a privkey then it's password, then meh.
+					if (IsHardwareWallet && !result.Signed) // If hardware but still has a privkey then it is password, then meh.
 					{
 						PSBT signedPsbt = null;
 						try
@@ -468,7 +468,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (keyManager.HardwareWalletInfo is null)
 			{
-				return (false, "Could not find hardware wallet. Make sure it's plugged in and you're logged in with your PIN.");
+				return (false, "Could not find hardware wallet. Make sure it is plugged in and you're logged in with your PIN.");
 			}
 			else
 			{

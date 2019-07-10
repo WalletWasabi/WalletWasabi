@@ -124,14 +124,15 @@ namespace WalletWasabi.Backend
 			using (var handshakeTimeout = new CancellationTokenSource())
 			{
 				handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
-				var nodeConnectionParameters = new NodeConnectionParameters() {
+				var nodeConnectionParameters = new NodeConnectionParameters()
+				{
 					ConnectCancellation = handshakeTimeout.Token,
 					IsRelay = true
 				};
 
 				nodeConnectionParameters.TemplateBehaviors.Add(new TrustedNodeNotifyingBehavior());
 				var node = await Node.ConnectAsync(network, endPoint, nodeConnectionParameters);
-				// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
+				// We have to find it, because it is cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
 				TrustedNodeNotifyingBehavior = node.Behaviors.Find<TrustedNodeNotifyingBehavior>();
 				try
 				{
@@ -195,7 +196,7 @@ namespace WalletWasabi.Backend
 
 				Logger.LogInfo<RPCClient>("Bitcoin Core fee estimation is working.");
 
-				if (Config.Network == Network.RegTest) // Make sure there's at least 101 block, if not generate it
+				if (Config.Network == Network.RegTest) // Make sure there is at least 101 block, if not generate it
 				{
 					if (blocks < 101)
 					{

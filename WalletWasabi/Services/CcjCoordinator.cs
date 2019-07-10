@@ -161,7 +161,7 @@ namespace WalletWasabi.Services
 			// Turns out you shouldn't accept RBF at all never. (See below.)
 
 			// https://github.com/zkSNACKs/WalletWasabi/issues/145
-			//   if a it spends a banned output AND it's not CJ output
+			//   if a it spends a banned output AND it is not CJ output
 			//     ban all the outputs of the transaction
 
 			if (RoundConfig.DosSeverity <= 1)
@@ -182,7 +182,7 @@ namespace WalletWasabi.Services
 					if (!AnyRunningRoundContainsInput(prevOut, out _))
 					{
 						int newSeverity = foundElem.Severity + 1;
-						await UtxoReferee.UnbanAsync(prevOut); // since it's not an UTXO anymore
+						await UtxoReferee.UnbanAsync(prevOut); // since it is not an UTXO anymore
 
 						if (RoundConfig.DosSeverity >= newSeverity)
 						{
@@ -347,7 +347,7 @@ namespace WalletWasabi.Services
 
 					foreach (Alice alice in alicesDidntSign) // Because the event sometimes is raised from inside the lock.
 					{
-						// If its from any coinjoin, then do not ban.
+						// If it is from any coinjoin, then do not ban.
 						IEnumerable<OutPoint> utxosToBan = alice.Inputs.Select(x => x.Outpoint);
 						await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, round.RoundId, utxosToBan.ToArray());
 					}

@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 
 namespace Nito.AsyncEx
 {
@@ -44,7 +44,7 @@ namespace Nito.AsyncEx
 			// Update the Id unless another thread already updated it.
 			Interlocked.CompareExchange(ref id, newId, 0);
 
-			// Return the current Id, regardless of whether it's our new Id or a new Id from another thread.
+			// Return the current Id, regardless of whether it is our new Id or a new Id from another thread.
 			return id;
 		}
 	}

@@ -37,7 +37,7 @@ namespace WalletWasabi.Models
 		public int GetConfirmationCount(Height bestHeight) => Height == Height.Mempool ? 0 : bestHeight.Value - Height.Value + 1;
 
 		/// <summary>
-		/// if Height is Mempool it's first seen, else null,
+		/// if Height is Mempool it is first seen, else null,
 		/// only exists in memory,
 		/// does not affect equality
 		/// </summary>

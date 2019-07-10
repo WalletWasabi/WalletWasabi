@@ -235,7 +235,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 					coinGroups = coins.GetPermutations(i, amountNeeded).ToList();
 
-					if (DateTimeOffset.UtcNow - start > TimeSpan.FromMilliseconds(10)) // If the permutations took long then then if there's a nextTime, calculating permutations would be too CPU intensive.
+					if (DateTimeOffset.UtcNow - start > TimeSpan.FromMilliseconds(10)) // If the permutations took long then then if there is a nextTime, calculating permutations would be too CPU intensive.
 					{
 						lazyMode = true;
 					}
@@ -270,7 +270,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					// https://github.com/zkSNACKs/WalletWasabi/issues/1651
 					if (bestSet.Count < maximumInputCountPerPeer) // Ensure limits.
 					{
-						// Generating toxic change leads to mass merging so it's better to merge sooner in coinjoin than the user do it himself in a non-CJ.
+						// Generating toxic change leads to mass merging so it is better to merge sooner in coinjoin than the user do it himself in a non-CJ.
 						// The best selection's anonset should not be lowered by this merge.
 						int bestMinAnonset = bestSet.Min(x => x.AnonymitySet);
 						var bestSum = Money.Satoshis(bestSet.Sum(x => x.Amount));
@@ -451,7 +451,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 					round?.Registration?.AliceClient?.Dispose();
 
-					Logger.LogInfo<CcjClientState>($"Round ({round.State.RoundId}) removed. Reason: It's not running anymore.");
+					Logger.LogInfo<CcjClientState>($"Round ({round.State.RoundId}) removed. Reason: It is not running anymore.");
 				}
 				Rounds.RemoveAll(x => roundsToRemove.Contains(x.State.RoundId));
 
@@ -484,7 +484,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				foreach (var r in Rounds.Where(x => x.State.RoundId == round.State.RoundId))
 				{
 					r?.Registration?.AliceClient?.Dispose();
-					Logger.LogInfo<CcjClientState>($"Round ({round.State.RoundId}) removed. Reason: It's being replaced.");
+					Logger.LogInfo<CcjClientState>($"Round ({round.State.RoundId}) removed. Reason: It is being replaced.");
 				}
 				Rounds.RemoveAll(x => x.State.RoundId == round.State.RoundId);
 				Rounds.Add(round);

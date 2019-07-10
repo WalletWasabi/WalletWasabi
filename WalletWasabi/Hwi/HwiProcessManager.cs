@@ -170,7 +170,8 @@ namespace WalletWasabi.Hwi
 					}
 
 					using (var process = Process.Start(
-						new ProcessStartInfo {
+						new ProcessStartInfo
+						{
 							FileName = HwiPath,
 							Arguments = command,
 							RedirectStandardOutput = true,
@@ -277,7 +278,7 @@ namespace WalletWasabi.Hwi
 				Logger.LogInfo($"Extracted {hwiOsxZip} to {hwiDir}.", nameof(HwiProcessManager));
 			}
 
-			// Make sure there's sufficient permission.
+			// Make sure there is sufficient permission.
 			string chmodHwiDirCmd = $"chmod -R 750 {hwiDir}";
 			EnvironmentHelpers.ShellExec(chmodHwiDirCmd);
 			Logger.LogInfo($"Shell command executed: {chmodHwiDirCmd}.", nameof(HwiProcessManager));

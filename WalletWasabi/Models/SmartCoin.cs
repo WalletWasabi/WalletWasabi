@@ -244,7 +244,7 @@ namespace WalletWasabi.Models
 		}
 
 		/// <summary>
-		/// If the backend thinks it's spent, but Wasabi does not yet know.
+		/// If the backend thinks it is spent, but Wasabi does not yet know.
 		/// </summary>
 		[JsonProperty]
 		public bool SpentAccordingToBackend
@@ -281,8 +281,8 @@ namespace WalletWasabi.Models
 		#region NonSerializableProperties
 
 		/// <summary>
-		/// It's a secret, so it's usually going to be null. Do not use it.
-		/// This will not get serialized, because that's a security risk.
+		/// It is a secret, so it is usually going to be null. Do not use it.
+		/// This will not get serialized, because that is a security risk.
 		/// </summary>
 		public ISecret Secret
 		{

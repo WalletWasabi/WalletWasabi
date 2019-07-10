@@ -95,7 +95,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 
 					var inputsResponse = await response.Content.ReadAsJsonAsync<InputsResponse>();
 
-					if (inputsResponse.RoundId != roundId) // This should never happen. If it does, that's a bug in the coordinator.
+					if (inputsResponse.RoundId != roundId) // This should never happen. If it does, that is a bug in the coordinator.
 					{
 						throw new NotSupportedException($"Coordinator assigned us to the wrong round: {inputsResponse.RoundId}. Requested round: {roundId}.");
 					}
@@ -139,7 +139,8 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			Func<Uri> baseUriAction,
 			IPEndPoint torSocks5EndPoint)
 		{
-			var request = new InputsRequest {
+			var request = new InputsRequest
+			{
 				RoundId = roundId,
 				BlindedOutputScripts = blindedOutputScriptHashes,
 				ChangeOutputAddress = changeOutput,
@@ -206,7 +207,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 				{
 					using (HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/unconfirmation?uniqueId={UniqueId}&roundId={RoundId}", cancel: cts.Token))
 					{
-						if (response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.Gone) // Otherwise maybe some internet connection issue there's. Let's consider that as timed out.
+						if (response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.Gone) // Otherwise maybe some internet connection issue there is. Let us consider that as timed out.
 						{
 							await response.ThrowRequestExceptionFromContentAsync();
 						}

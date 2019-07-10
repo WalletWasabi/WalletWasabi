@@ -197,7 +197,7 @@ namespace WalletWasabi.Services
 		{
 			states = states ?? Enumerable.Empty<CcjRunningRoundState>();
 
-			if (Interlocked.Read(ref _statusProcessing) == 1) // It's ok to wait for status processing next time.
+			if (Interlocked.Read(ref _statusProcessing) == 1) // It is ok to wait for status processing next time.
 			{
 				return;
 			}
@@ -209,7 +209,7 @@ namespace WalletWasabi.Services
 				Interlocked.Exchange(ref _statusProcessing, 1);
 				using (await MixLock.LockAsync())
 				{
-					// First, if there's delayed round registration update based on the state.
+					// First, if there is delayed round registration update based on the state.
 					if (DelayedRoundRegistration != null)
 					{
 						CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(DelayedRoundRegistration.AliceClient.RoundId);
@@ -265,7 +265,7 @@ namespace WalletWasabi.Services
 						{
 							await TryRegisterCoinsAsync(inputRegistrableRound);
 						}
-						else // We registered, let's confirm we're online.
+						else // We registered, let us confirm we're online.
 						{
 							await TryConfirmConnectionAsync(inputRegistrableRound);
 						}
@@ -368,7 +368,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			// If there's no change output then coordinator protection may happened:
+			// If there is no change output then coordinator protection may happened:
 			bool gotChange = myOutputs.Select(x => x.ScriptPubKey).Contains(ongoingRound.Registration.ChangeAddress.ScriptPubKey);
 			if (!gotChange)
 			{
@@ -431,7 +431,7 @@ namespace WalletWasabi.Services
 					// Unblind our exposed links.
 					foreach (TxoRef input in registeredInputs)
 					{
-						if (ExposedLinks.ContainsKey(input)) // Should never not contain, but oh well, let's not disrupt the round for this.
+						if (ExposedLinks.ContainsKey(input)) // Should never not contain, but oh well, let us not disrupt the round for this.
 						{
 							var found = ExposedLinks[input].FirstOrDefault(x => x.Key.GetP2wpkhAddress(Network) == activeOutput.Address);
 							if (found != default)
@@ -534,7 +534,8 @@ namespace WalletWasabi.Services
 					}
 
 					coin.Secret = coin.Secret ?? KeyManager.GetSecrets(SaltSoup(), coin.ScriptPubKey).Single();
-					var inputProof = new InputProofModel {
+					var inputProof = new InputProofModel
+					{
 						Input = coin.GetTxoRef(),
 						Proof = coin.Secret.PrivateKey.SignCompact(blindedOutputScriptsHash)
 					};
@@ -721,7 +722,7 @@ namespace WalletWasabi.Services
 						{
 							newOutLinks.Add(link);
 						}
-						else // If already in it then update the blinded value if it's getting exposed just now. (eg. the change)
+						else // If already in it then update the blinded value if it is getting exposed just now. (eg. the change)
 						{
 							if (found.IsBlinded)
 							{

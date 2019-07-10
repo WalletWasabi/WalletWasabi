@@ -738,7 +738,7 @@ namespace WalletWasabi.Models
 				for (var current = buckets[i]; current != null; current = current.Next)
 				{
 					array[index] = current.Item;
-					index++; //this should never flow, CopyToItems is only called when there's no overflow risk
+					index++; //this should never flow, CopyToItems is only called when there is no overflow risk
 				}
 			}
 		}

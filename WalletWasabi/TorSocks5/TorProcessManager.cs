@@ -17,7 +17,7 @@ namespace WalletWasabi.TorSocks5
 	public class TorProcessManager
 	{
 		/// <summary>
-		/// If null then it's just a mock, clearnet is used.
+		/// If null then it is just a mock, clearnet is used.
 		/// </summary>
 		public IPEndPoint TorSocks5EndPoint { get; }
 
@@ -121,7 +121,8 @@ namespace WalletWasabi.TorSocks5
 
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
-							TorProcess = Process.Start(new ProcessStartInfo {
+							TorProcess = Process.Start(new ProcessStartInfo
+							{
 								FileName = torPath,
 								Arguments = torArguments,
 								UseShellExecute = false,
@@ -188,7 +189,7 @@ namespace WalletWasabi.TorSocks5
 					Logger.LogInfo<TorProcessManager>($"Extracted {torOsxZip} to {torDir}.");
 				}
 
-				// Make sure there's sufficient permission.
+				// Make sure there is sufficient permission.
 				string chmodTorDirCmd = $"chmod -R 750 {torDir}";
 				EnvironmentHelpers.ShellExec(chmodTorDirCmd);
 				Logger.LogInfo<TorProcessManager>($"Shell command executed: {chmodTorDirCmd}.");

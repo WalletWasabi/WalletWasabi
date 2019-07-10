@@ -112,7 +112,7 @@ namespace WalletWasabi.Services
 			{
 				if (!TransactionHashes.Any())
 				{
-					return true; // There's nothing to cleanup.
+					return true; // There is nothing to cleanup.
 				}
 
 				Logger.LogInfo<MempoolService>("Start cleaning out mempool...");

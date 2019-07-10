@@ -263,7 +263,7 @@ namespace WalletWasabi.Gui
 					// onlyForOnionHosts: false - Connect to clearnet IPs through Tor, too.
 					connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.GetTorSocks5EndPoint(), onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
 					// allowOnlyTorEndpoints: true - Connect only to onions and do not connect to clearnet IPs at all.
-					// This of course makes the first setting unnecessary, but it's better if that's around, in case someone wants to tinker here.
+					// This of course makes the first setting unnecessary, but it is better if that is around, in case someone wants to tinker here.
 					connectionParameters.EndpointConnector = new DefaultEndpointConnector(allowOnlyTorEndpoints: Network == Network.Main);
 
 					await AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager);
@@ -292,7 +292,7 @@ namespace WalletWasabi.Gui
 				requestInterval = TimeSpan.FromSeconds(5);
 			}
 
-			int maxFiltSyncCount = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
+			int maxFiltSyncCount = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it is faster to query them together
 
 			Synchronizer.Start(requestInterval, TimeSpan.FromMinutes(5), maxFiltSyncCount);
 			Logger.LogInfo("Start synchronizing filters...");
@@ -359,7 +359,8 @@ namespace WalletWasabi.Gui
 				}
 			}
 
-			var addressManagerBehavior = new AddressManagerBehavior(AddressManager) {
+			var addressManagerBehavior = new AddressManagerBehavior(AddressManager)
+			{
 				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
 			};
 			return addressManagerBehavior;
@@ -418,9 +419,9 @@ namespace WalletWasabi.Gui
 
 				try
 				{
-					keyManager.CorrectBlockHeights(BitcoinStore.HashChain); // Block heights are wrong sometimes. It's a hack. We have to retroactively fix existing wallets, but also we have to figure out where we ruin the block heights.
+					keyManager.CorrectBlockHeights(BitcoinStore.HashChain); // Block heights are wrong sometimes. It is a hack. We have to retroactively fix existing wallets, but also we have to figure out where we ruin the block heights.
 				}
-				catch (Exception ex) // Whatever this is not critical, but let's log it.
+				catch (Exception ex) // Whatever this is not critical, but let us log it.
 				{
 					Logger.LogWarning(ex, nameof(Global));
 				}
@@ -492,7 +493,8 @@ namespace WalletWasabi.Gui
 			KeyManager keyManager;
 
 			// Set the LastAccessTime.
-			new FileInfo(walletFullPath) {
+			new FileInfo(walletFullPath)
+			{
 				LastAccessTime = DateTime.Now
 			};
 
@@ -516,12 +518,13 @@ namespace WalletWasabi.Gui
 					{
 						//if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSDescription.StartsWith("Microsoft Windows 10"))
 						//{
-						//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
+						//	// It is harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
 						//}
 						// else
 
 						string amountString = coin.Amount.ToString(false, true);
-						using (var process = Process.Start(new ProcessStartInfo {
+						using (var process = Process.Start(new ProcessStartInfo
+						{
 							FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
 							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e \"display notification \\\"Received {amountString} BTC\\\" with title \\\"Wasabi\\\"\"" : $"--expire-time=3000 \"Wasabi\" \"Received {amountString} BTC\"",
 							CreateNoWindow = true

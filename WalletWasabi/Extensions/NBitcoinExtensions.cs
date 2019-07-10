@@ -78,11 +78,11 @@ namespace NBitcoin
 		}
 
 		/// <summary>
-		/// Based on transaction data, it decides if it's possible that native segwit script played a par in this transaction.
+		/// Based on transaction data, it decides if it is possible that native segwit script played a par in this transaction.
 		/// </summary>
 		public static bool PossiblyP2WPKHInvolved(this Transaction me)
 		{
-			// We omit Guard, because it's performance critical in Wasabi.
+			// We omit Guard, because it is performance critical in Wasabi.
 			// We start with the inputs, because, this check is faster.
 			// Note: by testing performance the order does not seem to affect the speed of loading the wallet.
 			foreach (TxIn input in me.Inputs)
@@ -125,7 +125,7 @@ namespace NBitcoin
 		public static int GetAnonymitySet(this Transaction me, uint outputIndex) => GetAnonymitySet(me, (int)outputIndex);
 
 		/// <summary>
-		/// Careful, if it's in a legacy block then this won't work.
+		/// Careful, if it is in a legacy block then this won't work.
 		/// </summary>
 		public static bool HasWitScript(this TxIn me)
 		{

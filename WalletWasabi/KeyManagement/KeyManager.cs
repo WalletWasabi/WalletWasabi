@@ -596,7 +596,7 @@ namespace WalletWasabi.KeyManagement
 		}
 
 		/// <summary>
-		/// Make sure there's always clean keys generated and indexed.
+		/// Make sure there is always clean keys generated and indexed.
 		/// Call SetMinGapLimit() to set how many keys should be asserted.
 		/// </summary>
 		public bool AssertCleanKeysIndexed(bool? isInternal = null)
@@ -634,7 +634,7 @@ namespace WalletWasabi.KeyManagement
 		}
 
 		/// <summary>
-		/// Make sure there's always locked internal keys generated and indexed.
+		/// Make sure there is always locked internal keys generated and indexed.
 		/// </summary>
 		public bool AssertLockedInternalKeysIndexed(int howMany = 14)
 		{
@@ -660,7 +660,7 @@ namespace WalletWasabi.KeyManagement
 		{
 			lock (BlockchainStateLock)
 			{
-				// Block heights are wrong sometimes. It's a hack. We have to retroactively fix existing wallets, but also we have to figure out where we ruin the block heights.
+				// Block heights are wrong sometimes. It is a hack. We have to retroactively fix existing wallets, but also we have to figure out where we ruin the block heights.
 				// Assert the correct height.
 				var toRemove = new List<uint256>();
 				var toAdd = new List<BlockState>();

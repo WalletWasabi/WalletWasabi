@@ -42,7 +42,7 @@ namespace WalletWasabi.Services
 			{
 				try
 				{
-					var toRemove = new List<string>(); // what's been confirmed
+					var toRemove = new List<string>(); // what has been confirmed
 					string[] allLines = File.ReadAllLines(BannedUtxosFilePath);
 					foreach (string line in allLines)
 					{

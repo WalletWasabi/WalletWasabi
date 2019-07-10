@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -63,7 +63,7 @@ namespace System.Net.Http
 
 				if (header == "")
 				{
-					// 2 CRLF was read in row so it's the end of the headers
+					// 2 CRLF was read in row so it is the end of the headers
 					break;
 				}
 

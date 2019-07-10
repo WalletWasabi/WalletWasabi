@@ -351,7 +351,7 @@ namespace WalletWasabi.Stores
 								{
 									if (firstImmatureHeight == height)
 									{
-										break; // Let's use our the immature filters from here on. The content is the same, just someone else modified the file.
+										break; // Let us use our the immature filters from here on. The content is the same, just someone else modified the file.
 									}
 
 									if (line is null)
@@ -386,7 +386,7 @@ namespace WalletWasabi.Stores
 
 								if (firstImmatureHeight == height)
 								{
-									break; // Let's use our the immature filters from here on. The content is the same, just someone else modified the file.
+									break; // Let us use our the immature filters from here on. The content is the same, just someone else modified the file.
 								}
 
 								if (height < fromHeight.Value)

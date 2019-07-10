@@ -64,7 +64,7 @@ namespace NBitcoin.RPC
 						}
 					}
 				}
-				// Let's try one more time, whatever.
+				// Let us try one more time, whatever.
 			}
 
 			return await rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode);
@@ -96,7 +96,7 @@ namespace NBitcoin.RPC
 						}
 					}
 				}
-				// Let's try one more time, whatever.
+				// Let us try one more time, whatever.
 			}
 
 			return await rpc.TryEstimateSmartFeeAsync(confirmationTarget, estimateMode);
@@ -212,7 +212,7 @@ namespace NBitcoin.RPC
 		public static async Task<IEnumerable<uint256>> GetUnconfirmedAsync(this RPCClient rpc, IEnumerable<uint256> transactionHashes)
 		{
 			uint256[] unconfirmedTransactionHashes = await rpc.GetRawMempoolAsync();
-			// If there are common elements, then there's unconfirmed.
+			// If there are common elements, then there is unconfirmed.
 			return transactionHashes.Intersect(unconfirmedTransactionHashes);
 		}
 

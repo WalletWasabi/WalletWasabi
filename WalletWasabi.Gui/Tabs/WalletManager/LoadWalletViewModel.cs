@@ -103,7 +103,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				try
 				{
-					var ofd = new OpenFileDialog {
+					var ofd = new OpenFileDialog
+					{
 						AllowMultiple = false,
 						Title = "Import Coldcard"
 					};
@@ -390,7 +391,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				foreach (var wallet in Wallets)
 				{
-					if (hwis.All(x => x.Path != wallet.HardwareWalletInfo.Path)) // If it's not in the list anymore, then remove.
+					if (hwis.All(x => x.Path != wallet.HardwareWalletInfo.Path)) // If it is not in the list anymore, then remove.
 					{
 						toRemove.Add(wallet);
 						changed = true;
@@ -404,7 +405,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				foreach (var hwi in hwis)
 				{
-					if (Wallets.All(x => x.HardwareWalletInfo.Path != hwi.Path)) // If it's not already in the list, then add.
+					if (Wallets.All(x => x.HardwareWalletInfo.Path != hwi.Path)) // If it is not already in the list, then add.
 					{
 						Wallets.Add(new LoadWalletEntry(hwi));
 						changed = true;

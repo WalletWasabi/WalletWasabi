@@ -145,7 +145,7 @@ namespace WalletWasabi.Gui
 					Interlocked.Exchange(ref _closingState, 2); //now we can close the app
 					Close(); // start the closing process. Will call MainWindow_ClosingAsync again!
 				}
-				//let's go to finally
+				//let us go to finally
 			}
 			catch (Exception ex)
 			{

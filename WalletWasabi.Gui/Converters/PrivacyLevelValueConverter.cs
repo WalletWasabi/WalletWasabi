@@ -55,10 +55,10 @@ namespace WalletWasabi.Gui.Converters
 				{
 					shield = "Strong";
 				}
-				else // It's Over 9000!
+				else // It is Over 9000!
 				{
 					shield = "Saiyan";
-					toolTip = "It's over 9000!!!";
+					toolTip = "It is over 9000!!!";
 				}
 
 				toolTip = toolTip ?? $"Anonymity Set: {integer}";

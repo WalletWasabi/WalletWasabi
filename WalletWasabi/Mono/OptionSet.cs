@@ -203,7 +203,7 @@ namespace Mono.Options
 			{
 				return item.Names[0];
 			}
-			// This should never happen, as it's invalid for Option to be
+			// This should never happen, as it is invalid for Option to be
 			// constructed w/o any names.
 			throw new InvalidOperationException("Option has no names!");
 		}
