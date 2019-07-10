@@ -299,7 +299,7 @@ namespace WalletWasabi.TorSocks5
 			{
 				throw exc;
 			}
-			// ex.Message must be checked, because I'm having difficulty catching SocketExceptionFactory+ExtendedSocketException
+			// ex.Message must be checked, because I am having difficulty catching SocketExceptionFactory+ExtendedSocketException
 			// Only works on English Os-es.
 			catch (Exception ex) when (ex.Message.StartsWith(
 										   "No connection could be made because the target machine actively refused it") // Windows

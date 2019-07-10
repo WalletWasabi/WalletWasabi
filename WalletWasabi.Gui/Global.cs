@@ -516,7 +516,7 @@ namespace WalletWasabi.Gui
 					{
 						//if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSDescription.StartsWith("Microsoft Windows 10"))
 						//{
-						//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
+						//	// It's harder than you would think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
 						//}
 						// else
 

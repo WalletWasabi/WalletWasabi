@@ -264,7 +264,7 @@ namespace WalletWasabi.Services
 
 								if (heightToRequest != StartingHeight && currentHash != block.Header.HashPrevBlock)
 								{
-									// Reorg can happen only when immature. (If it'd not be immature, that'd be a huge issue.)
+									// Reorg can happen only when immature. (If it would not be immature, that would be a huge issue.)
 									if (isImmature)
 									{
 										await ReorgOneAsync();

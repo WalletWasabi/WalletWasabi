@@ -723,7 +723,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 				FeeRate optimalFeeRate = estimateSmartFeeResponse.FeeRate;
 
-				if (optimalFeeRate != null && optimalFeeRate != FeeRate.Zero && currentFeeRate != null && currentFeeRate != FeeRate.Zero) // This would be really strange if it'd happen.
+				if (optimalFeeRate != null && optimalFeeRate != FeeRate.Zero && currentFeeRate != null && currentFeeRate != FeeRate.Zero) // This would be really strange if it would happen.
 				{
 					var sanityFeeRate = new FeeRate(2m); // 2 s/b
 					optimalFeeRate = optimalFeeRate < sanityFeeRate ? sanityFeeRate : optimalFeeRate;

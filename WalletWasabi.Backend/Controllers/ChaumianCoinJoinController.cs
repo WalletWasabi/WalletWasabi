@@ -279,7 +279,7 @@ namespace WalletWasabi.Backend.Controllers
 							break;
 						}
 
-						Money coordinatorFee = denomination.Percentage(round.CoordinatorFeePercent * round.AnonymitySet); // It should be the number of bobs, but we must make sure they'd have money to pay all.
+						Money coordinatorFee = denomination.Percentage(round.CoordinatorFeePercent * round.AnonymitySet); // It should be the number of bobs, but we must make sure they would have money to pay all.
 						changeAmount -= (denomination + round.FeePerOutputs + coordinatorFee);
 						networkFeeToPay += round.FeePerOutputs;
 

@@ -30,9 +30,9 @@ namespace WalletWasabi.Gui.Controls
 			"只有一支筷子的人会挨饿。", //Man with one chopstick go hungry.
 			"说太多灯泡笑话的人，很快就会心力交瘁。", // Man who tell one too many light bulb jokes soon burn out!
 			"汤面火锅", //Noodle soup, hot pot
-			"你是我见过的最可爱的僵尸。", //You’re the cutest zombie I’ve ever seen.
+			"你是我见过的最可爱的僵尸。", //You’re the cutest zombie I have ever seen.
 			"永不放弃。", //Never do not give up.
-			"如果你是只宠物小精灵，我就选你。" //If you were a Pokemon, I'd choose you.
+			"如果你是只宠物小精灵，我就选你。" //If you were a Pokemon, I would choose you.
 		};
 
 		private static Key[] SuppressedKeys { get; } =

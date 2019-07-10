@@ -510,7 +510,7 @@ namespace WalletWasabi.Packager
 
 				// Remove HWI binaries those are not relevant to the platform.
 				// On Windows HWI starts from next to the exe because Windows Defender sometimes deletes it.
-				// On Linux and OSX HWI starts from the data folder because otherwise there'd be permission issues.
+				// On Linux and OSX HWI starts from the data folder because otherwise there would be permission issues.
 				var hwiFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "Hwi", "Software"));
 				// Remove Tor binaries those are not relevant to the platform.
 				var torFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "TorDaemons"));
