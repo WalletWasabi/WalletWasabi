@@ -134,11 +134,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			SetFeesAndTexts();
 
-			this.WhenAnyValue(x => x.Amount)
+			this.WhenAnyValue(x => x.Amount, x => x.IsMax)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(amount =>
+				.Subscribe(tuple =>
 			{
-				if (!IsMax)
+				var amount = tuple.Item1;
+				var isMax = tuple.Item2;
+				if (!isMax)
 				{
 					// Correct amount
 					Regex digitsOnly = new Regex(@"[^\d,.]");
