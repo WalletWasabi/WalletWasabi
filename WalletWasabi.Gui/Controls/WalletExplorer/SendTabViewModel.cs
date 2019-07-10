@@ -51,7 +51,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _password;
 		private string _address;
 		private string _label;
-		private string _labelToolTip;
 		private string _feeToolTip;
 		private string _amountWaterMark;
 		private bool _isBusy;
@@ -84,7 +83,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Label = "";
 			Password = "";
 			IsMax = false;
-			LabelToolTip = "Start labeling today and your privacy will thank you tomorrow!";
 			AmountText = "0.0";
 		}
 
@@ -201,15 +199,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
-					if (IsMax)
-					{
-						LabelToolTip = "Spending whole coins does not generate change, thus labeling is unnecessary.";
-					}
-					else
+					if (!IsMax)
 					{
 						AmountText = "0.0";
-
-						LabelToolTip = "Start labeling today and your privacy will thank you tomorrow!";
 					}
 				});
 
@@ -933,12 +925,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _label;
 			set => this.RaiseAndSetIfChanged(ref _label, value);
-		}
-
-		public string LabelToolTip
-		{
-			get => _labelToolTip;
-			set => this.RaiseAndSetIfChanged(ref _labelToolTip, value);
 		}
 
 		public string FeeToolTip

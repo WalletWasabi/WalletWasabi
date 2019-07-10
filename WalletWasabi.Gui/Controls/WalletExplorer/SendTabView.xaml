@@ -37,7 +37,15 @@
             </i:Interaction.Behaviors>
           </controls:ExtendedTextBox>
           <StackPanel Spacing="8">
-            <controls:ExtendedTextBox x:Name="LabelTextBox" Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True" IsReadOnly="{Binding IsMax}" ToolTip.Tip="{Binding LabelToolTip}" CaretIndex="{Binding CaretIndex}">
+            <controls:ExtendedTextBox
+              x:Name="LabelTextBox"
+              Text="{Binding Label}"
+              Watermark="Label"
+              UseFloatingWatermark="True"
+              IsReadOnly="{Binding IsMax}"
+              ToolTip.Tip="{Binding IsMax, Converter={StaticResource BooleanStringConverter}, ConverterParameter='Spending whole coins does not generate change, thus labeling is unnecessary.:Start labeling today and your privacy will thank you tomorrow!'}"
+              CaretIndex="{Binding CaretIndex}">
+
               <i:Interaction.Behaviors>
                 <behaviors:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />
                 <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
