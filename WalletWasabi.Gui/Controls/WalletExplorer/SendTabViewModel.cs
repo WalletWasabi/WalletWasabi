@@ -158,14 +158,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SetFeesAndTexts();
 			});
 
-			(this).WhenAnyValue(x => x.IsBusy)
+			this.WhenAnyValue(x => x.IsBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 			{
 				SetSendText();
 			});
 
-			(this).WhenAnyValue(x => x.IsHardwareBusy)
+			this.WhenAnyValue(x => x.IsHardwareBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 			{
