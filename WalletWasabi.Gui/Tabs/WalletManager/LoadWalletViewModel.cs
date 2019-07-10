@@ -608,7 +608,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				if (ex is IOException && ex.Message.Contains("promptpin", StringComparison.Ordinal))
 				{
 					// This happens for example when the PIN is cleared (timeout, disconnect) after the enumeration and the xpub was not yet acquired at all, so we reenumerate.
-					// This will still show up the error, but at least this'll make sure that the new hardware wallet state is shown in the GUI, so they can click Load again.
+					// This will still show up the error, but at least this will make sure that the new hardware wallet state is shown in the GUI, so they can click Load again.
 					var enumRes = await HwiProcessManager.EnumerateAsync();
 					TryRefreshHardwareWallets(enumRes);
 				}

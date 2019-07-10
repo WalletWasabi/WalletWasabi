@@ -61,7 +61,7 @@ namespace WalletWasabi.Services
 						}
 					}
 
-					if (toRemove.Count != 0) // a little performance boost, often it'll be empty
+					if (toRemove.Count != 0) // a little performance boost, often it will be empty
 					{
 						var newAllLines = allLines.Where(x => !toRemove.Contains(x));
 						File.WriteAllLines(BannedUtxosFilePath, newAllLines);

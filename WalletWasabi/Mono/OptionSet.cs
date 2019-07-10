@@ -180,8 +180,7 @@ namespace Mono.Options
 			MessageLocalizer = localizer;
 			if (MessageLocalizer is null)
 			{
-				MessageLocalizer = delegate (string f)
-				{
+				MessageLocalizer = delegate (string f) {
 					return f;
 				};
 			}
@@ -291,7 +290,7 @@ namespace Mono.Options
 		public sealed class Category : Option
 		{
 			// Prototype starts with '=' because this is an invalid prototype
-			// (see Option.ParsePrototype(), and thus it'll prevent Category
+			// (see Option.ParsePrototype(), and thus it will prevent Category
 			// instances from being accidentally used as normal options.
 			public Category(string description)
 				: base("=:Category:= " + description, description)

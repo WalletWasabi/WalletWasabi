@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -167,7 +167,7 @@ namespace Mono.Options
 		public string CommandName { get; }
 
 		// Prototype starts with '=' because this is an invalid prototype
-		// (see Option.ParsePrototype(), and thus it'll prevent Category
+		// (see Option.ParsePrototype(), and thus it will prevent Category
 		// instances from being accidentally used as normal options.
 		public CommandOption(Command command, string commandName = null, bool hidden = false)
 			: base("=:Command:= " + (commandName ?? command?.Name), (commandName ?? command?.Name), maxValueCount: 0, hidden: hidden)

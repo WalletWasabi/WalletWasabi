@@ -79,7 +79,7 @@ namespace WalletWasabi.Tests
 		[Theory]
 		[InlineData(NetworkType.Mainnet)]
 		[InlineData(NetworkType.Testnet)]
-		public async Task GetExchangeRateAsync(NetworkType networkType) // xunit wtf: If this function is called GetExchangeRatesAsync, it'll stuck on 1 CPU VMs (Manjuro, Fedora)
+		public async Task GetExchangeRateAsync(NetworkType networkType) // xunit wtf: If this function is called GetExchangeRatesAsync, it will stuck on 1 CPU VMs (Manjuro, Fedora)
 		{
 			using (var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.Instance.TorSocks5Endpoint))
 			{

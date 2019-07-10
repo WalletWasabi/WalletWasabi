@@ -36,7 +36,7 @@ namespace WalletWasabi.Packager
 		// Tor - win-32, linux-32, osx-64
 		// .NET Core - win-32, linux-64, osx-64
 		// Avalonia - win7-32, linux-64, osx-64
-		// We'll only support x64, if someone complains, we can come back to it.
+		// We will only support x64, if someone complains, we can come back to it.
 		// For 32 bit Windows there needs to be a lot of WIX configuration to be done.
 		public static string[] Targets = new[]
 		{
@@ -239,7 +239,7 @@ namespace WalletWasabi.Packager
 		{
 			if (OnlyBinaries)
 			{
-				Console.WriteLine($"I'll only generate binaries and disregard all other options.");
+				Console.WriteLine($"I will only generate binaries and disregard all other options.");
 			}
 			Console.WriteLine($"{nameof(VersionPrefix)}:\t\t\t{VersionPrefix}");
 			Console.WriteLine($"{nameof(ExecutableName)}:\t\t\t{ExecutableName}");

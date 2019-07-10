@@ -67,7 +67,7 @@ namespace WalletWasabi.Backend.Controllers
 					InputRegistrationTimesout = round.InputRegistrationTimesout,
 					RegisteredPeerCount = round.CountAlices(syncLock: false),
 					RequiredPeerCount = round.AnonymitySet,
-					MaximumInputCountPerPeer = 7, // Constant for now. If we want to do something with it later, we'll put it to the config file.
+					MaximumInputCountPerPeer = 7, // Constant for now. If we want to do something with it later, we will put it to the config file.
 					RegistrationTimeout = (int)round.AliceRegistrationTimeout.TotalSeconds,
 					FeePerInputs = round.FeePerInputs,
 					FeePerOutputs = round.FeePerOutputs,
@@ -392,7 +392,7 @@ namespace WalletWasabi.Backend.Controllers
 
 						alice.BlindedOutputScripts = alice.BlindedOutputScripts.Take(takeBlindCount).ToArray();
 						alice.BlindedOutputSignatures = alice.BlindedOutputSignatures.Take(takeBlindCount).ToArray();
-						resp.BlindedOutputSignatures = alice.BlindedOutputSignatures; // Do not give back more mixing levels than we'll use.
+						resp.BlindedOutputSignatures = alice.BlindedOutputSignatures; // Do not give back more mixing levels than we will use.
 
 						// Progress round if needed.
 						if (round.AllAlices(AliceState.ConnectionConfirmed))
@@ -563,7 +563,7 @@ namespace WalletWasabi.Backend.Controllers
 
 					int bobCount = round.CountBobs();
 					int blindSigCount = round.CountBlindSignatures();
-					if (bobCount == blindSigCount) // If there'll be more bobs, then round failed. Someone may broke the crypto.
+					if (bobCount == blindSigCount) // If there will be more bobs, then round failed. Someone may broke the crypto.
 					{
 						await round.ExecuteNextPhaseAsync(CcjRoundPhase.Signing);
 					}

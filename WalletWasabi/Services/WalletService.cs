@@ -1448,7 +1448,7 @@ namespace WalletWasabi.Services
 					}
 
 					Logger.LogInfo<WalletService>($"Trying to broadcast transaction with random node ({node.RemoteSocketAddress}):{transaction.GetHash()}");
-					Mempool.TryAddToBroadcastStore(transaction.Transaction, node.RemoteSocketEndpoint.ToString()); // So we'll reply to INV with this transaction.
+					Mempool.TryAddToBroadcastStore(transaction.Transaction, node.RemoteSocketEndpoint.ToString()); // So we will reply to INV with this transaction.
 					var invPayload = new InvPayload(transaction.Transaction);
 					// Give 7 seconds to send the inv payload.
 					using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(7)))

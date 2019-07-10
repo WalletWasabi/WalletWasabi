@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -156,7 +156,7 @@ namespace WalletWasabi.Helpers
 
 		/// <summary>
 		/// Corrects the string:
-		/// If the string is null, it'll be empty.
+		/// If the string is null, it will be empty.
 		/// Trims the string.
 		/// </summary>
 		public static string Correct(string str)

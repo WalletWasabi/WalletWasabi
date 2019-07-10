@@ -270,8 +270,8 @@ namespace WalletWasabi.Stores
 		private int _throttleId;
 
 		/// <summary>
-		/// It'll LogError the exceptions.
-		/// If cancelled, it'll LogTrace the exception.
+		/// It will LogError the exceptions.
+		/// If cancelled, it will LogTrace the exception.
 		/// </summary>
 		private async Task TryCommitToFileAsync(TimeSpan throttle, CancellationToken cancel)
 		{

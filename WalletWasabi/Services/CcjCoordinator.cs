@@ -103,7 +103,7 @@ namespace WalletWasabi.Services
 						}
 					}
 
-					if (toRemove.Count != 0) // a little performance boost, it'll be empty almost always
+					if (toRemove.Count != 0) // a little performance boost, it will be empty almost always
 					{
 						var newAllLines = allLines.Where(x => !toRemove.Contains(x));
 						File.WriteAllLines(CoinJoinsFilePath, newAllLines);
@@ -126,7 +126,7 @@ namespace WalletWasabi.Services
 				}
 				else
 				{
-					// First time initializes (so the first constructor will increment it and we'll start from 1.)
+					// First time initializes (so the first constructor will increment it and we will start from 1.)
 					CcjRound.RoundCount = 0;
 				}
 			}
@@ -157,7 +157,7 @@ namespace WalletWasabi.Services
 
 		public async Task ProcessTransactionAsync(Transaction tx)
 		{
-			// This should not be needed until we would only accept unconfirmed CJ outputs an no other unconf outs. But it'll be more bulletproof for future extensions.
+			// This should not be needed until we would only accept unconfirmed CJ outputs an no other unconf outs. But it will be more bulletproof for future extensions.
 			// Turns out you shouldn't accept RBF at all never. (See below.)
 
 			// https://github.com/zkSNACKs/WalletWasabi/issues/145

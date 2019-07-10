@@ -162,7 +162,7 @@ namespace WalletWasabi.Services
 			Guard.MinimumAndNotNull(nameof(feeQueryRequestInterval), feeQueryRequestInterval, requestInterval);
 			Guard.MinimumAndNotNull(nameof(maxFiltersToSyncAtInitialization), maxFiltersToSyncAtInitialization, 0);
 
-			MaxRequestIntervalForMixing = requestInterval; // Let's start with this, it'll be modified from outside.
+			MaxRequestIntervalForMixing = requestInterval; // Let's start with this, it will be modified from outside.
 
 			if (Interlocked.CompareExchange(ref _running, 1, 0) != 0)
 			{

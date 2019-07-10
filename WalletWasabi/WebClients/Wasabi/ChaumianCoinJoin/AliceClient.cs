@@ -212,17 +212,17 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 						}
 					}
 				}
-				catch (Exception ex) when (ex is OperationCanceledException // If could not do it within 3 seconds then it'll likely time out and take it as unconfirmed.
+				catch (Exception ex) when (ex is OperationCanceledException // If could not do it within 3 seconds then it will likely time out and take it as unconfirmed.
 										|| ex is TaskCanceledException
 										|| ex is TimeoutException)
 				{
 					return;
 				}
-				catch (ConnectionException)  // If some internet connection issue then it'll likely time out and take it as unconfirmed.
+				catch (ConnectionException)  // If some internet connection issue then it will likely time out and take it as unconfirmed.
 				{
 					return;
 				}
-				catch (TorSocks5FailureResponseException) // If some Tor connection issue then it'll likely time out and take it as unconfirmed.
+				catch (TorSocks5FailureResponseException) // If some Tor connection issue then it will likely time out and take it as unconfirmed.
 				{
 					return;
 				}

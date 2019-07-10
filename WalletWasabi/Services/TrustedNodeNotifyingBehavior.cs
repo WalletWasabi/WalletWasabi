@@ -82,7 +82,7 @@ namespace WalletWasabi.Services
 
 		public override object Clone()
 		{
-			// Note that, this is not clone! So this must be used after we are connected to a node, because it'll have as many clones as nodes.
+			// Note that, this is not clone! So this must be used after we are connected to a node, because it will have as many clones as nodes.
 			return new TrustedNodeNotifyingBehavior();
 		}
 	}

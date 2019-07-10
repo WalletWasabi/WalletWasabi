@@ -569,7 +569,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public async Task ProgressToOutputRegistrationOrFailAsync(params Alice[] additionalAlicesToBan)
 		{
 			// Only abort if less than two one alices are registered.
-			// What if an attacker registers all the time many alices, then drops out. He'll achieve only 2 alices to participate?
+			// What if an attacker registers all the time many alices, then drops out. He will achieve only 2 alices to participate?
 			// If he registers many alices at InputRegistration
 			// AND never confirms in connection confirmation
 			// THEN connection confirmation will go with 2 alices in every round
