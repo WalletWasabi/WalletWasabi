@@ -290,7 +290,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					try
 					{
-						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.DequeuingSelectedCoins);
+						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.DequeueingSelectedCoins);
 						TxoRef[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => x.Model.GetTxoRef()).ToArray();
 						if (toDequeue != null && toDequeue.Any())
 						{
@@ -304,7 +304,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					finally
 					{
-						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.DequeuingSelectedCoins);
+						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.DequeueingSelectedCoins);
 					}
 
 					var result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, FeeTarget, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));

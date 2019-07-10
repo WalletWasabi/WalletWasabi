@@ -21,7 +21,7 @@ namespace WalletWasabi.Gui.Models
 		ConnectingToHardwareWallet,
 		SettingUpHardwareWallet,
 		BuildingTransaction,
-		DequeuingSelectedCoins,
+		DequeueingSelectedCoins,
 		Ready
 	}
 }
