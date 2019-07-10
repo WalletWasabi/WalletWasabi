@@ -180,7 +180,8 @@ namespace Mono.Options
 			MessageLocalizer = localizer;
 			if (MessageLocalizer is null)
 			{
-				MessageLocalizer = delegate (string f) {
+				MessageLocalizer = delegate (string f)
+				{
 					return f;
 				};
 			}
