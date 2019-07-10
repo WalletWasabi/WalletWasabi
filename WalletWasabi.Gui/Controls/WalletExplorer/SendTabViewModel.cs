@@ -42,7 +42,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _confirmationExpectedText;
 		private string _feeText;
 		private decimal _usdFee;
-		private Money _btcFee;
+		private Money _estimatedBtcFee;
 		private Money _satoshiPerByteFeeRate;
 		private decimal _feePercentage;
 		private decimal _usdExchangeRate;
@@ -108,7 +108,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => OnCoinsListDequeueCoinsPressedAsync());
 
-			this.WhenAnyValue(x => x.IsMax, x => x.SelectedAmount, x => x.BtcFee)
+			this.WhenAnyValue(x => x.IsMax, x => x.SelectedAmount, x => x.EstimatedBtcFee)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(tuple =>
 				{
@@ -619,7 +619,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						break;
 
 					case FeeDisplayFormat.BTC:
-						FeeText = $"(~ {BtcFee.ToString(false, false)} BTC)";
+						FeeText = $"(~ {EstimatedBtcFee.ToString(false, false)} BTC)";
 						FeeToolTip = "Estimated total fees in BTC.";
 						break;
 
@@ -678,27 +678,27 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 
-			BtcFee = Money.Satoshis(vsize * SatoshiPerByteFeeRate);
+			EstimatedBtcFee = Money.Satoshis(vsize * SatoshiPerByteFeeRate);
 
 			Money selectedAmount = SelectedAmount;
 			if (IsMax)
 			{
 				if (selectedAmount != Money.Zero)
 				{
-					FeePercentage = 100 * (decimal)BtcFee.Satoshi / selectedAmount.Satoshi;
+					FeePercentage = 100 * (decimal)EstimatedBtcFee.Satoshi / selectedAmount.Satoshi;
 				}
 			}
 			else
 			{
 				if (Money.TryParse(Amount.TrimStart('~', ' '), out Money amount) && amount.Satoshi != 0)
 				{
-					FeePercentage = 100 * (decimal)BtcFee.Satoshi / amount.Satoshi;
+					FeePercentage = 100 * (decimal)EstimatedBtcFee.Satoshi / amount.Satoshi;
 				}
 			}
 
 			if (UsdExchangeRate != 0)
 			{
-				UsdFee = BtcFee.ToUsd(UsdExchangeRate);
+				UsdFee = EstimatedBtcFee.ToUsd(UsdExchangeRate);
 			}
 		}
 
@@ -854,10 +854,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _usdFee, value);
 		}
 
-		public Money BtcFee
+		public Money EstimatedBtcFee
 		{
-			get => _btcFee;
-			set => this.RaiseAndSetIfChanged(ref _btcFee, value);
+			get => _estimatedBtcFee;
+			set => this.RaiseAndSetIfChanged(ref _estimatedBtcFee, value);
 		}
 
 		public Money SatoshiPerByteFeeRate
@@ -878,6 +878,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _usdExchangeRate, value);
 		}
 
+		/// <summary>
+		/// The sum of the amounts of all the selected coins.
+		/// </summary>
 		public Money SelectedAmount => _selectedAmount?.Value ?? Money.Zero;
 
 		public string Password
