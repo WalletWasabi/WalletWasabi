@@ -43,7 +43,7 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 
 		#region MenuItem
 
-		[ExportMainMenuItem("File", "Generate Wallet")]
+		[ExportMainMenuItem("File", "Generate New Wallet")]
 		[DefaultOrder(0)]
 		[DefaultGroup("Wallet")]
 		public IMenuItem GenerateWallet => MenuItemFactory.CreateCommandMenuItem("File.GenerateWallet");

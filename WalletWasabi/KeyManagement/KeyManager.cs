@@ -560,7 +560,7 @@ namespace WalletWasabi.KeyManagement
 		{
 			if (IsWatchOnly)
 			{
-				throw new SecurityException("This is a watchonly wallet.");
+				throw new SecurityException("This is a watch-only wallet.");
 			}
 
 			try
@@ -578,7 +578,7 @@ namespace WalletWasabi.KeyManagement
 			}
 			catch (SecurityException ex)
 			{
-				throw new SecurityException("Invalid password.", ex);
+				throw new SecurityException("The password is invalid.", ex);
 			}
 		}
 

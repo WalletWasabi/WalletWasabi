@@ -24,8 +24,8 @@ namespace WalletWasabi.Gui.Converters
 			switch (status)
 			{
 				case StatusBarStatus.Ready: return "Ready";
-				case StatusBarStatus.CriticalUpdate: return "THE BACKEND WAS UPGRADED WITH BREAKING CHANGES - PLEASE UPDATE YOUR SOFTWARE";
-				case StatusBarStatus.OptionalUpdate: return "New Version Is Available";
+				case StatusBarStatus.CriticalUpdate: return "THE BACKEND WAS UPGRADED WITH BREAKING CHANGES - PLEASE UPDATE WASABI WALLET!";
+				case StatusBarStatus.OptionalUpdate: return "A new version of Wasabi Wallet is available.";
 				case StatusBarStatus.Connecting: return "Connecting...";
 				case StatusBarStatus.Synchronizing: return "Synchronizing...";
 				case StatusBarStatus.Loading: return "Loading...";
@@ -36,7 +36,7 @@ namespace WalletWasabi.Gui.Converters
 				case StatusBarStatus.BuildingTransaction: return "Building transaction...";
 				case StatusBarStatus.SigningTransaction: return "Signing transaction...";
 				case StatusBarStatus.BroadcastingTransaction: return "Broadcasting transaction...";
-				case StatusBarStatus.DequeuingSelectedCoins: return "Dequeueing selected coins...";
+				case StatusBarStatus.DequeuingSelectedCoins: return "Dequeuing selected coins...";
 				default:
 					{
 						Logging.Logger.LogWarning<StatusBarStatusStringConverter>("Status don't have conversion string specified. Calling ToString() on enum.");

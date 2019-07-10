@@ -16,7 +16,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 		public WalletCommands(CommandIconService commandIconService)
 		{
 			GenerateWalletCommand = new CommandDefinition(
-				"Generate Wallet",
+				"Generate New Wallet",
 				commandIconService.GetCompletionKindImage("GenerateWallet"),
 				ReactiveCommand.Create(OnGenerateWallet));
 

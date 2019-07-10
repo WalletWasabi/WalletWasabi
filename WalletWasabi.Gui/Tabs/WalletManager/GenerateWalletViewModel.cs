@@ -22,7 +22,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public WalletManagerViewModel Owner { get; }
 		public Global Global => Owner.Global;
 
-		public GenerateWalletViewModel(WalletManagerViewModel owner) : base("Generate Wallet")
+		public GenerateWalletViewModel(WalletManagerViewModel owner) : base("Generate New Wallet")
 		{
 			Owner = owner;
 
