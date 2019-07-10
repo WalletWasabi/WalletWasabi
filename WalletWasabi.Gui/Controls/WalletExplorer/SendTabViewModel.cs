@@ -397,7 +397,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			bool ledgerNotReady = hwis.Any(x => x.Type == HardwareWalletType.Ledger && !x.Ready);
 			if (ledgerNotReady) // For Ledger you have to log into your "Bitcoin" account.
 			{
-				throw new InvalidOperationException("Log into your Bitcoin account on your Ledger. If you're already logged in, log out and log in again.");
+				throw new InvalidOperationException("Log into your Bitcoin account on your Ledger. If you are already logged in, log out and log in again.");
 			}
 
 			var fingerprint = keyManager.MasterFingerprint;
@@ -468,7 +468,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (keyManager.HardwareWalletInfo is null)
 			{
-				return (false, "Could not find hardware wallet. Make sure it's plugged in and you're logged in with your PIN.");
+				return (false, "Could not find hardware wallet. Make sure it's plugged in and you are logged in with your PIN.");
 			}
 			else
 			{

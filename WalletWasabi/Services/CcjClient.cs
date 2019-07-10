@@ -265,7 +265,7 @@ namespace WalletWasabi.Services
 						{
 							await TryRegisterCoinsAsync(inputRegistrableRound);
 						}
-						else // We registered, let's confirm we're online.
+						else // We registered, let's confirm we are online.
 						{
 							await TryConfirmConnectionAsync(inputRegistrableRound);
 						}

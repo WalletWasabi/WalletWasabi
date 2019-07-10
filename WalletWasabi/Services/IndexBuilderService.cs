@@ -260,7 +260,7 @@ namespace WalletWasabi.Services
 
 								Block block = await RpcClient.GetBlockAsync(heightToRequest);
 
-								// Reorg check, except if we're requesting the starting height, because then the "currentHash" wouldn't exist.
+								// Reorg check, except if we are requesting the starting height, because then the "currentHash" wouldn't exist.
 
 								if (heightToRequest != StartingHeight && currentHash != block.Header.HashPrevBlock)
 								{

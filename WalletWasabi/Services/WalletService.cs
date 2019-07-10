@@ -781,7 +781,7 @@ namespace WalletWasabi.Services
 						// Try to get block information from local running Core node first.
 						try
 						{
-							if (LocalBitcoinCoreNode is null || !LocalBitcoinCoreNode.IsConnected && Network != Network.RegTest) // If RegTest then we're already connected do not try again.
+							if (LocalBitcoinCoreNode is null || !LocalBitcoinCoreNode.IsConnected && Network != Network.RegTest) // If RegTest then we are already connected do not try again.
 							{
 								DisconnectDisposeNullLocalBitcoinCoreNode();
 								using (var handshakeTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancel))

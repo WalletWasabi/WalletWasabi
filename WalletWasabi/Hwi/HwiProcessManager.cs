@@ -91,7 +91,7 @@ namespace WalletWasabi.Hwi
 			&& (ex.Message.Contains("sign_tx cancelled", StringComparison.OrdinalIgnoreCase)
 			|| ex.Message.Contains("open failed", StringComparison.OrdinalIgnoreCase)))
 			{
-				throw new IOException("Log into your Bitcoin account on your Ledger. If you're already logged in, log out and log in again.");
+				throw new IOException("Log into your Bitcoin account on your Ledger. If you are already logged in, log out and log in again.");
 			}
 			catch (IOException ex) when (hardwareWalletInfo.Type == HardwareWalletType.Ledger
 			&& ex.Message.Contains("Bad argument", StringComparison.OrdinalIgnoreCase))

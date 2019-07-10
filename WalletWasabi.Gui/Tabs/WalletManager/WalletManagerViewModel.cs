@@ -145,7 +145,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 							bool ledgerNotReady = hwis.Any(x => x.Type == HardwareWalletType.Ledger && !x.Ready);
 							if (ledgerNotReady) // For Ledger you have to log into your "Bitcoin" account.
 							{
-								LoadWalletViewModelHardware.SetWarningMessage("Log into your Bitcoin account on your Ledger. If you're already logged in, log out and log in again.");
+								LoadWalletViewModelHardware.SetWarningMessage("Log into your Bitcoin account on your Ledger. If you are already logged in, log out and log in again.");
 								continue;
 							}
 							else if (hwis.Any(x => x.Type == HardwareWalletType.Ledger && x.Ready))
