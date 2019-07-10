@@ -36,7 +36,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool? _selectNonPrivateCheckBoxState;
 		private GridLength _coinJoinStatusWidth;
 		private SortOrder _clustersSortDirection;
-		private decimal _totalAmount;
+		private decimal _selectedAmount;
 		private bool _isAnyCoinSelected;
 		private bool _isCoinListLoading;
 		private bool _labelExposeCommonOwnershipWarning;
@@ -116,10 +116,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _clustersSortDirection, value);
 		}
 
-		public decimal TotalAmount
+		public decimal SelectedAmount
 		{
-			get => _totalAmount;
-			set => this.RaiseAndSetIfChanged(ref _totalAmount, value);
+			get => _selectedAmount;
+			set => this.RaiseAndSetIfChanged(ref _selectedAmount, value);
 		}
 
 		public bool IsAnyCoinSelected
@@ -394,10 +394,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 			{
-				this.RaisePropertyChanged(nameof(TotalAmount));
+				this.RaisePropertyChanged(nameof(SelectedAmount));
 			}).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.TotalAmount)
+			this.WhenAnyValue(x => x.SelectedAmount)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 			{
@@ -500,7 +500,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			SetSelections();
 			SelectionChanged?.Invoke(this, cvm);
-			TotalAmount = Coins.Where(x => x.IsSelected).Sum(x => x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC));
+			SelectedAmount = Coins.Where(x => x.IsSelected).Sum(x => x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC));
 			LabelExposeCommonOwnershipWarning = CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel ?
 				false // Because in CoinJoin the selection algorithm makes sure not to combine red with non-red.
 				: Coins.Any(c =>
