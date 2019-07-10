@@ -9,6 +9,7 @@
   <UserControl.Resources>
     <converters:AmountForegroundConverter x:Key="AmountForegroundConverter" />
     <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
+    <converters:UsdExchangeRateAmountToolTipConverter x:Key="UsdExchangeRateAmountToolTipConverter" />
   </UserControl.Resources>
   <i:Interaction.Behaviors>
     <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedCoin}" />
@@ -61,7 +62,7 @@
             <Button Content="{Binding IsMax, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Clear:Max}" Command="{Binding MaxCommand}" VerticalAlignment="Top" Height="40" />
             <controls:ExtendedTextBox Foreground="{Binding AmountText, Converter={StaticResource AmountForegroundConverter}}"
                                       IsReadOnly="{Binding IsMax}" Text="{Binding AmountText, Mode=TwoWay}"
-                                      ToolTip.Tip="{Binding AmountToolTip}"
+                                      ToolTip.Tip="{Binding UsdExchangeRate, Converter={StaticResource UsdExchangeRateAmountToolTipConverter}}"
                                       Watermark="{Binding AmountWatermarkText}"
                                       UseFloatingWatermark="True"
                                       MinWidth="124"

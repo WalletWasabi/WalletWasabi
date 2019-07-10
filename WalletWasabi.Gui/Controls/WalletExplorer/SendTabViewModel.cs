@@ -53,7 +53,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _labelToolTip;
 		private string _feeToolTip;
 		private string _amountWaterMarkText;
-		private string _amountToolTip;
 		private bool _isBusy;
 		private bool _isHardwareBusy;
 		private int _caretIndex;
@@ -84,7 +83,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Label = "";
 			Password = "";
 			AllSelectedAmount = Money.Zero;
-			UsdExchangeRate = Global.Synchronizer?.UsdExchangeRate ?? UsdExchangeRate;
 			IsMax = false;
 			LabelToolTip = "Start labeling today and your privacy will thank you tomorrow!";
 			AmountText = "0.0";
@@ -97,7 +95,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			BuildTransactionButtonText = IsTransactionBuilder ? BuildTransactionButtonTextString : SendTransactionButtonTextString;
 
 			ResetUi();
-			SetAmountWatermarkAndToolTip(Money.Zero);
+			SetAmountWatermark(Money.Zero);
 
 			CoinList = new CoinListViewModel(Global, CoinListContainerType.SendTabViewModel);
 
@@ -148,11 +146,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				if (Money.TryParse(amount.TrimStart('~', ' '), out Money amountBtc))
 				{
-					SetAmountWatermarkAndToolTip(amountBtc);
+					SetAmountWatermark(amountBtc);
 				}
 				else
 				{
-					SetAmountWatermarkAndToolTip(Money.Zero);
+					SetAmountWatermark(Money.Zero);
 				}
 
 				SetFeesAndTexts();
@@ -500,7 +498,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private void SetAmountWatermarkAndToolTip(Money amount)
+		private void SetAmountWatermark(Money amount)
 		{
 			if (amount == Money.Zero)
 			{
@@ -526,8 +524,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					AmountWatermarkText = "Amount (BTC)";
 				}
 			}
-
-			AmountToolTip = $"Exchange Rate: {(long)UsdExchangeRate} BTC/USD.";
 		}
 
 		private void ChangeFeeRateDisplay()
@@ -999,12 +995,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _amountWaterMarkText;
 			set => this.RaiseAndSetIfChanged(ref _amountWaterMarkText, value);
-		}
-
-		public string AmountToolTip
-		{
-			get => _amountToolTip;
-			set => this.RaiseAndSetIfChanged(ref _amountToolTip, value);
 		}
 
 		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
