@@ -94,7 +94,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			BuildTransactionButtonText = IsTransactionBuilder ? BuildTransactionButtonTextString : SendTransactionButtonTextString;
 
 			ResetUi();
-			SetAmountWatermarkAndToolTip(Money.Zero);
+			SetAmountWatermark(Money.Zero);
 
 			CoinList = new CoinListViewModel(Global, CoinListContainerType.SendTabViewModel);
 
@@ -172,11 +172,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				if (Money.TryParse(amount.TrimStart('~', ' '), out Money amountBtc))
 				{
-					SetAmountWatermarkAndToolTip(amountBtc);
+					SetAmountWatermark(amountBtc);
 				}
 				else
 				{
-					SetAmountWatermarkAndToolTip(Money.Zero);
+					SetAmountWatermark(Money.Zero);
 				}
 
 				SetFeesAndTexts();
@@ -522,7 +522,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private void SetAmountWatermarkAndToolTip(Money amount)
+		private void SetAmountWatermark(Money amount)
 		{
 			if (amount == Money.Zero)
 			{
