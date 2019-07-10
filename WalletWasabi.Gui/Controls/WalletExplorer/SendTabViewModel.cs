@@ -45,7 +45,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private Money _estimatedBtcFee;
 		private Money _satoshiPerByteFeeRate;
 		private decimal _feePercentage;
-		private decimal _usdExchangeRate;
+		private ObservableAsPropertyHelper<decimal> _usdExchangeRate;
 		private ObservableAsPropertyHelper<Money> _selectedAmount;
 		private string _password;
 		private string _address;
@@ -83,7 +83,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Address = "";
 			Label = "";
 			Password = "";
-			UsdExchangeRate = Global.Synchronizer?.UsdExchangeRate ?? UsdExchangeRate;
 			IsMax = false;
 			LabelToolTip = "Start labeling today and your privacy will thank you tomorrow!";
 			AmountText = "0.0";
@@ -133,6 +132,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			FeeTarget = Global.UiConfig.FeeTarget ?? MinimumFeeTarget;
 			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			SetFeesAndTexts();
+
+			this.WhenAnyValue(x => x.UsdExchangeRate)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => SetFeesAndTexts());
 
 			this.WhenAnyValue(x => x.AmountText, x => x.IsMax)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -874,11 +877,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _feePercentage, value);
 		}
 
-		public decimal UsdExchangeRate
-		{
-			get => _usdExchangeRate;
-			set => this.RaiseAndSetIfChanged(ref _usdExchangeRate, value);
-		}
+		public decimal UsdExchangeRate => _usdExchangeRate?.Value ?? 0m;
 
 		/// <summary>
 		/// The sum of the amounts of all the selected coins.
@@ -1043,17 +1042,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SetFeesAndTexts();
 			}).DisposeWith(Disposables);
 
-			Global.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Subscribe(_ =>
-			{
-				var exchangeRate = Global.Synchronizer.UsdExchangeRate;
-
-				if (exchangeRate != 0)
-				{
-					UsdExchangeRate = exchangeRate;
-				}
-
-				SetFeesAndTexts();
-			}).DisposeWith(Disposables);
+			_usdExchangeRate = Global.Synchronizer
+				.WhenAnyValue(x => x.UsdExchangeRate)
+				.ToProperty(this, x => x.UsdExchangeRate, scheduler: RxApp.MainThreadScheduler)
+				.DisposeWith(Disposables);
 
 			_selectedAmount = CoinList.WhenAnyValue(x => x.SelectedAmount)
 				.ToProperty(this, x => x.SelectedAmount, scheduler: RxApp.MainThreadScheduler)
