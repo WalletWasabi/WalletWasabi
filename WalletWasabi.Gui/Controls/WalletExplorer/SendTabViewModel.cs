@@ -35,7 +35,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private string _buildTransactionButtonText;
 		private bool _isMax;
-		private string _amount;
+		private string _amountText;
 		private int _feeTarget;
 		private int _minimumFeeTarget;
 		private int _maximumFeeTarget;
@@ -86,7 +86,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			UsdExchangeRate = Global.Synchronizer?.UsdExchangeRate ?? UsdExchangeRate;
 			IsMax = false;
 			LabelToolTip = "Start labeling today and your privacy will thank you tomorrow!";
-			Amount = "0.0";
+			AmountText = "0.0";
 		}
 
 		public SendTabViewModel(WalletViewModel walletViewModel, bool isTransactionBuilder = false)
@@ -118,13 +118,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						Money selectedAmount = tuple.Item2;
 						if (selectedAmount <= Money.Zero)
 						{
-							Amount = "No Coins Selected";
+							AmountText = "No Coins Selected";
 						}
 						else
 						{
 							Money btcFee = tuple.Item3;
 							Money selectedWithFees = Math.Max(Money.Zero, SelectedAmount.Satoshi - btcFee);
-							Amount = $"~ {selectedWithFees.ToString(false, true)}";
+							AmountText = $"~ {selectedWithFees.ToString(false, true)}";
 						}
 					}
 				});
@@ -134,7 +134,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			SetFeesAndTexts();
 
-			this.WhenAnyValue(x => x.Amount, x => x.IsMax)
+			this.WhenAnyValue(x => x.AmountText, x => x.IsMax)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(tuple =>
 			{
@@ -164,7 +164,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (betterAmount != amount)
 					{
-						Amount = betterAmount;
+						AmountText = betterAmount;
 					}
 				}
 
@@ -234,7 +234,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					else
 					{
-						Amount = "0.0";
+						AmountText = "0.0";
 
 						LabelToolTip = "Start labeling today and your privacy will thank you tomorrow!";
 					}
@@ -281,7 +281,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					var amount = Money.Zero;
 					if (!IsMax)
 					{
-						if (!Money.TryParse(Amount, out amount) || amount == Money.Zero)
+						if (!Money.TryParse(AmountText, out amount) || amount == Money.Zero)
 						{
 							SetWarningMessage($"Invalid amount.");
 							return;
@@ -407,7 +407,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					IsBusy = false;
 				}
 			},
-			this.WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
+			this.WhenAny(x => x.IsMax, x => x.AmountText, x => x.Address, x => x.IsBusy,
 				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy)
 				.ObserveOn(RxApp.MainThreadScheduler));
 		}
@@ -661,7 +661,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				else
 				{
-					if (Money.TryParse(Amount.TrimStart('~', ' '), out Money amount))
+					if (Money.TryParse(AmountText.TrimStart('~', ' '), out Money amount))
 					{
 						var inNum = 0;
 						var amountSoFar = Money.Zero;
@@ -692,7 +692,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			else
 			{
-				if (Money.TryParse(Amount.TrimStart('~', ' '), out Money amount) && amount.Satoshi != 0)
+				if (Money.TryParse(AmountText.TrimStart('~', ' '), out Money amount) && amount.Satoshi != 0)
 				{
 					FeePercentage = 100 * (decimal)EstimatedBtcFee.Satoshi / amount.Satoshi;
 				}
@@ -810,10 +810,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _isMax, value);
 		}
 
-		public string Amount
+		public string AmountText
 		{
-			get => _amount;
-			set => this.RaiseAndSetIfChanged(ref _amount, value);
+			get => _amountText;
+			set => this.RaiseAndSetIfChanged(ref _amountText, value);
 		}
 
 		public int FeeTarget
