@@ -211,6 +211,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			CoinListContainerType = coinListContainerType;
 			AmountSortDirection = SortOrder.Decreasing;
 			IsCoinListLoading = true;
+			SelectedAmount = Money.Zero;
 			RefreshOrdering();
 
 			// Otherwise they're all selected as null on load.

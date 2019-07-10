@@ -46,7 +46,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private Money _satoshiPerByteFeeRate;
 		private decimal _feePercentage;
 		private decimal _usdExchangeRate;
-		private Money _allSelectedAmount;
+		private ObservableAsPropertyHelper<Money> _selectedAmount;
 		private string _password;
 		private string _address;
 		private string _label;
@@ -83,7 +83,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Address = "";
 			Label = "";
 			Password = "";
-			AllSelectedAmount = Money.Zero;
 			UsdExchangeRate = Global.Synchronizer?.UsdExchangeRate ?? UsdExchangeRate;
 			IsMax = false;
 			LabelToolTip = "Start labeling today and your privacy will thank you tomorrow!";
@@ -108,6 +107,27 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Observable.FromEventPattern(CoinList, nameof(CoinList.DequeueCoinsPressed))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => OnCoinsListDequeueCoinsPressedAsync());
+
+			this.WhenAnyValue(x => x.IsMax, x => x.SelectedAmount, x => x.BtcFee)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(tuple =>
+				{
+					bool isMax = tuple.Item1;
+					if (isMax)
+					{
+						Money selectedAmount = tuple.Item2;
+						if (selectedAmount <= Money.Zero)
+						{
+							Amount = "No Coins Selected";
+						}
+						else
+						{
+							Money btcFee = tuple.Item3;
+							Money selectedWithFees = Math.Max(Money.Zero, SelectedAmount.Satoshi - btcFee);
+							Amount = $"~ {selectedWithFees.ToString(false, true)}";
+						}
+					}
+				});
 
 			SetFeeTargetLimits();
 			FeeTarget = Global.UiConfig.FeeTarget ?? MinimumFeeTarget;
@@ -208,8 +228,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					if (IsMax)
 					{
-						SetAmountIfMax();
-
 						LabelToolTip = "Spending whole coins does not generate change, thus labeling is unnecessary.";
 					}
 					else
@@ -614,8 +632,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						throw new NotSupportedException("This is impossible.");
 				}
 			}
-
-			SetAmountIfMax();
 		}
 
 		private static string IfPlural(int val, string singular, string plural)
@@ -626,21 +642,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			return plural;
-		}
-
-		private void SetAmountIfMax()
-		{
-			if (IsMax)
-			{
-				if (AllSelectedAmount == Money.Zero)
-				{
-					Amount = "No Coins Selected";
-				}
-				else
-				{
-					Amount = $"~ {AllSelectedAmount.ToString(false, true)}";
-				}
-			}
 		}
 
 		private void SetFees(AllFeeEstimate allFeeEstimate, int feeTarget)
@@ -679,12 +680,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			BtcFee = Money.Satoshis(vsize * SatoshiPerByteFeeRate);
 
-			long all = selectedCoins.Sum(x => x.Amount);
+			Money selectedAmount = SelectedAmount;
 			if (IsMax)
 			{
-				if (all != 0)
+				if (selectedAmount != Money.Zero)
 				{
-					FeePercentage = 100 * (decimal)BtcFee.Satoshi / all;
+					FeePercentage = 100 * (decimal)BtcFee.Satoshi / selectedAmount.Satoshi;
 				}
 			}
 			else
@@ -699,8 +700,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				UsdFee = BtcFee.ToUsd(UsdExchangeRate);
 			}
-
-			AllSelectedAmount = Math.Max(Money.Zero, all - BtcFee);
 		}
 
 		private void SetFeeTargetLimits()
@@ -879,11 +878,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _usdExchangeRate, value);
 		}
 
-		public Money AllSelectedAmount
-		{
-			get => _allSelectedAmount;
-			set => this.RaiseAndSetIfChanged(ref _allSelectedAmount, value);
-		}
+		public Money SelectedAmount => _selectedAmount?.Value ?? Money.Zero;
 
 		public string Password
 		{
@@ -1054,6 +1049,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				SetFeesAndTexts();
 			}).DisposeWith(Disposables);
+
+			_selectedAmount = CoinList.WhenAnyValue(x => x.SelectedAmount)
+				.ToProperty(this, x => x.SelectedAmount, scheduler: RxApp.MainThreadScheduler)
+				.DisposeWith(Disposables);
 
 			base.OnOpen();
 		}
