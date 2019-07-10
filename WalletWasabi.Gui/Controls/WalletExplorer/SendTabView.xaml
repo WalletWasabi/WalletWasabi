@@ -64,7 +64,7 @@
               Foreground="{Binding AmountText, Converter={StaticResource AmountForegroundConverter}}"
               IsReadOnly="{Binding IsMax}" Text="{Binding AmountText, Mode=TwoWay}"
               ToolTip.Tip="{Binding UsdExchangeRate, Converter={StaticResource UsdExchangeRateAmountToolTipConverter}}"
-              Watermark="{Binding AmountWatermarkText}"
+              Watermark="{Binding AmountWatermark}"
               UseFloatingWatermark="True"
               MinWidth="124"
               MinHeight="46" />

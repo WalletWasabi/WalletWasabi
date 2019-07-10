@@ -47,12 +47,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private decimal _feePercentage;
 		private ObservableAsPropertyHelper<decimal> _usdExchangeRate;
 		private ObservableAsPropertyHelper<Money> _selectedAmount;
+		private Money _customAmount;
 		private string _password;
 		private string _address;
 		private string _label;
 		private string _labelToolTip;
 		private string _feeToolTip;
-		private string _amountWaterMarkText;
+		private string _amountWaterMark;
 		private bool _isBusy;
 		private bool _isHardwareBusy;
 		private int _caretIndex;
@@ -94,7 +95,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			BuildTransactionButtonText = IsTransactionBuilder ? BuildTransactionButtonTextString : SendTransactionButtonTextString;
 
 			ResetUi();
-			SetAmountWatermark(Money.Zero);
 
 			CoinList = new CoinListViewModel(Global, CoinListContainerType.SendTabViewModel);
 
@@ -106,35 +106,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => OnCoinsListDequeueCoinsPressedAsync());
 
-			this.WhenAnyValue(x => x.IsMax, x => x.SelectedAmount, x => x.EstimatedBtcFee)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(tuple =>
-				{
-					bool isMax = tuple.Item1;
-					if (isMax)
-					{
-						Money selectedAmount = tuple.Item2;
-						if (selectedAmount <= Money.Zero)
-						{
-							AmountText = "No Coins Selected";
-						}
-						else
-						{
-							Money btcFee = tuple.Item3;
-							Money selectedWithFees = Math.Max(Money.Zero, SelectedAmount.Satoshi - btcFee);
-							AmountText = $"~ {selectedWithFees.ToString(false, true)}";
-						}
-					}
-				});
-
 			SetFeeTargetLimits();
 			FeeTarget = Global.UiConfig.FeeTarget ?? MinimumFeeTarget;
 			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			SetFeesAndTexts();
-
-			this.WhenAnyValue(x => x.UsdExchangeRate)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => SetFeesAndTexts());
 
 			this.WhenAnyValue(x => x.AmountText, x => x.IsMax)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -168,15 +143,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						AmountText = betterAmount;
 					}
-				}
 
-				if (Money.TryParse(amount.TrimStart('~', ' '), out Money amountBtc))
-				{
-					SetAmountWatermark(amountBtc);
-				}
-				else
-				{
-					SetAmountWatermark(Money.Zero);
+					if (Money.TryParse(betterAmount, out Money customAmount))
+					{
+						CustomAmount = customAmount;
+					}
 				}
 
 				SetFeesAndTexts();
@@ -522,34 +493,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private void SetAmountWatermark(Money amount)
-		{
-			if (amount == Money.Zero)
-			{
-				AmountWatermarkText = "Amount (BTC)";
-			}
-			else
-			{
-				long amountUsd = 0;
-				try
-				{
-					amountUsd = (long)amount.ToUsd(UsdExchangeRate);
-				}
-				catch (OverflowException ex)
-				{
-					Logging.Logger.LogTrace<SendTabViewModel>(ex);
-				}
-				if (amountUsd != 0)
-				{
-					AmountWatermarkText = $"Amount (BTC) ~ ${amountUsd}";
-				}
-				else
-				{
-					AmountWatermarkText = "Amount (BTC)";
-				}
-			}
-		}
-
 		private void ChangeFeeRateDisplay()
 		{
 			var nextval = (from FeeDisplayFormat val in Enum.GetValues(typeof(FeeDisplayFormat))
@@ -881,6 +824,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		/// </summary>
 		public Money SelectedAmount => _selectedAmount?.Value ?? Money.Zero;
 
+		/// <summary>
+		/// Custom amount that the user manually typed in.
+		/// </summary>
+		public Money CustomAmount
+		{
+			get => _customAmount;
+			set => this.RaiseAndSetIfChanged(ref _customAmount, value);
+		}
+
 		public string Password
 		{
 			get => _password;
@@ -995,10 +947,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _feeToolTip, value);
 		}
 
-		public string AmountWatermarkText
+		public string AmountWatermark
 		{
-			get => _amountWaterMarkText;
-			set => this.RaiseAndSetIfChanged(ref _amountWaterMarkText, value);
+			get => _amountWaterMark;
+			set => this.RaiseAndSetIfChanged(ref _amountWaterMark, value);
 		}
 
 		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
@@ -1038,9 +990,72 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ToProperty(this, x => x.UsdExchangeRate, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
+			this.WhenAnyValue(x => x.UsdExchangeRate)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => SetFeesAndTexts());
+
 			_selectedAmount = CoinList.WhenAnyValue(x => x.SelectedAmount)
 				.ToProperty(this, x => x.SelectedAmount, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
+
+			this.WhenAnyValue(x => x.IsMax, x => x.CustomAmount, x => x.SelectedAmount, x => x.UsdExchangeRate)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(tuple =>
+				{
+					bool isMax = tuple.Item1;
+					Money amountToWorkWith;
+					if (isMax)
+					{
+						Money selectedAmount = tuple.Item3;
+						amountToWorkWith = selectedAmount;
+					}
+					else
+					{
+						Money customAmount = tuple.Item2;
+						amountToWorkWith = customAmount;
+					}
+					decimal usdExchangeRate = tuple.Item4;
+
+					long amountUsd = 0;
+					try
+					{
+						amountUsd = (long)amountToWorkWith.ToUsd(usdExchangeRate);
+					}
+					catch (OverflowException ex)
+					{
+						Logging.Logger.LogTrace<SendTabViewModel>(ex);
+					}
+
+					if (amountToWorkWith <= Money.Zero || amountUsd <= 0)
+					{
+						AmountWatermark = "Amount (BTC)";
+					}
+					else
+					{
+						AmountWatermark = $"Amount (BTC) ~ ${amountUsd}";
+					}
+				});
+
+			this.WhenAnyValue(x => x.IsMax, x => x.SelectedAmount, x => x.EstimatedBtcFee)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(tuple =>
+				{
+					bool isMax = tuple.Item1;
+					if (isMax)
+					{
+						Money selectedAmount = tuple.Item2;
+						if (selectedAmount <= Money.Zero)
+						{
+							AmountText = "No Coins Selected";
+						}
+						else
+						{
+							Money btcFee = tuple.Item3;
+							Money selectedWithFees = Math.Max(Money.Zero, SelectedAmount.Satoshi - btcFee);
+							AmountText = $"~ {selectedWithFees.ToString(false, true)}";
+						}
+					}
+				});
 
 			base.OnOpen();
 		}
