@@ -4,11 +4,11 @@ Wasabi Password Finder is a tool for helping those who made a mistake typing the
 
 ## Limitations
 
-Wasabi wallet protects the encrypted secret key with the same technology used to protect paper wallets (bip 38) and for that reason it is computationally infeasible to brute force the password using all the possible combinations. It is important to know that Wasabi Password Finder is not for breaking wallet passwords but for finding errors (typos) in an already known password. 
+Wasabi Wallet protects the encrypted secret key with the same technology used to protect paper wallets (bip 38) and for that reason it is computationally infeasible to brute force the password using all the possible combinations. It is important to know that Wasabi Password Finder is not for breaking wallet passwords but for finding errors (typos) in an already known password. 
 
 ## Usage
 
-To use Wasabi's command line tools on Windows you have to use `wassabeed.exe` that's inside your `Program Files\WasabiWallet`. On Linux and OSX you can use the same software that you use for launching the GUI (`wassabee`).
+To use Wasabi's command line tools on Windows you have to use `wassabeed.exe` that is inside your `Program Files\WasabiWallet`. On Linux and OSX you can use the same software that you use for launching the GUI (`wassabee`).
 
 Let's start giving a glance to the command `help`:
 
@@ -28,11 +28,11 @@ eg: ./wassabee findpassword --wallet:MyWalletName --numbers:false --symbold:true
   -h, --help                 Show Help
 ```
 
-Now, let's find a typo in a wallet called `MagicalCryptoWallet.json`. For the sake of the example let say I've created this wallet and I think the password is `pasd` but it was created with the password `pass` by accident.
+Now, let's find a typo in a wallet called `MagicalCryptoWallet.json`. For the sake of the example let's say I have created this wallet and I think the password is `pasd` but it was created with the password `pass` by accident.
 
 ```
 $ wassabee findpassword --wallet:MagicalCryptoWallet
-WARNING: This tool will display you password if it finds it. Also, the process status display your wong password chars.
+WARNING: This tool will display you password if it finds it. Also, the process status displays your wrong password chars.
          You can cancel this by CTRL+C combination anytime.
 
 Enter password: ****    <---- Here I typed the password that I think used to create the wallet (`pasd`)

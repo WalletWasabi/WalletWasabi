@@ -1,5 +1,5 @@
-Thank you for your interest in zkSNACKs. The protection of your privacy and thus the protection of your (personal) data is Our highest priority. This policy describes the ways zkSNACKs collect, store, use and protect personal information. The purpose of this policy is to ensure that zkSNACKs complies with applicable European Union (EU) and other statutory data protection laws and regulations, and ensures that users are provided privacy protection.
-Data protection laws are generally relevant in case any processing of personal data is concerned. The terms used within the scope of this data protection declaration are defined in and by the General Data Protection Regulation of the European Union. As such, the wide definition of ""processing"" of personal data means any operation or set of operations performed on personal data, such as, but not excluded to, recording, organization, storage, alteration, and transmission of personal data. Any information allowing Us or third parties to potentially identify you in person can be considered personal data. This terminology may also apply to IP addresses, as long as they, e.g. Internet Service Providers, allow such identification.
+Thank you for your interest in zkSNACKs. The protection of your privacy and thus the protection of your (personal) data is Our highest priority. This policy describes the ways zkSNACKs collects, stores, uses and protects personal information. The purpose of this policy is to ensure that zkSNACKs complies with applicable European Union (EU) and other statutory data protection laws and regulations, and ensures that users are provided privacy protection.
+Data protection laws are generally relevant in case any processing of personal data is concerned. The terms used within the scope of this data protection declaration are defined in and by the General Data Protection Regulation of the European Union. As such, the wide definition of "processing" of personal data means any operation or set of operations performed on personal data, such as, but not excluded to, recording, organization, storage, alteration, and transmission of personal data. Any information allowing Us or third parties to potentially identify you in person can be considered personal data. This terminology may also apply to IP addresses, as long as they, e.g. Internet Service Providers, allow such identification.
 
 Personally Identifiable Information
 ===================================
@@ -9,11 +9,11 @@ Personally Identifiable Information
 Handling information
 ====================
 
-Since we are working on privacy enhancement projects and our mission is to regain personal privacy again our services are designed to be used without indication of any personal data. For this reason we do not have Google Analytics or any other kind of data collecting solutions built into our website. This means that we do not even have any knowledge of the website’s traffic. Visitors may, however, indicate their email addresses voluntarily to get notifications in case of any potential technical problems or other enquiries. These e-mail addresses are solely used to answer users’ questions and are erased after 100 days.
+Since we are working on privacy enhancement projects and our mission is to regain personal privacy, our services are designed to be used without indication of any personal data. For this reason we do not have Google Analytics or any other kind of data collecting solutions built into our website. This means that we do not even have any knowledge of the website’s traffic. Visitors may, however, indicate their email addresses voluntarily to get notifications in case of any potential technical problems or other enquiries. These e-mail addresses are solely used to answer users’ questions and are erased after 100 days.
 As the main platform for users’ technical questions and issues we use Reddit to answer all questions.
 We expressly declare that we do not manage or store any data, such as identification documents, e-mail addresses, names, gender etc.
 zkSNACKs does not process any sensitive personal information, such as religion, race, ethnicity and/or political views.
-By using the site, you agree with this policy.
+By using the Website, you agree with this policy.
 
 All User Information is Confidential
 ====================================
