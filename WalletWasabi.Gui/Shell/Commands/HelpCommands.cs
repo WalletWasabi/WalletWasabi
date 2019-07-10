@@ -37,7 +37,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 			{
 				try
 				{
-					IoHelpers.OpenBrowser("https://status.wasabiwallet.io/");
+					IoHelpers.OpenBrowser("https://stats.uptimerobot.com/W7q65in4y");
 				}
 				catch (Exception ex)
 				{

@@ -22,7 +22,7 @@
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Status Page: " />
-            <controls:ExtendedTextBox Text="https://status.wasabiwallet.io/" Classes="selectableTextBlock hyperLink" />
+            <controls:ExtendedTextBox Text="https://stats.uptimerobot.com/W7q65in4y" Classes="selectableTextBlock hyperLink" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Customer Support: " />
