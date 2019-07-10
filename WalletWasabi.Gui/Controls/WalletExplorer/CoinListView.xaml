@@ -54,7 +54,7 @@
         <StackPanel Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal" IsVisible="{Binding IsAnyCoinSelected}">
           <TextBlock Text = "|" />
           <TextBlock Text = "Selected Amount:" />
-          <TextBlock Foreground="YellowGreen" Text = "{Binding TotalAmount, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}}" />
+          <TextBlock Foreground="YellowGreen" Text = "{Binding SelectedAmount, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}}" />
           <TextBlock Text = "BTC" />
           <TextBlock Text ="Merging unmixed coins with mixed ones undo those mixes." Classes="warningMessage" IsVisible="{Binding LabelExposeCommonOwnershipWarning}" />
         </StackPanel>
