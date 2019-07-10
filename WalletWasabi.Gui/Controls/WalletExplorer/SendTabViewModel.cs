@@ -833,6 +833,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _maximumFeeTarget, value);
 		}
 
+		public bool MinFeesAvailable
+		{
+			get => _minimumFeeTarget == _maximumFeeTarget;
+		}
+
 		public string ConfirmationExpectedText
 		{
 			get => _confirmationExpectedText;
