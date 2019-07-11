@@ -208,20 +208,16 @@ namespace WalletWasabi.Gui.Controls
 					return;
 				}
 
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-				{
-					if (e.Key == Key.V && e.Modifiers == InputModifiers.Control) // Prevent paste.
-					{
-						return;
-					}
-				}
-
 				bool paste = false;
 				if (e.Key == Key.V)
 				{
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 					{
-						if (e.Modifiers == InputModifiers.Windows)
+						if (e.Modifiers == InputModifiers.Control) // Prevent paste.
+						{
+							return;
+						}
+						else if (e.Modifiers == InputModifiers.Windows)
 						{
 							paste = true;
 						}
