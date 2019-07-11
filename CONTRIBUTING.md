@@ -123,7 +123,7 @@ public class RepositoryViewModel : ReactiveObject
   public RepositoryViewModel()
   {
     _canDoIt = this.WhenAnyValue(...)
-		.ToProperty(this, x => x.CanDoIt, scheduler: RxApp.MainThreadScheduler));
+		.ToProperty(this, x => x.CanDoIt, scheduler: RxApp.MainThreadScheduler);
   }
   
   public bool CanDoIt => _canDoIt?.Value ?? false;
