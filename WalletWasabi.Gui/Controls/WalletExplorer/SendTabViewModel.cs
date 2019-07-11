@@ -579,7 +579,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				var d = feeTarget / Constants.OneDayConfirmationTarget;
 				ConfirmationExpectedText = $"{d} {IfPlural(d, "day", "days")}";
 			}
-			else if (feeTarget == 10008)
+			else if (feeTarget == 1008)
 			{
 				ConfirmationExpectedText = $"two weeks™";
 			}
