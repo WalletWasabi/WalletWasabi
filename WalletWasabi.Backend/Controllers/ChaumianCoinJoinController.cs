@@ -64,7 +64,8 @@ namespace WalletWasabi.Backend.Controllers
 
 			foreach (CcjRound round in Coordinator.GetRunningRounds())
 			{
-				var state = new CcjRunningRoundState {
+				var state = new CcjRunningRoundState
+				{
 					Phase = round.Phase,
 					SchnorrPubKeys = round.MixingLevels.SchnorrPubKeys,
 					Denomination = round.MixingLevels.GetBaseDenomination(),
@@ -332,7 +333,8 @@ namespace WalletWasabi.Backend.Controllers
 						}
 					}
 
-					var resp = new InputsResponse {
+					var resp = new InputsResponse
+					{
 						UniqueId = alice.UniqueId,
 						RoundId = round.RoundId
 					};
@@ -377,7 +379,8 @@ namespace WalletWasabi.Backend.Controllers
 			CcjRoundPhase phase = round.Phase;
 
 			// Start building the response.
-			var resp = new ConnConfResp {
+			var resp = new ConnConfResp
+			{
 				CurrentPhase = phase
 			};
 

@@ -85,7 +85,8 @@ namespace WalletWasabi.Tests.XunitConfiguration
 												bool dosNoteBeforeBan,
 												int maximumMixingLevelCount)
 		{
-			return new CcjRoundConfig {
+			return new CcjRoundConfig
+			{
 				Denomination = denomination,
 				ConfirmationTarget = confirmationTarget,
 				ConfirmationTargetReductionRate = confirmationTargetReductionRate,

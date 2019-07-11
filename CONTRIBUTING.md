@@ -118,15 +118,16 @@ this.WhenAnyValue(...)
 ```cs
 public class RepositoryViewModel : ReactiveObject
 {
-  readonly ObservableAsPropertyHelper<bool> _canDoIt;
+  private ObservableAsPropertyHelper<bool> _canDoIt;
   
   public RepositoryViewModel()
   {
-    _canDoIt = this.WhenAny(...)
-		.ObserveOn(RxApp.MainThreadScheduler)
-		.ToProperty(this, x => x.CanDoIt);
+    _canDoIt = this.WhenAnyValue(...)
+		.ToProperty(this, x => x.CanDoIt, scheduler: RxApp.MainThreadScheduler));
   }
   
   public bool CanDoIt => _canDoIt?.Value ?? false;
 }
 ```
+
+**DO** always subscribe to these `ObservableAsPropertyHelper`s after their initialization is done.

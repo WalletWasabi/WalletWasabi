@@ -339,7 +339,8 @@ namespace WalletWasabi.Packager
 
 		private static void RestoreProgramCs()
 		{
-			using (var process = Process.Start(new ProcessStartInfo {
+			using (var process = Process.Start(new ProcessStartInfo
+			{
 				FileName = "cmd",
 				RedirectStandardInput = true,
 				WorkingDirectory = PackagerProjectDirectory
@@ -371,7 +372,8 @@ namespace WalletWasabi.Packager
 					Console.Write("Enter Code Signing Certificate Password:");
 					string pfxPassword = PasswordConsole.ReadPassword();
 					// Sign code with digicert.
-					using (var process = Process.Start(new ProcessStartInfo {
+					using (var process = Process.Start(new ProcessStartInfo
+					{
 						FileName = "cmd",
 						RedirectStandardInput = true,
 						WorkingDirectory = BinDistDirectory
@@ -391,7 +393,8 @@ namespace WalletWasabi.Packager
 
 			foreach (var finalFile in finalFiles)
 			{
-				using (var process = Process.Start(new ProcessStartInfo {
+				using (var process = Process.Start(new ProcessStartInfo
+				{
 					FileName = "cmd",
 					RedirectStandardInput = true,
 					WorkingDirectory = BinDistDirectory
@@ -401,7 +404,8 @@ namespace WalletWasabi.Packager
 					process.WaitForExit();
 				}
 
-				using (var process = Process.Start(new ProcessStartInfo {
+				using (var process = Process.Start(new ProcessStartInfo
+				{
 					FileName = "cmd",
 					RedirectStandardInput = true,
 					WorkingDirectory = WixProjectDirectory
@@ -423,7 +427,8 @@ namespace WalletWasabi.Packager
 				Console.WriteLine($"Deleted {BinDistDirectory}");
 			}
 
-			using (var process = Process.Start(new ProcessStartInfo {
+			using (var process = Process.Start(new ProcessStartInfo
+			{
 				FileName = "cmd",
 				RedirectStandardInput = true,
 				WorkingDirectory = GuiProjectDirectory
@@ -461,7 +466,8 @@ namespace WalletWasabi.Packager
 					Console.WriteLine($"Created {currentBinDistDirectory}");
 				}
 
-				using (var process = Process.Start(new ProcessStartInfo {
+				using (var process = Process.Start(new ProcessStartInfo
+				{
 					FileName = "dotnet",
 					Arguments = $"clean",
 					WorkingDirectory = GuiProjectDirectory
@@ -496,7 +502,8 @@ namespace WalletWasabi.Packager
 				// https://github.com/dotnet/docs/issues/7568
 				// /p:Version=1.2.3.4
 				//		"dotnet publish" supports msbuild command line options like /p:Version=1.2.3.4
-				using (var process = Process.Start(new ProcessStartInfo {
+				using (var process = Process.Start(new ProcessStartInfo
+				{
 					FileName = "dotnet",
 					Arguments = $"publish --configuration Release --force --output \"{currentBinDistDirectory}\" --self-contained true --runtime \"{target}\" /p:VersionPrefix={VersionPrefix} --disable-parallel --no-cache /p:DebugType=none /p:DebugSymbols=false /p:ErrorReport=none /p:DocumentationFile=\"\" /p:Deterministic=true",
 					WorkingDirectory = GuiProjectDirectory
@@ -563,7 +570,8 @@ namespace WalletWasabi.Packager
 				if (target.StartsWith("win"))
 				{
 					var icoPath = Path.Combine(GuiProjectDirectory, "Assets", "WasabiLogo.ico");
-					using (var process = Process.Start(new ProcessStartInfo {
+					using (var process = Process.Start(new ProcessStartInfo
+					{
 						FileName = "rcedit", // https://github.com/electron/rcedit/
 						Arguments = $"\"{newExecutablePath}\" --set-icon \"{icoPath}\" --set-file-version \"{VersionPrefix}\" --set-product-version \"{VersionPrefix}\" --set-version-string \"LegalCopyright\" \"MIT\" --set-version-string \"CompanyName\" \"zkSNACKs\" --set-version-string \"FileDescription\" \"Privacy focused, ZeroLink compliant Bitcoin wallet.\" --set-version-string \"ProductName\" \"Wasabi Wallet\"",
 						WorkingDirectory = currentBinDistDirectory
@@ -662,7 +670,8 @@ namespace WalletWasabi.Packager
 ";
 					File.WriteAllText(infoFilePath, infoContent);
 
-					using (var process = Process.Start(new ProcessStartInfo {
+					using (var process = Process.Start(new ProcessStartInfo
+					{
 						FileName = "cmd",
 						RedirectStandardInput = true,
 						WorkingDirectory = publishedFolder
@@ -679,7 +688,8 @@ namespace WalletWasabi.Packager
 					string uncompressedDmgFileName = $"Wasabi-uncompressed.dmg";
 					string uncompressedDmgFilePath = Path.Combine(BinDistDirectory, uncompressedDmgFileName);
 					string dmgFileName = $"Wasabi-{VersionPrefix}.dmg";
-					using (var process = Process.Start(new ProcessStartInfo {
+					using (var process = Process.Start(new ProcessStartInfo
+					{
 						FileName = "cmd",
 						RedirectStandardInput = true,
 						WorkingDirectory = BinDistDirectory
@@ -704,7 +714,8 @@ namespace WalletWasabi.Packager
 					// cmake ..
 					// cd ~/libdmg-hfsplus/build/
 					// make
-					using (var process = Process.Start(new ProcessStartInfo {
+					using (var process = Process.Start(new ProcessStartInfo
+					{
 						FileName = "cmd",
 						RedirectStandardInput = true,
 						WorkingDirectory = BinDistDirectory
@@ -738,7 +749,8 @@ namespace WalletWasabi.Packager
 					Directory.Move(publishedFolder, newFolderPath);
 					publishedFolder = newFolderPath;
 
-					using (var process = Process.Start(new ProcessStartInfo {
+					using (var process = Process.Start(new ProcessStartInfo
+					{
 						FileName = "cmd",
 						RedirectStandardInput = true,
 						WorkingDirectory = BinDistDirectory
@@ -826,7 +838,8 @@ namespace WalletWasabi.Packager
 					string debDestopFileLinuxPath = Tools.LinuxPathCombine(debUsrAppFolderRelativePath, $"{ExecutableName}.desktop");
 					var wasabiStarterScriptLinuxPath = Tools.LinuxPathCombine(debUsrLocalBinFolderRelativePath, $"{ExecutableName}");
 
-					using (var process = Process.Start(new ProcessStartInfo {
+					using (var process = Process.Start(new ProcessStartInfo
+					{
 						FileName = "wsl",
 						Arguments = $"cd ~ && sudo umount /mnt/c && sudo mount -t drvfs C: /mnt/c -o metadata && cd /mnt/c/Users/user/Desktop/WalletWasabi/WalletWasabi.Gui/bin/dist && sudo chmod +x {debExeLinuxPath} && sudo chmod +x {wasabiStarterScriptLinuxPath} && sudo chmod -R 0644 {debDestopFileLinuxPath} && sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)} && dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)",
 						RedirectStandardInput = true,
