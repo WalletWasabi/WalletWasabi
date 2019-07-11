@@ -398,7 +398,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.SelectedAmount)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => IsAnyCoinSelected = x > Money.Zero);
+				.Subscribe(x => IsAnyCoinSelected = x is null ? false : x > Money.Zero);
 
 			Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
