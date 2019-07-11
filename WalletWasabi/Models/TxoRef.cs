@@ -35,21 +35,36 @@ namespace WalletWasabi.Models
 			Index = outPoint.N;
 		}
 
-		public OutPoint ToOutPoint() => new OutPoint(TransactionId, Index);
+		public OutPoint ToOutPoint()
+		{
+			return new OutPoint(TransactionId, Index);
+		}
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is TxoRef txoRef && this == txoRef;
+		public override bool Equals(object obj)
+		{
+			return obj is TxoRef txoRef && this == txoRef;
+		}
 
-		public bool Equals(TxoRef other) => this == other;
+		public bool Equals(TxoRef other)
+		{
+			return this == other;
+		}
 
-		public override int GetHashCode() => TransactionId.GetHashCode() ^ (int)Index;
+		public override int GetHashCode()
+		{
+			return TransactionId.GetHashCode() ^ (int)Index;
+		}
 
 		public static bool operator ==(TxoRef x, TxoRef y) => y?.TransactionId == x?.TransactionId && y?.Index == x?.Index;
 
 		public static bool operator !=(TxoRef x, TxoRef y) => !(x == y);
 
-		public bool Equals(OutPoint other) => TransactionId == other?.Hash && Index == other?.N;
+		public bool Equals(OutPoint other)
+		{
+			return TransactionId == other?.Hash && Index == other?.N;
+		}
 
 		public static bool operator ==(OutPoint x, TxoRef y) => y?.TransactionId == x?.Hash && y?.Index == x?.N;
 

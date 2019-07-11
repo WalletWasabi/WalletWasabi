@@ -148,13 +148,22 @@ namespace WalletWasabi.Models
 		#region EqualityAndComparison
 
 		/// <inheritdoc/>
-		public override bool Equals(object obj) => obj is Height height && this == height;
+		public override bool Equals(object obj)
+		{
+			return obj is Height height && this == height;
+		}
 
 		/// <inheritdoc/>
-		public bool Equals(Height other) => this == other;
+		public bool Equals(Height other)
+		{
+			return this == other;
+		}
 
 		/// <inheritdoc/>
-		public override int GetHashCode() => Value.GetHashCode();
+		public override int GetHashCode()
+		{
+			return Value.GetHashCode();
+		}
 
 		/// <summary>
 		/// Performs a comparison and return if side are equal
@@ -177,7 +186,10 @@ namespace WalletWasabi.Models
 		/// </summary>
 		/// <param name="other">The value to compare.</param>
 		/// <returns>true if this and other are equal; otherwise false.</returns>
-		public bool Equals(int other) => Value == other;
+		public bool Equals(int other)
+		{
+			return Value == other;
+		}
 
 		/// <summary>
 		/// Performs a comparison and return if side are equal
@@ -216,7 +228,10 @@ namespace WalletWasabi.Models
 		/// </summary>
 		/// <param name="other">The height value to compare against.</param>
 		/// <returns>0 if this an other are equal, -1 if this is less than other and 1 if this is greater than other.</returns>
-		public int CompareTo(Height other) => Value.CompareTo(other.Value);
+		public int CompareTo(Height other)
+		{
+			return Value.CompareTo(other.Value);
+		}
 
 		/// <summary>
 		/// Performs a comparison and return if compared values are equal, greater or less than the other one

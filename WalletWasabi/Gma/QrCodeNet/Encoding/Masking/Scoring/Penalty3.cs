@@ -8,7 +8,10 @@
 		/// <summary>
 		/// Calculate penalty value for Third rule.
 		/// </summary>
-		internal override int PenaltyCalculate(BitMatrix matrix) => PenaltyCalculation(matrix, true) + PenaltyCalculation(matrix, false);
+		internal override int PenaltyCalculate(BitMatrix matrix)
+		{
+			return PenaltyCalculation(matrix, true) + PenaltyCalculation(matrix, false);
+		}
 
 		private int PenaltyCalculation(BitMatrix matrix, bool isHorizontal)
 		{

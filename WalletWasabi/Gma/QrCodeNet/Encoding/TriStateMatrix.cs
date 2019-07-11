@@ -50,9 +50,15 @@ namespace Gma.QrCodeNet.Encoding
 			}
 		}
 
-		internal MatrixStatus MStatus(int i, int j) => StateMatrix[i, j];
+		internal MatrixStatus MStatus(int i, int j)
+		{
+			return StateMatrix[i, j];
+		}
 
-		internal MatrixStatus MStatus(MatrixPoint point) => MStatus(point.X, point.Y);
+		internal MatrixStatus MStatus(MatrixPoint point)
+		{
+			return MStatus(point.X, point.Y);
+		}
 
 		public override int Height => Width;
 

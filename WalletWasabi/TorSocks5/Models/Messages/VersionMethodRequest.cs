@@ -61,7 +61,10 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			Methods.FromBytes(bytes.Skip(2).ToArray());
 		}
 
-		public override byte[] ToBytes() => ByteHelpers.Combine(new byte[] { Ver.ToByte(), NMethods.ToByte() }, Methods.ToBytes());
+		public override byte[] ToBytes()
+		{
+			return ByteHelpers.Combine(new byte[] { Ver.ToByte(), NMethods.ToByte() }, Methods.ToBytes());
+		}
 
 		#endregion Serialization
 	}

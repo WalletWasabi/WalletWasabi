@@ -22,9 +22,15 @@ namespace WalletWasabi.Bases
 
 		#region Serialization
 
-		public byte ToByte() => ByteValue;
+		public byte ToByte()
+		{
+			return ByteValue;
+		}
 
-		public void FromByte(byte b) => ByteValue = b;
+		public void FromByte(byte b)
+		{
+			ByteValue = b;
+		}
 
 		public string ToHex(bool xhhSyntax = false)
 		{
@@ -57,17 +63,29 @@ namespace WalletWasabi.Bases
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is OctetSerializableBase octetSerializableBase && this == octetSerializableBase;
+		public override bool Equals(object obj)
+		{
+			return obj is OctetSerializableBase octetSerializableBase && this == octetSerializableBase;
+		}
 
-		public bool Equals(OctetSerializableBase other) => this == other;
+		public bool Equals(OctetSerializableBase other)
+		{
+			return this == other;
+		}
 
-		public override int GetHashCode() => ByteValue;
+		public override int GetHashCode()
+		{
+			return ByteValue;
+		}
 
 		public static bool operator ==(OctetSerializableBase x, OctetSerializableBase y) => x?.ByteValue == y?.ByteValue;
 
 		public static bool operator !=(OctetSerializableBase x, OctetSerializableBase y) => !(x == y);
 
-		public bool Equals(byte other) => ByteValue == other;
+		public bool Equals(byte other)
+		{
+			return ByteValue == other;
+		}
 
 		public static bool operator ==(byte x, OctetSerializableBase y) => x == y?.ByteValue;
 

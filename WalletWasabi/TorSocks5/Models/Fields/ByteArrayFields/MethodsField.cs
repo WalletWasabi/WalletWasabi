@@ -64,7 +64,10 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 			Bytes = bytes;
 		}
 
-		public override byte[] ToBytes() => Bytes;
+		public override byte[] ToBytes()
+		{
+			return Bytes;
+		}
 
 		#endregion Serialization
 	}

@@ -272,8 +272,10 @@ namespace WalletWasabi.Models
 		/// successfully; false if it already exists.</returns>
 		/// <exception cref="T:System.OverflowException">The <see cref="ConcurrentHashSet{T}"/>
 		/// contains too many items.</exception>
-		public bool TryAdd(T item) =>
-			AddInternal(item, Comparer.GetHashCode(item), true);
+		public bool TryAdd(T item)
+		{
+			return AddInternal(item, Comparer.GetHashCode(item), true);
+		}
 
 		/// <summary>
 		/// Removes all items from the <see cref="ConcurrentHashSet{T}"/>.
@@ -376,7 +378,10 @@ namespace WalletWasabi.Models
 			}
 		}
 
-		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return GetEnumerator();
+		}
 
 		/// <summary>Returns an enumerator that iterates through the <see
 		/// cref="ConcurrentHashSet{T}"/>.</summary>
@@ -404,7 +409,10 @@ namespace WalletWasabi.Models
 			}
 		}
 
-		void ICollection<T>.Add(T item) => TryAdd(item);
+		void ICollection<T>.Add(T item)
+		{
+			TryAdd(item);
+		}
 
 		bool ICollection<T>.IsReadOnly => false;
 
@@ -445,7 +453,10 @@ namespace WalletWasabi.Models
 			}
 		}
 
-		bool ICollection<T>.Remove(T item) => TryRemove(item);
+		bool ICollection<T>.Remove(T item)
+		{
+			return TryRemove(item);
+		}
 
 		private void InitializeFromCollection(IEnumerable<T> collection)
 		{

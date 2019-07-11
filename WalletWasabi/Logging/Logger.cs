@@ -62,7 +62,10 @@ namespace WalletWasabi.Logging
 #endif
 		}
 
-		public static void SetMinimumLevel(LogLevel level) => MinimumLevel = level;
+		public static void SetMinimumLevel(LogLevel level)
+		{
+			MinimumLevel = level;
+		}
 
 		public static void SetModes(params LogMode[] modes)
 		{
@@ -82,24 +85,42 @@ namespace WalletWasabi.Logging
 			}
 		}
 
-		public static void SetFilePath(string filePath) => FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath, trim: true);
+		public static void SetFilePath(string filePath)
+		{
+			FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath, trim: true);
+		}
 
-		public static void SetEntrySeparator(string entrySeparator) => EntrySeparator = Guard.NotNull(nameof(entrySeparator), entrySeparator);
+		public static void SetEntrySeparator(string entrySeparator)
+		{
+			EntrySeparator = Guard.NotNull(nameof(entrySeparator), entrySeparator);
+		}
 
 		/// <summary>
 		/// KB
 		/// </summary>
-		public static void SetMaximumLogFileSize(long sizeInKb) => MaximumLogFileSize = sizeInKb;
+		public static void SetMaximumLogFileSize(long sizeInKb)
+		{
+			MaximumLogFileSize = sizeInKb;
+		}
 
 		#endregion Initializers
 
 		#region Methods
 
-		public static void TurnOff() => Interlocked.Exchange(ref On, 0);
+		public static void TurnOff()
+		{
+			Interlocked.Exchange(ref On, 0);
+		}
 
-		public static void TurnOn() => Interlocked.Exchange(ref On, 1);
+		public static void TurnOn()
+		{
+			Interlocked.Exchange(ref On, 1);
+		}
 
-		public static bool IsOn() => Interlocked.Read(ref On) == 1;
+		public static bool IsOn()
+		{
+			return Interlocked.Read(ref On) == 1;
+		}
 
 		#endregion Methods
 
@@ -238,7 +259,10 @@ namespace WalletWasabi.Logging
 			}
 		}
 
-		private static void Log<T>(LogLevel level, string message) => Log(level, message, typeof(T).Name);
+		private static void Log<T>(LogLevel level, string message)
+		{
+			Log(level, message, typeof(T).Name);
+		}
 
 		#endregion GeneralLoggingMethods
 
@@ -273,39 +297,30 @@ namespace WalletWasabi.Logging
 		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
 		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
 		/// </summary>
-		public static void LogTrace<T>(string message) => Log<T>(LogLevel.Trace, message);
+		public static void LogTrace<T>(string message)
+		{
+			Log<T>(LogLevel.Trace, message);
+		}
 
 		/// <summary>
 		/// For information that is valuable only to a developer debugging an issue.
 		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
 		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
 		/// </summary>
-		public static void LogTrace(string message, Type category) => Log(LogLevel.Trace, message, category);
+		public static void LogTrace(string message, Type category)
+		{
+			Log(LogLevel.Trace, message, category);
+		}
 
 		/// <summary>
 		/// For information that is valuable only to a developer debugging an issue.
 		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
 		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
 		/// </summary>
-		public static void LogTrace(string message, string category = "") => Log(LogLevel.Trace, message, category);
-
-		/// <summary>
-		/// Logs the <paramref name="ex"/>.ToString() at Trace level.
-		///
-		/// For information that is valuable only to a developer debugging an issue.
-		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
-		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
-		/// </summary>
-		public static void LogTrace<T>(Exception ex) => Log<T>(ex, LogLevel.Trace);
-
-		/// <summary>
-		/// Logs the <paramref name="ex"/>.ToString() at Trace level.
-		///
-		/// For information that is valuable only to a developer debugging an issue.
-		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
-		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
-		/// </summary>
-		public static void LogTrace(Exception ex, Type category) => Log(ex, LogLevel.Trace, category);
+		public static void LogTrace(string message, string category = "")
+		{
+			Log(LogLevel.Trace, message, category);
+		}
 
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Trace level.
@@ -314,7 +329,34 @@ namespace WalletWasabi.Logging
 		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
 		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
 		/// </summary>
-		public static void LogTrace(Exception ex, string category = "") => Log(ex, LogLevel.Trace, category);
+		public static void LogTrace<T>(Exception ex)
+		{
+			Log<T>(ex, LogLevel.Trace);
+		}
+
+		/// <summary>
+		/// Logs the <paramref name="ex"/>.ToString() at Trace level.
+		///
+		/// For information that is valuable only to a developer debugging an issue.
+		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
+		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
+		/// </summary>
+		public static void LogTrace(Exception ex, Type category)
+		{
+			Log(ex, LogLevel.Trace, category);
+		}
+
+		/// <summary>
+		/// Logs the <paramref name="ex"/>.ToString() at Trace level.
+		///
+		/// For information that is valuable only to a developer debugging an issue.
+		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
+		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
+		/// </summary>
+		public static void LogTrace(Exception ex, string category = "")
+		{
+			Log(ex, LogLevel.Trace, category);
+		}
 
 		#endregion TraceLoggingMethods
 
@@ -325,21 +367,30 @@ namespace WalletWasabi.Logging
 		/// Example: "Entering method Configure with flag set to true."
 		/// You typically would not enable Debug level logs in production unless you are troubleshooting, due to the high volume of logs.
 		/// </summary>
-		public static void LogDebug<T>(string message) => Log<T>(LogLevel.Debug, message);
+		public static void LogDebug<T>(string message)
+		{
+			Log<T>(LogLevel.Debug, message);
+		}
 
 		/// <summary>
 		/// For information that has short-term usefulness during development and debugging.
 		/// Example: "Entering method Configure with flag set to true."
 		/// You typically would not enable Debug level logs in production unless you are troubleshooting, due to the high volume of logs.
 		/// </summary>
-		public static void LogDebug(string message, Type category) => Log(LogLevel.Debug, message, category);
+		public static void LogDebug(string message, Type category)
+		{
+			Log(LogLevel.Debug, message, category);
+		}
 
 		/// <summary>
 		/// For information that has short-term usefulness during development and debugging.
 		/// Example: "Entering method Configure with flag set to true."
 		/// You typically would not enable Debug level logs in production unless you are troubleshooting, due to the high volume of logs.
 		/// </summary>
-		public static void LogDebug(string message, string category = "") => Log(LogLevel.Debug, message, category);
+		public static void LogDebug(string message, string category = "")
+		{
+			Log(LogLevel.Debug, message, category);
+		}
 
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Debug level, if only Debug level logging is set.
@@ -348,7 +399,10 @@ namespace WalletWasabi.Logging
 		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
 		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
 		/// </summary>
-		public static void LogDebug<T>(Exception ex) => Log<T>(ex, LogLevel.Debug);
+		public static void LogDebug<T>(Exception ex)
+		{
+			Log<T>(ex, LogLevel.Debug);
+		}
 
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Debug level, if only Debug level logging is set.
@@ -357,7 +411,10 @@ namespace WalletWasabi.Logging
 		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
 		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
 		/// </summary>
-		public static void LogDebug(Exception ex, Type category = null) => Log(ex, LogLevel.Debug, category);
+		public static void LogDebug(Exception ex, Type category = null)
+		{
+			Log(ex, LogLevel.Debug, category);
+		}
 
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Debug level.
@@ -366,7 +423,10 @@ namespace WalletWasabi.Logging
 		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
 		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
 		/// </summary>
-		public static void LogDebug(Exception ex, string category = "") => Log(ex, LogLevel.Debug, category);
+		public static void LogDebug(Exception ex, string category = "")
+		{
+			Log(ex, LogLevel.Debug, category);
+		}
 
 		#endregion DebugLoggingMethods
 
@@ -376,28 +436,40 @@ namespace WalletWasabi.Logging
 		/// Logs software start with category InstanceGuid and insert three newlines.
 		/// </summary>
 		/// <param name="appName">The name of the app.</param>
-		public static void LogStarting(string appName) => Log(LogLevel.Info, $"{appName} is starting...", category: InstanceGuid.ToString(), additionalEntrySeparators: 3, additionalEntrySeparatorsLogFileOnlyMode: true);
+		public static void LogStarting(string appName)
+		{
+			Log(LogLevel.Info, $"{appName} is starting...", category: InstanceGuid.ToString(), additionalEntrySeparators: 3, additionalEntrySeparatorsLogFileOnlyMode: true);
+		}
 
 		/// <summary>
 		/// For tracking the general flow of the application.
 		/// These logs typically have some long-term value.
 		/// Example: "Request received for path /api/my-controller"
 		/// </summary>
-		public static void LogInfo<T>(string message) => Log<T>(LogLevel.Info, message);
+		public static void LogInfo<T>(string message)
+		{
+			Log<T>(LogLevel.Info, message);
+		}
 
 		/// <summary>
 		/// For tracking the general flow of the application.
 		/// These logs typically have some long-term value.
 		/// Example: "Request received for path /api/my-controller"
 		/// </summary>
-		public static void LogInfo(string message, Type category) => Log(LogLevel.Info, message, category);
+		public static void LogInfo(string message, Type category)
+		{
+			Log(LogLevel.Info, message, category);
+		}
 
 		/// <summary>
 		/// For tracking the general flow of the application.
 		/// These logs typically have some long-term value.
 		/// Example: "Request received for path /api/my-controller"
 		/// </summary>
-		public static void LogInfo(string message, string category = "") => Log(LogLevel.Info, message, category);
+		public static void LogInfo(string message, string category = "")
+		{
+			Log(LogLevel.Info, message, category);
+		}
 
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Info level.
@@ -406,7 +478,10 @@ namespace WalletWasabi.Logging
 		/// These logs typically have some long-term value.
 		/// Example: "Request received for path /api/my-controller"
 		/// </summary>
-		public static void LogInfo<T>(Exception ex) => Log<T>(ex, LogLevel.Info);
+		public static void LogInfo<T>(Exception ex)
+		{
+			Log<T>(ex, LogLevel.Info);
+		}
 
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Info level.
@@ -414,7 +489,10 @@ namespace WalletWasabi.Logging
 		/// For tracking the general flow of the application.
 		/// These logs typically have some long-term value.
 		/// </summary>
-		public static void LogInfo(Exception ex, Type category = null) => Log(ex, LogLevel.Info, category);
+		public static void LogInfo(Exception ex, Type category = null)
+		{
+			Log(ex, LogLevel.Info, category);
+		}
 
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Info level.
@@ -422,7 +500,10 @@ namespace WalletWasabi.Logging
 		/// For tracking the general flow of the application.
 		/// These logs typically have some long-term value.
 		/// </summary>
-		public static void LogInfo(Exception ex, string category = "") => Log(ex, LogLevel.Info, category);
+		public static void LogInfo(Exception ex, string category = "")
+		{
+			Log(ex, LogLevel.Info, category);
+		}
 
 		#endregion InfoLoggingMethods
 
@@ -434,7 +515,10 @@ namespace WalletWasabi.Logging
 		/// Handled exceptions are a common place to use the Warning log level.
 		/// Example: "FileNotFoundException for file quotes.txt."
 		/// </summary>
-		public static void LogWarning<T>(string message) => Log<T>(LogLevel.Warning, message);
+		public static void LogWarning<T>(string message)
+		{
+			Log<T>(LogLevel.Warning, message);
+		}
 
 		/// <summary>
 		/// For abnormal or unexpected events in the application flow.
@@ -442,7 +526,10 @@ namespace WalletWasabi.Logging
 		/// Handled exceptions are a common place to use the Warning log level.
 		/// Example: "FileNotFoundException for file quotes.txt."
 		/// </summary>
-		public static void LogWarning(string message, Type category) => Log(LogLevel.Warning, message, category);
+		public static void LogWarning(string message, Type category)
+		{
+			Log(LogLevel.Warning, message, category);
+		}
 
 		/// <summary>
 		/// For abnormal or unexpected events in the application flow.
@@ -450,27 +537,10 @@ namespace WalletWasabi.Logging
 		/// Handled exceptions are a common place to use the Warning log level.
 		/// Example: "FileNotFoundException for file quotes.txt."
 		/// </summary>
-		public static void LogWarning(string message, string category = "") => Log(LogLevel.Warning, message, category);
-
-		/// <summary>
-		/// Logs the <paramref name="ex"/>.ToString() at Warning level.
-		///
-		/// For abnormal or unexpected events in the application flow.
-		/// These may include errors or other conditions that do not cause the application to stop, but which may need to be investigated.
-		/// Handled exceptions are a common place to use the Warning log level.
-		/// Example: "FileNotFoundException for file quotes.txt."
-		/// </summary>
-		public static void LogWarning<T>(Exception ex) => Log<T>(ex, LogLevel.Warning);
-
-		/// <summary>
-		/// Logs the <paramref name="ex"/>.ToString() at Warning level.
-		///
-		/// For abnormal or unexpected events in the application flow.
-		/// These may include errors or other conditions that do not cause the application to stop, but which may need to be investigated.
-		/// Handled exceptions are a common place to use the Warning log level.
-		/// Example: "FileNotFoundException for file quotes.txt."
-		/// </summary>
-		public static void LogWarning(Exception ex, Type category = null) => Log(ex, LogLevel.Warning, category);
+		public static void LogWarning(string message, string category = "")
+		{
+			Log(LogLevel.Warning, message, category);
+		}
 
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Warning level.
@@ -480,7 +550,36 @@ namespace WalletWasabi.Logging
 		/// Handled exceptions are a common place to use the Warning log level.
 		/// Example: "FileNotFoundException for file quotes.txt."
 		/// </summary>
-		public static void LogWarning(Exception ex, string category = "") => Log(ex, LogLevel.Warning, category);
+		public static void LogWarning<T>(Exception ex)
+		{
+			Log<T>(ex, LogLevel.Warning);
+		}
+
+		/// <summary>
+		/// Logs the <paramref name="ex"/>.ToString() at Warning level.
+		///
+		/// For abnormal or unexpected events in the application flow.
+		/// These may include errors or other conditions that do not cause the application to stop, but which may need to be investigated.
+		/// Handled exceptions are a common place to use the Warning log level.
+		/// Example: "FileNotFoundException for file quotes.txt."
+		/// </summary>
+		public static void LogWarning(Exception ex, Type category = null)
+		{
+			Log(ex, LogLevel.Warning, category);
+		}
+
+		/// <summary>
+		/// Logs the <paramref name="ex"/>.ToString() at Warning level.
+		///
+		/// For abnormal or unexpected events in the application flow.
+		/// These may include errors or other conditions that do not cause the application to stop, but which may need to be investigated.
+		/// Handled exceptions are a common place to use the Warning log level.
+		/// Example: "FileNotFoundException for file quotes.txt."
+		/// </summary>
+		public static void LogWarning(Exception ex, string category = "")
+		{
+			Log(ex, LogLevel.Warning, category);
+		}
 
 		#endregion WarningLoggingMethods
 
@@ -491,39 +590,30 @@ namespace WalletWasabi.Logging
 		/// These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.
 		/// Example log message: "Cannot insert record due to duplicate key violation."
 		/// </summary>
-		public static void LogError<T>(string message) => Log<T>(LogLevel.Error, message);
+		public static void LogError<T>(string message)
+		{
+			Log<T>(LogLevel.Error, message);
+		}
 
 		/// <summary>
 		/// For errors and exceptions that cannot be handled.
 		/// These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.
 		/// Example log message: "Cannot insert record due to duplicate key violation."
 		/// </summary>
-		public static void LogError(string message, Type category) => Log(LogLevel.Error, message, category);
+		public static void LogError(string message, Type category)
+		{
+			Log(LogLevel.Error, message, category);
+		}
 
 		/// <summary>
 		/// For errors and exceptions that cannot be handled.
 		/// These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.
 		/// Example log message: "Cannot insert record due to duplicate key violation."
 		/// </summary>
-		public static void LogError(string message, string category = "") => Log(LogLevel.Error, message, category);
-
-		/// <summary>
-		/// Logs the <paramref name="ex"/>.ToString() at Error level.
-		///
-		/// For errors and exceptions that cannot be handled.
-		/// These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.
-		/// Example log message: "Cannot insert record due to duplicate key violation."
-		/// </summary>
-		public static void LogError<T>(Exception ex) => Log<T>(ex, LogLevel.Error);
-
-		/// <summary>
-		/// Logs the <paramref name="ex"/>.ToString() at Error level.
-		///
-		/// For errors and exceptions that cannot be handled.
-		/// These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.
-		/// Example log message: "Cannot insert record due to duplicate key violation."
-		/// </summary>
-		public static void LogError(Exception ex, Type category = null) => Log(ex, LogLevel.Error, category);
+		public static void LogError(string message, string category = "")
+		{
+			Log(LogLevel.Error, message, category);
+		}
 
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Error level.
@@ -532,7 +622,34 @@ namespace WalletWasabi.Logging
 		/// These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.
 		/// Example log message: "Cannot insert record due to duplicate key violation."
 		/// </summary>
-		public static void LogError(Exception ex, string category = "") => Log(ex, LogLevel.Error, category);
+		public static void LogError<T>(Exception ex)
+		{
+			Log<T>(ex, LogLevel.Error);
+		}
+
+		/// <summary>
+		/// Logs the <paramref name="ex"/>.ToString() at Error level.
+		///
+		/// For errors and exceptions that cannot be handled.
+		/// These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.
+		/// Example log message: "Cannot insert record due to duplicate key violation."
+		/// </summary>
+		public static void LogError(Exception ex, Type category = null)
+		{
+			Log(ex, LogLevel.Error, category);
+		}
+
+		/// <summary>
+		/// Logs the <paramref name="ex"/>.ToString() at Error level.
+		///
+		/// For errors and exceptions that cannot be handled.
+		/// These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.
+		/// Example log message: "Cannot insert record due to duplicate key violation."
+		/// </summary>
+		public static void LogError(Exception ex, string category = "")
+		{
+			Log(ex, LogLevel.Error, category);
+		}
 
 		#endregion ErrorLoggingMethods
 
@@ -542,35 +659,28 @@ namespace WalletWasabi.Logging
 		/// For failures that require immediate attention.
 		/// Examples: data loss scenarios, out of disk space.
 		/// </summary>
-		public static void LogCritical<T>(string message) => Log<T>(LogLevel.Critical, message);
+		public static void LogCritical<T>(string message)
+		{
+			Log<T>(LogLevel.Critical, message);
+		}
 
 		/// <summary>
 		/// For failures that require immediate attention.
 		/// Examples: data loss scenarios, out of disk space.
 		/// </summary>
-		public static void LogCritical(string message, Type category) => Log(LogLevel.Critical, message, category);
+		public static void LogCritical(string message, Type category)
+		{
+			Log(LogLevel.Critical, message, category);
+		}
 
 		/// <summary>
 		/// For failures that require immediate attention.
 		/// Examples: data loss scenarios, out of disk space.
 		/// </summary>
-		public static void LogCritical(string message, string category = "") => Log(LogLevel.Critical, message, category);
-
-		/// <summary>
-		/// Logs the <paramref name="ex"/>.Message at Critical level.
-		///
-		/// For failures that require immediate attention.
-		/// Examples: data loss scenarios, out of disk space.
-		/// </summary>
-		public static void LogCritical<T>(Exception ex) => Log<T>(ex, LogLevel.Critical);
-
-		/// <summary>
-		/// Logs the <paramref name="ex"/>.Message at Critical level.
-		///
-		/// For failures that require immediate attention.
-		/// Examples: data loss scenarios, out of disk space.
-		/// </summary>
-		public static void LogCritical(Exception ex, Type category = null) => Log(ex, LogLevel.Critical, category);
+		public static void LogCritical(string message, string category = "")
+		{
+			Log(LogLevel.Critical, message, category);
+		}
 
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.Message at Critical level.
@@ -578,7 +688,32 @@ namespace WalletWasabi.Logging
 		/// For failures that require immediate attention.
 		/// Examples: data loss scenarios, out of disk space.
 		/// </summary>
-		public static void LogCritical(Exception ex, string category = "") => Log(ex, LogLevel.Critical, category);
+		public static void LogCritical<T>(Exception ex)
+		{
+			Log<T>(ex, LogLevel.Critical);
+		}
+
+		/// <summary>
+		/// Logs the <paramref name="ex"/>.Message at Critical level.
+		///
+		/// For failures that require immediate attention.
+		/// Examples: data loss scenarios, out of disk space.
+		/// </summary>
+		public static void LogCritical(Exception ex, Type category = null)
+		{
+			Log(ex, LogLevel.Critical, category);
+		}
+
+		/// <summary>
+		/// Logs the <paramref name="ex"/>.Message at Critical level.
+		///
+		/// For failures that require immediate attention.
+		/// Examples: data loss scenarios, out of disk space.
+		/// </summary>
+		public static void LogCritical(Exception ex, string category = "")
+		{
+			Log(ex, LogLevel.Critical, category);
+		}
 
 		#endregion CriticalLoggingMethods
 

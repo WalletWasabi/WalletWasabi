@@ -31,7 +31,10 @@ namespace Gma.QrCodeNet.Encoding.Versions
 		/// <summary>
 		/// Get Error Correction Blocks
 		/// </summary>
-		internal ErrorCorrectionBlock[] GetECBlocks() => ECBlock;
+		internal ErrorCorrectionBlock[] GetECBlocks()
+		{
+			return ECBlock;
+		}
 
 		/// <summary>
 		/// Initialize for NumBlocks and ErrorCorrectionCodewordsPerBlock

@@ -54,9 +54,15 @@ namespace WalletWasabi.Bases
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is ByteArraySerializableBase serializableBase && this == serializableBase;
+		public override bool Equals(object obj)
+		{
+			return obj is ByteArraySerializableBase serializableBase && this == serializableBase;
+		}
 
-		public bool Equals(ByteArraySerializableBase other) => this == other;
+		public bool Equals(ByteArraySerializableBase other)
+		{
+			return this == other;
+		}
 
 		public override int GetHashCode()
 		{
@@ -83,7 +89,10 @@ namespace WalletWasabi.Bases
 
 		public static bool operator !=(ByteArraySerializableBase x, ByteArraySerializableBase y) => !(x == y);
 
-		public bool Equals(byte[] other) => ByteHelpers.CompareFastUnsafe(ToBytes(), other);
+		public bool Equals(byte[] other)
+		{
+			return ByteHelpers.CompareFastUnsafe(ToBytes(), other);
+		}
 
 		public static bool operator ==(byte[] x, ByteArraySerializableBase y) => ByteHelpers.CompareFastUnsafe(x, y?.ToBytes());
 

@@ -51,7 +51,10 @@ namespace NBitcoin
 			}
 		}
 
-		public static TxoRef ToTxoRef(this OutPoint me) => new TxoRef(me);
+		public static TxoRef ToTxoRef(this OutPoint me)
+		{
+			return new TxoRef(me);
+		}
 
 		public static IEnumerable<TxoRef> ToTxoRefs(this TxInList me)
 		{
@@ -122,7 +125,10 @@ namespace NBitcoin
 			return equalOutputs;
 		}
 
-		public static int GetAnonymitySet(this Transaction me, uint outputIndex) => GetAnonymitySet(me, (int)outputIndex);
+		public static int GetAnonymitySet(this Transaction me, uint outputIndex)
+		{
+			return GetAnonymitySet(me, (int)outputIndex);
+		}
 
 		/// <summary>
 		/// Careful, if it's in a legacy block then this won't work.
@@ -219,9 +225,15 @@ namespace NBitcoin
 			}
 		}
 
-		public static SchnorrPubKey GetSchnorrPubKey(this Signer signer) => new SchnorrPubKey(signer);
+		public static SchnorrPubKey GetSchnorrPubKey(this Signer signer)
+		{
+			return new SchnorrPubKey(signer);
+		}
 
-		public static uint256 BlindMessage(this Requester requester, uint256 messageHash, SchnorrPubKey schnorrPubKey) => requester.BlindMessage(messageHash, schnorrPubKey.RpubKey, schnorrPubKey.SignerPubKey);
+		public static uint256 BlindMessage(this Requester requester, uint256 messageHash, SchnorrPubKey schnorrPubKey)
+		{
+			return requester.BlindMessage(messageHash, schnorrPubKey.RpubKey, schnorrPubKey.SignerPubKey);
+		}
 
 		public static string ToZpub(this ExtPubKey extPubKey, Network network)
 		{

@@ -39,11 +39,20 @@ namespace WalletWasabi.TorSocks5.TorSocks5.Models.Fields.ByteArrayFields
 
 		#region Serialization
 
-		public override void FromBytes(byte[] bytes) => Bytes = Guard.NotNullOrEmpty(nameof(bytes), bytes);
+		public override void FromBytes(byte[] bytes)
+		{
+			Bytes = Guard.NotNullOrEmpty(nameof(bytes), bytes);
+		}
 
-		public override byte[] ToBytes() => Bytes;
+		public override byte[] ToBytes()
+		{
+			return Bytes;
+		}
 
-		public override string ToString() => DstPort.ToString();
+		public override string ToString()
+		{
+			return DstPort.ToString();
+		}
 
 		#endregion Serialization
 	}

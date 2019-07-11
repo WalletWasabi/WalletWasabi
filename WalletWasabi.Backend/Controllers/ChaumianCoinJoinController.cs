@@ -809,11 +809,17 @@ namespace WalletWasabi.Backend.Controllers
 		/// <summary>
 		/// 409
 		/// </summary>
-		private ContentResult Conflict(string content) => new ContentResult() { StatusCode = (int)HttpStatusCode.Conflict, ContentType = "application/json; charset=utf-8", Content = $"\"{content}\"" };
+		private ContentResult Conflict(string content)
+		{
+			return new ContentResult() { StatusCode = (int)HttpStatusCode.Conflict, ContentType = "application/json; charset=utf-8", Content = $"\"{content}\"" };
+		}
 
 		/// <summary>
 		/// 410
 		/// </summary>
-		private ContentResult Gone(string content) => new ContentResult() { StatusCode = (int)HttpStatusCode.Gone, ContentType = "application/json; charset=utf-8", Content = $"\"{content}\"" };
+		private ContentResult Gone(string content)
+		{
+			return new ContentResult() { StatusCode = (int)HttpStatusCode.Gone, ContentType = "application/json; charset=utf-8", Content = $"\"{content}\"" };
+		}
 	}
 }

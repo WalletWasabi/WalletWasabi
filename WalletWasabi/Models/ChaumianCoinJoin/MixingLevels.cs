@@ -43,7 +43,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			Levels.Add(new MixingLevel(denomination, signer));
 		}
 
-		public Money GetBaseDenomination() => Levels.First().Denomination;
+		public Money GetBaseDenomination()
+		{
+			return Levels.First().Denomination;
+		}
 
 		public bool TryGetDenomination(int level, out Money denomination)
 		{
@@ -60,15 +63,30 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			return true;
 		}
 
-		public int Count() => Levels.Count;
+		public int Count()
+		{
+			return Levels.Count;
+		}
 
-		public MixingLevel GetBaseLevel() => Levels.First();
+		public MixingLevel GetBaseLevel()
+		{
+			return Levels.First();
+		}
 
-		public MixingLevel GetLevel(int i) => Levels.ElementAt(i);
+		public MixingLevel GetLevel(int i)
+		{
+			return Levels.ElementAt(i);
+		}
 
-		public IEnumerable<MixingLevel> GetAllLevels() => Levels.ToList();
+		public IEnumerable<MixingLevel> GetAllLevels()
+		{
+			return Levels.ToList();
+		}
 
-		public IEnumerable<MixingLevel> GetLevelsExceptBase() => Levels.Skip(1).ToList();
+		public IEnumerable<MixingLevel> GetLevelsExceptBase()
+		{
+			return Levels.Skip(1).ToList();
+		}
 
 		private IEnumerable<SchnorrPubKey> _schnorrPubKeys;
 
@@ -85,6 +103,9 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			set { _schnorrPubKeys = value; }
 		}
 
-		public int GetMaxLevel() => Levels.Count - 1;
+		public int GetMaxLevel()
+		{
+			return Levels.Count - 1;
+		}
 	}
 }

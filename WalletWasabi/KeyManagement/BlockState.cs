@@ -36,6 +36,9 @@ namespace WalletWasabi.KeyManagement
 		/// </summary>
 		/// <param name="other">The blockheight to compare against.</param>
 		/// <returns>0 if this an other are equal, -1 if this is less than other and 1 if this is greater than other.</returns>
-		public int CompareTo(BlockState other) => BlockHeight.CompareTo(other.BlockHeight);
+		public int CompareTo(BlockState other)
+		{
+			return BlockHeight.CompareTo(other.BlockHeight);
+		}
 	}
 }

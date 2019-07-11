@@ -15,7 +15,10 @@ namespace WalletWasabi.Backend
 
 		public static string UnversionedFolder { get; } = Path.GetFullPath(Path.Combine(RootFolder, "unversioned"));
 
-		public static string CreateFilePath(string fileName) => Path.Combine(UnversionedFolder, fileName);
+		public static string CreateFilePath(string fileName)
+		{
+			return Path.Combine(UnversionedFolder, fileName);
+		}
 
 		public static string HtmlStartLine { get; } = "<link href=\"../css/bootstrap.css\" rel=\"stylesheet\" type=\"text/css\" />\r\n<link href=\"../css/OpenSansCondensed300700.css\" rel=\"stylesheet\" type=\"text/css\" />\r\n";
 

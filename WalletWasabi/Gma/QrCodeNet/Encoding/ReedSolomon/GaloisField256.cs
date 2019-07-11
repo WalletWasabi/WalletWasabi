@@ -44,7 +44,10 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		/// <returns>
 		/// Powers of a in GF table. Where a = 2
 		/// </returns>
-		internal int Exponent(int PowersOfa) => AntiLogTable[PowersOfa];
+		internal int Exponent(int PowersOfa)
+		{
+			return AntiLogTable[PowersOfa];
+		}
 
 		/// <returns>
 		/// log ( power of a) in GF table. Where a = 2
@@ -69,11 +72,16 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 			return Exponent(255 - Log(gfValue));
 		}
 
-		internal int Addition(int gfValueA, int gfValueB) => gfValueA ^ gfValueB;
+		internal int Addition(int gfValueA, int gfValueB)
+		{
+			return gfValueA ^ gfValueB;
+		}
 
-		internal int Subtraction(int gfValueA, int gfValueB) =>
+		internal int Subtraction(int gfValueA, int gfValueB)
+		{
 			//Subtraction is same as addition.
-			Addition(gfValueA, gfValueB);
+			return Addition(gfValueA, gfValueB);
+		}
 
 		/// <returns>
 		/// Product of two values.

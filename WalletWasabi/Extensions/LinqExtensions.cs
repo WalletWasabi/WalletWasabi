@@ -131,9 +131,11 @@ namespace System.Linq
 		}
 
 		public static IOrderedEnumerable<SmartTransaction> OrderByBlockchain(this IEnumerable<SmartTransaction> me)
-			=> me
+		{
+			return me
 				.OrderBy(x => x.Height)
 				.ThenBy(x => x.BlockIndex)
 				.ThenBy(x => x.FirstSeenIfMempoolTime ?? DateTime.UtcNow);
+		}
 	}
 }

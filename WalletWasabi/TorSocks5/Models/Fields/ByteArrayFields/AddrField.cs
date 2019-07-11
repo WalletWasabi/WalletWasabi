@@ -131,9 +131,15 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 			Atyp = atyp;
 		}
 
-		public override byte[] ToBytes() => Bytes;
+		public override byte[] ToBytes()
+		{
+			return Bytes;
+		}
 
-		public override string ToString() => DomainOrIPv4;
+		public override string ToString()
+		{
+			return DomainOrIPv4;
+		}
 
 		#endregion Serialization
 	}

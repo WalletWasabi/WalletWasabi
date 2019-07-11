@@ -51,9 +51,15 @@ namespace WalletWasabi.Models
 
 		#region Equality
 
-		public override bool Equals(object obj) => obj is AllFeeEstimate feeEstimate && this == feeEstimate;
+		public override bool Equals(object obj)
+		{
+			return obj is AllFeeEstimate feeEstimate && this == feeEstimate;
+		}
 
-		public bool Equals(AllFeeEstimate other) => this == other;
+		public bool Equals(AllFeeEstimate other)
+		{
+			return this == other;
+		}
 
 		private int? _hashCode;
 

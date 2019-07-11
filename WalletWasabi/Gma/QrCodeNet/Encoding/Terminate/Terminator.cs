@@ -70,6 +70,9 @@ namespace Gma.QrCodeNet.Encoding.Terminate
 			}
 		}
 
-		private static void TerminatorPadding(this BitList mainList, int numBits) => mainList.Add(QRCodeConstantVariable.TerminatorNPaddingBit, numBits);
+		private static void TerminatorPadding(this BitList mainList, int numBits)
+		{
+			mainList.Add(QRCodeConstantVariable.TerminatorNPaddingBit, numBits);
+		}
 	}
 }

@@ -23,7 +23,10 @@ namespace WalletWasabi.Services
 
 		public event EventHandler<SmartTransaction> TransactionReceived;
 
-		internal void OnTransactionReceived(SmartTransaction transaction) => TransactionReceived?.Invoke(this, transaction);
+		internal void OnTransactionReceived(SmartTransaction transaction)
+		{
+			TransactionReceived?.Invoke(this, transaction);
+		}
 
 		public MempoolService()
 		{

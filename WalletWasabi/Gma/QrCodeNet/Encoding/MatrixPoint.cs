@@ -12,10 +12,19 @@
 			Y = y;
 		}
 
-		public MatrixPoint Offset(MatrixPoint offset) => new MatrixPoint(offset.X + X, offset.Y + Y);
+		public MatrixPoint Offset(MatrixPoint offset)
+		{
+			return new MatrixPoint(offset.X + X, offset.Y + Y);
+		}
 
-		internal MatrixPoint Offset(int offsetX, int offsetY) => Offset(new MatrixPoint(offsetX, offsetY));
+		internal MatrixPoint Offset(int offsetX, int offsetY)
+		{
+			return Offset(new MatrixPoint(offsetX, offsetY));
+		}
 
-		public override string ToString() => $"Point({X};{Y})";
+		public override string ToString()
+		{
+			return $"Point({X};{Y})";
+		}
 	}
 }

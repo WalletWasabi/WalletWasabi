@@ -85,7 +85,10 @@ namespace Nito.Disposables.Internals
 				Context = contextUpdater(originalBoundAction.Context);
 			}
 
-			public void Invoke() => Action?.Invoke(Context);
+			public void Invoke()
+			{
+				Action?.Invoke(Context);
+			}
 		}
 	}
 }

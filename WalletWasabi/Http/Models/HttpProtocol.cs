@@ -45,21 +45,36 @@ namespace WalletWasabi.Http.Models
 		}
 
 		// HTTP-name "/" DIGIT "." DIGIT
-		public override string ToString() => $"{Protocol}/{Version}";
+		public override string ToString()
+		{
+			return $"{Protocol}/{Version}";
+		}
 
 		#region Equality
 
-		public override bool Equals(object obj) => obj is HttpProtocol protocol && this == protocol;
+		public override bool Equals(object obj)
+		{
+			return obj is HttpProtocol protocol && this == protocol;
+		}
 
-		public bool Equals(HttpProtocol other) => this == other;
+		public bool Equals(HttpProtocol other)
+		{
+			return this == other;
+		}
 
-		public override int GetHashCode() => ToString().GetHashCode();
+		public override int GetHashCode()
+		{
+			return ToString().GetHashCode();
+		}
 
 		public static bool operator ==(HttpProtocol x, HttpProtocol y) => x?.ToString() == y?.ToString();
 
 		public static bool operator !=(HttpProtocol x, HttpProtocol y) => !(x == y);
 
-		public bool Equals(string other) => ToString() == other;
+		public bool Equals(string other)
+		{
+			return ToString() == other;
+		}
 
 		public static bool operator ==(string x, HttpProtocol y) => x == y?.ToString();
 

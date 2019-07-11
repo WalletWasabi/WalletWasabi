@@ -144,12 +144,18 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		/// <remarks>ISO/IEC 18004:2006E ECI Designator Page 24</remarks>
 		/// <param name="ECIValue">Range: 0 ~ 999999</param>
 		/// <returns>Number of bits for ECI Assignment Value</returns>
-		private static int NumOfAssignmentBits(int ECIValue) => NumOfCodewords(ECIValue) * 8;
+		private static int NumOfAssignmentBits(int ECIValue)
+		{
+			return NumOfCodewords(ECIValue) * 8;
+		}
 
 		/// <remarks>ISO/IEC 18004:2006E ECI Designator Page 24</remarks>
 		/// <param name="ECIValue">Range: 0 ~ 999999</param>
 		/// <returns>Number of bits for ECI Header</returns>
-		internal static int NumOfECIHeaderBits(int ECIValue) => NumOfAssignmentBits(ECIValue) + 4;
+		internal static int NumOfECIHeaderBits(int ECIValue)
+		{
+			return NumOfAssignmentBits(ECIValue) + 4;
+		}
 
 		/// <returns>ECI table in Dictionary collection</returns>
 		public Dictionary<string, int> GetECITable()

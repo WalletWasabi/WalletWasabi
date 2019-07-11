@@ -34,7 +34,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			ActiveOutputs = Enumerable.Empty<ActiveOutput>();
 		}
 
-		public bool IsPhaseActionsComleted(CcjRoundPhase phase) => CompletedPhase >= phase;
+		public bool IsPhaseActionsComleted(CcjRoundPhase phase)
+		{
+			return CompletedPhase >= phase;
+		}
 
 		public void SetPhaseCompleted(CcjRoundPhase phase)
 		{

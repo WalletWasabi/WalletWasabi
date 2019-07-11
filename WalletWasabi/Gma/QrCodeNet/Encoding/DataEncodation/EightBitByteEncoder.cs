@@ -32,7 +32,10 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			Encoding = DefaultEncoding;
 		}
 
-		protected byte[] EncodeContent(string content, string encoding) => System.Text.Encoding.GetEncoding(encoding).GetBytes(content);
+		protected byte[] EncodeContent(string content, string encoding)
+		{
+			return System.Text.Encoding.GetEncoding(encoding).GetBytes(content);
+		}
 
 		/// <summary>
 		/// Bitcount, Chapter 8.4.4, P.24
@@ -74,6 +77,9 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			return dataBits;
 		}
 
-		protected override int GetBitCountInCharCountIndicator(int version) => CharCountIndicatorTable.GetBitCountInCharCountIndicator(version);
+		protected override int GetBitCountInCharCountIndicator(int version)
+		{
+			return CharCountIndicatorTable.GetBitCountInCharCountIndicator(version);
+		}
 	}
 }

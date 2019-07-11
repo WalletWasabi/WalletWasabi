@@ -26,8 +26,14 @@ namespace Gma.QrCodeNet.Encoding
 			}
 		}
 
-		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return GetEnumerator();
+		}
 
-		public override string ToString() => $"Rectangle({Location.X};{Location.Y}):({Size.Width} x {Size.Height})";
+		public override string ToString()
+		{
+			return $"Rectangle({Location.X};{Location.Y}):({Size.Width} x {Size.Height})";
+		}
 	}
 }

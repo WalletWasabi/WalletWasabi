@@ -6,7 +6,10 @@
 		{
 		}
 
-		protected virtual int GetDataLength(string content) => content.Length;
+		protected virtual int GetDataLength(string content)
+		{
+			return content.Length;
+		}
 
 		/// <summary>
 		/// Returns the bit representation of input data.

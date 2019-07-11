@@ -108,21 +108,39 @@ namespace WalletWasabi.KeyManagement
 
 		public bool HasLabel { get; private set; }
 
-		public BitcoinPubKeyAddress GetP2pkhAddress(Network network) => (BitcoinPubKeyAddress)PubKey.GetAddress(ScriptPubKeyType.Legacy, network);
+		public BitcoinPubKeyAddress GetP2pkhAddress(Network network)
+		{
+			return (BitcoinPubKeyAddress)PubKey.GetAddress(ScriptPubKeyType.Legacy, network);
+		}
 
-		public BitcoinWitPubKeyAddress GetP2wpkhAddress(Network network) => PubKey.GetSegwitAddress(network);
+		public BitcoinWitPubKeyAddress GetP2wpkhAddress(Network network)
+		{
+			return PubKey.GetSegwitAddress(network);
+		}
 
-		public BitcoinScriptAddress GetP2shOverP2wpkhAddress(Network network) => P2wpkhScript.GetScriptAddress(network);
+		public BitcoinScriptAddress GetP2shOverP2wpkhAddress(Network network)
+		{
+			return P2wpkhScript.GetScriptAddress(network);
+		}
 
 		#region Equality
 
-		public override bool Equals(object obj) => obj is HdPubKey pubKey && this == pubKey;
+		public override bool Equals(object obj)
+		{
+			return obj is HdPubKey pubKey && this == pubKey;
+		}
 
-		public bool Equals(HdPubKey other) => this == other;
+		public bool Equals(HdPubKey other)
+		{
+			return this == other;
+		}
 
 		private int HashCode { get; }
 
-		public override int GetHashCode() => HashCode;
+		public override int GetHashCode()
+		{
+			return HashCode;
+		}
 
 		public static bool operator ==(HdPubKey x, HdPubKey y) => x?.PubKeyHash == y?.PubKeyHash;
 

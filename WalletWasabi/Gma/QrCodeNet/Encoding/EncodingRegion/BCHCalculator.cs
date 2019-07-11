@@ -7,7 +7,10 @@
 		/// </summary>
 		/// <param name="num">Input Number</param>
 		/// <returns>Most significant bit</returns>
-		internal static int PosMSB(int num) => num == 0 ? 0 : BinarySearchPos(num, 0, 32) + 1;
+		internal static int PosMSB(int num)
+		{
+			return num == 0 ? 0 : BinarySearchPos(num, 0, 32) + 1;
+		}
 
 		/// <summary>
 		/// Search for right side bit of Most significant bit

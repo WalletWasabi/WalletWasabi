@@ -36,6 +36,9 @@
 			CopyTo(matrix, new MatrixRectangle(new MatrixPoint(1, 0), size), leftBottomCorner, MatrixStatus.NoMask);
 		}
 
-		private MatrixSize GetSizeOfSquareWithSeparators() => new MatrixSize(Width - 1, Height - 1);
+		private MatrixSize GetSizeOfSquareWithSeparators()
+		{
+			return new MatrixSize(Width - 1, Height - 1);
+		}
 	}
 }

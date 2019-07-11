@@ -40,8 +40,14 @@ namespace Gma.QrCodeNet.Encoding.Masking
 			return maskedMatrix;
 		}
 
-		public static TriStateMatrix Apply(this TriStateMatrix matrix, Pattern pattern, ErrorCorrectionLevel errorLevel) => matrix.Xor(pattern, errorLevel);
+		public static TriStateMatrix Apply(this TriStateMatrix matrix, Pattern pattern, ErrorCorrectionLevel errorLevel)
+		{
+			return matrix.Xor(pattern, errorLevel);
+		}
 
-		public static TriStateMatrix Apply(this Pattern pattern, TriStateMatrix matrix, ErrorCorrectionLevel errorLevel) => matrix.Xor(pattern, errorLevel);
+		public static TriStateMatrix Apply(this Pattern pattern, TriStateMatrix matrix, ErrorCorrectionLevel errorLevel)
+		{
+			return matrix.Xor(pattern, errorLevel);
+		}
 	}
 }

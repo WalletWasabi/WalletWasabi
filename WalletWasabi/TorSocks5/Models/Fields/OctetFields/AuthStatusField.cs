@@ -32,7 +32,10 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 
 		#region
 
-		public bool IsSuccess() => Value == 0;
+		public bool IsSuccess()
+		{
+			return Value == 0;
+		}
 
 		#endregion
 	}

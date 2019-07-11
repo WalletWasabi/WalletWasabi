@@ -44,11 +44,20 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is SchnorrPubKey schnorrPubKey && this == schnorrPubKey;
+		public override bool Equals(object obj)
+		{
+			return obj is SchnorrPubKey schnorrPubKey && this == schnorrPubKey;
+		}
 
-		public bool Equals(SchnorrPubKey other) => this == other;
+		public bool Equals(SchnorrPubKey other)
+		{
+			return this == other;
+		}
 
-		public override int GetHashCode() => SignerPubKey.GetHashCode() ^ RpubKey.GetHashCode();
+		public override int GetHashCode()
+		{
+			return SignerPubKey.GetHashCode() ^ RpubKey.GetHashCode();
+		}
 
 		public static bool operator ==(SchnorrPubKey x, SchnorrPubKey y) => y?.SignerPubKey == x?.SignerPubKey && y?.RpubKey == x?.RpubKey;
 

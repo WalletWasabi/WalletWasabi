@@ -102,11 +102,20 @@ namespace WalletWasabi.Services
 		public TimeSpan MaxRequestIntervalForMixing { get; set; }
 		private long _blockRequests; // There are priority requests in queue.
 
-		public bool AreRequestsBlocked() => Interlocked.Read(ref _blockRequests) == 1;
+		public bool AreRequestsBlocked()
+		{
+			return Interlocked.Read(ref _blockRequests) == 1;
+		}
 
-		public void BlockRequests() => Interlocked.Exchange(ref _blockRequests, 1);
+		public void BlockRequests()
+		{
+			Interlocked.Exchange(ref _blockRequests, 1);
+		}
 
-		public void EnableRequests() => Interlocked.Exchange(ref _blockRequests, 0);
+		public void EnableRequests()
+		{
+			Interlocked.Exchange(ref _blockRequests, 0);
+		}
 
 		public BitcoinStore BitcoinStore { get; private set; }
 

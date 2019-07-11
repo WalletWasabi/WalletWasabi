@@ -474,11 +474,20 @@ namespace WalletWasabi.Models
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is SmartCoin coin && this == coin;
+		public override bool Equals(object obj)
+		{
+			return obj is SmartCoin coin && this == coin;
+		}
 
-		public bool Equals(SmartCoin other) => this == other;
+		public bool Equals(SmartCoin other)
+		{
+			return this == other;
+		}
 
-		public override int GetHashCode() => TransactionId.GetHashCode() ^ (int)Index;
+		public override int GetHashCode()
+		{
+			return TransactionId.GetHashCode() ^ (int)Index;
+		}
 
 		public static bool operator ==(SmartCoin x, SmartCoin y) => y?.TransactionId == x?.TransactionId && y?.Index == x?.Index;
 

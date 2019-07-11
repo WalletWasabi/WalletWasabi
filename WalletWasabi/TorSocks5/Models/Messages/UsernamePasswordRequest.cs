@@ -71,7 +71,10 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			Passwd.FromBytes(bytes.Skip(3 + ULen.Value).ToArray());
 		}
 
-		public override byte[] ToBytes() => ByteHelpers.Combine(new byte[] { Ver.ToByte(), ULen.ToByte() }, UName.ToBytes(), new byte[] { PLen.ToByte() }, Passwd.ToBytes());
+		public override byte[] ToBytes()
+		{
+			return ByteHelpers.Combine(new byte[] { Ver.ToByte(), ULen.ToByte() }, UName.ToBytes(), new byte[] { PLen.ToByte() }, Passwd.ToBytes());
+		}
 
 		#endregion Serialization
 	}

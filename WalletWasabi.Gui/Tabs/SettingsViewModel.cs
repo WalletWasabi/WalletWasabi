@@ -311,25 +311,39 @@ namespace WalletWasabi.Gui.Tabs
 		}
 
 		public string ValidateTorHost()
-			=> ValidateHost(TorHost);
+		{
+			return ValidateHost(TorHost);
+		}
 
 		public string ValidateLocalNodeHost()
-			=> ValidateHost(LocalNodeHost);
+		{
+			return ValidateHost(LocalNodeHost);
+		}
 
 		public string ValidateTorPort()
-			=> ValidatePort(TorPort);
+		{
+			return ValidatePort(TorPort);
+		}
 
 		public string ValidateLocalNodePort()
-			=> ValidatePort(LocalNodePort);
+		{
+			return ValidatePort(LocalNodePort);
+		}
 
 		public string ValidateSomePrivacyLevel()
-			=> ValidatePrivacyLevel(SomePrivacyLevel);
+		{
+			return ValidatePrivacyLevel(SomePrivacyLevel);
+		}
 
 		public string ValidateFinePrivacyLevel()
-			=> ValidatePrivacyLevel(FinePrivacyLevel);
+		{
+			return ValidatePrivacyLevel(FinePrivacyLevel);
+		}
 
 		public string ValidateStrongPrivacyLevel()
-			=> ValidatePrivacyLevel(StrongPrivacyLevel);
+		{
+			return ValidatePrivacyLevel(StrongPrivacyLevel);
+		}
 
 		public string ValidatePrivacyLevel(string value)
 		{

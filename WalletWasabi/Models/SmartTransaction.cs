@@ -32,9 +32,15 @@ namespace WalletWasabi.Models
 
 		public bool Confirmed => Height.Type == HeightType.Chain;
 
-		public uint256 GetHash() => Transaction.GetHash();
+		public uint256 GetHash()
+		{
+			return Transaction.GetHash();
+		}
 
-		public int GetConfirmationCount(Height bestHeight) => Height == Height.Mempool ? 0 : bestHeight.Value - Height.Value + 1;
+		public int GetConfirmationCount(Height bestHeight)
+		{
+			return Height == Height.Mempool ? 0 : bestHeight.Value - Height.Value + 1;
+		}
 
 		/// <summary>
 		/// if Height is Mempool it's first seen, else null,
@@ -96,7 +102,10 @@ namespace WalletWasabi.Models
 			IsReplacement = true;
 		}
 
-		public bool HasLabel() => !string.IsNullOrWhiteSpace(Label);
+		public bool HasLabel()
+		{
+			return !string.IsNullOrWhiteSpace(Label);
+		}
 
 		/// <summary>
 		/// First looks at height, then block index, then mempool firstseen.
@@ -125,14 +134,25 @@ namespace WalletWasabi.Models
 
 		#region Equality
 
-		public bool Equals(SmartTransaction other) => GetHash().Equals(other?.GetHash());
+		public bool Equals(SmartTransaction other)
+		{
+			return GetHash().Equals(other?.GetHash());
+		}
 
-		public bool Equals(Transaction other) => GetHash().Equals(other?.GetHash());
+		public bool Equals(Transaction other)
+		{
+			return GetHash().Equals(other?.GetHash());
+		}
 
-		public override bool Equals(object obj) =>
-			obj is SmartTransaction transaction && this == transaction;
+		public override bool Equals(object obj)
+		{
+			return obj is SmartTransaction transaction && this == transaction;
+		}
 
-		public override int GetHashCode() => GetHash().GetHashCode();
+		public override int GetHashCode()
+		{
+			return GetHash().GetHashCode();
+		}
 
 		public static bool operator !=(SmartTransaction tx1, SmartTransaction tx2) => !(tx1 == tx2);
 

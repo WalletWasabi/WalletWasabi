@@ -52,11 +52,20 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is MixingLevel level && this == level;
+		public override bool Equals(object obj)
+		{
+			return obj is MixingLevel level && this == level;
+		}
 
-		public bool Equals(MixingLevel other) => this == other;
+		public bool Equals(MixingLevel other)
+		{
+			return this == other;
+		}
 
-		public override int GetHashCode() => Denomination.GetHashCode() ^ SchnorrKey.GetHashCode();
+		public override int GetHashCode()
+		{
+			return Denomination.GetHashCode() ^ SchnorrKey.GetHashCode();
+		}
 
 		public static bool operator ==(MixingLevel x, MixingLevel y) => y?.Denomination == x?.Denomination && y?.SchnorrKey == x?.SchnorrKey;
 

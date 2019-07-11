@@ -18,7 +18,10 @@
 
 		internal int MatrixWidth => Width(Version);
 
-		internal static int Width(int version) => 17 + (4 * version);
+		internal static int Width(int version)
+		{
+			return 17 + (4 * version);
+		}
 
 		internal int ECBlockGroup1 => NumECBlocks - ECBlockGroup2;
 
@@ -30,6 +33,9 @@
 
 		internal int NumECBytesPerBlock => (NumTotalBytes - NumDataBytes) / NumECBlocks;
 
-		public override string ToString() => $"{Version};{NumTotalBytes};{NumDataBytes};{NumECBlocks}";
+		public override string ToString()
+		{
+			return $"{Version};{NumTotalBytes};{NumDataBytes};{NumECBlocks}";
+		}
 	}
 }

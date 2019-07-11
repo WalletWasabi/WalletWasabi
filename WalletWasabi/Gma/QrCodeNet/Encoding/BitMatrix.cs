@@ -27,6 +27,9 @@
 			}
 		}
 
-		internal void CopyTo(TriStateMatrix target, MatrixPoint targetPoint, MatrixStatus mstatus) => CopyTo(target, new MatrixRectangle(new MatrixPoint(0, 0), new MatrixSize(Width, Height)), targetPoint, mstatus);
+		internal void CopyTo(TriStateMatrix target, MatrixPoint targetPoint, MatrixStatus mstatus)
+		{
+			CopyTo(target, new MatrixRectangle(new MatrixPoint(0, 0), new MatrixSize(Width, Height)), targetPoint, mstatus);
+		}
 	}
 }
