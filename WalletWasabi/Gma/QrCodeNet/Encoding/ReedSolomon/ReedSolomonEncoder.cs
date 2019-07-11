@@ -71,7 +71,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			int remainderLength = remainder.Length;
 			if (remainderLength > numECBytes)
-			{        
+			{
 				throw new ArgumentException("Num of remainder bytes cannot be larger than numECBytes");
 			}
 

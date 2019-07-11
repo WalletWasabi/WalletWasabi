@@ -42,7 +42,8 @@ namespace WalletWasabi.Gui.Helpers
 			},
 			false, "");
 
-			return new ShellExecuteResult() {
+			return new ShellExecuteResult()
+			{
 				ExitCode = exitCode,
 				Output = outputBuilder.ToString().Trim(),
 				ErrorOutput = errorBuilder.ToString().Trim()
@@ -53,8 +54,10 @@ namespace WalletWasabi.Gui.Helpers
 			outputReceivedCallback, Action<object, DataReceivedEventArgs> errorReceivedCallback = null, bool resolveExecutable = true,
 			string workingDirectory = "", bool executeInShell = true, bool includeSystemPaths = true, params string[] extraPaths)
 		{
-			using (var shellProc = new Process {
-				StartInfo = new ProcessStartInfo {
+			using (var shellProc = new Process
+			{
+				StartInfo = new ProcessStartInfo
+				{
 					RedirectStandardOutput = true,
 					RedirectStandardError = true,
 					UseShellExecute = false,

@@ -14,8 +14,8 @@ indent_style = tab
 
 #Formatting - new line options
 
-#require braces to be on a new line for object_collection_array_initializers, methods, control_blocks, accessors, lambdas, types, and properties (also known as "Allman" style)
-csharp_new_line_before_open_brace = methods, control_blocks, accessors, lambdas, types, properties
+#require braces to be on a new line for all
+csharp_new_line_before_open_brace = all
 
 #Formatting - organize using options
 

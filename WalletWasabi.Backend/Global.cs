@@ -124,7 +124,8 @@ namespace WalletWasabi.Backend
 			using (var handshakeTimeout = new CancellationTokenSource())
 			{
 				handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
-				var nodeConnectionParameters = new NodeConnectionParameters() {
+				var nodeConnectionParameters = new NodeConnectionParameters()
+				{
 					ConnectCancellation = handshakeTimeout.Token,
 					IsRelay = true
 				};

@@ -77,7 +77,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				try
 				{
-					var ofd = new OpenFileDialog {
+					var ofd = new OpenFileDialog
+					{
 						AllowMultiple = false,
 						Title = "Import Transaction"
 					};
