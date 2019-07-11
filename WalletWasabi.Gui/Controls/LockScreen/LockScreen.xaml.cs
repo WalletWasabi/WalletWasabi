@@ -15,7 +15,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
         private LockScreenType _activeLockScreenType;
         private ContentControl LockScreenHost;
-        private LockScreenImpl CurrentLockScreen;
+        private LockScreenBase CurrentLockScreen;
         private CompositeDisposable ScreenImplDisposables;
 		
         public static readonly DirectProperty<LockScreen, LockScreenType> ActiveLockScreenTypeProperty =

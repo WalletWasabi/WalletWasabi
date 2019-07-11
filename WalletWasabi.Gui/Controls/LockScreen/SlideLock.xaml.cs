@@ -10,7 +10,7 @@ using Avalonia;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
-    internal class SlideLock : LockScreenImpl
+    internal class SlideLock : LockScreenBase
     {
         private Grid Shade;
         private Thumb DragThumb;

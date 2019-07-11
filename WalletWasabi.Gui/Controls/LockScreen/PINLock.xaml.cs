@@ -14,7 +14,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
-    public class PINLock : LockScreenImpl
+    public class PINLock : LockScreenBase
     {
         public Grid Shade { get; }
 

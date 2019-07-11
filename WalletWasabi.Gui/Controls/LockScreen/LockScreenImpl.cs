@@ -5,16 +5,16 @@ using ReactiveUI;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
-    public abstract class LockScreenImpl : UserControl
+    public abstract class LockScreenBase : UserControl
     {
         private bool _isLocked, _currentState;
 
-        public static readonly DirectProperty<LockScreenImpl, bool> IsLockedProperty =
-            AvaloniaProperty.RegisterDirect<LockScreenImpl, bool>(nameof(IsLocked),
+        public static readonly DirectProperty<LockScreenBase, bool> IsLockedProperty =
+            AvaloniaProperty.RegisterDirect<LockScreenBase, bool>(nameof(IsLocked),
                                                                   o => o.IsLocked,
                                                                   (o, v) => o.IsLocked = v);
 
-        public LockScreenImpl()
+        public LockScreenBase()
         {
             this.WhenAnyValue(x => x.IsLocked)
                 .Subscribe(IsLockedChanged);
