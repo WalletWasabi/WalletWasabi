@@ -10,7 +10,7 @@ Wasabi Wallet protects the encrypted secret key with the same technology used to
 
 To use Wasabi's command line tools on Windows you have to use `wassabeed.exe` that is inside your `Program Files\WasabiWallet`. On Linux and OSX you can use the same software that you use for launching the GUI (`wassabee`).
 
-Let's start giving a glance to the command `help`:
+Let us start giving a glance to the command `help`:
 
 ```
 $ wassabee run help findpassword
@@ -28,7 +28,7 @@ eg: ./wassabee findpassword --wallet:MyWalletName --numbers:false --symbold:true
   -h, --help                 Show Help
 ```
 
-Now, let's find a typo in a wallet called `MagicalCryptoWallet.json`. For the sake of the example let's say I have created this wallet and I think the password is `pasd` but it was created with the password `pass` by accident.
+Now, let us find a typo in a wallet called `MagicalCryptoWallet.json`. For the sake of the example let us say I have created this wallet and I think the password is `pasd` but it was created with the password `pass` by accident.
 
 ```
 $ wassabee findpassword --wallet:MagicalCryptoWallet

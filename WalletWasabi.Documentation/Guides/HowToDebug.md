@@ -28,7 +28,7 @@ Here we are going to focus on how to debug the client component first and the ba
 
 ### Wasabi Client
 
-Let's start by creating the launcher (it goes into the `.vscode/launch.json` file). This file contains the list of projects that can be launched, how to do it, what tasks have to be executed before the launching, etc.
+Let us start by creating the launcher (it goes into the `.vscode/launch.json` file). This file contains the list of projects that can be launched, how to do it, what tasks have to be executed before the launching, etc.
 
 ```json
 {
@@ -69,7 +69,7 @@ After these two files are created press (CTRL+SHIFT+D) to go to the debugger, se
 
 ### Wasabi Backend
 
-In the same way we did with the client part, we need to create a launcher and a task for running and debugging the server-side component. Let's start with the launcher. Add the following launcher to the array of `configurations` in the `.vscode/launch.json` file.
+In the same way we did with the client part, we need to create a launcher and a task for running and debugging the server-side component. Let us start with the launcher. Add the following launcher to the array of `configurations` in the `.vscode/launch.json` file.
 
 ```json
 {
