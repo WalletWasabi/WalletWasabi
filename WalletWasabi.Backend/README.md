@@ -36,7 +36,7 @@
   
 #### Handling Reorgs
 
-  If the answer to the `filters` request is not found, then the client steps back one block and queries the filters with that previous hash. This can happen multiple times. This will only happen when blockchain reorganization has occured. 
+  If the answer to the `filters` request is not found, then the client steps back one block and queries the filters with that previous hash. This can happen multiple times. This will only happen when blockchain reorganization has occurred. 
 
 ### Controller: ChaumianCoinJoin, Coin: BTC
 
