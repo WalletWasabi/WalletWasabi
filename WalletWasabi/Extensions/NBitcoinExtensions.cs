@@ -118,7 +118,7 @@ namespace NBitcoin
 			int equalOutputs = me.GetIndistinguishableOutputs(includeSingle: true).Single(x => x.value == output.Value).count;
 			// 3. Anonymity set cannot be larger than the number of inputs.
 			var inputCount = me.Inputs.Count;
-			var anonSet = Math.Min(equalOutputs, inputCount);
+			var anonymitySet = Math.Min(equalOutputs, inputCount);
 			return equalOutputs;
 		}
 

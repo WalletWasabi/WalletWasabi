@@ -1,4 +1,4 @@
-﻿namespace Gma.QrCodeNet.Encoding.Versions
+namespace Gma.QrCodeNet.Encoding.Versions
 {
 	internal struct QRCodeVersion
 	{
@@ -10,12 +10,12 @@
 
 		private ErrorCorrectionBlocks[] ECBlocks { get; }
 
-		internal QRCodeVersion(int versionNum, int totalCodewords, ErrorCorrectionBlocks ecblocksL, ErrorCorrectionBlocks ecblocksM, ErrorCorrectionBlocks ecblocksQ, ErrorCorrectionBlocks ecblocksH)
+		internal QRCodeVersion(int versionNum, int totalCodewords, ErrorCorrectionBlocks ecBlocksL, ErrorCorrectionBlocks ecBlocksM, ErrorCorrectionBlocks ecBlocksQ, ErrorCorrectionBlocks ecBlocksH)
 			: this()
 		{
 			VersionNum = versionNum;
 			TotalCodewords = totalCodewords;
-			ECBlocks = new ErrorCorrectionBlocks[] { ecblocksL, ecblocksM, ecblocksQ, ecblocksH };
+			ECBlocks = new ErrorCorrectionBlocks[] { ecBlocksL, ecBlocksM, ecBlocksQ, ecBlocksH };
 			DimensionForVersion = 17 + (versionNum * 4);
 		}
 

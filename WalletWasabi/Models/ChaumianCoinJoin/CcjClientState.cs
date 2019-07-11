@@ -271,17 +271,17 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					if (bestSet.Count < maximumInputCountPerPeer) // Ensure limits.
 					{
 						// Generating toxic change leads to mass merging so it's better to merge sooner in coinjoin than the user do it himself in a non-CJ.
-						// The best selection's anonset should not be lowered by this merge.
-						int bestMinAnonset = bestSet.Min(x => x.AnonymitySet);
+						// The best selection's anonymitySet should not be lowered by this merge.
+						int bestMinAnonymitySet = bestSet.Min(x => x.AnonymitySet);
 						var bestSum = Money.Satoshis(bestSet.Sum(x => x.Amount));
 
 						if (!bestSum.Almost(amountNeeded, Money.Coins(0.0001m)) // Otherwise it wouldn't generate change so consolidation would make no sense.
-							&& bestMinAnonset > 1) // Red coins should never be merged.
+							&& bestMinAnonymitySet > 1) // Red coins should never be merged.
 						{
 							IEnumerable<SmartCoin> coinsThoseCanBeConsolidated = coins
 								.Except(bestSet) // Get all the registrable coins, except the already chosen ones.
 								.Where(x =>
-									x.AnonymitySet >= bestMinAnonset // The anonset must be at least equal to the bestSet's anonset so we do not ruin the change's after mix anonset.
+									x.AnonymitySet >= bestMinAnonymitySet // The anonymitySet must be at least equal to the bestSet's anonymitySet so we do not ruin the change's after mix anonymitySet.
 									&& x.AnonymitySet > 1 // Red coins should never be merged.
 									&& x.Amount < amountNeeded // The amount need to be smaller than the amountNeeded (so to make sure this is toxic change.)
 									&& (bestSum + x.Amount) > amountNeeded) // Sanity check that the amount added do not ruin the registration.

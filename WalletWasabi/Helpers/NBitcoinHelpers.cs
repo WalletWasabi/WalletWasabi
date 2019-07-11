@@ -12,7 +12,7 @@ namespace WalletWasabi.Helpers
 {
 	public static class NBitcoinHelpers
 	{
-		public static string HashOutpoints(IEnumerable<OutPoint> outPoints)
+		public static string HashOutPoints(IEnumerable<OutPoint> outPoints)
 		{
 			var sb = new StringBuilder();
 			foreach (OutPoint input in outPoints.OrderBy(x => x.Hash.ToString()).ThenBy(x => x.N))

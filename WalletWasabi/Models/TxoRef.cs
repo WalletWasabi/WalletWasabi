@@ -8,7 +8,7 @@ using WalletWasabi.JsonConverters;
 namespace WalletWasabi.Models
 {
 	/// <summary>
-	/// The same functionality as Outpoint, but it's JsonSerializable
+	/// The same functionality as OutPoint, but it's JsonSerializable
 	/// </summary>
 	[JsonObject(MemberSerialization.OptIn)]
 	public class TxoRef : IEquatable<TxoRef>, IEquatable<OutPoint>

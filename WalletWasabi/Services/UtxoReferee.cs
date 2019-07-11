@@ -163,9 +163,9 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public async Task<BannedUtxoRecord> TryGetBannedAsync(OutPoint outpoint, bool notedToo)
+		public async Task<BannedUtxoRecord> TryGetBannedAsync(OutPoint outPoint, bool notedToo)
 		{
-			if (BannedUtxos.TryGetValue(outpoint, out BannedUtxoRecord bannedElem))
+			if (BannedUtxos.TryGetValue(outPoint, out BannedUtxoRecord bannedElem))
 			{
 				int maxBan = (int)TimeSpan.FromHours(RoundConfig.DosDurationHours.Value).TotalMinutes;
 				int banLeftMinutes = maxBan - (int)bannedElem.BannedRemaining.TotalMinutes;
@@ -189,7 +189,7 @@ namespace WalletWasabi.Services
 				}
 				else
 				{
-					await UnbanAsync(outpoint);
+					await UnbanAsync(outPoint);
 				}
 			}
 			return null;

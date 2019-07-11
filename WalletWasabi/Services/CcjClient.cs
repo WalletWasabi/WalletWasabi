@@ -36,7 +36,7 @@ namespace WalletWasabi.Services
 		public WasabiSynchronizer Synchronizer { get; private set; }
 		private IPEndPoint TorSocks5EndPoint { get; set; }
 
-		private decimal? CoordinatorFeepercentToCheck { get; set; }
+		private decimal? CoordinatorFeePercentToCheck { get; set; }
 
 		public ConcurrentDictionary<TxoRef, IEnumerable<HdPubKeyBlindedPair>> ExposedLinks { get; set; }
 
@@ -90,7 +90,7 @@ namespace WalletWasabi.Services
 			CcjHostUriAction = Guard.NotNull(nameof(ccjHostUriAction), ccjHostUriAction);
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
 			TorSocks5EndPoint = torSocks5EndPoint;
-			CoordinatorFeepercentToCheck = null;
+			CoordinatorFeePercentToCheck = null;
 
 			ExposedLinks = new ConcurrentDictionary<TxoRef, IEnumerable<HdPubKeyBlindedPair>>();
 			_running = 0;
@@ -227,9 +227,9 @@ namespace WalletWasabi.Services
 					{
 						// If the coordinator increases fees, do not register. Let the users register manually again.
 						bool dequeueBecauseCoordinatorFeeChanged = false;
-						if (CoordinatorFeepercentToCheck != default)
+						if (CoordinatorFeePercentToCheck != default)
 						{
-							dequeueBecauseCoordinatorFeeChanged = registrableRound.State.CoordinatorFeePercent > CoordinatorFeepercentToCheck;
+							dequeueBecauseCoordinatorFeeChanged = registrableRound.State.CoordinatorFeePercent > CoordinatorFeePercentToCheck;
 						}
 
 						if (!registrableRound.State.HaveEnoughQueued(State.GetAllQueuedCoinAmounts().ToArray())
@@ -360,8 +360,8 @@ namespace WalletWasabi.Services
 				var mineCount = myOutputs.Count(x => x.Value == denomPair.value);
 
 				Money denomination = denomPair.value;
-				int anonset = Math.Min(110, denomPair.count); // https://github.com/zkSNACKs/WalletWasabi/issues/1379
-				Money expectedCoordinatorFee = denomination.Percentage(ongoingRound.State.CoordinatorFeePercent * anonset);
+				int anonymitySet = Math.Min(110, denomPair.count); // https://github.com/zkSNACKs/WalletWasabi/issues/1379
+				Money expectedCoordinatorFee = denomination.Percentage(ongoingRound.State.CoordinatorFeePercent * anonymitySet);
 				for (int i = 0; i < mineCount; i++)
 				{
 					minAmountBack -= expectedCoordinatorFee; // Minus expected coordinator fee.
@@ -773,7 +773,7 @@ namespace WalletWasabi.Services
 
 				// Every time the user enqueues (intentionally writes in password) then the coordinator fee percent must be noted and dequeue later if changes.
 				CcjClientRound latestRound = State.GetLatestRoundOrDefault();
-				CoordinatorFeepercentToCheck = latestRound?.State?.CoordinatorFeePercent;
+				CoordinatorFeePercentToCheck = latestRound?.State?.CoordinatorFeePercent;
 
 				var except = new List<SmartCoin>();
 

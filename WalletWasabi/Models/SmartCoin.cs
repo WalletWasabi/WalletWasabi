@@ -409,9 +409,9 @@ namespace WalletWasabi.Models
 
 		public SmartCoin(Coin coin, TxoRef[] spentOutputs, Height height, bool replaceable, int anonymitySet, string label = "", uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
 		{
-			OutPoint outpoint = Guard.NotNull($"{coin}.{coin?.Outpoint}", coin?.Outpoint);
-			uint256 transactionId = outpoint.Hash;
-			uint index = outpoint.N;
+			OutPoint outPoint = Guard.NotNull($"{coin}.{coin?.Outpoint}", coin?.Outpoint);
+			uint256 transactionId = outPoint.Hash;
+			uint index = outPoint.N;
 			Script scriptPubKey = Guard.NotNull($"{coin}.{coin?.ScriptPubKey}", coin?.ScriptPubKey);
 			Money amount = Guard.NotNull($"{coin}.{coin?.Amount}", coin?.Amount);
 

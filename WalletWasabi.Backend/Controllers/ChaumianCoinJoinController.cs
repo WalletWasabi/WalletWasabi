@@ -177,8 +177,8 @@ namespace WalletWasabi.Backend.Controllers
 							}
 						}
 
-						OutPoint outpoint = inputProof.Input.ToOutPoint();
-						var bannedElem = await Coordinator.UtxoReferee.TryGetBannedAsync(outpoint, notedToo: false);
+						OutPoint outPoint = inputProof.Input.ToOutPoint();
+						var bannedElem = await Coordinator.UtxoReferee.TryGetBannedAsync(outPoint, notedToo: false);
 						if (bannedElem != null)
 						{
 							return BadRequest($"Input is banned from participation for {(int)bannedElem.BannedRemaining.TotalMinutes} minutes: {inputProof.Input.Index}:{inputProof.Input.TransactionId}.");
@@ -545,8 +545,8 @@ namespace WalletWasabi.Backend.Controllers
 				return NoContent();
 			}
 
-			MixingLevel mixinglevel = round.MixingLevels.GetLevel(request.Level);
-			Signer signer = mixinglevel.Signer;
+			MixingLevel mixingLevel = round.MixingLevels.GetLevel(request.Level);
+			Signer signer = mixingLevel.Signer;
 
 			if (signer.VerifyUnblindedSignature(request.UnblindedSignature, request.OutputAddress.ScriptPubKey.ToBytes()))
 			{
@@ -555,7 +555,7 @@ namespace WalletWasabi.Backend.Controllers
 					Bob bob = null;
 					try
 					{
-						bob = new Bob(request.OutputAddress, mixinglevel);
+						bob = new Bob(request.OutputAddress, mixingLevel);
 						round.AddBob(bob);
 						round.AddRegisteredUnblindedSignature(request.UnblindedSignature);
 					}

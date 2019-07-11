@@ -57,9 +57,9 @@ namespace WalletWasabi.Services
 				ActionHistory.Add(actionItem);
 			}
 
-			public void StoreAction(Operation action, OutPoint outpoint, Script script)
+			public void StoreAction(Operation action, OutPoint outPoint, Script script)
 			{
-				StoreAction(new ActionItem(action, outpoint, script));
+				StoreAction(new ActionItem(action, outPoint, script));
 			}
 
 			public void Rollback(Dictionary<OutPoint, Script> toRollBack)
@@ -300,11 +300,11 @@ namespace WalletWasabi.Services
 										var output = tx.Outputs[i];
 										if (output.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
 										{
-											var outpoint = new OutPoint(tx.GetHash(), i);
-											Bech32UtxoSet.Add(outpoint, output.ScriptPubKey);
+											var outPoint = new OutPoint(tx.GetHash(), i);
+											Bech32UtxoSet.Add(outPoint, output.ScriptPubKey);
 											if (isImmature)
 											{
-												Bech32UtxoSetHistory.Last().StoreAction(ActionHistoryHelper.Operation.Add, outpoint, output.ScriptPubKey);
+												Bech32UtxoSetHistory.Last().StoreAction(ActionHistoryHelper.Operation.Add, outPoint, output.ScriptPubKey);
 											}
 											scripts.Add(output.ScriptPubKey);
 										}

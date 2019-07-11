@@ -638,10 +638,10 @@ namespace WalletWasabi.Services
 
 					foundKey.SetKeyState(KeyState.Used, KeyManager);
 					List<SmartCoin> spentOwnCoins = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
-					var anonset = tx.Transaction.GetAnonymitySet(i);
+					var anonymitySet = tx.Transaction.GetAnonymitySet(i);
 					if (spentOwnCoins.Count != 0)
 					{
-						anonset += spentOwnCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because do not count own.
+						anonymitySet += spentOwnCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because do not count own.
 
 						// Cleanup exposed links where the txo has been spent.
 						foreach (var input in spentOwnCoins.Select(x => x.GetTxoRef()))
@@ -655,13 +655,13 @@ namespace WalletWasabi.Services
 						continue;
 					}
 
-					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
-																																																												   // If we did not have it.
+					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonymitySet, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
+																																																														// If we did not have it.
 					if (Coins.TryAdd(newCoin))
 					{
 						TransactionCache.TryAdd(tx);
 
-						// If it's being mixed and anonset is not sufficient, then queue it.
+						// If it's being mixed and anonymitySet is not sufficient, then queue it.
 						if (newCoin.Unspent && ChaumianClient.HasIngredients && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet && ChaumianClient.State.Contains(newCoin.SpentOutputs))
 						{
 							try
@@ -1282,9 +1282,9 @@ namespace WalletWasabi.Services
 			for (var i = 0U; i < tx.Outputs.Count; i++)
 			{
 				TxOut output = tx.Outputs[i];
-				var anonset = (tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet)) - 1; // Minus 1, because count own only once.
+				var anonymitySet = (tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet)) - 1; // Minus 1, because count own only once.
 				var foundKey = KeyManager.GetKeys(KeyState.Clean).FirstOrDefault(x => output.ScriptPubKey == x.P2wpkhScript);
-				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, anonset, pubKey: foundKey);
+				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, anonymitySet, pubKey: foundKey);
 
 				if (foundKey != null)
 				{
@@ -1385,7 +1385,7 @@ namespace WalletWasabi.Services
 
 			// If there's a need for input merging.
 			foreach (var coin in unspentCoins
-				.OrderByDescending(x => x.AnonymitySet) // Always try to spend/merge the largest anonset coins first.
+				.OrderByDescending(x => x.AnonymitySet) // Always try to spend/merge the largest anonymitySet coins first.
 				.ThenByDescending(x => x.Amount)) // Then always try to spend by amount.
 			{
 				coinsToSpend.Add(coin);
