@@ -58,7 +58,7 @@ namespace WalletWasabi.Backend.Controllers
 			return Ok(response);
 		}
 
-		public IEnumerable<CcjRunningRoundState> GetStatesCollection()
+		internal IEnumerable<CcjRunningRoundState> GetStatesCollection()
 		{
 			var response = new List<CcjRunningRoundState>();
 
