@@ -176,8 +176,8 @@ namespace WalletWasabi.Backend.Controllers
 							}
 						}
 
-						OutPoint outpoint = inputProof.Input.ToOutPoint();
-						var bannedElem = await Coordinator.UtxoReferee.TryGetBannedAsync(outpoint, notedToo: false);
+						OutPoint outPoint = inputProof.Input.ToOutPoint();
+						var bannedElem = await Coordinator.UtxoReferee.TryGetBannedAsync(outPoint, notedToo: false);
 						if (bannedElem != null)
 						{
 							return BadRequest($"Input is banned from participation for {(int)bannedElem.BannedRemaining.TotalMinutes} minutes: {inputProof.Input.Index}:{inputProof.Input.TransactionId}.");

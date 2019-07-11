@@ -111,10 +111,10 @@ namespace WalletWasabi.Gui.Behaviors
 								AssociatedObject.Text = result.address;
 							}
 							MyTextBoxState = TextBoxState.NormalTextBoxOperation;
-							var labeltextbox = AssociatedObject.Parent.FindControl<TextBox>("LabelTextBox");
-							if (labeltextbox != null)
+							var labelTextBox = AssociatedObject.Parent.FindControl<TextBox>("LabelTextBox");
+							if (labelTextBox != null)
 							{
-								labeltextbox.Focus();
+								labelTextBox.Focus();
 							}
 
 							break;

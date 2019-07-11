@@ -3042,43 +3042,43 @@ namespace WalletWasabi.Tests
 			// 1. Prepare and start services.
 			for (int i = 0; i < anonymitySet; i++)
 			{
-				double damount;
+				double dAmount;
 				switch (i)
 				{
 					case 0:
-						damount = 1;
+						dAmount = 1;
 						break;
 
 					case 1:
-						damount = 1.1;
+						dAmount = 1.1;
 						break;
 
 					case 2:
-						damount = 1.2;
+						dAmount = 1.2;
 						break;
 
 					case 3:
-						damount = 3.1;
+						dAmount = 3.1;
 						break;
 
 					case 4:
-						damount = 4.1;
+						dAmount = 4.1;
 						break;
 
 					case 5:
-						damount = 7.1;
+						dAmount = 7.1;
 						break;
 
 					case 6:
-						damount = 8.1;
+						dAmount = 8.1;
 						break;
 
 					default:
-						damount = 1;
+						dAmount = 1;
 						break;
 				}
 
-				var amount = Money.Coins((decimal)damount);
+				var amount = Money.Coins((decimal)dAmount);
 
 				var keyManager = KeyManager.CreateNew(out _, password);
 				var key = keyManager.GenerateNewKey("foo", KeyState.Clean, false);
