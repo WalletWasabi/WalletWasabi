@@ -33,7 +33,8 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			BackendRegTestNode = BackendNodeBuilder.Nodes[0];
 
 			var rpc = BackendRegTestNode.CreateRpcClient();
-			var connectionString = new RPCCredentialString() {
+			var connectionString = new RPCCredentialString()
+			{
 				Server = rpc.Address.AbsoluteUri,
 				UserPassword = BackendRegTestNode.Creds
 			}.ToString();
@@ -54,7 +55,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			roundConfig.ToFileAsync().GetAwaiter().GetResult();
 
 			var conf = new ConfigurationBuilder()
-				.AddInMemoryCollection(new[] { new KeyValuePair<string,string>("datadir", nameof(RegTestFixture)) })
+				.AddInMemoryCollection(new[] { new KeyValuePair<string, string>("datadir", nameof(RegTestFixture)) })
 				.Build();
 			BackendEndPoint = $"http://localhost:{new Random().Next(37130, 38000)}/";
 			BackendHost = WebHost.CreateDefaultBuilder()

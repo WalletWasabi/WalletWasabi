@@ -292,7 +292,8 @@ namespace WalletWasabi.Backend.Controllers
 				return NoContent();
 			}
 
-			var response = new FiltersResponse {
+			var response = new FiltersResponse
+			{
 				BestHeight = bestHeight,
 				Filters = filters
 			};

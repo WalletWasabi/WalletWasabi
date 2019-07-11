@@ -37,6 +37,7 @@ namespace WalletWasabi.Backend
 		{
 			DataDir = dataDir ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
 		}
+
 		public Global() : this(null)
 		{
 		}
