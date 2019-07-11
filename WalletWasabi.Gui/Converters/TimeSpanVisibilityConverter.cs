@@ -6,23 +6,18 @@ using System.Text;
 
 namespace WalletWasabi.Gui.Converters
 {
-	public class MaxClearBoolStringConverter : IValueConverter
+	public class TimeSpanVisibilityConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is bool boolean)
+			if (value is TimeSpan ts)
 			{
-				if (boolean)
-				{
-					return "Clear";
-				}
-				else
-				{
-					return "Max";
-				}
+				return ts != TimeSpan.Zero;
 			}
-
-			throw new InvalidOperationException();
+			else
+			{
+				throw new TypeArgumentException(value, typeof(TimeSpan), nameof(value));
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

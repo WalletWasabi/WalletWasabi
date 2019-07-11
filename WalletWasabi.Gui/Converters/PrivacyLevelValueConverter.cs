@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (!Cache.TryGetValue(icon, out var image))
 			{
-				if (Application.Current.Styles.TryGetResource(icon.ToString(), out object resource))
+				if (Application.Current.Styles.TryGetResource(icon, out object resource))
 				{
 					image = resource as DrawingGroup;
 					Cache.Add(icon, image);
@@ -34,10 +34,11 @@ namespace WalletWasabi.Gui.Converters
 
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			var config = Application.Current.Resources[Global.ConfigResourceKey] as Config;
 			if (value is int integer)
 			{
+				var config = Application.Current.Resources[Global.ConfigResourceKey] as Config;
 				string shield;
+				string toolTip = null;
 				if (integer < config.PrivacyLevelSome)
 				{
 					shield = "Critical";
@@ -50,15 +51,24 @@ namespace WalletWasabi.Gui.Converters
 				{
 					shield = "Fine";
 				}
-				else
+				else if (integer < 9000)
 				{
 					shield = "Strong";
 				}
-				var icon = GetIconByName($"Privacy{shield}");
-				return new { Icon = icon, ToolTip = $"Anonymity Set: {integer}" };
-			}
+				else // It's Over 9000!
+				{
+					shield = "Saiyan";
+					toolTip = "It's over 9000!!!";
+				}
 
-			throw new InvalidOperationException();
+				toolTip = toolTip ?? $"Anonymity Set: {integer}";
+				var icon = GetIconByName($"Privacy{shield}");
+				return new { Icon = icon, ToolTip = toolTip };
+			}
+			else
+			{
+				throw new TypeArgumentException(value, typeof(int), nameof(value));
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

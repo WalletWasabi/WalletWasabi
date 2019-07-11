@@ -32,8 +32,8 @@ namespace WalletWasabi.Gui.Controls
 				await PasteAsync();
 			});
 
-			CopyCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<ExtendedTextBox>(ex));
-			PasteCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<ExtendedTextBox>(ex));
+			CopyCommand.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<ExtendedTextBox>);
+			PasteCommand.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<ExtendedTextBox>);
 
 			this.GetObservable(IsReadOnlyProperty).Subscribe(isReadOnly =>
 			{
@@ -129,8 +129,10 @@ namespace WalletWasabi.Gui.Controls
 
 		private static DrawingPresenter GetCopyPresenter()
 		{
-			return new DrawingPresenter {
-				Drawing = new GeometryDrawing {
+			return new DrawingPresenter
+			{
+				Drawing = new GeometryDrawing
+				{
 					Brush = Brush.Parse("#22B14C"),
 					Geometry = CopyIcon
 				},
@@ -141,8 +143,10 @@ namespace WalletWasabi.Gui.Controls
 
 		private static DrawingPresenter GetPastePresenter()
 		{
-			return new DrawingPresenter {
-				Drawing = new GeometryDrawing {
+			return new DrawingPresenter
+			{
+				Drawing = new GeometryDrawing
+				{
 					Brush = Brush.Parse("#22B14C"),
 					Geometry = PasteIcon
 				},
@@ -155,7 +159,8 @@ namespace WalletWasabi.Gui.Controls
 		{
 			base.OnTemplateApplied(e);
 
-			ContextMenu = new ContextMenu {
+			ContextMenu = new ContextMenu
+			{
 				DataContext = this,
 				Items = new Avalonia.Controls.Controls()
 			};

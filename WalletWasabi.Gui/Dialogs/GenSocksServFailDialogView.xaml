@@ -2,7 +2,7 @@
   <controls:GroupBox Title="Tor: General SOCKS Server Failure" Background="{DynamicResource ThemeControlBackgroundBrush}" TextBlock.FontSize="30" BorderThickness="0" Margin="0 80">
     <Grid Classes="content">
       <Panel Margin="10">
-        <TextBlock FontSize="15"  Text="The Tor daemon you are running responded with General SOCKS Server Failure. This can happen for many reasons, but Wasabi will attempt to autocorrect Tor, so this dialog should disappear within a few minutes. If that doesn't happen your Tor may be out of date. Please upgrade your Tor version to at least v0.3.2.2, or shut down your Tor process and restart Wasabi. This will make sure Wasabi is using its built-in Tor." TextWrapping="Wrap" />
+        <TextBlock FontSize="15"  Text="The Tor daemon you are running responded with General SOCKS Server Failure. This can happen for many reasons, but Wasabi will attempt to autocorrect Tor, so this dialog should disappear within a few minutes. If that does not happen your Tor may be out of date. Please upgrade your Tor version to at least v0.3.2.2, or shut down your Tor process and restart Wasabi. This will make sure Wasabi is using its built-in Tor." TextWrapping="Wrap" />
       </Panel>
     </Grid>
   </controls:GroupBox>

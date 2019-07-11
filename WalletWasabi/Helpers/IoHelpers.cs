@@ -82,11 +82,11 @@ namespace System.IO
 		}
 
 		/// <summary>
-		/// It's like Directory.CreateDirectory, but doesn't fail when root is given.
+		/// It's like Directory.CreateDirectory, but does not fail when root is given.
 		/// </summary>
 		public static void EnsureDirectoryExists(string dir)
 		{
-			if (!string.IsNullOrWhiteSpace(dir)) // If root is given, then don't worry.
+			if (!string.IsNullOrWhiteSpace(dir)) // If root is given, then do not worry.
 			{
 				Directory.CreateDirectory(dir); // It does not fail if it exists.
 			}
@@ -124,7 +124,8 @@ namespace System.IO
 		{
 			if (Directory.Exists(dirPath))
 			{
-				using (Process process = Process.Start(new ProcessStartInfo {
+				using (Process process = Process.Start(new ProcessStartInfo
+				{
 					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "explorer.exe" : (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "open" : "xdg-open"),
 					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"\"{dirPath}\"" : dirPath,
 					CreateNoWindow = true
@@ -160,7 +161,8 @@ namespace System.IO
 						if (openWithNotepad)
 						{
 							// Open file using Notepad.
-							using (Process process = Process.Start(new ProcessStartInfo {
+							using (Process process = Process.Start(new ProcessStartInfo
+							{
 								FileName = "notepad.exe",
 								Arguments = filePath,
 								CreateNoWindow = true,
@@ -172,7 +174,8 @@ namespace System.IO
 					}
 
 					// Open file wtih the default editor.
-					using (Process process = Process.Start(new ProcessStartInfo {
+					using (Process process = Process.Start(new ProcessStartInfo
+					{
 						FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? filePath : "open",
 						Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e {filePath}" : "",
 						CreateNoWindow = true,
@@ -192,7 +195,8 @@ namespace System.IO
 			}
 			else
 			{
-				using (Process process = Process.Start(new ProcessStartInfo {
+				using (Process process = Process.Start(new ProcessStartInfo
+				{
 					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? url : "open",
 					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e {url}" : "",
 					CreateNoWindow = true,

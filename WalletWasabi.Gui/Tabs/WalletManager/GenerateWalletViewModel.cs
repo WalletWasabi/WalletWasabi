@@ -26,10 +26,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			Owner = owner;
 
-			GenerateCommand = ReactiveCommand.Create(() =>
-			{
-				DoGenerateCommand();
-			},
+			GenerateCommand = ReactiveCommand.Create(DoGenerateCommand,
 			this.WhenAnyValue(x => x.TermsAccepted));
 
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
@@ -67,7 +64,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 
 			string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
-			Password = Guard.Correct(Password); // Don't let whitespaces to the beginning and to the end.
+			Password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
 
 			if (!TermsAccepted)
 			{

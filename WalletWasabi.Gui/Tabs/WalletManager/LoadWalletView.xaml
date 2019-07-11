@@ -24,7 +24,7 @@
             </StackPanel>
             <StackPanel>
               <TextBlock Text="Which hardware wallets are currently supported?" FontWeight="Bold" />
-              <TextBlock Text="- Coldcard Mk1, Mk2, Ledger Nano S, Trezor One and Trezor T." TextWrapping="Wrap" />
+              <TextBlock Text="- Coldcard Mk1, Mk2, Ledger Nano S, Trezor One, and Trezor T." TextWrapping="Wrap" />
               <TextBlock Text="- While other hardware wallets may also work, they were not tested by Wasabi developers." TextWrapping="Wrap" />
             </StackPanel>
           </StackPanel>
@@ -39,6 +39,7 @@
               <TextBlock Text="{Binding LoadButtonText}" />
             </StackPanel>
           </Button>
+          <Button IsVisible="{Binding IsHardwareWallet}" Content="Import Coldcard" Command="{Binding ImportColdcardCommand}" DockPanel.Dock="Right" Margin="0 0 10 0" />
           <Button IsVisible="{Binding IsDesktopWallet}" Command="{Binding OpenFolderCommand}" DockPanel.Dock="Right" Margin="0 0 10 0">
             <StackPanel Orientation="Horizontal" Spacing="8">
               <DrawingPresenter Width="28">

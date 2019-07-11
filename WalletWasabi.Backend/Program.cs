@@ -80,7 +80,7 @@ namespace WalletWasabi.Backend
 			{
 				Logger.LogCritical<Program>(ex);
 			}
-			// Note: Don't do finally here. Dispose in Startup.cs.
+			// Note: Do not do finally here. Dispose in Startup.cs.
 		}
 
 		private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)

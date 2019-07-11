@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -178,17 +178,17 @@ namespace Mono.Options
 		{
 			if (prototype is null)
 			{
-				throw new ArgumentNullException("prototype");
+				throw new ArgumentNullException(nameof(prototype));
 			}
 
 			if (prototype.Length == 0)
 			{
-				throw new ArgumentException("Cannot be the empty string.", "prototype");
+				throw new ArgumentException("Cannot be the empty string.", nameof(prototype));
 			}
 
 			if (maxValueCount < 0)
 			{
-				throw new ArgumentOutOfRangeException("maxValueCount");
+				throw new ArgumentOutOfRangeException(nameof(maxValueCount));
 			}
 
 			Prototype = prototype;
@@ -213,14 +213,14 @@ namespace Mono.Options
 				throw new ArgumentException(
 						"Cannot provide maxValueCount of 0 for OptionValueType.Required or " +
 							"OptionValueType.Optional.",
-						"maxValueCount");
+						nameof(maxValueCount));
 			}
 
 			if (OptionValueType == OptionValueType.None && maxValueCount > 1)
 			{
 				throw new ArgumentException(
-						string.Format("Cannot provide maxValueCount of {0} for OptionValueType.None.", maxValueCount),
-						"maxValueCount");
+					$"Cannot provide maxValueCount of {maxValueCount} for OptionValueType.None.",
+						nameof(maxValueCount));
 			}
 
 			if (Array.IndexOf(Names, "<>") >= 0 &&
@@ -229,7 +229,7 @@ namespace Mono.Options
 			{
 				throw new ArgumentException(
 						"The default option handler '<>' cannot require values.",
-						"prototype");
+						nameof(prototype));
 			}
 		}
 
@@ -317,7 +317,7 @@ namespace Mono.Options
 				else
 				{
 					throw new ArgumentException(
-							string.Format("Conflicting option types: '{0}' vs. '{1}'.", type, name[end]),
+						$"Conflicting option types: '{type}' vs. '{name[end]}'.",
 							"prototype");
 				}
 
@@ -332,7 +332,7 @@ namespace Mono.Options
 			if (MaxValueCount <= 1 && seps.Count != 0)
 			{
 				throw new ArgumentException(
-						string.Format("Cannot provide key/value separators for Options taking {0} value(s).", MaxValueCount),
+					$"Cannot provide key/value separators for Options taking {MaxValueCount} value(s).",
 						"prototype");
 			}
 
@@ -366,7 +366,7 @@ namespace Mono.Options
 						if (start != -1)
 						{
 							throw new ArgumentException(
-									string.Format("Ill-formed name/value separator found in \"{0}\".", name),
+								$"Ill-formed name/value separator found in \"{name}\".",
 									"prototype");
 						}
 
@@ -377,7 +377,7 @@ namespace Mono.Options
 						if (start == -1)
 						{
 							throw new ArgumentException(
-									string.Format("Ill-formed name/value separator found in \"{0}\".", name),
+								$"Ill-formed name/value separator found in \"{name}\".",
 									"prototype");
 						}
 
@@ -397,7 +397,7 @@ namespace Mono.Options
 			if (start != -1)
 			{
 				throw new ArgumentException(
-						string.Format("Ill-formed name/value separator found in \"{0}\".", name),
+					$"Ill-formed name/value separator found in \"{name}\".",
 						"prototype");
 			}
 		}

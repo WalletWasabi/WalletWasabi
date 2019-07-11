@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
@@ -206,7 +206,7 @@ namespace WalletWasabi.WebClients.Wasabi
 			{
 				if (response.StatusCode == HttpStatusCode.NotFound)
 				{
-					// Meaning this things wasn't just yet implemented on the running server.
+					// Meaning this things was not just yet implemented on the running server.
 					return (new Version(0, 7), 1);
 				}
 
@@ -218,7 +218,7 @@ namespace WalletWasabi.WebClients.Wasabi
 				using (HttpContent content = response.Content)
 				{
 					var resp = await content.ReadAsJsonAsync<VersionsResponse>();
-					return (Version.Parse(resp.ClientVersion), int.Parse(resp.BackenMajordVersion));
+					return (Version.Parse(resp.ClientVersion), int.Parse(resp.BackendMajorVersion));
 				}
 			}
 		}

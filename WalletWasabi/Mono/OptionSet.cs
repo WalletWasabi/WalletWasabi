@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -213,7 +213,7 @@ namespace Mono.Options
 		{
 			if (option is null)
 			{
-				throw new ArgumentNullException("option");
+				throw new ArgumentNullException(nameof(option));
 			}
 
 			try
@@ -253,7 +253,7 @@ namespace Mono.Options
 		{
 			if (option is null)
 			{
-				throw new ArgumentNullException("option");
+				throw new ArgumentNullException(nameof(option));
 			}
 
 			List<string> added = new List<string>(option.Names.Length);
@@ -281,7 +281,7 @@ namespace Mono.Options
 		{
 			if (header is null)
 			{
-				throw new ArgumentNullException("header");
+				throw new ArgumentNullException(nameof(header));
 			}
 
 			Add(new Category(header));
@@ -320,7 +320,7 @@ namespace Mono.Options
 			public ActionOption(string prototype, string description, int count, Action<OptionValueCollection> action, bool hidden)
 				: base(prototype, description, count, hidden)
 			{
-				Action = action ?? throw new ArgumentNullException("action");
+				Action = action ?? throw new ArgumentNullException(nameof(action));
 			}
 
 			public Action<OptionValueCollection> Action { get; set; }
@@ -345,7 +345,7 @@ namespace Mono.Options
 		{
 			if (action is null)
 			{
-				throw new ArgumentNullException("action");
+				throw new ArgumentNullException(nameof(action));
 			}
 
 			Option p = new ActionOption(prototype, description, 1,
@@ -368,7 +368,7 @@ namespace Mono.Options
 		{
 			if (action is null)
 			{
-				throw new ArgumentNullException("action");
+				throw new ArgumentNullException(nameof(action));
 			}
 
 			Option p = new ActionOption(prototype, description, 2,
@@ -382,7 +382,7 @@ namespace Mono.Options
 			public ActionOption(string prototype, string description, Action<T> action)
 				: base(prototype, description, 1)
 			{
-				Action = action ?? throw new ArgumentNullException("action");
+				Action = action ?? throw new ArgumentNullException(nameof(action));
 			}
 
 			public Action<T> Action { get; set; }
@@ -398,7 +398,7 @@ namespace Mono.Options
 			public ActionOption(string prototype, string description, OptionAction<TKey, TValue> action)
 				: base(prototype, description, 2)
 			{
-				Action = action ?? throw new ArgumentNullException("action");
+				Action = action ?? throw new ArgumentNullException(nameof(action));
 			}
 
 			public OptionAction<TKey, TValue> Action { get; set; }
@@ -435,7 +435,7 @@ namespace Mono.Options
 		{
 			if (source is null)
 			{
-				throw new ArgumentNullException("source");
+				throw new ArgumentNullException(nameof(source));
 			}
 
 			Sources.Add(source);
@@ -451,7 +451,7 @@ namespace Mono.Options
 		{
 			if (arguments is null)
 			{
-				throw new ArgumentNullException("arguments");
+				throw new ArgumentNullException(nameof(arguments));
 			}
 
 			OptionContext c = CreateOptionContext();
@@ -563,7 +563,7 @@ namespace Mono.Options
 		{
 			if (argument is null)
 			{
-				throw new ArgumentNullException("argument");
+				throw new ArgumentNullException(nameof(argument));
 			}
 
 			flag = name = sep = value = null;
@@ -572,12 +572,12 @@ namespace Mono.Options
 			{
 				return false;
 			}
-			flag = m.Groups["flag"].Value;
-			name = m.Groups["name"].Value;
-			if (m.Groups["sep"].Success && m.Groups["value"].Success)
+			flag = m.Groups[nameof(flag)].Value;
+			name = m.Groups[nameof(name)].Value;
+			if (m.Groups[nameof(sep)].Success && m.Groups[nameof(value)].Success)
 			{
-				sep = m.Groups["sep"].Value;
-				value = m.Groups["value"].Value;
+				sep = m.Groups[nameof(sep)].Value;
+				value = m.Groups[nameof(value)].Value;
 			}
 			return true;
 		}
@@ -648,9 +648,8 @@ namespace Mono.Options
 			}
 			else if (c.OptionValues.Count > c.Option.MaxValueCount)
 			{
-				throw new OptionException(MessageLocalizer(string.Format(
-								"Error: Found {0} option values when expecting {1}.",
-								c.OptionValues.Count, c.Option.MaxValueCount)),
+				throw new OptionException(MessageLocalizer(
+						$"Error: Found {c.OptionValues.Count} option values when expecting {c.Option.MaxValueCount}."),
 						c.OptionName);
 			}
 		}

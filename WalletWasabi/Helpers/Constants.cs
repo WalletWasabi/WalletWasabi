@@ -7,30 +7,34 @@ namespace WalletWasabi.Helpers
 {
 	public static class Constants
 	{
-		public static readonly Version ClientVersion = new Version(1, 1, 5);
+		public static readonly Version ClientVersion = new Version(1, 1, 6);
 		public const string BackendMajorVersion = "3";
-		public static readonly VersionsResponse VersionsResponse = new VersionsResponse { ClientVersion = ClientVersion.ToString(), BackenMajordVersion = BackendMajorVersion };
+		public static readonly VersionsResponse VersionsResponse = new VersionsResponse { ClientVersion = ClientVersion.ToString(), BackendMajorVersion = BackendMajorVersion };
 
 		public const uint ProtocolVersion_WITNESS_VERSION = 70012;
 
 		public const int MaxPasswordLength = 150;
 
-		public static readonly NodeRequirement NodeRequirements = new NodeRequirement {
+		public static readonly NodeRequirement NodeRequirements = new NodeRequirement
+		{
 			RequiredServices = NodeServices.NODE_WITNESS,
 			MinVersion = ProtocolVersion_WITNESS_VERSION,
 			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true, SupportMempoolQuery = true }
 		};
 
-		public static readonly NodeRequirement LocalNodeRequirements = new NodeRequirement {
+		public static readonly NodeRequirement LocalNodeRequirements = new NodeRequirement
+		{
 			RequiredServices = NodeServices.NODE_WITNESS,
 			MinVersion = ProtocolVersion_WITNESS_VERSION,
 			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true }
 		};
 
-		public static readonly NodeRequirement LocalBackendNodeRequirements = new NodeRequirement {
+		public static readonly NodeRequirement LocalBackendNodeRequirements = new NodeRequirement
+		{
 			RequiredServices = NodeServices.NODE_WITNESS,
 			MinVersion = ProtocolVersion_WITNESS_VERSION,
-			MinProtocolCapabilities = new ProtocolCapabilities {
+			MinProtocolCapabilities = new ProtocolCapabilities
+			{
 				SupportGetBlock = true,
 				SupportWitness = true,
 				SupportMempoolQuery = true,
@@ -73,5 +77,8 @@ namespace WalletWasabi.Helpers
 		public const string ChangeOfSpecialLabelStart = "change of (";
 		public const string ChangeOfSpecialLabelEnd = ")";
 		public const int BigFileReadWriteBufferSize = 1 * 1024 * 1024;
+
+		public const int OneDayConfirmationTarget = 144;
+		public const int SevenDaysConfirmationTarget = 1008;
 	}
 }

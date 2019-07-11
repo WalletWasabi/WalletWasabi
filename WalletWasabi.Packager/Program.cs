@@ -52,7 +52,7 @@ namespace WalletWasabi.Packager
 		public static string WixProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.WindowsInstaller\\"));
 		public static string BinDistDirectory = Path.GetFullPath(Path.Combine(GuiProjectDirectory, "bin\\dist"));
 
-		public static string VersionPrefix = Helpers.Constants.ClientVersion.ToString();
+		public static string VersionPrefix = Constants.ClientVersion.ToString();
 
 		public static bool OnlyBinaries;
 		public static bool OnlyCreateDigests;
@@ -63,6 +63,13 @@ namespace WalletWasabi.Packager
 			if (IsGetOnionsMode(args))
 			{
 				GetOnions();
+				return;
+			}
+
+			// If I want a list of up to date onions run it with '--getonions'.
+			if (IsReduceOnionsMode(args))
+			{
+				ReduceOnions();
 				return;
 			}
 
@@ -114,9 +121,10 @@ namespace WalletWasabi.Packager
 
 					var responseString = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
 					var json = (JObject)JsonConvert.DeserializeObject(responseString);
+					var onions = new List<string>();
 					foreach (JProperty node in json["nodes"])
 					{
-						if (!node.Name.ToString().Contains(".onion"))
+						if (!node.Name.Contains(".onion"))
 						{
 							continue;
 						}
@@ -124,8 +132,63 @@ namespace WalletWasabi.Packager
 						var userAgent = ((JArray)node.Value)[1].ToString();
 						if (userAgent.Contains("Satoshi:0.16") || userAgent.Contains("Satoshi:0.17"))
 						{
-							Console.WriteLine(node.Name);
+							onions.Add(node.Name);
 						}
+					}
+
+					foreach (var onion in onions.OrderBy(x => x))
+					{
+						Console.WriteLine(onion);
+					}
+				}
+			}
+		}
+
+		private static void ReduceOnions()
+		{
+			var onionFile = Path.Combine(LibraryProjectDirectory, "OnionSeeds", "MainOnionSeeds.txt");
+			var currentOnions = File.ReadAllLines(onionFile).ToHashSet();
+			using (var httpClient = new HttpClient())
+			{
+				httpClient.BaseAddress = new Uri("https://bitnodes.21.co/api/v1/");
+
+				using (var response = httpClient.GetAsync("snapshots/latest/", HttpCompletionOption.ResponseContentRead).GetAwaiter().GetResult())
+				{
+					if (response.StatusCode != HttpStatusCode.OK)
+					{
+						throw new HttpRequestException(response.StatusCode.ToString());
+					}
+
+					var responseString = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+					var json = (JObject)JsonConvert.DeserializeObject(responseString);
+					var onions = new List<string>();
+					foreach (JProperty node in json["nodes"])
+					{
+						if (!node.Name.Contains(".onion"))
+						{
+							continue;
+						}
+
+						var userAgent = ((JArray)node.Value)[1].ToString();
+
+						try
+						{
+							var verString = userAgent.Substring(userAgent.IndexOf("Satoshi:") + 8, 4);
+							var ver = new Version(verString);
+
+							if (ver >= new Version("0.16") && currentOnions.Contains(node.Name))
+							{
+								onions.Add(node.Name);
+							}
+						}
+						catch
+						{
+						}
+					}
+
+					foreach (var onion in onions.OrderBy(x => x))
+					{
+						Console.WriteLine(onion);
 					}
 				}
 			}
@@ -244,9 +307,26 @@ namespace WalletWasabi.Packager
 				foreach (var arg in args)
 				{
 					if (arg.Trim().TrimStart('-').Equals("getonions", StringComparison.OrdinalIgnoreCase)
-						|| arg.Trim().TrimStart('-').Equals("onions", StringComparison.OrdinalIgnoreCase)
-						|| arg.Trim().TrimStart('-').Equals("getonion", StringComparison.OrdinalIgnoreCase)
-						|| arg.Trim().TrimStart('-').Equals("onion", StringComparison.OrdinalIgnoreCase))
+						|| arg.Trim().TrimStart('-').Equals("getonion", StringComparison.OrdinalIgnoreCase))
+					{
+						getOnions = true;
+						break;
+					}
+				}
+			}
+
+			return getOnions;
+		}
+
+		private static bool IsReduceOnionsMode(string[] args)
+		{
+			bool getOnions = false;
+			if (args != null)
+			{
+				foreach (var arg in args)
+				{
+					if (arg.Trim().TrimStart('-').Equals("reduceonions", StringComparison.OrdinalIgnoreCase)
+						|| arg.Trim().TrimStart('-').Equals("reduceonion", StringComparison.OrdinalIgnoreCase))
 					{
 						getOnions = true;
 						break;
@@ -259,7 +339,8 @@ namespace WalletWasabi.Packager
 
 		private static void RestoreProgramCs()
 		{
-			using (var process = Process.Start(new ProcessStartInfo {
+			using (var process = Process.Start(new ProcessStartInfo
+			{
 				FileName = "cmd",
 				RedirectStandardInput = true,
 				WorkingDirectory = PackagerProjectDirectory
@@ -282,7 +363,7 @@ namespace WalletWasabi.Packager
 					var msiPath = Path.Combine(WixProjectDirectory, @"bin\Release\Wasabi.msi");
 					if (!File.Exists(msiPath))
 					{
-						throw new Exception(".msi doesn't exist. Expected path: Wasabi.msi.");
+						throw new Exception(".msi does not exist. Expected path: Wasabi.msi.");
 					}
 					var msiFileName = Path.GetFileNameWithoutExtension(msiPath);
 					var newMsiPath = Path.Combine(BinDistDirectory, $"{msiFileName}-{VersionPrefix}.msi");
@@ -291,7 +372,8 @@ namespace WalletWasabi.Packager
 					Console.Write("Enter Code Signing Certificate Password:");
 					string pfxPassword = PasswordConsole.ReadPassword();
 					// Sign code with digicert.
-					using (var process = Process.Start(new ProcessStartInfo {
+					using (var process = Process.Start(new ProcessStartInfo
+					{
 						FileName = "cmd",
 						RedirectStandardInput = true,
 						WorkingDirectory = BinDistDirectory
@@ -311,7 +393,8 @@ namespace WalletWasabi.Packager
 
 			foreach (var finalFile in finalFiles)
 			{
-				using (var process = Process.Start(new ProcessStartInfo {
+				using (var process = Process.Start(new ProcessStartInfo
+				{
 					FileName = "cmd",
 					RedirectStandardInput = true,
 					WorkingDirectory = BinDistDirectory
@@ -321,7 +404,8 @@ namespace WalletWasabi.Packager
 					process.WaitForExit();
 				}
 
-				using (var process = Process.Start(new ProcessStartInfo {
+				using (var process = Process.Start(new ProcessStartInfo
+				{
 					FileName = "cmd",
 					RedirectStandardInput = true,
 					WorkingDirectory = WixProjectDirectory
@@ -343,7 +427,8 @@ namespace WalletWasabi.Packager
 				Console.WriteLine($"Deleted {BinDistDirectory}");
 			}
 
-			using (var process = Process.Start(new ProcessStartInfo {
+			using (var process = Process.Start(new ProcessStartInfo
+			{
 				FileName = "cmd",
 				RedirectStandardInput = true,
 				WorkingDirectory = GuiProjectDirectory
@@ -381,7 +466,8 @@ namespace WalletWasabi.Packager
 					Console.WriteLine($"Created {currentBinDistDirectory}");
 				}
 
-				using (var process = Process.Start(new ProcessStartInfo {
+				using (var process = Process.Start(new ProcessStartInfo
+				{
 					FileName = "dotnet",
 					Arguments = $"clean",
 					WorkingDirectory = GuiProjectDirectory
@@ -401,7 +487,7 @@ namespace WalletWasabi.Packager
 				//		./bin/[configuration]/[framework]/[runtime]/publish/ for a self-contained deployment.
 				//		If the path is relative, the output directory generated is relative to the project file location, not to the current working directory.
 				// --self-contained
-				//		Publishes the .NET Core runtime with your application so the runtime doesn't need to be installed on the target machine.
+				//		Publishes the .NET Core runtime with your application so the runtime does not need to be installed on the target machine.
 				//		If a runtime identifier is specified, its default value is true. For more information about the different deployment types, see .NET Core application deployment.
 				// -r|--runtime <RUNTIME_IDENTIFIER>
 				//		Publishes the application for a given runtime. This is used when creating a self-contained deployment (SCD).
@@ -416,7 +502,8 @@ namespace WalletWasabi.Packager
 				// https://github.com/dotnet/docs/issues/7568
 				// /p:Version=1.2.3.4
 				//		"dotnet publish" supports msbuild command line options like /p:Version=1.2.3.4
-				using (var process = Process.Start(new ProcessStartInfo {
+				using (var process = Process.Start(new ProcessStartInfo
+				{
 					FileName = "dotnet",
 					Arguments = $"publish --configuration Release --force --output \"{currentBinDistDirectory}\" --self-contained true --runtime \"{target}\" /p:VersionPrefix={VersionPrefix} --disable-parallel --no-cache /p:DebugType=none /p:DebugSymbols=false /p:ErrorReport=none /p:DocumentationFile=\"\" /p:Deterministic=true",
 					WorkingDirectory = GuiProjectDirectory
@@ -434,22 +521,22 @@ namespace WalletWasabi.Packager
 				var hwiFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "Hwi", "Software"));
 				// Remove Tor binaries those are not relevant to the platform.
 				var torFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "TorDaemons"));
-				var toNotremove = "";
+				var toNotRemove = "";
 				if (target.StartsWith("win"))
 				{
-					toNotremove = "win";
+					toNotRemove = "win";
 				}
 				else if (target.StartsWith("linux"))
 				{
-					toNotremove = "linux";
+					toNotRemove = "linux";
 				}
 				else if (target.StartsWith("osx"))
 				{
-					toNotremove = "osx";
+					toNotRemove = "osx";
 				}
 				foreach (var file in torFolder.EnumerateFiles().Concat(hwiFolder.EnumerateFiles()))
 				{
-					if (!file.Name.Contains("data", StringComparison.OrdinalIgnoreCase) && !file.Name.Contains(toNotremove, StringComparison.OrdinalIgnoreCase))
+					if (!file.Name.Contains("data", StringComparison.OrdinalIgnoreCase) && !file.Name.Contains(toNotRemove, StringComparison.OrdinalIgnoreCase))
 					{
 						File.Delete(file.FullName);
 					}
@@ -457,7 +544,7 @@ namespace WalletWasabi.Packager
 
 				foreach (var dir in hwiFolder.EnumerateDirectories())
 				{
-					if (!dir.Name.Contains(toNotremove, StringComparison.OrdinalIgnoreCase))
+					if (!dir.Name.Contains(toNotRemove, StringComparison.OrdinalIgnoreCase))
 					{
 						IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir.FullName).GetAwaiter().GetResult();
 					}
@@ -483,7 +570,8 @@ namespace WalletWasabi.Packager
 				if (target.StartsWith("win"))
 				{
 					var icoPath = Path.Combine(GuiProjectDirectory, "Assets", "WasabiLogo.ico");
-					using (var process = Process.Start(new ProcessStartInfo {
+					using (var process = Process.Start(new ProcessStartInfo
+					{
 						FileName = "rcedit", // https://github.com/electron/rcedit/
 						Arguments = $"\"{newExecutablePath}\" --set-icon \"{icoPath}\" --set-file-version \"{VersionPrefix}\" --set-product-version \"{VersionPrefix}\" --set-version-string \"LegalCopyright\" \"MIT\" --set-version-string \"CompanyName\" \"zkSNACKs\" --set-version-string \"FileDescription\" \"Privacy focused, ZeroLink compliant Bitcoin wallet.\" --set-version-string \"ProductName\" \"Wasabi Wallet\"",
 						WorkingDirectory = currentBinDistDirectory
@@ -495,16 +583,16 @@ namespace WalletWasabi.Packager
 					var daemonExePath = newExecutablePath.Substring(0, newExecutablePath.Length - 4) + "d.exe";
 					File.Copy(newExecutablePath, daemonExePath);
 
-					// Don't open console.
+					// Do not open console.
 					if (!NSubsysUtil.ProcessFile(newExecutablePath))
 					{
-						Console.WriteLine("ERROR: Couldn't remove console from exe.");
+						Console.WriteLine("ERROR: Could not remove console from exe.");
 					}
 
 					// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
 					if (OnlyBinaries)
 					{
-						continue; // In Windows build at this moment it doesn't matter though.
+						continue; // In Windows build at this moment it does not matter though.
 					}
 				}
 				else if (target.StartsWith("osx"))
@@ -582,7 +670,8 @@ namespace WalletWasabi.Packager
 ";
 					File.WriteAllText(infoFilePath, infoContent);
 
-					using (var process = Process.Start(new ProcessStartInfo {
+					using (var process = Process.Start(new ProcessStartInfo
+					{
 						FileName = "cmd",
 						RedirectStandardInput = true,
 						WorkingDirectory = publishedFolder
@@ -599,7 +688,8 @@ namespace WalletWasabi.Packager
 					string uncompressedDmgFileName = $"Wasabi-uncompressed.dmg";
 					string uncompressedDmgFilePath = Path.Combine(BinDistDirectory, uncompressedDmgFileName);
 					string dmgFileName = $"Wasabi-{VersionPrefix}.dmg";
-					using (var process = Process.Start(new ProcessStartInfo {
+					using (var process = Process.Start(new ProcessStartInfo
+					{
 						FileName = "cmd",
 						RedirectStandardInput = true,
 						WorkingDirectory = BinDistDirectory
@@ -624,7 +714,8 @@ namespace WalletWasabi.Packager
 					// cmake ..
 					// cd ~/libdmg-hfsplus/build/
 					// make
-					using (var process = Process.Start(new ProcessStartInfo {
+					using (var process = Process.Start(new ProcessStartInfo
+					{
 						FileName = "cmd",
 						RedirectStandardInput = true,
 						WorkingDirectory = BinDistDirectory
@@ -651,14 +742,15 @@ namespace WalletWasabi.Packager
 					Console.WriteLine("Create Linux .tar.gz");
 					if (!Directory.Exists(publishedFolder))
 					{
-						throw new Exception($"{publishedFolder} doesn't exist.");
+						throw new Exception($"{publishedFolder} does not exist.");
 					}
 					var newFolderName = $"WasabiLinux-{VersionPrefix}";
 					var newFolderPath = Path.Combine(BinDistDirectory, newFolderName);
 					Directory.Move(publishedFolder, newFolderPath);
 					publishedFolder = newFolderPath;
 
-					using (var process = Process.Start(new ProcessStartInfo {
+					using (var process = Process.Start(new ProcessStartInfo
+					{
 						FileName = "cmd",
 						RedirectStandardInput = true,
 						WorkingDirectory = BinDistDirectory
@@ -696,7 +788,7 @@ namespace WalletWasabi.Packager
 					foreach (var file in assetsInfo.EnumerateFiles())
 					{
 						var number = file.Name.Split(new string[] { "WasabiLogo", ".png" }, StringSplitOptions.RemoveEmptyEntries);
-						if (number.Count() == 1 && int.TryParse(number.First(), out int size))
+						if (number.Length == 1 && int.TryParse(number.First(), out int size))
 						{
 							string destFolder = Path.Combine(debUsrShareIconsFolderPath, $"{size}x{size}", "apps");
 							Directory.CreateDirectory(destFolder);
@@ -705,7 +797,7 @@ namespace WalletWasabi.Packager
 					}
 
 					var controlFilePath = Path.Combine(debianFolderPath, "control");
-					// License format doesn't yet work, but should work in the future, it's work in progress: https://bugs.launchpad.net/ubuntu/+source/software-center/+bug/435183
+					// License format does not yet work, but should work in the future, it's work in progress: https://bugs.launchpad.net/ubuntu/+source/software-center/+bug/435183
 					var controlFileContent = $"Package: {ExecutableName}\n" +
 												$"Priority: optional\n" +
 												$"Section: utils\n" +
@@ -746,7 +838,8 @@ namespace WalletWasabi.Packager
 					string debDestopFileLinuxPath = Tools.LinuxPathCombine(debUsrAppFolderRelativePath, $"{ExecutableName}.desktop");
 					var wasabiStarterScriptLinuxPath = Tools.LinuxPathCombine(debUsrLocalBinFolderRelativePath, $"{ExecutableName}");
 
-					using (var process = Process.Start(new ProcessStartInfo {
+					using (var process = Process.Start(new ProcessStartInfo
+					{
 						FileName = "wsl",
 						Arguments = $"cd ~ && sudo umount /mnt/c && sudo mount -t drvfs C: /mnt/c -o metadata && cd /mnt/c/Users/user/Desktop/WalletWasabi/WalletWasabi.Gui/bin/dist && sudo chmod +x {debExeLinuxPath} && sudo chmod +x {wasabiStarterScriptLinuxPath} && sudo chmod -R 0644 {debDestopFileLinuxPath} && sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)} && dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)",
 						RedirectStandardInput = true,

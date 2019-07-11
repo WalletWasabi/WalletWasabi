@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
@@ -19,10 +19,7 @@ namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 		{
 		}
 
-		public override bool[,] Stencil
-		{
-			get { return AlignmentPatternArray; }
-		}
+		public override bool[,] Stencil => AlignmentPatternArray;
 
 		public override void ApplyTo(TriStateMatrix matrix)
 		{

@@ -26,12 +26,12 @@ namespace NBitcoin.RPC
 		/// <summary>
 		/// Waits for a specific new block and returns useful info about it.
 		/// </summary>
-		/// <param name="blockhash">Block hash to wait for</param>
+		/// <param name="blockHash">Block hash to wait for</param>
 		/// <param name="timeout">(int, optional, default=0) Time in milliseconds to wait for a response. 0 indicates no timeout.</param>
 		/// <returns>Returns the current block on timeout or exit</returns>
-		public static async Task<(Height height, uint256 hash)> WaitForBlockAsync(this RPCClient rpc, uint256 blockhash, long timeout = 0)
+		public static async Task<(Height height, uint256 hash)> WaitForBlockAsync(this RPCClient rpc, uint256 blockHash, long timeout = 0)
 		{
-			var resp = await rpc.SendCommandAsync("waitforblock", blockhash, timeout);
+			var resp = await rpc.SendCommandAsync("waitforblock", blockHash, timeout);
 			return (int.Parse(resp.Result["height"].ToString()), uint256.Parse(resp.Result["hash"].ToString()));
 		}
 
@@ -52,7 +52,7 @@ namespace NBitcoin.RPC
 				{
 					Logger.LogTrace<RPCClient>(ex);
 					// Hopefully Bitcoin Core brainfart: https://github.com/bitcoin/bitcoin/issues/14431
-					for (int i = 2; i <= 1008; i++)
+					for (int i = 2; i <= Constants.SevenDaysConfirmationTarget; i++)
 					{
 						try
 						{
@@ -87,7 +87,7 @@ namespace NBitcoin.RPC
 				else
 				{
 					// Hopefully Bitcoin Core brainfart: https://github.com/bitcoin/bitcoin/issues/14431
-					for (int i = 2; i <= 1008; i++)
+					for (int i = 2; i <= Constants.SevenDaysConfirmationTarget; i++)
 					{
 						response = await rpc.TryEstimateSmartFeeAsync(i, estimateMode);
 						if (response != null)
@@ -104,17 +104,17 @@ namespace NBitcoin.RPC
 
 		private static EstimateSmartFeeResponse SimulateRegTestFeeEstimation(int confirmationTarget, EstimateSmartFeeMode estimateMode)
 		{
-			int staoshiPerBytes;
+			int satoshiPerBytes;
 			if (estimateMode == EstimateSmartFeeMode.Conservative)
 			{
-				staoshiPerBytes = ((1008 + 1 + 6) - confirmationTarget) / 7;
+				satoshiPerBytes = ((Constants.SevenDaysConfirmationTarget + 1 + 6) - confirmationTarget) / 7;
 			}
 			else // Economical
 			{
-				staoshiPerBytes = ((1008 + 1 + 5) - confirmationTarget) / 7;
+				satoshiPerBytes = ((Constants.SevenDaysConfirmationTarget + 1 + 5) - confirmationTarget) / 7;
 			}
 
-			Money feePerK = new Money(staoshiPerBytes * 1000, MoneyUnit.Satoshi);
+			Money feePerK = new Money(satoshiPerBytes * 1000, MoneyUnit.Satoshi);
 			FeeRate feeRate = new FeeRate(feePerK);
 			var resp = new EstimateSmartFeeResponse { Blocks = confirmationTarget, FeeRate = feeRate };
 			return resp;
@@ -122,7 +122,7 @@ namespace NBitcoin.RPC
 
 		public static async Task<AllFeeEstimate> EstimateAllFeeAsync(this RPCClient rpc, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tolerateBitcoinCoreBrainfuck = true)
 		{
-			var estimations = await rpc.EstimateHalfFeesAsync(new Dictionary<int, int>(), 2, 0, 1008, 0, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck);
+			var estimations = await rpc.EstimateHalfFeesAsync(new Dictionary<int, int>(), 2, 0, Constants.SevenDaysConfirmationTarget, 0, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck);
 			var allFeeEstimate = new AllFeeEstimate(estimateMode, estimations);
 			return allFeeEstimate;
 		}
@@ -226,7 +226,7 @@ namespace NBitcoin.RPC
 		public static async Task<ISet<uint256>> GetAllDependentsAsync(this RPCClient rpc, IEnumerable<uint256> transactionHashes, bool includingProvided, bool likelyProvidedManyConfirmedOnes)
 		{
 			IEnumerable<uint256> workingTxHashes;
-			if (likelyProvidedManyConfirmedOnes) // If confirmed txids are provided, then do a big check first.
+			if (likelyProvidedManyConfirmedOnes) // If confirmed txIds are provided, then do a big check first.
 			{
 				workingTxHashes = await rpc.GetUnconfirmedAsync(transactionHashes);
 			}
@@ -236,16 +236,16 @@ namespace NBitcoin.RPC
 			}
 
 			var hashSet = new HashSet<uint256>();
-			foreach (var txid in workingTxHashes)
+			foreach (var txId in workingTxHashes)
 			{
-				// Go through all the txids provided and getmempoolentry to get the dependents and the confirmation status.
-				var entry = await rpc.GetMempoolEntryAsync(txid, throwIfNotFound: false);
+				// Go through all the txIds provided and getmempoolentry to get the dependents and the confirmation status.
+				var entry = await rpc.GetMempoolEntryAsync(txId, throwIfNotFound: false);
 				if (entry != null)
 				{
 					// If we asked to include the provided transaction hashes into the result then check which ones are confirmed and do so.
 					if (includingProvided)
 					{
-						hashSet.Add(txid);
+						hashSet.Add(txId);
 					}
 
 					// Get all the dependents of all the dependents except the ones we already know of.

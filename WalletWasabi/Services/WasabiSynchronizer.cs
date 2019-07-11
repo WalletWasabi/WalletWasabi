@@ -175,6 +175,7 @@ namespace WalletWasabi.Services
 				{
 					DateTimeOffset lastFeeQueried = DateTimeOffset.UtcNow - feeQueryRequestInterval;
 					bool ignoreRequestInterval = false;
+					var hashChain = BitcoinStore.HashChain;
 					EnableRequests();
 					while (IsRunning)
 					{
@@ -200,7 +201,7 @@ namespace WalletWasabi.Services
 									return;
 								}
 
-								response = await WasabiClient.GetSynchronizeAsync(BitcoinStore.HashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
+								response = await WasabiClient.GetSynchronizeAsync(hashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
 								// NOT GenSocksServErr
 								BackendStatus = BackendStatus.Connected;
 								TorStatus = TorStatus.Running;
@@ -243,7 +244,7 @@ namespace WalletWasabi.Services
 								ignoreRequestInterval = false;
 							}
 
-							BitcoinStore.HashChain.UpdateServerTipHeight(response.BestHeight);
+							hashChain.UpdateServerTipHeight(response.BestHeight);
 							ExchangeRate exchangeRate = response.ExchangeRates.FirstOrDefault();
 							if (exchangeRate != default && exchangeRate.Rate != 0)
 							{
@@ -254,15 +255,34 @@ namespace WalletWasabi.Services
 							{
 								var filters = response.Filters;
 
-								await BitcoinStore.IndexStore.AddNewFiltersAsync(filters, Cancel.Token);
-
-								if (filters.Count() == 1)
+								var firstFilter = filters.First();
+								if (hashChain.TipHeight + 1 != firstFilter.BlockHeight)
 								{
-									Logger.LogInfo<WasabiSynchronizer>($"Downloaded filter for block {filters.First().BlockHeight}.");
+									// We have a problem.
+									// We have wrong filters, the heights are not in sync with the server's.
+									Logger.LogError<WasabiSynchronizer>($"Inconsistent index state detected.{Environment.NewLine}" +
+										$"{nameof(hashChain)}.{nameof(hashChain.TipHeight)}:{hashChain.TipHeight}{Environment.NewLine}" +
+										$"{nameof(hashChain)}.{nameof(hashChain.HashesLeft)}:{hashChain.HashesLeft}{Environment.NewLine}" +
+										$"{nameof(hashChain)}.{nameof(hashChain.TipHash)}:{hashChain.TipHash}{Environment.NewLine}" +
+										$"{nameof(hashChain)}.{nameof(hashChain.HashCount)}:{hashChain.HashCount}{Environment.NewLine}" +
+										$"{nameof(hashChain)}.{nameof(hashChain.ServerTipHeight)}:{hashChain.ServerTipHeight}{Environment.NewLine}" +
+										$"{nameof(firstFilter)}.{nameof(firstFilter.BlockHash)}:{firstFilter.BlockHash}{Environment.NewLine}" +
+										$"{nameof(firstFilter)}.{nameof(firstFilter.BlockHeight)}:{firstFilter.BlockHeight}");
+
+									await BitcoinStore.IndexStore.RemoveAllImmmatureFiltersAsync(Cancel.Token, deleteAndCrashIfMature: true);
 								}
 								else
 								{
-									Logger.LogInfo<WasabiSynchronizer>($"Downloaded filters for blocks from {filters.First().BlockHeight} to {filters.Last().BlockHeight}.");
+									await BitcoinStore.IndexStore.AddNewFiltersAsync(filters, Cancel.Token);
+
+									if (filters.Count() == 1)
+									{
+										Logger.LogInfo<WasabiSynchronizer>($"Downloaded filter for block {firstFilter.BlockHeight}.");
+									}
+									else
+									{
+										Logger.LogInfo<WasabiSynchronizer>($"Downloaded filters for blocks from {firstFilter.BlockHeight} to {filters.Last().BlockHeight}.");
+									}
 								}
 							}
 							else if (response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
@@ -276,7 +296,13 @@ namespace WalletWasabi.Services
 							}
 							else if (response.FiltersResponseState == FiltersResponseState.NoNewFilter)
 							{
-								// We are syced.
+								// We are synced.
+								// Assert index state.
+								if (response.BestHeight > hashChain.TipHeight) // If the server's tip height is larger than ours, we're missing a filter, our index got corrupted.
+								{
+									await BitcoinStore.IndexStore.RemoveAllImmmatureFiltersAsync(Cancel.Token, deleteAndCrashIfMature: true);
+									// If still bad delete filters and crash the software?
+								}
 							}
 
 							LastResponse = response;

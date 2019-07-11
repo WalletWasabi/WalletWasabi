@@ -1,5 +1,6 @@
 using NBitcoin;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Net;
@@ -263,58 +264,6 @@ namespace WalletWasabi.Gui
 			SetFilePath(filePath);
 		}
 
-		public Config(
-			Network network,
-			string mainNetBackendUriV3,
-			string testNetBackendUriV3,
-			string mainNetFallbackBackendUri,
-			string testNetFallbackBackendUri,
-			string regTestBackendUriV3,
-			bool? useTor,
-			string torHost,
-			int? torSocks5Port,
-			string mainNetBitcoinCoreHost,
-			string testNetBitcoinCoreHost,
-			string regTestBitcoinCoreHost,
-			int? mainNetBitcoinCorePort,
-			int? testNetBitcoinCorePort,
-			int? regTestBitcoinCorePort,
-			int? mixUntilAnonymitySet,
-			int? privacyLevelSome,
-			int? privacyLevelFine,
-			int? privacyLevelStrong,
-			Money dustThreshold)
-		{
-			Network = Guard.NotNull(nameof(network), network);
-
-			MainNetBackendUriV3 = Guard.NotNullOrEmptyOrWhitespace(nameof(mainNetBackendUriV3), mainNetBackendUriV3);
-			TestNetBackendUriV3 = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBackendUriV3), testNetBackendUriV3);
-			MainNetFallbackBackendUri = Guard.NotNullOrEmptyOrWhitespace(nameof(mainNetFallbackBackendUri), mainNetFallbackBackendUri);
-			TestNetFallbackBackendUri = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetFallbackBackendUri), testNetFallbackBackendUri);
-			TestNetBackendUriV3 = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBackendUriV3), testNetBackendUriV3);
-			RegTestBackendUriV3 = Guard.NotNullOrEmptyOrWhitespace(nameof(regTestBackendUriV3), regTestBackendUriV3);
-
-			UseTor = Guard.NotNull(nameof(useTor), useTor);
-			TorHost = Guard.NotNullOrEmptyOrWhitespace(nameof(torHost), torHost);
-			TorSocks5Port = Guard.NotNull(nameof(torSocks5Port), torSocks5Port);
-
-			MainNetBitcoinCoreHost = Guard.NotNullOrEmptyOrWhitespace(nameof(mainNetBitcoinCoreHost), mainNetBitcoinCoreHost);
-			TestNetBitcoinCoreHost = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBitcoinCoreHost), testNetBitcoinCoreHost);
-			RegTestBitcoinCoreHost = Guard.NotNullOrEmptyOrWhitespace(nameof(regTestBitcoinCoreHost), regTestBitcoinCoreHost);
-			MainNetBitcoinCorePort = Guard.NotNull(nameof(mainNetBitcoinCorePort), mainNetBitcoinCorePort);
-			TestNetBitcoinCorePort = Guard.NotNull(nameof(testNetBitcoinCorePort), testNetBitcoinCorePort);
-			RegTestBitcoinCorePort = Guard.NotNull(nameof(regTestBitcoinCorePort), regTestBitcoinCorePort);
-
-			MixUntilAnonymitySet = Guard.NotNull(nameof(mixUntilAnonymitySet), mixUntilAnonymitySet);
-			PrivacyLevelSome = Guard.NotNull(nameof(privacyLevelSome), privacyLevelSome);
-			PrivacyLevelFine = Guard.NotNull(nameof(privacyLevelFine), privacyLevelFine);
-			PrivacyLevelStrong = Guard.NotNull(nameof(privacyLevelStrong), privacyLevelStrong);
-
-			DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
-
-			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint(), DustThreshold);
-		}
-
 		/// <inheritdoc />
 		public async Task ToFileAsync()
 		{
@@ -421,95 +370,10 @@ namespace WalletWasabi.Gui
 			}
 
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-			var config = JsonConvert.DeserializeObject<Config>(jsonString);
+			var newConfig = JsonConvert.DeserializeObject<JObject>(jsonString);
+			var currentConfig = JObject.FromObject(this);
 
-			if (Network != config.Network)
-			{
-				return true;
-			}
-
-			if (!MainNetBackendUriV3.Equals(config.MainNetBackendUriV3, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!TestNetBackendUriV3.Equals(config.TestNetBackendUriV3, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!MainNetFallbackBackendUri.Equals(config.MainNetFallbackBackendUri, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!TestNetFallbackBackendUri.Equals(config.TestNetFallbackBackendUri, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!RegTestBackendUriV3.Equals(config.RegTestBackendUriV3, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (UseTor != config.UseTor)
-			{
-				return true;
-			}
-
-			if (!TorHost.Equals(config.TorHost, StringComparison.Ordinal))
-			{
-				return true;
-			}
-			if (TorSocks5Port != config.TorSocks5Port)
-			{
-				return true;
-			}
-
-			if (!MainNetBitcoinCoreHost.Equals(config.MainNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!TestNetBitcoinCoreHost.Equals(config.TestNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!RegTestBitcoinCoreHost.Equals(config.RegTestBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (MainNetBitcoinCorePort != config.MainNetBitcoinCorePort)
-			{
-				return true;
-			}
-			if (TestNetBitcoinCorePort != config.TestNetBitcoinCorePort)
-			{
-				return true;
-			}
-			if (RegTestBitcoinCorePort != config.RegTestBitcoinCorePort)
-			{
-				return true;
-			}
-
-			if (MixUntilAnonymitySet != config.MixUntilAnonymitySet)
-			{
-				return true;
-			}
-			if (PrivacyLevelSome != config.PrivacyLevelSome)
-			{
-				return true;
-			}
-			if (PrivacyLevelFine != config.PrivacyLevelFine)
-			{
-				return true;
-			}
-			if (PrivacyLevelStrong != config.PrivacyLevelStrong)
-			{
-				return true;
-			}
-
-			if (DustThreshold != config.DustThreshold)
-			{
-				return true;
-			}
-
-			return false;
+			return !JToken.DeepEquals(newConfig, currentConfig);
 		}
 
 		/// <inheritdoc />

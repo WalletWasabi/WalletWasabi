@@ -399,7 +399,7 @@ namespace WalletWasabi.Gui.Tabs
                 return string.Empty;
             }
 
-            if (decimal.TryParse(DustThreshold, out _))
+			if (decimal.TryParse(DustThreshold, out var dust) && dust >= 0)
             {
                 return string.Empty;
             }
@@ -439,7 +439,7 @@ namespace WalletWasabi.Gui.Tabs
             }
 
             var thePort = port.Trim();
-            if (ushort.TryParse(thePort, out _))
+			if (ushort.TryParse(thePort, out var p) && p > 1024)
             {
                 return string.Empty;
             }
