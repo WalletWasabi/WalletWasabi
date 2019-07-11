@@ -60,7 +60,6 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
         private void OnActiveLockScreenTypeChanged(LockScreenType obj)
         {
-
             ScreenImplDisposables?.Dispose();
             ScreenImplDisposables = new CompositeDisposable();
 

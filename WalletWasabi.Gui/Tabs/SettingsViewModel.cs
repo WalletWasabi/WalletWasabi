@@ -126,11 +126,6 @@ namespace WalletWasabi.Gui.Tabs
             {
                 EnablePINLock = !EnablePINLock;
 
-                if (!EnablePINLock)
-                {
-
-                }
-
                 await Global.UiConfig.ToFileAsync();
             });
         }
