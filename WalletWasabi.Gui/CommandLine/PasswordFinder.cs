@@ -10,7 +10,8 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	internal class PasswordFinder
 	{
-		internal static Dictionary<string, string> Charsets = new Dictionary<string, string> {
+		internal static Dictionary<string, string> Charsets = new Dictionary<string, string>
+		{
 			["en"] = "abcdefghijkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
 			["es"] = "aábcdeéfghiíjkmnñoópqrstuúüvwxyzAÁBCDEÉFGHIÍJKLMNNOÓPQRSTUÚÜVWXYZ",
 			["pt"] = "aáàâābcçdeéêfghiíjkmnoóôōpqrstuúvwxyzAÁÀÂĀBCÇDEÉÊFGHIÍJKMNOÓÔŌPQRSTUÚVWXYZ",

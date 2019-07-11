@@ -359,7 +359,8 @@ namespace WalletWasabi.Gui
 				}
 			}
 
-			var addressManagerBehavior = new AddressManagerBehavior(AddressManager) {
+			var addressManagerBehavior = new AddressManagerBehavior(AddressManager)
+			{
 				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
 			};
 			return addressManagerBehavior;
@@ -492,7 +493,8 @@ namespace WalletWasabi.Gui
 			KeyManager keyManager;
 
 			// Set the LastAccessTime.
-			new FileInfo(walletFullPath) {
+			new FileInfo(walletFullPath)
+			{
 				LastAccessTime = DateTime.Now
 			};
 
@@ -521,7 +523,8 @@ namespace WalletWasabi.Gui
 						// else
 
 						string amountString = coin.Amount.ToString(false, true);
-						using (var process = Process.Start(new ProcessStartInfo {
+						using (var process = Process.Start(new ProcessStartInfo
+						{
 							FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
 							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e \"display notification \\\"Received {amountString} BTC\\\" with title \\\"Wasabi\\\"\"" : $"--expire-time=3000 \"Wasabi\" \"Received {amountString} BTC\"",
 							CreateNoWindow = true

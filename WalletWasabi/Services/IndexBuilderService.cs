@@ -336,7 +336,8 @@ namespace WalletWasabi.Services
 										.Build();
 								}
 
-								var filterModel = new FilterModel {
+								var filterModel = new FilterModel
+								{
 									BlockHash = block.GetHash(),
 									BlockHeight = heightToRequest,
 									Filter = filter

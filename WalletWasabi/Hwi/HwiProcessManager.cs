@@ -170,7 +170,8 @@ namespace WalletWasabi.Hwi
 					}
 
 					using (var process = Process.Start(
-						new ProcessStartInfo {
+						new ProcessStartInfo
+						{
 							FileName = HwiPath,
 							Arguments = command,
 							RedirectStandardOutput = true,
