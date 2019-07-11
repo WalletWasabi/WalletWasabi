@@ -68,7 +68,7 @@
                                       MinWidth="124"
                                       MinHeight="46" />
             <StackPanel>
-              <StackPanel IsVisible="{Binding !MinFeesAvailable}" Orientation="Horizontal" Spacing="10">
+              <StackPanel IsVisible="{Binding !MinMaxFeeTargetsEqual}" Orientation="Horizontal" Spacing="10">
                 <TextBlock Text="Fee:" />
 
                 <Grid Height="10" Width="10">
@@ -102,7 +102,7 @@
                   </DrawingPresenter>
                 </Grid>
               </StackPanel>
-              <StackPanel IsVisible="{Binding MinFeesAvailable}" Orientation="Horizontal" Spacing="10">
+              <StackPanel IsVisible="{Binding MinMaxFeeTargetsEqual}" Orientation="Horizontal" Spacing="10">
                 <TextBlock Text="Fees are super low!" VerticalAlignment="Center" />
                 <Grid Height="16" Width="16">
                   <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center">

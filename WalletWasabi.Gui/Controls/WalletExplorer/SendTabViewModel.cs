@@ -39,6 +39,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _feeTarget;
 		private int _minimumFeeTarget;
 		private int _maximumFeeTarget;
+		private ObservableAsPropertyHelper<bool> _minMaxFeeTargetsEqual;
 		private string _confirmationExpectedText;
 		private string _feeText;
 		private decimal _usdFee;
@@ -106,6 +107,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Observable.FromEventPattern(CoinList, nameof(CoinList.DequeueCoinsPressed))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => OnCoinsListDequeueCoinsPressedAsync());
+
+			_minMaxFeeTargetsEqual = this.WhenAnyValue(x => x.MinimumFeeTarget, x => x.MaximumFeeTarget, (x, y) => x == y)
+				.ToProperty(this, x => x.MinMaxFeeTargetsEqual, scheduler: RxApp.MainThreadScheduler);
 
 			SetFeeTargetLimits();
 			FeeTarget = Global.UiConfig.FeeTarget ?? MinimumFeeTarget;
@@ -833,10 +837,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _maximumFeeTarget, value);
 		}
 
-		public bool MinFeesAvailable
-		{
-			get => _minimumFeeTarget == _maximumFeeTarget;
-		}
+		public bool MinMaxFeeTargetsEqual => _minMaxFeeTargetsEqual?.Value ?? false;
 
 		public string ConfirmationExpectedText
 		{
