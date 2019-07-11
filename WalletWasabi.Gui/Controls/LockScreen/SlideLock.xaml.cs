@@ -7,11 +7,14 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Controls.Primitives;
 using ReactiveUI;
 using Avalonia;
+using System.Reactive.Linq;
+using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
     internal class SlideLock : LockScreenBase
     {
+        private CompositeDisposable Disposables { get; set; }
         private Grid Shade;
         private Thumb DragThumb;
         private TranslateTransform TargetTransform;
@@ -36,18 +39,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
             this.DragThumb = this.FindControl<Thumb>("PART_DragThumb");
 
             TargetTransform = new TranslateTransform();
-
-            DragThumb.DragCompleted += OnDragCompleted;
-            DragThumb.DragDelta += OnDragDelta;
-            DragThumb.DragStarted += OnDragStarted;
             Shade.RenderTransform = TargetTransform;
-
-            this.WhenAnyValue(x => x.Bounds)
-                .Subscribe(OnBoundsChange);
-
-            OnBoundsChange(this.Bounds);
-
-            Clock.Subscribe(OnClockTick);
         }
 
         private void InitializeComponent()
@@ -82,12 +74,12 @@ namespace WalletWasabi.Gui.Controls.LockScreen
             }
         }
 
-        private void OnDragStarted(object sender, VectorEventArgs e)
+        private void OnDragStarted()
         {
             UserDragInProgress = true;
         }
 
-        private void OnDragDelta(object sender, VectorEventArgs e)
+        private void OnDragDelta(VectorEventArgs e)
         {
             if (e.Vector.Y < 0)
             {
@@ -95,7 +87,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
             }
         }
 
-        private void OnDragCompleted(object sender, VectorEventArgs e)
+        private void OnDragCompleted(VectorEventArgs e)
         {
             UserDragInProgress = false;
         }
@@ -104,14 +96,40 @@ namespace WalletWasabi.Gui.Controls.LockScreen
         {
             Shade.Classes.Add("Locked");
             Shade.Classes.Remove("Unlocked");
-			Offset = 0;
+            Offset = 0;
             UserDragInProgress = false;
+
+			Disposables = new CompositeDisposable();
+
+            Observable.FromEventPattern<VectorEventArgs>(DragThumb, nameof(DragThumb.DragCompleted))
+                      .ObserveOn(RxApp.MainThreadScheduler)
+                      .Subscribe(e => OnDragCompleted(e.EventArgs))
+                      .DisposeWith(Disposables);
+
+            Observable.FromEventPattern<VectorEventArgs>(DragThumb, nameof(DragThumb.DragDelta))
+                      .ObserveOn(RxApp.MainThreadScheduler)
+                      .Subscribe(e => OnDragDelta(e.EventArgs))
+                      .DisposeWith(Disposables);
+
+            Observable.FromEventPattern(DragThumb, nameof(DragThumb.DragStarted))
+                      .ObserveOn(RxApp.MainThreadScheduler)
+                      .Subscribe(e => OnDragStarted())
+                      .DisposeWith(Disposables);
+
+            this.WhenAnyValue(x => x.Bounds)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(OnBoundsChange)
+                .DisposeWith(Disposables);
+
+            Clock.Subscribe(OnClockTick)
+				 .DisposeWith(Disposables);
         }
 
         public override void DoUnlock()
         {
             Shade.Classes.Add("Unlocked");
             Shade.Classes.Remove("Locked");
+			Disposables?.Dispose();
         }
     }
 }
