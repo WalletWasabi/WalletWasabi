@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -93,7 +93,7 @@ namespace Gma.QrCodeNet.Encoding
 		{
 			if (bitCount < 0 || bitCount > 32)
 			{
-				throw new ArgumentOutOfRangeException(nameof(bitCount), "bitCount must greater or equal to 0");
+				throw new ArgumentOutOfRangeException(nameof(bitCount), $"{nameof(bitCount)} must greater or equal to 0");
 			}
 
 			int numBitsLeft = bitCount;
