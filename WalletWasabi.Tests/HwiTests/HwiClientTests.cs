@@ -18,5 +18,11 @@ namespace WalletWasabi.Tests.HwiTests
 			var network = Network.GetNetwork(networkString);
 			new HwiClient(network);
 		}
+
+		[Fact]
+		public void HwiClientConstructorThrowsArgumentNullException()
+		{
+			Assert.Throws<ArgumentNullException>(() => new HwiClient(null));
+		}
 	}
 }
