@@ -226,7 +226,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		public async Task<(bool backendCompatible, bool clientUpToDate)> CheckUpdatesAsync(CancellationToken cancel)
 		{
 			var versions = await GetVersionsAsync(cancel);
-			var clientUpToDate = Helpers.Constants.ClientVersion >= versions.ClientVersion; // If the client version locally is greater or equal to the backend's reported client version, then good.
+			var clientUpToDate = Helpers.Constants.ClientVersion >= versions.ClientVersion; // If the client version locally is greater than or equal to the backend's reported client version, then good.
 			var backendCompatible = int.Parse(Helpers.Constants.BackendMajorVersion) == versions.BackendMajorVersion; // If the backend major and the client major equals, then our softwares are compatible.
 
 			return (backendCompatible, clientUpToDate);
