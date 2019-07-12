@@ -25,9 +25,13 @@
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.5.0" />  </ItemGroup>
   <ItemGroup>
     <Folder Include="Gma\QrCodeNet\Encoding\ReedSolomon\" />
+    <Folder Include="Hwi2\Binaries\hwi-win64\" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Hwi2\Binaries\hwi-win64\hwi.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Hwi\Software\hwi-win64\hwi.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
