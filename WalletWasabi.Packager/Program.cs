@@ -588,12 +588,6 @@ namespace WalletWasabi.Packager
 					{
 						Console.WriteLine("ERROR: Could not remove console from exe.");
 					}
-
-					// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
-					if (OnlyBinaries)
-					{
-						continue; // In Windows build at this moment it does not matter though.
-					}
 				}
 				else if (target.StartsWith("osx"))
 				{

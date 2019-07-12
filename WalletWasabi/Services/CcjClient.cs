@@ -789,7 +789,6 @@ namespace WalletWasabi.Services
 					if (coin.Unavailable)
 					{
 						except.Add(coin);
-						continue;
 					}
 				}
 
@@ -1000,7 +999,6 @@ namespace WalletWasabi.Services
 						if (!coinToDequeue.Unspent) // If coin was spent, well that sucks, except if it was spent by the tumbler in signing phase.
 						{
 							State.ClearRoundRegistration(round.State.RoundId);
-							continue;
 						}
 						else
 						{

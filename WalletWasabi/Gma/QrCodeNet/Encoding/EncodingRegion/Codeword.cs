@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Gma.QrCodeNet.Encoding.EncodingRegion
 {
@@ -29,11 +29,7 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 					for (int xOffset = 0; xOffset < 2; xOffset++)
 					{
 						int xPos = x - xOffset;
-						if (tsMatrix.MStatus(xPos, y) != MatrixStatus.None)
-						{
-							continue;
-						}
-						else
+						if (tsMatrix.MStatus(xPos, y) == MatrixStatus.None)
 						{
 							bool bit;
 							if (bitIndex < codewordsSize)
