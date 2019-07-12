@@ -120,19 +120,13 @@ namespace WalletWasabi.Models
 		/// Implicit conversion from Int32 to Height.
 		/// </summary>
 		/// <param name="value">Int32 to convert to Height instance.</param>
-		public static implicit operator Height(int value)
-		{
-			return new Height(value);
-		}
+		public static implicit operator Height(int value) => new Height(value);
 
 		/// <summary>
 		/// Implicit conversion from Height to Int32 value.
 		/// </summary>
 		/// <param name="height">Height value to convert to Int32.</param>
-		public static implicit operator int(Height height)
-		{
-			return height.Value;
-		}
+		public static implicit operator int(Height height) => height.Value;
 
 		/// <inheritdoc/>
 		public override string ToString()
@@ -332,59 +326,41 @@ namespace WalletWasabi.Models
 		/// Increments the height value by 1
 		/// </summary>
 		/// <param name="me">The instance to be used as base value.</param>
-		public static Height operator ++(Height me)
-		{
-			return new Height(me.Value + 1);
-		}
+		public static Height operator ++(Height me) => new Height(me.Value + 1);
 
 		/// <summary>
 		/// Decrements the height value by 1
 		/// </summary>
 		/// <param name="me">The instance to be used as base value.</param>
-		public static Height operator --(Height me)
-		{
-			return new Height(me.Value - 1);
-		}
+		public static Height operator --(Height me) => new Height(me.Value - 1);
 
 		/// <summary>
 		/// Unary or binary operator for adding a value to height.
 		/// </summary>
 		/// <param name="value">The Int32 value.</param>
 		/// <param name="height">The height value to be added.</param>
-		public static int operator +(int value, Height height)
-		{
-			return height.Value + value;
-		}
+		public static int operator +(int value, Height height) => height.Value + value;
 
 		/// <summary>
 		/// Unary or binary operator for substracting a value to height.
 		/// </summary>
 		/// <param name="value">The Int32 value.</param>
 		/// <param name="height">The height value to be substracted from.</param>
-		public static int operator -(int value, Height height)
-		{
-			return value - height.Value;
-		}
+		public static int operator -(int value, Height height) => value - height.Value;
 
 		/// <summary>
 		/// Unary or binary operator for adding a value to height.
 		/// </summary>
 		/// <param name="height">The height value to be added.</param>
 		/// <param name="value">The Int32 value.</param>
-		public static int operator +(Height height, int value)
-		{
-			return height.Value + value;
-		}
+		public static int operator +(Height height, int value) => height.Value + value;
 
 		/// <summary>
 		/// Unary or binary operator for substracting a value to height.
 		/// </summary>
 		/// <param name="height">The height value to be substracted from.</param>
 		/// <param name="value">The Int32 value.</param>
-		public static int operator -(Height height, int value)
-		{
-			return height.Value - value;
-		}
+		public static int operator -(Height height, int value) => height.Value - value;
 
 		#endregion MathOperations
 	}
