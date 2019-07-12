@@ -41,7 +41,7 @@ namespace WalletWasabi.Tests.HwiTests
 
 		[Theory]
 		[MemberData(nameof(GetDifferentNetworkValues))]
-		public async Task CanGetVersionAsync(Network network)
+		public async Task GetVersionTestsAsync(Network network)
 		{
 			var client = new HwiClient(network);
 
@@ -49,6 +49,11 @@ namespace WalletWasabi.Tests.HwiTests
 			{
 				Version version = await client.GetVersionAsync(cts.Token);
 				Assert.Equal(new Version("1.0.1"), version);
+			}
+
+			using (var cts = new CancellationTokenSource(1))
+			{
+				await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.GetVersionAsync(cts.Token));
 			}
 		}
 	}

@@ -25,40 +25,47 @@ namespace WalletWasabi.Hwi2
 			var hwiPath = Path.Combine(fullBaseDirectory, "Hwi2", "Binaries", "hwi-win64", "hwi.exe");
 
 			string arguments = "--version";
-			using (var process = Process.Start(
-				new ProcessStartInfo
-				{
-					FileName = hwiPath,
-					Arguments = arguments,
-					RedirectStandardOutput = true,
-					UseShellExecute = false,
-					CreateNoWindow = true,
-					WindowStyle = ProcessWindowStyle.Hidden
-				}
-			))
+			try
 			{
-				await process.WaitForExitAsync(cancel).ConfigureAwait(false);
-
-				if (process.ExitCode != 0)
+				using (var process = Process.Start(
+					new ProcessStartInfo
+					{
+						FileName = hwiPath,
+						Arguments = arguments,
+						RedirectStandardOutput = true,
+						UseShellExecute = false,
+						CreateNoWindow = true,
+						WindowStyle = ProcessWindowStyle.Hidden
+					}
+				))
 				{
-					throw new IOException($"'hwi {arguments}' exited with incorrect exit code.", process.ExitCode);
+					await process.WaitForExitAsync(cancel).ConfigureAwait(false);
+
+					if (process.ExitCode != 0)
+					{
+						throw new IOException($"'hwi {arguments}' exited with incorrect exit code.", process.ExitCode);
+					}
+
+					string responseString = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+
+					// Example output: hwi 1.0.0
+					if (TryParseVersion(responseString, "hwi", out Version v1))
+					{
+						return v1;
+					}
+
+					// Example output: hwi.exe 1.0.0
+					if (TryParseVersion(responseString, "hwi.exe", out Version v2))
+					{
+						return v2;
+					}
+
+					throw new FormatException($"Cannot parse version from HWI's response. Response: {responseString}.");
 				}
-
-				string responseString = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
-
-				// Example output: hwi 1.0.0
-				if (TryParseVersion(responseString, "hwi", out Version v1))
-				{
-					return v1;
-				}
-
-				// Example output: hwi.exe 1.0.0
-				if (TryParseVersion(responseString, "hwi.exe", out Version v2))
-				{
-					return v2;
-				}
-
-				throw new FormatException($"Cannot parse version from HWI's response. Response: {responseString}.");
+			}
+			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
+			{
+				throw new OperationCanceledException($"'hwi {arguments}' operation is canceled.", ex);
 			}
 		}
 
