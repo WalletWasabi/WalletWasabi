@@ -185,6 +185,24 @@
         </DrawingGroup.Children>
       </DrawingGroup>
 
+      <DrawingGroup x:Key="ConfTargetConfirmed">
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#FF22B14C" Geometry="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+
+      <DrawingGroup x:Key="ConfTargetWaiting">
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#FFFFCC00" Geometry="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm61.8-104.4l-84.9-61.7c-3.1-2.3-4.9-5.9-4.9-9.7V116c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v141.7l66.8 48.6c5.4 3.9 6.5 11.4 2.6 16.8L334.6 349c-3.9 5.3-11.4 6.5-16.8 2.6z" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+
+      <DrawingGroup x:Key="ConfTargetUnconfirmed">
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#FFE41400" Geometry="M193.94 256L296.5 153.44l21.15-21.15c3.12-3.12 3.12-8.19 0-11.31l-22.63-22.63c-3.12-3.12-8.19-3.12-11.31 0L160 222.06 36.29 98.34c-3.12-3.12-8.19-3.12-11.31 0L2.34 120.97c-3.12 3.12-3.12 8.19 0 11.31L126.06 256 2.34 379.71c-3.12 3.12-3.12 8.19 0 11.31l22.63 22.63c3.12 3.12 8.19 3.12 11.31 0L160 289.94 262.56 392.5l21.15 21.15c3.12 3.12 8.19 3.12 11.31 0l22.63-22.63c3.12-3.12 3.12-8.19 0-11.31L193.94 256z" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+
       <DrawingGroup x:Key="TransactionBroadcaster">
         <DrawingGroup.Children>
           <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />

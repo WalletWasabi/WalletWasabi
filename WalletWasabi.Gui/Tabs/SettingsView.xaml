@@ -100,6 +100,10 @@
                 <TextBlock ToolTip.Tip="Under the dust threshold coins are not appearing in the coin lists.">Dust Threshold (BTC)</TextBlock>
                 <TextBox Text="{Binding DustThreshold}" />
               </StackPanel>
+              <StackPanel Margin="0 10" Spacing="5">
+                <TextBlock ToolTip.Tip="How many blocks until a transaction is considered confirmed.">Confirmation Target</TextBlock>
+                <TextBox Text="{Binding ConfirmationTarget}" />
+              </StackPanel>
             </StackPanel>
           </controls:GroupBox>
 

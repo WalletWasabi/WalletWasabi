@@ -140,6 +140,9 @@ namespace WalletWasabi.Gui
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money DustThreshold { get; internal set; }
 
+		[JsonProperty(PropertyName = "ConfirmationTarget")]
+		public int? ConfirmationTarget { get; internal set; }
+
 		private Uri _backendUri;
 		private Uri _fallbackBackendUri;
 
@@ -304,6 +307,7 @@ namespace WalletWasabi.Gui
 			PrivacyLevelFine = 21;
 			PrivacyLevelStrong = 50;
 			DustThreshold = Money.Coins(0.0001m);
+			ConfirmationTarget = 6;
 
 			if (!File.Exists(FilePath))
 			{
@@ -314,7 +318,7 @@ namespace WalletWasabi.Gui
 				await LoadFileAsync();
 			}
 
-			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint(), DustThreshold);
+			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint(), DustThreshold, ConfirmationTarget.Value);
 
 			// Just debug convenience.
 			_backendUri = GetCurrentBackendUri();
@@ -352,6 +356,8 @@ namespace WalletWasabi.Gui
 			PrivacyLevelStrong = config.PrivacyLevelStrong ?? PrivacyLevelStrong;
 
 			DustThreshold = config.DustThreshold ?? DustThreshold;
+
+			ConfirmationTarget = config.ConfirmationTarget ?? ConfirmationTarget;
 
 			ServiceConfiguration = config.ServiceConfiguration ?? ServiceConfiguration;
 

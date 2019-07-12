@@ -31,6 +31,7 @@ namespace WalletWasabi.Gui.Tabs
 		private string _finePrivacyLevel;
 		private string _strongPrivacyLevel;
 		private string _dustThreshold;
+		private string _confirmationTarget;
 		private AsyncLock ConfigLock { get; } = new AsyncLock();
 
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
@@ -67,7 +68,7 @@ namespace WalletWasabi.Gui.Tabs
 
 			this.WhenAnyValue(
 				x => x.SomePrivacyLevel, x => x.FinePrivacyLevel, x => x.StrongPrivacyLevel,
-				x => x.DustThreshold)
+				x => x.DustThreshold, x => x.ConfirmationTarget)
 				.Subscribe(x => Save());
 
 			this.WhenAnyValue(x => x.Autocopy)
@@ -91,6 +92,8 @@ namespace WalletWasabi.Gui.Tabs
 				StrongPrivacyLevel = config.PrivacyLevelStrong.ToString();
 
 				DustThreshold = config.DustThreshold.ToString();
+
+				ConfirmationTarget = config.ConfirmationTarget.ToString();
 
 				IsModified = await Global.Config.CheckFileChangeAsync();
 			});
@@ -216,6 +219,13 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _dustThreshold, value);
 		}
 
+		[ValidateMethod(nameof(ValidateConfirmationTarget))]
+		public string ConfirmationTarget
+		{
+			get => _confirmationTarget;
+			set => this.RaiseAndSetIfChanged(ref _confirmationTarget, value);
+		}
+
 		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
 
 		private void Save()
@@ -233,7 +243,8 @@ namespace WalletWasabi.Gui.Tabs
 				|| string.IsNullOrWhiteSpace(SomePrivacyLevel)
 				|| string.IsNullOrWhiteSpace(FinePrivacyLevel)
 				|| string.IsNullOrWhiteSpace(StrongPrivacyLevel)
-				|| string.IsNullOrWhiteSpace(DustThreshold))
+				|| string.IsNullOrWhiteSpace(DustThreshold)
+				|| string.IsNullOrWhiteSpace(ConfirmationTarget))
 			{
 				return;
 			}
@@ -256,6 +267,7 @@ namespace WalletWasabi.Gui.Tabs
 					var finePrivacyLevel = int.TryParse(FinePrivacyLevel, out level) ? (int?)level : null;
 					var strongPrivacyLevel = int.TryParse(StrongPrivacyLevel, out level) ? (int?)level : null;
 					var dustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? (decimal?)threshold : null;
+					var confirmationTarget = int.TryParse(ConfirmationTarget, out var target) ? (int?)target : null;
 
 					var (configLocalHost, configLocalPort) = network == NBitcoin.Network.Main
 						? (config.MainNetBitcoinCoreHost, config.MainNetBitcoinCorePort)
@@ -271,6 +283,7 @@ namespace WalletWasabi.Gui.Tabs
 						|| config.PrivacyLevelFine != finePrivacyLevel
 						|| config.PrivacyLevelStrong != strongPrivacyLevel
 						|| config.DustThreshold.ToUnit(MoneyUnit.BTC) != dustThreshold
+						|| config.ConfirmationTarget != confirmationTarget
 						|| configLocalHost != localNodeHost
 						|| configLocalPort.ToString() != localNodePort
 					)
@@ -283,6 +296,7 @@ namespace WalletWasabi.Gui.Tabs
 						config.PrivacyLevelFine = finePrivacyLevel;
 						config.PrivacyLevelStrong = strongPrivacyLevel;
 						config.DustThreshold = Money.Coins(dustThreshold.Value);
+						config.ConfirmationTarget = confirmationTarget;
 
 						switch (network.Name)
 						{
@@ -399,6 +413,21 @@ namespace WalletWasabi.Gui.Tabs
 			}
 
 			return "Invalid port.";
+		}
+
+		public string ValidateConfirmationTarget()
+		{
+			if (string.IsNullOrWhiteSpace(ConfirmationTarget))
+			{
+				return string.Empty;
+			}
+
+			if (uint.TryParse(ConfirmationTarget, out _))
+			{
+				return string.Empty;
+			}
+
+			return "Invalid confirmation target.";
 		}
 
 		private void OpenConfigFile()

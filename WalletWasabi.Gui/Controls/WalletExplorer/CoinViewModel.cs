@@ -18,6 +18,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private bool _isSelected;
 		private SmartCoinStatus _status;
+		private int _confirmations;
 		private ObservableAsPropertyHelper<bool> _coinJoinInProgress;
 		private ObservableAsPropertyHelper<bool> _unspent;
 		private ObservableAsPropertyHelper<bool> _confirmed;
@@ -124,9 +125,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string Address => Model.ScriptPubKey.GetDestinationAddress(Global.Network).ToString();
 
-		public int Confirmations => Model.Height.Type == HeightType.Chain
-			? Global.BitcoinStore.HashChain.TipHeight - Model.Height.Value + 1
-			: 0;
+		public int Confirmations
+		{
+			get => _confirmations;
+			set => this.RaiseAndSetIfChanged(ref _confirmations, value);
+		}
 
 		public bool IsSelected
 		{
@@ -186,6 +189,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void RefreshSmartCoinStatus()
 		{
 			Status = GetSmartCoinStatus();
+			Confirmations = Model.Height.Type == HeightType.Chain ? Global.BitcoinStore.HashChain.TipHeight - Model.Height.Value + 1 : 0;
 		}
 
 		private SmartCoinStatus GetSmartCoinStatus()
