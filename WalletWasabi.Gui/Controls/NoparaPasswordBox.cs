@@ -243,35 +243,38 @@ namespace WalletWasabi.Gui.Controls
 						}
 					}
 				}
-				else if (e.Key == Key.Back && Sb.Length > 0) // Backspace button -> delete from the end.
+				else if (Sb.Length > 0)
 				{
-					if (SelectionLength != 0)
+					if (e.Key == Key.Back) // Backspace button -> delete from the end.
 					{
-						Sb.Clear();
-					}
-					else
-					{
-						if (CaretIndex == Text.Length)
+						if (SelectionLength == 0)
 						{
-							Sb.Remove(Sb.Length - 1, 1);
+							if (CaretIndex == Text.Length)
+							{
+								Sb.Remove(Sb.Length - 1, 1);
+							}
 						}
-					}
-					e.Handled = true;
-				}
-				else if (e.Key == Key.Delete && Sb.Length > 0) //Delete button -> delete from the beginning.
-				{
-					if (SelectionLength != 0)
-					{
-						Sb.Clear();
-					}
-					else
-					{
-						if (CaretIndex == 0)
+						else
 						{
-							Sb.Remove(0, 1);
+							Sb.Clear();
 						}
+						e.Handled = true;
 					}
-					e.Handled = true;
+					else if (e.Key == Key.Delete) //Delete button -> delete from the beginning.
+					{
+						if (SelectionLength == 0)
+						{
+							if (CaretIndex == 0)
+							{
+								Sb.Remove(0, 1);
+							}
+						}
+						else
+						{
+							Sb.Clear();
+						}
+						e.Handled = true;
+					}
 				}
 				else
 				{
