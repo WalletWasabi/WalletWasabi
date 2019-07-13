@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi2.Exceptions;
 using WalletWasabi.Hwi2.Models;
+using WalletWasabi.Hwi2.ProcessBridge;
+using WalletWasabi.Interfaces;
 
 namespace WalletWasabi.Hwi2
 {
@@ -21,14 +23,16 @@ namespace WalletWasabi.Hwi2
 		#region PropertiesAndMembers
 
 		public Network Network { get; }
+		public IProcessBridge Bridge { get; }
 
 		#endregion PropertiesAndMembers
 
 		#region ConstructorsAndInitializers
 
-		public HwiClient(Network network)
+		public HwiClient(Network network, IProcessBridge bridge = null)
 		{
 			Network = Guard.NotNull(nameof(network), network);
+			Bridge = bridge ?? new HwiProcessBridge();
 		}
 
 		#endregion ConstructorsAndInitializers
@@ -37,42 +41,27 @@ namespace WalletWasabi.Hwi2
 
 		private async Task<string> SendCommandAsync(IEnumerable<HwiOptions> options, HwiCommands? command, CancellationToken cancel)
 		{
-			string hwiPath = GetHwiPath();
 			string arguments = GetArguments(options, command);
 
 			try
 			{
-				using (var process = Process.Start(
-					new ProcessStartInfo
-					{
-						FileName = hwiPath,
-						Arguments = arguments,
-						RedirectStandardOutput = true,
-						UseShellExecute = false,
-						CreateNoWindow = true,
-						WindowStyle = ProcessWindowStyle.Hidden
-					}
-				))
+				(string responseString, int exitCode) = await Bridge.SendCommandAsync(arguments, cancel).ConfigureAwait(false);
+
+				if (exitCode != 0)
 				{
-					await process.WaitForExitAsync(cancel).ConfigureAwait(false);
-
-					string responseString = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
-					if (process.ExitCode != 0)
-					{
-						ThrowIfError(responseString);
-						throw new HwiException(HwiErrorCode.UnknownError, $"'hwi {arguments}' exited with incorrect exit code: {process.ExitCode}.");
-					}
-
 					ThrowIfError(responseString);
+					throw new HwiException(HwiErrorCode.UnknownError, $"'hwi {arguments}' exited with incorrect exit code: {exitCode}.");
+				}
 
-					if (JsonHelpers.TryParseJToken(responseString, out JToken responseJToken))
-					{
-						return responseString;
-					}
-					else
-					{
-						return responseString;
-					}
+				ThrowIfError(responseString);
+
+				if (JsonHelpers.TryParseJToken(responseString, out JToken responseJToken))
+				{
+					return responseString;
+				}
+				else
+				{
+					return responseString;
 				}
 			}
 			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
@@ -156,33 +145,35 @@ namespace WalletWasabi.Hwi2
 		{
 			if (JsonHelpers.TryParseJToken(responseString, out JToken responseJToken))
 			{
-				if (responseJToken.HasValues)
+				if (responseJToken is JArray)
 				{
-					var errToken = responseJToken["error"];
-					var codeToken = responseJToken["code"];
-					string err = "";
-					HwiErrorCode? code = null;
-					if (errToken != null)
-					{
-						err = Guard.Correct(errToken.Value<string>());
-					}
-					if (codeToken != null)
-					{
-						var codeInt = codeToken.Value<int>();
-						if (Enum.IsDefined(typeof(HwiErrorCode), codeInt))
-						{
-							code = (HwiErrorCode)codeInt;
-						}
-					}
+					return;
+				}
 
-					if (code.HasValue)
+				var errToken = responseJToken["error"];
+				var codeToken = responseJToken["code"];
+				string err = "";
+				HwiErrorCode? code = null;
+				if (errToken != null)
+				{
+					err = Guard.Correct(errToken.Value<string>());
+				}
+				if (codeToken != null)
+				{
+					var codeInt = codeToken.Value<int>();
+					if (Enum.IsDefined(typeof(HwiErrorCode), codeInt))
 					{
-						throw new HwiException(code.Value, err);
+						code = (HwiErrorCode)codeInt;
 					}
-					else if (err != "")
-					{
-						throw new HwiException(HwiErrorCode.UnknownError, err);
-					}
+				}
+
+				if (code.HasValue)
+				{
+					throw new HwiException(code.Value, err);
+				}
+				else if (err != "")
+				{
+					throw new HwiException(HwiErrorCode.UnknownError, err);
 				}
 			}
 			else
@@ -195,32 +186,6 @@ namespace WalletWasabi.Hwi2
 					throw new HwiException(HwiErrorCode.UnknownError, err);
 				}
 			}
-		}
-
-		private static string GetHwiPath()
-		{
-			var fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
-
-			string commonPartialPath = Path.Combine(fullBaseDirectory, "Hwi2", "Binaries");
-			string path;
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				path = Path.Combine(commonPartialPath, "hwi-win64", "hwi.exe");
-			}
-			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-			{
-				path = Path.Combine(commonPartialPath, "hwi-lin64", "hwi");
-			}
-			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-			{
-				path = Path.Combine(commonPartialPath, "hwi-osx64", "hwi");
-			}
-			else
-			{
-				throw new NotSupportedException("Operating system is not supported.");
-			}
-
-			return path;
 		}
 
 		private string GetArguments(IEnumerable<HwiOptions> options, HwiCommands? command)

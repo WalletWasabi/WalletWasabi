@@ -18,4 +18,4 @@ jobs:
     inputs:
       command: test
       projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
-      arguments: --configuration $(testConfiguration) --filter "CryptoTests | ExtPubKeyExplorerTests | KeyManagementTests | ModelTests | StoreTests  | NoConnectedDeviceTests"
+      arguments: --configuration $(testConfiguration) --filter "CryptoTests | ExtPubKeyExplorerTests | KeyManagementTests | ModelTests | StoreTests  | HwiTests"
