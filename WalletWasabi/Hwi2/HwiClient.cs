@@ -201,25 +201,26 @@ namespace WalletWasabi.Hwi2
 		{
 			var fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
 
-			string hwiPartialPath;
+			string commonPartialPath = Path.Combine(fullBaseDirectory, "Hwi2", "Binaries");
+			string path;
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				hwiPartialPath = Path.Combine("Hwi2", "Binaries", "hwi-win64", "hwi.exe");
+				path = Path.Combine(commonPartialPath, "hwi-win64", "hwi.exe");
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				hwiPartialPath = Path.Combine("Hwi2", "Binaries", "hwi-lin64", "hwi");
+				path = Path.Combine(commonPartialPath, "hwi-lin64", "hwi");
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				hwiPartialPath = Path.Combine("Hwi2", "Binaries", "hwi-osx64", "hwi");
+				path = Path.Combine(commonPartialPath, "hwi-osx64", "hwi");
 			}
 			else
 			{
 				throw new NotSupportedException("Operating system is not supported.");
 			}
-			var hwiPath = Path.Combine(fullBaseDirectory, hwiPartialPath);
-			return hwiPath;
+
+			return path;
 		}
 
 		private string GetArguments(IEnumerable<HwiOptions> options, HwiCommands? command)
