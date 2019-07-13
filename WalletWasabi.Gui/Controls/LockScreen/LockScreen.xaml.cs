@@ -8,7 +8,7 @@ using WalletWasabi.Gui.Models;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
-    internal class LockScreen : UserControl
+    public class LockScreen : UserControl
     {
         private bool _isLocked;
         private string _pinHash;
@@ -17,7 +17,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
         private ContentControl LockScreenHost;
         private LockScreenBase CurrentLockScreen;
         private CompositeDisposable ScreenImplDisposables;
-		
+
         public static readonly DirectProperty<LockScreen, LockScreenType> ActiveLockScreenTypeProperty =
             AvaloniaProperty.RegisterDirect<LockScreen, LockScreenType>(nameof(ActiveLockScreenType),
                                                                         o => o.ActiveLockScreenType,
@@ -71,7 +71,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
                     this.WhenAnyValue(x => x.PINHash)
                         .Subscribe(y => pinLock.PINHash = y)
-						.DisposeWith(ScreenImplDisposables);
+                        .DisposeWith(ScreenImplDisposables);
 
                     break;
                 default:
@@ -88,7 +88,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
             CurrentLockScreen.WhenAnyValue(x => x.IsLocked)
                 .BindTo(this, y => y.IsLocked)
                 .DisposeWith(ScreenImplDisposables);
-        }
+        } 
 
         private void InitializeComponent()
         {
