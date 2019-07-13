@@ -1,4 +1,5 @@
 using NBitcoin;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
+using WalletWasabi.Hwi2.Exceptions;
 using WalletWasabi.Hwi2.Models;
 
 namespace WalletWasabi.Hwi2
@@ -34,30 +36,8 @@ namespace WalletWasabi.Hwi2
 
 		private async Task<string> SendCommandAsync(IEnumerable<HwiOptions> options, HwiCommands? command, CancellationToken cancel)
 		{
-			var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
-			var hwiPath = Path.Combine(fullBaseDirectory, "Hwi2", "Binaries", "hwi-win64", "hwi.exe");
-
-			options = options ?? Enumerable.Empty<HwiOptions>();
-			var fullOptions = new List<HwiOptions>(options);
-
-			if (Network != Network.Main)
-			{
-				fullOptions.Add(HwiOptions.TestNet);
-			}
-
-			var optionsString = string.Join(" --", fullOptions.Select(x => x.ToString().ToLowerInvariant()));
-			optionsString = string.IsNullOrWhiteSpace(optionsString) ? "" : $"--{optionsString}";
-			var argumentBuilder = new StringBuilder(optionsString);
-			if (command != null)
-			{
-				if (argumentBuilder.Length != 0)
-				{
-					argumentBuilder.Append(' ');
-				}
-				argumentBuilder.Append(command.ToString().ToLowerInvariant());
-			}
-
-			var arguments = argumentBuilder.ToString().Trim();
+			string hwiPath = GetHwiPath();
+			string arguments = GetArguments(options, command);
 
 			try
 			{
@@ -82,7 +62,16 @@ namespace WalletWasabi.Hwi2
 
 					string responseString = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
 
-					return responseString;
+					if (JsonHelpers.TryParseJToken(responseString, out JToken responseJToken))
+					{
+						ThrowIfError(responseJToken);
+
+						return responseString;
+					}
+					else
+					{
+						return responseString;
+					}
 				}
 			}
 			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
@@ -132,6 +121,12 @@ namespace WalletWasabi.Hwi2
 			return hwis;
 		}
 
+		public async Task<string> SetupAsync(CancellationToken cancel)
+		{
+			string responseString = await SendCommandAsync(options: null, command: HwiCommands.Setup, cancel).ConfigureAwait(false);
+			return responseString;
+		}
+
 		#endregion Commands
 
 		#region Helpers
@@ -148,6 +143,71 @@ namespace WalletWasabi.Hwi2
 			}
 
 			return false;
+		}
+
+		private static void ThrowIfError(JToken responseJToken)
+		{
+			if (responseJToken.HasValues)
+			{
+				var errToken = responseJToken["error"];
+				var codeToken = responseJToken["code"];
+				string err = "";
+				HwiErrorCode? code = null;
+				if (errToken != null)
+				{
+					err = Guard.Correct(errToken.Value<string>());
+				}
+				if (codeToken != null)
+				{
+					var codeInt = codeToken.Value<int>();
+					if (Enum.IsDefined(typeof(HwiErrorCode), codeInt))
+					{
+						code = (HwiErrorCode)codeInt;
+					}
+				}
+
+				if (code.HasValue)
+				{
+					throw new HwiException(code.Value, err);
+				}
+				else if (err != "")
+				{
+					throw new HwiException(HwiErrorCode.UnknownError, err);
+				}
+			}
+		}
+
+		private static string GetHwiPath()
+		{
+			var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
+			var hwiPath = Path.Combine(fullBaseDirectory, "Hwi2", "Binaries", "hwi-win64", "hwi.exe");
+			return hwiPath;
+		}
+
+		private string GetArguments(IEnumerable<HwiOptions> options, HwiCommands? command)
+		{
+			options = options ?? Enumerable.Empty<HwiOptions>();
+			var fullOptions = new List<HwiOptions>(options);
+
+			if (Network != Network.Main)
+			{
+				fullOptions.Add(HwiOptions.TestNet);
+			}
+
+			var optionsString = string.Join(" --", fullOptions.Select(x => x.ToString().ToLowerInvariant()));
+			optionsString = string.IsNullOrWhiteSpace(optionsString) ? "" : $"--{optionsString}";
+			var argumentBuilder = new StringBuilder(optionsString);
+			if (command != null)
+			{
+				if (argumentBuilder.Length != 0)
+				{
+					argumentBuilder.Append(' ');
+				}
+				argumentBuilder.Append(command.ToString().ToLowerInvariant());
+			}
+
+			var arguments = argumentBuilder.ToString().Trim();
+			return arguments;
 		}
 
 		#endregion Helpers

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Hwi2;
+using WalletWasabi.Hwi2.Exceptions;
 using Xunit;
 
 namespace WalletWasabi.Tests.HwiTests
@@ -94,12 +95,24 @@ namespace WalletWasabi.Tests.HwiTests
 					client.GetHelpAsync(cts.Token),
 					client.GetHelpAsync(cts.Token),
 					client.EnumerateAsync(cts.Token),
-					client.EnumerateAsync(cts.Token)
+					client.EnumerateAsync(cts.Token),
+					client.SetupAsync(cts.Token),
+					client.SetupAsync(cts.Token)
 				};
 
 				cts.CancelAfter(ReasonableRequestTimeout * tasks.Count);
 
 				await Task.WhenAny(tasks);
+			}
+		}
+
+		[Theory]
+		[MemberData(nameof(GetHwiClientConfigurationCombinationValues))]
+		public async Task SetupThrowsHwiExceptionAsync(HwiClient client)
+		{
+			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
+			{
+				await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(cts.Token));
 			}
 		}
 
