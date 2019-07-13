@@ -13,9 +13,6 @@ namespace System.IO
 {
 	public static class IoHelpers
 	{
-		private const string OldExtension = ".old";
-		private const string NewExtension = ".new";
-
 		// http://stackoverflow.com/a/14933880/2061103
 		public static async Task DeleteRecursivelyWithMagicDustAsync(string destinationDir)
 		{
