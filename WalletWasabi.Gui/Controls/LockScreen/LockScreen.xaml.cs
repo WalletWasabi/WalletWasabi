@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
@@ -55,6 +56,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
             this.LockScreenHost = this.FindControl<ContentControl>("LockScreenHost");
 
             this.WhenAnyValue(x => x.ActiveLockScreenType)
+				.ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(OnActiveLockScreenTypeChanged);
         }
 
@@ -70,6 +72,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
                     CurrentLockScreen = pinLock;
 
                     this.WhenAnyValue(x => x.PINHash)
+						.ObserveOn(RxApp.MainThreadScheduler)
                         .Subscribe(y => pinLock.PINHash = y)
                         .DisposeWith(ScreenImplDisposables);
 
@@ -82,10 +85,12 @@ namespace WalletWasabi.Gui.Controls.LockScreen
             LockScreenHost.Content = CurrentLockScreen;
 
             this.WhenAnyValue(x => x.IsLocked)
+				.ObserveOn(RxApp.MainThreadScheduler)
                 .BindTo(CurrentLockScreen, y => y.IsLocked)
                 .DisposeWith(ScreenImplDisposables);
 
             CurrentLockScreen.WhenAnyValue(x => x.IsLocked)
+				.ObserveOn(RxApp.MainThreadScheduler)
                 .BindTo(this, y => y.IsLocked)
                 .DisposeWith(ScreenImplDisposables);
         } 

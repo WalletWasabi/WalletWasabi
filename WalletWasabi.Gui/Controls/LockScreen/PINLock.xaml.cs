@@ -30,11 +30,11 @@ namespace WalletWasabi.Gui.Controls.LockScreen
             this.PinLockPwdBox = this.FindControl<NoparaPasswordBox>("PinLockPwdBox");
 
             PinLockPwdBox.WhenAnyValue(x => x.Password)
+                         .ObserveOn(RxApp.MainThreadScheduler)
                          .Select(Guard.Correct)
                          .Where(x => x != string.Empty)
                          .DistinctUntilChanged()
                          .Throttle(TimeSpan.FromSeconds(1d))
-                         .ObserveOn(RxApp.MainThreadScheduler)
                          .Subscribe(CheckPIN);
         }
 
