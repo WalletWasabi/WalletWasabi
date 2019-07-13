@@ -33,18 +33,18 @@ namespace Nito.Collections
 
 		private sealed class NongenericCollectionWrapper<T> : IReadOnlyCollection<T>
 		{
-			private readonly ICollection Collection;
+			private readonly ICollection _collection;
 
 			public NongenericCollectionWrapper(ICollection collection)
 			{
-				Collection = collection ?? throw new ArgumentNullException(nameof(collection));
+				_collection = collection ?? throw new ArgumentNullException(nameof(collection));
 			}
 
-			public int Count => Collection.Count;
+			public int Count => _collection.Count;
 
 			public IEnumerator<T> GetEnumerator()
 			{
-				foreach (T item in Collection)
+				foreach (T item in _collection)
 				{
 					yield return item;
 				}
@@ -52,29 +52,29 @@ namespace Nito.Collections
 
 			IEnumerator IEnumerable.GetEnumerator()
 			{
-				return Collection.GetEnumerator();
+				return _collection.GetEnumerator();
 			}
 		}
 
 		private sealed class CollectionWrapper<T> : IReadOnlyCollection<T>
 		{
-			private readonly ICollection<T> Collection;
+			private readonly ICollection<T> _collection;
 
 			public CollectionWrapper(ICollection<T> collection)
 			{
-				Collection = collection ?? throw new ArgumentNullException(nameof(collection));
+				_collection = collection ?? throw new ArgumentNullException(nameof(collection));
 			}
 
-			public int Count => Collection.Count;
+			public int Count => _collection.Count;
 
 			public IEnumerator<T> GetEnumerator()
 			{
-				return Collection.GetEnumerator();
+				return _collection.GetEnumerator();
 			}
 
 			IEnumerator IEnumerable.GetEnumerator()
 			{
-				return Collection.GetEnumerator();
+				return _collection.GetEnumerator();
 			}
 		}
 	}

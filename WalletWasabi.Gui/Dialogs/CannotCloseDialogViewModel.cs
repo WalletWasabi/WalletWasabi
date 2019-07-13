@@ -33,7 +33,7 @@ namespace WalletWasabi.Gui.Dialogs
 			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
 		}
 
-		private readonly Global Global;
+		private readonly Global _global;
 
 		public string OperationMessage
 		{
@@ -49,7 +49,7 @@ namespace WalletWasabi.Gui.Dialogs
 
 		public CannotCloseDialogViewModel(Global global) : base("", false, false)
 		{
-			Global = global;
+			_global = global;
 			OperationMessage = "Dequeuing coins...Please wait";
 			var canCancel = this.WhenAnyValue(x => x.IsBusy);
 			var canOk = this.WhenAnyValue(x => x.IsBusy, (isbusy) => !isbusy);
@@ -134,12 +134,12 @@ namespace WalletWasabi.Gui.Dialogs
 
 					try
 					{
-						if (Global.WalletService is null || Global.ChaumianClient is null)
+						if (_global.WalletService is null || _global.ChaumianClient is null)
 						{
 							return;
 						}
 
-						SmartCoin[] enqueuedCoins = Global.WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
+						SmartCoin[] enqueuedCoins = _global.WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
 						Exception latestException = null;
 						foreach (var coin in enqueuedCoins)
 						{
@@ -150,7 +150,7 @@ namespace WalletWasabi.Gui.Dialogs
 									break;
 								}
 
-								await Global.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }, "Closing Wasabi."); // Dequeue coins one-by-one to check cancel flag more frequently.
+								await _global.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }, "Closing Wasabi."); // Dequeue coins one-by-one to check cancel flag more frequently.
 							}
 							catch (Exception ex)
 							{

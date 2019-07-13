@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			DataDir = Path.Combine(folder, "data");
 			Directory.CreateDirectory(DataDir);
 			var pass = Encoders.Hex.EncodeData(RandomUtils.GetBytes(20));
-			Creds = new NetworkCredential(pass, pass);
+			_creds = new NetworkCredential(pass, pass);
 			Config = Path.Combine(DataDir, "bitcoin.conf");
 			ConfigParameters.Import(builder.ConfigParameters);
 			Ports = new int[2];
@@ -62,11 +62,11 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		private int[] Ports { get; }
 
-		private readonly NetworkCredential Creds;
+		private readonly NetworkCredential _creds;
 
 		public RPCClient CreateRpcClient()
 		{
-			return new RPCClient(Creds, new Uri("http://127.0.0.1:" + Ports[1] + "/"), Network.RegTest);
+			return new RPCClient(_creds, new Uri("http://127.0.0.1:" + Ports[1] + "/"), Network.RegTest);
 		}
 
 		public async Task<Node> CreateNodeClientAsync()
@@ -88,8 +88,8 @@ namespace WalletWasabi.Tests.NodeBuilding
 				{"regtest.listenonion", "0"},
 				{"regtest.server", "1"},
 				{"regtest.txindex", "1"},
-				{"regtest.rpcuser", Creds.UserName},
-				{"regtest.rpcpassword", Creds.Password},
+				{"regtest.rpcuser", _creds.UserName},
+				{"regtest.rpcpassword", _creds.Password},
 				{"regtest.whitebind", "127.0.0.1:" + Ports[0].ToString()},
 				{"regtest.rpcport", Ports[1].ToString()},
 				{"regtest.printtoconsole", "0"}, // Set it to one if do not mind loud debug logs
@@ -98,7 +98,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			};
 			config.Import(ConfigParameters);
 			File.WriteAllText(Config, config.ToString());
-			using (await KillerLock.LockAsync())
+			using (await _killerLock.LockAsync())
 			{
 				Process = Process.Start(new FileInfo(Builder.BitcoinD).FullName, "-conf=bitcoin.conf" + " -datadir=" + DataDir + " -debug=1");
 				State = CoreNodeState.Starting;
@@ -156,13 +156,13 @@ namespace WalletWasabi.Tests.NodeBuilding
 			}
 		}
 
-		private readonly AsyncLock KillerLock = new AsyncLock();
+		private readonly AsyncLock _killerLock = new AsyncLock();
 
 		public async Task TryKillAsync(bool cleanFolder = true)
 		{
 			try
 			{
-				using (await KillerLock.LockAsync())
+				using (await _killerLock.LockAsync())
 				{
 					try
 					{

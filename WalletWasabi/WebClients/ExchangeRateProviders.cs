@@ -16,7 +16,7 @@ namespace WalletWasabi.WebClients
 {
 	public class ExchangeRateProvider : IExchangeRateProvider
 	{
-		private readonly IExchangeRateProvider[] ExchangeRateProviders = {
+		private readonly IExchangeRateProvider[] _exchangeRateProviders = {
 			new BitcoinAverageExchangeRateProvider(),
 			new SmartBitExchangeRateProvider(new SmartBitClient(Network.Main, disposeHandler: true)),
 			new BlockchainInfoExchangeRateProvider(),
@@ -29,7 +29,7 @@ namespace WalletWasabi.WebClients
 		{
 			List<ExchangeRate> exchangeRates = null;
 
-			foreach (var provider in ExchangeRateProviders)
+			foreach (var provider in _exchangeRateProviders)
 			{
 				try
 				{

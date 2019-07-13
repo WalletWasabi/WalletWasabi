@@ -556,7 +556,7 @@ namespace Mono.Options
 			return false;
 		}
 
-		private readonly Regex ValueOption = new Regex(
+		private readonly Regex _valueOption = new Regex(
 			@"^(?<flag>--|-|/)(?<name>[^:=]+)((?<sep>[:=])(?<value>.*))?$");
 
 		protected bool GetOptionParts(string argument, out string flag, out string name, out string sep, out string value)
@@ -567,7 +567,7 @@ namespace Mono.Options
 			}
 
 			flag = name = sep = value = null;
-			Match m = ValueOption.Match(argument);
+			Match m = _valueOption.Match(argument);
 			if (!m.Success)
 			{
 				return false;

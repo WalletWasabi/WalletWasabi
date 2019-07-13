@@ -9,12 +9,12 @@ namespace WalletWasabi.Gui.Shell.Commands
 {
 	internal class DiskCommands
 	{
-		private readonly Global Global;
+		private readonly Global _global;
 
 		[ImportingConstructor]
 		public DiskCommands(CommandIconService commandIconService, AvaloniaGlobalComponent global)
 		{
-			Global = global.Global;
+			_global = global.Global;
 			var onOpenDataFolder = ReactiveCommand.Create(OnOpenDataFolder);
 			var onOpenWalletsFolder = ReactiveCommand.Create(OnOpenWalletsFolder);
 			var onOpenLogFile = ReactiveCommand.Create(OnOpenLogFile);
@@ -57,12 +57,12 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnOpenDataFolder()
 		{
-			IoHelpers.OpenFolderInFileExplorer(Global.DataDir);
+			IoHelpers.OpenFolderInFileExplorer(_global.DataDir);
 		}
 
 		private void OnOpenWalletsFolder()
 		{
-			IoHelpers.OpenFolderInFileExplorer(Global.WalletsDir);
+			IoHelpers.OpenFolderInFileExplorer(_global.WalletsDir);
 		}
 
 		private void OnOpenLogFile()
@@ -72,12 +72,12 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnOpenTorLogFile()
 		{
-			IoHelpers.OpenFileInTextEditor(Global.TorLogsFile);
+			IoHelpers.OpenFileInTextEditor(_global.TorLogsFile);
 		}
 
 		private void OnOpenConfigFile()
 		{
-			IoHelpers.OpenFileInTextEditor(Global.Config.FilePath);
+			IoHelpers.OpenFileInTextEditor(_global.Config.FilePath);
 		}
 
 		private void OnFileOpenException(Exception ex)

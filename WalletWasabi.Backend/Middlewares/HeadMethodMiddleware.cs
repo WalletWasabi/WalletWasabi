@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -13,7 +13,7 @@ namespace WalletWasabi.Backend.Middlewares
 	{
 		#region Fields
 
-		private readonly RequestDelegate Next;
+		private readonly RequestDelegate _next;
 
 		#endregion Fields
 
@@ -21,7 +21,7 @@ namespace WalletWasabi.Backend.Middlewares
 
 		public HeadMethodMiddleware(RequestDelegate next)
 		{
-			Next = next ?? throw new ArgumentNullException(nameof(next));
+			_next = next ?? throw new ArgumentNullException(nameof(next));
 		}
 
 		#endregion Constructor
@@ -40,7 +40,7 @@ namespace WalletWasabi.Backend.Middlewares
 				context.Response.Body = Stream.Null;
 			}
 
-			await Next(context);
+			await _next(context);
 
 			if (methodSwitched)
 			{

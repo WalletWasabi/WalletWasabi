@@ -898,15 +898,15 @@ namespace Nito.Collections
 		[DebuggerNonUserCode]
 		private sealed class DebugView
 		{
-			private readonly Deque<T> Deque;
+			private readonly Deque<T> _deque;
 
 			public DebugView(Deque<T> deque)
 			{
-				Deque = deque;
+				_deque = deque;
 			}
 
 			[DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-			public T[] Items => Deque.ToArray();
+			public T[] Items => _deque.ToArray();
 		}
 	}
 }
