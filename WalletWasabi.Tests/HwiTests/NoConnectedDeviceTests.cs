@@ -17,7 +17,7 @@ namespace WalletWasabi.Tests.HwiTests
 	{
 		#region SharedVariables
 
-		public TimeSpan ReasonableRequestTimeout { get; } = TimeSpan.FromSeconds(21);
+		public TimeSpan ReasonableRequestTimeout { get; } = TimeSpan.FromMinutes(3);
 
 		#endregion SharedVariables
 
