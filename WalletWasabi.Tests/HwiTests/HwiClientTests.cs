@@ -11,12 +11,64 @@ namespace WalletWasabi.Tests.HwiTests
 {
 	public class HwiClientTests
 	{
+		#region SharedVariables
+
+		public TimeSpan ReasonableRequestTimeout { get; } = TimeSpan.FromSeconds(3);
+
+		#endregion SharedVariables
+
+		#region Tests
+
 		[Theory]
 		[MemberData(nameof(GetDifferentNetworkValues))]
 		public void CanCreate(Network network)
 		{
 			new HwiClient(network);
 		}
+
+		[Fact]
+		public void ConstructorThrowsArgumentNullException()
+		{
+			Assert.Throws<ArgumentNullException>(() => new HwiClient(null));
+		}
+
+		[Theory]
+		[MemberData(nameof(GetHwiClientConfigurationCombinationValues))]
+		public async Task GetVersionTestsAsync(HwiClient client)
+		{
+			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
+			{
+				Version version = await client.GetVersionAsync(cts.Token);
+				Assert.Equal(new Version("1.0.1"), version);
+			}
+		}
+
+		[Theory]
+		[MemberData(nameof(GetHwiClientConfigurationCombinationValues))]
+		public async Task GetHelpTestsAsync(HwiClient client)
+		{
+			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
+			{
+				string help = await client.GetHelpAsync(cts.Token);
+				Assert.NotEmpty(help);
+			}
+		}
+
+		[Theory]
+		[MemberData(nameof(GetHwiClientConfigurationCombinationValues))]
+		public async Task ThrowOperationCanceledExceptionsAsync(HwiClient client)
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.GetVersionAsync(cts.Token));
+				await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.GetHelpAsync(cts.Token));
+			}
+		}
+
+		#endregion Tests
+
+		#region HelperMethods
 
 		public static IEnumerable<object[]> GetDifferentNetworkValues()
 		{
@@ -33,28 +85,21 @@ namespace WalletWasabi.Tests.HwiTests
 			}
 		}
 
-		[Fact]
-		public void ConstructorThrowsArgumentNullException()
+		public static IEnumerable<object[]> GetHwiClientConfigurationCombinationValues()
 		{
-			Assert.Throws<ArgumentNullException>(() => new HwiClient(null));
-		}
-
-		[Theory]
-		[MemberData(nameof(GetDifferentNetworkValues))]
-		public async Task GetVersionTestsAsync(Network network)
-		{
-			var client = new HwiClient(network);
-
-			using (var cts = new CancellationTokenSource(3000))
+			var networks = new List<Network>
 			{
-				Version version = await client.GetVersionAsync(cts.Token);
-				Assert.Equal(new Version("1.0.1"), version);
-			}
+				Network.Main,
+				Network.TestNet,
+				Network.RegTest
+			};
 
-			using (var cts = new CancellationTokenSource(1))
+			foreach (Network network in networks)
 			{
-				await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.GetVersionAsync(cts.Token));
+				yield return new object[] { new HwiClient(network) };
 			}
 		}
+
+		#endregion HelperMethods
 	}
 }

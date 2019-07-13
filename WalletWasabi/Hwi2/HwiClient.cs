@@ -12,19 +12,28 @@ namespace WalletWasabi.Hwi2
 {
 	public class HwiClient
 	{
+		#region PropertiesAndMembers
+
 		public Network Network { get; }
+
+		#endregion PropertiesAndMembers
+
+		#region ConstructorsAndInitializers
 
 		public HwiClient(Network network)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 		}
 
-		public async Task<Version> GetVersionAsync(CancellationToken cancel)
+		#endregion ConstructorsAndInitializers
+
+		#region Commands
+
+		public async Task<string> SendCommandAsync(string arguments, CancellationToken cancel)
 		{
 			var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
 			var hwiPath = Path.Combine(fullBaseDirectory, "Hwi2", "Binaries", "hwi-win64", "hwi.exe");
 
-			string arguments = "--version";
 			try
 			{
 				using (var process = Process.Start(
@@ -48,19 +57,7 @@ namespace WalletWasabi.Hwi2
 
 					string responseString = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
 
-					// Example output: hwi 1.0.0
-					if (TryParseVersion(responseString, "hwi", out Version v1))
-					{
-						return v1;
-					}
-
-					// Example output: hwi.exe 1.0.0
-					if (TryParseVersion(responseString, "hwi.exe", out Version v2))
-					{
-						return v2;
-					}
-
-					throw new FormatException($"Cannot parse version from HWI's response. Response: {responseString}.");
+					return responseString;
 				}
 			}
 			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
@@ -68,6 +65,36 @@ namespace WalletWasabi.Hwi2
 				throw new OperationCanceledException($"'hwi {arguments}' operation is canceled.", ex);
 			}
 		}
+
+		public async Task<Version> GetVersionAsync(CancellationToken cancel)
+		{
+			string responseString = await SendCommandAsync("--version", cancel).ConfigureAwait(false);
+
+			// Example output: hwi 1.0.0
+			if (TryParseVersion(responseString, "hwi", out Version v1))
+			{
+				return v1;
+			}
+
+			// Example output: hwi.exe 1.0.0
+			if (TryParseVersion(responseString, "hwi.exe", out Version v2))
+			{
+				return v2;
+			}
+
+			throw new FormatException($"Cannot parse version from HWI's response. Response: {responseString}.");
+		}
+
+		public async Task<string> GetHelpAsync(CancellationToken cancel)
+		{
+			string responseString = await SendCommandAsync("--help", cancel).ConfigureAwait(false);
+
+			return responseString;
+		}
+
+		#endregion Commands
+
+		#region Helpers
 
 		public static bool TryParseVersion(string hwiResponse, string substringFrom, out Version version)
 		{
@@ -82,5 +109,7 @@ namespace WalletWasabi.Hwi2
 
 			return false;
 		}
+
+		#endregion Helpers
 	}
 }
