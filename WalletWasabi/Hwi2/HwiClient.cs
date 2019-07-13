@@ -55,17 +55,17 @@ namespace WalletWasabi.Hwi2
 				{
 					await process.WaitForExitAsync(cancel).ConfigureAwait(false);
 
+					string responseString = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
 					if (process.ExitCode != 0)
 					{
-						throw new IOException($"'hwi {arguments}' exited with incorrect exit code.", process.ExitCode);
+						ThrowIfError(responseString);
+						throw new HwiException(HwiErrorCode.UnknownError, $"'hwi {arguments}' exited with incorrect exit code: {process.ExitCode}.");
 					}
 
-					string responseString = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+					ThrowIfError(responseString);
 
 					if (JsonHelpers.TryParseJToken(responseString, out JToken responseJToken))
 					{
-						ThrowIfError(responseJToken);
-
 						return responseString;
 					}
 					else
@@ -127,6 +127,12 @@ namespace WalletWasabi.Hwi2
 			return responseString;
 		}
 
+		public async Task<string> DisplayAddressAsync(CancellationToken cancel)
+		{
+			string responseString = await SendCommandAsync(options: null, command: HwiCommands.DisplayAddress, cancel).ConfigureAwait(false);
+			return responseString;
+		}
+
 		#endregion Commands
 
 		#region Helpers
@@ -145,33 +151,46 @@ namespace WalletWasabi.Hwi2
 			return false;
 		}
 
-		private static void ThrowIfError(JToken responseJToken)
+		private static void ThrowIfError(string responseString)
 		{
-			if (responseJToken.HasValues)
+			if (JsonHelpers.TryParseJToken(responseString, out JToken responseJToken))
 			{
-				var errToken = responseJToken["error"];
-				var codeToken = responseJToken["code"];
-				string err = "";
-				HwiErrorCode? code = null;
-				if (errToken != null)
+				if (responseJToken.HasValues)
 				{
-					err = Guard.Correct(errToken.Value<string>());
-				}
-				if (codeToken != null)
-				{
-					var codeInt = codeToken.Value<int>();
-					if (Enum.IsDefined(typeof(HwiErrorCode), codeInt))
+					var errToken = responseJToken["error"];
+					var codeToken = responseJToken["code"];
+					string err = "";
+					HwiErrorCode? code = null;
+					if (errToken != null)
 					{
-						code = (HwiErrorCode)codeInt;
+						err = Guard.Correct(errToken.Value<string>());
+					}
+					if (codeToken != null)
+					{
+						var codeInt = codeToken.Value<int>();
+						if (Enum.IsDefined(typeof(HwiErrorCode), codeInt))
+						{
+							code = (HwiErrorCode)codeInt;
+						}
+					}
+
+					if (code.HasValue)
+					{
+						throw new HwiException(code.Value, err);
+					}
+					else if (err != "")
+					{
+						throw new HwiException(HwiErrorCode.UnknownError, err);
 					}
 				}
-
-				if (code.HasValue)
+			}
+			else
+			{
+				var subString = "error:";
+				if (responseString.Contains(subString, StringComparison.OrdinalIgnoreCase))
 				{
-					throw new HwiException(code.Value, err);
-				}
-				else if (err != "")
-				{
+					int startIndex = responseString.IndexOf(subString, StringComparison.OrdinalIgnoreCase) + subString.Length;
+					var err = responseString.Substring(startIndex);
 					throw new HwiException(HwiErrorCode.UnknownError, err);
 				}
 			}
