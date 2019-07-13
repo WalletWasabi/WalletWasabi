@@ -22,7 +22,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<bool> _unspent;
 		private ObservableAsPropertyHelper<bool> _confirmed;
 		private ObservableAsPropertyHelper<bool> _unavailable;
-		private CoinListViewModel _owner;
+		private readonly CoinListViewModel _owner;
 		public Global Global => _owner.Global;
 
 		public CoinViewModel(CoinListViewModel owner, SmartCoin model)

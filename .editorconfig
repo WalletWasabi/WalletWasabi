@@ -100,6 +100,9 @@ dotnet_style_prefer_is_null_check_over_reference_equality_method = true:error
 #prefer braces
 csharp_prefer_braces = true:error
 
+#prefer readonly fields
+dotnet_style_readonly_field = true:error
+
 
 # name all constant fields using PascalCase
 dotnet_naming_rule.constant_fields_should_be_pascal_case.severity = error

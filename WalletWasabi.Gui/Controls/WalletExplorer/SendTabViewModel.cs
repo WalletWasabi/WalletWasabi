@@ -39,7 +39,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _feeTarget;
 		private int _minimumFeeTarget;
 		private int _maximumFeeTarget;
-		private ObservableAsPropertyHelper<bool> _minMaxFeeTargetsEqual;
+		private readonly ObservableAsPropertyHelper<bool> _minMaxFeeTargetsEqual;
 		private string _confirmationExpectedText;
 		private string _feeText;
 		private decimal _usdFee;

@@ -25,7 +25,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public SourceList<CoinViewModel> RootList { get; private set; }
 
-		private ReadOnlyObservableCollection<CoinViewModel> _coinViewModels;
+		private readonly ReadOnlyObservableCollection<CoinViewModel> _coinViewModels;
 		private SortExpressionComparer<CoinViewModel> _myComparer;
 
 		private CoinViewModel _selectedCoin;
