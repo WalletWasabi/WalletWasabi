@@ -81,6 +81,28 @@ namespace WalletWasabi.Tests.HwiTests
 			}
 		}
 
+		[Theory]
+		[MemberData(nameof(GetHwiClientConfigurationCombinationValues))]
+		public async Task CanCallAsynchronouslyAsync(HwiClient client)
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				var tasks = new List<Task>
+				{
+					client.GetVersionAsync(cts.Token),
+					client.GetVersionAsync(cts.Token),
+					client.GetHelpAsync(cts.Token),
+					client.GetHelpAsync(cts.Token),
+					client.EnumerateAsync(cts.Token),
+					client.EnumerateAsync(cts.Token)
+				};
+
+				cts.CancelAfter(ReasonableRequestTimeout * tasks.Count);
+
+				await Task.WhenAny(tasks);
+			}
+		}
+
 		#endregion Tests
 
 		#region HelperMethods
