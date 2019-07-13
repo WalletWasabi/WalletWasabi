@@ -1,8 +1,8 @@
+using System;
 using ReactiveUI;
 using System.Reactive.Disposables;
 using WalletWasabi.Gui.Models;
-
-using System;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -14,7 +14,7 @@ namespace WalletWasabi.Gui.ViewModels
 
         public LockScreenViewModel(Global global)
         {
-            Global = global;
+            Global = Guard.NotNull(nameof(Global), global);
         }
 
         private LockScreenType _lockScreenType;
