@@ -17,9 +17,7 @@ namespace WalletWasabi.Tests.HwiTests
 	{
 		#region SharedVariables
 
-		/// <summary>
-		/// Bottleneck: Windows CI.
-		/// </summary>
+		// Bottleneck: Windows CI.
 		public TimeSpan ReasonableRequestTimeout { get; } = TimeSpan.FromMinutes(1);
 
 		#endregion SharedVariables
