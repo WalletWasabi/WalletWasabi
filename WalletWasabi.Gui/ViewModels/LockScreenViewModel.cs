@@ -3,6 +3,7 @@ using ReactiveUI;
 using System.Reactive.Disposables;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Helpers;
+using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -41,14 +42,17 @@ namespace WalletWasabi.Gui.ViewModels
         public void Initialize()
         {
             Global.UiConfig.WhenAnyValue(x => x.LockScreenActive)
+						   .ObserveOn(RxApp.MainThreadScheduler)
                            .BindTo(this, y => y.IsLocked)
                            .DisposeWith(Disposables);
 
             this.WhenAnyValue(x => x.IsLocked)
+						   .ObserveOn(RxApp.MainThreadScheduler)
                            .BindTo(Global.UiConfig, y => y.LockScreenActive)
                            .DisposeWith(Disposables);
 
             Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash)
+						   .ObserveOn(RxApp.MainThreadScheduler)
                            .Subscribe(CheckLockScreenType)
                            .DisposeWith(Disposables);
         }
