@@ -9,7 +9,10 @@ using Xunit;
 
 namespace WalletWasabi.Tests.HwiTests
 {
-	public class HwiClientTests
+	/// <summary>
+	/// Tests to run without connecting any hardware wallet to the computer.
+	/// </summary>
+	public class NoConnectedDeviceTests
 	{
 		#region SharedVariables
 
@@ -56,6 +59,17 @@ namespace WalletWasabi.Tests.HwiTests
 
 		[Theory]
 		[MemberData(nameof(GetHwiClientConfigurationCombinationValues))]
+		public async Task CanEnumerateTestsAsync(HwiClient client)
+		{
+			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
+			{
+				IEnumerable<string> enumerate = await client.EnumerateAsync(cts.Token);
+				Assert.Empty(enumerate);
+			}
+		}
+
+		[Theory]
+		[MemberData(nameof(GetHwiClientConfigurationCombinationValues))]
 		public async Task ThrowOperationCanceledExceptionsAsync(HwiClient client)
 		{
 			using (var cts = new CancellationTokenSource())
@@ -63,6 +77,7 @@ namespace WalletWasabi.Tests.HwiTests
 				cts.Cancel();
 				await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.GetVersionAsync(cts.Token));
 				await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.GetHelpAsync(cts.Token));
+				await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.EnumerateAsync(cts.Token));
 			}
 		}
 
