@@ -183,7 +183,7 @@ namespace Mono.Options
 
 			if (prototype.Length == 0)
 			{
-				throw new ArgumentException("Cannot be the empty string.", nameof(prototype));
+				throw new ArgumentException("Cannot be an empty string.", nameof(prototype));
 			}
 
 			if (maxValueCount < 0)

@@ -239,19 +239,19 @@ namespace WalletWasabi.Models
 		public static bool operator <(Height x, Height y) => x.Value < y.Value;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is greater or equal to right-side value.
+		/// Performs a comparison and return if left-side value is greater than or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Height value to compare.</param>
-		/// <returns>true if left-hand value is greater or equal to right-side value; otherwise false.</returns>
+		/// <returns>true if left-hand value is greater than or equal to right-side value; otherwise false.</returns>
 		public static bool operator >=(Height x, Height y) => x.Value >= y.Value;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is less or equal to right-side value.
+		/// Performs a comparison and return if left-side value is less than or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Height value to compare.</param>
-		/// <returns>true if left-hand value is less or equal to right-side value; otherwise false.</returns>
+		/// <returns>true if left-hand value is less than or equal to right-side value; otherwise false.</returns>
 		public static bool operator <=(Height x, Height y) => x.Value <= y.Value;
 
 		/// <summary>
@@ -287,35 +287,35 @@ namespace WalletWasabi.Models
 		public static bool operator <(Height x, int y) => x.Value < y;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is greater or equal to right-side value.
+		/// Performs a comparison and return if left-side value is greater than or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Int32 value to compare.</param>
 		/// <param name="y">The right-hand Height value to compare.</param>
-		/// <returns>true if left-hand value is greater or equal to right-side value; otherwise false.</returns>
+		/// <returns>true if left-hand value is greater than or equal to right-side value; otherwise false.</returns>
 		public static bool operator >=(int x, Height y) => x >= y.Value;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is less or equal to right-side value.
+		/// Performs a comparison and return if left-side value is less than or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Int32 value to compare.</param>
 		/// <param name="y">The right-hand Height value to compare.</param>
-		/// <returns>true if left-hand value is less or equal to right-side value; otherwise false.</returns>
+		/// <returns>true if left-hand value is less than or equal to right-side value; otherwise false.</returns>
 		public static bool operator <=(int x, Height y) => x <= y.Value;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is greater or equal to right-side value.
+		/// Performs a comparison and return if left-side value is greater than or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Int32 value to compare.</param>
-		/// <returns>true if left-hand value is greater or equal to right-side value; otherwise false.</returns>
+		/// <returns>true if left-hand value is greater than or equal to right-side value; otherwise false.</returns>
 		public static bool operator >=(Height x, int y) => x.Value >= y;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is less or equal to right-side value.
+		/// Performs a comparison and return if left-side value is less than or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Int32 value to compare.</param>
-		/// <returns>true if left-hand value is less or equal to right-side value; otherwise false.</returns>
+		/// <returns>true if left-hand value is less than or equal to right-side value; otherwise false.</returns>
 		public static bool operator <=(Height x, int y) => x.Value <= y;
 
 		#endregion EqualityAndComparison
