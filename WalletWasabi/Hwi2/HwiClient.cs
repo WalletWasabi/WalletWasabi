@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -198,8 +199,26 @@ namespace WalletWasabi.Hwi2
 
 		private static string GetHwiPath()
 		{
-			var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
-			var hwiPath = Path.Combine(fullBaseDirectory, "Hwi2", "Binaries", "hwi-win64", "hwi.exe");
+			var fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
+
+			string hwiPartialPath;
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				hwiPartialPath = Path.Combine("Hwi2", "Binaries", "hwi-win64", "hwi.exe");
+			}
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			{
+				hwiPartialPath = Path.Combine("Hwi2", "Binaries", "hwi-lin64", "hwi");
+			}
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				hwiPartialPath = Path.Combine("Hwi2", "Binaries", "hwi-osx64", "hwi");
+			}
+			else
+			{
+				throw new NotSupportedException("Operating system is not supported.");
+			}
+			var hwiPath = Path.Combine(fullBaseDirectory, hwiPartialPath);
 			return hwiPath;
 		}
 

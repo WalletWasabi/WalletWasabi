@@ -191,5 +191,20 @@ namespace WalletWasabi.Helpers
 			}
 			return false;
 		}
+
+		public static string GetFullBaseDirectory()
+		{
+			var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
+
+			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				if (!fullBaseDirectory.StartsWith('/'))
+				{
+					fullBaseDirectory.Insert(0, "/");
+				}
+			}
+
+			return fullBaseDirectory;
+		}
 	}
 }
