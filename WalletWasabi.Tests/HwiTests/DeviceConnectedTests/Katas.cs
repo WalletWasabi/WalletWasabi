@@ -12,7 +12,11 @@ using Xunit;
 
 namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 {
-	public class UserWorkflowTests
+	/// <summary>
+	/// A kata is a type of test that requires user interaction.
+	/// User interaction shall be defined in the beginning of the each kata.
+	/// </summary>
+	public class Katas
 	{
 		#region SharedVariables
 
@@ -22,7 +26,7 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 		#endregion SharedVariables
 
 		[Fact]
-		public async Task TrezorTTestsAsync()
+		public async Task TrezorTKataAsync()
 		{
 			// --- USER INTERACTIONS ---
 			//
