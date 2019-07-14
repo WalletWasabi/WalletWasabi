@@ -13,6 +13,7 @@ using Xunit;
 namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 {
 	/// <summary>
+	/// Kata tests are intended to be run one by one.
 	/// A kata is a type of test that requires user interaction.
 	/// User interaction shall be defined in the beginning of the each kata.
 	/// </summary>
@@ -21,7 +22,7 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 		#region SharedVariables
 
 		// Bottleneck: user action on device.
-		public TimeSpan ReasonableRequestTimeout { get; } = TimeSpan.FromMinutes(1);
+		public TimeSpan ReasonableRequestTimeout { get; } = TimeSpan.FromMinutes(3);
 
 		#endregion SharedVariables
 
@@ -30,23 +31,23 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 		{
 			// --- USER INTERACTIONS ---
 			//
-			// Connect a the device.
+			// Connect a the device and unlock if it's not wiped.
 			// Run this test.
 			// Wipe request: confirm.
 			// Wipe request: confirm.
-			// Wipe request: pull out the device.
+			// Setup request: refuse.
+			// Setup request: confirm and setup.
 			//
 			// --- USER INTERACTIONS ---
 
 			var client = new HwiClient(Network.Main);
-			string devicePath;
-			HardwareWalletVendors deviceType;
 			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
 			{
 				var enumerate = await client.EnumerateAsync(cts.Token);
 				HwiEnumerateEntry entry = enumerate.Single();
-				devicePath = entry.Path;
-				deviceType = entry.Type.Value;
+
+				string devicePath = entry.Path;
+				HardwareWalletVendors deviceType = entry.Type.Value;
 
 				// User should confirm the device action here.
 				await client.WipeAsync(deviceType, devicePath, cts.Token);
@@ -64,19 +65,15 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				Assert.NotEmpty(entry.Error);
 				Assert.Equal(HwiErrorCode.NotInitialized, entry.Code);
 				Assert.Null(entry.Fingerprint);
-			}
-
-			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
-			{
-				await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.WipeAsync(deviceType, null, cts.Token));
-				await Assert.ThrowsAsync<ArgumentException>(async () => await client.WipeAsync(deviceType, "", cts.Token));
-				await Assert.ThrowsAsync<ArgumentException>(async () => await client.WipeAsync(deviceType, " ", cts.Token));
 
 				// User should confirm the device action here.
 				await client.WipeAsync(deviceType, devicePath, cts.Token);
 
-				// User should make it fail by plug out the device.
-				await Assert.ThrowsAsync<HwiException>(async () => await client.WipeAsync(deviceType, devicePath, cts.Token));
+				// User should refuse the device action here.
+				await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, cts.Token));
+
+				// User should confirm the device action and setup a new device here.
+				await client.SetupAsync(deviceType, devicePath, cts.Token);
 			}
 		}
 	}

@@ -88,6 +88,26 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 
 		[Theory]
 		[MemberData(nameof(GetHwiClientConfigurationCombinationValues))]
+		public async Task ThrowArgumentExceptionsForWrongDevicePathAsync(HwiClient client)
+		{
+			var wrongDeviePaths = new[] { "", " " };
+			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
+			{
+				foreach (HardwareWalletVendors deviceType in Enum.GetValues(typeof(HardwareWalletVendors)))
+				{
+					foreach (var wrongDevicePath in wrongDeviePaths)
+					{
+						await Assert.ThrowsAsync<ArgumentException>(async () => await client.WipeAsync(deviceType, wrongDevicePath, cts.Token));
+						await Assert.ThrowsAsync<ArgumentException>(async () => await client.SetupAsync(deviceType, wrongDevicePath, cts.Token));
+					}
+					await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.WipeAsync(deviceType, null, cts.Token));
+					await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.SetupAsync(deviceType, null, cts.Token));
+				}
+			}
+		}
+
+		[Theory]
+		[MemberData(nameof(GetHwiClientConfigurationCombinationValues))]
 		public async Task CanCallAsynchronouslyAsync(HwiClient client)
 		{
 			using (var cts = new CancellationTokenSource())

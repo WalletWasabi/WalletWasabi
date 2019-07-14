@@ -43,11 +43,9 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 				Assert.Null(entry.Fingerprint);
 
 				var deviceType = entry.Type.Value;
-				await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.WipeAsync(deviceType, null, cts.Token));
-				await Assert.ThrowsAsync<ArgumentException>(async () => await client.WipeAsync(deviceType, "", cts.Token));
-				await Assert.ThrowsAsync<ArgumentException>(async () => await client.WipeAsync(deviceType, " ", cts.Token));
 
 				await client.WipeAsync(deviceType, entry.Path, cts.Token);
+				await client.SetupAsync(deviceType, entry.Path, cts.Token);
 			}
 		}
 

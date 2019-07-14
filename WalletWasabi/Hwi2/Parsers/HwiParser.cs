@@ -257,7 +257,7 @@ namespace WalletWasabi.Hwi2.Parsers
 
 			if (network != Network.Main)
 			{
-				fullOptions.Insert(0, new HwiOption(HwiOptions.TestNet));
+				fullOptions.Insert(0, HwiOption.TestNet);
 			}
 
 			var optionsString = string.Join(" --", fullOptions.Select(x =>
@@ -297,6 +297,11 @@ namespace WalletWasabi.Hwi2.Parsers
 
 			var arguments = argumentBuilder.ToString().Trim();
 			return arguments;
+		}
+
+		public static string ToHwiFriendlyString(this HardwareWalletVendors me)
+		{
+			return me.ToString().ToLowerInvariant();
 		}
 	}
 }

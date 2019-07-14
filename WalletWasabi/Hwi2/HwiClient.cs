@@ -73,16 +73,23 @@ namespace WalletWasabi.Hwi2
 
 		public async Task WipeAsync(HardwareWalletVendors deviceType, string devicePath, CancellationToken cancel)
 		{
-			devicePath = Guard.NotNullOrEmptyOrWhitespace(nameof(devicePath), devicePath, trim: true);
 			await SendCommandAsync(
-				options: new[] { new HwiOption(HwiOptions.DevicePath, devicePath), new HwiOption(HwiOptions.DeviceType, deviceType.ToString().ToLowerInvariant()) },
+				options: new[] { HwiOption.DevicePath(devicePath), HwiOption.DeviceType(deviceType) },
 				command: HwiCommands.Wipe,
+				cancel).ConfigureAwait(false);
+		}
+
+		public async Task SetupAsync(HardwareWalletVendors deviceType, string devicePath, CancellationToken cancel)
+		{
+			await SendCommandAsync(
+				options: new[] { HwiOption.DevicePath(devicePath), HwiOption.DeviceType(deviceType), HwiOption.Interactive },
+				command: HwiCommands.Setup,
 				cancel).ConfigureAwait(false);
 		}
 
 		public async Task<Version> GetVersionAsync(CancellationToken cancel)
 		{
-			string responseString = await SendCommandAsync(options: new[] { new HwiOption(HwiOptions.Version) }, command: null, cancel).ConfigureAwait(false);
+			string responseString = await SendCommandAsync(options: new[] { HwiOption.Version }, command: null, cancel).ConfigureAwait(false);
 
 			var version = HwiParser.ParseVersion(responseString);
 			return version;
@@ -90,7 +97,7 @@ namespace WalletWasabi.Hwi2
 
 		public async Task<string> GetHelpAsync(CancellationToken cancel)
 		{
-			string responseString = await SendCommandAsync(options: new[] { new HwiOption(HwiOptions.Help) }, command: null, cancel).ConfigureAwait(false);
+			string responseString = await SendCommandAsync(options: new[] { HwiOption.Help }, command: null, cancel).ConfigureAwait(false);
 
 			return responseString;
 		}
