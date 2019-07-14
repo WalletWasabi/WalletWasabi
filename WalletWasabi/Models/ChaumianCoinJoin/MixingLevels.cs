@@ -82,7 +82,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				}
 				return _schnorrPubKeys;
 			}
-			set { _schnorrPubKeys = value; }
+			set => _schnorrPubKeys = value;
 		}
 
 		public int GetMaxLevel() => Levels.Count - 1;
