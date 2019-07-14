@@ -332,7 +332,7 @@ namespace WalletWasabi.Services
 						// But it cannot be larger than the current anonymitySet of that round.
 						newAnonymitySet = Math.Min(newAnonymitySet, nextRound.AnonymitySet);
 
-						// Only change the anonymity set of the next round if new anonymitySet does not equal and newAnonymitySet larger than 1.
+						// Only change the anonymity set of the next round if new anonymitySet does not equal and newAnonymitySet is larger than 1.
 						if (nextRound.AnonymitySet != newAnonymitySet && newAnonymitySet > 1)
 						{
 							nextRound.UpdateAnonymitySet(newAnonymitySet, syncLock: false);
