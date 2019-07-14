@@ -191,7 +191,7 @@ namespace WalletWasabi.KeyManagement
 			{
 				MinGapLimit = AbsoluteMinGapLimit;
 			}
-			// AssertCleanKeysIndexed(); Don't do this. Wallet file is null yet.
+			// AssertCleanKeysIndexed(); Do not do this. Wallet file is null yet.
 		}
 
 		public void SetFilePath(string filePath)

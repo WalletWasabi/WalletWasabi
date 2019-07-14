@@ -26,7 +26,8 @@ namespace WalletWasabi.Gui.Controls
 
 		public EditableTextBlock()
 		{
-			EditClickTimer = new DispatcherTimer {
+			EditClickTimer = new DispatcherTimer
+			{
 				Interval = TimeSpan.FromMilliseconds(500),
 			};
 

@@ -31,7 +31,7 @@ namespace WalletWasabi.Gui.Controls
 			"说太多灯泡笑话的人，很快就会心力交瘁。", // Man who tell one too many light bulb jokes soon burn out!
 			"汤面火锅", //Noodle soup, hot pot
 			"你是我见过的最可爱的僵尸。", //You’re the cutest zombie I’ve ever seen.
-			"永不放弃。", //Never don't give up.
+			"永不放弃。", //Never do not give up.
 			"如果你是只宠物小精灵，我就选你。" //If you were a Pokemon, I'd choose you.
 		};
 
@@ -208,20 +208,16 @@ namespace WalletWasabi.Gui.Controls
 					return;
 				}
 
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-				{
-					if (e.Key == Key.V && e.Modifiers == InputModifiers.Control) // Prevent paste.
-					{
-						return;
-					}
-				}
-
 				bool paste = false;
 				if (e.Key == Key.V)
 				{
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 					{
-						if (e.Modifiers == InputModifiers.Windows)
+						if (e.Modifiers == InputModifiers.Control) // Prevent paste.
+						{
+							return;
+						}
+						else if (e.Modifiers == InputModifiers.Windows)
 						{
 							paste = true;
 						}
@@ -247,35 +243,38 @@ namespace WalletWasabi.Gui.Controls
 						}
 					}
 				}
-				else if (e.Key == Key.Back && Sb.Length > 0) // Backspace button -> delete from the end.
+				else if (Sb.Length > 0)
 				{
-					if (SelectionLength != 0)
+					if (e.Key == Key.Back) // Backspace button -> delete from the end.
 					{
-						Sb.Clear();
-					}
-					else
-					{
-						if (CaretIndex == Text.Length)
+						if (SelectionLength == 0)
 						{
-							Sb.Remove(Sb.Length - 1, 1);
+							if (CaretIndex == Text.Length)
+							{
+								Sb.Remove(Sb.Length - 1, 1);
+							}
 						}
-					}
-					e.Handled = true;
-				}
-				else if (e.Key == Key.Delete && Sb.Length > 0) //Delete button -> delete from the beginning.
-				{
-					if (SelectionLength != 0)
-					{
-						Sb.Clear();
-					}
-					else
-					{
-						if (CaretIndex == 0)
+						else
 						{
-							Sb.Remove(0, 1);
+							Sb.Clear();
 						}
+						e.Handled = true;
 					}
-					e.Handled = true;
+					else if (e.Key == Key.Delete) //Delete button -> delete from the beginning.
+					{
+						if (SelectionLength == 0)
+						{
+							if (CaretIndex == 0)
+							{
+								Sb.Remove(0, 1);
+							}
+						}
+						else
+						{
+							Sb.Clear();
+						}
+						e.Handled = true;
+					}
 				}
 				else
 				{
@@ -314,7 +313,7 @@ namespace WalletWasabi.Gui.Controls
 				SelectionStart = SelectionEnd = CaretIndex = 0;
 				_supressChanges = false;
 			}
-			if (isPaste && Sb.Length + text.Length > Constants.MaxPasswordLength) // Don't allow pastes that would be too long
+			if (isPaste && Sb.Length + text.Length > Constants.MaxPasswordLength) // Do not allow pastes that would be too long
 			{
 				handledCorrectly = false;
 			}

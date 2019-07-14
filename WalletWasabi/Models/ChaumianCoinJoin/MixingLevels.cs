@@ -76,13 +76,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			get
 			{
-				if (_schnorrPubKeys?.Count() != Levels?.Count) // Signing keys don't change, but more levels may be added. (Although even that's unlikely.)
+				if (_schnorrPubKeys?.Count() != Levels?.Count) // Signing keys do not change, but more levels may be added. (Although even that's unlikely.)
 				{
 					_schnorrPubKeys = Levels.Select(x => x.Signer.GetSchnorrPubKey());
 				}
 				return _schnorrPubKeys;
 			}
-			set { _schnorrPubKeys = value; }
+			set => _schnorrPubKeys = value;
 		}
 
 		public int GetMaxLevel() => Levels.Count - 1;

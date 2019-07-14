@@ -183,7 +183,7 @@ namespace Mono.Options
 
 			if (prototype.Length == 0)
 			{
-				throw new ArgumentException("Cannot be the empty string.", nameof(prototype));
+				throw new ArgumentException("Cannot be an empty string.", nameof(prototype));
 			}
 
 			if (maxValueCount < 0)
@@ -329,14 +329,16 @@ namespace Mono.Options
 				return OptionValueType.None;
 			}
 
-			if (MaxValueCount <= 1 && seps.Count != 0)
+			if (MaxValueCount <= 1)
 			{
-				throw new ArgumentException(
-					$"Cannot provide key/value separators for Options taking {MaxValueCount} value(s).",
+				if (seps.Count != 0)
+				{
+					throw new ArgumentException(
+						$"Cannot provide key/value separators for Options taking {MaxValueCount} value(s).",
 						"prototype");
+				}
 			}
-
-			if (MaxValueCount > 1)
+			else
 			{
 				if (seps.Count == 0)
 				{

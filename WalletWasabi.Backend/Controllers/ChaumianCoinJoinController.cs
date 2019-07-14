@@ -60,7 +60,8 @@ namespace WalletWasabi.Backend.Controllers
 
 			foreach (CcjRound round in Coordinator.GetRunningRounds())
 			{
-				var state = new CcjRunningRoundState {
+				var state = new CcjRunningRoundState
+				{
 					Phase = round.Phase,
 					SchnorrPubKeys = round.MixingLevels.SchnorrPubKeys,
 					Denomination = round.MixingLevels.GetBaseDenomination(),
@@ -328,7 +329,8 @@ namespace WalletWasabi.Backend.Controllers
 						}
 					}
 
-					var resp = new InputsResponse {
+					var resp = new InputsResponse
+					{
 						UniqueId = alice.UniqueId,
 						RoundId = round.RoundId
 					};
@@ -373,7 +375,8 @@ namespace WalletWasabi.Backend.Controllers
 			CcjRoundPhase phase = round.Phase;
 
 			// Start building the response.
-			var resp = new ConnConfResp {
+			var resp = new ConnConfResp
+			{
 				CurrentPhase = phase
 			};
 
@@ -392,7 +395,7 @@ namespace WalletWasabi.Backend.Controllers
 
 						alice.BlindedOutputScripts = alice.BlindedOutputScripts.Take(takeBlindCount).ToArray();
 						alice.BlindedOutputSignatures = alice.BlindedOutputSignatures.Take(takeBlindCount).ToArray();
-						resp.BlindedOutputSignatures = alice.BlindedOutputSignatures; // Don't give back more mixing levels than we'll use.
+						resp.BlindedOutputSignatures = alice.BlindedOutputSignatures; // Do not give back more mixing levels than we'll use.
 
 						// Progress round if needed.
 						if (round.AllAlices(AliceState.ConnectionConfirmed))

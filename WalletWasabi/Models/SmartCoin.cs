@@ -281,7 +281,7 @@ namespace WalletWasabi.Models
 		#region NonSerializableProperties
 
 		/// <summary>
-		/// It's a secret, so it's usually going to be null. Don't use it.
+		/// It's a secret, so it's usually going to be null. Do not use it.
 		/// This will not get serialized, because that's a security risk.
 		/// </summary>
 		public ISecret Secret
