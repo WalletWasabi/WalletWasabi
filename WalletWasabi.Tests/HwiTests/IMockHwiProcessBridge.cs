@@ -3,21 +3,32 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Hwi2.Models;
 using WalletWasabi.Interfaces;
 
 namespace WalletWasabi.Tests.HwiTests
 {
 	public class IMockHwiProcessBridge : IProcessBridge
 	{
+		public AllHardwareWallets Type { get; }
+
+		public IMockHwiProcessBridge(AllHardwareWallets type)
+		{
+			Type = type;
+		}
+
 		public Task<(string response, int exitCode)> SendCommandAsync(string arguments, CancellationToken cancel)
 		{
-			if (arguments == "--testnet enumerate")
+			if (arguments == "enumerate")
 			{
-				var response = "[{\"type\": \"ledger\", \"path\": \"IOService:/ AppleACPIPlatformExpert / PCI0@0 / AppleACPIPCI / XHC1@14 / XHC1@14000000 / HS02@14200000 / Nano S@14200000 / Nano S@0 / IOUSBHostHIDDevice@14200000,0\", \"serial_number\": \"0001\"}]";
-				var code = 0;
-				return Task.FromResult((response, code));
+				if (Type == AllHardwareWallets.TrezorT)
+				{
+					var response = "[{\"type\": \"trezor\", \"path\": \"webusb: 001:4\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false, \"error\": \"Not initialized\"}]";
+					var code = 0;
+					return Task.FromResult((response, code));
+				}
 			}
-			else
+
 			{
 				throw new NotImplementedException($"Mocking is not implemented for '{arguments}'");
 			}

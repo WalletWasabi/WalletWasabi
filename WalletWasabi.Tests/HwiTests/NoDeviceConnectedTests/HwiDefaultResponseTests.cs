@@ -8,12 +8,12 @@ using WalletWasabi.Hwi2;
 using WalletWasabi.Hwi2.Exceptions;
 using Xunit;
 
-namespace WalletWasabi.Tests.HwiTests
+namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 {
 	/// <summary>
 	/// Tests to run without connecting any hardware wallet to the computer.
 	/// </summary>
-	public class NoConnectedDeviceTests
+	public class HwiDefaultResponseTests
 	{
 		#region SharedVariables
 
