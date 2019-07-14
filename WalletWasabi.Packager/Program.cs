@@ -818,6 +818,7 @@ namespace WalletWasabi.Packager
 					var desktopFileContent = $"[Desktop Entry]\n" +
 												$"Type=Application\n" +
 												$"Name=Wasabi Wallet\n" +
+												$"StartupWMClass=Wasabi Wallet\n" +
 												$"GenericName=Bitcoin Wallet\n" +
 												$"Comment=Privacy focused Bitcoin wallet.\n" +
 												$"Icon={ExecutableName}\n" +
