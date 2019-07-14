@@ -37,6 +37,7 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 			// Wipe request: confirm.
 			// Setup request: refuse.
 			// Setup request: confirm and setup.
+			// Wipe request: confirm.
 			//
 			// --- USER INTERACTIONS ---
 
@@ -63,7 +64,7 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				Assert.False(entry.NeedsPinSent);
 				Assert.NotNull(entry.Error);
 				Assert.NotEmpty(entry.Error);
-				Assert.Equal(HwiErrorCode.NotInitialized, entry.Code);
+				Assert.Equal(HwiErrorCode.DeviceNotInitialized, entry.Code);
 				Assert.Null(entry.Fingerprint);
 
 				// User should confirm the device action here.
@@ -74,6 +75,16 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 
 				// User should confirm the device action and setup a new device here.
 				await client.SetupAsync(deviceType, devicePath, cts.Token);
+
+				// User should confirm the device action here.
+				await client.WipeAsync(deviceType, devicePath, cts.Token);
+
+				// ToDo: Restore
+				// ToDo: Backup
+				// ToDo: getxpub
+				// ToDo: displayaddress
+				// ToDo: signmessage
+				// ToDo: signtx
 			}
 		}
 	}

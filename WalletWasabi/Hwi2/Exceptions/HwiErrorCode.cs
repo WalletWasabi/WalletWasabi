@@ -22,6 +22,6 @@ namespace WalletWasabi.Hwi2.Exceptions
 		ActionCanceled = -14,
 		DeviceBusy = -15,
 		NeedToBeRoot = -16,
-		NotInitialized = -99
+		DeviceNotInitialized = -18
 	}
 }

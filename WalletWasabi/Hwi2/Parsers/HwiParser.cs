@@ -61,7 +61,7 @@ namespace WalletWasabi.Hwi2.Parsers
 			// https://github.com/bitcoin-core/HWI/issues/216
 			else if (err == "Not initialized")
 			{
-				code = HwiErrorCode.NotInitialized;
+				code = HwiErrorCode.DeviceNotInitialized;
 			}
 
 			if (code.HasValue)

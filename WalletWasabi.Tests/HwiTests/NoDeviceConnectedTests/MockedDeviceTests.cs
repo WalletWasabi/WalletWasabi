@@ -39,7 +39,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 				Assert.False(entry.NeedsPinSent);
 				Assert.NotNull(entry.Error);
 				Assert.NotEmpty(entry.Error);
-				Assert.Equal(HwiErrorCode.NotInitialized, entry.Code);
+				Assert.Equal(HwiErrorCode.DeviceNotInitialized, entry.Code);
 				Assert.Null(entry.Fingerprint);
 
 				var deviceType = entry.Type.Value;
