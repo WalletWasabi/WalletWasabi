@@ -6,6 +6,10 @@
 
 CodeMaid is a non-intrusive code cleanup tool. Wasabi's CodeMaid settings [can be found in the root of the repository](https://github.com/zkSNACKs/WalletWasabi/blob/master/CodeMaid.config), and are automatically picked up by Visual Studio when you open the project. Assuming the CodeMaid extension is installed. Unfortunately CodeMaid has no Visual Studio Code extension yet. You can check out the progress on this [under this GitHub issue](https://github.com/codecadwallader/codemaid/issues/273).
 
+## Refactoring
+
+If you are a new contributor **DO** keep refactoring pull requests short, uncomplex and easy to verify. It requires a certain level of experience to know where the code belongs to and to understand the full ramification (including rebase effort of open pull requests) - [source](https://github.com/bitcoin/bitcoin/blob/master/CONTRIBUTING.md#refactoring).
+
 ## Comments
 
 **DO** follow [Microsoft's C# commenting conventions](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/inside-a-program/coding-conventions#commenting-conventions).
