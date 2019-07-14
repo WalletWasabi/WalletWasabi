@@ -2,9 +2,9 @@
 
 ## CodeMaid
 
-**DO** use [CodeMaid](http://www.codemaid.net/) is a Visual Studio extension to automatically clean up your code on saving the file.
+**DO** use [CodeMaid](http://www.codemaid.net/),  a Visual Studio extension to automatically clean up your code on saving the file.
 
-CodeMaid is a non-intrusive code cleanup tool. Wasabi's CodeMaid settings [can be found in the root of the repository](https://github.com/zkSNACKs/WalletWasabi/blob/master/CodeMaid.config), and are automatically picked up by Visual Studio when you open the project. Assuming the CodeMaid extension is installed. Unfortunately CodeMaid has no Visual Studio Code extension yet. You can check out the progress on this [under this GitHub issue](https://github.com/codecadwallader/codemaid/issues/273).
+CodeMaid is a non-intrusive code cleanup tool. Wasabi's CodeMaid settings [can be found in the root of the repository](https://github.com/zkSNACKs/WalletWasabi/blob/master/CodeMaid.config), and are automatically picked up by Visual Studio when you open the project, assuming the CodeMaid extension is installed. Unfortunately CodeMaid has no Visual Studio Code extension yet. You can check out the progress on this [under this GitHub issue](https://github.com/codecadwallader/codemaid/issues/273).
 
 ## Refactoring
 
@@ -53,7 +53,7 @@ using (AsyncLock.Lock())
 
 ## Null Check
 
-**DO** use `is null` instead of `== null`. It was a performance consideration in the past but from C# 7.0 it does not matter anymore, today we use this convention to keep our code consisent.
+**DO** use `is null` instead of `== null`. It was a performance consideration in the past but from C# 7.0 it does not matter anymore, today we use this convention to keep our code consistent.
 
 ```cs
 	if (foo is null) return;

@@ -14,7 +14,7 @@ PR https://github.com/zkSNACKs/WalletWasabi/pull/1661 moved around large files. 
 
 ## Update (2019-06-28)
 
-- The originally postend links on additions and deletions doesn't work, due to a GitHub bug. It seems like the timeframe specified is lagging behind 5 days, so it may appear that nobody contributed, yet it's 28 already and there were many contributions, so the adjusted links are:
+- The originally posted links on additions and deletions do not work, due to a GitHub bug. It seems like the timeframe specified is lagging behind 5 days, so it may appear that nobody contributed, yet it is 28 already and there were many contributions, so the adjusted links are:
 - For additions: https://github.com/zkSNACKs/WalletWasabi/graphs/contributors?from=2019-06-20&to=2019-07-20&type=a
 - For deletions: https://github.com/zkSNACKs/WalletWasabi/graphs/contributors?from=2019-06-20&to=2019-07-20&type=d
 - nopara73 is disqualified from this game.
@@ -27,6 +27,6 @@ PR https://github.com/zkSNACKs/WalletWasabi/pull/1661 moved around large files. 
 - Number of commits DO NOT count.
 - The sum of additions and deletions DO count.
 - Only merged pull requests count.
-- Merges of the maintainer (nopara73) may skew the results. We'll investigate this and if we find this to be the case, the maintainer's merges will either be discounted or the maintainer will be disqualified.
+- Merges of the maintainer (nopara73) may skew the results. We will investigate this and if we find this to be the case, the maintainer's merges will either be discounted or the maintainer will be disqualified.
 - If someone is found intentionally manipulating the results, she or he will be disqualified. We do not plan to actively look for reasons to disqualify anyone, we would like to trust in the honesty of all contributors.
 - Keep checking your GitHub bells, because at the end of the game we will open an issue, in that tagging all the contributors, describing where they should send their BTC addresses for the payouts.
