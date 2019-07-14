@@ -223,6 +223,8 @@ namespace WalletWasabi.Hwi2.Parsers
 		{
 			version = null;
 
+			// Order matters! https://github.com/zkSNACKs/WalletWasabi/pull/1905/commits/cecefcc50af140cc06cb93961cda86f9b21db11b
+
 			// Example output: hwi.exe 1.0.1
 			if (TryParseVersion(hwiResponse, "hwi.exe", out Version v2))
 			{

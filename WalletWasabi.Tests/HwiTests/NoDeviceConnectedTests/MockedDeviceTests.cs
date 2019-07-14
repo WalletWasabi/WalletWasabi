@@ -42,7 +42,12 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 				Assert.Equal(HwiErrorCode.NotInitialized, entry.Code);
 				Assert.Null(entry.Fingerprint);
 
-				await client.WipeAsync(entry.Type.Value, entry.Path, cts.Token);
+				var deviceType = entry.Type.Value;
+				await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.WipeAsync(deviceType, null, cts.Token));
+				await Assert.ThrowsAsync<ArgumentException>(async () => await client.WipeAsync(deviceType, "", cts.Token));
+				await Assert.ThrowsAsync<ArgumentException>(async () => await client.WipeAsync(deviceType, " ", cts.Token));
+
+				await client.WipeAsync(deviceType, entry.Path, cts.Token);
 			}
 		}
 
