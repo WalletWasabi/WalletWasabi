@@ -553,7 +553,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					if (feeTarget == target)
 					{
-						feeTarget = target;
 						break;
 					}
 					else if (feeTarget < target)
