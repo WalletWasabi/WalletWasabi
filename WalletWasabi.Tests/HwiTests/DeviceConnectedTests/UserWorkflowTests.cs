@@ -24,8 +24,18 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 		[Fact]
 		public async Task TrezorTTestsAsync()
 		{
-			// USER: Connect a Trezor T
+			// --- USER INTERACTIONS ---
+			//
+			// Connect a the device.
+			// Run this test.
+			// First wipe request: confirm.
+			// Second wipe request: pull out the device.
+			//
+			// --- USER INTERACTIONS ---
+
 			var client = new HwiClient(Network.Main);
+			string devicePath;
+			HardwareWalletVendors deviceType;
 			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
 			{
 				var enumerate = await client.EnumerateAsync(cts.Token);
@@ -41,6 +51,22 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				Assert.NotEmpty(entry.Error);
 				Assert.Equal(HwiErrorCode.NotInitialized, entry.Code);
 				Assert.Null(entry.Fingerprint);
+
+				devicePath = entry.Path;
+				deviceType = entry.Type.Value;
+			}
+
+			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
+			{
+				await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.WipeAsync(deviceType, null, cts.Token));
+				await Assert.ThrowsAsync<ArgumentException>(async () => await client.WipeAsync(deviceType, "", cts.Token));
+				await Assert.ThrowsAsync<ArgumentException>(async () => await client.WipeAsync(deviceType, " ", cts.Token));
+
+				// User should confirm the device action here.
+				await client.WipeAsync(deviceType, devicePath, cts.Token);
+
+				// User should make it fail by plug out the device.
+				await Assert.ThrowsAsync<HwiException>(async () => await client.WipeAsync(deviceType, devicePath, cts.Token));
 			}
 		}
 	}

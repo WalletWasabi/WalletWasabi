@@ -44,6 +44,7 @@ namespace WalletWasabi.Hwi2.Parsers
 
 			var errToken = token["error"];
 			var codeToken = token["code"];
+			var successToken = token["success"];
 
 			string err = "";
 			if (errToken != null)
@@ -70,6 +71,10 @@ namespace WalletWasabi.Hwi2.Parsers
 			else if (err != "")
 			{
 				error = new HwiException(HwiErrorCode.UnknownError, err);
+			}
+			else if (successToken != null && successToken.Value<bool>() == false)
+			{
+				error = new HwiException(HwiErrorCode.UnknownError, "");
 			}
 
 			return error != null;
@@ -242,17 +247,40 @@ namespace WalletWasabi.Hwi2.Parsers
 			throw new FormatException($"Cannot parse version from HWI's response. Response: {hwiResponse}.");
 		}
 
-		public static string ToArgumentString(Network network, IEnumerable<HwiOptions> options, HwiCommands? command)
+		public static string ToArgumentString(Network network, IEnumerable<HwiOption> options, HwiCommands? command)
 		{
-			options = options ?? Enumerable.Empty<HwiOptions>();
-			var fullOptions = new List<HwiOptions>(options);
+			options = options ?? Enumerable.Empty<HwiOption>();
+			var fullOptions = new List<HwiOption>(options);
 
 			if (network != Network.Main)
 			{
-				fullOptions.Add(HwiOptions.TestNet);
+				fullOptions.Add(new HwiOption(HwiOptions.TestNet));
 			}
 
-			var optionsString = string.Join(" --", fullOptions.Select(x => x.ToString().ToLowerInvariant()));
+			var optionsString = string.Join(" --", fullOptions.Select(x =>
+			{
+				string optionString;
+				if (x.Type == HwiOptions.DeviceType)
+				{
+					optionString = "device-type";
+				}
+				else if (x.Type == HwiOptions.DevicePath)
+				{
+					optionString = "device-path";
+				}
+				else
+				{
+					optionString = x.Type.ToString().ToLowerInvariant();
+				}
+				if (string.IsNullOrWhiteSpace(x.Arguments))
+				{
+					return optionString;
+				}
+				else
+				{
+					return $"{optionString} \"{x.Arguments}\"";
+				}
+			}));
 			optionsString = string.IsNullOrWhiteSpace(optionsString) ? "" : $"--{optionsString}";
 			var argumentBuilder = new StringBuilder(optionsString);
 			if (command != null)
