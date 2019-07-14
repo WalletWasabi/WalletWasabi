@@ -34,8 +34,6 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 			//
 			// Connect an already initialized device and unlock it.
 			// Run this test.
-			// Setup request: refuse.
-			// Restore request: refuse.
 			//
 			// --- USER INTERACTIONS ---
 
@@ -54,11 +52,17 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				// USER: REFUSE
 				await Assert.ThrowsAsync<HwiException>(async () => await client.RestoreAsync(deviceType, devicePath, cts.Token));
 
-				// ToDo: Backup
+				// Trezor doesn't support backup.
+				await Assert.ThrowsAsync<HwiException>(async () => await client.BackupAsync(deviceType, devicePath, cts.Token));
+
+				// ToDo: promptpin (Assert not working)
+				// ToDo: sendpin (Assert not working)
 				// ToDo: getxpub
 				// ToDo: displayaddress
 				// ToDo: signmessage
 				// ToDo: signtx
+				// ToDo: --fingerprint
+				// ToDo: --password
 			}
 		}
 	}

@@ -95,6 +95,20 @@ namespace WalletWasabi.Hwi2
 				cancel).ConfigureAwait(false);
 		}
 
+		public async Task BackupAsync(HardwareWalletVendors deviceType, string devicePath, CancellationToken cancel)
+		{
+			if (deviceType == HardwareWalletVendors.Trezor)
+			{
+				// HWI would throw the same, don't need the roundtrip.
+				throw new HwiException(HwiErrorCode.UnavailableAction, "The Trezor does not support creating a backup via software");
+			}
+
+			await SendCommandAsync(
+				options: new[] { HwiOption.DevicePath(devicePath), HwiOption.DeviceType(deviceType), HwiOption.Interactive },
+				command: HwiCommands.Backup,
+				cancel).ConfigureAwait(false);
+		}
+
 		public async Task<Version> GetVersionAsync(CancellationToken cancel)
 		{
 			string responseString = await SendCommandAsync(options: new[] { HwiOption.Version }, command: null, cancel).ConfigureAwait(false);

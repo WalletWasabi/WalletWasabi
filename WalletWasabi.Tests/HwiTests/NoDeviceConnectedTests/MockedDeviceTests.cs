@@ -48,6 +48,9 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 				await client.WipeAsync(deviceType, devicePath, cts.Token);
 				await client.SetupAsync(deviceType, devicePath, cts.Token);
 				await client.RestoreAsync(deviceType, devicePath, cts.Token);
+
+				// Trezor doesn't support backup.
+				await Assert.ThrowsAsync<HwiException>(async () => await client.BackupAsync(deviceType, devicePath, cts.Token));
 			}
 		}
 

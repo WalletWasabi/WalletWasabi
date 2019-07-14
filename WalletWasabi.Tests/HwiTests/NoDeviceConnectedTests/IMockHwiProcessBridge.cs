@@ -64,6 +64,24 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 					return Task.FromResult((response, code));
 				}
 			}
+			else if (arguments == "--device-path \"webusb: 001:4\" --device-type \"trezor\" --interactive backup" || arguments == "--testnet --device-path \"webusb: 001:4\" --device-type \"trezor\" --interactive backup")
+			{
+				if (Model == HardwareWalletModels.TrezorT)
+				{
+					var response = "{\"error\": \"The Trezor does not support creating a backup via software\", \"code\": -9}";
+					var code = 0;
+					return Task.FromResult((response, code));
+				}
+			}
+			else if (arguments == "--device-path \"webusb: 001:4\" --device-type \"trezor\" backup" || arguments == "--testnet --device-path \"webusb: 001:4\" --device-type \"trezor\" backup")
+			{
+				if (Model == HardwareWalletModels.TrezorT)
+				{
+					var response = "{\"error\": \"The Trezor does not support creating a backup via software\", \"code\": -9}";
+					var code = 0;
+					return Task.FromResult((response, code));
+				}
+			}
 
 			throw new NotImplementedException($"Mocking is not implemented for '{arguments}'");
 		}
