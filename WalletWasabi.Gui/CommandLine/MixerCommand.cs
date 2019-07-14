@@ -30,7 +30,7 @@ namespace WalletWasabi.Gui.CommandLine
 					x =>  WalletName = x },
 				{ "mixall", "Mix once even if the coin reached the target anonymity set specified in the config file.",
 					x => MixAll = x != null},
-				{ "keepalive", "Don't exit the software after mixing has been finished, rather keep mixing when new money arrives.",
+				{ "keepalive", "Do not exit the software after mixing has been finished, rather keep mixing when new money arrives.",
 					x => KeepMixAlive = x != null},
 			};
 		}

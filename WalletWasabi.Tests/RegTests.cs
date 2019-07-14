@@ -1863,7 +1863,7 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.2m;
 			int anonymitySet = 2;
 			int connectionConfirmationTimeout = 50;
-			var roundConfig = new CcjRoundConfig(denomination, 2, 0.7, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 2, 24, false, 11);
+			var roundConfig = RegTestFixture.CreateRoundConfig(denomination, 2, 0.7, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 2, 24, false, 11);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 
@@ -1897,7 +1897,8 @@ namespace WalletWasabi.Tests
 				}
 
 				// Inputs request tests
-				var inputsRequest = new InputsRequest {
+				var inputsRequest = new InputsRequest
+				{
 					BlindedOutputScripts = null,
 					ChangeOutputAddress = null,
 					Inputs = null,
@@ -2382,7 +2383,7 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.0002m;
 			int anonymitySet = 4;
 			int connectionConfirmationTimeout = 50;
-			var roundConfig = new CcjRoundConfig(denomination, 2, 0.7, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 2, 24, false, 11);
+			var roundConfig = RegTestFixture.CreateRoundConfig(denomination, 2, 0.7, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 2, 24, false, 11);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 
@@ -2402,7 +2403,7 @@ namespace WalletWasabi.Tests
 				// INPUS REGISTRATION PHASE --
 				for (var anosetIdx = 0; anosetIdx < anonymitySet; anosetIdx++)
 				{
-					// Create as many outputs as mixin levels (even when we don't have funds enough)
+					// Create as many outputs as mixin levels (even when we do not have funds enough)
 					var outputs = new List<(Requester requester, BitcoinWitPubKeyAddress outputAddress, uint256 blindedScript)>();
 					foreach (var level in round.MixingLevels.Levels)
 					{
@@ -2531,7 +2532,7 @@ namespace WalletWasabi.Tests
 			int anonymitySet = 2;
 			int connectionConfirmationTimeout = 1;
 			bool doesNoteBeforeBan = true;
-			CcjRoundConfig roundConfig = new CcjRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 1, 1, 1, 24, doesNoteBeforeBan, 11);
+			CcjRoundConfig roundConfig = RegTestFixture.CreateRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 1, 1, 1, 24, doesNoteBeforeBan, 11);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 
@@ -2611,7 +2612,7 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.1m;
 			int anonymitySet = 3;
 			int connectionConfirmationTimeout = 120;
-			var roundConfig = new CcjRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 1, 1, 1, 24, true, 11);
+			var roundConfig = RegTestFixture.CreateRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 1, 1, 1, 24, true, 11);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 
@@ -2813,7 +2814,7 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.003m;
 			int anonymitySet = 100;
 			int connectionConfirmationTimeout = 120;
-			var roundConfig = new CcjRoundConfig(denomination, Constants.OneDayConfirmationTarget, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
+			var roundConfig = RegTestFixture.CreateRoundConfig(denomination, Constants.OneDayConfirmationTarget, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 			await rpc.GenerateAsync(100); // So to make sure we have enough money.
@@ -3033,7 +3034,7 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.1m;
 			int anonymitySet = 7;
 			int connectionConfirmationTimeout = 14;
-			var roundConfig = new CcjRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
+			var roundConfig = RegTestFixture.CreateRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 
@@ -3127,7 +3128,7 @@ namespace WalletWasabi.Tests
 					CcjClient chaumianClient = participant.Item2;
 
 					Task timeout = Task.Delay(3000);
-					while (chaumianClient.State.GetActivelyMixingRounds().Count() != 0)
+					while (chaumianClient.State.GetActivelyMixingRounds().Any())
 					{
 						if (timeout.IsCompletedSuccessfully)
 						{
@@ -3157,7 +3158,7 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.1m;
 			int anonymitySet = 2;
 			int connectionConfirmationTimeout = 14;
-			var roundConfig = new CcjRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
+			var roundConfig = RegTestFixture.CreateRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 			await rpc.GenerateAsync(3); // So to make sure we have enough money.
@@ -3206,7 +3207,7 @@ namespace WalletWasabi.Tests
 				chaumianClient2.Start();
 
 				smartCoin1.CoinJoinInProgress = true;
-				Assert.False((await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1)).Any()); // Inconsistent internal state, so don't try to add.
+				Assert.False((await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1)).Any()); // Inconsistent internal state, so do not try to add.
 				Assert.True(smartCoin1.CoinJoinInProgress);
 
 				await Assert.ThrowsAsync<SecurityException>(async () => await chaumianClient1.QueueCoinsToMixAsync("asdasdasd", smartCoin1, smartCoin2));
@@ -3257,7 +3258,7 @@ namespace WalletWasabi.Tests
 
 				// Make sure if times out, it  tries again.
 				connectionConfirmationTimeout = 1;
-				roundConfig = new CcjRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
+				roundConfig = RegTestFixture.CreateRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
 				coordinator.UpdateRoundConfig(roundConfig);
 				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
@@ -3310,7 +3311,7 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.1m;
 			int anonymitySet = 2;
 			int connectionConfirmationTimeout = 14;
-			var roundConfig = new CcjRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
+			var roundConfig = RegTestFixture.CreateRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 

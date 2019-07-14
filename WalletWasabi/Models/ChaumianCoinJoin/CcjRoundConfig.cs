@@ -1,5 +1,6 @@
 using NBitcoin;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Text;
@@ -64,24 +65,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public CcjRoundConfig(string filePath)
 		{
 			SetFilePath(filePath);
-		}
-
-		public CcjRoundConfig(Money denomination, int? confirmationTarget, double? confirmationTargetReductionRate, decimal? coordinatorFeePercent, int? anonymitySet, long? inputRegistrationTimeout, long? connectionConfirmationTimeout, long? outputRegistrationTimeout, long? signingTimeout, int? dosSeverity, long? dosDurationHours, bool? dosNoteBeforeBan, int? maximumMixingLevelCount)
-		{
-			FilePath = null;
-			Denomination = Guard.NotNull(nameof(denomination), denomination);
-			ConfirmationTarget = Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
-			ConfirmationTargetReductionRate = Guard.NotNull(nameof(confirmationTargetReductionRate), confirmationTargetReductionRate);
-			CoordinatorFeePercent = Guard.NotNull(nameof(coordinatorFeePercent), coordinatorFeePercent);
-			AnonymitySet = Guard.NotNull(nameof(anonymitySet), anonymitySet);
-			InputRegistrationTimeout = Guard.NotNull(nameof(inputRegistrationTimeout), inputRegistrationTimeout);
-			ConnectionConfirmationTimeout = Guard.NotNull(nameof(connectionConfirmationTimeout), connectionConfirmationTimeout);
-			OutputRegistrationTimeout = Guard.NotNull(nameof(outputRegistrationTimeout), outputRegistrationTimeout);
-			SigningTimeout = Guard.NotNull(nameof(signingTimeout), signingTimeout);
-			DosSeverity = Guard.NotNull(nameof(dosSeverity), dosSeverity);
-			DosDurationHours = Guard.NotNull(nameof(dosDurationHours), dosDurationHours);
-			DosNoteBeforeBan = Guard.NotNull(nameof(dosNoteBeforeBan), dosNoteBeforeBan);
-			MaximumMixingLevelCount = Guard.NotNull(nameof(maximumMixingLevelCount), maximumMixingLevelCount);
 		}
 
 		/// <inheritdoc />
@@ -157,62 +140,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-			var config = JsonConvert.DeserializeObject<CcjRoundConfig>(jsonString);
+			var newConfig = JsonConvert.DeserializeObject<JObject>(jsonString);
+			var currentConfig = JObject.FromObject(this);
 
-			if (Denomination != config.Denomination)
-			{
-				return true;
-			}
-			if (ConfirmationTarget != config.ConfirmationTarget)
-			{
-				return true;
-			}
-			if (ConfirmationTargetReductionRate != config.ConfirmationTargetReductionRate)
-			{
-				return true;
-			}
-			if (CoordinatorFeePercent != config.CoordinatorFeePercent)
-			{
-				return true;
-			}
-			if (AnonymitySet != config.AnonymitySet)
-			{
-				return true;
-			}
-			if (InputRegistrationTimeout != config.InputRegistrationTimeout)
-			{
-				return true;
-			}
-			if (ConnectionConfirmationTimeout != config.ConnectionConfirmationTimeout)
-			{
-				return true;
-			}
-			if (OutputRegistrationTimeout != config.OutputRegistrationTimeout)
-			{
-				return true;
-			}
-			if (SigningTimeout != config.SigningTimeout)
-			{
-				return true;
-			}
-			if (DosSeverity != config.DosSeverity)
-			{
-				return true;
-			}
-			if (DosDurationHours != config.DosDurationHours)
-			{
-				return true;
-			}
-			if (DosNoteBeforeBan != config.DosNoteBeforeBan)
-			{
-				return true;
-			}
-			if (MaximumMixingLevelCount != config.MaximumMixingLevelCount)
-			{
-				return true;
-			}
-
-			return false;
+			return !JToken.DeepEquals(newConfig, currentConfig);
 		}
 
 		/// <inheritdoc />

@@ -262,7 +262,7 @@ namespace WalletWasabi.Gui
 				{
 					// onlyForOnionHosts: false - Connect to clearnet IPs through Tor, too.
 					connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.GetTorSocks5EndPoint(), onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
-					// allowOnlyTorEndpoints: true - Connect only to onions and don't connect to clearnet IPs at all.
+					// allowOnlyTorEndpoints: true - Connect only to onions and do not connect to clearnet IPs at all.
 					// This of course makes the first setting unnecessary, but it's better if that's around, in case someone wants to tinker here.
 					connectionParameters.EndpointConnector = new DefaultEndpointConnector(allowOnlyTorEndpoints: Network == Network.Main);
 
@@ -316,9 +316,9 @@ namespace WalletWasabi.Gui
 				{
 					AddressManager = await NBitcoinHelpers.LoadAddressManagerFromPeerFileAsync(AddressManagerFilePath);
 
-					// The most of the times we don't need to discover new peers. Instead, we can connect to
-					// some of those that we already discovered in the past. In this case we assume that we
-					// assume that discovering new peers could be necessary if out address manager has less
+					// Most of the times we do not need to discover new peers. Instead, we can connect to
+					// some of those that we already discovered in the past. In this case we assume that
+					// discovering new peers could be necessary if our address manager has less
 					// than 500 addresses. A 500 addresses could be okay because previously we tried with
 					// 200 and only one user reported he/she was not able to connect (there could be many others,
 					// of course).
@@ -359,7 +359,8 @@ namespace WalletWasabi.Gui
 				}
 			}
 
-			var addressManagerBehavior = new AddressManagerBehavior(AddressManager) {
+			var addressManagerBehavior = new AddressManagerBehavior(AddressManager)
+			{
 				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
 			};
 			return addressManagerBehavior;
@@ -492,7 +493,8 @@ namespace WalletWasabi.Gui
 			KeyManager keyManager;
 
 			// Set the LastAccessTime.
-			new FileInfo(walletFullPath) {
+			new FileInfo(walletFullPath)
+			{
 				LastAccessTime = DateTime.Now
 			};
 
@@ -521,7 +523,8 @@ namespace WalletWasabi.Gui
 						// else
 
 						string amountString = coin.Amount.ToString(false, true);
-						using (var process = Process.Start(new ProcessStartInfo {
+						using (var process = Process.Start(new ProcessStartInfo
+						{
 							FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
 							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e \"display notification \\\"Received {amountString} BTC\\\" with title \\\"Wasabi\\\"\"" : $"--expire-time=3000 \"Wasabi\" \"Received {amountString} BTC\"",
 							CreateNoWindow = true

@@ -103,7 +103,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				try
 				{
-					var ofd = new OpenFileDialog {
+					var ofd = new OpenFileDialog
+					{
 						AllowMultiple = false,
 						Title = "Import Coldcard"
 					};
@@ -343,14 +344,19 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				IsWalletSelected = SelectedWallet != null;
 				CanTestPassword = IsWalletSelected;
 
-				IsWalletOpened = Global.WalletService != null;
-				// If not busy loading.
-				// And wallet is selected.
-				// And no wallet is opened.
-				CanLoadWallet = !IsBusy && IsWalletSelected && !IsWalletOpened;
-
-				if (IsWalletOpened)
+				if (Global.WalletService is null)
 				{
+					IsWalletOpened = false;
+
+					// If not busy loading.
+					// And wallet is selected.
+					// And no wallet is opened.
+					CanLoadWallet = !IsBusy && IsWalletSelected;
+				}
+				else
+				{
+					IsWalletOpened = true;
+					CanLoadWallet = false;
 					SetWarningMessage("There is already an open wallet. Restart the application in order to open a different one.");
 				}
 
@@ -434,7 +440,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				SetValidationMessage("");
 				CanTestPassword = false;
-				var password = Guard.Correct(Password); // Don't let whitespaces to the beginning and to the end.
+				var password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
 				Password = ""; // Clear password field.
 
 				var selectedWallet = SelectedWallet;
@@ -571,30 +577,33 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					// The selected wallet is not available any more (someone deleted it?).
 					OnCategorySelected();
-					SetValidationMessage("The selected wallet and its backup don't exist, did you delete them?");
+					SetValidationMessage("The selected wallet and its backup do not exist, did you delete them?");
 					return null;
 				}
 
 				KeyManager keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
 				keyManager.HardwareWalletInfo = selectedWallet.HardwareWalletInfo;
 
-				if (!requirePassword && keyManager.PasswordVerified == false)
-				{
-					Owner.SelectTestPassword();
-					return null;
-				}
 				// Only check requirepassword here, because the above checks are applicable to loadwallet, too and we are using this function from load wallet.
 				if (requirePassword)
 				{
-					if (!keyManager.TestPassword(password))
+					if (keyManager.TestPassword(password))
+					{
+						SetSuccessMessage("Correct password.");
+						keyManager.SetPasswordVerified();
+					}
+					else
 					{
 						SetValidationMessage("Wrong password.");
 						return null;
 					}
-					else
+				}
+				else
+				{
+					if (keyManager.PasswordVerified == false)
 					{
-						SetSuccessMessage("Correct password.");
-						keyManager.SetPasswordVerified();
+						Owner.SelectTestPassword();
+						return null;
 					}
 				}
 

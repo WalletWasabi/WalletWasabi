@@ -332,7 +332,7 @@ namespace WalletWasabi.Services
 						// But it cannot be larger than the current anonset of that round.
 						newAnonymitySet = Math.Min(newAnonymitySet, nextRound.AnonymitySet);
 
-						// Only change the anonymity set of the next round if new anonset doesnt equal and newanonset larger than 1.
+						// Only change the anonymity set of the next round if new anonset does not equal and newanonset is larger than 1.
 						if (nextRound.AnonymitySet != newAnonymitySet && newAnonymitySet > 1)
 						{
 							nextRound.UpdateAnonymitySet(newAnonymitySet, syncLock: false);
@@ -347,7 +347,7 @@ namespace WalletWasabi.Services
 
 					foreach (Alice alice in alicesDidntSign) // Because the event sometimes is raised from inside the lock.
 					{
-						// If its from any coinjoin, then don't ban.
+						// If its from any coinjoin, then do not ban.
 						IEnumerable<OutPoint> utxosToBan = alice.Inputs.Select(x => x.Outpoint);
 						await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, round.RoundId, utxosToBan.ToArray());
 					}
