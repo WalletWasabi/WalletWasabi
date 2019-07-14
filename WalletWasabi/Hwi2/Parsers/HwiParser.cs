@@ -222,16 +222,17 @@ namespace WalletWasabi.Hwi2.Parsers
 		public static bool TryParseVersion(string hwiResponse, out Version version)
 		{
 			version = null;
-			// Example output: hwi 1.0.0
-			if (TryParseVersion(hwiResponse, "hwi", out Version v1))
-			{
-				version = v1;
-			}
 
-			// Example output: hwi.exe 1.0.0
+			// Example output: hwi.exe 1.0.1
 			if (TryParseVersion(hwiResponse, "hwi.exe", out Version v2))
 			{
 				version = v2;
+			}
+
+			// Example output: hwi 1.0.1
+			if (TryParseVersion(hwiResponse, "hwi", out Version v1))
+			{
+				version = v1;
 			}
 
 			return version != null;
