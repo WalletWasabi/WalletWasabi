@@ -28,8 +28,9 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 			//
 			// Connect a the device.
 			// Run this test.
-			// First wipe request: confirm.
-			// Second wipe request: pull out the device.
+			// Wipe request: confirm.
+			// Wipe request: confirm.
+			// Wipe request: pull out the device.
 			//
 			// --- USER INTERACTIONS ---
 
@@ -39,9 +40,17 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
 			{
 				var enumerate = await client.EnumerateAsync(cts.Token);
+				HwiEnumerateEntry entry = enumerate.Single();
+				devicePath = entry.Path;
+				deviceType = entry.Type.Value;
+
+				// User should confirm the device action here.
+				await client.WipeAsync(deviceType, devicePath, cts.Token);
+
+				enumerate = await client.EnumerateAsync(cts.Token);
 
 				Assert.Single(enumerate);
-				HwiEnumerateEntry entry = enumerate.Single();
+				entry = enumerate.Single();
 				Assert.Equal(HardwareWalletVendors.Trezor, entry.Type);
 				Assert.NotNull(entry.Path);
 				Assert.NotEmpty(entry.Path);
@@ -51,9 +60,6 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				Assert.NotEmpty(entry.Error);
 				Assert.Equal(HwiErrorCode.NotInitialized, entry.Code);
 				Assert.Null(entry.Fingerprint);
-
-				devicePath = entry.Path;
-				deviceType = entry.Type.Value;
 			}
 
 			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))

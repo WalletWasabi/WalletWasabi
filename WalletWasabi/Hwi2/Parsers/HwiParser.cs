@@ -254,7 +254,7 @@ namespace WalletWasabi.Hwi2.Parsers
 
 			if (network != Network.Main)
 			{
-				fullOptions.Add(new HwiOption(HwiOptions.TestNet));
+				fullOptions.Insert(0, new HwiOption(HwiOptions.TestNet));
 			}
 
 			var optionsString = string.Join(" --", fullOptions.Select(x =>

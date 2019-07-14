@@ -22,10 +22,12 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 
 		#region Tests
 
-		[Fact]
-		public async Task CanEnumerateTestsAsync()
+		[Theory]
+		[MemberData(nameof(GetDifferentNetworkValues))]
+		public async Task TrezorTMockTestsAsync(Network network)
 		{
-			var client = new HwiClient(Network.Main, new IMockHwiProcessBridge(HardwareWalletModels.TrezorT));
+			var client = new HwiClient(network, new IMockHwiProcessBridge(HardwareWalletModels.TrezorT));
+
 			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
 			{
 				IEnumerable<HwiEnumerateEntry> enumerate = await client.EnumerateAsync(cts.Token);
@@ -39,9 +41,30 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 				Assert.NotEmpty(entry.Error);
 				Assert.Equal(HwiErrorCode.NotInitialized, entry.Code);
 				Assert.Null(entry.Fingerprint);
+
+				await client.WipeAsync(entry.Type.Value, entry.Path, cts.Token);
 			}
 		}
 
 		#endregion Tests
+
+		#region HelperMethods
+
+		public static IEnumerable<object[]> GetDifferentNetworkValues()
+		{
+			var networks = new List<Network>
+			{
+				Network.Main,
+				Network.TestNet,
+				Network.RegTest
+			};
+
+			foreach (Network network in networks)
+			{
+				yield return new object[] { network };
+			}
+		}
+
+		#endregion HelperMethods
 	}
 }
