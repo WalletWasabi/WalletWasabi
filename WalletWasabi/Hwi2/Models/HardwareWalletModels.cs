@@ -4,7 +4,7 @@ using System.Text;
 
 namespace WalletWasabi.Hwi2.Models
 {
-	public enum AllHardwareWallets
+	public enum HardwareWalletModels
 	{
 		TrezorOne,
 		TrezorT,

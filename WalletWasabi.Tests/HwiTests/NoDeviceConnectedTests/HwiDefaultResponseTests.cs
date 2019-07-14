@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Hwi2;
 using WalletWasabi.Hwi2.Exceptions;
+using WalletWasabi.Hwi2.Models;
 using Xunit;
 
 namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
@@ -65,7 +66,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 		{
 			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
 			{
-				IEnumerable<string> enumerate = await client.EnumerateAsync(cts.Token);
+				IEnumerable<HwiEnumerateEntry> enumerate = await client.EnumerateAsync(cts.Token);
 				Assert.Empty(enumerate);
 			}
 		}

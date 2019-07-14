@@ -21,6 +21,7 @@ namespace WalletWasabi.Hwi2.Exceptions
 		UnknownError = -13,
 		ActionCanceled = -14,
 		DeviceBusy = -15,
-		NeedToBeRoot = -16
+		NeedToBeRoot = -16,
+		NotInitialized = -99
 	}
 }

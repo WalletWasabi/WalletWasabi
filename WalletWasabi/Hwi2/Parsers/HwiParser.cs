@@ -1,0 +1,271 @@
+using NBitcoin;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using WalletWasabi.Helpers;
+using WalletWasabi.Hwi2.Exceptions;
+using WalletWasabi.Hwi2.Models;
+
+namespace WalletWasabi.Hwi2.Parsers
+{
+	public static class HwiParser
+	{
+		public static bool TryParseErrors(string text, out HwiException error)
+		{
+			error = null;
+			if (JsonHelpers.TryParseJToken(text, out JToken token) && TryParseError(token, out HwiException e))
+			{
+				error = e;
+			}
+			else
+			{
+				var subString = "error:";
+				if (text.Contains(subString, StringComparison.OrdinalIgnoreCase))
+				{
+					int startIndex = text.IndexOf(subString, StringComparison.OrdinalIgnoreCase) + subString.Length;
+					var err = text.Substring(startIndex);
+					error = new HwiException(HwiErrorCode.UnknownError, err);
+				}
+			}
+
+			return error != null;
+		}
+
+		public static bool TryParseError(JToken token, out HwiException error)
+		{
+			error = null;
+			if (token is JArray)
+			{
+				return false;
+			}
+
+			var errToken = token["error"];
+			var codeToken = token["code"];
+
+			string err = "";
+			if (errToken != null)
+			{
+				err = Guard.Correct(errToken.Value<string>());
+			}
+
+			HwiErrorCode? code = null;
+			if (TryParseErrorCode(codeToken, out HwiErrorCode c))
+			{
+				code = c;
+			}
+			// HWI bug: it does not give error code.
+			// https://github.com/bitcoin-core/HWI/issues/216
+			else if (err == "Not initialized")
+			{
+				code = HwiErrorCode.NotInitialized;
+			}
+
+			if (code.HasValue)
+			{
+				error = new HwiException(code.Value, err);
+			}
+			else if (err != "")
+			{
+				error = new HwiException(HwiErrorCode.UnknownError, err);
+			}
+
+			return error != null;
+		}
+
+		public static bool TryParseErrorCode(JToken codeToken, out HwiErrorCode code)
+		{
+			code = default;
+
+			if (codeToken is null)
+			{
+				return false;
+			}
+
+			try
+			{
+				var codeInt = codeToken.Value<int>();
+				if (Enum.IsDefined(typeof(HwiErrorCode), codeInt))
+				{
+					code = (HwiErrorCode)codeInt;
+					return true;
+				}
+			}
+			catch
+			{
+				return false;
+			}
+
+			return false;
+		}
+
+		public static bool TryParseHardwareWalletVendor(JToken token, out HardwareWalletVendors vendor)
+		{
+			vendor = default;
+
+			if (token is null)
+			{
+				return false;
+			}
+
+			try
+			{
+				var typeString = token.Value<string>();
+				if (Enum.TryParse(typeString, ignoreCase: true, out HardwareWalletVendors t))
+				{
+					vendor = t;
+					return true;
+				}
+			}
+			catch
+			{
+				return false;
+			}
+
+			return false;
+		}
+
+		public static IEnumerable<HwiEnumerateEntry> ParseHwiEnumerateResponse(string responseString)
+		{
+			var jarr = JArray.Parse(responseString);
+
+			var response = new List<HwiEnumerateEntry>();
+			foreach (JObject json in jarr)
+			{
+				var hwiEntry = ParseHwiEnumerateEntry(json);
+				response.Add(hwiEntry);
+			}
+
+			return response;
+		}
+
+		public static HwiEnumerateEntry ParseHwiEnumerateEntry(JObject json)
+		{
+			JToken typeToken = json["type"];
+			var pathString = json["path"]?.ToString()?.Trim() ?? null;
+			var serialNumberString = json["serial_number"]?.ToString()?.Trim() ?? null;
+			var fingerprintString = json["fingerprint"]?.ToString()?.Trim() ?? null;
+			var needsPinSentString = json["needs_pin_sent"]?.ToString()?.Trim() ?? null;
+			var needsPassphraseSentString = json["needs_passphrase_sent"]?.ToString()?.Trim() ?? null;
+
+			HDFingerprint? fingerprint = null;
+			if (fingerprintString != null)
+			{
+				if (HDFingerprint.TryParse(fingerprintString, out HDFingerprint fp))
+				{
+					fingerprint = fp;
+				}
+				else
+				{
+					throw new FormatException($"Could not parse fingerprint: {fingerprintString}");
+				}
+			}
+
+			bool? needsPinSent = null;
+			if (needsPinSentString != null)
+			{
+				needsPinSent = bool.Parse(needsPinSentString);
+			}
+
+			bool? needsPassphraseSent = null;
+			if (needsPassphraseSentString != null)
+			{
+				needsPassphraseSent = bool.Parse(needsPassphraseSentString);
+			}
+
+			HwiErrorCode? code = null;
+			string errorString = null;
+			if (TryParseError(json, out HwiException err))
+			{
+				code = err.ErrorCode;
+				errorString = err.Message;
+			}
+
+			HardwareWalletVendors? type = null;
+			if (TryParseHardwareWalletVendor(typeToken, out HardwareWalletVendors t))
+			{
+				type = t;
+			}
+
+			return new HwiEnumerateEntry(
+				type: type,
+				path: pathString,
+				serialNumber: serialNumberString,
+				fingerprint: fingerprint,
+				needsPinSent: needsPinSent,
+				needsPassphraseSent: needsPassphraseSent,
+				error: errorString,
+				code: code);
+		}
+
+		public static bool TryParseVersion(string hwiResponse, string substringFrom, out Version version)
+		{
+			int startIndex = hwiResponse.IndexOf(substringFrom) + substringFrom.Length;
+			var versionString = hwiResponse.Substring(startIndex).Trim();
+			version = null;
+			if (Version.TryParse(versionString, out Version v))
+			{
+				version = v;
+				return true;
+			}
+
+			return false;
+		}
+
+		public static bool TryParseVersion(string hwiResponse, out Version version)
+		{
+			version = null;
+			// Example output: hwi 1.0.0
+			if (TryParseVersion(hwiResponse, "hwi", out Version v1))
+			{
+				version = v1;
+			}
+
+			// Example output: hwi.exe 1.0.0
+			if (TryParseVersion(hwiResponse, "hwi.exe", out Version v2))
+			{
+				version = v2;
+			}
+
+			return version != null;
+		}
+
+		public static Version ParseVersion(string hwiResponse)
+		{
+			if (TryParseVersion(hwiResponse, out Version version))
+			{
+				return version;
+			}
+
+			throw new FormatException($"Cannot parse version from HWI's response. Response: {hwiResponse}.");
+		}
+
+		public static string ToArgumentString(Network network, IEnumerable<HwiOptions> options, HwiCommands? command)
+		{
+			options = options ?? Enumerable.Empty<HwiOptions>();
+			var fullOptions = new List<HwiOptions>(options);
+
+			if (network != Network.Main)
+			{
+				fullOptions.Add(HwiOptions.TestNet);
+			}
+
+			var optionsString = string.Join(" --", fullOptions.Select(x => x.ToString().ToLowerInvariant()));
+			optionsString = string.IsNullOrWhiteSpace(optionsString) ? "" : $"--{optionsString}";
+			var argumentBuilder = new StringBuilder(optionsString);
+			if (command != null)
+			{
+				if (argumentBuilder.Length != 0)
+				{
+					argumentBuilder.Append(' ');
+				}
+				argumentBuilder.Append(command.ToString().ToLowerInvariant());
+			}
+
+			var arguments = argumentBuilder.ToString().Trim();
+			return arguments;
+		}
+	}
+}
