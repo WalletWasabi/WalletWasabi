@@ -16,6 +16,7 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 	/// Kata tests are intended to be run one by one.
 	/// A kata is a type of test that requires user interaction.
 	/// User interaction shall be defined in the beginning of the each kata.
+	/// Only write katas those require button push responses (eg. don't call setup on trezor.)
 	/// </summary>
 	public class Katas
 	{
@@ -31,13 +32,10 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 		{
 			// --- USER INTERACTIONS ---
 			//
-			// Connect a the device and unlock if it's not wiped.
+			// Connect an already initialized device and unlock it.
 			// Run this test.
-			// Wipe request: confirm.
-			// Wipe request: confirm.
 			// Setup request: refuse.
-			// Setup request: confirm and setup.
-			// Wipe request: confirm.
+			// Restore request: refuse.
 			//
 			// --- USER INTERACTIONS ---
 
@@ -50,36 +48,12 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				string devicePath = entry.Path;
 				HardwareWalletVendors deviceType = entry.Type.Value;
 
-				// User should confirm the device action here.
-				await client.WipeAsync(deviceType, devicePath, cts.Token);
-
-				enumerate = await client.EnumerateAsync(cts.Token);
-
-				Assert.Single(enumerate);
-				entry = enumerate.Single();
-				Assert.Equal(HardwareWalletVendors.Trezor, entry.Type);
-				Assert.NotNull(entry.Path);
-				Assert.NotEmpty(entry.Path);
-				Assert.False(entry.NeedsPassphraseSent);
-				Assert.False(entry.NeedsPinSent);
-				Assert.NotNull(entry.Error);
-				Assert.NotEmpty(entry.Error);
-				Assert.Equal(HwiErrorCode.DeviceNotInitialized, entry.Code);
-				Assert.Null(entry.Fingerprint);
-
-				// User should confirm the device action here.
-				await client.WipeAsync(deviceType, devicePath, cts.Token);
-
-				// User should refuse the device action here.
+				// USER: REFUSE
 				await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, cts.Token));
 
-				// User should confirm the device action and setup a new device here.
-				await client.SetupAsync(deviceType, devicePath, cts.Token);
+				// USER: REFUSE
+				await Assert.ThrowsAsync<HwiException>(async () => await client.RestoreAsync(deviceType, devicePath, cts.Token));
 
-				// User should confirm the device action here.
-				await client.WipeAsync(deviceType, devicePath, cts.Token);
-
-				// ToDo: Restore
 				// ToDo: Backup
 				// ToDo: getxpub
 				// ToDo: displayaddress
