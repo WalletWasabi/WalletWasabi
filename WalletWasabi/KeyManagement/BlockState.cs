@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -13,7 +13,7 @@ namespace WalletWasabi.KeyManagement
 	public class BlockState : IComparable<BlockState>
 	{
 		[JsonProperty(Order = 1)]
-		[JsonConverter(typeof(UInt256JsonConverter))]
+		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 BlockHash { get; }
 
 		[JsonProperty(Order = 2)]

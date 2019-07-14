@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using WalletWasabi.JsonConverters;
@@ -17,7 +17,7 @@ namespace WalletWasabi.WebClients.BlockCypher.Models
 		public Height Height { get; set; }
 
 		[JsonProperty(PropertyName = "hash")]
-		[JsonConverter(typeof(UInt256JsonConverter))]
+		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 Hash { get; set; }
 
 		[JsonProperty(PropertyName = "time")]
@@ -29,7 +29,7 @@ namespace WalletWasabi.WebClients.BlockCypher.Models
 		public Uri LatestUrl { get; set; }
 
 		[JsonProperty(PropertyName = "previous_hash")]
-		[JsonConverter(typeof(UInt256JsonConverter))]
+		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 PreviousHash { get; set; }
 
 		[JsonProperty(PropertyName = "previous_url")]
@@ -59,7 +59,7 @@ namespace WalletWasabi.WebClients.BlockCypher.Models
 		public Height LastForkHeight { get; set; }
 
 		[JsonProperty(PropertyName = "last_fork_hash")]
-		[JsonConverter(typeof(UInt256JsonConverter))]
+		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 LastForkHash { get; set; }
 	}
 }

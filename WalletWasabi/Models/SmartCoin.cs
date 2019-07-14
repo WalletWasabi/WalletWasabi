@@ -57,7 +57,7 @@ namespace WalletWasabi.Models
 		#region SerializableProperties
 
 		[JsonProperty]
-		[JsonConverter(typeof(UInt256JsonConverter))]
+		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 TransactionId
 		{
 			get => _transactionId;
@@ -194,7 +194,7 @@ namespace WalletWasabi.Models
 		}
 
 		[JsonProperty]
-		[JsonConverter(typeof(UInt256JsonConverter))]
+		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 SpenderTransactionId
 		{
 			get => _spenderTransactionId;

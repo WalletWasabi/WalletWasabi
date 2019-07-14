@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.BouncyCastle.Math;
 using Newtonsoft.Json;
 using System;
@@ -12,7 +12,7 @@ namespace WalletWasabi.Backend.Models.Responses
 {
 	public class ConnConfResp
 	{
-		[JsonProperty(ItemConverterType = typeof(UInt256JsonConverter))]
+		[JsonProperty(ItemConverterType = typeof(Uint256JsonConverter))]
 		public IEnumerable<uint256> BlindedOutputSignatures { get; set; }
 
 		[Required]

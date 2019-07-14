@@ -15,7 +15,7 @@ namespace WalletWasabi.Models
 	{
 		[Required]
 		[JsonProperty(Order = 1)]
-		[JsonConverter(typeof(UInt256JsonConverter))]
+		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 TransactionId { get; }
 
 		[JsonProperty(Order = 2)]

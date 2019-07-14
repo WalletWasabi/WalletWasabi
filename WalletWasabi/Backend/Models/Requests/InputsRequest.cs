@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -17,7 +17,7 @@ namespace WalletWasabi.Backend.Models.Requests
 		public IEnumerable<InputProofModel> Inputs { get; set; }
 
 		[Required, MinLength(1)]
-		[JsonProperty(ItemConverterType = typeof(UInt256JsonConverter))]
+		[JsonProperty(ItemConverterType = typeof(Uint256JsonConverter))]
 		public IEnumerable<uint256> BlindedOutputScripts { get; set; }
 
 		[Required]
