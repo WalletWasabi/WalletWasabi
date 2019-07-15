@@ -210,7 +210,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					if (IsMax)
 					{
-						SetAmountIfMax();
+						SetAmount();
 
 						LabelToolTip = "Spending whole coins does not generate change, thus labeling is unnecessary.";
 					}
@@ -614,7 +614,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 
-			SetAmountIfMax();
+			if (IsMax)
+			{
+				SetAmount();
+			}
 		}
 
 		private static string IfPlural(int val, string singular, string plural)
@@ -627,18 +630,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			return plural;
 		}
 
-		private void SetAmountIfMax()
+		private void SetAmount()
 		{
-			if (IsMax)
+			if (AllSelectedAmount == Money.Zero)
 			{
-				if (AllSelectedAmount == Money.Zero)
-				{
-					AmountText = "No Coins Selected";
-				}
-				else
-				{
-					AmountText = $"~ {AllSelectedAmount.ToString(false, true)}";
-				}
+				AmountText = "No Coins Selected";
+			}
+			else
+			{
+				AmountText = $"~ {AllSelectedAmount.ToString(false, true)}";
 			}
 		}
 
