@@ -106,13 +106,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
 				var config = JsonConvert.DeserializeObject<CcjRoundConfig>(jsonString);
 
-				UpdateOrDefault(config);
+				await UpdateOrDefaultAsync(config, toFile: false);
 			}
 
 			await ToFileAsync();
 		}
 
-		public void UpdateOrDefault(CcjRoundConfig config)
+		public async Task UpdateOrDefaultAsync(CcjRoundConfig config, bool toFile)
 		{
 			Denomination = config.Denomination ?? Denomination;
 			ConfirmationTarget = config.ConfirmationTarget ?? ConfirmationTarget;
@@ -127,6 +127,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			DosDurationHours = config.DosDurationHours ?? DosDurationHours;
 			DosNoteBeforeBan = config.DosNoteBeforeBan ?? DosNoteBeforeBan;
 			MaximumMixingLevelCount = config.MaximumMixingLevelCount ?? MaximumMixingLevelCount;
+
+			if (toFile)
+			{
+				await ToFileAsync();
+			}
 		}
 
 		/// <inheritdoc />

@@ -194,11 +194,6 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public void UpdateRoundConfig(CcjRoundConfig roundConfig)
-		{
-			RoundConfig.UpdateOrDefault(roundConfig);
-		}
-
 		public async Task MakeSureTwoRunningRoundsAsync(Money feePerInputs = null, Money feePerOutputs = null)
 		{
 			using (await RoundsListLock.LockAsync())

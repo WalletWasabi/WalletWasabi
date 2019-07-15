@@ -62,7 +62,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		private int[] Ports { get; }
 
-		private readonly NetworkCredential Creds;
+		internal readonly NetworkCredential Creds;
 
 		public RPCClient CreateRpcClient()
 		{
