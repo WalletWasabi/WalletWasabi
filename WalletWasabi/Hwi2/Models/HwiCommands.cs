@@ -10,7 +10,7 @@ namespace WalletWasabi.Hwi2.Models
 		GetMasterXpub,
 		SignTx,
 		GetXpub,
-		SignBessage,
+		SignMessage,
 		GetKeypool,
 		DisplayAddress,
 		Setup,

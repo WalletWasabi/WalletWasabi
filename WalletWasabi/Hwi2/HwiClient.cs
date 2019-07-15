@@ -16,6 +16,7 @@ using WalletWasabi.Hwi2.Models;
 using WalletWasabi.Hwi2.Parsers;
 using WalletWasabi.Hwi2.ProcessBridge;
 using WalletWasabi.Interfaces;
+using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Hwi2
 {
@@ -87,6 +88,19 @@ namespace WalletWasabi.Hwi2
 				command: HwiCommands.SendPin,
 				commandArguments: pin.ToString(),
 				cancel).ConfigureAwait(false);
+		}
+
+		public async Task<ExtPubKey> GetXpubAsync(HardwareWalletVendors deviceType, string devicePath, CancellationToken cancel)
+		{
+			var response = await SendCommandAsync(
+				options: new[] { HwiOption.DevicePath(devicePath), HwiOption.DeviceType(deviceType) },
+				command: HwiCommands.GetXpub,
+				commandArguments: KeyManager.DefaultAccountKeyPath.ToString(true, "h"),
+				cancel).ConfigureAwait(false);
+
+			var extPubKey = HwiParser.ParseExtPubKey(response);
+
+			return extPubKey;
 		}
 
 		public async Task WipeAsync(HardwareWalletVendors deviceType, string devicePath, CancellationToken cancel)

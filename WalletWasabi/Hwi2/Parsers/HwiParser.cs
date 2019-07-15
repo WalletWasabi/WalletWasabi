@@ -146,6 +146,20 @@ namespace WalletWasabi.Hwi2.Parsers
 			return response;
 		}
 
+		public static ExtPubKey ParseExtPubKey(string json)
+		{
+			if (JsonHelpers.TryParseJToken(json, out JToken token))
+			{
+				var extPubKeyString = token["xpub"]?.ToString()?.Trim() ?? null;
+				var extPubKey = NBitcoinHelpers.BetterParseExtPubKey(extPubKeyString);
+				return extPubKey;
+			}
+			else
+			{
+				throw new FormatException($"Could not parse extpubkey: {json}");
+			}
+		}
+
 		public static HwiEnumerateEntry ParseHwiEnumerateEntry(JObject json)
 		{
 			JToken typeToken = json["type"];

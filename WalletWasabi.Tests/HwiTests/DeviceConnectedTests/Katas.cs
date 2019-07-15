@@ -54,11 +54,12 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				await Assert.ThrowsAsync<HwiException>(async () => await client.BackupAsync(deviceType, devicePath, cts.Token));
 
 				// Trezor T doesn't support it.
-				await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
+				var ex = await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
 
 				await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
+				ExtPubKey xpub = await client.GetXpubAsync(deviceType, devicePath, cts.Token);
+				Assert.NotNull(xpub);
 
-				// ToDo: getxpub
 				// ToDo: displayaddress
 				// ToDo: signmessage
 				// ToDo: signtx
