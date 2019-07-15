@@ -3129,7 +3129,7 @@ namespace WalletWasabi.Tests
 					CcjClient chaumianClient = participant.Item2;
 
 					Task timeout = Task.Delay(3000);
-					while (chaumianClient.State.GetActivelyMixingRounds().Count() != 0)
+					while (chaumianClient.State.GetActivelyMixingRounds().Any())
 					{
 						if (timeout.IsCompletedSuccessfully)
 						{

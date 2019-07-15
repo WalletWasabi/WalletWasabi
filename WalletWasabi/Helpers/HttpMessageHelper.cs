@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -288,13 +288,19 @@ namespace System.Net.Http
 
 		private static async Task<byte[]> GetDecodedChunkedContentBytesAsync(Stream stream, HttpRequestContentHeaders requestHeaders, HttpResponseContentHeaders responseHeaders, CancellationToken ctsToken = default)
 		{
-			if (responseHeaders is null && requestHeaders is null)
+			if (responseHeaders is null)
 			{
-				throw new ArgumentException("Response and request headers cannot be both null.");
+				if (requestHeaders is null)
+				{
+					throw new ArgumentException("Response and request headers cannot be both null.");
+				}
 			}
-			if (responseHeaders != null && requestHeaders != null)
+			else
 			{
-				throw new ArgumentException("Either response or request headers has to be null.");
+				if (requestHeaders != null)
+				{
+					throw new ArgumentException("Either response or request headers has to be null.");
+				}
 			}
 
 			// https://tools.ietf.org/html/rfc7230#section-4.1.3

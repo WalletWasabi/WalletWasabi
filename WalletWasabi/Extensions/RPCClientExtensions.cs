@@ -114,7 +114,7 @@ namespace NBitcoin.RPC
 				satoshiPerBytes = ((Constants.SevenDaysConfirmationTarget + 1 + 5) - confirmationTarget) / 7;
 			}
 
-			Money feePerK = new Money(satoshiPerBytes * 1000, MoneyUnit.Satoshi);
+			Money feePerK = Money.Satoshis(satoshiPerBytes * 1000);
 			FeeRate feeRate = new FeeRate(feePerK);
 			var resp = new EstimateSmartFeeResponse { Blocks = confirmationTarget, FeeRate = feeRate };
 			return resp;
