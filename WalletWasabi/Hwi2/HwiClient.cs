@@ -71,6 +71,14 @@ namespace WalletWasabi.Hwi2
 			}
 		}
 
+		public async Task PromptPinAsync(HardwareWalletVendors deviceType, string devicePath, CancellationToken cancel)
+		{
+			await SendCommandAsync(
+				options: new[] { HwiOption.DevicePath(devicePath), HwiOption.DeviceType(deviceType) },
+				command: HwiCommands.PromptPin,
+				cancel).ConfigureAwait(false);
+		}
+
 		public async Task WipeAsync(HardwareWalletVendors deviceType, string devicePath, CancellationToken cancel)
 		{
 			await SendCommandAsync(

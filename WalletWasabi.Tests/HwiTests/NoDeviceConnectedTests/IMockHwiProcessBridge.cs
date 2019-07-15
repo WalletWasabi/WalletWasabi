@@ -82,6 +82,15 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 					return Task.FromResult((response, code));
 				}
 			}
+			else if (arguments == "--device-path \"webusb: 001:4\" --device-type \"trezor\" promptpin" || arguments == "--testnet --device-path \"webusb: 001:4\" --device-type \"trezor\" promptpin")
+			{
+				if (Model == HardwareWalletModels.TrezorT)
+				{
+					var response = "{\"error\": \"The PIN has already been sent to this device\", \"code\": -11}\r\n";
+					var code = 0;
+					return Task.FromResult((response, code));
+				}
+			}
 
 			throw new NotImplementedException($"Mocking is not implemented for '{arguments}'");
 		}

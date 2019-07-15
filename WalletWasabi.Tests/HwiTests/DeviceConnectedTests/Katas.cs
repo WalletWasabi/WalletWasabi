@@ -46,16 +46,16 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				string devicePath = entry.Path;
 				HardwareWalletVendors deviceType = entry.Type.Value;
 
-				// USER: REFUSE
 				await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, cts.Token));
 
-				// USER: REFUSE
 				await Assert.ThrowsAsync<HwiException>(async () => await client.RestoreAsync(deviceType, devicePath, cts.Token));
 
-				// Trezor doesn't support backup.
+				// Trezor T doesn't support it.
 				await Assert.ThrowsAsync<HwiException>(async () => await client.BackupAsync(deviceType, devicePath, cts.Token));
 
-				// ToDo: promptpin (Assert not working)
+				// Trezor T doesn't support it.
+				await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
+
 				// ToDo: sendpin (Assert not working)
 				// ToDo: getxpub
 				// ToDo: displayaddress
