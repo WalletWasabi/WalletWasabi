@@ -39,11 +39,11 @@ namespace WalletWasabi.Tests.XunitConfiguration
 				UserPassword = BackendRegTestNode.Creds
 			}.ToString();
 
-			IoHelpers.DeleteRecursivelyWithMagicDustAsync(nameof(RegTestFixture)).GetAwaiter().GetResult();
-			Thread.Sleep(100);
-			Directory.CreateDirectory(nameof(RegTestFixture));
-			Thread.Sleep(100);
 			var testnetBackendDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests", "Backend"));
+			IoHelpers.DeleteRecursivelyWithMagicDustAsync(testnetBackendDir).GetAwaiter().GetResult();
+			Thread.Sleep(100);
+			Directory.CreateDirectory(testnetBackendDir);
+			Thread.Sleep(100);
 			var config = new Config(BackendNodeBuilder.Network, connectionString, IPAddress.Loopback.ToString(), IPAddress.Loopback.ToString(), BackendRegTestNode.Endpoint.Address.ToString(), Network.Main.DefaultPort, Network.TestNet.DefaultPort, BackendRegTestNode.Endpoint.Port);
 			var configFilePath = Path.Combine(testnetBackendDir, "Config.json");
 			config.SetFilePath(configFilePath);
