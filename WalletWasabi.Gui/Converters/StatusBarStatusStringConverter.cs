@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui.Converters
 					case StatusBarStatus.BuildingTransaction: return "Building transaction...";
 					case StatusBarStatus.SigningTransaction: return "Signing transaction...";
 					case StatusBarStatus.BroadcastingTransaction: return "Broadcasting transaction...";
-					case StatusBarStatus.DequeuingSelectedCoins: return "Dequeueing selected coins...";
+					case StatusBarStatus.DequeuingSelectedCoins: return "Dequeuing selected coins...";
 					default: return status.ToString();
 				}
 			}

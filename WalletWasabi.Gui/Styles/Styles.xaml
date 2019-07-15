@@ -1,4 +1,4 @@
-﻿<Styles xmlns="https://github.com/avaloniaui"
+<Styles xmlns="https://github.com/avaloniaui"
         xmlns:dock="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
 		xmlns:shell="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -20,50 +20,50 @@
 
   <Style Selector="shell|MetroWindow /template/ Button#minimiseButton">
     <Setter Property="Content">
-	  <Template>
-	    <Panel Margin="4" Height="8" Width="8">
-		  <DrawingPresenter>
-	  	  <DrawingGroup>
-				<DrawingGroup.Children>
-				<GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-				<GeometryDrawing Brush="{DynamicResource ThemeForegroundBrush}" Geometry="F1M15,15L1,15 1,10 15,10z" />
-				<GeometryDrawing Brush="{DynamicResource ThemeForegroundBrush}" Geometry="F1M14,11L2,11 2,14 14,14z" />
-				</DrawingGroup.Children>
-			</DrawingGroup>
-			</DrawingPresenter>
-		</Panel>
-	  </Template>
-	</Setter>
+      <Template>
+        <Panel Margin="4" Height="8" Width="8">
+          <DrawingPresenter>
+            <DrawingGroup>
+              <DrawingGroup.Children>
+                <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+                <GeometryDrawing Brush="{DynamicResource ThemeForegroundBrush}" Geometry="F1M15,15L1,15 1,10 15,10z" />
+                <GeometryDrawing Brush="{DynamicResource ThemeForegroundBrush}" Geometry="F1M14,11L2,11 2,14 14,14z" />
+              </DrawingGroup.Children>
+            </DrawingGroup>
+          </DrawingPresenter>
+        </Panel>
+      </Template>
+    </Setter>
   </Style>
 
   <Style Selector="shell|MetroWindow /template/ Button#restoreButton">
     <Setter Property="Content">
-	  <Template>
+      <Template>
         <Panel Margin="4">
-		  <Path Height="8" Width="8" Stretch="Uniform" UseLayoutRounding="False" Fill="{DynamicResource ThemeForegroundBrush}" Data="M4,4H20V20H4V4M6,8V18H18V8H6Z" />
-		</Panel>
-	  </Template>
-	</Setter>
+          <Path Height="8" Width="8" Stretch="Uniform" UseLayoutRounding="False" Fill="{DynamicResource ThemeForegroundBrush}" Data="M4,4H20V20H4V4M6,8V18H18V8H6Z" />
+        </Panel>
+      </Template>
+    </Setter>
   </Style>
 
   <Style Selector="shell|MetroWindow:maximised /template/ Button#restoreButton">
     <Setter Property="Content">
-	  <Template>
+      <Template>
         <Panel Margin="4">
-		  <Path Height="8" Width="8" Stretch="Uniform" UseLayoutRounding="False" Fill="{DynamicResource ThemeForegroundBrush}" Data="M4,8H8V4H20V16H16V20H4V8M16,8V14H18V6H10V8H16M6,12V18H14V12H6Z" />
-		</Panel>
-	  </Template>
-	</Setter>
+          <Path Height="8" Width="8" Stretch="Uniform" UseLayoutRounding="False" Fill="{DynamicResource ThemeForegroundBrush}" Data="M4,8H8V4H20V16H16V20H4V8M16,8V14H18V6H10V8H16M6,12V18H14V12H6Z" />
+        </Panel>
+      </Template>
+    </Setter>
   </Style>
 
   <Style Selector="shell|MetroWindow /template/ Button#closeButton">
     <Setter Property="Content">
-	  <Template>
-	    <Panel Margin="4">
-		  <Path Height="8" Width="8" Stretch="Uniform" UseLayoutRounding="False"  Data="M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z" Fill="{DynamicResource ThemeForegroundBrush}" />
-		</Panel>
-	  </Template>
-	</Setter>
+      <Template>
+        <Panel Margin="4">
+          <Path Height="8" Width="8" Stretch="Uniform" UseLayoutRounding="False"  Data="M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z" Fill="{DynamicResource ThemeForegroundBrush}" />
+        </Panel>
+      </Template>
+    </Setter>
   </Style>
 
   <Style Selector="TextBox.selectableTextBlock">
@@ -223,5 +223,33 @@
   </Style>
   <Style Selector="TextBox:focus /template/ Border#border">
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighBrush}" />
+  </Style>
+
+  <Style Selector="ListBoxItem:pointerover Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ThemeControlHighlightMidBrush}" />
+  </Style>
+
+  <Style Selector="ListBoxItem:pointerover Grid Expander:expanded /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
+  </Style>
+
+  <Style Selector="ListBoxItem:selected:pointerover Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ApplicationAccentBrushLow}" />
+  </Style>
+
+  <Style Selector="ListBoxItem:selected:pointerover Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ThemeHighlightBrush}" />
+  </Style>
+
+  <Style Selector="ListBoxItem:selected Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ApplicationAccentBrushLow}" />
+  </Style>
+
+  <Style Selector="ListBoxItem:selected:pointerover Grid Expander:expanded /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
+  </Style>
+
+  <Style Selector="ListBoxItem:selected Grid Expander:expanded /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
+    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
   </Style>
 </Styles>

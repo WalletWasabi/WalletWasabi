@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -183,7 +183,7 @@ namespace Mono.Options
 
 			if (prototype.Length == 0)
 			{
-				throw new ArgumentException("Cannot be the empty string.", nameof(prototype));
+				throw new ArgumentException("Cannot be an empty string.", nameof(prototype));
 			}
 
 			if (maxValueCount < 0)
@@ -219,7 +219,7 @@ namespace Mono.Options
 			if (OptionValueType == OptionValueType.None && maxValueCount > 1)
 			{
 				throw new ArgumentException(
-						string.Format("Cannot provide maxValueCount of {0} for OptionValueType.None.", maxValueCount),
+					$"Cannot provide maxValueCount of {maxValueCount} for OptionValueType.None.",
 						nameof(maxValueCount));
 			}
 
@@ -317,7 +317,7 @@ namespace Mono.Options
 				else
 				{
 					throw new ArgumentException(
-							string.Format("Conflicting option types: '{0}' vs. '{1}'.", type, name[end]),
+						$"Conflicting option types: '{type}' vs. '{name[end]}'.",
 							"prototype");
 				}
 
@@ -329,14 +329,16 @@ namespace Mono.Options
 				return OptionValueType.None;
 			}
 
-			if (MaxValueCount <= 1 && seps.Count != 0)
+			if (MaxValueCount <= 1)
 			{
-				throw new ArgumentException(
-						string.Format("Cannot provide key/value separators for Options taking {0} value(s).", MaxValueCount),
+				if (seps.Count != 0)
+				{
+					throw new ArgumentException(
+						$"Cannot provide key/value separators for Options taking {MaxValueCount} value(s).",
 						"prototype");
+				}
 			}
-
-			if (MaxValueCount > 1)
+			else
 			{
 				if (seps.Count == 0)
 				{
@@ -366,7 +368,7 @@ namespace Mono.Options
 						if (start != -1)
 						{
 							throw new ArgumentException(
-									string.Format("Ill-formed name/value separator found in \"{0}\".", name),
+								$"Ill-formed name/value separator found in \"{name}\".",
 									"prototype");
 						}
 
@@ -377,7 +379,7 @@ namespace Mono.Options
 						if (start == -1)
 						{
 							throw new ArgumentException(
-									string.Format("Ill-formed name/value separator found in \"{0}\".", name),
+								$"Ill-formed name/value separator found in \"{name}\".",
 									"prototype");
 						}
 
@@ -397,7 +399,7 @@ namespace Mono.Options
 			if (start != -1)
 			{
 				throw new ArgumentException(
-						string.Format("Ill-formed name/value separator found in \"{0}\".", name),
+					$"Ill-formed name/value separator found in \"{name}\".",
 						"prototype");
 			}
 		}

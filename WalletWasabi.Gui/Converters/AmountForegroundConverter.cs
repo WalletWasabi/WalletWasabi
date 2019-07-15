@@ -11,13 +11,14 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is bool isMax)
+			if (value is string amount)
 			{
-				return isMax ? Brushes.ForestGreen : Brushes.White;
+				// When the amount starts with a '~' then Max is selected
+				return amount.StartsWith("~") ? Brushes.ForestGreen : (amount.Equals("No Coins Selected", StringComparison.OrdinalIgnoreCase) ? Brushes.IndianRed : Brushes.White);
 			}
 			else
 			{
-				throw new TypeArgumentException(value, typeof(bool), nameof(value));
+				throw new TypeArgumentException(value, typeof(string), nameof(value));
 			}
 		}
 

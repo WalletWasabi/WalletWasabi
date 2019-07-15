@@ -62,7 +62,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public Transaction SignedCoinJoin { get; private set; }
 
 		private List<Alice> Alices { get; }
-		private List<Bob> Bobs { get; } // Don't make it a hashset or don't make Bob IEquitable!!!
+		private List<Bob> Bobs { get; } // Do not make it a hashset or do not make Bob IEquitable!!!
 
 		private List<UnblindedSignature> RegisteredUnblindedSignatures { get; }
 		private object RegisteredUnblindedSignaturesLock { get; }
@@ -398,9 +398,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							transaction.Outputs.AddWithOptimize(coordinatorFee, coordinatorAddress);
 						}
 
-						// 7. Shuffle. NBitcoin's shuffle doesn't work: https://github.com/MetacoSA/NBitcoin/issues/713
+						// 7. Shuffle. NBitcoin's shuffle does not work: https://github.com/MetacoSA/NBitcoin/issues/713
 						transaction.Inputs.Shuffle();
 						transaction.Outputs.Shuffle();
+						transaction.Outputs.SortByAmount(); // So the coinjoin looks better in block explorer.
 
 						// 8. Create the unsigned transaction.
 						var builder = Network.CreateTransactionBuilder();
@@ -496,7 +497,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 										  case CcjRoundPhase.InputRegistration:
 											  {
 												  // Only abort if less than two one Alice is registered.
-												  // Don't ban anyone, it's ok if they lost connection.
+												  // Do not ban anyone, it's ok if they lost connection.
 												  await RemoveAlicesIfAnInputRefusedByMempoolAsync();
 												  int aliceCountAfterInputRegistrationTimeout = CountAlices();
 												  if (aliceCountAfterInputRegistrationTimeout < 2)
@@ -523,8 +524,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 										  case CcjRoundPhase.OutputRegistration:
 											  {
 												  // Output registration never aborts.
-												  // We don't know which Alice to ban.
-												  // Therefore proceed to signing, and whichever Alice doesn't sign, ban her.
+												  // We do not know which Alice to ban.
+												  // Therefore proceed to signing, and whichever Alice does not sign, ban her.
 												  await ExecuteNextPhaseAsync(CcjRoundPhase.Signing);
 											  }
 											  break;
@@ -572,7 +573,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			// If he registers many alices at InputRegistration
 			// AND never confirms in connection confirmation
 			// THEN connection confirmation will go with 2 alices in every round
-			// Therefore Alices those didn't confirm, nor requested disconnection should be banned:
+			// Therefore Alices those did not confirm, nor requested disconnection should be banned:
 
 			IEnumerable<Alice> alicesToBan = await RemoveAlicesIfAnInputRefusedByMempoolAsync(); // So ban only those who confirmed participation, yet spent their inputs.
 
@@ -637,7 +638,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 					if (changeAmount < Money.Zero)
 					{
-						if (acceptedBlindedOutputScriptsCount < alice.BlindedOutputScripts.Count())
+						if (acceptedBlindedOutputScriptsCount < alice.BlindedOutputScripts.Length)
 						{
 							tinkerWithAdditionalMixingLevels = false;
 						}
@@ -767,10 +768,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			try
 			{
-				// If the transaction doesn't spend unconfirmed coins then the confirmation target can be the one that's been set in the config.
+				// If the transaction does not spend unconfirmed coins then the confirmation target can be the one that's been set in the config.
 				var originalConfirmationTarget = AdjustedConfirmationTarget;
 
-				// Note that only dependents matter, spenders doesn't matter much or at all, they just make this transaction to be faster to confirm faster.
+				// Note that only dependents matter, spenders does not matter much or at all, they just make this transaction to be faster to confirm faster.
 				var dependents = await RpcClient.GetAllDependentsAsync(transactionHashes, includingProvided: true, likelyProvidedManyConfirmedOnes: true);
 				AdjustedConfirmationTarget = AdjustConfirmationTarget(dependents.Count, ConfiguredConfirmationTarget, ConfiguredConfirmationTargetReductionRate);
 
@@ -812,7 +813,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 			catch (Exception ex)
 			{
-				// If fee hasn't been initialized once, fall back.
+				// If fee has not been initialized once, fall back.
 				if (feePerInputs is null || feePerOutputs is null)
 				{
 					var feePerBytes = Money.Satoshis(100); // 100 satoshi per byte
@@ -1026,7 +1027,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							Alice alice = Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
 							if (alice != default(Alice))
 							{
-								// 4. If LastSeen isn't changed by then, remove Alice.
+								// 4. If LastSeen is not changed by then, remove Alice.
 								if (alice.LastSeen == started)
 								{
 									Alices.Remove(alice);
@@ -1075,7 +1076,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): VSize: {SignedCoinJoin.GetVirtualSize() / 1024} KB.");
 						foreach (var o in SignedCoinJoin.GetIndistinguishableOutputs(includeSingle: false))
 						{
-							Logger.LogInfo<CcjRound>($"Round ({RoundId}): There are {o.count} occurences of {o.value.ToString(true, false)} BTC output.");
+							Logger.LogInfo<CcjRound>($"Round ({RoundId}): There are {o.count} occurrences of {o.value.ToString(true, false)} BTC output.");
 						}
 
 						await RpcClient.SendRawTransactionAsync(SignedCoinJoin);

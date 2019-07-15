@@ -1,18 +1,29 @@
 using Avalonia.Data.Converters;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 
 namespace WalletWasabi.Gui.Converters
 {
-	public class MaxClearBoolStringConverter : IValueConverter
+	public class BooleanStringConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is bool isMax)
+			if (value is bool on)
 			{
-				return isMax ? "Clear" : "Max";
+				if (parameter is string str)
+				{
+					var options = str.Split(':');
+					if (options.Length < 2)
+					{
+						throw new ArgumentException("Two options are required by the converter.", nameof(parameter));
+					}
+
+					return on ? options[0] : options[1];
+				}
+				else
+				{
+					throw new TypeArgumentException(parameter, typeof(string), nameof(parameter));
+				}
 			}
 			else
 			{

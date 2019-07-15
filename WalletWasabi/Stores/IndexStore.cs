@@ -121,7 +121,7 @@ namespace WalletWasabi.Stores
 			{
 				// We found a corrupted entry. Stop here.
 				// Delete the currupted file.
-				// Don't try to autocorrect, because the internal data structures are throwing events those may confuse the consumers of those events.
+				// Do not try to autocorrect, because the internal data structures are throwing events those may confuse the consumers of those events.
 				Logger.LogError<IndexStore>("An index file got corrupted. Deleting index files...");
 				MatureIndexFileManager.DeleteMe();
 				ImmatureIndexFileManager.DeleteMe();
@@ -189,7 +189,7 @@ namespace WalletWasabi.Stores
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<IndexStore>($"Backwards compatibility couldn't be ensured. Exception: {ex.ToString()}");
+				Logger.LogWarning<IndexStore>($"Backwards compatibility could not be ensured. Exception: {ex}");
 			}
 		}
 
@@ -230,6 +230,43 @@ namespace WalletWasabi.Stores
 			return filter;
 		}
 
+		public async Task<IEnumerable<FilterModel>> RemoveAllImmmatureFiltersAsync(CancellationToken cancel, bool deleteAndCrashIfMature = false)
+		{
+			var removed = new List<FilterModel>();
+			using (await IndexLock.LockAsync(cancel))
+			{
+				if (ImmatureFilters.Any())
+				{
+					Logger.LogWarning<IndexStore>($"Filters got corrupted. Reorging {ImmatureFilters.Count} immature filters in an attempt to fix them.");
+				}
+				else
+				{
+					Logger.LogCritical<IndexStore>($"Filters got corrupted and have no more immature filters.");
+
+					if (deleteAndCrashIfMature)
+					{
+						Logger.LogCritical<IndexStore>($"Deleting all filters and crashing the software...");
+
+						using (await MatureIndexFileManager.Mutex.LockAsync(cancel))
+						using (await ImmatureIndexFileManager.Mutex.LockAsync(cancel))
+						{
+							ImmatureIndexFileManager.DeleteMe();
+							MatureIndexFileManager.DeleteMe();
+						}
+
+						Environment.Exit(2);
+					}
+				}
+			}
+
+			while (ImmatureFilters.Any())
+			{
+				removed.Add(await RemoveLastFilterAsync(cancel));
+			}
+
+			return removed;
+		}
+
 		private int _throttleId;
 
 		/// <summary>
@@ -261,15 +298,15 @@ namespace WalletWasabi.Stores
 				}
 				else
 				{
-					Interlocked.Exchange(ref _throttleId, 0); // So to notified the currently throttled threads that they don't have to run.
+					Interlocked.Exchange(ref _throttleId, 0); // So to notify the currently throttled threads that they do not have to run.
 				}
 
 				using (await MatureIndexFileManager.Mutex.LockAsync(cancel))
 				using (await ImmatureIndexFileManager.Mutex.LockAsync(cancel))
 				using (await IndexLock.LockAsync(cancel))
 				{
-					// Don't feed the cancellationToken here I always want this to finish running for safety.
-					var currentImmatureLines = ImmatureFilters.Select(x => x.ToHeightlessLine()).ToArray(); // So we don't read on ImmatureFilters while removing them.
+					// Do not feed the cancellationToken here I always want this to finish running for safety.
+					var currentImmatureLines = ImmatureFilters.Select(x => x.ToHeightlessLine()).ToArray(); // So we do not read on ImmatureFilters while removing them.
 					var matureLinesToAppend = currentImmatureLines.SkipLast(100);
 					var immatureLines = currentImmatureLines.TakeLast(100);
 					var tasks = new Task[] { MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend), ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines) };

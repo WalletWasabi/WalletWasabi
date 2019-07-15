@@ -35,17 +35,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private string _buildTransactionButtonText;
 		private bool _isMax;
-		private string _amount;
+		private string _amountText;
 		private int _feeTarget;
 		private int _minimumFeeTarget;
 		private int _maximumFeeTarget;
+		private ObservableAsPropertyHelper<bool> _minMaxFeeTargetsEqual;
 		private string _confirmationExpectedText;
 		private string _feeText;
 		private decimal _usdFee;
-		private Money _btcFee;
+		private Money _estimatedBtcFee;
 		private Money _satoshiPerByteFeeRate;
 		private decimal _feePercentage;
-		private decimal _usdExchangeRate;
+		private ObservableAsPropertyHelper<decimal> _usdExchangeRate;
 		private Money _allSelectedAmount;
 		private string _password;
 		private string _address;
@@ -53,16 +54,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _labelToolTip;
 		private string _feeToolTip;
 		private string _amountWaterMarkText;
-		private string _amountToolTip;
 		private bool _isBusy;
 		private bool _isHardwareBusy;
+		private int _caretIndex;
+
 		private const string SendTransactionButtonTextString = "Send Transaction";
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
 		private const string SendingTransactionButtonTextString = "Sending Transaction...";
 		private const string BuildTransactionButtonTextString = "Build Transaction";
 		private const string BuildingTransactionButtonTextString = "Building Transaction...";
 
-		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private FeeDisplayFormat _feeDisplayFormat;
 
@@ -83,10 +84,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Label = "";
 			Password = "";
 			AllSelectedAmount = Money.Zero;
-			UsdExchangeRate = Global.Synchronizer?.UsdExchangeRate ?? UsdExchangeRate;
 			IsMax = false;
-			LabelToolTip = "Start labelling today and your privacy will thank you tomorrow!";
-			Amount = "0.0";
+			LabelToolTip = "Start labeling today and your privacy will thank you tomorrow!";
+			AmountText = "0.0";
 		}
 
 		public SendTabViewModel(WalletViewModel walletViewModel, bool isTransactionBuilder = false)
@@ -96,22 +96,27 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			BuildTransactionButtonText = IsTransactionBuilder ? BuildTransactionButtonTextString : SendTransactionButtonTextString;
 
 			ResetUi();
-			SetAmountWatermarkAndToolTip(Money.Zero);
+			SetAmountWatermark(Money.Zero);
 
 			CoinList = new CoinListViewModel(Global, CoinListContainerType.SendTabViewModel);
+
 			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SetFeesAndTexts());
+
 			Observable.FromEventPattern(CoinList, nameof(CoinList.DequeueCoinsPressed))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => OnCoinsListDequeueCoinsPressedAsync());
+
+			_minMaxFeeTargetsEqual = this.WhenAnyValue(x => x.MinimumFeeTarget, x => x.MaximumFeeTarget, (x, y) => x == y)
+				.ToProperty(this, x => x.MinMaxFeeTargetsEqual, scheduler: RxApp.MainThreadScheduler);
 
 			SetFeeTargetLimits();
 			FeeTarget = Global.UiConfig.FeeTarget ?? MinimumFeeTarget;
 			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			SetFeesAndTexts();
 
-			this.WhenAnyValue(x => x.Amount)
+			this.WhenAnyValue(x => x.AmountText)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(amount =>
 			{
@@ -123,7 +128,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					betterAmount = betterAmount.Replace(',', '.');
 					int countBetterAmount = betterAmount.Count(x => x == '.');
-					if (countBetterAmount > 1) // Don't enable typing two dots.
+					if (countBetterAmount > 1) // Do not enable typing two dots.
 					{
 						var index = betterAmount.IndexOf('.', betterAmount.IndexOf('.') + 1);
 						if (index > 0)
@@ -139,30 +144,30 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (betterAmount != amount)
 					{
-						Amount = betterAmount;
+						AmountText = betterAmount;
 					}
 				}
 
 				if (Money.TryParse(amount.TrimStart('~', ' '), out Money amountBtc))
 				{
-					SetAmountWatermarkAndToolTip(amountBtc);
+					SetAmountWatermark(amountBtc);
 				}
 				else
 				{
-					SetAmountWatermarkAndToolTip(Money.Zero);
+					SetAmountWatermark(Money.Zero);
 				}
 
 				SetFeesAndTexts();
 			});
 
-			(this).WhenAnyValue(x => x.IsBusy)
+			this.WhenAnyValue(x => x.IsBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 			{
 				SetSendText();
 			});
 
-			(this).WhenAnyValue(x => x.IsHardwareBusy)
+			this.WhenAnyValue(x => x.IsHardwareBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 			{
@@ -192,26 +197,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.Label)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => UpdateSuggestions(x));
+				.Subscribe(UpdateSuggestions);
 
 			this.WhenAnyValue(x => x.FeeTarget)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SetFeesAndTexts());
-
-			this.WhenAnyValue(x => x.CaretIndex)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-			{
-				if (Label is null)
-				{
-					return;
-				}
-
-				if (CaretIndex != Label.Length)
-				{
-					CaretIndex = Label.Length;
-				}
-			});
 
 			MaxCommand = ReactiveCommand.Create(() => { IsMax = !IsMax; }, outputScheduler: RxApp.MainThreadScheduler);
 			this.WhenAnyValue(x => x.IsMax)
@@ -222,13 +212,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						SetAmountIfMax();
 
-						LabelToolTip = "Spending whole coins doesn't generate change, thus labeling is unnecessary.";
+						LabelToolTip = "Spending whole coins does not generate change, thus labeling is unnecessary.";
 					}
 					else
 					{
-						Amount = "0.0";
+						AmountText = "0.0";
 
-						LabelToolTip = "Start labelling today and your privacy will thank you tomorrow!";
+						LabelToolTip = "Start labeling today and your privacy will thank you tomorrow!";
 					}
 				});
 
@@ -273,7 +263,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					var amount = Money.Zero;
 					if (!IsMax)
 					{
-						if (!Money.TryParse(Amount, out amount) || amount == Money.Zero)
+						if (!Money.TryParse(AmountText, out amount) || amount == Money.Zero)
 						{
 							SetWarningMessage($"Invalid amount.");
 							return;
@@ -372,7 +362,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							IsHardwareBusy = false;
 						}
 
-						signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction.Height, result.Transaction.BlockHash, result.Transaction.BlockIndex, result.Transaction.Label, result.Transaction.FirstSeenIfMemPoolTime, result.Transaction.IsReplacement);
+						signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction.Height, result.Transaction.BlockHash, result.Transaction.BlockIndex, result.Transaction.Label, result.Transaction.FirstSeenIfMempoolTime, result.Transaction.IsReplacement);
 					}
 
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
@@ -399,7 +389,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					IsBusy = false;
 				}
 			},
-			this.WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
+			this.WhenAny(x => x.IsMax, x => x.AmountText, x => x.Address, x => x.IsBusy,
 				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy)
 				.ObserveOn(RxApp.MainThreadScheduler));
 		}
@@ -437,14 +427,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					PinPadViewModel pinpad = IoC.Get<IShell>().Documents.OfType<PinPadViewModel>().FirstOrDefault();
 					if (pinpad is null)
 					{
-						pinpad = new PinPadViewModel(null);
+						pinpad = new PinPadViewModel(Global);
 						IoC.Get<IShell>().AddOrSelectDocument(pinpad);
 					}
 					var result = await pinpad.ShowDialogAsync();
 					DisplayActionTab();
 					if (!(result is true))
 					{
-						return (false, "PIN wasn't provided.");
+						return (false, "PIN was not provided.");
 					}
 
 					var maskedPin = pinpad.MaskedPin;
@@ -458,7 +448,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					needsPinWalletInfo = enumRes.FirstOrDefault(x => x.Type == t && x.Path == p);
 					if (needsPinWalletInfo is null)
 					{
-						return (false, "Couldn't find the hardware wallet you are working with. Did you disconnect it?");
+						return (false, "Could not find the hardware wallet you are working with. Did you disconnect it?");
 					}
 					else
 					{
@@ -512,7 +502,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private void SetAmountWatermarkAndToolTip(Money amount)
+		private void SetAmountWatermark(Money amount)
 		{
 			if (amount == Money.Zero)
 			{
@@ -538,8 +528,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					AmountWatermarkText = "Amount (BTC)";
 				}
 			}
-
-			AmountToolTip = $"Exchange Rate: {(long)UsdExchangeRate} BTC/USD.";
 		}
 
 		private void ChangeFeeRateDisplay()
@@ -565,7 +553,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					if (feeTarget == target)
 					{
-						feeTarget = target;
 						break;
 					}
 					else if (feeTarget < target)
@@ -581,17 +568,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				ConfirmationExpectedText = $"{feeTarget}0 minutes";
 			}
-			else if (feeTarget >= 7 && feeTarget <= 144) // hours
+			else if (feeTarget >= 7 && feeTarget <= Constants.OneDayConfirmationTarget) // hours
 			{
 				var h = feeTarget / 6;
 				ConfirmationExpectedText = $"{h} {IfPlural(h, "hour", "hours")}";
 			}
-			else if (feeTarget >= 145 && feeTarget < 1008) // days
+			else if (feeTarget >= 145 && feeTarget < Constants.SevenDaysConfirmationTarget) // days
 			{
-				var d = feeTarget / 144;
+				var d = feeTarget / Constants.OneDayConfirmationTarget;
 				ConfirmationExpectedText = $"{d} {IfPlural(d, "day", "days")}";
 			}
-			else if (feeTarget == 10008)
+			else if (feeTarget == Constants.SevenDaysConfirmationTarget)
 			{
 				ConfirmationExpectedText = $"two weeks™";
 			}
@@ -613,7 +600,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						break;
 
 					case FeeDisplayFormat.BTC:
-						FeeText = $"(~ {BtcFee.ToString(false, false)} BTC)";
+						FeeText = $"(~ {EstimatedBtcFee.ToString(false, false)} BTC)";
 						FeeToolTip = "Estimated total fees in BTC.";
 						break;
 
@@ -646,11 +633,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				if (AllSelectedAmount == Money.Zero)
 				{
-					Amount = "No Coins Selected";
+					AmountText = "No Coins Selected";
 				}
 				else
 				{
-					Amount = $"~ {AllSelectedAmount.ToString(false, true)}";
+					AmountText = $"~ {AllSelectedAmount.ToString(false, true)}";
 				}
 			}
 		}
@@ -670,7 +657,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				else
 				{
-					if (Money.TryParse(Amount.TrimStart('~', ' '), out Money amount))
+					if (Money.TryParse(AmountText.TrimStart('~', ' '), out Money amount))
 					{
 						var inNum = 0;
 						var amountSoFar = Money.Zero;
@@ -685,34 +672,34 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 						vsize = NBitcoinHelpers.CalculateVsizeAssumeSegwit(inNum, 2);
 					}
-					// Else whatever, don't change.
+					// Else whatever, do not change.
 				}
 			}
 
-			BtcFee = Money.Satoshis(vsize * SatoshiPerByteFeeRate);
+			EstimatedBtcFee = Money.Satoshis(vsize * SatoshiPerByteFeeRate);
 
 			long all = selectedCoins.Sum(x => x.Amount);
 			if (IsMax)
 			{
 				if (all != 0)
 				{
-					FeePercentage = 100 * (decimal)BtcFee.Satoshi / all;
+					FeePercentage = 100 * (decimal)EstimatedBtcFee.Satoshi / all;
 				}
 			}
 			else
 			{
-				if (Money.TryParse(Amount.TrimStart('~', ' '), out Money amount) && amount.Satoshi != 0)
+				if (Money.TryParse(AmountText.TrimStart('~', ' '), out Money amount) && amount.Satoshi != 0)
 				{
-					FeePercentage = 100 * (decimal)BtcFee.Satoshi / amount.Satoshi;
+					FeePercentage = 100 * (decimal)EstimatedBtcFee.Satoshi / amount.Satoshi;
 				}
 			}
 
 			if (UsdExchangeRate != 0)
 			{
-				UsdFee = BtcFee.ToUsd(UsdExchangeRate);
+				UsdFee = EstimatedBtcFee.ToUsd(UsdExchangeRate);
 			}
 
-			AllSelectedAmount = Math.Max(Money.Zero, all - BtcFee);
+			AllSelectedAmount = Math.Max(Money.Zero, all - EstimatedBtcFee);
 		}
 
 		private void SetFeeTargetLimits()
@@ -721,13 +708,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (allFeeEstimate != null)
 			{
-				MinimumFeeTarget = allFeeEstimate.Estimations.Min(x => x.Key); // This should be always 2, but bugs will be seen at least if it isn't.
+				MinimumFeeTarget = allFeeEstimate.Estimations.Min(x => x.Key); // This should be always 2, but bugs will be seen at least if it is not.
 				MaximumFeeTarget = allFeeEstimate.Estimations.Max(x => x.Key);
 			}
 			else
 			{
 				MinimumFeeTarget = 2;
-				MaximumFeeTarget = 1008;
+				MaximumFeeTarget = Constants.SevenDaysConfirmationTarget;
 			}
 		}
 
@@ -821,10 +808,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _isMax, value);
 		}
 
-		public string Amount
+		public string AmountText
 		{
-			get => _amount;
-			set => this.RaiseAndSetIfChanged(ref _amount, value);
+			get => _amountText;
+			set => this.RaiseAndSetIfChanged(ref _amountText, value);
 		}
 
 		public int FeeTarget
@@ -849,6 +836,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _maximumFeeTarget, value);
 		}
 
+		public bool MinMaxFeeTargetsEqual => _minMaxFeeTargetsEqual?.Value ?? false;
+
 		public string ConfirmationExpectedText
 		{
 			get => _confirmationExpectedText;
@@ -867,10 +856,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _usdFee, value);
 		}
 
-		public Money BtcFee
+		public Money EstimatedBtcFee
 		{
-			get => _btcFee;
-			set => this.RaiseAndSetIfChanged(ref _btcFee, value);
+			get => _estimatedBtcFee;
+			set => this.RaiseAndSetIfChanged(ref _estimatedBtcFee, value);
 		}
 
 		public Money SatoshiPerByteFeeRate
@@ -885,11 +874,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _feePercentage, value);
 		}
 
-		public decimal UsdExchangeRate
-		{
-			get => _usdExchangeRate;
-			set => this.RaiseAndSetIfChanged(ref _usdExchangeRate, value);
-		}
+		public decimal UsdExchangeRate => _usdExchangeRate?.Value ?? 0m;
 
 		public Money AllSelectedAmount
 		{
@@ -1017,12 +1002,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _amountWaterMarkText, value);
 		}
 
-		public string AmountToolTip
-		{
-			get => _amountToolTip;
-			set => this.RaiseAndSetIfChanged(ref _amountToolTip, value);
-		}
-
 		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
 
 		public ReactiveCommand<Unit, Unit> MaxCommand { get; }
@@ -1055,17 +1034,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SetFeesAndTexts();
 			}).DisposeWith(Disposables);
 
-			Global.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Subscribe(_ =>
-			{
-				var exchangeRate = Global.Synchronizer.UsdExchangeRate;
+			_usdExchangeRate = Global.Synchronizer
+				.WhenAnyValue(x => x.UsdExchangeRate)
+				.ToProperty(this, x => x.UsdExchangeRate, scheduler: RxApp.MainThreadScheduler)
+				.DisposeWith(Disposables);
 
-				if (exchangeRate != 0)
-				{
-					UsdExchangeRate = exchangeRate;
-				}
-
-				SetFeesAndTexts();
-			}).DisposeWith(Disposables);
+			this.WhenAnyValue(x => x.UsdExchangeRate)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => SetFeesAndTexts());
 
 			base.OnOpen();
 		}

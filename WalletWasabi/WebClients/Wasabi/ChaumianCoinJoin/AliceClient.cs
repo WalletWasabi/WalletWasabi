@@ -83,7 +83,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 					}
 					else
 					{
-						throw new NotSupportedException($"InputRequest roundId doesn't match to the provided roundId: {request.RoundId} != {roundId}.");
+						throw new NotSupportedException($"InputRequest roundId does not match to the provided roundId: {request.RoundId} != {roundId}.");
 					}
 				}
 				using (HttpResponseMessage response = await client.TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
@@ -139,7 +139,8 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			Func<Uri> baseUriAction,
 			IPEndPoint torSocks5EndPoint)
 		{
-			var request = new InputsRequest {
+			var request = new InputsRequest
+			{
 				RoundId = roundId,
 				BlindedOutputScripts = blindedOutputScriptHashes,
 				ChangeOutputAddress = changeOutput,
@@ -212,7 +213,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 						}
 					}
 				}
-				catch (Exception ex) when (ex is OperationCanceledException // If couldn't do it within 3 seconds then it'll likely time out and take it as unconfirmed.
+				catch (Exception ex) when (ex is OperationCanceledException // If could not do it within 3 seconds then it'll likely time out and take it as unconfirmed.
 										|| ex is TaskCanceledException
 										|| ex is TimeoutException)
 				{

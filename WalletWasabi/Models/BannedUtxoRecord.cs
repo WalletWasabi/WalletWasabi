@@ -35,7 +35,7 @@ namespace WalletWasabi.Models
 			var bannedForRound = long.Parse(parts[5]);
 			var utxo = new OutPoint(new uint256(parts[3]), int.Parse(parts[2]));
 			var severity = int.Parse(parts[1]);
-			var timeParts = parts[0].Split('-', ' ').Select(x => int.Parse(x)).ToArray();
+			var timeParts = parts[0].Split('-', ' ').Select(int.Parse).ToArray();
 			var timeOfBan = new DateTimeOffset(timeParts[0], timeParts[1], timeParts[2], timeParts[3], timeParts[4], timeParts[5], TimeSpan.Zero);
 
 			return new BannedUtxoRecord(utxo, severity, timeOfBan, isNoted, bannedForRound);

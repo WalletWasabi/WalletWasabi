@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
+using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -36,7 +37,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool? _selectNonPrivateCheckBoxState;
 		private GridLength _coinJoinStatusWidth;
 		private SortOrder _clustersSortDirection;
-		private decimal _totalAmount;
+		private Money _selectedAmount;
 		private bool _isAnyCoinSelected;
 		private bool _isCoinListLoading;
 		private bool _labelExposeCommonOwnershipWarning;
@@ -72,7 +73,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public bool CanDeqeue => SelectedCoin is null ? false : SelectedCoin.CoinJoinInProgress;
+		public bool CanDeqeue => SelectedCoin?.CoinJoinInProgress ?? false;
 
 		public bool? SelectAllCheckBoxState
 		{
@@ -116,10 +117,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _clustersSortDirection, value);
 		}
 
-		public decimal TotalAmount
+		public Money SelectedAmount
 		{
-			get => _totalAmount;
-			set => this.RaiseAndSetIfChanged(ref _totalAmount, value);
+			get => _selectedAmount;
+			set => this.RaiseAndSetIfChanged(ref _selectedAmount, value);
 		}
 
 		public bool IsAnyCoinSelected
@@ -136,49 +137,30 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void RefreshOrdering()
 		{
+			var sortExpression = new SortExpressionComparer<CoinViewModel>();
 			if (AmountSortDirection != SortOrder.None)
 			{
-				if (AmountSortDirection == SortOrder.Increasing)
-				{
-					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.Amount);
-				}
-				else
-				{
-					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.Amount);
-				}
+				MyComparer = AmountSortDirection == SortOrder.Increasing
+					? sortExpression.ThenByAscending(cvm => cvm.Amount)
+					: sortExpression.ThenByDescending(cvm => cvm.Amount);
 			}
 			else if (PrivacySortDirection != SortOrder.None)
 			{
-				if (PrivacySortDirection == SortOrder.Increasing)
-				{
-					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.AnonymitySet);
-				}
-				else
-				{
-					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.AnonymitySet);
-				}
+				MyComparer = PrivacySortDirection == SortOrder.Increasing
+					? sortExpression.ThenByAscending(cvm => cvm.AnonymitySet)
+					: sortExpression.ThenByDescending(cvm => cvm.AnonymitySet);
 			}
 			else if (ClustersSortDirection != SortOrder.None)
 			{
-				if (ClustersSortDirection == SortOrder.Increasing)
-				{
-					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.Clusters);
-				}
-				else
-				{
-					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.Clusters);
-				}
+				MyComparer = ClustersSortDirection == SortOrder.Increasing
+					? sortExpression.ThenByAscending(cvm => cvm.Clusters)
+					: sortExpression.ThenByDescending(cvm => cvm.Clusters);
 			}
 			else if (StatusSortDirection != SortOrder.None)
 			{
-				if (StatusSortDirection == SortOrder.Increasing)
-				{
-					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.Status);
-				}
-				else
-				{
-					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.Status);
-				}
+				MyComparer = StatusSortDirection == SortOrder.Increasing
+					? sortExpression.ThenByAscending(cvm => cvm.Status)
+					: sortExpression.ThenByDescending(cvm => cvm.Status);
 			}
 		}
 
@@ -197,32 +179,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool? GetCheckBoxesSelectedState(Func<CoinViewModel, bool> coinFilterPredicate)
 		{
 			var coins = Coins.Where(coinFilterPredicate).ToArray();
-			bool IsAllSelected = true;
-			foreach (CoinViewModel coin in coins)
-			{
-				if (!coin.IsSelected)
-				{
-					IsAllSelected = false;
-					break;
-				}
-			}
 
-			bool IsAllDeselected = true;
-			foreach (CoinViewModel coin in coins)
-			{
-				if (coin.IsSelected)
-				{
-					IsAllDeselected = false;
-					break;
-				}
-			}
+			bool isAllSelected = coins.All(coin => coin.IsSelected);
+			bool isAllDeselected = coins.All(coin => !coin.IsSelected);
 
-			if (IsAllDeselected)
+			if (isAllDeselected)
 			{
 				return false;
 			}
 
-			if (IsAllSelected)
+			if (isAllSelected)
 			{
 				return true;
 			}
@@ -247,6 +213,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IsCoinListLoading = true;
 			RefreshOrdering();
 
+			// Otherwise they're all selected as null on load.
+			SelectAllCheckBoxState = false;
+			SelectPrivateCheckBoxState = false;
+			SelectNonPrivateCheckBoxState = false;
+
 			var sortChanged = this.WhenValueChanged(@this => MyComparer)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(_ => MyComparer);
@@ -258,7 +229,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe();
 
-			SortCommand = ReactiveCommand.Create(() => RefreshOrdering());
+			SortCommand = ReactiveCommand.Create(RefreshOrdering);
 
 			this.WhenAnyValue(x => x.AmountSortDirection)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -401,7 +372,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}, outputScheduler: RxApp.MainThreadScheduler);
 
-			InitList.ThrownExceptions.Subscribe(ex => Logging.Logger.LogError<CoinListViewModel>(ex));
+			InitList.ThrownExceptions.Subscribe(Logging.Logger.LogError<CoinListViewModel>);
 		}
 
 		private void OnOpen()
@@ -422,17 +393,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(TotalAmount));
-			}).DisposeWith(Disposables);
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedAmount)))
+				.DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.TotalAmount)
+			this.WhenAnyValue(x => x.SelectedAmount)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-			{
-				IsAnyCoinSelected = x > 0m;
-			});
+				.Subscribe(x => IsAnyCoinSelected = x is null ? false : x > Money.Zero);
 
 			Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -458,6 +424,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 									CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == c);
 									if (toRemove != default)
 									{
+										toRemove.IsSelected = false;
 										RootList.Remove(toRemove);
 										toRemove.UnsubscribeEvents();
 									}
@@ -529,7 +496,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			SetSelections();
 			SelectionChanged?.Invoke(this, cvm);
-			TotalAmount = Coins.Where(x => x.IsSelected).Sum(x => x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC));
+			SelectedAmount = Coins.Where(x => x.IsSelected).Sum(x => x.Amount);
 			LabelExposeCommonOwnershipWarning = CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel ?
 				false // Because in CoinJoin the selection algorithm makes sure not to combine red with non-red.
 				: Coins.Any(c =>
@@ -546,7 +513,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			if (!cvm.Unspent)
 			{
+				cvm.IsSelected = false;
 				RootList.Remove(cvm);
+				cvm.UnsubscribeEvents();
 			}
 
 			SetSelections();

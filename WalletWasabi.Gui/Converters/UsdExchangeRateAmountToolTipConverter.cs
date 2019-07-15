@@ -1,20 +1,23 @@
 using Avalonia.Data.Converters;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 
 namespace WalletWasabi.Gui.Converters
 {
-	public class BooleanOnOffConverter : IValueConverter
+	public class UsdExchangeRateAmountToolTipConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is bool on)
+			if (value is decimal usdExchangeRate)
 			{
-				return on ? "On" : "Off";
+				// When the amount starts with a '~' then Max is selected
+				return $"Exchange Rate: {(long)usdExchangeRate} BTC/USD.";
 			}
 			else
 			{
-				throw new TypeArgumentException(value, typeof(bool), nameof(value));
+				throw new TypeArgumentException(value, typeof(decimal), nameof(value));
 			}
 		}
 

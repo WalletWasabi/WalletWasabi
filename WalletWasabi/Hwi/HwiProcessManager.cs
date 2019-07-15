@@ -170,7 +170,8 @@ namespace WalletWasabi.Hwi
 					}
 
 					using (var process = Process.Start(
-						new ProcessStartInfo {
+						new ProcessStartInfo
+						{
 							FileName = HwiPath,
 							Arguments = command,
 							RedirectStandardOutput = true,
@@ -204,7 +205,7 @@ namespace WalletWasabi.Hwi
 			}
 			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
 			{
-				throw new TimeoutException("Timeout occured during the hwi operation.", ex);
+				throw new TimeoutException("Timeout occurred during the hwi operation.", ex);
 			}
 		}
 

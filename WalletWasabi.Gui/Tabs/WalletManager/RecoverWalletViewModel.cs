@@ -37,7 +37,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				WalletName = Guard.Correct(WalletName);
 				MnemonicWords = Guard.Correct(MnemonicWords);
-				Password = Guard.Correct(Password); // Don't let whitespaces to the beginning and to the end.
+				Password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
 
 				string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
 
@@ -81,12 +81,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					catch (Exception ex)
 					{
 						ValidationMessage = ex.ToTypeMessageString();
-						Logger.LogError<LoadWalletViewModel>(ex);
+						Logger.LogError<RecoverWalletViewModel>(ex);
 					}
 				}
 			});
 
-			this.WhenAnyValue(x => x.MnemonicWords).Subscribe(x => UpdateSuggestions(x));
+			this.WhenAnyValue(x => x.MnemonicWords).Subscribe(UpdateSuggestions);
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
 				try
@@ -103,14 +103,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				catch (Exception ex)
 				{
 					Logger.LogTrace(ex);
-				}
-			});
-
-			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
-			{
-				if (CaretIndex != MnemonicWords.Length)
-				{
-					CaretIndex = MnemonicWords.Length;
 				}
 			});
 
@@ -212,15 +204,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 
 			string[] enteredWordList = words.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-			var lastWorld = enteredWordList.LastOrDefault().Replace("\t", "");
-
-			if (lastWorld.Length < 1)
+			var lastWord = enteredWordList.LastOrDefault().Replace("\t", "");
+			if (lastWord.Length < 1)
 			{
 				Suggestions.Clear();
 				return;
 			}
 
-			var suggestedWords = EnglishWords.Where(w => w.StartsWith(lastWorld)).Except(enteredWordList).Take(7);
+			var suggestedWords = EnglishWords.Where(w => w.StartsWith(lastWord)).Except(enteredWordList).Take(7);
 
 			Suggestions.Clear();
 			foreach (var suggestion in suggestedWords)

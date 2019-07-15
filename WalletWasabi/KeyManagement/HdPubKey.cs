@@ -116,7 +116,7 @@ namespace WalletWasabi.KeyManagement
 
 		#region Equality
 
-		public override bool Equals(object obj) => obj is HdPubKey && this == (HdPubKey)obj;
+		public override bool Equals(object obj) => obj is HdPubKey pubKey && this == pubKey;
 
 		public bool Equals(HdPubKey other) => this == other;
 

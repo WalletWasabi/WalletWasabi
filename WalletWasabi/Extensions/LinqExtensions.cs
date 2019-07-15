@@ -134,6 +134,6 @@ namespace System.Linq
 			=> me
 				.OrderBy(x => x.Height)
 				.ThenBy(x => x.BlockIndex)
-				.ThenBy(x => x.FirstSeenIfMemPoolTime ?? DateTime.UtcNow);
+				.ThenBy(x => x.FirstSeenIfMempoolTime ?? DateTime.UtcNow);
 	}
 }

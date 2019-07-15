@@ -79,7 +79,7 @@ namespace Nito.AsyncEx
 			Mutex = null;
 			MutexThread = null;
 
-			// If we already have an asynclock with this fullname then just use it and don't create a new one.
+			// If we already have an asynclock with this fullname then just use it and do not create a new one.
 			lock (AsyncMutexesLock)
 			{
 				if (AsyncMutexes.TryGetValue(FullName, out AsyncMutex asyncMutex))
@@ -117,8 +117,8 @@ namespace Nito.AsyncEx
 		/// <param name="cancellationTokenObj"></param>
 		private void HoldLock(object cancellationTokenObj)
 		{
-			CancellationToken ct = cancellationTokenObj is CancellationToken ?
-				(CancellationToken)cancellationTokenObj :
+			CancellationToken ct = cancellationTokenObj is CancellationToken token ?
+				token :
 				CancellationToken.None;
 
 			while (true)
@@ -290,9 +290,7 @@ namespace Nito.AsyncEx
 					throw new InvalidOperationException($"Thread should not be alive.");
 				}
 
-				MutexThread = new Thread(new ParameterizedThreadStart(HoldLock));
-
-				MutexThread.Name = $"MutexThread";
+				MutexThread = new Thread(new ParameterizedThreadStart(HoldLock)) { Name = $"MutexThread" };
 
 				MutexThread.Start(cancellationToken);
 
@@ -341,7 +339,7 @@ namespace Nito.AsyncEx
 			// Release the local lock.
 			AsyncLock.ReleaseLock();
 
-			throw new IOException($"Couldn't acquire system wide mutex on {ShortName}", inner);
+			throw new IOException($"Could not acquire system wide mutex on {ShortName}", inner);
 		}
 
 		private void StopThread()
@@ -407,7 +405,7 @@ namespace Nito.AsyncEx
 			{
 				lock (AsyncMutexesLock)
 				{
-					bool stillRunning = AsyncMutexes.Where(am => am.Value.IsAlive).Any();
+					bool stillRunning = AsyncMutexes.Any(am => am.Value.IsAlive);
 					if (!stillRunning)
 					{
 						return;

@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
@@ -33,19 +34,19 @@ namespace WalletWasabi.Gui.Behaviors
 				{
 					case TextBoxState.NormalTextBoxOperation:
 						{
-							AssociatedObject.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Ibeam);
+							AssociatedObject.Cursor = new Cursor(StandardCursorType.Ibeam);
 						}
 						break;
 
 					case TextBoxState.AddressInsert:
 						{
-							AssociatedObject.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Arrow);
+							AssociatedObject.Cursor = new Cursor(StandardCursorType.Arrow);
 						}
 						break;
 
 					case TextBoxState.SelectAll:
 						{
-							AssociatedObject.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Arrow);
+							AssociatedObject.Cursor = new Cursor(StandardCursorType.Arrow);
 						}
 						break;
 				}
@@ -82,7 +83,7 @@ namespace WalletWasabi.Gui.Behaviors
 
 			Disposables = new CompositeDisposable
 			{
-				AssociatedObject.GetObservable(TextBox.IsFocusedProperty).Subscribe(focused =>
+				AssociatedObject.GetObservable(InputElement.IsFocusedProperty).Subscribe(focused =>
 				{
 					if (!focused)
 					{
@@ -92,8 +93,14 @@ namespace WalletWasabi.Gui.Behaviors
 			};
 
 			Disposables.Add(
-				AssociatedObject.GetObservable(TextBox.PointerReleasedEvent).Subscribe(async pointer =>
+				AssociatedObject.GetObservable(InputElement.PointerReleasedEvent).Subscribe(async pointer =>
 				{
+					var uiConfig = Application.Current.Resources[Global.UiConfigResourceKey] as UiConfig;
+					if (!(uiConfig.Autocopy is true))
+					{
+						return;
+					}
+
 					switch (MyTextBoxState)
 					{
 						case TextBoxState.AddressInsert:
@@ -122,8 +129,14 @@ namespace WalletWasabi.Gui.Behaviors
 			);
 
 			Disposables.Add(
-				AssociatedObject.GetObservable(TextBox.PointerEnterEvent).Subscribe(async pointerEnter =>
+				AssociatedObject.GetObservable(InputElement.PointerEnterEvent).Subscribe(async pointerEnter =>
 				{
+					var uiConfig = Application.Current.Resources[Global.UiConfigResourceKey] as UiConfig;
+					if (!(uiConfig.Autocopy is true))
+					{
+						return;
+					}
+
 					if (!AssociatedObject.IsFocused && MyTextBoxState == TextBoxState.NormalTextBoxOperation)
 					{
 						MyTextBoxState = TextBoxState.None;

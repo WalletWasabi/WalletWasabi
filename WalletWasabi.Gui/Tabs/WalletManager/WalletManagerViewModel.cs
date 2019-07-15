@@ -74,17 +74,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public void SelectLoadWallet()
 		{
-			SelectedCategory = Categories.First(x => x is LoadWalletViewModel && (((LoadWalletViewModel)x).LoadWalletType == LoadWalletType.Desktop));
+			SelectedCategory = Categories.First(x => x is LoadWalletViewModel model && model.LoadWalletType == LoadWalletType.Desktop);
 		}
 
 		public void SelectTestPassword()
 		{
-			SelectedCategory = Categories.First(x => x is LoadWalletViewModel && (((LoadWalletViewModel)x).LoadWalletType == LoadWalletType.Password));
+			SelectedCategory = Categories.First(x => x is LoadWalletViewModel model && model.LoadWalletType == LoadWalletType.Password);
 		}
 
 		public void SelectHardwareWallet()
 		{
-			SelectedCategory = Categories.First(x => x is LoadWalletViewModel && (((LoadWalletViewModel)x).LoadWalletType == LoadWalletType.Hardware));
+			SelectedCategory = Categories.First(x => x is LoadWalletViewModel model && model.LoadWalletType == LoadWalletType.Hardware);
 		}
 
 		public ViewModelBase CurrentView
@@ -141,7 +141,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 								}
 							}
 
-							// Stop enumerating after you find one. Hardware wallets are acting up, sometimes fingerprint doesn't arrive for example.
+							// Stop enumerating after you find one. Hardware wallets are acting up, sometimes fingerprint does not arrive for example.
 							bool ledgerNotReady = hwis.Any(x => x.Type == HardwareWalletType.Ledger && !x.Ready);
 							if (ledgerNotReady) // For Ledger you have to log into your "Bitcoin" account.
 							{
