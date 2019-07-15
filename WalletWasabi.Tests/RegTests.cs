@@ -1596,7 +1596,7 @@ namespace WalletWasabi.Tests
 					new WalletService.Operation(new Key().ScriptPubKey, Money.Coins(0.01m), "")
 				};
 				var tx1Res = wallet.BuildTransaction(password, operations, 2, allowUnconfirmed: true);
-				Assert.Equal(3, tx1Res.OuterWalletOutputs.Single(x => x.ScriptPubKey == key.P2wpkhScript).AnonymitySet);
+				Assert.Equal(1, tx1Res.OuterWalletOutputs.Single(x => x.ScriptPubKey == key.P2wpkhScript).AnonymitySet);
 
 				// Spend the unconfirmed coin (send it to ourself)
 				operations = new[] { new WalletService.Operation(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m), "") };
