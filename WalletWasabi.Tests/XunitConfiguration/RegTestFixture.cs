@@ -43,19 +43,19 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			Thread.Sleep(100);
 			Directory.CreateDirectory(nameof(RegTestFixture));
 			Thread.Sleep(100);
-			var global = new Backend.Global(nameof(RegTestFixture));
+			var testnetBackendDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests", "Backend"));
 			var config = new Config(BackendNodeBuilder.Network, connectionString, IPAddress.Loopback.ToString(), IPAddress.Loopback.ToString(), BackendRegTestNode.Endpoint.Address.ToString(), Network.Main.DefaultPort, Network.TestNet.DefaultPort, BackendRegTestNode.Endpoint.Port);
-			var configFilePath = Path.Combine(global.DataDir, "Config.json");
+			var configFilePath = Path.Combine(testnetBackendDir, "Config.json");
 			config.SetFilePath(configFilePath);
 			config.ToFileAsync().GetAwaiter().GetResult();
 
 			var roundConfig = CreateRoundConfig(Money.Coins(0.1m), Constants.OneDayConfirmationTarget, 0.7, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
-			var roundConfigFilePath = Path.Combine(global.DataDir, "CcjRoundConfig.json");
+			var roundConfigFilePath = Path.Combine(testnetBackendDir, "CcjRoundConfig.json");
 			roundConfig.SetFilePath(roundConfigFilePath);
 			roundConfig.ToFileAsync().GetAwaiter().GetResult();
 
 			var conf = new ConfigurationBuilder()
-				.AddInMemoryCollection(new[] { new KeyValuePair<string, string>("datadir", nameof(RegTestFixture)) })
+				.AddInMemoryCollection(new[] { new KeyValuePair<string, string>("datadir", testnetBackendDir) })
 				.Build();
 			BackendEndPoint = $"http://localhost:{new Random().Next(37130, 38000)}/";
 			BackendHost = WebHost.CreateDefaultBuilder()
