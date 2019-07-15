@@ -56,7 +56,8 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				// Trezor T doesn't support it.
 				await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
 
-				// ToDo: sendpin (Assert not working)
+				await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
+
 				// ToDo: getxpub
 				// ToDo: displayaddress
 				// ToDo: signmessage

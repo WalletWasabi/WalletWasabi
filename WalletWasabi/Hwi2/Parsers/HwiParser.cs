@@ -250,7 +250,7 @@ namespace WalletWasabi.Hwi2.Parsers
 			throw new FormatException($"Cannot parse version from HWI's response. Response: {hwiResponse}.");
 		}
 
-		public static string ToArgumentString(Network network, IEnumerable<HwiOption> options, HwiCommands? command)
+		public static string ToArgumentString(Network network, IEnumerable<HwiOption> options, HwiCommands? command, string commandArguments)
 		{
 			options = options ?? Enumerable.Empty<HwiOption>();
 			var fullOptions = new List<HwiOption>(options);
@@ -293,6 +293,13 @@ namespace WalletWasabi.Hwi2.Parsers
 					argumentBuilder.Append(' ');
 				}
 				argumentBuilder.Append(command.ToString().ToLowerInvariant());
+			}
+
+			commandArguments = Guard.Correct(commandArguments);
+			if (commandArguments != "")
+			{
+				argumentBuilder.Append(' ');
+				argumentBuilder.Append(commandArguments);
 			}
 
 			var arguments = argumentBuilder.ToString().Trim();

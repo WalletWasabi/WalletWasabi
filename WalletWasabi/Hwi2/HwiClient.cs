@@ -40,9 +40,9 @@ namespace WalletWasabi.Hwi2
 
 		#region Commands
 
-		private async Task<string> SendCommandAsync(IEnumerable<HwiOption> options, HwiCommands? command, CancellationToken cancel)
+		private async Task<string> SendCommandAsync(IEnumerable<HwiOption> options, HwiCommands? command, string commandArguments, CancellationToken cancel)
 		{
-			string arguments = HwiParser.ToArgumentString(Network, options, command);
+			string arguments = HwiParser.ToArgumentString(Network, options, command, commandArguments);
 
 			try
 			{
@@ -76,6 +76,16 @@ namespace WalletWasabi.Hwi2
 			await SendCommandAsync(
 				options: new[] { HwiOption.DevicePath(devicePath), HwiOption.DeviceType(deviceType) },
 				command: HwiCommands.PromptPin,
+				commandArguments: null,
+				cancel).ConfigureAwait(false);
+		}
+
+		public async Task SendPinAsync(HardwareWalletVendors deviceType, string devicePath, int pin, CancellationToken cancel)
+		{
+			await SendCommandAsync(
+				options: new[] { HwiOption.DevicePath(devicePath), HwiOption.DeviceType(deviceType) },
+				command: HwiCommands.SendPin,
+				commandArguments: pin.ToString(),
 				cancel).ConfigureAwait(false);
 		}
 
@@ -84,6 +94,7 @@ namespace WalletWasabi.Hwi2
 			await SendCommandAsync(
 				options: new[] { HwiOption.DevicePath(devicePath), HwiOption.DeviceType(deviceType) },
 				command: HwiCommands.Wipe,
+				commandArguments: null,
 				cancel).ConfigureAwait(false);
 		}
 
@@ -92,6 +103,7 @@ namespace WalletWasabi.Hwi2
 			await SendCommandAsync(
 				options: new[] { HwiOption.DevicePath(devicePath), HwiOption.DeviceType(deviceType), HwiOption.Interactive },
 				command: HwiCommands.Setup,
+				commandArguments: null,
 				cancel).ConfigureAwait(false);
 		}
 
@@ -100,6 +112,7 @@ namespace WalletWasabi.Hwi2
 			await SendCommandAsync(
 				options: new[] { HwiOption.DevicePath(devicePath), HwiOption.DeviceType(deviceType), HwiOption.Interactive },
 				command: HwiCommands.Restore,
+				commandArguments: null,
 				cancel).ConfigureAwait(false);
 		}
 
@@ -114,12 +127,13 @@ namespace WalletWasabi.Hwi2
 			await SendCommandAsync(
 				options: new[] { HwiOption.DevicePath(devicePath), HwiOption.DeviceType(deviceType), HwiOption.Interactive },
 				command: HwiCommands.Backup,
+				commandArguments: null,
 				cancel).ConfigureAwait(false);
 		}
 
 		public async Task<Version> GetVersionAsync(CancellationToken cancel)
 		{
-			string responseString = await SendCommandAsync(options: new[] { HwiOption.Version }, command: null, cancel).ConfigureAwait(false);
+			string responseString = await SendCommandAsync(options: new[] { HwiOption.Version }, command: null, commandArguments: null, cancel).ConfigureAwait(false);
 
 			var version = HwiParser.ParseVersion(responseString);
 			return version;
@@ -127,14 +141,14 @@ namespace WalletWasabi.Hwi2
 
 		public async Task<string> GetHelpAsync(CancellationToken cancel)
 		{
-			string responseString = await SendCommandAsync(options: new[] { HwiOption.Help }, command: null, cancel).ConfigureAwait(false);
+			string responseString = await SendCommandAsync(options: new[] { HwiOption.Help }, command: null, commandArguments: null, cancel).ConfigureAwait(false);
 
 			return responseString;
 		}
 
 		public async Task<IEnumerable<HwiEnumerateEntry>> EnumerateAsync(CancellationToken cancel)
 		{
-			string responseString = await SendCommandAsync(options: null, command: HwiCommands.Enumerate, cancel).ConfigureAwait(false);
+			string responseString = await SendCommandAsync(options: null, command: HwiCommands.Enumerate, commandArguments: null, cancel).ConfigureAwait(false);
 			IEnumerable<HwiEnumerateEntry> response = HwiParser.ParseHwiEnumerateResponse(responseString);
 
 			return response;
@@ -142,13 +156,13 @@ namespace WalletWasabi.Hwi2
 
 		public async Task<string> SetupAsync(CancellationToken cancel)
 		{
-			string responseString = await SendCommandAsync(options: null, command: HwiCommands.Setup, cancel).ConfigureAwait(false);
+			string responseString = await SendCommandAsync(options: null, command: HwiCommands.Setup, commandArguments: null, cancel).ConfigureAwait(false);
 			return responseString;
 		}
 
 		public async Task<string> DisplayAddressAsync(CancellationToken cancel)
 		{
-			string responseString = await SendCommandAsync(options: null, command: HwiCommands.DisplayAddress, cancel).ConfigureAwait(false);
+			string responseString = await SendCommandAsync(options: null, command: HwiCommands.DisplayAddress, commandArguments: null, cancel).ConfigureAwait(false);
 			return responseString;
 		}
 
