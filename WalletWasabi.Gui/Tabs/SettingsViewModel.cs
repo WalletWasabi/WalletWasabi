@@ -243,10 +243,7 @@ namespace WalletWasabi.Gui.Tabs
 						config.PrivacyLevelSome = int.TryParse(SomePrivacyLevel, out int level) ? level : Config.DefaultPrivacyLevelSome;
 						config.PrivacyLevelStrong = int.TryParse(StrongPrivacyLevel, out level) ? level : Config.DefaultPrivacyLevelStrong;
 						config.PrivacyLevelFine = int.TryParse(FinePrivacyLevel, out level) ? level : Config.DefaultPrivacyLevelFine;
-
-						var localNodeHost = LocalNodeHost;
-						Config.TryNormalizeP2PHost(localNodeHost, out localNodeHost);
-						config.SetEndpoint(localNodeHost, int.TryParse(LocalNodePort, out var p) ? new int?(p) : null);
+						config.SetEndpoint(LocalNodeHost, int.TryParse(LocalNodePort, out var p) ? new int?(p) : null);
 					}
 					else
 					{
@@ -320,7 +317,7 @@ namespace WalletWasabi.Gui.Tabs
 			}
 			try
 			{
-				if (p2p && !Config.TryNormalizeP2PHost(host, out host))
+				if (p2p && !Config.TryNormalizeP2PHost(host, 9999, out host))
 				{
 					return "Invalid host";
 				}

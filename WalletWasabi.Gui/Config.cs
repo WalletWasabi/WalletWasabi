@@ -224,8 +224,7 @@ namespace WalletWasabi.Gui
 
 		public (string Host, int Port) GetEndpoint()
 		{
-			var defaultHost = IPAddress.Loopback.ToString();
-			var host = defaultHost;
+			var host = IPAddress.Loopback.ToString();
 			var port = Network.DefaultPort;
 			if (Network == Network.Main)
 			{
@@ -246,11 +245,10 @@ namespace WalletWasabi.Gui
 			{
 				throw new NotSupportedException($"Unsupported Network");
 			}
-			host = TryNormalizeP2PHost(host, out string normalized) ? normalized : defaultHost;
 			return (host, port);
 		}
 
-		public static bool TryNormalizeP2PHost(string host, out string result)
+		public static bool TryNormalizeP2PHost(string host, int defaultPort, out string result)
 		{
 			host = host.Trim();
 			if (Uri.TryCreate(host, UriKind.Absolute, out var uri) && uri.HostNameType != UriHostNameType.Unknown)
@@ -266,7 +264,7 @@ namespace WalletWasabi.Gui
 			}
 			try
 			{
-				result = NBitcoin.Utils.ParseEndpoint(host, 9999).ToEndpointString();
+				result = NBitcoin.Utils.ParseEndpoint(host, defaultPort).ToEndpointString();
 				return true;
 			}
 			catch
@@ -279,6 +277,7 @@ namespace WalletWasabi.Gui
 		public EndPoint GetBitcoinCoreEndPoint()
 		{
 			var endpoint = GetEndpoint();
+			var host = TryNormalizeP2PHost(endpoint.Host, endpoint.Port, out string normalized) ? normalized : IPAddress.Loopback.ToString();
 			try
 			{
 				return NBitcoin.Utils.ParseEndpoint(endpoint.Host, endpoint.Port);
