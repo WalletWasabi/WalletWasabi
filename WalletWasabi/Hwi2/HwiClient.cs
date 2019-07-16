@@ -72,10 +72,10 @@ namespace WalletWasabi.Hwi2
 			}
 		}
 
-		public async Task PromptPinAsync(HardwareWalletVendors? deviceType, string devicePath, CancellationToken cancel)
+		public async Task PromptPinAsync(HardwareWalletVendors deviceType, string devicePath, CancellationToken cancel)
 			=> await PromptPinImplAsync(deviceType, devicePath, null, cancel);
 
-		public async Task PromptPinAsync(HDFingerprint? fingerprint, CancellationToken cancel)
+		public async Task PromptPinAsync(HDFingerprint fingerprint, CancellationToken cancel)
 			=> await PromptPinImplAsync(null, null, fingerprint, cancel);
 
 		private async Task PromptPinImplAsync(HardwareWalletVendors? deviceType, string devicePath, HDFingerprint? fingerprint, CancellationToken cancel)
@@ -87,10 +87,10 @@ namespace WalletWasabi.Hwi2
 				cancel).ConfigureAwait(false);
 		}
 
-		public async Task SendPinAsync(HardwareWalletVendors? deviceType, string devicePath, int pin, CancellationToken cancel)
+		public async Task SendPinAsync(HardwareWalletVendors deviceType, string devicePath, int pin, CancellationToken cancel)
 			=> await SendPinImplAsync(deviceType, devicePath, null, pin, cancel);
 
-		public async Task SendPinAsync(HDFingerprint? fingerprint, int pin, CancellationToken cancel)
+		public async Task SendPinAsync(HDFingerprint fingerprint, int pin, CancellationToken cancel)
 			=> await SendPinImplAsync(null, null, fingerprint, pin, cancel);
 
 		private async Task SendPinImplAsync(HardwareWalletVendors? deviceType, string devicePath, HDFingerprint? fingerprint, int pin, CancellationToken cancel)
@@ -102,10 +102,10 @@ namespace WalletWasabi.Hwi2
 				cancel).ConfigureAwait(false);
 		}
 
-		public async Task<ExtPubKey> GetXpubAsync(HardwareWalletVendors? deviceType, string devicePath, KeyPath keyPath, CancellationToken cancel)
+		public async Task<ExtPubKey> GetXpubAsync(HardwareWalletVendors deviceType, string devicePath, KeyPath keyPath, CancellationToken cancel)
 			=> await GetXpubImplAsync(deviceType, devicePath, null, keyPath, cancel);
 
-		public async Task<ExtPubKey> GetXpubAsync(HDFingerprint? fingerprint, KeyPath keyPath, CancellationToken cancel)
+		public async Task<ExtPubKey> GetXpubAsync(HDFingerprint fingerprint, KeyPath keyPath, CancellationToken cancel)
 			=> await GetXpubImplAsync(null, null, fingerprint, keyPath, cancel);
 
 		private async Task<ExtPubKey> GetXpubImplAsync(HardwareWalletVendors? deviceType, string devicePath, HDFingerprint? fingerprint, KeyPath keyPath, CancellationToken cancel)
@@ -122,7 +122,7 @@ namespace WalletWasabi.Hwi2
 			return extPubKey;
 		}
 
-		public async Task<BitcoinWitPubKeyAddress> DisplayAddressAsync(HardwareWalletVendors? deviceType, string devicePath, KeyPath keyPath, CancellationToken cancel)
+		public async Task<BitcoinWitPubKeyAddress> DisplayAddressAsync(HardwareWalletVendors deviceType, string devicePath, KeyPath keyPath, CancellationToken cancel)
 			=> await DisplayAddressImplAsync(deviceType, devicePath, null, keyPath, cancel);
 
 		public async Task<BitcoinWitPubKeyAddress> DisplayAddressAsync(HDFingerprint fingerprint, KeyPath keyPath, CancellationToken cancel)
@@ -143,10 +143,10 @@ namespace WalletWasabi.Hwi2
 			return address as BitcoinWitPubKeyAddress;
 		}
 
-		public async Task<PSBT> SignTxAsync(HardwareWalletVendors? deviceType, string devicePath, PSBT psbt, CancellationToken cancel)
+		public async Task<PSBT> SignTxAsync(HardwareWalletVendors deviceType, string devicePath, PSBT psbt, CancellationToken cancel)
 			=> await SignTxImplAsync(deviceType, devicePath, null, psbt, cancel);
 
-		public async Task<PSBT> SignTxAsync(HDFingerprint? fingerprint, PSBT psbt, CancellationToken cancel)
+		public async Task<PSBT> SignTxAsync(HDFingerprint fingerprint, PSBT psbt, CancellationToken cancel)
 			=> await SignTxImplAsync(null, null, fingerprint, psbt, cancel);
 
 		private async Task<PSBT> SignTxImplAsync(HardwareWalletVendors? deviceType, string devicePath, HDFingerprint? fingerprint, PSBT psbt, CancellationToken cancel)
@@ -169,10 +169,10 @@ namespace WalletWasabi.Hwi2
 			return signedPsbt;
 		}
 
-		public async Task WipeAsync(HardwareWalletVendors? deviceType, string devicePath, CancellationToken cancel)
+		public async Task WipeAsync(HardwareWalletVendors deviceType, string devicePath, CancellationToken cancel)
 			=> await WipeImplAsync(deviceType, devicePath, null, cancel);
 
-		public async Task WipeAsync(HDFingerprint? fingerprint, CancellationToken cancel)
+		public async Task WipeAsync(HDFingerprint fingerprint, CancellationToken cancel)
 			=> await WipeImplAsync(null, null, fingerprint, cancel);
 
 		private async Task WipeImplAsync(HardwareWalletVendors? deviceType, string devicePath, HDFingerprint? fingerprint, CancellationToken cancel)
@@ -184,10 +184,10 @@ namespace WalletWasabi.Hwi2
 				cancel).ConfigureAwait(false);
 		}
 
-		public async Task SetupAsync(HardwareWalletVendors? deviceType, string devicePath, CancellationToken cancel)
+		public async Task SetupAsync(HardwareWalletVendors deviceType, string devicePath, CancellationToken cancel)
 			=> await SetupImplAsync(deviceType, devicePath, null, cancel);
 
-		public async Task SetupAsync(HDFingerprint? fingerprint, CancellationToken cancel)
+		public async Task SetupAsync(HDFingerprint fingerprint, CancellationToken cancel)
 			=> await SetupImplAsync(null, null, fingerprint, cancel);
 
 		private async Task SetupImplAsync(HardwareWalletVendors? deviceType, string devicePath, HDFingerprint? fingerprint, CancellationToken cancel)
@@ -199,10 +199,10 @@ namespace WalletWasabi.Hwi2
 				cancel).ConfigureAwait(false);
 		}
 
-		public async Task RestoreAsync(HardwareWalletVendors? deviceType, string devicePath, CancellationToken cancel)
+		public async Task RestoreAsync(HardwareWalletVendors deviceType, string devicePath, CancellationToken cancel)
 			=> await RestoreImplAsync(deviceType, devicePath, null, cancel);
 
-		public async Task RestoreAsync(HDFingerprint? fingerprint, CancellationToken cancel)
+		public async Task RestoreAsync(HDFingerprint fingerprint, CancellationToken cancel)
 			=> await RestoreImplAsync(null, null, fingerprint, cancel);
 
 		private async Task RestoreImplAsync(HardwareWalletVendors? deviceType, string devicePath, HDFingerprint? fingerprint, CancellationToken cancel)
@@ -214,10 +214,10 @@ namespace WalletWasabi.Hwi2
 				cancel).ConfigureAwait(false);
 		}
 
-		public async Task BackupAsync(HardwareWalletVendors? deviceType, string devicePath, CancellationToken cancel)
+		public async Task BackupAsync(HardwareWalletVendors deviceType, string devicePath, CancellationToken cancel)
 			=> await BackupImplAsync(deviceType, devicePath, null, cancel);
 
-		public async Task BackupAsync(HDFingerprint? fingerprint, CancellationToken cancel)
+		public async Task BackupAsync(HDFingerprint fingerprint, CancellationToken cancel)
 			=> await BackupImplAsync(null, null, fingerprint, cancel);
 
 		private async Task BackupImplAsync(HardwareWalletVendors? deviceType, string devicePath, HDFingerprint? fingerprint, CancellationToken cancel)
@@ -279,15 +279,38 @@ namespace WalletWasabi.Hwi2
 		private static HwiOption[] BuildOptions(HardwareWalletVendors? deviceType, string devicePath, HDFingerprint? fingerprint, params HwiOption[] extraOptions)
 		{
 			var options = new List<HwiOption>();
-			if (devicePath != null)
+
+			var hasDevicePath = devicePath != null;
+			var hasDeviceType = deviceType.HasValue;
+			var hasFingerprint = fingerprint.HasValue;
+
+			// Fingerprint and devicetype-devicepath pair cannot happen the same time.
+			var notSupportedExceptionMessage = $"Provide either {nameof(fingerprint)} or {nameof(devicePath)}-{nameof(deviceType)} pair, not both.";
+			if (hasDeviceType)
+			{
+				Guard.NotNull(nameof(devicePath), devicePath);
+				if (hasFingerprint)
+				{
+					throw new NotSupportedException(notSupportedExceptionMessage);
+				}
+			}
+			if (hasFingerprint)
+			{
+				if (hasDevicePath || hasDeviceType)
+				{
+					throw new NotSupportedException(notSupportedExceptionMessage);
+				}
+			}
+
+			if (hasDevicePath)
 			{
 				options.Add(HwiOption.DevicePath(devicePath));
 			}
-			if (deviceType.HasValue)
+			if (hasDeviceType)
 			{
 				options.Add(HwiOption.DeviceType(deviceType.Value));
 			}
-			if (fingerprint.HasValue)
+			if (hasFingerprint)
 			{
 				options.Add(HwiOption.Fingerprint(fingerprint.Value));
 			}
