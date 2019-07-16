@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Hwi2;
 using WalletWasabi.Hwi2.Exceptions;
 using WalletWasabi.Hwi2.Models;
+using WalletWasabi.Hwi2.ProcessBridge;
 using Xunit;
 
 namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
@@ -136,6 +137,18 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
 			{
 				await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(cts.Token));
+			}
+		}
+
+		[Fact]
+		public async Task HwiProcessBridgeTestAsync()
+		{
+			HwiProcessBridge pb = new HwiProcessBridge();
+
+			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
+			{
+				var res = await pb.SendCommandAsync("enumerate", cts.Token);
+				Assert.NotEmpty(res.response);
 			}
 		}
 
