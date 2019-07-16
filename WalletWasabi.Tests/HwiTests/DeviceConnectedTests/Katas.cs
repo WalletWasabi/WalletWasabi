@@ -106,9 +106,6 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 
 				var checkResult = signeTx.Check();
 				Assert.Equal(TransactionCheckResult.Success, checkResult);
-
-				// ToDo: --fingerprint
-				// ToDo: --password
 			}
 		}
 
