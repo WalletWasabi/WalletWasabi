@@ -9,6 +9,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Hwi2;
 using WalletWasabi.Hwi2.Exceptions;
 using WalletWasabi.Hwi2.Models;
+using WalletWasabi.KeyManagement;
 using Xunit;
 
 namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
@@ -64,7 +65,8 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 				Assert.Equal("The PIN has already been sent to this device", sendpin.Message);
 				Assert.Equal(HwiErrorCode.DeviceAlreadyUnlocked, sendpin.ErrorCode);
 
-				ExtPubKey xpub = await client.GetXpubAsync(deviceType, devicePath, cts.Token);
+				KeyPath keyPath = KeyManager.DefaultAccountKeyPath;
+				ExtPubKey xpub = await client.GetXpubAsync(deviceType, devicePath, keyPath, cts.Token);
 				var expecteXpub = NBitcoinHelpers.BetterParseExtPubKey("xpub6DHjDx4gzLV37gJWMxYJAqyKRGN46MT61RHVizdU62cbVUYu9L95cXKzX62yJ2hPbN11EeprS8sSn8kj47skQBrmycCMzFEYBQSntVKFQ5M");
 				Assert.Equal(expecteXpub, xpub);
 			}

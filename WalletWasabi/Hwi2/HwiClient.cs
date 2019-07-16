@@ -90,17 +90,30 @@ namespace WalletWasabi.Hwi2
 				cancel).ConfigureAwait(false);
 		}
 
-		public async Task<ExtPubKey> GetXpubAsync(HardwareWalletVendors deviceType, string devicePath, CancellationToken cancel)
+		public async Task<ExtPubKey> GetXpubAsync(HardwareWalletVendors deviceType, string devicePath, KeyPath keyPath, CancellationToken cancel)
 		{
 			var response = await SendCommandAsync(
 				options: new[] { HwiOption.DevicePath(devicePath), HwiOption.DeviceType(deviceType) },
 				command: HwiCommands.GetXpub,
-				commandArguments: KeyManager.DefaultAccountKeyPath.ToString(true, "h"),
+				commandArguments: keyPath.ToString(true, "h"),
 				cancel).ConfigureAwait(false);
 
 			var extPubKey = HwiParser.ParseExtPubKey(response);
 
 			return extPubKey;
+		}
+
+		public async Task<BitcoinWitPubKeyAddress> DisplayAddressAsync(HardwareWalletVendors deviceType, string devicePath, KeyPath keyPath, CancellationToken cancel)
+		{
+			var response = await SendCommandAsync(
+				options: new[] { HwiOption.DevicePath(devicePath), HwiOption.DeviceType(deviceType) },
+				command: HwiCommands.DisplayAddress,
+				commandArguments: $"--path {keyPath.ToString(true, "h")} --wpkh",
+				cancel).ConfigureAwait(false);
+
+			var address = HwiParser.ParseAddress(response, Network);
+
+			return address as BitcoinWitPubKeyAddress;
 		}
 
 		public async Task WipeAsync(HardwareWalletVendors deviceType, string devicePath, CancellationToken cancel)
@@ -171,12 +184,6 @@ namespace WalletWasabi.Hwi2
 		public async Task<string> SetupAsync(CancellationToken cancel)
 		{
 			string responseString = await SendCommandAsync(options: null, command: HwiCommands.Setup, commandArguments: null, cancel).ConfigureAwait(false);
-			return responseString;
-		}
-
-		public async Task<string> DisplayAddressAsync(CancellationToken cancel)
-		{
-			string responseString = await SendCommandAsync(options: null, command: HwiCommands.DisplayAddress, commandArguments: null, cancel).ConfigureAwait(false);
 			return responseString;
 		}
 

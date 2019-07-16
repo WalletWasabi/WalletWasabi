@@ -160,6 +160,20 @@ namespace WalletWasabi.Hwi2.Parsers
 			}
 		}
 
+		public static BitcoinAddress ParseAddress(string json, Network network)
+		{
+			if (JsonHelpers.TryParseJToken(json, out JToken token))
+			{
+				var addressString = token["address"]?.ToString()?.Trim() ?? null;
+				var address = BitcoinAddress.Create(addressString, network);
+				return address;
+			}
+			else
+			{
+				throw new FormatException($"Could not parse extpubkey: {json}");
+			}
+		}
+
 		public static HwiEnumerateEntry ParseHwiEnumerateEntry(JObject json)
 		{
 			JToken typeToken = json["type"];

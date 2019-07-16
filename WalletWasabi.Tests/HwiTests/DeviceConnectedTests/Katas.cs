@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Hwi2;
 using WalletWasabi.Hwi2.Exceptions;
 using WalletWasabi.Hwi2.Models;
+using WalletWasabi.KeyManagement;
 using Xunit;
 
 namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
@@ -34,6 +35,9 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 			//
 			// Connect an already initialized device and unlock it.
 			// Run this test.
+			// displayaddress request: refuse
+			// displayaddress request: confirm
+			// displayaddress request: confirm
 			//
 			// --- USER INTERACTIONS ---
 
@@ -54,13 +58,33 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				await Assert.ThrowsAsync<HwiException>(async () => await client.BackupAsync(deviceType, devicePath, cts.Token));
 
 				// Trezor T doesn't support it.
-				var ex = await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
-
+				await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
+				// Trezor T doesn't support it.
 				await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
-				ExtPubKey xpub = await client.GetXpubAsync(deviceType, devicePath, cts.Token);
-				Assert.NotNull(xpub);
 
-				// ToDo: displayaddress
+				KeyPath keyPath1 = KeyManager.DefaultAccountKeyPath;
+				KeyPath keyPath2 = KeyManager.DefaultAccountKeyPath.Derive(1);
+				ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
+				ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
+				Assert.NotNull(xpub1);
+				Assert.NotNull(xpub2);
+				Assert.NotEqual(xpub1, xpub2);
+
+				// USER SHOULD REFUSE ACTION
+				await Assert.ThrowsAsync<HwiException>(async () => await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token));
+
+				// USER: CONFIRM
+				BitcoinWitPubKeyAddress address1 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token);
+				// USER: CONFIRM
+				BitcoinWitPubKeyAddress address2 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath2, cts.Token);
+				Assert.NotNull(address1);
+				Assert.NotNull(address2);
+				Assert.NotEqual(address1, address2);
+				var expectedAddress1 = xpub1.PubKey.GetAddress(ScriptPubKeyType.Segwit, client.Network);
+				var expectedAddress2 = xpub2.PubKey.GetAddress(ScriptPubKeyType.Segwit, client.Network);
+				Assert.Equal(expectedAddress1, address1);
+				Assert.Equal(expectedAddress2, address2);
+
 				// ToDo: signmessage
 				// ToDo: signtx
 				// ToDo: --fingerprint

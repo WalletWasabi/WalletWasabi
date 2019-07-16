@@ -82,7 +82,6 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 				await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.GetHelpAsync(cts.Token));
 				await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.EnumerateAsync(cts.Token));
 				await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.SetupAsync(cts.Token));
-				await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.DisplayAddressAsync(cts.Token));
 			}
 		}
 
@@ -121,9 +120,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 					client.EnumerateAsync(cts.Token),
 					client.EnumerateAsync(cts.Token),
 					client.SetupAsync(cts.Token),
-					client.SetupAsync(cts.Token),
-					client.DisplayAddressAsync(cts.Token),
-					client.DisplayAddressAsync(cts.Token)
+					client.SetupAsync(cts.Token)
 				};
 
 				cts.CancelAfter(ReasonableRequestTimeout * tasks.Count);
@@ -139,11 +136,6 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
 			{
 				await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(cts.Token));
-			}
-
-			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
-			{
-				await Assert.ThrowsAsync<HwiException>(async () => await client.DisplayAddressAsync(cts.Token));
 			}
 		}
 
