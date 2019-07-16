@@ -26,7 +26,7 @@ namespace WalletWasabi.Gui
 		public string FilePath { get; private set; }
 
 		[JsonProperty(PropertyName = "WindowState")]
-		[JsonConverter(typeof(WindowStateAfterSartJsonConverter))]
+		[JsonConverter(typeof(WindowStateAfterStartJsonConverter))]
 		public WindowState? WindowState { get; internal set; }
 
 		[JsonProperty(PropertyName = "Height")]

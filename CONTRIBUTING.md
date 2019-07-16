@@ -83,7 +83,7 @@ private async void Synchronizer_ResponseArrivedAsync(object sender, EventArgs e)
 {
 	try
 	{
-		awat FooAsync();
+		await FooAsync();
 	}
 	catch (Exception ex)
 	{

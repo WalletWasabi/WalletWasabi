@@ -2,6 +2,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -139,7 +140,6 @@ namespace WalletWasabi.Backend
 			MainNetBitcoinCorePort = Network.Main.DefaultPort;
 			TestNetBitcoinCorePort = Network.TestNet.DefaultPort;
 			RegTestBitcoinCorePort = Network.RegTest.DefaultPort;
-
 			if (!File.Exists(FilePath))
 			{
 				Logger.LogInfo<Config>($"{nameof(Config)} file did not exist. Created at path: `{FilePath}`.");
@@ -176,7 +176,6 @@ namespace WalletWasabi.Backend
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
 			var newConfig = JsonConvert.DeserializeObject<JObject>(jsonString);
 			var currentConfig = JObject.FromObject(this);
-
 			return !JToken.DeepEquals(newConfig, currentConfig);
 		}
 

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace WalletWasabi.Gui.Converters
 {
-	public class WindowStateAfterSartJsonConverter : JsonConverter
+	public class WindowStateAfterStartJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
