@@ -129,10 +129,9 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 			TransactionBuilder builder = network.CreateTransactionBuilder();
 			builder = builder.AddCoins(new Coin(uint256.One, 0, Money.Coins(1), sendFromAddress.ScriptPubKey));
 			builder.Send(sendToAddress.ScriptPubKey, Money.Coins(0.99999m));
-			Transaction tx = builder
+			PSBT psbt = builder
 				.SendFees(Money.Coins(0.00001m))
-				.BuildTransaction(false);
-			PSBT psbt = builder.BuildPSBT(false);
+				.BuildPSBT(false);
 
 			var rootKeyPath1 = new RootedKeyPath(fingerprint, sendFromKeyPath);
 			var rootKeyPath2 = new RootedKeyPath(fingerprint, sendToKeyPath);
