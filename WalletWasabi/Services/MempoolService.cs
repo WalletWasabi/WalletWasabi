@@ -56,6 +56,7 @@ namespace WalletWasabi.Services
 			{
 				var found = BroadcastStore.FirstOrDefault(x => x.TransactionId == transactionHash);
 				entry = found;
+
 				if (found is null)
 				{
 					return false;
@@ -75,14 +76,7 @@ namespace WalletWasabi.Services
 				var found = BroadcastStore.FirstOrDefault(x => x.TransactionId == transactionHash);
 				entry = found;
 
-				if (found is null)
-				{
-					return false;
-				}
-				else
-				{
-					return true;
-				}
+				return !(found is null);
 			}
 		}
 

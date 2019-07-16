@@ -248,14 +248,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 			else
 			{
-				if (SelectedWallet?.HardwareWalletInfo != null && !SelectedWallet.HardwareWalletInfo.Initialized) // If the hardware wallet was not initialized, then make the button say Setup, not Load.
-				{
-					LoadButtonText = "Setup Wallet";
-				}
-				else
-				{
-					LoadButtonText = "Load Wallet";
-				}
+				// If the hardware wallet was not initialized, then make the button say Setup, not Load.
+				LoadButtonText = SelectedWallet?.HardwareWalletInfo != null && !SelectedWallet.HardwareWalletInfo.Initialized
+					? "Setup Wallet"
+					: "Load Wallet";
 			}
 		}
 
