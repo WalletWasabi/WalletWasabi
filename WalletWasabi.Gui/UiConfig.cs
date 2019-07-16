@@ -22,6 +22,7 @@ namespace WalletWasabi.Gui
 	{
 		private bool? _lurkingWifeMode;
 		private bool? _lockScreenActive;
+		private string _lockScreenPinHash;
 		private LockScreenType? _lockScreenType;
 
 		/// <inheritdoc />
@@ -59,9 +60,13 @@ namespace WalletWasabi.Gui
 			get => _lockScreenActive;
 			set => this.RaiseAndSetIfChanged(ref _lockScreenActive, value);
 		}
- 
+
 		[JsonProperty(PropertyName = "LockScreenPinHash")]
-		public string LockScreenPinHash { get; internal set; }
+		public string LockScreenPinHash
+		{
+			get => _lockScreenPinHash;
+			set => this.RaiseAndSetIfChanged(ref _lockScreenPinHash, value);
+		}
 
 		public UiConfig()
 		{
@@ -71,7 +76,7 @@ namespace WalletWasabi.Gui
 		{
 			SetFilePath(filePath);
 		}
- 
+
 		/// <inheritdoc />
 		public async Task ToFileAsync()
 		{

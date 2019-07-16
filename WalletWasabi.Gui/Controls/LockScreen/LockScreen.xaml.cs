@@ -68,7 +68,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			switch (obj)
 			{
 				case LockScreenType.PINLock:
-					var pinLock = new PINLock();
+					var pinLock = new PinLock();
 					CurrentLockScreen = pinLock;
 
 					this.WhenAnyValue(x => x.PINHash)

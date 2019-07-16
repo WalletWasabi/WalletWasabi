@@ -12,6 +12,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Tabs
 {
@@ -34,12 +35,12 @@ namespace WalletWasabi.Gui.Tabs
 		private string _dustThreshold;
 		private string _oldPINPwdBox;
 		private string _newPINPwdBox;
+		private string _confirmPINWarningMessage;
 		private AsyncLock ConfigLock { get; } = new AsyncLock();
 
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
 		public ReactiveCommand<Unit, Unit> EnablePINLockCommand { get; }
-		public ReactiveCommand<Unit, Unit> SetPINLockCommand { get; }
 
 		public SettingsViewModel(Global global) : base(global, "Settings")
 		{
@@ -99,7 +100,7 @@ namespace WalletWasabi.Gui.Tabs
 
 				IsModified = await Global.Config.CheckFileChangeAsync();
 
-				EnablePINLock = Global.UiConfig.LockScreenPinHash != string.Empty;
+				EnablePINEntry = Global.UiConfig.LockScreenPinHash != string.Empty;
 			});
 
 			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
@@ -112,21 +113,44 @@ namespace WalletWasabi.Gui.Tabs
 
 			EnablePINLockCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				EnablePINLock = !EnablePINLock;
-
-				if (!EnablePINLock)
+				if (_oldPINPwdBox != _newPINPwdBox)
 				{
-					Global.UiConfig.LockScreenPinHash = string.Empty;
+					ConfirmPINWarningMessage = "Both PIN entries does not match.";
+					EnablePINEntry = !EnablePINEntry;
+					return;
 				}
 
-				await Global.UiConfig.ToFileAsync();
-			});
+				if (_oldPINPwdBox == string.Empty ||
+					_newPINPwdBox == string.Empty)
+				{
+					ConfirmPINWarningMessage = "Both PIN entries must be filled out.";
+					EnablePINEntry = !EnablePINEntry;
+					return;
+				}
 
-			SetPINLockCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				EnablePINLock = !EnablePINLock;
+				var uiConfigPINHash = Global.UiConfig.LockScreenPinHash;
+				var enteredPINHash = HashHelpers.GenerateSha256Hash(_newPINPwdBox);
 
-				await Global.UiConfig.ToFileAsync();
+				if (EnablePINEntry)
+				{
+					Global.UiConfig.LockScreenPinHash = enteredPINHash;
+					await Global.UiConfig.ToFileAsync();
+				}
+				else
+				{
+					if (uiConfigPINHash != enteredPINHash)
+					{
+						ConfirmPINWarningMessage = "Wrong PIN.";
+						EnablePINEntry = true;
+						return;
+					}
+					Global.UiConfig.LockScreenPinHash = string.Empty;
+					await Global.UiConfig.ToFileAsync();
+				}
+
+				OldPINPwdBox = string.Empty;
+				NewPINPwdBox = string.Empty;
+				ConfirmPINWarningMessage = string.Empty;
 			});
 		}
 
@@ -244,24 +268,28 @@ namespace WalletWasabi.Gui.Tabs
 
 		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
 
-		public bool EnablePINLock
+		public bool EnablePINEntry
 		{
 			get => _enablePINLock;
 			set => this.RaiseAndSetIfChanged(ref _enablePINLock, value);
 		}
 
-		[ValidateMethod(nameof(ValidateOldPINPwdBox))]
 		public string OldPINPwdBox
 		{
 			get => _oldPINPwdBox;
 			set => this.RaiseAndSetIfChanged(ref _oldPINPwdBox, value);
 		}
 
-		[ValidateMethod(nameof(ValidateNewPINPwdBox))]
 		public string NewPINPwdBox
 		{
 			get => _newPINPwdBox;
 			set => this.RaiseAndSetIfChanged(ref _newPINPwdBox, value);
+		}
+
+		public string ConfirmPINWarningMessage
+		{
+			get => _confirmPINWarningMessage;
+			set => this.RaiseAndSetIfChanged(ref _confirmPINWarningMessage, value);
 		}
 
 		private void Save()
@@ -445,28 +473,6 @@ namespace WalletWasabi.Gui.Tabs
 			}
 
 			return "Invalid port.";
-		}
-
-		private string ValidateOldPINPwdBox()
-		{
-			if (OldPINPwdBox == string.Empty)
-				return "Empty PIN is not allowed.";
-
-			if (OldPINPwdBox != NewPINPwdBox)
-				return "PIN Entries doesnt match.";
-
-			return string.Empty;
-		}
-
-		private object ValidateNewPINPwdBox()
-		{
-			if (NewPINPwdBox == string.Empty)
-				return "Empty PIN is not allowed.";
-
-			if (NewPINPwdBox != OldPINPwdBox)
-				return "PIN Entries doesnt match.";
-
-			return string.Empty;
 		}
 
 		private void OpenConfigFile()
