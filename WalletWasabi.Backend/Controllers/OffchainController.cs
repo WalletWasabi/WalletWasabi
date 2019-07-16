@@ -39,9 +39,12 @@ namespace WalletWasabi.Backend.Controllers
 		{
 			IEnumerable<ExchangeRate> exchangeRates = await GetExchangeRatesCollectionAsync();
 
-			return !exchangeRates.Any()
-				? NotFound("Exchange rates are not available.")
-				: (IActionResult)Ok(exchangeRates);
+			if (!exchangeRates.Any())
+			{
+				return NotFound("Exchange rates are not available.");
+			}
+
+			return Ok(exchangeRates);
 		}
 
 		internal async Task<IEnumerable<ExchangeRate>> GetExchangeRatesCollectionAsync()
