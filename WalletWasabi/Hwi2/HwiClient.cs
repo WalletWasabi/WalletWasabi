@@ -92,10 +92,11 @@ namespace WalletWasabi.Hwi2
 
 		public async Task<ExtPubKey> GetXpubAsync(HardwareWalletVendors deviceType, string devicePath, KeyPath keyPath, CancellationToken cancel)
 		{
+			string keyPathString = keyPath.ToString(true, "h");
 			var response = await SendCommandAsync(
 				options: new[] { HwiOption.DevicePath(devicePath), HwiOption.DeviceType(deviceType) },
 				command: HwiCommands.GetXpub,
-				commandArguments: keyPath.ToString(true, "h"),
+				commandArguments: keyPathString,
 				cancel).ConfigureAwait(false);
 
 			var extPubKey = HwiParser.ParseExtPubKey(response);
@@ -111,7 +112,9 @@ namespace WalletWasabi.Hwi2
 				commandArguments: $"--path {keyPath.ToString(true, "h")} --wpkh",
 				cancel).ConfigureAwait(false);
 
-			var address = HwiParser.ParseAddress(response, Network);
+			var address = HwiParser.ParseAddress(response, Network) as BitcoinWitPubKeyAddress;
+
+			address = address.TransformToNetworkNetwork(Network);
 
 			return address as BitcoinWitPubKeyAddress;
 		}

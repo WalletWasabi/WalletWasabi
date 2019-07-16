@@ -283,5 +283,19 @@ namespace NBitcoin
 
 			return toStringBuilder.ToString();
 		}
+
+		public static BitcoinWitPubKeyAddress TransformToNetworkNetwork(this BitcoinWitPubKeyAddress me, Network desiredNetwork)
+		{
+			Network originalNetwork = me.Network;
+
+			if (originalNetwork == desiredNetwork)
+			{
+				return me;
+			}
+
+			var newAddress = new BitcoinWitPubKeyAddress(me.Hash, desiredNetwork);
+
+			return newAddress;
+		}
 	}
 }

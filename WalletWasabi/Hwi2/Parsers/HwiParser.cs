@@ -162,6 +162,12 @@ namespace WalletWasabi.Hwi2.Parsers
 
 		public static BitcoinAddress ParseAddress(string json, Network network)
 		{
+			// HWI does not support regtest, so the parsing would fail here.
+			if (network == Network.RegTest)
+			{
+				network = Network.TestNet;
+			}
+
 			if (JsonHelpers.TryParseJToken(json, out JToken token))
 			{
 				var addressString = token["address"]?.ToString()?.Trim() ?? null;
