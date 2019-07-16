@@ -105,9 +105,29 @@ namespace WalletWasabi.Hwi2
 		}
 
 		public async Task<BitcoinWitPubKeyAddress> DisplayAddressAsync(HardwareWalletVendors deviceType, string devicePath, KeyPath keyPath, CancellationToken cancel)
+			=> await DisplayAddressImplAsync(deviceType, devicePath, null, keyPath, cancel);
+
+		public async Task<BitcoinWitPubKeyAddress> DisplayAddressAsync(HDFingerprint fingerprint, KeyPath keyPath, CancellationToken cancel)
+			=> await DisplayAddressImplAsync(null, null, fingerprint, keyPath, cancel);
+
+		private async Task<BitcoinWitPubKeyAddress> DisplayAddressImplAsync(HardwareWalletVendors? deviceType, string devicePath, HDFingerprint? fingerprint, KeyPath keyPath, CancellationToken cancel)
 		{
+			var options = new List<HwiOption>();
+			if (devicePath != null)
+			{
+				options.Add(HwiOption.DevicePath(devicePath));
+			}
+			if (deviceType.HasValue)
+			{
+				options.Add(HwiOption.DeviceType(deviceType.Value));
+			}
+			if (fingerprint.HasValue)
+			{
+				options.Add(HwiOption.Fingerprint(fingerprint.Value));
+			}
+
 			var response = await SendCommandAsync(
-				options: new[] { HwiOption.DevicePath(devicePath), HwiOption.DeviceType(deviceType) },
+				options: options.ToArray(),
 				command: HwiCommands.DisplayAddress,
 				commandArguments: $"--path {keyPath.ToString(true, "h")} --wpkh",
 				cancel).ConfigureAwait(false);

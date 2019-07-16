@@ -84,7 +84,7 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				// USER: CONFIRM
 				BitcoinWitPubKeyAddress address1 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token);
 				// USER: CONFIRM
-				BitcoinWitPubKeyAddress address2 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath2, cts.Token);
+				BitcoinWitPubKeyAddress address2 = await client.DisplayAddressAsync(fingerprint, keyPath2, cts.Token);
 				Assert.NotNull(address1);
 				Assert.NotNull(address2);
 				Assert.NotEqual(address1, address2);
