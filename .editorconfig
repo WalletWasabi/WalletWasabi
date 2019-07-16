@@ -148,6 +148,16 @@ dotnet_naming_symbols.any_async_methods.required_modifiers         = async
 dotnet_naming_style.end_with_async.required_suffix = Async
 dotnet_naming_style.end_with_async.capitalization  = pascal_case
 
+# name most members using PascalCase (except interface, field, local, parameter, type_parameter)
+dotnet_naming_rule.most_members_must_be_pascal_case.severity = error
+dotnet_naming_rule.most_members_must_be_pascal_case.symbols  = most_members_symbols
+dotnet_naming_rule.most_members_must_be_pascal_case.style    = pascal_case_style
+
+dotnet_naming_symbols.most_members_symbols.applicable_kinds   = class, struct, enum, property, method, event, delegate, namespace, local_function
+dotnet_naming_symbols.most_members_symbols.applicable_accessibilities = *
+
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+
 [*.xaml]
 indent_style = space
 indent_size = 2
