@@ -119,6 +119,26 @@ namespace WalletWasabi.Hwi2
 			return address as BitcoinWitPubKeyAddress;
 		}
 
+		public async Task<PSBT> SignTxAsync(HardwareWalletVendors deviceType, string devicePath, PSBT psbt, CancellationToken cancel)
+		{
+			var psbtString = psbt.ToBase64();
+
+			var response = await SendCommandAsync(
+				options: new[] { HwiOption.DevicePath(devicePath), HwiOption.DeviceType(deviceType) },
+				command: HwiCommands.SignTx,
+				commandArguments: psbtString,
+				cancel).ConfigureAwait(false);
+
+			PSBT signedPsbt = HwiParser.ParsePsbt(response, Network);
+
+			if (!signedPsbt.IsAllFinalized())
+			{
+				signedPsbt.Finalize();
+			}
+
+			return signedPsbt;
+		}
+
 		public async Task WipeAsync(HardwareWalletVendors deviceType, string devicePath, CancellationToken cancel)
 		{
 			await SendCommandAsync(

@@ -176,7 +176,27 @@ namespace WalletWasabi.Hwi2.Parsers
 			}
 			else
 			{
-				throw new FormatException($"Could not parse extpubkey: {json}");
+				throw new FormatException($"Could not parse address: {json}");
+			}
+		}
+
+		public static PSBT ParsePsbt(string json, Network network)
+		{
+			// HWI does not support regtest, so the parsing would fail here.
+			if (network == Network.RegTest)
+			{
+				network = Network.TestNet;
+			}
+
+			if (JsonHelpers.TryParseJToken(json, out JToken token))
+			{
+				var psbtString = token["psbt"]?.ToString()?.Trim() ?? null;
+				var psbt = PSBT.Parse(psbtString, network);
+				return psbt;
+			}
+			else
+			{
+				throw new FormatException($"Could not parse PSBT: {json}");
 			}
 		}
 
