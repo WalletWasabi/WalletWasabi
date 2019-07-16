@@ -12,7 +12,7 @@ using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
-	internal class SlideLock : LockScreenBase
+	internal class SlideLockScreen : UserControl
 	{
 		private CompositeDisposable Disposables { get; set; }
 		private Grid Shade;
@@ -31,7 +31,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			set => OnOffsetChanged(value);
 		}
 
-		public SlideLock() : base()
+		public SlideLockScreen() : base()
 		{
 			InitializeComponent();
 

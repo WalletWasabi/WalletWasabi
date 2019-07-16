@@ -15,7 +15,7 @@ using System.Reactive;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
-	public class PinLock : LockScreenBase
+	public class PinLockScreen : UserControl
 	{
 		public Grid Shade { get; }
 
@@ -25,7 +25,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 		internal string PINHash { get; set; }
 
-		public PinLock() : base()
+		public PinLockScreen() : base()
 		{
 			InitializeComponent();
 
