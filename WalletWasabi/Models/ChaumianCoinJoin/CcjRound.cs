@@ -398,20 +398,20 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							transaction.Outputs.AddWithOptimize(coordinatorFee, coordinatorAddress);
 						}
 
-						// 7. Shuffle. NBitcoin's shuffle does not work: https://github.com/MetacoSA/NBitcoin/issues/713
-						transaction.Inputs.Shuffle();
-						transaction.Outputs.Shuffle();
-						transaction.Outputs.SortByAmount(); // So the coinjoin looks better in block explorer.
-
-						// 8. Create the unsigned transaction.
+						// 7. Create the unsigned transaction.
 						var builder = Network.CreateTransactionBuilder();
 						UnsignedCoinJoin = builder
 							.ContinueToBuild(transaction)
 							.AddCoins(spentCoins) // It makes sure the UnsignedCoinJoin goes through TransactionBuilder optimizations.
 							.BuildTransaction(false);
 
-						// 9. Try optimize fees.
+						// 8. Try optimize fees.
 						await TryOptimizeFeesAsync(spentCoins);
+
+						// 9. Shuffle.
+						UnsignedCoinJoin.Inputs.Shuffle();
+						UnsignedCoinJoin.Outputs.Shuffle();
+						UnsignedCoinJoin.Outputs.SortByAmount(); // So the coinjoin looks better in block explorer.
 
 						SignedCoinJoin = Transaction.Parse(UnsignedCoinJoin.ToHex(), Network);
 
