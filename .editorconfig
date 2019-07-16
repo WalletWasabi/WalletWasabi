@@ -148,6 +148,17 @@ dotnet_naming_symbols.any_async_methods.required_modifiers         = async
 dotnet_naming_style.end_with_async.required_suffix = Async
 dotnet_naming_style.end_with_async.capitalization  = pascal_case
 
+# Interfaces must be IPascalCase
+dotnet_naming_rule.interfaces_I_pascal_case.severity = error
+dotnet_naming_rule.interfaces_I_pascal_case.symbols  = interfaces_symbols
+dotnet_naming_rule.interfaces_I_pascal_case.style    = I_pascal_case_style
+
+dotnet_naming_symbols.interfaces_symbols.applicable_kinds = interface
+dotnet_naming_symbols.interfaces_symbols.applicable_accessibilities = *
+
+dotnet_naming_style.I_pascal_case_style.required_prefix = I
+dotnet_naming_style.I_pascal_case_style.capitalization = pascal_case
+
 [*.xaml]
 indent_style = space
 indent_size = 2
