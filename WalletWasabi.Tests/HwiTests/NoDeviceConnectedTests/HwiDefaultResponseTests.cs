@@ -63,7 +63,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 
 		[Theory]
 		[MemberData(nameof(GetHwiClientConfigurationCombinationValues))]
-		public async Task CanEnumerateTestsAsync(HwiClient client)
+		public async Task CanEnumerateAsync(HwiClient client)
 		{
 			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
 			{
@@ -82,7 +82,6 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 				await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.GetVersionAsync(cts.Token));
 				await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.GetHelpAsync(cts.Token));
 				await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.EnumerateAsync(cts.Token));
-				await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.SetupAsync(cts.Token));
 			}
 		}
 
@@ -98,10 +97,10 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 					foreach (var wrongDevicePath in wrongDeviePaths)
 					{
 						await Assert.ThrowsAsync<ArgumentException>(async () => await client.WipeAsync(deviceType, wrongDevicePath, cts.Token));
-						await Assert.ThrowsAsync<ArgumentException>(async () => await client.SetupAsync(deviceType, wrongDevicePath, cts.Token));
+						await Assert.ThrowsAsync<ArgumentException>(async () => await client.SetupAsync(deviceType, wrongDevicePath, false, cts.Token));
 					}
 					await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.WipeAsync(deviceType, null, cts.Token));
-					await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.SetupAsync(deviceType, null, cts.Token));
+					await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.SetupAsync(deviceType, null, false, cts.Token));
 				}
 			}
 		}
@@ -119,24 +118,12 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 					client.GetHelpAsync(cts.Token),
 					client.GetHelpAsync(cts.Token),
 					client.EnumerateAsync(cts.Token),
-					client.EnumerateAsync(cts.Token),
-					client.SetupAsync(cts.Token),
-					client.SetupAsync(cts.Token)
+					client.EnumerateAsync(cts.Token)
 				};
 
 				cts.CancelAfter(ReasonableRequestTimeout * tasks.Count);
 
 				await Task.WhenAny(tasks);
-			}
-		}
-
-		[Theory]
-		[MemberData(nameof(GetHwiClientConfigurationCombinationValues))]
-		public async Task ThrowsHwiExceptionsAsync(HwiClient client)
-		{
-			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
-			{
-				await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(cts.Token));
 			}
 		}
 
@@ -147,7 +134,19 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 
 			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
 			{
-				var res = await pb.SendCommandAsync("enumerate", cts.Token);
+				var res = await pb.SendCommandAsync("enumerate", false, cts.Token);
+				Assert.NotEmpty(res.response);
+			}
+		}
+
+		[Fact]
+		public async Task OpenConsoleDoesntThrowAsync()
+		{
+			HwiProcessBridge pb = new HwiProcessBridge();
+
+			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
+			{
+				var res = await pb.SendCommandAsync("enumerate", true, cts.Token);
 				Assert.NotEmpty(res.response);
 			}
 		}

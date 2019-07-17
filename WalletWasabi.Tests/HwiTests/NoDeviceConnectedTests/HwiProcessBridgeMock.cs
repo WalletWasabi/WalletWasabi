@@ -8,17 +8,22 @@ using WalletWasabi.Interfaces;
 
 namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 {
-	public class IMockHwiProcessBridge : IProcessBridge
+	public class HwiProcessBridgeMock : IProcessBridge
 	{
 		public HardwareWalletModels Model { get; }
 
-		public IMockHwiProcessBridge(HardwareWalletModels model)
+		public HwiProcessBridgeMock(HardwareWalletModels model)
 		{
 			Model = model;
 		}
 
-		public Task<(string response, int exitCode)> SendCommandAsync(string arguments, CancellationToken cancel)
+		public Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel)
 		{
+			if (openConsole)
+			{
+				throw new NotImplementedException($"Cannot mock {nameof(openConsole)} mode.");
+			}
+
 			if (CompareArguments(arguments, "enumerate"))
 			{
 				if (Model == HardwareWalletModels.TrezorT)

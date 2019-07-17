@@ -8,6 +8,6 @@ namespace WalletWasabi.Interfaces
 {
 	public interface IProcessBridge
 	{
-		Task<(string response, int exitCode)> SendCommandAsync(string arguments, CancellationToken cancel);
+		Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel);
 	}
 }

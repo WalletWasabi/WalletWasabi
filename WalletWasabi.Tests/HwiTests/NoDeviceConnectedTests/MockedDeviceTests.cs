@@ -28,7 +28,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 		[MemberData(nameof(GetDifferentNetworkValues))]
 		public async Task TrezorTMockTestsAsync(Network network)
 		{
-			var client = new HwiClient(network, new IMockHwiProcessBridge(HardwareWalletModels.TrezorT));
+			var client = new HwiClient(network, new HwiProcessBridgeMock(HardwareWalletModels.TrezorT));
 
 			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
 			{
@@ -48,13 +48,8 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 				var devicePath = entry.Path;
 
 				await client.WipeAsync(deviceType, devicePath, cts.Token);
-				await client.SetupAsync(deviceType, devicePath, cts.Token);
-				await client.RestoreAsync(deviceType, devicePath, cts.Token);
-
-				// Trezor T doesn't support it.
-				var backup = await Assert.ThrowsAsync<HwiException>(async () => await client.BackupAsync(deviceType, devicePath, cts.Token));
-				Assert.Equal("The Trezor does not support creating a backup via software", backup.Message);
-				Assert.Equal(HwiErrorCode.UnavailableAction, backup.ErrorCode);
+				await client.SetupAsync(deviceType, devicePath, false, cts.Token);
+				await client.RestoreAsync(deviceType, devicePath, false, cts.Token);
 
 				// Trezor T doesn't support it.
 				var promptpin = await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));

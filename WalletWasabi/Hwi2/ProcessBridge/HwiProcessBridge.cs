@@ -13,27 +13,42 @@ namespace WalletWasabi.Hwi2.ProcessBridge
 {
 	public class HwiProcessBridge : IProcessBridge
 	{
-		public async Task<(string response, int exitCode)> SendCommandAsync(string arguments, CancellationToken cancel)
+		public async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel)
 		{
 			string responseString;
 			int exitCode;
 			string hwiPath = GetHwiPath();
+
+			var redirectStandardOutput = !openConsole;
+			var useShellExecute = openConsole;
+			var createNoWindow = !openConsole;
+			var windowStyle = openConsole ? ProcessWindowStyle.Normal : ProcessWindowStyle.Hidden;
+
 			using (var process = Process.Start(
 				new ProcessStartInfo
 				{
 					FileName = hwiPath,
 					Arguments = arguments,
-					RedirectStandardOutput = true,
-					UseShellExecute = false,
-					CreateNoWindow = true,
-					WindowStyle = ProcessWindowStyle.Hidden
+					RedirectStandardOutput = redirectStandardOutput,
+					UseShellExecute = useShellExecute,
+					CreateNoWindow = createNoWindow,
+					WindowStyle = windowStyle
 				}
 			))
 			{
 				await process.WaitForExitAsync(cancel).ConfigureAwait(false);
 
 				exitCode = process.ExitCode;
-				responseString = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+				if (redirectStandardOutput)
+				{
+					responseString = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+				}
+				else
+				{
+					responseString = exitCode == 0 ?
+						"{\"success\":\"true\"}" :
+						$"{{\"success\":\"false\",\"error\":\"Process terminated with exit code: {exitCode}.\"}}";
+				}
 			}
 
 			return (responseString, exitCode);

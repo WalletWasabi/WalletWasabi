@@ -51,19 +51,16 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				Assert.Single(enumerate);
 				HwiEnumerateEntry entry = enumerate.Single();
 				Assert.NotNull(entry.Path);
-				Assert.True(entry.Type.HasValue);
+				Assert.Equal(HardwareWalletVendors.Trezor, entry.Type);
 				Assert.True(entry.Fingerprint.HasValue);
 
 				string devicePath = entry.Path;
 				HardwareWalletVendors deviceType = entry.Type.Value;
 				HDFingerprint fingerprint = entry.Fingerprint.Value;
 
-				await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, cts.Token));
+				await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
 
-				await Assert.ThrowsAsync<HwiException>(async () => await client.RestoreAsync(deviceType, devicePath, cts.Token));
-
-				// Trezor T doesn't support it.
-				await Assert.ThrowsAsync<HwiException>(async () => await client.BackupAsync(deviceType, devicePath, cts.Token));
+				await Assert.ThrowsAsync<HwiException>(async () => await client.RestoreAsync(deviceType, devicePath, false, cts.Token));
 
 				// Trezor T doesn't support it.
 				await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
@@ -106,6 +103,38 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 
 				var checkResult = signeTx.Check();
 				Assert.Equal(TransactionCheckResult.Success, checkResult);
+			}
+		}
+
+		[Fact]
+		public async Task TrezorOneKataAsync()
+		{
+			// --- USER INTERACTIONS ---
+			//
+			// Connect an already initialized device. Don't unlock it.
+			// Run this test.
+			//
+			// --- USER INTERACTIONS ---
+
+			var network = Network.Main;
+			var client = new HwiClient(network);
+			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
+			{
+				var enumerate = await client.EnumerateAsync(cts.Token);
+				Assert.Single(enumerate);
+				HwiEnumerateEntry entry = enumerate.Single();
+				Assert.NotNull(entry.Path);
+				Assert.Equal(HardwareWalletVendors.Trezor, entry.Type);
+				Assert.True(entry.NeedsPinSent);
+				Assert.Equal(HwiErrorCode.DeviceNotReady, entry.Code);
+				Assert.Null(entry.Fingerprint);
+
+				string devicePath = entry.Path;
+				HardwareWalletVendors deviceType = entry.Type.Value;
+
+				await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
+
+				await Assert.ThrowsAsync<HwiException>(async () => await client.RestoreAsync(deviceType, devicePath, false, cts.Token));
 			}
 		}
 

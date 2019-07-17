@@ -41,13 +41,13 @@ namespace WalletWasabi.Hwi2
 
 		#region Commands
 
-		private async Task<string> SendCommandAsync(IEnumerable<HwiOption> options, HwiCommands? command, string commandArguments, CancellationToken cancel)
+		private async Task<string> SendCommandAsync(IEnumerable<HwiOption> options, HwiCommands? command, string commandArguments, bool openConsole, CancellationToken cancel)
 		{
 			string arguments = HwiParser.ToArgumentString(Network, options, command, commandArguments);
 
 			try
 			{
-				(string responseString, int exitCode) = await Bridge.SendCommandAsync(arguments, cancel).ConfigureAwait(false);
+				(string responseString, int exitCode) = await Bridge.SendCommandAsync(arguments, openConsole, cancel).ConfigureAwait(false);
 
 				if (exitCode != 0)
 				{
@@ -84,6 +84,7 @@ namespace WalletWasabi.Hwi2
 				options: BuildOptions(deviceType, devicePath, fingerprint),
 				command: HwiCommands.PromptPin,
 				commandArguments: null,
+				openConsole: false,
 				cancel).ConfigureAwait(false);
 		}
 
@@ -99,6 +100,7 @@ namespace WalletWasabi.Hwi2
 				options: BuildOptions(deviceType, devicePath, fingerprint),
 				command: HwiCommands.SendPin,
 				commandArguments: pin.ToString(),
+				openConsole: false,
 				cancel).ConfigureAwait(false);
 		}
 
@@ -115,6 +117,7 @@ namespace WalletWasabi.Hwi2
 				options: BuildOptions(deviceType, devicePath, fingerprint),
 				command: HwiCommands.GetXpub,
 				commandArguments: keyPathString,
+				openConsole: false,
 				cancel).ConfigureAwait(false);
 
 			var extPubKey = HwiParser.ParseExtPubKey(response);
@@ -134,6 +137,7 @@ namespace WalletWasabi.Hwi2
 				options: BuildOptions(deviceType, devicePath, fingerprint),
 				command: HwiCommands.DisplayAddress,
 				commandArguments: $"--path {keyPath.ToString(true, "h")} --wpkh",
+				openConsole: false,
 				cancel).ConfigureAwait(false);
 
 			var address = HwiParser.ParseAddress(response, Network) as BitcoinWitPubKeyAddress;
@@ -157,6 +161,7 @@ namespace WalletWasabi.Hwi2
 				options: BuildOptions(deviceType, devicePath, fingerprint),
 				command: HwiCommands.SignTx,
 				commandArguments: psbtString,
+				openConsole: false,
 				cancel).ConfigureAwait(false);
 
 			PSBT signedPsbt = HwiParser.ParsePsbt(response, Network);
@@ -170,74 +175,43 @@ namespace WalletWasabi.Hwi2
 		}
 
 		public async Task WipeAsync(HardwareWalletVendors deviceType, string devicePath, CancellationToken cancel)
-			=> await WipeImplAsync(deviceType, devicePath, null, cancel);
-
-		public async Task WipeAsync(HDFingerprint fingerprint, CancellationToken cancel)
-			=> await WipeImplAsync(null, null, fingerprint, cancel);
-
-		private async Task WipeImplAsync(HardwareWalletVendors? deviceType, string devicePath, HDFingerprint? fingerprint, CancellationToken cancel)
 		{
 			await SendCommandAsync(
-				options: BuildOptions(deviceType, devicePath, fingerprint),
+				options: BuildOptions(deviceType, devicePath, null),
 				command: HwiCommands.Wipe,
 				commandArguments: null,
+				openConsole: false,
 				cancel).ConfigureAwait(false);
 		}
 
-		public async Task SetupAsync(HardwareWalletVendors deviceType, string devicePath, CancellationToken cancel)
-			=> await SetupImplAsync(deviceType, devicePath, null, cancel);
-
-		public async Task SetupAsync(HDFingerprint fingerprint, CancellationToken cancel)
-			=> await SetupImplAsync(null, null, fingerprint, cancel);
-
-		private async Task SetupImplAsync(HardwareWalletVendors? deviceType, string devicePath, HDFingerprint? fingerprint, CancellationToken cancel)
+		public async Task SetupAsync(HardwareWalletVendors deviceType, string devicePath, bool openConsole, CancellationToken cancel)
 		{
 			await SendCommandAsync(
-				options: BuildOptions(deviceType, devicePath, fingerprint, HwiOption.Interactive),
+				options: BuildOptions(deviceType, devicePath, null, HwiOption.Interactive),
 				command: HwiCommands.Setup,
 				commandArguments: null,
+				openConsole: openConsole,
 				cancel).ConfigureAwait(false);
 		}
 
-		public async Task RestoreAsync(HardwareWalletVendors deviceType, string devicePath, CancellationToken cancel)
-			=> await RestoreImplAsync(deviceType, devicePath, null, cancel);
-
-		public async Task RestoreAsync(HDFingerprint fingerprint, CancellationToken cancel)
-			=> await RestoreImplAsync(null, null, fingerprint, cancel);
-
-		private async Task RestoreImplAsync(HardwareWalletVendors? deviceType, string devicePath, HDFingerprint? fingerprint, CancellationToken cancel)
+		public async Task RestoreAsync(HardwareWalletVendors deviceType, string devicePath, bool openConsole, CancellationToken cancel)
 		{
 			await SendCommandAsync(
-				options: BuildOptions(deviceType, devicePath, fingerprint, HwiOption.Interactive),
+				options: BuildOptions(deviceType, devicePath, null, HwiOption.Interactive),
 				command: HwiCommands.Restore,
 				commandArguments: null,
-				cancel).ConfigureAwait(false);
-		}
-
-		public async Task BackupAsync(HardwareWalletVendors deviceType, string devicePath, CancellationToken cancel)
-			=> await BackupImplAsync(deviceType, devicePath, null, cancel);
-
-		public async Task BackupAsync(HDFingerprint fingerprint, CancellationToken cancel)
-			=> await BackupImplAsync(null, null, fingerprint, cancel);
-
-		private async Task BackupImplAsync(HardwareWalletVendors? deviceType, string devicePath, HDFingerprint? fingerprint, CancellationToken cancel)
-		{
-			if (deviceType == HardwareWalletVendors.Trezor)
-			{
-				// HWI would throw the same, don't need the roundtrip.
-				throw new HwiException(HwiErrorCode.UnavailableAction, "The Trezor does not support creating a backup via software");
-			}
-
-			await SendCommandAsync(
-				options: BuildOptions(deviceType, devicePath, fingerprint, HwiOption.Interactive),
-				command: HwiCommands.Backup,
-				commandArguments: null,
+				openConsole: openConsole,
 				cancel).ConfigureAwait(false);
 		}
 
 		public async Task<Version> GetVersionAsync(CancellationToken cancel)
 		{
-			string responseString = await SendCommandAsync(options: new[] { HwiOption.Version }, command: null, commandArguments: null, cancel).ConfigureAwait(false);
+			string responseString = await SendCommandAsync(
+				options: new[] { HwiOption.Version },
+				command: null,
+				commandArguments: null,
+				openConsole: false,
+				cancel).ConfigureAwait(false);
 
 			var version = HwiParser.ParseVersion(responseString);
 			return version;
@@ -245,23 +219,27 @@ namespace WalletWasabi.Hwi2
 
 		public async Task<string> GetHelpAsync(CancellationToken cancel)
 		{
-			string responseString = await SendCommandAsync(options: new[] { HwiOption.Help }, command: null, commandArguments: null, cancel).ConfigureAwait(false);
+			string responseString = await SendCommandAsync(
+				options: new[] { HwiOption.Help },
+				command: null,
+				commandArguments: null,
+				openConsole: false,
+				cancel).ConfigureAwait(false);
 
 			return responseString;
 		}
 
 		public async Task<IEnumerable<HwiEnumerateEntry>> EnumerateAsync(CancellationToken cancel)
 		{
-			string responseString = await SendCommandAsync(options: null, command: HwiCommands.Enumerate, commandArguments: null, cancel).ConfigureAwait(false);
+			string responseString = await SendCommandAsync(
+				options: null,
+				command: HwiCommands.Enumerate,
+				commandArguments: null,
+				openConsole: false,
+				cancel).ConfigureAwait(false);
 			IEnumerable<HwiEnumerateEntry> response = HwiParser.ParseHwiEnumerateResponse(responseString);
 
 			return response;
-		}
-
-		public async Task<string> SetupAsync(CancellationToken cancel)
-		{
-			string responseString = await SendCommandAsync(options: null, command: HwiCommands.Setup, commandArguments: null, cancel).ConfigureAwait(false);
-			return responseString;
 		}
 
 		#endregion Commands
