@@ -4,6 +4,7 @@ using AvalonStudio.Extensibility.Dialogs;
 using AvalonStudio.Shell;
 using ReactiveUI;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Controls.LockScreen;
 
 namespace WalletWasabi.Gui.ViewModels
 {

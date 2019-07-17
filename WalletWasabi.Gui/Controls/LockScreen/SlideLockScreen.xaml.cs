@@ -12,124 +12,134 @@ using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
-	internal class SlideLockScreen : UserControl
-	{
-		private CompositeDisposable Disposables { get; set; }
-		private Grid Shade;
-		private Thumb DragThumb;
-		private TranslateTransform TargetTransform;
-		private bool UserDragInProgress, StopSpring;
+    public class SlideLockScreen : UserControl
+    {
 
-		private const double ThresholdPercent = 1 / 6d;
-		private double RealThreshold;
-		private const double Stiffness = 0.12d;
+        public static readonly DirectProperty<SlideLockScreen, CompositeDisposable> DisposablesProperty =
+                    AvaloniaProperty.RegisterDirect<SlideLockScreen, CompositeDisposable>(nameof(Disposables),
+                                                                      o => o.Disposables,
+                                                                      (o, v) => o.Disposables = v);
+        private CompositeDisposable _disposables;
+        public CompositeDisposable Disposables
+        {
+            get => _disposables;
+            set => this.SetAndRaise(DisposablesProperty, ref _disposables, value);
+        }
 
-		private double _offset = 0;
-		private double Offset
-		{
-			get => _offset;
-			set => OnOffsetChanged(value);
-		}
+        private Thumb DragThumb;
+        private TranslateTransform TargetTransform;
+        private bool UserDragInProgress, StopSpring;
 
-		public SlideLockScreen() : base()
-		{
-			InitializeComponent();
+        private const double ThresholdPercent = 1 / 6d;
+        private double RealThreshold;
+        private const double Stiffness = 0.12d;
 
-			this.Shade = this.FindControl<Grid>("Shade");
-			this.DragThumb = this.FindControl<Thumb>("PART_DragThumb");
+        private double _offset = 0;
+        private double Offset
+        {
+            get => _offset;
+            set => OnOffsetChanged(value);
+        }
 
-			TargetTransform = new TranslateTransform();
-			Shade.RenderTransform = TargetTransform;
-		}
+        public SlideLockScreen() : base()
+        {
+            InitializeComponent();
 
-		private void InitializeComponent()
-		{
-			AvaloniaXamlLoader.Load(this);
-		}
+            this.DragThumb = this.FindControl<Thumb>("PART_DragThumb");
 
-		private void OnBoundsChange(Rect obj)
-		{
-			var newHeight = obj.Height;
-			RealThreshold = newHeight * ThresholdPercent;
-		}
+            TargetTransform = new TranslateTransform();
+            this.RenderTransform = TargetTransform;
+        }
 
-		private void OnOffsetChanged(double value)
-		{
-			_offset = value;
-			TargetTransform.Y = _offset;
-		}
+        private void InitializeComponent()
+        {
+            AvaloniaXamlLoader.Load(this);
+        }
 
-		private void OnClockTick(TimeSpan CurrentTime)
-		{
-			if (!UserDragInProgress & Math.Abs(Offset) > RealThreshold)
-			{
-				IsLocked = false;
-				StopSpring = true;
-				return;
-			}
+        private void OnBoundsChange(Rect obj)
+        {
+            var newHeight = obj.Height;
+            RealThreshold = newHeight * ThresholdPercent;
+        }
 
-			if (IsLocked & !UserDragInProgress & Offset != 0)
-			{
-				Offset *= 1 - Stiffness;
-			}
-		}
+        private void OnOffsetChanged(double value)
+        {
+            _offset = value;
+            TargetTransform.Y = _offset;
+        }
 
-		private void OnDragStarted()
-		{
-			UserDragInProgress = true;
-		}
+        private void OnClockTick(TimeSpan CurrentTime)
+        {
+            // if (!UserDragInProgress & Math.Abs(Offset) > RealThreshold)
+            // {
+            // 	IsLocked = false;
+            // 	StopSpring = true;
+            // 	return;
+            // }
 
-		private void OnDragDelta(VectorEventArgs e)
-		{
-			if (e.Vector.Y < 0)
-			{
-				this.Offset = e.Vector.Y;
-			}
-		}
+            // if (IsLocked & !UserDragInProgress & Offset != 0)
+            // {
+            // 	Offset *= 1 - Stiffness;
+            // }
+        }
 
-		private void OnDragCompleted(VectorEventArgs e)
-		{
-			UserDragInProgress = false;
-		}
+        private void OnDragStarted()
+        {
+            UserDragInProgress = true;
+        }
 
-		public override void DoLock()
-		{
-			Shade.Classes.Add("Locked");
-			Shade.Classes.Remove("Unlocked");
-			Offset = 0;
-			UserDragInProgress = false;
+        private void OnDragDelta(VectorEventArgs e)
+        {
+            if (e.Vector.Y < 0)
+            {
+                this.Offset = e.Vector.Y;
+            }
+        }
 
-			Disposables = new CompositeDisposable();
+        private void OnDragCompleted(VectorEventArgs e)
+        {
+            UserDragInProgress = false;
+        }
 
-			Observable.FromEventPattern<VectorEventArgs>(DragThumb, nameof(DragThumb.DragCompleted))
-					  .ObserveOn(RxApp.MainThreadScheduler)
-					  .Subscribe(e => OnDragCompleted(e.EventArgs))
-					  .DisposeWith(Disposables);
 
-			Observable.FromEventPattern<VectorEventArgs>(DragThumb, nameof(DragThumb.DragDelta))
-					  .ObserveOn(RxApp.MainThreadScheduler)
-					  .Subscribe(e => OnDragDelta(e.EventArgs))
-					  .DisposeWith(Disposables);
+        // public override void DoLock()
+        // {
+        // 	Shade.Classes.Add("Locked");
+        // 	Shade.Classes.Remove("Unlocked");
+        // 	Offset = 0;
+        // 	UserDragInProgress = false;
 
-			Observable.FromEventPattern(DragThumb, nameof(DragThumb.DragStarted))
-					  .ObserveOn(RxApp.MainThreadScheduler)
-					  .Subscribe(e => OnDragStarted())
-					  .DisposeWith(Disposables);
+        // 	Disposables = new CompositeDisposable();
 
-			this.WhenAnyValue(x => x.Bounds)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(OnBoundsChange)
-				.DisposeWith(Disposables);
+        // 	Observable.FromEventPattern<VectorEventArgs>(DragThumb, nameof(DragThumb.DragCompleted))
+        // 			  .ObserveOn(RxApp.MainThreadScheduler)
+        // 			  .Subscribe(e => OnDragCompleted(e.EventArgs))
+        // 			  .DisposeWith(Disposables);
 
-			Clock.Subscribe(OnClockTick)
-				 .DisposeWith(Disposables);
-		}
+        // 	Observable.FromEventPattern<VectorEventArgs>(DragThumb, nameof(DragThumb.DragDelta))
+        // 			  .ObserveOn(RxApp.MainThreadScheduler)
+        // 			  .Subscribe(e => OnDragDelta(e.EventArgs))
+        // 			  .DisposeWith(Disposables);
 
-		public override void DoUnlock()
-		{
-			Shade.Classes.Add("Unlocked");
-			Shade.Classes.Remove("Locked");
-			Disposables?.Dispose();
-		}
-	}
+        // 	Observable.FromEventPattern(DragThumb, nameof(DragThumb.DragStarted))
+        // 			  .ObserveOn(RxApp.MainThreadScheduler)
+        // 			  .Subscribe(e => OnDragStarted())
+        // 			  .DisposeWith(Disposables);
+
+        // 	this.WhenAnyValue(x => x.Bounds)
+        // 		.ObserveOn(RxApp.MainThreadScheduler)
+        // 		.Subscribe(OnBoundsChange)
+        // 		.DisposeWith(Disposables);
+
+        // 	Clock.Subscribe(OnClockTick)
+        // 		 .DisposeWith(Disposables);
+        // }
+
+        // public override void DoUnlock()
+        // {
+        // 	Shade.Classes.Add("Unlocked");
+        // 	Shade.Classes.Remove("Locked");
+        // 	Disposables?.Dispose();
+        // }
+    }
 }

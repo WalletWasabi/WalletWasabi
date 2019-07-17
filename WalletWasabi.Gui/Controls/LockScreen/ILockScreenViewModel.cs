@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
@@ -9,9 +10,7 @@ using WalletWasabi.Gui.Models;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
-    public interface ILockScreenViewModel
+    public interface ILockScreenViewModel : IDisposable
     {
-
     }
-
 }

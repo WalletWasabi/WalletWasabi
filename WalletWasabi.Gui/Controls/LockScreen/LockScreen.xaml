@@ -1,14 +1,14 @@
-﻿<lockscreen:LockScreen xmlns="https://github.com/avaloniaui" 
+﻿<UserControl xmlns="https://github.com/avaloniaui" 
   xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui" 
-  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"  
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
   IsHitTestVisible="{Binding IsLocked}">
-  <lockscreen:LockScreen.DataTemplates>
+  <UserControl.DataTemplates>
     <DataTemplate DataType="{x:Type lockscreen:PinLockScreenViewModel}">
       <lockscreen:PinLockScreen/>
     </DataTemplate>
     <DataTemplate DataType="{x:Type lockscreen:SlideLockScreenViewModel}">
-      <lockscreen:PinLockScreen/>
+      <lockscreen:SlideLockScreen/>
     </DataTemplate>
-  </lockscreen:LockScreen.DataTemplates>
+  </UserControl.DataTemplates>
   <ContentControl Content="{Binding ActiveLockScreen}"/>
-</lockscreen:LockScreen>
+</UserControl>

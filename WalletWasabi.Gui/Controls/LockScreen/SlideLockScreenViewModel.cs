@@ -9,7 +9,11 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
         public SlideLockScreenViewModel(LockScreenViewModel lockScreenViewModel)
         {
-            _parentVM = Guard.NotNull(nameof(lockScreenViewModel),lockScreenViewModel);
+            _parentVM = Guard.NotNull(nameof(lockScreenViewModel), lockScreenViewModel);
         }
+		public void Dispose()
+		{
+			
+		}
     }
 }

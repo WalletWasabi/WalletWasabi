@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
+using WalletWasabi.Gui.Controls.LockScreen;
 
 namespace WalletWasabi.Gui
 {

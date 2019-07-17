@@ -15,62 +15,28 @@ using System.Reactive;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
-	public class PinLockScreen : UserControl
-	{
-		public Grid Shade { get; }
+    public class PinLockScreen : UserControl
+    {
+		public static readonly DirectProperty<PinLockScreen, bool> IsLockedProperty =
+			AvaloniaProperty.RegisterDirect<PinLockScreen, bool>(nameof(IsLocked),
+															  o => o.IsLocked,
+															  (o, v) => o.IsLocked = v);
+        private bool _isLocked;
 
-		public ReactiveCommand<string, Unit> KeyPadCommand { get; }
-
-		private NoparaPasswordBox PinLockPwdBox;
-
-		internal string PINHash { get; set; }
-
-		public PinLockScreen() : base()
+        public bool IsLocked
 		{
-			InitializeComponent();
-
-			this.Shade = this.FindControl<Grid>("Shade");
-			this.PinLockPwdBox = this.FindControl<NoparaPasswordBox>("PinLockPwdBox");
-
-			PinLockPwdBox.WhenAnyValue(x => x.Password)
-						 .Select(Guard.Correct)
-						 .Where(x => x != string.Empty)
-						 .DistinctUntilChanged()
-						 .Throttle(TimeSpan.FromSeconds(1d))
-						 .ObserveOn(RxApp.MainThreadScheduler)
-						 .Subscribe(CheckPIN);
-
-			KeyPadCommand = ReactiveCommand.Create<string>((arg) =>
-			{
-				PinLockPwdBox.Password += arg;
-			});
+			get => _isLocked;
+			set => this.SetAndRaise(IsLockedProperty, ref _isLocked, value);
 		}
 
-		private void CheckPIN(string obj)
-		{
-			var currentHash = HashHelpers.GenerateSha256Hash(obj);
-			if (currentHash == PINHash)
-			{
-				PinLockPwdBox.Password = "";
-				this.IsLocked = false;
-			}
-		}
+        public PinLockScreen() : base()
+        {
+            InitializeComponent();
+        }
 
-		private void InitializeComponent()
-		{
-			AvaloniaXamlLoader.Load(this);
-		}
-
-		public override void DoLock()
-		{
-			Shade.Classes.Add("Locked");
-			Shade.Classes.Remove("Unlocked");
-		}
-
-		public override void DoUnlock()
-		{
-			Shade.Classes.Add("Unlocked");
-			Shade.Classes.Remove("Locked");
-		}
-	}
+        private void InitializeComponent()
+        {
+            AvaloniaXamlLoader.Load(this);
+        }
+    }
 }
