@@ -85,6 +85,7 @@ namespace System.Net.Http
 
 				builder.Append(header + CRLF); // CRLF is part of the headerstring
 			}
+
 			headers = builder.ToString();
 			if (string.IsNullOrEmpty(headers))
 			{
@@ -117,12 +118,10 @@ namespace System.Net.Http
 				}
 				bab.Append((byte)ch);
 			}
-			if (bab.Length > 0)
-			{
-				return bab.ToString(encoding);
-			}
 
-			return null;
+			return bab.Length > 0
+				? bab.ToString(encoding)
+				: null;
 		}
 
 		public static byte[] HandleGzipCompression(HttpContentHeaders contentHeaders, byte[] decodedBodyArray)
