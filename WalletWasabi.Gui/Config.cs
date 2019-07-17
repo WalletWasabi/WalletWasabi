@@ -207,7 +207,14 @@ namespace WalletWasabi.Gui
 		{
 			if (_torSocks5EndPoint is null)
 			{
-				var host = IPAddress.Parse(TorHost);
+				string ip = TorHost;
+				if (TorHost.Contains("://"))
+				{
+					var hostParts = TorHost.Split(new [] {"://"}, 2, StringSplitOptions.None);
+					ip = hostParts[1];
+				}
+
+				var host = IPAddress.Parse(ip);
 				_torSocks5EndPoint = new IPEndPoint(host, (int)TorSocks5Port);
 			}
 
