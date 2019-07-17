@@ -398,20 +398,20 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							transaction.Outputs.AddWithOptimize(coordinatorFee, coordinatorAddress);
 						}
 
-						// 7. Shuffle. NBitcoin's shuffle does not work: https://github.com/MetacoSA/NBitcoin/issues/713
-						transaction.Inputs.Shuffle();
-						transaction.Outputs.Shuffle();
-						transaction.Outputs.SortByAmount(); // So the coinjoin looks better in block explorer.
-
-						// 8. Create the unsigned transaction.
+						// 7. Create the unsigned transaction.
 						var builder = Network.CreateTransactionBuilder();
 						UnsignedCoinJoin = builder
 							.ContinueToBuild(transaction)
 							.AddCoins(spentCoins) // It makes sure the UnsignedCoinJoin goes through TransactionBuilder optimizations.
 							.BuildTransaction(false);
 
-						// 9. Try optimize fees.
+						// 8. Try optimize fees.
 						await TryOptimizeFeesAsync(spentCoins);
+
+						// 9. Shuffle.
+						UnsignedCoinJoin.Inputs.Shuffle();
+						UnsignedCoinJoin.Outputs.Shuffle();
+						UnsignedCoinJoin.Outputs.SortByAmount(); // So the coinjoin looks better in block explorer.
 
 						SignedCoinJoin = Transaction.Parse(UnsignedCoinJoin.ToHex(), Network);
 
@@ -1076,7 +1076,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): VSize: {SignedCoinJoin.GetVirtualSize() / 1024} KB.");
 						foreach (var o in SignedCoinJoin.GetIndistinguishableOutputs(includeSingle: false))
 						{
-							Logger.LogInfo<CcjRound>($"Round ({RoundId}): There are {o.count} occurences of {o.value.ToString(true, false)} BTC output.");
+							Logger.LogInfo<CcjRound>($"Round ({RoundId}): There are {o.count} occurrences of {o.value.ToString(true, false)} BTC output.");
 						}
 
 						await RpcClient.SendRawTransactionAsync(SignedCoinJoin);

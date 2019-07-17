@@ -120,19 +120,13 @@ namespace WalletWasabi.Models
 		/// Implicit conversion from Int32 to Height.
 		/// </summary>
 		/// <param name="value">Int32 to convert to Height instance.</param>
-		public static implicit operator Height(int value)
-		{
-			return new Height(value);
-		}
+		public static implicit operator Height(int value) => new Height(value);
 
 		/// <summary>
 		/// Implicit conversion from Height to Int32 value.
 		/// </summary>
 		/// <param name="height">Height value to convert to Int32.</param>
-		public static implicit operator int(Height height)
-		{
-			return height.Value;
-		}
+		public static implicit operator int(Height height) => height.Value;
 
 		/// <inheritdoc/>
 		public override string ToString()
@@ -245,19 +239,19 @@ namespace WalletWasabi.Models
 		public static bool operator <(Height x, Height y) => x.Value < y.Value;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is greater or equal to right-side value.
+		/// Performs a comparison and return if left-side value is greater than or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Height value to compare.</param>
-		/// <returns>true if left-hand value is greater or equal to right-side value; otherwise false.</returns>
+		/// <returns>true if left-hand value is greater than or equal to right-side value; otherwise false.</returns>
 		public static bool operator >=(Height x, Height y) => x.Value >= y.Value;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is less or equal to right-side value.
+		/// Performs a comparison and return if left-side value is less than or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Height value to compare.</param>
-		/// <returns>true if left-hand value is less or equal to right-side value; otherwise false.</returns>
+		/// <returns>true if left-hand value is less than or equal to right-side value; otherwise false.</returns>
 		public static bool operator <=(Height x, Height y) => x.Value <= y.Value;
 
 		/// <summary>
@@ -293,35 +287,35 @@ namespace WalletWasabi.Models
 		public static bool operator <(Height x, int y) => x.Value < y;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is greater or equal to right-side value.
+		/// Performs a comparison and return if left-side value is greater than or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Int32 value to compare.</param>
 		/// <param name="y">The right-hand Height value to compare.</param>
-		/// <returns>true if left-hand value is greater or equal to right-side value; otherwise false.</returns>
+		/// <returns>true if left-hand value is greater than or equal to right-side value; otherwise false.</returns>
 		public static bool operator >=(int x, Height y) => x >= y.Value;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is less or equal to right-side value.
+		/// Performs a comparison and return if left-side value is less than or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Int32 value to compare.</param>
 		/// <param name="y">The right-hand Height value to compare.</param>
-		/// <returns>true if left-hand value is less or equal to right-side value; otherwise false.</returns>
+		/// <returns>true if left-hand value is less than or equal to right-side value; otherwise false.</returns>
 		public static bool operator <=(int x, Height y) => x <= y.Value;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is greater or equal to right-side value.
+		/// Performs a comparison and return if left-side value is greater than or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Int32 value to compare.</param>
-		/// <returns>true if left-hand value is greater or equal to right-side value; otherwise false.</returns>
+		/// <returns>true if left-hand value is greater than or equal to right-side value; otherwise false.</returns>
 		public static bool operator >=(Height x, int y) => x.Value >= y;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is less or equal to right-side value.
+		/// Performs a comparison and return if left-side value is less than or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Int32 value to compare.</param>
-		/// <returns>true if left-hand value is less or equal to right-side value; otherwise false.</returns>
+		/// <returns>true if left-hand value is less than or equal to right-side value; otherwise false.</returns>
 		public static bool operator <=(Height x, int y) => x.Value <= y;
 
 		#endregion EqualityAndComparison
@@ -332,59 +326,41 @@ namespace WalletWasabi.Models
 		/// Increments the height value by 1
 		/// </summary>
 		/// <param name="me">The instance to be used as base value.</param>
-		public static Height operator ++(Height me)
-		{
-			return new Height(me.Value + 1);
-		}
+		public static Height operator ++(Height me) => new Height(me.Value + 1);
 
 		/// <summary>
 		/// Decrements the height value by 1
 		/// </summary>
 		/// <param name="me">The instance to be used as base value.</param>
-		public static Height operator --(Height me)
-		{
-			return new Height(me.Value - 1);
-		}
+		public static Height operator --(Height me) => new Height(me.Value - 1);
 
 		/// <summary>
 		/// Unary or binary operator for adding a value to height.
 		/// </summary>
 		/// <param name="value">The Int32 value.</param>
 		/// <param name="height">The height value to be added.</param>
-		public static int operator +(int value, Height height)
-		{
-			return height.Value + value;
-		}
+		public static int operator +(int value, Height height) => height.Value + value;
 
 		/// <summary>
 		/// Unary or binary operator for substracting a value to height.
 		/// </summary>
 		/// <param name="value">The Int32 value.</param>
 		/// <param name="height">The height value to be substracted from.</param>
-		public static int operator -(int value, Height height)
-		{
-			return value - height.Value;
-		}
+		public static int operator -(int value, Height height) => value - height.Value;
 
 		/// <summary>
 		/// Unary or binary operator for adding a value to height.
 		/// </summary>
 		/// <param name="height">The height value to be added.</param>
 		/// <param name="value">The Int32 value.</param>
-		public static int operator +(Height height, int value)
-		{
-			return height.Value + value;
-		}
+		public static int operator +(Height height, int value) => height.Value + value;
 
 		/// <summary>
 		/// Unary or binary operator for substracting a value to height.
 		/// </summary>
 		/// <param name="height">The height value to be substracted from.</param>
 		/// <param name="value">The Int32 value.</param>
-		public static int operator -(Height height, int value)
-		{
-			return height.Value - value;
-		}
+		public static int operator -(Height height, int value) => height.Value - value;
 
 		#endregion MathOperations
 	}

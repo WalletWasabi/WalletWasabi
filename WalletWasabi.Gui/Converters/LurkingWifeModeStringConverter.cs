@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Data.Converters;
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -23,7 +24,15 @@ namespace WalletWasabi.Gui.Converters
 
 				return new string(Enumerable.Repeat('#', len).ToArray());
 			}
-			return value?.ToString() ?? "";
+			else if (value is Money)
+			{
+				var conv = new MoneyStringConverter();
+				return conv.Convert(value, targetType, parameter, culture);
+			}
+			else
+			{
+				return value?.ToString() ?? "";
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

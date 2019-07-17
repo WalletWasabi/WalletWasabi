@@ -495,19 +495,28 @@ namespace WalletWasabi.KeyManagement
 
 		public IEnumerable<HdPubKey> GetKeys(KeyState? keyState = null, bool? isInternal = null)
 		{
-			if (keyState is null && isInternal is null)
+			if (keyState is null)
 			{
-				return GetKeys(x => true);
+				if (isInternal is null)
+				{
+					return GetKeys(x => true);
+				}
+				else
+				{
+					return GetKeys(x => x.IsInternal == isInternal);
+				}
 			}
-			if (isInternal is null && keyState != null)
+			else
 			{
-				return GetKeys(x => x.KeyState == keyState);
+				if (isInternal is null)
+				{
+					return GetKeys(x => x.KeyState == keyState);
+				}
+				else
+				{
+					return GetKeys(x => x.IsInternal == isInternal && x.KeyState == keyState);
+				}
 			}
-			else if (keyState is null)
-			{
-				return GetKeys(x => x.IsInternal == isInternal);
-			}
-			return GetKeys(x => x.IsInternal == isInternal && x.KeyState == keyState);
 		}
 
 		public IEnumerable<byte[]> GetPubKeyScriptBytes()

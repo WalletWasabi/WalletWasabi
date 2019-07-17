@@ -63,7 +63,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				try
 				{
 					var psbtExtension = "psbt";
-					var sfd = new SaveFileDialog {
+					var sfd = new SaveFileDialog
+					{
 						DefaultExtension = psbtExtension,
 						InitialFileName = TxId,
 						Title = "Export Binary PSBT"

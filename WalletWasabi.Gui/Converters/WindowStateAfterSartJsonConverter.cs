@@ -6,7 +6,7 @@ using System.Text;
 
 namespace WalletWasabi.Gui.Converters
 {
-	public class WindowStateAfterSartJsonConverter : JsonConverter
+	public class WindowStateAfterStartJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
@@ -29,7 +29,7 @@ namespace WalletWasabi.Gui.Converters
 
 				var windowStateString = value.Trim();
 
-				return windowStateString.StartsWith("norm", StringComparison.OrdinalIgnoreCase) 
+				return windowStateString.StartsWith("norm", StringComparison.OrdinalIgnoreCase)
 					? WindowState.Normal
 					: WindowState.Maximized;
 			}
