@@ -10,6 +10,7 @@ using System.Net.Sockets;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Text.RegularExpressions;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
@@ -36,6 +37,8 @@ namespace WalletWasabi.Gui.Tabs
 		private string _oldPINPwdBox;
 		private string _newPINPwdBox;
 		private string _confirmPINWarningMessage;
+
+		private Regex PINNumOnlyRegex { get; }= new Regex("^[0-9]+$");
 		private AsyncLock ConfigLock { get; } = new AsyncLock();
 
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
@@ -124,6 +127,13 @@ namespace WalletWasabi.Gui.Tabs
 					_newPINPwdBox == string.Empty)
 				{
 					ConfirmPINWarningMessage = "Both PIN entries must be filled out.";
+					EnablePINEntry = !EnablePINEntry;
+					return;
+				}
+
+				if(!PINNumOnlyRegex.IsMatch(_newPINPwdBox))
+				{
+					ConfirmPINWarningMessage = "PIN should only contain numbers.";
 					EnablePINEntry = !EnablePINEntry;
 					return;
 				}
