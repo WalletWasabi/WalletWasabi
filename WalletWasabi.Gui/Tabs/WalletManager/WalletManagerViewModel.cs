@@ -148,7 +148,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 								LoadWalletViewModelHardware.SetWarningMessage("Log into your Bitcoin account on your Ledger. If you're already logged in, log out and log in again.");
 								continue;
 							}
-							else if (hwis.Any(x => x.Type == HardwareWalletType.Ledger && x.Ready))
+
+							if (hwis.Any(x => x.Type == HardwareWalletType.Ledger && x.Ready))
 							{
 								LoadWalletViewModelHardware.SetWarningMessage("To have a smooth user experience consider turning off your Ledger screensaver.");
 							}
