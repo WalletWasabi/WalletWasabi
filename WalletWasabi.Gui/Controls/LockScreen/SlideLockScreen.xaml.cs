@@ -44,7 +44,6 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			  .DisposeWith(vm.Disposables);
 
 			this.WhenAnyValue(x => x.Bounds)
-				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => x.Height)
 				.Subscribe(x => vm.Threshold = x * vm.ThresholdPercent)
 				.DisposeWith(vm.Disposables);
@@ -86,6 +85,5 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		{
 			AvaloniaXamlLoader.Load(this);
 		}
-
 	}
 }
