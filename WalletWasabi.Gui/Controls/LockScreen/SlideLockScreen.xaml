@@ -1,6 +1,8 @@
 ﻿<lockscreen:SlideLockScreen xmlns="https://github.com/avaloniaui" 
   xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui" 
-  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  IsLocked="{Binding IsLocked}"
+  Token="{Binding Token, Mode=TwoWay}">
   <lockscreen:SlideLockScreen.Clock>
     <Clock/>
   </lockscreen:SlideLockScreen.Clock>
@@ -8,8 +10,7 @@
     <Styles>
       <Styles.Resources>
         <Template x:Key="Chevron">
-          <Path Stretch="Uniform" Fill="{DynamicResource ThemeForegroundBrush}" 
-                Data="M 478.97852 464.25977 
+          <Path Stretch="Uniform" Fill="{DynamicResource ThemeForegroundBrush}" Data="M 478.97852 464.25977 
                       L 446.12109 470.33203 
                       L 446.12109 478.72461 
                       L 478.97852 472.65234 
@@ -87,7 +88,7 @@
         <Setter Property="TranslateTransform.Y" Value="-100"/>
       </Style>
 
-      <Style Selector="Grid.Locked">
+      <Style Selector="lockscreen|SlideLockScreen[IsLocked=true] Grid#Shade">
         <Style.Animations>
           <Animation FillMode="Both" Duration="0:0:1.5" Easing="QuarticEaseInOut">
             <KeyFrame Cue="100%">
@@ -98,7 +99,7 @@
         </Style.Animations>
       </Style>
 
-      <Style Selector="Grid.Unlocked">
+      <Style Selector="lockscreen|SlideLockScreen[IsLocked=false] Grid#Shade">
         <Style.Animations>
           <Animation FillMode="Both" Duration="0:0:1.5" Easing="QuarticEaseInOut">
             <KeyFrame Cue="100%">
@@ -108,7 +109,7 @@
           </Animation>
         </Style.Animations>
       </Style>
-      
+
     </Styles>
   </lockscreen:SlideLockScreen.Styles>
   <Grid>

@@ -1,17 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using Avalonia.Media;
-using Avalonia.Input;
-using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
-using Avalonia.Controls.Primitives;
-using ReactiveUI;
-using Avalonia;
-using Avalonia.Interactivity;
-using System.Reactive.Linq;
-using System.Security.Cryptography;
-using WalletWasabi.Helpers;
-using System.Reactive;
+﻿using Avalonia.Controls;
+using Avalonia.Markup.Xaml; 
+using Avalonia; 
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
