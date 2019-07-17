@@ -6,6 +6,11 @@
 
 CodeMaid is a non-intrusive code cleanup tool. Wasabi's CodeMaid settings [can be found in the root of the repository](https://github.com/zkSNACKs/WalletWasabi/blob/master/CodeMaid.config), and are automatically picked up by Visual Studio when you open the project, assuming the CodeMaid extension is installed. Unfortunately CodeMaid has no Visual Studio Code extension yet. You can check out the progress on this [under this GitHub issue](https://github.com/codecadwallader/codemaid/issues/273).
 
+## .editorconfig
+
+Not only CodeMaid, but Visual Studio also enforces certain code style through [`.editorconfig`](https://github.com/zkSNACKs/WalletWasabi/blob/master/.editorconfig) file.  
+If you are using Visual Studio code, please **DO** install the [editorconfig extension](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig) for it to make sure your coding style will resemble to ours.
+
 ## Refactoring
 
 If you are a new contributor **DO** keep refactoring pull requests short, uncomplex and easy to verify. It requires a certain level of experience to know where the code belongs to and to understand the full ramification (including rebase effort of open pull requests) - [source](https://github.com/bitcoin/bitcoin/blob/master/CONTRIBUTING.md#refactoring).
@@ -83,7 +88,7 @@ private async void Synchronizer_ResponseArrivedAsync(object sender, EventArgs e)
 {
 	try
 	{
-		awat FooAsync();
+		await FooAsync();
 	}
 	catch (Exception ex)
 	{
