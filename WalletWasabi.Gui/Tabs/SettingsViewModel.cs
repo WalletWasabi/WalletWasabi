@@ -23,7 +23,6 @@ namespace WalletWasabi.Gui.Tabs
 		private string _torHost;
 		private string _torPort;
 		private string _localNodeHost;
-		private string _localNodePort;
 		private bool _autocopy;
 		private bool _useTor;
 		private bool _isModified;
@@ -47,14 +46,13 @@ namespace WalletWasabi.Gui.Tabs
 				{
 					await config.LoadFileAsync();
 
-					var (configLocalHost, configLocalPort) = Network == NBitcoin.Network.Main.Name
-						? (config.MainNetBitcoinCoreHost, config.MainNetBitcoinCorePort)
+					var configLocalHost = Network == NBitcoin.Network.Main.Name
+						? config.MainNetBitcoinCoreHost
 						: (Network == NBitcoin.Network.TestNet.Name
-							? (config.TestNetBitcoinCoreHost, config.TestNetBitcoinCorePort)
-							: (config.RegTestBitcoinCoreHost, config.RegTestBitcoinCorePort));
+							? config.TestNetBitcoinCoreHost
+							: config.RegTestBitcoinCoreHost);
 
 					LocalNodeHost = configLocalHost;
-					LocalNodePort = configLocalPort.ToString();
 				});
 
 			this.WhenAnyValue(x => x.Network,
@@ -62,7 +60,7 @@ namespace WalletWasabi.Gui.Tabs
 				.Subscribe(x => Save());
 
 			this.WhenAnyValue(
-				x => x.LocalNodeHost, x => x.LocalNodePort)
+				x => x.LocalNodeHost)
 				.Subscribe(x => Save());
 
 			this.WhenAnyValue(
@@ -163,13 +161,6 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _localNodeHost, value);
 		}
 
-		[ValidateMethod(nameof(ValidateLocalNodePort))]
-		public string LocalNodePort
-		{
-			get => _localNodePort;
-			set => this.RaiseAndSetIfChanged(ref _localNodePort, value);
-		}
-
 		public bool IsModified
 		{
 			get => _isModified;
@@ -222,8 +213,7 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			var isValid = string.IsNullOrEmpty(ValidateTorHost())
 						&& string.IsNullOrEmpty(ValidateTorPort())
-						&& string.IsNullOrEmpty(ValidateLocalNodeHost())
-						&& string.IsNullOrEmpty(ValidateLocalNodePort());
+						&& string.IsNullOrEmpty(ValidateLocalNodeHost());
 			if (!isValid)
 			{
 				return;
@@ -249,7 +239,10 @@ namespace WalletWasabi.Gui.Tabs
 					var network = NBitcoin.Network.GetNetwork(Network);
 					var torHost = TorHost;
 					var localNodeHost = LocalNodeHost;
-					var localNodePort = LocalNodePort;
+					if (string.IsNullOrEmpty(localNodeHost))
+					{
+						localNodeHost = $"{IPAddress.Loopback}:{network.DefaultPort}";
+					}
 					var torSocks5Port = int.TryParse(TorPort, out var port) ? (int?)port : null;
 					var useTor = UseTor;
 					var somePrivacyLevel = int.TryParse(SomePrivacyLevel, out int level) ? (int?)level : null;
@@ -257,11 +250,11 @@ namespace WalletWasabi.Gui.Tabs
 					var strongPrivacyLevel = int.TryParse(StrongPrivacyLevel, out level) ? (int?)level : null;
 					var dustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? (decimal?)threshold : null;
 
-					var (configLocalHost, configLocalPort) = network == NBitcoin.Network.Main
-						? (config.MainNetBitcoinCoreHost, config.MainNetBitcoinCorePort)
+					var configLocalHost = network == NBitcoin.Network.Main
+						? config.MainNetBitcoinCoreHost
 						: (network == NBitcoin.Network.TestNet
-							? (config.TestNetBitcoinCoreHost, config.TestNetBitcoinCorePort)
-							: (config.RegTestBitcoinCoreHost, config.RegTestBitcoinCorePort));
+							? config.TestNetBitcoinCoreHost
+							: config.RegTestBitcoinCoreHost);
 
 					if (config.Network != network
 						|| config.TorHost != torHost
@@ -272,7 +265,6 @@ namespace WalletWasabi.Gui.Tabs
 						|| config.PrivacyLevelStrong != strongPrivacyLevel
 						|| config.DustThreshold.ToUnit(MoneyUnit.BTC) != dustThreshold
 						|| configLocalHost != localNodeHost
-						|| configLocalPort.ToString() != localNodePort
 					)
 					{
 						config.Network = network;
@@ -288,17 +280,14 @@ namespace WalletWasabi.Gui.Tabs
 						{
 							case "Main":
 								config.MainNetBitcoinCoreHost = localNodeHost;
-								config.MainNetBitcoinCorePort = int.Parse(localNodePort);
 								break;
 
 							case "TestNet":
 								config.TestNetBitcoinCoreHost = localNodeHost;
-								config.TestNetBitcoinCorePort = int.Parse(localNodePort);
 								break;
 
 							case "RegTest":
 								config.RegTestBitcoinCoreHost = localNodeHost;
-								config.RegTestBitcoinCorePort = int.Parse(localNodePort);
 								break;
 						}
 
@@ -314,13 +303,12 @@ namespace WalletWasabi.Gui.Tabs
 			=> ValidateHost(TorHost);
 
 		public string ValidateLocalNodeHost()
-			=> ValidateHost(LocalNodeHost);
+			=> string.IsNullOrEmpty(LocalNodeHost) || Config.TryParseEndpoint(LocalNodeHost, 9999, out _)
+				? string.Empty
+				: "Invalid endpoint";
 
 		public string ValidateTorPort()
 			=> ValidatePort(TorPort);
-
-		public string ValidateLocalNodePort()
-			=> ValidatePort(LocalNodePort);
 
 		public string ValidateSomePrivacyLevel()
 			=> ValidatePrivacyLevel(SomePrivacyLevel);
