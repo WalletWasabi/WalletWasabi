@@ -9,14 +9,9 @@ namespace System
 		public static string ToTypeMessageString(this Exception ex)
 		{
 			var trimmed = Guard.Correct(ex.Message);
-			if (trimmed == "")
-			{
-				return ex.GetType().Name;
-			}
-			else
-			{
-				return $"{ex.GetType().Name}: {ex.Message}";
-			}
+			return trimmed == ""
+				? ex.GetType().Name
+				: $"{ex.GetType().Name}: {ex.Message}";
 		}
 
 		public static Dictionary<string, string> BitcoinCoreTranslations { get; } = new Dictionary<string, string>
