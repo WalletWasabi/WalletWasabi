@@ -23,7 +23,6 @@ namespace WalletWasabi.Gui
 		private bool? _lurkingWifeMode;
 		private bool? _lockScreenActive;
 		private string _lockScreenPinHash;
-		private LockScreenType? _lockScreenType;
 
 		/// <inheritdoc />
 		public string FilePath { get; private set; }

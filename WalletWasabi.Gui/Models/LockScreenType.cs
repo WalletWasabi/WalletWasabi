@@ -4,9 +4,9 @@ using System.Text;
 
 namespace WalletWasabi.Gui.Models
 {
-    public enum LockScreenType
-    {
-        SlideLock,
-        PINLock,
-    }
+	public enum LockScreenType
+	{
+		SlideLock,
+		PINLock,
+	}
 }

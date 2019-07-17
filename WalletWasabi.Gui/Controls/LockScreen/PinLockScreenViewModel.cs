@@ -16,10 +16,11 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 		public ReactiveCommand<string, Unit> KeyPadCommand { get; }
 
-		private readonly ObservableAsPropertyHelper<bool> _isLocked;
+		private ObservableAsPropertyHelper<bool> _isLocked;
 		public bool IsLocked => _isLocked?.Value ?? false;
 
 		private string _pinInput;
+
 		public string PinInput
 		{
 			get => _pinInput;
@@ -27,6 +28,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		}
 
 		private bool _warningMessageVisible;
+
 		public bool WarningMessageVisible
 		{
 			get => _warningMessageVisible;
@@ -49,7 +51,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				.Throttle(TimeSpan.FromSeconds(0.5))
 				.Select(Guard.Correct)
 				.Where(x => x != string.Empty)
-				.Do(x => this.WarningMessageVisible = false)
+				.Do(x => WarningMessageVisible = false)
 				.DistinctUntilChanged()
 				.Subscribe(CheckPIN)
 				.DisposeWith(Disposables);
@@ -72,9 +74,10 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				WarningMessageVisible = true;
 			}
 		}
+
 		public void Dispose()
 		{
-			this.Disposables?.Dispose();
+			Disposables?.Dispose();
 		}
 	}
 }

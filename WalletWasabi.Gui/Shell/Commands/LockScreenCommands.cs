@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using AvalonStudio.Commands;
 using ReactiveUI;
 using System;

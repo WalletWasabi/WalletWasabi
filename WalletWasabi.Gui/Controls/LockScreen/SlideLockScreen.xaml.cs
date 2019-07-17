@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Avalonia.Media;
 using Avalonia.Input;
@@ -18,24 +18,26 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			AvaloniaProperty.RegisterDirect<SlideLockScreen, bool>(nameof(IsLocked),
 													  o => o.IsLocked,
 													  (o, v) => o.IsLocked = v);
+
 		private bool _isLocked;
 
 		public bool IsLocked
 		{
 			get => _isLocked;
-			set => this.SetAndRaise(IsLockedProperty, ref _isLocked, value);
+			set => SetAndRaise(IsLockedProperty, ref _isLocked, value);
 		}
 
 		public static readonly DirectProperty<SlideLockScreen, string> TokenProperty =
 			AvaloniaProperty.RegisterDirect<SlideLockScreen, string>(nameof(Token),
 													  o => o.Token,
 													  (o, v) => o.Token = v);
+
 		private string _token;
 
 		public string Token
 		{
 			get => _token;
-			set => this.SetAndRaise(TokenProperty, ref _token, value);
+			set => SetAndRaise(TokenProperty, ref _token, value);
 		}
 
 		public CompositeDisposable Disposables { get; } = new CompositeDisposable();
@@ -44,10 +46,11 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 		private bool _userDragInProgress;
 		private double _realThreshold;
-		private const double _thresholdPercent = 1 / 6d;
-		private const double _stiffness = 0.12d;
+		private const double ThresholdPercent = 1 / 6d;
+		private const double Stiffness = 0.12d;
 
 		private double _offset = 0;
+
 		private double Offset
 		{
 			get => _offset;
@@ -58,7 +61,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		{
 			InitializeComponent();
 
-			this.DragThumb = this.FindControl<Thumb>("PART_DragThumb");
+			DragThumb = this.FindControl<Thumb>("PART_DragThumb");
 			this.FindControl<Grid>("Shade").RenderTransform = TargetTransform;
 
 			Observable.FromEventPattern<VectorEventArgs>(DragThumb, nameof(DragThumb.DragCompleted))
@@ -84,13 +87,13 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			Clock.Subscribe(OnClockTick)
 				 .DisposeWith(Disposables);
 
-			this.WhenAnyValue(x=>x.IsLocked)
+			this.WhenAnyValue(x => x.IsLocked)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Where(x=>x)
-				.Subscribe(x=>this.Offset = 0)
+				.Where(x => x)
+				.Subscribe(x => Offset = 0)
 				.DisposeWith(Disposables);
 
-			this.DetachedFromLogicalTree += delegate
+			DetachedFromLogicalTree += delegate
 			{
 				Disposables?.Dispose();
 			};
@@ -104,7 +107,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		private void OnBoundsChange(Rect obj)
 		{
 			var newHeight = obj.Height;
-			_realThreshold = newHeight * _thresholdPercent;
+			_realThreshold = newHeight * ThresholdPercent;
 		}
 
 		private void OnOffsetChanged(double value)
@@ -122,7 +125,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			}
 			else if (IsLocked & !_userDragInProgress & Offset != 0)
 			{
-				Offset *= 1 - _stiffness;
+				Offset *= 1 - Stiffness;
 			}
 		}
 

@@ -1,6 +1,6 @@
-﻿using Avalonia.Controls;
-using Avalonia.Markup.Xaml; 
-using Avalonia; 
+using Avalonia.Controls;
+using Avalonia.Markup.Xaml;
+using Avalonia;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
@@ -10,12 +10,13 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			AvaloniaProperty.RegisterDirect<PinLockScreen, bool>(nameof(IsLocked),
 															  o => o.IsLocked,
 															  (o, v) => o.IsLocked = v);
+
 		private bool _isLocked;
 
 		public bool IsLocked
 		{
 			get => _isLocked;
-			set => this.SetAndRaise(IsLockedProperty, ref _isLocked, value);
+			set => SetAndRaise(IsLockedProperty, ref _isLocked, value);
 		}
 
 		public PinLockScreen() : base()

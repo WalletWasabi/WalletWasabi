@@ -20,6 +20,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		}
 
 		private ILockScreenViewModel _activeLockScreen;
+
 		public ILockScreenViewModel ActiveLockScreen
 		{
 			get => _activeLockScreen;
@@ -30,6 +31,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		public string PINHash => _pinHash?.Value ?? default;
 
 		private bool _isLocked;
+
 		public bool IsLocked
 		{
 			get => _isLocked;

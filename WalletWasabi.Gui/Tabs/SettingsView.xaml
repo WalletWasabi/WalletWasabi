@@ -72,8 +72,8 @@
                     <TextBlock VerticalAlignment="Center">Use PIN to unlock the screen.</TextBlock>
                   </StackPanel>
                   <StackPanel Orientation="Vertical" Spacing="5">
-                    <controls:NoparaPasswordBox Watermark="PIN" Password="{Binding OldPINPwdBox}" UseFloatingWatermark="True"/>
-                    <controls:NoparaPasswordBox Watermark="Confirm PIN" Password="{Binding NewPINPwdBox}" UseFloatingWatermark="True"/>
+                    <controls:NoparaPasswordBox Watermark="PIN" Password="{Binding OldPINPwdBox}" UseFloatingWatermark="True" />
+                    <controls:NoparaPasswordBox Watermark="Confirm PIN" Password="{Binding NewPINPwdBox}" UseFloatingWatermark="True" />
                     <TextBlock Text="{Binding ConfirmPINWarningMessage}" Classes="warningMessage" Margin="0 0 3 0" />
                   </StackPanel>
                 </StackPanel>

@@ -51,7 +51,7 @@ namespace WalletWasabi.Gui
 						await Global.InitializeNoWalletAsync();
 
 						statusBar.Initialize(Global.Nodes.ConnectedNodes, Global.Synchronizer, Global.UpdateChecker);
-						
+
 						if (Global.Network != Network.Main)
 						{
 							MainWindowViewModel.Instance.Title += $" - {Global.Network}";

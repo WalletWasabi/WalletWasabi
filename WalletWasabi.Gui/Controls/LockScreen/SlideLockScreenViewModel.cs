@@ -13,10 +13,11 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 		private CompositeDisposable Disposables { get; }
 
-		private readonly ObservableAsPropertyHelper<bool> _isLocked;
+		private ObservableAsPropertyHelper<bool> _isLocked;
 		public bool IsLocked => _isLocked?.Value ?? false;
 
 		private string _token;
+
 		public string Token
 		{
 			get => _token;
@@ -28,7 +29,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			_parentVM = Guard.NotNull(nameof(lockScreenViewModel), lockScreenViewModel);
 
 			Disposables = new CompositeDisposable();
- 
+
 			this.WhenAnyValue(x => x.Token)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(CheckToken)
@@ -46,12 +47,12 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			{
 				_parentVM.IsLocked = false;
 				Token = string.Empty;
-			} 
+			}
 		}
-		
+
 		public void Dispose()
 		{
-			this.Disposables?.Dispose();
+			Disposables?.Dispose();
 		}
 	}
 }

@@ -1,45 +1,45 @@
-﻿<lockscreen:SlideLockScreen xmlns="https://github.com/avaloniaui" 
-  xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui" 
+﻿<lockscreen:SlideLockScreen xmlns="https://github.com/avaloniaui"
+  xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   IsLocked="{Binding IsLocked}"
   Token="{Binding Token, Mode=TwoWay}">
   <lockscreen:SlideLockScreen.Clock>
-    <Clock/>
+    <Clock />
   </lockscreen:SlideLockScreen.Clock>
   <lockscreen:SlideLockScreen.Styles>
     <Styles>
       <Styles.Resources>
         <Template x:Key="Chevron">
-          <Path Stretch="Uniform" Fill="{DynamicResource ThemeForegroundBrush}" Data="M 478.97852 464.25977 
-                      L 446.12109 470.33203 
-                      L 446.12109 478.72461 
-                      L 478.97852 472.65234 
-                      L 511.83398 478.72461 
-                      L 511.83398 470.33203 
-                      L 478.97852 464.25977 z "/>
+          <Path Stretch="Uniform" Fill="{DynamicResource ThemeForegroundBrush}" Data="M 478.97852 464.25977
+                      L 446.12109 470.33203
+                      L 446.12109 478.72461
+                      L 478.97852 472.65234
+                      L 511.83398 478.72461
+                      L 511.83398 470.33203
+                      L 478.97852 464.25977 z " />
         </Template>
       </Styles.Resources>
 
       <Style Selector="Border.Chevron">
-        <Setter Property="Width" Value="103"/>
-        <Setter Property="Height" Value="50"/>
-        <Setter Property="Child" Value="{StaticResource Chevron}"/>
+        <Setter Property="Width" Value="103" />
+        <Setter Property="Height" Value="50" />
+        <Setter Property="Child" Value="{StaticResource Chevron}" />
       </Style>
 
       <Style Selector="Border.Chev1">
         <Style.Animations>
           <Animation Duration="0:0:1.5" Easing="QuarticEaseInOut" IterationCount="Infinite">
             <KeyFrame Cue="0%">
-              <Setter Property="Opacity" Value="0"/>
-              <Setter Property="TranslateTransform.Y" Value="100"/>
+              <Setter Property="Opacity" Value="0" />
+              <Setter Property="TranslateTransform.Y" Value="100" />
             </KeyFrame>
             <KeyFrame Cue="90%">
-              <Setter Property="Opacity" Value="{Binding #Shade.Opacity}"/>
-              <Setter Property="TranslateTransform.Y" Value="0"/>
+              <Setter Property="Opacity" Value="{Binding #Shade.Opacity}" />
+              <Setter Property="TranslateTransform.Y" Value="0" />
             </KeyFrame>
             <KeyFrame Cue="100%">
-              <Setter Property="Opacity" Value="0"/>
-              <Setter Property="TranslateTransform.Y" Value="0"/>
+              <Setter Property="Opacity" Value="0" />
+              <Setter Property="TranslateTransform.Y" Value="0" />
             </KeyFrame>
           </Animation>
         </Style.Animations>
@@ -49,16 +49,16 @@
         <Style.Animations>
           <Animation Delay="0:0:0.3" Duration="0:0:1.5" Easing="QuarticEaseInOut" IterationCount="Infinite">
             <KeyFrame Cue="0%">
-              <Setter Property="Opacity" Value="0"/>
-              <Setter Property="TranslateTransform.Y" Value="100"/>
+              <Setter Property="Opacity" Value="0" />
+              <Setter Property="TranslateTransform.Y" Value="100" />
             </KeyFrame>
             <KeyFrame Cue="90%">
-              <Setter Property="Opacity" Value="{Binding #Shade.Opacity}"/>
-              <Setter Property="TranslateTransform.Y" Value="0"/>
+              <Setter Property="Opacity" Value="{Binding #Shade.Opacity}" />
+              <Setter Property="TranslateTransform.Y" Value="0" />
             </KeyFrame>
             <KeyFrame Cue="100%">
-              <Setter Property="Opacity" Value="0"/>
-              <Setter Property="TranslateTransform.Y" Value="0"/>
+              <Setter Property="Opacity" Value="0" />
+              <Setter Property="TranslateTransform.Y" Value="0" />
             </KeyFrame>
           </Animation>
         </Style.Animations>
@@ -68,32 +68,32 @@
         <Style.Animations>
           <Animation Delay="0:0:0.6" Duration="0:0:1.5" Easing="QuarticEaseInOut" IterationCount="Infinite">
             <KeyFrame Cue="0%">
-              <Setter Property="Opacity" Value="0"/>
-              <Setter Property="TranslateTransform.Y" Value="100"/>
+              <Setter Property="Opacity" Value="0" />
+              <Setter Property="TranslateTransform.Y" Value="100" />
             </KeyFrame>
             <KeyFrame Cue="90%">
-              <Setter Property="Opacity" Value="{Binding #Shade.Opacity}"/>
-              <Setter Property="TranslateTransform.Y" Value="0"/>
+              <Setter Property="Opacity" Value="{Binding #Shade.Opacity}" />
+              <Setter Property="TranslateTransform.Y" Value="0" />
             </KeyFrame>
             <KeyFrame Cue="100%">
-              <Setter Property="Opacity" Value="0"/>
-              <Setter Property="TranslateTransform.Y" Value="0"/>
+              <Setter Property="Opacity" Value="0" />
+              <Setter Property="TranslateTransform.Y" Value="0" />
             </KeyFrame>
           </Animation>
         </Style.Animations>
       </Style>
 
       <Style Selector="Grid#Shade">
-        <Setter Property="Opacity" Value="0"/>
-        <Setter Property="TranslateTransform.Y" Value="-100"/>
+        <Setter Property="Opacity" Value="0" />
+        <Setter Property="TranslateTransform.Y" Value="-100" />
       </Style>
 
       <Style Selector="lockscreen|SlideLockScreen[IsLocked=true] Grid#Shade">
         <Style.Animations>
           <Animation FillMode="Both" Duration="0:0:1.5" Easing="QuarticEaseInOut">
             <KeyFrame Cue="100%">
-              <Setter Property="Opacity" Value="1"/>
-              <Setter Property="TranslateTransform.Y" Value="0"/>
+              <Setter Property="Opacity" Value="1" />
+              <Setter Property="TranslateTransform.Y" Value="0" />
             </KeyFrame>
           </Animation>
         </Style.Animations>
@@ -103,30 +103,29 @@
         <Style.Animations>
           <Animation FillMode="Both" Duration="0:0:1.5" Easing="QuarticEaseInOut">
             <KeyFrame Cue="100%">
-              <Setter Property="Opacity" Value="0"/>
-              <Setter Property="TranslateTransform.Y" Value="-100"/>
+              <Setter Property="Opacity" Value="0" />
+              <Setter Property="TranslateTransform.Y" Value="-100" />
             </KeyFrame>
           </Animation>
         </Style.Animations>
       </Style>
-
     </Styles>
   </lockscreen:SlideLockScreen.Styles>
   <Grid>
     <Grid x:Name="Shade" Background="{DynamicResource ThemeBackgroundBrush}">
       <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center">
         <Grid>
-          <Border Classes="Chevron Chev1"/>
-          <Border Classes="Chevron Chev2"/>
-          <Border Classes="Chevron Chev3"/>
+          <Border Classes="Chevron Chev1" />
+          <Border Classes="Chevron Chev2" />
+          <Border Classes="Chevron Chev3" />
         </Grid>
-        <TextBlock Margin="0,110,0,0" Text="Drag and slide up to unlock."/>
+        <TextBlock Margin="0,110,0,0" Text="Drag and slide up to unlock." />
       </StackPanel>
     </Grid>
     <Thumb x:Name="PART_DragThumb">
       <Thumb.Template>
         <ControlTemplate>
-          <Border Background="Transparent"/>
+          <Border Background="Transparent" />
         </ControlTemplate>
       </Thumb.Template>
     </Thumb>
