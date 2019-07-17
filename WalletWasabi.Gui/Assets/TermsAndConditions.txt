@@ -1,6 +1,6 @@
 PLEASE READ THESE TERMS OF USE CAREFULLY. BY CLICKING AGREE, OR BY ACCESSING OR DOWNLOADING OUR SOFTWARE (AS DEFINED BELOW), YOU AGREE TO BE BOUND BY THESE TERMS OF USE AND ALL TERMS INCORPORATED BY REFERENCE.
 
-If you are accepting these terms on behalf of an entity, you confirm that you are authorised on behalf of that entity to agree to be bound by these Terms of Use and all terms incorporated by reference.
+If you are accepting these terms on behalf of an entity, you confirm that you are authorized on behalf of that entity to agree to be bound by these Terms of Use and all terms incorporated by reference.
 
 1. GENERAL PROVISIONS
 =====================
@@ -30,12 +30,12 @@ We may make changes to these Terms, including when there are changes to our Serv
 2.1 DESCRIPTION OF SERVICES
 
 We strongly advise to only use our services if you are familiar with cryptocurrencies, especially Bitcoin. We recommend to first learn the basics of Bitcoin and Bitcoin transactions before starting to use our Services.
-This Software consists of the Client Application and the Privacy Engine (both as defined below) and functions as a free, open source non-custodial desktop wallet. The Software does not constitute an account where We or other third parties serve as financial intermediaries or custodians of Your bitcoin(s). The Software and our services are therefore exempt from the authority of the Gibraltar Financial Services Commission or any other financial institutions.
+This Software consists of the Client Application and the Privacy Engine (both as defined below) and functions as a free, open-source non-custodial desktop wallet. The Software does not constitute an account where We or other third parties serve as financial intermediaries or custodians of Your bitcoin(s). The Software and our services are therefore exempt from the authority of the Gibraltar Financial Services Commission or any other financial institutions.
 While the Software has undergone beta testing and continues to be improved by feedback from the open-source user and developer community, We cannot guarantee there will not be bugs in the Software. You acknowledge that Your use of this Software is at Your own discretion and in compliance with all applicable laws. You are responsible for safekeeping Your passwords, private key pairs, PINs, Recovery Words, and any other codes You use to access the Software.
 We expressly declare that we do not store any private keys. Encrypted private key information is stored locally on your computer in a wallet file and/or backed up with Recovery Words, shown at the creation of the wallet. Private keys can be accessed with a password, you have given at the creation of the wallet. It is solely your responsibility to backup and to safekeep your private keys. In case of loss of private keys, you may permanently lose access to your public addresses, since we are not able to recover the private keys for You.
 If You do not understand the above paragraph please learn more about Bitcoin transactions before using our Services.
 The download and use of the Wasabi Wallet software is subject to the acceptance of our terms and conditions. From the point of downloading we do not store or manage any data, we do not even have knowledge about neither the installation, nor the use of the wallet.
-The client application (“Client Application”) is a free and open source application, the sole purpose of which is to grant You access to the Bitcoin Network and our Services (as defined below) without the need or requirement to create or maintain a user account. The application itself is an ordinary Bitcoin desktop wallet with the ordinary features.
+The client application (“Client Application”) is a free and open-source application, the sole purpose of which is to grant You access to the Bitcoin network and our Services (as defined below) without the need or requirement to create or maintain a user account. The application itself is an ordinary Bitcoin desktop wallet with the ordinary features.
 The Privacy Oriented Bitcoin Transaction Services is an online service that implements Chaumian CoinJoin to prevent third parties to spy on the Blockchain, and ZeroLink, an end-to-end wallet privacy framework to make sure no privacy leaks happen by any other means. Throughout the process the Service does not initiate or process any standalone transactions whatsoever towards third parties (i.e. non-users of the Service) and therefore does not store or transmit value belonging to others. For further information on how it works please visit our GitHub page: https://github.com/zkSNACKs.
 It is your own responsibility to ensure that the use of Wasabi Wallet complies with your local laws and jurisdictions.
 
@@ -58,12 +58,12 @@ sales of narcotics, research chemicals or any controlled substances;
 items that infringe or violate any intellectual property rights such as copyrights, trademarks, trade secrets, or patents;
 ammunition, firearms, explosives (including fireworks), or weapons regulated under applicable law or as determined by us; or
 transactions that show the personal information of third parties in violation of applicable law;
-transactions that support pyramid, Ponzi, or other ""get rich quick"" schemes;
+transactions that support pyramid, Ponzi, or other "get rich quick" schemes;
 provide credit repair or debt settlement services;
 explicit sexual content;
 money laundering or any support thereof.
 You agree that you will not engage in any of the following activities via the Services, nor will you help or facilitate a third party to engage in any such activity:
-attempt to gain unauthorised access to our Engine;
+attempt to gain unauthorized access to our Engine;
 make any attempt to bypass or circumvent any security features;
 violate any law, statute, ordinance, regulation or court order;
 engage in any activity that is abusive or interferes with or disrupts our Services.
@@ -83,7 +83,7 @@ Our trademarks, service marks, designs, logos, URLs, and trade names that are di
 6 DISCLAIMER OF WARRANTIES
 ==========================
 
-Our Services are provided “as is” with no warranty of any kind. Your use of our Services is at your sole risk. We and our licensors, service providers or subcontractors (if any) make no representations or warranties about the suitability of the information, software, products and services contained in our Services for any purpose or their compliance with any accounting rules, principles or laws, and we expressly disclaim any representation or warranty that the Services will be free from errors, viruses or other harmful components, that communications to or from the Services will be secure and will not intercepted, that the services, functions and other capabilities offered by the Services will be uninterrupted, or that their content will be accurate, complete or timely.
+Our Services are provided “as is” with no warranty of any kind. Your use of our Services is at your sole risk. We and our licensors, service providers or subcontractors (if any) make no representations or warranties about the suitability of the information, software, products and services contained in our Services for any purpose or their compliance with any accounting rules, principles or laws, and we expressly disclaim any representation or warranty that the Services will be free from errors, viruses or other harmful components, that communications to or from the Services will be secure and will not be intercepted, that the services, functions and other capabilities offered by the Services will be uninterrupted, or that their content will be accurate, complete or timely.
 EXCEPT AS EXPRESSLY STATED IN THESE TERMS, WE DISCLAIM (TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW) ALL WARRANTIES, REPRESENTATIONS AND CONDITIONS, WHETHER EXPRESS OR IMPLIED AND WHETHER IMPOSED BY STATUTE OR OTHERWISE, INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES RELATING TO TITLE, NON-INFRINGEMENT, MERCHANTABILITY, AND FITNESS FOR A PARTICULAR PURPOSE. YOU ACKNOWLEDGE THAT YOU HAVE NOT ENTERED INTO THIS AGREEMENT IN RELIANCE UPON ANY STATEMENT, WARRANTY OR REPRESENTATION EXCEPT THOSE EXPRESSLY AND SPECIFICALLY SET FORTH IN THESE TERMS AND THAT YOU SHALL HAVE NO REMEDIES IN RESPECT OF ANY STATEMENT, WARRANTY, REPRESENTATION OR CONDITION THAT IS NOT EXPRESSLY AND SPECIFICALLY SET FORTH IN THESE TERMS. Some jurisdictions do not allow the disclaimer of implied terms in contracts with consumers, so some or all of the disclaimers in this section may not apply to you.
 
 7 NO ADVICE
@@ -119,7 +119,7 @@ Whether the dispute is heard in arbitration or in court, you and the Service Pro
 
 9.3 GOVERNING LAW AND JURISDICTION
 
-These Terms and any dispute or claim between you and the Service Provider arising out of or in connection these Terms or any terms incorporated into these Terms by reference or their subject matter or formation (including non-contractual disputes or claims) will be governed by and construed in accordance with the laws of Gibraltar, without giving effect to any conflict of laws principles that may provide for the application of the law of another jurisdiction. Subject to the “Arbitration” section above, the courts of Gibraltar shall have exclusive jurisdiction to settle any dispute or claim between you and the Service Provider arising out of or in connection with these Terms or any terms incorporated into these Terms by reference or their subject matter or formation (including non-contractual disputes or claims).
+These Terms and any dispute or claim between you and the Service Provider arising out of or in connection with these Terms or any terms incorporated into these Terms by reference or their subject matter or formation (including non-contractual disputes or claims) will be governed by and construed in accordance with the laws of Gibraltar, without giving effect to any conflict of laws principles that may provide for the application of the law of another jurisdiction. Subject to the “Arbitration” section above, the courts of Gibraltar shall have exclusive jurisdiction to settle any dispute or claim between you and the Service Provider arising out of or in connection with these Terms or any terms incorporated into these Terms by reference or their subject matter or formation (including non-contractual disputes or claims).
 
 9.4 NO WAIVER
 

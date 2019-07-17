@@ -1,4 +1,4 @@
-﻿using Gma.QrCodeNet.Encoding.DataEncodation;
+using Gma.QrCodeNet.Encoding.DataEncodation;
 using Gma.QrCodeNet.Encoding.EncodingRegion;
 using Gma.QrCodeNet.Encoding.ErrorCorrection;
 using Gma.QrCodeNet.Encoding.Masking;
@@ -29,7 +29,7 @@ namespace Gma.QrCodeNet.Encoding
 			BitList codewords = ECGenerator.FillECCodewords(encodeStruct.DataCodewords, encodeStruct.VersionDetail);
 
 			TriStateMatrix triMatrix = new TriStateMatrix(encodeStruct.VersionDetail.MatrixWidth);
-			PositioninngPatternBuilder.EmbedBasicPatterns(encodeStruct.VersionDetail.Version, triMatrix);
+			PositioningPatternBuilder.EmbedBasicPatterns(encodeStruct.VersionDetail.Version, triMatrix);
 
 			triMatrix.EmbedVersionInformation(encodeStruct.VersionDetail.Version);
 			triMatrix.EmbedFormatInformation(errorLevel, new Pattern0());

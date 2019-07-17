@@ -119,7 +119,7 @@ namespace NBitcoin
 			// 3. Anonymity set cannot be larger than the number of inputs.
 			var inputCount = me.Inputs.Count;
 			var anonSet = Math.Min(equalOutputs, inputCount);
-			return equalOutputs;
+			return anonSet;
 		}
 
 		public static int GetAnonymitySet(this Transaction me, uint outputIndex) => GetAnonymitySet(me, (int)outputIndex);

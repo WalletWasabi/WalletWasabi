@@ -3,7 +3,7 @@ using System;
 namespace Gma.QrCodeNet.Encoding.EncodingRegion
 {
 	/// <summary>
-	/// Embed version information for version larger or equal to 7.
+	/// Embed version information for version larger than or equal to 7.
 	/// </summary>
 	/// <remarks>ISO/IEC 18004:2000 Chapter 8.10 Page 54</remarks>
 	internal static class VersionInformation
@@ -13,7 +13,7 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 
 		/// <summary>
 		/// Embed version information to Matrix
-		/// Only for version greater or equal to 7
+		/// Only for version greater than or equal to 7
 		/// </summary>
 		/// <param name="tsMatrix">Matrix</param>
 		/// <param name="version">version number</param>

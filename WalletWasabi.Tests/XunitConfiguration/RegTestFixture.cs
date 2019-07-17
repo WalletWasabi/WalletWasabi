@@ -1,7 +1,11 @@
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using NBitcoin;
+using NBitcoin.RPC;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,12 +20,10 @@ namespace WalletWasabi.Tests.XunitConfiguration
 	public class RegTestFixture : IDisposable
 	{
 		public string BackendEndPoint { get; internal set; }
-
 		public IWebHost BackendHost { get; internal set; }
-
 		public NodeBuilder BackendNodeBuilder { get; internal set; }
-
 		public CoreNode BackendRegTestNode { get; internal set; }
+		public Backend.Global Global { get; }
 
 		public RegTestFixture()
 		{
@@ -31,20 +33,39 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			BackendRegTestNode = BackendNodeBuilder.Nodes[0];
 
 			var rpc = BackendRegTestNode.CreateRpcClient();
+			var connectionString = new RPCCredentialString()
+			{
+				Server = rpc.Address.AbsoluteUri,
+				UserPassword = BackendRegTestNode.Creds
+			}.ToString();
 
-			var config = new Config(rpc.Network, rpc.Authentication, IPAddress.Loopback.ToString(), IPAddress.Loopback.ToString(), BackendRegTestNode.Endpoint.Address.ToString(), Network.Main.DefaultPort, Network.TestNet.DefaultPort, BackendRegTestNode.Endpoint.Port);
+			var testnetBackendDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests", "Backend"));
+			IoHelpers.DeleteRecursivelyWithMagicDustAsync(testnetBackendDir).GetAwaiter().GetResult();
+			Thread.Sleep(100);
+			Directory.CreateDirectory(testnetBackendDir);
+			Thread.Sleep(100);
+			var config = new Config(BackendNodeBuilder.Network, connectionString, IPAddress.Loopback.ToString(), IPAddress.Loopback.ToString(), BackendRegTestNode.Endpoint.Address.ToString(), Network.Main.DefaultPort, Network.TestNet.DefaultPort, BackendRegTestNode.Endpoint.Port);
+			var configFilePath = Path.Combine(testnetBackendDir, "Config.json");
+			config.SetFilePath(configFilePath);
+			config.ToFileAsync().GetAwaiter().GetResult();
 
 			var roundConfig = CreateRoundConfig(Money.Coins(0.1m), Constants.OneDayConfirmationTarget, 0.7, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
+			var roundConfigFilePath = Path.Combine(testnetBackendDir, "CcjRoundConfig.json");
+			roundConfig.SetFilePath(roundConfigFilePath);
+			roundConfig.ToFileAsync().GetAwaiter().GetResult();
 
-			Backend.Global.Instance.InitializeAsync(config, roundConfig, rpc).GetAwaiter().GetResult();
-
+			var conf = new ConfigurationBuilder()
+				.AddInMemoryCollection(new[] { new KeyValuePair<string, string>("datadir", testnetBackendDir) })
+				.Build();
 			BackendEndPoint = $"http://localhost:{new Random().Next(37130, 38000)}/";
 			BackendHost = WebHost.CreateDefaultBuilder()
 					.UseStartup<Startup>()
+					.UseConfiguration(conf)
+					.UseWebRoot("../../../../WalletWasabi.Backend/wwwroot")
 					.UseUrls(BackendEndPoint)
 					.Build();
-
-			var hostInitializationTask = BackendHost.RunAsync();
+			Global = (Backend.Global)BackendHost.Services.GetService(typeof(Backend.Global));
+			var hostInitializationTask = BackendHost.RunWithTasksAsync();
 			Logger.LogInfo($"Started Backend webhost: {BackendEndPoint}", nameof(Global));
 
 			var delayTask = Task.Delay(3000);

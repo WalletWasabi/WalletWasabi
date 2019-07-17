@@ -553,7 +553,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					if (feeTarget == target)
 					{
-						feeTarget = target;
 						break;
 					}
 					else if (feeTarget < target)
@@ -579,7 +578,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				var d = feeTarget / Constants.OneDayConfirmationTarget;
 				ConfirmationExpectedText = $"{d} {IfPlural(d, "day", "days")}";
 			}
-			else if (feeTarget == 10008)
+			else if (feeTarget == Constants.SevenDaysConfirmationTarget)
 			{
 				ConfirmationExpectedText = $"two weeks™";
 			}

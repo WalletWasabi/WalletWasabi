@@ -268,7 +268,7 @@ namespace Mono.Options
 		public List<string> Values { get; set; } = new List<string>();
 		public OptionContext C { get; set; }
 
-		object IList.this[int index] { get { return this[index]; } set { (Values as IList)[index] = value; } }
+		object IList.this[int index] { get => this[index]; set => (Values as IList)[index] = value; }
 
 		#endregion IList
 
@@ -317,10 +317,7 @@ namespace Mono.Options
 				AssertValid(index);
 				return index >= Values.Count ? null : Values[index];
 			}
-			set
-			{
-				Values[index] = value;
-			}
+			set => Values[index] = value;
 		}
 
 		#endregion IList<T>

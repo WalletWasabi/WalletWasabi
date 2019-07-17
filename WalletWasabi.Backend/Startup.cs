@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
@@ -19,6 +20,13 @@ namespace WalletWasabi.Backend
 {
 	public class Startup
 	{
+		public IConfiguration Configuration { get; }
+
+		public Startup(IConfiguration configuration)
+		{
+			Configuration = configuration;
+		}
+
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
@@ -50,14 +58,15 @@ namespace WalletWasabi.Backend
 			services.AddLogging(Logging => Logging.AddFilter((s, level) => level >= Microsoft.Extensions.Logging.LogLevel.Warning));
 
 			services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
-
+			services.AddSingleton<Global>(new Global(Configuration["datadir"]));
+			services.AddStartupTask<InitConfigStartupTask>();
 			services.AddResponseCompression();
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
 #pragma warning disable IDE0060 // Remove unused parameter
 
-		public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+		public void Configure(IApplicationBuilder app, IHostingEnvironment env, Global global)
 #pragma warning restore IDE0060 // Remove unused parameter
 		{
 			app.UseStaticFiles();
@@ -81,34 +90,34 @@ namespace WalletWasabi.Backend
 			app.UseMvc();
 
 			var applicationLifetime = app.ApplicationServices.GetRequiredService<IApplicationLifetime>();
-			applicationLifetime.ApplicationStopping.Register(OnShutdown); // Do not register async, that won't hold up the shutdown
+			applicationLifetime.ApplicationStopping.Register(() => OnShutdown(global)); // Don't register async, that won't hold up the shutdown
 		}
 
-		private void OnShutdown()
+		private void OnShutdown(Global global)
 		{
-			CleanupAsync().GetAwaiter().GetResult(); // This is needed, if async function is registered then it won't wait until it finishes
+			CleanupAsync(global).GetAwaiter().GetResult(); // This is needed, if async function is registered then it won't wait until it finishes
 		}
 
-		private async Task CleanupAsync()
+		private async Task CleanupAsync(Global global)
 		{
-			Global.Instance.Coordinator?.Dispose();
+			global.Coordinator?.Dispose();
 			Logger.LogInfo<Startup>("Coordinator is disposed.");
 
-			if (Global.Instance.IndexBuilderService != null)
+			if (global.IndexBuilderService != null)
 			{
-				await Global.Instance.IndexBuilderService.StopAsync();
+				await global.IndexBuilderService.StopAsync();
 				Logger.LogInfo<Startup>("IndexBuilderService is disposed.");
 			}
 
-			if (Global.Instance.RoundConfigWatcher != null)
+			if (global.RoundConfigWatcher != null)
 			{
-				await Global.Instance.RoundConfigWatcher.StopAsync();
+				await global.RoundConfigWatcher.StopAsync();
 				Logger.LogInfo<Startup>("RoundConfigWatcher is disposed.");
 			}
 
-			if (Global.Instance.LocalNode != null)
+			if (global.LocalNode != null)
 			{
-				Global.Instance.DisconnectDisposeNullLocalNode();
+				global.DisconnectDisposeNullLocalNode();
 				Logger.LogInfo<Startup>("LocalNode is disposed.");
 			}
 

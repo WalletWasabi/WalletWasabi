@@ -13,7 +13,7 @@
 
 ## (Linux Only) Step 0: Add `udev` rules
 
-If you are on Linux you must add some `udev` rules if you haven't already so your OS (and Wasabi) can recognize your hardware wallet:
+If you are on Linux you must add some `udev` rules if you have not already, so your OS (and Wasabi) can recognize your hardware wallet:
 
 ```sh
 git clone https://github.com/bitcoin-core/HWI.git
@@ -27,7 +27,7 @@ sudo usermod -aG plugdev `whoami`
 
 More info here: https://github.com/bitcoin-core/HWI/tree/master/udev
 
-## Step 2: Build From Source Code
+## Step 1: Build From Source Code
 
 ### Get The Requirements
 
@@ -50,13 +50,13 @@ Run Wasabi with `dotnet run` from the `WalletWasabi.Gui` folder.
 
 More info here: https://github.com/zkSNACKs/WalletWasabi/blob/master/README.md
 
-## Step 3: Test
+## Step 2: Test
 
-### 1. Does Wasabi recognizes your hardware wallet?
-### 2. Does Wasabi loads your hardware wallet?
+### 1. Does Wasabi recognize your hardware wallet?
+### 2. Does Wasabi load your hardware wallet?
 ### 3. Can you send transaction using Wasabi and your hardware wallet?
 
-## Step 4: Report Results
+## Step 3: Report Results
 
 Report results on GitHub or Reddit.  
 On GitHub by commenting under this pull request: https://github.com/zkSNACKs/WalletWasabi/pull/1341  

@@ -15,7 +15,6 @@ namespace WalletWasabi.Backend
 {
 	public class Global
 	{
-		public static Global Instance { get; } = new Global();
 		public string DataDir { get; }
 
 		public RPCClient RpcClient { get; private set; }
@@ -34,9 +33,13 @@ namespace WalletWasabi.Backend
 
 		public CcjRoundConfig RoundConfig { get; private set; }
 
-		public Global()
+		public Global(string dataDir)
 		{
-			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
+			DataDir = dataDir ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
+		}
+
+		public Global() : this(null)
+		{
 		}
 
 		public async Task InitializeAsync(Config config, CcjRoundConfig roundConfig, RPCClient rpc)
@@ -66,11 +69,11 @@ namespace WalletWasabi.Backend
 			if (roundConfig.FilePath != null)
 			{
 				RoundConfigWatcher = new ConfigWatcher(RoundConfig);
-				RoundConfigWatcher.Start(TimeSpan.FromSeconds(10), () =>
+				RoundConfigWatcher.Start(TimeSpan.FromSeconds(10), async () =>
 				{
 					try
 					{
-						Coordinator.UpdateRoundConfig(RoundConfig);
+						await Coordinator.RoundConfig.UpdateOrDefaultAsync(RoundConfig, toFile: false);
 
 						Coordinator.AbortAllRoundsInInputRegistration(nameof(ConfigWatcher), $"{nameof(RoundConfig)} has changed.");
 					}
@@ -78,8 +81,6 @@ namespace WalletWasabi.Backend
 					{
 						Logger.LogDebug<ConfigWatcher>(ex);
 					}
-
-					return Task.CompletedTask;
 				}); // Every 10 seconds check the config
 				Logger.LogInfo<ConfigWatcher>($"{nameof(RoundConfigWatcher)} is successfully started.");
 			}
