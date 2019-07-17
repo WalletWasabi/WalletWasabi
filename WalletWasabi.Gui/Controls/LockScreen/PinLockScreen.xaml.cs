@@ -1,6 +1,10 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia;
+using Avalonia.Input;
+using ReactiveUI;
+using System.Reactive.Linq;
+using System;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
@@ -22,6 +26,12 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		public PinLockScreen() : base()
 		{
 			InitializeComponent();
+
+			var inputField = this.FindControl<NoparaPasswordBox>("InputField");
+			
+			this.WhenAnyValue(x => x.IsLocked)
+				.Where(x => x)
+				.Subscribe(x => inputField.Focus());
 		}
 
 		private void InitializeComponent()

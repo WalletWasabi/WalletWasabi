@@ -28,6 +28,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			get => _threshold;
 			set => this.RaiseAndSetIfChanged(ref _threshold, value);
 		}
+		
 		private double _offset;
 		public double Offset
 		{

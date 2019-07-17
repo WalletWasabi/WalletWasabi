@@ -43,7 +43,20 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 			KeyPadCommand = ReactiveCommand.Create<string>((arg) =>
 			{
-				PinInput += arg;
+				if (arg == "BACK" && PinInput.Length > 0)
+				{
+					PinInput = PinInput.Substring(0, PinInput.Length - 1);
+					WarningMessageVisible = false;
+				}
+				else if (arg == "CLEAR")
+				{
+					PinInput = string.Empty;
+					WarningMessageVisible = false;
+				}
+				else
+				{
+					PinInput += arg;
+				}
 			});
 
 			this.WhenAnyValue(x => x.PinInput)
@@ -59,6 +72,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 								 .ObserveOn(RxApp.MainThreadScheduler)
 								 .ToProperty(this, x => x.IsLocked)
 								 .DisposeWith(Disposables);
+
 		}
 
 		private void CheckPIN(string input)

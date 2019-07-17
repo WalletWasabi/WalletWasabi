@@ -36,11 +36,12 @@
     <Grid Classes="Shade" Background="{DynamicResource ThemeBackgroundBrush}">
       <controls:GroupBox VerticalAlignment="Center" HorizontalAlignment="Center" TextBlock.FontSize="25" Padding="20" Margin="10">
         <DockPanel LastChildFill ="True">
-          <controls:NoparaPasswordBox Password="{Binding PinInput}" Width="300" DockPanel.Dock="Top" Margin="4 0 4 20" Watermark="PIN" UseFloatingWatermark="True" />
+          <controls:NoparaPasswordBox x:Name="InputField" Password="{Binding PinInput}" Width="300" DockPanel.Dock="Top" Margin="4 0 4 20" Watermark="PIN" UseFloatingWatermark="True" />
           <Grid DockPanel.Dock="Bottom">
-            <TextBlock Text="Wrong PIN!" VerticalAlignment="Center" FontSize="20" Classes="warningMessage" IsVisible="{Binding WarningMessageVisible}" />
+            <TextBlock Text="Wrong PIN!" 
+                       Margin="0,12,0,0" VerticalAlignment="Center" FontSize="20" Classes="warningMessage" IsVisible="{Binding WarningMessageVisible}" />
           </Grid>
-          <Grid RowDefinitions="*,*,*" ColumnDefinitions="*,*,*">
+          <Grid RowDefinitions="*,*,*,*" ColumnDefinitions="*,*,*">
             <Grid.Styles>
               <Style Selector="Button">
                 <Setter Property="Margin" Value="4" />
@@ -55,6 +56,9 @@
             <Button Grid.Row="2" Grid.Column="0" Content="1" Command="{Binding KeyPadCommand}" CommandParameter="1" />
             <Button Grid.Row="2" Grid.Column="1" Content="2" Command="{Binding KeyPadCommand}" CommandParameter="2" />
             <Button Grid.Row="2" Grid.Column="2" Content="3" Command="{Binding KeyPadCommand}" CommandParameter="3" />
+            <Button Grid.Row="3" Grid.Column="0" Content="CLEAR" Command="{Binding KeyPadCommand}" CommandParameter="CLEAR" />
+            <Button Grid.Row="3" Grid.Column="1" Content="0" Command="{Binding KeyPadCommand}" CommandParameter="0" />
+            <Button Grid.Row="3" Grid.Column="2" Content="BACK" Command="{Binding KeyPadCommand}" CommandParameter="BACK" />
           </Grid>
         </DockPanel>
       </controls:GroupBox>
