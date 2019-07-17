@@ -48,7 +48,6 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 			this.WhenAnyValue(x => x.PinInput)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Throttle(TimeSpan.FromSeconds(0.5))
 				.Select(Guard.Correct)
 				.Where(x => x != string.Empty)
 				.Do(x => WarningMessageVisible = false)
