@@ -5,7 +5,6 @@
   <UserControl.Resources>
     <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
   </UserControl.Resources>
-
   <ScrollViewer>
     <StackPanel Margin="30" Spacing="10">
       <Grid Classes="content">
@@ -14,14 +13,12 @@
             <TextBlock Text="Heads Up!" FontWeight="Bold" Classes="warningMessage" Margin="0 0 3 0" />
             <TextBlock Classes="warningMessage">Changes will be applied after restarting the application.</TextBlock>
           </StackPanel>
-
           <controls:GroupBox Title="Bitcoin" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
             <StackPanel Orientation="Vertical" Spacing="5">
               <StackPanel Margin="0 10" Spacing="5">
                 <TextBlock>Network</TextBlock>
                 <DropDown Items="{Binding Networks}" SelectedItem="{Binding Network}" />
               </StackPanel>
-
               <controls:GroupBox Title="{Binding Network, StringFormat=My Node for \{0\} }" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
                 <StackPanel Orientation="Vertical" Spacing="5">
                   <StackPanel Margin="0 10" Spacing="5">
@@ -37,7 +34,6 @@
               </controls:GroupBox>
             </StackPanel>
           </controls:GroupBox>
-
           <controls:GroupBox Title="Tor" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
             <StackPanel Orientation="Vertical" Spacing="5">
               <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
@@ -54,7 +50,6 @@
               </StackPanel>
             </StackPanel>
           </controls:GroupBox>
-
           <controls:GroupBox Title="UI" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
             <StackPanel Orientation="Vertical" Spacing="5">
               <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
@@ -67,33 +62,22 @@
               </StackPanel>
             </StackPanel>
           </controls:GroupBox>
-
           <controls:GroupBox Title="Anonymity Levels" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
             <StackPanel Orientation="Vertical" Spacing="5">
               <Grid Margin="0 10" ColumnDefinitions="30, *">
-                <DrawingPresenter Height="24" Width="24" Grid.Column="0"
-                    Margin="0 0 10 10"
-                    VerticalAlignment="Center" HorizontalAlignment="Center"
-                    Drawing="{DynamicResource PrivacySome}" />
+                <DrawingPresenter Height="24" Width="24" Grid.Column="0" Margin="0 0 10 10" VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource PrivacySome}" />
                 <TextBox Text="{Binding SomePrivacyLevel}" Grid.Column="1" />
               </Grid>
               <Grid Margin="0 10" ColumnDefinitions="30, *">
-                <DrawingPresenter Height="24" Width="24" Grid.Column="0"
-                    Margin="0 0 10 10"
-                    VerticalAlignment="Center" HorizontalAlignment="Center"
-                    Drawing="{DynamicResource PrivacyFine}" />
+                <DrawingPresenter Height="24" Width="24" Grid.Column="0" Margin="0 0 10 10" VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource PrivacyFine}" />
                 <TextBox Text="{Binding FinePrivacyLevel}" Grid.Column="1" />
               </Grid>
               <Grid Margin="0 10" ColumnDefinitions="30, *">
-                <DrawingPresenter Height="24" Width="24" Grid.Column="0"
-                    Margin="0 0 10 10"
-                    VerticalAlignment="Center" HorizontalAlignment="Center"
-                    Drawing="{DynamicResource PrivacyStrong}" />
+                <DrawingPresenter Height="24" Width="24" Grid.Column="0" Margin="0 0 10 10" VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource PrivacyStrong}" />
                 <TextBox Text="{Binding StrongPrivacyLevel}" Grid.Column="1" />
               </Grid>
             </StackPanel>
           </controls:GroupBox>
-
           <controls:GroupBox Title="Other settings" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
             <StackPanel Orientation="Vertical" Spacing="5">
               <StackPanel Margin="0 10" Spacing="5">
@@ -102,7 +86,6 @@
               </StackPanel>
             </StackPanel>
           </controls:GroupBox>
-
           <Button Content="Open Config File" Command="{Binding OpenConfigFileCommand}" />
         </StackPanel>
       </Grid>

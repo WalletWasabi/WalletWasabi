@@ -20,12 +20,12 @@
           <ItemsControl Items="{Binding Suggestions}">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
-                <StackPanel Orientation ="Horizontal" Spacing="2" />
+                <StackPanel Orientation="Horizontal" Spacing="2" />
               </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <Button Focusable="False" Content="{Binding Word}" Command="{Binding OnSelected}" IsPressed ="{Binding IsHighLighted}" />
+                <Button Focusable="False" Content="{Binding Word}" Command="{Binding OnSelected}" IsPressed="{Binding IsHighLighted}" />
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
