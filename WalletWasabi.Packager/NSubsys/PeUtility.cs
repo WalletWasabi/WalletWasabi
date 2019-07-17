@@ -39,7 +39,7 @@ namespace NSubsys
 
 		public long MainHeaderOffset { get; }
 
-		private readonly IDisposable _internalBinReader;
+		private readonly IDisposable InternalBinReader;
 
 		public PeUtility(string filePath)
 		{
@@ -56,7 +56,7 @@ namespace NSubsys
 
 			OptionalHeader = FromBinaryReader<IMAGE_OPTIONAL_HEADER>(reader);
 
-			_internalBinReader = reader;
+			InternalBinReader = reader;
 		}
 
 		/// <summary>
@@ -82,7 +82,7 @@ namespace NSubsys
 		public void Dispose()
 		{
 			Stream?.Dispose();
-			_internalBinReader?.Dispose();
+			InternalBinReader?.Dispose();
 		}
 	}
 }
