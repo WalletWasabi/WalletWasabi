@@ -294,7 +294,7 @@ namespace Mono.Options
 			// (see Option.ParsePrototype(), and thus it'll prevent Category
 			// instances from being accidentally used as normal options.
 			public Category(string description)
-				: base($"=:{nameof(Category)}:= " + description, description)
+				: base($"=:{nameof(Category)}:= {description}", description)
 			{
 			}
 
@@ -711,7 +711,7 @@ namespace Mono.Options
 							return true;
 						}
 					default:
-						throw new InvalidOperationException($"Unknown {nameof(OptionValueType)}: " + p.OptionValueType);
+						throw new InvalidOperationException($"Unknown {nameof(OptionValueType)}: {p.OptionValueType}");
 				}
 			}
 			return true;
