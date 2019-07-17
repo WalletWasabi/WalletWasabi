@@ -8,7 +8,7 @@ namespace NSubsys
 	internal class PeUtility : IDisposable
 	{
 		public enum SubSystemType : ushort
-        {
+		{
 			IMAGE_SUBSYSTEM_WINDOWS_GUI = 2,
 			IMAGE_SUBSYSTEM_WINDOWS_CUI = 3,
 		}
@@ -27,15 +27,14 @@ namespace NSubsys
 			public ushort Subsystem;
 		}
 
-
 		/// <summary>
 		/// Gets the optional header
 		/// </summary>
-		public IMAGE_OPTIONAL_HEADER OptionalHeader { get;  }
+		public IMAGE_OPTIONAL_HEADER OptionalHeader { get; }
 
 		/// <summary>
 		/// Gets the PE file stream for R/W functions.
-		/// </summary> 
+		/// </summary>
 		public FileStream Stream { get; }
 
 		public long MainHeaderOffset { get; }

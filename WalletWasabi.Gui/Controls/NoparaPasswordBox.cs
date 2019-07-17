@@ -37,7 +37,7 @@ namespace WalletWasabi.Gui.Controls
 
 		private static Key[] SuppressedKeys { get; } =
 			{ Key.LeftCtrl, Key.RightCtrl, Key.LeftAlt, Key.RightAlt, Key.LeftShift, Key.RightShift, Key.Escape, Key.CapsLock, Key.NumLock, Key.LWin, Key.RWin,
-			Key.Left,Key.Right,Key.Up,Key.Down  };
+			Key.Left,Key.Right,Key.Up,Key.Down };
 
 		private bool _supressChanges;
 		private string _displayText = "";
