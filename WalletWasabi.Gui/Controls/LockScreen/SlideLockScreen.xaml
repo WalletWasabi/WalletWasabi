@@ -1,8 +1,7 @@
 ﻿<lockscreen:SlideLockScreen xmlns="https://github.com/avaloniaui"
   xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  IsLocked="{Binding IsLocked}"
-  Token="{Binding Token, Mode=TwoWay}">
+  IsLocked="{Binding IsLocked}">
   <lockscreen:SlideLockScreen.Clock>
     <Clock />
   </lockscreen:SlideLockScreen.Clock>
@@ -26,7 +25,7 @@
         <Setter Property="Child" Value="{StaticResource Chevron}" />
       </Style>
 
-      <Style Selector="Border.Chev1">
+      <Style Selector="Grid[IsVisible=true] Border.Chev1">
         <Style.Animations>
           <Animation Duration="0:0:1.5" Easing="QuarticEaseInOut" IterationCount="Infinite">
             <KeyFrame Cue="0%">
@@ -45,7 +44,7 @@
         </Style.Animations>
       </Style>
 
-      <Style Selector="Border.Chev2">
+      <Style Selector="Grid[IsVisible=true] Border.Chev2">
         <Style.Animations>
           <Animation Delay="0:0:0.3" Duration="0:0:1.5" Easing="QuarticEaseInOut" IterationCount="Infinite">
             <KeyFrame Cue="0%">
@@ -64,7 +63,7 @@
         </Style.Animations>
       </Style>
 
-      <Style Selector="Border.Chev3">
+      <Style Selector="Grid[IsVisible=true] Border.Chev3">
         <Style.Animations>
           <Animation Delay="0:0:0.6" Duration="0:0:1.5" Easing="QuarticEaseInOut" IterationCount="Infinite">
             <KeyFrame Cue="0%">
@@ -113,14 +112,11 @@
   </lockscreen:SlideLockScreen.Styles>
   <Grid>
     <Grid x:Name="Shade" Background="{DynamicResource ThemeBackgroundBrush}">
-      <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center">
-        <Grid>
-          <Border Classes="Chevron Chev1" />
-          <Border Classes="Chevron Chev2" />
-          <Border Classes="Chevron Chev3" />
-        </Grid>
-        <TextBlock Margin="0,110,0,0" Text="Drag and slide up to unlock." />
-      </StackPanel>
+      <Grid IsVisible="{Binding IsUserDragging}" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Border Classes="Chevron Chev1" />
+        <Border Classes="Chevron Chev2" />
+        <Border Classes="Chevron Chev3" />
+      </Grid>
     </Grid>
     <Thumb x:Name="PART_DragThumb">
       <Thumb.Template>
