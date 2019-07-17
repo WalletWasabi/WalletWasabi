@@ -3,13 +3,14 @@
 ## CodeMaid
 
 **DO** use [CodeMaid](http://www.codemaid.net/),  a Visual Studio extension to automatically clean up your code on saving the file.
+CodeMaid is a non-intrusive code cleanup tool.
 
-CodeMaid is a non-intrusive code cleanup tool. Wasabi's CodeMaid settings [can be found in the root of the repository](https://github.com/zkSNACKs/WalletWasabi/blob/master/CodeMaid.config), and are automatically picked up by Visual Studio when you open the project, assuming the CodeMaid extension is installed. Unfortunately CodeMaid has no Visual Studio Code extension yet. You can check out the progress on this [under this GitHub issue](https://github.com/codecadwallader/codemaid/issues/273).
+Wasabi's CodeMaid settings [can be found in the root of the repository](https://github.com/zkSNACKs/WalletWasabi/blob/master/CodeMaid.config). They are automatically picked up by Visual Studio when you open the project, assuming the CodeMaid extension is installed. Unfortunately CodeMaid has no Visual Studio Code extension yet. You can check out the progress on this [under this GitHub issue](https://github.com/codecadwallader/codemaid/issues/273).
 
 ## .editorconfig
 
-Not only CodeMaid, but Visual Studio also enforces certain code style through [`.editorconfig`](https://github.com/zkSNACKs/WalletWasabi/blob/master/.editorconfig) file.  
-If you are using Visual Studio code, please **DO** install the [editorconfig extension](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig) for it to make sure your coding style will resemble to ours.
+Not only CodeMaid, but Visual Studio also enforces consistent coding style through [`.editorconfig`](https://github.com/zkSNACKs/WalletWasabi/blob/master/.editorconfig) file.
+If you are using Visual Studio Code, please **DO** install the [editorconfig extension](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig) to make sure your code follows our coding style.
 
 ## Refactoring
 
