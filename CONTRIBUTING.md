@@ -8,7 +8,7 @@ CodeMaid is a non-intrusive code cleanup tool. Wasabi's CodeMaid settings [can b
 
 ## .editorconfig
 
-Not only CodeMai, but Visual Studio also enforces certain code style through [`.editorconfig`](https://github.com/zkSNACKs/WalletWasabi/blob/master/.editorconfig) file . If you are using Visual Studio code, please install the [editorconfig extension](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig) for it to make sure your coding style will resemble to ours.
+Not only CodeMaid, but Visual Studio also enforces certain code style through [`.editorconfig`](https://github.com/zkSNACKs/WalletWasabi/blob/master/.editorconfig) file . If you are using Visual Studio code, please install the [editorconfig extension](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig) for it to make sure your coding style will resemble to ours.
 
 ## Refactoring
 
