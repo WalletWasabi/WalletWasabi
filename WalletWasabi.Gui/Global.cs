@@ -319,7 +319,7 @@ namespace WalletWasabi.Gui
 					// Most of the times we do not need to discover new peers. Instead, we can connect to
 					// some of those that we already discovered in the past. In this case we assume that
 					// discovering new peers could be necessary if our address manager has less
-					// than 500 addresses. A 500 addresses could be okay because previously we tried with
+					// than 500 addresses. 500 addresses could be okay because previously we tried with
 					// 200 and only one user reported he/she was not able to connect (there could be many others,
 					// of course).
 					// On the other side, increasing this number forces users that do not need to discover more peers

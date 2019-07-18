@@ -16,7 +16,7 @@ namespace WalletWasabi.Services
 	{
 		public ConcurrentHashSet<uint256> TransactionHashes { get; }
 
-		// Transactions those we would reply to INV messages.
+		// Transactions that we would reply to INV messages.
 		private List<TransactionBroadcastEntry> BroadcastStore { get; }
 
 		private object BroadcastStoreLock { get; }
