@@ -44,7 +44,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			Thread.Sleep(100);
 			Directory.CreateDirectory(testnetBackendDir);
 			Thread.Sleep(100);
-			var config = new Config(BackendNodeBuilder.Network, connectionString, IPAddress.Loopback.ToString(), IPAddress.Loopback.ToString(), BackendRegTestNode.Endpoint.Address.ToString(), Network.Main.DefaultPort, Network.TestNet.DefaultPort, BackendRegTestNode.Endpoint.Port);
+			var config = new Config(BackendNodeBuilder.Network, connectionString, new IPEndPoint(IPAddress.Loopback, Network.Main.DefaultPort), new IPEndPoint(IPAddress.Loopback, Network.TestNet.DefaultPort), new IPEndPoint(IPAddress.Loopback, Network.RegTest.DefaultPort));
 			var configFilePath = Path.Combine(testnetBackendDir, "Config.json");
 			config.SetFilePath(configFilePath);
 			config.ToFileAsync().GetAwaiter().GetResult();
