@@ -86,12 +86,12 @@ namespace WalletWasabi.Helpers
 		public const int DefaultTorControlPort = 9051;
 		public const int DefaultTorBrowserControlPort = 9151;
 
-		public const int DefaultMainNetBintcoinP2pPort = 8333;
-		public const int DefaultTestNetBintcoinP2pPort = 18333;
-		public const int DefaultRegTestBintcoinP2pPort = 18444;
+		public const int DefaultMainNetBitcoinP2pPort = 8333;
+		public const int DefaultTestNetBitcoinP2pPort = 18333;
+		public const int DefaultRegTestBitcoinP2pPort = 18444;
 
-		public const int DefaultMainNetBintcoinCoreRpcPort = 8332;
-		public const int DefaultTestNetBintcoinCoreRpcPort = 18332;
-		public const int DefaultRegTestBintcoinCoreRpcPort = 18443;
+		public const int DefaultMainNetBitcoinCoreRpcPort = 8332;
+		public const int DefaultTestNetBitcoinCoreRpcPort = 18332;
+		public const int DefaultRegTestBitcoinCoreRpcPort = 18443;
 	}
 }

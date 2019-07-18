@@ -28,15 +28,15 @@ namespace WalletWasabi.Backend
 		public string BitcoinRpcConnectionString { get; private set; }
 
 		[JsonProperty(PropertyName = "MainNetBitcoinP2pEndPoint")]
-		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBintcoinP2pPort)]
+		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinP2pPort)]
 		public EndPoint MainNetBitcoinP2pEndPoint { get; internal set; }
 
 		[JsonProperty(PropertyName = "TestNetBitcoinP2pEndPoint")]
-		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTestNetBintcoinP2pPort)]
+		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTestNetBitcoinP2pPort)]
 		public EndPoint TestNetBitcoinP2pEndPoint { get; internal set; }
 
 		[JsonProperty(PropertyName = "RegTestBitcoinP2pEndPoint")]
-		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBintcoinP2pPort)]
+		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinP2pPort)]
 		public EndPoint RegTestBitcoinP2pEndPoint { get; internal set; }
 
 		private EndPoint _bitcoinP2pEndPoint;
@@ -108,9 +108,9 @@ namespace WalletWasabi.Backend
 			Network = Network.Main;
 			BitcoinRpcConnectionString = "user:password";
 
-			MainNetBitcoinP2pEndPoint = new IPEndPoint(IPAddress.Loopback, Constants.DefaultMainNetBintcoinP2pPort);
-			TestNetBitcoinP2pEndPoint = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTestNetBintcoinP2pPort);
-			RegTestBitcoinP2pEndPoint = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBintcoinP2pPort);
+			MainNetBitcoinP2pEndPoint = new IPEndPoint(IPAddress.Loopback, Constants.DefaultMainNetBitcoinP2pPort);
+			TestNetBitcoinP2pEndPoint = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTestNetBitcoinP2pPort);
+			RegTestBitcoinP2pEndPoint = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinP2pPort);
 
 			if (!File.Exists(FilePath))
 			{
@@ -175,7 +175,7 @@ namespace WalletWasabi.Backend
 
 			if (jsObject.TryGetValue("MainNetBitcoinCoreHost", out JToken jMainNetBitcoinCoreHost))
 			{
-				int port = Constants.DefaultMainNetBintcoinP2pPort;
+				int port = Constants.DefaultMainNetBitcoinP2pPort;
 				if (jsObject.TryGetValue("MainNetBitcoinCorePort", out JToken jMainNetBitcoinCorePort) && int.TryParse(jMainNetBitcoinCorePort.ToString(), out int p))
 				{
 					port = p;
@@ -190,7 +190,7 @@ namespace WalletWasabi.Backend
 
 			if (jsObject.TryGetValue("TestNetBitcoinCoreHost", out JToken jTestNetBitcoinCoreHost))
 			{
-				int port = Constants.DefaultTestNetBintcoinP2pPort;
+				int port = Constants.DefaultTestNetBitcoinP2pPort;
 				if (jsObject.TryGetValue("TestNetBitcoinCorePort", out JToken jTestNetBitcoinCorePort) && int.TryParse(jTestNetBitcoinCorePort.ToString(), out int p))
 				{
 					port = p;
@@ -205,7 +205,7 @@ namespace WalletWasabi.Backend
 
 			if (jsObject.TryGetValue("RegTestBitcoinCoreHost", out JToken jRegTestBitcoinCoreHost))
 			{
-				int port = Constants.DefaultRegTestBintcoinP2pPort;
+				int port = Constants.DefaultRegTestBitcoinP2pPort;
 				if (jsObject.TryGetValue("RegTestBitcoinCorePort", out JToken jRegTestBitcoinCorePort) && int.TryParse(jRegTestBitcoinCorePort.ToString(), out int p))
 				{
 					port = p;
