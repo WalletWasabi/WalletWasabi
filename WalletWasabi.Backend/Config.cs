@@ -27,6 +27,32 @@ namespace WalletWasabi.Backend
 		[JsonProperty(PropertyName = "BitcoinRpcConnectionString")]
 		public string BitcoinRpcConnectionString { get; private set; }
 
+		[JsonProperty(PropertyName = "MainNetBitcoinP2pEndPoint")]
+		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBintcoinP2pPort)]
+		public EndPoint MainNetBitcoinP2PEndPoint { get; internal set; }
+
+		[JsonProperty(PropertyName = "TestNetBitcoinP2pEndPoint")]
+		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTestNetBintcoinP2pPort)]
+		public EndPoint TestNetBitcoinP2pEndPoint { get; internal set; }
+
+		[JsonProperty(PropertyName = "RegTestBitcoinP2pEndPoint")]
+		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBintcoinP2pPort)]
+		public EndPoint RegTestBitcoinP2pEndPoint { get; internal set; }
+
+		[JsonProperty(PropertyName = "MainNetBitcoinCoreRpcEndPoint")]
+		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBintcoinCoreRpcPort)]
+		public EndPoint MainNetBitcoinCoreRpcEndPoint { get; internal set; }
+
+		[JsonProperty(PropertyName = "TestNetBitcoinCoreRpcEndPoint")]
+		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTestNetBintcoinCoreRpcPort)]
+		public EndPoint TestNetBitcoinCoreRpcEndPoint { get; internal set; }
+
+		[JsonProperty(PropertyName = "RegTestBitcoinCoreRpcEndPoint")]
+		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBintcoinCoreRpcPort)]
+		public EndPoint RegTestBitcoinCoreRpcEndPoint { get; internal set; }
+
+		#region Deleteme
+
 		[JsonProperty(PropertyName = "MainNetBitcoinCoreHost")]
 		public string MainNetBitcoinCoreHost { get; internal set; }
 
@@ -44,6 +70,8 @@ namespace WalletWasabi.Backend
 
 		[JsonProperty(PropertyName = "RegTestBitcoinCorePort")]
 		public int? RegTestBitcoinCorePort { get; internal set; }
+
+		#endregion Deleteme
 
 		private EndPoint _bitcoinCoreEndPoint;
 

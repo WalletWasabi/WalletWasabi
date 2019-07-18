@@ -80,5 +80,18 @@ namespace WalletWasabi.Helpers
 
 		public const int OneDayConfirmationTarget = 144;
 		public const int SevenDaysConfirmationTarget = 1008;
+
+		public const int DefaultTorSocksPort = 9050;
+		public const int DefaultTorBrowserSocksPort = 9150;
+		public const int DefaultTorControlPort = 9051;
+		public const int DefaultTorBrowserControlPort = 9151;
+
+		public const int DefaultMainNetBintcoinP2pPort = 8333;
+		public const int DefaultTestNetBintcoinP2pPort = 18333;
+		public const int DefaultRegTestBintcoinP2pPort = 18444;
+
+		public const int DefaultMainNetBintcoinCoreRpcPort = 8332;
+		public const int DefaultTestNetBintcoinCoreRpcPort = 18332;
+		public const int DefaultRegTestBintcoinCoreRpcPort = 18443;
 	}
 }
