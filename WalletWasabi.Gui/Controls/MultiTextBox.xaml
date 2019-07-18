@@ -10,59 +10,30 @@
     <Setter Property="Padding" Value="4" />
     <Setter Property="Template">
       <ControlTemplate>
-        <Border Name="border"
-                Background="{TemplateBinding Background}"
-                BorderBrush="{TemplateBinding BorderBrush}"
-                BorderThickness="{TemplateBinding BorderThickness}">
+        <Border Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
           <DockPanel Margin="{TemplateBinding Padding}">
             <Grid>
               <Grid IsVisible="{TemplateBinding ClipboardNotificationVisible}">
                 <Grid Opacity="{TemplateBinding ClipboardNotificationOpacity}">
                   <Grid.Transitions>
-                    <DoubleTransition Property="Opacity"
-                                Easing="CircularEaseIn"
-                                Duration="0:0:0.5" />
+                    <DoubleTransition Property="Opacity" Easing="CircularEaseIn" Duration="0:0:0.5" />
                   </Grid.Transitions>
                   <TextBlock Text="Copied" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontWeight="Bold" />
                 </Grid>
               </Grid>
-
-              <TextBlock Name="floatingWatermark"
-                       Foreground="{DynamicResource ThemeAccentBrush}"
-                       FontSize="{DynamicResource FontSizeSmall}"
-                       Text="{TemplateBinding Watermark}"
-                       DockPanel.Dock="Top">
+              <TextBlock Name="floatingWatermark" Foreground="{DynamicResource ThemeAccentBrush}" FontSize="{DynamicResource FontSizeSmall}" Text="{TemplateBinding Watermark}" DockPanel.Dock="Top">
                 <TextBlock.IsVisible>
                   <MultiBinding Converter="{x:Static BoolConverters.And}">
-                    <Binding RelativeSource="{RelativeSource TemplatedParent}"
-                           Path="UseFloatingWatermark" />
-                    <Binding RelativeSource="{RelativeSource TemplatedParent}"
-                           Path="Text"
-                           Converter="{x:Static StringConverters.IsNotNullOrEmpty}" />
-                    <Binding RelativeSource="{RelativeSource TemplatedParent}"
-                           Path="ClipboardNotificationVisible" />
+                    <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="UseFloatingWatermark" />
+                    <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Text" Converter="{x:Static StringConverters.IsNotNullOrEmpty}" />
+                    <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="ClipboardNotificationVisible" />
                   </MultiBinding>
-                </TextBlock.IsVisible>
-              </TextBlock>
-
+                </TextBlock.IsVisible></TextBlock>
               <DataValidationErrors>
-                <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
-                            VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}"
-                            IsVisible="{TemplateBinding TextVisible}">
-
+                <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}" VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}" IsVisible="{TemplateBinding TextVisible}">
                   <Panel>
-                    <TextBlock Name="watermark"
-                             Opacity="0.5"
-                             Text="{TemplateBinding Watermark}"
-                             IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
-                    <TextPresenter Name="PART_TextPresenter"
-                                 Text="{TemplateBinding Text, Mode=TwoWay}"
-                                 CaretIndex="{TemplateBinding CaretIndex}"
-                                 SelectionStart="{TemplateBinding SelectionStart}"
-                                 SelectionEnd="{TemplateBinding SelectionEnd}"
-                                 TextAlignment="{TemplateBinding TextAlignment}"
-                                 TextWrapping="{TemplateBinding TextWrapping}"
-                                 PasswordChar="{TemplateBinding PasswordChar}" />
+                    <TextBlock Name="watermark" Opacity="0.5" Text="{TemplateBinding Watermark}" IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+                    <TextPresenter Name="PART_TextPresenter" Text="{TemplateBinding Text, Mode=TwoWay}" CaretIndex="{TemplateBinding CaretIndex}" SelectionStart="{TemplateBinding SelectionStart}" SelectionEnd="{TemplateBinding SelectionEnd}" TextAlignment="{TemplateBinding TextAlignment}" TextWrapping="{TemplateBinding TextWrapping}" PasswordChar="{TemplateBinding PasswordChar}" />
                   </Panel>
                 </ScrollViewer>
               </DataValidationErrors>
