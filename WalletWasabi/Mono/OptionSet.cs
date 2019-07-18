@@ -196,7 +196,7 @@ namespace Mono.Options
 		{
 			if (item is null)
 			{
-				throw new ArgumentNullException("option");
+				throw new ArgumentNullException(nameof(Option));
 			}
 
 			if (item.Names != null && item.Names.Length > 0)
@@ -205,7 +205,7 @@ namespace Mono.Options
 			}
 			// This should never happen, as it's invalid for Option to be
 			// constructed w/o any names.
-			throw new InvalidOperationException("Option has no names!");
+			throw new InvalidOperationException($"{nameof(Option)} has no names!");
 		}
 
 		[Obsolete("Use KeyedCollection.this[string]")]
@@ -294,13 +294,13 @@ namespace Mono.Options
 			// (see Option.ParsePrototype(), and thus it'll prevent Category
 			// instances from being accidentally used as normal options.
 			public Category(string description)
-				: base("=:Category:= " + description, description)
+				: base($"=:{nameof(Category)}:= {description}", description)
 			{
 			}
 
 			protected override void OnParseComplete(OptionContext c)
 			{
-				throw new NotSupportedException("Category.OnParseComplete should not be invoked.");
+				throw new NotSupportedException($"{nameof(Category)}.{nameof(OnParseComplete)} should not be invoked.");
 			}
 		}
 
@@ -649,8 +649,8 @@ namespace Mono.Options
 			else if (c.OptionValues.Count > c.Option.MaxValueCount)
 			{
 				throw new OptionException(MessageLocalizer(
-						$"Error: Found {c.OptionValues.Count} option values when expecting {c.Option.MaxValueCount}."),
-						c.OptionName);
+					$"Error: Found {c.OptionValues.Count} option values when expecting {c.Option.MaxValueCount}."),
+					c.OptionName);
 			}
 		}
 
@@ -692,7 +692,7 @@ namespace Mono.Options
 					}
 
 					throw new OptionException(string.Format(MessageLocalizer(
-									"Cannot use unregistered option '{0}' in bundle '{1}'."), rn, f + n), null);
+						$"Cannot use unregistered option '{rn}' in bundle '{f + n}'.")), null);
 				}
 				p = this[rn];
 				switch (p.OptionValueType)
@@ -711,7 +711,7 @@ namespace Mono.Options
 							return true;
 						}
 					default:
-						throw new InvalidOperationException("Unknown OptionValueType: " + p.OptionValueType);
+						throw new InvalidOperationException($"Unknown {nameof(OptionValueType)}: {p.OptionValueType}");
 				}
 			}
 			return true;
@@ -960,7 +960,7 @@ namespace Mono.Options
 						{
 							if ((i + 1) == description.Length || description[i + 1] != '}')
 							{
-								throw new InvalidOperationException("Invalid option description: " + description);
+								throw new InvalidOperationException($"Invalid option description: {description}");
 							}
 
 							++i;
