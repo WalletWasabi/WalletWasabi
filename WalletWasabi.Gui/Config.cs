@@ -60,33 +60,18 @@ namespace WalletWasabi.Gui
 		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBintcoinP2pPort)]
 		public EndPoint RegTestBitcoinP2pEndPoint { get; internal set; }
 
-		#region Deleteme
+		#region toDelete
 
-		[JsonProperty(PropertyName = "TorHost")]
+		public string MainNetBitcoinCoreHost { get; internal set; }
+		public int? MainNetBitcoinCorePort { get; internal set; }
+		public string TestNetBitcoinCoreHost { get; internal set; }
+		public int? TestNetBitcoinCorePort { get; internal set; }
+		public string RegTestBitcoinCoreHost { get; internal set; }
+		public int? RegTestBitcoinCorePort { get; internal set; }
 		public string TorHost { get; internal set; }
-
-		[JsonProperty(PropertyName = "TorSocks5Port")]
 		public int? TorSocks5Port { get; internal set; }
 
-		[JsonProperty(PropertyName = "MainNetBitcoinCoreHost")]
-		public string MainNetBitcoinCoreHost { get; internal set; }
-
-		[JsonProperty(PropertyName = "TestNetBitcoinCoreHost")]
-		public string TestNetBitcoinCoreHost { get; internal set; }
-
-		[JsonProperty(PropertyName = "RegTestBitcoinCoreHost")]
-		public string RegTestBitcoinCoreHost { get; internal set; }
-
-		[JsonProperty(PropertyName = "MainNetBitcoinCorePort")]
-		public int? MainNetBitcoinCorePort { get; internal set; }
-
-		[JsonProperty(PropertyName = "TestNetBitcoinCorePort")]
-		public int? TestNetBitcoinCorePort { get; internal set; }
-
-		[JsonProperty(PropertyName = "RegTestBitcoinCorePort")]
-		public int? RegTestBitcoinCorePort { get; internal set; }
-
-		#endregion Deleteme
+		#endregion toDelete
 
 		[JsonProperty(PropertyName = "MixUntilAnonymitySet")]
 		public int? MixUntilAnonymitySet
@@ -227,8 +212,14 @@ namespace WalletWasabi.Gui
 		{
 			if (_torSocks5EndPoint is null)
 			{
-				var host = IPAddress.Parse(TorHost);
-				_torSocks5EndPoint = new IPEndPoint(host, (int)TorSocks5Port);
+				if (TorSocks5EndPoint is IPEndPoint ipe)
+				{
+					_torSocks5EndPoint = ipe;
+				}
+				else
+				{
+					throw new InvalidCastException("Tor endPoint must be IPEndPoint");
+				}
 			}
 
 			return _torSocks5EndPoint;
@@ -238,35 +229,17 @@ namespace WalletWasabi.Gui
 		{
 			if (_bitcoinCoreEndPoint is null)
 			{
-				IPAddress ipHost;
-				string dnsHost = null;
-				int? port = null;
-				try
+				if (Network == Network.Main)
 				{
-					if (Network == Network.Main)
-					{
-						port = MainNetBitcoinCorePort;
-						dnsHost = MainNetBitcoinCoreHost;
-						ipHost = IPAddress.Parse(MainNetBitcoinCoreHost);
-					}
-					else if (Network == Network.TestNet)
-					{
-						port = TestNetBitcoinCorePort;
-						dnsHost = TestNetBitcoinCoreHost;
-						ipHost = IPAddress.Parse(TestNetBitcoinCoreHost);
-					}
-					else // if (Network == Network.RegTest)
-					{
-						port = RegTestBitcoinCorePort;
-						dnsHost = RegTestBitcoinCoreHost;
-						ipHost = IPAddress.Parse(RegTestBitcoinCoreHost);
-					}
-
-					_bitcoinCoreEndPoint = new IPEndPoint(ipHost, port ?? Network.DefaultPort);
+					_bitcoinCoreEndPoint = MainNetBitcoinP2pEndPoint;
 				}
-				catch
+				else if (Network == Network.TestNet)
 				{
-					_bitcoinCoreEndPoint = new DnsEndPoint(dnsHost, port ?? Network.DefaultPort);
+					_bitcoinCoreEndPoint = TestNetBitcoinP2pEndPoint;
+				}
+				else // if (Network == Network.RegTest)
+				{
+					_bitcoinCoreEndPoint = RegTestBitcoinP2pEndPoint;
 				}
 			}
 
@@ -309,15 +282,12 @@ namespace WalletWasabi.Gui
 			RegTestBackendUriV3 = "http://localhost:37127/";
 
 			UseTor = true;
-			TorHost = IPAddress.Loopback.ToString();
-			TorSocks5Port = 9050;
 
-			MainNetBitcoinCoreHost = IPAddress.Loopback.ToString();
-			TestNetBitcoinCoreHost = IPAddress.Loopback.ToString();
-			RegTestBitcoinCoreHost = IPAddress.Loopback.ToString();
-			MainNetBitcoinCorePort = Network.Main.DefaultPort;
-			TestNetBitcoinCorePort = Network.TestNet.DefaultPort;
-			RegTestBitcoinCorePort = Network.RegTest.DefaultPort;
+			TorSocks5EndPoint = StringToEndPoint("127.0.0.1", Constants.DefaultTorSocksPort); // TODO: Check if the port is OK
+
+			MainNetBitcoinP2pEndPoint = StringToEndPoint("127.0.0.1", Constants.DefaultMainNetBintcoinP2pPort);
+			TestNetBitcoinP2pEndPoint = StringToEndPoint("127.0.0.1", Constants.DefaultTestNetBintcoinP2pPort);
+			RegTestBitcoinP2pEndPoint = StringToEndPoint("127.0.0.1", Constants.DefaultRegTestBintcoinP2pPort);
 
 			MixUntilAnonymitySet = 50;
 			PrivacyLevelSome = 2;
@@ -409,15 +379,12 @@ namespace WalletWasabi.Gui
 			RegTestBackendUriV3 = config.RegTestBackendUriV3 ?? RegTestBackendUriV3;
 
 			UseTor = config.UseTor ?? UseTor;
-			TorHost = config.TorHost ?? TorHost;
-			TorSocks5Port = config.TorSocks5Port ?? TorSocks5Port;
 
-			MainNetBitcoinCoreHost = config.MainNetBitcoinCoreHost ?? MainNetBitcoinCoreHost;
-			TestNetBitcoinCoreHost = config.TestNetBitcoinCoreHost ?? TestNetBitcoinCoreHost;
-			RegTestBitcoinCoreHost = config.RegTestBitcoinCoreHost ?? RegTestBitcoinCoreHost;
-			MainNetBitcoinCorePort = config.MainNetBitcoinCorePort ?? MainNetBitcoinCorePort;
-			TestNetBitcoinCorePort = config.TestNetBitcoinCorePort ?? TestNetBitcoinCorePort;
-			RegTestBitcoinCorePort = config.RegTestBitcoinCorePort ?? RegTestBitcoinCorePort;
+			TorSocks5EndPoint = config.TorSocks5EndPoint ?? TorSocks5EndPoint;
+
+			MainNetBitcoinP2pEndPoint = config.MainNetBitcoinP2pEndPoint ?? MainNetBitcoinP2pEndPoint;
+			TestNetBitcoinP2pEndPoint = config.TestNetBitcoinP2pEndPoint ?? TestNetBitcoinP2pEndPoint;
+			RegTestBitcoinP2pEndPoint = config.RegTestBitcoinP2pEndPoint ?? RegTestBitcoinP2pEndPoint;
 
 			MixUntilAnonymitySet = config.MixUntilAnonymitySet ?? MixUntilAnonymitySet;
 			PrivacyLevelSome = config.PrivacyLevelSome ?? PrivacyLevelSome;

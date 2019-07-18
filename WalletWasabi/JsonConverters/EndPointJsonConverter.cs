@@ -17,9 +17,9 @@ namespace WalletWasabi.JsonConverters
 
 		public EndPointJsonConverter(int defaultPort)
 		{
-			if (DefaultPort == 0)
+			if (defaultPort == 0)
 			{
-				throw new ArgumentException("Default port not specified.", nameof(DefaultPort));
+				throw new ArgumentException("Default port not specified.", nameof(defaultPort));
 			}
 
 			DefaultPort = defaultPort;
