@@ -67,6 +67,8 @@ namespace WalletWasabi.TorSocks5
 							return;
 						}
 
+						var torDir = Path.Combine(dataDir, "tor");
+						var torPath = "";
 						var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
 						if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
@@ -74,18 +76,12 @@ namespace WalletWasabi.TorSocks5
 							{
 								fullBaseDirectory.Insert(0, "/");
 							}
+
+							torPath = $@"{torDir}/Tor/tor";
 						}
-
-						var torDir = Path.Combine(dataDir, "tor");
-
-						var torPath = "";
-						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+						else // If Windows
 						{
 							torPath = $@"{torDir}\Tor\tor.exe";
-						}
-						else // Linux or OSX
-						{
-							torPath = $@"{torDir}/Tor/tor";
 						}
 
 						if (!File.Exists(torPath))
