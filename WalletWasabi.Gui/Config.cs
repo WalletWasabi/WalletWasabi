@@ -193,7 +193,7 @@ namespace WalletWasabi.Gui
 		private int? _privacyLevelSome;
 		private int? _privacyLevelFine;
 		private int? _privacyLevelStrong;
-		private EndPoint _bitcoinCoreEndPoint;
+		private EndPoint _bitcoinP2pEndPoint;
 
 		public IPEndPoint GetTorSocks5EndPoint()
 		{
@@ -207,19 +207,19 @@ namespace WalletWasabi.Gui
 
 		public EndPoint GetBitcoinP2pEndPoint()
 		{
-			if (_bitcoinCoreEndPoint is null)
+			if (_bitcoinP2pEndPoint is null)
 			{
 				if (Network == Network.Main)
 				{
-					_bitcoinCoreEndPoint = MainNetBitcoinP2pEndPoint;
+					_bitcoinP2pEndPoint = MainNetBitcoinP2pEndPoint;
 				}
 				else if (Network == Network.TestNet)
 				{
-					_bitcoinCoreEndPoint = TestNetBitcoinP2pEndPoint;
+					_bitcoinP2pEndPoint = TestNetBitcoinP2pEndPoint;
 				}
 				else if (Network == Network.RegTest)
 				{
-					_bitcoinCoreEndPoint = RegTestBitcoinP2pEndPoint;
+					_bitcoinP2pEndPoint = RegTestBitcoinP2pEndPoint;
 				}
 				else
 				{
@@ -227,7 +227,7 @@ namespace WalletWasabi.Gui
 				}
 			}
 
-			return _bitcoinCoreEndPoint;
+			return _bitcoinP2pEndPoint;
 		}
 
 		public Config()

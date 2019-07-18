@@ -39,23 +39,23 @@ namespace WalletWasabi.Backend
 		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBintcoinP2pPort)]
 		public EndPoint RegTestBitcoinP2pEndPoint { get; internal set; }
 
-		private EndPoint _bitcoinCoreEndPoint;
+		private EndPoint _bitcoinP2pEndPoint;
 
 		public EndPoint GetBitcoinP2pEndPoint()
 		{
-			if (_bitcoinCoreEndPoint is null)
+			if (_bitcoinP2pEndPoint is null)
 			{
 				if (Network == Network.Main)
 				{
-					_bitcoinCoreEndPoint = MainNetBitcoinP2pEndPoint;
+					_bitcoinP2pEndPoint = MainNetBitcoinP2pEndPoint;
 				}
 				else if (Network == Network.TestNet)
 				{
-					_bitcoinCoreEndPoint = TestNetBitcoinP2pEndPoint;
+					_bitcoinP2pEndPoint = TestNetBitcoinP2pEndPoint;
 				}
 				else if (Network == Network.RegTest)
 				{
-					_bitcoinCoreEndPoint = RegTestBitcoinP2pEndPoint;
+					_bitcoinP2pEndPoint = RegTestBitcoinP2pEndPoint;
 				}
 				else
 				{
@@ -63,7 +63,7 @@ namespace WalletWasabi.Backend
 				}
 			}
 
-			return _bitcoinCoreEndPoint;
+			return _bitcoinP2pEndPoint;
 		}
 
 		public Config()
