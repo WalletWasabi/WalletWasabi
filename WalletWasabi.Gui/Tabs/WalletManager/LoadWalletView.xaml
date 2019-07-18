@@ -77,8 +77,7 @@
                 <TextBlock Text="{Binding WalletName}">
                   <i:Interaction.Behaviors>
                     <behaviors:CommandOnDoubleClickBehavior Command="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=DataContext.LoadCommand}" />
-                  </i:Interaction.Behaviors>
-                </TextBlock>
+                  </i:Interaction.Behaviors></TextBlock>
               </DataTemplate>
             </controls:ExtendedListBox.ItemTemplate>
           </controls:ExtendedListBox>
