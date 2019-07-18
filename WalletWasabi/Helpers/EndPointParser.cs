@@ -36,6 +36,7 @@ namespace System.Net
 			return endPointString;
 		}
 
+		/// <param name="defaultPort">If set to -1 and it's needed to use, then this function returns false.</param>
 		public static bool TryParse(string endPointString, int defaultPort, out EndPoint endPoint)
 		{
 			endPoint = null;
@@ -54,10 +55,21 @@ namespace System.Net
 
 			if (portString is null || !int.TryParse(portString, out int port))
 			{
+				if (defaultPort == -1)
+				{
+					return false;
+				}
+
 				port = defaultPort;
 			}
 
-			string host = endPointString.TrimEnd(portString, StringComparison.OrdinalIgnoreCase).TrimEnd(':');
+			string host = "";
+			if (portString != null)
+			{
+				host = endPointString.TrimEnd(portString, StringComparison.OrdinalIgnoreCase);
+			}
+
+			host = host.TrimEnd(':');
 
 			if (IPAddress.TryParse(host, out IPAddress addr))
 			{
