@@ -21,9 +21,7 @@ namespace WalletWasabi.Gui.Tabs
 
 		private string _network;
 		private string _torHost;
-		private string _torPort;
 		private string _localNodeHost;
-		private string _localNodePort;
 		private bool _autocopy;
 		private bool _useTor;
 		private bool _isModified;
@@ -149,25 +147,11 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _torHost, value);
 		}
 
-		[ValidateMethod(nameof(ValidateTorPort))]
-		public string TorPort
-		{
-			get => _torPort;
-			set => this.RaiseAndSetIfChanged(ref _torPort, value);
-		}
-
 		[ValidateMethod(nameof(ValidateLocalNodeHost))]
 		public string LocalNodeHost
 		{
 			get => _localNodeHost;
 			set => this.RaiseAndSetIfChanged(ref _localNodeHost, value);
-		}
-
-		[ValidateMethod(nameof(ValidateLocalNodePort))]
-		public string LocalNodePort
-		{
-			get => _localNodePort;
-			set => this.RaiseAndSetIfChanged(ref _localNodePort, value);
 		}
 
 		public bool IsModified
@@ -316,12 +300,6 @@ namespace WalletWasabi.Gui.Tabs
 		public string ValidateLocalNodeHost()
 			=> ValidateHost(LocalNodeHost);
 
-		public string ValidateTorPort()
-			=> ValidatePort(TorPort);
-
-		public string ValidateLocalNodePort()
-			=> ValidatePort(LocalNodePort);
-
 		public string ValidateSomePrivacyLevel()
 			=> ValidatePrivacyLevel(SomePrivacyLevel);
 
@@ -383,22 +361,6 @@ namespace WalletWasabi.Gui.Tabs
 			}
 
 			return "Invalid host.";
-		}
-
-		public string ValidatePort(string port)
-		{
-			if (string.IsNullOrEmpty(port))
-			{
-				return string.Empty;
-			}
-
-			var thePort = port.Trim();
-			if (ushort.TryParse(thePort, out var p) && p > 1024)
-			{
-				return string.Empty;
-			}
-
-			return "Invalid port.";
 		}
 
 		private void OpenConfigFile()

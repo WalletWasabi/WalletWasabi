@@ -34,66 +34,29 @@ namespace WalletWasabi.JsonConverters
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			string endPointString = Guard.Correct(reader.Value as string);
-			endPointString = endPointString.TrimEnd('/');
-			endPointString = endPointString.TrimEnd(':');
-
-			var lastIndex = endPointString.LastIndexOf(':');
-
-			string portString = null;
-			if (lastIndex != -1)
+			string endPointString = reader.Value as string;
+			if (EndPointParser.TryParse(endPointString, DefaultPort, out EndPoint endPoint))
 			{
-				portString = endPointString.Substring(endPointString.LastIndexOf(':') + 1);
-			}
-
-			if (portString is null || !int.TryParse(portString, out int port))
-			{
-				port = DefaultPort;
-			}
-
-			string host = endPointString.TrimEnd(portString, StringComparison.OrdinalIgnoreCase).TrimEnd(':');
-
-			EndPoint endPoint;
-			if (IPAddress.TryParse(host, out IPAddress addr))
-			{
-				endPoint = new IPEndPoint(addr, port);
+				return endPoint;
 			}
 			else
 			{
-				endPoint = new DnsEndPoint(host, port);
+				throw new FormatException($"{nameof(endPointString)} is in the wrong format: {endPointString}.");
 			}
-
-			return endPoint;
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			string host;
-			int port;
-			if (value is DnsEndPoint dnsEndPoint)
+			if (value is EndPoint endPoint)
 			{
-				host = dnsEndPoint.Host;
-				port = dnsEndPoint.Port;
-			}
-			else if (value is IPEndPoint ipEndPoint)
-			{
-				host = ipEndPoint.Address.ToString();
-				port = ipEndPoint.Port;
+				var endPointString = endPoint.ToString(DefaultPort);
+				writer.WriteValue(endPointString);
 			}
 			else
 			{
-				throw new FormatException($"Invalid endpoint: {value.ToString()}");
+				throw new NotSupportedException($"{nameof(EndPointJsonConverter)} can only convert {nameof(EndPoint)}.");
 			}
-
-			if (port == 0)
-			{
-				port = DefaultPort;
-			}
-
-			var endPointString = $"{host}:{port}";
-
-			writer.WriteValue(endPointString);
 		}
 	}
 }

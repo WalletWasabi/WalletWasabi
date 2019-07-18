@@ -25,13 +25,8 @@
               <controls:GroupBox Title="{Binding Network, StringFormat=My Node for \{0\} }" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
                 <StackPanel Orientation="Vertical" Spacing="5">
                   <StackPanel Margin="0 10" Spacing="5">
-                    <TextBlock>Host</TextBlock>
-                    <TextBox Text="{Binding LocalNodeHost}" />
-                  </StackPanel>
-                  <Separator />
-                  <StackPanel Spacing="5">
-                    <TextBlock>Port</TextBlock>
-                    <TextBox Text="{Binding LocalNodePort}" />
+                    <TextBlock>Bitcoin P2P Endpoint</TextBlock>
+                    <TextBox Text="{Binding BitcoinP2pEndPoint}" />
                   </StackPanel>
                 </StackPanel>
               </controls:GroupBox>
@@ -45,12 +40,8 @@
                 <TextBlock VerticalAlignment="Center">Tor can be turned off for debugging.</TextBlock>
               </StackPanel>
               <StackPanel Margin="0 10" Spacing="5">
-                <TextBlock>Host</TextBlock>
-                <TextBox Text="{Binding TorHost}" />
-              </StackPanel>
-              <StackPanel Spacing="5">
-                <TextBlock>Port</TextBlock>
-                <TextBox Text="{Binding TorPort}" />
+                <TextBlock>Tor SOCKS5 Endpoint</TextBlock>
+                <TextBox Text="{Binding TorSocks5EndPoint}" />
               </StackPanel>
             </StackPanel>
           </controls:GroupBox>
