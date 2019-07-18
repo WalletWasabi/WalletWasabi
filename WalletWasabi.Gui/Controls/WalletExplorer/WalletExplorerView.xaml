@@ -1,6 +1,5 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
-            xmlns:ViewModels="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
-
+             xmlns:ViewModels="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
   <Grid>
     <TreeView BorderThickness="0" Items="{Binding Wallets}" SelectedItem="{Binding SelectedItem}">
       <TreeView.Styles>
@@ -29,9 +28,8 @@
             <Button Content="{Binding Title}" Command="{Binding LurkingWifeModeCommand}" Height="19" VerticalAlignment="Center" BorderThickness="0" Margin="0" Padding="0" Background="Transparent" />
           </StackPanel>
         </TreeDataTemplate>
-
         <TreeDataTemplate DataType="ViewModels:SendTabViewModel">
-          <Button BorderThickness="0" Background="Transparent"  Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+          <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <DrawingPresenter Width="20" Height="20" IsVisible="{Binding !IsTransactionBuilder}">
                 <DrawingPresenter.Drawing>
@@ -59,7 +57,6 @@
             </StackPanel>
           </Button>
         </TreeDataTemplate>
-
         <TreeDataTemplate DataType="ViewModels:ReceiveTabViewModel">
           <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -72,7 +69,6 @@
             </StackPanel>
           </Button>
         </TreeDataTemplate>
-
         <TreeDataTemplate DataType="ViewModels:CoinJoinTabViewModel">
           <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -96,7 +92,6 @@
             </StackPanel>
           </Button>
         </TreeDataTemplate>
-
         <TreeDataTemplate DataType="ViewModels:HistoryTabViewModel">
           <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -116,9 +111,8 @@
             </StackPanel>
           </Button>
         </TreeDataTemplate>
-
         <TreeDataTemplate DataType="ViewModels:WalletInfoViewModel">
-          <Button BorderThickness="0" Background="Transparent"  Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+          <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <DrawingPresenter Width="20" Height="20">
                 <DrawingPresenter.Drawing>
@@ -136,7 +130,6 @@
             </StackPanel>
           </Button>
         </TreeDataTemplate>
-
         <TreeDataTemplate DataType="ViewModels:TransactionBroadcasterViewModel">
           <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -166,7 +159,6 @@
             </StackPanel>
           </Button>
         </TreeDataTemplate>
-
         <TreeDataTemplate DataType="ViewModels:WalletAdvancedViewModel" ItemsSource="{Binding Items}">
           <Button BorderThickness="0" Background="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding ExpandItCommand}">
             <StackPanel Orientation="Horizontal" Spacing="6">
