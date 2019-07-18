@@ -327,7 +327,7 @@ namespace WalletWasabi.Gui
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
 
 			var res = JsonConvert.DeserializeObject<JObject>(jsonString);
-
+			bool saveIt = false;
 			if (res.TryGetValue("TorHost", out JToken jTorHost))
 			{
 				int port = Constants.DefaultTorSocksPort; //TODO: check this if it is OK
@@ -336,6 +336,7 @@ namespace WalletWasabi.Gui
 					port = int.Parse(jTorSocks5Port.ToString());
 				}
 				TorSocks5EndPoint = StringToEndPoint(jTorHost.ToString(), port);
+				saveIt = true;
 			}
 
 			if (res.TryGetValue("MainNetBitcoinCoreHost", out JToken jMainNetBitcoinCoreHost))
@@ -346,6 +347,7 @@ namespace WalletWasabi.Gui
 					port = int.Parse(jMainNetBitcoinCorePort.ToString());
 				}
 				MainNetBitcoinP2pEndPoint = StringToEndPoint(jMainNetBitcoinCoreHost.ToString(), port);
+				saveIt = true;
 			}
 
 			if (res.TryGetValue("TestNetBitcoinCoreHost", out JToken jTestNetBitcoinCoreHost))
@@ -356,6 +358,7 @@ namespace WalletWasabi.Gui
 					port = int.Parse(jTestNetBitcoinCorePort.ToString());
 				}
 				TestNetBitcoinP2pEndPoint = StringToEndPoint(jTestNetBitcoinCoreHost.ToString(), port);
+				saveIt = true;
 			}
 
 			if (res.TryGetValue("RegTestBitcoinCoreHost", out JToken jRegTestBitcoinCoreHost))
@@ -366,128 +369,134 @@ namespace WalletWasabi.Gui
 					port = int.Parse(jRegTestBitcoinCorePort.ToString());
 				}
 				RegTestBitcoinP2pEndPoint = StringToEndPoint(jRegTestBitcoinCoreHost.ToString(), port);
+				saveIt = true;
+
+				if (saveIt)
+				{
+					await ToFileAsync();
+					jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
+				}
+
+				var config = JsonConvert.DeserializeObject<Config>(jsonString);
+
+				Network = config.Network ?? Network;
+
+				MainNetBackendUriV3 = config.MainNetBackendUriV3 ?? MainNetBackendUriV3;
+				TestNetBackendUriV3 = config.TestNetBackendUriV3 ?? TestNetBackendUriV3;
+				MainNetFallbackBackendUri = config.MainNetFallbackBackendUri ?? MainNetFallbackBackendUri;
+				TestNetFallbackBackendUri = config.TestNetFallbackBackendUri ?? TestNetFallbackBackendUri;
+				RegTestBackendUriV3 = config.RegTestBackendUriV3 ?? RegTestBackendUriV3;
+
+				UseTor = config.UseTor ?? UseTor;
+
+				TorSocks5EndPoint = config.TorSocks5EndPoint ?? TorSocks5EndPoint;
+
+				MainNetBitcoinP2pEndPoint = config.MainNetBitcoinP2pEndPoint ?? MainNetBitcoinP2pEndPoint;
+				TestNetBitcoinP2pEndPoint = config.TestNetBitcoinP2pEndPoint ?? TestNetBitcoinP2pEndPoint;
+				RegTestBitcoinP2pEndPoint = config.RegTestBitcoinP2pEndPoint ?? RegTestBitcoinP2pEndPoint;
+
+				MixUntilAnonymitySet = config.MixUntilAnonymitySet ?? MixUntilAnonymitySet;
+				PrivacyLevelSome = config.PrivacyLevelSome ?? PrivacyLevelSome;
+				PrivacyLevelFine = config.PrivacyLevelFine ?? PrivacyLevelFine;
+				PrivacyLevelStrong = config.PrivacyLevelStrong ?? PrivacyLevelStrong;
+
+				DustThreshold = config.DustThreshold ?? DustThreshold;
+
+				ServiceConfiguration = config.ServiceConfiguration ?? ServiceConfiguration;
+
+				// Just debug convenience.
+				_backendUri = GetCurrentBackendUri();
 			}
 
-			var config = JsonConvert.DeserializeObject<Config>(jsonString);
-
-			Network = config.Network ?? Network;
-
-			MainNetBackendUriV3 = config.MainNetBackendUriV3 ?? MainNetBackendUriV3;
-			TestNetBackendUriV3 = config.TestNetBackendUriV3 ?? TestNetBackendUriV3;
-			MainNetFallbackBackendUri = config.MainNetFallbackBackendUri ?? MainNetFallbackBackendUri;
-			TestNetFallbackBackendUri = config.TestNetFallbackBackendUri ?? TestNetFallbackBackendUri;
-			RegTestBackendUriV3 = config.RegTestBackendUriV3 ?? RegTestBackendUriV3;
-
-			UseTor = config.UseTor ?? UseTor;
-
-			TorSocks5EndPoint = config.TorSocks5EndPoint ?? TorSocks5EndPoint;
-
-			MainNetBitcoinP2pEndPoint = config.MainNetBitcoinP2pEndPoint ?? MainNetBitcoinP2pEndPoint;
-			TestNetBitcoinP2pEndPoint = config.TestNetBitcoinP2pEndPoint ?? TestNetBitcoinP2pEndPoint;
-			RegTestBitcoinP2pEndPoint = config.RegTestBitcoinP2pEndPoint ?? RegTestBitcoinP2pEndPoint;
-
-			MixUntilAnonymitySet = config.MixUntilAnonymitySet ?? MixUntilAnonymitySet;
-			PrivacyLevelSome = config.PrivacyLevelSome ?? PrivacyLevelSome;
-			PrivacyLevelFine = config.PrivacyLevelFine ?? PrivacyLevelFine;
-			PrivacyLevelStrong = config.PrivacyLevelStrong ?? PrivacyLevelStrong;
-
-			DustThreshold = config.DustThreshold ?? DustThreshold;
-
-			ServiceConfiguration = config.ServiceConfiguration ?? ServiceConfiguration;
-
-			// Just debug convenience.
-			_backendUri = GetCurrentBackendUri();
-		}
-
-		/// <inheritdoc />
-		public async Task<bool> CheckFileChangeAsync()
-		{
-			AssertFilePathSet();
-
-			if (!File.Exists(FilePath))
+			/// <inheritdoc />
+			public async Task<bool> CheckFileChangeAsync()
 			{
-				throw new FileNotFoundException($"{nameof(Config)} file did not exist at path: `{FilePath}`.");
+				AssertFilePathSet();
+
+				if (!File.Exists(FilePath))
+				{
+					throw new FileNotFoundException($"{nameof(Config)} file did not exist at path: `{FilePath}`.");
+				}
+
+				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
+				var newConfig = JsonConvert.DeserializeObject<JObject>(jsonString);
+				var currentConfig = JObject.FromObject(this);
+
+				return !JToken.DeepEquals(newConfig, currentConfig);
 			}
 
-			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-			var newConfig = JsonConvert.DeserializeObject<JObject>(jsonString);
-			var currentConfig = JObject.FromObject(this);
-
-			return !JToken.DeepEquals(newConfig, currentConfig);
-		}
-
-		/// <inheritdoc />
-		public void SetFilePath(string path)
-		{
-			FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(path), path, trim: true);
-		}
-
-		/// <inheritdoc />
-		public void AssertFilePathSet()
-		{
-			if (FilePath is null)
+			/// <inheritdoc />
+			public void SetFilePath(string path)
 			{
-				throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
+				FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(path), path, trim: true);
 			}
-		}
 
-		public TargetPrivacy GetTargetPrivacy()
-		{
-			if (MixUntilAnonymitySet == PrivacyLevelSome)
+			/// <inheritdoc />
+			public void AssertFilePathSet()
 			{
-				return TargetPrivacy.Some;
+				if (FilePath is null)
+				{
+					throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
+				}
 			}
 
-			if (MixUntilAnonymitySet == PrivacyLevelFine)
+			public TargetPrivacy GetTargetPrivacy()
 			{
-				return TargetPrivacy.Fine;
+				if (MixUntilAnonymitySet == PrivacyLevelSome)
+				{
+					return TargetPrivacy.Some;
+				}
+
+				if (MixUntilAnonymitySet == PrivacyLevelFine)
+				{
+					return TargetPrivacy.Fine;
+				}
+
+				if (MixUntilAnonymitySet == PrivacyLevelStrong)
+				{
+					return TargetPrivacy.Strong;
+				}
+				//the levels changed in the config file, adjust
+				if (MixUntilAnonymitySet < PrivacyLevelSome)
+				{
+					return TargetPrivacy.None; //choose the lower
+				}
+
+				if (MixUntilAnonymitySet < PrivacyLevelFine)
+				{
+					return TargetPrivacy.Some;
+				}
+
+				if (MixUntilAnonymitySet < PrivacyLevelStrong)
+				{
+					return TargetPrivacy.Fine;
+				}
+
+				if (MixUntilAnonymitySet > PrivacyLevelFine)
+				{
+					return TargetPrivacy.Strong;
+				}
+
+				return TargetPrivacy.None;
 			}
 
-			if (MixUntilAnonymitySet == PrivacyLevelStrong)
+			public int GetTargetLevel(TargetPrivacy target)
 			{
-				return TargetPrivacy.Strong;
+				switch (target)
+				{
+					case TargetPrivacy.None:
+						return 0;
+
+					case TargetPrivacy.Some:
+						return PrivacyLevelSome.Value;
+
+					case TargetPrivacy.Fine:
+						return PrivacyLevelFine.Value;
+
+					case TargetPrivacy.Strong:
+						return PrivacyLevelStrong.Value;
+				}
+				return 0;
 			}
-			//the levels changed in the config file, adjust
-			if (MixUntilAnonymitySet < PrivacyLevelSome)
-			{
-				return TargetPrivacy.None; //choose the lower
-			}
-
-			if (MixUntilAnonymitySet < PrivacyLevelFine)
-			{
-				return TargetPrivacy.Some;
-			}
-
-			if (MixUntilAnonymitySet < PrivacyLevelStrong)
-			{
-				return TargetPrivacy.Fine;
-			}
-
-			if (MixUntilAnonymitySet > PrivacyLevelFine)
-			{
-				return TargetPrivacy.Strong;
-			}
-
-			return TargetPrivacy.None;
-		}
-
-		public int GetTargetLevel(TargetPrivacy target)
-		{
-			switch (target)
-			{
-				case TargetPrivacy.None:
-					return 0;
-
-				case TargetPrivacy.Some:
-					return PrivacyLevelSome.Value;
-
-				case TargetPrivacy.Fine:
-					return PrivacyLevelFine.Value;
-
-				case TargetPrivacy.Strong:
-					return PrivacyLevelStrong.Value;
-			}
-			return 0;
 		}
 	}
-}
