@@ -196,7 +196,7 @@ namespace Mono.Options
 		{
 			if (item is null)
 			{
-				throw new ArgumentNullException(nameof(Option).ToLower());
+				throw new ArgumentNullException(nameof(Option));
 			}
 
 			if (item.Names != null && item.Names.Length > 0)

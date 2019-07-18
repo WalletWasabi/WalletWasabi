@@ -298,7 +298,7 @@ namespace Mono.Options
 				string name = Names[i];
 				if (name.Length == 0)
 				{
-					throw new ArgumentException("Empty option names are not supported.", nameof(Prototype).ToLower());
+					throw new ArgumentException("Empty option names are not supported.", nameof(Prototype));
 				}
 
 				int end = name.IndexOfAny(NameTerminator);
@@ -316,7 +316,7 @@ namespace Mono.Options
 				{
 					throw new ArgumentException(
 						$"Conflicting option types: '{type}' vs. '{name[end]}'.",
-						nameof(Prototype).ToLower());
+						nameof(Prototype));
 				}
 
 				AddSeparators(name, end, seps);
@@ -333,7 +333,7 @@ namespace Mono.Options
 				{
 					throw new ArgumentException(
 						$"Cannot provide key/value separators for Options taking {MaxValueCount} value(s).",
-						nameof(Prototype).ToLower());
+						nameof(Prototype));
 				}
 			}
 			else
@@ -367,7 +367,7 @@ namespace Mono.Options
 						{
 							throw new ArgumentException(
 								$"Ill-formed name/value separator found in \"{name}\".",
-								nameof(Prototype).ToLower());
+								nameof(Prototype));
 						}
 
 						start = i + 1;
@@ -378,7 +378,7 @@ namespace Mono.Options
 						{
 							throw new ArgumentException(
 								$"Ill-formed name/value separator found in \"{name}\".",
-								nameof(Prototype).ToLower());
+								nameof(Prototype));
 						}
 
 						seps.Add(name.Substring(start, i - start));
@@ -398,7 +398,7 @@ namespace Mono.Options
 			{
 				throw new ArgumentException(
 					$"Ill-formed name/value separator found in \"{name}\".",
-					nameof(Prototype).ToLower());
+					nameof(Prototype));
 			}
 		}
 
