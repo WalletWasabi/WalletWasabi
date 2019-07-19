@@ -1443,8 +1443,8 @@ namespace WalletWasabi.Tests
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 3);
 
 				// Send money after reorg.
-				// When we invalidate a block, those transactions setted in the invalidated block
-				// are reintroduced when we generate a new block though the rpc call
+				// When we invalidate a block, those transactions set in the invalidated block
+				// are reintroduced when we generate a new block through the rpc call
 				operations = new[]{
 					new WalletService.Operation(scp, Money.Coins(0.013m), "") };
 				var btx3 = wallet.BuildTransaction(password, operations, 2);

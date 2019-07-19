@@ -28,9 +28,9 @@ namespace WalletWasabi.Models
 		/// Creates and initializes a new Height instance
 		/// </summary>
 		/// <param name="height">The height value to initialize the instance.
-		/// If height value is (Int32.MaxValue -1) then the Height type is setted to Mempool.
-		/// If height value is (Int32.MaxValue) then the Height tpe is setted to Unknown;
-		/// Otherwise the Height type is setted as Chain.
+		/// If height value is (Int32.MaxValue -1) then the Height type is set to Mempool.
+		/// If height value is (Int32.MaxValue) then the Height tpe is set to Unknown;
+		/// Otherwise the Height type is set as Chain.
 		/// </param>
 		/// <exception href="ArgumentException">When height value is less than zero.</exception>
 		public Height(int height)
