@@ -1,4 +1,4 @@
-﻿namespace Gma.QrCodeNet.Encoding.Masking.Scoring
+namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 {
 	/// <summary>
 	/// ISO/IEC 18004:2000 Chapter 8.8.2 Page 52
@@ -18,11 +18,11 @@
 				{
 					bool topR = matrix[x + 1, y];
 
-					if (topR == matrix[x + 1, y + 1])   //Bottom Right
+					if (topR == matrix[x + 1, y + 1]) //Bottom Right
 					{
-						if (topR == matrix[x, y + 1])   //Bottom Left
+						if (topR == matrix[x, y + 1]) //Bottom Left
 						{
-							if (topR == matrix[x, y])   //Top Left
+							if (topR == matrix[x, y]) //Top Left
 							{
 								penalty += 3;
 								x += 1;

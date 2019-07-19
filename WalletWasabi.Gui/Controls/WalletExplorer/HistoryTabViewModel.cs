@@ -124,7 +124,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError<HistoryTabViewModel>($"Error while RewriteTable on HistoryTab:  {ex}.");
+				Logger.LogError<HistoryTabViewModel>($"Error while RewriteTable on HistoryTab: {ex}.");
 			}
 			finally
 			{

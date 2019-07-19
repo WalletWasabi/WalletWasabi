@@ -350,7 +350,7 @@ namespace WalletWasabi.Tests
 				const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 				string line = new string(Enumerable.Repeat(chars, 100)
-				  .Select(s => s[random.Next(s.Length)]).ToArray());
+					.Select(s => s[random.Next(s.Length)]).ToArray());
 
 				lines.Add(line);
 			}

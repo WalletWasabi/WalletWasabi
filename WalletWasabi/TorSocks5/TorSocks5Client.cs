@@ -164,7 +164,7 @@ namespace WalletWasabi.TorSocks5
 				// https://tools.ietf.org/html/rfc1929#section-2
 				// Once the SOCKS V5 server has started, and the client has selected the
 				// Username / Password Authentication protocol, the Username / Password
-				// subnegotiation begins.  This begins with the client producing a
+				// subnegotiation begins. This begins with the client producing a
 				// Username / Password request:
 				var username = identity;
 				var password = identity;
@@ -260,7 +260,7 @@ namespace WalletWasabi.TorSocks5
 
 			// If the reply code(REP value of X'00') indicates a success, and the
 			// request was either a BIND or a CONNECT, the client may now start
-			// passing data.  If the selected authentication method supports
+			// passing data. If the selected authentication method supports
 			// encapsulation for the purposes of integrity, authentication and / or
 			// confidentiality, the data are encapsulated using the method-dependent
 			// encapsulation.Similarly, when data arrives at the SOCKS server for
@@ -302,8 +302,8 @@ namespace WalletWasabi.TorSocks5
 			// ex.Message must be checked, because I'm having difficulty catching SocketExceptionFactory+ExtendedSocketException
 			// Only works on English Os-es.
 			catch (Exception ex) when (ex.Message.StartsWith(
-										   "No connection could be made because the target machine actively refused it") // Windows
-									   || ex.Message.StartsWith("Connection refused")) // Linux && OSX
+				"No connection could be made because the target machine actively refused it") // Windows
+				|| ex.Message.StartsWith("Connection refused")) // Linux && OSX
 			{
 				error = ex;
 			}

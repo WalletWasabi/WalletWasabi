@@ -25,7 +25,7 @@ namespace System.IO
 				}
 				catch (DirectoryNotFoundException)
 				{
-					return;  // good!
+					return; // good!
 				}
 				catch (IOException)
 				{

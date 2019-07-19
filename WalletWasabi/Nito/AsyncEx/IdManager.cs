@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 
 namespace Nito.AsyncEx
 {
@@ -34,8 +34,8 @@ namespace Nito.AsyncEx
 			int newId;
 
 			// The Increment is in a while loop to ensure we get a non-zero Id:
-			//  If we are incrementing -1, then we want to skip over 0.
-			//  If there are tons of Id allocations going on, we want to skip over 0 no matter how many times we get it.
+			// If we are incrementing -1, then we want to skip over 0.
+			// If there are tons of Id allocations going on, we want to skip over 0 no matter how many times we get it.
 			do
 			{
 				newId = Interlocked.Increment(ref LastId);

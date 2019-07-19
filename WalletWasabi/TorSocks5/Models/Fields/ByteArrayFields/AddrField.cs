@@ -60,7 +60,7 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 			if (atyp == AtypField.DomainName)
 			{
 				// https://www.ietf.org/rfc/rfc1928.txt
-				// the address field contains a fully-qualified domain name.  The first
+				// the address field contains a fully-qualified domain name. The first
 				// octet of the address field contains the number of octets of name that
 				// follow, there is no terminating NUL octet.
 				var domainBytes = Encoding.ASCII.GetBytes(dstAddr); // Tor only knows ASCII, UTF8 results in general SOCKS server failure

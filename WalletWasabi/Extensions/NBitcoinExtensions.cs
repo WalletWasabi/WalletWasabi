@@ -105,9 +105,9 @@ namespace NBitcoin
 		public static IEnumerable<(Money value, int count)> GetIndistinguishableOutputs(this Transaction me, bool includeSingle)
 		{
 			return me.Outputs.GroupBy(x => x.Value)
-			   .ToDictionary(x => x.Key, y => y.Count())
-			   .Select(x => (x.Key, x.Value))
-			   .Where(x => includeSingle || x.Value > 1);
+				.ToDictionary(x => x.Key, y => y.Count())
+				.Select(x => (x.Key, x.Value))
+				.Where(x => includeSingle || x.Value > 1);
 		}
 
 		public static int GetAnonymitySet(this Transaction me, int outputIndex)

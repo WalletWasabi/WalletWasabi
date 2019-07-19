@@ -161,8 +161,8 @@ namespace WalletWasabi.Services
 			// Turns out you shouldn't accept RBF at all never. (See below.)
 
 			// https://github.com/zkSNACKs/WalletWasabi/issues/145
-			//   if a it spends a banned output AND it's not CJ output
-			//     ban all the outputs of the transaction
+			// if a it spends a banned output AND it's not CJ output
+			// ban all the outputs of the transaction
 
 			if (RoundConfig.DosSeverity <= 1)
 			{

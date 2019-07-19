@@ -265,7 +265,7 @@ namespace WalletWasabi.Models
 		/// <summary>
 		/// Performs a comparison and return if left-side value is greater than right-side value.
 		/// </summary>
-		/// <param name="x">The left-hand Height  value to compare.</param>
+		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Int32 value to compare.</param>
 		/// <returns>true if left-hand value is greater than right-side value; otherwise false.</returns>
 		public static bool operator >(Height x, int y) => x.Value > y;

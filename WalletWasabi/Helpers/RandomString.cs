@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using WalletWasabi.Helpers;
 
 namespace System
@@ -13,7 +13,7 @@ namespace System
 
 			const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 			return new string(Enumerable.Repeat(chars, length)
-			  .Select(s => s[Random.Next(s.Length)]).ToArray());
+				.Select(s => s[Random.Next(s.Length)]).ToArray());
 		}
 	}
 }

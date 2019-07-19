@@ -1260,7 +1260,7 @@ namespace WalletWasabi.Tests
 
 			// toSend negative operation amount
 			operations = new[]{
-				new WalletService.Operation(scp,  Money.Satoshis(20000), ""),
+				new WalletService.Operation(scp, Money.Satoshis(20000), ""),
 				new WalletService.Operation(scp, Money.Satoshis(-10000), "") };
 			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, operations, 2));
 
@@ -1303,7 +1303,7 @@ namespace WalletWasabi.Tests
 
 				// subtract Fee from amount index with no enough money
 				operations = new[]{
-					new WalletService.Operation(scp,  Money.Coins(1m), ""),
+					new WalletService.Operation(scp, Money.Coins(1m), ""),
 					new WalletService.Operation(scp, Money.Coins(0.5m), "") };
 				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(password, operations, 2, false, 0));
 
@@ -1480,7 +1480,7 @@ namespace WalletWasabi.Tests
 
 					if (block.Transactions.Any(tx => tx.GetHash() == fundingTxId))
 					{
-						throw new Exception($"Transaction found in block at heigh {blockCount}  hash: {block.GetHash()}");
+						throw new Exception($"Transaction found in block at heigh {blockCount} hash: {block.GetHash()}");
 					}
 					curBlockHash = block.Header.HashPrevBlock;
 					blockCount--;
@@ -3257,7 +3257,7 @@ namespace WalletWasabi.Tests
 				smartCoin2.SpenderTransactionId = cj;
 				smartCoin3.SpenderTransactionId = cj;
 
-				// Make sure if times out, it  tries again.
+				// Make sure if times out, it tries again.
 				connectionConfirmationTimeout = 1;
 				roundConfig = RegTestFixture.CreateRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
 				await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
