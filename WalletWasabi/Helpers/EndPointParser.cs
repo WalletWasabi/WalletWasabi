@@ -47,7 +47,7 @@ namespace System.Net
 
 			var lastIndex = endPointString.LastIndexOf(':');
 
-			string portString = null;
+			string portString = "";
 			if (lastIndex != -1)
 			{
 				portString = endPointString.Substring(endPointString.LastIndexOf(':') + 1);
@@ -63,15 +63,15 @@ namespace System.Net
 				port = defaultPort;
 			}
 
-			string host = "";
-			if (portString != null)
-			{
-				host = endPointString.TrimEnd(portString, StringComparison.OrdinalIgnoreCase);
-			}
+			var host = endPointString.TrimEnd(portString, StringComparison.OrdinalIgnoreCase);
 
 			host = host.TrimEnd(':');
 
-			if (IPAddress.TryParse(host, out IPAddress addr))
+			if (host == "localhost")
+			{
+				endPoint = new IPEndPoint(IPAddress.Loopback, port);
+			}
+			else if (IPAddress.TryParse(host, out IPAddress addr))
 			{
 				endPoint = new IPEndPoint(addr, port);
 			}
