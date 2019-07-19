@@ -92,9 +92,23 @@ namespace System.Net
             string host = parts[0];
             if (host == "localhost")
             {
-                endPoint = new IPEndPoint(IPAddress.Loopback, port);
+                host = IPAddress.Loopback.ToString();
             }
-            else if (IPAddress.TryParse(host, out IPAddress addr))
+
+            bool isPortInValidRange = port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort;
+            if (isPortInValidRange)
+            {
+                if (defaultPort == -1)
+                {
+                    return false;
+                }
+                else
+                {
+                    port = defaultPort;
+                }
+            }
+
+            if (IPAddress.TryParse(host, out IPAddress addr))
             {
                 endPoint = new IPEndPoint(addr, port);
             }

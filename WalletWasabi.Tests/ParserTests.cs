@@ -51,6 +51,19 @@ namespace WalletWasabi.Tests
                 $"         {host}/              :             5000/           "
             };
 
+            var inputsWithInvalidPorts = new[]
+                        {
+                $"{host}:-1",
+                $"{host}:999999999999999999999",
+                $"{host}:-999999999999999999999",
+                $"{host}:{int.MaxValue}",
+                $"{host}:{uint.MaxValue}",
+                $"{host}:{long.MaxValue}",
+                $"{host}:0.1",
+                $"{host}:{int.MinValue}",
+                $"{host}:{long.MinValue}",
+            };
+
             // Default port is used.
             foreach (var inputString in inputsWithoutPorts)
             {
@@ -74,6 +87,18 @@ namespace WalletWasabi.Tests
 
             // -1 means default port is not accepted.
             foreach (var inputString in inputsWithoutPorts)
+            {
+                Assert.False(EndPointParser.TryParse(inputString, -1, out EndPoint ep));
+            }
+
+            // Defaultport corrects invalid inputs.
+            foreach (var inputString in inputsWithInvalidPorts)
+            {
+                Assert.True(EndPointParser.TryParse(inputString, 5000, out EndPoint ep));
+            }
+
+            // Invalid ports -1 default.
+            foreach (var inputString in inputsWithInvalidPorts)
             {
                 Assert.False(EndPointParser.TryParse(inputString, -1, out EndPoint ep));
             }
