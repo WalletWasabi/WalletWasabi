@@ -28,7 +28,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 					break;
 
 				default:
-					throw new InvalidOperationException("There is no such AppendOption");
+					throw new InvalidOperationException($"There is no such {nameof(AppendOption)}");
 			}
 		}
 
@@ -60,7 +60,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 					break;
 
 				default:
-					throw new InvalidOperationException("There is no such AppendOption");
+					throw new InvalidOperationException($"There is no such {nameof(AppendOption)}");
 			}
 
 			//ECI table. Source 01 URL: http://strokescribe.com/en/ECI.html
@@ -137,7 +137,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			}
 			else
 			{
-				throw new ArgumentOutOfRangeException("ECIValue should be in range: 0 to 999999");
+				throw new ArgumentOutOfRangeException($"{nameof(ECIValue)} should be in range: 0 to 999999");
 			}
 		}
 

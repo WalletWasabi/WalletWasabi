@@ -819,14 +819,14 @@ namespace WalletWasabi.Services
 										if (!localNode.IsConnected)
 										{
 											throw new InvalidOperationException($"Wasabi could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
-												$"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
+												"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
 										}
 										LocalBitcoinCoreNode = localNode;
 									}
 									catch (OperationCanceledException) when (handshakeTimeout.IsCancellationRequested)
 									{
 										Logger.LogWarning<Node>($"Wasabi could not complete the handshake with the local node. Probably Wasabi is not whitelisted by the node.{Environment.NewLine}" +
-											$"Use \"whitebind\" in the node configuration. (Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.)");
+											"Use \"whitebind\" in the node configuration. (Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.)");
 										throw;
 									}
 								}
@@ -1061,7 +1061,8 @@ namespace WalletWasabi.Services
 			int spendAllCount = toSend.Count(x => x.Amount == Money.Zero);
 			if (spendAllCount > 1)
 			{
-				throw new ArgumentException($"Only one {nameof(toSend)} element can contain Money.Zero. Money.Zero means add the change to the value of this output.");
+				throw new ArgumentException($"Only one {nameof(toSend)} element can contain {nameof(Money)}.{nameof(Money.Zero)}. " +
+					$"{nameof(Money)}.{nameof(Money.Zero)} means add the change to the value of this output.");
 			}
 			if (spendAllCount == 1 && !(customChange is null))
 			{
@@ -1080,7 +1081,8 @@ namespace WalletWasabi.Services
 				}
 				if (subtractFeeFromAmountIndex > toSend.Length - 1)
 				{
-					throw new ArgumentOutOfRangeException($"{nameof(subtractFeeFromAmountIndex)} can be maximum {nameof(toSend)}.Length - 1. {nameof(subtractFeeFromAmountIndex)}: {subtractFeeFromAmountIndex}, {nameof(toSend)}.Length - 1: {toSend.Length - 1}.");
+					throw new ArgumentOutOfRangeException($"{nameof(subtractFeeFromAmountIndex)} can be maximum {nameof(toSend)}.{nameof(toSend.Length)} - 1. " +
+						$"{nameof(subtractFeeFromAmountIndex)}: {subtractFeeFromAmountIndex}, {nameof(toSend)}.{nameof(toSend.Length)} - 1: {toSend.Length - 1}.");
 				}
 			}
 
@@ -1423,7 +1425,7 @@ namespace WalletWasabi.Services
 
 				if (Network == Network.RegTest)
 				{
-					throw new InvalidOperationException("Transaction broadcasting to nodes does not work in RegTest.");
+					throw new InvalidOperationException($"Transaction broadcasting to nodes does not work in {nameof(Network.RegTest)}.");
 				}
 
 				while (true)
@@ -1450,7 +1452,7 @@ namespace WalletWasabi.Services
 
 					Logger.LogInfo<WalletService>($"Trying to broadcast transaction with random node ({node.RemoteSocketAddress}):{transaction.GetHash()}");
 					var addedToBroadcastStore = Mempool.TryAddToBroadcastStore(transaction.Transaction, node.RemoteSocketEndpoint.ToString()); // So we'll reply to INV with this transaction.
-					if(!addedToBroadcastStore)
+					if (!addedToBroadcastStore)
 					{
 						Logger.LogWarning<WalletService>($"Transaction {transaction.GetHash()} was already present in the broadcast store.");
 					}
@@ -1461,7 +1463,7 @@ namespace WalletWasabi.Services
 						await node.SendMessageAsync(invPayload).WithCancellation(cts.Token); // ToDo: It's dangerous way to cancel. Implement proper cancellation to NBitcoin!
 					}
 
-					if(Mempool.TryGetFromBroadcastStore(transaction.GetHash(), out TransactionBroadcastEntry entry))
+					if (Mempool.TryGetFromBroadcastStore(transaction.GetHash(), out TransactionBroadcastEntry entry))
 					{
 						// Give 7 seconds for serving.
 						var timeout = 0;
@@ -1476,7 +1478,7 @@ namespace WalletWasabi.Services
 						}
 						node.DisconnectAsync("Thank you!");
 						Logger.LogInfo<MempoolBehavior>($"Disconnected node: {node.RemoteSocketAddress}. Successfully broadcasted transaction: {transaction.GetHash()}.");
-					
+
 						// Give 21 seconds for propagation.
 						timeout = 0;
 						while (entry.GetPropagationConfirmations() < 2)

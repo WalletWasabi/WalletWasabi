@@ -16,7 +16,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 			int dataLength = dataBytes.Length;
 			if (generatorPoly is null)
 			{
-				throw new ArgumentNullException("generator", "GeneratorPolynomial var is null");
+				throw new ArgumentNullException("generator", $"{nameof(GeneratorPolynomial)} var is null");
 			}
 
 			if (dataLength == 0)
@@ -72,7 +72,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 			int remainderLength = remainder.Length;
 			if (remainderLength > numECBytes)
 			{
-				throw new ArgumentException("Num of remainder bytes cannot be larger than numECBytes");
+				throw new ArgumentException($"Num of {nameof(remainder)} bytes cannot be larger than {nameof(numECBytes)}");
 			}
 
 			int numZeroCoeffs = numECBytes - remainderLength;

@@ -149,7 +149,7 @@ namespace WalletWasabi.TorSocks5
 			methodSelection.FromBytes(receiveBuffer);
 			if (methodSelection.Ver != VerField.Socks5)
 			{
-				throw new NotSupportedException($"`SOCKS{methodSelection.Ver.Value} is not supported. Only SOCKS5 is supported.");
+				throw new NotSupportedException($"`SOCKS{methodSelection.Ver.Value} is not supported. Only {nameof(VerField.Socks5).ToUpper()} is supported.");
 			}
 			if (methodSelection.Method == MethodField.NoAcceptableMethods)
 			{
@@ -157,7 +157,7 @@ namespace WalletWasabi.TorSocks5
 				// If the selected METHOD is X'FF', none of the methods listed by the
 				// client are acceptable, and the client MUST close the connection.
 				DisposeTcpClient();
-				throw new NotSupportedException("Tor's SOCKS5 proxy does not support any of the client's authentication methods.");
+				throw new NotSupportedException($"Tor's {nameof(VerField.Socks5).ToUpper()} proxy does not support any of the client's authentication methods.");
 			}
 			if (methodSelection.Method == MethodField.UsernamePassword)
 			{
@@ -375,7 +375,7 @@ namespace WalletWasabi.TorSocks5
 
 					if (receiveCount <= 0)
 					{
-						throw new ConnectionException($"Not connected to Tor SOCKS5 proxy: {TorSocks5EndPoint}.");
+						throw new ConnectionException($"Not connected to Tor {nameof(VerField.Socks5).ToUpper()} proxy: {TorSocks5EndPoint}.");
 					}
 					// if we could fit everything into our buffer, then return it
 					if (!stream.DataAvailable)
@@ -392,7 +392,7 @@ namespace WalletWasabi.TorSocks5
 						receiveCount = await stream.ReadAsync(receiveBuffer, 0, actualReceiveBufferSize);
 						if (receiveCount <= 0)
 						{
-							throw new ConnectionException($"Not connected to Tor SOCKS5 proxy: {TorSocks5EndPoint}.");
+							throw new ConnectionException($"Not connected to Tor {nameof(VerField.Socks5).ToUpper()} proxy: {TorSocks5EndPoint}.");
 						}
 						builder.Append(receiveBuffer.Take(receiveCount).ToArray());
 					}

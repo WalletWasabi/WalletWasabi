@@ -2597,7 +2597,7 @@ namespace WalletWasabi.Tests
 					await Task.Delay(100);
 					if (times > 50) // 5 sec, 3 should be enough
 					{
-						throw new TimeoutException("Not all rounds were in InputRegistration.");
+						throw new TimeoutException($"Not all rounds were in {nameof(CcjRoundPhase.InputRegistration)}.");
 					}
 					times++;
 				}
@@ -2738,7 +2738,7 @@ namespace WalletWasabi.Tests
 					await Task.Delay(100);
 					if (times > 50) // 5 sec, 3 should be enough
 					{
-						throw new TimeoutException("Not all rounds were in InputRegistration.");
+						throw new TimeoutException($"Not all rounds were in {nameof(CcjRoundPhase.InputRegistration)}.");
 					}
 					times++;
 				}
@@ -2791,7 +2791,7 @@ namespace WalletWasabi.Tests
 					await Task.Delay(100);
 					if (times > 50) // 5 sec, 3 should be enough
 					{
-						throw new TimeoutException("Not all rounds were in InputRegistration.");
+						throw new TimeoutException($"Not all rounds were in {nameof(CcjRoundPhase.InputRegistration)}.");
 					}
 					times++;
 				}
@@ -3282,7 +3282,7 @@ namespace WalletWasabi.Tests
 					await Task.Delay(1000);
 					if (times > 21)
 					{
-						throw new TimeoutException("State.GetAllWaitingCoins() always empty.");
+						throw new TimeoutException($"{nameof(chaumianClient1.State)}.{nameof(chaumianClient1.State.GetAllWaitingCoins)}() always empty.");
 					}
 					times++;
 				}

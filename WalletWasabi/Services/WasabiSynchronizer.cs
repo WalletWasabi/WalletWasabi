@@ -18,6 +18,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
+using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
@@ -361,7 +362,7 @@ namespace WalletWasabi.Services
 		private void HandleIfGenSocksServFail(Exception ex)
 		{
 			// IS GenSocksServFail?
-			if (ex.ToString().Contains("GeneralSocksServerFailure", StringComparison.OrdinalIgnoreCase))
+			if (ex.ToString().Contains(nameof(RepField.GeneralSocksServerFailure), StringComparison.OrdinalIgnoreCase))
 			{
 				// IS GenSocksServFail
 				DoGenSocksServFail();

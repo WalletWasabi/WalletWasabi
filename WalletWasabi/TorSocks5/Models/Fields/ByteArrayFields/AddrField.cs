@@ -125,7 +125,7 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 			}
 			else
 			{
-				throw new FormatException($"Could not read IPv4 or domain name from {nameof(bytes)}. Value: {bytes}.");
+				throw new FormatException($"Could not read {nameof(AtypField.IPv4)} or domain name from {nameof(bytes)}. Value: {bytes}.");
 			}
 
 			Atyp = atyp;

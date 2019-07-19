@@ -213,7 +213,7 @@ namespace Mono.Options
 		{
 			if (value.CommandSet != null && value.CommandSet != this)
 			{
-				throw new ArgumentException("Command instances can only be added to a single CommandSet.", nameof(value));
+				throw new ArgumentException($"Command instances can only be added to a single {nameof(CommandSet)}.", nameof(value));
 			}
 			value.CommandSet = this;
 			if (value.Options != null)

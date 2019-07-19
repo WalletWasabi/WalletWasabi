@@ -151,14 +151,14 @@ namespace WalletWasabi.Backend
 					if (!node.IsConnected)
 					{
 						throw new InvalidOperationException($"Wasabi could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
-							$"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
+							"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
 					}
 					LocalNode = node;
 				}
 				catch (OperationCanceledException) when (handshakeTimeout.IsCancellationRequested)
 				{
 					Logger.LogWarning<Node>($"Wasabi could not complete the handshake with the local node. Probably Wasabi is not whitelisted by the node.{Environment.NewLine}" +
-						$"Use \"whitebind\" in the node configuration. (Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.)");
+						"Use \"whitebind\" in the node configuration. (Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.)");
 					throw;
 				}
 			}
@@ -173,13 +173,13 @@ namespace WalletWasabi.Backend
 				var blocks = blockchainInfo.Blocks;
 				if (blocks == 0 && Config.Network != Network.RegTest)
 				{
-					throw new NotSupportedException("blocks == 0");
+					throw new NotSupportedException($"{nameof(blocks)} == 0");
 				}
 
 				var headers = blockchainInfo.Headers;
 				if (headers == 0 && Config.Network != Network.RegTest)
 				{
-					throw new NotSupportedException("headers == 0");
+					throw new NotSupportedException($"{nameof(headers)} == 0");
 				}
 
 				if (blocks != headers)
@@ -204,16 +204,16 @@ namespace WalletWasabi.Backend
 						var generateBlocksResponse = await RpcClient.GenerateAsync(101);
 						if (generateBlocksResponse is null)
 						{
-							throw new NotSupportedException("Bitcoin Core cannot generate blocks on the RegTest.");
+							throw new NotSupportedException($"Bitcoin Core cannot generate blocks on the {nameof(Network.RegTest)}.");
 						}
 
 						blockchainInfo = await RpcClient.GetBlockchainInfoAsync();
 						blocks = blockchainInfo.Blocks;
 						if (blocks == 0)
 						{
-							throw new NotSupportedException("blocks == 0");
+							throw new NotSupportedException($"{nameof(blocks)} == 0");
 						}
-						Logger.LogInfo<RPCClient>($"Generated 101 block on RegTest. Number of blocks {blocks}.");
+						Logger.LogInfo<RPCClient>($"Generated 101 block on {nameof(Network.RegTest)}. Number of blocks {blocks}.");
 					}
 				}
 			}

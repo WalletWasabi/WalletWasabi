@@ -187,7 +187,7 @@ namespace Nito.AsyncEx
 					}
 
 					// If we get here something went wrong.
-					throw new NotImplementedException($"AsyncMutex thread operation failed in {ShortName}");
+					throw new NotImplementedException($"{nameof(AsyncMutex)} thread operation failed in {ShortName}");
 				}
 				catch (Exception ex)
 				{
@@ -260,7 +260,7 @@ namespace Nito.AsyncEx
 
 			if (!expectedPreviousStatuses.Contains((AsyncLockStatus)prevstatus))
 			{
-				throw new InvalidOperationException($"Previous AsyncLock state was unexpected: prev:{((AsyncLockStatus)prevstatus).ToString()} now:{((AsyncLockStatus)_status).ToString()}.");
+				throw new InvalidOperationException($"Previous {nameof(AsyncLock)} state was unexpected: prev:{((AsyncLockStatus)prevstatus).ToString()} now:{((AsyncLockStatus)_status).ToString()}.");
 			}
 		}
 
@@ -279,7 +279,7 @@ namespace Nito.AsyncEx
 			{
 				if (IsQuitPending)
 				{
-					throw new OperationCanceledException($"AsyncMutex.LockAsync failed because quit is pending on: {ShortName}");
+					throw new OperationCanceledException($"{nameof(AsyncMutex)}.{nameof(AsyncMutex.LockAsync)} failed because quit is pending on: {ShortName}");
 				}
 
 				// Local lock for thread safety.
@@ -290,7 +290,7 @@ namespace Nito.AsyncEx
 					throw new InvalidOperationException($"Thread should not be alive.");
 				}
 
-				MutexThread = new Thread(new ParameterizedThreadStart(HoldLock)) { Name = $"MutexThread" };
+				MutexThread = new Thread(new ParameterizedThreadStart(HoldLock)) { Name = $"{nameof(MutexThread)}" };
 
 				MutexThread.Start(cancellationToken);
 
@@ -354,7 +354,7 @@ namespace Nito.AsyncEx
 
 					if (DateTime.Now - start > TimeSpan.FromSeconds(10))
 					{
-						throw new TimeoutException("Could not stop MutexThread, aborting it.");
+						throw new TimeoutException($"Could not stop {nameof(MutexThread)}, aborting it.");
 					}
 				}
 

@@ -218,7 +218,7 @@ namespace WalletWasabi.Stores
 				ImmatureFilters.RemoveLast();
 				if (HashChain.TipHeight != filter.BlockHeight.Value)
 				{
-					throw new InvalidOperationException("HashChain and ImmatureFilters are not in sync.");
+					throw new InvalidOperationException($"{nameof(HashChain)} and {nameof(ImmatureFilters)} are not in sync.");
 				}
 				HashChain.RemoveLast();
 			}

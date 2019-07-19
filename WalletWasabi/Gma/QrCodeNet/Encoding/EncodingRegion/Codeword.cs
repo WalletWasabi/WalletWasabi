@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Gma.QrCodeNet.Encoding.EncodingRegion
 {
@@ -58,7 +58,7 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 
 			if (bitIndex != codewordsSize)
 			{
-				throw new Exception($"Not all bits from codewords consumed by matrix: {bitIndex} / {codewordsSize}");
+				throw new Exception($"Not all bits from {nameof(codewords)} consumed by matrix: {bitIndex} / {codewordsSize}");
 			}
 		}
 

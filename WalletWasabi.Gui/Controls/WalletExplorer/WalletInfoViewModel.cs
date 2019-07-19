@@ -163,7 +163,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			if (Disposables != null)
 			{
-				throw new Exception("WalletInfo was opened before it was closed.");
+				throw new Exception("Wallet Info was opened before it was closed.");
 			}
 
 			Disposables = new CompositeDisposable();

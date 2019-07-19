@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Nito.AsyncEx;
 using System;
 using System.IO;
@@ -24,7 +24,7 @@ namespace WalletWasabi.Helpers
 			{
 				if (InternalInstance is null)
 				{
-					throw new InvalidOperationException("Not loaded! Use LoadAsync() first!");
+					throw new InvalidOperationException($"Not loaded! Use {nameof(LoadAsync)}() first!");
 				}
 
 				if (string.IsNullOrEmpty(FileDir))

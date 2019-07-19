@@ -718,7 +718,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(AdjustedConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
 				if (estimateSmartFeeResponse is null)
 				{
-					throw new InvalidOperationException("FeeRate is not yet initialized");
+					throw new InvalidOperationException($"{nameof(FeeRate)} is not yet initialized");
 				}
 
 				FeeRate optimalFeeRate = estimateSmartFeeResponse.FeeRate;
@@ -801,7 +801,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				var estimateSmartFeeResponse = await rpc.EstimateSmartFeeAsync(confirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
 				if (estimateSmartFeeResponse is null)
 				{
-					throw new InvalidOperationException("FeeRate is not yet initialized");
+					throw new InvalidOperationException($"{nameof(FeeRate)} is not yet initialized");
 				}
 
 				var feeRate = estimateSmartFeeResponse.FeeRate;
@@ -1123,7 +1123,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			{
 				if (Phase != CcjRoundPhase.InputRegistration || Status != CcjRoundStatus.Running)
 				{
-					throw new InvalidOperationException("Adding Alice is only allowed in InputRegistration phase.");
+					throw new InvalidOperationException($"Adding Alice is only allowed in {nameof(CcjRoundPhase.InputRegistration)} phase.");
 				}
 				Alices.Add(alice);
 			}
@@ -1139,7 +1139,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			{
 				if (Phase != CcjRoundPhase.OutputRegistration || Status != CcjRoundStatus.Running)
 				{
-					throw new InvalidOperationException("Adding Bob is only allowed in OutputRegistration phase.");
+					throw new InvalidOperationException($"Adding Bob is only allowed in {nameof(CcjRoundPhase.OutputRegistration)} phase.");
 				}
 
 				// If Bob is already added with the same scriptpubkey and level, that's fine.
@@ -1158,7 +1158,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			{
 				if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
 				{
-					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
+					throw new InvalidOperationException($"Removing Alice is only allowed in {nameof(CcjRoundPhase.InputRegistration)} and " +
+						$"{nameof(CcjRoundPhase.ConnectionConfirmation)} phases.");
 				}
 
 				var checkingTasks = new List<(Alice alice, Task<(bool accepted, string reason)> task)>();
@@ -1199,7 +1200,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			{
 				if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
 				{
-					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
+					throw new InvalidOperationException($"Removing Alice is only allowed in {nameof(CcjRoundPhase.InputRegistration)} and " +
+						$"{nameof(CcjRoundPhase.ConnectionConfirmation)} phases.");
 				}
 				foreach (var id in ids)
 				{

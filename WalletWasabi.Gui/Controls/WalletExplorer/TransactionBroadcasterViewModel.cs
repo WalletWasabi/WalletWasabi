@@ -144,7 +144,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			if (Disposables != null)
 			{
-				throw new Exception("TransactionBroadcaster was opened before it was closed.");
+				throw new Exception("Transaction Broadcaster was opened before it was closed.");
 			}
 
 			Disposables = new CompositeDisposable();
