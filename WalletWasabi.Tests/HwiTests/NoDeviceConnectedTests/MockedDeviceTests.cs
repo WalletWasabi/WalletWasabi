@@ -9,6 +9,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Hwi2;
 using WalletWasabi.Hwi2.Exceptions;
 using WalletWasabi.Hwi2.Models;
+using WalletWasabi.Hwi2.Parsers;
 using WalletWasabi.KeyManagement;
 using Xunit;
 
@@ -96,6 +97,34 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 
 				Assert.Equal(expectedAddress1, address1);
 				Assert.Equal(expectedAddress2, address2);
+			}
+		}
+
+		[Theory]
+		[MemberData(nameof(GetDifferentNetworkValues))]
+		public async Task TrezorOneMockTestsAsync(Network network)
+		{
+			var client = new HwiClient(network, new HwiProcessBridgeMock(HardwareWalletModels.TrezorOne));
+
+			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
+			{
+				IEnumerable<HwiEnumerateEntry> enumerate = await client.EnumerateAsync(cts.Token);
+				Assert.Single(enumerate);
+				HwiEnumerateEntry entry = enumerate.Single();
+				Assert.Equal(HardwareWalletVendors.Trezor, entry.Type);
+				string rawPath = "hid:\\\\\\\\?\\\\hid#vid_534c&pid_0001&mi_00#7&6f0b727&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
+				string normalizedPath = HwiParser.NormalizeRawDevicePath(rawPath);
+				Assert.Equal(normalizedPath, entry.Path);
+				Assert.False(entry.NeedsPassphraseSent);
+				Assert.True(entry.NeedsPinSent);
+				Assert.Equal("Could not open client or get fingerprint information: Trezor is locked. Unlock by using 'promptpin' and then 'sendpin'.", entry.Error);
+				Assert.Equal(HwiErrorCode.DeviceNotReady, entry.Code);
+				Assert.Null(entry.Fingerprint);
+
+				var deviceType = entry.Type.Value;
+				var devicePath = entry.Path;
+
+				await client.WipeAsync(deviceType, devicePath, cts.Token);
 			}
 		}
 

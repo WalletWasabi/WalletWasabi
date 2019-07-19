@@ -259,6 +259,15 @@ namespace WalletWasabi.Hwi2.Parsers
 				code: code);
 		}
 
+		public static string NormalizeRawDevicePath(string rawPath)
+		{
+			// There's some strangeness going on here.
+			// Seems like when we get a complex path like: "hid:\\\\\\\\?\\\\hid#vid_534c&pid_0001&mi_00#7&6f0b727&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}"
+			// While reading it out as the json, the duplicated \s are removed magically by newtonsoft.json.
+			// However the normalized path is accepted by HWI (not sure if the raw path is accepted also.)
+			return rawPath.Replace(@"\\", @"\");
+		}
+
 		public static bool TryParseVersion(string hwiResponse, string substringFrom, out Version version)
 		{
 			int startIndex = hwiResponse.IndexOf(substringFrom) + substringFrom.Length;
