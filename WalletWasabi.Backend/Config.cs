@@ -39,31 +39,24 @@ namespace WalletWasabi.Backend
 		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinP2pPort)]
 		public EndPoint RegTestBitcoinP2pEndPoint { get; internal set; }
 
-		private EndPoint _bitcoinP2pEndPoint;
-
 		public EndPoint GetBitcoinP2pEndPoint()
 		{
-			if (_bitcoinP2pEndPoint is null)
+			if (Network == Network.Main)
 			{
-				if (Network == Network.Main)
-				{
-					_bitcoinP2pEndPoint = MainNetBitcoinP2pEndPoint;
-				}
-				else if (Network == Network.TestNet)
-				{
-					_bitcoinP2pEndPoint = TestNetBitcoinP2pEndPoint;
-				}
-				else if (Network == Network.RegTest)
-				{
-					_bitcoinP2pEndPoint = RegTestBitcoinP2pEndPoint;
-				}
-				else
-				{
-					throw new NotSupportedException("Network not supported.");
-				}
+				return MainNetBitcoinP2pEndPoint;
 			}
-
-			return _bitcoinP2pEndPoint;
+			else if (Network == Network.TestNet)
+			{
+				return TestNetBitcoinP2pEndPoint;
+			}
+			else if (Network == Network.RegTest)
+			{
+				return RegTestBitcoinP2pEndPoint;
+			}
+			else
+			{
+				throw new NotSupportedException($"{nameof(Network)} not supported: {Network}.");
+			}
 		}
 
 		public Config()

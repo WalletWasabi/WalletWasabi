@@ -193,7 +193,6 @@ namespace WalletWasabi.Gui
 		private int? _privacyLevelSome;
 		private int? _privacyLevelFine;
 		private int? _privacyLevelStrong;
-		private EndPoint _bitcoinP2pEndPoint;
 
 		public IPEndPoint GetTorSocks5EndPoint()
 		{
@@ -207,27 +206,22 @@ namespace WalletWasabi.Gui
 
 		public EndPoint GetBitcoinP2pEndPoint()
 		{
-			if (_bitcoinP2pEndPoint is null)
+			if (Network == Network.Main)
 			{
-				if (Network == Network.Main)
-				{
-					_bitcoinP2pEndPoint = MainNetBitcoinP2pEndPoint;
-				}
-				else if (Network == Network.TestNet)
-				{
-					_bitcoinP2pEndPoint = TestNetBitcoinP2pEndPoint;
-				}
-				else if (Network == Network.RegTest)
-				{
-					_bitcoinP2pEndPoint = RegTestBitcoinP2pEndPoint;
-				}
-				else
-				{
-					throw new NotSupportedException("Network not supported.");
-				}
+				return MainNetBitcoinP2pEndPoint;
 			}
-
-			return _bitcoinP2pEndPoint;
+			else if (Network == Network.TestNet)
+			{
+				return TestNetBitcoinP2pEndPoint;
+			}
+			else if (Network == Network.RegTest)
+			{
+				return RegTestBitcoinP2pEndPoint;
+			}
+			else
+			{
+				throw new NotSupportedException($"{nameof(Network)} not supported: {Network}.");
+			}
 		}
 
 		public Config()
