@@ -20,15 +20,16 @@ No, Wasabi's coinjoin implementation is trustless by design. The participants do
 ### I want to purchase something anonymously. Does coinjoin happen at the time of payment?
 
 No, you should coinjoin at some point before that. After the coinjoin, your coins will be at new addresses which are unlinked from the previous addresses. From there you can make transactions at any time you wish, as with any other regular bitcoin transaction.  
+
 Note that for a coinjoin to happen there needs to be a sufficient number of participants. This might take a few hours during which you need to leave Wasabi open on your computer, so the wallet can sign the transaction when the required number of participants is reached. 
 
 ### Will my coins be fully private after mixing with Wasabi?
 
-This depends on how you handle your outputs after the coinjoin. There are some ways how you can unintentionally undo the mixing by being careless. For example, if you make a 1.8 BTC transaction into Wasabi, do the coinjoin, and then make one single outgoing transaction of 1.8 BTC, a third party observer can reasonably assume that both transactions belong to one single entity, due to both amounts being virtually the same even though if they have been through a coinjoin. In this scenario, Wasabi will barely make any improvement to your privacy, although it will still have a protective effect against unsophisticated observers.  
+This depends on how you handle your outputs after the coinjoin. There are some ways how you can unintentionally undo the mixing by being careless. For example, if you make a 1.8 BTC transaction into Wasabi, do the coinjoin, and then make one single outgoing transaction of 1.8 BTC, a third party observer can reasonably assume that both transactions belong to one single entity, due to both amounts being virtually the same even though they have been through a coinjoin. In this scenario, Wasabi will barely make any improvement to your privacy, although it will still have a protective effect against unsophisticated observers.  
 
 Another deanonymizing scenario happens when you combine mixed outputs with unmixed ones when sending: a third party will be able to make the connection between them as belonging to the same sender.
 
-The practice of being careful with your post-mix outputs is commonly facilitated through coin control, which is the default way of interacting with the wallet. Find out more about coin control it [here](https://medium.com/@nopara73/coin-control-is-must-learn-if-you-care-about-your-privacy-in-bitcoin-33b9a5f224a2).
+The practice of being careful with your post-mix outputs is commonly facilitated through coin control, which is the default way of interacting with the wallet. Find out more about coin control [here](https://medium.com/@nopara73/coin-control-is-must-learn-if-you-care-about-your-privacy-in-bitcoin-33b9a5f224a2).
 
 ### Can I hurt my privacy using Wasabi?
 
@@ -48,6 +49,7 @@ Follow [this guide](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletW
 ### Do I need to run Tor?
 
 All Wasabi network traffic goes via Tor by default - no need to set up Tor yourself. If you do already have Tor, and it is running, then Wasabi will try to use that first.  
+
 You can turn off Tor in the Settings. Note that in this case you are still private, except when you coinjoin and when you broadcast a transaction. In the first case, the coordinator would know the links between your inputs and outputs based on your IP address. In the second case, if you happen to broadcast a transaction of yours to a full node that is spying on you, it will know the link between your transaction and your IP address.
 
 # Pre-Mix
@@ -63,7 +65,9 @@ Be careful, if you send all your coins from an old wallet to a new wallet (from 
 ### What are the fees?
 
 You currently pay a fee of 0.003% * anonymity set. If the anonymity set of a coin is 50 then you pay 0.003% * 50 (=0.15%). If you set the target anonymity set to 53 then Wasabi will continue mixing until this is reached, so you may end up with an anonymity set of say 60, and you will pay 0.003% * 60 (=0.18%).  
+
 There are also edge cases where you do not pay the full fee or where you pay more. For example if you're the smallest registrant to a round, you will never pay a fee. Also when you are remixing and you cannot pay the full fee with your input, then you only pay as much as you have, but if the change amount leftover would be too small, then that is also added to the fee. Currently the minimum change amount to be paid out is 0.7% of the base denomination (~0.1BTC.)  
+
 It is also possible that you get more back from mixing than you put in. This happens when network fees go down between the start of the round and its end. In this case, the difference is split between the active outputs of the mix.
 
 ### What is the Anonymity Set?
@@ -82,6 +86,7 @@ If 3 people take part in a CoinJoin (with equal size inputs) and there are 3 out
 
 There is no way to know which of the anon set output coins are owned by which of the input owners.
 All an observer knows is that a specific anon set output coin is owned by one of the owners of one of the input Coins i.e. 3 people - hence an anonymity set of 3.  
+
 Your Wasabi software has limited information on what the anonymity set should be, so the anonymity set that the software presents you is just an estimation, not an accurate value. With Wasabi we are trying to do lower estimations, rather than higher ones.
 
 ### How do I change the default number of mixing rounds (the Anonymity Set)?
@@ -105,7 +110,8 @@ Similarly, with a 0.7 BTC input you would expect the following outputs: ~0.1, ~0
 
 ### How do I connect my own full node to Wasabi?
 
-There is currently a basic implementation of connecting your full node to Wasabi. The server will still send you [BIP 158 block filters](https://github.com/bitcoin/bips/blob/master/bip-0158.mediawiki), and when you realize that a block contains a transaction of yours, then you pull this block from your own full node, instead of a random P2P node, thus you can verify that this is actually a valid block including your transaction. One attack vector could be that Wasabi lies to you and give you wrong filters that exclude your transaction, thus you would see in the wallet less coins than you actually control. [BIP 157 solves this](https://github.com/bitcoin/bips/blob/master/bip-0157.mediawiki).
+There is currently a basic implementation of connecting your full node to Wasabi. The server will still send you [BIP 158 block filters](https://github.com/bitcoin/bips/blob/master/bip-0158.mediawiki), and when you realize that a block contains a transaction of yours, then you pull this block from your own full node, instead of a random P2P node, thus you can verify that this is actually a valid block including your transaction. One attack vector could be that Wasabi lies to you and gives you wrong filters that exclude your transaction, thus you would see in the wallet less coins than you actually control. [BIP 157 solves this](https://github.com/bitcoin/bips/blob/master/bip-0157.mediawiki).
+
 When your full node is on the same hardware [computer, laptop] as your Wasabi Wallet, then it will automatically recognize it and pull blocks from there. If your node is on a remote device [raspberry pi, nodl, server], then you can specify your local IP in line 11 of the config file. [See more here](https://youtu.be/gWo2RAkIVrE).
 
 ### How do I upgrade Wasabi?
@@ -136,7 +142,7 @@ If you would like to dive into the details of this topic, you can [read more her
 
 Most hardware wallets communicate with servers to provide you with your balance. This reveals your public key to the server, which damages your privacy - the hardware company can now theoretically link together all your addresses. As a result **it is not recommended** that you send your mixed coins to an address associated with your hardware wallet unless you are confident that you have set up your hardware wallet in a way that it does not communicate with a 3rd party server (see below). 
 
-You can however manage your hardware wallet with the Wasabi interface. Alternatively you can use your hardware wallet with Electrum, which connects to your Bitcoin Core full node through [Electrum Personal Server](https://github.com/chris-belcher/electrum-personal-server).
+You can, however, manage your hardware wallet with the Wasabi interface. Alternatively, you can use your hardware wallet with Electrum, which connects to your Bitcoin Core full node through [Electrum Personal Server](https://github.com/chris-belcher/electrum-personal-server).
 
 ### How can I set up my hardware wallet with Wasabi properly?
 
@@ -144,7 +150,7 @@ You can use popular hardware wallets **with Wasabi directly** including Coldcard
 
 ### Will I have issues spending my mixed coins? 
 
-Not at the moment, if Wasabi and other CoinJoin tools are used by enough people it is likely that this will never be an issue. See this more [comprehensive answer](https://www.reddit.com/r/WasabiWallet/comments/bggy03/will_coinjoined_coins_be_blacklisted_in_the_future/ell04nn?utm_source=share&utm_medium=web2x). 
+Not at the moment. If Wasabi and other CoinJoin tools are used by enough people it is likely that this will never be an issue. See this more [comprehensive answer](https://www.reddit.com/r/WasabiWallet/comments/bggy03/will_coinjoined_coins_be_blacklisted_in_the_future/ell04nn?utm_source=share&utm_medium=web2x). 
 
 ### What do I do with small changes?
 
@@ -173,10 +179,10 @@ https://github.com/zkSNACKs/WalletWasabi/tree/master/WalletWasabi.Backend
 
 The nature of Wasabi is that you should not need to trust the developers or the Wasabi coordinating server, as you can verify that the code does not leak information to anyone. The developers have gone to great lengths in an attempt to ensure that the coordinator cannot steal funds nor harvest information (for example, the outputs sent from your Wasabi Wallet are blinded, meaning that even the Wasabi server cannot link the outputs to the inputs). 
 
-The only known possible 'malicious' actions that the server *could* perform are two sides of the same coin;
-- Blacklisted UTXO's
+The only known possible 'malicious' actions that the server *could* perform are two sides of the same coin:
+- **Blacklisted UTXO's**:
 Though this would not affect the users who are able to successfully mix with other 'honest/real' peers. 
-- Targeted Sybil Attack
+- **Targeted Sybil Attack**:
 The follow-up concern is the inverse of the above. It is possible that the server could *only* include one 'honest/real' coin in the mix and supply the other coins themselves. This would give a false sense of security, **but it would not worsen the existing privacy of the coin**. It would also be noticaable to all users excluding the user being targeted as their coins would not be mixed. It has been argued that this 'attack' would be very costly in terms of fees because the number of coins being mixed is verifiable. Though it is true that fees would have to be paid to zkSNACKs every round, this does not matter if it is zkSNACKs that is acting maliciously (as they get the funds back). Typical rounds currently have <100 people per mix, with the minimum input being ~0.1 BTC with a fee of 0.003% per anonymity set. Taking the 'worst case' (100 people, each mixing 0.1 BTC) gives 0.03 BTC per round. This is not prohibitive and is thus a valid concern. That said, if multiple chain-analysis companies attempt to flood the zkSNACKs mix (to decrease the true anonymity set) they will hinder each other's efforts (unless they are cooperating). See [here](https://github.com/nopara73/ZeroLink/#e-sybil-attack) for more info.
 
 ### Where can I learn more about Wasabi?
