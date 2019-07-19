@@ -12,6 +12,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Tabs
 {
@@ -237,8 +238,8 @@ namespace WalletWasabi.Gui.Tabs
 					await config.LoadFileAsync();
 
 					var network = NBitcoin.Network.GetNetwork(Network);
-					var torSocks5EndPoint = EndPointParser.TryParse(TorSocks5EndPoint, -1, out EndPoint torEp) ? torEp : null;
-					var bitcoinP2pEndPoint = EndPointParser.TryParse(BitcoinP2pEndPoint, -1, out EndPoint p2pEp) ? p2pEp : null;
+					var torSocks5EndPoint = EndPointParser.TryParse(TorSocks5EndPoint, Constants.DefaultTorSocksPort, out EndPoint torEp) ? torEp : null;
+					var bitcoinP2pEndPoint = EndPointParser.TryParse(BitcoinP2pEndPoint, network.DefaultPort, out EndPoint p2pEp) ? p2pEp : null;
 					var useTor = UseTor;
 					var somePrivacyLevel = int.TryParse(SomePrivacyLevel, out int level) ? (int?)level : null;
 					var finePrivacyLevel = int.TryParse(FinePrivacyLevel, out level) ? (int?)level : null;
@@ -347,7 +348,7 @@ namespace WalletWasabi.Gui.Tabs
 				return string.Empty;
 			}
 
-			if (EndPointParser.TryParse(endPoint, -1, out _))
+			if (EndPointParser.TryParse(endPoint, 0, out _))
 			{
 				return string.Empty;
 			}
