@@ -1,4 +1,4 @@
-﻿using Xunit;
+using Xunit;
 
 namespace WalletWasabi.Tests.XunitConfiguration
 {
@@ -10,7 +10,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 		// ICollectionFixture<> interfaces.
 	}
 
-	[CollectionDefinition("LiveServerTests collection")]
+	[CollectionDefinition(nameof(LiveServerTests) + " collection")]
 	public class LiverServerTestsCollections : ICollectionFixture<LiveServerTestsFixture>
 	{
 	}

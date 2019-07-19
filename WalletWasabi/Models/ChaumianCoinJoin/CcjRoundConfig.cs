@@ -18,44 +18,44 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		/// <inheritdoc />
 		public string FilePath { get; internal set; }
 
-		[JsonProperty(PropertyName = "Denomination")]
+		[JsonProperty(PropertyName = nameof(Denomination))]
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money Denomination { get; internal set; }
 
-		[JsonProperty(PropertyName = "ConfirmationTarget")]
+		[JsonProperty(PropertyName = nameof(ConfirmationTarget))]
 		public int? ConfirmationTarget { get; internal set; }
 
-		[JsonProperty(PropertyName = "ConfirmationTargetReductionRate")]
+		[JsonProperty(PropertyName = nameof(ConfirmationTargetReductionRate))]
 		public double? ConfirmationTargetReductionRate { get; internal set; }
 
-		[JsonProperty(PropertyName = "CoordinatorFeePercent")]
+		[JsonProperty(PropertyName = nameof(CoordinatorFeePercent))]
 		public decimal? CoordinatorFeePercent { get; internal set; }
 
-		[JsonProperty(PropertyName = "AnonymitySet")]
+		[JsonProperty(PropertyName = nameof(AnonymitySet))]
 		public int? AnonymitySet { get; internal set; }
 
-		[JsonProperty(PropertyName = "InputRegistrationTimeout")]
+		[JsonProperty(PropertyName = nameof(InputRegistrationTimeout))]
 		public long? InputRegistrationTimeout { get; internal set; }
 
-		[JsonProperty(PropertyName = "ConnectionConfirmationTimeout")]
+		[JsonProperty(PropertyName = nameof(ConnectionConfirmationTimeout))]
 		public long? ConnectionConfirmationTimeout { get; internal set; }
 
-		[JsonProperty(PropertyName = "OutputRegistrationTimeout")]
+		[JsonProperty(PropertyName = nameof(OutputRegistrationTimeout))]
 		public long? OutputRegistrationTimeout { get; internal set; }
 
-		[JsonProperty(PropertyName = "SigningTimeout")]
+		[JsonProperty(PropertyName = nameof(SigningTimeout))]
 		public long? SigningTimeout { get; internal set; }
 
-		[JsonProperty(PropertyName = "DosSeverity")]
+		[JsonProperty(PropertyName = nameof(DosSeverity))]
 		public int? DosSeverity { get; internal set; }
 
-		[JsonProperty(PropertyName = "DosDurationHours")]
+		[JsonProperty(PropertyName = nameof(DosDurationHours))]
 		public long? DosDurationHours { get; internal set; }
 
-		[JsonProperty(PropertyName = "DosNoteBeforeBan")]
+		[JsonProperty(PropertyName = nameof(DosNoteBeforeBan))]
 		public bool? DosNoteBeforeBan { get; internal set; }
 
-		[JsonProperty(PropertyName = "MaximumMixingLevelCount")]
+		[JsonProperty(PropertyName = nameof(MaximumMixingLevelCount))]
 		public int? MaximumMixingLevelCount { get; internal set; }
 
 		public CcjRoundConfig()

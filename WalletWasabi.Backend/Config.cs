@@ -20,29 +20,29 @@ namespace WalletWasabi.Backend
 		/// <inheritdoc />
 		public string FilePath { get; private set; }
 
-		[JsonProperty(PropertyName = "Network")]
+		[JsonProperty(PropertyName = nameof(Network))]
 		[JsonConverter(typeof(NetworkJsonConverter))]
 		public Network Network { get; private set; }
 
-		[JsonProperty(PropertyName = "BitcoinRpcConnectionString")]
+		[JsonProperty(PropertyName = nameof(BitcoinRpcConnectionString))]
 		public string BitcoinRpcConnectionString { get; private set; }
 
-		[JsonProperty(PropertyName = "MainNetBitcoinCoreHost")]
+		[JsonProperty(PropertyName = nameof(MainNetBitcoinCoreHost))]
 		public string MainNetBitcoinCoreHost { get; internal set; }
 
-		[JsonProperty(PropertyName = "TestNetBitcoinCoreHost")]
+		[JsonProperty(PropertyName = nameof(TestNetBitcoinCoreHost))]
 		public string TestNetBitcoinCoreHost { get; internal set; }
 
-		[JsonProperty(PropertyName = "RegTestBitcoinCoreHost")]
+		[JsonProperty(PropertyName = nameof(RegTestBitcoinCoreHost))]
 		public string RegTestBitcoinCoreHost { get; internal set; }
 
-		[JsonProperty(PropertyName = "MainNetBitcoinCorePort")]
+		[JsonProperty(PropertyName = nameof(MainNetBitcoinCorePort))]
 		public int? MainNetBitcoinCorePort { get; internal set; }
 
-		[JsonProperty(PropertyName = "TestNetBitcoinCorePort")]
+		[JsonProperty(PropertyName = nameof(TestNetBitcoinCorePort))]
 		public int? TestNetBitcoinCorePort { get; internal set; }
 
-		[JsonProperty(PropertyName = "RegTestBitcoinCorePort")]
+		[JsonProperty(PropertyName = nameof(RegTestBitcoinCorePort))]
 		public int? RegTestBitcoinCorePort { get; internal set; }
 
 		private EndPoint _bitcoinCoreEndPoint;

@@ -25,26 +25,26 @@ namespace WalletWasabi.Gui
 		/// <inheritdoc />
 		public string FilePath { get; private set; }
 
-		[JsonProperty(PropertyName = "WindowState")]
+		[JsonProperty(PropertyName = nameof(WindowState))]
 		[JsonConverter(typeof(WindowStateAfterStartJsonConverter))]
 		public WindowState? WindowState { get; internal set; }
 
-		[JsonProperty(PropertyName = "Height")]
+		[JsonProperty(PropertyName = nameof(Height))]
 		public double? Height { get; internal set; }
 
-		[JsonProperty(PropertyName = "Width")]
+		[JsonProperty(PropertyName = nameof(Width))]
 		public double? Width { get; internal set; }
 
-		[JsonProperty(PropertyName = "FeeTarget")]
+		[JsonProperty(PropertyName = nameof(FeeTarget))]
 		public int? FeeTarget { get; internal set; }
 
-		[JsonProperty(PropertyName = "FeeDisplayFormat")]
+		[JsonProperty(PropertyName = nameof(FeeDisplayFormat))]
 		public int? FeeDisplayFormat { get; internal set; }
 
-		[JsonProperty(PropertyName = "Autocopy")]
+		[JsonProperty(PropertyName = nameof(Autocopy))]
 		public bool? Autocopy { get; internal set; }
 
-		[JsonProperty(PropertyName = "LurkingWifeMode")]
+		[JsonProperty(PropertyName = nameof(LurkingWifeMode))]
 		public bool? LurkingWifeMode
 		{
 			get => _lurkingWifeMode;

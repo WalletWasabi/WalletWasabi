@@ -22,53 +22,53 @@ namespace WalletWasabi.Gui
 		/// <inheritdoc />
 		public string FilePath { get; private set; }
 
-		[JsonProperty(PropertyName = "Network")]
+		[JsonProperty(PropertyName = nameof(Network))]
 		[JsonConverter(typeof(NetworkJsonConverter))]
 		public Network Network { get; internal set; }
 
-		[JsonProperty(PropertyName = "MainNetBackendUriV3")]
+		[JsonProperty(PropertyName = nameof(MainNetBackendUriV3))]
 		public string MainNetBackendUriV3 { get; private set; }
 
-		[JsonProperty(PropertyName = "TestNetBackendUriV3")]
+		[JsonProperty(PropertyName = nameof(TestNetBackendUriV3))]
 		public string TestNetBackendUriV3 { get; private set; }
 
-		[JsonProperty(PropertyName = "MainNetFallbackBackendUri")]
+		[JsonProperty(PropertyName = nameof(MainNetFallbackBackendUri))]
 		public string MainNetFallbackBackendUri { get; private set; }
 
-		[JsonProperty(PropertyName = "TestNetFallbackBackendUri")]
+		[JsonProperty(PropertyName = nameof(TestNetFallbackBackendUri))]
 		public string TestNetFallbackBackendUri { get; private set; }
 
-		[JsonProperty(PropertyName = "RegTestBackendUriV3")]
+		[JsonProperty(PropertyName = nameof(RegTestBackendUriV3))]
 		public string RegTestBackendUriV3 { get; private set; }
 
-		[JsonProperty(PropertyName = "UseTor")]
+		[JsonProperty(PropertyName = nameof(UseTor))]
 		public bool? UseTor { get; internal set; }
 
-		[JsonProperty(PropertyName = "TorHost")]
+		[JsonProperty(PropertyName = nameof(TorHost))]
 		public string TorHost { get; internal set; }
 
-		[JsonProperty(PropertyName = "TorSocks5Port")]
+		[JsonProperty(PropertyName = nameof(TorSocks5Port))]
 		public int? TorSocks5Port { get; internal set; }
 
-		[JsonProperty(PropertyName = "MainNetBitcoinCoreHost")]
+		[JsonProperty(PropertyName = nameof(MainNetBitcoinCoreHost))]
 		public string MainNetBitcoinCoreHost { get; internal set; }
 
-		[JsonProperty(PropertyName = "TestNetBitcoinCoreHost")]
+		[JsonProperty(PropertyName = nameof(TestNetBitcoinCoreHost))]
 		public string TestNetBitcoinCoreHost { get; internal set; }
 
-		[JsonProperty(PropertyName = "RegTestBitcoinCoreHost")]
+		[JsonProperty(PropertyName = nameof(RegTestBitcoinCoreHost))]
 		public string RegTestBitcoinCoreHost { get; internal set; }
 
-		[JsonProperty(PropertyName = "MainNetBitcoinCorePort")]
+		[JsonProperty(PropertyName = nameof(MainNetBitcoinCorePort))]
 		public int? MainNetBitcoinCorePort { get; internal set; }
 
-		[JsonProperty(PropertyName = "TestNetBitcoinCorePort")]
+		[JsonProperty(PropertyName = nameof(TestNetBitcoinCorePort))]
 		public int? TestNetBitcoinCorePort { get; internal set; }
 
-		[JsonProperty(PropertyName = "RegTestBitcoinCorePort")]
+		[JsonProperty(PropertyName = nameof(RegTestBitcoinCorePort))]
 		public int? RegTestBitcoinCorePort { get; internal set; }
 
-		[JsonProperty(PropertyName = "MixUntilAnonymitySet")]
+		[JsonProperty(PropertyName = nameof(MixUntilAnonymitySet))]
 		public int? MixUntilAnonymitySet
 		{
 			get => _mixUntilAnonymitySet;
@@ -85,7 +85,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		[JsonProperty(PropertyName = "PrivacyLevelSome")]
+		[JsonProperty(PropertyName = nameof(PrivacyLevelSome))]
 		public int? PrivacyLevelSome
 		{
 			get => _privacyLevelSome;
@@ -102,7 +102,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		[JsonProperty(PropertyName = "PrivacyLevelFine")]
+		[JsonProperty(PropertyName = nameof(PrivacyLevelFine))]
 		public int? PrivacyLevelFine
 		{
 			get => _privacyLevelFine;
@@ -119,7 +119,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		[JsonProperty(PropertyName = "PrivacyLevelStrong")]
+		[JsonProperty(PropertyName = nameof(PrivacyLevelStrong))]
 		public int? PrivacyLevelStrong
 		{
 			get => _privacyLevelStrong;
@@ -136,7 +136,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		[JsonProperty(PropertyName = "DustThreshold")]
+		[JsonProperty(PropertyName = nameof(DustThreshold))]
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money DustThreshold { get; internal set; }
 

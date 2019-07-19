@@ -27,7 +27,7 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 
 		#region Group
 
-		[ExportMainMenuDefaultGroup("Help", "About")]
+		[ExportMainMenuDefaultGroup("Help", nameof(About))]
 		[DefaultOrder(0)]
 		public object AboutGroup => null;
 
@@ -43,16 +43,16 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 
 		#region MenuItem
 
-		[ExportMainMenuItem("Help", "About")]
+		[ExportMainMenuItem("Help", nameof(About))]
 		[DefaultOrder(0)]
-		[DefaultGroup("About")]
+		[DefaultGroup(nameof(About))]
 		public IMenuItem About => MenuItemFactory.CreateCommandMenuItem("Help.About");
 
 #if DEBUG
 
 		[ExportMainMenuItem("Help", "Dev Tools")]
 		[DefaultOrder(1)]
-		[DefaultGroup("About")]
+		[DefaultGroup(nameof(About))]
 		public IMenuItem DevTools => MenuItemFactory.CreateCommandMenuItem("Help.DevTools");
 
 #endif

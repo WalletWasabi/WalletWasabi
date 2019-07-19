@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using WalletWasabi.JsonConverters;
@@ -9,18 +9,18 @@ namespace WalletWasabi.WebClients.BlockCypher.Models
 	[JsonObject(MemberSerialization.OptIn)]
 	public class BlockCypherGeneralInformation
 	{
-		[JsonProperty(PropertyName = "name")]
+		[JsonProperty(PropertyName = nameof(Name))]
 		public string Name { get; set; }
 
-		[JsonProperty(PropertyName = "height")]
+		[JsonProperty(PropertyName = nameof(Height))]
 		[JsonConverter(typeof(HeightJsonConverter))]
 		public Height Height { get; set; }
 
-		[JsonProperty(PropertyName = "hash")]
+		[JsonProperty(PropertyName = nameof(Hash))]
 		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 Hash { get; set; }
 
-		[JsonProperty(PropertyName = "time")]
+		[JsonProperty(PropertyName = nameof(Time))]
 		[JsonConverter(typeof(BlockCypherDateTimeOffsetJsonConverter))]
 		public DateTimeOffset Time { get; set; }
 

@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Nito.AsyncEx;
 using System;
 using System.IO;
@@ -11,7 +11,7 @@ namespace WalletWasabi.Helpers
 {
 	public class RuntimeParams
 	{
-		[JsonProperty(PropertyName = "NetworkNodeTimeout")]
+		[JsonProperty(PropertyName = nameof(NetworkNodeTimeout))]
 		public int NetworkNodeTimeout { get; set; } = 64;
 
 		#region Business logic

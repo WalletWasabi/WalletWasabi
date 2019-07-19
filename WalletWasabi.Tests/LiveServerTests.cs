@@ -14,7 +14,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests
 {
-	[Collection("LiveServerTests collection")]
+	[Collection(nameof(LiveServerTests) + " collection")]
 	public class LiveServerTests
 	{
 		private LiveServerTestsFixture LiveServerTestsFixture { get; }
