@@ -421,70 +421,72 @@ namespace WalletWasabi.Gui
 
 		private bool TryEnsureBackwardsCompatibility(string jsonString)
 		{
-			var jsObject = JsonConvert.DeserializeObject<JObject>(jsonString);
-			bool saveIt = false;
-
-			if (jsObject.TryGetValue("TorHost", out JToken jTorHost))
+			try
 			{
-				int port = Constants.DefaultTorSocksPort;
-				if (jsObject.TryGetValue("TorSocks5Port", out JToken jTorSocks5Port) && int.TryParse(jTorSocks5Port.ToString(), out int p))
+				var jsObject = JsonConvert.DeserializeObject<JObject>(jsonString);
+				bool saveIt = false;
+
+				var torHost = jsObject.Value<string>("TorHost");
+				var torSocks5Port = jsObject.Value<int?>("TorSocks5Port");
+				var mainNetBitcoinCoreHost = jsObject.Value<string>("MainNetBitcoinCoreHost");
+				var mainNetBitcoinCorePort = jsObject.Value<int?>("MainNetBitcoinCorePort");
+				var testNetBitcoinCoreHost = jsObject.Value<string>("TestNetBitcoinCoreHost");
+				var testNetBitcoinCorePort = jsObject.Value<int?>("TestNetBitcoinCorePort");
+				var regTestBitcoinCoreHost = jsObject.Value<string>("RegTestBitcoinCoreHost");
+				var regTestBitcoinCorePort = jsObject.Value<int?>("RegTestBitcoinCorePort");
+
+				if (torHost != null)
 				{
-					port = p;
+					int port = torSocks5Port ?? Constants.DefaultTorSocksPort;
+
+					if (EndPointParser.TryParse(torHost, port, out EndPoint ep))
+					{
+						TorSocks5EndPoint = ep;
+						saveIt = true;
+					}
 				}
 
-				if (EndPointParser.TryParse(jTorHost.ToString(), port, out EndPoint ep))
+				if (mainNetBitcoinCoreHost != null)
 				{
-					TorSocks5EndPoint = ep;
-					saveIt = true;
+					int port = mainNetBitcoinCorePort ?? Constants.DefaultMainNetBitcoinP2pPort;
+
+					if (EndPointParser.TryParse(mainNetBitcoinCoreHost, port, out EndPoint ep))
+					{
+						MainNetBitcoinP2pEndPoint = ep;
+						saveIt = true;
+					}
 				}
+
+				if (testNetBitcoinCoreHost != null)
+				{
+					int port = testNetBitcoinCorePort ?? Constants.DefaultTestNetBitcoinP2pPort;
+
+					if (EndPointParser.TryParse(testNetBitcoinCoreHost, port, out EndPoint ep))
+					{
+						TestNetBitcoinP2pEndPoint = ep;
+						saveIt = true;
+					}
+				}
+
+				if (regTestBitcoinCoreHost != null)
+				{
+					int port = regTestBitcoinCorePort ?? Constants.DefaultRegTestBitcoinP2pPort;
+
+					if (EndPointParser.TryParse(regTestBitcoinCoreHost, port, out EndPoint ep))
+					{
+						RegTestBitcoinP2pEndPoint = ep;
+						saveIt = true;
+					}
+				}
+
+				return saveIt;
 			}
-
-			if (jsObject.TryGetValue("MainNetBitcoinCoreHost", out JToken jMainNetBitcoinCoreHost))
+			catch (Exception ex)
 			{
-				int port = Constants.DefaultMainNetBitcoinP2pPort;
-				if (jsObject.TryGetValue("MainNetBitcoinCorePort", out JToken jMainNetBitcoinCorePort) && int.TryParse(jMainNetBitcoinCorePort.ToString(), out int p))
-				{
-					port = p;
-				}
-
-				if (EndPointParser.TryParse(jMainNetBitcoinCoreHost.ToString(), port, out EndPoint ep))
-				{
-					MainNetBitcoinP2pEndPoint = ep;
-					saveIt = true;
-				}
+				Logger.LogWarning<Config>("Backwards compatibility couldn't be ensured.");
+				Logger.LogInfo<Config>(ex);
+				return false;
 			}
-
-			if (jsObject.TryGetValue("TestNetBitcoinCoreHost", out JToken jTestNetBitcoinCoreHost))
-			{
-				int port = Constants.DefaultTestNetBitcoinP2pPort;
-				if (jsObject.TryGetValue("TestNetBitcoinCorePort", out JToken jTestNetBitcoinCorePort) && int.TryParse(jTestNetBitcoinCorePort.ToString(), out int p))
-				{
-					port = p;
-				}
-
-				if (EndPointParser.TryParse(jTestNetBitcoinCoreHost.ToString(), port, out EndPoint ep))
-				{
-					TestNetBitcoinP2pEndPoint = ep;
-					saveIt = true;
-				}
-			}
-
-			if (jsObject.TryGetValue("RegTestBitcoinCoreHost", out JToken jRegTestBitcoinCoreHost))
-			{
-				int port = Constants.DefaultRegTestBitcoinP2pPort;
-				if (jsObject.TryGetValue("RegTestBitcoinCorePort", out JToken jRegTestBitcoinCorePort) && int.TryParse(jRegTestBitcoinCorePort.ToString(), out int p))
-				{
-					port = p;
-				}
-
-				if (EndPointParser.TryParse(jRegTestBitcoinCoreHost.ToString(), port, out EndPoint ep))
-				{
-					RegTestBitcoinP2pEndPoint = ep;
-					saveIt = true;
-				}
-			}
-
-			return saveIt;
 		}
 	}
 }

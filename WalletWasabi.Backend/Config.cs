@@ -163,55 +163,59 @@ namespace WalletWasabi.Backend
 
 		private bool TryEnsureBackwardsCompatibility(string jsonString)
 		{
-			var jsObject = JsonConvert.DeserializeObject<JObject>(jsonString);
-			bool saveIt = false;
-
-			if (jsObject.TryGetValue("MainNetBitcoinCoreHost", out JToken jMainNetBitcoinCoreHost))
+			try
 			{
-				int port = Constants.DefaultMainNetBitcoinP2pPort;
-				if (jsObject.TryGetValue("MainNetBitcoinCorePort", out JToken jMainNetBitcoinCorePort) && int.TryParse(jMainNetBitcoinCorePort.ToString(), out int p))
+				var jsObject = JsonConvert.DeserializeObject<JObject>(jsonString);
+				bool saveIt = false;
+
+				var mainNetBitcoinCoreHost = jsObject.Value<string>("MainNetBitcoinCoreHost");
+				var mainNetBitcoinCorePort = jsObject.Value<int?>("MainNetBitcoinCorePort");
+				var testNetBitcoinCoreHost = jsObject.Value<string>("TestNetBitcoinCoreHost");
+				var testNetBitcoinCorePort = jsObject.Value<int?>("TestNetBitcoinCorePort");
+				var regTestBitcoinCoreHost = jsObject.Value<string>("RegTestBitcoinCoreHost");
+				var regTestBitcoinCorePort = jsObject.Value<int?>("RegTestBitcoinCorePort");
+
+				if (mainNetBitcoinCoreHost != null)
 				{
-					port = p;
+					int port = mainNetBitcoinCorePort ?? Constants.DefaultMainNetBitcoinP2pPort;
+
+					if (EndPointParser.TryParse(mainNetBitcoinCoreHost, port, out EndPoint ep))
+					{
+						MainNetBitcoinP2pEndPoint = ep;
+						saveIt = true;
+					}
 				}
 
-				if (EndPointParser.TryParse(jMainNetBitcoinCoreHost.ToString(), port, out EndPoint ep))
+				if (testNetBitcoinCoreHost != null)
 				{
-					MainNetBitcoinP2pEndPoint = ep;
-					saveIt = true;
+					int port = testNetBitcoinCorePort ?? Constants.DefaultTestNetBitcoinP2pPort;
+
+					if (EndPointParser.TryParse(testNetBitcoinCoreHost, port, out EndPoint ep))
+					{
+						TestNetBitcoinP2pEndPoint = ep;
+						saveIt = true;
+					}
 				}
+
+				if (regTestBitcoinCoreHost != null)
+				{
+					int port = regTestBitcoinCorePort ?? Constants.DefaultRegTestBitcoinP2pPort;
+
+					if (EndPointParser.TryParse(regTestBitcoinCoreHost, port, out EndPoint ep))
+					{
+						RegTestBitcoinP2pEndPoint = ep;
+						saveIt = true;
+					}
+				}
+
+				return saveIt;
 			}
-
-			if (jsObject.TryGetValue("TestNetBitcoinCoreHost", out JToken jTestNetBitcoinCoreHost))
+			catch (Exception ex)
 			{
-				int port = Constants.DefaultTestNetBitcoinP2pPort;
-				if (jsObject.TryGetValue("TestNetBitcoinCorePort", out JToken jTestNetBitcoinCorePort) && int.TryParse(jTestNetBitcoinCorePort.ToString(), out int p))
-				{
-					port = p;
-				}
-
-				if (EndPointParser.TryParse(jTestNetBitcoinCoreHost.ToString(), port, out EndPoint ep))
-				{
-					TestNetBitcoinP2pEndPoint = ep;
-					saveIt = true;
-				}
+				Logger.LogWarning<Config>("Backwards compatibility couldn't be ensured.");
+				Logger.LogInfo<Config>(ex);
+				return false;
 			}
-
-			if (jsObject.TryGetValue("RegTestBitcoinCoreHost", out JToken jRegTestBitcoinCoreHost))
-			{
-				int port = Constants.DefaultRegTestBitcoinP2pPort;
-				if (jsObject.TryGetValue("RegTestBitcoinCorePort", out JToken jRegTestBitcoinCorePort) && int.TryParse(jRegTestBitcoinCorePort.ToString(), out int p))
-				{
-					port = p;
-				}
-
-				if (EndPointParser.TryParse(jRegTestBitcoinCoreHost.ToString(), port, out EndPoint ep))
-				{
-					RegTestBitcoinP2pEndPoint = ep;
-					saveIt = true;
-				}
-			}
-
-			return saveIt;
 		}
 	}
 }
