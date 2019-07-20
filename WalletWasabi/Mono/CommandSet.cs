@@ -490,7 +490,7 @@ namespace Mono.Options
 			}
 			for (int i = 1; i < extra.Count; ++i)
 			{
-				name = name + " " + extra[i];
+				name = $"{name} {extra[i]}";
 				if (!Contains(name))
 				{
 					continue;
