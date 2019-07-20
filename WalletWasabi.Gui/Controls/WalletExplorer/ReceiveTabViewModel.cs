@@ -137,7 +137,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (Disposables != null)
 			{
-				throw new Exception("Receive tab opened before last one was closed.");
+				throw new Exception("Receive tab was opened before last one closed.");
 			}
 
 			Disposables = new CompositeDisposable();

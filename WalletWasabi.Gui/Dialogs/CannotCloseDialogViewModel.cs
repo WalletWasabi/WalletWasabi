@@ -86,7 +86,7 @@ namespace WalletWasabi.Gui.Dialogs
 		{
 			if (Disposables != null)
 			{
-				throw new Exception("Dialog opened before it was closed (cannotclose)");
+				throw new Exception("Dialog was opened before last one closed (cannotclose)");
 			}
 
 			Disposables = new CompositeDisposable();

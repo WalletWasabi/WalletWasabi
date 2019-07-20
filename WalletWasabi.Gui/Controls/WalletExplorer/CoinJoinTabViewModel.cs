@@ -138,7 +138,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (Disposables != null)
 			{
-				throw new Exception("CoinJoin tab opened before previous closed.");
+				throw new Exception("CoinJoin tab was opened before last one closed.");
 			}
 
 			Disposables = new CompositeDisposable();

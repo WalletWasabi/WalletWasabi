@@ -58,7 +58,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (Disposables != null)
 			{
-				throw new Exception("Pin Pad Tab was opened before it was closed.");
+				throw new Exception("Pin Pad was opened before last one closed.");
 			}
 
 			Disposables = new CompositeDisposable();

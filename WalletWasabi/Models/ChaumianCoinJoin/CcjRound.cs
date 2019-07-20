@@ -458,7 +458,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							  timeout = SigningTimeout;
 							  break;
 
-						  default: throw new InvalidOperationException("This is impossible to happen.");
+						  default: throw new InvalidOperationException("This is impossible.");
 					  }
 
 					  // Delay asynchronously to the requested timeout.
@@ -543,7 +543,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 											  }
 											  break;
 
-										  default: throw new InvalidOperationException("This is impossible to happen.");
+										  default: throw new InvalidOperationException("This is impossible.");
 									  }
 								  }
 								  catch (Exception ex)

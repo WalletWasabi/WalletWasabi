@@ -379,7 +379,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			if (Disposables != null)
 			{
-				throw new Exception("CoinList opened before previous closed.");
+				throw new Exception("CoinList was opened before last one closed.");
 			}
 
 			Disposables = new CompositeDisposable();

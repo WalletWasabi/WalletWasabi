@@ -108,7 +108,7 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			if (Disposables != null)
 			{
-				throw new Exception("Settings was opened before it was closed.");
+				throw new Exception("Settings was opened before last one closed.");
 			}
 
 			Disposables = new CompositeDisposable();
