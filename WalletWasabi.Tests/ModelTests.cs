@@ -63,10 +63,7 @@ namespace WalletWasabi.Tests
 			// If the txId or the index differs, equality should think it's a different coin.
 			var differentCoin = new SmartCoin(txId, index + 1, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index + 1), label, txId);
 			var differentOutput = tx.Outputs[1];
-			var differentSpentOutputs = new[]
-			{
-				new TxoRef(txId, 0)
-			};
+			var differentSpentOutputs = new[] { new TxoRef(txId, 0) };
 			// If the txId and the index is the same, equality should think it's the same coin.
 			var sameCoin = new SmartCoin(txId, index, differentOutput.ScriptPubKey, differentOutput.Value, differentSpentOutputs, Height.Unknown, tx.RBF, tx.GetAnonymitySet(index), "boo", null);
 
@@ -188,6 +185,7 @@ namespace WalletWasabi.Tests
 			var allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations);
 			var serialized = JsonConvert.SerializeObject(allFee);
 			var deserialized = JsonConvert.DeserializeObject<AllFeeEstimate>(serialized);
+
 			Assert.Equal(estimations[2], deserialized.Estimations[2]);
 			Assert.Equal(estimations[3], deserialized.Estimations[3]);
 			Assert.Equal(estimations[19], deserialized.Estimations[19]);
@@ -202,9 +200,9 @@ namespace WalletWasabi.Tests
 				UniqueId = Guid.NewGuid(),
 				RoundId = 1,
 			};
-
 			var serialized = JsonConvert.SerializeObject(resp);
 			var deserialized = JsonConvert.DeserializeObject<InputsResponse>(serialized);
+
 			Assert.Equal(resp.RoundId, deserialized.RoundId);
 			Assert.Equal(resp.UniqueId, deserialized.UniqueId);
 		}
@@ -311,7 +309,8 @@ namespace WalletWasabi.Tests
 							Assert.Null(e.OldItems); // "Reset action must be initialized with no changed items."
 							break;
 						}
-					default: throw new NotSupportedException();
+					default:
+						throw new NotSupportedException();
 				}
 			}
 		}

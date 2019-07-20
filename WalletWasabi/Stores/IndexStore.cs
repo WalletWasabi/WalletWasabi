@@ -152,12 +152,14 @@ namespace WalletWasabi.Stores
 				var oldIndexFilePath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), $"Index{Network}.dat");
 
 				// Before Wasabi 1.1.6
-				var oldFileNames = new[] {
+				var oldFileNames = new[]
+				{
 					"ImmatureIndex.dat" ,
 					"ImmatureIndex.dat.dig",
 					"MatureIndex.dat",
 					"MatureIndex.dat.dig"
 				};
+
 				var oldIndexFolderPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), "BitcoinStore", Network.ToString());
 
 				foreach (var fileName in oldFileNames)

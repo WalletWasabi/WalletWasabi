@@ -493,10 +493,7 @@ namespace WalletWasabi.Gui
 			KeyManager keyManager;
 
 			// Set the LastAccessTime.
-			new FileInfo(walletFullPath)
-			{
-				LastAccessTime = DateTime.Now
-			};
+			new FileInfo(walletFullPath) { LastAccessTime = DateTime.Now };
 
 			keyManager = KeyManager.FromFile(walletFullPath);
 			Logger.LogInfo($"Wallet loaded: {Path.GetFileNameWithoutExtension(keyManager.FilePath)}.");
@@ -528,7 +525,8 @@ namespace WalletWasabi.Gui
 							FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
 							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e \"display notification \\\"Received {amountString} BTC\\\" with title \\\"Wasabi\\\"\"" : $"--expire-time=3000 \"Wasabi\" \"Received {amountString} BTC\"",
 							CreateNoWindow = true
-						})) { }
+						}))
+						{ }
 					}
 				}
 			}
