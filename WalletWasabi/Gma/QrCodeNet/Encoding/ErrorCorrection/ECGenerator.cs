@@ -48,7 +48,7 @@ namespace Gma.QrCodeNet.Encoding.ErrorCorrection
 			}
 			if (vd.NumDataBytes != dataBytesOffset)
 			{
-				throw new ArgumentException("Data bytes does not match offset");
+				throw new ArgumentException("Data bytes do not match offset");
 			}
 
 			BitList codewords = new BitList();
