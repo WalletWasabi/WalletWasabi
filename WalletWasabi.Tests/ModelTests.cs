@@ -280,6 +280,7 @@ namespace WalletWasabi.Tests
 							Assert.Equal(1, e.NewItems[0]);
 							break;
 						}
+
 					case 2:
 						{
 							Assert.Equal(NotifyCollectionChangedAction.Add, e.Action);
@@ -288,6 +289,7 @@ namespace WalletWasabi.Tests
 							Assert.Equal(2, e.NewItems[0]);
 							break;
 						}
+
 					case 3:
 						{
 							Assert.Equal(NotifyCollectionChangedAction.Remove, e.Action);
@@ -296,6 +298,7 @@ namespace WalletWasabi.Tests
 							Assert.Equal(2, e.OldItems[0]);
 							break;
 						}
+
 					case 4:
 						{
 							Assert.Equal(NotifyCollectionChangedAction.Add, e.Action);
@@ -304,6 +307,7 @@ namespace WalletWasabi.Tests
 							Assert.Equal(3, e.NewItems[0]);
 							break;
 						}
+
 					case 5:
 						{
 							Assert.Equal(NotifyCollectionChangedAction.Reset, e.Action);
@@ -311,7 +315,9 @@ namespace WalletWasabi.Tests
 							Assert.Null(e.OldItems); // "Reset action must be initialized with no changed items."
 							break;
 						}
-					default: throw new NotSupportedException();
+
+					default:
+						throw new NotSupportedException();
 				}
 			}
 		}

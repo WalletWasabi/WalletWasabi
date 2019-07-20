@@ -18,17 +18,38 @@ namespace WalletWasabi.Gui.Converters
 			{
 				switch (status)
 				{
-					case SmartCoinStatus.Confirmed: return Brushes.Transparent;
-					case SmartCoinStatus.Unconfirmed: return Brushes.Transparent;
-					case SmartCoinStatus.MixingOnWaitingList: return Brushes.WhiteSmoke;
-					case SmartCoinStatus.MixingBanned: return Brushes.IndianRed;
-					case SmartCoinStatus.MixingInputRegistration: return Brushes.LimeGreen;
-					case SmartCoinStatus.MixingConnectionConfirmation: return Brushes.DarkGreen;
-					case SmartCoinStatus.MixingOutputRegistration: return Brushes.DarkGreen;
-					case SmartCoinStatus.MixingSigning: return Brushes.DarkGreen;
-					case SmartCoinStatus.SpentAccordingToBackend: return Brushes.IndianRed;
-					case SmartCoinStatus.MixingWaitingForConfirmation: return Brushes.LightYellow;
-					default: throw new NotSupportedException(); // Or rather not implemented?
+					case SmartCoinStatus.Confirmed:
+						return Brushes.Transparent;
+
+					case SmartCoinStatus.Unconfirmed:
+						return Brushes.Transparent;
+
+					case SmartCoinStatus.MixingOnWaitingList:
+						return Brushes.WhiteSmoke;
+
+					case SmartCoinStatus.MixingBanned:
+						return Brushes.IndianRed;
+
+					case SmartCoinStatus.MixingInputRegistration:
+						return Brushes.LimeGreen;
+
+					case SmartCoinStatus.MixingConnectionConfirmation:
+						return Brushes.DarkGreen;
+
+					case SmartCoinStatus.MixingOutputRegistration:
+						return Brushes.DarkGreen;
+
+					case SmartCoinStatus.MixingSigning:
+						return Brushes.DarkGreen;
+
+					case SmartCoinStatus.SpentAccordingToBackend:
+						return Brushes.IndianRed;
+
+					case SmartCoinStatus.MixingWaitingForConfirmation:
+						return Brushes.LightYellow;
+
+					default:
+						throw new NotSupportedException(); // Or rather not implemented?
 				}
 			}
 			else

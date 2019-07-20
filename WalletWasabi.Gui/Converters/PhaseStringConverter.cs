@@ -15,11 +15,20 @@ namespace WalletWasabi.Gui.Converters
 			{
 				switch (phase)
 				{
-					case CcjRoundPhase.InputRegistration: return "Registration";
-					case CcjRoundPhase.ConnectionConfirmation: return "Connection Confirmation";
-					case CcjRoundPhase.OutputRegistration: return "Output Registration";
-					case CcjRoundPhase.Signing: return "Signing";
-					default: return "";
+					case CcjRoundPhase.InputRegistration:
+						return "Registration";
+
+					case CcjRoundPhase.ConnectionConfirmation:
+						return "Connection Confirmation";
+
+					case CcjRoundPhase.OutputRegistration:
+						return "Output Registration";
+
+					case CcjRoundPhase.Signing:
+						return "Signing";
+
+					default:
+						return "";
 				}
 			}
 			else

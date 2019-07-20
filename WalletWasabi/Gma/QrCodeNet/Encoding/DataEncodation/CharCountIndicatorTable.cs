@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Gma.QrCodeNet.Encoding.DataEncodation
 {
@@ -8,7 +8,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		public static int[] GetCharCountIndicatorSet()
 		{
 			return new int[] { 8, 16, 16 };
-		} //
+		}
 
 		public static int GetBitCountInCharCountIndicator(int version)
 		{

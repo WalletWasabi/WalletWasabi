@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -30,6 +30,7 @@ namespace NSubsys
 					case PeUtility.SubSystemType.IMAGE_SUBSYSTEM_WINDOWS_GUI:
 						Console.WriteLine("NSubsys: Executable file is already a Win32 App!");
 						return true;
+
 					case PeUtility.SubSystemType.IMAGE_SUBSYSTEM_WINDOWS_CUI:
 						Console.WriteLine("NSubsys: Console app detected...");
 						Console.WriteLine("NSubsys: Converting...");
@@ -52,6 +53,7 @@ namespace NSubsys
 						}
 
 						return true;
+
 					default:
 						Console.WriteLine($"NSubsys: Unsupported subsystem number: {subsysVal}.");
 						return false;

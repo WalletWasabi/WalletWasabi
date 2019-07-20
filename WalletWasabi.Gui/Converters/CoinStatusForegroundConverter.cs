@@ -20,8 +20,11 @@ namespace WalletWasabi.Gui.Converters
 				{
 					case SmartCoinStatus.MixingInputRegistration:
 					case SmartCoinStatus.MixingOnWaitingList:
-					case SmartCoinStatus.MixingWaitingForConfirmation: return Brushes.Black;
-					default: return Brushes.White;
+					case SmartCoinStatus.MixingWaitingForConfirmation:
+						return Brushes.Black;
+
+					default:
+						return Brushes.White;
 				}
 			}
 			else

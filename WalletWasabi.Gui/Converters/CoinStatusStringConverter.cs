@@ -17,17 +17,38 @@ namespace WalletWasabi.Gui.Converters
 			{
 				switch (status)
 				{
-					case SmartCoinStatus.Confirmed: return "";
-					case SmartCoinStatus.Unconfirmed: return "";
-					case SmartCoinStatus.MixingOnWaitingList: return " queued  ";
-					case SmartCoinStatus.MixingBanned: return " banned  ";
-					case SmartCoinStatus.MixingInputRegistration: return " registered  ";
-					case SmartCoinStatus.MixingConnectionConfirmation: return " connection confirmed  ";
-					case SmartCoinStatus.MixingOutputRegistration: return " output registered  ";
-					case SmartCoinStatus.MixingSigning: return " signed  ";
-					case SmartCoinStatus.SpentAccordingToBackend: return " spent  ";
-					case SmartCoinStatus.MixingWaitingForConfirmation: return " waiting for confirmation  ";
-					default: return "";
+					case SmartCoinStatus.Confirmed:
+						return "";
+
+					case SmartCoinStatus.Unconfirmed:
+						return "";
+
+					case SmartCoinStatus.MixingOnWaitingList:
+						return " queued  ";
+
+					case SmartCoinStatus.MixingBanned:
+						return " banned  ";
+
+					case SmartCoinStatus.MixingInputRegistration:
+						return " registered  ";
+
+					case SmartCoinStatus.MixingConnectionConfirmation:
+						return " connection confirmed  ";
+
+					case SmartCoinStatus.MixingOutputRegistration:
+						return " output registered  ";
+
+					case SmartCoinStatus.MixingSigning:
+						return " signed  ";
+
+					case SmartCoinStatus.SpentAccordingToBackend:
+						return " spent  ";
+
+					case SmartCoinStatus.MixingWaitingForConfirmation:
+						return " waiting for confirmation  ";
+
+					default:
+						return "";
 				}
 			}
 			else

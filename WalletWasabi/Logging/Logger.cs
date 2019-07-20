@@ -181,7 +181,8 @@ namespace WalletWasabi.Logging
 									color = ConsoleColor.Red;
 									break;
 
-								default: break; // Keep original color.
+								default:
+									break; // Keep original color.
 							}
 
 							Console.ForegroundColor = color;

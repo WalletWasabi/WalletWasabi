@@ -2106,7 +2106,8 @@ namespace WalletWasabi.Tests
 					Assert.Equal(0, inputRegistrableRoundState.RegisteredPeerCount);
 
 					roundConfig.ConnectionConfirmationTimeout = 1; // One second.
-					await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true); coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+					await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
+					coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 					round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 					roundId = round.RoundId;
 					inputsRequest.RoundId = roundId;

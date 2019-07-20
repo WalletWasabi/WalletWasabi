@@ -18,9 +18,14 @@ namespace WalletWasabi.Gui.Converters
 			{
 				switch (status)
 				{
-					case SmartCoinStatus.Confirmed: return Brushes.Transparent;
-					case SmartCoinStatus.Unconfirmed: return Brushes.Transparent;
-					default: return Brushes.Black;
+					case SmartCoinStatus.Confirmed:
+						return Brushes.Transparent;
+
+					case SmartCoinStatus.Unconfirmed:
+						return Brushes.Transparent;
+
+					default:
+						return Brushes.Black;
 				}
 			}
 			else

@@ -391,6 +391,7 @@ namespace WalletWasabi.Backend.Controllers
 						round.StartAliceTimeout(alice.UniqueId);
 						break;
 					}
+
 				case CcjRoundPhase.ConnectionConfirmation:
 					{
 						alice.State = AliceState.ConnectionConfirmed;
@@ -409,6 +410,7 @@ namespace WalletWasabi.Backend.Controllers
 
 						break;
 					}
+
 				default:
 					{
 						TryLogLateRequest(roundId, CcjRoundPhase.ConnectionConfirmation);

@@ -349,7 +349,8 @@ namespace Mono.Options
 			}
 
 			Option p = new ActionOption(prototype, description, 1,
-					delegate (OptionValueCollection v) { action(v[0]); }, hidden);
+					delegate (OptionValueCollection v)
+					{ action(v[0]); }, hidden);
 			base.Add(p);
 			return this;
 		}
@@ -372,7 +373,8 @@ namespace Mono.Options
 			}
 
 			Option p = new ActionOption(prototype, description, 2,
-					delegate (OptionValueCollection v) { action(v[0], v[1]); }, hidden);
+					delegate (OptionValueCollection v)
+					{ action(v[0], v[1]); }, hidden);
 			base.Add(p);
 			return this;
 		}
