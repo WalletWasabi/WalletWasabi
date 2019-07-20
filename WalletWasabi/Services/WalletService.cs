@@ -1266,6 +1266,9 @@ namespace WalletWasabi.Services
 				.SendFees(fee)
 				.BuildTransaction(sign);
 
+			tx.Inputs.BIP69Sort();
+			tx.Outputs.BIP69Sort();
+
 			if (sign)
 			{
 				TransactionPolicyError[] checkResults = builder.Check(tx, fee);

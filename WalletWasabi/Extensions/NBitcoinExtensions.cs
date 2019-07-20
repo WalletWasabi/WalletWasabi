@@ -259,6 +259,23 @@ namespace NBitcoin
 			return new SmartTransaction(extractedTx, height, blockHash, blockIndex, label, firstSeenIfMempoolTime, isReplacement);
 		}
 
+		// See https://github.com/bitcoin/bips/blob/master/bip-0069.mediawiki
+		public static void BIP69Sort(this TxOutList list)
+		{
+			list.Sort((x, y) => {
+				int a = x.Value.CompareTo(y.Value);
+				return a != 0 ? a : x.ScriptPubKey.ToBytes().AsSpan().SequenceCompareTo(y.ScriptPubKey.ToBytes().AsSpan());
+			});
+		}
+
+		public static void BIP69Sort(this TxInList list)
+		{
+			list.Sort((x, y) => {
+				int a = x.PrevOut.Hash.CompareTo(y.PrevOut.Hash);
+				return a != 0 ? a : x.PrevOut.N.CompareTo(y.PrevOut.N);
+			});
+		}
+
 		public static void SortByAmount(this TxOutList list)
 		{
 			list.Sort((x, y) => x.Value.CompareTo(y.Value));
