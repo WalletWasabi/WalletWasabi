@@ -70,7 +70,7 @@ gpg --verify {file name}.asc {file name}.msi
 
 Example: `gpg --verify WasabiInstaller.msi.asc WasabiInstaller.msi`.
  
-If the message returned says `Good signature` and that it was signed by `Ficsór Ádám` with Primary key fingerprint: `21D7 CA45 565D BCCE BE45  115D B4B7 2266 C47E 075E`, then the software was not tampered with since the developer signed it.
+If the message returned says `Good signature` and that it was signed by `Ficsór Ádám` with primary key fingerprint: `21D7 CA45 565D BCCE BE45  115D B4B7 2266 C47E 075E`, then the software was not tampered with since the developer signed it.
  
 Remember to check again the PGP signature every time you make a new download.
 
@@ -113,7 +113,7 @@ sudo gpg2 --verify {file name}.asc {file name}.dmg
 
 Example: `gpg2 --verify Wasabi-1.1.6.dmg.asc Wasabi-1.1.6.dmg`.
 
-If the message returned says `Good signature from nopara73 aka Ficsór Ádám` and that it was signed with Primary key fingerprint: `21D7 CA45 565D BCCE BE45  115D B4B7 2266 C47E 075E`, then the software was not tampered with since the developer signed it.
+If the message returned says `Good signature from nopara73 aka Ficsór Ádám` and that it was signed with primary key fingerprint: `21D7 CA45 565D BCCE BE45  115D B4B7 2266 C47E 075E`, then the software was not tampered with since the developer signed it.
  
 Remember to check again the PGP signature every time you make a new download.
 
@@ -130,7 +130,7 @@ If you prefer the Graphical User Interface, this guide is yours. There is also a
 
 3. Download Wasabi's latest __release__ and the corresponding __.asc__ file.
 
-4. Double click on .asc file or right click it and navigate to More GpgEX options and click Verify. If the context menu is missing restart the computer.
+4. Double click on .asc file or right click it and navigate to More GpgEX options and click Verify. If the context menu is missing, restart the computer.
 
 ![](https://i.imgur.com/fJME8Yh.png)
 
@@ -142,7 +142,7 @@ If you prefer the Graphical User Interface, this guide is yours. There is also a
 
 ![](https://i.imgur.com/B3WZn1n.png)
 
-7. Add Ádám's certificate. (Next time you want to verify a new release you can skip the previous steps because the certificate will be there).
+7. Add Ádám's certificate. Next time you want to verify a new release you can skip the previous steps because the certificate will be there.
 
 ![](https://i.imgur.com/9zGpuI6.png)
 
@@ -174,7 +174,7 @@ If you prefer the Graphical User Interface, this guide is yours. There is also a
 
 4. Save the file and close.
 
-5. Right click on pgp.txt file. In the context menu navigate to More GpgEx options and click Import keys. If the context menu is missing restart the computer.
+5. Right click on pgp.txt file. In the context menu navigate to More GpgEx options and click Import keys. If the context menu is missing, restart the computer.
 
 ![Imgur](https://i.imgur.com/qmuF3Hx.png)
 
