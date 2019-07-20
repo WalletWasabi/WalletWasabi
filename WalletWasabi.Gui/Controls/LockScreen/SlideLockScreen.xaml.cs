@@ -27,6 +27,33 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			set => SetAndRaise(IsLockedProperty, ref _isLocked, value);
 		}
 
+		public static readonly DirectProperty<SlideLockScreen, double> OffsetProperty =
+					AvaloniaProperty.RegisterDirect<SlideLockScreen, double>(nameof(Offset),
+															  o => o.Offset,
+															  (o, v) => o.Offset = v);
+
+		private double _offset;
+
+		public double Offset
+		{
+			get => _offset;
+			set => SetAndRaise(OffsetProperty, ref _offset, value);
+		}
+
+		public static readonly DirectProperty<SlideLockScreen, bool> DoneAnimatingProperty =
+			AvaloniaProperty.RegisterDirect<SlideLockScreen, bool>(nameof(DoneAnimating),
+													  o => o.DoneAnimating,
+													  (o, v) => o.DoneAnimating = v);
+
+		private bool _doneAnimating;
+
+		public bool DoneAnimating
+		{
+			get => _doneAnimating;
+			set => SetAndRaise(DoneAnimatingProperty, ref _doneAnimating, value);
+		}
+
+
 		private TranslateTransform TargetTransform { get; } = new TranslateTransform();
 		private Thumb DragThumb { get; }
 
@@ -34,19 +61,22 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		{
 			var vm = this.DataContext as SlideLockScreenViewModel;
 
-			vm.WhenAnyValue(x => x.Offset)
+			this.WhenAnyValue(x => x.Offset)
 			  .Subscribe(x => TargetTransform.Y = x)
-			  .DisposeWith(vm.Disposables);
-
-			vm.WhenAnyValue(x => x.IsLocked)
-			  .Where(x => x)
-			  .Subscribe(x => vm.Offset = 0)
 			  .DisposeWith(vm.Disposables);
 
 			this.WhenAnyValue(x => x.Bounds)
 				.Select(x => x.Height)
-				.Subscribe(x => vm.Threshold = x * vm.ThresholdPercent)
+				.Subscribe(x => vm.BoundsHeight = x)
 				.DisposeWith(vm.Disposables);
+
+			this.WhenAnyValue(x => x.DoneAnimating)
+				.Subscribe(x =>
+				{
+					if (x) vm.StateChanged = false;
+				})
+				.DisposeWith(vm.Disposables);
+
 
 			Observable.FromEventPattern(DragThumb, nameof(DragThumb.DragCompleted))
 					  .Subscribe(e => vm.IsUserDragging = false)
@@ -62,8 +92,21 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 					  .Subscribe(x => vm.Offset = x)
 					  .DisposeWith(vm.Disposables);
 
-			Clock.Where(x => vm.IsLocked)
-				 .Subscribe(vm.OnClockTick)
+			vm.WhenAnyValue(x => x.StateChanged)
+				.Subscribe(x =>
+				{
+					if (x)
+					{
+						this.Classes.Add("statechanged");
+					}
+					else
+					{
+						this.Classes.Remove("statechanged");
+					}
+				})
+				.DisposeWith(vm.Disposables);
+			 
+			Clock.Subscribe(vm.OnClockTick)
 				 .DisposeWith(vm.Disposables);
 		}
 

@@ -1,7 +1,7 @@
-﻿<lockscreen:SlideLockScreen xmlns="https://github.com/avaloniaui"
-  xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
-  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  IsLocked="{Binding IsLocked}">
+﻿<lockscreen:SlideLockScreen xmlns="https://github.com/avaloniaui" 
+  xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui" 
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" IsLocked="{Binding IsLocked}" Offset="{Binding Offset}">
+
   <lockscreen:SlideLockScreen.Clock>
     <Clock />
   </lockscreen:SlideLockScreen.Clock>
@@ -82,32 +82,21 @@
         </Style.Animations>
       </Style>
 
-      <Style Selector="Grid#Shade">
-        <Setter Property="Opacity" Value="0" />
-        <Setter Property="TranslateTransform.Y" Value="-100" />
-      </Style>
-
-      <Style Selector="lockscreen|SlideLockScreen[IsLocked=true] Grid#Shade">
+      <Style Selector="lockscreen|SlideLockScreen.statechanged">
         <Style.Animations>
           <Animation FillMode="Both" Duration="0:0:1.5" Easing="QuarticEaseInOut">
+            <KeyFrame Cue="0%">
+              <Setter Property="DoneAnimating" Value="False" />
+            </KeyFrame>
             <KeyFrame Cue="100%">
-              <Setter Property="Opacity" Value="1" />
-              <Setter Property="TranslateTransform.Y" Value="0" />
+              <Setter Property="Opacity" Value="{Binding TargetOpacity}" />
+              <Setter Property="Offset" Value="{Binding TargetOffset}" />
+              <Setter Property="DoneAnimating" Value="True" />
             </KeyFrame>
           </Animation>
         </Style.Animations>
       </Style>
 
-      <Style Selector="lockscreen|SlideLockScreen[IsLocked=false] Grid#Shade">
-        <Style.Animations>
-          <Animation FillMode="Both" Duration="0:0:1.5" Easing="QuarticEaseInOut">
-            <KeyFrame Cue="100%">
-              <Setter Property="Opacity" Value="0" />
-              <Setter Property="TranslateTransform.Y" Value="-100" />
-            </KeyFrame>
-          </Animation>
-        </Style.Animations>
-      </Style>
     </Styles>
   </lockscreen:SlideLockScreen.Styles>
   <Grid>
@@ -116,6 +105,9 @@
         <Border Classes="Chevron Chev1" />
         <Border Classes="Chevron Chev2" />
         <Border Classes="Chevron Chev3" />
+      </Grid>
+      <Grid VerticalAlignment="Bottom" HorizontalAlignment="Center">
+        <Border Classes="Chevron" Opacity="0.4" />
       </Grid>
     </Grid>
     <Thumb x:Name="PART_DragThumb">
