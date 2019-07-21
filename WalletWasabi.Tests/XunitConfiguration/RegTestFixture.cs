@@ -33,18 +33,21 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			BackendRegTestNode = BackendNodeBuilder.Nodes[0];
 
 			var rpc = BackendRegTestNode.CreateRpcClient();
-			var connectionString = new RPCCredentialString()
-			{
-				Server = rpc.Address.AbsoluteUri,
-				UserPassword = BackendRegTestNode.Creds
-			}.ToString();
+			var connectionString = $"{BackendRegTestNode.Creds.UserName}:{BackendRegTestNode.Creds.Password}";
 
 			var testnetBackendDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests", "Backend"));
 			IoHelpers.DeleteRecursivelyWithMagicDustAsync(testnetBackendDir).GetAwaiter().GetResult();
 			Thread.Sleep(100);
 			Directory.CreateDirectory(testnetBackendDir);
 			Thread.Sleep(100);
-			var config = new Config(BackendNodeBuilder.Network, connectionString, new IPEndPoint(IPAddress.Loopback, Network.Main.DefaultPort), new IPEndPoint(IPAddress.Loopback, Network.TestNet.DefaultPort), BackendRegTestNode.Endpoint);
+			var config = new Config(
+				BackendNodeBuilder.Network, connectionString,
+				new IPEndPoint(IPAddress.Loopback, Network.Main.DefaultPort),
+				new IPEndPoint(IPAddress.Loopback, Network.TestNet.DefaultPort),
+				BackendRegTestNode.Endpoint,
+				new IPEndPoint(IPAddress.Loopback, Network.Main.RPCPort),
+				new IPEndPoint(IPAddress.Loopback, Network.TestNet.RPCPort),
+				EndPointParser.TryParse(rpc.Address.DnsSafeHost, rpc.Address.Port, out EndPoint rep) ? rep : throw new NotSupportedException());
 			var configFilePath = Path.Combine(testnetBackendDir, "Config.json");
 			config.SetFilePath(configFilePath);
 			config.ToFileAsync().GetAwaiter().GetResult();

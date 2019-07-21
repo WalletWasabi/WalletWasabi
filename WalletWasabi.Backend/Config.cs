@@ -1,4 +1,5 @@
 using NBitcoin;
+using NBitcoin.RPC;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -39,6 +40,18 @@ namespace WalletWasabi.Backend
 		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinP2pPort)]
 		public EndPoint RegTestBitcoinP2pEndPoint { get; internal set; }
 
+		[JsonProperty(PropertyName = "MainNetBitcoinCoreRpcEndPoint")]
+		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinCoreRpcPort)]
+		public EndPoint MainNetBitcoinCoreRpcEndPoint { get; internal set; }
+
+		[JsonProperty(PropertyName = "TestNetBitcoinCoreRpcEndPoint")]
+		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTestNetBitcoinCoreRpcPort)]
+		public EndPoint TestNetBitcoinCoreRpcEndPoint { get; internal set; }
+
+		[JsonProperty(PropertyName = "RegTestBitcoinCoreRpcEndPoint")]
+		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinCoreRpcPort)]
+		public EndPoint RegTestBitcoinCoreRpcEndPoint { get; internal set; }
+
 		public EndPoint GetBitcoinP2pEndPoint()
 		{
 			if (Network == Network.Main)
@@ -59,6 +72,26 @@ namespace WalletWasabi.Backend
 			}
 		}
 
+		public EndPoint GetBitcoinCoreRpcEndPoint()
+		{
+			if (Network == Network.Main)
+			{
+				return MainNetBitcoinCoreRpcEndPoint;
+			}
+			else if (Network == Network.TestNet)
+			{
+				return TestNetBitcoinCoreRpcEndPoint;
+			}
+			else if (Network == Network.RegTest)
+			{
+				return RegTestBitcoinCoreRpcEndPoint;
+			}
+			else
+			{
+				throw new NotSupportedException($"{nameof(Network)} not supported: {Network}.");
+			}
+		}
+
 		public Config()
 		{
 		}
@@ -72,7 +105,10 @@ namespace WalletWasabi.Backend
 			string bitcoinRpcConnectionString,
 			EndPoint mainNetBitcoinP2pEndPoint,
 			EndPoint testNetBitcoinP2pEndPoint,
-			EndPoint regTestBitcoinP2pEndPoint)
+			EndPoint regTestBitcoinP2pEndPoint,
+			EndPoint mainNetBitcoinCoreRpcEndPoint,
+			EndPoint testNetBitcoinCoreRpcEndPoint,
+			EndPoint regTestBitcoinCoreRpcEndPoint)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			BitcoinRpcConnectionString = Guard.NotNullOrEmptyOrWhitespace(nameof(bitcoinRpcConnectionString), bitcoinRpcConnectionString);
@@ -80,6 +116,10 @@ namespace WalletWasabi.Backend
 			MainNetBitcoinP2pEndPoint = Guard.NotNull(nameof(mainNetBitcoinP2pEndPoint), mainNetBitcoinP2pEndPoint);
 			TestNetBitcoinP2pEndPoint = Guard.NotNull(nameof(testNetBitcoinP2pEndPoint), testNetBitcoinP2pEndPoint);
 			RegTestBitcoinP2pEndPoint = Guard.NotNull(nameof(regTestBitcoinP2pEndPoint), regTestBitcoinP2pEndPoint);
+
+			MainNetBitcoinCoreRpcEndPoint = Guard.NotNull(nameof(mainNetBitcoinCoreRpcEndPoint), mainNetBitcoinCoreRpcEndPoint);
+			TestNetBitcoinCoreRpcEndPoint = Guard.NotNull(nameof(testNetBitcoinCoreRpcEndPoint), testNetBitcoinCoreRpcEndPoint);
+			RegTestBitcoinCoreRpcEndPoint = Guard.NotNull(nameof(regTestBitcoinCoreRpcEndPoint), regTestBitcoinCoreRpcEndPoint);
 		}
 
 		/// <inheritdoc />
@@ -105,6 +145,10 @@ namespace WalletWasabi.Backend
 			TestNetBitcoinP2pEndPoint = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTestNetBitcoinP2pPort);
 			RegTestBitcoinP2pEndPoint = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinP2pPort);
 
+			MainNetBitcoinCoreRpcEndPoint = new IPEndPoint(IPAddress.Loopback, Constants.DefaultMainNetBitcoinCoreRpcPort);
+			TestNetBitcoinCoreRpcEndPoint = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTestNetBitcoinCoreRpcPort);
+			RegTestBitcoinCoreRpcEndPoint = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinCoreRpcPort);
+
 			if (!File.Exists(FilePath))
 			{
 				Logger.LogInfo<Config>($"{nameof(Config)} file did not exist. Created at path: `{FilePath}`.");
@@ -120,6 +164,10 @@ namespace WalletWasabi.Backend
 				MainNetBitcoinP2pEndPoint = config.MainNetBitcoinP2pEndPoint ?? MainNetBitcoinP2pEndPoint;
 				TestNetBitcoinP2pEndPoint = config.TestNetBitcoinP2pEndPoint ?? TestNetBitcoinP2pEndPoint;
 				RegTestBitcoinP2pEndPoint = config.RegTestBitcoinP2pEndPoint ?? RegTestBitcoinP2pEndPoint;
+
+				MainNetBitcoinCoreRpcEndPoint = config.MainNetBitcoinCoreRpcEndPoint ?? MainNetBitcoinCoreRpcEndPoint;
+				TestNetBitcoinCoreRpcEndPoint = config.TestNetBitcoinCoreRpcEndPoint ?? TestNetBitcoinCoreRpcEndPoint;
+				RegTestBitcoinCoreRpcEndPoint = config.RegTestBitcoinCoreRpcEndPoint ?? RegTestBitcoinCoreRpcEndPoint;
 
 				if (TryEnsureBackwardsCompatibility(jsonString))
 				{
