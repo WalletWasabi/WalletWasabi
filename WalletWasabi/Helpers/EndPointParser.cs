@@ -95,8 +95,8 @@ namespace System.Net
                 host = IPAddress.Loopback.ToString();
             }
 
-            bool isPortInValidRange = port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort;
-            if (isPortInValidRange)
+            bool isPortInvalid = port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort;
+            if (isPortInvalid)
             {
                 if (defaultPort == -1)
                 {
