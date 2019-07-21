@@ -18,26 +18,16 @@ namespace WalletWasabi.Gui.Models
 
 		public LoadWalletEntry(HardwareWalletInfo hwi)
 		{
-			if (string.IsNullOrWhiteSpace(hwi.Error))
-			{
-				WalletName = hwi.Type.ToString();
-			}
-			else if (!hwi.Initialized)
-			{
-				WalletName = hwi.Type.ToString() + $" - Not Initialized";
-			}
-			else if (!hwi.Ready)
-			{
-				WalletName = hwi.Type.ToString() + $" - Device Not Ready";
-			}
-			else if (hwi.NeedPin)
-			{
-				WalletName = hwi.Type.ToString();
-			}
-			else
-			{
-				WalletName = hwi.Type.ToString() + $" - Error: {hwi.Error}";
-			}
+			WalletName = string.IsNullOrWhiteSpace(hwi.Error)
+				? hwi.Type.ToString()
+				: !hwi.Initialized
+					? hwi.Type.ToString() + $" - Not Initialized"
+					: !hwi.Ready
+						? hwi.Type.ToString() + $" - Device Not Ready"
+						: hwi.NeedPin
+							? hwi.Type.ToString()
+							: hwi.Type.ToString() + $" - Error: {hwi.Error}";
+
 			HardwareWalletInfo = hwi;
 		}
 

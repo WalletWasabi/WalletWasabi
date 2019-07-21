@@ -150,14 +150,9 @@ namespace WalletWasabi.Gui.Behaviors
 					if (string.IsNullOrEmpty(AssociatedObject.Text))
 					{
 						var result = await IsThereABitcoinAddressOnTheClipboardAsync();
-						if (result.isAddress)
-						{
-							MyTextBoxState = TextBoxState.AddressInsert;
-						}
-						else
-						{
-							MyTextBoxState = TextBoxState.NormalTextBoxOperation;
-						}
+						MyTextBoxState = result.isAddress
+							? TextBoxState.AddressInsert
+							: TextBoxState.NormalTextBoxOperation;
 					}
 					else
 					{

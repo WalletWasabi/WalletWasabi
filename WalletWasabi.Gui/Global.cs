@@ -153,14 +153,9 @@ namespace WalletWasabi.Gui
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
 			var connectionParameters = new NodeConnectionParameters { UserAgent = "/Satoshi:0.18.0/" };
 
-			if (Config.UseTor.Value)
-			{
-				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
-			}
-			else
-			{
-				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
-			}
+			Synchronizer = Config.UseTor.Value
+				? new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint())
+				: new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
 
 			UpdateChecker = new UpdateChecker(Synchronizer.WasabiClient);
 
@@ -187,14 +182,10 @@ namespace WalletWasabi.Gui
 
 			#region TorProcessInitialization
 
-			if (Config.UseTor.Value)
-			{
-				TorManager = new TorProcessManager(Config.GetTorSocks5EndPoint(), TorLogsFile);
-			}
-			else
-			{
-				TorManager = TorProcessManager.Mock();
-			}
+			TorManager = Config.UseTor.Value
+				? new TorProcessManager(Config.GetTorSocks5EndPoint(), TorLogsFile)
+				: TorProcessManager.Mock();
+
 			TorManager.Start(false, DataDir);
 
 			var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
@@ -408,14 +399,9 @@ namespace WalletWasabi.Gui
 					await Task.Delay(100, token);
 				}
 
-				if (Config.UseTor.Value)
-				{
-					ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
-				}
-				else
-				{
-					ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, Config.GetFallbackBackendUri(), null);
-				}
+				ChaumianClient = Config.UseTor.Value
+					? new CcjClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint())
+					: new CcjClient(Synchronizer, Network, keyManager, Config.GetFallbackBackendUri(), null);
 
 				try
 				{

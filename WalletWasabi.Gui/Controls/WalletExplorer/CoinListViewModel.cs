@@ -476,20 +476,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetCoinJoinStatusWidth()
 		{
-			if (Coins.Any(x => x.Status == SmartCoinStatus.MixingConnectionConfirmation
+			CoinJoinStatusWidth = Coins.Any(x => x.Status == SmartCoinStatus.MixingConnectionConfirmation
 				 || x.Status == SmartCoinStatus.MixingInputRegistration
 				 || x.Status == SmartCoinStatus.MixingOnWaitingList
 				 || x.Status == SmartCoinStatus.MixingOutputRegistration
 				 || x.Status == SmartCoinStatus.MixingSigning
 				 || x.Status == SmartCoinStatus.MixingWaitingForConfirmation
-				 || x.Status == SmartCoinStatus.SpentAccordingToBackend))
-			{
-				CoinJoinStatusWidth = new GridLength(180);
-			}
-			else
-			{
-				CoinJoinStatusWidth = new GridLength(0);
-			}
+				 || x.Status == SmartCoinStatus.SpentAccordingToBackend)
+				? new GridLength(180)
+				: new GridLength(0);
 		}
 
 		public void OnCoinIsSelectedChanged(CoinViewModel cvm)

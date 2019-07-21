@@ -154,22 +154,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					continue;
 				}
 
-				DateTimeOffset dateTime;
-				if (foundTransaction.Height.Type == HeightType.Chain)
-				{
-					if (walletService.ProcessedBlocks.Any(x => x.Value.height == foundTransaction.Height))
-					{
-						dateTime = walletService.ProcessedBlocks.First(x => x.Value.height == foundTransaction.Height).Value.dateTime;
-					}
-					else
-					{
-						dateTime = DateTimeOffset.UtcNow;
-					}
-				}
-				else
-				{
-					dateTime = foundTransaction.FirstSeenIfMempoolTime ?? DateTimeOffset.UtcNow;
-				}
+				DateTimeOffset dateTime = foundTransaction.Height.Type == HeightType.Chain
+					? walletService.ProcessedBlocks.Any(x => x.Value.height == foundTransaction.Height)
+						? walletService.ProcessedBlocks.First(x => x.Value.height == foundTransaction.Height).Value.dateTime
+						: DateTimeOffset.UtcNow
+					: foundTransaction.FirstSeenIfMempoolTime ?? DateTimeOffset.UtcNow;
+
 				if (found != default) // if found
 				{
 					txRecordList.Remove(found);
@@ -185,35 +175,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				if (coin.SpenderTransactionId != null)
 				{
 					SmartTransaction foundSpenderTransaction = walletService.TransactionCache.First(x => x.GetHash() == coin.SpenderTransactionId);
-					if (foundSpenderTransaction.Height.Type == HeightType.Chain)
-					{
-						if (walletService.ProcessedBlocks != null) // NullReferenceException appeared here.
-						{
-							if (walletService.ProcessedBlocks.Any(x => x.Value.height == foundSpenderTransaction.Height))
-							{
-								if (walletService.ProcessedBlocks != null) // NullReferenceException appeared here.
-								{
-									dateTime = walletService.ProcessedBlocks.First(x => x.Value.height == foundSpenderTransaction.Height).Value.dateTime;
-								}
-								else
-								{
-									dateTime = DateTimeOffset.UtcNow;
-								}
-							}
-							else
-							{
-								dateTime = DateTimeOffset.UtcNow;
-							}
-						}
-						else
-						{
-							dateTime = DateTimeOffset.UtcNow;
-						}
-					}
-					else
-					{
-						dateTime = foundSpenderTransaction.FirstSeenIfMempoolTime ?? DateTimeOffset.UtcNow;
-					}
+
+					dateTime = foundSpenderTransaction.Height.Type == HeightType.Chain
+						? walletService.ProcessedBlocks != null // NullReferenceException appeared here.
+							? walletService.ProcessedBlocks.Any(x => x.Value.height == foundSpenderTransaction.Height)
+								? walletService.ProcessedBlocks != null // NullReferenceException appeared here.
+									? walletService.ProcessedBlocks.First(x => x.Value.height == foundSpenderTransaction.Height).Value.dateTime
+									: DateTimeOffset.UtcNow
+								: DateTimeOffset.UtcNow
+							: DateTimeOffset.UtcNow
+						: foundSpenderTransaction.FirstSeenIfMempoolTime ?? DateTimeOffset.UtcNow;
 
 					var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.transactionId == coin.SpenderTransactionId);
 					if (foundSpenderCoin != default) // if found

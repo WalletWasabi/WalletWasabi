@@ -488,18 +488,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return;
 			}
 
-			if (IsHardwareBusy)
-			{
-				BuildTransactionButtonText = WaitingForHardwareWalletButtonTextString;
-			}
-			else if (IsBusy)
-			{
-				BuildTransactionButtonText = SendingTransactionButtonTextString;
-			}
-			else
-			{
-				BuildTransactionButtonText = SendTransactionButtonTextString;
-			}
+			BuildTransactionButtonText = IsHardwareBusy
+				? WaitingForHardwareWalletButtonTextString
+				: IsBusy
+					? SendingTransactionButtonTextString
+					: SendTransactionButtonTextString;
 		}
 
 		private void SetAmountWatermark(Money amount)
@@ -519,14 +512,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					Logging.Logger.LogTrace<SendTabViewModel>(ex);
 				}
-				if (amountUsd != 0)
-				{
-					AmountWatermarkText = $"Amount (BTC) ~ ${amountUsd}";
-				}
-				else
-				{
-					AmountWatermarkText = "Amount (BTC)";
-				}
+
+				AmountWatermarkText = amountUsd != 0
+					? $"Amount (BTC) ~ ${amountUsd}"
+					: "Amount (BTC)";
 			}
 		}
 
@@ -631,14 +620,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			if (IsMax)
 			{
-				if (AllSelectedAmount == Money.Zero)
-				{
-					AmountText = "No Coins Selected";
-				}
-				else
-				{
-					AmountText = $"~ {AllSelectedAmount.ToString(false, true)}";
-				}
+				AmountText = AllSelectedAmount == Money.Zero
+					? "No Coins Selected"
+					: $"~ {AllSelectedAmount.ToString(false, true)}";
 			}
 		}
 
