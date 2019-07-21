@@ -114,8 +114,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						var path = selected.First();
 						var jsonString = await File.ReadAllTextAsync(path);
 						var json = JObject.Parse(jsonString);
-						var xpubString = json["ExtPubKey"].ToString();
-						var mfpString = json["MasterFingerprint"].ToString();
+						var xpubString = json[$"{nameof(ExtPubKey)}"].ToString();
+						var mfpString = json[$"{nameof(SelectedWallet.HardwareWalletInfo.MasterFingerprint)}"].ToString();
 
 						// https://github.com/zkSNACKs/WalletWasabi/pull/1663#issuecomment-508073066
 						// Coldcard 2.1.0 improperly implemented Wasabi skeleton fingerpring at first, so we must reverse byte order.

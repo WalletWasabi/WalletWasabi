@@ -314,12 +314,12 @@ namespace Nito.Collections
 		{
 			if (value is null && default(T) != null)
 			{
-				throw new ArgumentNullException(nameof(value), "Value cannot be null.");
+				throw new ArgumentNullException(nameof(value), $"{nameof(value)} cannot be null.");
 			}
 
 			if (!IsT(value))
 			{
-				throw new ArgumentException("Value is of incorrect type.", nameof(value));
+				throw new ArgumentException($"{nameof(value)} is of incorrect type.", nameof(value));
 			}
 
 			AddToBack((T)value);
@@ -340,12 +340,12 @@ namespace Nito.Collections
 		{
 			if (value is null && default(T) != null)
 			{
-				throw new ArgumentNullException(nameof(value), "Value cannot be null.");
+				throw new ArgumentNullException(nameof(value), $"{nameof(value)} cannot be null.");
 			}
 
 			if (!IsT(value))
 			{
-				throw new ArgumentException("Value is of incorrect type.", nameof(value));
+				throw new ArgumentException($"{nameof(value)} is of incorrect type.", nameof(value));
 			}
 
 			Insert(index, (T)value);
@@ -371,12 +371,12 @@ namespace Nito.Collections
 			{
 				if (value is null && default(T) != null)
 				{
-					throw new ArgumentNullException(nameof(value), "Value cannot be null.");
+					throw new ArgumentNullException(nameof(value), $"{nameof(value)} cannot be null.");
 				}
 
 				if (!IsT(value))
 				{
-					throw new ArgumentException("Value is of incorrect type.", nameof(value));
+					throw new ArgumentException($"{nameof(value)} is of incorrect type.", nameof(value));
 				}
 
 				this[index] = (T)value;
