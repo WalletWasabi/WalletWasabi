@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.Tabs
 	{
 		private CompositeDisposable Disposables { get; set; }
 
-		private string _network;
+		private Network _network;
 		private string _torSocks5EndPoint;
 		private string _bitcoinP2pEndPoint;
 		private bool _autocopy;
@@ -46,9 +46,9 @@ namespace WalletWasabi.Gui.Tabs
 				{
 					await config.LoadFileAsync();
 
-					var configBitcoinP2pEndPoint = Network == NBitcoin.Network.Main.Name
+					var configBitcoinP2pEndPoint = Network == Network.Main
 						? config.MainNetBitcoinP2pEndPoint
-						: (Network == NBitcoin.Network.TestNet.Name
+						: (Network == Network.TestNet
 							? config.TestNetBitcoinP2pEndPoint
 							: config.RegTestBitcoinP2pEndPoint);
 
@@ -87,7 +87,7 @@ namespace WalletWasabi.Gui.Tabs
 			{
 				await config.LoadFileAsync();
 
-				Network = config.Network.ToString();
+				Network = config.Network;
 				TorSocks5EndPoint = config.TorSocks5EndPoint.ToString(-1);
 				UseTor = config.UseTor.Value;
 
@@ -141,7 +141,7 @@ namespace WalletWasabi.Gui.Tabs
 			"RegTest"
 		};
 
-		public string Network
+		public Network Network
 		{
 			get => _network;
 			set => this.RaiseAndSetIfChanged(ref _network, value);
@@ -211,12 +211,11 @@ namespace WalletWasabi.Gui.Tabs
 
 		private void Save()
 		{
-			if (string.IsNullOrWhiteSpace(Network))
+			var network = Network;
+			if (network is null)
 			{
 				return;
 			}
-
-			var network = NBitcoin.Network.GetNetwork(Network);
 
 			var isValid =
 				string.IsNullOrEmpty(ValidatePrivacyLevel(SomePrivacyLevel, whiteSpaceOk: false))
@@ -310,7 +309,7 @@ namespace WalletWasabi.Gui.Tabs
 			=> ValidateEndPoint(TorSocks5EndPoint, Constants.DefaultTorSocksPort, whiteSpaceOk: true);
 
 		public string ValidateBitcoinP2pEndPoint()
-			=> ValidateEndPoint(BitcoinP2pEndPoint, NBitcoin.Network.GetNetwork(Network).DefaultPort, whiteSpaceOk: true);
+			=> ValidateEndPoint(BitcoinP2pEndPoint, Network.DefaultPort, whiteSpaceOk: true);
 
 		public string ValidatePrivacyLevel(string value, bool whiteSpaceOk)
 		{
