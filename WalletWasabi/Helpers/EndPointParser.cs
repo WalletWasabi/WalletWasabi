@@ -53,7 +53,7 @@ namespace System.Net
                 endPointString = endPointString.TrimEnd(':', '/');
                 var parts = endPointString.Split(':', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim().TrimEnd('/').TrimEnd()).ToArray();
 
-                var isDefaultPortInvalid = !ushort.TryParse(defaultPort.ToString(), out _);
+                var isDefaultPortInvalid = !ushort.TryParse(defaultPort.ToString(), out ushort dp) || dp < IPEndPoint.MinPort || dp > IPEndPoint.MaxPort;
                 int port;
                 if (parts.Length == 0)
                 {
@@ -73,20 +73,13 @@ namespace System.Net
                 else if (parts.Length == 2)
                 {
                     var portString = parts[1];
-                    if (ushort.TryParse(portString, out ushort p))
+                    if (ushort.TryParse(portString, out ushort p) && p >= IPEndPoint.MinPort && p <= IPEndPoint.MaxPort)
                     {
                         port = p;
                     }
                     else
                     {
-                        if (isDefaultPortInvalid)
-                        {
-                            return false;
-                        }
-                        else
-                        {
-                            port = defaultPort;
-                        }
+                        return false;
                     }
                 }
                 else
@@ -100,33 +93,13 @@ namespace System.Net
                     host = IPAddress.Loopback.ToString();
                 }
 
-                bool isPortInvalid = port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort || !ushort.TryParse(port.ToString(), out _);
-                if (isPortInvalid)
-                {
-                    if (isDefaultPortInvalid)
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        port = defaultPort;
-                    }
-                }
-
                 if (IPAddress.TryParse(host, out IPAddress addr))
                 {
                     endPoint = new IPEndPoint(addr, port);
                 }
                 else
                 {
-                    try
-                    {
-                        endPoint = new DnsEndPoint(host, port);
-                    }
-                    catch
-                    {
-                        return false;
-                    }
+                    endPoint = new DnsEndPoint(host, port);
                 }
 
                 return true;
