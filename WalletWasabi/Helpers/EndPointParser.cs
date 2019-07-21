@@ -37,7 +37,7 @@ namespace System.Net
             return endPointString;
         }
 
-        /// <param name="defaultPort">If set to -1 and it's needed to use, then this function returns false. Use 0 if you want to just discard the port.</param>
+        /// <param name="defaultPort">If set to -1 and it's needed to use, then this function returns false.</param>
         public static bool TryParse(string endPointString, int defaultPort, out EndPoint endPoint)
         {
             endPoint = null;

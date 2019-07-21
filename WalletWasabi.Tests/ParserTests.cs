@@ -78,13 +78,6 @@ namespace WalletWasabi.Tests
                 AssertEndPointParserOutputs(success, ep, host, 5000);
             }
 
-            // Zero can be used as a discarded port.
-            foreach (var inputString in inputsWithoutPorts)
-            {
-                var success = EndPointParser.TryParse(inputString, 0, out EndPoint ep);
-                AssertEndPointParserOutputs(success, ep, host, 0);
-            }
-
             // -1 means default port is not accepted.
             foreach (var inputString in inputsWithoutPorts)
             {

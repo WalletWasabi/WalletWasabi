@@ -211,13 +211,14 @@ namespace WalletWasabi.Gui.Tabs
 
 		private void Save()
 		{
+			var network = NBitcoin.Network.GetNetwork(Network);
 			var isValid =
 				string.IsNullOrEmpty(ValidatePrivacyLevel(SomePrivacyLevel, whiteSpaceOk: false))
 				&& string.IsNullOrEmpty(ValidatePrivacyLevel(FinePrivacyLevel, whiteSpaceOk: false))
 				&& string.IsNullOrEmpty(ValidatePrivacyLevel(StrongPrivacyLevel, whiteSpaceOk: false))
 				&& string.IsNullOrEmpty(ValidateDustThreshold(DustThreshold, whiteSpaceOk: false))
-				&& string.IsNullOrEmpty(ValidateEndPoint(TorSocks5EndPoint, whiteSpaceOk: false))
-				&& string.IsNullOrEmpty(ValidateEndPoint(BitcoinP2pEndPoint, whiteSpaceOk: false));
+				&& string.IsNullOrEmpty(ValidateEndPoint(TorSocks5EndPoint, Constants.DefaultTorSocksPort, whiteSpaceOk: false))
+				&& string.IsNullOrEmpty(ValidateEndPoint(BitcoinP2pEndPoint, network.DefaultPort, whiteSpaceOk: false));
 
 			if (!isValid)
 			{
@@ -237,7 +238,6 @@ namespace WalletWasabi.Gui.Tabs
 				{
 					await config.LoadFileAsync();
 
-					var network = NBitcoin.Network.GetNetwork(Network);
 					var torSocks5EndPoint = EndPointParser.TryParse(TorSocks5EndPoint, Constants.DefaultTorSocksPort, out EndPoint torEp) ? torEp : null;
 					var bitcoinP2pEndPoint = EndPointParser.TryParse(BitcoinP2pEndPoint, network.DefaultPort, out EndPoint p2pEp) ? p2pEp : null;
 					var useTor = UseTor;
@@ -306,10 +306,10 @@ namespace WalletWasabi.Gui.Tabs
 			=> ValidateDustThreshold(DustThreshold, whiteSpaceOk: true);
 
 		public string ValidateTorSocks5EndPoint()
-			=> ValidateEndPoint(TorSocks5EndPoint, whiteSpaceOk: true);
+			=> ValidateEndPoint(TorSocks5EndPoint, Constants.DefaultTorSocksPort, whiteSpaceOk: true);
 
 		public string ValidateBitcoinP2pEndPoint()
-			=> ValidateEndPoint(BitcoinP2pEndPoint, whiteSpaceOk: true);
+			=> ValidateEndPoint(BitcoinP2pEndPoint, NBitcoin.Network.GetNetwork(Network).DefaultPort, whiteSpaceOk: true);
 
 		public string ValidatePrivacyLevel(string value, bool whiteSpaceOk)
 		{
@@ -341,14 +341,14 @@ namespace WalletWasabi.Gui.Tabs
 			return "Invalid dust threshold.";
 		}
 
-		public string ValidateEndPoint(string endPoint, bool whiteSpaceOk)
+		public string ValidateEndPoint(string endPoint, int defaultPort, bool whiteSpaceOk)
 		{
 			if (whiteSpaceOk && string.IsNullOrWhiteSpace(endPoint))
 			{
 				return string.Empty;
 			}
 
-			if (EndPointParser.TryParse(endPoint, 0, out _))
+			if (EndPointParser.TryParse(endPoint, defaultPort, out _))
 			{
 				return string.Empty;
 			}
