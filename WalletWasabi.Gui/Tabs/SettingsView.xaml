@@ -20,7 +20,13 @@
             <StackPanel Orientation="Vertical" Spacing="5">
               <StackPanel Margin="0 10" Spacing="5">
                 <TextBlock>Network</TextBlock>
-                <DropDown Items="{Binding Networks}" SelectedItem="{Binding Network, Converter={StaticResource NetworkStringConverter}}" />
+                <DropDown Items="{Binding Networks}" SelectedItem="{Binding Network}">
+                  <DropDown.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Converter={StaticResource NetworkStringConverter}}" />
+                    </DataTemplate>
+                  </DropDown.ItemTemplate>
+                </DropDown>
               </StackPanel>
 
               <controls:GroupBox Title="{Binding Network, StringFormat=My Node for \{0\}, Converter={StaticResource NetworkStringConverter}}" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">

@@ -134,11 +134,11 @@ namespace WalletWasabi.Gui.Tabs
 			return base.OnClose();
 		}
 
-		public IEnumerable<string> Networks => new[]
+		public IEnumerable<Network> Networks => new[]
 		{
-			"Main",
-			"TestNet",
-			"RegTest"
+			Network.Main,
+			Network.TestNet,
+			Network.RegTest
 		};
 
 		public Network Network
