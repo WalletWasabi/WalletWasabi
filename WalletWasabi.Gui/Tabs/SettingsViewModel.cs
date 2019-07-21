@@ -211,7 +211,13 @@ namespace WalletWasabi.Gui.Tabs
 
 		private void Save()
 		{
+			if (string.IsNullOrWhiteSpace(Network))
+			{
+				return;
+			}
+
 			var network = NBitcoin.Network.GetNetwork(Network);
+
 			var isValid =
 				string.IsNullOrEmpty(ValidatePrivacyLevel(SomePrivacyLevel, whiteSpaceOk: false))
 				&& string.IsNullOrEmpty(ValidatePrivacyLevel(FinePrivacyLevel, whiteSpaceOk: false))
@@ -221,11 +227,6 @@ namespace WalletWasabi.Gui.Tabs
 				&& string.IsNullOrEmpty(ValidateEndPoint(BitcoinP2pEndPoint, network.DefaultPort, whiteSpaceOk: false));
 
 			if (!isValid)
-			{
-				return;
-			}
-
-			if (string.IsNullOrWhiteSpace(Network))
 			{
 				return;
 			}
