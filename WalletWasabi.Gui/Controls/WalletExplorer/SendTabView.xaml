@@ -30,7 +30,7 @@
     <Grid Classes="content">
       <DockPanel LastChildFill="True" Margin="20">
         <StackPanel DockPanel.Dock="Bottom" Margin="0 10" Spacing="10" HorizontalAlignment="Left">
-          <TextBlock>Note that, you must select coins you want to spend from.</TextBlock>
+          <TextBlock>You must select coins you want to spend from.</TextBlock>
           <controls:ExtendedTextBox Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True">
             <i:Interaction.Behaviors>
               <behaviors:PasteAddressOnClickBehavior />
