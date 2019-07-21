@@ -37,94 +37,104 @@ namespace System.Net
             return endPointString;
         }
 
-        /// <param name="defaultPort">If set to -1 and it's needed to use, then this function returns false.</param>
+        /// <param name="defaultPort">If invalid and it's needed to use, then this function returns false.</param>
         public static bool TryParse(string endPointString, int defaultPort, out EndPoint endPoint)
         {
             endPoint = null;
 
-            if (string.IsNullOrWhiteSpace(endPointString))
+            try
             {
-                return false;
-            }
-
-            endPointString = Guard.Correct(endPointString);
-            endPointString = endPointString.TrimEnd(':', '/');
-            var parts = endPointString.Split(':', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim().TrimEnd('/').TrimEnd()).ToArray();
-
-            int port;
-            if (parts.Length == 0)
-            {
-                return false;
-            }
-            else if (parts.Length == 1)
-            {
-                if (defaultPort == -1)
+                if (string.IsNullOrWhiteSpace(endPointString))
                 {
                     return false;
                 }
-                else
+
+                endPointString = Guard.Correct(endPointString);
+                endPointString = endPointString.TrimEnd(':', '/');
+                var parts = endPointString.Split(':', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim().TrimEnd('/').TrimEnd()).ToArray();
+
+                var isDefaultPortInvalid = !ushort.TryParse(defaultPort.ToString(), out _);
+                int port;
+                if (parts.Length == 0)
                 {
-                    port = defaultPort;
+                    return false;
                 }
-            }
-            else if (parts.Length == 2)
-            {
-                var portString = parts[1];
-                if (int.TryParse(portString, out int p))
+                else if (parts.Length == 1)
                 {
-                    port = p;
-                }
-                else
-                {
-                    if (defaultPort == -1)
+                    if (isDefaultPortInvalid)
                     {
                         return false;
                     }
-
-                    port = defaultPort;
+                    else
+                    {
+                        port = defaultPort;
+                    }
                 }
-            }
-            else
-            {
-                return false;
-            }
-
-            string host = parts[0];
-            if (host == "localhost")
-            {
-                host = IPAddress.Loopback.ToString();
-            }
-
-            bool isPortInvalid = port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort;
-            if (isPortInvalid)
-            {
-                if (defaultPort == -1)
+                else if (parts.Length == 2)
                 {
-                    return false;
+                    var portString = parts[1];
+                    if (ushort.TryParse(portString, out ushort p))
+                    {
+                        port = p;
+                    }
+                    else
+                    {
+                        if (isDefaultPortInvalid)
+                        {
+                            return false;
+                        }
+                        else
+                        {
+                            port = defaultPort;
+                        }
+                    }
                 }
                 else
                 {
-                    port = defaultPort;
-                }
-            }
-
-            if (IPAddress.TryParse(host, out IPAddress addr))
-            {
-                endPoint = new IPEndPoint(addr, port);
-            }
-            else
-            {
-                try
-                {
-                    endPoint = new DnsEndPoint(host, port);
-                }
-                catch
-                {
                     return false;
                 }
-            }
 
-            return true;
+                string host = parts[0];
+                if (host == "localhost")
+                {
+                    host = IPAddress.Loopback.ToString();
+                }
+
+                bool isPortInvalid = port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort || !ushort.TryParse(port.ToString(), out _);
+                if (isPortInvalid)
+                {
+                    if (isDefaultPortInvalid)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        port = defaultPort;
+                    }
+                }
+
+                if (IPAddress.TryParse(host, out IPAddress addr))
+                {
+                    endPoint = new IPEndPoint(addr, port);
+                }
+                else
+                {
+                    try
+                    {
+                        endPoint = new DnsEndPoint(host, port);
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

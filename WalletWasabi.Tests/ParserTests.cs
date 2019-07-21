@@ -51,18 +51,33 @@ namespace WalletWasabi.Tests
                 $"         {host}/              :             5000/           "
             };
 
-            var inputsWithInvalidPorts = new[]
-                        {
-                $"{host}:-1",
-                $"{host}:999999999999999999999",
-                $"{host}:-999999999999999999999",
-                $"{host}:{int.MaxValue}",
-                $"{host}:{uint.MaxValue}",
-                $"{host}:{long.MaxValue}",
-                $"{host}:0.1",
-                $"{host}:{int.MinValue}",
-                $"{host}:{long.MinValue}",
+            var invalidPortStrings = new[]
+            {
+                "-1",
+                "-5000",
+                "999999999999999999999",
+                "foo",
+                "-999999999999999999999",
+                int.MaxValue.ToString(),
+                uint.MaxValue.ToString(),
+                long.MaxValue.ToString(),
+                "0.1",
+                int.MinValue.ToString(),
+                long.MinValue.ToString(),
+                (ushort.MinValue - 1).ToString(),
+                (ushort.MaxValue + 1).ToString()
             };
+
+            var validPorts = new[]
+            {
+                0,
+                5000,
+                9999,
+                ushort.MinValue,
+                ushort.MaxValue
+            };
+
+            var inputsWithInvalidPorts = invalidPortStrings.Select(x => $"{host}:{x}").ToArray();
 
             // Default port is used.
             foreach (var inputString in inputsWithoutPorts)
@@ -78,7 +93,7 @@ namespace WalletWasabi.Tests
                 AssertEndPointParserOutputs(success, ep, host, 5000);
             }
 
-            // -1 means default port is not accepted.
+            // Default port is invalid, string port is not provided.
             foreach (var inputString in inputsWithoutPorts)
             {
                 Assert.False(EndPointParser.TryParse(inputString, -1, out EndPoint ep));
@@ -87,10 +102,13 @@ namespace WalletWasabi.Tests
             // Defaultport corrects invalid inputs.
             foreach (var inputString in inputsWithInvalidPorts)
             {
-                Assert.True(EndPointParser.TryParse(inputString, 5000, out EndPoint ep));
+                foreach (var defaultPort in validPorts)
+                {
+                    Assert.True(EndPointParser.TryParse(inputString, defaultPort, out EndPoint ep));
+                }
             }
 
-            // Invalid ports -1 default.
+            // Both default and string ports are invalid.
             foreach (var inputString in inputsWithInvalidPorts)
             {
                 Assert.False(EndPointParser.TryParse(inputString, -1, out EndPoint ep));
