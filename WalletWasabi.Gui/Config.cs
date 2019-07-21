@@ -188,21 +188,10 @@ namespace WalletWasabi.Gui
 			return _fallbackBackendUri;
 		}
 
-		private IPEndPoint _torSocks5EndPoint;
 		private int? _mixUntilAnonymitySet;
 		private int? _privacyLevelSome;
 		private int? _privacyLevelFine;
 		private int? _privacyLevelStrong;
-
-		public IPEndPoint GetTorSocks5EndPoint()
-		{
-			if (_torSocks5EndPoint is null)
-			{
-				_torSocks5EndPoint = TorSocks5EndPoint as IPEndPoint;
-			}
-
-			return _torSocks5EndPoint;
-		}
 
 		public EndPoint GetBitcoinP2pEndPoint()
 		{

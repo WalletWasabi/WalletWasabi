@@ -19,7 +19,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 		private NodeBuilder Builder { get; }
 		public string Folder { get; }
 
-		public IPEndPoint Endpoint => new IPEndPoint(IPAddress.Parse("127.0.0.1"), Ports[0]);
+		public EndPoint Endpoint => new IPEndPoint(IPAddress.Loopback, Ports[0]);
 
 		public string Config { get; }
 
