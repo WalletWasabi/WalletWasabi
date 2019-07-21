@@ -19,7 +19,11 @@ namespace WalletWasabi.Tests.NodeBuilding
 		private NodeBuilder Builder { get; }
 		public string Folder { get; }
 
-		public EndPoint Endpoint => new IPEndPoint(IPAddress.Loopback, Ports[0]);
+		public int P2pPort { get; }
+		public int RpcPort { get; }
+
+		public EndPoint P2pEndPoint { get; }
+		public EndPoint RpcEndPoint { get; }
 
 		public string Config { get; }
 
@@ -36,8 +40,35 @@ namespace WalletWasabi.Tests.NodeBuilding
 			Creds = new NetworkCredential(pass, pass);
 			Config = Path.Combine(DataDir, "bitcoin.conf");
 			ConfigParameters.Import(builder.ConfigParameters);
-			Ports = new int[2];
-			FindPorts(Ports);
+
+			var portArray = new int[2];
+			var i = 0;
+			while (i < portArray.Length)
+			{
+				var port = RandomUtils.GetUInt32() % 4000;
+				port += 10000;
+				if (portArray.Any(p => p == port))
+				{
+					continue;
+				}
+
+				try
+				{
+					var listener = new TcpListener(IPAddress.Loopback, (int)port);
+					listener.Start();
+					listener.Stop();
+					portArray[i] = (int)port;
+					i++;
+				}
+				catch (SocketException)
+				{
+				}
+			}
+
+			P2pPort = portArray[0];
+			RpcPort = portArray[1];
+			P2pEndPoint = new IPEndPoint(IPAddress.Loopback, P2pPort);
+			RpcEndPoint = new IPEndPoint(IPAddress.Loopback, RpcPort);
 		}
 
 		public Block[] Generate(int blockCount)
@@ -60,23 +91,21 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		public CoreNodeState State { get; private set; }
 
-		private int[] Ports { get; }
-
 		internal readonly NetworkCredential Creds;
 
 		public RPCClient CreateRpcClient()
 		{
-			return new RPCClient(Creds, new Uri("http://127.0.0.1:" + Ports[1] + "/"), Network.RegTest);
+			return new RPCClient($"{Creds.UserName}:{Creds.Password}", RpcEndPoint.ToString(RpcPort), Network.RegTest);
 		}
 
 		public async Task<Node> CreateNodeClientAsync()
 		{
-			return await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, Ports[0]));
+			return await Node.ConnectAsync(Network.RegTest, P2pEndPoint);
 		}
 
 		public async Task<Node> CreateNodeClientAsync(NodeConnectionParameters parameters)
 		{
-			return await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, Ports[0]), parameters);
+			return await Node.ConnectAsync(Network.RegTest, P2pEndPoint, parameters);
 		}
 
 		public async Task StartAsync()
@@ -90,8 +119,8 @@ namespace WalletWasabi.Tests.NodeBuilding
 				{"regtest.txindex", "1"},
 				{"regtest.rpcuser", Creds.UserName},
 				{"regtest.rpcpassword", Creds.Password},
-				{"regtest.whitebind", "127.0.0.1:" + Ports[0].ToString()},
-				{"regtest.rpcport", Ports[1].ToString()},
+				{"regtest.whitebind", "127.0.0.1:" + P2pPort.ToString()},
+				{"regtest.rpcport", RpcPort.ToString()},
 				{"regtest.printtoconsole", "0"}, // Set it to one if do not mind loud debug logs
 				{"regtest.keypool", "10"},
 				{"regtest.pid", "bitcoind.pid"}
@@ -129,32 +158,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		private Process Process { get; set; }
 		private string DataDir { get; }
-
-		private static void FindPorts(int[] portArray)
-		{
-			var i = 0;
-			while (i < portArray.Length)
-			{
-				var port = RandomUtils.GetUInt32() % 4000;
-				port += 10000;
-				if (portArray.Any(p => p == port))
-				{
-					continue;
-				}
-
-				try
-				{
-					var listener = new TcpListener(IPAddress.Loopback, (int)port);
-					listener.Start();
-					listener.Stop();
-					portArray[i] = (int)port;
-					i++;
-				}
-				catch (SocketException)
-				{
-				}
-			}
-		}
 
 		private readonly AsyncLock KillerLock = new AsyncLock();
 

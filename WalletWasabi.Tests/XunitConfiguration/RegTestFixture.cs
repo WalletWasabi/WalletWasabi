@@ -32,7 +32,6 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			BackendNodeBuilder.StartAllAsync().GetAwaiter().GetResult();
 			BackendRegTestNode = BackendNodeBuilder.Nodes[0];
 
-			var rpc = BackendRegTestNode.CreateRpcClient();
 			var connectionString = $"{BackendRegTestNode.Creds.UserName}:{BackendRegTestNode.Creds.Password}";
 
 			var testnetBackendDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests", "Backend"));
@@ -44,10 +43,10 @@ namespace WalletWasabi.Tests.XunitConfiguration
 				BackendNodeBuilder.Network, connectionString,
 				new IPEndPoint(IPAddress.Loopback, Network.Main.DefaultPort),
 				new IPEndPoint(IPAddress.Loopback, Network.TestNet.DefaultPort),
-				BackendRegTestNode.Endpoint,
+				BackendRegTestNode.P2pEndPoint,
 				new IPEndPoint(IPAddress.Loopback, Network.Main.RPCPort),
 				new IPEndPoint(IPAddress.Loopback, Network.TestNet.RPCPort),
-				EndPointParser.TryParse(rpc.Address.DnsSafeHost, rpc.Address.Port, out EndPoint rep) ? rep : throw new NotSupportedException());
+				BackendRegTestNode.RpcEndPoint);
 			var configFilePath = Path.Combine(testnetBackendDir, "Config.json");
 			config.SetFilePath(configFilePath);
 			config.ToFileAsync().GetAwaiter().GetResult();
