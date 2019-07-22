@@ -150,7 +150,7 @@ namespace WalletWasabi.TorSocks5
 			methodSelection.FromBytes(receiveBuffer);
 			if (methodSelection.Ver != VerField.Socks5)
 			{
-				throw new NotSupportedException($"`SOCKS{methodSelection.Ver.Value} is not supported. Only SOCKS5 is supported.");
+				throw new NotSupportedException($"SOCKS{methodSelection.Ver.Value} is not supported. Only SOCKS5 is supported.");
 			}
 			if (methodSelection.Method == MethodField.NoAcceptableMethods)
 			{
