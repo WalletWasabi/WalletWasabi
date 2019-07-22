@@ -72,12 +72,12 @@ namespace WalletWasabi.Backend
 
 		private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
 		{
-			Logger.LogWarning(e?.Exception, "UnobservedTaskException");
+			Logger.LogWarning(e?.Exception, $"{nameof(TaskScheduler.UnobservedTaskException)}");
 		}
 
 		private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
 		{
-			Logger.LogWarning(e?.ExceptionObject as Exception, "UnhandledException");
+			Logger.LogWarning(e?.ExceptionObject as Exception, $"{nameof(AppDomain.CurrentDomain.UnhandledException)}");
 		}
 
 		private void Coordinator_CoinJoinBroadcasted(object sender, Transaction tx)

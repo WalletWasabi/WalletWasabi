@@ -38,7 +38,7 @@ namespace WalletWasabi.Helpers
 
 		private AsyncLock AsyncLock { get; } = new AsyncLock();
 		private static string FileDir;
-		private static string FilePath => Path.Combine(FileDir, "RuntimeParams.json");
+		private static string FilePath => Path.Combine(FileDir, $"{nameof(RuntimeParams)}.json");
 
 		private RuntimeParams()
 		{

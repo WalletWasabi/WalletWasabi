@@ -739,7 +739,7 @@ namespace WalletWasabi.Backend.Controllers
 			returnFailureResponse = null;
 			if (string.IsNullOrWhiteSpace(uniqueId) || !ModelState.IsValid)
 			{
-				returnFailureResponse = BadRequest("Invalid uniqueId provided.");
+				returnFailureResponse = BadRequest($"Invalid {nameof(uniqueId)} provided.");
 			}
 
 			Guid aliceGuid = Guid.Empty;
@@ -750,7 +750,7 @@ namespace WalletWasabi.Backend.Controllers
 			catch (Exception ex)
 			{
 				Logger.LogDebug<ChaumianCoinJoinController>(ex);
-				returnFailureResponse = BadRequest("Invalid uniqueId provided.");
+				returnFailureResponse = BadRequest($"Invalid {nameof(uniqueId)} provided.");
 			}
 			if (aliceGuid == Guid.Empty) // Probably not possible
 			{

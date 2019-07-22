@@ -308,7 +308,7 @@ namespace WalletWasabi.Tests
 			}
 
 			// Different AsyncMutex object but same name.
-			AsyncMutex asyncMutex2 = new AsyncMutex("mutex1");
+			AsyncMutex asyncMutex2 = new AsyncMutex($"{nameof(mutex1)}");
 
 			// Acquire the first mutex with a background thread and hold it for a while.
 			var myTask2 = Task.Run(async () =>

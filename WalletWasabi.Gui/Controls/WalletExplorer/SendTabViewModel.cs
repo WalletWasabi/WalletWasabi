@@ -235,7 +235,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Label = Label.Trim(',', ' ').Trim();
 					if (!IsMax && string.IsNullOrWhiteSpace(Label))
 					{
-						SetWarningMessage("Label is required.");
+						SetWarningMessage($"{nameof(Label)} is required.");
 						return;
 					}
 

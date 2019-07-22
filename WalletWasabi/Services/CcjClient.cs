@@ -134,7 +134,7 @@ namespace WalletWasabi.Services
 			{
 				try
 				{
-					Logger.LogInfo<CcjClient>("CcjClient is successfully initialized.");
+					Logger.LogInfo<CcjClient>($"{nameof(CcjClient)} is successfully initialized.");
 
 					while (IsRunning)
 					{
