@@ -411,7 +411,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						// 9. Shuffle.
 						UnsignedCoinJoin.Inputs.Shuffle();
 						UnsignedCoinJoin.Outputs.Shuffle();
-						UnsignedCoinJoin.Outputs.SortByAmount(); // So the coinjoin looks better in block explorer.
+
+						// 10. Sort inputs and outputs by amount so the coinjoin looks better in a block explorer.
+						UnsignedCoinJoin.Inputs.SortByAmount(spentCoins);
+						UnsignedCoinJoin.Outputs.SortByAmount();
+						//Note: We shuffle then sort because inputs and outputs could have equal values
 
 						SignedCoinJoin = Transaction.Parse(UnsignedCoinJoin.ToHex(), Network);
 
