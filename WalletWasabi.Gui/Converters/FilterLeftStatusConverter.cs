@@ -18,11 +18,11 @@ namespace WalletWasabi.Gui.Converters
 				}
 				else if (integer == 1)
 				{
-					return "Downloading a filter...";
+					return "Downloading a filter, your wallet history may be incorrect...";
 				}
 				else
 				{
-					return $"Downloading {value} filters...";
+					return $"Downloading {value} filters, your wallet history may be incorrect...";
 				}
 			}
 			else
