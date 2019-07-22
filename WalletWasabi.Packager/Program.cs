@@ -369,7 +369,7 @@ namespace WalletWasabi.Packager
 					var newMsiPath = Path.Combine(BinDistDirectory, $"{msiFileName}-{VersionPrefix}.msi");
 					File.Move(msiPath, newMsiPath);
 
-					Console.Write("Enter Code Signing Certificate Password:");
+					Console.Write("Enter Code Signing Certificate Password: ");
 					string pfxPassword = PasswordConsole.ReadPassword();
 					// Sign code with digicert.
 					using (var process = Process.Start(new ProcessStartInfo

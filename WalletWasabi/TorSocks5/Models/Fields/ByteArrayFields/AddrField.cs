@@ -78,7 +78,7 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 				var parts = dstAddr.Split(".", StringSplitOptions.RemoveEmptyEntries);
 				if (parts.Length != 4 || parts.Any(string.IsNullOrWhiteSpace))
 				{
-					throw new FormatException($"{nameof(dstAddr)} must be have 4 parts. Actual: {parts.Length} parts. Value: {dstAddr}.");
+					throw new FormatException($"{nameof(dstAddr)} must be 4 parts. Actual: {parts.Length} parts. Value: {dstAddr}.");
 				}
 
 				bytes = new byte[4];
