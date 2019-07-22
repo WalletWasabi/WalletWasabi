@@ -53,8 +53,6 @@ namespace WalletWasabi.Services
 							{
 								await executeIfClientOutOfDate?.Invoke();
 							}
-
-							await Task.Delay(period, Stop.Token);
 						}
 						catch (ConnectionException ex)
 						{
@@ -77,6 +75,10 @@ namespace WalletWasabi.Services
 						catch (Exception ex)
 						{
 							Logger.LogDebug<UpdateChecker>(ex);
+						}
+						finally
+						{
+							await Task.Delay(period, Stop.Token);
 						}
 					}
 				}
