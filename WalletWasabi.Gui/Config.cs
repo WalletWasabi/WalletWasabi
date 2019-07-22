@@ -299,10 +299,10 @@ namespace WalletWasabi.Gui
 			TestNetBitcoinCorePort = Network.TestNet.DefaultPort;
 			RegTestBitcoinCorePort = Network.RegTest.DefaultPort;
 
-			MixUntilAnonymitySet = 50;
-			PrivacyLevelSome = 2;
-			PrivacyLevelFine = 21;
-			PrivacyLevelStrong = 50;
+			PrivacyLevelSome = 32;
+			PrivacyLevelFine = 64;
+			PrivacyLevelStrong = 128;
+			MixUntilAnonymitySet = PrivacyLevelStrong;
 			DustThreshold = Money.Coins(0.0001m);
 
 			if (!File.Exists(FilePath))
