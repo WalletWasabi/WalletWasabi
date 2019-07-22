@@ -67,7 +67,8 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[DefaultGroup("System")]
 		public IMenuItem LockScreen => MenuItemFactory.CreateCommandMenuItem("File.LockScreen");
 
-		[ExportMainMenuItem("File", "Exit")]
+		// Avalonia brainfuck. For some reason you have to define here exactly "Exit1" to make this the last item.
+		[ExportMainMenuItem("File", "Exit1")]
 		[DefaultOrder(5)]
 		[DefaultGroup("System")]
 		public IMenuItem Exit => MenuItemFactory.CreateCommandMenuItem("File.Exit");
