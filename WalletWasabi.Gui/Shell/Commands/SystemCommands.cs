@@ -7,7 +7,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
-	internal class ExitCommands
+	internal class SystemCommands
 	{
 		public Global Global { get; }
 
@@ -18,15 +18,15 @@ namespace WalletWasabi.Gui.Shell.Commands
 		public CommandDefinition ExitCommand { get; }
 
 		[ImportingConstructor]
-		public ExitCommands(CommandIconService commandIconService, AvaloniaGlobalComponent global)
+		public SystemCommands(CommandIconService commandIconService, AvaloniaGlobalComponent global)
 		{
 			Global = Guard.NotNull(nameof(Global), global.Global);
 
 			var lockScreen = ReactiveCommand.Create(OnLockScreen);
 			var exit = ReactiveCommand.Create(OnExit);
 
-			lockScreen.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<ExitCommands>);
-			exit.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<ExitCommands>);
+			lockScreen.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<SystemCommands>);
+			exit.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<SystemCommands>);
 
 			LockScreenCommand = new CommandDefinition(
 			   "Lock Screen",

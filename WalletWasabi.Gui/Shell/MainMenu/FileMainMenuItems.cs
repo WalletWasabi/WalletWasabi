@@ -35,9 +35,9 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[DefaultOrder(1)]
 		public object DiskGroup => null;
 
-		[ExportMainMenuDefaultGroup("File", "Exit")]
+		[ExportMainMenuDefaultGroup("File", "System")]
 		[DefaultOrder(2)]
-		public object ExitGroup => null;
+		public object SystemGroup => null;
 
 		#endregion Group
 
@@ -64,12 +64,12 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 
 		[ExportMainMenuItem("File", "Lock Screen")]
 		[DefaultOrder(4)]
-		[DefaultGroup("Exit")]
+		[DefaultGroup("System")]
 		public IMenuItem LockScreen => MenuItemFactory.CreateCommandMenuItem("File.LockScreen");
 
 		[ExportMainMenuItem("File", "Exit")]
 		[DefaultOrder(5)]
-		[DefaultGroup("Exit")]
+		[DefaultGroup("System")]
 		public IMenuItem Exit => MenuItemFactory.CreateCommandMenuItem("File.Exit");
 
 		#endregion MenuItem
