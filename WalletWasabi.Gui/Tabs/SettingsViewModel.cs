@@ -34,6 +34,7 @@ namespace WalletWasabi.Gui.Tabs
 
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
+		public ReactiveCommand<Unit, Unit> TextBoxLostFocusCommand { get; }
 
 		public SettingsViewModel(Global global) : base(global, "Settings")
 		{
@@ -57,22 +58,7 @@ namespace WalletWasabi.Gui.Tabs
 
 			this.WhenAnyValue(
 				x => x.Network,
-				x => x.BitcoinP2pEndPoint,
-				x => x.DustThreshold)
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(x => Save());
-
-			this.WhenAnyValue(
-				x => x.UseTor,
-				x => x.TorSocks5EndPoint)
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(x => Save());
-
-			this.WhenAnyValue(
-				x => x.SomePrivacyLevel,
-				x => x.FinePrivacyLevel,
-				x => x.StrongPrivacyLevel,
-				x => x.DustThreshold)
+				x => x.UseTor)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(x => Save());
 
@@ -107,6 +93,8 @@ namespace WalletWasabi.Gui.Tabs
 				Global.UiConfig.LurkingWifeMode = !LurkingWifeMode;
 				await Global.UiConfig.ToFileAsync();
 			});
+
+			TextBoxLostFocusCommand = ReactiveCommand.Create(Save);
 		}
 
 		public override void OnOpen()

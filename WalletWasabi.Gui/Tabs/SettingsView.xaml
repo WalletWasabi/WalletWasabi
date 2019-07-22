@@ -1,7 +1,9 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
-             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui">
+             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui">
   <UserControl.Resources>
     <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
     <converters:NetworkStringConverter x:Key="NetworkStringConverter" />
@@ -33,7 +35,11 @@
                 <StackPanel Orientation="Vertical" Spacing="5">
                   <StackPanel Margin="0 10" Spacing="5">
                     <TextBlock>Bitcoin P2P Endpoint</TextBlock>
-                    <TextBox Text="{Binding BitcoinP2pEndPoint}" />
+                    <TextBox Text="{Binding BitcoinP2pEndPoint}">
+                      <i:Interaction.Behaviors>
+                        <behaviors:CommandOnLostFocusBehavior Command="{Binding TextBoxLostFocusCommand}" />
+                      </i:Interaction.Behaviors>
+                    </TextBox>
                   </StackPanel>
                 </StackPanel>
               </controls:GroupBox>
@@ -48,7 +54,11 @@
               </StackPanel>
               <StackPanel Margin="0 10" Spacing="5">
                 <TextBlock>Tor SOCKS5 Endpoint</TextBlock>
-                <TextBox Text="{Binding TorSocks5EndPoint}" />
+                <TextBox Text="{Binding TorSocks5EndPoint}">
+                  <i:Interaction.Behaviors>
+                    <behaviors:CommandOnLostFocusBehavior Command="{Binding TextBoxLostFocusCommand}" />
+                  </i:Interaction.Behaviors>
+                </TextBox>
               </StackPanel>
             </StackPanel>
           </controls:GroupBox>
@@ -73,21 +83,33 @@
                     Margin="0 0 10 10"
                     VerticalAlignment="Center" HorizontalAlignment="Center"
                     Drawing="{DynamicResource PrivacySome}" />
-                <TextBox Text="{Binding SomePrivacyLevel}" Grid.Column="1" />
+                <TextBox Text="{Binding SomePrivacyLevel}" Grid.Column="1">
+                  <i:Interaction.Behaviors>
+                    <behaviors:CommandOnLostFocusBehavior Command="{Binding TextBoxLostFocusCommand}" />
+                  </i:Interaction.Behaviors>
+                </TextBox>
               </Grid>
               <Grid Margin="0 10" ColumnDefinitions="30, *">
                 <DrawingPresenter Height="24" Width="24" Grid.Column="0"
                     Margin="0 0 10 10"
                     VerticalAlignment="Center" HorizontalAlignment="Center"
                     Drawing="{DynamicResource PrivacyFine}" />
-                <TextBox Text="{Binding FinePrivacyLevel}" Grid.Column="1" />
+                <TextBox Text="{Binding FinePrivacyLevel}" Grid.Column="1">
+                  <i:Interaction.Behaviors>
+                    <behaviors:CommandOnLostFocusBehavior Command="{Binding TextBoxLostFocusCommand}" />
+                  </i:Interaction.Behaviors>
+                </TextBox>
               </Grid>
               <Grid Margin="0 10" ColumnDefinitions="30, *">
                 <DrawingPresenter Height="24" Width="24" Grid.Column="0"
                     Margin="0 0 10 10"
                     VerticalAlignment="Center" HorizontalAlignment="Center"
                     Drawing="{DynamicResource PrivacyStrong}" />
-                <TextBox Text="{Binding StrongPrivacyLevel}" Grid.Column="1" />
+                <TextBox Text="{Binding StrongPrivacyLevel}" Grid.Column="1">
+                  <i:Interaction.Behaviors>
+                    <behaviors:CommandOnLostFocusBehavior Command="{Binding TextBoxLostFocusCommand}" />
+                  </i:Interaction.Behaviors>
+                </TextBox>
               </Grid>
             </StackPanel>
           </controls:GroupBox>
@@ -96,7 +118,11 @@
             <StackPanel Orientation="Vertical" Spacing="5">
               <StackPanel Margin="0 10" Spacing="5">
                 <TextBlock ToolTip.Tip="Under the dust threshold coins are not appearing in the coin lists.">Dust Threshold (BTC)</TextBlock>
-                <TextBox Text="{Binding DustThreshold}" />
+                <TextBox Text="{Binding DustThreshold}">
+                  <i:Interaction.Behaviors>
+                    <behaviors:CommandOnLostFocusBehavior Command="{Binding TextBoxLostFocusCommand}" />
+                  </i:Interaction.Behaviors>
+                </TextBox>
               </StackPanel>
             </StackPanel>
           </controls:GroupBox>
