@@ -65,7 +65,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				.Where(x => x != string.Empty)
 				.Do(x => WarningMessageVisible = false)
 				.DistinctUntilChanged()
-				.Subscribe(CheckPIN)
+				.Subscribe(CheckPin)
 				.DisposeWith(Disposables);
 
 			_isLocked = _parentVM.WhenAnyValue(x => x.IsLocked)
@@ -74,9 +74,9 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 								 .DisposeWith(Disposables);
 		}
 
-		private void CheckPIN(string input)
+		private void CheckPin(string input)
 		{
-			if (_parentVM.PINHash == HashHelpers.GenerateSha256Hash(input))
+			if (_parentVM.PinHash == HashHelpers.GenerateSha256Hash(input))
 			{
 				_parentVM.IsLocked = false;
 				PinInput = string.Empty;

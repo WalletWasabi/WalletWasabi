@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		}
 
 		private ObservableAsPropertyHelper<string> _pinHash;
-		public string PINHash => _pinHash?.Value ?? default;
+		public string PinHash => _pinHash?.Value ?? default;
 
 		private bool _isLocked;
 
@@ -54,7 +54,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 							 .WhenAnyValue(x => x.LockScreenPinHash)
 							 .ObserveOn(RxApp.MainThreadScheduler)
 							 .Do(x => CheckLockScreenType(x))
-							 .ToProperty(this, x => x.PINHash);
+							 .ToProperty(this, x => x.PinHash);
 		}
 
 		private void CheckLockScreenType(string currentHash)

@@ -27,21 +27,20 @@ namespace WalletWasabi.Gui.Tabs
 		private bool _autocopy;
 		private bool _useTor;
 		private bool _isModified;
-		private bool _enablePINLock;
+		private bool _enablePinLock;
 		private string _somePrivacyLevel;
 		private string _finePrivacyLevel;
 		private string _strongPrivacyLevel;
 		private string _dustThreshold;
-		private string _oldPINPwdBox;
-		private string _newPINPwdBox;
-		private string _confirmPINWarningMessage;
+		private string _oldPinPwdBox;
+		private string _confirmPinWarningMessage;
 
-		private Regex PINNumOnlyRegex { get; } = new Regex("^[0-9]+$");
+		private Regex PinNumOnlyRegex { get; } = new Regex("^[0-9]+$");
 		private AsyncLock ConfigLock { get; } = new AsyncLock();
 
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
-		public ReactiveCommand<Unit, Unit> EnablePINLockCommand { get; }
+		public ReactiveCommand<Unit, Unit> EnablePinLockCommand { get; }
 		public ReactiveCommand<Unit, Unit> TextBoxLostFocusCommand { get; }
 
 		public SettingsViewModel(Global global) : base(global, "Settings")
@@ -93,7 +92,7 @@ namespace WalletWasabi.Gui.Tabs
 
 				IsModified = await Global.Config.CheckFileChangeAsync();
 
-				EnablePINEntry = Global.UiConfig.LockScreenPinHash != string.Empty;
+				EnablePinEntry = Global.UiConfig.LockScreenPinHash != string.Empty;
 			});
 
 			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
@@ -104,53 +103,37 @@ namespace WalletWasabi.Gui.Tabs
 				await Global.UiConfig.ToFileAsync();
 			});
 
-			EnablePINLockCommand = ReactiveCommand.CreateFromTask(async () =>
+			EnablePinLockCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				if (_oldPINPwdBox != _newPINPwdBox)
+				if (_oldPinPwdBox == string.Empty)
 				{
-					ConfirmPINWarningMessage = "Both PIN entries does not match.";
-					EnablePINEntry = !EnablePINEntry;
+					ConfirmPinWarningMessage = "Both PIN entries must be filled out.";
+					EnablePinEntry = !EnablePinEntry;
 					return;
 				}
 
-				if (_oldPINPwdBox == string.Empty ||
-					_newPINPwdBox == string.Empty)
-				{
-					ConfirmPINWarningMessage = "Both PIN entries must be filled out.";
-					EnablePINEntry = !EnablePINEntry;
-					return;
-				}
+				var uiConfigPinHash = Global.UiConfig.LockScreenPinHash;
+				var enteredPinHash = HashHelpers.GenerateSha256Hash(_oldPinPwdBox);
 
-				if (!PINNumOnlyRegex.IsMatch(_newPINPwdBox))
+				if (EnablePinEntry)
 				{
-					ConfirmPINWarningMessage = "PIN should only contain numbers.";
-					EnablePINEntry = !EnablePINEntry;
-					return;
-				}
-
-				var uiConfigPINHash = Global.UiConfig.LockScreenPinHash;
-				var enteredPINHash = HashHelpers.GenerateSha256Hash(_newPINPwdBox);
-
-				if (EnablePINEntry)
-				{
-					Global.UiConfig.LockScreenPinHash = enteredPINHash;
+					Global.UiConfig.LockScreenPinHash = enteredPinHash;
 					await Global.UiConfig.ToFileAsync();
 				}
 				else
 				{
-					if (uiConfigPINHash != enteredPINHash)
+					if (uiConfigPinHash != enteredPinHash)
 					{
-						ConfirmPINWarningMessage = "Wrong PIN.";
-						EnablePINEntry = true;
+						ConfirmPinWarningMessage = "Wrong PIN.";
+						EnablePinEntry = true;
 						return;
 					}
 					Global.UiConfig.LockScreenPinHash = string.Empty;
 					await Global.UiConfig.ToFileAsync();
 				}
 
-				OldPINPwdBox = string.Empty;
-				NewPINPwdBox = string.Empty;
-				ConfirmPINWarningMessage = string.Empty;
+				OldPinPwdBox = string.Empty;
+				ConfirmPinWarningMessage = string.Empty;
 			});
 
 			TextBoxLostFocusCommand = ReactiveCommand.Create(Save);
@@ -256,28 +239,22 @@ namespace WalletWasabi.Gui.Tabs
 
 		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
 
-		public bool EnablePINEntry
+		public bool EnablePinEntry
 		{
-			get => _enablePINLock;
-			set => this.RaiseAndSetIfChanged(ref _enablePINLock, value);
+			get => _enablePinLock;
+			set => this.RaiseAndSetIfChanged(ref _enablePinLock, value);
 		}
 
-		public string OldPINPwdBox
+		public string OldPinPwdBox
 		{
-			get => _oldPINPwdBox;
-			set => this.RaiseAndSetIfChanged(ref _oldPINPwdBox, value);
+			get => _oldPinPwdBox;
+			set => this.RaiseAndSetIfChanged(ref _oldPinPwdBox, value);
 		}
 
-		public string NewPINPwdBox
+		public string ConfirmPinWarningMessage
 		{
-			get => _newPINPwdBox;
-			set => this.RaiseAndSetIfChanged(ref _newPINPwdBox, value);
-		}
-
-		public string ConfirmPINWarningMessage
-		{
-			get => _confirmPINWarningMessage;
-			set => this.RaiseAndSetIfChanged(ref _confirmPINWarningMessage, value);
+			get => _confirmPinWarningMessage;
+			set => this.RaiseAndSetIfChanged(ref _confirmPinWarningMessage, value);
 		}
 
 		private void Save()
