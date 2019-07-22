@@ -51,6 +51,9 @@ namespace System.Net
 
 				endPointString = Guard.Correct(endPointString);
 				endPointString = endPointString.TrimEnd(':', '/');
+				endPointString = endPointString.TrimStart("bitcoin-p2p://", StringComparison.OrdinalIgnoreCase);
+				endPointString = endPointString.TrimStart("tcp://", StringComparison.OrdinalIgnoreCase);
+
 				var parts = endPointString.Split(':', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim().TrimEnd('/').TrimEnd()).ToArray();
 
 				var isDefaultPortInvalid = !ushort.TryParse(defaultPort.ToString(), out ushort dp) || dp < IPEndPoint.MinPort || dp > IPEndPoint.MaxPort;

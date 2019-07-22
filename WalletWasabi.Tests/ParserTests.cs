@@ -21,6 +21,10 @@ namespace WalletWasabi.Tests
 			{
 				host,
 				$"{host} ",
+				$"bitcoin-p2p://{host}",
+				$"Bitcoin-P2P://{host}",
+				$"tcp://{host}",
+				$"TCP://{host}",
 				$" {host}",
 				$" {host} ",
 				$"{host}:",
@@ -36,6 +40,10 @@ namespace WalletWasabi.Tests
 			var inputsWithtPorts = new[]
 			{
 				$"{host}:5000",
+				$"bitcoin-p2p://{host}:5000",
+				$"BITCOIN-P2P://{host}:5000",
+				$"tcp://{host}:5000",
+				$"TCP://{host}:5000",
 				$" {host}:5000",
 				$"{host} :5000",
 				$" {host}:5000",
