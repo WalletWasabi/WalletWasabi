@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -293,7 +293,7 @@ namespace Mono.Options
 		{
 			if (C.Option is null)
 			{
-				throw new InvalidOperationException("OptionContext.Option is null.");
+				throw new InvalidOperationException($"{nameof(OptionContext)}.{nameof(OptionContext.Option)} is null.");
 			}
 
 			if (index >= C.Option.MaxValueCount)
@@ -305,8 +305,8 @@ namespace Mono.Options
 					index >= Values.Count)
 			{
 				throw new OptionException(string.Format(
-							C.OptionSet.MessageLocalizer("Missing required value for option '{0}'."), C.OptionName),
-						C.OptionName);
+					C.OptionSet.MessageLocalizer($"Missing required value for option '{C.OptionName}'.")),
+					C.OptionName);
 			}
 		}
 
