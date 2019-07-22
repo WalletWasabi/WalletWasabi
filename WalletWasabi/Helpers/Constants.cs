@@ -64,14 +64,14 @@ namespace WalletWasabi.Helpers
 			{
 				return MainNetCoordinatorAddress;
 			}
-
-			if (network == Network.TestNet)
+			else if (network == Network.TestNet)
 			{
 				return TestNetCoordinatorAddress;
 			}
-
-			// else regtest
-			return RegTestCoordinatorAddress;
+			else // else regtest
+			{
+				return RegTestCoordinatorAddress;
+			}
 		}
 
 		public const string ChangeOfSpecialLabelStart = "change of (";
