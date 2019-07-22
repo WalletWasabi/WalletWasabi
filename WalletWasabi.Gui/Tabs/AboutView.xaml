@@ -22,7 +22,7 @@
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Status Page: " />
-            <controls:ExtendedTextBox Text="https://stats.uptimerobot.com/W7q65in4y" Classes="selectableTextBlock hyperLink" />
+            <Button Content="{Binding StatusPageLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding StatusPageLink}" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Customer Support: " />
