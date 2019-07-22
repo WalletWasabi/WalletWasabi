@@ -39,11 +39,11 @@ namespace WalletWasabi.Gui.Converters
 				var config = Application.Current.Resources[Global.ConfigResourceKey] as Config;
 				string shield;
 				string toolTip = null;
-				if (integer < config.PrivacyLevelSome)
+				if (integer < config?.PrivacyLevelSome)
 				{
 					shield = "Critical";
 				}
-				else if (integer < config.PrivacyLevelFine)
+				else if (integer < config?.PrivacyLevelFine)
 				{
 					shield = "Some";
 				}

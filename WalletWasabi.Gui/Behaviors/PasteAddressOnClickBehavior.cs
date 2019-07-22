@@ -96,7 +96,7 @@ namespace WalletWasabi.Gui.Behaviors
 				AssociatedObject.GetObservable(InputElement.PointerReleasedEvent).Subscribe(async pointer =>
 				{
 					var uiConfig = Application.Current.Resources[Global.UiConfigResourceKey] as UiConfig;
-					if (!(uiConfig.Autocopy is true))
+					if (!(uiConfig?.Autocopy is true))
 					{
 						return;
 					}
@@ -132,7 +132,7 @@ namespace WalletWasabi.Gui.Behaviors
 				AssociatedObject.GetObservable(InputElement.PointerEnterEvent).Subscribe(async pointerEnter =>
 				{
 					var uiConfig = Application.Current.Resources[Global.UiConfigResourceKey] as UiConfig;
-					if (!(uiConfig.Autocopy is true))
+					if (!(uiConfig?.Autocopy is true))
 					{
 						return;
 					}
