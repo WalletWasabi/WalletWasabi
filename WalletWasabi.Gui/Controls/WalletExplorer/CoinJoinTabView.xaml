@@ -43,7 +43,7 @@
         <ScrollViewer>
           <StackPanel Orientation="Vertical">
             <StackPanel Orientation="Horizontal" Spacing="4">
-              <TextBlock Text="A minimum of" />
+              <TextBlock Text="Minimum" />
               <TextBlock Foreground="YellowGreen" Text="{Binding RequiredBTC, Converter={StaticResource MoneyStringConverter}}" />
               <TextBlock Foreground="YellowGreen" Text="BTC" />
               <TextBlock Text="is required to be queued for CoinJoin." />
