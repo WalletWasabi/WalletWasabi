@@ -12,7 +12,7 @@ namespace WalletWasabi.Tests
 	{
 		public static Global Instance { get; } = new Global();
 
-		public IPEndPoint TorSocks5Endpoint { get; }
+		public EndPoint TorSocks5Endpoint { get; }
 
 		public string DataDir { get; }
 

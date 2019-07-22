@@ -134,13 +134,13 @@ namespace WalletWasabi.Services
 			CreateNew(network, bitcoinStore, client);
 		}
 
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Func<Uri> baseUriAction, IPEndPoint torSocks5EndPoint)
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Func<Uri> baseUriAction, EndPoint torSocks5EndPoint)
 		{
 			var client = new WasabiClient(baseUriAction, torSocks5EndPoint);
 			CreateNew(network, bitcoinStore, client);
 		}
 
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, IPEndPoint torSocks5EndPoint)
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, EndPoint torSocks5EndPoint)
 		{
 			var client = new WasabiClient(baseUri, torSocks5EndPoint);
 			CreateNew(network, bitcoinStore, client);
