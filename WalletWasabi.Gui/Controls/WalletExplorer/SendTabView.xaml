@@ -33,7 +33,7 @@
           <TextBlock>You must select coins you want to spend from.</TextBlock>
           <controls:ExtendedTextBox Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True">
             <i:Interaction.Behaviors>
-              <behaviors:PasteAddressOnClickBehavior />
+              <behaviors:PasteAddressOnClickBehavior Command="{Binding OnAddressPasteCommand}" />
             </i:Interaction.Behaviors>
           </controls:ExtendedTextBox>
           <StackPanel Spacing="8">

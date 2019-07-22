@@ -2,6 +2,7 @@ using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin;
+using NBitcoin.Payment;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -223,6 +224,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 
 			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay, outputScheduler: RxApp.MainThreadScheduler);
+
+			OnAddressPasteCommand = ReactiveCommand.Create((BitcoinUrlBuilder url) =>
+			{
+				if (url.Address != null)
+				{
+					Address = url.Address.ToString();
+				}
+
+				if (!string.IsNullOrWhiteSpace(url.Label))
+				{
+					Label = url.Label;
+				}
+
+				if (url.Amount != null)
+				{
+					AmountText = url.Amount.ToString(false, true);
+				}
+			});
 
 			BuildTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -1007,6 +1026,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> MaxCommand { get; }
 
 		public ReactiveCommand<Unit, Unit> FeeRateCommand { get; }
+
+		public ReactiveCommand<BitcoinUrlBuilder, Unit> OnAddressPasteCommand { get; }
+
 		public bool IsTransactionBuilder { get; }
 
 		public override void OnOpen()

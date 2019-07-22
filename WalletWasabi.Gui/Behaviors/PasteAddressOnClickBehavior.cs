@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-	internal class PasteAddressOnClickBehavior : Behavior<TextBox>
+	internal class PasteAddressOnClickBehavior : CommandBasedBehavior<TextBox>
 	{
 		private CompositeDisposable Disposables { get; set; }
 
@@ -56,13 +56,13 @@ namespace WalletWasabi.Gui.Behaviors
 
 		private TextBoxState _textBoxState = TextBoxState.None;
 
-		public async Task<(bool isAddress, BitcoinUrlBuilder url)> ProcessClipboardAsync()
+		public async Task<(bool isValid, BitcoinUrlBuilder url)> ProcessClipboardAsync()
 		{
 			var result = await IsThereABitcoinAddressOnTheClipboardAsync();
-			return result.isAddress ? result : await IsThereABitcoinUrlOnTheClipboardAsync();
+			return result.isValid ? result : await IsThereABitcoinUrlOnTheClipboardAsync();
 		}
 
-		public async Task<(bool isAddress, BitcoinUrlBuilder url)> IsThereABitcoinAddressOnTheClipboardAsync()
+		public async Task<(bool isValid, BitcoinUrlBuilder url)> IsThereABitcoinAddressOnTheClipboardAsync()
 		{
 			var global = Application.Current.Resources[Global.GlobalResourceKey] as Global;
 			var network = global.Network;
@@ -84,7 +84,7 @@ namespace WalletWasabi.Gui.Behaviors
 			}
 		}
 
-		public async Task<(bool isAddress, BitcoinUrlBuilder url)> IsThereABitcoinUrlOnTheClipboardAsync()
+		public async Task<(bool isValid, BitcoinUrlBuilder url)> IsThereABitcoinUrlOnTheClipboardAsync()
 		{
 			var global = Application.Current.Resources[Global.GlobalResourceKey] as Global;
 			var network = global.Network;
@@ -125,7 +125,7 @@ namespace WalletWasabi.Gui.Behaviors
 				AssociatedObject.GetObservable(InputElement.PointerReleasedEvent).Subscribe(async pointer =>
 				{
 					var uiConfig = Application.Current.Resources[Global.UiConfigResourceKey] as UiConfig;
-					if (uiConfig.Autocopy is false)
+					if (uiConfig.Autocopy is null || uiConfig.Autocopy is false)
 					{
 						return;
 					}
@@ -135,39 +135,12 @@ namespace WalletWasabi.Gui.Behaviors
 						case TextBoxState.AddressInsert:
 							var result = await ProcessClipboardAsync();
 
-							if (result.isAddress)
+							if (result.isValid)
 							{
-								AssociatedObject.Text = result.url.Address.ToString();
+								CommandParameter = result.url;
+								ExecuteCommand();
 							}
 							MyTextBoxState = TextBoxState.NormalTextBoxOperation;
-							var labeltextbox = AssociatedObject.Parent.FindControl<TextBox>("LabelTextBox");
-							if (labeltextbox != null)
-							{
-								if (!string.IsNullOrEmpty(result.url.Label))
-								{
-									labeltextbox.Text = result.url.Label;
-
-									var amountTextBox = AssociatedObject.Parent.FindControl<TextBox>("AmountTextBox");
-									if (amountTextBox != null)
-									{
-										if (result.url.Amount != null)
-										{
-											amountTextBox.Text = result.url.Amount.ToString(false, true);
-										}
-										
-										amountTextBox.Focus();
-									}
-									else
-									{
-										labeltextbox.Focus();
-									}
-								}
-								else
-								{
-									labeltextbox.Focus();
-								}
-							}
-
 							break;
 
 						case TextBoxState.SelectAll:
@@ -201,7 +174,7 @@ namespace WalletWasabi.Gui.Behaviors
 					if (string.IsNullOrEmpty(AssociatedObject.Text))
 					{
 						var result = await ProcessClipboardAsync();
-						if (result.isAddress)
+						if (result.isValid)
 						{
 							MyTextBoxState = TextBoxState.AddressInsert;
 						}
