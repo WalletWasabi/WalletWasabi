@@ -36,7 +36,7 @@ namespace WalletWasabi.Gui.Tabs
 		private string _newPINPwdBox;
 		private string _confirmPINWarningMessage;
 
-		private Regex PINNumOnlyRegex { get; }= new Regex("^[0-9]+$");
+		private Regex PINNumOnlyRegex { get; } = new Regex("^[0-9]+$");
 		private AsyncLock ConfigLock { get; } = new AsyncLock();
 
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
@@ -121,7 +121,7 @@ namespace WalletWasabi.Gui.Tabs
 					return;
 				}
 
-				if(!PINNumOnlyRegex.IsMatch(_newPINPwdBox))
+				if (!PINNumOnlyRegex.IsMatch(_newPINPwdBox))
 				{
 					ConfirmPINWarningMessage = "PIN should only contain numbers.";
 					EnablePINEntry = !EnablePINEntry;
@@ -152,7 +152,7 @@ namespace WalletWasabi.Gui.Tabs
 				NewPINPwdBox = string.Empty;
 				ConfirmPINWarningMessage = string.Empty;
 			});
-      
+
 			TextBoxLostFocusCommand = ReactiveCommand.Create(Save);
 		}
 

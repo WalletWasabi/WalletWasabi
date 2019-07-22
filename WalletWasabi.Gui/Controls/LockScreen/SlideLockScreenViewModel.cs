@@ -24,6 +24,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		public bool IsLocked => _isLocked?.Value ?? false;
 
 		private bool _isUserDragging;
+
 		public bool IsUserDragging
 		{
 			get => _isUserDragging;
@@ -31,6 +32,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		}
 
 		private double _boundsHeight;
+
 		public double BoundsHeight
 		{
 			get => _boundsHeight;
@@ -38,6 +40,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		}
 
 		public double _targetOffset;
+
 		public double TargetOffset
 		{
 			get => _targetOffset;
@@ -47,6 +50,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		public double Threshold => BoundsHeight * ThresholdPercent;
 
 		private double _targetOpacity;
+
 		public double TargetOpacity
 		{
 			get => _targetOpacity;
@@ -54,6 +58,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		}
 
 		private double _offset;
+
 		public double Offset
 		{
 			get => _offset;
@@ -67,7 +72,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			get => _stateChanged;
 			set => this.RaiseAndSetIfChanged(ref _stateChanged, value);
 		}
- 
+
 		public readonly double ThresholdPercent = 1 / 6d;
 		public readonly double Stiffness = 0.12d;
 
@@ -95,8 +100,8 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		public void Dispose()
 		{
 			Disposables?.Dispose();
-		} 
-		
+		}
+
 		internal void OnClockTick(TimeSpan _)
 		{
 			switch (_state)

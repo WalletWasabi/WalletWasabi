@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			InitializeComponent();
 
 			var inputField = this.FindControl<NoparaPasswordBox>("InputField");
-			
+
 			this.WhenAnyValue(x => x.IsLocked)
 				.Where(x => x)
 				.Subscribe(x => inputField.Focus());

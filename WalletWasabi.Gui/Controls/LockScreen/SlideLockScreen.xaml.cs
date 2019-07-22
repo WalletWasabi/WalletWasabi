@@ -53,7 +53,6 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			set => SetAndRaise(DoneAnimatingProperty, ref _doneAnimating, value);
 		}
 
-
 		private TranslateTransform TargetTransform { get; } = new TranslateTransform();
 		private Thumb DragThumb { get; }
 
@@ -76,7 +75,6 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 					if (x) vm.StateChanged = false;
 				})
 				.DisposeWith(vm.Disposables);
-
 
 			Observable.FromEventPattern(DragThumb, nameof(DragThumb.DragCompleted))
 					  .Subscribe(e => vm.IsUserDragging = false)
@@ -105,7 +103,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 					}
 				})
 				.DisposeWith(vm.Disposables);
-			 
+
 			Clock.Subscribe(vm.OnClockTick)
 				 .DisposeWith(vm.Disposables);
 		}

@@ -72,7 +72,6 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 								 .ObserveOn(RxApp.MainThreadScheduler)
 								 .ToProperty(this, x => x.IsLocked)
 								 .DisposeWith(Disposables);
-
 		}
 
 		private void CheckPIN(string input)
