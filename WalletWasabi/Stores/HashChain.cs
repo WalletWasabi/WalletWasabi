@@ -23,6 +23,8 @@ namespace WalletWasabi.Stores
 		private SortedDictionary<int, uint256> Chain { get; }
 		private object Lock { get; }
 
+		public event PropertyChangedEventHandler PropertyChanged;
+
 		public int TipHeight
 		{
 			get => _tipHeight;
@@ -94,8 +96,6 @@ namespace WalletWasabi.Stores
 			Lock = new object();
 		}
 
-		public event PropertyChangedEventHandler PropertyChanged;
-
 		public void AddOrReplace(int height, uint256 hash)
 		{
 			lock (Lock)
@@ -152,9 +152,9 @@ namespace WalletWasabi.Stores
 			{
 				Height = Chain.FirstOrDefault(x => x.Value == hash).Key;
 
-				// Default int will be 0. We don't know if this refers to the 0th hash or it just means the hash wasn't found.
+				// Default int will be 0. We do not know if this refers to the 0th hash or it just means the hash was not found.
 				// So let's check if the height contains or not.
-				// If the given height is 0, then check if the chain has a key with 0. If it doesn't have, then return false. If it hash, check if the hash is the same or not.
+				// If the given height is 0, then check if the chain has a key with 0. If it does not have, then return false. If it has, check if the hash is the same or not.
 				if (Height == 0 && (!Chain.ContainsKey(0) || Chain[0] != hash))
 				{
 					return false;

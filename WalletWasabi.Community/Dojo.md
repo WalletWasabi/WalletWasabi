@@ -51,6 +51,7 @@ You can only be promoted by someone two belts above you. Consequently you can pr
 | Matt Odell       | [Twitter][38]               | [Interview  with Nopara][39] and starting [#WasabiWednesday][40]| 2019-04: white belt by Max Hillebrand |
 | Marty Bent       | [Twitter][41]               | [Interview  with Nopara][39]| 2019-04: white belt by Max Hillebrand        |
 | 6102bitcoin      | [Twitter][42]               | [Created FAQ][43]| 2019-05: white belt by nopara73                         |
+| BTC Sessions     | [Twitter][44]               | [Wasabi end-to-end video tutorial][45]   | 2019-07: white belt by lontivero|
 
 [1]: https://twitter.com/NicolasDorier/
 [2]: https://github.com/NicolasDorier/
@@ -93,3 +94,5 @@ You can only be promoted by someone two belts above you. Consequently you can pr
 [41]: https://twitter.com/martybent
 [42]: https://twitter.com/6102bitcoin
 [43]: https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/FAQ.md
+[44]: https://twitter.com/BTCSessions
+[45]: https://www.youtube.com/watch?v=ECQHAzSckK0

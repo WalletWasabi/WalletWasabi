@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -168,10 +168,7 @@ namespace Mono.Options
 			return new string[] { "@file" };
 		}
 
-		public override string Description
-		{
-			get { return "Read response file for more options."; }
-		}
+		public override string Description => "Read response file for more options.";
 
 		public override bool GetArguments(string value, out IEnumerable<string> replacement)
 		{
@@ -180,7 +177,7 @@ namespace Mono.Options
 				replacement = null;
 				return false;
 			}
-			replacement = ArgumentSource.GetArgumentsFromFile(value.Substring(1));
+			replacement = GetArgumentsFromFile(value.Substring(1));
 			return true;
 		}
 	}

@@ -1,4 +1,5 @@
 using Avalonia.Data.Converters;
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -6,28 +7,25 @@ using System.Text;
 
 namespace WalletWasabi.Gui.Converters
 {
-	public class MaxClearBoolStringConverter : IValueConverter
+	public class NetworkStringConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is bool boolean)
+			if (value is Network network)
 			{
-				if (boolean)
-				{
-					return "Clear";
-				}
-				else
-				{
-					return "Max";
-				}
+				return network.ToString();
 			}
-
-			throw new InvalidOperationException();
+			else
+			{
+				throw new TypeArgumentException(value, typeof(Network), nameof(value));
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			throw new NotSupportedException();
+			var networkString = value as string;
+
+			return Network.GetNetwork(networkString);
 		}
 	}
 }

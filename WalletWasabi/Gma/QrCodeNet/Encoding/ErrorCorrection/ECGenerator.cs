@@ -1,4 +1,4 @@
-﻿using Gma.QrCodeNet.Encoding.ReedSolomon;
+using Gma.QrCodeNet.Encoding.ReedSolomon;
 using System;
 using System.Collections.Generic;
 
@@ -23,28 +23,28 @@ namespace Gma.QrCodeNet.Encoding.ErrorCorrection
 			GaloisField256 gf256 = GaloisField256.QRCodeGaloisField;
 			GeneratorPolynomial generator = new GeneratorPolynomial(gf256);
 
-			for (int blockID = 0; blockID < vd.NumECBlocks; blockID++)
+			for (int blockId = 0; blockId < vd.NumECBlocks; blockId++)
 			{
-				if (blockID < ecBlockGroup1)
+				if (blockId < ecBlockGroup1)
 				{
-					dByteJArray[blockID] = new byte[numDataBytesGroup1];
+					dByteJArray[blockId] = new byte[numDataBytesGroup1];
 					for (int index = 0; index < numDataBytesGroup1; index++)
 					{
-						dByteJArray[blockID][index] = dataCodewordsByte[dataBytesOffset + index];
+						dByteJArray[blockId][index] = dataCodewordsByte[dataBytesOffset + index];
 					}
 					dataBytesOffset += numDataBytesGroup1;
 				}
 				else
 				{
-					dByteJArray[blockID] = new byte[numDataBytesGroup2];
+					dByteJArray[blockId] = new byte[numDataBytesGroup2];
 					for (int index = 0; index < numDataBytesGroup2; index++)
 					{
-						dByteJArray[blockID][index] = dataCodewordsByte[dataBytesOffset + index];
+						dByteJArray[blockId][index] = dataCodewordsByte[dataBytesOffset + index];
 					}
 					dataBytesOffset += numDataBytesGroup2;
 				}
 
-				ecByteJArray[blockID] = ReedSolomonEncoder.Encode(dByteJArray[blockID], ecBytesPerBlock, generator);
+				ecByteJArray[blockId] = ReedSolomonEncoder.Encode(dByteJArray[blockId], ecBytesPerBlock, generator);
 			}
 			if (vd.NumDataBytes != dataBytesOffset)
 			{
@@ -55,22 +55,22 @@ namespace Gma.QrCodeNet.Encoding.ErrorCorrection
 
 			int maxDataLength = ecBlockGroup1 == vd.NumECBlocks ? numDataBytesGroup1 : numDataBytesGroup2;
 
-			for (int dataID = 0; dataID < maxDataLength; dataID++)
+			for (int dataId = 0; dataId < maxDataLength; dataId++)
 			{
-				for (int blockID = 0; blockID < vd.NumECBlocks; blockID++)
+				for (int blockId = 0; blockId < vd.NumECBlocks; blockId++)
 				{
-					if (!(dataID == numDataBytesGroup1 && blockID < ecBlockGroup1))
+					if (!(dataId == numDataBytesGroup1 && blockId < ecBlockGroup1))
 					{
-						codewords.Add(dByteJArray[blockID][dataID], 8);
+						codewords.Add(dByteJArray[blockId][dataId], 8);
 					}
 				}
 			}
 
 			for (int ECID = 0; ECID < ecBytesPerBlock; ECID++)
 			{
-				for (int blockID = 0; blockID < vd.NumECBlocks; blockID++)
+				for (int blockId = 0; blockId < vd.NumECBlocks; blockId++)
 				{
-					codewords.Add(ecByteJArray[blockID][ECID], 8);
+					codewords.Add(ecByteJArray[blockId][ECID], 8);
 				}
 			}
 

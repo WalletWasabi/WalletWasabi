@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Styling;
 using System;
 
@@ -21,7 +22,7 @@ namespace WalletWasabi.Gui.Controls
 						(e.InputModifiers & InputModifiers.Shift) != 0,
 						(e.InputModifiers & InputModifiers.Control) != 0);
 				}
-			}, Avalonia.Interactivity.RoutingStrategies.Tunnel, true);
+			}, RoutingStrategies.Tunnel, true);
 		}
 
 		protected override void OnPointerPressed(PointerPressedEventArgs e)

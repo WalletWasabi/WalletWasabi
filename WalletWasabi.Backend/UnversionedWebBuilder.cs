@@ -6,28 +6,32 @@ using System.Linq;
 
 namespace WalletWasabi.Backend
 {
-	public static class UnversionedWebBuilder
+	public class UnversionedWebBuilder
 	{
-		public static string DebugRootFolder { get; } = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\wwwroot"));
-		public static string PublishedRootFolder { get; } = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "wwwroot"));
+		public Global Global { get; }
+		public string RootFolder { get; }
+		public string UnversionedFolder { get; }
 
-		public static string RootFolder { get; } = Directory.Exists(PublishedRootFolder) ? PublishedRootFolder : DebugRootFolder;
+		public UnversionedWebBuilder(Global global, string rootFolder)
+		{
+			Global = global;
+			RootFolder = rootFolder;
+			UnversionedFolder = Path.GetFullPath(Path.Combine(RootFolder, "unversioned"));
+		}
 
-		public static string UnversionedFolder { get; } = Path.GetFullPath(Path.Combine(RootFolder, "unversioned"));
-
-		public static string CreateFilePath(string fileName) => Path.Combine(UnversionedFolder, fileName);
+		public string CreateFilePath(string fileName) => Path.Combine(UnversionedFolder, fileName);
 
 		public static string HtmlStartLine { get; } = "<link href=\"../css/bootstrap.css\" rel=\"stylesheet\" type=\"text/css\" />\r\n<link href=\"../css/OpenSansCondensed300700.css\" rel=\"stylesheet\" type=\"text/css\" />\r\n";
 
-		public static void CreateDownloadTextWithVersionHtml()
+		public void CreateDownloadTextWithVersionHtml()
 		{
 			var filePath = CreateFilePath("download-text-with-version.html");
-			var content = HtmlStartLine + $"<h1 class=\"text-center\">Download Wasabi Wallet {Helpers.Constants.ClientVersion.ToString()}</h1>";
+			var content = HtmlStartLine + $"<h1 class=\"text-center\">Download Wasabi Wallet {Helpers.Constants.ClientVersion}</h1>";
 
 			File.WriteAllText(filePath, content);
 		}
 
-		public static void CloneAndUpdateOnionIndexHtml()
+		public void CloneAndUpdateOnionIndexHtml()
 		{
 			var path = Path.Combine(RootFolder, "index.html");
 			var onionPath = Path.Combine(RootFolder, "onion-index.html");
@@ -41,7 +45,7 @@ namespace WalletWasabi.Backend
 			File.WriteAllText(onionPath, content);
 		}
 
-		public static void UpdateCoinJoinsHtml(IEnumerable<string> coinJoins)
+		public void UpdateCoinJoinsHtml(IEnumerable<string> coinJoins)
 		{
 			var filePath = CreateFilePath("coinjoins-table.html");
 			var onionFilePath = CreateFilePath("onion-coinjoins-table.html");
@@ -51,7 +55,7 @@ namespace WalletWasabi.Backend
 			var endContent = "</ul>";
 			string blockstreamPath;
 			string onionBlockstreamPath;
-			if (Global.Instance.Config.Network == Network.TestNet)
+			if (Global.Config.Network == Network.TestNet)
 			{
 				blockstreamPath = "https://blockstream.info/testnet/tx/";
 				onionBlockstreamPath = "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion/testnet/tx/";

@@ -1,6 +1,6 @@
 # Testing
 
-The goal of this document is to establish a manual testing workflow and checklist for Wasabi Wallet in order to make sure larger pull requests and releases don't accidentally ruin vital functionality.
+The goal of this document is to establish a manual testing workflow and checklist for Wasabi Wallet in order to make sure larger pull requests and releases do not accidentally ruin vital functionality.
 
 # Environment
 
@@ -18,7 +18,7 @@ Run Wasabi with `dotnet run -c Release` from the `WalletWasabi.Gui` folder.
 
 ### How to checkout a pull request?
 
-Check the id of the pull requesest.
+Check the id of the pull request.
 ```sh
 git fetch origin pull/ID/head:yourbranchname
 git checkout yourbranchname
@@ -32,14 +32,14 @@ If someone made a change to the pull request and you want to go through the test
 
 Open Wasabi and go to Main Menu / File / Open / Data Folder.
 
-### How to check error?
+### How to check for errors?
 
-Standart procedure: look at the terminal. If there is something ERROR or WARNING that is probably an error.
+Standard procedure: look at the terminal. If there is something saying ERROR or WARNING, that is probably an error.
 Special case: always defined at the specific test case.
 
-### How to determine if the application is exited?
+### How to determine if the application has exited?
 
-Look at the terminal. Wait until log messages stop and you will get back your blinking cursor. If nothing happens appearingly try to press enter. If the application hanged you can also check it in process manager. If it is still running there might be an endless loop which is an error and don't let the application to close.
+Look at the terminal. Wait until log messages stop and the blinking cursor reappears. If nothing happens, try to press enter. If the application hanged, you can also check it in process manager. If it is still running, there might be an endless loop: an error which does not let the application close.
 
 # Workflow
 
@@ -51,7 +51,7 @@ Look at the terminal. Wait until log messages stop and you will get back your bl
   * Wait until exit.
 2.
   * Run Wasabi.
-  * Wait until Backend connected.
+  * Wait until Backend is connected.
   * Press the X button.
   * Wait until exit.
 3.
@@ -62,12 +62,12 @@ Look at the terminal. Wait until log messages stop and you will get back your bl
   * Wait until exit.
 4.
   * Run Wasabi.
-  * Wait until Backend connected.
+  * Wait until Backend is connected.
   * Press the File / Exit.
   * Wait until exit.
 5.
   * Run Wasabi.
-  * Wait until Backend connected.
+  * Wait until Backend is connected.
   * Go to Terminal and press Ctrl-C.
   * Wait until exit.
   
@@ -75,7 +75,7 @@ Look at the terminal. Wait until log messages stop and you will get back your bl
 
 1.
   * Delete all files from DataFolder/Client/BitcoinStore/Main
-  * Wait until Backend connected and all filter downloaded.
+  * Wait until Backend is connected and all filter is downloaded.
   * Restart the application.
   * Filter download should not start again.
   
@@ -85,9 +85,9 @@ Look at the terminal. Wait until log messages stop and you will get back your bl
   * Run Wasabi.
   * Load one of your wallets. 
   * Go to the "Receive" tab.
-  * If you don't have any addresses, then generate a couple.
+  * If you do not have any addresses, then generate a couple.
   * Select an address by right clicking on it. Make sure that the context menu pops up, and the address is highlighted.
-  * Then select another address by right clicking on it, and make sure again that the context menu pops up, and the address is highlighted.
+  * Select another address by right clicking on it. Make sure again that the context menu pops up, and the address is highlighted.
  
 
 # Checklist

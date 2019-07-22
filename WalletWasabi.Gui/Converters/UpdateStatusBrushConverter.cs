@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using System;
@@ -20,12 +20,9 @@ namespace WalletWasabi.Gui.Converters
 				}
 			}
 
-			if (Application.Current.Resources.TryGetResource("ApplicationAccentBrushLow", out object brush))
-			{
-				return brush;
-			}
-
-			return null;
+			return Application.Current.Resources.TryGetResource("ApplicationAccentBrushLow", out object brush)
+				? brush :
+				null;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

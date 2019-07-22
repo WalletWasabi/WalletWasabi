@@ -25,7 +25,7 @@ namespace WalletWasabi.Gui.CommandLine
 			{
 				Logger.LogStarting("Wasabi Daemon");
 
-				KeyManager keyManager = TryGetKeymanagerFromWalletName(walletName);
+				KeyManager keyManager = TryGetKeyManagerFromWalletName(walletName);
 				if (keyManager is null)
 				{
 					return;
@@ -118,7 +118,7 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 		}
 
-		public KeyManager TryGetKeymanagerFromWalletName(string walletName)
+		public KeyManager TryGetKeyManagerFromWalletName(string walletName)
 		{
 			try
 			{
@@ -130,7 +130,7 @@ namespace WalletWasabi.Gui.CommandLine
 					if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
 					{
 						// The selected wallet is not available any more (someone deleted it?).
-						Logger.LogCritical("The selected wallet doesn't exsist, did you delete it?", nameof(Daemon));
+						Logger.LogCritical("The selected wallet does not exist, did you delete it?", nameof(Daemon));
 						return null;
 					}
 

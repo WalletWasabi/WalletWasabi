@@ -40,7 +40,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			IEnumerable<Requester> requesters,
 			Network network,
 			Func<Uri> baseUriAction,
-			IPEndPoint torSocks5EndPoint) : base(baseUriAction, torSocks5EndPoint)
+			EndPoint torSocks5EndPoint) : base(baseUriAction, torSocks5EndPoint)
 		{
 			RoundId = roundId;
 			RegisteredAddresses = registeredAddresses.ToArray();
@@ -57,7 +57,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			Network network,
 			InputsRequest request,
 			Uri baseUri,
-			IPEndPoint torSocks5EndPoint)
+			EndPoint torSocks5EndPoint)
 		{
 			return await CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, request, () => baseUri, torSocks5EndPoint);
 		}
@@ -69,7 +69,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			Network network,
 			InputsRequest request,
 			Func<Uri> baseUriAction,
-			IPEndPoint torSocks5EndPoint)
+			EndPoint torSocks5EndPoint)
 		{
 			AliceClient client = new AliceClient(roundId, registeredAddresses, schnorrPubKeys, requesters, network, baseUriAction, torSocks5EndPoint);
 			try
@@ -83,7 +83,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 					}
 					else
 					{
-						throw new NotSupportedException($"InputRequest roundId doesn't match to the provided roundId: {request.RoundId} != {roundId}.");
+						throw new NotSupportedException($"InputRequest roundId does not match to the provided roundId: {request.RoundId} != {roundId}.");
 					}
 				}
 				using (HttpResponseMessage response = await client.TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
@@ -123,7 +123,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			IEnumerable<uint256> blindedOutputScriptHashes,
 			IEnumerable<InputProofModel> inputs,
 			Uri baseUri,
-			IPEndPoint torSocks5EndPoint)
+			EndPoint torSocks5EndPoint)
 		{
 			return await CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, changeOutput, blindedOutputScriptHashes, inputs, () => baseUri, torSocks5EndPoint);
 		}
@@ -137,9 +137,10 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			IEnumerable<uint256> blindedOutputScriptHashes,
 			IEnumerable<InputProofModel> inputs,
 			Func<Uri> baseUriAction,
-			IPEndPoint torSocks5EndPoint)
+			EndPoint torSocks5EndPoint)
 		{
-			var request = new InputsRequest {
+			var request = new InputsRequest
+			{
 				RoundId = roundId,
 				BlindedOutputScripts = blindedOutputScriptHashes,
 				ChangeOutputAddress = changeOutput,
@@ -212,7 +213,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 						}
 					}
 				}
-				catch (Exception ex) when (ex is OperationCanceledException // If couldn't do it within 3 seconds then it'll likely time out and take it as unconfirmed.
+				catch (Exception ex) when (ex is OperationCanceledException // If could not do it within 3 seconds then it'll likely time out and take it as unconfirmed.
 										|| ex is TaskCanceledException
 										|| ex is TimeoutException)
 				{

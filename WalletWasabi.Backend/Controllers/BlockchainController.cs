@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
@@ -22,14 +23,15 @@ namespace WalletWasabi.Backend.Controllers
 	public class BlockchainController : Controller
 	{
 		private IMemoryCache Cache { get; }
+		public Global Global { get; }
+		private RPCClient RpcClient => Global.RpcClient;
 
-		private static RPCClient RpcClient => Global.Instance.RpcClient;
+		private Network Network => Global.Config.Network;
 
-		private static Network Network => Global.Instance.Config.Network;
-
-		public BlockchainController(IMemoryCache memoryCache)
+		public BlockchainController(IMemoryCache memoryCache, Global global)
 		{
 			Cache = memoryCache;
+			Global = global;
 		}
 
 		/// <summary>
@@ -61,7 +63,7 @@ namespace WalletWasabi.Backend.Controllers
 			{
 				if (int.TryParse(targetParam, out var target))
 				{
-					if (target < 2 || target > 1008)
+					if (target < 2 || target > Constants.SevenDaysConfirmationTarget)
 					{
 						return BadRequest("All requested confirmation target must be >=2 AND <= 1008.");
 					}
@@ -182,7 +184,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			if (!Cache.TryGetValue(cacheKey, out IEnumerable<string> hashes))
 			{
-				uint256[] transactionHashes = await Global.Instance.RpcClient.GetRawMempoolAsync();
+				uint256[] transactionHashes = await Global.RpcClient.GetRawMempoolAsync();
 
 				hashes = transactionHashes.Select(x => x.ToString());
 
@@ -278,7 +280,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			var knownHash = new uint256(bestKnownBlockHash);
 
-			(Height bestHeight, IEnumerable<FilterModel> filters) = Global.Instance.IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
+			(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
 
 			if (!found)
 			{

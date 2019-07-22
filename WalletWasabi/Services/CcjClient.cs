@@ -5,6 +5,7 @@ using Nito.AsyncEx;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -33,7 +34,7 @@ namespace WalletWasabi.Services
 
 		public Func<Uri> CcjHostUriAction { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
-		private IPEndPoint TorSocks5EndPoint { get; set; }
+		private EndPoint TorSocks5EndPoint { get; set; }
 
 		private decimal? CoordinatorFeepercentToCheck { get; set; }
 
@@ -67,7 +68,7 @@ namespace WalletWasabi.Services
 			Network network,
 			KeyManager keyManager,
 			Func<Uri> ccjHostUriAction,
-			IPEndPoint torSocks5EndPoint)
+			EndPoint torSocks5EndPoint)
 		{
 			Create(synchronizer, network, keyManager, ccjHostUriAction, torSocks5EndPoint);
 		}
@@ -77,12 +78,12 @@ namespace WalletWasabi.Services
 			Network network,
 			KeyManager keyManager,
 			Uri ccjHostUri,
-			IPEndPoint torSocks5EndPoint)
+			EndPoint torSocks5EndPoint)
 		{
 			Create(synchronizer, network, keyManager, () => ccjHostUri, torSocks5EndPoint);
 		}
 
-		private void Create(WasabiSynchronizer synchronizer, Network network, KeyManager keyManager, Func<Uri> ccjHostUriAction, IPEndPoint torSocks5EndPoint)
+		private void Create(WasabiSynchronizer synchronizer, Network network, KeyManager keyManager, Func<Uri> ccjHostUriAction, EndPoint torSocks5EndPoint)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
@@ -195,6 +196,7 @@ namespace WalletWasabi.Services
 		private async Task TryProcessStatusAsync(IEnumerable<CcjRunningRoundState> states)
 		{
 			states = states ?? Enumerable.Empty<CcjRunningRoundState>();
+
 			if (Interlocked.Read(ref _statusProcessing) == 1) // It's ok to wait for status processing next time.
 			{
 				return;
@@ -212,18 +214,18 @@ namespace WalletWasabi.Services
 					{
 						CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(DelayedRoundRegistration.AliceClient.RoundId);
 						roundRegistered.Registration = DelayedRoundRegistration;
-						DelayedRoundRegistration = null; // Don't dispose.
+						DelayedRoundRegistration = null; // Do not dispose.
 					}
 
 					await DequeueSpentCoinsFromMixNoLockAsync();
 
 					State.UpdateRoundsByStates(ExposedLinks, states.ToArray());
 
-					// If we don't have enough coin queued to register a round, then dequeue all.
+					// If we do not have enough coin queued to register a round, then dequeue all.
 					CcjClientRound registrableRound = State.GetRegistrableRoundOrDefault();
 					if (registrableRound != default)
 					{
-						// If the coordinator increases fees, don't register. Let the users register manually again.
+						// If the coordinator increases fees, do not register. Let the users register manually again.
 						bool dequeueBecauseCoordinatorFeeChanged = false;
 						if (CoordinatorFeepercentToCheck != default)
 						{
@@ -259,7 +261,7 @@ namespace WalletWasabi.Services
 					CcjClientRound inputRegistrableRound = State.GetRegistrableRoundOrDefault();
 					if (inputRegistrableRound != null)
 					{
-						if (inputRegistrableRound.Registration is null) // If didn't register already, check what can we register.
+						if (inputRegistrableRound.Registration is null) // If did not register already, check what can we register.
 						{
 							await TryRegisterCoinsAsync(inputRegistrableRound);
 						}
@@ -297,7 +299,7 @@ namespace WalletWasabi.Services
 
 				if (ongoingRound.State.Phase == CcjRoundPhase.ConnectionConfirmation)
 				{
-					if (!ongoingRound.Registration.IsPhaseActionsComleted(CcjRoundPhase.ConnectionConfirmation)) // If we didn't already confirmed connection in connection confirmation phase confirm it.
+					if (!ongoingRound.Registration.IsPhaseActionsComleted(CcjRoundPhase.ConnectionConfirmation)) // If we did not already confirm connection in connection confirmation phase confirm it.
 					{
 						var res = await ongoingRound.Registration.AliceClient.PostConfirmationAsync();
 						if (res.activeOutputs.Any())
@@ -532,7 +534,8 @@ namespace WalletWasabi.Services
 					}
 
 					coin.Secret = coin.Secret ?? KeyManager.GetSecrets(SaltSoup(), coin.ScriptPubKey).Single();
-					var inputProof = new InputProofModel {
+					var inputProof = new InputProofModel
+					{
 						Input = coin.GetTxoRef(),
 						Proof = coin.Secret.PrivateKey.SignCompact(blindedOutputScriptsHash)
 					};
@@ -588,7 +591,7 @@ namespace WalletWasabi.Services
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("No such running round in InputRegistration.", StringComparison.InvariantCultureIgnoreCase))
 				{
-					Logger.LogInfo<CcjClient>("Client tried to register a round that isn't in InputRegistration anymore. Trying again later.");
+					Logger.LogInfo<CcjClient>("Client tried to register a round that is not in InputRegistration anymore. Trying again later.");
 					aliceClient?.Dispose();
 					return;
 				}
@@ -617,7 +620,7 @@ namespace WalletWasabi.Services
 				CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
 				if (roundRegistered is null)
 				{
-					// If our SatoshiClient doesn't yet know about the round, because of delay, then delay the round registration.
+					// If our SatoshiClient does not yet know about the round, because of delay, then delay the round registration.
 					DelayedRoundRegistration?.Dispose();
 					DelayedRoundRegistration = registration;
 				}
@@ -846,7 +849,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public bool HasIngredients => Salt is null || Soup is null ? false : true;
+		public bool HasIngredients => Salt != null && Soup != null;
 
 		private string SaltSoup()
 		{
@@ -1072,16 +1075,15 @@ namespace WalletWasabi.Services
 						var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 						if (coin is null)
 						{
-							continue; // The coin isn't present anymore. Good. This should never happen though.
+							continue; // The coin is not present anymore. Good. This should never happen though.
 						}
 						await DequeueCoinsFromMixNoLockAsync(coin.GetTxoRef(), "Stopping Wasabi.");
 					}
 					catch (Exception ex)
 					{
-						Logger.LogError<CcjClient>("Couldn't dequeue all coins. Some coins will likely be banned from mixing.");
-						if (ex is AggregateException)
+						Logger.LogError<CcjClient>("Could not dequeue all coins. Some coins will likely be banned from mixing.");
+						if (ex is AggregateException aggrEx)
 						{
-							var aggrEx = ex as AggregateException;
 							foreach (var innerEx in aggrEx.InnerExceptions)
 							{
 								Logger.LogError<CcjClient>(innerEx);

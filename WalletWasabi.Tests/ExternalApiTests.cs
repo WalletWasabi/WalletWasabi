@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +25,7 @@ namespace WalletWasabi.Tests
 		{
 			if (!await TestAsync("https://api.smartbit.com.au/v1/blockchain/stats"))
 			{
-				return; // If website doesn't work, don't bother failing.
+				return; // If website does not work, do not bother failing.
 			}
 
 			var network = Network.GetNetwork(networkString);
@@ -49,7 +49,7 @@ namespace WalletWasabi.Tests
 		{
 			if (!await TestAsync("https://api.blockcypher.com/v1/btc/main"))
 			{
-				return; // If website doesn't work, don't bother failing.
+				return; // If website does not work, do not bother failing.
 			}
 
 			var network = Network.GetNetwork(networkString);
@@ -60,7 +60,7 @@ namespace WalletWasabi.Tests
 				{
 					response = await client.GetGeneralInformationAsync(CancellationToken.None);
 				}
-				catch // stupid CI internet conenction sometimes fails
+				catch // stupid CI internet connection sometimes fails
 				{
 					await Task.Delay(3000);
 					response = await client.GetGeneralInformationAsync(CancellationToken.None);
@@ -73,8 +73,8 @@ namespace WalletWasabi.Tests
 				Assert.InRange(response.MediumFee.FeePerK, response.LowFee.FeePerK, response.HighFee.FeePerK);
 				Assert.InRange(response.HighFee.FeePerK, response.MediumFee.FeePerK, Money.Coins(0.1m));
 				Assert.True(response.Height >= 491999);
-				Assert.Equal(new Uri(client.BaseAddress.ToString().Replace("http", "https") + "/blocks/" + response.Hash), response.LatestUrl);
-				Assert.Equal(new Uri(client.BaseAddress.ToString().Replace("http", "https") + "/blocks/" + response.PreviousHash), response.PreviousUrl);
+				Assert.Equal(new Uri(client.BaseAddress + "/blocks/" + response.Hash), response.LatestUrl);
+				Assert.Equal(new Uri(client.BaseAddress + "/blocks/" + response.PreviousHash), response.PreviousUrl);
 				if (network == Network.Main)
 				{
 					Assert.Equal("BTC.main", response.Name);
@@ -102,7 +102,7 @@ namespace WalletWasabi.Tests
 			}
 			catch (Exception ex)
 			{
-				Logger.LogDebug<ExternalApiTests>($"Uri wasn't reachable: {uri}");
+				Logger.LogDebug<ExternalApiTests>($"Uri was not reachable: {uri}");
 				Logger.LogDebug<ExternalApiTests>(ex);
 			}
 			return false;

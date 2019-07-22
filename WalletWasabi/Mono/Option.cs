@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -178,17 +178,17 @@ namespace Mono.Options
 		{
 			if (prototype is null)
 			{
-				throw new ArgumentNullException("prototype");
+				throw new ArgumentNullException(nameof(prototype));
 			}
 
-			if (prototype.Length == 0)
+			if (prototype == "")
 			{
-				throw new ArgumentException("Cannot be the empty string.", "prototype");
+				throw new ArgumentException("Cannot be an empty string.", nameof(prototype));
 			}
 
 			if (maxValueCount < 0)
 			{
-				throw new ArgumentOutOfRangeException("maxValueCount");
+				throw new ArgumentOutOfRangeException(nameof(maxValueCount));
 			}
 
 			Prototype = prototype;
@@ -211,16 +211,16 @@ namespace Mono.Options
 			if (MaxValueCount == 0 && OptionValueType != OptionValueType.None)
 			{
 				throw new ArgumentException(
-						"Cannot provide maxValueCount of 0 for OptionValueType.Required or " +
-							"OptionValueType.Optional.",
-						"maxValueCount");
+					$"Cannot provide {nameof(maxValueCount)} of 0 for {nameof(OptionValueType)}.{nameof(OptionValueType.Required)}" +
+						$" or {nameof(OptionValueType)}.{nameof(OptionValueType.Optional)}.",
+					nameof(maxValueCount));
 			}
 
 			if (OptionValueType == OptionValueType.None && maxValueCount > 1)
 			{
 				throw new ArgumentException(
-						string.Format("Cannot provide maxValueCount of {0} for OptionValueType.None.", maxValueCount),
-						"maxValueCount");
+					$"Cannot provide {nameof(maxValueCount)} of {maxValueCount} for {nameof(OptionValueType)}.{nameof(OptionValueType.None)}.",
+					nameof(maxValueCount));
 			}
 
 			if (Array.IndexOf(Names, "<>") >= 0 &&
@@ -228,8 +228,8 @@ namespace Mono.Options
 					 (Names.Length > 1 && MaxValueCount > 1)))
 			{
 				throw new ArgumentException(
-						"The default option handler '<>' cannot require values.",
-						"prototype");
+					"The default option handler '<>' cannot require values.",
+					nameof(prototype));
 			}
 		}
 
@@ -278,10 +278,8 @@ namespace Mono.Options
 			catch (Exception e)
 			{
 				throw new OptionException(
-						string.Format(
-							c.OptionSet.MessageLocalizer("Could not convert string `{0}' to type {1} for option `{2}'."),
-							value, targetType.Name, c.OptionName),
-						c.OptionName, e);
+					string.Format(c.OptionSet.MessageLocalizer($"Could not convert string `{value}' to type {targetType.Name} for option `{c.OptionName}'.")),
+					c.OptionName, e);
 			}
 			return t;
 		}
@@ -298,9 +296,9 @@ namespace Mono.Options
 			for (int i = 0; i < Names.Length; ++i)
 			{
 				string name = Names[i];
-				if (name.Length == 0)
+				if (name == "")
 				{
-					throw new ArgumentException("Empty option names are not supported.", "prototype");
+					throw new ArgumentException("Empty option names are not supported.", nameof(Prototype));
 				}
 
 				int end = name.IndexOfAny(NameTerminator);
@@ -317,8 +315,8 @@ namespace Mono.Options
 				else
 				{
 					throw new ArgumentException(
-							string.Format("Conflicting option types: '{0}' vs. '{1}'.", type, name[end]),
-							"prototype");
+						$"Conflicting option types: '{type}' vs. '{name[end]}'.",
+						nameof(Prototype));
 				}
 
 				AddSeparators(name, end, seps);
@@ -329,20 +327,22 @@ namespace Mono.Options
 				return OptionValueType.None;
 			}
 
-			if (MaxValueCount <= 1 && seps.Count != 0)
+			if (MaxValueCount <= 1)
 			{
-				throw new ArgumentException(
-						string.Format("Cannot provide key/value separators for Options taking {0} value(s).", MaxValueCount),
-						"prototype");
+				if (seps.Count != 0)
+				{
+					throw new ArgumentException(
+						$"Cannot provide key/value separators for Options taking {MaxValueCount} value(s).",
+						nameof(Prototype));
+				}
 			}
-
-			if (MaxValueCount > 1)
+			else
 			{
 				if (seps.Count == 0)
 				{
 					ValueSeparators = new string[] { ":", "=" };
 				}
-				else if (seps.Count == 1 && seps[0].Length == 0)
+				else if (seps.Count == 1 && seps[0] == "")
 				{
 					ValueSeparators = null;
 				}
@@ -366,8 +366,8 @@ namespace Mono.Options
 						if (start != -1)
 						{
 							throw new ArgumentException(
-									string.Format("Ill-formed name/value separator found in \"{0}\".", name),
-									"prototype");
+								$"Ill-formed name/value separator found in \"{name}\".",
+								nameof(Prototype));
 						}
 
 						start = i + 1;
@@ -377,8 +377,8 @@ namespace Mono.Options
 						if (start == -1)
 						{
 							throw new ArgumentException(
-									string.Format("Ill-formed name/value separator found in \"{0}\".", name),
-									"prototype");
+								$"Ill-formed name/value separator found in \"{name}\".",
+								nameof(Prototype));
 						}
 
 						seps.Add(name.Substring(start, i - start));
@@ -397,8 +397,8 @@ namespace Mono.Options
 			if (start != -1)
 			{
 				throw new ArgumentException(
-						string.Format("Ill-formed name/value separator found in \"{0}\".", name),
-						"prototype");
+					$"Ill-formed name/value separator found in \"{name}\".",
+					nameof(Prototype));
 			}
 		}
 

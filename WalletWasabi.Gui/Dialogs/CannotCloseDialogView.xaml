@@ -11,7 +11,7 @@
           <RowDefinition />
         </Grid.RowDefinitions>
         <Panel Grid.Row="0" Margin="10">
-          <TextBlock FontSize="15"  Text="You have coins registered for CoinJoin. Wasabi is dequeing them. If a coin is currently being coinjoined Wasabi will wait for the mix to finish, so you don't disrupt the mixing round. This could take a few minutes, please be patient." TextWrapping="Wrap" />
+          <TextBlock FontSize="15"  Text="You have coins registered for CoinJoin. Wasabi is dequeing them. If a coin is currently being coinjoined Wasabi will wait for the mix to finish, so you do not disrupt the mixing round. This could take a few minutes, please be patient." TextWrapping="Wrap" />
         </Panel>
         <StackPanel Grid.Row="1" Orientation="Vertical" Margin="10">
           <StackPanel Orientation="Horizontal" Margin="10" IsVisible="{Binding IsBusy}">

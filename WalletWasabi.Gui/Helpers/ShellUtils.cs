@@ -42,7 +42,8 @@ namespace WalletWasabi.Gui.Helpers
 			},
 			false, "");
 
-			return new ShellExecuteResult() {
+			return new ShellExecuteResult()
+			{
 				ExitCode = exitCode,
 				Output = outputBuilder.ToString().Trim(),
 				ErrorOutput = errorBuilder.ToString().Trim()
@@ -53,8 +54,10 @@ namespace WalletWasabi.Gui.Helpers
 			outputReceivedCallback, Action<object, DataReceivedEventArgs> errorReceivedCallback = null, bool resolveExecutable = true,
 			string workingDirectory = "", bool executeInShell = true, bool includeSystemPaths = true, params string[] extraPaths)
 		{
-			using (var shellProc = new Process {
-				StartInfo = new ProcessStartInfo {
+			using (var shellProc = new Process
+			{
+				StartInfo = new ProcessStartInfo
+				{
 					RedirectStandardOutput = true,
 					RedirectStandardError = true,
 					UseShellExecute = false,
@@ -122,7 +125,9 @@ namespace WalletWasabi.Gui.Helpers
 		public static string ResolveFullExecutablePath(string fileName, bool returnNullOnFailure = true, params string[] extraPaths)
 		{
 			if (File.Exists(fileName))
+			{
 				return Path.GetFullPath(fileName);
+			}
 
 			if (ExecutorType == ShellType.Windows)
 			{
@@ -133,7 +138,9 @@ namespace WalletWasabi.Gui.Helpers
 				{
 					var fullPath = Path.Combine(path, fileName);
 					if (File.Exists(fullPath))
+					{
 						return fullPath;
+					}
 				}
 			}
 			else

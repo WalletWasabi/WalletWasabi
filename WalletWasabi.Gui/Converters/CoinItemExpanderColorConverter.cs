@@ -15,15 +15,12 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is bool expanded)
 			{
-				if (expanded)
-				{
-					return Application.Current.Resources[Global.ThemeBackgroundBrushResourceKey] as IBrush;
-				}
-
-				return Brushes.Transparent;
+				return expanded ? Application.Current.Resources[Global.ThemeBackgroundBrushResourceKey] as IBrush : Brushes.Transparent;
 			}
-
-			throw new InvalidOperationException();
+			else
+			{
+				throw new TypeArgumentException(value, typeof(bool), nameof(value));
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

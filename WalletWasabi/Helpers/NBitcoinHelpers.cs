@@ -75,6 +75,32 @@ namespace WalletWasabi.Helpers
 			return epk;
 		}
 
+		public static HDFingerprint BetterParseHDFingerprint(string hdFingerprintString, bool reverseByteOrder = false)
+		{
+			hdFingerprintString = Guard.NotNullOrEmptyOrWhitespace(nameof(hdFingerprintString), hdFingerprintString, trim: true);
+
+			HDFingerprint hdfp;
+			try
+			{
+				var hdfpu = uint.Parse(hdFingerprintString);
+				hdfp = new HDFingerprint(hdfpu);
+			}
+			catch
+			{
+				// Try hex, Old wallet format was like this.
+				var bytes = ByteHelpers.FromHex(hdFingerprintString);
+				if (reverseByteOrder)
+				{
+					hdfp = new HDFingerprint(bytes.Reverse().ToArray());
+				}
+				else
+				{
+					hdfp = new HDFingerprint(bytes);
+				}
+			}
+			return hdfp;
+		}
+
 		public static async Task<AddressManager> LoadAddressManagerFromPeerFileAsync(string filePath, Network expectedNetwork = null)
 		{
 			byte[] data, hash;
@@ -88,10 +114,11 @@ namespace WalletWasabi.Helpers
 			var actual = Hashes.Hash256(data);
 			var expected = new uint256(hash);
 			if (expected != actual)
+			{
 				throw new FormatException("Invalid address manager file");
+			}
 
-			BitcoinStream stream = new BitcoinStream(data);
-			stream.Type = SerializationType.Disk;
+			BitcoinStream stream = new BitcoinStream(data) { Type = SerializationType.Disk };
 			uint magic = 0;
 			stream.ReadWrite(ref magic);
 			if (expectedNetwork != null && expectedNetwork.Magic != magic)

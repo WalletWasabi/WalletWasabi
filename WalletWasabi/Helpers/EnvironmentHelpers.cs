@@ -145,7 +145,8 @@ namespace WalletWasabi.Helpers
 			var escapedArgs = cmd.Replace("\"", "\\\"");
 
 			using (var process = Process.Start(
-				new ProcessStartInfo {
+				new ProcessStartInfo
+				{
 					FileName = "/bin/sh",
 					Arguments = $"-c \"{escapedArgs}\"",
 					RedirectStandardOutput = true,

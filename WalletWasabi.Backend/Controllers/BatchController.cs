@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
 using NBitcoin.RPC;
 using System;
@@ -19,17 +19,19 @@ namespace WalletWasabi.Backend.Controllers
 	[Route("api/v" + Helpers.Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class BatchController : Controller
 	{
+		public Global Global { get; }
 		public BlockchainController BlockchainController { get; }
 		public ChaumianCoinJoinController ChaumianCoinJoinController { get; }
 		public HomeController HomeController { get; }
 		public OffchainController OffchainController { get; }
 
-		public BatchController(BlockchainController blockchainController, ChaumianCoinJoinController chaumianCoinJoinController, HomeController homeController, OffchainController offchainController)
+		public BatchController(BlockchainController blockchainController, ChaumianCoinJoinController chaumianCoinJoinController, HomeController homeController, OffchainController offchainController, Global global)
 		{
 			BlockchainController = blockchainController;
 			ChaumianCoinJoinController = chaumianCoinJoinController;
 			HomeController = homeController;
 			OffchainController = offchainController;
+			Global = global;
 		}
 
 		[HttpGet("synchronize")]
@@ -52,11 +54,9 @@ namespace WalletWasabi.Backend.Controllers
 
 			var knownHash = new uint256(bestKnownBlockHash);
 
-			(Height bestHeight, IEnumerable<FilterModel> filters) = Global.Instance.IndexBuilderService.GetFilterLinesExcluding(knownHash, maxNumberOfFilters, out bool found);
+			(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, maxNumberOfFilters, out bool found);
 
-			var response = new SynchronizeResponse();
-			response.Filters = Enumerable.Empty<FilterModel>();
-			response.BestHeight = bestHeight;
+			var response = new SynchronizeResponse { Filters = Enumerable.Empty<FilterModel>(), BestHeight = bestHeight };
 
 			if (!found)
 			{

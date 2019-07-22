@@ -3,7 +3,10 @@ using Avalonia.Threading;
 using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
 using System;
+using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.KeyManagement;
@@ -18,6 +21,8 @@ namespace WalletWasabi.Gui.ViewModels
 		private bool[,] _qrCode;
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
+		private string _label;
+		private bool _inEditMode;
 
 		public HdPubKey Model { get; }
 		public Global Global { get; }
@@ -28,25 +33,50 @@ namespace WalletWasabi.Gui.ViewModels
 			Model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
+			_label = model.Label;
 
-			// TODO fix this performance issue this should only be generated when accessed.
-			Task.Run(() =>
-			{
-				var encoder = new QrEncoder();
-				encoder.TryEncode(Address, out var qrCode);
-
-				return qrCode.Matrix.InternalArray;
-			}).ContinueWith(x =>
-			{
-				QrCode = x.Result;
-			});
+			this.WhenAnyValue(x => x.IsExpanded)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Where(x => x)
+				.Take(1)
+				.Subscribe(x =>
+				{
+					try
+					{
+						var encoder = new QrEncoder();
+						encoder.TryEncode(Address, out var qrCode);
+						Dispatcher.UIThread.PostLogException(() => QrCode = qrCode.Matrix.InternalArray);
+					}
+					catch (Exception ex)
+					{
+						Logging.Logger.LogError<AddressViewModel>(ex);
+					}
+				});
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
+				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
 				this.RaisePropertyChanged(nameof(Address));
 				this.RaisePropertyChanged(nameof(Label));
 			}).DisposeWith(Disposables);
+
+			this.WhenAnyValue(x => x.Label)
+				.Subscribe(newLabel =>
+				{
+					if (InEditMode)
+					{
+						KeyManager keyManager = Global.WalletService.KeyManager;
+						HdPubKey hdPubKey = keyManager.GetKeys(x => Model == x).FirstOrDefault();
+
+						if (hdPubKey != default)
+						{
+							hdPubKey.SetLabel(newLabel, kmToFile: keyManager);
+						}
+					}
+				});
 		}
+
+		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
 
 		public bool ClipboardNotificationVisible
 		{
@@ -66,11 +96,27 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
 		}
 
-		public string Label => Model.Label;
+		public string Label
+		{
+			get => _label;
+			set
+			{
+				if (!IsLurkingWifeMode)
+				{
+					this.RaiseAndSetIfChanged(ref _label, value);
+				}
+			}
+		}
+
+		public bool InEditMode
+		{
+			get => _inEditMode;
+			set => this.RaiseAndSetIfChanged(ref _inEditMode, value);
+		}
 
 		public string Address => Model.GetP2wpkhAddress(Global.Network).ToString();
 
-		public string Pubkey => Model.PubKey.ToString();
+		public string PubKey => Model.PubKey.ToString();
 
 		public string KeyPath => Model.FullKeyPath.ToString();
 
