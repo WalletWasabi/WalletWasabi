@@ -25,7 +25,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 			var lockScreen = ReactiveCommand.Create(OnLockScreen);
 			var exit = ReactiveCommand.Create(OnExit);
 
-			lockScreen.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<ExitCommands>(ex));
+			lockScreen.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<ExitCommands>);
 			exit.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<ExitCommands>);
 
 			LockScreenCommand = new CommandDefinition(
