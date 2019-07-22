@@ -21,6 +21,10 @@
             <Button Content="{Binding SourceCodeLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding SourceCodeLink}" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Status Page: " />
+            <Button Content="{Binding StatusPageLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding StatusPageLink}" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal">
             <TextBlock Text="Customer Support: " />
             <Button Content="{Binding CustomerSupportLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding CustomerSupportLink}" />
           </StackPanel>
