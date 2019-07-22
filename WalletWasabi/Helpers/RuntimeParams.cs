@@ -68,7 +68,7 @@ namespace WalletWasabi.Helpers
 			}
 			catch (Exception ex)
 			{
-				Logger.LogInfo<RuntimeParams>($"Could not save RuntimeParams: {ex}.");
+				Logger.LogInfo<RuntimeParams>($"Could not save {nameof(RuntimeParams)}: {ex}.");
 			}
 		}
 
@@ -88,7 +88,7 @@ namespace WalletWasabi.Helpers
 			}
 			catch (Exception ex)
 			{
-				Logger.LogInfo<RuntimeParams>($"Could not load RuntimeParams: {ex}.");
+				Logger.LogInfo<RuntimeParams>($"Could not load {nameof(RuntimeParams)}: {ex}.");
 			}
 			InternalInstance = new RuntimeParams();
 		}

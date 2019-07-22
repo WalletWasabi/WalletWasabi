@@ -61,7 +61,7 @@ namespace WalletWasabi.Backend
 			IndexBuilderService = new IndexBuilderService(RpcClient, TrustedNodeNotifyingBehavior, indexFilePath, utxoSetFilePath);
 			Coordinator = new CcjCoordinator(RpcClient.Network, TrustedNodeNotifyingBehavior, Path.Combine(DataDir, nameof(CcjCoordinator)), RpcClient, roundConfig);
 			IndexBuilderService.Synchronize();
-			Logger.LogInfo<IndexBuilderService>("IndexBuilderService is successfully initialized and started synchronization.");
+			Logger.LogInfo<IndexBuilderService>($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
 
 			await Coordinator.MakeSureTwoRunningRoundsAsync();
 			Logger.LogInfo<CcjCoordinator>("Chaumian CoinJoin Coordinator is successfully initialized and started two new rounds.");

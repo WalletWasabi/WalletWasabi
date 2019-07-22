@@ -49,8 +49,8 @@ namespace WalletWasabi.Tests
 				throw new NotSupportedException(network.ToString());
 			}
 
-			var addressManagerFolderPath = Path.Combine(Global.Instance.DataDir, "AddressManager");
-			var addressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{network}.dat");
+			var addressManagerFolderPath = Path.Combine(Global.Instance.DataDir, $"{nameof(AddressManager)}");
+			var addressManagerFilePath = Path.Combine(addressManagerFolderPath, $"{nameof(AddressManager)}{network}.dat");
 			var blocksFolderPath = Path.Combine(Global.Instance.DataDir, "Blocks", network.ToString());
 			var connectionParameters = new NodeConnectionParameters();
 			AddressManager addressManager = null;

@@ -114,7 +114,7 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			finally
 			{
-				Logger.LogInfo($"Daemon stopped.");
+				Logger.LogInfo($"{nameof(Daemon)} stopped.");
 			}
 		}
 

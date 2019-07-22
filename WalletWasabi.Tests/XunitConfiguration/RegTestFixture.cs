@@ -45,12 +45,12 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			Directory.CreateDirectory(testnetBackendDir);
 			Thread.Sleep(100);
 			var config = new Config(BackendNodeBuilder.Network, connectionString, IPAddress.Loopback.ToString(), IPAddress.Loopback.ToString(), BackendRegTestNode.Endpoint.Address.ToString(), Network.Main.DefaultPort, Network.TestNet.DefaultPort, BackendRegTestNode.Endpoint.Port);
-			var configFilePath = Path.Combine(testnetBackendDir, "Config.json");
+			var configFilePath = Path.Combine(testnetBackendDir, $"{nameof(Config)}.json");
 			config.SetFilePath(configFilePath);
 			config.ToFileAsync().GetAwaiter().GetResult();
 
 			var roundConfig = CreateRoundConfig(Money.Coins(0.1m), Constants.OneDayConfirmationTarget, 0.7, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
-			var roundConfigFilePath = Path.Combine(testnetBackendDir, "CcjRoundConfig.json");
+			var roundConfigFilePath = Path.Combine(testnetBackendDir, $"{nameof(CcjRoundConfig)}.json");
 			roundConfig.SetFilePath(roundConfigFilePath);
 			roundConfig.ToFileAsync().GetAwaiter().GetResult();
 

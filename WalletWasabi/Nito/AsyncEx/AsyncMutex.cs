@@ -326,7 +326,7 @@ namespace Nito.AsyncEx
 			{
 				// abandoned mutexes are still acquired, we just need
 				// to handle the exception and treat it as acquisition
-				Logger.LogWarning($"AbandonedMutexException in {ShortName}", nameof(AsyncMutex));
+				Logger.LogWarning($"{nameof(AbandonedMutexException)} in {ShortName}", nameof(AsyncMutex));
 				return new Key(this);
 			}
 			catch (Exception ex)
@@ -417,7 +417,7 @@ namespace Nito.AsyncEx
 				{
 					var mutexesAlive = AsyncMutexes.Where(am => am.Value.IsAlive).Select(m => m.Value.ShortName);
 					var names = string.Join(", ", mutexesAlive);
-					throw new TimeoutException($"Asyncmutex(es) still alive after Timeout: {names}");
+					throw new TimeoutException($"{nameof(AsyncMutex)}(es) still alive after Timeout: {names}");
 				}
 			}
 		}

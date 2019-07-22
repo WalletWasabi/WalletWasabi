@@ -589,9 +589,9 @@ namespace WalletWasabi.Services
 					aliceClient?.Dispose();
 					return;
 				}
-				catch (HttpRequestException ex) when (ex.Message.Contains("No such running round in InputRegistration.", StringComparison.InvariantCultureIgnoreCase))
+				catch (HttpRequestException ex) when (ex.Message.Contains($"No such running round in {nameof(CcjRoundPhase.InputRegistration)}.", StringComparison.InvariantCultureIgnoreCase))
 				{
-					Logger.LogInfo<CcjClient>("Client tried to register a round that is not in InputRegistration anymore. Trying again later.");
+					Logger.LogInfo<CcjClient>($"Client tried to register a round that is not in {nameof(CcjRoundPhase.InputRegistration)} anymore. Trying again later.");
 					aliceClient?.Dispose();
 					return;
 				}
