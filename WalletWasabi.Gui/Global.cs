@@ -477,10 +477,10 @@ namespace WalletWasabi.Gui
 					if (File.Exists(corruptedWalletBackupPath))
 					{
 						File.Delete(corruptedWalletBackupPath);
-						Logger.LogInfo($"Deleted previous corrupted wallet file backup from {corruptedWalletBackupPath}.");
+						Logger.LogInfo($"Deleted previous corrupted wallet file backup from `{corruptedWalletBackupPath}`.");
 					}
 					File.Move(walletFullPath, corruptedWalletBackupPath);
-					Logger.LogInfo($"Backed up corrupted wallet file to {corruptedWalletBackupPath}.");
+					Logger.LogInfo($"Backed up corrupted wallet file to `{corruptedWalletBackupPath}`.");
 				}
 				File.Copy(walletBackupFullPath, walletFullPath);
 
@@ -560,7 +560,7 @@ namespace WalletWasabi.Gui
 				{
 					string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(WalletService.KeyManager.FilePath));
 					WalletService.KeyManager?.ToFile(backupWalletFilePath);
-					Logger.LogInfo($"{nameof(KeyManager)} backup saved to {backupWalletFilePath}.", nameof(Global));
+					Logger.LogInfo($"{nameof(KeyManager)} backup saved to `{backupWalletFilePath}`.", nameof(Global));
 				}
 				if (WalletService != null)
 				{
