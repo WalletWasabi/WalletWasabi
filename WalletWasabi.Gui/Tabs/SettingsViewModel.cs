@@ -5,6 +5,7 @@ using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Reactive;
@@ -27,20 +28,21 @@ namespace WalletWasabi.Gui.Tabs
 		private bool _autocopy;
 		private bool _useTor;
 		private bool _isModified;
-		private bool _enablePinLock;
 		private string _somePrivacyLevel;
 		private string _finePrivacyLevel;
 		private string _strongPrivacyLevel;
 		private string _dustThreshold;
-		private string _oldPinPwdBox;
-		private string _confirmPinWarningMessage;
+		private string _pinBoxText;
+		private string _pinWarningMessage;
 
-		private Regex PinNumOnlyRegex { get; } = new Regex("^[0-9]+$");
+		private ObservableAsPropertyHelper<bool> _isPinSet;
+
+		public bool IsPinSet => _isPinSet?.Value ?? false;
 		private AsyncLock ConfigLock { get; } = new AsyncLock();
 
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
-		public ReactiveCommand<Unit, Unit> EnablePinLockCommand { get; }
+		public ReactiveCommand<Unit, Unit> SetClearPinCommand { get; }
 		public ReactiveCommand<Unit, Unit> TextBoxLostFocusCommand { get; }
 
 		public SettingsViewModel(Global global) : base(global, "Settings")
@@ -91,8 +93,6 @@ namespace WalletWasabi.Gui.Tabs
 				DustThreshold = config.DustThreshold.ToString();
 
 				IsModified = await Global.Config.CheckFileChangeAsync();
-
-				EnablePinEntry = Global.UiConfig.LockScreenPinHash != string.Empty;
 			});
 
 			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
@@ -103,37 +103,48 @@ namespace WalletWasabi.Gui.Tabs
 				await Global.UiConfig.ToFileAsync();
 			});
 
-			EnablePinLockCommand = ReactiveCommand.CreateFromTask(async () =>
+			SetClearPinCommand = ReactiveCommand.Create(() =>
 			{
-				if (_oldPinPwdBox == string.Empty)
+				var pinBoxText = PinBoxText?.Trim();
+				if (string.IsNullOrWhiteSpace(pinBoxText))
 				{
-					ConfirmPinWarningMessage = "Both PIN entries must be filled out.";
-					EnablePinEntry = !EnablePinEntry;
+					PinWarningMessage = "Please provide PIN.";
+					return;
+				}
+
+				if (pinBoxText.Length > 10)
+				{
+					PinWarningMessage = "PIN too long.";
+					return;
+				}
+
+				if (pinBoxText.Any(x => !char.IsDigit(x)))
+				{
+					PinWarningMessage = "Invalid PIN.";
 					return;
 				}
 
 				var uiConfigPinHash = Global.UiConfig.LockScreenPinHash;
-				var enteredPinHash = HashHelpers.GenerateSha256Hash(_oldPinPwdBox);
+				var enteredPinHash = HashHelpers.GenerateSha256Hash(pinBoxText);
 
-				if (EnablePinEntry)
-				{
-					Global.UiConfig.LockScreenPinHash = enteredPinHash;
-					await Global.UiConfig.ToFileAsync();
-				}
-				else
+				if (IsPinSet)
 				{
 					if (uiConfigPinHash != enteredPinHash)
 					{
-						ConfirmPinWarningMessage = "Wrong PIN.";
-						EnablePinEntry = true;
+						PinWarningMessage = "Wrong PIN.";
+						PinBoxText = string.Empty;
 						return;
 					}
+
 					Global.UiConfig.LockScreenPinHash = string.Empty;
-					await Global.UiConfig.ToFileAsync();
+				}
+				else
+				{
+					Global.UiConfig.LockScreenPinHash = enteredPinHash;
 				}
 
-				OldPinPwdBox = string.Empty;
-				ConfirmPinWarningMessage = string.Empty;
+				PinBoxText = string.Empty;
+				PinWarningMessage = string.Empty;
 			});
 
 			TextBoxLostFocusCommand = ReactiveCommand.Create(Save);
@@ -152,6 +163,15 @@ namespace WalletWasabi.Gui.Tabs
 			{
 				this.RaisePropertyChanged(nameof(LurkingWifeMode));
 			}).DisposeWith(Disposables);
+
+			_isPinSet = Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
+				.ToProperty(this, x => x.IsPinSet, scheduler: RxApp.MainThreadScheduler)
+				.DisposeWith(Disposables);
+
+			Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(async x => await Global.UiConfig.ToFileAsync())
+				.DisposeWith(Disposables);
 
 			base.OnOpen();
 		}
@@ -239,22 +259,16 @@ namespace WalletWasabi.Gui.Tabs
 
 		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
 
-		public bool EnablePinEntry
+		public string PinBoxText
 		{
-			get => _enablePinLock;
-			set => this.RaiseAndSetIfChanged(ref _enablePinLock, value);
+			get => _pinBoxText;
+			set => this.RaiseAndSetIfChanged(ref _pinBoxText, value);
 		}
 
-		public string OldPinPwdBox
+		public string PinWarningMessage
 		{
-			get => _oldPinPwdBox;
-			set => this.RaiseAndSetIfChanged(ref _oldPinPwdBox, value);
-		}
-
-		public string ConfirmPinWarningMessage
-		{
-			get => _confirmPinWarningMessage;
-			set => this.RaiseAndSetIfChanged(ref _confirmPinWarningMessage, value);
+			get => _pinWarningMessage;
+			set => this.RaiseAndSetIfChanged(ref _pinWarningMessage, value);
 		}
 
 		private void Save()
