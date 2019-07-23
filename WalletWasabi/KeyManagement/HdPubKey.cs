@@ -37,12 +37,25 @@ namespace WalletWasabi.KeyManagement
 		[JsonProperty(Order = 4)]
 		public KeyState KeyState { get; private set; }
 
-		public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, string label, KeyState keyState)
+		private int _anonymitySet;
+
+		[JsonProperty(Order = 4)]
+		public int AnonymitySet
+		{
+			get => _anonymitySet;
+			private set
+			{
+				_anonymitySet = value;
+			}
+		}
+
+		public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, string label, KeyState keyState, int anonymitySet = 0)
 		{
 			PubKey = Guard.NotNull(nameof(pubKey), pubKey);
 			FullKeyPath = Guard.NotNull(nameof(fullKeyPath), fullKeyPath);
 			SetLabel(label, null);
 			KeyState = keyState;
+			AnonymitySet = anonymitySet;
 
 			P2pkScript = PubKey.ScriptPubKey;
 			P2pkhScript = PubKey.Hash.ScriptPubKey;
@@ -79,6 +92,18 @@ namespace WalletWasabi.KeyManagement
 			}
 
 			Label = label;
+
+			kmToFile?.ToFile();
+		}
+
+		public void SetAnonymitySet(int anonset, KeyManager kmToFile = null)
+		{
+			if (AnonymitySet == anonset)
+			{
+				return;
+			}
+
+			AnonymitySet = anonset;
 
 			kmToFile?.ToFile();
 		}

@@ -638,6 +638,16 @@ namespace WalletWasabi.Services
 					{
 						anonset += spentOwnCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because do not count own.
 
+						// If the key has not had it's anonymity set then set it here
+						if (foundKey.AnonymitySet == 0)
+						{
+							foundKey.SetAnonymitySet(anonset, KeyManager);
+						}
+						else // Otherwise, use the anonymity set already set.
+						{
+							anonset = foundKey.AnonymitySet;
+						}
+
 						// Cleanup exposed links where the txo has been spent.
 						foreach (var input in spentOwnCoins.Select(x => x.GetTxoRef()))
 						{
