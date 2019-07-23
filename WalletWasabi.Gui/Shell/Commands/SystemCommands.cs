@@ -11,9 +11,6 @@ namespace WalletWasabi.Gui.Shell.Commands
 	{
 		public Global Global { get; }
 
-		[ExportCommandDefinition("File.LockScreen")]
-		public CommandDefinition LockScreenCommand { get; }
-
 		[ExportCommandDefinition("File.Exit")]
 		public CommandDefinition ExitCommand { get; }
 
@@ -22,26 +19,14 @@ namespace WalletWasabi.Gui.Shell.Commands
 		{
 			Global = Guard.NotNull(nameof(Global), global.Global);
 
-			var lockScreen = ReactiveCommand.Create(OnLockScreen);
 			var exit = ReactiveCommand.Create(OnExit);
 
-			lockScreen.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<SystemCommands>);
 			exit.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<SystemCommands>);
-
-			LockScreenCommand = new CommandDefinition(
-			   "Lock Screen",
-			   commandIconService.GetCompletionKindImage("Lock"),
-			   lockScreen);
 
 			ExitCommand = new CommandDefinition(
 			   "Exit",
 			   commandIconService.GetCompletionKindImage("Exit"),
 			   exit);
-		}
-
-		private void OnLockScreen()
-		{
-			Global.UiConfig.LockScreenActive = true;
 		}
 
 		private void OnExit()

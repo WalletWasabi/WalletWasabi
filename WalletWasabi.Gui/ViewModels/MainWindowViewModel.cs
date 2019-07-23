@@ -3,6 +3,8 @@ using AvalonStudio.Extensibility;
 using AvalonStudio.Extensibility.Dialogs;
 using AvalonStudio.Shell;
 using ReactiveUI;
+using System;
+using System.Reactive;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls.LockScreen;
 
@@ -61,9 +63,18 @@ namespace WalletWasabi.Gui.ViewModels
 			internal set => this.RaiseAndSetIfChanged(ref _lockScreen, value);
 		}
 
+		public ReactiveCommand<Unit, Unit> LockScreenCommand { get; }
+
 		public MainWindowViewModel()
 		{
 			Shell = IoC.Get<IShell>();
+
+			LockScreenCommand = ReactiveCommand.Create(() =>
+			{
+				Global.UiConfig.LockScreenActive = true;
+			});
+
+			LockScreenCommand.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<MainWindowViewModel>);
 		}
 
 		public IShell Shell { get; }
