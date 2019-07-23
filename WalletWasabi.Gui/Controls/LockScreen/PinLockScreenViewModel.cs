@@ -10,7 +10,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 {
 	public class PinLockScreenViewModel : ViewModelBase, ILockScreenViewModel
 	{
-		private LockScreenViewModel _parentVM;
+		private LockScreenViewModel ParentVM { get; }
 
 		private CompositeDisposable Disposables { get; }
 
@@ -37,7 +37,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 		public PinLockScreenViewModel(LockScreenViewModel lockScreenViewModel)
 		{
-			_parentVM = Guard.NotNull(nameof(lockScreenViewModel), lockScreenViewModel);
+			ParentVM = Guard.NotNull(nameof(lockScreenViewModel), lockScreenViewModel);
 
 			Disposables = new CompositeDisposable();
 
@@ -63,31 +63,46 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			});
 
 			this.WhenAnyValue(x => x.PinInput)
-				.Throttle(TimeSpan.FromSeconds(0.5))
+				.Throttle(TimeSpan.FromSeconds(1))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					if (string.IsNullOrWhiteSpace(x))
+					{
+						WarningMessageVisible = false;
+					}
+					else if (ParentVM.PinHash == HashHelpers.GenerateSha256Hash(x))
+					{
+						WarningMessageVisible = false;
+					}
+					else
+					{
+						WarningMessageVisible = true;
+					}
+				});
+
+			this.WhenAnyValue(x => x.PinInput)
 				.Select(Guard.Correct)
 				.Where(x => x != string.Empty)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Do(x => WarningMessageVisible = false)
-				.Subscribe(CheckPin)
+				.Subscribe(x =>
+				{
+					if (ParentVM.PinHash == HashHelpers.GenerateSha256Hash(x))
+					{
+						ParentVM.IsLocked = false;
+					}
+				});
+
+			_isLocked = ParentVM
+				.WhenAnyValue(x => x.IsLocked)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.ToProperty(this, x => x.IsLocked)
 				.DisposeWith(Disposables);
 
-			_isLocked = _parentVM.WhenAnyValue(x => x.IsLocked)
-								 .ObserveOn(RxApp.MainThreadScheduler)
-								 .ToProperty(this, x => x.IsLocked)
-								 .DisposeWith(Disposables);
-		}
-
-		private void CheckPin(string input)
-		{
-			if (_parentVM.PinHash == HashHelpers.GenerateSha256Hash(input))
-			{
-				_parentVM.IsLocked = false;
-				PinInput = string.Empty;
-			}
-			else
-			{
-				WarningMessageVisible = true;
-			}
+			this.WhenAnyValue(x => x.IsLocked)
+				.Where(x => !x)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => PinInput = string.Empty);
 		}
 
 		public void Dispose()
