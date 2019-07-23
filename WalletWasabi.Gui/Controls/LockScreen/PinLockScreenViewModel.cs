@@ -43,10 +43,13 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 			KeyPadCommand = ReactiveCommand.Create<string>((arg) =>
 			{
-				if (arg == "BACK" && PinInput.Length > 0)
+				if (arg == "BACK")
 				{
-					PinInput = PinInput.Substring(0, PinInput.Length - 1);
-					WarningMessageVisible = false;
+					if (PinInput.Length > 0)
+					{
+						PinInput = PinInput.Substring(0, PinInput.Length - 1);
+						WarningMessageVisible = false;
+					}
 				}
 				else if (arg == "CLEAR")
 				{
