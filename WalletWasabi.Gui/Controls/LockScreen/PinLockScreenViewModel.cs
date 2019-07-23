@@ -68,7 +68,6 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				.Where(x => x != string.Empty)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Do(x => WarningMessageVisible = false)
-				.DistinctUntilChanged()
 				.Subscribe(CheckPin)
 				.DisposeWith(Disposables);
 
