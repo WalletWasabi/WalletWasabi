@@ -37,7 +37,6 @@ namespace WalletWasabi.Gui.ManagedDialogs
 
 		public ManagedFileChooserItemViewModel()
 		{
-
 		}
 
 		public ManagedFileChooserItemViewModel(ManagedFileChooserNavigationItem item)
