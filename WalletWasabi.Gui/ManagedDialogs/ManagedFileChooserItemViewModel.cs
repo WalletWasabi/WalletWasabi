@@ -1,6 +1,9 @@
+using ReactiveUI;
+using WalletWasabi.Gui.ViewModels;
+
 namespace WalletWasabi.Gui.ManagedDialogs
 { 
-	class ManagedFileChooserItemViewModel : InternalViewModelBase
+	class ManagedFileChooserItemViewModel : ViewModelBase
     {
         private string _displayName;
         private string _path;
@@ -9,13 +12,13 @@ namespace WalletWasabi.Gui.ManagedDialogs
         public string DisplayName
         {
             get => _displayName;
-            set => RaiseAndSetIfChanged(ref _displayName, value);
+            set => this.RaiseAndSetIfChanged(ref _displayName, value);
         }
 
         public string Path
         {
             get => _path;
-            set => RaiseAndSetIfChanged(ref _path, value);
+            set => this.RaiseAndSetIfChanged(ref _path, value);
         }
 
         public string IconKey => IsDirectory ? "Icon_Folder" : "Icon_File";
@@ -25,9 +28,9 @@ namespace WalletWasabi.Gui.ManagedDialogs
             get => _isDirectory;
             set
             {
-				if (RaiseAndSetIfChanged(ref _isDirectory, value))
+				if (this.RaiseAndSetIfChanged(ref _isDirectory, value))
 				{
-					RaisePropertyChanged(nameof(IconKey));
+					this.RaisePropertyChanged(nameof(IconKey));
 				}
             }
         }

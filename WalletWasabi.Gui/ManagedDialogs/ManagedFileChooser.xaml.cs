@@ -28,39 +28,61 @@ namespace WalletWasabi.Gui.ManagedDialogs
         private void OnPointerPressed(object sender, PointerPressedEventArgs e)
         {
             var model = (e.Source as StyledElement)?.DataContext as ManagedFileChooserItemViewModel;
-            if(model == null)
-                return;
 
-            var isQuickLink = _quickLinksRoot.IsLogicalParentOf(e.Source as Control);
+            if(model == null)
+			{
+				return;
+			}
+
+			var isQuickLink = _quickLinksRoot.IsLogicalParentOf(e.Source as Control);
             if (e.ClickCount == 2 || isQuickLink)
             {
                 if (model.IsDirectory)
-                    Model?.Navigate(model.Path);
-                else
-                    Model?.SelectSingleFile(model);
-                e.Handled = true;
+				{
+					Model?.Navigate(model.Path);
+				}
+				else
+				{
+					Model?.SelectSingleFile(model);
+				}
+
+				e.Handled = true;
             }
         }
 
         protected override async void OnDataContextChanged(EventArgs e)
         {
             base.OnDataContextChanged(e);
+
             var model = (DataContext as ManagedFileChooserViewModel);
+
             if (model == null)
-                return;
-            var preselected = model.SelectedItems.FirstOrDefault();
+			{
+				return;
+			}
+
+			var preselected = model.SelectedItems.FirstOrDefault();
+
             if(preselected == null)
-                return;
-            
-            //Let everything to settle down and scroll to selected item
-            await Task.Delay(100);
+			{
+				return;
+			}
+
+			//Let everything to settle down and scroll to selected item
+			await Task.Delay(100);
+
             if (preselected != model.SelectedItems.FirstOrDefault())
-                return;
-            
-            // Workaround for ListBox bug, scroll to the previous file
-            var indexOfPreselected = model.Items.IndexOf(preselected);
+			{
+				return;
+			}
+
+			// Workaround for ListBox bug, scroll to the previous file
+			var indexOfPreselected = model.Items.IndexOf(preselected);
+
             if (indexOfPreselected > 1)
-                _filesView.ScrollIntoView(model.Items[indexOfPreselected - 1]);
-        }
+			{
+				_filesView.ScrollIntoView(model.Items[indexOfPreselected - 1]);
+			}
+		}
     }
 }

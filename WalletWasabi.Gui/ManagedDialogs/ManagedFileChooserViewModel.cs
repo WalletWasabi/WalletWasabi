@@ -7,10 +7,12 @@ using Avalonia;
 using Avalonia.Collections;
 using Avalonia.Controls;
 using Avalonia.Threading;
+using ReactiveUI;
+using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.ManagedDialogs
 {
-    class ManagedFileChooserViewModel : InternalViewModelBase
+    class ManagedFileChooserViewModel : ViewModelBase
     {
         public event Action CancelRequested;
         public event Action<string[]> CompleteRequested;
@@ -36,7 +38,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
         public string Location
         {
             get => _location;
-            private set => RaiseAndSetIfChanged(ref _location, value);
+            private set => this.RaiseAndSetIfChanged(ref _location, value);
         }
 
         public bool ShowFilters { get; }
@@ -50,13 +52,16 @@ namespace WalletWasabi.Gui.ManagedDialogs
                 for (var index = 0; index < QuickLinks.Count; index++)
                 {
                     var i = QuickLinks[index];
+
                     if (i.Path == Location)
-                        return index;
-                }
+					{
+						return index;
+					}
+				}
 
                 return -1;
             }
-            set => RaisePropertyChanged(nameof(QuickLinksSelectedIndex));
+            set => this.RaisePropertyChanged(nameof(QuickLinksSelectedIndex));
         }
 
         public ManagedFileChooserFilterViewModel SelectedFilter
@@ -64,7 +69,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
             get => _selectedFilter;
             set
             {
-                RaiseAndSetIfChanged(ref _selectedFilter, value);
+				this.RaiseAndSetIfChanged(ref _selectedFilter, value);
                 Refresh();
             }
         }
@@ -74,7 +79,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
             get => _showHiddenFiles;
             set
             {
-                RaiseAndSetIfChanged(ref _showHiddenFiles, value);
+				this.RaiseAndSetIfChanged(ref _showHiddenFiles, value);
                 Refresh();
             }
         }
@@ -83,9 +88,11 @@ namespace WalletWasabi.Gui.ManagedDialogs
         {
             var quickSources = AvaloniaLocator.Current.GetService<ManagedFileChooserSources>()
                            ?? new ManagedFileChooserSources();
+
             QuickLinks.Clear();
             
             QuickLinks.AddRange(quickSources.GetAllItems().Select(i => new ManagedFileChooserItemViewModel(i)));
+
             Title = dialog.Title ?? (
                         dialog is OpenFileDialog ? "Open file"
                         : dialog is SaveFileDialog ? "Save file"
@@ -93,10 +100,13 @@ namespace WalletWasabi.Gui.ManagedDialogs
                         : throw new ArgumentException(nameof(dialog)));
 
             var directory = dialog.InitialDirectory;
-            if (directory == null || !Directory.Exists(directory))
-                directory = Directory.GetCurrentDirectory();
 
-            if (dialog is FileDialog fd)
+			if (directory == null || !Directory.Exists(directory))
+			{
+				directory = Directory.GetCurrentDirectory();
+			}
+
+			if (dialog is FileDialog fd)
             {
                 if (fd.Filters?.Count > 0)
                 {
@@ -108,33 +118,42 @@ namespace WalletWasabi.Gui.ManagedDialogs
                 if (dialog is OpenFileDialog ofd)
                 {
                     if (ofd.AllowMultiple)
-                        SelectionMode = SelectionMode.Multiple;
-                }
+					{
+						SelectionMode = SelectionMode.Multiple;
+					}
+				}
             }
 
             _selectingDirectory = dialog is OpenFolderDialog;
 
             Navigate(directory, (dialog as FileDialog)?.InitialFileName);
-            SelectedItems.CollectionChanged += OnSelectionChanged;
+            SelectedItems.CollectionChanged += OnSelectionChangedAsync;
         }
 
-        private async void OnSelectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        private async void OnSelectionChangedAsync(object sender, NotifyCollectionChangedEventArgs e)
         {
             if(_scheduledSelectionValidation)
-                return;
-            _scheduledSelectionValidation = true;
+			{
+				return;
+			}
+
+			_scheduledSelectionValidation = true;
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 try
                 {
                     if(_selectingDirectory)
-                        SelectedItems.Clear();
-                    else
+					{
+						SelectedItems.Clear();
+					}
+					else
                     {
                         var invalidItems = SelectedItems.Where(i => i.IsDirectory).ToList();
                         foreach (var item in invalidItems)
-                            SelectedItems.Remove(item);
-                    }
+						{
+							SelectedItems.Remove(item);
+						}
+					}
                 }
                 finally
                 {
@@ -146,18 +165,24 @@ namespace WalletWasabi.Gui.ManagedDialogs
         void NavigateRoot(string initialSelectionName)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                Navigate(Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.System)), initialSelectionName);
-            else
-                Navigate("/", initialSelectionName);
-        }
+			{
+				Navigate(Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.System)), initialSelectionName);
+			}
+			else
+			{
+				Navigate("/", initialSelectionName);
+			}
+		}
 
         public void Refresh() => Navigate(Location);
         
         public void Navigate(string path, string initialSelectionName = null)
         {
             if (!Directory.Exists(path))
-                NavigateRoot(initialSelectionName);
-            else
+			{
+				NavigateRoot(initialSelectionName);
+			}
+			else
             {
                 Location = path;
                 Items.Clear();
@@ -166,15 +191,21 @@ namespace WalletWasabi.Gui.ManagedDialogs
                 if (!ShowHiddenFiles)
                 {
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                        infos = infos.Where(i => (i.Attributes & (FileAttributes.Hidden | FileAttributes.System)) != 0);
-                    else
-                        infos = infos.Where(i => !i.Name.StartsWith("."));
-                }
+					{
+						infos = infos.Where(i => (i.Attributes & (FileAttributes.Hidden | FileAttributes.System)) != 0);
+					}
+					else
+					{
+						infos = infos.Where(i => !i.Name.StartsWith("."));
+					}
+				}
 
                 if (SelectedFilter != null)
-                    infos = infos.Where(i => i is DirectoryInfo || SelectedFilter.Match(i.Name));
+				{
+					infos = infos.Where(i => i is DirectoryInfo || SelectedFilter.Match(i.Name));
+				}
 
-                Items.AddRange(infos.Where(x=> 
+				Items.AddRange(infos.Where(x=> 
 				{
 					if(_selectingDirectory)
 					{
@@ -196,22 +227,27 @@ namespace WalletWasabi.Gui.ManagedDialogs
                 if (initialSelectionName != null)
                 {
                     var sel = Items.FirstOrDefault(i => !i.IsDirectory && i.DisplayName == initialSelectionName);
+
                     if (sel != null)
-                        SelectedItems.Add(sel);
-                }
+					{
+						SelectedItems.Add(sel);
+					}
+				}
 
-                RaisePropertyChanged(nameof(QuickLinksSelectedIndex));
+				this.RaisePropertyChanged(nameof(QuickLinksSelectedIndex));
             }
-
-            
         }
 
         public void GoUp()
         {
             var parent = Path.GetDirectoryName(Location);
+
             if (string.IsNullOrWhiteSpace(parent))
-                return;
-            Navigate(parent);
+			{
+				return;
+			}
+
+			Navigate(parent);
         }
 
         public void Cancel()
@@ -222,10 +258,14 @@ namespace WalletWasabi.Gui.ManagedDialogs
         public void Ok()
         {
             if (_selectingDirectory)
-                CompleteRequested?.Invoke(new[] {Location});
-            else
-                CompleteRequested?.Invoke(SelectedItems.Select(i => i.Path).ToArray());
-        }
+			{
+				CompleteRequested?.Invoke(new[] {Location});
+			}
+			else
+			{
+				CompleteRequested?.Invoke(SelectedItems.Select(i => i.Path).ToArray());
+			}
+		}
 
         public void SelectSingleFile(ManagedFileChooserItemViewModel item)
         {
