@@ -25,20 +25,7 @@
       <menu:MainMenuView DataContext="{Binding Shell.MainMenu}" Margin="4 0 0 0"  Foreground="{DynamicResource ThemeForegroundBrush}" VerticalAlignment="Stretch" FontSize="13" />
       <Button Command="{Binding LockScreenCommand}" Margin="10 0">
         <StackPanel Orientation="Horizontal" Spacing="8">
-          <Grid Height="10" Width="10">
-            <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center">
-              <DrawingPresenter.Drawing>
-                <DrawingGroup>
-                  <DrawingGroup.Children>
-                    <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-                    <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M13,5L13,4.75C13,2.513,11.513,0.636,9.482,0L6.517,0C4.487,0.636,3,2.513,3,4.75L3,5 1,5 1,16 15,16 15,5z" />
-                    <GeometryDrawing Brush="#FFEFEFF0" Geometry="F1M9.25,9.25C9.25,8.56 8.69,8 8,8 7.31,8 6.75,8.56 6.75,9.25 6.75,9.762 7.06,10.199 7.5,10.393L7.5,13 8.5,13 8.5,10.393C8.94,10.199,9.25,9.762,9.25,9.25 M13,14L3,14 3,7 13,7z" />
-                    <GeometryDrawing Brush="#FF424242" Geometry="F1M6.75,9.25C6.75,8.56 7.31,8 8,8 8.69,8 9.25,8.56 9.25,9.25 9.25,9.762 8.94,10.199 8.5,10.393L8.5,13 7.5,13 7.5,10.393C7.06,10.199,6.75,9.762,6.75,9.25 M13,14L3,14 3,7 13,7z M5,4.75C5,3.096 6.346,1.75 8,1.75 9.654,1.75 11,3.096 11,4.75L11,6 5,6z M12,6L12,4.75C12,2.544 10.206,0.75 8,0.75 5.794,0.75 4,2.544 4,4.75L4,6 2,6 2,15 14,15 14,6z" />
-                  </DrawingGroup.Children>
-                </DrawingGroup>
-              </DrawingPresenter.Drawing>
-            </DrawingPresenter>
-          </Grid>
+          <DrawingPresenter Height="10" Width="10" Drawing="{StaticResource Lock}" />
           <TextBlock Text="Lock Screen" />
         </StackPanel>
       </Button>
