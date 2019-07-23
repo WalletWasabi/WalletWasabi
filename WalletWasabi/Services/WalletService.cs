@@ -801,8 +801,8 @@ namespace WalletWasabi.Services
 										nodeConnectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint, onlyForOnionHosts: true, networkCredential: null, streamIsolation: false));
 									}
 
-									var localIpEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
-									var localNode = await Node.ConnectAsync(Network, localIpEndPoint, nodeConnectionParameters);
+									var localEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
+									var localNode = await Node.ConnectAsync(Network, localEndPoint, nodeConnectionParameters);
 									try
 									{
 										Logger.LogInfo<WalletService>($"TCP Connection succeeded, handshaking...");
@@ -1450,7 +1450,7 @@ namespace WalletWasabi.Services
 
 					Logger.LogInfo<WalletService>($"Trying to broadcast transaction with random node ({node.RemoteSocketAddress}):{transaction.GetHash()}");
 					var addedToBroadcastStore = Mempool.TryAddToBroadcastStore(transaction.Transaction, node.RemoteSocketEndpoint.ToString()); // So we'll reply to INV with this transaction.
-					if(!addedToBroadcastStore)
+					if (!addedToBroadcastStore)
 					{
 						Logger.LogWarning<WalletService>($"Transaction {transaction.GetHash()} was already present in the broadcast store.");
 					}
@@ -1461,7 +1461,7 @@ namespace WalletWasabi.Services
 						await node.SendMessageAsync(invPayload).WithCancellation(cts.Token); // ToDo: It's dangerous way to cancel. Implement proper cancellation to NBitcoin!
 					}
 
-					if(Mempool.TryGetFromBroadcastStore(transaction.GetHash(), out TransactionBroadcastEntry entry))
+					if (Mempool.TryGetFromBroadcastStore(transaction.GetHash(), out TransactionBroadcastEntry entry))
 					{
 						// Give 7 seconds for serving.
 						var timeout = 0;
@@ -1476,7 +1476,7 @@ namespace WalletWasabi.Services
 						}
 						node.DisconnectAsync("Thank you!");
 						Logger.LogInfo<MempoolBehavior>($"Disconnected node: {node.RemoteSocketAddress}. Successfully broadcasted transaction: {transaction.GetHash()}.");
-					
+
 						// Give 21 seconds for propagation.
 						timeout = 0;
 						while (entry.GetPropagationConfirmations() < 2)

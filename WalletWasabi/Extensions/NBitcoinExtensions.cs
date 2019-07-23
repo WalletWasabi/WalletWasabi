@@ -263,5 +263,15 @@ namespace NBitcoin
 		{
 			list.Sort((x, y) => x.Value.CompareTo(y.Value));
 		}
+
+		public static void SortByAmount(this TxInList list, List<Coin> coins)
+		{
+			var map = new Dictionary<TxIn, Coin>();
+			foreach (var coin in coins)
+			{
+				map.Add(list.Single(x => x.PrevOut == coin.Outpoint), coin);
+			}
+			list.Sort((x, y) => map[x].Amount.CompareTo(map[y].Amount));
+		}
 	}
 }

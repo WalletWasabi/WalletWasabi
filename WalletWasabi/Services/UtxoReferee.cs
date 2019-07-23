@@ -104,11 +104,7 @@ namespace WalletWasabi.Services
 				}
 
 				var isNoted = true;
-				if (forceNoted)
-				{
-					isNoted = true;
-				}
-				else
+				if (!forceNoted)
 				{
 					if (RoundConfig.DosNoteBeforeBan.Value)
 					{
