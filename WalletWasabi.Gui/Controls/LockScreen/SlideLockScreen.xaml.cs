@@ -61,39 +61,44 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			var vm = DataContext as SlideLockScreenViewModel;
 
 			this.WhenAnyValue(x => x.Offset)
-			  .Subscribe(x => TargetTransform.Y = x)
-			  .DisposeWith(vm.Disposables);
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => TargetTransform.Y = x)
+				.DisposeWith(vm.Disposables);
 
 			this.WhenAnyValue(x => x.Bounds)
 				.Select(x => x.Height)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => vm.BoundsHeight = x)
 				.DisposeWith(vm.Disposables);
 
 			this.WhenAnyValue(x => x.DoneAnimating)
+				.Where(x => x)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
-					if (x)
-					{
-						vm.StateChanged = false;
-					}
+					vm.StateChanged = false;
 				})
 				.DisposeWith(vm.Disposables);
 
 			Observable.FromEventPattern(DragThumb, nameof(DragThumb.DragCompleted))
-					  .Subscribe(e => vm.IsUserDragging = false)
-					  .DisposeWith(vm.Disposables);
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(e => vm.IsUserDragging = false)
+				.DisposeWith(vm.Disposables);
 
 			Observable.FromEventPattern(DragThumb, nameof(DragThumb.DragStarted))
-					  .Subscribe(e => vm.IsUserDragging = true)
-					  .DisposeWith(vm.Disposables);
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(e => vm.IsUserDragging = true)
+				.DisposeWith(vm.Disposables);
 
 			Observable.FromEventPattern<VectorEventArgs>(DragThumb, nameof(DragThumb.DragDelta))
-					  .Where(e => e.EventArgs.Vector.Y < 0)
-					  .Select(e => e.EventArgs.Vector.Y)
-					  .Subscribe(x => vm.Offset = x)
-					  .DisposeWith(vm.Disposables);
+				.Where(e => e.EventArgs.Vector.Y < 0)
+				.Select(e => e.EventArgs.Vector.Y)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => vm.Offset = x)
+				.DisposeWith(vm.Disposables);
 
 			vm.WhenAnyValue(x => x.StateChanged)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
 					if (x)
@@ -107,8 +112,10 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				})
 				.DisposeWith(vm.Disposables);
 
-			Clock.Subscribe(vm.OnClockTick)
-				 .DisposeWith(vm.Disposables);
+			Clock
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(vm.OnClockTick)
+				.DisposeWith(vm.Disposables);
 		}
 
 		public SlideLockScreen() : base()

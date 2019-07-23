@@ -89,6 +89,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 			this.WhenAnyValue(x => x.TargetOffset)
 				.DistinctUntilChanged()
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
 					StateChanged = false;
