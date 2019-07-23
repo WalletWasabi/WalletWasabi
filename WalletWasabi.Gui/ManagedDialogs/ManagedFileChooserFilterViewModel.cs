@@ -6,31 +6,31 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.ManagedDialogs
 {
-    class ManagedFileChooserFilterViewModel : ViewModelBase
-    {
-        private readonly string[] _extensions;
-        public string Name { get; }
-        
-        public ManagedFileChooserFilterViewModel(FileDialogFilter filter)
-        {
-            Name = filter.Name;
+	class ManagedFileChooserFilterViewModel : ViewModelBase
+	{
+		private readonly string[] _extensions;
+		public string Name { get; }
 
-            if (filter.Extensions.Contains("*"))
+		public ManagedFileChooserFilterViewModel(FileDialogFilter filter)
+		{
+			Name = filter.Name;
+
+			if (filter.Extensions.Contains("*"))
 			{
 				return;
 			}
 
 			_extensions = filter.Extensions?.Select(e => "." + e.ToLowerInvariant()).ToArray();
-        }
+		}
 
-        public ManagedFileChooserFilterViewModel()
-        {
-            Name = "All files";
-        }
+		public ManagedFileChooserFilterViewModel()
+		{
+			Name = "All files";
+		}
 
-        public bool Match(string filename)
-        {
-            if (_extensions == null)
+		public bool Match(string filename)
+		{
+			if (_extensions == null)
 			{
 				return true;
 			}
@@ -44,8 +44,8 @@ namespace WalletWasabi.Gui.ManagedDialogs
 			}
 
 			return false;
-        }
+		}
 
-        public override string ToString() => Name;
-    }
+		public override string ToString() => Name;
+	}
 }

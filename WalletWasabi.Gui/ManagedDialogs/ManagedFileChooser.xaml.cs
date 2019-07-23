@@ -10,34 +10,34 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Gui.ManagedDialogs
 {
-    class ManagedFileChooser : UserControl
-    {
-        private Control _quickLinksRoot;
-        private ListBox _filesView;
+	class ManagedFileChooser : UserControl
+	{
+		private Control _quickLinksRoot;
+		private ListBox _filesView;
 
-        public ManagedFileChooser()
-        {
-            AvaloniaXamlLoader.Load(this);
-            AddHandler(PointerPressedEvent, OnPointerPressed, RoutingStrategies.Tunnel);
-            _quickLinksRoot = this.FindControl<Control>("QuickLinks");
-            _filesView = this.FindControl<ListBox>("Files");
-        }
+		public ManagedFileChooser()
+		{
+			AvaloniaXamlLoader.Load(this);
+			AddHandler(PointerPressedEvent, OnPointerPressed, RoutingStrategies.Tunnel);
+			_quickLinksRoot = this.FindControl<Control>("QuickLinks");
+			_filesView = this.FindControl<ListBox>("Files");
+		}
 
-        ManagedFileChooserViewModel Model => DataContext as ManagedFileChooserViewModel;
-        
-        private void OnPointerPressed(object sender, PointerPressedEventArgs e)
-        {
-            var model = (e.Source as StyledElement)?.DataContext as ManagedFileChooserItemViewModel;
+		ManagedFileChooserViewModel Model => DataContext as ManagedFileChooserViewModel;
 
-            if(model == null)
+		private void OnPointerPressed(object sender, PointerPressedEventArgs e)
+		{
+			var model = (e.Source as StyledElement)?.DataContext as ManagedFileChooserItemViewModel;
+
+			if (model == null)
 			{
 				return;
 			}
 
 			var isQuickLink = _quickLinksRoot.IsLogicalParentOf(e.Source as Control);
-            if (e.ClickCount == 2 || isQuickLink)
-            {
-                if (model.IsDirectory)
+			if (e.ClickCount == 2 || isQuickLink)
+			{
+				if (model.IsDirectory)
 				{
 					Model?.Navigate(model.Path);
 				}
@@ -47,23 +47,23 @@ namespace WalletWasabi.Gui.ManagedDialogs
 				}
 
 				e.Handled = true;
-            }
-        }
+			}
+		}
 
-        protected override async void OnDataContextChanged(EventArgs e)
-        {
-            base.OnDataContextChanged(e);
+		protected override async void OnDataContextChanged(EventArgs e)
+		{
+			base.OnDataContextChanged(e);
 
-            var model = (DataContext as ManagedFileChooserViewModel);
+			var model = (DataContext as ManagedFileChooserViewModel);
 
-            if (model == null)
+			if (model == null)
 			{
 				return;
 			}
 
 			var preselected = model.SelectedItems.FirstOrDefault();
 
-            if(preselected == null)
+			if (preselected == null)
 			{
 				return;
 			}
@@ -71,7 +71,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 			//Let everything to settle down and scroll to selected item
 			await Task.Delay(100);
 
-            if (preselected != model.SelectedItems.FirstOrDefault())
+			if (preselected != model.SelectedItems.FirstOrDefault())
 			{
 				return;
 			}
@@ -79,10 +79,10 @@ namespace WalletWasabi.Gui.ManagedDialogs
 			// Workaround for ListBox bug, scroll to the previous file
 			var indexOfPreselected = model.Items.IndexOf(preselected);
 
-            if (indexOfPreselected > 1)
+			if (indexOfPreselected > 1)
 			{
 				_filesView.ScrollIntoView(model.Items[indexOfPreselected - 1]);
 			}
 		}
-    }
+	}
 }
