@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Avalonia.Media;
 using Avalonia.Input;
@@ -58,7 +58,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 		public void OnDataContextChanged()
 		{
-			var vm = this.DataContext as SlideLockScreenViewModel;
+			var vm = DataContext as SlideLockScreenViewModel;
 
 			this.WhenAnyValue(x => x.Offset)
 			  .Subscribe(x => TargetTransform.Y = x)
@@ -72,7 +72,10 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			this.WhenAnyValue(x => x.DoneAnimating)
 				.Subscribe(x =>
 				{
-					if (x) vm.StateChanged = false;
+					if (x)
+					{
+						vm.StateChanged = false;
+					}
 				})
 				.DisposeWith(vm.Disposables);
 
@@ -95,11 +98,11 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				{
 					if (x)
 					{
-						this.Classes.Add("statechanged");
+						Classes.Add("statechanged");
 					}
 					else
 					{
-						this.Classes.Remove("statechanged");
+						Classes.Remove("statechanged");
 					}
 				})
 				.DisposeWith(vm.Disposables);
@@ -115,10 +118,12 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			DragThumb = this.FindControl<Thumb>("PART_DragThumb");
 			this.FindControl<Grid>("Shade").RenderTransform = TargetTransform;
 
-			this.DataContextChanged += delegate
+			DataContextChanged += delegate
 			{
-				if (this.DataContext is SlideLockScreenViewModel)
+				if (DataContext is SlideLockScreenViewModel)
+				{
 					OnDataContextChanged();
+				}
 			};
 		}
 
