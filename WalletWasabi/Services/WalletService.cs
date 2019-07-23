@@ -273,16 +273,11 @@ namespace WalletWasabi.Services
 					{
 						IEnumerable<SmartTransaction> transactions = null;
 						string jsonString = File.ReadAllText(TransactionsFilePath, Encoding.UTF8);
-						transactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?
-							.OrderByBlockchain();
+						transactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?.OrderByBlockchain();
 
-						confirmedTransactions = transactions?
-							.Where(x => x.Confirmed)?
-							.ToArray() ?? new SmartTransaction[0];
+						confirmedTransactions = transactions?.Where(x => x.Confirmed)?.ToArray() ?? new SmartTransaction[0];
 
-						unconfirmedTransactions = transactions?
-							.Where(x => !x.Confirmed)?
-							.ToArray() ?? new SmartTransaction[0];
+						unconfirmedTransactions = transactions?.Where(x => !x.Confirmed)?.ToArray() ?? new SmartTransaction[0];
 					}
 					catch (Exception ex)
 					{
