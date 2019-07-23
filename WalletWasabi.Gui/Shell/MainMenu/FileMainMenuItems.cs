@@ -63,7 +63,7 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		public IMenuItem Open => MenuItemFactory.CreateHeaderMenuItem("Open", null);
 
 		[ExportMainMenuItem("File", "Exit")]
-		[DefaultOrder(5)]
+		[DefaultOrder(4)]
 		[DefaultGroup("System")]
 		public IMenuItem Exit => MenuItemFactory.CreateCommandMenuItem("File.Exit");
 
