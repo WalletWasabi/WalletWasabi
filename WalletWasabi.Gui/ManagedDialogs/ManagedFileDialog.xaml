@@ -7,5 +7,5 @@
         Title="{Binding Title}" MinWidth="700" MinHeight="500"
                       FontFamily="{DynamicResource UiFont}" FontSize="14"
                       Foreground="{DynamicResource ThemeForegroundBrush}">
-    <internal:ManagedFileChooser Margin="12 6"/>
+  <internal:ManagedFileChooser Margin="12 6"/>
 </cont:MetroWindow>
