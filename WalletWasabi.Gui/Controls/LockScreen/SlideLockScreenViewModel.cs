@@ -136,7 +136,9 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 							_state = SlideLockState.UserDragPassedThreshold;
 						}
 						else
+						{
 							_state = SlideLockState.Idle;
+						}
 					}
 					break;
 
