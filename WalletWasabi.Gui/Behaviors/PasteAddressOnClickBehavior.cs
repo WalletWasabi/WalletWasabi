@@ -58,25 +58,31 @@ namespace WalletWasabi.Gui.Behaviors
 
 		public async Task<(bool isValid, BitcoinUrlBuilder url)> ProcessClipboardAsync()
 		{
-			var result = await IsThereABitcoinAddressOnTheClipboardAsync();
-			return result.isValid ? result : await IsThereABitcoinUrlOnTheClipboardAsync();
-		}
-
-		public async Task<(bool isValid, BitcoinUrlBuilder url)> IsThereABitcoinAddressOnTheClipboardAsync()
-		{
 			var global = Application.Current.Resources[Global.GlobalResourceKey] as Global;
 			var network = global.Network;
 			string text = await Application.Current.Clipboard.GetTextAsync();
-			if (string.IsNullOrEmpty(text) || text.Length > 100)
+
+			if (string.IsNullOrWhiteSpace(text) || text.Length > 1000)
+			{
+				return (false, null);
+			}
+			text = text.Trim();
+
+			var result = IsBitcoinAddress(text, network);
+			return result.isValid ? result : IsBitcoinUrl(text, network);
+		}
+
+		public (bool isValid, BitcoinUrlBuilder url) IsBitcoinAddress(string text, Network expectedNetwork)
+		{
+			if (text.Length > 100)
 			{
 				return (false, null);
 			}
 
-			text = text.Trim();
 			try
 			{
-				var bitcoinAddress = BitcoinAddress.Create(text, network);
-				return (true, new BitcoinUrlBuilder("bitcoin:" + bitcoinAddress.ToString()));
+				var bitcoinAddress = BitcoinAddress.Create(text, expectedNetwork);
+				return (true, new BitcoinUrlBuilder($"bitcoin:{bitcoinAddress}"));
 			}
 			catch (FormatException)
 			{
@@ -84,21 +90,12 @@ namespace WalletWasabi.Gui.Behaviors
 			}
 		}
 
-		public async Task<(bool isValid, BitcoinUrlBuilder url)> IsThereABitcoinUrlOnTheClipboardAsync()
+		public (bool isValid, BitcoinUrlBuilder url) IsBitcoinUrl(string text, Network expectedNetwork)
 		{
-			var global = Application.Current.Resources[Global.GlobalResourceKey] as Global;
-			var network = global.Network;
-			string text = await Application.Current.Clipboard.GetTextAsync();
-			if (string.IsNullOrEmpty(text))
-			{
-				return (false, null);
-			}
-
-			text = text.Trim();
 			try
 			{
 				var bitcoinUrl = new BitcoinUrlBuilder(text);
-				return (bitcoinUrl.Address.Network == network, bitcoinUrl);
+				return (bitcoinUrl.Address.Network == expectedNetwork, bitcoinUrl);
 			}
 			catch (FormatException)
 			{
