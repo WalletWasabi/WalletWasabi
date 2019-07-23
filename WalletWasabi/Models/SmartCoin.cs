@@ -183,7 +183,7 @@ namespace WalletWasabi.Models
 		public int AnonymitySet
 		{
 			get => _anonymitySet;
-			private set
+			set
 			{
 				if (value != _anonymitySet)
 				{

@@ -650,6 +650,17 @@ namespace WalletWasabi.Services
 						continue;
 					}
 
+					// If we have address reuse, give all of them anonset 1
+					var coinsWithSameKey = Coins.Where(x => x.HdPubKey == foundKey).Distinct().ToList();
+					if (coinsWithSameKey.Any())
+					{
+						anonset = 1;
+						foreach (var coin in coinsWithSameKey)
+						{
+							coin.AnonymitySet = 1;
+						}
+					}
+
 					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
 																																																												   // If we did not have it.
 					if (Coins.TryAdd(newCoin))
@@ -1279,6 +1290,18 @@ namespace WalletWasabi.Services
 				TxOut output = tx.Outputs[i];
 				var anonset = (tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet)) - 1; // Minus 1, because count own only once.
 				var foundKey = KeyManager.GetKeys(KeyState.Clean).FirstOrDefault(x => output.ScriptPubKey == x.P2wpkhScript);
+
+				// If we have address reuse, give all of them anonset 1
+				var coinsWithSameKey = Coins.Where(x => x.HdPubKey == foundKey).Distinct().ToList();
+				if (coinsWithSameKey.Any())
+				{
+					anonset = 1;
+					foreach (var c in coinsWithSameKey)
+					{
+						c.AnonymitySet = 1;
+					}
+				}
+
 				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, anonset, pubKey: foundKey);
 
 				if (foundKey != null)
