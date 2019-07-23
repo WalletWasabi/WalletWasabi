@@ -40,7 +40,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			IEnumerable<Requester> requesters,
 			Network network,
 			Func<Uri> baseUriAction,
-			IPEndPoint torSocks5EndPoint) : base(baseUriAction, torSocks5EndPoint)
+			EndPoint torSocks5EndPoint) : base(baseUriAction, torSocks5EndPoint)
 		{
 			RoundId = roundId;
 			RegisteredAddresses = registeredAddresses.ToArray();
@@ -57,7 +57,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			Network network,
 			InputsRequest request,
 			Uri baseUri,
-			IPEndPoint torSocks5EndPoint)
+			EndPoint torSocks5EndPoint)
 		{
 			return await CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, request, () => baseUri, torSocks5EndPoint);
 		}
@@ -69,7 +69,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			Network network,
 			InputsRequest request,
 			Func<Uri> baseUriAction,
-			IPEndPoint torSocks5EndPoint)
+			EndPoint torSocks5EndPoint)
 		{
 			AliceClient client = new AliceClient(roundId, registeredAddresses, schnorrPubKeys, requesters, network, baseUriAction, torSocks5EndPoint);
 			try
@@ -123,7 +123,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			IEnumerable<uint256> blindedOutputScriptHashes,
 			IEnumerable<InputProofModel> inputs,
 			Uri baseUri,
-			IPEndPoint torSocks5EndPoint)
+			EndPoint torSocks5EndPoint)
 		{
 			return await CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, changeOutput, blindedOutputScriptHashes, inputs, () => baseUri, torSocks5EndPoint);
 		}
@@ -137,7 +137,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			IEnumerable<uint256> blindedOutputScriptHashes,
 			IEnumerable<InputProofModel> inputs,
 			Func<Uri> baseUriAction,
-			IPEndPoint torSocks5EndPoint)
+			EndPoint torSocks5EndPoint)
 		{
 			var request = new InputsRequest
 			{

@@ -52,7 +52,7 @@ namespace WalletWasabi.Backend
 			await AssertRpcNodeFullyInitializedAsync();
 
 			// Make sure P2P works.
-			await InitializeP2pAsync(config.Network, config.GetBitcoinCoreEndPoint());
+			await InitializeP2pAsync(config.Network, config.GetBitcoinP2pEndPoint());
 
 			// Initialize index building
 			var indexBuilderServiceDir = Path.Combine(DataDir, nameof(IndexBuilderService));

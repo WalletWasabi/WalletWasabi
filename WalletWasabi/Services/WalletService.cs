@@ -801,8 +801,8 @@ namespace WalletWasabi.Services
 										nodeConnectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint, onlyForOnionHosts: true, networkCredential: null, streamIsolation: false));
 									}
 
-									var localIpEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
-									var localNode = await Node.ConnectAsync(Network, localIpEndPoint, nodeConnectionParameters);
+									var localEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
+									var localNode = await Node.ConnectAsync(Network, localEndPoint, nodeConnectionParameters);
 									try
 									{
 										Logger.LogInfo<WalletService>($"TCP Connection succeeded, handshaking...");
