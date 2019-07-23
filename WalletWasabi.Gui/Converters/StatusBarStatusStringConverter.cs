@@ -19,10 +19,10 @@ namespace WalletWasabi.Gui.Converters
 						return "Ready";
 
 					case StatusBarStatus.CriticalUpdate:
-						return "THE BACKEND WAS UPGRADED WITH BREAKING CHANGES - PLEASE UPDATE YOUR SOFTWARE";
+						return "THE BACKEND WAS UPGRADED WITH BREAKING CHANGES - PLEASE UPDATE YOUR WASABI WALLET!";
 
 					case StatusBarStatus.OptionalUpdate:
-						return "New Version Is Available";
+						return "A new version of Wasabi Wallet is available.";
 
 					case StatusBarStatus.Connecting:
 						return "Connecting...";

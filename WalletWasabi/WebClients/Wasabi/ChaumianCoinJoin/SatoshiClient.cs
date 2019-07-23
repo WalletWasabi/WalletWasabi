@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -13,12 +13,12 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 	public class SatoshiClient : TorDisposableBase
 	{
 		/// <inheritdoc/>
-		public SatoshiClient(Func<Uri> baseUriAction, IPEndPoint torSocks5EndPoint) : base(baseUriAction, torSocks5EndPoint)
+		public SatoshiClient(Func<Uri> baseUriAction, EndPoint torSocks5EndPoint) : base(baseUriAction, torSocks5EndPoint)
 		{
 		}
 
 		/// <inheritdoc/>
-		public SatoshiClient(Uri baseUri, IPEndPoint torSocks5EndPoint) : base(baseUri, torSocks5EndPoint)
+		public SatoshiClient(Uri baseUri, EndPoint torSocks5EndPoint) : base(baseUri, torSocks5EndPoint)
 		{
 		}
 
