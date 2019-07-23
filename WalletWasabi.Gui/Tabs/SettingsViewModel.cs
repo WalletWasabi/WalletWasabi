@@ -5,11 +5,13 @@ using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Text.RegularExpressions;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
@@ -30,10 +32,17 @@ namespace WalletWasabi.Gui.Tabs
 		private string _finePrivacyLevel;
 		private string _strongPrivacyLevel;
 		private string _dustThreshold;
+		private string _pinBoxText;
+		private string _pinWarningMessage;
+
+		private ObservableAsPropertyHelper<bool> _isPinSet;
+
+		public bool IsPinSet => _isPinSet?.Value ?? false;
 		private AsyncLock ConfigLock { get; } = new AsyncLock();
 
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
+		public ReactiveCommand<Unit, Unit> SetClearPinCommand { get; }
 		public ReactiveCommand<Unit, Unit> TextBoxLostFocusCommand { get; }
 
 		public SettingsViewModel(Global global) : base(global, "Settings")
@@ -94,6 +103,50 @@ namespace WalletWasabi.Gui.Tabs
 				await Global.UiConfig.ToFileAsync();
 			});
 
+			SetClearPinCommand = ReactiveCommand.Create(() =>
+			{
+				var pinBoxText = PinBoxText?.Trim();
+				if (string.IsNullOrWhiteSpace(pinBoxText))
+				{
+					PinWarningMessage = "Please provide PIN.";
+					return;
+				}
+
+				if (pinBoxText.Length > 10)
+				{
+					PinWarningMessage = "PIN too long.";
+					return;
+				}
+
+				if (pinBoxText.Any(x => !char.IsDigit(x)))
+				{
+					PinWarningMessage = "Invalid PIN.";
+					return;
+				}
+
+				var uiConfigPinHash = Global.UiConfig.LockScreenPinHash;
+				var enteredPinHash = HashHelpers.GenerateSha256Hash(pinBoxText);
+
+				if (IsPinSet)
+				{
+					if (uiConfigPinHash != enteredPinHash)
+					{
+						PinWarningMessage = "Wrong PIN.";
+						PinBoxText = string.Empty;
+						return;
+					}
+
+					Global.UiConfig.LockScreenPinHash = string.Empty;
+				}
+				else
+				{
+					Global.UiConfig.LockScreenPinHash = enteredPinHash;
+				}
+
+				PinBoxText = string.Empty;
+				PinWarningMessage = string.Empty;
+			});
+
 			TextBoxLostFocusCommand = ReactiveCommand.Create(Save);
 		}
 
@@ -110,6 +163,15 @@ namespace WalletWasabi.Gui.Tabs
 			{
 				this.RaisePropertyChanged(nameof(LurkingWifeMode));
 			}).DisposeWith(Disposables);
+
+			_isPinSet = Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
+				.ToProperty(this, x => x.IsPinSet, scheduler: RxApp.MainThreadScheduler)
+				.DisposeWith(Disposables);
+
+			Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(async x => await Global.UiConfig.ToFileAsync())
+				.DisposeWith(Disposables);
 
 			base.OnOpen();
 		}
@@ -196,6 +258,18 @@ namespace WalletWasabi.Gui.Tabs
 		}
 
 		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
+
+		public string PinBoxText
+		{
+			get => _pinBoxText;
+			set => this.RaiseAndSetIfChanged(ref _pinBoxText, value);
+		}
+
+		public string PinWarningMessage
+		{
+			get => _pinWarningMessage;
+			set => this.RaiseAndSetIfChanged(ref _pinWarningMessage, value);
+		}
 
 		private void Save()
 		{
