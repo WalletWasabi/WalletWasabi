@@ -174,7 +174,18 @@ namespace WalletWasabi.Gui.ManagedDialogs
                 if (SelectedFilter != null)
                     infos = infos.Where(i => i is DirectoryInfo || SelectedFilter.Match(i.Name));
 
-                Items.AddRange(infos.Select(info => new ManagedFileChooserItemViewModel
+                Items.AddRange(infos.Where(x=> 
+				{
+					if(_selectingDirectory)
+					{
+						if(!(x is DirectoryInfo))
+						{
+							return false;
+						}
+					}
+
+					return true;
+				}).Select(info => new ManagedFileChooserItemViewModel
                     {
                         DisplayName = info.Name,
                         Path = info.FullName,
