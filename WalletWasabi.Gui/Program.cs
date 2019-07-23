@@ -11,6 +11,7 @@ using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 using WalletWasabi.Gui.Controls.LockScreen;
+using WalletWasabi.Gui.ManagedDialogs;
 
 namespace WalletWasabi.Gui
 {
@@ -98,7 +99,8 @@ namespace WalletWasabi.Gui
 			{
 				result
 					.UseWin32()
-					.UseSkia();
+					.UseSkia()
+					.UseManagedSystemDialogs();
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
