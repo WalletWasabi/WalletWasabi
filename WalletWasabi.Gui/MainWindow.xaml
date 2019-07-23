@@ -1,27 +1,22 @@
 ﻿<cont:MetroWindow xmlns="https://github.com/avaloniaui"
-                      xmlns:cont="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"
-                      xmlns:wasabi="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
-                      xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
-                      xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
-                      xmlns:shell="clr-namespace:AvalonStudio.Shell;assembly=AvalonStudio.Shell"
-                      xmlns:menu="clr-namespace:AvalonStudio.Shell.Extensibility.MainMenu.Views;assembly=AvalonStudio.Shell.Extensibility"
-                      xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-                      xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
-                      xmlns:id="clr-namespace:Dock.Avalonia;assembly=Dock.Avalonia"
-                      xmlns:idc="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
-                      xmlns:beh="clr-namespace:AvalonStudio.Utils.Behaviors;assembly=AvalonStudio.Utils"
-                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                      Icon="resm:WalletWasabi.Gui.Assets.WasabiLogo256.png?assembly=WalletWasabi.Gui"
-                      Title="{Binding Title}"
-                      MinWidth="1100" MinHeight="530"
-                      FontFamily="{DynamicResource UiFont}" FontSize="14"
-                      Foreground="{DynamicResource ThemeForegroundBrush}"
-                      Width ="{Binding Width}" Height ="{Binding Height}"
-                      WindowState ="{Binding WindowState}"
-                      UseLayoutRounding="True" RenderOptions.BitmapInterpolationMode="HighQuality"
-                      id:DragBehavior.IsEnabled="False" id:DropBehavior.IsEnabled="False">
+                  xmlns:cont="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"
+                  xmlns:wasabi="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+                  xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
+                  xmlns:shell="clr-namespace:AvalonStudio.Shell;assembly=AvalonStudio.Shell"
+                  xmlns:menu="clr-namespace:AvalonStudio.Shell.Extensibility.MainMenu.Views;assembly=AvalonStudio.Shell.Extensibility"
+                  xmlns:id="clr-namespace:Dock.Avalonia;assembly=Dock.Avalonia"
+                  Icon="resm:WalletWasabi.Gui.Assets.WasabiLogo256.png?assembly=WalletWasabi.Gui"
+                  Title="{Binding Title}"
+                  MinWidth="1100" MinHeight="530"
+                  FontFamily="{DynamicResource UiFont}" FontSize="14"
+                  Foreground="{DynamicResource ThemeForegroundBrush}"
+                  Width="{Binding Width}" Height="{Binding Height}"
+                  WindowState="{Binding WindowState}"
+                  UseLayoutRounding="True"
+                  RenderOptions.BitmapInterpolationMode="HighQuality"
+                  id:DragBehavior.IsEnabled="False" id:DropBehavior.IsEnabled="False">
   <cont:MetroWindow.TitleBarContent>
-    <StackPanel Orientation ="Horizontal" IsVisible="{Binding !$parent[cont|MetroWindow].DataContext.LockScreen.IsLocked}">
+    <StackPanel Orientation="Horizontal" IsVisible="{Binding !$parent[cont|MetroWindow].DataContext.LockScreen.IsLocked}">
       <menu:MainMenuView DataContext="{Binding Shell.MainMenu}" Margin="4 0 0 0" Foreground="{DynamicResource ThemeForegroundBrush}" VerticalAlignment="Stretch" FontSize="13" />
       <Button Command="{Binding LockScreenCommand}" Margin="10 0" Background="Transparent" BorderBrush="Transparent">
         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -48,7 +43,6 @@
     <Style Selector="Menu > MenuItem:selected /template/ Border#root">
       <Setter Property="Background" Value="{DynamicResource ThemeControlMidBrush}" />
     </Style>
-
     <Style Selector="Menu > MenuItem">
       <Setter Property="Padding" Value="7 0" />
     </Style>
