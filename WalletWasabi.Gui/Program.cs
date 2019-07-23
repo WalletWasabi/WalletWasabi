@@ -109,7 +109,8 @@ namespace WalletWasabi.Gui
 					useGpuLinux = false;
 				}
 
-				result.UsePlatformDetect();
+				result.UsePlatformDetect()
+					.UseManagedSystemDialogs();
 			}
 			else
 			{
