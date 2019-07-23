@@ -154,7 +154,7 @@ namespace WalletWasabi.Gui
 			var connectionParameters = new NodeConnectionParameters { UserAgent = "/Satoshi:0.18.0/" };
 
 			Synchronizer = Config.UseTor.Value
-				? new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint())
+				? new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint)
 				: new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
 
 			UpdateChecker = new UpdateChecker(Synchronizer.WasabiClient);
@@ -183,9 +183,8 @@ namespace WalletWasabi.Gui
 			#region TorProcessInitialization
 
 			TorManager = Config.UseTor.Value
-				? new TorProcessManager(Config.GetTorSocks5EndPoint(), TorLogsFile)
+				? new TorProcessManager(Config.TorSocks5EndPoint, TorLogsFile)
 				: TorProcessManager.Mock();
-
 			TorManager.Start(false, DataDir);
 
 			var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
@@ -252,7 +251,7 @@ namespace WalletWasabi.Gui
 				if (Config.UseTor is true)
 				{
 					// onlyForOnionHosts: false - Connect to clearnet IPs through Tor, too.
-					connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.GetTorSocks5EndPoint(), onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
+					connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.TorSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
 					// allowOnlyTorEndpoints: true - Connect only to onions and do not connect to clearnet IPs at all.
 					// This of course makes the first setting unnecessary, but it's better if that's around, in case someone wants to tinker here.
 					connectionParameters.EndpointConnector = new DefaultEndpointConnector(allowOnlyTorEndpoints: Network == Network.Main);
@@ -400,7 +399,7 @@ namespace WalletWasabi.Gui
 				}
 
 				ChaumianClient = Config.UseTor.Value
-					? new CcjClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint())
+					? new CcjClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint)
 					: new CcjClient(Synchronizer, Network, keyManager, Config.GetFallbackBackendUri(), null);
 
 				try
