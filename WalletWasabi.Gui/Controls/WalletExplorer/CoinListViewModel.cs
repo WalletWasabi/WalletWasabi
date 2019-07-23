@@ -324,15 +324,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				switch (SelectPrivateCheckBoxState)
 				{
 					case true:
-						SelectAllCoins(true, x => x.AnonymitySet >= Global.Config.PrivacyLevelStrong);
+						SelectAllCoins(true, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
 						break;
 
 					case false:
-						SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.PrivacyLevelStrong);
+						SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
 						break;
 
 					case null:
-						SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.PrivacyLevelStrong);
+						SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
 						SelectPrivateCheckBoxState = false;
 						break;
 				}
@@ -343,15 +343,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				switch (SelectNonPrivateCheckBoxState)
 				{
 					case true:
-						SelectAllCoins(true, x => x.AnonymitySet < Global.Config.PrivacyLevelStrong);
+						SelectAllCoins(true, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
 						break;
 
 					case false:
-						SelectAllCoins(false, x => x.AnonymitySet < Global.Config.PrivacyLevelStrong);
+						SelectAllCoins(false, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
 						break;
 
 					case null:
-						SelectAllCoins(false, x => x.AnonymitySet < Global.Config.PrivacyLevelStrong);
+						SelectAllCoins(false, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
 						SelectNonPrivateCheckBoxState = false;
 						break;
 				}

@@ -221,15 +221,13 @@ namespace WalletWasabi.Hwi
 					fullBaseDirectory.Insert(0, "/");
 				}
 			}
-
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			else
 			{
 				HwiPath = Path.Combine(fullBaseDirectory, "Hwi", "Software", "hwi-win64", "hwi.exe");
 				return;
 			}
 
 			var hwiDir = Path.Combine(dataDir, "hwi");
-
 			string hwiPath = $@"{hwiDir}/hwi";
 
 			if (!File.Exists(hwiPath))

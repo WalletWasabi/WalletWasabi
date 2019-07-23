@@ -1,111 +1,136 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
-             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui">
+             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui">
   <UserControl.Resources>
     <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
+    <converters:NetworkStringConverter x:Key="NetworkStringConverter" />
   </UserControl.Resources>
+  <DockPanel LastChildFill="true">
+    <StackPanel DockPanel.Dock ="Top"  IsVisible="{Binding IsModified}" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 5 10 5">
+      <TextBlock Text="Heads Up!" FontWeight="Bold" Classes="warningMessage" Margin="0 0 3 0" />
+      <TextBlock Classes="warningMessage">Changes will be applied after restarting the application.</TextBlock>
+    </StackPanel>
+    <ScrollViewer>
+      <StackPanel Margin="30" Spacing="10">
+        <Grid Classes="content">
+          <StackPanel Orientation="Vertical" Spacing="30">
 
-  <ScrollViewer>
-    <StackPanel Margin="30" Spacing="10">
-      <Grid Classes="content">
-        <StackPanel Orientation="Vertical" Spacing="30">
-          <StackPanel IsVisible="{Binding IsModified}" Orientation="Horizontal" HorizontalAlignment="Center">
-            <TextBlock Text="Heads Up!" FontWeight="Bold" Classes="warningMessage" Margin="0 0 3 0" />
-            <TextBlock Classes="warningMessage">Changes will be applied after restarting the application.</TextBlock>
-          </StackPanel>
-
-          <controls:GroupBox Title="Bitcoin" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
-            <StackPanel Orientation="Vertical" Spacing="5">
-              <StackPanel Margin="0 10" Spacing="5">
-                <TextBlock>Network</TextBlock>
-                <DropDown Items="{Binding Networks}" SelectedItem="{Binding Network}" />
-              </StackPanel>
-
-              <controls:GroupBox Title="{Binding Network, StringFormat=My Node for \{0\} }" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
-                <StackPanel Orientation="Vertical" Spacing="5">
-                  <StackPanel Margin="0 10" Spacing="5">
-                    <TextBlock>Host</TextBlock>
-                    <TextBox Text="{Binding LocalNodeHost}" />
-                  </StackPanel>
-                  <Separator />
-                  <StackPanel Spacing="5">
-                    <TextBlock>Port</TextBlock>
-                    <TextBox Text="{Binding LocalNodePort}" />
-                  </StackPanel>
+            <controls:GroupBox Title="Bitcoin" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+              <StackPanel Orientation="Vertical" Spacing="5">
+                <StackPanel Margin="0 10" Spacing="5">
+                  <TextBlock>Network</TextBlock>
+                  <DropDown Items="{Binding Networks}" SelectedItem="{Binding Network}">
+                    <DropDown.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Converter={StaticResource NetworkStringConverter}}" />
+                      </DataTemplate>
+                    </DropDown.ItemTemplate>
+                  </DropDown>
                 </StackPanel>
-              </controls:GroupBox>
-            </StackPanel>
-          </controls:GroupBox>
 
-          <controls:GroupBox Title="Tor" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
-            <StackPanel Orientation="Vertical" Spacing="5">
-              <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
-                <ToggleButton IsChecked="{Binding UseTor}" Content="{Binding UseTor, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" />
-                <TextBlock VerticalAlignment="Center">Tor can be turned off for debugging.</TextBlock>
+                <controls:GroupBox Title="{Binding Network, StringFormat=My Node for \{0\}, Converter={StaticResource NetworkStringConverter}}" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+                  <StackPanel Orientation="Vertical" Spacing="5">
+                    <StackPanel Margin="0 10" Spacing="5">
+                      <TextBlock>Bitcoin P2P Endpoint</TextBlock>
+                      <TextBox Text="{Binding BitcoinP2pEndPoint}">
+                        <i:Interaction.Behaviors>
+                          <behaviors:CommandOnLostFocusBehavior Command="{Binding TextBoxLostFocusCommand}" />
+                        </i:Interaction.Behaviors>
+                      </TextBox>
+                    </StackPanel>
+                  </StackPanel>
+                </controls:GroupBox>
               </StackPanel>
-              <StackPanel Margin="0 10" Spacing="5">
-                <TextBlock>Host</TextBlock>
-                <TextBox Text="{Binding TorHost}" />
-              </StackPanel>
-              <StackPanel Spacing="5">
-                <TextBlock>Port</TextBlock>
-                <TextBox Text="{Binding TorPort}" />
-              </StackPanel>
-            </StackPanel>
-          </controls:GroupBox>
+            </controls:GroupBox>
 
-          <controls:GroupBox Title="UI" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
-            <StackPanel Orientation="Vertical" Spacing="5">
-              <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
-                <ToggleButton IsChecked="{Binding Autocopy}" Content="{Binding Autocopy, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" />
-                <TextBlock VerticalAlignment="Center">Autocopy on Receive and History wallet tabs.</TextBlock>
+            <controls:GroupBox Title="Tor" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+              <StackPanel Orientation="Vertical" Spacing="5">
+                <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
+                  <ToggleButton IsChecked="{Binding UseTor}" Content="{Binding UseTor, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" />
+                  <TextBlock VerticalAlignment="Center">Tor can be turned off for debugging.</TextBlock>
+                </StackPanel>
+                <StackPanel Margin="0 10" Spacing="5">
+                  <TextBlock>Tor SOCKS5 Endpoint</TextBlock>
+                  <TextBox Text="{Binding TorSocks5EndPoint}">
+                    <i:Interaction.Behaviors>
+                      <behaviors:CommandOnLostFocusBehavior Command="{Binding TextBoxLostFocusCommand}" />
+                    </i:Interaction.Behaviors>
+                  </TextBox>
+                </StackPanel>
               </StackPanel>
-              <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
-                <ToggleButton IsChecked="{Binding LurkingWifeMode}" Content="{Binding LurkingWifeMode, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" Command="{Binding LurkingWifeModeCommand}" />
-                <TextBlock VerticalAlignment="Center">Lurking Wife Mode hides sensitive content.</TextBlock>
-              </StackPanel>
-            </StackPanel>
-          </controls:GroupBox>
+            </controls:GroupBox>
 
-          <controls:GroupBox Title="Anonymity Levels" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
-            <StackPanel Orientation="Vertical" Spacing="5">
-              <Grid Margin="0 10" ColumnDefinitions="30, *">
-                <DrawingPresenter Height="24" Width="24" Grid.Column="0"
+            <controls:GroupBox Title="UI" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+              <StackPanel Orientation="Vertical" Spacing="5">
+                <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
+                  <ToggleButton IsChecked="{Binding Autocopy}" Content="{Binding Autocopy, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" />
+                  <TextBlock VerticalAlignment="Center">Autocopy on Receive and History wallet tabs.</TextBlock>
+                </StackPanel>
+                <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
+                  <ToggleButton IsChecked="{Binding LurkingWifeMode}" Content="{Binding LurkingWifeMode, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" Command="{Binding LurkingWifeModeCommand}" />
+                  <TextBlock VerticalAlignment="Center">Lurking Wife Mode hides sensitive content.</TextBlock>
+                </StackPanel>
+              </StackPanel>
+            </controls:GroupBox>
+
+            <controls:GroupBox Title="Anonymity Levels" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+              <StackPanel Orientation="Vertical" Spacing="5">
+                <Grid Margin="0 10" ColumnDefinitions="30, *">
+                  <DrawingPresenter Height="24" Width="24" Grid.Column="0"
                     Margin="0 0 10 10"
                     VerticalAlignment="Center" HorizontalAlignment="Center"
                     Drawing="{DynamicResource PrivacySome}" />
-                <TextBox Text="{Binding SomePrivacyLevel}" Grid.Column="1" />
-              </Grid>
-              <Grid Margin="0 10" ColumnDefinitions="30, *">
-                <DrawingPresenter Height="24" Width="24" Grid.Column="0"
+                  <TextBox Text="{Binding SomePrivacyLevel}" Grid.Column="1">
+                    <i:Interaction.Behaviors>
+                      <behaviors:CommandOnLostFocusBehavior Command="{Binding TextBoxLostFocusCommand}" />
+                    </i:Interaction.Behaviors>
+                  </TextBox>
+                </Grid>
+                <Grid Margin="0 10" ColumnDefinitions="30, *">
+                  <DrawingPresenter Height="24" Width="24" Grid.Column="0"
                     Margin="0 0 10 10"
                     VerticalAlignment="Center" HorizontalAlignment="Center"
                     Drawing="{DynamicResource PrivacyFine}" />
-                <TextBox Text="{Binding FinePrivacyLevel}" Grid.Column="1" />
-              </Grid>
-              <Grid Margin="0 10" ColumnDefinitions="30, *">
-                <DrawingPresenter Height="24" Width="24" Grid.Column="0"
+                  <TextBox Text="{Binding FinePrivacyLevel}" Grid.Column="1">
+                    <i:Interaction.Behaviors>
+                      <behaviors:CommandOnLostFocusBehavior Command="{Binding TextBoxLostFocusCommand}" />
+                    </i:Interaction.Behaviors>
+                  </TextBox>
+                </Grid>
+                <Grid Margin="0 10" ColumnDefinitions="30, *">
+                  <DrawingPresenter Height="24" Width="24" Grid.Column="0"
                     Margin="0 0 10 10"
                     VerticalAlignment="Center" HorizontalAlignment="Center"
                     Drawing="{DynamicResource PrivacyStrong}" />
-                <TextBox Text="{Binding StrongPrivacyLevel}" Grid.Column="1" />
-              </Grid>
-            </StackPanel>
-          </controls:GroupBox>
-
-          <controls:GroupBox Title="Other settings" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
-            <StackPanel Orientation="Vertical" Spacing="5">
-              <StackPanel Margin="0 10" Spacing="5">
-                <TextBlock ToolTip.Tip="Under the dust threshold coins are not appearing in the coin lists.">Dust Threshold (BTC)</TextBlock>
-                <TextBox Text="{Binding DustThreshold}" />
+                  <TextBox Text="{Binding StrongPrivacyLevel}" Grid.Column="1">
+                    <i:Interaction.Behaviors>
+                      <behaviors:CommandOnLostFocusBehavior Command="{Binding TextBoxLostFocusCommand}" />
+                    </i:Interaction.Behaviors>
+                  </TextBox>
+                </Grid>
               </StackPanel>
-            </StackPanel>
-          </controls:GroupBox>
+            </controls:GroupBox>
 
-          <Button Content="Open Config File" Command="{Binding OpenConfigFileCommand}" />
-        </StackPanel>
-      </Grid>
-    </StackPanel>
-  </ScrollViewer>
+            <controls:GroupBox Title="Other settings" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+              <StackPanel Orientation="Vertical" Spacing="5">
+                <StackPanel Margin="0 10" Spacing="5">
+                  <TextBlock ToolTip.Tip="Under the dust threshold coins are not appearing in the coin lists.">Dust Threshold (BTC)</TextBlock>
+                  <TextBox Text="{Binding DustThreshold}">
+                    <i:Interaction.Behaviors>
+                      <behaviors:CommandOnLostFocusBehavior Command="{Binding TextBoxLostFocusCommand}" />
+                    </i:Interaction.Behaviors>
+                  </TextBox>
+                </StackPanel>
+              </StackPanel>
+            </controls:GroupBox>
+
+            <Button Content="Open Config File" Command="{Binding OpenConfigFileCommand}" />
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
 </UserControl>
