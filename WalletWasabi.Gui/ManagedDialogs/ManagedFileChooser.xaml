@@ -20,7 +20,7 @@
     <UserControl.DataTemplates>
         <DataTemplate DataType="internal:ManagedFileChooserItemViewModel">
             <StackPanel Background="Transparent" Orientation="Horizontal"
-                        Cursor="Hand">
+                        Cursor="Hand" Spacing="4">
                 
                 <DrawingPresenter Width="16" Height="16" Drawing="{Binding IconKey, Converter={StaticResource Icons}}"/>
                 <TextBlock Text="{Binding DisplayName}"/>
