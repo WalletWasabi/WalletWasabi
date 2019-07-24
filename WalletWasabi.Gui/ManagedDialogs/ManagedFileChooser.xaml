@@ -80,7 +80,7 @@
       <Grid DockPanel.Dock="Top" Margin="15 0 0 0">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="20" SharedSizeGroup="Icon" />
-          <ColumnDefinition Width="16" MinWidth="16"  SharedSizeGroup="Splitter" />
+          <ColumnDefinition Width="16"    SharedSizeGroup="Splitter" />
           <ColumnDefinition Width="500" SharedSizeGroup="Name" />
           <ColumnDefinition SharedSizeGroup="Splitter" />
           <ColumnDefinition Width="200" SharedSizeGroup="Modified" />
@@ -90,7 +90,7 @@
           <ColumnDefinition Width="150" SharedSizeGroup="Size" />
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Column="2" Text="Name" />
-        <GridSplitter Grid.Column="3" Margin="8 0" />
+        <GridSplitter Grid.Column="3" Margin="8 0" /> 
         <TextBlock Grid.Column="4" Text="Date Modified" />
         <GridSplitter Grid.Column="5" Margin="8 0" />
         <TextBlock Grid.Column="6" Text="Type" />
@@ -102,7 +102,8 @@
                  Items="{Binding Items}"
                  Margin="5"
                  SelectionMode="{Binding SelectionMode}"
-                 SelectedItems="{Binding SelectedItems}">
+                 SelectedItems="{Binding SelectedItems}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
         <ListBox.ItemTemplate>
           <DataTemplate>
             <Grid Background="Transparent" Cursor="Hand">
