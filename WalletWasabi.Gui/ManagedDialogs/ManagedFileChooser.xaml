@@ -87,7 +87,7 @@
           <ColumnDefinition SharedSizeGroup="Splitter" />
           <ColumnDefinition Width="150" SharedSizeGroup="Type" />
           <ColumnDefinition SharedSizeGroup="Splitter" />
-          <ColumnDefinition Width="150" SharedSizeGroup="Size" />
+          <ColumnDefinition Width="200" SharedSizeGroup="Size" />
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Column="2" Text="Name" />
         <GridSplitter Grid.Column="3" Margin="8 0" /> 
