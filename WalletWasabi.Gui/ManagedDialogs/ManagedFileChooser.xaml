@@ -27,16 +27,6 @@
       </DrawingGroup>
     </dialogs:ResourceSelectorConverter>
   </UserControl.Resources>
-  <UserControl.DataTemplates>
-    <DataTemplate DataType="internal:ManagedFileChooserItemViewModel">
-      <StackPanel Background="Transparent" Orientation="Horizontal"
-                        Cursor="Hand" Spacing="4">
-
-        <DrawingPresenter Width="16" Height="16" Drawing="{Binding IconKey, Converter={StaticResource Icons}}"/>
-        <TextBlock Text="{Binding DisplayName}"/>
-      </StackPanel>
-    </DataTemplate>
-  </UserControl.DataTemplates>
   <DockPanel>
     <DockPanel DockPanel.Dock="Top" Margin="5">
       <dialogs:ChildFitter DockPanel.Dock="Right" Width="{Binding ElementName=Location, Path=Bounds.Height}">
@@ -70,13 +60,56 @@
                   />
     <ListBox Margin="5" BorderBrush="Transparent" x:Name="QuickLinks" Items="{Binding QuickLinks}"
                  SelectedIndex="{Binding QuickLinksSelectedIndex}"
-                 DockPanel.Dock="Left" Background="{DynamicResource ThemeControlMidBrush}" Focusable="False" />
-    <ListBox x:Name="Files"
+                 DockPanel.Dock="Left" Background="{DynamicResource ThemeControlMidBrush}" Focusable="False">
+      <ListBox.ItemTemplate>
+        <DataTemplate>
+          <StackPanel Spacing="4" Orientation="Horizontal" Background="Transparent" Cursor="Hand">
+            <DrawingPresenter Width="16" Height="16" Drawing="{Binding IconKey, Converter={StaticResource Icons}}"/>
+            <TextBlock Text="{Binding DisplayName}"/>
+          </StackPanel>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+    <DockPanel Grid.IsSharedSizeScope="True">
+      <Grid DockPanel.Dock="Top">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="20" SharedSizeGroup="Icon" />
+          <ColumnDefinition Width="500" SharedSizeGroup="Name" />
+          <ColumnDefinition Width="200" SharedSizeGroup="Modified" />
+          <ColumnDefinition Width="150" SharedSizeGroup="Type" />
+          <ColumnDefinition Width="150" SharedSizeGroup="Size" />
+        </Grid.ColumnDefinitions>
+        <TextBlock Grid.Column="1" Text="Name" />
+        <TextBlock Grid.Column="2" Text="Date Modified" />
+        <TextBlock Grid.Column="3" Text="Type" />
+        <TextBlock Grid.Column="4" Text="Size" />
+      </Grid>
+      <ListBox x:Name="Files"
                  VirtualizationMode="Simple"
                  Items="{Binding Items}"
                  Margin="5"
                  SelectionMode="{Binding SelectionMode}"
-                 SelectedItems="{Binding SelectedItems}"/>
+                 SelectedItems="{Binding SelectedItems}">
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+            <Grid Background="Transparent" Cursor="Hand">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition SharedSizeGroup="Icon" />
+                <ColumnDefinition SharedSizeGroup="Name" />
+                <ColumnDefinition SharedSizeGroup="Modified" />
+                <ColumnDefinition SharedSizeGroup="Type" />
+                <ColumnDefinition SharedSizeGroup="Size" />
+              </Grid.ColumnDefinitions>
+              <DrawingPresenter Width="16" Height="16" Drawing="{Binding IconKey, Converter={StaticResource Icons}}"/>
+              <TextBlock Grid.Column="1" Text="{Binding DisplayName}"/>
+              <TextBlock Grid.Column="2" Text="{Binding Modified}" />
+              <TextBlock Grid.Column="3" Text="{Binding Type}" />
+              <TextBlock Grid.Column="4" Text="{Binding Size}" />
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </DockPanel>
   </DockPanel>
 
 </UserControl>

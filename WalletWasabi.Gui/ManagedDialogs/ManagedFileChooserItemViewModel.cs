@@ -1,4 +1,5 @@
 using ReactiveUI;
+using System;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.ManagedDialogs
@@ -8,6 +9,9 @@ namespace WalletWasabi.Gui.ManagedDialogs
 		private string _displayName;
 		private string _path;
 		private bool _isDirectory;
+		private DateTime _modified;
+		private string _type;
+		private long _size;
 
 		public string DisplayName
 		{
@@ -19,6 +23,24 @@ namespace WalletWasabi.Gui.ManagedDialogs
 		{
 			get => _path;
 			set => this.RaiseAndSetIfChanged(ref _path, value);
+		}
+
+		public DateTime Modified
+		{
+			get => _modified;
+			set => this.RaiseAndSetIfChanged(ref _modified, value);
+		}
+
+		public string Type
+		{
+			get => _type;
+			set => this.RaiseAndSetIfChanged(ref _type, value);
+		}
+
+		public long Size
+		{
+			get => _size;
+			set => this.RaiseAndSetIfChanged(ref _size, value);
 		}
 
 		public string IconKey => IsDirectory ? "Icon_Folder" : "Icon_File";
@@ -43,7 +65,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 		{
 			IsDirectory = true;
 			Path = item.Path;
-			DisplayName = item.DisplayName;
+			DisplayName = item.DisplayName;			
 		}
 	}
 }
