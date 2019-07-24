@@ -12,6 +12,8 @@ namespace WalletWasabi.Helpers
 		{
 			url = null;
 
+			text = text.Trim();
+
 			if (text is null || text.Length > 100 || text.Length < 20)
 			{
 				return false;
@@ -32,6 +34,8 @@ namespace WalletWasabi.Helpers
 		public static bool TryParseBitcoinUrl(string text, Network expectedNetwork, out BitcoinUrlBuilder url)
 		{
 			url = null;
+
+			text = text.Trim();
 
 			if (text is null || text.Length > 1000 || text.Length < 20)
 			{
