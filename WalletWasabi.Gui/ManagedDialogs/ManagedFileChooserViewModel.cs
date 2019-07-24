@@ -136,6 +136,10 @@ namespace WalletWasabi.Gui.ManagedDialogs
 				{
 					Navigate(Location);
 				}
+				else if(File.Exists(Location))
+				{
+					CompleteRequested?.Invoke(new[] { Location });
+				}
 			});
 		}
 
