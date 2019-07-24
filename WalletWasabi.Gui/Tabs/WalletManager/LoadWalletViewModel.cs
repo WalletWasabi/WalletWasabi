@@ -103,14 +103,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				try
 				{
-					var ofd = new OpenFolderDialog
+					var ofd = new OpenFileDialog
 					{
+						AllowMultiple = true,
 						Title = "Import Coldcard"
 					};
-					var selected = await ofd.ShowAsync(Application.Current.MainWindow);
+					var selected = await ofd.ShowAsync(Application.Current.MainWindow, fallBack: true);
 					if (selected != null && selected.Any())
 					{
-						var path = selected;
+						var path = selected.First();
 						var jsonString = await File.ReadAllTextAsync(path);
 						var json = JObject.Parse(jsonString);
 						var xpubString = json["ExtPubKey"].ToString();
