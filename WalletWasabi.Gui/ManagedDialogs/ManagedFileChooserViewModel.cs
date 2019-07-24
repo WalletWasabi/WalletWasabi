@@ -187,54 +187,66 @@ namespace WalletWasabi.Gui.ManagedDialogs
 				Location = path;
 				Items.Clear();
 				SelectedItems.Clear();
-				var infos = new DirectoryInfo(path).EnumerateFileSystemInfos();
-				if (!ShowHiddenFiles)
-				{
-					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-					{
-						infos = infos.Where(i => (i.Attributes & (FileAttributes.Hidden | FileAttributes.System)) != 0);
-					}
-					else
-					{
-						infos = infos.Where(i => !i.Name.StartsWith("."));
-					}
-				}
 
-				if (SelectedFilter != null)
+				try
 				{
-					infos = infos.Where(i => i is DirectoryInfo || SelectedFilter.Match(i.Name));
-				}
+					var infos = new DirectoryInfo(path).EnumerateFileSystemInfos();
 
-				Items.AddRange(infos.Where(x =>
-				{
-					if (_selectingDirectory)
+					if (!ShowHiddenFiles)
 					{
-						if (!(x is DirectoryInfo))
+						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
-							return false;
+							infos = infos.Where(i => (i.Attributes & (FileAttributes.Hidden | FileAttributes.System)) != 0);
+						}
+						else
+						{
+							infos = infos.Where(i => !i.Name.StartsWith("."));
 						}
 					}
 
-					return true;
-				}).Select(info => new ManagedFileChooserItemViewModel
-				{
-					DisplayName = info.Name,
-					Path = info.FullName,
-					IsDirectory = info is DirectoryInfo
-				}).OrderByDescending(x => x.IsDirectory)
-					.ThenBy(x => x.DisplayName, StringComparer.InvariantCultureIgnoreCase));
-
-				if (initialSelectionName != null)
-				{
-					var sel = Items.FirstOrDefault(i => !i.IsDirectory && i.DisplayName == initialSelectionName);
-
-					if (sel != null)
+					if (SelectedFilter != null)
 					{
-						SelectedItems.Add(sel);
+						infos = infos.Where(i => i is DirectoryInfo || SelectedFilter.Match(i.Name));
 					}
-				}
 
-				this.RaisePropertyChanged(nameof(QuickLinksSelectedIndex));
+					Items.AddRange(infos.Where(x =>
+					{
+						if (_selectingDirectory)
+						{
+							if (!(x is DirectoryInfo))
+							{
+								return false;
+							}
+						}
+
+						return true;
+					}).Select(info => new ManagedFileChooserItemViewModel
+					{
+						DisplayName = info.Name,
+						Path = info.FullName,
+						IsDirectory = info is DirectoryInfo,
+						Type = info is FileInfo ? info.Extension : "File Folder",
+						Size = info is FileInfo f ? f.Length : 0,
+						Modified = info.LastWriteTime
+					}).OrderByDescending(x => x.IsDirectory)
+						.ThenBy(x => x.DisplayName, StringComparer.InvariantCultureIgnoreCase)); ;
+
+					if (initialSelectionName != null)
+					{
+						var sel = Items.FirstOrDefault(i => !i.IsDirectory && i.DisplayName == initialSelectionName);
+
+						if (sel != null)
+						{
+							SelectedItems.Add(sel);
+						}
+					}
+
+					this.RaisePropertyChanged(nameof(QuickLinksSelectedIndex));
+				}
+				catch(System.UnauthorizedAccessException e)
+				{
+
+				}
 			}
 		}
 
