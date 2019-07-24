@@ -80,7 +80,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 				{
 					DisplayName = Path.GetFileName(x),
 					Path = x
-				}).ToArray());
+				})).ToArray();
 
 				return drives;
 			}
