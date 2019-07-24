@@ -105,7 +105,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					var ofd = new OpenFileDialog
 					{
-						AllowMultiple = true,
+						AllowMultiple = false,
 						Title = "Import Coldcard"
 					};
 					var selected = await ofd.ShowAsync(Application.Current.MainWindow, fallBack: true);
