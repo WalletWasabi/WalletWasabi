@@ -67,14 +67,22 @@ namespace WalletWasabi.Gui.ManagedDialogs
 			}
 			else
 			{
-				return new[]
+				var paths = Directory.GetDirectories("/media/");
+
+				var drives = new ManagedFileChooserNavigationItem[]
 				{
 					new ManagedFileChooserNavigationItem
 					{
 						DisplayName = "File System",
 						Path = "/"
 					}
-				};
+				}.Concat(paths.Select(x => new ManagedFileChooserNavigationItem
+				{
+					DisplayName = Path.GetFileName(x),
+					Path = x
+				}).ToArray());
+
+				return drives;
 			}
 		}
 	}
