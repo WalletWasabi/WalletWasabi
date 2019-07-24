@@ -31,15 +31,23 @@ namespace WalletWasabi.Gui.ManagedDialogs
 			new AvaloniaList<ManagedFileChooserItemViewModel>();
 
 		string _location;
+		string _fileName;
 		private bool _showHiddenFiles;
 		private ManagedFileChooserFilterViewModel _selectedFilter;
 		private bool _selectingDirectory;
+		private bool _savingFile;
 		private bool _scheduledSelectionValidation;
 
 		public string Location
 		{
 			get => _location;
 			private set => this.RaiseAndSetIfChanged(ref _location, value);
+		}
+
+		public string FileName
+		{
+			get => _fileName;
+			private set => this.RaiseAndSetIfChanged(ref _fileName, value);
 		}
 
 		public bool ShowFilters { get; }
@@ -126,6 +134,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 			}
 
 			_selectingDirectory = dialog is OpenFolderDialog;
+			_savingFile = dialog is SaveFileDialog;
 
 			Navigate(directory, (dialog as FileDialog)?.InitialFileName);
 			SelectedItems.CollectionChanged += OnSelectionChangedAsync;
@@ -165,6 +174,11 @@ namespace WalletWasabi.Gui.ManagedDialogs
 						foreach (var item in invalidItems)
 						{
 							SelectedItems.Remove(item);
+						}
+
+						if(!_selectingDirectory)
+						{
+							FileName = SelectedItems.FirstOrDefault()?.DisplayName;
 						}
 					}
 				}
@@ -285,6 +299,10 @@ namespace WalletWasabi.Gui.ManagedDialogs
 			if (_selectingDirectory)
 			{
 				CompleteRequested?.Invoke(new[] { Location });
+			}
+			else if(_savingFile)
+			{
+				CompleteRequested?.Invoke(new[] { Path.Combine(Location, FileName) });
 			}
 			else
 			{

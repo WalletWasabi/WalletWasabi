@@ -94,6 +94,7 @@
         <TextBlock Grid.Column="6" Text="Type" />
         <TextBlock Grid.Column="8" Text="Size" />
       </Grid>
+      <TextBox Text="{Binding FileName}" Watermark="File name" DockPanel.Dock="Bottom" />
       <ListBox x:Name="Files"
                  VirtualizationMode="Simple"
                  Items="{Binding Items}"

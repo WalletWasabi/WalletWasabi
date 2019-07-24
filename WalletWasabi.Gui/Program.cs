@@ -99,7 +99,7 @@ namespace WalletWasabi.Gui
 			{
 				result
 					.UseWin32()
-					.UseSkia();
+					.UseSkia().UseManagedSystemDialogs();
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
