@@ -236,7 +236,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			SuccessMessage = message;
 		}
 
-		public void SetLoadButtonText()
+		private void SetLoadButtonText()
 		{
 			if (IsHardwareBusy)
 			{
@@ -430,7 +430,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 		}
 
-		public async Task<KeyManager> LoadKeyManagerAsync(bool requirePassword, bool isHardwareWallet)
+		private async Task<KeyManager> LoadKeyManagerAsync(bool requirePassword, bool isHardwareWallet)
 		{
 			try
 			{
@@ -665,7 +665,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			return false;
 		}
 
-		public async Task LoadWalletAsync()
+		private async Task LoadWalletAsync()
 		{
 			try
 			{
@@ -718,7 +718,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public ReactiveCommand<Unit, Unit> OpenFolderCommand { get; }
 
-		public void OpenWalletsFolder()
+		private void OpenWalletsFolder()
 		{
 			var path = Global.WalletsDir;
 			IoHelpers.OpenFolderInFileExplorer(path);

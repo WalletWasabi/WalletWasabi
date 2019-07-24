@@ -29,7 +29,7 @@ namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 			}
 		}
 
-		public IEnumerable<MatrixPoint> GetNonColidingCoordinatePairs(TriStateMatrix matrix)
+		private IEnumerable<MatrixPoint> GetNonColidingCoordinatePairs(TriStateMatrix matrix)
 		{
 			return
 				GetAllCoordinatePairs()

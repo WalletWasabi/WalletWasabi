@@ -14,7 +14,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinViewModel : ViewModelBase
 	{
-		public CompositeDisposable Disposables { get; set; }
+		private CompositeDisposable Disposables { get; set; }
 
 		private bool _isSelected;
 		private SmartCoinStatus _status;
