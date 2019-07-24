@@ -37,6 +37,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 		private bool _selectingDirectory;
 		private bool _savingFile;
 		private bool _scheduledSelectionValidation;
+		private string _defaultExtension;
 
 		public string Location
 		{
@@ -135,8 +136,13 @@ namespace WalletWasabi.Gui.ManagedDialogs
 				}
 			}
 
-			_selectingDirectory = dialog is OpenFolderDialog;
-			_savingFile = dialog is SaveFileDialog;
+			_selectingDirectory = dialog is OpenFolderDialog;			
+
+			if(dialog is SaveFileDialog sfd)
+			{
+				_savingFile = true;
+				_defaultExtension = sfd.DefaultExtension;
+			}
 
 			Navigate(directory, (dialog as FileDialog)?.InitialFileName);
 			SelectedItems.CollectionChanged += OnSelectionChangedAsync;
@@ -304,6 +310,11 @@ namespace WalletWasabi.Gui.ManagedDialogs
 			}
 			else if(_savingFile)
 			{
+				if(!Path.HasExtension(Location))
+				{
+					Location = Location + _defaultExtension;
+				}
+
 				CompleteRequested?.Invoke(new[] { Path.Combine(Location, FileName) });
 			}
 			else
