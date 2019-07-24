@@ -81,7 +81,7 @@
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="20" />
           <ColumnDefinition Width="16" />
-          <ColumnDefinition Width="500" />
+          <ColumnDefinition Width="400"/>
           <ColumnDefinition Width="16" />
           <ColumnDefinition Width="200" />
           <ColumnDefinition Width="16" />
@@ -108,7 +108,7 @@
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="20" />
                 <ColumnDefinition Width="16" />
-                <ColumnDefinition Width="500" />
+                <ColumnDefinition Width="400" />
                 <ColumnDefinition Width="16" />
                 <ColumnDefinition Width="200" />
                 <ColumnDefinition Width="16" />
