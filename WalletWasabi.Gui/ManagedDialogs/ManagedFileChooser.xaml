@@ -79,15 +79,15 @@
     <DockPanel Grid.IsSharedSizeScope="True">
       <Grid DockPanel.Dock="Top" Margin="15 0 0 0" HorizontalAlignment="Stretch">
         <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="20" SharedSizeGroup="Icon" />
-          <ColumnDefinition Width="16"    SharedSizeGroup="Splitter" />
-          <ColumnDefinition Width="500" SharedSizeGroup="Name" />
-          <ColumnDefinition SharedSizeGroup="Splitter" />
-          <ColumnDefinition Width="200" SharedSizeGroup="Modified" />
-          <ColumnDefinition SharedSizeGroup="Splitter" />
-          <ColumnDefinition Width="150" SharedSizeGroup="Type" />
-          <ColumnDefinition SharedSizeGroup="Splitter" />
-          <ColumnDefinition Width="200" SharedSizeGroup="Size" />
+          <ColumnDefinition Width="20" />
+          <ColumnDefinition Width="16" />
+          <ColumnDefinition Width="500" />
+          <ColumnDefinition Width="16" />
+          <ColumnDefinition Width="200" />
+          <ColumnDefinition Width="16" />
+          <ColumnDefinition Width="150" />
+          <ColumnDefinition Width="16"/>
+          <ColumnDefinition Width="200" />
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Column="2" Text="Name" />
         <TextBlock Grid.Column="4" Text="Date Modified" />
@@ -106,15 +106,15 @@
           <DataTemplate>
             <Grid Background="Transparent" Cursor="Hand">
               <Grid.ColumnDefinitions>
-                <ColumnDefinition SharedSizeGroup="Icon" />
-                <ColumnDefinition SharedSizeGroup="Splitter" />
-                <ColumnDefinition SharedSizeGroup="Name" />
-                <ColumnDefinition SharedSizeGroup="Splitter" />
-                <ColumnDefinition SharedSizeGroup="Modified" />
-                <ColumnDefinition SharedSizeGroup="Splitter" />
-                <ColumnDefinition SharedSizeGroup="Type" />
-                <ColumnDefinition SharedSizeGroup="Splitter" />
-                <ColumnDefinition SharedSizeGroup="Size" />
+                <ColumnDefinition Width="20" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="500" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="200" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="200" />
               </Grid.ColumnDefinitions>
               <DrawingPresenter Width="16" Height="16" Drawing="{Binding IconKey, Converter={StaticResource Icons}}"/>
               <TextBlock Grid.Column="2" Text="{Binding DisplayName}"/>
