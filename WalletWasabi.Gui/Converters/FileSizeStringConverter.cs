@@ -11,7 +11,7 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if(value is long size)
+			if(value is long size && size > 0)
 			{
 				return ByteSizeHelper.ToString(size);
 			}
