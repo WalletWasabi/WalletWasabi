@@ -80,7 +80,7 @@
       <Grid DockPanel.Dock="Top" Margin="15 0 0 0">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="20" SharedSizeGroup="Icon" />
-          <ColumnDefinition SharedSizeGroup="Splitter" />
+          <ColumnDefinition Width="16" MinWidth="16"  SharedSizeGroup="Splitter" />
           <ColumnDefinition Width="500" SharedSizeGroup="Name" />
           <ColumnDefinition SharedSizeGroup="Splitter" />
           <ColumnDefinition Width="200" SharedSizeGroup="Modified" />
