@@ -105,7 +105,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					DateTime = txr.dateTime.ToLocalTime(),
 					Confirmed = txr.height.Type == HeightType.Chain,
-					Confirmations = txr.height.Type == HeightType.Chain ? Global.BitcoinStore.HashChain.TipHeight - txr.height.Value + 1 : 0,
+					Confirmations = txr.height.Type == HeightType.Chain ? (Global.BitcoinStore.HashChain.TipHeight - txr.height.Value) + 1 : 0,
 					AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
 					Label = txr.label,
 					TransactionId = txr.transactionId.ToString()
