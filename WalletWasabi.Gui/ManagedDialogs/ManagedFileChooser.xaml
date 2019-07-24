@@ -90,8 +90,11 @@
           <ColumnDefinition Width="150" SharedSizeGroup="Size" />
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Column="2" Text="Name" />
+        <GridSplitter Grid.Column="3" />
         <TextBlock Grid.Column="4" Text="Date Modified" />
+        <GridSplitter Grid.Column="5" />
         <TextBlock Grid.Column="6" Text="Type" />
+        <GridSplitter Grid.Column="7" />
         <TextBlock Grid.Column="8" Text="Size" />
       </Grid>
       <ListBox x:Name="Files"
