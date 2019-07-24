@@ -149,15 +149,25 @@ namespace WalletWasabi.Gui.Behaviors
 					}
 				}),
 				AssociatedObject
-					.WhenAnyValue(x => x.Text)
-					.Throttle(TimeSpan.FromMilliseconds(200)) // Do not remove this we need to make sure we are running on a separate Task.
+					.GetObservable(InputElement.KeyUpEvent)
+					.Throttle(TimeSpan.FromMilliseconds(500)) // Do not remove this we need to make sure we are running on a separate Task.
 					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(_ =>
+					{
+						ProcessText(AssociatedObject.Text);
+						MyTextBoxState = TextBoxState.NormalTextBoxOperation;
+					})
+			};
+
+			if (AssociatedObject is ExtendedTextBox extendedTextBox)
+			{
+				Disposables.Add(extendedTextBox.TextPasted
 					.Subscribe(text =>
 					{
 						ProcessText(text);
 						MyTextBoxState = TextBoxState.NormalTextBoxOperation;
-					})
-			};
+					}));
+			}
 
 			Disposables.Add(
 				AssociatedObject.GetObservable(InputElement.PointerReleasedEvent).Subscribe(async pointer =>
