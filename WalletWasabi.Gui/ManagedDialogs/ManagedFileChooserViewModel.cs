@@ -310,9 +310,9 @@ namespace WalletWasabi.Gui.ManagedDialogs
 			}
 			else if(_savingFile)
 			{
-				if(!Path.HasExtension(Location))
+				if(!Path.HasExtension(FileName) && !string.IsNullOrWhiteSpace(_defaultExtension))
 				{
-					Location = Location + _defaultExtension;
+					FileName = Path.ChangeExtension(FileName, _defaultExtension);
 				}
 
 				CompleteRequested?.Invoke(new[] { Path.Combine(Location, FileName) });
