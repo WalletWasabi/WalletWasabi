@@ -12,6 +12,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Behaviors
 {
@@ -68,18 +69,16 @@ namespace WalletWasabi.Gui.Behaviors
 			}
 
 			text = text.Trim();
-			var addressText = IsBitcoinAddress(text, Global.Network);
-			if (addressText.isValid)
+			if (AddressStringParser.TryParseBitcoinAddress(text, Global.Network, out BitcoinUrlBuilder addressResult))
 			{
-				result = addressText.url;
+				result = addressResult;
 				return true;
 			}
 			else
 			{
-				var urlText = IsBitcoinUrl(text, Global.Network);
-				if (urlText.isValid)
+				if (AddressStringParser.TryParseBitcoinUrl(text, Global.Network, out BitcoinUrlBuilder urlResult))
 				{
-					result = urlText.url;
+					result = urlResult;
 					return true;
 				}
 			}
@@ -97,37 +96,6 @@ namespace WalletWasabi.Gui.Behaviors
 			}
 
 			return false;
-		}
-
-		private (bool isValid, BitcoinUrlBuilder url) IsBitcoinAddress(string text, Network expectedNetwork)
-		{
-			if (text.Length > 100)
-			{
-				return (false, null);
-			}
-
-			try
-			{
-				var bitcoinAddress = BitcoinAddress.Create(text, expectedNetwork);
-				return (true, new BitcoinUrlBuilder($"bitcoin:{bitcoinAddress}"));
-			}
-			catch (FormatException)
-			{
-				return (false, null);
-			}
-		}
-
-		private (bool isValid, BitcoinUrlBuilder url) IsBitcoinUrl(string text, Network expectedNetwork)
-		{
-			try
-			{
-				var bitcoinUrl = new BitcoinUrlBuilder(text);
-				return (bitcoinUrl.Address.Network == expectedNetwork, bitcoinUrl);
-			}
-			catch (FormatException)
-			{
-				return (false, null);
-			}
 		}
 
 		public PasteAddressOnClickBehavior()
