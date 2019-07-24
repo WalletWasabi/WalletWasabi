@@ -3,8 +3,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:dialogs="clr-namespace:WalletWasabi.Gui.ManagedDialogs"
-             xmlns:internal="clr-namespace:WalletWasabi.Gui.ManagedDialogs">
+             xmlns:internal="clr-namespace:WalletWasabi.Gui.ManagedDialogs"
+             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui">
   <UserControl.Resources>
+    <converters:FileSizeStringConverter x:Key="FileSizeConverter" />
     <DrawingGroup x:Key="LevelUp">
       <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
       <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M14.5,0L6.39,0 5.39,2 2.504,2C1.677,2,1,2.673,1,3.5L1,10.582 1,10.586 1,15.414 3,13.414 3,16 7,16 7,13.414 9,15.414 9,13 14.5,13C15.327,13,16,12.327,16,11.5L16,1.5C16,0.673,15.327,0,14.5,0" />
@@ -71,18 +73,22 @@
       </ListBox.ItemTemplate>
     </ListBox>
     <DockPanel Grid.IsSharedSizeScope="True">
-      <Grid DockPanel.Dock="Top">
+      <Grid DockPanel.Dock="Top" Margin="15 0 0 0">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="20" SharedSizeGroup="Icon" />
+          <ColumnDefinition Width="8" />
           <ColumnDefinition Width="500" SharedSizeGroup="Name" />
+          <ColumnDefinition Width="8" />
           <ColumnDefinition Width="200" SharedSizeGroup="Modified" />
+          <ColumnDefinition Width="8" />
           <ColumnDefinition Width="150" SharedSizeGroup="Type" />
+          <ColumnDefinition Width="8" />
           <ColumnDefinition Width="150" SharedSizeGroup="Size" />
         </Grid.ColumnDefinitions>
-        <TextBlock Grid.Column="1" Text="Name" />
-        <TextBlock Grid.Column="2" Text="Date Modified" />
-        <TextBlock Grid.Column="3" Text="Type" />
-        <TextBlock Grid.Column="4" Text="Size" />
+        <TextBlock Grid.Column="2" Text="Name" />
+        <TextBlock Grid.Column="4" Text="Date Modified" />
+        <TextBlock Grid.Column="6" Text="Type" />
+        <TextBlock Grid.Column="8" Text="Size" />
       </Grid>
       <ListBox x:Name="Files"
                  VirtualizationMode="Simple"
@@ -95,16 +101,20 @@
             <Grid Background="Transparent" Cursor="Hand">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition SharedSizeGroup="Icon" />
+                <ColumnDefinition Width="8" />
                 <ColumnDefinition SharedSizeGroup="Name" />
+                <ColumnDefinition Width="8" />
                 <ColumnDefinition SharedSizeGroup="Modified" />
+                <ColumnDefinition Width="8" />
                 <ColumnDefinition SharedSizeGroup="Type" />
+                <ColumnDefinition Width="8" />
                 <ColumnDefinition SharedSizeGroup="Size" />
               </Grid.ColumnDefinitions>
               <DrawingPresenter Width="16" Height="16" Drawing="{Binding IconKey, Converter={StaticResource Icons}}"/>
-              <TextBlock Grid.Column="1" Text="{Binding DisplayName}"/>
-              <TextBlock Grid.Column="2" Text="{Binding Modified}" />
-              <TextBlock Grid.Column="3" Text="{Binding Type}" />
-              <TextBlock Grid.Column="4" Text="{Binding Size}" />
+              <TextBlock Grid.Column="2" Text="{Binding DisplayName}"/>
+              <TextBlock Grid.Column="4" Text="{Binding Modified}" />
+              <TextBlock Grid.Column="6" Text="{Binding Type}" />
+              <TextBlock Grid.Column="8" Text="{Binding Size, Converter={StaticResource FileSizeConverter}}" />
             </Grid>
           </DataTemplate>
         </ListBox.ItemTemplate>
