@@ -77,7 +77,7 @@
       </ListBox.ItemTemplate>
     </ListBox>
     <DockPanel Grid.IsSharedSizeScope="True">
-      <Grid DockPanel.Dock="Top" Margin="15 0 0 0">
+      <Grid DockPanel.Dock="Top" Margin="15 0 0 0" HorizontalAlignment="Stretch">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="20" SharedSizeGroup="Icon" />
           <ColumnDefinition Width="16"    SharedSizeGroup="Splitter" />
