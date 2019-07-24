@@ -46,7 +46,7 @@ namespace Gma.QrCodeNet.Encoding.Terminate
 			if (baseList.Count != numTotalDataBits)
 			{
 				throw new ArgumentException(
-					$"Generate terminator and Padding fail. Num of bits need: {numFillerBytes}, Actual length: {baseList.Count - numDataBits}");
+					$"Generate terminator and Padding fail. Num of bits need: {numFillerBytes}. Actual length: {baseList.Count - numDataBits}");
 			}
 		}
 

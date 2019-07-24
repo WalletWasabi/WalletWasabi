@@ -76,7 +76,7 @@ namespace Gma.QrCodeNet.Encoding.ErrorCorrection
 
 			if (vd.NumTotalBytes != codewords.Count >> 3)
 			{
-				throw new ArgumentException($"total bytes: {vd.NumTotalBytes}, actual bits: {codewords.Count}");
+				throw new ArgumentException($"Total bytes: {vd.NumTotalBytes}. Actual bits: {codewords.Count}");
 			}
 
 			return codewords;
