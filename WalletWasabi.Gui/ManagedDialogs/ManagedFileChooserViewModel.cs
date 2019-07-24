@@ -50,6 +50,8 @@ namespace WalletWasabi.Gui.ManagedDialogs
 			private set => this.RaiseAndSetIfChanged(ref _fileName, value);
 		}
 
+		public bool SelectingFolder => _selectingDirectory;
+
 		public bool ShowFilters { get; }
 		public SelectionMode SelectionMode { get; }
 		public string Title { get; }
