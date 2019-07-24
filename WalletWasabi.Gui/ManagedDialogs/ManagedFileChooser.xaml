@@ -80,21 +80,21 @@
       <Grid DockPanel.Dock="Top" Margin="15 0 0 0">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="20" SharedSizeGroup="Icon" />
-          <ColumnDefinition Width="8" />
+          <ColumnDefinition SharedSizeGroup="Splitter" />
           <ColumnDefinition Width="500" SharedSizeGroup="Name" />
-          <ColumnDefinition Width="8" />
+          <ColumnDefinition SharedSizeGroup="Splitter" />
           <ColumnDefinition Width="200" SharedSizeGroup="Modified" />
-          <ColumnDefinition Width="8" />
+          <ColumnDefinition SharedSizeGroup="Splitter" />
           <ColumnDefinition Width="150" SharedSizeGroup="Type" />
-          <ColumnDefinition Width="8" />
+          <ColumnDefinition SharedSizeGroup="Splitter" />
           <ColumnDefinition Width="150" SharedSizeGroup="Size" />
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Column="2" Text="Name" />
-        <GridSplitter Grid.Column="3" />
+        <GridSplitter Grid.Column="3" Margin="8 0" />
         <TextBlock Grid.Column="4" Text="Date Modified" />
-        <GridSplitter Grid.Column="5" />
+        <GridSplitter Grid.Column="5" Margin="8 0" />
         <TextBlock Grid.Column="6" Text="Type" />
-        <GridSplitter Grid.Column="7" />
+        <GridSplitter Grid.Column="7" Margin="8 0" />
         <TextBlock Grid.Column="8" Text="Size" />
       </Grid>
       <ListBox x:Name="Files"
@@ -108,13 +108,13 @@
             <Grid Background="Transparent" Cursor="Hand">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition SharedSizeGroup="Icon" />
-                <ColumnDefinition Width="8" />
+                <ColumnDefinition SharedSizeGroup="Splitter" />
                 <ColumnDefinition SharedSizeGroup="Name" />
-                <ColumnDefinition Width="8" />
+                <ColumnDefinition SharedSizeGroup="Splitter" />
                 <ColumnDefinition SharedSizeGroup="Modified" />
-                <ColumnDefinition Width="8" />
+                <ColumnDefinition SharedSizeGroup="Splitter" />
                 <ColumnDefinition SharedSizeGroup="Type" />
-                <ColumnDefinition Width="8" />
+                <ColumnDefinition SharedSizeGroup="Splitter" />
                 <ColumnDefinition SharedSizeGroup="Size" />
               </Grid.ColumnDefinitions>
               <DrawingPresenter Width="16" Height="16" Drawing="{Binding IconKey, Converter={StaticResource Icons}}"/>
