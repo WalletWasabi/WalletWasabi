@@ -549,7 +549,7 @@ namespace WalletWasabi.TorSocks5
 			}
 			finally
 			{
-				TcpClient = null; // need to be called, .net bug
+				TcpClient = null; // needs to be called, .net bug
 			}
 		}
 
