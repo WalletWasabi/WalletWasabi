@@ -55,15 +55,27 @@ namespace WalletWasabi.Gui.ManagedDialogs
 					Path = d.RootDirectory.FullName
 				}).ToArray();
 			}
-
-			return new[]
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				new ManagedFileChooserNavigationItem
+				var paths = Directory.GetDirectories("/Volumes");
+				
+				return paths.Select(x => new ManagedFileChooserNavigationItem
 				{
-					DisplayName = "File System",
-					Path = "/"
-				}
-			};
+					DisplayName = Path.GetFileName(x),
+					Path = x
+				}).ToArray();
+			}
+			else
+			{
+				return new[]
+				{
+					new ManagedFileChooserNavigationItem
+					{
+						DisplayName = "File System",
+						Path = "/"
+					}
+				};
+			}
 		}
 	}
 }
