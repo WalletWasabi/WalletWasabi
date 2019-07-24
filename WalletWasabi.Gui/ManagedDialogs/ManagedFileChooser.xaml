@@ -37,7 +37,11 @@
           <DrawingPresenter Drawing="{StaticResource LevelUp}" Stretch="Fill"/>
         </Button>
       </dialogs:ChildFitter>
-      <TextBox x:Name="Location" IsReadOnly="True" Text="{Binding Location}" Margin="0 0 5 0"/>
+      <TextBox x:Name="Location" Text="{Binding Location}" Margin="0 0 5 0">
+        <TextBox.KeyBindings>
+          <KeyBinding Command="{Binding EnterLocationCommand}" Gesture="Enter"/>
+        </TextBox.KeyBindings>
+      </TextBox>
     </DockPanel>
     <DockPanel DockPanel.Dock="Bottom">
       <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">

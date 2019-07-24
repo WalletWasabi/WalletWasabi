@@ -2,6 +2,7 @@ using System;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Reactive;
 using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Collections;
@@ -128,6 +129,14 @@ namespace WalletWasabi.Gui.ManagedDialogs
 
 			Navigate(directory, (dialog as FileDialog)?.InitialFileName);
 			SelectedItems.CollectionChanged += OnSelectionChangedAsync;
+
+			EnterLocationCommand = ReactiveCommand.Create(() =>
+			{
+				if(Directory.Exists(Location))
+				{
+					Navigate(Location);
+				}
+			});
 		}
 
 		private async void OnSelectionChangedAsync(object sender, NotifyCollectionChangedEventArgs e)
@@ -283,5 +292,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 		{
 			CompleteRequested?.Invoke(new[] { item.Path });
 		}
+
+		public ReactiveCommand<Unit, Unit> EnterLocationCommand { get; }
 	}
 }
