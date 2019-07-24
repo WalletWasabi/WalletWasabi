@@ -100,7 +100,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			if (smallerCoefficients.Length > largerCoefficients.Length)
 			{
-				throw new ArgumentException("Cannot perform CoefficientXor method as smaller Coefficients length is larger than larger one.");
+				throw new ArgumentException("Cannot perform CoefficientXor method as smaller Coefficients length is greater than the larger one.");
 			}
 
 			int targetLength = largerCoefficients.Length;
