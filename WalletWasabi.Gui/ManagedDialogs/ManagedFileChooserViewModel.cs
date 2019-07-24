@@ -259,7 +259,6 @@ namespace WalletWasabi.Gui.ManagedDialogs
 				}
 				catch (System.UnauthorizedAccessException e)
 				{
-
 				}
 			}
 		}
