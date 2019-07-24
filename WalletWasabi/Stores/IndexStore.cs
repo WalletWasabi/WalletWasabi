@@ -97,7 +97,7 @@ namespace WalletWasabi.Stores
 									line = await lineTask;
 								}
 
-								lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
+								lineTask = sr.ReadLineAsync();
 
 								ProcessLine(height, line, enqueue: false);
 								height++;
@@ -359,7 +359,7 @@ namespace WalletWasabi.Stores
 										line = await lineTask;
 									}
 
-									lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
+									lineTask = sr.ReadLineAsync();
 
 									if (height < fromHeight.Value)
 									{

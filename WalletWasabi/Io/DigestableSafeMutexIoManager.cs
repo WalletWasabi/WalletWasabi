@@ -110,7 +110,7 @@ namespace WalletWasabi.Io
 							line = await lineTask;
 						}
 
-						lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
+						lineTask = sr.ReadLineAsync();
 
 						if (linesArray[linesIndex] == line) // If the line is a line we want to write, then we know that someone else have worked into the file.
 						{
