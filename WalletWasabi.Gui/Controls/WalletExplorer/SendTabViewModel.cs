@@ -974,17 +974,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return "";
 			}
 
-			if (!string.IsNullOrWhiteSpace(Address))
+			if (AddressStringParser.TryParseBitcoinAddress(Address, Global.Network, out _))
 			{
-				var trimmed = Address.Trim();
-				try
-				{
-					BitcoinAddress.Create(trimmed, Global.Network);
-					return "";
-				}
-				catch
-				{
-				}
+				return "";
 			}
 
 			return $"Invalid {nameof(Address)}";
