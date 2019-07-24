@@ -119,7 +119,7 @@ namespace WalletWasabi.Backend.Controllers
 
 				if (round is null || round.Phase != CcjRoundPhase.InputRegistration)
 				{
-					return NotFound("No such running round in InputRegistration. Try another round.");
+					return NotFound($"No such running round in {nameof(CcjRoundPhase.InputRegistration)}. Try another round.");
 				}
 
 				// Do more checks.
@@ -148,7 +148,7 @@ namespace WalletWasabi.Backend.Controllers
 						// RegTest and TestNet address formats are sometimes the same.
 						if (Network == Network.Main)
 						{
-							return BadRequest($"Invalid ChangeOutputAddress Network.");
+							return BadRequest($"Invalid {nameof(request.ChangeOutputAddress)} Network.");
 						}
 					}
 
