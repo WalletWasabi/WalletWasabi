@@ -132,11 +132,11 @@ namespace WalletWasabi.Gui.ManagedDialogs
 
 			EnterLocationCommand = ReactiveCommand.Create(() =>
 			{
-				if(Directory.Exists(Location))
+				if (Directory.Exists(Location))
 				{
 					Navigate(Location);
 				}
-				else if(File.Exists(Location))
+				else if (File.Exists(Location))
 				{
 					CompleteRequested?.Invoke(new[] { Location });
 				}
@@ -241,8 +241,9 @@ namespace WalletWasabi.Gui.ManagedDialogs
 						Type = info is FileInfo ? info.Extension : "File Folder",
 						Size = info is FileInfo f ? f.Length : 0,
 						Modified = info.LastWriteTime
-					}).OrderByDescending(x => x.IsDirectory)
-						.ThenBy(x => x.DisplayName, StringComparer.InvariantCultureIgnoreCase)); ;
+					})
+					.OrderByDescending(x => x.IsDirectory)
+					.ThenBy(x => x.DisplayName, StringComparer.InvariantCultureIgnoreCase));
 
 					if (initialSelectionName != null)
 					{
@@ -256,7 +257,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 
 					this.RaisePropertyChanged(nameof(QuickLinksSelectedIndex));
 				}
-				catch(System.UnauthorizedAccessException e)
+				catch (System.UnauthorizedAccessException e)
 				{
 
 				}
