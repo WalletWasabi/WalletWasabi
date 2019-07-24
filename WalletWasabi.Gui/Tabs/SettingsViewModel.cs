@@ -26,6 +26,7 @@ namespace WalletWasabi.Gui.Tabs
 		private string _torSocks5EndPoint;
 		private string _bitcoinP2pEndPoint;
 		private bool _autocopy;
+		private bool _customFee;
 		private bool _useTor;
 		private bool _isModified;
 		private string _somePrivacyLevel;
@@ -49,6 +50,7 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			var config = new Config(Global.Config.FilePath);
 			Autocopy = Global.UiConfig?.Autocopy is true;
+			CustomFee = Global.UiConfig?.CustomFee is true;
 
 			this.WhenAnyValue(x => x.Network)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -72,11 +74,13 @@ namespace WalletWasabi.Gui.Tabs
 				.Subscribe(x => Save());
 
 			this.WhenAnyValue(x => x.Autocopy)
-				.Subscribe(async x =>
-			{
-				Global.UiConfig.Autocopy = x;
-				await Global.UiConfig.ToFileAsync();
-			});
+				.Subscribe(x => Global.UiConfig.Autocopy = x);
+
+			this.WhenAnyValue(x => x.CustomFee)
+				.Subscribe(x => Global.UiConfig.CustomFee = x);
+
+			this.WhenAnyValue(x => x.Autocopy, x => x.CustomFee)
+				.Subscribe(async _ => await Global.UiConfig.ToFileAsync());
 
 			Dispatcher.UIThread.PostLogException(async () =>
 			{
@@ -221,6 +225,12 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			get => _autocopy;
 			set => this.RaiseAndSetIfChanged(ref _autocopy, value);
+		}
+
+		public bool CustomFee
+		{
+			get => _customFee;
+			set => this.RaiseAndSetIfChanged(ref _customFee, value);
 		}
 
 		public bool UseTor

@@ -46,6 +46,9 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "Autocopy")]
 		public bool? Autocopy { get; internal set; }
 
+		[JsonProperty(PropertyName = "CustomFee")]
+		public bool? CustomFee { get; internal set; }
+
 		[JsonProperty(PropertyName = "LurkingWifeMode")]
 		public bool? LurkingWifeMode
 		{
@@ -98,6 +101,7 @@ namespace WalletWasabi.Gui
 			FeeTarget = 2;
 			FeeDisplayFormat = 0;
 			Autocopy = true;
+			CustomFee = false;
 			LurkingWifeMode = false;
 			LockScreenActive = false;
 			LockScreenPinHash = "";
@@ -124,6 +128,7 @@ namespace WalletWasabi.Gui
 			Width = config?.Width ?? Width;
 			FeeTarget = config?.FeeTarget ?? FeeTarget;
 			FeeDisplayFormat = config?.FeeDisplayFormat ?? FeeDisplayFormat;
+			CustomFee = config?.CustomFee ?? CustomFee;
 			Autocopy = config?.Autocopy ?? Autocopy;
 			LurkingWifeMode = config?.LurkingWifeMode ?? LurkingWifeMode;
 			LockScreenActive = config?.LockScreenActive ?? LockScreenActive;
