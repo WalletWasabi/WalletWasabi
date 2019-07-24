@@ -9,7 +9,7 @@ namespace Gma.QrCodeNet.Encoding.ErrorCorrection
 		internal static BitList FillECCodewords(BitList dataCodewords, VersionDetail vd)
 		{
 			List<byte> dataCodewordsByte = dataCodewords.List;
-			int ecBlockGroup2 = vd.ECBlockGroup2;
+
 			int ecBlockGroup1 = vd.ECBlockGroup1;
 			int numDataBytesGroup1 = vd.NumDataBytesGroup1;
 			int numDataBytesGroup2 = vd.NumDataBytesGroup2;
