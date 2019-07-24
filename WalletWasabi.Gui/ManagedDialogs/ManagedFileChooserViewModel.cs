@@ -142,6 +142,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 			{
 				_savingFile = true;
 				_defaultExtension = sfd.DefaultExtension;
+				FileName = sfd.InitialFileName;
 			}
 
 			Navigate(directory, (dialog as FileDialog)?.InitialFileName);
@@ -310,12 +311,15 @@ namespace WalletWasabi.Gui.ManagedDialogs
 			}
 			else if(_savingFile)
 			{
-				if(!Path.HasExtension(FileName) && !string.IsNullOrWhiteSpace(_defaultExtension))
+				if (!string.IsNullOrWhiteSpace(FileName))
 				{
-					FileName = Path.ChangeExtension(FileName, _defaultExtension);
-				}
+					if (!Path.HasExtension(FileName) && !string.IsNullOrWhiteSpace(_defaultExtension))
+					{
+						FileName = Path.ChangeExtension(FileName, _defaultExtension);
+					}
 
-				CompleteRequested?.Invoke(new[] { Path.Combine(Location, FileName) });
+					CompleteRequested?.Invoke(new[] { Path.Combine(Location, FileName) });
+				}
 			}
 			else
 			{
