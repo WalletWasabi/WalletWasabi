@@ -12,12 +12,12 @@ namespace WalletWasabi.Helpers
 		{
 			url = null;
 
-			text = text.Trim();
-
-			if (text is null || text.Length > 100 || text.Length < 20)
+			if (text is null || text.Length > 100 || text.Length < 20 || expectedNetwork is null)
 			{
 				return false;
 			}
+
+			text = text.Trim();
 
 			try
 			{
@@ -35,17 +35,17 @@ namespace WalletWasabi.Helpers
 		{
 			url = null;
 
-			text = text.Trim();
-
-			if (text is null || text.Length > 1000 || text.Length < 20)
+			if (text is null || text.Length > 1000 || text.Length < 20 || expectedNetwork is null)
 			{
 				return false;
 			}
 
+			text = text.Trim();
+
 			try
 			{
 				var bitcoinUrl = new BitcoinUrlBuilder(text);
-				if (bitcoinUrl.Address.Network == expectedNetwork)
+				if (bitcoinUrl?.Address.Network == expectedNetwork)
 				{
 					url = bitcoinUrl;
 					return true;
