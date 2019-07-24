@@ -99,7 +99,7 @@ namespace WalletWasabi.Gui.Behaviors
 			return false;
 		}
 
-		public (bool isValid, BitcoinUrlBuilder url) IsBitcoinAddress(string text, Network expectedNetwork)
+		private (bool isValid, BitcoinUrlBuilder url) IsBitcoinAddress(string text, Network expectedNetwork)
 		{
 			if (text.Length > 100)
 			{
@@ -117,7 +117,7 @@ namespace WalletWasabi.Gui.Behaviors
 			}
 		}
 
-		public (bool isValid, BitcoinUrlBuilder url) IsBitcoinUrl(string text, Network expectedNetwork)
+		private (bool isValid, BitcoinUrlBuilder url) IsBitcoinUrl(string text, Network expectedNetwork)
 		{
 			try
 			{
@@ -148,14 +148,15 @@ namespace WalletWasabi.Gui.Behaviors
 						MyTextBoxState = TextBoxState.None;
 					}
 				}),
-				AssociatedObject.WhenAnyValue(x => x.Text)
-								.Throttle(TimeSpan.FromMilliseconds(200))
-								.ObserveOn(RxApp.MainThreadScheduler)
-								.Subscribe(text =>
-								{
-									ProcessText(text);
-									MyTextBoxState = TextBoxState.NormalTextBoxOperation;
-								})
+				AssociatedObject
+					.WhenAnyValue(x => x.Text)
+					.Throttle(TimeSpan.FromMilliseconds(200)) // Do not remove this we need to make sure we are running on a separate Task.
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(text =>
+					{
+						ProcessText(text);
+						MyTextBoxState = TextBoxState.NormalTextBoxOperation;
+					})
 			};
 
 			Disposables.Add(
