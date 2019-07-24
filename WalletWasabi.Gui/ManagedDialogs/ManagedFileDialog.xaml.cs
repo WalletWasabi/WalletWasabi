@@ -8,7 +8,6 @@ namespace WalletWasabi.Gui.ManagedDialogs
 {
 	class ManagedFileDialog : MetroWindow
 	{
-		private ManagedFileChooserViewModel _model;
 		public ManagedFileDialog()
 		{
 			AvaloniaXamlLoader.Load(this);
