@@ -43,7 +43,7 @@ namespace WalletWasabi.TorSocks5
 
 		public Uri DestinationUri => DestinationUriAction();
 		public Func<Uri> DestinationUriAction { get; private set; }
-		public IPEndPoint TorSocks5EndPoint { get; private set; }
+		public EndPoint TorSocks5EndPoint { get; private set; }
 		public bool IsTorUsed => TorSocks5EndPoint != null;
 
 		public bool IsolateStream { get; private set; }
@@ -52,18 +52,18 @@ namespace WalletWasabi.TorSocks5
 
 		private static AsyncLock AsyncLock { get; } = new AsyncLock(); // We make everything synchronous, so slow, but at least stable.
 
-		public TorHttpClient(Uri baseUri, IPEndPoint torSocks5EndPoint, bool isolateStream = false)
+		public TorHttpClient(Uri baseUri, EndPoint torSocks5EndPoint, bool isolateStream = false)
 		{
 			baseUri = Guard.NotNull(nameof(baseUri), baseUri);
 			Create(torSocks5EndPoint, isolateStream, () => baseUri);
 		}
 
-		public TorHttpClient(Func<Uri> baseUriAction, IPEndPoint torSocks5EndPoint, bool isolateStream = false)
+		public TorHttpClient(Func<Uri> baseUriAction, EndPoint torSocks5EndPoint, bool isolateStream = false)
 		{
 			Create(torSocks5EndPoint, isolateStream, baseUriAction);
 		}
 
-		private void Create(IPEndPoint torSocks5EndPoint, bool isolateStream, Func<Uri> baseUriAction)
+		private void Create(EndPoint torSocks5EndPoint, bool isolateStream, Func<Uri> baseUriAction)
 		{
 			DestinationUriAction = Guard.NotNull(nameof(baseUriAction), baseUriAction);
 			if (DestinationUri.IsLoopback)
