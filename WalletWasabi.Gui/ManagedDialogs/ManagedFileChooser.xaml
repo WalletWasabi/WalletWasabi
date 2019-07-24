@@ -69,7 +69,7 @@
                  DockPanel.Dock="Left" Background="{DynamicResource ThemeControlMidBrush}" Focusable="False">
       <ListBox.ItemTemplate>
         <DataTemplate>
-          <StackPanel Spacing="4" Orientation="Horizontal" Background="Transparent" Cursor="Hand">
+          <StackPanel Spacing="4" Orientation="Horizontal" Background="Transparent">
             <DrawingPresenter Width="16" Height="16" Drawing="{Binding IconKey, Converter={StaticResource Icons}}"/>
             <TextBlock Text="{Binding DisplayName}"/>
           </StackPanel>
@@ -104,7 +104,7 @@
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
         <ListBox.ItemTemplate>
           <DataTemplate>
-            <Grid Background="Transparent" Cursor="Hand">
+            <Grid Background="Transparent">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="20" />
                 <ColumnDefinition Width="16" />
