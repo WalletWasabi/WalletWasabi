@@ -163,6 +163,9 @@ namespace WalletWasabi.Tests
 				Assert.False(AddressStringParser.TryParseBitcoinAddress(test.address.Remove(5, 1), test.network, out _));
 				Assert.False(AddressStringParser.TryParseBitcoinAddress(test.address.Insert(1, "b"), test.network, out _));
 
+				AddressStringParser.TryParseBitcoinAddress(test.address, null, out _);
+				AddressStringParser.TryParseBitcoinAddress(null, test.network, out _);
+
 				Assert.True(AddressStringParser.TryParseBitcoinAddress(test.address, test.network, out BitcoinUrlBuilder result));
 				Assert.Equal(test.address, result.Address.ToString());
 
@@ -190,6 +193,9 @@ namespace WalletWasabi.Tests
 				Assert.False(AddressStringParser.TryParseBitcoinUrl(test.url.Substring(1), test.network, out _));
 				Assert.False(AddressStringParser.TryParseBitcoinUrl(test.url.Remove(5, 4), test.network, out _));
 				Assert.False(AddressStringParser.TryParseBitcoinUrl(test.url.Insert(1, "b"), test.network, out _));
+
+				AddressStringParser.TryParseBitcoinUrl(test.url, null, out _);
+				AddressStringParser.TryParseBitcoinUrl(null, test.network, out _);
 
 				Assert.True(AddressStringParser.TryParseBitcoinUrl(test.url, test.network, out BitcoinUrlBuilder result));
 				Assert.Equal(test.url.Split(new[] { ':', '?' })[1], result.Address.ToString());

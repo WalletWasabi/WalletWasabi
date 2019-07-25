@@ -12,12 +12,17 @@ namespace WalletWasabi.Helpers
 		{
 			url = null;
 
-			if (text is null || text.Length > 100 || text.Length < 20 || expectedNetwork is null)
+			if (text is null || expectedNetwork is null)
 			{
 				return false;
 			}
 
 			text = text.Trim();
+
+			if (text.Length > 100 || text.Length < 20)
+			{
+				return false;
+			}
 
 			try
 			{
@@ -35,12 +40,17 @@ namespace WalletWasabi.Helpers
 		{
 			url = null;
 
-			if (text is null || text.Length > 1000 || text.Length < 20 || expectedNetwork is null)
+			if (text is null || expectedNetwork is null)
 			{
 				return false;
 			}
 
 			text = text.Trim();
+
+			if (text.Length > 1000 || text.Length < 20)
+			{
+				return false;
+			}
 
 			try
 			{
