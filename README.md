@@ -1,7 +1,12 @@
 ![](https://i.imgur.com/4GO7nnY.png)
 
-Wasabi Wallet, formerly known as HiddenWallet is a [ZeroLink](https://github.com/nopara73/ZeroLink) compliant Bitcoin wallet. We are dedicated to restore Bitcoin's fungibility and provide the highest possible privacy for our users.  
-HiddenWallet's code is archived in the [hiddenwallet-v0.6](https://github.com/zkSNACKs/WalletWasabi/tree/hiddenwallet-v0.6) branch of this repository.
+Wasabi Wallet, formerly known as HiddenWallet* is an open-source, non-custodial, privacy focused Bitcoin wallet for desktop. 
+It's a [ZeroLink](https://github.com/nopara73/ZeroLink) compliant and it implements trustless coin shuffling: Schnorrian CoinJoin (mixing UTXOs).
+We are dedicated to restore Bitcoin's fungibility and provide the highest possible privacy for our users.
+
+"Anonymity loves company", the more participants there are, the better your privacy is, and the faster the coin join rounds are. Whether you are looking for state of the art operational security or you are philosophically aligned with the principles of freedom and privacy, now it is YOUR time to contribute. Fire up your Wasabi and help us to bootstrap the system!
+
+*HiddenWallet's code is archived in the [hiddenwallet-v0.6](https://github.com/zkSNACKs/WalletWasabi/tree/hiddenwallet-v0.6) branch of this repository.
 
 | Code Quality           | Windows Tests           | Linux Tests             | OSX Tests               | License                   |
 | :----------------------| :-----------------------| :-----------------------| :-----------------------| :-------------------------|
