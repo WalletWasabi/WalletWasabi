@@ -130,6 +130,7 @@ namespace WalletWasabi.Gui.Behaviors
 			if (AssociatedObject is ExtendedTextBox extendedTextBox)
 			{
 				Disposables.Add(extendedTextBox.TextPasted
+					.ObserveOn(RxApp.MainThreadScheduler)
 					.Subscribe(text =>
 					{
 						ProcessText(text);
