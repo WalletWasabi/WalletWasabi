@@ -54,6 +54,11 @@ namespace WalletWasabi.Helpers
 
 			try
 			{
+				if (!text.StartsWith("bitcoin:", true, System.Globalization.CultureInfo.InvariantCulture))
+				{
+					return false;
+				}
+
 				var bitcoinUrl = new BitcoinUrlBuilder(text);
 				if (bitcoinUrl?.Address.Network == expectedNetwork)
 				{
