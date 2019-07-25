@@ -969,7 +969,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string ValidateAddress()
 		{
-			if (string.IsNullOrEmpty(Address))
+			if (string.IsNullOrWhiteSpace(Address))
 			{
 				return "";
 			}
