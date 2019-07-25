@@ -215,7 +215,7 @@ namespace WalletWasabi.Services
 			}
 
 			Coins.TryRemove(toRemove);
-			Mempool.TransactionHashes.TryRemove(toRemove.SpenderTransactionId);
+			Mempool.TransactionHashes.TryRemove(toRemove.TransactionId);
 		}
 
 		private async void IndexDownloader_NewFilterAsync(object sender, FilterModel filterModel)
