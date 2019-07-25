@@ -60,34 +60,9 @@ namespace WalletWasabi.Gui.Behaviors
 
 		private TextBoxState _textBoxState = TextBoxState.None;
 
-		private bool TryParse(string text, out BitcoinUrlBuilder result)
-		{
-			result = null;
-			if (string.IsNullOrWhiteSpace(text) || text.Length > 1000)
-			{
-				return false;
-			}
-
-			text = text.Trim();
-			if (AddressStringParser.TryParseBitcoinAddress(text, Global.Network, out BitcoinUrlBuilder addressResult))
-			{
-				result = addressResult;
-				return true;
-			}
-			else
-			{
-				if (AddressStringParser.TryParseBitcoinUrl(text, Global.Network, out BitcoinUrlBuilder urlResult))
-				{
-					result = urlResult;
-					return true;
-				}
-			}
-			return false;
-		}
-
 		private bool ProcessText(string text)
 		{
-			if (TryParse(text, out BitcoinUrlBuilder result))
+			if (AddressStringParser.TryParse(text, Global.Network, out BitcoinUrlBuilder result))
 			{
 				AssociatedObject.Text = result?.Address?.ToString();
 				CommandParameter = result;
@@ -189,7 +164,7 @@ namespace WalletWasabi.Gui.Behaviors
 					{
 						string text = await Application.Current.Clipboard.GetTextAsync();
 
-						if (TryParse(text, out _))
+						if (AddressStringParser.TryParse(text, Global.Network, out _))
 						{
 							MyTextBoxState = TextBoxState.AddressInsert;
 						}

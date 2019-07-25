@@ -73,5 +73,29 @@ namespace WalletWasabi.Helpers
 				return false;
 			}
 		}
+
+		public static bool TryParse(string text, Network expectedNetwork, out BitcoinUrlBuilder result)
+		{
+			result = null;
+			if (string.IsNullOrWhiteSpace(text) || text.Length > 1000)
+			{
+				return false;
+			}
+
+			if (TryParseBitcoinAddress(text, expectedNetwork, out BitcoinUrlBuilder addressResult))
+			{
+				result = addressResult;
+				return true;
+			}
+			else
+			{
+				if (TryParseBitcoinUrl(text, expectedNetwork, out BitcoinUrlBuilder urlResult))
+				{
+					result = urlResult;
+					return true;
+				}
+			}
+			return false;
+		}
 	}
 }
