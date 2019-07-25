@@ -155,7 +155,7 @@ namespace WalletWasabi.Gui
 
 			if (Config.UseTor.Value)
 			{
-				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
 			}
 			else
 			{
@@ -189,7 +189,7 @@ namespace WalletWasabi.Gui
 
 			if (Config.UseTor.Value)
 			{
-				TorManager = new TorProcessManager(Config.GetTorSocks5EndPoint(), TorLogsFile);
+				TorManager = new TorProcessManager(Config.TorSocks5EndPoint, TorLogsFile);
 			}
 			else
 			{
@@ -261,7 +261,7 @@ namespace WalletWasabi.Gui
 				if (Config.UseTor is true)
 				{
 					// onlyForOnionHosts: false - Connect to clearnet IPs through Tor, too.
-					connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.GetTorSocks5EndPoint(), onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
+					connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.TorSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
 					// allowOnlyTorEndpoints: true - Connect only to onions and do not connect to clearnet IPs at all.
 					// This of course makes the first setting unnecessary, but it's better if that's around, in case someone wants to tinker here.
 					connectionParameters.EndpointConnector = new DefaultEndpointConnector(allowOnlyTorEndpoints: Network == Network.Main);
@@ -410,7 +410,7 @@ namespace WalletWasabi.Gui
 
 				if (Config.UseTor.Value)
 				{
-					ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+					ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
 				}
 				else
 				{

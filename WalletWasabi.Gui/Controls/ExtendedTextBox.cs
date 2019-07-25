@@ -12,6 +12,7 @@ using ReactiveUI;
 using System;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.Controls
@@ -20,8 +21,14 @@ namespace WalletWasabi.Gui.Controls
 	{
 		private MenuItem _pasteItem = null;
 
+		private Subject<string> _textPasted;
+
+		public IObservable<string> TextPasted => _textPasted.AsObservable();
+
 		public ExtendedTextBox()
 		{
+			_textPasted = new Subject<string>();
+
 			CopyCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				await CopyAsync();
@@ -29,7 +36,16 @@ namespace WalletWasabi.Gui.Controls
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				await PasteAsync();
+				try
+				{
+					var pastedText = await PasteAsync();
+
+					_textPasted.OnNext(pastedText);
+				}
+				catch (Exception exception)
+				{
+					_textPasted.OnError(exception);
+				}
 			});
 
 			CopyCommand.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<ExtendedTextBox>);
@@ -68,16 +84,17 @@ namespace WalletWasabi.Gui.Controls
 		private ReactiveCommand<Unit, Unit> CopyCommand { get; }
 		private ReactiveCommand<Unit, Unit> PasteCommand { get; }
 
-		private async Task PasteAsync()
+		private async Task<string> PasteAsync()
 		{
 			var text = await Application.Current.Clipboard.GetTextAsync();
 
 			if (text is null)
 			{
-				return;
+				return null;
 			}
 
 			OnTextInput(new TextInputEventArgs { Text = text });
+			return text;
 		}
 
 		protected string GetSelection()

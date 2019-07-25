@@ -16,8 +16,8 @@ namespace WalletWasabi.Gui.Converters
 				switch (status)
 				{
 					case StatusBarStatus.Ready: return "Ready";
-					case StatusBarStatus.CriticalUpdate: return "THE BACKEND WAS UPGRADED WITH BREAKING CHANGES - PLEASE UPDATE YOUR SOFTWARE";
-					case StatusBarStatus.OptionalUpdate: return "New Version Is Available";
+					case StatusBarStatus.CriticalUpdate: return "THE BACKEND WAS UPGRADED WITH BREAKING CHANGES - PLEASE UPDATE YOUR WASABI WALLET!";
+					case StatusBarStatus.OptionalUpdate: return "A new version of Wasabi Wallet is available.";
 					case StatusBarStatus.Connecting: return "Connecting...";
 					case StatusBarStatus.Synchronizing: return "Synchronizing...";
 					case StatusBarStatus.Loading: return "Loading...";

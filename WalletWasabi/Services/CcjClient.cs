@@ -34,7 +34,7 @@ namespace WalletWasabi.Services
 
 		public Func<Uri> CcjHostUriAction { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
-		private IPEndPoint TorSocks5EndPoint { get; set; }
+		private EndPoint TorSocks5EndPoint { get; set; }
 
 		private decimal? CoordinatorFeepercentToCheck { get; set; }
 
@@ -68,7 +68,7 @@ namespace WalletWasabi.Services
 			Network network,
 			KeyManager keyManager,
 			Func<Uri> ccjHostUriAction,
-			IPEndPoint torSocks5EndPoint)
+			EndPoint torSocks5EndPoint)
 		{
 			Create(synchronizer, network, keyManager, ccjHostUriAction, torSocks5EndPoint);
 		}
@@ -78,12 +78,12 @@ namespace WalletWasabi.Services
 			Network network,
 			KeyManager keyManager,
 			Uri ccjHostUri,
-			IPEndPoint torSocks5EndPoint)
+			EndPoint torSocks5EndPoint)
 		{
 			Create(synchronizer, network, keyManager, () => ccjHostUri, torSocks5EndPoint);
 		}
 
-		private void Create(WasabiSynchronizer synchronizer, Network network, KeyManager keyManager, Func<Uri> ccjHostUriAction, IPEndPoint torSocks5EndPoint)
+		private void Create(WasabiSynchronizer synchronizer, Network network, KeyManager keyManager, Func<Uri> ccjHostUriAction, EndPoint torSocks5EndPoint)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
