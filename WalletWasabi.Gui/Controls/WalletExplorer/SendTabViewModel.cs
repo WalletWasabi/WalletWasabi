@@ -780,7 +780,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 				SetWarningMessage(builder.ToString());
-				return;
 			}
 		}
 
@@ -968,7 +967,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 
-			return $"Invalid {nameof(Address)}";
+			return "Invalid address.";
 		}
 
 		[ValidateMethod(nameof(ValidateAddress))]
