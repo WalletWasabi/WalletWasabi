@@ -227,11 +227,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			OnAddressPasteCommand = ReactiveCommand.Create((BitcoinUrlBuilder url) =>
 			{
-				if (url.Address != null)
-				{
-					Address = url.Address.ToString();
-				}
-
 				if (!string.IsNullOrWhiteSpace(url.Label))
 				{
 					Label = url.Label;
