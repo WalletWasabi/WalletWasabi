@@ -53,7 +53,7 @@ namespace System
 				int l = array1.Length;
 				for (int i = 0; i < l / 8; i++, x1 += 8, x2 += 8)
 				{
-					if (*((long*)x1) != *((long*)x2))
+					if (*(long*)x1 != *(long*)x2)
 					{
 						return false;
 					}
@@ -61,7 +61,7 @@ namespace System
 
 				if ((l & 4) != 0)
 				{
-					if (*((int*)x1) != *((int*)x2))
+					if (*(int*)x1 != *(int*)x2)
 					{
 						return false;
 					}
@@ -70,7 +70,7 @@ namespace System
 				}
 				if ((l & 2) != 0)
 				{
-					if (*((short*)x1) != *((short*)x2))
+					if (*(short*)x1 != *(short*)x2)
 					{
 						return false;
 					}
@@ -164,7 +164,7 @@ namespace System
 
 			for (int x = 0, i = 0; i < hex.Length; i += 2, x += 1)
 			{
-				bytes[x] = (byte)(hexValue[char.ToUpper(hex[i + 0]) - '0'] << 4 |
+				bytes[x] = (byte)((hexValue[char.ToUpper(hex[i + 0]) - '0'] << 4) |
 								  hexValue[char.ToUpper(hex[i + 1]) - '0']);
 			}
 

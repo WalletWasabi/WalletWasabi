@@ -225,7 +225,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					else
 					{
-						txRecordList.Add((dateTime, foundSpenderTransaction.Height, (Money.Zero - coin.Amount), "", coin.SpenderTransactionId));
+						txRecordList.Add((dateTime, foundSpenderTransaction.Height, Money.Zero - coin.Amount, "", coin.SpenderTransactionId));
 					}
 				}
 			}

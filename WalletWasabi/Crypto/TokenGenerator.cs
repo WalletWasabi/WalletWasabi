@@ -21,7 +21,7 @@ namespace WalletWasabi.Crypto
 			StringBuilder result = new StringBuilder(length);
 			foreach (byte b in data)
 			{
-				result.Append(chars[b % (chars.Length)]);
+				result.Append(chars[b % chars.Length]);
 			}
 			return result.ToString();
 		}

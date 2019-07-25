@@ -36,9 +36,9 @@ namespace WalletWasabi.Gui.CommandLine
 				{ "l|language=", "The charset to use: en, es, it, fr, pt. Default=en.",
 					v => Language = v },
 				{ "n|numbers=", "Try passwords with numbers. Default=true.",
-					v => UseNumbers = (v=="" || v=="1" || v.ToUpper()=="TRUE") },
+					v => UseNumbers = v=="" || v=="1" || v.ToUpper()=="TRUE" },
 				{ "x|symbols=", "Try passwords with symbolds. Default=true.",
-					v => UseSymbols = (v=="" || v=="1" || v.ToUpper()=="TRUE") },
+					v => UseSymbols = v=="" || v=="1" || v.ToUpper()=="TRUE" },
 				{ "h|help", "Show Help",
 					v => ShowHelp = true}};
 		}

@@ -6,7 +6,7 @@ namespace Gma.QrCodeNet.Encoding.Masking
 	{
 		public override bool this[int i, int j]
 		{
-			get => (((i * j) % 3) + (((i + j) % 2) % 2)) == 0;
+			get => ((i * j % 3) + ((i + j) % 2 % 2)) == 0;
 			set => throw new NotSupportedException();
 		}
 

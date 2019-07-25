@@ -94,7 +94,7 @@ namespace WalletWasabi.Gui.Helpers
 				}
 				else
 				{
-					shellProc.StartInfo.FileName = (resolveExecutable ? ResolveFullExecutablePath(commandName, true, extraPaths) : commandName);
+					shellProc.StartInfo.FileName = resolveExecutable ? ResolveFullExecutablePath(commandName, true, extraPaths) : commandName;
 					shellProc.StartInfo.Arguments = args;
 					shellProc.StartInfo.CreateNoWindow = true;
 				}

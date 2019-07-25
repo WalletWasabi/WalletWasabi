@@ -638,7 +638,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						break;
 					}
 
-					changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentage(CoordinatorFeePercent * bobsOnThisLevel)));
+					changeAmount -= level.Denomination + FeePerOutputs + level.Denomination.Percentage(CoordinatorFeePercent * bobsOnThisLevel);
 
 					if (changeAmount < Money.Zero)
 					{
@@ -692,7 +692,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					break;
 				}
 
-				changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentage(CoordinatorFeePercent * potentialAlicesOnThisLevel)));
+				changeAmount -= level.Denomination + FeePerOutputs + level.Denomination.Percentage(CoordinatorFeePercent * potentialAlicesOnThisLevel);
 
 				if (changeAmount < Money.Zero)
 				{
@@ -809,7 +809,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				}
 
 				var feeRate = estimateSmartFeeResponse.FeeRate;
-				Money feePerBytes = (feeRate.FeePerK / 1000);
+				Money feePerBytes = feeRate.FeePerK / 1000;
 
 				// Make sure min relay fee (1000 sat) is hit.
 				feePerInputs = Math.Max(feePerBytes * inputSizeInBytes, Money.Satoshis(500));

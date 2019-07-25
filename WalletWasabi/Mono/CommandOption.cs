@@ -170,7 +170,7 @@ namespace Mono.Options
 		// (see Option.ParsePrototype(), and thus it'll prevent Category
 		// instances from being accidentally used as normal options.
 		public CommandOption(Command command, string commandName = null, bool hidden = false)
-			: base("=:Command:= " + (commandName ?? command?.Name), (commandName ?? command?.Name), maxValueCount: 0, hidden: hidden)
+			: base("=:Command:= " + (commandName ?? command?.Name), commandName ?? command?.Name, maxValueCount: 0, hidden: hidden)
 		{
 			Command = command ?? throw new ArgumentNullException(nameof(command));
 			CommandName = commandName ?? command.Name;

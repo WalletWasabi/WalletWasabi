@@ -107,11 +107,11 @@ namespace NBitcoin.RPC
 			int satoshiPerBytes;
 			if (estimateMode == EstimateSmartFeeMode.Conservative)
 			{
-				satoshiPerBytes = ((Constants.SevenDaysConfirmationTarget + 1 + 6) - confirmationTarget) / 7;
+				satoshiPerBytes = (Constants.SevenDaysConfirmationTarget + 1 + 6 - confirmationTarget) / 7;
 			}
 			else // Economical
 			{
-				satoshiPerBytes = ((Constants.SevenDaysConfirmationTarget + 1 + 5) - confirmationTarget) / 7;
+				satoshiPerBytes = (Constants.SevenDaysConfirmationTarget + 1 + 5 - confirmationTarget) / 7;
 			}
 
 			Money feePerK = Money.Satoshis(satoshiPerBytes * 1000);

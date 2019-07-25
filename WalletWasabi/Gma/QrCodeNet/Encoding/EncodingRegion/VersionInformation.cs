@@ -39,9 +39,9 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 					bool bit = versionInfo[viIndex];
 					viIndex--;
 					//Bottom left
-					tsMatrix[viWidth, (matrixWidth - shiftLength + viHeight), MatrixStatus.NoMask] = bit;
+					tsMatrix[viWidth, matrixWidth - shiftLength + viHeight, MatrixStatus.NoMask] = bit;
 					//Top right
-					tsMatrix[(matrixWidth - shiftLength + viHeight), viWidth, MatrixStatus.NoMask] = bit;
+					tsMatrix[matrixWidth - shiftLength + viHeight, viWidth, MatrixStatus.NoMask] = bit;
 				}
 			}
 		}

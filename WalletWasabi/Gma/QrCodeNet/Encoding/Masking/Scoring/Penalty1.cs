@@ -67,7 +67,7 @@
 						}
 						if (numSameBitCell >= 5)
 						{
-							penalty += (3 + (numSameBitCell - 5));
+							penalty += 3 + (numSameBitCell - 5);
 						}
 
 						j += x;

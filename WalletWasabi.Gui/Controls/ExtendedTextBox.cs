@@ -165,7 +165,7 @@ namespace WalletWasabi.Gui.Controls
 				Items = new Avalonia.Controls.Controls()
 			};
 
-			var menuItems = (ContextMenu.Items as Avalonia.Controls.Controls);
+			var menuItems = ContextMenu.Items as Avalonia.Controls.Controls;
 			if (IsCopyEnabled)
 			{
 				menuItems.Add(new MenuItem { Header = "Copy", Foreground = ColorTheme.CurrentTheme.Foreground, Command = CopyCommand, Icon = GetCopyPresenter() });

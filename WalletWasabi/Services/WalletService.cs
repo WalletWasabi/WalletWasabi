@@ -781,7 +781,7 @@ namespace WalletWasabi.Services
 						// Try to get block information from local running Core node first.
 						try
 						{
-							if (LocalBitcoinCoreNode is null || !LocalBitcoinCoreNode.IsConnected && Network != Network.RegTest) // If RegTest then we're already connected do not try again.
+							if (LocalBitcoinCoreNode is null || (!LocalBitcoinCoreNode.IsConnected && Network != Network.RegTest)) // If RegTest then we're already connected do not try again.
 							{
 								DisconnectDisposeNullLocalBitcoinCoreNode();
 								using (var handshakeTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancel))
@@ -1133,8 +1133,8 @@ namespace WalletWasabi.Services
 			}
 			else
 			{
-				int expectedMinTxSize = 1 * Constants.P2wpkhInputSizeInBytes + 1 * Constants.OutputSizeInBytes + 10;
-				inNum = SelectCoinsToSpend(allowedSmartCoinInputs, toSend.Select(x => x.Amount).Sum() + feePerBytes * expectedMinTxSize).Count();
+				int expectedMinTxSize = (1 * Constants.P2wpkhInputSizeInBytes) + (1 * Constants.OutputSizeInBytes) + 10;
+				inNum = SelectCoinsToSpend(allowedSmartCoinInputs, toSend.Select(x => x.Amount).Sum() + (feePerBytes * expectedMinTxSize)).Count();
 			}
 
 			// https://bitcoincore.org/en/segwit_wallet_dev/#transaction-fee-estimation
@@ -1211,7 +1211,7 @@ namespace WalletWasabi.Services
 			// 6. Do some checks
 			Money totalOutgoingAmountNoFee = realToSend.Select(x => x.amount).Sum();
 			Money totalOutgoingAmount = totalOutgoingAmountNoFee + fee;
-			decimal feePc = (100 * fee.ToDecimal(MoneyUnit.BTC)) / totalOutgoingAmountNoFee.ToDecimal(MoneyUnit.BTC);
+			decimal feePc = 100 * fee.ToDecimal(MoneyUnit.BTC) / totalOutgoingAmountNoFee.ToDecimal(MoneyUnit.BTC);
 
 			if (feePc > 1)
 			{
@@ -1282,7 +1282,7 @@ namespace WalletWasabi.Services
 			for (var i = 0U; i < tx.Outputs.Count; i++)
 			{
 				TxOut output = tx.Outputs[i];
-				var anonset = (tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet)) - 1; // Minus 1, because count own only once.
+				var anonset = tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because count own only once.
 				var foundKey = KeyManager.GetKeys(KeyState.Clean).FirstOrDefault(x => output.ScriptPubKey == x.P2wpkhScript);
 				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, anonset, pubKey: foundKey);
 

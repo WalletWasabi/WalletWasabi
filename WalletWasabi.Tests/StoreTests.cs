@@ -560,7 +560,7 @@ namespace WalletWasabi.Tests
 				char ch;
 				for (int i = 0; i < rnd.Next(10, 100); i++)
 				{
-					ch = Convert.ToChar(Convert.ToInt32(Math.Floor(26 * rnd.NextDouble() + 65)));
+					ch = Convert.ToChar(Convert.ToInt32(Math.Floor((26 * rnd.NextDouble()) + 65)));
 					builder.Append(ch);
 				}
 				return builder.ToString();

@@ -15,7 +15,7 @@ namespace WalletWasabi.JsonConverters
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			var value = ((long)reader.Value);
+			var value = (long)reader.Value;
 			return new FeeRate(new Money(value));
 		}
 

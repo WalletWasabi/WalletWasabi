@@ -659,7 +659,7 @@ namespace Mono.Options
 			Option p;
 			string rn;
 			if (n.Length >= 1 && (n[n.Length - 1] == '+' || n[n.Length - 1] == '-') &&
-					Contains((rn = n.Substring(0, n.Length - 1))))
+					Contains(rn = n.Substring(0, n.Length - 1)))
 			{
 				p = this[rn];
 				string v = n[n.Length - 1] == '+' ? option : null;

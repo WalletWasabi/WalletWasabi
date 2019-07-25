@@ -267,7 +267,7 @@ namespace WalletWasabi.Backend.Controllers
 
 					// Check if inputs have enough coins.
 					Money inputSum = inputs.Sum(x => x.Amount);
-					Money changeAmount = (inputSum - (round.MixingLevels.GetBaseDenomination() + networkFeeToPayAfterBaseDenomination));
+					Money changeAmount = inputSum - (round.MixingLevels.GetBaseDenomination() + networkFeeToPayAfterBaseDenomination);
 					if (changeAmount < Money.Zero)
 					{
 						return BadRequest($"Not enough inputs are provided. Fee to pay: {networkFeeToPayAfterBaseDenomination.ToString(false, true)} BTC. Round denomination: {round.MixingLevels.GetBaseDenomination().ToString(false, true)} BTC. Only provided: {inputSum.ToString(false, true)} BTC.");
@@ -285,7 +285,7 @@ namespace WalletWasabi.Backend.Controllers
 						}
 
 						Money coordinatorFee = denomination.Percentage(round.CoordinatorFeePercent * round.AnonymitySet); // It should be the number of bobs, but we must make sure they'd have money to pay all.
-						changeAmount -= (denomination + round.FeePerOutputs + coordinatorFee);
+						changeAmount -= denomination + round.FeePerOutputs + coordinatorFee;
 						networkFeeToPay += round.FeePerOutputs;
 
 						if (changeAmount < Money.Zero)

@@ -206,7 +206,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 			{
 				//quotient coefficients
 				//qLastIndex = alength - blength  qlength = qLastIndex + 1
-				int[] qCoefficients = new int[(aLength - bLength) + 1];
+				int[] qCoefficients = new int[aLength - bLength + 1];
 
 				//Denominator
 				int otherLeadingTerm = other.GetCoefficient(other.Degree);

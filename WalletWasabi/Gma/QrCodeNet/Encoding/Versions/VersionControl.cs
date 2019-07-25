@@ -37,7 +37,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 
 			int[] charCountIndicator = CharCountIndicatorTable.GetCharCountIndicatorSet();
 
-			totalDataBits += (NUM_BITS_MODE_INDICATOR + charCountIndicator[searchGroup]);
+			totalDataBits += NUM_BITS_MODE_INDICATOR + charCountIndicator[searchGroup];
 
 			int lowerSearchBoundary = searchGroup == 0 ? 1 : (VERSION_GROUP[searchGroup - 1] + 1);
 			int higherSearchBoundary = VERSION_GROUP[searchGroup];
@@ -106,7 +106,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 				}
 			}
 
-			throw new InputOutOfBoundaryException($"QRCode do not have enough space for {(numBits + NUM_BITS_MODE_INDICATOR + charCountIndicator[2])} bits");
+			throw new InputOutOfBoundaryException($"QRCode do not have enough space for {numBits + NUM_BITS_MODE_INDICATOR + charCountIndicator[2]} bits");
 		}
 
 		/// <summary>

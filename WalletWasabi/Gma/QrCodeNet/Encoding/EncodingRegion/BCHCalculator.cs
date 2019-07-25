@@ -45,7 +45,7 @@
 			int polyMSB = PosMSB(poly);
 			//num's length will be old length + new length - 1.
 			//Once divide poly number. BCH number will be one length short than Poly number's length.
-			num <<= (polyMSB - 1);
+			num <<= polyMSB - 1;
 			int numMSB = PosMSB(num);
 			while (PosMSB(num) >= polyMSB)
 			{
