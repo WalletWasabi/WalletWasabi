@@ -21,18 +21,14 @@ namespace WalletWasabi.Gui.Controls
 	{
 		private MenuItem _pasteItem = null;
 
-		private Subject<string> _textPasted = new Subject<string>();
+		private Subject<string> _textPasted;
 
-		public IObservable<string> TextPasted
-		{
-			get
-			{
-				return _textPasted.AsObservable();
-			}
-		}
+		public IObservable<string> TextPasted => _textPasted.AsObservable();
 
 		public ExtendedTextBox()
 		{
+			_textPasted = new Subject<string>();
+
 			CopyCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				await CopyAsync();
