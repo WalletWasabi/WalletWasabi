@@ -6,7 +6,6 @@
           <Button Command="{Binding CancelCommand}" IsVisible="{Binding CancelButtonVisible}" Content="Cancel" Width="160" Height="50" />
           <Button Content="OK" Command="{Binding OKCommand}" IsVisible="{Binding OKButtonVisible}" Width="100" Height="30" />
         </StackPanel>
-        <cont:ViewModelViewHost DataContext="{Binding }" />
       </DockPanel>
     </Grid>
   </Grid>
