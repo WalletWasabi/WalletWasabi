@@ -979,6 +979,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return "";
 			}
 
+			if (AddressStringParser.TryParseBitcoinUrl(Address, Global.Network, out _))
+			{
+				return "";
+			}
+
 			return $"Invalid {nameof(Address)}";
 		}
 
