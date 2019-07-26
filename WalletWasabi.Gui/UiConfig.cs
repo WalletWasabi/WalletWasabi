@@ -119,15 +119,15 @@ namespace WalletWasabi.Gui
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
 			var config = JsonConvert.DeserializeObject<UiConfig>(jsonString);
 
-			WindowState = config.WindowState ?? WindowState;
-			Height = config.Height ?? Height;
-			Width = config.Width ?? Width;
-			FeeTarget = config.FeeTarget ?? FeeTarget;
-			FeeDisplayFormat = config.FeeDisplayFormat ?? FeeDisplayFormat;
-			Autocopy = config.Autocopy ?? Autocopy;
-			LurkingWifeMode = config.LurkingWifeMode ?? LurkingWifeMode;
-			LockScreenActive = config.LockScreenActive ?? LockScreenActive;
-			LockScreenPinHash = config.LockScreenPinHash ?? LockScreenPinHash;
+			WindowState = config?.WindowState ?? WindowState;
+			Height = config?.Height ?? Height;
+			Width = config?.Width ?? Width;
+			FeeTarget = config?.FeeTarget ?? FeeTarget;
+			FeeDisplayFormat = config?.FeeDisplayFormat ?? FeeDisplayFormat;
+			Autocopy = config?.Autocopy ?? Autocopy;
+			LurkingWifeMode = config?.LurkingWifeMode ?? LurkingWifeMode;
+			LockScreenActive = config?.LockScreenActive ?? LockScreenActive;
+			LockScreenPinHash = config?.LockScreenPinHash ?? LockScreenPinHash;
 		}
 
 		/// <inheritdoc />
