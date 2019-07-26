@@ -47,23 +47,7 @@ namespace WalletWasabi.Gui.Tabs
 
 		public SettingsViewModel(Global global) : base(global, "Settings")
 		{
-			var config = new Config(Global.Config.FilePath);
 			Autocopy = Global.UiConfig?.Autocopy is true;
-
-			this.WhenAnyValue(x => x.Network)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(async _ =>
-				{
-					await config.LoadFileAsync();
-
-					var configBitcoinP2pEndPoint = Network == Network.Main
-						? config.MainNetBitcoinP2pEndPoint
-						: (Network == Network.TestNet
-							? config.TestNetBitcoinP2pEndPoint
-							: config.RegTestBitcoinP2pEndPoint);
-
-					BitcoinP2pEndPoint = configBitcoinP2pEndPoint.ToString(defaultPort: -1);
-				});
 
 			this.WhenAnyValue(
 				x => x.Network,
@@ -80,17 +64,20 @@ namespace WalletWasabi.Gui.Tabs
 
 			Dispatcher.UIThread.PostLogException(async () =>
 			{
+				var config = new Config(Global.Config.FilePath);
 				await config.LoadFileAsync();
 
 				Network = config.Network;
 				TorSocks5EndPoint = config.TorSocks5EndPoint.ToString(-1);
-				UseTor = config.UseTor.Value;
+				UseTor = config.UseTor;
 
 				SomePrivacyLevel = config.PrivacyLevelSome.ToString();
 				FinePrivacyLevel = config.PrivacyLevelFine.ToString();
 				StrongPrivacyLevel = config.PrivacyLevelStrong.ToString();
 
 				DustThreshold = config.DustThreshold.ToString();
+
+				BitcoinP2pEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
 
 				IsModified = await Global.Config.CheckFileChangeAsync();
 			});
@@ -299,58 +286,29 @@ namespace WalletWasabi.Gui.Tabs
 				using (await ConfigLock.LockAsync())
 				{
 					await config.LoadFileAsync();
-
-					var torSocks5EndPoint = EndPointParser.TryParse(TorSocks5EndPoint, Constants.DefaultTorSocksPort, out EndPoint torEp) ? torEp : null;
-					var bitcoinP2pEndPoint = EndPointParser.TryParse(BitcoinP2pEndPoint, network.DefaultPort, out EndPoint p2pEp) ? p2pEp : null;
-					var useTor = UseTor;
-					var somePrivacyLevel = int.TryParse(SomePrivacyLevel, out int level) ? (int?)level : null;
-					var finePrivacyLevel = int.TryParse(FinePrivacyLevel, out level) ? (int?)level : null;
-					var strongPrivacyLevel = int.TryParse(StrongPrivacyLevel, out level) ? (int?)level : null;
-					var dustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? (decimal?)threshold : null;
-
-					var configBitcoinP2pEndPoint = network == NBitcoin.Network.Main
-						? config.MainNetBitcoinP2pEndPoint
-						: (network == NBitcoin.Network.TestNet
-							? config.TestNetBitcoinP2pEndPoint
-							: config.RegTestBitcoinP2pEndPoint);
-
-					if (config.Network != network
-						|| config.TorSocks5EndPoint != torSocks5EndPoint
-						|| config.UseTor != useTor
-						|| config.PrivacyLevelSome != somePrivacyLevel
-						|| config.PrivacyLevelFine != finePrivacyLevel
-						|| config.PrivacyLevelStrong != strongPrivacyLevel
-						|| config.DustThreshold.ToUnit(MoneyUnit.BTC) != dustThreshold
-						|| configBitcoinP2pEndPoint != bitcoinP2pEndPoint
-					)
+					if (Network == config.Network)
 					{
-						config.Network = network;
-						config.TorSocks5EndPoint = torSocks5EndPoint;
-						config.UseTor = useTor;
-						config.PrivacyLevelSome = somePrivacyLevel;
-						config.PrivacyLevelFine = finePrivacyLevel;
-						config.PrivacyLevelStrong = strongPrivacyLevel;
-						config.DustThreshold = Money.Coins(dustThreshold.Value);
-
-						switch (network.Name)
+						if (EndPointParser.TryParse(TorSocks5EndPoint, Constants.DefaultTorSocksPort, out EndPoint torEp))
 						{
-							case "Main":
-								config.MainNetBitcoinP2pEndPoint = bitcoinP2pEndPoint;
-								break;
-
-							case "TestNet":
-								config.TestNetBitcoinP2pEndPoint = bitcoinP2pEndPoint;
-								break;
-
-							case "RegTest":
-								config.RegTestBitcoinP2pEndPoint = bitcoinP2pEndPoint;
-								break;
+							config.TorSocks5EndPoint = torEp;
 						}
-
-						await config.ToFileAsync();
+						if (EndPointParser.TryParse(BitcoinP2pEndPoint, network.DefaultPort, out EndPoint p2pEp))
+						{
+							config.SetP2PEndpoint(p2pEp);
+						}
+						config.UseTor = UseTor;
+						config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? Money.Coins(threshold) : Config.DefaultDustThreshold;
+						config.PrivacyLevelSome = int.TryParse(SomePrivacyLevel, out int level) ? level : Config.DefaultPrivacyLevelSome;
+						config.PrivacyLevelStrong = int.TryParse(StrongPrivacyLevel, out level) ? level : Config.DefaultPrivacyLevelStrong;
+						config.PrivacyLevelFine = int.TryParse(FinePrivacyLevel, out level) ? level : Config.DefaultPrivacyLevelFine;
 					}
-
-					IsModified = await Global.Config.CheckFileChangeAsync();
+					else
+					{
+						config.Network = Network;
+						BitcoinP2pEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
+					}
+					await config.ToFileAsync();
+					IsModified = !Global.Config.AreDeepEqual(config);
 				}
 			});
 		}
