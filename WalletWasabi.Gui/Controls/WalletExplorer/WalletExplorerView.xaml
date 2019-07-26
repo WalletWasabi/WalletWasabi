@@ -1,5 +1,5 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
-            xmlns:ViewModels="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
+﻿<UserControl xmlns="https://github.com/avaloniaui" 
+  xmlns:ViewModels="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
 
   <Grid>
     <TreeView BorderThickness="0" Items="{Binding Wallets}" SelectedItem="{Binding SelectedItem}">
@@ -14,47 +14,16 @@
       <TreeView.DataTemplates>
         <TreeDataTemplate DataType="ViewModels:WalletViewModel" ItemsSource="{Binding Actions}">
           <StackPanel Orientation="Horizontal" Spacing="6">
-            <DrawingPresenter Width="20" Height="20">
-              <DrawingPresenter.Drawing>
-                <DrawingGroup>
-                  <DrawingGroup.Children>
-                    <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-                    <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M16,9L16,10.196 13.677,16 2,16C2,16 1.14,15.979 0.57,15.435 0.227,15.103 0,14.617 0,14L0,5C0,3.697,1.005,3,2,3L4.486,3 3.607,2.121 5.729,0 10.246,4.518 9.999,4.765 10.116,5 13,5C13.97,5,15,5.701,15,7L15,9z" />
-                    <GeometryDrawing Brush="#FFDCB67A" Geometry="F1M14,10.0313L14,7.0313C14,6.0313,12.764,6.0313,13,6.0313L9.5,6.0313 9.244,5.5193 8.578,6.1863 9,7.0313 13,7.0313 13,10.0313 4,10.0313 2,15.0313 13,15.0313 15,10.0313z M2,15.0153L1.997,15.0153C1.94,15.0153,1,15.0013,1,14.0313L1,8.9593C1.286,9.2523,1.626,9.4873,2,9.6663z" />
-                    <GeometryDrawing Brush="#FF00529C" Geometry="F1M8.832,4.5176L5.728,7.6216 5.021,6.9136 6.918,5.0176 3.5,5.0176C2.673,5.0176 2,5.6906 2,6.5176 2,7.3446 2.673,8.0176 3.5,8.0176L3.5,9.0176C2.122,9.0176 1,7.8966 1,6.5176 1,5.1396 2.122,4.0176 3.5,4.0176L6.918,4.0176 5.021,2.1216 5.728,1.4136z" />
-                  </DrawingGroup.Children>
-                </DrawingGroup>
-              </DrawingPresenter.Drawing>
-            </DrawingPresenter>
+            <DrawingPresenter Width="20" Height="20" Drawing="{DynamicResource WalletExplorerView_OpenFolder}"/>
             <Button Content="{Binding Title}" Command="{Binding LurkingWifeModeCommand}" Height="19" VerticalAlignment="Center" BorderThickness="0" Margin="0" Padding="0" Background="Transparent" />
           </StackPanel>
         </TreeDataTemplate>
 
         <TreeDataTemplate DataType="ViewModels:SendTabViewModel">
-          <Button BorderThickness="0" Background="Transparent"  Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+          <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <DrawingPresenter Width="20" Height="20" IsVisible="{Binding !IsTransactionBuilder}">
-                <DrawingPresenter.Drawing>
-                  <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1 M 25.3333,52.25L 50.6667,52.25L 50.6667,45.9167L 55.4167,45.9167L 55.4167,57L 50.6667,57L 25.3333,57L 20.5833,57L 20.5833,45.9167L 25.3333,45.9167L 25.3333,52.25 Z M 34.8333,49.0834L 41.1667,49.0834L 41.1666,28.5L 49.0833,38L 49.0833,28.5L 38,15.8334L 26.9167,28.5L 26.9167,38L 34.8333,28.5L 34.8333,49.0834 Z " />
-                </DrawingPresenter.Drawing>
-              </DrawingPresenter>
-              <DrawingPresenter Width="20" Height="20" IsVisible="{Binding IsTransactionBuilder}">
-                <DrawingPresenter.Drawing>
-                  <DrawingGroup>
-                    <DrawingGroup.Children>
-                      <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,15.969L0,15.969 0,0 16,0z" />
-                      <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8.6742,0.0997000000000003L2.1452,3.3977 2.1452,4.1227 0.00020000000000131,4.1227 0.00020000000000131,9.1137 2.0002,9.1137 2.1452,9.1147 2.1452,10.5517 2.0002,10.6967 2.0002,15.9997 7.0002,15.9997 7.0002,14.4777 9.3012,15.9247 9.7892,15.9247 16.0002,11.3787 16.0002,3.4077 9.7182,0.0997000000000003z" />
-                      <GeometryDrawing Brush="#FF414141" Geometry="F1M14.1201,10.3652L10.0931,13.2652 10.0931,7.8562 14.1201,5.2212z M9.0861,13.4312L9.0861,13.4552 9.0721,13.4432 9.0581,13.4552 9.0581,13.4312 4.1111,10.2072 4.1111,5.0212 9.1261,7.8222 9.1261,13.4062z M9.1261,1.9112L13.9251,4.2762 9.4481,6.9622 4.6131,4.2042z M15.0001,10.7952L15.0001,3.9172 9.1971,0.856199999999999 3.1441,3.9172 3.1441,10.7952 9.5211,14.8122z" />
-                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M9.126,1.9116L13.925,4.2756 9.448,6.9616 4.613,4.2036z"></GeometryDrawing>
-                      <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M7,4.0303L3,4.0303 0,4.0303 0,9.0303 2,9.0303 3,9.0473 3,9.6163 2,10.6163 2,16.0003 7,16.0003 7,12.0003 7,10.6163 6,9.6163 6,8.0303C6,7.4793 6.449,7.0303 7,7.0303 7.451,7.0303 7.847,7.3403 7.962,7.7833L8.019,8.0003 9.839,8.0003 9.896,7.7903C9.966,7.5283 10,7.2803 10,7.0303 10,5.3763 8.654,4.0303 7,4.0303" />
-                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M9.0859,13.4316L9.0859,13.4546 9.0719,13.4436 9.0589,13.4546 9.0589,13.4316 4.1109,10.2066 4.1109,5.0216 9.1259,7.8216 9.1259,13.4066z"></GeometryDrawing>
-                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M14.1201,10.3652L10.0931,13.2652 10.0931,7.8562 14.1201,5.2212z"></GeometryDrawing>
-                      <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M7,3.9155L3,3.9155 0,3.9155 0,8.9155 2,8.9155 3,8.9315 3,9.5015 2,10.5015 2,15.8845 7,15.8845 7,11.8845 7,10.5015 6,9.5015 6,7.9155C6,7.3635 6.449,6.9155 7,6.9155 7.451,6.9155 7.847,7.2255 7.962,7.6685L8.019,7.8855 9.839,7.8855 9.896,7.6755C9.966,7.4135 10,7.1645 10,6.9155 10,5.2615 8.654,3.9155 7,3.9155" />
-                      <GeometryDrawing Brush="#FF414141" Geometry="F1M5,8.0303C5,6.9263 5.896,6.0303 7,6.0303 7.931,6.0303 8.705,6.6693 8.93,7.5293L8.93,7.5313C8.973,7.3713 9,7.2043 9,7.0303 9,5.9263 8.104,5.0303 7,5.0303L4,5.0303C4,5.5823 3.553,6.0303 3,6.0303 2.957,6.0303 2.918,6.0173 2.876,6.0123L2.876,6.0053C2.639,5.9743 2.428,5.8613 2.271,5.6973 2.236,5.6593 2.211,5.6133 2.182,5.5703 2.075,5.4143 2,5.2353 2,5.0303L1,5.0303 1,8.0303 2,8.0303C2,7.5223,2.385,7.1193,2.876,7.0553L2.876,7.0303 3,7.0303C3.553,7.0303,4,7.4783,4,8.0303L4,10.0303 3,11.0303 3,15.0303 6,15.0303 6,11.0303 5,10.0303z" />
-                    </DrawingGroup.Children>
-                  </DrawingGroup>
-                </DrawingPresenter.Drawing>
-              </DrawingPresenter>
+              <DrawingPresenter Width="20" Height="20" IsVisible="{Binding !IsTransactionBuilder}" Drawing="{DynamicResource WalletExplorerView_Send}"/>
+              <DrawingPresenter Width="20" Height="20" IsVisible="{Binding IsTransactionBuilder}" Drawing="{DynamicResource WalletExplorerView_Builder}"/>
               <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
@@ -63,11 +32,7 @@
         <TreeDataTemplate DataType="ViewModels:ReceiveTabViewModel">
           <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <DrawingPresenter Width="20" Height="20">
-                <DrawingPresenter.Drawing>
-                  <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1 M 25.3333,52.25L 50.6666,52.25L 50.6666,45.9167L 55.4166,45.9167L 55.4166,57L 20.5833,57L 20.5833,45.9167L 25.3333,45.9167L 25.3333,52.25 Z M 34.8333,15.8333L 41.1667,15.8333L 41.1667,36.4167L 49.0833,26.9167L 49.0833,36.4167L 38,49.0833L 26.9167,36.4167L 26.9167,26.9167L 34.8333,36.4167L 34.8333,15.8333 Z " />
-                </DrawingPresenter.Drawing>
-              </DrawingPresenter>
+              <DrawingPresenter Width="20" Height="20" Drawing="{DynamicResource WalletExplorerView_Receive}"/>
               <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
@@ -76,22 +41,7 @@
         <TreeDataTemplate DataType="ViewModels:CoinJoinTabViewModel">
           <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <DrawingPresenter Width="20" Height="20">
-                <DrawingPresenter.Drawing>
-                  <DrawingGroup>
-                    <DrawingGroup.Children>
-                      <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M0,-0.000199999999999534L0,6.9998 3,6.9998 3,8.9998 0,8.9998 0,15.9998 7,15.9998 7,12.0008 7.414,12.0008 8,11.4158 8,12.0008 16,12.0008 16,4.0008 8,4.0008 8,4.5858 7.414,4.0008 7,4.0008 7,-0.000199999999999534z" />
-                      <GeometryDrawing Brush="#FF414141" Geometry="F1M4.5859,6L3.9999,5.414 3.9999,5 1.9999,5 1.9999,2 4.9999,2 4.9999,4 5.9999,4 5.9999,1 0.9999,1 0.9999,6 2.9999,6z" />
-                      <GeometryDrawing Brush="#FF414141" Geometry="F1M9,5L9,5.586 10,6.586 10,6 14,6 14,10 10,10 10,9.414 9,10.414 9,11 15,11 15,5z" />
-                      <GeometryDrawing Brush="#FF414141" Geometry="F1M5,14L2,14 2,11 4,11 4,10.586 4.586,10 3,10 1,10 1,15 6,15 6,12 5,12z" />
-                      <GeometryDrawing Brush="#FF414141" Geometry="F1M7,5L5,5 7,7 4,7 4,9 7,9 5,11 7,11 10,8z" />
-                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M2,5L4,5 4,4 5,4 5,2 2,2z" />
-                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M10,6L10,6.586 11,7.586 11,8.414 10,9.414 10,10 14,10 14,6z" />
-                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M4,11L2,11 2,14 5,14 5,12 4,12z" />
-                    </DrawingGroup.Children>
-                  </DrawingGroup>
-                </DrawingPresenter.Drawing>
-              </DrawingPresenter>
+              <DrawingPresenter Width="20" Height="20" Drawing="{DynamicResource WalletExplorerView_CoinJoin}"/>
               <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
@@ -100,38 +50,17 @@
         <TreeDataTemplate DataType="ViewModels:HistoryTabViewModel">
           <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <DrawingPresenter Width="20" Height="20">
-                <DrawingPresenter.Drawing>
-                  <DrawingGroup>
-                    <DrawingGroup.Children>
-                      <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-                      <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M16,0L1,0 1,8.031C0.380000000000001,8.864 0,9.884 0,11 0,12.115 0.380000000000001,13.136 1,13.969L1,14 1.026,14C1.939,15.207 3.373,16 5,16 6.627,16 8.061,15.207 8.974,14L16,14z" />
-                      <GeometryDrawing Brush="#FF424242" Geometry="F1M7,11L7,12 4,12 4,9 5,9 5,11z M5,14C3.345,14 2,12.655 2,11 2,9.345 3.345,8 5,8 6.655,8 8,9.345 8,11 8,12.655 6.655,14 5,14 M5,7C2.791,7 1,8.791 1,11 1,13.209 2.791,15 5,15 7.209,15 9,13.209 9,11 9,8.791 7.209,7 5,7 M14,6L11,6 11,4 14,4z M14,9L11,9 11,7 14,7z M14,12L11,12 11,10 14,10z M10,6L7,6 7,4 10,4z M2,1L2,7.026C2.838,6.391,3.87,6,5,6L3,6 3,4 6,4 6,6 5,6C6.116,6,7.136,6.38,7.969,7L10,7 10,9 9.576,9C9.716,9.318,9.828,9.651,9.899,10L10,10 10,12 9.899,12C9.828,12.349,9.716,12.682,9.576,13L15,13 15,1z" />
-                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M7,12L4,12 4,9 5,9 5,11 7,11z M5,8C3.345,8 2,9.345 2,11 2,12.655 3.345,14 5,14 6.655,14 8,12.655 8,11 8,9.345 6.655,8 5,8 M7,6L10,6 10,4 7,4z M11,12L14,12 14,10 11,10z M11,9L14,9 14,7 11,7z M11,6L14,6 14,4 11,4z M6,4L3,4 3,6 6,6z M9.576,9L10,9 10,7 7.969,7C8.663,7.517,9.224,8.199,9.576,9 M10,12L10,11C10,11.342,9.965,11.677,9.899,12z M9.899,10L10,10 10,11C10,10.658,9.965,10.323,9.899,10" />
-                    </DrawingGroup.Children>
-                  </DrawingGroup>
-                </DrawingPresenter.Drawing>
-              </DrawingPresenter>
+              <DrawingPresenter Width="20" Height="20" Drawing="{DynamicResource WalletExplorerView_History}"/>
               <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
         </TreeDataTemplate>
 
         <TreeDataTemplate DataType="ViewModels:WalletInfoViewModel">
-          <Button BorderThickness="0" Background="Transparent"  Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+          <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <DrawingPresenter Width="20" Height="20">
-                <DrawingPresenter.Drawing>
-                  <DrawingGroup>
-                    <DrawingGroup.Children>
-                      <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-                      <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8,0C3.589,0 0,3.589 0,8 0,12.411 3.589,16 8,16 12.411,16 16,12.411 16,8 16,3.589 12.411,0 8,0" />
-                      <GeometryDrawing Brush="#FFFFFFFF" Geometry="F1M14,8C14,11.309 11.309,14 8,14 4.691,14 2,11.309 2,8 2,4.691 4.691,2 8,2 11.309,2 14,4.691 14,8" />
-                      <GeometryDrawing Brush="#FF1BA1E2" Geometry="F1M7,7.5L9,7.5 9,12 7,12z M7,4L9,4 9,5.5 7,5.5z M8,14C4.691,14 2,11.309 2,8 2,4.691 4.691,2 8,2 11.309,2 14,4.691 14,8 14,11.309 11.309,14 8,14 M8,1C4.14,1 1,4.14 1,8 1,11.859 4.14,15 8,15 11.859,15 15,11.859 15,8 15,4.14 11.859,1 8,1" />
-                    </DrawingGroup.Children>
-                  </DrawingGroup>
-                </DrawingPresenter.Drawing>
-              </DrawingPresenter>
+              <DrawingPresenter Width="20" Height="20" Drawing="{DynamicResource WalletExplorerView_Info}"/>
+
               <TextBlock Text="Wallet Info" Height="19" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
@@ -140,28 +69,7 @@
         <TreeDataTemplate DataType="ViewModels:TransactionBroadcasterViewModel">
           <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <DrawingPresenter Width="20" Height="20">
-                <DrawingPresenter.Drawing>
-                  <DrawingGroup>
-                    <DrawingGroup.Children>
-                      <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-                      <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M10,3.7446C9.3,3.7446,8.629,3.8656,8,4.0776L8,3.9996 4,-0.000399999999999956 0,3.9996 0,8.8276 2,6.8276 2,8.9996 3.836,8.9996C3.784,9.3236 3.75,9.6516 3.75,9.9896 3.75,10.1726 3.76,10.3426 3.776,10.5176 3.79,10.6776 3.813,10.8126 3.841,10.9856 4.262,13.5246 6.203,15.4776 8.675,15.9996L9.056,15.9996 9.075,15.9996 11.72,15.9996C13.797,15.4116,15.406,13.8066,16,11.7616L16,8.2786C15.258,5.6456,12.862,3.7446,10,3.7446" />
-                      <GeometryDrawing Brush="#FF414141" Geometry="F1M5,8L5,4.414 7,6.414 7,4.414 4,1.414 1,4.414 1,6.414 3,4.414 3,8z" />
-                      <GeometryDrawing Brush="#FF414141" Geometry="F1M14.2988,10.2803C13.5198,10.6193 12.8198,10.8223 12.1628,10.9273 12.2458,10.4683 12.2878,10.0323 12.2828,9.6213 12.2808,9.3203 12.2578,9.0343 12.2268,8.7543 12.7718,8.6683 13.3478,8.5223 13.9638,8.3013 14.1878,8.8223 14.3128,9.3963 14.3128,10.0003 14.3128,10.0943 14.3048,10.1873 14.2988,10.2803 M11.0378,14.1813C11.4468,13.3213 11.7628,12.5203 11.9668,11.7863 12.6368,11.7003 13.3498,11.5293 14.1308,11.2353 13.6968,12.6873 12.5178,13.8153 11.0378,14.1813 M10.0738,14.3083C10.0488,14.3093 10.0258,14.3123 9.9998,14.3123 9.8728,14.3123 9.7458,14.3043 9.6218,14.2933 9.2448,13.4563 8.9558,12.6253 8.7768,11.8143 9.1688,11.8533 9.5758,11.8793 9.9958,11.8833 10.0968,11.8843 10.1968,11.8843 10.2978,11.8843 10.5588,11.8843 10.8218,11.8773 11.0878,11.8643 10.8598,12.6073 10.5198,13.4223 10.0738,14.3083 M5.8648,11.2183C6.4628,11.4023 7.1488,11.5783 7.9228,11.7023 8.0768,12.4873 8.3288,13.2893 8.6588,14.0973 7.3168,13.6583 6.2658,12.5793 5.8648,11.2183 M8.5838,8.7933C9.0358,8.8443 9.5068,8.8783 9.9958,8.8833 10.0968,8.8843 10.1968,8.8843 10.2978,8.8843 10.6638,8.8843 11.0348,8.8733 11.4138,8.8443 11.4428,9.0983 11.4628,9.3573 11.4668,9.6293 11.4708,10.0623 11.4148,10.5313 11.3098,11.0313 10.8708,11.0623 10.4418,11.0683 10.0038,11.0653 9.5278,11.0603 9.0688,11.0253 8.6258,10.9733 8.5628,10.5163 8.5288,10.0663 8.5328,9.6293 8.5368,9.3403 8.5568,9.0623 8.5838,8.7933 M9.4508,5.7263C9.6308,5.7033 9.8138,5.6873 9.9998,5.6873 10.1238,5.6873 10.2448,5.6963 10.3658,5.7063 10.7168,6.3143 11.0738,7.0903 11.2808,8.0363 10.8538,8.0653 10.4318,8.0693 10.0038,8.0653 9.5548,8.0613 9.1188,8.0303 8.6998,7.9823 8.8748,7.0713 9.1638,6.3223 9.4508,5.7263 M13.5618,7.5703C13.0468,7.7473 12.5618,7.8703 12.0988,7.9423 11.9378,7.1683 11.6858,6.5033 11.4098,5.9283 12.2928,6.2343 13.0448,6.8133 13.5618,7.5703 M15.2408,9.8223C15.1468,7.0063 12.8398,4.7503 9.9998,4.7503 9.2908,4.7503 8.6168,4.8943 7.9998,5.1493L7.9998,6.1933C8.1428,6.1183 8.2858,6.0433 8.4378,5.9843 8.2708,6.4023 8.1238,6.8853 7.9998,7.4043L7.9998,8.8283 6.7958,7.6243C6.6848,7.5953 6.5688,7.5683 6.4618,7.5383 6.4958,7.4893 6.5378,7.4483 6.5728,7.4013L5.9998,6.8283 5.9998,8.4253C6.0198,8.3763 6.0278,8.3223 6.0488,8.2733 6.5638,8.4253 7.1358,8.5683 7.7748,8.6773 7.7418,8.9813 7.7198,9.2933 7.7168,9.6213 7.7118,10.0213 7.7418,10.4323 7.7898,10.8473 6.9838,10.7013 6.2858,10.5003 5.7028,10.3023 5.6948,10.2023 5.6878,10.1013 5.6878,10.0003 5.6878,9.6543 5.7378,9.3223 5.8158,9.0003L4.8508,9.0003C4.7878,9.3243 4.7498,9.6573 4.7498,10.0003 4.7498,10.1533 4.7588,10.3033 4.7728,10.4533 4.7838,10.5883 4.8038,10.7203 4.8248,10.8513 4.8258,10.8563 4.8258,10.8603 4.8268,10.8653 5.1938,13.0723 6.9318,14.8083 9.1398,15.1743 9.1448,15.1753 9.1498,15.1763 9.1538,15.1763 9.2848,15.1973 9.4158,15.2163 9.5498,15.2273 9.6978,15.2413 9.8478,15.2503 9.9998,15.2503 10.1738,15.2503 10.3448,15.2403 10.5138,15.2243 13.1718,14.9663 15.2498,12.7263 15.2498,10.0003 15.2498,9.9393 15.2418,9.8823 15.2408,9.8223" />
-                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M12.2266,8.7539C12.7716,8.6689 13.3476,8.5229 13.9636,8.3009 14.1876,8.8229 14.3126,9.3969 14.3126,9.9999 14.3126,10.0949 14.3046,10.1879 14.2986,10.2799 13.5196,10.6189 12.8206,10.8219 12.1636,10.9279 12.2466,10.4689 12.2886,10.0319 12.2836,9.6209 12.2816,9.3199 12.2576,9.0339 12.2266,8.7539" />
-                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M13.5615,7.5698C13.0465,7.7468 12.5615,7.8698 12.0985,7.9418 11.9375,7.1688 11.6855,6.5028 11.4105,5.9288 12.2925,6.2338 13.0445,6.8138 13.5615,7.5698" />
-                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M10,14.3125C9.873,14.3125 9.746,14.3045 9.622,14.2925 9.245,13.4565 8.956,12.6245 8.776,11.8145 9.169,11.8535 9.576,11.8785 9.996,11.8825 10.097,11.8845 10.197,11.8845 10.298,11.8845 10.559,11.8845 10.822,11.8765 11.088,11.8645 10.859,12.6075 10.52,13.4215 10.074,14.3085 10.049,14.3095 10.025,14.3125 10,14.3125" />
-                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M10.0039,11.0654C9.5269,11.0604 9.0679,11.0254 8.6259,10.9734 8.5629,10.5164 8.5289,10.0664 8.5329,9.6284 8.5369,9.3394 8.5569,9.0624 8.5839,8.7934 9.0359,8.8444 9.5069,8.8774 9.9959,8.8824 10.0969,8.8844 10.1969,8.8844 10.2979,8.8844 10.6639,8.8844 11.0349,8.8734 11.4139,8.8444 11.4419,9.0984 11.4629,9.3574 11.4669,9.6284 11.4709,10.0624 11.4149,10.5314 11.3099,11.0314 10.8709,11.0624 10.4419,11.0684 10.0039,11.0654" />
-                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M10,5.6875C10.124,5.6875 10.245,5.6955 10.366,5.7065 10.717,6.3145 11.074,7.0895 11.281,8.0365 10.854,8.0655 10.432,8.0695 10.004,8.0655 9.555,8.0615 9.119,8.0305 8.7,7.9825 8.875,7.0715 9.164,6.3215 9.451,5.7265 9.631,5.7035 9.813,5.6875 10,5.6875" />
-                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M5.8652,11.2187C6.4632,11.4027 7.1482,11.5777 7.9232,11.7017 8.0772,12.4877 8.3292,13.2887 8.6592,14.0977 7.3162,13.6577 6.2652,12.5787 5.8652,11.2187" />
-                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M11.0381,14.1816C11.4471,13.3216 11.7631,12.5206 11.9671,11.7856 12.6371,11.7006 13.3501,11.5296 14.1311,11.2356 13.6971,12.6876 12.5171,13.8156 11.0381,14.1816" />
-                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M8,6.1929L8,7.4039C8.124,6.8849 8.271,6.4019 8.438,5.9839 8.286,6.0429 8.143,6.1179 8,6.1929" />
-                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M6.5732,7.4014C6.5372,7.4484 6.4952,7.4894 6.4622,7.5384 6.5682,7.5684 6.6842,7.5954 6.7962,7.6244z" />
-                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M7.7744,8.6772C7.1354,8.5682 6.5634,8.4252 6.0484,8.2732 6.0274,8.3222 6.0194,8.3762 6.0004,8.4252L6.0004,9.0002 5.8154,9.0002C5.7384,9.3222 5.6874,9.6542 5.6874,10.0002 5.6874,10.1012 5.6954,10.2022 5.7034,10.3022 6.2864,10.5002 6.9834,10.7012 7.7904,10.8472 7.7424,10.4322 7.7114,10.0212 7.7164,9.6212 7.7194,9.2932 7.7424,8.9812 7.7744,8.6772" />
-                    </DrawingGroup.Children>
-                  </DrawingGroup>
-                </DrawingPresenter.Drawing>
-              </DrawingPresenter>
+              <DrawingPresenter Width="20" Height="20" Drawing="{DynamicResource WalletExplorerView_Broadcast}"/>
               <TextBlock Text="Broadcast Transaction" Height="19" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
@@ -170,17 +78,7 @@
         <TreeDataTemplate DataType="ViewModels:WalletAdvancedViewModel" ItemsSource="{Binding Items}">
           <Button BorderThickness="0" Background="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding ExpandItCommand}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <DrawingPresenter Width="20" Height="20">
-                <DrawingPresenter.Drawing>
-                  <DrawingGroup>
-                    <DrawingGroup.Children>
-                      <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-                      <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M10,10.001L10,9.414 10.586,10.001z M6.613,8L7,8 7,9.538C6.998,8.982,6.852,8.465,6.613,8 M16,6.586L13,3.586 11.586,5 10,5 9.414,5 10.414,4 6.414,1.77635683940025E-15 5.585,1.77635683940025E-15 0,5.586 0,6.414 0.874000000000001,7.288C0.337,7.895 0,8.679 0,9.548 0,10.719 0.595000000000001,11.751 1.5,12.375L1.5,14C1.5,15.102 2.397,16 3.5,16 4.603,16 5.5,15.102 5.5,14L5.5,12.376C6.403,11.753,6.997,10.725,7,9.556L7,10 7,13 8.585,13 11.586,16 12.414,16 16,12.414 16,11.586 13.914,9.5 16,7.414z" />
-                      <GeometryDrawing Brush="#FF424242" Geometry="F1M11.998,11.002L9,11 9,7 11,7 10,8 12,10 15,7 13,5 12,6 7,6 9,4 6,0.999999999999998 1,6 1.635,6.636C2.176,6.298 2.813,6.095 3.5,6.095 4.446,6.095 5.3,6.469 5.93,7.069L6,7 8,7 8,12 11,12 10,13 12,15 15,12 13,10z M6,9.5C6,10.525,5.383,11.403,4.5,11.789L4.5,14C4.5,14.553 4.053,15 3.5,15 2.947,15 2.5,14.553 2.5,14L2.5,11.789C1.617,11.402 1,10.524 1,9.5 1,8.476 1.617,7.598 2.5,7.211L2.5,10 4.5,10 4.5,7.211C5.383,7.597,6,8.475,6,9.5" />
-                    </DrawingGroup.Children>
-                  </DrawingGroup>
-                </DrawingPresenter.Drawing>
-              </DrawingPresenter>
+              <DrawingPresenter Width="20" Height="20" Drawing="{DynamicResource WalletExplorerView_Advanced}"/>
               <TextBlock Text="Advanced" Height="19" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
