@@ -1025,12 +1025,46 @@ namespace WalletWasabi.Services
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
 		/// <param name="allowedInputs">Only these inputs allowed to be used to build the transaction. The wallet must know the corresponding private keys.</param>
 		/// <param name="subtractFeeFromAmountIndex">If null, fee is substracted from the change. Otherwise it denotes the index in the toSend array.</param>
+		/// <param name="feeTarget">The target number of blocks to estimate the fee</param>
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <exception cref="ArgumentOutOfRangeException"></exception>
 		public BuildTransactionResult BuildTransaction(string password,
 														Operation[] toSend,
 														int feeTarget,
+														bool allowUnconfirmed = false,
+														int? subtractFeeFromAmountIndex = null,
+														Script customChange = null,
+														IEnumerable<TxoRef> allowedInputs = null)
+		{
+			Guard.InRangeAndNotNull(nameof(feeTarget), feeTarget, 0, Constants.SevenDaysConfirmationTarget); // Allow 0 and 1, and correct later.
+			if (feeTarget < 2) // Correct 0 and 1 to 2.
+			{
+				feeTarget = 2;
+			}
+			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
+			FeeRate satsPerByte;
+			using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
+			{
+				Money rate = Synchronizer.GetFeeRate(feeTarget);
+				Money sanityCheckedFeeRate = Math.Max(rate, 2); // Use the sanity check that under 2 satoshi per bytes should not be displayed. To correct possible rounding errors.
+				satsPerByte = new FeeRate((decimal) sanityCheckedFeeRate.Satoshi);
+			}
+
+			return BuildTransaction(password, toSend, satsPerByte, allowUnconfirmed, subtractFeeFromAmountIndex, customChange, allowedInputs);
+		}
+
+		/// <param name="toSend">If Money.Zero then spends all available amount. Does not generate change.</param>
+		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
+		/// <param name="allowedInputs">Only these inputs allowed to be used to build the transaction. The wallet must know the corresponding private keys.</param>
+		/// <param name="subtractFeeFromAmountIndex">If null, fee is substracted from the change. Otherwise it denotes the index in the toSend array.</param>
+		/// <param name="feeRate">The fee rate for the transaction</param>
+		/// <exception cref="ArgumentException"></exception>
+		/// <exception cref="ArgumentNullException"></exception>
+		/// <exception cref="ArgumentOutOfRangeException"></exception>
+		public BuildTransactionResult BuildTransaction(string password,
+														Operation[] toSend,
+														FeeRate feeRate,
 														bool allowUnconfirmed = false,
 														int? subtractFeeFromAmountIndex = null,
 														Script customChange = null,
@@ -1062,11 +1096,6 @@ namespace WalletWasabi.Services
 			{
 				throw new ArgumentException($"{nameof(customChange)} and send all to destination cannot be specified at the same time.");
 			}
-			Guard.InRangeAndNotNull(nameof(feeTarget), feeTarget, 0, Constants.SevenDaysConfirmationTarget); // Allow 0 and 1, and correct later.
-			if (feeTarget < 2) // Correct 0 and 1 to 2.
-			{
-				feeTarget = 2;
-			}
 			if (subtractFeeFromAmountIndex != null) // If not null, make sure not out of range. If null fee is substracted from the change.
 			{
 				if (subtractFeeFromAmountIndex < 0)
@@ -1077,6 +1106,10 @@ namespace WalletWasabi.Services
 				{
 					throw new ArgumentOutOfRangeException($"{nameof(subtractFeeFromAmountIndex)} can be maximum {nameof(toSend)}.Length - 1. {nameof(subtractFeeFromAmountIndex)}: {subtractFeeFromAmountIndex}, {nameof(toSend)}.Length - 1: {toSend.Length - 1}.");
 				}
+			}
+			if (feeRate is null)
+			{
+				throw new ArgumentNullException($"{nameof(feeRate)} cannot be null.");
 			}
 
 			// Get allowed coins to spend.
@@ -1109,17 +1142,6 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			// 4. Get and calculate fee
-			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
-
-			Money feePerBytes = null;
-			using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
-			{
-				Money feeRate = Synchronizer.GetFeeRate(feeTarget);
-				Money sanityCheckedFeeRate = Math.Max(feeRate, 2); // Use the sanity check that under 2 satoshi per bytes should not be displayed. To correct possible rounding errors.
-				feePerBytes = new Money(sanityCheckedFeeRate);
-			}
-
 			bool spendAll = spendAllCount == 1;
 			int inNum;
 			if (spendAll)
@@ -1129,7 +1151,7 @@ namespace WalletWasabi.Services
 			else
 			{
 				int expectedMinTxSize = 1 * Constants.P2wpkhInputSizeInBytes + 1 * Constants.OutputSizeInBytes + 10;
-				inNum = SelectCoinsToSpend(allowedSmartCoinInputs, toSend.Select(x => x.Amount).Sum() + feePerBytes * expectedMinTxSize).Count();
+				inNum = SelectCoinsToSpend(allowedSmartCoinInputs, toSend.Select(x => x.Amount).Sum() + Money.Satoshis(feeRate.SatoshiPerByte * expectedMinTxSize)).Count();
 			}
 
 			// https://bitcoincore.org/en/segwit_wallet_dev/#transaction-fee-estimation
@@ -1137,7 +1159,7 @@ namespace WalletWasabi.Services
 			int outNum = spendAll ? toSend.Length : toSend.Length + 1; // number of addresses to send + 1 for change
 			int vSize = NBitcoinHelpers.CalculateVsizeAssumeSegwit(inNum, outNum);
 			Logger.LogInfo<WalletService>($"Estimated tx size: {vSize} vbytes.");
-			Money fee = feePerBytes * vSize;
+			Money fee = Money.Satoshis(feeRate.SatoshiPerByte * vSize);
 			Logger.LogInfo<WalletService>($"Fee: {fee.Satoshi} Satoshi.");
 
 			// 5. How much to spend?
