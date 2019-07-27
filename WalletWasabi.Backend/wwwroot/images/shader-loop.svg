@@ -4,15 +4,15 @@
     <title>shader-loop</title>
     <desc>Created with Sketch.</desc>
     <defs>
-        <path d="M707.5,4299 C383.032709,4299 120,4035.96729 120,3711.5 C120,3387.03271 383.032709,3124 707.5,3124 C1031.96729,3124 1295,3387.03271 1295,3711.5 C1295,4035.96729 1031.96729,4299 707.5,4299 Z M708.5,4074 C908.150937,4074 1070,3912.15094 1070,3712.5 C1070,3512.84906 908.150937,3351 708.5,3351 C508.849063,3351 347,3512.84906 347,3712.5 C347,3912.15094 508.849063,4074 708.5,4074 Z" id="path-1"></path>
+        <path d="M707.5,3599 C383.032709,3599 120,3335.96729 120,3011.5 C120,2687.03271 383.032709,2424 707.5,2424 C1031.96729,2424 1295,2687.03271 1295,3011.5 C1295,3335.96729 1031.96729,3599 707.5,3599 Z M708.5,3374 C908.150937,3374 1070,3212.15094 1070,3012.5 C1070,2812.84906 908.150937,2651 708.5,2651 C508.849063,2651 347,2812.84906 347,3012.5 C347,3212.15094 508.849063,3374 708.5,3374 Z" id="path-1"></path>
         <filter x="-12.8%" y="-12.8%" width="125.5%" height="125.5%" filterUnits="objectBoundingBox" id="filter-2">
             <feOffset dx="0" dy="0" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
             <feGaussianBlur stdDeviation="50" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
-            <feColorMatrix values="0 0 0 0 0.894117647   0 0 0 0 0.878431373   0 0 0 0 0.921568627  0 0 0 1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+            <feColorMatrix values="0 0 0 0 0.829436401   0 0 0 0 0.82023818   0 0 0 0 0.845533288  0 0 0 1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
         </filter>
     </defs>
     <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Desktop-HD" transform="translate(-22.000000, -3026.000000)">
+        <g id="Desktop-HD" transform="translate(-22.000000, -2326.000000)">
             <g id="shader-loop">
                 <use fill="black" fill-opacity="1" filter="url(#filter-2)" xlink:href="#path-1"></use>
                 <use fill="#FBFBFB" fill-rule="evenodd" xlink:href="#path-1"></use>

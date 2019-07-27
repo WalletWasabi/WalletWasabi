@@ -9,8 +9,34 @@ ul {
   margin: 0;
 }
 
-.text-underline {
+.btn-labeled {
   position: relative;
+  padding-left: 2rem;
+}
+
+.btn-labeled .btn-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2rem;
+  padding-top: 0.33rem;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.25);
+  outline: solid 1px rgba(255, 255, 255, 0.25);
+}
+
+.btn-labeled .btn-label+span {
+    margin-left: 1.5rem;
+}
+
+.w-fit-content {
+  width: fit-content;
+}
+
+.text-ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .box-shadow-lg {
@@ -32,16 +58,68 @@ ul {
   left: calc(100% + 20px);
 }
 
-section {
-  position: relative;
+.toggle-input {
+  display: none;
+}
+
+.toggle-content {
+  overflow: hidden;
+  max-height: 0;
+}
+
+.toggle-label {
+  cursor: pointer;
+}
+
+.toggle-label,
+.toggle-content {
+  -webkit-backface-visibility: hidden;
+          backface-visibility: hidden;
+  -webkit-transform: translateZ(0);
+          transform: translateZ(0);
+  transition: all 0.2s;
+}
+
+.toggle-label:after, .toggle-label:before {
+  content: '';
+  position: absolute;
+  right: 1.25rem;
+  top: 1.25rem;
+  width: 2px;
+  height: 0.75rem;
+  background-color: #211B24;
+  transition: all 0.2s;
+}
+
+.toggle-label.toggle-xs:after, .toggle-label.toggle-xs:before {
+  right: 2rem;
+  top: 0.4rem;
+  width: 2px;
+  height: 0.65em;
+  background-color: #fff;
+}
+
+
+.toggle-label:after {
+  -webkit-transform: rotate(90deg);
+          transform: rotate(90deg);
+}
+.toggle-input:checked + .toggle-label:before {
+  -webkit-transform: rotate(90deg) !important;
+          transform: rotate(90deg) !important;
+}
+
+.toggle-input:checked + .toggle-content {
+  max-height: auto;
+}
+
+.toggle-input:checked + .toggle-label + .toggle-content {
+  max-height: 5000px;
 }
 
 .shader {
-  position: absolute;
-  z-index: -1;
-  top: 0;
+  transition: all .3s ease;
 }
-
 /* Make navbar toggler work on mobile devices without Bootstrap JS */
 #navbar-toggle-cbox {
   display:none
@@ -70,12 +148,46 @@ header .navbar .nav-link {
   color: #fff;
 }
 
+main {
+  width: 100vw;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+section {
+  position: relative;
+  /* overflow-x: hidden; */
+  /* overflow-y: auto; */
+}
+
+section .shader {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+}
+
+.hero {
+  overflow: hidden;
+}
+
 .hero .hero-image {
   height: 100vh;
   width: 100%;
   background-image: url("../images/hero.png");
   background-size: cover;
   background-position: center;
+}
+
+.hero .mobile-heading {
+  position: absolute;
+  bottom: 0;
+  color: white;
+  text-shadow: 0 0 100px #000;
+  background-image: linear-gradient(to top, rgba(0, 0, 0, 0.4), #0000);
+  font-family: "Playfair Display", serif;
+  font-weight: 600;
+  line-height: 1.2;
+  font-size: 4rem;
 }
 
 .hero .download-links .download-link {
@@ -91,8 +203,6 @@ header .navbar .nav-link {
 
 .features {
   background: #FFFFFF;
-  border-radius: 6px;
-  transform: translateY(-50%);
   width: 100%;
   max-width: 1100px;
 }
@@ -103,38 +213,45 @@ header .navbar .nav-link {
 .coinjoins .illustration {
   width: 100%;
   height: auto;
-  transform: translateY(-12.5rem);
+  /* transform: translateY(-12.5rem); */
 }
 
 .coinjoins .coinjoin-txs .tx {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   opacity: .8;
 }
 
 .coinjoins .shader {
   width: 50vw;
-  top: -10%;
+  top: -5%;
   left: -10%;
+  height: 40vw;
+  transform: rotate(20deg);
+  background: #FBFBFB;
+  box-shadow: 0 0 100px 0 #E4E0EB;
+  border-radius: 94px;
 }
 
 /* Download Section */
 
 .download .screenshot {
-  width: 100%;
+  width: 200%;
 }
 
 .download .shader {
-  width: 50vw;
-  top: -30%;
+  width: 40vw;
+  height: 40vw;
+  top: -20%;
   right: -10%;
+  background: #FBFBFB;
+  box-shadow: 0 0 100px 0 #E4E0EB;
+  border-radius: 100%;
 }
 
 /* FAQ section */
 
 .faq .shader {
-  width: 80vw;
+  width: 70vw;
+  height: 70vw;
   top: -40%;
   left: -20%;
 }
@@ -145,4 +262,60 @@ header .navbar .nav-link {
   display: block;
   width: 100%;
   border-bottom: 1px dashed rgba(255,255,255,0.2);
+}
+
+
+/* For devices larger than mobile screen */
+@media (min-width: 575px) {
+  .features {
+    transform: translateY(-50%);
+    border-radius: 6px;
+  }
+  .border-bottom-sm-0 {
+    border-bottom: none !important;
+  }
+  .download .screenshot {
+    width: calc(100% + 16vw);
+    transform: translateX( calc(50px - 16vw) );
+  }
+  .toggle-content.toggle-xs {
+    max-height: 5000px !important;
+  }
+}
+
+@media (max-width: 575px) {
+  h2 {
+    font-size: 3rem !important;
+  }
+  .text-center-xs {
+    text-align: center !important;
+  }
+  .hero .shader {
+    width: 120vw;
+    top: calc(100vh + 2rem);
+    right: -9rem;
+    transform: none;
+  }
+  .coinjoins .shader {
+    width: 100vw;
+    border-radius: 10vw;
+    height: 100vw;
+    top: -2rem;
+    left: -8rem;
+  }
+  /* .coinjoins .coinjoin-txs .tx {
+    display: none;
+  } */
+  .download .shader {
+    width: 100vw;
+    height: 100vw;
+    top: 12rem;
+    right: -6rem;
+  }
+  .faq .shader {
+    width: 200vw;
+    height: 200vw;
+    top: -20%;
+    left: -113%;
+  }
 }
