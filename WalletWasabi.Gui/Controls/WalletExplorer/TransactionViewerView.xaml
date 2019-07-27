@@ -25,22 +25,25 @@
       <Grid Classes="content" ScrollViewer.VerticalScrollBarVisibility="Auto">
 
         <Grid.RowDefinitions>
+          <RowDefinition Height="26" />
           <RowDefinition Height="1*" />
           <RowDefinition Height="1*" />
           <RowDefinition Height="1*" />
         </Grid.RowDefinitions>
 
-        <DockPanel LastChildFill="True" Grid.Row="0" Margin="0 8 0 0">
+        <controls:ExtendedTextBox Grid.Row="0" Text="{Binding TxId, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" FontSize="20" Classes="selectableTextBlock" />
+
+        <DockPanel LastChildFill="True" Grid.Row="1" Margin="0 8 0 0">
           <TextBlock DockPanel.Dock="Top" Text="PSBT Json" FontWeight="Bold" />
           <controls:MultiTextBox Margin="0 8 0 0" Text="{Binding PsbtJsonText, ConverterParameter=1536, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" CopyOnClick="{Binding !IsLurkingWifeMode}" IsSelectable="False" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
         </DockPanel>
 
-        <DockPanel LastChildFill="True" Grid.Row="1" Margin="0 8 0 0">
+        <DockPanel LastChildFill="True" Grid.Row="2" Margin="0 8 0 0">
           <TextBlock DockPanel.Dock="Top" Text="Transaction Hex" FontWeight="Bold" />
           <controls:MultiTextBox Margin="0 8 0 0" Text="{Binding TransactionHexText, ConverterParameter=382, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" CopyOnClick="{Binding !IsLurkingWifeMode}" IsSelectable="False" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
         </DockPanel>
 
-        <DockPanel LastChildFill="True" Grid.Row="2" Margin="0 8 0 0">
+        <DockPanel LastChildFill="True" Grid.Row="3" Margin="0 8 0 0">
           <TextBlock DockPanel.Dock="Top" Text="PSBT Base64 String" FontWeight="Bold" />
           <controls:MultiTextBox Margin="0 8" VerticalAlignment="Stretch" Text="{Binding PsbtBase64Text, ConverterParameter=472, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" CopyOnClick="{Binding !IsLurkingWifeMode}" IsSelectable="False" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
         </DockPanel>
