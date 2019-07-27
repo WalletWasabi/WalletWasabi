@@ -11,6 +11,7 @@ using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 using WalletWasabi.Gui.Controls.LockScreen;
+using WalletWasabi.Gui.ManagedDialogs;
 
 namespace WalletWasabi.Gui
 {
@@ -107,11 +108,13 @@ namespace WalletWasabi.Gui
 					useGpuLinux = false;
 				}
 
-				result.UsePlatformDetect();
+				result.UsePlatformDetect()
+					.UseManagedSystemDialogs();
 			}
 			else
 			{
-				result.UsePlatformDetect();
+				result.UsePlatformDetect()
+					.UseManagedSystemDialogs();
 			}
 
 			return result
