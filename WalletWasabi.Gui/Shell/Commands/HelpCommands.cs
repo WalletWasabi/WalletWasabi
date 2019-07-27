@@ -115,7 +115,10 @@ namespace WalletWasabi.Gui.Shell.Commands
 						Width = 1024,
 						Height = 512,
 						Content = devTools,
-						DataTemplates = { new ViewLocator<Avalonia.Diagnostics.ViewModels.ViewModelBase>() }
+						DataTemplates =
+						{
+							new ViewLocator<Avalonia.Diagnostics.ViewModels.ViewModelBase>()
+						}
 					};
 
 					devToolsWindow.Show();

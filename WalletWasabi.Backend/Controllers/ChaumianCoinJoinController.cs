@@ -378,7 +378,10 @@ namespace WalletWasabi.Backend.Controllers
 			CcjRoundPhase phase = round.Phase;
 
 			// Start building the response.
-			var resp = new ConnConfResp { CurrentPhase = phase };
+			var resp = new ConnConfResp
+			{
+				CurrentPhase = phase
+			};
 
 			switch (phase)
 			{

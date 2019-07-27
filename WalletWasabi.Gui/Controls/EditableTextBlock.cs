@@ -26,7 +26,10 @@ namespace WalletWasabi.Gui.Controls
 
 		public EditableTextBlock()
 		{
-			EditClickTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+			EditClickTimer = new DispatcherTimer
+			{
+				Interval = TimeSpan.FromMilliseconds(500)
+			};
 
 			EditClickTimer.Tick += (sender, e) =>
 			{
@@ -38,7 +41,10 @@ namespace WalletWasabi.Gui.Controls
 				}
 			};
 
-			this.GetObservable(TextProperty).Subscribe(t => { EditText = t; });
+			this.GetObservable(TextProperty).Subscribe(t =>
+			{
+				EditText = t;
+			});
 
 			this.GetObservable(InEditModeProperty).Subscribe(mode =>
 			{
