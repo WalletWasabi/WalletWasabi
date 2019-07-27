@@ -1,125 +1,302 @@
-﻿<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" href="css/bootstrap.css">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="shortcut icon" href="images/favicon.ico" />
-    <title>Wasabi Wallet - Reclaim your privacy</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="css/bootstrap.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="shortcut icon" href="images/favicon.ico" />
+  <title>Wasabi Wallet - An unfairly private wallet for Bitcoin</title>
 </head>
 <body>
-    <div class="body-card">
-        <header>
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-12 col-lg-4 segments-1">
-                        <img src="images/wasabi_wallet_logo_2-1.png" alt="wasabi_logo">
-                    </div>
-                    <div class="col-12 col-lg-8 segments-2">
-                        <h1>Reclaim your privacy now!</h1>
-                        <p>Wasabi is an open-source, non-custodial, privacy focused Bitcoin wallet for desktop. It implements trustless coin shuffling: <a href="https://github.com/nopara73/ZeroLink/">Chaumian CoinJoin</a>.</p>
-                        <p>However, <a href="https://www.freehaven.net/anonbib/cache/usability:weis2006.pdf">"anonymity loves company"</a>, the more participants there are, the better your privacy is, and the faster the CoinJoin rounds are. Whether you are looking for state of the art operational security or you are philosophically aligned with the principles of freedom and privacy, now it is YOUR time to contribute. Fire up your Wasabi and help us to bootstrap the system!</p>
-                        <a class="btn btn-lg font-weight-bold" href="#download">Download Wasabi Wallet</a>
-                    </div>
-                </div>
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark m-auto rounded-bottom">
+      <a class="navbar-brand" href="#">
+        <img src="images/wasabi-wallet-logo.png" width="auto" height="40" alt="">
+      </a>
+      <input type="checkbox" id="navbar-toggle-cbox">
+
+      <label for="navbar-toggle-cbox" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#navbarColor02" aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </label>
+
+      <div class="collapse navbar-collapse" id="navbarColor02">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="#">dojo</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">faq</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">github</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">blog</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+    <main role="main">
+      <section class="hero">
+        <div class="row align-items-center">
+          <div class="col-5">
+            <div class="hero-image">
+              <!-- <img src="images/hero.png" /> -->
             </div>
-        </header>
-        <section class="main-content">
-            <div class="container columns-2">
-                <div class="row">
-                    <div class="container">
-                        <h3>Latest CoinJoins</h3>
-                        <iframe src="unversioned/coinjoins-table.html" frameborder="0" height="170"></iframe>
-                    </div>
-                </div>
+          </div>
+          <div class="col-1"></div>
+          <div class="col">
+            <div class="align-self-center">
+              <h1 class="text-lowercase mb-3">An unfairly private wallet for Bitcoin</h1>
+              <span class="text-uppercase font-weight-bold text-muted d-block border-bottom mb-2">Reclaim your privacy now</span>
+              <p class="font-weight-bold mb-3">Wasabi is an open-source, non-custodial, privacy focused Bitcoin wallet, that implements trustless coin shuffling with mathematically provable anonymity - Chaumian CoinJoin.</p>
+
+              <a href="#" class="font-weight-bold text-uppercase text-dark arrow-right text-center">Download now</a>
+
+              <ul class="download-links mt-2">
+                <li class="download-link mr-2">
+                  <a href="#"><img src="images/icon-apple.svg" width="30" height="30" /></a>
+                </li>
+                <li class="download-link mr-2">
+                  <a href="#"><img src="images/icon-linux.svg" width="30" height="30" /></a>
+                </li>
+                <li class="download-link">
+                  <a href="#"><img src="images/icon-windows.svg" width="30" height="30" /></a>
+                </li>
+              </ul>
             </div>
-            <a name="download" />
-            <div class="container columns-2">
-                <div class="row">
-                    <div class="container">
-                        <div class="row">
-                            <div class="container">
-                                <iframe src="unversioned/download-text-with-version.html" frameborder="0" height="120"></iframe>
-                                <p class="lead text-center">
-                                    Free and open source. Hardware wallet, <a href="https://www.torproject.org/">Tor</a>, <a href="https://github.com/nopara73/ZeroLink/">CoinJoin</a> and <a href="https://medium.com/@nopara73/coin-control-is-must-learn-if-you-care-about-your-privacy-in-bitcoin-33b9a5f224a2">coin control</a> features.<br />
-                                    ... or build it from <a href="https://github.com/zkSNACKs/WalletWasabi">source code.</a><br />
-                                    <a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt">(PGP)</a>
-                                    <a href="https://github.com/zkSNACKs/WalletWasabi/releases">(Release Notes)</a>
-                                </p>
-                            </div>
-                        </div>
-                        <br /><br /><br />
-                    </div>
-                    <div class="col-lg-4 col-12 box-1">
-                        <img src="images/windows.png" height="100" alt="open_source">
-                        <br /><br />
-                        <a class="btn-block btn btn-lg btn-dark" href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.6/Wasabi-1.1.6.msi">
-                            <img class="download-icon" src="/images/download.svg" width="18" height="18" alt="Download Wasabi">
-                            .msi
-                            <br />
-                            <small>Windows 7, 8, 10</small>
-                        </a>
-                        <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.6/Wasabi-1.1.6.msi.asc">(Signature)</a>
-                        <a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/InstallInstructions.md#windows">(Help)</a>
-                    </div>
-                    <div class="col-lg-4 col-12 box-2">
-                        <img src="images/linux.png" height="100" alt="open_source">
-                        <br /><br />
-                        <div class="form-row">
-                            <div class="col-lg-6 box-1">
-                                <a class="btn-block btn btn-lg btn-dark" href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.6/Wasabi-1.1.6.deb">
-                                    <img class="download-icon" src="/images/download.svg" width="18" height="18" alt="Download Wasabi">
-                                    .deb
-                                    <br />
-                                    <small>Debian, Ubuntu</small>
-                                </a>
-                                <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.6/Wasabi-1.1.6.deb.asc">(Signature)</a>
-                                <a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/InstallInstructions.md#debianubuntu-based-linux">(Help)</a>
-                                <br /><br />
-                            </div>
-                            <div class="col-lg-6 box-2">
-                                <a class="btn-block btn btn-lg btn-dark" href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.6/WasabiLinux-1.1.6.tar.gz">
-                                    <img class="download-icon" src="/images/download.svg" width="18" height="18" alt="Download Wasabi">
-                                    .tar.gz
-                                    <br />
-                                    <small>Other Linux</small>
-                                </a>
-                                <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.6/WasabiLinux-1.1.6.tar.gz.asc">(Signature)</a>
-                                <a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/InstallInstructions.md#linux">(Help)</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-12 box-3">
-                        <img src="images/apple.png" height="100" alt="open_source">
-                        <br /><br />
-                        <a class="btn-block btn btn-lg btn-dark" href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.6/Wasabi-1.1.6.dmg">
-                            <img class="download-icon" src="/images/download.svg" width="18" height="18" alt="Download Wasabi">
-                            .dmg
-                            <br />
-                            <small>macOS 10.12+</small>
-                        </a>
-                        <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.6/Wasabi-1.1.6.dmg.asc">(Signature)</a>
-                        <a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/InstallInstructions.md#osx">(Help)</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <div class="banner text-wrap text-monospace text-lg-center text-white font-weight-bold">
-            <p>
-                <img src="images/tor-browser.png" width="17" height="17" alt="other_network">&nbsp;
-                http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion
-            </p>
+          </div>
+          <div class="col-2"></div>
         </div>
-        <footer>
-            <a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Community/Dojo.md" target="_blank">Dojo</a>
-            <a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/FAQ.md" target="_blank">FAQ</a>
-            <a href="https://www.reddit.com/r/WasabiWallet/" target="_blank">Support</a>
-            <a href="https://github.com/zkSNACKs/WalletWasabi" target="_blank">GitHub</a>
-            <a href="https://zksnacks.com/" target="_blank">Company (zkSNACKs)</a>
-            <a href="https://twitter.com/wasabiwallet" target="_blank">Twitter</a>
-            <a href="swagger/" target="_blank">API</a>
-        </footer>
-    </div>
+        <img class="shader" src="images/shader-wasabi.png" />
+      </section>
+
+      <section class="features box-shadow-lg mx-auto mb-2">
+        <div class="row">
+          <div class="col p-0">
+            <div class="feature text-center p-3 border-right">
+              <img src="images/icon-coinjoin.svg" class="mb-2" />
+              <br/>
+              <span class="text-uppercase font-weight-bold">In-Built CoinJoins</span>
+            </div>
+          </div>
+          <div class="col p-0">
+            <div class="feature text-center p-3 border-right">
+              <img src="images/icon-onion.svg" class="mb-2" />
+              <br/>
+              <span class="text-uppercase font-weight-bold">TOR Integeration</span>
+            </div>
+          </div>
+          <div class="col p-0">
+            <div class="feature text-center p-3 border-right">
+              <img src="images/icon-coin-control.svg" class="mb-2" />
+              <br/>
+              <span class="text-uppercase font-weight-bold">Coin-Control Features</span>
+            </div>
+          </div>
+          <div class="col p-0">
+            <div class="feature text-center p-3">
+              <img src="images/heart.svg" class="mb-2" />
+              <br/>
+              <span class="text-uppercase font-weight-bold">Free &amp; Open Source</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="coinjoins mb-4">
+        <div class="container">
+          <div class="row">
+            <div class="col">
+              <h1 class="text-lowercase mb-4">Make your Bitcoin fungible</h1>
+            </div>
+            <div class="col"></div>
+          </div>
+          <div class="row">
+            <div class="col-6">
+              <p class="mb-2">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.</p>
+              <p class="mb-3">Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit.</p>
+
+              <div class="coinjoin-txs box-shadow-lg">
+                <div class="card bg-dark mb-3">
+                  <span class="card-header text-uppercase text-light"><img src="images/icon-wifi-signal.svg" /> Recent CoinJoin Transactions On Wasabi Wallet</span>
+                  <ul class="list-group list-group-flush">
+                    <li class="tx list-group-item"><img src="images/icon-external.svg" /> <a class="text-light" href="#"> fe1591ffbe8b34a8ab6622881e7f12ac183f8c4a48b444e59dcc31dd35b580fb </a></li>
+                    <li class="tx list-group-item"><img src="images/icon-external.svg" /> <a class="text-light" href="#"> x39c91ffbe8b34a8ab6622881e7f12ac183f8c4a48b444e59dcc31dd35b580fb </a></li>
+                    <li class="tx list-group-item"><img src="images/icon-external.svg" /> <a class="text-light" href="#"> 23sd91ffbe8b34a8ab6622881e7f12ac183f8c4a48b444e59dcc31dd35b580fb </a></li>
+                    <li class="tx list-group-item"><img src="images/icon-external.svg" /> <a class="text-light" href="#"> fe1591ffbe8b34a8ab6622881e7f12ac183f8c4a48b444e59dcc31dd35b580fb </a></li>
+                    <li class="tx list-group-item"><img src="images/icon-external.svg" /> <a class="text-light" href="#"> x39c91ffbe8b34a8ab6622881e7f12ac183f8c4a48b444e59dcc31dd35b580fb </a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="col">
+              <img class="illustration" src="images/illustration-coinjoin.svg" />
+            </div>
+          </div>
+        </div>
+        <img class="shader" src="images/shader-rectangle.png" />
+      </section>
+
+      <section class="download mb-5">
+        <div class="container">
+          <div class="row">
+            <div class="col">
+            </div>
+            <div class="col">
+              <h1 class="text-right text-lowercase">Available for <br/>Mac, Windows &amp; Linux</h1>
+            </div>
+          </div>
+        </div>
+
+        <div class="container-fluid">
+        <div class="row align-items-end">
+          <div class="col-7">
+            <img class="screensot w-100" src="images/wasabi-wallet-laptop.png" />
+          </div>
+          <div class="col-5">
+            <div class="my-4 text-center">
+              <span class="text-uppercase font-weight-bold">Download Wasabi Wallet 1.6.0</span>
+              <br/>
+              <small><a href="#">(PGP)</a> <a href="#">(RELEASE NOTES)</a></small>
+            </div>
+            <div class="row">
+              <div class="col-6">
+                <div class="text-center mb-4 px-3">
+                  <img class="d-block mx-auto mb-2" src="images/icon-colored-finder.svg" />
+                  <a href="#" class="btn btn-success btn-block btn text-uppercase font-weight-bold mb-1">
+                     Mac OS 10.2+
+                  </a>
+                  <small class="text-muted float-left">.dmg</small>
+                  <small class="float-right"><a href="#">(PGP)</a> <a href="#">(RELEASE NOTES)</a></small>
+                </div>
+              </div>
+
+              <div class="col-6">
+                <div class="text-center mb-4 px-3">
+                  <img class="d-block mx-auto mb-2" src="images/icon-colored-windows.svg" />
+                  <a href="#" class="btn btn-success btn-block btn text-uppercase font-weight-bold mb-1">
+                     Windows 7+
+                  </a>
+                  <small class="text-muted float-left">.msi</small>
+                  <small class="float-right"><a href="#">(PGP)</a> <a href="#">(RELEASE NOTES)</a></small>
+                </div>
+              </div>
+
+              <div class="col-6">
+                <div class="text-center mb-4 px-3">
+                  <img class="d-block mx-auto mb-2" src="images/icon-colored-ubuntu.svg" />
+                  <a href="#" class="btn btn-success btn-block btn text-uppercase font-weight-bold mb-1">
+                     Debian/Ubuntu
+                  </a>
+                  <small class="text-muted float-left">.deb</small>
+                  <small class="float-right"><a href="#">(PGP)</a> <a href="#">(RELEASE NOTES)</a></small>
+                </div>
+              </div>
+
+              <div class="col-6">
+                <div class="text-center mb-4 px-3">
+                  <img class="d-block mx-auto mb-2" src="images/icon-colored-linux.svg" />
+                  <a href="#" class="btn btn-success btn-block btn text-uppercase font-weight-bold mb-1">
+                     Other Linux
+                  </a>
+                  <small class="text-muted float-left">.tar.gz</small>
+                  <small class="float-right"><a href="#">(PGP)</a> <a href="#">(RELEASE NOTES)</a></small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        </div>
+
+        <img class="shader" src="images/shader-circle.png" />
+      </section>
+
+      <section class="faq mb-4">
+        <div class="container">
+          <h1 class="text-center text-lowercase mb-4">Frequently Asked Questions</h1>
+
+          <div class="card bg-light box-shadow border-light mb-2">
+            <div class="card-header bg-light font-weight-bold text-uppercase">Why did my enqueued coins get banned?</div>
+            <div class="card-body">
+              <p class="card-text">
+              First you disrupt a round (not following up in a phase other than Registration) your output gets noted. Next time you do this your output gets banned. This can happen due to various reasons:<br/><br/>
+              - you are DoS attacking the coinjoins<br/>
+              - you lost internet connection at the wrong time<br/>
+              - an intermediary Tor node lost internet connection at the wrong time<br/>
+              - you killed the software at the wrong time<br/>
+              - your software crashed the wrong time
+              </p>
+            </div>
+          </div>
+          <div class="card bg-light box-shadow border-light mb-2">
+            <div class="card-header bg-light font-weight-bold text-uppercase">
+              Will it be possible to ever use Wasabi on a phone?
+            </div>
+          </div>
+          <div class="card bg-light box-shadow border-light mb-2">
+            <div class="card-header bg-light font-weight-bold text-uppercase">
+              Do we need privacy options in the Core-protocol or are apps like Wasabi enough?
+            </div>
+          </div>
+          <div class="card bg-light box-shadow border-light mb-2">
+            <div class="card-header bg-light font-weight-bold text-uppercase">
+              How does it get its blockchain data? SPV, Compact Filters or Full Node?
+            </div>
+          </div>
+          <div class="card bg-light box-shadow border-light mb-2">
+            <div class="card-header bg-light font-weight-bold text-uppercase">
+              Why is it called Wasabi?
+            </div>
+          </div>
+          <div class="card bg-light box-shadow border-light mb-2">
+            <div class="card-header bg-light font-weight-bold text-uppercase">
+              Will Wasabi wallet support hardware wallets?
+            </div>
+          </div>
+          <div class="card bg-light box-shadow border-light mb-2">
+            <div class="card-header bg-light font-weight-bold text-uppercase">
+              What to do with change?
+            </div>
+          </div>
+          <div class="card bg-light box-shadow border-light mb-2">
+            <div class="card-header bg-light font-weight-bold text-uppercase">
+              What's an anonymity set?
+            </div>
+          </div>
+
+          <div class="my-4 text-center">
+            <a href="#" class="font-weight-bold text-dark arrow-right">Couldn’t find your question? Check our Github</a>
+          </div>
+        </div>
+
+        <img class="shader" src="images/shader-loop.png" />
+      </section>
+
+    </main>
+
+    <footer class="footer bg-dark">
+        <div class="text-center">
+          <p class="text-light p-2 mb-0">
+              <img src="images/icon-colored-onion.png" class="mr-1" width="25" height="38" alt="other_network">&nbsp;
+              <span class="align-middle">http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion</span>
+          </p>
+        </div>
+        <hr class="m-0"/>
+        <div class="container pt-2 pb-3">
+          <div class="">
+            <a href="#" class="text-light float-left mr-3">API</a>
+            <a href="#" class="text-light float-left mr-3">company (zkSNACKs)</a>
+            <a href="#" class="text-light float-left mr-3">press kit</a>
+            <a href="#" class="float-right"><img src="images/icon-github.png" height="25" /></a>
+            <a href="#" class="float-right mr-3"><img src="images/icon-reddit.png" height="25" /></a>
+            <a href="#" class="float-right mr-3"><img src="images/icon-twitter.png" height="25" /></a>
+          </div>
+        </div>
+    </footer>
+
 </body>
 </html>
