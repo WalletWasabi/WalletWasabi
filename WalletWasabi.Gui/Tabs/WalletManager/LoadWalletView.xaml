@@ -67,7 +67,9 @@
             </StackPanel>
             <TextBlock Text="Make sure you set up and logged into the device, usually with a PIN. Some hardware wallets are picky about their USB cables, so you may want to try out multiple ones." TextWrapping="Wrap" />
             <TextBlock IsVisible="{Binding IsLinux}" Text="Also make sure that you properly applied udev rules. These are necessary for the devices to be reachable on Linux environments:" TextWrapping="Wrap" />
-            <controls:ExtendedTextBox IsVisible="{Binding IsLinux}" Text="https://github.com/bitcoin-core/HWI/tree/master/udev" Classes="selectableTextBlock hyperLink" />
+            <StackPanel Orientation="Horizontal">
+              <Button Content="{Binding UDevRulesLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding UDevRulesLink}" />
+            </StackPanel>
           </StackPanel>
         </Grid>
         <Grid Classes="content">
