@@ -28,6 +28,7 @@ namespace WalletWasabi.Gui.Tabs
 		private bool _autocopy;
 		private bool _useTor;
 		private bool _isModified;
+		private bool _showClearnetWarning;
 		private string _somePrivacyLevel;
 		private string _finePrivacyLevel;
 		private string _strongPrivacyLevel;
@@ -63,6 +64,7 @@ namespace WalletWasabi.Gui.Tabs
 							: config.RegTestBitcoinP2pEndPoint);
 
 					BitcoinP2pEndPoint = configBitcoinP2pEndPoint.ToString(defaultPort: -1);
+					ValidateBitcoinP2pEndPoint();
 				});
 
 			this.WhenAnyValue(
@@ -173,6 +175,9 @@ namespace WalletWasabi.Gui.Tabs
 				.Subscribe(async x => await Global.UiConfig.ToFileAsync())
 				.DisposeWith(Disposables);
 
+			ValidateBitcoinP2pEndPoint();
+			ValidateTorSocks5EndPoint();
+
 			base.OnOpen();
 		}
 
@@ -227,6 +232,12 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			get => _useTor;
 			set => this.RaiseAndSetIfChanged(ref _useTor, value);
+		}
+
+		public bool ShowClearnetWarning
+		{
+			get => _showClearnetWarning;
+			set => this.RaiseAndSetIfChanged(ref _showClearnetWarning, value);
 		}
 
 		[ValidateMethod(nameof(ValidateSomePrivacyLevel))]
@@ -371,7 +382,7 @@ namespace WalletWasabi.Gui.Tabs
 			=> ValidateEndPoint(TorSocks5EndPoint, Constants.DefaultTorSocksPort, whiteSpaceOk: true);
 
 		public string ValidateBitcoinP2pEndPoint()
-			=> ValidateEndPoint(BitcoinP2pEndPoint, Network.DefaultPort, whiteSpaceOk: true);
+			=> ValidateEndPoint(BitcoinP2pEndPoint, Network?.DefaultPort ?? -1, whiteSpaceOk: true);
 
 		public string ValidatePrivacyLevel(string value, bool whiteSpaceOk)
 		{
@@ -410,8 +421,9 @@ namespace WalletWasabi.Gui.Tabs
 				return string.Empty;
 			}
 
-			if (EndPointParser.TryParse(endPoint, defaultPort, out _))
+			if (EndPointParser.TryParse(endPoint, defaultPort, out var end))
 			{
+				ShowClearnetWarning = !end.IsTor() && end.GetHostOrDefault() != "127.0.0.1";
 				return string.Empty;
 			}
 

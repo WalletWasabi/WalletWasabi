@@ -9,9 +9,15 @@
     <converters:NetworkStringConverter x:Key="NetworkStringConverter" />
   </UserControl.Resources>
   <DockPanel LastChildFill="true">
-    <StackPanel DockPanel.Dock="Top" IsVisible="{Binding IsModified}" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 5 10 5">
-      <TextBlock Text="Heads Up!" FontWeight="Bold" Classes="warningMessage" Margin="0 0 3 0" />
-      <TextBlock Classes="warningMessage">Changes will be applied after restarting the application.</TextBlock>
+    <StackPanel DockPanel.Dock="Top" Orientation="Vertical">
+      <StackPanel IsVisible="{Binding IsModified}" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 5 10 5">
+        <TextBlock Text="Heads Up!" FontWeight="Bold" Classes="warningMessage" Margin="0 0 3 0" />
+        <TextBlock Classes="warningMessage">Changes will be applied after restarting the application.</TextBlock>
+      </StackPanel>
+      <StackPanel IsVisible="{Binding ShowClearnetWarning}" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 5 10 5">
+        <TextBlock Text="Heads Up!" FontWeight="Bold" Classes="warningMessage" Margin="0 0 3 0" />
+        <TextBlock Classes="warningMessage">One or more of your Endpoints is using the clearnet and could be susceptible to monitoring.</TextBlock>
+      </StackPanel>
     </StackPanel>
     <ScrollViewer>
       <StackPanel Margin="30" Spacing="10">
