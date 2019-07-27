@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using WalletWasabi.Stores;
 using Xunit;
@@ -347,9 +348,7 @@ namespace WalletWasabi.Tests
 			List<string> lines = new List<string>();
 			for (int i = 0; i < 1000; i++)
 			{
-				const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-				string line = new string(Enumerable.Repeat(chars, 100)
+				string line = new string(Enumerable.Repeat(Constants.Chars, 100)
 				  .Select(s => s[random.Next(s.Length)]).ToArray());
 
 				lines.Add(line);
