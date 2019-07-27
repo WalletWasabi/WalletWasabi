@@ -37,6 +37,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _buildTransactionButtonText;
 		private bool _isMax;
 		private string _amountText;
+		private string _userFeeText;
 		private int _feeTarget;
 		private int _minimumFeeTarget;
 		private int _maximumFeeTarget;
@@ -64,6 +65,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private const string SendingTransactionButtonTextString = "Sending Transaction...";
 		private const string BuildTransactionButtonTextString = "Build Transaction";
 		private const string BuildingTransactionButtonTextString = "Building Transaction...";
+		private const string FeeTooLowTextString = "Warning: Transactions with a fee rate below 1 sat/byte will not be relayed by the bitcoin network.";
+		private const string FeeTooHighTextString = "Warning: Fee rate is extremely high.";
 
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private FeeDisplayFormat _feeDisplayFormat;
@@ -88,6 +91,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IsMax = false;
 			LabelToolTip = "Start labeling today and your privacy will thank you tomorrow!";
 			AmountText = "0.0";
+			UserFeeText = "";
 		}
 
 		public SendTabViewModel(WalletViewModel walletViewModel, bool isTransactionBuilder = false)
@@ -289,6 +293,27 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							return;
 						}
 					}
+
+					bool useCustomFee = IsCustomFee && !string.IsNullOrEmpty(UserFeeText);
+					FeeRate feeRate = null;
+					if (useCustomFee)
+					{
+						if (decimal.TryParse(UserFeeText.Replace(',', '.'), out var customFee))
+						{
+							feeRate = new FeeRate(customFee);
+							if (customFee < 1)
+							{
+								SetWarningMessage("Invalid fee rate, must be greater than or equal to one.");
+								return;
+							}
+						}
+						else
+						{
+							SetWarningMessage("Invalid fee rate, must be greater than or equal to one.");
+							return;
+						}
+					}
+
 					var label = Label;
 					var operation = new WalletService.Operation(script, amount, label);
 
@@ -311,7 +336,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.DequeuingSelectedCoins);
 					}
 
-					var result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, FeeTarget, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
+					BuildTransactionResult result;
+					if (useCustomFee)
+					{
+						result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, feeRate, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
+					}
+					else
+					{
+						result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, FeeTarget, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
+					}
 
 					if (IsTransactionBuilder)
 					{
@@ -827,6 +860,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _amountText, value);
 		}
 
+		public string UserFeeText
+		{
+			get => _userFeeText;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _userFeeText, value);
+				WarnCustomFee();
+			}
+		}
+
 		public int FeeTarget
 		{
 			get => _feeTarget;
@@ -911,6 +954,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _suggestions;
 			set => this.RaiseAndSetIfChanged(ref _suggestions, value);
+		}
+
+		private void WarnCustomFee()
+		{
+			if (decimal.TryParse(UserFeeText.Replace(',','.'), out var feeRate))
+			{
+				if (feeRate < 1)
+				{
+					SetWarningMessage(FeeTooLowTextString);
+				}
+				else if (feeRate > 1000)
+				{
+					SetWarningMessage(FeeTooHighTextString);
+				}
+				else
+				{
+					SetWarningMessage("");
+				}
+			}
 		}
 
 		private void UpdateSuggestions(string words)
@@ -1012,6 +1074,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _amountWaterMarkText, value);
 		}
 
+		public bool IsCustomFee => Global.UiConfig.CustomFee is true;
+
 		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
 
 		public ReactiveCommand<Unit, Unit> MaxCommand { get; }
@@ -1057,6 +1121,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(_ => SetFeesAndTexts());
 
 			base.OnOpen();
+
+			Global.UiConfig.WhenAnyValue(x => x.CustomFee).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(IsCustomFee));
+				this.RaisePropertyChanged(nameof(UserFeeText));
+			}).DisposeWith(Disposables);
 		}
 
 		public override bool OnClose()
