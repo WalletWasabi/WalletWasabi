@@ -31,7 +31,7 @@ namespace WalletWasabi.Tests
 
 			// ASSERT EVENTS
 
-			// Assert some functions does not raise any events when default.
+			// Assert some functions do not raise any events when default.
 			Assert.Throws<PropertyChangedException>(() =>
 				Assert.PropertyChanged(hashChain,
 					nameof(hashChain.HashCount),
