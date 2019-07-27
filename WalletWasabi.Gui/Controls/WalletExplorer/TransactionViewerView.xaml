@@ -31,7 +31,10 @@
           <RowDefinition Height="1*" />
         </Grid.RowDefinitions>
 
-        <controls:ExtendedTextBox Grid.Row="0" Text="{Binding TxId, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" FontSize="20" Classes="selectableTextBlock" />
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0 8 0 0" Spacing="5">
+          <TextBlock Text="Transaction ID:" FontWeight="Bold" />
+          <controls:ExtendedTextBox Text="{Binding TxId, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock" />
+        </StackPanel>
 
         <DockPanel LastChildFill="True" Grid.Row="1" Margin="0 8 0 0">
           <TextBlock DockPanel.Dock="Top" Text="PSBT Json" FontWeight="Bold" />
