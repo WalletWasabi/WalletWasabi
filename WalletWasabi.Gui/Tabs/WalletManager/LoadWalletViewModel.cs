@@ -27,6 +27,7 @@ using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
@@ -96,6 +97,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 			});
 
+			ResyncWalletCommand = ReactiveCommand.Create(() => ResyncSelectedWallet());
 			LoadCommand = ReactiveCommand.CreateFromTask(async () => await LoadWalletAsync(), this.WhenAnyValue(x => x.CanLoadWallet));
 			TestPasswordCommand = ReactiveCommand.CreateFromTask(async () => await LoadKeyManagerAsync(requirePassword: true, isHardwareWallet: false), this.WhenAnyValue(x => x.CanTestPassword));
 			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
@@ -385,6 +387,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public ReactiveCommand<Unit, KeyManager> TestPasswordCommand { get; }
 		public ReactiveCommand<Unit, Unit> ImportColdcardCommand { get; set; }
 		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
+		public ReactiveCommand<Unit, Unit> ResyncWalletCommand { get; set; }
+
+		private void ResyncSelectedWallet()
+		{
+			if (!CanLoadWallet)
+			{
+				SetWarningMessage("Wallet resync will be applied after a restart of the application.");
+			}
+
+			WalletService.ResyncWallet(SelectedWallet.WalletName, Global.DataDir, Global.Config.Network);
+		}
 
 		public void TryRefreshHardwareWallets(IEnumerable<HardwareWalletInfo> hwis)
 		{
