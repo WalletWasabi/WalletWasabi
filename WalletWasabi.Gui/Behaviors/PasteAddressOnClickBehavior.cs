@@ -5,23 +5,28 @@ using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
 using NBitcoin;
+using NBitcoin.Payment;
+using ReactiveUI;
 using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Controls;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-	internal class PasteAddressOnClickBehavior : Behavior<TextBox>
+	internal class PasteAddressOnClickBehavior : CommandBasedBehavior<TextBox>
 	{
 		private CompositeDisposable Disposables { get; set; }
+		private Global Global { get; }
 
 		protected internal enum TextBoxState
 		{
 			None,
 			NormalTextBoxOperation,
 			AddressInsert,
-			SelectAll,
+			SelectAll
 		}
 
 		private TextBoxState MyTextBoxState
@@ -55,26 +60,22 @@ namespace WalletWasabi.Gui.Behaviors
 
 		private TextBoxState _textBoxState = TextBoxState.None;
 
-		public async Task<(bool isAddress, string address)> IsThereABitcoinAddressOnTheClipboardAsync()
+		private bool ProcessText(string text)
 		{
-			var global = Application.Current.Resources[Global.GlobalResourceKey] as Global;
-			var network = global.Network;
-			string text = await Application.Current.Clipboard.GetTextAsync();
-			if (string.IsNullOrEmpty(text) || text.Length > 100)
+			if (AddressStringParser.TryParse(text, Global.Network, out BitcoinUrlBuilder result))
 			{
-				return (false, null);
+				AssociatedObject.Text = result?.Address?.ToString();
+				CommandParameter = result;
+				ExecuteCommand();
+				return true;
 			}
 
-			text = text.Trim();
-			try
-			{
-				var bitcoinAddress = BitcoinAddress.Create(text, network);
-				return (true, bitcoinAddress.ToString());
-			}
-			catch (FormatException)
-			{
-				return (false, null);
-			}
+			return false;
+		}
+
+		public PasteAddressOnClickBehavior()
+		{
+			Global = Application.Current.Resources[Global.GlobalResourceKey] as Global;
 		}
 
 		protected override void OnAttached()
@@ -89,14 +90,33 @@ namespace WalletWasabi.Gui.Behaviors
 					{
 						MyTextBoxState = TextBoxState.None;
 					}
-				})
+				}),
+				AssociatedObject
+					.GetObservable(InputElement.KeyUpEvent)
+					.Throttle(TimeSpan.FromMilliseconds(500)) // Do not remove this we need to make sure we are running on a separate Task.
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(_ =>
+					{
+						ProcessText(AssociatedObject.Text);
+						MyTextBoxState = TextBoxState.NormalTextBoxOperation;
+					})
 			};
+
+			if (AssociatedObject is ExtendedTextBox extendedTextBox)
+			{
+				Disposables.Add(extendedTextBox.TextPasted
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(text =>
+					{
+						ProcessText(text);
+						MyTextBoxState = TextBoxState.NormalTextBoxOperation;
+					}));
+			}
 
 			Disposables.Add(
 				AssociatedObject.GetObservable(InputElement.PointerReleasedEvent).Subscribe(async pointer =>
 				{
-					var uiConfig = Application.Current.Resources[Global.UiConfigResourceKey] as UiConfig;
-					if (!(uiConfig.Autocopy is true))
+					if (Global.UiConfig.Autocopy is null || Global.UiConfig.Autocopy is false)
 					{
 						return;
 					}
@@ -104,25 +124,19 @@ namespace WalletWasabi.Gui.Behaviors
 					switch (MyTextBoxState)
 					{
 						case TextBoxState.AddressInsert:
-							var result = await IsThereABitcoinAddressOnTheClipboardAsync();
-
-							if (result.isAddress)
 							{
-								AssociatedObject.Text = result.address;
+								string text = await Application.Current.Clipboard.GetTextAsync();
+								ProcessText(text);
+								MyTextBoxState = TextBoxState.NormalTextBoxOperation;
 							}
-							MyTextBoxState = TextBoxState.NormalTextBoxOperation;
-							var labeltextbox = AssociatedObject.Parent.FindControl<TextBox>("LabelTextBox");
-							if (labeltextbox != null)
-							{
-								labeltextbox.Focus();
-							}
-
 							break;
 
 						case TextBoxState.SelectAll:
-							AssociatedObject.SelectionStart = 0;
-							AssociatedObject.SelectionEnd = AssociatedObject.Text.Length;
-							MyTextBoxState = TextBoxState.NormalTextBoxOperation;
+							{
+								AssociatedObject.SelectionStart = 0;
+								AssociatedObject.SelectionEnd = AssociatedObject.Text.Length;
+								MyTextBoxState = TextBoxState.NormalTextBoxOperation;
+							}
 							break;
 					}
 				})
@@ -131,8 +145,7 @@ namespace WalletWasabi.Gui.Behaviors
 			Disposables.Add(
 				AssociatedObject.GetObservable(InputElement.PointerEnterEvent).Subscribe(async pointerEnter =>
 				{
-					var uiConfig = Application.Current.Resources[Global.UiConfigResourceKey] as UiConfig;
-					if (!(uiConfig.Autocopy is true))
+					if (!(Global.UiConfig.Autocopy is true))
 					{
 						return;
 					}
@@ -149,8 +162,9 @@ namespace WalletWasabi.Gui.Behaviors
 
 					if (string.IsNullOrEmpty(AssociatedObject.Text))
 					{
-						var result = await IsThereABitcoinAddressOnTheClipboardAsync();
-						if (result.isAddress)
+						string text = await Application.Current.Clipboard.GetTextAsync();
+
+						if (AddressStringParser.TryParse(text, Global.Network, out _))
 						{
 							MyTextBoxState = TextBoxState.AddressInsert;
 						}

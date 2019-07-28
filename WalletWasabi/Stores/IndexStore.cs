@@ -121,7 +121,7 @@ namespace WalletWasabi.Stores
 			{
 				// We found a corrupted entry. Stop here.
 				// Delete the currupted file.
-				// Do not try to autocorrect, because the internal data structures are throwing events those may confuse the consumers of those events.
+				// Do not try to autocorrect, because the internal data structures are throwing events that may confuse the consumers of those events.
 				Logger.LogError<IndexStore>("An index file got corrupted. Deleting index files...");
 				MatureIndexFileManager.DeleteMe();
 				ImmatureIndexFileManager.DeleteMe();

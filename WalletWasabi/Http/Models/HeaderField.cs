@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using WalletWasabi.Helpers;
 using static WalletWasabi.Http.Constants;

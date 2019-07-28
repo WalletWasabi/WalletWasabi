@@ -101,7 +101,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			if (smallerCoefficients.Length > largerCoefficients.Length)
 			{
-				throw new ArgumentException($"Cannot perform {nameof(CoefficientXor)} method as smaller {nameof(Coefficients)}' length is larger than the larger one.");
+				throw new ArgumentException($"Cannot perform {nameof(CoefficientXor)} method as smaller {nameof(Coefficients)} length is greater than the larger one.");
 			}
 
 			int targetLength = largerCoefficients.Length;
@@ -186,14 +186,13 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			if (Primitive != other.Primitive)
 			{
-				throw new ArgumentException($"{nameof(Polynomial)} cannot perform {nameof(Divide)} as they do not have same {nameof(Primitive)} for " +
-					$"{nameof(GaloisField256)}");
+				throw new ArgumentException($"{nameof(Polynomial)} cannot perform {nameof(Divide)} as they do not have same {nameof(Primitive)} for {nameof(GaloisField256)}");
 			}
 			if (other.IsMonomialZero)
 			{
-				throw new ArgumentException($"Cannot devide by {nameof(Polynomial)} Zero");
+				throw new ArgumentException($"Cannot divide by {nameof(Polynomial)} Zero");
 			}
-			//this devide by other = a devide by b
+			//this divide by other = a divide by b
 			int aLength = Coefficients.Length;
 			//We will make change to aCoefficient. It will return as remainder
 			int[] aCoefficients = new int[aLength];

@@ -99,7 +99,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 
 		/// <returns>
 		/// Quotient of two values.
-		/// In other words. a devided b
+		/// In other words. a divided b
 		/// </returns>
 		internal int Quotient(int gfValueA, int gfValueB)
 		{

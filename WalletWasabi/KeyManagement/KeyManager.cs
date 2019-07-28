@@ -567,6 +567,11 @@ namespace WalletWasabi.KeyManagement
 
 		public ExtKey GetMasterExtKey(string password)
 		{
+			if (password is null)
+			{
+				password = "";
+			}
+			
 			if (IsWatchOnly)
 			{
 				throw new SecurityException("This is a watchonly wallet.");
