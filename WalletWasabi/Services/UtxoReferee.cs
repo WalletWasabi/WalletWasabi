@@ -18,7 +18,7 @@ namespace WalletWasabi.Services
 	{
 		private ConcurrentDictionary<OutPoint, BannedUtxoRecord> BannedUtxos { get; }
 
-		public string BannedUtxosFilePath => Path.Combine(FolderPath, $"{nameof(BannedUtxos)}{Network}.txt");
+		public string BannedUtxosFilePath => Path.Combine(FolderPath, $"BannedUtxos{Network}.txt");
 
 		public RPCClient RpcClient { get; }
 		public Network Network { get; }
