@@ -749,14 +749,24 @@ namespace WalletWasabi.Packager
 					Directory.Move(publishedFolder, newFolderPath);
 					publishedFolder = newFolderPath;
 
+					var commands = new[] {
+						"cd ~",
+						"sudo umount /mnt/c",
+						"sudo mount -t drvfs C: /mnt/c -o metadata",
+						$"cd /mnt/c/Users/user/Desktop/WalletWasabi/WalletWasabi.Gui/bin/dist",
+						$"sudo find ./{newFolderName} -type f -not -name 'wassabee' -exec chmod 644 {{}} \\;",
+						$"tar -pczvf {newFolderName}.tar.gz {newFolderName}"
+					};
+					string arguments = string.Join(" && ", commands);
+
 					using (var process = Process.Start(new ProcessStartInfo
 					{
-						FileName = "cmd",
+						FileName = "wsl",
+						Arguments = arguments,
 						RedirectStandardInput = true,
 						WorkingDirectory = BinDistDirectory
 					}))
 					{
-						process.StandardInput.WriteLine($"wsl tar -pczvf {newFolderName}.tar.gz {newFolderName} && exit");
 						process.WaitForExit();
 					}
 
@@ -839,18 +849,18 @@ namespace WalletWasabi.Packager
 					string debDestopFileLinuxPath = Tools.LinuxPathCombine(debUsrAppFolderRelativePath, $"{ExecutableName}.desktop");
 					var wasabiStarterScriptLinuxPath = Tools.LinuxPathCombine(debUsrLocalBinFolderRelativePath, $"{ExecutableName}");
 
-					var commands = new[] {
+					commands = new[] {
 						"cd ~",
 						"sudo umount /mnt/c",
 						"sudo mount -t drvfs C: /mnt/c -o metadata",
-						"cd /mnt/c/Users/lucas/Desktop/WalletWasabi/WalletWasabi.Gui/bin/dist",
+						"cd /mnt/c/Users/user/Desktop/WalletWasabi/WalletWasabi.Gui/bin/dist",
 						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -not -name 'wassabee' -exec chmod 644 {{}} \\;",
 						$"sudo chmod +x {wasabiStarterScriptLinuxPath}",
 						$"sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)}",
 						$"sudo chmod -R 0644 {debDestopFileLinuxPath}",
 						$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)"
 					};
-					string arguments = string.Join(" && ", commands);
+					arguments = string.Join(" && ", commands);
 					using (var process = Process.Start(new ProcessStartInfo
 					{
 						FileName = "wsl",
