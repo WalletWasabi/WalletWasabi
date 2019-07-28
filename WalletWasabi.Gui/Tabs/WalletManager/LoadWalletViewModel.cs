@@ -108,6 +108,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						AllowMultiple = false,
 						Title = "Import Coldcard"
 					};
+
+					if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+					{
+						ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+					}
+					
 					var selected = await ofd.ShowAsync(Application.Current.MainWindow, fallBack: true);
 					if (selected != null && selected.Any())
 					{

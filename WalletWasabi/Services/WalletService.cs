@@ -215,7 +215,7 @@ namespace WalletWasabi.Services
 			}
 
 			Coins.TryRemove(toRemove);
-			Mempool.TransactionHashes.TryRemove(toRemove.SpenderTransactionId);
+			Mempool.TransactionHashes.TryRemove(toRemove.TransactionId);
 		}
 
 		private async void IndexDownloader_NewFilterAsync(object sender, FilterModel filterModel)
@@ -273,16 +273,11 @@ namespace WalletWasabi.Services
 					{
 						IEnumerable<SmartTransaction> transactions = null;
 						string jsonString = File.ReadAllText(TransactionsFilePath, Encoding.UTF8);
-						transactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?
-							.OrderByBlockchain();
+						transactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?.OrderByBlockchain();
 
-						confirmedTransactions = transactions?
-							.Where(x => x.Confirmed)?
-							.ToArray() ?? new SmartTransaction[0];
+						confirmedTransactions = transactions?.Where(x => x.Confirmed)?.ToArray() ?? new SmartTransaction[0];
 
-						unconfirmedTransactions = transactions?
-							.Where(x => !x.Confirmed)?
-							.ToArray() ?? new SmartTransaction[0];
+						unconfirmedTransactions = transactions?.Where(x => !x.Confirmed)?.ToArray() ?? new SmartTransaction[0];
 					}
 					catch (Exception ex)
 					{
@@ -1085,7 +1080,7 @@ namespace WalletWasabi.Services
 			}
 
 			// Get allowed coins to spend.
-			List<SmartCoin> allowedSmartCoinInputs; // Inputs those can be used to build the transaction.
+			List<SmartCoin> allowedSmartCoinInputs; // Inputs that can be used to build the transaction.
 			if (allowedInputs != null) // If allowedInputs are specified then select the coins from them.
 			{
 				if (!allowedInputs.Any())

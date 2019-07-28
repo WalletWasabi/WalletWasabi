@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.Crypto;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
