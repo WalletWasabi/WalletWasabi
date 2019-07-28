@@ -1,7 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-            xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
-            xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-            xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui">
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui">
   <DockPanel LastChildFill="True">
     <StackPanel DockPanel.Dock="Bottom" Spacing="10">
       <controls:GroupBox IsVisible="{Binding !IsDesktopWallet}" TextBlock.FontSize="30" Padding="30" Margin="20 0">
@@ -42,11 +42,7 @@
           <Button IsVisible="{Binding IsHardwareWallet}" Content="Import Coldcard" Command="{Binding ImportColdcardCommand}" DockPanel.Dock="Right" Margin="0 0 10 0" />
           <Button IsVisible="{Binding IsDesktopWallet}" Command="{Binding OpenFolderCommand}" DockPanel.Dock="Right" Margin="0 0 10 0">
             <StackPanel Orientation="Horizontal" Spacing="8">
-              <DrawingPresenter Width="28">
-                <DrawingPresenter.Drawing>
-                  <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1 M 19,50L 28,34L 63,34L 54,50L 19,50 Z M 19,28.0001L 35,28C 36,25 37.4999,24.0001 37.4999,24.0001L 48.75,24C 49.3023,24 50,24.6977 50,25.25L 50,28L 53.9999,28.0001L 53.9999,32L 27,32L 19,46.4L 19,28.0001 Z " />
-                </DrawingPresenter.Drawing>
-              </DrawingPresenter>
+              <DrawingPresenter Width="28" Drawing="{DynamicResource LoadWallet_Folder}" />
               <TextBlock Text="Open Wallets Folder" />
             </StackPanel>
           </Button>
@@ -79,8 +75,7 @@
                 <TextBlock Text="{Binding WalletName}">
                   <i:Interaction.Behaviors>
                     <behaviors:CommandOnDoubleClickBehavior Command="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=DataContext.LoadCommand}" />
-                  </i:Interaction.Behaviors>
-                </TextBlock>
+                  </i:Interaction.Behaviors></TextBlock>
               </DataTemplate>
             </controls:ExtendedListBox.ItemTemplate>
           </controls:ExtendedListBox>

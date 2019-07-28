@@ -363,7 +363,6 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private void SetTor(TorStatus tor)
 		{
-			// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they do not.
 			Tor = UseTor ? tor : TorStatus.TurnedOff;
 		}
 

@@ -1080,7 +1080,7 @@ namespace WalletWasabi.Services
 			}
 
 			// Get allowed coins to spend.
-			List<SmartCoin> allowedSmartCoinInputs; // Inputs those can be used to build the transaction.
+			List<SmartCoin> allowedSmartCoinInputs; // Inputs that can be used to build the transaction.
 			if (allowedInputs != null) // If allowedInputs are specified then select the coins from them.
 			{
 				if (!allowedInputs.Any())

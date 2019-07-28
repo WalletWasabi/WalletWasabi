@@ -231,7 +231,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 					SetWarningMessage(builder.ToString());
-					return;
 				}
 			}
 			finally
@@ -270,8 +269,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 					SetWarningMessage(builder.ToString());
-					Password = string.Empty;
-					return;
 				}
 
 				Password = string.Empty;

@@ -116,6 +116,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+				this.RaisePropertyChanged(nameof(TxId));
 				this.RaisePropertyChanged(nameof(PsbtJsonText));
 				this.RaisePropertyChanged(nameof(TransactionHexText));
 				this.RaisePropertyChanged(nameof(PsbtBase64Text));

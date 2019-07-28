@@ -303,7 +303,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					catch
 					{
-						SetWarningMessage("Spending coins those are being actively mixed is not allowed.");
+						SetWarningMessage("Spending coins that are being actively mixed is not allowed.");
 						return;
 					}
 					finally
@@ -794,7 +794,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 				SetWarningMessage(builder.ToString());
-				return;
 			}
 		}
 
@@ -979,7 +978,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return "";
 			}
 
-			return $"Invalid {nameof(Address)}";
+			return "Invalid address.";
 		}
 
 		[ValidateMethod(nameof(ValidateAddress))]
