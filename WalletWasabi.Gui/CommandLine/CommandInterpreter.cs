@@ -25,20 +25,19 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 
 			OptionSet options = null;
-			var suite = new CommandSet("wassabee") {
-					"Usage: wassabee [OPTIONS]+",
-					"Launches Wasabi Wallet.",
-					"",
-					{ "h|help", "Displays help page and exit.",
-						x => showHelp = x != null},
-					{ "v|version", "Displays Wasabi version and exit.",
-						x => showVersion = x != null},
-					"",
-					"Available commands are:",
-					"",
-					new MixerCommand(daemon),
-					new PasswordFinderCommand(daemon)
-				};
+			var suite = new CommandSet("wassabee")
+			{
+				"Usage: wassabee [OPTIONS]+",
+				"Launches Wasabi Wallet.",
+				"",
+				{ "h|help", "Displays help page and exit.", x => showHelp = x != null},
+				{ "v|version", "Displays Wasabi version and exit.", x => showVersion = x != null},
+				"",
+				"Available commands are:",
+				"",
+				new MixerCommand(daemon),
+				new PasswordFinderCommand(daemon)
+			};
 
 			EnsureBackwardCompatibilityWithOldParameters(ref args);
 			if (await suite.RunAsync(args) == 0)

@@ -168,7 +168,7 @@ namespace WalletWasabi.Gui.Controls
 					Geometry = PasteIcon
 				},
 				Width = 16,
-				Height = 16,
+				Height = 16
 			};
 		}
 
