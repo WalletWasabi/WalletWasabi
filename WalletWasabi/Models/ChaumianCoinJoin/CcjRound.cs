@@ -577,7 +577,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			// If he registers many alices at InputRegistration
 			// AND never confirms in connection confirmation
 			// THEN connection confirmation will go with 2 alices in every round
-			// Therefore Alices those did not confirm, nor requested disconnection should be banned:
+			// Therefore Alices that did not confirm, nor requested disconnection should be banned:
 
 			IEnumerable<Alice> alicesToBan = await RemoveAlicesIfAnInputRefusedByMempoolAsync(); // So ban only those who confirmed participation, yet spent their inputs.
 
