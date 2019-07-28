@@ -312,14 +312,14 @@ namespace WalletWasabi.KeyManagement
 			// Example text to handle: "ExtPubKey": "03BF8271268000000013B9013C881FE456DDF524764F6322F611B03CF6".
 			var encryptedSecretLine = File.ReadLines(filePath) // Enumerated read.
 				.Take(21) // Limit reads to x lines.
-				.FirstOrDefault(line => line.Contains($"\"{nameof(EncryptedSecret)}\": \"", StringComparison.OrdinalIgnoreCase));
+				.FirstOrDefault(line => line.Contains("\"EncryptedSecret\": \"", StringComparison.OrdinalIgnoreCase));
 
 			if (string.IsNullOrEmpty(encryptedSecretLine))
 			{
 				return false;
 			}
 
-			var parts = encryptedSecretLine.Split($"\"{nameof(EncryptedSecret)}\": \"");
+			var parts = encryptedSecretLine.Split("\"EncryptedSecret\": \"");
 			if (parts.Length != 2)
 			{
 				throw new FormatException($"Could not split line: {encryptedSecretLine}");
@@ -348,14 +348,14 @@ namespace WalletWasabi.KeyManagement
 			// Example text to handle: "ExtPubKey": "03BF8271268000000013B9013C881FE456DDF524764F6322F611B03CF6".
 			var extPubKeyLine = File.ReadLines(filePath) // Enumerated read.
 				.Take(21) // Limit reads to x lines.
-				.FirstOrDefault(line => line.Contains($"\"{nameof(ExtPubKey)}\": \"", StringComparison.OrdinalIgnoreCase));
+				.FirstOrDefault(line => line.Contains("\"ExtPubKey\": \"", StringComparison.OrdinalIgnoreCase));
 
 			if (string.IsNullOrEmpty(extPubKeyLine))
 			{
 				return false;
 			}
 
-			var parts = extPubKeyLine.Split($"\"{nameof(ExtPubKey)}\": \"");
+			var parts = extPubKeyLine.Split("\"ExtPubKey\": \"");
 			if (parts.Length != 2)
 			{
 				throw new FormatException($"Could not split line: {extPubKeyLine}");
@@ -384,14 +384,14 @@ namespace WalletWasabi.KeyManagement
 			// Example text to handle: "ExtPubKey": "03BF8271268000000013B9013C881FE456DDF524764F6322F611B03CF6".
 			var masterFpLine = File.ReadLines(filePath) // Enumerated read.
 				.Take(21) // Limit reads to x lines.
-				.FirstOrDefault(line => line.Contains($"\"{nameof(MasterFingerprint)}\": \"", StringComparison.OrdinalIgnoreCase));
+				.FirstOrDefault(line => line.Contains("\"MasterFingerprint\": \"", StringComparison.OrdinalIgnoreCase));
 
 			if (string.IsNullOrEmpty(masterFpLine))
 			{
 				return false;
 			}
 
-			var parts = masterFpLine.Split($"\"{nameof(MasterFingerprint)}\": \"");
+			var parts = masterFpLine.Split("\"MasterFingerprint\": \"");
 			if (parts.Length != 2)
 			{
 				throw new FormatException($"Could not split line: {masterFpLine}");
