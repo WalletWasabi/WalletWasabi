@@ -36,7 +36,7 @@ namespace WalletWasabi.Http.Models
 		// The OWS rule is used where zero or more linear whitespace octets	might appear.
 		public string ToString(bool endWithCRLF)
 		{
-			var ret = Name + ":" + Value;
+			var ret = $"{Name}:{Value}";
 			if (endWithCRLF)
 			{
 				ret += CRLF;

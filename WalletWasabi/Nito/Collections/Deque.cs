@@ -424,7 +424,7 @@ namespace Nito.Collections
 		{
 			if (index < 0 || index > sourceLength)
 			{
-				throw new ArgumentOutOfRangeException(nameof(index), "Invalid new index " + index + " for source length " + sourceLength);
+				throw new ArgumentOutOfRangeException(nameof(index), $"Invalid new index {index} for source length {sourceLength}");
 			}
 		}
 
@@ -438,7 +438,7 @@ namespace Nito.Collections
 		{
 			if (index < 0 || index >= sourceLength)
 			{
-				throw new ArgumentOutOfRangeException(nameof(index), "Invalid existing index " + index + " for source length " + sourceLength);
+				throw new ArgumentOutOfRangeException(nameof(index), $"Invalid existing index {index} for source length {sourceLength}");
 			}
 		}
 

@@ -1210,9 +1210,9 @@ namespace WalletWasabi.Services
 
 			if (feePc > 1)
 			{
-				Logger.LogInfo<WalletService>($"The transaction fee is {feePc:0.#}% of your transaction amount."
-					+ Environment.NewLine + $"Sending:\t {totalOutgoingAmount.ToString(fplus: false, trimExcessZero: true)} BTC."
-					+ Environment.NewLine + $"Fee:\t\t {fee.Satoshi} Satoshi.");
+				Logger.LogInfo<WalletService>($"The transaction fee is {feePc:0.#}% of your transaction amount.{Environment.NewLine}"
+					+ $"Sending:\t {totalOutgoingAmount.ToString(fplus: false, trimExcessZero: true)} BTC.{Environment.NewLine}"
+					+ $"Fee:\t\t {fee.Satoshi} Satoshi.");
 			}
 			if (feePc > 100)
 			{
