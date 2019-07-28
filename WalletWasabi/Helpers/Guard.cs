@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -43,7 +43,7 @@ namespace WalletWasabi.Helpers
 
 			if (!expected.Equals(actual))
 			{
-				throw new ArgumentException($"`Parameter must be {expected}. Actual: {actual}.", parameterName);
+				throw new ArgumentException($"Parameter must be {expected}. Actual: {actual}.", parameterName);
 			}
 
 			return actual;

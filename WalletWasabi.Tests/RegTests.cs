@@ -83,7 +83,7 @@ namespace WalletWasabi.Tests
 			global.Coordinator.UtxoReferee.Clear();
 
 			var network = global.RpcClient.Network;
-			var serviceConfiguration = new ServiceConfiguration(2, 2, 21, 50, RegTestFixture.BackendRegTestNode.Endpoint, Money.Coins(0.0001m));
+			var serviceConfiguration = new ServiceConfiguration(2, 2, 21, 50, RegTestFixture.BackendRegTestNode.P2pEndPoint, Money.Coins(0.0001m));
 			var bitcoinStore = new BitcoinStore();
 			var dir = Path.Combine(Global.Instance.DataDir, caller);
 			await bitcoinStore.InitializeAsync(dir, network);
@@ -1443,7 +1443,7 @@ namespace WalletWasabi.Tests
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 3);
 
 				// Send money after reorg.
-				// When we invalidate a block, those transactions setted in the invalidated block
+				// When we invalidate a block, the transactions setted in the invalidated block
 				// are reintroduced when we generate a new block though the rpc call
 				operations = new[]{
 					new WalletService.Operation(scp, Money.Coins(0.013m), "") };
@@ -2821,6 +2821,7 @@ namespace WalletWasabi.Tests
 			await rpc.GenerateAsync(100); // So to make sure we have enough money.
 
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
+			var spentCoins = new List<Coin>();
 			var fundingTxCount = 0;
 			var inputRegistrationUsers = new List<(Requester requester, uint256 blinded, BitcoinAddress activeOutputAddress, BitcoinAddress changeOutputAddress, IEnumerable<InputProofModel> inputProofModels, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData)>();
 			for (int i = 0; i < roundConfig.AnonymitySet; i++)
@@ -2852,6 +2853,7 @@ namespace WalletWasabi.Tests
 					Transaction transaction = await rpc.GetRawTransactionAsync(txHash);
 
 					var coin = transaction.Outputs.GetCoins(inputAddress.ScriptPubKey).Single();
+					spentCoins.Add(coin);
 
 					OutPoint input = coin.Outpoint;
 					var inputProof = new InputProofModel { Input = input.ToTxoRef(), Proof = key.SignCompact(blindedOutputScriptsHash) };
@@ -2980,9 +2982,13 @@ namespace WalletWasabi.Tests
 
 				var myDic = new Dictionary<int, WitScript>();
 
+				long previousAmount = -1;
 				for (int i = 0; i < unsignedCoinJoin.Inputs.Count; i++)
 				{
 					var input = unsignedCoinJoin.Inputs[i];
+					long currentAmount = spentCoins.Single(x => x.Outpoint == unsignedCoinJoin.Inputs[i].PrevOut).Amount;
+					Assert.True(previousAmount <= currentAmount);
+					previousAmount = currentAmount;
 					if (user.userInputData.Select(x => x.input).Contains(input.PrevOut))
 					{
 						myDic.Add(i, partSignedCj.Inputs[i].WitScript);

@@ -155,7 +155,7 @@ namespace WalletWasabi.Gui
 
 			if (Config.UseTor.Value)
 			{
-				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
 			}
 			else
 			{
@@ -189,7 +189,7 @@ namespace WalletWasabi.Gui
 
 			if (Config.UseTor.Value)
 			{
-				TorManager = new TorProcessManager(Config.GetTorSocks5EndPoint(), TorLogsFile);
+				TorManager = new TorProcessManager(Config.TorSocks5EndPoint, TorLogsFile);
 			}
 			else
 			{
@@ -261,7 +261,7 @@ namespace WalletWasabi.Gui
 				if (Config.UseTor is true)
 				{
 					// onlyForOnionHosts: false - Connect to clearnet IPs through Tor, too.
-					connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.GetTorSocks5EndPoint(), onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
+					connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.TorSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
 					// allowOnlyTorEndpoints: true - Connect only to onions and do not connect to clearnet IPs at all.
 					// This of course makes the first setting unnecessary, but it's better if that's around, in case someone wants to tinker here.
 					connectionParameters.EndpointConnector = new DefaultEndpointConnector(allowOnlyTorEndpoints: Network == Network.Main);
@@ -319,7 +319,7 @@ namespace WalletWasabi.Gui
 					// Most of the times we do not need to discover new peers. Instead, we can connect to
 					// some of those that we already discovered in the past. In this case we assume that
 					// discovering new peers could be necessary if our address manager has less
-					// than 500 addresses. A 500 addresses could be okay because previously we tried with
+					// than 500 addresses. 500 addresses could be okay because previously we tried with
 					// 200 and only one user reported he/she was not able to connect (there could be many others,
 					// of course).
 					// On the other side, increasing this number forces users that do not need to discover more peers
@@ -410,7 +410,7 @@ namespace WalletWasabi.Gui
 
 				if (Config.UseTor.Value)
 				{
-					ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+					ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
 				}
 				else
 				{
@@ -477,10 +477,10 @@ namespace WalletWasabi.Gui
 					if (File.Exists(corruptedWalletBackupPath))
 					{
 						File.Delete(corruptedWalletBackupPath);
-						Logger.LogInfo($"Deleted previous corrupted wallet file backup from {corruptedWalletBackupPath}.");
+						Logger.LogInfo($"Deleted previous corrupted wallet file backup from `{corruptedWalletBackupPath}`.");
 					}
 					File.Move(walletFullPath, corruptedWalletBackupPath);
-					Logger.LogInfo($"Backed up corrupted wallet file to {corruptedWalletBackupPath}.");
+					Logger.LogInfo($"Backed up corrupted wallet file to `{corruptedWalletBackupPath}`.");
 				}
 				File.Copy(walletBackupFullPath, walletFullPath);
 
@@ -560,7 +560,7 @@ namespace WalletWasabi.Gui
 				{
 					string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(WalletService.KeyManager.FilePath));
 					WalletService.KeyManager?.ToFile(backupWalletFilePath);
-					Logger.LogInfo($"{nameof(KeyManager)} backup saved to {backupWalletFilePath}.", nameof(Global));
+					Logger.LogInfo($"{nameof(KeyManager)} backup saved to `{backupWalletFilePath}`.", nameof(Global));
 				}
 				if (WalletService != null)
 				{

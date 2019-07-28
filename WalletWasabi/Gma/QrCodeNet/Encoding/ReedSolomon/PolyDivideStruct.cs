@@ -1,4 +1,4 @@
-﻿namespace Gma.QrCodeNet.Encoding.ReedSolomon
+namespace Gma.QrCodeNet.Encoding.ReedSolomon
 {
 	internal struct PolyDivideStruct
 	{

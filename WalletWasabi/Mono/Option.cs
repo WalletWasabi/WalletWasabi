@@ -181,7 +181,7 @@ namespace Mono.Options
 				throw new ArgumentNullException(nameof(prototype));
 			}
 
-			if (prototype.Length == 0)
+			if (prototype == "")
 			{
 				throw new ArgumentException("Cannot be an empty string.", nameof(prototype));
 			}
@@ -296,7 +296,7 @@ namespace Mono.Options
 			for (int i = 0; i < Names.Length; ++i)
 			{
 				string name = Names[i];
-				if (name.Length == 0)
+				if (name == "")
 				{
 					throw new ArgumentException("Empty option names are not supported.", nameof(Prototype));
 				}
@@ -342,7 +342,7 @@ namespace Mono.Options
 				{
 					ValueSeparators = new string[] { ":", "=" };
 				}
-				else if (seps.Count == 1 && seps[0].Length == 0)
+				else if (seps.Count == 1 && seps[0] == "")
 				{
 					ValueSeparators = null;
 				}
