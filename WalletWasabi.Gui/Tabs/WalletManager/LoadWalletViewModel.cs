@@ -113,7 +113,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					{
 						ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 					}
-					
+
 					var selected = await ofd.ShowAsync(Application.Current.MainWindow, fallBack: true);
 					if (selected != null && selected.Any())
 					{
@@ -159,14 +159,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			OpenBrowserCommand = ReactiveCommand.Create<string>(x =>
 			{
-				try
-				{
-					IoHelpers.OpenBrowser(x);
-				}
-				catch (Exception ex)
-				{
-					Logging.Logger.LogError<AboutViewModel>(ex);
-				}
+				IoHelpers.OpenBrowser(x);
 			});
 
 			OpenBrowserCommand.ThrownExceptions.Subscribe(Logger.LogWarning<LoadWalletViewModel>);
