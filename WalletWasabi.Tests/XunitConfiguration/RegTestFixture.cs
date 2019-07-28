@@ -47,12 +47,12 @@ namespace WalletWasabi.Tests.XunitConfiguration
 				new IPEndPoint(IPAddress.Loopback, Network.Main.RPCPort),
 				new IPEndPoint(IPAddress.Loopback, Network.TestNet.RPCPort),
 				BackendRegTestNode.RpcEndPoint);
-			var configFilePath = Path.Combine(testnetBackendDir, $"{nameof(Config)}.json");
+			var configFilePath = Path.Combine(testnetBackendDir, "Config.json");
 			config.SetFilePath(configFilePath);
 			config.ToFileAsync().GetAwaiter().GetResult();
 
 			var roundConfig = CreateRoundConfig(Money.Coins(0.1m), Constants.OneDayConfirmationTarget, 0.7, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
-			var roundConfigFilePath = Path.Combine(testnetBackendDir, $"{nameof(CcjRoundConfig)}.json");
+			var roundConfigFilePath = Path.Combine(testnetBackendDir, "CcjRoundConfig.json");
 			roundConfig.SetFilePath(roundConfigFilePath);
 			roundConfig.ToFileAsync().GetAwaiter().GetResult();
 
