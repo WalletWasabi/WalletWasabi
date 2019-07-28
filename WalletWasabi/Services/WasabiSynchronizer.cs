@@ -362,7 +362,7 @@ namespace WalletWasabi.Services
 		private void HandleIfGenSocksServFail(Exception ex)
 		{
 			// IS GenSocksServFail?
-			if (ex.ToString().Contains(nameof(RepField.GeneralSocksServerFailure), StringComparison.OrdinalIgnoreCase))
+			if (ex.ToString().Contains("GeneralSocksServerFailure", StringComparison.OrdinalIgnoreCase))
 			{
 				// IS GenSocksServFail
 				DoGenSocksServFail();
