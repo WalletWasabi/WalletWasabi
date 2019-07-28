@@ -26,7 +26,7 @@ namespace WalletWasabi.Gui.Behaviors
 			None,
 			NormalTextBoxOperation,
 			AddressInsert,
-			SelectAll,
+			SelectAll
 		}
 
 		private TextBoxState MyTextBoxState
