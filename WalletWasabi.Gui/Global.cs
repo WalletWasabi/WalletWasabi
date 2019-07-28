@@ -137,7 +137,7 @@ namespace WalletWasabi.Gui
 
 			#region ConfigInitialization
 
-			Config = new Config(Path.Combine(DataDir, $"{nameof(Config)}.json"));
+			Config = new Config(Path.Combine(DataDir, "Config.json"));
 			await Config.LoadOrCreateDefaultFileAsync();
 			Logger.LogInfo<Config>($"{nameof(Config)} is successfully initialized.");
 
