@@ -1,4 +1,4 @@
-﻿namespace Gma.QrCodeNet.Encoding.Versions
+namespace Gma.QrCodeNet.Encoding.Versions
 {
 	internal struct ErrorCorrectionBlock
 	{

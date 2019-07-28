@@ -2,6 +2,7 @@ using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin;
+using NBitcoin.Payment;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -223,6 +224,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 
 			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay, outputScheduler: RxApp.MainThreadScheduler);
+
+			OnAddressPasteCommand = ReactiveCommand.Create((BitcoinUrlBuilder url) =>
+			{
+				if (!string.IsNullOrWhiteSpace(url.Label))
+				{
+					Label = url.Label;
+				}
+
+				if (url.Amount != null)
+				{
+					AmountText = url.Amount.ToString(false, true);
+				}
+			});
 
 			BuildTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -780,7 +794,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 				SetWarningMessage(builder.ToString());
-				return;
 			}
 		}
 
@@ -950,25 +963,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string ValidateAddress()
 		{
-			if (string.IsNullOrEmpty(Address))
+			if (string.IsNullOrWhiteSpace(Address))
 			{
 				return "";
 			}
 
-			if (!string.IsNullOrWhiteSpace(Address))
+			if (AddressStringParser.TryParseBitcoinAddress(Address, Global.Network, out _))
 			{
-				var trimmed = Address.Trim();
-				try
-				{
-					BitcoinAddress.Create(trimmed, Global.Network);
-					return "";
-				}
-				catch
-				{
-				}
+				return "";
 			}
 
-			return $"Invalid {nameof(Address)}";
+			if (AddressStringParser.TryParseBitcoinUrl(Address, Global.Network, out _))
+			{
+				return "";
+			}
+
+			return "Invalid address.";
 		}
 
 		[ValidateMethod(nameof(ValidateAddress))]
@@ -1007,6 +1017,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> MaxCommand { get; }
 
 		public ReactiveCommand<Unit, Unit> FeeRateCommand { get; }
+
+		public ReactiveCommand<BitcoinUrlBuilder, Unit> OnAddressPasteCommand { get; }
+
 		public bool IsTransactionBuilder { get; }
 
 		public override void OnOpen()

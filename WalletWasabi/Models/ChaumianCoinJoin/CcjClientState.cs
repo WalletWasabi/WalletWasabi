@@ -283,7 +283,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 								.Where(x =>
 									x.AnonymitySet >= bestMinAnonset // The anonset must be at least equal to the bestSet's anonset so we do not ruin the change's after mix anonset.
 									&& x.AnonymitySet > 1 // Red coins should never be merged.
-									&& x.Amount < amountNeeded // The amount need to be smaller than the amountNeeded (so to make sure this is toxic change.)
+									&& x.Amount < amountNeeded // The amount needs to be smaller than the amountNeeded (so to make sure this is toxic change.)
 									&& (bestSum + x.Amount) > amountNeeded) // Sanity check that the amount added do not ruin the registration.
 								.OrderBy(x => x.Amount); // Choose the smallest ones.
 

@@ -21,6 +21,8 @@ namespace WalletWasabi.Gui
 	public class UiConfig : ReactiveObject, IConfig
 	{
 		private bool? _lurkingWifeMode;
+		private bool? _lockScreenActive;
+		private string _lockScreenPinHash;
 
 		/// <inheritdoc />
 		public string FilePath { get; private set; }
@@ -49,6 +51,20 @@ namespace WalletWasabi.Gui
 		{
 			get => _lurkingWifeMode;
 			set => this.RaiseAndSetIfChanged(ref _lurkingWifeMode, value);
+		}
+
+		[JsonProperty(PropertyName = "LockScreenActive")]
+		public bool? LockScreenActive
+		{
+			get => _lockScreenActive;
+			set => this.RaiseAndSetIfChanged(ref _lockScreenActive, value);
+		}
+
+		[JsonProperty(PropertyName = "LockScreenPinHash")]
+		public string LockScreenPinHash
+		{
+			get => _lockScreenPinHash;
+			set => this.RaiseAndSetIfChanged(ref _lockScreenPinHash, value);
 		}
 
 		public UiConfig()
@@ -83,6 +99,8 @@ namespace WalletWasabi.Gui
 			FeeDisplayFormat = 0;
 			Autocopy = true;
 			LurkingWifeMode = false;
+			LockScreenActive = false;
+			LockScreenPinHash = "";
 
 			if (!File.Exists(FilePath))
 			{
@@ -101,13 +119,15 @@ namespace WalletWasabi.Gui
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
 			var config = JsonConvert.DeserializeObject<UiConfig>(jsonString);
 
-			WindowState = config.WindowState ?? WindowState;
-			Height = config.Height ?? Height;
-			Width = config.Width ?? Width;
-			FeeTarget = config.FeeTarget ?? FeeTarget;
-			FeeDisplayFormat = config.FeeDisplayFormat ?? FeeDisplayFormat;
-			Autocopy = config.Autocopy ?? Autocopy;
-			LurkingWifeMode = config.LurkingWifeMode ?? LurkingWifeMode;
+			WindowState = config?.WindowState ?? WindowState;
+			Height = config?.Height ?? Height;
+			Width = config?.Width ?? Width;
+			FeeTarget = config?.FeeTarget ?? FeeTarget;
+			FeeDisplayFormat = config?.FeeDisplayFormat ?? FeeDisplayFormat;
+			Autocopy = config?.Autocopy ?? Autocopy;
+			LurkingWifeMode = config?.LurkingWifeMode ?? LurkingWifeMode;
+			LockScreenActive = config?.LockScreenActive ?? LockScreenActive;
+			LockScreenPinHash = config?.LockScreenPinHash ?? LockScreenPinHash;
 		}
 
 		/// <inheritdoc />

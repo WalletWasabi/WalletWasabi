@@ -166,7 +166,7 @@ namespace WalletWasabi.Hwi
 					if (!File.Exists(HwiPath))
 					{
 						var exeName = Path.GetFileName(HwiPath);
-						throw new FileNotFoundException($"{exeName} not found at `{HwiPath}`. Maybe it was removed by antivirus software!");
+						throw new FileNotFoundException($"{exeName} not found at `{HwiPath}`. Maybe it was removed by an antivirus software!");
 					}
 
 					using (var process = Process.Start(
