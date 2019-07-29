@@ -23,6 +23,7 @@ namespace WalletWasabi.Gui
 		private bool? _lurkingWifeMode;
 		private bool? _lockScreenActive;
 		private string _lockScreenPinHash;
+		private bool? _customFee;
 
 		/// <inheritdoc />
 		public string FilePath { get; private set; }
@@ -47,7 +48,11 @@ namespace WalletWasabi.Gui
 		public bool? Autocopy { get; internal set; }
 
 		[JsonProperty(PropertyName = "CustomFee")]
-		public bool? CustomFee { get; internal set; }
+		public bool? CustomFee
+		{
+			get => _customFee;
+			set => this.RaiseAndSetIfChanged(ref _customFee, value);
+		}
 
 		[JsonProperty(PropertyName = "LurkingWifeMode")]
 		public bool? LurkingWifeMode
