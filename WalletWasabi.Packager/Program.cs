@@ -515,11 +515,11 @@ namespace WalletWasabi.Packager
 				Tools.ClearSha512Tags(currentBinDistDirectory);
 				//Tools.RemoveSosDocsUnix(currentBinDistDirectory);
 
-				// Remove HWI binaries those are not relevant to the platform.
+				// Remove HWI binaries that are not relevant to the platform.
 				// On Windows HWI starts from next to the exe because Windows Defender sometimes deletes it.
 				// On Linux and OSX HWI starts from the data folder because otherwise there'd be permission issues.
 				var hwiFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "Hwi", "Software"));
-				// Remove Tor binaries those are not relevant to the platform.
+				// Remove Tor binaries that are not relevant to the platform.
 				var torFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "TorDaemons"));
 				var toNotRemove = "";
 				if (target.StartsWith("win"))

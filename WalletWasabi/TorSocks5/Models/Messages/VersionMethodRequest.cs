@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
@@ -54,7 +54,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 
 			if (NMethods.Value != bytes.Length - 2)
 			{
-				throw new FormatException($"{nameof(NMethods)}.{nameof(NMethods.Value)} must be {nameof(bytes)}.{nameof(bytes.Length)} - 2` = {bytes.Length - 2}. Actual: {NMethods.Value}.");
+				throw new FormatException($"{nameof(NMethods)}.{nameof(NMethods.Value)} must be {nameof(bytes)}.{nameof(bytes.Length)} - 2 = {bytes.Length - 2}. Actual: {NMethods.Value}.");
 			}
 
 			Methods = new MethodsField();

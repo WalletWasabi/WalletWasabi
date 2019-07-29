@@ -1,7 +1,6 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
   <StackPanel Margin="20" Spacing="10">
-
     <TextBlock Text="Write down these Recovery Words!" FontWeight="Bold" />
     <Border Padding="2" Background="White" HorizontalAlignment="Stretch" Opacity="0.8">
       <controls:ExtendedTextBox Text="{Binding MnemonicWords, Mode=TwoWay}" Background="Transparent" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Classes="selectableTextBlock" />

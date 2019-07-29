@@ -19,7 +19,7 @@ namespace WalletWasabi.TorSocks5
 		/// <summary>
 		/// If null then it's just a mock, clearnet is used.
 		/// </summary>
-		public IPEndPoint TorSocks5EndPoint { get; }
+		public EndPoint TorSocks5EndPoint { get; }
 
 		public string LogFile { get; }
 
@@ -29,7 +29,7 @@ namespace WalletWasabi.TorSocks5
 
 		/// <param name="torSocks5EndPoint">Opt out Tor with null.</param>
 		/// <param name="logFile">Opt out of logging with null.</param>
-		public TorProcessManager(IPEndPoint torSocks5EndPoint, string logFile)
+		public TorProcessManager(EndPoint torSocks5EndPoint, string logFile)
 		{
 			TorSocks5EndPoint = torSocks5EndPoint;
 			LogFile = logFile;
@@ -193,7 +193,7 @@ namespace WalletWasabi.TorSocks5
 		}
 
 		/// <param name="torSocks5EndPoint">Opt out Tor with null.</param>
-		public static async Task<bool> IsTorRunningAsync(IPEndPoint torSocks5EndPoint)
+		public static async Task<bool> IsTorRunningAsync(EndPoint torSocks5EndPoint)
 		{
 			using (var client = new TorSocks5Client(torSocks5EndPoint))
 			{

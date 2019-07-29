@@ -278,18 +278,18 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						if (!bestSum.Almost(amountNeeded, Money.Coins(0.0001m)) // Otherwise it wouldn't generate change so consolidation would make no sense.
 							&& bestMinAnonset > 1) // Red coins should never be merged.
 						{
-							IEnumerable<SmartCoin> coinsThoseCanBeConsolidated = coins
+							IEnumerable<SmartCoin> coinsThatCanBeConsolidated = coins
 								.Except(bestSet) // Get all the registrable coins, except the already chosen ones.
 								.Where(x =>
 									x.AnonymitySet >= bestMinAnonset // The anonset must be at least equal to the bestSet's anonset so we do not ruin the change's after mix anonset.
 									&& x.AnonymitySet > 1 // Red coins should never be merged.
-									&& x.Amount < amountNeeded // The amount need to be smaller than the amountNeeded (so to make sure this is toxic change.)
+									&& x.Amount < amountNeeded // The amount needs to be smaller than the amountNeeded (so to make sure this is toxic change.)
 									&& (bestSum + x.Amount) > amountNeeded) // Sanity check that the amount added do not ruin the registration.
 								.OrderBy(x => x.Amount); // Choose the smallest ones.
 
-							if (coinsThoseCanBeConsolidated.Count() > 1) // Because the last one change should not be circulating, ruining privacy.
+							if (coinsThatCanBeConsolidated.Count() > 1) // Because the last one change should not be circulating, ruining privacy.
 							{
-								var bestCoinToAdd = coinsThoseCanBeConsolidated.First();
+								var bestCoinToAdd = coinsThatCanBeConsolidated.First();
 								bestSet.Add(bestCoinToAdd);
 							}
 						}
@@ -405,11 +405,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			IsInErrorState = false;
 			lock (StateLock)
 			{
-				// Find the rounds those are not running anymore
-				//	Put their coins back to the waiting list
-				//	Remove them
-				// Find the rounds those need to be updated
-				//	Update them
+				// Find the rounds that are not running anymore
+				// Put their coins back to the waiting list
+				// Remove them
+				// Find the rounds that need to be updated
+				// Update them
 
 				IEnumerable<long> roundsToRemove = Rounds.Select(x => x.State.RoundId).Where(y => !allRunningRoundsStates.Select(z => z.RoundId).Contains(y));
 

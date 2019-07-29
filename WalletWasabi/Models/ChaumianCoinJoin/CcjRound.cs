@@ -411,7 +411,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						// 9. Shuffle.
 						UnsignedCoinJoin.Inputs.Shuffle();
 						UnsignedCoinJoin.Outputs.Shuffle();
-						UnsignedCoinJoin.Outputs.SortByAmount(); // So the coinjoin looks better in block explorer.
+
+						// 10. Sort inputs and outputs by amount so the coinjoin looks better in a block explorer.
+						UnsignedCoinJoin.Inputs.SortByAmount(spentCoins);
+						UnsignedCoinJoin.Outputs.SortByAmount();
+						//Note: We shuffle then sort because inputs and outputs could have equal values
 
 						SignedCoinJoin = Transaction.Parse(UnsignedCoinJoin.ToHex(), Network);
 
@@ -573,7 +577,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			// If he registers many alices at InputRegistration
 			// AND never confirms in connection confirmation
 			// THEN connection confirmation will go with 2 alices in every round
-			// Therefore Alices those did not confirm, nor requested disconnection should be banned:
+			// Therefore Alices that did not confirm, nor requested disconnection should be banned:
 
 			IEnumerable<Alice> alicesToBan = await RemoveAlicesIfAnInputRefusedByMempoolAsync(); // So ban only those who confirmed participation, yet spent their inputs.
 
@@ -771,7 +775,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				// If the transaction does not spend unconfirmed coins then the confirmation target can be the one that's been set in the config.
 				var originalConfirmationTarget = AdjustedConfirmationTarget;
 
-				// Note that only dependents matter, spenders does not matter much or at all, they just allow this transaction to be confirmed faster.
+				// Note that only dependents matter, spenders do not matter much or at all, they just allow this transaction to be confirmed faster.
 				var dependents = await RpcClient.GetAllDependentsAsync(transactionHashes, includingProvided: true, likelyProvidedManyConfirmedOnes: true);
 				AdjustedConfirmationTarget = AdjustConfirmationTarget(dependents.Count, ConfiguredConfirmationTarget, ConfiguredConfirmationTargetReductionRate);
 
