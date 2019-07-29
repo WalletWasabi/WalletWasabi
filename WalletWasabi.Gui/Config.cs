@@ -26,6 +26,7 @@ namespace WalletWasabi.Gui
 		public const int DefaultMixUntilAnonymitySet = 50;
 		public const int DefaultTorSock5Port = 9050;
 		public static readonly Money DefaultDustThreshold = Money.Coins(0.0001m);
+
 		/// <inheritdoc />
 		public string FilePath { get; private set; }
 
@@ -282,12 +283,15 @@ namespace WalletWasabi.Gui
 				case "Main":
 					MainNetBitcoinP2pEndPoint = endPoint;
 					break;
+
 				case "TestNet":
 					TestNetBitcoinP2pEndPoint = endPoint;
 					break;
+
 				case "RegTest":
 					RegTestBitcoinP2pEndPoint = endPoint;
 					break;
+
 				default:
 					throw new NotSupportedException("Unsupported network");
 			}
@@ -299,10 +303,13 @@ namespace WalletWasabi.Gui
 			{
 				case "Main":
 					return MainNetBitcoinP2pEndPoint;
+
 				case "TestNet":
 					return TestNetBitcoinP2pEndPoint;
+
 				case "RegTest":
 					return RegTestBitcoinP2pEndPoint;
+
 				default:
 					throw new NotSupportedException("Unsupported network");
 			}
