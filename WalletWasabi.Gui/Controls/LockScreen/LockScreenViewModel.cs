@@ -40,7 +40,8 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 		public void Initialize()
 		{
-			Global.UiConfig.WhenAnyValue(x => x.LockScreenActive)
+			Global.UiConfig
+				.WhenAnyValue(x => x.LockScreenActive)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.BindTo(this, y => y.IsLocked)
 				.DisposeWith(Disposables);
