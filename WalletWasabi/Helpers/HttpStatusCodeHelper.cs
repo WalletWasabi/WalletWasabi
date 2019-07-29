@@ -1,4 +1,4 @@
-﻿namespace System.Net
+namespace System.Net
 {
 	public static class HttpStatusCodeHelper
 	{

@@ -1,4 +1,4 @@
-﻿namespace Gma.QrCodeNet.Encoding
+namespace Gma.QrCodeNet.Encoding
 {
 	public enum ErrorCorrectionLevel
 	{

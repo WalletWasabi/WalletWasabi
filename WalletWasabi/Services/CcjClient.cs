@@ -645,9 +645,10 @@ namespace WalletWasabi.Services
 
 			int maximumMixingLevelCount = 1;
 			var denominations = new List<Money>
-					{
-						baseDenomination
-					};
+			{
+				baseDenomination
+			};
+
 			for (int i = 1; i < mixingLevelCount; i++)
 			{
 				Money denom = denominations.Last() * 2;

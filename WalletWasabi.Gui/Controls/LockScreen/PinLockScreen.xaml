@@ -1,0 +1,68 @@
+﻿<lockscreen:PinLockScreen xmlns="https://github.com/avaloniaui"
+  xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+  xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  IsLocked="{Binding IsLocked}">
+  <lockscreen:PinLockScreen.Styles>
+
+    <Style Selector="Grid.Shade">
+      <Setter Property="Opacity" Value="0" />
+      <Setter Property="TranslateTransform.Y" Value="-100" />
+    </Style>
+
+    <Style Selector="lockscreen|PinLockScreen[IsLocked=true] Grid.Shade">
+      <Style.Animations>
+        <Animation FillMode="Both" Duration="0:0:1.5" Easing="QuarticEaseInOut">
+          <KeyFrame Cue="100%">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="TranslateTransform.Y" Value="0" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+
+    <Style Selector="lockscreen|PinLockScreen[IsLocked=false] Grid.Shade">
+      <Style.Animations>
+        <Animation FillMode="Both" Duration="0:0:1.5" Easing="QuarticEaseInOut">
+          <KeyFrame Cue="100%">
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="TranslateTransform.Y" Value="-100" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+  </lockscreen:PinLockScreen.Styles>
+  <Grid>
+    <Grid Classes="Shade" Background="{DynamicResource ThemeBackgroundBrush}">
+      <controls:GroupBox VerticalAlignment="Center" HorizontalAlignment="Center" TextBlock.FontSize="25" Padding="20" Margin="10">
+        <DockPanel LastChildFill ="True">
+          <controls:NoparaPasswordBox x:Name="InputField" Password="{Binding PinInput}" Width="300" DockPanel.Dock="Top" Margin="4 0 4 20" Watermark="PIN" UseFloatingWatermark="True" />
+          <Grid DockPanel.Dock="Bottom">
+            <TextBlock Text="Wrong PIN!"
+                       Margin="0,12,0,0" VerticalAlignment="Center" FontSize="20" Classes="warningMessage" IsVisible="{Binding WarningMessageVisible}" />
+          </Grid>
+          <Grid RowDefinitions="*,*,*,*" ColumnDefinitions="*,*,*">
+            <Grid.Styles>
+              <Style Selector="Button">
+                <Setter Property="Margin" Value="4" />
+                <Setter Property="Focusable" Value="False" />
+              </Style>
+            </Grid.Styles>
+            <Button Grid.Row="0" Grid.Column="0" Content="7" Command="{Binding KeyPadCommand}" CommandParameter="7" />
+            <Button Grid.Row="0" Grid.Column="1" Content="8" Command="{Binding KeyPadCommand}" CommandParameter="8" />
+            <Button Grid.Row="0" Grid.Column="2" Content="9" Command="{Binding KeyPadCommand}" CommandParameter="9" />
+            <Button Grid.Row="1" Grid.Column="0" Content="4" Command="{Binding KeyPadCommand}" CommandParameter="4" />
+            <Button Grid.Row="1" Grid.Column="1" Content="5" Command="{Binding KeyPadCommand}" CommandParameter="5" />
+            <Button Grid.Row="1" Grid.Column="2" Content="6" Command="{Binding KeyPadCommand}" CommandParameter="6" />
+            <Button Grid.Row="2" Grid.Column="0" Content="1" Command="{Binding KeyPadCommand}" CommandParameter="1" />
+            <Button Grid.Row="2" Grid.Column="1" Content="2" Command="{Binding KeyPadCommand}" CommandParameter="2" />
+            <Button Grid.Row="2" Grid.Column="2" Content="3" Command="{Binding KeyPadCommand}" CommandParameter="3" />
+            <Button Grid.Row="3" Grid.Column="0" Content="CLEAR" Command="{Binding KeyPadCommand}" CommandParameter="CLEAR" />
+            <Button Grid.Row="3" Grid.Column="1" Content="0" Command="{Binding KeyPadCommand}" CommandParameter="0" />
+            <Button Grid.Row="3" Grid.Column="2" Content="BACK" Command="{Binding KeyPadCommand}" CommandParameter="BACK" />
+          </Grid>
+        </DockPanel>
+      </controls:GroupBox>
+    </Grid>
+  </Grid>
+</lockscreen:PinLockScreen>

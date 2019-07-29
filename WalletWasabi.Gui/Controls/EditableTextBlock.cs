@@ -28,18 +28,18 @@ namespace WalletWasabi.Gui.Controls
 		{
 			EditClickTimer = new DispatcherTimer
 			{
-				Interval = TimeSpan.FromMilliseconds(500),
+				Interval = TimeSpan.FromMilliseconds(500)
 			};
 
 			EditClickTimer.Tick += (sender, e) =>
-			 {
-				 EditClickTimer.Stop();
+			{
+				EditClickTimer.Stop();
 
-				 if (IsFocused && !InEditMode)
-				 {
-					 EnterEditMode();
-				 }
-			 };
+				if (IsFocused && !InEditMode)
+				{
+					EnterEditMode();
+				}
+			};
 
 			this.GetObservable(TextProperty).Subscribe(t =>
 			{

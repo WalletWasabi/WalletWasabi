@@ -14,7 +14,7 @@
   Requests have the following format: `/api/v3/{coin}/{controller}/`.
   Currently supported coins: `btc`.
   
-  For example requesting fees: `GET /api/v3/btc/offchain/exchange-rates`.
+  For example requesting exchange rate: `GET /api/v3/btc/offchain/exchange-rates`.
 
 ### Controller: Blockchain, Coin: BTC
 

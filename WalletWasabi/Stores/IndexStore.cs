@@ -121,7 +121,7 @@ namespace WalletWasabi.Stores
 			{
 				// We found a corrupted entry. Stop here.
 				// Delete the currupted file.
-				// Do not try to autocorrect, because the internal data structures are throwing events those may confuse the consumers of those events.
+				// Do not try to autocorrect, because the internal data structures are throwing events that may confuse the consumers of those events.
 				Logger.LogError<IndexStore>("An index file got corrupted. Deleting index files...");
 				MatureIndexFileManager.DeleteMe();
 				ImmatureIndexFileManager.DeleteMe();
@@ -152,12 +152,14 @@ namespace WalletWasabi.Stores
 				var oldIndexFilePath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), $"Index{Network}.dat");
 
 				// Before Wasabi 1.1.6
-				var oldFileNames = new[] {
+				var oldFileNames = new[]
+				{
 					"ImmatureIndex.dat" ,
 					"ImmatureIndex.dat.dig",
 					"MatureIndex.dat",
 					"MatureIndex.dat.dig"
 				};
+
 				var oldIndexFolderPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), "BitcoinStore", Network.ToString());
 
 				foreach (var fileName in oldFileNames)
