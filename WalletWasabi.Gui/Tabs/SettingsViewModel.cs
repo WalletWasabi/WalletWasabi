@@ -58,9 +58,9 @@ namespace WalletWasabi.Gui.Tabs
 
 					var configBitcoinP2pEndPoint = Network == Network.Main
 						? config.MainNetBitcoinP2pEndPoint
-						: (Network == Network.TestNet
+						: Network == Network.TestNet
 							? config.TestNetBitcoinP2pEndPoint
-							: config.RegTestBitcoinP2pEndPoint);
+							: config.RegTestBitcoinP2pEndPoint;
 
 					BitcoinP2pEndPoint = configBitcoinP2pEndPoint.ToString(defaultPort: -1);
 				});
@@ -305,9 +305,9 @@ namespace WalletWasabi.Gui.Tabs
 
 					var configBitcoinP2pEndPoint = network == NBitcoin.Network.Main
 						? config.MainNetBitcoinP2pEndPoint
-						: (network == NBitcoin.Network.TestNet
+						: network == NBitcoin.Network.TestNet
 							? config.TestNetBitcoinP2pEndPoint
-							: config.RegTestBitcoinP2pEndPoint);
+							: config.RegTestBitcoinP2pEndPoint;
 
 					if (config.Network != network
 						|| config.TorSocks5EndPoint != torSocks5EndPoint
