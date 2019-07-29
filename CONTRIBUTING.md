@@ -32,7 +32,7 @@ If you are a new contributor **DO** keep refactoring pull requests short, uncomp
 
 ## Asynchronous Locking
 
-**DO NOT** use mix awaitable and non-awaitable locks.
+**DO NOT** mix awaitable and non-awaitable locks.
 
 ```cs
 // GOOD

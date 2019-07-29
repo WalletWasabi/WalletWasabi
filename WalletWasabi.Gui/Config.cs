@@ -284,29 +284,29 @@ namespace WalletWasabi.Gui
 
 			var config = JsonConvert.DeserializeObject<Config>(jsonString);
 
-			Network = config.Network ?? Network;
+			Network = config?.Network ?? Network;
 
-			MainNetBackendUriV3 = config.MainNetBackendUriV3 ?? MainNetBackendUriV3;
-			TestNetBackendUriV3 = config.TestNetBackendUriV3 ?? TestNetBackendUriV3;
-			MainNetFallbackBackendUri = config.MainNetFallbackBackendUri ?? MainNetFallbackBackendUri;
-			TestNetFallbackBackendUri = config.TestNetFallbackBackendUri ?? TestNetFallbackBackendUri;
-			RegTestBackendUriV3 = config.RegTestBackendUriV3 ?? RegTestBackendUriV3;
+			MainNetBackendUriV3 = config?.MainNetBackendUriV3 ?? MainNetBackendUriV3;
+			TestNetBackendUriV3 = config?.TestNetBackendUriV3 ?? TestNetBackendUriV3;
+			MainNetFallbackBackendUri = config?.MainNetFallbackBackendUri ?? MainNetFallbackBackendUri;
+			TestNetFallbackBackendUri = config?.TestNetFallbackBackendUri ?? TestNetFallbackBackendUri;
+			RegTestBackendUriV3 = config?.RegTestBackendUriV3 ?? RegTestBackendUriV3;
 
-			UseTor = config.UseTor ?? UseTor;
-			TorSocks5EndPoint = config.TorSocks5EndPoint ?? TorSocks5EndPoint;
+			UseTor = config?.UseTor ?? UseTor;
+			TorSocks5EndPoint = config?.TorSocks5EndPoint ?? TorSocks5EndPoint;
 
-			MainNetBitcoinP2pEndPoint = config.MainNetBitcoinP2pEndPoint ?? MainNetBitcoinP2pEndPoint;
-			TestNetBitcoinP2pEndPoint = config.TestNetBitcoinP2pEndPoint ?? TestNetBitcoinP2pEndPoint;
-			RegTestBitcoinP2pEndPoint = config.RegTestBitcoinP2pEndPoint ?? RegTestBitcoinP2pEndPoint;
+			MainNetBitcoinP2pEndPoint = config?.MainNetBitcoinP2pEndPoint ?? MainNetBitcoinP2pEndPoint;
+			TestNetBitcoinP2pEndPoint = config?.TestNetBitcoinP2pEndPoint ?? TestNetBitcoinP2pEndPoint;
+			RegTestBitcoinP2pEndPoint = config?.RegTestBitcoinP2pEndPoint ?? RegTestBitcoinP2pEndPoint;
 
-			MixUntilAnonymitySet = config.MixUntilAnonymitySet ?? MixUntilAnonymitySet;
-			PrivacyLevelSome = config.PrivacyLevelSome ?? PrivacyLevelSome;
-			PrivacyLevelFine = config.PrivacyLevelFine ?? PrivacyLevelFine;
-			PrivacyLevelStrong = config.PrivacyLevelStrong ?? PrivacyLevelStrong;
+			MixUntilAnonymitySet = config?.MixUntilAnonymitySet ?? MixUntilAnonymitySet;
+			PrivacyLevelSome = config?.PrivacyLevelSome ?? PrivacyLevelSome;
+			PrivacyLevelFine = config?.PrivacyLevelFine ?? PrivacyLevelFine;
+			PrivacyLevelStrong = config?.PrivacyLevelStrong ?? PrivacyLevelStrong;
 
-			DustThreshold = config.DustThreshold ?? DustThreshold;
+			DustThreshold = config?.DustThreshold ?? DustThreshold;
 
-			ServiceConfiguration = config.ServiceConfiguration ?? ServiceConfiguration;
+			ServiceConfiguration = config?.ServiceConfiguration ?? ServiceConfiguration;
 
 			// Just debug convenience.
 			_backendUri = GetCurrentBackendUri();

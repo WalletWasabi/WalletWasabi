@@ -136,12 +136,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnOpen();
 
-			if (Disposables != null)
-			{
-				throw new Exception("CoinJoin tab opened before previous closed.");
-			}
-
-			Disposables = new CompositeDisposable();
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			TargetPrivacy = Global.Config.GetTargetPrivacy();
 
@@ -231,7 +226,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 					SetWarningMessage(builder.ToString());
-					return;
 				}
 			}
 			finally
@@ -270,8 +264,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 					SetWarningMessage(builder.ToString());
-					Password = string.Empty;
-					return;
 				}
 
 				Password = string.Empty;
