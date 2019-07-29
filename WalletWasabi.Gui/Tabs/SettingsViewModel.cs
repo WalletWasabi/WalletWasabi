@@ -152,12 +152,7 @@ namespace WalletWasabi.Gui.Tabs
 
 		public override void OnOpen()
 		{
-			if (Disposables != null)
-			{
-				throw new Exception("Settings was opened before it was closed.");
-			}
-
-			Disposables = new CompositeDisposable();
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{

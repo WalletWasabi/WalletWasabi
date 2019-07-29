@@ -84,12 +84,7 @@ namespace WalletWasabi.Gui.Dialogs
 
 		public override void OnOpen()
 		{
-			if (Disposables != null)
-			{
-				throw new Exception("Dialog opened before it was closed (cannotclose)");
-			}
-
-			Disposables = new CompositeDisposable();
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			CancelTokenSource = new CancellationTokenSource().DisposeWith(Disposables);
 
