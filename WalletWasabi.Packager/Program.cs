@@ -749,11 +749,13 @@ namespace WalletWasabi.Packager
 					Directory.Move(publishedFolder, newFolderPath);
 					publishedFolder = newFolderPath;
 
+					var linuxPath = $"/mnt/c/{Tools.LinuxPath(BinDistDirectory.Replace("C:\\", ""))}"; // We assume that it is on drive C:\.
+
 					var commands = new[] {
 						"cd ~",
 						"sudo umount /mnt/c",
 						"sudo mount -t drvfs C: /mnt/c -o metadata",
-						$"cd /mnt/c/Users/user/Desktop/WalletWasabi/WalletWasabi.Gui/bin/dist",
+						$"cd {linuxPath}",
 						$"sudo find ./{newFolderName} -type f -not -name 'wassabee' -exec chmod 644 {{}} \\;",
 						$"tar -pczvf {newFolderName}.tar.gz {newFolderName}"
 					};
@@ -853,7 +855,7 @@ namespace WalletWasabi.Packager
 						"cd ~",
 						"sudo umount /mnt/c",
 						"sudo mount -t drvfs C: /mnt/c -o metadata",
-						"cd /mnt/c/Users/user/Desktop/WalletWasabi/WalletWasabi.Gui/bin/dist",
+						$"cd {linuxPath}",
 						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -not -name 'wassabee' -exec chmod 644 {{}} \\;",
 						$"sudo chmod +x {wasabiStarterScriptLinuxPath}",
 						$"sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)}",
