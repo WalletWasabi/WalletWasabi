@@ -11,6 +11,7 @@ using System.Net.Sockets;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
 using System.Text.RegularExpressions;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
@@ -49,6 +50,18 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			Autocopy = Global.UiConfig?.Autocopy is true;
 
+			// Use global config's data as default filler until the real data is filled out by the loading of the config onopen.
+			var globalConfig = Global.Config;
+			Network = globalConfig.Network;
+			TorSocks5EndPoint = globalConfig.TorSocks5EndPoint.ToString(-1);
+			UseTor = globalConfig.UseTor;
+			SomePrivacyLevel = globalConfig.PrivacyLevelSome.ToString();
+			FinePrivacyLevel = globalConfig.PrivacyLevelFine.ToString();
+			StrongPrivacyLevel = globalConfig.PrivacyLevelStrong.ToString();
+			DustThreshold = globalConfig.DustThreshold.ToString();
+			BitcoinP2pEndPoint = globalConfig.GetP2PEndpoint().ToString(defaultPort: -1);
+			IsModified = false;
+
 			this.WhenAnyValue(
 				x => x.Network,
 				x => x.UseTor)
@@ -60,26 +73,6 @@ namespace WalletWasabi.Gui.Tabs
 			{
 				Global.UiConfig.Autocopy = x;
 				await Global.UiConfig.ToFileAsync();
-			});
-
-			Dispatcher.UIThread.PostLogException(async () =>
-			{
-				var config = new Config(Global.Config.FilePath);
-				await config.LoadFileAsync();
-
-				Network = config.Network;
-				TorSocks5EndPoint = config.TorSocks5EndPoint.ToString(-1);
-				UseTor = config.UseTor;
-
-				SomePrivacyLevel = config.PrivacyLevelSome.ToString();
-				FinePrivacyLevel = config.PrivacyLevelFine.ToString();
-				StrongPrivacyLevel = config.PrivacyLevelStrong.ToString();
-
-				DustThreshold = config.DustThreshold.ToString();
-
-				BitcoinP2pEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
-
-				IsModified = await Global.Config.CheckFileChangeAsync();
 			});
 
 			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
@@ -141,10 +134,31 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(LurkingWifeMode));
-			}).DisposeWith(Disposables);
+			Config.LoadFileAsync(Global.Config.FilePath)
+				.ToObservable(RxApp.TaskpoolScheduler)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					Network = x.Network;
+					TorSocks5EndPoint = x.TorSocks5EndPoint.ToString(-1);
+					UseTor = x.UseTor;
+
+					SomePrivacyLevel = x.PrivacyLevelSome.ToString();
+					FinePrivacyLevel = x.PrivacyLevelFine.ToString();
+					StrongPrivacyLevel = x.PrivacyLevelStrong.ToString();
+
+					DustThreshold = x.DustThreshold.ToString();
+
+					BitcoinP2pEndPoint = x.GetP2PEndpoint().ToString(defaultPort: -1);
+
+					IsModified = !Global.Config.AreDeepEqual(x);
+				})
+				.DisposeWith(Disposables);
+
+			Global.UiConfig
+				.WhenAnyValue(x => x.LurkingWifeMode)
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(LurkingWifeMode)))
+				.DisposeWith(Disposables);
 
 			_isPinSet = Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
 				.ToProperty(this, x => x.IsPinSet, scheduler: RxApp.MainThreadScheduler)
@@ -308,6 +322,13 @@ namespace WalletWasabi.Gui.Tabs
 			});
 		}
 
+		private void OpenConfigFile()
+		{
+			IoHelpers.OpenFileInTextEditor(Global.Config.FilePath);
+		}
+
+		#region Validation
+
 		public string ValidateSomePrivacyLevel()
 			=> ValidatePrivacyLevel(SomePrivacyLevel, whiteSpaceOk: true);
 
@@ -371,9 +392,6 @@ namespace WalletWasabi.Gui.Tabs
 			return "Invalid endpoint.";
 		}
 
-		private void OpenConfigFile()
-		{
-			IoHelpers.OpenFileInTextEditor(Global.Config.FilePath);
-		}
+		#endregion Validation
 	}
 }

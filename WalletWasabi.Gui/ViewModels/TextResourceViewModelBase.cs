@@ -49,7 +49,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			Disposables = new CompositeDisposable();
 			LoadDocumentAsync(Target)
-				.ToObservable()
+				.ToObservable(RxApp.TaskpoolScheduler)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => Text = x)
 				.DisposeWith(Disposables);

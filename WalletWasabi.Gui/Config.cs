@@ -333,6 +333,13 @@ namespace WalletWasabi.Gui
 			}
 		}
 
+		public static async Task<Config> LoadFileAsync(string path)
+		{
+			var config = new Config(path);
+			await config.LoadFileAsync();
+			return config;
+		}
+
 		public void CopyFrom(Config config)
 		{
 			var configSerialized = JsonConvert.SerializeObject(config);
