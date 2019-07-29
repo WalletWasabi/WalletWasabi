@@ -333,10 +333,10 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		public static async Task<Config> LoadFileAsync(string path)
+		public static async Task<Config> LoadOrCreateDefaultFileAsync(string path)
 		{
 			var config = new Config(path);
-			await config.LoadFileAsync();
+			await config.LoadOrCreateDefaultFileAsync();
 			return config;
 		}
 

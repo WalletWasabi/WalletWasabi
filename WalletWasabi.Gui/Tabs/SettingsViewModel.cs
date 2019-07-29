@@ -134,7 +134,7 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Config.LoadFileAsync(Global.Config.FilePath)
+			Config.LoadOrCreateDefaultFileAsync(Global.Config.FilePath)
 				.ToObservable(RxApp.TaskpoolScheduler)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
