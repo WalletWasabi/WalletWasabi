@@ -303,7 +303,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					catch
 					{
-						SetWarningMessage("Spending coins those are being actively mixed is not allowed.");
+						SetWarningMessage("Spending coins that are being actively mixed is not allowed.");
 						return;
 					}
 					finally
@@ -1024,12 +1024,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnOpen()
 		{
-			if (Disposables != null)
-			{
-				throw new Exception("Send tab opened before last one closed.");
-			}
-
-			Disposables = new CompositeDisposable();
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			Global.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate).Subscribe(_ =>
 			{

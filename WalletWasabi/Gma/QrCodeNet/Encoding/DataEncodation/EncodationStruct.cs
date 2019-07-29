@@ -1,4 +1,4 @@
-﻿using Gma.QrCodeNet.Encoding.Versions;
+using Gma.QrCodeNet.Encoding.Versions;
 
 namespace Gma.QrCodeNet.Encoding.DataEncodation
 {

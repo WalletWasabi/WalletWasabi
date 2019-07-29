@@ -1,4 +1,4 @@
-﻿namespace Gma.QrCodeNet.Encoding.Masking.Scoring
+namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 {
 	/// <summary>
 	/// ISO/IEC 18004:2000 Chapter 8.8.2 Page 52

@@ -1,4 +1,4 @@
-﻿namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
+namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 {
 	internal class PositionDetectionPattern : PatternStencilBase
 	{

@@ -93,5 +93,7 @@ namespace WalletWasabi.Helpers
 		public const int DefaultMainNetBitcoinCoreRpcPort = 8332;
 		public const int DefaultTestNetBitcoinCoreRpcPort = 18332;
 		public const int DefaultRegTestBitcoinCoreRpcPort = 18443;
+
+		public const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	}
 }
