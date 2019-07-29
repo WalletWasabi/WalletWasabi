@@ -58,7 +58,15 @@
           </StackPanel>
           <StackPanel Orientation="Horizontal" Spacing="10">
             <Button Content="{Binding IsMax, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Clear:Max}" Command="{Binding MaxCommand}" VerticalAlignment="Top" Height="40" />
-            <controls:ExtendedTextBox Foreground="{Binding AmountText, Converter={StaticResource AmountForegroundConverter}}" IsReadOnly="{Binding IsMax}" Text="{Binding AmountText, Mode=TwoWay}" ToolTip.Tip="{Binding UsdExchangeRate, Converter={StaticResource UsdExchangeRateAmountToolTipConverter}}" Watermark="{Binding AmountWatermarkText}" UseFloatingWatermark="True" MinWidth="124" MinHeight="46" />
+            <controls:ExtendedTextBox
+              Foreground="{Binding AmountText, Converter={StaticResource AmountForegroundConverter}}"
+              IsReadOnly="{Binding IsMax}"
+              Text="{Binding AmountText, Mode=TwoWay}"
+              ToolTip.Tip="{Binding UsdExchangeRate, Converter={StaticResource UsdExchangeRateAmountToolTipConverter}}"
+              Watermark="{Binding AmountWatermarkText}"
+              UseFloatingWatermark="True"
+              MinWidth="124"
+              MinHeight="46" />
             <StackPanel>
               <StackPanel IsVisible="{Binding !MinMaxFeeTargetsEqual}" Orientation="Horizontal" Spacing="10">
                 <TextBlock Text="Fee:" />
@@ -72,7 +80,7 @@
               </StackPanel>
               <StackPanel IsVisible="{Binding MinMaxFeeTargetsEqual}" Orientation="Horizontal" Spacing="10">
                 <TextBlock Text="Fees are super low!" VerticalAlignment="Center" />
-                
+
                 <Grid Height="16" Width="16">
                   <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource SendTabView_Smiley}" />
                 </Grid>
