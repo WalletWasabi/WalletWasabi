@@ -9,6 +9,40 @@ ul {
   margin: 0;
 }
 
+.animated-link {
+  overflow: hidden;
+  display: inline-block;
+  height: 1.2rem;
+  letter-spacing: 0.1rem;
+}
+.animated-link span {
+  position: relative;
+  display: inline-block;
+  -webkit-transition: -webkit-transform 0.3s;
+  -moz-transition: -moz-transform 0.3s;
+  transition: transform 0.3s;
+}
+
+.animated-link span::before {
+  position: absolute;
+  top: 100%;
+  content: attr(data-hover);
+  font-weight: 700;
+  -webkit-transform: translate3d(0,0,0);
+  -moz-transform: translate3d(0,0,0);
+  transform: translate3d(0,0,0);
+}
+
+.animated-link:hover {
+  text-decoration: none;
+}
+
+.animated-link:hover span, .animated-link:focus span {
+    -webkit-transform: translateY(-100%);
+    -moz-transform: translateY(-100%);
+    transform: translateY(-100%);
+}
+
 .btn-labeled {
   position: relative;
   padding-left: 2rem;
@@ -46,7 +80,7 @@ ul {
   box-shadow: 0 0 30px rgba(0,0,0,.18);
 }
 
-.arrow-right {
+/* .arrow-right {
   position: relative;
 }
 
@@ -56,7 +90,7 @@ ul {
   transform: translateY(-50%);
   content: url("../images/icon-long-arrow.svg");
   left: calc(100% + 20px);
-}
+} */
 
 .toggle-input {
   display: none;
@@ -117,9 +151,23 @@ ul {
   max-height: 5000px;
 }
 
-.shader {
-  transition: all .3s ease;
+/* .shader {
+  -webkit-animation-name: float;
+  -webkit-animation-timing-function: linear;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-duration: 10s;
+  -webkit-transform-style: preserve-3d;
 }
+@-webkit-keyframes float {
+  0%, 100% {
+    -webkit-transform: translateY(0);
+  } 50% {
+    -webkit-transform: translateY(-10%);
+  }
+} */
+
+
+
 /* Make navbar toggler work on mobile devices without Bootstrap JS */
 #navbar-toggle-cbox {
   display:none
@@ -202,36 +250,70 @@ section .shader {
 @-webkit-keyframes hero-flickr {
   0% {
     opacity: 0;
+    filter: hue-rotate(0deg);
+    background-position: center;
   }
   2% {
     opacity: 1;
+    filter: hue-rotate(45deg);
+    background-position: center;
   }
   4% {
     opacity: 0;
+    filter: hue-rotate(0deg);
+    background-position: center;
+    background-position: calc(50% + 20px) 50%;
   }
   7% {
     opacity: .5;
+    filter: hue-rotate(89deg);
+    background-position: center;
   }
   9% {
     opacity: .2;
+    filter: hue-rotate(178deg);
+    background-position: center;
   }
-  12%, 69% {
+  12% {
     opacity: 1;
+    filter: hue-rotate(0deg);
+    background-position: center;
+  }
+  15% {
+    opacity: 1;
+    filter: hue-rotate(0deg);
+    background-position: center;
+    background-position: calc(50% - 0px) 50%;
+  }
+  69% {
+    opacity: 1;
+    filter: hue-rotate(0deg);
+    background-position: center;
   }
   70% {
     opacity: 0;
+    filter: hue-rotate(0deg);
+    background-position: center;
   }
   73% {
     opacity: 0.5;
+    filter: hue-rotate(218deg);
+    background-position: center;
   }
   76% {
     opacity: 0;
+    filter: hue-rotate(0deg);
+    background-position: center;
+    background-position: calc(50% - 12px) 50%;
   }
   79% {
     opacity: 1;
+    background-position: center;
   }
   100% {
     opacity: 1;
+    filter: hue-rotate(0deg);
+    background-position: center;
   }
 }
 
@@ -271,6 +353,29 @@ section .shader {
   width: 100%;
   height: auto;
   /* transform: translateY(-12.5rem); */
+}
+
+.coinjoins svg #signal-1, .coinjoins svg #signal-2 {
+  -webkit-animation-timing-function: linear;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-transform-style: preserve-3d;
+  -webkit-animation-name: blink;
+  -webkit-animation-duration: 1s;
+}
+.coinjoins svg #signal-1 {
+  -webkit-animation-delay: .2s;
+
+}
+.coinjoins svg #signal-2 {
+  -webkit-animation-delay: .4s;
+}
+
+@-webkit-keyframes blink {
+  0%, 100% {
+    opacity: 0;
+  } 50% {
+    opacity: 1;
+  }
 }
 
 .coinjoins .coinjoin-txs .tx {
@@ -348,7 +453,8 @@ section .shader {
     text-align: center !important;
   }
   .hero .shader {
-    width: 120vw;
+    width: 120vw !important;
+    height: auto !important;
     top: calc(100vh + 2rem);
     right: -9rem;
     transform: none;
