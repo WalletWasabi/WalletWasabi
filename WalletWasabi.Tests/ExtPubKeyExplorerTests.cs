@@ -27,7 +27,8 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public void ShouldFindNeverUsedKey()
 		{
-			var filters = new[] {
+			var filters = new[]
+			{
 				FilterModel.FromHeightlessLine("000000000000de90e633e1b1330859842795d39018d033044e8b003e8cbf58e4:050a2f58828c9820642769ae320a40", 0)
 			};
 
@@ -39,7 +40,8 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public void ShouldFindUnsedKeyFirstChunk()
 		{
-			var filters = new[]{
+			var filters = new[]
+			{
 				CreateFiltersWith(GetScripts(false, 0, 10)),
 				CreateFiltersWith(GetScripts(false, 10, 10))
 			};
@@ -52,19 +54,22 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public void ShouldFindUnsedKeyAtTheEndOfFirstChunk()
 		{
-			var filters = new[]{
+			var filters = new[]
+			{
 				CreateFiltersWith(GetScripts(true, 0, 500)),
 				CreateFiltersWith(GetScripts(true, 500, 499))
 			};
 
 			var unusedKeyIndex = ExtPubKeyExplorer.GetUnusedBech32Keys(1, true, ExtPubKey.GetWif(Network.Main), filters).First().ScriptPubKey.ToCompressedBytes();
+
 			Assert.Equal(DerivateScript(true, 999), unusedKeyIndex);
 		}
 
 		[Fact]
 		public void ShouldFindUnsedKeyAnywhereFirstChunk()
 		{
-			var filters = new[]{
+			var filters = new[]
+			{
 				CreateFiltersWith(GetScripts(true, 0,  1)),
 				CreateFiltersWith(GetScripts(true, 0,  2)),
 				CreateFiltersWith(GetScripts(true, 0, 27)),
@@ -79,7 +84,8 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public void ShouldFindUnsedKeySecondChunk()
 		{
-			var filters = new[]{
+			var filters = new[]
+			{
 				CreateFiltersWith(GetScripts(true,   0, 250)),
 				CreateFiltersWith(GetScripts(true, 250, 250)),
 				CreateFiltersWith(GetScripts(true, 500, 250)),

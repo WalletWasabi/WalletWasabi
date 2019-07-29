@@ -87,7 +87,7 @@ namespace WalletWasabi.Backend.Models
 			}
 			else
 			{
-				throw new FormatException("Could not parse Height.");
+				throw new FormatException($"Could not parse {nameof(Height)}.");
 			}
 		}
 

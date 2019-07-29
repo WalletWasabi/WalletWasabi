@@ -50,6 +50,7 @@ namespace WalletWasabi.Gui.Controls
 				Margin = new Thickness(7, 0),
 				HorizontalAlignment = HorizontalAlignment.Right
 			};
+
 			TextBox = new TextBlock();
 
 			Grid stackPnl = new Grid

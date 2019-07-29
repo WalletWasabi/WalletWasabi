@@ -191,6 +191,9 @@ namespace WalletWasabi.Gui
 				{
 					MainWindowViewModel.Instance.WindowState = WindowState.Maximized;
 				}
+
+				MainWindowViewModel.Instance.LockScreen.Initialize();
+
 				DisplayWalletManager();
 			}
 			catch (Exception ex)

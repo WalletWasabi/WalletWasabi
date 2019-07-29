@@ -20,7 +20,7 @@ namespace Nito.AsyncEx
 			StatusReady = 1,
 			StatusAcquiring = 2,
 			StatusAcquired = 3,
-			StatusReleasing = 4,
+			StatusReleasing = 4
 		}
 
 		private int _status;

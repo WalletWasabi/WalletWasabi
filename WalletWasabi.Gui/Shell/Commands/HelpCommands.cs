@@ -117,7 +117,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 						Content = devTools,
 						DataTemplates =
 						{
-							new ViewLocator<Avalonia.Diagnostics.ViewModels.ViewModelBase>(),
+							new ViewLocator<Avalonia.Diagnostics.ViewModels.ViewModelBase>()
 						}
 					};
 

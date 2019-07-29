@@ -10,7 +10,7 @@ namespace NSubsys
 		public enum SubSystemType : ushort
 		{
 			IMAGE_SUBSYSTEM_WINDOWS_GUI = 2,
-			IMAGE_SUBSYSTEM_WINDOWS_CUI = 3,
+			IMAGE_SUBSYSTEM_WINDOWS_CUI = 3
 		}
 
 		[StructLayout(LayoutKind.Explicit)]

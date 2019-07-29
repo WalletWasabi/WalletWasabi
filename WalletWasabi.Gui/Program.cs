@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
+using WalletWasabi.Gui.Controls.LockScreen;
+using WalletWasabi.Gui.ManagedDialogs;
 
 namespace WalletWasabi.Gui
 {
@@ -22,6 +24,7 @@ namespace WalletWasabi.Gui
 #pragma warning restore IDE1006 // Naming Styles
 		{
 			StatusBarViewModel statusBar = null;
+
 			bool runGui = false;
 			try
 			{
@@ -44,6 +47,7 @@ namespace WalletWasabi.Gui
 						MainWindowViewModel.Instance = new MainWindowViewModel { Global = Global };
 						statusBar = new StatusBarViewModel(Global);
 						MainWindowViewModel.Instance.StatusBar = statusBar;
+						MainWindowViewModel.Instance.LockScreen = new LockScreenViewModel(Global);
 
 						await Global.InitializeNoWalletAsync();
 
@@ -104,11 +108,13 @@ namespace WalletWasabi.Gui
 					useGpuLinux = false;
 				}
 
-				result.UsePlatformDetect();
+				result.UsePlatformDetect()
+					.UseManagedSystemDialogs();
 			}
 			else
 			{
-				result.UsePlatformDetect();
+				result.UsePlatformDetect()
+					.UseManagedSystemDialogs();
 			}
 
 			return result
