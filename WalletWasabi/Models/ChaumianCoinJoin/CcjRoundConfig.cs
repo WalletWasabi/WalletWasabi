@@ -2,6 +2,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,43 +21,55 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		[JsonProperty(PropertyName = "Denomination")]
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
-		public Money Denomination { get; internal set; }
+		public Money Denomination { get; internal set; } = Money.Coins(0.1m);
 
-		[JsonProperty(PropertyName = "ConfirmationTarget")]
-		public int? ConfirmationTarget { get; internal set; }
+		[DefaultValue(Constants.OneDayConfirmationTarget)]
+		[JsonProperty(PropertyName = "ConfirmationTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int ConfirmationTarget { get; internal set; }
 
-		[JsonProperty(PropertyName = "ConfirmationTargetReductionRate")]
-		public double? ConfirmationTargetReductionRate { get; internal set; }
+		[DefaultValue(0.7)]
+		[JsonProperty(PropertyName = "ConfirmationTargetReductionRate", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public double ConfirmationTargetReductionRate { get; internal set; }
 
-		[JsonProperty(PropertyName = "CoordinatorFeePercent")]
-		public decimal? CoordinatorFeePercent { get; internal set; }
+		[DefaultValue(0.003)] // Coordinator fee percent is per anonymity set.
+		[JsonProperty(PropertyName = "CoordinatorFeePercent", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public decimal CoordinatorFeePercent { get; internal set; }
 
-		[JsonProperty(PropertyName = "AnonymitySet")]
-		public int? AnonymitySet { get; internal set; }
+		[DefaultValue(100)]
+		[JsonProperty(PropertyName = "AnonymitySet", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int AnonymitySet { get; internal set; }
 
-		[JsonProperty(PropertyName = "InputRegistrationTimeout")]
-		public long? InputRegistrationTimeout { get; internal set; }
+		[DefaultValue(604800)] // One week
+		[JsonProperty(PropertyName = "InputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public long InputRegistrationTimeout { get; internal set; }
 
-		[JsonProperty(PropertyName = "ConnectionConfirmationTimeout")]
-		public long? ConnectionConfirmationTimeout { get; internal set; }
+		[DefaultValue(60)]
+		[JsonProperty(PropertyName = "ConnectionConfirmationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public long ConnectionConfirmationTimeout { get; internal set; }
 
-		[JsonProperty(PropertyName = "OutputRegistrationTimeout")]
-		public long? OutputRegistrationTimeout { get; internal set; }
+		[DefaultValue(60)]
+		[JsonProperty(PropertyName = "OutputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public long OutputRegistrationTimeout { get; internal set; }
 
-		[JsonProperty(PropertyName = "SigningTimeout")]
-		public long? SigningTimeout { get; internal set; }
+		[DefaultValue(60)]
+		[JsonProperty(PropertyName = "SigningTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public long SigningTimeout { get; internal set; }
 
-		[JsonProperty(PropertyName = "DosSeverity")]
-		public int? DosSeverity { get; internal set; }
+		[DefaultValue(1)]
+		[JsonProperty(PropertyName = "DosSeverity", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int DosSeverity { get; internal set; }
 
-		[JsonProperty(PropertyName = "DosDurationHours")]
-		public long? DosDurationHours { get; internal set; }
+		[DefaultValue(730)] // 1 month
+		[JsonProperty(PropertyName = "DosDurationHours", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public long DosDurationHours { get; internal set; }
 
-		[JsonProperty(PropertyName = "DosNoteBeforeBan")]
-		public bool? DosNoteBeforeBan { get; internal set; }
+		[DefaultValue(true)]
+		[JsonProperty(PropertyName = "DosNoteBeforeBan", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool DosNoteBeforeBan { get; internal set; }
 
-		[JsonProperty(PropertyName = "MaximumMixingLevelCount")]
-		public int? MaximumMixingLevelCount { get; internal set; }
+		[DefaultValue(11)]
+		[JsonProperty(PropertyName = "MaximumMixingLevelCount", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int MaximumMixingLevelCount { get; internal set; }
 
 		public CcjRoundConfig()
 		{
@@ -83,19 +96,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			AssertFilePathSet();
 
-			Denomination = Money.Coins(0.1m);
-			ConfirmationTarget = Constants.OneDayConfirmationTarget; // 1 day
-			ConfirmationTargetReductionRate = 0.7;
-			CoordinatorFeePercent = 0.003m; // Coordinator fee percent is per anonymity set.
-			AnonymitySet = 100;
-			InputRegistrationTimeout = 604800; // One week
-			ConnectionConfirmationTimeout = 60;
-			OutputRegistrationTimeout = 60;
-			SigningTimeout = 60;
-			DosSeverity = 1;
-			DosDurationHours = 730; // 1 month
-			DosNoteBeforeBan = true;
-			MaximumMixingLevelCount = 11;
+			JsonConvert.PopulateObject("{}", this);
 
 			if (!File.Exists(FilePath))
 			{
@@ -115,18 +116,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public async Task UpdateOrDefaultAsync(CcjRoundConfig config, bool toFile)
 		{
 			Denomination = config.Denomination ?? Denomination;
-			ConfirmationTarget = config.ConfirmationTarget ?? ConfirmationTarget;
-			ConfirmationTargetReductionRate = config.ConfirmationTargetReductionRate ?? ConfirmationTargetReductionRate;
-			CoordinatorFeePercent = config.CoordinatorFeePercent ?? CoordinatorFeePercent;
-			AnonymitySet = config.AnonymitySet ?? AnonymitySet;
-			InputRegistrationTimeout = config.InputRegistrationTimeout ?? InputRegistrationTimeout;
-			ConnectionConfirmationTimeout = config.ConnectionConfirmationTimeout ?? ConnectionConfirmationTimeout;
-			OutputRegistrationTimeout = config.OutputRegistrationTimeout ?? OutputRegistrationTimeout;
-			SigningTimeout = config.SigningTimeout ?? SigningTimeout;
-			DosSeverity = config.DosSeverity ?? DosSeverity;
-			DosDurationHours = config.DosDurationHours ?? DosDurationHours;
-			DosNoteBeforeBan = config.DosNoteBeforeBan ?? DosNoteBeforeBan;
-			MaximumMixingLevelCount = config.MaximumMixingLevelCount ?? MaximumMixingLevelCount;
+			var configSerialized = JsonConvert.SerializeObject(config);
+			JsonConvert.PopulateObject(configSerialized, this);
 
 			if (toFile)
 			{
