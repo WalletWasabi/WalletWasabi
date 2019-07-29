@@ -1,4 +1,4 @@
-﻿namespace WalletWasabi.Http.Models
+namespace WalletWasabi.Http.Models
 {
 	// https://tools.ietf.org/html/rfc7230#section-2.7.3
 	// The scheme and host are case-insensitive and normally provided in lowercase;

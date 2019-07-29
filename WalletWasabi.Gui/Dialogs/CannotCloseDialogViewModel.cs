@@ -118,7 +118,7 @@ namespace WalletWasabi.Gui.Dialogs
 					await Task.Delay(300);
 					if (DateTime.Now - start > TimeSpan.FromSeconds(10))
 					{
-						throw new InvalidOperationException("Window not opened");
+						throw new InvalidOperationException("Window did not open.");
 					}
 				}
 

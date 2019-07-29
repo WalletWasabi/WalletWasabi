@@ -215,7 +215,7 @@ namespace WalletWasabi.Services
 			}
 
 			Coins.TryRemove(toRemove);
-			Mempool.TransactionHashes.TryRemove(toRemove.SpenderTransactionId);
+			Mempool.TransactionHashes.TryRemove(toRemove.TransactionId);
 		}
 
 		private async void IndexDownloader_NewFilterAsync(object sender, FilterModel filterModel)
@@ -273,16 +273,11 @@ namespace WalletWasabi.Services
 					{
 						IEnumerable<SmartTransaction> transactions = null;
 						string jsonString = File.ReadAllText(TransactionsFilePath, Encoding.UTF8);
-						transactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?
-							.OrderByBlockchain();
+						transactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?.OrderByBlockchain();
 
-						confirmedTransactions = transactions?
-							.Where(x => x.Confirmed)?
-							.ToArray() ?? new SmartTransaction[0];
+						confirmedTransactions = transactions?.Where(x => x.Confirmed)?.ToArray() ?? new SmartTransaction[0];
 
-						unconfirmedTransactions = transactions?
-							.Where(x => !x.Confirmed)?
-							.ToArray() ?? new SmartTransaction[0];
+						unconfirmedTransactions = transactions?.Where(x => !x.Confirmed)?.ToArray() ?? new SmartTransaction[0];
 					}
 					catch (Exception ex)
 					{
@@ -801,8 +796,8 @@ namespace WalletWasabi.Services
 										nodeConnectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint, onlyForOnionHosts: true, networkCredential: null, streamIsolation: false));
 									}
 
-									var localIpEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
-									var localNode = await Node.ConnectAsync(Network, localIpEndPoint, nodeConnectionParameters);
+									var localEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
+									var localNode = await Node.ConnectAsync(Network, localEndPoint, nodeConnectionParameters);
 									try
 									{
 										Logger.LogInfo<WalletService>($"TCP Connection succeeded, handshaking...");
@@ -1085,7 +1080,7 @@ namespace WalletWasabi.Services
 			}
 
 			// Get allowed coins to spend.
-			List<SmartCoin> allowedSmartCoinInputs; // Inputs those can be used to build the transaction.
+			List<SmartCoin> allowedSmartCoinInputs; // Inputs that can be used to build the transaction.
 			if (allowedInputs != null) // If allowedInputs are specified then select the coins from them.
 			{
 				if (!allowedInputs.Any())
@@ -1215,9 +1210,9 @@ namespace WalletWasabi.Services
 
 			if (feePc > 1)
 			{
-				Logger.LogInfo<WalletService>($"The transaction fee is {feePc:0.#}% of your transaction amount."
-					+ Environment.NewLine + $"Sending:\t {totalOutgoingAmount.ToString(fplus: false, trimExcessZero: true)} BTC."
-					+ Environment.NewLine + $"Fee:\t\t {fee.Satoshi} Satoshi.");
+				Logger.LogInfo<WalletService>($"The transaction fee is {feePc:0.#}% of your transaction amount.{Environment.NewLine}"
+					+ $"Sending:\t {totalOutgoingAmount.ToString(fplus: false, trimExcessZero: true)} BTC.{Environment.NewLine}"
+					+ $"Fee:\t\t {fee.Satoshi} Satoshi.");
 			}
 			if (feePc > 100)
 			{
@@ -1450,7 +1445,7 @@ namespace WalletWasabi.Services
 
 					Logger.LogInfo<WalletService>($"Trying to broadcast transaction with random node ({node.RemoteSocketAddress}):{transaction.GetHash()}");
 					var addedToBroadcastStore = Mempool.TryAddToBroadcastStore(transaction.Transaction, node.RemoteSocketEndpoint.ToString()); // So we'll reply to INV with this transaction.
-					if(!addedToBroadcastStore)
+					if (!addedToBroadcastStore)
 					{
 						Logger.LogWarning<WalletService>($"Transaction {transaction.GetHash()} was already present in the broadcast store.");
 					}
@@ -1461,7 +1456,7 @@ namespace WalletWasabi.Services
 						await node.SendMessageAsync(invPayload).WithCancellation(cts.Token); // ToDo: It's dangerous way to cancel. Implement proper cancellation to NBitcoin!
 					}
 
-					if(Mempool.TryGetFromBroadcastStore(transaction.GetHash(), out TransactionBroadcastEntry entry))
+					if (Mempool.TryGetFromBroadcastStore(transaction.GetHash(), out TransactionBroadcastEntry entry))
 					{
 						// Give 7 seconds for serving.
 						var timeout = 0;
@@ -1476,7 +1471,7 @@ namespace WalletWasabi.Services
 						}
 						node.DisconnectAsync("Thank you!");
 						Logger.LogInfo<MempoolBehavior>($"Disconnected node: {node.RemoteSocketAddress}. Successfully broadcasted transaction: {transaction.GetHash()}.");
-					
+
 						// Give 21 seconds for propagation.
 						timeout = 0;
 						while (entry.GetPropagationConfirmations() < 2)

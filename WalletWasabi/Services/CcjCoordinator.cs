@@ -309,7 +309,7 @@ namespace WalletWasabi.Services
 					}
 				}
 
-				// If aborted in signing phase, then ban Alices those did not sign.
+				// If aborted in signing phase, then ban Alices that did not sign.
 				if (status == CcjRoundStatus.Aborted && round.Phase == CcjRoundPhase.Signing)
 				{
 					IEnumerable<Alice> alicesDidntSign = round.GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: false);
@@ -321,7 +321,7 @@ namespace WalletWasabi.Services
 						int nextRoundAlicesCount = nextRound.CountAlices(syncLock: false);
 						var alicesSignedCount = round.AnonymitySet - alicesDidntSign.Count();
 
-						// New round's anonset should be the number of alices those signed in this round.
+						// New round's anonset should be the number of alices that signed in this round.
 						// Except if the number of alices in the next round is already larger.
 						var newAnonymitySet = Math.Max(alicesSignedCount, nextRoundAlicesCount);
 						// But it cannot be larger than the current anonset of that round.

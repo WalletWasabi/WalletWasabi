@@ -1,4 +1,4 @@
-﻿namespace Gma.QrCodeNet.Encoding.Versions
+namespace Gma.QrCodeNet.Encoding.Versions
 {
 	public static class VersionTable
 	{
@@ -28,7 +28,8 @@
 
 		private static QRCodeVersion[] Initialize()
 		{
-			return new QRCodeVersion[]{
+			return new QRCodeVersion[]
+			{
 				new QRCodeVersion(1, 26,
 							new ErrorCorrectionBlocks(7, new ErrorCorrectionBlock(1, 19)),
 							new ErrorCorrectionBlocks(10, new ErrorCorrectionBlock(1, 16)),
