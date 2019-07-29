@@ -20,8 +20,8 @@ namespace WalletWasabi.Gui
 	[JsonObject(MemberSerialization.OptIn)]
 	public class UiConfig : ReactiveObject, IConfig
 	{
-		private bool? _lurkingWifeMode;
-		private bool? _lockScreenActive;
+		private bool _lurkingWifeMode;
+		private bool _lockScreenActive;
 		private string _lockScreenPinHash;
 
 		/// <inheritdoc />
@@ -29,38 +29,46 @@ namespace WalletWasabi.Gui
 
 		[JsonProperty(PropertyName = "WindowState")]
 		[JsonConverter(typeof(WindowStateAfterStartJsonConverter))]
-		public WindowState? WindowState { get; internal set; }
+		public WindowState WindowState { get; internal set; } = Avalonia.Controls.WindowState.Maximized;
 
-		[JsonProperty(PropertyName = "Height")]
-		public double? Height { get; internal set; }
+		[DefaultValue(530)]
+		[JsonProperty(PropertyName = "Height", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public double Height { get; internal set; }
 
-		[JsonProperty(PropertyName = "Width")]
-		public double? Width { get; internal set; }
+		[DefaultValue(1100)]
+		[JsonProperty(PropertyName = "Width", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public double Width { get; internal set; }
 
-		[JsonProperty(PropertyName = "FeeTarget")]
-		public int? FeeTarget { get; internal set; }
+		[DefaultValue(2)]
+		[JsonProperty(PropertyName = "FeeTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int FeeTarget { get; internal set; }
 
-		[JsonProperty(PropertyName = "FeeDisplayFormat")]
-		public int? FeeDisplayFormat { get; internal set; }
+		[DefaultValue(0)]
+		[JsonProperty(PropertyName = "FeeDisplayFormat", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int FeeDisplayFormat { get; internal set; }
 
-		[JsonProperty(PropertyName = "Autocopy")]
-		public bool? Autocopy { get; internal set; }
+		[DefaultValue(true)]
+		[JsonProperty(PropertyName = "Autocopy", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool Autocopy { get; internal set; }
 
-		[JsonProperty(PropertyName = "LurkingWifeMode")]
-		public bool? LurkingWifeMode
+		[DefaultValue(false)]
+		[JsonProperty(PropertyName = "LurkingWifeMode", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool LurkingWifeMode
 		{
 			get => _lurkingWifeMode;
 			set => this.RaiseAndSetIfChanged(ref _lurkingWifeMode, value);
 		}
 
-		[JsonProperty(PropertyName = "LockScreenActive")]
-		public bool? LockScreenActive
+		[DefaultValue(false)]
+		[JsonProperty(PropertyName = "LockScreenActive", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool LockScreenActive
 		{
 			get => _lockScreenActive;
 			set => this.RaiseAndSetIfChanged(ref _lockScreenActive, value);
 		}
 
-		[JsonProperty(PropertyName = "LockScreenPinHash")]
+		[DefaultValue("")]
+		[JsonProperty(PropertyName = "LockScreenPinHash", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public string LockScreenPinHash
 		{
 			get => _lockScreenPinHash;
@@ -92,15 +100,7 @@ namespace WalletWasabi.Gui
 		{
 			AssertFilePathSet();
 
-			WindowState = Avalonia.Controls.WindowState.Maximized;
-			Height = 530;
-			Width = 1100;
-			FeeTarget = 2;
-			FeeDisplayFormat = 0;
-			Autocopy = true;
-			LurkingWifeMode = false;
-			LockScreenActive = false;
-			LockScreenPinHash = "";
+			JsonConvert.PopulateObject("{}", this);
 
 			if (!File.Exists(FilePath))
 			{
@@ -118,16 +118,7 @@ namespace WalletWasabi.Gui
 		{
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
 			var config = JsonConvert.DeserializeObject<UiConfig>(jsonString);
-
-			WindowState = config?.WindowState ?? WindowState;
-			Height = config?.Height ?? Height;
-			Width = config?.Width ?? Width;
-			FeeTarget = config?.FeeTarget ?? FeeTarget;
-			FeeDisplayFormat = config?.FeeDisplayFormat ?? FeeDisplayFormat;
-			Autocopy = config?.Autocopy ?? Autocopy;
-			LurkingWifeMode = config?.LurkingWifeMode ?? LurkingWifeMode;
-			LockScreenActive = config?.LockScreenActive ?? LockScreenActive;
-			LockScreenPinHash = config?.LockScreenPinHash ?? LockScreenPinHash;
+			JsonConvert.PopulateObject(jsonString, this);
 		}
 
 		/// <inheritdoc />
@@ -137,14 +128,20 @@ namespace WalletWasabi.Gui
 
 			if (!File.Exists(FilePath))
 			{
-				throw new FileNotFoundException($"{nameof(Config)} file did not exist at path: `{FilePath}`.");
+				throw new FileNotFoundException($"{nameof(UiConfig)} file did not exist at path: `{FilePath}`.");
 			}
 
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-			var newConfig = JsonConvert.DeserializeObject<JObject>(jsonString);
-			var currentConfig = JObject.FromObject(this);
+			var newConfig = JsonConvert.DeserializeObject<UiConfig>(jsonString);
 
-			return !JToken.DeepEquals(newConfig, currentConfig);
+			return !AreDeepEqual(newConfig);
+		}
+
+		private bool AreDeepEqual(UiConfig otherConfig)
+		{
+			var currentConfig = JObject.FromObject(this);
+			var otherConfigJson = JObject.FromObject(otherConfig);
+			return JToken.DeepEquals(otherConfigJson, currentConfig);
 		}
 
 		/// <inheritdoc />
