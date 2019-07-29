@@ -135,12 +135,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnOpen();
 
-			if (Disposables != null)
-			{
-				throw new Exception("Receive tab was opened before last one closed.");
-			}
-
-			Disposables = new CompositeDisposable();
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			Observable.FromEventPattern(Global.WalletService.Coins,
 				nameof(Global.WalletService.Coins.CollectionChanged))

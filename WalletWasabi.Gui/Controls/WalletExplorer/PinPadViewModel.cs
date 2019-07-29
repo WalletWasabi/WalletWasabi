@@ -56,12 +56,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnOpen();
 
-			if (Disposables != null)
-			{
-				throw new Exception("Pin Pad was opened before last one closed.");
-			}
-
-			Disposables = new CompositeDisposable();
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 		}
 
 		public override bool OnClose()

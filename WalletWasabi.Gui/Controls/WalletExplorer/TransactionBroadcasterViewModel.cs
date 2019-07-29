@@ -142,12 +142,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnOpen()
 		{
-			if (Disposables != null)
-			{
-				throw new Exception("TransactionBroadcaster was opened before last one closed.");
-			}
-
-			Disposables = new CompositeDisposable();
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			base.OnOpen();
 		}
