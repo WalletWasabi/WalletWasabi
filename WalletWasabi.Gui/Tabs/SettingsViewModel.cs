@@ -269,57 +269,57 @@ namespace WalletWasabi.Gui.Tabs
 
 		private void Save()
 		{
-			//var network = Network;
-			//if (network is null)
-			//{
-			//	return;
-			//}
+			var network = Network;
+			if (network is null)
+			{
+				return;
+			}
 
-			//var isValid =
-			//	string.IsNullOrEmpty(ValidatePrivacyLevel(SomePrivacyLevel, whiteSpaceOk: false))
-			//	&& string.IsNullOrEmpty(ValidatePrivacyLevel(FinePrivacyLevel, whiteSpaceOk: false))
-			//	&& string.IsNullOrEmpty(ValidatePrivacyLevel(StrongPrivacyLevel, whiteSpaceOk: false))
-			//	&& string.IsNullOrEmpty(ValidateDustThreshold(DustThreshold, whiteSpaceOk: false))
-			//	&& string.IsNullOrEmpty(ValidateEndPoint(TorSocks5EndPoint, Constants.DefaultTorSocksPort, whiteSpaceOk: false))
-			//	&& string.IsNullOrEmpty(ValidateEndPoint(BitcoinP2pEndPoint, network.DefaultPort, whiteSpaceOk: false));
+			var isValid =
+				string.IsNullOrEmpty(ValidatePrivacyLevel(SomePrivacyLevel, whiteSpaceOk: false))
+				&& string.IsNullOrEmpty(ValidatePrivacyLevel(FinePrivacyLevel, whiteSpaceOk: false))
+				&& string.IsNullOrEmpty(ValidatePrivacyLevel(StrongPrivacyLevel, whiteSpaceOk: false))
+				&& string.IsNullOrEmpty(ValidateDustThreshold(DustThreshold, whiteSpaceOk: false))
+				&& string.IsNullOrEmpty(ValidateEndPoint(TorSocks5EndPoint, Constants.DefaultTorSocksPort, whiteSpaceOk: false))
+				&& string.IsNullOrEmpty(ValidateEndPoint(BitcoinP2pEndPoint, network.DefaultPort, whiteSpaceOk: false));
 
-			//if (!isValid)
-			//{
-			//	return;
-			//}
+			if (!isValid)
+			{
+				return;
+			}
 
-			//var config = new Config(Global.Config.FilePath);
+			var config = new Config(Global.Config.FilePath);
 
-			//Dispatcher.UIThread.PostLogException(async () =>
-			//{
-			//	using (await ConfigLock.LockAsync())
-			//	{
-			//		await config.LoadFileAsync();
-			//		if (Network == config.Network)
-			//		{
-			//			if (EndPointParser.TryParse(TorSocks5EndPoint, Constants.DefaultTorSocksPort, out EndPoint torEp))
-			//			{
-			//				config.TorSocks5EndPoint = torEp;
-			//			}
-			//			if (EndPointParser.TryParse(BitcoinP2pEndPoint, network.DefaultPort, out EndPoint p2pEp))
-			//			{
-			//				config.SetP2PEndpoint(p2pEp);
-			//			}
-			//			config.UseTor = UseTor;
-			//			config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? Money.Coins(threshold) : Config.DefaultDustThreshold;
-			//			config.PrivacyLevelSome = int.TryParse(SomePrivacyLevel, out int level) ? level : Config.DefaultPrivacyLevelSome;
-			//			config.PrivacyLevelStrong = int.TryParse(StrongPrivacyLevel, out level) ? level : Config.DefaultPrivacyLevelStrong;
-			//			config.PrivacyLevelFine = int.TryParse(FinePrivacyLevel, out level) ? level : Config.DefaultPrivacyLevelFine;
-			//		}
-			//		else
-			//		{
-			//			config.Network = Network;
-			//			BitcoinP2pEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
-			//		}
-			//		await config.ToFileAsync();
-			//		IsModified = !Global.Config.AreDeepEqual(config);
-			//	}
-			//});
+			Dispatcher.UIThread.PostLogException(async () =>
+			{
+				using (await ConfigLock.LockAsync())
+				{
+					await config.LoadFileAsync();
+					if (Network == config.Network)
+					{
+						if (EndPointParser.TryParse(TorSocks5EndPoint, Constants.DefaultTorSocksPort, out EndPoint torEp))
+						{
+							config.TorSocks5EndPoint = torEp;
+						}
+						if (EndPointParser.TryParse(BitcoinP2pEndPoint, network.DefaultPort, out EndPoint p2pEp))
+						{
+							config.SetP2PEndpoint(p2pEp);
+						}
+						config.UseTor = UseTor;
+						config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? Money.Coins(threshold) : Config.DefaultDustThreshold;
+						config.PrivacyLevelSome = int.TryParse(SomePrivacyLevel, out int level) ? level : Config.DefaultPrivacyLevelSome;
+						config.PrivacyLevelStrong = int.TryParse(StrongPrivacyLevel, out level) ? level : Config.DefaultPrivacyLevelStrong;
+						config.PrivacyLevelFine = int.TryParse(FinePrivacyLevel, out level) ? level : Config.DefaultPrivacyLevelFine;
+					}
+					else
+					{
+						config.Network = Network;
+						BitcoinP2pEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
+					}
+					await config.ToFileAsync();
+					IsModified = !Global.Config.AreDeepEqual(config);
+				}
+			});
 		}
 
 		private void OpenConfigFile()
