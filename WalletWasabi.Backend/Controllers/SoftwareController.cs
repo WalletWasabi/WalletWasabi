@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using WalletWasabi.Backend.Models.Responses;
 
 namespace WalletWasabi.Backend.Controllers

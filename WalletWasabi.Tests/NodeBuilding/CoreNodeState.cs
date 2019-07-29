@@ -1,4 +1,4 @@
-﻿namespace WalletWasabi.Tests.NodeBuilding
+namespace WalletWasabi.Tests.NodeBuilding
 {
 	public enum CoreNodeState
 	{

@@ -4,6 +4,10 @@ We are happy to announce an experiment, called: **The Wasabi Contribution Game**
 
 ![](https://i.imgur.com/0GwL58Z.png)
 
+## Update (2019-07-24)
+
+Turns out the GitHub statistics are screwed. I'll have to manually calculate the additions and deletions at the end of the game.
+
 ## Update (2019-07-08)
 
 In PR https://github.com/zkSNACKs/WalletWasabi/pull/1850 nopara73 implemented @NicolasDorier's changes, so 17+217=234 points added to Nicolas's score.

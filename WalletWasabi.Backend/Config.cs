@@ -158,16 +158,16 @@ namespace WalletWasabi.Backend
 				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
 				var config = JsonConvert.DeserializeObject<Config>(jsonString);
 
-				Network = config.Network ?? Network;
-				BitcoinRpcConnectionString = config.BitcoinRpcConnectionString ?? BitcoinRpcConnectionString;
+				Network = config?.Network ?? Network;
+				BitcoinRpcConnectionString = config?.BitcoinRpcConnectionString ?? BitcoinRpcConnectionString;
 
-				MainNetBitcoinP2pEndPoint = config.MainNetBitcoinP2pEndPoint ?? MainNetBitcoinP2pEndPoint;
-				TestNetBitcoinP2pEndPoint = config.TestNetBitcoinP2pEndPoint ?? TestNetBitcoinP2pEndPoint;
-				RegTestBitcoinP2pEndPoint = config.RegTestBitcoinP2pEndPoint ?? RegTestBitcoinP2pEndPoint;
+				MainNetBitcoinP2pEndPoint = config?.MainNetBitcoinP2pEndPoint ?? MainNetBitcoinP2pEndPoint;
+				TestNetBitcoinP2pEndPoint = config?.TestNetBitcoinP2pEndPoint ?? TestNetBitcoinP2pEndPoint;
+				RegTestBitcoinP2pEndPoint = config?.RegTestBitcoinP2pEndPoint ?? RegTestBitcoinP2pEndPoint;
 
-				MainNetBitcoinCoreRpcEndPoint = config.MainNetBitcoinCoreRpcEndPoint ?? MainNetBitcoinCoreRpcEndPoint;
-				TestNetBitcoinCoreRpcEndPoint = config.TestNetBitcoinCoreRpcEndPoint ?? TestNetBitcoinCoreRpcEndPoint;
-				RegTestBitcoinCoreRpcEndPoint = config.RegTestBitcoinCoreRpcEndPoint ?? RegTestBitcoinCoreRpcEndPoint;
+				MainNetBitcoinCoreRpcEndPoint = config?.MainNetBitcoinCoreRpcEndPoint ?? MainNetBitcoinCoreRpcEndPoint;
+				TestNetBitcoinCoreRpcEndPoint = config?.TestNetBitcoinCoreRpcEndPoint ?? TestNetBitcoinCoreRpcEndPoint;
+				RegTestBitcoinCoreRpcEndPoint = config?.RegTestBitcoinCoreRpcEndPoint ?? RegTestBitcoinCoreRpcEndPoint;
 
 				if (TryEnsureBackwardsCompatibility(jsonString))
 				{
