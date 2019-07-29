@@ -23,16 +23,17 @@ namespace WalletWasabi.Helpers
 			return HashHelpers.GenerateSha256Hash(sb.ToString());
 		}
 
-		private static readonly Money[] ReasonableFees = new[] {
-				Money.Coins(0.002m),
-				Money.Coins(0.001m),
-				Money.Coins(0.0005m),
-				Money.Coins(0.0002m),
-				Money.Coins(0.0001m),
-				Money.Coins(0.00005m),
-				Money.Coins(0.00002m),
-				Money.Coins(0.00001m)
-			};
+		private static readonly Money[] ReasonableFees = new[]
+		{
+			Money.Coins(0.002m),
+			Money.Coins(0.001m),
+			Money.Coins(0.0005m),
+			Money.Coins(0.0002m),
+			Money.Coins(0.0001m),
+			Money.Coins(0.00005m),
+			Money.Coins(0.00002m),
+			Money.Coins(0.00001m)
+		};
 
 		public static Money TakeAReasonableFee(Money inputValue)
 		{

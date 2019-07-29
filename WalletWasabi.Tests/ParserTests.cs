@@ -1,8 +1,11 @@
+using NBitcoin;
+using NBitcoin.Payment;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using WalletWasabi.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests
@@ -138,6 +141,70 @@ namespace WalletWasabi.Tests
 			}
 			Assert.Equal((string)expectedHost, actualHost);
 			Assert.Equal($"{actualHost}:{actualPort}", endPoint.ToString(expectedPort));
+		}
+
+		[Fact]
+		public void BitcoinAddressParserTests()
+		{
+			(string address, Network network)[] tests = new[]
+			{
+				("18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX", Network.Main),
+				("17VZNX1SN5NtKa8UQFxwQbFeFc3iqRYhem", Network.Main),
+				("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX", Network.Main),
+				("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", Network.Main),
+				("mipcBbFg9gMiCh81Kj8tqqdgoZub1ZJRfn", Network.TestNet),
+				("2MzQwSSnBHWHqSAqtTVQ6v47XtaisrJa1Vc", Network.TestNet),
+				("tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx", Network.TestNet),
+			};
+
+			foreach (var test in tests)
+			{
+				Assert.False(AddressStringParser.TryParseBitcoinAddress(test.address.Remove(0, 1), test.network, out _));
+				Assert.False(AddressStringParser.TryParseBitcoinAddress(test.address.Remove(5, 1), test.network, out _));
+				Assert.False(AddressStringParser.TryParseBitcoinAddress(test.address.Insert(1, "b"), test.network, out _));
+
+				Assert.False(AddressStringParser.TryParseBitcoinAddress(test.address, null, out _));
+				Assert.False(AddressStringParser.TryParseBitcoinAddress(null, test.network, out _));
+
+				Assert.True(AddressStringParser.TryParseBitcoinAddress(test.address, test.network, out BitcoinUrlBuilder result));
+				Assert.Equal(test.address, result.Address.ToString());
+
+				Assert.True(AddressStringParser.TryParseBitcoinAddress(test.address.Insert(0, "   "), test.network, out result));
+				Assert.Equal(test.address.Trim(), result.Address.ToString());
+			}
+		}
+
+		[Fact]
+		public void BitcoinUrlParserTests()
+		{
+			(string url, Network network)[] tests = new[]
+			{
+				("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX?amount=50&label=Luke-Jr&message=Donation%20for%20project%20xyz", Network.Main),
+				("bitcoin:17VZNX1SN5NtKa8UQFxwQbFeFc3iqRYhem?amount=50&label=Luke-Jr&message=Donation%20for%20project%20xyz", Network.Main),
+				("bitcoin:3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX?amount=50&label=Luke-Jr&message=Donation%20for%20project%20xyz", Network.Main),
+				("bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=50&label=Luke-Jr&message=Donation%20for%20project%20xyz", Network.Main),
+				("bitcoin:mipcBbFg9gMiCh81Kj8tqqdgoZub1ZJRfn?amount=50&label=Luke-Jr&message=Donation%20for%20project%20xyz", Network.TestNet),
+				("bitcoin:2MzQwSSnBHWHqSAqtTVQ6v47XtaisrJa1Vc?amount=50&label=Luke-Jr&message=Donation%20for%20project%20xyz", Network.TestNet),
+				("bitcoin:tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx?amount=50&label=Luke-Jr&message=Donation%20for%20project%20xyz", Network.TestNet),
+			};
+
+			foreach (var test in tests)
+			{
+				Assert.False(AddressStringParser.TryParseBitcoinUrl(test.url.Substring(1), test.network, out _));
+				Assert.False(AddressStringParser.TryParseBitcoinUrl(test.url.Remove(5, 4), test.network, out _));
+				Assert.False(AddressStringParser.TryParseBitcoinUrl(test.url.Insert(1, "b"), test.network, out _));
+
+				Assert.False(AddressStringParser.TryParseBitcoinUrl(test.url, null, out _));
+				Assert.False(AddressStringParser.TryParseBitcoinUrl(null, test.network, out _));
+
+				Assert.True(AddressStringParser.TryParseBitcoinUrl(test.url, test.network, out BitcoinUrlBuilder result));
+				Assert.Equal(test.url.Split(new[] { ':', '?' })[1], result.Address.ToString());
+
+				Assert.True(AddressStringParser.TryParseBitcoinUrl(test.url.Insert(0, "   "), test.network, out result));
+				Assert.Equal(test.url.Split(new[] { ':', '?' })[1], result.Address.ToString());
+				Assert.Equal("Luke-Jr", result.Label);
+				Assert.Equal(Money.Coins(50m), result.Amount);
+			}
 		}
 	}
 }
