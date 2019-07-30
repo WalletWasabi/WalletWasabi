@@ -203,6 +203,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(UpdateSuggestions);
 
+			this.WhenAnyValue(x => x.FeeTarget)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => SetFeesAndTexts());
+
 			MaxCommand = ReactiveCommand.Create(() => { IsMax = !IsMax; }, outputScheduler: RxApp.MainThreadScheduler);
 			this.WhenAnyValue(x => x.IsMax)
 				.ObserveOn(RxApp.MainThreadScheduler)
