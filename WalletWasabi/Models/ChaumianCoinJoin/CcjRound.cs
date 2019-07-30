@@ -775,7 +775,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				// If the transaction does not spend unconfirmed coins then the confirmation target can be the one that's been set in the config.
 				var originalConfirmationTarget = AdjustedConfirmationTarget;
 
-				// Note that only dependents matter, spenders do not matter much or at all, they just make this transaction to be faster to confirm faster.
+				// Note that only dependents matter, spenders do not matter much or at all, they just allow this transaction to be confirmed faster.
 				var dependents = await RpcClient.GetAllDependentsAsync(transactionHashes, includingProvided: true, likelyProvidedManyConfirmedOnes: true);
 				AdjustedConfirmationTarget = AdjustConfirmationTarget(dependents.Count, ConfiguredConfirmationTarget, ConfiguredConfirmationTargetReductionRate);
 

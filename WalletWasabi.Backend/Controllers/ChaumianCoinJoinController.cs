@@ -540,7 +540,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			if (request.Level > round.MixingLevels.GetMaxLevel())
 			{
-				return BadRequest($"Invalid mixing Level is provided. Provided: {request.Level}. Maximum: {round.MixingLevels.GetMaxLevel()}.");
+				return BadRequest($"Invalid mixing level is provided. Provided: {request.Level}. Maximum: {round.MixingLevels.GetMaxLevel()}.");
 			}
 
 			if (round.ContainsRegisteredUnblindedSignature(request.UnblindedSignature))

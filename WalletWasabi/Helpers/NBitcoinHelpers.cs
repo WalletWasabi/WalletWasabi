@@ -90,14 +90,7 @@ namespace WalletWasabi.Helpers
 			{
 				// Try hex, Old wallet format was like this.
 				var bytes = ByteHelpers.FromHex(hdFingerprintString);
-				if (reverseByteOrder)
-				{
-					hdfp = new HDFingerprint(bytes.Reverse().ToArray());
-				}
-				else
-				{
-					hdfp = new HDFingerprint(bytes);
-				}
+				hdfp = reverseByteOrder ? new HDFingerprint(bytes.Reverse().ToArray()) : new HDFingerprint(bytes);
 			}
 			return hdfp;
 		}

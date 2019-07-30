@@ -59,7 +59,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		private object WalletLock { get; }
 
-		public LoadWalletViewModel(WalletManagerViewModel owner, LoadWalletType loadWalletType) : base(loadWalletType == LoadWalletType.Password ? "Test Password" : (loadWalletType == LoadWalletType.Desktop ? "Load Wallet" : "Hardware Wallet"))
+		public LoadWalletViewModel(WalletManagerViewModel owner, LoadWalletType loadWalletType)
+			: base(loadWalletType == LoadWalletType.Password ? "Test Password" : (loadWalletType == LoadWalletType.Desktop ? "Load Wallet" : "Hardware Wallet"))
 		{
 			Owner = owner;
 			Password = "";

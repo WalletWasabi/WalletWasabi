@@ -21,11 +21,13 @@ namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 			{
 				while (j < width - 5)
 				{
-					bit = isHorizontal ? matrix[j + 4, i]
+					bit = isHorizontal
+						? matrix[j + 4, i]
 						: matrix[i, j + 4];
 					if (!bit)
 					{
-						bit = isHorizontal ? matrix[j, i]
+						bit = isHorizontal
+							? matrix[j, i]
 							: matrix[i, j];
 						if (!bit)
 						{
@@ -41,7 +43,8 @@ namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 					{
 						for (int num = 4; num > 0; num--)
 						{
-							bit = isHorizontal ? matrix[j + num, i]
+							bit = isHorizontal
+								? matrix[j + num, i]
 								: matrix[i, j + num];
 							if (!bit)
 							{
@@ -66,7 +69,8 @@ namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 			bool bit;
 			for (int num = 3; num >= 1; num--)
 			{
-				bit = isHorizontal ? matrix[j + num, i]
+				bit = isHorizontal
+					? matrix[j + num, i]
 					: matrix[i, j + num];
 				if (!bit)
 				{
@@ -79,14 +83,16 @@ namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 				return 0;
 			}
 
-			bit = isHorizontal ? matrix[j + 5, i]
+			bit = isHorizontal
+				? matrix[j + 5, i]
 				: matrix[i, j + 5];
 			if (!bit)
 			{
 				return 0;
 			}
 
-			bit = isHorizontal ? matrix[j - 1, i]
+			bit = isHorizontal
+				? matrix[j - 1, i]
 				: matrix[i, j - 1];
 			if (!bit)
 			{
@@ -97,7 +103,8 @@ namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 			{
 				for (int num = -2; num >= -5; num--)
 				{
-					bit = isHorizontal ? matrix[j + num, i]
+					bit = isHorizontal
+						? matrix[j + num, i]
 						: matrix[i, j + num];
 					if (bit)
 					{
@@ -115,7 +122,8 @@ namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 			{
 				for (int num = 6; num <= 9; num++)
 				{
-					bit = isHorizontal ? matrix[j + num, i]
+					bit = isHorizontal
+						? matrix[j + num, i]
 						: matrix[i, j + num];
 					if (bit)
 					{

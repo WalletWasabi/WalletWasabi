@@ -212,15 +212,9 @@ namespace WalletWasabi.Io
 			{
 				if (DigestRandomIndex.HasValue)
 				{
-					int index;
-					if (DigestRandomIndex == -1 || DigestRandomIndex >= line.Length) // Last char.
-					{
-						index = line.Length - 1;
-					}
-					else
-					{
-						index = DigestRandomIndex.Value;
-					}
+					int index = DigestRandomIndex == -1 || DigestRandomIndex >= line.Length // Last char.
+						? line.Length - 1
+						: DigestRandomIndex.Value;
 
 					var c = line[index];
 					var b = (byte)c;

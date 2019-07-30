@@ -9,9 +9,9 @@ namespace WalletWasabi.Gui.ManagedDialogs
 {
 	public static class ManagedFileDialogExtensions
 	{
-		class ManagedSystemDialogImpl : ISystemDialogImpl
+		private class ManagedSystemDialogImpl : ISystemDialogImpl
 		{
-			async Task<string[]> Show(SystemDialog d, IWindowImpl parent)
+			private async Task<string[]> Show(SystemDialog d, IWindowImpl parent)
 			{
 				var model = new ManagedFileChooserViewModel((FileSystemDialog)d);
 
