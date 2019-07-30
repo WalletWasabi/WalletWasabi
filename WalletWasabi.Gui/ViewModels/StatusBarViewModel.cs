@@ -74,7 +74,7 @@ namespace WalletWasabi.Gui.ViewModels
 			Nodes = nodes;
 			Synchronizer = synchronizer;
 			HashChain = synchronizer.BitcoinStore.HashChain;
-			UseTor = Global.Config.UseTor.Value; // Do not make it dynamic, because if you change this config settings only next time will it activate.
+			UseTor = Global.Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
 
 			_status = ActiveStatuses.WhenAnyValue(x => x.CurrentStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -363,7 +363,6 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private void SetTor(TorStatus tor)
 		{
-			// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they do not.
 			Tor = UseTor ? tor : TorStatus.TurnedOff;
 		}
 

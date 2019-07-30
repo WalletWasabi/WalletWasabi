@@ -113,7 +113,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ToProperty(this, x => x.MinMaxFeeTargetsEqual, scheduler: RxApp.MainThreadScheduler);
 
 			SetFeeTargetLimits();
-			FeeTarget = Global.UiConfig.FeeTarget ?? MinimumFeeTarget;
+			FeeTarget = Global.UiConfig.FeeTarget;
 			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			SetFeesAndTexts();
 
@@ -303,7 +303,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					catch
 					{
-						SetWarningMessage("Spending coins those are being actively mixed is not allowed.");
+						SetWarningMessage("Spending coins that are being actively mixed is not allowed.");
 						return;
 					}
 					finally
@@ -778,7 +778,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 				SetWarningMessage(builder.ToString());
-				return;
 			}
 		}
 
@@ -963,7 +962,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return "";
 			}
 
-			return $"Invalid {nameof(Address)}";
+			return "Invalid address.";
 		}
 
 		[ValidateMethod(nameof(ValidateAddress))]
@@ -1009,12 +1008,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnOpen()
 		{
-			if (Disposables != null)
-			{
-				throw new Exception("Send tab opened before last one closed.");
-			}
-
-			Disposables = new CompositeDisposable();
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			Global.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate).Subscribe(_ =>
 			{

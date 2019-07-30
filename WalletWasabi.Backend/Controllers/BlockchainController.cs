@@ -65,7 +65,7 @@ namespace WalletWasabi.Backend.Controllers
 				{
 					if (target < 2 || target > Constants.SevenDaysConfirmationTarget)
 					{
-						return BadRequest("All requested confirmation target must be >=2 AND <= 1008.");
+						return BadRequest($"All requested confirmation target must be >= 2 AND <= {Constants.SevenDaysConfirmationTarget}.");
 					}
 
 					if (confirmationTargetsInts.Contains(target))

@@ -8,33 +8,24 @@
              xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom"
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
-             xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450">
+             xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui" mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450">
   <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
     <Grid Classes="content">
       <DockPanel LastChildFill="True">
-
         <TextBlock DockPanel.Dock="Top" Text="PSBT or Transaction Hex" FontWeight="Bold" />
-
         <DockPanel DockPanel.Dock="Bottom" LastChildFill="True">
-
           <Button DockPanel.Dock="Right" Command="{Binding BroadcastTransactionCommand}">
             <StackPanel Orientation="Horizontal">
               <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
-
-              <TextBlock Text ="{Binding ButtonText}">
-              </TextBlock>
+              <TextBlock Text="{Binding ButtonText}"></TextBlock>
             </StackPanel>
           </Button>
-
           <Button Margin="0 0 10 0" DockPanel.Dock="Right" Command="{Binding ImportTransactionCommand}" Content="Import Transaction" />
-
           <StackPanel Orientation="Vertical">
             <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
             <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
           </StackPanel>
         </DockPanel>
-
         <controls:MultiTextBox Text="{Binding TransactionString, Mode=TwoWay}" PasteOnClick="True" IsReadOnly="{Binding IsBusy}" Margin="0 8" Watermark="Click here to copy from clipboard!" TextWrapping="Wrap" AcceptsReturn="True" />
       </DockPanel>
     </Grid>

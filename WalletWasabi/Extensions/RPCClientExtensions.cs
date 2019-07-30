@@ -200,7 +200,7 @@ namespace NBitcoin.RPC
 		}
 
 		/// <summary>
-		/// Gets the transactions those are unconfirmed using getrawmempool.
+		/// Gets the transactions that are unconfirmed using getrawmempool.
 		/// This is efficient when many transaction ids are provided.
 		/// </summary>
 		public static async Task<IEnumerable<uint256>> GetUnconfirmedAsync(this RPCClient rpc, IEnumerable<uint256> transactionHashes)

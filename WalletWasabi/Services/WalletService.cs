@@ -804,7 +804,7 @@ namespace WalletWasabi.Services
 										localNode.VersionHandshake(Constants.LocalNodeRequirements, handshakeTimeout.Token);
 										var peerServices = localNode.PeerVersion.Services;
 
-										//if(!peerServices.HasFlag(NodeServices.Network) && !peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
+										//if (!peerServices.HasFlag(NodeServices.Network) && !peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
 										//{
 										//	throw new InvalidOperationException($"Wasabi cannot use the local node because it does not provide blocks.");
 										//}
@@ -1080,7 +1080,7 @@ namespace WalletWasabi.Services
 			}
 
 			// Get allowed coins to spend.
-			List<SmartCoin> allowedSmartCoinInputs; // Inputs those can be used to build the transaction.
+			List<SmartCoin> allowedSmartCoinInputs; // Inputs that can be used to build the transaction.
 			if (allowedInputs != null) // If allowedInputs are specified then select the coins from them.
 			{
 				if (!allowedInputs.Any())
@@ -1198,9 +1198,9 @@ namespace WalletWasabi.Services
 
 			if (feePc > 1)
 			{
-				Logger.LogInfo<WalletService>($"The transaction fee is {feePc:0.#}% of your transaction amount."
-					+ Environment.NewLine + $"Sending:\t {totalOutgoingAmount.ToString(fplus: false, trimExcessZero: true)} BTC."
-					+ Environment.NewLine + $"Fee:\t\t {fee.Satoshi} Satoshi.");
+				Logger.LogInfo<WalletService>($"The transaction fee is {feePc:0.#}% of your transaction amount.{Environment.NewLine}"
+					+ $"Sending:\t {totalOutgoingAmount.ToString(fplus: false, trimExcessZero: true)} BTC.{Environment.NewLine}"
+					+ $"Fee:\t\t {fee.Satoshi} Satoshi.");
 			}
 			if (feePc > 100)
 			{

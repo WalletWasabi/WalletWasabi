@@ -1,4 +1,4 @@
-﻿using AvalonStudio.Extensibility.Dialogs;
+using AvalonStudio.Extensibility.Dialogs;
 using ReactiveUI;
 
 namespace WalletWasabi.Gui.Dialogs
