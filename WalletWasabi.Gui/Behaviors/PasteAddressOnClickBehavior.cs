@@ -163,15 +163,9 @@ namespace WalletWasabi.Gui.Behaviors
 					if (string.IsNullOrEmpty(AssociatedObject.Text))
 					{
 						string text = await Application.Current.Clipboard.GetTextAsync();
-
-						if (AddressStringParser.TryParse(text, Global.Network, out _))
-						{
-							MyTextBoxState = TextBoxState.AddressInsert;
-						}
-						else
-						{
-							MyTextBoxState = TextBoxState.NormalTextBoxOperation;
-						}
+						MyTextBoxState = AddressStringParser.TryParse(text, Global.Network, out _)
+							? TextBoxState.AddressInsert
+							: TextBoxState.NormalTextBoxOperation;
 					}
 					else
 					{
