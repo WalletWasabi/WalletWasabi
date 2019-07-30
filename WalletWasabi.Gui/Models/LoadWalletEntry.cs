@@ -38,6 +38,7 @@ namespace WalletWasabi.Gui.Models
 			{
 				WalletName = hwi.Type.ToString() + $" - Error: {hwi.Error}";
 			}
+
 			HardwareWalletInfo = hwi;
 		}
 

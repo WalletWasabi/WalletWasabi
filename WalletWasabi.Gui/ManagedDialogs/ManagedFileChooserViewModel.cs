@@ -35,7 +35,6 @@ namespace WalletWasabi.Gui.ManagedDialogs
 		private string _fileName;
 		private bool _showHiddenFiles;
 		private ManagedFileChooserFilterViewModel _selectedFilter;
-		private bool _selectingDirectory;
 		private bool _savingFile;
 		private bool _scheduledSelectionValidation;
 		private string _defaultExtension;
@@ -52,7 +51,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 			private set => this.RaiseAndSetIfChanged(ref _fileName, value);
 		}
 
-		public bool SelectingFolder => _selectingDirectory;
+		public bool SelectingFolder { get; }
 
 		public bool ShowFilters { get; }
 		public SelectionMode SelectionMode { get; }
@@ -100,7 +99,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 		public ManagedFileChooserViewModel(FileSystemDialog dialog)
 		{
 			var quickSources = AvaloniaLocator.Current.GetService<ManagedFileChooserSources>()
-						   ?? new ManagedFileChooserSources();
+				?? new ManagedFileChooserSources();
 
 			QuickLinks.Clear();
 
@@ -139,7 +138,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 				}
 			}
 
-			_selectingDirectory = dialog is OpenFolderDialog;
+			SelectingFolder = dialog is OpenFolderDialog;			
 
 			if (dialog is SaveFileDialog sfd)
 			{
@@ -176,7 +175,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 			{
 				try
 				{
-					if (_selectingDirectory)
+					if (SelectingFolder)
 					{
 						SelectedItems.Clear();
 					}
@@ -188,7 +187,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 							SelectedItems.Remove(item);
 						}
 
-						if (!_selectingDirectory)
+						if(!SelectingFolder)
 						{
 							FileName = SelectedItems.FirstOrDefault()?.DisplayName;
 						}
@@ -233,14 +232,9 @@ namespace WalletWasabi.Gui.ManagedDialogs
 
 					if (!ShowHiddenFiles)
 					{
-						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-						{
-							infos = infos.Where(i => (i.Attributes & (FileAttributes.Hidden | FileAttributes.System)) != 0);
-						}
-						else
-						{
-							infos = infos.Where(i => !i.Name.StartsWith("."));
-						}
+						infos = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+							? infos.Where(i => (i.Attributes & (FileAttributes.Hidden | FileAttributes.System)) != 0)
+							: infos.Where(i => !i.Name.StartsWith("."));
 					}
 
 					if (SelectedFilter != null)
@@ -250,7 +244,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 
 					Items.AddRange(infos.Where(x =>
 					{
-						if (_selectingDirectory)
+						if (SelectingFolder)
 						{
 							if (!(x is DirectoryInfo))
 							{
@@ -310,7 +304,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 
 		public void Ok()
 		{
-			if (_selectingDirectory)
+			if (SelectingFolder)
 			{
 				CompleteRequested?.Invoke(new[] { Location });
 			}
