@@ -72,19 +72,11 @@ namespace WalletWasabi.Gui.Tabs
 
 			this.WhenAnyValue(x => x.Autocopy)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(async x =>
-				{
-					Global.UiConfig.Autocopy = x;
-					await Global.UiConfig.ToFileAsync();
-				});
+				.Subscribe(x => Global.UiConfig.Autocopy = x);
 
 			this.WhenAnyValue(x => x.CustomFee)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(async x =>
-				{
-					Global.UiConfig.CustomFee = x;
-					await Global.UiConfig.ToFileAsync();
-				});
+				.Subscribe(x => Global.UiConfig.CustomFee = x);
 
 			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
 
@@ -176,9 +168,10 @@ namespace WalletWasabi.Gui.Tabs
 				.ToProperty(this, x => x.IsPinSet, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash)
+			Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.CustomFee)
+				.Throttle(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(async x => await Global.UiConfig.ToFileAsync())
+				.Subscribe(async _ => await Global.UiConfig.ToFileAsync())
 				.DisposeWith(Disposables);
 
 			base.OnOpen();
