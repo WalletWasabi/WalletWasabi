@@ -71,13 +71,20 @@ namespace WalletWasabi.Gui.Tabs
 				.Subscribe(x => Save());
 
 			this.WhenAnyValue(x => x.Autocopy)
-				.Subscribe(x => Global.UiConfig.Autocopy = x);
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(async x =>
+				{
+					Global.UiConfig.Autocopy = x;
+					await Global.UiConfig.ToFileAsync();
+				});
 
 			this.WhenAnyValue(x => x.CustomFee)
-				.Subscribe(x => Global.UiConfig.CustomFee = x);
-
-			this.WhenAnyValue(x => x.Autocopy, x => x.CustomFee)
-				.Subscribe(async _ => await Global.UiConfig.ToFileAsync());
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(async x =>
+				{
+					Global.UiConfig.CustomFee = x;
+					await Global.UiConfig.ToFileAsync();
+				});
 
 			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
 
