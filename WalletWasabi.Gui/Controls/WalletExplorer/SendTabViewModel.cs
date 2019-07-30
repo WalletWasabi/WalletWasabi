@@ -593,7 +593,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void WarnCustomFee(bool setFeeTarget)
 		{
-			if (decimal.TryParse(UserFeeText.Replace(',','.'), out var feeRate))
+			if (decimal.TryParse(UserFeeText.Replace(',', '.'), out var feeRate))
 			{
 				if (feeRate < 1)
 				{

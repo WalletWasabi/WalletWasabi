@@ -50,7 +50,7 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "Autocopy", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool Autocopy { get; internal set; }
 
-    [DefaultValue(false)]
+		[DefaultValue(false)]
 		[JsonProperty(PropertyName = "CustomFee", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool CustomFee
 		{

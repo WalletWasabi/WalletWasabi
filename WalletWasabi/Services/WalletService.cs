@@ -1048,7 +1048,7 @@ namespace WalletWasabi.Services
 			{
 				Money rate = Synchronizer.GetFeeRate(feeTarget);
 				Money sanityCheckedFeeRate = Math.Max(rate, 2); // Use the sanity check that under 2 satoshi per bytes should not be displayed. To correct possible rounding errors.
-				satsPerByte = new FeeRate((decimal) sanityCheckedFeeRate.Satoshi);
+				satsPerByte = new FeeRate((decimal)sanityCheckedFeeRate.Satoshi);
 			}
 
 			return BuildTransaction(password, toSend, satsPerByte, allowUnconfirmed, subtractFeeFromAmountIndex, customChange, allowedInputs);

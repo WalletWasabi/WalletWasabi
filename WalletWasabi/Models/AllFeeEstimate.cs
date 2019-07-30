@@ -54,16 +54,17 @@ namespace WalletWasabi.Models
 		public int GetFeeTarget(decimal feeRate)
 		{
 			// Where the feeRate is still under or equal to the requested rate.
-			try {
+			try
+			{
 				int feeTarget = Estimations
 					.Last(x => x.Value >= feeRate) // The last should be the largest feeTarget.
 					.Key;
 
 				return feeTarget;
 			}
-			catch(Exception)
+			catch (Exception)
 			{
-				return (int) GetFeeRate(Constants.SevenDaysConfirmationTarget); // feeRate is too high, so return highest value
+				return (int)GetFeeRate(Constants.SevenDaysConfirmationTarget); // feeRate is too high, so return highest value
 			}
 		}
 
