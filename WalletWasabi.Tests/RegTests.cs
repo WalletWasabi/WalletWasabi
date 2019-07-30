@@ -1225,12 +1225,17 @@ namespace WalletWasabi.Tests
 
 			var scp = new Key().ScriptPubKey;
 			var validOperationList = new[] { new WalletService.Operation(scp, Money.Coins(1), "") };
-			var invalidOperationList = new[] { new WalletService.Operation(scp, Money.Coins(10 * 1000 * 1000), ""), new WalletService.Operation(scp, Money.Coins(12 * 1000 * 1000), "") };
-			var overflowOperationList = new[]{
+			var invalidOperationList = new[]
+			{
+				new WalletService.Operation(scp, Money.Coins(10 * 1000 * 1000), ""),
+				new WalletService.Operation(scp, Money.Coins(12 * 1000 * 1000), "")
+			};
+			var overflowOperationList = new[]
+			{
 				new WalletService.Operation(scp, Money.Satoshis(long.MaxValue), ""),
 				new WalletService.Operation(scp, Money.Satoshis(long.MaxValue), ""),
 				new WalletService.Operation(scp, Money.Satoshis(5), "")
-				};
+			};
 
 			Logger.TurnOff();
 			// toSend cannot be null
@@ -1254,28 +1259,30 @@ namespace WalletWasabi.Tests
 			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, invalidOperationList, 2));
 
 			// toSend negative sum amount
-			var operations = new[]{
-				new WalletService.Operation(scp, Money.Satoshis(-10000), "") };
+			var operations = new[] { new WalletService.Operation(scp, Money.Satoshis(-10000), "") };
 			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, operations, 2));
 
 			// toSend negative operation amount
-			operations = new[]{
-				new WalletService.Operation(scp,  Money.Satoshis(20000), ""),
-				new WalletService.Operation(scp, Money.Satoshis(-10000), "") };
+			operations = new[]
+			{
+				new WalletService.Operation(scp, Money.Satoshis(20000), ""),
+				new WalletService.Operation(scp, Money.Satoshis(-10000), "")
+			};
 			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, operations, 2));
 
 			// allowedInputs cannot be empty
 			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, validOperationList, 2, false, null, null, new TxoRef[0]));
 
 			// "Only one element can contain Money.Zero
-			var toSendWithTwoZeros = new[]{
+			var toSendWithTwoZeros = new[]
+			{
 				new WalletService.Operation(scp, Money.Zero, "zero"),
-				new WalletService.Operation(scp, Money.Zero, "zero") };
+				new WalletService.Operation(scp, Money.Zero, "zero")
+			};
 			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(password, toSendWithTwoZeros, Constants.SevenDaysConfirmationTarget, false));
 
 			// cannot specify spend all and custom change
-			var spendAll = new[]{
-				new WalletService.Operation(scp, Money.Zero, "spendAll") };
+			var spendAll = new[] { new WalletService.Operation(scp, Money.Zero, "spendAll") };
 			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(password, spendAll, Constants.SevenDaysConfirmationTarget, false, customChange: new Key().ScriptPubKey));
 
 			// Get some money, make it confirm.
@@ -1302,9 +1309,11 @@ namespace WalletWasabi.Tests
 				}
 
 				// subtract Fee from amount index with no enough money
-				operations = new[]{
+				operations = new[]
+				{
 					new WalletService.Operation(scp,  Money.Coins(1m), ""),
-					new WalletService.Operation(scp, Money.Coins(0.5m), "") };
+					new WalletService.Operation(scp, Money.Coins(0.5m), "")
+				};
 				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(password, operations, 2, false, 0));
 
 				// No enough money (only one confirmed coin, no unconfirmed allowed)
@@ -1328,9 +1337,11 @@ namespace WalletWasabi.Tests
 				Assert.Equal(1, btx.SpentCoins.Count(c => !c.Confirmed));
 
 				// Only one operation with Zero money
-				operations = new[]{
+				operations = new[]
+				{
 					new WalletService.Operation(scp, Money.Zero, ""),
-					new WalletService.Operation(scp, Money.Zero, "") };
+					new WalletService.Operation(scp, Money.Zero, "")
+				};
 				Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, operations, 2));
 
 				// `Custom change` and `spend all` cannot be specified at the same time
@@ -1420,13 +1431,11 @@ namespace WalletWasabi.Tests
 				Assert.Single(wallet.Coins);
 
 				// Send money before reorg.
-				var operations = new[]{
-					new WalletService.Operation(scp, Money.Coins(0.011m), "") };
+				var operations = new[] { new WalletService.Operation(scp, Money.Coins(0.011m), "") };
 				var btx1 = wallet.BuildTransaction(password, operations, 2);
 				await wallet.SendTransactionAsync(btx1.Transaction);
 
-				operations = new[]{
-					new WalletService.Operation(scp, Money.Coins(0.012m), "") };
+				operations = new[] { new WalletService.Operation(scp, Money.Coins(0.012m), "") };
 				var btx2 = wallet.BuildTransaction(password, operations, 2, allowUnconfirmed: true);
 				await wallet.SendTransactionAsync(btx2.Transaction);
 
@@ -1443,15 +1452,13 @@ namespace WalletWasabi.Tests
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 3);
 
 				// Send money after reorg.
-				// When we invalidate a block, those transactions setted in the invalidated block
-				// are reintroduced when we generate a new block though the rpc call
-				operations = new[]{
-					new WalletService.Operation(scp, Money.Coins(0.013m), "") };
+				// When we invalidate a block, the transactions set in the invalidated block
+				// are reintroduced when we generate a new block through the rpc call
+				operations = new[] { new WalletService.Operation(scp, Money.Coins(0.013m), "") };
 				var btx3 = wallet.BuildTransaction(password, operations, 2);
 				await wallet.SendTransactionAsync(btx3.Transaction);
 
-				operations = new[]{
-					new WalletService.Operation(scp, Money.Coins(0.014m), "") };
+				operations = new[] { new WalletService.Operation(scp, Money.Coins(0.014m), "") };
 				var btx4 = wallet.BuildTransaction(password, operations, 2, allowUnconfirmed: true);
 				await wallet.SendTransactionAsync(btx4.Transaction);
 
@@ -1591,7 +1598,8 @@ namespace WalletWasabi.Tests
 				Assert.Single(wallet.Coins);
 
 				// Test mixin
-				var operations = new[] {
+				var operations = new[]
+				{
 					new WalletService.Operation(key.P2wpkhScript, Money.Coins(0.01m), ""),
 					new WalletService.Operation(new Key().ScriptPubKey, Money.Coins(0.01m), ""),
 					new WalletService.Operation(new Key().ScriptPubKey, Money.Coins(0.01m), "")
@@ -1822,11 +1830,7 @@ namespace WalletWasabi.Tests
 			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(folder);
 			Directory.CreateDirectory(folder);
 			var cjfile = Path.Combine(folder, $"CoinJoins{network}.txt");
-			File.WriteAllLines(cjfile, new[]{
-				coinbaseTxId.ToString(),
-				offchainTxId.ToString(),
-				mempoolTxId.ToString()
-			});
+			File.WriteAllLines(cjfile, new[] { coinbaseTxId.ToString(), offchainTxId.ToString(), mempoolTxId.ToString() });
 
 			using (var coordinatorToTest = new CcjCoordinator(network, global.TrustedNodeNotifyingBehavior, folder, rpc, coordinator.RoundConfig))
 			{
@@ -1838,11 +1842,8 @@ namespace WalletWasabi.Tests
 
 				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(folder);
 				Directory.CreateDirectory(folder);
-				File.WriteAllLines(cjfile, new[]{
-				coinbaseTxId.ToString(),
-				"This line is invalid (the file is corrupted)",
-				offchainTxId.ToString(),
-			});
+				File.WriteAllLines(cjfile, new[] { coinbaseTxId.ToString(), "This line is invalid (the file is corrupted)", offchainTxId.ToString() });
+
 				var coordinatorToTest2 = new CcjCoordinator(network, global.TrustedNodeNotifyingBehavior, folder, rpc, coordinatorToTest.RoundConfig);
 				coordinatorToTest2?.Dispose();
 				txIds = await File.ReadAllLinesAsync(cjfile);
@@ -2106,7 +2107,8 @@ namespace WalletWasabi.Tests
 					Assert.Equal(0, inputRegistrableRoundState.RegisteredPeerCount);
 
 					roundConfig.ConnectionConfirmationTimeout = 1; // One second.
-					await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true); coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+					await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
+					coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 					round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 					roundId = round.RoundId;
 					inputsRequest.RoundId = roundId;

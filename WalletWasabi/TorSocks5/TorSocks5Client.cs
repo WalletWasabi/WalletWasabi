@@ -132,15 +132,9 @@ namespace WalletWasabi.TorSocks5
 
 			Guard.NotNull(nameof(identity), identity);
 
-			MethodsField methods;
-			if (string.IsNullOrWhiteSpace(identity))
-			{
-				methods = new MethodsField(MethodField.NoAuthenticationRequired);
-			}
-			else
-			{
-				methods = new MethodsField(MethodField.UsernamePassword);
-			}
+			MethodsField methods = string.IsNullOrWhiteSpace(identity)
+				? new MethodsField(MethodField.NoAuthenticationRequired)
+				: new MethodsField(MethodField.UsernamePassword);
 
 			var sendBuffer = new VersionMethodRequest(methods).ToBytes();
 
@@ -213,14 +207,7 @@ namespace WalletWasabi.TorSocks5
 				using (await AsyncLock.LockAsync())
 				{
 					TcpClient?.Dispose();
-					if (IPAddress.TryParse(host, out IPAddress ip))
-					{
-						TcpClient = new TcpClient(ip.AddressFamily);
-					}
-					else
-					{
-						TcpClient = new TcpClient();
-					}
+					TcpClient = IPAddress.TryParse(host, out IPAddress ip) ? new TcpClient(ip.AddressFamily) : new TcpClient();
 					await TcpClient.ConnectAsync(host, port);
 					Stream = TcpClient.GetStream();
 					RemoteEndPoint = TcpClient.Client.RemoteEndPoint;
@@ -359,15 +346,9 @@ namespace WalletWasabi.TorSocks5
 					// If receiveBufferSize is null, zero or negative or bigger than TcpClient.ReceiveBufferSize
 					// then work with TcpClient.ReceiveBufferSize
 					var tcpReceiveBuffSize = TcpClient.ReceiveBufferSize;
-					var actualReceiveBufferSize = 0;
-					if (receiveBufferSize is null || receiveBufferSize <= 0 || receiveBufferSize > tcpReceiveBuffSize)
-					{
-						actualReceiveBufferSize = tcpReceiveBuffSize;
-					}
-					else
-					{
-						actualReceiveBufferSize = (int)receiveBufferSize;
-					}
+					var actualReceiveBufferSize = receiveBufferSize is null || receiveBufferSize <= 0 || receiveBufferSize > tcpReceiveBuffSize
+						? tcpReceiveBuffSize
+						: (int)receiveBufferSize;
 
 					// Receive the response
 					var receiveBuffer = new byte[actualReceiveBufferSize];
@@ -550,7 +531,7 @@ namespace WalletWasabi.TorSocks5
 			}
 			finally
 			{
-				TcpClient = null; // need to be called, .net bug
+				TcpClient = null; // needs to be called, .net bug
 			}
 		}
 

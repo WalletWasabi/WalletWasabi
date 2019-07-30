@@ -1,4 +1,4 @@
-﻿namespace Gma.QrCodeNet.Encoding.DataEncodation
+namespace Gma.QrCodeNet.Encoding.DataEncodation
 {
 	public abstract class EncoderBase
 	{
@@ -44,7 +44,7 @@
 
 		/// <summary>
 		/// Defines the length of the Character Count Indicator,
-		/// which varies according to themode and the symbol version in use
+		/// which varies according to the mode and the symbol version in use
 		/// </summary>
 		/// <returns>Number of bits in Character Count Indicator.</returns>
 		/// <remarks>

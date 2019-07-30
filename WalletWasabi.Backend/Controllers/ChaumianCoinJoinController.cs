@@ -225,7 +225,6 @@ namespace WalletWasabi.Backend.Controllers
 							// Check if mempool would accept a fake transaction created with the registered inputs.
 							// This will catch ascendant/descendant count and size limits for example.
 							var result = await RpcClient.TestMempoolAcceptAsync(new[] { new Coin(inputProof.Input.ToOutPoint(), getTxOutResponse.TxOut) });
-
 							if (!result.accept)
 							{
 								return BadRequest($"Provided input is from an unconfirmed coinjoin, but a limit is reached: {result.rejectReason}");
@@ -541,7 +540,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			if (request.Level > round.MixingLevels.GetMaxLevel())
 			{
-				return BadRequest($"Invalid mixing Level is provided. Provided: {request.Level}. Maximum: {round.MixingLevels.GetMaxLevel()}.");
+				return BadRequest($"Invalid mixing level is provided. Provided: {request.Level}. Maximum: {round.MixingLevels.GetMaxLevel()}.");
 			}
 
 			if (round.ContainsRegisteredUnblindedSignature(request.UnblindedSignature))

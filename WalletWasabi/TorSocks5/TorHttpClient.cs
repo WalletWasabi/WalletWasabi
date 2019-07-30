@@ -66,14 +66,7 @@ namespace WalletWasabi.TorSocks5
 		private void Create(EndPoint torSocks5EndPoint, bool isolateStream, Func<Uri> baseUriAction)
 		{
 			DestinationUriAction = Guard.NotNull(nameof(baseUriAction), baseUriAction);
-			if (DestinationUri.IsLoopback)
-			{
-				TorSocks5EndPoint = null;
-			}
-			else
-			{
-				TorSocks5EndPoint = torSocks5EndPoint;
-			}
+			TorSocks5EndPoint = DestinationUri.IsLoopback ? null : torSocks5EndPoint;
 			TorSocks5Client = null;
 			IsolateStream = isolateStream;
 		}

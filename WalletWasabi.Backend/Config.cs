@@ -8,6 +8,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
@@ -16,41 +17,39 @@ using WalletWasabi.Logging;
 namespace WalletWasabi.Backend
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	public class Config : IConfig
+	public class Config : ConfigBase
 	{
-		/// <inheritdoc />
-		public string FilePath { get; private set; }
-
 		[JsonProperty(PropertyName = "Network")]
 		[JsonConverter(typeof(NetworkJsonConverter))]
-		public Network Network { get; private set; }
+		public Network Network { get; private set; } = Network.Main;
 
-		[JsonProperty(PropertyName = "BitcoinRpcConnectionString")]
+		[DefaultValue("user:password")]
+		[JsonProperty(PropertyName = "BitcoinRpcConnectionString", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public string BitcoinRpcConnectionString { get; private set; }
 
 		[JsonProperty(PropertyName = "MainNetBitcoinP2pEndPoint")]
 		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinP2pPort)]
-		public EndPoint MainNetBitcoinP2pEndPoint { get; internal set; }
+		public EndPoint MainNetBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultMainNetBitcoinP2pPort);
 
 		[JsonProperty(PropertyName = "TestNetBitcoinP2pEndPoint")]
 		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTestNetBitcoinP2pPort)]
-		public EndPoint TestNetBitcoinP2pEndPoint { get; internal set; }
+		public EndPoint TestNetBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTestNetBitcoinP2pPort);
 
 		[JsonProperty(PropertyName = "RegTestBitcoinP2pEndPoint")]
 		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinP2pPort)]
-		public EndPoint RegTestBitcoinP2pEndPoint { get; internal set; }
+		public EndPoint RegTestBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinP2pPort);
 
 		[JsonProperty(PropertyName = "MainNetBitcoinCoreRpcEndPoint")]
 		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinCoreRpcPort)]
-		public EndPoint MainNetBitcoinCoreRpcEndPoint { get; internal set; }
+		public EndPoint MainNetBitcoinCoreRpcEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultMainNetBitcoinCoreRpcPort);
 
 		[JsonProperty(PropertyName = "TestNetBitcoinCoreRpcEndPoint")]
 		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTestNetBitcoinCoreRpcPort)]
-		public EndPoint TestNetBitcoinCoreRpcEndPoint { get; internal set; }
+		public EndPoint TestNetBitcoinCoreRpcEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTestNetBitcoinCoreRpcPort);
 
 		[JsonProperty(PropertyName = "RegTestBitcoinCoreRpcEndPoint")]
 		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinCoreRpcPort)]
-		public EndPoint RegTestBitcoinCoreRpcEndPoint { get; internal set; }
+		public EndPoint RegTestBitcoinCoreRpcEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinCoreRpcPort);
 
 		public EndPoint GetBitcoinP2pEndPoint()
 		{
@@ -92,13 +91,12 @@ namespace WalletWasabi.Backend
 			}
 		}
 
-		public Config()
+		public Config() : base()
 		{
 		}
 
-		public Config(string filePath)
+		public Config(string filePath) : base(filePath)
 		{
-			SetFilePath(filePath);
 		}
 
 		public Config(Network network,
@@ -109,6 +107,7 @@ namespace WalletWasabi.Backend
 			EndPoint mainNetBitcoinCoreRpcEndPoint,
 			EndPoint testNetBitcoinCoreRpcEndPoint,
 			EndPoint regTestBitcoinCoreRpcEndPoint)
+			: base()
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			BitcoinRpcConnectionString = Guard.NotNullOrEmptyOrWhitespace(nameof(bitcoinRpcConnectionString), bitcoinRpcConnectionString);
@@ -122,94 +121,7 @@ namespace WalletWasabi.Backend
 			RegTestBitcoinCoreRpcEndPoint = Guard.NotNull(nameof(regTestBitcoinCoreRpcEndPoint), regTestBitcoinCoreRpcEndPoint);
 		}
 
-		/// <inheritdoc />
-		public async Task ToFileAsync()
-		{
-			AssertFilePathSet();
-
-			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-			await File.WriteAllTextAsync(FilePath,
-			jsonString,
-			Encoding.UTF8);
-		}
-
-		/// <inheritdoc />
-		public async Task LoadOrCreateDefaultFileAsync()
-		{
-			AssertFilePathSet();
-
-			Network = Network.Main;
-			BitcoinRpcConnectionString = "user:password";
-
-			MainNetBitcoinP2pEndPoint = new IPEndPoint(IPAddress.Loopback, Constants.DefaultMainNetBitcoinP2pPort);
-			TestNetBitcoinP2pEndPoint = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTestNetBitcoinP2pPort);
-			RegTestBitcoinP2pEndPoint = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinP2pPort);
-
-			MainNetBitcoinCoreRpcEndPoint = new IPEndPoint(IPAddress.Loopback, Constants.DefaultMainNetBitcoinCoreRpcPort);
-			TestNetBitcoinCoreRpcEndPoint = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTestNetBitcoinCoreRpcPort);
-			RegTestBitcoinCoreRpcEndPoint = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinCoreRpcPort);
-
-			if (!File.Exists(FilePath))
-			{
-				Logger.LogInfo<Config>($"{nameof(Config)} file did not exist. Created at path: `{FilePath}`.");
-			}
-			else
-			{
-				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-				var config = JsonConvert.DeserializeObject<Config>(jsonString);
-
-				Network = config.Network ?? Network;
-				BitcoinRpcConnectionString = config.BitcoinRpcConnectionString ?? BitcoinRpcConnectionString;
-
-				MainNetBitcoinP2pEndPoint = config.MainNetBitcoinP2pEndPoint ?? MainNetBitcoinP2pEndPoint;
-				TestNetBitcoinP2pEndPoint = config.TestNetBitcoinP2pEndPoint ?? TestNetBitcoinP2pEndPoint;
-				RegTestBitcoinP2pEndPoint = config.RegTestBitcoinP2pEndPoint ?? RegTestBitcoinP2pEndPoint;
-
-				MainNetBitcoinCoreRpcEndPoint = config.MainNetBitcoinCoreRpcEndPoint ?? MainNetBitcoinCoreRpcEndPoint;
-				TestNetBitcoinCoreRpcEndPoint = config.TestNetBitcoinCoreRpcEndPoint ?? TestNetBitcoinCoreRpcEndPoint;
-				RegTestBitcoinCoreRpcEndPoint = config.RegTestBitcoinCoreRpcEndPoint ?? RegTestBitcoinCoreRpcEndPoint;
-
-				if (TryEnsureBackwardsCompatibility(jsonString))
-				{
-					await ToFileAsync();
-				}
-			}
-
-			await ToFileAsync();
-		}
-
-		/// <inheritdoc />
-		public async Task<bool> CheckFileChangeAsync()
-		{
-			AssertFilePathSet();
-
-			if (!File.Exists(FilePath))
-			{
-				throw new FileNotFoundException($"{nameof(Config)} file did not exist at path: `{FilePath}`.");
-			}
-
-			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-			var newConfig = JsonConvert.DeserializeObject<JObject>(jsonString);
-			var currentConfig = JObject.FromObject(this);
-			return !JToken.DeepEquals(newConfig, currentConfig);
-		}
-
-		/// <inheritdoc />
-		public void SetFilePath(string path)
-		{
-			FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(path), path, trim: true);
-		}
-
-		/// <inheritdoc />
-		public void AssertFilePathSet()
-		{
-			if (FilePath is null)
-			{
-				throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
-			}
-		}
-
-		private bool TryEnsureBackwardsCompatibility(string jsonString)
+		protected override bool TryEnsureBackwardsCompatibility(string jsonString)
 		{
 			try
 			{

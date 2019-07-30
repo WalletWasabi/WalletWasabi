@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Models;
 
@@ -70,6 +71,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						Title = "Export Binary PSBT"
 					};
 
+					if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+					{
+						sfd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+					}
+
 					string fileFullName = await sfd.ShowAsync(Application.Current.MainWindow, fallBack: true);
 					if (!string.IsNullOrWhiteSpace(fileFullName))
 					{
@@ -96,12 +102,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnOpen()
 		{
-			if (Disposables != null)
-			{
-				throw new Exception("Transaction Viewer was opened before it was closed.");
-			}
-
-			Disposables = new CompositeDisposable();
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			base.OnOpen();
 
@@ -110,6 +111,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+				this.RaisePropertyChanged(nameof(TxId));
 				this.RaisePropertyChanged(nameof(PsbtJsonText));
 				this.RaisePropertyChanged(nameof(TransactionHexText));
 				this.RaisePropertyChanged(nameof(PsbtBase64Text));
