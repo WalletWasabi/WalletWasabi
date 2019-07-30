@@ -24,7 +24,7 @@ namespace WalletWasabi.Gui
 		private bool _lurkingWifeMode;
 		private bool _lockScreenActive;
 		private string _lockScreenPinHash;
-		private bool _customFee;
+		private bool _isCustomFee;
 
 		[JsonProperty(PropertyName = "WindowState")]
 		[JsonConverter(typeof(WindowStateAfterStartJsonConverter))]
@@ -51,11 +51,11 @@ namespace WalletWasabi.Gui
 		public bool Autocopy { get; internal set; }
 
 		[DefaultValue(false)]
-		[JsonProperty(PropertyName = "CustomFee", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public bool CustomFee
+		[JsonProperty(PropertyName = "IsCustomFee", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool IsCustomFee
 		{
-			get => _customFee;
-			set => RaiseAndSetIfChanged(ref _customFee, value);
+			get => _isCustomFee;
+			set => RaiseAndSetIfChanged(ref _isCustomFee, value);
 		}
 
 		[DefaultValue(false)]

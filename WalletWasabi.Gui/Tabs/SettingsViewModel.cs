@@ -50,7 +50,7 @@ namespace WalletWasabi.Gui.Tabs
 		public SettingsViewModel(Global global) : base(global, "Settings")
 		{
 			Autocopy = Global.UiConfig?.Autocopy is true;
-			CustomFee = Global.UiConfig?.CustomFee is true;
+			CustomFee = Global.UiConfig?.IsCustomFee is true;
 
 			// Use global config's data as default filler until the real data is filled out by the loading of the config onopen.
 			var globalConfig = Global.Config;
@@ -76,7 +76,7 @@ namespace WalletWasabi.Gui.Tabs
 
 			this.WhenAnyValue(x => x.CustomFee)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(x => Global.UiConfig.CustomFee = x);
+				.Subscribe(x => Global.UiConfig.IsCustomFee = x);
 
 			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
 
@@ -168,7 +168,7 @@ namespace WalletWasabi.Gui.Tabs
 				.ToProperty(this, x => x.IsPinSet, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.CustomFee)
+			Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee)
 				.Throttle(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(async _ => await Global.UiConfig.ToFileAsync())

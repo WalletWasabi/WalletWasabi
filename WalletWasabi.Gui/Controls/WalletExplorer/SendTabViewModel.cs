@@ -59,14 +59,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isBusy;
 		private bool _isHardwareBusy;
 		private int _caretIndex;
+		private ObservableAsPropertyHelper<bool> _isCustomFee;
 
 		private const string SendTransactionButtonTextString = "Send Transaction";
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
 		private const string SendingTransactionButtonTextString = "Sending Transaction...";
 		private const string BuildTransactionButtonTextString = "Build Transaction";
 		private const string BuildingTransactionButtonTextString = "Building Transaction...";
-		private const string FeeTooLowTextString = "Warning: Transactions with a fee rate below 1 sat/byte will not be relayed by the bitcoin network.";
-		private const string FeeTooHighTextString = "Warning: Fee rate is extremely high.";
 
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private FeeDisplayFormat _feeDisplayFormat;
@@ -204,10 +203,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(UpdateSuggestions);
 
-			this.WhenAnyValue(x => x.FeeTarget)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => FeeRateChanged(false));
-
 			MaxCommand = ReactiveCommand.Create(() => { IsMax = !IsMax; }, outputScheduler: RxApp.MainThreadScheduler);
 			this.WhenAnyValue(x => x.IsMax)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -339,11 +334,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					BuildTransactionResult result;
 					if (useCustomFee)
 					{
-						result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, feeRate, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
+						result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, feeTarget: null, feeRate: Money.Satoshis(feeRate.SatoshiPerByte), allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 					}
 					else
 					{
-						result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, FeeTarget, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
+						result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, feeTarget: FeeTarget, feeRate: null, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 					}
 
 					if (IsTransactionBuilder)
@@ -576,46 +571,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SetFeesAndTexts(false);
 		}
 
-		private void FeeRateChanged(bool setFeeTarget)
-		{
-			SetFeesAndTexts(!setFeeTarget);
-			WarnCustomFee(setFeeTarget);
-
-			if (setFeeTarget)
-			{
-				this.RaisePropertyChanged(nameof(FeeTarget));
-			}
-			else
-			{
-				this.RaisePropertyChanged(nameof(UserFeeText));
-			}
-		}
-
-		private void WarnCustomFee(bool setFeeTarget)
-		{
-			if (decimal.TryParse(UserFeeText.Replace(',', '.'), out var feeRate))
-			{
-				if (feeRate < 1)
-				{
-					SetWarningMessage(FeeTooLowTextString);
-				}
-				else if (feeRate > 1000)
-				{
-					SetWarningMessage(FeeTooHighTextString);
-				}
-				else
-				{
-					SetWarningMessage("");
-				}
-
-				AllFeeEstimate allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
-				if (allFeeEstimate != null)
-				{
-					_feeTarget = allFeeEstimate.GetFeeTarget(feeRate);
-				}
-			}
-		}
-
 		private void SetFeesAndTexts(bool setFeeText)
 		{
 			AllFeeEstimate allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
@@ -721,6 +676,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void SetFees(AllFeeEstimate allFeeEstimate, int feeTarget)
 		{
 			SatoshiPerByteFeeRate = allFeeEstimate.GetFeeRate(feeTarget);
+			UserFeeText = SatoshiPerByteFeeRate.Satoshi.ToString();
 
 			IEnumerable<SmartCoin> selectedCoins = CoinList.Coins.Where(cvm => cvm.IsSelected).Select(x => x.Model);
 
@@ -892,11 +848,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public string UserFeeText
 		{
 			get => _userFeeText;
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _userFeeText, value);
-				FeeRateChanged(true);
-			}
+			set => this.RaiseAndSetIfChanged(ref _userFeeText, value);
 		}
 
 		public int FeeTarget
@@ -1084,7 +1036,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _amountWaterMarkText, value);
 		}
 
-		public bool IsCustomFee => Global.UiConfig.CustomFee is true;
+		public bool IsCustomFee => _isCustomFee?.Value ?? false;
 
 		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
 
@@ -1125,13 +1077,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SetFeesAndTexts(false));
 
-			base.OnOpen();
+			_isCustomFee = Global.UiConfig.WhenAnyValue(x => x.IsCustomFee)
+				.ToProperty(this, x => x.IsCustomFee, scheduler: RxApp.MainThreadScheduler)
+				.DisposeWith(Disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.CustomFee).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(IsCustomFee));
-				this.RaisePropertyChanged(nameof(UserFeeText));
-			}).DisposeWith(Disposables);
+			base.OnOpen();
 		}
 
 		public override bool OnClose()

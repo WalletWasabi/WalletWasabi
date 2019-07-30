@@ -46,26 +46,7 @@ namespace WalletWasabi.Models
 				.Last(x => x.Key <= feeTarget) // The last should be the largest feeTarget.
 				.Value;
 
-			satoshiPerByte = satoshiPerByte < 2 ? 2 : satoshiPerByte; // Lowest it will be is 2 sats/byte
-
 			return Money.Satoshis(satoshiPerByte);
-		}
-
-		public int GetFeeTarget(decimal feeRate)
-		{
-			// Where the feeRate is still under or equal to the requested rate.
-			try
-			{
-				int feeTarget = Estimations
-					.Last(x => x.Value >= feeRate) // The last should be the largest feeTarget.
-					.Key;
-
-				return feeTarget;
-			}
-			catch (Exception)
-			{
-				return (int)GetFeeRate(Constants.SevenDaysConfirmationTarget); // feeRate is too high, so return highest value
-			}
 		}
 
 		#region Equality
