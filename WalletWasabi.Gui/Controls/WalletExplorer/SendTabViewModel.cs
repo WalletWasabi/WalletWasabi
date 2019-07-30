@@ -107,7 +107,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => SetFeesAndTexts());
+				.Subscribe(_ => SetFeesAndTexts(false));
 
 			Observable.FromEventPattern(CoinList, nameof(CoinList.DequeueCoinsPressed))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -119,7 +119,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SetFeeTargetLimits();
 			FeeTarget = Global.UiConfig.FeeTarget ?? MinimumFeeTarget;
 			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
-			SetFeesAndTexts();
+			SetFeesAndTexts(true);
 
 			this.WhenAnyValue(x => x.AmountText)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -162,7 +162,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					SetAmountWatermark(Money.Zero);
 				}
 
-				SetFeesAndTexts();
+				SetFeesAndTexts(false);
 			});
 
 			this.WhenAnyValue(x => x.IsBusy)
@@ -206,7 +206,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.FeeTarget)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => SetFeesAndTexts());
+				.Subscribe(_ => FeeRateChanged(false));
 
 			MaxCommand = ReactiveCommand.Create(() => { IsMax = !IsMax; }, outputScheduler: RxApp.MainThreadScheduler);
 			this.WhenAnyValue(x => x.IsMax)
@@ -584,10 +584,50 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						   orderby val
 						   select val).DefaultIfEmpty().First();
 			FeeDisplayFormat = nextval;
-			SetFeesAndTexts();
+			SetFeesAndTexts(false);
 		}
 
-		private void SetFeesAndTexts()
+		private void FeeRateChanged(bool setFeeTarget)
+		{
+			SetFeesAndTexts(!setFeeTarget);
+			WarnCustomFee(setFeeTarget);
+
+			if (setFeeTarget)
+			{
+				this.RaisePropertyChanged(nameof(FeeTarget));
+			}
+			else
+			{
+				this.RaisePropertyChanged(nameof(UserFeeText));
+			}
+		}
+
+		private void WarnCustomFee(bool setFeeTarget)
+		{
+			if (decimal.TryParse(UserFeeText.Replace(',','.'), out var feeRate))
+			{
+				if (feeRate < 1)
+				{
+					SetWarningMessage(FeeTooLowTextString);
+				}
+				else if (feeRate > 1000)
+				{
+					SetWarningMessage(FeeTooHighTextString);
+				}
+				else
+				{
+					SetWarningMessage("");
+				}
+
+				AllFeeEstimate allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
+				if (allFeeEstimate != null)
+				{
+					_feeTarget = allFeeEstimate.GetFeeTarget(feeRate);
+				}
+			}
+		}
+
+		private void SetFeesAndTexts(bool setFeeText)
 		{
 			AllFeeEstimate allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
 
@@ -658,6 +698,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					default:
 						throw new NotSupportedException("This is impossible.");
+				}
+
+				if (setFeeText)
+				{
+					_userFeeText = "" + SatoshiPerByteFeeRate.Satoshi;
 				}
 			}
 
@@ -866,7 +911,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set
 			{
 				this.RaiseAndSetIfChanged(ref _userFeeText, value);
-				WarnCustomFee();
+				FeeRateChanged(true);
 			}
 		}
 
@@ -954,25 +999,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _suggestions;
 			set => this.RaiseAndSetIfChanged(ref _suggestions, value);
-		}
-
-		private void WarnCustomFee()
-		{
-			if (decimal.TryParse(UserFeeText.Replace(',','.'), out var feeRate))
-			{
-				if (feeRate < 1)
-				{
-					SetWarningMessage(FeeTooLowTextString);
-				}
-				else if (feeRate > 1000)
-				{
-					SetWarningMessage(FeeTooHighTextString);
-				}
-				else
-				{
-					SetWarningMessage("");
-				}
-			}
 		}
 
 		private void UpdateSuggestions(string words)
@@ -1108,7 +1134,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					FeeTarget = MaximumFeeTarget;
 				}
 
-				SetFeesAndTexts();
+				SetFeesAndTexts(true);
 			}).DisposeWith(Disposables);
 
 			_usdExchangeRate = Global.Synchronizer
@@ -1118,7 +1144,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.UsdExchangeRate)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => SetFeesAndTexts());
+				.Subscribe(_ => SetFeesAndTexts(false));
 
 			base.OnOpen();
 
