@@ -336,9 +336,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				else
 				{
 					var available = Global.WalletService.Coins.Where(x => x.Confirmed && !x.Unavailable);
-					RequiredBTC = available.Any()
-						? registrableRound.State.CalculateRequiredAmount(available.Where(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong).Select(x => x.Amount).ToArray())
-						: registrableRound.State.CalculateRequiredAmount();
+					if (available.Any())
+					{
+						RequiredBTC = registrableRound.State.CalculateRequiredAmount(available.Where(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong).Select(x => x.Amount).ToArray());
+					}
+					else
+					{
+						RequiredBTC = registrableRound.State.CalculateRequiredAmount();
+					}
 				}
 			}
 		}

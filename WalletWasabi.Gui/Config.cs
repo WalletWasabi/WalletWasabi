@@ -149,11 +149,18 @@ namespace WalletWasabi.Gui
 				return _backendUri;
 			}
 
-			_backendUri = Network == Network.Main
-				? new Uri(MainNetBackendUriV3)
-				: Network == Network.TestNet
-					? new Uri(TestNetBackendUriV3)
-					: new Uri(RegTestBackendUriV3);
+			if (Network == Network.Main)
+			{
+				_backendUri = new Uri(MainNetBackendUriV3);
+			}
+			else if (Network == Network.TestNet)
+			{
+				_backendUri = new Uri(TestNetBackendUriV3);
+			}
+			else // RegTest
+			{
+				_backendUri = new Uri(RegTestBackendUriV3);
+			}
 
 			return _backendUri;
 		}
@@ -165,11 +172,18 @@ namespace WalletWasabi.Gui
 				return _fallbackBackendUri;
 			}
 
-			_fallbackBackendUri = Network == Network.Main
-				? new Uri(MainNetFallbackBackendUri)
-				: Network == Network.TestNet
-					? new Uri(TestNetFallbackBackendUri)
-					: new Uri(RegTestBackendUriV3);
+			if (Network == Network.Main)
+			{
+				_fallbackBackendUri = new Uri(MainNetFallbackBackendUri);
+			}
+			else if (Network == Network.TestNet)
+			{
+				_fallbackBackendUri = new Uri(TestNetFallbackBackendUri);
+			}
+			else // RegTest
+			{
+				_fallbackBackendUri = new Uri(RegTestBackendUriV3);
+			}
 
 			return _fallbackBackendUri;
 		}
