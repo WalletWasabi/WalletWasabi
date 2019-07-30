@@ -33,7 +33,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 		{
 			if (string.IsNullOrEmpty(content))
 			{
-				throw new IndexOutOfRangeException("Input content should not be Null or empty");
+				throw new IndexOutOfRangeException("Input cannot be null or empty.");
 			}
 
 			System.Text.Encoding encoding;

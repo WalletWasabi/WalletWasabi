@@ -804,7 +804,7 @@ namespace WalletWasabi.Services
 										localNode.VersionHandshake(Constants.LocalNodeRequirements, handshakeTimeout.Token);
 										var peerServices = localNode.PeerVersion.Services;
 
-										//if(!peerServices.HasFlag(NodeServices.Network) && !peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
+										//if (!peerServices.HasFlag(NodeServices.Network) && !peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
 										//{
 										//	throw new InvalidOperationException($"Wasabi cannot use the local node because it does not provide blocks.");
 										//}
@@ -1088,25 +1088,13 @@ namespace WalletWasabi.Services
 					throw new ArgumentException($"{nameof(allowedInputs)} is not null, but empty.");
 				}
 
-				if (allowUnconfirmed)
-				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.Unavailable && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
-				}
-				else
-				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.Unavailable && x.Confirmed && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
-				}
+				allowedSmartCoinInputs = allowUnconfirmed
+					? Coins.Where(x => !x.Unavailable && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList()
+					: Coins.Where(x => !x.Unavailable && x.Confirmed && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
 			}
 			else
 			{
-				if (allowUnconfirmed)
-				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.Unavailable).ToList();
-				}
-				else
-				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.Unavailable && x.Confirmed).ToList();
-				}
+				allowedSmartCoinInputs = allowUnconfirmed ? Coins.Where(x => !x.Unavailable).ToList() : Coins.Where(x => !x.Unavailable && x.Confirmed).ToList();
 			}
 
 			// 4. Get and calculate fee
@@ -1210,9 +1198,9 @@ namespace WalletWasabi.Services
 
 			if (feePc > 1)
 			{
-				Logger.LogInfo<WalletService>($"The transaction fee is {feePc:0.#}% of your transaction amount."
-					+ Environment.NewLine + $"Sending:\t {totalOutgoingAmount.ToString(fplus: false, trimExcessZero: true)} BTC."
-					+ Environment.NewLine + $"Fee:\t\t {fee.Satoshi} Satoshi.");
+				Logger.LogInfo<WalletService>($"The transaction fee is {feePc:0.#}% of your transaction amount.{Environment.NewLine}"
+					+ $"Sending:\t {totalOutgoingAmount.ToString(fplus: false, trimExcessZero: true)} BTC.{Environment.NewLine}"
+					+ $"Fee:\t\t {fee.Satoshi} Satoshi.");
 			}
 			if (feePc > 100)
 			{

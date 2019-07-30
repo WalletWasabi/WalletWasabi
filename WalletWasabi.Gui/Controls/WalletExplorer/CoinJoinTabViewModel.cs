@@ -136,12 +136,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnOpen();
 
-			if (Disposables != null)
-			{
-				throw new Exception("CoinJoin tab opened before previous closed.");
-			}
-
-			Disposables = new CompositeDisposable();
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			TargetPrivacy = Global.Config.GetTargetPrivacy();
 
@@ -333,14 +328,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				else
 				{
 					var available = Global.WalletService.Coins.Where(x => x.Confirmed && !x.Unavailable);
-					if (available.Any())
-					{
-						RequiredBTC = registrableRound.State.CalculateRequiredAmount(available.Where(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong).Select(x => x.Amount).ToArray());
-					}
-					else
-					{
-						RequiredBTC = registrableRound.State.CalculateRequiredAmount();
-					}
+					RequiredBTC = available.Any()
+						? registrableRound.State.CalculateRequiredAmount(available.Where(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong).Select(x => x.Amount).ToArray())
+						: registrableRound.State.CalculateRequiredAmount();
 				}
 			}
 		}

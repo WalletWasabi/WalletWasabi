@@ -113,7 +113,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					{
 						ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 					}
-					
+
 					var selected = await ofd.ShowAsync(Application.Current.MainWindow, fallBack: true);
 					if (selected != null && selected.Any())
 					{
@@ -157,6 +157,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 			}, outputScheduler: RxApp.MainThreadScheduler);
 
+			OpenBrowserCommand = ReactiveCommand.Create<string>(x =>
+			{
+				IoHelpers.OpenBrowser(x);
+			});
+
+			OpenBrowserCommand.ThrownExceptions.Subscribe(Logger.LogWarning<LoadWalletViewModel>);
 			LoadCommand.ThrownExceptions.Subscribe(Logger.LogWarning<LoadWalletViewModel>);
 			TestPasswordCommand.ThrownExceptions.Subscribe(Logger.LogWarning<LoadWalletViewModel>);
 			OpenFolderCommand.ThrownExceptions.Subscribe(Logger.LogWarning<LoadWalletViewModel>);
@@ -166,6 +172,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			IsHwWalletSearchTextVisible = LoadWalletType == LoadWalletType.Hardware;
 		}
+
+		public string UDevRulesLink => "https://github.com/bitcoin-core/HWI/tree/master/udev";
 
 		public bool IsHwWalletSearchTextVisible
 		{
@@ -376,6 +384,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public ReactiveCommand<Unit, Unit> LoadCommand { get; }
 		public ReactiveCommand<Unit, KeyManager> TestPasswordCommand { get; }
 		public ReactiveCommand<Unit, Unit> ImportColdcardCommand { get; set; }
+		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
 
 		public void TryRefreshHardwareWallets(IEnumerable<HardwareWalletInfo> hwis)
 		{

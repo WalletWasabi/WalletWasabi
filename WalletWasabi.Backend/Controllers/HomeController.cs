@@ -11,15 +11,9 @@ namespace WalletWasabi.Backend.Controllers
 		{
 			string host = HttpContext?.Request?.Host.Host;
 
-			VirtualFileResult response;
-			if (!string.IsNullOrWhiteSpace(host) && host.TrimEnd('/').EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
-			{
-				response = File("onion-index.html", "text/html");
-			}
-			else
-			{
-				response = File("index.html", "text/html");
-			}
+			VirtualFileResult response = !string.IsNullOrWhiteSpace(host) && host.TrimEnd('/').EndsWith(".onion", StringComparison.OrdinalIgnoreCase)
+				? File("onion-index.html", "text/html")
+				: File("index.html", "text/html");
 
 			response.LastModified = DateTimeOffset.UtcNow;
 			return response;

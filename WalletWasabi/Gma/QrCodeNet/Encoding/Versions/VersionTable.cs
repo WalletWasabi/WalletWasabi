@@ -28,7 +28,8 @@ namespace Gma.QrCodeNet.Encoding.Versions
 
 		private static QRCodeVersion[] Initialize()
 		{
-			return new QRCodeVersion[]{
+			return new QRCodeVersion[]
+			{
 				new QRCodeVersion(1, 26,
 							new ErrorCorrectionBlocks(7, new ErrorCorrectionBlock(1, 19)),
 							new ErrorCorrectionBlocks(10, new ErrorCorrectionBlock(1, 16)),

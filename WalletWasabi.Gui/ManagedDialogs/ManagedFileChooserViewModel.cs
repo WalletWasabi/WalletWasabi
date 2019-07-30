@@ -230,14 +230,9 @@ namespace WalletWasabi.Gui.ManagedDialogs
 
 					if (!ShowHiddenFiles)
 					{
-						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-						{
-							infos = infos.Where(i => (i.Attributes & (FileAttributes.Hidden | FileAttributes.System)) != 0);
-						}
-						else
-						{
-							infos = infos.Where(i => !i.Name.StartsWith("."));
-						}
+						infos = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+							? infos.Where(i => (i.Attributes & (FileAttributes.Hidden | FileAttributes.System)) != 0)
+							: infos.Where(i => !i.Name.StartsWith("."));
 					}
 
 					if (SelectedFilter != null)

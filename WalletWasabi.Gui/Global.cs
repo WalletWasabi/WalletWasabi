@@ -153,7 +153,7 @@ namespace WalletWasabi.Gui
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
 			var connectionParameters = new NodeConnectionParameters { UserAgent = "/Satoshi:0.18.0/" };
 
-			if (Config.UseTor.Value)
+			if (Config.UseTor)
 			{
 				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
 			}
@@ -187,7 +187,7 @@ namespace WalletWasabi.Gui
 
 			#region TorProcessInitialization
 
-			if (Config.UseTor.Value)
+			if (Config.UseTor)
 			{
 				TorManager = new TorProcessManager(Config.TorSocks5EndPoint, TorLogsFile);
 			}
@@ -408,7 +408,7 @@ namespace WalletWasabi.Gui
 					await Task.Delay(100, token);
 				}
 
-				if (Config.UseTor.Value)
+				if (Config.UseTor)
 				{
 					ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
 				}
@@ -507,7 +507,7 @@ namespace WalletWasabi.Gui
 		{
 			try
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || UiConfig?.LurkingWifeMode.Value is true)
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || UiConfig?.LurkingWifeMode is true)
 				{
 					return;
 				}
@@ -528,7 +528,8 @@ namespace WalletWasabi.Gui
 							FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
 							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e \"display notification \\\"Received {amountString} BTC\\\" with title \\\"Wasabi\\\"\"" : $"--expire-time=3000 \"Wasabi\" \"Received {amountString} BTC\"",
 							CreateNoWindow = true
-						})) { }
+						}))
+						{ }
 					}
 				}
 			}
