@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin

@@ -117,7 +117,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ToProperty(this, x => x.MinMaxFeeTargetsEqual, scheduler: RxApp.MainThreadScheduler);
 
 			SetFeeTargetLimits();
-			FeeTarget = Global.UiConfig.FeeTarget ?? MinimumFeeTarget;
+			FeeTarget = Global.UiConfig.FeeTarget;
 			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			SetFeesAndTexts(true);
 
@@ -328,7 +328,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					catch
 					{
-						SetWarningMessage("Spending coins those are being actively mixed is not allowed.");
+						SetWarningMessage("Spending coins that are being actively mixed is not allowed.");
 						return;
 					}
 					finally
@@ -535,18 +535,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return;
 			}
 
-			if (IsHardwareBusy)
-			{
-				BuildTransactionButtonText = WaitingForHardwareWalletButtonTextString;
-			}
-			else if (IsBusy)
-			{
-				BuildTransactionButtonText = SendingTransactionButtonTextString;
-			}
-			else
-			{
-				BuildTransactionButtonText = SendTransactionButtonTextString;
-			}
+			BuildTransactionButtonText = IsHardwareBusy
+				? WaitingForHardwareWalletButtonTextString
+				: IsBusy
+					? SendingTransactionButtonTextString
+					: SendTransactionButtonTextString;
 		}
 
 		private void SetAmountWatermark(Money amount)
@@ -566,14 +559,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					Logging.Logger.LogTrace<SendTabViewModel>(ex);
 				}
-				if (amountUsd != 0)
-				{
-					AmountWatermarkText = $"Amount (BTC) ~ ${amountUsd}";
-				}
-				else
-				{
-					AmountWatermarkText = "Amount (BTC)";
-				}
+
+				AmountWatermarkText = amountUsd != 0
+					? $"Amount (BTC) ~ ${amountUsd}"
+					: "Amount (BTC)";
 			}
 		}
 
@@ -723,14 +712,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			if (IsMax)
 			{
-				if (AllSelectedAmount == Money.Zero)
-				{
-					AmountText = "No Coins Selected";
-				}
-				else
-				{
-					AmountText = $"~ {AllSelectedAmount.ToString(false, true)}";
-				}
+				AmountText = AllSelectedAmount == Money.Zero
+					? "No Coins Selected"
+					: $"~ {AllSelectedAmount.ToString(false, true)}";
 			}
 		}
 
@@ -1114,12 +1098,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnOpen()
 		{
-			if (Disposables != null)
-			{
-				throw new Exception("Send tab opened before last one closed.");
-			}
-
-			Disposables = new CompositeDisposable();
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			Global.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate).Subscribe(_ =>
 			{

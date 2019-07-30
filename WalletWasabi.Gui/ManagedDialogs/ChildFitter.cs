@@ -4,7 +4,7 @@ using Avalonia.Layout;
 
 namespace WalletWasabi.Gui.ManagedDialogs
 {
-	class ChildFitter : Decorator
+	internal class ChildFitter : Decorator
 	{
 		protected override Size MeasureOverride(Size availableSize)
 		{

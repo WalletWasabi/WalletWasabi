@@ -104,15 +104,9 @@ namespace NBitcoin.RPC
 
 		private static EstimateSmartFeeResponse SimulateRegTestFeeEstimation(int confirmationTarget, EstimateSmartFeeMode estimateMode)
 		{
-			int satoshiPerBytes;
-			if (estimateMode == EstimateSmartFeeMode.Conservative)
-			{
-				satoshiPerBytes = ((Constants.SevenDaysConfirmationTarget + 1 + 6) - confirmationTarget) / 7;
-			}
-			else // Economical
-			{
-				satoshiPerBytes = ((Constants.SevenDaysConfirmationTarget + 1 + 5) - confirmationTarget) / 7;
-			}
+			int satoshiPerBytes = estimateMode == EstimateSmartFeeMode.Conservative
+				? (Constants.SevenDaysConfirmationTarget + 1 + 6 - confirmationTarget) / 7
+				: (Constants.SevenDaysConfirmationTarget + 1 + 5 - confirmationTarget) / 7; // Economical
 
 			Money feePerK = Money.Satoshis(satoshiPerBytes * 1000);
 			FeeRate feeRate = new FeeRate(feePerK);
@@ -206,7 +200,7 @@ namespace NBitcoin.RPC
 		}
 
 		/// <summary>
-		/// Gets the transactions those are unconfirmed using getrawmempool.
+		/// Gets the transactions that are unconfirmed using getrawmempool.
 		/// This is efficient when many transaction ids are provided.
 		/// </summary>
 		public static async Task<IEnumerable<uint256>> GetUnconfirmedAsync(this RPCClient rpc, IEnumerable<uint256> transactionHashes)
@@ -225,15 +219,9 @@ namespace NBitcoin.RPC
 		/// <returns>All the dependents of the provided transactionHashes.</returns>
 		public static async Task<ISet<uint256>> GetAllDependentsAsync(this RPCClient rpc, IEnumerable<uint256> transactionHashes, bool includingProvided, bool likelyProvidedManyConfirmedOnes)
 		{
-			IEnumerable<uint256> workingTxHashes;
-			if (likelyProvidedManyConfirmedOnes) // If confirmed txIds are provided, then do a big check first.
-			{
-				workingTxHashes = await rpc.GetUnconfirmedAsync(transactionHashes);
-			}
-			else
-			{
-				workingTxHashes = transactionHashes;
-			}
+			IEnumerable<uint256> workingTxHashes = likelyProvidedManyConfirmedOnes // If confirmed txIds are provided, then do a big check first.
+				? await rpc.GetUnconfirmedAsync(transactionHashes)
+				: transactionHashes;
 
 			var hashSet = new HashSet<uint256>();
 			foreach (var txId in workingTxHashes)

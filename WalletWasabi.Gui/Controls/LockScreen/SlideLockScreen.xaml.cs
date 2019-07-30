@@ -16,8 +16,8 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 	{
 		public static readonly DirectProperty<SlideLockScreen, bool> IsLockedProperty =
 			AvaloniaProperty.RegisterDirect<SlideLockScreen, bool>(nameof(IsLocked),
-													  o => o.IsLocked,
-													  (o, v) => o.IsLocked = v);
+																   o => o.IsLocked,
+																   (o, v) => o.IsLocked = v);
 
 		private bool _isLocked;
 
@@ -28,9 +28,9 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		}
 
 		public static readonly DirectProperty<SlideLockScreen, double> OffsetProperty =
-					AvaloniaProperty.RegisterDirect<SlideLockScreen, double>(nameof(Offset),
-															  o => o.Offset,
-															  (o, v) => o.Offset = v);
+			AvaloniaProperty.RegisterDirect<SlideLockScreen, double>(nameof(Offset),
+																	 o => o.Offset,
+																	 (o, v) => o.Offset = v);
 
 		private double _offset;
 
@@ -42,8 +42,8 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 		public static readonly DirectProperty<SlideLockScreen, bool> DoneAnimatingProperty =
 			AvaloniaProperty.RegisterDirect<SlideLockScreen, bool>(nameof(DoneAnimating),
-													  o => o.DoneAnimating,
-													  (o, v) => o.DoneAnimating = v);
+																   o => o.DoneAnimating,
+																   (o, v) => o.DoneAnimating = v);
 
 		private bool _doneAnimating;
 
@@ -55,6 +55,27 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 		private TranslateTransform TargetTransform { get; } = new TranslateTransform();
 		private Thumb DragThumb { get; }
+
+		public SlideLockScreen() : base()
+		{
+			InitializeComponent();
+
+			DragThumb = this.FindControl<Thumb>("PART_DragThumb");
+			this.FindControl<Grid>("Shade").RenderTransform = TargetTransform;
+
+			DataContextChanged += delegate
+			{
+				if (DataContext is SlideLockScreenViewModel)
+				{
+					OnDataContextChanged();
+				}
+			};
+		}
+
+		private void InitializeComponent()
+		{
+			AvaloniaXamlLoader.Load(this);
+		}
 
 		public void OnDataContextChanged()
 		{
@@ -116,27 +137,6 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(vm.OnClockTick)
 				.DisposeWith(vm.Disposables);
-		}
-
-		public SlideLockScreen() : base()
-		{
-			InitializeComponent();
-
-			DragThumb = this.FindControl<Thumb>("PART_DragThumb");
-			this.FindControl<Grid>("Shade").RenderTransform = TargetTransform;
-
-			DataContextChanged += delegate
-			{
-				if (DataContext is SlideLockScreenViewModel)
-				{
-					OnDataContextChanged();
-				}
-			};
-		}
-
-		private void InitializeComponent()
-		{
-			AvaloniaXamlLoader.Load(this);
 		}
 	}
 }

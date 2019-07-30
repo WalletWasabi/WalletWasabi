@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using WalletWasabi.Bases;
 
 namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields

@@ -11,7 +11,6 @@
     <converters:MoneyBrushConverter x:Key="MoneyBrushConverter" />
     <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
   </UserControl.Resources>
-
   <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
     <Grid Classes="content">
       <DockPanel LastChildFill="True">
@@ -38,13 +37,10 @@
                     <TextBlock Text="{Binding DateTime, ConverterParameter=11, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="1" />
                     <TextBlock Text="{Binding AmountBtc, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="2" Foreground="{Binding AmountBtc, Converter={StaticResource MoneyBrushConverter}}" />
                     <TextBlock IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding TransactionId, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="3" />
-
                     <Grid IsVisible="{Binding ClipboardNotificationVisible}" Grid.Column="3">
                       <Grid Opacity="{Binding ClipboardNotificationOpacity}">
                         <Grid.Transitions>
-                          <DoubleTransition Property="Opacity"
-                              Easing="CircularEaseIn"
-                              Duration="0:0:0.5" />
+                          <DoubleTransition Property="Opacity" Easing="CircularEaseIn" Duration="0:0:0.5" />
                         </Grid.Transitions>
                         <TextBlock Text="Copied" Foreground="White" FontWeight="Bold" />
                       </Grid>

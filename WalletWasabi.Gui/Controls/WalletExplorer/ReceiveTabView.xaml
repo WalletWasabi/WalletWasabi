@@ -4,8 +4,7 @@
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
-             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
-             Name="ReceiveTabViewerUserControl">
+             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui" Name="ReceiveTabViewerUserControl">
   <UserControl.Resources>
     <converters:CoinItemExpanderColorConverter x:Key="CoinItemExpanderColorConverter" />
     <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
@@ -15,7 +14,6 @@
       <DockPanel LastChildFill="True">
         <Grid RowDefinitions="Auto,*" DockPanel.Dock="Top">
           <DockPanel LastChildFill="True">
-
             <Grid ColumnDefinitions="*,300" DockPanel.Dock="Top" Margin="0 0 0 10">
               <StackPanel Spacing="8">
                 <controls:ExtendedTextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label (Required)" CaretIndex="{Binding CaretIndex}" UseFloatingWatermark="True" Grid.Column="0" Margin="0 0 10 0">
@@ -25,34 +23,27 @@
                     <behaviors:FocusBehavior IsFocused="{Binding IsSelected}" />
                     <iac:FocusOnAttachedToVisualTreeBehavior />
                   </i:Interaction.Behaviors>
-
-                  <ToolTip.Tip>
-                    Start labeling today and your privacy will thank you tomorrow!
-                  </ToolTip.Tip>
+                  <ToolTip.Tip>Start labeling today and your privacy will thank you tomorrow!</ToolTip.Tip>
                 </controls:ExtendedTextBox>
                 <ItemsControl Items="{Binding Suggestions}">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                      <StackPanel Orientation ="Horizontal" Spacing="2" />
+                      <StackPanel Orientation="Horizontal" Spacing="2" />
                     </ItemsPanelTemplate>
                   </ItemsControl.ItemsPanel>
                   <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                      <Button Focusable="False" Content="{Binding Word}" Command="{Binding OnSelected}" IsPressed ="{Binding IsHighLighted}" />
+                      <Button Focusable="False" Content="{Binding Word}" Command="{Binding OnSelected}" IsPressed="{Binding IsHighLighted}" />
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
               </StackPanel>
-
-              <Button Content="Generate Receive Address" Command="{Binding GenerateCommand}" VerticalAlignment="Top"  Grid.Column="1" />
+              <Button Content="Generate Receive Address" Command="{Binding GenerateCommand}" VerticalAlignment="Top" Grid.Column="1" />
             </Grid>
-
             <Grid IsVisible="{Binding LabelRequiredNotificationVisible}">
               <Grid Opacity="{Binding LabelRequiredNotificationOpacity}">
                 <Grid.Transitions>
-                  <DoubleTransition Property="Opacity"
-                        Easing="CircularEaseIn"
-                        Duration="0:0:0.5" />
+                  <DoubleTransition Property="Opacity" Easing="CircularEaseIn" Duration="0:0:0.5" />
                 </Grid.Transitions>
                 <TextBlock Classes="warningMessage" Text="Label Is Required!" VerticalAlignment="Center" HorizontalAlignment="Center" />
               </Grid>
@@ -72,33 +63,22 @@
               <ContextMenu>
                 <MenuItem Header="Show QR code" Command="{Binding ShowQrCode}">
                   <MenuItem.Icon>
-                    <Path HorizontalAlignment="Left"
-                          Data="M16.803,18.615h-4.535c-1,0-1.814-0.812-1.814-1.812v-4.535c0-1.002,0.814-1.814,1.814-1.814h4.535c1.001,0,1.813,0.812,1.813,1.814v4.535C18.616,17.803,17.804,18.615,16.803,18.615zM17.71,12.268c0-0.502-0.405-0.906-0.907-0.906h-4.535c-0.501,0-0.906,0.404-0.906,0.906v4.535c0,0.502,0.405,0.906,0.906,0.906h4.535c0.502,0,0.907-0.404,0.907-0.906V12.268z M16.803,9.546h-4.535c-1,0-1.814-0.812-1.814-1.814V3.198c0-1.002,0.814-1.814,1.814-1.814h4.535c1.001,0,1.813,0.812,1.813,1.814v4.534C18.616,8.734,17.804,9.546,16.803,9.546zM17.71,3.198c0-0.501-0.405-0.907-0.907-0.907h-4.535c-0.501,0-0.906,0.406-0.906,0.907v4.534c0,0.501,0.405,0.908,0.906,0.908h4.535c0.502,0,0.907-0.406,0.907-0.908V3.198z M7.733,18.615H3.198c-1.002,0-1.814-0.812-1.814-1.812v-4.535c0-1.002,0.812-1.814,1.814-1.814h4.535c1.002,0,1.814,0.812,1.814,1.814v4.535C9.547,17.803,8.735,18.615,7.733,18.615zM8.64,12.268c0-0.502-0.406-0.906-0.907-0.906H3.198c-0.501,0-0.907,0.404-0.907,0.906v4.535c0,0.502,0.406,0.906,0.907,0.906h4.535c0.501,0,0.907-0.404,0.907-0.906V12.268z M7.733,9.546H3.198c-1.002,0-1.814-0.812-1.814-1.814V3.198c0-1.002,0.812-1.814,1.814-1.814h4.535c1.002,0,1.814,0.812,1.814,1.814v4.534C9.547,8.734,8.735,9.546,7.733,9.546z M8.64,3.198c0-0.501-0.406-0.907-0.907-0.907H3.198c-0.501,0-0.907,0.406-0.907,0.907v4.534c0,0.501,0.406,0.908,0.907,0.908h4.535c0.501,0,0.907-0.406,0.907-0.908V3.198z"
-                          Fill="#22B14C"
-                          Height="16" Width="16"  Stretch="Fill" />
+                    <Path HorizontalAlignment="Left" Data="M16.803,18.615h-4.535c-1,0-1.814-0.812-1.814-1.812v-4.535c0-1.002,0.814-1.814,1.814-1.814h4.535c1.001,0,1.813,0.812,1.813,1.814v4.535C18.616,17.803,17.804,18.615,16.803,18.615zM17.71,12.268c0-0.502-0.405-0.906-0.907-0.906h-4.535c-0.501,0-0.906,0.404-0.906,0.906v4.535c0,0.502,0.405,0.906,0.906,0.906h4.535c0.502,0,0.907-0.404,0.907-0.906V12.268z M16.803,9.546h-4.535c-1,0-1.814-0.812-1.814-1.814V3.198c0-1.002,0.814-1.814,1.814-1.814h4.535c1.001,0,1.813,0.812,1.813,1.814v4.534C18.616,8.734,17.804,9.546,16.803,9.546zM17.71,3.198c0-0.501-0.405-0.907-0.907-0.907h-4.535c-0.501,0-0.906,0.406-0.906,0.907v4.534c0,0.501,0.405,0.908,0.906,0.908h4.535c0.502,0,0.907-0.406,0.907-0.908V3.198z M7.733,18.615H3.198c-1.002,0-1.814-0.812-1.814-1.812v-4.535c0-1.002,0.812-1.814,1.814-1.814h4.535c1.002,0,1.814,0.812,1.814,1.814v4.535C9.547,17.803,8.735,18.615,7.733,18.615zM8.64,12.268c0-0.502-0.406-0.906-0.907-0.906H3.198c-0.501,0-0.907,0.404-0.907,0.906v4.535c0,0.502,0.406,0.906,0.907,0.906h4.535c0.501,0,0.907-0.404,0.907-0.906V12.268z M7.733,9.546H3.198c-1.002,0-1.814-0.812-1.814-1.814V3.198c0-1.002,0.812-1.814,1.814-1.814h4.535c1.002,0,1.814,0.812,1.814,1.814v4.534C9.547,8.734,8.735,9.546,7.733,9.546z M8.64,3.198c0-0.501-0.406-0.907-0.907-0.907H3.198c-0.501,0-0.907,0.406-0.907,0.907v4.534c0,0.501,0.406,0.908,0.907,0.908h4.535c0.501,0,0.907-0.406,0.907-0.908V3.198z" Fill="#22B14C" Height="16" Width="16" Stretch="Fill" />
                   </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="Copy address" Command="{Binding CopyAddress}">
                   <MenuItem.Icon>
-                    <Path HorizontalAlignment="Left"
-                          Data="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" Fill="#22B14C"
-                          Height="16" Width="16"  Stretch="Fill" />
+                    <Path HorizontalAlignment="Left" Data="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" Fill="#22B14C" Height="16" Width="16" Stretch="Fill" />
                   </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="Copy label" Command="{Binding CopyLabel}">
                   <MenuItem.Icon>
-                    <Path HorizontalAlignment="Left"
-                          Data="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" Fill="#22B14C"
-                          Height="16" Width="16"  Stretch="Fill" />
+                    <Path HorizontalAlignment="Left" Data="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" Fill="#22B14C" Height="16" Width="16" Stretch="Fill" />
                   </MenuItem.Icon>
                 </MenuItem>
-
                 <MenuItem Header="Change Label" Command="{Binding ChangeLabelCommand}">
                   <MenuItem.Icon>
-                    <Path HorizontalAlignment="Left"
-                          Data="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z"
-                          Height="16" Width="16"
-                          Stretch="Fill" Fill="#22B14C" />
+                    <Path HorizontalAlignment="Left" Data="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z" Height="16" Width="16" Stretch="Fill" Fill="#22B14C" />
                   </MenuItem.Icon>
                 </MenuItem>
               </ContextMenu>
@@ -115,28 +95,21 @@
                         <TextBlock Text="Public key:" Grid.Row="0" Grid.Column="0" />
                         <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding PubKey}" Grid.Row="0" Grid.Column="1" />
                         <TextBlock Text="Key path:" Grid.Row="1" Grid.Column="0" />
-                        <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent"  Text="{Binding KeyPath}" Grid.Row="1" Grid.Column="1" />
+                        <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding KeyPath}" Grid.Row="1" Grid.Column="1" />
                       </Grid>
                     </StackPanel>
                   </Expander>
                   <Grid ColumnDefinitions="400, *, 100" Margin="30 0 0 0">
-                    <TextBlock IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding Address, ConverterParameter=27, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}">
-                    </TextBlock>
-
+                    <TextBlock IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding Address, ConverterParameter=27, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}"></TextBlock>
                     <Grid IsVisible="{Binding ClipboardNotificationVisible}">
                       <Grid Opacity="{Binding ClipboardNotificationOpacity}">
                         <Grid.Transitions>
-                          <DoubleTransition Property="Opacity"
-                                Easing="CircularEaseIn"
-                                Duration="0:0:0.5" />
+                          <DoubleTransition Property="Opacity" Easing="CircularEaseIn" Duration="0:0:0.5" />
                         </Grid.Transitions>
                         <TextBlock Text="Copied" Foreground="White" FontWeight="Bold" />
                       </Grid>
                     </Grid>
-
-                    <controls:EditableTextBlock Text="{Binding Label, ConverterParameter=27, Converter={StaticResource LurkingWifeModeStringConverter}}"
-                                                InEditMode="{Binding InEditMode}"
-                                                ReadOnlyMode="{Binding IsLurkingWifeMode}" Grid.Column="1" />
+                    <controls:EditableTextBlock Text="{Binding Label, ConverterParameter=27, Converter={StaticResource LurkingWifeModeStringConverter}}" InEditMode="{Binding InEditMode}" ReadOnlyMode="{Binding IsLurkingWifeMode}" Grid.Column="1" />
                   </Grid>
                 </Grid>
               </DataTemplate>

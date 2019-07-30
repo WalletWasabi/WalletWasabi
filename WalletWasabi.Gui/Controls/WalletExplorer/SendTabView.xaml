@@ -14,13 +14,11 @@
   <i:Interaction.Behaviors>
     <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedCoin}" />
   </i:Interaction.Behaviors>
-
   <UserControl.Styles>
     <!--    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
       <Setter Property="Background" Value="Transparent" />
     </Style>-->
   </UserControl.Styles>
-
   <DockPanel LastChildFill="True">
     <DockPanel.Styles>
       <Style Selector="ListBoxItem">
@@ -48,42 +46,41 @@
             <ItemsControl Items="{Binding Suggestions}">
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                  <StackPanel Orientation ="Horizontal" Spacing="2" />
+                  <StackPanel Orientation="Horizontal" Spacing="2" />
                 </ItemsPanelTemplate>
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <Button Focusable="False" Content="{Binding Word}" Command="{Binding OnSelected}" IsPressed ="{Binding IsHighLighted}" />
+                  <Button Focusable="False" Content="{Binding Word}" Command="{Binding OnSelected}" IsPressed="{Binding IsHighLighted}" />
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
           </StackPanel>
           <StackPanel Orientation="Horizontal" Spacing="10">
             <Button Content="{Binding IsMax, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Clear:Max}" Command="{Binding MaxCommand}" VerticalAlignment="Top" Height="40" />
-            <controls:ExtendedTextBox Foreground="{Binding AmountText, Converter={StaticResource AmountForegroundConverter}}"
-                                      IsReadOnly="{Binding IsMax}" Text="{Binding AmountText, Mode=TwoWay}"
-                                      ToolTip.Tip="{Binding UsdExchangeRate, Converter={StaticResource UsdExchangeRateAmountToolTipConverter}}"
-                                      Watermark="{Binding AmountWatermarkText}"
-                                      UseFloatingWatermark="True"
-                                      MinWidth="124"
-                                      MinHeight="46" />
+            <controls:ExtendedTextBox
+              Foreground="{Binding AmountText, Converter={StaticResource AmountForegroundConverter}}"
+              IsReadOnly="{Binding IsMax}"
+              Text="{Binding AmountText, Mode=TwoWay}"
+              ToolTip.Tip="{Binding UsdExchangeRate, Converter={StaticResource UsdExchangeRateAmountToolTipConverter}}"
+              Watermark="{Binding AmountWatermarkText}"
+              UseFloatingWatermark="True"
+              MinWidth="124"
+              MinHeight="46" />
             <StackPanel>
               <StackPanel IsVisible="{Binding !MinMaxFeeTargetsEqual}" Orientation="Horizontal" Spacing="10">
                 <TextBlock Text="Fee:" />
-
                 <Grid Height="10" Width="10">
                   <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource SendTabView_Lightning}" />
                 </Grid>
-
                 <Slider Minimum="{Binding MinimumFeeTarget}" Maximum="{Binding MaximumFeeTarget}" Value="{Binding FeeTarget}" Width="270" />
-
                 <Grid Height="10" Width="10">
                   <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource SendTabView_Clock}" />
                 </Grid>
               </StackPanel>
               <StackPanel IsVisible="{Binding MinMaxFeeTargetsEqual}" Orientation="Horizontal" Spacing="10">
                 <TextBlock Text="Fees are super low!" VerticalAlignment="Center" />
-                
+
                 <Grid Height="16" Width="16">
                   <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource SendTabView_Smiley}" />
                 </Grid>
@@ -117,8 +114,7 @@
           </StackPanel>
           <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
           <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
-          <Grid ColumnDefinitions="60,100,100,600,100,Auto">
-          </Grid>
+          <Grid ColumnDefinitions="60,100,100,600,100,Auto"></Grid>
         </StackPanel>
         <local:CoinListView DataContext="{Binding CoinList}" />
       </DockPanel>

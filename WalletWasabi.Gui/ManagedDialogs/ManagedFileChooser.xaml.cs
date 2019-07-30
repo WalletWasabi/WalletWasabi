@@ -10,7 +10,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Gui.ManagedDialogs
 {
-	class ManagedFileChooser : UserControl
+	internal class ManagedFileChooser : UserControl
 	{
 		private Control _quickLinksRoot;
 		private ListBox _filesView;
@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 			_filesView = this.FindControl<ListBox>("Files");
 		}
 
-		ManagedFileChooserViewModel Model => DataContext as ManagedFileChooserViewModel;
+		private ManagedFileChooserViewModel Model => DataContext as ManagedFileChooserViewModel;
 
 		private void OnPointerPressed(object sender, PointerPressedEventArgs e)
 		{

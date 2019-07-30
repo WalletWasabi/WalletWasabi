@@ -10,7 +10,7 @@ using AvalonStudio.Shell.Controls;
 
 namespace WalletWasabi.Gui.ManagedDialogs
 {
-	class ManagedFileDialog : MetroWindow
+	internal class ManagedFileDialog : MetroWindow
 	{
 		public ManagedFileDialog()
 		{
