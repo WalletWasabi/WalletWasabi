@@ -46,7 +46,12 @@
     <Setter Property="Content">
       <Template>
         <Panel Margin="4">
-          <Path Height="8" Width="8" Stretch="Uniform" UseLayoutRounding="False" Fill="{DynamicResource ThemeForegroundBrush}" Data="M4,8H8V4H20V16H16V20H4V8M16,8V14H18V6H10V8H16M6,12V18H14V12H6Z" />
+          <Path Height="8"
+                Width="8"
+                Stretch="Uniform"
+                UseLayoutRounding="False"
+                Fill="{DynamicResource ThemeForegroundBrush}"
+                Data="M4,8H8V4H20V16H16V20H4V8M16,8V14H18V6H10V8H16M6,12V18H14V12H6Z" />
         </Panel>
       </Template>
     </Setter>
@@ -55,7 +60,13 @@
     <Setter Property="Content">
       <Template>
         <Panel Margin="4">
-          <Path Height="8" Width="8" Stretch="Uniform" UseLayoutRounding="False" Data="M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z" Fill="{DynamicResource ThemeForegroundBrush}" />
+          <Path
+            Height="8"
+            Width="8"
+            Stretch="Uniform"
+            UseLayoutRounding="False"
+            Data="M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z"
+            Fill="{DynamicResource ThemeForegroundBrush}" />
         </Panel>
       </Template>
     </Setter>
@@ -110,8 +121,19 @@
     <Setter Property="Template">
       <ControlTemplate>
         <DockPanel LastChildFill="True">
-          <ContentControl DockPanel.Dock="Bottom" ContentTemplate="{TemplateBinding ErrorTemplate}" DataContext="{TemplateBinding Owner}" Content="{Binding (DataValidationErrors.Errors)}" IsVisible="{Binding (DataValidationErrors.HasErrors)}" />
-          <ContentPresenter Name="PART_ContentPresenter" Background="{TemplateBinding Background}" BorderThickness="{TemplateBinding BorderThickness}" ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" Padding="{TemplateBinding Padding}" />
+          <ContentControl
+            DockPanel.Dock="Bottom"
+            ContentTemplate="{TemplateBinding ErrorTemplate}"
+            DataContext="{TemplateBinding Owner}"
+            Content="{Binding (DataValidationErrors.Errors)}"
+            IsVisible="{Binding (DataValidationErrors.HasErrors)}" />
+          <ContentPresenter
+            Name="PART_ContentPresenter"
+            Background="{TemplateBinding Background}"
+            BorderThickness="{TemplateBinding BorderThickness}"
+            ContentTemplate="{TemplateBinding ContentTemplate}"
+            Content="{TemplateBinding Content}"
+            Padding="{TemplateBinding Padding}" />
         </DockPanel>
       </ControlTemplate>
     </Setter>
@@ -139,19 +161,43 @@
     <Setter Property="Template">
       <ControlTemplate>
         <DockPanel LastChildFill="True">
-          <Border Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" DockPanel.Dock="Top">
+          <Border
+            Name="border"
+            Background="{TemplateBinding Background}"
+            BorderBrush="{TemplateBinding BorderBrush}"
+            BorderThickness="{TemplateBinding BorderThickness}"
+            DockPanel.Dock="Top">
             <DockPanel Margin="{TemplateBinding Padding}">
-              <TextBlock Name="floatingWatermark" Foreground="{DynamicResource ThemeAccentBrush}" FontSize="{DynamicResource FontSizeSmall}" Text="{TemplateBinding Watermark}" DockPanel.Dock="Top">
+              <TextBlock
+                Name="floatingWatermark"
+                Foreground="{DynamicResource ThemeAccentBrush}"
+                FontSize="{DynamicResource FontSizeSmall}"
+                Text="{TemplateBinding Watermark}" DockPanel.Dock="Top">
                 <TextBlock.IsVisible>
                   <MultiBinding Converter="{x:Static BoolConverters.And}">
                     <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="UseFloatingWatermark" />
                     <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Text" Converter="{x:Static StringConverters.IsNotNullOrEmpty}" />
                   </MultiBinding>
-                </TextBlock.IsVisible></TextBlock>
-              <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}" VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
+                </TextBlock.IsVisible>
+              </TextBlock>
+              <ScrollViewer
+                HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
                 <Panel>
-                  <TextBlock Name="watermark" Opacity="0.5" Text="{TemplateBinding Watermark}" IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
-                  <TextPresenter Name="PART_TextPresenter" Text="{TemplateBinding Text, Mode=TwoWay}" CaretIndex="{TemplateBinding CaretIndex}" SelectionStart="{TemplateBinding SelectionStart}" SelectionEnd="{TemplateBinding SelectionEnd}" TextAlignment="{TemplateBinding TextAlignment}" TextWrapping="{TemplateBinding TextWrapping}" PasswordChar="{TemplateBinding PasswordChar}" />
+                  <TextBlock
+                    Name="watermark"
+                    Opacity="0.5"
+                    Text="{TemplateBinding Watermark}"
+                    IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+                  <TextPresenter
+                    Name="PART_TextPresenter"
+                    Text="{TemplateBinding Text, Mode=TwoWay}"
+                    CaretIndex="{TemplateBinding CaretIndex}"
+                    SelectionStart="{TemplateBinding SelectionStart}"
+                    SelectionEnd="{TemplateBinding SelectionEnd}"
+                    TextAlignment="{TemplateBinding TextAlignment}"
+                    TextWrapping="{TemplateBinding TextWrapping}"
+                    PasswordChar="{TemplateBinding PasswordChar}" />
                 </Panel>
               </ScrollViewer>
             </DockPanel>
