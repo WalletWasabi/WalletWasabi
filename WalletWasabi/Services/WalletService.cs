@@ -1088,25 +1088,13 @@ namespace WalletWasabi.Services
 					throw new ArgumentException($"{nameof(allowedInputs)} is not null, but empty.");
 				}
 
-				if (allowUnconfirmed)
-				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.Unavailable && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
-				}
-				else
-				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.Unavailable && x.Confirmed && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
-				}
+				allowedSmartCoinInputs = allowUnconfirmed
+					? Coins.Where(x => !x.Unavailable && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList()
+					: Coins.Where(x => !x.Unavailable && x.Confirmed && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
 			}
 			else
 			{
-				if (allowUnconfirmed)
-				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.Unavailable).ToList();
-				}
-				else
-				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.Unavailable && x.Confirmed).ToList();
-				}
+				allowedSmartCoinInputs = allowUnconfirmed ? Coins.Where(x => !x.Unavailable).ToList() : Coins.Where(x => !x.Unavailable && x.Confirmed).ToList();
 			}
 
 			// 4. Get and calculate fee

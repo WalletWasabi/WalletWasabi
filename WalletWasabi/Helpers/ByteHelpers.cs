@@ -98,14 +98,7 @@ namespace System
 			for (int i = 0; i < 256; i++)
 			{
 				string s = i.ToString("X2");
-				if (BitConverter.IsLittleEndian)
-				{
-					result[i] = s[0] + ((uint)s[1] << 16);
-				}
-				else
-				{
-					result[i] = s[1] + ((uint)s[0] << 16);
-				}
+				result[i] = BitConverter.IsLittleEndian ? s[0] + ((uint)s[1] << 16) : s[1] + ((uint)s[0] << 16);
 			}
 			return result;
 		}
