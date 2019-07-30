@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Rendering;
 using Avalonia.Threading;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
@@ -8,13 +9,10 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
-using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Logging;
 using WalletWasabi.Gui.Controls.LockScreen;
 using WalletWasabi.Gui.ManagedDialogs;
-using System.Threading;
-using Avalonia.Rendering;
-using System.Reactive.Disposables;
+using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui
 {
