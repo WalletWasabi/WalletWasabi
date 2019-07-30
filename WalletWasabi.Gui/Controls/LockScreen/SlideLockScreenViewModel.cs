@@ -132,14 +132,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				case SlideLockState.UserIsDragging:
 					if (!IsUserDragging)
 					{
-						if (Math.Abs(Offset) > Threshold)
-						{
-							_state = SlideLockState.UserDragPassedThreshold;
-						}
-						else
-						{
-							_state = SlideLockState.Idle;
-						}
+						_state = Math.Abs(Offset) > Threshold ? SlideLockState.UserDragPassedThreshold : SlideLockState.Idle;
 					}
 					break;
 

@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using WalletWasabi.Bases;
 
 namespace WalletWasabi.Interfaces
 {
@@ -28,6 +29,13 @@ namespace WalletWasabi.Interfaces
 		/// Load or create the config if the file path of the config file is set, otherwise throw exception.
 		/// </summary>
 		Task LoadOrCreateDefaultFileAsync();
+
+		/// <summary>
+		/// Load config if the file path of the config file is set, otherwise throw exception.
+		/// </summary>
+		Task LoadFileAsync();
+
+		bool AreDeepEqual(object otherConfig);
 
 		/// <summary>
 		/// Check if the config file differs from the config if the file path of the config file is set, otherwise throw exception.

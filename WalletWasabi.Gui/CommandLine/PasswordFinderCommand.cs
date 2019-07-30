@@ -57,7 +57,7 @@ namespace WalletWasabi.Gui.CommandLine
 				}
 				else if (!PasswordFinder.Charsets.ContainsKey(Language))
 				{
-					Logging.Logger.LogCritical<PasswordFinderCommand>($"`{Language}` is not available language try with `en, es, pt, it or fr`.");
+					Logging.Logger.LogCritical<PasswordFinderCommand>($"`{Language}` is not available language, try with `en, es, pt, it or fr`.");
 					Logging.Logger.LogCritical<PasswordFinderCommand>("Use `findpassword --help` for details.");
 					error = true;
 				}
