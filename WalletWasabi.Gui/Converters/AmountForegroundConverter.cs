@@ -14,7 +14,11 @@ namespace WalletWasabi.Gui.Converters
 			if (value is string amount)
 			{
 				// When the amount starts with a '~' then Max is selected
-				return amount.StartsWith("~") ? Brushes.ForestGreen : (amount.Equals("No Coins Selected", StringComparison.OrdinalIgnoreCase) ? Brushes.IndianRed : Brushes.White);
+				return amount.StartsWith("~")
+					? Brushes.ForestGreen
+					: amount.Equals("No Coins Selected", StringComparison.OrdinalIgnoreCase)
+						? Brushes.IndianRed
+						: Brushes.White;
 			}
 			else
 			{

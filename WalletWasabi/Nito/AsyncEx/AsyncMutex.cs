@@ -117,9 +117,9 @@ namespace Nito.AsyncEx
 		/// <param name="cancellationTokenObj"></param>
 		private void HoldLock(object cancellationTokenObj)
 		{
-			CancellationToken ct = cancellationTokenObj is CancellationToken token ?
-				token :
-				CancellationToken.None;
+			CancellationToken ct = cancellationTokenObj is CancellationToken token
+				? token
+				: CancellationToken.None;
 
 			while (true)
 			{

@@ -105,10 +105,12 @@ namespace WalletWasabi.Gui.ManagedDialogs
 
 			QuickLinks.AddRange(quickSources.GetAllItems().Select(i => new ManagedFileChooserItemViewModel(i)));
 
-			Title = dialog.Title ?? (
-						dialog is OpenFileDialog ? "Open file"
-						: dialog is SaveFileDialog ? "Save file"
-						: dialog is OpenFolderDialog ? "Select directory"
+			Title = dialog.Title ?? (dialog is OpenFileDialog
+				? "Open file"
+				: dialog is SaveFileDialog
+					? "Save file"
+					: dialog is OpenFolderDialog
+						? "Select directory"
 						: throw new ArgumentException(nameof(dialog)));
 
 			var directory = dialog.InitialDirectory;

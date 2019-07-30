@@ -111,7 +111,7 @@ namespace WalletWasabi.Models
 
 			Type = type;
 
-			Value = (Type == HeightType.Mempool)
+			Value = Type == HeightType.Mempool
 				? int.MaxValue - 1
 				: int.MaxValue;
 		}

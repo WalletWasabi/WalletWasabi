@@ -526,7 +526,9 @@ namespace WalletWasabi.Gui
 						using (var process = Process.Start(new ProcessStartInfo
 						{
 							FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
-							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e \"display notification \\\"Received {amountString} BTC\\\" with title \\\"Wasabi\\\"\"" : $"--expire-time=3000 \"Wasabi\" \"Received {amountString} BTC\"",
+							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+								? $"-e \"display notification \\\"Received {amountString} BTC\\\" with title \\\"Wasabi\\\"\""
+								: $"--expire-time=3000 \"Wasabi\" \"Received {amountString} BTC\"",
 							CreateNoWindow = true
 						}))
 						{ }
@@ -689,8 +691,10 @@ namespace WalletWasabi.Gui
 
 		public string GetNextHardwareWalletName(Hwi.Models.HardwareWalletInfo hwi = null, string customPrefix = null)
 		{
-			var prefix = customPrefix is null ?
-				(hwi is null ? "HardwareWallet" : hwi.Type.ToString())
+			var prefix = customPrefix is null
+				? hwi is null
+					? "HardwareWallet"
+					: hwi.Type.ToString()
 				: customPrefix;
 
 			for (int i = 0; i < int.MaxValue; i++)
