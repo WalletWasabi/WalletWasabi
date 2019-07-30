@@ -13,9 +13,10 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.ManagedDialogs
 {
-	class ManagedFileChooserViewModel : ViewModelBase
+	internal class ManagedFileChooserViewModel : ViewModelBase
 	{
 		public event Action CancelRequested;
+
 		public event Action<string[]> CompleteRequested;
 
 		public AvaloniaList<ManagedFileChooserItemViewModel> QuickLinks { get; } =
@@ -30,8 +31,8 @@ namespace WalletWasabi.Gui.ManagedDialogs
 		public AvaloniaList<ManagedFileChooserItemViewModel> SelectedItems { get; } =
 			new AvaloniaList<ManagedFileChooserItemViewModel>();
 
-		string _location;
-		string _fileName;
+		private string _location;
+		private string _fileName;
 		private bool _showHiddenFiles;
 		private ManagedFileChooserFilterViewModel _selectedFilter;
 		private bool _savingFile;
@@ -137,7 +138,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 
 			SelectingFolder = dialog is OpenFolderDialog;			
 
-			if(dialog is SaveFileDialog sfd)
+			if (dialog is SaveFileDialog sfd)
 			{
 				_savingFile = true;
 				_defaultExtension = sfd.DefaultExtension;
@@ -197,7 +198,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 			});
 		}
 
-		void NavigateRoot(string initialSelectionName)
+		private void NavigateRoot(string initialSelectionName)
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
@@ -251,7 +252,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 
 						return true;
 					})
-					.Where(x=>x.Exists)
+					.Where(x => x.Exists)
 					.Select(info => new ManagedFileChooserItemViewModel
 					{
 						DisplayName = info.Name,
@@ -305,7 +306,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 			{
 				CompleteRequested?.Invoke(new[] { Location });
 			}
-			else if(_savingFile)
+			else if (_savingFile)
 			{
 				if (!string.IsNullOrWhiteSpace(FileName))
 				{

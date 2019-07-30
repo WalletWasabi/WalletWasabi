@@ -6,7 +6,7 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.ManagedDialogs
 {
-	class ManagedFileChooserFilterViewModel : ViewModelBase
+	internal class ManagedFileChooserFilterViewModel : ViewModelBase
 	{
 		private readonly string[] _extensions;
 		public string Name { get; }
