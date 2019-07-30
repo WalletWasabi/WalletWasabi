@@ -106,7 +106,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => SetFeesAndTexts(false));
+				.Subscribe(_ => SetFeesAndTexts());
 
 			Observable.FromEventPattern(CoinList, nameof(CoinList.DequeueCoinsPressed))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -118,7 +118,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SetFeeTargetLimits();
 			FeeTarget = Global.UiConfig.FeeTarget;
 			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
-			SetFeesAndTexts(true);
+			SetFeesAndTexts();
 
 			this.WhenAnyValue(x => x.AmountText)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -161,7 +161,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					SetAmountWatermark(Money.Zero);
 				}
 
-				SetFeesAndTexts(false);
+				SetFeesAndTexts();
 			});
 
 			this.WhenAnyValue(x => x.IsBusy)
@@ -568,10 +568,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						   orderby val
 						   select val).DefaultIfEmpty().First();
 			FeeDisplayFormat = nextval;
-			SetFeesAndTexts(false);
+			SetFeesAndTexts();
 		}
 
-		private void SetFeesAndTexts(bool setFeeText)
+		private void SetFeesAndTexts()
 		{
 			AllFeeEstimate allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
 
@@ -642,11 +642,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					default:
 						throw new NotSupportedException("This is impossible.");
-				}
-
-				if (setFeeText)
-				{
-					_userFeeText = "" + SatoshiPerByteFeeRate.Satoshi;
 				}
 			}
 
@@ -1065,7 +1060,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					FeeTarget = MaximumFeeTarget;
 				}
 
-				SetFeesAndTexts(true);
+				SetFeesAndTexts();
 			}).DisposeWith(Disposables);
 
 			_usdExchangeRate = Global.Synchronizer
@@ -1075,7 +1070,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.UsdExchangeRate)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => SetFeesAndTexts(false));
+				.Subscribe(_ => SetFeesAndTexts());
 
 			_isCustomFee = Global.UiConfig.WhenAnyValue(x => x.IsCustomFee)
 				.ToProperty(this, x => x.IsCustomFee, scheduler: RxApp.MainThreadScheduler)
