@@ -9,6 +9,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Bases;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Helpers;
@@ -18,14 +19,11 @@ using WalletWasabi.JsonConverters;
 namespace WalletWasabi.Gui
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	public class UiConfig : ReactiveObject, IConfig
+	public class UiConfig : ConfigBase
 	{
 		private bool _lurkingWifeMode;
 		private bool _lockScreenActive;
 		private string _lockScreenPinHash;
-
-		/// <inheritdoc />
-		public string FilePath { get; private set; }
 
 		[JsonProperty(PropertyName = "WindowState")]
 		[JsonConverter(typeof(WindowStateAfterStartJsonConverter))]
@@ -56,7 +54,7 @@ namespace WalletWasabi.Gui
 		public bool LurkingWifeMode
 		{
 			get => _lurkingWifeMode;
-			set => this.RaiseAndSetIfChanged(ref _lurkingWifeMode, value);
+			set => RaiseAndSetIfChanged(ref _lurkingWifeMode, value);
 		}
 
 		[DefaultValue(false)]
@@ -64,7 +62,7 @@ namespace WalletWasabi.Gui
 		public bool LockScreenActive
 		{
 			get => _lockScreenActive;
-			set => this.RaiseAndSetIfChanged(ref _lockScreenActive, value);
+			set => RaiseAndSetIfChanged(ref _lockScreenActive, value);
 		}
 
 		[DefaultValue("")]
@@ -72,91 +70,15 @@ namespace WalletWasabi.Gui
 		public string LockScreenPinHash
 		{
 			get => _lockScreenPinHash;
-			set => this.RaiseAndSetIfChanged(ref _lockScreenPinHash, value);
+			set => RaiseAndSetIfChanged(ref _lockScreenPinHash, value);
 		}
 
-		public UiConfig()
+		public UiConfig() : base()
 		{
 		}
 
-		public UiConfig(string filePath)
+		public UiConfig(string filePath) : base(filePath)
 		{
-			SetFilePath(filePath);
-		}
-
-		/// <inheritdoc />
-		public async Task ToFileAsync()
-		{
-			AssertFilePathSet();
-
-			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-			await File.WriteAllTextAsync(FilePath,
-			jsonString,
-			Encoding.UTF8);
-		}
-
-		/// <inheritdoc />
-		public async Task LoadOrCreateDefaultFileAsync()
-		{
-			AssertFilePathSet();
-
-			JsonConvert.PopulateObject("{}", this);
-
-			if (!File.Exists(FilePath))
-			{
-				Logging.Logger.LogInfo<Config>($"{nameof(Config)} file did not exist. Created at path: `{FilePath}`.");
-			}
-			else
-			{
-				await LoadFileAsync();
-			}
-
-			await ToFileAsync();
-		}
-
-		public async Task LoadFileAsync()
-		{
-			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-			var config = JsonConvert.DeserializeObject<UiConfig>(jsonString);
-			JsonConvert.PopulateObject(jsonString, this);
-		}
-
-		/// <inheritdoc />
-		public async Task<bool> CheckFileChangeAsync()
-		{
-			AssertFilePathSet();
-
-			if (!File.Exists(FilePath))
-			{
-				throw new FileNotFoundException($"{nameof(UiConfig)} file did not exist at path: `{FilePath}`.");
-			}
-
-			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-			var newConfig = JsonConvert.DeserializeObject<UiConfig>(jsonString);
-
-			return !AreDeepEqual(newConfig);
-		}
-
-		private bool AreDeepEqual(UiConfig otherConfig)
-		{
-			var currentConfig = JObject.FromObject(this);
-			var otherConfigJson = JObject.FromObject(otherConfig);
-			return JToken.DeepEquals(otherConfigJson, currentConfig);
-		}
-
-		/// <inheritdoc />
-		public void SetFilePath(string path)
-		{
-			FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(path), path, trim: true);
-		}
-
-		/// <inheritdoc />
-		public void AssertFilePathSet()
-		{
-			if (FilePath is null)
-			{
-				throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
-			}
 		}
 	}
 }

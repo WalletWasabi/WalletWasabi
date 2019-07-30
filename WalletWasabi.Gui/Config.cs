@@ -7,6 +7,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Bases;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
@@ -18,7 +19,7 @@ using WalletWasabi.TorSocks5;
 namespace WalletWasabi.Gui
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	public class Config : IConfig
+	public class Config : ConfigBase
 	{
 		public const int DefaultPrivacyLevelSome = 2;
 		public const int DefaultPrivacyLevelFine = 21;
@@ -26,9 +27,6 @@ namespace WalletWasabi.Gui
 		public const int DefaultMixUntilAnonymitySet = 50;
 		public const int DefaultTorSock5Port = 9050;
 		public static readonly Money DefaultDustThreshold = Money.Coins(0.0001m);
-
-		/// <inheritdoc />
-		public string FilePath { get; private set; }
 
 		[JsonProperty(PropertyName = "Network")]
 		[JsonConverter(typeof(NetworkJsonConverter))]
@@ -150,7 +148,7 @@ namespace WalletWasabi.Gui
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money DustThreshold { get; internal set; } = DefaultDustThreshold;
 
-		private Uri _backendUri;
+		private Uri _backendUri = null;
 		private Uri _fallbackBackendUri;
 
 		public ServiceConfiguration ServiceConfiguration { get; private set; }
@@ -231,49 +229,23 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		public Config()
+		public Config() : base()
 		{
-			_backendUri = null;
 		}
 
-		public Config(string filePath)
+		public Config(string filePath) : base(filePath)
 		{
-			_backendUri = null;
-			SetFilePath(filePath);
 		}
 
 		/// <inheritdoc />
-		public async Task ToFileAsync()
+		public override async Task LoadFileAsync()
 		{
-			AssertFilePathSet();
-
-			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-			await File.WriteAllTextAsync(FilePath,
-			jsonString,
-			Encoding.UTF8);
-		}
-
-		/// <inheritdoc />
-		public async Task LoadOrCreateDefaultFileAsync()
-		{
-			AssertFilePathSet();
-			JsonConvert.PopulateObject("{}", this);
-
-			if (!File.Exists(FilePath))
-			{
-				Logger.LogInfo<Config>($"{nameof(Config)} file did not exist. Created at path: `{FilePath}`.");
-			}
-			else
-			{
-				await LoadFileAsync();
-			}
+			await base.LoadFileAsync();
 
 			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet, PrivacyLevelSome, PrivacyLevelFine, PrivacyLevelStrong, GetBitcoinP2pEndPoint(), DustThreshold);
 
 			// Just debug convenience.
 			_backendUri = GetCurrentBackendUri();
-
-			await ToFileAsync();
 		}
 
 		public void SetP2PEndpoint(EndPoint endPoint)
@@ -315,73 +287,11 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		public async Task LoadFileAsync()
-		{
-			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-
-			var config = JsonConvert.DeserializeObject<Config>(jsonString);
-			JsonConvert.PopulateObject(jsonString, this);
-
-			ServiceConfiguration = config?.ServiceConfiguration ?? ServiceConfiguration;
-
-			// Just debug convenience.
-			_backendUri = GetCurrentBackendUri();
-
-			if (TryEnsureBackwardsCompatibility(jsonString))
-			{
-				await ToFileAsync();
-			}
-		}
-
 		public static async Task<Config> LoadOrCreateDefaultFileAsync(string path)
 		{
 			var config = new Config(path);
 			await config.LoadOrCreateDefaultFileAsync();
 			return config;
-		}
-
-		public void CopyFrom(Config config)
-		{
-			var configSerialized = JsonConvert.SerializeObject(config);
-			JsonConvert.PopulateObject(configSerialized, this);
-		}
-
-		/// <inheritdoc />
-		public async Task<bool> CheckFileChangeAsync()
-		{
-			AssertFilePathSet();
-
-			if (!File.Exists(FilePath))
-			{
-				throw new FileNotFoundException($"{nameof(Config)} file did not exist at path: `{FilePath}`.");
-			}
-
-			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-			var newConfig = JsonConvert.DeserializeObject<Config>(jsonString);
-
-			return !AreDeepEqual(newConfig);
-		}
-
-		public bool AreDeepEqual(Config otherConfig)
-		{
-			var currentConfig = JObject.FromObject(this);
-			var otherConfigJson = JObject.FromObject(otherConfig);
-			return JToken.DeepEquals(otherConfigJson, currentConfig);
-		}
-
-		/// <inheritdoc />
-		public void SetFilePath(string path)
-		{
-			FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(path), path, trim: true);
-		}
-
-		/// <inheritdoc />
-		public void AssertFilePathSet()
-		{
-			if (FilePath is null)
-			{
-				throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
-			}
 		}
 
 		public TargetPrivacy GetTargetPrivacy()
@@ -443,7 +353,7 @@ namespace WalletWasabi.Gui
 			return 0;
 		}
 
-		private bool TryEnsureBackwardsCompatibility(string jsonString)
+		protected override bool TryEnsureBackwardsCompatibility(string jsonString)
 		{
 			try
 			{

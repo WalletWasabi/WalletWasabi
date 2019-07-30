@@ -136,6 +136,7 @@ namespace WalletWasabi.Gui.Tabs
 
 			Config.LoadOrCreateDefaultFileAsync(Global.Config.FilePath)
 				.ToObservable(RxApp.TaskpoolScheduler)
+				.Take(1)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{

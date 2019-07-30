@@ -8,6 +8,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
@@ -16,11 +17,8 @@ using WalletWasabi.Logging;
 namespace WalletWasabi.Backend
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	public class Config : IConfig
+	public class Config : ConfigBase
 	{
-		/// <inheritdoc />
-		public string FilePath { get; private set; }
-
 		[JsonProperty(PropertyName = "Network")]
 		[JsonConverter(typeof(NetworkJsonConverter))]
 		public Network Network { get; private set; } = Network.Main;
@@ -93,13 +91,12 @@ namespace WalletWasabi.Backend
 			}
 		}
 
-		public Config()
+		public Config() : base()
 		{
 		}
 
-		public Config(string filePath)
+		public Config(string filePath) : base(filePath)
 		{
-			SetFilePath(filePath);
 		}
 
 		public Config(Network network,
@@ -110,6 +107,7 @@ namespace WalletWasabi.Backend
 			EndPoint mainNetBitcoinCoreRpcEndPoint,
 			EndPoint testNetBitcoinCoreRpcEndPoint,
 			EndPoint regTestBitcoinCoreRpcEndPoint)
+			: base()
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			BitcoinRpcConnectionString = Guard.NotNullOrEmptyOrWhitespace(nameof(bitcoinRpcConnectionString), bitcoinRpcConnectionString);
@@ -123,71 +121,7 @@ namespace WalletWasabi.Backend
 			RegTestBitcoinCoreRpcEndPoint = Guard.NotNull(nameof(regTestBitcoinCoreRpcEndPoint), regTestBitcoinCoreRpcEndPoint);
 		}
 
-		/// <inheritdoc />
-		public async Task ToFileAsync()
-		{
-			AssertFilePathSet();
-
-			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-			await File.WriteAllTextAsync(FilePath, jsonString, Encoding.UTF8);
-		}
-
-		/// <inheritdoc />
-		public async Task LoadOrCreateDefaultFileAsync()
-		{
-			AssertFilePathSet();
-			JsonConvert.PopulateObject("{}", this);
-
-			if (!File.Exists(FilePath))
-			{
-				Logger.LogInfo<Config>($"{nameof(Config)} file did not exist. Created at path: `{FilePath}`.");
-			}
-			else
-			{
-				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-				JsonConvert.PopulateObject(jsonString, this);
-
-				if (TryEnsureBackwardsCompatibility(jsonString))
-				{
-					await ToFileAsync();
-				}
-			}
-
-			await ToFileAsync();
-		}
-
-		/// <inheritdoc />
-		public async Task<bool> CheckFileChangeAsync()
-		{
-			AssertFilePathSet();
-
-			if (!File.Exists(FilePath))
-			{
-				throw new FileNotFoundException($"{nameof(Config)} file did not exist at path: `{FilePath}`.");
-			}
-
-			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-			var newConfig = JsonConvert.DeserializeObject<JObject>(jsonString);
-			var currentConfig = JObject.FromObject(this);
-			return !JToken.DeepEquals(newConfig, currentConfig);
-		}
-
-		/// <inheritdoc />
-		public void SetFilePath(string path)
-		{
-			FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(path), path, trim: true);
-		}
-
-		/// <inheritdoc />
-		public void AssertFilePathSet()
-		{
-			if (FilePath is null)
-			{
-				throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
-			}
-		}
-
-		private bool TryEnsureBackwardsCompatibility(string jsonString)
+		protected override bool TryEnsureBackwardsCompatibility(string jsonString)
 		{
 			try
 			{
