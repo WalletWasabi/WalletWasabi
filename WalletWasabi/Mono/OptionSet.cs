@@ -924,7 +924,7 @@ namespace Mono.Options
 
 			if (string.IsNullOrEmpty(argName))
 			{
-				argName = maxIndex == 1 ? "VALUE" : "VALUE" + (index + 1);
+				argName = maxIndex == 1 ? "VALUE" : $"VALUE{index + 1}";
 			}
 			return argName;
 		}

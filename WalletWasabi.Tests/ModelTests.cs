@@ -188,6 +188,7 @@ namespace WalletWasabi.Tests
 			var allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations);
 			var serialized = JsonConvert.SerializeObject(allFee);
 			var deserialized = JsonConvert.DeserializeObject<AllFeeEstimate>(serialized);
+
 			Assert.Equal(estimations[2], deserialized.Estimations[2]);
 			Assert.Equal(estimations[3], deserialized.Estimations[3]);
 			Assert.Equal(estimations[19], deserialized.Estimations[19]);
@@ -202,9 +203,9 @@ namespace WalletWasabi.Tests
 				UniqueId = Guid.NewGuid(),
 				RoundId = 1,
 			};
-
 			var serialized = JsonConvert.SerializeObject(resp);
 			var deserialized = JsonConvert.DeserializeObject<InputsResponse>(serialized);
+
 			Assert.Equal(resp.RoundId, deserialized.RoundId);
 			Assert.Equal(resp.UniqueId, deserialized.UniqueId);
 		}
@@ -311,7 +312,8 @@ namespace WalletWasabi.Tests
 							Assert.Null(e.OldItems); // "Reset action must be initialized with no changed items."
 							break;
 						}
-					default: throw new NotSupportedException();
+					default:
+						throw new NotSupportedException();
 				}
 			}
 		}
