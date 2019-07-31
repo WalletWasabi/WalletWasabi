@@ -138,7 +138,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 				}
 			}
 
-			SelectingFolder = dialog is OpenFolderDialog;			
+			SelectingFolder = dialog is OpenFolderDialog;
 
 			if (dialog is SaveFileDialog sfd)
 			{
@@ -187,7 +187,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 							SelectedItems.Remove(item);
 						}
 
-						if(!SelectingFolder)
+						if (!SelectingFolder)
 						{
 							FileName = SelectedItems.FirstOrDefault()?.DisplayName;
 						}
