@@ -12,6 +12,7 @@ using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Models;
+using WalletWasabi.KeyManagement;
 using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.XunitConfiguration;
@@ -59,16 +60,16 @@ namespace WalletWasabi.Tests
 			var height = Height.Mempool;
 			var label = "foo";
 
-			var coin = new SmartCoin(txId, index, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index), label, txId);
+			var coin = new SmartCoin(txId, index, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index), label, LabelType.Standard, txId);
 			// If the txId or the index differs, equality should think it's a different coin.
-			var differentCoin = new SmartCoin(txId, index + 1, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index + 1), label, txId);
+			var differentCoin = new SmartCoin(txId, index + 1, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index + 1), label, LabelType.Standard, txId);
 			var differentOutput = tx.Outputs[1];
 			var differentSpentOutputs = new[]
 			{
 				new TxoRef(txId, 0)
 			};
 			// If the txId and the index is the same, equality should think it's the same coin.
-			var sameCoin = new SmartCoin(txId, index, differentOutput.ScriptPubKey, differentOutput.Value, differentSpentOutputs, Height.Unknown, tx.RBF, tx.GetAnonymitySet(index), "boo", null);
+			var sameCoin = new SmartCoin(txId, index, differentOutput.ScriptPubKey, differentOutput.Value, differentSpentOutputs, Height.Unknown, tx.RBF, tx.GetAnonymitySet(index), "boo",  LabelType.Standard, null);
 
 			Assert.Equal(coin, sameCoin);
 			Assert.NotEqual(coin, differentCoin);
@@ -153,7 +154,7 @@ namespace WalletWasabi.Tests
 			var label = "foo";
 			var bannedUntil = DateTimeOffset.UtcNow;
 
-			var coin = new SmartCoin(txId, index, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index), label, txId);
+			var coin = new SmartCoin(txId, index, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index), label,  LabelType.Standard, txId);
 			coin.BannedUntilUtc = bannedUntil;
 
 			var serialized = JsonConvert.SerializeObject(coin);

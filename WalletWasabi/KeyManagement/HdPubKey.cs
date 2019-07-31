@@ -37,11 +37,14 @@ namespace WalletWasabi.KeyManagement
 		[JsonProperty(Order = 4)]
 		public KeyState KeyState { get; private set; }
 
-		public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, string label, KeyState keyState)
+		[JsonProperty(Order = 5)]
+		public LabelType LabelType { get; private set; }
+
+		public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, string label, KeyState keyState, LabelType labelType)
 		{
 			PubKey = Guard.NotNull(nameof(pubKey), pubKey);
 			FullKeyPath = Guard.NotNull(nameof(fullKeyPath), fullKeyPath);
-			SetLabel(label, null);
+			SetLabel(label, labelType, null);
 			KeyState = keyState;
 
 			P2pkScript = PubKey.ScriptPubKey;
@@ -70,7 +73,7 @@ namespace WalletWasabi.KeyManagement
 			}
 		}
 
-		public void SetLabel(string label, KeyManager kmToFile = null)
+		public void SetLabel(string label, LabelType type, KeyManager kmToFile = null)
 		{
 			label = Guard.Correct(label);
 			if (Label == label)
@@ -79,6 +82,7 @@ namespace WalletWasabi.KeyManagement
 			}
 
 			Label = label;
+			LabelType = type;
 
 			kmToFile?.ToFile();
 		}

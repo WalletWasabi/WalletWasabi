@@ -434,7 +434,7 @@ namespace WalletWasabi.KeyManagement
 				var fullPath = AccountKeyPath.Derive(path);
 				var pubKey = ExtPubKey.Derive(path).PubKey;
 
-				var hdPubKey = new HdPubKey(pubKey, fullPath, label, keyState);
+				var hdPubKey = new HdPubKey(pubKey, fullPath, label, keyState, LabelType.Standard);
 				HdPubKeys.Add(hdPubKey);
 				lock (HdPubKeyScriptBytesLock)
 				{
