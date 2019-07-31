@@ -74,6 +74,9 @@
                   <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource SendTabView_Lightning}" />
                 </Grid>
                 <Slider Minimum="{Binding MinimumFeeTarget}" Maximum="{Binding MaximumFeeTarget}" Value="{Binding FeeTarget}" Width="270">
+                  <i:Interaction.Behaviors>
+                    <behaviors:CommandOnPointerEnterLeaveBehavior Command="{Binding HighLightFeeSliderCommand}" />
+                  </i:Interaction.Behaviors>
                 </Slider>
                 <Grid Height="10" Width="10">
                   <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource SendTabView_Clock}" />

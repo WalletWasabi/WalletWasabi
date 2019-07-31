@@ -464,6 +464,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				IsSliderFeeUsed = true;
 			});
 
+			HighLightFeeSliderCommand = ReactiveCommand.Create((bool entered) =>
+			{
+				if (IsSliderFeeUsed)
+				{
+					return;
+				}
+
+				FeeControlOpacity = entered ? 0.8 : 0.5;
+			});
+
 			Observable
 				.Merge(MaxCommand.ThrownExceptions)
 				.Merge(FeeRateCommand.ThrownExceptions)
@@ -471,6 +481,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(BuildTransactionCommand.ThrownExceptions)
 				.Merge(UserFeeTextKeyUpCommand.ThrownExceptions)
 				.Merge(FeeSliderClickedCommand.ThrownExceptions)
+				.Merge(HighLightFeeSliderCommand.ThrownExceptions)
 				.Subscribe(ex => SetWarningMessage(ex.ToTypeMessageString()));
 		}
 
@@ -1094,6 +1105,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<KeyEventArgs, Unit> UserFeeTextKeyUpCommand { get; }
 
 		public ReactiveCommand<PointerPressedEventArgs, Unit> FeeSliderClickedCommand { get; }
+
+		public ReactiveCommand<bool, Unit> HighLightFeeSliderCommand { get; }
 
 		public bool IsTransactionBuilder { get; }
 
