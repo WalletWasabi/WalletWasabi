@@ -95,7 +95,6 @@
         </ScrollViewer>
       </controls:GroupBox>
       <controls:GroupBox Grid.Row="0" Grid.Column="0" Title="CoinJoin" Padding="5" Margin="0 5 5 0">
-
         <Grid Grid.Row="0" Grid.Column="0" Classes="content">
           <Grid.RowDefinitions>
             <RowDefinition Height="150" />
@@ -143,7 +142,7 @@
               <RowDefinition Height="*"></RowDefinition>
             </Grid.RowDefinitions>
             <DrawingPresenter Grid.Row="0" Drawing="{Binding Icon}" VerticalAlignment="Top" Height="100" Width="75" />
-            <TextBlock Margin ="0 5 0 0"  Grid.Row="1" Text="{Binding ToolTip}" TextAlignment="Center" TextWrapping="Wrap" />
+            <TextBlock Margin="0 5 0 0" Grid.Row="1" Text="{Binding ToolTip}" TextAlignment="Center" TextWrapping="Wrap" />
           </Grid>
         </Button>
       </controls:GroupBox>

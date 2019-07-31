@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Rendering;
 using Avalonia.Threading;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
@@ -8,6 +9,8 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
+using WalletWasabi.Gui.Controls.LockScreen;
+using WalletWasabi.Gui.ManagedDialogs;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 
@@ -22,6 +25,7 @@ namespace WalletWasabi.Gui
 #pragma warning restore IDE1006 // Naming Styles
 		{
 			StatusBarViewModel statusBar = null;
+
 			bool runGui = false;
 			try
 			{
@@ -44,6 +48,7 @@ namespace WalletWasabi.Gui
 						MainWindowViewModel.Instance = new MainWindowViewModel { Global = Global };
 						statusBar = new StatusBarViewModel(Global);
 						MainWindowViewModel.Instance.StatusBar = statusBar;
+						MainWindowViewModel.Instance.LockScreen = new LockScreenViewModel(Global);
 
 						await Global.InitializeNoWalletAsync();
 
@@ -104,13 +109,25 @@ namespace WalletWasabi.Gui
 					useGpuLinux = false;
 				}
 
-				result.UsePlatformDetect();
+				result.UsePlatformDetect()
+					.UseManagedSystemDialogs();
 			}
 			else
 			{
-				result.UsePlatformDetect();
+				result.UsePlatformDetect()
+					.UseManagedSystemDialogs();
 			}
 
+			// TODO remove this overriding of RenderTimer when Avalonia 0.9 is released.
+			// fixes "Thread Leak" issue in 0.8.1 Avalonia.
+			var old = result.WindowingSubsystemInitializer;
+
+			result.UseWindowingSubsystem(() =>
+			{
+				old();
+
+				AvaloniaLocator.CurrentMutable.Bind<IRenderTimer>().ToConstant(new DefaultRenderTimer(60));
+			});
 			return result
 				.With(new Win32PlatformOptions { AllowEglInitialization = true, UseDeferredRendering = true })
 				.With(new X11PlatformOptions { UseGpu = useGpuLinux, WmClass = "Wasabi Wallet" })

@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.Bases;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -22,7 +23,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
-	public class WasabiSynchronizer : INotifyPropertyChanged
+	public class WasabiSynchronizer : NotifyPropertyChangedBase
 	{
 		#region MembersPropertiesEvents
 
@@ -40,15 +41,7 @@ namespace WalletWasabi.Services
 		public decimal UsdExchangeRate
 		{
 			get => _usdExchangeRate;
-
-			private set
-			{
-				if (_usdExchangeRate != value)
-				{
-					_usdExchangeRate = value;
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(UsdExchangeRate)));
-				}
-			}
+			private set => RaiseAndSetIfChanged(ref _usdExchangeRate, value);
 		}
 
 		private AllFeeEstimate _allFeeEstimate;
@@ -56,15 +49,7 @@ namespace WalletWasabi.Services
 		public AllFeeEstimate AllFeeEstimate
 		{
 			get => _allFeeEstimate;
-
-			private set
-			{
-				if (_allFeeEstimate != value)
-				{
-					_allFeeEstimate = value;
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AllFeeEstimate)));
-				}
-			}
+			private set => RaiseAndSetIfChanged(ref _allFeeEstimate, value);
 		}
 
 		private TorStatus _torStatus;
@@ -72,15 +57,7 @@ namespace WalletWasabi.Services
 		public TorStatus TorStatus
 		{
 			get => _torStatus;
-
-			private set
-			{
-				if (_torStatus != value)
-				{
-					_torStatus = value;
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TorStatus)));
-				}
-			}
+			private set => RaiseAndSetIfChanged(ref _torStatus, value);
 		}
 
 		private BackendStatus _backendStatus;
@@ -88,15 +65,7 @@ namespace WalletWasabi.Services
 		public BackendStatus BackendStatus
 		{
 			get => _backendStatus;
-
-			private set
-			{
-				if (_backendStatus != value)
-				{
-					_backendStatus = value;
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BackendStatus)));
-				}
-			}
+			private set => RaiseAndSetIfChanged(ref _backendStatus, value);
 		}
 
 		public TimeSpan MaxRequestIntervalForMixing { get; set; }
@@ -109,8 +78,6 @@ namespace WalletWasabi.Services
 		public void EnableRequests() => Interlocked.Exchange(ref _blockRequests, 0);
 
 		public BitcoinStore BitcoinStore { get; private set; }
-
-		public event PropertyChangedEventHandler PropertyChanged;
 
 		public event EventHandler<bool> ResponseArrivedIsGenSocksServFail;
 
@@ -134,13 +101,13 @@ namespace WalletWasabi.Services
 			CreateNew(network, bitcoinStore, client);
 		}
 
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Func<Uri> baseUriAction, IPEndPoint torSocks5EndPoint)
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Func<Uri> baseUriAction, EndPoint torSocks5EndPoint)
 		{
 			var client = new WasabiClient(baseUriAction, torSocks5EndPoint);
 			CreateNew(network, bitcoinStore, client);
 		}
 
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, IPEndPoint torSocks5EndPoint)
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, EndPoint torSocks5EndPoint)
 		{
 			var client = new WasabiClient(baseUri, torSocks5EndPoint);
 			CreateNew(network, bitcoinStore, client);

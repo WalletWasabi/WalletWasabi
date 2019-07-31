@@ -104,13 +104,9 @@ namespace WalletWasabi.Services
 				}
 
 				var isNoted = true;
-				if (forceNoted)
+				if (!forceNoted)
 				{
-					isNoted = true;
-				}
-				else
-				{
-					if (RoundConfig.DosNoteBeforeBan.Value)
+					if (RoundConfig.DosNoteBeforeBan)
 					{
 						if (foundElem != null)
 						{
@@ -167,7 +163,7 @@ namespace WalletWasabi.Services
 		{
 			if (BannedUtxos.TryGetValue(outpoint, out BannedUtxoRecord bannedElem))
 			{
-				int maxBan = (int)TimeSpan.FromHours(RoundConfig.DosDurationHours.Value).TotalMinutes;
+				int maxBan = (int)TimeSpan.FromHours(RoundConfig.DosDurationHours).TotalMinutes;
 				int banLeftMinutes = maxBan - (int)bannedElem.BannedRemaining.TotalMinutes;
 				if (banLeftMinutes > 0)
 				{

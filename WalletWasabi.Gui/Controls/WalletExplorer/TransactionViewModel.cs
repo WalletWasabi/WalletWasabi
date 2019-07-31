@@ -34,6 +34,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public bool Confirmed => Model.Confirmed;
 
+		public int Confirmations => Model.Confirmations;
+
 		public string AmountBtc => Model.AmountBtc;
 
 		public Money Amount => Money.TryParse(Model.AmountBtc, out Money money) ? money : Money.Zero;

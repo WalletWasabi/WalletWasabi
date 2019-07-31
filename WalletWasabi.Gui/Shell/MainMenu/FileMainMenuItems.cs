@@ -1,4 +1,4 @@
-﻿using AvalonStudio.MainMenu;
+using AvalonStudio.MainMenu;
 using AvalonStudio.Menus;
 using System;
 using System.Collections.Generic;
@@ -35,9 +35,9 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[DefaultOrder(1)]
 		public object DiskGroup => null;
 
-		[ExportMainMenuDefaultGroup("File", "Exit")]
+		[ExportMainMenuDefaultGroup("File", "System")]
 		[DefaultOrder(2)]
-		public object ExitGroup => null;
+		public object SystemGroup => null;
 
 		#endregion Group
 
@@ -64,7 +64,7 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 
 		[ExportMainMenuItem("File", "Exit")]
 		[DefaultOrder(4)]
-		[DefaultGroup("Exit")]
+		[DefaultGroup("System")]
 		public IMenuItem Exit => MenuItemFactory.CreateCommandMenuItem("File.Exit");
 
 		#endregion MenuItem

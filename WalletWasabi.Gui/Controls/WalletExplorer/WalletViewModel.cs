@@ -93,12 +93,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void OnWalletOpened()
 		{
-			if (Disposables != null)
-			{
-				throw new Exception("Wallet opened before it was closed.");
-			}
-
-			Disposables = new CompositeDisposable();
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
 				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed)))
@@ -135,7 +130,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Money balance = Enumerable.Where(WalletService.Coins, c => c.Unspent && !c.SpentAccordingToBackend).Sum(c => (long?)c.Amount) ?? 0;
 
-			Title = $"{walletName} ({(Global.UiConfig.LurkingWifeMode.Value ? "#########" : balance.ToString(false, true))} BTC)";
+			Title = $"{walletName} ({(Global.UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
 		}
 	}
 }
