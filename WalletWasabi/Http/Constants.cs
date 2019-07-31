@@ -1,4 +1,4 @@
-﻿namespace WalletWasabi.Http
+namespace WalletWasabi.Http
 {
 	public static class Constants
 	{

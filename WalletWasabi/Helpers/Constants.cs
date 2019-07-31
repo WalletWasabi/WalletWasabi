@@ -64,14 +64,14 @@ namespace WalletWasabi.Helpers
 			{
 				return MainNetCoordinatorAddress;
 			}
-
-			if (network == Network.TestNet)
+			else if (network == Network.TestNet)
 			{
 				return TestNetCoordinatorAddress;
 			}
-
-			// else regtest
-			return RegTestCoordinatorAddress;
+			else // else regtest
+			{
+				return RegTestCoordinatorAddress;
+			}
 		}
 
 		public const string ChangeOfSpecialLabelStart = "change of (";
@@ -80,5 +80,20 @@ namespace WalletWasabi.Helpers
 
 		public const int OneDayConfirmationTarget = 144;
 		public const int SevenDaysConfirmationTarget = 1008;
+
+		public const int DefaultTorSocksPort = 9050;
+		public const int DefaultTorBrowserSocksPort = 9150;
+		public const int DefaultTorControlPort = 9051;
+		public const int DefaultTorBrowserControlPort = 9151;
+
+		public const int DefaultMainNetBitcoinP2pPort = 8333;
+		public const int DefaultTestNetBitcoinP2pPort = 18333;
+		public const int DefaultRegTestBitcoinP2pPort = 18444;
+
+		public const int DefaultMainNetBitcoinCoreRpcPort = 8332;
+		public const int DefaultTestNetBitcoinCoreRpcPort = 18332;
+		public const int DefaultRegTestBitcoinCoreRpcPort = 18443;
+
+		public const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	}
 }

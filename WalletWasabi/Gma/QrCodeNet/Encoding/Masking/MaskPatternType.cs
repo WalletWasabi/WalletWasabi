@@ -1,4 +1,4 @@
-﻿namespace Gma.QrCodeNet.Encoding.Masking
+namespace Gma.QrCodeNet.Encoding.Masking
 {
 	public enum MaskPatternType
 	{

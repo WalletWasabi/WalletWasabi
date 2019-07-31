@@ -5,13 +5,17 @@ using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
+using System.Text.RegularExpressions;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Tabs
 {
@@ -19,11 +23,9 @@ namespace WalletWasabi.Gui.Tabs
 	{
 		private CompositeDisposable Disposables { get; set; }
 
-		private string _network;
-		private string _torHost;
-		private string _torPort;
-		private string _localNodeHost;
-		private string _localNodePort;
+		private Network _network;
+		private string _torSocks5EndPoint;
+		private string _bitcoinP2pEndPoint;
 		private bool _autocopy;
 		private bool _useTor;
 		private bool _isModified;
@@ -31,43 +33,39 @@ namespace WalletWasabi.Gui.Tabs
 		private string _finePrivacyLevel;
 		private string _strongPrivacyLevel;
 		private string _dustThreshold;
+		private string _pinBoxText;
+		private string _pinWarningMessage;
+
+		private ObservableAsPropertyHelper<bool> _isPinSet;
+
+		public bool IsPinSet => _isPinSet?.Value ?? false;
 		private AsyncLock ConfigLock { get; } = new AsyncLock();
 
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
+		public ReactiveCommand<Unit, Unit> SetClearPinCommand { get; }
+		public ReactiveCommand<Unit, Unit> TextBoxLostFocusCommand { get; }
 
 		public SettingsViewModel(Global global) : base(global, "Settings")
 		{
-			var config = new Config(Global.Config.FilePath);
 			Autocopy = Global.UiConfig?.Autocopy is true;
 
-			this.WhenAnyValue(x => x.Network)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(async _ =>
-				{
-					await config.LoadFileAsync();
-
-					var (configLocalHost, configLocalPort) = Network == NBitcoin.Network.Main.Name
-						? (config.MainNetBitcoinCoreHost, config.MainNetBitcoinCorePort)
-						: (Network == NBitcoin.Network.TestNet.Name
-							? (config.TestNetBitcoinCoreHost, config.TestNetBitcoinCorePort)
-							: (config.RegTestBitcoinCoreHost, config.RegTestBitcoinCorePort));
-
-					LocalNodeHost = configLocalHost;
-					LocalNodePort = configLocalPort.ToString();
-				});
-
-			this.WhenAnyValue(x => x.Network,
-				x => x.TorHost, x => x.TorPort, x => x.UseTor)
-				.Subscribe(x => Save());
+			// Use global config's data as default filler until the real data is filled out by the loading of the config onopen.
+			var globalConfig = Global.Config;
+			Network = globalConfig.Network;
+			TorSocks5EndPoint = globalConfig.TorSocks5EndPoint.ToString(-1);
+			UseTor = globalConfig.UseTor;
+			SomePrivacyLevel = globalConfig.PrivacyLevelSome.ToString();
+			FinePrivacyLevel = globalConfig.PrivacyLevelFine.ToString();
+			StrongPrivacyLevel = globalConfig.PrivacyLevelStrong.ToString();
+			DustThreshold = globalConfig.DustThreshold.ToString();
+			BitcoinP2pEndPoint = globalConfig.GetP2PEndpoint().ToString(defaultPort: -1);
+			IsModified = false;
 
 			this.WhenAnyValue(
-				x => x.LocalNodeHost, x => x.LocalNodePort)
-				.Subscribe(x => Save());
-
-			this.WhenAnyValue(
-				x => x.SomePrivacyLevel, x => x.FinePrivacyLevel, x => x.StrongPrivacyLevel,
-				x => x.DustThreshold)
+				x => x.Network,
+				x => x.UseTor)
+				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(x => Save());
 
 			this.WhenAnyValue(x => x.Autocopy)
@@ -77,24 +75,6 @@ namespace WalletWasabi.Gui.Tabs
 				await Global.UiConfig.ToFileAsync();
 			});
 
-			Dispatcher.UIThread.PostLogException(async () =>
-			{
-				await config.LoadFileAsync();
-
-				Network = config.Network.ToString();
-				TorHost = config.TorHost;
-				TorPort = config.TorSocks5Port.ToString();
-				UseTor = config.UseTor.Value;
-
-				SomePrivacyLevel = config.PrivacyLevelSome.ToString();
-				FinePrivacyLevel = config.PrivacyLevelFine.ToString();
-				StrongPrivacyLevel = config.PrivacyLevelStrong.ToString();
-
-				DustThreshold = config.DustThreshold.ToString();
-
-				IsModified = await Global.Config.CheckFileChangeAsync();
-			});
-
 			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
 
 			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -102,21 +82,93 @@ namespace WalletWasabi.Gui.Tabs
 				Global.UiConfig.LurkingWifeMode = !LurkingWifeMode;
 				await Global.UiConfig.ToFileAsync();
 			});
+
+			SetClearPinCommand = ReactiveCommand.Create(() =>
+			{
+				var pinBoxText = PinBoxText?.Trim();
+				if (string.IsNullOrWhiteSpace(pinBoxText))
+				{
+					PinWarningMessage = "Please provide PIN.";
+					return;
+				}
+
+				if (pinBoxText.Length > 10)
+				{
+					PinWarningMessage = "PIN too long.";
+					return;
+				}
+
+				if (pinBoxText.Any(x => !char.IsDigit(x)))
+				{
+					PinWarningMessage = "Invalid PIN.";
+					return;
+				}
+
+				var uiConfigPinHash = Global.UiConfig.LockScreenPinHash;
+				var enteredPinHash = HashHelpers.GenerateSha256Hash(pinBoxText);
+
+				if (IsPinSet)
+				{
+					if (uiConfigPinHash != enteredPinHash)
+					{
+						PinWarningMessage = "Wrong PIN.";
+						PinBoxText = string.Empty;
+						return;
+					}
+
+					Global.UiConfig.LockScreenPinHash = string.Empty;
+				}
+				else
+				{
+					Global.UiConfig.LockScreenPinHash = enteredPinHash;
+				}
+
+				PinBoxText = string.Empty;
+				PinWarningMessage = string.Empty;
+			});
+
+			TextBoxLostFocusCommand = ReactiveCommand.Create(Save);
 		}
 
 		public override void OnOpen()
 		{
-			if (Disposables != null)
-			{
-				throw new Exception("Settings was opened before it was closed.");
-			}
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Disposables = new CompositeDisposable();
+			Config.LoadOrCreateDefaultFileAsync(Global.Config.FilePath)
+				.ToObservable(RxApp.TaskpoolScheduler)
+				.Take(1)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					Network = x.Network;
+					TorSocks5EndPoint = x.TorSocks5EndPoint.ToString(-1);
+					UseTor = x.UseTor;
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(LurkingWifeMode));
-			}).DisposeWith(Disposables);
+					SomePrivacyLevel = x.PrivacyLevelSome.ToString();
+					FinePrivacyLevel = x.PrivacyLevelFine.ToString();
+					StrongPrivacyLevel = x.PrivacyLevelStrong.ToString();
+
+					DustThreshold = x.DustThreshold.ToString();
+
+					BitcoinP2pEndPoint = x.GetP2PEndpoint().ToString(defaultPort: -1);
+
+					IsModified = !Global.Config.AreDeepEqual(x);
+				})
+				.DisposeWith(Disposables);
+
+			Global.UiConfig
+				.WhenAnyValue(x => x.LurkingWifeMode)
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(LurkingWifeMode)))
+				.DisposeWith(Disposables);
+
+			_isPinSet = Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
+				.ToProperty(this, x => x.IsPinSet, scheduler: RxApp.MainThreadScheduler)
+				.DisposeWith(Disposables);
+
+			Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(async x => await Global.UiConfig.ToFileAsync())
+				.DisposeWith(Disposables);
 
 			base.OnOpen();
 		}
@@ -129,45 +181,31 @@ namespace WalletWasabi.Gui.Tabs
 			return base.OnClose();
 		}
 
-		public IEnumerable<string> Networks => new[]
+		public IEnumerable<Network> Networks => new[]
 		{
-			"Main",
-			"TestNet",
-			"RegTest"
+			Network.Main,
+			Network.TestNet,
+			Network.RegTest
 		};
 
-		public string Network
+		public Network Network
 		{
 			get => _network;
 			set => this.RaiseAndSetIfChanged(ref _network, value);
 		}
 
-		[ValidateMethod(nameof(ValidateTorHost))]
-		public string TorHost
+		[ValidateMethod(nameof(ValidateTorSocks5EndPoint))]
+		public string TorSocks5EndPoint
 		{
-			get => _torHost;
-			set => this.RaiseAndSetIfChanged(ref _torHost, value);
+			get => _torSocks5EndPoint;
+			set => this.RaiseAndSetIfChanged(ref _torSocks5EndPoint, value);
 		}
 
-		[ValidateMethod(nameof(ValidateTorPort))]
-		public string TorPort
+		[ValidateMethod(nameof(ValidateBitcoinP2pEndPoint))]
+		public string BitcoinP2pEndPoint
 		{
-			get => _torPort;
-			set => this.RaiseAndSetIfChanged(ref _torPort, value);
-		}
-
-		[ValidateMethod(nameof(ValidateLocalNodeHost))]
-		public string LocalNodeHost
-		{
-			get => _localNodeHost;
-			set => this.RaiseAndSetIfChanged(ref _localNodeHost, value);
-		}
-
-		[ValidateMethod(nameof(ValidateLocalNodePort))]
-		public string LocalNodePort
-		{
-			get => _localNodePort;
-			set => this.RaiseAndSetIfChanged(ref _localNodePort, value);
+			get => _bitcoinP2pEndPoint;
+			set => this.RaiseAndSetIfChanged(ref _bitcoinP2pEndPoint, value);
 		}
 
 		public bool IsModified
@@ -218,22 +256,35 @@ namespace WalletWasabi.Gui.Tabs
 
 		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
 
+		public string PinBoxText
+		{
+			get => _pinBoxText;
+			set => this.RaiseAndSetIfChanged(ref _pinBoxText, value);
+		}
+
+		public string PinWarningMessage
+		{
+			get => _pinWarningMessage;
+			set => this.RaiseAndSetIfChanged(ref _pinWarningMessage, value);
+		}
+
 		private void Save()
 		{
-			var isValid = string.IsNullOrEmpty(ValidateTorHost())
-						&& string.IsNullOrEmpty(ValidateTorPort())
-						&& string.IsNullOrEmpty(ValidateLocalNodeHost())
-						&& string.IsNullOrEmpty(ValidateLocalNodePort());
-			if (!isValid)
+			var network = Network;
+			if (network is null)
 			{
 				return;
 			}
 
-			if (string.IsNullOrWhiteSpace(Network)
-				|| string.IsNullOrWhiteSpace(SomePrivacyLevel)
-				|| string.IsNullOrWhiteSpace(FinePrivacyLevel)
-				|| string.IsNullOrWhiteSpace(StrongPrivacyLevel)
-				|| string.IsNullOrWhiteSpace(DustThreshold))
+			var isValid =
+				string.IsNullOrEmpty(ValidatePrivacyLevel(SomePrivacyLevel, whiteSpaceOk: false))
+				&& string.IsNullOrEmpty(ValidatePrivacyLevel(FinePrivacyLevel, whiteSpaceOk: false))
+				&& string.IsNullOrEmpty(ValidatePrivacyLevel(StrongPrivacyLevel, whiteSpaceOk: false))
+				&& string.IsNullOrEmpty(ValidateDustThreshold(DustThreshold, whiteSpaceOk: false))
+				&& string.IsNullOrEmpty(ValidateEndPoint(TorSocks5EndPoint, Constants.DefaultTorSocksPort, whiteSpaceOk: false))
+				&& string.IsNullOrEmpty(ValidateEndPoint(BitcoinP2pEndPoint, network.DefaultPort, whiteSpaceOk: false));
+
+			if (!isValid)
 			{
 				return;
 			}
@@ -245,95 +296,61 @@ namespace WalletWasabi.Gui.Tabs
 				using (await ConfigLock.LockAsync())
 				{
 					await config.LoadFileAsync();
-
-					var network = NBitcoin.Network.GetNetwork(Network);
-					var torHost = TorHost;
-					var localNodeHost = LocalNodeHost;
-					var localNodePort = LocalNodePort;
-					var torSocks5Port = int.TryParse(TorPort, out var port) ? (int?)port : null;
-					var useTor = UseTor;
-					var somePrivacyLevel = int.TryParse(SomePrivacyLevel, out int level) ? (int?)level : null;
-					var finePrivacyLevel = int.TryParse(FinePrivacyLevel, out level) ? (int?)level : null;
-					var strongPrivacyLevel = int.TryParse(StrongPrivacyLevel, out level) ? (int?)level : null;
-					var dustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? (decimal?)threshold : null;
-
-					var (configLocalHost, configLocalPort) = network == NBitcoin.Network.Main
-						? (config.MainNetBitcoinCoreHost, config.MainNetBitcoinCorePort)
-						: (network == NBitcoin.Network.TestNet
-							? (config.TestNetBitcoinCoreHost, config.TestNetBitcoinCorePort)
-							: (config.RegTestBitcoinCoreHost, config.RegTestBitcoinCorePort));
-
-					if (config.Network != network
-						|| config.TorHost != torHost
-						|| config.TorSocks5Port != torSocks5Port
-						|| config.UseTor != useTor
-						|| config.PrivacyLevelSome != somePrivacyLevel
-						|| config.PrivacyLevelFine != finePrivacyLevel
-						|| config.PrivacyLevelStrong != strongPrivacyLevel
-						|| config.DustThreshold.ToUnit(MoneyUnit.BTC) != dustThreshold
-						|| configLocalHost != localNodeHost
-						|| configLocalPort.ToString() != localNodePort
-					)
+					if (Network == config.Network)
 					{
-						config.Network = network;
-						config.TorHost = torHost;
-						config.TorSocks5Port = torSocks5Port;
-						config.UseTor = useTor;
-						config.PrivacyLevelSome = somePrivacyLevel;
-						config.PrivacyLevelFine = finePrivacyLevel;
-						config.PrivacyLevelStrong = strongPrivacyLevel;
-						config.DustThreshold = Money.Coins(dustThreshold.Value);
-
-						switch (network.Name)
+						if (EndPointParser.TryParse(TorSocks5EndPoint, Constants.DefaultTorSocksPort, out EndPoint torEp))
 						{
-							case "Main":
-								config.MainNetBitcoinCoreHost = localNodeHost;
-								config.MainNetBitcoinCorePort = int.Parse(localNodePort);
-								break;
-
-							case "TestNet":
-								config.TestNetBitcoinCoreHost = localNodeHost;
-								config.TestNetBitcoinCorePort = int.Parse(localNodePort);
-								break;
-
-							case "RegTest":
-								config.RegTestBitcoinCoreHost = localNodeHost;
-								config.RegTestBitcoinCorePort = int.Parse(localNodePort);
-								break;
+							config.TorSocks5EndPoint = torEp;
 						}
-
-						await config.ToFileAsync();
+						if (EndPointParser.TryParse(BitcoinP2pEndPoint, network.DefaultPort, out EndPoint p2pEp))
+						{
+							config.SetP2PEndpoint(p2pEp);
+						}
+						config.UseTor = UseTor;
+						config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? Money.Coins(threshold) : Config.DefaultDustThreshold;
+						config.PrivacyLevelSome = int.TryParse(SomePrivacyLevel, out int level) ? level : Config.DefaultPrivacyLevelSome;
+						config.PrivacyLevelStrong = int.TryParse(StrongPrivacyLevel, out level) ? level : Config.DefaultPrivacyLevelStrong;
+						config.PrivacyLevelFine = int.TryParse(FinePrivacyLevel, out level) ? level : Config.DefaultPrivacyLevelFine;
 					}
-
-					IsModified = await Global.Config.CheckFileChangeAsync();
+					else
+					{
+						config.Network = Network;
+						BitcoinP2pEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
+					}
+					await config.ToFileAsync();
+					IsModified = !Global.Config.AreDeepEqual(config);
 				}
 			});
 		}
 
-		public string ValidateTorHost()
-			=> ValidateHost(TorHost);
+		private void OpenConfigFile()
+		{
+			IoHelpers.OpenFileInTextEditor(Global.Config.FilePath);
+		}
 
-		public string ValidateLocalNodeHost()
-			=> ValidateHost(LocalNodeHost);
-
-		public string ValidateTorPort()
-			=> ValidatePort(TorPort);
-
-		public string ValidateLocalNodePort()
-			=> ValidatePort(LocalNodePort);
+		#region Validation
 
 		public string ValidateSomePrivacyLevel()
-			=> ValidatePrivacyLevel(SomePrivacyLevel);
+			=> ValidatePrivacyLevel(SomePrivacyLevel, whiteSpaceOk: true);
 
 		public string ValidateFinePrivacyLevel()
-			=> ValidatePrivacyLevel(FinePrivacyLevel);
+			=> ValidatePrivacyLevel(FinePrivacyLevel, whiteSpaceOk: true);
 
 		public string ValidateStrongPrivacyLevel()
-			=> ValidatePrivacyLevel(StrongPrivacyLevel);
+			=> ValidatePrivacyLevel(StrongPrivacyLevel, whiteSpaceOk: true);
 
-		public string ValidatePrivacyLevel(string value)
+		public string ValidateDustThreshold()
+			=> ValidateDustThreshold(DustThreshold, whiteSpaceOk: true);
+
+		public string ValidateTorSocks5EndPoint()
+			=> ValidateEndPoint(TorSocks5EndPoint, Constants.DefaultTorSocksPort, whiteSpaceOk: true);
+
+		public string ValidateBitcoinP2pEndPoint()
+			=> ValidateEndPoint(BitcoinP2pEndPoint, Network.DefaultPort, whiteSpaceOk: true);
+
+		public string ValidatePrivacyLevel(string value, bool whiteSpaceOk)
 		{
-			if (string.IsNullOrWhiteSpace(value))
+			if (whiteSpaceOk && string.IsNullOrWhiteSpace(value))
 			{
 				return string.Empty;
 			}
@@ -346,64 +363,36 @@ namespace WalletWasabi.Gui.Tabs
 			return "Invalid privacy level.";
 		}
 
-		public string ValidateDustThreshold()
+		public string ValidateDustThreshold(string dustThreshold, bool whiteSpaceOk)
 		{
-			if (string.IsNullOrWhiteSpace(DustThreshold))
+			if (whiteSpaceOk && string.IsNullOrWhiteSpace(dustThreshold))
 			{
 				return string.Empty;
 			}
 
-			if (decimal.TryParse(DustThreshold, out var dust) && dust >= 0)
+			if (decimal.TryParse(dustThreshold, out var dust) && dust >= 0)
 			{
 				return string.Empty;
 			}
 
-			return "Invalid dust amount.";
+			return "Invalid dust threshold.";
 		}
 
-		public string ValidateHost(string host)
+		public string ValidateEndPoint(string endPoint, int defaultPort, bool whiteSpaceOk)
 		{
-			if (string.IsNullOrWhiteSpace(host))
+			if (whiteSpaceOk && string.IsNullOrWhiteSpace(endPoint))
 			{
 				return string.Empty;
 			}
 
-			var theHost = host.Trim();
-			if (Uri.TryCreate(theHost, UriKind.Absolute, out _))
+			if (EndPointParser.TryParse(endPoint, defaultPort, out _))
 			{
-				return string.Empty;
-			}
-			if (IPAddress.TryParse(theHost, out var ip))
-			{
-				if (ip.AddressFamily == AddressFamily.InterNetworkV6 && !Socket.OSSupportsIPv6)
-				{
-					return "OS does not support IPv6 addresses.";
-				}
 				return string.Empty;
 			}
 
-			return "Invalid host.";
+			return "Invalid endpoint.";
 		}
 
-		public string ValidatePort(string port)
-		{
-			if (string.IsNullOrEmpty(port))
-			{
-				return string.Empty;
-			}
-
-			var thePort = port.Trim();
-			if (ushort.TryParse(thePort, out var p) && p > 1024)
-			{
-				return string.Empty;
-			}
-
-			return "Invalid port.";
-		}
-
-		private void OpenConfigFile()
-		{
-			IoHelpers.OpenFileInTextEditor(Global.Config.FilePath);
-		}
+		#endregion Validation
 	}
 }

@@ -97,8 +97,8 @@ namespace WalletWasabi.Tests.NodeBuilding
 					return bitcoind;
 				}
 
-				zip = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ?
-					Path.Combine(Global.Instance.DataDir, $"bitcoin-{version}-x86_64-linux-gnu.tar.gz")
+				zip = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+					? Path.Combine(Global.Instance.DataDir, $"bitcoin-{version}-x86_64-linux-gnu.tar.gz")
 					: Path.Combine(Global.Instance.DataDir, $"bitcoin-{version}-osx64.tar.gz");
 
 				string url = string.Format("https://bitcoincore.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
