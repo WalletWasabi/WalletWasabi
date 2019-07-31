@@ -9,7 +9,8 @@ CodeMaid is a non-intrusive code cleanup tool. Wasabi's CodeMaid settings [can b
 ## .editorconfig
 
 Not only CodeMaid, but Visual Studio also enforces certain code style through [`.editorconfig`](https://github.com/zkSNACKs/WalletWasabi/blob/master/.editorconfig) file.  
-If you are using Visual Studio code, please **DO** install the [editorconfig extension](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig) for it to make sure your coding style will resemble to ours.
+
+If you are using Visual Studio code, the C# Extension will automatically use the built-in solution-level [`omnisharp.json`](https://github.com/zkSNACKs/WalletWasabi/blob/master/omnisharp.json) configuration file. In order to enforce the code style, just do a `Format Document` command by pressing `Shift` + `Alt` + `F` on Windows, `Shift` + `Option` + `F` on Mac or `Ctrl` + `Shift` + `I` on Linux.
 
 ## Refactoring
 
@@ -32,7 +33,7 @@ If you are a new contributor **DO** keep refactoring pull requests short, uncomp
 
 ## Asynchronous Locking
 
-**DO NOT** use mix awaitable and non-awaitable locks.
+**DO NOT** mix awaitable and non-awaitable locks.
 
 ```cs
 // GOOD

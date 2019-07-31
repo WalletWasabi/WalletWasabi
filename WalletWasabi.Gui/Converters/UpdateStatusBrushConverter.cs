@@ -21,8 +21,8 @@ namespace WalletWasabi.Gui.Converters
 			}
 
 			return Application.Current.Resources.TryGetResource("ApplicationAccentBrushLow", out object brush)
-				? brush :
-				null;
+				? brush
+				: null;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

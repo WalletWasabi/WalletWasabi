@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -403,7 +403,7 @@ namespace Mono.Options
 					continue;
 				}
 
-				for (int j = i; j < top; j++)
+				for (int j = i + 1; j < top; j++)
 				{
 					if (char.IsWhiteSpace(input[j]))
 					{
@@ -490,7 +490,7 @@ namespace Mono.Options
 			}
 			for (int i = 1; i < extra.Count; ++i)
 			{
-				name = name + " " + extra[i];
+				name = $"{name} {extra[i]}";
 				if (!Contains(name))
 				{
 					continue;

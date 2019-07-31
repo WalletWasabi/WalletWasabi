@@ -20,7 +20,7 @@ namespace Nito.AsyncEx
 			StatusReady = 1,
 			StatusAcquiring = 2,
 			StatusAcquired = 3,
-			StatusReleasing = 4,
+			StatusReleasing = 4
 		}
 
 		private int _status;
@@ -117,9 +117,9 @@ namespace Nito.AsyncEx
 		/// <param name="cancellationTokenObj"></param>
 		private void HoldLock(object cancellationTokenObj)
 		{
-			CancellationToken ct = cancellationTokenObj is CancellationToken token ?
-				token :
-				CancellationToken.None;
+			CancellationToken ct = cancellationTokenObj is CancellationToken token
+				? token
+				: CancellationToken.None;
 
 			while (true)
 			{

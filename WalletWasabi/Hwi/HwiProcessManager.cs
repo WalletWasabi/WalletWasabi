@@ -166,7 +166,7 @@ namespace WalletWasabi.Hwi
 					if (!File.Exists(HwiPath))
 					{
 						var exeName = Path.GetFileName(HwiPath);
-						throw new FileNotFoundException($"{exeName} not found at {HwiPath}. Maybe it was removed by antivirus software!");
+						throw new FileNotFoundException($"{exeName} not found at `{HwiPath}`. Maybe it was removed by an antivirus software!");
 					}
 
 					using (var process = Process.Start(
@@ -221,20 +221,18 @@ namespace WalletWasabi.Hwi
 					fullBaseDirectory.Insert(0, "/");
 				}
 			}
-
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			else
 			{
 				HwiPath = Path.Combine(fullBaseDirectory, "Hwi", "Software", "hwi-win64", "hwi.exe");
 				return;
 			}
 
 			var hwiDir = Path.Combine(dataDir, "hwi");
-
 			string hwiPath = $@"{hwiDir}/hwi";
 
 			if (!File.Exists(hwiPath))
 			{
-				Logger.LogInfo($"HWI instance NOT found at {hwiPath}. Attempting to acquire it...", nameof(HwiProcessManager));
+				Logger.LogInfo($"HWI instance NOT found at `{hwiPath}`. Attempting to acquire it...", nameof(HwiProcessManager));
 				await InstallHwiAsync(fullBaseDirectory, hwiDir);
 			}
 			else if (!IoHelpers.CheckExpectedHash(hwiPath, Path.Combine(fullBaseDirectory, "Hwi", "Software")))
@@ -254,7 +252,7 @@ namespace WalletWasabi.Hwi
 			{
 				if (logFound)
 				{
-					Logger.LogInfo($"HWI instance found at {hwiPath}.", nameof(HwiProcessManager));
+					Logger.LogInfo($"HWI instance found at `{hwiPath}`.", nameof(HwiProcessManager));
 				}
 			}
 
@@ -269,13 +267,13 @@ namespace WalletWasabi.Hwi
 			{
 				string hwiLinuxZip = Path.Combine(hwiSoftwareDir, "hwi-linux64.zip");
 				await IoHelpers.BetterExtractZipToDirectoryAsync(hwiLinuxZip, hwiDir);
-				Logger.LogInfo($"Extracted {hwiLinuxZip} to {hwiDir}.", nameof(HwiProcessManager));
+				Logger.LogInfo($"Extracted {hwiLinuxZip} to `{hwiDir}`.", nameof(HwiProcessManager));
 			}
 			else // OSX
 			{
 				string hwiOsxZip = Path.Combine(hwiSoftwareDir, "hwi-osx64.zip");
 				await IoHelpers.BetterExtractZipToDirectoryAsync(hwiOsxZip, hwiDir);
-				Logger.LogInfo($"Extracted {hwiOsxZip} to {hwiDir}.", nameof(HwiProcessManager));
+				Logger.LogInfo($"Extracted {hwiOsxZip} to `{hwiDir}`.", nameof(HwiProcessManager));
 			}
 
 			// Make sure there's sufficient permission.

@@ -100,6 +100,9 @@ dotnet_style_prefer_is_null_check_over_reference_equality_method = true:error
 #prefer braces
 csharp_prefer_braces = true:error
 
+#do not suggest readonly fields
+dotnet_style_readonly_field = false:error
+
 
 # name all constant fields using PascalCase
 dotnet_naming_rule.constant_fields_should_be_pascal_case.severity = error
@@ -160,6 +163,15 @@ dotnet_naming_symbols.interfaces_symbols.applicable_accessibilities = *
 
 dotnet_naming_style.I_pascal_case_style.required_prefix = I
 dotnet_naming_style.I_pascal_case_style.capitalization = pascal_case
+
+# name Local variables & parameters using camelCase
+dotnet_naming_rule.local_variables_and_parameters_camel_case.severity = error
+dotnet_naming_rule.local_variables_and_parameters_camel_case.symbols  = local_variables_and_parameters_symbols
+dotnet_naming_rule.local_variables_and_parameters_camel_case.style    = camel_case_style
+
+dotnet_naming_symbols.local_variables_and_parameters_symbols.applicable_kinds = local,parameter
+
+dotnet_naming_style.camel_case_style.capitalization = camel_case
 
 # all type parameters should be TPascalCase
 dotnet_naming_rule.type_parameters_T_pascal_case.severity = error

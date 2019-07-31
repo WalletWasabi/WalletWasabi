@@ -1,4 +1,4 @@
-﻿using WalletWasabi.Bases;
+using WalletWasabi.Bases;
 
 namespace WalletWasabi.TorSocks5.TorSocks5.Models.Fields.ByteArrayFields
 {
