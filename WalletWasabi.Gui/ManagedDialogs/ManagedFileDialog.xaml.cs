@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 #if DEBUG
 			this.AttachDevTools();
 #endif
-			
+
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
 				HasSystemDecorations = true;

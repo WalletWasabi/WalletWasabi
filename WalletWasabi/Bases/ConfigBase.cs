@@ -11,101 +11,101 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Bases
 {
-    public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
-    {
-        /// <inheritdoc />
-        public string FilePath { get; private set; } = null;
+	public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
+	{
+		/// <inheritdoc />
+		public string FilePath { get; private set; } = null;
 
-        public ConfigBase()
-        {
-        }
+		public ConfigBase()
+		{
+		}
 
-        public ConfigBase(string filePath)
-        {
-            SetFilePath(filePath);
-        }
+		public ConfigBase(string filePath)
+		{
+			SetFilePath(filePath);
+		}
 
-        /// <inheritdoc />
-        public void AssertFilePathSet()
-        {
-            if (FilePath is null)
-            {
-                throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
-            }
-        }
+		/// <inheritdoc />
+		public void AssertFilePathSet()
+		{
+			if (FilePath is null)
+			{
+				throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
+			}
+		}
 
-        /// <inheritdoc />
-        public async Task<bool> CheckFileChangeAsync()
-        {
-            AssertFilePathSet();
+		/// <inheritdoc />
+		public async Task<bool> CheckFileChangeAsync()
+		{
+			AssertFilePathSet();
 
-            if (!File.Exists(FilePath))
-            {
-                throw new FileNotFoundException($"{GetType().Name} file did not exist at path: `{FilePath}`.");
-            }
+			if (!File.Exists(FilePath))
+			{
+				throw new FileNotFoundException($"{GetType().Name} file did not exist at path: `{FilePath}`.");
+			}
 
-            string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
+			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
 
-            var newConfigObject = Activator.CreateInstance(GetType());
-            JsonConvert.PopulateObject(jsonString, newConfigObject);
+			var newConfigObject = Activator.CreateInstance(GetType());
+			JsonConvert.PopulateObject(jsonString, newConfigObject);
 
-            return !AreDeepEqual(newConfigObject);
-        }
+			return !AreDeepEqual(newConfigObject);
+		}
 
-        /// <inheritdoc />
-        public virtual async Task LoadOrCreateDefaultFileAsync()
-        {
-            AssertFilePathSet();
-            JsonConvert.PopulateObject("{}", this);
+		/// <inheritdoc />
+		public virtual async Task LoadOrCreateDefaultFileAsync()
+		{
+			AssertFilePathSet();
+			JsonConvert.PopulateObject("{}", this);
 
-            if (!File.Exists(FilePath))
-            {
-                Logger.LogInfo<ConfigBase>($"{GetType().Name} file did not exist. Created at path: `{FilePath}`.");
-            }
-            else
-            {
-                await LoadFileAsync();
-            }
+			if (!File.Exists(FilePath))
+			{
+				Logger.LogInfo<ConfigBase>($"{GetType().Name} file did not exist. Created at path: `{FilePath}`.");
+			}
+			else
+			{
+				await LoadFileAsync();
+			}
 
-            await ToFileAsync();
-        }
+			await ToFileAsync();
+		}
 
-        /// <inheritdoc />
-        public virtual async Task LoadFileAsync()
-        {
-            var jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
+		/// <inheritdoc />
+		public virtual async Task LoadFileAsync()
+		{
+			var jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
 
-            JsonConvert.PopulateObject(jsonString, this);
+			JsonConvert.PopulateObject(jsonString, this);
 
-            if (TryEnsureBackwardsCompatibility(jsonString))
-            {
-                await ToFileAsync();
-            }
-        }
+			if (TryEnsureBackwardsCompatibility(jsonString))
+			{
+				await ToFileAsync();
+			}
+		}
 
-        /// <inheritdoc />
-        public void SetFilePath(string path)
-        {
-            FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(path), path, trim: true);
-        }
+		/// <inheritdoc />
+		public void SetFilePath(string path)
+		{
+			FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(path), path, trim: true);
+		}
 
-        /// <inheritdoc />
-        public bool AreDeepEqual(object otherConfig)
-        {
-            var currentConfig = JObject.FromObject(this);
-            var otherConfigJson = JObject.FromObject(otherConfig);
-            return JToken.DeepEquals(otherConfigJson, currentConfig);
-        }
+		/// <inheritdoc />
+		public bool AreDeepEqual(object otherConfig)
+		{
+			var currentConfig = JObject.FromObject(this);
+			var otherConfigJson = JObject.FromObject(otherConfig);
+			return JToken.DeepEquals(otherConfigJson, currentConfig);
+		}
 
-        /// <inheritdoc />
-        public async Task ToFileAsync()
-        {
-            AssertFilePathSet();
+		/// <inheritdoc />
+		public async Task ToFileAsync()
+		{
+			AssertFilePathSet();
 
-            string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-            await File.WriteAllTextAsync(FilePath, jsonString, Encoding.UTF8);
-        }
+			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
+			await File.WriteAllTextAsync(FilePath, jsonString, Encoding.UTF8);
+		}
 
-        protected virtual bool TryEnsureBackwardsCompatibility(string jsonString) => true;
-    }
+		protected virtual bool TryEnsureBackwardsCompatibility(string jsonString) => true;
+	}
 }

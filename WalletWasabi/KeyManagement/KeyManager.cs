@@ -556,7 +556,7 @@ namespace WalletWasabi.KeyManagement
 			{
 				password = "";
 			}
-			
+
 			if (IsWatchOnly)
 			{
 				throw new SecurityException("This is a watchonly wallet.");
