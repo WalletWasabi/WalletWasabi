@@ -1,4 +1,4 @@
-using Avalonia.Threading;
+using Avalonia.Input;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin;
@@ -69,6 +69,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private FeeDisplayFormat _feeDisplayFormat;
+		private bool _isSliderFeeUsed = true;
+		private double _feeControlOpacity;
 
 		private FeeDisplayFormat FeeDisplayFormat
 		{
@@ -205,7 +207,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.FeeTarget)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => SetFeesAndTexts());
+				.Subscribe(_ =>
+				{
+					IsSliderFeeUsed = true;
+					SetFeesAndTexts();
+				}
+				);
+
+			this.WhenAnyValue(x => x.IsSliderFeeUsed)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(enabled =>
+				{
+					FeeControlOpacity = enabled ? 1 : 0.5; // Give the control the disabled feeling. Real Disable it not a solution as we have to detect if the slider is moved.
+				}
+				);
 
 			MaxCommand = ReactiveCommand.Create(() => { IsMax = !IsMax; }, outputScheduler: RxApp.MainThreadScheduler);
 			this.WhenAnyValue(x => x.IsMax)
@@ -293,7 +308,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 
-					bool useCustomFee = IsCustomFee && !string.IsNullOrEmpty(UserFeeText);
+					bool useCustomFee = !IsSliderFeeUsed;
 					FeeRate feeRate = null;
 					if (useCustomFee)
 					{
@@ -438,6 +453,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.WhenAny(x => x.IsMax, x => x.AmountText, x => x.Address, x => x.IsBusy,
 				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy)
 				.ObserveOn(RxApp.MainThreadScheduler));
+
+			UserFeeTextKeyUpCommand = ReactiveCommand.Create((KeyEventArgs key) =>
+			{
+				IsSliderFeeUsed = string.IsNullOrEmpty(UserFeeText);
+			});
+
+			FeeSliderClickedCommand = ReactiveCommand.Create((PointerPressedEventArgs mouse) =>
+			{
+				IsSliderFeeUsed = true;
+			});
+
+			Observable
+				.Merge(MaxCommand.ThrownExceptions)
+				.Merge(FeeRateCommand.ThrownExceptions)
+				.Merge(OnAddressPasteCommand.ThrownExceptions)
+				.Merge(BuildTransactionCommand.ThrownExceptions)
+				.Merge(UserFeeTextKeyUpCommand.ThrownExceptions)
+				.Merge(FeeSliderClickedCommand.ThrownExceptions)
+				.Subscribe(ex => SetWarningMessage(ex.ToTypeMessageString()));
 		}
 
 		private async Task<(bool success, string error)> TryRefreshHardwareWalletInfoAsync(KeyManager keyManager)
@@ -1035,6 +1069,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _amountWaterMarkText, value);
 		}
 
+		public bool IsSliderFeeUsed
+		{
+			get => _isSliderFeeUsed;
+			set => this.RaiseAndSetIfChanged(ref _isSliderFeeUsed, value);
+		}
+
+		public double FeeControlOpacity
+		{
+			get => _feeControlOpacity;
+			set => this.RaiseAndSetIfChanged(ref _feeControlOpacity, value);
+		}
+
 		public bool IsCustomFee => _isCustomFee?.Value ?? false;
 
 		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
@@ -1044,6 +1090,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> FeeRateCommand { get; }
 
 		public ReactiveCommand<BitcoinUrlBuilder, Unit> OnAddressPasteCommand { get; }
+
+		public ReactiveCommand<KeyEventArgs, Unit> UserFeeTextKeyUpCommand { get; }
+
+		public ReactiveCommand<PointerPressedEventArgs, Unit> FeeSliderClickedCommand { get; }
 
 		public bool IsTransactionBuilder { get; }
 
@@ -1079,6 +1129,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_isCustomFee = Global.UiConfig.WhenAnyValue(x => x.IsCustomFee)
 				.ToProperty(this, x => x.IsCustomFee, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
+
+			this.WhenAnyValue(x => x.IsCustomFee)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					if (!IsCustomFee)
+					{
+						IsSliderFeeUsed = true;
+					}
+				});
 
 			base.OnOpen();
 		}

@@ -67,13 +67,14 @@
               UseFloatingWatermark="True"
               MinWidth="124"
               MinHeight="46" />
-            <StackPanel>
-              <StackPanel IsVisible="{Binding !MinMaxFeeTargetsEqual}" Orientation="Horizontal" Spacing="10">
+            <StackPanel Opacity="{Binding FeeControlOpacity}">
+              <StackPanel  IsVisible="{Binding !MinMaxFeeTargetsEqual}" Orientation="Horizontal" Spacing="10">
                 <TextBlock Text="Fee:" />
                 <Grid Height="10" Width="10">
                   <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource SendTabView_Lightning}" />
                 </Grid>
-                <Slider Minimum="{Binding MinimumFeeTarget}" Maximum="{Binding MaximumFeeTarget}" Value="{Binding FeeTarget}" Width="270" />
+                <Slider Minimum="{Binding MinimumFeeTarget}" Maximum="{Binding MaximumFeeTarget}" Value="{Binding FeeTarget}" Width="270">
+                </Slider>
                 <Grid Height="10" Width="10">
                   <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource SendTabView_Clock}" />
                 </Grid>
@@ -85,7 +86,7 @@
                   <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource SendTabView_Smiley}" />
                 </Grid>
               </StackPanel>
-              <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="4">
+              <StackPanel IsVisible="{Binding IsSliderFeeUsed}" Orientation="Horizontal" VerticalAlignment="Center" Spacing="4">
                 <TextBlock Text="Confirmation Expected In:" VerticalAlignment="Center" />
                 <TextBlock Foreground="YellowGreen" Text="{Binding ConfirmationExpectedText}" Width="80" VerticalAlignment="Center" />
                 <Button Content="{Binding FeeText}" ToolTip.Tip="{Binding FeeToolTip}" Command="{Binding FeeRateCommand}" Padding="0" Background="{DynamicResource EditorBackgroundBrush}" BorderBrush="{DynamicResource EditorBackgroundBrush}" VerticalAlignment="Top" />
@@ -93,7 +94,11 @@
             </StackPanel>
             <StackPanel IsVisible="{Binding IsCustomFee}" VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
               <TextBlock Text="or set Fee:" />
-              <controls:ExtendedTextBox Text="{Binding UserFeeText, Mode=TwoWay}" Watermark="Fee (sat/byte)" UseFloatingWatermark="True" MinWidth="124" MaxWidth="124" MinHeight="46" />
+              <controls:ExtendedTextBox Text="{Binding UserFeeText, Mode=TwoWay}" Watermark="Fee (sat/byte)" UseFloatingWatermark="True" MinWidth="124" MaxWidth="124" MinHeight="46">
+                <i:Interaction.Behaviors>
+                  <behaviors:CommandOnKeyUpBehavior Command="{Binding UserFeeTextKeyUpCommand}" />
+                </i:Interaction.Behaviors>
+              </controls:ExtendedTextBox>
             </StackPanel>
           </StackPanel>
           <StackPanel Spacing="10" Orientation="Horizontal">
