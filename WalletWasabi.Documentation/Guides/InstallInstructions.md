@@ -120,35 +120,43 @@ Remember to check again the PGP signature every time you make a new download.
 If you trust nopara73's key and you are familiar with the [Web Of Trust](https://security.stackexchange.com/questions/147447/gpg-why-is-my-trusted-key-not-certified-with-a-trusted-signature), please consider also [validating it](https://www.gnupg.org/gph/en/manual/x334.html).
 
 
-## GPG Set-up and Verification with GUI (Mac)
+
+## GPG Set-up and Verification with GUI (OSX)
 
 __Setup__
+
 1. Download GnuPG ("GPG Keychain") from https://www.gnupg.org/download/index.html
 2. Install GnuPG
 		
-to import Adam's PGP key into GPG Keychain - 
+to __import Adam's PGP key__ into your GPG Keychain - 
 
 3. Open GPG Keychain
 4. Click - "Lookup Key" - to search for Adam on the public database 
 5. Enter Adam's email : nopara73@github.com
-6. Select and click - "Retrieve Key"
+6. Select Adam and click - "Retrieve Key"
 
 now, you should see Adam in your Keychain
 
-__Verify__
+7. Verify Adam's fingerprint : 21D7 CA45 565D BCCE BE45  115D B4B7 2266 C47E 075E
+
+__Verify__ - your Wasabi Wallet is authentic
+
 you will need these 2 files:
-- Wasabi's latest __release__ file, and 
+
+- Wasabi's __.dmg__ file, and 
 - the corresponding __.asc__ file
 
-7. Double click or right click the __.asc__ file - to show more options 
-8. Click - "Services" 
-9. Click - "OpenGPG: Verify Signature of File" 
+8. Double-click or right-click the __.asc__ file - to show more options 
+9. Click - "Services" 
+10. Click - "OpenGPG: Verify Signature of File" 
 	
 __Verification Results__
+
 a positive result should look like - 
 
 Wasabi-1.x.x.dmg Signed by nopara73 (GitHub key)
 nopara73@github.com (B4B72266C47E075E)- undefined trust
+
 
 
 ## GPG Verification with GUI (Windows)
