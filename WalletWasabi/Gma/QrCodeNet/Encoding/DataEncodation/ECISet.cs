@@ -211,8 +211,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			int eciAssignmentByte = NumOfCodewords(eciValue);
 			//Number of bits = Num codewords indicator + codeword value = Number of codewords * 8
 			//Chapter 6.4.2.1 ECI Designator ISOIEC 18004:2006 Page 24
-			int eciAssignmentBits = 0;
-
+			int eciAssignmentBits;
 			switch (eciAssignmentByte)
 			{
 				case 1:

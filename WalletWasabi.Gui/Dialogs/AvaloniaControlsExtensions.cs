@@ -36,29 +36,33 @@ namespace Avalonia.Controls
 				{
 					WalletWasabi.Logging.Logger.LogWarning(ex, me.GetType().Name);
 
-					string title =
-						!string.IsNullOrWhiteSpace(me.Title) ? me.Title :
-						me is OpenFileDialog ? "Open File" :
-						me is SaveFileDialog ? "Save File" :
-						throw new NotImplementedException();
+					string title = !string.IsNullOrWhiteSpace(me.Title)
+						? me.Title
+						: me is OpenFileDialog
+							? "Open File"
+							: me is SaveFileDialog
+								? "Save File"
+								: throw new NotImplementedException();
 
-					string instructions =
-						me is OpenFileDialog ? $"Failed to use your operating system's {nameof(OpenFileDialog)}. Please provide the path of the file you want to open manually:" :
-						me is SaveFileDialog ? $"Failed to use your operating system's {nameof(SaveFileDialog)}. Please provide the path where you want your file to be saved to:" :
-						throw new NotImplementedException();
+					string instructions = me is OpenFileDialog
+						? $"Failed to use your operating system's {nameof(OpenFileDialog)}. Please provide the path of the file you want to open manually:"
+						: me is SaveFileDialog
+							? $"Failed to use your operating system's {nameof(SaveFileDialog)}. Please provide the path where you want your file to be saved to:"
+							: throw new NotImplementedException();
 
-					string exampleFilePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
-						@"C:\path\to\the\file.ext" :
-						@"/path/to/the/file";
+					string exampleFilePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+						? @"C:\path\to\the\file.ext"
+						: @"/path/to/the/file";
 
-					string defaultTextInput =
-						me is OpenFileDialog ? Path.Combine(me.InitialDirectory ?? "", me.InitialFileName ?? "") :
-						me is SaveFileDialog sfd ? Path.ChangeExtension(
-							Path.Combine(
-								string.IsNullOrEmpty(me.InitialDirectory) ? Path.GetDirectoryName(exampleFilePath) : me.InitialDirectory,
-								string.IsNullOrEmpty(me.InitialFileName) ? Path.GetFileName(exampleFilePath) : me.InitialFileName),
-							string.IsNullOrEmpty(sfd.DefaultExtension) ? "ext" : sfd.DefaultExtension) :
-						throw new NotImplementedException();
+					string defaultTextInput = me is OpenFileDialog
+						? Path.Combine(me.InitialDirectory ?? "", me.InitialFileName ?? "")
+						: me is SaveFileDialog sfd
+							? Path.ChangeExtension(
+								Path.Combine(
+									string.IsNullOrEmpty(me.InitialDirectory) ? Path.GetDirectoryName(exampleFilePath) : me.InitialDirectory,
+									string.IsNullOrEmpty(me.InitialFileName) ? Path.GetFileName(exampleFilePath) : me.InitialFileName),
+								string.IsNullOrEmpty(sfd.DefaultExtension) ? "ext" : sfd.DefaultExtension)
+							: throw new NotImplementedException();
 
 					var dialog = new TextInputDialogViewModel(title, instructions, exampleFilePath, defaultTextInput);
 					var success = await MainWindowViewModel.Instance.ShowDialogAsync(dialog);

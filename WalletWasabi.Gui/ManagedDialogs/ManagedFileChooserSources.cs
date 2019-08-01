@@ -58,7 +58,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
 				var paths = Directory.GetDirectories("/Volumes");
-				
+
 				return paths.Select(x => new ManagedFileChooserNavigationItem
 				{
 					DisplayName = Path.GetFileName(x),

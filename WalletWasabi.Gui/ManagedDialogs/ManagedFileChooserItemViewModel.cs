@@ -65,7 +65,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 		{
 			IsDirectory = true;
 			Path = item.Path;
-			DisplayName = item.DisplayName;			
+			DisplayName = item.DisplayName;
 		}
 	}
 }
