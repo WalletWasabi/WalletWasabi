@@ -1044,7 +1044,7 @@ namespace WalletWasabi.Services
 			if ((feeRate is null && feeTarget is null)
 				|| (feeRate != null && feeTarget != null))
 			{
-				throw new NotSupportedException($"Either {nameof(feeRate)} or {nameof(feeTarget)} must be null. Not both.");
+				throw new NotSupportedException($"Either {nameof(feeRate)} or {nameof(feeTarget)} must be set and the other should be null.");
 			}
 
 			if (toSend.Any(x => x is null))
@@ -1118,15 +1118,7 @@ namespace WalletWasabi.Services
 			Money feePerBytes = null;
 			using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
 			{
-				Money fr;
-				if (feeTarget.HasValue)
-				{
-					fr = Synchronizer.GetFeeRate(feeTarget.Value);
-				}
-				else
-				{
-					fr = feeRate;
-				}
+				Money fr = feeTarget.HasValue ? Synchronizer.GetFeeRate(feeTarget.Value) : feeRate;
 
 				Money sanityCheckedFeeRate = Math.Max(fr, 2); // Use the sanity check that under 2 satoshi per bytes should not be displayed. To correct possible rounding errors.
 				feePerBytes = new Money(sanityCheckedFeeRate);

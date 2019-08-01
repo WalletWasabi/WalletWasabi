@@ -211,16 +211,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					IsSliderFeeUsed = true;
 					SetFeesAndTexts();
-				}
-				);
+				});
 
 			this.WhenAnyValue(x => x.IsSliderFeeUsed)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(enabled =>
 				{
 					FeeControlOpacity = enabled ? 1 : 0.5; // Give the control the disabled feeling. Real Disable it not a solution as we have to detect if the slider is moved.
-				}
-				);
+				});
 
 			MaxCommand = ReactiveCommand.Create(() => { IsMax = !IsMax; }, outputScheduler: RxApp.MainThreadScheduler);
 			this.WhenAnyValue(x => x.IsMax)

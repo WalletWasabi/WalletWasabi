@@ -68,7 +68,7 @@
               MinWidth="124"
               MinHeight="46" />
             <StackPanel Opacity="{Binding FeeControlOpacity}">
-              <StackPanel  IsVisible="{Binding !MinMaxFeeTargetsEqual}" Orientation="Horizontal" Spacing="10">
+              <StackPanel IsVisible="{Binding !MinMaxFeeTargetsEqual}" Orientation="Horizontal" Spacing="10">
                 <TextBlock Text="Fee:" />
                 <Grid Height="10" Width="10">
                   <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource SendTabView_Lightning}" />
