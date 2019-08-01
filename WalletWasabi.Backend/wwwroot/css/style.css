@@ -19,8 +19,9 @@ ul {
   position: relative;
   display: inline-block;
   -webkit-transition: -webkit-transform 0.3s;
-  -moz-transition: -moz-transform 0.3s;
+  transition: -webkit-transform 0.3s;
   transition: transform 0.3s;
+  transition: transform 0.3s, -webkit-transform 0.3s;
 }
 
 .animated-link span::before {
@@ -29,8 +30,7 @@ ul {
   content: attr(data-hover);
   font-weight: 700;
   -webkit-transform: translate3d(0,0,0);
-  -moz-transform: translate3d(0,0,0);
-  transform: translate3d(0,0,0);
+          transform: translate3d(0,0,0);
 }
 
 .animated-link:hover {
@@ -39,8 +39,7 @@ ul {
 
 .animated-link:hover span, .animated-link:focus span {
     -webkit-transform: translateY(-100%);
-    -moz-transform: translateY(-100%);
-    transform: translateY(-100%);
+            transform: translateY(-100%);
 }
 
 .btn-labeled {
@@ -60,10 +59,12 @@ ul {
 }
 
 .btn-labeled .btn-label+span {
-    margin-left: 1.5rem;
+  margin-left: 1.5rem;
 }
 
 .w-fit-content {
+  width: -webkit-fit-content;
+  width: -moz-fit-content;
   width: fit-content;
 }
 
@@ -74,23 +75,13 @@ ul {
 }
 
 .box-shadow-lg {
-  box-shadow: 0 0 50px rgba(0,0,0,.23);
+  -webkit-box-shadow: 0 0 50px rgba(0,0,0,.23);
+          box-shadow: 0 0 50px rgba(0,0,0,.23);
 }
 .box-shadow {
-  box-shadow: 0 0 30px rgba(0,0,0,.18);
+  -webkit-box-shadow: 0 0 30px rgba(0,0,0,.18);
+          box-shadow: 0 0 30px rgba(0,0,0,.18);
 }
-
-/* .arrow-right {
-  position: relative;
-}
-
-.arrow-right::after {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  content: url("../images/icon-long-arrow.svg");
-  left: calc(100% + 20px);
-} */
 
 .toggle-input {
   display: none;
@@ -111,6 +102,7 @@ ul {
           backface-visibility: hidden;
   -webkit-transform: translateZ(0);
           transform: translateZ(0);
+  -webkit-transition: all 0.2s;
   transition: all 0.2s;
 }
 
@@ -122,6 +114,7 @@ ul {
   width: 2px;
   height: 0.75rem;
   background-color: #211B24;
+  -webkit-transition: all 0.2s;
   transition: all 0.2s;
 }
 
@@ -133,7 +126,6 @@ ul {
   background-color: #fff;
 }
 
-
 .toggle-label:after {
   -webkit-transform: rotate(90deg);
           transform: rotate(90deg);
@@ -142,40 +134,20 @@ ul {
   -webkit-transform: rotate(90deg) !important;
           transform: rotate(90deg) !important;
 }
-
 .toggle-input:checked + .toggle-content {
   max-height: auto;
 }
-
 .toggle-input:checked + .toggle-label + .toggle-content {
   max-height: 5000px;
 }
 
-/* .shader {
-  -webkit-animation-name: float;
-  -webkit-animation-timing-function: linear;
-  -webkit-animation-iteration-count: infinite;
-  -webkit-animation-duration: 10s;
-  -webkit-transform-style: preserve-3d;
-}
-@-webkit-keyframes float {
-  0%, 100% {
-    -webkit-transform: translateY(0);
-  } 50% {
-    -webkit-transform: translateY(-10%);
-  }
-} */
-
-
-
 /* Make navbar toggler work on mobile devices without Bootstrap JS */
 #navbar-toggle-cbox {
-  display:none
+  display: none
 }
 #navbar-toggle-cbox:checked ~ .collapse {
     display: block;
 }
-
 
 header {
   position: relative;
@@ -183,11 +155,13 @@ header {
 
 header .navbar {
   max-width: 900px;
-  box-shadow: 0 2px 30px rgba(90, 80, 90, 0.5);
+  -webkit-box-shadow: 0 2px 30px rgba(90, 80, 90, 0.5);
+          box-shadow: 0 2px 30px rgba(90, 80, 90, 0.5);
   position: absolute;
   top: 0;
   left: 50%;
-  transform: translateX(-50%);
+  -webkit-transform: translateX(-50%);
+          transform: translateX(-50%);
   z-index: 999;
   width: 100%;
 }
@@ -204,8 +178,6 @@ main {
 
 section {
   position: relative;
-  /* overflow-x: hidden; */
-  /* overflow-y: auto; */
 }
 
 section .shader {
@@ -238,82 +210,19 @@ section .shader {
   background-size: cover;
   background-position: center;
   z-index: 0;
-
-  -webkit-animation-name: hero-flickr;
-  -webkit-animation-timing-function: linear;
-  -webkit-animation-iteration-count: infinite;
-  -webkit-animation-duration: 3s;
-  -webkit-transform-style: preserve-3d;
-
+  -webkit-animation: hero-flickr 3s linear infinite;
+          animation: hero-flickr 3s linear infinite;
 }
 
 @-webkit-keyframes hero-flickr {
-  0% {
+  0%, 4%, 70%, 76% {
     opacity: 0;
-    filter: hue-rotate(0deg);
-    background-position: center;
-  }
-  2% {
+  } 2%, 12%, 15%, 69%, 79%, 100% {
     opacity: 1;
-    filter: hue-rotate(45deg);
-    background-position: center;
-  }
-  4% {
-    opacity: 0;
-    filter: hue-rotate(0deg);
-    background-position: center;
-    background-position: calc(50% + 20px) 50%;
-  }
-  7% {
+  } 7%, 73% {
     opacity: .5;
-    filter: hue-rotate(89deg);
-    background-position: center;
-  }
-  9% {
+  } 9% {
     opacity: .2;
-    filter: hue-rotate(178deg);
-    background-position: center;
-  }
-  12% {
-    opacity: 1;
-    filter: hue-rotate(0deg);
-    background-position: center;
-  }
-  15% {
-    opacity: 1;
-    filter: hue-rotate(0deg);
-    background-position: center;
-    background-position: calc(50% - 0px) 50%;
-  }
-  69% {
-    opacity: 1;
-    filter: hue-rotate(0deg);
-    background-position: center;
-  }
-  70% {
-    opacity: 0;
-    filter: hue-rotate(0deg);
-    background-position: center;
-  }
-  73% {
-    opacity: 0.5;
-    filter: hue-rotate(218deg);
-    background-position: center;
-  }
-  76% {
-    opacity: 0;
-    filter: hue-rotate(0deg);
-    background-position: center;
-    background-position: calc(50% - 12px) 50%;
-  }
-  79% {
-    opacity: 1;
-    background-position: center;
-  }
-  100% {
-    opacity: 1;
-    filter: hue-rotate(0deg);
-    background-position: center;
   }
 }
 
@@ -322,11 +231,13 @@ section .shader {
   bottom: 0;
   color: white;
   text-shadow: 0 0 100px #000;
+  background-image: -webkit-gradient(linear, left bottom, left top, from(rgba(0, 0, 0, 0.4)), to(#0000));
   background-image: linear-gradient(to top, rgba(0, 0, 0, 0.4), #0000);
   font-family: "Playfair Display", serif;
   font-weight: 600;
   line-height: 1.2;
   font-size: 4rem;
+  z-index: 1;
 }
 
 .hero .download-links .download-link {
@@ -335,39 +246,35 @@ section .shader {
 .hero .shader {
   right: -10%;
   top: calc(50% - 60px);
-  transform: translateY(calc(-50% + 120px));
+  -webkit-transform: translateY(calc(-50% + 120px));
+          transform: translateY(calc(-50% + 120px));
 }
 
 /* Features Section */
-
 .features {
   background: #FFFFFF;
   width: 100%;
   max-width: 1100px;
 }
 
-
 /* CoinJoins Section */
-
 .coinjoins .illustration {
   width: 100%;
   height: auto;
-  /* transform: translateY(-12.5rem); */
 }
 
 .coinjoins svg #signal-1, .coinjoins svg #signal-2 {
-  -webkit-animation-timing-function: linear;
-  -webkit-animation-iteration-count: infinite;
-  -webkit-transform-style: preserve-3d;
-  -webkit-animation-name: blink;
-  -webkit-animation-duration: 1s;
+  -webkit-animation: blink 1s linear infinite;
+          animation: blink 1s linear infinite;
 }
 .coinjoins svg #signal-1 {
   -webkit-animation-delay: .2s;
+          animation-delay: .2s;
 
 }
 .coinjoins svg #signal-2 {
   -webkit-animation-delay: .4s;
+          animation-delay: .4s;
 }
 
 @-webkit-keyframes blink {
@@ -382,19 +289,34 @@ section .shader {
   opacity: .8;
 }
 
+@-webkit-keyframes spin {
+  100% {
+    -webkit-transform: rotate(360deg);
+            transform: rotate(360deg);
+  }
+}
+
+@keyframes spin {
+  100% {
+    -webkit-transform: rotate(360deg);
+            transform: rotate(360deg);
+  }
+}
+
 .coinjoins .shader {
   width: 50vw;
   top: -5%;
   left: -10%;
   height: 40vw;
-  transform: rotate(20deg);
   background: #FBFBFB;
-  box-shadow: 0 0 100px 0 #E4E0EB;
+  -webkit-box-shadow: 0 0 100px 0 #E4E0EB;
+          box-shadow: 0 0 100px 0 #E4E0EB;
   border-radius: 94px;
+  -webkit-transform: rotate(20deg);
+          transform: rotate(20deg);
 }
 
 /* Download Section */
-
 .download .screenshot {
   width: 200%;
 }
@@ -405,12 +327,12 @@ section .shader {
   top: -20%;
   right: -10%;
   background: #FBFBFB;
-  box-shadow: 0 0 100px 0 #E4E0EB;
+  -webkit-box-shadow: 0 0 100px 0 #E4E0EB;
+          box-shadow: 0 0 100px 0 #E4E0EB;
   border-radius: 100%;
 }
 
 /* FAQ section */
-
 .faq .shader {
   width: 70vw;
   height: 70vw;
@@ -419,18 +341,17 @@ section .shader {
 }
 
 /* Footer Section */
-
 .footer hr {
   display: block;
   width: 100%;
   border-bottom: 1px dashed rgba(255,255,255,0.2);
 }
 
-
 /* For devices larger than mobile screen */
-@media (min-width: 575px) {
+@media (min-width: 576px) {
   .features {
-    transform: translateY(-50%);
+    -webkit-transform: translateY(-50%);
+            transform: translateY(-50%);
     border-radius: 6px;
   }
   .border-bottom-sm-0 {
@@ -438,13 +359,15 @@ section .shader {
   }
   .download .screenshot {
     width: calc(100% + 16vw);
-    transform: translateX( calc(50px - 16vw) );
+    -webkit-transform: translateX( calc(50px - 16vw) );
+            transform: translateX( calc(50px - 16vw) );
   }
   .toggle-content.toggle-xs {
     max-height: 5000px !important;
   }
 }
 
+/* For mobile devices */
 @media (max-width: 575px) {
   h2 {
     font-size: 3rem !important;
@@ -457,7 +380,8 @@ section .shader {
     height: auto !important;
     top: calc(100vh + 2rem);
     right: -9rem;
-    transform: none;
+    -webkit-transform: none;
+            transform: none;
   }
   .coinjoins .shader {
     width: 100vw;
@@ -466,9 +390,6 @@ section .shader {
     top: -2rem;
     left: -8rem;
   }
-  /* .coinjoins .coinjoin-txs .tx {
-    display: none;
-  } */
   .download .shader {
     width: 100vw;
     height: 100vw;

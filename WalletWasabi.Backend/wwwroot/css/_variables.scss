@@ -1,0 +1,23 @@
+// Wasabi Wallet CSS Theme
+// Compile Bootstrap 4.3+ with these variables
+
+$green: #58A567;
+$dark: #211B24;
+$blue: #3B83F7;
+$body-color: $dark;
+$headings-font-family: 'Playfair Display', serif;;
+$font-family-monospace: Inconsolata, monospace;
+$font-family-base: $font-family-monospace;
+$headings-font-weight: 600;
+$border-radius: .2rem;
+$h1-font-size: $font-size-base * 4;
+$h2-font-size: $font-size-base * 4;
+$font-weight-bold: 600;
+$text-muted: #716686;
+$spacer: 3rem;
+$navbar-nav-link-padding-x: 2rem;
+$navbar-dark-color: $white;
+$list-group-bg: $dark;
+$list-group-color: $white;
+$list-group-border-color: rgba($white, .125);
+$input-btn-padding-y: .5rem;
