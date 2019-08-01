@@ -8,7 +8,17 @@
       <ControlTemplate>
         <Grid>
           <TextBlock Text="{TemplateBinding Text}" IsVisible="{TemplateBinding ReadMode}" VerticalAlignment="Center" Name="PART_TextBlock" Margin="1 0 0 0" />
-          <TextBox Text="{TemplateBinding EditText, Mode=TwoWay}" IsVisible="{TemplateBinding InEditMode}" Name="PART_TextBox" Background="{DynamicResource ThemeControlBackgroundBrush}" Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center" BorderThickness="{TemplateBinding BorderThickness}" Padding="1 0 4 0" ScrollViewer.VerticalScrollBarVisibility="Hidden" ScrollViewer.HorizontalScrollBarVisibility="Hidden" />
+          <TextBox
+            Text="{TemplateBinding EditText, Mode=TwoWay}"
+            IsVisible="{TemplateBinding InEditMode}"
+            Name="PART_TextBox"
+            Background="{DynamicResource ThemeControlBackgroundBrush}"
+            Foreground="{TemplateBinding Foreground}"
+            VerticalAlignment="Center"
+            BorderThickness="{TemplateBinding BorderThickness}"
+            Padding="1 0 4 0"
+            ScrollViewer.VerticalScrollBarVisibility="Hidden"
+            ScrollViewer.HorizontalScrollBarVisibility="Hidden" />
         </Grid>
       </ControlTemplate>
     </Setter>

@@ -13,7 +13,14 @@
             <TextBlock Text="{TemplateBinding Text}" VerticalAlignment="Center" />
           </StackPanel>
           <Border Name="PART_Border" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{DynamicResource ThemeBorderLowBrush}">
-            <ContentPresenter Name="PART_ContentPresenter" Background="{TemplateBinding Background}" ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" Padding="{TemplateBinding Padding}" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
+            <ContentPresenter
+              Name="PART_ContentPresenter"
+              Background="{TemplateBinding Background}"
+              ContentTemplate="{TemplateBinding ContentTemplate}"
+              Content="{TemplateBinding Content}"
+              Padding="{TemplateBinding Padding}"
+              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
           </Border>
         </Grid>
       </ControlTemplate>

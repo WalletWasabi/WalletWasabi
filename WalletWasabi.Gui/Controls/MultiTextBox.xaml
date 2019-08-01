@@ -28,12 +28,24 @@
                     <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Text" Converter="{x:Static StringConverters.IsNotNullOrEmpty}" />
                     <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="ClipboardNotificationVisible" />
                   </MultiBinding>
-                </TextBlock.IsVisible></TextBlock>
+                </TextBlock.IsVisible>
+              </TextBlock>
               <DataValidationErrors>
-                <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}" VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}" IsVisible="{TemplateBinding TextVisible}">
+                <ScrollViewer
+                  HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                  VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}"
+                  IsVisible="{TemplateBinding TextVisible}">
                   <Panel>
                     <TextBlock Name="watermark" Opacity="0.5" Text="{TemplateBinding Watermark}" IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
-                    <TextPresenter Name="PART_TextPresenter" Text="{TemplateBinding Text, Mode=TwoWay}" CaretIndex="{TemplateBinding CaretIndex}" SelectionStart="{TemplateBinding SelectionStart}" SelectionEnd="{TemplateBinding SelectionEnd}" TextAlignment="{TemplateBinding TextAlignment}" TextWrapping="{TemplateBinding TextWrapping}" PasswordChar="{TemplateBinding PasswordChar}" />
+                    <TextPresenter
+                      Name="PART_TextPresenter"
+                      Text="{TemplateBinding Text, Mode=TwoWay}"
+                      CaretIndex="{TemplateBinding CaretIndex}"
+                      SelectionStart="{TemplateBinding SelectionStart}"
+                      SelectionEnd="{TemplateBinding SelectionEnd}"
+                      TextAlignment="{TemplateBinding TextAlignment}"
+                      TextWrapping="{TemplateBinding TextWrapping}"
+                      PasswordChar="{TemplateBinding PasswordChar}" />
                   </Panel>
                 </ScrollViewer>
               </DataValidationErrors>

@@ -7,9 +7,23 @@
     <Setter Property="Template">
       <ControlTemplate>
         <DockPanel LastChildFill="True">
-          <ContentPresenter Name="PART_TitlePresenter" DockPanel.Dock="Top" Background="{TemplateBinding Background}" Content="{TemplateBinding Title}" HorizontalAlignment="Left" ZIndex="1" Padding="10 0 10 0" />
+          <ContentPresenter
+            Name="PART_TitlePresenter"
+            DockPanel.Dock="Top"
+            Background="{TemplateBinding Background}"
+            Content="{TemplateBinding Title}"
+            HorizontalAlignment="Left"
+            ZIndex="1"
+            Padding="10 0 10 0" />
           <Border Name="PART_Border" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{DynamicResource ThemeBorderLowBrush}">
-            <ContentPresenter Name="PART_ContentPresenter" Background="{TemplateBinding Background}" ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" Padding="{TemplateBinding Padding}" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
+            <ContentPresenter
+              Name="PART_ContentPresenter"
+              Background="{TemplateBinding Background}"
+              ContentTemplate="{TemplateBinding ContentTemplate}"
+              Content="{TemplateBinding Content}"
+              Padding="{TemplateBinding Padding}"
+              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
           </Border>
         </DockPanel>
       </ControlTemplate>
