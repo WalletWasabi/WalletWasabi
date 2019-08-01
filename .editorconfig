@@ -173,6 +173,16 @@ dotnet_naming_symbols.local_variables_and_parameters_symbols.applicable_kinds = 
 
 dotnet_naming_style.camel_case_style.capitalization = camel_case
 
+# all type parameters should be TPascalCase
+dotnet_naming_rule.type_parameters_T_pascal_case.severity = error
+dotnet_naming_rule.type_parameters_T_pascal_case.symbols  = type_parameters_symbols
+dotnet_naming_rule.type_parameters_T_pascal_case.style    = T_pascal_case_style
+
+dotnet_naming_symbols.type_parameters_symbols.applicable_kinds = type_parameter
+
+dotnet_naming_style.T_pascal_case_style.required_prefix = T
+dotnet_naming_style.T_pascal_case_style.capitalization = pascal_case
+
 
 [*.xaml]
 indent_style = space
