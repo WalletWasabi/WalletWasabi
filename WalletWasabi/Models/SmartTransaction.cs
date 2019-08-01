@@ -158,17 +158,7 @@ namespace WalletWasabi.Models
 
 		public static bool operator ==(Transaction tx1, SmartTransaction tx2)
 		{
-			bool rc;
-
-			if (tx1 is null || tx2 is null)
-			{
-				rc = false;
-			}
-			else
-			{
-				rc = tx1.GetHash().Equals(tx2.GetHash());
-			}
-
+			bool rc = tx1 is null || tx2 is null ? false : tx1.GetHash().Equals(tx2.GetHash());
 			return rc;
 		}
 
@@ -176,17 +166,7 @@ namespace WalletWasabi.Models
 
 		public static bool operator ==(SmartTransaction tx1, Transaction tx2)
 		{
-			bool rc;
-
-			if (tx1 is null || tx2 is null)
-			{
-				rc = false;
-			}
-			else
-			{
-				rc = tx1.GetHash().Equals(tx2.GetHash());
-			}
-
+			bool rc = tx1 is null || tx2 is null ? false : tx1.GetHash().Equals(tx2.GetHash());
 			return rc;
 		}
 

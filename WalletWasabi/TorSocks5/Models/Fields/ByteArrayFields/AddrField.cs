@@ -26,7 +26,7 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 
 				if (Atyp != AtypField.IPv4)
 				{
-					throw new NotSupportedException($"{nameof(Atyp)} is not supported. Value: {Atyp}.");
+					throw new NotSupportedException($"{nameof(Atyp)} not supported. Value: {Atyp}.");
 				}
 
 				var values = new string[4];
@@ -78,7 +78,7 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 				var parts = dstAddr.Split(".", StringSplitOptions.RemoveEmptyEntries);
 				if (parts.Length != 4 || parts.Any(string.IsNullOrWhiteSpace))
 				{
-					throw new FormatException($"{nameof(dstAddr)} must be have 4 parts. Actual: {parts.Length} parts. Value: {dstAddr}.");
+					throw new FormatException($"{nameof(dstAddr)} must be 4 parts. Actual: {parts.Length} parts. Value: {dstAddr}.");
 				}
 
 				bytes = new byte[4];
@@ -100,7 +100,7 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 			}
 			else
 			{
-				throw new NotSupportedException($"{nameof(atyp)} is not supported. Value: {atyp}.");
+				throw new NotSupportedException($"{nameof(atyp)} not supported. Value: {atyp}.");
 			}
 
 			Bytes = bytes;

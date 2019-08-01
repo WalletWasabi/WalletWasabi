@@ -471,20 +471,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetCoinJoinStatusWidth()
 		{
-			if (Coins.Any(x => x.Status == SmartCoinStatus.MixingConnectionConfirmation
+			CoinJoinStatusWidth = Coins.Any(x => x.Status == SmartCoinStatus.MixingConnectionConfirmation
 				 || x.Status == SmartCoinStatus.MixingInputRegistration
 				 || x.Status == SmartCoinStatus.MixingOnWaitingList
 				 || x.Status == SmartCoinStatus.MixingOutputRegistration
 				 || x.Status == SmartCoinStatus.MixingSigning
 				 || x.Status == SmartCoinStatus.MixingWaitingForConfirmation
-				 || x.Status == SmartCoinStatus.SpentAccordingToBackend))
-			{
-				CoinJoinStatusWidth = new GridLength(180);
-			}
-			else
-			{
-				CoinJoinStatusWidth = new GridLength(0);
-			}
+				 || x.Status == SmartCoinStatus.SpentAccordingToBackend)
+				? new GridLength(180)
+				: new GridLength(0);
 		}
 
 		public void OnCoinIsSelectedChanged(CoinViewModel cvm)
@@ -492,11 +487,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SetSelections();
 			SelectionChanged?.Invoke(this, cvm);
 			SelectedAmount = Coins.Where(x => x.IsSelected).Sum(x => x.Amount);
-			LabelExposeCommonOwnershipWarning = CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel ?
-				false // Because in CoinJoin the selection algorithm makes sure not to combine red with non-red.
+			LabelExposeCommonOwnershipWarning = CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel
+				? false // Because in CoinJoin the selection algorithm makes sure not to combine red with non-red.
 				: Coins.Any(c =>
-					  c.AnonymitySet == 1 && c.IsSelected
-					  && Coins.Any(x => x.AnonymitySet > 1 && x.IsSelected));
+					c.AnonymitySet == 1 && c.IsSelected && Coins.Any(x =>
+						x.AnonymitySet > 1 && x.IsSelected));
 		}
 
 		public void OnCoinStatusChanged()

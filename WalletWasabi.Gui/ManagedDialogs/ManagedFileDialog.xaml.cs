@@ -10,7 +10,7 @@ using AvalonStudio.Shell.Controls;
 
 namespace WalletWasabi.Gui.ManagedDialogs
 {
-	class ManagedFileDialog : MetroWindow
+	internal class ManagedFileDialog : MetroWindow
 	{
 		public ManagedFileDialog()
 		{
@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 #if DEBUG
 			this.AttachDevTools();
 #endif
-			
+
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
 				HasSystemDecorations = true;

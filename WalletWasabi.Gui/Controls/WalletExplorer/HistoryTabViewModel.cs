@@ -166,6 +166,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					dateTime = foundTransaction.FirstSeenIfMempoolTime ?? DateTimeOffset.UtcNow;
 				}
+
 				if (found != default) // if found
 				{
 					txRecordList.Remove(found);
@@ -181,6 +182,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				if (coin.SpenderTransactionId != null)
 				{
 					SmartTransaction foundSpenderTransaction = walletService.TransactionCache.First(x => x.GetHash() == coin.SpenderTransactionId);
+
 					if (foundSpenderTransaction.Height.Type == HeightType.Chain)
 					{
 						if (walletService.ProcessedBlocks != null) // NullReferenceException appeared here.
