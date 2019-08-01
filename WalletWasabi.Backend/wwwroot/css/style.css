@@ -58,6 +58,14 @@ ul {
   outline: solid 1px rgba(255, 255, 255, 0.25);
 }
 
+.btn-labeled .btn-label svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -webkit-transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%);
+}
+
 .btn-labeled .btn-label+span {
   margin-left: 1.5rem;
 }
@@ -187,7 +195,7 @@ section .shader {
 }
 
 .hero {
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 
 .hero .hero-image {
@@ -349,11 +357,6 @@ section .shader {
 
 /* For devices larger than mobile screen */
 @media (min-width: 576px) {
-  .features {
-    -webkit-transform: translateY(-50%);
-            transform: translateY(-50%);
-    border-radius: 6px;
-  }
   .border-bottom-sm-0 {
     border-bottom: none !important;
   }
@@ -367,11 +370,24 @@ section .shader {
   }
 }
 
-/* For mobile devices */
-@media (max-width: 575px) {
-  h2 {
+/* For > lg screens */
+@media (min-width: 992px) {
+  .features {
+    -webkit-transform: translateY(-50%);
+            transform: translateY(-50%);
+    border-radius: 6px;
+  }
+}
+
+/* For < lg screens */
+@media (max-width: 991px) {
+  h1, h2 {
     font-size: 3rem !important;
   }
+}
+
+/* For mobile devices */
+@media (max-width: 575px) {
   .text-center-xs {
     text-align: center !important;
   }
