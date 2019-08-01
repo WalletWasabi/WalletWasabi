@@ -482,10 +482,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						return (false, "Hardware wallet still needs a PIN.");
 					}
 				}
-				return (false, "Could not find hardware wallet. Make sure it's plugged in and you're logged in with your PIN.");
 			}
 
-			return (true, null);
+			if (keyManager.HardwareWalletInfo is null)
+			{
+				return (false, "Could not find hardware wallet. Make sure it's plugged in and you're logged in with your PIN.");
+			}
+			else
+			{
+				return (true, null);
+			}
 		}
 
 		private void SetSendText()
