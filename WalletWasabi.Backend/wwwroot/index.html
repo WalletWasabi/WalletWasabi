@@ -134,13 +134,17 @@
           </div>
           <div class="row">
             <div class="col-sm-6">
-              <p class="mb-2">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.</p>
-              <p class="mb-3">Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit.</p>
+              <p class="mb-2">
+                Wasabi automates the process of coin-shuffling using <a href="https://github.com/nopara73/ZeroLink/" target="_blank">Chaumian CoinJoins</a> over the Tor network, allowing you to mix your coins with other Wasabi users in a purely trustless manner without relying on any third party.
+              </p>
+              <p class="mb-3">
+
+              </p>
 
               <div class="coinjoin-txs box-shadow-lg">
                 <div class="card bg-dark mb-3">
                   <span class="card-header text-uppercase text-light">
-                    <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg"><g id="Page-1" fill="none" fill-rule="evenodd"><g id="Desktop-HD" transform="translate(-162 -1867)" fill="#A7F5A3" fill-rule="nonzero"><g id="Group-27" transform="translate(120 1235)"><g id="Group-26" transform="translate(.755 50)"><g id="Group-15" transform="translate(.245 542)"><g id="Group-6" transform="translate(41 40)"><g id="icon-wifi-signal"><path d="M2.5 18A2.503 2.503 0 0 1 0 15.5C0 14.121 1.121 13 2.5 13S5 14.121 5 15.5 3.879 18 2.5 18z" id="signal-0"/><path d="M10.8 16a1.2 1.2 0 0 1-1.2-1.2c0-3.529-2.871-6.4-6.4-6.4a1.2 1.2 0 0 1 0-2.4c2.35 0 4.56.915 6.223 2.577A8.742 8.742 0 0 1 12 14.8a1.2 1.2 0 0 1-1.2 1.2z" id="signal-1"/><path d="M16.756 17a1.244 1.244 0 0 1-1.244-1.244c0-7.316-5.952-13.268-13.268-13.268a1.244 1.244 0 0 1 0-2.488 15.702 15.702 0 0 1 11.141 4.615A15.701 15.701 0 0 1 18 15.756c0 .687-.557 1.244-1.244 1.244z" id="signal-2"/></g></g></g></g></g></g></g></svg> Recent CoinJoin Transactions On Wasabi Wallet</span>
+                    <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg"><g id="Page-1" fill="none" fill-rule="evenodd"><g id="Desktop-HD" transform="translate(-162 -1867)" fill="#A7F5A3" fill-rule="nonzero"><g id="Group-27" transform="translate(120 1235)"><g id="Group-26" transform="translate(.755 50)"><g id="Group-15" transform="translate(.245 542)"><g id="Group-6" transform="translate(41 40)"><g id="icon-wifi-signal"><path d="M2.5 18A2.503 2.503 0 0 1 0 15.5C0 14.121 1.121 13 2.5 13S5 14.121 5 15.5 3.879 18 2.5 18z" id="signal-0"/><path d="M10.8 16a1.2 1.2 0 0 1-1.2-1.2c0-3.529-2.871-6.4-6.4-6.4a1.2 1.2 0 0 1 0-2.4c2.35 0 4.56.915 6.223 2.577A8.742 8.742 0 0 1 12 14.8a1.2 1.2 0 0 1-1.2 1.2z" id="signal-1"/><path d="M16.756 17a1.244 1.244 0 0 1-1.244-1.244c0-7.316-5.952-13.268-13.268-13.268a1.244 1.244 0 0 1 0-2.488 15.702 15.702 0 0 1 11.141 4.615A15.701 15.701 0 0 1 18 15.756c0 .687-.557 1.244-1.244 1.244z" id="signal-2"/></g></g></g></g></g></g></g></svg> CoinJoin Transactions On Wasabi Wallet</span>
                   <input type="checkbox" id="cjTxs" class="toggle-input toggle-xs" />
                   <label class="text-light pl-2 mb-2 d-block d-sm-none toggle-label toggle-xs" for="cjTxs">
                     View transactions
@@ -293,16 +297,15 @@
           <div class="card bg-white box-shadow border-light mb-2">
             <input type="checkbox" id="faq1" class="toggle-input" />
             <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq1">
-              Why did my enqueued coins get banned?
+              What is a “CoinJoin”?
             </label>
             <div class="card-body toggle-content p-0">
               <p class="card-text border-top p-2">
-              First you disrupt a round (not following up in a phase other than Registration) your output gets noted. Next time you do this your output gets banned. This can happen due to various reasons:<br/><br/>
-              - you are DoS attacking the coinjoins<br/>
-              - you lost internet connection at the wrong time<br/>
-              - an intermediary Tor node lost internet connection at the wrong time<br/>
-              - you killed the software at the wrong time<br/>
-              - your software crashed the wrong time
+                A mechanism by which multiple participants combine their coins (or UTXOs, to be more precise) into one large transaction with multiple inputs and multiple outputs. An observer cannot determine which output belongs to which input, and neither can the participants themselves. This makes it difficult for outside parties to trace where a particular coin originated from and where it was sent to (as opposed to regular bitcoin transactions, where there is usually one sender and one receiver).
+                <br/><br/>
+                In very simple terms, coinjoin means: “when you want to make a transaction, find someone else who also wants to make a transaction and make a joint transaction together”.
+                <br/><br/>
+                <small>Further reading: <a href="https://en.bitcoin.it/wiki/CoinJoin" target="_blank">en.bitcoin.it/wiki/CoinJoin</a></small>
               </p>
             </div>
           </div>
@@ -310,16 +313,12 @@
           <div class="card bg-white box-shadow border-light mb-2">
             <input type="checkbox" id="faq2" class="toggle-input" />
             <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq2">
-              Will it be possible to ever use Wasabi on a phone?
+              Do I need to trust Wasabi with my coins?
             </label>
             <div class="card-body toggle-content p-0">
               <p class="card-text border-top p-2">
-              First you disrupt a round (not following up in a phase other than Registration) your output gets noted. Next time you do this your output gets banned. This can happen due to various reasons:<br/><br/>
-              - you are DoS attacking the coinjoins<br/>
-              - you lost internet connection at the wrong time<br/>
-              - an intermediary Tor node lost internet connection at the wrong time<br/>
-              - you killed the software at the wrong time<br/>
-              - your software crashed the wrong time
+                No, Wasabi's coinjoin implementation is trustless by design. The participants do not need to trust each other or any third party. Both the sending address (the coinjoin input) and the receiving address (the coinjoin output) are controlled by your own private keys. Wasabi merely coordinates the process of combining the inputs of the participants into one single transaction, but the wallet can neither steal your coins, nor figure out which outputs belong to which inputs (look up <br/><br/>
+                <small>Further reading: <a href="#" target="_blank">Chaumian Coinjoin</a></small>
               </p>
             </div>
           </div>
@@ -327,16 +326,11 @@
           <div class="card bg-white box-shadow border-light mb-2">
             <input type="checkbox" id="faq3" class="toggle-input" />
             <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq3">
-              Do we need privacy options in the Core-protocol or are apps like Wasabi enough?
+              Can I hurt my privacy using Wasabi?
             </label>
             <div class="card-body toggle-content p-0">
               <p class="card-text border-top p-2">
-              First you disrupt a round (not following up in a phase other than Registration) your output gets noted. Next time you do this your output gets banned. This can happen due to various reasons:<br/><br/>
-              - you are DoS attacking the coinjoins<br/>
-              - you lost internet connection at the wrong time<br/>
-              - an intermediary Tor node lost internet connection at the wrong time<br/>
-              - you killed the software at the wrong time<br/>
-              - your software crashed the wrong time
+                No. The worst thing that can happen (through user’s negligence post-mix) is that the level of your privacy stays the same as before coinjoin. It is crucial to understand that Wasabi is not a fool-proof solution if you neglect to practice coin control after the mixing process.
               </p>
             </div>
           </div>
@@ -344,16 +338,13 @@
           <div class="card bg-white box-shadow border-light mb-2">
             <input type="checkbox" id="faq4" class="toggle-input" />
             <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq4">
-              How does it get its blockchain data? SPV, Compact Filters or Full Node?
+              Do I need to run Tor?
             </label>
             <div class="card-body toggle-content p-0">
               <p class="card-text border-top p-2">
-              First you disrupt a round (not following up in a phase other than Registration) your output gets noted. Next time you do this your output gets banned. This can happen due to various reasons:<br/><br/>
-              - you are DoS attacking the coinjoins<br/>
-              - you lost internet connection at the wrong time<br/>
-              - an intermediary Tor node lost internet connection at the wrong time<br/>
-              - you killed the software at the wrong time<br/>
-              - your software crashed the wrong time
+                All Wasabi network traffic goes via Tor by default - no need to set up Tor yourself. If you do already have Tor, and it is running, then Wasabi will try to use that first.
+                <br/><br/>
+                You can turn off Tor in the Settings. Note that in this case you are still private, except when you coinjoin and when you broadcast a transaction. In the first case, the coordinator would know the links between your inputs and outputs based on your IP address. In the second case, if you happen to broadcast a transaction of yours to a full node that is spying on you, it will know the link between your transaction and your IP address.
               </p>
             </div>
           </div>
@@ -361,16 +352,14 @@
           <div class="card bg-white box-shadow border-light mb-2">
             <input type="checkbox" id="faq5" class="toggle-input" />
             <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq5">
-              Why is it called Wasabi?
+              My wallet cannot send to Bech32 addresses - what wallets can I use instead?
             </label>
             <div class="card-body toggle-content p-0">
               <p class="card-text border-top p-2">
-              First you disrupt a round (not following up in a phase other than Registration) your output gets noted. Next time you do this your output gets banned. This can happen due to various reasons:<br/><br/>
-              - you are DoS attacking the coinjoins<br/>
-              - you lost internet connection at the wrong time<br/>
-              - an intermediary Tor node lost internet connection at the wrong time<br/>
-              - you killed the software at the wrong time<br/>
-              - your software crashed the wrong time
+                Wasabi generates Bech32 addresses only, also known as bc1 addresses or native SegWit addresses. These addresses start with the characters bc1... Some wallets/exchanges do not yet support this type of address and may give an error message (e.g. "unknown bitcoin address"). The solution is to manage your funds with a wallet which does support Bech32, <a href="https://en.bitcoin.it/wiki/Bech32_adoption" target="
+                ">see list</a>.
+                <br/><br/>
+                Be careful, if you send all your coins from an old wallet to a new wallet (from the table above) in one transaction then you will merge all your coins which is bad for privacy - instead, send the coins individually or if possible import the seed in the new wallet.
               </p>
             </div>
           </div>
@@ -378,16 +367,33 @@
           <div class="card bg-white box-shadow border-light mb-2">
             <input type="checkbox" id="faq6" class="toggle-input" />
             <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq6">
-              Will Wasabi wallet support hardware wallets?
+              What are the fees for CoinJoins?
             </label>
             <div class="card-body toggle-content p-0">
               <p class="card-text border-top p-2">
-              First you disrupt a round (not following up in a phase other than Registration) your output gets noted. Next time you do this your output gets banned. This can happen due to various reasons:<br/><br/>
-              - you are DoS attacking the coinjoins<br/>
-              - you lost internet connection at the wrong time<br/>
-              - an intermediary Tor node lost internet connection at the wrong time<br/>
-              - you killed the software at the wrong time<br/>
-              - your software crashed the wrong time
+                You currently pay a fee of 0.003% * anonymity set. If the anonymity set of a coin is 50 then you pay 0.003% * 50 (=0.15%). If you set the target anonymity set to 53 then Wasabi will continue mixing until this is reached, so you may end up with an anonymity set of say 60, and you will pay 0.003% * 60 (=0.18%).
+                <br/><br/>
+                There are also edge cases where you do not pay the full fee or where you pay more. For example if you're the smallest registrant to a round, you will never pay a fee. Also when you are remixing and you cannot pay the full fee with your input, then you only pay as much as you have, but if the change amount leftover would be too small, then that is also added to the fee. Currently the minimum change amount to be paid out is 0.7% of the base denomination (~0.1BTC.)
+                <br/><br/>
+                It is also possible that you get more back from mixing than you put in. This happens when network fees go down between the start of the round and its end. In this case, the difference is split between the active outputs of the mix.
+              </p>
+            </div>
+          </div>
+
+          <div class="card bg-white box-shadow border-light mb-2">
+            <input type="checkbox" id="faq00" class="toggle-input" />
+            <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq00">
+              What is an "Anonymity Set"?
+            </label>
+            <div class="card-body toggle-content p-0">
+              <p class="card-text border-top p-2">
+                The anonymity set is effectively the size of the group you are hiding in.
+                <br/><br/>
+                If 3 people take part in a CoinJoin (with equal size inputs) and there are 3 outputs then each of those output coins has an anonymity set of 3.
+                <br/><br/>
+                There is no way to know which of the anon set output coins are owned by which of the input owners. All an observer knows is that a specific anon set output coin is owned by one of the owners of one of the input Coins i.e. 3 people - hence an anonymity set of 3.
+                <br/><br/>
+                Your Wasabi software has limited information on what the anonymity set should be, so the anonymity set that the software presents you is just an estimation, not an accurate value. With Wasabi we are trying to do lower estimations, rather than higher ones.
               </p>
             </div>
           </div>
@@ -395,16 +401,13 @@
           <div class="card bg-white box-shadow border-light mb-2">
             <input type="checkbox" id="faq7" class="toggle-input" />
             <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq7">
-              What to do with change?
+              Can I recombine my mixed coins?
             </label>
             <div class="card-body toggle-content p-0">
               <p class="card-text border-top p-2">
-              First you disrupt a round (not following up in a phase other than Registration) your output gets noted. Next time you do this your output gets banned. This can happen due to various reasons:<br/><br/>
-              - you are DoS attacking the coinjoins<br/>
-              - you lost internet connection at the wrong time<br/>
-              - an intermediary Tor node lost internet connection at the wrong time<br/>
-              - you killed the software at the wrong time<br/>
-              - your software crashed the wrong time
+                It is advisable to limit the recombining of mixed coins because it can only decrease the privacy of said coins. This links all the consolidated UTXOs in one transaction, creating only one output, which then clearly controls all these funds. That said, if you combine less than 1 BTC it is less likely to reveal your pre-coinjoin transaction history. The potential issue comes when you spend that coin. Depending on what you do with the coin you might reduce the privacy of the resulting change (if you send half your coin to an exchange for example, as they will know that you own the coin change). As a result it is best not to recombine ALL your mixed change, though you may wish to recombine some coins if you are planning on hodling for many years as this will reduce the fees required to spend the coins later.
+                <br/><br/>
+                <small>Further reading: <a href="#" target="_blank">[Reddit] Combining Mixed Coins</a></small>
               </p>
             </div>
           </div>
@@ -412,16 +415,55 @@
           <div class="card bg-white box-shadow border-light mb-2">
             <input type="checkbox" id="faq8" class="toggle-input" />
             <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq8">
-              What's an anonymity set?
+              Am I safe to send my mixed coins to my hardware wallet?
             </label>
             <div class="card-body toggle-content p-0">
               <p class="card-text border-top p-2">
-              First you disrupt a round (not following up in a phase other than Registration) your output gets noted. Next time you do this your output gets banned. This can happen due to various reasons:<br/><br/>
-              - you are DoS attacking the coinjoins<br/>
-              - you lost internet connection at the wrong time<br/>
-              - an intermediary Tor node lost internet connection at the wrong time<br/>
-              - you killed the software at the wrong time<br/>
-              - your software crashed the wrong time
+                Most hardware wallets communicate with servers to provide you with your balance. This reveals your public key to the server, which damages your privacy - the hardware company can now theoretically link together all your addresses. As a result it is not recommended that you send your mixed coins to an address associated with your hardware wallet unless you are confident that you have set up your hardware wallet in a way that it does not communicate with a 3rd party server (see below).
+                <br/><br/>
+                You can however manage your hardware wallet with the Wasabi interface. Alternatively you can use your hardware wallet with Electrum, which connects to your Bitcoin Core full node through <a href="https://github.com/chris-belcher/electrum-personal-server" target="_blank">Electrum Personal Server</a>.
+              </p>
+            </div>
+          </div>
+
+          <div class="card bg-white box-shadow border-light mb-2">
+            <input type="checkbox" id="faq9" class="toggle-input" />
+            <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq9">
+              How can I set up my hardware wallet with Wasabi properly?
+            </label>
+            <div class="card-body toggle-content p-0">
+              <p class="card-text border-top p-2">
+                You can use popular hardware wallets with Wasabi directly including Coldcard, Trezor and Ledger devices. Plug in the device, and select Hardware Wallet in the starting page of Wasabi. You will be able to send and receive bitcoin, but you will not be able to coinjoin the funds directly. For this, the private key needs to be hot in Wasabi. You can also import and export PSBT over SD card to communicate with your ColdCard Wallet.
+              </p>
+            </div>
+          </div>
+
+          <div class="card bg-white box-shadow border-light mb-2">
+            <input type="checkbox" id="faq10" class="toggle-input" />
+            <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq10">
+              What to do with "change"?
+            </label>
+            <div class="card-body toggle-content p-0">
+              <p class="card-text border-top p-2">
+                There are no hard and fast rules for what to do with the change. Generally try to avoid the change and use the Max button extensively at sending. The most problematic type of change is what has anonymity set 1 (red shield.) You should treat it as a kind of toxic waste (handled with great care).
+                <br/><br/>
+                <span class="text-danger">Warning You want to avoid merging anonymity set 1 coins with anonymity set > 1 coins wherever possible, because this will link your anonymity set > 1 coin to the coin you merge it with.</span> Note that, this is also true if you merge them in a mix, however that is slightly less problematic, because some blockchain analysis techniques become computationally infeasible.
+                <br/><br/>
+                It is also important that you do not send different coins to the same receiving address (even if performed as separate transactions) as this will also link the coins together, damaging your privacy.
+                <br/><br/>
+                Your Options:
+                <br/>
+                - If you do not care about linking the history of the coins because they are all from the same source then you could combine them in a mix (queue all the change from the same source until you reach the minimum input required to mix, currently ~ 0.1 BTC).
+                <br/>
+                - Mix with Joinmarket.
+                <br/>
+                - Donate them (e.g. to the EFF)
+                <br/>
+                - Spend them on something that is not a particular privacy risk (eg. gift cards).
+                <br/>
+                - Open a lightning channel.
+                <br/>
+                The ultimate solution is to 'close the loop' i.e. spend a change coin without merging it with other coins, do not generate it in the first place by sending whole coins.
               </p>
             </div>
           </div>
