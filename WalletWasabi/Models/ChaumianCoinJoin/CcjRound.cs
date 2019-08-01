@@ -164,13 +164,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				AdjustedConfirmationTarget = adjustedConfirmationTarget;
 				ConfiguredConfirmationTarget = configuredConfirmationTarget;
 				ConfiguredConfirmationTargetReductionRate = configuredConfirmationTargetReductionRate;
-				CoordinatorFeePercent = (decimal)config.CoordinatorFeePercent;
-				AnonymitySet = (int)config.AnonymitySet;
-				InputRegistrationTimeout = TimeSpan.FromSeconds((long)config.InputRegistrationTimeout);
+				CoordinatorFeePercent = config.CoordinatorFeePercent;
+				AnonymitySet = config.AnonymitySet;
+				InputRegistrationTimeout = TimeSpan.FromSeconds(config.InputRegistrationTimeout);
 				SetInputRegistrationTimesout();
-				ConnectionConfirmationTimeout = TimeSpan.FromSeconds((long)config.ConnectionConfirmationTimeout);
-				OutputRegistrationTimeout = TimeSpan.FromSeconds((long)config.OutputRegistrationTimeout);
-				SigningTimeout = TimeSpan.FromSeconds((long)config.SigningTimeout);
+				ConnectionConfirmationTimeout = TimeSpan.FromSeconds(config.ConnectionConfirmationTimeout);
+				OutputRegistrationTimeout = TimeSpan.FromSeconds(config.OutputRegistrationTimeout);
+				SigningTimeout = TimeSpan.FromSeconds(config.SigningTimeout);
 
 				PhaseLock = new object();
 				Phase = CcjRoundPhase.InputRegistration;

@@ -3,8 +3,7 @@
     <Grid.Styles>
       <Style Selector="DrawingPresenter">
         <Style.Animations>
-          <Animation Duration="0:0:2.5"
-                     RepeatCount="Loop">
+          <Animation Duration="0:0:2.5" RepeatCount="Loop">
             <KeyFrame Cue="100%">
               <Setter Property="RotateTransform.Angle" Value="360" />
             </KeyFrame>
