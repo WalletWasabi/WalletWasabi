@@ -164,6 +164,16 @@ dotnet_naming_symbols.interfaces_symbols.applicable_accessibilities = *
 dotnet_naming_style.I_pascal_case_style.required_prefix = I
 dotnet_naming_style.I_pascal_case_style.capitalization = pascal_case
 
+# name most members using PascalCase (except interface, field, local, parameter, type_parameter)
+dotnet_naming_rule.most_members_must_be_pascal_case.severity = error
+dotnet_naming_rule.most_members_must_be_pascal_case.symbols  = most_members_symbols
+dotnet_naming_rule.most_members_must_be_pascal_case.style    = pascal_case_style
+
+dotnet_naming_symbols.most_members_symbols.applicable_kinds   = class, struct, enum, property, method, event, namespace
+dotnet_naming_symbols.most_members_symbols.applicable_accessibilities = *
+
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+
 # name Local variables & parameters using camelCase
 dotnet_naming_rule.local_variables_and_parameters_camel_case.severity = error
 dotnet_naming_rule.local_variables_and_parameters_camel_case.symbols  = local_variables_and_parameters_symbols
