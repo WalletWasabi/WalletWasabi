@@ -2263,26 +2263,35 @@ namespace WalletWasabi.Tests
 
 				var requester1 = new Requester();
 				var requester2 = new Requester();
+				var requester1_1 = new Requester(); // second instance for the same user - do not reuse blinding signature
 
 				uint256 blinded1 = requester1.BlindScript(round.MixingLevels.GetBaseLevel().Signer.Key.PubKey, round.MixingLevels.GetBaseLevel().Signer.R.PubKey, outputAddress1.ScriptPubKey);
 				uint256 blindedOutputScriptsHash1 = new uint256(Hashes.SHA256(blinded1.ToBytes()));
 				uint256 blinded2 = requester2.BlindScript(round.MixingLevels.GetBaseLevel().Signer.Key.PubKey, round.MixingLevels.GetBaseLevel().Signer.R.PubKey, outputAddress2.ScriptPubKey);
 				uint256 blindedOutputScriptsHash2 = new uint256(Hashes.SHA256(blinded2.ToBytes()));
+				uint256 blinded1_1 = requester1_1.BlindScript(round.MixingLevels.GetBaseLevel().Signer.Key.PubKey, round.MixingLevels.GetBaseLevel().Signer.R.PubKey, outputAddress1.ScriptPubKey);
+				uint256 blindedOutputScriptsHash1_1 = new uint256(Hashes.SHA256(blinded1_1.ToBytes()));
 
 				var input1 = new OutPoint(hash1, index1);
 				var input2 = new OutPoint(hash2, index2);
+				var input1_1 = new OutPoint(hash1, index1); // Will attempt to re-register the same input
 
 				using (var aliceClient1 = await AliceClient.CreateNewAsync(roundId, new[] { outputAddress1 }, schnorrPubKeys, new[] { requester1 }, network, new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network), new[] { blinded1 }, new InputProofModel[] { new InputProofModel { Input = input1.ToTxoRef(), Proof = key1.SignCompact(blindedOutputScriptsHash1) } }, baseUri, null))
 				using (var aliceClient2 = await AliceClient.CreateNewAsync(roundId, new[] { outputAddress2 }, schnorrPubKeys, new[] { requester2 }, network, new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network), new[] { blinded2 }, new InputProofModel[] { new InputProofModel { Input = input2.ToTxoRef(), Proof = key2.SignCompact(blindedOutputScriptsHash2) } }, baseUri, null))
+				using (var aliceClient1_1 = await AliceClient.CreateNewAsync(roundId, new[] { outputAddress1 }, schnorrPubKeys, new[] { requester1_1 }, network, new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network), new[] { blinded1_1 }, new InputProofModel[] { new InputProofModel { Input = input1.ToTxoRef(), Proof = key1.SignCompact(blindedOutputScriptsHash1_1) } }, baseUri, null))
 				{
 					Assert.Equal(aliceClient2.RoundId, aliceClient1.RoundId);
 					Assert.NotEqual(aliceClient2.UniqueId, aliceClient1.UniqueId);
 
 					var connConfResp = await aliceClient1.PostConfirmationAsync();
 					Assert.Equal(connConfResp.currentPhase, (await aliceClient1.PostConfirmationAsync()).currentPhase); // Make sure it won't throw error for double confirming.
-					var connConfResp2 = await aliceClient2.PostConfirmationAsync();
 
+					var connConfResp2 = await aliceClient2.PostConfirmationAsync();
 					Assert.Equal(connConfResp.currentPhase, connConfResp2.currentPhase);
+
+					var connConfResp1_1 = await aliceClient1_1.PostConfirmationAsync();
+					Assert.Equal(connConfResp.currentPhase, connConfResp1_1.currentPhase);
+
 					httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient2.PostConfirmationAsync());
 					Assert.Equal($"{HttpStatusCode.Gone.ToReasonString()}\nParticipation can be only confirmed from InputRegistration or ConnectionConfirmation phase. Current phase: OutputRegistration.", httpRequestException.Message);
 
@@ -2295,9 +2304,18 @@ namespace WalletWasabi.Tests
 					}
 
 					using (var bobClient1 = new BobClient(baseUri, null))
-					using (var bobClient2 = new BobClient(baseUri, null))
 					{
 						await bobClient1.PostOutputAsync(aliceClient1.RoundId, new ActiveOutput(outputAddress1, connConfResp.activeOutputs.First().Signature, 0));
+					}
+
+					using (var bobClient1_1 = new BobClient(baseUri, null))
+					{
+						var success = await bobClient1_1.PostOutputAsync(aliceClient1_1.RoundId, new ActiveOutput(outputAddress1, connConfResp1_1.activeOutputs.First().Signature, 0));
+						Assert.False(success);
+					}
+
+					using (var bobClient2 = new BobClient(baseUri, null))
+					{
 						await bobClient2.PostOutputAsync(aliceClient2.RoundId, new ActiveOutput(outputAddress2, connConfResp2.activeOutputs.First().Signature, 0));
 					}
 

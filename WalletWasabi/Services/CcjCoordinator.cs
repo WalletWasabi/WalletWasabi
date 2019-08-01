@@ -37,6 +37,8 @@ namespace WalletWasabi.Services
 
 		public UtxoReferee UtxoReferee { get; }
 
+		public AddressWatchDog AddressWatchDog { get; }
+
 		public CcjCoordinator(Network network, TrustedNodeNotifyingBehavior trustedNodeNotifyingBehavior, string folderPath, RPCClient rpc, CcjRoundConfig roundConfig)
 		{
 			Network = Guard.NotNull(nameof(network), network);
@@ -54,6 +56,10 @@ namespace WalletWasabi.Services
 			Directory.CreateDirectory(FolderPath);
 
 			UtxoReferee = new UtxoReferee(Network, FolderPath, RpcClient, RoundConfig);
+
+			var addressesFilePath = Path.Combine(FolderPath, $"UsedAddresses{Network}.txt");
+			var addressesRepository = new StringsRepository(addressesFilePath);
+			AddressWatchDog = new AddressWatchDog(addressesRepository);
 
 			if (File.Exists(CoinJoinsFilePath))
 			{

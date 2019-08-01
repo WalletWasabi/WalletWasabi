@@ -548,6 +548,12 @@ namespace WalletWasabi.Backend.Controllers
 				return NoContent();
 			}
 
+			if (!await Coordinator.AddressWatchDog.TryRegisterAsync(request.OutputAddress))
+			{
+				Logger.LogWarning<ChaumianCoinJoinController>($"Bob is registeringan already used address. Address: {request.OutputAddress}, Level: {request.Level}, Signature: {request.UnblindedSignature}.");
+				return Conflict($"Invalid OutputAddress, it was already used.");
+			}
+
 			MixingLevel mixinglevel = round.MixingLevels.GetLevel(request.Level);
 			Signer signer = mixinglevel.Signer;
 
