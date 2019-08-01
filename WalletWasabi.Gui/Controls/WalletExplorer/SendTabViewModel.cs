@@ -620,75 +620,78 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFeesAndTexts()
 		{
-			AllFeeEstimate allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
-
-			var feeTarget = FeeTarget;
-
-			if (allFeeEstimate != null)
+			if (IsSliderFeeUsed)
 			{
-				int prevKey = allFeeEstimate.Estimations.Keys.First();
-				foreach (int target in allFeeEstimate.Estimations.Keys)
+				AllFeeEstimate allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
+
+				var feeTarget = FeeTarget;
+
+				if (allFeeEstimate != null)
 				{
-					if (feeTarget == target)
+					int prevKey = allFeeEstimate.Estimations.Keys.First();
+					foreach (int target in allFeeEstimate.Estimations.Keys)
 					{
-						break;
+						if (feeTarget == target)
+						{
+							break;
+						}
+						else if (feeTarget < target)
+						{
+							feeTarget = prevKey;
+							break;
+						}
+						prevKey = target;
 					}
-					else if (feeTarget < target)
-					{
-						feeTarget = prevKey;
-						break;
-					}
-					prevKey = target;
 				}
-			}
 
-			if (feeTarget >= 2 && feeTarget <= 6) // minutes
-			{
-				ConfirmationExpectedText = $"{feeTarget}0 minutes";
-			}
-			else if (feeTarget >= 7 && feeTarget <= Constants.OneDayConfirmationTarget) // hours
-			{
-				var h = feeTarget / 6;
-				ConfirmationExpectedText = $"{h} {IfPlural(h, "hour", "hours")}";
-			}
-			else if (feeTarget >= 145 && feeTarget < Constants.SevenDaysConfirmationTarget) // days
-			{
-				var d = feeTarget / Constants.OneDayConfirmationTarget;
-				ConfirmationExpectedText = $"{d} {IfPlural(d, "day", "days")}";
-			}
-			else if (feeTarget == Constants.SevenDaysConfirmationTarget)
-			{
-				ConfirmationExpectedText = $"two weeks™";
-			}
-
-			if (allFeeEstimate != null)
-			{
-				SetFees(allFeeEstimate, feeTarget);
-
-				switch (FeeDisplayFormat)
+				if (feeTarget >= 2 && feeTarget <= 6) // minutes
 				{
-					case FeeDisplayFormat.SatoshiPerByte:
-						FeeText = $"(~ {SatoshiPerByteFeeRate.Satoshi} sat/byte)";
-						FeeToolTip = "Expected fee rate in satoshi / vbyte.";
-						break;
+					ConfirmationExpectedText = $"{feeTarget}0 minutes";
+				}
+				else if (feeTarget >= 7 && feeTarget <= Constants.OneDayConfirmationTarget) // hours
+				{
+					var h = feeTarget / 6;
+					ConfirmationExpectedText = $"{h} {IfPlural(h, "hour", "hours")}";
+				}
+				else if (feeTarget >= 145 && feeTarget < Constants.SevenDaysConfirmationTarget) // days
+				{
+					var d = feeTarget / Constants.OneDayConfirmationTarget;
+					ConfirmationExpectedText = $"{d} {IfPlural(d, "day", "days")}";
+				}
+				else if (feeTarget == Constants.SevenDaysConfirmationTarget)
+				{
+					ConfirmationExpectedText = $"two weeks™";
+				}
 
-					case FeeDisplayFormat.USD:
-						FeeText = $"(~ ${UsdFee.ToString("0.##")})";
-						FeeToolTip = $"Estimated total fees in USD. Exchange Rate: {(long)UsdExchangeRate} BTC/USD.";
-						break;
+				if (allFeeEstimate != null)
+				{
+					SetFees(allFeeEstimate, feeTarget);
 
-					case FeeDisplayFormat.BTC:
-						FeeText = $"(~ {EstimatedBtcFee.ToString(false, false)} BTC)";
-						FeeToolTip = "Estimated total fees in BTC.";
-						break;
+					switch (FeeDisplayFormat)
+					{
+						case FeeDisplayFormat.SatoshiPerByte:
+							FeeText = $"(~ {SatoshiPerByteFeeRate.Satoshi} sat/byte)";
+							FeeToolTip = "Expected fee rate in satoshi / vbyte.";
+							break;
 
-					case FeeDisplayFormat.Percentage:
-						FeeText = $"(~ {FeePercentage.ToString("0.#")} %)";
-						FeeToolTip = "Expected percentage of fees against the amount to be sent.";
-						break;
+						case FeeDisplayFormat.USD:
+							FeeText = $"(~ ${UsdFee.ToString("0.##")})";
+							FeeToolTip = $"Estimated total fees in USD. Exchange Rate: {(long)UsdExchangeRate} BTC/USD.";
+							break;
 
-					default:
-						throw new NotSupportedException("This is impossible.");
+						case FeeDisplayFormat.BTC:
+							FeeText = $"(~ {EstimatedBtcFee.ToString(false, false)} BTC)";
+							FeeToolTip = "Estimated total fees in BTC.";
+							break;
+
+						case FeeDisplayFormat.Percentage:
+							FeeText = $"(~ {FeePercentage.ToString("0.#")} %)";
+							FeeToolTip = "Expected percentage of fees against the amount to be sent.";
+							break;
+
+						default:
+							throw new NotSupportedException("This is impossible.");
+					}
 				}
 			}
 
