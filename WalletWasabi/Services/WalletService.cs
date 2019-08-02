@@ -653,7 +653,9 @@ namespace WalletWasabi.Services
 					// It is likely a coinjoin if the diff between receive and sent amount is small and have at least 2 equal outputs.
 					Money spentAmount = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).Sum(x => x.Amount);
 					Money receivedAmount = tx.Transaction.Outputs.Where(x => KeyManager.GetKeyForScriptPubKey(x.ScriptPubKey) != default).Sum(x => x.Value);
-					var isCoinJoinOutput = tx.Transaction.GetIndistinguishableOutputs(includeSingle: false).Count() > 1 && spentAmount.Almost(receivedAmount, Money.Coins(0.005m));
+					bool hasEqualOutputs = tx.Transaction.GetIndistinguishableOutputs(includeSingle: false).FirstOrDefault() != default;
+					bool receivedAlmostAsMuchAsSpent = spentAmount.Almost(receivedAmount, Money.Coins(0.005m));
+					var isCoinJoinOutput = hasEqualOutputs && receivedAlmostAsMuchAsSpent;
 
 					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, isCoinJoinOutput, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
 
