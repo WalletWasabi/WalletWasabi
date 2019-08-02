@@ -183,14 +183,7 @@ namespace WalletWasabi.KeyManagement
 
 		public void SetMinGapLimit(int? minGapLimit)
 		{
-			if (minGapLimit is int val)
-			{
-				MinGapLimit = Math.Max(AbsoluteMinGapLimit, val);
-			}
-			else
-			{
-				MinGapLimit = AbsoluteMinGapLimit;
-			}
+			MinGapLimit = minGapLimit is int val ? Math.Max(AbsoluteMinGapLimit, val) : AbsoluteMinGapLimit;
 			// AssertCleanKeysIndexed(); Do not do this. Wallet file is null yet.
 		}
 
@@ -416,15 +409,7 @@ namespace WalletWasabi.KeyManagement
 
 			lock (HdPubKeysLock)
 			{
-				IEnumerable<HdPubKey> relevantHdPubKeys;
-				if (isInternal)
-				{
-					relevantHdPubKeys = HdPubKeys.Where(x => x.IsInternal);
-				}
-				else
-				{
-					relevantHdPubKeys = HdPubKeys.Where(x => !x.IsInternal);
-				}
+				IEnumerable<HdPubKey> relevantHdPubKeys = isInternal ? HdPubKeys.Where(x => x.IsInternal) : HdPubKeys.Where(x => !x.IsInternal);
 
 				KeyPath path;
 				if (relevantHdPubKeys.Any())
@@ -567,6 +552,11 @@ namespace WalletWasabi.KeyManagement
 
 		public ExtKey GetMasterExtKey(string password)
 		{
+			if (password is null)
+			{
+				password = "";
+			}
+
 			if (IsWatchOnly)
 			{
 				throw new SecurityException("This is a watchonly wallet.");

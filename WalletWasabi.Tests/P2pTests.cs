@@ -46,7 +46,7 @@ namespace WalletWasabi.Tests
 			}
 			else
 			{
-				throw new NotSupportedException(network.ToString());
+				throw new NotSupportedException($"{nameof(Network)} not supported: {network}.");
 			}
 
 			var addressManagerFolderPath = Path.Combine(Global.Instance.DataDir, "AddressManager");

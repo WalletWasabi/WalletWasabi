@@ -23,24 +23,20 @@ namespace WalletWasabi.Gui.CommandLine
 			Daemon = daemon;
 			Language = "en";
 
-			Options = new OptionSet() {
+			Options = new OptionSet()
+			{
 				"usage: findpassword --wallet:WalletName --language:lang --numbers:[TRUE|FALSE] --symbold:[TRUE|FALSE]",
 				"",
 				"Tries to find typing mistakes in the user password by brute forcing it char by char.",
 				"eg: ./wassabee findpassword --wallet:MyWalletName --numbers:false --symbold:true",
 				"",
-				{ "w|wallet=", "The name of the wallet file.",
-					x =>  WalletName = x },
-				{ "s|secret=", "You can specify an encrypted secret key instead of wallet. Example of encrypted secret: 6PYTMDmkxQrSv8TK4761tuKrV8yFwPyZDqjJafcGEiLBHiqBV6WviFxJV4",
-					x =>  EncryptedSecret = Guard.Correct(x) },
-				{ "l|language=", "The charset to use: en, es, it, fr, pt. Default=en.",
-					v => Language = v },
-				{ "n|numbers=", "Try passwords with numbers. Default=true.",
-					v => UseNumbers = (v=="" || v=="1" || v.ToUpper()=="TRUE") },
-				{ "x|symbols=", "Try passwords with symbolds. Default=true.",
-					v => UseSymbols = (v=="" || v=="1" || v.ToUpper()=="TRUE") },
-				{ "h|help", "Show Help",
-					v => ShowHelp = true}};
+				{ "w|wallet=", "The name of the wallet file.", x =>  WalletName = x },
+				{ "s|secret=", "You can specify an encrypted secret key instead of wallet. Example of encrypted secret: 6PYTMDmkxQrSv8TK4761tuKrV8yFwPyZDqjJafcGEiLBHiqBV6WviFxJV4", x =>  EncryptedSecret = Guard.Correct(x) },
+				{ "l|language=", "The charset to use: en, es, it, fr, pt. Default=en.", v => Language = v },
+				{ "n|numbers=", "Try passwords with numbers. Default=true.", v => UseNumbers = (v=="" || v=="1" || v.ToUpper()=="TRUE") },
+				{ "x|symbols=", "Try passwords with symbolds. Default=true.", v => UseSymbols = (v=="" || v=="1" || v.ToUpper()=="TRUE") },
+				{ "h|help", "Show Help", v => ShowHelp = true}
+			};
 		}
 
 		public override Task<int> InvokeAsync(IEnumerable<string> args)
@@ -61,7 +57,7 @@ namespace WalletWasabi.Gui.CommandLine
 				}
 				else if (!PasswordFinder.Charsets.ContainsKey(Language))
 				{
-					Logging.Logger.LogCritical<PasswordFinderCommand>($"`{Language}` is not available language try with `en, es, pt, it or fr`.");
+					Logging.Logger.LogCritical<PasswordFinderCommand>($"`{Language}` is not available language, try with `en, es, pt, it or fr`.");
 					Logging.Logger.LogCritical<PasswordFinderCommand>("Use `findpassword --help` for details.");
 					error = true;
 				}

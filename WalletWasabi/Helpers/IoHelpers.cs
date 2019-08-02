@@ -123,10 +123,15 @@ namespace System.IO
 			{
 				using (Process process = Process.Start(new ProcessStartInfo
 				{
-					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "explorer.exe" : (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "open" : "xdg-open"),
+					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+						? "explorer.exe"
+						: (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+							? "open"
+							: "xdg-open"),
 					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"\"{dirPath}\"" : dirPath,
 					CreateNoWindow = true
-				})) { }
+				}))
+				{ }
 			}
 		}
 
@@ -164,7 +169,8 @@ namespace System.IO
 								Arguments = filePath,
 								CreateNoWindow = true,
 								UseShellExecute = false
-							})) { }
+							}))
+							{ }
 
 							return; // Opened with notepad, return.
 						}
@@ -177,7 +183,8 @@ namespace System.IO
 						Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e {filePath}" : "",
 						CreateNoWindow = true,
 						UseShellExecute = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-					})) { }
+					}))
+					{ }
 				}
 			}
 		}
@@ -198,7 +205,8 @@ namespace System.IO
 					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e {url}" : "",
 					CreateNoWindow = true,
 					UseShellExecute = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-				})) { }
+				}))
+				{ }
 			}
 		}
 

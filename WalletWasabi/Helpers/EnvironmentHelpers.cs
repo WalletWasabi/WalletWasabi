@@ -110,14 +110,9 @@ namespace WalletWasabi.Helpers
 					var home = Environment.GetEnvironmentVariable("HOME");
 					if (!string.IsNullOrEmpty(home))
 					{
-						if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-						{
-							directory = Path.Combine(home, "Library", "Application Support", "Bitcoin");
-						}
-						else // Linux
-						{
-							directory = Path.Combine(home, ".bitcoin");
-						}
+						directory = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+							? Path.Combine(home, "Library", "Application Support", "Bitcoin")
+							: Path.Combine(home, ".bitcoin"); // Linux
 					}
 					else
 					{

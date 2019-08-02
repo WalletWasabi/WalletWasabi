@@ -16,7 +16,7 @@ namespace WalletWasabi.Services
 	{
 		public ConcurrentHashSet<uint256> TransactionHashes { get; }
 
-		// Transactions those we would reply to INV messages.
+		// Transactions that we would reply to INV messages.
 		private List<TransactionBroadcastEntry> BroadcastStore { get; }
 
 		private object BroadcastStoreLock { get; }
@@ -95,7 +95,7 @@ namespace WalletWasabi.Services
 		/// <summary>
 		/// Tries to perform mempool cleanup with the help of the backend.
 		/// </summary>
-		public async Task<bool> TryPerformMempoolCleanupAsync(Func<Uri> destAction, IPEndPoint torSocks)
+		public async Task<bool> TryPerformMempoolCleanupAsync(Func<Uri> destAction, EndPoint torSocks)
 		{
 			// If already cleaning, then no need to run it that often.
 			if (Interlocked.CompareExchange(ref _cleanupInProcess, 1, 0) == 1)

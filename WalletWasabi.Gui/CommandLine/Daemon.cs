@@ -86,7 +86,6 @@ namespace WalletWasabi.Gui.CommandLine
 					}
 
 					bool anyCoinsQueued = Global.ChaumianClient.State.AnyCoinsQueued();
-
 					if (!anyCoinsQueued && keepMixAlive) // If no coins queued and mixing is asked to be kept alive then try to queue coins.
 					{
 						await TryQueueCoinsToMixAsync(mixAll, password);
@@ -148,7 +147,6 @@ namespace WalletWasabi.Gui.CommandLine
 				if (keyManager is null)
 				{
 					Logger.LogCritical("Wallet was not supplied. Add --wallet:WalletName", nameof(Daemon));
-					return null;
 				}
 
 				return keyManager;

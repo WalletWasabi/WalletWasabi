@@ -264,7 +264,7 @@ namespace NBitcoin
 		{
 			list.Sort((x, y) => x.Value.CompareTo(y.Value));
 		}
-
+    
 		/// <param name="startWithM">The keypath will start with m/ or not.</param>
 		/// <param name="format">h or ', eg.: m/84h/0h/0 or m/84'/0'/0</param>
 		public static string ToString(this KeyPath me, bool startWithM, string format)
@@ -296,6 +296,16 @@ namespace NBitcoin
 			var newAddress = new BitcoinWitPubKeyAddress(me.Hash, desiredNetwork);
 
 			return newAddress;
+    }
+    
+		public static void SortByAmount(this TxInList list, List<Coin> coins)
+		{
+			var map = new Dictionary<TxIn, Coin>();
+			foreach (var coin in coins)
+			{
+				map.Add(list.Single(x => x.PrevOut == coin.Outpoint), coin);
+			}
+			list.Sort((x, y) => map[x].Amount.CompareTo(map[y].Amount));
 		}
 	}
 }

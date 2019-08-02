@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System.Threading.Tasks;
 
 namespace System.Net.Http

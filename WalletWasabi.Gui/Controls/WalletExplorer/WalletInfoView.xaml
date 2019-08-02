@@ -17,42 +17,42 @@
               <TextBlock Text="Extended Master Private Key: " />
               <controls:ExtendedTextBox Text="{Binding ExtendedMasterPrivateKey}" Foreground="IndianRed" Classes="selectableTextBlock" />
             </StackPanel>
-
             <StackPanel IsVisible="{Binding !IsWatchOnly}" Orientation="Horizontal">
               <TextBlock Text="Extended Master zprv: " />
               <controls:ExtendedTextBox Text="{Binding ExtendedMasterZprv}" Foreground="IndianRed" Classes="selectableTextBlock" />
             </StackPanel>
-
             <StackPanel Orientation="Horizontal">
               <TextBlock Text="Extended Master Fingerprint: " />
               <controls:ExtendedTextBox Text="{Binding MasterKeyFingerprint}" Classes="selectableTextBlock" />
             </StackPanel>
-
             <StackPanel Orientation="Horizontal">
               <TextBlock Text="Account Key Path: " />
               <controls:ExtendedTextBox Text="{Binding AccountKeyPath}" Classes="selectableTextBlock" />
             </StackPanel>
-
             <StackPanel IsVisible="{Binding !IsWatchOnly}" Orientation="Horizontal">
               <TextBlock Text="Extended Account Private Key: " />
               <controls:ExtendedTextBox Text="{Binding ExtendedAccountPrivateKey}" Foreground="IndianRed" Classes="selectableTextBlock" />
             </StackPanel>
-
             <StackPanel IsVisible="{Binding !IsWatchOnly}" Orientation="Horizontal">
               <TextBlock Text="Extended Account zprv: " />
               <controls:ExtendedTextBox Text="{Binding ExtendedAccountZprv}" Foreground="IndianRed" Classes="selectableTextBlock" />
             </StackPanel>
-
             <StackPanel Orientation="Horizontal">
               <TextBlock Text="Extended Account Public Key: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedAccountPublicKey, ConverterParameter=60, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock" />
+              <controls:ExtendedTextBox Text="{Binding ExtendedAccountPublicKey, ConverterParameter=60, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock">
+                <ToolTip.Tip>
+                  <TextBlock TextWrapping="Wrap" Width="400" Text="Your extended public key can be used to calculate all of your addresses and find out exactly how many coins you have in this wallet, do not share this to anyone you do not trust."/>
+                </ToolTip.Tip>
+              </controls:ExtendedTextBox>
             </StackPanel>
-
             <StackPanel Orientation="Horizontal">
               <TextBlock Text="Extended Account zpub: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedAccountZpub, ConverterParameter=60, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock" />
+              <controls:ExtendedTextBox Text="{Binding ExtendedAccountZpub, ConverterParameter=60, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock">
+                <ToolTip.Tip>
+                  <TextBlock TextWrapping="Wrap" Width="400" Text="Your zpub can be used to calculate all of your addresses and find out exactly how many coins you have in this wallet, do not share this to anyone you do not trust."/>
+                </ToolTip.Tip>
+              </controls:ExtendedTextBox>
             </StackPanel>
-
             <StackPanel IsVisible="{Binding !IsWatchOnly}" Margin="0 10 0 0" Spacing="10" Orientation="Horizontal">
               <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" MaxWidth="173">
                 <i:Interaction.Behaviors>
@@ -60,8 +60,7 @@
                 </i:Interaction.Behaviors>
               </controls:NoparaPasswordBox>
               <DockPanel VerticalAlignment="Top" LastChildFill="True">
-                <Button Content="{Binding ShowSensitiveKeys, StringFormat=\{0\} Sensitive Keys, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Hide:Show}"
-                        Command="{Binding ToggleSensitiveKeysCommand}" DockPanel.Dock="Right" />
+                <Button Content="{Binding ShowSensitiveKeys, StringFormat=\{0\} Sensitive Keys, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Hide:Show}" Command="{Binding ToggleSensitiveKeysCommand}" DockPanel.Dock="Right" />
                 <Grid></Grid>
               </DockPanel>
               <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
