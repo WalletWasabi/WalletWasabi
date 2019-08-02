@@ -650,7 +650,11 @@ namespace WalletWasabi.Services
 						continue;
 					}
 
-					var isCoinJoinOutput = tx.Transaction.Outputs.Any(x => x.ScriptPubKey == Constants.GetCoordinatorAddress(Network).ScriptPubKey);
+					// It is likely a coinjoin if the diff between receive and sent amount is small and have at least 2 equal outputs.
+					Money spentAmount = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).Sum(x => x.Amount);
+					Money receivedAmount = tx.Transaction.Outputs.Where(x => KeyManager.GetKeyForScriptPubKey(x.ScriptPubKey) != default).Sum(x => x.Value);
+					var isCoinJoinOutput = tx.Transaction.GetIndistinguishableOutputs(includeSingle: false).Count() > 1 && spentAmount.Almost(receivedAmount, Money.Coins(0.005m));
+
 					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, isCoinJoinOutput, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
 
 					if (Coins.TryAdd(newCoin))
@@ -658,7 +662,7 @@ namespace WalletWasabi.Services
 						TransactionCache.TryAdd(tx);
 
 						// If it's being mixed and anonset is not sufficient, then queue it.
-						if (newCoin.Unspent && ChaumianClient.HasIngredients && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet && ChaumianClient.State.Contains(newCoin.SpentOutputs))
+						if (newCoin.Unspent && ChaumianClient.HasIngredients && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet && newCoin.IsLikelyCoinJoinOutput && ChaumianClient.State.Contains(newCoin.SpentOutputs))
 						{
 							try
 							{
@@ -1268,7 +1272,7 @@ namespace WalletWasabi.Services
 				TxOut output = tx.Outputs[i];
 				var anonset = (tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet)) - 1; // Minus 1, because count own only once.
 				var foundKey = KeyManager.GetKeys(KeyState.Clean).FirstOrDefault(x => output.ScriptPubKey == x.P2wpkhScript);
-				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, anonset, isCoinJoinOutput: false, pubKey: foundKey);
+				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, anonset, isLikelyCoinJoinOutput: false, pubKey: foundKey);
 
 				if (foundKey != null)
 				{
