@@ -37,7 +37,7 @@ namespace WalletWasabi.Models
 		{
 			if (height < 0)
 			{
-				throw new ArgumentException($"{nameof(height)} : {height} cannot be < 0");
+				throw new ArgumentException($"{nameof(height)} : {height} cannot be less than zero");
 			}
 
 			if (height == Unknown.Value)
@@ -111,7 +111,7 @@ namespace WalletWasabi.Models
 
 			Type = type;
 
-			Value = (Type == HeightType.Mempool)
+			Value = Type == HeightType.Mempool
 				? int.MaxValue - 1
 				: int.MaxValue;
 		}

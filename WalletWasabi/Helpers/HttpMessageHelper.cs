@@ -525,7 +525,7 @@ namespace System.Net.Http
 			{
 				if (contentHeaders.ContentLength < 0)
 				{
-					throw new HttpRequestException("Content-Length MUST be larger than zero.");
+					throw new HttpRequestException("Content-Length MUST be greater than or equal to zero.");
 				}
 			}
 		}
