@@ -24,6 +24,7 @@ using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
+using WalletWasabi.Hwi2.Models;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -412,7 +413,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			var hwis = await HwiProcessManager.EnumerateAsync();
 
-			bool ledgerNotReady = hwis.Any(x => x.Type == HardwareWalletType.Ledger && !x.Ready);
+			bool ledgerNotReady = hwis.Any(x => x.Type == HardwareWalletVendors.Ledger && !x.Ready);
 			if (ledgerNotReady) // For Ledger you have to log into your "Bitcoin" account.
 			{
 				throw new InvalidOperationException("Log into your Bitcoin account on your Ledger. If you're already logged in, log out and log in again.");

@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
+using WalletWasabi.Hwi2.Models;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Hwi
@@ -87,13 +88,13 @@ namespace WalletWasabi.Hwi
 
 				return signedPsbt;
 			}
-			catch (IOException ex) when (hardwareWalletInfo.Type == HardwareWalletType.Ledger
+			catch (IOException ex) when (hardwareWalletInfo.Type == HardwareWalletVendors.Ledger
 			&& (ex.Message.Contains("sign_tx cancelled", StringComparison.OrdinalIgnoreCase)
 			|| ex.Message.Contains("open failed", StringComparison.OrdinalIgnoreCase)))
 			{
 				throw new IOException("Log into your Bitcoin account on your Ledger. If you're already logged in, log out and log in again.");
 			}
-			catch (IOException ex) when (hardwareWalletInfo.Type == HardwareWalletType.Ledger
+			catch (IOException ex) when (hardwareWalletInfo.Type == HardwareWalletVendors.Ledger
 			&& ex.Message.Contains("Bad argument", StringComparison.OrdinalIgnoreCase))
 			{
 				throw new IOException("Ledger refused to sign the transaction.");
@@ -137,7 +138,7 @@ namespace WalletWasabi.Hwi
 				var path = json.Value<string>("path");
 				var error = json.Value<string>("error");
 
-				var type = (HardwareWalletType)Enum.Parse(typeof(HardwareWalletType), typeString, ignoreCase: true);
+				var type = (HardwareWalletVendors)Enum.Parse(typeof(HardwareWalletVendors), typeString, ignoreCase: true);
 
 				var hwi = new HardwareWalletInfo(fingerprint, serialNumber, type, path, error);
 				hwis.Add(hwi);
