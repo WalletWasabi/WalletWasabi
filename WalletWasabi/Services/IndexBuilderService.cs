@@ -215,7 +215,7 @@ namespace WalletWasabi.Services
 						{
 							try
 							{
-								// If we didn't yet initialized syncInfo, do so.
+								// If we did not yet initialized syncInfo, do so.
 								if (syncInfo is null)
 								{
 									syncInfo = await GetSyncInfoAsync();
@@ -289,7 +289,7 @@ namespace WalletWasabi.Services
 								{
 									// If stop was requested return.
 									// Because this tx iteration can take even minutes
-									// It doesn't need to be accessed with a thread safe fasion with Interlocked through IsRunning, this may have some performance benefit
+									// It does not need to be accessed with a thread safe fashion with Interlocked through IsRunning, this may have some performance benefit
 									if (_running != 1)
 									{
 										return;
@@ -298,7 +298,7 @@ namespace WalletWasabi.Services
 									for (int i = 0; i < tx.Outputs.Count; i++)
 									{
 										var output = tx.Outputs[i];
-										if (!output.ScriptPubKey.IsPayToScriptHash && output.ScriptPubKey.IsWitness)
+										if (output.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
 										{
 											var outpoint = new OutPoint(tx.GetHash(), i);
 											Bech32UtxoSet.Add(outpoint, output.ScriptPubKey);
@@ -336,7 +336,8 @@ namespace WalletWasabi.Services
 										.Build();
 								}
 
-								var filterModel = new FilterModel {
+								var filterModel = new FilterModel
+								{
 									BlockHash = block.GetHash(),
 									BlockHeight = heightToRequest,
 									Filter = filter

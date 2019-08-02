@@ -19,7 +19,7 @@ namespace WalletWasabi.TorSocks5
 		/// <summary>
 		/// If null then it's just a mock, clearnet is used.
 		/// </summary>
-		public IPEndPoint TorSocks5EndPoint { get; }
+		public EndPoint TorSocks5EndPoint { get; }
 
 		public string LogFile { get; }
 
@@ -29,7 +29,7 @@ namespace WalletWasabi.TorSocks5
 
 		/// <param name="torSocks5EndPoint">Opt out Tor with null.</param>
 		/// <param name="logFile">Opt out of logging with null.</param>
-		public TorProcessManager(IPEndPoint torSocks5EndPoint, string logFile)
+		public TorProcessManager(EndPoint torSocks5EndPoint, string logFile)
 		{
 			TorSocks5EndPoint = torSocks5EndPoint;
 			LogFile = logFile;
@@ -38,7 +38,7 @@ namespace WalletWasabi.TorSocks5
 			TorProcess = null;
 		}
 
-		public static TorProcessManager Mock() // Mock, don't use Tor at all for debug.
+		public static TorProcessManager Mock() // Mock, do not use Tor at all for debug.
 		{
 			return new TorProcessManager(null, null);
 		}
@@ -50,7 +50,7 @@ namespace WalletWasabi.TorSocks5
 				return;
 			}
 
-			new Thread(delegate () // Don't ask. This is the only way it worked on Win10/Ubuntu18.04/Manjuro(1 processor VM)/Fedora(1 processor VM)
+			new Thread(delegate () // Do not ask. This is the only way it worked on Win10/Ubuntu18.04/Manjuro(1 processor VM)/Fedora(1 processor VM)
 			{
 				try
 				{
@@ -67,6 +67,8 @@ namespace WalletWasabi.TorSocks5
 							return;
 						}
 
+						var torDir = Path.Combine(dataDir, "tor");
+						var torPath = "";
 						var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
 						if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
@@ -74,18 +76,12 @@ namespace WalletWasabi.TorSocks5
 							{
 								fullBaseDirectory.Insert(0, "/");
 							}
+
+							torPath = $@"{torDir}/Tor/tor";
 						}
-
-						var torDir = Path.Combine(dataDir, "tor");
-
-						var torPath = "";
-						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+						else // If Windows
 						{
 							torPath = $@"{torDir}\Tor\tor.exe";
-						}
-						else // Linux or OSX
-						{
-							torPath = $@"{torDir}/Tor/tor";
 						}
 
 						if (!File.Exists(torPath))
@@ -121,7 +117,8 @@ namespace WalletWasabi.TorSocks5
 
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
-							TorProcess = Process.Start(new ProcessStartInfo {
+							TorProcess = Process.Start(new ProcessStartInfo
+							{
 								FileName = torPath,
 								Arguments = torArguments,
 								UseShellExecute = false,
@@ -196,7 +193,7 @@ namespace WalletWasabi.TorSocks5
 		}
 
 		/// <param name="torSocks5EndPoint">Opt out Tor with null.</param>
-		public static async Task<bool> IsTorRunningAsync(IPEndPoint torSocks5EndPoint)
+		public static async Task<bool> IsTorRunningAsync(EndPoint torSocks5EndPoint)
 		{
 			using (var client = new TorSocks5Client(torSocks5EndPoint))
 			{
@@ -296,8 +293,8 @@ namespace WalletWasabi.TorSocks5
 									}
 									else
 									{
-										Logger.LogInfo<TorProcessManager>($"Tor didn't work properly for {(int)torMisbehavedFor.TotalSeconds} seconds. Maybe it crashed. Attempting to start it...");
-										Start(true, dataDirToStartWith); // Try starting Tor, if doesn't work it'll be another issue.
+										Logger.LogInfo<TorProcessManager>($"Tor did not work properly for {(int)torMisbehavedFor.TotalSeconds} seconds. Maybe it crashed. Attempting to start it...");
+										Start(true, dataDirToStartWith); // Try starting Tor, if it does not work it'll be another issue.
 										await Task.Delay(14000, Stop.Token).ConfigureAwait(false);
 									}
 								}

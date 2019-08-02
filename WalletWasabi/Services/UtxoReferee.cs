@@ -104,13 +104,9 @@ namespace WalletWasabi.Services
 				}
 
 				var isNoted = true;
-				if (forceNoted)
+				if (!forceNoted)
 				{
-					isNoted = true;
-				}
-				else
-				{
-					if (RoundConfig.DosNoteBeforeBan.Value)
+					if (RoundConfig.DosNoteBeforeBan)
 					{
 						if (foundElem != null)
 						{
@@ -147,7 +143,7 @@ namespace WalletWasabi.Services
 				var allLines = BannedUtxos.Select(x => $"{x.Value.TimeOfBan.ToString(CultureInfo.InvariantCulture)}:{x.Value.Severity}:{x.Key.N}:{x.Key.Hash}:{x.Value.IsNoted}:{x.Value.BannedForRound}");
 				await File.WriteAllLinesAsync(BannedUtxosFilePath, allLines);
 			}
-			else if (lines.Count != 0) // If we don't have to update the whole thing, we must check if we added a line and so only append.
+			else if (lines.Count != 0) // If we do not have to update the whole thing, we must check if we added a line and so only append.
 			{
 				await File.AppendAllLinesAsync(BannedUtxosFilePath, lines);
 			}
@@ -167,7 +163,7 @@ namespace WalletWasabi.Services
 		{
 			if (BannedUtxos.TryGetValue(outpoint, out BannedUtxoRecord bannedElem))
 			{
-				int maxBan = (int)TimeSpan.FromHours(RoundConfig.DosDurationHours.Value).TotalMinutes;
+				int maxBan = (int)TimeSpan.FromHours(RoundConfig.DosDurationHours).TotalMinutes;
 				int banLeftMinutes = maxBan - (int)bannedElem.BannedRemaining.TotalMinutes;
 				if (banLeftMinutes > 0)
 				{

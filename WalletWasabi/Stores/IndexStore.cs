@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Helpers;
+using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -22,8 +23,8 @@ namespace WalletWasabi.Stores
 	{
 		private string WorkFolderPath { get; set; }
 		private Network Network { get; set; }
-		private IoManager MatureIndexFileManager { get; set; }
-		private IoManager ImmatureIndexFileManager { get; set; }
+		private DigestableSafeMutexIoManager MatureIndexFileManager { get; set; }
+		private DigestableSafeMutexIoManager ImmatureIndexFileManager { get; set; }
 		public HashChain HashChain { get; private set; }
 
 		private FilterModel StartingFilter { get; set; }
@@ -41,9 +42,9 @@ namespace WalletWasabi.Stores
 			Network = Guard.NotNull(nameof(network), network);
 			HashChain = Guard.NotNull(nameof(hashChain), hashChain);
 			var indexFilePath = Path.Combine(WorkFolderPath, "MatureIndex.dat");
-			MatureIndexFileManager = new IoManager(indexFilePath, digestRandomIndex: -1);
+			MatureIndexFileManager = new DigestableSafeMutexIoManager(indexFilePath, digestRandomIndex: -1);
 			var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
-			ImmatureIndexFileManager = new IoManager(immatureIndexFilePath, digestRandomIndex: -1);
+			ImmatureIndexFileManager = new DigestableSafeMutexIoManager(immatureIndexFilePath, digestRandomIndex: -1);
 
 			StartingFilter = StartingFilters.GetStartingFilter(Network);
 			StartingHeight = StartingFilters.GetStartingHeight(Network);
@@ -120,7 +121,7 @@ namespace WalletWasabi.Stores
 			{
 				// We found a corrupted entry. Stop here.
 				// Delete the currupted file.
-				// Don't try to autocorrect, because the internal data structures are throwing events those may confuse the consumers of those events.
+				// Do not try to autocorrect, because the internal data structures are throwing events that may confuse the consumers of those events.
 				Logger.LogError<IndexStore>("An index file got corrupted. Deleting index files...");
 				MatureIndexFileManager.DeleteMe();
 				ImmatureIndexFileManager.DeleteMe();
@@ -151,12 +152,14 @@ namespace WalletWasabi.Stores
 				var oldIndexFilePath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), $"Index{Network}.dat");
 
 				// Before Wasabi 1.1.6
-				var oldFileNames = new[] {
+				var oldFileNames = new[]
+				{
 					"ImmatureIndex.dat" ,
 					"ImmatureIndex.dat.dig",
 					"MatureIndex.dat",
 					"MatureIndex.dat.dig"
 				};
+
 				var oldIndexFolderPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), "BitcoinStore", Network.ToString());
 
 				foreach (var fileName in oldFileNames)
@@ -188,7 +191,7 @@ namespace WalletWasabi.Stores
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<IndexStore>($"Backwards compatibility couldn't be ensured. Exception: {ex.ToString()}");
+				Logger.LogWarning<IndexStore>($"Backwards compatibility could not be ensured. Exception: {ex}");
 			}
 		}
 
@@ -229,6 +232,43 @@ namespace WalletWasabi.Stores
 			return filter;
 		}
 
+		public async Task<IEnumerable<FilterModel>> RemoveAllImmmatureFiltersAsync(CancellationToken cancel, bool deleteAndCrashIfMature = false)
+		{
+			var removed = new List<FilterModel>();
+			using (await IndexLock.LockAsync(cancel))
+			{
+				if (ImmatureFilters.Any())
+				{
+					Logger.LogWarning<IndexStore>($"Filters got corrupted. Reorging {ImmatureFilters.Count} immature filters in an attempt to fix them.");
+				}
+				else
+				{
+					Logger.LogCritical<IndexStore>($"Filters got corrupted and have no more immature filters.");
+
+					if (deleteAndCrashIfMature)
+					{
+						Logger.LogCritical<IndexStore>($"Deleting all filters and crashing the software...");
+
+						using (await MatureIndexFileManager.Mutex.LockAsync(cancel))
+						using (await ImmatureIndexFileManager.Mutex.LockAsync(cancel))
+						{
+							ImmatureIndexFileManager.DeleteMe();
+							MatureIndexFileManager.DeleteMe();
+						}
+
+						Environment.Exit(2);
+					}
+				}
+			}
+
+			while (ImmatureFilters.Any())
+			{
+				removed.Add(await RemoveLastFilterAsync(cancel));
+			}
+
+			return removed;
+		}
+
 		private int _throttleId;
 
 		/// <summary>
@@ -260,15 +300,15 @@ namespace WalletWasabi.Stores
 				}
 				else
 				{
-					Interlocked.Exchange(ref _throttleId, 0); // So to notified the currently throttled threads that they don't have to run.
+					Interlocked.Exchange(ref _throttleId, 0); // So to notify the currently throttled threads that they do not have to run.
 				}
 
 				using (await MatureIndexFileManager.Mutex.LockAsync(cancel))
 				using (await ImmatureIndexFileManager.Mutex.LockAsync(cancel))
 				using (await IndexLock.LockAsync(cancel))
 				{
-					// Don't feed the cancellationToken here I always want this to finish running for safety.
-					var currentImmatureLines = ImmatureFilters.Select(x => x.ToHeightlessLine()).ToArray(); // So we don't read on ImmatureFilters while removing them.
+					// Do not feed the cancellationToken here I always want this to finish running for safety.
+					var currentImmatureLines = ImmatureFilters.Select(x => x.ToHeightlessLine()).ToArray(); // So we do not read on ImmatureFilters while removing them.
 					var matureLinesToAppend = currentImmatureLines.SkipLast(100);
 					var immatureLines = currentImmatureLines.TakeLast(100);
 					var tasks = new Task[] { MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend), ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines) };

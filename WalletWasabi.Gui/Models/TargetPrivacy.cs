@@ -9,6 +9,6 @@ namespace WalletWasabi.Gui.Models
 		None,
 		Some,
 		Fine,
-		Strong,
+		Strong
 	}
 }

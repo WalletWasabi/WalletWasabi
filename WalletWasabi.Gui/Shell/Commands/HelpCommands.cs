@@ -110,13 +110,14 @@ namespace WalletWasabi.Gui.Shell.Commands
 				{
 					var devTools = new DevTools(Application.Current.Windows.FirstOrDefault());
 
-					var devToolsWindow = new Window {
+					var devToolsWindow = new Window
+					{
 						Width = 1024,
 						Height = 512,
 						Content = devTools,
 						DataTemplates =
 						{
-							new ViewLocator<Avalonia.Diagnostics.ViewModels.ViewModelBase>(),
+							new ViewLocator<Avalonia.Diagnostics.ViewModels.ViewModelBase>()
 						}
 					};
 

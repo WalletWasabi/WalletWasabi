@@ -1,19 +1,23 @@
-﻿using Avalonia.Data.Converters;
+using Avalonia.Data.Converters;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 
 namespace WalletWasabi.Gui.Converters
 {
-    public class BooleanOnOffConverter : IValueConverter
+	public class TimeSpanVisibilityConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is bool boolean)
+			if (value is TimeSpan ts)
 			{
-				return (boolean) ? "On" : "Off";
+				return ts != TimeSpan.Zero;
 			}
-
-			throw new InvalidOperationException();
+			else
+			{
+				throw new TypeArgumentException(value, typeof(TimeSpan), nameof(value));
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

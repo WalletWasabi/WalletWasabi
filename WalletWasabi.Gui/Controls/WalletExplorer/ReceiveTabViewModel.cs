@@ -31,6 +31,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> CopyAddress { get; }
 		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
 		public ReactiveCommand<Unit, Unit> ShowQrCode { get; }
+		public ReactiveCommand<Unit, Unit> ChangeLabelCommand { get; }
 
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
@@ -78,7 +79,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 			});
 
-			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
+			this.WhenAnyValue(x => x.Label).Subscribe(UpdateSuggestions);
 
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
 			{
@@ -88,19 +89,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				await address.TryCopyToClipboardAsync();
-			});
-
-			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
-			{
-				if (Label is null)
-				{
-					return;
-				}
-
-				if (CaretIndex != Label.Length)
-				{
-					CaretIndex = Label.Length;
-				}
 			});
 
 			var isCoinListItemSelected = this.WhenAnyValue(x => x.SelectedAddress).Select(coin => coin != null);
@@ -135,6 +123,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{ }
 			}, isCoinListItemSelected);
 
+			ChangeLabelCommand = ReactiveCommand.Create(() =>
+			{
+				SelectedAddress.InEditMode = true;
+			});
+
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
 
@@ -142,12 +135,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnOpen();
 
-			if (Disposables != null)
-			{
-				throw new Exception("Receive tab opened before last one was closed.");
-			}
-
-			Disposables = new CompositeDisposable();
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			Observable.FromEventPattern(Global.WalletService.Coins,
 				nameof(Global.WalletService.Coins.CollectionChanged))

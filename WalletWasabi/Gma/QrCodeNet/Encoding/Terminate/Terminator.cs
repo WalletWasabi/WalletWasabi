@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Gma.QrCodeNet.Encoding.Terminate
 {
@@ -7,7 +7,7 @@ namespace Gma.QrCodeNet.Encoding.Terminate
 		private const int NumBitsForByte = 8;
 
 		/// <summary>
-		/// This method will create BitList that contain
+		/// This method will create BitList that contains
 		/// terminator, padding and pad codewords for given datacodewords.
 		/// Use it to full fill the data codewords capacity. Thus avoid massive empty bits.
 		/// </summary>
@@ -17,7 +17,7 @@ namespace Gma.QrCodeNet.Encoding.Terminate
 		/// <param name="dataCount">Num of bits for datacodewords without terminator</param>
 		/// <param name="numTotalDataCodewords">Total number of datacodewords for specific version.
 		/// Receive it under Version/VersionTable</param>
-		/// <returns>Bitlist that contain Terminator, padding and padcodewords</returns>
+		/// <returns>Bitlist that contains Terminator, padding and padcodewords</returns>
 		internal static void TerminateBites(this BitList baseList, int dataCount, int numTotalDataCodewords)
 		{
 			int numTotalDataBits = numTotalDataCodewords << 3;
@@ -46,7 +46,7 @@ namespace Gma.QrCodeNet.Encoding.Terminate
 			if (baseList.Count != numTotalDataBits)
 			{
 				throw new ArgumentException(
-					$"Generate terminator and Padding fail. Num of bits need: {numFillerBytes}, Actually length: {baseList.Count - numDataBits}");
+					$"Generate terminator and Padding fail. Num of bits need: {numFillerBytes}. Actual length: {baseList.Count - numDataBits}");
 			}
 		}
 
@@ -54,7 +54,7 @@ namespace Gma.QrCodeNet.Encoding.Terminate
 		{
 			if (numOfPadeCodewords < 0)
 			{
-				throw new ArgumentException("Num of pade codewords less than Zero");
+				throw new ArgumentException("Num of pade codewords is less than Zero");
 			}
 
 			for (int numOfP = 1; numOfP <= numOfPadeCodewords; numOfP++)

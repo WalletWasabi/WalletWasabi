@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using WalletWasabi.Helpers;
 
 namespace System
@@ -11,8 +11,7 @@ namespace System
 		{
 			Guard.MinimumAndNotNull(nameof(length), length, 1);
 
-			const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-			return new string(Enumerable.Repeat(chars, length)
+			return new string(Enumerable.Repeat(Constants.Chars, length)
 			  .Select(s => s[Random.Next(s.Length)]).ToArray());
 		}
 	}

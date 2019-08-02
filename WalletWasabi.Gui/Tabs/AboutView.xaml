@@ -10,27 +10,31 @@
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Clearnet Website: " />
-            <controls:ExtendedTextBox Text="https://wasabiwallet.io/" Classes="selectableTextBlock hyperLink" />
+            <Button Content="{Binding ClearnetLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding ClearnetLink}" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Tor Website: " />
-            <controls:ExtendedTextBox Text="http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion" Classes="selectableTextBlock hyperLink" />
+            <controls:ExtendedTextBox Text="{Binding TorLink}" Classes="selectableTextBlock hyperLink" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Source Code: " />
-            <controls:ExtendedTextBox Text="https://github.com/zkSNACKs/WalletWasabi/" Classes="selectableTextBlock hyperLink" />
+            <Button Content="{Binding SourceCodeLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding SourceCodeLink}" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Status Page: " />
+            <Button Content="{Binding StatusPageLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding StatusPageLink}" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Customer Support: " />
-            <controls:ExtendedTextBox Text="https://www.reddit.com/r/WasabiWallet/" Classes="selectableTextBlock hyperLink" />
+            <Button Content="{Binding CustomerSupportLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding CustomerSupportLink}" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Bug Report: " />
-            <controls:ExtendedTextBox Text="https://github.com/zkSNACKs/WalletWasabi/issues/" Classes="selectableTextBlock hyperLink" />
+            <Button Content="{Binding BugReportLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding BugReportLink}" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="FAQ: " />
-            <controls:ExtendedTextBox Text="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/FAQ.md" Classes="selectableTextBlock hyperLink" />
+            <Button Content="{Binding FAQLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding FAQLink}" />
           </StackPanel>
         </StackPanel>
       </Grid>

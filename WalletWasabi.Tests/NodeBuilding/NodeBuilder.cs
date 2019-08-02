@@ -97,8 +97,8 @@ namespace WalletWasabi.Tests.NodeBuilding
 					return bitcoind;
 				}
 
-				zip = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ?
-					Path.Combine(Global.Instance.DataDir, $"bitcoin-{version}-x86_64-linux-gnu.tar.gz")
+				zip = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+					? Path.Combine(Global.Instance.DataDir, $"bitcoin-{version}-x86_64-linux-gnu.tar.gz")
 					: Path.Combine(Global.Instance.DataDir, $"bitcoin-{version}-osx64.tar.gz");
 
 				string url = string.Format("https://bitcoincore.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
@@ -130,6 +130,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 		public string BitcoinD { get; }
 		public List<CoreNode> Nodes { get; } = new List<CoreNode>();
 		public NodeConfigParameters ConfigParameters { get; } = new NodeConfigParameters();
+		public Network Network => NBitcoin.Network.RegTest;
 
 		public async Task<CoreNode> CreateNodeAsync(bool start = false)
 		{
@@ -146,7 +147,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 					var rpcPassword = config["regtest.rpcpassword"];
 					var pidFileName = config["regtest.pid"];
 					var credentials = new NetworkCredential(rpcUser, rpcPassword);
-
 					try
 					{
 						var rpc = new RPCClient(credentials, new Uri("http://127.0.0.1:" + rpcPort + "/"), Network.RegTest);

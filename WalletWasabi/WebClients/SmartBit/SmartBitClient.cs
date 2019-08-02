@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
@@ -23,14 +23,10 @@ namespace WalletWasabi.WebClients.SmartBit
 		public SmartBitClient(Network network, HttpMessageHandler handler = null, bool disposeHandler = false)
 		{
 			Network = network ?? throw new ArgumentNullException(nameof(network));
-			if (handler != null)
-			{
-				HttpClient = new HttpClient(handler, disposeHandler);
-			}
-			else
-			{
-				HttpClient = new HttpClient();
-			}
+			HttpClient = handler != null
+				? new HttpClient(handler, disposeHandler)
+				: new HttpClient();
+
 			if (network == Network.Main)
 			{
 				HttpClient.BaseAddress = new Uri("https://api.smartbit.com.au/v1/");
@@ -41,7 +37,7 @@ namespace WalletWasabi.WebClients.SmartBit
 			}
 			else
 			{
-				throw new NotSupportedException($"{network} is not supported");
+				throw new NotSupportedException($"{nameof(Network)} not supported: {network}.");
 			}
 		}
 

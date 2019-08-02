@@ -18,20 +18,16 @@ namespace WalletWasabi.Gui.CommandLine
 			: base("mix", "Start mixing without the GUI with the specified wallet.")
 		{
 			Daemon = daemon;
-			Options = new OptionSet() {
+			Options = new OptionSet()
+			{
 				"usage: mix --wallet:WalletName --mixall --keepalive",
 				"",
 				"Start mixing without the GUI with the specified wallet.",
 				"eg: ./wassabee mix --wallet:MyWalletName --mixall --keepalive --loglevel:info",
-
-				{ "h|help", "Displays help page and exit.",
-					x => ShowHelp = x != null},
-				{ "w|wallet=", "The name of the wallet file.",
-					x =>  WalletName = x },
-				{ "mixall", "Mix once even if the coin reached the target anonymity set specified in the config file.",
-					x => MixAll = x != null},
-				{ "keepalive", "Don't exit the software after mixing has been finished, rather keep mixing when new money arrives.",
-					x => KeepMixAlive = x != null},
+				{ "h|help", "Displays help page and exit.", x => ShowHelp = x != null},
+				{ "w|wallet=", "The name of the wallet file.", x =>  WalletName = x },
+				{ "mixall", "Mix once even if the coin reached the target anonymity set specified in the config file.", x => MixAll = x != null},
+				{ "keepalive", "Do not exit the software after mixing has been finished, rather keep mixing when new money arrives.", x => KeepMixAlive = x != null},
 			};
 		}
 

@@ -340,12 +340,12 @@ namespace Nito.Collections
 		{
 			if (value is null && default(T) != null)
 			{
-				throw new ArgumentNullException("value", "Value cannot be null.");
+				throw new ArgumentNullException(nameof(value), "Value cannot be null.");
 			}
 
 			if (!IsT(value))
 			{
-				throw new ArgumentException("Value is of incorrect type.", "value");
+				throw new ArgumentException("Value is of incorrect type.", nameof(value));
 			}
 
 			Insert(index, (T)value);
@@ -424,7 +424,7 @@ namespace Nito.Collections
 		{
 			if (index < 0 || index > sourceLength)
 			{
-				throw new ArgumentOutOfRangeException(nameof(index), "Invalid new index " + index + " for source length " + sourceLength);
+				throw new ArgumentOutOfRangeException(nameof(index), $"Invalid new index {index} for source length {sourceLength}");
 			}
 		}
 
@@ -438,7 +438,7 @@ namespace Nito.Collections
 		{
 			if (index < 0 || index >= sourceLength)
 			{
-				throw new ArgumentOutOfRangeException(nameof(index), "Invalid existing index " + index + " for source length " + sourceLength);
+				throw new ArgumentOutOfRangeException(nameof(index), $"Invalid existing index {index} for source length {sourceLength}");
 			}
 		}
 

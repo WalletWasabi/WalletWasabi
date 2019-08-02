@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -196,7 +196,7 @@ namespace Mono.Options
 		{
 			if (item is null)
 			{
-				throw new ArgumentNullException("option");
+				throw new ArgumentNullException(nameof(Option));
 			}
 
 			if (item.Names != null && item.Names.Length > 0)
@@ -205,7 +205,7 @@ namespace Mono.Options
 			}
 			// This should never happen, as it's invalid for Option to be
 			// constructed w/o any names.
-			throw new InvalidOperationException("Option has no names!");
+			throw new InvalidOperationException($"{nameof(Option)} has no names!");
 		}
 
 		[Obsolete("Use KeyedCollection.this[string]")]
@@ -213,7 +213,7 @@ namespace Mono.Options
 		{
 			if (option is null)
 			{
-				throw new ArgumentNullException("option");
+				throw new ArgumentNullException(nameof(option));
 			}
 
 			try
@@ -253,7 +253,7 @@ namespace Mono.Options
 		{
 			if (option is null)
 			{
-				throw new ArgumentNullException("option");
+				throw new ArgumentNullException(nameof(option));
 			}
 
 			List<string> added = new List<string>(option.Names.Length);
@@ -281,7 +281,7 @@ namespace Mono.Options
 		{
 			if (header is null)
 			{
-				throw new ArgumentNullException("header");
+				throw new ArgumentNullException(nameof(header));
 			}
 
 			Add(new Category(header));
@@ -294,13 +294,13 @@ namespace Mono.Options
 			// (see Option.ParsePrototype(), and thus it'll prevent Category
 			// instances from being accidentally used as normal options.
 			public Category(string description)
-				: base("=:Category:= " + description, description)
+				: base($"=:{nameof(Category)}:= {description}", description)
 			{
 			}
 
 			protected override void OnParseComplete(OptionContext c)
 			{
-				throw new NotSupportedException("Category.OnParseComplete should not be invoked.");
+				throw new NotSupportedException($"{nameof(Category)}.{nameof(OnParseComplete)} should not be invoked.");
 			}
 		}
 
@@ -320,7 +320,7 @@ namespace Mono.Options
 			public ActionOption(string prototype, string description, int count, Action<OptionValueCollection> action, bool hidden)
 				: base(prototype, description, count, hidden)
 			{
-				Action = action ?? throw new ArgumentNullException("action");
+				Action = action ?? throw new ArgumentNullException(nameof(action));
 			}
 
 			public Action<OptionValueCollection> Action { get; set; }
@@ -345,7 +345,7 @@ namespace Mono.Options
 		{
 			if (action is null)
 			{
-				throw new ArgumentNullException("action");
+				throw new ArgumentNullException(nameof(action));
 			}
 
 			Option p = new ActionOption(prototype, description, 1,
@@ -368,7 +368,7 @@ namespace Mono.Options
 		{
 			if (action is null)
 			{
-				throw new ArgumentNullException("action");
+				throw new ArgumentNullException(nameof(action));
 			}
 
 			Option p = new ActionOption(prototype, description, 2,
@@ -382,7 +382,7 @@ namespace Mono.Options
 			public ActionOption(string prototype, string description, Action<T> action)
 				: base(prototype, description, 1)
 			{
-				Action = action ?? throw new ArgumentNullException("action");
+				Action = action ?? throw new ArgumentNullException(nameof(action));
 			}
 
 			public Action<T> Action { get; set; }
@@ -398,7 +398,7 @@ namespace Mono.Options
 			public ActionOption(string prototype, string description, OptionAction<TKey, TValue> action)
 				: base(prototype, description, 2)
 			{
-				Action = action ?? throw new ArgumentNullException("action");
+				Action = action ?? throw new ArgumentNullException(nameof(action));
 			}
 
 			public OptionAction<TKey, TValue> Action { get; set; }
@@ -435,7 +435,7 @@ namespace Mono.Options
 		{
 			if (source is null)
 			{
-				throw new ArgumentNullException("source");
+				throw new ArgumentNullException(nameof(source));
 			}
 
 			Sources.Add(source);
@@ -451,7 +451,7 @@ namespace Mono.Options
 		{
 			if (arguments is null)
 			{
-				throw new ArgumentNullException("arguments");
+				throw new ArgumentNullException(nameof(arguments));
 			}
 
 			OptionContext c = CreateOptionContext();
@@ -563,7 +563,7 @@ namespace Mono.Options
 		{
 			if (argument is null)
 			{
-				throw new ArgumentNullException("argument");
+				throw new ArgumentNullException(nameof(argument));
 			}
 
 			flag = name = sep = value = null;
@@ -572,12 +572,12 @@ namespace Mono.Options
 			{
 				return false;
 			}
-			flag = m.Groups["flag"].Value;
-			name = m.Groups["name"].Value;
-			if (m.Groups["sep"].Success && m.Groups["value"].Success)
+			flag = m.Groups[nameof(flag)].Value;
+			name = m.Groups[nameof(name)].Value;
+			if (m.Groups[nameof(sep)].Success && m.Groups[nameof(value)].Success)
 			{
-				sep = m.Groups["sep"].Value;
-				value = m.Groups["value"].Value;
+				sep = m.Groups[nameof(sep)].Value;
+				value = m.Groups[nameof(value)].Value;
 			}
 			return true;
 		}
@@ -648,10 +648,9 @@ namespace Mono.Options
 			}
 			else if (c.OptionValues.Count > c.Option.MaxValueCount)
 			{
-				throw new OptionException(MessageLocalizer(string.Format(
-								"Error: Found {0} option values when expecting {1}.",
-								c.OptionValues.Count, c.Option.MaxValueCount)),
-						c.OptionName);
+				throw new OptionException(MessageLocalizer(
+					$"Error: Found {c.OptionValues.Count} option values when expecting {c.Option.MaxValueCount}."),
+					c.OptionName);
 			}
 		}
 
@@ -693,7 +692,7 @@ namespace Mono.Options
 					}
 
 					throw new OptionException(string.Format(MessageLocalizer(
-									"Cannot use unregistered option '{0}' in bundle '{1}'."), rn, f + n), null);
+						$"Cannot use unregistered option '{rn}' in bundle '{f + n}'.")), null);
 				}
 				p = this[rn];
 				switch (p.OptionValueType)
@@ -712,7 +711,7 @@ namespace Mono.Options
 							return true;
 						}
 					default:
-						throw new InvalidOperationException("Unknown OptionValueType: " + p.OptionValueType);
+						throw new InvalidOperationException($"Unknown {nameof(OptionValueType)}: {p.OptionValueType}");
 				}
 			}
 			return true;
@@ -925,7 +924,7 @@ namespace Mono.Options
 
 			if (string.IsNullOrEmpty(argName))
 			{
-				argName = maxIndex == 1 ? "VALUE" : "VALUE" + (index + 1);
+				argName = maxIndex == 1 ? "VALUE" : $"VALUE{index + 1}";
 			}
 			return argName;
 		}
@@ -961,7 +960,7 @@ namespace Mono.Options
 						{
 							if ((i + 1) == description.Length || description[i + 1] != '}')
 							{
-								throw new InvalidOperationException("Invalid option description: " + description);
+								throw new InvalidOperationException($"Invalid option description: {description}");
 							}
 
 							++i;

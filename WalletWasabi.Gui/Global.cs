@@ -50,13 +50,13 @@ namespace WalletWasabi.Gui
 
 		public string AddressManagerFilePath { get; private set; }
 		public AddressManager AddressManager { get; private set; }
-		public MemPoolService MemPoolService { get; private set; }
+		public MempoolService MempoolService { get; private set; }
 
 		public NodesGroup Nodes { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
 		public CcjClient ChaumianClient { get; private set; }
 		public WalletService WalletService { get; private set; }
-		public Node RegTestMemPoolServingNode { get; private set; }
+		public Node RegTestMempoolServingNode { get; private set; }
 		public UpdateChecker UpdateChecker { get; private set; }
 		public TorProcessManager TorManager { get; private set; }
 		public HwiService HwiService { get; private set; }
@@ -88,8 +88,8 @@ namespace WalletWasabi.Gui
 
 		public async Task TryDesperateDequeueAllCoinsAsync()
 		{
-			// If already desperate dequeueing then return.
-			// If not desperate dequeueing then make sure we're doing that.
+			// If already desperate dequeuing then return.
+			// If not desperate dequeuing then make sure we're doing that.
 			if (Interlocked.CompareExchange(ref _isDesperateDequeuing, 1, 0) == 1)
 			{
 				return;
@@ -156,9 +156,9 @@ namespace WalletWasabi.Gui
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
 			var connectionParameters = new NodeConnectionParameters { UserAgent = "/Satoshi:0.18.0/" };
 
-			if (Config.UseTor.Value)
+			if (Config.UseTor)
 			{
-				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
 			}
 			else
 			{
@@ -190,9 +190,9 @@ namespace WalletWasabi.Gui
 
 			#region TorProcessInitialization
 
-			if (Config.UseTor.Value)
+			if (Config.UseTor)
 			{
-				TorManager = new TorProcessManager(Config.GetTorSocks5EndPoint(), TorLogsFile);
+				TorManager = new TorProcessManager(Config.TorSocks5EndPoint, TorLogsFile);
 			}
 			else
 			{
@@ -209,8 +209,8 @@ namespace WalletWasabi.Gui
 
 			#region MempoolInitialization
 
-			MemPoolService = new MemPoolService();
-			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(MemPoolService));
+			MempoolService = new MempoolService();
+			connectionParameters.TemplateBehaviors.Add(new MempoolBehavior(MempoolService));
 
 			#endregion MempoolInitialization
 
@@ -250,9 +250,9 @@ namespace WalletWasabi.Gui
 					Node node = await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
 					Nodes.ConnectedNodes.Add(node);
 
-					RegTestMemPoolServingNode = await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
+					RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
 
-					RegTestMemPoolServingNode.Behaviors.Add(new MemPoolBehavior(MemPoolService));
+					RegTestMempoolServingNode.Behaviors.Add(new MempoolBehavior(MempoolService));
 				}
 				catch (SocketException ex)
 				{
@@ -264,24 +264,24 @@ namespace WalletWasabi.Gui
 				if (Config.UseTor is true)
 				{
 					// onlyForOnionHosts: false - Connect to clearnet IPs through Tor, too.
-					connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.GetTorSocks5EndPoint(), onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
-					// allowOnlyTorEndpoints: true - Connect only to onions and don't connect to clearnet IPs at all.
-					// This of course makes the first setting unneccessary, but it's better if that's around, in case someone wants to tinker here.
+					connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.TorSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
+					// allowOnlyTorEndpoints: true - Connect only to onions and do not connect to clearnet IPs at all.
+					// This of course makes the first setting unnecessary, but it's better if that's around, in case someone wants to tinker here.
 					connectionParameters.EndpointConnector = new DefaultEndpointConnector(allowOnlyTorEndpoints: Network == Network.Main);
 
 					await AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager);
 				}
 				Nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
 
-				RegTestMemPoolServingNode = null;
+				RegTestMempoolServingNode = null;
 			}
 
 			Nodes.Connect();
 			Logger.LogInfo("Start connecting to nodes...");
 
-			if (RegTestMemPoolServingNode != null)
+			if (RegTestMempoolServingNode != null)
 			{
-				RegTestMemPoolServingNode.VersionHandshake();
+				RegTestMempoolServingNode.VersionHandshake();
 				Logger.LogInfo("Start connecting to mempool serving regtest node...");
 			}
 
@@ -319,15 +319,15 @@ namespace WalletWasabi.Gui
 				{
 					AddressManager = await NBitcoinHelpers.LoadAddressManagerFromPeerFileAsync(AddressManagerFilePath);
 
-					// The most of the times we don't need to discover new peers. Instead, we can connect to
-					// some of those that we already discovered in the past. In this case we assume that we
-					// assume that discovering new peers could be necessary if out address manager has less
-					// than 500 addresses. A 500 addresses could be okay because previously we tried with
+					// Most of the times we do not need to discover new peers. Instead, we can connect to
+					// some of those that we already discovered in the past. In this case we assume that
+					// discovering new peers could be necessary if our address manager has less
+					// than 500 addresses. 500 addresses could be okay because previously we tried with
 					// 200 and only one user reported he/she was not able to connect (there could be many others,
 					// of course).
 					// On the other side, increasing this number forces users that do not need to discover more peers
 					// to spend resources (CPU/bandwith) to discover new peers.
-					needsToDiscoverPeers = Config.UseTor == true || AddressManager.Count < 500;
+					needsToDiscoverPeers = Config.UseTor is true || AddressManager.Count < 500;
 					Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
 				}
 				catch (DirectoryNotFoundException ex)
@@ -362,7 +362,8 @@ namespace WalletWasabi.Gui
 				}
 			}
 
-			var addressManagerBehavior = new AddressManagerBehavior(AddressManager) {
+			var addressManagerBehavior = new AddressManagerBehavior(AddressManager)
+			{
 				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
 			};
 			return addressManagerBehavior;
@@ -391,7 +392,7 @@ namespace WalletWasabi.Gui
 			onions.Shuffle();
 			foreach (var onion in onions.Take(60))
 			{
-				if (NBitcoin.Utils.TryParseEndpoint(onion, Network.DefaultPort, out var endpoint))
+				if (Utils.TryParseEndpoint(onion, Network.DefaultPort, out var endpoint))
 				{
 					await addressManager.AddAsync(endpoint);
 				}
@@ -410,9 +411,9 @@ namespace WalletWasabi.Gui
 					await Task.Delay(100, token);
 				}
 
-				if (Config.UseTor.Value)
+				if (Config.UseTor)
 				{
-					ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+					ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
 				}
 				else
 				{
@@ -428,7 +429,7 @@ namespace WalletWasabi.Gui
 					Logger.LogWarning(ex, nameof(Global));
 				}
 
-				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, MemPoolService, Nodes, DataDir, Config.ServiceConfiguration);
+				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, MempoolService, Nodes, DataDir, Config.ServiceConfiguration);
 
 				ChaumianClient.Start();
 				Logger.LogInfo("Start Chaumian CoinJoin service...");
@@ -472,17 +473,17 @@ namespace WalletWasabi.Gui
 					$"Wallet Filepath: {walletFullPath}\n" +
 					$"Trying to recover it from backup.\n" +
 					$"Backup path: {walletBackupFullPath}\n" +
-					$"Exception: {ex.ToString()}");
+					$"Exception: {ex}");
 				if (File.Exists(walletFullPath))
 				{
 					string corruptedWalletBackupPath = Path.Combine(WalletBackupsDir, $"{Path.GetFileName(walletFullPath)}_CorruptedBackup");
 					if (File.Exists(corruptedWalletBackupPath))
 					{
 						File.Delete(corruptedWalletBackupPath);
-						Logger.LogInfo($"Deleted previous corrupted wallet file backup from {corruptedWalletBackupPath}.");
+						Logger.LogInfo($"Deleted previous corrupted wallet file backup from `{corruptedWalletBackupPath}`.");
 					}
 					File.Move(walletFullPath, corruptedWalletBackupPath);
-					Logger.LogInfo($"Backed up corrupted wallet file to {corruptedWalletBackupPath}.");
+					Logger.LogInfo($"Backed up corrupted wallet file to `{corruptedWalletBackupPath}`.");
 				}
 				File.Copy(walletBackupFullPath, walletFullPath);
 
@@ -495,7 +496,8 @@ namespace WalletWasabi.Gui
 			KeyManager keyManager;
 
 			// Set the LastAccessTime.
-			new FileInfo(walletFullPath) {
+			new FileInfo(walletFullPath)
+			{
 				LastAccessTime = DateTime.Now
 			};
 
@@ -508,7 +510,7 @@ namespace WalletWasabi.Gui
 		{
 			try
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || UiConfig?.LurkingWifeMode.Value is true)
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || UiConfig?.LurkingWifeMode is true)
 				{
 					return;
 				}
@@ -524,11 +526,15 @@ namespace WalletWasabi.Gui
 						// else
 
 						string amountString = coin.Amount.ToString(false, true);
-						using (var process = Process.Start(new ProcessStartInfo {
+						using (var process = Process.Start(new ProcessStartInfo
+						{
 							FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
-							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e \"display notification \\\"Received {amountString} BTC\\\" with title \\\"Wasabi\\\"\"" : $"--expire-time=3000 \"Wasabi\" \"Received {amountString} BTC\"",
+							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+								? $"-e \"display notification \\\"Received {amountString} BTC\\\" with title \\\"Wasabi\\\"\""
+								: $"--expire-time=3000 \"Wasabi\" \"Received {amountString} BTC\"",
 							CreateNoWindow = true
-						})) { }
+						}))
+						{ }
 					}
 				}
 			}
@@ -560,7 +566,7 @@ namespace WalletWasabi.Gui
 				{
 					string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(WalletService.KeyManager.FilePath));
 					WalletService.KeyManager?.ToFile(backupWalletFilePath);
-					Logger.LogInfo($"{nameof(KeyManager)} backup saved to {backupWalletFilePath}.", nameof(Global));
+					Logger.LogInfo($"{nameof(KeyManager)} backup saved to `{backupWalletFilePath}`.", nameof(Global));
 				}
 				if (WalletService != null)
 				{
@@ -644,10 +650,10 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(Nodes)} are disposed.", nameof(Global));
 				}
 
-				if (RegTestMemPoolServingNode != null)
+				if (RegTestMempoolServingNode != null)
 				{
-					RegTestMemPoolServingNode.Disconnect();
-					Logger.LogInfo($"{nameof(RegTestMemPoolServingNode)} is disposed.", nameof(Global));
+					RegTestMempoolServingNode.Disconnect();
+					Logger.LogInfo($"{nameof(RegTestMempoolServingNode)} is disposed.", nameof(Global));
 				}
 
 				if (TorManager != null)
@@ -692,11 +698,17 @@ namespace WalletWasabi.Gui
 			throw new NotSupportedException("This is impossible.");
 		}
 
-		public string GetNextHardwareWalletName(Hwi.Models.HardwareWalletInfo hwi)
+		public string GetNextHardwareWalletName(Hwi.Models.HardwareWalletInfo hwi = null, string customPrefix = null)
 		{
+			var prefix = customPrefix is null
+				? hwi is null
+					? "HardwareWallet"
+					: hwi.Type.ToString()
+				: customPrefix;
+
 			for (int i = 0; i < int.MaxValue; i++)
 			{
-				var name = $"{hwi.Type}{i}";
+				var name = $"{prefix}{i}";
 				if (!File.Exists(Path.Combine(WalletsDir, $"{name}.json")))
 				{
 					return name;

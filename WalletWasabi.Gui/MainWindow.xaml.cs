@@ -2,16 +2,20 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Native;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Extensibility.Theme;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Controls;
 using NBitcoin;
+using ReactiveUI;
 using System;
 using System.ComponentModel;
 using System.Composition;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,17 +43,50 @@ namespace WalletWasabi.Gui
 
 				// This will need implementing properly once this is supported by avalonia itself.
 				var color = (ColorTheme.CurrentTheme.Background as SolidColorBrush).Color;
-				(PlatformImpl as Avalonia.Native.WindowImpl).SetTitleBarColor(color);
+				(PlatformImpl as WindowImpl).SetTitleBarColor(color);
 			}
 		}
 
-		public Global Global => (DataContext as MainWindowViewModel)?.Global;
+		public Global Global => MainWindowViewModel.Instance.Global;
 
 		private void InitializeComponent()
 		{
-			Activated += OnActivated;
 			Closing += MainWindow_ClosingAsync;
 			AvaloniaXamlLoader.Load(this);
+			DisplayWalletManager();
+
+			var uiConfigFilePath = Path.Combine(Global.DataDir, "UiConfig.json");
+			var uiConfig = new UiConfig(uiConfigFilePath);
+			uiConfig.LoadOrCreateDefaultFileAsync()
+				.ToObservable(RxApp.TaskpoolScheduler)
+				.Take(1)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					try
+					{
+						Global.InitializeUiConfig(uiConfig);
+						Application.Current.Resources.AddOrReplace(Global.UiConfigResourceKey, Global.UiConfig);
+						Logging.Logger.LogInfo<UiConfig>("UiConfig is successfully initialized.");
+
+						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+						{
+							MainWindowViewModel.Instance.Width = uiConfig.Width;
+							MainWindowViewModel.Instance.Height = uiConfig.Height;
+							MainWindowViewModel.Instance.WindowState = uiConfig.WindowState;
+						}
+						else
+						{
+							MainWindowViewModel.Instance.WindowState = WindowState.Maximized;
+						}
+
+						MainWindowViewModel.Instance.LockScreen.Initialize();
+					}
+					catch (Exception ex)
+					{
+						Logging.Logger.LogError<MainWindowViewModel>(ex);
+					}
+				}, onError: ex => Logging.Logger.LogError<MainWindowViewModel>(ex));
 		}
 
 		protected override void OnDataContextEndUpdate()
@@ -155,40 +192,6 @@ namespace WalletWasabi.Gui
 						Global.ChaumianClient.IsQuitPending = false; //re-enable enqueuing coins
 					}
 				}
-			}
-		}
-
-#pragma warning disable IDE1006 // Naming Styles
-
-		private async void OnActivated(object sender, EventArgs e)
-#pragma warning restore IDE1006 // Naming Styles
-		{
-			try
-			{
-				Activated -= OnActivated;
-
-				var uiConfigFilePath = Path.Combine(Global.DataDir, "UiConfig.json");
-				var uiConfig = new UiConfig(uiConfigFilePath);
-				await uiConfig.LoadOrCreateDefaultFileAsync();
-				Global.InitializeUiConfig(uiConfig);
-				Application.Current.Resources.AddOrReplace(Global.UiConfigResourceKey, Global.UiConfig);
-				Logging.Logger.LogInfo<UiConfig>("UiConfig is successfully initialized.");
-
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-				{
-					MainWindowViewModel.Instance.Width = (double)uiConfig.Width;
-					MainWindowViewModel.Instance.Height = (double)uiConfig.Height;
-					MainWindowViewModel.Instance.WindowState = (WindowState)uiConfig.WindowState;
-				}
-				else
-				{
-					MainWindowViewModel.Instance.WindowState = WindowState.Maximized;
-				}
-				DisplayWalletManager();
-			}
-			catch (Exception ex)
-			{
-				Logging.Logger.LogWarning<MainWindow>(ex);
 			}
 		}
 

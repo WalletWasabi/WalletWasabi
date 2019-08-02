@@ -66,7 +66,7 @@ ufw enable
 > As the firewall is currently blocking all connections except for SSH, if you install and configure additional services, you will need to adjust the firewall settings to allow acceptable traffic in. You can learn some common UFW operations in this guide.
 > https://www.digitalocean.com/community/tutorials/ufw-essentials-common-firewall-rules-and-commands
 
-## Enabling External Access for User
+## Enable External Access for User
 
 ```sh
 rsync --archive --chown=user:user ~/.ssh /home/user
@@ -245,7 +245,7 @@ sudo ufw allow https
 sudo apt-get install nginx -y
 sudo service nginx start
 ```
-Verify a browser displays the default landing page for Nginx. The landing page is reachable at `http://<server_IP_address>/index.nginx-debian.html`.
+Verify the browser displays the default landing page for Nginx. The landing page is reachable at `http://<server_IP_address>/index.nginx-debian.html`.
 
 ```sh
 sudo pico /etc/nginx/sites-available/default
@@ -271,13 +271,13 @@ sudo nginx -t
 sudo nginx -s reload
 ```
 
-Setup https, redirect to https when asks. This'll modify the above config file, but oh well.  
+Setup https, redirect to https when asks. This will modify the above config file, but oh well.  
 
 ```sh
 sudo certbot -d wasabiwallet.io -d www.wasabiwallet.io -d wasabiwallet.net -d www.wasabiwallet.net -d wasabiwallet.org -d www.wasabiwallet.org -d wasabiwallet.info -d www.wasabiwallet.info -d wasabiwallet.co -d www.wasabiwallet.co -d zerolink.info -d www.zerolink.info -d hiddenwallet.org -d www.hiddenwallet.org
 ```
 
-certbot won't properly redirect www, so it must be setup by hand, one by one. Duplicate all entries like this by adding a `www.`:
+certbot will not properly redirect www, so it must be setup by hand, one by one. Duplicate all entries like this by adding a `www.`:
 ```
 server {
     if ($host = wasabiwallet.co) {

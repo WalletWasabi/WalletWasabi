@@ -14,16 +14,24 @@
     <NeutralLanguage>en-US</NeutralLanguage>
     <AssemblyTitle>Wasabi Wallet</AssemblyTitle>
     <Description>
-      Privacy focused, ZeroLink compliant Bitcoin wallet.
+      Open-source, non-custodial, privacy focused Bitcoin wallet for Windows, Linux, and Mac. Built-in Tor, CoinJoin, and coin control features.
     </Description>
     <Copyright>MIT</Copyright>
     <PackageId>Wasabi Wallet</PackageId>
-    <PackageTags>bitcoin;cryptocurrency;blockchain;privacy;fungibility;anonymity</PackageTags>
+    <PackageTags>bitcoin-wallet;privacy;bitcoin;dotnet;nbitcoin;cross-platform;zerolink;wallet;tumbler;coin;tor</PackageTags>
     <PackageProjectUrl>https://github.com/zkSNACKs/WalletWasabi/</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/zkSNACKs/WalletWasabi/</RepositoryUrl>
     <!-- owners is not supported in MSBuild -->
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <RetainVMGarbageCollection>false</RetainVMGarbageCollection>
+    <ThreadPoolMinThreads>4</ThreadPoolMinThreads>
+    <ThreadPoolMaxThreads>25</ThreadPoolMaxThreads>
   </PropertyGroup>
 
   <ItemGroup>
@@ -56,7 +64,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AvalonStudio.Shell" Version="0.8.0.3" />
+    <PackageReference Include="AvalonStudio.Shell" Version="0.8.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -68,4 +76,3 @@
   </ItemGroup>
 
 </Project>
-

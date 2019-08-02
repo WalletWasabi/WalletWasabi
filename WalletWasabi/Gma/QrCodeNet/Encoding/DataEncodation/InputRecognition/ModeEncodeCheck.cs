@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 {
@@ -18,7 +18,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 		private static bool EightBitByteCheck(string encodingName, string content)
 		{
 			int tryEncodePos = TryEncodeEightBitByte(content, encodingName, 0, content.Length);
-			return tryEncodePos == -1 ? true : false;
+			return tryEncodePos == -1;
 		}
 
 		/// <summary>
@@ -33,7 +33,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 		{
 			if (string.IsNullOrEmpty(content))
 			{
-				throw new IndexOutOfRangeException("Input content should not be Null or empty");
+				throw new IndexOutOfRangeException("Input cannot be null or empty.");
 			}
 
 			System.Text.Encoding encoding;

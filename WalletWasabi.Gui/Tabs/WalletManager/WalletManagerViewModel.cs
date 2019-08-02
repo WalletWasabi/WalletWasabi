@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Composition;
 using System.Linq;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
@@ -25,7 +23,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private ViewModelBase _currentView;
 		private LoadWalletViewModel LoadWalletViewModelDesktop { get; }
 		private LoadWalletViewModel LoadWalletViewModelHardware { get; }
-		private CompositeDisposable Disposables { get; set; }
 
 		[ImportingConstructor]
 		public WalletManagerViewModel(AvaloniaGlobalComponent global) : base(global.Global, "Wallet Manager")
@@ -43,6 +40,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			};
 
 			SelectedCategory = Categories.FirstOrDefault();
+			HardwareWalletRefreshCancel = new CancellationTokenSource();
 
 			this.WhenAnyValue(x => x.SelectedCategory).Subscribe(category =>
 			{
@@ -76,17 +74,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public void SelectLoadWallet()
 		{
-			SelectedCategory = Categories.First(x => x is LoadWalletViewModel && (((LoadWalletViewModel)x).LoadWalletType == LoadWalletType.Desktop));
+			SelectedCategory = Categories.First(x => x is LoadWalletViewModel model && model.LoadWalletType == LoadWalletType.Desktop);
 		}
 
 		public void SelectTestPassword()
 		{
-			SelectedCategory = Categories.First(x => x is LoadWalletViewModel && (((LoadWalletViewModel)x).LoadWalletType == LoadWalletType.Password));
+			SelectedCategory = Categories.First(x => x is LoadWalletViewModel model && model.LoadWalletType == LoadWalletType.Password);
 		}
 
 		public void SelectHardwareWallet()
 		{
-			SelectedCategory = Categories.First(x => x is LoadWalletViewModel && (((LoadWalletViewModel)x).LoadWalletType == LoadWalletType.Hardware));
+			SelectedCategory = Categories.First(x => x is LoadWalletViewModel model && model.LoadWalletType == LoadWalletType.Hardware);
 		}
 
 		public ViewModelBase CurrentView
@@ -98,96 +96,101 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public override void OnOpen()
 		{
 			base.OnOpen();
-			if (Disposables != null)
+
+			Dispatcher.UIThread.PostLogException(async () =>
 			{
-				throw new Exception("Send tab opened before last one closed.");
-			}
-
-			Disposables = new CompositeDisposable();
-
-			Observable.FromEventPattern<IEnumerable<HardwareWalletInfo>>(
-				Global.HwiService,
-				nameof(Global.HwiService.NewEnumeration))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(e =>
-				{
-					IEnumerable<HardwareWalletInfo> hwis = e.EventArgs;
-					RefreshHardwareWalletListAsync(hwis);
-				}).DisposeWith(Disposables);
-
-			Global.HwiService.Start();
+				await RefreshHardwareWalletListAsync();
+				HardwareWalletRefreshCancel?.Dispose();
+				HardwareWalletRefreshCancel = null;
+			});
 		}
 
+		private CancellationTokenSource HardwareWalletRefreshCancel { get; set; }
 		private bool HwTabAutomaticallySelectedOnce { get; set; } = false;
 
-		private void RefreshHardwareWalletListAsync(IEnumerable<HardwareWalletInfo> hwis)
+		private async Task RefreshHardwareWalletListAsync()
 		{
 			try
 			{
-				if (LoadWalletViewModelDesktop.IsWalletOpened || LoadWalletViewModelHardware.IsWalletOpened || HwiProcessManager.HwiPath is null)
+				int waitTime = 3000;
+				while (!HardwareWalletRefreshCancel.IsCancellationRequested)
 				{
-					return;
-				}
-
-				LoadWalletViewModelHardware.TryRefreshHardwareWallets(hwis);
-
-				if (hwis.Any())
-				{
-					if (!HwTabAutomaticallySelectedOnce)
+					try
 					{
-						try
+						if (LoadWalletViewModelDesktop.IsWalletOpened || LoadWalletViewModelHardware.IsWalletOpened || HwiProcessManager.HwiPath is null)
 						{
-							HwTabAutomaticallySelectedOnce = true;
-							SelectHardwareWallet();
+							continue; // Will wait 3sec, because of the finally.
 						}
-						catch (Exception ex)
-						{
-							Logger.LogWarning<MainWindow>(ex);
-						}
-					}
 
-					// Stop enumerating after you find one. Hardware wallets are acting up, sometimes fingerprint doesn't arrive for example.
-					bool ledgerNotReady = hwis.Any(x => x.Type == HardwareWalletType.Ledger && !x.Ready);
-					if (ledgerNotReady) // For Ledger you have to log into your "Bitcoin" account.
-					{
-						LoadWalletViewModelHardware.SetWarningMessage("Log into your Bitcoin account on your Ledger. If you're already logged in, log out and log in again.");
-						return;
+						var hwis = await HwiProcessManager.EnumerateAsync();
+						LoadWalletViewModelHardware.TryRefreshHardwareWallets(hwis);
+
+						if (hwis.Any())
+						{
+							waitTime = 7000;
+							if (!HwTabAutomaticallySelectedOnce)
+							{
+								try
+								{
+									HwTabAutomaticallySelectedOnce = true;
+									SelectHardwareWallet();
+								}
+								catch (Exception ex)
+								{
+									Logger.LogWarning<MainWindow>(ex);
+								}
+							}
+
+							// Stop enumerating after you find one. Hardware wallets are acting up, sometimes fingerprint does not arrive for example.
+							bool ledgerNotReady = hwis.Any(x => x.Type == HardwareWalletType.Ledger && !x.Ready);
+							if (ledgerNotReady) // For Ledger you have to log into your "Bitcoin" account.
+							{
+								LoadWalletViewModelHardware.SetWarningMessage("Log into your Bitcoin account on your Ledger. If you're already logged in, log out and log in again.");
+								continue;
+							}
+
+							if (hwis.Any(x => x.Type == HardwareWalletType.Ledger && x.Ready))
+							{
+								LoadWalletViewModelHardware.SetWarningMessage("To have a smooth user experience consider turning off your Ledger screensaver.");
+							}
+
+							break;
+
+							//foreach (var hwi in hwis)
+							//{
+							//	// https://github.com/zkSNACKs/WalletWasabi/issues/1344#issuecomment-484607454
+							//	if (hwi.Type == HardwareWalletType.Trezor // If Trezor Model T has passphrase set then user must keep confirming the enumerate command -> https://github.com/zkSNACKs/WalletWasabi/pull/1341#issuecomment-483916529
+							//		|| hwi.Type == HardwareWalletType.Coldcard) //https://github.com/zkSNACKs/WalletWasabi/issues/1344#issuecomment-484691409
+							//	{
+							//		return;
+							//	}
+							//}
+						}
+						else
+						{
+							waitTime = 3000;
+						}
 					}
-					else if (hwis.Any(x => x.Type == HardwareWalletType.Ledger && x.Ready))
+					catch (Exception ex)
 					{
-						LoadWalletViewModelHardware.SetWarningMessage("To have a smooth user experience consider turning off your Ledger screensaver.");
-						_ = Global.HwiService.StopAsync(); // Just make it stop we don't have to wait for it.
+						LoadWalletViewModelHardware.SetValidationMessage(ex.ToTypeMessageString());
+						Logger.LogWarning<WalletManagerViewModel>(ex);
 					}
-					else
+					finally
 					{
-						_ = Global.HwiService.StopAsync(); // Just make it stop we don't have to wait for it.
+						await Task.Delay(waitTime, HardwareWalletRefreshCancel.Token);
 					}
-					//foreach (var hwi in hwis)
-					//{
-					//	// https://github.com/zkSNACKs/WalletWasabi/issues/1344#issuecomment-484607454
-					//	if (hwi.Type == HardwareWalletType.Trezor // If Trezor Model T has passphrase set then user must keep confirming the enumerate command -> https://github.com/zkSNACKs/WalletWasabi/pull/1341#issuecomment-483916529
-					//		|| hwi.Type == HardwareWalletType.Coldcard) //https://github.com/zkSNACKs/WalletWasabi/issues/1344#issuecomment-484691409
-					//	{
-					//		return;
-					//	}
-					//}
 				}
 			}
-			catch (Exception ex)
+			catch (TaskCanceledException ex)
 			{
-				LoadWalletViewModelHardware.SetValidationMessage(ex.ToTypeMessageString());
-				Logger.LogWarning<WalletManagerViewModel>(ex);
+				Logger.LogTrace<WalletManagerViewModel>(ex);
 			}
 		}
 
 		public override bool OnClose()
 		{
-			_ = Global.HwiService.StopAsync(); // Just make it stop we don't have to wait for it.
-
-			Disposables.Dispose();
-
-			Disposables = null;
-
+			HardwareWalletRefreshCancel?.Cancel();
 			return base.OnClose();
 		}
 	}

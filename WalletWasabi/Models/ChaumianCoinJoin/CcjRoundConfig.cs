@@ -1,9 +1,12 @@
 using NBitcoin;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
@@ -12,221 +15,77 @@ using WalletWasabi.Logging;
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	public class CcjRoundConfig : IConfig
+	public class CcjRoundConfig : ConfigBase
 	{
-		/// <inheritdoc />
-		public string FilePath { get; internal set; }
-
 		[JsonProperty(PropertyName = "Denomination")]
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
-		public Money Denomination { get; internal set; }
+		public Money Denomination { get; internal set; } = Money.Coins(0.1m);
 
-		[JsonProperty(PropertyName = "ConfirmationTarget")]
-		public int? ConfirmationTarget { get; internal set; }
+		[DefaultValue(Constants.OneDayConfirmationTarget)]
+		[JsonProperty(PropertyName = "ConfirmationTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int ConfirmationTarget { get; internal set; }
 
-		[JsonProperty(PropertyName = "ConfirmationTargetReductionRate")]
-		public double? ConfirmationTargetReductionRate { get; internal set; }
+		[DefaultValue(0.7)]
+		[JsonProperty(PropertyName = "ConfirmationTargetReductionRate", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public double ConfirmationTargetReductionRate { get; internal set; }
 
-		[JsonProperty(PropertyName = "CoordinatorFeePercent")]
-		public decimal? CoordinatorFeePercent { get; internal set; }
+		[DefaultValue(0.003)] // Coordinator fee percent is per anonymity set.
+		[JsonProperty(PropertyName = "CoordinatorFeePercent", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public decimal CoordinatorFeePercent { get; internal set; }
 
-		[JsonProperty(PropertyName = "AnonymitySet")]
-		public int? AnonymitySet { get; internal set; }
+		[DefaultValue(100)]
+		[JsonProperty(PropertyName = "AnonymitySet", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int AnonymitySet { get; internal set; }
 
-		[JsonProperty(PropertyName = "InputRegistrationTimeout")]
-		public long? InputRegistrationTimeout { get; internal set; }
+		[DefaultValue(604800)] // One week
+		[JsonProperty(PropertyName = "InputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public long InputRegistrationTimeout { get; internal set; }
 
-		[JsonProperty(PropertyName = "ConnectionConfirmationTimeout")]
-		public long? ConnectionConfirmationTimeout { get; internal set; }
+		[DefaultValue(60)]
+		[JsonProperty(PropertyName = "ConnectionConfirmationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public long ConnectionConfirmationTimeout { get; internal set; }
 
-		[JsonProperty(PropertyName = "OutputRegistrationTimeout")]
-		public long? OutputRegistrationTimeout { get; internal set; }
+		[DefaultValue(60)]
+		[JsonProperty(PropertyName = "OutputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public long OutputRegistrationTimeout { get; internal set; }
 
-		[JsonProperty(PropertyName = "SigningTimeout")]
-		public long? SigningTimeout { get; internal set; }
+		[DefaultValue(60)]
+		[JsonProperty(PropertyName = "SigningTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public long SigningTimeout { get; internal set; }
 
-		[JsonProperty(PropertyName = "DosSeverity")]
-		public int? DosSeverity { get; internal set; }
+		[DefaultValue(1)]
+		[JsonProperty(PropertyName = "DosSeverity", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int DosSeverity { get; internal set; }
 
-		[JsonProperty(PropertyName = "DosDurationHours")]
-		public long? DosDurationHours { get; internal set; }
+		[DefaultValue(730)] // 1 month
+		[JsonProperty(PropertyName = "DosDurationHours", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public long DosDurationHours { get; internal set; }
 
-		[JsonProperty(PropertyName = "DosNoteBeforeBan")]
-		public bool? DosNoteBeforeBan { get; internal set; }
+		[DefaultValue(true)]
+		[JsonProperty(PropertyName = "DosNoteBeforeBan", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool DosNoteBeforeBan { get; internal set; }
 
-		[JsonProperty(PropertyName = "MaximumMixingLevelCount")]
-		public int? MaximumMixingLevelCount { get; internal set; }
+		[DefaultValue(11)]
+		[JsonProperty(PropertyName = "MaximumMixingLevelCount", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int MaximumMixingLevelCount { get; internal set; }
 
-		public CcjRoundConfig()
+		public CcjRoundConfig() : base()
 		{
 		}
 
-		public CcjRoundConfig(string filePath)
+		public CcjRoundConfig(string filePath) : base(filePath)
 		{
-			SetFilePath(filePath);
 		}
 
-		public CcjRoundConfig(Money denomination, int? confirmationTarget, double? confirmationTargetReductionRate, decimal? coordinatorFeePercent, int? anonymitySet, long? inputRegistrationTimeout, long? connectionConfirmationTimeout, long? outputRegistrationTimeout, long? signingTimeout, int? dosSeverity, long? dosDurationHours, bool? dosNoteBeforeBan, int? maximumMixingLevelCount)
-		{
-			FilePath = null;
-			Denomination = Guard.NotNull(nameof(denomination), denomination);
-			ConfirmationTarget = Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
-			ConfirmationTargetReductionRate = Guard.NotNull(nameof(confirmationTargetReductionRate), confirmationTargetReductionRate);
-			CoordinatorFeePercent = Guard.NotNull(nameof(coordinatorFeePercent), coordinatorFeePercent);
-			AnonymitySet = Guard.NotNull(nameof(anonymitySet), anonymitySet);
-			InputRegistrationTimeout = Guard.NotNull(nameof(inputRegistrationTimeout), inputRegistrationTimeout);
-			ConnectionConfirmationTimeout = Guard.NotNull(nameof(connectionConfirmationTimeout), connectionConfirmationTimeout);
-			OutputRegistrationTimeout = Guard.NotNull(nameof(outputRegistrationTimeout), outputRegistrationTimeout);
-			SigningTimeout = Guard.NotNull(nameof(signingTimeout), signingTimeout);
-			DosSeverity = Guard.NotNull(nameof(dosSeverity), dosSeverity);
-			DosDurationHours = Guard.NotNull(nameof(dosDurationHours), dosDurationHours);
-			DosNoteBeforeBan = Guard.NotNull(nameof(dosNoteBeforeBan), dosNoteBeforeBan);
-			MaximumMixingLevelCount = Guard.NotNull(nameof(maximumMixingLevelCount), maximumMixingLevelCount);
-		}
-
-		/// <inheritdoc />
-		public async Task ToFileAsync()
-		{
-			AssertFilePathSet();
-
-			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-			await File.WriteAllTextAsync(FilePath,
-			jsonString,
-			Encoding.UTF8);
-		}
-
-		/// <inheritdoc />
-		public async Task LoadOrCreateDefaultFileAsync()
-		{
-			AssertFilePathSet();
-
-			Denomination = Money.Coins(0.1m);
-			ConfirmationTarget = 144; // 1 day
-			ConfirmationTargetReductionRate = 0.7;
-			CoordinatorFeePercent = 0.003m; // Coordinator fee percent is per anonymity set.
-			AnonymitySet = 100;
-			InputRegistrationTimeout = 604800; // One week
-			ConnectionConfirmationTimeout = 60;
-			OutputRegistrationTimeout = 60;
-			SigningTimeout = 60;
-			DosSeverity = 1;
-			DosDurationHours = 730; // 1 month
-			DosNoteBeforeBan = true;
-			MaximumMixingLevelCount = 11;
-
-			if (!File.Exists(FilePath))
-			{
-				Logger.LogInfo<CcjRoundConfig>($"{nameof(CcjRoundConfig)} file did not exist. Created at path: `{FilePath}`.");
-			}
-			else
-			{
-				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-				var config = JsonConvert.DeserializeObject<CcjRoundConfig>(jsonString);
-
-				UpdateOrDefault(config);
-			}
-
-			await ToFileAsync();
-		}
-
-		public void UpdateOrDefault(CcjRoundConfig config)
+		public async Task UpdateOrDefaultAsync(CcjRoundConfig config, bool toFile)
 		{
 			Denomination = config.Denomination ?? Denomination;
-			ConfirmationTarget = config.ConfirmationTarget ?? ConfirmationTarget;
-			ConfirmationTargetReductionRate = config.ConfirmationTargetReductionRate ?? ConfirmationTargetReductionRate;
-			CoordinatorFeePercent = config.CoordinatorFeePercent ?? CoordinatorFeePercent;
-			AnonymitySet = config.AnonymitySet ?? AnonymitySet;
-			InputRegistrationTimeout = config.InputRegistrationTimeout ?? InputRegistrationTimeout;
-			ConnectionConfirmationTimeout = config.ConnectionConfirmationTimeout ?? ConnectionConfirmationTimeout;
-			OutputRegistrationTimeout = config.OutputRegistrationTimeout ?? OutputRegistrationTimeout;
-			SigningTimeout = config.SigningTimeout ?? SigningTimeout;
-			DosSeverity = config.DosSeverity ?? DosSeverity;
-			DosDurationHours = config.DosDurationHours ?? DosDurationHours;
-			DosNoteBeforeBan = config.DosNoteBeforeBan ?? DosNoteBeforeBan;
-			MaximumMixingLevelCount = config.MaximumMixingLevelCount ?? MaximumMixingLevelCount;
-		}
+			var configSerialized = JsonConvert.SerializeObject(config);
+			JsonConvert.PopulateObject(configSerialized, this);
 
-		/// <inheritdoc />
-		public async Task<bool> CheckFileChangeAsync()
-		{
-			AssertFilePathSet();
-
-			if (!File.Exists(FilePath))
+			if (toFile)
 			{
-				throw new FileNotFoundException($"{nameof(CcjRoundConfig)} file did not exist at path: `{FilePath}`.");
-			}
-
-			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-			var config = JsonConvert.DeserializeObject<CcjRoundConfig>(jsonString);
-
-			if (Denomination != config.Denomination)
-			{
-				return true;
-			}
-			if (ConfirmationTarget != config.ConfirmationTarget)
-			{
-				return true;
-			}
-			if (ConfirmationTargetReductionRate != config.ConfirmationTargetReductionRate)
-			{
-				return true;
-			}
-			if (CoordinatorFeePercent != config.CoordinatorFeePercent)
-			{
-				return true;
-			}
-			if (AnonymitySet != config.AnonymitySet)
-			{
-				return true;
-			}
-			if (InputRegistrationTimeout != config.InputRegistrationTimeout)
-			{
-				return true;
-			}
-			if (ConnectionConfirmationTimeout != config.ConnectionConfirmationTimeout)
-			{
-				return true;
-			}
-			if (OutputRegistrationTimeout != config.OutputRegistrationTimeout)
-			{
-				return true;
-			}
-			if (SigningTimeout != config.SigningTimeout)
-			{
-				return true;
-			}
-			if (DosSeverity != config.DosSeverity)
-			{
-				return true;
-			}
-			if (DosDurationHours != config.DosDurationHours)
-			{
-				return true;
-			}
-			if (DosNoteBeforeBan != config.DosNoteBeforeBan)
-			{
-				return true;
-			}
-			if (MaximumMixingLevelCount != config.MaximumMixingLevelCount)
-			{
-				return true;
-			}
-
-			return false;
-		}
-
-		/// <inheritdoc />
-		public void SetFilePath(string path)
-		{
-			FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(path), path, trim: true);
-		}
-
-		/// <inheritdoc />
-		public void AssertFilePathSet()
-		{
-			if (FilePath is null)
-			{
-				throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
+				await ToFileAsync();
 			}
 		}
 	}

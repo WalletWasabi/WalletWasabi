@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.Bases;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -22,7 +23,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
-	public class WasabiSynchronizer : INotifyPropertyChanged
+	public class WasabiSynchronizer : NotifyPropertyChangedBase
 	{
 		#region MembersPropertiesEvents
 
@@ -40,15 +41,7 @@ namespace WalletWasabi.Services
 		public decimal UsdExchangeRate
 		{
 			get => _usdExchangeRate;
-
-			private set
-			{
-				if (_usdExchangeRate != value)
-				{
-					_usdExchangeRate = value;
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(UsdExchangeRate)));
-				}
-			}
+			private set => RaiseAndSetIfChanged(ref _usdExchangeRate, value);
 		}
 
 		private AllFeeEstimate _allFeeEstimate;
@@ -56,15 +49,7 @@ namespace WalletWasabi.Services
 		public AllFeeEstimate AllFeeEstimate
 		{
 			get => _allFeeEstimate;
-
-			private set
-			{
-				if (_allFeeEstimate != value)
-				{
-					_allFeeEstimate = value;
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AllFeeEstimate)));
-				}
-			}
+			private set => RaiseAndSetIfChanged(ref _allFeeEstimate, value);
 		}
 
 		private TorStatus _torStatus;
@@ -72,15 +57,7 @@ namespace WalletWasabi.Services
 		public TorStatus TorStatus
 		{
 			get => _torStatus;
-
-			private set
-			{
-				if (_torStatus != value)
-				{
-					_torStatus = value;
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TorStatus)));
-				}
-			}
+			private set => RaiseAndSetIfChanged(ref _torStatus, value);
 		}
 
 		private BackendStatus _backendStatus;
@@ -88,15 +65,7 @@ namespace WalletWasabi.Services
 		public BackendStatus BackendStatus
 		{
 			get => _backendStatus;
-
-			private set
-			{
-				if (_backendStatus != value)
-				{
-					_backendStatus = value;
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BackendStatus)));
-				}
-			}
+			private set => RaiseAndSetIfChanged(ref _backendStatus, value);
 		}
 
 		public TimeSpan MaxRequestIntervalForMixing { get; set; }
@@ -109,8 +78,6 @@ namespace WalletWasabi.Services
 		public void EnableRequests() => Interlocked.Exchange(ref _blockRequests, 0);
 
 		public BitcoinStore BitcoinStore { get; private set; }
-
-		public event PropertyChangedEventHandler PropertyChanged;
 
 		public event EventHandler<bool> ResponseArrivedIsGenSocksServFail;
 
@@ -134,13 +101,13 @@ namespace WalletWasabi.Services
 			CreateNew(network, bitcoinStore, client);
 		}
 
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Func<Uri> baseUriAction, IPEndPoint torSocks5EndPoint)
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Func<Uri> baseUriAction, EndPoint torSocks5EndPoint)
 		{
 			var client = new WasabiClient(baseUriAction, torSocks5EndPoint);
 			CreateNew(network, bitcoinStore, client);
 		}
 
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, IPEndPoint torSocks5EndPoint)
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, EndPoint torSocks5EndPoint)
 		{
 			var client = new WasabiClient(baseUri, torSocks5EndPoint);
 			CreateNew(network, bitcoinStore, client);
@@ -175,6 +142,7 @@ namespace WalletWasabi.Services
 				{
 					DateTimeOffset lastFeeQueried = DateTimeOffset.UtcNow - feeQueryRequestInterval;
 					bool ignoreRequestInterval = false;
+					var hashChain = BitcoinStore.HashChain;
 					EnableRequests();
 					while (IsRunning)
 					{
@@ -200,7 +168,7 @@ namespace WalletWasabi.Services
 									return;
 								}
 
-								response = await WasabiClient.GetSynchronizeAsync(BitcoinStore.HashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
+								response = await WasabiClient.GetSynchronizeAsync(hashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
 								// NOT GenSocksServErr
 								BackendStatus = BackendStatus.Connected;
 								TorStatus = TorStatus.Running;
@@ -243,7 +211,7 @@ namespace WalletWasabi.Services
 								ignoreRequestInterval = false;
 							}
 
-							BitcoinStore.HashChain.UpdateServerTipHeight(response.BestHeight);
+							hashChain.UpdateServerTipHeight(response.BestHeight);
 							ExchangeRate exchangeRate = response.ExchangeRates.FirstOrDefault();
 							if (exchangeRate != default && exchangeRate.Rate != 0)
 							{
@@ -254,15 +222,34 @@ namespace WalletWasabi.Services
 							{
 								var filters = response.Filters;
 
-								await BitcoinStore.IndexStore.AddNewFiltersAsync(filters, Cancel.Token);
-
-								if (filters.Count() == 1)
+								var firstFilter = filters.First();
+								if (hashChain.TipHeight + 1 != firstFilter.BlockHeight)
 								{
-									Logger.LogInfo<WasabiSynchronizer>($"Downloaded filter for block {filters.First().BlockHeight}.");
+									// We have a problem.
+									// We have wrong filters, the heights are not in sync with the server's.
+									Logger.LogError<WasabiSynchronizer>($"Inconsistent index state detected.{Environment.NewLine}" +
+										$"{nameof(hashChain)}.{nameof(hashChain.TipHeight)}:{hashChain.TipHeight}{Environment.NewLine}" +
+										$"{nameof(hashChain)}.{nameof(hashChain.HashesLeft)}:{hashChain.HashesLeft}{Environment.NewLine}" +
+										$"{nameof(hashChain)}.{nameof(hashChain.TipHash)}:{hashChain.TipHash}{Environment.NewLine}" +
+										$"{nameof(hashChain)}.{nameof(hashChain.HashCount)}:{hashChain.HashCount}{Environment.NewLine}" +
+										$"{nameof(hashChain)}.{nameof(hashChain.ServerTipHeight)}:{hashChain.ServerTipHeight}{Environment.NewLine}" +
+										$"{nameof(firstFilter)}.{nameof(firstFilter.BlockHash)}:{firstFilter.BlockHash}{Environment.NewLine}" +
+										$"{nameof(firstFilter)}.{nameof(firstFilter.BlockHeight)}:{firstFilter.BlockHeight}");
+
+									await BitcoinStore.IndexStore.RemoveAllImmmatureFiltersAsync(Cancel.Token, deleteAndCrashIfMature: true);
 								}
 								else
 								{
-									Logger.LogInfo<WasabiSynchronizer>($"Downloaded filters for blocks from {filters.First().BlockHeight} to {filters.Last().BlockHeight}.");
+									await BitcoinStore.IndexStore.AddNewFiltersAsync(filters, Cancel.Token);
+
+									if (filters.Count() == 1)
+									{
+										Logger.LogInfo<WasabiSynchronizer>($"Downloaded filter for block {firstFilter.BlockHeight}.");
+									}
+									else
+									{
+										Logger.LogInfo<WasabiSynchronizer>($"Downloaded filters for blocks from {firstFilter.BlockHeight} to {filters.Last().BlockHeight}.");
+									}
 								}
 							}
 							else if (response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
@@ -276,7 +263,13 @@ namespace WalletWasabi.Services
 							}
 							else if (response.FiltersResponseState == FiltersResponseState.NoNewFilter)
 							{
-								// We are syced.
+								// We are synced.
+								// Assert index state.
+								if (response.BestHeight > hashChain.TipHeight) // If the server's tip height is larger than ours, we're missing a filter, our index got corrupted.
+								{
+									await BitcoinStore.IndexStore.RemoveAllImmmatureFiltersAsync(Cancel.Token, deleteAndCrashIfMature: true);
+									// If still bad delete filters and crash the software?
+								}
 							}
 
 							LastResponse = response;

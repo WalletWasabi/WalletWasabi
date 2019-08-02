@@ -1,10 +1,13 @@
 using NBitcoin;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Bases;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
@@ -16,59 +19,62 @@ using WalletWasabi.TorSocks5;
 namespace WalletWasabi.Gui
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	public class Config : IConfig
+	public class Config : ConfigBase
 	{
-		/// <inheritdoc />
-		public string FilePath { get; private set; }
+		public const int DefaultPrivacyLevelSome = 2;
+		public const int DefaultPrivacyLevelFine = 21;
+		public const int DefaultPrivacyLevelStrong = 50;
+		public const int DefaultMixUntilAnonymitySet = 50;
+		public const int DefaultTorSock5Port = 9050;
+		public static readonly Money DefaultDustThreshold = Money.Coins(0.0001m);
 
 		[JsonProperty(PropertyName = "Network")]
 		[JsonConverter(typeof(NetworkJsonConverter))]
-		public Network Network { get; internal set; }
+		public Network Network { get; internal set; } = Network.Main;
 
-		[JsonProperty(PropertyName = "MainNetBackendUriV3")]
+		[DefaultValue("http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/")]
+		[JsonProperty(PropertyName = "MainNetBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public string MainNetBackendUriV3 { get; private set; }
 
-		[JsonProperty(PropertyName = "TestNetBackendUriV3")]
+		[DefaultValue("http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/")]
+		[JsonProperty(PropertyName = "TestNetBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public string TestNetBackendUriV3 { get; private set; }
 
-		[JsonProperty(PropertyName = "MainNetFallbackBackendUri")]
+		[DefaultValue("https://wasabiwallet.io/")]
+		[JsonProperty(PropertyName = "MainNetFallbackBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public string MainNetFallbackBackendUri { get; private set; }
 
-		[JsonProperty(PropertyName = "TestNetFallbackBackendUri")]
+		[DefaultValue("https://wasabiwallet.co/")]
+		[JsonProperty(PropertyName = "TestNetFallbackBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public string TestNetFallbackBackendUri { get; private set; }
 
-		[JsonProperty(PropertyName = "RegTestBackendUriV3")]
+		[DefaultValue("http://localhost:37127/")]
+		[JsonProperty(PropertyName = "RegTestBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public string RegTestBackendUriV3 { get; private set; }
 
-		[JsonProperty(PropertyName = "UseTor")]
-		public bool? UseTor { get; internal set; }
+		[DefaultValue(true)]
+		[JsonProperty(PropertyName = "UseTor", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool UseTor { get; internal set; }
 
-		[JsonProperty(PropertyName = "TorHost")]
-		public string TorHost { get; internal set; }
+		[JsonProperty(PropertyName = "TorSocks5EndPoint")]
+		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTorSocksPort)]
+		public EndPoint TorSocks5EndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTorSocksPort);
 
-		[JsonProperty(PropertyName = "TorSocks5Port")]
-		public int? TorSocks5Port { get; internal set; }
+		[JsonProperty(PropertyName = "MainNetBitcoinP2pEndPoint")]
+		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinP2pPort)]
+		public EndPoint MainNetBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultMainNetBitcoinP2pPort);
 
-		[JsonProperty(PropertyName = "MainNetBitcoinCoreHost")]
-		public string MainNetBitcoinCoreHost { get; internal set; }
+		[JsonProperty(PropertyName = "TestNetBitcoinP2pEndPoint")]
+		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTestNetBitcoinP2pPort)]
+		public EndPoint TestNetBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTestNetBitcoinP2pPort);
 
-		[JsonProperty(PropertyName = "TestNetBitcoinCoreHost")]
-		public string TestNetBitcoinCoreHost { get; internal set; }
+		[JsonProperty(PropertyName = "RegTestBitcoinP2pEndPoint")]
+		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinP2pPort)]
+		public EndPoint RegTestBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinP2pPort);
 
-		[JsonProperty(PropertyName = "RegTestBitcoinCoreHost")]
-		public string RegTestBitcoinCoreHost { get; internal set; }
-
-		[JsonProperty(PropertyName = "MainNetBitcoinCorePort")]
-		public int? MainNetBitcoinCorePort { get; internal set; }
-
-		[JsonProperty(PropertyName = "TestNetBitcoinCorePort")]
-		public int? TestNetBitcoinCorePort { get; internal set; }
-
-		[JsonProperty(PropertyName = "RegTestBitcoinCorePort")]
-		public int? RegTestBitcoinCorePort { get; internal set; }
-
-		[JsonProperty(PropertyName = "MixUntilAnonymitySet")]
-		public int? MixUntilAnonymitySet
+		[DefaultValue(DefaultMixUntilAnonymitySet)]
+		[JsonProperty(PropertyName = "MixUntilAnonymitySet", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int MixUntilAnonymitySet
 		{
 			get => _mixUntilAnonymitySet;
 			internal set
@@ -76,16 +82,17 @@ namespace WalletWasabi.Gui
 				if (_mixUntilAnonymitySet != value)
 				{
 					_mixUntilAnonymitySet = value;
-					if (value.HasValue && ServiceConfiguration != default)
+					if (ServiceConfiguration != default)
 					{
-						ServiceConfiguration.MixUntilAnonymitySet = value.Value;
+						ServiceConfiguration.MixUntilAnonymitySet = value;
 					}
 				}
 			}
 		}
 
-		[JsonProperty(PropertyName = "PrivacyLevelSome")]
-		public int? PrivacyLevelSome
+		[DefaultValue(DefaultPrivacyLevelSome)]
+		[JsonProperty(PropertyName = "PrivacyLevelSome", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int PrivacyLevelSome
 		{
 			get => _privacyLevelSome;
 			internal set
@@ -93,16 +100,17 @@ namespace WalletWasabi.Gui
 				if (_privacyLevelSome != value)
 				{
 					_privacyLevelSome = value;
-					if (value.HasValue && ServiceConfiguration != default)
+					if (ServiceConfiguration != default)
 					{
-						ServiceConfiguration.PrivacyLevelSome = value.Value;
+						ServiceConfiguration.PrivacyLevelSome = value;
 					}
 				}
 			}
 		}
 
-		[JsonProperty(PropertyName = "PrivacyLevelFine")]
-		public int? PrivacyLevelFine
+		[DefaultValue(DefaultPrivacyLevelFine)]
+		[JsonProperty(PropertyName = "PrivacyLevelFine", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int PrivacyLevelFine
 		{
 			get => _privacyLevelFine;
 			internal set
@@ -110,16 +118,17 @@ namespace WalletWasabi.Gui
 				if (_privacyLevelFine != value)
 				{
 					_privacyLevelFine = value;
-					if (value.HasValue && ServiceConfiguration != default)
+					if (ServiceConfiguration != default)
 					{
-						ServiceConfiguration.PrivacyLevelFine = value.Value;
+						ServiceConfiguration.PrivacyLevelFine = value;
 					}
 				}
 			}
 		}
 
-		[JsonProperty(PropertyName = "PrivacyLevelStrong")]
-		public int? PrivacyLevelStrong
+		[DefaultValue(DefaultPrivacyLevelStrong)]
+		[JsonProperty(PropertyName = "PrivacyLevelStrong", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int PrivacyLevelStrong
 		{
 			get => _privacyLevelStrong;
 			internal set
@@ -127,9 +136,9 @@ namespace WalletWasabi.Gui
 				if (_privacyLevelStrong != value)
 				{
 					_privacyLevelStrong = value;
-					if (value.HasValue && ServiceConfiguration != default)
+					if (ServiceConfiguration != default)
 					{
-						ServiceConfiguration.PrivacyLevelStrong = value.Value;
+						ServiceConfiguration.PrivacyLevelStrong = value;
 					}
 				}
 			}
@@ -137,9 +146,9 @@ namespace WalletWasabi.Gui
 
 		[JsonProperty(PropertyName = "DustThreshold")]
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
-		public Money DustThreshold { get; internal set; }
+		public Money DustThreshold { get; internal set; } = DefaultDustThreshold;
 
-		private Uri _backendUri;
+		private Uri _backendUri = null;
 		private Uri _fallbackBackendUri;
 
 		public ServiceConfiguration ServiceConfiguration { get; private set; }
@@ -195,336 +204,94 @@ namespace WalletWasabi.Gui
 			return _fallbackBackendUri;
 		}
 
-		private IPEndPoint _torSocks5EndPoint;
-		private int? _mixUntilAnonymitySet;
-		private int? _privacyLevelSome;
-		private int? _privacyLevelFine;
-		private int? _privacyLevelStrong;
-		private EndPoint _bitcoinCoreEndPoint;
+		private int _mixUntilAnonymitySet;
+		private int _privacyLevelSome;
+		private int _privacyLevelFine;
+		private int _privacyLevelStrong;
 
-		public IPEndPoint GetTorSocks5EndPoint()
+		public EndPoint GetBitcoinP2pEndPoint()
 		{
-			if (_torSocks5EndPoint is null)
+			if (Network == Network.Main)
 			{
-				var host = IPAddress.Parse(TorHost);
-				_torSocks5EndPoint = new IPEndPoint(host, (int)TorSocks5Port);
+				return MainNetBitcoinP2pEndPoint;
 			}
-
-			return _torSocks5EndPoint;
-		}
-
-		public EndPoint GetBitcoinCoreEndPoint()
-		{
-			if (_bitcoinCoreEndPoint is null)
+			else if (Network == Network.TestNet)
 			{
-				IPAddress ipHost;
-				string dnsHost = null;
-				int? port = null;
-				try
-				{
-					if (Network == Network.Main)
-					{
-						port = MainNetBitcoinCorePort;
-						dnsHost = MainNetBitcoinCoreHost;
-						ipHost = IPAddress.Parse(MainNetBitcoinCoreHost);
-					}
-					else if (Network == Network.TestNet)
-					{
-						port = TestNetBitcoinCorePort;
-						dnsHost = TestNetBitcoinCoreHost;
-						ipHost = IPAddress.Parse(TestNetBitcoinCoreHost);
-					}
-					else // if (Network == Network.RegTest)
-					{
-						port = RegTestBitcoinCorePort;
-						dnsHost = RegTestBitcoinCoreHost;
-						ipHost = IPAddress.Parse(RegTestBitcoinCoreHost);
-					}
-
-					_bitcoinCoreEndPoint = new IPEndPoint(ipHost, port ?? Network.DefaultPort);
-				}
-				catch
-				{
-					_bitcoinCoreEndPoint = new DnsEndPoint(dnsHost, port ?? Network.DefaultPort);
-				}
+				return TestNetBitcoinP2pEndPoint;
 			}
-
-			return _bitcoinCoreEndPoint;
-		}
-
-		public Config()
-		{
-			_backendUri = null;
-		}
-
-		public Config(string filePath)
-		{
-			_backendUri = null;
-			SetFilePath(filePath);
-		}
-
-		public Config(
-			Network network,
-			string mainNetBackendUriV3,
-			string testNetBackendUriV3,
-			string mainNetFallbackBackendUri,
-			string testNetFallbackBackendUri,
-			string regTestBackendUriV3,
-			bool? useTor,
-			string torHost,
-			int? torSocks5Port,
-			string mainNetBitcoinCoreHost,
-			string testNetBitcoinCoreHost,
-			string regTestBitcoinCoreHost,
-			int? mainNetBitcoinCorePort,
-			int? testNetBitcoinCorePort,
-			int? regTestBitcoinCorePort,
-			int? mixUntilAnonymitySet,
-			int? privacyLevelSome,
-			int? privacyLevelFine,
-			int? privacyLevelStrong,
-			Money dustThreshold)
-		{
-			Network = Guard.NotNull(nameof(network), network);
-
-			MainNetBackendUriV3 = Guard.NotNullOrEmptyOrWhitespace(nameof(mainNetBackendUriV3), mainNetBackendUriV3);
-			TestNetBackendUriV3 = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBackendUriV3), testNetBackendUriV3);
-			MainNetFallbackBackendUri = Guard.NotNullOrEmptyOrWhitespace(nameof(mainNetFallbackBackendUri), mainNetFallbackBackendUri);
-			TestNetFallbackBackendUri = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetFallbackBackendUri), testNetFallbackBackendUri);
-			TestNetBackendUriV3 = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBackendUriV3), testNetBackendUriV3);
-			RegTestBackendUriV3 = Guard.NotNullOrEmptyOrWhitespace(nameof(regTestBackendUriV3), regTestBackendUriV3);
-
-			UseTor = Guard.NotNull(nameof(useTor), useTor);
-			TorHost = Guard.NotNullOrEmptyOrWhitespace(nameof(torHost), torHost);
-			TorSocks5Port = Guard.NotNull(nameof(torSocks5Port), torSocks5Port);
-
-			MainNetBitcoinCoreHost = Guard.NotNullOrEmptyOrWhitespace(nameof(mainNetBitcoinCoreHost), mainNetBitcoinCoreHost);
-			TestNetBitcoinCoreHost = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBitcoinCoreHost), testNetBitcoinCoreHost);
-			RegTestBitcoinCoreHost = Guard.NotNullOrEmptyOrWhitespace(nameof(regTestBitcoinCoreHost), regTestBitcoinCoreHost);
-			MainNetBitcoinCorePort = Guard.NotNull(nameof(mainNetBitcoinCorePort), mainNetBitcoinCorePort);
-			TestNetBitcoinCorePort = Guard.NotNull(nameof(testNetBitcoinCorePort), testNetBitcoinCorePort);
-			RegTestBitcoinCorePort = Guard.NotNull(nameof(regTestBitcoinCorePort), regTestBitcoinCorePort);
-
-			MixUntilAnonymitySet = Guard.NotNull(nameof(mixUntilAnonymitySet), mixUntilAnonymitySet);
-			PrivacyLevelSome = Guard.NotNull(nameof(privacyLevelSome), privacyLevelSome);
-			PrivacyLevelFine = Guard.NotNull(nameof(privacyLevelFine), privacyLevelFine);
-			PrivacyLevelStrong = Guard.NotNull(nameof(privacyLevelStrong), privacyLevelStrong);
-
-			DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
-
-			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint(), DustThreshold);
-		}
-
-		/// <inheritdoc />
-		public async Task ToFileAsync()
-		{
-			AssertFilePathSet();
-
-			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-			await File.WriteAllTextAsync(FilePath,
-			jsonString,
-			Encoding.UTF8);
-		}
-
-		/// <inheritdoc />
-		public async Task LoadOrCreateDefaultFileAsync()
-		{
-			AssertFilePathSet();
-
-			Network = Network.Main;
-
-			MainNetBackendUriV3 = "http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/";
-			TestNetBackendUriV3 = "http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/";
-			MainNetFallbackBackendUri = "https://wasabiwallet.io/";
-			TestNetFallbackBackendUri = "https://wasabiwallet.co/";
-			RegTestBackendUriV3 = "http://localhost:37127/";
-
-			UseTor = true;
-			TorHost = IPAddress.Loopback.ToString();
-			TorSocks5Port = 9050;
-
-			MainNetBitcoinCoreHost = IPAddress.Loopback.ToString();
-			TestNetBitcoinCoreHost = IPAddress.Loopback.ToString();
-			RegTestBitcoinCoreHost = IPAddress.Loopback.ToString();
-			MainNetBitcoinCorePort = Network.Main.DefaultPort;
-			TestNetBitcoinCorePort = Network.TestNet.DefaultPort;
-			RegTestBitcoinCorePort = Network.RegTest.DefaultPort;
-
-			MixUntilAnonymitySet = 50;
-			PrivacyLevelSome = 2;
-			PrivacyLevelFine = 21;
-			PrivacyLevelStrong = 50;
-			DustThreshold = Money.Coins(0.0001m);
-
-			if (!File.Exists(FilePath))
+			else if (Network == Network.RegTest)
 			{
-				Logger.LogInfo<Config>($"{nameof(Config)} file did not exist. Created at path: `{FilePath}`.");
+				return RegTestBitcoinP2pEndPoint;
 			}
 			else
 			{
-				await LoadFileAsync();
+				throw new NotSupportedException($"{nameof(Network)} not supported: {Network}.");
 			}
-
-			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint(), DustThreshold);
-
-			// Just debug convenience.
-			_backendUri = GetCurrentBackendUri();
-
-			await ToFileAsync();
 		}
 
-		public async Task LoadFileAsync()
+		public Config() : base()
 		{
-			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-			var config = JsonConvert.DeserializeObject<Config>(jsonString);
+		}
 
-			Network = config.Network ?? Network;
+		public Config(string filePath) : base(filePath)
+		{
+		}
 
-			MainNetBackendUriV3 = config.MainNetBackendUriV3 ?? MainNetBackendUriV3;
-			TestNetBackendUriV3 = config.TestNetBackendUriV3 ?? TestNetBackendUriV3;
-			MainNetFallbackBackendUri = config.MainNetFallbackBackendUri ?? MainNetFallbackBackendUri;
-			TestNetFallbackBackendUri = config.TestNetFallbackBackendUri ?? TestNetFallbackBackendUri;
-			RegTestBackendUriV3 = config.RegTestBackendUriV3 ?? RegTestBackendUriV3;
+		/// <inheritdoc />
+		public override async Task LoadFileAsync()
+		{
+			await base.LoadFileAsync();
 
-			UseTor = config.UseTor ?? UseTor;
-			TorHost = config.TorHost ?? TorHost;
-			TorSocks5Port = config.TorSocks5Port ?? TorSocks5Port;
-
-			MainNetBitcoinCoreHost = config.MainNetBitcoinCoreHost ?? MainNetBitcoinCoreHost;
-			TestNetBitcoinCoreHost = config.TestNetBitcoinCoreHost ?? TestNetBitcoinCoreHost;
-			RegTestBitcoinCoreHost = config.RegTestBitcoinCoreHost ?? RegTestBitcoinCoreHost;
-			MainNetBitcoinCorePort = config.MainNetBitcoinCorePort ?? MainNetBitcoinCorePort;
-			TestNetBitcoinCorePort = config.TestNetBitcoinCorePort ?? TestNetBitcoinCorePort;
-			RegTestBitcoinCorePort = config.RegTestBitcoinCorePort ?? RegTestBitcoinCorePort;
-
-			MixUntilAnonymitySet = config.MixUntilAnonymitySet ?? MixUntilAnonymitySet;
-			PrivacyLevelSome = config.PrivacyLevelSome ?? PrivacyLevelSome;
-			PrivacyLevelFine = config.PrivacyLevelFine ?? PrivacyLevelFine;
-			PrivacyLevelStrong = config.PrivacyLevelStrong ?? PrivacyLevelStrong;
-
-			DustThreshold = config.DustThreshold ?? DustThreshold;
-
-			ServiceConfiguration = config.ServiceConfiguration ?? ServiceConfiguration;
+			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet, PrivacyLevelSome, PrivacyLevelFine, PrivacyLevelStrong, GetBitcoinP2pEndPoint(), DustThreshold);
 
 			// Just debug convenience.
 			_backendUri = GetCurrentBackendUri();
 		}
 
-		/// <inheritdoc />
-		public async Task<bool> CheckFileChangeAsync()
+		public void SetP2PEndpoint(EndPoint endPoint)
 		{
-			AssertFilePathSet();
+			switch (Network.Name)
+			{
+				case "Main":
+					MainNetBitcoinP2pEndPoint = endPoint;
+					break;
 
-			if (!File.Exists(FilePath))
-			{
-				throw new FileNotFoundException($"{nameof(Config)} file did not exist at path: `{FilePath}`.");
-			}
+				case "TestNet":
+					TestNetBitcoinP2pEndPoint = endPoint;
+					break;
 
-			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-			var config = JsonConvert.DeserializeObject<Config>(jsonString);
+				case "RegTest":
+					RegTestBitcoinP2pEndPoint = endPoint;
+					break;
 
-			if (Network != config.Network)
-			{
-				return true;
+				default:
+					throw new NotSupportedException("Unsupported network");
 			}
-
-			if (!MainNetBackendUriV3.Equals(config.MainNetBackendUriV3, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!TestNetBackendUriV3.Equals(config.TestNetBackendUriV3, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!MainNetFallbackBackendUri.Equals(config.MainNetFallbackBackendUri, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!TestNetFallbackBackendUri.Equals(config.TestNetFallbackBackendUri, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!RegTestBackendUriV3.Equals(config.RegTestBackendUriV3, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (UseTor != config.UseTor)
-			{
-				return true;
-			}
-
-			if (!TorHost.Equals(config.TorHost, StringComparison.Ordinal))
-			{
-				return true;
-			}
-			if (TorSocks5Port != config.TorSocks5Port)
-			{
-				return true;
-			}
-
-			if (!MainNetBitcoinCoreHost.Equals(config.MainNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!TestNetBitcoinCoreHost.Equals(config.TestNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!RegTestBitcoinCoreHost.Equals(config.RegTestBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (MainNetBitcoinCorePort != config.MainNetBitcoinCorePort)
-			{
-				return true;
-			}
-			if (TestNetBitcoinCorePort != config.TestNetBitcoinCorePort)
-			{
-				return true;
-			}
-			if (RegTestBitcoinCorePort != config.RegTestBitcoinCorePort)
-			{
-				return true;
-			}
-
-			if (MixUntilAnonymitySet != config.MixUntilAnonymitySet)
-			{
-				return true;
-			}
-			if (PrivacyLevelSome != config.PrivacyLevelSome)
-			{
-				return true;
-			}
-			if (PrivacyLevelFine != config.PrivacyLevelFine)
-			{
-				return true;
-			}
-			if (PrivacyLevelStrong != config.PrivacyLevelStrong)
-			{
-				return true;
-			}
-
-			if (DustThreshold != config.DustThreshold)
-			{
-				return true;
-			}
-
-			return false;
 		}
 
-		/// <inheritdoc />
-		public void SetFilePath(string path)
+		public EndPoint GetP2PEndpoint()
 		{
-			FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(path), path, trim: true);
+			switch (Network.Name)
+			{
+				case "Main":
+					return MainNetBitcoinP2pEndPoint;
+
+				case "TestNet":
+					return TestNetBitcoinP2pEndPoint;
+
+				case "RegTest":
+					return RegTestBitcoinP2pEndPoint;
+
+				default:
+					throw new NotSupportedException("Unsupported network");
+			}
 		}
 
-		/// <inheritdoc />
-		public void AssertFilePathSet()
+		public static async Task<Config> LoadOrCreateDefaultFileAsync(string path)
 		{
-			if (FilePath is null)
-			{
-				throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
-			}
+			var config = new Config(path);
+			await config.LoadOrCreateDefaultFileAsync();
+			return config;
 		}
 
 		public TargetPrivacy GetTargetPrivacy()
@@ -575,15 +342,85 @@ namespace WalletWasabi.Gui
 					return 0;
 
 				case TargetPrivacy.Some:
-					return PrivacyLevelSome.Value;
+					return PrivacyLevelSome;
 
 				case TargetPrivacy.Fine:
-					return PrivacyLevelFine.Value;
+					return PrivacyLevelFine;
 
 				case TargetPrivacy.Strong:
-					return PrivacyLevelStrong.Value;
+					return PrivacyLevelStrong;
 			}
 			return 0;
+		}
+
+		protected override bool TryEnsureBackwardsCompatibility(string jsonString)
+		{
+			try
+			{
+				var jsObject = JsonConvert.DeserializeObject<JObject>(jsonString);
+				bool saveIt = false;
+
+				var torHost = jsObject.Value<string>("TorHost");
+				var torSocks5Port = jsObject.Value<int?>("TorSocks5Port");
+				var mainNetBitcoinCoreHost = jsObject.Value<string>("MainNetBitcoinCoreHost");
+				var mainNetBitcoinCorePort = jsObject.Value<int?>("MainNetBitcoinCorePort");
+				var testNetBitcoinCoreHost = jsObject.Value<string>("TestNetBitcoinCoreHost");
+				var testNetBitcoinCorePort = jsObject.Value<int?>("TestNetBitcoinCorePort");
+				var regTestBitcoinCoreHost = jsObject.Value<string>("RegTestBitcoinCoreHost");
+				var regTestBitcoinCorePort = jsObject.Value<int?>("RegTestBitcoinCorePort");
+
+				if (torHost != null)
+				{
+					int port = torSocks5Port ?? Constants.DefaultTorSocksPort;
+
+					if (EndPointParser.TryParse(torHost, port, out EndPoint ep))
+					{
+						TorSocks5EndPoint = ep;
+						saveIt = true;
+					}
+				}
+
+				if (mainNetBitcoinCoreHost != null)
+				{
+					int port = mainNetBitcoinCorePort ?? Constants.DefaultMainNetBitcoinP2pPort;
+
+					if (EndPointParser.TryParse(mainNetBitcoinCoreHost, port, out EndPoint ep))
+					{
+						MainNetBitcoinP2pEndPoint = ep;
+						saveIt = true;
+					}
+				}
+
+				if (testNetBitcoinCoreHost != null)
+				{
+					int port = testNetBitcoinCorePort ?? Constants.DefaultTestNetBitcoinP2pPort;
+
+					if (EndPointParser.TryParse(testNetBitcoinCoreHost, port, out EndPoint ep))
+					{
+						TestNetBitcoinP2pEndPoint = ep;
+						saveIt = true;
+					}
+				}
+
+				if (regTestBitcoinCoreHost != null)
+				{
+					int port = regTestBitcoinCorePort ?? Constants.DefaultRegTestBitcoinP2pPort;
+
+					if (EndPointParser.TryParse(regTestBitcoinCoreHost, port, out EndPoint ep))
+					{
+						RegTestBitcoinP2pEndPoint = ep;
+						saveIt = true;
+					}
+				}
+
+				return saveIt;
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<Config>("Backwards compatibility couldn't be ensured.");
+				Logger.LogInfo<Config>(ex);
+				return false;
+			}
 		}
 	}
 }

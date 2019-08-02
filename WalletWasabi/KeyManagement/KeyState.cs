@@ -1,4 +1,4 @@
-﻿namespace WalletWasabi.KeyManagement
+namespace WalletWasabi.KeyManagement
 {
 	public enum KeyState
 	{

@@ -1,4 +1,4 @@
-﻿namespace Gma.QrCodeNet.Encoding.Versions
+namespace Gma.QrCodeNet.Encoding.Versions
 {
 	internal struct ErrorCorrectionBlocks
 	{
@@ -40,7 +40,7 @@
 		{
 			if (ECBlock is null)
 			{
-				throw new System.ArgumentNullException("ErrorCorrectionBlocks array doesn't contain any value");
+				throw new System.ArgumentNullException("ErrorCorrectionBlocks array does not contain any value");
 			}
 
 			NumBlocks = 0;

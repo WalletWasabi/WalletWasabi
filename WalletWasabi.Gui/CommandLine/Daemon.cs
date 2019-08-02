@@ -25,7 +25,7 @@ namespace WalletWasabi.Gui.CommandLine
 			{
 				Logger.LogStarting("Wasabi Daemon");
 
-				KeyManager keyManager = TryGetKeymanagerFromWalletName(walletName);
+				KeyManager keyManager = TryGetKeyManagerFromWalletName(walletName);
 				if (keyManager is null)
 				{
 					return;
@@ -86,7 +86,6 @@ namespace WalletWasabi.Gui.CommandLine
 					}
 
 					bool anyCoinsQueued = Global.ChaumianClient.State.AnyCoinsQueued();
-
 					if (!anyCoinsQueued && keepMixAlive) // If no coins queued and mixing is asked to be kept alive then try to queue coins.
 					{
 						await TryQueueCoinsToMixAsync(mixAll, password);
@@ -118,7 +117,7 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 		}
 
-		public KeyManager TryGetKeymanagerFromWalletName(string walletName)
+		public KeyManager TryGetKeyManagerFromWalletName(string walletName)
 		{
 			try
 			{
@@ -130,7 +129,7 @@ namespace WalletWasabi.Gui.CommandLine
 					if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
 					{
 						// The selected wallet is not available any more (someone deleted it?).
-						Logger.LogCritical("The selected wallet doesn't exsist, did you delete it?", nameof(Daemon));
+						Logger.LogCritical("The selected wallet does not exist, did you delete it?", nameof(Daemon));
 						return null;
 					}
 
@@ -148,7 +147,6 @@ namespace WalletWasabi.Gui.CommandLine
 				if (keyManager is null)
 				{
 					Logger.LogCritical("Wallet was not supplied. Add --wallet:WalletName", nameof(Daemon));
-					return null;
 				}
 
 				return keyManager;

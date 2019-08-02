@@ -20,8 +20,10 @@ namespace WalletWasabi.Gui.Converters
 			var global = Application.Current.Resources[Global.GlobalResourceKey] as Global;
 			var phaseError = global.ChaumianClient.State.IsInErrorState;
 
-			return ((CcjRoundPhase)p <= (CcjRoundPhase)value)
-				? (phaseError ? Brushes.IndianRed : Brushes.Green)
+			return (CcjRoundPhase)p <= (CcjRoundPhase)value
+				? phaseError
+					? Brushes.IndianRed
+					: Brushes.Green
 				: Brushes.Gray;
 		}
 

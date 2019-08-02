@@ -80,11 +80,11 @@ namespace NBitcoin
 		/// <summary>
 		/// Based on transaction data, it decides if it's possible that native segwit script played a par in this transaction.
 		/// </summary>
-		public static bool PossiblyNativeSegWitInvolved(this Transaction me)
+		public static bool PossiblyP2WPKHInvolved(this Transaction me)
 		{
 			// We omit Guard, because it's performance critical in Wasabi.
 			// We start with the inputs, because, this check is faster.
-			// Note: by testing performance the order doesn't seem to affect the speed of loading the wallet.
+			// Note: by testing performance the order does not seem to affect the speed of loading the wallet.
 			foreach (TxIn input in me.Inputs)
 			{
 				if (input.ScriptSig is null || input.ScriptSig == Script.Empty)
@@ -94,7 +94,7 @@ namespace NBitcoin
 			}
 			foreach (TxOut output in me.Outputs)
 			{
-				if (output.ScriptPubKey.IsWitness)
+				if (output.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
 				{
 					return true;
 				}
@@ -119,7 +119,7 @@ namespace NBitcoin
 			// 3. Anonymity set cannot be larger than the number of inputs.
 			var inputCount = me.Inputs.Count;
 			var anonSet = Math.Min(equalOutputs, inputCount);
-			return equalOutputs;
+			return anonSet;
 		}
 
 		public static int GetAnonymitySet(this Transaction me, uint outputIndex) => GetAnonymitySet(me, (int)outputIndex);
@@ -213,9 +213,9 @@ namespace NBitcoin
 		/// </summary>
 		public static void AddRangeWithOptimize(this TxOutList me, IEnumerable<TxOut> collection)
 		{
-			foreach (var txout in collection)
+			foreach (var txOut in collection)
 			{
-				me.AddWithOptimize(txout);
+				me.AddWithOptimize(txOut);
 			}
 		}
 
@@ -253,10 +253,25 @@ namespace NBitcoin
 			return psbt.ExtractSmartTransaction(Height.Unknown);
 		}
 
-		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt, Height height, uint256 blockHash = null, int blockIndex = 0, string label = "", DateTimeOffset? firstSeenIfMemPoolTime = null, bool isReplacement = false)
+		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt, Height height, uint256 blockHash = null, int blockIndex = 0, string label = "", DateTimeOffset? firstSeenIfMempoolTime = null, bool isReplacement = false)
 		{
 			var extractedTx = psbt.ExtractTransaction();
-			return new SmartTransaction(extractedTx, height, blockHash, blockIndex, label, firstSeenIfMemPoolTime, isReplacement);
+			return new SmartTransaction(extractedTx, height, blockHash, blockIndex, label, firstSeenIfMempoolTime, isReplacement);
+		}
+
+		public static void SortByAmount(this TxOutList list)
+		{
+			list.Sort((x, y) => x.Value.CompareTo(y.Value));
+		}
+
+		public static void SortByAmount(this TxInList list, List<Coin> coins)
+		{
+			var map = new Dictionary<TxIn, Coin>();
+			foreach (var coin in coins)
+			{
+				map.Add(list.Single(x => x.PrevOut == coin.Outpoint), coin);
+			}
+			list.Sort((x, y) => map[x].Amount.CompareTo(map[y].Amount));
 		}
 	}
 }

@@ -1,4 +1,5 @@
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:cont="clr-namespace:AvalonStudio.Controls;assembly=AvalonStudio.Shell.Extensibility">
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:cont="clr-namespace:AvalonStudio.Controls;assembly=AvalonStudio.Shell.Extensibility">
   <Grid Background="#EF2D2D2D" IsVisible="{Binding IsVisible, FallbackValue=False}">
     <Grid Height="500" Background="{DynamicResource ThemeControlBackgroundBrush}" Margin="10 0">
       <DockPanel LastChildFill="True" Margin="200 0 200 100">

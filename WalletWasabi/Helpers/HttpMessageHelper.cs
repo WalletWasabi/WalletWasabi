@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -85,6 +85,7 @@ namespace System.Net.Http
 
 				builder.Append(header + CRLF); // CRLF is part of the headerstring
 			}
+
 			headers = builder.ToString();
 			if (string.IsNullOrEmpty(headers))
 			{
@@ -117,12 +118,10 @@ namespace System.Net.Http
 				}
 				bab.Append((byte)ch);
 			}
-			if (bab.Length > 0)
-			{
-				return bab.ToString(encoding);
-			}
 
-			return null;
+			return bab.Length > 0
+				? bab.ToString(encoding)
+				: null;
 		}
 
 		public static byte[] HandleGzipCompression(HttpContentHeaders contentHeaders, byte[] decodedBodyArray)
@@ -288,13 +287,19 @@ namespace System.Net.Http
 
 		private static async Task<byte[]> GetDecodedChunkedContentBytesAsync(Stream stream, HttpRequestContentHeaders requestHeaders, HttpResponseContentHeaders responseHeaders, CancellationToken ctsToken = default)
 		{
-			if (responseHeaders is null && requestHeaders is null)
+			if (responseHeaders is null)
 			{
-				throw new ArgumentException("Response and request headers cannot be both null.");
+				if (requestHeaders is null)
+				{
+					throw new ArgumentException("Response and request headers cannot be both null.");
+				}
 			}
-			if (responseHeaders != null && requestHeaders != null)
+			else
 			{
-				throw new ArgumentException("Either response or request headers has to be null.");
+				if (requestHeaders != null)
+				{
+					throw new ArgumentException("Either response or request headers has to be null.");
+				}
 			}
 
 			// https://tools.ietf.org/html/rfc7230#section-4.1.3
@@ -501,7 +506,7 @@ namespace System.Net.Http
 				// supposedly chunked transfer coding fails, MUST record the message as
 				// incomplete.Cache requirements for incomplete responses are defined
 				// in Section 3 of[RFC7234].
-				throw new NotSupportedException($"Incomplete message. Expected length: {length}, actual: {num}.");
+				throw new NotSupportedException($"Incomplete message. Expected length: {length}. Actual: {num}.");
 			}
 			return allData;
 		}
@@ -520,7 +525,7 @@ namespace System.Net.Http
 			{
 				if (contentHeaders.ContentLength < 0)
 				{
-					throw new HttpRequestException("Content-Length MUST be larger than zero.");
+					throw new HttpRequestException("Content-Length MUST be greater than or equal to zero.");
 				}
 			}
 		}

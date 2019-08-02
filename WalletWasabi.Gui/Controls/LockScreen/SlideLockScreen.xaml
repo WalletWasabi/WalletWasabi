@@ -1,0 +1,116 @@
+﻿<lockscreen:SlideLockScreen xmlns="https://github.com/avaloniaui"
+                            xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
+                            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                            IsLocked="{Binding IsLocked}"
+                            Offset="{Binding Offset}">
+  <lockscreen:SlideLockScreen.Clock>
+    <Clock />
+  </lockscreen:SlideLockScreen.Clock>
+  <lockscreen:SlideLockScreen.Styles>
+    <Styles>
+      <Styles.Resources>
+        <Template x:Key="Chevron">
+          <Path Stretch="Uniform" Fill="{DynamicResource ThemeForegroundBrush}" Data="M 478.97852 464.25977
+                      L 446.12109 470.33203
+                      L 446.12109 478.72461
+                      L 478.97852 472.65234
+                      L 511.83398 478.72461
+                      L 511.83398 470.33203
+                      L 478.97852 464.25977 z " />
+        </Template>
+      </Styles.Resources>
+      <Style Selector="Border.Chevron">
+        <Setter Property="Width" Value="103" />
+        <Setter Property="Height" Value="50" />
+        <Setter Property="Child" Value="{StaticResource Chevron}" />
+      </Style>
+      <Style Selector="Grid[IsVisible=true] Border.Chev1">
+        <Style.Animations>
+          <Animation Duration="0:0:1.5" Easing="QuarticEaseInOut" IterationCount="Infinite">
+            <KeyFrame Cue="0%">
+              <Setter Property="Opacity" Value="0" />
+              <Setter Property="TranslateTransform.Y" Value="100" />
+            </KeyFrame>
+            <KeyFrame Cue="90%">
+              <Setter Property="Opacity" Value="{Binding #Shade.Opacity}" />
+              <Setter Property="TranslateTransform.Y" Value="0" />
+            </KeyFrame>
+            <KeyFrame Cue="100%">
+              <Setter Property="Opacity" Value="0" />
+              <Setter Property="TranslateTransform.Y" Value="0" />
+            </KeyFrame>
+          </Animation>
+        </Style.Animations>
+      </Style>
+      <Style Selector="Grid[IsVisible=true] Border.Chev2">
+        <Style.Animations>
+          <Animation Delay="0:0:0.3" Duration="0:0:1.5" Easing="QuarticEaseInOut" IterationCount="Infinite">
+            <KeyFrame Cue="0%">
+              <Setter Property="Opacity" Value="0" />
+              <Setter Property="TranslateTransform.Y" Value="100" />
+            </KeyFrame>
+            <KeyFrame Cue="90%">
+              <Setter Property="Opacity" Value="{Binding #Shade.Opacity}" />
+              <Setter Property="TranslateTransform.Y" Value="0" />
+            </KeyFrame>
+            <KeyFrame Cue="100%">
+              <Setter Property="Opacity" Value="0" />
+              <Setter Property="TranslateTransform.Y" Value="0" />
+            </KeyFrame>
+          </Animation>
+        </Style.Animations>
+      </Style>
+      <Style Selector="Grid[IsVisible=true] Border.Chev3">
+        <Style.Animations>
+          <Animation Delay="0:0:0.6" Duration="0:0:1.5" Easing="QuarticEaseInOut" IterationCount="Infinite">
+            <KeyFrame Cue="0%">
+              <Setter Property="Opacity" Value="0" />
+              <Setter Property="TranslateTransform.Y" Value="100" />
+            </KeyFrame>
+            <KeyFrame Cue="90%">
+              <Setter Property="Opacity" Value="{Binding #Shade.Opacity}" />
+              <Setter Property="TranslateTransform.Y" Value="0" />
+            </KeyFrame>
+            <KeyFrame Cue="100%">
+              <Setter Property="Opacity" Value="0" />
+              <Setter Property="TranslateTransform.Y" Value="0" />
+            </KeyFrame>
+          </Animation>
+        </Style.Animations>
+      </Style>
+      <Style Selector="lockscreen|SlideLockScreen.statechanged">
+        <Style.Animations>
+          <Animation FillMode="Both" Duration="0:0:1.5" Easing="QuarticEaseInOut">
+            <KeyFrame Cue="0%">
+              <Setter Property="DoneAnimating" Value="False" />
+            </KeyFrame>
+            <KeyFrame Cue="100%">
+              <Setter Property="Opacity" Value="{Binding TargetOpacity}" />
+              <Setter Property="Offset" Value="{Binding TargetOffset}" />
+              <Setter Property="DoneAnimating" Value="True" />
+            </KeyFrame>
+          </Animation>
+        </Style.Animations>
+      </Style>
+    </Styles>
+  </lockscreen:SlideLockScreen.Styles>
+  <Grid>
+    <Grid x:Name="Shade" Background="{DynamicResource ThemeBackgroundBrush}">
+      <Grid IsVisible="{Binding IsUserDragging}" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Border Classes="Chevron Chev1" />
+        <Border Classes="Chevron Chev2" />
+        <Border Classes="Chevron Chev3" />
+      </Grid>
+      <Grid VerticalAlignment="Bottom" HorizontalAlignment="Center">
+        <Border Classes="Chevron" Opacity="0.4" />
+      </Grid>
+    </Grid>
+    <Thumb x:Name="PART_DragThumb">
+      <Thumb.Template>
+        <ControlTemplate>
+          <Border Background="Transparent" />
+        </ControlTemplate>
+      </Thumb.Template>
+    </Thumb>
+  </Grid>
+</lockscreen:SlideLockScreen>

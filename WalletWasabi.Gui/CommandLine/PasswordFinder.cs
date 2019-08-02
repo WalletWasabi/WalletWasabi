@@ -10,7 +10,8 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	internal class PasswordFinder
 	{
-		internal static Dictionary<string, string> Charsets = new Dictionary<string, string> {
+		internal static Dictionary<string, string> Charsets = new Dictionary<string, string>
+		{
 			["en"] = "abcdefghijkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
 			["es"] = "aábcdeéfghiíjkmnñoópqrstuúüvwxyzAÁBCDEÉFGHIÍJKLMNNOÓPQRSTUÚÜVWXYZ",
 			["pt"] = "aáàâābcçdeéêfghiíjkmnoóôōpqrstuúvwxyzAÁÀÂĀBCÇDEÉÊFGHIÍJKMNOÓÔŌPQRSTUÚVWXYZ",
@@ -31,8 +32,8 @@ namespace WalletWasabi.Gui.CommandLine
 				return;
 			}
 
-			Logging.Logger.LogWarning<PasswordFinder>($"WARNING: This tool will display you password if it finds it.");
-			Logging.Logger.LogWarning<PasswordFinder>($"         You can cancel this by CTRL+C combination anytime." + Environment.NewLine);
+			Logging.Logger.LogWarning<PasswordFinder>($"WARNING: This tool will display your password if it finds it.");
+			Logging.Logger.LogWarning<PasswordFinder>($"         You can cancel this by CTRL+C combination anytime.{Environment.NewLine}");
 
 			Console.Write("Enter a likely password: ");
 

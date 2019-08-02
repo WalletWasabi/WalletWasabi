@@ -9,6 +9,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
+using WalletWasabi.Io;
 using WalletWasabi.Stores;
 using Xunit;
 using Xunit.Sdk;
@@ -29,14 +31,14 @@ namespace WalletWasabi.Tests
 
 			// ASSERT EVENTS
 
-			// Assert some functions doesn't raise any events when default.
+			// Assert some functions do not raise any events when default.
 			Assert.Throws<PropertyChangedException>(() =>
 				Assert.PropertyChanged(hashChain,
 					nameof(hashChain.HashCount),
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert RemoveLast doesn't modify nor throw anything when nothing is added.
+						// Assert RemoveLast does not modify nor throw anything when nothing is added.
 						hashChain.RemoveLast();
 						AssertEverythingDefault(hashChain);
 					}));
@@ -46,7 +48,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert RemoveLast doesn't modify nor throw anything when nothing is added.
+						// Assert RemoveLast does not modify nor throw anything when nothing is added.
 						hashChain.RemoveLast();
 						AssertEverythingDefault(hashChain);
 					}));
@@ -56,7 +58,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert RemoveLast doesn't modify nor throw anything when nothing is added.
+						// Assert RemoveLast does not modify nor throw anything when nothing is added.
 						hashChain.RemoveLast();
 						AssertEverythingDefault(hashChain);
 					}));
@@ -66,7 +68,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert RemoveLast doesn't modify nor throw anything when nothing is added.
+						// Assert RemoveLast does not modify nor throw anything when nothing is added.
 						hashChain.RemoveLast();
 						AssertEverythingDefault(hashChain);
 					}));
@@ -76,7 +78,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert RemoveLast doesn't modify nor throw anything when nothing is added.
+						// Assert RemoveLast does not modify nor throw anything when nothing is added.
 						hashChain.RemoveLast();
 						AssertEverythingDefault(hashChain);
 					}));
@@ -108,7 +110,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert update server height doesn't raise unnecessary events.
+						// Assert update server height does not raise unnecessary events.
 						hashChain.UpdateServerTipHeight(newServerHeight);
 					}));
 			newServerHeight++;
@@ -118,7 +120,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert update server height doesn't raise unnecessary events.
+						// Assert update server height does not raise unnecessary events.
 						hashChain.UpdateServerTipHeight(newServerHeight);
 					}));
 			newServerHeight++;
@@ -128,7 +130,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert update server height doesn't raise unnecessary events.
+						// Assert update server height does not raise unnecessary events.
 						hashChain.UpdateServerTipHeight(newServerHeight);
 					}));
 			var sameServerheight = newServerHeight;
@@ -138,7 +140,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert update server height doesn't raise without actually changing.
+						// Assert update server height does not raise without actually changing.
 						hashChain.UpdateServerTipHeight(sameServerheight);
 					}));
 			Assert.Throws<PropertyChangedException>(() =>
@@ -147,7 +149,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert update server height doesn't raise without actually changing.
+						// Assert update server height does not raise without actually changing.
 						hashChain.UpdateServerTipHeight(sameServerheight);
 					}));
 
@@ -346,9 +348,7 @@ namespace WalletWasabi.Tests
 			List<string> lines = new List<string>();
 			for (int i = 0; i < 1000; i++)
 			{
-				const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-				string line = new string(Enumerable.Repeat(chars, 100)
+				string line = new string(Enumerable.Repeat(Constants.Chars, 100)
 				  .Select(s => s[random.Next(s.Length)]).ToArray());
 
 				lines.Add(line);
@@ -356,7 +356,7 @@ namespace WalletWasabi.Tests
 
 			// Single thread file operations.
 
-			IoManager ioman1 = new IoManager(file1);
+			DigestableSafeMutexIoManager ioman1 = new DigestableSafeMutexIoManager(file1);
 
 			// Delete the file if Exist.
 
@@ -386,9 +386,9 @@ namespace WalletWasabi.Tests
 				for (int i = 0; i < lines1.Length; i++)
 				{
 					string line = lines2[i];
-					var readline = lines1[i];
+					var readLine = lines1[i];
 
-					if (!line.Equals(readline))
+					if (!line.Equals(readLine))
 					{
 						return false;
 					}
@@ -403,18 +403,18 @@ namespace WalletWasabi.Tests
 			// Check digest file, and write only differ logic.
 
 			// Write the same content, file should not be written.
-			var currentDate = File.GetLastWriteTimeUtc(ioman1.OriginalFilePath);
+			var currentDate = File.GetLastWriteTimeUtc(ioman1.FilePath);
 			await Task.Delay(500);
 			await ioman1.WriteAllLinesAsync(lines);
-			var noChangeDate = File.GetLastWriteTimeUtc(ioman1.OriginalFilePath);
+			var noChangeDate = File.GetLastWriteTimeUtc(ioman1.FilePath);
 			Assert.Equal(currentDate, noChangeDate);
 
 			// Write different content, file should be written.
-			currentDate = File.GetLastWriteTimeUtc(ioman1.OriginalFilePath);
+			currentDate = File.GetLastWriteTimeUtc(ioman1.FilePath);
 			await Task.Delay(500);
 			lines.Add("Lorem ipsum dolor sit amet, consectetur adipiscing elit.");
 			await ioman1.WriteAllLinesAsync(lines);
-			var newContentDate = File.GetLastWriteTimeUtc(ioman1.OriginalFilePath);
+			var newContentDate = File.GetLastWriteTimeUtc(ioman1.FilePath);
 			Assert.NotEqual(currentDate, newContentDate);
 
 			/* The next test is commented out because on mac and on linux File.Open does not lock the file
@@ -427,12 +427,12 @@ namespace WalletWasabi.Tests
 			 * https://github.com/dotnet/corefx/issues/5964
 			 */
 
-			//using (File.OpenWrite(ioman1.OriginalFilePath))
+			//using (File.OpenWrite(ioman1.FilePath))
 			//{
 			//	// Should be OK because the same data is written.
 			//	await ioman1.WriteAllLinesAsync(lines);
 			//}
-			//using (File.OpenWrite(ioman1.OriginalFilePath))
+			//using (File.OpenWrite(ioman1.FilePath))
 			//{
 			//	// Should fail because different data is written.
 			//	await Assert.ThrowsAsync<IOException>(async () => await ioman1.WriteAllLinesAsync(lines));
@@ -472,8 +472,8 @@ namespace WalletWasabi.Tests
 			// Simulate file write error and recovery logic.
 
 			// We have only *.new and *.old files.
-			File.Copy(ioman1.OriginalFilePath, ioman1.OldFilePath);
-			File.Move(ioman1.OriginalFilePath, ioman1.NewFilePath);
+			File.Copy(ioman1.FilePath, ioman1.OldFilePath);
+			File.Move(ioman1.FilePath, ioman1.NewFilePath);
 
 			// At this point there is now OriginalFile.
 
@@ -489,7 +489,7 @@ namespace WalletWasabi.Tests
 			// Check recovery mechanism.
 
 			Assert.True(
-				File.Exists(ioman1.OriginalFilePath) &&
+				File.Exists(ioman1.FilePath) &&
 				!File.Exists(ioman1.OldFilePath) &&
 				!File.Exists(ioman1.NewFilePath));
 
@@ -499,12 +499,12 @@ namespace WalletWasabi.Tests
 
 			// Check if directory is empty.
 
-			var fileCount = Directory.EnumerateFiles(Path.GetDirectoryName(ioman1.OriginalFilePath)).Count();
+			var fileCount = Directory.EnumerateFiles(Path.GetDirectoryName(ioman1.FilePath)).Count();
 			Assert.Equal(0, fileCount);
 
 			// Check Mutex usage on simultaneous file writes.
 
-			IoManager ioman2 = new IoManager(file2);
+			DigestableSafeMutexIoManager ioman2 = new DigestableSafeMutexIoManager(file2);
 
 			await Task.Run(async () =>
 			{
@@ -522,7 +522,7 @@ namespace WalletWasabi.Tests
 			});
 
 			// TryReplace test.
-			var dummyFilePath = $"{ioman1.OriginalFilePath}dummy";
+			var dummyFilePath = $"{ioman1.FilePath}dummy";
 			var dummyContent = new string[]
 			{
 				"banana",
@@ -548,7 +548,7 @@ namespace WalletWasabi.Tests
 		{
 			var file = Path.Combine(Global.Instance.DataDir, nameof(IoTestsAsync), $"file.dat");
 
-			IoManager ioman = new IoManager(file);
+			DigestableSafeMutexIoManager ioman = new DigestableSafeMutexIoManager(file);
 			ioman.DeleteMe();
 			await ioman.WriteAllLinesAsync(new string[0], dismissNullOrEmptyContent: false);
 

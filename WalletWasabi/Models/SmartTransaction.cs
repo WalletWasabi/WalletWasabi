@@ -34,16 +34,16 @@ namespace WalletWasabi.Models
 
 		public uint256 GetHash() => Transaction.GetHash();
 
-		public int GetConfirmationCount(Height bestHeight) => Height == Height.MemPool ? 0 : bestHeight.Value - Height.Value + 1;
+		public int GetConfirmationCount(Height bestHeight) => Height == Height.Mempool ? 0 : bestHeight.Value - Height.Value + 1;
 
 		/// <summary>
-		/// if Height is MemPool it's first seen, else null,
+		/// if Height is Mempool it's first seen, else null,
 		/// only exists in memory,
-		/// doesn't affect equality
+		/// does not affect equality
 		/// </summary>
 		[JsonProperty]
 		[JsonConverter(typeof(BlockCypherDateTimeOffsetJsonConverter))]
-		public DateTimeOffset? FirstSeenIfMemPoolTime { get; private set; }
+		public DateTimeOffset? FirstSeenIfMempoolTime { get; private set; }
 
 		[JsonProperty]
 		public bool IsReplacement { get; private set; }
@@ -60,15 +60,15 @@ namespace WalletWasabi.Models
 		#region Constructors
 
 		[JsonConstructor]
-		public SmartTransaction(Transaction transaction, Height height, uint256 blockHash = null, int blockIndex = 0, string label = "", DateTimeOffset? firstSeenIfMemPoolTime = null, bool isReplacement = false)
+		public SmartTransaction(Transaction transaction, Height height, uint256 blockHash = null, int blockIndex = 0, string label = "", DateTimeOffset? firstSeenIfMempoolTime = null, bool isReplacement = false)
 		{
 			Transaction = transaction;
 			Label = Guard.Correct(label);
 
 			SetHeight(height, blockHash, blockIndex);
-			if (firstSeenIfMemPoolTime != null)
+			if (firstSeenIfMempoolTime != null)
 			{
-				FirstSeenIfMemPoolTime = firstSeenIfMemPoolTime;
+				FirstSeenIfMempoolTime = firstSeenIfMempoolTime;
 			}
 			IsReplacement = isReplacement;
 		}
@@ -78,13 +78,13 @@ namespace WalletWasabi.Models
 		public void SetHeight(Height height, uint256 blockHash = null, int blockIndex = 0)
 		{
 			Height = height;
-			if (height == Height.MemPool)
+			if (height == Height.Mempool)
 			{
-				FirstSeenIfMemPoolTime = DateTimeOffset.UtcNow;
+				FirstSeenIfMempoolTime = DateTimeOffset.UtcNow;
 			}
 			else
 			{
-				FirstSeenIfMemPoolTime = null;
+				FirstSeenIfMempoolTime = null;
 			}
 
 			BlockHash = blockHash;
@@ -118,7 +118,7 @@ namespace WalletWasabi.Models
 					return blockIndexCompareResult;
 				}
 
-				var firstSeenCompareResult = (a.FirstSeenIfMemPoolTime ?? DateTime.UtcNow).CompareTo(b.FirstSeenIfMemPoolTime ?? DateTime.UtcNow);
+				var firstSeenCompareResult = (a.FirstSeenIfMempoolTime ?? DateTime.UtcNow).CompareTo(b.FirstSeenIfMempoolTime ?? DateTime.UtcNow);
 				return firstSeenCompareResult;
 			});
 		}
@@ -130,7 +130,7 @@ namespace WalletWasabi.Models
 		public bool Equals(Transaction other) => GetHash().Equals(other?.GetHash());
 
 		public override bool Equals(object obj) =>
-			(obj is SmartTransaction && this == (SmartTransaction)obj);
+			obj is SmartTransaction transaction && this == transaction;
 
 		public override int GetHashCode() => GetHash().GetHashCode();
 
@@ -158,17 +158,7 @@ namespace WalletWasabi.Models
 
 		public static bool operator ==(Transaction tx1, SmartTransaction tx2)
 		{
-			bool rc;
-
-			if (tx1 is null || tx2 is null)
-			{
-				rc = false;
-			}
-			else
-			{
-				rc = tx1.GetHash().Equals(tx2.GetHash());
-			}
-
+			bool rc = tx1 is null || tx2 is null ? false : tx1.GetHash().Equals(tx2.GetHash());
 			return rc;
 		}
 
@@ -176,17 +166,7 @@ namespace WalletWasabi.Models
 
 		public static bool operator ==(SmartTransaction tx1, Transaction tx2)
 		{
-			bool rc;
-
-			if (tx1 is null || tx2 is null)
-			{
-				rc = false;
-			}
-			else
-			{
-				rc = tx1.GetHash().Equals(tx2.GetHash());
-			}
-
+			bool rc = tx1 is null || tx2 is null ? false : tx1.GetHash().Equals(tx2.GetHash());
 			return rc;
 		}
 

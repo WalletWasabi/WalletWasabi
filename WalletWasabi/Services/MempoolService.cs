@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.Protocol;
 using System;
 using System.Collections.Generic;
@@ -12,11 +12,11 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
-	public class MemPoolService
+	public class MempoolService
 	{
 		public ConcurrentHashSet<uint256> TransactionHashes { get; }
 
-		// Transactions those we would reply to INV messages.
+		// Transactions that we would reply to INV messages.
 		private List<TransactionBroadcastEntry> BroadcastStore { get; }
 
 		private object BroadcastStoreLock { get; }
@@ -25,7 +25,7 @@ namespace WalletWasabi.Services
 
 		internal void OnTransactionReceived(SmartTransaction transaction) => TransactionReceived?.Invoke(this, transaction);
 
-		public MemPoolService()
+		public MempoolService()
 		{
 			TransactionHashes = new ConcurrentHashSet<uint256>();
 			BroadcastStore = new List<TransactionBroadcastEntry>();
@@ -56,6 +56,7 @@ namespace WalletWasabi.Services
 			{
 				var found = BroadcastStore.FirstOrDefault(x => x.TransactionId == transactionHash);
 				entry = found;
+
 				if (found is null)
 				{
 					return false;
@@ -75,14 +76,9 @@ namespace WalletWasabi.Services
 				var found = BroadcastStore.FirstOrDefault(x => x.TransactionId == transactionHash);
 				entry = found;
 
-				if (found is null)
-				{
-					return false;
-				}
-				else
-				{
-					return true;
-				}
+				return found is null
+					? false
+					: true;
 			}
 		}
 
@@ -99,7 +95,7 @@ namespace WalletWasabi.Services
 		/// <summary>
 		/// Tries to perform mempool cleanup with the help of the backend.
 		/// </summary>
-		public async Task<bool> TryPerformMempoolCleanupAsync(Func<Uri> destAction, IPEndPoint torSocks)
+		public async Task<bool> TryPerformMempoolCleanupAsync(Func<Uri> destAction, EndPoint torSocks)
 		{
 			// If already cleaning, then no need to run it that often.
 			if (Interlocked.CompareExchange(ref _cleanupInProcess, 1, 0) == 1)
@@ -115,7 +111,7 @@ namespace WalletWasabi.Services
 					return true; // There's nothing to cleanup.
 				}
 
-				Logger.LogInfo<MemPoolService>("Start cleaning out mempool...");
+				Logger.LogInfo<MempoolService>("Start cleaning out mempool...");
 				using (var client = new WasabiClient(destAction, torSocks))
 				{
 					var compactness = 10;
@@ -132,14 +128,14 @@ namespace WalletWasabi.Services
 						}
 					}
 
-					Logger.LogInfo<MemPoolService>($"{removedTxCount} transactions were cleaned from mempool.");
+					Logger.LogInfo<MempoolService>($"{removedTxCount} transactions were cleaned from mempool.");
 				}
 
 				return true;
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<MemPoolService>(ex);
+				Logger.LogWarning<MempoolService>(ex);
 			}
 			finally
 			{

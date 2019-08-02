@@ -194,11 +194,6 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public void UpdateRoundConfig(CcjRoundConfig roundConfig)
-		{
-			RoundConfig.UpdateOrDefault(roundConfig);
-		}
-
 		public async Task MakeSureTwoRunningRoundsAsync(Money feePerInputs = null, Money feePerOutputs = null)
 		{
 			using (await RoundsListLock.LockAsync())
@@ -209,13 +204,13 @@ namespace WalletWasabi.Services
 
 				if (runningRoundCount == 0)
 				{
-					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget.Value, RoundConfig.ConfirmationTargetReductionRate.Value);
+					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate);
 					round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					round.StatusChanged += Round_StatusChangedAsync;
 					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration, feePerInputs, feePerOutputs);
 					Rounds.Add(round);
 
-					var round2 = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget.Value, RoundConfig.ConfirmationTargetReductionRate.Value);
+					var round2 = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate);
 					round2.StatusChanged += Round_StatusChangedAsync;
 					round2.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					await round2.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration, feePerInputs, feePerOutputs);
@@ -223,7 +218,7 @@ namespace WalletWasabi.Services
 				}
 				else if (runningRoundCount == 1)
 				{
-					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget.Value, RoundConfig.ConfirmationTargetReductionRate.Value);
+					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate);
 					round.StatusChanged += Round_StatusChangedAsync;
 					round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration, feePerInputs, feePerOutputs);
@@ -254,7 +249,7 @@ namespace WalletWasabi.Services
 					unconfirmedCoinJoinsCount = CoinJoins.Intersect(mempoolHashes).Count();
 				}
 
-				int confirmationTarget = CcjRound.AdjustConfirmationTarget(unconfirmedCoinJoinsCount, RoundConfig.ConfirmationTarget.Value, RoundConfig.ConfirmationTargetReductionRate.Value);
+				int confirmationTarget = CcjRound.AdjustConfirmationTarget(unconfirmedCoinJoinsCount, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate);
 				return confirmationTarget;
 			}
 			catch (Exception ex)
@@ -262,7 +257,7 @@ namespace WalletWasabi.Services
 				Logger.LogWarning<CcjCoordinator>("Adjusting confirmation target failed. Falling back to default, specified in config.");
 				Logger.LogWarning<CcjCoordinator>(ex);
 
-				return RoundConfig.ConfirmationTarget.Value;
+				return RoundConfig.ConfirmationTarget;
 			}
 		}
 
@@ -314,7 +309,7 @@ namespace WalletWasabi.Services
 					}
 				}
 
-				// If aborted in signing phase, then ban Alices those didn't sign.
+				// If aborted in signing phase, then ban Alices that did not sign.
 				if (status == CcjRoundStatus.Aborted && round.Phase == CcjRoundPhase.Signing)
 				{
 					IEnumerable<Alice> alicesDidntSign = round.GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: false);
@@ -326,13 +321,13 @@ namespace WalletWasabi.Services
 						int nextRoundAlicesCount = nextRound.CountAlices(syncLock: false);
 						var alicesSignedCount = round.AnonymitySet - alicesDidntSign.Count();
 
-						// New round's anonset should be the number of alices those signed in this round.
+						// New round's anonset should be the number of alices that signed in this round.
 						// Except if the number of alices in the next round is already larger.
 						var newAnonymitySet = Math.Max(alicesSignedCount, nextRoundAlicesCount);
 						// But it cannot be larger than the current anonset of that round.
 						newAnonymitySet = Math.Min(newAnonymitySet, nextRound.AnonymitySet);
 
-						// Only change the anonymity set of the next round if new anonset doesnt equal and newanonset larger than 1.
+						// Only change the anonymity set of the next round if new anonset does not equal and newanonset is larger than 1.
 						if (nextRound.AnonymitySet != newAnonymitySet && newAnonymitySet > 1)
 						{
 							nextRound.UpdateAnonymitySet(newAnonymitySet, syncLock: false);
@@ -347,7 +342,7 @@ namespace WalletWasabi.Services
 
 					foreach (Alice alice in alicesDidntSign) // Because the event sometimes is raised from inside the lock.
 					{
-						// If its from any coinjoin, then don't ban.
+						// If it is from any coinjoin, then do not ban.
 						IEnumerable<OutPoint> utxosToBan = alice.Inputs.Select(x => x.Outpoint);
 						await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, round.RoundId, utxosToBan.ToArray());
 					}

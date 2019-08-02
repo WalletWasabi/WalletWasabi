@@ -1,7 +1,10 @@
-﻿using NBitcoin;
+using NBitcoin;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.KeyManagement;
@@ -12,19 +15,8 @@ namespace WalletWasabi.Models
 	/// An UTXO that knows more.
 	/// </summary>
 	[JsonObject(MemberSerialization.OptIn)]
-	public class SmartCoin : IEquatable<SmartCoin>, INotifyPropertyChanged
+	public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>
 	{
-		#region Events
-
-		public event PropertyChangedEventHandler PropertyChanged;
-
-		private void OnPropertyChanged(string propertyName)
-		{
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-		}
-
-		#endregion Events
-
 		#region Fields
 
 		private uint256 _transactionId;
@@ -61,28 +53,14 @@ namespace WalletWasabi.Models
 		public uint256 TransactionId
 		{
 			get => _transactionId;
-			set
-			{
-				if (value != _transactionId)
-				{
-					_transactionId = value;
-					OnPropertyChanged(nameof(TransactionId));
-				}
-			}
+			set => RaiseAndSetIfChanged(ref _transactionId, value);
 		}
 
 		[JsonProperty]
 		public uint Index
 		{
 			get => _index;
-			set
-			{
-				if (value != _index)
-				{
-					_index = value;
-					OnPropertyChanged(nameof(Index));
-				}
-			}
+			set => RaiseAndSetIfChanged(ref _index, value);
 		}
 
 		[JsonProperty]
@@ -90,14 +68,7 @@ namespace WalletWasabi.Models
 		public Script ScriptPubKey
 		{
 			get => _scriptPubKey;
-			set
-			{
-				if (value != _scriptPubKey)
-				{
-					_scriptPubKey = value;
-					OnPropertyChanged(nameof(ScriptPubKey));
-				}
-			}
+			set => RaiseAndSetIfChanged(ref _scriptPubKey, value);
 		}
 
 		[JsonProperty]
@@ -105,14 +76,7 @@ namespace WalletWasabi.Models
 		public Money Amount
 		{
 			get => _amount;
-			set
-			{
-				if (value != _amount)
-				{
-					_amount = value;
-					OnPropertyChanged(nameof(Amount));
-				}
-			}
+			set => RaiseAndSetIfChanged(ref _amount, value);
 		}
 
 		[JsonProperty]
@@ -154,14 +118,7 @@ namespace WalletWasabi.Models
 		public TxoRef[] SpentOutputs
 		{
 			get => _spentOutputs;
-			set
-			{
-				if (value != _spentOutputs)
-				{
-					_spentOutputs = value;
-					OnPropertyChanged(nameof(SpentOutputs));
-				}
-			}
+			set => RaiseAndSetIfChanged(ref _spentOutputs, value);
 		}
 
 		[JsonProperty]
@@ -169,28 +126,14 @@ namespace WalletWasabi.Models
 		public bool IsReplaceable
 		{
 			get => _replaceable && !Confirmed;
-			set
-			{
-				if (value != _replaceable)
-				{
-					_replaceable = value;
-					OnPropertyChanged(nameof(IsReplaceable));
-				}
-			}
+			set => RaiseAndSetIfChanged(ref _replaceable, value);
 		}
 
 		[JsonProperty]
 		public int AnonymitySet
 		{
 			get => _anonymitySet;
-			private set
-			{
-				if (value != _anonymitySet)
-				{
-					_anonymitySet = value;
-					OnPropertyChanged(nameof(AnonymitySet));
-				}
-			}
+			private set => RaiseAndSetIfChanged(ref _anonymitySet, value);
 		}
 
 		[JsonProperty]
@@ -233,7 +176,7 @@ namespace WalletWasabi.Models
 			get => _bannedUntilUtc;
 			set
 			{
-				// ToDo: IsBanned doesn't get notified when it gets unbanned.
+				// ToDo: IsBanned does not get notified when it gets unbanned.
 				if (_bannedUntilUtc != value)
 				{
 					_bannedUntilUtc = value;
@@ -244,7 +187,7 @@ namespace WalletWasabi.Models
 		}
 
 		/// <summary>
-		/// If the backend thinks it's spent, but Wasabi doesn't yet know.
+		/// If the backend thinks it's spent, but Wasabi does not yet know.
 		/// </summary>
 		[JsonProperty]
 		public bool SpentAccordingToBackend
@@ -266,14 +209,7 @@ namespace WalletWasabi.Models
 		public HdPubKey HdPubKey
 		{
 			get => _hdPubKey;
-			private set
-			{
-				if (value != _hdPubKey)
-				{
-					_hdPubKey = value;
-					OnPropertyChanged(nameof(HdPubKey));
-				}
-			}
+			private set => RaiseAndSetIfChanged(ref _hdPubKey, value);
 		}
 
 		#endregion SerializableProperties
@@ -281,33 +217,19 @@ namespace WalletWasabi.Models
 		#region NonSerializableProperties
 
 		/// <summary>
-		/// It's a secret, so it's usually going to be null. Don't use it.
+		/// It's a secret, so it's usually going to be null. Do not use it.
 		/// This will not get serialized, because that's a security risk.
 		/// </summary>
 		public ISecret Secret
 		{
 			get => _secret;
-			set
-			{
-				if (value != _secret)
-				{
-					_secret = value;
-					OnPropertyChanged(nameof(Secret));
-				}
-			}
+			set => RaiseAndSetIfChanged(ref _secret, value);
 		}
 
 		public string Clusters
 		{
 			get => _clusters;
-			private set
-			{
-				if (value != _clusters)
-				{
-					_clusters = value;
-					OnPropertyChanged(nameof(Clusters));
-				}
-			}
+			private set => RaiseAndSetIfChanged(ref _clusters, value);
 		}
 
 		#endregion NonSerializableProperties
@@ -317,14 +239,7 @@ namespace WalletWasabi.Models
 		public bool Confirmed
 		{
 			get => _confirmed;
-			private set
-			{
-				if (value != _confirmed)
-				{
-					_confirmed = value;
-					OnPropertyChanged(nameof(Confirmed));
-				}
-			}
+			private set => RaiseAndSetIfChanged(ref _confirmed, value);
 		}
 
 		/// <summary>
@@ -333,14 +248,7 @@ namespace WalletWasabi.Models
 		public bool Unavailable
 		{
 			get => _unavailable;
-			private set
-			{
-				if (value != _unavailable)
-				{
-					_unavailable = value;
-					OnPropertyChanged(nameof(Unavailable));
-				}
-			}
+			private set => RaiseAndSetIfChanged(ref _unavailable, value);
 		}
 
 		public bool Unspent
@@ -361,14 +269,7 @@ namespace WalletWasabi.Models
 		public bool IsBanned
 		{
 			get => _isBanned;
-			private set
-			{
-				if (value != _isBanned)
-				{
-					_isBanned = value;
-					OnPropertyChanged(nameof(IsBanned));
-				}
-			}
+			private set => RaiseAndSetIfChanged(ref _isBanned, value);
 		}
 
 		#endregion DependentProperties
@@ -377,7 +278,7 @@ namespace WalletWasabi.Models
 
 		private void SetConfirmed()
 		{
-			Confirmed = Height != Height.MemPool && Height != Height.Unknown;
+			Confirmed = Height != Height.Mempool && Height != Height.Unknown;
 		}
 
 		private void SetUnspent()
@@ -474,7 +375,7 @@ namespace WalletWasabi.Models
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is SmartCoin && this == (SmartCoin)obj;
+		public override bool Equals(object obj) => obj is SmartCoin coin && this == coin;
 
 		public bool Equals(SmartCoin other) => this == other;
 

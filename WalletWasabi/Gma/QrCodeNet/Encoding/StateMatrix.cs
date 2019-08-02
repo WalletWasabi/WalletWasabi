@@ -1,4 +1,4 @@
-﻿namespace Gma.QrCodeNet.Encoding
+namespace Gma.QrCodeNet.Encoding
 {
 	public sealed class StateMatrix
 	{
@@ -18,10 +18,8 @@
 
 		internal MatrixStatus this[MatrixPoint point]
 		{
-			get
-			{ return this[point.X, point.Y]; }
-			set
-			{ this[point.X, point.Y] = value; }
+			get => this[point.X, point.Y];
+			set => this[point.X, point.Y] = value;
 		}
 
 		public int Width { get; }

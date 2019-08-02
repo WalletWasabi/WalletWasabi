@@ -5,6 +5,8 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
+using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Styling;
 using ReactiveUI;
@@ -37,29 +39,32 @@ namespace WalletWasabi.Gui.Controls
 				Background = Application.Current.Resources[Global.ThemeBackgroundBrushResourceKey] as IBrush;
 			}
 
-			HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
-			IconPath = new Path {
+			HorizontalContentAlignment = HorizontalAlignment.Stretch;
+			IconPath = new Path
+			{
 				Stretch = Stretch.Fill,
 				Stroke = Design.IsDesignMode ? Brushes.White : Application.Current.Resources[Global.ApplicationAccentForegroundBrushResourceKey] as IBrush,
 				StrokeThickness = 0.8,
 				Width = 10,
 				Height = 10,
 				Margin = new Thickness(7, 0),
-				HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right
+				HorizontalAlignment = HorizontalAlignment.Right
 			};
+
 			TextBox = new TextBlock();
 
-			Grid stackPnl = new Grid {
+			Grid stackPnl = new Grid
+			{
 				Children =
 				{
 					new StackPanel
 					{
-						Orientation = Orientation.Horizontal, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left,
+						Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Left,
 						Children = { TextBox }
 					},
 					new StackPanel
 					{
-						Orientation = Orientation.Horizontal, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
+						Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right,
 						Children =
 						{
 							IconPath
@@ -86,7 +91,7 @@ namespace WalletWasabi.Gui.Controls
 			Click += SortingArrow_Click;
 		}
 
-		private void SortingArrow_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+		private void SortingArrow_Click(object sender, RoutedEventArgs e)
 		{
 			switch (SortDirection)
 			{

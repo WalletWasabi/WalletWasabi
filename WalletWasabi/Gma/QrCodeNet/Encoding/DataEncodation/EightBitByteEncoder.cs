@@ -7,7 +7,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 	/// It can accept several different encoding table from global ECI table.
 	/// For different country, default encoding is different. JP use shift_jis, International spec use iso-8859-1
 	/// China use ASCII which is first part of normal char table. Between 00 to 7E
-	/// Korean and Thai should have their own default encoding as well. But so far I can not find their specification freely online.
+	/// Korean and Thai should have their own default encoding as well. But so far I cannot find their specification freely online.
 	/// QrCode.Net will use international standard which is iso-8859-1 as default encoding.
 	/// And use UTF8 as suboption for any string that not belong to any char table or other encoder.
 	/// </summary>

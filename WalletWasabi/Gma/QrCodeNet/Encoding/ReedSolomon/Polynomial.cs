@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Gma.QrCodeNet.Encoding.ReedSolomon
 {
@@ -20,7 +20,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 
 			if (coefficientsLength == 0 || coefficients is null)
 			{
-				throw new ArithmeticException("Can not create empty Polynomial");
+				throw new ArithmeticException("Cannot create empty Polynomial");
 			}
 
 			GField = gfield;
@@ -72,7 +72,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			if (Primitive != other.Primitive)
 			{
-				throw new ArgumentException("Polynomial can not perform AddOrSubtract as they don't have same Primitive for GaloisField256");
+				throw new ArgumentException("Polynomial cannot perform AddOrSubtract as they do not have same Primitive for GaloisField256");
 			}
 			if (IsMonomialZero)
 			{
@@ -100,7 +100,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			if (smallerCoefficients.Length > largerCoefficients.Length)
 			{
-				throw new ArgumentException("Can not perform CoefficientXor method as smaller Coefficients length is larger than larger one.");
+				throw new ArgumentException("Cannot perform CoefficientXor method as smaller Coefficients length is greater than the larger one.");
 			}
 
 			int targetLength = largerCoefficients.Length;
@@ -125,7 +125,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			if (Primitive != other.Primitive)
 			{
-				throw new ArgumentException("Polynomial can not perform Multiply as they don't have same Primitive for GaloisField256");
+				throw new ArgumentException("Polynomial cannot perform Multiply as they do not have same Primitive for GaloisField256");
 			}
 			if (IsMonomialZero || other.IsMonomialZero)
 			{
@@ -184,13 +184,13 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			if (Primitive != other.Primitive)
 			{
-				throw new ArgumentException("Polynomial can not perform Devide as they don't have same Primitive for GaloisField256");
+				throw new ArgumentException("Polynomial cannot perform Divide as they do not have same Primitive for GaloisField256");
 			}
 			if (other.IsMonomialZero)
 			{
-				throw new ArgumentException("Can not devide by Polynomial Zero");
+				throw new ArgumentException("Cannot divide by Polynomial Zero");
 			}
-			//this devide by other = a devide by b
+			//this divide by other = a divide by b
 			int aLength = Coefficients.Length;
 			//We will make change to aCoefficient. It will return as remainder
 			int[] aCoefficients = new int[aLength];

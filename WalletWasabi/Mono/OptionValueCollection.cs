@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -176,8 +176,8 @@ namespace Mono.Options
 			(Values as ICollection).CopyTo(array, index);
 		}
 
-		bool ICollection.IsSynchronized { get { return (Values as ICollection).IsSynchronized; } }
-		object ICollection.SyncRoot { get { return (Values as ICollection).SyncRoot; } }
+		bool ICollection.IsSynchronized => (Values as ICollection).IsSynchronized;
+		object ICollection.SyncRoot => (Values as ICollection).SyncRoot;
 
 		#endregion ICollection
 
@@ -208,8 +208,8 @@ namespace Mono.Options
 			return Values.Remove(item);
 		}
 
-		public int Count { get { return Values.Count; } }
-		public bool IsReadOnly { get { return false; } }
+		public int Count => Values.Count;
+		public bool IsReadOnly => false;
 
 		#endregion ICollection<T>
 
@@ -263,12 +263,12 @@ namespace Mono.Options
 			(Values as IList).RemoveAt(index);
 		}
 
-		bool IList.IsFixedSize { get { return false; } }
+		bool IList.IsFixedSize => false;
 
 		public List<string> Values { get; set; } = new List<string>();
 		public OptionContext C { get; set; }
 
-		object IList.this[int index] { get { return this[index]; } set { (Values as IList)[index] = value; } }
+		object IList.this[int index] { get => this[index]; set => (Values as IList)[index] = value; }
 
 		#endregion IList
 
@@ -293,20 +293,20 @@ namespace Mono.Options
 		{
 			if (C.Option is null)
 			{
-				throw new InvalidOperationException("OptionContext.Option is null.");
+				throw new InvalidOperationException($"{nameof(OptionContext)}.{nameof(OptionContext.Option)} is null.");
 			}
 
 			if (index >= C.Option.MaxValueCount)
 			{
-				throw new ArgumentOutOfRangeException("index");
+				throw new ArgumentOutOfRangeException(nameof(index));
 			}
 
 			if (C.Option.OptionValueType == OptionValueType.Required &&
 					index >= Values.Count)
 			{
 				throw new OptionException(string.Format(
-							C.OptionSet.MessageLocalizer("Missing required value for option '{0}'."), C.OptionName),
-						C.OptionName);
+					C.OptionSet.MessageLocalizer($"Missing required value for option '{C.OptionName}'.")),
+					C.OptionName);
 			}
 		}
 
@@ -317,10 +317,7 @@ namespace Mono.Options
 				AssertValid(index);
 				return index >= Values.Count ? null : Values[index];
 			}
-			set
-			{
-				Values[index] = value;
-			}
+			set => Values[index] = value;
 		}
 
 		#endregion IList<T>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 {
@@ -6,7 +6,10 @@ namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 	{
 		public int Version { get; private set; }
 
-		internal PatternStencilBase(int version) => Version = version;
+		internal PatternStencilBase(int version)
+		{
+			Version = version;
+		}
 
 		protected const bool O = false;
 		protected const bool X = true;

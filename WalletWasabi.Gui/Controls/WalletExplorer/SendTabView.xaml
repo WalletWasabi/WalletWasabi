@@ -8,30 +8,34 @@
              xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
   <UserControl.Resources>
     <converters:AmountForegroundConverter x:Key="AmountForegroundConverter" />
-    <converters:MaxClearBoolStringConverter x:Key="MaxClearBoolStringConverter" />
+    <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
+    <converters:UsdExchangeRateAmountToolTipConverter x:Key="UsdExchangeRateAmountToolTipConverter" />
   </UserControl.Resources>
   <i:Interaction.Behaviors>
     <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedCoin}" />
   </i:Interaction.Behaviors>
-
   <UserControl.Styles>
     <!--    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
       <Setter Property="Background" Value="Transparent" />
     </Style>-->
   </UserControl.Styles>
-
   <DockPanel LastChildFill="True">
+    <DockPanel.Styles>
+      <Style Selector="ListBoxItem">
+        <Setter Property="Padding" Value="0 0 5 0" />
+      </Style>
+    </DockPanel.Styles>
     <Grid Classes="content">
       <DockPanel LastChildFill="True" Margin="20">
         <StackPanel DockPanel.Dock="Bottom" Margin="0 10" Spacing="10" HorizontalAlignment="Left">
-          <TextBlock>Note that, you must select coins you want to spend from.</TextBlock>
+          <TextBlock>You must select coins you want to spend from.</TextBlock>
           <controls:ExtendedTextBox Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True">
             <i:Interaction.Behaviors>
-              <behaviors:PasteAddressOnClickBehavior />
+              <behaviors:PasteAddressOnClickBehavior Command="{Binding OnAddressPasteCommand}" />
             </i:Interaction.Behaviors>
           </controls:ExtendedTextBox>
           <StackPanel Spacing="8">
-            <controls:ExtendedTextBox x:Name="LabelTextBox" Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True" IsReadOnly="{Binding IsMax}" ToolTip.Tip="{Binding LabelToolTip}" CaretIndex="{Binding CaretIndex, Mode=TwoWay}">
+            <controls:ExtendedTextBox x:Name="LabelTextBox" Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True" IsReadOnly="{Binding IsMax}" ToolTip.Tip="{Binding LabelToolTip}" CaretIndex="{Binding CaretIndex}">
               <i:Interaction.Behaviors>
                 <behaviors:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />
                 <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
@@ -42,52 +46,43 @@
             <ItemsControl Items="{Binding Suggestions}">
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                  <StackPanel Orientation ="Horizontal" Spacing="2" />
+                  <StackPanel Orientation="Horizontal" Spacing="2" />
                 </ItemsPanelTemplate>
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <Button Focusable="False" Content="{Binding Word}" Command="{Binding OnSelected}" IsPressed ="{Binding IsHighLighted}" />
+                  <Button Focusable="False" Content="{Binding Word}" Command="{Binding OnSelected}" IsPressed="{Binding IsHighLighted}" />
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
           </StackPanel>
           <StackPanel Orientation="Horizontal" Spacing="10">
-            <Button Content="{Binding IsMax, Converter={StaticResource MaxClearBoolStringConverter}}" Command="{Binding MaxCommand}" VerticalAlignment="Top" Height="40" />
-            <controls:ExtendedTextBox Foreground="{Binding IsMax, Converter={StaticResource AmountForegroundConverter}}" IsReadOnly="{Binding IsMax}" Text="{Binding Amount}" ToolTip.Tip="{Binding AmountToolTip}" Watermark="{Binding AmountWatermarkText}" UseFloatingWatermark="True" MinWidth="124" MinHeight="46" />
+            <Button Content="{Binding IsMax, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Clear:Max}" Command="{Binding MaxCommand}" VerticalAlignment="Top" Height="40" />
+            <controls:ExtendedTextBox
+              Foreground="{Binding AmountText, Converter={StaticResource AmountForegroundConverter}}"
+              IsReadOnly="{Binding IsMax}"
+              Text="{Binding AmountText, Mode=TwoWay}"
+              ToolTip.Tip="{Binding UsdExchangeRate, Converter={StaticResource UsdExchangeRateAmountToolTipConverter}}"
+              Watermark="{Binding AmountWatermarkText}"
+              UseFloatingWatermark="True"
+              MinWidth="124"
+              MinHeight="46" />
             <StackPanel>
-              <StackPanel Orientation="Horizontal" Spacing="10">
+              <StackPanel IsVisible="{Binding !MinMaxFeeTargetsEqual}" Orientation="Horizontal" Spacing="10">
                 <TextBlock Text="Fee:" />
-
                 <Grid Height="10" Width="10">
-                  <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <DrawingPresenter.Drawing>
-                      <DrawingGroup>
-                        <DrawingGroup.Children>
-                          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-                          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M6.3819,-0.000199999999999534L1.9999,8.7638 1.9999,9.9998 5.3709,9.9998 2.9999,14.7648 2.9999,15.9998 5.4149,15.9998 13.9999,7.4138 13.9999,5.9998 9.4139,5.9998 13.9999,1.4138 13.9999,-0.000199999999999534z" />
-                          <GeometryDrawing Brush="#FFC17C1A" Geometry="F1M7,7L13,7 5,15 4,15 6.985,9 3,9 7,1 13,1z" />
-                        </DrawingGroup.Children>
-                      </DrawingGroup>
-                    </DrawingPresenter.Drawing>
-                  </DrawingPresenter>
+                  <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource SendTabView_Lightning}" />
                 </Grid>
-
                 <Slider Minimum="{Binding MinimumFeeTarget}" Maximum="{Binding MaximumFeeTarget}" Value="{Binding FeeTarget}" Width="270" />
-
                 <Grid Height="10" Width="10">
-                  <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <DrawingPresenter.Drawing>
-                      <DrawingGroup>
-                        <DrawingGroup.Children>
-                          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-                          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8,16C3.589,16 0,12.411 0,8 0,3.589 3.589,0 8,0 12.411,0 16,3.589 16,8 16,12.411 12.411,16 8,16" />
-                          <GeometryDrawing Brush="#FFEFEFF0" Geometry="F1M14,8C14,11.309 11.309,14 8,14 4.691,14 2,11.309 2,8 2,4.691 4.691,2 8,2 11.309,2 14,4.691 14,8" />
-                          <GeometryDrawing Brush="#FF424242" Geometry="F1M14,8C14,4.691 11.309,2 8,2 4.691,2 2,4.691 2,8 2,11.309 4.691,14 8,14 11.309,14 14,11.309 14,8 M15,8C15,11.859 11.859,15 8,15 4.14,15 1,11.859 1,8 1,4.14 4.14,1 8,1 11.859,1 15,4.14 15,8 M8,8L11,8 11,9 7,9 7,4 8,4z" />
-                        </DrawingGroup.Children>
-                      </DrawingGroup>
-                    </DrawingPresenter.Drawing>
-                  </DrawingPresenter>
+                  <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource SendTabView_Clock}" />
+                </Grid>
+              </StackPanel>
+              <StackPanel IsVisible="{Binding MinMaxFeeTargetsEqual}" Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="Fees are super low!" VerticalAlignment="Center" />
+
+                <Grid Height="16" Width="16">
+                  <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource SendTabView_Smiley}" />
                 </Grid>
               </StackPanel>
               <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="4">
@@ -115,8 +110,7 @@
           </StackPanel>
           <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
           <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
-          <Grid ColumnDefinitions="60,100,100,600,100,Auto">
-          </Grid>
+          <Grid ColumnDefinitions="60,100,100,600,100,Auto"></Grid>
         </StackPanel>
         <local:CoinListView DataContext="{Binding CoinList}" />
       </DockPanel>

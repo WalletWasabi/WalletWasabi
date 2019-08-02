@@ -46,7 +46,7 @@ namespace WalletWasabi.Tests
 			}
 			else
 			{
-				throw new NotSupportedException(network.ToString());
+				throw new NotSupportedException($"{nameof(Network)} not supported: {network}.");
 			}
 
 			var addressManagerFolderPath = Path.Combine(Global.Instance.DataDir, "AddressManager");
@@ -56,27 +56,33 @@ namespace WalletWasabi.Tests
 			AddressManager addressManager = null;
 			try
 			{
-				addressManager = AddressManager.LoadPeerFile(addressManagerFilePath);
+				addressManager = await NBitcoinHelpers.LoadAddressManagerFromPeerFileAsync(addressManagerFilePath);
 				Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{addressManagerFilePath}`.");
 			}
-			catch (DirectoryNotFoundException ex)
+			catch (DirectoryNotFoundException)
 			{
-				Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{addressManagerFilePath}`. Initializing new one.");
-				Logger.LogTrace<AddressManager>(ex);
 				addressManager = new AddressManager();
 			}
-			catch (FileNotFoundException ex)
+			catch (FileNotFoundException)
 			{
-				Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{addressManagerFilePath}`. Initializing new one.");
-				Logger.LogTrace<AddressManager>(ex);
+				addressManager = new AddressManager();
+			}
+			catch (OverflowException)
+			{
+				File.Delete(addressManagerFilePath);
+				addressManager = new AddressManager();
+			}
+			catch (FormatException)
+			{
+				File.Delete(addressManagerFilePath);
 				addressManager = new AddressManager();
 			}
 
 			connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
-			var memPoolService = new MemPoolService();
-			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(memPoolService));
+			var mempoolService = new MempoolService();
+			connectionParameters.TemplateBehaviors.Add(new MempoolBehavior(mempoolService));
 
-			var nodes = new NodesGroup(network, connectionParameters, requirements: Helpers.Constants.NodeRequirements);
+			var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
 
 			BitcoinStore bitcoinStore = new BitcoinStore();
 			await bitcoinStore.InitializeAsync(Path.Combine(Global.Instance.DataDir, nameof(TestServicesAsync)), network);
@@ -88,7 +94,7 @@ namespace WalletWasabi.Tests
 			   keyManager,
 			   syncer,
 			   new CcjClient(syncer, network, keyManager, new Uri("http://localhost:12345"), Global.Instance.TorSocks5Endpoint),
-			   memPoolService,
+			   mempoolService,
 			   nodes,
 			   Global.Instance.DataDir,
 			   new ServiceConfiguration(50, 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(0.0001m)));
@@ -96,15 +102,11 @@ namespace WalletWasabi.Tests
 
 			try
 			{
-				nodes.ConnectedNodes.Added += ConnectedNodes_Added;
-				nodes.ConnectedNodes.Removed += ConnectedNodes_Removed;
-				memPoolService.TransactionReceived += MemPoolService_TransactionReceived;
+				mempoolService.TransactionReceived += MempoolService_TransactionReceived;
 
 				nodes.Connect();
-				// Using the interlocked, not because it makes sense in this context, but to
-				// set an example that these values are often concurrency sensitive
 				var times = 0;
-				while (Interlocked.Read(ref _nodeCount) < 3)
+				while (nodes.ConnectedNodes.Count < 3)
 				{
 					if (times > 4200) // 7 minutes
 					{
@@ -119,7 +121,7 @@ namespace WalletWasabi.Tests
 				{
 					if (times > 3000) // 3 minutes
 					{
-						throw new TimeoutException($"{nameof(MemPoolService)} test timed out.");
+						throw new TimeoutException($"{nameof(MempoolService)} test timed out.");
 					}
 					await Task.Delay(100);
 					times++;
@@ -139,7 +141,7 @@ namespace WalletWasabi.Tests
 			{
 				nodes.ConnectedNodes.Added -= ConnectedNodes_Added;
 				nodes.ConnectedNodes.Removed -= ConnectedNodes_Removed;
-				memPoolService.TransactionReceived -= MemPoolService_TransactionReceived;
+				mempoolService.TransactionReceived -= MempoolService_TransactionReceived;
 
 				// So next test will download the block.
 				foreach (var hash in blocksToDownload)
@@ -187,7 +189,7 @@ namespace WalletWasabi.Tests
 
 		private long _mempoolTransactionCount = 0;
 
-		private void MemPoolService_TransactionReceived(object sender, SmartTransaction e)
+		private void MempoolService_TransactionReceived(object sender, SmartTransaction e)
 		{
 			Interlocked.Increment(ref _mempoolTransactionCount);
 			Logger.LogDebug<P2pTests>($"Mempool transaction received: {e.GetHash()}.");
