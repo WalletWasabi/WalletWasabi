@@ -306,25 +306,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 
-					bool useCustomFee = !IsSliderFeeUsed;
-					FeeRate feeRate = null;
-					if (useCustomFee)
+					if (SatoshiPerByteFeeRate is null || SatoshiPerByteFeeRate.Satoshi < 1)
 					{
-						if (decimal.TryParse(UserFeeText.Replace(',', '.'), out var customFee))
-						{
-							feeRate = new FeeRate(customFee);
-							if (customFee < 1)
-							{
-								SetWarningMessage("Invalid fee rate, must be greater than or equal to one.");
-								return;
-							}
-						}
-						else
-						{
-							SetWarningMessage("Invalid fee rate, must be greater than or equal to one.");
-							return;
-						}
+						SetWarningMessage("Invalid fee rate, must be greater than or equal to one.");
+						return;
 					}
+
+					bool useCustomFee = !IsSliderFeeUsed;
+					FeeRate feeRate = new FeeRate((decimal)SatoshiPerByteFeeRate.Satoshi);
 
 					var label = Label;
 					var operation = new WalletService.Operation(script, amount, label);
@@ -455,6 +444,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			UserFeeTextKeyUpCommand = ReactiveCommand.Create((KeyEventArgs key) =>
 			{
 				IsSliderFeeUsed = string.IsNullOrEmpty(UserFeeText);
+				SetFeesAndTexts();
 			});
 
 			FeeSliderClickedCommand = ReactiveCommand.Create((PointerPressedEventArgs mouse) =>
@@ -620,12 +610,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFeesAndTexts()
 		{
+			AllFeeEstimate allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
+
+			int feeTarget = -1; // 1 => 10 minutes
 			if (IsSliderFeeUsed)
 			{
-				AllFeeEstimate allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
-
-				var feeTarget = FeeTarget;
-
+				feeTarget = FeeTarget;
 				if (allFeeEstimate != null)
 				{
 					int prevKey = allFeeEstimate.Estimations.Keys.First();
@@ -643,30 +633,63 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						prevKey = target;
 					}
 				}
-
-				if (feeTarget >= 2 && feeTarget <= 6) // minutes
-				{
-					ConfirmationExpectedText = $"{feeTarget}0 minutes";
-				}
-				else if (feeTarget >= 7 && feeTarget <= Constants.OneDayConfirmationTarget) // hours
-				{
-					var h = feeTarget / 6;
-					ConfirmationExpectedText = $"{h} {IfPlural(h, "hour", "hours")}";
-				}
-				else if (feeTarget >= 145 && feeTarget < Constants.SevenDaysConfirmationTarget) // days
-				{
-					var d = feeTarget / Constants.OneDayConfirmationTarget;
-					ConfirmationExpectedText = $"{d} {IfPlural(d, "day", "days")}";
-				}
-				else if (feeTarget == Constants.SevenDaysConfirmationTarget)
-				{
-					ConfirmationExpectedText = $"two weeks™";
-				}
-
+			}
+			else
+			{
+				SatoshiPerByteFeeRate = null;
 				if (allFeeEstimate != null)
 				{
-					SetFees(allFeeEstimate, feeTarget);
+					if (decimal.TryParse(UserFeeText, out decimal userFee))
+					{
+						SatoshiPerByteFeeRate = Money.Satoshis(userFee);
+						feeTarget = Constants.SevenDaysConfirmationTarget;
+						foreach (var feeEstimate in allFeeEstimate.Estimations)
+						{
+							var target = feeEstimate.Key;
+							var fee = feeEstimate.Value;
+							if (SatoshiPerByteFeeRate.Satoshi > fee)
+							{
+								feeTarget = target;
+								break;
+							}
+						}
+					}
+				}
+			}
 
+			if (feeTarget >= 2 && feeTarget <= 6) // minutes
+			{
+				ConfirmationExpectedText = $"{feeTarget}0 minutes";
+			}
+			else if (feeTarget >= 7 && feeTarget <= Constants.OneDayConfirmationTarget) // hours
+			{
+				var h = feeTarget / 6;
+				ConfirmationExpectedText = $"{h} {IfPlural(h, "hour", "hours")}";
+			}
+			else if (feeTarget >= 145 && feeTarget < Constants.SevenDaysConfirmationTarget) // days
+			{
+				var d = feeTarget / Constants.OneDayConfirmationTarget;
+				ConfirmationExpectedText = $"{d} {IfPlural(d, "day", "days")}";
+			}
+			else if (feeTarget == Constants.SevenDaysConfirmationTarget)
+			{
+				ConfirmationExpectedText = $"two weeks™";
+			}
+			else if (feeTarget == -1)
+			{
+				ConfirmationExpectedText = $"Invalid";
+			}
+
+			if (allFeeEstimate != null)
+			{
+				SetFees(allFeeEstimate, feeTarget);
+				if (SatoshiPerByteFeeRate is null)
+				{
+					FeeText = "";
+					FeeToolTip = "";
+				}
+				else
+				{
 					switch (FeeDisplayFormat)
 					{
 						case FeeDisplayFormat.SatoshiPerByte:
@@ -720,8 +743,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFees(AllFeeEstimate allFeeEstimate, int feeTarget)
 		{
-			SatoshiPerByteFeeRate = allFeeEstimate.GetFeeRate(feeTarget);
-			UserFeeText = SatoshiPerByteFeeRate.Satoshi.ToString();
+			if (IsSliderFeeUsed)
+			{
+				SatoshiPerByteFeeRate = allFeeEstimate.GetFeeRate(feeTarget);
+				UserFeeText = SatoshiPerByteFeeRate.Satoshi.ToString();
+			}
 
 			IEnumerable<SmartCoin> selectedCoins = CoinList.Coins.Where(cvm => cvm.IsSelected).Select(x => x.Model);
 
@@ -753,7 +779,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 
-			EstimatedBtcFee = Money.Satoshis(vsize * SatoshiPerByteFeeRate);
+			if (SatoshiPerByteFeeRate != null)
+			{
+				EstimatedBtcFee = Money.Satoshis(vsize * SatoshiPerByteFeeRate);
+			}
+			else
+			{
+				// This should not happen. Never.
+				// If SatoshiPerByteFeeRate is null we will have problems when building the tx.
+				EstimatedBtcFee = Money.Zero;
+			}
 
 			long all = selectedCoins.Sum(x => x.Amount);
 			if (IsMax)

@@ -89,7 +89,7 @@
                   <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource SendTabView_Smiley}" />
                 </Grid>
               </StackPanel>
-              <StackPanel IsVisible="{Binding IsSliderFeeUsed}" Orientation="Horizontal" VerticalAlignment="Center" Spacing="4">
+              <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="4">
                 <TextBlock Text="Confirmation Expected In:" VerticalAlignment="Center" />
                 <TextBlock Foreground="YellowGreen" Text="{Binding ConfirmationExpectedText}" Width="80" VerticalAlignment="Center" />
                 <Button Content="{Binding FeeText}" ToolTip.Tip="{Binding FeeToolTip}" Command="{Binding FeeRateCommand}" Padding="0" Background="{DynamicResource EditorBackgroundBrush}" BorderBrush="{DynamicResource EditorBackgroundBrush}" VerticalAlignment="Top" />
