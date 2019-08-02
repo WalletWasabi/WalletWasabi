@@ -650,12 +650,14 @@ namespace WalletWasabi.Services
 						continue;
 					}
 
+					var receiveKeys = KeyManager.GetKeys(x => tx.Transaction.Outputs.Any(y => y.ScriptPubKey == x.P2wpkhScript));
 					// It is likely a coinjoin if the diff between receive and sent amount is small and have at least 2 equal outputs.
 					Money spentAmount = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).Sum(x => x.Amount);
-					Money receivedAmount = tx.Transaction.Outputs.Where(x => KeyManager.GetKeyForScriptPubKey(x.ScriptPubKey) != default).Sum(x => x.Value);
+					Money receivedAmount = tx.Transaction.Outputs.Where(x => receiveKeys.Any(y => y.P2wpkhScript == x.ScriptPubKey)).Sum(x => x.Value);
 					bool hasEqualOutputs = tx.Transaction.GetIndistinguishableOutputs(includeSingle: false).FirstOrDefault() != default;
 					bool receivedAlmostAsMuchAsSpent = spentAmount.Almost(receivedAmount, Money.Coins(0.005m));
-					var isLikelyCoinJoinOutput = hasEqualOutputs && receivedAlmostAsMuchAsSpent;
+					bool allReceivedInternal = receiveKeys.All(x => x.IsInternal);
+					var isLikelyCoinJoinOutput = hasEqualOutputs && receivedAlmostAsMuchAsSpent && allReceivedInternal;
 
 					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, isLikelyCoinJoinOutput, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
 
