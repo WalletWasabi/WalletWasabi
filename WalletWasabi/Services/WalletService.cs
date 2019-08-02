@@ -655,9 +655,9 @@ namespace WalletWasabi.Services
 					Money receivedAmount = tx.Transaction.Outputs.Where(x => KeyManager.GetKeyForScriptPubKey(x.ScriptPubKey) != default).Sum(x => x.Value);
 					bool hasEqualOutputs = tx.Transaction.GetIndistinguishableOutputs(includeSingle: false).FirstOrDefault() != default;
 					bool receivedAlmostAsMuchAsSpent = spentAmount.Almost(receivedAmount, Money.Coins(0.005m));
-					var isCoinJoinOutput = hasEqualOutputs && receivedAlmostAsMuchAsSpent;
+					var isLikelyCoinJoinOutput = hasEqualOutputs && receivedAlmostAsMuchAsSpent;
 
-					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, isCoinJoinOutput, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
+					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, isLikelyCoinJoinOutput, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
 
 					if (Coins.TryAdd(newCoin))
 					{
