@@ -163,10 +163,10 @@ namespace NBitcoin
 			return VerifySignature(dataHash, signature, signer.Key.PubKey);
 		}
 
-		public static uint256 BlindScript(this Requester requester, PubKey signerPubKey, PubKey RPubKey, Script script)
+		public static uint256 BlindScript(this Requester requester, PubKey signerPubKey, PubKey rPubKey, Script script)
 		{
 			var msg = new uint256(Hashes.SHA256(script.ToBytes()));
-			return requester.BlindMessage(msg, RPubKey, signerPubKey);
+			return requester.BlindMessage(msg, rPubKey, signerPubKey);
 		}
 
 		public static Signer CreateSigner(this SchnorrKey schnorrKey)
