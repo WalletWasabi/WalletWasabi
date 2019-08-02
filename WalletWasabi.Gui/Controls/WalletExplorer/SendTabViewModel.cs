@@ -337,15 +337,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.DequeuingSelectedCoins);
 					}
 
-					BuildTransactionResult result;
-					if (useCustomFee)
-					{
-						result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, feeTarget: null, feeRate: Money.Satoshis(feeRate.SatoshiPerByte), allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
-					}
-					else
-					{
-						result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, feeTarget: FeeTarget, feeRate: null, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
-					}
+					BuildTransactionResult result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, feeTarget: null, feeRate: Money.Satoshis(feeRate.SatoshiPerByte), allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 
 					if (IsTransactionBuilder)
 					{
