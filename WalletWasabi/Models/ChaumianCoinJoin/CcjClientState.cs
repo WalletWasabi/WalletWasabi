@@ -6,6 +6,7 @@ using System.Linq;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {
@@ -197,7 +198,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			Func<SmartCoin, bool> confirmationPredicate;
 			if (allowUnconfirmedZeroLink)
 			{
-				confirmationPredicate = x => x.Confirmed || x.Label.StartsWith("ZeroLink", StringComparison.Ordinal);
+				confirmationPredicate = x => x.Confirmed || x.Label.StartsWith("ZeroLink", StringComparison.Ordinal) || x.LabelType == LabelType.CoinJoin || x.LabelType == LabelType.CoinJoinChange;
 			}
 			else
 			{

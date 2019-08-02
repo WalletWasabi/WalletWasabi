@@ -70,7 +70,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 						if (hdPubKey != default)
 						{
-							hdPubKey.SetLabel(newLabel, kmToFile: keyManager);
+							hdPubKey.SetLabel(newLabel, hdPubKey.LabelType, kmToFile: keyManager);
 						}
 					}
 				});

@@ -409,7 +409,7 @@ namespace WalletWasabi.Services
 			var foundLabelless = keys.FirstOrDefault(x => !x.HasLabel); // Return the first labelless.
 			HdPubKey ret = foundLabelless ?? keys.RandomElement(); // Return the first, because that's the oldest.
 
-			ret.SetLabel(label, KeyManager);
+			ret.SetLabel(label, LabelType.Standard, KeyManager);
 
 			return ret;
 		}
@@ -650,7 +650,7 @@ namespace WalletWasabi.Services
 						continue;
 					}
 
-					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
+					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, foundKey.LabelType, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
 																																																												   // If we did not have it.
 					if (Coins.TryAdd(newCoin))
 					{
@@ -1183,7 +1183,7 @@ namespace WalletWasabi.Services
 				KeyManager.AssertLockedInternalKeysIndexed(14);
 				var changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).RandomElement();
 
-				changeHdPubKey.SetLabel(changeLabel, KeyManager);
+				changeHdPubKey.SetLabel(changeLabel, LabelType.Standard, KeyManager);
 				changeScriptPubKey = changeHdPubKey.P2wpkhScript;
 			}
 			else
@@ -1272,6 +1272,7 @@ namespace WalletWasabi.Services
 				if (foundKey != null)
 				{
 					coin.Label = changeLabel;
+					coin.LabelType = foundKey.LabelType;
 					innerWalletOutputs.Add(coin);
 				}
 				else
@@ -1389,7 +1390,7 @@ namespace WalletWasabi.Services
 			var key = KeyManager.GetKeys(x => x.P2wpkhScript == coin.ScriptPubKey).SingleOrDefault();
 			if (key != null)
 			{
-				key.SetLabel(newLabel, KeyManager);
+				key.SetLabel(newLabel, key.LabelType, KeyManager);
 			}
 		}
 
@@ -1526,10 +1527,10 @@ namespace WalletWasabi.Services
 				Interlocked.Decrement(ref SendCount);
 			}
 		}
-
+ 
 		public IEnumerable<string> GetNonSpecialLabels()
 		{
-			return Coins.Where(x => !x.Label.StartsWith("ZeroLink", StringComparison.Ordinal))
+			return Coins.Where(x => !x.Label.StartsWith("ZeroLink", StringComparison.Ordinal) || (x.LabelType != LabelType.CoinJoin && x.LabelType != LabelType.CoinJoinChange))
 				.SelectMany(x => x.Label.Split(new string[] { Constants.ChangeOfSpecialLabelStart, Constants.ChangeOfSpecialLabelEnd, "(", "," }, StringSplitOptions.RemoveEmptyEntries))
 				.Select(x => x.Trim())
 				.Distinct();

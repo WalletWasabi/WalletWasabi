@@ -688,13 +688,13 @@ namespace WalletWasabi.Services
 
 			// Select the change and active keys to register and label them accordingly.
 			HdPubKey change = allLockedInternalKeys.First();
-			change.SetLabel(changeLabel);
+			change.SetLabel(changeLabel, LabelType.CoinJoinChange);
 
 			var actives = new List<HdPubKey>();
 			foreach (HdPubKey active in allLockedInternalKeys.Skip(1).Take(maximumMixingLevelCount))
 			{
 				actives.Add(active);
-				active.SetLabel(activeLabel);
+				active.SetLabel(activeLabel, LabelType.CoinJoin);
 			}
 
 			// Remember which links we are exposing.
@@ -1033,13 +1033,13 @@ namespace WalletWasabi.Services
 			State.RemoveCoinFromWaitingList(coinWaitingForMix);
 			coinWaitingForMix.CoinJoinInProgress = false;
 			coinWaitingForMix.Secret = null;
-			if (coinWaitingForMix.Label == "ZeroLink Change" && coinWaitingForMix.Unspent)
+			if ((coinWaitingForMix.Label == "ZeroLink Change" || coinWaitingForMix.LabelType == LabelType.CoinJoinChange) && coinWaitingForMix.Unspent)
 			{
 				coinWaitingForMix.Label = "ZeroLink Dequeued Change";
 				var key = KeyManager.GetKeys(x => x.P2wpkhScript == coinWaitingForMix.ScriptPubKey).SingleOrDefault();
 				if (key != null)
 				{
-					key.SetLabel(coinWaitingForMix.Label, KeyManager);
+					key.SetLabel(coinWaitingForMix.Label, LabelType.CoinJoinChange, KeyManager);
 				}
 			}
 			CoinDequeued?.Invoke(this, coinWaitingForMix);
