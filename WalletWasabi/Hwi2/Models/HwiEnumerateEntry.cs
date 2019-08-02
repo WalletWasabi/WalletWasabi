@@ -18,6 +18,13 @@ namespace WalletWasabi.Hwi2.Models
 		public string Error { get; }
 		public HwiErrorCode? Code { get; }
 
+		public bool IsInitialized()
+		{
+			// Check for error message, too, not only code, because the currently released version doesn't have error code. This can be removed if HWI > 1.0.1 version is updated.
+			var notInitialized = Code == HwiErrorCode.DeviceNotInitialized || Error.Contains("Not initialized", StringComparison.OrdinalIgnoreCase);
+			return !notInitialized;
+		}
+
 		public HwiEnumerateEntry(
 			HardwareWalletVendors? type,
 			string path,

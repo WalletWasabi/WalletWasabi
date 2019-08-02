@@ -22,7 +22,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Hwi;
 
 namespace WalletWasabi.Gui
 {

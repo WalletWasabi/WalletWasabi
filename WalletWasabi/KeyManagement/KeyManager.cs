@@ -7,7 +7,7 @@ using System.Linq;
 using System.Security;
 using System.Text;
 using WalletWasabi.Helpers;
-using WalletWasabi.Hwi.Models;
+using WalletWasabi.Hwi2.Models;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -72,7 +72,6 @@ namespace WalletWasabi.KeyManagement
 
 		public bool IsWatchOnly => EncryptedSecret is null;
 		public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint != null;
-		public HardwareWalletInfo HardwareWalletInfo { get; set; }
 
 		public const int AbsoluteMinGapLimit = 21;
 
@@ -96,7 +95,6 @@ namespace WalletWasabi.KeyManagement
 			SetMinGapLimit(minGapLimit);
 
 			BlockchainState = blockchainState ?? new BlockchainState();
-			HardwareWalletInfo = null;
 			AccountKeyPath = accountKeyPath ?? DefaultAccountKeyPath;
 
 			SetFilePath(filePath);
@@ -114,7 +112,6 @@ namespace WalletWasabi.KeyManagement
 			ScriptHdPubKeyMapLock = new object();
 			BlockchainState = new BlockchainState();
 			BlockchainStateLock = new object();
-			HardwareWalletInfo = null;
 
 			if (password is null)
 			{

@@ -43,6 +43,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 				Assert.NotNull(entry.Error);
 				Assert.NotEmpty(entry.Error);
 				Assert.Equal(HwiErrorCode.DeviceNotInitialized, entry.Code);
+				Assert.False(entry.IsInitialized());
 				Assert.Null(entry.Fingerprint);
 
 				var deviceType = entry.Type.Value;
@@ -120,6 +121,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 				Assert.Equal("Could not open client or get fingerprint information: Trezor is locked. Unlock by using 'promptpin' and then 'sendpin'.", entry.Error);
 				Assert.Equal(HwiErrorCode.DeviceNotReady, entry.Code);
 				Assert.Null(entry.Fingerprint);
+				Assert.True(entry.IsInitialized());
 
 				var deviceType = entry.Type.Value;
 				var devicePath = entry.Path;
