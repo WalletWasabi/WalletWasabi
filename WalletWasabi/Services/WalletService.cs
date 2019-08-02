@@ -652,7 +652,7 @@ namespace WalletWasabi.Services
 
 					var isCoinJoinOutput = tx.Transaction.Outputs.Any(x => x.ScriptPubKey == Constants.GetCoordinatorAddress(Network).ScriptPubKey);
 					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, isCoinJoinOutput, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
-																																																																	 // If we did not have it.
+
 					if (Coins.TryAdd(newCoin))
 					{
 						TransactionCache.TryAdd(tx);
