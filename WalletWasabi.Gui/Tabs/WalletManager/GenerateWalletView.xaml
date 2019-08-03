@@ -5,7 +5,7 @@
       <Grid Classes="content">
         <StackPanel Spacing="8">
           <StackPanel>
-            <TextBlock Text="Heads Up!" FontWeight="Bold" />
+            <TextBlock Text="Warning!" Foreground="IndianRed" FontWeight="Bold" />
             <TextBlock Text="You cannot recover your wallet without your password. Therefore we strongly advise you to use a password that you will not forget." TextWrapping="Wrap" />
           </StackPanel>
           <controls:ExtendedTextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
