@@ -78,6 +78,22 @@ namespace WalletWasabi.Gui.Shell.Commands
 					}
 				}));
 
+			DocsCommand = new CommandDefinition(
+				"Documentation",
+				commandIconService.GetCompletionKindImage("Documentation"),
+				ReactiveCommand.Create(() =>
+				{
+					try
+					{
+						IoHelpers.OpenBrowser("https://docs.wasabiwallet.io/");
+					}
+					catch (Exception ex)
+					{
+						Logging.Logger.LogWarning<HelpCommands>(ex);
+						IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
+					}
+				}));
+
 			PrivacyPolicyCommand = new CommandDefinition(
 				"Privacy Policy",
 				commandIconService.GetCompletionKindImage("PrivacyPolicy"),
@@ -137,6 +153,9 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		[ExportCommandDefinition("Help.Faq")]
 		public CommandDefinition FaqCommand { get; }
+
+		[ExportCommandDefinition("Help.Documentation")]
+		public CommandDefinition DocsCommand { get; }
 
 		[ExportCommandDefinition("Help.PrivacyPolicy")]
 		public CommandDefinition PrivacyPolicyCommand { get; }

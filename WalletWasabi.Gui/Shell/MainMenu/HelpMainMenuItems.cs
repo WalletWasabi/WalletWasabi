@@ -72,18 +72,23 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[DefaultGroup("Support")]
 		public IMenuItem Faq => MenuItemFactory.CreateCommandMenuItem("Help.Faq");
 
-		[ExportMainMenuItem("Help", "Privacy Policy")]
+		[ExportMainMenuItem("Help", "Documentation")]
 		[DefaultOrder(5)]
+		[DefaultGroup("Support")]
+		public IMenuItem Docs => MenuItemFactory.CreateCommandMenuItem("Help.Documentation");
+
+		[ExportMainMenuItem("Help", "Privacy Policy")]
+		[DefaultOrder(6)]
 		[DefaultGroup("Legal")]
 		public IMenuItem PrivacyPolicy => MenuItemFactory.CreateCommandMenuItem("Help.PrivacyPolicy");
 
 		[ExportMainMenuItem("Help", "Terms And Conditions")]
-		[DefaultOrder(6)]
+		[DefaultOrder(7)]
 		[DefaultGroup("Legal")]
 		public IMenuItem TermsAndConditions => MenuItemFactory.CreateCommandMenuItem("Help.TermsAndConditions");
 
 		[ExportMainMenuItem("Help", "Legal Issues")]
-		[DefaultOrder(7)]
+		[DefaultOrder(8)]
 		[DefaultGroup("Legal")]
 		public IMenuItem LegalIssues => MenuItemFactory.CreateCommandMenuItem("Help.LegalIssues");
 
