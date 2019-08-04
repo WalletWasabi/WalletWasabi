@@ -101,27 +101,27 @@ namespace WalletWasabi.Backend
 		private async Task CleanupAsync(Global global)
 		{
 			global.Coordinator?.Dispose();
-			Logger.LogInfo<Startup>("Coordinator is disposed.");
+			Logger.LogInfo<Startup>($"{nameof(global.Coordinator)} is disposed.");
 
 			if (global.IndexBuilderService != null)
 			{
 				await global.IndexBuilderService.StopAsync();
-				Logger.LogInfo<Startup>("IndexBuilderService is disposed.");
+				Logger.LogInfo<Startup>($"{nameof(global.IndexBuilderService)} is disposed.");
 			}
 
 			if (global.RoundConfigWatcher != null)
 			{
 				await global.RoundConfigWatcher.StopAsync();
-				Logger.LogInfo<Startup>("RoundConfigWatcher is disposed.");
+				Logger.LogInfo<Startup>($"{nameof(global.RoundConfigWatcher)} is disposed.");
 			}
 
 			if (global.LocalNode != null)
 			{
 				global.DisconnectDisposeNullLocalNode();
-				Logger.LogInfo<Startup>("LocalNode is disposed.");
+				Logger.LogInfo<Startup>($"{nameof(global.LocalNode)} is disposed.");
 			}
 
-			Logger.LogInfo($"Wasabi Backend stopped gracefully.", Logger.InstanceGuid.ToString());
+			Logger.LogInfo("Wasabi Backend stopped gracefully.", Logger.InstanceGuid.ToString());
 		}
 	}
 }
