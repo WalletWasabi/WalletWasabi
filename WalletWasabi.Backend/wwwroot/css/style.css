@@ -200,7 +200,8 @@ section .shader {
 
 .hero .hero-image {
   position: relative;
-  height: 100vh;
+  min-height: 100vh;
+  height: 100%;
   width: 100%;
   background-image: url("../images/hero-off.jpg");
   background-size: cover;
@@ -370,11 +371,18 @@ section .shader {
   }
 }
 
-/* For > lg screens */
-@media (min-width: 992px) {
+/* For > lg screens with decent height */
+@media (min-width: 1200px) and (min-height: 840px) {
   .features {
     -webkit-transform: translateY(-50%);
             transform: translateY(-50%);
+    border-radius: 6px;
+  }
+}
+
+@media screen and (max-height: 900px) and (min-aspect-ratio: 2/1) {
+  .features {
+    -webkit-transform: translateY(0) !important;
     border-radius: 6px;
   }
 }
