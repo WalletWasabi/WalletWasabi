@@ -24,7 +24,7 @@ ul {
   transition: transform 0.3s, -webkit-transform 0.3s;
 }
 
-.animated-link span::before {
+.animated-link span:before {
   position: absolute;
   top: 100%;
   content: attr(data-hover);
@@ -261,9 +261,49 @@ section .shader {
 
 /* Features Section */
 .features {
-  background: #FFFFFF;
   width: 100%;
   max-width: 1100px;
+  background: #fff;
+}
+
+.features .feature {
+  position: relative;
+  overflow: hidden;
+  text-decoration: none !important;
+}
+
+.features .feature:after {
+  content: 'learn more >';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding-bottom: 1rem;
+  color: #3B83F7;
+  display: block;
+  font-size: 0.8rem;
+  -webkit-transition: -webkit-transform .3s ease;
+  transition: -webkit-transform .3s ease;
+  transition: transform .3s ease;
+  transition: transform .3s ease, -webkit-transform .3s ease;
+  -webkit-transform: translateY(100%);
+          transform: translateY(100%);
+}
+
+.features .feature svg {
+  -webkit-transition: -webkit-transform .6s ease;
+  transition: -webkit-transform .6s ease;
+  transition: transform .6s ease;
+  transition: transform .6s ease, -webkit-transform .6s ease;
+}
+
+.features .feature:hover svg {
+  -webkit-transform: rotateY(180deg);
+          transform: rotateY(180deg);
+}
+.features .feature:hover:after {
+  -webkit-transform: translateY(0%);
+          transform: translateY(0%);
 }
 
 /* CoinJoins Section */
