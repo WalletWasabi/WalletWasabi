@@ -34,7 +34,7 @@ namespace WalletWasabi.WebClients.Coinbase
 
 				var exchangeRates = new List<ExchangeRate>
 				{
-					new ExchangeRate { Rate = wrapper.Data.Rates.USD, Ticker = "USD" },
+					new ExchangeRate { Rate = wrapper.Data.Rates.USD, Ticker = "USD" }
 				};
 
 				return exchangeRates;
