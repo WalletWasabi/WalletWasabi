@@ -1032,7 +1032,7 @@ namespace WalletWasabi.Services
 		public BuildTransactionResult BuildTransaction(string password,
 														Operation[] toSend,
 														int? feeTarget = null,
-														Money feeRate = null,
+														FeeRate feeRate = null,
 														bool allowUnconfirmed = false,
 														int? subtractFeeFromAmountIndex = null,
 														Script customChange = null,
@@ -1115,14 +1115,9 @@ namespace WalletWasabi.Services
 			// 4. Get and calculate fee
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
 
-			Money feePerBytes = null;
-			using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
-			{
-				Money fr = feeTarget.HasValue ? Synchronizer.GetFeeRate(feeTarget.Value) : feeRate;
+			FeeRate feePerBytes = (feeTarget != null && feeTarget.HasValue) ? Synchronizer.GetFeeRate(feeTarget.Value) : feeRate;
 
-				Money sanityCheckedFeeRate = Math.Max(fr, 2); // Use the sanity check that under 2 satoshi per bytes should not be displayed. To correct possible rounding errors.
-				feePerBytes = new Money(sanityCheckedFeeRate);
-			}
+			feePerBytes = feePerBytes.SatoshiPerByte < 1 ? new FeeRate(1m) : feePerBytes; // Use the sanity check that under 2 satoshi per bytes should not be displayed. To correct possible rounding errors.
 
 			bool spendAll = spendAllCount == 1;
 			int inNum;
@@ -1133,7 +1128,7 @@ namespace WalletWasabi.Services
 			else
 			{
 				int expectedMinTxSize = 1 * Constants.P2wpkhInputSizeInBytes + 1 * Constants.OutputSizeInBytes + 10;
-				inNum = SelectCoinsToSpend(allowedSmartCoinInputs, toSend.Select(x => x.Amount).Sum() + feePerBytes * expectedMinTxSize).Count();
+				inNum = SelectCoinsToSpend(allowedSmartCoinInputs, toSend.Select(x => x.Amount).Sum() + feePerBytes.GetTotalFee(expectedMinTxSize)).Count();
 			}
 
 			// https://bitcoincore.org/en/segwit_wallet_dev/#transaction-fee-estimation
@@ -1141,7 +1136,7 @@ namespace WalletWasabi.Services
 			int outNum = spendAll ? toSend.Length : toSend.Length + 1; // number of addresses to send + 1 for change
 			int vSize = NBitcoinHelpers.CalculateVsizeAssumeSegwit(inNum, outNum);
 			Logger.LogInfo<WalletService>($"Estimated tx size: {vSize} vbytes.");
-			Money fee = feePerBytes * vSize;
+			Money fee = feePerBytes.GetTotalFee(vSize);
 			Logger.LogInfo<WalletService>($"Fee: {fee.Satoshi} Satoshi.");
 
 			// 5. How much to spend?

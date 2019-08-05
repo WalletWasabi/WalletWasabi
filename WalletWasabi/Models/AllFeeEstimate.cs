@@ -39,14 +39,14 @@ namespace WalletWasabi.Models
 			_hashCode = null;
 		}
 
-		public Money GetFeeRate(int feeTarget)
+		public FeeRate GetFeeRate(int feeTarget)
 		{
 			// Where the target is still under or equal to the requested target.
-			int satoshiPerByte = Estimations
+			decimal satoshiPerByte = Estimations
 				.Last(x => x.Key <= feeTarget) // The last should be the largest feeTarget.
 				.Value;
 
-			return Money.Satoshis(satoshiPerByte);
+			return new FeeRate(satoshiPerByte);
 		}
 
 		#region Equality

@@ -273,5 +273,10 @@ namespace NBitcoin
 			}
 			list.Sort((x, y) => map[x].Amount.CompareTo(map[y].Amount));
 		}
+
+		public static Money GetTotalFee(this FeeRate me, int vsize)
+		{
+			return Money.Satoshis(Math.Round(me.SatoshiPerByte * vsize));
+		}
 	}
 }
