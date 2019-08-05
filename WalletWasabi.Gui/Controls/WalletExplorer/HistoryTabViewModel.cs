@@ -22,6 +22,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
+		private SortOrder _labelSortDirection;
 		private bool _isFirstLoading;
 
 		public bool IsFirstLoading
@@ -31,6 +32,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
+		public ReactiveCommand<Unit, Unit> CopySelectedTxIdCommand { get; }
 
 		public HistoryTabViewModel(WalletViewModel walletViewModel)
 			: base("History", walletViewModel)
@@ -39,17 +41,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Transactions = new ObservableCollection<TransactionViewModel>();
 
-			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
-			{
-				if (Global.UiConfig?.Autocopy is false || transaction is null)
-				{
-					return;
-				}
-
-				await transaction.TryCopyTxIdToClipboardAsync();
-			});
-
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);
+
+			CopySelectedTxIdCommand = ReactiveCommand.CreateFromTask(async () => 
+			{
+				if (Global.UiConfig?.Autocopy is true && SelectedTransaction != null)
+				{
+					await SelectedTransaction.TryCopyTxIdToClipboardAsync();
+				}
+			});
 
 			DateSortDirection = SortOrder.Decreasing;
 
@@ -101,9 +101,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					DateTime = txr.dateTime.ToLocalTime(),
 					Confirmed = txr.height.Type == HeightType.Chain,
 					Confirmations = txr.height.Type == HeightType.Chain ? Global.BitcoinStore.HashChain.TipHeight - txr.height.Value + 1 : 0,
+					BlockHeight = txr.height.Type == HeightType.Chain ? txr.height.Value: 0,
 					AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
 					Label = txr.label,
-					TransactionId = txr.transactionId.ToString()
+					TransactionId = txr.transactionId.ToString(),
+					AnonymitySet = txr.anonset,
+					Address = txr.address,
+					ScriptPubKeyHex = txr.pubkey,
+					SpendingTx = txr.spendTx,
 				}).Select(ti => new TransactionViewModel(ti));
 
 				Transactions = new ObservableCollection<TransactionViewModel>(trs);
@@ -128,12 +133,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)> BuildTxRecordList()
+		private List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId, int anonset, string address, string pubkey, string spendTx)> BuildTxRecordList()
 		{
 			var walletService = Global.WalletService;
 
 			List<Transaction> trs = new List<Transaction>();
-			var txRecordList = new List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)>();
+			var txRecordList = new List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId, int anonset, string address, string pubkey, string spendTx)>();
 
 			if (walletService is null)
 			{
@@ -166,17 +171,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					dateTime = foundTransaction.FirstSeenIfMempoolTime ?? DateTimeOffset.UtcNow;
 				}
+				
+				string spendTx = coin.Unspent? "Unspent" : coin.SpenderTransactionId.ToString();
 
 				if (found != default) // if found
 				{
 					txRecordList.Remove(found);
 					var foundLabel = found.label != string.Empty ? found.label + ", " : "";
-					var newRecord = (dateTime, found.height, found.amount + coin.Amount, $"{foundLabel}{coin.Label}", coin.TransactionId);
+					var newRecord = (dateTime, found.height, found.amount + coin.Amount, $"{foundLabel}{coin.Label}", coin.TransactionId, coin.AnonymitySet, coin.ScriptPubKey.GetDestinationAddress(Global.Network).ToString(), coin.ScriptPubKey.ToHex(), spendTx);
 					txRecordList.Add(newRecord);
 				}
 				else
 				{
-					txRecordList.Add((dateTime, coin.Height, coin.Amount, coin.Label, coin.TransactionId));
+					txRecordList.Add((dateTime, coin.Height, coin.Amount, coin.Label, coin.TransactionId, coin.AnonymitySet, coin.ScriptPubKey.GetDestinationAddress(Global.Network).ToString(), coin.ScriptPubKey.ToHex(), spendTx));
 				}
 
 				if (coin.SpenderTransactionId != null)
@@ -214,15 +221,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 
 					var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.transactionId == coin.SpenderTransactionId);
+					var spendingCoin = walletService.Coins.FirstOrDefault(x => x.TransactionId == coin.SpenderTransactionId);
+					spendTx = spendingCoin is null || spendingCoin.Unspent ? "Unspent" : spendingCoin.SpenderTransactionId.ToString();
 					if (foundSpenderCoin != default) // if found
 					{
 						txRecordList.Remove(foundSpenderCoin);
-						var newRecord = (dateTime, foundSpenderTransaction.Height, foundSpenderCoin.amount - coin.Amount, foundSpenderCoin.label, coin.SpenderTransactionId);
+						var newRecord = (dateTime, foundSpenderTransaction.Height, foundSpenderCoin.amount - coin.Amount, foundSpenderCoin.label, coin.SpenderTransactionId, coin.AnonymitySet, coin.ScriptPubKey.GetDestinationAddress(Global.Network).ToString(), coin.ScriptPubKey.ToHex(), spendTx);
 						txRecordList.Add(newRecord);
 					}
 					else
 					{
-						txRecordList.Add((dateTime, foundSpenderTransaction.Height, (Money.Zero - coin.Amount), "", coin.SpenderTransactionId));
+						txRecordList.Add((dateTime, foundSpenderTransaction.Height, (Money.Zero - coin.Amount), "", coin.SpenderTransactionId, coin.AnonymitySet, coin.ScriptPubKey.GetDestinationAddress(Global.Network).ToString(), coin.ScriptPubKey.ToHex(), spendTx));
 					}
 				}
 			}
@@ -252,6 +261,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					AmountSortDirection = SortOrder.None;
 					TransactionSortDirection = SortOrder.None;
+					LabelSortDirection = SortOrder.None;
 				}
 			}
 		}
@@ -266,6 +276,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					DateSortDirection = SortOrder.None;
 					TransactionSortDirection = SortOrder.None;
+					LabelSortDirection = SortOrder.None;
 				}
 			}
 		}
@@ -280,6 +291,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					AmountSortDirection = SortOrder.None;
 					DateSortDirection = SortOrder.None;
+					LabelSortDirection = SortOrder.None;
+				}
+			}
+		}
+
+		public SortOrder LabelSortDirection
+		{
+			get => _labelSortDirection;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _labelSortDirection, value);
+				if (value != SortOrder.None)
+				{
+					AmountSortDirection = SortOrder.None;
+					DateSortDirection = SortOrder.None;
+					TransactionSortDirection = SortOrder.None;
 				}
 			}
 		}
@@ -325,6 +352,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						break;
 				}
 			}
+			else if (LabelSortDirection != SortOrder.None)
+			{
+				switch (LabelSortDirection)
+				{
+					case SortOrder.Increasing:
+						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderBy(t => t.Label));
+						break;
+
+					case SortOrder.Decreasing:
+						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderByDescending(t => t.Label));
+						break;
+				}
+			}			
 		}
 	}
 }

@@ -10,40 +10,60 @@
   <UserControl.Resources>
     <converters:MoneyBrushConverter x:Key="MoneyBrushConverter" />
     <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
+    <converters:CoinItemExpanderColorConverter x:Key="CoinItemExpanderColorConverter" />
   </UserControl.Resources>
   <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
     <Grid Classes="content">
       <DockPanel LastChildFill="True">
         <DockPanel LastChildFill="True" DockPanel.Dock="Bottom">
-          <Grid ColumnDefinitions="40, 160, 150, *" Margin="10 0 0 0" DockPanel.Dock="Top">
+          <Grid ColumnDefinitions="40, 160, 150, 600, *" Margin="10 0 0 0" DockPanel.Dock="Top">
             <TextBlock Text="" />
             <controls:SortingArrow Grid.Column="1" Command="{Binding SortCommand}" Text="Date" SortDirection="{Binding DateSortDirection}" />
             <controls:SortingArrow Grid.Column="2" Command="{Binding SortCommand}" Text="Amount (BTC)" SortDirection="{Binding AmountSortDirection}" />
             <controls:SortingArrow Grid.Column="3" Command="{Binding SortCommand}" Text="Transaction ID" SortDirection="{Binding TransactionSortDirection}" />
+            <controls:SortingArrow Grid.Column="4" Command="{Binding SortCommand}" Text="Label" SortDirection="{Binding LabelSortDirection}" />
           </Grid>
           <controls:BusyIndicator Text="Loading..." IsBusy="{Binding IsFirstLoading}">
             <controls:ExtendedListBox Items="{Binding Transactions}" SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}">
               <controls:ExtendedListBox.ItemTemplate>
                 <DataTemplate>
-                  <Grid ColumnDefinitions="40, 160, 150, *">
-                    <Grid.Styles>
-                      <Style Selector="TextBlock">
-                        <Setter Property="VerticalAlignment" Value="Center" />
-                      </Style>
-                    </Grid.Styles>
-                    <Border Background="Transparent" IsVisible="{Binding Confirmed}" Grid.Column="0" ToolTip.Tip="{Binding Confirmations, StringFormat=\{0\} Confirmations}">
-                      <Path HorizontalAlignment="Center" Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16" Stretch="Fill" />
-                    </Border>
-                    <TextBlock Text="{Binding DateTime, ConverterParameter=11, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="1" />
-                    <TextBlock Text="{Binding AmountBtc, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="2" Foreground="{Binding AmountBtc, Converter={StaticResource MoneyBrushConverter}}" />
-                    <TextBlock IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding TransactionId, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="3" />
-                    <Grid IsVisible="{Binding ClipboardNotificationVisible}" Grid.Column="3">
-                      <Grid Opacity="{Binding ClipboardNotificationOpacity}">
-                        <Grid.Transitions>
-                          <DoubleTransition Property="Opacity" Easing="CircularEaseIn" Duration="0:0:0.5" />
-                        </Grid.Transitions>
-                        <TextBlock Text="Copied" Foreground="White" FontWeight="Bold" />
+                  <Grid>
+                      <Expander Name="coinExpander" ExpandDirection="Down" Classes="coloredExpander" Background="{Binding ElementName=coinExpander, Path=IsExpanded, Converter={StaticResource CoinItemExpanderColorConverter}}">
+                        <Grid HorizontalAlignment="Left" ColumnDefinitions="200, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" MaxWidth="800" Margin="35 10 0 25">
+                          <TextBlock Text="Address:" Grid.Row="0" />
+                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Address}" Grid.Column="1" Grid.Row="0" />
+                          <TextBlock Text="Confirmations:" Grid.Row="1" />
+                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Confirmations}" Grid.Column="1" Grid.Row="1" />
+                          <TextBlock Text="Block Height:" Grid.Row="2" />
+                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding BlockHeight}" Grid.Column="1" Grid.Row="2" />
+                          <TextBlock Text="Anonymity Set:" Grid.Row="3" />
+                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding AnonymitySet}" Grid.Column="1" Grid.Row="3" />
+                          <TextBlock Text="Script Public Key (Hex):" Grid.Row="4" />
+                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding ScriptPubKeyHex}" Grid.Column="1" Grid.Row="4" />
+                          <TextBlock Text="Spending Tx:" Grid.Row="5" />
+                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding SpendingTx}" Grid.Column="1" Grid.Row="5" />
+                        </Grid>
+                      </Expander>
+                    <Grid Margin="30 0 0 0" VerticalAlignment="Top" ColumnDefinitions="40, 160, 150, 600, *">
+                      <Border Background="Transparent" IsVisible="{Binding Confirmed}" Grid.Column="0" ToolTip.Tip="{Binding Confirmations, StringFormat=\{0\} Confirmations}">
+                        <Path HorizontalAlignment="Center" Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16" Stretch="Fill" />
+                      </Border>
+                      <TextBlock Text="{Binding DateTime, ConverterParameter=11, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="1" />
+                      <TextBlock Text="{Binding AmountBtc, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="2" Foreground="{Binding AmountBtc, Converter={StaticResource MoneyBrushConverter}}" />
+                      <TextBlock IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding TransactionId, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="3">
+                        <i:Interaction.Behaviors>
+                          <behaviors:CommandOnClickBehavior Command="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=DataContext.CopySelectedTxIdCommand}" />
+                        </i:Interaction.Behaviors>
+                      </TextBlock>
+                      <Grid IsVisible="{Binding ClipboardNotificationVisible}" Grid.Column="3">
+                        <Grid Opacity="{Binding ClipboardNotificationOpacity}">
+                          <Grid.Transitions>
+                            <DoubleTransition Property="Opacity" Easing="CircularEaseIn" Duration="0:0:0.5" />
+                          </Grid.Transitions>
+                          <TextBlock Text="Copied" Foreground="White" FontWeight="Bold" />
+                        </Grid>
                       </Grid>
+                      <TextBlock Text="{Binding Label, ConverterParameter=20, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="4"/>
                     </Grid>
                   </Grid>
                 </DataTemplate>
