@@ -462,6 +462,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(UserFeeTextKeyUpCommand.ThrownExceptions)
 				.Merge(FeeSliderClickedCommand.ThrownExceptions)
 				.Merge(HighLightFeeSliderCommand.ThrownExceptions)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(ex => SetWarningMessage(ex.ToTypeMessageString()));
 		}
 
@@ -631,11 +632,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				FeeRate = null;
 				if (allFeeEstimate != null)
 				{
-					/* In decimal ',' means order of magnitude.
-                     *  User could think it is decimal point but 3,5 means 35 Satoshi.
-					 *  For this reason we treat ',' as an invalid character.
-					 */
-
+					// In decimal ',' means order of magnitude.
+					// User could think it is decimal point but 3,5 means 35 Satoshi.
+					// For this reason we treat ',' as an invalid character.
 					if (!UserFeeText.Contains(",") && decimal.TryParse(UserFeeText, out decimal userFee))
 					{
 						FeeRate = new FeeRate(userFee);
@@ -1177,14 +1176,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.IsCustomFee)
+				.Where(x => !x)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					if (!IsCustomFee)
-					{
-						IsSliderFeeUsed = true;
-					}
-				});
+				.Subscribe(_ => IsSliderFeeUsed = true);
 
 			base.OnOpen();
 		}
