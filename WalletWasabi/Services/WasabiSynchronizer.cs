@@ -350,7 +350,7 @@ namespace WalletWasabi.Services
 			ResponseArrivedIsGenSocksServFail?.Invoke(this, false);
 		}
 
-		public Money GetFeeRate(int feeTarget)
+		public FeeRate GetFeeRate(int feeTarget)
 		{
 			if (AllFeeEstimate is null)
 			{
