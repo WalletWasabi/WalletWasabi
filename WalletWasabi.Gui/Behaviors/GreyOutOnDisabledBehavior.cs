@@ -39,6 +39,7 @@ namespace WalletWasabi.Gui.Behaviors
 			base.OnDetaching();
 
 			Disposables?.Dispose();
+			Disposables = null;
 		}
 	}
 }
