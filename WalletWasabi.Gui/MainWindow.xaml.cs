@@ -71,9 +71,9 @@ namespace WalletWasabi.Gui
 
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
-							MainWindowViewModel.Instance.Width = (double)uiConfig.Width;
-							MainWindowViewModel.Instance.Height = (double)uiConfig.Height;
-							MainWindowViewModel.Instance.WindowState = (WindowState)uiConfig.WindowState;
+							MainWindowViewModel.Instance.Width = uiConfig.Width;
+							MainWindowViewModel.Instance.Height = uiConfig.Height;
+							MainWindowViewModel.Instance.WindowState = uiConfig.WindowState;
 						}
 						else
 						{

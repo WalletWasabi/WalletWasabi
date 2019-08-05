@@ -3015,7 +3015,7 @@ namespace WalletWasabi.Tests
 			}
 
 			FeeRate feeRateTx = finalCoinjoin.GetFeeRate(coins.ToArray());
-			var esr = await rpc.EstimateSmartFeeAsync((int)roundConfig.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
+			var esr = await rpc.EstimateSmartFeeAsync(roundConfig.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
 			FeeRate feeRateReal = esr.FeeRate;
 
 			Assert.True(feeRateReal.FeePerK - (feeRateReal.FeePerK / 2) < feeRateTx.FeePerK); // Max 50% mistake.

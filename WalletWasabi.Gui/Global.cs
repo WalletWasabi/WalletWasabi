@@ -521,7 +521,10 @@ namespace WalletWasabi.Gui
 						//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
 						//}
 						// else
-
+						if (coin.HdPubKey.IsInternal)
+						{
+							continue;
+						}
 						string amountString = coin.Amount.ToString(false, true);
 						using (var process = Process.Start(new ProcessStartInfo
 						{
