@@ -58,7 +58,7 @@ namespace WalletWasabi.Backend
 			services.AddLogging(Logging => Logging.AddFilter((s, level) => level >= Microsoft.Extensions.Logging.LogLevel.Warning));
 
 			services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
-			services.AddSingleton<Global>(new Global(Configuration["datadir"]));
+			services.AddSingleton(new Global(Configuration["datadir"]));
 			services.AddStartupTask<InitConfigStartupTask>();
 			services.AddResponseCompression();
 		}
