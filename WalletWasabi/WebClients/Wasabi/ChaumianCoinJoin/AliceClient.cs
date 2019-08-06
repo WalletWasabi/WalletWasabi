@@ -219,7 +219,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 				{
 					return;
 				}
-				catch (ConnectionException)  // If some internet connection issue then it'll likely time out and take it as unconfirmed.
+				catch (ConnectionException) // If some internet connection issue then it'll likely time out and take it as unconfirmed.
 				{
 					return;
 				}

@@ -681,7 +681,7 @@ namespace Nito.Collections
 
 				// Move lower items down: [0, index) -> [Capacity - collectionCount, Capacity - collectionCount + index)
 				// This clears out the low "index" number of items, moving them "collectionCount" places down;
-				//   after rotation, there will be a "collectionCount"-sized hole at "index".
+				// after rotation, there will be a "collectionCount"-sized hole at "index".
 				int copyCount = index;
 				int writeIndex = Capacity - collectionCount;
 				for (int j = 0; j != copyCount; ++j)

@@ -384,7 +384,7 @@ namespace WalletWasabi.Models
 		/// <remarks>
 		/// The enumerator returned from the collection is safe to use concurrently with
 		/// reads and writes to the collection, however it does not represent a moment-in-time snapshot
-		/// of the collection.  The contents exposed through the enumerator may contain modifications
+		/// of the collection. The contents exposed through the enumerator may contain modifications
 		/// made to the collection after <see cref="GetEnumerator"/> was called.
 		/// </remarks>
 		public IEnumerator<T> GetEnumerator()
