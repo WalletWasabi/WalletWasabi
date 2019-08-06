@@ -31,7 +31,7 @@ namespace WalletWasabi.WebClients.BlockchainInfo
 
 				var exchangeRates = new List<ExchangeRate>
 				{
-					new ExchangeRate { Rate = rates.USD.Sell, Ticker = "USD" },
+					new ExchangeRate { Rate = rates.USD.Sell, Ticker = "USD" }
 				};
 
 				return exchangeRates;

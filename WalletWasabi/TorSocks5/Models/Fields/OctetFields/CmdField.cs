@@ -22,7 +22,7 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 
 		// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n46
 		// As an extension to SOCKS4A and SOCKS5, Tor implements a new command value,
-		// "RESOLVE" [F0].  When Tor receives a "RESOLVE" SOCKS command, it initiates
+		// "RESOLVE" [F0]. When Tor receives a "RESOLVE" SOCKS command, it initiates
 		// a remote lookup of the hostname provided as the target address in the SOCKS
 		// request.The reply is either an error(if the address could not be
 		// resolved) or a success response.In the case of success, the address is

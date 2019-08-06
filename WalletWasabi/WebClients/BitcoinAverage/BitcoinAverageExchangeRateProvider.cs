@@ -24,7 +24,7 @@ namespace WalletWasabi.WebClients.BitcoinAverage
 
 				var exchangeRates = new List<ExchangeRate>
 				{
-					new ExchangeRate { Rate = rate.Price, Ticker = "USD" },
+					new ExchangeRate { Rate = rate.Price, Ticker = "USD" }
 				};
 
 				return exchangeRates;
