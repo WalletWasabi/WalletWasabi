@@ -55,7 +55,7 @@ namespace WalletWasabi.Backend
 				c.IncludeXmlComments(xmlPath);
 			});
 
-			services.AddLogging(Logging => Logging.AddFilter((s, level) => level >= Microsoft.Extensions.Logging.LogLevel.Warning));
+			services.AddLogging(logging => logging.AddFilter((s, level) => level >= Microsoft.Extensions.Logging.LogLevel.Warning));
 
 			services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
 			services.AddSingleton(new Global(Configuration["datadir"]));
@@ -65,7 +65,6 @@ namespace WalletWasabi.Backend
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
 #pragma warning disable IDE0060 // Remove unused parameter
-
 		public void Configure(IApplicationBuilder app, IHostingEnvironment env, Global global)
 #pragma warning restore IDE0060 // Remove unused parameter
 		{
