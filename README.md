@@ -20,7 +20,7 @@
 
 ![](https://i.imgur.com/kpjT9ZV.png)
 
-For step by step instructions of PGP verification and package instalation, see the [documentation](https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html)
+For step by step instructions of PGP verification and package installation, see the [documentation](https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html)
 
 # Build From Source Code
 
