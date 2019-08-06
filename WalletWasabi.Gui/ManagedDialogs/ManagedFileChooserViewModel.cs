@@ -279,7 +279,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 
 					this.RaisePropertyChanged(nameof(QuickLinksSelectedIndex));
 				}
-				catch (System.UnauthorizedAccessException)
+				catch (UnauthorizedAccessException)
 				{
 				}
 			}
