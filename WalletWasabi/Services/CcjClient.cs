@@ -326,7 +326,7 @@ namespace WalletWasabi.Services
 						await ongoingRound.Registration.AliceClient.PostSignaturesAsync(myDic);
 
 						// Set all registered output keys as Used to avoid address reuse
-						foreach(var output in ongoingRound.Registration.ActiveOutputs)
+						foreach (var output in ongoingRound.Registration.ActiveOutputs)
 						{
 							var usedKeys = KeyManager.GetKeys(x => x.PubKey.ScriptPubKey == output.Address.ScriptPubKey).ToList();
 							usedKeys.ForEach(x => x.SetKeyState(KeyState.Used)); // Should only be one, but may as well do a for each
