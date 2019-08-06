@@ -622,6 +622,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
+			List<SmartCoin> spentOwnCoins = null; 
 			for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 			{
 				// If transaction received to any of the wallet keys:
@@ -632,17 +633,11 @@ namespace WalletWasabi.Services
 					walletRelevant = true;
 
 					foundKey.SetKeyState(KeyState.Used, KeyManager);
-					List<SmartCoin> spentOwnCoins = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
+					spentOwnCoins = spentOwnCoins ?? Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
 					var anonset = tx.Transaction.GetAnonymitySet(i);
 					if (spentOwnCoins.Count != 0)
 					{
 						anonset += spentOwnCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because do not count own.
-
-						// Cleanup exposed links where the txo has been spent.
-						foreach (var input in spentOwnCoins.Select(x => x.GetTxoRef()))
-						{
-							ChaumianClient.ExposedLinks.TryRemove(input, out _);
-						}
 					}
 
 					if (output.Value <= ServiceConfiguration.DustThreshold)
@@ -701,7 +696,7 @@ namespace WalletWasabi.Services
 				if (foundCoin != null)
 				{
 					walletRelevant = true;
-
+					ChaumianClient.ExposedLinks.TryRemove(foundCoin.GetTxoRef(), out _);
 					foundCoin.SpenderTransactionId = txId;
 					TransactionCache.TryAdd(tx);
 					CoinSpentOrSpenderConfirmed?.Invoke(this, foundCoin);
