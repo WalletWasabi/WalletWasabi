@@ -39,7 +39,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public int BlockHeight => Model.BlockHeight;
 
-		public int AnonymitySet => Model.AnonymitySet;
+		public int Size => Model.Size;
+		
+		public int VirtualSize => Model.VirtualSize;
 
 		public string AmountBtc => Model.AmountBtc;
 
@@ -49,11 +51,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string TransactionId => Model.TransactionId;
 
-		public string Address => Model.Address;
+		public bool RBF => Model.RBF;
 		
-		public string ScriptPubKeyHex => Model.ScriptPubKeyHex;
-		
-		public string SpendingTx => Model.SpendingTx;
+		public string Fees => Model.Fees;
 
 		public bool ClipboardNotificationVisible
 		{

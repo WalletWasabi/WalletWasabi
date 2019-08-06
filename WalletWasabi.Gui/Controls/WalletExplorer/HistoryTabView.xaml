@@ -11,6 +11,7 @@
     <converters:MoneyBrushConverter x:Key="MoneyBrushConverter" />
     <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
     <converters:CoinItemExpanderColorConverter x:Key="CoinItemExpanderColorConverter" />
+    <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
   </UserControl.Resources>
   <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
     <Grid Classes="content">
@@ -29,19 +30,20 @@
                 <DataTemplate>
                   <Grid>
                       <Expander Name="coinExpander" ExpandDirection="Down" Classes="coloredExpander" Background="{Binding ElementName=coinExpander, Path=IsExpanded, Converter={StaticResource CoinItemExpanderColorConverter}}">
-                        <Grid HorizontalAlignment="Left" ColumnDefinitions="200, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" MaxWidth="800" Margin="35 10 0 25">
-                          <TextBlock Text="Address:" Grid.Row="0" />
-                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Address}" Grid.Column="1" Grid.Row="0" />
-                          <TextBlock Text="Confirmations:" Grid.Row="1" />
-                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Confirmations}" Grid.Column="1" Grid.Row="1" />
-                          <TextBlock Text="Block Height:" Grid.Row="2" />
-                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding BlockHeight}" Grid.Column="1" Grid.Row="2" />
-                          <TextBlock Text="Anonymity Set:" Grid.Row="3" />
-                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding AnonymitySet}" Grid.Column="1" Grid.Row="3" />
-                          <TextBlock Text="Script Public Key (Hex):" Grid.Row="4" />
-                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding ScriptPubKeyHex}" Grid.Column="1" Grid.Row="4" />
-                          <TextBlock Text="Spending Tx:" Grid.Row="5" />
-                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding SpendingTx}" Grid.Column="1" Grid.Row="5" />
+                        <Grid HorizontalAlignment="Left" ColumnDefinitions="200, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" MaxWidth="800" Margin="35 10 0 25">
+                          <!-- TODO: Add Is CoinJoin if #2047 is merged -->
+                          <TextBlock Text="Confirmations:" Grid.Row="0" />
+                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Confirmations}" Grid.Column="1" Grid.Row="0" />
+                          <TextBlock Text="Block Height:" Grid.Row="1" />
+                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding BlockHeight}" Grid.Column="1" Grid.Row="1" />
+                          <TextBlock Text="Size:" Grid.Row="2" />
+                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Size, StringFormat=\{0\} bytes, Mode=OneWay}" Grid.Column="1" Grid.Row="2" />
+                          <TextBlock Text="Virtual Size:" Grid.Row="3" />
+                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding VirtualSize, StringFormat=\{0\} vbytes, Mode=OneWay}" Grid.Column="1" Grid.Row="3" />
+                          <TextBlock Text="Fees:" Grid.Row="4" />
+                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Fees}" Grid.Column="1" Grid.Row="4" />
+                          <TextBlock Text="Replace-by-fee:" Grid.Row="5" />
+                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding RBF, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Yes:No, Mode=OneWay}" Grid.Column="1" Grid.Row="5" />
                         </Grid>
                       </Expander>
                     <Grid Margin="30 0 0 0" VerticalAlignment="Top" ColumnDefinitions="40, 160, 150, 600, *">

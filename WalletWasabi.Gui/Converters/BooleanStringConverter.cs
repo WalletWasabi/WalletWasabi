@@ -33,7 +33,36 @@ namespace WalletWasabi.Gui.Converters
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			throw new NotSupportedException();
+			if (value is string val)
+			{
+				if (parameter is string param)
+				{
+					var options = param.Split(':');
+					if (options.Length < 2)
+					{
+						throw new ArgumentException("Two options are required by the converter.", nameof(parameter));
+					}
+
+					if (options[0] == val)
+					{
+						return true;
+					}
+					else if (options[1] == val)
+					{
+						return false;
+					}
+
+					throw new ArgumentException("Value not found in the given options", nameof(value));
+				}
+				else
+				{
+					throw new TypeArgumentException(parameter, typeof(string), nameof(parameter));
+				}
+			}
+			else
+			{
+				throw new TypeArgumentException(value, typeof(string), nameof(value));
+			}
 		}
 	}
 }

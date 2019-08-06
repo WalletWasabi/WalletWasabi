@@ -105,10 +105,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
 					Label = txr.label,
 					TransactionId = txr.transactionId.ToString(),
-					AnonymitySet = txr.anonset,
-					Address = txr.address,
-					ScriptPubKeyHex = txr.pubkey,
-					SpendingTx = txr.spendTx,
+					Size = txr.size,
+					VirtualSize = txr.vsize,
+					RBF = txr.rbf,
+					Fees = txr.fees,
 				}).Select(ti => new TransactionViewModel(ti));
 
 				Transactions = new ObservableCollection<TransactionViewModel>(trs);
@@ -133,12 +133,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId, int anonset, string address, string pubkey, string spendTx)> BuildTxRecordList()
+		private List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId, int size, int vsize, bool rbf, string fees)> BuildTxRecordList()
 		{
 			var walletService = Global.WalletService;
 
 			List<Transaction> trs = new List<Transaction>();
-			var txRecordList = new List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId, int anonset, string address, string pubkey, string spendTx)>();
+			var txRecordList = new List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId, int size, int vsize, bool rbf, string fees)>();
 
 			if (walletService is null)
 			{
@@ -171,19 +171,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					dateTime = foundTransaction.FirstSeenIfMempoolTime ?? DateTimeOffset.UtcNow;
 				}
-				
-				string spendTx = coin.Unspent? "Unspent" : coin.SpenderTransactionId.ToString();
+
+				Dictionary<Coin, SmartCoin> spentCoins = WalletService.Coins.Where(x => foundTransaction.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToDictionary(x => x.GetCoin());
+				long satFee = foundTransaction.Transaction.GetFee(spentCoins.Keys.ToArray())?.Satoshi ?? -1;
+				string fees = satFee < 0 ? "N/A" : satFee + " sats (" + foundTransaction.Transaction.GetFeeRate(spentCoins.Keys.ToArray())?.SatoshiPerByte + " sat/vbyte)";
 
 				if (found != default) // if found
 				{
 					txRecordList.Remove(found);
 					var foundLabel = found.label != string.Empty ? found.label + ", " : "";
-					var newRecord = (dateTime, found.height, found.amount + coin.Amount, $"{foundLabel}{coin.Label}", coin.TransactionId, coin.AnonymitySet, coin.ScriptPubKey.GetDestinationAddress(Global.Network).ToString(), coin.ScriptPubKey.ToHex(), spendTx);
-					txRecordList.Add(newRecord);
+					txRecordList.Add((dateTime, found.height, found.amount + coin.Amount, $"{foundLabel}{coin.Label}", coin.TransactionId, foundTransaction.Transaction.GetSerializedSize(), foundTransaction.Transaction.GetVirtualSize(), foundTransaction.IsRBF, fees));
 				}
 				else
 				{
-					txRecordList.Add((dateTime, coin.Height, coin.Amount, coin.Label, coin.TransactionId, coin.AnonymitySet, coin.ScriptPubKey.GetDestinationAddress(Global.Network).ToString(), coin.ScriptPubKey.ToHex(), spendTx));
+					txRecordList.Add((dateTime, coin.Height, coin.Amount, coin.Label, coin.TransactionId, foundTransaction.Transaction.GetSerializedSize(), foundTransaction.Transaction.GetVirtualSize(), foundTransaction.IsRBF, fees));
 				}
 
 				if (coin.SpenderTransactionId != null)
@@ -220,18 +221,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						dateTime = foundSpenderTransaction.FirstSeenIfMempoolTime ?? DateTimeOffset.UtcNow;
 					}
 
+					spentCoins = WalletService.Coins.Where(x => foundSpenderTransaction.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToDictionary(x => x.GetCoin());
+					satFee = foundSpenderTransaction.Transaction.GetFee(spentCoins.Keys.ToArray())?.Satoshi ?? -1;
+					fees = satFee < 0 ? "N/A" :  satFee + " sats (" + foundSpenderTransaction.Transaction.GetFeeRate(spentCoins.Keys.ToArray())?.SatoshiPerByte + " sat/vbyte)";
+
 					var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.transactionId == coin.SpenderTransactionId);
-					var spendingCoin = walletService.Coins.FirstOrDefault(x => x.TransactionId == coin.SpenderTransactionId);
-					spendTx = spendingCoin is null || spendingCoin.Unspent ? "Unspent" : spendingCoin.SpenderTransactionId.ToString();
 					if (foundSpenderCoin != default) // if found
 					{
 						txRecordList.Remove(foundSpenderCoin);
-						var newRecord = (dateTime, foundSpenderTransaction.Height, foundSpenderCoin.amount - coin.Amount, foundSpenderCoin.label, coin.SpenderTransactionId, coin.AnonymitySet, coin.ScriptPubKey.GetDestinationAddress(Global.Network).ToString(), coin.ScriptPubKey.ToHex(), spendTx);
-						txRecordList.Add(newRecord);
+						txRecordList.Add((dateTime, foundSpenderTransaction.Height, foundSpenderCoin.amount - coin.Amount, foundSpenderCoin.label, coin.SpenderTransactionId, foundSpenderTransaction.Transaction.GetSerializedSize(), foundSpenderTransaction.Transaction.GetVirtualSize(), foundSpenderTransaction.IsRBF, fees));
 					}
 					else
 					{
-						txRecordList.Add((dateTime, foundSpenderTransaction.Height, (Money.Zero - coin.Amount), "", coin.SpenderTransactionId, coin.AnonymitySet, coin.ScriptPubKey.GetDestinationAddress(Global.Network).ToString(), coin.ScriptPubKey.ToHex(), spendTx));
+						txRecordList.Add((dateTime, foundSpenderTransaction.Height, (Money.Zero - coin.Amount), "", coin.SpenderTransactionId, foundSpenderTransaction.Transaction.GetSerializedSize(), foundSpenderTransaction.Transaction.GetVirtualSize(), foundSpenderTransaction.IsRBF, fees));
 					}
 				}
 			}

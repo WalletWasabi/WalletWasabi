@@ -9,15 +9,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private int _confirmations;
 		private int _blockHeight;
-		private int _anonymitySet;
+		private int _size;
+		private int _virtualSize;
 		private bool _confirmed;
+		private bool _rbf;
 		private DateTimeOffset _dateTime;
+		private string _fees;
 		private string _amountBtc;
 		private string _label;
 		private string _transactionId;
-		private string _address;
-		private string _scriptPubKeyHex;
-		private string _spendingTx;
 
 		public DateTimeOffset DateTime
 		{
@@ -37,16 +37,34 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _blockHeight, value);
 		}
 
-		public int AnonymitySet
+		public int Size
 		{
-			get => _anonymitySet;
-			set => this.RaiseAndSetIfChanged(ref _anonymitySet, value);
+			get => _size;
+			set => this.RaiseAndSetIfChanged(ref _size, value);
+		}
+
+		public int VirtualSize
+		{
+			get => _virtualSize;
+			set => this.RaiseAndSetIfChanged(ref _virtualSize, value);
 		}
 
 		public bool Confirmed
 		{
 			get => _confirmed;
 			set => this.RaiseAndSetIfChanged(ref _confirmed, value);
+		}
+
+		public bool RBF
+		{
+			get => _rbf;
+			set => this.RaiseAndSetIfChanged(ref _rbf, value);
+		}
+
+		public string Fees
+		{
+			get => _fees;
+			set => this.RaiseAndSetIfChanged(ref _fees, value);
 		}
 
 		public string AmountBtc
@@ -65,24 +83,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _transactionId;
 			set => this.RaiseAndSetIfChanged(ref _transactionId, value);
-		}
-
-		public string Address
-		{
-			get => _address;
-			set => this.RaiseAndSetIfChanged(ref _address, value);
-		}
-
-		public string ScriptPubKeyHex
-		{
-			get => _scriptPubKeyHex;
-			set => this.RaiseAndSetIfChanged(ref _scriptPubKeyHex, value);
-		}
-
-		public string SpendingTx
-		{
-			get => _spendingTx;
-			set => this.RaiseAndSetIfChanged(ref _spendingTx, value);
 		}
 	}
 }
