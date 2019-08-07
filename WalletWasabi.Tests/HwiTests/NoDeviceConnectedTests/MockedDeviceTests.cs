@@ -130,7 +130,6 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 				await client.SetupAsync(deviceType, devicePath, false, cts.Token);
 				await client.RestoreAsync(deviceType, devicePath, false, cts.Token);
 
-				// TrezorOne doesn't support it.
 				var promptpin = await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
 				Assert.Equal("The PIN has already been sent to this device", promptpin.Message);
 				Assert.Equal(HwiErrorCode.DeviceAlreadyUnlocked, promptpin.ErrorCode);
