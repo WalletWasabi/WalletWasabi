@@ -633,16 +633,16 @@ namespace WalletWasabi.Services
 					walletRelevant = true;
 
 					foundKey.SetKeyState(KeyState.Used, KeyManager);
+					if (output.Value <= ServiceConfiguration.DustThreshold)
+					{
+						continue;
+					}
+
 					spentOwnCoins = spentOwnCoins ?? Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
 					var anonset = tx.Transaction.GetAnonymitySet(i);
 					if (spentOwnCoins.Count != 0)
 					{
 						anonset += spentOwnCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because do not count own.
-					}
-
-					if (output.Value <= ServiceConfiguration.DustThreshold)
-					{
-						continue;
 					}
 
 					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
