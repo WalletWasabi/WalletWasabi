@@ -43,7 +43,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);
 
-			CopySelectedTxIdCommand = ReactiveCommand.CreateFromTask(async () => 
+			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(IsTxSelected));
+				this.RaisePropertyChanged(nameof(SelectedTxId));
+				this.RaisePropertyChanged(nameof(SelectedTxConfirmations));
+				this.RaisePropertyChanged(nameof(SelectedTxBlockHeight));
+				this.RaisePropertyChanged(nameof(SelectedTxSize));
+				this.RaisePropertyChanged(nameof(SelectedTxVirtualSize));
+				this.RaisePropertyChanged(nameof(SelectedTxFees));
+				this.RaisePropertyChanged(nameof(SelectedTxRBF));
+			});
+
+			CopySelectedTxIdCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				if (Global.UiConfig?.Autocopy is true && SelectedTransaction != null)
 				{
@@ -101,7 +113,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					DateTime = txr.dateTime.ToLocalTime(),
 					Confirmed = txr.height.Type == HeightType.Chain,
 					Confirmations = txr.height.Type == HeightType.Chain ? Global.BitcoinStore.HashChain.TipHeight - txr.height.Value + 1 : 0,
-					BlockHeight = txr.height.Type == HeightType.Chain ? txr.height.Value: 0,
+					BlockHeight = txr.height.Type == HeightType.Chain ? txr.height.Value : 0,
 					AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
 					Label = txr.label,
 					TransactionId = txr.transactionId.ToString(),
@@ -223,7 +235,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					spentCoins = WalletService.Coins.Where(x => foundSpenderTransaction.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToDictionary(x => x.GetCoin());
 					satFee = foundSpenderTransaction.Transaction.GetFee(spentCoins.Keys.ToArray())?.Satoshi ?? -1;
-					fees = satFee < 0 ? "N/A" :  satFee + " sats (" + foundSpenderTransaction.Transaction.GetFeeRate(spentCoins.Keys.ToArray())?.SatoshiPerByte + " sat/vbyte)";
+					fees = satFee < 0 ? "N/A" : satFee + " sats (" + foundSpenderTransaction.Transaction.GetFeeRate(spentCoins.Keys.ToArray())?.SatoshiPerByte + " sat/vbyte)";
 
 					var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.transactionId == coin.SpenderTransactionId);
 					if (foundSpenderCoin != default) // if found
@@ -246,6 +258,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _transactions;
 			set => this.RaiseAndSetIfChanged(ref _transactions, value);
 		}
+
+		public bool IsTxSelected => SelectedTransaction != null;
+
+		public string SelectedTxId => SelectedTransaction?.TransactionId ?? "N/A";
+
+		public int SelectedTxConfirmations => SelectedTransaction?.Confirmations ?? 0;
+
+		public int SelectedTxBlockHeight => SelectedTransaction?.BlockHeight ?? 0;
+
+		public int SelectedTxSize => SelectedTransaction?.Size ?? 0;
+
+		public int SelectedTxVirtualSize => SelectedTransaction?.VirtualSize ?? 0;
+
+		public string SelectedTxFees => SelectedTransaction?.Fees ?? "N/A";
+
+		public bool SelectedTxRBF => SelectedTransaction?.RBF ?? false;
 
 		public TransactionViewModel SelectedTransaction
 		{
@@ -366,7 +394,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderByDescending(t => t.Label));
 						break;
 				}
-			}			
+			}
 		}
 	}
 }

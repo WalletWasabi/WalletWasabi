@@ -16,6 +16,24 @@
   <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
     <Grid Classes="content">
       <DockPanel LastChildFill="True">
+        <controls:GroupBox Title="{Binding SelectedTxId}" IsVisible="{Binding IsTxSelected}" DockPanel.Dock="Bottom" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+          <StackPanel Orientation="Vertical" HorizontalAlignment="Left" Margin="0 5 10 5">
+            <Grid HorizontalAlignment="Left" ColumnDefinitions="200, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" MaxWidth="800" Margin="35 10 0 25">
+              <TextBlock Text="Confirmations:" Grid.Row="0" />
+              <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding SelectedTxConfirmations}" Grid.Column="1" Grid.Row="0" />
+              <TextBlock Text="Block Height:" Grid.Row="1" />
+              <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding SelectedTxBlockHeight}" Grid.Column="1" Grid.Row="1" />
+              <TextBlock Text="Size:" Grid.Row="2" />
+              <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding SelectedTxSize, StringFormat=\{0\} bytes, Mode=OneWay}" Grid.Column="1" Grid.Row="2" />
+              <TextBlock Text="Virtual Size:" Grid.Row="3" />
+              <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding SelectedTxVirtualSize, StringFormat=\{0\} vbytes, Mode=OneWay}" Grid.Column="1" Grid.Row="3" />
+              <TextBlock Text="Fees:" Grid.Row="4" />
+              <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding SelectedTxFees}" Grid.Column="1" Grid.Row="4" />
+              <TextBlock Text="Replace-by-fee:" Grid.Row="5" />
+              <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding SelectedTxRBF, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Yes:No, Mode=OneWay}" Grid.Column="1" Grid.Row="5" />
+            </Grid>
+          </StackPanel>
+        </controls:GroupBox>
         <DockPanel LastChildFill="True" DockPanel.Dock="Bottom">
           <Grid ColumnDefinitions="40, 160, 150, 600, *" Margin="10 0 0 0" DockPanel.Dock="Top">
             <TextBlock Text="" />
@@ -29,24 +47,7 @@
               <controls:ExtendedListBox.ItemTemplate>
                 <DataTemplate>
                   <Grid>
-                      <Expander Name="coinExpander" ExpandDirection="Down" Classes="coloredExpander" Background="{Binding ElementName=coinExpander, Path=IsExpanded, Converter={StaticResource CoinItemExpanderColorConverter}}">
-                        <Grid HorizontalAlignment="Left" ColumnDefinitions="200, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" MaxWidth="800" Margin="35 10 0 25">
-                          <!-- TODO: Add Is CoinJoin if #2047 is merged -->
-                          <TextBlock Text="Confirmations:" Grid.Row="0" />
-                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Confirmations}" Grid.Column="1" Grid.Row="0" />
-                          <TextBlock Text="Block Height:" Grid.Row="1" />
-                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding BlockHeight}" Grid.Column="1" Grid.Row="1" />
-                          <TextBlock Text="Size:" Grid.Row="2" />
-                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Size, StringFormat=\{0\} bytes, Mode=OneWay}" Grid.Column="1" Grid.Row="2" />
-                          <TextBlock Text="Virtual Size:" Grid.Row="3" />
-                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding VirtualSize, StringFormat=\{0\} vbytes, Mode=OneWay}" Grid.Column="1" Grid.Row="3" />
-                          <TextBlock Text="Fees:" Grid.Row="4" />
-                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Fees}" Grid.Column="1" Grid.Row="4" />
-                          <TextBlock Text="Replace-by-fee:" Grid.Row="5" />
-                          <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding RBF, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Yes:No, Mode=OneWay}" Grid.Column="1" Grid.Row="5" />
-                        </Grid>
-                      </Expander>
-                    <Grid Margin="30 0 0 0" VerticalAlignment="Top" ColumnDefinitions="40, 160, 150, 600, *">
+                    <Grid Margin="0 0 0 0" VerticalAlignment="Top" ColumnDefinitions="40, 160, 150, 600, *">
                       <Border Background="Transparent" IsVisible="{Binding Confirmed}" Grid.Column="0" ToolTip.Tip="{Binding Confirmations, StringFormat=\{0\} Confirmations}">
                         <Path HorizontalAlignment="Center" Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16" Stretch="Fill" />
                       </Border>
