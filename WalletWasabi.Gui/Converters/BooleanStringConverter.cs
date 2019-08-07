@@ -52,7 +52,7 @@ namespace WalletWasabi.Gui.Converters
 						return false;
 					}
 
-					throw new ArgumentException("Value not found in the given options", nameof(value));
+					throw new ArgumentException("Value not found in the given options.", nameof(value));
 				}
 				else
 				{
