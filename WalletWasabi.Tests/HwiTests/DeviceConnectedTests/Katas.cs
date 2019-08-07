@@ -174,7 +174,6 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 			//
 			// Connect an already initialized device and unlock it.
 			// Run this test.
-			// Coldcard screen => "Receiving...": refuse
 			// signtx request: refuse
 			// signtx request: confirm
 			//
@@ -217,6 +216,21 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				Assert.NotNull(xpub2);
 				Assert.NotEqual(xpub1, xpub2);
 
+				PSBT psbt = BuildPsbt(network, fingerprint, xpub1, keyPath1);
+
+				// USER: REFUSE
+				var ex = await Assert.ThrowsAsync<HwiException>(async () => await client.SignTxAsync(deviceType, devicePath, psbt, cts.Token));
+				Assert.Equal(HwiErrorCode.ActionCanceled, ex.ErrorCode);
+
+				// USER: CONFIRM
+				PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, psbt, cts.Token);
+
+				Transaction signeTx = signedPsbt.GetOriginalTransaction();
+				Assert.Equal(psbt.GetOriginalTransaction().GetHash(), signeTx.GetHash());
+
+				var checkResult = signeTx.Check();
+				Assert.Equal(TransactionCheckResult.Success, checkResult);
+
 				// ColdCard just display the address. There is no confirm/refuse action.
 
 				BitcoinWitPubKeyAddress address1 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token);
@@ -228,30 +242,6 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				var expectedAddress2 = xpub2.PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
 				Assert.Equal(expectedAddress1, address1);
 				Assert.Equal(expectedAddress2, address2);
-
-				// If Coldcard is displaying the address it will say it is in another operation.
-				// When the PSBT sent ColdCard will display Receiving and stuck there.
-				// So here the user should press X to get back to the main menu.
-
-				// USER: REFUSE
-				PSBT psbt = BuildPsbt(network, fingerprint, xpub1, keyPath1);
-				var ex = await Assert.ThrowsAsync<HwiException>(async () => await client.SignTxAsync(deviceType, devicePath, psbt, cts.Token));
-				Assert.Equal(HwiErrorCode.DeviceBusy, ex.ErrorCode);
-
-				await Task.Delay(2000);
-
-				// USER: REFUSE
-				ex = await Assert.ThrowsAsync<HwiException>(async () => await client.SignTxAsync(deviceType, devicePath, psbt, cts.Token));
-				Assert.Equal(HwiErrorCode.ActionCanceled, ex.ErrorCode);
-
-				// USER: CONFIRM
-				PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, psbt, cts.Token);
-
-				Transaction signeTx = signedPsbt.GetOriginalTransaction();
-				Assert.Equal(psbt.GetOriginalTransaction().GetHash(), signeTx.GetHash());
-
-				var checkResult = signeTx.Check();
-				Assert.Equal(TransactionCheckResult.Success, checkResult);
 			}
 		}
 	}
