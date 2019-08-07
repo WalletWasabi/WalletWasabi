@@ -30,7 +30,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 					LogTable[gfx] = powers;
 				}
 
-				gfx <<= 1;      //gfx = gfx * 2 where alpha is 2.
+				gfx <<= 1; //gfx = gfx * 2 where alpha is 2.
 
 				if (gfx > 255)
 				{

@@ -359,7 +359,7 @@ namespace WalletWasabi.Gui
 				return;
 			}
 
-			//  curl -s https://bitnodes.21.co/api/v1/snapshots/latest/ | egrep -o '[a-z0-9]{16}\.onion:?[0-9]*' | sort -ru
+			// curl -s https://bitnodes.21.co/api/v1/snapshots/latest/ | egrep -o '[a-z0-9]{16}\.onion:?[0-9]*' | sort -ru
 			// Then filtered to include only /Satoshi:0.17.x
 			var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
 			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -507,7 +507,10 @@ namespace WalletWasabi.Gui
 						//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
 						//}
 						// else
-
+						if (coin.HdPubKey.IsInternal)
+						{
+							continue;
+						}
 						string amountString = coin.Amount.ToString(false, true);
 						using (var process = Process.Start(new ProcessStartInfo
 						{

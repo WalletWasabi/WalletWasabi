@@ -19,7 +19,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 			DimensionForVersion = 17 + (versionNum * 4);
 		}
 
-		internal ErrorCorrectionBlocks GetECBlocksByLevel(Gma.QrCodeNet.Encoding.ErrorCorrectionLevel ECLevel)
+		internal ErrorCorrectionBlocks GetECBlocksByLevel(ErrorCorrectionLevel ECLevel)
 		{
 			switch (ECLevel)
 			{

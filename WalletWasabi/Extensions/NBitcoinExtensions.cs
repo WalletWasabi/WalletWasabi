@@ -106,9 +106,9 @@ namespace NBitcoin
 		public static IEnumerable<(Money value, int count)> GetIndistinguishableOutputs(this Transaction me, bool includeSingle)
 		{
 			return me.Outputs.GroupBy(x => x.Value)
-			   .ToDictionary(x => x.Key, y => y.Count())
-			   .Select(x => (x.Key, x.Value))
-			   .Where(x => includeSingle || x.Value > 1);
+				.ToDictionary(x => x.Key, y => y.Count())
+				.Select(x => (x.Key, x.Value))
+				.Where(x => includeSingle || x.Value > 1);
 		}
 
 		public static int GetAnonymitySet(this Transaction me, int outputIndex)
@@ -164,10 +164,10 @@ namespace NBitcoin
 			return VerifySignature(dataHash, signature, signer.Key.PubKey);
 		}
 
-		public static uint256 BlindScript(this Requester requester, PubKey signerPubKey, PubKey RPubKey, Script script)
+		public static uint256 BlindScript(this Requester requester, PubKey signerPubKey, PubKey rPubKey, Script script)
 		{
 			var msg = new uint256(Hashes.SHA256(script.ToBytes()));
-			return requester.BlindMessage(msg, RPubKey, signerPubKey);
+			return requester.BlindMessage(msg, rPubKey, signerPubKey);
 		}
 
 		public static Signer CreateSigner(this SchnorrKey schnorrKey)
@@ -306,6 +306,11 @@ namespace NBitcoin
 				map.Add(list.Single(x => x.PrevOut == coin.Outpoint), coin);
 			}
 			list.Sort((x, y) => map[x].Amount.CompareTo(map[y].Amount));
+		}
+
+		public static Money GetTotalFee(this FeeRate me, int vsize)
+		{
+			return Money.Satoshis(Math.Round(me.SatoshiPerByte * vsize));
 		}
 	}
 }
