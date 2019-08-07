@@ -38,6 +38,15 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 				type = "trezor";
 				rawPath = "hid:\\\\\\\\?\\\\hid#vid_534c&pid_0001&mi_00#7&6f0b727&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
 			}
+			else if (Model == HardwareWalletModels.ColdcardMk1)
+			{
+				type = "coldcard";
+				rawPath = @"\\\\?\\hid#vid_d13e&pid_cc10&mi_00#7&1b239988&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
+			}
+			else
+			{
+				throw new NotImplementedException("Mock missing");
+			}
 
 			string path = HwiParser.NormalizeRawDevicePath(rawPath);
 			string devicePathAndTypeArgumentString = $"--device-path \"{path}\" --device-type \"{type}\"";
@@ -58,12 +67,24 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 					var code = 0;
 					return Task.FromResult((response, code));
 				}
+				else if (Model == HardwareWalletModels.ColdcardMk1)
+				{
+					var response = $"[{{\"type\": \"{type}\", \"path\": \"{rawPath}\", \"needs_passphrase\": false, \"fingerprint\": \"a3d0d797\"}}]\r\n";
+					var code = 0;
+					return Task.FromResult((response, code));
+				}
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} wipe"))
 			{
 				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.TrezorOne)
 				{
 					var response = successTrueResponse;
+					var code = 0;
+					return Task.FromResult((response, code));
+				}
+				else if (Model == HardwareWalletModels.ColdcardMk1)
+				{
+					var response = "{\"error\": \"The Coldcard does not support wiping via software\", \"code\": -9}\r\n";
 					var code = 0;
 					return Task.FromResult((response, code));
 				}
@@ -76,12 +97,24 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 					var code = 0;
 					return Task.FromResult((response, code));
 				}
+				else if (Model == HardwareWalletModels.ColdcardMk1)
+				{
+					var response = "{\"error\": \"The Coldcard does not support software setup\", \"code\": -9}\r\n";
+					var code = 0;
+					return Task.FromResult((response, code));
+				}
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} --interactive setup"))
 			{
 				if (Model == HardwareWalletModels.TrezorT)
 				{
 					var response = successTrueResponse;
+					var code = 0;
+					return Task.FromResult((response, code));
+				}
+				else if (Model == HardwareWalletModels.ColdcardMk1)
+				{
+					var response = "{\"error\": \"The Coldcard does not support software setup\", \"code\": -9}\r\n";
 					var code = 0;
 					return Task.FromResult((response, code));
 				}
@@ -94,12 +127,24 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 					var code = 0;
 					return Task.FromResult((response, code));
 				}
+				else if (Model == HardwareWalletModels.ColdcardMk1)
+				{
+					var response = "{\"error\": \"The Coldcard does not support restoring via software\", \"code\": -9}\r\n";
+					var code = 0;
+					return Task.FromResult((response, code));
+				}
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} promptpin"))
 			{
 				if (Model == HardwareWalletModels.TrezorT)
 				{
 					var response = "{\"error\": \"The PIN has already been sent to this device\", \"code\": -11}\r\n";
+					var code = 0;
+					return Task.FromResult((response, code));
+				}
+				else if (Model == HardwareWalletModels.ColdcardMk1)
+				{
+					var response = "{\"error\": \"The Coldcard does not need a PIN sent from the host\", \"code\": -9}\r\n";
 					var code = 0;
 					return Task.FromResult((response, code));
 				}
@@ -112,10 +157,16 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 					var code = 0;
 					return Task.FromResult((response, code));
 				}
+				else if (Model == HardwareWalletModels.ColdcardMk1)
+				{
+					var response = "{\"error\": \"The Coldcard does not need a PIN sent from the host\", \"code\": -9}\r\n";
+					var code = 0;
+					return Task.FromResult((response, code));
+				}
 			}
 			else if (CompareGetXbpubArguments(arguments, out string xpub))
 			{
-				if (Model == HardwareWalletModels.TrezorT)
+				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.ColdcardMk1)
 				{
 					var response = $"{{\"xpub\": \"{xpub}\"}}\r\n";
 					var code = 0;
@@ -124,7 +175,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 			}
 			else if (CompareArguments(out bool t1, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/0h/0h --wpkh", false))
 			{
-				if (Model == HardwareWalletModels.TrezorT)
+				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.ColdcardMk1)
 				{
 					string response = t1
 						? "{\"address\": \"tb1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7rtzlxy\"}\r\n"
@@ -135,7 +186,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 			}
 			else if (CompareArguments(out bool t2, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/0h/0h/1 --wpkh", false))
 			{
-				if (Model == HardwareWalletModels.TrezorT)
+				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.ColdcardMk1)
 				{
 					string response = t2
 						? "{\"address\": \"tb1qmaveee425a5xjkjcv7m6d4gth45jvtnjqhj3l6\"}\r\n"

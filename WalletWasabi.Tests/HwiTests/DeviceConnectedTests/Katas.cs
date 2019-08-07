@@ -196,6 +196,9 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				HDFingerprint fingerprint = entry.Fingerprint.Value;
 
 				// ColdCard doesn't support it.
+				await Assert.ThrowsAsync<HwiException>(async () => await client.WipeAsync(deviceType, devicePath, cts.Token));
+
+				// ColdCard doesn't support it.
 				await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
 
 				// ColdCard doesn't support it.
