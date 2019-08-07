@@ -118,7 +118,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Label = txr.label,
 					TransactionId = txr.transactionId.ToString(),
 					Size = txr.size,
-					VirtualSize = txr.vsize,
+					VirtualSize = txr.vSize,
 					RBF = txr.rbf,
 					Fees = txr.fees,
 				}).Select(ti => new TransactionViewModel(ti));
@@ -145,12 +145,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId, int size, int vsize, bool rbf, string fees)> BuildTxRecordList()
+		private List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId, int size, int vSize, bool rbf, string fees)> BuildTxRecordList()
 		{
 			var walletService = Global.WalletService;
 
 			List<Transaction> trs = new List<Transaction>();
-			var txRecordList = new List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId, int size, int vsize, bool rbf, string fees)>();
+			var txRecordList = new List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId, int size, int vSize, bool rbf, string fees)>();
 
 			if (walletService is null)
 			{
