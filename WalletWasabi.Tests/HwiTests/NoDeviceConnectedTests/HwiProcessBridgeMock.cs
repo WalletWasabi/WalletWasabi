@@ -91,7 +91,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} setup"))
 			{
-				if (Model == HardwareWalletModels.TrezorT)
+				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.TrezorOne)
 				{
 					var response = "{\"error\": \"setup requires interactive mode\", \"code\": -9}";
 					var code = 0;
@@ -106,7 +106,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} --interactive setup"))
 			{
-				if (Model == HardwareWalletModels.TrezorT)
+				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.TrezorOne)
 				{
 					var response = successTrueResponse;
 					var code = 0;
@@ -121,7 +121,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} --interactive restore"))
 			{
-				if (Model == HardwareWalletModels.TrezorT)
+				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.TrezorOne)
 				{
 					var response = successTrueResponse;
 					var code = 0;
@@ -136,7 +136,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} promptpin"))
 			{
-				if (Model == HardwareWalletModels.TrezorT)
+				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.TrezorOne)
 				{
 					var response = "{\"error\": \"The PIN has already been sent to this device\", \"code\": -11}\r\n";
 					var code = 0;
@@ -151,7 +151,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} sendpin", true))
 			{
-				if (Model == HardwareWalletModels.TrezorT)
+				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.TrezorOne)
 				{
 					var response = "{\"error\": \"The PIN has already been sent to this device\", \"code\": -11}";
 					var code = 0;
@@ -166,7 +166,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 			}
 			else if (CompareGetXbpubArguments(arguments, out string xpub))
 			{
-				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.ColdcardMk1)
+				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.ColdcardMk1 || Model == HardwareWalletModels.TrezorOne)
 				{
 					var response = $"{{\"xpub\": \"{xpub}\"}}\r\n";
 					var code = 0;
@@ -175,7 +175,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 			}
 			else if (CompareArguments(out bool t1, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/0h/0h --wpkh", false))
 			{
-				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.ColdcardMk1)
+				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.ColdcardMk1 || Model == HardwareWalletModels.TrezorOne)
 				{
 					string response = t1
 						? "{\"address\": \"tb1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7rtzlxy\"}\r\n"
@@ -186,7 +186,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 			}
 			else if (CompareArguments(out bool t2, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/0h/0h/1 --wpkh", false))
 			{
-				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.ColdcardMk1)
+				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.ColdcardMk1 || Model == HardwareWalletModels.TrezorOne)
 				{
 					string response = t2
 						? "{\"address\": \"tb1qmaveee425a5xjkjcv7m6d4gth45jvtnjqhj3l6\"}\r\n"
