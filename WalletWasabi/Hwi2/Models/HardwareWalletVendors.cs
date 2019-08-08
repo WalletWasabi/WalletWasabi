@@ -6,6 +6,7 @@ namespace WalletWasabi.Hwi2.Models
 {
 	public enum HardwareWalletVendors
 	{
+		Unknown,
 		Trezor,
 		Coldcard,
 		Ledger,

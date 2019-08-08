@@ -57,14 +57,7 @@ namespace WalletWasabi.Hwi2
 
 				ThrowIfError(responseString);
 
-				if (JsonHelpers.TryParseJToken(responseString, out JToken responseJToken))
-				{
-					return responseString;
-				}
-				else
-				{
-					return responseString;
-				}
+				return responseString;
 			}
 			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
 			{
@@ -144,7 +137,7 @@ namespace WalletWasabi.Hwi2
 
 			address = address.TransformToNetworkNetwork(Network);
 
-			return address as BitcoinWitPubKeyAddress;
+			return address;
 		}
 
 		public async Task<PSBT> SignTxAsync(HardwareWalletVendors deviceType, string devicePath, PSBT psbt, CancellationToken cancel)

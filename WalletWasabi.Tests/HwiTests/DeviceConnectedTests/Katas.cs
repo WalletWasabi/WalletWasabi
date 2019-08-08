@@ -55,7 +55,7 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				Assert.True(entry.Fingerprint.HasValue);
 
 				string devicePath = entry.Path;
-				HardwareWalletVendors deviceType = entry.Type.Value;
+				HardwareWalletVendors deviceType = entry.Type;
 				HDFingerprint fingerprint = entry.Fingerprint.Value;
 
 				await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
@@ -98,10 +98,10 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				// USER: CONFIRM
 				PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, psbt, cts.Token);
 
-				Transaction signeTx = signedPsbt.GetOriginalTransaction();
-				Assert.Equal(psbt.GetOriginalTransaction().GetHash(), signeTx.GetHash());
+				Transaction signedTx = signedPsbt.GetOriginalTransaction();
+				Assert.Equal(psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
 
-				var checkResult = signeTx.Check();
+				var checkResult = signedTx.Check();
 				Assert.Equal(TransactionCheckResult.Success, checkResult);
 			}
 		}
@@ -130,7 +130,7 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				Assert.Null(entry.Fingerprint);
 
 				string devicePath = entry.Path;
-				HardwareWalletVendors deviceType = entry.Type.Value;
+				HardwareWalletVendors deviceType = entry.Type;
 
 				await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
 
@@ -191,7 +191,7 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				Assert.True(entry.Fingerprint.HasValue);
 
 				string devicePath = entry.Path;
-				HardwareWalletVendors deviceType = entry.Type.Value;
+				HardwareWalletVendors deviceType = entry.Type;
 				HDFingerprint fingerprint = entry.Fingerprint.Value;
 
 				// ColdCard doesn't support it.
@@ -225,10 +225,10 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				// USER: CONFIRM
 				PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, psbt, cts.Token);
 
-				Transaction signeTx = signedPsbt.GetOriginalTransaction();
-				Assert.Equal(psbt.GetOriginalTransaction().GetHash(), signeTx.GetHash());
+				Transaction signedTx = signedPsbt.GetOriginalTransaction();
+				Assert.Equal(psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
 
-				var checkResult = signeTx.Check();
+				var checkResult = signedTx.Check();
 				Assert.Equal(TransactionCheckResult.Success, checkResult);
 
 				// ColdCard just display the address. There is no confirm/refuse action.
@@ -265,8 +265,7 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
 			{
 				var enumerate = await client.EnumerateAsync(cts.Token);
-				Assert.Single(enumerate);
-				HwiEnumerateEntry entry = enumerate.Single();
+				HwiEnumerateEntry entry = Assert.Single(enumerate);
 				Assert.NotNull(entry.Path);
 				Assert.Equal(HardwareWalletVendors.Ledger, entry.Type);
 				Assert.True(entry.Fingerprint.HasValue);
@@ -277,7 +276,7 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				Assert.False(entry.NeedsPinSent);
 
 				string devicePath = entry.Path;
-				HardwareWalletVendors deviceType = entry.Type.Value;
+				HardwareWalletVendors deviceType = entry.Type;
 				HDFingerprint fingerprint = entry.Fingerprint.Value;
 
 				await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
@@ -319,10 +318,10 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				// USER: CONFIRM
 				PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, psbt, cts.Token);
 
-				Transaction signeTx = signedPsbt.GetOriginalTransaction();
-				Assert.Equal(psbt.GetOriginalTransaction().GetHash(), signeTx.GetHash());
+				Transaction signedTx = signedPsbt.GetOriginalTransaction();
+				Assert.Equal(psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
 
-				var checkResult = signeTx.Check();
+				var checkResult = signedTx.Check();
 				Assert.Equal(TransactionCheckResult.Success, checkResult);
 			}
 		}

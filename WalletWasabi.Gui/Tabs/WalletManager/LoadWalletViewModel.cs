@@ -425,7 +425,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 								MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.SettingUpHardwareWallet);
 								// After HWI 1.0.1 the openconsole can be made false for Trezor T.
 								// HWI will start detecting the exact type of hardware wallets.
-								await client.SetupAsync(selectedWallet.HardwareWalletInfo.Type.Value, selectedWallet.HardwareWalletInfo.Path, true, cts.Token);
+								await client.SetupAsync(selectedWallet.HardwareWalletInfo.Type, selectedWallet.HardwareWalletInfo.Path, true, cts.Token);
 
 								MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.ConnectingToHardwareWallet);
 								await EnumerateHardwareWalletsAsync();
@@ -440,7 +440,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						}
 						else if (selectedWallet.HardwareWalletInfo.NeedsPinSent is true)
 						{
-							await client.PromptPinAsync(selectedWallet.HardwareWalletInfo.Type.Value, selectedWallet.HardwareWalletInfo.Path, cts.Token);
+							await client.PromptPinAsync(selectedWallet.HardwareWalletInfo.Type, selectedWallet.HardwareWalletInfo.Path, cts.Token);
 
 							PinPadViewModel pinpad = IoC.Get<IShell>().Documents.OfType<PinPadViewModel>().FirstOrDefault();
 							if (pinpad is null)
@@ -457,7 +457,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 							var maskedPin = pinpad.MaskedPin;
 
-							await client.SendPinAsync(selectedWallet.HardwareWalletInfo.Type.Value, selectedWallet.HardwareWalletInfo.Path, int.Parse(maskedPin), cts.Token);
+							await client.SendPinAsync(selectedWallet.HardwareWalletInfo.Type, selectedWallet.HardwareWalletInfo.Path, int.Parse(maskedPin), cts.Token);
 
 							var p = selectedWallet.HardwareWalletInfo.Path;
 							var t = selectedWallet.HardwareWalletInfo.Type;

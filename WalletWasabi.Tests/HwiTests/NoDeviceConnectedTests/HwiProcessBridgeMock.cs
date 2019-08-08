@@ -50,7 +50,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 			}
 			else
 			{
-				throw new NotImplementedException("Mock missing");
+				throw new NotImplementedException("Mock missing.");
 			}
 
 			string path = HwiParser.NormalizeRawDevicePath(rawPath);
@@ -243,7 +243,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 				}
 			}
 
-			throw new NotImplementedException($"Mocking is not implemented for '{arguments}'");
+			throw new NotImplementedException($"Mocking is not implemented for '{arguments}'.");
 		}
 
 		private static bool CompareArguments(out bool isTestNet, string arguments, string desired, bool useStartWith = false)

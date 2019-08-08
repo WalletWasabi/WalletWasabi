@@ -46,7 +46,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 				Assert.False(entry.IsInitialized());
 				Assert.Null(entry.Fingerprint);
 
-				var deviceType = entry.Type.Value;
+				var deviceType = entry.Type;
 				var devicePath = entry.Path;
 
 				await client.WipeAsync(deviceType, devicePath, cts.Token);
@@ -123,7 +123,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 				Assert.Null(entry.Fingerprint);
 				Assert.True(entry.IsInitialized());
 
-				var deviceType = entry.Type.Value;
+				var deviceType = entry.Type;
 				var devicePath = entry.Path;
 
 				await client.WipeAsync(deviceType, devicePath, cts.Token);
@@ -199,7 +199,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 				Assert.Equal("a3d0d797", entry.Fingerprint.ToString());
 				Assert.True(entry.IsInitialized());
 
-				var deviceType = entry.Type.Value;
+				var deviceType = entry.Type;
 				var devicePath = entry.Path;
 				HDFingerprint fingerprint = entry.Fingerprint.Value;
 
@@ -286,7 +286,7 @@ namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
 				Assert.True(entry.IsInitialized());
 				Assert.Equal("4054d6f6", entry.Fingerprint.ToString());
 
-				var deviceType = entry.Type.Value;
+				var deviceType = entry.Type;
 				var devicePath = entry.Path;
 
 				var wipe = await Assert.ThrowsAsync<HwiException>(async () => await client.WipeAsync(deviceType, devicePath, cts.Token));
