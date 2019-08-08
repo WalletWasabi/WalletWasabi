@@ -1487,7 +1487,7 @@ namespace WalletWasabi.Tests
 
 					if (block.Transactions.Any(tx => tx.GetHash() == fundingTxId))
 					{
-						throw new Exception($"Transaction found in block at heigh {blockCount} hash: {block.GetHash()}");
+						throw new Exception($"Transaction found in block at height {blockCount} hash: {block.GetHash()}");
 					}
 					curBlockHash = block.Header.HashPrevBlock;
 					blockCount--;
