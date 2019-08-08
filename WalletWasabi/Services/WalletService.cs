@@ -483,12 +483,12 @@ namespace WalletWasabi.Services
 			return clusters;
 		}
 
-		private async Task<bool> ProcessBlockAsync(Height height, Block block, IEnumerable<int> filterByTxIds = null, IEnumerable<SmartTransaction> skeletonBlock = null)
+		private async Task<bool> ProcessBlockAsync(Height height, Block block, IEnumerable<int> filterByTxIndexes = null, IEnumerable<SmartTransaction> skeletonBlock = null)
 		{
 			var ret = false;
 			using (await TransactionProcessingLock.LockAsync())
 			{
-				if (filterByTxIds is null)
+				if (filterByTxIndexes is null)
 				{
 					var relevantIndicies = new List<int>();
 					for (int i = 0; i < block.Transactions.Count; i++)
@@ -513,7 +513,7 @@ namespace WalletWasabi.Services
 				}
 				else
 				{
-					foreach (var i in filterByTxIds.OrderBy(x => x))
+					foreach (var i in filterByTxIndexes.OrderBy(x => x))
 					{
 						var tx = skeletonBlock?.FirstOrDefault(x => x.BlockIndex == i) ?? new SmartTransaction(block.Transactions[i], height, block.GetHash(), i);
 						if (await ProcessTransactionAsync(tx))
