@@ -5,7 +5,7 @@ namespace WalletWasabi.Http.Models
 	// all other components are compared in a case-sensitive manner.
 	public enum UriScheme
 	{
-		Http,
-		Https
+		http,
+		https
 	}
 }

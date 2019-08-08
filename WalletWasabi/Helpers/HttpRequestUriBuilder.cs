@@ -26,14 +26,14 @@ namespace System.Net.Http
 			Host = h;
 
 			Scheme = uriScheme.ToString().ToLowerInvariant();
-			if (uriScheme == UriScheme.Http)
+			if (uriScheme == UriScheme.http)
 			{
 				// https://tools.ietf.org/html/rfc7230#section-2.7.1
 				// [http] If the port subcomponent is empty or not given, TCP port 80(the reserved port
 				// for WWW services) is the default.
 				Port = 80;
 			}
-			else if (uriScheme == UriScheme.Https)
+			else if (uriScheme == UriScheme.https)
 			{
 				// https://tools.ietf.org/html/rfc7230#section-2.7.2
 				// [https] TCP port 443 is the default if the port subcomponent is empty or not given
