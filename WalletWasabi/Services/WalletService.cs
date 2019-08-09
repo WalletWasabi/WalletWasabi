@@ -9,6 +9,7 @@ using Nito.AsyncEx;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -154,8 +155,21 @@ namespace WalletWasabi.Services
 			Mempool.TransactionReceived += Mempool_TransactionReceivedAsync;
 		}
 
-		private void Coins_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		private void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
+			if(e.Action == NotifyCollectionChangedAction.Remove)
+			{
+				var toRemove = e.OldItems[0] as SmartCoin;
+				if (toRemove.SpenderTransactionId != null)
+				{
+					foreach (var toAlsoRemove in Coins.Where(x => x.TransactionId == toRemove.SpenderTransactionId).Distinct().ToList())
+					{
+						Coins.TryRemove(toAlsoRemove);
+					}
+				}
+				Mempool.TransactionHashes.TryRemove(toRemove.TransactionId);				
+			}
+
 			RefreshCoinHistories();
 		}
 
@@ -193,7 +207,7 @@ namespace WalletWasabi.Services
 					{
 						foreach (var toRemove in Coins.Where(x => x.Height == blockState.BlockHeight).Distinct().ToList())
 						{
-							RemoveCoinRecursively(toRemove);
+							Coins.TryRemove(toRemove);
 						}
 					}
 				}
@@ -202,20 +216,6 @@ namespace WalletWasabi.Services
 			{
 				Logger.LogWarning<WalletService>(ex);
 			}
-		}
-
-		private void RemoveCoinRecursively(SmartCoin toRemove)
-		{
-			if (toRemove.SpenderTransactionId != null)
-			{
-				foreach (var toAlsoRemove in Coins.Where(x => x.TransactionId == toRemove.SpenderTransactionId).Distinct().ToList())
-				{
-					RemoveCoinRecursively(toAlsoRemove);
-				}
-			}
-
-			Coins.TryRemove(toRemove);
-			Mempool.TransactionHashes.TryRemove(toRemove.TransactionId);
 		}
 
 		private async void IndexDownloader_NewFilterAsync(object sender, FilterModel filterModel)
@@ -483,12 +483,12 @@ namespace WalletWasabi.Services
 			return clusters;
 		}
 
-		private async Task<bool> ProcessBlockAsync(Height height, Block block, IEnumerable<int> filterByTxIds = null, IEnumerable<SmartTransaction> skeletonBlock = null)
+		private async Task<bool> ProcessBlockAsync(Height height, Block block, IEnumerable<int> filterByTxIndexes = null, IEnumerable<SmartTransaction> skeletonBlock = null)
 		{
 			var ret = false;
 			using (await TransactionProcessingLock.LockAsync())
 			{
-				if (filterByTxIds is null)
+				if (filterByTxIndexes is null)
 				{
 					var relevantIndicies = new List<int>();
 					for (int i = 0; i < block.Transactions.Count; i++)
@@ -504,7 +504,7 @@ namespace WalletWasabi.Services
 					if (relevantIndicies.Any())
 					{
 						var blockState = new BlockState(block.GetHash(), height, relevantIndicies);
-						KeyManager.AddBlockState(blockState, setItsHeightToBest: true); // Set the heigh here (so less toFile and lock.)
+						KeyManager.AddBlockState(blockState, setItsHeightToBest: true); // Set the height here (so less toFile and lock.)
 					}
 					else
 					{
@@ -513,7 +513,7 @@ namespace WalletWasabi.Services
 				}
 				else
 				{
-					foreach (var i in filterByTxIds.OrderBy(x => x))
+					foreach (var i in filterByTxIndexes.OrderBy(x => x))
 					{
 						var tx = skeletonBlock?.FirstOrDefault(x => x.BlockIndex == i) ?? new SmartTransaction(block.Transactions[i], height, block.GetHash(), i);
 						if (await ProcessTransactionAsync(tx))
@@ -600,7 +600,7 @@ namespace WalletWasabi.Services
 							// will add later if they came to our keys
 							foreach (SmartCoin doubleSpentCoin in doubleSpends.Where(x => !x.Confirmed))
 							{
-								RemoveCoinRecursively(doubleSpentCoin);
+								Coins.TryRemove(doubleSpentCoin);
 							}
 							tx.SetReplacement();
 							walletRelevant = true;
@@ -615,7 +615,7 @@ namespace WalletWasabi.Services
 						// remove double spent coins recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
 						foreach (SmartCoin doubleSpentCoin in doubleSpends)
 						{
-							RemoveCoinRecursively(doubleSpentCoin);
+							Coins.TryRemove(doubleSpentCoin);
 						}
 						walletRelevant = true;
 					}
