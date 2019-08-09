@@ -16,15 +16,13 @@ namespace WalletWasabi.Backend
 {
 	public class InitConfigStartupTask : IStartupTask
 	{
-		private static List<string> Last5CoinJoins { get; set; } = new List<string>();
-		private static object UpdateUnversionedLock { get; } = new object();
-		public UnversionedWebBuilder UnversionedWebBuilder { get; }
+		public WebsiteTorifier WebsiteTorifier { get; }
 		public Global Global { get; }
 
 		public InitConfigStartupTask(Global global, IHostingEnvironment hostingEnvironment)
 		{
 			Global = global;
-			UnversionedWebBuilder = new UnversionedWebBuilder(global, ((HostingEnvironment)hostingEnvironment).WebRootPath);
+			WebsiteTorifier = new WebsiteTorifier(((HostingEnvironment)hostingEnvironment).WebRootPath);
 		}
 
 		public async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -54,18 +52,7 @@ namespace WalletWasabi.Backend
 
 			try
 			{
-				Directory.CreateDirectory(UnversionedWebBuilder.UnversionedFolder);
-				UnversionedWebBuilder.CreateDownloadTextWithVersionHtml();
-				UnversionedWebBuilder.CloneAndUpdateOnionIndexHtml();
-
-				if (File.Exists(Global.Coordinator.CoinJoinsFilePath))
-				{
-					string[] allLines = File.ReadAllLines(Global.Coordinator.CoinJoinsFilePath);
-					Last5CoinJoins = allLines.TakeLast(5).Reverse().ToList();
-					UnversionedWebBuilder.UpdateCoinJoinsHtml(Last5CoinJoins);
-				}
-
-				Global.Coordinator.CoinJoinBroadcasted += Coordinator_CoinJoinBroadcasted;
+				WebsiteTorifier.CloneAndUpdateOnionIndexHtml();
 			}
 			catch (Exception ex)
 			{
@@ -81,26 +68,6 @@ namespace WalletWasabi.Backend
 		private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
 		{
 			Logger.LogWarning(e?.ExceptionObject as Exception, "UnhandledException");
-		}
-
-		private void Coordinator_CoinJoinBroadcasted(object sender, Transaction tx)
-		{
-			try
-			{
-				lock (UpdateUnversionedLock)
-				{
-					if (Last5CoinJoins.Count > 4)
-					{
-						Last5CoinJoins.RemoveLast();
-					}
-					Last5CoinJoins.Insert(0, tx.GetHash().ToString());
-					UnversionedWebBuilder.UpdateCoinJoinsHtml(Last5CoinJoins);
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning(ex, nameof(Program));
-			}
 		}
 	}
 }

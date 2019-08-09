@@ -69,7 +69,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				{
 					try
 					{
-						IoHelpers.OpenBrowser("https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/FAQ.md");
+						IoHelpers.OpenBrowser("https://docs.wasabiwallet.io/FAQ/");
 					}
 					catch (Exception ex)
 					{

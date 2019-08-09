@@ -816,7 +816,7 @@ namespace WalletWasabi.Tests
 				}
 
 				var scp = new Key().ScriptPubKey;
-				var res2 = wallet.BuildTransaction(password, new[] { new WalletService.Operation(scp, Money.Coins(0.05m), "foo") }, 5, false);
+				var res2 = wallet.BuildTransaction(password, new[] { new WalletService.Operation(scp, Money.Coins(0.05m), "foo") }, 5, null, false);
 
 				Assert.NotNull(res2.Transaction);
 				Assert.Single(res2.OuterWalletOutputs);
@@ -1131,7 +1131,7 @@ namespace WalletWasabi.Tests
 				// covers:
 				// disallow unconfirmed with allowed inputs
 				// feeTarget < 2 // NOTE: need to correct alowing 0 and 1
-				res = wallet.BuildTransaction(password, toSend, 0, false, allowedInputs: allowedInputs);
+				res = wallet.BuildTransaction(password, toSend, 0, null, false, allowedInputs: allowedInputs);
 
 				activeOutput = res.InnerWalletOutputs.Single(x => x.ScriptPubKey == receive);
 				Assert.Single(res.InnerWalletOutputs);
@@ -1252,8 +1252,8 @@ namespace WalletWasabi.Tests
 			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, validOperationList, 2000));
 
 			// subtractFeeFromAmountIndex has to be valid
-			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, validOperationList, 2, false, -10));
-			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, validOperationList, 2, false, 1));
+			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, validOperationList, 2, null, false, -10));
+			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, validOperationList, 2, null, false, 1));
 
 			// toSend amount sum has to be in range 0 to 2099999997690000
 			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, invalidOperationList, 2));
@@ -1271,7 +1271,7 @@ namespace WalletWasabi.Tests
 			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, operations, 2));
 
 			// allowedInputs cannot be empty
-			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, validOperationList, 2, false, null, null, new TxoRef[0]));
+			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, validOperationList, 2, null, false, null, null, new TxoRef[0]));
 
 			// "Only one element can contain Money.Zero
 			var toSendWithTwoZeros = new[]
@@ -1279,11 +1279,11 @@ namespace WalletWasabi.Tests
 				new WalletService.Operation(scp, Money.Zero, "zero"),
 				new WalletService.Operation(scp, Money.Zero, "zero")
 			};
-			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(password, toSendWithTwoZeros, Constants.SevenDaysConfirmationTarget, false));
+			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(password, toSendWithTwoZeros, Constants.SevenDaysConfirmationTarget, null, false));
 
 			// cannot specify spend all and custom change
 			var spendAll = new[] { new WalletService.Operation(scp, Money.Zero, "spendAll") };
-			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(password, spendAll, Constants.SevenDaysConfirmationTarget, false, customChange: new Key().ScriptPubKey));
+			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(password, spendAll, Constants.SevenDaysConfirmationTarget, null, false, customChange: new Key().ScriptPubKey));
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("foo label");
@@ -1311,27 +1311,27 @@ namespace WalletWasabi.Tests
 				// subtract Fee from amount index with no enough money
 				operations = new[]
 				{
-					new WalletService.Operation(scp,  Money.Coins(1m), ""),
+					new WalletService.Operation(scp, Money.Coins(1m), ""),
 					new WalletService.Operation(scp, Money.Coins(0.5m), "")
 				};
-				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(password, operations, 2, false, 0));
+				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(password, operations, 2, null, false, 0));
 
 				// No enough money (only one confirmed coin, no unconfirmed allowed)
 				operations = new[] { new WalletService.Operation(scp, Money.Coins(1.5m), "") };
 				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, 2));
 
 				// No enough money (only one confirmed coin, unconfirmed allowed)
-				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, 2, true));
+				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, 2, null, true));
 
 				// Add new money with no confirmation
 				var txId2 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(2m));
 				await Task.Delay(1000); // Wait tx to arrive and get processed.
 
 				// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are NOT allowed)
-				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, 2, false));
+				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, 2, null, false));
 
 				// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are allowed)
-				var btx = wallet.BuildTransaction(password, operations, 2, true);
+				var btx = wallet.BuildTransaction(password, operations, 2, null, true);
 				Assert.Equal(2, btx.SpentCoins.Count());
 				Assert.Equal(1, btx.SpentCoins.Count(c => c.Confirmed));
 				Assert.Equal(1, btx.SpentCoins.Count(c => !c.Confirmed));
@@ -1345,7 +1345,7 @@ namespace WalletWasabi.Tests
 				Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, operations, 2));
 
 				// `Custom change` and `spend all` cannot be specified at the same time
-				Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, operations, 2, false, null, Script.Empty));
+				Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, operations, 2, null, false, null, Script.Empty));
 				Logger.TurnOn();
 
 				operations = new[] { new WalletService.Operation(scp, Money.Coins(0.5m), "") };
@@ -1487,7 +1487,7 @@ namespace WalletWasabi.Tests
 
 					if (block.Transactions.Any(tx => tx.GetHash() == fundingTxId))
 					{
-						throw new Exception($"Transaction found in block at heigh {blockCount}  hash: {block.GetHash()}");
+						throw new Exception($"Transaction found in block at height {blockCount} hash: {block.GetHash()}");
 					}
 					curBlockHash = block.Header.HashPrevBlock;
 					blockCount--;
@@ -3265,7 +3265,7 @@ namespace WalletWasabi.Tests
 				smartCoin2.SpenderTransactionId = cj;
 				smartCoin3.SpenderTransactionId = cj;
 
-				// Make sure if times out, it  tries again.
+				// Make sure if times out, it tries again.
 				connectionConfirmationTimeout = 1;
 				roundConfig = RegTestFixture.CreateRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
 				await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
