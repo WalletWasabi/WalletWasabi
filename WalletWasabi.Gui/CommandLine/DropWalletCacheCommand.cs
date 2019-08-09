@@ -10,29 +10,29 @@ using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui.CommandLine
 {
-	internal class ResyncWalletCommand : Command
+	internal class DropWalletCacheCommand : Command
 	{
 		public string WalletName { get; set; }
 		public Network Network { get; set; }
 		public Daemon Daemon { get; }
 		public bool ShowHelp { get; set; }
 
-		public ResyncWalletCommand(Daemon daemon)
-			: base("resyncwallet", "Resyncs the specified wallet to fix wallet balance errors.")
+		public DropWalletCacheCommand(Daemon daemon)
+			: base("dropwalletcache", "Drops the wallet cache for the specified wallet.")
 		{
 			Daemon = daemon;
 			Network = Network.Main;
 
 			Options = new OptionSet()
 			{
-				"usage: resyncwallet --wallet:WalletName",
+				"usage: dropwalletcache --wallet:WalletName",
 				"",
-				"Resyncs the specified wallet to fix wallet balance errors.",
-				"eg: ./wassabee resyncwallet --wallet:MyWalletName",
+				"Drops the wallet cache for the specified wallet.",
+				"eg: ./wassabee dropwalletcache --wallet:MyWalletName --network:main",
 				"",
 				{ "w|wallet=", "The name of the wallet file.", x =>  WalletName = x },
-				{ "n|network=", "The network for the given file (main, test, reg)", x => Network = GetNetwork(x)},
-				{ "h|help", "Show Help", v => ShowHelp = true}
+				{ "n|network=", "The network for the given file (main, test, reg).", x => Network = GetNetwork(x)},
+				{ "h|help", "Show Help.", v => ShowHelp = true}
 			};
 		}
 
@@ -48,14 +48,14 @@ namespace WalletWasabi.Gui.CommandLine
 				}
 				else if (string.IsNullOrWhiteSpace(WalletName))
 				{
-					Logging.Logger.LogCritical<ResyncWalletCommand>("Missing required argument `--wallet=WalletName`.");
-					Logging.Logger.LogCritical<ResyncWalletCommand>("Use `resyncwallet --help` for details.");
+					Logging.Logger.LogCritical<DropWalletCacheCommand>("Missing required argument `--wallet=WalletName`.");
+					Logging.Logger.LogCritical<DropWalletCacheCommand>("Use `dropwalletcache --help` for details.");
 					error = true;
 				}
 				else if (Network is null)
 				{
-					Logging.Logger.LogCritical<ResyncWalletCommand>("Invalid argument `--network=Network`.");
-					Logging.Logger.LogCritical<ResyncWalletCommand>("Use `resyncwallet --help` for details.");
+					Logging.Logger.LogCritical<DropWalletCacheCommand>("Invalid argument `--network=Network`.");
+					Logging.Logger.LogCritical<DropWalletCacheCommand>("Use `dropwalletcache --help` for details.");
 					error = true;
 				}
 				else if (!string.IsNullOrWhiteSpace(WalletName))
@@ -65,13 +65,17 @@ namespace WalletWasabi.Gui.CommandLine
 					{
 						error = true;
 					}
-					string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-					WalletService.ResyncWallet(WalletName, dataDir, Network);
+					else
+					{
+						string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+						WalletService.DropWalletCache(WalletName, dataDir, Network);
+						Logging.Logger.LogInfo("Wallet cache successfully dropped!");
+					}
 				}
 			}
 			catch (Exception)
 			{
-				Logging.Logger.LogCritical<ResyncWalletCommand>($"There was a problem interpreting the command, please review it.");
+				Logging.Logger.LogCritical<DropWalletCacheCommand>("There was a problem interpreting the command, please review it.");
 				error = true;
 			}
 			Environment.Exit(error ? 1 : 0);

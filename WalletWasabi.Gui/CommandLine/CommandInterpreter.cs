@@ -37,7 +37,7 @@ namespace WalletWasabi.Gui.CommandLine
 				"",
 				new MixerCommand(daemon),
 				new PasswordFinderCommand(daemon),
-				new ResyncWalletCommand(daemon)
+				new DropWalletCacheCommand(daemon)
 			};
 
 			EnsureBackwardCompatibilityWithOldParameters(ref args);

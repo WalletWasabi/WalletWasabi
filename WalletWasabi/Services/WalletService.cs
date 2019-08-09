@@ -253,19 +253,13 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public static void ResyncWallet(string walletName, string dataDir, Network network)
+		public static void DropWalletCache(string walletName, string dataDir, Network network)
 		{
-			string BlocksFolderPath = Path.Combine(dataDir, "Blocks", network.ToString());
-			string TransactionsFolderPath = Path.Combine(dataDir, "Transactions", network.ToString());
-			if (Directory.Exists(BlocksFolderPath))
+			string FiltersFolderPath = Path.Combine(dataDir, "IndexStore", network.ToString());
+			if (Directory.Exists(FiltersFolderPath))
 			{
-				Directory.Delete(BlocksFolderPath, true);
-				Directory.CreateDirectory(BlocksFolderPath);
-			}
-			string TransactionsFilePath = Path.Combine(TransactionsFolderPath, $"{walletName}Transactions.json");
-			if (File.Exists(TransactionsFilePath))
-			{
-				File.Delete(TransactionsFilePath);
+				Directory.Delete(FiltersFolderPath, true);
+				Directory.CreateDirectory(FiltersFolderPath);
 			}
 		}
 
