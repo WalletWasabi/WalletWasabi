@@ -1020,7 +1020,8 @@ namespace WalletWasabi.Services
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
 		/// <param name="allowedInputs">Only these inputs allowed to be used to build the transaction. The wallet must know the corresponding private keys.</param>
 		/// <param name="subtractFeeFromAmountIndex">If null, fee is substracted from the change. Otherwise it denotes the index in the toSend array.</param>
-		/// <param name="feeTarget">The target number of blocks to estimate the fee.</param>
+		/// <param name="feeTarget">The target number of blocks to estimate the fee. Null if feeRate is being used instead.</param>
+		/// <param name="feeRate">The fee rate for the transaction. Null if feeTarget is being used instead.</param>
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <exception cref="ArgumentOutOfRangeException"></exception>
