@@ -531,6 +531,19 @@ namespace WalletWasabi.Services
 			return ret;
 		}
 
+		private void JustCheckKeys(SmartTransaction tx)
+		{
+			for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
+			{
+				var output = tx.Transaction.Outputs[i];
+				HdPubKey foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
+				if (foundKey != default)
+				{
+					foundKey.SetKeyState(KeyState.Used, KeyManager);
+				}
+			}
+		}
+
 		private async Task<bool> ProcessTransactionAsync(SmartTransaction tx)
 		{
 			uint256 txId = tx.GetHash();
@@ -540,6 +553,11 @@ namespace WalletWasabi.Services
 			if (tx.Confirmed)
 			{
 				Mempool.TransactionHashes.TryRemove(txId); // If we have in mempool, remove.
+				if (!tx.Transaction.PossiblyP2WPKHInvolved())
+				{
+					JustCheckKeys(tx);
+					return false; // We do not care about non-witness transactions for other than mempool cleanup.
+				}
 
 				bool isFoundTx = TransactionCache.Contains(tx); // If we have in cache, update height.
 				if (isFoundTx)
@@ -552,6 +570,11 @@ namespace WalletWasabi.Services
 						justUpdate = true; // No need to check for double spend, we already processed this transaction, just update it.
 					}
 				}
+			}
+			else if (!tx.Transaction.PossiblyP2WPKHInvolved())
+			{
+				JustCheckKeys(tx);
+				return false; // We do not care about non-witness transactions for other than mempool cleanup.
 			}
 
 			if (!justUpdate && !tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
@@ -626,9 +649,8 @@ namespace WalletWasabi.Services
 
 					foundKey.SetKeyState(KeyState.Used, KeyManager);
 
-					// We do not care about non-witness transactions for other than mempool cleanup and checking if a key has been used.
 					// We do not care about transactions beneath the dust threshold
-					if (!tx.Transaction.PossiblyP2WPKHInvolved() || output.Value <= ServiceConfiguration.DustThreshold)
+					if (output.Value <= ServiceConfiguration.DustThreshold)
 					{
 						continue;
 					}
