@@ -114,7 +114,7 @@ namespace WalletWasabi.Gui.Controls
 				IsPasswordVisible = x;
 			});
 
-			this.WhenAnyValue(x => x.IsPasswordVisible).Subscribe(IsVisible =>
+			this.WhenAnyValue(x => x.IsPasswordVisible).Subscribe(_ =>
 			{
 				PaintText();
 			});
@@ -239,10 +239,6 @@ namespace WalletWasabi.Gui.Controls
 					if (!string.IsNullOrEmpty(text))
 					{
 						e.Handled = OnTextInput(text, true);
-						if (!e.Handled)
-						{
-							_ = DisplayWarningAsync("Password too long (Max 150 characters)");
-						}
 					}
 				}
 				else if (Sb.Length > 0)
@@ -297,9 +293,17 @@ namespace WalletWasabi.Gui.Controls
 
 		protected override void OnTextInput(TextInputEventArgs e)
 		{
-			e.Handled = OnTextInput(e.Text, false);
+			var isPaste = e.Text != null && e.Text.Length > 1; // if the ExtendedTextBox right click/Paste is used, OnTextInput will be called directly
+
+			e.Handled = OnTextInput(e.Text, isPaste);
 		}
 
+		/// <summary>
+		/// All text input operation (keydown/paste/delete) should call this.
+		/// </summary>
+		/// <param name="text"></param>
+		/// <param name="isPaste"></param>
+		/// <returns></returns>
 		private bool OnTextInput(string text, bool isPaste)
 		{
 			if (_supressChanges)
@@ -315,9 +319,10 @@ namespace WalletWasabi.Gui.Controls
 				SelectionStart = SelectionEnd = CaretIndex = 0;
 				_supressChanges = false;
 			}
-			if (isPaste && Sb.Length + text.Length > Constants.MaxPasswordLength) // Do not allow pastes that would be too long
+			if (Sb.Length + text.Length > Constants.MaxPasswordLength) // Do not allow insert that would be too long.
 			{
 				handledCorrectly = false;
+				_ = DisplayWarningAsync("Password too long (Max 150 characters)");
 			}
 			else if (CaretIndex == 0)
 			{
@@ -328,11 +333,13 @@ namespace WalletWasabi.Gui.Controls
 				Sb.Append(text);
 			}
 
-			if (handledCorrectly && Sb.Length > Constants.MaxPasswordLength) // Ensure the maximum length.
+			if (handledCorrectly && Sb.Length > Constants.MaxPasswordLength) // We should not get here, ensure the maximum length.
 			{
 				Sb.Remove(Constants.MaxPasswordLength, Sb.Length - Constants.MaxPasswordLength);
 				handledCorrectly = false; // Should play beep sound not working on windows.
+				_ = DisplayWarningAsync("Password too long (Max 150 characters)");
 			}
+
 			PaintText();
 			return handledCorrectly;
 		}
@@ -381,8 +388,26 @@ namespace WalletWasabi.Gui.Controls
 			{
 				GenerateNewRandomSequence();
 			}
+			var password = Sb.ToString();
 
-			Password = Sb.ToString();
+			var beforeTrim = password.Length;
+
+			password = password.Trim();
+
+			var whiteSpacesRemoved = beforeTrim != password.Length;
+			if (whiteSpacesRemoved)
+			{
+				Sb.Clear();
+				Sb.Append(password);
+			}
+
+			if (whiteSpacesRemoved)
+			{
+				_ = DisplayWarningAsync("Leading and trailing are removed!");
+			}
+
+			Password = password;
+
 			Text = _displayText.Substring(0, Sb.Length);
 			if (IsPasswordVisible)
 			{
