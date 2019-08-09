@@ -150,7 +150,10 @@ namespace WalletWasabi.Services
 		private void ProcessTx(TxPayload payload)
 		{
 			Transaction transaction = payload.Object;
-			MempoolService.OnTransactionReceived(new SmartTransaction(transaction, Height.Mempool));
+			if (transaction.Check() == TransactionCheckResult.Success)
+			{
+				MempoolService.OnTransactionReceived(new SmartTransaction(transaction, Height.Mempool));
+			}
 		}
 
 		public override object Clone()
