@@ -1091,7 +1091,7 @@ namespace WalletWasabi.Tests
 					allowUnconfirmed: true);
 
 				Assert.Single(res.InnerWalletOutputs);
-				Assert.Equal($"{Constants.ChangeOfSpecialLabelStart}my label{Constants.ChangeOfSpecialLabelEnd}", res.InnerWalletOutputs.Single().Label);
+				Assert.Equal("my label", res.InnerWalletOutputs.Single().Label);
 
 				amountToSend = wallet.Coins.Where(x => !x.Unavailable).Sum(x => x.Amount) / 3;
 				res = wallet.BuildTransaction(password, new[] {
@@ -1102,20 +1102,20 @@ namespace WalletWasabi.Tests
 
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Equal(2, res.OuterWalletOutputs.Count());
-				Assert.Equal($"{Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Constants.ChangeOfSpecialLabelEnd}", res.InnerWalletOutputs.Single().Label);
+				Assert.Equal("outgoing, outgoing2", res.InnerWalletOutputs.Single().Label);
 
 				await wallet.SendTransactionAsync(res.Transaction);
 
-				Assert.Contains($"{Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Constants.ChangeOfSpecialLabelEnd}", wallet.Coins.Where(x => x.Height == Height.Mempool).Select(x => x.Label));
-				Assert.Contains($"{Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Constants.ChangeOfSpecialLabelEnd}", keyManager.GetKeys().Select(x => x.Label));
+				Assert.Contains("outgoing, outgoing2", wallet.Coins.Where(x => x.Height == Height.Mempool).Select(x => x.Label));
+				Assert.Contains("outgoing, outgoing2", keyManager.GetKeys().Select(x => x.Label));
 
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
 				var bestHeight = new Height(bitcoinStore.HashChain.TipHeight);
-				Assert.Contains($"{Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Constants.ChangeOfSpecialLabelEnd}", wallet.Coins.Where(x => x.Height == bestHeight).Select(x => x.Label));
-				Assert.Contains($"{Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Constants.ChangeOfSpecialLabelEnd}", keyManager.GetKeys().Select(x => x.Label));
+				Assert.Contains("outgoing, outgoing2", wallet.Coins.Where(x => x.Height == bestHeight).Select(x => x.Label));
+				Assert.Contains("outgoing, outgoing2", keyManager.GetKeys().Select(x => x.Label));
 
 				#endregion Labeling
 
@@ -3438,7 +3438,7 @@ namespace WalletWasabi.Tests
 				}
 
 				var times = 0;
-				while (wallet.Coins.FirstOrDefault(x => x.Label == "ZeroLink Change" && x.Unspent) is null)
+				while (wallet.Coins.FirstOrDefault(x => x.Label == "" && x.Unspent) is null)
 				{
 					await Task.Delay(1000);
 					times++;
@@ -3447,18 +3447,15 @@ namespace WalletWasabi.Tests
 						throw new TimeoutException("Wallet spends were not recognized.");
 					}
 				}
-				SmartCoin[] unspentChanges = wallet.Coins.Where(x => x.Label == "ZeroLink Change" && x.Unspent).ToArray();
+				SmartCoin[] unspentChanges = wallet.Coins.Where(x => x.Label == "" && x.Unspent).ToArray();
 				await wallet.ChaumianClient.DequeueCoinsFromMixAsync(unspentChanges, "");
 
-				Assert.Equal(3, wallet.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unavailable));
-				Assert.Equal(3, wallet2.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unavailable));
-				Assert.Equal(0, wallet.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unspent));
-				Assert.Equal(0, wallet2.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unspent));
-				Assert.Equal(2, wallet.Coins.Count(x => x.Label == "ZeroLink Change" && !x.Unspent));
-				Assert.Equal(0, wallet2.Coins.Count(x => x.Label == "ZeroLink Change"));
-				Assert.Equal(0, wallet.Coins.Count(x => x.Label == "ZeroLink Change" && x.Unspent));
-				Assert.Equal(0, wallet.Coins.Count(x => x.Label == "ZeroLink Dequeued Change" && !x.Unspent));
-				Assert.Equal(1, wallet.Coins.Count(x => x.Label == "ZeroLink Dequeued Change" && !x.Unavailable));
+				Assert.Equal(4, wallet.Coins.Count(x => x.Label == "" && !x.Unavailable));
+				Assert.Equal(3, wallet2.Coins.Count(x => x.Label == "" && !x.Unavailable));
+				Assert.Equal(2, wallet.Coins.Count(x => x.Label == "" && !x.Unspent));
+				Assert.Equal(0, wallet2.Coins.Count(x => x.Label == "" && !x.Unspent));
+				Assert.Equal(3, wallet2.Coins.Count(x => x.Label == ""));
+				Assert.Equal(4, wallet.Coins.Count(x => x.Label == "" && x.Unspent));
 			}
 			finally
 			{

@@ -157,7 +157,7 @@ namespace WalletWasabi.Services
 
 		private void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
-			if(e.Action == NotifyCollectionChangedAction.Remove)
+			if (e.Action == NotifyCollectionChangedAction.Remove)
 			{
 				var toRemove = e.OldItems[0] as SmartCoin;
 				if (toRemove.SpenderTransactionId != null)
@@ -167,7 +167,7 @@ namespace WalletWasabi.Services
 						Coins.TryRemove(toAlsoRemove);
 					}
 				}
-				Mempool.TransactionHashes.TryRemove(toRemove.TransactionId);				
+				Mempool.TransactionHashes.TryRemove(toRemove.TransactionId);
 			}
 
 			RefreshCoinHistories();
@@ -1152,7 +1152,16 @@ namespace WalletWasabi.Services
 			int outNum = spendAll ? toSend.Length : toSend.Length + 1; // number of addresses to send + 1 for change
 			int vSize = NBitcoinHelpers.CalculateVsizeAssumeSegwit(inNum, outNum);
 			Logger.LogInfo<WalletService>($"Estimated tx size: {vSize} vbytes.");
+
+			// Multiply the standard by 1.1 to avoid possible off by one errors in flawed implementations.
+			var minFeeRate = new FeeRate(1.1m * new StandardTransactionPolicy().MinRelayTxFee.SatoshiPerByte);
+			if (feePerBytes < minFeeRate)
+			{
+				feePerBytes = minFeeRate;
+			}
+
 			Money fee = feePerBytes.GetTotalFee(vSize);
+
 			Logger.LogInfo<WalletService>($"Fee: {fee.Satoshi} Satoshi.");
 
 			// 5. How much to spend?
@@ -1199,10 +1208,10 @@ namespace WalletWasabi.Services
 			var sb = new StringBuilder();
 			foreach (var item in realToSend)
 			{
-				sb.Append(item.label ?? "?");
-				sb.Append(", ");
+				var corrected = Guard.Correct(item.label);
+				sb.Append($"{corrected}, ");
 			}
-			var changeLabel = $"{Constants.ChangeOfSpecialLabelStart}{sb.ToString().TrimEnd(',', ' ')}{Constants.ChangeOfSpecialLabelEnd}";
+			var changeLabel = sb.ToString().TrimEnd(',', ' ');
 
 			if (customChange is null)
 			{
@@ -1554,12 +1563,12 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public IEnumerable<string> GetNonSpecialLabels()
+		public ISet<string> GetLabels()
 		{
-			return Coins.Where(x => !x.Label.StartsWith("ZeroLink", StringComparison.Ordinal))
-				.SelectMany(x => x.Label.Split(new string[] { Constants.ChangeOfSpecialLabelStart, Constants.ChangeOfSpecialLabelEnd, "(", "," }, StringSplitOptions.RemoveEmptyEntries))
+			return Coins
+				.SelectMany(x => x.Label.Split(',', StringSplitOptions.RemoveEmptyEntries))
 				.Select(x => x.Trim())
-				.Distinct();
+				.ToHashSet();
 		}
 
 		private int _refreshCoinHistoriesRerunRequested = 0;
