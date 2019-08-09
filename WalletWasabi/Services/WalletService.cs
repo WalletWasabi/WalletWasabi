@@ -540,10 +540,6 @@ namespace WalletWasabi.Services
 			if (tx.Confirmed)
 			{
 				Mempool.TransactionHashes.TryRemove(txId); // If we have in mempool, remove.
-				if (!tx.Transaction.PossiblyP2WPKHInvolved())
-				{
-					return false; // We do not care about non-witness transactions for other than mempool cleanup.
-				}
 
 				bool isFoundTx = TransactionCache.Contains(tx); // If we have in cache, update height.
 				if (isFoundTx)
@@ -556,10 +552,6 @@ namespace WalletWasabi.Services
 						justUpdate = true; // No need to check for double spend, we already processed this transaction, just update it.
 					}
 				}
-			}
-			else if (!tx.Transaction.PossiblyP2WPKHInvolved())
-			{
-				return false; // We do not care about non-witness transactions for other than mempool cleanup.
 			}
 
 			if (!justUpdate && !tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
@@ -633,6 +625,12 @@ namespace WalletWasabi.Services
 					walletRelevant = true;
 
 					foundKey.SetKeyState(KeyState.Used, KeyManager);
+
+					if (!tx.Transaction.PossiblyP2WPKHInvolved())
+					{
+						continue; // We do not care about non-witness transactions for other than mempool cleanup and checking if a key has been used.
+					}
+
 					spentOwnCoins = spentOwnCoins ?? Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
 					var anonset = tx.Transaction.GetAnonymitySet(i);
 					if (spentOwnCoins.Count != 0)
