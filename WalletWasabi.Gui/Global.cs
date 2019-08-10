@@ -176,7 +176,7 @@ namespace WalletWasabi.Gui
 				await TryDesperateDequeueAllCoinsAsync();
 				Dispatcher.UIThread.PostLogException(() =>
 				{
-					Application.Current?.MainWindow?.Close();
+					//Application.Current?.MainWindow?.Close();
 				});
 				await DisposeAsync();
 

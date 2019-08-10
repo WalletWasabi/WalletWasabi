@@ -108,20 +108,20 @@ namespace WalletWasabi.Gui.Shell.Commands
 				commandIconService.GetCompletionKindImage("DevTools"),
 				ReactiveCommand.Create(() =>
 				{
-					var devTools = new DevTools(Application.Current.Windows.FirstOrDefault());
+					//var devTools = new DevTools(Application.Current.Windows.FirstOrDefault());
 
-					var devToolsWindow = new Window
-					{
-						Width = 1024,
-						Height = 512,
-						Content = devTools,
-						DataTemplates =
-						{
-							new ViewLocator<Avalonia.Diagnostics.ViewModels.ViewModelBase>()
-						}
-					};
+					//var devToolsWindow = new Window
+					//{
+					//	Width = 1024,
+					//	Height = 512,
+					//	Content = devTools,
+					//	DataTemplates =
+					//	{
+					//		new ViewLocator<Avalonia.Diagnostics.ViewModels.ViewModelBase>()
+					//	}
+					//};
 
-					devToolsWindow.Show();
+					//devToolsWindow.Show();
 				}));
 #endif
 		}

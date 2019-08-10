@@ -76,7 +76,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						sfd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 					}
 
-					string fileFullName = await sfd.ShowAsync(Application.Current.MainWindow, fallBack: true);
+					string fileFullName = await sfd.ShowAsync(null, fallBack: true);
 					if (!string.IsNullOrWhiteSpace(fileFullName))
 					{
 						var ext = Path.GetExtension(fileFullName);

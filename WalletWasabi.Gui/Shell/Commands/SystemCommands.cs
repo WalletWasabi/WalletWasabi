@@ -31,7 +31,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnExit()
 		{
-			Application.Current.MainWindow.Close();
+			//Application.Current.MainWindow.Close();
 		}
 	}
 }

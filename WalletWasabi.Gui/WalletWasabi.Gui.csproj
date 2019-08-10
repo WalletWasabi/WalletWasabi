@@ -64,7 +64,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AvalonStudio.Shell" Version="0.8.1" />
+    <PackageReference Include="AvalonStudio.Shell" Version="0.8.999" />
+    <PackageReference Include="Avalonia" Version="0.8.999-cibuild0003524-beta" />
+    <PackageReference Include="Dock.Avalonia.Themes.Default" Version="0.9.0-build20190810-28" />
+    <PackageReference Include="Dock.Avalonia.Themes.Metro" Version="0.9.0-build20190810-28" />
   </ItemGroup>
 
   <ItemGroup>
@@ -73,6 +76,129 @@
 
   <ItemGroup>
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\BusyIndicator.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\EditableTextBlock.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\GroupBox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\LockScreen\LockScreen.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\LockScreen\PinLockScreen.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\LockScreen\SlideLockScreen.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\ModalDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\MultiTextBox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\NoparaPasswordBox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\Spinner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\StatusBar.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\WalletExplorer\CoinJoinTabView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\WalletExplorer\CoinListView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\WalletExplorer\HistoryTabView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\WalletExplorer\PinPadView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\WalletExplorer\ReceiveTabView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\WalletExplorer\SendTabView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\WalletExplorer\TransactionBroadcasterView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\WalletExplorer\TransactionViewerView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\WalletExplorer\WalletExplorerView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\WalletExplorer\WalletInfoView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Dialogs\CannotCloseDialogView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Dialogs\GenSocksServFailDialogView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Dialogs\TextInputDialogView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Icons\Icons.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="ManagedDialogs\ManagedFileChooser.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="ManagedDialogs\ManagedFileDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Styles\Styles.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Tabs\AboutView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Tabs\LegalIssuesView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Tabs\PrivacyPolicyView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Tabs\SettingsView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Tabs\TermsAndConditionsView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Tabs\WalletManager\GenerateWalletSuccessView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Tabs\WalletManager\GenerateWalletView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Tabs\WalletManager\LoadWalletView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Tabs\WalletManager\RecoverWalletView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Tabs\WalletManager\WalletManagerView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
   </ItemGroup>
 
 </Project>
