@@ -255,11 +255,11 @@ namespace WalletWasabi.Services
 
 		public static void DropWalletCache(string walletName, string dataDir, Network network)
 		{
-			string FiltersFolderPath = Path.Combine(dataDir, "IndexStore", network.ToString());
-			if (Directory.Exists(FiltersFolderPath))
+			string filtersFolderPath = Path.Combine(dataDir, "IndexStore", network.ToString());
+			if (Directory.Exists(filtersFolderPath))
 			{
-				Directory.Delete(FiltersFolderPath, true);
-				Directory.CreateDirectory(FiltersFolderPath);
+				Directory.Delete(filtersFolderPath, true);
+				Directory.CreateDirectory(filtersFolderPath);
 			}
 		}
 

@@ -31,8 +31,8 @@ namespace WalletWasabi.Gui.CommandLine
 				"eg: ./wassabee dropwalletcache --wallet:MyWalletName --network:main",
 				"",
 				{ "w|wallet=", "The name of the wallet file.", x =>  WalletName = x },
-				{ "n|network=", "The network for the given file (main, test, reg).", x => Network = GetNetwork(x)},
-				{ "h|help", "Show Help.", v => ShowHelp = true}
+				{ "n|network=", "The network for the given file (main, test, reg). Default=mainnet.", x => Network = GetNetwork(x) },
+				{ "h|help", "Show Help.", v => ShowHelp = true },
 			};
 		}
 
