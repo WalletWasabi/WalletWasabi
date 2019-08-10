@@ -2,6 +2,7 @@
                           xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
                           xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
                           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          x:Class="WalletWasabi.Gui.Controls.LockScreen.PinLockScreen"
                           IsLocked="{Binding IsLocked}">
   <lockscreen:PinLockScreen.Styles>
     <Style Selector="Grid.Shade">
