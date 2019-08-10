@@ -119,7 +119,7 @@ namespace WalletWasabi.Backend.Controllers
 
 				if (round is null || round.Phase != CcjRoundPhase.InputRegistration)
 				{
-					return NotFound($"No such running round in {nameof(CcjRoundPhase.InputRegistration)}. Try another round.");
+					return NotFound("No such running round in InputRegistration. Try another round.");
 				}
 
 				// Do more checks.
@@ -148,7 +148,7 @@ namespace WalletWasabi.Backend.Controllers
 						// RegTest and TestNet address formats are sometimes the same.
 						if (Network == Network.Main)
 						{
-							return BadRequest($"Invalid {nameof(request.ChangeOutputAddress)} Network.");
+							return BadRequest($"Invalid ChangeOutputAddress Network.");
 						}
 					}
 
@@ -411,8 +411,7 @@ namespace WalletWasabi.Backend.Controllers
 				default:
 					{
 						TryLogLateRequest(roundId, CcjRoundPhase.ConnectionConfirmation);
-						return Gone($"Participation can be only confirmed from {nameof(CcjRoundPhase.InputRegistration)} or " +
-							$"{nameof(CcjRoundPhase.ConnectionConfirmation)} phase. Current phase: {phase}.");
+						return Gone($"Participation can be only confirmed from InputRegistration or ConnectionConfirmation phase. Current phase: {phase}.");
 					}
 			}
 
@@ -474,7 +473,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 				default:
 					{
-						return Gone($"Participation can be only unconfirmed from {nameof(CcjRoundPhase.InputRegistration)} phase. Current phase: {phase}.");
+						return Gone($"Participation can be only unconfirmed from InputRegistration phase. Current phase: {phase}.");
 					}
 			}
 		}
@@ -522,7 +521,7 @@ namespace WalletWasabi.Backend.Controllers
 			if (phase != CcjRoundPhase.OutputRegistration)
 			{
 				TryLogLateRequest(roundId, CcjRoundPhase.OutputRegistration);
-				return Conflict($"Output registration can only be done from {nameof(CcjRoundPhase.OutputRegistration)} phase. Current phase: {phase}.");
+				return Conflict($"Output registration can only be done from OutputRegistration phase. Current phase: {phase}.");
 			}
 
 			if (request.OutputAddress.Network != Network)
@@ -530,7 +529,7 @@ namespace WalletWasabi.Backend.Controllers
 				// RegTest and TestNet address formats are sometimes the same.
 				if (Network == Network.Main)
 				{
-					return BadRequest($"Invalid {nameof(request.OutputAddress)} Network.");
+					return BadRequest($"Invalid OutputAddress Network.");
 				}
 			}
 
@@ -565,7 +564,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 					catch (Exception ex)
 					{
-						return BadRequest($"Invalid {nameof(request.OutputAddress)} is provided. Details: {ex.Message}");
+						return BadRequest($"Invalid outputAddress is provided. Details: {ex.Message}");
 					}
 
 					int bobCount = round.CountBobs();
@@ -621,7 +620,7 @@ namespace WalletWasabi.Backend.Controllers
 				default:
 					{
 						TryLogLateRequest(roundId, CcjRoundPhase.Signing);
-						return Conflict($"CoinJoin can only be requested from {CcjRoundPhase.Signing} phase. Current phase: {phase}.");
+						return Conflict($"CoinJoin can only be requested from Signing phase. Current phase: {phase}.");
 					}
 			}
 		}
@@ -728,7 +727,7 @@ namespace WalletWasabi.Backend.Controllers
 				default:
 					{
 						TryLogLateRequest(roundId, CcjRoundPhase.Signing);
-						return Conflict($"CoinJoin can only be requested from {CcjRoundPhase.Signing} phase. Current phase: {phase}.");
+						return Conflict($"CoinJoin can only be requested from Signing phase. Current phase: {phase}.");
 					}
 			}
 		}
