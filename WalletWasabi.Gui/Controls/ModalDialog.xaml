@@ -1,5 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:cont="clr-namespace:AvalonStudio.Controls;assembly=AvalonStudio.Shell.Extensibility">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:cont="clr-namespace:AvalonStudio.Controls;assembly=AvalonStudio.Shell.Extensibility"
+             x:Class="WalletWasabi.Gui.Controls.ModalDialog">
   <Grid Background="#EF2D2D2D" IsVisible="{Binding IsVisible, FallbackValue=False}">
     <Grid Height="500" Background="{DynamicResource ThemeControlBackgroundBrush}" Margin="10 0">
       <DockPanel LastChildFill="True" Margin="200 0 200 100">
