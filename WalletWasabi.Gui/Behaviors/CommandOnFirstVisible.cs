@@ -5,7 +5,7 @@ using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-	internal class CommandOnFirstVisible : CommandBasedBehavior<InputElement>
+	public class CommandOnFirstVisible : CommandBasedBehavior<InputElement>
 	{
 		private CompositeDisposable Disposables { get; set; }
 

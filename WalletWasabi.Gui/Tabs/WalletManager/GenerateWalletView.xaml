@@ -1,5 +1,7 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+﻿<UserControl xmlns="https://github.com/avaloniaui" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+             x:Class="WalletWasabi.Gui.Tabs.WalletManager.GenerateWalletView">
   <StackPanel Margin="10" Spacing="10">
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="30">
       <Grid Classes="content">

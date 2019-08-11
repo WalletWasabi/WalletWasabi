@@ -4,8 +4,10 @@ using Avalonia.Threading;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
 using NBitcoin;
+using ReactiveUI;
 using System;
 using System.IO;
+using System.Reactive.Concurrency;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
@@ -58,8 +60,9 @@ namespace WalletWasabi.Gui
 						{
 							MainWindowViewModel.Instance.Title += $" - {Global.Network}";
 						}
+
 						Dispatcher.UIThread.Post(GC.Collect);
-					}).StartShellApp<AppBuilder, MainWindow>("Wasabi Wallet", null, () => MainWindowViewModel.Instance);
+					});
 			}
 			catch (Exception ex)
 			{
