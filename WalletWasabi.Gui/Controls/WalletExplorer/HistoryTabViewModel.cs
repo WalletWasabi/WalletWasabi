@@ -24,6 +24,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _transactionSortDirection;
 		private SortOrder _labelSortDirection;
 		private bool _isFirstLoading;
+		private bool _txInfoPopOpen;
 
 		public bool IsFirstLoading
 		{
@@ -31,8 +32,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _isFirstLoading, value);
 		}
 
+		public bool TxInfoPopOpen
+		{
+			get => _txInfoPopOpen;
+			set => this.RaiseAndSetIfChanged(ref _txInfoPopOpen, value);
+		}
+
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 		public ReactiveCommand<Unit, Unit> CopySelectedTxIdCommand { get; }
+		public ReactiveCommand<Unit, Unit> ShowTransactionDetailsCommand { get; }
 
 		public HistoryTabViewModel(WalletViewModel walletViewModel)
 			: base("History", walletViewModel)
@@ -45,14 +53,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(_ =>
 			{
-				this.RaisePropertyChanged(nameof(IsTxSelected));
 				this.RaisePropertyChanged(nameof(SelectedTxId));
-				this.RaisePropertyChanged(nameof(SelectedTxConfirmations));
-				this.RaisePropertyChanged(nameof(SelectedTxBlockHeight));
-				this.RaisePropertyChanged(nameof(SelectedTxSize));
-				this.RaisePropertyChanged(nameof(SelectedTxVirtualSize));
-				this.RaisePropertyChanged(nameof(SelectedTxFees));
-				this.RaisePropertyChanged(nameof(SelectedTxRBF));
+				TxInfoPopOpen = false;
 			});
 
 			CopySelectedTxIdCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -61,6 +63,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					await SelectedTransaction.TryCopyTxIdToClipboardAsync();
 				}
+			});
+
+			ShowTransactionDetailsCommand = ReactiveCommand.Create(() =>
+			{
+				this.RaisePropertyChanged(nameof(SelectedTxConfirmations));
+				this.RaisePropertyChanged(nameof(SelectedTxBlockHeight));
+				this.RaisePropertyChanged(nameof(SelectedTxSize));
+				this.RaisePropertyChanged(nameof(SelectedTxVirtualSize));
+				this.RaisePropertyChanged(nameof(SelectedTxFees));
+				this.RaisePropertyChanged(nameof(SelectedTxRBF));
+				TxInfoPopOpen = true;
 			});
 
 			DateSortDirection = SortOrder.Decreasing;
@@ -93,6 +106,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override bool OnClose()
 		{
+			TxInfoPopOpen = false;
 			Disposables.Dispose();
 			Disposables = null;
 
@@ -258,8 +272,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _transactions;
 			set => this.RaiseAndSetIfChanged(ref _transactions, value);
 		}
-
-		public bool IsTxSelected => SelectedTransaction != null;
 
 		public string SelectedTxId => SelectedTransaction?.TransactionId ?? "N/A";
 
