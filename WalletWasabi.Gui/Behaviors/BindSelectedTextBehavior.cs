@@ -8,7 +8,7 @@ using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-	internal class BindSelectedTextBehavior : Behavior<TextBox>
+	public class BindSelectedTextBehavior : Behavior<TextBox>
 	{
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 

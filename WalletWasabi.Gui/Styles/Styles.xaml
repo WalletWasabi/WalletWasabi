@@ -1,7 +1,7 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:dock="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
-        xmlns:shell="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"
+<Styles xmlns="https://github.com/avaloniaui" 
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:dock="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
+        xmlns:shell="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"        
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
   <Style>

@@ -7,7 +7,7 @@ using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-	internal class FocusBehavior : Behavior<Control>
+	public class FocusBehavior : Behavior<Control>
 	{
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 
