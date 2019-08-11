@@ -16,6 +16,8 @@ using WalletWasabi.Backend;
 using System.Threading;
 using NBitcoin;
 using WalletWasabi.Models.ChaumianCoinJoin;
+using WalletWasabi.Tests.XunitConfiguration;
+using Microsoft.Extensions.Configuration;
 
 namespace WalletWasabi.Tests
 {
@@ -73,6 +75,8 @@ namespace WalletWasabi.Tests
 			return (T)BackendHost.Services.GetService(typeof(T));
 		}
 
+		public Backend.Global BackendGlobal => GetBackendService<Backend.Global>();
+
 		public GuiClientTester CreateGuiClient()
 		{
 			string guiDatadir = Path.Combine(TestName, "GuiClients", _guiClients.Count.ToString());
@@ -80,6 +84,11 @@ namespace WalletWasabi.Tests
 			_guiClients.Add(child);
 			_resources.Push(child);
 			return child;
+		}
+
+		public string GetBackendDataDir()
+		{
+			return Path.Combine(TestName, "Backend");
 		}
 
 		public CoreNode BackendNode { get; set; }
@@ -92,17 +101,31 @@ namespace WalletWasabi.Tests
 				return;
 			}
 
+			Directory.CreateDirectory(GetBackendDataDir());
 			BackendNode = _nodeBuilder.CreateNode();
 			BackendNode.WhiteBind = true;
 			await BackendNode.StartAsync();
 			_resources.Push(BackendNode.AsDisposable());
 			var rpc = BackendNode.CreateRPCClient();
-			var config = new Backend.Config(rpc.Network, rpc.Authentication, IPAddress.Loopback.ToString(), IPAddress.Loopback.ToString(), BackendNode.Endpoint.Address.ToString(), Network.Main.DefaultPort, Network.TestNet.DefaultPort, BackendNode.Endpoint.Port);
-			var roundConfig = new CcjRoundConfig(Money.Coins(0.1m), WalletWasabi.Helpers.Constants.OneDayConfirmationTarget, 0.7, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
-			await Backend.Global.Instance.InitializeAsync(config, roundConfig, rpc);
+			var config = new Backend.Config(rpc.Network, rpc.Authentication, 
+				new IPEndPoint(IPAddress.Loopback, Network.Main.DefaultPort), 
+				new IPEndPoint(IPAddress.Loopback, Network.TestNet.DefaultPort), 
+				BackendNode.Endpoint,
+				new IPEndPoint(IPAddress.Loopback, Network.Main.RPCPort),
+				new IPEndPoint(IPAddress.Loopback, Network.TestNet.RPCPort),
+				new IPEndPoint(IPAddress.Loopback, BackendNode.RPCUri.Port));
+			config.SetFilePath(Path.Combine(GetBackendDataDir(), "Config.json"));
+			await config.ToFileAsync();
 
+			var roundConfig = RegTestFixture.CreateRoundConfig(Money.Coins(0.1m), WalletWasabi.Helpers.Constants.OneDayConfirmationTarget, 0.7, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
+			roundConfig.SetFilePath(Path.Combine(GetBackendDataDir(), "CcjRoundConfig.json"));
+			await roundConfig.ToFileAsync();
+
+			var confBuilder = new ConfigurationBuilder();
+			confBuilder.AddInMemoryCollection(new[] { new KeyValuePair<string, string>("datadir", GetBackendDataDir()) });
 			BackendUri = new Uri($"http://127.0.0.1:{FreeTcpPort()}/", UriKind.Absolute);
 			BackendHost = WebHost.CreateDefaultBuilder()
+					.UseConfiguration(confBuilder.Build())
 					.UseStartup<Startup>()
 					.UseUrls(BackendUri.AbsoluteUri)
 					.Build();
@@ -208,8 +231,7 @@ namespace WalletWasabi.Tests
 			var config = new Gui.Config(Path.Combine(_dataDir, "Config.json"));
 			await config.LoadOrCreateDefaultFileAsync();
 			config.Network = _parent.NodeBuilder.Network;
-			config.RegTestBitcoinCorePort = _node.NodeEndpoint.Port;
-			config.RegTestBitcoinCoreHost = _node.NodeEndpoint.Address.ToString();
+			config.RegTestBitcoinP2pEndPoint = _node.NodeEndpoint;
 			config.RegTestBackendUriV3 = _parent.BackendUri.AbsoluteUri;
 			config.UseTor = false;
 			await config.ToFileAsync();

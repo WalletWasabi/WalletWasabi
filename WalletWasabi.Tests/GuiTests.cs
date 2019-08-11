@@ -24,14 +24,13 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
-		public async Task CanLoadCoinsAsync()
+		public async Task CanInitializeWalletGUIAsync()
 		{
 			using (var tester = GuiTester.Create())
 			{
 				var client1 = tester.CreateGuiClient();
-				//var client2 = tester.CreateGuiClient();
+				var client2 = tester.CreateGuiClient();
 				await tester.StartAllAsync();
-				await Task.Delay(10000);
 			}
 		}
 	}

@@ -50,7 +50,7 @@ namespace WalletWasabi.Gui
 
 		[DefaultValue("http://localhost:37127/")]
 		[JsonProperty(PropertyName = "RegTestBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public string RegTestBackendUriV3 { get; private set; }
+		public string RegTestBackendUriV3 { get; internal set; }
 
 		[DefaultValue(true)]
 		[JsonProperty(PropertyName = "UseTor", DefaultValueHandling = DefaultValueHandling.Populate)]

@@ -247,10 +247,10 @@ namespace WalletWasabi.Gui
 				Nodes = new NodesGroup(Network, requirements: Constants.NodeRequirements);
 				try
 				{
-					Node node = await Node.ConnectAsync(Network.RegTest, Config.GetBitcoinCoreEndPoint());
+					Node node = await Node.ConnectAsync(Network.RegTest, Config.GetBitcoinP2pEndPoint());
 					Nodes.ConnectedNodes.Add(node);
 
-					RegTestMemPoolServingNode = await Node.ConnectAsync(Network.RegTest, Config.GetBitcoinCoreEndPoint());
+					RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, Config.GetBitcoinP2pEndPoint());
 
 					RegTestMempoolServingNode.Behaviors.Add(new MempoolBehavior(MempoolService));
 				}
