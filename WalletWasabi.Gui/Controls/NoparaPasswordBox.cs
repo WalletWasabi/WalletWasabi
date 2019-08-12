@@ -35,6 +35,8 @@ namespace WalletWasabi.Gui.Controls
 			"如果你是只宠物小精灵，我就选你。" //If you were a Pokemon, I'd choose you.
 		};
 
+		private static string PasswordTooLongMessage = $"Password too long (Max {Constants.MaxPasswordLength} characters).";
+
 		private static Key[] SuppressedKeys { get; } =
 		{
 			Key.LeftCtrl, Key.RightCtrl, Key.LeftAlt, Key.RightAlt, Key.LeftShift, Key.RightShift, Key.Escape, Key.CapsLock, Key.NumLock, Key.LWin, Key.RWin,
@@ -322,7 +324,7 @@ namespace WalletWasabi.Gui.Controls
 			if (Sb.Length + text.Length > Constants.MaxPasswordLength) // Do not allow insert that would be too long.
 			{
 				handledCorrectly = false;
-				_ = DisplayWarningAsync("Password too long (Max 150 characters)");
+				_ = DisplayWarningAsync(PasswordTooLongMessage);
 			}
 			else if (CaretIndex == 0)
 			{
@@ -337,7 +339,7 @@ namespace WalletWasabi.Gui.Controls
 			{
 				Sb.Remove(Constants.MaxPasswordLength, Sb.Length - Constants.MaxPasswordLength);
 				handledCorrectly = false; // Should play beep sound not working on windows.
-				_ = DisplayWarningAsync("Password too long (Max 150 characters)");
+				_ = DisplayWarningAsync(PasswordTooLongMessage);
 			}
 
 			PaintText();
@@ -394,16 +396,11 @@ namespace WalletWasabi.Gui.Controls
 
 			password = password.Trim();
 
-			var whiteSpacesRemoved = beforeTrim != password.Length;
-			if (whiteSpacesRemoved)
+			if (beforeTrim != password.Length)
 			{
 				Sb.Clear();
 				Sb.Append(password);
-			}
-
-			if (whiteSpacesRemoved)
-			{
-				_ = DisplayWarningAsync("Leading and trailing are removed!");
+				_ = DisplayWarningAsync("Leading and trailing white spaces were removed!");
 			}
 
 			Password = password;
