@@ -65,6 +65,7 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="0.8.2" />
+    <PackageReference Include="Avalonia.Native" Version="0.8.2" />
     <PackageReference Include="AvalonStudio.Shell" Version="0.8.1" />
   </ItemGroup>
 
