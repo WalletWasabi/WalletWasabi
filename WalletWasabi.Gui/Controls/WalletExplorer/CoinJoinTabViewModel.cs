@@ -172,10 +172,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				PeersNeeded = 100;
 			}
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(x =>
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode, x => x.SatsDenominated)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
 			{
 				this.RaisePropertyChanged(nameof(AmountQueued));
+				this.RaisePropertyChanged(nameof(AmountUnit));
 				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+				this.RaisePropertyChanged(nameof(RequiredBTC));
 			}).DisposeWith(Disposables);
 
 			Observable.Interval(TimeSpan.FromSeconds(1))
@@ -459,6 +463,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
+
+		public string AmountUnit => Global.UiConfig.SatsDenominated ? "sats" : "BTC";
 
 		public ReactiveCommand<Unit, Unit> EnqueueCommand { get; }
 

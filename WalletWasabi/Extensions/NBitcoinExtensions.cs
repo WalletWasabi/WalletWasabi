@@ -3,6 +3,7 @@ using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
 using NBitcoin.RPC;
 using System;
+using System.Globalization;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -277,6 +278,40 @@ namespace NBitcoin
 		public static Money GetTotalFee(this FeeRate me, int vsize)
 		{
 			return Money.Satoshis(Math.Round(me.SatoshiPerByte * vsize));
+		}
+
+		public static string ToFormattedString(this Money money, bool fplus = false)
+		{
+			if (money is null || money == Money.Zero)
+				return "0.0000 0000";
+
+			string str = "";
+
+			if (fplus)
+			{
+				str += money.Satoshi > 0 ? "+" : "-";
+			}
+
+			str += string.Format(CultureInfo.InvariantCulture, "{0:#,0.0000 0000}", money.Abs().ToUnit(MoneyUnit.BTC)).Replace(',', ' ');
+
+			return str;
+		}
+
+		public static string ToFormattedSatsString(this Money money, bool fplus = false)
+		{
+			if (money is null || money == Money.Zero)
+				return "0";
+
+			string str = "";
+
+			if (fplus)
+			{
+				str += money.Satoshi > 0 ? "+" : "-";
+			}
+
+			str += string.Format(CultureInfo.InvariantCulture, "{0:#,#0}", money.Abs().Satoshi).Replace(',', ' ');
+
+			return str;
 		}
 	}
 }

@@ -13,11 +13,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	public class TransactionViewModel : ViewModelBase
 	{
 		private TransactionInfo Model { get; }
+		public Global Global { get; }
+
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
 
-		public TransactionViewModel(TransactionInfo model)
+		public TransactionViewModel(Global global, TransactionInfo model)
 		{
+			Global = global;
 			Model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
@@ -36,9 +39,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public int Confirmations => Model.Confirmations;
 
-		public string AmountBtc => Model.AmountBtc;
+		public string AmountBtc => Global.UiConfig.SatsDenominated ? Model.Amount.ToFormattedSatsString(fplus: true) : Model.Amount.ToFormattedString(fplus: true);
 
-		public Money Amount => Money.TryParse(Model.AmountBtc, out Money money) ? money : Money.Zero;
+		public Money Amount => Model.Amount;
 
 		public string Label => Model.Label;
 

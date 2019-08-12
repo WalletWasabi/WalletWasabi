@@ -25,6 +25,7 @@ namespace WalletWasabi.Gui
 		private bool _lockScreenActive;
 		private string _lockScreenPinHash;
 		private bool _isCustomFee;
+		private bool _satsDenominated;
 
 		[JsonProperty(PropertyName = "WindowState")]
 		[JsonConverter(typeof(WindowStateAfterStartJsonConverter))]
@@ -56,6 +57,14 @@ namespace WalletWasabi.Gui
 		{
 			get => _isCustomFee;
 			set => RaiseAndSetIfChanged(ref _isCustomFee, value);
+		}
+
+		[DefaultValue(false)]
+		[JsonProperty(PropertyName = "SatsDenominated", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool SatsDenominated
+		{
+			get => _satsDenominated;
+			set => RaiseAndSetIfChanged(ref _satsDenominated, value);
 		}
 
 		[DefaultValue(false)]

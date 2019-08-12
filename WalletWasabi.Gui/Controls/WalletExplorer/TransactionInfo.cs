@@ -1,3 +1,4 @@
+using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _confirmations;
 		private bool _confirmed;
 		private DateTimeOffset _dateTime;
-		private string _amountBtc;
+		private Money _amount;
 		private string _label;
 		private string _transactionId;
 
@@ -32,10 +33,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _confirmed, value);
 		}
 
-		public string AmountBtc
+		public Money Amount
 		{
-			get => _amountBtc;
-			set => this.RaiseAndSetIfChanged(ref _amountBtc, value);
+			get => _amount;
+			set => this.RaiseAndSetIfChanged(ref _amount, value);
 		}
 
 		public string Label

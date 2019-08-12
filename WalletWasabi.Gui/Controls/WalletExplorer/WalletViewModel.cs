@@ -101,10 +101,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(o => SetBalance(Name))
 				.DisposeWith(Disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(x =>
-			{
-				SetBalance(Name);
-			}).DisposeWith(Disposables);
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode, x => x.SatsDenominated)
+				.Subscribe(_ => SetBalance(Name))
+				.DisposeWith(Disposables);
+
 
 			IsExpanded = true;
 		}
@@ -129,8 +129,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void SetBalance(string walletName)
 		{
 			Money balance = Enumerable.Where(WalletService.Coins, c => c.Unspent && !c.SpentAccordingToBackend).Sum(c => (long?)c.Amount) ?? 0;
+			string balanceStr = Global.UiConfig.SatsDenominated ? balance.ToFormattedSatsString() : balance.ToFormattedString();
+			string unitStr = Global.UiConfig.SatsDenominated ? "sats" : "BTC";
 
-			Title = $"{walletName} ({(Global.UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
+			Title = $"{walletName} ({(Global.UiConfig.LurkingWifeMode ? "#########" : balanceStr)} {unitStr})";
 		}
 	}
 }

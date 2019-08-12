@@ -16,7 +16,7 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is string moneyString)
 			{
-				var money = decimal.Parse(moneyString);
+				var money = decimal.Parse(moneyString.Replace(" ", string.Empty));
 				return money < 0 ? Brushes.IndianRed : Brushes.MediumSeaGreen;
 			}
 			else

@@ -28,6 +28,7 @@ namespace WalletWasabi.Gui.Tabs
 		private string _bitcoinP2pEndPoint;
 		private bool _autocopy;
 		private bool _customFee;
+		private bool _satsDenominated;
 		private bool _useTor;
 		private bool _isModified;
 		private string _somePrivacyLevel;
@@ -51,6 +52,7 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			Autocopy = Global.UiConfig?.Autocopy is true;
 			CustomFee = Global.UiConfig?.IsCustomFee is true;
+			SatsDenominated = Global.UiConfig?.SatsDenominated is true;
 
 			// Use global config's data as default filler until the real data is filled out by the loading of the config onopen.
 			var globalConfig = Global.Config;
@@ -77,6 +79,10 @@ namespace WalletWasabi.Gui.Tabs
 			this.WhenAnyValue(x => x.CustomFee)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(x => Global.UiConfig.IsCustomFee = x);
+
+			this.WhenAnyValue(x => x.SatsDenominated)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(x => Global.UiConfig.SatsDenominated = x);
 
 			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
 
@@ -168,7 +174,7 @@ namespace WalletWasabi.Gui.Tabs
 				.ToProperty(this, x => x.IsPinSet, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee)
+			Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee, x => x.SatsDenominated)
 				.Throttle(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(async _ => await Global.UiConfig.ToFileAsync())
@@ -222,6 +228,12 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			get => _autocopy;
 			set => this.RaiseAndSetIfChanged(ref _autocopy, value);
+		}
+
+		public bool SatsDenominated
+		{
+			get => _satsDenominated;
+			set => this.RaiseAndSetIfChanged(ref _satsDenominated, value);
 		}
 
 		public bool CustomFee

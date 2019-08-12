@@ -123,6 +123,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _selectedAmount, value);
 		}
 
+		public string SelectedAmountStr => Global.UiConfig.SatsDenominated ? SelectedAmount.ToFormattedSatsString() : SelectedAmount.ToFormattedString();
+
+		public string AmountUnit => Global.UiConfig.SatsDenominated ? "sats" : "BTC";
+
 		public bool IsAnyCoinSelected
 		{
 			get => _isAnyCoinSelected;
@@ -388,12 +392,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedAmount)))
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedAmountStr)))
 				.DisposeWith(Disposables);
+
+			Global.UiConfig.WhenAnyValue(x => x.SatsDenominated)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					this.RaisePropertyChanged(nameof(SelectedAmountStr));
+					this.RaisePropertyChanged(nameof(AmountUnit));
+				}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.SelectedAmount)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => IsAnyCoinSelected = x is null ? false : x > Money.Zero);
+				.Subscribe(x =>
+				{
+					IsAnyCoinSelected = x is null ? false : x > Money.Zero;
+					this.RaisePropertyChanged(nameof(SelectedAmountStr));
+				});
 
 			Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)

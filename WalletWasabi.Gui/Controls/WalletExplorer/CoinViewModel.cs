@@ -97,7 +97,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					this.RaisePropertyChanged(nameof(Confirmations));
 				}).DisposeWith(Disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode, x => x.SatsDenominated)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 			{
@@ -157,7 +157,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public Money Amount => Model.Amount;
 
-		public string AmountBtc => Model.Amount.ToString(false, true);
+		public string AmountBtc => Global.UiConfig.SatsDenominated ? Model.Amount.ToFormattedSatsString() : Model.Amount.ToFormattedString();
 
 		public string Label => Model.Label;
 

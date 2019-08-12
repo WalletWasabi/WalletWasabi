@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Data.Converters;
 using NBitcoin;
 using System;
@@ -17,7 +18,9 @@ namespace WalletWasabi.Gui.Converters
 			}
 			else if (value is Money money)
 			{
-				return money.ToString(fplus: false, trimExcessZero: true);
+				var uiConfig = Application.Current.Resources[Global.UiConfigResourceKey] as UiConfig;
+
+				return uiConfig.SatsDenominated ? money.ToFormattedSatsString() : money.ToString(fplus: false, trimExcessZero: true);
 			}
 			else
 			{

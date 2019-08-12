@@ -91,7 +91,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			AllSelectedAmount = Money.Zero;
 			IsMax = false;
 			LabelToolTip = "Start labeling today and your privacy will thank you tomorrow!";
-			AmountText = "0.0";
+			AmountText = Global.UiConfig.SatsDenominated ? "0" : "0.0";
 			UserFeeText = "";
 		}
 
@@ -143,7 +143,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 					var dotIndex = betterAmount.IndexOf('.');
-					if (betterAmount.Length - dotIndex > 8) // Enable max 8 decimals.
+					if (dotIndex != -1 && betterAmount.Length - dotIndex > 8) // Enable max 8 decimals.
 					{
 						betterAmount = betterAmount.Substring(0, dotIndex + 1 + 8);
 					}
@@ -154,13 +154,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 
-				if (Money.TryParse(amount.TrimStart('~', ' '), out Money amountBtc))
+				Money amountBtc = AmountTextToMoney();
+				if (amountBtc is null)
 				{
-					SetAmountWatermark(amountBtc);
+					SetAmountWatermark(Money.Zero);
 				}
 				else
 				{
-					SetAmountWatermark(Money.Zero);
+					SetAmountWatermark(amountBtc);
 				}
 
 				SetFeesAndTexts();
@@ -233,7 +234,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					else
 					{
-						AmountText = "0.0";
+						AmountText = Global.UiConfig.SatsDenominated ? "0" : "0.0";
 
 						LabelToolTip = "Start labeling today and your privacy will thank you tomorrow!";
 					}
@@ -250,7 +251,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				if (url.Amount != null)
 				{
-					AmountText = url.Amount.ToString(false, true);
+					AmountText = Global.UiConfig.SatsDenominated ? url.Amount.ToFormattedSatsString() : url.Amount.ToString(false, true);
 				}
 			});
 
@@ -293,9 +294,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					var amount = Money.Zero;
 					if (!IsMax)
 					{
-						if (!Money.TryParse(AmountText, out amount) || amount == Money.Zero)
+						amount = AmountTextToMoney();
+						if (amount is null || amount == Money.Zero)
 						{
-							SetWarningMessage($"Invalid amount.");
+							SetWarningMessage("Invalid amount.");
 							return;
 						}
 
@@ -571,7 +573,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			if (amount == Money.Zero)
 			{
-				AmountWatermarkText = "Amount (BTC)";
+				AmountWatermarkText = $"Amount ({AmountUnit})";
 			}
 			else
 			{
@@ -586,8 +588,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				AmountWatermarkText = amountUsd != 0
-					? $"Amount (BTC) ~ ${amountUsd}"
-					: "Amount (BTC)";
+					? $"Amount ({AmountUnit}) ~ ${amountUsd}"
+					: $"Amount ({AmountUnit})";
 			}
 		}
 
@@ -699,8 +701,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							break;
 
 						case FeeDisplayFormat.BTC:
-							FeeText = $"(~ {EstimatedBtcFee.ToString(false, false)} BTC)";
-							FeeToolTip = "Estimated total fees in BTC.";
+							string amount = (Global.UiConfig.SatsDenominated ? "" + EstimatedBtcFee.ToFormattedSatsString() : EstimatedBtcFee.ToFormattedString());
+							FeeText = $"(~ {amount} {AmountUnit})";
+							FeeToolTip = $"Estimated total fees in {AmountUnit}.";
 							break;
 
 						case FeeDisplayFormat.Percentage:
@@ -733,7 +736,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				AmountText = AllSelectedAmount == Money.Zero
 					? "No Coins Selected"
-					: $"~ {AllSelectedAmount.ToString(false, true)}";
+					: "~ " + (Global.UiConfig.SatsDenominated ? "" + AllSelectedAmount.ToFormattedSatsString() : AllSelectedAmount.ToFormattedString());
 			}
 		}
 
@@ -756,7 +759,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				else
 				{
-					if (Money.TryParse(AmountText.TrimStart('~', ' '), out Money amount))
+					Money amount = AmountTextToMoney();
+					if (amount != null)
 					{
 						var inNum = 0;
 						var amountSoFar = Money.Zero;
@@ -796,7 +800,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			else
 			{
-				if (Money.TryParse(AmountText.TrimStart('~', ' '), out Money amount) && amount.Satoshi != 0)
+				Money amount = AmountTextToMoney();
+				if (amount != null && amount != Money.Zero)
 				{
 					FeePercentage = 100 * (decimal)EstimatedBtcFee.Satoshi / amount.Satoshi;
 				}
@@ -837,6 +842,31 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			catch (Exception ex)
 			{
 				Logging.Logger.LogInfo<SendTabViewModel>(ex);
+			}
+		}
+
+		private Money AmountTextToMoney()
+		{
+			if (Global.UiConfig.SatsDenominated)
+			{
+				try
+				{
+					var sats = Convert.ToUInt64(AmountText.TrimStart('~'));
+					return Money.Satoshis(sats);
+				}
+				catch (Exception)
+				{
+					return null;
+				}
+			}
+			else
+			{
+				if (Money.TryParse(AmountText.TrimStart('~'), out Money amount))
+				{
+					return amount;
+				}
+
+				return null;
 			}
 		}
 
@@ -1124,6 +1154,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _feeControlOpacity, value);
 		}
 
+		public string AmountUnit => Global.UiConfig.SatsDenominated ? "sats" : "BTC";
+
 		public bool IsCustomFee => _isCustomFee?.Value ?? false;
 
 		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
@@ -1179,6 +1211,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Where(x => !x)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => IsSliderFeeUsed = true);
+
+			Global.UiConfig.WhenAnyValue(x => x.SatsDenominated)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					AmountText = Global.UiConfig.SatsDenominated ? "0" : "0.0"; // Reset amount, user might be entering in the wrong unit
+					SetAmountIfMax();
+					SetFeesAndTexts();
+
+					this.RaisePropertyChanged(nameof(AmountWatermarkText));
+				}).DisposeWith(Disposables);
 
 			base.OnOpen();
 		}

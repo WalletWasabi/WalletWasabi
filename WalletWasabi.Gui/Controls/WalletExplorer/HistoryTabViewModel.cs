@@ -70,13 +70,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(async _ => await TryRewriteTableAsync())
 				.DisposeWith(Disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(x =>
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode, x => x.SatsDenominated)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
 			{
 				foreach (var transaction in Transactions)
 				{
 					transaction.Refresh();
 				}
 			}).DisposeWith(Disposables);
+
+			Global.UiConfig.WhenAnyValue(x => x.SatsDenominated)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(AmountUnit)))
+				.DisposeWith(Disposables);
 		}
 
 		public override bool OnClose()
@@ -101,10 +108,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					DateTime = txr.dateTime.ToLocalTime(),
 					Confirmed = txr.height.Type == HeightType.Chain,
 					Confirmations = txr.height.Type == HeightType.Chain ? Global.BitcoinStore.HashChain.TipHeight - txr.height.Value + 1 : 0,
-					AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
+					Amount = txr.amount,
 					Label = txr.label,
 					TransactionId = txr.transactionId.ToString()
-				}).Select(ti => new TransactionViewModel(ti));
+				}).Select(ti => new TransactionViewModel(Global, ti));
 
 				Transactions = new ObservableCollection<TransactionViewModel>(trs);
 
@@ -229,6 +236,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			txRecordList = txRecordList.OrderByDescending(x => x.dateTime).ThenBy(x => x.amount).ToList();
 			return txRecordList;
 		}
+
+		public string AmountUnit => Global.UiConfig.SatsDenominated ? "sats" : "BTC";
 
 		public ObservableCollection<TransactionViewModel> Transactions
 		{

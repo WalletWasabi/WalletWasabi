@@ -45,14 +45,14 @@
             <StackPanel Orientation="Horizontal" Spacing="4">
               <TextBlock Text="Minimum" />
               <TextBlock Foreground="YellowGreen" Text="{Binding RequiredBTC, Converter={StaticResource MoneyStringConverter}}" />
-              <TextBlock Foreground="YellowGreen" Text="BTC" />
+              <TextBlock Foreground="YellowGreen" Text="{Binding AmountUnit}" />
               <TextBlock Text="is required to be queued for CoinJoin." />
             </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding AmountQueued, Converter={StaticResource CoinJoinedVisibilityConverter}}">
               <TextBlock Text="You have queued" />
               <TextBlock Foreground="YellowGreen" IsVisible="{Binding IsLurkingWifeMode, Converter={StaticResource InverseBooleanConverter}}" Text="{Binding AmountQueued, Converter={StaticResource MoneyStringConverter}}" />
               <TextBlock Foreground="YellowGreen" IsVisible="{Binding IsLurkingWifeMode}" Text="{Binding AmountQueued, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
-              <TextBlock Foreground="YellowGreen" Text="BTC" />
+              <TextBlock Foreground="YellowGreen" Text="{Binding AmountUnit}" />
               <TextBlock Text="for CoinJoin." />
             </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="4">
