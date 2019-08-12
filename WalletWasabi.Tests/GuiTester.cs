@@ -1,4 +1,5 @@
 using NBitcoin.Tests;
+using WalletWasabi.Logging;
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -55,11 +56,12 @@ namespace WalletWasabi.Tests
 
 		private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
 		{
-			e.Exception.ToString();
+			Logger.LogWarning(e?.Exception, "UnobservedTaskException");
 		}
 
 		private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
 		{
+			Logger.LogWarning(e?.ExceptionObject as Exception, "UnhandledException");
 		}
 
 		private GuiTester(string testName)
