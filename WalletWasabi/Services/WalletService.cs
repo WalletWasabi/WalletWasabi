@@ -255,7 +255,7 @@ namespace WalletWasabi.Services
 
 		public static void DropWalletCache(string walletName, string dataDir, Network network)
 		{
-			string filtersFolderPath = Path.Combine(dataDir, "IndexStore", network.ToString());
+			string filtersFolderPath = Path.Combine(dataDir, "BitcoinStore", network.ToString(), "IndexStore");
 			if (Directory.Exists(filtersFolderPath))
 			{
 				Directory.Delete(filtersFolderPath, true);

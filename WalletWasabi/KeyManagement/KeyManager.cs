@@ -817,7 +817,7 @@ namespace WalletWasabi.KeyManagement
 					BlockchainState.BlockStates.Clear();
 					ToFileNoBlockchainStateLock();
 
-					if (lastNetwork != null)
+					if (lastNetwork != null && expectedNetwork != null)
 					{
 						Logger.LogWarning<KeyManager>($"Wallet is opened on {expectedNetwork}. Last time it was opened on {lastNetwork}.");
 					}
