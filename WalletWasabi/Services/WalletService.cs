@@ -157,7 +157,7 @@ namespace WalletWasabi.Services
 
 		private void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
-			if(e.Action == NotifyCollectionChangedAction.Remove)
+			if (e.Action == NotifyCollectionChangedAction.Remove)
 			{
 				var toRemove = e.OldItems[0] as SmartCoin;
 				if (toRemove.SpenderTransactionId != null)
@@ -167,7 +167,7 @@ namespace WalletWasabi.Services
 						Coins.TryRemove(toAlsoRemove);
 					}
 				}
-				Mempool.TransactionHashes.TryRemove(toRemove.TransactionId);				
+				Mempool.TransactionHashes.TryRemove(toRemove.TransactionId);
 			}
 
 			RefreshCoinHistories();
@@ -622,7 +622,28 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			List<SmartCoin> spentOwnCoins = null; 
+			var isLikelyCoinJoinOutput = false;
+			bool hasEqualOutputs = tx.Transaction.GetIndistinguishableOutputs(includeSingle: false).FirstOrDefault() != default;
+			if (hasEqualOutputs)
+			{
+				var receiveKeys = KeyManager.GetKeys(x => tx.Transaction.Outputs.Any(y => y.ScriptPubKey == x.P2wpkhScript));
+				bool allReceivedInternal = receiveKeys.All(x => x.IsInternal);
+				if (allReceivedInternal)
+				{
+					// It is likely a coinjoin if the diff between receive and sent amount is small and have at least 2 equal outputs.
+					Money spentAmount = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).Sum(x => x.Amount);
+					Money receivedAmount = tx.Transaction.Outputs.Where(x => receiveKeys.Any(y => y.P2wpkhScript == x.ScriptPubKey)).Sum(x => x.Value);
+					bool receivedAlmostAsMuchAsSpent = spentAmount.Almost(receivedAmount, Money.Coins(0.005m));
+
+					if (receivedAlmostAsMuchAsSpent)
+					{
+						isLikelyCoinJoinOutput = true;
+					}
+				}
+			}
+
+			List<SmartCoin> spentOwnCoins = null;
+
 			for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 			{
 				// If transaction received to any of the wallet keys:
@@ -645,14 +666,14 @@ namespace WalletWasabi.Services
 						anonset += spentOwnCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because do not count own.
 					}
 
-					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
-																																																												   // If we did not have it.
+					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, isLikelyCoinJoinOutput, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
+
 					if (Coins.TryAdd(newCoin))
 					{
 						TransactionCache.TryAdd(tx);
 
 						// If it's being mixed and anonset is not sufficient, then queue it.
-						if (newCoin.Unspent && ChaumianClient.HasIngredients && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet && ChaumianClient.State.Contains(newCoin.SpentOutputs))
+						if (newCoin.Unspent && ChaumianClient.HasIngredients && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet && newCoin.IsLikelyCoinJoinOutput && ChaumianClient.State.Contains(newCoin.SpentOutputs))
 						{
 							try
 							{
@@ -1132,7 +1153,16 @@ namespace WalletWasabi.Services
 			int outNum = spendAll ? toSend.Length : toSend.Length + 1; // number of addresses to send + 1 for change
 			int vSize = NBitcoinHelpers.CalculateVsizeAssumeSegwit(inNum, outNum);
 			Logger.LogInfo<WalletService>($"Estimated tx size: {vSize} vbytes.");
+
+			// Multiply the standard by 1.1 to avoid possible off by one errors in flawed implementations.
+			var minFeeRate = new FeeRate(1.1m * new StandardTransactionPolicy().MinRelayTxFee.SatoshiPerByte);
+			if (feePerBytes < minFeeRate)
+			{
+				feePerBytes = minFeeRate;
+			}
+
 			Money fee = feePerBytes.GetTotalFee(vSize);
+
 			Logger.LogInfo<WalletService>($"Fee: {fee.Satoshi} Satoshi.");
 
 			// 5. How much to spend?
@@ -1179,10 +1209,10 @@ namespace WalletWasabi.Services
 			var sb = new StringBuilder();
 			foreach (var item in realToSend)
 			{
-				sb.Append(item.label ?? "?");
-				sb.Append(", ");
+				var corrected = Guard.Correct(item.label);
+				sb.Append($"{corrected}, ");
 			}
-			var changeLabel = $"{Constants.ChangeOfSpecialLabelStart}{sb.ToString().TrimEnd(',', ' ')}{Constants.ChangeOfSpecialLabelEnd}";
+			var changeLabel = sb.ToString().TrimEnd(',', ' ');
 
 			if (customChange is null)
 			{
@@ -1274,7 +1304,7 @@ namespace WalletWasabi.Services
 				TxOut output = tx.Outputs[i];
 				var anonset = (tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet)) - 1; // Minus 1, because count own only once.
 				var foundKey = KeyManager.GetKeys(KeyState.Clean).FirstOrDefault(x => output.ScriptPubKey == x.P2wpkhScript);
-				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, anonset, pubKey: foundKey);
+				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, anonset, isLikelyCoinJoinOutput: false, pubKey: foundKey);
 
 				if (foundKey != null)
 				{
@@ -1534,12 +1564,12 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public IEnumerable<string> GetNonSpecialLabels()
+		public ISet<string> GetLabels()
 		{
-			return Coins.Where(x => !x.Label.StartsWith("ZeroLink", StringComparison.Ordinal))
-				.SelectMany(x => x.Label.Split(new string[] { Constants.ChangeOfSpecialLabelStart, Constants.ChangeOfSpecialLabelEnd, "(", "," }, StringSplitOptions.RemoveEmptyEntries))
+			return Coins
+				.SelectMany(x => x.Label.Split(',', StringSplitOptions.RemoveEmptyEntries))
 				.Select(x => x.Trim())
-				.Distinct();
+				.ToHashSet();
 		}
 
 		private int _refreshCoinHistoriesRerunRequested = 0;

@@ -659,9 +659,6 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			string changeLabel = "ZeroLink Change";
-			string activeLabel = "ZeroLink Mixed Coin";
-
 			var keysToSurelyRegister = ExposedLinks.Where(x => coinsToRegister.Contains(x.Key)).SelectMany(x => x.Value).Select(x => x.Key).ToArray();
 			var keysTryNotToRegister = ExposedLinks.SelectMany(x => x.Value).Select(x => x.Key).Except(keysToSurelyRegister).ToArray();
 
@@ -688,13 +685,11 @@ namespace WalletWasabi.Services
 
 			// Select the change and active keys to register and label them accordingly.
 			HdPubKey change = allLockedInternalKeys.First();
-			change.SetLabel(changeLabel);
 
 			var actives = new List<HdPubKey>();
 			foreach (HdPubKey active in allLockedInternalKeys.Skip(1).Take(maximumMixingLevelCount))
 			{
 				actives.Add(active);
-				active.SetLabel(activeLabel);
 			}
 
 			// Remember which links we are exposing.
@@ -1033,15 +1028,6 @@ namespace WalletWasabi.Services
 			State.RemoveCoinFromWaitingList(coinWaitingForMix);
 			coinWaitingForMix.CoinJoinInProgress = false;
 			coinWaitingForMix.Secret = null;
-			if (coinWaitingForMix.Label == "ZeroLink Change" && coinWaitingForMix.Unspent)
-			{
-				coinWaitingForMix.Label = "ZeroLink Dequeued Change";
-				var key = KeyManager.GetKeys(x => x.P2wpkhScript == coinWaitingForMix.ScriptPubKey).SingleOrDefault();
-				if (key != null)
-				{
-					key.SetLabel(coinWaitingForMix.Label, KeyManager);
-				}
-			}
 			CoinDequeued?.Invoke(this, coinWaitingForMix);
 			var correctReason = Guard.Correct(reason);
 			var reasonText = correctReason != "" ? $" Reason: {correctReason}" : "";

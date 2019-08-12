@@ -1091,7 +1091,7 @@ namespace WalletWasabi.Tests
 					allowUnconfirmed: true);
 
 				Assert.Single(res.InnerWalletOutputs);
-				Assert.Equal($"{Constants.ChangeOfSpecialLabelStart}my label{Constants.ChangeOfSpecialLabelEnd}", res.InnerWalletOutputs.Single().Label);
+				Assert.Equal("my label", res.InnerWalletOutputs.Single().Label);
 
 				amountToSend = wallet.Coins.Where(x => !x.Unavailable).Sum(x => x.Amount) / 3;
 				res = wallet.BuildTransaction(password, new[] {
@@ -1102,20 +1102,20 @@ namespace WalletWasabi.Tests
 
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Equal(2, res.OuterWalletOutputs.Count());
-				Assert.Equal($"{Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Constants.ChangeOfSpecialLabelEnd}", res.InnerWalletOutputs.Single().Label);
+				Assert.Equal("outgoing, outgoing2", res.InnerWalletOutputs.Single().Label);
 
 				await wallet.SendTransactionAsync(res.Transaction);
 
-				Assert.Contains($"{Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Constants.ChangeOfSpecialLabelEnd}", wallet.Coins.Where(x => x.Height == Height.Mempool).Select(x => x.Label));
-				Assert.Contains($"{Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Constants.ChangeOfSpecialLabelEnd}", keyManager.GetKeys().Select(x => x.Label));
+				Assert.Contains("outgoing, outgoing2", wallet.Coins.Where(x => x.Height == Height.Mempool).Select(x => x.Label));
+				Assert.Contains("outgoing, outgoing2", keyManager.GetKeys().Select(x => x.Label));
 
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
 				var bestHeight = new Height(bitcoinStore.HashChain.TipHeight);
-				Assert.Contains($"{Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Constants.ChangeOfSpecialLabelEnd}", wallet.Coins.Where(x => x.Height == bestHeight).Select(x => x.Label));
-				Assert.Contains($"{Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Constants.ChangeOfSpecialLabelEnd}", keyManager.GetKeys().Select(x => x.Label));
+				Assert.Contains("outgoing, outgoing2", wallet.Coins.Where(x => x.Height == bestHeight).Select(x => x.Label));
+				Assert.Contains("outgoing, outgoing2", keyManager.GetKeys().Select(x => x.Label));
 
 				#endregion Labeling
 
@@ -2024,7 +2024,7 @@ namespace WalletWasabi.Tests
 					// Test DelayedClientRoundRegistration logic.
 					ClientRoundRegistration first = null;
 					var second = new ClientRoundRegistration(aliceClient,
-						new[] { new SmartCoin(uint256.One, 1, Script.Empty, Money.Zero, new[] { new TxoRef(uint256.One, 1) }, Height.Unknown, true, 2) },
+						new[] { new SmartCoin(uint256.One, 1, Script.Empty, Money.Zero, new[] { new TxoRef(uint256.One, 1) }, Height.Unknown, true, 2, isLikelyCoinJoinOutput: false) },
 						BitcoinAddress.Create("12Rty3c8j3QiZSwLVaBtch6XUMZaja3RC7", Network.Main));
 					first = second;
 					second = null;
@@ -3099,7 +3099,7 @@ namespace WalletWasabi.Tests
 				var height = await rpc.GetBlockCountAsync();
 				var bechCoin = tx.Outputs.GetCoins(bech.ScriptPubKey).Single();
 
-				var smartCoin = new SmartCoin(bechCoin, tx.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height + 1, replaceable: false, anonymitySet: tx.GetAnonymitySet(bechCoin.Outpoint.N));
+				var smartCoin = new SmartCoin(bechCoin, tx.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height + 1, replaceable: false, anonymitySet: tx.GetAnonymitySet(bechCoin.Outpoint.N), isLikelyCoinJoinOutput: false);
 
 				var chaumianClient = new CcjClient(synchronizer, rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint), null);
 
@@ -3203,10 +3203,10 @@ namespace WalletWasabi.Tests
 			var bech3Coin = tx3.Outputs.GetCoins(bech3.ScriptPubKey).Single();
 			var bech4Coin = tx4.Outputs.GetCoins(bech4.ScriptPubKey).Single();
 
-			var smartCoin1 = new SmartCoin(bech1Coin, tx1.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, replaceable: false, anonymitySet: tx1.GetAnonymitySet(bech1Coin.Outpoint.N));
-			var smartCoin2 = new SmartCoin(bech2Coin, tx2.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, replaceable: false, anonymitySet: tx2.GetAnonymitySet(bech2Coin.Outpoint.N));
-			var smartCoin3 = new SmartCoin(bech3Coin, tx3.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, replaceable: false, anonymitySet: tx3.GetAnonymitySet(bech3Coin.Outpoint.N));
-			var smartCoin4 = new SmartCoin(bech4Coin, tx4.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, replaceable: false, anonymitySet: tx4.GetAnonymitySet(bech4Coin.Outpoint.N));
+			var smartCoin1 = new SmartCoin(bech1Coin, tx1.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, replaceable: false, anonymitySet: tx1.GetAnonymitySet(bech1Coin.Outpoint.N), isLikelyCoinJoinOutput: false);
+			var smartCoin2 = new SmartCoin(bech2Coin, tx2.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, replaceable: false, anonymitySet: tx2.GetAnonymitySet(bech2Coin.Outpoint.N), isLikelyCoinJoinOutput: false);
+			var smartCoin3 = new SmartCoin(bech3Coin, tx3.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, replaceable: false, anonymitySet: tx3.GetAnonymitySet(bech3Coin.Outpoint.N), isLikelyCoinJoinOutput: false);
+			var smartCoin4 = new SmartCoin(bech4Coin, tx4.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, replaceable: false, anonymitySet: tx4.GetAnonymitySet(bech4Coin.Outpoint.N), isLikelyCoinJoinOutput: false);
 
 			var chaumianClient1 = new CcjClient(synchronizer, rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint), null);
 			var chaumianClient2 = new CcjClient(synchronizer, rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint), null);
@@ -3229,7 +3229,7 @@ namespace WalletWasabi.Tests
 				Assert.True(smartCoin2.CoinJoinInProgress);
 
 				// Make sure it does not throw.
-				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 1, new Script(), Money.Parse("3"), new TxoRef[] { new TxoRef((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 0) }, Height.Mempool, replaceable: false, anonymitySet: 1), "");
+				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 1, new Script(), Money.Parse("3"), new TxoRef[] { new TxoRef((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 0) }, Height.Mempool, replaceable: false, anonymitySet: 1, isLikelyCoinJoinOutput: false), "");
 
 				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
 				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, "");
@@ -3438,7 +3438,7 @@ namespace WalletWasabi.Tests
 				}
 
 				var times = 0;
-				while (wallet.Coins.FirstOrDefault(x => x.Label == "ZeroLink Change" && x.Unspent) is null)
+				while (wallet.Coins.FirstOrDefault(x => x.Label == "" && x.Unspent) is null)
 				{
 					await Task.Delay(1000);
 					times++;
@@ -3447,18 +3447,15 @@ namespace WalletWasabi.Tests
 						throw new TimeoutException("Wallet spends were not recognized.");
 					}
 				}
-				SmartCoin[] unspentChanges = wallet.Coins.Where(x => x.Label == "ZeroLink Change" && x.Unspent).ToArray();
+				SmartCoin[] unspentChanges = wallet.Coins.Where(x => x.Label == "" && x.Unspent).ToArray();
 				await wallet.ChaumianClient.DequeueCoinsFromMixAsync(unspentChanges, "");
 
-				Assert.Equal(3, wallet.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unavailable));
-				Assert.Equal(3, wallet2.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unavailable));
-				Assert.Equal(0, wallet.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unspent));
-				Assert.Equal(0, wallet2.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unspent));
-				Assert.Equal(2, wallet.Coins.Count(x => x.Label == "ZeroLink Change" && !x.Unspent));
-				Assert.Equal(0, wallet2.Coins.Count(x => x.Label == "ZeroLink Change"));
-				Assert.Equal(0, wallet.Coins.Count(x => x.Label == "ZeroLink Change" && x.Unspent));
-				Assert.Equal(0, wallet.Coins.Count(x => x.Label == "ZeroLink Dequeued Change" && !x.Unspent));
-				Assert.Equal(1, wallet.Coins.Count(x => x.Label == "ZeroLink Dequeued Change" && !x.Unavailable));
+				Assert.Equal(4, wallet.Coins.Count(x => x.Label == "" && !x.Unavailable));
+				Assert.Equal(3, wallet2.Coins.Count(x => x.Label == "" && !x.Unavailable));
+				Assert.Equal(2, wallet.Coins.Count(x => x.Label == "" && !x.Unspent));
+				Assert.Equal(0, wallet2.Coins.Count(x => x.Label == "" && !x.Unspent));
+				Assert.Equal(3, wallet2.Coins.Count(x => x.Label == ""));
+				Assert.Equal(4, wallet.Coins.Count(x => x.Label == "" && x.Unspent));
 			}
 			finally
 			{
