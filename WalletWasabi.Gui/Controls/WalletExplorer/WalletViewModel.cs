@@ -105,7 +105,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(_ => SetBalance(Name))
 				.DisposeWith(Disposables);
 
-
 			IsExpanded = true;
 		}
 
