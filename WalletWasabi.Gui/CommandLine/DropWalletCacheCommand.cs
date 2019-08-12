@@ -69,6 +69,7 @@ namespace WalletWasabi.Gui.CommandLine
 					{
 						string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 						WalletService.DropWalletCache(WalletName, dataDir, Network);
+						km.AssertNetworkOrClearBlockState(null);
 						Logging.Logger.LogInfo("Wallet cache successfully dropped!");
 					}
 				}
