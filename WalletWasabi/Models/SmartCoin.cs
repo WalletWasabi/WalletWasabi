@@ -289,7 +289,7 @@ namespace WalletWasabi.Models
 			Unspent = SpenderTransactionId is null;
 		}
 
-		private void SetIsBanned()
+		public void SetIsBanned()
 		{
 			IsBanned = BannedUntilUtc != null && BannedUntilUtc > DateTimeOffset.UtcNow;
 		}

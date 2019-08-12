@@ -654,16 +654,16 @@ namespace WalletWasabi.Services
 					walletRelevant = true;
 
 					foundKey.SetKeyState(KeyState.Used, KeyManager);
+					if (output.Value <= ServiceConfiguration.DustThreshold)
+					{
+						continue;
+					}
+
 					spentOwnCoins = spentOwnCoins ?? Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
 					var anonset = tx.Transaction.GetAnonymitySet(i);
 					if (spentOwnCoins.Count != 0)
 					{
 						anonset += spentOwnCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because do not count own.
-					}
-
-					if (output.Value <= ServiceConfiguration.DustThreshold)
-					{
-						continue;
 					}
 
 					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, isLikelyCoinJoinOutput, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
@@ -1041,7 +1041,8 @@ namespace WalletWasabi.Services
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
 		/// <param name="allowedInputs">Only these inputs allowed to be used to build the transaction. The wallet must know the corresponding private keys.</param>
 		/// <param name="subtractFeeFromAmountIndex">If null, fee is substracted from the change. Otherwise it denotes the index in the toSend array.</param>
-		/// <param name="feeTarget">The target number of blocks to estimate the fee.</param>
+		/// <param name="feeTarget">The target number of blocks to estimate the fee. Null if feeRate is being used instead.</param>
+		/// <param name="feeRate">The fee rate for the transaction. Null if feeTarget is being used instead.</param>
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <exception cref="ArgumentOutOfRangeException"></exception>

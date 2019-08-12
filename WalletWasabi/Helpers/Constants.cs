@@ -68,9 +68,13 @@ namespace WalletWasabi.Helpers
 			{
 				return TestNetCoordinatorAddress;
 			}
-			else // else regtest
+			else if (network == Network.RegTest)
 			{
 				return RegTestCoordinatorAddress;
+			}
+			else
+			{
+				throw new NotSupportedException($"{nameof(network)} not supported: {network}.");
 			}
 		}
 
