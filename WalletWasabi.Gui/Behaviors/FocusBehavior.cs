@@ -7,11 +7,11 @@ using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-	internal class FocusBehavior : Behavior<Control>
+	public class FocusBehavior : Behavior<Control>
 	{
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 
-		private static readonly AvaloniaProperty<bool> IsFocusedProperty =
+		public static readonly AvaloniaProperty<bool> IsFocusedProperty =
 			AvaloniaProperty.Register<FocusBehavior, bool>(nameof(IsFocused), defaultBindingMode: BindingMode.TwoWay);
 
 		public bool IsFocused

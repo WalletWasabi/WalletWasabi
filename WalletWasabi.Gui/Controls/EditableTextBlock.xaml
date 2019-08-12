@@ -1,4 +1,5 @@
-﻿<Styles xmlns="https://github.com/avaloniaui"
+﻿<Styles xmlns="https://github.com/avaloniaui" 
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:cont="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
   <Style Selector="cont|EditableTextBlock">
     <Setter Property="BorderThickness" Value="0" />

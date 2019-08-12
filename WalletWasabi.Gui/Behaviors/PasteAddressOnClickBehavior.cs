@@ -16,7 +16,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-	internal class PasteAddressOnClickBehavior : CommandBasedBehavior<TextBox>
+	public class PasteAddressOnClickBehavior : CommandBasedBehavior<TextBox>
 	{
 		private CompositeDisposable Disposables { get; set; }
 		private Global Global { get; }
