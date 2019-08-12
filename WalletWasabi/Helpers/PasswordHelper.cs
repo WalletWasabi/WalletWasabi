@@ -4,15 +4,16 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace WalletWasabi.Gui.Helpers
+namespace WalletWasabi.Helpers
 {
 	public static class PasswordHelper
 	{
-		public static string[] GetPossibleCompatiblityPasswords(string text)
+		public static string[] GetPossiblePasswords(string originalPassword)
 		{
 			List<string> possiblePasswords = new List<string>()
 			{
-				StringCutIssue(text)
+				originalPassword,
+				StringCutIssue(originalPassword)
 			};
 
 			return possiblePasswords.ToArray();

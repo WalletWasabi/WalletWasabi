@@ -76,6 +76,8 @@ namespace WalletWasabi.KeyManagement
 
 		public const int AbsoluteMinGapLimit = 21;
 
+		public bool IsCompatibilityPasswordUsed { get; private set; }
+
 		[JsonConstructor]
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, bool? passwordVerified, int? minGapLimit, BlockchainState blockchainState, string filePath = null, KeyPath accountKeyPath = null)
 		{
@@ -552,6 +554,7 @@ namespace WalletWasabi.KeyManagement
 
 		public ExtKey GetMasterExtKey(string password)
 		{
+			IsCompatibilityPasswordUsed = false;
 			if (password is null)
 			{
 				password = "";
@@ -562,23 +565,33 @@ namespace WalletWasabi.KeyManagement
 				throw new SecurityException("This is a watchonly wallet.");
 			}
 
-			try
-			{
-				Key secret = EncryptedSecret.GetKey(password);
-				var extKey = new ExtKey(secret, ChainCode);
+			Exception resultException = null;
 
-				// Backwards compatibility:
-				if (MasterFingerprint is null)
+			foreach (var pw in PasswordHelper.GetPossiblePasswords(password))
+			{
+				try
 				{
-					MasterFingerprint = secret.PubKey.GetHDFingerPrint();
-				}
+					Key secret = EncryptedSecret.GetKey(pw);
 
-				return extKey;
+					var extKey = new ExtKey(secret, ChainCode);
+
+					// Backwards compatibility:
+					if (MasterFingerprint is null)
+					{
+						MasterFingerprint = secret.PubKey.GetHDFingerPrint();
+					}
+
+					return extKey;
+				}
+				catch (SecurityException ex)
+				{
+					resultException = ex;
+				}
+				IsCompatibilityPasswordUsed = true; // The first iteration will try the original password if we get here it was failed.
+				Logger.LogError<KeyManager>($"Compatibility password used! Please consider to generate a new wallet to ensure recovery of the wallet!");
 			}
-			catch (SecurityException ex)
-			{
-				throw new SecurityException("Invalid password.", ex);
-			}
+
+			throw new SecurityException("Invalid password.", resultException);
 		}
 
 		public bool TestPassword(string password)
