@@ -812,6 +812,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				ResetUi();
 
 				SetSuccessMessage(successMessage);
+
+				if (KeyManager.IsCompatibilityPasswordUsed)
+				{
+					WarningMessage = Constants.CompatibilityPasswordWarnMessage;
+				}
 			}
 			catch (Exception ex)
 			{

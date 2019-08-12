@@ -95,5 +95,7 @@ namespace WalletWasabi.Helpers
 		public const int DefaultRegTestBitcoinCoreRpcPort = 18443;
 
 		public const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+		public const string CompatibilityPasswordWarnMessage = "Compatibility password used! Please consider generating a new wallet to ensure recoverability!";
 	}
 }

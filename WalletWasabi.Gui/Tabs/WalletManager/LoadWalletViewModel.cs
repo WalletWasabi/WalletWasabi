@@ -601,7 +601,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					if (keyManager.TestPassword(password))
 					{
-						SetSuccessMessage("Correct password.");
+						SuccessMessage = "Correct password.";
+						if (keyManager.IsCompatibilityPasswordUsed)
+						{
+							WarningMessage = Constants.CompatibilityPasswordWarnMessage;
+							ValidationMessage = "";
+						}
+
 						keyManager.SetPasswordVerified();
 					}
 					else

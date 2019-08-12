@@ -583,7 +583,7 @@ namespace WalletWasabi.KeyManagement
 
 					if (IsCompatibilityPasswordUsed)
 					{
-						Logger.LogError<KeyManager>($"Compatibility password used! Please consider to generate a new wallet to ensure recovery of the wallet!");
+						Logger.LogError<KeyManager>(Constants.CompatibilityPasswordWarnMessage);
 					}
 					return extKey;
 				}
