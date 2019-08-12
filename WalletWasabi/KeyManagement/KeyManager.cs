@@ -581,14 +581,21 @@ namespace WalletWasabi.KeyManagement
 						MasterFingerprint = secret.PubKey.GetHDFingerPrint();
 					}
 
+					if (IsCompatibilityPasswordUsed)
+					{
+						Logger.LogError<KeyManager>($"Compatibility password used! Please consider to generate a new wallet to ensure recovery of the wallet!");
+					}
 					return extKey;
 				}
 				catch (SecurityException ex)
 				{
 					resultException = ex;
 				}
-				IsCompatibilityPasswordUsed = true; // The first iteration will try the original password if we get here it was failed.
-				Logger.LogError<KeyManager>($"Compatibility password used! Please consider to generate a new wallet to ensure recovery of the wallet!");
+
+				if (!IsCompatibilityPasswordUsed)
+				{
+					IsCompatibilityPasswordUsed = true; // The first iteration will try the original password if we get here it was failed.
+				}
 			}
 
 			throw new SecurityException("Invalid password.", resultException);
