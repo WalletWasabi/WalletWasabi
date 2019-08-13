@@ -4,7 +4,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:dialogs="clr-namespace:WalletWasabi.Gui.ManagedDialogs"
              xmlns:internal="clr-namespace:WalletWasabi.Gui.ManagedDialogs"
-             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui">
+             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
+             x:Class="WalletWasabi.Gui.ManagedDialogs.ManagedFileChooser">
   <UserControl.Resources>
     <converters:FileSizeStringConverter x:Key="FileSizeConverter" />
     <DrawingGroup x:Key="LevelUp">
