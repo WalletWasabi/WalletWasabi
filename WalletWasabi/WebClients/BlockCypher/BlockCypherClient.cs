@@ -34,7 +34,7 @@ namespace WalletWasabi.WebClients.BlockCypher
 			}
 			else
 			{
-				throw new NotSupportedException($"{network} is not supported");
+				throw new NotSupportedException($"{nameof(Network)} not supported: {network}.");
 			}
 		}
 

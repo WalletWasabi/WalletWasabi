@@ -7,7 +7,7 @@ namespace WalletWasabi.JsonConverters
 	/// <summary>
 	/// Converter used to convert <see cref="Network"/> to and from JSON.
 	/// </summary>
-	/// <seealso cref="Newtonsoft.Json.JsonConverter" />
+	/// <seealso cref="JsonConverter" />
 	public class NetworkJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />

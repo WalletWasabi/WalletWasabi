@@ -1,4 +1,6 @@
-﻿<Styles  xmlns="https://github.com/avaloniaui" xmlns:cont="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+﻿<Styles xmlns="https://github.com/avaloniaui" 
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:cont="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
   <Style Selector="cont|EditableTextBlock">
     <Setter Property="BorderThickness" Value="0" />
     <Setter Property="Padding" Value="0" />
@@ -6,16 +8,18 @@
     <Setter Property="Template">
       <ControlTemplate>
         <Grid>
-          <TextBlock Text="{TemplateBinding Text}" IsVisible="{TemplateBinding ReadMode}"  VerticalAlignment="Center" Name="PART_TextBlock" Margin="1 0 0 0" />
-          <TextBox Text="{TemplateBinding EditText, Mode=TwoWay}"
-                   IsVisible="{TemplateBinding InEditMode}"
-                   Name="PART_TextBox"
-                   Background="{DynamicResource ThemeControlBackgroundBrush}"
-                   Foreground="{TemplateBinding Foreground}"
-                   VerticalAlignment="Center"
-                   BorderThickness="{TemplateBinding BorderThickness}"
-                   Padding="1 0 4 0"
-                   ScrollViewer.VerticalScrollBarVisibility="Hidden" ScrollViewer.HorizontalScrollBarVisibility="Hidden" />
+          <TextBlock Text="{TemplateBinding Text}" IsVisible="{TemplateBinding ReadMode}" VerticalAlignment="Center" Name="PART_TextBlock" Margin="1 0 0 0" />
+          <TextBox
+            Text="{TemplateBinding EditText, Mode=TwoWay}"
+            IsVisible="{TemplateBinding InEditMode}"
+            Name="PART_TextBox"
+            Background="{DynamicResource ThemeControlBackgroundBrush}"
+            Foreground="{TemplateBinding Foreground}"
+            VerticalAlignment="Center"
+            BorderThickness="{TemplateBinding BorderThickness}"
+            Padding="1 0 4 0"
+            ScrollViewer.VerticalScrollBarVisibility="Hidden"
+            ScrollViewer.HorizontalScrollBarVisibility="Hidden" />
         </Grid>
       </ControlTemplate>
     </Setter>

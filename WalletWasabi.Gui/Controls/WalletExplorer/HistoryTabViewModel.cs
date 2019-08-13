@@ -60,12 +60,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnOpen();
 
-			if (Disposables != null)
-			{
-				throw new Exception("History Tab was opened before it was closed.");
-			}
-
-			Disposables = new CompositeDisposable();
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
 				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed)))
@@ -125,7 +120,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError<HistoryTabViewModel>($"Error while RewriteTable on HistoryTab:  {ex}.");
+				Logger.LogError<HistoryTabViewModel>($"Error while RewriteTable on HistoryTab: {ex}.");
 			}
 			finally
 			{
@@ -171,6 +166,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					dateTime = foundTransaction.FirstSeenIfMempoolTime ?? DateTimeOffset.UtcNow;
 				}
+
 				if (found != default) // if found
 				{
 					txRecordList.Remove(found);
@@ -186,6 +182,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				if (coin.SpenderTransactionId != null)
 				{
 					SmartTransaction foundSpenderTransaction = walletService.TransactionCache.First(x => x.GetHash() == coin.SpenderTransactionId);
+
 					if (foundSpenderTransaction.Height.Type == HeightType.Chain)
 					{
 						if (walletService.ProcessedBlocks != null) // NullReferenceException appeared here.

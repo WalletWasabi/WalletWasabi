@@ -166,7 +166,7 @@ namespace System.Net.Http
 				// If a Transfer - Encoding header field is present in a response and
 				// the chunked transfer coding is not the final encoding, the
 				// message body length is determined by reading the connection until
-				// it is closed by the server.  If a Transfer - Encoding header field
+				// it is closed by the server. If a Transfer - Encoding header field
 				// is present in a request and the chunked transfer coding is not
 				// the final encoding, the message body length cannot be determined
 				// reliably; the server MUST respond with the 400(Bad Request)
@@ -189,7 +189,7 @@ namespace System.Net.Http
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
 			// 6.If this is a request message and none of the above are true, then
 			// the message body length is zero (no message body is present).
-			// 7.  Otherwise, this is a response message without a declared message
+			// 7. Otherwise, this is a response message without a declared message
 			// body length, so the message body length is determined by the
 			// number of octets received prior to the server closing the
 			// connection.
@@ -244,7 +244,7 @@ namespace System.Net.Http
 				// If a Transfer - Encoding header field is present in a response and
 				// the chunked transfer coding is not the final encoding, the
 				// message body length is determined by reading the connection until
-				// it is closed by the server.  If a Transfer - Encoding header field
+				// it is closed by the server. If a Transfer - Encoding header field
 				// is present in a request and the chunked transfer coding is not
 				// the final encoding, the message body length cannot be determined
 				// reliably; the server MUST respond with the 400(Bad Request)
@@ -268,7 +268,7 @@ namespace System.Net.Http
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
 			// 6.If this is a request message and none of the above are true, then
 			// the message body length is zero (no message body is present).
-			// 7.  Otherwise, this is a response message without a declared message
+			// 7. Otherwise, this is a response message without a declared message
 			// body length, so the message body length is determined by the
 			// number of octets received prior to the server closing the
 			// connection.
@@ -525,7 +525,7 @@ namespace System.Net.Http
 			{
 				if (contentHeaders.ContentLength < 0)
 				{
-					throw new HttpRequestException("Content-Length MUST be larger than zero.");
+					throw new HttpRequestException("Content-Length MUST be greater than or equal to zero.");
 				}
 			}
 		}

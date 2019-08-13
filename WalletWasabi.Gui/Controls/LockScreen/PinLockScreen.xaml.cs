@@ -13,8 +13,8 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 	{
 		public static readonly DirectProperty<PinLockScreen, bool> IsLockedProperty =
 			AvaloniaProperty.RegisterDirect<PinLockScreen, bool>(nameof(IsLocked),
-															  o => o.IsLocked,
-															  (o, v) => o.IsLocked = v);
+																 o => o.IsLocked,
+																 (o, v) => o.IsLocked = v);
 
 		private bool _isLocked;
 
@@ -36,6 +36,11 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				.Subscribe(x => inputField.Focus());
 		}
 
+		private void InitializeComponent()
+		{
+			AvaloniaXamlLoader.Load(this);
+		}
+
 		protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 		{
 			base.OnAttachedToVisualTree(e);
@@ -51,11 +56,6 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 					var inputField = this.FindControl<NoparaPasswordBox>("InputField");
 					inputField.Focus();
 				});
-		}
-
-		private void InitializeComponent()
-		{
-			AvaloniaXamlLoader.Load(this);
 		}
 	}
 }

@@ -1,5 +1,7 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+﻿<UserControl xmlns="https://github.com/avaloniaui" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+             x:Class="WalletWasabi.Gui.Tabs.WalletManager.GenerateWalletSuccessView">
   <StackPanel Margin="20" Spacing="10">
     <TextBlock Text="Write down these Recovery Words!" FontWeight="Bold" />
     <Border Padding="2" Background="White" HorizontalAlignment="Stretch" Opacity="0.8">

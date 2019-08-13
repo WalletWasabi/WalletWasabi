@@ -540,7 +540,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			if (request.Level > round.MixingLevels.GetMaxLevel())
 			{
-				return BadRequest($"Invalid mixing Level is provided. Provided: {request.Level}. Maximum: {round.MixingLevels.GetMaxLevel()}.");
+				return BadRequest($"Invalid mixing level is provided. Provided: {request.Level}. Maximum: {round.MixingLevels.GetMaxLevel()}.");
 			}
 
 			if (round.ContainsRegisteredUnblindedSignature(request.UnblindedSignature))
@@ -695,7 +695,7 @@ namespace WalletWasabi.Backend.Controllers
 								// Check duplicates.
 								if (round.SignedCoinJoin.Inputs[index].HasWitScript())
 								{
-									return BadRequest($"Input is already signed.");
+									return BadRequest("Input is already signed.");
 								}
 
 								// Verify witness.
@@ -710,7 +710,7 @@ namespace WalletWasabi.Backend.Controllers
 								// 5. Verify if currentIndexedInput is correctly signed, if not, return the specific error.
 								if (!currentIndexedInput.VerifyScript(registeredCoin, out ScriptError error))
 								{
-									return BadRequest($"Invalid witness is provided. ScriptError: {error}.");
+									return BadRequest($"Invalid witness is provided. {nameof(ScriptError)}: {error}.");
 								}
 
 								// Finally add it to our CJ.
@@ -737,7 +737,7 @@ namespace WalletWasabi.Backend.Controllers
 			returnFailureResponse = null;
 			if (string.IsNullOrWhiteSpace(uniqueId) || !ModelState.IsValid)
 			{
-				returnFailureResponse = BadRequest("Invalid uniqueId provided.");
+				returnFailureResponse = BadRequest($"Invalid {nameof(uniqueId)} provided.");
 			}
 
 			Guid aliceGuid = Guid.Empty;
@@ -748,12 +748,12 @@ namespace WalletWasabi.Backend.Controllers
 			catch (Exception ex)
 			{
 				Logger.LogDebug<ChaumianCoinJoinController>(ex);
-				returnFailureResponse = BadRequest("Invalid uniqueId provided.");
+				returnFailureResponse = BadRequest($"Invalid {nameof(uniqueId)} provided.");
 			}
 			if (aliceGuid == Guid.Empty) // Probably not possible
 			{
-				Logger.LogDebug<ChaumianCoinJoinController>($"Empty uniqueId GID provided in {nameof(GetCoinJoin)} function.");
-				returnFailureResponse = BadRequest("Invalid uniqueId provided.");
+				Logger.LogDebug<ChaumianCoinJoinController>($"Empty {nameof(uniqueId)} GID provided in {nameof(GetCoinJoin)} function.");
+				returnFailureResponse = BadRequest($"Invalid {nameof(uniqueId)} provided.");
 			}
 
 			return aliceGuid;

@@ -23,7 +23,7 @@ namespace WalletWasabi.WebClients.SmartBit
 
 			var exchangeRates = new List<ExchangeRate>
 			{
-				new ExchangeRate { Rate = rate.Rate, Ticker = "USD" },
+				new ExchangeRate { Rate = rate.Rate, Ticker = "USD" }
 			};
 
 			return exchangeRates;

@@ -1,6 +1,6 @@
 # API Specification
 
-**ATTENTION:** This document describes the initial specification. The actual implementation may significantly differ. You can find up to date documentation here:  
+**ATTENTION:** This document describes the initial specification. The actual implementation may significantly differ. You can find up to date documentation here:
 - TestNet: http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/swagger
 - Main: http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/swagger
 
@@ -13,7 +13,7 @@
   Requests and Responses are JSON.
   Requests have the following format: `/api/v3/{coin}/{controller}/`.
   Currently supported coins: `btc`.
-  
+
   For example requesting exchange rate: `GET /api/v3/btc/offchain/exchange-rates`.
 
 ### Controller: Blockchain, Coin: BTC

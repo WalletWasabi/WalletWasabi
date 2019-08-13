@@ -16,7 +16,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-	internal class PasteAddressOnClickBehavior : CommandBasedBehavior<TextBox>
+	public class PasteAddressOnClickBehavior : CommandBasedBehavior<TextBox>
 	{
 		private CompositeDisposable Disposables { get; set; }
 		private Global Global { get; }
@@ -116,7 +116,7 @@ namespace WalletWasabi.Gui.Behaviors
 			Disposables.Add(
 				AssociatedObject.GetObservable(InputElement.PointerReleasedEvent).Subscribe(async pointer =>
 				{
-					if (Global.UiConfig.Autocopy is null || Global.UiConfig.Autocopy is false)
+					if (Global.UiConfig.Autocopy is false)
 					{
 						return;
 					}
@@ -163,15 +163,9 @@ namespace WalletWasabi.Gui.Behaviors
 					if (string.IsNullOrEmpty(AssociatedObject.Text))
 					{
 						string text = await Application.Current.Clipboard.GetTextAsync();
-
-						if (AddressStringParser.TryParse(text, Global.Network, out _))
-						{
-							MyTextBoxState = TextBoxState.AddressInsert;
-						}
-						else
-						{
-							MyTextBoxState = TextBoxState.NormalTextBoxOperation;
-						}
+						MyTextBoxState = AddressStringParser.TryParse(text, Global.Network, out _)
+							? TextBoxState.AddressInsert
+							: TextBoxState.NormalTextBoxOperation;
 					}
 					else
 					{

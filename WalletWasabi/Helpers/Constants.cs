@@ -64,18 +64,20 @@ namespace WalletWasabi.Helpers
 			{
 				return MainNetCoordinatorAddress;
 			}
-
-			if (network == Network.TestNet)
+			else if (network == Network.TestNet)
 			{
 				return TestNetCoordinatorAddress;
 			}
-
-			// else regtest
-			return RegTestCoordinatorAddress;
+			else if (network == Network.RegTest)
+			{
+				return RegTestCoordinatorAddress;
+			}
+			else
+			{
+				throw new NotSupportedException($"{nameof(network)} not supported: {network}.");
+			}
 		}
 
-		public const string ChangeOfSpecialLabelStart = "change of (";
-		public const string ChangeOfSpecialLabelEnd = ")";
 		public const int BigFileReadWriteBufferSize = 1 * 1024 * 1024;
 
 		public const int OneDayConfirmationTarget = 144;

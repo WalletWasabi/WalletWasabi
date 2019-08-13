@@ -1,7 +1,11 @@
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui" Design.Width="800" Design.Height="400">
+<UserControl xmlns="https://github.com/avaloniaui" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+             x:Class="WalletWasabi.Gui.Dialogs.CannotCloseDialogView"
+             Design.Width="800" Design.Height="400">
   <controls:GroupBox Title="Closing Wasabi..." Background="{DynamicResource ThemeControlBackgroundBrush}" TextBlock.FontSize="30" BorderThickness="0" Margin="0 80 0 0">
     <DockPanel LastChildFill="True">
-      <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" TextBlock.FontSize="16"  Orientation="Horizontal" Margin="10" Spacing="10">
+      <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" TextBlock.FontSize="16" Orientation="Horizontal" Margin="10" Spacing="10">
         <Button Width="100" Content="Ok" Command="{Binding OKCommand}" IsVisible="{Binding !IsBusy}" />
         <Button Width="100" Content="Cancel" Command="{Binding CancelCommand}" IsVisible="{Binding IsBusy}" />
       </StackPanel>
@@ -11,7 +15,7 @@
           <RowDefinition />
         </Grid.RowDefinitions>
         <Panel Grid.Row="0" Margin="10">
-          <TextBlock FontSize="15"  Text="You have coins registered for CoinJoin. Wasabi is dequeing them. If a coin is currently being coinjoined Wasabi will wait for the mix to finish, so you do not disrupt the mixing round. This could take a few minutes, please be patient." TextWrapping="Wrap" />
+          <TextBlock FontSize="15" Text="You have coins registered for CoinJoin. Wasabi is dequeing them. If a coin is currently being coinjoined Wasabi will wait for the mix to finish, so you do not disrupt the mixing round. This could take a few minutes, please be patient." TextWrapping="Wrap" />
         </Panel>
         <StackPanel Grid.Row="1" Orientation="Vertical" Margin="10">
           <StackPanel Orientation="Horizontal" Margin="10" IsVisible="{Binding IsBusy}">

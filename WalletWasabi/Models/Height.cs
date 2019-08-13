@@ -28,16 +28,16 @@ namespace WalletWasabi.Models
 		/// Creates and initializes a new Height instance
 		/// </summary>
 		/// <param name="height">The height value to initialize the instance.
-		/// If height value is (Int32.MaxValue -1) then the Height type is setted to Mempool.
-		/// If height value is (Int32.MaxValue) then the Height tpe is setted to Unknown;
-		/// Otherwise the Height type is setted as Chain.
+		/// If height value is (Int32.MaxValue -1) then the Height type is set to Mempool.
+		/// If height value is (Int32.MaxValue) then the Height tpe is set to Unknown;
+		/// Otherwise the Height type is set as Chain.
 		/// </param>
 		/// <exception href="ArgumentException">When height value is less than zero.</exception>
 		public Height(int height)
 		{
 			if (height < 0)
 			{
-				throw new ArgumentException($"{nameof(height)} : {height} cannot be < 0");
+				throw new ArgumentException($"{nameof(height)} : {height} cannot be less than zero");
 			}
 
 			if (height == Unknown.Value)
@@ -111,7 +111,7 @@ namespace WalletWasabi.Models
 
 			Type = type;
 
-			Value = (Type == HeightType.Mempool)
+			Value = Type == HeightType.Mempool
 				? int.MaxValue - 1
 				: int.MaxValue;
 		}
@@ -265,7 +265,7 @@ namespace WalletWasabi.Models
 		/// <summary>
 		/// Performs a comparison and return if left-side value is greater than right-side value.
 		/// </summary>
-		/// <param name="x">The left-hand Height  value to compare.</param>
+		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Int32 value to compare.</param>
 		/// <returns>true if left-hand value is greater than right-side value; otherwise false.</returns>
 		public static bool operator >(Height x, int y) => x.Value > y;

@@ -132,15 +132,9 @@ namespace WalletWasabi.TorSocks5
 
 			Guard.NotNull(nameof(identity), identity);
 
-			MethodsField methods;
-			if (string.IsNullOrWhiteSpace(identity))
-			{
-				methods = new MethodsField(MethodField.NoAuthenticationRequired);
-			}
-			else
-			{
-				methods = new MethodsField(MethodField.UsernamePassword);
-			}
+			MethodsField methods = string.IsNullOrWhiteSpace(identity)
+				? new MethodsField(MethodField.NoAuthenticationRequired)
+				: new MethodsField(MethodField.UsernamePassword);
 
 			var sendBuffer = new VersionMethodRequest(methods).ToBytes();
 
@@ -150,7 +144,7 @@ namespace WalletWasabi.TorSocks5
 			methodSelection.FromBytes(receiveBuffer);
 			if (methodSelection.Ver != VerField.Socks5)
 			{
-				throw new NotSupportedException($"SOCKS{methodSelection.Ver.Value} is not supported. Only SOCKS5 is supported.");
+				throw new NotSupportedException($"SOCKS{methodSelection.Ver.Value} not supported. Only SOCKS5 is supported.");
 			}
 			if (methodSelection.Method == MethodField.NoAcceptableMethods)
 			{
@@ -165,7 +159,7 @@ namespace WalletWasabi.TorSocks5
 				// https://tools.ietf.org/html/rfc1929#section-2
 				// Once the SOCKS V5 server has started, and the client has selected the
 				// Username / Password Authentication protocol, the Username / Password
-				// subnegotiation begins.  This begins with the client producing a
+				// subnegotiation begins. This begins with the client producing a
 				// Username / Password request:
 				var username = identity;
 				var password = identity;
@@ -181,7 +175,7 @@ namespace WalletWasabi.TorSocks5
 				userNamePasswordResponse.FromBytes(receiveBuffer);
 				if (userNamePasswordResponse.Ver != usernamePasswordRequest.Ver)
 				{
-					throw new NotSupportedException($"Authentication version {userNamePasswordResponse.Ver.Value} is not supported. Only version {usernamePasswordRequest.Ver} is supported.");
+					throw new NotSupportedException($"Authentication version {userNamePasswordResponse.Ver.Value} not supported. Only version {usernamePasswordRequest.Ver} is supported.");
 				}
 
 				if (!userNamePasswordResponse.Status.IsSuccess()) // Tor authentication is different, this will never happen;
@@ -213,14 +207,7 @@ namespace WalletWasabi.TorSocks5
 				using (await AsyncLock.LockAsync())
 				{
 					TcpClient?.Dispose();
-					if (IPAddress.TryParse(host, out IPAddress ip))
-					{
-						TcpClient = new TcpClient(ip.AddressFamily);
-					}
-					else
-					{
-						TcpClient = new TcpClient();
-					}
+					TcpClient = IPAddress.TryParse(host, out IPAddress ip) ? new TcpClient(ip.AddressFamily) : new TcpClient();
 					await TcpClient.ConnectAsync(host, port);
 					Stream = TcpClient.GetStream();
 					RemoteEndPoint = TcpClient.Client.RemoteEndPoint;
@@ -261,7 +248,7 @@ namespace WalletWasabi.TorSocks5
 
 			// If the reply code(REP value of X'00') indicates a success, and the
 			// request was either a BIND or a CONNECT, the client may now start
-			// passing data.  If the selected authentication method supports
+			// passing data. If the selected authentication method supports
 			// encapsulation for the purposes of integrity, authentication and / or
 			// confidentiality, the data are encapsulated using the method-dependent
 			// encapsulation.Similarly, when data arrives at the SOCKS server for
@@ -303,8 +290,8 @@ namespace WalletWasabi.TorSocks5
 			// ex.Message must be checked, because I'm having difficulty catching SocketExceptionFactory+ExtendedSocketException
 			// Only works on English Os-es.
 			catch (Exception ex) when (ex.Message.StartsWith(
-										   "No connection could be made because the target machine actively refused it") // Windows
-									   || ex.Message.StartsWith("Connection refused")) // Linux && OSX
+				"No connection could be made because the target machine actively refused it") // Windows
+				|| ex.Message.StartsWith("Connection refused")) // Linux && OSX
 			{
 				error = ex;
 			}
@@ -359,15 +346,9 @@ namespace WalletWasabi.TorSocks5
 					// If receiveBufferSize is null, zero or negative or bigger than TcpClient.ReceiveBufferSize
 					// then work with TcpClient.ReceiveBufferSize
 					var tcpReceiveBuffSize = TcpClient.ReceiveBufferSize;
-					var actualReceiveBufferSize = 0;
-					if (receiveBufferSize is null || receiveBufferSize <= 0 || receiveBufferSize > tcpReceiveBuffSize)
-					{
-						actualReceiveBufferSize = tcpReceiveBuffSize;
-					}
-					else
-					{
-						actualReceiveBufferSize = (int)receiveBufferSize;
-					}
+					var actualReceiveBufferSize = receiveBufferSize is null || receiveBufferSize <= 0 || receiveBufferSize > tcpReceiveBuffSize
+						? tcpReceiveBuffSize
+						: (int)receiveBufferSize;
 
 					// Receive the response
 					var receiveBuffer = new byte[actualReceiveBufferSize];

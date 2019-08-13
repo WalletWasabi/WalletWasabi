@@ -3,7 +3,7 @@
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
-             Height="25">
+             x:Class="WalletWasabi.Gui.Controls.StatusBar" Height="25">
   <UserControl.Resources>
     <converters:FilterLeftStatusConverter x:Key="FilterLeftStatusConverter" />
     <converters:StatusColorConverter x:Key="StatusColorConverter" />
@@ -13,18 +13,15 @@
     <converters:PascalToPhraseConverter x:Key="PascalToPhraseConverter" />
     <converters:StatusBarStatusStringConverter x:Key="StatusBarStatusStringConverter" />
   </UserControl.Resources>
-
   <Grid Cursor="{Binding UpdateAvailable, Converter={StaticResource ShowCursorConverter}}" Background="{Binding UpdateStatus, Converter={StaticResource UpdateStatusBrushConverter}}">
     <i:Interaction.Behaviors>
       <behaviors:CommandOnClickBehavior Command="{Binding UpdateCommand}" />
     </i:Interaction.Behaviors>
     <DockPanel LastChildFill="True" Margin="10 0" VerticalAlignment="Center">
       <StackPanel Orientation="Horizontal" Spacing="20" DockPanel.Dock="Right">
-
         <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding !CriticalUpdateAvailable}">
           <TextBlock Text="{Binding ShowNetwork}" />
         </StackPanel>
-
         <Panel IsVisible="{Binding DownloadingBlock}">
           <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding !CriticalUpdateAvailable}">
             <Grid Height="10" Width="10">
@@ -33,7 +30,6 @@
             <TextBlock Text="Downloading a block..." Foreground="{Binding DownloadingBlock, ConverterParameter=DownloadingBlock, Converter={StaticResource StatusColorConverter}}" />
           </StackPanel>
         </Panel>
-
         <Panel IsVisible="{Binding FiltersLeft, Converter={StaticResource ShouldDisplayValueConverter}}">
           <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding !CriticalUpdateAvailable}">
             <Grid Height="10" Width="10">
@@ -42,34 +38,29 @@
             <TextBlock Text="{Binding FiltersLeft, Converter={StaticResource FilterLeftStatusConverter}}" Foreground="{Binding FiltersLeft, ConverterParameter=FiltersLeft, Converter={StaticResource StatusColorConverter}}" />
           </StackPanel>
         </Panel>
-
         <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding !CriticalUpdateAvailable}">
           <Grid Height="10" Width="10">
               <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_GlobeCheckedShield}" />
           </Grid>
           <TextBlock Text="{Binding Tor, StringFormat=Tor is \{0\}, Converter={StaticResource PascalToPhraseConverter}}" Foreground="{Binding Tor, ConverterParameter=Tor, Converter={StaticResource StatusColorConverter}}" />
         </StackPanel>
-
         <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding !CriticalUpdateAvailable}">
           <Grid Height="10" Width="10">
               <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_ServerGlobe}" />
           </Grid>
           <TextBlock Text="{Binding Backend, StringFormat=Backend is \{0\}, Converter={StaticResource PascalToPhraseConverter}}" Foreground="{Binding Backend, ConverterParameter=Backend, Converter={StaticResource StatusColorConverter}}" />
         </StackPanel>
-
         <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding !CriticalUpdateAvailable}">
           <Grid Height="10" Width="10">
               <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_Peer}" />
           </Grid>
           <TextBlock Text="{Binding Peers, StringFormat=Peers: \{0\}}" Foreground="{Binding Peers, ConverterParameter=Peers, Converter={StaticResource StatusColorConverter}}" />
         </StackPanel>
-
         <StackPanel Orientation="Horizontal" Spacing="0" IsVisible="{Binding !CriticalUpdateAvailable}">
           <TextBlock Text="Price: " />
           <TextBlock Text="{Binding BtcPrice}" />
         </StackPanel>
       </StackPanel>
-
       <StackPanel Orientation="Horizontal" Spacing="4">
         <Grid Height="10" Width="10" IsVisible="{Binding UpdateAvailable}">
           <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center">

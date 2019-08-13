@@ -25,7 +25,7 @@ namespace System.IO
 				}
 				catch (DirectoryNotFoundException)
 				{
-					return;  // good!
+					return; // good!
 				}
 				catch (IOException)
 				{
@@ -123,7 +123,11 @@ namespace System.IO
 			{
 				using (Process process = Process.Start(new ProcessStartInfo
 				{
-					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "explorer.exe" : (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "open" : "xdg-open"),
+					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+						? "explorer.exe"
+						: (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+							? "open"
+							: "xdg-open"),
 					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"\"{dirPath}\"" : dirPath,
 					CreateNoWindow = true
 				}))

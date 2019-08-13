@@ -139,7 +139,7 @@ namespace WalletWasabi.Tests
 			{
 				expectedHost = "127.0.0.1";
 			}
-			Assert.Equal((string)expectedHost, actualHost);
+			Assert.Equal(expectedHost, actualHost);
 			Assert.Equal($"{actualHost}:{actualPort}", endPoint.ToString(expectedPort));
 		}
 

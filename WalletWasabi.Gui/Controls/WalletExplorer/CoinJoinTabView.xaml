@@ -1,11 +1,12 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+<UserControl xmlns="https://github.com/avaloniaui" 
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"             
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
-             xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
+             xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui"
+             x:Class="WalletWasabi.Gui.Controls.WalletExplorer.CoinJoinTabView">
   <UserControl.Resources>
     <converters:CoinJoinedVisibilityConverter x:Key="CoinJoinedVisibilityConverter" />
     <converters:MoneyStringConverter x:Key="MoneyStringConverter" />
@@ -95,7 +96,6 @@
         </ScrollViewer>
       </controls:GroupBox>
       <controls:GroupBox Grid.Row="0" Grid.Column="0" Title="CoinJoin" Padding="5" Margin="0 5 5 0">
-
         <Grid Grid.Row="0" Grid.Column="0" Classes="content">
           <Grid.RowDefinitions>
             <RowDefinition Height="150" />
@@ -143,7 +143,7 @@
               <RowDefinition Height="*"></RowDefinition>
             </Grid.RowDefinitions>
             <DrawingPresenter Grid.Row="0" Drawing="{Binding Icon}" VerticalAlignment="Top" Height="100" Width="75" />
-            <TextBlock Margin ="0 5 0 0"  Grid.Row="1" Text="{Binding ToolTip}" TextAlignment="Center" TextWrapping="Wrap" />
+            <TextBlock Margin="0 5 0 0" Grid.Row="1" Text="{Binding ToolTip}" TextAlignment="Center" TextWrapping="Wrap" />
           </Grid>
         </Button>
       </controls:GroupBox>
