@@ -168,6 +168,11 @@ namespace WalletWasabi.Services
 					}
 				}
 				Mempool.TransactionHashes.TryRemove(toRemove.TransactionId);
+				var txToRemove = TransactionCache.FirstOrDefault(x=>x.GetHash() == toRemove.TransactionId);
+				if (txToRemove != default(SmartTransaction))
+				{
+					TransactionCache.TryRemove(txToRemove);
+				}
 			}
 
 			RefreshCoinHistories();
