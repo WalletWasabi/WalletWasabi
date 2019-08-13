@@ -797,7 +797,7 @@ namespace WalletWasabi.Services
 						// Try to get block information from local running Core node first.
 						try
 						{
-							if (LocalBitcoinCoreNode is null || !LocalBitcoinCoreNode.IsConnected && Network != Network.RegTest) // If RegTest then we're already connected do not try again.
+							if (LocalBitcoinCoreNode is null || (!LocalBitcoinCoreNode.IsConnected && Network != Network.RegTest)) // If RegTest then we're already connected do not try again.
 							{
 								DisconnectDisposeNullLocalBitcoinCoreNode();
 								using (var handshakeTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancel))
@@ -1137,101 +1137,80 @@ namespace WalletWasabi.Services
 			// 4. Get and calculate fee
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
 
-			FeeRate feePerBytes = (feeTarget.HasValue) ? Synchronizer.GetFeeRate(feeTarget.Value) : feeRate;
+			FeeRate feePerBytes = (feeTarget is int v) ? Synchronizer.GetFeeRate(v) : feeRate;
+			// Use the sanity check that under 2 satoshi per bytes should not be displayed. To correct possible rounding errors.
+			feePerBytes = FeeRate.Max(feePerBytes, new FeeRate(1m));
 
-			feePerBytes = feePerBytes.SatoshiPerByte < 1 ? new FeeRate(1m) : feePerBytes; // Use the sanity check that under 2 satoshi per bytes should not be displayed. To correct possible rounding errors.
+			var smartCoinsByOutpoint = allowedSmartCoinInputs.ToDictionary(s => s.GetOutPoint());
+			TransactionBuilder builder = Network.CreateTransactionBuilder();
+			builder.SetCoinSelector(new SmartCoinSelector(smartCoinsByOutpoint));
+			builder.AddCoins(allowedSmartCoinInputs.Select(c => c.GetCoin()));
 
-			bool spendAll = spendAllCount == 1;
-			int inNum;
-			if (spendAll)
-			{
-				inNum = allowedSmartCoinInputs.Count;
-			}
-			else
-			{
-				int expectedMinTxSize = 1 * Constants.P2wpkhInputSizeInBytes + 1 * Constants.OutputSizeInBytes + 10;
-				inNum = SelectCoinsToSpend(allowedSmartCoinInputs, toSend.Select(x => x.Amount).Sum() + feePerBytes.GetTotalFee(expectedMinTxSize)).Count();
-			}
-
-			// https://bitcoincore.org/en/segwit_wallet_dev/#transaction-fee-estimation
-			// https://bitcoin.stackexchange.com/a/46379/26859
-			int outNum = spendAll ? toSend.Length : toSend.Length + 1; // number of addresses to send + 1 for change
-			int vSize = NBitcoinHelpers.CalculateVsizeAssumeSegwit(inNum, outNum);
-			Logger.LogInfo<WalletService>($"Estimated tx size: {vSize} vbytes.");
-
-			// Multiply the standard by 1.1 to avoid possible off by one errors in flawed implementations.
-			var minFeeRate = new FeeRate(1.1m * new StandardTransactionPolicy().MinRelayTxFee.SatoshiPerByte);
-			if (feePerBytes < minFeeRate)
-			{
-				feePerBytes = minFeeRate;
-			}
-
-			Money fee = feePerBytes.GetTotalFee(vSize);
-
-			Logger.LogInfo<WalletService>($"Fee: {fee.Satoshi} Satoshi.");
-
-			// 5. How much to spend?
-			long toSendAmountSumInSatoshis = toSend.Select(x => x.Amount).Sum(); // Does it work if I simply go with Money class here? Is that copied by reference of value?
-			var realToSend = new (Script script, Money amount, string label)[toSend.Length];
 			for (int i = 0; i < toSend.Length; i++) // clone
 			{
-				realToSend[i] = (
-					new Script(toSend[i].Script.ToString()),
-					new Money(toSend[i].Amount.Satoshi),
-					toSend[i].Label);
+				var destination = toSend[i].Script;
+				var amount = toSend[i].Amount;
+				var label = toSend[i].Label;
+				if (amount == Money.Zero)
+				{
+					builder.SendAll(destination);
+				}
+				else
+				{
+					builder.Send(destination, amount);
+				}
+
+				if (subtractFeeFromAmountIndex is int inputIndex && inputIndex == i)
+				{
+					builder.SubtractFees();	
+				}
 			}
-			for (int i = 0; i < realToSend.Length; i++)
+
+			HdPubKey changeHdPubKey = null;
+			if (customChange is Script)
 			{
-				if (realToSend[i].amount == Money.Zero) // means spend all
-				{
-					realToSend[i].amount = allowedSmartCoinInputs.Select(x => x.Amount).Sum();
-
-					realToSend[i].amount -= new Money(toSendAmountSumInSatoshis);
-
-					if (subtractFeeFromAmountIndex is null)
-					{
-						realToSend[i].amount -= fee;
-					}
-				}
-
-				if (subtractFeeFromAmountIndex == i)
-				{
-					realToSend[i].amount -= fee;
-				}
-
-				if (realToSend[i].amount < Money.Zero)
-				{
-					throw new InsufficientBalanceException(fee + Money.Satoshis(1), realToSend[i].amount + fee);
-				}
+				builder.SetChange(customChange);
 			}
-
-			var toRemoveList = new List<(Script script, Money money, string label)>(realToSend);
-			toRemoveList.RemoveAll(x => x.money == Money.Zero);
-			realToSend = toRemoveList.ToArray();
-
-			// 1. Get the possible changes.
-			Script changeScriptPubKey;
-			var sb = new StringBuilder();
-			foreach (var item in realToSend)
-			{
-				var corrected = Guard.Correct(item.label);
-				sb.Append($"{corrected}, ");
-			}
-			var changeLabel = sb.ToString().TrimEnd(',', ' ');
-
-			if (customChange is null)
+			else
 			{
 				KeyManager.AssertCleanKeysIndexed(isInternal: true);
 				KeyManager.AssertLockedInternalKeysIndexed(14);
-				var changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).RandomElement();
+				changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).RandomElement();
+				builder.SetChange(changeHdPubKey.P2wpkhScript);
+			}
 
-				changeHdPubKey.SetLabel(changeLabel, KeyManager);
-				changeScriptPubKey = changeHdPubKey.P2wpkhScript;
-			}
-			else
+			builder.SendEstimatedFees(feePerBytes);
+			var psbt = builder.BuildPSBT(false);
+
+			string changeLabel = null;
+			var spentCoins = psbt.Inputs.Select(txin => smartCoinsByOutpoint[txin.PrevOut]).ToArray();
+
+			var realToSend = toSend.Select(t => (label: t.Label, 
+												script: t.Script, 
+												amount: psbt.Outputs.FirstOrDefault(o => o.ScriptPubKey == t.Script)?.Value))
+									.Where(i => i.amount != null)
+									.ToArray();
+
+			if (changeHdPubKey is HdPubKey)
 			{
-				changeScriptPubKey = customChange;
+				var sb = new StringBuilder();
+				foreach (var item in realToSend)
+				{
+					var corrected = Guard.Correct(item.label);
+					sb.Append($"{corrected}, ");
+				}
+				changeLabel = sb.ToString().TrimEnd(',', ' ');
+				changeHdPubKey.SetLabel(changeLabel, KeyManager);
 			}
+
+			if (!psbt.TryGetFee(out var fee))
+			{
+				throw new InvalidOperationException($"Impossible to get the fees of the PSBT, this should never happen.");
+			}
+			Logger.LogInfo<WalletService>($"Fee: {fee.Satoshi} Satoshi.");
+
+			var vSize = builder.EstimateSize(psbt.GetOriginalTransaction(), true);
+			Logger.LogInfo<WalletService>($"Estimated tx size: {vSize} vbytes.");
 
 			// 6. Do some checks
 			Money totalOutgoingAmountNoFee = realToSend.Select(x => x.amount).Sum();
@@ -1249,58 +1228,42 @@ namespace WalletWasabi.Services
 				throw new InvalidOperationException($"The transaction fee is more than twice as much as your transaction amount: {feePc:0.#}%.");
 			}
 
-			var confirmedAvailableAmount = allowedSmartCoinInputs.Where(x => x.Confirmed).Select(x => x.Amount).Sum();
-			var spendsUnconfirmed = false;
-			if (confirmedAvailableAmount < totalOutgoingAmount)
+			if (spentCoins.Any(u => !u.Confirmed))
 			{
-				spendsUnconfirmed = true;
 				Logger.LogInfo<WalletService>("Unconfirmed transaction are being spent.");
 			}
 
-			// 7. Select coins
-			Logger.LogInfo<WalletService>("Selecting coins...");
-			IEnumerable<SmartCoin> coinsToSpend = SelectCoinsToSpend(allowedSmartCoinInputs, totalOutgoingAmount);
-
 			// 9. Build the transaction
 			Logger.LogInfo<WalletService>("Signing transaction...");
-			TransactionBuilder builder = Network.CreateTransactionBuilder();
 			// It must be watch only, too, because if we have the key and also hardware wallet, we do not care we can sign.
-			bool sign = !KeyManager.IsWatchOnly;
-			if (sign)
-			{
-				// 8. Get signing keys
-				IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(password, coinsToSpend.Select(x => x.ScriptPubKey).ToArray());
 
-				builder = builder
-					.AddCoins(coinsToSpend.Select(x => x.GetCoin()))
-					.AddKeys(signingKeys.ToArray());
+			Transaction tx = null;
+			if (KeyManager.IsWatchOnly)
+			{
+				tx = psbt.GetGlobalTransaction();
 			}
 			else
 			{
-				builder = builder
-					.AddCoins(coinsToSpend.Select(x => x.GetCoin()));
-			}
-
-			foreach ((Script scriptPubKey, Money amount, string label) output in realToSend)
-			{
-				builder = builder.Send(output.scriptPubKey, output.amount);
-			}
-
-			Transaction tx = builder
-				.SetChange(changeScriptPubKey)
-				.SendFees(fee)
-				.BuildTransaction(sign);
-
-			if (sign)
-			{
-				TransactionPolicyError[] checkResults = builder.Check(tx, fee);
+				IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
+				builder = builder.AddKeys(signingKeys.ToArray());
+				builder.SignPSBT(psbt);
+				psbt.Finalize();
+				tx = psbt.ExtractTransaction();
+				TransactionPolicyError[] checkResults = builder.Check(tx, feePerBytes);
 				if (checkResults.Length > 0)
 				{
 					throw new InvalidTxException(tx, checkResults);
 				}
 			}
 
-			List<SmartCoin> spentCoins = Coins.Where(x => tx.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
+			if (KeyManager.MasterFingerprint is HDFingerprint fp)
+			{
+				foreach (var coin in spentCoins)
+				{
+					var rootKeyPath = new RootedKeyPath(fp, coin.HdPubKey.FullKeyPath);
+					psbt.AddKeyPath(coin.HdPubKey.PubKey, rootKeyPath, coin.ScriptPubKey);
+				}
+			}
 
 			var outerWalletOutputs = new List<SmartCoin>();
 			var innerWalletOutputs = new List<SmartCoin>();
@@ -1321,107 +1284,10 @@ namespace WalletWasabi.Services
 					outerWalletOutputs.Add(coin);
 				}
 			}
-
-			PSBT psbt = builder.BuildPSBT(sign);
-			HashSet<SmartCoin> allTxCoins = spentCoins.Concat(innerWalletOutputs).Concat(outerWalletOutputs).ToHashSet();
-			foreach (var coin in allTxCoins)
-			{
-				if (coin.HdPubKey != null)
-				{
-					var index = -1;
-					var isInput = false;
-					for (int i = 0; i < tx.Inputs.Count; i++)
-					{
-						var input = tx.Inputs[i];
-						if (input.PrevOut == coin.GetOutPoint())
-						{
-							index = i;
-							isInput = true;
-							break;
-						}
-					}
-					if (!isInput)
-					{
-						index = (int)coin.Index;
-					}
-
-					if (KeyManager.MasterFingerprint.HasValue)
-					{
-						var rootKeyPath = new RootedKeyPath(KeyManager.MasterFingerprint.Value, coin.HdPubKey.FullKeyPath);
-						psbt.AddKeyPath(coin.HdPubKey.PubKey, rootKeyPath, coin.ScriptPubKey);
-					}
-				}
-			}
-
 			Logger.LogInfo<WalletService>($"Transaction is successfully built: {tx.GetHash()}.");
-
+			var sign = !KeyManager.IsWatchOnly;
+			var spendsUnconfirmed = spentCoins.Any(c => !c.Confirmed);
 			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), psbt, spendsUnconfirmed, sign, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
-		}
-
-		private IEnumerable<SmartCoin> SelectCoinsToSpend(IEnumerable<SmartCoin> unspentCoins, Money totalOutAmount)
-		{
-			var coinsToSpend = new HashSet<SmartCoin>();
-			var unspentConfirmedCoins = new List<SmartCoin>();
-			var unspentUnconfirmedCoins = new List<SmartCoin>();
-			foreach (SmartCoin coin in unspentCoins)
-			{
-				if (coin.Confirmed)
-				{
-					unspentConfirmedCoins.Add(coin);
-				}
-				else
-				{
-					unspentUnconfirmedCoins.Add(coin);
-				}
-			}
-
-			bool haveEnough = TrySelectCoins(ref coinsToSpend, totalOutAmount, unspentConfirmedCoins);
-			if (!haveEnough)
-			{
-				haveEnough = TrySelectCoins(ref coinsToSpend, totalOutAmount, unspentUnconfirmedCoins);
-			}
-
-			if (!haveEnough)
-			{
-				throw new InsufficientBalanceException(totalOutAmount, unspentConfirmedCoins.Select(x => x.Amount).Sum() + unspentUnconfirmedCoins.Select(x => x.Amount).Sum());
-			}
-
-			return coinsToSpend;
-		}
-
-		/// <returns>If the selection was successful. If there's enough coins to spend from.</returns>
-		private bool TrySelectCoins(ref HashSet<SmartCoin> coinsToSpend, Money totalOutAmount, IEnumerable<SmartCoin> unspentCoins)
-		{
-			// If there's no need for input merging, then use the largest selected.
-			// Do not prefer anonymity set. You can assume the user prefers anonymity set manually through the GUI.
-			SmartCoin largestCoin = unspentCoins.OrderByDescending(x => x.Amount).FirstOrDefault();
-			if (largestCoin == default)
-			{
-				return false; // If there's no coin then unsuccessful selection.
-			}
-			else // Check if we can do without input merging.
-			{
-				if (largestCoin.Amount >= totalOutAmount)
-				{
-					coinsToSpend.Add(largestCoin);
-					return true;
-				}
-			}
-
-			// If there's a need for input merging.
-			foreach (var coin in unspentCoins
-				.OrderByDescending(x => x.AnonymitySet) // Always try to spend/merge the largest anonset coins first.
-				.ThenByDescending(x => x.Amount)) // Then always try to spend by amount.
-			{
-				coinsToSpend.Add(coin);
-				// If reaches the amount, then return true, else just go with the largest coin.
-				if (coinsToSpend.Select(x => x.Amount).Sum() >= totalOutAmount)
-				{
-					return true;
-				}
-			}
-
-			return false;
 		}
 
 		public void RenameLabel(SmartCoin coin, string newLabel)
