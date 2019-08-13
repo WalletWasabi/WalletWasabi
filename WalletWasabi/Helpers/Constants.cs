@@ -96,6 +96,6 @@ namespace WalletWasabi.Helpers
 
 		public const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-		public const string CompatibilityPasswordWarnMessage = "Compatibility password used! Please consider generating a new wallet to ensure recoverability!";
+		public const string CompatibilityPasswordWarnMessage = "Compatibility password was used! Please consider generating a new wallet to ensure recoverability!";
 	}
 }
