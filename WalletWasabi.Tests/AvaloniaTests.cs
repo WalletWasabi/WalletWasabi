@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Threading;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -67,7 +68,14 @@ namespace WalletWasabi.Tests
 			{
 				try
 				{
-					await testCode();
+					if (Dispatcher.UIThread.CheckAccess())
+					{
+						await testCode();
+					}
+					else
+					{
+						await Dispatcher.UIThread.InvokeAsync(async () => await testCode());
+					}
 				}
 				catch (Exception e)
 				{
