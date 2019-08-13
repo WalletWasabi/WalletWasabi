@@ -592,10 +592,7 @@ namespace WalletWasabi.KeyManagement
 					resultException = ex;
 				}
 
-				if (!IsCompatibilityPasswordUsed)
-				{
-					IsCompatibilityPasswordUsed = true; // The first iteration will try the original password if we get here it was failed.
-				}
+				IsCompatibilityPasswordUsed = true; // The first iteration will try the original password if we get here it was failed.
 			}
 
 			throw new SecurityException("Invalid password.", resultException);
