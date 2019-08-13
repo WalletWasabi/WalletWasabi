@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.Crypto;
 using System;
 using System.Linq;
 using WalletWasabi.KeyManagement;
@@ -237,7 +236,6 @@ namespace WalletWasabi.Tests
 		}
 
 
-
 		[Fact]
 		public void ReceiveTransactionWithDustForWallet()
 		{
@@ -267,10 +265,9 @@ namespace WalletWasabi.Tests
 			tx.Version = 1;
 			tx.LockTime = LockTime.Zero;
 			tx.Outputs.Add(amount, keys.First().P2wpkhScript);
-			var txout = new TxOut(Money.Coins(0.1m), new Key().PubKey.WitHash.ScriptPubKey);
+			var txout = new TxOut(amount, new Key().PubKey.WitHash.ScriptPubKey);
 			tx.Outputs.AddRange(Enumerable.Repeat(txout, 5)); // 6 indistinguishable txouts 
 			tx.Inputs.AddRange(Enumerable.Repeat(new TxIn(GetRandomOutPoint(), Script.Empty), 4));
-
 
 			var relevant = transactionProcessor.Process(new SmartTransaction(tx, Height.Mempool));
 
@@ -278,9 +275,41 @@ namespace WalletWasabi.Tests
 			Assert.True(relevant); 
 			var coin = Assert.Single(transactionProcessor.Coins);
 			Assert.Equal(4, coin.AnonymitySet);
-			Assert.Equal(Money.Coins(0.1m), coin.Amount);
+			Assert.Equal(amount, coin.Amount);
+			Assert.False(coin.IsLikelyCoinJoinOutput);  // It is a coinjoin however we are reveiving but not spending.
 		}
 
+
+		[Fact]
+		public void ReceiveWasabiCoinjoinTransaction()
+		{
+			var transactionProcessor = CreateTransactionProcessor();
+			var keys = transactionProcessor.KeyManager.GetKeys();
+			var amount = Money.Coins(0.1m);
+
+			var stx = CreateCreditingTransaction(keys.First().P2wpkhScript, amount);
+			transactionProcessor.Process(stx);
+
+			var createdCoin = stx.Transaction.Outputs.AsCoins().First();
+
+			var tx = Network.RegTest.CreateTransaction();
+			tx.Version = 1;
+			tx.LockTime = LockTime.Zero;
+			tx.Outputs.Add(amount, keys.First().P2wpkhScript);
+			var txout = new TxOut(Money.Coins(0.1m), new Key().PubKey.WitHash.ScriptPubKey);
+			tx.Outputs.AddRange(Enumerable.Repeat(txout, 5)); // 6 indistinguishable txouts 
+			tx.Inputs.Add(createdCoin.Outpoint, Script.Empty, WitScript.Empty);
+			tx.Inputs.AddRange(Enumerable.Repeat(new TxIn(GetRandomOutPoint(), Script.Empty), 4));
+
+			var relevant = transactionProcessor.Process(new SmartTransaction(tx, Height.Mempool));
+
+			// It is relevant even when all the coins can be dust.
+			Assert.True(relevant); 
+			var coin = Assert.Single(transactionProcessor.Coins, c => c.AnonymitySet > 1);
+			Assert.Equal(5, coin.AnonymitySet);
+			Assert.Equal(amount, coin.Amount);
+			Assert.True(coin.IsLikelyCoinJoinOutput);  // because we are spanding and receiving almost the same amount
+		}
 
 
 		private static TransactionProcessor CreateTransactionProcessor()

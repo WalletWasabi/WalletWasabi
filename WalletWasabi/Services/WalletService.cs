@@ -181,7 +181,7 @@ namespace WalletWasabi.Services
 
 		private void Coins_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			if(e.Action == NotifyCollectionChangedAction.Remove)
+			if (e.Action == NotifyCollectionChangedAction.Remove)
 			{
 				var toRemove = e.OldItems[0] as SmartCoin;
 				if (toRemove.SpenderTransactionId != null)
@@ -194,7 +194,7 @@ namespace WalletWasabi.Services
 				
 				Mempool.TransactionHashes.TryRemove(toRemove.TransactionId);
 				var txToRemove = TransactionProcessor.TransactionCache.FirstOrDefault(x=>x.GetHash() == toRemove.TransactionId);
-				if( txToRemove != default(SmartTransaction))
+				if (txToRemove != default(SmartTransaction))
 				{
 					TransactionProcessor.TransactionCache.TryRemove(txToRemove);
 				}
