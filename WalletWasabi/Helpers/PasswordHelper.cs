@@ -13,8 +13,12 @@ namespace WalletWasabi.Helpers
 			List<string> possiblePasswords = new List<string>()
 			{
 				originalPassword,
-				StringCutIssue(originalPassword)
 			};
+
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				possiblePasswords.Add(StringCutIssue(originalPassword));
+			}
 
 			return possiblePasswords.ToArray();
 		}
