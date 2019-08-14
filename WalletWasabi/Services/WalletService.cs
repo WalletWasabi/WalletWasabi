@@ -130,6 +130,7 @@ namespace WalletWasabi.Services
 			{
 				Directory.CreateDirectory(BlocksFolderPath);
 			}
+
 			if (Directory.Exists(TransactionsFolderPath))
 			{
 				if (Synchronizer.Network == Network.RegTest)
@@ -168,6 +169,7 @@ namespace WalletWasabi.Services
 					}
 				}
 				Mempool.TransactionHashes.TryRemove(toRemove.TransactionId);
+        
 				var txToRemove = TransactionCache.FirstOrDefault(x=>x.GetHash() == toRemove.TransactionId);
 				if (txToRemove != default(SmartTransaction))
 				{
@@ -648,7 +650,6 @@ namespace WalletWasabi.Services
 			}
 
 			List<SmartCoin> spentOwnCoins = null;
-
 			for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 			{
 				// If transaction received to any of the wallet keys:
