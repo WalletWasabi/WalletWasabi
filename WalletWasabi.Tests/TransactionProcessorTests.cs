@@ -25,7 +25,6 @@ namespace WalletWasabi.Tests
 			Assert.Empty(transactionProcessor.TransactionCache);
 		}
 
-
 		[Fact]
 		public void SpendToLegacyScripts()
 		{
@@ -39,7 +38,6 @@ namespace WalletWasabi.Tests
 			Assert.False(relevant); 
 			Assert.Empty(transactionProcessor.Coins);
 		}
-
 
 		[Fact]
 		public void UnconfirmedTransactionIsNotSegWit()
@@ -55,7 +53,6 @@ namespace WalletWasabi.Tests
 			Assert.Empty(transactionProcessor.Coins);
 			Assert.Empty(transactionProcessor.TransactionCache);
 		}
-
 
 		[Fact]
 		public void ConfirmedTransactionIsNotSegWit()
@@ -73,7 +70,6 @@ namespace WalletWasabi.Tests
 			Assert.Empty(transactionProcessor.TransactionCache);
 			Assert.Empty(transactionProcessor.TransactionHashes);
 		}
-
 
 		[Fact]
 		public void UpdateTransactionHeightAfterConfirmation()
@@ -107,7 +103,6 @@ namespace WalletWasabi.Tests
 			Assert.Empty(transactionProcessor.TransactionHashes);
 		}
 
-
 		[Fact]
 		public void IgnoreDoubleSpend()
 		{
@@ -124,7 +119,7 @@ namespace WalletWasabi.Tests
 			tx = CreateSpendingTransaction(createdCoin, keys[1].PubKey.WitHash.ScriptPubKey);
 			transactionProcessor.Process(tx);
 
-			// Spend it coin
+			// Spend the same coin again
 			tx = CreateSpendingTransaction(createdCoin, keys[2].PubKey.WitHash.ScriptPubKey);
 			var relevant = transactionProcessor.Process(tx);
 
@@ -134,7 +129,6 @@ namespace WalletWasabi.Tests
 			Assert.Equal(2, transactionProcessor.TransactionCache.Count());
 			Assert.Empty(transactionProcessor.TransactionHashes);
 		}
-
 
 		[Fact]
 		public void ConfirmedDoubleSpend()
@@ -161,7 +155,6 @@ namespace WalletWasabi.Tests
 			Assert.Single(transactionProcessor.Coins, coin => !coin.Unspent && coin.Confirmed);
 			Assert.Empty(transactionProcessor.TransactionHashes);
 		}
-
 
 		[Fact]
 		public void HandlesRBF()
@@ -192,13 +185,12 @@ namespace WalletWasabi.Tests
 			Assert.Empty(transactionProcessor.TransactionHashes);
 		}
 
-
 		[Fact]
 		public void ReceiveTransactionForWallet()
 		{
 			var transactionProcessor = CreateTransactionProcessor();
 			SmartCoin receivedCoin = null;
-			transactionProcessor.CoinReceived += (s, theCoin)=>receivedCoin = theCoin;
+			transactionProcessor.CoinReceived += (s, theCoin) => receivedCoin = theCoin;
 			var keys = transactionProcessor.KeyManager.GetKeys();
 			var tx = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(1.0m));
 
@@ -212,13 +204,12 @@ namespace WalletWasabi.Tests
 			Assert.NotNull(receivedCoin);
 		}
 
-
 		[Fact]
 		public void SpendCoin()
 		{
 			var transactionProcessor = CreateTransactionProcessor();
 			SmartCoin spentCoin = null;
-			transactionProcessor.CoinSpentOrSpenderConfirmed += (s, theCoin)=>spentCoin = theCoin;
+			transactionProcessor.CoinSpentOrSpenderConfirmed += (s, theCoin) => spentCoin = theCoin;
 			var keys = transactionProcessor.KeyManager.GetKeys();
 			var tx = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(1.0m));
 			transactionProcessor.Process(tx);
@@ -235,13 +226,12 @@ namespace WalletWasabi.Tests
 			Assert.Equal(coin, spentCoin);
 		}
 
-
 		[Fact]
 		public void ReceiveTransactionWithDustForWallet()
 		{
 			var transactionProcessor = CreateTransactionProcessor();
 			transactionProcessor.CoinReceived += (s, theCoin)
-				=> throw new Exception("The dust coin raised event when it shouldn't");
+				=> throw new Exception("The dust coin raised an event when it shouldn't.");
 			var keys = transactionProcessor.KeyManager.GetKeys();
 			var tx = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(0.000099m));
 
@@ -252,9 +242,8 @@ namespace WalletWasabi.Tests
 			Assert.Empty(transactionProcessor.Coins);
 		}
 
-
 		[Fact]
-		public void ReceiveCoinjoinTransaction()
+		public void ReceiveCoinJoinTransaction()
 		{
 			var transactionProcessor = CreateTransactionProcessor();
 			var keys = transactionProcessor.KeyManager.GetKeys();
@@ -279,9 +268,8 @@ namespace WalletWasabi.Tests
 			Assert.False(coin.IsLikelyCoinJoinOutput);  // It is a coinjoin however we are reveiving but not spending.
 		}
 
-
 		[Fact]
-		public void ReceiveWasabiCoinjoinTransaction()
+		public void ReceiveWasabiCoinJoinTransaction()
 		{
 			var transactionProcessor = CreateTransactionProcessor();
 			var keys = transactionProcessor.KeyManager.GetKeys();
@@ -311,7 +299,6 @@ namespace WalletWasabi.Tests
 			Assert.True(coin.IsLikelyCoinJoinOutput);  // because we are spanding and receiving almost the same amount
 		}
 
-
 		private static TransactionProcessor CreateTransactionProcessor()
 		{
 			var keyManager = KeyManager.CreateNew(out _, "password");
@@ -322,7 +309,6 @@ namespace WalletWasabi.Tests
 				new ObservableConcurrentHashSet<SmartCoin>(),
 				Money.Coins(0.0001m));
 		}
-
 
 		private static SmartTransaction CreateSpendingTransaction(Coin coin, Script scriptPubKey = null, bool isConfirmed = false)
 		{
@@ -341,7 +327,6 @@ namespace WalletWasabi.Tests
 			tx.Outputs.Add(amount, scriptPubKey);
 			return new SmartTransaction(tx, isConfirmed ? new Height(9999) : Height.Mempool);
 		}
-
 		private static OutPoint GetRandomOutPoint()
 		{
 			return new OutPoint(RandomUtils.GetUInt256(), 0);
