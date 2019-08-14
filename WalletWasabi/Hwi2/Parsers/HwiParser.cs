@@ -108,7 +108,7 @@ namespace WalletWasabi.Hwi2.Parsers
 
 		public static bool TryParseHardwareWalletVendor(JToken token, out HardwareWalletVendors vendor)
 		{
-			vendor = default;
+			vendor = HardwareWalletVendors.Unknown;
 
 			if (token is null)
 			{
@@ -150,13 +150,13 @@ namespace WalletWasabi.Hwi2.Parsers
 		{
 			if (JsonHelpers.TryParseJToken(json, out JToken token))
 			{
-				var extPubKeyString = token["xpub"]?.ToString()?.Trim() ?? null;
-				var extPubKey = NBitcoinHelpers.BetterParseExtPubKey(extPubKeyString);
+				var extPubKeyString = token["xpub"]?.ToString().Trim();
+				var extPubKey = string.IsNullOrEmpty(extPubKeyString) ? null : NBitcoinHelpers.BetterParseExtPubKey(extPubKeyString);
 				return extPubKey;
 			}
 			else
 			{
-				throw new FormatException($"Could not parse extpubkey: {json}");
+				throw new FormatException($"Could not parse extpubkey: {json}.");
 			}
 		}
 
@@ -176,7 +176,7 @@ namespace WalletWasabi.Hwi2.Parsers
 			}
 			else
 			{
-				throw new FormatException($"Could not parse address: {json}");
+				throw new FormatException($"Could not parse address: {json}.");
 			}
 		}
 
@@ -196,18 +196,18 @@ namespace WalletWasabi.Hwi2.Parsers
 			}
 			else
 			{
-				throw new FormatException($"Could not parse PSBT: {json}");
+				throw new FormatException($"Could not parse PSBT: {json}.");
 			}
 		}
 
 		public static HwiEnumerateEntry ParseHwiEnumerateEntry(JObject json)
 		{
 			JToken typeToken = json["type"];
-			var pathString = json["path"]?.ToString()?.Trim() ?? null;
-			var serialNumberString = json["serial_number"]?.ToString()?.Trim() ?? null;
-			var fingerprintString = json["fingerprint"]?.ToString()?.Trim() ?? null;
-			var needsPinSentString = json["needs_pin_sent"]?.ToString()?.Trim() ?? null;
-			var needsPassphraseSentString = json["needs_passphrase_sent"]?.ToString()?.Trim() ?? null;
+			var pathString = json["path"]?.ToString().Trim();
+			var serialNumberString = json["serial_number"]?.ToString().Trim();
+			var fingerprintString = json["fingerprint"]?.ToString().Trim();
+			var needsPinSentString = json["needs_pin_sent"]?.ToString().Trim();
+			var needsPassphraseSentString = json["needs_passphrase_sent"]?.ToString().Trim();
 
 			HDFingerprint? fingerprint = null;
 			if (fingerprintString != null)
@@ -242,7 +242,7 @@ namespace WalletWasabi.Hwi2.Parsers
 				errorString = err.Message;
 			}
 
-			HardwareWalletVendors? type = null;
+			HardwareWalletVendors type = HardwareWalletVendors.Unknown;
 			if (TryParseHardwareWalletVendor(typeToken, out HardwareWalletVendors t))
 			{
 				type = t;

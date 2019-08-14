@@ -9,7 +9,7 @@ namespace WalletWasabi.Hwi2.Models
 {
 	public class HwiEnumerateEntry
 	{
-		public HardwareWalletVendors? Type { get; }
+		public HardwareWalletVendors Type { get; }
 		public string Path { get; }
 		public string SerialNumber { get; }
 		public HDFingerprint? Fingerprint { get; }
@@ -26,7 +26,7 @@ namespace WalletWasabi.Hwi2.Models
 		}
 
 		public HwiEnumerateEntry(
-			HardwareWalletVendors? type,
+			HardwareWalletVendors type,
 			string path,
 			string serialNumber,
 			HDFingerprint? fingerprint,

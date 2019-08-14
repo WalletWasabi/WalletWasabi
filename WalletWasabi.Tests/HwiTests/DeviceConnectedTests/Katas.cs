@@ -55,7 +55,7 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				Assert.True(entry.Fingerprint.HasValue);
 
 				string devicePath = entry.Path;
-				HardwareWalletVendors deviceType = entry.Type.Value;
+				HardwareWalletVendors deviceType = entry.Type;
 				HDFingerprint fingerprint = entry.Fingerprint.Value;
 
 				await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
@@ -98,10 +98,10 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				// USER: CONFIRM
 				PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, psbt, cts.Token);
 
-				Transaction signeTx = signedPsbt.GetOriginalTransaction();
-				Assert.Equal(psbt.GetOriginalTransaction().GetHash(), signeTx.GetHash());
+				Transaction signedTx = signedPsbt.GetOriginalTransaction();
+				Assert.Equal(psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
 
-				var checkResult = signeTx.Check();
+				var checkResult = signedTx.Check();
 				Assert.Equal(TransactionCheckResult.Success, checkResult);
 			}
 		}
@@ -130,7 +130,7 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				Assert.Null(entry.Fingerprint);
 
 				string devicePath = entry.Path;
-				HardwareWalletVendors deviceType = entry.Type.Value;
+				HardwareWalletVendors deviceType = entry.Type;
 
 				await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
 
@@ -191,7 +191,7 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				Assert.True(entry.Fingerprint.HasValue);
 
 				string devicePath = entry.Path;
-				HardwareWalletVendors deviceType = entry.Type.Value;
+				HardwareWalletVendors deviceType = entry.Type;
 				HDFingerprint fingerprint = entry.Fingerprint.Value;
 
 				// ColdCard doesn't support it.
@@ -225,10 +225,10 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				// USER: CONFIRM
 				PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, psbt, cts.Token);
 
-				Transaction signeTx = signedPsbt.GetOriginalTransaction();
-				Assert.Equal(psbt.GetOriginalTransaction().GetHash(), signeTx.GetHash());
+				Transaction signedTx = signedPsbt.GetOriginalTransaction();
+				Assert.Equal(psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
 
-				var checkResult = signeTx.Check();
+				var checkResult = signedTx.Check();
 				Assert.Equal(TransactionCheckResult.Success, checkResult);
 
 				// ColdCard just display the address. There is no confirm/refuse action.
@@ -242,6 +242,87 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 				var expectedAddress2 = xpub2.PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
 				Assert.Equal(expectedAddress1, address1);
 				Assert.Equal(expectedAddress2, address2);
+			}
+		}
+
+		[Fact]
+		public async Task LedgerNanoSKataAsync()
+		{
+			// --- USER INTERACTIONS ---
+			//
+			// Connect an already initialized device and unlock it and enter to Bitcoin App.
+			// Run this test.
+			// displayaddress request: refuse (accept Warning messages)
+			// displayaddress request: confirm
+			// displayaddress request: confirm
+			// signtx request: refuse
+			// signtx request: confirm
+			//
+			// --- USER INTERACTIONS ---
+
+			var network = Network.Main;
+			var client = new HwiClient(network);
+			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
+			{
+				var enumerate = await client.EnumerateAsync(cts.Token);
+				HwiEnumerateEntry entry = Assert.Single(enumerate);
+				Assert.NotNull(entry.Path);
+				Assert.Equal(HardwareWalletVendors.Ledger, entry.Type);
+				Assert.True(entry.Fingerprint.HasValue);
+				Assert.Null(entry.Code);
+				Assert.Null(entry.Error);
+				Assert.Null(entry.SerialNumber);
+				Assert.False(entry.NeedsPassphraseSent);
+				Assert.False(entry.NeedsPinSent);
+
+				string devicePath = entry.Path;
+				HardwareWalletVendors deviceType = entry.Type;
+				HDFingerprint fingerprint = entry.Fingerprint.Value;
+
+				await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
+
+				await Assert.ThrowsAsync<HwiException>(async () => await client.RestoreAsync(deviceType, devicePath, false, cts.Token));
+
+				await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
+
+				await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
+
+				KeyPath keyPath1 = KeyManager.DefaultAccountKeyPath;
+				KeyPath keyPath2 = KeyManager.DefaultAccountKeyPath.Derive(1);
+				ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
+				ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
+				Assert.NotNull(xpub1);
+				Assert.NotNull(xpub2);
+				Assert.NotEqual(xpub1, xpub2);
+
+				// USER SHOULD REFUSE ACTION
+				await Assert.ThrowsAsync<HwiException>(async () => await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token));
+
+				// USER: CONFIRM
+				BitcoinWitPubKeyAddress address1 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token);
+				// USER: CONFIRM
+				BitcoinWitPubKeyAddress address2 = await client.DisplayAddressAsync(fingerprint, keyPath2, cts.Token);
+				Assert.NotNull(address1);
+				Assert.NotNull(address2);
+				Assert.NotEqual(address1, address2);
+				var expectedAddress1 = xpub1.PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
+				var expectedAddress2 = xpub2.PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
+				Assert.Equal(expectedAddress1, address1);
+				Assert.Equal(expectedAddress2, address2);
+
+				// USER: REFUSE
+				PSBT psbt = BuildPsbt(network, fingerprint, xpub1, keyPath1);
+				var ex = await Assert.ThrowsAsync<HwiException>(async () => await client.SignTxAsync(deviceType, devicePath, psbt, cts.Token));
+				Assert.Equal(HwiErrorCode.BadArgument, ex.ErrorCode);
+
+				// USER: CONFIRM
+				PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, psbt, cts.Token);
+
+				Transaction signedTx = signedPsbt.GetOriginalTransaction();
+				Assert.Equal(psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
+
+				var checkResult = signedTx.Check();
+				Assert.Equal(TransactionCheckResult.Success, checkResult);
 			}
 		}
 	}

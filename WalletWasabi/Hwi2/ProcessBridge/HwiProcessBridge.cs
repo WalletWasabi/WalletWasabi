@@ -45,9 +45,9 @@ namespace WalletWasabi.Hwi2.ProcessBridge
 				}
 				else
 				{
-					responseString = exitCode == 0 ?
-						"{\"success\":\"true\"}" :
-						$"{{\"success\":\"false\",\"error\":\"Process terminated with exit code: {exitCode}.\"}}";
+					responseString = exitCode == 0
+						? "{\"success\":\"true\"}"
+						: $"{{\"success\":\"false\",\"error\":\"Process terminated with exit code: {exitCode}.\"}}";
 				}
 			}
 

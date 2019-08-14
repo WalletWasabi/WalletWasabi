@@ -9,9 +9,11 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Hwi2;
 using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
@@ -32,6 +34,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
 		public ReactiveCommand<Unit, Unit> ShowQrCode { get; }
 		public ReactiveCommand<Unit, Unit> ChangeLabelCommand { get; }
+
+		public ReactiveCommand<Unit, Unit> DisplayAddressOnHwCommand { get; }
+
+		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
 
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
@@ -128,7 +134,26 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SelectedAddress.InEditMode = true;
 			});
 
+			DisplayAddressOnHwCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				var client = new HwiClient(Global.Network);
+				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60)))
+				{
+					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, KeyManager.AccountKeyPath, cts.Token);
+				}
+			});
+
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
+
+			Observable.Merge(DisplayAddressOnHwCommand.ThrownExceptions)
+				.Merge(ChangeLabelCommand.ThrownExceptions)
+				.Merge(ShowQrCode.ThrownExceptions)
+				.Merge(CopyAddress.ThrownExceptions)
+				.Merge(CopyLabel.ThrownExceptions)
+				.Subscribe((ex) =>
+				{
+					SetWarningMessage(ex.ToTypeMessageString());
+				});
 		}
 
 		public override void OnOpen()
@@ -262,7 +287,5 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Suggestions.Clear();
 		}
-
-		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
 	}
 }
