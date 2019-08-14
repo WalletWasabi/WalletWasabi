@@ -521,20 +521,32 @@ namespace WalletWasabi.Gui
 						//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
 						//}
 						// else
-						if (coin.HdPubKey.IsInternal)
+						if (coin.HdPubKey.IsInternal) // Is CoinJoin
 						{
-							continue;
+							int anonset = coin.AnonymitySet;
+							using (var process = Process.Start(new ProcessStartInfo
+							{
+								FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
+								Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+								? $"-e \"display notification \\\"Coin mixed to anonymity set of {anonset}\\\" with title \\\"Wasabi\\\"\""
+								: $"--expire-time=3000 \"Wasabi\" \"Coin mixed to anonymity set of {anonset}\"",
+								CreateNoWindow = true
+							}))
+							{ }
 						}
-						string amountString = coin.Amount.ToString(false, true);
-						using (var process = Process.Start(new ProcessStartInfo
+						else
 						{
-							FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
-							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-								? $"-e \"display notification \\\"Received {amountString} BTC\\\" with title \\\"Wasabi\\\"\""
-								: $"--expire-time=3000 \"Wasabi\" \"Received {amountString} BTC\"",
-							CreateNoWindow = true
-						}))
-						{ }
+							string amountString = coin.Amount.ToString(false, true);
+							using (var process = Process.Start(new ProcessStartInfo
+							{
+								FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
+								Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+									? $"-e \"display notification \\\"Received {amountString} BTC\\\" with title \\\"Wasabi\\\"\""
+									: $"--expire-time=3000 \"Wasabi\" \"Received {amountString} BTC\"",
+								CreateNoWindow = true
+							}))
+							{ }
+						}
 					}
 				}
 			}
