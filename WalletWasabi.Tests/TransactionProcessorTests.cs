@@ -254,8 +254,8 @@ namespace WalletWasabi.Tests
 			tx.Version = 1;
 			tx.LockTime = LockTime.Zero;
 			tx.Outputs.Add(amount, keys.First().P2wpkhScript);
-			var txout = new TxOut(amount, new Key().PubKey.WitHash.ScriptPubKey);
-			tx.Outputs.AddRange(Enumerable.Repeat(txout, 5)); // 6 indistinguishable txouts 
+			var txOut = new TxOut(amount, new Key().PubKey.WitHash.ScriptPubKey);
+			tx.Outputs.AddRange(Enumerable.Repeat(txOut, 5)); // 6 indistinguishable txouts 
 			tx.Inputs.AddRange(Enumerable.Repeat(new TxIn(GetRandomOutPoint(), Script.Empty), 4));
 
 			var relevant = transactionProcessor.Process(new SmartTransaction(tx, Height.Mempool));
@@ -284,8 +284,8 @@ namespace WalletWasabi.Tests
 			tx.Version = 1;
 			tx.LockTime = LockTime.Zero;
 			tx.Outputs.Add(amount, keys.First().P2wpkhScript);
-			var txout = new TxOut(Money.Coins(0.1m), new Key().PubKey.WitHash.ScriptPubKey);
-			tx.Outputs.AddRange(Enumerable.Repeat(txout, 5)); // 6 indistinguishable txouts 
+			var txOut = new TxOut(Money.Coins(0.1m), new Key().PubKey.WitHash.ScriptPubKey);
+			tx.Outputs.AddRange(Enumerable.Repeat(txOut, 5)); // 6 indistinguishable txouts 
 			tx.Inputs.Add(createdCoin.Outpoint, Script.Empty, WitScript.Empty);
 			tx.Inputs.AddRange(Enumerable.Repeat(new TxIn(GetRandomOutPoint(), Script.Empty), 4));
 
