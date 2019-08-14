@@ -62,14 +62,14 @@ namespace WalletWasabi.Gui.Shell.Commands
 					}
 				}));
 
-			FaqCommand = new CommandDefinition(
-				"FAQ",
-				commandIconService.GetCompletionKindImage("Faq"),
+			DocsCommand = new CommandDefinition(
+				"Documentation",
+				commandIconService.GetCompletionKindImage("Documentation"),
 				ReactiveCommand.Create(() =>
 				{
 					try
 					{
-						IoHelpers.OpenBrowser("https://docs.wasabiwallet.io/FAQ/");
+						IoHelpers.OpenBrowser("https://docs.wasabiwallet.io/");
 					}
 					catch (Exception ex)
 					{
@@ -135,8 +135,8 @@ namespace WalletWasabi.Gui.Shell.Commands
 		[ExportCommandDefinition("Help.ReportBug")]
 		public CommandDefinition ReportBugCommand { get; }
 
-		[ExportCommandDefinition("Help.Faq")]
-		public CommandDefinition FaqCommand { get; }
+		[ExportCommandDefinition("Help.Documentation")]
+		public CommandDefinition DocsCommand { get; }
 
 		[ExportCommandDefinition("Help.PrivacyPolicy")]
 		public CommandDefinition PrivacyPolicyCommand { get; }
