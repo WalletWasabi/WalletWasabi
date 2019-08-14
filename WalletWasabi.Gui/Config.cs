@@ -173,9 +173,13 @@ namespace WalletWasabi.Gui
 			{
 				_backendUri = new Uri(TestNetBackendUriV3);
 			}
-			else // RegTest
+			else if (Network == Network.RegTest)
 			{
 				_backendUri = new Uri(RegTestBackendUriV3);
+			}
+			else
+			{
+				throw new NotSupportedException($"{nameof(Network)} not supported: {Network}.");
 			}
 
 			return _backendUri;
@@ -196,9 +200,13 @@ namespace WalletWasabi.Gui
 			{
 				_fallbackBackendUri = new Uri(TestNetFallbackBackendUri);
 			}
-			else // RegTest
+			else if (Network == Network.RegTest)
 			{
 				_fallbackBackendUri = new Uri(RegTestBackendUriV3);
+			}
+			else
+			{
+				throw new NotSupportedException($"{nameof(Network)} not supported: {Network}.");
 			}
 
 			return _fallbackBackendUri;

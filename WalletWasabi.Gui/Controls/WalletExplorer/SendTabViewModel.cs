@@ -923,9 +923,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return;
 			}
 
-			string[] nonSpecialLabels = Global.WalletService.GetNonSpecialLabels().ToArray();
-			IEnumerable<string> suggestedWords = nonSpecialLabels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
-				.Union(nonSpecialLabels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
+			var labels = Global.WalletService.GetLabels();
+			IEnumerable<string> suggestedWords = labels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
+				.Union(labels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
 				.Except(enteredWordList)
 				.Take(3);
 

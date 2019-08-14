@@ -169,8 +169,6 @@ namespace WalletWasabi.Services
 				return;
 			}
 
-			var txId = tx.GetHash();
-
 			foreach (TxIn input in tx.Inputs)
 			{
 				OutPoint prevOut = input.PrevOut;

@@ -1,7 +1,9 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui">
+             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
+             x:Class="WalletWasabi.Gui.Tabs.WalletManager.LoadWalletView">
   <DockPanel LastChildFill="True">
     <StackPanel DockPanel.Dock="Bottom" Spacing="10">
       <controls:GroupBox IsVisible="{Binding !IsDesktopWallet}" TextBlock.FontSize="30" Padding="30" Margin="20 0">

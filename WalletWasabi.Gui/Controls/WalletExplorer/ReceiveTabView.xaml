@@ -4,7 +4,8 @@
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
-             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui" Name="ReceiveTabViewerUserControl">
+             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
+             x:Class="WalletWasabi.Gui.Controls.WalletExplorer.ReceiveTabView">
   <UserControl.Resources>
     <converters:CoinItemExpanderColorConverter x:Key="CoinItemExpanderColorConverter" />
     <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />

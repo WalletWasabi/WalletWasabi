@@ -1,5 +1,7 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui" Design.Width="800" Design.Height="400">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui" Design.Width="800" Design.Height="400"
+             x:Class="WalletWasabi.Gui.Dialogs.GenSocksServFailDialogView">
   <controls:GroupBox Title="Tor: General SOCKS Server Failure" Background="{DynamicResource ThemeControlBackgroundBrush}" TextBlock.FontSize="30" BorderThickness="0" Margin="0 80">
     <Grid Classes="content">
       <Panel Margin="10">

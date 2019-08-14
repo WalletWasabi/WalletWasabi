@@ -67,10 +67,10 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[DefaultGroup("Support")]
 		public IMenuItem ReportBug => MenuItemFactory.CreateCommandMenuItem("Help.ReportBug");
 
-		[ExportMainMenuItem("Help", "FAQ")]
+		[ExportMainMenuItem("Help", "Documentation")]
 		[DefaultOrder(4)]
 		[DefaultGroup("Support")]
-		public IMenuItem Faq => MenuItemFactory.CreateCommandMenuItem("Help.Faq");
+		public IMenuItem Docs => MenuItemFactory.CreateCommandMenuItem("Help.Documentation");
 
 		[ExportMainMenuItem("Help", "Privacy Policy")]
 		[DefaultOrder(5)]
