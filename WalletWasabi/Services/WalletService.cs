@@ -302,10 +302,10 @@ namespace WalletWasabi.Services
 				{
 					var relevantTransactions = confirmedTransactions.Where(x => x.BlockHash == blockState.BlockHash).ToArray();
 					var block = await GetOrDownloadBlockAsync(blockState.BlockHash, cancel);
-					await ProcessBlockAsync(blockState.BlockHeight, block, blockState.TransactionIndices, relevantTransactions);
+					await ProcessBlockWithFiltersAsync(blockState.BlockHeight, block, blockState.TransactionIndices, relevantTransactions);
 				}
 
-				// Go through the filters and que to download the matches.
+				// Go through the filters and queue to download the matches.
 				await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) =>
 				{
 					if (filterModel.Filter != null) // Filter can be null if there is no bech32 tx.
@@ -490,43 +490,51 @@ namespace WalletWasabi.Services
 			return clusters;
 		}
 
-		private async Task<bool> ProcessBlockAsync(Height height, Block block, IEnumerable<int> filterByTxIndexes = null, IEnumerable<SmartTransaction> skeletonBlock = null)
+		private async Task<bool> ProcessBlockAsync(Height height, Block block)
 		{
 			var ret = false;
 			using (await TransactionProcessingLock.LockAsync())
 			{
-				if (filterByTxIndexes is null)
+				var relevantIndicies = new List<int>();
+				for (int i = 0; i < block.Transactions.Count; i++)
 				{
-					var relevantIndicies = new List<int>();
-					for (int i = 0; i < block.Transactions.Count; i++)
+					Transaction tx = block.Transactions[i];
+					if (await ProcessTransactionAsync(new SmartTransaction(tx, height, block.GetHash(), i)))
 					{
-						Transaction tx = block.Transactions[i];
-						if (await ProcessTransactionAsync(new SmartTransaction(tx, height, block.GetHash(), i)))
-						{
-							relevantIndicies.Add(i);
-							ret = true;
-						}
+						relevantIndicies.Add(i);
+						ret = true;
 					}
+				}
 
-					if (relevantIndicies.Any())
-					{
-						var blockState = new BlockState(block.GetHash(), height, relevantIndicies);
-						KeyManager.AddBlockState(blockState, setItsHeightToBest: true); // Set the height here (so less toFile and lock.)
-					}
-					else
-					{
-						KeyManager.SetBestHeight(height);
-					}
+				if (relevantIndicies.Any())
+				{
+					var blockState = new BlockState(block.GetHash(), height, relevantIndicies);
+					KeyManager.AddBlockState(blockState, setItsHeightToBest: true); // Set the height here (so less toFile and lock.)
 				}
 				else
 				{
-					foreach (var i in filterByTxIndexes.OrderBy(x => x))
+					KeyManager.SetBestHeight(height);
+				}
+			}
+
+			ProcessedBlocks.TryAdd(block.GetHash(), (height, block.Header.BlockTime));
+
+			NewBlockProcessed?.Invoke(this, block);
+
+			return ret;
+		}
+
+		private async Task<bool> ProcessBlockWithFiltersAsync(Height height, Block block, IEnumerable<int> filterByTxIndexes, IEnumerable<SmartTransaction> skeletonBlock)
+		{
+			var ret = false;
+			using (await TransactionProcessingLock.LockAsync())
+			{
+				foreach (var i in filterByTxIndexes.OrderBy(x => x))
+				{
+					var tx = skeletonBlock?.FirstOrDefault(x => x.BlockIndex == i) ?? new SmartTransaction(block.Transactions[i], height, block.GetHash(), i);
+					if (await ProcessTransactionAsync(tx))
 					{
-						var tx = skeletonBlock?.FirstOrDefault(x => x.BlockIndex == i) ?? new SmartTransaction(block.Transactions[i], height, block.GetHash(), i);
-						if (await ProcessTransactionAsync(tx))
-						{
-							ret = true;
-						}
+						ret = true;
 					}
 				}
 			}
