@@ -13,8 +13,6 @@ namespace WalletWasabi.Helpers
 
 		public const uint ProtocolVersion_WITNESS_VERSION = 70012;
 
-		public const int MaxPasswordLength = 150;
-
 		public static readonly NodeRequirement NodeRequirements = new NodeRequirement
 		{
 			RequiredServices = NodeServices.NODE_WITNESS,
@@ -95,7 +93,5 @@ namespace WalletWasabi.Helpers
 		public const int DefaultRegTestBitcoinCoreRpcPort = 18443;
 
 		public const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-		public const string CompatibilityPasswordWarnMessage = "Compatibility password was used! Please consider generating a new wallet to ensure recoverability!";
 	}
 }

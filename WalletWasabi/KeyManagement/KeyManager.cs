@@ -76,8 +76,6 @@ namespace WalletWasabi.KeyManagement
 
 		public const int AbsoluteMinGapLimit = 21;
 
-		public bool IsCompatibilityPasswordUsed { get; private set; }
-
 		[JsonConstructor]
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, bool? passwordVerified, int? minGapLimit, BlockchainState blockchainState, string filePath = null, KeyPath accountKeyPath = null)
 		{
@@ -554,7 +552,6 @@ namespace WalletWasabi.KeyManagement
 
 		public ExtKey GetMasterExtKey(string password)
 		{
-			IsCompatibilityPasswordUsed = false;
 			if (password is null)
 			{
 				password = "";
@@ -565,37 +562,23 @@ namespace WalletWasabi.KeyManagement
 				throw new SecurityException("This is a watchonly wallet.");
 			}
 
-			Exception resultException = null;
-
-			foreach (var pw in PasswordHelper.GetPossiblePasswords(password))
+			try
 			{
-				try
+				Key secret = EncryptedSecret.GetKey(password);
+				var extKey = new ExtKey(secret, ChainCode);
+
+				// Backwards compatibility:
+				if (MasterFingerprint is null)
 				{
-					Key secret = EncryptedSecret.GetKey(pw);
-
-					var extKey = new ExtKey(secret, ChainCode);
-
-					// Backwards compatibility:
-					if (MasterFingerprint is null)
-					{
-						MasterFingerprint = secret.PubKey.GetHDFingerPrint();
-					}
-
-					if (IsCompatibilityPasswordUsed)
-					{
-						Logger.LogError<KeyManager>(Constants.CompatibilityPasswordWarnMessage);
-					}
-					return extKey;
-				}
-				catch (SecurityException ex)
-				{
-					resultException = ex;
+					MasterFingerprint = secret.PubKey.GetHDFingerPrint();
 				}
 
-				IsCompatibilityPasswordUsed = true; // The first iteration will try the original password if we get here it was failed.
+				return extKey;
 			}
-
-			throw new SecurityException("Invalid password.", resultException);
+			catch (SecurityException ex)
+			{
+				throw new SecurityException("Invalid password.", ex);
+			}
 		}
 
 		public bool TestPassword(string password)

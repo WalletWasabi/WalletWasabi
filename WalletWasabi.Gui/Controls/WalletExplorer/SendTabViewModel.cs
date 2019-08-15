@@ -235,12 +235,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			BuildTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
+				bool isCompatibilityPasswordUsed = false;
 				try
 				{
 					IsBusy = true;
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BuildingTransaction);
 
-					Password = Guard.Correct(Password);
 					Label = Label.Trim(',', ' ').Trim();
 					if (!IsMax && string.IsNullOrWhiteSpace(Label))
 					{
@@ -314,6 +314,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					finally
 					{
 						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.DequeuingSelectedCoins);
+					}
+
+					try
+					{
+						PasswordHelper.GetMasterExtKey(KeyManager, Password, out string compatiblityPasswordUsed); // We could use TryPassword but we need the exception.
+						if (compatiblityPasswordUsed != null)
+						{
+							isCompatibilityPasswordUsed = true;
+							Password = compatiblityPasswordUsed; // Overwrite the password for BuildTransaction function.
+						}
+					}
+					catch (Exception ex)
+					{
+						SetWarningMessage(ex.ToTypeMessageString());
+						return;
 					}
 
 					BuildTransactionResult result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, feeTarget: null, feeRate: feeRate, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
@@ -406,6 +421,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.BuildingTransaction, StatusBarStatus.SigningTransaction, StatusBarStatus.BroadcastingTransaction);
 					IsBusy = false;
+
+					if (isCompatibilityPasswordUsed)
+					{
+						WarningMessage = PasswordHelper.CompatibilityPasswordWarnMessage;
+					}
 				}
 			},
 			this.WhenAny(x => x.IsMax, x => x.AmountText, x => x.Address, x => x.IsBusy,
@@ -812,11 +832,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				ResetUi();
 
 				SetSuccessMessage(successMessage);
-
-				if (KeyManager.IsCompatibilityPasswordUsed)
-				{
-					WarningMessage = Constants.CompatibilityPasswordWarnMessage;
-				}
 			}
 			catch (Exception ex)
 			{

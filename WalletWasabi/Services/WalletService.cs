@@ -157,7 +157,7 @@ namespace WalletWasabi.Services
 
 		private void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
-			if(e.Action == NotifyCollectionChangedAction.Remove)
+			if (e.Action == NotifyCollectionChangedAction.Remove)
 			{
 				var toRemove = e.OldItems[0] as SmartCoin;
 				if (toRemove.SpenderTransactionId != null)
@@ -167,7 +167,7 @@ namespace WalletWasabi.Services
 						Coins.TryRemove(toAlsoRemove);
 					}
 				}
-				Mempool.TransactionHashes.TryRemove(toRemove.TransactionId);				
+				Mempool.TransactionHashes.TryRemove(toRemove.TransactionId);
 			}
 
 			RefreshCoinHistories();
@@ -622,7 +622,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			List<SmartCoin> spentOwnCoins = null; 
+			List<SmartCoin> spentOwnCoins = null;
 			for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 			{
 				// If transaction received to any of the wallet keys:
@@ -1033,7 +1033,6 @@ namespace WalletWasabi.Services
 														Script customChange = null,
 														IEnumerable<TxoRef> allowedInputs = null)
 		{
-			password = password ?? ""; // Correction.
 			toSend = Guard.NotNullOrEmpty(nameof(toSend), toSend);
 
 			if ((feeRate is null && feeTarget is null)

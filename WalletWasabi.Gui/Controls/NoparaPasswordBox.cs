@@ -35,8 +35,6 @@ namespace WalletWasabi.Gui.Controls
 			"如果你是只宠物小精灵，我就选你。" //If you were a Pokemon, I'd choose you.
 		};
 
-		private static string PasswordTooLongMessage = $"Password too long (Max {Constants.MaxPasswordLength} characters).";
-
 		private static Key[] SuppressedKeys { get; } =
 		{
 			Key.LeftCtrl, Key.RightCtrl, Key.LeftAlt, Key.RightAlt, Key.LeftShift, Key.RightShift, Key.Escape, Key.CapsLock, Key.NumLock, Key.LWin, Key.RWin,
@@ -183,14 +181,14 @@ namespace WalletWasabi.Gui.Controls
 					var s = ls[Random.Next(0, ls.Count - 1)];
 					sb.Append(s);
 					ls.Remove(s);
-					if (sb.Length >= Constants.MaxPasswordLength)
+					if (sb.Length >= PasswordHelper.MaxPasswordLength)
 					{
 						break;
 					}
 				}
 				while (ls.Count > 0);
 			}
-			while (sb.Length < Constants.MaxPasswordLength); // Generate more text using the same sentences.
+			while (sb.Length < PasswordHelper.MaxPasswordLength); // Generate more text using the same sentences.
 			_displayText = sb.ToString();
 		}
 
@@ -321,10 +319,10 @@ namespace WalletWasabi.Gui.Controls
 				SelectionStart = SelectionEnd = CaretIndex = 0;
 				_supressChanges = false;
 			}
-			if (Sb.Length + text.Length > Constants.MaxPasswordLength) // Do not allow insert that would be too long.
+			if (Sb.Length + text.Length > PasswordHelper.MaxPasswordLength) // Do not allow insert that would be too long.
 			{
 				handledCorrectly = false;
-				_ = DisplayWarningAsync(PasswordTooLongMessage);
+				_ = DisplayWarningAsync(PasswordHelper.PasswordTooLongMessage);
 			}
 			else if (CaretIndex == 0)
 			{
@@ -335,11 +333,13 @@ namespace WalletWasabi.Gui.Controls
 				Sb.Append(text);
 			}
 
-			if (handledCorrectly && Sb.Length > Constants.MaxPasswordLength) // We should not get here, ensure the maximum length.
+			if (handledCorrectly && PasswordHelper.IsTooLong(Sb.Length)) // We should not get here, ensure the maximum length.
 			{
-				Sb.Remove(Constants.MaxPasswordLength, Sb.Length - Constants.MaxPasswordLength);
+				PasswordHelper.IsTooLong(Sb.ToString(), out string limitedPassword);
+				Sb.Clear();
+				Sb.Append(limitedPassword);
 				handledCorrectly = false; // Should play beep sound not working on windows.
-				_ = DisplayWarningAsync(PasswordTooLongMessage);
+				_ = DisplayWarningAsync(PasswordHelper.PasswordTooLongMessage);
 			}
 
 			PaintText();
@@ -392,24 +392,21 @@ namespace WalletWasabi.Gui.Controls
 			}
 			var password = Sb.ToString();
 
-			var beforeTrim = password.Length;
-
-			password = password.Trim();
-
-			if (beforeTrim != password.Length)
+			if (PasswordHelper.IsTrimable(password, out string trimmedPassword))
 			{
+				password = trimmedPassword;
 				Sb.Clear();
 				Sb.Append(password);
 				_ = DisplayWarningAsync("Leading and trailing white spaces were removed!");
 			}
 
-			Password = password;
-
-			Text = _displayText.Substring(0, Sb.Length);
+			Text = _displayText.Substring(0, password.Length);
 			if (IsPasswordVisible)
 			{
-				Text = Password;
+				Text = password;
 			}
+
+			Password = Sb.ToString(); // Do not use Password instead of local variable. It is not changed immediately after this line.
 
 			_supressChanges = true;
 			try
