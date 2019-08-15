@@ -82,6 +82,8 @@ namespace WalletWasabi.Services
 
 		public TransactionProcessor TransactionProcessor { get; }
 
+		private ConcurrentHashSet<SmartTransaction> TransactionCache { get; }
+
 		public WalletService(
 			BitcoinStore bitcoinStore,
 			KeyManager keyManager,
@@ -114,7 +116,9 @@ namespace WalletWasabi.Services
 			KeyManager.AssertCleanKeysIndexed();
 			KeyManager.AssertLockedInternalKeysIndexed(14);
 
-			TransactionProcessor = new TransactionProcessor(KeyManager, Mempool.TransactionHashes, Coins, ServiceConfiguration.DustThreshold);
+			TransactionCache = new ConcurrentHashSet<SmartTransaction>();
+
+			TransactionProcessor = new TransactionProcessor(KeyManager, Mempool.TransactionHashes, Coins, ServiceConfiguration.DustThreshold, TransactionCache);
 			TransactionProcessor.CoinSpent += TransactionProcessor_CoinSpent;
 			TransactionProcessor.CoinReceived += OnNewCoinFoundAsync;
 
@@ -193,10 +197,10 @@ namespace WalletWasabi.Services
 				}
 
 				Mempool.TransactionHashes.TryRemove(toRemove.TransactionId);
-				var txToRemove = TransactionProcessor.TransactionCache.FirstOrDefault(x => x.GetHash() == toRemove.TransactionId);
+				var txToRemove = TransactionCache.FirstOrDefault(x => x.GetHash() == toRemove.TransactionId);
 				if (txToRemove != default(SmartTransaction))
 				{
-					TransactionProcessor.TransactionCache.TryRemove(txToRemove);
+					TransactionCache.TryRemove(txToRemove);
 				}
 			}
 
@@ -1468,7 +1472,7 @@ namespace WalletWasabi.Services
 			}
 
 			IoHelpers.EnsureContainingDirectoryExists(TransactionsFilePath);
-			string jsonString = JsonConvert.SerializeObject(TransactionProcessor.TransactionCache.OrderByBlockchain(), Formatting.Indented);
+			string jsonString = JsonConvert.SerializeObject(TransactionCache.OrderByBlockchain(), Formatting.Indented);
 			File.WriteAllText(TransactionsFilePath,
 				jsonString,
 				Encoding.UTF8);
@@ -1536,6 +1540,11 @@ namespace WalletWasabi.Services
 			Coins.CollectionChanged -= Coins_CollectionChanged;
 
 			DisconnectDisposeNullLocalBitcoinCoreNode();
+		}
+
+		public SmartTransaction TryGetTxFromCache(uint256 txId)
+		{
+			return TransactionCache.FirstOrDefault(x => x.GetHash() == txId);
 		}
 	}
 }

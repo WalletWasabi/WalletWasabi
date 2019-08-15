@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
 
@@ -9,9 +10,11 @@ namespace WalletWasabi.Services
 {
 	public class TransactionProcessor
 	{
+		private ConcurrentHashSet<SmartTransaction> TransactionCache { get; }
+
 		public KeyManager KeyManager { get; }
 		public ConcurrentHashSet<uint256> TransactionHashes { get; }
-		public ConcurrentHashSet<SmartTransaction> TransactionCache { get; }
+
 		public ObservableConcurrentHashSet<SmartCoin> Coins { get; }
 		public Money DustThreshold { get; }
 
@@ -24,14 +27,14 @@ namespace WalletWasabi.Services
 		public TransactionProcessor(KeyManager keyManager,
 			ConcurrentHashSet<uint256> transactionHashes,
 			ObservableConcurrentHashSet<SmartCoin> coins,
-			Money dustThreshold
-		)
+			Money dustThreshold,
+			ConcurrentHashSet<SmartTransaction> transactionCache)
 		{
-			KeyManager = keyManager;
-			TransactionHashes = transactionHashes;
-			TransactionCache = new ConcurrentHashSet<SmartTransaction>();
-			Coins = coins;
-			DustThreshold = dustThreshold;
+			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
+			TransactionHashes = Guard.NotNull(nameof(transactionHashes), transactionHashes);
+			Coins = Guard.NotNull(nameof(coins), coins);
+			DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
+			TransactionCache = Guard.NotNull(nameof(transactionCache), transactionCache);
 		}
 
 		public bool Process(SmartTransaction tx)

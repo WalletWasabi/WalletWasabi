@@ -145,7 +145,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				var found = txRecordList.FirstOrDefault(x => x.transactionId == coin.TransactionId);
 
-				SmartTransaction foundTransaction = walletService.TransactionProcessor.TransactionCache?.FirstOrDefault(x => x.GetHash() == coin.TransactionId);
+				var foundTransaction = walletService.TryGetTxFromCache(coin.TransactionId);
 				if (foundTransaction is null)
 				{
 					continue;
@@ -182,7 +182,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				if (coin.SpenderTransactionId != null)
 				{
-					SmartTransaction foundSpenderTransaction = walletService.TransactionProcessor.TransactionCache.First(x => x.GetHash() == coin.SpenderTransactionId);
+					var foundSpenderTransaction = walletService.TryGetTxFromCache(coin.SpenderTransactionId);
+					if (foundSpenderTransaction is null)
+					{
+						throw new InvalidOperationException($"Transaction {coin.SpenderTransactionId} not found.");
+					}
 
 					if (foundSpenderTransaction.Height.Type == HeightType.Chain)
 					{
