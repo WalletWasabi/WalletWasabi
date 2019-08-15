@@ -531,7 +531,7 @@ namespace WalletWasabi.Services
 			{
 				foreach (var i in filterByTxIndexes.OrderBy(x => x))
 				{
-					var tx = skeletonBlock?.FirstOrDefault(x => x.BlockIndex == i) ?? new SmartTransaction(block.Transactions[i], height, block.GetHash(), i);
+					var tx = skeletonBlock.FirstOrDefault(x => x.BlockIndex == i) ?? new SmartTransaction(block.Transactions[i], height, block.GetHash(), i);
 					if (await ProcessTransactionAsync(tx))
 					{
 						ret = true;
