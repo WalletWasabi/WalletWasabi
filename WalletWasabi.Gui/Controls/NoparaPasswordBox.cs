@@ -397,7 +397,7 @@ namespace WalletWasabi.Gui.Controls
 				password = trimmedPassword;
 				Sb.Clear();
 				Sb.Append(password);
-				_ = DisplayWarningAsync("Leading and trailing white spaces were removed!");
+				_ = DisplayWarningAsync(PasswordHelper.TrimmedMessage);
 			}
 
 			Text = _displayText.Substring(0, password.Length);
