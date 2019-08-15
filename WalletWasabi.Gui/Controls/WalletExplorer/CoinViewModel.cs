@@ -190,6 +190,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private SmartCoinStatus GetSmartCoinStatus()
 		{
+			Model.SetIsBanned(); // Recheck if the coin's ban has expired.
 			if (Model.IsBanned)
 			{
 				return SmartCoinStatus.MixingBanned;

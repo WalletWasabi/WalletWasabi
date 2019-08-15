@@ -4,7 +4,7 @@ using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-	internal class CommandOnPointerEnterLeaveBehavior : CommandBasedBehavior<Control>
+	public class CommandOnPointerEnterLeaveBehavior : CommandBasedBehavior<Control>
 	{
 		private CompositeDisposable Disposables { get; set; }
 

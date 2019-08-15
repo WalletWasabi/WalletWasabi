@@ -49,7 +49,7 @@ namespace System.Net.Http
 					// if the currently iterated scheme does not equal the provided scheme
 					if (scheme != uriScheme)
 					{
-						throw new FormatException("uriScheme not consistent with host identifier.");
+						throw new FormatException($"{nameof(uriScheme)} not consistent with host identifier.");
 					}
 				}
 			}

@@ -1,5 +1,7 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+﻿<UserControl xmlns="https://github.com/avaloniaui" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+             x:Class="WalletWasabi.Gui.Tabs.AboutView">
   <controls:GroupBox Title="{Binding Title}" BorderThickness="0" Classes="docTabContainer">
     <StackPanel>
       <Grid Classes="content" Margin="0 10 0 0">
@@ -35,6 +37,10 @@
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="FAQ: " />
             <Button Content="{Binding FAQLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding FAQLink}" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Documentation: " />
+            <Button Content="{Binding DocsLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding DocsLink}" />
           </StackPanel>
         </StackPanel>
       </Grid>

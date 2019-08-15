@@ -99,6 +99,11 @@
           <GeometryDrawing Brush="#FF414141" Geometry="F1M9,9L8,9 8,10 9,10z M9,8.5L8,8.5 8,8C8,7.449,8.449,7,9,7L9,6C8.92,5.956 8.748,5.898 8.5,5.898 8.252,5.898 8.08,5.956 8,6L8,7 7,7 7,6C7,5.42 7.631,5 8.5,5 9.369,5 10,5.42 10,6L10,7C10,7.551,9.551,8,9,8z" />
         </DrawingGroup.Children>
       </DrawingGroup>
+      <DrawingGroup x:Key="Documentation">
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#FFF6F6F6" Geometry="M448 360V24c0-13.3-10.7-24-24-24H96C43 0 0 43 0 96v320c0 53 43 96 96 96h328c13.3 0 24-10.7 24-24v-16c0-7.5-3.5-14.3-8.9-18.7-4.2-15.4-4.2-59.3 0-74.7 5.4-4.3 8.9-11.1 8.9-18.6zM128 134c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm0 64c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm253.4 250H96c-17.7 0-32-14.3-32-32 0-17.6 14.4-32 32-32h285.4c-1.9 17.1-1.9 46.9 0 64z" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
       <DrawingGroup x:Key="PrivacyPolicy">
         <DrawingGroup.Children>
           <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />

@@ -776,7 +776,6 @@ namespace WalletWasabi.KeyManagement
 			}
 		}
 
-		/// <returns>The network the keymanager was used the last time on.</returns>
 		public void AssertNetworkOrClearBlockState(Network expectedNetwork)
 		{
 			lock (BlockchainStateLock)
