@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using WalletWasabi.Models;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Services
 {
@@ -14,7 +15,7 @@ namespace WalletWasabi.Services
 
 		public SmartCoinSelector(Dictionary<OutPoint, SmartCoin> smartCoinsByOutpoint)
 		{
-			_smartCoinsByOutpoint = smartCoinsByOutpoint ?? throw new ArgumentNullException(nameof(smartCoinsByOutpoint));
+			Guard.NotNull(nameof(smartCoinsByOutpoint), _smartCoinsByOutpoint);
 		}
 
 		public IEnumerable<ICoin> Select(IEnumerable<ICoin> coins, IMoney target)
