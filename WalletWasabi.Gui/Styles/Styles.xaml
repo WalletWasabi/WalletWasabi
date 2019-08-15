@@ -6,6 +6,7 @@
         xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
   <Style>
     <Style.Resources>
+      <SolidColorBrush x:Key="IndianRedWarningMessage">#CD5C5C</SolidColorBrush>
       <SolidColorBrush x:Key="ThemeAccentBrush">#007ACC</SolidColorBrush>
       <SolidColorBrush x:Key="HyperLinkForeground">#00A2E8</SolidColorBrush>
       <SolidColorBrush x:Key="ErrorBrush">#F25022</SolidColorBrush>

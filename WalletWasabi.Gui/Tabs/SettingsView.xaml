@@ -10,7 +10,7 @@
   </UserControl.Resources>
   <DockPanel LastChildFill="true">
     <StackPanel DockPanel.Dock="Top" IsVisible="{Binding IsModified}" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 5 10 5">
-      <TextBlock Text="Warning!" Foreground="IndianRed" FontWeight="Bold" Classes="warningMessage" Margin="0 0 3 0" />
+      <TextBlock Text="Warning!" Foreground="{DynamicResource IndianRedWarningMessage}" FontWeight="Bold" Classes="warningMessage" Margin="0 0 3 0" />
       <TextBlock Classes="warningMessage">Changes will be applied after restarting the application.</TextBlock>
     </StackPanel>
     <ScrollViewer>
