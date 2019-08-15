@@ -14,11 +14,15 @@ namespace WalletWasabi.Services
 		public ConcurrentHashSet<SmartTransaction> TransactionCache { get; }
 		public ObservableConcurrentHashSet<SmartCoin> Coins { get; }
 		public Money DustThreshold { get; }
-		public event EventHandler<SmartCoin> CoinSpentOrSpenderConfirmed;
-		public event EventHandler<SmartCoin> CoinReceived; 
 
-		public TransactionProcessor(KeyManager keyManager, 
-			ConcurrentHashSet<uint256> transactionHashes, 
+		public event EventHandler<SmartCoin> CoinSpent;
+
+		public event EventHandler<SmartCoin> SpenderConfirmed;
+
+		public event EventHandler<SmartCoin> CoinReceived;
+
+		public TransactionProcessor(KeyManager keyManager,
+			ConcurrentHashSet<uint256> transactionHashes,
 			ObservableConcurrentHashSet<SmartCoin> coins,
 			Money dustThreshold
 		)
@@ -165,12 +169,12 @@ namespace WalletWasabi.Services
 					}
 
 					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, isLikelyCoinJoinOutput, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
-																																																												   // If we did not have it.
+																																																																		   // If we did not have it.
 					if (Coins.TryAdd(newCoin))
 					{
 						TransactionCache.TryAdd(tx);
 						CoinReceived?.Invoke(this, newCoin);
-						
+
 						// Make sure there's always 21 clean keys generated and indexed.
 						KeyManager.AssertCleanKeysIndexed(isInternal: foundKey.IsInternal);
 
@@ -203,9 +207,19 @@ namespace WalletWasabi.Services
 				if (foundCoin != null)
 				{
 					walletRelevant = true;
+					var alreadyKnown = foundCoin.SpenderTransactionId == txId;
 					foundCoin.SpenderTransactionId = txId;
 					TransactionCache.TryAdd(tx);
-					CoinSpentOrSpenderConfirmed?.Invoke(this, foundCoin);
+
+					if (!alreadyKnown)
+					{
+						CoinSpent?.Invoke(this, foundCoin);
+					}
+
+					if (tx.Confirmed)
+					{
+						SpenderConfirmed?.Invoke(this, foundCoin);
+					}
 				}
 			}
 

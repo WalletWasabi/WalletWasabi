@@ -115,8 +115,8 @@ namespace WalletWasabi.Services
 			KeyManager.AssertLockedInternalKeysIndexed(14);
 
 			TransactionProcessor = new TransactionProcessor(KeyManager, Mempool.TransactionHashes, Coins, ServiceConfiguration.DustThreshold);
-			TransactionProcessor.CoinSpentOrSpenderConfirmed += OnNewSpendindCoinFound;
-			TransactionProcessor.CoinReceived += OnNewCoinFound;
+			TransactionProcessor.CoinSpent += TransactionProcessor_CoinSpent;
+			TransactionProcessor.CoinReceived += OnNewCoinFoundAsync;
 
 			if (Directory.Exists(BlocksFolderPath))
 			{
@@ -156,26 +156,26 @@ namespace WalletWasabi.Services
 			Mempool.TransactionReceived += Mempool_TransactionReceivedAsync;
 		}
 
-		private void OnNewSpendindCoinFound(object sender, SmartCoin spentCoin)
+		private void TransactionProcessor_CoinSpent(object sender, SmartCoin spentCoin)
 		{
- 			ChaumianClient.ExposedLinks.TryRemove(spentCoin.GetTxoRef(), out _);
- 		}
+			ChaumianClient.ExposedLinks.TryRemove(spentCoin.GetTxoRef(), out _);
+		}
 
-		private async void OnNewCoinFound(object sender, SmartCoin newCoin)
+		private async void OnNewCoinFoundAsync(object sender, SmartCoin newCoin)
 		{
 			// If it's being mixed and anonset is not sufficient, then queue it.
-			if (newCoin.Unspent && ChaumianClient.HasIngredients 
-				&& newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet 
+			if (newCoin.Unspent && ChaumianClient.HasIngredients
+				&& newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet
 				&& ChaumianClient.State.Contains(newCoin.SpentOutputs))
 			{
-					try
-					{
-							await ChaumianClient.QueueCoinsToMixAsync(newCoin);
-					}
-					catch (Exception ex)
-					{
-							Logger.LogError<WalletService>(ex);
-					}
+				try
+				{
+					await ChaumianClient.QueueCoinsToMixAsync(newCoin);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError<WalletService>(ex);
+				}
 			}
 		}
 
@@ -191,14 +191,13 @@ namespace WalletWasabi.Services
 						Coins.TryRemove(toAlsoRemove);
 					}
 				}
-				
+
 				Mempool.TransactionHashes.TryRemove(toRemove.TransactionId);
-				var txToRemove = TransactionProcessor.TransactionCache.FirstOrDefault(x=>x.GetHash() == toRemove.TransactionId);
+				var txToRemove = TransactionProcessor.TransactionCache.FirstOrDefault(x => x.GetHash() == toRemove.TransactionId);
 				if (txToRemove != default(SmartTransaction))
 				{
 					TransactionProcessor.TransactionCache.TryRemove(txToRemove);
 				}
-
 			}
 
 			RefreshCoinHistories();
