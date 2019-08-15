@@ -183,7 +183,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private void Coins_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		private void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
 			if (e.Action == NotifyCollectionChangedAction.Remove)
 			{
