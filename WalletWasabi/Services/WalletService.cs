@@ -1538,6 +1538,8 @@ namespace WalletWasabi.Services
 			BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
 			Mempool.TransactionReceived -= Mempool_TransactionReceivedAsync;
 			Coins.CollectionChanged -= Coins_CollectionChanged;
+			TransactionProcessor.CoinSpent -= TransactionProcessor_CoinSpent;
+			TransactionProcessor.CoinReceived -= OnNewCoinFoundAsync;
 
 			DisconnectDisposeNullLocalBitcoinCoreNode();
 		}
