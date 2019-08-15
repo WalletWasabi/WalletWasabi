@@ -120,7 +120,7 @@ namespace WalletWasabi.Services
 
 			TransactionProcessor = new TransactionProcessor(KeyManager, Mempool.TransactionHashes, Coins, ServiceConfiguration.DustThreshold, TransactionCache);
 			TransactionProcessor.CoinSpent += TransactionProcessor_CoinSpent;
-			TransactionProcessor.CoinReceived += OnNewCoinFoundAsync;
+			TransactionProcessor.CoinReceived += TransactionProcessor_CoinReceivedAsync;
 
 			if (Directory.Exists(BlocksFolderPath))
 			{
@@ -165,7 +165,7 @@ namespace WalletWasabi.Services
 			ChaumianClient.ExposedLinks.TryRemove(spentCoin.GetTxoRef(), out _);
 		}
 
-		private async void OnNewCoinFoundAsync(object sender, SmartCoin newCoin)
+		private async void TransactionProcessor_CoinReceivedAsync(object sender, SmartCoin newCoin)
 		{
 			// If it's being mixed and anonset is not sufficient, then queue it.
 			if (newCoin.Unspent && ChaumianClient.HasIngredients
@@ -197,7 +197,7 @@ namespace WalletWasabi.Services
 				}
 
 				Mempool.TransactionHashes.TryRemove(toRemove.TransactionId);
-				var txToRemove = TransactionCache.FirstOrDefault(x => x.GetHash() == toRemove.TransactionId);
+				var txToRemove = TryGetTxFromCache(toRemove.TransactionId);
 				if (txToRemove != default(SmartTransaction))
 				{
 					TransactionCache.TryRemove(txToRemove);
@@ -1539,7 +1539,7 @@ namespace WalletWasabi.Services
 			Mempool.TransactionReceived -= Mempool_TransactionReceivedAsync;
 			Coins.CollectionChanged -= Coins_CollectionChanged;
 			TransactionProcessor.CoinSpent -= TransactionProcessor_CoinSpent;
-			TransactionProcessor.CoinReceived -= OnNewCoinFoundAsync;
+			TransactionProcessor.CoinReceived -= TransactionProcessor_CoinReceivedAsync;
 
 			DisconnectDisposeNullLocalBitcoinCoreNode();
 		}
