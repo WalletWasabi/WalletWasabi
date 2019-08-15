@@ -10,7 +10,7 @@ namespace WalletWasabi.Services
 {
 	public class TransactionProcessor
 	{
-		private ConcurrentHashSet<SmartTransaction> TransactionCache { get; }
+		public ConcurrentHashSet<SmartTransaction> TransactionCache { get; }
 
 		public KeyManager KeyManager { get; }
 		public ConcurrentHashSet<uint256> TransactionHashes { get; }

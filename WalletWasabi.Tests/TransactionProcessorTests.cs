@@ -307,7 +307,8 @@ namespace WalletWasabi.Tests
 				keyManager,
 				new ConcurrentHashSet<uint256>(),
 				new ObservableConcurrentHashSet<SmartCoin>(),
-				Money.Coins(0.0001m));
+				Money.Coins(0.0001m),
+				new ConcurrentHashSet<SmartTransaction>());
 		}
 
 		private static SmartTransaction CreateSpendingTransaction(Coin coin, Script scriptPubKey = null, bool isConfirmed = false)
