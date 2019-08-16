@@ -14,7 +14,7 @@ namespace WalletWasabi.Helpers
 	{
 		public const int MaxPasswordLength = 150;
 		public const string CompatibilityPasswordWarnMessage = "Compatibility password was used! Please consider generating a new wallet to ensure recoverability!";
-		public static string PasswordTooLongMessage = $"Password too long (Max {MaxPasswordLength} characters).";
+		public static readonly string PasswordTooLongMessage = $"Password too long (Max {MaxPasswordLength} characters).";
 		public const string TrimmedMessage = "Leading and trailing white spaces were removed!";
 
 		public static string[] GetPossiblePasswords(string originalPassword)
