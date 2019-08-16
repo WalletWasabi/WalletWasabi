@@ -607,13 +607,13 @@ namespace WalletWasabi.Services
 			using (await BlockFolderLock.LockAsync())
 			{
 				var encoder = new HexEncoder();
-				var filePath = Path.Combine(BlocksFolderPath, encoder.EncodeData(hash.ToBytes()));
-				if (Directory.Exists(filePath))
+				var filePath = Path.Combine(BlocksFolderPath, hash.ToString());
+				if (File.Exists(filePath))
 				{
 					try
 					{
 						var blockBytes = await File.ReadAllBytesAsync(filePath, cancel);
-						block =  Block.Load(blockBytes, Synchronizer.Network);
+						block = Block.Load(blockBytes, Synchronizer.Network);
 					}
 					catch (Exception)
 					{
