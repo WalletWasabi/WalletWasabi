@@ -977,6 +977,11 @@ namespace WalletWasabi.Services
 			}
 
 			HdPubKey changeHdPubKey = null;
+			if (payments.TryGetCustomChange(out DestinationRequest custChange))
+			{
+				changeHdPubKey = KeyManager.GetKeyForScriptPubKey(custChange.Destination.ScriptPubKey);
+			}
+
 			try
 			{
 				// We try building without change, in some case, it is not needed
@@ -994,9 +999,7 @@ namespace WalletWasabi.Services
 				}
 				else if (payments.ChangeStrategy == ChangeStrategy.Custom)
 				{
-					IDestination customDestination = payments.GetCustomChange().Destination;
-					builder.SetChange(customDestination);
-					changeHdPubKey = KeyManager.GetKeyForScriptPubKey(customDestination.ScriptPubKey);
+					builder.SetChange(custChange.Destination);
 				}
 				else
 				{

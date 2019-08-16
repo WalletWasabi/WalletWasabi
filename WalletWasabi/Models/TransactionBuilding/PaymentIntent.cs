@@ -62,16 +62,11 @@ namespace WalletWasabi.Models.TransactionBuilding
 			Count = requests.Count();
 		}
 
-		public DestinationRequest GetCustomChange()
+		public bool TryGetCustomChange(out DestinationRequest customChange)
 		{
-			if (ChangeStrategy != ChangeStrategy.Custom)
-			{
-				throw new InvalidOperationException($"{nameof(ChangeStrategy)} must be {ChangeStrategy.Custom}");
-			}
-			else
-			{
-				return Requests.Single(x => x.Amount.Type == MoneyRequestType.AllRemaining);
-			}
+			customChange = Requests.FirstOrDefault(x => x.Amount.Type == MoneyRequestType.AllRemaining);
+
+			return customChange != null;
 		}
 	}
 }
