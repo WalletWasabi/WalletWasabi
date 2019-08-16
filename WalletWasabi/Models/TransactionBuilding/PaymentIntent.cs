@@ -12,7 +12,7 @@ namespace WalletWasabi.Models.TransactionBuilding
 		public IEnumerable<DestinationRequest> Requests { get; }
 		public ChangeStrategy ChangeStrategy { get; }
 		public Money TotalAmount { get; }
-		public int Count { get; }
+		public int Count => Requests.Count();
 
 		public PaymentIntent(Script scriptPubKey, Money amount, string label = "") : this(scriptPubKey, MoneyRequest.Create(amount), label)
 		{
@@ -59,7 +59,6 @@ namespace WalletWasabi.Models.TransactionBuilding
 			Requests = requests;
 
 			TotalAmount = requests.Where(x => x.Amount.Type == MoneyRequestType.Value).Sum(x => x.Amount.Amount);
-			Count = requests.Count();
 		}
 
 		public bool TryGetCustomChange(out DestinationRequest customChange)
