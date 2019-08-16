@@ -590,8 +590,8 @@ namespace WalletWasabi.Services
 		/// <exception cref="OperationCanceledException"></exception>
 		public async Task<Block> FetchBlockAsync(uint256 hash, CancellationToken cancel)
 		{
-			Block block = await GetBlockFromFileAsync(hash, cancel);
-			if (block == null)
+			Block block = await TryGetBlockFromFileAsync(hash, cancel);
+			if (block is null)
 			{
 				block = await DownloadBlockAsync(hash, cancel);
 			}
@@ -600,7 +600,7 @@ namespace WalletWasabi.Services
 
 		/// <param name="hash">Block hash of the desired block, represented as a 256 bit integer.</param>
 		/// <exception cref="OperationCanceledException"></exception>
-		private async Task<Block> GetBlockFromFileAsync(uint256 hash, CancellationToken cancel)
+		private async Task<Block> TryGetBlockFromFileAsync(uint256 hash, CancellationToken cancel)
 		{
 			// Try get the block
 			Block block = null;
@@ -612,18 +612,18 @@ namespace WalletWasabi.Services
 				{
 					try
 					{
-						var blockBytes = await File.ReadAllBytesAsync(filePath);
+						var blockBytes = await File.ReadAllBytesAsync(filePath, cancel);
 						block =  Block.Load(blockBytes, Synchronizer.Network);
 					}
 					catch (Exception)
 					{
 						// In case the block file is corrupted and we get an EndOfStreamException exception
 						// Ignore any error and continue to re-downloading the block.
+						Logger.LogDebug<WalletService>($"Block {hash} file corrupted, deleting file and block will be re-downloaded.");
+						File.Delete(filePath);
 					}
 				}
 			}
-
-			cancel.ThrowIfCancellationRequested();
 
 			return block;
 		}
@@ -659,7 +659,7 @@ namespace WalletWasabi.Services
 
 						// Select a random node we are connected to.
 						Node node = Nodes.ConnectedNodes.RandomElement();
-						if (node == default(Node) && !node.IsConnected && !(Synchronizer.Network != Network.RegTest))
+						if (node == default(Node) && !node.IsConnected && Synchronizer.Network == Network.RegTest)
 						{
 							await Task.Delay(100);
 							continue;
@@ -774,14 +774,14 @@ namespace WalletWasabi.Services
 							if (!localNode.IsConnected)
 							{
 								throw new InvalidOperationException($"Wasabi could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
-									$"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
+									"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
 							}
 							LocalBitcoinCoreNode = localNode;
 						}
 						catch (OperationCanceledException) when (handshakeTimeout.IsCancellationRequested)
 						{
 							Logger.LogWarning<Node>($"Wasabi could not complete the handshake with the local node. Probably Wasabi is not whitelisted by the node.{Environment.NewLine}" +
-								$"Use \"whitebind\" in the node configuration. (Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.)");
+								"Use \"whitebind\" in the node configuration. (Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.)");
 							throw;
 						}
 					}
@@ -802,7 +802,7 @@ namespace WalletWasabi.Services
 				}
 
 				// Retrieved block from local node and block is valid
-				Logger.LogInfo<WalletService>($"Block acquired from local P2P connection: {hash}");
+				Logger.LogInfo<WalletService>($"Block acquired from local P2P connection: {hash}.");
 				return blockFromLocalNode;
 			}
 			catch (Exception ex)
@@ -818,7 +818,6 @@ namespace WalletWasabi.Services
 					Logger.LogWarning<WalletService>(ex);
 				}
 			}
-			cancel.ThrowIfCancellationRequested();
 
 			return null;
 		}
