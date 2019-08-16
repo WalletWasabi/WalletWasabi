@@ -346,6 +346,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						txviewer.Update(result);
 
 						TryResetInputsOnSuccess("Transaction is successfully built!");
+
+						if (isCompatibilityPasswordUsed)
+						{
+							WarningMessage = PasswordHelper.CompatibilityPasswordWarnMessage;
+						}
 						return;
 					}
 
@@ -403,6 +408,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(signedTransaction));
 
 					TryResetInputsOnSuccess("Transaction is successfully sent!");
+
+					if (isCompatibilityPasswordUsed)
+					{
+						WarningMessage = PasswordHelper.CompatibilityPasswordWarnMessage;
+					}
 				}
 				catch (InsufficientBalanceException ex)
 				{
@@ -421,11 +431,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.BuildingTransaction, StatusBarStatus.SigningTransaction, StatusBarStatus.BroadcastingTransaction);
 					IsBusy = false;
-
-					if (isCompatibilityPasswordUsed)
-					{
-						WarningMessage = PasswordHelper.CompatibilityPasswordWarnMessage;
-					}
 				}
 			},
 			this.WhenAny(x => x.IsMax, x => x.AmountText, x => x.Address, x => x.IsBusy,
