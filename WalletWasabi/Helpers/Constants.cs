@@ -13,8 +13,6 @@ namespace WalletWasabi.Helpers
 
 		public const uint ProtocolVersion_WITNESS_VERSION = 70012;
 
-		public const int MaxPasswordLength = 150;
-
 		public static readonly NodeRequirement NodeRequirements = new NodeRequirement
 		{
 			RequiredServices = NodeServices.NODE_WITNESS,

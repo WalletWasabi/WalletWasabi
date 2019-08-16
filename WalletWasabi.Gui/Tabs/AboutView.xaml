@@ -38,6 +38,10 @@
             <TextBlock Text="FAQ: " />
             <Button Content="{Binding FAQLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding FAQLink}" />
           </StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Documentation: " />
+            <Button Content="{Binding DocsLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding DocsLink}" />
+          </StackPanel>
         </StackPanel>
       </Grid>
     </StackPanel>
