@@ -9,9 +9,9 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Services
 {
-	internal class SmartCoinSelector : ICoinSelector
+	public class SmartCoinSelector : ICoinSelector
 	{
-		private Dictionary<OutPoint, SmartCoin> _smartCoinsByOutpoint;
+		private Dictionary<OutPoint, SmartCoin> SmartCoinsByOutpoint { get; }
 
 		public SmartCoinSelector(Dictionary<OutPoint, SmartCoin> smartCoinsByOutpoint)
 		{
@@ -22,7 +22,7 @@ namespace WalletWasabi.Services
 		{
 			var coinsByOutpoint = coins.ToDictionary(c => c.Outpoint);
 			var totalOutAmount = (Money)target;
-			var unspentCoins = coins.Select(c => _smartCoinsByOutpoint[c.Outpoint]).ToArray();
+			var unspentCoins = coins.Select(c => SmartCoinsByOutpoint[c.Outpoint]).ToArray();
 			var coinsToSpend = new HashSet<SmartCoin>();
 			var unspentConfirmedCoins = new List<SmartCoin>();
 			var unspentUnconfirmedCoins = new List<SmartCoin>();
