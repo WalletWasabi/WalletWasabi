@@ -977,25 +977,33 @@ namespace WalletWasabi.Services
 			}
 
 			HdPubKey changeHdPubKey = null;
-			if (payments.ChangeStrategy == ChangeStrategy.Auto)
+			try
 			{
-				KeyManager.AssertCleanKeysIndexed(isInternal: true);
-				KeyManager.AssertLockedInternalKeysIndexed(14);
-				changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).RandomElement();
-				builder.SetChange(changeHdPubKey.P2wpkhScript);
+				// We try building without change, in some case, it is not needed
+				builder.SendEstimatedFees(feePerBytes);
 			}
-			else if (payments.ChangeStrategy == ChangeStrategy.Custom)
+			catch (InvalidOperationException) // A change address should be specified
 			{
-				IDestination customDestination = payments.GetCustomChange().Destination;
-				builder.SetChange(customDestination);
-				changeHdPubKey = KeyManager.GetKeyForScriptPubKey(customDestination.ScriptPubKey);
+				if (payments.ChangeStrategy == ChangeStrategy.Auto)
+				{
+					// Let's check is we need change by using a dummy
+					KeyManager.AssertCleanKeysIndexed(isInternal: true);
+					KeyManager.AssertLockedInternalKeysIndexed(14);
+					changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).RandomElement();
+					builder.SetChange(changeHdPubKey.P2wpkhScript);
+				}
+				else if (payments.ChangeStrategy == ChangeStrategy.Custom)
+				{
+					IDestination customDestination = payments.GetCustomChange().Destination;
+					builder.SetChange(customDestination);
+					changeHdPubKey = KeyManager.GetKeyForScriptPubKey(customDestination.ScriptPubKey);
+				}
+				else
+				{
+					throw new NotSupportedException($"{nameof(payments.ChangeStrategy)} is not supported: {payments.ChangeStrategy}.");
+				}
+				builder.SendEstimatedFees(feePerBytes);
 			}
-			else
-			{
-				throw new NotSupportedException($"{nameof(payments.ChangeStrategy)} is not supported: {payments.ChangeStrategy}.");
-			}
-
-			builder.SendEstimatedFees(feePerBytes);
 			var psbt = builder.BuildPSBT(false);
 
 			string changeLabel = null;
