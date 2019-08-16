@@ -644,7 +644,7 @@ namespace WalletWasabi.Services
 					try
 					{
 						// Try to get block information from local running Core node first.
-						block = await DownloadBlockFromLocalNodeAsync(hash, cancel);
+						block = await TryDownloadBlockFromLocalNodeAsync(hash, cancel);
 
 						if (block != null)
 						{
@@ -732,7 +732,7 @@ namespace WalletWasabi.Services
 			return block;
 		}
 
-		private async Task<Block> DownloadBlockFromLocalNodeAsync(uint256 hash, CancellationToken cancel)
+		private async Task<Block> TryDownloadBlockFromLocalNodeAsync(uint256 hash, CancellationToken cancel)
 		{
 			try
 			{
