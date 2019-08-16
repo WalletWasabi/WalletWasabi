@@ -181,7 +181,7 @@ namespace WalletWasabi.Gui.Controls
 					var s = ls[Random.Next(0, ls.Count - 1)];
 					sb.Append(s);
 					ls.Remove(s);
-					if (sb.Length >= PasswordHelper.MaxPasswordLength)
+					if (PasswordHelper.IsTooLong(sb.Length))
 					{
 						break;
 					}
@@ -319,7 +319,7 @@ namespace WalletWasabi.Gui.Controls
 				SelectionStart = SelectionEnd = CaretIndex = 0;
 				_supressChanges = false;
 			}
-			if (Sb.Length + text.Length > PasswordHelper.MaxPasswordLength) // Do not allow insert that would be too long.
+			if (PasswordHelper.IsTooLong(Sb.Length + text.Length)) // Do not allow insert that would be too long.
 			{
 				handledCorrectly = false;
 				_ = DisplayWarningAsync(PasswordHelper.PasswordTooLongMessage);
