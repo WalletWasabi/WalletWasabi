@@ -1061,7 +1061,7 @@ namespace WalletWasabi.Services
 
 			if (spentCoins.Any(u => !u.Confirmed))
 			{
-				Logger.LogInfo<WalletService>("Unconfirmed transaction are being spent.");
+				Logger.LogInfo<WalletService>("Unconfirmed transaction is spent.");
 			}
 
 			// 9. Build the transaction
