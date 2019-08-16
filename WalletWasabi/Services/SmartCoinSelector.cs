@@ -15,7 +15,7 @@ namespace WalletWasabi.Services
 
 		public SmartCoinSelector(Dictionary<OutPoint, SmartCoin> smartCoinsByOutpoint)
 		{
-			Guard.NotNull(nameof(smartCoinsByOutpoint), smartCoinsByOutpoint);
+			SmartCoinsByOutpoint = Guard.NotNull(nameof(smartCoinsByOutpoint), smartCoinsByOutpoint);
 		}
 
 		public IEnumerable<ICoin> Select(IEnumerable<ICoin> coins, IMoney target)
