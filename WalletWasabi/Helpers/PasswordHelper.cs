@@ -93,7 +93,7 @@ namespace WalletWasabi.Helpers
 			return true;
 		}
 
-		public static ExtKey GetMasterExtKey(KeyManager keyManager, string password, out string compatiblityPassword)
+		public static void Guard(string password)
 		{
 			if (IsTooLong(password, out _)) // Password should be formatted, before entering here.
 			{
@@ -104,6 +104,11 @@ namespace WalletWasabi.Helpers
 			{
 				throw new FormatException("Leading and trailing white spaces are not enabled!");
 			}
+		}
+
+		public static ExtKey GetMasterExtKey(KeyManager keyManager, string password, out string compatiblityPassword)
+		{
+			Guard(password);
 
 			compatiblityPassword = null;
 
