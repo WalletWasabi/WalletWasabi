@@ -1000,7 +1000,7 @@ namespace WalletWasabi.Services
 
 				if (subtractFeeFromAmountIndex is int inputIndex && inputIndex == i)
 				{
-					builder.SubtractFees();	
+					builder.SubtractFees();
 				}
 			}
 
@@ -1023,8 +1023,8 @@ namespace WalletWasabi.Services
 			string changeLabel = null;
 			var spentCoins = psbt.Inputs.Select(txin => smartCoinsByOutpoint[txin.PrevOut]).ToArray();
 
-			var realToSend = toSend.Select(t => (label: t.Label, 
-												script: t.Script, 
+			var realToSend = toSend.Select(t => (label: t.Label,
+												script: t.Script,
 												amount: psbt.Outputs.FirstOrDefault(o => o.ScriptPubKey == t.Script)?.Value))
 									.Where(i => i.amount != null)
 									.ToArray();
