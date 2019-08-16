@@ -238,7 +238,7 @@ namespace WalletWasabi.Gui.Controls
 					string text = await Application.Current.Clipboard.GetTextAsync();
 					if (!string.IsNullOrEmpty(text))
 					{
-						e.Handled = OnTextInput(text, true);
+						e.Handled = OnTextInput(text);
 					}
 				}
 				else if (Sb.Length > 0)
@@ -293,18 +293,15 @@ namespace WalletWasabi.Gui.Controls
 
 		protected override void OnTextInput(TextInputEventArgs e)
 		{
-			var isPaste = e.Text != null && e.Text.Length > 1; // if the ExtendedTextBox right click/Paste is used, OnTextInput will be called directly
-
-			e.Handled = OnTextInput(e.Text, isPaste);
+			e.Handled = OnTextInput(e.Text);
 		}
 
 		/// <summary>
 		/// All text input operation (keydown/paste/delete) should call this.
 		/// </summary>
 		/// <param name="text"></param>
-		/// <param name="isPaste"></param>
 		/// <returns></returns>
-		private bool OnTextInput(string text, bool isPaste)
+		private bool OnTextInput(string text)
 		{
 			if (_supressChanges)
 			{
