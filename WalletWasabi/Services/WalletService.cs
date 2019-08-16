@@ -975,7 +975,7 @@ namespace WalletWasabi.Services
 			// 4. Get and calculate fee
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
 
-			FeeRate feePerBytes = (feeTarget is int v) ? Synchronizer.GetFeeRate(v) : feeRate;
+			FeeRate feePerBytes = feeTarget.HasValue ? Synchronizer.GetFeeRate(feeTarget.Value) : feeRate;
 			// Use the sanity check that under 2 satoshi per bytes should not be displayed. To correct possible rounding errors.
 			feePerBytes = FeeRate.Max(feePerBytes, new FeeRate(1m));
 
