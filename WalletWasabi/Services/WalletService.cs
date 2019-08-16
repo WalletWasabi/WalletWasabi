@@ -25,6 +25,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Models.TransactionBuilding;
 using WalletWasabi.Stores;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -866,21 +867,6 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public class Operation
-		{
-			public Script Script { get; }
-			public Money Amount { get; }
-			public string Label { get; }
-
-			public Operation(Script script, Money amount, string label)
-			{
-				Script = Guard.NotNull(nameof(script), script);
-				Amount = Guard.NotNull(nameof(amount), amount);
-				Label = label ?? "";
-			}
-		}
-
-		/// <param name="toSend">If Money.Zero then spends all available amount. Does not generate change.</param>
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
 		/// <param name="allowedInputs">Only these inputs allowed to be used to build the transaction. The wallet must know the corresponding private keys.</param>
 		/// <param name="subtractFeeFromAmountIndex">If null, fee is substracted from the change. Otherwise it denotes the index in the toSend array.</param>
@@ -890,16 +876,15 @@ namespace WalletWasabi.Services
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <exception cref="ArgumentOutOfRangeException"></exception>
 		public BuildTransactionResult BuildTransaction(string password,
-														Operation[] toSend,
+														PaymentIntent payments,
 														int? feeTarget = null,
 														FeeRate feeRate = null,
 														bool allowUnconfirmed = false,
 														int? subtractFeeFromAmountIndex = null,
-														Script customChange = null,
 														IEnumerable<TxoRef> allowedInputs = null)
 		{
 			password = password ?? ""; // Correction.
-			toSend = Guard.NotNullOrEmpty(nameof(toSend), toSend);
+			payments = Guard.NotNull(nameof(payments), payments);
 
 			if ((feeRate is null && feeTarget is null)
 				|| (feeRate != null && feeTarget != null))
@@ -907,29 +892,10 @@ namespace WalletWasabi.Services
 				throw new NotSupportedException($"Either {nameof(feeRate)} or {nameof(feeTarget)} must be set and the other should be null.");
 			}
 
-			if (toSend.Any(x => x is null))
+			long totalAmount = payments.TotalAmount.Satoshi;
+			if (totalAmount < 0 || totalAmount > Constants.MaximumNumberOfSatoshis)
 			{
-				throw new ArgumentNullException($"{nameof(toSend)} cannot contain null element.");
-			}
-			if (toSend.Any(x => x.Amount < Money.Zero))
-			{
-				throw new ArgumentException($"{nameof(toSend)} cannot contain negative element.");
-			}
-
-			long sum = toSend.Select(x => x.Amount).Sum().Satoshi;
-			if (sum < 0 || sum > Constants.MaximumNumberOfSatoshis)
-			{
-				throw new ArgumentOutOfRangeException($"{nameof(toSend)} sum cannot be smaller than 0 or greater than {Constants.MaximumNumberOfSatoshis}.");
-			}
-
-			int spendAllCount = toSend.Count(x => x.Amount == Money.Zero);
-			if (spendAllCount > 1)
-			{
-				throw new ArgumentException($"Only one {nameof(toSend)} element can contain Money.Zero. Money.Zero means add the change to the value of this output.");
-			}
-			if (spendAllCount == 1 && !(customChange is null))
-			{
-				throw new ArgumentException($"{nameof(customChange)} and send all to destination cannot be specified at the same time.");
+				throw new ArgumentOutOfRangeException($"{nameof(payments)}.{nameof(payments.TotalAmount)} sum cannot be smaller than 0 or greater than {Constants.MaximumNumberOfSatoshis}.");
 			}
 
 			if (feeTarget.HasValue)
@@ -948,9 +914,10 @@ namespace WalletWasabi.Services
 				{
 					throw new ArgumentOutOfRangeException($"{nameof(subtractFeeFromAmountIndex)} cannot be smaller than 0.");
 				}
-				if (subtractFeeFromAmountIndex > toSend.Length - 1)
+				int maxIndex = payments.Count - 1;
+				if (subtractFeeFromAmountIndex > maxIndex)
 				{
-					throw new ArgumentOutOfRangeException($"{nameof(subtractFeeFromAmountIndex)} can be maximum {nameof(toSend)}.Length - 1. {nameof(subtractFeeFromAmountIndex)}: {subtractFeeFromAmountIndex}, {nameof(toSend)}.Length - 1: {toSend.Length - 1}.");
+					throw new ArgumentOutOfRangeException($"{nameof(subtractFeeFromAmountIndex)} can be maximum {maxIndex}. Actual: {subtractFeeFromAmountIndex}.");
 				}
 			}
 
@@ -984,18 +951,23 @@ namespace WalletWasabi.Services
 			builder.SetCoinSelector(new SmartCoinSelector(smartCoinsByOutpoint));
 			builder.AddCoins(allowedSmartCoinInputs.Select(c => c.GetCoin()));
 
-			for (int i = 0; i < toSend.Length; i++) // clone
+			for (int i = 0; i < payments.Count; i++) // clone
 			{
-				var destination = toSend[i].Script;
-				var amount = toSend[i].Amount;
+				var toSend = payments.Requests.ToArray();
+				var destination = toSend[i].Destination;
+				var amountRequest = toSend[i].Amount;
 				var label = toSend[i].Label;
-				if (amount == Money.Zero)
+				if (amountRequest.Type == MoneyRequestType.AllRemaining)
 				{
 					builder.SendAll(destination);
 				}
+				else if (amountRequest.Type == MoneyRequestType.Value)
+				{
+					builder.Send(destination, amountRequest.Amount);
+				}
 				else
 				{
-					builder.Send(destination, amount);
+					throw new NotSupportedException($"{nameof(amountRequest.Type)} is not supported: {amountRequest.Type}.");
 				}
 
 				if (subtractFeeFromAmountIndex is int inputIndex && inputIndex == i)
@@ -1005,16 +977,22 @@ namespace WalletWasabi.Services
 			}
 
 			HdPubKey changeHdPubKey = null;
-			if (customChange is null)
+			if (payments.ChangeStrategy == ChangeStrategy.Auto)
 			{
 				KeyManager.AssertCleanKeysIndexed(isInternal: true);
 				KeyManager.AssertLockedInternalKeysIndexed(14);
 				changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).RandomElement();
 				builder.SetChange(changeHdPubKey.P2wpkhScript);
 			}
+			else if (payments.ChangeStrategy == ChangeStrategy.Custom)
+			{
+				IDestination customDestination = payments.GetCustomChange().Destination;
+				builder.SetChange(customDestination);
+				changeHdPubKey = KeyManager.GetKeyForScriptPubKey(customDestination.ScriptPubKey);
+			}
 			else
 			{
-				builder.SetChange(customChange);
+				throw new NotSupportedException($"{nameof(payments.ChangeStrategy)} is not supported: {payments.ChangeStrategy}.");
 			}
 
 			builder.SendEstimatedFees(feePerBytes);
@@ -1023,9 +1001,9 @@ namespace WalletWasabi.Services
 			string changeLabel = null;
 			var spentCoins = psbt.Inputs.Select(txin => smartCoinsByOutpoint[txin.PrevOut]).ToArray();
 
-			var realToSend = toSend.Select(t => (label: t.Label,
-												script: t.Script,
-												amount: psbt.Outputs.FirstOrDefault(o => o.ScriptPubKey == t.Script)?.Value))
+			var realToSend = payments.Requests.Select(t => (label: t.Label,
+												destination: t.Destination,
+												amount: psbt.Outputs.FirstOrDefault(o => o.ScriptPubKey == t.Destination.ScriptPubKey)?.Value))
 									.Where(i => i.amount != null)
 									.ToArray();
 

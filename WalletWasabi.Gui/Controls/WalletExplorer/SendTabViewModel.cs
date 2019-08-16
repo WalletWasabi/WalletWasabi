@@ -26,6 +26,7 @@ using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
+using WalletWasabi.Models.TransactionBuilding;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
@@ -268,11 +269,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						return;
 					}
 
-					var script = address.ScriptPubKey;
-					var amount = Money.Zero;
-					if (!IsMax)
+					MoneyRequest moneyRequest;
+					if (IsMax)
 					{
-						if (!Money.TryParse(AmountText, out amount) || amount == Money.Zero)
+						moneyRequest = MoneyRequest.CreateAllRemaining();
+					}
+					else
+					{
+						if (!Money.TryParse(AmountText, out Money amount) || amount == Money.Zero)
 						{
 							SetWarningMessage($"Invalid amount.");
 							return;
@@ -283,6 +287,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							SetWarningMessage("Looks like you want to spend a whole coin. Try Max button instead.");
 							return;
 						}
+						moneyRequest = MoneyRequest.Create(amount);
 					}
 
 					if (FeeRate is null || FeeRate.SatoshiPerByte < 1)
@@ -295,8 +300,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					FeeRate feeRate = FeeRate;
 
 					var label = Label;
-					var operation = new WalletService.Operation(script, amount, label);
-
+					var intent = new PaymentIntent(new DestinationRequest(address, moneyRequest, label));
 					try
 					{
 						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.DequeuingSelectedCoins);
@@ -331,7 +335,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						return;
 					}
 
-					BuildTransactionResult result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, feeTarget: null, feeRate: feeRate, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
+					BuildTransactionResult result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, intent, feeTarget: null, feeRate: feeRate, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 
 					if (IsTransactionBuilder)
 					{
