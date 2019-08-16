@@ -1005,16 +1005,16 @@ namespace WalletWasabi.Services
 			}
 
 			HdPubKey changeHdPubKey = null;
-			if (customChange != null)
-			{
-				builder.SetChange(customChange);
-			}
-			else
+			if (customChange is null)
 			{
 				KeyManager.AssertCleanKeysIndexed(isInternal: true);
 				KeyManager.AssertLockedInternalKeysIndexed(14);
 				changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).RandomElement();
 				builder.SetChange(changeHdPubKey.P2wpkhScript);
+			}
+			else
+			{
+				builder.SetChange(customChange);
 			}
 
 			builder.SendEstimatedFees(feePerBytes);
