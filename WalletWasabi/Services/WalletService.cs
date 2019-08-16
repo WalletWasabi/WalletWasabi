@@ -1005,7 +1005,7 @@ namespace WalletWasabi.Services
 			}
 
 			HdPubKey changeHdPubKey = null;
-			if (customChange is Script)
+			if (customChange != null)
 			{
 				builder.SetChange(customChange);
 			}
