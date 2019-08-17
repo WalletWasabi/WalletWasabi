@@ -301,6 +301,7 @@ namespace WalletWasabi.Services
 				var unconfirmedTransactions = new SmartTransaction[0];
 				var confirmedTransactions = new SmartTransaction[0];
 
+				// Fetch previous wallet state from transactions file
 				if (File.Exists(TransactionsFilePath))
 				{
 					try
@@ -321,85 +322,89 @@ namespace WalletWasabi.Services
 					}
 				}
 
-				// Go through the keymanager's index.
-				KeyManager.AssertNetworkOrClearBlockState(Network);
-				Height bestKeyManagerHeight = KeyManager.GetBestHeight();
-
-				foreach (BlockState blockState in KeyManager.GetTransactionIndex())
-				{
-					var relevantTransactions = confirmedTransactions.Where(x => x.BlockHash == blockState.BlockHash).ToArray();
-					var block = await GetOrDownloadBlockAsync(blockState.BlockHash, cancel);
-					await ProcessBlockAsync(blockState.BlockHeight, block, blockState.TransactionIndices, relevantTransactions);
-				}
-
-				// Go through the filters and que to download the matches.
-				await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) =>
-				{
-					if (filterModel.Filter != null) // Filter can be null if there is no bech32 tx.
-					{
-						await ProcessFilterModelAsync(filterModel, cancel);
-					}
-				}, new Height(bestKeyManagerHeight.Value + 1));
+				await LoadWalletStateAsync(confirmedTransactions, cancel);
 
 				// Load in dummy mempool
-				try
+				if (unconfirmedTransactions != null && unconfirmedTransactions.Any())
 				{
-					if (unconfirmedTransactions != null && unconfirmedTransactions.Any())
-					{
-						try
-						{
-							using (await TransactionProcessingLock.LockAsync())
-							using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
-							{
-								var compactness = 10;
-
-								var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
-
-								var cnt = 0;
-								foreach (var tx in unconfirmedTransactions)
-								{
-									if (mempoolHashes.Contains(tx.GetHash().ToString().Substring(0, compactness)))
-									{
-										tx.SetHeight(Height.Mempool);
-										await ProcessTransactionAsync(tx);
-										Mempool.TransactionHashes.TryAdd(tx.GetHash());
-
-										Logger.LogInfo<WalletService>($"Transaction was successfully tested against the backend's mempool hashes: {tx.GetHash()}.");
-										cnt++;
-									}
-								}
-
-								if (cnt != unconfirmedTransactions.Length)
-								{
-									SerializeTransactionCache();
-								}
-							}
-						}
-						catch
-						{
-							// When there's a connection failure do not clean the transactions, add it to processing.
-							foreach (var tx in unconfirmedTransactions)
-							{
-								tx.SetHeight(Height.Mempool);
-								await ProcessTransactionAsync(tx);
-								Mempool.TransactionHashes.TryAdd(tx.GetHash());
-							}
-
-							throw;
-						}
-					}
+					await LoadDummyMempoolAsync(unconfirmedTransactions);
 				}
-				catch (Exception ex)
-				{
-					Logger.LogWarning<WalletService>(ex);
-				}
-				finally
-				{
-					UnconfirmedTransactionsInitialized = true;
-				}
+
 			}
 			Coins.CollectionChanged += Coins_CollectionChanged;
 			RefreshCoinHistories();
+		}
+
+		private async Task LoadWalletStateAsync(SmartTransaction[] confirmedTransactions, CancellationToken cancel)
+		{
+			KeyManager.AssertNetworkOrClearBlockState(Network);
+			Height bestKeyManagerHeight = KeyManager.GetBestHeight();
+
+			foreach (BlockState blockState in KeyManager.GetTransactionIndex())
+			{
+				var relevantTransactions = confirmedTransactions.Where(x => x.BlockHash == blockState.BlockHash).ToArray();
+				var block = await GetOrDownloadBlockAsync(blockState.BlockHash, cancel);
+				await ProcessBlockAsync(blockState.BlockHeight, block, blockState.TransactionIndices, relevantTransactions);
+			}
+
+			// Go through the filters and queue to download the matches.
+			await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) =>
+			{
+				if (filterModel.Filter != null) // Filter can be null if there is no bech32 tx.
+				{
+					await ProcessFilterModelAsync(filterModel, cancel);
+				}
+			}, new Height(bestKeyManagerHeight.Value + 1));
+		}
+
+		private async Task LoadDummyMempoolAsync(SmartTransaction[] unconfirmedTransactions)
+		{
+			try
+			{
+				using (await TransactionProcessingLock.LockAsync())
+				using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
+				{
+					var compactness = 10;
+
+					var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
+
+					var cnt = 0;
+					foreach (var tx in unconfirmedTransactions)
+					{
+						if (mempoolHashes.Contains(tx.GetHash().ToString().Substring(0, compactness)))
+						{
+							tx.SetHeight(Height.Mempool);
+							await ProcessTransactionAsync(tx);
+							Mempool.TransactionHashes.TryAdd(tx.GetHash());
+
+							Logger.LogInfo<WalletService>($"Transaction was successfully tested against the backend's mempool hashes: {tx.GetHash()}.");
+							cnt++;
+						}
+					}
+
+					if (cnt != unconfirmedTransactions.Length)
+					{
+						SerializeTransactionCache();
+					}
+				}
+
+			}
+			catch (Exception ex)
+			{
+				// When there's a connection failure do not clean the transactions, add it to processing.
+				foreach (var tx in unconfirmedTransactions)
+				{
+					tx.SetHeight(Height.Mempool);
+					await ProcessTransactionAsync(tx);
+					Mempool.TransactionHashes.TryAdd(tx.GetHash());
+				}
+
+				Logger.LogWarning<WalletService>(ex);
+			}
+			finally
+			{
+				UnconfirmedTransactionsInitialized = true;
+			}
 		}
 
 		private async Task ProcessFilterModelAsync(FilterModel filterModel, CancellationToken cancel)
