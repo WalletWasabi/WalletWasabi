@@ -959,7 +959,7 @@ namespace WalletWasabi.Services
 				var label = toSend[i].Label;
 				if (amountRequest.Type == MoneyRequestType.AllRemaining)
 				{
-					builder.SendAll(destination);
+					builder.SendAllRemaining(destination);
 				}
 				else if (amountRequest.Type == MoneyRequestType.Value)
 				{
