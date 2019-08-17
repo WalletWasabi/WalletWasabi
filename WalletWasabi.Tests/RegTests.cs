@@ -827,7 +827,7 @@ namespace WalletWasabi.Tests
 				Assert.True(res2.Fee > Money.Satoshis(2 * 100)); // since there is a sanity check of 2sat/vb in the server
 				Assert.InRange(res2.FeePercentOfSent, 0, 1);
 				Assert.Single(res2.SpentCoins);
-				Assert.Equal(key.P2wpkhScript, res2.SpentCoins.Single().ScriptPubKey);
+				Assert.Equal(key2.P2wpkhScript, res2.SpentCoins.Single().ScriptPubKey);
 				Assert.Equal(Money.Coins(1m), res2.SpentCoins.Single().Amount);
 				Assert.False(res2.SpendsUnconfirmed);
 
@@ -1085,7 +1085,8 @@ namespace WalletWasabi.Tests
 
 				#region Labeling
 
-				res = wallet.BuildTransaction(password, new PaymentIntent(receive, MoneyRequest.CreateAllRemaining(), "my label"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
+				Script receive2 = wallet.GetReceiveKey("").P2wpkhScript;
+				res = wallet.BuildTransaction(password, new PaymentIntent(receive2, MoneyRequest.CreateAllRemaining(), "my label"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Equal("my label", res.InnerWalletOutputs.Single().Label);
@@ -1610,13 +1611,13 @@ namespace WalletWasabi.Tests
 
 				Assert.Single(wallet.Coins);
 
-				// Test mixin
 				var operations = new PaymentIntent(
 					new DestinationRequest(key.P2wpkhScript, Money.Coins(0.01m)),
 					new DestinationRequest(new Key().ScriptPubKey, Money.Coins(0.01m)),
 					new DestinationRequest(new Key().ScriptPubKey, Money.Coins(0.01m)));
 				var tx1Res = wallet.BuildTransaction(password, operations, FeeStrategy.TwoHoursConfirmationTargetStrategy, allowUnconfirmed: true);
-				Assert.Equal(1, tx1Res.OuterWalletOutputs.Single(x => x.ScriptPubKey == key.P2wpkhScript).AnonymitySet);
+				Assert.Equal(2, tx1Res.InnerWalletOutputs.Count());
+				Assert.Equal(2, tx1Res.OuterWalletOutputs.Count());
 
 				// Spend the unconfirmed coin (send it to ourself)
 				operations = new PaymentIntent(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m));

@@ -657,32 +657,34 @@ namespace WalletWasabi.Services
 									}
 
 									var localEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
-									var localNode = await Node.ConnectAsync(Network, localEndPoint, nodeConnectionParameters);
-									try
+									using (var localNode = await Node.ConnectAsync(Network, localEndPoint, nodeConnectionParameters))
 									{
-										Logger.LogInfo<WalletService>($"TCP Connection succeeded, handshaking...");
-										localNode.VersionHandshake(Constants.LocalNodeRequirements, handshakeTimeout.Token);
-										var peerServices = localNode.PeerVersion.Services;
-
-										//if (!peerServices.HasFlag(NodeServices.Network) && !peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
-										//{
-										//	throw new InvalidOperationException($"Wasabi cannot use the local node because it does not provide blocks.");
-										//}
-
-										Logger.LogInfo<WalletService>($"Handshake completed successfully.");
-
-										if (!localNode.IsConnected)
+										try
 										{
-											throw new InvalidOperationException($"Wasabi could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
-												$"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
+											Logger.LogInfo<WalletService>($"TCP Connection succeeded, handshaking...");
+											localNode.VersionHandshake(Constants.LocalNodeRequirements, handshakeTimeout.Token);
+											var peerServices = localNode.PeerVersion.Services;
+
+											//if (!peerServices.HasFlag(NodeServices.Network) && !peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
+											//{
+											//	throw new InvalidOperationException($"Wasabi cannot use the local node because it does not provide blocks.");
+											//}
+
+											Logger.LogInfo<WalletService>($"Handshake completed successfully.");
+
+											if (!localNode.IsConnected)
+											{
+												throw new InvalidOperationException($"Wasabi could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
+													$"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
+											}
+											LocalBitcoinCoreNode = localNode;
 										}
-										LocalBitcoinCoreNode = localNode;
-									}
-									catch (OperationCanceledException) when (handshakeTimeout.IsCancellationRequested)
-									{
-										Logger.LogWarning<Node>($"Wasabi could not complete the handshake with the local node. Probably Wasabi is not whitelisted by the node.{Environment.NewLine}" +
-											$"Use \"whitebind\" in the node configuration. (Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.)");
-										throw;
+										catch (OperationCanceledException) when (handshakeTimeout.IsCancellationRequested)
+										{
+											Logger.LogWarning<Node>($"Wasabi could not complete the handshake with the local node. Probably Wasabi is not whitelisted by the node.{Environment.NewLine}" +
+												$"Use \"whitebind\" in the node configuration. (Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.)");
+											throw;
+										}
 									}
 								}
 							}
@@ -991,7 +993,6 @@ namespace WalletWasabi.Services
 
 			var psbt = builder.BuildPSBT(false);
 
-			string changeLabel = null;
 			var spentCoins = psbt.Inputs.Select(txin => smartCoinsByOutpoint[txin.PrevOut]).ToArray();
 
 			var realToSend = payments.Requests.Select(t => (label: t.Label,
@@ -999,18 +1000,6 @@ namespace WalletWasabi.Services
 												amount: psbt.Outputs.FirstOrDefault(o => o.ScriptPubKey == t.Destination.ScriptPubKey)?.Value))
 									.Where(i => i.amount != null)
 									.ToArray();
-
-			if (changeHdPubKey != null)
-			{
-				var sb = new StringBuilder();
-				foreach (var item in realToSend)
-				{
-					var corrected = Guard.Correct(item.label);
-					sb.Append($"{corrected}, ");
-				}
-				changeLabel = sb.ToString().Trim(',', ' ');
-				changeHdPubKey.SetLabel(changeLabel, KeyManager);
-			}
 
 			if (!psbt.TryGetFee(out var fee))
 			{
@@ -1089,25 +1078,49 @@ namespace WalletWasabi.Services
 				}
 			}
 
+			var labelBuilder = new LabelBuilder();
+			foreach (var label in payments.Requests.Select(x => x.Label))
+			{
+				labelBuilder.Add(label);
+			}
 			var outerWalletOutputs = new List<SmartCoin>();
 			var innerWalletOutputs = new List<SmartCoin>();
 			for (var i = 0U; i < tx.Outputs.Count; i++)
 			{
 				TxOut output = tx.Outputs[i];
 				var anonset = (tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet)) - 1; // Minus 1, because count own only once.
-				var foundKey = KeyManager.GetKeys(KeyState.Clean).FirstOrDefault(x => output.ScriptPubKey == x.P2wpkhScript);
+				var foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
 				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, anonset, isLikelyCoinJoinOutput: false, pubKey: foundKey);
+				labelBuilder.Add(coin.Label); // foundKey's label is already added to the coinlabel.
 
-				if (foundKey != null)
-				{
-					coin.Label = changeLabel;
-					innerWalletOutputs.Add(coin);
-				}
-				else
+				if (foundKey is null)
 				{
 					outerWalletOutputs.Add(coin);
 				}
+				else
+				{
+					innerWalletOutputs.Add(coin);
+				}
 			}
+
+			foreach (var coin in outerWalletOutputs.Concat(innerWalletOutputs))
+			{
+				var foundPaymentRequest = payments.Requests.FirstOrDefault(x => x.Destination.ScriptPubKey == coin.ScriptPubKey);
+
+				// If change then we concatenate all the labels.
+				if (foundPaymentRequest is null) // Then it's autochange.
+				{
+					coin.Label = labelBuilder.ToString();
+				}
+				else
+				{
+					coin.Label = new LabelBuilder(coin.Label, foundPaymentRequest.Label).ToString();
+				}
+
+				var foundKey = KeyManager.GetKeyForScriptPubKey(coin.ScriptPubKey);
+				foundKey?.SetLabel(coin.Label); // The foundkeylabel has already been added previously, so no need to concatenate.
+			}
+
 			Logger.LogInfo<WalletService>($"Transaction is successfully built: {tx.GetHash()}.");
 			var sign = !KeyManager.IsWatchOnly;
 			var spendsUnconfirmed = spentCoins.Any(c => !c.Confirmed);
@@ -1292,7 +1305,13 @@ namespace WalletWasabi.Services
 
 					Parallel.ForEach(unspentCoins, new ParallelOptions { MaxDegreeOfParallelism = simultaneousThread }, coin =>
 					{
-						var result = string.Join(", ", GetClusters(coin, new List<SmartCoin>(), lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId).Select(x => x.Label).Distinct());
+						var result = string.Join(
+							", ",
+							GetClusters(coin, new List<SmartCoin>(), lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId)
+							.SelectMany(x => x.Label
+								.Split(',', StringSplitOptions.RemoveEmptyEntries)
+								.Select(y => y.Trim()))
+							.Distinct());
 						coin.SetClusters(result);
 					});
 				}
