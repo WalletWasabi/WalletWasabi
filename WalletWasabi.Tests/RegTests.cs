@@ -1166,22 +1166,46 @@ namespace WalletWasabi.Tests
 				// covers:
 				// customchange
 				// feePc > 1
+				var k1 = new Key();
+				var k2 = new Key();
 				res = wallet.BuildTransaction(
 					password,
 					new PaymentIntent(
-						new DestinationRequest(new Key(), MoneyRequest.CreateAllRemaining()),
-						new DestinationRequest(new Key(), Money.Coins(0.0003m), "outgoing")),
+						new DestinationRequest(k1, MoneyRequest.CreateAllRemaining()),
+						new DestinationRequest(k2, Money.Coins(0.0003m), "outgoing")),
+					2);
+
+				Assert.Contains(k1.ScriptPubKey, res.OuterWalletOutputs.Select(x => x.ScriptPubKey));
+				Assert.Contains(k2.ScriptPubKey, res.OuterWalletOutputs.Select(x => x.ScriptPubKey));
+
+				#endregion CustomChange
+
+				#region FeePcHigh
+
+				res = wallet.BuildTransaction(
+					password,
+					new PaymentIntent(new Key(), Money.Coins(0.0003m), "outgoing"),
 					2);
 
 				Assert.True(res.FeePercentOfSent > 1);
 
-				Logger.LogDebug<RegTests>($"Fee: {res.Fee}");
-				Logger.LogDebug<RegTests>($"FeePercentOfSent: {res.FeePercentOfSent} %");
-				Logger.LogDebug<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
-				Logger.LogDebug<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
-				Logger.LogDebug<RegTests>($"TxId: {res.Transaction.GetHash()}");
+				var newChangeK = keyManager.GenerateNewKey("foo", KeyState.Clean, isInternal: true);
+				res = wallet.BuildTransaction(
+					password,
+					new PaymentIntent(
+						new DestinationRequest(newChangeK.P2wpkhScript, MoneyRequest.CreateAllRemaining(), "boo"),
+						new DestinationRequest(new Key(), Money.Coins(0.0003m), "outgoing")),
+					2);
 
-				#endregion CustomChange
+				Assert.True(res.FeePercentOfSent > 1);
+				Assert.Single(res.OuterWalletOutputs);
+				Assert.Single(res.InnerWalletOutputs);
+				SmartCoin changeRes = res.InnerWalletOutputs.Single();
+				Assert.Equal(newChangeK.P2wpkhScript, changeRes.ScriptPubKey);
+				Assert.Equal(newChangeK.Label, changeRes.Label);
+				Assert.Equal(KeyState.Clean, newChangeK.KeyState); // Still clean, because the tx wasn't yet propagated.
+
+				#endregion FeePcHigh
 			}
 			finally
 			{

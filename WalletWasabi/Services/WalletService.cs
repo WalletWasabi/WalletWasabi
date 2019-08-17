@@ -1026,7 +1026,7 @@ namespace WalletWasabi.Services
 					var corrected = Guard.Correct(item.label);
 					sb.Append($"{corrected}, ");
 				}
-				changeLabel = sb.ToString().TrimEnd(',', ' ');
+				changeLabel = sb.ToString().Trim(',', ' ');
 				changeHdPubKey.SetLabel(changeLabel, KeyManager);
 			}
 
@@ -1040,18 +1040,29 @@ namespace WalletWasabi.Services
 			Logger.LogInfo<WalletService>($"Estimated tx size: {vSize} vbytes.");
 
 			// 6. Do some checks
-			Money totalOutgoingAmountNoFee = realToSend.Select(x => x.amount).Sum();
-			if (totalOutgoingAmountNoFee == Money.Zero)
+			Money totalSendAmountNoFee = realToSend.Sum(x => x.amount);
+			if (totalSendAmountNoFee == Money.Zero)
 			{
 				throw new InvalidOperationException($"The amount after subtracting the fee is too small to be sent.");
 			}
-			Money totalOutgoingAmount = totalOutgoingAmountNoFee + fee;
-			decimal feePc = (100 * fee.ToDecimal(MoneyUnit.BTC)) / totalOutgoingAmountNoFee.ToDecimal(MoneyUnit.BTC);
+			Money totalSendAmount = totalSendAmountNoFee + fee;
+
+			Money totalOutgoingAmountNoFee;
+			if (changeHdPubKey is null)
+			{
+				totalOutgoingAmountNoFee = totalSendAmountNoFee;
+			}
+			else
+			{
+				totalOutgoingAmountNoFee = realToSend.Where(x => !changeHdPubKey.ContainsScript(x.destination.ScriptPubKey)).Sum(x => x.amount);
+			}
+			decimal totalOutgoingAmountNoFeeDecimal = totalOutgoingAmountNoFee.ToDecimal(MoneyUnit.BTC);
+			decimal feePc = (100 * fee.ToDecimal(MoneyUnit.BTC)) / (totalOutgoingAmountNoFeeDecimal == 0 ? decimal.MinValue : totalOutgoingAmountNoFeeDecimal);
 
 			if (feePc > 1)
 			{
-				Logger.LogInfo<WalletService>($"The transaction fee is {feePc:0.#}% of your transaction amount.{Environment.NewLine}"
-					+ $"Sending:\t {totalOutgoingAmount.ToString(fplus: false, trimExcessZero: true)} BTC.{Environment.NewLine}"
+				Logger.LogInfo<WalletService>($"The transaction fee is {totalOutgoingAmountNoFee:0.#}% of your transaction amount.{Environment.NewLine}"
+					+ $"Sending:\t {totalSendAmount.ToString(fplus: false, trimExcessZero: true)} BTC.{Environment.NewLine}"
 					+ $"Fee:\t\t {fee.Satoshi} Satoshi.");
 			}
 			if (feePc > 100)
