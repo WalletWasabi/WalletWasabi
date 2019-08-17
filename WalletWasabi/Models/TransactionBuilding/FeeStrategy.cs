@@ -37,7 +37,7 @@ namespace WalletWasabi.Models.TransactionBuilding
 			}
 		}
 
-		public static FeeStrategy TwoHoursConfirmationTargetStrategy { get; } = CreateFromConfirmationTarget(Constants.TwoHoursConfirmationTarget);
+		public static FeeStrategy TwentyMinutesConfirmationTargetStrategy { get; } = CreateFromConfirmationTarget(Constants.TwoHoursConfirmationTarget);
 		public static FeeStrategy OneDayConfirmationTargetStrategy { get; } = CreateFromConfirmationTarget(Constants.OneDayConfirmationTarget);
 		public static FeeStrategy SevenDaysConfirmationTargetStrategy { get; } = CreateFromConfirmationTarget(Constants.SevenDaysConfirmationTarget);
 
