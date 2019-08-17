@@ -64,9 +64,14 @@ namespace WalletWasabi.Models.TransactionBuilding
 			}
 			else // Check if we can do without input merging.
 			{
-				if (largestCoin.Amount >= totalOutAmount)
+				var largestCoins = unspentCoins.Where(x => x.ScriptPubKey == largestCoin.ScriptPubKey);
+
+				if (largestCoins.Sum(x => x.Amount) >= totalOutAmount)
 				{
-					coinsToSpend.Add(largestCoin);
+					foreach (var c in largestCoins)
+					{
+						coinsToSpend.Add(c);
+					}
 					return true;
 				}
 			}
@@ -80,6 +85,14 @@ namespace WalletWasabi.Models.TransactionBuilding
 				// If reaches the amount, then return true, else just go with the largest coin.
 				if (coinsToSpend.Select(x => x.Amount).Sum() >= totalOutAmount)
 				{
+					// Add if we can find address reuse.
+					foreach (var c in unspentCoins
+						.Except(coinsToSpend) // So we're choosing from the non selected coins.
+						.Where(x => coinsToSpend.Any(y => y.ScriptPubKey == x.ScriptPubKey)))// Where the selected coins contains the same script.
+					{
+						coinsToSpend.Add(c);
+					}
+
 					return true;
 				}
 			}
