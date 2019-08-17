@@ -750,7 +750,7 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
-		public async Task SendTestsAsync() // These tests are taken from HiddenWallet, they were tests on the testnet.
+		public async Task SendTestsAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await InitializeTestEnvironmentAsync(1);
 
@@ -780,10 +780,11 @@ namespace WalletWasabi.Tests
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("foo label");
+			var key2 = wallet.GetReceiveKey("foo label");
 			var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
 			Assert.NotNull(txId);
 			await rpc.GenerateAsync(1);
-			var txId2 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
+			var txId2 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), Money.Coins(1m));
 			Assert.NotNull(txId2);
 			await rpc.GenerateAsync(1);
 
