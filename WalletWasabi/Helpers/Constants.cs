@@ -76,7 +76,7 @@ namespace WalletWasabi.Helpers
 			}
 		}
 
-		public const int TwoHoursConfirmationTarget = 2;
+		public const int TwentyMinutesConfirmationTarget = 2;
 		public const int OneDayConfirmationTarget = 144;
 		public const int SevenDaysConfirmationTarget = 1008;
 

@@ -37,7 +37,7 @@ namespace WalletWasabi.Models.TransactionBuilding
 			}
 		}
 
-		public static FeeStrategy TwentyMinutesConfirmationTargetStrategy { get; } = CreateFromConfirmationTarget(Constants.TwoHoursConfirmationTarget);
+		public static FeeStrategy TwentyMinutesConfirmationTargetStrategy { get; } = CreateFromConfirmationTarget(Constants.TwentyMinutesConfirmationTarget);
 		public static FeeStrategy OneDayConfirmationTargetStrategy { get; } = CreateFromConfirmationTarget(Constants.OneDayConfirmationTarget);
 		public static FeeStrategy SevenDaysConfirmationTargetStrategy { get; } = CreateFromConfirmationTarget(Constants.SevenDaysConfirmationTarget);
 
@@ -68,7 +68,7 @@ namespace WalletWasabi.Models.TransactionBuilding
 					throw new ArgumentException($"{nameof(feeRate)} must be null.");
 				}
 				Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
-				_target = Guard.InRangeAndNotNull(nameof(confirmationTarget), confirmationTarget.Value, Constants.TwoHoursConfirmationTarget, Constants.SevenDaysConfirmationTarget);
+				_target = Guard.InRangeAndNotNull(nameof(confirmationTarget), confirmationTarget.Value, Constants.TwentyMinutesConfirmationTarget, Constants.SevenDaysConfirmationTarget);
 			}
 			else
 			{
