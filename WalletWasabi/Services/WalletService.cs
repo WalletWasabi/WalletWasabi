@@ -924,7 +924,7 @@ namespace WalletWasabi.Services
 				allowedSmartCoinInputs = allowUnconfirmed ? Coins.Where(x => !x.Unavailable).ToList() : Coins.Where(x => !x.Unavailable && x.Confirmed).ToList();
 			}
 
-			// 4. Get and calculate fee
+			// Get and calculate fee
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
 
 			FeeRate feePerBytes = feeTarget.HasValue ? Synchronizer.GetFeeRate(feeTarget.Value) : feeRate;
@@ -990,7 +990,7 @@ namespace WalletWasabi.Services
 									.Where(i => i.amount != null)
 									.ToArray();
 
-			if (changeHdPubKey is HdPubKey)
+			if (changeHdPubKey != null)
 			{
 				var sb = new StringBuilder();
 				foreach (var item in realToSend)
@@ -1011,7 +1011,7 @@ namespace WalletWasabi.Services
 			var vSize = builder.EstimateSize(psbt.GetOriginalTransaction(), true);
 			Logger.LogInfo<WalletService>($"Estimated tx size: {vSize} vbytes.");
 
-			// 6. Do some checks
+			// Do some checks
 			Money totalSendAmountNoFee = realToSend.Sum(x => x.amount);
 			if (totalSendAmountNoFee == Money.Zero)
 			{
@@ -1047,7 +1047,7 @@ namespace WalletWasabi.Services
 				Logger.LogInfo<WalletService>("Unconfirmed transaction is spent.");
 			}
 
-			// 9. Build the transaction
+			// Build the transaction
 			Logger.LogInfo<WalletService>("Signing transaction...");
 			// It must be watch only, too, because if we have the key and also hardware wallet, we do not care we can sign.
 
