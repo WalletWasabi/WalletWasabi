@@ -1043,7 +1043,7 @@ namespace WalletWasabi.Services
 			Money totalOutgoingAmountNoFee = realToSend.Select(x => x.amount).Sum();
 			if (totalOutgoingAmountNoFee == Money.Zero)
 			{
-				throw new InvalidOperationException($"The amount to send after fee is too small to be sent to your destination");
+				throw new InvalidOperationException($"The amount after subtracting the fee is too small to be sent.");
 			}
 			Money totalOutgoingAmount = totalOutgoingAmountNoFee + fee;
 			decimal feePc = (100 * fee.ToDecimal(MoneyUnit.BTC)) / totalOutgoingAmountNoFee.ToDecimal(MoneyUnit.BTC);
