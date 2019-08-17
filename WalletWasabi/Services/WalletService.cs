@@ -899,6 +899,21 @@ namespace WalletWasabi.Services
 				allowedSmartCoinInputs = allowUnconfirmed
 					? Coins.Where(x => !x.Unavailable && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList()
 					: Coins.Where(x => !x.Unavailable && x.Confirmed && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
+
+				// Add those that have the same script, because common ownership is already exposed.
+				var allScripts = allowedSmartCoinInputs.Select(x => x.ScriptPubKey).ToHashSet();
+				foreach (var coin in Coins.Where(x => !x.Unavailable && !allowedSmartCoinInputs.Any(y => x.TransactionId == y.TransactionId && x.Index == y.Index)))
+				{
+					if (!(allowUnconfirmed || coin.Confirmed))
+					{
+						continue;
+					}
+
+					if (allScripts.Contains(coin.ScriptPubKey))
+					{
+						allowedSmartCoinInputs.Add(coin);
+					}
+				}
 			}
 			else
 			{
