@@ -901,17 +901,21 @@ namespace WalletWasabi.Services
 					: Coins.Where(x => !x.Unavailable && x.Confirmed && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
 
 				// Add those that have the same script, because common ownership is already exposed.
-				var allScripts = allowedSmartCoinInputs.Select(x => x.ScriptPubKey).ToHashSet();
-				foreach (var coin in Coins.Where(x => !x.Unavailable && !allowedSmartCoinInputs.Any(y => x.TransactionId == y.TransactionId && x.Index == y.Index)))
+				// But only if the user didn't click the "max" button. In this case he'd send more money than what he'd think.
+				if (payments.ChangeStrategy != ChangeStrategy.AllRemainingCustom)
 				{
-					if (!(allowUnconfirmed || coin.Confirmed))
+					var allScripts = allowedSmartCoinInputs.Select(x => x.ScriptPubKey).ToHashSet();
+					foreach (var coin in Coins.Where(x => !x.Unavailable && !allowedSmartCoinInputs.Any(y => x.TransactionId == y.TransactionId && x.Index == y.Index)))
 					{
-						continue;
-					}
+						if (!(allowUnconfirmed || coin.Confirmed))
+						{
+							continue;
+						}
 
-					if (allScripts.Contains(coin.ScriptPubKey))
-					{
-						allowedSmartCoinInputs.Add(coin);
+						if (allScripts.Contains(coin.ScriptPubKey))
+						{
+							allowedSmartCoinInputs.Add(coin);
+						}
 					}
 				}
 			}

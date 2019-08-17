@@ -43,7 +43,7 @@ namespace WalletWasabi.Models.TransactionBuilding
 
 		public static FeeStrategy CreateFromConfirmationTarget(int confirmationTarget) => new FeeStrategy(FeeStrategyType.Target, confirmationTarget: confirmationTarget, feeRate: null);
 
-		public static FeeStrategy CreateFromFeeRate(FeeRate feeRate) => new FeeStrategy(FeeStrategyType.Target, confirmationTarget: null, feeRate: feeRate);
+		public static FeeStrategy CreateFromFeeRate(FeeRate feeRate) => new FeeStrategy(FeeStrategyType.Rate, confirmationTarget: null, feeRate: feeRate);
 
 		private FeeStrategy(FeeStrategyType type, int? confirmationTarget, FeeRate feeRate)
 		{
