@@ -31,7 +31,7 @@ namespace WalletWasabi.Models.TransactionBuilding
 			{
 				if (Type != FeeStrategyType.Rate)
 				{
-					throw new NotSupportedException($"Cannot get {nameof(Target)} with {nameof(FeeStrategyType)} {Type}.");
+					throw new NotSupportedException($"Cannot get {nameof(Rate)} with {nameof(FeeStrategyType)} {Type}.");
 				}
 				return _rate;
 			}
