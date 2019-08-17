@@ -7,7 +7,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.Services
+namespace WalletWasabi.Models.TransactionBuilding
 {
 	public class SmartCoinSelector : ICoinSelector
 	{

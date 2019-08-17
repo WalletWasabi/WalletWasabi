@@ -297,7 +297,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 
 					bool useCustomFee = !IsSliderFeeUsed;
-					FeeRate feeRate = FeeRate;
+					var feeStrategy = FeeStrategy.CreateFromFeeRate(FeeRate);
 
 					var label = Label;
 					var intent = new PaymentIntent(address, moneyRequest, label);
@@ -335,7 +335,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						return;
 					}
 
-					BuildTransactionResult result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, intent, feeTarget: null, feeRate: feeRate, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
+					BuildTransactionResult result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 
 					if (IsTransactionBuilder)
 					{
@@ -677,7 +677,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			else if (feeTarget == Constants.SevenDaysConfirmationTarget)
 			{
-				ConfirmationExpectedText = $"two weeks™";
+				ConfirmationExpectedText = "one week";
 			}
 			else if (feeTarget == -1)
 			{

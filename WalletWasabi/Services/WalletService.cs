@@ -869,41 +869,22 @@ namespace WalletWasabi.Services
 
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
 		/// <param name="allowedInputs">Only these inputs allowed to be used to build the transaction. The wallet must know the corresponding private keys.</param>
-		/// <param name="feeTarget">The target number of blocks to estimate the fee. Null if feeRate is being used instead.</param>
-		/// <param name="feeRate">The fee rate for the transaction. Null if feeTarget is being used instead.</param>
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <exception cref="ArgumentOutOfRangeException"></exception>
 		public BuildTransactionResult BuildTransaction(string password,
 														PaymentIntent payments,
-														int? feeTarget = null,
-														FeeRate feeRate = null,
+														FeeStrategy feeStrategy,
 														bool allowUnconfirmed = false,
 														IEnumerable<TxoRef> allowedInputs = null)
 		{
 			password = password ?? ""; // Correction.
 			payments = Guard.NotNull(nameof(payments), payments);
 
-			if ((feeRate is null && feeTarget is null)
-				|| (feeRate != null && feeTarget != null))
-			{
-				throw new NotSupportedException($"Either {nameof(feeRate)} or {nameof(feeTarget)} must be set and the other should be null.");
-			}
-
 			long totalAmount = payments.TotalAmount.Satoshi;
 			if (totalAmount < 0 || totalAmount > Constants.MaximumNumberOfSatoshis)
 			{
 				throw new ArgumentOutOfRangeException($"{nameof(payments)}.{nameof(payments.TotalAmount)} sum cannot be smaller than 0 or greater than {Constants.MaximumNumberOfSatoshis}.");
-			}
-
-			if (feeTarget.HasValue)
-			{
-				Guard.InRangeAndNotNull(nameof(feeTarget), feeTarget.Value, 0, Constants.SevenDaysConfirmationTarget); // Allow 0 and 1, and correct later.
-
-				if (feeTarget < 2) // Correct 0 and 1 to 2.
-				{
-					feeTarget = 2;
-				}
 			}
 
 			// Get allowed coins to spend.
@@ -927,9 +908,19 @@ namespace WalletWasabi.Services
 			// Get and calculate fee
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
 
-			FeeRate feePerBytes = feeTarget.HasValue ? Synchronizer.GetFeeRate(feeTarget.Value) : feeRate;
-			// Sanity check.
-			feePerBytes = FeeRate.Max(feePerBytes, new FeeRate(1m));
+			FeeRate feeRate;
+			if (feeStrategy.Type == FeeStrategyType.Target)
+			{
+				feeRate = Synchronizer.GetFeeRate(feeStrategy.Target);
+			}
+			else if (feeStrategy.Type == FeeStrategyType.Rate)
+			{
+				feeRate = feeStrategy.Rate;
+			}
+			else
+			{
+				throw new NotSupportedException(feeStrategy.Type.ToString());
+			}
 
 			var smartCoinsByOutpoint = allowedSmartCoinInputs.ToDictionary(s => s.GetOutPoint());
 			TransactionBuilder builder = Network.CreateTransactionBuilder();
@@ -977,7 +968,7 @@ namespace WalletWasabi.Services
 				builder.SetChange(changeHdPubKey.P2wpkhScript);
 			}
 
-			builder.SendEstimatedFees(feePerBytes);
+			builder.SendEstimatedFees(feeRate);
 
 			var psbt = builder.BuildPSBT(false);
 
@@ -1063,7 +1054,7 @@ namespace WalletWasabi.Services
 				builder.SignPSBT(psbt);
 				psbt.Finalize();
 				tx = psbt.ExtractTransaction();
-				TransactionPolicyError[] checkResults = builder.Check(tx, feePerBytes);
+				TransactionPolicyError[] checkResults = builder.Check(tx, feeRate);
 				if (checkResults.Length > 0)
 				{
 					throw new InvalidTxException(tx, checkResults);
