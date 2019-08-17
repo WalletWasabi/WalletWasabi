@@ -7,16 +7,19 @@ namespace WalletWasabi.Models.TransactionBuilding
 {
 	public class MoneyRequest
 	{
-		public static MoneyRequest Create(Money amount) => new MoneyRequest(amount, MoneyRequestType.Value);
+		public static MoneyRequest Create(Money amount, bool subtractFee = false) => new MoneyRequest(amount, MoneyRequestType.Value, subtractFee);
 
-		public static MoneyRequest CreateAllRemaining() => new MoneyRequest(null, MoneyRequestType.AllRemaining);
+		public static MoneyRequest CreateChange(bool subtractFee = true) => new MoneyRequest(null, MoneyRequestType.Change, subtractFee);
+
+		public static MoneyRequest CreateAllRemaining(bool subtractFee = true) => new MoneyRequest(null, MoneyRequestType.AllRemaining, subtractFee);
 
 		public Money Amount { get; }
 		public MoneyRequestType Type { get; }
+		public bool SubtractFee { get; }
 
-		private MoneyRequest(Money amount, MoneyRequestType type)
+		private MoneyRequest(Money amount, MoneyRequestType type, bool subtractFee)
 		{
-			if (type == MoneyRequestType.AllRemaining)
+			if (type == MoneyRequestType.AllRemaining || type == MoneyRequestType.Change)
 			{
 				if (amount != null)
 				{
@@ -41,6 +44,7 @@ namespace WalletWasabi.Models.TransactionBuilding
 
 			Amount = amount;
 			Type = type;
+			SubtractFee = subtractFee;
 		}
 	}
 }

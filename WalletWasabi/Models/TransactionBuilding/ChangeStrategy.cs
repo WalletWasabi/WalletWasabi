@@ -7,6 +7,7 @@ namespace WalletWasabi.Models.TransactionBuilding
 	public enum ChangeStrategy
 	{
 		Auto,
-		Custom
+		Custom,
+		AllRemainingCustom
 	}
 }

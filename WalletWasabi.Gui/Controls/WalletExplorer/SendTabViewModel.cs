@@ -300,7 +300,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					FeeRate feeRate = FeeRate;
 
 					var label = Label;
-					var intent = new PaymentIntent(new DestinationRequest(address, moneyRequest, label));
+					var intent = new PaymentIntent(address, moneyRequest, label);
 					try
 					{
 						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.DequeuingSelectedCoins);

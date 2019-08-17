@@ -869,7 +869,6 @@ namespace WalletWasabi.Services
 
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
 		/// <param name="allowedInputs">Only these inputs allowed to be used to build the transaction. The wallet must know the corresponding private keys.</param>
-		/// <param name="subtractFeeFromAmountIndex">If null, fee is substracted from the change. Otherwise it denotes the index in the toSend array.</param>
 		/// <param name="feeTarget">The target number of blocks to estimate the fee. Null if feeRate is being used instead.</param>
 		/// <param name="feeRate">The fee rate for the transaction. Null if feeTarget is being used instead.</param>
 		/// <exception cref="ArgumentException"></exception>
@@ -880,7 +879,6 @@ namespace WalletWasabi.Services
 														int? feeTarget = null,
 														FeeRate feeRate = null,
 														bool allowUnconfirmed = false,
-														int? subtractFeeFromAmountIndex = null,
 														IEnumerable<TxoRef> allowedInputs = null)
 		{
 			password = password ?? ""; // Correction.
@@ -905,19 +903,6 @@ namespace WalletWasabi.Services
 				if (feeTarget < 2) // Correct 0 and 1 to 2.
 				{
 					feeTarget = 2;
-				}
-			}
-
-			if (subtractFeeFromAmountIndex != null) // If not null, make sure not out of range. If null fee is substracted from the change.
-			{
-				if (subtractFeeFromAmountIndex < 0)
-				{
-					throw new ArgumentOutOfRangeException($"{nameof(subtractFeeFromAmountIndex)} cannot be smaller than 0.");
-				}
-				int maxIndex = payments.Count - 1;
-				if (subtractFeeFromAmountIndex > maxIndex)
-				{
-					throw new ArgumentOutOfRangeException($"{nameof(subtractFeeFromAmountIndex)} can be maximum {maxIndex}. Actual: {subtractFeeFromAmountIndex}.");
 				}
 			}
 
@@ -951,62 +936,49 @@ namespace WalletWasabi.Services
 			builder.SetCoinSelector(new SmartCoinSelector(smartCoinsByOutpoint));
 			builder.AddCoins(allowedSmartCoinInputs.Select(c => c.GetCoin()));
 
-			for (int i = 0; i < payments.Count; i++) // clone
+			foreach (var request in payments.Requests.Where(x => x.Amount.Type == MoneyRequestType.Value))
 			{
-				var toSend = payments.Requests.ToArray();
-				var destination = toSend[i].Destination;
-				var amountRequest = toSend[i].Amount;
-				var label = toSend[i].Label;
-				if (amountRequest.Type == MoneyRequestType.AllRemaining)
-				{
-					builder.SendAllRemaining(destination);
-				}
-				else if (amountRequest.Type == MoneyRequestType.Value)
-				{
-					builder.Send(destination, amountRequest.Amount);
-				}
-				else
-				{
-					throw new NotSupportedException($"{nameof(amountRequest.Type)} is not supported: {amountRequest.Type}.");
-				}
+				var amountRequest = request.Amount;
 
-				if (subtractFeeFromAmountIndex is int inputIndex && inputIndex == i)
+				builder.Send(request.Destination, amountRequest.Amount);
+				if (amountRequest.SubtractFee)
 				{
 					builder.SubtractFees();
 				}
 			}
 
 			HdPubKey changeHdPubKey = null;
-			if (payments.TryGetCustomChange(out DestinationRequest custChange))
-			{
-				changeHdPubKey = KeyManager.GetKeyForScriptPubKey(custChange.Destination.ScriptPubKey);
-			}
 
-			try
+			if (payments.TryGetCustomRequest(out DestinationRequest custChange))
 			{
-				// We try building without change, in some case, it is not needed
-				builder.SendEstimatedFees(feePerBytes);
-			}
-			catch (InvalidOperationException) // A change address should be specified
-			{
-				if (payments.ChangeStrategy == ChangeStrategy.Auto)
+				var changeScript = custChange.Destination.ScriptPubKey;
+				changeHdPubKey = KeyManager.GetKeyForScriptPubKey(changeScript);
+
+				var changeStrategy = payments.ChangeStrategy;
+				if (changeStrategy == ChangeStrategy.Custom)
 				{
-					// Let's check is we need change by using a dummy
-					KeyManager.AssertCleanKeysIndexed(isInternal: true);
-					KeyManager.AssertLockedInternalKeysIndexed(14);
-					changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).RandomElement();
-					builder.SetChange(changeHdPubKey.P2wpkhScript);
+					builder.SetChange(changeScript);
 				}
-				else if (payments.ChangeStrategy == ChangeStrategy.Custom)
+				else if (changeStrategy == ChangeStrategy.AllRemainingCustom)
 				{
-					builder.SetChange(custChange.Destination);
+					builder.SendAllRemaining(changeScript);
 				}
 				else
 				{
-					throw new NotSupportedException($"{nameof(payments.ChangeStrategy)} is not supported: {payments.ChangeStrategy}.");
+					throw new NotSupportedException(payments.ChangeStrategy.ToString());
 				}
-				builder.SendEstimatedFees(feePerBytes);
 			}
+			else
+			{
+				KeyManager.AssertCleanKeysIndexed(isInternal: true);
+				KeyManager.AssertLockedInternalKeysIndexed(14);
+				changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).RandomElement();
+
+				builder.SetChange(changeHdPubKey.P2wpkhScript);
+			}
+
+			builder.SendEstimatedFees(feePerBytes);
+
 			var psbt = builder.BuildPSBT(false);
 
 			string changeLabel = null;

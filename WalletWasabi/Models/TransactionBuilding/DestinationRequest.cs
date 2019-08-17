@@ -12,7 +12,7 @@ namespace WalletWasabi.Models.TransactionBuilding
 		public MoneyRequest Amount { get; }
 		public string Label { get; }
 
-		public DestinationRequest(Script scriptPubKey, Money amount, string label = "") : this(scriptPubKey, MoneyRequest.Create(amount), label)
+		public DestinationRequest(Script scriptPubKey, Money amount, bool subtractFee = false, string label = "") : this(scriptPubKey, MoneyRequest.Create(amount, subtractFee), label)
 		{
 		}
 
@@ -20,7 +20,7 @@ namespace WalletWasabi.Models.TransactionBuilding
 		{
 		}
 
-		public DestinationRequest(IDestination destination, Money amount, string label = "") : this(destination, MoneyRequest.Create(amount), label)
+		public DestinationRequest(IDestination destination, Money amount, bool subtractFee = false, string label = "") : this(destination, MoneyRequest.Create(amount, subtractFee), label)
 		{
 		}
 

@@ -817,7 +817,7 @@ namespace WalletWasabi.Tests
 				}
 
 				var scp = new Key().ScriptPubKey;
-				var res2 = wallet.BuildTransaction(password, new PaymentIntent(new DestinationRequest(scp, Money.Coins(0.05m), "foo")), 5, null, false);
+				var res2 = wallet.BuildTransaction(password, new PaymentIntent(new DestinationRequest(scp, Money.Coins(0.05m), label: "foo")), feeTarget: 5, allowUnconfirmed: false);
 
 				Assert.NotNull(res2.Transaction);
 				Assert.Single(res2.OuterWalletOutputs);
@@ -838,7 +838,7 @@ namespace WalletWasabi.Tests
 
 				Script receive = wallet.GetReceiveKey("Basic").P2wpkhScript;
 				Money amountToSend = wallet.Coins.Where(x => !x.Unavailable).Sum(x => x.Amount) / 2;
-				var res = wallet.BuildTransaction(password, new PaymentIntent(new DestinationRequest(receive, amountToSend, "foo")), Constants.SevenDaysConfirmationTarget, allowUnconfirmed: true);
+				var res = wallet.BuildTransaction(password, new PaymentIntent(new DestinationRequest(receive, amountToSend, label: "foo")), Constants.SevenDaysConfirmationTarget, allowUnconfirmed: true);
 
 				foreach (SmartCoin coin in res.SpentCoins)
 				{
@@ -886,7 +886,7 @@ namespace WalletWasabi.Tests
 
 				receive = wallet.GetReceiveKey("SubtractFeeFromAmount").P2wpkhScript;
 				amountToSend = wallet.Coins.Where(x => !x.Unavailable).Sum(x => x.Amount) / 3;
-				res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, "foo"), Constants.SevenDaysConfirmationTarget, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
+				res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, subtractFee: true, label: "foo"), Constants.SevenDaysConfirmationTarget, allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -919,7 +919,7 @@ namespace WalletWasabi.Tests
 
 				#region LowFee
 
-				res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, "foo"), Constants.SevenDaysConfirmationTarget, allowUnconfirmed: true);
+				res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, label: "foo"), Constants.SevenDaysConfirmationTarget, allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -952,7 +952,7 @@ namespace WalletWasabi.Tests
 
 				#region MediumFee
 
-				res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, "foo"), Constants.OneDayConfirmationTarget, allowUnconfirmed: true);
+				res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, label: "foo"), Constants.OneDayConfirmationTarget, allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -985,7 +985,7 @@ namespace WalletWasabi.Tests
 
 				#region HighFee
 
-				res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, "foo"), 2, allowUnconfirmed: true);
+				res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, label: "foo"), 2, allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -1032,12 +1032,6 @@ namespace WalletWasabi.Tests
 				activeOutput = res.InnerWalletOutputs.Single();
 
 				Assert.Equal(receive, activeOutput.ScriptPubKey);
-
-				Logger.LogInfo<RegTests>($"Fee: {res.Fee}");
-				Logger.LogInfo<RegTests>($"FeePercentOfSent: {res.FeePercentOfSent} %");
-				Logger.LogInfo<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
-				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
-				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
 
 				Assert.Single(res.Transaction.Transaction.Outputs);
 				var maxBuiltTxOutput = res.Transaction.Transaction.Outputs.Single();
@@ -1100,8 +1094,8 @@ namespace WalletWasabi.Tests
 				res = wallet.BuildTransaction(
 					password,
 					new PaymentIntent(
-						new DestinationRequest(new Key(), amountToSend, "outgoing"),
-						new DestinationRequest(new Key(), amountToSend, "outgoing2")),
+						new DestinationRequest(new Key(), amountToSend, label: "outgoing"),
+						new DestinationRequest(new Key(), amountToSend, label: "outgoing2")),
 					Constants.SevenDaysConfirmationTarget,
 					allowUnconfirmed: true);
 
@@ -1171,8 +1165,8 @@ namespace WalletWasabi.Tests
 				res = wallet.BuildTransaction(
 					password,
 					new PaymentIntent(
-						new DestinationRequest(k1, MoneyRequest.CreateAllRemaining()),
-						new DestinationRequest(k2, Money.Coins(0.0003m), "outgoing")),
+						new DestinationRequest(k1, MoneyRequest.CreateChange()),
+						new DestinationRequest(k2, Money.Coins(0.0003m), label: "outgoing")),
 					2);
 
 				Assert.Contains(k1.ScriptPubKey, res.OuterWalletOutputs.Select(x => x.ScriptPubKey));
@@ -1184,7 +1178,7 @@ namespace WalletWasabi.Tests
 
 				res = wallet.BuildTransaction(
 					password,
-					new PaymentIntent(new Key(), Money.Coins(0.0003m), "outgoing"),
+					new PaymentIntent(new Key(), Money.Coins(0.0003m), label: "outgoing"),
 					2);
 
 				Assert.True(res.FeePercentOfSent > 1);
@@ -1193,8 +1187,8 @@ namespace WalletWasabi.Tests
 				res = wallet.BuildTransaction(
 					password,
 					new PaymentIntent(
-						new DestinationRequest(newChangeK.P2wpkhScript, MoneyRequest.CreateAllRemaining(), "boo"),
-						new DestinationRequest(new Key(), Money.Coins(0.0003m), "outgoing")),
+						new DestinationRequest(newChangeK.P2wpkhScript, MoneyRequest.CreateChange(), "boo"),
+						new DestinationRequest(new Key(), Money.Coins(0.0003m), label: "outgoing")),
 					2);
 
 				Assert.True(res.FeePercentOfSent > 1);
@@ -1283,15 +1277,11 @@ namespace WalletWasabi.Tests
 			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, validIntent, -10));
 			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, validIntent, 2000));
 
-			// subtractFeeFromAmountIndex has to be valid
-			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, validIntent, 2, null, false, -10));
-			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, validIntent, 2, null, false, 1));
-
 			// toSend amount sum has to be in range 0 to 2099999997690000
 			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, invalidIntent, 2));
 
 			// toSend negative sum amount
-			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, new PaymentIntent(scp, Money.Satoshis(-10000), ""), 2));
+			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, new PaymentIntent(scp, Money.Satoshis(-10000)), 2));
 
 			// toSend negative operation amount
 			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(
@@ -1302,9 +1292,9 @@ namespace WalletWasabi.Tests
 				2));
 
 			// allowedInputs cannot be empty
-			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, validIntent, 2, null, false, null, new TxoRef[0]));
+			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, validIntent, feeTarget: 2, allowedInputs: new TxoRef[0]));
 
-			// "Only one element can contain Money.Zero
+			// "Only one element can contain the AllRemaining flag.
 			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(
 				password,
 				new PaymentIntent(
@@ -1339,12 +1329,12 @@ namespace WalletWasabi.Tests
 
 				// subtract Fee from amount index with no enough money
 				var operations = new PaymentIntent(
-					new DestinationRequest(scp, Money.Coins(1m)),
+					new DestinationRequest(scp, Money.Coins(1m), subtractFee: true),
 					new DestinationRequest(scp, Money.Coins(0.5m)));
-				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(password, operations, 2, null, false, 0));
+				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(password, operations, 2, null, false));
 
 				// No enough money (only one confirmed coin, no unconfirmed allowed)
-				operations = new PaymentIntent(scp, Money.Coins(1.5m), "");
+				operations = new PaymentIntent(scp, Money.Coins(1.5m));
 				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, 2));
 
 				// No enough money (only one confirmed coin, unconfirmed allowed)
@@ -1363,7 +1353,7 @@ namespace WalletWasabi.Tests
 				Assert.Equal(1, btx.SpentCoins.Count(c => c.Confirmed));
 				Assert.Equal(1, btx.SpentCoins.Count(c => !c.Confirmed));
 
-				// Only one operation with Zero money
+				// Only one operation with AllRemainingFlag
 
 				Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(
 					null,
@@ -1374,7 +1364,7 @@ namespace WalletWasabi.Tests
 
 				Logger.TurnOn();
 
-				operations = new PaymentIntent(scp, Money.Coins(0.5m), "");
+				operations = new PaymentIntent(scp, Money.Coins(0.5m));
 				btx = wallet.BuildTransaction(password, operations, 2);
 			}
 			finally
@@ -1457,11 +1447,11 @@ namespace WalletWasabi.Tests
 				Assert.Single(wallet.Coins);
 
 				// Send money before reorg.
-				var operations = new PaymentIntent(scp, Money.Coins(0.011m), "");
+				var operations = new PaymentIntent(scp, Money.Coins(0.011m));
 				var btx1 = wallet.BuildTransaction(password, operations, 2);
 				await wallet.SendTransactionAsync(btx1.Transaction);
 
-				operations = new PaymentIntent(scp, Money.Coins(0.012m), "");
+				operations = new PaymentIntent(scp, Money.Coins(0.012m));
 				var btx2 = wallet.BuildTransaction(password, operations, 2, allowUnconfirmed: true);
 				await wallet.SendTransactionAsync(btx2.Transaction);
 
@@ -1480,11 +1470,11 @@ namespace WalletWasabi.Tests
 				// Send money after reorg.
 				// When we invalidate a block, the transactions set in the invalidated block
 				// are reintroduced when we generate a new block through the rpc call
-				operations = new PaymentIntent(scp, Money.Coins(0.013m), "");
+				operations = new PaymentIntent(scp, Money.Coins(0.013m));
 				var btx3 = wallet.BuildTransaction(password, operations, 2);
 				await wallet.SendTransactionAsync(btx3.Transaction);
 
-				operations = new PaymentIntent(scp, Money.Coins(0.014m), "");
+				operations = new PaymentIntent(scp, Money.Coins(0.014m));
 				var btx4 = wallet.BuildTransaction(password, operations, 2, allowUnconfirmed: true);
 				await wallet.SendTransactionAsync(btx4.Transaction);
 
@@ -1654,8 +1644,8 @@ namespace WalletWasabi.Tests
 				Assert.Equal((1 * Money.COIN) - tx1Res.Fee.Satoshi, totalWallet);
 
 				// Spend the unconfirmed and unspent coin (send it to ourself)
-				operations = new PaymentIntent(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m), "");
-				var tx2Res = wallet.BuildTransaction(password, operations, 2, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
+				operations = new PaymentIntent(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m), subtractFee: true);
+				var tx2Res = wallet.BuildTransaction(password, operations, 2, allowUnconfirmed: true);
 				await wallet.SendTransactionAsync(tx2Res.Transaction);
 
 				while (wallet.Coins.Count != 4)
@@ -1698,7 +1688,7 @@ namespace WalletWasabi.Tests
 				// Test coin basic count.
 				var coinCount = wallet.Coins.Count;
 				var to = wallet.GetReceiveKey("foo");
-				var res = wallet.BuildTransaction(password, new PaymentIntent(to.P2wpkhScript, Money.Coins(0.2345m), "bar"), 2, allowUnconfirmed: true);
+				var res = wallet.BuildTransaction(password, new PaymentIntent(to.P2wpkhScript, Money.Coins(0.2345m), label: "bar"), 2, allowUnconfirmed: true);
 				await wallet.SendTransactionAsync(res.Transaction);
 				Assert.Equal(coinCount + 2, wallet.Coins.Count);
 				Assert.Equal(2, wallet.Coins.Count(x => !x.Confirmed));

@@ -14,7 +14,7 @@ namespace WalletWasabi.Models.TransactionBuilding
 		public Money TotalAmount { get; }
 		public int Count => Requests.Count();
 
-		public PaymentIntent(Script scriptPubKey, Money amount, string label = "") : this(scriptPubKey, MoneyRequest.Create(amount), label)
+		public PaymentIntent(Script scriptPubKey, Money amount, bool subtractFee = false, string label = "") : this(scriptPubKey, MoneyRequest.Create(amount, subtractFee), label)
 		{
 		}
 
@@ -22,7 +22,7 @@ namespace WalletWasabi.Models.TransactionBuilding
 		{
 		}
 
-		public PaymentIntent(IDestination destination, Money amount, string label = "") : this(destination, MoneyRequest.Create(amount), label)
+		public PaymentIntent(IDestination destination, Money amount, bool subtractFee = false, string label = "") : this(destination, MoneyRequest.Create(amount, subtractFee), label)
 		{
 		}
 
@@ -42,18 +42,43 @@ namespace WalletWasabi.Models.TransactionBuilding
 				Guard.NotNull(nameof(request), request);
 			}
 
-			var allSpendCount = requests.Count(x => x.Amount.Type == MoneyRequestType.AllRemaining);
-			if (allSpendCount == 0)
+			var subtractFeeCount = requests.Count(x => x.Amount.SubtractFee);
+			if (subtractFeeCount > 1)
+			{
+				// Note: It'd be possible tod implement that the fees to be subtracted equally from more outputs, but I guess nobody would use it.
+				throw new ArgumentException($"Only one request can specify fee subtraction.");
+			}
+
+			var allRemainingCount = requests.Count(x => x.Amount.Type == MoneyRequestType.AllRemaining);
+			var changeCount = requests.Count(x => x.Amount.Type == MoneyRequestType.Change);
+			int specialCount = allRemainingCount + changeCount;
+			if (specialCount == 0)
 			{
 				ChangeStrategy = ChangeStrategy.Auto;
 			}
-			else if (allSpendCount == 1)
+			else if (specialCount == 1)
 			{
-				ChangeStrategy = ChangeStrategy.Custom;
+				if (subtractFeeCount != 1)
+				{
+					throw new ArgumentException($"You must specifiy fee subtraction strategy if custom change is specified.");
+				}
+
+				if (allRemainingCount == 1)
+				{
+					ChangeStrategy = ChangeStrategy.AllRemainingCustom;
+				}
+				else if (changeCount == 1)
+				{
+					ChangeStrategy = ChangeStrategy.Custom;
+				}
+				else
+				{
+					throw new NotSupportedException("This is impossible.");
+				}
 			}
 			else
 			{
-				throw new ArgumentException($"Only one request can contain an all remaining money request.");
+				throw new ArgumentException($"Only one request can contain an all remaining money or change request.");
 			}
 
 			Requests = requests;
@@ -61,11 +86,18 @@ namespace WalletWasabi.Models.TransactionBuilding
 			TotalAmount = requests.Where(x => x.Amount.Type == MoneyRequestType.Value).Sum(x => x.Amount.Amount);
 		}
 
-		public bool TryGetCustomChange(out DestinationRequest customChange)
+		public bool TryGetCustomRequest(out DestinationRequest request)
 		{
-			customChange = Requests.FirstOrDefault(x => x.Amount.Type == MoneyRequestType.AllRemaining);
+			request = Requests.SingleOrDefault(x => x.Amount.Type == MoneyRequestType.Change || x.Amount.Type == MoneyRequestType.AllRemaining);
 
-			return customChange != null;
+			return request != null;
+		}
+
+		public bool TryGetFeeSubtractionRequest(out DestinationRequest request)
+		{
+			request = Requests.SingleOrDefault(x => x.Amount.SubtractFee);
+
+			return request != null;
 		}
 	}
 }
