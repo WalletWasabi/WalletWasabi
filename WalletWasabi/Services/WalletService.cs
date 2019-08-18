@@ -1084,7 +1084,7 @@ namespace WalletWasabi.Services
 			}
 			if (feePc > 100)
 			{
-				throw new InvalidOperationException($"The transaction fee is more than twice as much as your transaction amount: {feePc:0.#}%.");
+				throw new InvalidOperationException($"The transaction fee is more than twice the transaction amount: {feePc:0.#}%.");
 			}
 
 			var confirmedAvailableAmount = allowedSmartCoinInputs.Where(x => x.Confirmed).Select(x => x.Amount).Sum();
