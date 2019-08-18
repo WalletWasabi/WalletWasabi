@@ -1029,7 +1029,9 @@ namespace WalletWasabi.Services
 				totalOutgoingAmountNoFee = realToSend.Where(x => !changeHdPubKey.ContainsScript(x.destination.ScriptPubKey)).Sum(x => x.amount);
 			}
 			decimal totalOutgoingAmountNoFeeDecimal = totalOutgoingAmountNoFee.ToDecimal(MoneyUnit.BTC);
-			decimal feePc = (100 * fee.ToDecimal(MoneyUnit.BTC)) / (totalOutgoingAmountNoFeeDecimal == 0 ? decimal.MinValue : totalOutgoingAmountNoFeeDecimal);
+			// Cannot divide by zero, so use the closest number we have to zero.
+			decimal totalOutgoingAmountNoFeeDecimalDivisor = totalOutgoingAmountNoFeeDecimal == 0 ? decimal.MinValue : totalOutgoingAmountNoFeeDecimal;
+			decimal feePc = (100 * fee.ToDecimal(MoneyUnit.BTC)) / totalOutgoingAmountNoFeeDecimalDivisor;
 
 			if (feePc > 1)
 			{
