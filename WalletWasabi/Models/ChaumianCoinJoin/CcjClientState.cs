@@ -197,7 +197,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			Func<SmartCoin, bool> confirmationPredicate;
 			if (allowUnconfirmedZeroLink)
 			{
-				confirmationPredicate = x => x.Confirmed || x.Label.StartsWith("ZeroLink", StringComparison.Ordinal);
+				confirmationPredicate = x => x.Confirmed || x.IsLikelyCoinJoinOutput;
 			}
 			else
 			{

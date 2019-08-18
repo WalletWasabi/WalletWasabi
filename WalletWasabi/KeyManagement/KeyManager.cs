@@ -581,19 +581,6 @@ namespace WalletWasabi.KeyManagement
 			}
 		}
 
-		public bool TestPassword(string password)
-		{
-			try
-			{
-				GetMasterExtKey(password);
-				return true;
-			}
-			catch
-			{
-				return false;
-			}
-		}
-
 		/// <summary>
 		/// Make sure there's always clean keys generated and indexed.
 		/// Call SetMinGapLimit() to set how many keys should be asserted.
@@ -789,7 +776,6 @@ namespace WalletWasabi.KeyManagement
 			}
 		}
 
-		/// <returns>The network the keymanager was used the last time on.</returns>
 		public void AssertNetworkOrClearBlockState(Network expectedNetwork)
 		{
 			lock (BlockchainStateLock)

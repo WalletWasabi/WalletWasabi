@@ -180,27 +180,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SetSendText();
 			});
 
-			this.WhenAnyValue(x => x.Password)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-			{
-				try
-				{
-					if (x.NotNullAndNotEmpty())
-					{
-						char lastChar = x.Last();
-						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
-						{
-							Password = x.TrimEnd('\r', '\n');
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					Logging.Logger.LogTrace(ex);
-				}
-			});
-
 			this.WhenAnyValue(x => x.Label)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(UpdateSuggestions);
@@ -256,12 +235,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			BuildTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
+				bool isCompatibilityPasswordUsed = false;
 				try
 				{
 					IsBusy = true;
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BuildingTransaction);
 
-					Password = Guard.Correct(Password);
 					Label = Label.Trim(',', ' ').Trim();
 					if (!IsMax && string.IsNullOrWhiteSpace(Label))
 					{
@@ -337,6 +316,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.DequeuingSelectedCoins);
 					}
 
+					try
+					{
+						PasswordHelper.GetMasterExtKey(KeyManager, Password, out string compatiblityPasswordUsed); // We could use TryPassword but we need the exception.
+						if (compatiblityPasswordUsed != null)
+						{
+							isCompatibilityPasswordUsed = true;
+							Password = compatiblityPasswordUsed; // Overwrite the password for BuildTransaction function.
+						}
+					}
+					catch (Exception ex)
+					{
+						SetWarningMessage(ex.ToTypeMessageString());
+						return;
+					}
+
 					BuildTransactionResult result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, feeTarget: null, feeRate: feeRate, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 
 					if (IsTransactionBuilder)
@@ -352,6 +346,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						txviewer.Update(result);
 
 						TryResetInputsOnSuccess("Transaction is successfully built!");
+
+						if (isCompatibilityPasswordUsed)
+						{
+							WarningMessage = PasswordHelper.CompatibilityPasswordWarnMessage;
+						}
 						return;
 					}
 
@@ -409,6 +408,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(signedTransaction));
 
 					TryResetInputsOnSuccess("Transaction is successfully sent!");
+
+					if (isCompatibilityPasswordUsed)
+					{
+						WarningMessage = PasswordHelper.CompatibilityPasswordWarnMessage;
+					}
 				}
 				catch (InsufficientBalanceException ex)
 				{
@@ -1030,9 +1034,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return;
 			}
 
-			string[] nonSpecialLabels = Global.WalletService.GetNonSpecialLabels().ToArray();
-			IEnumerable<string> suggestedWords = nonSpecialLabels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
-				.Union(nonSpecialLabels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
+			var labels = Global.WalletService.GetLabels();
+			IEnumerable<string> suggestedWords = labels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
+				.Union(labels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
 				.Except(enteredWordList)
 				.Take(3);
 

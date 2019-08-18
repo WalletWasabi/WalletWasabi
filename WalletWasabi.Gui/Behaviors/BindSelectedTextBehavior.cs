@@ -12,7 +12,7 @@ namespace WalletWasabi.Gui.Behaviors
 	{
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 
-		private static readonly AvaloniaProperty<string> SelectedTextProperty =
+		public static readonly AvaloniaProperty<string> SelectedTextProperty =
 			AvaloniaProperty.Register<BindSelectedTextBehavior, string>(nameof(SelectedText), defaultBindingMode: BindingMode.TwoWay);
 
 		public string SelectedText

@@ -108,7 +108,7 @@ namespace WalletWasabi.Hwi
 		{
 			var networkString = Network == Network.Main ? "" : "--testnet ";
 			JToken jtok = null;
-			using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(60)))
+			using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
 			{
 				jtok = await SendCommandAsync($"{networkString}--device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" getxpub m/84h/0h/0h", cts.Token);
 			}
@@ -205,7 +205,7 @@ namespace WalletWasabi.Hwi
 			}
 			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
 			{
-				throw new TimeoutException("Timeout occurred during the hwi operation.", ex);
+				throw new TimeoutException($"Timeout occurred during the hwi operation {command}.", ex);
 			}
 		}
 

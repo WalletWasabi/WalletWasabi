@@ -38,7 +38,7 @@ namespace WalletWasabi.Gui.Controls
 		private static Key[] SuppressedKeys { get; } =
 		{
 			Key.LeftCtrl, Key.RightCtrl, Key.LeftAlt, Key.RightAlt, Key.LeftShift, Key.RightShift, Key.Escape, Key.CapsLock, Key.NumLock, Key.LWin, Key.RWin,
-			Key.Left, Key.Right, Key.Up, Key.Down
+			Key.Left, Key.Right, Key.Up, Key.Down, Key.Enter
 		};
 
 		private bool _supressChanges;
@@ -114,7 +114,7 @@ namespace WalletWasabi.Gui.Controls
 				IsPasswordVisible = x;
 			});
 
-			this.WhenAnyValue(x => x.IsPasswordVisible).Subscribe(IsVisible =>
+			this.WhenAnyValue(x => x.IsPasswordVisible).Subscribe(_ =>
 			{
 				PaintText();
 			});
@@ -181,14 +181,14 @@ namespace WalletWasabi.Gui.Controls
 					var s = ls[Random.Next(0, ls.Count - 1)];
 					sb.Append(s);
 					ls.Remove(s);
-					if (sb.Length >= Constants.MaxPasswordLength)
+					if (PasswordHelper.IsTooLong(sb.Length))
 					{
 						break;
 					}
 				}
 				while (ls.Count > 0);
 			}
-			while (sb.Length < Constants.MaxPasswordLength); // Generate more text using the same sentences.
+			while (sb.Length < PasswordHelper.MaxPasswordLength); // Generate more text using the same sentences.
 			_displayText = sb.ToString();
 		}
 
@@ -238,11 +238,7 @@ namespace WalletWasabi.Gui.Controls
 					string text = await Application.Current.Clipboard.GetTextAsync();
 					if (!string.IsNullOrEmpty(text))
 					{
-						e.Handled = OnTextInput(text, true);
-						if (!e.Handled)
-						{
-							_ = DisplayWarningAsync("Password too long (Max 150 characters)");
-						}
+						e.Handled = OnTextInput(text);
 					}
 				}
 				else if (Sb.Length > 0)
@@ -297,10 +293,15 @@ namespace WalletWasabi.Gui.Controls
 
 		protected override void OnTextInput(TextInputEventArgs e)
 		{
-			e.Handled = OnTextInput(e.Text, false);
+			e.Handled = OnTextInput(e.Text);
 		}
 
-		private bool OnTextInput(string text, bool isPaste)
+		/// <summary>
+		/// All text input operation (keydown/paste/delete) should call this.
+		/// </summary>
+		/// <param name="text"></param>
+		/// <returns></returns>
+		private bool OnTextInput(string text)
 		{
 			if (_supressChanges)
 			{
@@ -315,9 +316,10 @@ namespace WalletWasabi.Gui.Controls
 				SelectionStart = SelectionEnd = CaretIndex = 0;
 				_supressChanges = false;
 			}
-			if (isPaste && Sb.Length + text.Length > Constants.MaxPasswordLength) // Do not allow pastes that would be too long
+			if (PasswordHelper.IsTooLong(Sb.Length + text.Length)) // Do not allow insert that would be too long.
 			{
 				handledCorrectly = false;
+				_ = DisplayWarningAsync(PasswordHelper.PasswordTooLongMessage);
 			}
 			else if (CaretIndex == 0)
 			{
@@ -328,11 +330,15 @@ namespace WalletWasabi.Gui.Controls
 				Sb.Append(text);
 			}
 
-			if (handledCorrectly && Sb.Length > Constants.MaxPasswordLength) // Ensure the maximum length.
+			if (handledCorrectly && PasswordHelper.IsTooLong(Sb.Length)) // We should not get here, ensure the maximum length.
 			{
-				Sb.Remove(Constants.MaxPasswordLength, Sb.Length - Constants.MaxPasswordLength);
+				PasswordHelper.IsTooLong(Sb.ToString(), out string limitedPassword);
+				Sb.Clear();
+				Sb.Append(limitedPassword);
 				handledCorrectly = false; // Should play beep sound not working on windows.
+				_ = DisplayWarningAsync(PasswordHelper.PasswordTooLongMessage);
 			}
+
 			PaintText();
 			return handledCorrectly;
 		}
@@ -381,13 +387,23 @@ namespace WalletWasabi.Gui.Controls
 			{
 				GenerateNewRandomSequence();
 			}
+			var password = Sb.ToString();
 
-			Password = Sb.ToString();
-			Text = _displayText.Substring(0, Sb.Length);
+			if (PasswordHelper.IsTrimable(password, out string trimmedPassword))
+			{
+				password = trimmedPassword;
+				Sb.Clear();
+				Sb.Append(password);
+				_ = DisplayWarningAsync(PasswordHelper.TrimmedMessage);
+			}
+
+			Text = _displayText.Substring(0, password.Length);
 			if (IsPasswordVisible)
 			{
-				Text = Password;
+				Text = password;
 			}
+
+			Password = Sb.ToString(); // Do not use Password instead of local variable. It is not changed immediately after this line.
 
 			_supressChanges = true;
 			try
