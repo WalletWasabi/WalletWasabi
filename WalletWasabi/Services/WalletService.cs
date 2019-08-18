@@ -325,9 +325,16 @@ namespace WalletWasabi.Services
 				await LoadWalletStateAsync(confirmedTransactions, cancel);
 
 				// Load in dummy mempool
-				if (unconfirmedTransactions != null && unconfirmedTransactions.Any())
+				try
 				{
-					await LoadDummyMempoolAsync(unconfirmedTransactions);
+					if (unconfirmedTransactions != null && unconfirmedTransactions.Any())
+					{
+						await LoadDummyMempoolAsync(unconfirmedTransactions);
+					}
+				}
+				finally
+				{
+					UnconfirmedTransactionsInitialized = true;
 				}
 
 			}
@@ -368,7 +375,7 @@ namespace WalletWasabi.Services
 
 					var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
 
-					var cnt = 0;
+					var count = 0;
 					foreach (var tx in unconfirmedTransactions)
 					{
 						if (mempoolHashes.Contains(tx.GetHash().ToString().Substring(0, compactness)))
@@ -378,20 +385,19 @@ namespace WalletWasabi.Services
 							Mempool.TransactionHashes.TryAdd(tx.GetHash());
 
 							Logger.LogInfo<WalletService>($"Transaction was successfully tested against the backend's mempool hashes: {tx.GetHash()}.");
-							cnt++;
+							count++;
 						}
 					}
 
-					if (cnt != unconfirmedTransactions.Length)
+					if (count != unconfirmedTransactions.Length)
 					{
 						SerializeTransactionCache();
 					}
 				}
-
 			}
 			catch (Exception ex)
 			{
-				// When there's a connection failure do not clean the transactions, add it to processing.
+				// When there's a connection failure do not clean the transactions, add them to processing.
 				foreach (var tx in unconfirmedTransactions)
 				{
 					tx.SetHeight(Height.Mempool);
@@ -400,10 +406,6 @@ namespace WalletWasabi.Services
 				}
 
 				Logger.LogWarning<WalletService>(ex);
-			}
-			finally
-			{
-				UnconfirmedTransactionsInitialized = true;
 			}
 		}
 
