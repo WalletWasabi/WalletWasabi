@@ -995,11 +995,12 @@ namespace WalletWasabi.Services
 
 			var spentCoins = psbt.Inputs.Select(txin => smartCoinsByOutpoint[txin.PrevOut]).ToArray();
 
-			var realToSend = payments.Requests.Select(t => (label: t.Label,
-												destination: t.Destination,
-												amount: psbt.Outputs.FirstOrDefault(o => o.ScriptPubKey == t.Destination.ScriptPubKey)?.Value))
-									.Where(i => i.amount != null)
-									.ToArray();
+			var realToSend = payments.Requests
+				.Select(t =>
+					(label: t.Label,
+					destination: t.Destination,
+					amount: psbt.Outputs.FirstOrDefault(o => o.ScriptPubKey == t.Destination.ScriptPubKey)?.Value))
+				.Where(i => i.amount != null);
 
 			if (!psbt.TryGetFee(out var fee))
 			{
