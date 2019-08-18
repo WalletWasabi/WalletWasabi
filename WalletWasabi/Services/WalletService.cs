@@ -1065,28 +1065,22 @@ namespace WalletWasabi.Services
 				builder.SignPSBT(psbt);
 				psbt.Finalize();
 				tx = psbt.ExtractTransaction();
-				TransactionPolicyError[] checkResults;
-				if (psbt.TryGetEstimatedFeeRate(out FeeRate actualFeeRate))
+
+				var checkResults = builder.Check(tx).ToList();
+				if (!psbt.TryGetEstimatedFeeRate(out FeeRate actualFeeRate))
 				{
-					// Manually check the feerate, because some inaccuracy is possible.
-					var sb1 = feeRate.SatoshiPerByte;
-					var sb2 = actualFeeRate.SatoshiPerByte;
-					if (Math.Abs(sb1 - sb2) > 2) // 2s/b inaccuracy ok.
-					{
-						// So it'll generate a transactionpolicy error thrown below.
-						checkResults = builder.Check(tx, feeRate);
-					}
-					else
-					{
-						checkResults = builder.Check(tx);
-					}
-				}
-				else
-				{
-					checkResults = builder.Check(tx, feeRate);
+					throw new InvalidOperationException($"Impossible to get the fee rate of the PSBT, this should never happen.");
 				}
 
-				if (checkResults.Length > 0)
+				// Manually check the feerate, because some inaccuracy is possible.
+				var sb1 = feeRate.SatoshiPerByte;
+				var sb2 = actualFeeRate.SatoshiPerByte;
+				if (Math.Abs(sb1 - sb2) > 2) // 2s/b inaccuracy ok.
+				{
+					// So it'll generate a transactionpolicy error thrown below.
+					checkResults.Add(new NotEnoughFundsPolicyError("Fees different than expected"));
+				}
+				if (checkResults.Count > 0)
 				{
 					throw new InvalidTxException(tx, checkResults);
 				}
