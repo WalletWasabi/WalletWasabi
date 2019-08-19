@@ -31,9 +31,32 @@ namespace WalletWasabi.Gui.Shell.Commands
 				IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel(Global));
 			});
 
+#if DEBUG
+			var devToolsCommand = ReactiveCommand.Create(() =>
+			{
+				var devTools = new DevTools(Application.Current.Windows.FirstOrDefault());
+
+				var devToolsWindow = new Window
+				{
+					Width = 1024,
+					Height = 512,
+					Content = devTools,
+					DataTemplates =
+						{
+							new ViewLocator<Avalonia.Diagnostics.ViewModels.ViewModelBase>()
+						}
+				};
+
+				devToolsWindow.Show();
+			});
+#endif
+
 			Observable
 				.Merge(walletManagerCommand.ThrownExceptions)
 				.Merge(settingsCommand.ThrownExceptions)
+#if DEBUG
+				.Merge(devToolsCommand.ThrownExceptions)
+#endif
 				.Subscribe(OnException);
 
 			WalletManagerCommand = new CommandDefinition(
@@ -50,23 +73,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 			DevToolsCommand = new CommandDefinition(
 				"Dev Tools",
 				commandIconService.GetCompletionKindImage("DevTools"),
-				ReactiveCommand.Create(() =>
-				{
-					var devTools = new DevTools(Application.Current.Windows.FirstOrDefault());
-
-					var devToolsWindow = new Window
-					{
-						Width = 1024,
-						Height = 512,
-						Content = devTools,
-						DataTemplates =
-						{
-							new ViewLocator<Avalonia.Diagnostics.ViewModels.ViewModelBase>()
-						}
-					};
-
-					devToolsWindow.Show();
-				}));
+				devToolsCommand);
 #endif
 		}
 
