@@ -1,3 +1,6 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Diagnostics;
 using AvalonStudio.Commands;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
@@ -42,6 +45,29 @@ namespace WalletWasabi.Gui.Shell.Commands
 				"Settings",
 				commandIconService.GetCompletionKindImage("Settings"),
 				settingsCommand);
+
+#if DEBUG
+			DevToolsCommand = new CommandDefinition(
+				"Dev Tools",
+				commandIconService.GetCompletionKindImage("DevTools"),
+				ReactiveCommand.Create(() =>
+				{
+					var devTools = new DevTools(Application.Current.Windows.FirstOrDefault());
+
+					var devToolsWindow = new Window
+					{
+						Width = 1024,
+						Height = 512,
+						Content = devTools,
+						DataTemplates =
+						{
+							new ViewLocator<Avalonia.Diagnostics.ViewModels.ViewModelBase>()
+						}
+					};
+
+					devToolsWindow.Show();
+				}));
+#endif
 		}
 
 		private void OnWalletManager()
@@ -67,5 +93,12 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		[ExportCommandDefinition("Tools.Settings")]
 		public CommandDefinition SettingsCommand { get; }
+
+#if DEBUG
+
+		[ExportCommandDefinition("Tools.DevTools")]
+		public CommandDefinition DevToolsCommand { get; }
+
+#endif
 	}
 }
