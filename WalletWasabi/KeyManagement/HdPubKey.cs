@@ -1,6 +1,7 @@
 using NBitcoin;
 using Newtonsoft.Json;
 using System;
+using System.Linq;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 
@@ -113,6 +114,19 @@ namespace WalletWasabi.KeyManagement
 		public BitcoinWitPubKeyAddress GetP2wpkhAddress(Network network) => PubKey.GetSegwitAddress(network);
 
 		public BitcoinScriptAddress GetP2shOverP2wpkhAddress(Network network) => P2wpkhScript.GetScriptAddress(network);
+
+		public bool ContainsScript(Script scriptPubKey)
+		{
+			var scripts = new[]
+			{
+				P2pkScript,
+				P2pkhScript,
+				P2wpkhScript,
+				P2shOverP2wpkhScript
+			};
+
+			return scripts.Contains(scriptPubKey);
+		}
 
 		#region Equality
 
