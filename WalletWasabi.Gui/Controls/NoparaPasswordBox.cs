@@ -241,7 +241,6 @@ namespace WalletWasabi.Gui.Controls
 							e.Handled = OnTextInput(text);
 						}
 
-						PaintText();
 						return;
 					}
 				}
