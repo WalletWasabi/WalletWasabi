@@ -210,9 +210,10 @@ namespace WalletWasabi.Gui.Controls
 					return;
 				}
 
-				bool paste = false;
 				if (e.Key == Key.V)
 				{
+					bool paste = false;
+
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 					{
 						if (e.Modifiers == InputModifiers.Control) // Prevent paste.
@@ -231,17 +232,20 @@ namespace WalletWasabi.Gui.Controls
 							paste = true;
 						}
 					}
-				}
 
-				if (paste)
-				{
-					string text = await Application.Current.Clipboard.GetTextAsync();
-					if (!string.IsNullOrEmpty(text))
+					if (paste)
 					{
-						e.Handled = OnTextInput(text);
+						string text = await Application.Current.Clipboard.GetTextAsync();
+						if (!string.IsNullOrEmpty(text))
+						{
+							e.Handled = OnTextInput(text);
+						}
+
+						return;
 					}
 				}
-				else if (Sb.Length > 0)
+
+				if (Sb.Length > 0)
 				{
 					if (e.Key == Key.Back) // Backspace button -> delete from the end.
 					{
