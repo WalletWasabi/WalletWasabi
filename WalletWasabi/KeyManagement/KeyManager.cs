@@ -8,6 +8,7 @@ using System.Security;
 using System.Text;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
+using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -16,7 +17,7 @@ using WalletWasabi.Stores;
 namespace WalletWasabi.KeyManagement
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	public class KeyManager
+	public class KeyManager : IClearMyState
 	{
 		[JsonProperty(Order = 1)]
 		[JsonConverter(typeof(BitcoinEncryptedSecretNoECJsonConverter))]
@@ -784,17 +785,22 @@ namespace WalletWasabi.KeyManagement
 				if (lastNetwork is null || lastNetwork != expectedNetwork)
 				{
 					BlockchainState.Network = expectedNetwork;
-					BlockchainState.BestHeight = 0;
-					BlockchainState.BlockStates.Clear();
-					ToFileNoBlockchainStateLock();
+					ClearState();
 
-					if (lastNetwork != null && expectedNetwork != null)
+					if (lastNetwork != null)
 					{
 						Logger.LogWarning<KeyManager>($"Wallet is opened on {expectedNetwork}. Last time it was opened on {lastNetwork}.");
 					}
 					Logger.LogInfo<KeyManager>("Blockchain cache is cleared.");
 				}
 			}
+		}
+
+		public void ClearState()
+		{
+			BlockchainState.BestHeight = 0;
+			BlockchainState.BlockStates.Clear();
+			ToFileNoBlockchainStateLock();
 		}
 
 		#endregion BlockchainState

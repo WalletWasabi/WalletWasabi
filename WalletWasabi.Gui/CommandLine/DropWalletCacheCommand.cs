@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 using WalletWasabi.KeyManagement;
+using WalletWasabi.Gui;
 
 namespace WalletWasabi.Gui.CommandLine
 {
@@ -36,7 +37,7 @@ namespace WalletWasabi.Gui.CommandLine
 			};
 		}
 
-		public override Task<int> InvokeAsync(IEnumerable<string> args)
+		public override async Task<int> InvokeAsync(IEnumerable<string> args)
 		{
 			var error = false;
 			try
@@ -67,9 +68,9 @@ namespace WalletWasabi.Gui.CommandLine
 					}
 					else
 					{
-						string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-						WalletService.DropWalletCache(WalletName, dataDir, Network);
-						km.AssertNetworkOrClearBlockState(null);
+						await Daemon.Global.InitializeNoWalletAsync();
+						Daemon.Global.BitcoinStore.IndexStore.ClearState();
+						km.ClearState();
 						Logging.Logger.LogInfo("Wallet cache successfully dropped!");
 					}
 				}
@@ -80,7 +81,7 @@ namespace WalletWasabi.Gui.CommandLine
 				error = true;
 			}
 			Environment.Exit(error ? 1 : 0);
-			return Task.FromResult(0);
+			return 0;
 		}
 
 		private Network GetNetwork(string str)

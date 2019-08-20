@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Helpers;
+using WalletWasabi.Interfaces;
 using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -19,7 +20,7 @@ namespace WalletWasabi.Stores
 	/// <summary>
 	/// Manages to store the filters safely.
 	/// </summary>
-	public class IndexStore
+	public class IndexStore : IClearMyState
 	{
 		private string WorkFolderPath { get; set; }
 		private Network Network { get; set; }
@@ -410,6 +411,15 @@ namespace WalletWasabi.Stores
 				{
 					await todo(filter);
 				}
+			}
+		}
+
+		public void ClearState()
+		{
+			if (Directory.Exists(WorkFolderPath))
+			{
+				Directory.Delete(WorkFolderPath, true);
+				Directory.CreateDirectory(WorkFolderPath);
 			}
 		}
 	}
