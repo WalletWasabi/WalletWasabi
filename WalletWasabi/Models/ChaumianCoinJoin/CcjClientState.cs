@@ -197,7 +197,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			Func<SmartCoin, bool> confirmationPredicate;
 			if (allowUnconfirmedZeroLink)
 			{
-				confirmationPredicate = x => x.Confirmed || x.Label.StartsWith("ZeroLink", StringComparison.Ordinal);
+				confirmationPredicate = x => x.Confirmed || x.IsLikelyCoinJoinOutput;
 			}
 			else
 			{
@@ -220,14 +220,9 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				if (lazyMode) // Do the largest valid combination.
 				{
 					IEnumerable<SmartCoin> highestValueEnumeration = coins.OrderByDescending(x => x.Amount).Take(i);
-					if (highestValueEnumeration.Sum(x => x.Amount) >= amountNeeded)
-					{
-						coinGroups = new List<IEnumerable<SmartCoin>> { highestValueEnumeration };
-					}
-					else
-					{
-						coinGroups = new List<IEnumerable<SmartCoin>>();
-					}
+					coinGroups = highestValueEnumeration.Sum(x => x.Amount) >= amountNeeded
+						? new List<IEnumerable<SmartCoin>> { highestValueEnumeration }
+						: new List<IEnumerable<SmartCoin>>();
 				}
 				else
 				{

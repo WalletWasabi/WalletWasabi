@@ -18,11 +18,11 @@ namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 				{
 					bool topR = matrix[x + 1, y];
 
-					if (topR == matrix[x + 1, y + 1])   //Bottom Right
+					if (topR == matrix[x + 1, y + 1]) //Bottom Right
 					{
-						if (topR == matrix[x, y + 1])   //Bottom Left
+						if (topR == matrix[x, y + 1]) //Bottom Left
 						{
-							if (topR == matrix[x, y])   //Top Left
+							if (topR == matrix[x, y]) //Top Left
 							{
 								penalty += 3;
 								x += 1;

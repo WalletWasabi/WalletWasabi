@@ -153,7 +153,7 @@ namespace WalletWasabi.Gui
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
 			var connectionParameters = new NodeConnectionParameters { UserAgent = "/Satoshi:0.18.0/" };
 
-			if (Config.UseTor.Value)
+			if (Config.UseTor)
 			{
 				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
 			}
@@ -187,7 +187,7 @@ namespace WalletWasabi.Gui
 
 			#region TorProcessInitialization
 
-			if (Config.UseTor.Value)
+			if (Config.UseTor)
 			{
 				TorManager = new TorProcessManager(Config.TorSocks5EndPoint, TorLogsFile);
 			}
@@ -373,7 +373,7 @@ namespace WalletWasabi.Gui
 				return;
 			}
 
-			//  curl -s https://bitnodes.21.co/api/v1/snapshots/latest/ | egrep -o '[a-z0-9]{16}\.onion:?[0-9]*' | sort -ru
+			// curl -s https://bitnodes.21.co/api/v1/snapshots/latest/ | egrep -o '[a-z0-9]{16}\.onion:?[0-9]*' | sort -ru
 			// Then filtered to include only /Satoshi:0.17.x
 			var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
 			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -408,7 +408,7 @@ namespace WalletWasabi.Gui
 					await Task.Delay(100, token);
 				}
 
-				if (Config.UseTor.Value)
+				if (Config.UseTor)
 				{
 					ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
 				}
@@ -507,7 +507,7 @@ namespace WalletWasabi.Gui
 		{
 			try
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || UiConfig?.LurkingWifeMode.Value is true)
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || UiConfig?.LurkingWifeMode is true)
 				{
 					return;
 				}
@@ -521,12 +521,17 @@ namespace WalletWasabi.Gui
 						//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
 						//}
 						// else
-
+						if (coin.HdPubKey.IsInternal)
+						{
+							continue;
+						}
 						string amountString = coin.Amount.ToString(false, true);
 						using (var process = Process.Start(new ProcessStartInfo
 						{
 							FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
-							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e \"display notification \\\"Received {amountString} BTC\\\" with title \\\"Wasabi\\\"\"" : $"--expire-time=3000 \"Wasabi\" \"Received {amountString} BTC\"",
+							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+								? $"-e \"display notification \\\"Received {amountString} BTC\\\" with title \\\"Wasabi\\\"\""
+								: $"--expire-time=3000 \"Wasabi\" \"Received {amountString} BTC\"",
 							CreateNoWindow = true
 						}))
 						{ }
@@ -689,8 +694,10 @@ namespace WalletWasabi.Gui
 
 		public string GetNextHardwareWalletName(Hwi.Models.HardwareWalletInfo hwi = null, string customPrefix = null)
 		{
-			var prefix = customPrefix is null ?
-				(hwi is null ? "HardwareWallet" : hwi.Type.ToString())
+			var prefix = customPrefix is null
+				? hwi is null
+					? "HardwareWallet"
+					: hwi.Type.ToString()
 				: customPrefix;
 
 			for (int i = 0; i < int.MaxValue; i++)

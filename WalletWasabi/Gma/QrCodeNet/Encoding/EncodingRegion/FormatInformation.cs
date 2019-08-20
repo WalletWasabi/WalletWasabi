@@ -40,12 +40,14 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 		{
 			if (bitsIndex <= 7)
 			{
-				return bitsIndex >= 6 ? new MatrixPoint(bitsIndex + 1, 8)
+				return bitsIndex >= 6
+					? new MatrixPoint(bitsIndex + 1, 8)
 					: new MatrixPoint(bitsIndex, 8);
 			}
 			else
 			{
-				return bitsIndex == 8 ? new MatrixPoint(8, 8 - (bitsIndex - 7))
+				return bitsIndex == 8
+					? new MatrixPoint(8, 8 - (bitsIndex - 7))
 					: new MatrixPoint(8, 8 - (bitsIndex - 7) - 1);
 			}
 		}

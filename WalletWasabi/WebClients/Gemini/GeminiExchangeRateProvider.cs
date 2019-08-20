@@ -24,7 +24,7 @@ namespace WalletWasabi.WebClients.Gemini
 
 				var exchangeRates = new List<ExchangeRate>
 				{
-					new ExchangeRate { Rate = data.Bid, Ticker = "USD" },
+					new ExchangeRate { Rate = data.Bid, Ticker = "USD" }
 				};
 
 				return exchangeRates;

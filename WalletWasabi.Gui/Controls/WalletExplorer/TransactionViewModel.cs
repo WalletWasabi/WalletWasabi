@@ -33,7 +33,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public string DateTime => Model.DateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 
 		public bool Confirmed => Model.Confirmed;
-		
+
 		public int Confirmations => Model.Confirmations;
 
 		public string AmountBtc => Model.AmountBtc;

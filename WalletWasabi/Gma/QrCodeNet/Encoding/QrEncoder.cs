@@ -32,7 +32,7 @@ namespace Gma.QrCodeNet.Encoding
 		{
 			if (string.IsNullOrEmpty(content))
 			{
-				throw new InputOutOfBoundaryException("Input should not be empty or null");
+				throw new InputOutOfBoundaryException("Input cannot be null or empty.");
 			}
 			else
 			{
@@ -67,7 +67,7 @@ namespace Gma.QrCodeNet.Encoding
 		{
 			if (content is null)
 			{
-				throw new InputOutOfBoundaryException("Input should not be empty or null");
+				throw new InputOutOfBoundaryException("Input cannot be null or empty.");
 			}
 			else
 			{

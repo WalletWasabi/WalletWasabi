@@ -55,17 +55,16 @@ namespace WalletWasabi.Backend
 				c.IncludeXmlComments(xmlPath);
 			});
 
-			services.AddLogging(Logging => Logging.AddFilter((s, level) => level >= Microsoft.Extensions.Logging.LogLevel.Warning));
+			services.AddLogging(logging => logging.AddFilter((s, level) => level >= Microsoft.Extensions.Logging.LogLevel.Warning));
 
 			services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
-			services.AddSingleton<Global>(new Global(Configuration["datadir"]));
+			services.AddSingleton(new Global(Configuration["datadir"]));
 			services.AddStartupTask<InitConfigStartupTask>();
 			services.AddResponseCompression();
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
 #pragma warning disable IDE0060 // Remove unused parameter
-
 		public void Configure(IApplicationBuilder app, IHostingEnvironment env, Global global)
 #pragma warning restore IDE0060 // Remove unused parameter
 		{
@@ -101,27 +100,27 @@ namespace WalletWasabi.Backend
 		private async Task CleanupAsync(Global global)
 		{
 			global.Coordinator?.Dispose();
-			Logger.LogInfo<Startup>("Coordinator is disposed.");
+			Logger.LogInfo<Startup>($"{nameof(global.Coordinator)} is disposed.");
 
 			if (global.IndexBuilderService != null)
 			{
 				await global.IndexBuilderService.StopAsync();
-				Logger.LogInfo<Startup>("IndexBuilderService is disposed.");
+				Logger.LogInfo<Startup>($"{nameof(global.IndexBuilderService)} is disposed.");
 			}
 
 			if (global.RoundConfigWatcher != null)
 			{
 				await global.RoundConfigWatcher.StopAsync();
-				Logger.LogInfo<Startup>("RoundConfigWatcher is disposed.");
+				Logger.LogInfo<Startup>($"{nameof(global.RoundConfigWatcher)} is disposed.");
 			}
 
 			if (global.LocalNode != null)
 			{
 				global.DisconnectDisposeNullLocalNode();
-				Logger.LogInfo<Startup>("LocalNode is disposed.");
+				Logger.LogInfo<Startup>($"{nameof(global.LocalNode)} is disposed.");
 			}
 
-			Logger.LogInfo($"Wasabi Backend stopped gracefully.", Logger.InstanceGuid.ToString());
+			Logger.LogInfo("Wasabi Backend stopped gracefully.", Logger.InstanceGuid.ToString());
 		}
 	}
 }

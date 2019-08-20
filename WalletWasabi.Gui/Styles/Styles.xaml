@@ -1,7 +1,7 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:dock="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
-		xmlns:shell="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"
+<Styles xmlns="https://github.com/avaloniaui" 
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:dock="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
+        xmlns:shell="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"        
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
   <Style>
@@ -11,13 +11,11 @@
       <SolidColorBrush x:Key="ErrorBrush">#F25022</SolidColorBrush>
       <SolidColorBrush x:Key="WarningMessageForeground">#FFDD00</SolidColorBrush>
       <SolidColorBrush x:Key="GreenBrush">#00DD10</SolidColorBrush>
-
       <sys:Double x:Key="FontSizeSmall">12</sys:Double>
       <sys:Double x:Key="FontSizeNormal">14</sys:Double>
       <sys:Double x:Key="FontSizeLarge">16</sys:Double>
     </Style.Resources>
   </Style>
-
   <Style Selector="shell|MetroWindow /template/ Button#minimiseButton">
     <Setter Property="Content">
       <Template>
@@ -35,7 +33,6 @@
       </Template>
     </Setter>
   </Style>
-
   <Style Selector="shell|MetroWindow /template/ Button#restoreButton">
     <Setter Property="Content">
       <Template>
@@ -45,58 +42,59 @@
       </Template>
     </Setter>
   </Style>
-
   <Style Selector="shell|MetroWindow:maximised /template/ Button#restoreButton">
     <Setter Property="Content">
       <Template>
         <Panel Margin="4">
-          <Path Height="8" Width="8" Stretch="Uniform" UseLayoutRounding="False" Fill="{DynamicResource ThemeForegroundBrush}" Data="M4,8H8V4H20V16H16V20H4V8M16,8V14H18V6H10V8H16M6,12V18H14V12H6Z" />
+          <Path Height="8"
+                Width="8"
+                Stretch="Uniform"
+                UseLayoutRounding="False"
+                Fill="{DynamicResource ThemeForegroundBrush}"
+                Data="M4,8H8V4H20V16H16V20H4V8M16,8V14H18V6H10V8H16M6,12V18H14V12H6Z" />
         </Panel>
       </Template>
     </Setter>
   </Style>
-
   <Style Selector="shell|MetroWindow /template/ Button#closeButton">
     <Setter Property="Content">
       <Template>
         <Panel Margin="4">
-          <Path Height="8" Width="8" Stretch="Uniform" UseLayoutRounding="False"  Data="M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z" Fill="{DynamicResource ThemeForegroundBrush}" />
+          <Path
+            Height="8"
+            Width="8"
+            Stretch="Uniform"
+            UseLayoutRounding="False"
+            Data="M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z"
+            Fill="{DynamicResource ThemeForegroundBrush}" />
         </Panel>
       </Template>
     </Setter>
   </Style>
-
   <Style Selector="TextBox.selectableTextBlock">
     <Setter Property="Padding" Value="0" />
     <Setter Property="BorderThickness" Value="0" />
     <Setter Property="IsReadOnly" Value="True" />
   </Style>
-
   <Style Selector="Control.docTabContainer">
     <Setter Property="Margin" Value="20" />
   </Style>
-
   <Style Selector="controls|GroupBox.docTabContainer">
     <Setter Property="TextBlock.FontSize" Value="40" />
     <Setter Property="Margin" Value="10" />
   </Style>
-
   <Style Selector="Grid.content">
     <Setter Property="TextBlock.FontSize" Value="14" />
   </Style>
-
   <Style Selector=".hyperLink">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource HyperLinkForeground}" />
   </Style>
-
   <Style Selector=".errorMessage">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource ErrorBrush}" />
   </Style>
-
   <Style Selector=".warningMessage">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource WarningMessageForeground}" />
   </Style>
-
   <Style Selector="Button.activeHyperLink">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource HyperLinkForeground}" />
     <Setter Property="Cursor" Value="Hand" />
@@ -104,42 +102,38 @@
     <Setter Property="Padding" Value="0" />
     <Setter Property="Background" Value="Transparent" />
   </Style>
-
   <Style Selector="dock|DockToolChrome:active /template/ Grid#PART_Grip">
     <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
   </Style>
-
   <Style Selector="Button.chromeButton">
     <Setter Property="IsVisible" Value="False" />
   </Style>
-
   <Style Selector="ListBox">
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderLowBrush}" />
   </Style>
-
   <Style Selector="ListBoxItem">
     <Setter Property="Padding" Value="5 0" />
   </Style>
-
   <Style Selector="TextBox">
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighBrush}" />
   </Style>
-
   <Style Selector="DataValidationErrors">
     <Setter Property="Template">
       <ControlTemplate>
         <DockPanel LastChildFill="True">
-          <ContentControl DockPanel.Dock="Bottom"
-                        ContentTemplate="{TemplateBinding ErrorTemplate}"
-                        DataContext="{TemplateBinding Owner}"
-                        Content="{Binding (DataValidationErrors.Errors)}"
-                        IsVisible="{Binding (DataValidationErrors.HasErrors)}" />
-          <ContentPresenter Name="PART_ContentPresenter"
-                          Background="{TemplateBinding Background}"
-                          BorderThickness="{TemplateBinding BorderThickness}"
-                          ContentTemplate="{TemplateBinding ContentTemplate}"
-                          Content="{TemplateBinding Content}"
-                          Padding="{TemplateBinding Padding}" />
+          <ContentControl
+            DockPanel.Dock="Bottom"
+            ContentTemplate="{TemplateBinding ErrorTemplate}"
+            DataContext="{TemplateBinding Owner}"
+            Content="{Binding (DataValidationErrors.Errors)}"
+            IsVisible="{Binding (DataValidationErrors.HasErrors)}" />
+          <ContentPresenter
+            Name="PART_ContentPresenter"
+            Background="{TemplateBinding Background}"
+            BorderThickness="{TemplateBinding BorderThickness}"
+            ContentTemplate="{TemplateBinding ContentTemplate}"
+            Content="{TemplateBinding Content}"
+            Padding="{TemplateBinding Padding}" />
         </DockPanel>
       </ControlTemplate>
     </Setter>
@@ -159,7 +153,6 @@
   <Style Selector="TextBox:error /template/ Border#border">
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}" />
   </Style>
-
   <Style Selector="TextBox">
     <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}" />
@@ -168,50 +161,48 @@
     <Setter Property="Template">
       <ControlTemplate>
         <DockPanel LastChildFill="True">
-          <Border Name="border"
-                Background="{TemplateBinding Background}"
-                BorderBrush="{TemplateBinding BorderBrush}"
-                BorderThickness="{TemplateBinding BorderThickness}" DockPanel.Dock="Top">
+          <Border
+            Name="border"
+            Background="{TemplateBinding Background}"
+            BorderBrush="{TemplateBinding BorderBrush}"
+            BorderThickness="{TemplateBinding BorderThickness}"
+            DockPanel.Dock="Top">
             <DockPanel Margin="{TemplateBinding Padding}">
-
-              <TextBlock Name="floatingWatermark"
-                       Foreground="{DynamicResource ThemeAccentBrush}"
-                       FontSize="{DynamicResource FontSizeSmall}"
-                       Text="{TemplateBinding Watermark}"
-                       DockPanel.Dock="Top">
+              <TextBlock
+                Name="floatingWatermark"
+                Foreground="{DynamicResource ThemeAccentBrush}"
+                FontSize="{DynamicResource FontSizeSmall}"
+                Text="{TemplateBinding Watermark}" DockPanel.Dock="Top">
                 <TextBlock.IsVisible>
                   <MultiBinding Converter="{x:Static BoolConverters.And}">
-                    <Binding RelativeSource="{RelativeSource TemplatedParent}"
-                           Path="UseFloatingWatermark" />
-                    <Binding RelativeSource="{RelativeSource TemplatedParent}"
-                           Path="Text"
-                           Converter="{x:Static StringConverters.IsNotNullOrEmpty}" />
+                    <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="UseFloatingWatermark" />
+                    <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Text" Converter="{x:Static StringConverters.IsNotNullOrEmpty}" />
                   </MultiBinding>
                 </TextBlock.IsVisible>
               </TextBlock>
-              <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
-                            VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
-
+              <ScrollViewer
+                HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
                 <Panel>
-                  <TextBlock Name="watermark"
-                             Opacity="0.5"
-                             Text="{TemplateBinding Watermark}"
-                             IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
-                  <TextPresenter Name="PART_TextPresenter"
-                                 Text="{TemplateBinding Text, Mode=TwoWay}"
-                                 CaretIndex="{TemplateBinding CaretIndex}"
-                                 SelectionStart="{TemplateBinding SelectionStart}"
-                                 SelectionEnd="{TemplateBinding SelectionEnd}"
-                                 TextAlignment="{TemplateBinding TextAlignment}"
-                                 TextWrapping="{TemplateBinding TextWrapping}"
-                                 PasswordChar="{TemplateBinding PasswordChar}" />
+                  <TextBlock
+                    Name="watermark"
+                    Opacity="0.5"
+                    Text="{TemplateBinding Watermark}"
+                    IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+                  <TextPresenter
+                    Name="PART_TextPresenter"
+                    Text="{TemplateBinding Text, Mode=TwoWay}"
+                    CaretIndex="{TemplateBinding CaretIndex}"
+                    SelectionStart="{TemplateBinding SelectionStart}"
+                    SelectionEnd="{TemplateBinding SelectionEnd}"
+                    TextAlignment="{TemplateBinding TextAlignment}"
+                    TextWrapping="{TemplateBinding TextWrapping}"
+                    PasswordChar="{TemplateBinding PasswordChar}" />
                 </Panel>
               </ScrollViewer>
             </DockPanel>
           </Border>
-          <Border Margin="{TemplateBinding Padding}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            BorderBrush="{TemplateBinding Background}">
+          <Border Margin="{TemplateBinding Padding}" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding Background}">
             <DataValidationErrors />
           </Border>
         </DockPanel>
@@ -224,31 +215,24 @@
   <Style Selector="TextBox:focus /template/ Border#border">
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighBrush}" />
   </Style>
-
   <Style Selector="ListBoxItem:pointerover Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
     <Setter Property="Background" Value="{DynamicResource ThemeControlHighlightMidBrush}" />
   </Style>
-
   <Style Selector="ListBoxItem:pointerover Grid Expander:expanded /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
     <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
   </Style>
-
   <Style Selector="ListBoxItem:selected:pointerover Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
     <Setter Property="Background" Value="{DynamicResource ApplicationAccentBrushLow}" />
   </Style>
-
   <Style Selector="ListBoxItem:selected:pointerover Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
     <Setter Property="Background" Value="{DynamicResource ThemeHighlightBrush}" />
   </Style>
-
   <Style Selector="ListBoxItem:selected Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
     <Setter Property="Background" Value="{DynamicResource ApplicationAccentBrushLow}" />
   </Style>
-
   <Style Selector="ListBoxItem:selected:pointerover Grid Expander:expanded /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
     <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
   </Style>
-
   <Style Selector="ListBoxItem:selected Grid Expander:expanded /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
     <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
   </Style>

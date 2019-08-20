@@ -26,31 +26,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			Owner = owner;
 
-			GenerateCommand = ReactiveCommand.Create(DoGenerateCommand,
-			this.WhenAnyValue(x => x.TermsAccepted));
-
-			this.WhenAnyValue(x => x.Password).Subscribe(x =>
-			{
-				try
-				{
-					if (x.NotNullAndNotEmpty())
-					{
-						char lastChar = x.Last();
-						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
-						{
-							Password = x.TrimEnd('\r', '\n');
-							if (TermsAccepted)
-							{
-								DoGenerateCommand();
-							}
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					Logger.LogTrace(ex);
-				}
-			});
+			GenerateCommand = ReactiveCommand.Create(DoGenerateCommand, this.WhenAnyValue(x => x.TermsAccepted));
 		}
 
 		private void DoGenerateCommand()
@@ -82,6 +58,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				try
 				{
+					PasswordHelper.Guard(Password);
+
 					KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
 
 					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, mnemonic);

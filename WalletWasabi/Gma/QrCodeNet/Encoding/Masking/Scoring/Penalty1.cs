@@ -26,13 +26,15 @@ namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 			{
 				while (j < width - 4)
 				{
-					bool preBit = isHorizontal ? matrix[j + 4, i]
+					bool preBit = isHorizontal
+						? matrix[j + 4, i]
 						: matrix[i, j + 4];
 					int numSameBitCell = 1;
 
 					for (int x = 1; x <= 4; x++)
 					{
-						bool bit = isHorizontal ? matrix[j + 4 - x, i]
+						bool bit = isHorizontal
+							? matrix[j + 4 - x, i]
 							: matrix[i, j + 4 - x];
 						if (bit == preBit)
 						{
@@ -53,7 +55,8 @@ namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 						int x = 5;
 						while ((j + x) < width)
 						{
-							bool bit = isHorizontal ? matrix[j + x, i]
+							bool bit = isHorizontal
+								? matrix[j + x, i]
 								: matrix[i, j + x];
 							if (bit == preBit)
 							{

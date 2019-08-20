@@ -349,7 +349,7 @@ namespace WalletWasabi.Tests
 			for (int i = 0; i < 1000; i++)
 			{
 				string line = new string(Enumerable.Repeat(Constants.Chars, 100)
-				  .Select(s => s[random.Next(s.Length)]).ToArray());
+					.Select(s => s[random.Next(s.Length)]).ToArray());
 
 				lines.Add(line);
 			}

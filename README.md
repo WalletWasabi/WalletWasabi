@@ -20,13 +20,15 @@
 
 ![](https://i.imgur.com/kpjT9ZV.png)
 
+For step by step instructions of PGP verification and package installation, see the [documentation](https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html)
+
 # Build From Source Code
 
 ## Get The Requirements
 
 1. Get Git: https://git-scm.com/downloads
 2. Get .NET Core 2.2 SDK: https://www.microsoft.com/net/download (Note, you can disable .NET's telemetry by typing `export DOTNET_CLI_TELEMETRY_OPTOUT=1` on Linux and OSX or `set DOTNET_CLI_TELEMETRY_OPTOUT=1` on Windows.)
-  
+
 ## Get Wasabi
 
 Clone & Restore & Build

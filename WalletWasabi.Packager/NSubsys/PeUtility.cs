@@ -8,39 +8,38 @@ namespace NSubsys
 	internal class PeUtility : IDisposable
 	{
 		public enum SubSystemType : ushort
-        {
-			IMAGE_SUBSYSTEM_WINDOWS_GUI = 2,
-			IMAGE_SUBSYSTEM_WINDOWS_CUI = 3
+		{
+			ImageSubSystemWindowsGui = 2,
+			ImageSubSystemWindowsCui = 3
 		}
 
 		[StructLayout(LayoutKind.Explicit)]
-		public struct IMAGE_DOS_HEADER
+		public struct ImageDosHeader
 		{
 			[FieldOffset(60)]
 			public uint e_lfanew;
 		}
 
 		[StructLayout(LayoutKind.Explicit)]
-		public struct IMAGE_OPTIONAL_HEADER
+		public struct ImageOptionalHeader
 		{
 			[FieldOffset(68)]
 			public ushort Subsystem;
 		}
 
-
 		/// <summary>
 		/// Gets the optional header
 		/// </summary>
-		public IMAGE_OPTIONAL_HEADER OptionalHeader { get;  }
+		public ImageOptionalHeader OptionalHeader { get; }
 
 		/// <summary>
 		/// Gets the PE file stream for R/W functions.
-		/// </summary> 
+		/// </summary>
 		public FileStream Stream { get; }
 
 		public long MainHeaderOffset { get; }
 
-		private readonly IDisposable _internalBinReader;
+		private readonly IDisposable InternalBinReader;
 
 		public PeUtility(string filePath)
 		{
@@ -48,16 +47,16 @@ namespace NSubsys
 
 			var reader = new BinaryReader(Stream);
 
-			var dosHeader = FromBinaryReader<IMAGE_DOS_HEADER>(reader);
+			var dosHeader = FromBinaryReader<ImageDosHeader>(reader);
 
 			// Seek the new PE Header and skip NtHeadersSignature (4 bytes) & IMAGE_FILE_HEADER struct (20bytes).
 			Stream.Seek(dosHeader.e_lfanew + 4 + 20, SeekOrigin.Begin);
 
 			MainHeaderOffset = Stream.Position;
 
-			OptionalHeader = FromBinaryReader<IMAGE_OPTIONAL_HEADER>(reader);
+			OptionalHeader = FromBinaryReader<ImageOptionalHeader>(reader);
 
-			_internalBinReader = reader;
+			InternalBinReader = reader;
 		}
 
 		/// <summary>
@@ -83,7 +82,7 @@ namespace NSubsys
 		public void Dispose()
 		{
 			Stream?.Dispose();
-			_internalBinReader?.Dispose();
+			InternalBinReader?.Dispose();
 		}
 	}
 }

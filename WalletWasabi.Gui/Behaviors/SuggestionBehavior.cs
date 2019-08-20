@@ -12,11 +12,11 @@ using WalletWasabi.Gui.Tabs.WalletManager;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-	internal class SuggestionBehavior : Behavior<TextBox>
+	public class SuggestionBehavior : Behavior<TextBox>
 	{
 		private CompositeDisposable Disposables { get; set; }
 
-		private static readonly AvaloniaProperty<IEnumerable<SuggestionViewModel>> SuggestionItemsProperty =
+		public static readonly AvaloniaProperty<IEnumerable<SuggestionViewModel>> SuggestionItemsProperty =
 			AvaloniaProperty.Register<SuggestionBehavior, IEnumerable<SuggestionViewModel>>(nameof(SuggestionItems), defaultBindingMode: BindingMode.TwoWay);
 
 		public IEnumerable<SuggestionViewModel> SuggestionItems

@@ -377,12 +377,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void OnOpen()
 		{
-			if (Disposables != null)
-			{
-				throw new Exception("CoinList opened before previous closed.");
-			}
-
-			Disposables = new CompositeDisposable();
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent))
 			{
@@ -470,26 +465,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void SetSelections()
 		{
 			SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
-			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= Global.Config.PrivacyLevelStrong);
-			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong);
+			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
 		}
 
 		private void SetCoinJoinStatusWidth()
 		{
-			if (Coins.Any(x => x.Status == SmartCoinStatus.MixingConnectionConfirmation
+			CoinJoinStatusWidth = Coins.Any(x => x.Status == SmartCoinStatus.MixingConnectionConfirmation
 				 || x.Status == SmartCoinStatus.MixingInputRegistration
 				 || x.Status == SmartCoinStatus.MixingOnWaitingList
 				 || x.Status == SmartCoinStatus.MixingOutputRegistration
 				 || x.Status == SmartCoinStatus.MixingSigning
 				 || x.Status == SmartCoinStatus.MixingWaitingForConfirmation
-				 || x.Status == SmartCoinStatus.SpentAccordingToBackend))
-			{
-				CoinJoinStatusWidth = new GridLength(180);
-			}
-			else
-			{
-				CoinJoinStatusWidth = new GridLength(0);
-			}
+				 || x.Status == SmartCoinStatus.SpentAccordingToBackend)
+				? new GridLength(180)
+				: new GridLength(0);
 		}
 
 		public void OnCoinIsSelectedChanged(CoinViewModel cvm)
@@ -497,11 +487,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SetSelections();
 			SelectionChanged?.Invoke(this, cvm);
 			SelectedAmount = Coins.Where(x => x.IsSelected).Sum(x => x.Amount);
-			LabelExposeCommonOwnershipWarning = CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel ?
-				false // Because in CoinJoin the selection algorithm makes sure not to combine red with non-red.
+			LabelExposeCommonOwnershipWarning = CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel
+				? false // Because in CoinJoin the selection algorithm makes sure not to combine red with non-red.
 				: Coins.Any(c =>
-					  c.AnonymitySet == 1 && c.IsSelected
-					  && Coins.Any(x => x.AnonymitySet > 1 && x.IsSelected));
+					c.AnonymitySet == 1 && c.IsSelected && Coins.Any(x =>
+						x.AnonymitySet > 1 && x.IsSelected));
 		}
 
 		public void OnCoinStatusChanged()

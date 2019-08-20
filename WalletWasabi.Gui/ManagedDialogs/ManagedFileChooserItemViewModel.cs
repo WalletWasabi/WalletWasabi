@@ -4,7 +4,7 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.ManagedDialogs
 {
-	class ManagedFileChooserItemViewModel : ViewModelBase
+	internal class ManagedFileChooserItemViewModel : ViewModelBase
 	{
 		private string _displayName;
 		private string _path;
@@ -65,7 +65,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 		{
 			IsDirectory = true;
 			Path = item.Path;
-			DisplayName = item.DisplayName;			
+			DisplayName = item.DisplayName;
 		}
 	}
 }

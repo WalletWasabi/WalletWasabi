@@ -98,14 +98,7 @@ namespace System
 			for (int i = 0; i < 256; i++)
 			{
 				string s = i.ToString("X2");
-				if (BitConverter.IsLittleEndian)
-				{
-					result[i] = s[0] + ((uint)s[1] << 16);
-				}
-				else
-				{
-					result[i] = s[1] + ((uint)s[0] << 16);
-				}
+				result[i] = BitConverter.IsLittleEndian ? s[0] + ((uint)s[1] << 16) : s[1] + ((uint)s[0] << 16);
 			}
 			return result;
 		}
@@ -168,7 +161,7 @@ namespace System
 			for (int x = 0, i = 0; i < hex.Length; i += 2, x += 1)
 			{
 				bytes[x] = (byte)(hexValue[char.ToUpper(hex[i + 0]) - '0'] << 4 |
-								  hexValue[char.ToUpper(hex[i + 1]) - '0']);
+					hexValue[char.ToUpper(hex[i + 1]) - '0']);
 			}
 
 			return bytes;

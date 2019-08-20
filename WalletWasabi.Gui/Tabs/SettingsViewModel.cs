@@ -11,6 +11,7 @@ using System.Net.Sockets;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
 using System.Text.RegularExpressions;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
@@ -26,6 +27,7 @@ namespace WalletWasabi.Gui.Tabs
 		private string _torSocks5EndPoint;
 		private string _bitcoinP2pEndPoint;
 		private bool _autocopy;
+		private bool _customFee;
 		private bool _useTor;
 		private bool _isModified;
 		private string _somePrivacyLevel;
@@ -47,23 +49,20 @@ namespace WalletWasabi.Gui.Tabs
 
 		public SettingsViewModel(Global global) : base(global, "Settings")
 		{
-			var config = new Config(Global.Config.FilePath);
 			Autocopy = Global.UiConfig?.Autocopy is true;
+			CustomFee = Global.UiConfig?.IsCustomFee is true;
 
-			this.WhenAnyValue(x => x.Network)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(async _ =>
-				{
-					await config.LoadFileAsync();
-
-					var configBitcoinP2pEndPoint = Network == Network.Main
-						? config.MainNetBitcoinP2pEndPoint
-						: (Network == Network.TestNet
-							? config.TestNetBitcoinP2pEndPoint
-							: config.RegTestBitcoinP2pEndPoint);
-
-					BitcoinP2pEndPoint = configBitcoinP2pEndPoint.ToString(defaultPort: -1);
-				});
+			// Use global config's data as default filler until the real data is filled out by the loading of the config onopen.
+			var globalConfig = Global.Config;
+			Network = globalConfig.Network;
+			TorSocks5EndPoint = globalConfig.TorSocks5EndPoint.ToString(-1);
+			UseTor = globalConfig.UseTor;
+			SomePrivacyLevel = globalConfig.PrivacyLevelSome.ToString();
+			FinePrivacyLevel = globalConfig.PrivacyLevelFine.ToString();
+			StrongPrivacyLevel = globalConfig.PrivacyLevelStrong.ToString();
+			DustThreshold = globalConfig.DustThreshold.ToString();
+			BitcoinP2pEndPoint = globalConfig.GetP2PEndpoint().ToString(defaultPort: -1);
+			IsModified = false;
 
 			this.WhenAnyValue(
 				x => x.Network,
@@ -72,28 +71,12 @@ namespace WalletWasabi.Gui.Tabs
 				.Subscribe(x => Save());
 
 			this.WhenAnyValue(x => x.Autocopy)
-				.Subscribe(async x =>
-			{
-				Global.UiConfig.Autocopy = x;
-				await Global.UiConfig.ToFileAsync();
-			});
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(x => Global.UiConfig.Autocopy = x);
 
-			Dispatcher.UIThread.PostLogException(async () =>
-			{
-				await config.LoadFileAsync();
-
-				Network = config.Network;
-				TorSocks5EndPoint = config.TorSocks5EndPoint.ToString(-1);
-				UseTor = config.UseTor.Value;
-
-				SomePrivacyLevel = config.PrivacyLevelSome.ToString();
-				FinePrivacyLevel = config.PrivacyLevelFine.ToString();
-				StrongPrivacyLevel = config.PrivacyLevelStrong.ToString();
-
-				DustThreshold = config.DustThreshold.ToString();
-
-				IsModified = await Global.Config.CheckFileChangeAsync();
-			});
+			this.WhenAnyValue(x => x.CustomFee)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(x => Global.UiConfig.IsCustomFee = x);
 
 			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
 
@@ -152,25 +135,43 @@ namespace WalletWasabi.Gui.Tabs
 
 		public override void OnOpen()
 		{
-			if (Disposables != null)
-			{
-				throw new Exception("Settings was opened before it was closed.");
-			}
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Disposables = new CompositeDisposable();
+			Config.LoadOrCreateDefaultFileAsync(Global.Config.FilePath)
+				.ToObservable(RxApp.TaskpoolScheduler)
+				.Take(1)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					Network = x.Network;
+					TorSocks5EndPoint = x.TorSocks5EndPoint.ToString(-1);
+					UseTor = x.UseTor;
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(LurkingWifeMode));
-			}).DisposeWith(Disposables);
+					SomePrivacyLevel = x.PrivacyLevelSome.ToString();
+					FinePrivacyLevel = x.PrivacyLevelFine.ToString();
+					StrongPrivacyLevel = x.PrivacyLevelStrong.ToString();
+
+					DustThreshold = x.DustThreshold.ToString();
+
+					BitcoinP2pEndPoint = x.GetP2PEndpoint().ToString(defaultPort: -1);
+
+					IsModified = !Global.Config.AreDeepEqual(x);
+				})
+				.DisposeWith(Disposables);
+
+			Global.UiConfig
+				.WhenAnyValue(x => x.LurkingWifeMode)
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(LurkingWifeMode)))
+				.DisposeWith(Disposables);
 
 			_isPinSet = Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
 				.ToProperty(this, x => x.IsPinSet, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash)
+			Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee)
+				.Throttle(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(async x => await Global.UiConfig.ToFileAsync())
+				.Subscribe(async _ => await Global.UiConfig.ToFileAsync())
 				.DisposeWith(Disposables);
 
 			base.OnOpen();
@@ -221,6 +222,12 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			get => _autocopy;
 			set => this.RaiseAndSetIfChanged(ref _autocopy, value);
+		}
+
+		public bool CustomFee
+		{
+			get => _customFee;
+			set => this.RaiseAndSetIfChanged(ref _customFee, value);
 		}
 
 		public bool UseTor
@@ -299,61 +306,39 @@ namespace WalletWasabi.Gui.Tabs
 				using (await ConfigLock.LockAsync())
 				{
 					await config.LoadFileAsync();
-
-					var torSocks5EndPoint = EndPointParser.TryParse(TorSocks5EndPoint, Constants.DefaultTorSocksPort, out EndPoint torEp) ? torEp : null;
-					var bitcoinP2pEndPoint = EndPointParser.TryParse(BitcoinP2pEndPoint, network.DefaultPort, out EndPoint p2pEp) ? p2pEp : null;
-					var useTor = UseTor;
-					var somePrivacyLevel = int.TryParse(SomePrivacyLevel, out int level) ? (int?)level : null;
-					var finePrivacyLevel = int.TryParse(FinePrivacyLevel, out level) ? (int?)level : null;
-					var strongPrivacyLevel = int.TryParse(StrongPrivacyLevel, out level) ? (int?)level : null;
-					var dustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? (decimal?)threshold : null;
-
-					var configBitcoinP2pEndPoint = network == NBitcoin.Network.Main
-						? config.MainNetBitcoinP2pEndPoint
-						: (network == NBitcoin.Network.TestNet
-							? config.TestNetBitcoinP2pEndPoint
-							: config.RegTestBitcoinP2pEndPoint);
-
-					if (config.Network != network
-						|| config.TorSocks5EndPoint != torSocks5EndPoint
-						|| config.UseTor != useTor
-						|| config.PrivacyLevelSome != somePrivacyLevel
-						|| config.PrivacyLevelFine != finePrivacyLevel
-						|| config.PrivacyLevelStrong != strongPrivacyLevel
-						|| config.DustThreshold.ToUnit(MoneyUnit.BTC) != dustThreshold
-						|| configBitcoinP2pEndPoint != bitcoinP2pEndPoint
-					)
+					if (Network == config.Network)
 					{
-						config.Network = network;
-						config.TorSocks5EndPoint = torSocks5EndPoint;
-						config.UseTor = useTor;
-						config.PrivacyLevelSome = somePrivacyLevel;
-						config.PrivacyLevelFine = finePrivacyLevel;
-						config.PrivacyLevelStrong = strongPrivacyLevel;
-						config.DustThreshold = Money.Coins(dustThreshold.Value);
-
-						switch (network.Name)
+						if (EndPointParser.TryParse(TorSocks5EndPoint, Constants.DefaultTorSocksPort, out EndPoint torEp))
 						{
-							case "Main":
-								config.MainNetBitcoinP2pEndPoint = bitcoinP2pEndPoint;
-								break;
-
-							case "TestNet":
-								config.TestNetBitcoinP2pEndPoint = bitcoinP2pEndPoint;
-								break;
-
-							case "RegTest":
-								config.RegTestBitcoinP2pEndPoint = bitcoinP2pEndPoint;
-								break;
+							config.TorSocks5EndPoint = torEp;
 						}
-
-						await config.ToFileAsync();
+						if (EndPointParser.TryParse(BitcoinP2pEndPoint, network.DefaultPort, out EndPoint p2pEp))
+						{
+							config.SetP2PEndpoint(p2pEp);
+						}
+						config.UseTor = UseTor;
+						config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? Money.Coins(threshold) : Config.DefaultDustThreshold;
+						config.PrivacyLevelSome = int.TryParse(SomePrivacyLevel, out int level) ? level : Config.DefaultPrivacyLevelSome;
+						config.PrivacyLevelStrong = int.TryParse(StrongPrivacyLevel, out level) ? level : Config.DefaultPrivacyLevelStrong;
+						config.PrivacyLevelFine = int.TryParse(FinePrivacyLevel, out level) ? level : Config.DefaultPrivacyLevelFine;
 					}
-
-					IsModified = await Global.Config.CheckFileChangeAsync();
+					else
+					{
+						config.Network = Network;
+						BitcoinP2pEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
+					}
+					await config.ToFileAsync();
+					IsModified = !Global.Config.AreDeepEqual(config);
 				}
 			});
 		}
+
+		private void OpenConfigFile()
+		{
+			IoHelpers.OpenFileInTextEditor(Global.Config.FilePath);
+		}
+
+		#region Validation
 
 		public string ValidateSomePrivacyLevel()
 			=> ValidatePrivacyLevel(SomePrivacyLevel, whiteSpaceOk: true);
@@ -418,9 +403,6 @@ namespace WalletWasabi.Gui.Tabs
 			return "Invalid endpoint.";
 		}
 
-		private void OpenConfigFile()
-		{
-			IoHelpers.OpenFileInTextEditor(Global.Config.FilePath);
-		}
+		#endregion Validation
 	}
 }

@@ -164,13 +164,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				AdjustedConfirmationTarget = adjustedConfirmationTarget;
 				ConfiguredConfirmationTarget = configuredConfirmationTarget;
 				ConfiguredConfirmationTargetReductionRate = configuredConfirmationTargetReductionRate;
-				CoordinatorFeePercent = (decimal)config.CoordinatorFeePercent;
-				AnonymitySet = (int)config.AnonymitySet;
-				InputRegistrationTimeout = TimeSpan.FromSeconds((long)config.InputRegistrationTimeout);
+				CoordinatorFeePercent = config.CoordinatorFeePercent;
+				AnonymitySet = config.AnonymitySet;
+				InputRegistrationTimeout = TimeSpan.FromSeconds(config.InputRegistrationTimeout);
 				SetInputRegistrationTimesout();
-				ConnectionConfirmationTimeout = TimeSpan.FromSeconds((long)config.ConnectionConfirmationTimeout);
-				OutputRegistrationTimeout = TimeSpan.FromSeconds((long)config.OutputRegistrationTimeout);
-				SigningTimeout = TimeSpan.FromSeconds((long)config.SigningTimeout);
+				ConnectionConfirmationTimeout = TimeSpan.FromSeconds(config.ConnectionConfirmationTimeout);
+				OutputRegistrationTimeout = TimeSpan.FromSeconds(config.OutputRegistrationTimeout);
+				SigningTimeout = TimeSpan.FromSeconds(config.SigningTimeout);
 
 				PhaseLock = new object();
 				Phase = CcjRoundPhase.InputRegistration;
@@ -437,131 +437,133 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 
 			_ = Task.Run(async () =>
-			  {
-				  try
-				  {
-					  TimeSpan timeout;
-					  switch (expectedPhase)
-					  {
-						  case CcjRoundPhase.InputRegistration:
-							  {
-								  SetInputRegistrationTimesout(); // Update it, it's going to be slightly more accurate.
-								  timeout = InputRegistrationTimeout;
-							  }
-							  break;
+				{
+					try
+					{
+						TimeSpan timeout;
+						switch (expectedPhase)
+						{
+							case CcjRoundPhase.InputRegistration:
+								{
+									SetInputRegistrationTimesout(); // Update it, it's going to be slightly more accurate.
+									timeout = InputRegistrationTimeout;
+								}
+								break;
 
-						  case CcjRoundPhase.ConnectionConfirmation:
-							  timeout = ConnectionConfirmationTimeout;
-							  break;
+							case CcjRoundPhase.ConnectionConfirmation:
+								timeout = ConnectionConfirmationTimeout;
+								break;
 
-						  case CcjRoundPhase.OutputRegistration:
-							  timeout = OutputRegistrationTimeout;
-							  break;
+							case CcjRoundPhase.OutputRegistration:
+								timeout = OutputRegistrationTimeout;
+								break;
 
-						  case CcjRoundPhase.Signing:
-							  timeout = SigningTimeout;
-							  break;
+							case CcjRoundPhase.Signing:
+								timeout = SigningTimeout;
+								break;
 
-						  default: throw new InvalidOperationException("This is impossible to happen.");
-					  }
+							default:
+								throw new InvalidOperationException("This is impossible.");
+						}
 
-					  // Delay asynchronously to the requested timeout.
-					  await Task.Delay(timeout);
+						// Delay asynchronously to the requested timeout.
+						await Task.Delay(timeout);
 
-					  var executeRunAbortion = false;
-					  using (await RoundSynchronizerLock.LockAsync())
-					  {
-						  executeRunAbortion = Status == CcjRoundStatus.Running && Phase == expectedPhase;
-					  }
-					  if (executeRunAbortion)
-					  {
-						  PhaseTimeoutLog.TryAdd((RoundId, Phase), DateTimeOffset.UtcNow);
-						  string timedOutLogString = $"Round ({RoundId}): {expectedPhase.ToString()} timed out after {timeout.TotalSeconds} seconds.";
+						var executeRunAbortion = false;
+						using (await RoundSynchronizerLock.LockAsync())
+						{
+							executeRunAbortion = Status == CcjRoundStatus.Running && Phase == expectedPhase;
+						}
+						if (executeRunAbortion)
+						{
+							PhaseTimeoutLog.TryAdd((RoundId, Phase), DateTimeOffset.UtcNow);
+							string timedOutLogString = $"Round ({RoundId}): {expectedPhase.ToString()} timed out after {timeout.TotalSeconds} seconds.";
 
-						  if (expectedPhase == CcjRoundPhase.ConnectionConfirmation)
-						  {
-							  Logger.LogInfo<CcjRound>(timedOutLogString);
-						  }
-						  else if (expectedPhase == CcjRoundPhase.OutputRegistration)
-						  {
-							  Logger.LogInfo<CcjRound>($"{timedOutLogString} Progressing to signing phase to blame...");
-						  }
-						  else
-						  {
-							  Logger.LogInfo<CcjRound>($"{timedOutLogString} Aborting...");
-						  }
+							if (expectedPhase == CcjRoundPhase.ConnectionConfirmation)
+							{
+								Logger.LogInfo<CcjRound>(timedOutLogString);
+							}
+							else if (expectedPhase == CcjRoundPhase.OutputRegistration)
+							{
+								Logger.LogInfo<CcjRound>($"{timedOutLogString} Progressing to signing phase to blame...");
+							}
+							else
+							{
+								Logger.LogInfo<CcjRound>($"{timedOutLogString} Aborting...");
+							}
 
-						  // This will happen outside the lock.
-						  _ = Task.Run(async () =>
-							  {
-								  try
-								  {
-									  switch (expectedPhase)
-									  {
-										  case CcjRoundPhase.InputRegistration:
-											  {
-												  // Only abort if less than two one Alice is registered.
-												  // Do not ban anyone, it's ok if they lost connection.
-												  await RemoveAlicesIfAnInputRefusedByMempoolAsync();
-												  int aliceCountAfterInputRegistrationTimeout = CountAlices();
-												  if (aliceCountAfterInputRegistrationTimeout < 2)
-												  {
-													  Abort(nameof(CcjRound), $"Only {aliceCountAfterInputRegistrationTimeout} Alices registered.");
-												  }
-												  else
-												  {
-													  UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
-													  // Progress to the next phase, which will be ConnectionConfirmation
-													  await ExecuteNextPhaseAsync(CcjRoundPhase.ConnectionConfirmation);
-												  }
-											  }
-											  break;
+							// This will happen outside the lock.
+							_ = Task.Run(async () =>
+								{
+									try
+									{
+										switch (expectedPhase)
+										{
+											case CcjRoundPhase.InputRegistration:
+												{
+													// Only abort if less than two one Alice is registered.
+													// Do not ban anyone, it's ok if they lost connection.
+													await RemoveAlicesIfAnInputRefusedByMempoolAsync();
+													int aliceCountAfterInputRegistrationTimeout = CountAlices();
+													if (aliceCountAfterInputRegistrationTimeout < 2)
+													{
+														Abort(nameof(CcjRound), $"Only {aliceCountAfterInputRegistrationTimeout} Alices registered.");
+													}
+													else
+													{
+														UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
+														// Progress to the next phase, which will be ConnectionConfirmation
+														await ExecuteNextPhaseAsync(CcjRoundPhase.ConnectionConfirmation);
+													}
+												}
+												break;
 
-										  case CcjRoundPhase.ConnectionConfirmation:
-											  {
-												  IEnumerable<Alice> alicesToBan = GetAlicesBy(AliceState.InputsRegistered);
+											case CcjRoundPhase.ConnectionConfirmation:
+												{
+													IEnumerable<Alice> alicesToBan = GetAlicesBy(AliceState.InputsRegistered);
 
-												  await ProgressToOutputRegistrationOrFailAsync(alicesToBan.ToArray());
-											  }
-											  break;
+													await ProgressToOutputRegistrationOrFailAsync(alicesToBan.ToArray());
+												}
+												break;
 
-										  case CcjRoundPhase.OutputRegistration:
-											  {
-												  // Output registration never aborts.
-												  // We do not know which Alice to ban.
-												  // Therefore proceed to signing, and whichever Alice does not sign, ban her.
-												  await ExecuteNextPhaseAsync(CcjRoundPhase.Signing);
-											  }
-											  break;
+											case CcjRoundPhase.OutputRegistration:
+												{
+													// Output registration never aborts.
+													// We do not know which Alice to ban.
+													// Therefore proceed to signing, and whichever Alice does not sign, ban her.
+													await ExecuteNextPhaseAsync(CcjRoundPhase.Signing);
+												}
+												break;
 
-										  case CcjRoundPhase.Signing:
-											  {
-												  Alice[] alicesToBan = GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: true).ToArray();
+											case CcjRoundPhase.Signing:
+												{
+													Alice[] alicesToBan = GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: true).ToArray();
 
-												  if (alicesToBan.Any())
-												  {
-													  await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, alicesToBan.SelectMany(x => x.Inputs.Select(y => y.Outpoint)).ToArray());
-												  }
+													if (alicesToBan.Any())
+													{
+														await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, alicesToBan.SelectMany(x => x.Inputs.Select(y => y.Outpoint)).ToArray());
+													}
 
-												  Abort(nameof(CcjRound), $"{alicesToBan.Length} Alices did not sign.");
-											  }
-											  break;
+													Abort(nameof(CcjRound), $"{alicesToBan.Length} Alices did not sign.");
+												}
+												break;
 
-										  default: throw new InvalidOperationException("This is impossible to happen.");
-									  }
-								  }
-								  catch (Exception ex)
-								  {
-									  Logger.LogWarning<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timeout failed with exception: {ex}");
-								  }
-							  });
-					  }
-				  }
-				  catch (Exception ex)
-				  {
-					  Logger.LogWarning<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timeout failed with exception: {ex}");
-				  }
-			  });
+											default:
+												throw new InvalidOperationException("This is impossible.");
+										}
+									}
+									catch (Exception ex)
+									{
+										Logger.LogWarning<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timeout failed with exception: {ex}");
+									}
+								});
+						}
+					}
+					catch (Exception ex)
+					{
+						Logger.LogWarning<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timeout failed with exception: {ex}");
+					}
+				});
 		}
 
 		private Money CalculateNewDenomination()
@@ -738,7 +740,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						Money feeShouldBePaid = Money.Satoshis(estimatedFinalTxSize * (int)optimalFeeRate.SatoshiPerByte);
 						Money toSave = fee - feeShouldBePaid;
 
-						// 8.2.2. Get the outputs to divide  the savings between.
+						// 8.2.2. Get the outputs to divide the savings between.
 						int maxMixCount = UnsignedCoinJoin.GetIndistinguishableOutputs(includeSingle: true).Max(x => x.count);
 						Money bestMixAmount = UnsignedCoinJoin.GetIndistinguishableOutputs(includeSingle: true).Where(x => x.count == maxMixCount).Max(x => x.value);
 						int bestMixCount = UnsignedCoinJoin.GetIndistinguishableOutputs(includeSingle: true).First(x => x.value == bestMixAmount).count;
@@ -775,7 +777,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				// If the transaction does not spend unconfirmed coins then the confirmation target can be the one that's been set in the config.
 				var originalConfirmationTarget = AdjustedConfirmationTarget;
 
-				// Note that only dependents matter, spenders do not matter much or at all, they just make this transaction to be faster to confirm faster.
+				// Note that only dependents matter, spenders do not matter much or at all, they just allow this transaction to be confirmed faster.
 				var dependents = await RpcClient.GetAllDependentsAsync(transactionHashes, includingProvided: true, likelyProvidedManyConfirmedOnes: true);
 				AdjustedConfirmationTarget = AdjustConfirmationTarget(dependents.Count, ConfiguredConfirmationTarget, ConfiguredConfirmationTargetReductionRate);
 
