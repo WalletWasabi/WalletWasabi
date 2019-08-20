@@ -30,13 +30,13 @@
       <DockPanel LastChildFill="True" Margin="20">
         <StackPanel DockPanel.Dock="Bottom" Margin="0 10" Spacing="10" HorizontalAlignment="Left">
           <TextBlock>You must select coins you want to spend from.</TextBlock>
-          <controls:ExtendedTextBox Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True">
+          <controls:ExtendedTextBox Classes="monospaceFont" Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True">
             <i:Interaction.Behaviors>
               <behaviors:PasteAddressOnClickBehavior Command="{Binding OnAddressPasteCommand}" />
             </i:Interaction.Behaviors>
           </controls:ExtendedTextBox>
           <StackPanel Spacing="8">
-            <controls:ExtendedTextBox x:Name="LabelTextBox" Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True" IsReadOnly="{Binding IsMax}" ToolTip.Tip="{Binding LabelToolTip}" CaretIndex="{Binding CaretIndex}">
+            <controls:ExtendedTextBox Classes="monospaceFont" x:Name="LabelTextBox" Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True" IsReadOnly="{Binding IsMax}" ToolTip.Tip="{Binding LabelToolTip}" CaretIndex="{Binding CaretIndex}">
               <i:Interaction.Behaviors>
                 <behaviors:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />
                 <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
