@@ -72,7 +72,7 @@ namespace WalletWasabi.Http.Models
 					throw new FormatException($"Wrong {nameof(HeaderField)}: {fieldString}.");
 				}
 
-				var value = await reader.ReadToEndAsync();
+				var value = await reader.ReadToEndAsync().ConfigureAwait(false);
 				value = Guard.Correct(value);
 
 				return new HeaderField(name, value);

@@ -23,7 +23,7 @@ namespace WalletWasabi.Http.Models
 		{
 			try
 			{
-				var parts = (await GetPartsAsync(statusLineString)).ToArray();
+				var parts = (await GetPartsAsync(statusLineString).ConfigureAwait(false)).ToArray();
 				var protocolString = parts[0];
 				var codeString = parts[1];
 				var reason = parts[2];

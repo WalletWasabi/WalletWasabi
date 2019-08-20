@@ -45,7 +45,7 @@ namespace WalletWasabi.Http.Models
 
 					if (parts.Count == 2)
 					{
-						var rest = await reader.ReadToEndAsync();
+						var rest = await reader.ReadToEndAsync().ConfigureAwait(false);
 
 						// startLineString must end here, the ReadToEnd returns "" if nothing to read instead of null
 						if (rest != "")

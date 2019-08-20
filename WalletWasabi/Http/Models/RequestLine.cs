@@ -33,7 +33,7 @@ namespace WalletWasabi.Http.Models
 		{
 			try
 			{
-				var parts = (await GetPartsAsync(requestLineString)).ToArray();
+				var parts = (await GetPartsAsync(requestLineString).ConfigureAwait(false)).ToArray();
 				var methodString = parts[0];
 				var uri = new Uri(parts[1]);
 				var protocolString = parts[2];

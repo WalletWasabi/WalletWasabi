@@ -52,7 +52,7 @@ namespace WalletWasabi.Http.Models
 					{
 						break;
 					}
-					hs.Fields.Add(await HeaderField.CreateNewAsync(field));
+					hs.Fields.Add(await HeaderField.CreateNewAsync(field).ConfigureAwait(false));
 				}
 
 				ValidateAndCorrectHeaders(hs);
