@@ -2,7 +2,7 @@ using NBitcoin;
 using System.Collections.Generic;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.Models
+namespace WalletWasabi.Models.TransactionBuilding
 {
 	public class BuildTransactionResult
 	{

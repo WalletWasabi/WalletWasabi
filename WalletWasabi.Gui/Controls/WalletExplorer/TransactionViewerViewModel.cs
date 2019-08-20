@@ -11,6 +11,7 @@ using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Models;
+using WalletWasabi.Models.TransactionBuilding;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
