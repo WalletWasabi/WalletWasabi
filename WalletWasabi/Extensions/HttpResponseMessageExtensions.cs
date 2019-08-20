@@ -37,7 +37,7 @@ namespace System.Net.Http
 
 			string headers = await HttpMessageHelper.ReadHeadersAsync(responseStream);
 
-			var headerSection = HeaderSection.CreateNew(headers);
+			var headerSection = await HeaderSection.CreateNewAsync(headers);
 			var headerStruct = headerSection.ToHttpResponseHeaders();
 
 			HttpMessageHelper.AssertValidHeaders(headerStruct.ResponseHeaders, headerStruct.ContentHeaders);
