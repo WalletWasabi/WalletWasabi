@@ -101,29 +101,6 @@ namespace WalletWasabi.Gui.Shell.Commands
 				{
 					IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel(Global));
 				}));
-
-#if DEBUG
-			DevToolsCommand = new CommandDefinition(
-				"Dev Tools",
-				commandIconService.GetCompletionKindImage("DevTools"),
-				ReactiveCommand.Create(() =>
-				{
-					var devTools = new DevTools(Application.Current.Windows.FirstOrDefault());
-
-					var devToolsWindow = new Window
-					{
-						Width = 1024,
-						Height = 512,
-						Content = devTools,
-						DataTemplates =
-						{
-							new ViewLocator<Avalonia.Diagnostics.ViewModels.ViewModelBase>()
-						}
-					};
-
-					devToolsWindow.Show();
-				}));
-#endif
 		}
 
 		[ExportCommandDefinition("Help.About")]
@@ -146,12 +123,5 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		[ExportCommandDefinition("Help.LegalIssues")]
 		public CommandDefinition LegalIssuesCommand { get; }
-
-#if DEBUG
-
-		[ExportCommandDefinition("Help.DevTools")]
-		public CommandDefinition DevToolsCommand { get; }
-
-#endif
 	}
 }
