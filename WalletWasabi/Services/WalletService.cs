@@ -337,7 +337,6 @@ namespace WalletWasabi.Services
 				{
 					UnconfirmedTransactionsInitialized = true;
 				}
-
 			}
 			Coins.CollectionChanged += Coins_CollectionChanged;
 			RefreshCoinHistories();
@@ -744,7 +743,7 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				if (LocalBitcoinCoreNode is null || !LocalBitcoinCoreNode.IsConnected && Network != Network.RegTest) // If RegTest then we're already connected do not try again.
+				if (LocalBitcoinCoreNode is null || (!LocalBitcoinCoreNode.IsConnected && Network != Network.RegTest)) // If RegTest then we're already connected do not try again.
 				{
 					DisconnectDisposeNullLocalBitcoinCoreNode();
 					using (var handshakeTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancel))
