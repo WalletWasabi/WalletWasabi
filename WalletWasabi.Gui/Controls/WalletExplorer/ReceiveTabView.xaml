@@ -93,9 +93,9 @@
                         <controls:QrCode Matrix="{Binding QrCode}" HorizontalAlignment="Left" Margin="20" />
                       </Panel>
                       <Grid ColumnDefinitions="140, *" RowDefinitions="22,22" Margin="6">
-                        <TextBlock Text="Public key:" Grid.Row="0" Grid.Column="0" />
+                        <TextBlock Classes="monospaceFont" Text="Public key:" Grid.Row="0" Grid.Column="0" />
                         <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transaparent" Text="{Binding PubKey}" Grid.Row="0" Grid.Column="1" />
-                        <TextBlock Text="Key path:" Grid.Row="1" Grid.Column="0" />
+                        <TextBlock Classes="monospaceFont" Text="Key path:" Grid.Row="1" Grid.Column="0" />
                         <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transaparent" Text="{Binding KeyPath}" Grid.Row="1" Grid.Column="1" />
                       </Grid>
                     </StackPanel>
@@ -110,7 +110,7 @@
                         <TextBlock Text="Copied" Foreground="White" FontWeight="Bold" />
                       </Grid>
                     </Grid>
-                    <controls:EditableTextBlock Text="{Binding Label, ConverterParameter=27, Converter={StaticResource LurkingWifeModeStringConverter}}" InEditMode="{Binding InEditMode}" ReadOnlyMode="{Binding IsLurkingWifeMode}" Grid.Column="1" />
+                    <controls:EditableTextBlock VerticalAlignment="Top" Text="{Binding Label, ConverterParameter=27, Converter={StaticResource LurkingWifeModeStringConverter}}" InEditMode="{Binding InEditMode}" ReadOnlyMode="{Binding IsLurkingWifeMode}" Grid.Column="1" />
                   </Grid>
                 </Grid>
               </DataTemplate>
