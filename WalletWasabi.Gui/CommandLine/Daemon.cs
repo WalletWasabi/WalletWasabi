@@ -33,6 +33,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 				string password = null;
 				var count = 3;
+				string compatibilityPassword = null;
 				do
 				{
 					if (password != null)
@@ -51,9 +52,22 @@ namespace WalletWasabi.Gui.CommandLine
 					Console.Write("Password: ");
 
 					password = PasswordConsole.ReadPassword();
-					password = Guard.Correct(password);
+					if (PasswordHelper.IsTooLong(password, out password))
+					{
+						Console.WriteLine(PasswordHelper.PasswordTooLongMessage);
+					}
+					if (PasswordHelper.IsTrimable(password, out password))
+					{
+						Console.WriteLine(PasswordHelper.TrimmedMessage);
+					}
 				}
-				while (!keyManager.TestPassword(password));
+				while (!PasswordHelper.TryPassword(keyManager, password, out compatibilityPassword));
+
+				if (compatibilityPassword != null)
+				{
+					password = compatibilityPassword;
+					Logger.LogInfo(PasswordHelper.CompatibilityPasswordWarnMessage);
+				}
 
 				Logger.LogInfo("Correct password.");
 

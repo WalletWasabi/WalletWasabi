@@ -578,19 +578,6 @@ namespace WalletWasabi.KeyManagement
 			}
 		}
 
-		public bool TestPassword(string password)
-		{
-			try
-			{
-				GetMasterExtKey(password);
-				return true;
-			}
-			catch
-			{
-				return false;
-			}
-		}
-
 		/// <summary>
 		/// Make sure there's always clean keys generated and indexed.
 		/// Call SetMinGapLimit() to set how many keys should be asserted.
