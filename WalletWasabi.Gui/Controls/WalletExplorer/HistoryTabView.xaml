@@ -37,7 +37,7 @@
                     </Border>
                     <TextBlock Text="{Binding DateTime, ConverterParameter=11, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="1" />
                     <TextBlock Text="{Binding AmountBtc, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="2" Foreground="{Binding AmountBtc, Converter={StaticResource MoneyBrushConverter}}" />
-                    <TextBlock IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding TransactionId, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="3" />
+                    <TextBlock Classes="monospaceFont" IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding TransactionId, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="3" />
                     <Grid IsVisible="{Binding ClipboardNotificationVisible}" Grid.Column="3">
                       <Grid Opacity="{Binding ClipboardNotificationOpacity}">
                         <Grid.Transitions>
