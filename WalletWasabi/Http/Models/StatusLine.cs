@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using static WalletWasabi.Http.Constants;
 
@@ -17,11 +19,11 @@ namespace WalletWasabi.Http.Models
 			StartLineString = Protocol + SP + (int)StatusCode + SP + StatusCode.ToReasonString() + CRLF;
 		}
 
-		public static StatusLine CreateNew(string statusLineString)
+		public static async Task<StatusLine> CreateNewAsync(string statusLineString)
 		{
 			try
 			{
-				var parts = GetParts(statusLineString);
+				var parts = (await GetPartsAsync(statusLineString)).ToArray();
 				var protocolString = parts[0];
 				var codeString = parts[1];
 				var reason = parts[2];

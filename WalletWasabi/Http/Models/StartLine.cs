@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using static WalletWasabi.Http.Constants;
 
 namespace WalletWasabi.Http.Models
@@ -9,14 +10,13 @@ namespace WalletWasabi.Http.Models
 	{
 		public HttpProtocol Protocol { get; protected set; }
 		public string StartLineString { get; protected set; }
-		public List<string> Parts => GetParts(StartLineString);
 
 		public override string ToString()
 		{
 			return StartLineString;
 		}
 
-		public static List<string> GetParts(string startLineString)
+		public static async Task<IEnumerable<string>> GetPartsAsync(string startLineString)
 		{
 			var trimmed = "";
 			// check if an unexpected crlf in the startlinestring
@@ -45,7 +45,7 @@ namespace WalletWasabi.Http.Models
 
 					if (parts.Count == 2)
 					{
-						var rest = reader.ReadToEnd();
+						var rest = await reader.ReadToEndAsync();
 
 						// startLineString must end here, the ReadToEnd returns "" if nothing to read instead of null
 						if (rest != "")

@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 using static WalletWasabi.Http.Constants;
 
 namespace WalletWasabi.Http.Models
@@ -27,11 +29,11 @@ namespace WalletWasabi.Http.Models
 			StartLineString = Method.Method + SP + URI.AbsolutePath + URI.Query + SP + Protocol + CRLF;
 		}
 
-		public static RequestLine CreateNew(string requestLineString)
+		public static async Task<RequestLine> CreateNewAsync(string requestLineString)
 		{
 			try
 			{
-				var parts = GetParts(requestLineString);
+				var parts = (await GetPartsAsync(requestLineString)).ToArray();
 				var methodString = parts[0];
 				var uri = new Uri(parts[1]);
 				var protocolString = parts[2];
