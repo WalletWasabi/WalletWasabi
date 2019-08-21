@@ -52,11 +52,7 @@ namespace WalletWasabi.Packager
 		public static string WixProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.WindowsInstaller\\"));
 		public static string BinDistDirectory = Path.GetFullPath(Path.Combine(GuiProjectDirectory, "bin\\dist"));
 
-#if RELEASE
-		public static string VersionPrefix = Constants.ClientVersion.ToString();
-#else
-		public static string VersionPrefix = Constants.ClientVersion.ToString();
-#endif
+		public static string VersionPrefix = Constants.ClientVersion.ToVersionString();
 
 		public static bool OnlyBinaries;
 		public static bool OnlyCreateDigests;
