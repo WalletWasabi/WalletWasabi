@@ -753,7 +753,11 @@ namespace WalletWasabi.Services
 						{
 							ConnectCancellation = handshakeTimeout.Token,
 							IsRelay = false,
-							UserAgent = $"/Wasabi:{Constants.ClientVersion}/"
+#if RELEASE
+							UserAgent = $"/Wasabi:{Constants.ClientVersion.ToString(3)}/"
+#else
+							UserAgent = $"/Wasabi:{Constants.ClientVersion.ToString(4)}/"
+#endif
 						};
 
 						// If an onion was added must try to use Tor.
