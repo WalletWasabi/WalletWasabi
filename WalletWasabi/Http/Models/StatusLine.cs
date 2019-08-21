@@ -21,7 +21,7 @@ namespace WalletWasabi.Http.Models
 			return $"{Protocol}{SP}{(int)StatusCode}{SP}{StatusCode.ToReasonString()}{CRLF}";
 		}
 
-		public static StatusLine FromString(string statusLineString)
+		public static StatusLine Parse(string statusLineString)
 		{
 			try
 			{

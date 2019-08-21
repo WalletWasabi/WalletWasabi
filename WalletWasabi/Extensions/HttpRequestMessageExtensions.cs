@@ -32,7 +32,7 @@ namespace System.Net.Http
 
 			string startLine = await HttpMessageHelper.ReadStartLineAsync(requestStream, ctsToken).ConfigureAwait(false);
 
-			var requestLine = RequestLine.FromString(startLine);
+			var requestLine = RequestLine.Parse(startLine);
 			var request = new HttpRequestMessage(requestLine.Method, requestLine.URI);
 
 			string headers = await HttpMessageHelper.ReadHeadersAsync(requestStream, ctsToken).ConfigureAwait(false);

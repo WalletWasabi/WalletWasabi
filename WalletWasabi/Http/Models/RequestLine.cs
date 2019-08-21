@@ -31,7 +31,7 @@ namespace WalletWasabi.Http.Models
 			return $"{Method.Method}{SP}{URI.AbsolutePath}{URI.Query}{SP}{Protocol}{CRLF}";
 		}
 
-		public static RequestLine FromString(string requestLineString)
+		public static RequestLine Parse(string requestLineString)
 		{
 			try
 			{
