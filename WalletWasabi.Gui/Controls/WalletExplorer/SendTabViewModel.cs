@@ -144,7 +144,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 					var dotIndex = betterAmount.IndexOf('.');
-					if (betterAmount.Length - dotIndex > 8) // Enable max 8 decimals.
+					if (dotIndex != -1 && betterAmount.Length - dotIndex > 8) // Enable max 8 decimals.
 					{
 						betterAmount = betterAmount.Substring(0, dotIndex + 1 + 8);
 					}
