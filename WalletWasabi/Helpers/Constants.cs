@@ -17,8 +17,6 @@ namespace WalletWasabi.Helpers
 
 		public const uint ProtocolVersion_WITNESS_VERSION = 70012;
 
-		public const int MaxPasswordLength = 150;
-
 		public static readonly NodeRequirement NodeRequirements = new NodeRequirement
 		{
 			RequiredServices = NodeServices.NODE_WITNESS,
@@ -72,18 +70,21 @@ namespace WalletWasabi.Helpers
 			{
 				return TestNetCoordinatorAddress;
 			}
-			else // else regtest
+			else if (network == Network.RegTest)
 			{
 				return RegTestCoordinatorAddress;
 			}
+			else
+			{
+				throw new NotSupportedException($"{nameof(network)} not supported: {network}.");
+			}
 		}
 
-		public const string ChangeOfSpecialLabelStart = "change of (";
-		public const string ChangeOfSpecialLabelEnd = ")";
-		public const int BigFileReadWriteBufferSize = 1 * 1024 * 1024;
-
+		public const int TwentyMinutesConfirmationTarget = 2;
 		public const int OneDayConfirmationTarget = 144;
 		public const int SevenDaysConfirmationTarget = 1008;
+
+		public const int BigFileReadWriteBufferSize = 1 * 1024 * 1024;
 
 		public const int DefaultTorSocksPort = 9050;
 		public const int DefaultTorBrowserSocksPort = 9150;

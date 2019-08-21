@@ -14,7 +14,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		{
 			Idle,
 			UserIsDragging,
-			UserDragPassedThreshold,
+			UserDragPassedThreshold
 		}
 
 		private SlideLockState _state = SlideLockState.Idle;

@@ -48,6 +48,8 @@ namespace WalletWasabi.Gui.Tabs
 
 		public string BugReportLink => "https://github.com/zkSNACKs/WalletWasabi/issues/";
 
-		public string FAQLink => "https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/FAQ.md";
+		public string FAQLink => "https://docs.wasabiwallet.io/FAQ/";
+
+		public string DocsLink => "https://docs.wasabiwallet.io/";
 	}
 }

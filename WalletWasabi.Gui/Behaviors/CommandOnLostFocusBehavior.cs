@@ -8,7 +8,7 @@ using System.Text;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-	internal class CommandOnLostFocusBehavior : CommandBasedBehavior<Control>
+	public class CommandOnLostFocusBehavior : CommandBasedBehavior<Control>
 	{
 		private CompositeDisposable Disposables { get; set; }
 

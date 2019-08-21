@@ -64,7 +64,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
 				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed)))
-				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed)))
+				.Merge(Observable.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent)))
+				.Merge(Observable.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.SpenderConfirmed)))
 				.Throttle(TimeSpan.FromSeconds(5))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async _ => await TryRewriteTableAsync())
@@ -144,7 +145,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				var found = txRecordList.FirstOrDefault(x => x.transactionId == coin.TransactionId);
 
-				SmartTransaction foundTransaction = walletService.TransactionCache?.FirstOrDefault(x => x.GetHash() == coin.TransactionId);
+				var foundTransaction = walletService.TryGetTxFromCache(coin.TransactionId);
 				if (foundTransaction is null)
 				{
 					continue;
@@ -181,7 +182,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				if (coin.SpenderTransactionId != null)
 				{
-					SmartTransaction foundSpenderTransaction = walletService.TransactionCache.First(x => x.GetHash() == coin.SpenderTransactionId);
+					var foundSpenderTransaction = walletService.TryGetTxFromCache(coin.SpenderTransactionId);
+					if (foundSpenderTransaction is null)
+					{
+						throw new InvalidOperationException($"Transaction {coin.SpenderTransactionId} not found.");
+					}
 
 					if (foundSpenderTransaction.Height.Type == HeightType.Chain)
 					{
