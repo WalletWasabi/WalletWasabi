@@ -359,7 +359,7 @@ namespace System.Net.Http
 			// of a chunked message in order to supply metadata that might be
 			// dynamically generated while the message body is sent
 			string trailerHeaders = await ReadHeadersAsync(stream, ctsToken);
-			var trailerHeaderSection = HeaderSection.CreateNew(trailerHeaders);
+			var trailerHeaderSection = await HeaderSection.CreateNewAsync(trailerHeaders);
 			RemoveInvalidTrailers(trailerHeaderSection);
 			if (responseHeaders != null)
 			{
