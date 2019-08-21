@@ -10,10 +10,10 @@ namespace WalletWasabi.Http.Models
 	// request-line   = method SP request-target SP HTTP-version CRLF
 	public class RequestLine : StartLine
 	{
-		public HttpMethod Method { get; private set; }
-		public Uri URI { get; private set; }
+		public HttpMethod Method { get; }
+		public Uri URI { get; }
 
-		public RequestLine(HttpMethod method, Uri uri, HttpProtocol protocol)
+		public RequestLine(HttpMethod method, Uri uri, HttpProtocol protocol) : base(protocol)
 		{
 			Method = method;
 			// https://tools.ietf.org/html/rfc7230#section-2.7.1
@@ -24,16 +24,18 @@ namespace WalletWasabi.Http.Models
 			}
 
 			URI = uri;
-			Protocol = protocol;
-
-			StartLineString = Method.Method + SP + URI.AbsolutePath + URI.Query + SP + Protocol + CRLF;
 		}
 
-		public static async Task<RequestLine> CreateNewAsync(string requestLineString)
+		public override string ToString()
+		{
+			return $"{Method.Method}{SP}{URI.AbsolutePath}{URI.Query}{SP}{Protocol}{CRLF}";
+		}
+
+		public static RequestLine FromString(string requestLineString)
 		{
 			try
 			{
-				var parts = (await GetPartsAsync(requestLineString).ConfigureAwait(false)).ToArray();
+				var parts = GetParts(requestLineString);
 				var methodString = parts[0];
 				var uri = new Uri(parts[1]);
 				var protocolString = parts[2];

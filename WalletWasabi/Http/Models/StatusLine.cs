@@ -9,21 +9,23 @@ namespace WalletWasabi.Http.Models
 {
 	public class StatusLine : StartLine
 	{
-		public HttpStatusCode StatusCode { get; private set; }
+		public HttpStatusCode StatusCode { get; }
 
-		public StatusLine(HttpProtocol protocol, HttpStatusCode status)
+		public StatusLine(HttpProtocol protocol, HttpStatusCode status) : base(protocol)
 		{
-			Protocol = protocol;
 			StatusCode = status;
-
-			StartLineString = Protocol + SP + (int)StatusCode + SP + StatusCode.ToReasonString() + CRLF;
 		}
 
-		public static async Task<StatusLine> CreateNewAsync(string statusLineString)
+		public override string ToString()
+		{
+			return $"{Protocol}{SP}{(int)StatusCode}{SP}{StatusCode.ToReasonString()}{CRLF}";
+		}
+
+		public static StatusLine FromString(string statusLineString)
 		{
 			try
 			{
-				var parts = (await GetPartsAsync(statusLineString).ConfigureAwait(false)).ToArray();
+				var parts = GetParts(statusLineString);
 				var protocolString = parts[0];
 				var codeString = parts[1];
 				var reason = parts[2];
