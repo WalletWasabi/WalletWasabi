@@ -1075,7 +1075,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee: {networkFee.ToString(false, false)} BTC.");
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Coordinator Fee: {SignedCoinJoin.Outputs.SingleOrDefault(x => x.ScriptPubKey == Constants.GetCoordinatorAddress(Network).ScriptPubKey)?.Value?.ToString(false, false) ?? "0"} BTC.");
 						FeeRate feeRate = SignedCoinJoin.GetFeeRate(spentCoins);
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} satoshi/byte.");
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/byte.");
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Number of inputs: {SignedCoinJoin.Inputs.Count}.");
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Number of outputs: {SignedCoinJoin.Outputs.Count}.");
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Serialized Size: {SignedCoinJoin.GetSerializedSize() / 1024} KB.");
