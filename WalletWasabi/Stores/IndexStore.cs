@@ -20,7 +20,7 @@ namespace WalletWasabi.Stores
 	/// <summary>
 	/// Manages to store the filters safely.
 	/// </summary>
-	public class IndexStore : IClearMyState
+	public class IndexStore : IClearable
 	{
 		private string WorkFolderPath { get; set; }
 		private Network Network { get; set; }

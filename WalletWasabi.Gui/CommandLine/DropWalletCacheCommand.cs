@@ -32,7 +32,7 @@ namespace WalletWasabi.Gui.CommandLine
 				"eg: ./wassabee dropwalletcache --wallet:MyWalletName --network:main",
 				"",
 				{ "w|wallet=", "The name of the wallet file.", x =>  WalletName = x },
-				{ "n|network=", "The network for the given file (main, test, reg). Default=mainnet.", x => Network = GetNetwork(x) },
+				{ "n|network=", "The network for the given file (main, test, reg). Default=mainnet.", x => Network = Network.GetNetwork(x) },
 				{ "h|help", "Show Help.", v => ShowHelp = true },
 			};
 		}
@@ -82,33 +82,6 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			Environment.Exit(error ? 1 : 0);
 			return 0;
-		}
-
-		private Network GetNetwork(string str)
-		{
-			if (str == null)
-			{
-				return Network.Main;
-			}
-
-			str = str.ToLower();
-
-			if (str == "main" || str == "mainnet")
-			{
-				return Network.Main;
-			}
-			else if (str == "test" || str == "testnet")
-			{
-				return Network.TestNet;
-			}
-			else if (str == "reg" || str == "regtest")
-			{
-				return Network.RegTest;
-			}
-			else
-			{
-				return null;
-			}
 		}
 	}
 }

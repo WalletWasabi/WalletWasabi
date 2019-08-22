@@ -17,7 +17,7 @@ using WalletWasabi.Stores;
 namespace WalletWasabi.KeyManagement
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	public class KeyManager : IClearMyState
+	public class KeyManager : IClearable
 	{
 		[JsonProperty(Order = 1)]
 		[JsonConverter(typeof(BitcoinEncryptedSecretNoECJsonConverter))]
@@ -798,7 +798,7 @@ namespace WalletWasabi.KeyManagement
 
 		public void ClearState()
 		{
-			BlockchainState.BestHeight = 0;
+			BlockchainState.BestHeight = Height.Unknown;
 			BlockchainState.BlockStates.Clear();
 			ToFileNoBlockchainStateLock();
 		}

@@ -1,6 +1,6 @@
 namespace WalletWasabi.Interfaces
 {
-	public interface IClearMyState
+	public interface IClearable
 	{
 		void ClearState();
 	}
