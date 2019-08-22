@@ -85,7 +85,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			foreach (int target in confirmationTargetsInts)
 			{
-				// 1. Use the sanity check that under 2 satoshi per bytes should not be displayed. To correct possible rounding errors.
+				// 1. Use the sanity check that under 2 satoshi per byte should not be displayed. To correct possible rounding errors.
 				// 2. Use the RPCResponse.Blocks output to avoid redundant RPC queries.
 				// 3. Use caching.
 				var conservativeResponse = await GetEstimateSmartFeeAsync(target, EstimateSmartFeeMode.Conservative);
