@@ -861,9 +861,9 @@ namespace WalletWasabi.Tests
 					Assert.Contains(res.Transaction.Transaction.Outputs, x => x.Value == activeOutput.Amount);
 					Logger.LogInfo<RegTests>($"Change Output: {changeOutput.Amount.ToString(false, true)} {changeOutput.ScriptPubKey.GetDestinationAddress(network)}");
 				}
-				Logger.LogInfo<RegTests>($"Fee: {res.Fee}");
-				Logger.LogInfo<RegTests>($"FeePercentOfSent: {res.FeePercentOfSent} %");
-				Logger.LogInfo<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
+				Logger.LogInfo<RegTests>($"{nameof(res.Fee)}: {res.Fee}");
+				Logger.LogInfo<RegTests>($"{nameof(res.FeePercentOfSent)}: {res.FeePercentOfSent} %");
+				Logger.LogInfo<RegTests>($"{nameof(res.SpendsUnconfirmed)}: {res.SpendsUnconfirmed}");
 				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
 				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
 
@@ -897,9 +897,9 @@ namespace WalletWasabi.Tests
 				Assert.Equal(receive, activeOutput.ScriptPubKey);
 				Assert.Equal(amountToSend - res.Fee, activeOutput.Amount);
 				Assert.Contains(res.Transaction.Transaction.Outputs, x => x.Value == changeOutput.Amount);
-				Logger.LogInfo<RegTests>($"Fee: {res.Fee}");
-				Logger.LogInfo<RegTests>($"FeePercentOfSent: {res.FeePercentOfSent} %");
-				Logger.LogInfo<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
+				Logger.LogInfo<RegTests>($"{nameof(res.Fee)}: {res.Fee}");
+				Logger.LogInfo<RegTests>($"{nameof(res.FeePercentOfSent)}: {res.FeePercentOfSent} %");
+				Logger.LogInfo<RegTests>($"{nameof(res.SpendsUnconfirmed)}: {res.SpendsUnconfirmed}");
 				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
 				Logger.LogInfo<RegTests>($"Change Output: {changeOutput.Amount.ToString(false, true)} {changeOutput.ScriptPubKey.GetDestinationAddress(network)}");
 				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
@@ -930,9 +930,9 @@ namespace WalletWasabi.Tests
 				Assert.Equal(receive, activeOutput.ScriptPubKey);
 				Assert.Equal(amountToSend, activeOutput.Amount);
 				Assert.Contains(res.Transaction.Transaction.Outputs, x => x.Value == changeOutput.Amount);
-				Logger.LogInfo<RegTests>($"Fee: {res.Fee}");
-				Logger.LogInfo<RegTests>($"FeePercentOfSent: {res.FeePercentOfSent} %");
-				Logger.LogInfo<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
+				Logger.LogInfo<RegTests>($"{nameof(res.Fee)}: {res.Fee}");
+				Logger.LogInfo<RegTests>($"{nameof(res.FeePercentOfSent)}: {res.FeePercentOfSent} %");
+				Logger.LogInfo<RegTests>($"{nameof(res.SpendsUnconfirmed)}: {res.SpendsUnconfirmed}");
 				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
 				Logger.LogInfo<RegTests>($"Change Output: {changeOutput.Amount.ToString(false, true)} {changeOutput.ScriptPubKey.GetDestinationAddress(network)}");
 				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
@@ -963,9 +963,9 @@ namespace WalletWasabi.Tests
 				Assert.Equal(receive, activeOutput.ScriptPubKey);
 				Assert.Equal(amountToSend, activeOutput.Amount);
 				Assert.Contains(res.Transaction.Transaction.Outputs, x => x.Value == changeOutput.Amount);
-				Logger.LogInfo<RegTests>($"Fee: {res.Fee}");
-				Logger.LogInfo<RegTests>($"FeePercentOfSent: {res.FeePercentOfSent} %");
-				Logger.LogInfo<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
+				Logger.LogInfo<RegTests>($"{nameof(res.Fee)}: {res.Fee}");
+				Logger.LogInfo<RegTests>($"{nameof(res.FeePercentOfSent)}: {res.FeePercentOfSent} %");
+				Logger.LogInfo<RegTests>($"{nameof(res.SpendsUnconfirmed)}: {res.SpendsUnconfirmed}");
 				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
 				Logger.LogInfo<RegTests>($"Change Output: {changeOutput.Amount.ToString(false, true)} {changeOutput.ScriptPubKey.GetDestinationAddress(network)}");
 				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
@@ -996,9 +996,9 @@ namespace WalletWasabi.Tests
 				Assert.Equal(receive, activeOutput.ScriptPubKey);
 				Assert.Equal(amountToSend, activeOutput.Amount);
 				Assert.Contains(res.Transaction.Transaction.Outputs, x => x.Value == changeOutput.Amount);
-				Logger.LogInfo<RegTests>($"Fee: {res.Fee}");
-				Logger.LogInfo<RegTests>($"FeePercentOfSent: {res.FeePercentOfSent} %");
-				Logger.LogInfo<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
+				Logger.LogInfo<RegTests>($"{nameof(res.Fee)}: {res.Fee}");
+				Logger.LogInfo<RegTests>($"{nameof(res.FeePercentOfSent)}: {res.FeePercentOfSent} %");
+				Logger.LogInfo<RegTests>($"{nameof(res.SpendsUnconfirmed)}: {res.SpendsUnconfirmed}");
 				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
 				Logger.LogInfo<RegTests>($"Change Output: {changeOutput.Amount.ToString(false, true)} {changeOutput.ScriptPubKey.GetDestinationAddress(network)}");
 				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
@@ -1061,9 +1061,9 @@ namespace WalletWasabi.Tests
 				Assert.Equal(res.SpentCoins.Count(), res.Transaction.Transaction.Inputs.Count);
 
 				Assert.Equal(receive, activeOutput.ScriptPubKey);
-				Logger.LogInfo<RegTests>($"Fee: {res.Fee}");
-				Logger.LogInfo<RegTests>($"FeePercentOfSent: {res.FeePercentOfSent} %");
-				Logger.LogInfo<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
+				Logger.LogInfo<RegTests>($"{nameof(res.Fee)}: {res.Fee}");
+				Logger.LogInfo<RegTests>($"{nameof(res.FeePercentOfSent)}: {res.FeePercentOfSent} %");
+				Logger.LogInfo<RegTests>($"{nameof(res.SpendsUnconfirmed)}: {res.SpendsUnconfirmed}");
 				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
 				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
 
@@ -1137,9 +1137,9 @@ namespace WalletWasabi.Tests
 				Assert.Empty(res.OuterWalletOutputs);
 
 				Assert.Equal(receive, activeOutput.ScriptPubKey);
-				Logger.LogDebug<RegTests>($"Fee: {res.Fee}");
-				Logger.LogDebug<RegTests>($"FeePercentOfSent: {res.FeePercentOfSent} %");
-				Logger.LogDebug<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
+				Logger.LogDebug<RegTests>($"{nameof(res.Fee)}: {res.Fee}");
+				Logger.LogDebug<RegTests>($"{nameof(res.FeePercentOfSent)}: {res.FeePercentOfSent} %");
+				Logger.LogDebug<RegTests>($"{nameof(res.SpendsUnconfirmed)}: {res.SpendsUnconfirmed}");
 				Logger.LogDebug<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
 				Logger.LogDebug<RegTests>($"TxId: {res.Transaction.GetHash()}");
 
@@ -3302,7 +3302,7 @@ namespace WalletWasabi.Tests
 					await Task.Delay(1000);
 					if (times > 21)
 					{
-						throw new TimeoutException("State.GetAllWaitingCoins() always empty.");
+						throw new TimeoutException($"{nameof(chaumianClient1.State)}.{nameof(chaumianClient1.State.GetAllWaitingCoins)}() always empty.");
 					}
 					times++;
 				}
