@@ -308,7 +308,7 @@ namespace WalletWasabi.Gui
 			if (Network == Network.RegTest)
 			{
 				AddressManager = new AddressManager();
-				Logger.LogInfo<AddressManager>($"Fake {nameof(AddressManager)} is initialized on the {Network.RegTest}.");
+				Logger.LogInfo<AddressManager>($"Fake {nameof(AddressManager)} is initialized on the {nameof(Network.RegTest)}.");
 			}
 			else
 			{

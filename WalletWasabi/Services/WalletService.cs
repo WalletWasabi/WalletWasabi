@@ -1192,7 +1192,7 @@ namespace WalletWasabi.Services
 
 				if (Network == Network.RegTest)
 				{
-					throw new InvalidOperationException("Transaction broadcasting to nodes does not work in RegTest.");
+					throw new InvalidOperationException($"Transaction broadcasting to nodes does not work in {nameof(Network.RegTest)}.");
 				}
 
 				while (true)
