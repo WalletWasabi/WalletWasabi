@@ -62,14 +62,14 @@ namespace WalletWasabi.Gui.Shell.Commands
 					}
 				}));
 
-			FaqCommand = new CommandDefinition(
-				"FAQ",
-				commandIconService.GetCompletionKindImage("Faq"),
+			DocsCommand = new CommandDefinition(
+				"Documentation",
+				commandIconService.GetCompletionKindImage("Documentation"),
 				ReactiveCommand.Create(() =>
 				{
 					try
 					{
-						IoHelpers.OpenBrowser("https://docs.wasabiwallet.io/FAQ/");
+						IoHelpers.OpenBrowser("https://docs.wasabiwallet.io/");
 					}
 					catch (Exception ex)
 					{
@@ -101,29 +101,6 @@ namespace WalletWasabi.Gui.Shell.Commands
 				{
 					IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel(Global));
 				}));
-
-#if DEBUG
-			DevToolsCommand = new CommandDefinition(
-				"Dev Tools",
-				commandIconService.GetCompletionKindImage("DevTools"),
-				ReactiveCommand.Create(() =>
-				{
-					var devTools = new DevTools(Application.Current.Windows.FirstOrDefault());
-
-					var devToolsWindow = new Window
-					{
-						Width = 1024,
-						Height = 512,
-						Content = devTools,
-						DataTemplates =
-						{
-							new ViewLocator<Avalonia.Diagnostics.ViewModels.ViewModelBase>()
-						}
-					};
-
-					devToolsWindow.Show();
-				}));
-#endif
 		}
 
 		[ExportCommandDefinition("Help.About")]
@@ -135,8 +112,8 @@ namespace WalletWasabi.Gui.Shell.Commands
 		[ExportCommandDefinition("Help.ReportBug")]
 		public CommandDefinition ReportBugCommand { get; }
 
-		[ExportCommandDefinition("Help.Faq")]
-		public CommandDefinition FaqCommand { get; }
+		[ExportCommandDefinition("Help.Documentation")]
+		public CommandDefinition DocsCommand { get; }
 
 		[ExportCommandDefinition("Help.PrivacyPolicy")]
 		public CommandDefinition PrivacyPolicyCommand { get; }
@@ -146,12 +123,5 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		[ExportCommandDefinition("Help.LegalIssues")]
 		public CommandDefinition LegalIssuesCommand { get; }
-
-#if DEBUG
-
-		[ExportCommandDefinition("Help.DevTools")]
-		public CommandDefinition DevToolsCommand { get; }
-
-#endif
 	}
 }

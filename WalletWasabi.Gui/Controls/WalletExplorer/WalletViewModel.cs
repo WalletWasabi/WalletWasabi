@@ -33,8 +33,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var keyManager = WalletService.KeyManager;
 			Name = Path.GetFileNameWithoutExtension(keyManager.FilePath);
 
-			SetBalance(Name);
-
 			Actions = new ObservableCollection<WalletActionViewModel>();
 
 			SendTabViewModel sendTab = null;
@@ -95,16 +93,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
-				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed)))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(o => SetBalance(Name))
+			var observed = Observable.Merge(
+				Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Select(_ => Unit.Default),
+				Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged)).Select(_ => Unit.Default),
+				Observable.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent)).Select(_ => Unit.Default))
+				.Throttle(TimeSpan.FromSeconds(1))
+				.ObserveOn(RxApp.MainThreadScheduler);
+
+			observed.Subscribe(_ =>
+				{
+					Money balance = Enumerable.Where(WalletService.Coins, c => c.Unspent && !c.SpentAccordingToBackend).Sum(c => (long?)c.Amount) ?? 0;
+
+					Title = $"{Name} ({(Global.UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
+				})
 				.DisposeWith(Disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(x =>
-			{
-				SetBalance(Name);
-			}).DisposeWith(Disposables);
+			observed.Next();
 
 			IsExpanded = true;
 		}
@@ -124,13 +128,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _actions;
 			set => this.RaiseAndSetIfChanged(ref _actions, value);
-		}
-
-		private void SetBalance(string walletName)
-		{
-			Money balance = Enumerable.Where(WalletService.Coins, c => c.Unspent && !c.SpentAccordingToBackend).Sum(c => (long?)c.Amount) ?? 0;
-
-			Title = $"{walletName} ({(Global.UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
 		}
 	}
 }

@@ -329,7 +329,6 @@ namespace WalletWasabi.Models
 			ScriptPubKey = Guard.NotNull(nameof(scriptPubKey), scriptPubKey);
 			Amount = Guard.NotNull(nameof(amount), amount);
 			Height = height;
-			Label = Guard.Correct(label);
 			SpentOutputs = Guard.NotNullOrEmpty(nameof(spentOutputs), spentOutputs);
 			IsReplaceable = replaceable;
 			AnonymitySet = Guard.InRangeAndNotNull(nameof(anonymitySet), anonymitySet, 1, int.MaxValue);
@@ -342,6 +341,9 @@ namespace WalletWasabi.Models
 			SpentAccordingToBackend = spentAccordingToBackend;
 
 			HdPubKey = pubKey;
+
+			var labelBuilder = new LabelBuilder(label, pubKey?.Label);
+			Label = labelBuilder.ToString();
 
 			SetConfirmed();
 			SetUnspent();
