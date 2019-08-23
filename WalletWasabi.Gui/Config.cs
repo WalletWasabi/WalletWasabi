@@ -260,15 +260,15 @@ namespace WalletWasabi.Gui
 		{
 			switch (Network.Name)
 			{
-				case "Main":
+				case nameof(Network.Main):
 					MainNetBitcoinP2pEndPoint = endPoint;
 					break;
 
-				case "TestNet":
+				case nameof(Network.TestNet):
 					TestNetBitcoinP2pEndPoint = endPoint;
 					break;
 
-				case "RegTest":
+				case nameof(Network.RegTest):
 					RegTestBitcoinP2pEndPoint = endPoint;
 					break;
 
@@ -281,13 +281,13 @@ namespace WalletWasabi.Gui
 		{
 			switch (Network.Name)
 			{
-				case "Main":
+				case nameof(Network.Main):
 					return MainNetBitcoinP2pEndPoint;
 
-				case "TestNet":
+				case nameof(Network.TestNet):
 					return TestNetBitcoinP2pEndPoint;
 
-				case "RegTest":
+				case nameof(Network.RegTest):
 					return RegTestBitcoinP2pEndPoint;
 
 				default:
