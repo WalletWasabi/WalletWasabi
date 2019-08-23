@@ -84,7 +84,7 @@
   <Style Selector="TextBlock.monospaceFont">
     <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}"/>
     <Setter Property="FontSize" Value="16"/>
-  </Style> 
+  </Style>
   <Style Selector="TextBox.selectableTextBlock">
     <Setter Property="Padding" Value="0" />
     <Setter Property="BorderThickness" Value="0" />
