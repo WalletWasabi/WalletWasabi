@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui.Behaviors
 				{
 					if (enabled)
 					{
-						AssociatedObject.Opacity = OriginalOpacity.HasValue ? OriginalOpacity.Value : 1;
+						AssociatedObject.Opacity = OriginalOpacity ?? 1;
 					}
 					else
 					{
