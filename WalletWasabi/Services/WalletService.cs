@@ -188,7 +188,7 @@ namespace WalletWasabi.Services
 		{
 			if (e.Action == NotifyCollectionChangedAction.Remove)
 			{
-				foreach(var toRemove in e.OldItems.Cast<SmartCoin>())
+				foreach (var toRemove in e.OldItems.Cast<SmartCoin>())
 				{
 					if (toRemove.SpenderTransactionId != null)
 					{
@@ -1183,6 +1183,55 @@ namespace WalletWasabi.Services
 
 		private static long SendCount = 0;
 
+		private async Task BroadcastTransactionAsync(SmartTransaction transaction, Node node)
+		{
+			Logger.LogInfo<WalletService>($"Trying to broadcast transaction with random node ({node.RemoteSocketAddress}):{transaction.GetHash()}");
+			if (!Mempool.TryAddToBroadcastStore(transaction.Transaction, node.RemoteSocketEndpoint.ToString())) // So we'll reply to INV with this transaction.
+			{
+				Logger.LogWarning<WalletService>($"Transaction {transaction.GetHash()} was already present in the broadcast store.");
+			}
+			var invPayload = new InvPayload(transaction.Transaction);
+			// Give 7 seconds to send the inv payload.
+			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(7)))
+			{
+				await node.SendMessageAsync(invPayload).WithCancellation(cts.Token); // ToDo: It's dangerous way to cancel. Implement proper cancellation to NBitcoin!
+			}
+
+			if (Mempool.TryGetFromBroadcastStore(transaction.GetHash(), out TransactionBroadcastEntry entry))
+			{
+				// Give 7 seconds for serving.
+				var timeout = 0;
+				while (!entry.IsBroadcasted())
+				{
+					if (timeout > 7)
+					{
+						throw new TimeoutException("Did not serve the transaction.");
+					}
+					await Task.Delay(1_000);
+					timeout++;
+				}
+				node.DisconnectAsync("Thank you!");
+				Logger.LogInfo<MempoolBehavior>($"Disconnected node: {node.RemoteSocketAddress}. Successfully broadcasted transaction: {transaction.GetHash()}.");
+
+				// Give 21 seconds for propagation.
+				timeout = 0;
+				while (entry.GetPropagationConfirmations() < 2)
+				{
+					if (timeout > 21)
+					{
+						throw new TimeoutException("Did not serve the transaction.");
+					}
+					await Task.Delay(1_000);
+					timeout++;
+				}
+				Logger.LogInfo<MempoolBehavior>($"Transaction is successfully propagated: {transaction.GetHash()}.");
+			}
+			else
+			{
+				Logger.LogWarning<WalletService>($"Expected transaction {transaction.GetHash()} was not found in the broadcast store.");
+			}
+		}
+
 		public async Task SendTransactionAsync(SmartTransaction transaction)
 		{
 			try
@@ -1197,7 +1246,8 @@ namespace WalletWasabi.Services
 					throw new InvalidOperationException($"Transaction broadcasting to nodes does not work in {Network.RegTest}.");
 				}
 
-				while (true)
+				Node node = Nodes.ConnectedNodes.RandomElement();
+				while (node == default(Node) || !node.IsConnected || Nodes.ConnectedNodes.Count < 5)
 				{
 					// As long as we are connected to at least 4 nodes, we can always try again.
 					// 3 should be enough, but make it 5 so 2 nodes could disconnect the meantime.
@@ -1205,68 +1255,9 @@ namespace WalletWasabi.Services
 					{
 						throw new InvalidOperationException("We are not connected to enough nodes.");
 					}
-
-					Node node = Nodes.ConnectedNodes.RandomElement();
-					if (node == default(Node))
-					{
-						await Task.Delay(100);
-						continue;
-					}
-
-					if (!node.IsConnected)
-					{
-						await Task.Delay(100);
-						continue;
-					}
-
-					Logger.LogInfo<WalletService>($"Trying to broadcast transaction with random node ({node.RemoteSocketAddress}):{transaction.GetHash()}");
-					var addedToBroadcastStore = Mempool.TryAddToBroadcastStore(transaction.Transaction, node.RemoteSocketEndpoint.ToString()); // So we'll reply to INV with this transaction.
-					if (!addedToBroadcastStore)
-					{
-						Logger.LogWarning<WalletService>($"Transaction {transaction.GetHash()} was already present in the broadcast store.");
-					}
-					var invPayload = new InvPayload(transaction.Transaction);
-					// Give 7 seconds to send the inv payload.
-					using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(7)))
-					{
-						await node.SendMessageAsync(invPayload).WithCancellation(cts.Token); // ToDo: It's dangerous way to cancel. Implement proper cancellation to NBitcoin!
-					}
-
-					if (Mempool.TryGetFromBroadcastStore(transaction.GetHash(), out TransactionBroadcastEntry entry))
-					{
-						// Give 7 seconds for serving.
-						var timeout = 0;
-						while (!entry.IsBroadcasted())
-						{
-							if (timeout > 7)
-							{
-								throw new TimeoutException("Did not serve the transaction.");
-							}
-							await Task.Delay(1_000);
-							timeout++;
-						}
-						node.DisconnectAsync("Thank you!");
-						Logger.LogInfo<MempoolBehavior>($"Disconnected node: {node.RemoteSocketAddress}. Successfully broadcasted transaction: {transaction.GetHash()}.");
-
-						// Give 21 seconds for propagation.
-						timeout = 0;
-						while (entry.GetPropagationConfirmations() < 2)
-						{
-							if (timeout > 21)
-							{
-								throw new TimeoutException("Did not serve the transaction.");
-							}
-							await Task.Delay(1_000);
-							timeout++;
-						}
-						Logger.LogInfo<MempoolBehavior>($"Transaction is successfully propagated: {transaction.GetHash()}.");
-					}
-					else
-					{
-						Logger.LogWarning<WalletService>($"Expected transaction {transaction.GetHash()} was not found in the broadcast store.");
-					}
-					break;
+					await Task.Delay(100);
 				}
+				await BroadcastTransactionAsync(transaction, node);
 			}
 			catch (Exception ex)
 			{
