@@ -25,6 +25,9 @@
       <Style Selector="ListBoxItem">
         <Setter Property="Padding" Value="0 0 5 0" />
       </Style>
+      <Style Selector="TextBox">
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}"/>
+      </Style>
     </DockPanel.Styles>
     <Grid Classes="content">
       <DockPanel LastChildFill="True" Margin="20">

@@ -12,8 +12,8 @@
       <SolidColorBrush x:Key="WarningMessageForeground">#FFDD00</SolidColorBrush>
       <SolidColorBrush x:Key="GreenBrush">#00DD10</SolidColorBrush>
       <sys:Double x:Key="FontSizeSmall">12</sys:Double>
-      <sys:Double x:Key="FontSizeNormal">14</sys:Double>
-      <sys:Double x:Key="FontSizeLarge">16</sys:Double>
+      <sys:Double x:Key="FontSizeNormal">16</sys:Double>
+      <sys:Double x:Key="FontSizeLarge">20</sys:Double>
       <FontFamily x:Key="MonospacedFont">
         <x:Arguments>
           <x:String>Inconsolata</x:String>
@@ -82,7 +82,7 @@
   </Style>
   <Style Selector="TextBlock.monospaceFont">
     <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}"/>
-  </Style>
+  </Style> 
   <Style Selector="TextBox.selectableTextBlock">
     <Setter Property="Padding" Value="0" />
     <Setter Property="BorderThickness" Value="0" />

@@ -11,6 +11,14 @@
     <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
   </UserControl.Resources>
   <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
+    <controls:GroupBox.Styles>
+      <Style Selector="TextBlock">
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}"/>
+      </Style>
+      <Style Selector="TextBox">
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}"/>
+      </Style>
+    </controls:GroupBox.Styles>
     <Grid Classes="content">
       <DockPanel LastChildFill="True">
         <Grid RowDefinitions="Auto,*" DockPanel.Dock="Top">
@@ -94,9 +102,9 @@
                       </Panel>
                       <Grid ColumnDefinitions="140, *" RowDefinitions="22,22" Margin="6">
                         <TextBlock Classes="monospaceFont" Text="Public key:" Grid.Row="0" Grid.Column="0" />
-                        <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transaparent" Text="{Binding PubKey}" Grid.Row="0" Grid.Column="1" />
+                        <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding PubKey}" Grid.Row="0" Grid.Column="1" />
                         <TextBlock Classes="monospaceFont" Text="Key path:" Grid.Row="1" Grid.Column="0" />
-                        <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transaparent" Text="{Binding KeyPath}" Grid.Row="1" Grid.Column="1" />
+                        <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding KeyPath}" Grid.Row="1" Grid.Column="1" />
                       </Grid>
                     </StackPanel>
                   </Expander>
