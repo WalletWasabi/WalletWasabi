@@ -130,7 +130,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 		public string BitcoinD { get; }
 		public List<CoreNode> Nodes { get; } = new List<CoreNode>();
 		public NodeConfigParameters ConfigParameters { get; } = new NodeConfigParameters();
-		public Network Network => NBitcoin.Network.RegTest;
+		public Network Network => Network.RegTest;
 
 		public async Task<CoreNode> CreateNodeAsync(bool start = false)
 		{
