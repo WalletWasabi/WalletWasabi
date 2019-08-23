@@ -144,10 +144,10 @@ namespace WalletWasabi.Gui
 			#endregion ConfigInitialization
 
 			BitcoinStore = new BitcoinStore();
-			var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, $"{nameof(BitcoinStore)}"), Network);
+			var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
 			var hwiInitTask = HwiProcessManager.InitializeAsync(DataDir, Network);
-			var addressManagerFolderPath = Path.Combine(DataDir, $"{nameof(AddressManager)}");
-			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"{nameof(AddressManager)}{Network}.dat");
+			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
+			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
 			var addrManTask = InitializeAddressManagerBehaviorAsync();
 
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
@@ -308,7 +308,7 @@ namespace WalletWasabi.Gui
 			if (Network == Network.RegTest)
 			{
 				AddressManager = new AddressManager();
-				Logger.LogInfo<AddressManager>($"Fake {nameof(AddressManager)} is initialized on the {nameof(Network.RegTest)}.");
+				Logger.LogInfo<AddressManager>($"Fake {nameof(AddressManager)} is initialized on the {Network.RegTest}.");
 			}
 			else
 			{
