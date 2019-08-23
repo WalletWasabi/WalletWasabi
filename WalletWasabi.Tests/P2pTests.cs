@@ -50,8 +50,8 @@ namespace WalletWasabi.Tests
 				throw new NotSupportedException($"{nameof(Network)} not supported: {network}.");
 			}
 
-			var addressManagerFolderPath = Path.Combine(Global.Instance.DataDir, "AddressManager");
-			var addressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{network}.dat");
+			var addressManagerFolderPath = Path.Combine(Global.Instance.DataDir, $"{nameof(AddressManager)}");
+			var addressManagerFilePath = Path.Combine(addressManagerFolderPath, $"{nameof(AddressManager)}{network}.dat");
 			var blocksFolderPath = Path.Combine(Global.Instance.DataDir, "Blocks", network.ToString());
 			var connectionParameters = new NodeConnectionParameters();
 			AddressManager addressManager = null;
@@ -111,7 +111,7 @@ namespace WalletWasabi.Tests
 				{
 					if (times > 4200) // 7 minutes
 					{
-						throw new TimeoutException($"Connection test timed out.");
+						throw new TimeoutException("Connection test timed out.");
 					}
 					await Task.Delay(100);
 					times++;

@@ -14,8 +14,8 @@ namespace NSubsys
 		/// </summary>
 		public static bool ProcessFile(string exeFilePath)
 		{
-			Console.WriteLine("NSubsys: Subsystem Changer for Windows PE files.");
-			Console.WriteLine($"NSubsys: Target EXE {exeFilePath}.");
+			Console.WriteLine($"{nameof(NSubsys)}: Subsystem Changer for Windows PE files.");
+			Console.WriteLine($"{nameof(NSubsys)}: Target EXE {exeFilePath}.");
 			using (var peFile = new PeUtility(exeFilePath))
 			{
 				SubSystemType subsysVal;
@@ -27,12 +27,12 @@ namespace NSubsys
 				switch (subsysVal)
 				{
 					case PeUtility.SubSystemType.ImageSubSystemWindowsGui:
-						Console.WriteLine("NSubsys: Executable file is already a Win32 App!");
+						Console.WriteLine($"{nameof(NSubsys)}: Executable file is already a Win32 App!");
 						return true;
 
 					case PeUtility.SubSystemType.ImageSubSystemWindowsCui:
-						Console.WriteLine("NSubsys: Console app detected...");
-						Console.WriteLine("NSubsys: Converting...");
+						Console.WriteLine($"{nameof(NSubsys)}: Console app detected...");
+						Console.WriteLine($"{nameof(NSubsys)}: Converting...");
 
 						var subsysSetting = BitConverter.GetBytes((ushort)SubSystemType.ImageSubSystemWindowsGui);
 
@@ -45,18 +45,18 @@ namespace NSubsys
 						{
 							peFile.Stream.Seek(subsysOffset, SeekOrigin.Begin);
 							peFile.Stream.Write(subsysSetting, 0, subsysSetting.Length);
-							Console.WriteLine("NSubsys: Conversion Complete...");
+							Console.WriteLine($"{nameof(NSubsys)}: Conversion Complete...");
 						}
 						else
 						{
-							Console.WriteLine("NSubsys: Can't write changes!");
-							Console.WriteLine("NSubsys: Conversion Failed...");
+							Console.WriteLine($"{nameof(NSubsys)}: Can't write changes!");
+							Console.WriteLine($"{nameof(NSubsys)}: Conversion Failed...");
 						}
 
 						return true;
 
 					default:
-						Console.WriteLine($"NSubsys: Unsupported subsystem number: {subsysVal}.");
+						Console.WriteLine($"{nameof(NSubsys)}: Unsupported subsystem number: {subsysVal}.");
 						return false;
 				}
 			}

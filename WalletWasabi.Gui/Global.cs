@@ -139,15 +139,15 @@ namespace WalletWasabi.Gui
 
 			Config = new Config(Path.Combine(DataDir, "Config.json"));
 			await Config.LoadOrCreateDefaultFileAsync();
-			Logger.LogInfo<Config>("Config is successfully initialized.");
+			Logger.LogInfo<Config>($"{nameof(Config)} is successfully initialized.");
 
 			#endregion ConfigInitialization
 
 			BitcoinStore = new BitcoinStore();
-			var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
+			var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, $"{nameof(BitcoinStore)}"), Network);
 			var hwiInitTask = HwiProcessManager.InitializeAsync(DataDir, Network);
-			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
-			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
+			var addressManagerFolderPath = Path.Combine(DataDir, $"{nameof(AddressManager)}");
+			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"{nameof(AddressManager)}{Network}.dat");
 			var addrManTask = InitializeAddressManagerBehaviorAsync();
 
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
@@ -308,7 +308,7 @@ namespace WalletWasabi.Gui
 			if (Network == Network.RegTest)
 			{
 				AddressManager = new AddressManager();
-				Logger.LogInfo<AddressManager>($"Fake {nameof(AddressManager)} is initialized on the RegTest.");
+				Logger.LogInfo<AddressManager>($"Fake {nameof(AddressManager)} is initialized on the {nameof(Network.RegTest)}.");
 			}
 			else
 			{
@@ -431,9 +431,9 @@ namespace WalletWasabi.Gui
 				ChaumianClient.Start();
 				Logger.LogInfo("Start Chaumian CoinJoin service...");
 
-				Logger.LogInfo("Starting WalletService...");
+				Logger.LogInfo($"Starting {nameof(WalletService)}...");
 				await WalletService.InitializeAsync(token);
-				Logger.LogInfo("WalletService started.");
+				Logger.LogInfo($"{nameof(WalletService)} started.");
 
 				token.ThrowIfCancellationRequested();
 				WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
