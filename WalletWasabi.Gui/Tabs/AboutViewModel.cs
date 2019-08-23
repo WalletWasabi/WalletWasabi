@@ -34,7 +34,7 @@ namespace WalletWasabi.Gui.Tabs
 
 		public Version Version { get; }
 
-		public string VersionText => $"v{Version}";
+		public string VersionText => $"v{Version.ToVersionString()}";
 
 		public string ClearnetLink => "https://wasabiwallet.io/";
 
