@@ -128,6 +128,13 @@ namespace WalletWasabi.Gui
 
 		private bool Initialized { get; set; } = false;
 
+		public Task InitializeBitcoinStore(Network network)
+		{
+			BitcoinStore = new BitcoinStore();
+			var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), network);
+			return bstoreInitTask;
+		}
+
 		public async Task InitializeNoWalletAsync()
 		{
 			WalletService = null;
@@ -143,8 +150,7 @@ namespace WalletWasabi.Gui
 
 			#endregion ConfigInitialization
 
-			BitcoinStore = new BitcoinStore();
-			var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
+			var bstoreInitTask = InitializeBitcoinStore(Network);
 			var hwiInitTask = HwiProcessManager.InitializeAsync(DataDir, Network);
 			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");

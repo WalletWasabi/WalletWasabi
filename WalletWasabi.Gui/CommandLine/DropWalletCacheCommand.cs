@@ -4,10 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using WalletWasabi.Helpers;
-using WalletWasabi.Services;
+using WalletWasabi.Stores;
 using WalletWasabi.KeyManagement;
-using WalletWasabi.Gui;
 
 namespace WalletWasabi.Gui.CommandLine
 {
@@ -68,16 +66,18 @@ namespace WalletWasabi.Gui.CommandLine
 					}
 					else
 					{
-						await Daemon.Global.InitializeNoWalletAsync();
+						var bstoreInitTask = Daemon.Global.InitializeBitcoinStore(Network);
+						await bstoreInitTask;
 						Daemon.Global.BitcoinStore.IndexStore.ClearState();
 						km.ClearState();
 						Logging.Logger.LogInfo("Wallet cache successfully dropped!");
 					}
 				}
 			}
-			catch (Exception)
+			catch (Exception e)
 			{
 				Logging.Logger.LogCritical<DropWalletCacheCommand>("There was a problem interpreting the command, please review it.");
+				Logging.Logger.LogError<DropWalletCacheCommand>(e.StackTrace);
 				error = true;
 			}
 			Environment.Exit(error ? 1 : 0);
