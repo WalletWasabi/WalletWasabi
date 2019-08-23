@@ -244,13 +244,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			SuccessMessage = "";
 		}
 
-		private void SetSuccessMessage(string message)
-		{
-			WarningMessage = "";
-			ValidationMessage = "";
-			SuccessMessage = message;
-		}
-
 		public void SetLoadButtonText()
 		{
 			if (IsHardwareBusy)
