@@ -13,7 +13,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 		/// Encoding.GetEncoding.GetBytes will transform char to 0x3F if that char not belong to current encoding table.
 		/// 0x3F is '?'
 		/// </summary>
-		private const int QUESTION_MARK_CHAR = 0x3F;
+		private const int QuestionMarkChar = 0x3F;
 
 		private static bool EightBitByteCheck(string encodingName, string content)
 		{
@@ -54,7 +54,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 				currentChar[0] = content[index];
 				bytes = encoding.GetBytes(currentChar);
 				int length = bytes.Length;
-				if (currentChar[0] != '?' && length == 1 && bytes[0] == QUESTION_MARK_CHAR)
+				if (currentChar[0] != '?' && length == 1 && bytes[0] == QuestionMarkChar)
 				{
 					return index;
 				}
@@ -69,7 +69,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 				currentChar[0] = content[index];
 				bytes = encoding.GetBytes(currentChar);
 				int length = bytes.Length;
-				if (currentChar[0] != '?' && length == 1 && bytes[0] == QUESTION_MARK_CHAR)
+				if (currentChar[0] != '?' && length == 1 && bytes[0] == QuestionMarkChar)
 				{
 					return index;
 				}

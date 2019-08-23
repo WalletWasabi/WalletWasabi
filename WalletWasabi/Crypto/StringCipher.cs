@@ -11,7 +11,7 @@ namespace WalletWasabi.Crypto
 	{
 		// This constant is used to determine the keysize of the encryption algorithm in bits.
 		// We divide this by 8 within the code below to get the equivalent number of bytes.
-		private const int Keysize = 128;
+		private const int KeySize = 128;
 
 		// This constant determines the number of iterations for the password bytes generation function.
 		private const int DerivationIterations = 1000;
@@ -28,7 +28,7 @@ namespace WalletWasabi.Crypto
 
 			using (var password = new Rfc2898DeriveBytes(passPhrase, salt, DerivationIterations))
 			{
-				key = password.GetBytes(Keysize / 8);
+				key = password.GetBytes(KeySize / 8);
 				using (var aes = CreateAES())
 				{
 					aes.GenerateIV();
@@ -81,15 +81,15 @@ namespace WalletWasabi.Crypto
 				var cipherLength = 0;
 				using (var reader = new BinaryReader(memoryStream, Encoding.UTF8, true))
 				{
-					var salt = reader.ReadBytes(Keysize / 8);
-					iv = reader.ReadBytes(Keysize / 8);
+					var salt = reader.ReadBytes(KeySize / 8);
+					iv = reader.ReadBytes(KeySize / 8);
 					var authenticationCode = reader.ReadBytes(32);
 					cipherLength = (int)(memoryStream.Length - memoryStream.Position);
 					var cipher = reader.ReadBytes(cipherLength);
 
 					using (var password = new Rfc2898DeriveBytes(passPhrase, salt, DerivationIterations))
 					{
-						key = password.GetBytes(Keysize / 8);
+						key = password.GetBytes(KeySize / 8);
 					}
 
 					using (var hmac = new HMACSHA256(key))

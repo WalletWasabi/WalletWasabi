@@ -5,8 +5,8 @@ namespace Gma.QrCodeNet.Encoding.Versions
 {
 	internal static class VersionControl
 	{
-		private const int NUM_BITS_MODE_INDICATOR = 4;
-		private const string DEFAULT_ENCODING = QRCodeConstantVariable.DefaultEncoding;
+		private const int NumBitsModeIndicator = 4;
+		private const string DefaultEncoding = QRCodeConstantVariable.DefaultEncoding;
 
 		/// <summary>
 		/// Determine which version to use
@@ -22,7 +22,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 
 			BitList eciHeader = new BitList();
 
-			if (encodingName != DEFAULT_ENCODING && encodingName != QRCodeConstantVariable.UTF8Encoding)
+			if (encodingName != DefaultEncoding && encodingName != QRCodeConstantVariable.UTF8Encoding)
 			{
 				ECISet eciSet = new ECISet(ECISet.AppendOption.NameToValue);
 				int eciValue = eciSet.GetECIValueByName(encodingName);
@@ -37,7 +37,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 
 			int[] charCountIndicator = CharCountIndicatorTable.GetCharCountIndicatorSet();
 
-			totalDataBits += (NUM_BITS_MODE_INDICATOR + charCountIndicator[searchGroup]);
+			totalDataBits += (NumBitsModeIndicator + charCountIndicator[searchGroup]);
 
 			int lowerSearchBoundary = searchGroup == 0 ? 1 : (VERSION_GROUP[searchGroup - 1] + 1);
 			int higherSearchBoundary = VERSION_GROUP[searchGroup];
@@ -93,7 +93,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 			int loopLength = VERSION_GROUP.Length;
 			for (int i = 0; i < loopLength; i++)
 			{
-				int totalBits = numBits + NUM_BITS_MODE_INDICATOR + charCountIndicator[i];
+				int totalBits = numBits + NumBitsModeIndicator + charCountIndicator[i];
 
 				QRCodeVersion version = VersionTable.GetVersionByNum(VERSION_GROUP[i]);
 				int numECCodewords = version.GetECBlocksByLevel(level).NumErrorCorrectionCodewards;
@@ -106,7 +106,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 				}
 			}
 
-			throw new InputOutOfBoundaryException($"QRCode do not have enough space for {(numBits + NUM_BITS_MODE_INDICATOR + charCountIndicator[2])} bits");
+			throw new InputOutOfBoundaryException($"QRCode do not have enough space for {(numBits + NumBitsModeIndicator + charCountIndicator[2])} bits");
 		}
 
 		/// <summary>
