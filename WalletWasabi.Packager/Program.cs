@@ -28,7 +28,6 @@ namespace WalletWasabi.Packager
 		public const bool DoSign = false;
 		public const bool DoRestoreProgramCs = false;
 
-		public const string PfxPath = "C:\\digicert.pfx";
 		public const string ExecutableName = "wassabee";
 
 		// https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog
@@ -55,7 +54,6 @@ namespace WalletWasabi.Packager
 		public static string VersionPrefix = Constants.ClientVersion.ToVersionString();
 
 		public static bool OnlyBinaries;
-		public static bool OnlyCreateDigests;
 
 		private static void Main(string[] args)
 		{
@@ -76,8 +74,7 @@ namespace WalletWasabi.Packager
 			// Start with digest creation and return if only digest creation.
 			CreateDigests();
 
-			OnlyCreateDigests = IsOnlyCreateDigestsMode(args);
-			if (OnlyCreateDigests)
+			if (IsOnlyCreateDigestsMode(args))
 			{
 				return;
 			}
@@ -95,14 +92,21 @@ namespace WalletWasabi.Packager
 				}
 			}
 
-			if (DoSign && !OnlyBinaries)
+			if (!OnlyBinaries)
 			{
-				Sign();
-			}
+				if (DoSign)
+				{
+#pragma warning disable CS0162 // Unreachable code detected
+					Sign();
+#pragma warning restore CS0162 // Unreachable code detected
+				}
 
-			if (DoRestoreProgramCs && !OnlyBinaries)
-			{
-				RestoreProgramCs();
+				if (DoRestoreProgramCs)
+				{
+#pragma warning disable CS0162 // Unreachable code detected
+					RestoreProgramCs();
+#pragma warning restore CS0162 // Unreachable code detected
+				}
 			}
 		}
 
@@ -379,7 +383,8 @@ namespace WalletWasabi.Packager
 						WorkingDirectory = BinDistDirectory
 					}))
 					{
-						process.StandardInput.WriteLine($"signtool sign /d \"Wasabi Wallet\" /f \"{PfxPath}\" /p {pfxPassword} /t http://timestamp.digicert.com /a \"{newMsiPath}\" && exit");
+						string pfxPath = "C:\\digicert.pfx";
+						process.StandardInput.WriteLine($"signtool sign /d \"Wasabi Wallet\" /f \"{pfxPath}\" /p {pfxPassword} /t http://timestamp.digicert.com /a \"{newMsiPath}\" && exit");
 						process.WaitForExit();
 					}
 
