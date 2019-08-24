@@ -40,7 +40,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 		{
 			if (ECBlock is null)
 			{
-				throw new System.ArgumentNullException("ErrorCorrectionBlocks array does not contain any value");
+				throw new System.ArgumentNullException($"{nameof(ErrorCorrectionBlocks)} array does not contain any value.");
 			}
 
 			NumBlocks = 0;

@@ -28,7 +28,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 					break;
 
 				default:
-					throw new InvalidOperationException("There is no such AppendOption");
+					throw new InvalidOperationException($"There is no such {nameof(AppendOption)}.");
 			}
 		}
 
@@ -60,7 +60,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 					break;
 
 				default:
-					throw new InvalidOperationException("There is no such AppendOption");
+					throw new InvalidOperationException($"There is no such {nameof(AppendOption)}.");
 			}
 
 			//ECI table. Source 01 URL: http://strokescribe.com/en/ECI.html
@@ -97,7 +97,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			}
 			else
 			{
-				throw new ArgumentOutOfRangeException($"ECI does not contain encoding: {encodingName}");
+				throw new ArgumentOutOfRangeException($"ECI does not contain encoding: {encodingName}.");
 			}
 		}
 
@@ -114,7 +114,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			}
 			else
 			{
-				throw new ArgumentOutOfRangeException($"ECI does not contain value: {eCIValue}");
+				throw new ArgumentOutOfRangeException($"ECI does not contain value: {eCIValue}.");
 			}
 		}
 
@@ -137,7 +137,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			}
 			else
 			{
-				throw new ArgumentOutOfRangeException($"{nameof(eCIValue)} should be in range: 0 to 999999");
+				throw new ArgumentOutOfRangeException($"{nameof(eCIValue)} should be in range: 0 to 999999.");
 			}
 		}
 
@@ -233,7 +233,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 					break;
 
 				default:
-					throw new InvalidOperationException("Assignment Codewords should be either 1, 2 or 3");
+					throw new InvalidOperationException("Assignment Codewords should be either 1, 2 or 3.");
 			}
 
 			dataBits.Add(eciValue, eciAssignmentBits);
