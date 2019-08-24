@@ -1183,7 +1183,7 @@ namespace WalletWasabi.Services
 
 		private static long SendCount = 0;
 
-		private async Task BroadcastTransactionAsync(SmartTransaction transaction, Node node)
+		private async Task BroadcastTransactionToNetworkNodeAsync(SmartTransaction transaction, Node node)
 		{
 			Logger.LogInfo<WalletService>($"Trying to broadcast transaction with random node ({node.RemoteSocketAddress}):{transaction.GetHash()}");
 			if (!Mempool.TryAddToBroadcastStore(transaction.Transaction, node.RemoteSocketEndpoint.ToString())) // So we'll reply to INV with this transaction.
@@ -1232,6 +1232,44 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		private async Task BroadcastTransactionToBackendAsync(SmartTransaction transaction)
+		{
+			using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
+			{
+				try
+				{
+					await client.BroadcastAsync(transaction);
+				}
+				catch (HttpRequestException ex2) when (
+					ex2.Message.Contains("bad-txns-inputs-missingorspent", StringComparison.InvariantCultureIgnoreCase)
+					|| ex2.Message.Contains("missing-inputs", StringComparison.InvariantCultureIgnoreCase)
+					|| ex2.Message.Contains("txn-mempool-conflict", StringComparison.InvariantCultureIgnoreCase))
+				{
+					if (transaction.Transaction.Inputs.Count == 1) // If we tried to only spend one coin, then we can mark it as spent. If there were more coins, then we do not know.
+					{
+						OutPoint input = transaction.Transaction.Inputs.First().PrevOut;
+						SmartCoin coin = Coins.FirstOrDefault(x => x.TransactionId == input.Hash && x.Index == input.N);
+						if (coin != default)
+						{
+							coin.SpentAccordingToBackend = true;
+						}
+					}
+				}
+			}
+
+			using (await TransactionProcessingLock.LockAsync())
+			{
+				if (await ProcessTransactionAsync(new SmartTransaction(transaction.Transaction, Height.Mempool)))
+				{
+					SerializeTransactionCache();
+				}
+
+				Mempool.TransactionHashes.TryAdd(transaction.GetHash());
+			}
+
+			Logger.LogInfo<WalletService>($"Transaction is successfully broadcasted to backend: {transaction.GetHash()}.");
+		}
+
 		public async Task SendTransactionAsync(SmartTransaction transaction)
 		{
 			try
@@ -1257,47 +1295,14 @@ namespace WalletWasabi.Services
 					}
 					await Task.Delay(100);
 				}
-				await BroadcastTransactionAsync(transaction, node);
+				await BroadcastTransactionToNetworkNodeAsync(transaction, node);
 			}
 			catch (Exception ex)
 			{
 				Logger.LogInfo<WalletService>($"Random node could not broadcast transaction. Broadcasting with backend... Reason: {ex.Message}");
 				Logger.LogDebug<WalletService>(ex);
 
-				using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
-				{
-					try
-					{
-						await client.BroadcastAsync(transaction);
-					}
-					catch (HttpRequestException ex2) when (
-						ex2.Message.Contains("bad-txns-inputs-missingorspent", StringComparison.InvariantCultureIgnoreCase)
-						|| ex2.Message.Contains("missing-inputs", StringComparison.InvariantCultureIgnoreCase)
-						|| ex2.Message.Contains("txn-mempool-conflict", StringComparison.InvariantCultureIgnoreCase))
-					{
-						if (transaction.Transaction.Inputs.Count == 1) // If we tried to only spend one coin, then we can mark it as spent. If there were more coins, then we do not know.
-						{
-							OutPoint input = transaction.Transaction.Inputs.First().PrevOut;
-							SmartCoin coin = Coins.FirstOrDefault(x => x.TransactionId == input.Hash && x.Index == input.N);
-							if (coin != default)
-							{
-								coin.SpentAccordingToBackend = true;
-							}
-						}
-					}
-				}
-
-				using (await TransactionProcessingLock.LockAsync())
-				{
-					if (await ProcessTransactionAsync(new SmartTransaction(transaction.Transaction, Height.Mempool)))
-					{
-						SerializeTransactionCache();
-					}
-
-					Mempool.TransactionHashes.TryAdd(transaction.GetHash());
-				}
-
-				Logger.LogInfo<WalletService>($"Transaction is successfully broadcasted to backend: {transaction.GetHash()}.");
+				await BroadcastTransactionToBackendAsync(transaction);
 			}
 			finally
 			{
