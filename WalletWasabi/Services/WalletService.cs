@@ -188,7 +188,7 @@ namespace WalletWasabi.Services
 		{
 			if (e.Action == NotifyCollectionChangedAction.Remove)
 			{
-				foreach(var toRemove in e.OldItems.Cast<SmartCoin>())
+				foreach (var toRemove in e.OldItems.Cast<SmartCoin>())
 				{
 					if (toRemove.SpenderTransactionId != null)
 					{
