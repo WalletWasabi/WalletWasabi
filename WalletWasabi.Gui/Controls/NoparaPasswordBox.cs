@@ -23,17 +23,7 @@ namespace WalletWasabi.Gui.Controls
 	{
 		Type IStyleable.StyleKey => typeof(NoparaPasswordBox);
 
-		public static string[] Titles { get; } =
-		{
-			"这个笨老外不知道自己在写什么。", // This silly foreigner does not know what he is writing.
-			"法式炸薯条法式炸薯条法式炸薯条", //French fries, french fries, french fries
-			"只有一支筷子的人会挨饿。", //Man with one chopstick go hungry.
-			"说太多灯泡笑话的人，很快就会心力交瘁。", // Man who tell one too many light bulb jokes soon burn out!
-			"汤面火锅", //Noodle soup, hot pot
-			"你是我见过的最可爱的僵尸。", //You’re the cutest zombie I’ve ever seen.
-			"永不放弃。", //Never do not give up.
-			"如果你是只宠物小精灵，我就选你。" //If you were a Pokemon, I'd choose you.
-		};
+		private readonly char ReplacementChar = '*';
 
 		private static Key[] SuppressedKeys { get; } =
 		{
@@ -42,8 +32,6 @@ namespace WalletWasabi.Gui.Controls
 		};
 
 		private bool _supressChanges;
-		private string _displayText = "";
-		private Random Random { get; } = new Random();
 		private StringBuilder Sb { get; } = new StringBuilder();
 		private HashSet<Key> SupressedKeys { get; }
 		private Button _presenter;
@@ -119,38 +107,11 @@ namespace WalletWasabi.Gui.Controls
 				PaintText();
 			});
 
-			this.WhenAnyValue(x => x.Password).Subscribe(passw =>
+			this.WhenAnyValue(x => x.Password).Subscribe(_ =>
 			{
 				PaintText();
 			});
 
-			string fontName = "SimSun"; // https://docs.microsoft.com/en-us/typography/font-list/simsun
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-			{
-				fontName = "PingFang TC"; // https://en.wikipedia.org/wiki/List_of_typefaces_included_with_macOS
-			}
-			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-			{
-				fontName = "Noto Sans CJK TC"; // https://www.pinyinjoe.com/linux/ubuntu-10-chinese-fonts-openoffice-language-features.htm
-											   // The best and simplest way is to use console command (this command should be available for all ubuntu-based distributions).
-			}
-
-			try
-			{
-				FontFamily ff = FontFamily.SystemFontFamilies.FirstOrDefault(x => x.Name == fontName);
-				if (ff != default)
-				{
-					FontFamily = ff; // Use the font.
-				}
-				else
-				{
-					throw new FormatException("Font is missing. Fallback to default font.");
-				}
-			}
-			catch (Exception)
-			{
-				PasswordChar = '*'; // Use password char instead.
-			}
 			SupressedKeys = new HashSet<Key>(SuppressedKeys);
 			RefreshCapsLockWarning();
 		}
@@ -159,37 +120,6 @@ namespace WalletWasabi.Gui.Controls
 		{
 			// Waiting for Avalonia to implement detection of Caps-Lock button state.
 			return;
-		}
-
-		private void GenerateNewRandomSequence()
-		{
-			StringBuilder sb = new StringBuilder();
-			do
-			{
-				List<string> ls = new List<string>();
-				if (string.IsNullOrEmpty(FixedPasswordText))
-				{
-					ls.AddRange(Titles);
-				}
-				else
-				{
-					ls.Add(FixedPasswordText);
-				}
-
-				do
-				{
-					var s = ls[Random.Next(0, ls.Count - 1)];
-					sb.Append(s);
-					ls.Remove(s);
-					if (PasswordHelper.IsTooLong(sb.Length))
-					{
-						break;
-					}
-				}
-				while (ls.Count > 0);
-			}
-			while (sb.Length < PasswordHelper.MaxPasswordLength); // Generate more text using the same sentences.
-			_displayText = sb.ToString();
 		}
 
 		protected override async void OnKeyDown(KeyEventArgs e)
@@ -387,10 +317,6 @@ namespace WalletWasabi.Gui.Controls
 
 		private void PaintText()
 		{
-			if (string.IsNullOrEmpty(_displayText))
-			{
-				GenerateNewRandomSequence();
-			}
 			var password = Sb.ToString();
 
 			if (PasswordHelper.IsTrimable(password, out string trimmedPassword))
@@ -401,11 +327,7 @@ namespace WalletWasabi.Gui.Controls
 				_ = DisplayWarningAsync(PasswordHelper.TrimmedMessage);
 			}
 
-			Text = _displayText.Substring(0, password.Length);
-			if (IsPasswordVisible)
-			{
-				Text = password;
-			}
+			Text = IsPasswordVisible ? password : new string(ReplacementChar, password.Length);
 
 			Password = Sb.ToString(); // Do not use Password instead of local variable. It is not changed immediately after this line.
 
@@ -423,11 +345,6 @@ namespace WalletWasabi.Gui.Controls
 
 		protected override void OnGotFocus(GotFocusEventArgs e)
 		{
-			if (string.IsNullOrEmpty(Text))
-			{
-				GenerateNewRandomSequence();
-			}
-
 			base.OnGotFocus(e);
 			RefreshCapsLockWarning();
 		}
