@@ -41,11 +41,11 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			int dataCodewordsCount = dataCodewords.Count;
 			if ((dataCodewordsCount & 0x7) != 0)
 			{
-				throw new ArgumentException("datacodewords is not byte sized.");
+				throw new ArgumentException($"{nameof(dataCodewords)} is not byte sized.");
 			}
 			else if (dataCodewordsCount >> 3 != vcStruct.VersionDetail.NumDataBytes)
 			{
-				throw new ArgumentException("datacodewords num of bytes not equal to NumDataBytes for current version");
+				throw new ArgumentException($"{nameof(dataCodewords)} num of bytes not equal to {nameof(vcStruct.VersionDetail.NumDataBytes)} for current version");
 			}
 
 			var encStruct = new EncodationStruct(vcStruct)
@@ -84,11 +84,11 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			int dataCodewordsCount = dataCodewords.Count;
 			if ((dataCodewordsCount & 0x7) != 0)
 			{
-				throw new ArgumentException("datacodewords is not byte sized.");
+				throw new ArgumentException($"{nameof(dataCodewords)} is not byte sized.");
 			}
 			else if (dataCodewordsCount >> 3 != vcStruct.VersionDetail.NumDataBytes)
 			{
-				throw new ArgumentException("datacodewords num of bytes not equal to NumDataBytes for current version");
+				throw new ArgumentException($"{nameof(dataCodewords)} num of bytes not equal to {nameof(vcStruct.VersionDetail.NumDataBytes)} for current version");
 			}
 
 			var encStruct = new EncodationStruct(vcStruct)

@@ -257,7 +257,7 @@ namespace WalletWasabi.Services
 								// Reorg happened
 								// 1. Rollback index
 								FilterModel reorgedFilter = await BitcoinStore.IndexStore.RemoveLastFilterAsync(Cancel.Token);
-								Logger.LogInfo<WasabiSynchronizer>($"REORG Invalid Block: {reorgedFilter.BlockHash}");
+								Logger.LogInfo<WasabiSynchronizer>($"REORG Invalid Block: {reorgedFilter.BlockHash}.");
 
 								ignoreRequestInterval = true;
 							}

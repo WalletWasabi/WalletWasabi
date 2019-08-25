@@ -554,14 +554,14 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 									}
 									catch (Exception ex)
 									{
-										Logger.LogWarning<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timeout failed with exception: {ex}");
+										Logger.LogWarning<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timeout failed with exception: {ex}.");
 									}
 								});
 						}
 					}
 					catch (Exception ex)
 					{
-						Logger.LogWarning<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timeout failed with exception: {ex}");
+						Logger.LogWarning<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timeout failed with exception: {ex}.");
 					}
 				});
 		}
@@ -724,7 +724,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(AdjustedConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
 				if (estimateSmartFeeResponse is null)
 				{
-					throw new InvalidOperationException("FeeRate is not yet initialized");
+					throw new InvalidOperationException($"{nameof(FeeRate)} is not yet initialized.");
 				}
 
 				FeeRate optimalFeeRate = estimateSmartFeeResponse.FeeRate;
@@ -807,7 +807,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				var estimateSmartFeeResponse = await rpc.EstimateSmartFeeAsync(confirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
 				if (estimateSmartFeeResponse is null)
 				{
-					throw new InvalidOperationException("FeeRate is not yet initialized");
+					throw new InvalidOperationException($"{nameof(FeeRate)} is not yet initialized.");
 				}
 
 				var feeRate = estimateSmartFeeResponse.FeeRate;
@@ -873,7 +873,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 			else
 			{
-				Logger.LogInfo($"Round ({RoundId}): Aborted. Reason: {reason}", category);
+				Logger.LogInfo($"Round ({RoundId}): Aborted. Reason: {reason}.", category);
 			}
 		}
 

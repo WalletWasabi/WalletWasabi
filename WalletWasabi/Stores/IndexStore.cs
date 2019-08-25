@@ -191,7 +191,7 @@ namespace WalletWasabi.Stores
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<IndexStore>($"Backwards compatibility could not be ensured. Exception: {ex}");
+				Logger.LogWarning<IndexStore>($"Backwards compatibility could not be ensured. Exception: {ex}.");
 			}
 		}
 
@@ -220,7 +220,7 @@ namespace WalletWasabi.Stores
 				ImmatureFilters.RemoveLast();
 				if (HashChain.TipHeight != filter.BlockHeight.Value)
 				{
-					throw new InvalidOperationException("HashChain and ImmatureFilters are not in sync.");
+					throw new InvalidOperationException($"{nameof(HashChain)} and {nameof(ImmatureFilters)} are not in sync.");
 				}
 				HashChain.RemoveLast();
 			}
