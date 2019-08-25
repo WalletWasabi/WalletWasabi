@@ -104,23 +104,16 @@ csharp_prefer_braces = true:error
 dotnet_style_readonly_field = false:error
 
 
-# name all constant fields using PascalCase
-dotnet_naming_rule.constant_fields_should_be_pascal_case.severity = error
-dotnet_naming_rule.constant_fields_should_be_pascal_case.symbols  = constant_fields
-dotnet_naming_rule.constant_fields_should_be_pascal_case.style    = pascal_case_style
+# name all constant or static fields using PascalCase
+dotnet_naming_rule.constant_or_static_fields_should_be_pascal_case.severity = error
+dotnet_naming_rule.constant_or_static_fields_should_be_pascal_case.symbols  = constant_or_static_fields
+dotnet_naming_rule.constant_or_static_fields_should_be_pascal_case.style    = pascal_case_style
 
-dotnet_naming_symbols.constant_fields.applicable_kinds   = field
-dotnet_naming_symbols.constant_fields.required_modifiers = const
+dotnet_naming_symbols.constant_or_static_fields.applicable_kinds   = field
+dotnet_naming_symbols.constant_or_static_fields.required_modifiers = const
+dotnet_naming_symbols.constant_or_static_fields.required_modifiers = static
 
 dotnet_naming_style.pascal_case_style.capitalization = pascal_case
-
-# name all static fields using PascalCase
-dotnet_naming_rule.static_fields_should_be_pascal_case.severity = error
-dotnet_naming_rule.static_fields_should_be_pascal_case.symbols  = static_fields
-dotnet_naming_rule.static_fields_should_be_pascal_case.style    = pascal_case_style
-
-dotnet_naming_symbols.static_fields.applicable_kinds   = field
-dotnet_naming_symbols.static_fields.required_modifiers = static
 
 # name all readonly fields using PascalCase
 dotnet_naming_rule.readonly_fields_should_be_pascal_case.severity = error
@@ -139,7 +132,7 @@ dotnet_naming_symbols.private_internal_fields.applicable_kinds = field
 dotnet_naming_symbols.private_internal_fields.applicable_accessibilities = private, internal, protected
 
 dotnet_naming_style.camel_case_underscore_style.required_prefix = _
-dotnet_naming_style.camel_case_underscore_style.capitalization = camel_case 
+dotnet_naming_style.camel_case_underscore_style.capitalization = camel_case
 
 # async methods should end with Async suffix
 dotnet_naming_rule.async_methods_end_with_async.severity = warning
