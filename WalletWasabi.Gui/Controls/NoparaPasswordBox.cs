@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui.Controls
 	{
 		Type IStyleable.StyleKey => typeof(NoparaPasswordBox);
 
-		private readonly char ReplacementChar = '*';
+		private const char ReplacementChar = '*';
 
 		private static Key[] SuppressedKeys { get; } =
 		{
