@@ -234,50 +234,50 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.WhenAnyValue(x => x.AmountSortDirection)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
-			{
-				if (x != SortOrder.None)
 				{
-					PrivacySortDirection = SortOrder.None;
-					StatusSortDirection = SortOrder.None;
-					ClustersSortDirection = SortOrder.None;
-				}
-			});
+					if (x != SortOrder.None)
+					{
+						PrivacySortDirection = SortOrder.None;
+						StatusSortDirection = SortOrder.None;
+						ClustersSortDirection = SortOrder.None;
+					}
+				});
 
 			this.WhenAnyValue(x => x.ClustersSortDirection)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
-			{
-				if (x != SortOrder.None)
 				{
-					AmountSortDirection = SortOrder.None;
-					StatusSortDirection = SortOrder.None;
-					PrivacySortDirection = SortOrder.None;
-				}
-			});
+					if (x != SortOrder.None)
+					{
+						AmountSortDirection = SortOrder.None;
+						StatusSortDirection = SortOrder.None;
+						PrivacySortDirection = SortOrder.None;
+					}
+				});
 
 			this.WhenAnyValue(x => x.StatusSortDirection)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
-			{
-				if (x != SortOrder.None)
 				{
-					AmountSortDirection = SortOrder.None;
-					PrivacySortDirection = SortOrder.None;
-					ClustersSortDirection = SortOrder.None;
-				}
-			});
+					if (x != SortOrder.None)
+					{
+						AmountSortDirection = SortOrder.None;
+						PrivacySortDirection = SortOrder.None;
+						ClustersSortDirection = SortOrder.None;
+					}
+				});
 
 			this.WhenAnyValue(x => x.PrivacySortDirection)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
-			{
-				if (x != SortOrder.None)
 				{
-					AmountSortDirection = SortOrder.None;
-					StatusSortDirection = SortOrder.None;
-					ClustersSortDirection = SortOrder.None;
-				}
-			});
+					if (x != SortOrder.None)
+					{
+						AmountSortDirection = SortOrder.None;
+						StatusSortDirection = SortOrder.None;
+						ClustersSortDirection = SortOrder.None;
+					}
+				});
 
 			EnqueueCoin = ReactiveCommand.Create(() =>
 			{

@@ -170,16 +170,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.WhenAnyValue(x => x.IsBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
-			{
-				SetSendText();
-			});
+				{
+					SetSendText();
+				});
 
 			this.WhenAnyValue(x => x.IsHardwareBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
-			{
-				SetSendText();
-			});
+				{
+					SetSendText();
+				});
 
 			this.WhenAnyValue(x => x.Label)
 				.ObserveOn(RxApp.MainThreadScheduler)
