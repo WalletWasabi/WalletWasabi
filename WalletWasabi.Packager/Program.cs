@@ -95,14 +95,21 @@ namespace WalletWasabi.Packager
 				}
 			}
 
-			if (DoSign && !OnlyBinaries)
+			if (!OnlyBinaries)
 			{
-				Sign();
-			}
+				if (DoSign)
+				{
+#pragma warning disable CS0162 // Unreachable code detected
+					Sign();
+#pragma warning restore CS0162 // Unreachable code detected
+				}
 
-			if (DoRestoreProgramCs && !OnlyBinaries)
-			{
-				RestoreProgramCs();
+				if (DoRestoreProgramCs)
+				{
+#pragma warning disable CS0162 // Unreachable code detected
+					RestoreProgramCs();
+#pragma warning restore CS0162 // Unreachable code detected
+				}
 			}
 		}
 
