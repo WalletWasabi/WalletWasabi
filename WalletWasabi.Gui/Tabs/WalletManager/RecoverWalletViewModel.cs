@@ -37,7 +37,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				WalletName = Guard.Correct(WalletName);
 				MnemonicWords = Guard.Correct(MnemonicWords);
-				Password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
+
+				if (PasswordHelper.IsTrimable(Password, out string trimmedPassword)) // Do not let whitespaces to the beginning and to the end.
+				{
+					Password = trimmedPassword;
+					ValidationMessage = PasswordHelper.TrimmedMessage;
+				}
 
 				string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
 

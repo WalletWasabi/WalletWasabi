@@ -445,7 +445,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				SetValidationMessage("");
 				CanTestPassword = false;
-				var password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
+				var password = Password; // Create a local copy.
 				Password = ""; // Clear password field.
 
 				var selectedWallet = SelectedWallet;
@@ -592,9 +592,16 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				// Only check requirepassword here, because the above checks are applicable to loadwallet, too and we are using this function from load wallet.
 				if (requirePassword)
 				{
-					if (PasswordHelper.TryPassword(keyManager, password, out string compatibilityPasswordUsed))
+					if (PasswordHelper.TryPassword(keyManager, password, out string compatibilityPasswordUsed, out bool trimmedPassword))
 					{
 						SuccessMessage = "Correct password.";
+
+						if (trimmedPassword)
+						{
+							WarningMessage = PasswordHelper.TrimmedMessage;
+							ValidationMessage = "";
+						}
+
 						if (compatibilityPasswordUsed != null)
 						{
 							WarningMessage = PasswordHelper.CompatibilityPasswordWarnMessage;

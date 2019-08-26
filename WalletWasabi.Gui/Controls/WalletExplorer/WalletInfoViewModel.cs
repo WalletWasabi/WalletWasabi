@@ -58,12 +58,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					else
 					{
-						var secret = PasswordHelper.GetMasterExtKey(KeyManager, Password, out string isCompatibilityPasswordUsed);
+						var secret = PasswordHelper.GetMasterExtKey(KeyManager, Password, out string isCompatibilityPasswordUsed, out bool isEndTrimmed);
 						Password = "";
 
 						if (isCompatibilityPasswordUsed != null)
 						{
 							SetWarningMessage(PasswordHelper.CompatibilityPasswordWarnMessage);
+						}
+
+						if (isEndTrimmed)
+						{
+							SetWarningMessage(PasswordHelper.TrimmedMessage);
 						}
 
 						string master = secret.GetWif(Global.Network).ToWif();

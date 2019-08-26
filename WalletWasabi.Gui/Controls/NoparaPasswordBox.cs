@@ -393,7 +393,10 @@ namespace WalletWasabi.Gui.Controls
 			}
 			var password = Sb.ToString();
 
-			if (PasswordHelper.IsTrimable(password, out string trimmedPassword))
+            var trimmedPassword = password.TrimStart(); 
+			// Trim only the beginning of the password. Spaces have to be allowed, trailing will be trimmed from outside.
+
+            if (trimmedPassword != password)
 			{
 				password = trimmedPassword;
 				Sb.Clear();

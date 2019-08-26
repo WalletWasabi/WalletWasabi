@@ -34,6 +34,7 @@ namespace WalletWasabi.Gui.CommandLine
 				string password = null;
 				var count = 3;
 				string compatibilityPassword = null;
+				bool trimmedPassword = false;
 				do
 				{
 					if (password != null)
@@ -61,12 +62,17 @@ namespace WalletWasabi.Gui.CommandLine
 						Console.WriteLine(PasswordHelper.TrimmedMessage);
 					}
 				}
-				while (!PasswordHelper.TryPassword(keyManager, password, out compatibilityPassword));
+				while (!PasswordHelper.TryPassword(keyManager, password, out compatibilityPassword, out trimmedPassword));
 
 				if (compatibilityPassword != null)
 				{
 					password = compatibilityPassword;
 					Logger.LogInfo(PasswordHelper.CompatibilityPasswordWarnMessage);
+				}
+
+				if (trimmedPassword)
+				{
+					Logger.LogInfo(PasswordHelper.TrimmedMessage);
 				}
 
 				Logger.LogInfo("Correct password.");

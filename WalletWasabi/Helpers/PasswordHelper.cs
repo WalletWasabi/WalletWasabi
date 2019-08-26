@@ -79,12 +79,13 @@ namespace WalletWasabi.Helpers
 			return false;
 		}
 
-		public static bool TryPassword(KeyManager keyManager, string password, out string compatibilityPasswordUsed)
+		public static bool TryPassword(KeyManager keyManager, string password, out string compatibilityPasswordUsed, out bool isEndTrimmed)
 		{
 			compatibilityPasswordUsed = null;
+			isEndTrimmed = false;
 			try
 			{
-				GetMasterExtKey(keyManager, password, out compatibilityPasswordUsed);
+				GetMasterExtKey(keyManager, password, out compatibilityPasswordUsed, out isEndTrimmed);
 			}
 			catch (Exception)
 			{
@@ -106,8 +107,16 @@ namespace WalletWasabi.Helpers
 			}
 		}
 
-		public static ExtKey GetMasterExtKey(KeyManager keyManager, string password, out string compatiblityPassword)
+		public static ExtKey GetMasterExtKey(KeyManager keyManager, string password, out string compatiblityPassword, out bool isEndTrimmed)
 		{
+			isEndTrimmed = false;
+			var trimmedPassword = password.TrimEnd(); // Trim the end of the password. This can only be done only here as we are letting spaces in password.
+			if (trimmedPassword != password)
+			{
+				isEndTrimmed = true;
+				password = trimmedPassword;
+			}
+
 			Guard(password);
 
 			compatiblityPassword = null;

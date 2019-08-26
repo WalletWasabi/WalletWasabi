@@ -240,16 +240,30 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			try
 			{
 				SetWarningMessage("");
-				Password = Guard.Correct(Password);
-
-				if (!selectedCoins.Any())
-				{
-					SetWarningMessage("No coins are selected to enqueue.");
-					return;
-				}
 
 				try
 				{
+					PasswordHelper.GetMasterExtKey(KeyManager, Password, out string compatibilityPasswordUsed, out bool isEndTrimmed); // Test password, throw if wrong.
+
+					if (isEndTrimmed)
+					{
+						PasswordHelper.IsTrimable(Password, out string trimmedPassword);
+						Password = trimmedPassword;
+						SetWarningMessage(PasswordHelper.TrimmedMessage);
+					}
+
+					if (compatibilityPasswordUsed != null)
+					{
+						Password = compatibilityPasswordUsed;
+						SetWarningMessage(PasswordHelper.CompatibilityPasswordWarnMessage);
+					}
+
+					if (!selectedCoins.Any())
+					{
+						SetWarningMessage("No coins are selected to enqueue.");
+						return;
+					}
+
 					await Global.ChaumianClient.QueueCoinsToMixAsync(Password, selectedCoins.Select(c => c.Model).ToArray());
 				}
 				catch (Exception ex)

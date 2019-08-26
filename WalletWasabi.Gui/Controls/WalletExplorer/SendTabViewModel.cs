@@ -237,6 +237,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			BuildTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				bool isCompatibilityPasswordUsed = false;
+				bool isTrimmedPasswordUsed = false;
 				try
 				{
 					IsBusy = true;
@@ -322,7 +323,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					try
 					{
-						PasswordHelper.GetMasterExtKey(KeyManager, Password, out string compatiblityPasswordUsed); // We could use TryPassword but we need the exception.
+						PasswordHelper.GetMasterExtKey(KeyManager, Password, out string compatiblityPasswordUsed, out _); // We could use TryPassword but we need the exception.
+
+						if (PasswordHelper.IsTrimable(Password, out string trimmedPassword)) // Trim the end here to have the trimmed Password.
+						{
+							isTrimmedPasswordUsed = true;
+							Password = trimmedPassword; // Overwrite the password for BuildTransaction function.
+						}
+
 						if (compatiblityPasswordUsed != null)
 						{
 							isCompatibilityPasswordUsed = true;
@@ -412,6 +420,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(signedTransaction));
 
 					TryResetInputsOnSuccess("Transaction is successfully sent!");
+
+					if (isTrimmedPasswordUsed)
+					{
+						WarningMessage = PasswordHelper.TrimmedMessage;
+					}
 
 					if (isCompatibilityPasswordUsed)
 					{

@@ -40,7 +40,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 
 			string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
-			Password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
 
 			if (!TermsAccepted)
 			{
@@ -58,7 +57,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				try
 				{
-					PasswordHelper.Guard(Password);
+					PasswordHelper.Guard(Password); // Not trying to fix the password, any violation will cause error.
 
 					KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
 
