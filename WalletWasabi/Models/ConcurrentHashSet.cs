@@ -748,7 +748,13 @@ namespace WalletWasabi.Models
 			public readonly Node[] Buckets;
 			public readonly object[] Locks;
 
-			public volatile int[] CountPerLock;
+			private volatile int[] _countPerLock;
+
+			public int[] CountPerLock
+			{
+				get => _countPerLock;
+				set => _countPerLock = value;
+			}
 
 			public Tables(Node[] buckets, object[] locks, int[] countPerLock)
 			{
@@ -763,7 +769,13 @@ namespace WalletWasabi.Models
 			public readonly T Item;
 			public readonly int Hashcode;
 
-			public volatile Node Next;
+			private volatile Node _next;
+
+			public Node Next
+			{
+				get => _next;
+				set => _next = value;
+			}
 
 			public Node(T item, int hashcode, Node next)
 			{
