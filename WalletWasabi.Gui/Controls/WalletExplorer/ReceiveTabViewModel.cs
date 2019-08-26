@@ -140,7 +140,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Observable.FromEventPattern(Global.WalletService.Coins,
 				nameof(Global.WalletService.Coins.CollectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(o => InitializeAddresses())
+				.Subscribe(_ => InitializeAddresses())
 				.DisposeWith(Disposables);
 		}
 

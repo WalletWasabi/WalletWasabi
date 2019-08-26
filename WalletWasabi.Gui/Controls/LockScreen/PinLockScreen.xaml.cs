@@ -33,7 +33,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			this.WhenAnyValue(x => x.IsLocked)
 				.Where(x => x)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => inputField.Focus());
+				.Subscribe(_ => inputField.Focus());
 		}
 
 		private void InitializeComponent()
@@ -51,7 +51,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				.Interval(TimeSpan.FromSeconds(1))
 				.Take(1)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
+				.Subscribe(_ =>
 				{
 					var inputField = this.FindControl<NoparaPasswordBox>("InputField");
 					inputField.Focus();

@@ -116,7 +116,7 @@ namespace WalletWasabi.Gui.Controls
 				TextVisible = !visible;
 			});
 
-			this.WhenAnyValue(x => x.SelectionStart).Subscribe(s =>
+			this.WhenAnyValue(x => x.SelectionStart).Subscribe(_ =>
 			{
 				if (!IsSelectable)
 				{
@@ -125,7 +125,7 @@ namespace WalletWasabi.Gui.Controls
 				}
 			});
 
-			this.WhenAnyValue(x => x.SelectionEnd).Subscribe(s =>
+			this.WhenAnyValue(x => x.SelectionEnd).Subscribe(_ =>
 			{
 				if (!IsSelectable)
 				{
