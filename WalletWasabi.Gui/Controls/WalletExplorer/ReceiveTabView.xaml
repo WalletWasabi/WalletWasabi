@@ -11,6 +11,14 @@
     <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
   </UserControl.Resources>
   <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
+    <controls:GroupBox.Styles>
+      <Style Selector="TextBlock">
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}"/>
+      </Style>
+      <Style Selector="TextBox">
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}"/>
+      </Style>
+    </controls:GroupBox.Styles>
     <Grid Classes="content">
       <DockPanel LastChildFill="True">
         <Grid RowDefinitions="Auto,*" DockPanel.Dock="Top">
@@ -93,15 +101,15 @@
                         <controls:QrCode Matrix="{Binding QrCode}" HorizontalAlignment="Left" Margin="20" />
                       </Panel>
                       <Grid ColumnDefinitions="140, *" RowDefinitions="22,22" Margin="6">
-                        <TextBlock Text="Public key:" Grid.Row="0" Grid.Column="0" />
-                        <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding PubKey}" Grid.Row="0" Grid.Column="1" />
-                        <TextBlock Text="Key path:" Grid.Row="1" Grid.Column="0" />
-                        <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding KeyPath}" Grid.Row="1" Grid.Column="1" />
+                        <TextBlock Classes="monospaceFont" Text="Public key:" Grid.Row="0" Grid.Column="0" />
+                        <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding PubKey}" Grid.Row="0" Grid.Column="1" />
+                        <TextBlock Classes="monospaceFont" Text="Key path:" Grid.Row="1" Grid.Column="0" />
+                        <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding KeyPath}" Grid.Row="1" Grid.Column="1" />
                       </Grid>
                     </StackPanel>
                   </Expander>
                   <Grid ColumnDefinitions="400, *, 100" Margin="30 0 0 0">
-                    <TextBlock IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding Address, ConverterParameter=27, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}"></TextBlock>
+                    <TextBlock Classes="monospaceFont" IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding Address, ConverterParameter=27, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}"></TextBlock>
                     <Grid IsVisible="{Binding ClipboardNotificationVisible}">
                       <Grid Opacity="{Binding ClipboardNotificationOpacity}">
                         <Grid.Transitions>
@@ -110,7 +118,7 @@
                         <TextBlock Text="Copied" Foreground="White" FontWeight="Bold" />
                       </Grid>
                     </Grid>
-                    <controls:EditableTextBlock Text="{Binding Label, ConverterParameter=27, Converter={StaticResource LurkingWifeModeStringConverter}}" InEditMode="{Binding InEditMode}" ReadOnlyMode="{Binding IsLurkingWifeMode}" Grid.Column="1" />
+                    <controls:EditableTextBlock VerticalAlignment="Top" Text="{Binding Label, ConverterParameter=27, Converter={StaticResource LurkingWifeModeStringConverter}}" InEditMode="{Binding InEditMode}" ReadOnlyMode="{Binding IsLurkingWifeMode}" Grid.Column="1" />
                   </Grid>
                 </Grid>
               </DataTemplate>
