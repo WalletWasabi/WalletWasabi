@@ -149,7 +149,7 @@ namespace Nito.AsyncEx
 							{
 								if (DateTime.Now - start > TimeSpan.FromSeconds(90))
 								{
-									throw new TimeoutException("Could not acquire mutex in time");
+									throw new TimeoutException("Could not acquire mutex in time.");
 								}
 								// Block for n ms and try to acquire the mutex. Blocking is not a problem
 								// we are on our own thread.
@@ -187,7 +187,7 @@ namespace Nito.AsyncEx
 					}
 
 					// If we get here something went wrong.
-					throw new NotImplementedException($"AsyncMutex thread operation failed in {ShortName}");
+					throw new NotImplementedException($"{nameof(AsyncMutex)} thread operation failed in {ShortName}.");
 				}
 				catch (Exception ex)
 				{
@@ -218,7 +218,7 @@ namespace Nito.AsyncEx
 		{
 			if (!IsAlive)
 			{
-				throw new InvalidOperationException($"Thread should be alive.");
+				throw new InvalidOperationException("Thread should be alive.");
 			}
 
 			Interlocked.Exchange(ref _command, command); // Set the command.
@@ -260,7 +260,7 @@ namespace Nito.AsyncEx
 
 			if (!expectedPreviousStatuses.Contains((AsyncLockStatus)prevstatus))
 			{
-				throw new InvalidOperationException($"Previous AsyncLock state was unexpected: prev:{((AsyncLockStatus)prevstatus).ToString()} now:{((AsyncLockStatus)_status).ToString()}.");
+				throw new InvalidOperationException($"Previous {nameof(AsyncLock)} state was unexpected: prev:{((AsyncLockStatus)prevstatus).ToString()} now:{((AsyncLockStatus)_status).ToString()}.");
 			}
 		}
 
@@ -279,7 +279,7 @@ namespace Nito.AsyncEx
 			{
 				if (IsQuitPending)
 				{
-					throw new OperationCanceledException($"AsyncMutex.LockAsync failed because quit is pending on: {ShortName}");
+					throw new OperationCanceledException($"{nameof(AsyncMutex)}.{nameof(AsyncMutex.LockAsync)} failed because quit is pending on: {ShortName}.");
 				}
 
 				// Local lock for thread safety.
@@ -287,10 +287,10 @@ namespace Nito.AsyncEx
 
 				if (IsAlive)
 				{
-					throw new InvalidOperationException($"Thread should not be alive.");
+					throw new InvalidOperationException("Thread should not be alive.");
 				}
 
-				MutexThread = new Thread(new ParameterizedThreadStart(HoldLock)) { Name = $"MutexThread" };
+				MutexThread = new Thread(new ParameterizedThreadStart(HoldLock)) { Name = $"{nameof(MutexThread)}" };
 
 				MutexThread.Start(cancellationToken);
 
@@ -326,12 +326,12 @@ namespace Nito.AsyncEx
 			{
 				// abandoned mutexes are still acquired, we just need
 				// to handle the exception and treat it as acquisition
-				Logger.LogWarning($"AbandonedMutexException in {ShortName}", nameof(AsyncMutex));
+				Logger.LogWarning($"{nameof(AbandonedMutexException)} in {ShortName}.", nameof(AsyncMutex));
 				return new Key(this);
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError($"{ex.ToTypeMessageString()} in {ShortName}", nameof(AsyncMutex));
+				Logger.LogError($"{ex.ToTypeMessageString()} in {ShortName}.", nameof(AsyncMutex));
 				inner = ex;
 				// Let it go.
 			}
@@ -339,7 +339,7 @@ namespace Nito.AsyncEx
 			// Release the local lock.
 			AsyncLock.ReleaseLock();
 
-			throw new IOException($"Could not acquire system wide mutex on {ShortName}", inner);
+			throw new IOException($"Could not acquire system wide mutex on {ShortName}.", inner);
 		}
 
 		private void StopThread()
@@ -354,7 +354,7 @@ namespace Nito.AsyncEx
 
 					if (DateTime.Now - start > TimeSpan.FromSeconds(10))
 					{
-						throw new TimeoutException("Could not stop MutexThread, aborting it.");
+						throw new TimeoutException($"Could not stop {nameof(MutexThread)}, aborting it.");
 					}
 				}
 
@@ -376,7 +376,7 @@ namespace Nito.AsyncEx
 		{
 			if (!IsAlive)
 			{
-				throw new InvalidOperationException($"Thread should be alive.");
+				throw new InvalidOperationException("Thread should be alive.");
 			}
 
 			// On multiply call we will get an exception. This is not a dispose so we can throw here.
@@ -410,14 +410,14 @@ namespace Nito.AsyncEx
 					{
 						return;
 					}
-					Logger.LogDebug($"Waiting for: {string.Join(", ", AsyncMutexes.Where(am => am.Value.IsAlive).Select(m => m.Value.ShortName))}", nameof(AsyncMutex));
+					Logger.LogDebug($"Waiting for: {string.Join(", ", AsyncMutexes.Where(am => am.Value.IsAlive).Select(m => m.Value.ShortName))}.", nameof(AsyncMutex));
 				}
 				await Task.Delay(200);
 				if (DateTime.Now - start > TimeSpan.FromSeconds(60))
 				{
 					var mutexesAlive = AsyncMutexes.Where(am => am.Value.IsAlive).Select(m => m.Value.ShortName);
 					var names = string.Join(", ", mutexesAlive);
-					throw new TimeoutException($"Asyncmutex(es) still alive after Timeout: {names}");
+					throw new TimeoutException($"{nameof(AsyncMutex)}(es) still alive after Timeout: {names}.");
 				}
 			}
 		}

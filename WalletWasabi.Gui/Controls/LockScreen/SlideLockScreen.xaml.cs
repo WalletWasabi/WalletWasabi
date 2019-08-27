@@ -95,7 +95,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			this.WhenAnyValue(x => x.DoneAnimating)
 				.Where(x => x)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
+				.Subscribe(_ =>
 				{
 					vm.StateChanged = false;
 				})
@@ -103,12 +103,12 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 			Observable.FromEventPattern(DragThumb, nameof(DragThumb.DragCompleted))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(e => vm.IsUserDragging = false)
+				.Subscribe(_ => vm.IsUserDragging = false)
 				.DisposeWith(vm.Disposables);
 
 			Observable.FromEventPattern(DragThumb, nameof(DragThumb.DragStarted))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(e => vm.IsUserDragging = true)
+				.Subscribe(_ => vm.IsUserDragging = true)
 				.DisposeWith(vm.Disposables);
 
 			Observable.FromEventPattern<VectorEventArgs>(DragThumb, nameof(DragThumb.DragDelta))

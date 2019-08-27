@@ -46,7 +46,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			{
 				throw new ArgumentOutOfRangeException(
 					nameof(Encoding),
-					"Current ECI table does not support this encoding. Please check ECISet class for more info");
+					$"Current ECI table does not support this encoding. Please check {nameof(ECISet)} class for more info.");
 			}
 
 			byte[] contentBytes = EncodeContent(content, Encoding);
