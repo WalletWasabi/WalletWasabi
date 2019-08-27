@@ -36,7 +36,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 					return ECBlocks[3];
 
 				default:
-					throw new System.ArgumentOutOfRangeException("Invalide ErrorCorrectionLevel");
+					throw new System.ArgumentOutOfRangeException($"Invalid {nameof(ErrorCorrectionLevel)}.");
 			}
 		}
 	}

@@ -35,7 +35,7 @@ namespace Nito.Collections
 		{
 			if (capacity < 0)
 			{
-				throw new ArgumentOutOfRangeException(nameof(capacity), "Capacity may not be negative.");
+				throw new ArgumentOutOfRangeException(nameof(capacity), $"{nameof(Capacity)} may not be negative.");
 			}
 
 			_buffer = new T[capacity];
@@ -314,12 +314,12 @@ namespace Nito.Collections
 		{
 			if (value is null && default(T) != null)
 			{
-				throw new ArgumentNullException(nameof(value), "Value cannot be null.");
+				throw new ArgumentNullException(nameof(value), $"{nameof(value)} cannot be null.");
 			}
 
 			if (!IsT(value))
 			{
-				throw new ArgumentException("Value is of incorrect type.", nameof(value));
+				throw new ArgumentException($"{nameof(value)} is of incorrect type.", nameof(value));
 			}
 
 			AddToBack((T)value);
@@ -340,12 +340,12 @@ namespace Nito.Collections
 		{
 			if (value is null && default(T) != null)
 			{
-				throw new ArgumentNullException(nameof(value), "Value cannot be null.");
+				throw new ArgumentNullException(nameof(value), $"{nameof(value)} cannot be null.");
 			}
 
 			if (!IsT(value))
 			{
-				throw new ArgumentException("Value is of incorrect type.", nameof(value));
+				throw new ArgumentException($"{nameof(value)} is of incorrect type.", nameof(value));
 			}
 
 			Insert(index, (T)value);
@@ -371,12 +371,12 @@ namespace Nito.Collections
 			{
 				if (value is null && default(T) != null)
 				{
-					throw new ArgumentNullException(nameof(value), "Value cannot be null.");
+					throw new ArgumentNullException(nameof(value), $"{nameof(value)} cannot be null.");
 				}
 
 				if (!IsT(value))
 				{
-					throw new ArgumentException("Value is of incorrect type.", nameof(value));
+					throw new ArgumentException($"{nameof(value)} is of incorrect type.", nameof(value));
 				}
 
 				this[index] = (T)value;
@@ -424,7 +424,7 @@ namespace Nito.Collections
 		{
 			if (index < 0 || index > sourceLength)
 			{
-				throw new ArgumentOutOfRangeException(nameof(index), $"Invalid new index {index} for source length {sourceLength}");
+				throw new ArgumentOutOfRangeException(nameof(index), $"Invalid new index {index} for source length {sourceLength}.");
 			}
 		}
 
@@ -438,7 +438,7 @@ namespace Nito.Collections
 		{
 			if (index < 0 || index >= sourceLength)
 			{
-				throw new ArgumentOutOfRangeException(nameof(index), $"Invalid existing index {index} for source length {sourceLength}");
+				throw new ArgumentOutOfRangeException(nameof(index), $"Invalid existing index {index} for source length {sourceLength}.");
 			}
 		}
 
@@ -454,17 +454,17 @@ namespace Nito.Collections
 		{
 			if (offset < 0)
 			{
-				throw new ArgumentOutOfRangeException(nameof(offset), "Invalid offset " + offset);
+				throw new ArgumentOutOfRangeException(nameof(offset), $"Invalid {nameof(offset)} {offset}");
 			}
 
 			if (count < 0)
 			{
-				throw new ArgumentOutOfRangeException(nameof(count), "Invalid count " + count);
+				throw new ArgumentOutOfRangeException(nameof(count), $"Invalid {nameof(count)} {count}");
 			}
 
 			if (sourceLength - offset < count)
 			{
-				throw new ArgumentException("Invalid offset (" + offset + ") or count + (" + count + ") for source length " + sourceLength);
+				throw new ArgumentException($"Invalid {nameof(offset)} ({offset}) or {nameof(count)} + ({count}) for source length {sourceLength}");
 			}
 		}
 
@@ -499,7 +499,7 @@ namespace Nito.Collections
 			{
 				if (value < Count)
 				{
-					throw new ArgumentOutOfRangeException(nameof(value), "Capacity cannot be set to a value less than Count");
+					throw new ArgumentOutOfRangeException(nameof(value), $"{nameof(Capacity)} cannot be set to a value less than {nameof(Count)}.");
 				}
 
 				if (value == _buffer.Length)

@@ -30,7 +30,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 
 		public bool Match(string filename)
 		{
-			if (Extensions == null)
+			if (Extensions is null)
 			{
 				return true;
 			}

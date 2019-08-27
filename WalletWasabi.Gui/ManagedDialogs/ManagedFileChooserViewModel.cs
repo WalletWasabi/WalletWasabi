@@ -114,8 +114,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 						: throw new ArgumentException(nameof(dialog)));
 
 			var directory = dialog.InitialDirectory;
-
-			if (directory == null || !Directory.Exists(directory))
+			if (directory is null || !Directory.Exists(directory))
 			{
 				directory = Directory.GetCurrentDirectory();
 			}

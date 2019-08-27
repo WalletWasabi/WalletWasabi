@@ -26,11 +26,11 @@ namespace NSubsys
 
 				switch (subsysVal)
 				{
-					case PeUtility.SubSystemType.ImageSubSystemWindowsGui:
+					case SubSystemType.ImageSubSystemWindowsGui:
 						Console.WriteLine($"{nameof(NSubsys)}: Executable file is already a Win32 App!");
 						return true;
 
-					case PeUtility.SubSystemType.ImageSubSystemWindowsCui:
+					case SubSystemType.ImageSubSystemWindowsCui:
 						Console.WriteLine($"{nameof(NSubsys)}: Console app detected...");
 						Console.WriteLine($"{nameof(NSubsys)}: Converting...");
 
