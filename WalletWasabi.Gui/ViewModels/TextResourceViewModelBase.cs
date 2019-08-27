@@ -16,7 +16,7 @@ namespace WalletWasabi.Gui.ViewModels
 	{
 		protected CompositeDisposable Disposables { get; private set; }
 
-		public string _text;
+		private string _text;
 
 		public TextResourceViewModelBase(Global global, string title, Uri target) : base(global, title)
 		{
