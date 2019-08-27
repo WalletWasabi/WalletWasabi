@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui
 
 		[JsonProperty(PropertyName = "WindowState")]
 		[JsonConverter(typeof(WindowStateAfterStartJsonConverter))]
-		public WindowState WindowState { get; internal set; } = Avalonia.Controls.WindowState.Maximized;
+		public WindowState WindowState { get; internal set; } = WindowState.Maximized;
 
 		[DefaultValue(530)]
 		[JsonProperty(PropertyName = "Height", DefaultValueHandling = DefaultValueHandling.Populate)]

@@ -39,7 +39,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Where(x => x)
 				.Take(1)
-				.Subscribe(x =>
+				.Subscribe(_ =>
 				{
 					try
 					{

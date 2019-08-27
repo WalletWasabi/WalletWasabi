@@ -33,11 +33,13 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CanRequestChunkEncodedAsync()
 		{
-			using (var client = new TorHttpClient(new Uri("https://jigsaw.w3.org/"), Global.Instance.TorSocks5Endpoint))
+			using (var client = new TorHttpClient(new Uri("http://anglesharp.azurewebsites.net/"), Global.Instance.TorSocks5Endpoint))
 			{
-				var response = await client.SendAsync(HttpMethod.Get, "/HTTP/ChunkedScript");
+				var response = await client.SendAsync(HttpMethod.Get, "Chunked");
 				var content = await response.Content.ReadAsStringAsync();
-				Assert.Equal(1000, Regex.Matches(content, "01234567890123456789012345678901234567890123456789012345678901234567890").Count);
+				Assert.Contains("Chunked transfer encoding test", content);
+				Assert.Contains("This is a chunked response after 100 ms.", content);
+				Assert.Contains("This is a chunked response after 1 second. The server should not close the stream before all chunks are sent to a client.", content);
 			}
 		}
 

@@ -134,7 +134,7 @@ namespace WalletWasabi.Services
 			{
 				try
 				{
-					Logger.LogInfo<CcjClient>("CcjClient is successfully initialized.");
+					Logger.LogInfo<CcjClient>($"{nameof(CcjClient)} is successfully initialized.");
 
 					while (IsRunning)
 					{
@@ -424,7 +424,7 @@ namespace WalletWasabi.Services
 				{
 					if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput))
 					{
-						Logger.LogWarning<AliceClient>($"Round ({ongoingRound.State.RoundId}) Bobs did not have enough time to post outputs before timeout. If you see this message, contact nopara73, so he can optimize the phase timeout periods to the worst Internet/Tor connections, which may be yours.)");
+						Logger.LogWarning<AliceClient>($"Round ({ongoingRound.State.RoundId}) Bobs did not have enough time to post outputs before timeout. If you see this message, contact nopara73, so he can optimize the phase timeout periods to the worst Internet/Tor connections, which may be yours.");
 						break;
 					}
 
@@ -1031,7 +1031,7 @@ namespace WalletWasabi.Services
 			CoinDequeued?.Invoke(this, coinWaitingForMix);
 			var correctReason = Guard.Correct(reason);
 			var reasonText = correctReason != "" ? $" Reason: {correctReason}" : "";
-			Logger.LogInfo<CcjClient>($"Coin dequeued: {coinWaitingForMix.Index}:{coinWaitingForMix.TransactionId}.{reasonText}");
+			Logger.LogInfo<CcjClient>($"Coin dequeued: {coinWaitingForMix.Index}:{coinWaitingForMix.TransactionId}.{reasonText}.");
 		}
 
 		public async Task StopAsync()

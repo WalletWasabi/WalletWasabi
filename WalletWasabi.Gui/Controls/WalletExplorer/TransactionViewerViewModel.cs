@@ -11,6 +11,7 @@ using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Models;
+using WalletWasabi.Models.TransactionBuilding;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -109,13 +110,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
-				this.RaisePropertyChanged(nameof(TxId));
-				this.RaisePropertyChanged(nameof(PsbtJsonText));
-				this.RaisePropertyChanged(nameof(TransactionHexText));
-				this.RaisePropertyChanged(nameof(PsbtBase64Text));
-			}).DisposeWith(Disposables);
+				{
+					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+					this.RaisePropertyChanged(nameof(TxId));
+					this.RaisePropertyChanged(nameof(PsbtJsonText));
+					this.RaisePropertyChanged(nameof(TransactionHexText));
+					this.RaisePropertyChanged(nameof(PsbtBase64Text));
+				}).DisposeWith(Disposables);
 		}
 
 		public override bool OnClose()

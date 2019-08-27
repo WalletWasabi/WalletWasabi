@@ -111,7 +111,7 @@ namespace WalletWasabi.Tests
 				{
 					if (times > 4200) // 7 minutes
 					{
-						throw new TimeoutException($"Connection test timed out.");
+						throw new TimeoutException("Connection test timed out.");
 					}
 					await Task.Delay(100);
 					times++;
@@ -132,7 +132,7 @@ namespace WalletWasabi.Tests
 				{
 					using (var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
 					{
-						var block = await walletService.GetOrDownloadBlockAsync(hash, cts.Token);
+						var block = await walletService.FetchBlockAsync(hash, cts.Token);
 						Assert.True(File.Exists(Path.Combine(blocksFolderPath, hash.ToString())));
 						Logger.LogInfo<P2pTests>($"Full block is downloaded: {hash}.");
 					}

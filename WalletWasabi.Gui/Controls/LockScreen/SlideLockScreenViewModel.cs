@@ -39,7 +39,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			set => this.RaiseAndSetIfChanged(ref _boundsHeight, value);
 		}
 
-		public double _targetOffset;
+		private double _targetOffset;
 
 		public double TargetOffset
 		{
@@ -90,7 +90,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			this.WhenAnyValue(x => x.TargetOffset)
 				.DistinctUntilChanged()
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
+				.Subscribe(_ =>
 				{
 					StateChanged = false;
 					StateChanged = true;

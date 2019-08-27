@@ -16,7 +16,7 @@ namespace WalletWasabi.Models
 		public EstimateSmartFeeMode Type { get; }
 
 		/// <summary>
-		/// int: fee target, decimal: satoshi/bytes
+		/// int: fee target, decimal: satoshi/byte
 		/// </summary>
 		[JsonProperty]
 		public Dictionary<int, int> Estimations { get; }
