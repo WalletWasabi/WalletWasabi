@@ -100,10 +100,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(AmountBtc));
-				this.RaisePropertyChanged(nameof(Clusters));
-			}).DisposeWith(Disposables);
+				{
+					this.RaisePropertyChanged(nameof(AmountBtc));
+					this.RaisePropertyChanged(nameof(Clusters));
+				}).DisposeWith(Disposables);
 		}
 
 		public void UnsubscribeEvents()
