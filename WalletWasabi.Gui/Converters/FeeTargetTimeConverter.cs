@@ -12,16 +12,16 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is int feeTarget)
 			{
-				if (feeTarget >= 2 && feeTarget <= 6) // minutes
+				if (feeTarget >= Constants.TwentyMinutesConfirmationTarget && feeTarget <= 6) // minutes
 				{
 					return $"{feeTarget}0 minutes";
 				}
 				else if (feeTarget >= 7 && feeTarget <= Constants.OneDayConfirmationTarget) // hours
 				{
-					var hours = feeTarget / 6;
+					var hours = feeTarget / 6; // 6 blocks per hour
 					return $"{hours} {IfPlural(hours, "hour", "hours")}";
 				}
-				else if (feeTarget >= 145 && feeTarget < Constants.SevenDaysConfirmationTarget) // days
+				else if (feeTarget >= Constants.OneDayConfirmationTarget + 1 && feeTarget < Constants.SevenDaysConfirmationTarget) // days
 				{
 					var days = feeTarget / Constants.OneDayConfirmationTarget;
 					return $"{days} {IfPlural(days, "day", "days")}";
