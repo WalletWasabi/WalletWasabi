@@ -43,7 +43,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _minimumFeeTarget;
 		private int _maximumFeeTarget;
 		private ObservableAsPropertyHelper<bool> _minMaxFeeTargetsEqual;
-		private string _confirmationExpectedText;
 		private string _feeText;
 		private decimal _usdFee;
 		private Money _estimatedBtcFee;
@@ -661,29 +660,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 
-			if (feeTarget >= 2 && feeTarget <= 6) // minutes
-			{
-				ConfirmationExpectedText = $"{feeTarget}0 minutes";
-			}
-			else if (feeTarget >= 7 && feeTarget <= Constants.OneDayConfirmationTarget) // hours
-			{
-				var h = feeTarget / 6;
-				ConfirmationExpectedText = $"{h} {IfPlural(h, "hour", "hours")}";
-			}
-			else if (feeTarget >= 145 && feeTarget < Constants.SevenDaysConfirmationTarget) // days
-			{
-				var d = feeTarget / Constants.OneDayConfirmationTarget;
-				ConfirmationExpectedText = $"{d} {IfPlural(d, "day", "days")}";
-			}
-			else if (feeTarget == Constants.SevenDaysConfirmationTarget)
-			{
-				ConfirmationExpectedText = "one week";
-			}
-			else if (feeTarget == -1)
-			{
-				ConfirmationExpectedText = $"Invalid";
-			}
-
 			if (allFeeEstimate != null)
 			{
 				SetFees(allFeeEstimate, feeTarget);
@@ -723,16 +699,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			SetAmountIfMax();
-		}
-
-		private static string IfPlural(int val, string singular, string plural)
-		{
-			if (val == 1)
-			{
-				return singular;
-			}
-
-			return plural;
 		}
 
 		private void SetAmountIfMax()
@@ -958,12 +924,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public bool MinMaxFeeTargetsEqual => _minMaxFeeTargetsEqual?.Value ?? false;
-
-		public string ConfirmationExpectedText
-		{
-			get => _confirmationExpectedText;
-			set => this.RaiseAndSetIfChanged(ref _confirmationExpectedText, value);
-		}
 
 		public string FeeText
 		{
