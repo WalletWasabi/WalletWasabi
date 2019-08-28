@@ -3337,12 +3337,8 @@ namespace WalletWasabi.Tests
 			var nodes2 = new NodesGroup(global.Config.Network, requirements: Constants.NodeRequirements);
 			nodes2.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
-			// 2. // Dispose mempool.
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(bitcoinStore.MempoolStore.MempoolBehavior);
-
-			Node node2 = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
-			node2.Behaviors.Add(bitcoinStore.MempoolStore.MempoolBehavior);
 
 			// 3. Create wasabi synchronizer service.
 			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
@@ -3389,7 +3385,6 @@ namespace WalletWasabi.Tests
 				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
 				chaumianClient.Start(); // Start chaumian coinjoin client.
 				nodes2.Connect(); // Start connection service.
-				node2.VersionHandshake(); // Start mempool.
 				synchronizer2.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
 				chaumianClient2.Start(); // Start chaumian coinjoin client.
 
