@@ -6,15 +6,17 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Stores.Mempool;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
 	public class MempoolService
 	{
-		public ConcurrentHashSet<uint256> TransactionHashes { get; }
+		public MempoolStore MempoolStore { get; }
 
 		// Transactions that we would reply to INV messages.
 		private List<TransactionBroadcastEntry> BroadcastStore { get; }
@@ -25,9 +27,9 @@ namespace WalletWasabi.Services
 
 		internal void OnTransactionReceived(SmartTransaction transaction) => TransactionReceived?.Invoke(this, transaction);
 
-		public MempoolService()
+		public MempoolService(MempoolStore mempoolStore)
 		{
-			TransactionHashes = new ConcurrentHashSet<uint256>();
+			MempoolStore = Guard.NotNull(nameof(mempoolStore), mempoolStore);
 			BroadcastStore = new List<TransactionBroadcastEntry>();
 			BroadcastStoreLock = new object();
 			_cleanupInProcess = 0;
@@ -106,7 +108,7 @@ namespace WalletWasabi.Services
 			// This function is designed to prevent forever growing mempool.
 			try
 			{
-				if (!TransactionHashes.Any())
+				if (MempoolStore.IsEmpty())
 				{
 					return true; // There's nothing to cleanup.
 				}
@@ -117,16 +119,7 @@ namespace WalletWasabi.Services
 					var compactness = 10;
 					var allMempoolHashes = await client.GetMempoolHashesAsync(compactness);
 
-					var toRemove = TransactionHashes.Where(x => !allMempoolHashes.Contains(x.ToString().Substring(0, compactness)));
-
-					int removedTxCount = 0;
-					foreach (uint256 tx in toRemove)
-					{
-						if (TransactionHashes.TryRemove(tx))
-						{
-							removedTxCount++;
-						}
-					}
+					var removedTxCount = MempoolStore.RemoveExcept(allMempoolHashes, compactness).Count;
 
 					Logger.LogInfo<MempoolService>($"{removedTxCount} transactions were cleaned from mempool.");
 				}

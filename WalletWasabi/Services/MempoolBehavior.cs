@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Stores.Mempool;
 
 namespace WalletWasabi.Services
 {
@@ -14,11 +15,11 @@ namespace WalletWasabi.Services
 	{
 		private const int MAX_INV_SIZE = 50000;
 
-		public MempoolService MempoolService { get; }
+		public MempoolStore MempoolStore { get; }
 
-		public MempoolBehavior(MempoolService mempoolService)
+		public MempoolBehavior(MempoolStore mempoolStore)
 		{
-			MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
+			MempoolStore = Guard.NotNull(nameof(mempoolStore), mempoolStore);
 		}
 
 		protected override void AttachCore()
@@ -74,7 +75,7 @@ namespace WalletWasabi.Services
 
 			foreach (var inv in payload.Inventory.Where(inv => inv.Type.HasFlag(InventoryType.MSG_TX)))
 			{
-				if (MempoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry entry)) // If we have the transaction to be broadcasted then broadcast it now.
+				if (MempoolStore.MempoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry entry)) // If we have the transaction to be broadcasted then broadcast it now.
 				{
 					if (entry.NodeRemoteSocketEndpoint != node.RemoteSocketEndpoint.ToString())
 					{
@@ -114,7 +115,7 @@ namespace WalletWasabi.Services
 			var getDataPayload = new GetDataPayload();
 			foreach (var inv in payload.Inventory.Where(inv => inv.Type.HasFlag(InventoryType.MSG_TX)))
 			{
-				if (MempoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry entry)) // If we have the transaction then adjust confirmation.
+				if (MempoolStore.MempoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry entry)) // If we have the transaction then adjust confirmation.
 				{
 					try
 					{
@@ -132,7 +133,7 @@ namespace WalletWasabi.Services
 				}
 
 				// if we already have it continue;
-				if (!MempoolService.TransactionHashes.TryAdd(inv.Hash))
+				if (!MempoolStore.MempoolService.MempoolStore.TryAdd(inv.Hash))
 				{
 					continue;
 				}
@@ -150,12 +151,12 @@ namespace WalletWasabi.Services
 		private void ProcessTx(TxPayload payload)
 		{
 			Transaction transaction = payload.Object;
-			MempoolService.OnTransactionReceived(new SmartTransaction(transaction, Height.Mempool));
+			MempoolStore.MempoolService.OnTransactionReceived(new SmartTransaction(transaction, Height.Mempool));
 		}
 
 		public override object Clone()
 		{
-			return new MempoolBehavior(MempoolService);
+			return new MempoolBehavior(MempoolStore);
 		}
 	}
 }

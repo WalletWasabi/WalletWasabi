@@ -5,9 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NBitcoin;
+using Nito.AsyncEx;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Stores.Mempool
 {
@@ -15,9 +17,12 @@ namespace WalletWasabi.Stores.Mempool
 	{
 		public string WorkFolderPath { get; private set; }
 		public Network Network { get; private set; }
+		public MempoolService MempoolService { get; private set; }
+		public MempoolBehavior MempoolBehavior { get; private set; }
 
 		private Dictionary<uint256, SmartTransaction> Transactions { get; set; }
 		private HashSet<uint256> Hashes { get; set; }
+		private object MempoolLock { get; set; }
 
 		public MempoolStore()
 		{
@@ -29,43 +34,99 @@ namespace WalletWasabi.Stores.Mempool
 			Network = Guard.NotNull(nameof(network), network);
 			Hashes = new HashSet<uint256>();
 			Transactions = new Dictionary<uint256, SmartTransaction>();
+			MempoolLock = new object();
+
+			MempoolService = new MempoolService(this);
+			MempoolBehavior = new MempoolBehavior(this);
 		}
 
-		public void Add(SmartTransaction tx)
+		public bool TryAdd(SmartTransaction tx)
 		{
-			Transactions.Add(tx.GetHash(), tx);
-			Hashes.Add(tx.GetHash());
+			lock (MempoolLock)
+			{
+				var added = false;
+				added = Transactions.TryAdd(tx.GetHash(), tx) || added;
+				added = Hashes.Add(tx.GetHash()) || added;
+
+				return added;
+			}
 		}
 
-		public void Add(uint256 hash)
+		public bool TryAdd(uint256 hash)
 		{
-			Hashes.Add(hash);
+			lock (MempoolLock)
+			{
+				return Hashes.Add(hash);
+			}
 		}
 
 		public bool TryGetTransaction(uint256 hash, out SmartTransaction sameStx)
 		{
-			return Transactions.TryGetValue(hash, out sameStx);
+			lock (MempoolLock)
+			{
+				return Transactions.TryGetValue(hash, out sameStx);
+			}
 		}
 
 		public bool ContainsHash(uint256 hash)
 		{
-			return Hashes.Contains(hash);
+			lock (MempoolLock)
+			{
+				return Hashes.Contains(hash);
+			}
 		}
 
-		public void Remove(uint256 hash)
+		public bool TryRemove(uint256 hash)
 		{
-			Transactions.Remove(hash);
-			Hashes.Remove(hash);
+			lock (MempoolLock)
+			{
+				Transactions.Remove(hash);
+				return Hashes.Remove(hash);
+			}
+		}
+
+		public ISet<uint256> RemoveExcept(ISet<string> allCompactHashes, int compactness)
+		{
+			lock (MempoolLock)
+			{
+				var toRemoveHashes = Hashes.Where(x => !allCompactHashes.Contains(x.ToString().Substring(0, compactness))).ToHashSet();
+				var removed = new HashSet<uint256>();
+
+				foreach (uint256 hash in toRemoveHashes)
+				{
+					if (Hashes.Remove(hash))
+					{
+						Transactions.Remove(hash);
+						removed.Add(hash);
+					}
+				}
+
+				return removed;
+			}
 		}
 
 		public ISet<SmartTransaction> GetTransactions()
 		{
-			return Transactions.Values.ToHashSet();
+			lock (MempoolLock)
+			{
+				return Transactions.Values.ToHashSet();
+			}
 		}
 
 		public ISet<uint256> GetTransactionHashes()
 		{
-			return Hashes.ToHashSet();
+			lock (MempoolLock)
+			{
+				return Hashes.ToHashSet();
+			}
+		}
+
+		public bool IsEmpty()
+		{
+			lock (MempoolLock)
+			{
+				return !Hashes.Any();
+			}
 		}
 	}
 }

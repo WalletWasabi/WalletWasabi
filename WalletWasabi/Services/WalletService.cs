@@ -57,7 +57,6 @@ namespace WalletWasabi.Services
 		public KeyManager KeyManager { get; }
 		public WasabiSynchronizer Synchronizer { get; }
 		public CcjClient ChaumianClient { get; }
-		public MempoolService Mempool { get; }
 		public NodesGroup Nodes { get; }
 		public string BlocksFolderPath { get; }
 		public string TransactionsFolderPath { get; }
@@ -90,7 +89,6 @@ namespace WalletWasabi.Services
 			KeyManager keyManager,
 			WasabiSynchronizer syncer,
 			CcjClient chaumianClient,
-			MempoolService mempool,
 			NodesGroup nodes,
 			string workFolderDir,
 			ServiceConfiguration serviceConfiguration)
@@ -100,7 +98,6 @@ namespace WalletWasabi.Services
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
 			Synchronizer = Guard.NotNull(nameof(syncer), syncer);
 			ChaumianClient = Guard.NotNull(nameof(chaumianClient), chaumianClient);
-			Mempool = Guard.NotNull(nameof(mempool), mempool);
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 
 			ProcessedBlocks = new ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)>();
@@ -119,7 +116,7 @@ namespace WalletWasabi.Services
 
 			TransactionCache = new ConcurrentHashSet<SmartTransaction>();
 
-			TransactionProcessor = new TransactionProcessor(KeyManager, Mempool.TransactionHashes, Coins, ServiceConfiguration.DustThreshold, TransactionCache);
+			TransactionProcessor = new TransactionProcessor(KeyManager, BitcoinStore.MempoolStore, Coins, ServiceConfiguration.DustThreshold, TransactionCache);
 			TransactionProcessor.CoinSpent += TransactionProcessor_CoinSpent;
 			TransactionProcessor.CoinReceived += TransactionProcessor_CoinReceivedAsync;
 
@@ -158,7 +155,7 @@ namespace WalletWasabi.Services
 
 			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
 			BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
-			Mempool.TransactionReceived += Mempool_TransactionReceivedAsync;
+			BitcoinStore.MempoolStore.MempoolService.TransactionReceived += Mempool_TransactionReceivedAsync;
 		}
 
 		private void TransactionProcessor_CoinSpent(object sender, SmartCoin spentCoin)
@@ -198,7 +195,7 @@ namespace WalletWasabi.Services
 						}
 					}
 
-					Mempool.TransactionHashes.TryRemove(toRemove.TransactionId);
+					BitcoinStore.MempoolStore.TryRemove(toRemove.TransactionId);
 					var txToRemove = TryGetTxFromCache(toRemove.TransactionId);
 					if (txToRemove != default(SmartTransaction))
 					{
@@ -282,7 +279,7 @@ namespace WalletWasabi.Services
 					}
 				} while (Synchronizer.AreRequestsBlocked()); // If requests are blocked, delay mempool cleanup, because coinjoin answers are always priority.
 
-				await Mempool?.TryPerformMempoolCleanupAsync(Synchronizer?.WasabiClient?.TorClient?.DestinationUriAction, Synchronizer?.WasabiClient?.TorClient?.TorSocks5EndPoint);
+				await BitcoinStore.MempoolStore.MempoolService?.TryPerformMempoolCleanupAsync(Synchronizer?.WasabiClient?.TorClient?.DestinationUriAction, Synchronizer?.WasabiClient?.TorClient?.TorSocks5EndPoint);
 			}
 			catch (Exception ex)
 			{
@@ -384,7 +381,7 @@ namespace WalletWasabi.Services
 						{
 							tx.SetHeight(Height.Mempool);
 							await ProcessTransactionAsync(tx);
-							Mempool.TransactionHashes.TryAdd(tx.GetHash());
+							BitcoinStore.MempoolStore.TryAdd(tx.GetHash());
 
 							Logger.LogInfo<WalletService>($"Transaction was successfully tested against the backend's mempool hashes: {tx.GetHash()}.");
 							count++;
@@ -404,7 +401,7 @@ namespace WalletWasabi.Services
 				{
 					tx.SetHeight(Height.Mempool);
 					await ProcessTransactionAsync(tx);
-					Mempool.TransactionHashes.TryAdd(tx.GetHash());
+					BitcoinStore.MempoolStore.TryAdd(tx.GetHash());
 				}
 
 				Logger.LogWarning<WalletService>(ex);
@@ -1220,7 +1217,7 @@ namespace WalletWasabi.Services
 					}
 
 					Logger.LogInfo<WalletService>($"Trying to broadcast transaction with random node ({node.RemoteSocketAddress}):{transaction.GetHash()}.");
-					var addedToBroadcastStore = Mempool.TryAddToBroadcastStore(transaction.Transaction, node.RemoteSocketEndpoint.ToString()); // So we'll reply to INV with this transaction.
+					var addedToBroadcastStore = BitcoinStore.MempoolStore.MempoolService.TryAddToBroadcastStore(transaction.Transaction, node.RemoteSocketEndpoint.ToString()); // So we'll reply to INV with this transaction.
 					if (!addedToBroadcastStore)
 					{
 						Logger.LogWarning<WalletService>($"Transaction {transaction.GetHash()} was already present in the broadcast store.");
@@ -1232,7 +1229,7 @@ namespace WalletWasabi.Services
 						await node.SendMessageAsync(invPayload).WithCancellation(cts.Token); // ToDo: It's dangerous way to cancel. Implement proper cancellation to NBitcoin!
 					}
 
-					if (Mempool.TryGetFromBroadcastStore(transaction.GetHash(), out TransactionBroadcastEntry entry))
+					if (BitcoinStore.MempoolStore.MempoolService.TryGetFromBroadcastStore(transaction.GetHash(), out TransactionBroadcastEntry entry))
 					{
 						// Give 7 seconds for serving.
 						var timeout = 0;
@@ -1303,14 +1300,14 @@ namespace WalletWasabi.Services
 						SerializeTransactionCache();
 					}
 
-					Mempool.TransactionHashes.TryAdd(transaction.GetHash());
+					BitcoinStore.MempoolStore.TryAdd(transaction.GetHash());
 				}
 
 				Logger.LogInfo<WalletService>($"Transaction is successfully broadcasted to backend: {transaction.GetHash()}.");
 			}
 			finally
 			{
-				Mempool.TryRemoveFromBroadcastStore(transaction.GetHash(), out _); // Remove it just to be sure. Probably has been removed previously.
+				BitcoinStore.MempoolStore.MempoolService.TryRemoveFromBroadcastStore(transaction.GetHash(), out _); // Remove it just to be sure. Probably has been removed previously.
 				Interlocked.Decrement(ref SendCount);
 			}
 		}
@@ -1450,7 +1447,7 @@ namespace WalletWasabi.Services
 
 			BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
 			BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
-			Mempool.TransactionReceived -= Mempool_TransactionReceivedAsync;
+			BitcoinStore.MempoolStore.MempoolService.TransactionReceived -= Mempool_TransactionReceivedAsync;
 			Coins.CollectionChanged -= Coins_CollectionChanged;
 			TransactionProcessor.CoinSpent -= TransactionProcessor_CoinSpent;
 			TransactionProcessor.CoinReceived -= TransactionProcessor_CoinReceivedAsync;

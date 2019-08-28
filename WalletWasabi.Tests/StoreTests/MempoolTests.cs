@@ -27,31 +27,66 @@ namespace WalletWasabi.Tests.StoreTests
 		}
 
 		[Fact]
-		public async Task CanStoreTransactionsAsync()
+		public async Task CanDoOperationsAsync()
 		{
 			var mempoolStore = new MempoolStore();
 
-			var dir = Path.Combine(Global.Instance.DataDir, nameof(CanStoreTransactionsAsync));
+			var dir = Path.Combine(Global.Instance.DataDir, nameof(CanDoOperationsAsync));
 			var network = Network.Main;
 			await mempoolStore.InitializeAsync(dir, network);
 
+			Assert.True(mempoolStore.IsEmpty());
+
 			var tx = Transaction.Create(network);
 			var stx = new SmartTransaction(tx, Height.Mempool, firstSeenIfMempoolTime: DateTimeOffset.UtcNow);
-			mempoolStore.Add(stx);
+			Assert.True(mempoolStore.TryAdd(stx.GetHash()));
+			Assert.True(mempoolStore.TryAdd(stx));
+			Assert.True(mempoolStore.TryRemove(stx.GetHash()));
+			Assert.True(mempoolStore.TryAdd(stx));
+			Assert.False(mempoolStore.TryAdd(stx));
+			Assert.False(mempoolStore.TryAdd(stx.GetHash()));
+			Assert.False(mempoolStore.IsEmpty());
 			Assert.True(mempoolStore.TryGetTransaction(tx.GetHash(), out SmartTransaction sameStx));
 			Assert.True(mempoolStore.ContainsHash(tx.GetHash()));
 			Assert.Equal(stx, sameStx);
 
 			var tx2Hash = uint256.One;
-			mempoolStore.Add(tx2Hash);
+			Assert.True(mempoolStore.TryAdd(tx2Hash));
+			Assert.False(mempoolStore.TryAdd(tx2Hash));
+			Assert.False(mempoolStore.IsEmpty());
 			Assert.False(mempoolStore.TryGetTransaction(tx2Hash, out _));
 			Assert.True(mempoolStore.ContainsHash(tx2Hash));
 
-			mempoolStore.Remove(tx.GetHash());
+			mempoolStore.TryRemove(tx.GetHash());
+			Assert.False(mempoolStore.IsEmpty());
 			Assert.Empty(mempoolStore.GetTransactions());
 			var txHashes = mempoolStore.GetTransactionHashes();
 			Assert.Single(txHashes);
 			Assert.Equal(tx2Hash, txHashes.Single());
+			mempoolStore.TryAdd(stx);
+
+			var removedCount = mempoolStore.RemoveExcept(new string[] { tx2Hash.ToString().Substring(0, 10), tx.GetHash().ToString().Substring(0, 10) }.ToHashSet(), 10).Count;
+			Assert.Equal(0, removedCount);
+			Assert.Equal(1, mempoolStore.GetTransactions().Count);
+			Assert.Equal(2, mempoolStore.GetTransactionHashes().Count);
+
+			removedCount = mempoolStore.RemoveExcept(new string[] { tx.GetHash().ToString().Substring(0, 10) }.ToHashSet(), 10).Count;
+			Assert.Equal(1, removedCount);
+			Assert.Equal(1, mempoolStore.GetTransactions().Count);
+			Assert.Equal(1, mempoolStore.GetTransactionHashes().Count);
+
+			mempoolStore.TryAdd(tx2Hash);
+			removedCount = mempoolStore.RemoveExcept(new string[] { "foo" }.ToHashSet(), 3).Count;
+			Assert.Equal(2, removedCount);
+			Assert.Equal(0, mempoolStore.GetTransactions().Count);
+			Assert.Equal(0, mempoolStore.GetTransactionHashes().Count);
+
+			mempoolStore.TryAdd(tx2Hash);
+			mempoolStore.TryAdd(stx);
+			removedCount = mempoolStore.RemoveExcept(new string[] { tx2Hash.ToString().Substring(0, 10) }.ToHashSet(), 10).Count;
+			Assert.Equal(1, removedCount);
+			Assert.Equal(0, mempoolStore.GetTransactions().Count);
+			Assert.Equal(1, mempoolStore.GetTransactionHashes().Count);
 		}
 	}
 }
