@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui" 
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
@@ -12,7 +12,7 @@
             <StackPanel>
               <TextBlock Text="Select a wallet to test its password!" FontWeight="Bold" />
             </StackPanel>
-            <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" />
+            <controls:LucasPasswordBox Watermark="Password" UseFloatingWatermark="True" />
             <StackPanel>
               <TextBlock Text="Why the unconventional password masking?" FontWeight="Bold" />
               <TextBlock Text="We received numerous reports on losing or mistyping passwords. This experiment aims to disrupt users' typical workflow at wallet generation, forcing them to pay more attention than otherwise would." TextWrapping="Wrap" />
