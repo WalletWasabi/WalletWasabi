@@ -1,6 +1,7 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Stores.Mempool;
@@ -15,10 +16,12 @@ namespace WalletWasabi.Tests.StoreTests
 		{
 			var mempoolStore = new MempoolStore();
 
+			var dir = Path.Combine(Global.Instance.DataDir, nameof(CanInitializeMempoolStore));
 			var network = Network.Main;
-			mempoolStore.Initialize(network);
+			mempoolStore.Initialize(dir, network);
 
 			Assert.Equal(network, mempoolStore.Network);
+			Assert.Equal(dir, mempoolStore.WorkFolderPath);
 		}
 	}
 }

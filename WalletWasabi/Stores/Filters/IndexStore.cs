@@ -21,7 +21,7 @@ namespace WalletWasabi.Stores.Filters
 	/// </summary>
 	public class IndexStore
 	{
-		private string WorkFolderPath { get; set; }
+		public string WorkFolderPath { get; private set; }
 		public Network Network { get; private set; }
 		private DigestableSafeMutexIoManager MatureIndexFileManager { get; set; }
 		private DigestableSafeMutexIoManager ImmatureIndexFileManager { get; set; }

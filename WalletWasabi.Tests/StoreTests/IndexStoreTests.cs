@@ -21,6 +21,7 @@ namespace WalletWasabi.Tests.StoreTests
 			await indexStore.InitializeAsync(dir, network, new HashChain());
 
 			Assert.Equal(network, indexStore.Network);
+			Assert.Equal(dir, indexStore.WorkFolderPath);
 		}
 	}
 }
