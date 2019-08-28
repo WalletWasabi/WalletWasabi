@@ -40,15 +40,14 @@ namespace WalletWasabi.Stores.Mempool
 			MempoolBehavior = new MempoolBehavior(this);
 		}
 
-		public bool TryAdd(SmartTransaction tx)
+		public (bool isHashAdded, bool isTxAdded) TryAdd(SmartTransaction tx)
 		{
 			lock (MempoolLock)
 			{
-				var added = false;
-				added = Transactions.TryAdd(tx.GetHash(), tx) || added;
-				added = Hashes.Add(tx.GetHash()) || added;
+				var isTxAdded = Transactions.TryAdd(tx.GetHash(), tx);
+				var isHashAdded = Hashes.Add(tx.GetHash());
 
-				return added;
+				return (isHashAdded, isTxAdded);
 			}
 		}
 

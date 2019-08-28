@@ -82,7 +82,7 @@ namespace WalletWasabi.Services
 
 		public TransactionProcessor TransactionProcessor { get; }
 
-		private ConcurrentHashSet<SmartTransaction> TransactionCache { get; }
+		private ConcurrentHashSet<SmartTransaction> ConfirmedTransactionCache { get; }
 
 		public WalletService(
 			BitcoinStore bitcoinStore,
@@ -114,9 +114,9 @@ namespace WalletWasabi.Services
 			KeyManager.AssertCleanKeysIndexed();
 			KeyManager.AssertLockedInternalKeysIndexed(14);
 
-			TransactionCache = new ConcurrentHashSet<SmartTransaction>();
+			ConfirmedTransactionCache = new ConcurrentHashSet<SmartTransaction>();
 
-			TransactionProcessor = new TransactionProcessor(KeyManager, BitcoinStore.MempoolStore, Coins, ServiceConfiguration.DustThreshold, TransactionCache);
+			TransactionProcessor = new TransactionProcessor(KeyManager, BitcoinStore.MempoolStore, Coins, ServiceConfiguration.DustThreshold, ConfirmedTransactionCache);
 			TransactionProcessor.CoinSpent += TransactionProcessor_CoinSpent;
 			TransactionProcessor.CoinReceived += TransactionProcessor_CoinReceivedAsync;
 
@@ -199,7 +199,7 @@ namespace WalletWasabi.Services
 					var txToRemove = TryGetTxFromCache(toRemove.TransactionId);
 					if (txToRemove != default(SmartTransaction))
 					{
-						TransactionCache.TryRemove(txToRemove);
+						ConfirmedTransactionCache.TryRemove(txToRemove);
 					}
 				}
 			}
@@ -1383,7 +1383,7 @@ namespace WalletWasabi.Services
 			}
 
 			IoHelpers.EnsureContainingDirectoryExists(TransactionsFilePath);
-			string jsonString = JsonConvert.SerializeObject(TransactionCache.OrderByBlockchain(), Formatting.Indented);
+			string jsonString = JsonConvert.SerializeObject(ConfirmedTransactionCache.OrderByBlockchain(), Formatting.Indented);
 			File.WriteAllText(TransactionsFilePath,
 				jsonString,
 				Encoding.UTF8);
@@ -1457,7 +1457,7 @@ namespace WalletWasabi.Services
 
 		public SmartTransaction TryGetTxFromCache(uint256 txId)
 		{
-			return TransactionCache.FirstOrDefault(x => x.GetHash() == txId);
+			return ConfirmedTransactionCache.FirstOrDefault(x => x.GetHash() == txId);
 		}
 	}
 }

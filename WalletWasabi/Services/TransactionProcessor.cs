@@ -46,16 +46,22 @@ namespace WalletWasabi.Services
 			bool justUpdate = false;
 			if (tx.Confirmed)
 			{
-				MempoolStore.TryRemove(txId, out _); // If we have in mempool, remove.
+				var isRemoved = MempoolStore.TryRemove(txId, out SmartTransaction foundTx); // If we have in mempool, remove.
 				if (!tx.Transaction.PossiblyP2WPKHInvolved())
 				{
 					return false; // We do not care about non-witness transactions for other than mempool cleanup.
 				}
 
-				bool isFoundTx = ConfirmedTransactionCache.Contains(tx); // If we have in cache, update height.
-				if (isFoundTx)
+				if (isRemoved.isTxRemoved)
 				{
-					SmartTransaction foundTx = ConfirmedTransactionCache.FirstOrDefault(x => x == tx);
+					ConfirmedTransactionCache.TryAdd(foundTx);
+					foundTx.SetHeight(tx.Height, tx.BlockHash, tx.BlockIndex);
+					walletRelevant = true;
+					justUpdate = true; // No need to check for double spend, we already processed this transaction, just update it.
+				}
+				else if (ConfirmedTransactionCache.Contains(tx)) // If we have in cache, update height.
+				{
+					foundTx = ConfirmedTransactionCache.FirstOrDefault(x => x == tx);
 					if (foundTx != default(SmartTransaction)) // Must check again, because it's a concurrent collection!
 					{
 						foundTx.SetHeight(tx.Height, tx.BlockHash, tx.BlockIndex);
@@ -64,9 +70,13 @@ namespace WalletWasabi.Services
 					}
 				}
 			}
-			else if (!tx.Transaction.PossiblyP2WPKHInvolved())
+			else
 			{
-				return false; // We do not care about non-witness transactions for other than mempool cleanup.
+				MempoolStore.TryAdd(tx.GetHash());
+				if (!tx.Transaction.PossiblyP2WPKHInvolved())
+				{
+					return false; // We do not care about non-witness transactions for other than mempool cleanup.
+				}
 			}
 
 			if (!justUpdate && !tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
@@ -108,6 +118,7 @@ namespace WalletWasabi.Services
 							foreach (SmartCoin doubleSpentCoin in doubleSpends.Where(x => !x.Confirmed))
 							{
 								Coins.TryRemove(doubleSpentCoin);
+								RemoveFromCaches(doubleSpentCoin.TransactionId);
 							}
 							tx.SetReplacement();
 							walletRelevant = true;
@@ -123,6 +134,7 @@ namespace WalletWasabi.Services
 						foreach (SmartCoin doubleSpentCoin in doubleSpends)
 						{
 							Coins.TryRemove(doubleSpentCoin);
+							RemoveFromCaches(doubleSpentCoin.TransactionId);
 						}
 						walletRelevant = true;
 					}
@@ -176,7 +188,7 @@ namespace WalletWasabi.Services
 																																																																		   // If we did not have it.
 					if (Coins.TryAdd(newCoin))
 					{
-						ConfirmedTransactionCache.TryAdd(tx);
+						UpdateCaches(tx);
 						CoinReceived?.Invoke(this, newCoin);
 
 						// Make sure there's always 21 clean keys generated and indexed.
@@ -213,7 +225,7 @@ namespace WalletWasabi.Services
 					walletRelevant = true;
 					var alreadyKnown = foundCoin.SpenderTransactionId == txId;
 					foundCoin.SpenderTransactionId = txId;
-					ConfirmedTransactionCache.TryAdd(tx);
+					UpdateCaches(tx);
 
 					if (!alreadyKnown)
 					{
@@ -228,6 +240,37 @@ namespace WalletWasabi.Services
 			}
 
 			return walletRelevant;
+		}
+
+		private void RemoveFromCaches(uint256 transactionId)
+		{
+			MempoolStore.TryRemove(transactionId, out _);
+			var foundTx = ConfirmedTransactionCache.FirstOrDefault(x => x.GetHash() == transactionId);
+			if (foundTx != default(SmartTransaction))
+			{
+				ConfirmedTransactionCache.TryRemove(foundTx);
+			}
+		}
+
+		private void UpdateCaches(SmartTransaction tx)
+		{
+			if (tx.Confirmed)
+			{
+				if (MempoolStore.TryRemove(tx.GetHash(), out SmartTransaction foundTx).isTxRemoved)
+				{
+					ConfirmedTransactionCache.TryAdd(foundTx);
+					foundTx.SetHeight(tx.Height, tx.BlockHash, tx.BlockIndex);
+					ConfirmedTransactionCache.TryAdd(foundTx);
+				}
+				else
+				{
+					ConfirmedTransactionCache.TryAdd(tx);
+				}
+			}
+			else
+			{
+				MempoolStore.TryAdd(tx);
+			}
 		}
 	}
 }

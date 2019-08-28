@@ -86,7 +86,8 @@ namespace WalletWasabi.Tests
 			transactionProcessor.MempoolStore.TryAdd(tx.GetHash()); // This transaction was already seen before
 			transactionProcessor.Process(tx);
 
-			var cachedTx = Assert.Single(transactionProcessor.ConfirmedTransactionCache);
+			Assert.Empty(transactionProcessor.ConfirmedTransactionCache);
+			var cachedTx = Assert.Single(transactionProcessor.MempoolStore.GetTransactions());
 			var coin = Assert.Single(transactionProcessor.Coins);
 			Assert.Equal(Height.Mempool, cachedTx.Height);
 			Assert.Equal(Height.Mempool, coin.Height);
@@ -129,8 +130,8 @@ namespace WalletWasabi.Tests
 			Assert.False(relevant);
 			Assert.Single(transactionProcessor.Coins, coin => coin.Unspent);
 			Assert.Single(transactionProcessor.Coins, coin => !coin.Unspent);
-			Assert.Equal(2, transactionProcessor.ConfirmedTransactionCache.Count());
-			Assert.Empty(transactionProcessor.MempoolStore.GetTransactionHashes());
+			Assert.Empty(transactionProcessor.ConfirmedTransactionCache);
+			Assert.Equal(2, transactionProcessor.MempoolStore.GetTransactions().Count());
 		}
 
 		[Fact]
@@ -156,6 +157,7 @@ namespace WalletWasabi.Tests
 			Assert.True(relevant);
 			Assert.Single(transactionProcessor.Coins, coin => coin.Unspent && coin.Confirmed);
 			Assert.Single(transactionProcessor.Coins, coin => !coin.Unspent && coin.Confirmed);
+			Assert.Empty(transactionProcessor.MempoolStore.GetTransactions());
 			Assert.Empty(transactionProcessor.MempoolStore.GetTransactionHashes());
 		}
 
@@ -185,7 +187,7 @@ namespace WalletWasabi.Tests
 			Assert.True(relevant);
 			Assert.Single(transactionProcessor.Coins, coin => coin.Unspent && coin.Amount == Money.Coins(0.9m) && coin.IsReplaceable);
 			Assert.Single(transactionProcessor.Coins, coin => !coin.Unspent && coin.Amount == Money.Coins(1.0m) && !coin.IsReplaceable);
-			Assert.Empty(transactionProcessor.MempoolStore.GetTransactionHashes());
+			Assert.Equal(1, transactionProcessor.MempoolStore.GetTransactionHashes().Count);
 		}
 
 		[Fact]
@@ -203,7 +205,8 @@ namespace WalletWasabi.Tests
 			Assert.True(relevant);
 			var coin = Assert.Single(transactionProcessor.Coins);
 			Assert.Equal(Money.Coins(1.0m), coin.Amount);
-			Assert.Contains(transactionProcessor.ConfirmedTransactionCache, x => x == tx);
+			Assert.Contains(transactionProcessor.MempoolStore.GetTransactions(), x => x == tx);
+			Assert.DoesNotContain(transactionProcessor.ConfirmedTransactionCache, x => x == tx);
 			Assert.NotNull(receivedCoin);
 		}
 
