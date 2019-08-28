@@ -76,12 +76,14 @@ namespace WalletWasabi.Stores.Mempool
 			}
 		}
 
-		public bool TryRemove(uint256 hash)
+		public (bool isHashRemoved, bool isTxRemoved) TryRemove(uint256 hash, out SmartTransaction stx)
 		{
 			lock (MempoolLock)
 			{
-				Transactions.Remove(hash);
-				return Hashes.Remove(hash);
+				var isTxRemoved = Transactions.Remove(hash, out stx);
+				var isHashRemoved = Hashes.Remove(hash);
+
+				return (isHashRemoved, isTxRemoved);
 			}
 		}
 

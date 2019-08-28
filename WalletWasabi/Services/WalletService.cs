@@ -195,7 +195,7 @@ namespace WalletWasabi.Services
 						}
 					}
 
-					BitcoinStore.MempoolStore.TryRemove(toRemove.TransactionId);
+					BitcoinStore.MempoolStore.TryRemove(toRemove.TransactionId, out _);
 					var txToRemove = TryGetTxFromCache(toRemove.TransactionId);
 					if (txToRemove != default(SmartTransaction))
 					{

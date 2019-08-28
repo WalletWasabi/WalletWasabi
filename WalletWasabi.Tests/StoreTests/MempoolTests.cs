@@ -41,7 +41,10 @@ namespace WalletWasabi.Tests.StoreTests
 			var stx = new SmartTransaction(tx, Height.Mempool, firstSeenIfMempoolTime: DateTimeOffset.UtcNow);
 			Assert.True(mempoolStore.TryAdd(stx.GetHash()));
 			Assert.True(mempoolStore.TryAdd(stx));
-			Assert.True(mempoolStore.TryRemove(stx.GetHash()));
+			var isRemoved = mempoolStore.TryRemove(stx.GetHash(), out SmartTransaction removed);
+			Assert.True(isRemoved.isHashRemoved);
+			Assert.True(isRemoved.isTxRemoved);
+			Assert.Equal(stx, removed);
 			Assert.True(mempoolStore.TryAdd(stx));
 			Assert.False(mempoolStore.TryAdd(stx));
 			Assert.False(mempoolStore.TryAdd(stx.GetHash()));
@@ -57,7 +60,7 @@ namespace WalletWasabi.Tests.StoreTests
 			Assert.False(mempoolStore.TryGetTransaction(tx2Hash, out _));
 			Assert.True(mempoolStore.ContainsHash(tx2Hash));
 
-			mempoolStore.TryRemove(tx.GetHash());
+			mempoolStore.TryRemove(tx.GetHash(), out _);
 			Assert.False(mempoolStore.IsEmpty());
 			Assert.Empty(mempoolStore.GetTransactions());
 			var txHashes = mempoolStore.GetTransactionHashes();
