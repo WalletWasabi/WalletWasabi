@@ -1294,6 +1294,7 @@ namespace WalletWasabi.Services
 						throw new InvalidOperationException("We are not connected to enough nodes.");
 					}
 					await Task.Delay(100);
+					node = Nodes.ConnectedNodes.RandomElement();
 				}
 				await BroadcastTransactionToNetworkNodeAsync(transaction, node);
 			}
