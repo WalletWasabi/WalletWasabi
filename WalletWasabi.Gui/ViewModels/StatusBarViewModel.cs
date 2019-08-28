@@ -23,6 +23,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
+using WalletWasabi.Stores.Filters;
 
 namespace WalletWasabi.Gui.ViewModels
 {

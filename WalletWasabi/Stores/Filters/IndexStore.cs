@@ -14,7 +14,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 
-namespace WalletWasabi.Stores
+namespace WalletWasabi.Stores.Filters
 {
 	/// <summary>
 	/// Manages to store the filters safely.
@@ -22,7 +22,7 @@ namespace WalletWasabi.Stores
 	public class IndexStore
 	{
 		private string WorkFolderPath { get; set; }
-		private Network Network { get; set; }
+		public Network Network { get; private set; }
 		private DigestableSafeMutexIoManager MatureIndexFileManager { get; set; }
 		private DigestableSafeMutexIoManager ImmatureIndexFileManager { get; set; }
 		public HashChain HashChain { get; private set; }

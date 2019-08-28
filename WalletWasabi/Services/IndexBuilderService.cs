@@ -13,6 +13,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
+using WalletWasabi.Stores.Filters;
 
 namespace WalletWasabi.Services
 {

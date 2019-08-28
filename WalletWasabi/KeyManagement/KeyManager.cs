@@ -12,6 +12,7 @@ using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
+using WalletWasabi.Stores.Filters;
 
 namespace WalletWasabi.KeyManagement
 {

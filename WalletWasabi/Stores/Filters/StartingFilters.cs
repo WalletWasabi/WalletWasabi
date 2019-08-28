@@ -5,7 +5,7 @@ using System.Text;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Stores
+namespace WalletWasabi.Stores.Filters
 {
 	public static class StartingFilters
 	{

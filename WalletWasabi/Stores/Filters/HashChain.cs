@@ -8,7 +8,7 @@ using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Stores
+namespace WalletWasabi.Stores.Filters
 {
 	/// <summary>
 	/// High performance chain index and cache.
@@ -110,16 +110,16 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		public bool TryGetHeight(uint256 hash, out int Height)
+		public bool TryGetHeight(uint256 hash, out int height)
 		{
 			lock (Lock)
 			{
-				Height = Chain.FirstOrDefault(x => x.Value == hash).Key;
+				height = Chain.FirstOrDefault(x => x.Value == hash).Key;
 
 				// Default int will be 0. We do not know if this refers to the 0th hash or it just means the hash was not found.
 				// So let's check if the height contains or not.
 				// If the given height is 0, then check if the chain has a key with 0. If it does not have, then return false. If it has, check if the hash is the same or not.
-				if (Height == 0 && (!Chain.ContainsKey(0) || Chain[0] != hash))
+				if (height == 0 && (!Chain.ContainsKey(0) || Chain[0] != hash))
 				{
 					return false;
 				}
