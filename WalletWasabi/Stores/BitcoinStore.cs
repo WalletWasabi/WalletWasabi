@@ -5,7 +5,9 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
+using WalletWasabi.Interfaces;
 using WalletWasabi.Stores.Filters;
+using WalletWasabi.Stores.Mempool;
 
 namespace WalletWasabi.Stores
 {
@@ -13,13 +15,14 @@ namespace WalletWasabi.Stores
 	/// The purpose of this class is to safely and performantly manage all the Bitcoin related data
 	/// that's being serialized to disk, like transactions, wallet files, keys, blocks, index files, etc...
 	/// </summary>
-	public class BitcoinStore
+	public class BitcoinStore : IStore
 	{
 		private string WorkFolderPath { get; set; }
 		private Network Network { get; set; }
 
 		public IndexStore IndexStore { get; private set; }
-		public HashChain HashChain { get; private set; }
+		public MempoolStore MempoolStore { get; private set; }
+		public HashChain HashChain => IndexStore.HashChain;
 
 		public async Task InitializeAsync(string workFolderPath, Network network)
 		{
@@ -29,9 +32,17 @@ namespace WalletWasabi.Stores
 			Network = Guard.NotNull(nameof(network), network);
 
 			IndexStore = new IndexStore();
+			MempoolStore = new MempoolStore();
 			var indexStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString(), "IndexStore");
-			HashChain = new HashChain();
-			await IndexStore.InitializeAsync(indexStoreFolderPath, Network, HashChain);
+			var mempoolStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString(), "MempoolStore");
+
+			var initTasks = new List<Task>
+			{
+				IndexStore.InitializeAsync(indexStoreFolderPath, Network),
+				MempoolStore.InitializeAsync(mempoolStoreFolderPath, Network)
+			};
+
+			await Task.WhenAll(initTasks);
 		}
 	}
 }

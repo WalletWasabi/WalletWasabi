@@ -18,7 +18,7 @@ namespace WalletWasabi.Tests.StoreTests
 
 			var dir = Path.Combine(Global.Instance.DataDir, nameof(CanInitializeIndexStoreAsync));
 			var network = Network.Main;
-			await indexStore.InitializeAsync(dir, network, new HashChain());
+			await indexStore.InitializeAsync(dir, network);
 
 			Assert.Equal(network, indexStore.Network);
 			Assert.Equal(dir, indexStore.WorkFolderPath);

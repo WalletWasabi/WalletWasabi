@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Helpers;
+using WalletWasabi.Interfaces;
 using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -19,7 +20,7 @@ namespace WalletWasabi.Stores.Filters
 	/// <summary>
 	/// Manages to store the filters safely.
 	/// </summary>
-	public class IndexStore
+	public class IndexStore : IStore
 	{
 		public string WorkFolderPath { get; private set; }
 		public Network Network { get; private set; }
@@ -36,11 +37,11 @@ namespace WalletWasabi.Stores.Filters
 
 		public event EventHandler<FilterModel> NewFilter;
 
-		public async Task InitializeAsync(string workFolderPath, Network network, HashChain hashChain)
+		public async Task InitializeAsync(string workFolderPath, Network network)
 		{
 			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 			Network = Guard.NotNull(nameof(network), network);
-			HashChain = Guard.NotNull(nameof(hashChain), hashChain);
+			HashChain = new HashChain();
 			var indexFilePath = Path.Combine(WorkFolderPath, "MatureIndex.dat");
 			MatureIndexFileManager = new DigestableSafeMutexIoManager(indexFilePath, digestRandomIndex: -1);
 			var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
