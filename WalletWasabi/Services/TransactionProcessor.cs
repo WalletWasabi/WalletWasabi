@@ -242,7 +242,7 @@ namespace WalletWasabi.Services
 			return walletRelevant;
 		}
 
-		private void RemoveFromCaches(uint256 transactionId)
+		public void RemoveFromCaches(uint256 transactionId)
 		{
 			MempoolStore.TryRemove(transactionId, out _);
 			var foundTx = ConfirmedTransactionCache.FirstOrDefault(x => x.GetHash() == transactionId);
