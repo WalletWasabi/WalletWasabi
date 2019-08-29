@@ -74,17 +74,17 @@ namespace WalletWasabi.Tests.StoreTests
 			Assert.InRange(elapsed, TimeSpan.FromMilliseconds(2000), TimeSpan.FromMilliseconds(4000));
 
 			// Standard Mutex test.
-			int cnt = 0;
+			int count = 0;
 			List<int> numbers = new List<int>();
 			var rand = new Random();
 			async Task TestLockAsync()
 			{
 				using (await asyncMutex.LockAsync())
 				{
-					cnt++;
+					count++;
 
 					await Task.Delay(rand.Next(5));
-					numbers.Add(cnt);
+					numbers.Add(count);
 				}
 			}
 
