@@ -8,7 +8,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 {
 	internal class ManagedFileChooserFilterViewModel : ViewModelBase
 	{
-		private readonly string[] _extensions;
+		private IEnumerable<string> Extensions { get; }
 		public string Name { get; }
 
 		public ManagedFileChooserFilterViewModel(FileDialogFilter filter)
@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 				return;
 			}
 
-			_extensions = filter.Extensions?.Select(e => "." + e.ToLowerInvariant()).ToArray();
+			Extensions = filter.Extensions?.Select(e => "." + e.ToLowerInvariant());
 		}
 
 		public ManagedFileChooserFilterViewModel()
@@ -30,12 +30,12 @@ namespace WalletWasabi.Gui.ManagedDialogs
 
 		public bool Match(string filename)
 		{
-			if (_extensions is null)
+			if (Extensions is null)
 			{
 				return true;
 			}
 
-			foreach (var ext in _extensions)
+			foreach (var ext in Extensions)
 			{
 				if (filename.EndsWith(ext, StringComparison.InvariantCultureIgnoreCase))
 				{
