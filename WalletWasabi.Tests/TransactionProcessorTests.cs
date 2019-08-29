@@ -311,6 +311,7 @@ namespace WalletWasabi.Tests
 			keyManager.AssertCleanKeysIndexed();
 			var mempoolStore = new MempoolStore();
 			var dir = Path.Combine(Global.Instance.DataDir, nameof(CreateTransactionProcessorAsync), "MempoolStore");
+			Directory.Delete(dir, true);
 			await mempoolStore.InitializeAsync(dir, Network.Main);
 			return new TransactionProcessor(
 				keyManager,

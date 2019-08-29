@@ -2,6 +2,9 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Text;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 
@@ -30,12 +33,6 @@ namespace WalletWasabi.Models
 		[JsonProperty]
 		public string Label { get; set; }
 
-		public bool Confirmed => Height.Type == HeightType.Chain;
-
-		public uint256 GetHash() => Transaction.GetHash();
-
-		public int GetConfirmationCount(Height bestHeight) => Height == Height.Mempool ? 0 : bestHeight.Value - Height.Value + 1;
-
 		/// <summary>
 		/// if Height is Mempool it's first seen, else null,
 		/// only exists in memory,
@@ -55,6 +52,12 @@ namespace WalletWasabi.Models
 		/// </summary>
 		public bool IsRBF => !Confirmed && (Transaction.RBF || IsReplacement);
 
+		public bool Confirmed => Height.Type == HeightType.Chain;
+
+		public uint256 GetHash() => Transaction.GetHash();
+
+		public int GetConfirmationCount(Height bestHeight) => Height == Height.Mempool ? 0 : bestHeight.Value - Height.Value + 1;
+
 		#endregion Members
 
 		#region Constructors
@@ -63,7 +66,7 @@ namespace WalletWasabi.Models
 		public SmartTransaction(Transaction transaction, Height height, uint256 blockHash = null, int blockIndex = 0, string label = "", DateTimeOffset? firstSeenIfMempoolTime = null, bool isReplacement = false)
 		{
 			Transaction = transaction;
-			Label = Guard.Correct(label);
+			Label = CorrectLabel(label);
 
 			SetHeight(height, blockHash, blockIndex);
 			if (firstSeenIfMempoolTime != null)
@@ -74,6 +77,75 @@ namespace WalletWasabi.Models
 		}
 
 		#endregion Constructors
+
+		public string ToLine()
+		{
+			// GetHash is also serialized, so file can be interpreted with our eyes better.
+			var builder = new StringBuilder(GetHash().ToString());
+			builder.Append(':');
+			builder.Append(Transaction.ToHex());
+			builder.Append(':');
+			builder.Append(Height.Value.ToString());
+			builder.Append(':');
+			if (BlockHash != null)
+			{
+				builder.Append(BlockHash);
+			}
+			builder.Append(':');
+			builder.Append(BlockIndex);
+			builder.Append(':');
+			builder.Append(CorrectLabel(Label));
+			builder.Append(':');
+			builder.Append(FirstSeenIfMempoolTime?.ToUnixTimeSeconds().ToString() ?? "");
+			builder.Append(':');
+			builder.Append(IsReplacement);
+
+			return builder.ToString();
+		}
+
+		private string CorrectLabel(string label)
+		{
+			return Guard.Correct(label).Replace(":", "", StringComparison.Ordinal).Trim();
+		}
+
+		public static SmartTransaction FromLine(string line, Network expectedNetwork)
+		{
+			Guard.NotNull(nameof(expectedNetwork), expectedNetwork);
+			var parts = line.Split(':', StringSplitOptions.None);
+			// First is redundand txhash serialization.
+			var hex = parts[1];
+			var heightString = parts[2];
+			var blockHashString = parts[3];
+			var blockIndexString = parts[4];
+			var label = parts[5];
+			var firstSeenIfMempoolTimeString = parts[6];
+			var isReplacementString = parts[7];
+
+			var tx = Transaction.Parse(hex, expectedNetwork);
+			if (!Height.TryParse(heightString, out Height h))
+			{
+				h = Height.Unknown;
+			}
+			if (!uint256.TryParse(blockHashString, out uint256 bh))
+			{
+				bh = null;
+			}
+			if (!int.TryParse(blockIndexString, out int bi))
+			{
+				bi = 0;
+			}
+			DateTimeOffset? fs = null;
+			if (long.TryParse(firstSeenIfMempoolTimeString, out long unixSeconds))
+			{
+				fs = DateTimeOffset.FromUnixTimeSeconds(unixSeconds);
+			}
+			if (!bool.TryParse(isReplacementString, out bool ir))
+			{
+				ir = false;
+			}
+
+			return new SmartTransaction(tx, h, bh, bi, label, fs, ir);
+		}
 
 		public void SetHeight(Height height, uint256 blockHash = null, int blockIndex = 0)
 		{

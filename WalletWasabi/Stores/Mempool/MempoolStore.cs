@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,6 +9,8 @@ using NBitcoin;
 using Nito.AsyncEx;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
+using WalletWasabi.Io;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 
@@ -23,6 +26,7 @@ namespace WalletWasabi.Stores.Mempool
 		private Dictionary<uint256, SmartTransaction> Transactions { get; set; }
 		private HashSet<uint256> Hashes { get; set; }
 		private object MempoolLock { get; set; }
+		private MutexIoManager MempoolFileManager { get; set; }
 
 		public MempoolStore()
 		{
@@ -36,8 +40,126 @@ namespace WalletWasabi.Stores.Mempool
 			Transactions = new Dictionary<uint256, SmartTransaction>();
 			MempoolLock = new object();
 
+			var mempoolFilePath = Path.Combine(WorkFolderPath, "Mempool.dat");
+			MempoolFileManager = new MutexIoManager(mempoolFilePath);
+
+			using (await MempoolFileManager.Mutex.LockAsync())
+			{
+				IoHelpers.EnsureDirectoryExists(WorkFolderPath);
+
+				await TryEnsureBackwardsCompatibilityAsync();
+
+				if (Network == Network.RegTest)
+				{
+					MempoolFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
+				}
+
+				if (!MempoolFileManager.Exists())
+				{
+					await SerializeAllTransactionsAsync();
+				}
+
+				await InitializeTransactionsAsync();
+			}
+
 			MempoolService = new MempoolService(this);
 			MempoolBehavior = new MempoolBehavior(this);
+		}
+
+		private async Task SerializeAllTransactionsAsync()
+		{
+			List<SmartTransaction> transactionsClone;
+			lock (MempoolLock)
+			{
+				transactionsClone = Transactions.Values.ToList();
+			}
+
+			await MempoolFileManager.WriteAllLinesAsync(transactionsClone.OrderByBlockchain().Select(x => x.ToLine()));
+		}
+
+		private async Task InitializeTransactionsAsync()
+		{
+			try
+			{
+				IoHelpers.EnsureFileExists(MempoolFileManager.FilePath);
+				var allLines = await MempoolFileManager.ReadAllLinesAsync();
+				var allTransactions = allLines.Select(x => SmartTransaction.FromLine(x, Network));
+				lock (MempoolLock)
+				{
+					foreach (var tx in allTransactions)
+					{
+						Transactions.TryAdd(tx.GetHash(), tx);
+					}
+				}
+
+				if (allTransactions.Count() != Transactions.Count)
+				{
+					// Another process worked into the file and appended the same transaction into it.
+					// In this case we correct the file by serializing the unique set.
+					await SerializeAllTransactionsAsync();
+				}
+			}
+			catch
+			{
+				// We found a corrupted entry. Stop here.
+				// Delete the currupted file.
+				// Do not try to autocorrect, because the internal data structures are throwing events that may confuse the consumers of those events.
+				Logger.LogError<MempoolStore>("Mempool file got corrupted. Deleting it...");
+				MempoolFileManager.DeleteMe();
+				throw;
+			}
+		}
+
+		private async Task TryEnsureBackwardsCompatibilityAsync()
+		{
+			// TODO
+			//try
+			//{
+			//	// Before Wasabi 1.1.5
+			//	var oldIndexFilePath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), $"Index{Network}.dat");
+
+			//	// Before Wasabi 1.1.6
+			//	var oldFileNames = new[]
+			//	{
+			//		"ImmatureIndex.dat" ,
+			//		"ImmatureIndex.dat.dig",
+			//		"MatureIndex.dat",
+			//		"MatureIndex.dat.dig"
+			//	};
+
+			//	var oldIndexFolderPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), "BitcoinStore", Network.ToString());
+
+			//	foreach (var fileName in oldFileNames)
+			//	{
+			//		var oldFilePath = Path.Combine(oldIndexFolderPath, fileName);
+			//		if (File.Exists(oldFilePath))
+			//		{
+			//			string newFilePath = oldFilePath.Replace(oldIndexFolderPath, WorkFolderPath);
+			//			if (File.Exists(newFilePath))
+			//			{
+			//				File.Delete(newFilePath);
+			//			}
+
+			//			File.Move(oldFilePath, newFilePath);
+			//		}
+			//	}
+
+			//	if (File.Exists(oldIndexFilePath))
+			//	{
+			//		string[] allLines = await File.ReadAllLinesAsync(oldIndexFilePath);
+			//		var matureLines = allLines.SkipLast(100);
+			//		var immatureLines = allLines.TakeLast(100);
+
+			//		await MatureIndexFileManager.WriteAllLinesAsync(matureLines);
+			//		await ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines);
+
+			//		File.Delete(oldIndexFilePath);
+			//	}
+			//}
+			//catch (Exception ex)
+			//{
+			//	Logger.LogWarning<IndexStore>($"Backwards compatibility could not be ensured. Exception: {ex}.");
+			//}
 		}
 
 		public (bool isHashAdded, bool isTxAdded) TryAdd(SmartTransaction tx)
@@ -46,6 +168,11 @@ namespace WalletWasabi.Stores.Mempool
 			{
 				var isTxAdded = Transactions.TryAdd(tx.GetHash(), tx);
 				var isHashAdded = Hashes.Add(tx.GetHash());
+
+				if (isTxAdded)
+				{
+					_ = TryAppendToFileAsync(tx);
+				}
 
 				return (isHashAdded, isTxAdded);
 			}
@@ -59,28 +186,17 @@ namespace WalletWasabi.Stores.Mempool
 			}
 		}
 
-		public bool TryGetTransaction(uint256 hash, out SmartTransaction sameStx)
-		{
-			lock (MempoolLock)
-			{
-				return Transactions.TryGetValue(hash, out sameStx);
-			}
-		}
-
-		public bool ContainsHash(uint256 hash)
-		{
-			lock (MempoolLock)
-			{
-				return Hashes.Contains(hash);
-			}
-		}
-
 		public (bool isHashRemoved, bool isTxRemoved) TryRemove(uint256 hash, out SmartTransaction stx)
 		{
 			lock (MempoolLock)
 			{
 				var isTxRemoved = Transactions.Remove(hash, out stx);
 				var isHashRemoved = Hashes.Remove(hash);
+
+				if (isTxRemoved)
+				{
+					_ = TryRemoveFromFileAsync(hash);
+				}
 
 				return (isHashRemoved, isTxRemoved);
 			}
@@ -102,7 +218,90 @@ namespace WalletWasabi.Stores.Mempool
 					}
 				}
 
+				_ = TryRemoveFromFileAsync(removed.ToArray());
+
 				return removed;
+			}
+		}
+
+		private async Task TryAppendToFileAsync(SmartTransaction stx)
+		{
+			try
+			{
+				using (await MempoolFileManager.Mutex.LockAsync())
+				{
+					try
+					{
+						await MempoolFileManager.AppendAllLinesAsync(new[] { stx.ToLine() });
+					}
+					catch
+					{
+						await SerializeAllTransactionsAsync();
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError<MempoolStore>(ex);
+			}
+		}
+
+		private async Task TryRemoveFromFileAsync(params uint256[] toRemoves)
+		{
+			try
+			{
+				if (toRemoves is null || !toRemoves.Any())
+				{
+					return;
+				}
+
+				using (await MempoolFileManager.Mutex.LockAsync())
+				{
+					string[] allLines = await MempoolFileManager.ReadAllLinesAsync();
+					var toSerialize = new List<string>();
+					foreach (var line in allLines)
+					{
+						var startsWith = false;
+						foreach (var toRemoveString in toRemoves.Select(x => x.ToString()))
+						{
+							startsWith = startsWith || line.StartsWith(toRemoveString, StringComparison.Ordinal);
+						}
+
+						if (!startsWith)
+						{
+							toSerialize.Add(line);
+						}
+					}
+
+					try
+					{
+						await MempoolFileManager.WriteAllLinesAsync(toSerialize);
+					}
+					catch
+					{
+						await SerializeAllTransactionsAsync();
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError<MempoolStore>(ex);
+			}
+		}
+
+		public bool TryGetTransaction(uint256 hash, out SmartTransaction sameStx)
+		{
+			lock (MempoolLock)
+			{
+				return Transactions.TryGetValue(hash, out sameStx);
+			}
+		}
+
+		public bool ContainsHash(uint256 hash)
+		{
+			lock (MempoolLock)
+			{
+				return Hashes.Contains(hash);
 			}
 		}
 
