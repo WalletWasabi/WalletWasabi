@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NBitcoin;
+using Newtonsoft.Json;
 using Nito.AsyncEx;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
@@ -47,7 +48,7 @@ namespace WalletWasabi.Stores.Mempool
 			{
 				IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
-				await TryEnsureBackwardsCompatibilityAsync();
+				TryEnsureBackwardsCompatibility();
 
 				if (Network == Network.RegTest)
 				{
@@ -110,56 +111,39 @@ namespace WalletWasabi.Stores.Mempool
 			}
 		}
 
-		private async Task TryEnsureBackwardsCompatibilityAsync()
+		private void TryEnsureBackwardsCompatibility()
 		{
-			// TODO
-			//try
-			//{
-			//	// Before Wasabi 1.1.5
-			//	var oldIndexFilePath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), $"Index{Network}.dat");
-
-			//	// Before Wasabi 1.1.6
-			//	var oldFileNames = new[]
-			//	{
-			//		"ImmatureIndex.dat" ,
-			//		"ImmatureIndex.dat.dig",
-			//		"MatureIndex.dat",
-			//		"MatureIndex.dat.dig"
-			//	};
-
-			//	var oldIndexFolderPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), "BitcoinStore", Network.ToString());
-
-			//	foreach (var fileName in oldFileNames)
-			//	{
-			//		var oldFilePath = Path.Combine(oldIndexFolderPath, fileName);
-			//		if (File.Exists(oldFilePath))
-			//		{
-			//			string newFilePath = oldFilePath.Replace(oldIndexFolderPath, WorkFolderPath);
-			//			if (File.Exists(newFilePath))
-			//			{
-			//				File.Delete(newFilePath);
-			//			}
-
-			//			File.Move(oldFilePath, newFilePath);
-			//		}
-			//	}
-
-			//	if (File.Exists(oldIndexFilePath))
-			//	{
-			//		string[] allLines = await File.ReadAllLinesAsync(oldIndexFilePath);
-			//		var matureLines = allLines.SkipLast(100);
-			//		var immatureLines = allLines.TakeLast(100);
-
-			//		await MatureIndexFileManager.WriteAllLinesAsync(matureLines);
-			//		await ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines);
-
-			//		File.Delete(oldIndexFilePath);
-			//	}
-			//}
-			//catch (Exception ex)
-			//{
-			//	Logger.LogWarning<IndexStore>($"Backwards compatibility could not be ensured. Exception: {ex}.");
-			//}
+			try
+			{
+				// Before Wasabi 1.1.7
+				var oldTransactionsFolderPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), "Transactions", Network.Name);
+				if (Directory.Exists(oldTransactionsFolderPath))
+				{
+					foreach (var filePath in Directory.EnumerateFiles(oldTransactionsFolderPath))
+					{
+						try
+						{
+							var unconfirmedTransactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(filePath).Where(x => !x.Confirmed).OrderByBlockchain();
+							lock (MempoolLock)
+							{
+								foreach (var tx in unconfirmedTransactions)
+								{
+									Transactions.TryAdd(tx.GetHash(), tx);
+								}
+							}
+						}
+						catch (Exception)
+						{
+							throw;
+						}
+						// Do not delete, because it's still used for confirmed transaction cache.
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<MempoolStore>($"Backwards compatibility could not be ensured. Exception: {ex}.");
+			}
 		}
 
 		public (bool isHashAdded, bool isTxAdded) TryAdd(SmartTransaction tx)

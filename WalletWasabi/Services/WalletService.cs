@@ -314,7 +314,7 @@ namespace WalletWasabi.Services
 				await LoadWalletStateAsync(confirmedTransactions, cancel);
 
 				// Load in dummy mempool
-				await LoadDummyMempoolAsync(BitcoinStore.MempoolStore.GetTransactions());
+				await LoadDummyMempoolAsync(BitcoinStore.MempoolStore.GetTransactions().OrderByBlockchain());
 			}
 			Coins.CollectionChanged += Coins_CollectionChanged;
 			RefreshCoinHistories();
