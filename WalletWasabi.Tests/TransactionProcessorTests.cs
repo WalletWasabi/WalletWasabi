@@ -1,5 +1,7 @@
 using NBitcoin;
+using Nito.AsyncEx;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -310,8 +312,8 @@ namespace WalletWasabi.Tests
 			var keyManager = KeyManager.CreateNew(out _, "password");
 			keyManager.AssertCleanKeysIndexed();
 			var mempoolStore = new MempoolStore();
-			var dir = Path.Combine(Global.Instance.DataDir, nameof(CreateTransactionProcessorAsync), "MempoolStore");
-			Directory.Delete(dir, true);
+			var dir = Path.Combine(Global.Instance.DataDir, new StackFrame(1, true).GetMethod().Name, "MempoolStore");
+			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir);
 			await mempoolStore.InitializeAsync(dir, Network.Main);
 			return new TransactionProcessor(
 				keyManager,

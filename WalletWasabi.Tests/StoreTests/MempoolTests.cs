@@ -32,7 +32,7 @@ namespace WalletWasabi.Tests.StoreTests
 			var mempoolStore = new MempoolStore();
 
 			var dir = Path.Combine(Global.Instance.DataDir, nameof(CanDoOperationsAsync));
-			Directory.Delete(dir, recursive: true);
+			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir);
 			var network = Network.Main;
 			await mempoolStore.InitializeAsync(dir, network);
 
