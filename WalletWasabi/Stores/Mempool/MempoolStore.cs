@@ -132,9 +132,9 @@ namespace WalletWasabi.Stores.Mempool
 								}
 							}
 						}
-						catch (Exception)
+						catch (Exception ex)
 						{
-							throw;
+							Logger.LogTrace<MempoolStore>(ex);
 						}
 						// Do not delete, because it's still used for confirmed transaction cache.
 					}
