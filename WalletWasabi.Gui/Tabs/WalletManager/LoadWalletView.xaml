@@ -17,10 +17,6 @@
                 <behaviors:CommandOnEnterBehavior Command="{Binding LoadCommand}" />
               </i:Interaction.Behaviors>
             </controls:TogglePasswordBox>
-            <StackPanel>
-              <TextBlock Text="Why the unconventional password masking?" FontWeight="Bold" />
-              <TextBlock Text="We received numerous reports on losing or mistyping passwords. This experiment aims to disrupt users' typical workflow at wallet generation, forcing them to pay more attention than otherwise would." TextWrapping="Wrap" />
-            </StackPanel>
           </StackPanel>
           <StackPanel IsVisible="{Binding IsHardwareWallet}" Spacing="8">
             <StackPanel>
