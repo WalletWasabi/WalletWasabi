@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Stores.Mempool;
 using Xunit;
@@ -18,7 +19,7 @@ namespace WalletWasabi.Tests.StoreTests
 		{
 			var mempoolStore = new MempoolStore();
 
-			var dir = Path.Combine(Global.Instance.DataDir, nameof(CanInitializeMempoolStoreAsync));
+			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
 			var network = Network.Main;
 			await mempoolStore.InitializeAsync(dir, network);
 
@@ -31,7 +32,7 @@ namespace WalletWasabi.Tests.StoreTests
 		{
 			var mempoolStore = new MempoolStore();
 
-			var dir = Path.Combine(Global.Instance.DataDir, nameof(CanDoOperationsAsync));
+			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
 			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir);
 			var network = Network.Main;
 			await mempoolStore.InitializeAsync(dir, network);

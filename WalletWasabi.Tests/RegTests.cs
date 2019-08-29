@@ -164,7 +164,7 @@ namespace WalletWasabi.Tests
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await InitializeTestEnvironmentAsync(1);
 
-			var indexBuilderServiceDir = Path.Combine(Global.Instance.DataDir, nameof(IndexBuilderService));
+			var indexBuilderServiceDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
 			var utxoSetFilePath = Path.Combine(indexBuilderServiceDir, $"UtxoSet{rpc.Network}.dat");
 
@@ -541,7 +541,7 @@ namespace WalletWasabi.Tests
 			var chaumianClient = new CcjClient(synchronizer, rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint), null);
 
 			// 5. Create wallet service.
-			var workDir = Path.Combine(Global.Instance.DataDir, nameof(WalletTestsAsync));
+			var workDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
@@ -771,7 +771,7 @@ namespace WalletWasabi.Tests
 			var chaumianClient = new CcjClient(synchronizer, rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint), null);
 
 			// 6. Create wallet service.
-			var workDir = Path.Combine(Global.Instance.DataDir, nameof(SendTestsAsync));
+			var workDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
@@ -1243,7 +1243,7 @@ namespace WalletWasabi.Tests
 			var chaumianClient = new CcjClient(synchronizer, rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint), null);
 
 			// 6. Create wallet service.
-			var workDir = Path.Combine(Global.Instance.DataDir, nameof(BuildTransactionValidationsTestAsync));
+			var workDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
@@ -1405,7 +1405,7 @@ namespace WalletWasabi.Tests
 			var chaumianClient = new CcjClient(synchronizer, rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint), null);
 
 			// 6. Create wallet service.
-			var workDir = Path.Combine(Global.Instance.DataDir, nameof(BuildTransactionReorgsTestAsync));
+			var workDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
@@ -1567,7 +1567,7 @@ namespace WalletWasabi.Tests
 			var chaumianClient = new CcjClient(synchronizer, rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint), null);
 
 			// 6. Create wallet service.
-			var workDir = Path.Combine(Global.Instance.DataDir, nameof(SpendUnconfirmedTxTestAsync));
+			var workDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
@@ -1734,7 +1734,7 @@ namespace WalletWasabi.Tests
 			var chaumianClient = new CcjClient(synchronizer, rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint), null);
 
 			// 6. Create wallet service.
-			var workDir = Path.Combine(Global.Instance.DataDir, nameof(ReplaceByFeeTxTestAsync));
+			var workDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
@@ -1831,7 +1831,7 @@ namespace WalletWasabi.Tests
 			var offchainTxId = network.Consensus.ConsensusFactory.CreateTransaction().GetHash();
 			var mempoolTxId = rpc.SendToAddress(new Key().PubKey.GetSegwitAddress(network), Money.Coins(1));
 
-			var folder = Path.Combine(Global.Instance.DataDir, nameof(CcjCoordinatorCtorTestsAsync));
+			var folder = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
 			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(folder);
 			Directory.CreateDirectory(folder);
 			var cjfile = Path.Combine(folder, $"CoinJoins{network}.txt");
@@ -3344,7 +3344,7 @@ namespace WalletWasabi.Tests
 			// 3. Create wasabi synchronizer service.
 			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
 
-			var indexFilePath2 = Path.Combine(Global.Instance.DataDir, nameof(CoinJoinMultipleRoundTestsAsync), $"Index{network}2.dat");
+			var indexFilePath2 = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName(), $"Index{network}2.dat");
 			var synchronizer2 = new WasabiSynchronizer(network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
 
 			// 4. Create key manager service.
@@ -3358,11 +3358,11 @@ namespace WalletWasabi.Tests
 			var chaumianClient2 = new CcjClient(synchronizer, network, keyManager2, new Uri(RegTestFixture.BackendEndPoint), null);
 
 			// 6. Create wallet service.
-			var workDir = Path.Combine(Global.Instance.DataDir, nameof(CoinJoinMultipleRoundTestsAsync));
+			var workDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
-			var workDir2 = Path.Combine(Global.Instance.DataDir, $"{nameof(CoinJoinMultipleRoundTestsAsync)}2");
+			var workDir2 = Path.Combine(Global.Instance.DataDir, $"{EnvironmentHelpers.GetMethodName()}2");
 			var wallet2 = new WalletService(bitcoinStore, keyManager2, synchronizer2, chaumianClient2, nodes2, workDir2, serviceConfiguration);
 
 			// Get some money, make it confirm.

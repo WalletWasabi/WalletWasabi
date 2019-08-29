@@ -16,8 +16,8 @@ namespace WalletWasabi.Tests.StoreTests
 		[Fact]
 		public async Task IoManagerTests1Async()
 		{
-			var file1 = Path.Combine(Global.Instance.DataDir, nameof(IoManagerTests1Async), $"file1.dat");
-			var file2 = Path.Combine(Global.Instance.DataDir, nameof(IoManagerTests1Async), $"file2.dat");
+			var file1 = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName(), $"file1.dat");
+			var file2 = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName(), $"file2.dat");
 
 			Random random = new Random();
 			List<string> lines = new List<string>();
@@ -220,7 +220,7 @@ namespace WalletWasabi.Tests.StoreTests
 		[Fact]
 		public async Task IoManagerTests2Async()
 		{
-			var file = Path.Combine(Global.Instance.DataDir, nameof(IoManagerTests2Async), $"file.dat");
+			var file = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName(), $"file.dat");
 
 			DigestableSafeMutexIoManager ioman = new DigestableSafeMutexIoManager(file);
 			ioman.DeleteMe();

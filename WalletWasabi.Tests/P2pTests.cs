@@ -80,7 +80,7 @@ namespace WalletWasabi.Tests
 			}
 
 			BitcoinStore bitcoinStore = new BitcoinStore();
-			await bitcoinStore.InitializeAsync(Path.Combine(Global.Instance.DataDir, nameof(TestServicesAsync)), network);
+			await bitcoinStore.InitializeAsync(Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName()), network);
 
 			connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
 			connectionParameters.TemplateBehaviors.Add(bitcoinStore.MempoolStore.MempoolBehavior);

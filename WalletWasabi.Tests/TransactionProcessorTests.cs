@@ -4,7 +4,9 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -307,12 +309,12 @@ namespace WalletWasabi.Tests
 			Assert.True(coin.IsLikelyCoinJoinOutput);  // because we are spanding and receiving almost the same amount
 		}
 
-		private static async Task<TransactionProcessor> CreateTransactionProcessorAsync()
+		private static async Task<TransactionProcessor> CreateTransactionProcessorAsync([CallerMemberName] string callerName = "")
 		{
 			var keyManager = KeyManager.CreateNew(out _, "password");
 			keyManager.AssertCleanKeysIndexed();
 			var mempoolStore = new MempoolStore();
-			var dir = Path.Combine(Global.Instance.DataDir, new StackFrame(1, true).GetMethod().Name, "MempoolStore");
+			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName(callerName), "MempoolStore");
 			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir);
 			await mempoolStore.InitializeAsync(dir, Network.Main);
 			return new TransactionProcessor(
