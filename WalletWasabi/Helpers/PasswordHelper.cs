@@ -18,7 +18,6 @@ namespace WalletWasabi.Helpers
 		public const string TrimWarnMessage = "Leading and trailing white spaces will be removed!";
 
 		public static string[] GetPossiblePasswords(string originalPassword)
-
 		{
 			List<string> possiblePasswords = new List<string>()
 			{
