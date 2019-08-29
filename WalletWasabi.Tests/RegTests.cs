@@ -757,7 +757,7 @@ namespace WalletWasabi.Tests
 			var nodes = new NodesGroup(global.Config.Network, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
-			// 2. // Dispose mempool.
+			// 2. Create mempool.
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(bitcoinStore.MempoolStore.MempoolBehavior);
 
@@ -1229,7 +1229,7 @@ namespace WalletWasabi.Tests
 			var nodes = new NodesGroup(global.Config.Network, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
-			// 2. // Dispose mempool.
+			// 2. Create mempool.
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(bitcoinStore.MempoolStore.MempoolBehavior);
 
@@ -1391,7 +1391,7 @@ namespace WalletWasabi.Tests
 			var nodes = new NodesGroup(global.Config.Network, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
-			// 2. // Dispose mempool.
+			// 2. Create mempool.
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(bitcoinStore.MempoolStore.MempoolBehavior);
 
@@ -1553,7 +1553,7 @@ namespace WalletWasabi.Tests
 			var nodes = new NodesGroup(global.Config.Network, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
-			// 2. // Dispose mempool.
+			// 2. Create mempool.
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(bitcoinStore.MempoolStore.MempoolBehavior);
 
@@ -1720,7 +1720,7 @@ namespace WalletWasabi.Tests
 			var nodes = new NodesGroup(global.Config.Network, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
-			// 2. // Dispose mempool.
+			// 2. Create mempool.
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(bitcoinStore.MempoolStore.MempoolBehavior);
 
