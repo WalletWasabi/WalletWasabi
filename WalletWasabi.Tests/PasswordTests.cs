@@ -40,10 +40,10 @@ namespace WalletWasabi.Tests
 			string original = "    w¾3AÍ-dCdï×¾M\\Øò¹ãÔÕýÈÝÁÐ9oEp¨}r:SR¦·ßNó±¥*W!¢ê#ikÇå<ðtÇf·a\\]§,à±H7«®È4nèNmæo4.qØ-¾ûda¯ºíö¾,¥¢½\\¹õèKeÁìÍSÈ@r±ØÙ2[r©UQÞ¶xN\"?:Ö@°&\n";
 
 			// Creating a wallet with buggy password.
-			var keyManager = KeyManager.CreateNew(out _, buggy);
+			var keyManager = KeyManager.CreateNew(out _, Guard.Correct(buggy)); // Every wallet was created with Guard.Correct before.
 
-			// Password should be formatted, before entering here.
-			Assert.Throws<FormatException>(() => PasswordHelper.GetMasterExtKey(keyManager, original, out _));
+			// Password will be trimmed inside.
+			PasswordHelper.GetMasterExtKey(keyManager, original, out _);
 
 			// This should not throw format exception but pw is not correct.
 			Assert.Throws<SecurityException>(() => PasswordHelper.GetMasterExtKey(keyManager, RandomString.Generate(PasswordHelper.MaxPasswordLength), out _));

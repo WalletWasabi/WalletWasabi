@@ -58,7 +58,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				try
 				{
-					PasswordHelper.Guard(Password);
+					PasswordHelper.Guard(Password); // Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password bacause of compatibility.
 
 					KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
 
