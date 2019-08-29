@@ -227,15 +227,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					SetWarningMessage("No coins are selected to enqueue.");
 					return;
 				}
-
-				if (PasswordHelper.TryPassword(KeyManager, Password, out string compatiblityPassword))
-				{
-					Password = compatiblityPassword;
-					SetWarningMessage(PasswordHelper.CompatibilityPasswordWarnMessage);
-				}
-
 				try
 				{
+					PasswordHelper.GetMasterExtKey(KeyManager, Password, out string compatiblityPassword); // If the password is not correct we throw.
+
+					if (compatiblityPassword != null)
+					{
+						Password = compatiblityPassword;
+						SetWarningMessage(PasswordHelper.CompatibilityPasswordWarnMessage);
+					}
+
 					await Global.ChaumianClient.QueueCoinsToMixAsync(Password, selectedCoins.Select(c => c.Model).ToArray());
 				}
 				catch (Exception ex)
