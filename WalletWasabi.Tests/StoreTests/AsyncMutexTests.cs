@@ -115,9 +115,7 @@ namespace WalletWasabi.Tests.StoreTests
 				{
 					await Assert.ThrowsAsync<IOException>(async () =>
 					{
-						using (await mutex.LockAsync(cts.Token))
-						{
-						}
+						(await mutex.LockAsync(cts.Token))?.Dispose();
 					});
 				}
 			}
