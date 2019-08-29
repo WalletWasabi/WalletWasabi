@@ -221,12 +221,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			try
 			{
 				SetWarningMessage("");
-				Password = Guard.Correct(Password);
 
 				if (!selectedCoins.Any())
 				{
 					SetWarningMessage("No coins are selected to enqueue.");
 					return;
+				}
+
+				if (PasswordHelper.TryPassword(KeyManager, Password, out string compatiblityPassword))
+				{
+					Password = compatiblityPassword;
+					SetWarningMessage(PasswordHelper.CompatibilityPasswordWarnMessage);
 				}
 
 				try
