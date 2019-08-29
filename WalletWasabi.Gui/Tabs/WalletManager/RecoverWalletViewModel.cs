@@ -88,24 +88,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			});
 
 			this.WhenAnyValue(x => x.MnemonicWords).Subscribe(UpdateSuggestions);
-			this.WhenAnyValue(x => x.Password).Subscribe(x =>
-			{
-				try
-				{
-					if (x.NotNullAndNotEmpty())
-					{
-						char lastChar = x.Last();
-						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
-						{
-							Password = x.TrimEnd('\r', '\n');
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					Logger.LogTrace(ex);
-				}
-			});
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}

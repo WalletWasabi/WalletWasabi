@@ -30,25 +30,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ClearSensitiveData(true);
 			SetWarningMessage("");
 
-			this.WhenAnyValue(x => x.Password).Subscribe(x =>
-			{
-				try
-				{
-					if (x.NotNullAndNotEmpty())
-					{
-						char lastChar = x.Last();
-						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
-						{
-							Password = x.TrimEnd('\r', '\n');
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					Logging.Logger.LogTrace(ex);
-				}
-			});
-
 			ToggleSensitiveKeysCommand = ReactiveCommand.Create(() =>
 			{
 				try

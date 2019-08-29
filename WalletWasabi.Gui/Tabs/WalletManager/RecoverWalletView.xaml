@@ -13,7 +13,11 @@
             <TextBlock Text="At recovery, the wallet is unable to check if your password is correct or not. If you provide the wrong password, a wallet will be recovered with the provided Recovery Words and password combination." TextWrapping="Wrap" />
           </StackPanel>
           <controls:ExtendedTextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
-          <controls:TogglePasswordBox Text="{Binding Password}" />
+          <controls:TogglePasswordBox Text="{Binding Password}">
+            <i:Interaction.Behaviors>
+              <behaviors:CommandOnEnterBehavior Command="{Binding RecoverCommand}" />
+            </i:Interaction.Behaviors>
+          </controls:TogglePasswordBox>
           <controls:ExtendedTextBox Text="{Binding MnemonicWords}" Watermark="Recovery Words" UseFloatingWatermark="True" CaretIndex="{Binding CaretIndex}">
             <i:Interaction.Behaviors>
               <behaviors:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />

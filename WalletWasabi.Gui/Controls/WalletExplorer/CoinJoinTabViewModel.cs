@@ -91,26 +91,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				await Global.Config.ToFileAsync();
 			});
 
-			this.WhenAnyValue(x => x.Password).Subscribe(async x =>
-			{
-				try
-				{
-					if (x.NotNullAndNotEmpty())
-					{
-						char lastChar = x.Last();
-						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
-						{
-							Password = x.TrimEnd('\r', '\n');
-							await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected));
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					Logger.LogTrace(ex);
-				}
-			});
-
 			this.WhenAnyValue(x => x.IsEnqueueBusy)
 				.Select(x => x ? EnqueuingButtonTextString : EnqueueButtonTextString)
 				.Subscribe(text => EnqueueButtonText = text);
