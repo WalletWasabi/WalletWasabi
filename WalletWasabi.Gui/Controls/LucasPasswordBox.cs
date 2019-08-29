@@ -25,12 +25,16 @@ namespace WalletWasabi.Gui.Controls
 
 		public LucasPasswordBox()
 		{
-			this.GetObservable(IsPasswordVisibleProperty).Subscribe(x =>
+			this.GetObservable(IsPasswordVisibleProperty)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
 			{
 				IsPasswordVisible = x;
 			});
 
-			this.WhenAnyValue(x => x.IsPasswordVisible).Subscribe(x =>
+			this.WhenAnyValue(x => x.IsPasswordVisible)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
 			{
 				PasswordChar = x ? '\0' : '*';
 			});
@@ -45,6 +49,7 @@ namespace WalletWasabi.Gui.Controls
 			var maskedButton = e.NameScope.Get<Button>("PART_MaskedButton");
 			maskedButton.WhenAnyValue(x => x.IsPressed)
 				.Where(x => x)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
 					IsPasswordVisible = !IsPasswordVisible;
