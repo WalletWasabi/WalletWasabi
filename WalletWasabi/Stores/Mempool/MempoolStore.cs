@@ -123,7 +123,8 @@ namespace WalletWasabi.Stores.Mempool
 					{
 						try
 						{
-							var unconfirmedTransactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(filePath).Where(x => !x.Confirmed).OrderByBlockchain();
+							string jsonString = File.ReadAllText(filePath, Encoding.UTF8);
+							var unconfirmedTransactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?.Where(x => !x.Confirmed)?.OrderByBlockchain() ?? Enumerable.Empty<SmartTransaction>();
 							lock (MempoolLock)
 							{
 								foreach (var tx in unconfirmedTransactions)
