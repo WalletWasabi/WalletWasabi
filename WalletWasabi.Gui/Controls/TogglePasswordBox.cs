@@ -10,12 +10,12 @@ using System.Reactive.Linq;
 namespace WalletWasabi.Gui.Controls
 
 {
-	public class LucasPasswordBox : ExtendedTextBox, IStyleable
+	public class TogglePasswordBox : ExtendedTextBox, IStyleable
 	{
-		Type IStyleable.StyleKey => typeof(LucasPasswordBox);
+		Type IStyleable.StyleKey => typeof(TogglePasswordBox);
 
 		public static readonly StyledProperty<bool> IsPasswordVisibleProperty =
-			AvaloniaProperty.Register<LucasPasswordBox, bool>(nameof(IsPasswordVisible), defaultBindingMode: BindingMode.TwoWay);
+			AvaloniaProperty.Register<TogglePasswordBox, bool>(nameof(IsPasswordVisible), defaultBindingMode: BindingMode.TwoWay);
 
 		public bool IsPasswordVisible
 		{
@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui.Controls
 			set => SetValue(IsPasswordVisibleProperty, value);
 		}
 
-		public LucasPasswordBox()
+		public TogglePasswordBox()
 		{
 			this.GetObservable(IsPasswordVisibleProperty)
 				.ObserveOn(RxApp.MainThreadScheduler)

@@ -12,7 +12,7 @@
             <StackPanel>
               <TextBlock Text="Select a wallet to test its password!" FontWeight="Bold" />
             </StackPanel>
-            <controls:LucasPasswordBox Watermark="Password" UseFloatingWatermark="True" />
+            <controls:TogglePasswordBox Watermark="Password" UseFloatingWatermark="True" />
             <StackPanel>
               <TextBlock Text="Why the unconventional password masking?" FontWeight="Bold" />
               <TextBlock Text="We received numerous reports on losing or mistyping passwords. This experiment aims to disrupt users' typical workflow at wallet generation, forcing them to pay more attention than otherwise would." TextWrapping="Wrap" />
