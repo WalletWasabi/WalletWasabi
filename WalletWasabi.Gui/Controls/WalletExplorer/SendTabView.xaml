@@ -1,6 +1,6 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui" 
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"             
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom"
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
@@ -27,7 +27,7 @@
         <Setter Property="Padding" Value="0 0 5 0" />
       </Style>
       <Style Selector="TextBox">
-        <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}" />
       </Style>
     </DockPanel.Styles>
     <Grid Classes="content">
@@ -110,11 +110,11 @@
             </StackPanel>
           </StackPanel>
           <StackPanel Spacing="10" Orientation="Horizontal">
-            <controls:NoparaPasswordBox Password="{Binding Password}" IsVisible="{Binding !IsWatchOnly}" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" MaxWidth="173">
+            <controls:TogglePasswordBox Text="{Binding Password}" IsVisible="{Binding !IsWatchOnly}" MinWidth="173" MaxWidth="173">
               <i:Interaction.Behaviors>
                 <behaviors:CommandOnEnterBehavior Command="{Binding BuildTransactionCommand}" />
               </i:Interaction.Behaviors>
-            </controls:NoparaPasswordBox>
+            </controls:TogglePasswordBox>
             <DockPanel VerticalAlignment="Top" LastChildFill="True">
               <Button Command="{Binding BuildTransactionCommand}" DockPanel.Dock="Right">
                 <StackPanel Orientation="Horizontal">
