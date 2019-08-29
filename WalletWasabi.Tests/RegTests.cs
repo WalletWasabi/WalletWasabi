@@ -3337,6 +3337,7 @@ namespace WalletWasabi.Tests
 			var nodes2 = new NodesGroup(global.Config.Network, requirements: Constants.NodeRequirements);
 			nodes2.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
+			// 2. Create memepool.
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(bitcoinStore.MempoolStore.MempoolBehavior);
 
