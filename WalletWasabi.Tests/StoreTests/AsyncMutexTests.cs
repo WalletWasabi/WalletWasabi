@@ -71,7 +71,7 @@ namespace WalletWasabi.Tests.StoreTests
 			Assert.True(myTask.IsCompletedSuccessfully);
 
 			var elapsed = timeOfAcquired - timeOfstart;
-			Assert.InRange(elapsed, TimeSpan.FromMilliseconds(2000), TimeSpan.FromMilliseconds(4000));
+			Assert.InRange(elapsed, TimeSpan.Zero, TimeSpan.FromMilliseconds(4000));
 
 			// Standard Mutex test.
 			int count = 0;
@@ -163,7 +163,7 @@ namespace WalletWasabi.Tests.StoreTests
 			Assert.True(myTask2.IsCompletedSuccessfully);
 
 			elapsed = timeOfAcquired - timeOfstart;
-			Assert.InRange(elapsed, TimeSpan.FromMilliseconds(2000), TimeSpan.FromMilliseconds(4000));
+			Assert.InRange(elapsed, TimeSpan.Zero, TimeSpan.FromMilliseconds(4000));
 		}
 	}
 }
