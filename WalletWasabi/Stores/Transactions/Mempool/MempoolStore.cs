@@ -15,7 +15,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 
-namespace WalletWasabi.Stores.Mempool
+namespace WalletWasabi.Stores.Transactions.Mempool
 {
 	public class MempoolStore : IStore
 	{

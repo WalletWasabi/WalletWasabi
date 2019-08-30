@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Stores.Mempool;
+using WalletWasabi.Stores.Transactions.Mempool;
 
 namespace WalletWasabi.Services
 {

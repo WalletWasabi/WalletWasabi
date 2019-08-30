@@ -5,7 +5,7 @@ using NBitcoin;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
-using WalletWasabi.Stores.Mempool;
+using WalletWasabi.Stores.Transactions.Mempool;
 
 namespace WalletWasabi.Services
 {
