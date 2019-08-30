@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using Xunit;
 
@@ -99,19 +100,41 @@ namespace WalletWasabi.Tests.ModelTests
 		public void SmartTransactionLineDeserialization()
 		{
 			// Basic deserialization test.
-			var unixSeconds = 1567084917;
-			var txHash = new uint256("dea20cf140bc40d4a6940ac85246989138541e530ed58cbaa010c6b730efd2f6");
-			var input = $"{txHash}:0100000001a67535553fea8a41550e79571359df9e5458b3c2264e37523b0b5d550feecefe0000000000ffffffff017584010000000000160014e1fd78b34c52864ee4a667862f9f9995d850c73100000000:2147483646::0::{unixSeconds}:False";
-			var stx = SmartTransaction.FromLine(input, Network.Main);
-			Assert.Null(stx.BlockHash);
-			Assert.Equal(0, stx.BlockIndex);
-			Assert.False(stx.Confirmed);
-			Assert.Equal(DateTimeOffset.FromUnixTimeSeconds(unixSeconds), stx.FirstSeenIfMempoolTime);
-			Assert.Equal(Height.Mempool, stx.Height);
-			Assert.False(stx.IsRBF);
-			Assert.False(stx.IsReplacement);
-			Assert.Empty(stx.Label);
-			Assert.Equal(txHash, stx.GetHash());
+			var txHash = "dea20cf140bc40d4a6940ac85246989138541e530ed58cbaa010c6b730efd2f6";
+			var txHex = "0100000001a67535553fea8a41550e79571359df9e5458b3c2264e37523b0b5d550feecefe0000000000ffffffff017584010000000000160014e1fd78b34c52864ee4a667862f9f9995d850c73100000000";
+			var height = "2147483646";
+			var blockHash = "";
+			var blockIndex = "0";
+			var label = "foo";
+			var unixSeconds = "1567084917";
+			var isReplacement = "False";
+			var input = $"{txHash}:{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}";
+			foreach (var n in new[] { Network.Main, Network.TestNet, Network.RegTest })
+			{
+				var stx = SmartTransaction.FromLine(input, n);
+				Assert.Equal(txHash, stx.GetHash().ToString());
+				Assert.Equal(txHex, stx.Transaction.ToHex());
+				Assert.Equal(height, stx.Height.Value.ToString());
+				Assert.Equal(blockHash, Guard.Correct(stx.BlockHash?.ToString()));
+				Assert.Equal(blockIndex, stx.BlockIndex.ToString());
+				Assert.Equal(label, stx.Label);
+				Assert.Equal(unixSeconds, stx.FirstSeenIfMempoolTime.Value.ToUnixTimeSeconds().ToString());
+				Assert.Equal(isReplacement, stx.IsReplacement.ToString());
+			}
+
+			Network network = null;
+			Assert.Throws<ArgumentNullException>(() => SmartTransaction.FromLine(input, network));
+			network = Network.Main;
+			input = "";
+			Assert.Throws<ArgumentException>(() => SmartTransaction.FromLine(input, network));
+			input = " ";
+			Assert.Throws<ArgumentException>(() => SmartTransaction.FromLine(input, network));
+			input = null;
+			Assert.Throws<ArgumentNullException>(() => SmartTransaction.FromLine(input, network));
+			input = "";
+			Assert.Throws<ArgumentException>(() => SmartTransaction.FromLine(input, network));
+			input = " ";
+			Assert.Throws<ArgumentException>(() => SmartTransaction.FromLine(input, network));
 		}
 
 		public static IEnumerable<object[]> GetSmartTransactionCombinations()

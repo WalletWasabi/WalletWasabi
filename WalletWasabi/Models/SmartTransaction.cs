@@ -110,7 +110,9 @@ namespace WalletWasabi.Models
 
 		public static SmartTransaction FromLine(string line, Network expectedNetwork)
 		{
-			Guard.NotNull(nameof(expectedNetwork), expectedNetwork);
+			line = Guard.NotNullOrEmptyOrWhitespace(nameof(line), line, trim: true);
+			expectedNetwork = Guard.NotNull(nameof(expectedNetwork), expectedNetwork);
+
 			var parts = line.Split(':', StringSplitOptions.None);
 			// First is redundand txhash serialization.
 			var hex = parts[1];
