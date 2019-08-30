@@ -90,13 +90,7 @@ namespace WalletWasabi.Stores.Mempool
 				var allTransactions = allLines.Select(x => SmartTransaction.FromLine(x, Network));
 				lock (MempoolLock)
 				{
-					foreach (var tx in allTransactions)
-					{
-						if (Transactions.TryAdd(tx.GetHash(), tx))
-						{
-							Hashes.Add(tx.GetHash());
-						}
-					}
+					TryAddNoLock(allTransactions);
 				}
 
 				if (allTransactions.Count() != Transactions.Count)
@@ -133,13 +127,7 @@ namespace WalletWasabi.Stores.Mempool
 							var unconfirmedTransactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?.Where(x => !x.Confirmed)?.OrderByBlockchain() ?? Enumerable.Empty<SmartTransaction>();
 							lock (MempoolLock)
 							{
-								foreach (var tx in unconfirmedTransactions)
-								{
-									if (Transactions.TryAdd(tx.GetHash(), tx))
-									{
-										Hashes.Add(tx.GetHash());
-									}
-								}
+								TryAddNoLock(unconfirmedTransactions);
 							}
 						}
 						catch (Exception ex)
@@ -156,20 +144,41 @@ namespace WalletWasabi.Stores.Mempool
 			}
 		}
 
+		private ISet<SmartTransaction> TryAddNoLock(IEnumerable<SmartTransaction> transactions)
+		{
+			transactions = transactions ?? Enumerable.Empty<SmartTransaction>();
+			var added = new HashSet<SmartTransaction>();
+			foreach (var tx in transactions)
+			{
+				if (TryAddNoLock(tx).isTxAdded)
+				{
+					added.Add(tx);
+				}
+			}
+
+			return added;
+		}
+
 		public (bool isHashAdded, bool isTxAdded) TryAdd(SmartTransaction tx)
 		{
 			lock (MempoolLock)
 			{
-				var isTxAdded = Transactions.TryAdd(tx.GetHash(), tx);
-				var isHashAdded = Hashes.Add(tx.GetHash());
+				var isAdded = TryAddNoLock(tx);
 
-				if (isTxAdded)
+				if (isAdded.isTxAdded)
 				{
 					_ = TryAppendToFileAsync(tx);
 				}
 
-				return (isHashAdded, isTxAdded);
+				return isAdded;
 			}
+		}
+
+		private (bool isHashAdded, bool isTxAdded) TryAddNoLock(SmartTransaction tx)
+		{
+			var isTxAdded = Transactions.TryAdd(tx.GetHash(), tx);
+			var isHashAdded = Hashes.Add(tx.GetHash());
+			return (isHashAdded, isTxAdded);
 		}
 
 		public bool TryAdd(uint256 hash)
