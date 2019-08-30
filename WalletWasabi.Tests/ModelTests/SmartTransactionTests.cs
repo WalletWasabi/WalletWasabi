@@ -109,9 +109,10 @@ namespace WalletWasabi.Tests.ModelTests
 			var unixSeconds = "1567084917";
 			var isReplacement = "False";
 			var input = $"{txHash}:{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}";
+			SmartTransaction stx;
 			foreach (var n in new[] { Network.Main, Network.TestNet, Network.RegTest })
 			{
-				var stx = SmartTransaction.FromLine(input, n);
+				stx = SmartTransaction.FromLine(input, n);
 				Assert.Equal(txHash, stx.GetHash().ToString());
 				Assert.Equal(txHex, stx.Transaction.ToHex());
 				Assert.Equal(height, stx.Height.Value.ToString());
@@ -122,6 +123,7 @@ namespace WalletWasabi.Tests.ModelTests
 				Assert.Equal(isReplacement, stx.IsReplacement.ToString());
 			}
 
+			// Null and empty arguments.
 			Network network = null;
 			Assert.Throws<ArgumentNullException>(() => SmartTransaction.FromLine(input, network));
 			network = Network.Main;
@@ -135,6 +137,18 @@ namespace WalletWasabi.Tests.ModelTests
 			Assert.Throws<ArgumentException>(() => SmartTransaction.FromLine(input, network));
 			input = " ";
 			Assert.Throws<ArgumentException>(() => SmartTransaction.FromLine(input, network));
+
+			// Whitespaces.
+			input = $"     {txHash} :   {txHex}  :  {height}  :  {blockHash} :  {blockIndex}  : {label}    : {unixSeconds}     :    {isReplacement}  ";
+			stx = SmartTransaction.FromLine(input, network);
+			Assert.Equal(txHash, stx.GetHash().ToString());
+			Assert.Equal(txHex, stx.Transaction.ToHex());
+			Assert.Equal(height, stx.Height.Value.ToString());
+			Assert.Equal(blockHash, Guard.Correct(stx.BlockHash?.ToString()));
+			Assert.Equal(blockIndex, stx.BlockIndex.ToString());
+			Assert.Equal(label, stx.Label);
+			Assert.Equal(unixSeconds, stx.FirstSeenIfMempoolTime.Value.ToUnixTimeSeconds().ToString());
+			Assert.Equal(isReplacement, stx.IsReplacement.ToString());
 		}
 
 		public static IEnumerable<object[]> GetSmartTransactionCombinations()

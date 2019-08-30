@@ -113,7 +113,7 @@ namespace WalletWasabi.Models
 			line = Guard.NotNullOrEmptyOrWhitespace(nameof(line), line, trim: true);
 			expectedNetwork = Guard.NotNull(nameof(expectedNetwork), expectedNetwork);
 
-			var parts = line.Split(':', StringSplitOptions.None);
+			var parts = line.Split(':', StringSplitOptions.None).Select(x => x.Trim()).ToArray();
 			// First is redundand txhash serialization.
 			var hex = parts[1];
 			var heightString = parts[2];
