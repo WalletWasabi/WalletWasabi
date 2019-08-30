@@ -124,9 +124,9 @@ namespace WalletWasabi.Io
 			return TryGetSafestFileVersion(out _);
 		}
 
-		public new async Task WriteAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default, bool dismissNullOrEmptyContent = true)
+		public new async Task WriteAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default)
 		{
-			if (ShouldReturn(lines, dismissNullOrEmptyContent))
+			if (lines is null || !lines.Any())
 			{
 				return;
 			}

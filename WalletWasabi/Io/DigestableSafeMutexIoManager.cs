@@ -46,9 +46,9 @@ namespace WalletWasabi.Io
 			}
 		}
 
-		public new async Task WriteAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default, bool dismissNullOrEmptyContent = true)
+		public new async Task WriteAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default)
 		{
-			if (ShouldReturn(lines, dismissNullOrEmptyContent))
+			if (lines is null || !lines.Any())
 			{
 				return;
 			}
@@ -67,7 +67,7 @@ namespace WalletWasabi.Io
 				return;
 			}
 
-			await base.WriteAllLinesAsync(lines, cancellationToken, dismissNullOrEmptyContent);
+			await base.WriteAllLinesAsync(lines, cancellationToken);
 
 			await WriteOutHashAsync(res.hash);
 		}
