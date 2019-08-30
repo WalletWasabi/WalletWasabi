@@ -316,7 +316,7 @@ namespace WalletWasabi.Tests
 			var mempoolStore = new MempoolStore();
 			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName(callerName), "MempoolStore");
 			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir);
-			await mempoolStore.InitializeAsync(dir, Network.Main);
+			await mempoolStore.InitializeAsync(dir, Network.Main, false);
 			return new TransactionProcessor(
 				keyManager,
 				mempoolStore,

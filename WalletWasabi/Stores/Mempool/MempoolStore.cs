@@ -33,7 +33,7 @@ namespace WalletWasabi.Stores.Mempool
 		{
 		}
 
-		public async Task InitializeAsync(string workFolderPath, Network network)
+		public async Task InitializeAsync(string workFolderPath, Network network, bool ensureBackwardsCompatibility)
 		{
 			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 			Network = Guard.NotNull(nameof(network), network);
@@ -48,7 +48,10 @@ namespace WalletWasabi.Stores.Mempool
 			{
 				IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
-				TryEnsureBackwardsCompatibility();
+				if (ensureBackwardsCompatibility)
+				{
+					TryEnsureBackwardsCompatibility();
+				}
 
 				if (Network == Network.RegTest)
 				{

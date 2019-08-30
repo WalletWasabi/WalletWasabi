@@ -143,7 +143,7 @@ namespace WalletWasabi.Gui
 			#endregion ConfigInitialization
 
 			BitcoinStore = new BitcoinStore();
-			var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
+			var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network, ensureBackwardsCompatibility: true);
 			var hwiInitTask = HwiProcessManager.InitializeAsync(DataDir, Network);
 			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");

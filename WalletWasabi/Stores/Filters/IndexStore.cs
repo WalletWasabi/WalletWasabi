@@ -37,7 +37,7 @@ namespace WalletWasabi.Stores.Filters
 
 		public event EventHandler<FilterModel> NewFilter;
 
-		public async Task InitializeAsync(string workFolderPath, Network network)
+		public async Task InitializeAsync(string workFolderPath, Network network, bool ensureBackwardsCompatibility)
 		{
 			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 			Network = Guard.NotNull(nameof(network), network);
@@ -60,7 +60,10 @@ namespace WalletWasabi.Stores.Filters
 			{
 				IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
-				await TryEnsureBackwardsCompatibilityAsync();
+				if (ensureBackwardsCompatibility)
+				{
+					await TryEnsureBackwardsCompatibilityAsync();
+				}
 
 				if (Network == Network.RegTest)
 				{

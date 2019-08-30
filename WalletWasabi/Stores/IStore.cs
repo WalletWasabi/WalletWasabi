@@ -8,6 +8,6 @@ namespace WalletWasabi.Stores
 {
 	public interface IStore
 	{
-		Task InitializeAsync(string workFolderPath, Network network);
+		Task InitializeAsync(string workFolderPath, Network network, bool ensureBackwardsCompatibility);
 	}
 }

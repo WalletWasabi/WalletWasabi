@@ -21,7 +21,7 @@ namespace WalletWasabi.Tests.StoreTests
 
 			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
 			var network = Network.Main;
-			await mempoolStore.InitializeAsync(dir, network);
+			await mempoolStore.InitializeAsync(dir, network, false);
 
 			Assert.Equal(network, mempoolStore.Network);
 			Assert.Equal(dir, mempoolStore.WorkFolderPath);
@@ -35,7 +35,7 @@ namespace WalletWasabi.Tests.StoreTests
 			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
 			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir);
 			var network = Network.Main;
-			await mempoolStore.InitializeAsync(dir, network);
+			await mempoolStore.InitializeAsync(dir, network, false);
 
 			Assert.True(mempoolStore.IsEmpty());
 

@@ -24,7 +24,7 @@ namespace WalletWasabi.Stores
 		public MempoolStore MempoolStore { get; private set; }
 		public HashChain HashChain => IndexStore.HashChain;
 
-		public async Task InitializeAsync(string workFolderPath, Network network)
+		public async Task InitializeAsync(string workFolderPath, Network network, bool ensureBackwardsCompatibility)
 		{
 			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
@@ -38,8 +38,8 @@ namespace WalletWasabi.Stores
 
 			var initTasks = new List<Task>
 			{
-				IndexStore.InitializeAsync(indexStoreFolderPath, Network),
-				MempoolStore.InitializeAsync(mempoolStoreFolderPath, Network)
+				IndexStore.InitializeAsync(indexStoreFolderPath, Network, ensureBackwardsCompatibility),
+				MempoolStore.InitializeAsync(mempoolStoreFolderPath, Network, ensureBackwardsCompatibility)
 			};
 
 			await Task.WhenAll(initTasks);
