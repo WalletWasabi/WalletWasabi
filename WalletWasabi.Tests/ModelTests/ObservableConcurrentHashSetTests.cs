@@ -9,6 +9,9 @@ namespace WalletWasabi.Tests.ModelTests
 {
 	public class ObservableConcurrentHashSetTests
 	{
+		private int Set_CollectionChangedInvokeCount { get; set; }
+		private object Set_CollectionChangedLock { get; set; }
+
 		[Fact]
 		public void ObservableConcurrentHashSetTest()
 		{
@@ -60,9 +63,6 @@ namespace WalletWasabi.Tests.ModelTests
 				set.CollectionChanged -= Set_CollectionChanged;
 			}
 		}
-
-		private int Set_CollectionChangedInvokeCount { get; set; }
-		private object Set_CollectionChangedLock { get; set; }
 
 		private void Set_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
