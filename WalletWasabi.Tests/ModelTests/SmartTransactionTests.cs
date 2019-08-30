@@ -102,7 +102,7 @@ namespace WalletWasabi.Tests.ModelTests
 			// Basic deserialization test.
 			var txHash = "dea20cf140bc40d4a6940ac85246989138541e530ed58cbaa010c6b730efd2f6";
 			var txHex = "0100000001a67535553fea8a41550e79571359df9e5458b3c2264e37523b0b5d550feecefe0000000000ffffffff017584010000000000160014e1fd78b34c52864ee4a667862f9f9995d850c73100000000";
-			var height = "2147483647";
+			var height = "Unknown";
 			var blockHash = "";
 			var blockIndex = "0";
 			var label = "foo";
@@ -146,7 +146,7 @@ namespace WalletWasabi.Tests.ModelTests
 					{
 						Assert.Equal(txHash, stx.GetHash().ToString());
 						Assert.Equal(txHex, stx.Transaction.ToHex());
-						Assert.Equal(height, stx.Height.Value.ToString());
+						Assert.Equal(height, stx.Height.ToString());
 						Assert.Equal(blockHash, Guard.Correct(stx.BlockHash?.ToString()));
 						Assert.Equal(blockIndex, stx.BlockIndex.ToString());
 						Assert.Equal(label, stx.Label);

@@ -81,26 +81,16 @@ namespace WalletWasabi.Models
 		public string ToLine()
 		{
 			// GetHash is also serialized, so file can be interpreted with our eyes better.
-			var builder = new StringBuilder(GetHash().ToString());
-			builder.Append(':');
-			builder.Append(Transaction.ToHex());
-			builder.Append(':');
-			builder.Append(Height.Value.ToString());
-			builder.Append(':');
-			if (BlockHash != null)
-			{
-				builder.Append(BlockHash);
-			}
-			builder.Append(':');
-			builder.Append(BlockIndex);
-			builder.Append(':');
-			builder.Append(CorrectLabel(Label));
-			builder.Append(':');
-			builder.Append(FirstSeenIfMempoolTime?.ToUnixTimeSeconds().ToString() ?? "");
-			builder.Append(':');
-			builder.Append(IsReplacement);
 
-			return builder.ToString();
+			return string.Join(':',
+				GetHash(),
+				Transaction.ToHex(),
+				Height,
+				BlockHash,
+				BlockIndex,
+				CorrectLabel(Label),
+				FirstSeenIfMempoolTime?.ToUnixTimeSeconds(),
+				IsReplacement);
 		}
 
 		private string CorrectLabel(string label)
