@@ -89,7 +89,10 @@ namespace WalletWasabi.Stores.Mempool
 				{
 					foreach (var tx in allTransactions)
 					{
-						Transactions.TryAdd(tx.GetHash(), tx);
+						if (Transactions.TryAdd(tx.GetHash(), tx))
+						{
+							Hashes.Add(tx.GetHash());
+						}
 					}
 				}
 
@@ -129,7 +132,10 @@ namespace WalletWasabi.Stores.Mempool
 							{
 								foreach (var tx in unconfirmedTransactions)
 								{
-									Transactions.TryAdd(tx.GetHash(), tx);
+									if (Transactions.TryAdd(tx.GetHash(), tx))
+									{
+										Hashes.Add(tx.GetHash());
+									}
 								}
 							}
 						}
