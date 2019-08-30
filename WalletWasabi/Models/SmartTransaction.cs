@@ -114,39 +114,83 @@ namespace WalletWasabi.Models
 			expectedNetwork = Guard.NotNull(nameof(expectedNetwork), expectedNetwork);
 
 			var parts = line.Split(':', StringSplitOptions.None).Select(x => x.Trim()).ToArray();
-			// First is redundand txhash serialization.
-			var hex = parts[1];
-			var heightString = parts[2];
-			var blockHashString = parts[3];
-			var blockIndexString = parts[4];
-			var label = parts[5];
-			var firstSeenIfMempoolTimeString = parts[6];
-			var isReplacementString = parts[7];
 
-			var tx = Transaction.Parse(hex, expectedNetwork);
-			if (!Height.TryParse(heightString, out Height h))
-			{
-				h = Height.Unknown;
-			}
-			if (!uint256.TryParse(blockHashString, out uint256 bh))
-			{
-				bh = null;
-			}
-			if (!int.TryParse(blockIndexString, out int bi))
-			{
-				bi = 0;
-			}
-			DateTimeOffset? fs = null;
-			if (long.TryParse(firstSeenIfMempoolTimeString, out long unixSeconds))
-			{
-				fs = DateTimeOffset.FromUnixTimeSeconds(unixSeconds);
-			}
-			if (!bool.TryParse(isReplacementString, out bool ir))
-			{
-				ir = false;
-			}
+			// Find the Transaction hex, it must be always present.
+			ParseTransactionHex(expectedNetwork, parts, out Transaction tx, out int txHexIndex);
 
-			return new SmartTransaction(tx, h, bh, bi, label, fs, ir);
+			try
+			{
+				// First is redundand txhash serialization.
+				var heightString = parts[txHexIndex + 1];
+				var blockHashString = parts[txHexIndex + 2];
+				var blockIndexString = parts[txHexIndex + 3];
+				var label = parts[txHexIndex + 4];
+				var firstSeenIfMempoolTimeString = parts[txHexIndex + 5];
+				var isReplacementString = parts[txHexIndex + 6];
+
+				if (!Height.TryParse(heightString, out Height h))
+				{
+					h = Height.Unknown;
+				}
+				if (!uint256.TryParse(blockHashString, out uint256 bh))
+				{
+					bh = null;
+				}
+				if (!int.TryParse(blockIndexString, out int bi))
+				{
+					bi = 0;
+				}
+				DateTimeOffset? fs = null;
+				if (long.TryParse(firstSeenIfMempoolTimeString, out long unixSeconds))
+				{
+					fs = DateTimeOffset.FromUnixTimeSeconds(unixSeconds);
+				}
+				if (!bool.TryParse(isReplacementString, out bool ir))
+				{
+					ir = false;
+				}
+
+				return new SmartTransaction(tx, h, bh, bi, label, fs, ir);
+			}
+			catch
+			{
+				return new SmartTransaction(tx, Height.Unknown);
+			}
+		}
+
+		private static void ParseTransactionHex(Network expectedNetwork, string[] parts, out Transaction tx, out int txHexIndex)
+		{
+			tx = null;
+			txHexIndex = 1;
+			try
+			{
+				tx = Transaction.Parse(parts[txHexIndex], expectedNetwork);
+			}
+			catch
+			{
+				for (txHexIndex = 0; txHexIndex < parts.Length; txHexIndex++)
+				{
+					if (txHexIndex == 1)
+					{
+						continue; // We already checked this.
+					}
+
+					string part = parts[txHexIndex];
+					try
+					{
+						tx = Transaction.Parse(part, expectedNetwork);
+						break;
+					}
+					catch
+					{
+						continue;
+					}
+				}
+			}
+			if (tx is null)
+			{
+				throw new FormatException($"Transaction hex is not present.");
+			}
 		}
 
 		public void SetHeight(Height height, uint256 blockHash = null, int blockIndex = 0)

@@ -102,7 +102,7 @@ namespace WalletWasabi.Tests.ModelTests
 			// Basic deserialization test.
 			var txHash = "dea20cf140bc40d4a6940ac85246989138541e530ed58cbaa010c6b730efd2f6";
 			var txHex = "0100000001a67535553fea8a41550e79571359df9e5458b3c2264e37523b0b5d550feecefe0000000000ffffffff017584010000000000160014e1fd78b34c52864ee4a667862f9f9995d850c73100000000";
-			var height = "2147483646";
+			var height = "2147483647";
 			var blockHash = "";
 			var blockIndex = "0";
 			var label = "foo";
@@ -119,18 +119,40 @@ namespace WalletWasabi.Tests.ModelTests
 					$"     {txHash} :   {txHex}  :  {height}  :  {blockHash} :  {blockIndex}  : {label}    : {unixSeconds}     :    {isReplacement}  ",
 					// Don't fail on more inputs.
 					$"{txHash}:{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}::",
-					$"{txHash}:{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}:bar:buz"
+					$"{txHash}:{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}:bar:buz",
+					// Can leave out some inputs.
+					$":{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}",
+					$"{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}",
+					$"{txHash}:{txHex}::{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}",
+					$"{txHash}:{txHex}:{height}::{blockIndex}:{label}:{unixSeconds}:{isReplacement}",
+					$"{txHash}:{txHex}:{height}:{blockHash}::{label}:{unixSeconds}:{isReplacement}",
+					$"{txHex}",
 				})
 				{
 					stx = SmartTransaction.FromLine(inp, net);
-					Assert.Equal(txHash, stx.GetHash().ToString());
-					Assert.Equal(txHex, stx.Transaction.ToHex());
-					Assert.Equal(height, stx.Height.Value.ToString());
-					Assert.Equal(blockHash, Guard.Correct(stx.BlockHash?.ToString()));
-					Assert.Equal(blockIndex, stx.BlockIndex.ToString());
-					Assert.Equal(label, stx.Label);
-					Assert.Equal(unixSeconds, stx.FirstSeenIfMempoolTime.Value.ToUnixTimeSeconds().ToString());
-					Assert.Equal(isReplacement, stx.IsReplacement.ToString());
+
+					if (inp == $"{txHex}")
+					{
+						Assert.Equal(txHash, stx.GetHash().ToString());
+						Assert.Equal(txHex, stx.Transaction.ToHex());
+						Assert.Equal(Height.Unknown, stx.Height);
+						Assert.Null(stx.BlockHash);
+						Assert.Equal(0, stx.BlockIndex);
+						Assert.Empty(stx.Label);
+						Assert.Null(stx.FirstSeenIfMempoolTime);
+						Assert.False(stx.IsReplacement);
+					}
+					else
+					{
+						Assert.Equal(txHash, stx.GetHash().ToString());
+						Assert.Equal(txHex, stx.Transaction.ToHex());
+						Assert.Equal(height, stx.Height.Value.ToString());
+						Assert.Equal(blockHash, Guard.Correct(stx.BlockHash?.ToString()));
+						Assert.Equal(blockIndex, stx.BlockIndex.ToString());
+						Assert.Equal(label, stx.Label);
+						Assert.Equal(unixSeconds, stx.FirstSeenIfMempoolTime.Value.ToUnixTimeSeconds().ToString());
+						Assert.Equal(isReplacement, stx.IsReplacement.ToString());
+					}
 				}
 			}
 
