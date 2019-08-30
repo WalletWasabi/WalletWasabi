@@ -38,7 +38,7 @@ namespace WalletWasabi.Gui.Controls
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 			{
-				PasswordChar = x ? '\0' : '*';
+				PasswordChar = x ? '\0' : '\u2022';
 			});
 		}
 
