@@ -95,6 +95,25 @@ namespace WalletWasabi.Tests.ModelTests
 			Assert.Equal(stx.Transaction.GetHash(), sameStx.Transaction.GetHash());
 		}
 
+		[Fact]
+		public void SmartTransactionLineDeserialization()
+		{
+			// Basic deserialization test.
+			var unixSeconds = 1567084917;
+			var txHash = new uint256("dea20cf140bc40d4a6940ac85246989138541e530ed58cbaa010c6b730efd2f6");
+			var input = $"{txHash}:0100000001a67535553fea8a41550e79571359df9e5458b3c2264e37523b0b5d550feecefe0000000000ffffffff017584010000000000160014e1fd78b34c52864ee4a667862f9f9995d850c73100000000:2147483646::0::{unixSeconds}:False";
+			var stx = SmartTransaction.FromLine(input, Network.Main);
+			Assert.Null(stx.BlockHash);
+			Assert.Equal(0, stx.BlockIndex);
+			Assert.False(stx.Confirmed);
+			Assert.Equal(DateTimeOffset.FromUnixTimeSeconds(unixSeconds), stx.FirstSeenIfMempoolTime);
+			Assert.Equal(Height.Mempool, stx.Height);
+			Assert.False(stx.IsRBF);
+			Assert.False(stx.IsReplacement);
+			Assert.Empty(stx.Label);
+			Assert.Equal(txHash, stx.GetHash());
+		}
+
 		public static IEnumerable<object[]> GetSmartTransactionCombinations()
 		{
 			var networks = new List<Network>
