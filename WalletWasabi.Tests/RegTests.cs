@@ -3446,8 +3446,8 @@ namespace WalletWasabi.Tests
 						throw new TimeoutException("Wallet spends were not recognized.");
 					}
 				}
-				SmartCoin[] unspentChanges = wallet.Coins.Where(x => x.Label == "" && x.Unspent).ToArray();
-				await wallet.ChaumianClient.DequeueCoinsFromMixAsync(unspentChanges, "");
+
+				await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync("");
 
 				Assert.Equal(4, wallet.Coins.Count(x => x.Label == "" && !x.Unavailable));
 				Assert.Equal(3, wallet2.Coins.Count(x => x.Label == "" && !x.Unavailable));
