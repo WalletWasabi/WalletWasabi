@@ -224,7 +224,7 @@ namespace WalletWasabi.Tests.StoreTests
 
 			DigestableSafeMutexIoManager ioman = new DigestableSafeMutexIoManager(file);
 			ioman.DeleteMe();
-			await ioman.WriteAllLinesAsync(new string[0]);
+			IoHelpers.EnsureFileExists(file);
 
 			string RandomString()
 			{
