@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Stores.Filters;
-using WalletWasabi.Stores.Transactions.Mempool;
+using WalletWasabi.Stores.Transactions;
 
 namespace WalletWasabi.Stores
 {

@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
-using WalletWasabi.Stores.Transactions.Mempool;
+using WalletWasabi.Stores.Transactions;
 using Xunit;
 
 namespace WalletWasabi.Tests.StoreTests
