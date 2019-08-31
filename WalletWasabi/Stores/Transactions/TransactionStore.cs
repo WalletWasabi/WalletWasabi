@@ -110,7 +110,7 @@ namespace WalletWasabi.Stores.Transactions
 			}
 		}
 
-		private ISet<SmartTransaction> TryAddNoLockNoSerialization(IEnumerable<SmartTransaction> transactions)
+		public ISet<SmartTransaction> TryAddNoLockNoSerialization(IEnumerable<SmartTransaction> transactions)
 		{
 			transactions = transactions ?? Enumerable.Empty<SmartTransaction>();
 			var added = new HashSet<SmartTransaction>();
@@ -136,6 +136,20 @@ namespace WalletWasabi.Stores.Transactions
 				}
 
 				return isAdded;
+			}
+		}
+
+		public ISet<SmartTransaction> TryAdd(IEnumerable<SmartTransaction> transactions)
+		{
+			lock (TransactionsLock)
+			{
+				var added = TryAddNoLockNoSerialization(transactions);
+				if (added.Any())
+				{
+					_ = TryAppendToFileAsync(transactions);
+				}
+
+				return added;
 			}
 		}
 
@@ -192,6 +206,28 @@ namespace WalletWasabi.Stores.Transactions
 					try
 					{
 						await TransactionsFileManager.AppendAllLinesAsync(new[] { stx.ToLine() });
+					}
+					catch
+					{
+						await SerializeAllTransactionsAsync();
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError<MempoolStore>(ex);
+			}
+		}
+
+		private async Task TryAppendToFileAsync(IEnumerable<SmartTransaction> transactions)
+		{
+			try
+			{
+				using (await TransactionsFileManager.Mutex.LockAsync())
+				{
+					try
+					{
+						await TransactionsFileManager.AppendAllLinesAsync(transactions.Select(x => x.ToLine()));
 					}
 					catch
 					{

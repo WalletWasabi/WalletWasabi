@@ -19,8 +19,8 @@ namespace WalletWasabi.Stores.Transactions
 {
 	public class MempoolStore : IStore
 	{
-		public string WorkFolderPath { get; private set; }
-		public Network Network { get; private set; }
+		public string WorkFolderPath => TransactionStore.WorkFolderPath;
+		public Network Network => TransactionStore.Network;
 		public MempoolService MempoolService { get; private set; }
 		public MempoolBehavior MempoolBehavior { get; private set; }
 
@@ -34,13 +34,13 @@ namespace WalletWasabi.Stores.Transactions
 
 		public async Task InitializeAsync(string workFolderPath, Network network, bool ensureBackwardsCompatibility)
 		{
-			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-			Network = Guard.NotNull(nameof(network), network);
+			var initStart = DateTimeOffset.UtcNow;
+
 			Hashes = new HashSet<uint256>();
 			TransactionStore = new TransactionStore("Mempool.dat", () => TryEnsureBackwardsCompatibility(), clearOnRegtest: true);
 			MempoolLock = new object();
 
-			await TransactionStore.InitializeAsync(WorkFolderPath, Network, ensureBackwardsCompatibility);
+			await TransactionStore.InitializeAsync(workFolderPath, network, ensureBackwardsCompatibility);
 
 			lock (MempoolLock)
 			{
@@ -52,6 +52,9 @@ namespace WalletWasabi.Stores.Transactions
 
 			MempoolService = new MempoolService(this);
 			MempoolBehavior = new MempoolBehavior(this);
+
+			var elapsedSeconds = Math.Round((DateTimeOffset.UtcNow - initStart).TotalSeconds, 1);
+			Logger.LogInfo<MempoolStore>($"Initialized in {elapsedSeconds} seconds.");
 		}
 
 		private void TryEnsureBackwardsCompatibility()
@@ -70,7 +73,7 @@ namespace WalletWasabi.Stores.Transactions
 							var unconfirmedTransactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?.Where(x => !x.Confirmed)?.OrderByBlockchain() ?? Enumerable.Empty<SmartTransaction>();
 							lock (MempoolLock)
 							{
-								TryAddNoLock(unconfirmedTransactions);
+								TryAddNoLockNoSerialization(unconfirmedTransactions);
 							}
 						}
 						catch (Exception ex)
@@ -87,13 +90,13 @@ namespace WalletWasabi.Stores.Transactions
 			}
 		}
 
-		private ISet<SmartTransaction> TryAddNoLock(IEnumerable<SmartTransaction> transactions)
+		private ISet<SmartTransaction> TryAddNoLockNoSerialization(IEnumerable<SmartTransaction> transactions)
 		{
 			transactions = transactions ?? Enumerable.Empty<SmartTransaction>();
 			var added = new HashSet<SmartTransaction>();
 			foreach (var tx in transactions)
 			{
-				if (TryAddNoLock(tx).isTxAdded)
+				if (TryAddNoLockNoSerialization(tx).isTxAdded)
 				{
 					added.Add(tx);
 				}
@@ -106,11 +109,11 @@ namespace WalletWasabi.Stores.Transactions
 		{
 			lock (MempoolLock)
 			{
-				return TryAddNoLock(tx);
+				return TryAddNoLockNoSerialization(tx);
 			}
 		}
 
-		private (bool isHashAdded, bool isTxAdded) TryAddNoLock(SmartTransaction tx)
+		private (bool isHashAdded, bool isTxAdded) TryAddNoLockNoSerialization(SmartTransaction tx)
 		{
 			var isTxAdded = TransactionStore.TryAdd(tx);
 			var isHashAdded = Hashes.Add(tx.GetHash());
