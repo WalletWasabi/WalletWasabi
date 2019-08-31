@@ -127,6 +127,9 @@ namespace WalletWasabi.Gui
 
 		private bool Initialized { get; set; } = false;
 
+		public List<CcjClient> CcjClients { get; private set; } = new List<CcjClient>();
+		public List<WalletService> WalletServices { get; private set; } = new List<WalletService>();
+
 		public async Task InitializeNoWalletAsync()
 		{
 			WalletService = null;
@@ -297,6 +300,47 @@ namespace WalletWasabi.Gui
 
 			#endregion SynchronizerInitialization
 
+			var initStart = DateTimeOffset.UtcNow;
+			var kms = new List<CcjClient>();
+			var directoryInfo = new DirectoryInfo(WalletsDir);
+			var walletFiles = directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
+			foreach (var file in walletFiles)
+			{
+				var km = KeyManager.FromFile(file.FullName);
+
+				if (Config.UseTor)
+				{
+					kms.Add(new CcjClient(Synchronizer, Network, km, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint));
+				}
+				else
+				{
+					kms.Add(new CcjClient(Synchronizer, Network, km, Config.GetFallbackBackendUri(), null));
+				}
+			}
+
+			CcjClients = kms;
+			var elapsedSeconds = Math.Round((DateTimeOffset.UtcNow - initStart).TotalSeconds, 1);
+			Logger.LogInfo<Global>($"KeyManagers are loaded in {elapsedSeconds} seconds.");
+
+			initStart = DateTimeOffset.UtcNow;
+			var wsInitTasks = new List<Task<WalletService>>();
+			foreach (var km in CcjClients)
+			{
+				wsInitTasks.Add(InitializeWalletServiceAsync(km.KeyManager));
+			}
+
+			foreach (var wst in wsInitTasks)
+			{
+				var ws = await wst;
+				WalletServices.Add(ws);
+
+				elapsedSeconds = Math.Round((DateTimeOffset.UtcNow - initStart).TotalSeconds, 1);
+				Logger.LogInfo<Global>($"WalletService {Path.GetFileNameWithoutExtension(ws.KeyManager.FilePath)} is loaded in {elapsedSeconds} seconds.");
+			}
+
+			elapsedSeconds = Math.Round((DateTimeOffset.UtcNow - initStart).TotalSeconds, 1);
+			Logger.LogInfo<Global>($"All WalletServices are loaded in {elapsedSeconds} seconds.");
+
 			Initialized = true;
 		}
 
@@ -396,15 +440,15 @@ namespace WalletWasabi.Gui
 
 		private CancellationTokenSource _cancelWalletServiceInitialization = null;
 
-		public async Task InitializeWalletServiceAsync(KeyManager keyManager)
+		public async Task<WalletService> InitializeWalletServiceAsync(KeyManager keyManager)
 		{
 			using (_cancelWalletServiceInitialization = new CancellationTokenSource())
 			{
 				var token = _cancelWalletServiceInitialization.Token;
-				while (!Initialized)
-				{
-					await Task.Delay(100, token);
-				}
+				//while (!Initialized)
+				//{
+				//	await Task.Delay(100, token);
+				//}
 
 				if (Config.UseTor)
 				{
@@ -437,6 +481,8 @@ namespace WalletWasabi.Gui
 				WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
 			}
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
+
+			return WalletService;
 		}
 
 		public string GetWalletFullPath(string walletName)
@@ -496,7 +542,7 @@ namespace WalletWasabi.Gui
 				LastAccessTime = DateTime.Now
 			};
 
-			keyManager = KeyManager.FromFile(walletFullPath);
+			keyManager = CcjClients.Select(x => x.KeyManager).First(x => x.FilePath == walletFullPath);
 			Logger.LogInfo($"Wallet loaded: {Path.GetFileNameWithoutExtension(keyManager.FilePath)}.");
 			return keyManager;
 		}
