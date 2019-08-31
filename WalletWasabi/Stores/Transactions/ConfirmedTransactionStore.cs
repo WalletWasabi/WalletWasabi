@@ -12,26 +12,13 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Stores.Transactions
 {
-	public class ConfirmedTransactionStore : IStore
+	public class ConfirmedTransactionStore : TransactionStore, IStore
 	{
-		public string WorkFolderPath => TransactionStore.WorkFolderPath;
-		public Network Network => TransactionStore.Network;
-
-		private TransactionStore TransactionStore { get; set; }
-		private object TransactionsLock { get; set; }
-
-		public ConfirmedTransactionStore()
-		{
-		}
-
 		public async Task InitializeAsync(string workFolderPath, Network network, bool ensureBackwardsCompatibility)
 		{
 			var initStart = DateTimeOffset.UtcNow;
 
-			TransactionStore = new TransactionStore("ConfirmedTransactions.dat", () => TryEnsureBackwardsCompatibility(), clearOnRegtest: true);
-			TransactionsLock = new object();
-
-			await TransactionStore.InitializeAsync(workFolderPath, network, ensureBackwardsCompatibility);
+			await InitializeAsync(workFolderPath, network, ensureBackwardsCompatibility, "ConfirmedTransactions.dat", () => TryEnsureBackwardsCompatibility(), clearOnRegtest: true);
 
 			var elapsedSeconds = Math.Round((DateTimeOffset.UtcNow - initStart).TotalSeconds, 1);
 			Logger.LogInfo<ConfirmedTransactionStore>($"Initialized in {elapsedSeconds} seconds.");
@@ -53,7 +40,7 @@ namespace WalletWasabi.Stores.Transactions
 							var confirmedTransactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?.Where(x => x.Confirmed)?.OrderByBlockchain() ?? Enumerable.Empty<SmartTransaction>();
 							lock (TransactionsLock)
 							{
-								TransactionStore.TryAddNoLockNoSerialization(confirmedTransactions);
+								TryAddNoLockNoSerialization(confirmedTransactions);
 							}
 						}
 						catch (Exception ex)

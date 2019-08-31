@@ -29,7 +29,7 @@ namespace WalletWasabi.Tests
 
 			Assert.False(relevant);
 			Assert.Empty(transactionProcessor.Coins);
-			Assert.Empty(transactionProcessor.ConfirmedTransactionCache);
+			Assert.Empty(transactionProcessor.ConfirmedTransactionStore.GetTransactions());
 		}
 
 		[Fact]
@@ -58,7 +58,7 @@ namespace WalletWasabi.Tests
 
 			Assert.False(relevant);
 			Assert.Empty(transactionProcessor.Coins);
-			Assert.Empty(transactionProcessor.ConfirmedTransactionCache);
+			Assert.Empty(transactionProcessor.ConfirmedTransactionStore.GetTransactions());
 		}
 
 		[Fact]
@@ -74,7 +74,7 @@ namespace WalletWasabi.Tests
 
 			Assert.False(relevant);
 			Assert.Empty(transactionProcessor.Coins);
-			Assert.Empty(transactionProcessor.ConfirmedTransactionCache);
+			Assert.Empty(transactionProcessor.ConfirmedTransactionStore.GetTransactions());
 			Assert.Empty(transactionProcessor.MempoolStore.GetTransactionHashes());
 		}
 
@@ -90,7 +90,7 @@ namespace WalletWasabi.Tests
 			transactionProcessor.MempoolStore.TryAdd(tx.GetHash()); // This transaction was already seen before
 			transactionProcessor.Process(tx);
 
-			Assert.Empty(transactionProcessor.ConfirmedTransactionCache);
+			Assert.Empty(transactionProcessor.ConfirmedTransactionStore.GetTransactions());
 			var cachedTx = Assert.Single(transactionProcessor.MempoolStore.GetTransactions());
 			var coin = Assert.Single(transactionProcessor.Coins);
 			Assert.Equal(Height.Mempool, cachedTx.Height);
@@ -103,7 +103,7 @@ namespace WalletWasabi.Tests
 
 			Assert.True(relevant);
 			Assert.Single(transactionProcessor.Coins);
-			cachedTx = Assert.Single(transactionProcessor.ConfirmedTransactionCache);
+			cachedTx = Assert.Single(transactionProcessor.ConfirmedTransactionStore.GetTransactions());
 			Assert.NotEqual(Height.Mempool, cachedTx.Height);
 			coin = Assert.Single(transactionProcessor.Coins);
 			Assert.Equal(blockHeight, coin.Height);
@@ -134,7 +134,7 @@ namespace WalletWasabi.Tests
 			Assert.False(relevant);
 			Assert.Single(transactionProcessor.Coins, coin => coin.Unspent);
 			Assert.Single(transactionProcessor.Coins, coin => !coin.Unspent);
-			Assert.Empty(transactionProcessor.ConfirmedTransactionCache);
+			Assert.Empty(transactionProcessor.ConfirmedTransactionStore.GetTransactions());
 			Assert.Equal(2, transactionProcessor.MempoolStore.GetTransactions().Count());
 		}
 
@@ -210,7 +210,7 @@ namespace WalletWasabi.Tests
 			var coin = Assert.Single(transactionProcessor.Coins);
 			Assert.Equal(Money.Coins(1.0m), coin.Amount);
 			Assert.Contains(transactionProcessor.MempoolStore.GetTransactions(), x => x == tx);
-			Assert.DoesNotContain(transactionProcessor.ConfirmedTransactionCache, x => x == tx);
+			Assert.DoesNotContain(transactionProcessor.ConfirmedTransactionStore.GetTransactions(), x => x == tx);
 			Assert.NotNull(receivedCoin);
 		}
 
@@ -313,16 +313,22 @@ namespace WalletWasabi.Tests
 		{
 			var keyManager = KeyManager.CreateNew(out _, "password");
 			keyManager.AssertCleanKeysIndexed();
+
 			var mempoolStore = new MempoolStore();
-			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName(callerName), "MempoolStore");
-			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir);
-			await mempoolStore.InitializeAsync(dir, Network.Main, false);
+			var confTxStore = new ConfirmedTransactionStore();
+			var mempoolStoreDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName(callerName), "MempoolStore");
+			var confTxStoreDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName(callerName), "ConfirmedTransactions");
+			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(mempoolStoreDir);
+			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(confTxStoreDir);
+			await mempoolStore.InitializeAsync(mempoolStoreDir, Network.Main, false);
+			await confTxStore.InitializeAsync(confTxStoreDir, Network.Main, false);
+
 			return new TransactionProcessor(
 				keyManager,
 				mempoolStore,
+				confTxStore,
 				new ObservableConcurrentHashSet<SmartCoin>(),
-				Money.Coins(0.0001m),
-				new ConcurrentHashSet<SmartTransaction>());
+				Money.Coins(0.0001m));
 		}
 
 		private static SmartTransaction CreateSpendingTransaction(Coin coin, Script scriptPubKey = null, bool isConfirmed = false)

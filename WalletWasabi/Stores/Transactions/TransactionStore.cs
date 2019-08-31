@@ -17,33 +17,25 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Stores.Transactions
 {
-	public class TransactionStore : IStore
+	public class TransactionStore
 	{
 		public string WorkFolderPath { get; private set; }
 		public Network Network { get; private set; }
 
 		private Dictionary<uint256, SmartTransaction> Transactions { get; set; }
-		private object TransactionsLock { get; set; }
+		protected object TransactionsLock { get; set; }
 		private MutexIoManager TransactionsFileManager { get; set; }
-		public string TransactionsFileName { get; }
-		public Action TryEnsureBackwardsCompatibilityAction { get; }
-		public bool ClearOnRegtest { get; }
 
-		public TransactionStore(string transactionsFileName, Action tryEnsureBackwardsCompatibilityAction, bool clearOnRegtest)
+		public async Task InitializeAsync(string workFolderPath, Network network, bool ensureBackwardsCompatibility, string fileName, Action tryEnsureBackwardsCompatibilityAction, bool clearOnRegtest)
 		{
-			TransactionsFileName = Guard.NotNullOrEmptyOrWhitespace(nameof(transactionsFileName), transactionsFileName, true);
-			TryEnsureBackwardsCompatibilityAction = tryEnsureBackwardsCompatibilityAction;
-			ClearOnRegtest = clearOnRegtest;
-		}
+			fileName = Guard.NotNullOrEmptyOrWhitespace(nameof(fileName), fileName, true);
 
-		public async Task InitializeAsync(string workFolderPath, Network network, bool ensureBackwardsCompatibility)
-		{
 			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 			Network = Guard.NotNull(nameof(network), network);
 			Transactions = new Dictionary<uint256, SmartTransaction>();
 			TransactionsLock = new object();
 
-			var transactionsFilePath = Path.Combine(WorkFolderPath, TransactionsFileName);
+			var transactionsFilePath = Path.Combine(WorkFolderPath, fileName);
 			TransactionsFileManager = new MutexIoManager(transactionsFilePath);
 
 			using (await TransactionsFileManager.Mutex.LockAsync())
@@ -52,10 +44,10 @@ namespace WalletWasabi.Stores.Transactions
 
 				if (ensureBackwardsCompatibility)
 				{
-					TryEnsureBackwardsCompatibilityAction();
+					tryEnsureBackwardsCompatibilityAction();
 				}
 
-				if (ClearOnRegtest && Network == Network.RegTest)
+				if (clearOnRegtest && Network == Network.RegTest)
 				{
 					TransactionsFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
 				}
@@ -110,7 +102,7 @@ namespace WalletWasabi.Stores.Transactions
 			}
 		}
 
-		public ISet<SmartTransaction> TryAddNoLockNoSerialization(IEnumerable<SmartTransaction> transactions)
+		protected ISet<SmartTransaction> TryAddNoLockNoSerialization(IEnumerable<SmartTransaction> transactions)
 		{
 			transactions = transactions ?? Enumerable.Empty<SmartTransaction>();
 			var added = new HashSet<SmartTransaction>();
@@ -155,7 +147,8 @@ namespace WalletWasabi.Stores.Transactions
 
 		private bool TryAddNoLockNoSerialization(SmartTransaction tx)
 		{
-			return Transactions.TryAdd(tx.GetHash(), tx);
+			var hash = tx.GetHash();
+			return Transactions.TryAdd(hash, tx);
 		}
 
 		public bool TryRemove(uint256 hash, out SmartTransaction stx)

@@ -25,34 +25,49 @@ namespace WalletWasabi.Stores
 		public MempoolStore MempoolStore { get; private set; }
 		public ConfirmedTransactionStore ConfirmedTransactionStore { get; private set; }
 		public HashChain HashChain => IndexStore.HashChain;
+		public InitializationStatus InitializationStatus { get; private set; } = InitializationStatus.NotStarted;
 
 		public async Task InitializeAsync(string workFolderPath, Network network, bool ensureBackwardsCompatibility)
 		{
-			var initStart = DateTimeOffset.UtcNow;
+			try
+			{
+				InitializationStatus = InitializationStatus.Running;
 
-			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
+				var initStart = DateTimeOffset.UtcNow;
 
-			Network = Guard.NotNull(nameof(network), network);
+				WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
+				IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
-			IndexStore = new IndexStore();
-			MempoolStore = new MempoolStore();
-			ConfirmedTransactionStore = new ConfirmedTransactionStore();
-			var indexStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString(), "IndexStore");
-			var mempoolStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString(), "MempoolStore");
-			var confirmedTransactionStoreStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString(), "ConfirmedTransactions");
+				Network = Guard.NotNull(nameof(network), network);
 
-			var initTasks = new List<Task>
+				IndexStore = new IndexStore();
+				MempoolStore = new MempoolStore();
+				ConfirmedTransactionStore = new ConfirmedTransactionStore();
+				var indexStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString(), "IndexStore");
+				var mempoolStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString(), "MempoolStore");
+				var confirmedTransactionStoreStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString(), "ConfirmedTransactions");
+
+				var initTasks = new List<Task>
 			{
 				IndexStore.InitializeAsync(indexStoreFolderPath, Network, ensureBackwardsCompatibility),
 				MempoolStore.InitializeAsync(mempoolStoreFolderPath, Network, ensureBackwardsCompatibility),
 				ConfirmedTransactionStore.InitializeAsync(confirmedTransactionStoreStoreFolderPath, Network, ensureBackwardsCompatibility)
 			};
 
-			await Task.WhenAll(initTasks);
+				await Task.WhenAll(initTasks);
 
-			var elapsedSeconds = Math.Round((DateTimeOffset.UtcNow - initStart).TotalSeconds, 1);
-			Logger.LogInfo<BitcoinStore>($"Initialized in {elapsedSeconds} seconds.");
+				var elapsedSeconds = Math.Round((DateTimeOffset.UtcNow - initStart).TotalSeconds, 1);
+				Logger.LogInfo<BitcoinStore>($"Initialized in {elapsedSeconds} seconds.");
+			}
+			catch
+			{
+				InitializationStatus = InitializationStatus.Failed;
+				throw;
+			}
+			finally
+			{
+				InitializationStatus = InitializationStatus.Completed;
+			}
 		}
 	}
 }

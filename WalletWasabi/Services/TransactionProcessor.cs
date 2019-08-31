@@ -4,17 +4,18 @@ using System.Linq;
 using NBitcoin;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Stores;
 using WalletWasabi.Stores.Transactions;
 
 namespace WalletWasabi.Services
 {
 	public class TransactionProcessor
 	{
-		public ConcurrentHashSet<SmartTransaction> ConfirmedTransactionCache { get; }
-
 		public KeyManager KeyManager { get; }
 		public MempoolStore MempoolStore { get; }
+		public ConfirmedTransactionStore ConfirmedTransactionStore { get; }
 
 		public ObservableConcurrentHashSet<SmartCoin> Coins { get; }
 		public Money DustThreshold { get; }
@@ -27,15 +28,15 @@ namespace WalletWasabi.Services
 
 		public TransactionProcessor(KeyManager keyManager,
 			MempoolStore mempoolStore,
+			ConfirmedTransactionStore confirmedTransactionStore,
 			ObservableConcurrentHashSet<SmartCoin> coins,
-			Money dustThreshold,
-			ConcurrentHashSet<SmartTransaction> confirmedTransactionCache)
+			Money dustThreshold)
 		{
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			MempoolStore = Guard.NotNull(nameof(mempoolStore), mempoolStore);
+			ConfirmedTransactionStore = Guard.NotNull(nameof(confirmedTransactionStore), confirmedTransactionStore);
 			Coins = Guard.NotNull(nameof(coins), coins);
 			DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
-			ConfirmedTransactionCache = Guard.NotNull(nameof(confirmedTransactionCache), confirmedTransactionCache);
 		}
 
 		public bool Process(SmartTransaction tx)
@@ -46,7 +47,7 @@ namespace WalletWasabi.Services
 			bool justUpdate = false;
 			if (tx.Confirmed)
 			{
-				var isRemoved = MempoolStore.TryRemove(txId, out SmartTransaction foundTx); // If we have in mempool, remove.
+				var isRemoved = MempoolStore.TryRemove(txId, out SmartTransaction foundUnconfTx); // If we have in mempool, remove.
 				if (!tx.Transaction.PossiblyP2WPKHInvolved())
 				{
 					return false; // We do not care about non-witness transactions for other than mempool cleanup.
@@ -54,20 +55,16 @@ namespace WalletWasabi.Services
 
 				if (isRemoved.isTxRemoved)
 				{
-					ConfirmedTransactionCache.TryAdd(foundTx);
-					foundTx.SetHeight(tx.Height, tx.BlockHash, tx.BlockIndex);
+					ConfirmedTransactionStore.TryAdd(foundUnconfTx);
+					foundUnconfTx.SetHeight(tx.Height, tx.BlockHash, tx.BlockIndex);
 					walletRelevant = true;
 					justUpdate = true; // No need to check for double spend, we already processed this transaction, just update it.
 				}
-				else if (ConfirmedTransactionCache.Contains(tx)) // If we have in cache, update height.
+				else if (ConfirmedTransactionStore.TryGetTransaction(tx.GetHash(), out SmartTransaction foundConfTx)) // If we have in cache, update height.
 				{
-					foundTx = ConfirmedTransactionCache.FirstOrDefault(x => x == tx);
-					if (foundTx != default(SmartTransaction)) // Must check again, because it's a concurrent collection!
-					{
-						foundTx.SetHeight(tx.Height, tx.BlockHash, tx.BlockIndex);
-						walletRelevant = true;
-						justUpdate = true; // No need to check for double spend, we already processed this transaction, just update it.
-					}
+					foundConfTx.SetHeight(tx.Height, tx.BlockHash, tx.BlockIndex);
+					walletRelevant = true;
+					justUpdate = true; // No need to check for double spend, we already processed this transaction, just update it.
 				}
 			}
 			else
@@ -245,26 +242,35 @@ namespace WalletWasabi.Services
 		public void RemoveFromCaches(uint256 transactionId)
 		{
 			MempoolStore.TryRemove(transactionId, out _);
-			var foundTx = ConfirmedTransactionCache.FirstOrDefault(x => x.GetHash() == transactionId);
-			if (foundTx != default(SmartTransaction))
-			{
-				ConfirmedTransactionCache.TryRemove(foundTx);
-			}
+			ConfirmedTransactionStore.TryRemove(transactionId, out _);
 		}
 
 		private void UpdateCaches(SmartTransaction tx)
 		{
 			if (tx.Confirmed)
 			{
-				if (MempoolStore.TryRemove(tx.GetHash(), out SmartTransaction foundTx).isTxRemoved)
+				if (MempoolStore.TryRemove(tx.GetHash(), out SmartTransaction foundUnconfTx).isTxRemoved)
 				{
-					ConfirmedTransactionCache.TryAdd(foundTx);
-					foundTx.SetHeight(tx.Height, tx.BlockHash, tx.BlockIndex);
-					ConfirmedTransactionCache.TryAdd(foundTx);
+					if (ConfirmedTransactionStore.TryAdd(foundUnconfTx))
+					{
+						foundUnconfTx.SetHeight(tx.Height, tx.BlockHash, tx.BlockIndex);
+					}
+					else
+					{
+						// Already present.
+						if (ConfirmedTransactionStore.TryGetTransaction(foundUnconfTx.GetHash(), out SmartTransaction foundConfTx))
+						{
+							foundConfTx.SetHeight(tx.Height, tx.BlockHash, tx.BlockIndex);
+						}
+						else
+						{
+							Logger.LogError<TransactionProcessor>("This is impossible.");
+						}
+					}
 				}
 				else
 				{
-					ConfirmedTransactionCache.TryAdd(tx);
+					ConfirmedTransactionStore.TryAdd(tx);
 				}
 			}
 			else

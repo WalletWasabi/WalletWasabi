@@ -28,19 +28,15 @@ namespace WalletWasabi.Stores.Transactions
 		private HashSet<uint256> Hashes { get; set; }
 		private object MempoolLock { get; set; }
 
-		public MempoolStore()
-		{
-		}
-
 		public async Task InitializeAsync(string workFolderPath, Network network, bool ensureBackwardsCompatibility)
 		{
 			var initStart = DateTimeOffset.UtcNow;
 
 			Hashes = new HashSet<uint256>();
-			TransactionStore = new TransactionStore("Mempool.dat", () => TryEnsureBackwardsCompatibility(), clearOnRegtest: true);
+			TransactionStore = new TransactionStore();
 			MempoolLock = new object();
 
-			await TransactionStore.InitializeAsync(workFolderPath, network, ensureBackwardsCompatibility);
+			await TransactionStore.InitializeAsync(workFolderPath, network, ensureBackwardsCompatibility, "Mempool.dat", () => TryEnsureBackwardsCompatibility(), clearOnRegtest: true);
 
 			lock (MempoolLock)
 			{

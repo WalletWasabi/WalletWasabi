@@ -82,8 +82,6 @@ namespace WalletWasabi.Services
 
 		public TransactionProcessor TransactionProcessor { get; }
 
-		private ConcurrentHashSet<SmartTransaction> ConfirmedTransactionCache { get; }
-
 		public WalletService(
 			BitcoinStore bitcoinStore,
 			KeyManager keyManager,
@@ -114,9 +112,21 @@ namespace WalletWasabi.Services
 			KeyManager.AssertCleanKeysIndexed();
 			KeyManager.AssertLockedInternalKeysIndexed(14);
 
-			ConfirmedTransactionCache = new ConcurrentHashSet<SmartTransaction>();
+			while (BitcoinStore.InitializationStatus == InitializationStatus.Running)
+			{
+				Task.Delay(100);
+			}
 
-			TransactionProcessor = new TransactionProcessor(KeyManager, BitcoinStore.MempoolStore, Coins, ServiceConfiguration.DustThreshold, ConfirmedTransactionCache);
+			if (BitcoinStore.InitializationStatus == InitializationStatus.NotStarted)
+			{
+				throw new InvalidOperationException($"{nameof(BitcoinStore)} must be initialized.");
+			}
+			else if (BitcoinStore.InitializationStatus == InitializationStatus.Failed)
+			{
+				throw new InvalidOperationException($"{nameof(BitcoinStore)} must initialization failed.");
+			}
+
+			TransactionProcessor = new TransactionProcessor(KeyManager, BitcoinStore.MempoolStore, BitcoinStore.ConfirmedTransactionStore, Coins, ServiceConfiguration.DustThreshold);
 			TransactionProcessor.CoinSpent += TransactionProcessor_CoinSpent;
 			TransactionProcessor.CoinReceived += TransactionProcessor_CoinReceivedAsync;
 
@@ -156,6 +166,24 @@ namespace WalletWasabi.Services
 			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
 			BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
 			BitcoinStore.MempoolStore.MempoolService.TransactionReceived += Mempool_TransactionReceivedAsync;
+		}
+
+		public bool TryGetTxFromCaches(uint256 transactionId, out SmartTransaction found)
+		{
+			found = null;
+
+			if (BitcoinStore.MempoolStore.TryGetTransaction(transactionId, out SmartTransaction fu))
+			{
+				found = fu;
+				return true;
+			}
+			if (BitcoinStore.ConfirmedTransactionStore.TryGetTransaction(transactionId, out SmartTransaction fc))
+			{
+				found = fc;
+				return true;
+			}
+
+			return false;
 		}
 
 		private void TransactionProcessor_CoinSpent(object sender, SmartCoin spentCoin)
@@ -290,28 +318,7 @@ namespace WalletWasabi.Services
 
 			using (await HandleFiltersLock.LockAsync())
 			{
-				var confirmedTransactions = new SmartTransaction[0];
-
-				// Fetch previous wallet state from transactions file
-				if (File.Exists(TransactionsFilePath))
-				{
-					try
-					{
-						IEnumerable<SmartTransaction> transactions = null;
-						string jsonString = File.ReadAllText(TransactionsFilePath, Encoding.UTF8);
-						transactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?.OrderByBlockchain();
-
-						confirmedTransactions = transactions?.Where(x => x.Confirmed)?.ToArray() ?? new SmartTransaction[0];
-					}
-					catch (Exception ex)
-					{
-						Logger.LogWarning<WalletService>(ex);
-						Logger.LogWarning<WalletService>($"Transaction cache got corrupted. Deleting {TransactionsFilePath}.");
-						File.Delete(TransactionsFilePath);
-					}
-				}
-
-				await LoadWalletStateAsync(confirmedTransactions, cancel);
+				await LoadWalletStateAsync(BitcoinStore.ConfirmedTransactionStore.GetTransactions().ToArray(), cancel);
 
 				// Load in dummy mempool
 				await LoadDummyMempoolAsync(BitcoinStore.MempoolStore.GetTransactions().OrderByBlockchain());
@@ -393,10 +400,7 @@ namespace WalletWasabi.Services
 
 			Block currentBlock = await FetchBlockAsync(filterModel.BlockHash, cancel); // Wait until not downloaded.
 
-			if (await ProcessBlockAsync(filterModel.BlockHeight, currentBlock))
-			{
-				SerializeTransactionCache();
-			}
+			await ProcessBlockAsync(filterModel.BlockHeight, currentBlock);
 		}
 
 		public HdPubKey GetReceiveKey(string label, IEnumerable<HdPubKey> dontTouch = null)
@@ -1338,15 +1342,6 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private void SerializeTransactionCache()
-		{
-			IoHelpers.EnsureContainingDirectoryExists(TransactionsFilePath);
-			string jsonString = JsonConvert.SerializeObject(ConfirmedTransactionCache.OrderByBlockchain(), Formatting.Indented);
-			File.WriteAllText(TransactionsFilePath,
-				jsonString,
-				Encoding.UTF8);
-		}
-
 		/// <summary>
 		/// Current timeout used when downloading a block from the remote node. It is defined in seconds.
 		/// </summary>
@@ -1411,18 +1406,6 @@ namespace WalletWasabi.Services
 			TransactionProcessor.CoinReceived -= TransactionProcessor_CoinReceivedAsync;
 
 			DisconnectDisposeNullLocalBitcoinCoreNode();
-		}
-
-		public SmartTransaction TryGetTxFromCaches(uint256 txId)
-		{
-			if (BitcoinStore.MempoolStore.TryGetTransaction(txId, out SmartTransaction foundTx))
-			{
-				return foundTx;
-			}
-			else
-			{
-				return ConfirmedTransactionCache.FirstOrDefault(x => x.GetHash() == txId);
-			}
 		}
 	}
 }
