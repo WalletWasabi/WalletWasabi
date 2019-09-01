@@ -41,12 +41,13 @@
     </DataTemplate>
 
     <DataTemplate DataType="models:WarningMessageWrapper">
-      <StackPanel Orientation="Horizontal">
+      <StackPanel Orientation="Horizontal" TextBlock.FontWeight="Bold" TextBlock.Foreground="Yellow">
         <DrawingPresenter Margin="2" VerticalAlignment="Center">
           <DrawingGroup>
-            <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M7.5,2L2,12 4,14 13,14 15,12 9.5,2z" />
-            <GeometryDrawing Brush="#FFFFCC00" Geometry="F1M9,10L8,10 8,6 9,6z M9,12L8,12 8,11 9,11z M9,3L8,3 3.5,12 4.5,13 12.5,13 13.5,12z" />
-            <GeometryDrawing Brush="#FF000000" Geometry="F1M8,10L9,10 9,6 8,6z M8,12L9,12 9,10.999 8,10.999z" />
+            <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+            <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M7.0002,-0.000199999999999534L0.000200000000000422,13.9998 2.0002,15.9998 14.0002,15.9998 16.0002,13.9998 9.0002,-0.000199999999999534z" />
+            <GeometryDrawing Brush="#FFFFCC00" Geometry="F1M9,10L7,10 7,5 9,5z M9,13L7,13 7,11 9,11z M8.382,1L7.618,1 1.217,13.803 2.5,15 13.5,15 14.783,13.803z" />
+            <GeometryDrawing Brush="#FF000000" Geometry="F1M9,11L7,11 7,13 9,13z M9,10L7,10 7,5 9,5z" />
           </DrawingGroup>
         </DrawingPresenter>
         <ContentControl Margin="2" VerticalAlignment="Center" Content="{Binding Message}"/>
@@ -54,12 +55,13 @@
     </DataTemplate>
 
     <DataTemplate DataType="models:ValidationMessageWrapper">
-      <StackPanel Orientation="Horizontal">
+      <StackPanel Orientation="Horizontal" TextBlock.FontWeight="Bold" TextBlock.Foreground="Red">
         <DrawingPresenter Margin="2" VerticalAlignment="Center">
           <DrawingGroup>
-            <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M7.5,2L2,12 4,14 13,14 15,12 9.5,2z" />
-            <GeometryDrawing Brush="#FFFFCC00" Geometry="F1M9,10L8,10 8,6 9,6z M9,12L8,12 8,11 9,11z M9,3L8,3 3.5,12 4.5,13 12.5,13 13.5,12z" />
-            <GeometryDrawing Brush="#FF000000" Geometry="F1M8,10L9,10 9,6 8,6z M8,12L9,12 9,10.999 8,10.999z" />
+            <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+            <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M16,8C16,12.418 12.418,16 8,16 3.582,16 0,12.418 0,8 0,3.582 3.582,0 8,0 12.418,0 16,3.582 16,8" />
+            <GeometryDrawing Brush="#FFE41400" Geometry="F1M12.4141,11L11.0001,12.414 8.0001,9.414 5.0001,12.414 3.5861,11 6.5861,8 3.5861,5 5.0001,3.586 8.0001,6.586 11.0001,3.586 12.4141,5 9.4141,8z M8.0001,1C4.1341,1 1.0001,4.135 1.0001,8 1.0001,11.865 4.1341,15 8.0001,15 11.8651,15 15.0001,11.865 15.0001,8 15.0001,4.135 11.8651,1 8.0001,1" />
+            <GeometryDrawing Brush="#FFFFFFFF" Geometry="F1M9.4141,8L12.4141,11 11.0001,12.414 8.0001,9.414 5.0001,12.414 3.5861,11 6.5861,8 3.5861,5 5.0001,3.586 8.0001,6.586 11.0001,3.586 12.4141,5z" />
           </DrawingGroup>
         </DrawingPresenter>
         <ContentControl Margin="2" VerticalAlignment="Center" Content="{Binding Message}"/>
@@ -67,7 +69,7 @@
     </DataTemplate>
 
     <DataTemplate DataType="models:SuccessMessageWrapper">
-      <StackPanel Orientation="Horizontal">
+      <StackPanel Orientation="Horizontal" TextBlock.FontWeight="Bold">
         <DrawingPresenter Margin="2" VerticalAlignment="Center">
           <DrawingGroup>
             <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
