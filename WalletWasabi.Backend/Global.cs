@@ -55,11 +55,11 @@ namespace WalletWasabi.Backend
 			await InitializeP2pAsync(config.Network, config.GetBitcoinP2pEndPoint());
 
 			// Initialize index building
-			var indexBuilderServiceDir = Path.Combine(DataDir, nameof(IndexBuilderService));
+			var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
 			var utxoSetFilePath = Path.Combine(indexBuilderServiceDir, $"UtxoSet{RpcClient.Network}.dat");
 			IndexBuilderService = new IndexBuilderService(RpcClient, TrustedNodeNotifyingBehavior, indexFilePath, utxoSetFilePath);
-			Coordinator = new CcjCoordinator(RpcClient.Network, TrustedNodeNotifyingBehavior, Path.Combine(DataDir, nameof(CcjCoordinator)), RpcClient, roundConfig);
+			Coordinator = new CcjCoordinator(RpcClient.Network, TrustedNodeNotifyingBehavior, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
 			IndexBuilderService.Synchronize();
 			Logger.LogInfo<IndexBuilderService>($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
 
@@ -204,7 +204,7 @@ namespace WalletWasabi.Backend
 						var generateBlocksResponse = await RpcClient.GenerateAsync(101);
 						if (generateBlocksResponse is null)
 						{
-							throw new NotSupportedException($"Bitcoin Core cannot generate blocks on the {nameof(Network.RegTest)}.");
+							throw new NotSupportedException($"Bitcoin Core cannot generate blocks on the {Network.RegTest}.");
 						}
 
 						blockchainInfo = await RpcClient.GetBlockchainInfoAsync();
@@ -213,7 +213,7 @@ namespace WalletWasabi.Backend
 						{
 							throw new NotSupportedException($"{nameof(blocks)} == 0");
 						}
-						Logger.LogInfo<RPCClient>($"Generated 101 block on {nameof(Network.RegTest)}. Number of blocks {blocks}.");
+						Logger.LogInfo<RPCClient>($"Generated 101 block on {Network.RegTest}. Number of blocks {blocks}.");
 					}
 				}
 			}
