@@ -6,7 +6,10 @@ using Dock.Model;
 using ReactiveUI;
 using System;
 using System.Reactive;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Models;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.ViewModels
@@ -16,16 +19,18 @@ namespace WalletWasabi.Gui.ViewModels
 		private string _title;
 		private bool _isSelected;
 		private bool _isClosed;
-		private string _warningMessage;
 		private string _successMessage;
 		private object _dialogResult;
-
+ 
 		public WasabiDocumentTabViewModel(Global global, string title)
 		{
 			Title = title;
 			Global = Guard.NotNull(nameof(global), global);
 			DoItCommand = ReactiveCommand.Create(DisplayActionTab);
+
+			
 		}
+
 
 		public Global Global { get; }
 		public Guid Id { get; set; } = Guid.NewGuid();
@@ -50,18 +55,6 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			get => _isClosed;
 			set => this.RaiseAndSetIfChanged(ref _isClosed, value);
-		}
-
-		public string WarningMessage
-		{
-			get => _warningMessage;
-			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
-		}
-
-		public string SuccessMessage
-		{
-			get => _successMessage;
-			set => this.RaiseAndSetIfChanged(ref _successMessage, value);
 		}
 
 		public object DialogResult
@@ -123,44 +116,5 @@ namespace WalletWasabi.Gui.ViewModels
 			return DialogResult;
 		}
 
-		protected void SetWarningMessage(string message)
-		{
-			SuccessMessage = "";
-			WarningMessage = message;
-
-			if (string.IsNullOrWhiteSpace(message))
-			{
-				return;
-			}
-
-			Dispatcher.UIThread.PostLogException(async () =>
-			{
-				await Task.Delay(7000);
-				if (WarningMessage == message)
-				{
-					WarningMessage = "";
-				}
-			});
-		}
-
-		public void SetSuccessMessage(string message)
-		{
-			SuccessMessage = message;
-			WarningMessage = "";
-
-			if (string.IsNullOrWhiteSpace(message))
-			{
-				return;
-			}
-
-			Dispatcher.UIThread.PostLogException(async () =>
-			{
-				await Task.Delay(7000);
-				if (SuccessMessage == message)
-				{
-					SuccessMessage = "";
-				}
-			});
-		}
 	}
 }

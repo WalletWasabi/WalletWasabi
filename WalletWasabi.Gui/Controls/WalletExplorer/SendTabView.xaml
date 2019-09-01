@@ -125,8 +125,7 @@
               <Grid></Grid>
             </DockPanel>
           </StackPanel>
-          <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
-          <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
+          <ContentControl Content="{Binding WrappedMessage}"/>
           <Grid ColumnDefinitions="60,100,100,600,100,Auto"></Grid>
         </StackPanel>
         <local:CoinListView DataContext="{Binding CoinList}" />

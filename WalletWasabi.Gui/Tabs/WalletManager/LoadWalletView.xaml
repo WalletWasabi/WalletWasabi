@@ -50,9 +50,7 @@
           </Button>
           <Grid></Grid>
         </DockPanel>
-        <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
-        <TextBlock Text="{Binding ValidationMessage}" Classes="errorMessage" />
-        <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
+        <ContentControl Content="{Binding WrappedMessage}"/>
       </StackPanel>
     </StackPanel>
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" BorderThickness="0">

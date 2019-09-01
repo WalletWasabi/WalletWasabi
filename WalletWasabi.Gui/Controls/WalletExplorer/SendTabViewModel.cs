@@ -330,7 +330,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					catch (Exception ex)
 					{
-						SetWarningMessage(ex.ToTypeMessageString());
+						SetWarningMessage(ex);
 						return;
 					}
 
@@ -352,7 +352,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 						if (isCompatibilityPasswordUsed)
 						{
-							WarningMessage = PasswordHelper.CompatibilityPasswordWarnMessage;
+							SetWarningMessage(PasswordHelper.CompatibilityPasswordWarnMessage);
 						}
 						return;
 					}
@@ -414,7 +414,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (isCompatibilityPasswordUsed)
 					{
-						WarningMessage = PasswordHelper.CompatibilityPasswordWarnMessage;
+						SetWarningMessage(PasswordHelper.CompatibilityPasswordWarnMessage);
 					}
 				}
 				catch (InsufficientBalanceException ex)
@@ -841,11 +841,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SetWarningMessage("No coins are selected to dequeue.");
 				return;
 			}
-			else
-			{
-				SetWarningMessage("");
-			}
-
+			
 			try
 			{
 				await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray(), "Dequeued by the user.");

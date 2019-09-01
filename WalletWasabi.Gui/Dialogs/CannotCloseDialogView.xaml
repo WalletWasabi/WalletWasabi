@@ -22,7 +22,7 @@
             <controls:Spinner Height="20" Width="20" Margin="0 0 8 0" />
             <TextBlock Text="{Binding OperationMessage}" />
           </StackPanel>
-          <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
+          <ContentControl Content="{Binding WrappedMessage}"/>
         </StackPanel>
       </Grid>
     </DockPanel>

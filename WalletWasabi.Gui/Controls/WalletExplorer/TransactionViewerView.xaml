@@ -16,10 +16,7 @@
       <Grid Classes="content" DockPanel.Dock="Bottom">
         <DockPanel LastChildFill="True">
           <Button DockPanel.Dock="Right" Command="{Binding ExportBinaryPsbtCommand}" Content="Export Binary PSBT" />
-          <StackPanel Orientation="Vertical">
-            <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
-            <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
-          </StackPanel>
+          <ContentControl Content="{Binding WrappedMessage}"/>
         </DockPanel>
       </Grid>
       <Grid Classes="content" ScrollViewer.VerticalScrollBarVisibility="Auto">

@@ -131,7 +131,7 @@
                 </StackPanel>
               </Button>
             </DockPanel>
-            <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
+            <ContentControl Content="{Binding WrappedMessage}"/>
           </StackPanel>
         </Grid>
       </controls:GroupBox>

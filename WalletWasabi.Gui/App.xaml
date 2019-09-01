@@ -1,7 +1,9 @@
-﻿<Application xmlns="https://github.com/avaloniaui"
-             xmlns:cont="clr-namespace:AvalonStudio.Controls;assembly=AvalonStudio.Shell.Extensibility"
-             xmlns:id="clr-namespace:Dock.Model;assembly=Dock.Model"
-             xmlns:Views="clr-namespace:AvaloniaDemo.ViewModels.Views;assembly=AvalonStudio.Shell">
+﻿<Application xmlns="https://github.com/avaloniaui" 
+  xmlns:sys="clr-namespace:System;assembly=mscorlib" 
+  xmlns:cont="clr-namespace:AvalonStudio.Controls;assembly=AvalonStudio.Shell.Extensibility" 
+  xmlns:models="clr-namespace:WalletWasabi.Gui.Models;assembly=WalletWasabi.Gui" 
+  xmlns:id="clr-namespace:Dock.Model;assembly=Dock.Model" 
+  xmlns:Views="clr-namespace:AvaloniaDemo.ViewModels.Views;assembly=AvalonStudio.Shell">
   <Application.Styles>
     <StyleInclude Source="resm:Avalonia.Themes.Default.DefaultTheme.xaml?assembly=Avalonia.Themes.Default" />
     <StyleInclude Source="resm:Avalonia.Themes.Default.Accents.BaseLight.xaml?assembly=Avalonia.Themes.Default" />
@@ -33,5 +35,50 @@
     <DataTemplate DataType="id:IView">
       <cont:ViewModelViewHost DataContext="{Binding Context}" />
     </DataTemplate>
+
+    <DataTemplate DataType="sys:Exception">
+      <TextBlock Text="{Binding Message}"/>
+    </DataTemplate>
+
+    <DataTemplate DataType="models:WarningMessageWrapper">
+      <StackPanel Orientation="Horizontal">
+        <DrawingPresenter Margin="2" VerticalAlignment="Center">
+          <DrawingGroup>
+            <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M7.5,2L2,12 4,14 13,14 15,12 9.5,2z" />
+            <GeometryDrawing Brush="#FFFFCC00" Geometry="F1M9,10L8,10 8,6 9,6z M9,12L8,12 8,11 9,11z M9,3L8,3 3.5,12 4.5,13 12.5,13 13.5,12z" />
+            <GeometryDrawing Brush="#FF000000" Geometry="F1M8,10L9,10 9,6 8,6z M8,12L9,12 9,10.999 8,10.999z" />
+          </DrawingGroup>
+        </DrawingPresenter>
+        <ContentControl Margin="2" VerticalAlignment="Center" Content="{Binding Message}"/>
+      </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate DataType="models:ValidationMessageWrapper">
+      <StackPanel Orientation="Horizontal">
+        <DrawingPresenter Margin="2" VerticalAlignment="Center">
+          <DrawingGroup>
+            <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M7.5,2L2,12 4,14 13,14 15,12 9.5,2z" />
+            <GeometryDrawing Brush="#FFFFCC00" Geometry="F1M9,10L8,10 8,6 9,6z M9,12L8,12 8,11 9,11z M9,3L8,3 3.5,12 4.5,13 12.5,13 13.5,12z" />
+            <GeometryDrawing Brush="#FF000000" Geometry="F1M8,10L9,10 9,6 8,6z M8,12L9,12 9,10.999 8,10.999z" />
+          </DrawingGroup>
+        </DrawingPresenter>
+        <ContentControl Margin="2" VerticalAlignment="Center" Content="{Binding Message}"/>
+      </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate DataType="models:SuccessMessageWrapper">
+      <StackPanel Orientation="Horizontal">
+        <DrawingPresenter Margin="2" VerticalAlignment="Center">
+          <DrawingGroup>
+            <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+            <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M0,8.0005C0,3.5825 3.582,0.000499999999998835 8,0.000499999999998835 12.418,0.000499999999998835 16,3.5825 16,8.0005 16,12.4185 12.418,16.0005 8,16.0005 3.582,16.0005 0,12.4185 0,8.0005" />
+            <GeometryDrawing Brush="#FF1AA1E2" Geometry="F1M9,5L7,5 7,3 9,3z M9,13L7,13 7,6 9,6z M8,1C4.135,1 1,4.135 1,8 1,11.865 4.135,15 8,15 11.865,15 15,11.865 15,8 15,4.135 11.865,1 8,1" />
+            <GeometryDrawing Brush="#FFFFFFFF" Geometry="F1M7,5L9,5 9,3 7,3z M7,6L9,6 9,13 7,13z" />
+          </DrawingGroup>
+        </DrawingPresenter>
+        <ContentControl Margin="2" VerticalAlignment="Center" Content="{Binding Message}"/>
+      </StackPanel>
+    </DataTemplate>
+
   </Application.DataTemplates>
 </Application>

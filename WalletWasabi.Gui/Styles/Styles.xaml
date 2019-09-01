@@ -108,7 +108,7 @@
   </Style>
   <Style Selector=".warningMessage">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource WarningMessageForeground}" />
-  </Style>
+  </Style> 
   <Style Selector="Button.activeHyperLink">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource HyperLinkForeground}" />
     <Setter Property="Cursor" Value="Hand" />
@@ -140,7 +140,8 @@
             ContentTemplate="{TemplateBinding ErrorTemplate}"
             DataContext="{TemplateBinding Owner}"
             Content="{Binding (DataValidationErrors.Errors)}"
-            IsVisible="{Binding (DataValidationErrors.HasErrors)}" />
+            IsVisible="{Binding (DataValidationErrors.HasErrors)}" 
+            ToolTip.Tip="{Binding (DataValidationErrors.Errors)}"/>
           <ContentPresenter
             Name="PART_ContentPresenter"
             Background="{TemplateBinding Background}"

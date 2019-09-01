@@ -212,38 +212,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _isWalletOpened, value);
 		}
 
-		public string WarningMessage
-		{
-			get => _warningMessage;
-			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
-		}
-
-		public string ValidationMessage
-		{
-			get => _validationMessage;
-			set => this.RaiseAndSetIfChanged(ref _validationMessage, value);
-		}
-
-		public string SuccessMessage
-		{
-			get => _successMessage;
-			set => this.RaiseAndSetIfChanged(ref _successMessage, value);
-		}
-
-		public void SetWarningMessage(string message)
-		{
-			WarningMessage = message;
-			ValidationMessage = "";
-			SuccessMessage = "";
-		}
-
-		public void SetValidationMessage(string message)
-		{
-			WarningMessage = "";
-			ValidationMessage = message;
-			SuccessMessage = "";
-		}
-
 		public void SetLoadButtonText()
 		{
 			if (IsHardwareBusy)
@@ -594,11 +562,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					if (PasswordHelper.TryPassword(keyManager, password, out string compatibilityPasswordUsed))
 					{
-						SuccessMessage = "Correct password.";
+						SetSuccessMessage("Correct password.");
+						
 						if (compatibilityPasswordUsed != null)
 						{
-							WarningMessage = PasswordHelper.CompatibilityPasswordWarnMessage;
-							ValidationMessage = "";
+							SetWarningMessage(PasswordHelper.CompatibilityPasswordWarnMessage);
 						}
 
 						keyManager.SetPasswordVerified();
