@@ -12,7 +12,7 @@ namespace WalletWasabi.Services
 {
 	public class MempoolBehavior : NodeBehavior
 	{
-		private const int MAX_INV_SIZE = 50000;
+		private const int MaxInvSize = 50000;
 
 		public MempoolService MempoolService { get; }
 
@@ -66,9 +66,9 @@ namespace WalletWasabi.Services
 
 		private async Task ProcessGetDataAsync(Node node, GetDataPayload payload)
 		{
-			if (payload.Inventory.Count > MAX_INV_SIZE)
+			if (payload.Inventory.Count > MaxInvSize)
 			{
-				Logger.LogDebug<MempoolBehavior>($"Received inventory too big. {nameof(MAX_INV_SIZE)}: {MAX_INV_SIZE}, Node: {node.RemoteSocketEndpoint}");
+				Logger.LogDebug<MempoolBehavior>($"Received inventory too big. {nameof(MaxInvSize)}: {MaxInvSize}, Node: {node.RemoteSocketEndpoint}");
 				return;
 			}
 
@@ -105,9 +105,9 @@ namespace WalletWasabi.Services
 
 		private async Task ProcessInvAsync(Node node, InvPayload payload)
 		{
-			if (payload.Inventory.Count > MAX_INV_SIZE)
+			if (payload.Inventory.Count > MaxInvSize)
 			{
-				Logger.LogDebug<MempoolBehavior>($"Received inventory too big. {nameof(MAX_INV_SIZE)}: {MAX_INV_SIZE}, Node: {node.RemoteSocketEndpoint}");
+				Logger.LogDebug<MempoolBehavior>($"Received inventory too big. {nameof(MaxInvSize)}: {MaxInvSize}, Node: {node.RemoteSocketEndpoint}");
 				return;
 			}
 
