@@ -27,7 +27,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public WalletInfoViewModel(WalletViewModel walletViewModel) : base(walletViewModel.Name, walletViewModel)
 		{
 			ClearSensitiveData(true);
-			SetWarningMessage("");
 
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{

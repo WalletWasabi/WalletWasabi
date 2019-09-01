@@ -202,8 +202,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IsDequeueBusy = true;
 			try
 			{
-				SetWarningMessage("");
-
 				if (!selectedCoins.Any())
 				{
 					SetWarningMessage("No coins are selected to dequeue.");
@@ -239,7 +237,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IsEnqueueBusy = true;
 			try
 			{
-				SetWarningMessage("");
 				Password = Guard.Correct(Password);
 
 				if (!selectedCoins.Any())

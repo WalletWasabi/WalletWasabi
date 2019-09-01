@@ -284,7 +284,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				Wallets.Clear();
 				Password = "";
-				SetValidationMessage("");
 
 				var directoryInfo = new DirectoryInfo(Global.WalletsDir);
 				var walletFiles = directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
@@ -411,7 +410,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			try
 			{
-				SetValidationMessage("");
 				CanTestPassword = false;
 				var password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
 				Password = ""; // Clear password field.
@@ -653,7 +651,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			try
 			{
 				IsBusy = true;
-				SetValidationMessage("");
 				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.Loading);
 
 				var keyManager = await LoadKeyManagerAsync(IsPasswordRequired, IsHardwareWallet);
