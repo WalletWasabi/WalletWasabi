@@ -28,7 +28,8 @@ namespace WalletWasabi.Models
 		public int BlockIndex { get; private set; }
 
 		[JsonProperty]
-		public string Label { get; set; }
+		[JsonConverter(typeof(LabelJsonConverter))]
+		public Label Label { get; set; }
 
 		public bool Confirmed => Height.Type == HeightType.Chain;
 
@@ -60,10 +61,10 @@ namespace WalletWasabi.Models
 		#region Constructors
 
 		[JsonConstructor]
-		public SmartTransaction(Transaction transaction, Height height, uint256 blockHash = null, int blockIndex = 0, string label = "", DateTimeOffset? firstSeenIfMempoolTime = null, bool isReplacement = false)
+		public SmartTransaction(Transaction transaction, Height height, uint256 blockHash = null, int blockIndex = 0, Label label = null, DateTimeOffset? firstSeenIfMempoolTime = null, bool isReplacement = false)
 		{
 			Transaction = transaction;
-			Label = Guard.Correct(label);
+			Label = label ?? Label.Empty;
 
 			SetHeight(height, blockHash, blockIndex);
 			if (firstSeenIfMempoolTime != null)
@@ -95,8 +96,6 @@ namespace WalletWasabi.Models
 		{
 			IsReplacement = true;
 		}
-
-		public bool HasLabel() => !string.IsNullOrWhiteSpace(Label);
 
 		/// <summary>
 		/// First looks at height, then block index, then mempool firstseen.
