@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.KeyManagement;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -43,8 +44,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			GenerateCommand = ReactiveCommand.Create(() =>
 			{
-				Label = Label.Trim(',', ' ').Trim();
-				if (string.IsNullOrWhiteSpace(Label))
+				var label = new Label(Label);
+				Label = label.ToString();
+				if (label.IsEmpty)
 				{
 					LabelRequiredNotificationVisible = true;
 					LabelRequiredNotificationOpacity = 1;
@@ -60,8 +62,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				Dispatcher.UIThread.PostLogException(() =>
 				{
-					var label = Label;
-					HdPubKey newKey = Global.WalletService.GetReceiveKey(label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
+					HdPubKey newKey = Global.WalletService.GetReceiveKey(new Label(Label), Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
 
 					AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
 					if (found != default)
@@ -164,7 +165,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			foreach (HdPubKey key in walletService.KeyManager.GetKeys(x =>
-																		x.HasLabel
+																		!x.Label.IsEmpty
 																		&& !x.IsInternal
 																		&& x.KeyState == KeyState.Clean)
 																	.Reverse())
@@ -233,8 +234,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			var labels = Global.WalletService.GetLabels();
-			IEnumerable<string> suggestedWords = labels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
-				.Union(labels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
+			IEnumerable<string> suggestedWords = labels.Where(w => w.StartsWith(lastWord, StringComparison.OrdinalIgnoreCase))
+				.Union(labels.Where(w => w.Contains(lastWord, StringComparison.OrdinalIgnoreCase)))
 				.Except(enteredWordList)
 				.Take(3);
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using WalletWasabi.Models;
 using Xunit;
@@ -18,6 +19,9 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal("", label.ToString());
 
 			label = new Label(null);
+			Assert.Equal("", label.ToString());
+
+			label = new Label(null, null);
 			Assert.Equal("", label.ToString());
 
 			label = new Label(" ");
@@ -91,6 +95,22 @@ namespace WalletWasabi.Tests.UnitTests
 			var label = new Label("");
 			Assert.Equal(label, Label.Empty);
 			Assert.True(label.IsEmpty);
+
+			label = new Label("foo, bar, buz");
+			var label2 = new Label("qux");
+
+			label = Label.Merge(label, label2);
+			Assert.Equal("bar, buz, foo, qux", label.ToString());
+
+			label2 = new Label("qux", "bar");
+			label = Label.Merge(label, label2);
+			Assert.Equal(4, label.Labels.Count());
+			Assert.Equal("bar, buz, foo, qux", label.ToString());
+
+			label2 = new Label("Qux", "Bar");
+			label = Label.Merge(label, label2, null);
+			Assert.Equal(4, label.Labels.Count());
+			Assert.Equal("bar, buz, foo, qux", label.ToString());
 		}
 	}
 }

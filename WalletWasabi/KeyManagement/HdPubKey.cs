@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.KeyManagement
 {
@@ -18,27 +19,14 @@ namespace WalletWasabi.KeyManagement
 		[JsonConverter(typeof(KeyPathJsonConverter))]
 		public KeyPath FullKeyPath { get; }
 
-		private string _label;
-
 		[JsonProperty(Order = 3)]
-		public string Label
-		{
-			get => _label;
-			private set
-			{
-				value = Guard.Correct(value);
-				if (value != _label)
-				{
-					_label = value;
-					HasLabel = !string.IsNullOrEmpty(value);
-				}
-			}
-		}
+		[JsonConverter(typeof(LabelJsonConverter))]
+		public Label Label { get; private set; }
 
 		[JsonProperty(Order = 4)]
 		public KeyState KeyState { get; private set; }
 
-		public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, string label, KeyState keyState)
+		public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, Label label, KeyState keyState)
 		{
 			PubKey = Guard.NotNull(nameof(pubKey), pubKey);
 			FullKeyPath = Guard.NotNull(nameof(fullKeyPath), fullKeyPath);
@@ -71,9 +59,10 @@ namespace WalletWasabi.KeyManagement
 			}
 		}
 
-		public void SetLabel(string label, KeyManager kmToFile = null)
+		public void SetLabel(Label label, KeyManager kmToFile = null)
 		{
-			label = Guard.Correct(label);
+			label = label ?? Label.Empty;
+
 			if (Label == label)
 			{
 				return;
@@ -106,8 +95,6 @@ namespace WalletWasabi.KeyManagement
 		public int Index { get; }
 		public KeyPath NonHardenedKeyPath { get; }
 		public bool IsInternal { get; }
-
-		public bool HasLabel { get; private set; }
 
 		public BitcoinPubKeyAddress GetP2pkhAddress(Network network) => (BitcoinPubKeyAddress)PubKey.GetAddress(ScriptPubKeyType.Legacy, network);
 

@@ -432,10 +432,8 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public HdPubKey GetReceiveKey(string label, IEnumerable<HdPubKey> dontTouch = null)
+		public HdPubKey GetReceiveKey(Label label, IEnumerable<HdPubKey> dontTouch = null)
 		{
-			label = Guard.Correct(label);
-
 			// Make sure there's always 21 clean keys generated and indexed.
 			KeyManager.AssertCleanKeysIndexed(isInternal: false);
 
@@ -449,7 +447,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			var foundLabelless = keys.FirstOrDefault(x => !x.HasLabel); // Return the first labelless.
+			var foundLabelless = keys.FirstOrDefault(x => x.Label.IsEmpty); // Return the first labelless.
 			HdPubKey ret = foundLabelless ?? keys.RandomElement(); // Return the first, because that's the oldest.
 
 			ret.SetLabel(label, KeyManager);
@@ -1121,11 +1119,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			var labelBuilder = new LabelBuilder();
-			foreach (var label in payments.Requests.Select(x => x.Label))
-			{
-				labelBuilder.Add(label);
-			}
+			var label = Label.Merge(payments.Requests.Select(x => x.Label));
 			var outerWalletOutputs = new List<SmartCoin>();
 			var innerWalletOutputs = new List<SmartCoin>();
 			for (var i = 0U; i < tx.Outputs.Count; i++)
@@ -1134,7 +1128,7 @@ namespace WalletWasabi.Services
 				var anonset = (tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet)) - 1; // Minus 1, because count own only once.
 				var foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
 				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, anonset, isLikelyCoinJoinOutput: false, pubKey: foundKey);
-				labelBuilder.Add(coin.Label); // foundKey's label is already added to the coinlabel.
+				label = Label.Merge(label, coin.Label); // foundKey's label is already added to the coinlabel.
 
 				if (foundKey is null)
 				{
@@ -1153,11 +1147,11 @@ namespace WalletWasabi.Services
 				// If change then we concatenate all the labels.
 				if (foundPaymentRequest is null) // Then it's autochange.
 				{
-					coin.Label = labelBuilder.ToString();
+					coin.Label = label;
 				}
 				else
 				{
-					coin.Label = new LabelBuilder(coin.Label, foundPaymentRequest.Label).ToString();
+					coin.Label = Label.Merge(coin.Label, foundPaymentRequest.Label);
 				}
 
 				var foundKey = KeyManager.GetKeyForScriptPubKey(coin.ScriptPubKey);
@@ -1170,14 +1164,13 @@ namespace WalletWasabi.Services
 			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), psbt, spendsUnconfirmed, sign, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
 		}
 
-		public void RenameLabel(SmartCoin coin, string newLabel)
+		public void RenameLabel(SmartCoin coin, Label newLabel)
 		{
-			newLabel = Guard.Correct(newLabel);
-			coin.Label = newLabel;
+			coin.Label = newLabel ?? Label.Empty;
 			var key = KeyManager.GetKeys(x => x.P2wpkhScript == coin.ScriptPubKey).SingleOrDefault();
 			if (key != null)
 			{
-				key.SetLabel(newLabel, KeyManager);
+				key.SetLabel(coin.Label, KeyManager);
 			}
 		}
 
@@ -1315,13 +1308,12 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public ISet<string> GetLabels()
-		{
-			return Coins
-				.SelectMany(x => x.Label.Split(',', StringSplitOptions.RemoveEmptyEntries))
-				.Select(x => x.Trim())
-				.ToHashSet();
-		}
+		public ISet<string> GetLabels() => Coins
+			.SelectMany(x => x.Label.Labels)
+			.Concat(KeyManager
+				.GetKeys()
+				.SelectMany(x => x.Label.Labels))
+			.ToHashSet();
 
 		private int _refreshCoinHistoriesRerunRequested = 0;
 		private int _refreshCoinHistoriesRunning = 0;
@@ -1351,9 +1343,7 @@ namespace WalletWasabi.Services
 						var result = string.Join(
 							", ",
 							GetClusters(coin, new List<SmartCoin>(), lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId)
-							.SelectMany(x => x.Label
-								.Split(',', StringSplitOptions.RemoveEmptyEntries)
-								.Select(y => y.Trim()))
+							.SelectMany(x => x.Label.Labels)
 							.Distinct());
 						coin.SetClusters(result);
 					});

@@ -13,28 +13,40 @@ namespace WalletWasabi.Models
 		public IEnumerable<string> Labels { get; }
 		public bool IsEmpty { get; }
 
-		public Label(IEnumerable<string> labels) : this(labels?.ToArray())
+		private string LabelString { get; }
+
+		public Label(params string[] labels) : this(labels as IEnumerable<string>)
 		{
 		}
 
-		public Label(params string[] labels)
+		public Label(IEnumerable<string> labels)
 		{
 			Labels = (labels
-				?.SelectMany(x => x?.Split(Separators, StringSplitOptions.RemoveEmptyEntries) ?? new string[0])
-				?.Select(x => x.Trim())
-				?.Where(x => x != "")
-				?.OrderBy(x => x)
-				?? Enumerable.Empty<string>())
-				.ToArray();
+				   ?.SelectMany(x => x?.Split(Separators, StringSplitOptions.RemoveEmptyEntries) ?? new string[0])
+				   ?.Select(x => x.Trim())
+				   ?.Where(x => x != "")
+				   ?.Distinct(StringComparer.OrdinalIgnoreCase)
+				   ?.OrderBy(x => x)
+				   ?? Enumerable.Empty<string>())
+				   .ToArray();
 
 			HashCode = ((IStructuralEquatable)Labels).GetHashCode(EqualityComparer<string>.Default);
 			IsEmpty = !Labels.Any();
+
+			LabelString = IsEmpty ? "" : string.Join(", ", Labels);
 		}
 
-		public override string ToString()
+		public override string ToString() => LabelString;
+
+		public static Label Merge(IEnumerable<Label> labels)
 		{
-			return IsEmpty ? "" : string.Join(", ", Labels);
+			return new Label(labels?
+				.SelectMany(x => x?.Labels ?? Enumerable.Empty<string>())
+				.Where(x => x != null)
+				?? Enumerable.Empty<string>());
 		}
+
+		public static Label Merge(params Label[] labels) => Merge(labels as IEnumerable<Label>);
 
 		#region Equality
 
