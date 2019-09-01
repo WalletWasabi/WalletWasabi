@@ -12,7 +12,7 @@ using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 using Xunit;
 
-namespace WalletWasabi.Tests
+namespace WalletWasabi.Tests.IntegrationTests
 {
 	[Collection("LiveServerTests collection")]
 	public class LiveServerTests

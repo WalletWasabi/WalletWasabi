@@ -7,7 +7,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using Xunit;
 
-namespace WalletWasabi.Tests
+namespace WalletWasabi.Tests.UnitTests
 {
 	public class PasswordTests
 	{

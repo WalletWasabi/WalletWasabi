@@ -18,7 +18,7 @@ using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 using Xunit;
 
-namespace WalletWasabi.Tests
+namespace WalletWasabi.Tests.UnitTests
 {
 	public class ModelTests
 	{

@@ -15,7 +15,7 @@ using WalletWasabi.Stores;
 using Xunit;
 using Xunit.Sdk;
 
-namespace WalletWasabi.Tests
+namespace WalletWasabi.Tests.UnitTests
 {
 	public class StoreTests
 	{

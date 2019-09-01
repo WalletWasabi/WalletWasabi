@@ -8,7 +8,7 @@ using System.Text;
 using WalletWasabi.Helpers;
 using Xunit;
 
-namespace WalletWasabi.Tests
+namespace WalletWasabi.Tests.UnitTests
 {
 	public class ParserTests
 	{

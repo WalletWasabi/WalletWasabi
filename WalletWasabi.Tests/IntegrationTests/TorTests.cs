@@ -9,7 +9,7 @@ using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.TorSocks5;
 using Xunit;
 
-namespace WalletWasabi.Tests
+namespace WalletWasabi.Tests.IntegrationTests
 {
 	// Tor must be running
 	public class TorTests

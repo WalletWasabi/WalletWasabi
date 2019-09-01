@@ -37,7 +37,7 @@ using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 using Xunit;
 using static NBitcoin.Crypto.SchnorrBlinding;
 
-namespace WalletWasabi.Tests
+namespace WalletWasabi.Tests.IntegrationTests
 {
 	[Collection("RegTest collection")]
 	public class RegTests
