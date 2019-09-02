@@ -176,6 +176,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					transaction = signedPsbt.ExtractSmartTransaction();
 				}
+				catch (PSBTException psbtEx)
+				{
+					throw new FormatException($"PSBT cannot be finalized: {psbtEx.Errors.FirstOrDefault()}");
+				}
 				catch
 				{
 					transaction = new SmartTransaction(Transaction.Parse(TransactionString, Global.Network ?? Network.Main), WalletWasabi.Models.Height.Unknown);
