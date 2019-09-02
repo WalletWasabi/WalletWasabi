@@ -50,7 +50,7 @@ namespace WalletWasabi.Models
 			set
 			{
 				// If it's null, let FirstSeen's default to be set.
-				// If it's not null, then check if FirsSeen has just been recently set to utcnow which is its default.
+				// If it's not null, then check if FirstSeen has just been recently set to utcnow which is its default.
 				if (value.HasValue && (DateTimeOffset.UtcNow - FirstSeen) < TimeSpan.FromSeconds(1))
 				{
 					FirstSeen = value.Value;
