@@ -25,15 +25,21 @@
           <DockPanel LastChildFill="True">
             <Grid ColumnDefinitions="*,300" DockPanel.Dock="Top" Margin="0 0 0 10">
               <StackPanel Spacing="8">
-                <controls:ExtendedTextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label (Required)" CaretIndex="{Binding CaretIndex}" UseFloatingWatermark="True" Grid.Column="0" Margin="0 0 10 0">
+                <controls:ExtendedTextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label (What is this address for?)" CaretIndex="{Binding CaretIndex}" UseFloatingWatermark="True" Grid.Column="0" Margin="0 0 10 0">
                   <i:Interaction.Behaviors>
                     <behaviors:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />
                     <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
                     <behaviors:FocusBehavior IsFocused="{Binding IsSelected}" />
                     <iac:FocusOnAttachedToVisualTreeBehavior />
                   </i:Interaction.Behaviors>
-                  <ToolTip.Tip>Start labeling today and your privacy will thank you tomorrow!</ToolTip.Tip>
                 </controls:ExtendedTextBox>
+                <StackPanel Orientation="Horizontal" Spacing="2">
+                  <DrawingPresenter Width="16" Drawing="{DynamicResource Information}" Margin="0 2 6 0" VerticalAlignment="Top"/>
+                  <StackPanel Spacing="2"> 
+                    <TextBlock Text="Labels help you to easily indentify the coins that you receive so you don't end up mixing them." Classes="information" />
+                    <TextBlock Text="Example: &quot;August Salary&quot;, &quot;Investment return&quot;, etc." Classes="information"/>
+                  </StackPanel> 
+                </StackPanel>
                 <ItemsControl Items="{Binding Suggestions}">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>

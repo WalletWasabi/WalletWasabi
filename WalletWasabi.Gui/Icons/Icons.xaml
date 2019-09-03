@@ -49,6 +49,11 @@
           <GeometryDrawing Brush="#FF1BA1E2" Geometry="F1M7,7.5L9,7.5 9,12 7,12z M7,4L9,4 9,5.5 7,5.5z M8,14C4.691,14 2,11.309 2,8 2,4.691 4.691,2 8,2 11.309,2 14,4.691 14,8 14,11.309 11.309,14 8,14 M8,1C4.14,1 1,4.14 1,8 1,11.859 4.14,15 8,15 11.859,15 15,11.859 15,8 15,4.14 11.859,1 8,1" />
         </DrawingGroup.Children>
       </DrawingGroup>
+      <DrawingGroup x:Key="Information">
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#FFF6F6F6" Geometry="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
       <DrawingGroup x:Key="FolderOpen">
         <DrawingGroup.Children>
           <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M0,0L16,0 16,16 0,16z" />
@@ -142,7 +147,7 @@
       <!-- LoadWalletViewModel Icons -->
       <DrawingGroup x:Key="LoadWallet_Folder">
         <DrawingGroup.Children>
-          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1 M 19,50L 28,34L 63,34L 54,50L 19,50 Z M 19,28.0001L 35,28C 36,25 37.4999,24.0001 37.4999,24.0001L 48.75,24C 49.3023,24 50,24.6977 50,25.25L 50,28L 53.9999,28.0001L 53.9999,32L 27,32L 19,46.4L 19,28.0001 Z " />
+          <GeometryDrawing Brush="#FFB3B3B3" Geometry="F1 M 19,50L 28,34L 63,34L 54,50L 19,50 Z M 19,28.0001L 35,28C 36,25 37.4999,24.0001 37.4999,24.0001L 48.75,24C 49.3023,24 50,24.6977 50,25.25L 50,28L 53.9999,28.0001L 53.9999,32L 27,32L 19,46.4L 19,28.0001 Z " />
         </DrawingGroup.Children>
       </DrawingGroup>
       <!-- Spinner.xaml Icons -->

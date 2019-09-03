@@ -109,6 +109,9 @@
   <Style Selector=".warningMessage">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource WarningMessageForeground}" />
   </Style>
+  <Style Selector=".information">
+    <Setter Property="TextBlock.FontSize" Value="{DynamicResource FontSizeSmall}" />
+  </Style>
   <Style Selector="Button.activeHyperLink">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource HyperLinkForeground}" />
     <Setter Property="Cursor" Value="Hand" />
