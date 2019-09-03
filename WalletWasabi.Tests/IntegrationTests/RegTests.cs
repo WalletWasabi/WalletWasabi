@@ -376,9 +376,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			// Mine some coins, make a few bech32 transactions then make it confirm.
 			await rpc.GenerateAsync(1);
-			var key = keyManager.GenerateNewKey(new Label(""), KeyState.Clean, isInternal: false);
+			var key = keyManager.GenerateNewKey(Label.Empty, KeyState.Clean, isInternal: false);
 			var tx2 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
-			key = keyManager.GenerateNewKey(new Label(""), KeyState.Clean, isInternal: false);
+			key = keyManager.GenerateNewKey(Label.Empty, KeyState.Clean, isInternal: false);
 			var tx3 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
 			var tx4 = await rpc.SendToAddressAsync(key.GetP2pkhAddress(network), Money.Coins(0.1m));
 			var tx5 = await rpc.SendToAddressAsync(key.GetP2shOverP2wpkhAddress(network), Money.Coins(0.1m));
