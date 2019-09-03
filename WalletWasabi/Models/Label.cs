@@ -33,7 +33,7 @@ namespace WalletWasabi.Models
 			HashCode = ((IStructuralEquatable)Labels).GetHashCode(EqualityComparer<string>.Default);
 			IsEmpty = !Labels.Any();
 
-			LabelString = IsEmpty ? "" : string.Join(", ", Labels);
+			LabelString = string.Join(", ", Labels);
 		}
 
 		public override string ToString() => LabelString;
