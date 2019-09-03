@@ -12,42 +12,6 @@ namespace WalletWasabi.Helpers
 {
 	public static class NBitcoinHelpers
 	{
-		public static bool TryParsePSBT(string transactionString, Network network, out PSBT psbt)
-		{
-			try
-			{
-				psbt = PSBT.Parse(transactionString, network ?? Network.Main);
-				return true;
-			}
-			catch (PSBTException)
-			{
-				psbt = null;
-				return false;
-			}
-			catch
-			{
-				throw;
-			}
-		}
-
-		public static bool TryParseTransactionHex(string transactionString, Network network, out Transaction txn)
-		{
-			try
-			{
-				txn = Transaction.Parse(transactionString, network ?? Network.Main);
-				return true;
-			}
-			catch (FormatException)
-			{
-				txn = null;
-				return false;
-			}
-			catch
-			{
-				throw;
-			}
-		}
-
 		public static string HashOutpoints(IEnumerable<OutPoint> outPoints)
 		{
 			var sb = new StringBuilder();

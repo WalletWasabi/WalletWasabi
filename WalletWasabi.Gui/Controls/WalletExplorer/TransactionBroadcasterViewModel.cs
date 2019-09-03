@@ -167,7 +167,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				SmartTransaction transaction;
 
-				if (NBitcoinHelpers.TryParsePSBT(TransactionString, Global.Network, out var signedPsbt))
+				if (PSBT.TryParse(TransactionString, Global.Network ?? Network.Main, out var signedPsbt))
 				{
 					if (!signedPsbt.IsAllFinalized())
 					{
@@ -178,7 +178,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				else
 				{
-					if (NBitcoinHelpers.TryParseTransactionHex(TransactionString, Global.Network, out var txn))
+					if (Transaction.TryParse(TransactionString, Global.Network, out var txn))
 					{
 						transaction = new SmartTransaction(txn, WalletWasabi.Models.Height.Unknown);
 					}
