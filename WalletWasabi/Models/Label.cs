@@ -40,10 +40,11 @@ namespace WalletWasabi.Models
 
 		public static Label Merge(IEnumerable<Label> labels)
 		{
-			return new Label(labels?
-				.SelectMany(x => x?.Labels ?? Enumerable.Empty<string>())
-				.Where(x => x != null)
-				?? Enumerable.Empty<string>());
+			IEnumerable<string> labelStrings = labels
+				?.SelectMany(x => x?.Labels ?? Enumerable.Empty<string>())
+				?.Where(x => x != null);
+
+			return new Label(labelStrings);
 		}
 
 		public static Label Merge(params Label[] labels) => Merge(labels as IEnumerable<Label>);
