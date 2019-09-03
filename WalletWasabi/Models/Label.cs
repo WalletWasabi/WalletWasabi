@@ -21,13 +21,13 @@ namespace WalletWasabi.Models
 
 		public Label(IEnumerable<string> labels)
 		{
-			Labels = (labels
-				   ?.SelectMany(x => x?.Split(Separators, StringSplitOptions.RemoveEmptyEntries) ?? new string[0])
-				   ?.Select(x => x.Trim())
-				   ?.Where(x => x != "")
-				   ?.Distinct(StringComparer.OrdinalIgnoreCase)
-				   ?.OrderBy(x => x)
-				   ?? Enumerable.Empty<string>())
+			labels = labels ?? Enumerable.Empty<string>();
+			Labels = labels
+				   .SelectMany(x => x?.Split(Separators, StringSplitOptions.RemoveEmptyEntries) ?? new string[0])
+				   .Select(x => x.Trim())
+				   .Where(x => x != "")
+				   .Distinct(StringComparer.OrdinalIgnoreCase)
+				   .OrderBy(x => x)
 				   .ToArray();
 
 			HashCode = ((IStructuralEquatable)Labels).GetHashCode(EqualityComparer<string>.Default);
