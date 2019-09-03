@@ -55,7 +55,7 @@
               </controls:ExtendedTextBox>
             </StackPanel>
             <StackPanel IsVisible="{Binding !IsWatchOnly}" Margin="0 10 0 0" Spacing="10" Orientation="Horizontal">
-              <controls:TogglePasswordBox Text="{Binding Password}" MinWidth="173" MaxWidth="173">
+              <controls:TogglePasswordBox Text="{Binding Password}" MaxWidth = "600">
                 <i:Interaction.Behaviors>
                   <behaviors:CommandOnEnterBehavior Command="{Binding ToggleSensitiveKeysCommand}" />
                 </i:Interaction.Behaviors>

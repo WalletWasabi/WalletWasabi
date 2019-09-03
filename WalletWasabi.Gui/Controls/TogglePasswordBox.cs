@@ -26,6 +26,7 @@ namespace WalletWasabi.Gui.Controls
 		{
 			UseFloatingWatermark = true;
 			Watermark = "Password";
+			MinWidth = 400;
 
 			this.GetObservable(IsPasswordVisibleProperty)
 				.ObserveOn(RxApp.MainThreadScheduler)
