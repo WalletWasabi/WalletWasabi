@@ -13,6 +13,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
@@ -165,10 +166,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				ButtonText = "Broadcasting Transaction...";
 
 				SmartTransaction transaction;
-				try
-				{
-					var signedPsbt = PSBT.Parse(TransactionString, Global.Network ?? Network.Main);
 
+				if (NBitcoinHelpers.TryParsePSBT(TransactionString, Global.Network, out var signedPsbt))
+				{
 					if (!signedPsbt.IsAllFinalized())
 					{
 						signedPsbt.Finalize();
@@ -176,13 +176,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					transaction = signedPsbt.ExtractSmartTransaction();
 				}
-				catch (PSBTException psbtEx)
+				else
 				{
-					throw new FormatException($"PSBT cannot be finalized: {psbtEx.Errors.FirstOrDefault()}");
-				}
-				catch
-				{
-					transaction = new SmartTransaction(Transaction.Parse(TransactionString, Global.Network ?? Network.Main), WalletWasabi.Models.Height.Unknown);
+					if (NBitcoinHelpers.TryParseTransactionHex(TransactionString, Global.Network, out var txn))
+					{
+						transaction = new SmartTransaction(txn, WalletWasabi.Models.Height.Unknown);
+					}
+					else
+					{
+						throw new FormatException($"Transaction string is invalid or cannot be finalized.");
+					}
 				}
 
 				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
