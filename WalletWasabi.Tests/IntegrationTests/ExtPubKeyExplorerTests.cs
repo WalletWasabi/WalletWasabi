@@ -7,7 +7,7 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.Services;
 using Xunit;
 
-namespace WalletWasabi.Tests
+namespace WalletWasabi.Tests.IntegrationTests
 {
 	public class ExtPubKeyExplorerTests
 	{
