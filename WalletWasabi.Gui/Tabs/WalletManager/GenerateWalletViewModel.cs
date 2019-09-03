@@ -3,9 +3,11 @@ using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
@@ -27,7 +29,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			Owner = owner;
 
-			GenerateCommand = ReactiveCommand.Create(DoGenerateCommand, this.WhenAnyValue(x => x.TermsAccepted));
+			IObservable<bool> canGenerate = Observable.CombineLatest(
+				this.WhenAnyValue(x => x.TermsAccepted),
+				this.WhenAnyValue(x => x.Password).Select(pw => string.IsNullOrEmpty(ValidatePassword())),
+				(terms, pw) => terms && pw);
+
+			GenerateCommand = ReactiveCommand.Create(DoGenerateCommand, canGenerate);
 		}
 
 		private void DoGenerateCommand()
@@ -87,7 +94,22 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			return isValid && !isReserved;
 		}
 
-		public string ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+		public string ValidatePassword()
+		{
+			string password = Password;
+			List<string> messages = new List<string>();
+			if (PasswordHelper.IsTrimable(password, out _))
+			{
+				messages.Add("Leading and trailing white spaces are not enabled");
+			}
+
+			if (PasswordHelper.IsTooLong(password, out _))
+			{
+				messages.Add(PasswordHelper.PasswordTooLongMessage);
+			}
+
+			return string.Join(' ', messages);
+		}
 
 		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
