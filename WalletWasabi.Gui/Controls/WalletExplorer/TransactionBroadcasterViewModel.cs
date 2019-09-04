@@ -173,19 +173,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						signedPsbt.Finalize();
 					}
-
+					
 					transaction = signedPsbt.ExtractSmartTransaction();
 				}
 				else
 				{
-					if (Transaction.TryParse(TransactionString, Global.Network, out var txn))
-					{
-						transaction = new SmartTransaction(txn, WalletWasabi.Models.Height.Unknown);
-					}
-					else
-					{
-						throw new FormatException($"Transaction string is invalid or cannot be finalized.");
-					}
+					transaction = new SmartTransaction(Transaction.Parse(TransactionString, Global.Network ?? Network.Main),
+													   WalletWasabi.Models.Height.Unknown);
 				}
 
 				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
