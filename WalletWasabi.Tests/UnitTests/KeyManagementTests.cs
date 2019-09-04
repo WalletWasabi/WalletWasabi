@@ -2,12 +2,13 @@ using NBitcoin;
 using System;
 using System.IO;
 using System.Security;
+using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Tests.XunitConfiguration;
 using Xunit;
 
-namespace WalletWasabi.Tests
+namespace WalletWasabi.Tests.UnitTests
 {
 	public class KeyManagementTests
 	{
@@ -88,7 +89,7 @@ namespace WalletWasabi.Tests
 		{
 			string password = "password";
 
-			var filePath = Path.Combine(Global.Instance.DataDir, nameof(CanSerialize), "Wallet.json");
+			var filePath = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName(), "Wallet.json");
 			DeleteFileAndDirectoryIfExists(filePath);
 
 			Logger.TurnOff();

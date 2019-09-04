@@ -10,7 +10,7 @@ using WalletWasabi.Tests.XunitConfiguration;
 using Xunit;
 using static NBitcoin.Crypto.SchnorrBlinding;
 
-namespace WalletWasabi.Tests
+namespace WalletWasabi.Tests.UnitTests
 {
 	public class CryptoTests
 	{

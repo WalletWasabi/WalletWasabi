@@ -14,7 +14,7 @@ using WalletWasabi.WebClients.SmartBit;
 using WalletWasabi.WebClients.SmartBit.Models;
 using Xunit;
 
-namespace WalletWasabi.Tests
+namespace WalletWasabi.Tests.IntegrationTests
 {
 	public class ExternalApiTests
 	{

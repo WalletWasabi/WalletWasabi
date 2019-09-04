@@ -319,19 +319,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.DequeuingSelectedCoins);
 					}
 
-					try
+					if (!KeyManager.IsWatchOnly)
 					{
-						PasswordHelper.GetMasterExtKey(KeyManager, Password, out string compatiblityPasswordUsed); // We could use TryPassword but we need the exception.
-						if (compatiblityPasswordUsed != null)
+						try
 						{
-							isCompatibilityPasswordUsed = true;
-							Password = compatiblityPasswordUsed; // Overwrite the password for BuildTransaction function.
+							PasswordHelper.GetMasterExtKey(KeyManager, Password, out string compatiblityPasswordUsed); // We could use TryPassword but we need the exception.
+							if (compatiblityPasswordUsed != null)
+							{
+								isCompatibilityPasswordUsed = true;
+								Password = compatiblityPasswordUsed; // Overwrite the password for BuildTransaction function.
+							}
 						}
-					}
-					catch (Exception ex)
-					{
-						SetWarningMessage(ex.ToTypeMessageString());
-						return;
+						catch (Exception ex)
+						{
+							SetWarningMessage(ex.ToTypeMessageString());
+							return;
+						}
 					}
 
 					BuildTransactionResult result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
@@ -404,7 +407,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							IsHardwareBusy = false;
 						}
 
-						signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction.Height, result.Transaction.BlockHash, result.Transaction.BlockIndex, result.Transaction.Label, result.Transaction.FirstSeenIfMempoolTime, result.Transaction.IsReplacement);
+						signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction.Height, result.Transaction.BlockHash, result.Transaction.BlockIndex, result.Transaction.Label, result.Transaction.FirstSeen, result.Transaction.IsReplacement);
 					}
 
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);

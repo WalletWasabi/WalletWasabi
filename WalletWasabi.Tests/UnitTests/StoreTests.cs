@@ -15,7 +15,7 @@ using WalletWasabi.Stores;
 using Xunit;
 using Xunit.Sdk;
 
-namespace WalletWasabi.Tests
+namespace WalletWasabi.Tests.UnitTests
 {
 	public class StoreTests
 	{
@@ -176,7 +176,7 @@ namespace WalletWasabi.Tests
 		{
 			var indexStore = new IndexStore();
 
-			var dir = Path.Combine(Global.Instance.DataDir, nameof(IndexStoreTestsAsync));
+			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
 			var network = Network.Main;
 			await indexStore.InitializeAsync(dir, network, new HashChain());
 		}
@@ -341,8 +341,8 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task IoManagerTestsAsync()
 		{
-			var file1 = Path.Combine(Global.Instance.DataDir, nameof(IoManagerTestsAsync), $"file1.dat");
-			var file2 = Path.Combine(Global.Instance.DataDir, nameof(IoManagerTestsAsync), $"file2.dat");
+			var file1 = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName(), $"file1.dat");
+			var file2 = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName(), $"file2.dat");
 
 			Random random = new Random();
 			List<string> lines = new List<string>();
@@ -546,7 +546,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task IoTestsAsync()
 		{
-			var file = Path.Combine(Global.Instance.DataDir, nameof(IoTestsAsync), $"file.dat");
+			var file = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName(), $"file.dat");
 
 			DigestableSafeMutexIoManager ioman = new DigestableSafeMutexIoManager(file);
 			ioman.DeleteMe();

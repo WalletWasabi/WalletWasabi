@@ -19,6 +19,7 @@ namespace WalletWasabi.Packager
 {
 	public class Program
 	{
+#pragma warning disable CS0162 // Unreachable code detected
 		// 0. Dump Client version (or else wrong .msi will be created) - Helpers.Constants.ClientVersion
 		// 1. Publish with Packager.
 		// 2. Build WIX project with Release and x64 configuration.
@@ -95,14 +96,17 @@ namespace WalletWasabi.Packager
 				}
 			}
 
-			if (DoSign && !OnlyBinaries)
+			if (!OnlyBinaries)
 			{
-				Sign();
-			}
+				if (DoSign)
+				{
+					Sign();
+				}
 
-			if (DoRestoreProgramCs && !OnlyBinaries)
-			{
-				RestoreProgramCs();
+				if (DoRestoreProgramCs)
+				{
+					RestoreProgramCs();
+				}
 			}
 		}
 
@@ -887,5 +891,7 @@ namespace WalletWasabi.Packager
 				}
 			}
 		}
+
+#pragma warning restore CS0162 // Unreachable code detected
 	}
 }

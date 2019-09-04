@@ -11,26 +11,26 @@ namespace WalletWasabi.Helpers
 		public const string BackendMajorVersion = "3";
 		public static readonly VersionsResponse VersionsResponse = new VersionsResponse { ClientVersion = ClientVersion.ToString(3), BackendMajorVersion = BackendMajorVersion };
 
-		public const uint ProtocolVersion_WITNESS_VERSION = 70012;
+		public const uint ProtocolVersionWitnessVersion = 70012;
 
 		public static readonly NodeRequirement NodeRequirements = new NodeRequirement
 		{
 			RequiredServices = NodeServices.NODE_WITNESS,
-			MinVersion = ProtocolVersion_WITNESS_VERSION,
+			MinVersion = ProtocolVersionWitnessVersion,
 			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true, SupportMempoolQuery = true }
 		};
 
 		public static readonly NodeRequirement LocalNodeRequirements = new NodeRequirement
 		{
 			RequiredServices = NodeServices.NODE_WITNESS,
-			MinVersion = ProtocolVersion_WITNESS_VERSION,
+			MinVersion = ProtocolVersionWitnessVersion,
 			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true }
 		};
 
 		public static readonly NodeRequirement LocalBackendNodeRequirements = new NodeRequirement
 		{
 			RequiredServices = NodeServices.NODE_WITNESS,
-			MinVersion = ProtocolVersion_WITNESS_VERSION,
+			MinVersion = ProtocolVersionWitnessVersion,
 			MinProtocolCapabilities = new ProtocolCapabilities
 			{
 				SupportGetBlock = true,
