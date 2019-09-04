@@ -178,8 +178,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				else
 				{
-					transaction = new SmartTransaction(Transaction.Parse(TransactionString, Global.Network ?? Network.Main),
-													   WalletWasabi.Models.Height.Unknown);
+					transaction = new SmartTransaction(Transaction.Parse(TransactionString, Global.Network ?? Network.Main), WalletWasabi.Models.Height.Unknown);
 				}
 
 				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
