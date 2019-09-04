@@ -25,6 +25,7 @@ namespace WalletWasabi.Gui
 		private bool _lockScreenActive;
 		private string _lockScreenPinHash;
 		private bool _isCustomFee;
+		private bool _legalDocumentsAccepted;
 
 		[JsonProperty(PropertyName = "WindowState")]
 		[JsonConverter(typeof(WindowStateAfterStartJsonConverter))]
@@ -80,6 +81,14 @@ namespace WalletWasabi.Gui
 		{
 			get => _lockScreenPinHash;
 			set => RaiseAndSetIfChanged(ref _lockScreenPinHash, value);
+		}
+
+		[DefaultValue(false)]
+		[JsonProperty(PropertyName = "LegalDocumentsAccepted", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool LegalDocumentsAccepted
+		{
+			get => _legalDocumentsAccepted;
+			set => RaiseAndSetIfChanged(ref _legalDocumentsAccepted, value);
 		}
 
 		public UiConfig() : base()

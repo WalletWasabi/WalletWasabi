@@ -222,7 +222,8 @@ namespace WalletWasabi.Gui.ViewModels
 				},
 				() =>
 				{
-					return Task.CompletedTask;
+					Global.UiConfig.LegalDocumentsAccepted = false;
+					return Global.UiConfig.ToFileAsync();
 				});
 		}
 

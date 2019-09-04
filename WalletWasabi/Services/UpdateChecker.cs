@@ -47,6 +47,11 @@ namespace WalletWasabi.Services
 			PrivacyPolicyPath = Path.Combine(WorkFolderPath, "PrivacyPolicy.txt");
 			TermsAndConditionsPath = Path.Combine(WorkFolderPath, "TermsAndConditions.txt");
 
+			await RefreshHashesAsync();
+		}
+
+		private async Task RefreshHashesAsync()
+		{
 			LegalIssuesHash = File.Exists(LegalIssuesPath) ? HashHelpers.GenerateSha256Hash(await File.ReadAllBytesAsync(LegalIssuesPath)) : null;
 			PrivacyPolicyHash = File.Exists(PrivacyPolicyPath) ? HashHelpers.GenerateSha256Hash(await File.ReadAllBytesAsync(PrivacyPolicyPath)) : null;
 			TermsAndConditionsHash = File.Exists(TermsAndConditionsPath) ? HashHelpers.GenerateSha256Hash(await File.ReadAllBytesAsync(TermsAndConditionsPath)) : null;
@@ -104,6 +109,7 @@ namespace WalletWasabi.Services
 
 							if (legalUpdated)
 							{
+								await RefreshHashesAsync();
 								await legalDocumentsOutOfDate?.Invoke();
 							}
 						}
