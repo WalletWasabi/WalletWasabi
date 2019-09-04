@@ -25,7 +25,7 @@
           <DockPanel LastChildFill="True">
             <Grid ColumnDefinitions="*,300" DockPanel.Dock="Top" Margin="0 0 0 10">
               <StackPanel Spacing="8">
-                <controls:ExtendedTextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label (What is this address for?)" CaretIndex="{Binding CaretIndex}" UseFloatingWatermark="True" Grid.Column="0" Margin="0 0 10 0">
+                <controls:ExtendedTextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label (Payment reason)" CaretIndex="{Binding CaretIndex}" UseFloatingWatermark="True" Grid.Column="0" Margin="0 0 10 0">
                   <i:Interaction.Behaviors>
                     <behaviors:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />
                     <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
