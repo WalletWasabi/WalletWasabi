@@ -100,7 +100,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			List<string> messages = new List<string>();
 			if (PasswordHelper.IsTrimable(password, out _))
 			{
-				messages.Add("Leading and trailing white spaces are not enabled");
+				messages.Add("Leading and trailing white spaces are not enabled!");
 			}
 
 			if (PasswordHelper.IsTooLong(password, out _))
