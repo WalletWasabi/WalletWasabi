@@ -219,6 +219,10 @@ namespace WalletWasabi.Gui.ViewModels
 						UpdateStatus = UpdateStatus.Optional;
 					}
 					return Task.CompletedTask;
+				},
+				() =>
+				{
+					return Task.CompletedTask;
 				});
 		}
 

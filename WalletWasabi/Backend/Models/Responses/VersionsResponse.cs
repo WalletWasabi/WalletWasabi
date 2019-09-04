@@ -9,5 +9,9 @@ namespace WalletWasabi.Backend.Models.Responses
 		// KEEP THE TYPO IN IT! Otherwise the response would not be backwards compatible.
 		[JsonProperty(PropertyName = "BackenMajordVersion")]
 		public string BackendMajorVersion { get; set; }
+
+		public byte[] LegalIssuesHash { get; set; }
+		public byte[] PrivacyPolicyHash { get; set; }
+		public byte[] TermsAndConditionsHash { get; set; }
 	}
 }

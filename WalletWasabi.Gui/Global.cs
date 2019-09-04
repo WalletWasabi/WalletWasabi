@@ -163,6 +163,7 @@ namespace WalletWasabi.Gui
 			}
 
 			UpdateChecker = new UpdateChecker(Synchronizer.WasabiClient);
+			var updateCheckerTask = UpdateChecker.InitializeAsync(Path.Combine(DataDir, "UpdateChecker"));
 
 			#region ProcessKillSubscription
 
@@ -298,6 +299,12 @@ namespace WalletWasabi.Gui
 			Logger.LogInfo("Start synchronizing filters...");
 
 			#endregion SynchronizerInitialization
+
+			#region UpdateCheckerInitialization
+
+			await updateCheckerTask;
+
+			#endregion UpdateCheckerInitialization
 
 			Initialized = true;
 		}

@@ -9,7 +9,6 @@ namespace WalletWasabi.Helpers
 	{
 		public static readonly Version ClientVersion = new Version(1, 1, 6, 99);
 		public const string BackendMajorVersion = "3";
-		public static readonly VersionsResponse VersionsResponse = new VersionsResponse { ClientVersion = ClientVersion.ToString(3), BackendMajorVersion = BackendMajorVersion };
 
 		public const uint ProtocolVersionWitnessVersion = 70012;
 

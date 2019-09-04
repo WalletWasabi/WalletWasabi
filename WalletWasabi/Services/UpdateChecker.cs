@@ -1,7 +1,9 @@
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -20,6 +22,11 @@ namespace WalletWasabi.Services
 
 		public WasabiClient WasabiClient { get; }
 
+		private string WorkFolderPath { get; set; }
+		public byte[] LegalIssuesHash { get; private set; }
+		public byte[] PrivacyPolicyHash { get; private set; }
+		public byte[] TermsAndConditionsHash { get; private set; }
+
 		public UpdateChecker(WasabiClient client)
 		{
 			WasabiClient = client;
@@ -27,7 +34,21 @@ namespace WalletWasabi.Services
 			Stop = new CancellationTokenSource();
 		}
 
-		public void Start(TimeSpan period, Func<Task> executeIfBackendIncompatible, Func<Task> executeIfClientOutOfDate)
+		public async Task InitializeAsync(string workFolderPath)
+		{
+			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
+			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
+
+			var legalIssuesPath = Path.Combine(WorkFolderPath, "LegalIssues.txt");
+			var privacyPolicyPath = Path.Combine(WorkFolderPath, "PrivacyPolicy.txt");
+			var termsAndConditionsPath = Path.Combine(WorkFolderPath, "TermsAndConditions.txt");
+
+			LegalIssuesHash = File.Exists(legalIssuesPath) ? HashHelpers.GenerateSha256Hash(await File.ReadAllBytesAsync(legalIssuesPath)) : null;
+			PrivacyPolicyHash = File.Exists(privacyPolicyPath) ? HashHelpers.GenerateSha256Hash(await File.ReadAllBytesAsync(privacyPolicyPath)) : null;
+			TermsAndConditionsHash = File.Exists(termsAndConditionsPath) ? HashHelpers.GenerateSha256Hash(await File.ReadAllBytesAsync(termsAndConditionsPath)) : null;
+		}
+
+		public void Start(TimeSpan period, Func<Task> executeIfBackendIncompatible, Func<Task> executeIfClientOutOfDate, Func<Task> legalDocumentsOutOfDate)
 		{
 			if (Interlocked.CompareExchange(ref _running, 1, 0) != 0)
 			{
@@ -42,16 +63,23 @@ namespace WalletWasabi.Services
 					{
 						try
 						{
-							(bool backendCompatible, bool clientUpToDate) updates = await WasabiClient.CheckUpdatesAsync(Stop.Token);
+							var versions = await WasabiClient.GetVersionsAsync(Stop.Token);
 
-							if (!updates.backendCompatible)
+							if (int.Parse(Constants.BackendMajorVersion) != versions.BackendMajorVersion) // If the backend major and the client major are equal, then our softwares are compatible.
 							{
 								await executeIfBackendIncompatible?.Invoke();
 							}
 
-							if (!updates.clientUpToDate)
+							if (Constants.ClientVersion < versions.ClientVersion) // If the client version locally is smaller than the backend's reported client version, then need to update.
 							{
 								await executeIfClientOutOfDate?.Invoke();
+							}
+
+							var legalUpToDate = ByteHelpers.CompareFastUnsafe(versions.LegalIssuesHash, LegalIssuesHash) && ByteHelpers.CompareFastUnsafe(versions.PrivacyPolicyHash, PrivacyPolicyHash) && ByteHelpers.CompareFastUnsafe(versions.TermsAndConditionsHash, TermsAndConditionsHash);
+
+							if (!legalUpToDate)
+							{
+								await legalDocumentsOutOfDate?.Invoke();
 							}
 						}
 						catch (ConnectionException ex)
