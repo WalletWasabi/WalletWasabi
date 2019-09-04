@@ -31,16 +31,16 @@ namespace WalletWasabi.Gui.Controls
 			this.GetObservable(IsPasswordVisibleProperty)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
-			{
-				IsPasswordVisible = x;
-			});
+				{
+					IsPasswordVisible = x;
+				});
 
 			this.WhenAnyValue(x => x.IsPasswordVisible)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
-			{
-				PasswordChar = x ? '\0' : '\u2022';
-			});
+				{
+					PasswordChar = x ? '\0' : '\u2022';
+				});
 		}
 
 		protected override bool IsCopyEnabled => false;
