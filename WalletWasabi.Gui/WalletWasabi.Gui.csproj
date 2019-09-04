@@ -64,10 +64,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AvalonStudio.Shell" Version="0.8.999" />
-    <PackageReference Include="Avalonia" Version="0.8.999-cibuild0003524-beta" />
-    <PackageReference Include="Dock.Avalonia.Themes.Default" Version="0.9.0-build20190810-28" />
-    <PackageReference Include="Dock.Avalonia.Themes.Metro" Version="0.9.0-build20190810-28" />
+    <PackageReference Include="AvalonStudio.Shell" Version="0.8.9991" />
+    <PackageReference Include="Avalonia" Version="0.8.999-cibuild0003780-beta" />
+    <PackageReference Include="Dock.Avalonia.Themes.Default" Version="0.9.0-build20190904-02" />
+    <PackageReference Include="Dock.Avalonia.Themes.Metro" Version="0.9.0-build20190904-02" />
+    
   </ItemGroup>
 
   <ItemGroup>
