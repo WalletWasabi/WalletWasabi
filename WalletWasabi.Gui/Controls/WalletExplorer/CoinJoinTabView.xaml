@@ -110,7 +110,7 @@
             </StackPanel>
           </StackPanel>
           <StackPanel IsVisible="{Binding !IsWatchOnly}" Grid.Column="0" Spacing="10">
-            <controls:TogglePasswordBox Text="{Binding Password}" Margin="0 20 0 0" MinWidth ="200">
+            <controls:TogglePasswordBox Text="{Binding Password}" Margin="0 20 0 0" MinWidth="200">
               <i:Interaction.Behaviors>
                 <behaviors:CommandOnEnterBehavior Command="{Binding EnqueueCommand}" />
               </i:Interaction.Behaviors>
