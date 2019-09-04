@@ -23,6 +23,10 @@ namespace WalletWasabi.Services
 		public WasabiClient WasabiClient { get; }
 
 		private string WorkFolderPath { get; set; }
+
+		private string LegalIssuesPath { get; set; }
+		private string PrivacyPolicyPath { get; set; }
+		private string TermsAndConditionsPath { get; set; }
 		public byte[] LegalIssuesHash { get; private set; }
 		public byte[] PrivacyPolicyHash { get; private set; }
 		public byte[] TermsAndConditionsHash { get; private set; }
@@ -39,13 +43,13 @@ namespace WalletWasabi.Services
 			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
-			var legalIssuesPath = Path.Combine(WorkFolderPath, "LegalIssues.txt");
-			var privacyPolicyPath = Path.Combine(WorkFolderPath, "PrivacyPolicy.txt");
-			var termsAndConditionsPath = Path.Combine(WorkFolderPath, "TermsAndConditions.txt");
+			LegalIssuesPath = Path.Combine(WorkFolderPath, "LegalIssues.txt");
+			PrivacyPolicyPath = Path.Combine(WorkFolderPath, "PrivacyPolicy.txt");
+			TermsAndConditionsPath = Path.Combine(WorkFolderPath, "TermsAndConditions.txt");
 
-			LegalIssuesHash = File.Exists(legalIssuesPath) ? HashHelpers.GenerateSha256Hash(await File.ReadAllBytesAsync(legalIssuesPath)) : null;
-			PrivacyPolicyHash = File.Exists(privacyPolicyPath) ? HashHelpers.GenerateSha256Hash(await File.ReadAllBytesAsync(privacyPolicyPath)) : null;
-			TermsAndConditionsHash = File.Exists(termsAndConditionsPath) ? HashHelpers.GenerateSha256Hash(await File.ReadAllBytesAsync(termsAndConditionsPath)) : null;
+			LegalIssuesHash = File.Exists(LegalIssuesPath) ? HashHelpers.GenerateSha256Hash(await File.ReadAllBytesAsync(LegalIssuesPath)) : null;
+			PrivacyPolicyHash = File.Exists(PrivacyPolicyPath) ? HashHelpers.GenerateSha256Hash(await File.ReadAllBytesAsync(PrivacyPolicyPath)) : null;
+			TermsAndConditionsHash = File.Exists(TermsAndConditionsPath) ? HashHelpers.GenerateSha256Hash(await File.ReadAllBytesAsync(TermsAndConditionsPath)) : null;
 		}
 
 		public void Start(TimeSpan period, Func<Task> executeIfBackendIncompatible, Func<Task> executeIfClientOutOfDate, Func<Task> legalDocumentsOutOfDate)
@@ -75,9 +79,30 @@ namespace WalletWasabi.Services
 								await executeIfClientOutOfDate?.Invoke();
 							}
 
-							var legalUpToDate = ByteHelpers.CompareFastUnsafe(versions.LegalIssuesHash, LegalIssuesHash) && ByteHelpers.CompareFastUnsafe(versions.PrivacyPolicyHash, PrivacyPolicyHash) && ByteHelpers.CompareFastUnsafe(versions.TermsAndConditionsHash, TermsAndConditionsHash);
+							bool legalUpdated = false;
 
-							if (!legalUpToDate)
+							if (!ByteHelpers.CompareFastUnsafe(versions.LegalIssuesHash, LegalIssuesHash))
+							{
+								legalUpdated = true;
+								string result = await WasabiClient.GetLegalIssuesAsync(Stop.Token);
+								await File.WriteAllTextAsync(LegalIssuesPath, result);
+							}
+
+							if (!ByteHelpers.CompareFastUnsafe(versions.PrivacyPolicyHash, PrivacyPolicyHash))
+							{
+								legalUpdated = true;
+								string result = await WasabiClient.GetPrivacyPolicyAsync(Stop.Token);
+								await File.WriteAllTextAsync(PrivacyPolicyPath, result);
+							}
+
+							if (!ByteHelpers.CompareFastUnsafe(versions.TermsAndConditionsHash, TermsAndConditionsHash))
+							{
+								legalUpdated = true;
+								string result = await WasabiClient.GetTermsAndConditionsAsync(Stop.Token);
+								await File.WriteAllTextAsync(TermsAndConditionsPath, result);
+							}
+
+							if (legalUpdated)
 							{
 								await legalDocumentsOutOfDate?.Invoke();
 							}

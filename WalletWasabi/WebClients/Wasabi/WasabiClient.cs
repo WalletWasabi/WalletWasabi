@@ -223,6 +223,54 @@ namespace WalletWasabi.WebClients.Wasabi
 			}
 		}
 
+		public async Task<string> GetLegalIssuesAsync(CancellationToken cancel)
+		{
+			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, "/api/software/legalissues", cancel: cancel))
+			{
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					await response.ThrowRequestExceptionFromContentAsync();
+				}
+
+				using (HttpContent content = response.Content)
+				{
+					return await content.ReadAsStringAsync();
+				}
+			}
+		}
+
+		public async Task<string> GetPrivacyPolicyAsync(CancellationToken cancel)
+		{
+			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, "/api/software/privacypolicy", cancel: cancel))
+			{
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					await response.ThrowRequestExceptionFromContentAsync();
+				}
+
+				using (HttpContent content = response.Content)
+				{
+					return await content.ReadAsStringAsync();
+				}
+			}
+		}
+
+		public async Task<string> GetTermsAndConditionsAsync(CancellationToken cancel)
+		{
+			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, "/api/software/termsandconditions", cancel: cancel))
+			{
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					await response.ThrowRequestExceptionFromContentAsync();
+				}
+
+				using (HttpContent content = response.Content)
+				{
+					return await content.ReadAsStringAsync();
+				}
+			}
+		}
+
 		#endregion software
 	}
 }
