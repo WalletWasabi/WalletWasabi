@@ -173,7 +173,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						signedPsbt.Finalize();
 					}
-					
+
 					transaction = signedPsbt.ExtractSmartTransaction();
 				}
 				else
@@ -187,6 +187,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				SetSuccessMessage("Transaction is successfully sent!");
 				TransactionString = "";
+			}
+			catch (PSBTException ex)
+			{
+				SetWarningMessage($"The PSBT cannot be finalized: {ex.Errors.FirstOrDefault()}");
 			}
 			catch (Exception ex)
 			{
