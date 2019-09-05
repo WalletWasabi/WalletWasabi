@@ -14,19 +14,19 @@ namespace WalletWasabi.Models.TransactionBuilding
 		public Money TotalAmount { get; }
 		public int Count => Requests.Count();
 
-		public PaymentIntent(Script scriptPubKey, Money amount, bool subtractFee = false, Label label = null) : this(scriptPubKey, MoneyRequest.Create(amount, subtractFee), label)
+		public PaymentIntent(Script scriptPubKey, Money amount, bool subtractFee = false, SmartLabel label = null) : this(scriptPubKey, MoneyRequest.Create(amount, subtractFee), label)
 		{
 		}
 
-		public PaymentIntent(Script scriptPubKey, MoneyRequest amount, Label label = null) : this(scriptPubKey.GetDestination(), amount, label)
+		public PaymentIntent(Script scriptPubKey, MoneyRequest amount, SmartLabel label = null) : this(scriptPubKey.GetDestination(), amount, label)
 		{
 		}
 
-		public PaymentIntent(IDestination destination, Money amount, bool subtractFee = false, Label label = null) : this(destination, MoneyRequest.Create(amount, subtractFee), label)
+		public PaymentIntent(IDestination destination, Money amount, bool subtractFee = false, SmartLabel label = null) : this(destination, MoneyRequest.Create(amount, subtractFee), label)
 		{
 		}
 
-		public PaymentIntent(IDestination destination, MoneyRequest amount, Label label = null) : this(new DestinationRequest(destination, amount, label))
+		public PaymentIntent(IDestination destination, MoneyRequest amount, SmartLabel label = null) : this(new DestinationRequest(destination, amount, label))
 		{
 		}
 

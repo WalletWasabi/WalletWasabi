@@ -7,82 +7,82 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests
 {
-	public class LabelTests
+	public class SmartLabelTests
 	{
 		[Fact]
 		public void LabelParsingTests()
 		{
-			var label = new Label();
+			var label = new SmartLabel();
 			Assert.Equal("", label.ToString());
 
-			label = new Label("");
+			label = new SmartLabel("");
 			Assert.Equal("", label.ToString());
 
-			label = new Label(null);
+			label = new SmartLabel(null);
 			Assert.Equal("", label.ToString());
 
-			label = new Label(null, null);
+			label = new SmartLabel(null, null);
 			Assert.Equal("", label.ToString());
 
-			label = new Label(" ");
+			label = new SmartLabel(" ");
 			Assert.Equal("", label.ToString());
 
-			label = new Label(",");
+			label = new SmartLabel(",");
 			Assert.Equal("", label.ToString());
 
-			label = new Label(":");
+			label = new SmartLabel(":");
 			Assert.Equal("", label.ToString());
 
-			label = new Label("foo");
+			label = new SmartLabel("foo");
 			Assert.Equal("foo", label.ToString());
 
-			label = new Label("foo", "bar");
+			label = new SmartLabel("foo", "bar");
 			Assert.Equal("bar, foo", label.ToString());
 
-			label = new Label("foo bar");
+			label = new SmartLabel("foo bar");
 			Assert.Equal("foo bar", label.ToString());
 
-			label = new Label("foo bar", "Buz quX@");
+			label = new SmartLabel("foo bar", "Buz quX@");
 			Assert.Equal("Buz quX@, foo bar", label.ToString());
 
-			label = new Label(new List<string>() { "foo", "bar" });
+			label = new SmartLabel(new List<string>() { "foo", "bar" });
 			Assert.Equal("bar, foo", label.ToString());
 
-			label = new Label("  foo    ");
+			label = new SmartLabel("  foo    ");
 			Assert.Equal("foo", label.ToString());
 
-			label = new Label("foo      ", "      bar");
+			label = new SmartLabel("foo      ", "      bar");
 			Assert.Equal("bar, foo", label.ToString());
 
-			label = new Label(new List<string>() { "   foo   ", "   bar    " });
+			label = new SmartLabel(new List<string>() { "   foo   ", "   bar    " });
 			Assert.Equal("bar, foo", label.ToString());
 
-			label = new Label(new List<string>() { "foo:", ":bar", null, ":buz:", ",", ": , :", "qux:quux", "corge,grault", "", "  ", " , garply, waldo,", " : ,  :  ,  fred  , : , :   plugh, : , : ," });
+			label = new SmartLabel(new List<string>() { "foo:", ":bar", null, ":buz:", ",", ": , :", "qux:quux", "corge,grault", "", "  ", " , garply, waldo,", " : ,  :  ,  fred  , : , :   plugh, : , : ," });
 			Assert.Equal("bar, buz, corge, foo, fred, garply, grault, plugh, quux, qux, waldo", label.ToString());
 
-			label = new Label(",: foo::bar :buz:,: , :qux:quux, corge,grault  , garply, waldo, : ,  :  ,  fred  , : , :   plugh, : , : ,");
+			label = new SmartLabel(",: foo::bar :buz:,: , :qux:quux, corge,grault  , garply, waldo, : ,  :  ,  fred  , : , :   plugh, : , : ,");
 			Assert.Equal("bar, buz, corge, foo, fred, garply, grault, plugh, quux, qux, waldo", label.ToString());
 		}
 
 		[Fact]
 		public void LabelEqualityTests()
 		{
-			var label = new Label("foo");
-			var label2 = new Label(label.ToString());
+			var label = new SmartLabel("foo");
+			var label2 = new SmartLabel(label.ToString());
 			Assert.Equal(label, label2);
 
-			label = new Label("foo, bar, buz");
-			label2 = new Label(label.ToString());
+			label = new SmartLabel("foo, bar, buz");
+			label2 = new SmartLabel(label.ToString());
 			Assert.Equal(label, label2);
 
-			label2 = new Label("bar, buz, foo");
+			label2 = new SmartLabel("bar, buz, foo");
 			Assert.Equal(label, label2);
 
-			var label3 = new Label("bar, buz");
+			var label3 = new SmartLabel("bar, buz");
 			Assert.NotEqual(label, label3);
 
-			Label label4 = null;
-			Label label5 = null;
+			SmartLabel label4 = null;
+			SmartLabel label5 = null;
 			Assert.Equal(label4, label5);
 			Assert.NotEqual(label, label4);
 			Assert.False(label.Equals(label4));
@@ -92,23 +92,23 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void SpecialLabelTests()
 		{
-			var label = new Label("");
-			Assert.Equal(label, Label.Empty);
+			var label = new SmartLabel("");
+			Assert.Equal(label, SmartLabel.Empty);
 			Assert.True(label.IsEmpty);
 
-			label = new Label("foo, bar, buz");
-			var label2 = new Label("qux");
+			label = new SmartLabel("foo, bar, buz");
+			var label2 = new SmartLabel("qux");
 
-			label = Label.Merge(label, label2);
+			label = SmartLabel.Merge(label, label2);
 			Assert.Equal("bar, buz, foo, qux", label.ToString());
 
-			label2 = new Label("qux", "bar");
-			label = Label.Merge(label, label2);
+			label2 = new SmartLabel("qux", "bar");
+			label = SmartLabel.Merge(label, label2);
 			Assert.Equal(4, label.Labels.Count());
 			Assert.Equal("bar, buz, foo, qux", label.ToString());
 
-			label2 = new Label("Qux", "Bar");
-			label = Label.Merge(label, label2, null);
+			label2 = new SmartLabel("Qux", "Bar");
+			label = SmartLabel.Merge(label, label2, null);
 			Assert.Equal(4, label.Labels.Count());
 			Assert.Equal("bar, buz, foo, qux", label.ToString());
 		}

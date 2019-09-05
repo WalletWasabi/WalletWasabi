@@ -10,25 +10,25 @@ namespace WalletWasabi.Models.TransactionBuilding
 	{
 		public IDestination Destination { get; }
 		public MoneyRequest Amount { get; }
-		public Label Label { get; }
+		public SmartLabel Label { get; }
 
-		public DestinationRequest(Script scriptPubKey, Money amount, bool subtractFee = false, Label label = null) : this(scriptPubKey, MoneyRequest.Create(amount, subtractFee), label)
+		public DestinationRequest(Script scriptPubKey, Money amount, bool subtractFee = false, SmartLabel label = null) : this(scriptPubKey, MoneyRequest.Create(amount, subtractFee), label)
 		{
 		}
 
-		public DestinationRequest(Script scriptPubKey, MoneyRequest amount, Label label = null) : this(scriptPubKey.GetDestination(), amount, label)
+		public DestinationRequest(Script scriptPubKey, MoneyRequest amount, SmartLabel label = null) : this(scriptPubKey.GetDestination(), amount, label)
 		{
 		}
 
-		public DestinationRequest(IDestination destination, Money amount, bool subtractFee = false, Label label = null) : this(destination, MoneyRequest.Create(amount, subtractFee), label)
+		public DestinationRequest(IDestination destination, Money amount, bool subtractFee = false, SmartLabel label = null) : this(destination, MoneyRequest.Create(amount, subtractFee), label)
 		{
 		}
 
-		public DestinationRequest(IDestination destination, MoneyRequest amount, Label label = null)
+		public DestinationRequest(IDestination destination, MoneyRequest amount, SmartLabel label = null)
 		{
 			Destination = Guard.NotNull(nameof(destination), destination);
 			Amount = Guard.NotNull(nameof(amount), amount);
-			Label = label ?? Label.Empty;
+			Label = label ?? SmartLabel.Empty;
 		}
 	}
 }

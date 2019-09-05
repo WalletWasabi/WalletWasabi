@@ -10,20 +10,20 @@ namespace WalletWasabi.JsonConverters
 	{
 		public override bool CanConvert(Type objectType)
 		{
-			return objectType == typeof(Label);
+			return objectType == typeof(SmartLabel);
 		}
 
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
 			var s = reader.Value as string;
-			return new Label(s);
+			return new SmartLabel(s);
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			var label = value as Label;
+			var label = value as SmartLabel;
 			writer.WriteValue(label?.ToString() ?? "");
 		}
 	}

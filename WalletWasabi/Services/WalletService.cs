@@ -432,7 +432,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public HdPubKey GetReceiveKey(Label label, IEnumerable<HdPubKey> dontTouch = null)
+		public HdPubKey GetReceiveKey(SmartLabel label, IEnumerable<HdPubKey> dontTouch = null)
 		{
 			// Make sure there's always 21 clean keys generated and indexed.
 			KeyManager.AssertCleanKeysIndexed(isInternal: false);
@@ -1119,7 +1119,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			var label = Label.Merge(payments.Requests.Select(x => x.Label));
+			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label));
 			var outerWalletOutputs = new List<SmartCoin>();
 			var innerWalletOutputs = new List<SmartCoin>();
 			for (var i = 0U; i < tx.Outputs.Count; i++)
@@ -1128,7 +1128,7 @@ namespace WalletWasabi.Services
 				var anonset = (tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet)) - 1; // Minus 1, because count own only once.
 				var foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
 				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, anonset, isLikelyCoinJoinOutput: false, pubKey: foundKey);
-				label = Label.Merge(label, coin.Label); // foundKey's label is already added to the coinlabel.
+				label = SmartLabel.Merge(label, coin.Label); // foundKey's label is already added to the coinlabel.
 
 				if (foundKey is null)
 				{
@@ -1151,7 +1151,7 @@ namespace WalletWasabi.Services
 				}
 				else
 				{
-					coin.Label = Label.Merge(coin.Label, foundPaymentRequest.Label);
+					coin.Label = SmartLabel.Merge(coin.Label, foundPaymentRequest.Label);
 				}
 
 				var foundKey = KeyManager.GetKeyForScriptPubKey(coin.ScriptPubKey);
@@ -1164,9 +1164,9 @@ namespace WalletWasabi.Services
 			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), psbt, spendsUnconfirmed, sign, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
 		}
 
-		public void RenameLabel(SmartCoin coin, Label newLabel)
+		public void RenameLabel(SmartCoin coin, SmartLabel newLabel)
 		{
-			coin.Label = newLabel ?? Label.Empty;
+			coin.Label = newLabel ?? SmartLabel.Empty;
 			var key = KeyManager.GetKeys(x => x.P2wpkhScript == coin.ScriptPubKey).SingleOrDefault();
 			if (key != null)
 			{

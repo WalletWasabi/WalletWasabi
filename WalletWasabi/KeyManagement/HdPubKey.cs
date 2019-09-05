@@ -21,12 +21,12 @@ namespace WalletWasabi.KeyManagement
 
 		[JsonProperty(Order = 3)]
 		[JsonConverter(typeof(LabelJsonConverter))]
-		public Label Label { get; private set; }
+		public SmartLabel Label { get; private set; }
 
 		[JsonProperty(Order = 4)]
 		public KeyState KeyState { get; private set; }
 
-		public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, Label label, KeyState keyState)
+		public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, SmartLabel label, KeyState keyState)
 		{
 			PubKey = Guard.NotNull(nameof(pubKey), pubKey);
 			FullKeyPath = Guard.NotNull(nameof(fullKeyPath), fullKeyPath);
@@ -59,9 +59,9 @@ namespace WalletWasabi.KeyManagement
 			}
 		}
 
-		public void SetLabel(Label label, KeyManager kmToFile = null)
+		public void SetLabel(SmartLabel label, KeyManager kmToFile = null)
 		{
-			label = label ?? Label.Empty;
+			label = label ?? SmartLabel.Empty;
 
 			if (Label == label)
 			{

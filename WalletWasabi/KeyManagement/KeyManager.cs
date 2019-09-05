@@ -401,7 +401,7 @@ namespace WalletWasabi.KeyManagement
 			return true;
 		}
 
-		public HdPubKey GenerateNewKey(Label label, KeyState keyState, bool isInternal, bool toFile = true)
+		public HdPubKey GenerateNewKey(SmartLabel label, KeyState keyState, bool isInternal, bool toFile = true)
 		{
 			// BIP44-ish derivation scheme
 			// m / purpose' / coin_type' / account' / change / address_index
@@ -593,12 +593,12 @@ namespace WalletWasabi.KeyManagement
 			{
 				while (GetKeys(KeyState.Clean, true).Count() < MinGapLimit)
 				{
-					GenerateNewKey(Label.Empty, KeyState.Clean, true, toFile: false);
+					GenerateNewKey(SmartLabel.Empty, KeyState.Clean, true, toFile: false);
 					generated = true;
 				}
 				while (GetKeys(KeyState.Clean, false).Count() < MinGapLimit)
 				{
-					GenerateNewKey(Label.Empty, KeyState.Clean, false, toFile: false);
+					GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false, toFile: false);
 					generated = true;
 				}
 			}
@@ -606,7 +606,7 @@ namespace WalletWasabi.KeyManagement
 			{
 				while (GetKeys(KeyState.Clean, isInternal).Count() < MinGapLimit)
 				{
-					GenerateNewKey(Label.Empty, KeyState.Clean, (bool)isInternal, toFile: false);
+					GenerateNewKey(SmartLabel.Empty, KeyState.Clean, (bool)isInternal, toFile: false);
 					generated = true;
 				}
 			}
@@ -628,7 +628,7 @@ namespace WalletWasabi.KeyManagement
 
 			while (GetKeys(KeyState.Locked, true).Count() < howMany)
 			{
-				GenerateNewKey(Label.Empty, KeyState.Locked, true, toFile: false);
+				GenerateNewKey(SmartLabel.Empty, KeyState.Locked, true, toFile: false);
 				generated = true;
 			}
 

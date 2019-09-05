@@ -6,20 +6,20 @@ using System.Text;
 
 namespace WalletWasabi.Models
 {
-	public class Label : IEquatable<Label>
+	public class SmartLabel : IEquatable<SmartLabel>
 	{
-		public static Label Empty { get; } = new Label();
+		public static SmartLabel Empty { get; } = new SmartLabel();
 		public static char[] Separators { get; } = new[] { ',', ':' };
 		public IEnumerable<string> Labels { get; }
 		public bool IsEmpty { get; }
 
 		private string LabelString { get; }
 
-		public Label(params string[] labels) : this(labels as IEnumerable<string>)
+		public SmartLabel(params string[] labels) : this(labels as IEnumerable<string>)
 		{
 		}
 
-		public Label(IEnumerable<string> labels)
+		public SmartLabel(IEnumerable<string> labels)
 		{
 			labels = labels ?? Enumerable.Empty<string>();
 			Labels = labels
@@ -38,28 +38,28 @@ namespace WalletWasabi.Models
 
 		public override string ToString() => LabelString;
 
-		public static Label Merge(IEnumerable<Label> labels)
+		public static SmartLabel Merge(IEnumerable<SmartLabel> labels)
 		{
 			IEnumerable<string> labelStrings = labels
 				?.SelectMany(x => x?.Labels ?? Enumerable.Empty<string>())
 				?.Where(x => x != null);
 
-			return new Label(labelStrings);
+			return new SmartLabel(labelStrings);
 		}
 
-		public static Label Merge(params Label[] labels) => Merge(labels as IEnumerable<Label>);
+		public static SmartLabel Merge(params SmartLabel[] labels) => Merge(labels as IEnumerable<SmartLabel>);
 
 		#region Equality
 
-		public override bool Equals(object obj) => obj is Label label && this == label;
+		public override bool Equals(object obj) => obj is SmartLabel label && this == label;
 
-		public bool Equals(Label other) => this == other;
+		public bool Equals(SmartLabel other) => this == other;
 
 		private int HashCode { get; }
 
 		public override int GetHashCode() => HashCode;
 
-		public static bool operator ==(Label x, Label y)
+		public static bool operator ==(SmartLabel x, SmartLabel y)
 		{
 			if (x is null)
 			{
@@ -85,7 +85,7 @@ namespace WalletWasabi.Models
 			}
 		}
 
-		public static bool operator !=(Label x, Label y) => !(x == y);
+		public static bool operator !=(SmartLabel x, SmartLabel y) => !(x == y);
 
 		#endregion Equality
 	}
