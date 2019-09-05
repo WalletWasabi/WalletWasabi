@@ -51,8 +51,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(typeof(string), 200)]
 		public async Task<IActionResult> GetLegalIssuesAsync()
 		{
-			string result = await System.IO.File.ReadAllTextAsync(LegalIssuesPath);
-			return Ok(result);
+			return Ok(await System.IO.File.ReadAllTextAsync(LegalIssuesPath));
 		}
 
 		/// <summary>
