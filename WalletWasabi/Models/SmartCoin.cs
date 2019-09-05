@@ -99,7 +99,7 @@ namespace WalletWasabi.Models
 		/// Always set it before the Amount!
 		/// </summary>
 		[JsonProperty]
-		[JsonConverter(typeof(LabelJsonConverter))]
+		[JsonConverter(typeof(SmartLabelJsonConverter))]
 		public SmartLabel Label
 		{
 			get => _label;

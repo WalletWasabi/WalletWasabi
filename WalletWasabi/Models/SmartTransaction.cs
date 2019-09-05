@@ -28,7 +28,7 @@ namespace WalletWasabi.Models
 		public int BlockIndex { get; private set; }
 
 		[JsonProperty]
-		[JsonConverter(typeof(LabelJsonConverter))]
+		[JsonConverter(typeof(SmartLabelJsonConverter))]
 		public SmartLabel Label { get; set; }
 
 		public bool Confirmed => Height.Type == HeightType.Chain;

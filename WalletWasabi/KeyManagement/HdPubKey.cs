@@ -20,7 +20,7 @@ namespace WalletWasabi.KeyManagement
 		public KeyPath FullKeyPath { get; }
 
 		[JsonProperty(Order = 3)]
-		[JsonConverter(typeof(LabelJsonConverter))]
+		[JsonConverter(typeof(SmartLabelJsonConverter))]
 		public SmartLabel Label { get; private set; }
 
 		[JsonProperty(Order = 4)]

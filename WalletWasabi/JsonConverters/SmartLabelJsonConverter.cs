@@ -6,7 +6,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class LabelJsonConverter : JsonConverter
+	public class SmartLabelJsonConverter : JsonConverter
 	{
 		public override bool CanConvert(Type objectType)
 		{
