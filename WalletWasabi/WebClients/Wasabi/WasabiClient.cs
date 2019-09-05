@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -234,7 +235,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 				using (HttpContent content = response.Content)
 				{
-					return await content.ReadAsStringAsync();
+					return Regex.Unescape(await content.ReadAsStringAsync());
 				}
 			}
 		}
@@ -250,7 +251,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 				using (HttpContent content = response.Content)
 				{
-					return await content.ReadAsStringAsync();
+					return Regex.Unescape(await content.ReadAsStringAsync());
 				}
 			}
 		}
@@ -266,7 +267,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 				using (HttpContent content = response.Content)
 				{
-					return await content.ReadAsStringAsync();
+					return Regex.Unescape(await content.ReadAsStringAsync());
 				}
 			}
 		}

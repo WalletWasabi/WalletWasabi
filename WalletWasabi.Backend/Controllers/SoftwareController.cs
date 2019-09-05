@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using WalletWasabi.Backend.Models.Responses;
-using System.IO;
 using WalletWasabi.Helpers;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Filters;
+using System.Text;
 
 namespace WalletWasabi.Backend.Controllers
 {
@@ -52,7 +51,8 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(typeof(string), 200)]
 		public async Task<IActionResult> GetLegalIssuesAsync()
 		{
-			return Ok(await System.IO.File.ReadAllTextAsync(LegalIssuesPath));
+			string result = await System.IO.File.ReadAllTextAsync(LegalIssuesPath);
+			return Ok(result);
 		}
 
 		/// <summary>

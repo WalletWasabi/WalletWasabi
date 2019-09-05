@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Exceptions;
@@ -89,22 +90,19 @@ namespace WalletWasabi.Services
 							if (!ByteHelpers.CompareFastUnsafe(versions.LegalIssuesHash, LegalIssuesHash))
 							{
 								legalUpdated = true;
-								string result = await WasabiClient.GetLegalIssuesAsync(Stop.Token);
-								await File.WriteAllTextAsync(LegalIssuesPath, result);
+								await File.WriteAllTextAsync(LegalIssuesPath, await WasabiClient.GetLegalIssuesAsync(Stop.Token));
 							}
 
 							if (!ByteHelpers.CompareFastUnsafe(versions.PrivacyPolicyHash, PrivacyPolicyHash))
 							{
 								legalUpdated = true;
-								string result = await WasabiClient.GetPrivacyPolicyAsync(Stop.Token);
-								await File.WriteAllTextAsync(PrivacyPolicyPath, result);
+								await File.WriteAllTextAsync(PrivacyPolicyPath, await WasabiClient.GetPrivacyPolicyAsync(Stop.Token));
 							}
 
 							if (!ByteHelpers.CompareFastUnsafe(versions.TermsAndConditionsHash, TermsAndConditionsHash))
 							{
 								legalUpdated = true;
-								string result = await WasabiClient.GetTermsAndConditionsAsync(Stop.Token);
-								await File.WriteAllTextAsync(TermsAndConditionsPath, result);
+								await File.WriteAllTextAsync(TermsAndConditionsPath, await WasabiClient.GetTermsAndConditionsAsync(Stop.Token));
 							}
 
 							if (legalUpdated)
