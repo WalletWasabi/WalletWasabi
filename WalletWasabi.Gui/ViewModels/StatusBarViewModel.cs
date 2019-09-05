@@ -51,9 +51,12 @@ namespace WalletWasabi.Gui.ViewModels
 		private ObservableAsPropertyHelper<int> _filtersLeft;
 		private string _btcPrice;
 		private ObservableAsPropertyHelper<StatusBarStatus> _status;
+		private ObservableAsPropertyHelper<bool> _legalAccepted;
 		private bool _downloadingBlock;
 		public Global Global { get; }
 		private StatusBarStatusSet ActiveStatuses { get; }
+
+		public ReactiveCommand<Unit, Unit> OpenLegalAcceptPage { get; private set; }
 
 		public StatusBarViewModel(Global global)
 		{
@@ -79,6 +82,11 @@ namespace WalletWasabi.Gui.ViewModels
 			_status = ActiveStatuses.WhenAnyValue(x => x.CurrentStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.ToProperty(this, x => x.Status)
+				.DisposeWith(Disposables);
+
+			_legalAccepted = Global.UiConfig.WhenAnyValue(x => x.LegalDocumentsAccepted)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.ToProperty(this, x => x.LegalAccepted)
 				.DisposeWith(Disposables);
 
 			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Added))
@@ -204,7 +212,22 @@ namespace WalletWasabi.Gui.ViewModels
 			}, this.WhenAnyValue(x => x.UpdateStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => x != UpdateStatus.Latest));
+
 			this.RaisePropertyChanged(nameof(UpdateCommand)); // The binding happens after the constructor. So, if the command is not in constructor, then we need this line.
+
+			OpenLegalAcceptPage = ReactiveCommand.Create(() =>
+			{
+				try
+				{
+					IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocsViewModel(Global));
+				}
+				catch (Exception ex)
+				{
+					Logging.Logger.LogWarning<StatusBarViewModel>(ex);
+				}
+			});
+
+			this.RaisePropertyChanged(nameof(OpenLegalAcceptPage)); // The binding happens after the constructor. So, if the command is not in constructor, then we need this line.
 
 			updateChecker.Start(TimeSpan.FromMinutes(7),
 				() =>
@@ -287,6 +310,8 @@ namespace WalletWasabi.Gui.ViewModels
 		}
 
 		public StatusBarStatus Status => _status?.Value ?? StatusBarStatus.Loading;
+
+		public bool LegalAccepted => _legalAccepted?.Value ?? false;
 
 		public bool DownloadingBlock
 		{

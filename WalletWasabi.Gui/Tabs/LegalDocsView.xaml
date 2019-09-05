@@ -1,0 +1,20 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Gui.Tabs.LegalDocsView">
+  <DockPanel LastChildFill="True">
+    <Button Content="Accept" Command="{Binding GenerateCommand}" DockPanel.Dock="Bottom" />
+    <StackPanel Orientation="Horizontal" TextBlock.FontSize="10" DockPanel.Dock="Top">
+      <TextBlock Text="I agree to the " />
+      <Button Content="Terms and Conditions" Classes="activeHyperLink" Command="{Binding OnTermsClicked}" />
+      <TextBlock Text=", " />
+      <Button Content="Privacy Policy" Classes="activeHyperLink" Command="{Binding OnPrivacyClicked}" />
+      <TextBlock Text=", and " />
+      <Button Content="Legal Issues" Classes="activeHyperLink" Command="{Binding OnLegalClicked}" />
+      <TextBlock Text=" documents." />
+    </StackPanel>
+    <Grid />
+  </DockPanel>
+</UserControl>

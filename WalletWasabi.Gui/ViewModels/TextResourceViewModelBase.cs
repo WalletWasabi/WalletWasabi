@@ -34,9 +34,18 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private async Task<string> LoadDocumentAsync(Uri target)
 		{
-			var assetLocator = AvaloniaLocator.Current.GetService<IAssetLoader>();
+			Stream stream;
+			if (target.IsFile)
+			{
+				stream = new FileStream(target.AbsolutePath, FileMode.Open);
+			}
+			else
+			{
+				var assetLocator = AvaloniaLocator.Current.GetService<IAssetLoader>();
+				stream = assetLocator.Open(target);
+			}
 
-			using (var stream = assetLocator.Open(target))
+			using (stream)
 			using (var reader = new StreamReader(stream))
 			{
 				return await reader.ReadToEndAsync();
