@@ -61,28 +61,22 @@ namespace WalletWasabi.Models
 
 		public static bool operator ==(Label x, Label y)
 		{
-			if (x is null)
+			if (x is null && y is null)
 			{
-				if (y is null)
-				{
-					return true;
-				}
-				else
-				{
-					return false;
-				}
+				return true;
 			}
-			else
+
+			if (x is null && y != null)
 			{
-				if (y is null)
-				{
-					return false;
-				}
-				else
-				{
-					return x.Labels.SequenceEqual(y.Labels);
-				}
+				return false;
 			}
+
+			if (x != null && y is null)
+			{
+				return false;
+			}
+
+			return x.Labels.SequenceEqual(y.Labels);
 		}
 
 		public static bool operator !=(Label x, Label y) => !(x == y);
