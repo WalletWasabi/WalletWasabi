@@ -316,7 +316,7 @@ du -bsh .walletwasabi/backend/IndexBuilderService/*
 
 ## Rolling Bitcoin Core node debug logs
 
-The following command line adds a configuration file to let logrotate service to know
+The following command line adds a configuration file to let logrotate service know
 how to rotate the bitcoin debug logs.
 
 **Note:** in test server replaces the first line by the follow one `/home/user/.bitcoin/testnet3/debug.log`
