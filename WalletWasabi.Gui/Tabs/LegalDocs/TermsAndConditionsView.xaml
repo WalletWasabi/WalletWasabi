@@ -4,7 +4,7 @@
              x:Class="WalletWasabi.Gui.Tabs.LegalDocs.TermsAndConditionsView">
   <controls:GroupBox Title="{Binding Title}" BorderThickness="0" Classes="docTabContainer">
     <Grid Classes="content" Margin="10">
-      <controls:ExtendedTextBox Text="{Binding Text}" Classes="selectableTextBlock" TextWrapping="Wrap" AcceptsReturn="True" />
+      <controls:MultiTextBox Text="{Binding Text}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
     </Grid>
   </controls:GroupBox>
 </UserControl>

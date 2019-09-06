@@ -17,9 +17,10 @@
           </controls:ExtendedListBox.ItemTemplate>
         </controls:ExtendedListBox>
       </Grid>
-      <Grid>
+      <DockPanel LastChildFill="True">
+        <Button Content="Accept all" DockPanel.Dock="Bottom" />
         <cont:ViewModelViewHost DataContext="{Binding CurrentView}" Margin="4" />
-      </Grid>
+      </DockPanel>
     </DockPanel>
   </Grid>
 </UserControl>
