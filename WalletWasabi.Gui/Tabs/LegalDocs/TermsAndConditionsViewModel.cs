@@ -10,7 +10,7 @@ using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Reactive.Disposables;
 
-namespace WalletWasabi.Gui.Tabs
+namespace WalletWasabi.Gui.Tabs.LegalDocs
 {
 	public class TermsAndConditionsViewModel : TextResourceViewModelBase
 	{

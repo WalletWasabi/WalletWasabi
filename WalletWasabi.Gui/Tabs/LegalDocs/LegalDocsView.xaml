@@ -1,0 +1,25 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+             xmlns:cont="clr-namespace:AvalonStudio.Controls;assembly=AvalonStudio.Shell.Extensibility"
+             x:Class="WalletWasabi.Gui.Tabs.LegalDocs.LegalDocsView">
+  <Grid Classes="content">
+    <DockPanel>
+      <Grid DockPanel.Dock="Left" Width="200">
+        <controls:ExtendedListBox Items="{Binding Categories}" SelectedItem="{Binding SelectedCategory, Mode=TwoWay}" BorderThickness="0 0 1 0">
+          <controls:ExtendedListBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Title}" />
+            </DataTemplate>
+          </controls:ExtendedListBox.ItemTemplate>
+        </controls:ExtendedListBox>
+      </Grid>
+      <Grid>
+        <cont:ViewModelViewHost DataContext="{Binding CurrentView}" Margin="4" />
+      </Grid>
+    </DockPanel>
+  </Grid>
+</UserControl>

@@ -4,11 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace WalletWasabi.Gui.Tabs
+namespace WalletWasabi.Gui.Tabs.LegalDocs
 {
-	internal class TermsAndConditionsView : UserControl
+	internal class PrivacyPolicyView : UserControl
 	{
-		public TermsAndConditionsView()
+		public PrivacyPolicyView()
 		{
 			InitializeComponent();
 		}

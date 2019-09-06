@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using WalletWasabi.Gui.Tabs.LegalDocs;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
@@ -115,17 +116,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public void OnTermsClicked()
 		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel(Global));
+			IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectTermsAndConditions();
 		}
 
 		public void OnPrivacyClicked()
 		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel(Global));
+			IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectPrivacyPolicy();
 		}
 
 		public void OnLegalClicked()
 		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel(Global));
+			IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectLegalIssues();
 		}
 
 		public override void OnCategorySelected()

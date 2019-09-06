@@ -1,25 +1,19 @@
-using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin.Protocol;
-using Nito.AsyncEx;
 using ReactiveUI;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Gui.Converters;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Tabs;
-using WalletWasabi.Helpers;
+using WalletWasabi.Gui.Tabs.LegalDocs;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
@@ -219,7 +213,7 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				try
 				{
-					IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocsViewModel(Global));
+					IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectLegalIssues();
 				}
 				catch (Exception ex)
 				{

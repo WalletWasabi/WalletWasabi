@@ -4,7 +4,7 @@ using Avalonia;
 using Avalonia.Platform;
 using WalletWasabi.Gui.ViewModels;
 
-namespace WalletWasabi.Gui.Tabs
+namespace WalletWasabi.Gui.Tabs.LegalDocs
 {
 	public class LegalIssuesViewModel : TextResourceViewModelBase
 	{

@@ -1,6 +1,3 @@
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Diagnostics;
 using AvalonStudio.Commands;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
@@ -8,9 +5,8 @@ using ReactiveUI;
 using System;
 using System.Composition;
 using System.IO;
-using System.Linq;
-using System.Reactive.Linq;
 using WalletWasabi.Gui.Tabs;
+using WalletWasabi.Gui.Tabs.LegalDocs;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
@@ -83,7 +79,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				commandIconService.GetCompletionKindImage("PrivacyPolicy"),
 				ReactiveCommand.Create(() =>
 				{
-					IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel(Global));
+					IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectPrivacyPolicy();
 				}));
 
 			TermsAndConditionsCommand = new CommandDefinition(
@@ -91,7 +87,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				commandIconService.GetCompletionKindImage("TermsAndConditions"),
 				ReactiveCommand.Create(() =>
 				{
-					IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel(Global));
+					IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectTermsAndConditions();
 				}));
 
 			LegalIssuesCommand = new CommandDefinition(
@@ -99,7 +95,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				commandIconService.GetCompletionKindImage("LegalIssues"),
 				ReactiveCommand.Create(() =>
 				{
-					IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel(Global));
+					IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectLegalIssues();
 				}));
 		}
 

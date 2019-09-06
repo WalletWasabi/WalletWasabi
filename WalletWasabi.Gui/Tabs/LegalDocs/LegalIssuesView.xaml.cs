@@ -2,11 +2,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Gui.Tabs
+namespace WalletWasabi.Gui.Tabs.LegalDocs
 {
-	public class LegalDocsView : UserControl
+	public class LegalIssuesView : UserControl
 	{
-		public LegalDocsView()
+		public LegalIssuesView()
 		{
 			InitializeComponent();
 		}

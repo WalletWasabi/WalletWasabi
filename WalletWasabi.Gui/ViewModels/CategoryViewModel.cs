@@ -4,7 +4,7 @@ using System.Text;
 
 namespace WalletWasabi.Gui.ViewModels
 {
-	internal class CategoryViewModel : ViewModelBase
+	public class CategoryViewModel : ViewModelBase
 	{
 		public CategoryViewModel(string title)
 		{
