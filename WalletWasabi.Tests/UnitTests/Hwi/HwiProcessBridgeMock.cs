@@ -7,7 +7,7 @@ using WalletWasabi.Hwi2.Models;
 using WalletWasabi.Hwi2.Parsers;
 using WalletWasabi.Interfaces;
 
-namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
+namespace WalletWasabi.Tests.UnitTests.Hwi
 {
 	public class HwiProcessBridgeMock : IProcessBridge
 	{

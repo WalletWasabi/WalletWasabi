@@ -13,7 +13,7 @@ using WalletWasabi.Hwi2.Parsers;
 using WalletWasabi.KeyManagement;
 using Xunit;
 
-namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
+namespace WalletWasabi.Tests.UnitTests.Hwi
 {
 	public class MockedDeviceTests
 	{

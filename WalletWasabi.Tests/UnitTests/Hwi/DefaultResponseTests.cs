@@ -10,12 +10,12 @@ using WalletWasabi.Hwi2.Models;
 using WalletWasabi.Hwi2.ProcessBridge;
 using Xunit;
 
-namespace WalletWasabi.Tests.HwiTests.NoDeviceConnectedTests
+namespace WalletWasabi.Tests.UnitTests.Hwi
 {
 	/// <summary>
 	/// Tests to run without connecting any hardware wallet to the computer.
 	/// </summary>
-	public class HwiDefaultResponseTests
+	public class DefaultResponseTests
 	{
 		#region SharedVariables
 

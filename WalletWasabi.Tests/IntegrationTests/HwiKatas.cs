@@ -11,7 +11,7 @@ using WalletWasabi.Hwi2.Models;
 using WalletWasabi.KeyManagement;
 using Xunit;
 
-namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
+namespace WalletWasabi.Tests.IntegrationTests.Hwi
 {
 	/// <summary>
 	/// Kata tests are intended to be run one by one.
@@ -19,7 +19,7 @@ namespace WalletWasabi.Tests.HwiTests.DeviceConnectedTests
 	/// User interaction shall be defined in the beginning of the each kata.
 	/// Only write katas those require button push responses (eg. don't call setup on trezor.)
 	/// </summary>
-	public class Katas
+	public class HwiKatas
 	{
 		#region SharedVariables
 
