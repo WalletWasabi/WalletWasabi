@@ -44,7 +44,7 @@ https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubunt
 
 ## SSH in as Root
 
-Putty (Copypaste with Ctrl+Insert and Shift+Insert)
+Putty (Copypaste with Ctrl+Insert and Shift+Insert)  
 https://www.digitalocean.com/community/tutorials/how-to-use-ssh-keys-with-putty-on-digitalocean-droplets-windows-users
 
 ### Create a New User and Grant Administrative Privileges
