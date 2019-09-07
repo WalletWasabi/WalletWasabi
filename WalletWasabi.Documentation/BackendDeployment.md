@@ -158,6 +158,7 @@ testnet=[0/1]
 [main/test].rpcuser=bitcoinuser
 [main/test].rpcpassword=password
 [main/test].whitebind=127.0.0.1:[8333/18333]
+#[main/test].debug=rpc     # in some cases it could be good to uncomment this line. 
 ```
 https://bitcoincore.org/en/releases/0.17.0/
 https://medium.com/@loopring/how-to-run-lighting-btc-node-and-start-mining-b55c4bab8ad  
@@ -310,3 +311,64 @@ tail -f ~/.bitcoin/debug.log
 tail -10000 .walletwasabi/backend/Logs.txt
 du -bsh .walletwasabi/backend/IndexBuilderService/*
 ```
+
+# Additional (optional) Settings
+
+## Rolling Bitcoin Core node debug logs
+
+The following command line adds a configuration file to let logrotate service know
+how to rotate the bitcoin debug logs.
+
+**Note:** In test server replace the first line by the following one `/home/user/.bitcoin/testnet3/debug.log`
+
+
+```sh
+sudo tee -a /etc/logrotate.d/bitcoin <<EOS
+/home/user/.bitcoin/debug.log
+{
+        su user user
+        rotate 5
+        copytruncate
+        daily
+        missingok
+        notifempty
+        compress
+        delaycompress
+        sharedscripts
+}
+EOS
+```
+
+## Welcome Banner
+
+The following command line adds a welcome banner indicating the ssh logged user that he is in the production server.
+
+```sh
+sudo tee -a /etc/motd <<EOS
+****************************************************************************
+*** Attention! Wasabi PRODUCTION server                                  ***
+****************************************************************************
+EOS
+```
+
+## Prompt 
+
+Additionally to the welcome banner it could be good to know in what server we are all the time, in this case update the prompt as follow:
+
+```sh
+pico ~/.bashrc
+```
+
+Replace the line:
+
+```sh
+PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+```
+
+by this one:
+
+```sh
+PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:(PROD):\[\033[01;34m\]\w\[\033[00m\]\$ '
+```
+
+**Note:** in the test server replace the word **PROD** by **TEST**
