@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Backend.Models.Responses
 {
@@ -10,8 +11,13 @@ namespace WalletWasabi.Backend.Models.Responses
 		[JsonProperty(PropertyName = "BackenMajordVersion")]
 		public string BackendMajorVersion { get; set; }
 
+		[JsonConverter(typeof(ByteArrayJsonConverter))]
 		public byte[] LegalIssuesHash { get; set; }
+
+		[JsonConverter(typeof(ByteArrayJsonConverter))]
 		public byte[] PrivacyPolicyHash { get; set; }
+
+		[JsonConverter(typeof(ByteArrayJsonConverter))]
 		public byte[] TermsAndConditionsHash { get; set; }
 	}
 }

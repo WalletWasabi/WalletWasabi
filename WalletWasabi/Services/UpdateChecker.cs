@@ -90,19 +90,19 @@ namespace WalletWasabi.Services
 							if (!ByteHelpers.CompareFastUnsafe(versions.LegalIssuesHash, LegalIssuesHash))
 							{
 								legalUpdated = true;
-								await File.WriteAllTextAsync(LegalIssuesPath, await WasabiClient.GetLegalIssuesAsync(Stop.Token));
+								await File.WriteAllBytesAsync(LegalIssuesPath, await WasabiClient.GetLegalIssuesAsync(Stop.Token));
 							}
 
 							if (!ByteHelpers.CompareFastUnsafe(versions.PrivacyPolicyHash, PrivacyPolicyHash))
 							{
 								legalUpdated = true;
-								await File.WriteAllTextAsync(PrivacyPolicyPath, await WasabiClient.GetPrivacyPolicyAsync(Stop.Token));
+								await File.WriteAllBytesAsync(PrivacyPolicyPath, await WasabiClient.GetPrivacyPolicyAsync(Stop.Token));
 							}
 
 							if (!ByteHelpers.CompareFastUnsafe(versions.TermsAndConditionsHash, TermsAndConditionsHash))
 							{
 								legalUpdated = true;
-								await File.WriteAllTextAsync(TermsAndConditionsPath, await WasabiClient.GetTermsAndConditionsAsync(Stop.Token));
+								await File.WriteAllBytesAsync(TermsAndConditionsPath, await WasabiClient.GetTermsAndConditionsAsync(Stop.Token));
 							}
 
 							if (legalUpdated)

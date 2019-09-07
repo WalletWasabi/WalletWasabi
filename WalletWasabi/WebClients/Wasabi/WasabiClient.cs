@@ -224,41 +224,24 @@ namespace WalletWasabi.WebClients.Wasabi
 			}
 		}
 
-		public async Task<string> GetLegalIssuesAsync(CancellationToken cancel)
+		public async Task<byte[]> GetLegalIssuesAsync(CancellationToken cancel)
 		{
-			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, "/api/software/legalissues", cancel: cancel))
-			{
-				if (response.StatusCode != HttpStatusCode.OK)
-				{
-					await response.ThrowRequestExceptionFromContentAsync();
-				}
-
-				using (HttpContent content = response.Content)
-				{
-					return Regex.Unescape(await content.ReadAsStringAsync());
-				}
-			}
+			return await GetFileAsync("/api/software/legalissues", cancel: cancel);
 		}
 
-		public async Task<string> GetPrivacyPolicyAsync(CancellationToken cancel)
+		public async Task<byte[]> GetPrivacyPolicyAsync(CancellationToken cancel)
 		{
-			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, "/api/software/privacypolicy", cancel: cancel))
-			{
-				if (response.StatusCode != HttpStatusCode.OK)
-				{
-					await response.ThrowRequestExceptionFromContentAsync();
-				}
-
-				using (HttpContent content = response.Content)
-				{
-					return Regex.Unescape(await content.ReadAsStringAsync());
-				}
-			}
+			return await GetFileAsync("/api/software/privacypolicy", cancel: cancel);
 		}
 
-		public async Task<string> GetTermsAndConditionsAsync(CancellationToken cancel)
+		public async Task<byte[]> GetTermsAndConditionsAsync(CancellationToken cancel)
 		{
-			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, "/api/software/termsandconditions", cancel: cancel))
+			return await GetFileAsync("/api/software/termsandconditions", cancel: cancel);
+		}
+
+		public async Task<byte[]> GetFileAsync(string relativeUri, CancellationToken cancel)
+		{
+			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, relativeUri, cancel: cancel))
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
@@ -267,7 +250,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 				using (HttpContent content = response.Content)
 				{
-					return Regex.Unescape(await content.ReadAsStringAsync());
+					return await content.ReadAsJsonAsync<byte[]>();
 				}
 			}
 		}

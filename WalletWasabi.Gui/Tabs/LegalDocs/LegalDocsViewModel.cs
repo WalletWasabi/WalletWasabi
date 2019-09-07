@@ -3,6 +3,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Composition;
 using System.Linq;
+using System.Reactive;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Tabs.LegalDocs
@@ -14,6 +15,7 @@ namespace WalletWasabi.Gui.Tabs.LegalDocs
 		private ObservableCollection<CategoryViewModel> _categories;
 		private CategoryViewModel _selectedCategory;
 		private ViewModelBase _currentView;
+		public ReactiveCommand<Unit, Unit> AcceptTermsCommand { get; }
 
 		[ImportingConstructor]
 		public LegalDocsViewModel(AvaloniaGlobalComponent global) : base(global.Global, "Legal documents")
@@ -33,6 +35,14 @@ namespace WalletWasabi.Gui.Tabs.LegalDocs
 
 				CurrentView = category;
 			});
+
+			AcceptTermsCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				global.Global.UiConfig.LegalDocumentsAccepted = true;
+				await global.Global.UiConfig.ToFileAsync();
+			});
+
+			AcceptTermsCommand.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<LegalDocsViewModel>);
 		}
 
 		public ObservableCollection<CategoryViewModel> Categories

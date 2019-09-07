@@ -42,10 +42,16 @@ namespace WalletWasabi.Gui
 				}
 				Logger.LogStarting("Wasabi GUI");
 
+				var uiConfigFilePath = Path.Combine(Global.DataDir, "UiConfig.json");
+				var uiConfig = new UiConfig(uiConfigFilePath);
+				await uiConfig.LoadOrCreateDefaultFileAsync();
+				Global.InitializeUiConfig(uiConfig);
+
 				BuildAvaloniaApp()
 					.BeforeStarting(async builder =>
 					{
 						MainWindowViewModel.Instance = new MainWindowViewModel { Global = Global };
+
 						statusBar = new StatusBarViewModel(Global);
 						MainWindowViewModel.Instance.StatusBar = statusBar;
 						MainWindowViewModel.Instance.LockScreen = new LockScreenViewModel(Global);

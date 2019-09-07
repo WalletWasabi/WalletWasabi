@@ -55,38 +55,28 @@ namespace WalletWasabi.Gui
 			AvaloniaXamlLoader.Load(this);
 			DisplayWalletManager();
 
-			var uiConfigFilePath = Path.Combine(Global.DataDir, "UiConfig.json");
-			var uiConfig = new UiConfig(uiConfigFilePath);
-			uiConfig.LoadOrCreateDefaultFileAsync()
-				.ToObservable(RxApp.TaskpoolScheduler)
-				.Take(1)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
+			try
+			{
+				Application.Current.Resources.AddOrReplace(Global.UiConfigResourceKey, Global.UiConfig);
+				Logging.Logger.LogInfo<UiConfig>($"{nameof(Global.UiConfig)} is successfully initialized.");
+
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
-					try
-					{
-						Global.InitializeUiConfig(uiConfig);
-						Application.Current.Resources.AddOrReplace(Global.UiConfigResourceKey, Global.UiConfig);
-						Logging.Logger.LogInfo<UiConfig>($"{nameof(Global.UiConfig)} is successfully initialized.");
+					MainWindowViewModel.Instance.Width = Global.UiConfig.Width;
+					MainWindowViewModel.Instance.Height = Global.UiConfig.Height;
+					MainWindowViewModel.Instance.WindowState = Global.UiConfig.WindowState;
+				}
+				else
+				{
+					MainWindowViewModel.Instance.WindowState = WindowState.Maximized;
+				}
 
-						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-						{
-							MainWindowViewModel.Instance.Width = uiConfig.Width;
-							MainWindowViewModel.Instance.Height = uiConfig.Height;
-							MainWindowViewModel.Instance.WindowState = uiConfig.WindowState;
-						}
-						else
-						{
-							MainWindowViewModel.Instance.WindowState = WindowState.Maximized;
-						}
-
-						MainWindowViewModel.Instance.LockScreen.Initialize();
-					}
-					catch (Exception ex)
-					{
-						Logging.Logger.LogError<MainWindowViewModel>(ex);
-					}
-				}, onError: ex => Logging.Logger.LogError<MainWindowViewModel>(ex));
+				MainWindowViewModel.Instance.LockScreen.Initialize();
+			}
+			catch (Exception ex)
+			{
+				Logging.Logger.LogError<MainWindowViewModel>(ex);
+			}
 		}
 
 		protected override void OnDataContextEndUpdate()

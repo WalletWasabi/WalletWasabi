@@ -45,37 +45,37 @@ namespace WalletWasabi.Backend.Controllers
 		/// <summary>
 		/// Gets the latest version of the LegalIssues document.
 		/// </summary>
-		/// <returns>LegalIssues text document in string format.</returns>
-		/// <response code="200">LegalIssues string</response>
+		/// <returns>LegalIssues text document bytes in BASE64 format.</returns>
+		/// <response code="200">LegalIssues</response>
 		[HttpGet("legalissues")]
-		[ProducesResponseType(typeof(string), 200)]
+		[ProducesResponseType(typeof(byte[]), 200)]
 		public async Task<IActionResult> GetLegalIssuesAsync()
 		{
-			return Ok(await System.IO.File.ReadAllTextAsync(LegalIssuesPath));
+			return Ok(await System.IO.File.ReadAllBytesAsync(LegalIssuesPath));
 		}
 
 		/// <summary>
 		/// Gets the latest version of the PrivacyPolicy document.
 		/// </summary>
-		/// <returns>PrivacyPolicy text document in string format.</returns>
-		/// <response code="200">PrivacyPolicy string</response>
+		/// <returns>PrivacyPolicy text document bytes in BASE64 format.</returns>
+		/// <response code="200">PrivacyPolicy</response>
 		[HttpGet("privacypolicy")]
-		[ProducesResponseType(typeof(string), 200)]
+		[ProducesResponseType(typeof(byte[]), 200)]
 		public async Task<IActionResult> GetPrivacyPolicyAsync()
 		{
-			return Ok(await System.IO.File.ReadAllTextAsync(PrivacyPolicyPath));
+			return Ok(await System.IO.File.ReadAllBytesAsync(PrivacyPolicyPath));
 		}
 
 		/// <summary>
 		/// Gets the latest version of the TermsAndConditions document.
 		/// </summary>
-		/// <returns>TermsAndConditions text document in string format.</returns>
-		/// <response code="200">TermsAndConditions string</response>
+		/// <returns>TermsAndConditions text document bytes in BASE64 format.</returns>
+		/// <response code="200">TermsAndConditions</response>
 		[HttpGet("termsandconditions")]
-		[ProducesResponseType(typeof(string), 200)]
+		[ProducesResponseType(typeof(byte[]), 200)]
 		public async Task<IActionResult> GetTermsAndConditionsAsync()
 		{
-			return Ok(await System.IO.File.ReadAllTextAsync(TermsAndConditionsPath));
+			return Ok(await System.IO.File.ReadAllBytesAsync(TermsAndConditionsPath));
 		}
 	}
 }

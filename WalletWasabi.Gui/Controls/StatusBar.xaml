@@ -75,8 +75,8 @@
         </Grid>
         <TextBlock Text="{Binding Status, Converter={StaticResource StatusBarStatusStringConverter}}" />
       </StackPanel>
-      <StackPanel Orientation="Horizontal" Spacing="4" Margin="10 0">
-        <Grid Height="10" Width="10" IsVisible="{Binding !LegalAccepted}">
+      <StackPanel Orientation="Horizontal" Spacing="4" Margin="10 0" IsVisible="{Binding !LegalAccepted}">
+        <Grid Height="10" Width="10">
           <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center">
             <DrawingPresenter.Drawing>
               <DrawingGroup>
