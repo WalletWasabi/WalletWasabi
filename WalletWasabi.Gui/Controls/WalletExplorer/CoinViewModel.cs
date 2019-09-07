@@ -100,10 +100,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(AmountBtc));
-				this.RaisePropertyChanged(nameof(Clusters));
-			}).DisposeWith(Disposables);
+				{
+					this.RaisePropertyChanged(nameof(AmountBtc));
+					this.RaisePropertyChanged(nameof(Clusters));
+				}).DisposeWith(Disposables);
 		}
 
 		public void UnsubscribeEvents()
@@ -173,9 +173,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string Clusters => string.IsNullOrEmpty(Model.Clusters) ? "" : Model.Clusters; //If the value is null the bind do not update the view. It shows the previous state for example: ##### even if PrivMode false.
 
-		public string PubKey => Model.HdPubKey.PubKey.ToString();
+		public string PubKey => Model.HdPubKey?.PubKey?.ToString() ?? "";
 
-		public string KeyPath => Model.HdPubKey.FullKeyPath.ToString();
+		public string KeyPath => Model.HdPubKey?.FullKeyPath?.ToString() ?? "";
 
 		public SmartCoinStatus Status
 		{

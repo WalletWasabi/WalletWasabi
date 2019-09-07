@@ -68,7 +68,7 @@ namespace WalletWasabi.Gui.Tabs
 				x => x.Network,
 				x => x.UseTor)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(x => Save());
+				.Subscribe(_ => Save());
 
 			this.WhenAnyValue(x => x.Autocopy)
 				.ObserveOn(RxApp.TaskpoolScheduler)

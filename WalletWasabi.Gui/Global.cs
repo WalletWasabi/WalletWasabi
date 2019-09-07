@@ -139,7 +139,7 @@ namespace WalletWasabi.Gui
 
 			Config = new Config(Path.Combine(DataDir, "Config.json"));
 			await Config.LoadOrCreateDefaultFileAsync();
-			Logger.LogInfo<Config>("Config is successfully initialized.");
+			Logger.LogInfo<Config>($"{nameof(Config)} is successfully initialized.");
 
 			#endregion ConfigInitialization
 
@@ -294,7 +294,7 @@ namespace WalletWasabi.Gui
 			if (Network == Network.RegTest)
 			{
 				AddressManager = new AddressManager();
-				Logger.LogInfo<AddressManager>($"Fake {nameof(AddressManager)} is initialized on the RegTest.");
+				Logger.LogInfo<AddressManager>($"Fake {nameof(AddressManager)} is initialized on the {Network.RegTest}.");
 			}
 			else
 			{
@@ -417,9 +417,9 @@ namespace WalletWasabi.Gui
 				ChaumianClient.Start();
 				Logger.LogInfo("Start Chaumian CoinJoin service...");
 
-				Logger.LogInfo("Starting WalletService...");
+				Logger.LogInfo($"Starting {nameof(WalletService)}...");
 				await WalletService.InitializeAsync(token);
-				Logger.LogInfo("WalletService started.");
+				Logger.LogInfo($"{nameof(WalletService)} started.");
 
 				token.ThrowIfCancellationRequested();
 				WalletService.Coins.CollectionChanged += Coins_CollectionChanged;

@@ -21,7 +21,7 @@ using WalletWasabi.Tests.NodeBuilding;
 using WalletWasabi.Tests.XunitConfiguration;
 using Xunit;
 
-namespace WalletWasabi.Tests
+namespace WalletWasabi.Tests.IntegrationTests
 {
 	public class P2pTests
 	{
@@ -86,7 +86,7 @@ namespace WalletWasabi.Tests
 			var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
 
 			BitcoinStore bitcoinStore = new BitcoinStore();
-			await bitcoinStore.InitializeAsync(Path.Combine(Global.Instance.DataDir, nameof(TestServicesAsync)), network);
+			await bitcoinStore.InitializeAsync(Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName()), network);
 
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
 			WasabiSynchronizer syncer = new WasabiSynchronizer(network, bitcoinStore, new Uri("http://localhost:12345"), Global.Instance.TorSocks5Endpoint);
@@ -111,7 +111,7 @@ namespace WalletWasabi.Tests
 				{
 					if (times > 4200) // 7 minutes
 					{
-						throw new TimeoutException($"Connection test timed out.");
+						throw new TimeoutException("Connection test timed out.");
 					}
 					await Task.Delay(100);
 					times++;

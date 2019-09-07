@@ -119,7 +119,7 @@ namespace WalletWasabi.Gui.Controls
 				PaintText();
 			});
 
-			this.WhenAnyValue(x => x.Password).Subscribe(passw =>
+			this.WhenAnyValue(x => x.Password).Subscribe(_ =>
 			{
 				PaintText();
 			});

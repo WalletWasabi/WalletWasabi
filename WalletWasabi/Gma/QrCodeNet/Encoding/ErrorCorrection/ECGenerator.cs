@@ -66,11 +66,11 @@ namespace Gma.QrCodeNet.Encoding.ErrorCorrection
 				}
 			}
 
-			for (int ECID = 0; ECID < ecBytesPerBlock; ECID++)
+			for (int ecId = 0; ecId < ecBytesPerBlock; ecId++)
 			{
 				for (int blockId = 0; blockId < vd.NumECBlocks; blockId++)
 				{
-					codewords.Add(ecByteJArray[blockId][ECID], 8);
+					codewords.Add(ecByteJArray[blockId][ecId], 8);
 				}
 			}
 

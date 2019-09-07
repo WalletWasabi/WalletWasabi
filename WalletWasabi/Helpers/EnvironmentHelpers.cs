@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using WalletWasabi.Logging;
 
@@ -185,6 +186,14 @@ namespace WalletWasabi.Helpers
 				}
 			}
 			return false;
+		}
+
+		/// <summary>
+		/// Gets the name of the current method.
+		/// </summary>
+		public static string GetMethodName([CallerMemberName] string callerName = "")
+		{
+			return callerName;
 		}
 
 		public static string GetFullBaseDirectory()

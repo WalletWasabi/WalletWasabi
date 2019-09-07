@@ -104,11 +104,11 @@ namespace NBitcoin.RPC
 
 		private static EstimateSmartFeeResponse SimulateRegTestFeeEstimation(int confirmationTarget, EstimateSmartFeeMode estimateMode)
 		{
-			int satoshiPerBytes = estimateMode == EstimateSmartFeeMode.Conservative
+			int satoshiPerByte = estimateMode == EstimateSmartFeeMode.Conservative
 				? (Constants.SevenDaysConfirmationTarget + 1 + 6 - confirmationTarget) / 7
 				: (Constants.SevenDaysConfirmationTarget + 1 + 5 - confirmationTarget) / 7; // Economical
 
-			Money feePerK = Money.Satoshis(satoshiPerBytes * 1000);
+			Money feePerK = Money.Satoshis(satoshiPerByte * 1000);
 			FeeRate feeRate = new FeeRate(feePerK);
 			var resp = new EstimateSmartFeeResponse { Blocks = confirmationTarget, FeeRate = feeRate };
 			return resp;

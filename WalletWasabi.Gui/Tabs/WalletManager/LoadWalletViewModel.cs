@@ -67,13 +67,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			IsHwWalletSearchTextVisible = false;
 
 			this.WhenAnyValue(x => x.SelectedWallet)
-				.Subscribe(selectedWallet => TrySetWalletStates());
+				.Subscribe(_ => TrySetWalletStates());
 
 			this.WhenAnyValue(x => x.IsWalletOpened)
-				.Subscribe(isWalletOpened => TrySetWalletStates());
+				.Subscribe(_ => TrySetWalletStates());
 
 			this.WhenAnyValue(x => x.IsBusy)
-				.Subscribe(x => TrySetWalletStates());
+				.Subscribe(_ => TrySetWalletStates());
 
 			this.WhenAnyValue(x => x.Password).Subscribe(async x =>
 			{
@@ -245,13 +245,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			WarningMessage = "";
 			ValidationMessage = message;
 			SuccessMessage = "";
-		}
-
-		private void SetSuccessMessage(string message)
-		{
-			WarningMessage = "";
-			ValidationMessage = "";
-			SuccessMessage = message;
 		}
 
 		public void SetLoadButtonText()

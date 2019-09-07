@@ -10,6 +10,7 @@
   <UserControl.Resources>
     <converters:AmountForegroundConverter x:Key="AmountForegroundConverter" />
     <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
+    <converters:FeeTargetTimeConverter x:Key="FeeTargetTimeConverter" />
     <converters:UsdExchangeRateAmountToolTipConverter x:Key="UsdExchangeRateAmountToolTipConverter" />
   </UserControl.Resources>
   <i:Interaction.Behaviors>
@@ -25,12 +26,15 @@
       <Style Selector="ListBoxItem">
         <Setter Property="Padding" Value="0 0 5 0" />
       </Style>
+      <Style Selector="TextBox">
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}"/>
+      </Style>
     </DockPanel.Styles>
     <Grid Classes="content">
       <DockPanel LastChildFill="True" Margin="20">
         <StackPanel DockPanel.Dock="Bottom" Margin="0 10" Spacing="10" HorizontalAlignment="Left">
           <TextBlock>You must select coins you want to spend from.</TextBlock>
-          <controls:ExtendedTextBox Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True">
+          <controls:ExtendedTextBox Classes="monospaceFont" Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True">
             <i:Interaction.Behaviors>
               <behaviors:PasteAddressOnClickBehavior Command="{Binding OnAddressPasteCommand}" />
             </i:Interaction.Behaviors>
@@ -92,7 +96,7 @@
               </StackPanel>
               <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="4">
                 <TextBlock Text="Confirmation Expected In:" VerticalAlignment="Center" />
-                <TextBlock Foreground="YellowGreen" Text="{Binding ConfirmationExpectedText}" Width="80" VerticalAlignment="Center" />
+                <TextBlock Foreground="YellowGreen" Text="{Binding FeeTarget, Converter={StaticResource FeeTargetTimeConverter}}" Width="80" VerticalAlignment="Center" />
                 <Button Content="{Binding FeeText}" ToolTip.Tip="{Binding FeeToolTip}" Command="{Binding FeeRateCommand}" Padding="0" Background="{DynamicResource EditorBackgroundBrush}" BorderBrush="{DynamicResource EditorBackgroundBrush}" VerticalAlignment="Top" />
               </StackPanel>
             </StackPanel>

@@ -199,8 +199,8 @@ namespace WalletWasabi.TorSocks5
 			{
 				try
 				{
-					await client.ConnectAsync();
-					await client.HandshakeAsync();
+					await client.ConnectAsync().ConfigureAwait(false);
+					await client.HandshakeAsync().ConfigureAwait(false);
 				}
 				catch (ConnectionException)
 				{
@@ -221,8 +221,8 @@ namespace WalletWasabi.TorSocks5
 			{
 				try
 				{
-					await client.ConnectAsync();
-					await client.HandshakeAsync();
+					await client.ConnectAsync().ConfigureAwait(false);
+					await client.HandshakeAsync().ConfigureAwait(false);
 				}
 				catch (ConnectionException)
 				{
@@ -280,7 +280,7 @@ namespace WalletWasabi.TorSocks5
 											using (var client = new TorHttpClient(baseUri, TorSocks5EndPoint))
 											{
 												var message = new HttpRequestMessage(HttpMethod.Get, fallBackTestRequestUri);
-												await client.SendAsync(message, Stop.Token);
+												await client.SendAsync(message, Stop.Token).ConfigureAwait(false);
 											}
 
 											// Check if it changed in the meantime...
@@ -331,7 +331,7 @@ namespace WalletWasabi.TorSocks5
 			Stop?.Cancel();
 			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
 			{
-				await Task.Delay(50);
+				await Task.Delay(50).ConfigureAwait(false);
 			}
 			Stop?.Dispose();
 			Stop = null;

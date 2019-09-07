@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 			return sources.GetUserDirectories().Concat(sources.GetFileSystemRoots()).ToArray();
 		}
 
-		private static Environment.SpecialFolder[] s_folders = new[]
+		private static Environment.SpecialFolder[] Folders = new[]
 		{
 			Environment.SpecialFolder.Desktop,
 			Environment.SpecialFolder.UserProfile,
@@ -35,7 +35,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 
 		public static ManagedFileChooserNavigationItem[] DefaultGetUserDirectories()
 		{
-			return s_folders.Select(Environment.GetFolderPath).Distinct()
+			return Folders.Select(Environment.GetFolderPath).Distinct()
 				.Where(d => !string.IsNullOrWhiteSpace(d))
 				.Where(Directory.Exists)
 				.Select(d => new ManagedFileChooserNavigationItem

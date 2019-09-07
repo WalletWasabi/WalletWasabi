@@ -44,7 +44,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		/// <returns>
 		/// Powers of a in GF table. Where a = 2
 		/// </returns>
-		internal int Exponent(int PowersOfa) => AntiLogTable[PowersOfa];
+		internal int Exponent(int powersOfa) => AntiLogTable[powersOfa];
 
 		/// <returns>
 		/// log ( power of a) in GF table. Where a = 2
@@ -53,7 +53,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			if (gfValue == 0)
 			{
-				throw new ArgumentException("GaloisField value will not be equal to 0, Log method");
+				throw new ArgumentException("GaloisField value will not be equal to 0, Log method.");
 			}
 
 			return LogTable[gfValue];
@@ -63,7 +63,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			if (gfValue == 0)
 			{
-				throw new ArgumentException("GaloisField value will not be equal to 0, Inverse method");
+				throw new ArgumentException("GaloisField value will not be equal to 0, Inverse method.");
 			}
 
 			return Exponent(255 - Log(gfValue));
@@ -110,7 +110,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 
 			if (gfValueB == 0)
 			{
-				throw new ArgumentException("gfValueB cannot be zero");
+				throw new ArgumentException($"{nameof(gfValueB)} cannot be zero.");
 			}
 
 			if (gfValueB == 1)

@@ -66,7 +66,7 @@ namespace WalletWasabi.Gui
 					{
 						Global.InitializeUiConfig(uiConfig);
 						Application.Current.Resources.AddOrReplace(Global.UiConfigResourceKey, Global.UiConfig);
-						Logging.Logger.LogInfo<UiConfig>("UiConfig is successfully initialized.");
+						Logging.Logger.LogInfo<UiConfig>($"{nameof(Global.UiConfig)} is successfully initialized.");
 
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
@@ -159,7 +159,7 @@ namespace WalletWasabi.Gui
 							Global.UiConfig.Width = Width;
 							Global.UiConfig.Height = Height;
 							await Global.UiConfig.ToFileAsync();
-							Logging.Logger.LogInfo<UiConfig>("UiConfig is saved.");
+							Logging.Logger.LogInfo<UiConfig>($"{nameof(Global.UiConfig)} is saved.");
 						}
 
 						Hide();

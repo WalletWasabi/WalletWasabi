@@ -748,7 +748,9 @@ namespace WalletWasabi.Models
 			public readonly Node[] Buckets;
 			public readonly object[] Locks;
 
+#pragma warning disable IDE1006 // Naming Styles
 			public volatile int[] CountPerLock;
+#pragma warning restore IDE1006 // Naming Styles
 
 			public Tables(Node[] buckets, object[] locks, int[] countPerLock)
 			{
@@ -763,7 +765,9 @@ namespace WalletWasabi.Models
 			public readonly T Item;
 			public readonly int Hashcode;
 
+#pragma warning disable IDE1006 // Naming Styles
 			public volatile Node Next;
+#pragma warning restore IDE1006 // Naming Styles
 
 			public Node(T item, int hashcode, Node next)
 			{

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading.Tasks;
 using static WalletWasabi.Http.Constants;
 
 namespace WalletWasabi.Http.Models
@@ -32,7 +33,7 @@ namespace WalletWasabi.Http.Models
 			return ToString(false);
 		}
 
-		public static HeaderSection CreateNew(string headersString)
+		public static async Task<HeaderSection> CreateNewAsync(string headersString)
 		{
 			headersString = HeaderField.CorrectObsFolding(headersString);
 
@@ -51,7 +52,7 @@ namespace WalletWasabi.Http.Models
 					{
 						break;
 					}
-					hs.Fields.Add(HeaderField.CreateNew(field));
+					hs.Fields.Add(await HeaderField.CreateNewAsync(field).ConfigureAwait(false));
 				}
 
 				ValidateAndCorrectHeaders(hs);

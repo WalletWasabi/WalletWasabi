@@ -258,40 +258,41 @@ namespace WalletWasabi.Gui
 
 		public void SetP2PEndpoint(EndPoint endPoint)
 		{
-			switch (Network.Name)
+			if (Network == Network.Main)
 			{
-				case "Main":
-					MainNetBitcoinP2pEndPoint = endPoint;
-					break;
-
-				case "TestNet":
-					TestNetBitcoinP2pEndPoint = endPoint;
-					break;
-
-				case "RegTest":
-					RegTestBitcoinP2pEndPoint = endPoint;
-					break;
-
-				default:
-					throw new NotSupportedException("Unsupported network");
+				MainNetBitcoinP2pEndPoint = endPoint;
+			}
+			else if (Network == Network.TestNet)
+			{
+				TestNetBitcoinP2pEndPoint = endPoint;
+			}
+			else if (Network == Network.RegTest)
+			{
+				RegTestBitcoinP2pEndPoint = endPoint;
+			}
+			else
+			{
+				throw new NotSupportedException("Unsupported network");
 			}
 		}
 
 		public EndPoint GetP2PEndpoint()
 		{
-			switch (Network.Name)
+			if (Network == Network.Main)
 			{
-				case "Main":
-					return MainNetBitcoinP2pEndPoint;
-
-				case "TestNet":
-					return TestNetBitcoinP2pEndPoint;
-
-				case "RegTest":
-					return RegTestBitcoinP2pEndPoint;
-
-				default:
-					throw new NotSupportedException("Unsupported network");
+				return MainNetBitcoinP2pEndPoint;
+			}
+			else if (Network == Network.TestNet)
+			{
+				return TestNetBitcoinP2pEndPoint;
+			}
+			else if (Network == Network.RegTest)
+			{
+				return RegTestBitcoinP2pEndPoint;
+			}
+			else
+			{
+				throw new NotSupportedException("Unsupported network");
 			}
 		}
 

@@ -188,20 +188,22 @@ namespace WalletWasabi.Services
 		{
 			if (e.Action == NotifyCollectionChangedAction.Remove)
 			{
-				var toRemove = e.OldItems[0] as SmartCoin;
-				if (toRemove.SpenderTransactionId != null)
+				foreach (var toRemove in e.OldItems.Cast<SmartCoin>())
 				{
-					foreach (var toAlsoRemove in Coins.Where(x => x.TransactionId == toRemove.SpenderTransactionId).Distinct().ToList())
+					if (toRemove.SpenderTransactionId != null)
 					{
-						Coins.TryRemove(toAlsoRemove);
+						foreach (var toAlsoRemove in Coins.Where(x => x.TransactionId == toRemove.SpenderTransactionId).Distinct().ToList())
+						{
+							Coins.TryRemove(toAlsoRemove);
+						}
 					}
-				}
 
-				Mempool.TransactionHashes.TryRemove(toRemove.TransactionId);
-				var txToRemove = TryGetTxFromCache(toRemove.TransactionId);
-				if (txToRemove != default(SmartTransaction))
-				{
-					TransactionCache.TryRemove(txToRemove);
+					Mempool.TransactionHashes.TryRemove(toRemove.TransactionId);
+					var txToRemove = TryGetTxFromCache(toRemove.TransactionId);
+					if (txToRemove != default(SmartTransaction))
+					{
+						TransactionCache.TryRemove(txToRemove);
+					}
 				}
 			}
 
@@ -690,7 +692,7 @@ namespace WalletWasabi.Services
 
 							if (Nodes.ConnectedNodes.Count > 1) // To minimize risking missing unconfirmed transactions.
 							{
-								Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}. Block downloaded: {block.GetHash()}");
+								Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}. Block downloaded: {block.GetHash()}.");
 								node.DisconnectAsync("Thank you!");
 							}
 
@@ -710,7 +712,7 @@ namespace WalletWasabi.Services
 						catch (Exception ex)
 						{
 							Logger.LogDebug<WalletService>(ex);
-							Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}");
+							Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.");
 							node.DisconnectAsync("Block download failed.");
 							continue;
 						}
@@ -753,7 +755,7 @@ namespace WalletWasabi.Services
 						{
 							ConnectCancellation = handshakeTimeout.Token,
 							IsRelay = false,
-							UserAgent = $"/Wasabi:{Constants.ClientVersion}/"
+							UserAgent = $"/Wasabi:{Constants.ClientVersion.ToVersionString()}/"
 						};
 
 						// If an onion was added must try to use Tor.
@@ -773,10 +775,10 @@ namespace WalletWasabi.Services
 
 							//if (!peerServices.HasFlag(NodeServices.Network) && !peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
 							//{
-							//	throw new InvalidOperationException($"Wasabi cannot use the local node because it does not provide blocks.");
+							//	throw new InvalidOperationException("Wasabi cannot use the local node because it does not provide blocks.");
 							//}
 
-							Logger.LogInfo<WalletService>($"Handshake completed successfully.");
+							Logger.LogInfo<WalletService>("Handshake completed successfully.");
 
 							if (!localNode.IsConnected)
 							{
@@ -1028,7 +1030,7 @@ namespace WalletWasabi.Services
 
 			if (!psbt.TryGetFee(out var fee))
 			{
-				throw new InvalidOperationException($"Impossible to get the fees of the PSBT, this should never happen.");
+				throw new InvalidOperationException("Impossible to get the fees of the PSBT, this should never happen.");
 			}
 			Logger.LogInfo<WalletService>($"Fee: {fee.Satoshi} Satoshi.");
 
@@ -1039,7 +1041,7 @@ namespace WalletWasabi.Services
 			Money totalSendAmountNoFee = realToSend.Sum(x => x.amount);
 			if (totalSendAmountNoFee == Money.Zero)
 			{
-				throw new InvalidOperationException($"The amount after subtracting the fee is too small to be sent.");
+				throw new InvalidOperationException("The amount after subtracting the fee is too small to be sent.");
 			}
 			Money totalSendAmount = totalSendAmountNoFee + fee;
 
@@ -1093,7 +1095,7 @@ namespace WalletWasabi.Services
 				var checkResults = builder.Check(tx).ToList();
 				if (!psbt.TryGetEstimatedFeeRate(out FeeRate actualFeeRate))
 				{
-					throw new InvalidOperationException($"Impossible to get the fee rate of the PSBT, this should never happen.");
+					throw new InvalidOperationException("Impossible to get the fee rate of the PSBT, this should never happen.");
 				}
 
 				// Manually check the feerate, because some inaccuracy is possible.
@@ -1192,7 +1194,7 @@ namespace WalletWasabi.Services
 
 				if (Network == Network.RegTest)
 				{
-					throw new InvalidOperationException("Transaction broadcasting to nodes does not work in RegTest.");
+					throw new InvalidOperationException($"Transaction broadcasting to nodes does not work in {Network.RegTest}.");
 				}
 
 				while (true)
@@ -1217,7 +1219,7 @@ namespace WalletWasabi.Services
 						continue;
 					}
 
-					Logger.LogInfo<WalletService>($"Trying to broadcast transaction with random node ({node.RemoteSocketAddress}):{transaction.GetHash()}");
+					Logger.LogInfo<WalletService>($"Trying to broadcast transaction with random node ({node.RemoteSocketAddress}):{transaction.GetHash()}.");
 					var addedToBroadcastStore = Mempool.TryAddToBroadcastStore(transaction.Transaction, node.RemoteSocketEndpoint.ToString()); // So we'll reply to INV with this transaction.
 					if (!addedToBroadcastStore)
 					{
@@ -1268,7 +1270,7 @@ namespace WalletWasabi.Services
 			}
 			catch (Exception ex)
 			{
-				Logger.LogInfo<WalletService>($"Random node could not broadcast transaction. Broadcasting with backend... Reason: {ex.Message}");
+				Logger.LogInfo<WalletService>($"Random node could not broadcast transaction. Broadcasting with backend... Reason: {ex.Message}.");
 				Logger.LogDebug<WalletService>(ex);
 
 				using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
@@ -1359,7 +1361,7 @@ namespace WalletWasabi.Services
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError<WalletService>($"Refreshing coin clusters failed: {ex}");
+				Logger.LogError<WalletService>($"Refreshing coin clusters failed: {ex}.");
 			}
 			finally
 			{

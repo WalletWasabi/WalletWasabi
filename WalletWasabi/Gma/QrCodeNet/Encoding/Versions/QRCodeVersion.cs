@@ -19,9 +19,9 @@ namespace Gma.QrCodeNet.Encoding.Versions
 			DimensionForVersion = 17 + (versionNum * 4);
 		}
 
-		internal ErrorCorrectionBlocks GetECBlocksByLevel(ErrorCorrectionLevel ECLevel)
+		internal ErrorCorrectionBlocks GetECBlocksByLevel(ErrorCorrectionLevel eCLevel)
 		{
-			switch (ECLevel)
+			switch (eCLevel)
 			{
 				case ErrorCorrectionLevel.L:
 					return ECBlocks[0];
@@ -36,7 +36,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 					return ECBlocks[3];
 
 				default:
-					throw new System.ArgumentOutOfRangeException("Invalide ErrorCorrectionLevel");
+					throw new System.ArgumentOutOfRangeException($"Invalid {nameof(ErrorCorrectionLevel)}.");
 			}
 		}
 	}

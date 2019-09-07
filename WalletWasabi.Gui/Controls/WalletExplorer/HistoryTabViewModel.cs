@@ -71,7 +71,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(async _ => await TryRewriteTableAsync())
 				.DisposeWith(Disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(x =>
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				foreach (var transaction in Transactions)
 				{
@@ -165,7 +165,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				else
 				{
-					dateTime = foundTransaction.FirstSeenIfMempoolTime ?? DateTimeOffset.UtcNow;
+					dateTime = foundTransaction.FirstSeen;
 				}
 
 				if (found != default) // if found
@@ -215,7 +215,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					else
 					{
-						dateTime = foundSpenderTransaction.FirstSeenIfMempoolTime ?? DateTimeOffset.UtcNow;
+						dateTime = foundSpenderTransaction.FirstSeen;
 					}
 
 					var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.transactionId == coin.SpenderTransactionId);

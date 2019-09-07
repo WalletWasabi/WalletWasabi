@@ -44,7 +44,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _minimumFeeTarget;
 		private int _maximumFeeTarget;
 		private ObservableAsPropertyHelper<bool> _minMaxFeeTargetsEqual;
-		private string _confirmationExpectedText;
 		private string _feeText;
 		private decimal _usdFee;
 		private Money _estimatedBtcFee;
@@ -145,7 +144,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 					var dotIndex = betterAmount.IndexOf('.');
-					if (betterAmount.Length - dotIndex > 8) // Enable max 8 decimals.
+					if (dotIndex != -1 && betterAmount.Length - dotIndex > 8) // Enable max 8 decimals.
 					{
 						betterAmount = betterAmount.Substring(0, dotIndex + 1 + 8);
 					}
@@ -171,16 +170,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.WhenAnyValue(x => x.IsBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
-			{
-				SetSendText();
-			});
+				{
+					SetSendText();
+				});
 
 			this.WhenAnyValue(x => x.IsHardwareBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
-			{
-				SetSendText();
-			});
+				{
+					SetSendText();
+				});
 
 			this.WhenAnyValue(x => x.Label)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -204,7 +203,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			MaxCommand = ReactiveCommand.Create(() => { IsMax = !IsMax; }, outputScheduler: RxApp.MainThreadScheduler);
 			this.WhenAnyValue(x => x.IsMax)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
+				.Subscribe(_ =>
 				{
 					if (IsMax)
 					{
@@ -246,7 +245,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Label = Label.Trim(',', ' ').Trim();
 					if (!IsMax && string.IsNullOrWhiteSpace(Label))
 					{
-						SetWarningMessage("Label is required.");
+						SetWarningMessage($"{nameof(Label)} is required.");
 						return;
 					}
 
@@ -279,7 +278,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						if (!Money.TryParse(AmountText, out Money amount) || amount == Money.Zero)
 						{
-							SetWarningMessage($"Invalid amount.");
+							SetWarningMessage("Invalid amount.");
 							return;
 						}
 
@@ -321,19 +320,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.DequeuingSelectedCoins);
 					}
 
-					try
+					if (!KeyManager.IsWatchOnly)
 					{
-						PasswordHelper.GetMasterExtKey(KeyManager, Password, out string compatiblityPasswordUsed); // We could use TryPassword but we need the exception.
-						if (compatiblityPasswordUsed != null)
+						try
 						{
-							isCompatibilityPasswordUsed = true;
-							Password = compatiblityPasswordUsed; // Overwrite the password for BuildTransaction function.
+							PasswordHelper.GetMasterExtKey(KeyManager, Password, out string compatiblityPasswordUsed); // We could use TryPassword but we need the exception.
+							if (compatiblityPasswordUsed != null)
+							{
+								isCompatibilityPasswordUsed = true;
+								Password = compatiblityPasswordUsed; // Overwrite the password for BuildTransaction function.
+							}
 						}
-					}
-					catch (Exception ex)
-					{
-						SetWarningMessage(ex.ToTypeMessageString());
-						return;
+						catch (Exception ex)
+						{
+							SetWarningMessage(ex.ToTypeMessageString());
+							return;
+						}
 					}
 
 					BuildTransactionResult result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
@@ -384,7 +386,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							IsHardwareBusy = false;
 						}
 
-						signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction.Height, result.Transaction.BlockHash, result.Transaction.BlockIndex, result.Transaction.Label, result.Transaction.FirstSeenIfMempoolTime, result.Transaction.IsReplacement);
+						signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction.Height, result.Transaction.BlockHash, result.Transaction.BlockIndex, result.Transaction.Label, result.Transaction.FirstSeen, result.Transaction.IsReplacement);
 					}
 
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
@@ -554,29 +556,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 
-			if (feeTarget >= 2 && feeTarget <= 6) // minutes
-			{
-				ConfirmationExpectedText = $"{feeTarget}0 minutes";
-			}
-			else if (feeTarget >= 7 && feeTarget <= Constants.OneDayConfirmationTarget) // hours
-			{
-				var h = feeTarget / 6;
-				ConfirmationExpectedText = $"{h} {IfPlural(h, "hour", "hours")}";
-			}
-			else if (feeTarget >= 145 && feeTarget < Constants.SevenDaysConfirmationTarget) // days
-			{
-				var d = feeTarget / Constants.OneDayConfirmationTarget;
-				ConfirmationExpectedText = $"{d} {IfPlural(d, "day", "days")}";
-			}
-			else if (feeTarget == Constants.SevenDaysConfirmationTarget)
-			{
-				ConfirmationExpectedText = "one week";
-			}
-			else if (feeTarget == -1)
-			{
-				ConfirmationExpectedText = $"Invalid";
-			}
-
 			if (allFeeEstimate != null)
 			{
 				SetFees(allFeeEstimate, feeTarget);
@@ -616,16 +595,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			SetAmountIfMax();
-		}
-
-		private static string IfPlural(int val, string singular, string plural)
-		{
-			if (val == 1)
-			{
-				return singular;
-			}
-
-			return plural;
 		}
 
 		private void SetAmountIfMax()
@@ -851,12 +820,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public bool MinMaxFeeTargetsEqual => _minMaxFeeTargetsEqual?.Value ?? false;
-
-		public string ConfirmationExpectedText
-		{
-			get => _confirmationExpectedText;
-			set => this.RaiseAndSetIfChanged(ref _confirmationExpectedText, value);
-		}
 
 		public string FeeText
 		{

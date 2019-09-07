@@ -19,6 +19,7 @@ namespace WalletWasabi.Packager
 {
 	public class Program
 	{
+#pragma warning disable CS0162 // Unreachable code detected
 		// 0. Dump Client version (or else wrong .msi will be created) - Helpers.Constants.ClientVersion
 		// 1. Publish with Packager.
 		// 2. Build WIX project with Release and x64 configuration.
@@ -52,7 +53,7 @@ namespace WalletWasabi.Packager
 		public static string WixProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.WindowsInstaller\\"));
 		public static string BinDistDirectory = Path.GetFullPath(Path.Combine(GuiProjectDirectory, "bin\\dist"));
 
-		public static string VersionPrefix = Constants.ClientVersion.ToString();
+		public static string VersionPrefix = Constants.ClientVersion.ToVersionString();
 
 		public static bool OnlyBinaries;
 		public static bool OnlyCreateDigests;
@@ -95,14 +96,17 @@ namespace WalletWasabi.Packager
 				}
 			}
 
-			if (DoSign && !OnlyBinaries)
+			if (!OnlyBinaries)
 			{
-				Sign();
-			}
+				if (DoSign)
+				{
+					Sign();
+				}
 
-			if (DoRestoreProgramCs && !OnlyBinaries)
-			{
-				RestoreProgramCs();
+				if (DoRestoreProgramCs)
+				{
+					RestoreProgramCs();
+				}
 			}
 		}
 
@@ -618,8 +622,8 @@ namespace WalletWasabi.Packager
 					string infoFilePath = Path.Combine(macContentsDir, "Info.plist");
 
 					Directory.CreateDirectory(resourcesDir);
-					var iconpath = Path.Combine(GuiProjectDirectory, "Assets", "WasabiLogo.icns");
-					File.Copy(iconpath, Path.Combine(resourcesDir, "WasabiLogo.icns"));
+					var iconPath = Path.Combine(GuiProjectDirectory, "Assets", "WasabiLogo.icns");
+					File.Copy(iconPath, Path.Combine(resourcesDir, "WasabiLogo.icns"));
 
 					string infoContent = $@"<?xml version=""1.0"" encoding=""UTF-8""?>
 <!DOCTYPE plist PUBLIC ""-//Apple//DTD PLIST 1.0//EN"" ""http://www.apple.com/DTDs/PropertyList-1.0.dtd"">
@@ -751,7 +755,8 @@ namespace WalletWasabi.Packager
 
 					var linuxPath = $"/mnt/c/{Tools.LinuxPath(BinDistDirectory.Replace("C:\\", ""))}"; // We assume that it is on drive C:\.
 
-					var commands = new[] {
+					var commands = new[]
+					{
 						"cd ~",
 						"sudo umount /mnt/c",
 						"sudo mount -t drvfs C: /mnt/c -o metadata",
@@ -811,39 +816,39 @@ namespace WalletWasabi.Packager
 					var controlFilePath = Path.Combine(debianFolderPath, "control");
 					// License format does not yet work, but should work in the future, it's work in progress: https://bugs.launchpad.net/ubuntu/+source/software-center/+bug/435183
 					var controlFileContent = $"Package: {ExecutableName}\n" +
-												$"Priority: optional\n" +
-												$"Section: utils\n" +
-												$"Maintainer: nopara73 <adam.ficsor73@gmail.com>\n" +
-												$"Version: {VersionPrefix}\n" +
-												$"Homepage: http://wasabiwallet.io\n" +
-												$"Vcs-Git: git://github.com/zkSNACKs/WalletWasabi.git\n" +
-												$"Vcs-Browser: https://github.com/zkSNACKs/WalletWasabi\n" +
-												$"Architecture: amd64\n" +
-												$"License: Open Source (MIT)\n" +
-												$"Installed-Size: {installedSizeKb}\n" +
-												$"Description: open-source, non-custodial, privacy focused Bitcoin wallet\n" +
-												$"  Built-in Tor, CoinJoin and Coin Control features.\n";
+						$"Priority: optional\n" +
+						$"Section: utils\n" +
+						$"Maintainer: nopara73 <adam.ficsor73@gmail.com>\n" +
+						$"Version: {VersionPrefix}\n" +
+						$"Homepage: http://wasabiwallet.io\n" +
+						$"Vcs-Git: git://github.com/zkSNACKs/WalletWasabi.git\n" +
+						$"Vcs-Browser: https://github.com/zkSNACKs/WalletWasabi\n" +
+						$"Architecture: amd64\n" +
+						$"License: Open Source (MIT)\n" +
+						$"Installed-Size: {installedSizeKb}\n" +
+						$"Description: open-source, non-custodial, privacy focused Bitcoin wallet\n" +
+						$"  Built-in Tor, CoinJoin and Coin Control features.\n";
 
 					File.WriteAllText(controlFilePath, controlFileContent, Encoding.ASCII);
 
 					var desktopFilePath = Path.Combine(debUsrAppFolderPath, $"{ExecutableName}.desktop");
 					var desktopFileContent = $"[Desktop Entry]\n" +
-												$"Type=Application\n" +
-												$"Name=Wasabi Wallet\n" +
-												$"StartupWMClass=Wasabi Wallet\n" +
-												$"GenericName=Bitcoin Wallet\n" +
-												$"Comment=Privacy focused Bitcoin wallet.\n" +
-												$"Icon={ExecutableName}\n" +
-												$"Terminal=false\n" +
-												$"Exec={ExecutableName}\n" +
-												$"Categories=Office;Finance;\n" +
-												$"Keywords=bitcoin;wallet;crypto;blockchain;wasabi;privacy;anon;awesome;qwe;asd;\n";
+						$"Type=Application\n" +
+						$"Name=Wasabi Wallet\n" +
+						$"StartupWMClass=Wasabi Wallet\n" +
+						$"GenericName=Bitcoin Wallet\n" +
+						$"Comment=Privacy focused Bitcoin wallet.\n" +
+						$"Icon={ExecutableName}\n" +
+						$"Terminal=false\n" +
+						$"Exec={ExecutableName}\n" +
+						$"Categories=Office;Finance;\n" +
+						$"Keywords=bitcoin;wallet;crypto;blockchain;wasabi;privacy;anon;awesome;qwe;asd;\n";
 
 					File.WriteAllText(desktopFilePath, desktopFileContent, Encoding.ASCII);
 
 					var wasabiStarterScriptPath = Path.Combine(debUsrLocalBinFolderPath, $"{ExecutableName}");
 					var wasabiStarterScriptContent = $"#!/bin/sh\n" +
-														$"{ linuxWasabiWalletFolder.TrimEnd('/')}/{ExecutableName} $@\n";
+						$"{ linuxWasabiWalletFolder.TrimEnd('/')}/{ExecutableName} $@\n";
 
 					File.WriteAllText(wasabiStarterScriptPath, wasabiStarterScriptContent, Encoding.ASCII);
 
@@ -851,7 +856,8 @@ namespace WalletWasabi.Packager
 					string debDestopFileLinuxPath = Tools.LinuxPathCombine(debUsrAppFolderRelativePath, $"{ExecutableName}.desktop");
 					var wasabiStarterScriptLinuxPath = Tools.LinuxPathCombine(debUsrLocalBinFolderRelativePath, $"{ExecutableName}");
 
-					commands = new[] {
+					commands = new[]
+					{
 						"cd ~",
 						"sudo umount /mnt/c",
 						"sudo mount -t drvfs C: /mnt/c -o metadata",
@@ -885,5 +891,7 @@ namespace WalletWasabi.Packager
 				}
 			}
 		}
+
+#pragma warning restore CS0162 // Unreachable code detected
 	}
 }
