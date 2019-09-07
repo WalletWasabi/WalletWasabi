@@ -51,11 +51,11 @@ namespace WalletWasabi.Hwi
 
 				if (exitCode != 0)
 				{
-					ThrowIfError(responseString);
+					ThrowIfError(responseString, options);
 					throw new HwiException(HwiErrorCode.UnknownError, $"'hwi {arguments}' exited with incorrect exit code: {exitCode}.");
 				}
 
-				ThrowIfError(responseString);
+				ThrowIfError(responseString, options);
 
 				return responseString;
 			}
@@ -239,9 +239,9 @@ namespace WalletWasabi.Hwi
 
 		#region Helpers
 
-		private static void ThrowIfError(string responseString)
+		private static void ThrowIfError(string responseString, IEnumerable<HwiOption> options)
 		{
-			if (HwiParser.TryParseErrors(responseString, out HwiException error))
+			if (HwiParser.TryParseErrors(responseString, options, out HwiException error))
 			{
 				throw error;
 			}

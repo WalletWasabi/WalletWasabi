@@ -13,7 +13,7 @@ namespace WalletWasabi.Hwi.Parsers
 {
 	public static class HwiParser
 	{
-		public static bool TryParseErrors(string text, out HwiException error)
+		public static bool TryParseErrors(string text, IEnumerable<HwiOption> options, out HwiException error)
 		{
 			error = null;
 			if (JsonHelpers.TryParseJToken(text, out JToken token) && TryParseError(token, out HwiException e))
@@ -29,6 +29,16 @@ namespace WalletWasabi.Hwi.Parsers
 					var err = text.Substring(startIndex);
 					error = new HwiException(HwiErrorCode.UnknownError, err);
 				}
+			}
+
+			// Help text has error in it, so if help command is requested, then don't throw the error.
+			// https://github.com/bitcoin-core/HWI/issues/252
+			if (error != null
+				&& options != null
+				&& options.Contains(HwiOption.Help)
+				&& error.ErrorCode == HwiErrorCode.HelpText)
+			{
+				error = null;
 			}
 
 			return error != null;

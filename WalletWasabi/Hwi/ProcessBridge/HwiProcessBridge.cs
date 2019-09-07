@@ -58,7 +58,7 @@ namespace WalletWasabi.Hwi.ProcessBridge
 		{
 			var fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
 
-			string commonPartialPath = Path.Combine(fullBaseDirectory, "Hwi2", "Binaries");
+			string commonPartialPath = Path.Combine(fullBaseDirectory, "Hwi", "Binaries");
 			string path;
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{

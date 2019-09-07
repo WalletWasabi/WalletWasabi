@@ -4,10 +4,13 @@ using System.Text;
 
 namespace WalletWasabi.Hwi.Exceptions
 {
+	/// <summary>
+	/// https://github.com/bitcoin-core/HWI/blob/master/hwilib/errors.py
+	/// </summary>
 	public enum HwiErrorCode
 	{
-		NoDevicePath = -1,
-		NoDeviceType = -2,
+		NoDeviceType = -1,
+		MissingArguments = -2,
 		DeviceConnError = -3,
 		UnknownDeviceType = -4,
 		InvalidTx = -5,
@@ -22,6 +25,7 @@ namespace WalletWasabi.Hwi.Exceptions
 		ActionCanceled = -14,
 		DeviceBusy = -15,
 		NeedToBeRoot = -16,
+		HelpText = -17,
 		DeviceNotInitialized = -18
 	}
 }
