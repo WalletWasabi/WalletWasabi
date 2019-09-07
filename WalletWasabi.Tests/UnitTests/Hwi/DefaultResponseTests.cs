@@ -92,7 +92,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			var wrongDeviePaths = new[] { "", " " };
 			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
 			{
-				foreach (HardwareWalletVendors deviceType in Enum.GetValues(typeof(HardwareWalletVendors)))
+				foreach (HardwareWalletModels deviceType in Enum.GetValues(typeof(HardwareWalletModels)))
 				{
 					foreach (var wrongDevicePath in wrongDeviePaths)
 					{

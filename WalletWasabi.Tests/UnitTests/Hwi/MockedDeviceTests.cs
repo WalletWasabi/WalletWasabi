@@ -29,14 +29,14 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		[MemberData(nameof(GetDifferentNetworkValues))]
 		public async Task TrezorTMockTestsAsync(Network network)
 		{
-			var client = new HwiClient(network, new HwiProcessBridgeMock(HardwareWalletModels.TrezorT));
+			var client = new HwiClient(network, new HwiProcessBridgeMock(HardwareWalletModels.Trezor_T));
 
 			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
 			{
 				IEnumerable<HwiEnumerateEntry> enumerate = await client.EnumerateAsync(cts.Token);
 				Assert.Single(enumerate);
 				HwiEnumerateEntry entry = enumerate.Single();
-				Assert.Equal(HardwareWalletVendors.Trezor, entry.Type);
+				Assert.Equal(HardwareWalletModels.Trezor_T, entry.Type);
 				Assert.Equal("webusb: 001:4", entry.Path);
 				Assert.False(entry.NeedsPassphraseSent);
 				Assert.False(entry.NeedsPinSent);
@@ -105,14 +105,14 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		[MemberData(nameof(GetDifferentNetworkValues))]
 		public async Task TrezorOneMockTestsAsync(Network network)
 		{
-			var client = new HwiClient(network, new HwiProcessBridgeMock(HardwareWalletModels.TrezorOne));
+			var client = new HwiClient(network, new HwiProcessBridgeMock(HardwareWalletModels.Trezor_1));
 
 			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
 			{
 				IEnumerable<HwiEnumerateEntry> enumerate = await client.EnumerateAsync(cts.Token);
 				Assert.Single(enumerate);
 				HwiEnumerateEntry entry = enumerate.Single();
-				Assert.Equal(HardwareWalletVendors.Trezor, entry.Type);
+				Assert.Equal(HardwareWalletModels.Trezor_1, entry.Type);
 				string rawPath = "hid:\\\\\\\\?\\\\hid#vid_534c&pid_0001&mi_00#7&6f0b727&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
 				string normalizedPath = HwiParser.NormalizeRawDevicePath(rawPath);
 				Assert.Equal(normalizedPath, entry.Path);
@@ -181,14 +181,14 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		[MemberData(nameof(GetDifferentNetworkValues))]
 		public async Task ColdCardMk1MockTestsAsync(Network network)
 		{
-			var client = new HwiClient(network, new HwiProcessBridgeMock(HardwareWalletModels.ColdcardMk1));
+			var client = new HwiClient(network, new HwiProcessBridgeMock(HardwareWalletModels.Coldcard));
 
 			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
 			{
 				IEnumerable<HwiEnumerateEntry> enumerate = await client.EnumerateAsync(cts.Token);
 				Assert.Single(enumerate);
 				HwiEnumerateEntry entry = enumerate.Single();
-				Assert.Equal(HardwareWalletVendors.Coldcard, entry.Type);
+				Assert.Equal(HardwareWalletModels.Coldcard, entry.Type);
 				string rawPath = "\\\\\\\\?\\\\hid#vid_d13e&pid_cc10&mi_00#7&1b239988&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
 				string normalizedPath = HwiParser.NormalizeRawDevicePath(rawPath);
 				Assert.Equal(normalizedPath, entry.Path);
@@ -270,14 +270,14 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		[MemberData(nameof(GetDifferentNetworkValues))]
 		public async Task LedgerNanoSTestsAsync(Network network)
 		{
-			var client = new HwiClient(network, new HwiProcessBridgeMock(HardwareWalletModels.LedgerNanoS));
+			var client = new HwiClient(network, new HwiProcessBridgeMock(HardwareWalletModels.Ledger_Nano_S));
 
 			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
 			{
 				IEnumerable<HwiEnumerateEntry> enumerate = await client.EnumerateAsync(cts.Token);
 				Assert.Single(enumerate);
 				HwiEnumerateEntry entry = enumerate.Single();
-				Assert.Equal(HardwareWalletVendors.Ledger, entry.Type);
+				Assert.Equal(HardwareWalletModels.Ledger_Nano_S, entry.Type);
 				Assert.Equal(@"\\?\hid#vid_2c97&pid_0001&mi_00#7&e45ae20&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}", entry.Path);
 				Assert.False(entry.NeedsPassphraseSent);
 				Assert.False(entry.NeedsPinSent);

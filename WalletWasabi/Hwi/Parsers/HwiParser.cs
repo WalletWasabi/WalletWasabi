@@ -116,9 +116,9 @@ namespace WalletWasabi.Hwi.Parsers
 			return false;
 		}
 
-		public static bool TryParseHardwareWalletVendor(JToken token, out HardwareWalletVendors vendor)
+		public static bool TryParseHardwareWalletVendor(JToken token, out HardwareWalletModels vendor)
 		{
-			vendor = HardwareWalletVendors.Unknown;
+			vendor = HardwareWalletModels.Unknown;
 
 			if (token is null)
 			{
@@ -128,7 +128,7 @@ namespace WalletWasabi.Hwi.Parsers
 			try
 			{
 				var typeString = token.Value<string>();
-				if (Enum.TryParse(typeString, ignoreCase: true, out HardwareWalletVendors t))
+				if (Enum.TryParse(typeString, ignoreCase: true, out HardwareWalletModels t))
 				{
 					vendor = t;
 					return true;
@@ -252,8 +252,8 @@ namespace WalletWasabi.Hwi.Parsers
 				errorString = err.Message;
 			}
 
-			HardwareWalletVendors type = HardwareWalletVendors.Unknown;
-			if (TryParseHardwareWalletVendor(typeToken, out HardwareWalletVendors t))
+			HardwareWalletModels type = HardwareWalletModels.Unknown;
+			if (TryParseHardwareWalletVendor(typeToken, out HardwareWalletModels t))
 			{
 				type = t;
 			}
@@ -379,7 +379,7 @@ namespace WalletWasabi.Hwi.Parsers
 			return arguments;
 		}
 
-		public static string ToHwiFriendlyString(this HardwareWalletVendors me)
+		public static string ToHwiFriendlyString(this HardwareWalletModels me)
 		{
 			return me.ToString().ToLowerInvariant();
 		}

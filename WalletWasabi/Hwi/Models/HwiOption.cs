@@ -15,7 +15,7 @@ namespace WalletWasabi.Hwi.Models
 			return new HwiOption(HwiOptions.DevicePath, devicePath);
 		}
 
-		public static HwiOption DeviceType(HardwareWalletVendors deviceType) => new HwiOption(HwiOptions.DeviceType, deviceType.ToHwiFriendlyString());
+		public static HwiOption DeviceType(HardwareWalletModels deviceType) => new HwiOption(HwiOptions.DeviceType, deviceType.ToHwiFriendlyString());
 
 		public static HwiOption Debug => new HwiOption(HwiOptions.Debug);
 

@@ -51,11 +51,11 @@ namespace WalletWasabi.Tests.IntegrationTests.Hwi
 				Assert.Single(enumerate);
 				HwiEnumerateEntry entry = enumerate.Single();
 				Assert.NotNull(entry.Path);
-				Assert.Equal(HardwareWalletVendors.Trezor, entry.Type);
+				Assert.Equal(HardwareWalletModels.Trezor_T, entry.Type);
 				Assert.True(entry.Fingerprint.HasValue);
 
 				string devicePath = entry.Path;
-				HardwareWalletVendors deviceType = entry.Type;
+				HardwareWalletModels deviceType = entry.Type;
 				HDFingerprint fingerprint = entry.Fingerprint.Value;
 
 				await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
@@ -124,13 +124,13 @@ namespace WalletWasabi.Tests.IntegrationTests.Hwi
 				Assert.Single(enumerate);
 				HwiEnumerateEntry entry = enumerate.Single();
 				Assert.NotNull(entry.Path);
-				Assert.Equal(HardwareWalletVendors.Trezor, entry.Type);
+				Assert.Equal(HardwareWalletModels.Trezor_1, entry.Type);
 				Assert.True(entry.NeedsPinSent);
 				Assert.Equal(HwiErrorCode.DeviceNotReady, entry.Code);
 				Assert.Null(entry.Fingerprint);
 
 				string devicePath = entry.Path;
-				HardwareWalletVendors deviceType = entry.Type;
+				HardwareWalletModels deviceType = entry.Type;
 
 				await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
 
@@ -187,11 +187,11 @@ namespace WalletWasabi.Tests.IntegrationTests.Hwi
 				Assert.Single(enumerate);
 				HwiEnumerateEntry entry = enumerate.Single();
 				Assert.NotNull(entry.Path);
-				Assert.Equal(HardwareWalletVendors.Coldcard, entry.Type);
+				Assert.Equal(HardwareWalletModels.Coldcard, entry.Type);
 				Assert.True(entry.Fingerprint.HasValue);
 
 				string devicePath = entry.Path;
-				HardwareWalletVendors deviceType = entry.Type;
+				HardwareWalletModels deviceType = entry.Type;
 				HDFingerprint fingerprint = entry.Fingerprint.Value;
 
 				// ColdCard doesn't support it.
@@ -267,7 +267,7 @@ namespace WalletWasabi.Tests.IntegrationTests.Hwi
 				var enumerate = await client.EnumerateAsync(cts.Token);
 				HwiEnumerateEntry entry = Assert.Single(enumerate);
 				Assert.NotNull(entry.Path);
-				Assert.Equal(HardwareWalletVendors.Ledger, entry.Type);
+				Assert.Equal(HardwareWalletModels.Ledger_Nano_S, entry.Type);
 				Assert.True(entry.Fingerprint.HasValue);
 				Assert.Null(entry.Code);
 				Assert.Null(entry.Error);
@@ -276,7 +276,7 @@ namespace WalletWasabi.Tests.IntegrationTests.Hwi
 				Assert.False(entry.NeedsPinSent);
 
 				string devicePath = entry.Path;
-				HardwareWalletVendors deviceType = entry.Type;
+				HardwareWalletModels deviceType = entry.Type;
 				HDFingerprint fingerprint = entry.Fingerprint.Value;
 
 				await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));

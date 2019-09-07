@@ -28,24 +28,24 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			string type;
 			string rawPath;
 
-			if (Model == HardwareWalletModels.TrezorT)
+			if (Model == HardwareWalletModels.Trezor_T)
 			{
-				type = "trezor";
+				type = "trezor_t";
 				rawPath = "webusb: 001:4";
 			}
-			else if (Model == HardwareWalletModels.TrezorOne)
+			else if (Model == HardwareWalletModels.Trezor_1)
 			{
-				type = "trezor";
+				type = "trezor_1";
 				rawPath = "hid:\\\\\\\\?\\\\hid#vid_534c&pid_0001&mi_00#7&6f0b727&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
 			}
-			else if (Model == HardwareWalletModels.ColdcardMk1)
+			else if (Model == HardwareWalletModels.Coldcard)
 			{
 				type = "coldcard";
 				rawPath = @"\\\\?\\hid#vid_d13e&pid_cc10&mi_00#7&1b239988&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
 			}
-			else if (Model == HardwareWalletModels.LedgerNanoS)
+			else if (Model == HardwareWalletModels.Ledger_Nano_S)
 			{
-				type = "ledger";
+				type = "ledger_nano_s";
 				rawPath = "\\\\\\\\?\\\\hid#vid_2c97&pid_0001&mi_00#7&e45ae20&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
 			}
 			else
@@ -63,123 +63,123 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 
 			if (CompareArguments(arguments, "enumerate"))
 			{
-				if (Model == HardwareWalletModels.TrezorT)
+				if (Model == HardwareWalletModels.Trezor_T)
 				{
 					response = $"[{{\"type\": \"{type}\", \"path\": \"{rawPath}\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false, \"error\": \"Not initialized\"}}]";
 				}
-				else if (Model == HardwareWalletModels.TrezorOne)
+				else if (Model == HardwareWalletModels.Trezor_1)
 				{
 					response = $"[{{\"type\": \"{type}\", \"path\": \"{rawPath}\", \"needs_pin_sent\": true, \"needs_passphrase_sent\": false, \"error\": \"Could not open client or get fingerprint information: Trezor is locked. Unlock by using 'promptpin' and then 'sendpin'.\", \"code\": -12}}]\r\n";
 				}
-				else if (Model == HardwareWalletModels.ColdcardMk1)
+				else if (Model == HardwareWalletModels.Coldcard)
 				{
 					response = $"[{{\"type\": \"{type}\", \"path\": \"{rawPath}\", \"needs_passphrase\": false, \"fingerprint\": \"a3d0d797\"}}]\r\n";
 				}
-				else if (Model == HardwareWalletModels.LedgerNanoS)
+				else if (Model == HardwareWalletModels.Ledger_Nano_S)
 				{
 					response = $"[{{\"type\": \"{type}\", \"path\": \"{rawPath}\", \"fingerprint\": \"4054d6f6\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false}}]\r\n";
 				}
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} wipe"))
 			{
-				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.TrezorOne)
+				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Trezor_1)
 				{
 					response = successTrueResponse;
 				}
-				else if (Model == HardwareWalletModels.ColdcardMk1)
+				else if (Model == HardwareWalletModels.Coldcard)
 				{
 					response = "{\"error\": \"The Coldcard does not support wiping via software\", \"code\": -9}\r\n";
 				}
-				else if (Model == HardwareWalletModels.LedgerNanoS)
+				else if (Model == HardwareWalletModels.Ledger_Nano_S)
 				{
 					response = "{\"error\": \"The Ledger Nano S does not support wiping via software\", \"code\": -9}\r\n";
 				}
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} setup"))
 			{
-				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.TrezorOne)
+				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Trezor_1)
 				{
 					response = "{\"error\": \"setup requires interactive mode\", \"code\": -9}";
 				}
-				else if (Model == HardwareWalletModels.ColdcardMk1)
+				else if (Model == HardwareWalletModels.Coldcard)
 				{
 					response = "{\"error\": \"The Coldcard does not support software setup\", \"code\": -9}\r\n";
 				}
-				else if (Model == HardwareWalletModels.LedgerNanoS)
+				else if (Model == HardwareWalletModels.Ledger_Nano_S)
 				{
 					response = "{\"error\": \"The Ledger Nano S does not support software setup\", \"code\": -9}\r\n";
 				}
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} --interactive setup"))
 			{
-				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.TrezorOne)
+				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Trezor_1)
 				{
 					response = successTrueResponse;
 				}
-				else if (Model == HardwareWalletModels.ColdcardMk1)
+				else if (Model == HardwareWalletModels.Coldcard)
 				{
 					response = "{\"error\": \"The Coldcard does not support software setup\", \"code\": -9}\r\n";
 				}
-				else if (Model == HardwareWalletModels.LedgerNanoS)
+				else if (Model == HardwareWalletModels.Ledger_Nano_S)
 				{
 					response = "{\"error\": \"The Ledger Nano S does not support software setup\", \"code\": -9}\r\n";
 				}
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} --interactive restore"))
 			{
-				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.TrezorOne)
+				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Trezor_1)
 				{
 					response = successTrueResponse;
 				}
-				else if (Model == HardwareWalletModels.ColdcardMk1)
+				else if (Model == HardwareWalletModels.Coldcard)
 				{
 					response = "{\"error\": \"The Coldcard does not support restoring via software\", \"code\": -9}\r\n";
 				}
-				else if (Model == HardwareWalletModels.LedgerNanoS)
+				else if (Model == HardwareWalletModels.Ledger_Nano_S)
 				{
 					response = "{\"error\": \"The Ledger Nano S does not support restoring via software\", \"code\": -9}\r\n";
 				}
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} promptpin"))
 			{
-				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.TrezorOne)
+				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Trezor_1)
 				{
 					response = "{\"error\": \"The PIN has already been sent to this device\", \"code\": -11}\r\n";
 				}
-				else if (Model == HardwareWalletModels.ColdcardMk1)
+				else if (Model == HardwareWalletModels.Coldcard)
 				{
 					response = "{\"error\": \"The Coldcard does not need a PIN sent from the host\", \"code\": -9}\r\n";
 				}
-				else if (Model == HardwareWalletModels.LedgerNanoS)
+				else if (Model == HardwareWalletModels.Ledger_Nano_S)
 				{
 					response = "{\"error\": \"The Ledger Nano S does not need a PIN sent from the host\", \"code\": -9}\r\n";
 				}
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} sendpin", true))
 			{
-				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.TrezorOne)
+				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Trezor_1)
 				{
 					response = "{\"error\": \"The PIN has already been sent to this device\", \"code\": -11}";
 				}
-				else if (Model == HardwareWalletModels.ColdcardMk1)
+				else if (Model == HardwareWalletModels.Coldcard)
 				{
 					response = "{\"error\": \"The Coldcard does not need a PIN sent from the host\", \"code\": -9}\r\n";
 				}
-				else if (Model == HardwareWalletModels.LedgerNanoS)
+				else if (Model == HardwareWalletModels.Ledger_Nano_S)
 				{
 					response = "{\"error\": \"The Ledger Nano S does not need a PIN sent from the host\", \"code\": -9}\r\n";
 				}
 			}
 			else if (CompareGetXbpubArguments(arguments, out string xpub))
 			{
-				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.ColdcardMk1 || Model == HardwareWalletModels.TrezorOne || Model == HardwareWalletModels.LedgerNanoS)
+				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Coldcard || Model == HardwareWalletModels.Trezor_1 || Model == HardwareWalletModels.Ledger_Nano_S)
 				{
 					response = $"{{\"xpub\": \"{xpub}\"}}\r\n";
 				}
 			}
 			else if (CompareArguments(out bool t1, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/0h/0h --wpkh", false))
 			{
-				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.ColdcardMk1 || Model == HardwareWalletModels.TrezorOne || Model == HardwareWalletModels.LedgerNanoS)
+				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Coldcard || Model == HardwareWalletModels.Trezor_1 || Model == HardwareWalletModels.Ledger_Nano_S)
 				{
 					response = t1
 					   ? "{\"address\": \"tb1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7rtzlxy\"}\r\n"
@@ -188,7 +188,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			}
 			else if (CompareArguments(out bool t2, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/0h/0h/1 --wpkh", false))
 			{
-				if (Model == HardwareWalletModels.TrezorT || Model == HardwareWalletModels.ColdcardMk1 || Model == HardwareWalletModels.TrezorOne || Model == HardwareWalletModels.LedgerNanoS)
+				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Coldcard || Model == HardwareWalletModels.Trezor_1 || Model == HardwareWalletModels.Ledger_Nano_S)
 				{
 					response = t2
 					   ? "{\"address\": \"tb1qmaveee425a5xjkjcv7m6d4gth45jvtnjqhj3l6\"}\r\n"
