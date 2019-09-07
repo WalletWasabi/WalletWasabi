@@ -23,8 +23,8 @@ using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
-using WalletWasabi.Hwi2;
-using WalletWasabi.Hwi2.Models;
+using WalletWasabi.Hwi;
+using WalletWasabi.Hwi.Models;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 

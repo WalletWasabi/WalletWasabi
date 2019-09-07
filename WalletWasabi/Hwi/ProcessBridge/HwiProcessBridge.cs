@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 
-namespace WalletWasabi.Hwi2.ProcessBridge
+namespace WalletWasabi.Hwi.ProcessBridge
 {
 	public class HwiProcessBridge : IProcessBridge
 	{

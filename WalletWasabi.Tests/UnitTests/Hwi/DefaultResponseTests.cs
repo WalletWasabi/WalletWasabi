@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Hwi2;
-using WalletWasabi.Hwi2.Exceptions;
-using WalletWasabi.Hwi2.Models;
-using WalletWasabi.Hwi2.ProcessBridge;
+using WalletWasabi.Hwi;
+using WalletWasabi.Hwi.Exceptions;
+using WalletWasabi.Hwi.Models;
+using WalletWasabi.Hwi.ProcessBridge;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Hwi

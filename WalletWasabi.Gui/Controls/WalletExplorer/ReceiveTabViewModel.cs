@@ -13,7 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Hwi2;
+using WalletWasabi.Hwi;
 using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer

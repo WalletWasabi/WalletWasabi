@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace WalletWasabi.Hwi2.Models
+namespace WalletWasabi.Hwi.Models
 {
 	public enum HwiCommands
 	{

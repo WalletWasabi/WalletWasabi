@@ -27,19 +27,16 @@
   
   <ItemGroup>
     <Folder Include="Gma\QrCodeNet\Encoding\ReedSolomon\" />
-    <Folder Include="Hwi2\Binaries\hwi-win64\" />
-    <Folder Include="Hwi2\Binaries\hwi-osx64\" />
-    <Folder Include="Hwi2\Binaries\hwi-lin64\" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Hwi2\Binaries\hwi-lin64\hwi">
+    <None Update="Hwi\Binaries\hwi-lin64\hwi">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Hwi2\Binaries\hwi-osx64\hwi">
+    <None Update="Hwi\Binaries\hwi-osx64\hwi">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Hwi2\Binaries\hwi-win64\hwi.exe">
+    <None Update="Hwi\Binaries\hwi-win64\hwi.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="OnionSeeds\MainOnionSeeds.txt">

@@ -6,10 +6,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
-using WalletWasabi.Hwi2.Exceptions;
-using WalletWasabi.Hwi2.Models;
+using WalletWasabi.Hwi.Exceptions;
+using WalletWasabi.Hwi.Models;
 
-namespace WalletWasabi.Hwi2.Parsers
+namespace WalletWasabi.Hwi.Parsers
 {
 	public static class HwiParser
 	{

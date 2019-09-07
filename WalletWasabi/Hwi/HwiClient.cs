@@ -11,14 +11,14 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
-using WalletWasabi.Hwi2.Exceptions;
-using WalletWasabi.Hwi2.Models;
-using WalletWasabi.Hwi2.Parsers;
-using WalletWasabi.Hwi2.ProcessBridge;
+using WalletWasabi.Hwi.Exceptions;
+using WalletWasabi.Hwi.Models;
+using WalletWasabi.Hwi.Parsers;
+using WalletWasabi.Hwi.ProcessBridge;
 using WalletWasabi.Interfaces;
 using WalletWasabi.KeyManagement;
 
-namespace WalletWasabi.Hwi2
+namespace WalletWasabi.Hwi
 {
 	public class HwiClient
 	{

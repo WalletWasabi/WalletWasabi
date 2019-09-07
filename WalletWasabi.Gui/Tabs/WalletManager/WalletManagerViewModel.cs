@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Hwi2.Models;
+using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager

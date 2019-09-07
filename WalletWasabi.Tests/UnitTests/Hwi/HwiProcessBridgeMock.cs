@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Hwi2.Models;
-using WalletWasabi.Hwi2.Parsers;
+using WalletWasabi.Hwi.Models;
+using WalletWasabi.Hwi.Parsers;
 using WalletWasabi.Interfaces;
 
 namespace WalletWasabi.Tests.UnitTests.Hwi

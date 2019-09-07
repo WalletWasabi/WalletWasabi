@@ -6,10 +6,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
-using WalletWasabi.Hwi2;
-using WalletWasabi.Hwi2.Exceptions;
-using WalletWasabi.Hwi2.Models;
-using WalletWasabi.Hwi2.Parsers;
+using WalletWasabi.Hwi;
+using WalletWasabi.Hwi.Exceptions;
+using WalletWasabi.Hwi.Models;
+using WalletWasabi.Hwi.Parsers;
 using WalletWasabi.KeyManagement;
 using Xunit;
 

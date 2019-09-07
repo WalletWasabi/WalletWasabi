@@ -7,7 +7,7 @@ using System.Linq;
 using System.Security;
 using System.Text;
 using WalletWasabi.Helpers;
-using WalletWasabi.Hwi2.Models;
+using WalletWasabi.Hwi.Models;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;

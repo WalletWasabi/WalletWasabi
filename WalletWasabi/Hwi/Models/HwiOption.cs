@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using WalletWasabi.Helpers;
-using WalletWasabi.Hwi2.Parsers;
+using WalletWasabi.Hwi.Parsers;
 
-namespace WalletWasabi.Hwi2.Models
+namespace WalletWasabi.Hwi.Models
 {
 	public class HwiOption
 	{

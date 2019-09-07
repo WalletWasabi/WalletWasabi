@@ -3,9 +3,9 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using WalletWasabi.Hwi2.Exceptions;
+using WalletWasabi.Hwi.Exceptions;
 
-namespace WalletWasabi.Hwi2.Models
+namespace WalletWasabi.Hwi.Models
 {
 	public class HwiEnumerateEntry
 	{
