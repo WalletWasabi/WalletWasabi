@@ -31,12 +31,6 @@ namespace WalletWasabi.Models
 		[JsonConverter(typeof(SmartLabelJsonConverter))]
 		public SmartLabel Label { get; set; }
 
-		public bool Confirmed => Height.Type == HeightType.Chain;
-
-		public uint256 GetHash() => Transaction.GetHash();
-
-		public int GetConfirmationCount(Height bestHeight) => Height == Height.Mempool ? 0 : bestHeight.Value - Height.Value + 1;
-
 		[JsonProperty]
 		[JsonConverter(typeof(DateTimeOffsetUnixSecondsConverter))]
 		public DateTimeOffset FirstSeen { get; private set; }
@@ -61,6 +55,12 @@ namespace WalletWasabi.Models
 
 		[JsonProperty]
 		public bool IsReplacement { get; private set; }
+
+		public bool Confirmed => Height.Type == HeightType.Chain;
+
+		public uint256 GetHash() => Transaction.GetHash();
+
+		public int GetConfirmationCount(Height bestHeight) => Height == Height.Mempool ? 0 : bestHeight.Value - Height.Value + 1;
 
 		/// <summary>
 		/// A transaction can signal that is replaceable by fee in two ways:
