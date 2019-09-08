@@ -1,3 +1,5 @@
+using System;
+
 namespace Gma.QrCodeNet.Encoding.Versions
 {
 	internal struct QRCodeVersion
@@ -36,7 +38,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 					return ECBlocks[3];
 
 				default:
-					throw new System.ArgumentOutOfRangeException($"Invalid {nameof(ErrorCorrectionLevel)}.");
+					throw new ArgumentOutOfRangeException($"Invalid {nameof(ErrorCorrectionLevel)}.");
 			}
 		}
 	}
