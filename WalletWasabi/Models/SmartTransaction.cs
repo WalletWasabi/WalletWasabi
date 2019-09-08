@@ -2,6 +2,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 
@@ -123,6 +124,111 @@ namespace WalletWasabi.Models
 				return firstSeenCompareResult;
 			});
 		}
+
+		#region LineSerialization
+
+		public string ToLine()
+		{
+			// GetHash is also serialized, so file can be interpreted with our eyes better.
+
+			return string.Join(':',
+				GetHash(),
+				Transaction.ToHex(),
+				Height,
+				BlockHash,
+				BlockIndex,
+				Label,
+				FirstSeen.ToUnixTimeSeconds(),
+				IsReplacement);
+		}
+
+		public static SmartTransaction FromLine(string line, Network expectedNetwork)
+		{
+			line = Guard.NotNullOrEmptyOrWhitespace(nameof(line), line, trim: true);
+			expectedNetwork = Guard.NotNull(nameof(expectedNetwork), expectedNetwork);
+
+			var parts = line.Split(':', StringSplitOptions.None).Select(x => x.Trim()).ToArray();
+
+			// Find the Transaction hex, it must be always present.
+			ParseTransactionHex(expectedNetwork, parts, out Transaction tx, out int txHexIndex);
+
+			try
+			{
+				// First is redundand txhash serialization.
+				var heightString = parts[txHexIndex + 1];
+				var blockHashString = parts[txHexIndex + 2];
+				var blockIndexString = parts[txHexIndex + 3];
+				var label = parts[txHexIndex + 4];
+				var firstSeen = parts[txHexIndex + 5];
+				var isReplacementString = parts[txHexIndex + 6];
+
+				if (!Height.TryParse(heightString, out Height h))
+				{
+					h = Height.Unknown;
+				}
+				if (!uint256.TryParse(blockHashString, out uint256 bh))
+				{
+					bh = null;
+				}
+				if (!int.TryParse(blockIndexString, out int bi))
+				{
+					bi = 0;
+				}
+				var sl = new SmartLabel(label);
+				DateTimeOffset fs = default;
+				if (long.TryParse(firstSeen, out long unixSeconds))
+				{
+					fs = DateTimeOffset.FromUnixTimeSeconds(unixSeconds);
+				}
+				if (!bool.TryParse(isReplacementString, out bool ir))
+				{
+					ir = false;
+				}
+
+				return new SmartTransaction(tx, h, bh, bi, sl, ir, fs);
+			}
+			catch
+			{
+				return new SmartTransaction(tx, Height.Unknown);
+			}
+		}
+
+		private static void ParseTransactionHex(Network expectedNetwork, string[] parts, out Transaction tx, out int txHexIndex)
+		{
+			tx = null;
+			txHexIndex = 1;
+			try
+			{
+				tx = Transaction.Parse(parts[txHexIndex], expectedNetwork);
+			}
+			catch
+			{
+				for (txHexIndex = 0; txHexIndex < parts.Length; txHexIndex++)
+				{
+					if (txHexIndex == 1)
+					{
+						continue; // We already checked this.
+					}
+
+					string part = parts[txHexIndex];
+					try
+					{
+						tx = Transaction.Parse(part, expectedNetwork);
+						break;
+					}
+					catch
+					{
+						continue;
+					}
+				}
+			}
+			if (tx is null)
+			{
+				throw new FormatException($"Transaction hex is not present.");
+			}
+		}
+
+		#endregion LineSerialization
 
 		#region Equality
 
