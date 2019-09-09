@@ -58,7 +58,7 @@ namespace WalletWasabi.Gui.CommandLine
 					}
 					if (PasswordHelper.IsTrimable(password, out password))
 					{
-						Console.WriteLine(PasswordHelper.TrimmedMessage);
+						Console.WriteLine(PasswordHelper.TrimWarnMessage);
 					}
 				}
 				while (!PasswordHelper.TryPassword(keyManager, password, out compatibilityPassword));
