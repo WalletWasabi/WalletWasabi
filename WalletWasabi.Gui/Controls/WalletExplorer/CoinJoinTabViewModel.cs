@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
@@ -88,26 +89,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				Global.Config.MixUntilAnonymitySet = CoinJoinUntilAnonymitySet;
 				await Global.Config.ToFileAsync();
-			});
-
-			this.WhenAnyValue(x => x.Password).Subscribe(async x =>
-			{
-				try
-				{
-					if (x.NotNullAndNotEmpty())
-					{
-						char lastChar = x.Last();
-						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
-						{
-							Password = x.TrimEnd('\r', '\n');
-							await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected));
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					Logger.LogTrace(ex);
-				}
 			});
 
 			this.WhenAnyValue(x => x.IsEnqueueBusy)
@@ -240,16 +221,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			try
 			{
 				SetWarningMessage("");
-				Password = Guard.Correct(Password);
 
 				if (!selectedCoins.Any())
 				{
 					SetWarningMessage("No coins are selected to enqueue.");
 					return;
 				}
-
 				try
 				{
+					PasswordHelper.GetMasterExtKey(KeyManager, Password, out string compatiblityPassword); // If the password is not correct we throw.
+
+					if (compatiblityPassword != null)
+					{
+						Password = compatiblityPassword;
+						SetWarningMessage(PasswordHelper.CompatibilityPasswordWarnMessage);
+					}
+
 					await Global.ChaumianClient.QueueCoinsToMixAsync(Password, selectedCoins.Select(c => c.Model).ToArray());
 				}
 				catch (Exception ex)
@@ -342,6 +329,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global.ChaumianClient.DeactivateFrequentStatusProcessingIfNotMixing();
 		}
 
+		public string ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+
+		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
 		{
 			get => _password;

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -10,7 +11,7 @@ namespace Nito.Collections
 	/// <typeparam name="T">The type of elements contained in the deque.</typeparam>
 	[DebuggerDisplay("Count = {Count}, Capacity = {Capacity}")]
 	[DebuggerTypeProxy(typeof(Deque<>.DebugView))]
-	public sealed class Deque<T> : IList<T>, IReadOnlyList<T>, System.Collections.IList
+	public sealed class Deque<T> : IList<T>, IReadOnlyList<T>, IList
 	{
 		/// <summary>
 		/// The default capacity.
@@ -286,7 +287,7 @@ namespace Nito.Collections
 		/// <returns>
 		/// An <see cref="T:System.Collections.IEnumerator"/> object that can be used to iterate through the collection.
 		/// </returns>
-		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+		IEnumerator IEnumerable.GetEnumerator()
 		{
 			return GetEnumerator();
 		}
@@ -310,7 +311,7 @@ namespace Nito.Collections
 			return default(T) == null;
 		}
 
-		int System.Collections.IList.Add(object value)
+		int IList.Add(object value)
 		{
 			if (value is null && default(T) != null)
 			{
@@ -326,17 +327,17 @@ namespace Nito.Collections
 			return Count - 1;
 		}
 
-		bool System.Collections.IList.Contains(object value)
+		bool IList.Contains(object value)
 		{
 			return IsT(value) ? ((ICollection<T>)this).Contains((T)value) : false;
 		}
 
-		int System.Collections.IList.IndexOf(object value)
+		int IList.IndexOf(object value)
 		{
 			return IsT(value) ? IndexOf((T)value) : -1;
 		}
 
-		void System.Collections.IList.Insert(int index, object value)
+		void IList.Insert(int index, object value)
 		{
 			if (value is null && default(T) != null)
 			{
@@ -351,11 +352,11 @@ namespace Nito.Collections
 			Insert(index, (T)value);
 		}
 
-		bool System.Collections.IList.IsFixedSize => false;
+		bool IList.IsFixedSize => false;
 
-		bool System.Collections.IList.IsReadOnly => false;
+		bool IList.IsReadOnly => false;
 
-		void System.Collections.IList.Remove(object value)
+		void IList.Remove(object value)
 		{
 			if (IsT(value))
 			{
@@ -363,7 +364,7 @@ namespace Nito.Collections
 			}
 		}
 
-		object System.Collections.IList.this[int index]
+		object IList.this[int index]
 		{
 			get => this[index];
 
@@ -383,7 +384,7 @@ namespace Nito.Collections
 			}
 		}
 
-		void System.Collections.ICollection.CopyTo(Array array, int index)
+		void ICollection.CopyTo(Array array, int index)
 		{
 			if (array is null)
 			{
@@ -406,9 +407,9 @@ namespace Nito.Collections
 			}
 		}
 
-		bool System.Collections.ICollection.IsSynchronized => false;
+		bool ICollection.IsSynchronized => false;
 
-		object System.Collections.ICollection.SyncRoot => this;
+		object ICollection.SyncRoot => this;
 
 		#endregion ObjectListImplementations
 

@@ -1,3 +1,5 @@
+using System;
+
 namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 {
 	/// <summary>
@@ -29,7 +31,7 @@ namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 
 			double ratio = (double)DarkBitCount / MatrixCount;
 
-			return System.Math.Abs((int)((ratio * 100) - 50)) / 5 * 10;
+			return Math.Abs((int)((ratio * 100) - 50)) / 5 * 10;
 		}
 	}
 }

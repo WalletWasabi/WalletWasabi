@@ -15,7 +15,7 @@ namespace WalletWasabi.Helpers
 		public const int MaxPasswordLength = 150;
 		public const string CompatibilityPasswordWarnMessage = "Compatibility password was used! Please consider generating a new wallet to ensure recoverability!";
 		public static readonly string PasswordTooLongMessage = $"Password is too long (Max {MaxPasswordLength} characters).";
-		public const string TrimmedMessage = "Leading and trailing white spaces were removed!";
+		public const string TrimWarnMessage = "Leading and trailing white spaces will be removed!";
 
 		public static string[] GetPossiblePasswords(string originalPassword)
 		{
@@ -108,6 +108,8 @@ namespace WalletWasabi.Helpers
 
 		public static ExtKey GetMasterExtKey(KeyManager keyManager, string password, out string compatiblityPassword)
 		{
+			password = Helpers.Guard.Correct(password); // Correct the password to ensure compatiblity. User will be notified about this through TogglePasswordBox.
+
 			Guard(password);
 
 			compatiblityPassword = null;
@@ -139,6 +141,22 @@ namespace WalletWasabi.Helpers
 			}
 
 			throw resultException; // Throw the last exception - Invalid password.
+		}
+
+		public static string ValidatePassword(string password)
+		{
+			List<string> messages = new List<string>();
+			if (IsTrimable(password, out _))
+			{
+				messages.Add(TrimWarnMessage);
+			}
+
+			if (IsTooLong(password, out _))
+			{
+				messages.Add(PasswordTooLongMessage);
+			}
+
+			return string.Join(' ', messages);
 		}
 	}
 }
