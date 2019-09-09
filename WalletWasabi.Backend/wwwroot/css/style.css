@@ -203,7 +203,7 @@ section .shader {
   min-height: 100vh;
   height: 100%;
   width: 100%;
-  background-image: url("../images/hero-off.jpg");
+  background-image: url("../images/hero-off.jpg?ver=1.1.0");
   background-size: cover;
   background-position: center;
 }
@@ -215,7 +215,7 @@ section .shader {
   height: 100%;
   top: 0;
   left: 0;
-  background-image: url("../images/hero-on.jpg");
+  background-image: url("../images/hero-on.jpg?ver=1.1.0");
   background-size: cover;
   background-position: center;
   z-index: 0;
