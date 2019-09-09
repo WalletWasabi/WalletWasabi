@@ -151,7 +151,7 @@ namespace WalletWasabi.Gui
 			var addrManTask = InitializeAddressManagerBehaviorAsync();
 
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
-			var connectionParameters = new NodeConnectionParameters { UserAgent = "/Satoshi:0.18.0/" };
+			var connectionParameters = new NodeConnectionParameters { UserAgent = "/Satoshi:0.18.1/" };
 
 			if (Config.UseTor)
 			{

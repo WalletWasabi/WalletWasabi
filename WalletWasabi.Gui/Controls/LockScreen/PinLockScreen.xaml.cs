@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		{
 			InitializeComponent();
 
-			var inputField = this.FindControl<NoparaPasswordBox>("InputField");
+			var inputField = this.FindControl<TogglePasswordBox>("InputField");
 
 			this.WhenAnyValue(x => x.IsLocked)
 				.Where(x => x)
@@ -53,7 +53,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
-					var inputField = this.FindControl<NoparaPasswordBox>("InputField");
+					var inputField = this.FindControl<TogglePasswordBox>("InputField");
 					inputField.Focus();
 				});
 		}

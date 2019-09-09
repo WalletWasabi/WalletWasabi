@@ -82,7 +82,7 @@
                   <TextBlock Margin="0 10" VerticalAlignment="Center">Note that, if you forget your PIN, you can clear it by manually deleting the hashed PIN from your UI config file.</TextBlock>
                   <DockPanel LastChildFill="True">
                     <Button DockPanel.Dock="Left" Content="{Binding IsPinSet, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Clear:Set}" Margin="0 0 10 0" Command="{Binding SetClearPinCommand}" />
-                    <controls:NoparaPasswordBox Watermark="PIN" Password="{Binding PinBoxText}" UseFloatingWatermark="True" />
+                    <controls:TogglePasswordBox Watermark="PIN" Text="{Binding PinBoxText}" />
                   </DockPanel>
                   <TextBlock Text="{Binding PinWarningMessage}" Classes="warningMessage" Margin="0 0 3 0" />
                 </StackPanel>
