@@ -7,6 +7,7 @@ using WalletWasabi.KeyManagement;
 using NBitcoin;
 using System.Security;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Helpers
 {

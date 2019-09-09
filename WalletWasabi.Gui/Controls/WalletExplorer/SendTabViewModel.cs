@@ -28,6 +28,7 @@ using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
 using WalletWasabi.Models.TransactionBuilding;
 using WalletWasabi.Services;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {

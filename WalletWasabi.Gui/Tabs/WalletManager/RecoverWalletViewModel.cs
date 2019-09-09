@@ -13,6 +13,7 @@ using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
@@ -99,11 +100,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			get => _password;
 			set => this.RaiseAndSetIfChanged(ref _password, value);
-		}
-
-		private void ValidatePasswordN(ErrorDescriptor obj)
-		{
-			throw new NotImplementedException();
 		}
 
 		public string MnemonicWords

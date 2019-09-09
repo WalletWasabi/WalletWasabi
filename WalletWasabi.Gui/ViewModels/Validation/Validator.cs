@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
-using WalletWasabi.Helpers;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.ViewModels.Validation
 {
@@ -24,6 +24,8 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 		public static ErrorDescriptors ValidateAllProperties(ViewModelBase viewModelBase,
 															 List<(string propertyName, MethodInfo mInfo)> validationMethodCache)
 		{
+			if (validationMethodCache is null) return ErrorDescriptors.Empty;
+
 			ErrorDescriptors result = null;
 
 			foreach (var validationCache in validationMethodCache)
@@ -42,6 +44,9 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 														string propertyName,
 														List<(string propertyName, MethodInfo mInfo)> validationMethodCache)
 		{
+
+			if (validationMethodCache is null) return ErrorDescriptors.Empty;
+
 			ErrorDescriptors result = null;
 
 			foreach (var validationCache in validationMethodCache)

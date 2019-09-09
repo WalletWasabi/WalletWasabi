@@ -16,6 +16,7 @@ using System.Text.RegularExpressions;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Tabs
 {
