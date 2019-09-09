@@ -11,7 +11,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 	{
 		private class ManagedSystemDialogImpl : ISystemDialogImpl
 		{
-			private async Task<string[]> Show(SystemDialog d, IWindowImpl parent)
+			private async Task<string[]> ShowAsync(SystemDialog d, IWindowImpl parent)
 			{
 				var model = new ManagedFileChooserViewModel((FileSystemDialog)d);
 
@@ -34,12 +34,12 @@ namespace WalletWasabi.Gui.ManagedDialogs
 
 			public async Task<string[]> ShowFileDialogAsync(FileDialog dialog, IWindowImpl parent)
 			{
-				return await Show(dialog, parent);
+				return await ShowAsync(dialog, parent);
 			}
 
 			public async Task<string> ShowFolderDialogAsync(OpenFolderDialog dialog, IWindowImpl parent)
 			{
-				return (await Show(dialog, parent))?.FirstOrDefault();
+				return (await ShowAsync(dialog, parent))?.FirstOrDefault();
 			}
 		}
 
