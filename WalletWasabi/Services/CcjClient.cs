@@ -678,7 +678,7 @@ namespace WalletWasabi.Services
 			var newKeys = new List<HdPubKey>();
 			for (int i = allLockedInternalKeys.Count(); i <= maximumMixingLevelCount + 1; i++)
 			{
-				HdPubKey k = KeyManager.GenerateNewKey("", KeyState.Locked, isInternal: true, toFile: false);
+				HdPubKey k = KeyManager.GenerateNewKey(SmartLabel.Empty, KeyState.Locked, isInternal: true, toFile: false);
 				newKeys.Add(k);
 			}
 			allLockedInternalKeys = allLockedInternalKeys.Concat(newKeys);

@@ -159,7 +159,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string AmountBtc => Model.Amount.ToString(false, true);
 
-		public string Label => Model.Label;
+		public string Label => Model.Label.ToString();
 
 		public int Height => Model.Height;
 

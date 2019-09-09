@@ -23,7 +23,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var spentOutputs = tx.Inputs.ToTxoRefs().ToArray();
 
 			var height = Height.Mempool;
-			var label = "foo";
+			var label = new SmartLabel("foo");
 
 			var coin = new SmartCoin(txId, index, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index), isLikelyCoinJoinOutput: false, label, txId);
 			// If the txId or the index differ, equality should think it's a different coin.
@@ -33,8 +33,9 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				new TxoRef(txId, 0)
 			};
+
 			// If the txId and the index are the same, equality should think it's the same coin.
-			var sameCoin = new SmartCoin(txId, index, differentOutput.ScriptPubKey, differentOutput.Value, differentSpentOutputs, Height.Unknown, tx.RBF, tx.GetAnonymitySet(index), isLikelyCoinJoinOutput: false, "boo", null);
+			var sameCoin = new SmartCoin(txId, index, differentOutput.ScriptPubKey, differentOutput.Value, differentSpentOutputs, Height.Unknown, tx.RBF, tx.GetAnonymitySet(index), isLikelyCoinJoinOutput: false, new SmartLabel("boo"), null);
 
 			Assert.Equal(coin, sameCoin);
 			Assert.NotEqual(coin, differentCoin);
@@ -51,7 +52,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var amount = output.Value;
 			var spentOutputs = tx.Inputs.ToTxoRefs().ToArray();
 			var height = Height.Mempool;
-			var label = "foo";
+			var label = new SmartLabel("foo");
 			var bannedUntil = DateTimeOffset.UtcNow;
 
 			var coin = new SmartCoin(txId, index, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index), isLikelyCoinJoinOutput: false, label, txId);

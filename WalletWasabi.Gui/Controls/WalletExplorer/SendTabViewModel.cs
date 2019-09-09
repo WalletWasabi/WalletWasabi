@@ -222,9 +222,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			OnAddressPasteCommand = ReactiveCommand.Create((BitcoinUrlBuilder url) =>
 			{
-				if (!string.IsNullOrWhiteSpace(url.Label))
+				var label = new SmartLabel(url.Label);
+				if (!label.IsEmpty)
 				{
-					Label = url.Label;
+					Label = label.ToString();
 				}
 
 				if (url.Amount != null)
@@ -241,8 +242,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					IsBusy = true;
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BuildingTransaction);
 
-					Label = Label.Trim(',', ' ').Trim();
-					if (!IsMax && string.IsNullOrWhiteSpace(Label))
+					var label = new SmartLabel(Label);
+					Label = label.ToString();
+					if (!IsMax && label.IsEmpty)
 					{
 						SetWarningMessage($"{nameof(Label)} is required.");
 						return;
@@ -298,7 +300,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					bool useCustomFee = !IsSliderFeeUsed;
 					var feeStrategy = FeeStrategy.CreateFromFeeRate(FeeRate);
 
-					var label = Label;
 					var intent = new PaymentIntent(address, moneyRequest, label);
 					try
 					{

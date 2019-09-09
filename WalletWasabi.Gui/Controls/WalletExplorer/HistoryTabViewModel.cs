@@ -177,7 +177,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				else
 				{
-					txRecordList.Add((dateTime, coin.Height, coin.Amount, coin.Label, coin.TransactionId));
+					txRecordList.Add((dateTime, coin.Height, coin.Amount, coin.Label.ToString(), coin.TransactionId));
 				}
 
 				if (coin.SpenderTransactionId != null)
