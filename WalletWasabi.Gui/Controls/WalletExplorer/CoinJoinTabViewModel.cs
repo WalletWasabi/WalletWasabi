@@ -329,7 +329,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global.ChaumianClient.DeactivateFrequentStatusProcessingIfNotMixing();
 		}
 
-		public string ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
 
 		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password

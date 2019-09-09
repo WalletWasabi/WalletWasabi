@@ -5,7 +5,19 @@ namespace WalletWasabi.Helpers
 {
 	public class ErrorDescriptors : List<ErrorDescriptor>
 	{
-		public bool HasErrors => this.Count == 0; 
+		public bool HasErrors => this.Count > 0;
+
+		public static ErrorDescriptors Empty = new ErrorDescriptors(); 
+
+		public ErrorDescriptors() : base()
+		{
+
+		}
+
+		public ErrorDescriptors(params ErrorDescriptor[] errors)
+		{
+			this.AddRange(errors);
+		}
 	}
 
 	public enum ErrorSeverity

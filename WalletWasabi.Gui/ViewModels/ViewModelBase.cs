@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using WalletWasabi.Gui.ViewModels.Validation;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -12,17 +13,18 @@ namespace WalletWasabi.Gui.ViewModels
 	{
 		public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
 
-		public bool HasErrors => Validator.ValidateAllProperties(this).Any();
+		public bool HasErrors => Validator.ValidateAllProperties(this).HasErrors;
 
 		public IEnumerable GetErrors(string propertyName)
 		{
-			var errorString = Validator.ValidateProperty(this, propertyName);
-			if (!string.IsNullOrEmpty(errorString))
+			var error = Validator.ValidateProperty(this, propertyName);
+
+			if (error.HasErrors)
 			{
-				return new List<string> { errorString };
+				return error;
 			}
 
-			return null;
+			return ErrorDescriptors.Empty;
 		}
 
 		protected void NotifyErrorsChanged(string propertyName)

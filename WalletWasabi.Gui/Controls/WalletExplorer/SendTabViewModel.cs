@@ -966,7 +966,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _allSelectedAmount, value);
 		}
 
-		public string ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
 
 		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
@@ -1035,24 +1035,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Suggestions.Clear();
 		}
 
-		public string ValidateAddress()
+		public ErrorDescriptors ValidateAddress()
 		{
 			if (string.IsNullOrWhiteSpace(Address))
 			{
-				return "";
+				return ErrorDescriptors.Empty;
 			}
 
 			if (AddressStringParser.TryParseBitcoinAddress(Address, Global.Network, out _))
 			{
-				return "";
+				return ErrorDescriptors.Empty;
 			}
 
 			if (AddressStringParser.TryParseBitcoinUrl(Address, Global.Network, out _))
 			{
-				return "";
+				return ErrorDescriptors.Empty;
 			}
 
-			return "Invalid address.";
+			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Warning, "Invalid address."));
 		}
 
 		[ValidateMethod(nameof(ValidateAddress))]

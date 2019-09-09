@@ -1,27 +1,30 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.ViewModels.Validation
 {
 	public static class Validator
 	{
-		public static List<string> ValidateAllProperties(object instance)
+		public static ErrorDescriptors ValidateAllProperties(object instance)
 		{
-			var result = new List<string>();
+			var result = new ErrorDescriptors();
+			
 			foreach (PropertyInfo property in ReflectionHelper.GetPropertyInfos(instance))
 			{
-				var errorString = ValidateMethod(instance, property);
-				if (!string.IsNullOrEmpty(errorString))
+				var error = ValidateMethod(instance, property);
+
+				if (error.Equals(ErrorDescriptor.Default))
 				{
-					result.Add(errorString);
+					result.AddRange(error);
 				}
 			}
 
 			return result;
 		}
 
-		public static string ValidateProperty(object instance, string propertyName)
+		public static ErrorDescriptors ValidateProperty(object instance, string propertyName)
 		{
 			var property = ReflectionHelper.GetPropertyInfo(instance, propertyName);
 
@@ -30,20 +33,20 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 				return ValidateMethod(instance, property);
 			}
 
-			return string.Empty;
+			return ErrorDescriptors.Empty;
 		}
 
-		private static string ValidateMethod(object instance, PropertyInfo property)
+		private static ErrorDescriptors ValidateMethod(object instance, PropertyInfo property)
 		{
 			var vma = ReflectionHelper.GetAttribute<ValidateMethodAttribute>(property);
 
 			if (vma != null)
 			{
-				return ReflectionHelper.InvokeMethod<string>(instance, vma.MethodName);
+				return ReflectionHelper.InvokeMethod<ErrorDescriptors>(instance, vma.MethodName);
 			}
 			else
 			{
-				return string.Empty;
+				return ErrorDescriptors.Empty;
 			}
 		}
 	}

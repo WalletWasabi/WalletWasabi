@@ -31,7 +31,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			IObservable<bool> canGenerate = Observable.CombineLatest(
 				this.WhenAnyValue(x => x.TermsAccepted),
-				this.WhenAnyValue(x => x.Password).Select(pw => string.IsNullOrEmpty(ValidatePassword())),
+				this.WhenAnyValue(x => x.Password).Select(pw => !ValidatePassword().HasErrors),
 				(terms, pw) => terms && pw);
 
 			GenerateCommand = ReactiveCommand.Create(DoGenerateCommand, canGenerate);
@@ -94,21 +94,25 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			return isValid && !isReserved;
 		}
 
-		public string ValidatePassword()
+		public ErrorDescriptors ValidatePassword()
 		{
 			string password = Password;
+
 			List<string> messages = new List<string>();
+
+			var errors = new ErrorDescriptors();
+
 			if (PasswordHelper.IsTrimable(password, out _))
 			{
-				messages.Add("Leading and trailing white spaces are not allowed!");
+				errors.Add(new ErrorDescriptor(ErrorSeverity.Warning, "Leading and trailing white spaces are not allowed!"));
 			}
 
 			if (PasswordHelper.IsTooLong(password, out _))
 			{
-				messages.Add(PasswordHelper.PasswordTooLongMessage);
+				errors.Add(new ErrorDescriptor(ErrorSeverity.Warning, PasswordHelper.PasswordTooLongMessage));
 			}
 
-			return string.Join(' ', messages);
+			return errors;
 		}
 
 		[ValidateMethod(nameof(ValidatePassword))]

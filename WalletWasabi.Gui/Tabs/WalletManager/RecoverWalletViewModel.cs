@@ -92,13 +92,18 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
 
-		public string ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
 
 		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
 		{
 			get => _password;
 			set => this.RaiseAndSetIfChanged(ref _password, value);
+		}
+
+		private void ValidatePasswordN(ErrorDescriptor obj)
+		{
+			throw new NotImplementedException();
 		}
 
 		public string MnemonicWords
