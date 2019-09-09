@@ -40,9 +40,11 @@ namespace WalletWasabi.Models
 
 		public static SmartLabel Merge(IEnumerable<SmartLabel> labels)
 		{
+			labels = labels ?? Enumerable.Empty<SmartLabel>();
+
 			IEnumerable<string> labelStrings = labels
-				?.SelectMany(x => x?.Labels ?? Enumerable.Empty<string>())
-				?.Where(x => x != null);
+				.SelectMany(x => x?.Labels ?? Enumerable.Empty<string>())
+				.Where(x => x != null);
 
 			return new SmartLabel(labelStrings);
 		}

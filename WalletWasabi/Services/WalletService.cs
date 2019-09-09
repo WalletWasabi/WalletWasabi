@@ -1344,7 +1344,7 @@ namespace WalletWasabi.Services
 							", ",
 							GetClusters(coin, new List<SmartCoin>(), lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId)
 							.SelectMany(x => x.Label.Labels)
-							.Distinct());
+							.Distinct(StringComparer.OrdinalIgnoreCase));
 						coin.SetClusters(result);
 					});
 				}
