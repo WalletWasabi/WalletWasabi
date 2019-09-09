@@ -22,19 +22,6 @@ namespace WalletWasabi.Gui.ViewModels
 			if (vmc.Count == 0) return;
 
 			ValidationMethodCache = vmc;
-			this.PropertyChanged += ValidationHandler;
-		}
-
-		private void ValidationHandler(object sender, PropertyChangedEventArgs e)
-		{
-			if (ValidationMethodCache is null) return;
-
-			foreach (var validationCache in ValidationMethodCache)
-			{
-				if (validationCache.propertyName != e.PropertyName) continue;
-
-				NotifyErrorsChanged(e.PropertyName);
-			}
 		}
 
 		public bool HasErrors => Validator.ValidateAllProperties(this, ValidationMethodCache).HasErrors;
