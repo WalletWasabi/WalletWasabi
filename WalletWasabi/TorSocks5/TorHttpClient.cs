@@ -111,7 +111,7 @@ namespace WalletWasabi.TorSocks5
 							return ret2;
 						}
 						// If we get ttlexpired then wait and retry again linux often do this.
-						catch (TorSocks5FailureResponseException ex2) when (ex2._repField == RepField.TtlExpired)
+						catch (TorSocks5FailureResponseException ex2) when (ex2.RepField == RepField.TtlExpired)
 						{
 							Logger.LogTrace<TorHttpClient>(ex);
 

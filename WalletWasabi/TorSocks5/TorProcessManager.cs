@@ -274,7 +274,7 @@ namespace WalletWasabi.TorSocks5
 								{
 									if (TorHttpClient.LatestTorException is TorSocks5FailureResponseException torEx)
 									{
-										if (torEx._repField == RepField.HostUnreachable)
+										if (torEx.RepField == RepField.HostUnreachable)
 										{
 											Uri baseUri = new Uri($"{fallBackTestRequestUri.Scheme}://{fallBackTestRequestUri.DnsSafeHost}");
 											using (var client = new TorHttpClient(baseUri, TorSocks5EndPoint))
@@ -284,7 +284,7 @@ namespace WalletWasabi.TorSocks5
 											}
 
 											// Check if it changed in the meantime...
-											if (TorHttpClient.LatestTorException is TorSocks5FailureResponseException torEx2 && torEx2._repField == RepField.HostUnreachable)
+											if (TorHttpClient.LatestTorException is TorSocks5FailureResponseException torEx2 && torEx2.RepField == RepField.HostUnreachable)
 											{
 												// Fallback here...
 												RequestFallbackAddressUsage = true;

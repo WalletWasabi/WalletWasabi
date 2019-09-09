@@ -6,11 +6,11 @@ namespace WalletWasabi.Exceptions
 {
 	public class TorSocks5FailureResponseException : Exception
 	{
-		internal RepField _repField;
+		public RepField RepField { get; }
 
 		public TorSocks5FailureResponseException(RepField rep) : base($"Tor SOCKS5 proxy responded with {rep}.")
 		{
-			_repField = Guard.NotNull(nameof(rep), rep);
+			RepField = Guard.NotNull(nameof(rep), rep);
 		}
 	}
 }
