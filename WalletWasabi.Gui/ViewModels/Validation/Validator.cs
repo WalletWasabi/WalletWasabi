@@ -44,7 +44,6 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 														string propertyName,
 														List<(string propertyName, MethodInfo mInfo)> validationMethodCache)
 		{
-
 			if (validationMethodCache is null) return ErrorDescriptors.Empty;
 
 			ErrorDescriptors result = null;
