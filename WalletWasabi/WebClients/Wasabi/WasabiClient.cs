@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.WebClients.Wasabi
@@ -34,7 +35,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// </remarks>
 		public async Task<SynchronizeResponse> GetSynchronizeAsync(uint256 bestKnownBlockHash, int count, EstimateSmartFeeMode? estimateMode = null, CancellationToken cancel = default)
 		{
-			string relativeUri = $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/batch/synchronize?bestKnownBlockHash={bestKnownBlockHash}&maxNumberOfFilters={count}";
+			string relativeUri = $"/api/v{Constants.BackendMajorVersion}/btc/batch/synchronize?bestKnownBlockHash={bestKnownBlockHash}&maxNumberOfFilters={count}";
 			if (estimateMode != null)
 			{
 				relativeUri = $"{relativeUri}&estimateSmartFeeMode={estimateMode}";
@@ -69,7 +70,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		{
 			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
 																	HttpStatusCode.OK,
-																	$"/api/v{Helpers.Constants.BackendMajorVersion}/btc/blockchain/filters?bestKnownBlockHash={bestKnownBlockHash}&count={count}",
+																	$"/api/v{Constants.BackendMajorVersion}/btc/blockchain/filters?bestKnownBlockHash={bestKnownBlockHash}&count={count}",
 																	cancel: cancel))
 			{
 				if (response.StatusCode == HttpStatusCode.NoContent)
@@ -93,7 +94,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		{
 			var confirmationTargetsString = string.Join(",", confirmationTargets);
 
-			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/blockchain/fees/{confirmationTargetsString}"))
+			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v{Constants.BackendMajorVersion}/btc/blockchain/fees/{confirmationTargetsString}"))
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
@@ -111,7 +112,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		public async Task BroadcastAsync(string hex)
 		{
 			using (var content = new StringContent($"'{hex}'", Encoding.UTF8, "application/json"))
-			using (var response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/blockchain/broadcast", content))
+			using (var response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Constants.BackendMajorVersion}/btc/blockchain/broadcast", content))
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
@@ -134,7 +135,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		{
 			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
 																	HttpStatusCode.OK,
-																	$"/api/v{Helpers.Constants.BackendMajorVersion}/btc/blockchain/mempool-hashes",
+																	$"/api/v{Constants.BackendMajorVersion}/btc/blockchain/mempool-hashes",
 																	cancel: cancel))
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
@@ -159,7 +160,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		{
 			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
 																	HttpStatusCode.OK,
-																	$"/api/v{Helpers.Constants.BackendMajorVersion}/btc/blockchain/mempool-hashes?compactness={compactness}",
+																	$"/api/v{Constants.BackendMajorVersion}/btc/blockchain/mempool-hashes?compactness={compactness}",
 																	cancel: cancel))
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
@@ -181,7 +182,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 		public async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync()
 		{
-			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/offchain/exchange-rates"))
+			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v{Constants.BackendMajorVersion}/btc/offchain/exchange-rates"))
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
@@ -226,8 +227,8 @@ namespace WalletWasabi.WebClients.Wasabi
 		public async Task<(bool backendCompatible, bool clientUpToDate)> CheckUpdatesAsync(CancellationToken cancel)
 		{
 			var versions = await GetVersionsAsync(cancel);
-			var clientUpToDate = Helpers.Constants.ClientVersion >= versions.ClientVersion; // If the client version locally is greater than or equal to the backend's reported client version, then good.
-			var backendCompatible = int.Parse(Helpers.Constants.BackendMajorVersion) == versions.BackendMajorVersion; // If the backend major and the client major are equal, then our softwares are compatible.
+			var clientUpToDate = Constants.ClientVersion >= versions.ClientVersion; // If the client version locally is greater than or equal to the backend's reported client version, then good.
+			var backendCompatible = int.Parse(Constants.BackendMajorVersion) == versions.BackendMajorVersion; // If the backend major and the client major are equal, then our softwares are compatible.
 
 			return (backendCompatible, clientUpToDate);
 		}
