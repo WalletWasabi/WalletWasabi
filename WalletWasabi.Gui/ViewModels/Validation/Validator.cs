@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
@@ -7,47 +8,54 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 {
 	public static class Validator
 	{
-		public static ErrorDescriptors ValidateAllProperties(object instance)
+		public static IEnumerable<(string, MethodInfo)> PropertiesWithValidation(object instance)
 		{
-			var result = new ErrorDescriptors();
-			
-			foreach (PropertyInfo property in ReflectionHelper.GetPropertyInfos(instance))
+			foreach (PropertyInfo pInfo in ReflectionHelper.GetPropertyInfos(instance))
 			{
-				var error = ValidateMethod(instance, property);
+				var vma = ReflectionHelper.GetAttribute<ValidateMethodAttribute>(pInfo);
 
-				if (error.Equals(ErrorDescriptor.Default))
-				{
-					result.AddRange(error);
-				}
+				if (vma is null) continue;
+
+				var mInfo = ReflectionHelper.GetMethodInfo<ErrorDescriptors>(instance, vma.MethodName);
+				yield return (pInfo.Name, mInfo);
 			}
-
-			return result;
 		}
 
-		public static ErrorDescriptors ValidateProperty(object instance, string propertyName)
+		public static ErrorDescriptors ValidateAllProperties(ViewModelBase viewModelBase,
+															 List<(string propertyName, MethodInfo mInfo)> validationMethodCache)
 		{
-			var property = ReflectionHelper.GetPropertyInfo(instance, propertyName);
+			ErrorDescriptors result = null;
 
-			if (property != null)
+			foreach (var validationCache in validationMethodCache)
 			{
-				return ValidateMethod(instance, property);
+				var invokeRes = (ErrorDescriptors)validationCache.mInfo.Invoke(viewModelBase, null);
+
+				if (result is null) result = new ErrorDescriptors();
+
+				result.AddRange(invokeRes);
 			}
 
-			return ErrorDescriptors.Empty;
+			return result ?? ErrorDescriptors.Empty;
 		}
 
-		private static ErrorDescriptors ValidateMethod(object instance, PropertyInfo property)
+		public static ErrorDescriptors ValidateProperty(ViewModelBase viewModelBase,
+														string propertyName,
+														List<(string propertyName, MethodInfo mInfo)> validationMethodCache)
 		{
-			var vma = ReflectionHelper.GetAttribute<ValidateMethodAttribute>(property);
+			ErrorDescriptors result = null;
 
-			if (vma != null)
+			foreach (var validationCache in validationMethodCache)
 			{
-				return ReflectionHelper.InvokeMethod<ErrorDescriptors>(instance, vma.MethodName);
+				if (validationCache.propertyName != propertyName) continue;
+
+				var invokeRes = (ErrorDescriptors)validationCache.mInfo.Invoke(viewModelBase, null);
+
+				if (result is null) result = new ErrorDescriptors();
+
+				result.AddRange(invokeRes);
 			}
-			else
-			{
-				return ErrorDescriptors.Empty;
-			}
+
+			return result ?? ErrorDescriptors.Empty;
 		}
 	}
 }
