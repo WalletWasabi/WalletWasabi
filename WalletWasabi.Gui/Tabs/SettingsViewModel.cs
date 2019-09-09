@@ -287,12 +287,12 @@ namespace WalletWasabi.Gui.Tabs
 			}
 
 			var isValid =
-				ValidatePrivacyLevel(SomePrivacyLevel, whiteSpaceOk: false).HasErrors
-				&& ValidatePrivacyLevel(FinePrivacyLevel, whiteSpaceOk: false).HasErrors
-				&& ValidatePrivacyLevel(StrongPrivacyLevel, whiteSpaceOk: false).HasErrors
-				&& ValidateDustThreshold(DustThreshold, whiteSpaceOk: false).HasErrors
-				&& ValidateEndPoint(TorSocks5EndPoint, Constants.DefaultTorSocksPort, whiteSpaceOk: false).HasErrors
-				&& ValidateEndPoint(BitcoinP2pEndPoint, network.DefaultPort, whiteSpaceOk: false).HasErrors;
+				!ValidatePrivacyLevel(SomePrivacyLevel, whiteSpaceOk: false).HasErrors
+				&& !ValidatePrivacyLevel(FinePrivacyLevel, whiteSpaceOk: false).HasErrors
+				&& !ValidatePrivacyLevel(StrongPrivacyLevel, whiteSpaceOk: false).HasErrors
+				&& !ValidateDustThreshold(DustThreshold, whiteSpaceOk: false).HasErrors
+				&& !ValidateEndPoint(TorSocks5EndPoint, Constants.DefaultTorSocksPort, whiteSpaceOk: false).HasErrors
+				&& !ValidateEndPoint(BitcoinP2pEndPoint, network.DefaultPort, whiteSpaceOk: false).HasErrors;
 
 			if (!isValid)
 			{
