@@ -1,7 +1,8 @@
 <Styles xmlns="https://github.com/avaloniaui" 
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:dock="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
-        xmlns:shell="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"        
+        xmlns:shell="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"
+        xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
   <Style>
@@ -20,6 +21,7 @@
           <x:Uri>resm:WalletWasabi.Gui.Assets.*.ttf?assembly=WalletWasabi.Gui</x:Uri>
         </x:Arguments>
       </FontFamily>
+      <converters:ErrorDescriptorsJsonConverter x:Key="ErrorDescriptorsJsonConverter" />
     </Style.Resources>
   </Style>
   <Style Selector="shell|MetroWindow /template/ Button#minimiseButton">
@@ -139,7 +141,7 @@
             DockPanel.Dock="Bottom"
             ContentTemplate="{TemplateBinding ErrorTemplate}"
             DataContext="{TemplateBinding Owner}"
-            Content="{Binding (DataValidationErrors.Errors)}"
+            Content="{Binding (DataValidationErrors.Errors), Converter={StaticResource ErrorDescriptorsJsonConverter}}"
             IsVisible="{Binding (DataValidationErrors.HasErrors)}" />
           <ContentPresenter
             Name="PART_ContentPresenter"
