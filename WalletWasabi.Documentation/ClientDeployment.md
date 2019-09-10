@@ -27,3 +27,15 @@
 
 1. [Twitter](https://twitter.com) (tag @wasabiwallet #Bitcoin #Privacy).
 2. Submit to [/r/WasabiWallet](https://old.reddit.com/r/WasabiWallet/) and [/r/Bitcoin](https://old.reddit.com/r/Bitcoin/).
+
+## Create release docs and before-release test list
+
+1. Go to https://github.com/zkSNACKs/WalletWasabi/releases
+2. Check the exact date and time of the of the last release and the name of the last PR.
+3. Go to this site and adjust the [date](https://github.com/zkSNACKs/WalletWasabi/pulls?q=is%3Apr+merged%3A%3E%3D2019-07-07+sort%3Aupdated-asc).
+4. Find the last PR which was merged and start from there.
+5. Create a [draft release](https://github.com/zkSNACKs/WalletWasabi/releases/new)
+5. Start writing the Release Notes into the draft in similar [format](https://github.com/zkSNACKs/WalletWasabi/releases/tag/v1.1.6).
+6. Open a new Issue with the name 'Final tests before releasing 1.x.x' and start writing the tests according to the PR-s with similar format like [here](https://github.com/zkSNACKs/WalletWasabi/issues/2227)
+7. Pick important [issues (adjust date)](https://github.com/zkSNACKs/WalletWasabi/issues?utf8=%E2%9C%93&q=is%3Aissue+closed%3A%3E%3D2019-07-07+sort%3Aupdated-asc+) and add to Release Notes or tests if neccessary.
+
