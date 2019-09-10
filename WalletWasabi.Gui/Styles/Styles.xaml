@@ -22,6 +22,7 @@
         </x:Arguments>
       </FontFamily>
       <converters:ErrorDescriptorsJsonConverter x:Key="ErrorDescriptorsJsonConverter" />
+      <converters:ErrorSeverityColorConverter x:Key="ErrorSeverityColorConverter" />
     </Style.Resources>
   </Style>
   <Style Selector="shell|MetroWindow /template/ Button#minimiseButton">
@@ -155,14 +156,13 @@
     </Setter>
     <Setter Property="ErrorTemplate">
       <DataTemplate>
-        <Grid>
-          <Grid.Styles>
-            <Style>
-              <Setter Property="TextBlock.Foreground" Value="{DynamicResource ErrorBrush}" />
-            </Style>
-          </Grid.Styles>
-          <ItemsControl Items="{Binding}" MemberSelector="Message" />
-        </Grid>
+        <ItemsControl Items="{Binding}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Message}" Foreground="{Binding Severity, Converter={StaticResource ErrorSeverityColorConverter}}"/>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
       </DataTemplate>
     </Setter>
   </Style>

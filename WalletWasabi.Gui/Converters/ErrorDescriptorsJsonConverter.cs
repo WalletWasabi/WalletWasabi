@@ -15,9 +15,19 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is IEnumerable<Exception> jsonStr)
+			if (value is null) return ErrorDescriptors.Empty;
+
+			if (value is IEnumerable<Exception> exList)
 			{
-				return JsonConvert.DeserializeObject<ErrorDescriptors>(jsonStr.First().Message);
+				var errors = new ErrorDescriptors();
+
+				foreach (var exMsg in exList.Select(p => p.Message)
+											.Where(p => p != null))
+				{
+					errors.AddRange(JsonConvert.DeserializeObject<ErrorDescriptors>(exMsg));
+				}
+
+				return errors;
 			}
 
 			return ErrorDescriptors.Empty;
