@@ -1051,7 +1051,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return ErrorDescriptors.Empty;
 			}
 
-			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Warning, "Invalid address."));
+			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid address."));
 		}
 
 		[ValidateMethod(nameof(ValidateAddress))]

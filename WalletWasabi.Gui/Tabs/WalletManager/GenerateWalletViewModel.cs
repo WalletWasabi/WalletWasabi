@@ -103,12 +103,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			if (PasswordHelper.IsTrimable(password, out _))
 			{
-				errors.Add(new ErrorDescriptor(ErrorSeverity.Warning, "Leading and trailing white spaces are not allowed!"));
+				errors.Add(new ErrorDescriptor(ErrorSeverity.Error, "Leading and trailing white spaces are not allowed!"));
 			}
 
 			if (PasswordHelper.IsTooLong(password, out _))
 			{
-				errors.Add(new ErrorDescriptor(ErrorSeverity.Warning, PasswordHelper.PasswordTooLongMessage));
+				errors.Add(new ErrorDescriptor(ErrorSeverity.Error, PasswordHelper.PasswordTooLongMessage));
 			}
 
 			return errors;

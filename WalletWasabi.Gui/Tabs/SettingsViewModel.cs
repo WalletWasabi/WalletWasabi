@@ -371,7 +371,7 @@ namespace WalletWasabi.Gui.Tabs
 				return ErrorDescriptors.Empty;
 			}
 
-			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Warning, "Invalid privacy level."));
+			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid privacy level."));
 		}
 
 		public ErrorDescriptors ValidateDustThreshold(string dustThreshold, bool whiteSpaceOk)
@@ -386,7 +386,7 @@ namespace WalletWasabi.Gui.Tabs
 				return ErrorDescriptors.Empty;
 			}
 
-			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Warning, "Invalid dust threshold."));
+			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid dust threshold."));
 		}
 
 		public ErrorDescriptors ValidateEndPoint(string endPoint, int defaultPort, bool whiteSpaceOk)
@@ -401,7 +401,7 @@ namespace WalletWasabi.Gui.Tabs
 				return ErrorDescriptors.Empty;
 			}
 
-			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Warning, "Invalid endpoint."));
+			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid endpoint."));
 		}
 
 		#endregion Validation

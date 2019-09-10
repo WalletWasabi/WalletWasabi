@@ -44,7 +44,7 @@ namespace WalletWasabi.Tests.UnitTests
 				new ErrorDescriptor(ErrorSeverity.Default,"My default error descriptor"),
 				new ErrorDescriptor(ErrorSeverity.Info,"My info error descriptor"),
 				new ErrorDescriptor(ErrorSeverity.Warning,"My warning error descriptor"),
-				new ErrorDescriptor(ErrorSeverity.Error,"My error error descriptor")
+				new ErrorDescriptor(ErrorSeverity.Error,"My error descriptor")
 			};
 
 			// Constructor tests
