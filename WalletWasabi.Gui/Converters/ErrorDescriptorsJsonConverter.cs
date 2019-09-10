@@ -35,7 +35,15 @@ namespace WalletWasabi.Gui.Converters
 			foreach (var exMsg in exList.Select(p => p.Message)
 										.Where(p => p != null))
 			{
-				errors.AddRange(JsonConvert.DeserializeObject<ErrorDescriptors>(exMsg));
+				try
+				{
+					errors.AddRange(JsonConvert.DeserializeObject<ErrorDescriptors>(exMsg));
+				}
+				catch (Exception e)
+				{
+					errors.Add(new ErrorDescriptor(ErrorSeverity.Error, e.Message));
+					errors.Add(new ErrorDescriptor(ErrorSeverity.Error, exMsg));
+				}
 			}
 
 			return errors;

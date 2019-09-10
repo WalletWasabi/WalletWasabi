@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (!descriptors.HasErrors) return null;
 
-			var highPrioError = descriptors.OrderByDescending(p => p.Severity).Single();
+			var highPrioError = descriptors.OrderByDescending(p => p.Severity).FirstOrDefault();
 
 			if (ErrorSeverityColorConverter.ErrorSeverityColors.TryGetValue(highPrioError.Severity, out var brush))
 			{
