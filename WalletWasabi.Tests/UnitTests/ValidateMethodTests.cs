@@ -34,11 +34,6 @@ namespace WalletWasabi.Tests.UnitTests
 
 			var validator = Validator.PropertiesWithValidation(testClass);
 			Assert.Equal(2, validator.Count());
-
-			foreach (var method in validator)
-			{
-				method.Item2.Invoke(null, null);
-			}
 		}
 
 		[Fact]
