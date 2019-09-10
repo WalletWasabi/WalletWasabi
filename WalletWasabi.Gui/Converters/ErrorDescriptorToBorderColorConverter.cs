@@ -26,7 +26,10 @@ namespace WalletWasabi.Gui.Converters
 
 		private SolidColorBrush GetColorFromDescriptors(ErrorDescriptors descriptors)
 		{
-			if (!descriptors.HasErrors) return null;
+			if (!descriptors.HasErrors)
+			{
+				return null;
+			}
 
 			var highPrioError = descriptors.OrderByDescending(p => p.Severity).FirstOrDefault();
 
@@ -35,7 +38,9 @@ namespace WalletWasabi.Gui.Converters
 				return brush;
 			}
 			else
+			{
 				return null;
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
