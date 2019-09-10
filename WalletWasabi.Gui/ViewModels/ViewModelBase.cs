@@ -28,7 +28,6 @@ namespace WalletWasabi.Gui.ViewModels
 
 			ValidationMethodCache = vmc;
 		}
-		
 
 		public bool HasErrors => Validator.ValidateAllProperties(this, ValidationMethodCache).HasErrors;
 
