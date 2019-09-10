@@ -31,11 +31,10 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			var error = Validator.ValidateProperty(this, propertyName, ValidationMethodCache);
 
-			if (!error.HasErrors) return null;
-
 			// HACK: Need to serialize this in order to pass through IndeiValidationPlugin on Avalonia 0.8.2. 
 			//		 Should be removed when Avalonia has the hotfix update.
-			return new List<string>() { JsonConvert.SerializeObject(error) };
+			if (error.HasErrors)
+				yield return JsonConvert.SerializeObject(error);
 		}
 
 		protected void NotifyErrorsChanged(string propertyName)
