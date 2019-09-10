@@ -134,9 +134,19 @@ namespace WalletWasabi.Packager
 						}
 
 						var userAgent = ((JArray)node.Value)[1].ToString();
-						if (userAgent.Contains("Satoshi:0.16") || userAgent.Contains("Satoshi:0.17"))
+
+						try
 						{
-							onions.Add(node.Name);
+							var verString = userAgent.Substring(userAgent.IndexOf("Satoshi:") + 8, 4);
+							var ver = new Version(verString);
+
+							if (ver >= new Version("0.16"))
+							{
+								onions.Add(node.Name);
+							}
+						}
+						catch
+						{
 						}
 					}
 
