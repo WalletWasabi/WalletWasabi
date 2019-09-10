@@ -21,10 +21,10 @@ namespace WalletWasabi.Tests.UnitTests
 			}
 
 			[ValidateMethod(nameof(ValidateProperty))]
-			private bool BooleanProperty { get; set; }
+			public bool BooleanProperty { get; set; }
 
 			[ValidateMethod(nameof(ValidateProperty))]
-			private string StringProperty { get; set; }
+			public string StringProperty { get; set; }
 		}
 
 		[Fact]

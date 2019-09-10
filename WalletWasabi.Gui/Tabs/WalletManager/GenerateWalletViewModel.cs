@@ -99,8 +99,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			string password = Password;
 
-			List<string> messages = new List<string>();
-
 			var errors = new ErrorDescriptors();
 
 			if (PasswordHelper.IsTrimable(password, out _))

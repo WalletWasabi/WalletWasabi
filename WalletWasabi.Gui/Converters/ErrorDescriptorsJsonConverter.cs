@@ -15,7 +15,10 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is null) return ErrorDescriptors.Empty;
+			if (value is null)
+			{
+				return ErrorDescriptors.Empty;
+			}
 
 			if (value is IEnumerable<Exception> exList)
 			{
