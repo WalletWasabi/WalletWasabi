@@ -121,7 +121,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError($"Error while {nameof(TryRewriteTableAsync)}: {ex}.");
+				Logger.LogError(ex);
 			}
 			finally
 			{
