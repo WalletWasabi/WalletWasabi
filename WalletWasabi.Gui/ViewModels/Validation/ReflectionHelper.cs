@@ -50,6 +50,22 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 			}
 		}
 
+		public static MethodInfo GetMethodInfo<T>(object instance, string methodName)
+		{
+			MethodInfo info = instance.GetType().GetRuntimeMethod(methodName, new Type[0]);
+
+			if (info != null &&
+				info.ReturnType == typeof(T) &&
+				info.GetParameters().Length == 0)
+			{
+				return info;
+			}
+			else
+			{
+				throw new ArgumentException("Method was not found on class");
+			}
+		}
+
 		public static IEnumerable<PropertyInfo> GetPropertyInfos(object instance)
 		{
 			return instance.GetType().GetRuntimeProperties();

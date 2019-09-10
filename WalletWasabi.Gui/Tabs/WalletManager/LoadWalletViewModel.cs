@@ -28,6 +28,7 @@ using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
@@ -169,7 +170,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _wallets, value);
 		}
 
-		public string ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
 
 		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
