@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
@@ -360,13 +361,13 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public void AbortAllRoundsInInputRegistration(string reason)
+		public void AbortAllRoundsInInputRegistration(string reason, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 		{
 			using (RoundsListLock.Lock())
 			{
 				foreach (var r in Rounds.Where(x => x.Status == CcjRoundStatus.Running && x.Phase == CcjRoundPhase.InputRegistration))
 				{
-					r.Abort(reason);
+					r.Abort(reason, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber););
 				}
 			}
 		}

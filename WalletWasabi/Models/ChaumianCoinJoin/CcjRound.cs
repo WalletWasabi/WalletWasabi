@@ -7,6 +7,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
@@ -851,7 +852,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			Logger.LogInfo($"Round ({RoundId}): Succeeded.");
 		}
 
-		public void Abort(string reason, bool syncLock = true)
+		public void Abort(string reason, bool syncLock = true, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 		{
 			if (syncLock)
 			{
@@ -867,11 +868,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			if (string.IsNullOrWhiteSpace(reason))
 			{
-				Logger.LogInfo($"Round ({RoundId}): Aborted.");
+				Logger.LogInfo($"Round ({RoundId}): Aborted.", callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 			}
 			else
 			{
-				Logger.LogInfo($"Round ({RoundId}): Aborted. Reason: {reason}.");
+				Logger.LogInfo($"Round ({RoundId}): Aborted. Reason: {reason}.", callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 			}
 		}
 
