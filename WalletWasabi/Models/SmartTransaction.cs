@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Models
 {
@@ -187,8 +188,9 @@ namespace WalletWasabi.Models
 
 				return new SmartTransaction(tx, h, bh, bi, sl, ir, fs);
 			}
-			catch
+			catch (Exception ex)
 			{
+				Logger.LogDebug<SmartTransaction>(ex);
 				return new SmartTransaction(tx, Height.Unknown);
 			}
 		}
