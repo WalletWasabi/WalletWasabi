@@ -13,23 +13,23 @@ namespace NSubsys
 			ImageSubSystemWindowsCui = 3
 		}
 
+#pragma warning disable IDE1006 // Naming Styles
+
 		[StructLayout(LayoutKind.Explicit)]
 		public struct ImageDosHeader
 		{
 			[FieldOffset(60)]
-			private uint _fileAddressNew;
-
-			public uint FileAddressNew => _fileAddressNew;
+			public uint FileAddressNew;
 		}
 
 		[StructLayout(LayoutKind.Explicit)]
 		public struct ImageOptionalHeader
 		{
 			[FieldOffset(68)]
-			private ushort _subsystem;
-
-			public ushort Subsystem => _subsystem;
+			public ushort Subsystem;
 		}
+
+#pragma warning restore IDE1006 // Naming Styles
 
 		/// <summary>
 		/// Gets the optional header
