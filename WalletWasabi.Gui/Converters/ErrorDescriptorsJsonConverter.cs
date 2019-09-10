@@ -22,18 +22,23 @@ namespace WalletWasabi.Gui.Converters
 
 			if (value is IEnumerable<Exception> exList)
 			{
-				var errors = new ErrorDescriptors();
-
-				foreach (var exMsg in exList.Select(p => p.Message)
-											.Where(p => p != null))
-				{
-					errors.AddRange(JsonConvert.DeserializeObject<ErrorDescriptors>(exMsg));
-				}
-
-				return errors;
+				return ExceptionListToErrorDescriptor(exList);
 			}
 
 			return ErrorDescriptors.Empty;
+		}
+
+		internal static ErrorDescriptors ExceptionListToErrorDescriptor(IEnumerable<Exception> exList)
+		{
+			var errors = new ErrorDescriptors();
+
+			foreach (var exMsg in exList.Select(p => p.Message)
+										.Where(p => p != null))
+			{
+				errors.AddRange(JsonConvert.DeserializeObject<ErrorDescriptors>(exMsg));
+			}
+
+			return errors;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

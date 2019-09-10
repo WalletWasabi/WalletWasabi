@@ -23,6 +23,7 @@
       </FontFamily>
       <converters:ErrorDescriptorsJsonConverter x:Key="ErrorDescriptorsJsonConverter" />
       <converters:ErrorSeverityColorConverter x:Key="ErrorSeverityColorConverter" />
+      <converters:ErrorDescriptorToBorderColorConverter x:Key="ErrorDescriptorToBorderColorConverter" />
     </Style.Resources>
   </Style>
   <Style Selector="shell|MetroWindow /template/ Button#minimiseButton">
@@ -167,7 +168,7 @@
     </Setter>
   </Style>
   <Style Selector="TextBox:error /template/ Border#border">
-    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}" />
+    <Setter Property="BorderBrush" Value="{Binding $parent[TextBox].(DataValidationErrors.Errors), Converter={StaticResource ErrorDescriptorToBorderColorConverter}}" />
   </Style>
   <Style Selector="TextBox">
     <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
