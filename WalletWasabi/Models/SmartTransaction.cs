@@ -218,7 +218,7 @@ namespace WalletWasabi.Models
 						tx = Transaction.Parse(part, expectedNetwork);
 						break;
 					}
-					catch (FormatException)
+					catch
 					{
 						continue;
 					}
