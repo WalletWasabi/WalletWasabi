@@ -121,7 +121,7 @@ namespace WalletWasabi.Backend
 				Logger.LogInfo($"{nameof(global.LocalNode)} is disposed.");
 			}
 
-			Logger.LogInfo("Wasabi Backend stopped gracefully.");
+			Logger.LogSoftwareStopped("Wasabi Backend");
 		}
 	}
 }

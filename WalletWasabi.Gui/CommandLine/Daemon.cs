@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui.CommandLine
 		{
 			try
 			{
-				Logger.LogStarting("Wasabi Daemon");
+				Logger.LogSoftwareStarted("Wasabi Daemon");
 
 				KeyManager keyManager = TryGetKeyManagerFromWalletName(walletName);
 				if (keyManager is null)

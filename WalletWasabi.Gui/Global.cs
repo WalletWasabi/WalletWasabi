@@ -180,7 +180,7 @@ namespace WalletWasabi.Gui
 				});
 				await DisposeAsync();
 
-				Logger.LogInfo($"Wasabi stopped gracefully.");
+				Logger.LogSoftwareStopped("Wasabi");
 			};
 
 			#endregion ProcessKillSubscription

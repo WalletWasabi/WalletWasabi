@@ -28,7 +28,7 @@ namespace WalletWasabi.Backend
 		public async Task ExecuteAsync(CancellationToken cancellationToken)
 		{
 			Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
-			Logger.LogStarting("Wasabi Backend");
+			Logger.LogSoftwareStarted("Wasabi Backend");
 
 			AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 			TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;

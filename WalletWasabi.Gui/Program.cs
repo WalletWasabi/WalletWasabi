@@ -40,7 +40,7 @@ namespace WalletWasabi.Gui
 				{
 					return;
 				}
-				Logger.LogStarting("Wasabi GUI");
+				Logger.LogSoftwareStarted("Wasabi GUI");
 
 				BuildAvaloniaApp()
 					.BeforeStarting(async builder =>
@@ -75,7 +75,7 @@ namespace WalletWasabi.Gui
 
 				if (runGui)
 				{
-					Logger.LogInfo($"Wasabi GUI stopped gracefully.");
+					Logger.LogSoftwareStopped("Wasabi GUI");
 				}
 			}
 		}

@@ -286,10 +286,18 @@ namespace WalletWasabi.Logging
 		#region InfoLoggingMethods
 
 		/// <summary>
-		/// Logs software start with category InstanceGuid and insert three newlines.
+		/// Logs software starting with InstanceGuid and insert three newlines.
 		/// </summary>
 		/// <param name="appName">The name of the app.</param>
-		public static void LogStarting(string appName, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(LogLevel.Info, $"{appName} is starting...", additionalEntrySeparators: 3, additionalEntrySeparatorsLogFileOnlyMode: true, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+		public static void LogSoftwareStarted(string appName, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
+			=> Log(LogLevel.Info, $"{appName} started ({InstanceGuid}).", additionalEntrySeparators: 3, additionalEntrySeparatorsLogFileOnlyMode: true, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+
+		/// <summary>
+		/// Logs software stopped with InstanceGuid.
+		/// </summary>
+		/// <param name="appName">The name of the app.</param>
+		public static void LogSoftwareStopped(string appName, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
+			=> Log(LogLevel.Info, $"{appName} stopped gracefully ({InstanceGuid}).", callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 
 		/// <summary>
 		/// For tracking the general flow of the application.
