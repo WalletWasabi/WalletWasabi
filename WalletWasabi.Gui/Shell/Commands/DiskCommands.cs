@@ -82,7 +82,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnFileOpenException(Exception ex)
 		{
-			Logging.Logger.LogError<DiskCommands>(ex);
+			Logging.Logger.LogError(ex);
 		}
 
 		[ExportCommandDefinition("File.Open.DataFolder")]

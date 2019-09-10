@@ -111,7 +111,7 @@ namespace WalletWasabi.Services
 					return true; // There's nothing to cleanup.
 				}
 
-				Logger.LogInfo<MempoolService>("Start cleaning out mempool...");
+				Logger.LogInfo("Start cleaning out mempool...");
 				using (var client = new WasabiClient(destAction, torSocks))
 				{
 					var compactness = 10;
@@ -128,14 +128,14 @@ namespace WalletWasabi.Services
 						}
 					}
 
-					Logger.LogInfo<MempoolService>($"{removedTxCount} transactions were cleaned from mempool.");
+					Logger.LogInfo($"{removedTxCount} transactions were cleaned from mempool.");
 				}
 
 				return true;
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<MempoolService>(ex);
+				Logger.LogWarning(ex);
 			}
 			finally
 			{

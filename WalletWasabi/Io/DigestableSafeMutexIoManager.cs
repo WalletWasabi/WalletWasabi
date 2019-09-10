@@ -168,8 +168,8 @@ namespace WalletWasabi.Io
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<DigestableSafeMutexIoManager>("Failed to create digest.");
-				Logger.LogInfo<DigestableSafeMutexIoManager>(ex);
+				Logger.LogWarning("Failed to create digest.");
+				Logger.LogInfo(ex);
 			}
 		}
 
@@ -195,8 +195,8 @@ namespace WalletWasabi.Io
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<DigestableSafeMutexIoManager>("Failed to read digest.");
-				Logger.LogInfo<DigestableSafeMutexIoManager>(ex);
+				Logger.LogWarning("Failed to read digest.");
+				Logger.LogInfo(ex);
 			}
 
 			return (false, hash);

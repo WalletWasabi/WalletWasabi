@@ -50,7 +50,7 @@ namespace WalletWasabi.Gui.CommandLine
 			catch (Exception ex)
 			{
 				Console.WriteLine($"commands: There was a problem interpreting the command, please review it.");
-				Logger.LogDebug<MixerCommand>(ex);
+				Logger.LogDebug(ex);
 				error = true;
 			}
 			Environment.Exit(error ? 1 : 0);

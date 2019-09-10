@@ -50,7 +50,7 @@ namespace NBitcoin.RPC
 				}
 				catch (RPCException ex)
 				{
-					Logger.LogTrace<RPCClient>(ex);
+					Logger.LogTrace(ex);
 					// Hopefully Bitcoin Core brainfart: https://github.com/bitcoin/bitcoin/issues/14431
 					for (int i = 2; i <= Constants.SevenDaysConfirmationTarget; i++)
 					{
@@ -60,7 +60,7 @@ namespace NBitcoin.RPC
 						}
 						catch (RPCException ex2)
 						{
-							Logger.LogTrace<RPCClient>(ex2);
+							Logger.LogTrace(ex2);
 						}
 					}
 				}

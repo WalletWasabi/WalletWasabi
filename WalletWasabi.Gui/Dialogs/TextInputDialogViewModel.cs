@@ -37,8 +37,8 @@ namespace WalletWasabi.Gui.Dialogs
 				Close(false);
 			});
 
-			OKCommand.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<TextInputDialogViewModel>);
-			CancelCommand.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<TextInputDialogViewModel>);
+			OKCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning(ex));
+			CancelCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning(ex));
 		}
 
 		public string TextInput

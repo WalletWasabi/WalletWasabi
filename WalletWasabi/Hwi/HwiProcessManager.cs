@@ -232,12 +232,12 @@ namespace WalletWasabi.Hwi
 
 			if (!File.Exists(hwiPath))
 			{
-				Logger.LogInfo($"HWI instance NOT found at `{hwiPath}`. Attempting to acquire it...", nameof(HwiProcessManager));
+				Logger.LogInfo($"HWI instance NOT found at `{hwiPath}`. Attempting to acquire it...");
 				await InstallHwiAsync(fullBaseDirectory, hwiDir);
 			}
 			else if (!IoHelpers.CheckExpectedHash(hwiPath, Path.Combine(fullBaseDirectory, "Hwi", "Software")))
 			{
-				Logger.LogInfo($"Updating HWI...", nameof(HwiProcessManager));
+				Logger.LogInfo($"Updating HWI...");
 
 				string backupHwiDir = $"{hwiDir}_backup";
 				if (Directory.Exists(backupHwiDir))
@@ -252,7 +252,7 @@ namespace WalletWasabi.Hwi
 			{
 				if (logFound)
 				{
-					Logger.LogInfo($"HWI instance found at `{hwiPath}`.", nameof(HwiProcessManager));
+					Logger.LogInfo($"HWI instance found at `{hwiPath}`.");
 				}
 			}
 
@@ -267,19 +267,19 @@ namespace WalletWasabi.Hwi
 			{
 				string hwiLinuxZip = Path.Combine(hwiSoftwareDir, "hwi-linux64.zip");
 				await IoHelpers.BetterExtractZipToDirectoryAsync(hwiLinuxZip, hwiDir);
-				Logger.LogInfo($"Extracted {hwiLinuxZip} to `{hwiDir}`.", nameof(HwiProcessManager));
+				Logger.LogInfo($"Extracted {hwiLinuxZip} to `{hwiDir}`.");
 			}
 			else // OSX
 			{
 				string hwiOsxZip = Path.Combine(hwiSoftwareDir, "hwi-osx64.zip");
 				await IoHelpers.BetterExtractZipToDirectoryAsync(hwiOsxZip, hwiDir);
-				Logger.LogInfo($"Extracted {hwiOsxZip} to `{hwiDir}`.", nameof(HwiProcessManager));
+				Logger.LogInfo($"Extracted {hwiOsxZip} to `{hwiDir}`.");
 			}
 
 			// Make sure there's sufficient permission.
 			string chmodHwiDirCmd = $"chmod -R 750 {hwiDir}";
 			EnvironmentHelpers.ShellExec(chmodHwiDirCmd);
-			Logger.LogInfo($"Shell command executed: {chmodHwiDirCmd}.", nameof(HwiProcessManager));
+			Logger.LogInfo($"Shell command executed: {chmodHwiDirCmd}.");
 		}
 	}
 }

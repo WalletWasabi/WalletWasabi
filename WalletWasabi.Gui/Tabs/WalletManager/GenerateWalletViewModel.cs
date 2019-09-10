@@ -74,7 +74,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				catch (Exception ex)
 				{
 					ValidationMessage = ex.ToTypeMessageString();
-					Logger.LogError<GenerateWalletViewModel>(ex);
+					Logger.LogError(ex);
 				}
 			}
 		}

@@ -92,7 +92,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnException(Exception ex)
 		{
-			Logging.Logger.LogError<ToolCommands>(ex);
+			Logging.Logger.LogError(ex);
 		}
 
 		[ExportCommandDefinition("Tools.WalletManager")]

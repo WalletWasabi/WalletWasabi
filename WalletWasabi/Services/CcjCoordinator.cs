@@ -78,7 +78,7 @@ namespace WalletWasabi.Services
 								? $"CoinJoins file contains invalid transaction ID {line}"
 								: $"CoinJoins file got corrupted. Deleting offending line \"{line.Substring(0, 20)}\".";
 
-							Logger.LogWarning<CcjCoordinator>($"{logEntry}. {ex.GetType()}: {ex.Message}");
+							Logger.LogWarning($"{logEntry}. {ex.GetType()}: {ex.Message}");
 						}
 					}
 
@@ -99,7 +99,7 @@ namespace WalletWasabi.Services
 								? $"CoinJoins file contains invalid transaction ID {task.line}"
 								: $"CoinJoins file got corrupted. Deleting offending line \"{task.line.Substring(0, 20)}\".";
 
-							Logger.LogWarning<CcjCoordinator>($"{logEntry}. {ex.GetType()}: {ex.Message}");
+							Logger.LogWarning($"{logEntry}. {ex.GetType()}: {ex.Message}");
 						}
 					}
 
@@ -111,7 +111,7 @@ namespace WalletWasabi.Services
 				}
 				catch (Exception ex)
 				{
-					Logger.LogWarning<CcjCoordinator>($"CoinJoins file got corrupted. Deleting {CoinJoinsFilePath}. {ex.GetType()}: {ex.Message}");
+					Logger.LogWarning($"CoinJoins file got corrupted. Deleting {CoinJoinsFilePath}. {ex.GetType()}: {ex.Message}");
 					File.Delete(CoinJoinsFilePath);
 				}
 			}
@@ -133,8 +133,8 @@ namespace WalletWasabi.Services
 			catch (Exception ex)
 			{
 				CcjRound.RoundCount = 0;
-				Logger.LogInfo<CcjCoordinator>($"{nameof(CcjRound.RoundCount)} file was corrupt. Resetting to 0.");
-				Logger.LogDebug<CcjCoordinator>(ex);
+				Logger.LogInfo($"{nameof(CcjRound.RoundCount)} file was corrupt. Resetting to 0.");
+				Logger.LogDebug(ex);
 			}
 
 			TrustedNodeNotifyingBehavior.Block += TrustedNodeNotifyingBehavior_BlockAsync;
@@ -151,7 +151,7 @@ namespace WalletWasabi.Services
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<CcjCoordinator>(ex);
+				Logger.LogWarning(ex);
 			}
 		}
 
@@ -252,8 +252,8 @@ namespace WalletWasabi.Services
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<CcjCoordinator>("Adjusting confirmation target failed. Falling back to default, specified in config.");
-				Logger.LogWarning<CcjCoordinator>(ex);
+				Logger.LogWarning("Adjusting confirmation target failed. Falling back to default, specified in config.");
+				Logger.LogWarning(ex);
 
 				return RoundConfig.ConfirmationTarget;
 			}
@@ -356,18 +356,17 @@ namespace WalletWasabi.Services
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<CcjCoordinator>(ex);
+				Logger.LogWarning(ex);
 			}
 		}
 
-		public void AbortAllRoundsInInputRegistration(string loggingCategory, string reason)
+		public void AbortAllRoundsInInputRegistration(string reason)
 		{
-			string category = string.IsNullOrWhiteSpace(loggingCategory) ? nameof(CcjCoordinator) : loggingCategory;
 			using (RoundsListLock.Lock())
 			{
 				foreach (var r in Rounds.Where(x => x.Status == CcjRoundStatus.Running && x.Phase == CcjRoundPhase.InputRegistration))
 				{
-					r.Abort(category, reason);
+					r.Abort(reason);
 				}
 			}
 		}
@@ -465,7 +464,7 @@ namespace WalletWasabi.Services
 						}
 						catch (Exception ex)
 						{
-							Logger.LogDebug<CcjCoordinator>(ex);
+							Logger.LogDebug(ex);
 						}
 					}
 				}

@@ -194,7 +194,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				Alices = new List<Alice>();
 				Bobs = new List<Bob>();
 
-				Logger.LogInfo<CcjRound>($"New round ({RoundId}) is created.\n\t" +
+				Logger.LogInfo($"New round ({RoundId}) is created.\n\t" +
 					$"BaseDenomination: {MixingLevels.GetBaseDenomination().ToString(false, true)} BTC.\n\t" +
 					$"{nameof(AdjustedConfirmationTarget)}: {AdjustedConfirmationTarget}.\n\t" +
 					$"{nameof(CoordinatorFeePercent)}: {CoordinatorFeePercent}%.\n\t" +
@@ -202,8 +202,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError<CcjRound>($"Round ({RoundId}): Could not create.");
-				Logger.LogError<CcjRound>(ex);
+				Logger.LogError($"Round ({RoundId}): Could not create.");
+				Logger.LogError(ex);
 				throw;
 			}
 		}
@@ -221,7 +221,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			{
 				try
 				{
-					Logger.LogInfo<CcjRound>($"Round ({RoundId}): Phase change requested: {expectedPhase.ToString()}.");
+					Logger.LogInfo($"Round ({RoundId}): Phase change requested: {expectedPhase.ToString()}.");
 
 					if (Status == CcjRoundStatus.NotStarted) // So start the input registration phase
 					{
@@ -426,11 +426,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						return;
 					}
 
-					Logger.LogInfo<CcjRound>($"Round ({RoundId}): Phase initialized: {expectedPhase.ToString()}.");
+					Logger.LogInfo($"Round ({RoundId}): Phase initialized: {expectedPhase.ToString()}.");
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError<CcjRound>(ex);
+					Logger.LogError(ex);
 					Status = CcjRoundStatus.Aborted;
 					throw;
 				}
@@ -481,15 +481,15 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 							if (expectedPhase == CcjRoundPhase.ConnectionConfirmation)
 							{
-								Logger.LogInfo<CcjRound>(timedOutLogString);
+								Logger.LogInfo(timedOutLogString);
 							}
 							else if (expectedPhase == CcjRoundPhase.OutputRegistration)
 							{
-								Logger.LogInfo<CcjRound>($"{timedOutLogString} Progressing to signing phase to blame...");
+								Logger.LogInfo($"{timedOutLogString} Progressing to signing phase to blame...");
 							}
 							else
 							{
-								Logger.LogInfo<CcjRound>($"{timedOutLogString} Aborting...");
+								Logger.LogInfo($"{timedOutLogString} Aborting...");
 							}
 
 							// This will happen outside the lock.
@@ -507,7 +507,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 													int aliceCountAfterInputRegistrationTimeout = CountAlices();
 													if (aliceCountAfterInputRegistrationTimeout < 2)
 													{
-														Abort(nameof(CcjRound), $"Only {aliceCountAfterInputRegistrationTimeout} Alices registered.");
+														Abort($"Only {aliceCountAfterInputRegistrationTimeout} Alices registered.");
 													}
 													else
 													{
@@ -544,7 +544,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 														await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, alicesToBan.SelectMany(x => x.Inputs.Select(y => y.Outpoint)).ToArray());
 													}
 
-													Abort(nameof(CcjRound), $"{alicesToBan.Length} Alices did not sign.");
+													Abort($"{alicesToBan.Length} Alices did not sign.");
 												}
 												break;
 
@@ -554,14 +554,14 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 									}
 									catch (Exception ex)
 									{
-										Logger.LogWarning<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timeout failed with exception: {ex}.");
+										Logger.LogWarning($"Round ({RoundId}): {expectedPhase.ToString()} timeout failed with exception: {ex}.");
 									}
 								});
 						}
 					}
 					catch (Exception ex)
 					{
-						Logger.LogWarning<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timeout failed with exception: {ex}.");
+						Logger.LogWarning($"Round ({RoundId}): {expectedPhase.ToString()} timeout failed with exception: {ex}.");
 					}
 				});
 		}
@@ -596,7 +596,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			int didNotConfirmeCount = AnonymitySet - aliceCountAfterConnectionConfirmationTimeout;
 			if (aliceCountAfterConnectionConfirmationTimeout < 2)
 			{
-				Abort(nameof(CcjRound), $"{didNotConfirmeCount} Alices did not confirm their connection.");
+				Abort($"{didNotConfirmeCount} Alices did not confirm their connection.");
 			}
 			else
 			{
@@ -760,13 +760,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				}
 				else
 				{
-					Logger.LogError<CcjRound>($"This is impossible. {nameof(optimalFeeRate)}: {optimalFeeRate}, {nameof(currentFeeRate)}: {currentFeeRate}.");
+					Logger.LogError($"This is impossible. {nameof(optimalFeeRate)}: {optimalFeeRate}, {nameof(currentFeeRate)}: {currentFeeRate}.");
 				}
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<CcjRound>("Failed to optimize fees. Fallback to normal fees.");
-				Logger.LogWarning<CcjRound>(ex);
+				Logger.LogWarning("Failed to optimize fees. Fallback to normal fees.");
+				Logger.LogWarning(ex);
 			}
 		}
 
@@ -783,13 +783,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 				if (originalConfirmationTarget != AdjustedConfirmationTarget)
 				{
-					Logger.LogInfo<CcjRound>($"Confirmation target is optimized from {originalConfirmationTarget} blocks to {AdjustedConfirmationTarget} blocks.");
+					Logger.LogInfo($"Confirmation target is optimized from {originalConfirmationTarget} blocks to {AdjustedConfirmationTarget} blocks.");
 				}
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<CcjRound>($"Failed to optimize confirmation target. Fallback using the original one: {AdjustedConfirmationTarget} blocks.");
-				Logger.LogWarning<CcjRound>(ex);
+				Logger.LogWarning($"Failed to optimize confirmation target. Fallback using the original one: {AdjustedConfirmationTarget} blocks.");
+				Logger.LogWarning(ex);
 			}
 		}
 
@@ -829,7 +829,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					feePerOutputs = Math.Max(feePerBytes * outputSizeInBytes, Money.Satoshis(250));
 				}
 
-				Logger.LogError<CcjRound>(ex);
+				Logger.LogError(ex);
 			}
 
 			return (feePerInputs, feePerOutputs);
@@ -848,10 +848,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			{
 				Status = CcjRoundStatus.Succeded;
 			}
-			Logger.LogInfo<CcjRound>($"Round ({RoundId}): Succeeded.");
+			Logger.LogInfo($"Round ({RoundId}): Succeeded.");
 		}
 
-		public void Abort(string loggingCategory, string reason, bool syncLock = true)
+		public void Abort(string reason, bool syncLock = true)
 		{
 			if (syncLock)
 			{
@@ -865,15 +865,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				Status = CcjRoundStatus.Aborted;
 			}
 
-			string category = string.IsNullOrWhiteSpace(loggingCategory) ? loggingCategory : nameof(CcjRound);
-
 			if (string.IsNullOrWhiteSpace(reason))
 			{
-				Logger.LogInfo($"Round ({RoundId}): Aborted.", category);
+				Logger.LogInfo($"Round ({RoundId}): Aborted.");
 			}
 			else
 			{
-				Logger.LogInfo($"Round ({RoundId}): Aborted. Reason: {reason}.", category);
+				Logger.LogInfo($"Round ({RoundId}): Aborted. Reason: {reason}.");
 			}
 		}
 
@@ -1037,7 +1035,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 								if (alice.LastSeen == started)
 								{
 									Alices.Remove(alice);
-									Logger.LogInfo<CcjRound>($"Round ({RoundId}): Alice ({alice.UniqueId}) timed out.");
+									Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) timed out.");
 								}
 							}
 						}
@@ -1066,34 +1064,34 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				// Check if fully signed.
 				if (SignedCoinJoin.Inputs.All(x => x.HasWitScript()))
 				{
-					Logger.LogInfo<CcjRound>($"Round ({RoundId}): Trying to broadcast coinjoin.");
+					Logger.LogInfo($"Round ({RoundId}): Trying to broadcast coinjoin.");
 
 					try
 					{
 						Coin[] spentCoins = Alices.SelectMany(x => x.Inputs).ToArray();
 						Money networkFee = SignedCoinJoin.GetFee(spentCoins);
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee: {networkFee.ToString(false, false)} BTC.");
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Coordinator Fee: {SignedCoinJoin.Outputs.SingleOrDefault(x => x.ScriptPubKey == Constants.GetCoordinatorAddress(Network).ScriptPubKey)?.Value?.ToString(false, false) ?? "0"} BTC.");
+						Logger.LogInfo($"Round ({RoundId}): Network Fee: {networkFee.ToString(false, false)} BTC.");
+						Logger.LogInfo($"Round ({RoundId}): Coordinator Fee: {SignedCoinJoin.Outputs.SingleOrDefault(x => x.ScriptPubKey == Constants.GetCoordinatorAddress(Network).ScriptPubKey)?.Value?.ToString(false, false) ?? "0"} BTC.");
 						FeeRate feeRate = SignedCoinJoin.GetFeeRate(spentCoins);
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/byte.");
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Number of inputs: {SignedCoinJoin.Inputs.Count}.");
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Number of outputs: {SignedCoinJoin.Outputs.Count}.");
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Serialized Size: {SignedCoinJoin.GetSerializedSize() / 1024} KB.");
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): VSize: {SignedCoinJoin.GetVirtualSize() / 1024} KB.");
+						Logger.LogInfo($"Round ({RoundId}): Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/byte.");
+						Logger.LogInfo($"Round ({RoundId}): Number of inputs: {SignedCoinJoin.Inputs.Count}.");
+						Logger.LogInfo($"Round ({RoundId}): Number of outputs: {SignedCoinJoin.Outputs.Count}.");
+						Logger.LogInfo($"Round ({RoundId}): Serialized Size: {SignedCoinJoin.GetSerializedSize() / 1024} KB.");
+						Logger.LogInfo($"Round ({RoundId}): VSize: {SignedCoinJoin.GetVirtualSize() / 1024} KB.");
 						foreach (var o in SignedCoinJoin.GetIndistinguishableOutputs(includeSingle: false))
 						{
-							Logger.LogInfo<CcjRound>($"Round ({RoundId}): There are {o.count} occurrences of {o.value.ToString(true, false)} BTC output.");
+							Logger.LogInfo($"Round ({RoundId}): There are {o.count} occurrences of {o.value.ToString(true, false)} BTC output.");
 						}
 
 						await RpcClient.SendRawTransactionAsync(SignedCoinJoin);
 						CoinJoinBroadcasted?.Invoke(this, SignedCoinJoin);
 						Succeed(syncLock: false);
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Successfully broadcasted the CoinJoin: {SignedCoinJoin.GetHash()}.");
+						Logger.LogInfo($"Round ({RoundId}): Successfully broadcasted the CoinJoin: {SignedCoinJoin.GetHash()}.");
 					}
 					catch (Exception ex)
 					{
-						Abort(nameof(CcjRound), $"Could not broadcast the CoinJoin: {SignedCoinJoin.GetHash()}.", syncLock: false);
-						Logger.LogError<CcjRound>(ex);
+						Abort($"Could not broadcast the CoinJoin: {SignedCoinJoin.GetHash()}.", syncLock: false);
+						Logger.LogError(ex);
 					}
 				}
 			}
@@ -1120,7 +1118,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				}
 				AnonymitySet = anonymitySet;
 			}
-			Logger.LogInfo<CcjRound>($"Round ({RoundId}): {nameof(AnonymitySet)} updated: {AnonymitySet}.");
+			Logger.LogInfo($"Round ({RoundId}): {nameof(AnonymitySet)} updated: {AnonymitySet}.");
 		}
 
 		public void AddAlice(Alice alice)
@@ -1136,7 +1134,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			StartAliceTimeout(alice.UniqueId);
 
-			Logger.LogInfo<CcjRound>($"Round ({RoundId}): Alice ({alice.InputSum.ToString(false, false)}) added.");
+			Logger.LogInfo($"Round ({RoundId}): Alice ({alice.InputSum.ToString(false, false)}) added.");
 		}
 
 		public void AddBob(Bob bob)
@@ -1152,7 +1150,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				Bobs.Add(bob);
 			}
 
-			Logger.LogInfo<CcjRound>($"Round ({RoundId}): Bob ({bob.Level.Denomination}) added.");
+			Logger.LogInfo($"Round ({RoundId}): Bob ({bob.Level.Denomination}) added.");
 		}
 
 		public async Task<IEnumerable<Alice>> RemoveAlicesIfAnInputRefusedByMempoolAsync()
@@ -1192,7 +1190,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			foreach (var alice in alicesRemoved)
 			{
-				Logger.LogInfo<CcjRound>($"Round ({RoundId}): Alice ({alice.UniqueId}) removed.");
+				Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) removed.");
 			}
 
 			return alicesRemoved;
@@ -1215,7 +1213,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			if (numberOfRemovedAlices > 0)
 			{
-				Logger.LogInfo<CcjRound>($"Round ({RoundId}): {numberOfRemovedAlices} alices are removed.");
+				Logger.LogInfo($"Round ({RoundId}): {numberOfRemovedAlices} alices are removed.");
 			}
 
 			return numberOfRemovedAlices;

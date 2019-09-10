@@ -51,14 +51,14 @@ namespace WalletWasabi.Gui.CommandLine
 				}
 				else if (string.IsNullOrWhiteSpace(WalletName) && string.IsNullOrWhiteSpace(EncryptedSecret))
 				{
-					Logging.Logger.LogCritical<PasswordFinderCommand>("Missing required argument `--wallet=WalletName`.");
-					Logging.Logger.LogCritical<PasswordFinderCommand>("Use `findpassword --help` for details.");
+					Logging.Logger.LogCritical("Missing required argument `--wallet=WalletName`.");
+					Logging.Logger.LogCritical("Use `findpassword --help` for details.");
 					error = true;
 				}
 				else if (!PasswordFinder.Charsets.ContainsKey(Language))
 				{
-					Logging.Logger.LogCritical<PasswordFinderCommand>($"`{Language}` is not available language, try with `en, es, pt, it or fr`.");
-					Logging.Logger.LogCritical<PasswordFinderCommand>("Use `findpassword --help` for details.");
+					Logging.Logger.LogCritical($"`{Language}` is not available language, try with `en, es, pt, it or fr`.");
+					Logging.Logger.LogCritical("Use `findpassword --help` for details.");
 					error = true;
 				}
 				else if (!string.IsNullOrWhiteSpace(WalletName))
@@ -77,7 +77,7 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			catch (Exception)
 			{
-				Logging.Logger.LogCritical<PasswordFinderCommand>($"There was a problem interpreting the command, please review it.");
+				Logging.Logger.LogCritical($"There was a problem interpreting the command, please review it.");
 				error = true;
 			}
 			Environment.Exit(error ? 1 : 0);
