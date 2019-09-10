@@ -156,12 +156,6 @@ namespace WalletWasabi.Helpers
 			if (IsTooLong(password, out _))
 			{
 				errors.Add(new ErrorDescriptor(ErrorSeverity.Warning, PasswordTooLongMessage));
-
-				// REMOVE AFTER TESTING!
-				errors.Add(new ErrorDescriptor(ErrorSeverity.Info, "Info Test"));
-				errors.Add(new ErrorDescriptor(ErrorSeverity.Warning, "Warning Test"));
-				errors.Add(new ErrorDescriptor(ErrorSeverity.Error, "Error Test"));
-
 			}
 
 			return errors;
