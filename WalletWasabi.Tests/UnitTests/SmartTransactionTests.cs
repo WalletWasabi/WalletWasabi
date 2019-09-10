@@ -213,10 +213,6 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Throws<ArgumentException>(() => SmartTransaction.FromLine(input, network));
 			input = null;
 			Assert.Throws<ArgumentNullException>(() => SmartTransaction.FromLine(input, network));
-			input = "";
-			Assert.Throws<ArgumentException>(() => SmartTransaction.FromLine(input, network));
-			input = " ";
-			Assert.Throws<ArgumentException>(() => SmartTransaction.FromLine(input, network));
 		}
 
 		public static IEnumerable<object[]> GetSmartTransactionCombinations()
