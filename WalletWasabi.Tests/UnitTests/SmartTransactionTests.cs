@@ -307,6 +307,7 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				yield return new object[] { new SmartTransaction(defaultTx, defaultHeight, blockIndex: blockIndex), defaultNetwork };
 			}
+
 			foreach (var label in labels)
 			{
 				yield return new object[] { new SmartTransaction(defaultTx, defaultHeight, label: new SmartLabel(label)), defaultNetwork };
