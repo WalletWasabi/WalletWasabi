@@ -28,6 +28,7 @@ using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
 using WalletWasabi.Models.TransactionBuilding;
 using WalletWasabi.Services;
+
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
@@ -1053,7 +1054,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return ErrorDescriptors.Empty;
 			}
 
-			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Warning, "Invalid address."));
+			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid address."));
 		}
 
 		[ValidateMethod(nameof(ValidateAddress))]

@@ -14,7 +14,10 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 			{
 				var vma = ReflectionHelper.GetAttribute<ValidateMethodAttribute>(pInfo);
 
-				if (vma is null) continue;
+				if (vma is null)
+				{
+					continue;
+				}
 
 				var mInfo = ReflectionHelper.GetMethodInfo<ErrorDescriptors>(instance, vma.MethodName);
 				yield return (pInfo.Name, mInfo);
@@ -24,7 +27,10 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 		public static ErrorDescriptors ValidateAllProperties(ViewModelBase viewModelBase,
 															 List<(string propertyName, MethodInfo mInfo)> validationMethodCache)
 		{
-			if (validationMethodCache is null) return ErrorDescriptors.Empty;
+			if (validationMethodCache is null)
+			{
+				return ErrorDescriptors.Empty;
+			}
 
 			ErrorDescriptors result = null;
 
@@ -32,7 +38,10 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 			{
 				var invokeRes = (ErrorDescriptors)validationCache.mInfo.Invoke(viewModelBase, null);
 
-				if (result is null) result = new ErrorDescriptors();
+				if (result is null)
+				{
+					result = new ErrorDescriptors();
+				}
 
 				result.AddRange(invokeRes);
 			}
@@ -44,17 +53,26 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 														string propertyName,
 														List<(string propertyName, MethodInfo mInfo)> validationMethodCache)
 		{
-			if (validationMethodCache is null) return ErrorDescriptors.Empty;
+			if (validationMethodCache is null)
+			{
+				return ErrorDescriptors.Empty;
+			}
 
 			ErrorDescriptors result = null;
 
 			foreach (var validationCache in validationMethodCache)
 			{
-				if (validationCache.propertyName != propertyName) continue;
+				if (validationCache.propertyName != propertyName)
+				{
+					continue;
+				}
 
 				var invokeRes = (ErrorDescriptors)validationCache.mInfo.Invoke(viewModelBase, null);
 
-				if (result is null) result = new ErrorDescriptors();
+				if (result is null)
+				{
+					result = new ErrorDescriptors();
+				}
 
 				result.AddRange(invokeRes);
 			}

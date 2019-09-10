@@ -13,14 +13,18 @@ namespace WalletWasabi.Gui.ViewModels
 {
 	public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo
 	{
-		private List<(string propertyName, MethodInfo mInfo)> ValidationMethodCache;
+		private List<(string propertyName, MethodInfo mInfo)> ValidationMethodCache { get; }
+
 		public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
 
 		public ViewModelBase()
 		{
 			var vmc = Validator.PropertiesWithValidation(this).ToList();
 
-			if (vmc.Count == 0) return;
+			if (vmc.Count == 0)
+			{
+				return;
+			}
 
 			ValidationMethodCache = vmc;
 		}
@@ -31,10 +35,12 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			var error = Validator.ValidateProperty(this, propertyName, ValidationMethodCache);
 
-			// HACK: Need to serialize this in order to pass through IndeiValidationPlugin on Avalonia 0.8.2. 
+			// HACK: Need to serialize this in order to pass through IndeiValidationPlugin on Avalonia 0.8.2.
 			//		 Should be removed when Avalonia has the hotfix update.
 			if (error.HasErrors)
+			{
 				yield return JsonConvert.SerializeObject(error);
+			}
 		}
 
 		protected void NotifyErrorsChanged(string propertyName)
