@@ -151,17 +151,17 @@ namespace WalletWasabi.Models
 			var parts = line.Split(':', StringSplitOptions.None).Select(x => x.Trim()).ToArray();
 
 			// Find the Transaction hex, it must be always present.
-			ParseTransactionHex(expectedNetwork, parts, out Transaction tx, out int txHexIndex);
+			(Transaction transaction, int transactionHexIndex) = ParseTransactionHex(expectedNetwork, parts);
 
 			try
 			{
 				// First is redundand txhash serialization.
-				var heightString = parts[txHexIndex + 1];
-				var blockHashString = parts[txHexIndex + 2];
-				var blockIndexString = parts[txHexIndex + 3];
-				var label = parts[txHexIndex + 4];
-				var firstSeen = parts[txHexIndex + 5];
-				var isReplacementString = parts[txHexIndex + 6];
+				var heightString = parts[transactionHexIndex + 1];
+				var blockHashString = parts[transactionHexIndex + 2];
+				var blockIndexString = parts[transactionHexIndex + 3];
+				var label = parts[transactionHexIndex + 4];
+				var firstSeen = parts[transactionHexIndex + 5];
+				var isReplacementString = parts[transactionHexIndex + 6];
 
 				if (!Height.TryParse(heightString, out Height h))
 				{
@@ -186,19 +186,19 @@ namespace WalletWasabi.Models
 					ir = false;
 				}
 
-				return new SmartTransaction(tx, h, bh, bi, sl, ir, fs);
+				return new SmartTransaction(transaction, h, bh, bi, sl, ir, fs);
 			}
 			catch (Exception ex)
 			{
 				Logger.LogDebug<SmartTransaction>(ex);
-				return new SmartTransaction(tx, Height.Unknown);
+				return new SmartTransaction(transaction, Height.Unknown);
 			}
 		}
 
-		private static void ParseTransactionHex(Network expectedNetwork, string[] parts, out Transaction tx, out int txHexIndex)
+		private static (Transaction tx, int txHexIndex) ParseTransactionHex(Network expectedNetwork, string[] parts)
 		{
-			tx = null;
-			txHexIndex = 1;
+			Transaction tx = null;
+			int txHexIndex = 1;
 			try
 			{
 				tx = Transaction.Parse(parts[txHexIndex], expectedNetwork);
@@ -224,10 +224,13 @@ namespace WalletWasabi.Models
 					}
 				}
 			}
+
 			if (tx is null)
 			{
 				throw new FormatException($"Transaction hex is not present.");
 			}
+
+			return (tx, txHexIndex);
 		}
 
 		#endregion LineSerialization
