@@ -367,7 +367,7 @@ namespace WalletWasabi.Services
 			{
 				foreach (var r in Rounds.Where(x => x.Status == CcjRoundStatus.Running && x.Phase == CcjRoundPhase.InputRegistration))
 				{
-					r.Abort(reason, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber););
+					r.Abort(reason, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 				}
 			}
 		}
