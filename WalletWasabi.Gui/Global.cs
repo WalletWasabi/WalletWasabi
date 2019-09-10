@@ -244,10 +244,13 @@ namespace WalletWasabi.Gui
 				Nodes = new NodesGroup(Network, requirements: Constants.NodeRequirements);
 				try
 				{
-					Node node = await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
+					EndPoint bitcoinCoreEndpoint = Config.GetBitcoinP2pEndPoint();
+
+					Node node = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint);
+
 					Nodes.ConnectedNodes.Add(node);
 
-					RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
+					RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint);
 
 					RegTestMempoolServingNode.Behaviors.Add(new MempoolBehavior(MempoolService));
 				}

@@ -13,6 +13,7 @@ using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
@@ -92,7 +93,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
 
-		public string ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
 
 		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password

@@ -17,6 +17,7 @@ using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Services;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -329,7 +330,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global.ChaumianClient.DeactivateFrequentStatusProcessingIfNotMixing();
 		}
 
-		public string ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
 
 		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
