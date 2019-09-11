@@ -90,6 +90,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 					if (ParentVM.PinHash == HashHelpers.GenerateSha256Hash(x))
 					{
 						ParentVM.IsLocked = false;
+						PinInput = string.Empty;
 					}
 				});
 
