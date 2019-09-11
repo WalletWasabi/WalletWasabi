@@ -14,23 +14,30 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void ClipboardCutTest()
 		{
-			string original = "    w¾3AÍ-dCdï×¾M\\Øò¹ãÔÕýÈÝÁÐ9oEp¨}r:SR¦·ßNó±¥*W!¢ê#ikÇå<ðtÇf·a\\]§,à±H7«®È4nèNmæo4.qØ-¾ûda¯ºíö¾,¥¢½\\¹õèKeÁìÍSÈ@r±ØÙ2[r©UQÞ¶xN\"?:Ö@°&\n";
-
-			string desired = "    w¾3AÍ-dCdï×¾M\\Øò¹ãÔÕýÈÝÁÐ9oEp¨}r:SR¦·ßNó±¥*W!¢ê#ikÇå<ðtÇf·a\\]§,à±H7«®È4nèNmæo4.qØ-¾ûda¯";
-
-			var results = PasswordHelper.GetPossiblePasswords(original);
-			var foundCorrectPassword = false;
-
-			foreach (var pw in results)
+			Dictionary<string, string> passwords = new Dictionary<string, string>
 			{
-				if (pw == desired)
-				{
-					foundCorrectPassword = true;
-					break;
-				}
-			}
+				{ "    w¾3AÍ-dCdï×¾M\\Øò¹ãÔÕýÈÝÁÐ9oEp¨}r:SR¦·ßNó±¥*W!¢ê#ikÇå<ðtÇf·a\\]§,à±H7«®È4nèNmæo4.qØ-¾ûda¯ºíö¾,¥¢½\\¹õèKeÁìÍSÈ@r±ØÙ2[r©UQÞ¶xN\"?:Ö@°&\n", "    w¾3AÍ-dCdï×¾M\\Øò¹ãÔÕýÈÝÁÐ9oEp¨}r:SR¦·ßNó±¥*W!¢ê#ikÇå<ðtÇf·a\\]§,à±H7«®È4nèNmæo4.qØ-¾ûda¯" },
+				{ "§'\" + !%/= ()ÖÜÓ'", "§'\" + !%/= ()Ö\ufffd" }
+			};
 
-			Assert.True(foundCorrectPassword);
+			foreach (var pairs in passwords)
+			{
+				var original = pairs.Key;
+				var desired = pairs.Value;
+				var results = PasswordHelper.GetPossiblePasswords(original);
+				var foundCorrectPassword = false;
+
+				foreach (var pw in results)
+				{
+					if (pw == desired)
+					{
+						foundCorrectPassword = true;
+						break;
+					}
+				}
+
+				Assert.True(foundCorrectPassword);
+			}
 		}
 
 		[Fact]
