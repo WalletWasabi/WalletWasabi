@@ -21,11 +21,12 @@ namespace WalletWasabi.Helpers
 		public static string[] GetPossiblePasswords(string originalPassword)
 		{
 			var buggyClipboard = StringCutIssue(originalPassword);
+
 			List<string> possiblePasswords = new List<string>()
 			{
 				originalPassword,
 				buggyClipboard, // Should be here for every OP system. If I created a buggy wallet on OSX and transfered it to other system, it should also work.
-				buggyClipboard.Substring(0,buggyClipboard.Length-1) // Later I tested the functionality and experienced that the last character missing. To ensure compatibility I added another option instead of fixing the prev version.
+				$"{buggyClipboard.Substring(0,buggyClipboard.Length-1)}\ufdff" // Later I tested the functionality and experienced that the last character replaced by invalid character.
 			};
 
 			return possiblePasswords.ToArray();
