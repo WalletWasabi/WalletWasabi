@@ -381,7 +381,7 @@ namespace WalletWasabi.Gui.Tabs
 				return ErrorDescriptors.Empty;
 			}
 
-			if (!string.IsNullOrEmpty(dustThreshold) && dustThreshold.Contains(','))
+			if (!string.IsNullOrEmpty(dustThreshold) && dustThreshold.Contains(',', StringComparison.InvariantCultureIgnoreCase))
 			{
 				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Use decimal point instead of comma."));
 			}
