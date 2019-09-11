@@ -10,7 +10,7 @@
 # 2. Pre-releasing
 
 1. Go to https://github.com/zkSNACKs/WalletWasabi/releases and press Draft a new release.
-2. Tag version: add `pre` postfix e.g: 1.1.7pre.
+2. Tag version: add `pre` postfix e.g: v1.1.7pre.
 3. Set release title e.g: `Wasabi v1.1.7pre: Community Edition - PRERELEASE`.
 4. Set description use [previous releases](https://github.com/zkSNACKs/WalletWasabi/releases/tag/1.1.7pre) as a template. 
 5. Add the Release Notes.
