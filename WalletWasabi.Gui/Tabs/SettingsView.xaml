@@ -64,11 +64,11 @@
               <StackPanel Orientation="Vertical" Spacing="5">
                 <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
                   <ToggleButton IsChecked="{Binding Autocopy}" Content="{Binding Autocopy, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" />
-                  <TextBlock VerticalAlignment="Center">Autocopy/Autopaste of bitcoin addresses, bitcoin urls, transaction ids, etc...</TextBlock>
+                  <TextBlock VerticalAlignment="Center">Auto Copy/Paste bitcoin addresses, bitcoin urls, transaction ids, etc...</TextBlock>
                 </StackPanel>
                 <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
                   <ToggleButton IsChecked="{Binding CustomFee}" Content="{Binding CustomFee, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" />
-                  <TextBlock VerticalAlignment="Center">Enable manual fee entry.</TextBlock>
+                  <TextBlock VerticalAlignment="Center">Manual fee entry.</TextBlock>
                 </StackPanel>
                 <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
                   <ToggleButton IsChecked="{Binding LurkingWifeMode}" Content="{Binding LurkingWifeMode, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" Command="{Binding LurkingWifeModeCommand}" />
@@ -76,10 +76,10 @@
                 </StackPanel>
               </StackPanel>
             </controls:GroupBox>
-            <controls:GroupBox Title="Screen Lock" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+            <controls:GroupBox Title="Lock Screen" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
               <StackPanel Orientation="Vertical" Spacing="5">
                 <StackPanel Margin="0 10" Orientation="Vertical" Spacing="5">
-                  <TextBlock Margin="0 10" VerticalAlignment="Center">Note that, if you forget your PIN, you can clear it by manually deleting the hashed PIN from your UI config file.</TextBlock>
+                  <TextBlock Margin="0 10" VerticalAlignment="Center">If you forget the PIN, clear it by manually deleting the hashed PIN from your UiConfig file.</TextBlock>
                   <DockPanel LastChildFill="True">
                     <Button DockPanel.Dock="Left" Content="{Binding IsPinSet, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Clear:Set}" Margin="0 0 10 0" Command="{Binding SetClearPinCommand}" />
                     <controls:TogglePasswordBox Watermark="PIN" Text="{Binding PinBoxText}" />
