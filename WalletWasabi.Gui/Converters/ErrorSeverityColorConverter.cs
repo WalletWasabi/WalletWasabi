@@ -11,10 +11,10 @@ namespace WalletWasabi.Gui.Converters
 	{
 		internal static Dictionary<ErrorSeverity, SolidColorBrush> ErrorSeverityColors = new Dictionary<ErrorSeverity, SolidColorBrush>
 		{
-			{ ErrorSeverity.Default, new SolidColorBrush(Colors.White)} ,
-			{ ErrorSeverity.Info, new SolidColorBrush(Colors.LightCyan)} ,
-			{ ErrorSeverity.Warning, new SolidColorBrush(Colors.Gold)} ,
-			{ ErrorSeverity.Error, new SolidColorBrush(Colors.IndianRed)} ,
+			{ ErrorSeverity.Default, new SolidColorBrush(Colors.White) },
+			{ ErrorSeverity.Info, new SolidColorBrush(Colors.LightCyan) },
+			{ ErrorSeverity.Warning, new SolidColorBrush(Colors.Gold) },
+			{ ErrorSeverity.Error, new SolidColorBrush(Colors.IndianRed) }
 		};
 
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

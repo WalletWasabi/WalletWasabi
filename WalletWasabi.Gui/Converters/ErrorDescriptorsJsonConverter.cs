@@ -32,8 +32,7 @@ namespace WalletWasabi.Gui.Converters
 		{
 			var errors = new ErrorDescriptors();
 
-			foreach (var exMsg in exList.Select(p => p.Message)
-										.Where(p => p != null))
+			foreach (var exMsg in exList.Select(p => p.Message).Where(p => p != null))
 			{
 				try
 				{
