@@ -20,7 +20,6 @@ namespace WalletWasabi.Gui.ViewModels
 		public ViewModelBase()
 		{
 			var vmc = Validator.PropertiesWithValidation(this).ToList();
-
 			if (vmc.Count == 0)
 			{
 				return;

@@ -46,7 +46,7 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 			}
 			else
 			{
-				throw new ArgumentException("Method was not found on class");
+				throw new ArgumentException("Method was not found on class.");
 			}
 		}
 
@@ -62,7 +62,7 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 			}
 			else
 			{
-				throw new ArgumentException("Method was not found on class");
+				throw new ArgumentException("Method was not found on class.");
 			}
 		}
 

@@ -13,7 +13,6 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 			foreach (PropertyInfo pInfo in ReflectionHelper.GetPropertyInfos(instance))
 			{
 				var vma = ReflectionHelper.GetAttribute<ValidateMethodAttribute>(pInfo);
-
 				if (vma is null)
 				{
 					continue;
@@ -24,8 +23,7 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 			}
 		}
 
-		public static ErrorDescriptors ValidateAllProperties(ViewModelBase viewModelBase,
-															 List<(string propertyName, MethodInfo mInfo)> validationMethodCache)
+		public static ErrorDescriptors ValidateAllProperties(ViewModelBase viewModelBase, List<(string propertyName, MethodInfo mInfo)> validationMethodCache)
 		{
 			if (validationMethodCache is null)
 			{
@@ -49,9 +47,8 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 			return result ?? ErrorDescriptors.Empty;
 		}
 
-		public static ErrorDescriptors ValidateProperty(ViewModelBase viewModelBase,
-														string propertyName,
-														List<(string propertyName, MethodInfo mInfo)> validationMethodCache)
+		public static ErrorDescriptors ValidateProperty(ViewModelBase viewModelBase, string propertyName,
+			List<(string propertyName, MethodInfo mInfo)> validationMethodCache)
 		{
 			if (validationMethodCache is null)
 			{
