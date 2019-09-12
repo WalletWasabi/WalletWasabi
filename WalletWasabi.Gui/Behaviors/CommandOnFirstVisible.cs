@@ -17,10 +17,8 @@ namespace WalletWasabi.Gui.Behaviors
 
 			Observable.FromEventPattern(AssociatedObject, nameof(AssociatedObject.AttachedToVisualTree))
 			.Take(1) // Only on first appearance.
-			.Subscribe(_ =>
-			{
-				ExecuteCommand();
-			}).DisposeWith(Disposables);
+			.Subscribe(_ => { ExecuteCommand(); })
+			.DisposeWith(Disposables);
 		}
 
 		protected override void OnDetaching()
