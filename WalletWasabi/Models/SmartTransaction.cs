@@ -190,7 +190,7 @@ namespace WalletWasabi.Models
 			}
 			catch (Exception ex)
 			{
-				Logger.LogDebug<SmartTransaction>(ex);
+				Logger.LogDebug(ex);
 				return new SmartTransaction(transaction, Height.Unknown);
 			}
 		}
