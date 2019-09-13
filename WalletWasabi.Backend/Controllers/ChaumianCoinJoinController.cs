@@ -341,7 +341,7 @@ namespace WalletWasabi.Backend.Controllers
 				}
 				catch (Exception ex)
 				{
-					Logger.LogDebug<ChaumianCoinJoinController>(ex);
+					Logger.LogDebug(ex);
 					return BadRequest(ex.Message);
 				}
 			}
@@ -535,7 +535,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			if (request.OutputAddress == Constants.GetCoordinatorAddress(Network))
 			{
-				Logger.LogWarning<ChaumianCoinJoinController>($"Bob is registering the coordinator's address. Address: {request.OutputAddress}, Level: {request.Level}, Signature: {request.UnblindedSignature}.");
+				Logger.LogWarning($"Bob is registering the coordinator's address. Address: {request.OutputAddress}, Level: {request.Level}, Signature: {request.UnblindedSignature}.");
 			}
 
 			if (request.Level > round.MixingLevels.GetMaxLevel())
@@ -747,12 +747,12 @@ namespace WalletWasabi.Backend.Controllers
 			}
 			catch (Exception ex)
 			{
-				Logger.LogDebug<ChaumianCoinJoinController>(ex);
+				Logger.LogDebug(ex);
 				returnFailureResponse = BadRequest($"Invalid {nameof(uniqueId)} provided.");
 			}
 			if (aliceGuid == Guid.Empty) // Probably not possible
 			{
-				Logger.LogDebug<ChaumianCoinJoinController>($"Empty {nameof(uniqueId)} GID provided in {nameof(GetCoinJoin)} function.");
+				Logger.LogDebug($"Empty {nameof(uniqueId)} GID provided in {nameof(GetCoinJoin)} function.");
 				returnFailureResponse = BadRequest($"Invalid {nameof(uniqueId)} provided.");
 			}
 
@@ -803,12 +803,12 @@ namespace WalletWasabi.Backend.Controllers
 				DateTimeOffset ended = CcjRound.PhaseTimeoutLog.TryGet((roundId, desiredPhase));
 				if (ended != default)
 				{
-					Logger.LogInfo<ChaumianCoinJoinController>($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {desiredPhase} {(int)(DateTimeOffset.UtcNow - ended).TotalSeconds} seconds late.");
+					Logger.LogInfo($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {desiredPhase} {(int)(DateTimeOffset.UtcNow - ended).TotalSeconds} seconds late.");
 				}
 			}
 			catch (Exception ex)
 			{
-				Logger.LogDebug<ChaumianCoinJoinController>(ex);
+				Logger.LogDebug(ex);
 			}
 		}
 

@@ -27,7 +27,6 @@ using WalletWasabi.Hwi.Models;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
 using WalletWasabi.Models.TransactionBuilding;
-using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -593,7 +592,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (OverflowException ex)
 				{
-					Logging.Logger.LogTrace<SendTabViewModel>(ex);
+					Logging.Logger.LogTrace(ex);
 				}
 
 				AmountWatermarkText = amountUsd != 0
@@ -814,7 +813,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogInfo<SendTabViewModel>(ex);
+				Logging.Logger.LogInfo(ex);
 			}
 		}
 
@@ -834,7 +833,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning<SendTabViewModel>(ex);
+				Logging.Logger.LogWarning(ex);
 			}
 		}
 
@@ -856,7 +855,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning<CoinJoinTabViewModel>(ex);
+				Logging.Logger.LogWarning(ex);
 				var builder = new StringBuilder(ex.ToTypeMessageString());
 				if (ex is AggregateException aggex)
 				{
@@ -967,7 +966,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _allSelectedAmount, value);
 		}
 
-		public string ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
 
 		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
@@ -1036,24 +1035,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Suggestions.Clear();
 		}
 
-		public string ValidateAddress()
+		public ErrorDescriptors ValidateAddress()
 		{
 			if (string.IsNullOrWhiteSpace(Address))
 			{
-				return "";
+				return ErrorDescriptors.Empty;
 			}
 
 			if (AddressStringParser.TryParseBitcoinAddress(Address, Global.Network, out _))
 			{
-				return "";
+				return ErrorDescriptors.Empty;
 			}
 
 			if (AddressStringParser.TryParseBitcoinUrl(Address, Global.Network, out _))
 			{
-				return "";
+				return ErrorDescriptors.Empty;
 			}
 
-			return "Invalid address.";
+			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid address."));
 		}
 
 		[ValidateMethod(nameof(ValidateAddress))]

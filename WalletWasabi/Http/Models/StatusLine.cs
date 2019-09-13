@@ -49,7 +49,7 @@ namespace WalletWasabi.Http.Models
 			}
 			catch (Exception ex)
 			{
-				Logger.LogTrace<StatusLine>(ex); // Often happens when internet connection is lost mid request.
+				Logger.LogTrace(ex); // Often happens when internet connection is lost mid request.
 				throw new NotSupportedException($"Invalid {nameof(StatusLine)}: {statusLineString}.", ex);
 			}
 		}

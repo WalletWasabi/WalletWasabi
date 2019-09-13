@@ -28,6 +28,7 @@ using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
@@ -125,7 +126,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						}
 						HDFingerprint mfp = NBitcoinHelpers.BetterParseHDFingerprint(mfpString, reverseByteOrder: reverseByteOrder);
 						ExtPubKey extPubKey = NBitcoinHelpers.BetterParseExtPubKey(xpubString);
-						Logger.LogInfo<LoadWalletViewModel>("Creating new wallet file.");
+						Logger.LogInfo("Creating new wallet file.");
 						var walletName = Global.GetNextHardwareWalletName(customPrefix: "Coldcard");
 						var walletFullPath = Global.GetWalletFullPath(walletName);
 						KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath);
@@ -135,7 +136,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				catch (Exception ex)
 				{
 					SetWarningMessage(ex.ToTypeMessageString());
-					Logger.LogError<LoadWalletViewModel>(ex);
+					Logger.LogError(ex);
 				}
 			}, outputScheduler: RxApp.MainThreadScheduler);
 
@@ -144,11 +145,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				IoHelpers.OpenBrowser(x);
 			});
 
-			OpenBrowserCommand.ThrownExceptions.Subscribe(Logger.LogWarning<LoadWalletViewModel>);
-			LoadCommand.ThrownExceptions.Subscribe(Logger.LogWarning<LoadWalletViewModel>);
-			TestPasswordCommand.ThrownExceptions.Subscribe(Logger.LogWarning<LoadWalletViewModel>);
-			OpenFolderCommand.ThrownExceptions.Subscribe(Logger.LogWarning<LoadWalletViewModel>);
-			ImportColdcardCommand.ThrownExceptions.Subscribe(Logger.LogWarning<LoadWalletViewModel>);
+			OpenBrowserCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
+			LoadCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
+			TestPasswordCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
+			OpenFolderCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
+			ImportColdcardCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
 
 			SetLoadButtonText();
 
@@ -169,7 +170,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _wallets, value);
 		}
 
-		public string ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
 
 		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
@@ -284,7 +285,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 				catch (Exception ex)
 				{
-					Logger.LogInfo<LoadWalletViewModel>(ex);
+					Logger.LogInfo(ex);
 				}
 			}
 		}
@@ -353,7 +354,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<LoadWalletViewModel>(ex);
+				Logger.LogWarning(ex);
 			}
 
 			return false;
@@ -546,7 +547,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.AcquiringXpubFromHardwareWallet);
 					}
 
-					Logger.LogInfo<LoadWalletViewModel>("Hardware wallet was not used previously on this computer. Creating new wallet file.");
+					Logger.LogInfo("Hardware wallet was not used previously on this computer. Creating new wallet file.");
 
 					if (TryFindWalletByExtPubKey(extPubKey, out string wn))
 					{
@@ -616,7 +617,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				// Initialization failed.
 				SetValidationMessage(ex.ToTypeMessageString());
-				Logger.LogError<LoadWalletViewModel>(ex);
+				Logger.LogError(ex);
 
 				return null;
 			}
@@ -703,7 +704,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					SetValidationMessage(ex.ToTypeMessageString());
 					if (!(ex is OperationCanceledException))
 					{
-						Logger.LogError<LoadWalletViewModel>(ex);
+						Logger.LogError(ex);
 					}
 					await Global.DisposeInWalletDependentServicesAsync();
 				}

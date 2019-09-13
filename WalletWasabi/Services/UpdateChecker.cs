@@ -56,25 +56,25 @@ namespace WalletWasabi.Services
 						}
 						catch (ConnectionException ex)
 						{
-							Logger.LogError<UpdateChecker>(ex);
+							Logger.LogError(ex);
 							try
 							{
 								await Task.Delay(period, Stop.Token); // Give other threads time to do stuff, update check is not crucial.
 							}
 							catch (TaskCanceledException ex2)
 							{
-								Logger.LogTrace<UpdateChecker>(ex2);
+								Logger.LogTrace(ex2);
 							}
 						}
 						catch (Exception ex) when (ex is OperationCanceledException
 												|| ex is TaskCanceledException
 												|| ex is TimeoutException)
 						{
-							Logger.LogTrace<UpdateChecker>(ex);
+							Logger.LogTrace(ex);
 						}
 						catch (Exception ex)
 						{
-							Logger.LogDebug<UpdateChecker>(ex);
+							Logger.LogDebug(ex);
 						}
 						finally
 						{

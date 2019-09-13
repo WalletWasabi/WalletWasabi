@@ -299,7 +299,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		private void MempoolAsync_MempoolService_TransactionReceived(object sender, SmartTransaction e)
 		{
 			Interlocked.Increment(ref _mempoolTransactionCount);
-			Logger.LogDebug<RegTests>($"Mempool transaction received: {e.GetHash()}.");
+			Logger.LogDebug($"Mempool transaction received: {e.GetHash()}.");
 		}
 
 		[Fact]
@@ -812,7 +812,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 					waitCount++;
 					if (waitCount >= 21)
 					{
-						Logger.LogError<RegTests>("Funding transaction to the wallet did not arrive.");
+						Logger.LogInfo("Funding transaction to the wallet did not arrive.");
 						return; // Very rarely this test fails. I have no clue why. Probably because all these RegTests are interconnected, anyway let's not bother the CI with it.
 					}
 				}
@@ -859,13 +859,13 @@ namespace WalletWasabi.Tests.IntegrationTests
 				if (res.SpentCoins.Sum(x => x.Amount) - activeOutput.Amount == res.Fee) // this happens when change is too small
 				{
 					Assert.Contains(res.Transaction.Transaction.Outputs, x => x.Value == activeOutput.Amount);
-					Logger.LogInfo<RegTests>($"Change Output: {changeOutput.Amount.ToString(false, true)} {changeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+					Logger.LogInfo($"Change Output: {changeOutput.Amount.ToString(false, true)} {changeOutput.ScriptPubKey.GetDestinationAddress(network)}");
 				}
-				Logger.LogInfo<RegTests>($"{nameof(res.Fee)}: {res.Fee}");
-				Logger.LogInfo<RegTests>($"{nameof(res.FeePercentOfSent)}: {res.FeePercentOfSent} %");
-				Logger.LogInfo<RegTests>($"{nameof(res.SpendsUnconfirmed)}: {res.SpendsUnconfirmed}");
-				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
-				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
+				Logger.LogInfo($"{nameof(res.Fee)}: {res.Fee}");
+				Logger.LogInfo($"{nameof(res.FeePercentOfSent)}: {res.FeePercentOfSent} %");
+				Logger.LogInfo($"{nameof(res.SpendsUnconfirmed)}: {res.SpendsUnconfirmed}");
+				Logger.LogInfo($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo($"TxId: {res.Transaction.GetHash()}");
 
 				var foundReceive = false;
 				Assert.InRange(res.Transaction.Transaction.Outputs.Count, 1, 2);
@@ -897,12 +897,12 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Equal(receive, activeOutput.ScriptPubKey);
 				Assert.Equal(amountToSend - res.Fee, activeOutput.Amount);
 				Assert.Contains(res.Transaction.Transaction.Outputs, x => x.Value == changeOutput.Amount);
-				Logger.LogInfo<RegTests>($"{nameof(res.Fee)}: {res.Fee}");
-				Logger.LogInfo<RegTests>($"{nameof(res.FeePercentOfSent)}: {res.FeePercentOfSent} %");
-				Logger.LogInfo<RegTests>($"{nameof(res.SpendsUnconfirmed)}: {res.SpendsUnconfirmed}");
-				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
-				Logger.LogInfo<RegTests>($"Change Output: {changeOutput.Amount.ToString(false, true)} {changeOutput.ScriptPubKey.GetDestinationAddress(network)}");
-				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
+				Logger.LogInfo($"{nameof(res.Fee)}: {res.Fee}");
+				Logger.LogInfo($"{nameof(res.FeePercentOfSent)}: {res.FeePercentOfSent} %");
+				Logger.LogInfo($"{nameof(res.SpendsUnconfirmed)}: {res.SpendsUnconfirmed}");
+				Logger.LogInfo($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo($"Change Output: {changeOutput.Amount.ToString(false, true)} {changeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo($"TxId: {res.Transaction.GetHash()}");
 
 				foundReceive = false;
 				Assert.InRange(res.Transaction.Transaction.Outputs.Count, 1, 2);
@@ -930,12 +930,12 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Equal(receive, activeOutput.ScriptPubKey);
 				Assert.Equal(amountToSend, activeOutput.Amount);
 				Assert.Contains(res.Transaction.Transaction.Outputs, x => x.Value == changeOutput.Amount);
-				Logger.LogInfo<RegTests>($"{nameof(res.Fee)}: {res.Fee}");
-				Logger.LogInfo<RegTests>($"{nameof(res.FeePercentOfSent)}: {res.FeePercentOfSent} %");
-				Logger.LogInfo<RegTests>($"{nameof(res.SpendsUnconfirmed)}: {res.SpendsUnconfirmed}");
-				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
-				Logger.LogInfo<RegTests>($"Change Output: {changeOutput.Amount.ToString(false, true)} {changeOutput.ScriptPubKey.GetDestinationAddress(network)}");
-				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
+				Logger.LogInfo($"{nameof(res.Fee)}: {res.Fee}");
+				Logger.LogInfo($"{nameof(res.FeePercentOfSent)}: {res.FeePercentOfSent} %");
+				Logger.LogInfo($"{nameof(res.SpendsUnconfirmed)}: {res.SpendsUnconfirmed}");
+				Logger.LogInfo($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo($"Change Output: {changeOutput.Amount.ToString(false, true)} {changeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo($"TxId: {res.Transaction.GetHash()}");
 
 				foundReceive = false;
 				Assert.InRange(res.Transaction.Transaction.Outputs.Count, 1, 2);
@@ -963,12 +963,12 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Equal(receive, activeOutput.ScriptPubKey);
 				Assert.Equal(amountToSend, activeOutput.Amount);
 				Assert.Contains(res.Transaction.Transaction.Outputs, x => x.Value == changeOutput.Amount);
-				Logger.LogInfo<RegTests>($"{nameof(res.Fee)}: {res.Fee}");
-				Logger.LogInfo<RegTests>($"{nameof(res.FeePercentOfSent)}: {res.FeePercentOfSent} %");
-				Logger.LogInfo<RegTests>($"{nameof(res.SpendsUnconfirmed)}: {res.SpendsUnconfirmed}");
-				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
-				Logger.LogInfo<RegTests>($"Change Output: {changeOutput.Amount.ToString(false, true)} {changeOutput.ScriptPubKey.GetDestinationAddress(network)}");
-				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
+				Logger.LogInfo($"{nameof(res.Fee)}: {res.Fee}");
+				Logger.LogInfo($"{nameof(res.FeePercentOfSent)}: {res.FeePercentOfSent} %");
+				Logger.LogInfo($"{nameof(res.SpendsUnconfirmed)}: {res.SpendsUnconfirmed}");
+				Logger.LogInfo($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo($"Change Output: {changeOutput.Amount.ToString(false, true)} {changeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo($"TxId: {res.Transaction.GetHash()}");
 
 				foundReceive = false;
 				Assert.InRange(res.Transaction.Transaction.Outputs.Count, 1, 2);
@@ -996,12 +996,12 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Equal(receive, activeOutput.ScriptPubKey);
 				Assert.Equal(amountToSend, activeOutput.Amount);
 				Assert.Contains(res.Transaction.Transaction.Outputs, x => x.Value == changeOutput.Amount);
-				Logger.LogInfo<RegTests>($"{nameof(res.Fee)}: {res.Fee}");
-				Logger.LogInfo<RegTests>($"{nameof(res.FeePercentOfSent)}: {res.FeePercentOfSent} %");
-				Logger.LogInfo<RegTests>($"{nameof(res.SpendsUnconfirmed)}: {res.SpendsUnconfirmed}");
-				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
-				Logger.LogInfo<RegTests>($"Change Output: {changeOutput.Amount.ToString(false, true)} {changeOutput.ScriptPubKey.GetDestinationAddress(network)}");
-				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
+				Logger.LogInfo($"{nameof(res.Fee)}: {res.Fee}");
+				Logger.LogInfo($"{nameof(res.FeePercentOfSent)}: {res.FeePercentOfSent} %");
+				Logger.LogInfo($"{nameof(res.SpendsUnconfirmed)}: {res.SpendsUnconfirmed}");
+				Logger.LogInfo($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo($"Change Output: {changeOutput.Amount.ToString(false, true)} {changeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo($"TxId: {res.Transaction.GetHash()}");
 
 				foundReceive = false;
 				Assert.InRange(res.Transaction.Transaction.Outputs.Count, 1, 2);
@@ -1061,11 +1061,11 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Equal(res.SpentCoins.Count(), res.Transaction.Transaction.Inputs.Count);
 
 				Assert.Equal(receive, activeOutput.ScriptPubKey);
-				Logger.LogInfo<RegTests>($"{nameof(res.Fee)}: {res.Fee}");
-				Logger.LogInfo<RegTests>($"{nameof(res.FeePercentOfSent)}: {res.FeePercentOfSent} %");
-				Logger.LogInfo<RegTests>($"{nameof(res.SpendsUnconfirmed)}: {res.SpendsUnconfirmed}");
-				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
-				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
+				Logger.LogInfo($"{nameof(res.Fee)}: {res.Fee}");
+				Logger.LogInfo($"{nameof(res.FeePercentOfSent)}: {res.FeePercentOfSent} %");
+				Logger.LogInfo($"{nameof(res.SpendsUnconfirmed)}: {res.SpendsUnconfirmed}");
+				Logger.LogInfo($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo($"TxId: {res.Transaction.GetHash()}");
 
 				Assert.Single(res.Transaction.Transaction.Outputs);
 
@@ -1137,11 +1137,11 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Empty(res.OuterWalletOutputs);
 
 				Assert.Equal(receive, activeOutput.ScriptPubKey);
-				Logger.LogDebug<RegTests>($"{nameof(res.Fee)}: {res.Fee}");
-				Logger.LogDebug<RegTests>($"{nameof(res.FeePercentOfSent)}: {res.FeePercentOfSent} %");
-				Logger.LogDebug<RegTests>($"{nameof(res.SpendsUnconfirmed)}: {res.SpendsUnconfirmed}");
-				Logger.LogDebug<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
-				Logger.LogDebug<RegTests>($"TxId: {res.Transaction.GetHash()}");
+				Logger.LogDebug($"{nameof(res.Fee)}: {res.Fee}");
+				Logger.LogDebug($"{nameof(res.FeePercentOfSent)}: {res.FeePercentOfSent} %");
+				Logger.LogDebug($"{nameof(res.SpendsUnconfirmed)}: {res.SpendsUnconfirmed}");
+				Logger.LogDebug($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogDebug($"TxId: {res.Transaction.GetHash()}");
 
 				Assert.True(inputCountBefore >= res.SpentCoins.Count());
 				Assert.False(res.SpendsUnconfirmed);
@@ -1671,7 +1671,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				}
 				catch (TimeoutException)
 				{
-					Logger.LogError<RegTests>("Index was not processed.");
+					Logger.LogInfo("Index was not processed.");
 					return; // Very rarely this test fails. I have no clue why. Probably because all these RegTests are interconnected, anyway let's not bother the CI with it.
 				}
 
@@ -1879,7 +1879,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			int connectionConfirmationTimeout = 50;
 			var roundConfig = RegTestFixture.CreateRoundConfig(denomination, 2, 0.7, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 2, 24, false, 11);
 			await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
-			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+			coordinator.AbortAllRoundsInInputRegistration( "");
 
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
 			using (var torClient = new TorHttpClient(baseUri, Global.Instance.TorSocks5Endpoint))
@@ -1997,7 +1997,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				roundConfig.Denomination = Money.Coins(0.01m); // exactly the same as our output
 				await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
-				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+				coordinator.AbortAllRoundsInInputRegistration( "");
 				round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 				roundId = round.RoundId;
 				inputsRequest.RoundId = roundId;
@@ -2007,7 +2007,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				roundConfig.Denomination = Money.Coins(0.00999999m); // one satoshi less than our output
 				await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
-				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+				coordinator.AbortAllRoundsInInputRegistration( "");
 				round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 				roundId = round.RoundId;
 				inputsRequest.RoundId = roundId;
@@ -2018,7 +2018,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				roundConfig.Denomination = Money.Coins(0.008m); // one satoshi less than our output
 				roundConfig.ConnectionConfirmationTimeout = 2;
 				await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
-				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+				coordinator.AbortAllRoundsInInputRegistration( "");
 				round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 				roundId = round.RoundId;
 				inputsRequest.RoundId = roundId;
@@ -2120,7 +2120,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 					roundConfig.ConnectionConfirmationTimeout = 1; // One second.
 					await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
-					coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+					coordinator.AbortAllRoundsInInputRegistration( "");
 					round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 					roundId = round.RoundId;
 					inputsRequest.RoundId = roundId;
@@ -2211,7 +2211,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 					roundConfig.ConnectionConfirmationTimeout = 60;
 					await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
-					coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+					coordinator.AbortAllRoundsInInputRegistration( "");
 					round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 					roundId = round.RoundId;
 					inputsRequest.RoundId = roundId;
@@ -2400,7 +2400,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			int connectionConfirmationTimeout = 50;
 			var roundConfig = RegTestFixture.CreateRoundConfig(denomination, 2, 0.7, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 2, 24, false, 11);
 			await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
-			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+			coordinator.AbortAllRoundsInInputRegistration( "");
 
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
 			using (var torClient = new TorHttpClient(baseUri, Global.Instance.TorSocks5Endpoint))
@@ -2549,7 +2549,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			bool doesNoteBeforeBan = true;
 			CcjRoundConfig roundConfig = RegTestFixture.CreateRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 1, 1, 1, 24, doesNoteBeforeBan, 11);
 			await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
-			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+			coordinator.AbortAllRoundsInInputRegistration( "");
 
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
 
@@ -2629,7 +2629,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			int connectionConfirmationTimeout = 120;
 			var roundConfig = RegTestFixture.CreateRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 1, 1, 1, 24, true, 11);
 			await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
-			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+			coordinator.AbortAllRoundsInInputRegistration( "");
 
 			await rpc.GenerateAsync(3); // So to make sure we have enough money.
 
@@ -2831,7 +2831,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			int connectionConfirmationTimeout = 120;
 			var roundConfig = RegTestFixture.CreateRoundConfig(denomination, Constants.OneDayConfirmationTarget, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
 			await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
-			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+			coordinator.AbortAllRoundsInInputRegistration( "");
 			await rpc.GenerateAsync(100); // So to make sure we have enough money.
 
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
@@ -3057,7 +3057,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			int connectionConfirmationTimeout = 14;
 			var roundConfig = RegTestFixture.CreateRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
 			await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
-			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+			coordinator.AbortAllRoundsInInputRegistration( "");
 
 			var participants = new List<dynamic>();
 
@@ -3181,7 +3181,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			int connectionConfirmationTimeout = 14;
 			var roundConfig = RegTestFixture.CreateRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
 			await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
-			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+			coordinator.AbortAllRoundsInInputRegistration( "");
 			await rpc.GenerateAsync(3); // So to make sure we have enough money.
 			var keyManager = KeyManager.CreateNew(out _, password);
 			var key1 = keyManager.GenerateNewKey(new SmartLabel("foo"), KeyState.Clean, false);
@@ -3281,7 +3281,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				connectionConfirmationTimeout = 1;
 				roundConfig = RegTestFixture.CreateRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
 				await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
-				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+				coordinator.AbortAllRoundsInInputRegistration( "");
 				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
 				await chaumianClient1.DequeueAllCoinsFromMixAsync("");
 				Assert.Empty(chaumianClient1.State.GetAllQueuedCoins());
@@ -3334,7 +3334,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			int connectionConfirmationTimeout = 14;
 			var roundConfig = RegTestFixture.CreateRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
 			await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
-			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+			coordinator.AbortAllRoundsInInputRegistration( "");
 
 			// Create the services.
 			// 1. Create connection service.

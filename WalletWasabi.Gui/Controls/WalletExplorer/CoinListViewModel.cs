@@ -372,7 +372,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}, outputScheduler: RxApp.MainThreadScheduler);
 
-			InitList.ThrownExceptions.Subscribe(Logging.Logger.LogError<CoinListViewModel>);
+			InitList.ThrownExceptions.Subscribe(ex => Logging.Logger.LogError(ex));
 		}
 
 		private void OnOpen()
@@ -435,7 +435,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					catch (Exception ex)
 					{
-						Logging.Logger.LogDebug<Dispatcher>(ex);
+						Logging.Logger.LogDebug(ex);
 					}
 				}).DisposeWith(Disposables);
 

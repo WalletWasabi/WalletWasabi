@@ -71,12 +71,12 @@ namespace WalletWasabi.Services
 			}
 			catch (OperationCanceledException ex)
 			{
-				Logger.LogDebug<TrustedNodeNotifyingBehavior>(ex);
+				Logger.LogDebug(ex);
 			}
 			catch (Exception ex)
 			{
-				Logger.LogInfo<TrustedNodeNotifyingBehavior>($"Ignoring {ex.GetType()}: {ex.Message}");
-				Logger.LogDebug<TrustedNodeNotifyingBehavior>(ex);
+				Logger.LogInfo($"Ignoring {ex.GetType()}: {ex.Message}");
+				Logger.LogDebug(ex);
 			}
 		}
 

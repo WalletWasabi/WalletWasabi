@@ -33,7 +33,11 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			this.WhenAnyValue(x => x.IsLocked)
 				.Where(x => x)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => inputField.Focus());
+				.Subscribe(_ =>
+				{
+					inputField.Text = string.Empty;
+					inputField.Focus();
+				});
 		}
 
 		private void InitializeComponent()

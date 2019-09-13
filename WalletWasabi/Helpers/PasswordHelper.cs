@@ -7,6 +7,7 @@ using WalletWasabi.KeyManagement;
 using NBitcoin;
 using System.Security;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Helpers
 {
@@ -19,10 +20,18 @@ namespace WalletWasabi.Helpers
 
 		public static string[] GetPossiblePasswords(string originalPassword)
 		{
+			if (string.IsNullOrEmpty(originalPassword))
+			{
+				return new[] { "" };
+			}
+
+			var buggyClipboard = StringCutIssue(originalPassword);
+
 			List<string> possiblePasswords = new List<string>()
 			{
 				originalPassword,
-				StringCutIssue(originalPassword) // Should be here for every OP system. If I created a buggy wallet on OSX and transfered it to other system, it should also work.
+				buggyClipboard, // Should be here for every OP system. If I created a buggy wallet on OSX and transfered it to other system, it should also work.
+				$"{buggyClipboard.Substring(0,buggyClipboard.Length-1)}\ufffd" // Later I tested the functionality and experienced that the last character replaced by invalid character.
 			};
 
 			return possiblePasswords.ToArray();
@@ -125,7 +134,7 @@ namespace WalletWasabi.Helpers
 					if (resultException != null) // Now the password is OK but if we had SecurityException before than we used a cmp password.
 					{
 						compatiblityPassword = pw;
-						Logger.LogError<KeyManager>(CompatibilityPasswordWarnMessage);
+						Logger.LogError(CompatibilityPasswordWarnMessage);
 					}
 					return result;
 				}
@@ -143,20 +152,21 @@ namespace WalletWasabi.Helpers
 			throw resultException; // Throw the last exception - Invalid password.
 		}
 
-		public static string ValidatePassword(string password)
+		public static ErrorDescriptors ValidatePassword(string password)
 		{
-			List<string> messages = new List<string>();
+			var errors = new ErrorDescriptors();
+
 			if (IsTrimable(password, out _))
 			{
-				messages.Add(TrimWarnMessage);
+				errors.Add(new ErrorDescriptor(ErrorSeverity.Warning, TrimWarnMessage));
 			}
 
 			if (IsTooLong(password, out _))
 			{
-				messages.Add(PasswordTooLongMessage);
+				errors.Add(new ErrorDescriptor(ErrorSeverity.Error, PasswordTooLongMessage));
 			}
 
-			return string.Join(' ', messages);
+			return errors;
 		}
 	}
 }

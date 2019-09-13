@@ -58,7 +58,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			try
 			{
 				addressManager = await NBitcoinHelpers.LoadAddressManagerFromPeerFileAsync(addressManagerFilePath);
-				Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{addressManagerFilePath}`.");
+				Logger.LogInfo($"Loaded {nameof(AddressManager)} from `{addressManagerFilePath}`.");
 			}
 			catch (DirectoryNotFoundException)
 			{
@@ -134,7 +134,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 					{
 						var block = await walletService.FetchBlockAsync(hash, cts.Token);
 						Assert.True(File.Exists(Path.Combine(blocksFolderPath, hash.ToString())));
-						Logger.LogInfo<P2pTests>($"Full block is downloaded: {hash}.");
+						Logger.LogInfo($"Full block is downloaded: {hash}.");
 					}
 				}
 			}
@@ -161,7 +161,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);
 				addressManager?.SavePeerFile(addressManagerFilePath, network);
-				Logger.LogInfo<P2pTests>($"Saved {nameof(AddressManager)} to `{addressManagerFilePath}`.");
+				Logger.LogInfo($"Saved {nameof(AddressManager)} to `{addressManagerFilePath}`.");
 				nodes?.Dispose();
 
 				await syncer?.StopAsync();
@@ -175,17 +175,17 @@ namespace WalletWasabi.Tests.IntegrationTests
 			long nodeCount = Interlocked.Increment(ref _nodeCount);
 			if (nodeCount == 8)
 			{
-				Logger.LogTrace<P2pTests>($"Max node count reached: {nodeCount}.");
+				Logger.LogTrace($"Max node count reached: {nodeCount}.");
 			}
 
-			Logger.LogTrace<P2pTests>($"Node count: {nodeCount}.");
+			Logger.LogTrace($"Node count: {nodeCount}.");
 		}
 
 		private void ConnectedNodes_Removed(object sender, NodeEventArgs e)
 		{
 			var nodeCount = Interlocked.Decrement(ref _nodeCount);
 			// Trace is fine here, building the connections is more exciting than removing them.
-			Logger.LogTrace<P2pTests>($"Node count: {nodeCount}.");
+			Logger.LogTrace($"Node count: {nodeCount}.");
 		}
 
 		private long _mempoolTransactionCount = 0;
@@ -193,7 +193,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		private void MempoolService_TransactionReceived(object sender, SmartTransaction e)
 		{
 			Interlocked.Increment(ref _mempoolTransactionCount);
-			Logger.LogDebug<P2pTests>($"Mempool transaction received: {e.GetHash()}.");
+			Logger.LogDebug($"Mempool transaction received: {e.GetHash()}.");
 		}
 	}
 }

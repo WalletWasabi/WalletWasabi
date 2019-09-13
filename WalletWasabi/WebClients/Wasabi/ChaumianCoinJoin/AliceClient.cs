@@ -101,7 +101,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 					}
 
 					client.UniqueId = inputsResponse.UniqueId;
-					Logger.LogInfo<AliceClient>($"Round ({client.RoundId}), Alice ({client.UniqueId}): Registered {request.Inputs.Count()} inputs.");
+					Logger.LogInfo($"Round ({client.RoundId}), Alice ({client.UniqueId}): Registered {request.Inputs.Count()} inputs.");
 
 					return client;
 				}
@@ -159,7 +159,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 				}
 
 				ConnConfResp resp = await response.Content.ReadAsJsonAsync<ConnConfResp>();
-				Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection. Phase: {resp.CurrentPhase}.");
+				Logger.LogInfo($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection. Phase: {resp.CurrentPhase}.");
 
 				var activeOutputs = new List<ActiveOutput>();
 				if (resp.BlindedOutputSignatures != null && resp.BlindedOutputSignatures.Any())
@@ -228,7 +228,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 					return;
 				}
 			}
-			Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Unconfirmed connection.");
+			Logger.LogInfo($"Round ({RoundId}), Alice ({UniqueId}): Unconfirmed connection.");
 		}
 
 		public async Task<Transaction> GetUnsignedCoinJoinAsync()
@@ -243,7 +243,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 				var coinjoinHex = await response.Content.ReadAsJsonAsync<string>();
 
 				Transaction coinJoin = Transaction.Parse(coinjoinHex, Network.Main);
-				Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Acquired unsigned CoinJoin: {coinJoin.GetHash()}.");
+				Logger.LogInfo($"Round ({RoundId}), Alice ({UniqueId}): Acquired unsigned CoinJoin: {coinJoin.GetHash()}.");
 				return coinJoin;
 			}
 		}
@@ -261,7 +261,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 				{
 					await response.ThrowRequestExceptionFromContentAsync();
 				}
-				Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Posted {signatures.Count} signatures.");
+				Logger.LogInfo($"Round ({RoundId}), Alice ({UniqueId}): Posted {signatures.Count} signatures.");
 			}
 		}
 	}
