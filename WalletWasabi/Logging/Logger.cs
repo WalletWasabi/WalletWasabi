@@ -235,7 +235,7 @@ namespace WalletWasabi.Logging
 		// In Windows and Linux that string is a valid path and that means Path.GetFileNameWithoutExtension
 		// can extract the file name but in the case of OSX the same string is not a valid path so, it assumes
 		// the whole string is the file name. 
-		private static string ExtractFileName(string callerFilePath)
+		internal static string ExtractFileName(string callerFilePath)
 		{
 			var lastSeparatorIndex = callerFilePath.LastIndexOf("\\");
 			if (lastSeparatorIndex == -1)
