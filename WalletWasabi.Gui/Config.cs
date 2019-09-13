@@ -243,6 +243,7 @@ namespace WalletWasabi.Gui
 
 		public Config(string filePath) : base(filePath)
 		{
+			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet, PrivacyLevelSome, PrivacyLevelFine, PrivacyLevelStrong, GetBitcoinP2pEndPoint(), DustThreshold);
 		}
 
 		/// <inheritdoc />
