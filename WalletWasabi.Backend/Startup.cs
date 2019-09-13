@@ -65,6 +65,7 @@ namespace WalletWasabi.Backend
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
 #pragma warning disable IDE0060 // Remove unused parameter
+
 		public void Configure(IApplicationBuilder app, IHostingEnvironment env, Global global)
 #pragma warning restore IDE0060 // Remove unused parameter
 		{
@@ -100,27 +101,27 @@ namespace WalletWasabi.Backend
 		private async Task CleanupAsync(Global global)
 		{
 			global.Coordinator?.Dispose();
-			Logger.LogInfo<Startup>($"{nameof(global.Coordinator)} is disposed.");
+			Logger.LogInfo($"{nameof(global.Coordinator)} is disposed.");
 
 			if (global.IndexBuilderService != null)
 			{
 				await global.IndexBuilderService.StopAsync();
-				Logger.LogInfo<Startup>($"{nameof(global.IndexBuilderService)} is disposed.");
+				Logger.LogInfo($"{nameof(global.IndexBuilderService)} is disposed.");
 			}
 
 			if (global.RoundConfigWatcher != null)
 			{
 				await global.RoundConfigWatcher.StopAsync();
-				Logger.LogInfo<Startup>($"{nameof(global.RoundConfigWatcher)} is disposed.");
+				Logger.LogInfo($"{nameof(global.RoundConfigWatcher)} is disposed.");
 			}
 
 			if (global.LocalNode != null)
 			{
 				global.DisconnectDisposeNullLocalNode();
-				Logger.LogInfo<Startup>($"{nameof(global.LocalNode)} is disposed.");
+				Logger.LogInfo($"{nameof(global.LocalNode)} is disposed.");
 			}
 
-			Logger.LogInfo("Wasabi Backend stopped gracefully.", Logger.InstanceGuid.ToString());
+			Logger.LogSoftwareStopped("Wasabi Backend");
 		}
 	}
 }

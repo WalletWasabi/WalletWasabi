@@ -102,8 +102,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 			}
 			catch (Exception ex)
 			{
-				Logger.LogDebug<ExternalApiTests>($"Uri was not reachable: {uri}");
-				Logger.LogDebug<ExternalApiTests>(ex);
+				Logger.LogDebug($"Uri was not reachable: {uri}");
+				Logger.LogDebug(ex);
 			}
 			return false;
 		}

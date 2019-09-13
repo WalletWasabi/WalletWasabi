@@ -227,7 +227,7 @@ namespace WalletWasabi.Backend.Controllers
 			}
 			catch (Exception ex)
 			{
-				Logger.LogDebug<BlockchainController>(ex);
+				Logger.LogDebug(ex);
 				return BadRequest("Invalid hex.");
 			}
 
@@ -241,7 +241,7 @@ namespace WalletWasabi.Backend.Controllers
 			}
 			catch (RPCException ex)
 			{
-				Logger.LogDebug<BlockchainController>(ex);
+				Logger.LogDebug(ex);
 				return BadRequest(ex.Message);
 			}
 

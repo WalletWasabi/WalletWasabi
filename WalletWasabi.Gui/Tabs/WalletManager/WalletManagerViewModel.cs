@@ -137,7 +137,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 								}
 								catch (Exception ex)
 								{
-									Logger.LogWarning<MainWindow>(ex);
+									Logger.LogWarning(ex);
 								}
 							}
 
@@ -174,7 +174,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					catch (Exception ex)
 					{
 						LoadWalletViewModelHardware.SetValidationMessage(ex.ToTypeMessageString());
-						Logger.LogWarning<WalletManagerViewModel>(ex);
+						Logger.LogWarning(ex);
 					}
 					finally
 					{
@@ -184,7 +184,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 			catch (TaskCanceledException ex)
 			{
-				Logger.LogTrace<WalletManagerViewModel>(ex);
+				Logger.LogTrace(ex);
 			}
 		}
 

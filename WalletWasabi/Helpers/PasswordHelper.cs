@@ -134,7 +134,7 @@ namespace WalletWasabi.Helpers
 					if (resultException != null) // Now the password is OK but if we had SecurityException before than we used a cmp password.
 					{
 						compatiblityPassword = pw;
-						Logger.LogError<KeyManager>(CompatibilityPasswordWarnMessage);
+						Logger.LogError(CompatibilityPasswordWarnMessage);
 					}
 					return result;
 				}

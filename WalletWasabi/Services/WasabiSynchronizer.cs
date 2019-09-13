@@ -227,7 +227,7 @@ namespace WalletWasabi.Services
 								{
 									// We have a problem.
 									// We have wrong filters, the heights are not in sync with the server's.
-									Logger.LogError<WasabiSynchronizer>($"Inconsistent index state detected.{Environment.NewLine}" +
+									Logger.LogError($"Inconsistent index state detected.{Environment.NewLine}" +
 										$"{nameof(hashChain)}.{nameof(hashChain.TipHeight)}:{hashChain.TipHeight}{Environment.NewLine}" +
 										$"{nameof(hashChain)}.{nameof(hashChain.HashesLeft)}:{hashChain.HashesLeft}{Environment.NewLine}" +
 										$"{nameof(hashChain)}.{nameof(hashChain.TipHash)}:{hashChain.TipHash}{Environment.NewLine}" +
@@ -244,11 +244,11 @@ namespace WalletWasabi.Services
 
 									if (filters.Count() == 1)
 									{
-										Logger.LogInfo<WasabiSynchronizer>($"Downloaded filter for block {firstFilter.BlockHeight}.");
+										Logger.LogInfo($"Downloaded filter for block {firstFilter.BlockHeight}.");
 									}
 									else
 									{
-										Logger.LogInfo<WasabiSynchronizer>($"Downloaded filters for blocks from {firstFilter.BlockHeight} to {filters.Last().BlockHeight}.");
+										Logger.LogInfo($"Downloaded filters for blocks from {firstFilter.BlockHeight} to {filters.Last().BlockHeight}.");
 									}
 								}
 							}
@@ -257,7 +257,7 @@ namespace WalletWasabi.Services
 								// Reorg happened
 								// 1. Rollback index
 								FilterModel reorgedFilter = await BitcoinStore.IndexStore.RemoveLastFilterAsync(Cancel.Token);
-								Logger.LogInfo<WasabiSynchronizer>($"REORG Invalid Block: {reorgedFilter.BlockHash}.");
+								Logger.LogInfo($"REORG Invalid Block: {reorgedFilter.BlockHash}.");
 
 								ignoreRequestInterval = true;
 							}
@@ -277,25 +277,25 @@ namespace WalletWasabi.Services
 						}
 						catch (ConnectionException ex)
 						{
-							Logger.LogError<CcjClient>(ex);
+							Logger.LogError(ex);
 							try
 							{
 								await Task.Delay(3000, Cancel.Token); // Give other threads time to do stuff.
 							}
 							catch (TaskCanceledException ex2)
 							{
-								Logger.LogTrace<CcjClient>(ex2);
+								Logger.LogTrace(ex2);
 							}
 						}
 						catch (Exception ex) when (ex is OperationCanceledException
 												|| ex is TaskCanceledException
 												|| ex is TimeoutException)
 						{
-							Logger.LogTrace<WasabiSynchronizer>(ex);
+							Logger.LogTrace(ex);
 						}
 						catch (Exception ex)
 						{
-							Logger.LogError<WasabiSynchronizer>(ex);
+							Logger.LogError(ex);
 						}
 						finally
 						{
@@ -308,7 +308,7 @@ namespace WalletWasabi.Services
 								}
 								catch (TaskCanceledException ex)
 								{
-									Logger.LogTrace<CcjClient>(ex);
+									Logger.LogTrace(ex);
 								}
 							}
 						}

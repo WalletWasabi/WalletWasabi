@@ -34,7 +34,7 @@ namespace System.IO
 						throw;
 					}
 					// System.IO.IOException: The directory is not empty
-					Logger.LogDebug($"Gnomes prevent deletion of {destinationDir}! Applying magic dust, attempt #{gnomes}.", nameof(IoHelpers));
+					Logger.LogDebug($"Gnomes prevent deletion of {destinationDir}! Applying magic dust, attempt #{gnomes}.");
 
 					// see http://stackoverflow.com/questions/329355/cannot-delete-directory-with-directory-deletepath-true for more magic
 					await Task.Delay(100);
@@ -47,7 +47,7 @@ namespace System.IO
 						throw;
 					}
 					// Wait, maybe another software make us authorized a little later
-					Logger.LogDebug($"Gnomes prevent deletion of {destinationDir}! Applying magic dust, attempt #{gnomes}.", nameof(IoHelpers));
+					Logger.LogDebug($"Gnomes prevent deletion of {destinationDir}! Applying magic dust, attempt #{gnomes}.");
 
 					// see http://stackoverflow.com/questions/329355/cannot-delete-directory-with-directory-deletepath-true for more magic
 					await Task.Delay(100);
@@ -157,7 +157,7 @@ namespace System.IO
 						}
 						catch (Exception ex)
 						{
-							Logger.LogError(ex, nameof(IoHelpers));
+							Logger.LogError(ex);
 						}
 
 						if (openWithNotepad)

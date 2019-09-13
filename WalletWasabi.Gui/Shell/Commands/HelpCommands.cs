@@ -41,7 +41,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 					}
 					catch (Exception ex)
 					{
-						Logging.Logger.LogWarning<HelpCommands>(ex);
+						Logging.Logger.LogWarning(ex);
 						IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
 					}
 				}));
@@ -57,7 +57,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 					}
 					catch (Exception ex)
 					{
-						Logging.Logger.LogWarning<HelpCommands>(ex);
+						Logging.Logger.LogWarning(ex);
 						IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
 					}
 				}));
@@ -73,7 +73,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 					}
 					catch (Exception ex)
 					{
-						Logging.Logger.LogWarning<HelpCommands>(ex);
+						Logging.Logger.LogWarning(ex);
 						IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
 					}
 				}));

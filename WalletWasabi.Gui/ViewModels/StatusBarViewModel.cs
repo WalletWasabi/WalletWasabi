@@ -198,7 +198,7 @@ namespace WalletWasabi.Gui.ViewModels
 				}
 				catch (Exception ex)
 				{
-					Logging.Logger.LogWarning<StatusBarViewModel>(ex);
+					Logging.Logger.LogWarning(ex);
 					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
 				}
 			}, this.WhenAnyValue(x => x.UpdateStatus)
@@ -339,7 +339,7 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning<StatusBarViewModel>(ex);
+				Logging.Logger.LogWarning(ex);
 			}
 		}
 
@@ -351,7 +351,7 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning<StatusBarViewModel>(ex);
+				Logging.Logger.LogWarning(ex);
 			}
 		}
 

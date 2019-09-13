@@ -21,7 +21,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 			var exit = ReactiveCommand.Create(OnExit);
 
-			exit.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<SystemCommands>);
+			exit.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning(ex));
 
 			ExitCommand = new CommandDefinition(
 				"Exit",

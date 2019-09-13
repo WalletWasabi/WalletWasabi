@@ -426,8 +426,8 @@ namespace WalletWasabi.Gui
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<Config>("Backwards compatibility couldn't be ensured.");
-				Logger.LogInfo<Config>(ex);
+				Logger.LogWarning("Backwards compatibility couldn't be ensured.");
+				Logger.LogInfo(ex);
 				return false;
 			}
 		}

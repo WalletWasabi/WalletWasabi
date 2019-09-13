@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui.Tabs
 				}
 				catch (Exception ex)
 				{
-					Logging.Logger.LogError<AboutViewModel>(ex);
+					Logging.Logger.LogError(ex);
 				}
 			});
 		}

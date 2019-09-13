@@ -44,7 +44,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError<NodeBuilder>(ex);
+				Logger.LogError(ex);
 			}
 		}
 

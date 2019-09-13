@@ -198,7 +198,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (Exception ex)
 				{
-					Logger.LogWarning<CoinJoinTabViewModel>(ex);
+					Logger.LogWarning(ex);
 					var builder = new StringBuilder(ex.ToTypeMessageString());
 					if (ex is AggregateException aggex)
 					{
@@ -242,7 +242,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (Exception ex)
 				{
-					Logger.LogWarning<CoinJoinTabViewModel>(ex);
+					Logger.LogWarning(ex);
 					var builder = new StringBuilder(ex.ToTypeMessageString());
 					if (ex is AggregateException aggex)
 					{
@@ -355,7 +355,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<CoinJoinTabViewModel>(ex);
+				Logger.LogWarning(ex);
 			}
 		}
 

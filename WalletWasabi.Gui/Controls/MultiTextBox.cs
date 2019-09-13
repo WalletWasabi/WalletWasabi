@@ -167,11 +167,11 @@ namespace WalletWasabi.Gui.Controls
 									|| ex is TaskCanceledException
 									|| ex is TimeoutException)
 			{
-				Logging.Logger.LogTrace<MultiTextBox>(ex);
+				Logging.Logger.LogTrace(ex);
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning<MultiTextBox>(ex);
+				Logging.Logger.LogWarning(ex);
 			}
 			finally
 			{
@@ -189,7 +189,7 @@ namespace WalletWasabi.Gui.Controls
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning<MultiTextBox>(ex);
+				Logging.Logger.LogWarning(ex);
 			}
 		}
 
@@ -218,7 +218,7 @@ namespace WalletWasabi.Gui.Controls
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning<MultiTextBox>(ex);
+				Logging.Logger.LogWarning(ex);
 			}
 		}
 

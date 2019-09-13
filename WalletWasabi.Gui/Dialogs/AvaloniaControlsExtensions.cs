@@ -34,7 +34,7 @@ namespace Avalonia.Controls
 				}
 				catch (Exception ex)
 				{
-					WalletWasabi.Logging.Logger.LogWarning(ex, me.GetType().Name);
+					WalletWasabi.Logging.Logger.LogWarning(ex);
 
 					string title = !string.IsNullOrWhiteSpace(me.Title)
 						? me.Title

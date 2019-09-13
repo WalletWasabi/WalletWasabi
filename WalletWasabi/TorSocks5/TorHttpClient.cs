@@ -99,7 +99,7 @@ namespace WalletWasabi.TorSocks5
 					}
 					catch (Exception ex)
 					{
-						Logger.LogTrace<TorHttpClient>(ex);
+						Logger.LogTrace(ex);
 
 						TorSocks5Client?.Dispose(); // rebuild the connection and retry
 						TorSocks5Client = null;
@@ -114,7 +114,7 @@ namespace WalletWasabi.TorSocks5
 						// If we get ttlexpired then wait and retry again linux often do this.
 						catch (TorSocks5FailureResponseException ex2) when (ex2.RepField == RepField.TtlExpired)
 						{
-							Logger.LogTrace<TorHttpClient>(ex);
+							Logger.LogTrace(ex);
 
 							TorSocks5Client?.Dispose(); // rebuild the connection and retry
 							TorSocks5Client = null;

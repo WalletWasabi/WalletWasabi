@@ -40,7 +40,7 @@ namespace WalletWasabi.Gui
 				{
 					return;
 				}
-				Logger.LogStarting("Wasabi GUI");
+				Logger.LogSoftwareStarted("Wasabi GUI");
 
 				BuildAvaloniaApp()
 					.BeforeStarting(async builder =>
@@ -63,7 +63,7 @@ namespace WalletWasabi.Gui
 			}
 			catch (Exception ex)
 			{
-				Logger.LogCritical<Program>(ex);
+				Logger.LogCritical(ex);
 				throw;
 			}
 			finally
@@ -75,19 +75,19 @@ namespace WalletWasabi.Gui
 
 				if (runGui)
 				{
-					Logger.LogInfo($"Wasabi GUI stopped gracefully.", Logger.InstanceGuid.ToString());
+					Logger.LogSoftwareStopped("Wasabi GUI");
 				}
 			}
 		}
 
 		private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
 		{
-			Logger.LogWarning(e?.Exception, $"{nameof(TaskScheduler.UnobservedTaskException)}");
+			Logger.LogWarning(e?.Exception);
 		}
 
 		private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
 		{
-			Logger.LogWarning(e?.ExceptionObject as Exception, $"{nameof(AppDomain.CurrentDomain.UnhandledException)}");
+			Logger.LogWarning(e?.ExceptionObject as Exception);
 		}
 
 		private static AppBuilder BuildAvaloniaApp()

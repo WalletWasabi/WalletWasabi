@@ -592,7 +592,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (OverflowException ex)
 				{
-					Logging.Logger.LogTrace<SendTabViewModel>(ex);
+					Logging.Logger.LogTrace(ex);
 				}
 
 				AmountWatermarkText = amountUsd != 0
@@ -813,7 +813,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogInfo<SendTabViewModel>(ex);
+				Logging.Logger.LogInfo(ex);
 			}
 		}
 
@@ -833,7 +833,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning<SendTabViewModel>(ex);
+				Logging.Logger.LogWarning(ex);
 			}
 		}
 
@@ -855,7 +855,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning<CoinJoinTabViewModel>(ex);
+				Logging.Logger.LogWarning(ex);
 				var builder = new StringBuilder(ex.ToTypeMessageString());
 				if (ex is AggregateException aggex)
 				{

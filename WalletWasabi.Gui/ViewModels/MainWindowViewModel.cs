@@ -74,7 +74,7 @@ namespace WalletWasabi.Gui.ViewModels
 				Global.UiConfig.LockScreenActive = true;
 			});
 
-			LockScreenCommand.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<MainWindowViewModel>);
+			LockScreenCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning(ex));
 		}
 
 		public IShell Shell { get; }

@@ -672,7 +672,7 @@ namespace WalletWasabi.KeyManagement
 				if (toRemove.Any())
 				{
 					ToFileNoBlockchainStateLock();
-					Logger.LogInfo<KeyManager>($"Corrected {toRemove.Count} heights.");
+					Logger.LogInfo($"Corrected {toRemove.Count} heights.");
 				}
 			}
 		}
@@ -790,9 +790,9 @@ namespace WalletWasabi.KeyManagement
 
 					if (lastNetwork != null)
 					{
-						Logger.LogWarning<KeyManager>($"Wallet is opened on {expectedNetwork}. Last time it was opened on {lastNetwork}.");
+						Logger.LogWarning($"Wallet is opened on {expectedNetwork}. Last time it was opened on {lastNetwork}.");
 					}
-					Logger.LogInfo<KeyManager>("Blockchain cache is cleared.");
+					Logger.LogInfo("Blockchain cache is cleared.");
 				}
 			}
 		}
