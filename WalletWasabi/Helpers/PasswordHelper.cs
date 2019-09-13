@@ -20,6 +20,11 @@ namespace WalletWasabi.Helpers
 
 		public static string[] GetPossiblePasswords(string originalPassword)
 		{
+			if (string.IsNullOrEmpty(originalPassword))
+			{
+				return new[] { "" };
+			}
+
 			var buggyClipboard = StringCutIssue(originalPassword);
 
 			List<string> possiblePasswords = new List<string>()

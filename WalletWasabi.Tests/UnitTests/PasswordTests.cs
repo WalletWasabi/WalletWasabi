@@ -101,5 +101,21 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.True(PasswordHelper.TryPassword(keyManager, original, out string compatiblePassword));
 			Assert.Equal(buggy, compatiblePassword);
 		}
+
+		[Fact]
+		public void EmptyNullTest()
+		{
+			string emptyPw = "";
+			string nullPw = null;
+
+			var emptyPws = PasswordHelper.GetPossiblePasswords(emptyPw);
+			var nullPws = PasswordHelper.GetPossiblePasswords(nullPw);
+
+			var emptyPwRes = Assert.Single(emptyPws);
+			var nullPwRes = Assert.Single(nullPws);
+
+			Assert.Equal("", emptyPwRes);
+			Assert.Equal("", nullPwRes);
+		}
 	}
 }
