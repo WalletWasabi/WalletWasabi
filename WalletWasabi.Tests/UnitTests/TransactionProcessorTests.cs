@@ -127,7 +127,8 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Single(transactionProcessor.Coins, coin => coin.Unspent);
 			Assert.Single(transactionProcessor.Coins, coin => !coin.Unspent);
 			Assert.Equal(2, transactionProcessor.TransactionCache.Count());
-			Assert.Empty(transactionProcessor.TransactionHashes);
+			Assert.Equal(2, transactionProcessor.TransactionCache.Count(x => !x.Confirmed));
+			Assert.Equal(2, transactionProcessor.TransactionHashes.Count);
 		}
 
 		[Fact]
@@ -153,7 +154,8 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.True(relevant);
 			Assert.Single(transactionProcessor.Coins, coin => coin.Unspent && coin.Confirmed);
 			Assert.Single(transactionProcessor.Coins, coin => !coin.Unspent && coin.Confirmed);
-			Assert.Empty(transactionProcessor.TransactionHashes);
+			Assert.Single(transactionProcessor.TransactionCache.Where(x => !x.Confirmed));
+			Assert.Single(transactionProcessor.TransactionHashes);
 		}
 
 		[Fact]
@@ -182,7 +184,8 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.True(relevant);
 			Assert.Single(transactionProcessor.Coins, coin => coin.Unspent && coin.Amount == Money.Coins(0.9m) && coin.IsReplaceable);
 			Assert.Single(transactionProcessor.Coins, coin => !coin.Unspent && coin.Amount == Money.Coins(1.0m) && !coin.IsReplaceable);
-			Assert.Empty(transactionProcessor.TransactionHashes);
+			Assert.Equal(2, transactionProcessor.TransactionCache.Count(x => !x.Confirmed));
+			Assert.Equal(2, transactionProcessor.TransactionHashes.Count);
 		}
 
 		[Fact]

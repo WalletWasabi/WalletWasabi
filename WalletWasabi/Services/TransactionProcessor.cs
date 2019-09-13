@@ -176,6 +176,10 @@ namespace WalletWasabi.Services
 					if (Coins.TryAdd(newCoin))
 					{
 						TransactionCache.TryAdd(tx);
+						if (!newCoin.Confirmed)
+						{
+							TransactionHashes.TryAdd(tx.GetHash());
+						}
 						CoinReceived?.Invoke(this, newCoin);
 
 						// Make sure there's always 21 clean keys generated and indexed.
