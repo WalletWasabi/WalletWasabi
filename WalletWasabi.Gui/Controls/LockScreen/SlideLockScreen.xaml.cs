@@ -133,8 +133,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				})
 				.DisposeWith(vm.Disposables);
 
-			Clock
-				.ObserveOn(RxApp.MainThreadScheduler)
+			Clock.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(vm.OnClockTick)
 				.DisposeWith(vm.Disposables);
 		}
