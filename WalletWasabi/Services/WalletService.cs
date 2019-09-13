@@ -119,7 +119,7 @@ namespace WalletWasabi.Services
 
 			TransactionCache = new ConcurrentHashSet<SmartTransaction>();
 
-			TransactionProcessor = new TransactionProcessor(KeyManager, Mempool.TransactionHashes, Coins, ServiceConfiguration.DustThreshold, TransactionCache);
+			TransactionProcessor = new TransactionProcessor(KeyManager, Coins, ServiceConfiguration.DustThreshold, TransactionCache);
 			TransactionProcessor.CoinSpent += TransactionProcessor_CoinSpent;
 			TransactionProcessor.CoinReceived += TransactionProcessor_CoinReceivedAsync;
 
@@ -198,7 +198,6 @@ namespace WalletWasabi.Services
 						}
 					}
 
-					Mempool.TransactionHashes.TryRemove(toRemove.TransactionId);
 					var txToRemove = TryGetTxFromCache(toRemove.TransactionId);
 					if (txToRemove != default(SmartTransaction))
 					{
@@ -384,7 +383,6 @@ namespace WalletWasabi.Services
 						{
 							tx.SetHeight(Height.Mempool);
 							await ProcessTransactionAsync(tx);
-							Mempool.TransactionHashes.TryAdd(tx.GetHash());
 
 							Logger.LogInfo($"Transaction was successfully tested against the backend's mempool hashes: {tx.GetHash()}.");
 							count++;
@@ -404,7 +402,6 @@ namespace WalletWasabi.Services
 				{
 					tx.SetHeight(Height.Mempool);
 					await ProcessTransactionAsync(tx);
-					Mempool.TransactionHashes.TryAdd(tx.GetHash());
 				}
 
 				Logger.LogWarning(ex);
@@ -1295,8 +1292,6 @@ namespace WalletWasabi.Services
 					{
 						SerializeTransactionCache();
 					}
-
-					Mempool.TransactionHashes.TryAdd(transaction.GetHash());
 				}
 
 				Logger.LogInfo($"Transaction is successfully broadcasted to backend: {transaction.GetHash()}.");
