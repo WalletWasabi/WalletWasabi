@@ -555,7 +555,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 									}
 									catch (Exception ex)
 									{
-										Logger.LogWarning($"Round ({RoundId}): {expectedPhase.ToString()} timeout failed with exception: {ex}.");
+										Logger.LogWarning($"Round ({RoundId}): {expectedPhase.ToString()} timeout failed.");
+										Logger.LogWarning(ex);
 									}
 								});
 						}
