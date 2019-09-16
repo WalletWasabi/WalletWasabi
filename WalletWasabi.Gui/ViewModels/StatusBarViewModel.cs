@@ -81,21 +81,18 @@ namespace WalletWasabi.Gui.ViewModels
 				.ToProperty(this, x => x.Status)
 				.DisposeWith(Disposables);
 
-			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Added))
+			Observable
+				.Merge(Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Added)).Select(x => true)
+				.Merge(Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed)).Select(x => true)
+				.Merge(Synchronizer.WhenAnyValue(x => x.TorStatus).Select(x => true))))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
-					SetPeers(Nodes.Count);
+					// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they do not.
+					Peers = Tor == TorStatus.NotRunning ? 0 : Nodes.Count;
 				}).DisposeWith(Disposables);
 
-			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					SetPeers(Nodes.Count);
-				}).DisposeWith(Disposables);
-
-			SetPeers(Nodes.Count);
+			Peers = Tor == TorStatus.NotRunning ? 0 : Nodes.Count;
 
 			Observable.FromEventPattern<bool>(typeof(WalletService), nameof(WalletService.DownloadingBlockChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -106,8 +103,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(status =>
 				{
-					SetTor(status);
-					SetPeers(Nodes.Count);
+					Tor = UseTor ? status : TorStatus.TurnedOff;
 				}).DisposeWith(Disposables);
 
 			Synchronizer.WhenAnyValue(x => x.BackendStatus)
@@ -353,17 +349,6 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				Logging.Logger.LogWarning(ex);
 			}
-		}
-
-		private void SetPeers(int peers)
-		{
-			// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they do not.
-			Peers = Tor == TorStatus.NotRunning ? 0 : peers;
-		}
-
-		private void SetTor(TorStatus tor)
-		{
-			Tor = UseTor ? tor : TorStatus.TurnedOff;
 		}
 
 		#region IDisposable Support
