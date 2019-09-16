@@ -46,7 +46,7 @@ namespace WalletWasabi.Gui.Behaviors
 
 			AssociatedObject.GetObservable(TextBox.SelectionStartProperty)
 				.Merge(AssociatedObject.GetObservable(TextBox.SelectionEndProperty))
-				.Subscribe(_ => { SelectedText = GetSelection(); });
+				.Subscribe(_ => SelectedText = GetSelection());
 		}
 
 		protected override void OnDetaching()

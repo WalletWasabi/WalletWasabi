@@ -17,7 +17,7 @@ namespace WalletWasabi.Gui.Behaviors
 
 			Observable.FromEventPattern(AssociatedObject, nameof(AssociatedObject.AttachedToVisualTree))
 			.Take(1) // Only on first appearance.
-			.Subscribe(_ => { ExecuteCommand(); })
+			.Subscribe(_ => ExecuteCommand())
 			.DisposeWith(Disposables);
 		}
 
