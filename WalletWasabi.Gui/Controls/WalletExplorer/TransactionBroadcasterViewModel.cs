@@ -13,6 +13,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
@@ -126,7 +127,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				catch (Exception ex)
 				{
 					SetWarningMessage(ex.ToTypeMessageString());
-					Logging.Logger.LogError<TransactionBroadcasterViewModel>(ex);
+					Logging.Logger.LogError(ex);
 				}
 			}, outputScheduler: RxApp.MainThreadScheduler);
 
@@ -165,10 +166,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				ButtonText = "Broadcasting Transaction...";
 
 				SmartTransaction transaction;
-				try
-				{
-					var signedPsbt = PSBT.Parse(TransactionString, Global.Network ?? Network.Main);
 
+				if (PSBT.TryParse(TransactionString, Global.Network ?? Network.Main, out var signedPsbt))
+				{
 					if (!signedPsbt.IsAllFinalized())
 					{
 						signedPsbt.Finalize();
@@ -176,7 +176,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					transaction = signedPsbt.ExtractSmartTransaction();
 				}
-				catch
+				else
 				{
 					transaction = new SmartTransaction(Transaction.Parse(TransactionString, Global.Network ?? Network.Main), WalletWasabi.Models.Height.Unknown);
 				}
@@ -186,6 +186,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				SetSuccessMessage("Transaction is successfully sent!");
 				TransactionString = "";
+			}
+			catch (PSBTException ex)
+			{
+				SetWarningMessage($"The PSBT cannot be finalized: {ex.Errors.FirstOrDefault()}");
 			}
 			catch (Exception ex)
 			{

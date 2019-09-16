@@ -401,7 +401,7 @@ namespace WalletWasabi.KeyManagement
 			return true;
 		}
 
-		public HdPubKey GenerateNewKey(string label, KeyState keyState, bool isInternal, bool toFile = true)
+		public HdPubKey GenerateNewKey(SmartLabel label, KeyState keyState, bool isInternal, bool toFile = true)
 		{
 			// BIP44-ish derivation scheme
 			// m / purpose' / coin_type' / account' / change / address_index
@@ -593,12 +593,12 @@ namespace WalletWasabi.KeyManagement
 			{
 				while (GetKeys(KeyState.Clean, true).Count() < MinGapLimit)
 				{
-					GenerateNewKey("", KeyState.Clean, true, toFile: false);
+					GenerateNewKey(SmartLabel.Empty, KeyState.Clean, true, toFile: false);
 					generated = true;
 				}
 				while (GetKeys(KeyState.Clean, false).Count() < MinGapLimit)
 				{
-					GenerateNewKey("", KeyState.Clean, false, toFile: false);
+					GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false, toFile: false);
 					generated = true;
 				}
 			}
@@ -606,7 +606,7 @@ namespace WalletWasabi.KeyManagement
 			{
 				while (GetKeys(KeyState.Clean, isInternal).Count() < MinGapLimit)
 				{
-					GenerateNewKey("", KeyState.Clean, (bool)isInternal, toFile: false);
+					GenerateNewKey(SmartLabel.Empty, KeyState.Clean, (bool)isInternal, toFile: false);
 					generated = true;
 				}
 			}
@@ -628,7 +628,7 @@ namespace WalletWasabi.KeyManagement
 
 			while (GetKeys(KeyState.Locked, true).Count() < howMany)
 			{
-				GenerateNewKey("", KeyState.Locked, true, toFile: false);
+				GenerateNewKey(SmartLabel.Empty, KeyState.Locked, true, toFile: false);
 				generated = true;
 			}
 
@@ -672,7 +672,7 @@ namespace WalletWasabi.KeyManagement
 				if (toRemove.Any())
 				{
 					ToFileNoBlockchainStateLock();
-					Logger.LogInfo<KeyManager>($"Corrected {toRemove.Count} heights.");
+					Logger.LogInfo($"Corrected {toRemove.Count} heights.");
 				}
 			}
 		}
@@ -790,9 +790,9 @@ namespace WalletWasabi.KeyManagement
 
 					if (lastNetwork != null)
 					{
-						Logger.LogWarning<KeyManager>($"Wallet is opened on {expectedNetwork}. Last time it was opened on {lastNetwork}.");
+						Logger.LogWarning($"Wallet is opened on {expectedNetwork}. Last time it was opened on {lastNetwork}.");
 					}
-					Logger.LogInfo<KeyManager>("Blockchain cache is cleared.");
+					Logger.LogInfo("Blockchain cache is cleared.");
 				}
 			}
 		}

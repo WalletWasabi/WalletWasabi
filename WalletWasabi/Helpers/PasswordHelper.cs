@@ -7,6 +7,7 @@ using WalletWasabi.KeyManagement;
 using NBitcoin;
 using System.Security;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Helpers
 {
@@ -15,14 +16,22 @@ namespace WalletWasabi.Helpers
 		public const int MaxPasswordLength = 150;
 		public const string CompatibilityPasswordWarnMessage = "Compatibility password was used! Please consider generating a new wallet to ensure recoverability!";
 		public static readonly string PasswordTooLongMessage = $"Password is too long (Max {MaxPasswordLength} characters).";
-		public const string TrimmedMessage = "Leading and trailing white spaces were removed!";
+		public const string TrimWarnMessage = "Leading and trailing white spaces will be removed!";
 
 		public static string[] GetPossiblePasswords(string originalPassword)
 		{
+			if (string.IsNullOrEmpty(originalPassword))
+			{
+				return new[] { "" };
+			}
+
+			var buggyClipboard = StringCutIssue(originalPassword);
+
 			List<string> possiblePasswords = new List<string>()
 			{
 				originalPassword,
-				StringCutIssue(originalPassword) // Should be here for every OP system. If I created a buggy wallet on OSX and transfered it to other system, it should also work.
+				buggyClipboard, // Should be here for every OP system. If I created a buggy wallet on OSX and transfered it to other system, it should also work.
+				$"{buggyClipboard.Substring(0,buggyClipboard.Length-1)}\ufffd" // Later I tested the functionality and experienced that the last character replaced by invalid character.
 			};
 
 			return possiblePasswords.ToArray();
@@ -108,6 +117,8 @@ namespace WalletWasabi.Helpers
 
 		public static ExtKey GetMasterExtKey(KeyManager keyManager, string password, out string compatiblityPassword)
 		{
+			password = Helpers.Guard.Correct(password); // Correct the password to ensure compatiblity. User will be notified about this through TogglePasswordBox.
+
 			Guard(password);
 
 			compatiblityPassword = null;
@@ -123,7 +134,7 @@ namespace WalletWasabi.Helpers
 					if (resultException != null) // Now the password is OK but if we had SecurityException before than we used a cmp password.
 					{
 						compatiblityPassword = pw;
-						Logger.LogError<KeyManager>(CompatibilityPasswordWarnMessage);
+						Logger.LogError(CompatibilityPasswordWarnMessage);
 					}
 					return result;
 				}
@@ -139,6 +150,23 @@ namespace WalletWasabi.Helpers
 			}
 
 			throw resultException; // Throw the last exception - Invalid password.
+		}
+
+		public static ErrorDescriptors ValidatePassword(string password)
+		{
+			var errors = new ErrorDescriptors();
+
+			if (IsTrimable(password, out _))
+			{
+				errors.Add(new ErrorDescriptor(ErrorSeverity.Warning, TrimWarnMessage));
+			}
+
+			if (IsTooLong(password, out _))
+			{
+				errors.Add(new ErrorDescriptor(ErrorSeverity.Error, PasswordTooLongMessage));
+			}
+
+			return errors;
 		}
 	}
 }

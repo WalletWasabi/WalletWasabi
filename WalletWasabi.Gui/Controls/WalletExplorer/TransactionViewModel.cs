@@ -86,11 +86,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 									|| ex is TaskCanceledException
 									|| ex is TimeoutException)
 			{
-				Logging.Logger.LogTrace<AddressViewModel>(ex);
+				Logging.Logger.LogTrace(ex);
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning<AddressViewModel>(ex);
+				Logging.Logger.LogWarning(ex);
 			}
 			finally
 			{

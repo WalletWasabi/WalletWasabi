@@ -82,10 +82,11 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 			Disposables = new CompositeDisposable();
 
-			_isLocked = _parentVM.WhenAnyValue(x => x.IsLocked)
-								 .ObserveOn(RxApp.MainThreadScheduler)
-								 .ToProperty(this, x => x.IsLocked)
-								 .DisposeWith(Disposables);
+			_isLocked = _parentVM
+				.WhenAnyValue(x => x.IsLocked)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.ToProperty(this, x => x.IsLocked)
+				.DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.TargetOffset)
 				.DistinctUntilChanged()

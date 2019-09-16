@@ -27,7 +27,6 @@ using WalletWasabi.Hwi.Models;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
 using WalletWasabi.Models.TransactionBuilding;
-using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -222,9 +221,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			OnAddressPasteCommand = ReactiveCommand.Create((BitcoinUrlBuilder url) =>
 			{
-				if (!string.IsNullOrWhiteSpace(url.Label))
+				var label = new SmartLabel(url.Label);
+				if (!label.IsEmpty)
 				{
-					Label = url.Label;
+					Label = label.ToString();
 				}
 
 				if (url.Amount != null)
@@ -241,8 +241,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					IsBusy = true;
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BuildingTransaction);
 
-					Label = Label.Trim(',', ' ').Trim();
-					if (!IsMax && string.IsNullOrWhiteSpace(Label))
+					var label = new SmartLabel(Label);
+					Label = label.ToString();
+					if (!IsMax && label.IsEmpty)
 					{
 						SetWarningMessage($"{nameof(Label)} is required.");
 						return;
@@ -298,7 +299,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					bool useCustomFee = !IsSliderFeeUsed;
 					var feeStrategy = FeeStrategy.CreateFromFeeRate(FeeRate);
 
-					var label = Label;
 					var intent = new PaymentIntent(address, moneyRequest, label);
 					try
 					{
@@ -319,19 +319,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.DequeuingSelectedCoins);
 					}
 
-					try
+					if (!KeyManager.IsWatchOnly)
 					{
-						PasswordHelper.GetMasterExtKey(KeyManager, Password, out string compatiblityPasswordUsed); // We could use TryPassword but we need the exception.
-						if (compatiblityPasswordUsed != null)
+						try
 						{
-							isCompatibilityPasswordUsed = true;
-							Password = compatiblityPasswordUsed; // Overwrite the password for BuildTransaction function.
+							PasswordHelper.GetMasterExtKey(KeyManager, Password, out string compatiblityPasswordUsed); // We could use TryPassword but we need the exception.
+							if (compatiblityPasswordUsed != null)
+							{
+								isCompatibilityPasswordUsed = true;
+								Password = compatiblityPasswordUsed; // Overwrite the password for BuildTransaction function.
+							}
 						}
-					}
-					catch (Exception ex)
-					{
-						SetWarningMessage(ex.ToTypeMessageString());
-						return;
+						catch (Exception ex)
+						{
+							SetWarningMessage(ex.ToTypeMessageString());
+							return;
+						}
 					}
 
 					BuildTransactionResult result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
@@ -404,7 +407,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							IsHardwareBusy = false;
 						}
 
-						signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction.Height, result.Transaction.BlockHash, result.Transaction.BlockIndex, result.Transaction.Label, result.Transaction.FirstSeenIfMempoolTime, result.Transaction.IsReplacement);
+						signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction.Height, result.Transaction.BlockHash, result.Transaction.BlockIndex, result.Transaction.Label, result.Transaction.FirstSeen, result.Transaction.IsReplacement);
 					}
 
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
@@ -589,7 +592,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (OverflowException ex)
 				{
-					Logging.Logger.LogTrace<SendTabViewModel>(ex);
+					Logging.Logger.LogTrace(ex);
 				}
 
 				AmountWatermarkText = amountUsd != 0
@@ -810,7 +813,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogInfo<SendTabViewModel>(ex);
+				Logging.Logger.LogInfo(ex);
 			}
 		}
 
@@ -830,7 +833,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning<SendTabViewModel>(ex);
+				Logging.Logger.LogWarning(ex);
 			}
 		}
 
@@ -852,7 +855,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning<CoinJoinTabViewModel>(ex);
+				Logging.Logger.LogWarning(ex);
 				var builder = new StringBuilder(ex.ToTypeMessageString());
 				if (ex is AggregateException aggex)
 				{
@@ -963,6 +966,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _allSelectedAmount, value);
 		}
 
+		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+
+		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
 		{
 			get => _password;
@@ -1029,24 +1035,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Suggestions.Clear();
 		}
 
-		public string ValidateAddress()
+		public ErrorDescriptors ValidateAddress()
 		{
 			if (string.IsNullOrWhiteSpace(Address))
 			{
-				return "";
+				return ErrorDescriptors.Empty;
 			}
 
 			if (AddressStringParser.TryParseBitcoinAddress(Address, Global.Network, out _))
 			{
-				return "";
+				return ErrorDescriptors.Empty;
 			}
 
 			if (AddressStringParser.TryParseBitcoinUrl(Address, Global.Network, out _))
 			{
-				return "";
+				return ErrorDescriptors.Empty;
 			}
 
-			return "Invalid address.";
+			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid address."));
 		}
 
 		[ValidateMethod(nameof(ValidateAddress))]

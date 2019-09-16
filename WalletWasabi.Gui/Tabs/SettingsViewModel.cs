@@ -16,6 +16,7 @@ using System.Text.RegularExpressions;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Tabs
 {
@@ -287,12 +288,12 @@ namespace WalletWasabi.Gui.Tabs
 			}
 
 			var isValid =
-				string.IsNullOrEmpty(ValidatePrivacyLevel(SomePrivacyLevel, whiteSpaceOk: false))
-				&& string.IsNullOrEmpty(ValidatePrivacyLevel(FinePrivacyLevel, whiteSpaceOk: false))
-				&& string.IsNullOrEmpty(ValidatePrivacyLevel(StrongPrivacyLevel, whiteSpaceOk: false))
-				&& string.IsNullOrEmpty(ValidateDustThreshold(DustThreshold, whiteSpaceOk: false))
-				&& string.IsNullOrEmpty(ValidateEndPoint(TorSocks5EndPoint, Constants.DefaultTorSocksPort, whiteSpaceOk: false))
-				&& string.IsNullOrEmpty(ValidateEndPoint(BitcoinP2pEndPoint, network.DefaultPort, whiteSpaceOk: false));
+				!ValidatePrivacyLevel(SomePrivacyLevel, whiteSpaceOk: false).HasErrors
+				&& !ValidatePrivacyLevel(FinePrivacyLevel, whiteSpaceOk: false).HasErrors
+				&& !ValidatePrivacyLevel(StrongPrivacyLevel, whiteSpaceOk: false).HasErrors
+				&& !ValidateDustThreshold(DustThreshold, whiteSpaceOk: false).HasErrors
+				&& !ValidateEndPoint(TorSocks5EndPoint, Constants.DefaultTorSocksPort, whiteSpaceOk: false).HasErrors
+				&& !ValidateEndPoint(BitcoinP2pEndPoint, network.DefaultPort, whiteSpaceOk: false).HasErrors;
 
 			if (!isValid)
 			{
@@ -340,67 +341,72 @@ namespace WalletWasabi.Gui.Tabs
 
 		#region Validation
 
-		public string ValidateSomePrivacyLevel()
+		public ErrorDescriptors ValidateSomePrivacyLevel()
 			=> ValidatePrivacyLevel(SomePrivacyLevel, whiteSpaceOk: true);
 
-		public string ValidateFinePrivacyLevel()
+		public ErrorDescriptors ValidateFinePrivacyLevel()
 			=> ValidatePrivacyLevel(FinePrivacyLevel, whiteSpaceOk: true);
 
-		public string ValidateStrongPrivacyLevel()
+		public ErrorDescriptors ValidateStrongPrivacyLevel()
 			=> ValidatePrivacyLevel(StrongPrivacyLevel, whiteSpaceOk: true);
 
-		public string ValidateDustThreshold()
+		public ErrorDescriptors ValidateDustThreshold()
 			=> ValidateDustThreshold(DustThreshold, whiteSpaceOk: true);
 
-		public string ValidateTorSocks5EndPoint()
+		public ErrorDescriptors ValidateTorSocks5EndPoint()
 			=> ValidateEndPoint(TorSocks5EndPoint, Constants.DefaultTorSocksPort, whiteSpaceOk: true);
 
-		public string ValidateBitcoinP2pEndPoint()
+		public ErrorDescriptors ValidateBitcoinP2pEndPoint()
 			=> ValidateEndPoint(BitcoinP2pEndPoint, Network.DefaultPort, whiteSpaceOk: true);
 
-		public string ValidatePrivacyLevel(string value, bool whiteSpaceOk)
+		public ErrorDescriptors ValidatePrivacyLevel(string value, bool whiteSpaceOk)
 		{
 			if (whiteSpaceOk && string.IsNullOrWhiteSpace(value))
 			{
-				return string.Empty;
+				return ErrorDescriptors.Empty;
 			}
 
 			if (uint.TryParse(value, out _))
 			{
-				return string.Empty;
+				return ErrorDescriptors.Empty;
 			}
 
-			return "Invalid privacy level.";
+			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid privacy level."));
 		}
 
-		public string ValidateDustThreshold(string dustThreshold, bool whiteSpaceOk)
+		public ErrorDescriptors ValidateDustThreshold(string dustThreshold, bool whiteSpaceOk)
 		{
 			if (whiteSpaceOk && string.IsNullOrWhiteSpace(dustThreshold))
 			{
-				return string.Empty;
+				return ErrorDescriptors.Empty;
+			}
+
+			if (!string.IsNullOrEmpty(dustThreshold) && dustThreshold.Contains(',', StringComparison.InvariantCultureIgnoreCase))
+			{
+				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Use decimal point instead of comma."));
 			}
 
 			if (decimal.TryParse(dustThreshold, out var dust) && dust >= 0)
 			{
-				return string.Empty;
+				return ErrorDescriptors.Empty;
 			}
 
-			return "Invalid dust threshold.";
+			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid dust threshold."));
 		}
 
-		public string ValidateEndPoint(string endPoint, int defaultPort, bool whiteSpaceOk)
+		public ErrorDescriptors ValidateEndPoint(string endPoint, int defaultPort, bool whiteSpaceOk)
 		{
 			if (whiteSpaceOk && string.IsNullOrWhiteSpace(endPoint))
 			{
-				return string.Empty;
+				return ErrorDescriptors.Empty;
 			}
 
 			if (EndPointParser.TryParse(endPoint, defaultPort, out _))
 			{
-				return string.Empty;
+				return ErrorDescriptors.Empty;
 			}
 
-			return "Invalid endpoint.";
+			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid endpoint."));
 		}
 
 		#endregion Validation

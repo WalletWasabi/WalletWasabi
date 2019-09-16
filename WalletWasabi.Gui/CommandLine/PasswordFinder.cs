@@ -32,8 +32,8 @@ namespace WalletWasabi.Gui.CommandLine
 				return;
 			}
 
-			Logging.Logger.LogWarning<PasswordFinder>($"WARNING: This tool will display your password if it finds it.");
-			Logging.Logger.LogWarning<PasswordFinder>($"         You can cancel this by CTRL+C combination anytime.{Environment.NewLine}");
+			Logging.Logger.LogWarning($"WARNING: This tool will display your password if it finds it.");
+			Logging.Logger.LogWarning($"         You can cancel this by CTRL+C combination anytime.{Environment.NewLine}");
 
 			Console.Write("Enter a likely password: ");
 
@@ -69,7 +69,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 			Console.WriteLine();
 			Console.WriteLine();
-			Logging.Logger.LogInfo<PasswordFinder>($"Completed in {sw.Elapsed}");
+			Logging.Logger.LogInfo($"Completed in {sw.Elapsed}");
 			Console.WriteLine(found ? $"SUCCESS: Password found: >>> {lastpwd} <<<" : "FAILED: Password not found");
 			Console.WriteLine();
 		}

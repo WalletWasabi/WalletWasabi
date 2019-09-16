@@ -121,7 +121,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError<HistoryTabViewModel>($"Error while RewriteTable on HistoryTab: {ex}.");
+				Logger.LogError(ex);
 			}
 			finally
 			{
@@ -165,7 +165,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				else
 				{
-					dateTime = foundTransaction.FirstSeenIfMempoolTime ?? DateTimeOffset.UtcNow;
+					dateTime = foundTransaction.FirstSeen;
 				}
 
 				if (found != default) // if found
@@ -177,7 +177,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				else
 				{
-					txRecordList.Add((dateTime, coin.Height, coin.Amount, coin.Label, coin.TransactionId));
+					txRecordList.Add((dateTime, coin.Height, coin.Amount, coin.Label.ToString(), coin.TransactionId));
 				}
 
 				if (coin.SpenderTransactionId != null)
@@ -215,7 +215,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					else
 					{
-						dateTime = foundSpenderTransaction.FirstSeenIfMempoolTime ?? DateTimeOffset.UtcNow;
+						dateTime = foundSpenderTransaction.FirstSeen;
 					}
 
 					var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.transactionId == coin.SpenderTransactionId);

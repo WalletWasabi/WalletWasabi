@@ -122,7 +122,7 @@ namespace WalletWasabi.Stores
 				// We found a corrupted entry. Stop here.
 				// Delete the currupted file.
 				// Do not try to autocorrect, because the internal data structures are throwing events that may confuse the consumers of those events.
-				Logger.LogError<IndexStore>("An index file got corrupted. Deleting index files...");
+				Logger.LogError("An index file got corrupted. Deleting index files...");
 				MatureIndexFileManager.DeleteMe();
 				ImmatureIndexFileManager.DeleteMe();
 				throw;
@@ -191,7 +191,7 @@ namespace WalletWasabi.Stores
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<IndexStore>($"Backwards compatibility could not be ensured. Exception: {ex}.");
+				Logger.LogWarning($"Backwards compatibility could not be ensured. Exception: {ex}.");
 			}
 		}
 
@@ -239,15 +239,15 @@ namespace WalletWasabi.Stores
 			{
 				if (ImmatureFilters.Any())
 				{
-					Logger.LogWarning<IndexStore>($"Filters got corrupted. Reorging {ImmatureFilters.Count} immature filters in an attempt to fix them.");
+					Logger.LogWarning($"Filters got corrupted. Reorging {ImmatureFilters.Count} immature filters in an attempt to fix them.");
 				}
 				else
 				{
-					Logger.LogCritical<IndexStore>($"Filters got corrupted and have no more immature filters.");
+					Logger.LogCritical($"Filters got corrupted and have no more immature filters.");
 
 					if (deleteAndCrashIfMature)
 					{
-						Logger.LogCritical<IndexStore>($"Deleting all filters and crashing the software...");
+						Logger.LogCritical($"Deleting all filters and crashing the software...");
 
 						using (await MatureIndexFileManager.Mutex.LockAsync(cancel))
 						using (await ImmatureIndexFileManager.Mutex.LockAsync(cancel))
@@ -323,11 +323,11 @@ namespace WalletWasabi.Stores
 												|| ex is TaskCanceledException
 												|| ex is TimeoutException)
 			{
-				Logger.LogTrace<IndexStore>(ex);
+				Logger.LogTrace(ex);
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError<IndexStore>(ex);
+				Logger.LogError(ex);
 			}
 		}
 

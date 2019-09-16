@@ -48,8 +48,8 @@ namespace WalletWasabi.Gui.Controls
 				}
 			});
 
-			CopyCommand.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<ExtendedTextBox>);
-			PasteCommand.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<ExtendedTextBox>);
+			CopyCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning(ex));
+			PasteCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning(ex));
 
 			this.GetObservable(IsReadOnlyProperty).Subscribe(isReadOnly =>
 			{

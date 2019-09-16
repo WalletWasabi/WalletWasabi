@@ -19,6 +19,7 @@ namespace WalletWasabi.Packager
 {
 	public class Program
 	{
+#pragma warning disable CS0162 // Unreachable code detected
 		// 0. Dump Client version (or else wrong .msi will be created) - Helpers.Constants.ClientVersion
 		// 1. Publish with Packager.
 		// 2. Build WIX project with Release and x64 configuration.
@@ -52,7 +53,7 @@ namespace WalletWasabi.Packager
 		public static string WixProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.WindowsInstaller\\"));
 		public static string BinDistDirectory = Path.GetFullPath(Path.Combine(GuiProjectDirectory, "bin\\dist"));
 
-		public static string VersionPrefix = Constants.ClientVersion.ToVersionString();
+		public static string VersionPrefix = Constants.ClientVersion.ToString(3);
 
 		public static bool OnlyBinaries;
 		public static bool OnlyCreateDigests;
@@ -95,14 +96,17 @@ namespace WalletWasabi.Packager
 				}
 			}
 
-			if (DoSign && !OnlyBinaries)
+			if (!OnlyBinaries)
 			{
-				Sign();
-			}
+				if (DoSign)
+				{
+					Sign();
+				}
 
-			if (DoRestoreProgramCs && !OnlyBinaries)
-			{
-				RestoreProgramCs();
+				if (DoRestoreProgramCs)
+				{
+					RestoreProgramCs();
+				}
 			}
 		}
 
@@ -130,9 +134,19 @@ namespace WalletWasabi.Packager
 						}
 
 						var userAgent = ((JArray)node.Value)[1].ToString();
-						if (userAgent.Contains("Satoshi:0.16") || userAgent.Contains("Satoshi:0.17"))
+
+						try
 						{
-							onions.Add(node.Name);
+							var verString = userAgent.Substring(userAgent.IndexOf("Satoshi:") + 8, 4);
+							var ver = new Version(verString);
+
+							if (ver >= new Version("0.16"))
+							{
+								onions.Add(node.Name);
+							}
+						}
+						catch
+						{
 						}
 					}
 
@@ -887,5 +901,7 @@ namespace WalletWasabi.Packager
 				}
 			}
 		}
+
+#pragma warning restore CS0162 // Unreachable code detected
 	}
 }

@@ -27,7 +27,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 
 		public RegTestFixture()
 		{
-			BackendNodeBuilder = NodeBuilder.CreateAsync(nameof(RegTestFixture)).GetAwaiter().GetResult();
+			BackendNodeBuilder = NodeBuilder.CreateAsync(EnvironmentHelpers.GetMethodName()).GetAwaiter().GetResult();
 			BackendNodeBuilder.CreateNodeAsync().GetAwaiter().GetResult();
 			BackendNodeBuilder.StartAllAsync().GetAwaiter().GetResult();
 			BackendRegTestNode = BackendNodeBuilder.Nodes[0];
@@ -68,7 +68,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 					.Build();
 			Global = (Backend.Global)BackendHost.Services.GetService(typeof(Backend.Global));
 			var hostInitializationTask = BackendHost.RunWithTasksAsync();
-			Logger.LogInfo($"Started Backend webhost: {BackendEndPoint}", nameof(Global));
+			Logger.LogInfo($"Started Backend webhost: {BackendEndPoint}");
 
 			var delayTask = Task.Delay(3000);
 			Task.WaitAny(delayTask, hostInitializationTask); // Wait for server to initialize (Without this OSX CI will fail)

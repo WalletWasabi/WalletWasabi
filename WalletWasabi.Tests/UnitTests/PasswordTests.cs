@@ -7,30 +7,37 @@ using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using Xunit;
 
-namespace WalletWasabi.Tests
+namespace WalletWasabi.Tests.UnitTests
 {
 	public class PasswordTests
 	{
 		[Fact]
 		public void ClipboardCutTest()
 		{
-			string original = "    w¾3AÍ-dCdï×¾M\\Øò¹ãÔÕýÈÝÁÐ9oEp¨}r:SR¦·ßNó±¥*W!¢ê#ikÇå<ðtÇf·a\\]§,à±H7«®È4nèNmæo4.qØ-¾ûda¯ºíö¾,¥¢½\\¹õèKeÁìÍSÈ@r±ØÙ2[r©UQÞ¶xN\"?:Ö@°&\n";
-
-			string desired = "    w¾3AÍ-dCdï×¾M\\Øò¹ãÔÕýÈÝÁÐ9oEp¨}r:SR¦·ßNó±¥*W!¢ê#ikÇå<ðtÇf·a\\]§,à±H7«®È4nèNmæo4.qØ-¾ûda¯";
-
-			var results = PasswordHelper.GetPossiblePasswords(original);
-			var foundCorrectPassword = false;
-
-			foreach (var pw in results)
+			Dictionary<string, string> passwords = new Dictionary<string, string>
 			{
-				if (pw == desired)
-				{
-					foundCorrectPassword = true;
-					break;
-				}
-			}
+				{ "    w¾3AÍ-dCdï×¾M\\Øò¹ãÔÕýÈÝÁÐ9oEp¨}r:SR¦·ßNó±¥*W!¢ê#ikÇå<ðtÇf·a\\]§,à±H7«®È4nèNmæo4.qØ-¾ûda¯ºíö¾,¥¢½\\¹õèKeÁìÍSÈ@r±ØÙ2[r©UQÞ¶xN\"?:Ö@°&\n", "    w¾3AÍ-dCdï×¾M\\Øò¹ãÔÕýÈÝÁÐ9oEp¨}r:SR¦·ßNó±¥*W!¢ê#ikÇå<ðtÇf·a\\]§,à±H7«®È4nèNmæo4.qØ-¾ûda¯" },
+				{ "§'\" + !%/= ()ÖÜÓ'", "§'\" + !%/= ()Ö\ufffd" }
+			};
 
-			Assert.True(foundCorrectPassword);
+			foreach (var pairs in passwords)
+			{
+				var original = pairs.Key;
+				var desired = pairs.Value;
+				var results = PasswordHelper.GetPossiblePasswords(original);
+				var foundCorrectPassword = false;
+
+				foreach (var pw in results)
+				{
+					if (pw == desired)
+					{
+						foundCorrectPassword = true;
+						break;
+					}
+				}
+
+				Assert.True(foundCorrectPassword);
+			}
 		}
 
 		[Fact]
@@ -40,10 +47,10 @@ namespace WalletWasabi.Tests
 			string original = "    w¾3AÍ-dCdï×¾M\\Øò¹ãÔÕýÈÝÁÐ9oEp¨}r:SR¦·ßNó±¥*W!¢ê#ikÇå<ðtÇf·a\\]§,à±H7«®È4nèNmæo4.qØ-¾ûda¯ºíö¾,¥¢½\\¹õèKeÁìÍSÈ@r±ØÙ2[r©UQÞ¶xN\"?:Ö@°&\n";
 
 			// Creating a wallet with buggy password.
-			var keyManager = KeyManager.CreateNew(out _, buggy);
+			var keyManager = KeyManager.CreateNew(out _, Guard.Correct(buggy)); // Every wallet was created with Guard.Correct before.
 
-			// Password should be formatted, before entering here.
-			Assert.Throws<FormatException>(() => PasswordHelper.GetMasterExtKey(keyManager, original, out _));
+			// Password will be trimmed inside.
+			PasswordHelper.GetMasterExtKey(keyManager, original, out _);
 
 			// This should not throw format exception but pw is not correct.
 			Assert.Throws<SecurityException>(() => PasswordHelper.GetMasterExtKey(keyManager, RandomString.Generate(PasswordHelper.MaxPasswordLength), out _));
@@ -93,6 +100,22 @@ namespace WalletWasabi.Tests
 
 			Assert.True(PasswordHelper.TryPassword(keyManager, original, out string compatiblePassword));
 			Assert.Equal(buggy, compatiblePassword);
+		}
+
+		[Fact]
+		public void EmptyNullTest()
+		{
+			string emptyPw = "";
+			string nullPw = null;
+
+			var emptyPws = PasswordHelper.GetPossiblePasswords(emptyPw);
+			var nullPws = PasswordHelper.GetPossiblePasswords(nullPw);
+
+			var emptyPwRes = Assert.Single(emptyPws);
+			var nullPwRes = Assert.Single(nullPws);
+
+			Assert.Equal("", emptyPwRes);
+			Assert.Equal("", nullPwRes);
 		}
 	}
 }

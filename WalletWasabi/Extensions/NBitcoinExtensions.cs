@@ -253,10 +253,10 @@ namespace NBitcoin
 			return psbt.ExtractSmartTransaction(Height.Unknown);
 		}
 
-		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt, Height height, uint256 blockHash = null, int blockIndex = 0, string label = "", DateTimeOffset? firstSeenIfMempoolTime = null, bool isReplacement = false)
+		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt, Height height, uint256 blockHash = null, int blockIndex = 0, SmartLabel label = null, DateTimeOffset firstSeen = default, bool isReplacement = false)
 		{
 			var extractedTx = psbt.ExtractTransaction();
-			return new SmartTransaction(extractedTx, height, blockHash, blockIndex, label, firstSeenIfMempoolTime, isReplacement);
+			return new SmartTransaction(extractedTx, height, blockHash, blockIndex, label, isReplacement, firstSeen);
 		}
 
 		public static void SortByAmount(this TxOutList list)

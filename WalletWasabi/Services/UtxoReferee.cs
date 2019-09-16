@@ -67,17 +67,17 @@ namespace WalletWasabi.Services
 						File.WriteAllLines(BannedUtxosFilePath, newAllLines);
 					}
 
-					Logger.LogInfo<UtxoReferee>($"{allLines.Length} banned UTXOs are loaded from {BannedUtxosFilePath}.");
+					Logger.LogInfo($"{allLines.Length} banned UTXOs are loaded from {BannedUtxosFilePath}.");
 				}
 				catch (Exception ex)
 				{
-					Logger.LogWarning<UtxoReferee>($"Banned UTXO file got corrupted. Deleting {BannedUtxosFilePath}. {ex.GetType()}: {ex.Message}");
+					Logger.LogWarning($"Banned UTXO file got corrupted. Deleting {BannedUtxosFilePath}. {ex.GetType()}: {ex.Message}");
 					File.Delete(BannedUtxosFilePath);
 				}
 			}
 			else
 			{
-				Logger.LogInfo<UtxoReferee>($"No banned UTXOs are loaded from {BannedUtxosFilePath}.");
+				Logger.LogInfo($"No banned UTXOs are loaded from {BannedUtxosFilePath}.");
 			}
 		}
 
@@ -135,7 +135,7 @@ namespace WalletWasabi.Services
 					}
 				}
 
-				Logger.LogInfo<UtxoReferee>($"UTXO {(isNoted ? "noted" : "banned")} with severity: {severity}. UTXO: {utxo.N}:{utxo.Hash} for disrupting Round {bannedForRound}.");
+				Logger.LogInfo($"UTXO {(isNoted ? "noted" : "banned")} with severity: {severity}. UTXO: {utxo.N}:{utxo.Hash} for disrupting Round {bannedForRound}.");
 			}
 
 			if (updated) // If at any time we set updated then we must update the whole thing.
@@ -155,7 +155,7 @@ namespace WalletWasabi.Services
 			{
 				IEnumerable<string> lines = BannedUtxos.Select(x => x.ToString());
 				await File.WriteAllLinesAsync(BannedUtxosFilePath, lines);
-				Logger.LogInfo<UtxoReferee>($"UTXO unbanned: {output.N}:{output.Hash}.");
+				Logger.LogInfo($"UTXO unbanned: {output.N}:{output.Hash}.");
 			}
 		}
 

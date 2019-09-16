@@ -78,8 +78,8 @@ namespace WalletWasabi.Gui.Dialogs
 			},
 			canCancel);
 
-			OKCommand.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<CannotCloseDialogViewModel>);
-			CancelCommand.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<CannotCloseDialogViewModel>);
+			OKCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning(ex));
+			CancelCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning(ex));
 		}
 
 		public override void OnOpen()
@@ -201,7 +201,7 @@ namespace WalletWasabi.Gui.Dialogs
 				}
 				catch (TaskCanceledException ex)
 				{
-					Logging.Logger.LogTrace<CannotCloseDialogViewModel>(ex);
+					Logging.Logger.LogTrace(ex);
 				}
 
 				if (WarningMessage == message)

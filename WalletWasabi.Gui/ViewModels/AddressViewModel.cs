@@ -10,6 +10,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.KeyManagement;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -33,7 +34,7 @@ namespace WalletWasabi.Gui.ViewModels
 			Model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
-			_label = model.Label;
+			_label = model.Label.ToString();
 
 			this.WhenAnyValue(x => x.IsExpanded)
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -49,7 +50,7 @@ namespace WalletWasabi.Gui.ViewModels
 					}
 					catch (Exception ex)
 					{
-						Logging.Logger.LogError<AddressViewModel>(ex);
+						Logging.Logger.LogError(ex);
 					}
 				});
 
@@ -70,7 +71,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 						if (hdPubKey != default)
 						{
-							hdPubKey.SetLabel(newLabel, kmToFile: keyManager);
+							hdPubKey.SetLabel(new SmartLabel(newLabel), kmToFile: keyManager);
 						}
 					}
 				});
@@ -156,11 +157,11 @@ namespace WalletWasabi.Gui.ViewModels
 									|| ex is TaskCanceledException
 									|| ex is TimeoutException)
 			{
-				Logging.Logger.LogTrace<AddressViewModel>(ex);
+				Logging.Logger.LogTrace(ex);
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning<AddressViewModel>(ex);
+				Logging.Logger.LogWarning(ex);
 			}
 			finally
 			{

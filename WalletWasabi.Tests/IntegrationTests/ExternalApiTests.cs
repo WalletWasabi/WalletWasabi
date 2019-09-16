@@ -14,7 +14,7 @@ using WalletWasabi.WebClients.SmartBit;
 using WalletWasabi.WebClients.SmartBit.Models;
 using Xunit;
 
-namespace WalletWasabi.Tests
+namespace WalletWasabi.Tests.IntegrationTests
 {
 	public class ExternalApiTests
 	{
@@ -102,8 +102,8 @@ namespace WalletWasabi.Tests
 			}
 			catch (Exception ex)
 			{
-				Logger.LogDebug<ExternalApiTests>($"Uri was not reachable: {uri}");
-				Logger.LogDebug<ExternalApiTests>(ex);
+				Logger.LogDebug($"Uri was not reachable: {uri}");
+				Logger.LogDebug(ex);
 			}
 			return false;
 		}

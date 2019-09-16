@@ -8,6 +8,7 @@ using WalletWasabi.Gui.ViewModels;
 using System.IO;
 using ReactiveUI;
 using System.Reactive;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Tabs
 {
@@ -17,7 +18,7 @@ namespace WalletWasabi.Gui.Tabs
 
 		public AboutViewModel(Global global) : base(global, "About")
 		{
-			Version = WalletWasabi.Helpers.Constants.ClientVersion;
+			Version = Constants.ClientVersion;
 
 			OpenBrowserCommand = ReactiveCommand.Create<string>(x =>
 			{
@@ -27,7 +28,7 @@ namespace WalletWasabi.Gui.Tabs
 				}
 				catch (Exception ex)
 				{
-					Logging.Logger.LogError<AboutViewModel>(ex);
+					Logging.Logger.LogError(ex);
 				}
 			});
 		}

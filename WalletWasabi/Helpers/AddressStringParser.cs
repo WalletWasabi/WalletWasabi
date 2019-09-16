@@ -2,6 +2,7 @@ using NBitcoin;
 using NBitcoin.Payment;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 namespace WalletWasabi.Helpers
@@ -54,7 +55,7 @@ namespace WalletWasabi.Helpers
 
 			try
 			{
-				if (!text.StartsWith("bitcoin:", true, System.Globalization.CultureInfo.InvariantCulture))
+				if (!text.StartsWith("bitcoin:", true, CultureInfo.InvariantCulture))
 				{
 					return false;
 				}

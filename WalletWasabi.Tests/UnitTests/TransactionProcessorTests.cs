@@ -6,7 +6,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Services;
 using Xunit;
 
-namespace WalletWasabi.Tests
+namespace WalletWasabi.Tests.UnitTests
 {
 	public class TransactionProcessorTests
 	{

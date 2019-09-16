@@ -17,7 +17,7 @@ namespace Avalonia.Threading
 				}
 				catch (Exception ex)
 				{
-					WalletWasabi.Logging.Logger.LogDebug<Dispatcher>(ex);
+					WalletWasabi.Logging.Logger.LogDebug(ex);
 				}
 			}, priority);
 		}
@@ -32,7 +32,7 @@ namespace Avalonia.Threading
 				}
 				catch (Exception ex)
 				{
-					WalletWasabi.Logging.Logger.LogDebug<Dispatcher>(ex);
+					WalletWasabi.Logging.Logger.LogDebug(ex);
 				}
 			}, priority);
 		}

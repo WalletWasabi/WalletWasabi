@@ -2,12 +2,14 @@ using NBitcoin;
 using System;
 using System.IO;
 using System.Security;
+using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Tests.XunitConfiguration;
 using Xunit;
 
-namespace WalletWasabi.Tests
+namespace WalletWasabi.Tests.UnitTests
 {
 	public class KeyManagementTests
 	{
@@ -78,7 +80,7 @@ namespace WalletWasabi.Tests
 			Assert.NotEqual(manager.ExtPubKey, differentManager.ExtPubKey);
 
 			differentManager.AssertCleanKeysIndexed();
-			var newKey = differentManager.GenerateNewKey("some-label", KeyState.Clean, true, false);
+			var newKey = differentManager.GenerateNewKey(new SmartLabel("some-label"), KeyState.Clean, true, false);
 			Assert.Equal(newKey.Index, differentManager.MinGapLimit);
 			Assert.Equal("999'/999'/999'/1/55", newKey.FullKeyPath.ToString());
 		}
@@ -88,7 +90,7 @@ namespace WalletWasabi.Tests
 		{
 			string password = "password";
 
-			var filePath = Path.Combine(Global.Instance.DataDir, nameof(CanSerialize), "Wallet.json");
+			var filePath = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName(), "Wallet.json");
 			DeleteFileAndDirectoryIfExists(filePath);
 
 			Logger.TurnOff();
@@ -107,7 +109,7 @@ namespace WalletWasabi.Tests
 			for (int i = 0; i < 1000; i++)
 			{
 				var isInternal = random.Next(2) == 0;
-				var label = RandomString.Generate(21);
+				var label = new SmartLabel(RandomString.Generate(21));
 				var keyState = (KeyState)random.Next(3);
 				manager.GenerateNewKey(label, keyState, isInternal, toFile: false);
 			}
@@ -132,15 +134,15 @@ namespace WalletWasabi.Tests
 
 			var random = new Random();
 
-			var k1 = manager.GenerateNewKey("", KeyState.Clean, true);
+			var k1 = manager.GenerateNewKey(SmartLabel.Empty, KeyState.Clean, true);
 			var k2 = manager.GenerateNewKey(null, KeyState.Clean, true);
-			Assert.Equal("", k1.Label);
-			Assert.Equal("", k2.Label);
+			Assert.Equal(SmartLabel.Empty, k1.Label);
+			Assert.Equal(SmartLabel.Empty, k2.Label);
 
 			for (int i = 0; i < 1000; i++)
 			{
 				var isInternal = random.Next(2) == 0;
-				var label = RandomString.Generate(21);
+				var label = new SmartLabel(RandomString.Generate(21));
 				var keyState = (KeyState)random.Next(3);
 				var generatedKey = manager.GenerateNewKey(label, keyState, isInternal);
 
