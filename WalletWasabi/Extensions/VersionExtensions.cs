@@ -6,11 +6,12 @@ namespace System
 	{
 		public static string ToVersionString(this Version version)
 		{
-#if RELEASE
-			return version.ToString(3);
-#else
 			return version.ToString(4);
-#endif
+		}
+
+		public static Version ToVersion(this Version version, int fieldCount)
+		{
+			return new Version(version.ToString(fieldCount));
 		}
 	}
 }
