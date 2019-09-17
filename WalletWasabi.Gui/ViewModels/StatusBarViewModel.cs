@@ -167,6 +167,16 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
+					if (x != UpdateStatus.Latest)
+					{
+						UpdateAvailable = true;
+
+						if (x == UpdateStatus.Critical)
+						{
+							CriticalUpdateAvailable = true;
+						}
+					}
+
 					if (x == UpdateStatus.Critical)
 					{
 						TryAddStatus(StatusBarStatus.CriticalUpdate);
@@ -202,20 +212,23 @@ namespace WalletWasabi.Gui.ViewModels
 				.Select(x => x != UpdateStatus.Latest));
 			this.RaisePropertyChanged(nameof(UpdateCommand)); // The binding happens after the constructor. So, if the command is not in constructor, then we need this line.
 
-			updateChecker.Start(TimeSpan.FromMinutes(7),
-				() =>
+
+			Observable.FromEventPattern(updateChecker, nameof(updateChecker.ClientOutOfDate))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(e =>
+				{
+					UpdateStatus = UpdateStatus.Optional;
+				}).DisposeWith(Disposables);
+
+			Observable.FromEventPattern(updateChecker, nameof(updateChecker.BackendIncompatible))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(e =>
 				{
 					UpdateStatus = UpdateStatus.Critical;
-					return Task.CompletedTask;
-				},
-				() =>
-				{
-					if (UpdateStatus != UpdateStatus.Critical)
-					{
-						UpdateStatus = UpdateStatus.Optional;
-					}
-					return Task.CompletedTask;
-				});
+				}).DisposeWith(Disposables);
+
+			updateChecker.Start(TimeSpan.FromMinutes(7));
+
 		}
 
 		public ReactiveCommand<Unit, Unit> UpdateCommand { get; set; }
@@ -223,20 +236,7 @@ namespace WalletWasabi.Gui.ViewModels
 		public UpdateStatus UpdateStatus
 		{
 			get => _updateStatus;
-			set
-			{
-				if (value != UpdateStatus.Latest)
-				{
-					UpdateAvailable = true;
-
-					if (value == UpdateStatus.Critical)
-					{
-						CriticalUpdateAvailable = true;
-					}
-				}
-
-				this.RaiseAndSetIfChanged(ref _updateStatus, value);
-			}
+			set => this.RaiseAndSetIfChanged(ref _updateStatus, value);
 		}
 
 		public bool UpdateAvailable
