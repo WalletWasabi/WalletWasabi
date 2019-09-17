@@ -167,16 +167,6 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
-					if (x != UpdateStatus.Latest)
-					{
-						UpdateAvailable = true;
-
-						if (x == UpdateStatus.Critical)
-						{
-							CriticalUpdateAvailable = true;
-						}
-					}
-
 					if (x == UpdateStatus.Critical)
 					{
 						TryAddStatus(StatusBarStatus.CriticalUpdate);
@@ -212,18 +202,26 @@ namespace WalletWasabi.Gui.ViewModels
 				.Select(x => x != UpdateStatus.Latest));
 			this.RaisePropertyChanged(nameof(UpdateCommand)); // The binding happens after the constructor. So, if the command is not in constructor, then we need this line.
 
-			Observable.FromEventPattern(updateChecker, nameof(updateChecker.ClientOutOfDate))
+			Observable.FromEventPattern<UpdateStatusResult>(updateChecker, nameof(updateChecker.UpdateChecked))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(e =>
+				.Select(x => x.EventArgs)
+				.Subscribe(x =>
 				{
-					UpdateStatus = UpdateStatus.Optional;
-				}).DisposeWith(Disposables);
+					if (x.ClientUpToDate && x.BackendCompatible)
+					{
+						UpdateStatus = UpdateStatus.Latest;
+					}
+					else if (!x.BackendCompatible)
+					{
+						UpdateStatus = UpdateStatus.Critical;
+					}
+					else
+					{
+						UpdateStatus = UpdateStatus.Optional;
+					}
 
-			Observable.FromEventPattern(updateChecker, nameof(updateChecker.BackendIncompatible))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(e =>
-				{
-					UpdateStatus = UpdateStatus.Critical;
+					UpdateAvailable = !x.ClientUpToDate;
+					CriticalUpdateAvailable = !x.BackendCompatible;
 				}).DisposeWith(Disposables);
 
 			updateChecker.Start(TimeSpan.FromMinutes(7));

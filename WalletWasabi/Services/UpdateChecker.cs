@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
@@ -20,8 +21,7 @@ namespace WalletWasabi.Services
 
 		public WasabiClient WasabiClient { get; }
 
-		public event EventHandler BackendIncompatible;
-		public event EventHandler ClientOutOfDate;
+		public event EventHandler<UpdateStatusResult> UpdateChecked;
 
 		public UpdateChecker(WasabiClient client)
 		{
@@ -45,17 +45,9 @@ namespace WalletWasabi.Services
 					{
 						try
 						{
-							(bool backendCompatible, bool clientUpToDate) updates = await WasabiClient.CheckUpdatesAsync(Stop.Token);
+							var updates = await WasabiClient.CheckUpdatesAsync(Stop.Token);
 
-							if (!updates.backendCompatible)
-							{
-								BackendIncompatible?.Invoke(this,null);
-							}
-
-							if (!updates.clientUpToDate)
-							{
-								ClientOutOfDate?.Invoke(this,null);
-							}
+							UpdateChecked?.Invoke(this, updates);
 						}
 						catch (ConnectionException ex)
 						{
