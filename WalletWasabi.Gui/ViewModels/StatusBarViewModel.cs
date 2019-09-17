@@ -89,7 +89,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.Subscribe(_ =>
 				{
 					// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they do not.
-					Peers = Tor == TorStatus.NotRunning ? 0 : Nodes.Count;
+					Peers = Synchronizer.TorStatus == TorStatus.NotRunning ? 0 : Nodes.Count;
 				}).DisposeWith(Disposables);
 
 			Peers = Tor == TorStatus.NotRunning ? 0 : Nodes.Count;
@@ -212,7 +212,6 @@ namespace WalletWasabi.Gui.ViewModels
 				.Select(x => x != UpdateStatus.Latest));
 			this.RaisePropertyChanged(nameof(UpdateCommand)); // The binding happens after the constructor. So, if the command is not in constructor, then we need this line.
 
-
 			Observable.FromEventPattern(updateChecker, nameof(updateChecker.ClientOutOfDate))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(e =>
@@ -228,7 +227,6 @@ namespace WalletWasabi.Gui.ViewModels
 				}).DisposeWith(Disposables);
 
 			updateChecker.Start(TimeSpan.FromMinutes(7));
-
 		}
 
 		public ReactiveCommand<Unit, Unit> UpdateCommand { get; set; }
