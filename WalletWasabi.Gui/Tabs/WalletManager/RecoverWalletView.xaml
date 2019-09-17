@@ -10,7 +10,7 @@
         <StackPanel Spacing="8">
           <StackPanel>
             <TextBlock Text="Heads Up!" FontWeight="Bold" />
-            <TextBlock Text="At recovery, the wallet is unable to check if your password is correct or not. If you provide the wrong password, a wallet will be recovered with the provided Recovery Words and password combination." TextWrapping="Wrap" />
+            <TextBlock Text="At recovery, the wallet is unable to check if your password is correct or not. If you provide a wrong password, a wallet will be recovered with the provided Recovery Words and password combination." TextWrapping="Wrap" />
           </StackPanel>
           <controls:ExtendedTextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
           <controls:TogglePasswordBox Text="{Binding Password}">

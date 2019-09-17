@@ -531,20 +531,20 @@ namespace WalletWasabi.Services
 			{
 				if (filterByTxIndexes is null)
 				{
-					var relevantIndicies = new List<int>();
+					var relevantIndices = new List<int>();
 					for (int i = 0; i < block.Transactions.Count; i++)
 					{
 						Transaction tx = block.Transactions[i];
 						if (await ProcessTransactionAsync(new SmartTransaction(tx, height, block.GetHash(), i)))
 						{
-							relevantIndicies.Add(i);
+							relevantIndices.Add(i);
 							ret = true;
 						}
 					}
 
-					if (relevantIndicies.Any())
+					if (relevantIndices.Any())
 					{
-						var blockState = new BlockState(block.GetHash(), height, relevantIndicies);
+						var blockState = new BlockState(block.GetHash(), height, relevantIndices);
 						KeyManager.AddBlockState(blockState, setItsHeightToBest: true); // Set the height here (so less toFile and lock.)
 					}
 					else

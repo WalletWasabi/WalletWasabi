@@ -37,7 +37,7 @@ namespace WalletWasabi.Models
 		{
 			if (height < 0)
 			{
-				throw new ArgumentException($"{nameof(height)} : {height} cannot be less than zero");
+				throw new ArgumentException($"{nameof(height)}: {height} cannot be less than zero");
 			}
 
 			if (height == Unknown.Value)

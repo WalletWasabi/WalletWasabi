@@ -243,7 +243,7 @@ namespace WalletWasabi.Packager
 			{
 				var filePath = file.FullName;
 				var hash = ByteHelpers.ToHex(IoHelpers.GetHashFile(filePath)).ToLowerInvariant();
-				Console.WriteLine($"{file.Name} : {hash}");
+				Console.WriteLine($"{file.Name}: {hash}");
 			}
 
 			IoHelpers.DeleteRecursivelyWithMagicDustAsync(tempDir).GetAwaiter().GetResult();
