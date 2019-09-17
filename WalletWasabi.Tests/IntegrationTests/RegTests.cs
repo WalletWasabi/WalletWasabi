@@ -116,8 +116,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 			using (var client = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint), null))
 			{
 				var uptodate = await client.CheckUpdatesAsync(CancellationToken.None);
-				Assert.True(uptodate.backendCompatible);
-				Assert.True(uptodate.clientUpToDate);
+				Assert.True(uptodate.BackendCompatible);
+				Assert.True(uptodate.ClientUpToDate);
 			}
 		}
 
