@@ -55,7 +55,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			if (!uint256.TryParse(bestKnownBlockHash, out var knownHash))
 			{
-				return BadRequest("Invalid bestKnownBlockHash.");
+				return BadRequest($"Invalid {nameof(bestKnownBlockHash)}.");
 			}
 
 			(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, maxNumberOfFilters, out bool found);
