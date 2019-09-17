@@ -273,7 +273,7 @@ namespace WalletWasabi.Gui
 			}
 			else
 			{
-				throw new NotSupportedException("Unsupported network");
+				throw new NotSupportedException($"{nameof(Network)} not supported: {Network}.");
 			}
 		}
 
@@ -293,7 +293,7 @@ namespace WalletWasabi.Gui
 			}
 			else
 			{
-				throw new NotSupportedException("Unsupported network");
+				throw new NotSupportedException($"{nameof(Network)} not supported: {Network}.");
 			}
 		}
 
