@@ -203,8 +203,8 @@ namespace WalletWasabi.Gui.ViewModels
 			this.RaisePropertyChanged(nameof(UpdateCommand)); // The binding happens after the constructor. So, if the command is not in constructor, then we need this line.
 
 			Observable.FromEventPattern<UpdateStatusResult>(updateChecker, nameof(updateChecker.UpdateChecked))
-				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => x.EventArgs)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
 					if (x.BackendCompatible)
