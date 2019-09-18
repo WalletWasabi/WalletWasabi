@@ -104,8 +104,6 @@ namespace WalletWasabi.Mempool
 			}
 		}
 
-		private static ConcurrentHashSet<uint256> Pending { get; } = new ConcurrentHashSet<uint256>();
-
 		private async Task ProcessInvAsync(Node node, InvPayload payload)
 		{
 			if (payload.Inventory.Count > MaxInvSize)
