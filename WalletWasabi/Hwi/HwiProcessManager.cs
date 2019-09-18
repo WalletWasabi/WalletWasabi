@@ -123,7 +123,7 @@ namespace WalletWasabi.Hwi
 		public static async Task<IEnumerable<HardwareWalletInfo>> EnumerateAsync()
 		{
 			JToken jtok = null;
-			using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(60)))
+			using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
 			{
 				jtok = await SendCommandAsync("enumerate", cts.Token);
 			}
