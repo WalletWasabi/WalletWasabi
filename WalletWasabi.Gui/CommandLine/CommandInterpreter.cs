@@ -70,7 +70,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 		private static void ShowVersion()
 		{
-			Console.WriteLine($"Wasabi Client Version: {Constants.ClientVersion.ToVersionString()}");
+			Console.WriteLine($"Wasabi Client Version: {Constants.ClientVersion}");
 			Console.WriteLine($"Compatible Coordinator Version: {Constants.BackendMajorVersion}");
 		}
 
