@@ -8,7 +8,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Services
+namespace WalletWasabi.Mempool
 {
 	public class MempoolBehavior : NodeBehavior
 	{

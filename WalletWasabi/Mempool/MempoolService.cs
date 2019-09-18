@@ -10,7 +10,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.WebClients.Wasabi;
 
-namespace WalletWasabi.Services
+namespace WalletWasabi.Mempool
 {
 	public class MempoolService
 	{
