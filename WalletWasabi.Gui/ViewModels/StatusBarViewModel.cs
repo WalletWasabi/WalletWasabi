@@ -207,17 +207,20 @@ namespace WalletWasabi.Gui.ViewModels
 				.Select(x => x.EventArgs)
 				.Subscribe(x =>
 				{
-					if (x.ClientUpToDate && x.BackendCompatible)
+					if (x.BackendCompatible)
 					{
-						UpdateStatus = UpdateStatus.Latest;
-					}
-					else if (!x.BackendCompatible)
-					{
-						UpdateStatus = UpdateStatus.Critical;
+						if (x.ClientUpToDate)
+						{
+							UpdateStatus = UpdateStatus.Latest;
+						}
+						else
+						{
+							UpdateStatus = UpdateStatus.Optional;
+						}
 					}
 					else
 					{
-						UpdateStatus = UpdateStatus.Optional;
+						UpdateStatus = UpdateStatus.Critical;
 					}
 
 					UpdateAvailable = !x.ClientUpToDate;
