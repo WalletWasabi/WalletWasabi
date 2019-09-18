@@ -48,8 +48,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			});
 
 			Observable.Merge(SendPinCommand.ThrownExceptions)
-			.Merge(KeyPadCommand.ThrownExceptions)
-			.Subscribe(OnException);
+				.Merge(KeyPadCommand.ThrownExceptions)
+				.Subscribe(OnException);
 		}
 
 		public override void OnOpen()
