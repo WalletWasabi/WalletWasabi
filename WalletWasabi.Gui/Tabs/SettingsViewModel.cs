@@ -13,6 +13,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Text.RegularExpressions;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
@@ -136,7 +137,7 @@ namespace WalletWasabi.Gui.Tabs
 
 		public override void OnOpen()
 		{
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedAlreadyOpenInstanceException(GetType().Name);
 
 			Config.LoadOrCreateDefaultFileAsync(Global.Config.FilePath)
 				.ToObservable(RxApp.TaskpoolScheduler)

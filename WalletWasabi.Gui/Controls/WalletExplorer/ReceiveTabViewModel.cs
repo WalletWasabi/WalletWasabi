@@ -10,6 +10,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.KeyManagement;
@@ -136,7 +137,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnOpen();
 
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedAlreadyOpenInstanceException(GetType().Name);
 
 			Observable.FromEventPattern(Global.WalletService.Coins,
 				nameof(Global.WalletService.Coins.CollectionChanged))

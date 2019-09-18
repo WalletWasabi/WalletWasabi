@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Services;
 
@@ -91,7 +92,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void OnWalletOpened()
 		{
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedAlreadyOpenInstanceException(GetType().Name);
 
 			var observed = Observable.Merge(
 				Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Select(_ => Unit.Default),

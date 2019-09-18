@@ -13,6 +13,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
@@ -377,7 +378,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void OnOpen()
 		{
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedAlreadyOpenInstanceException(GetType().Name);
 
 			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent))
 			{

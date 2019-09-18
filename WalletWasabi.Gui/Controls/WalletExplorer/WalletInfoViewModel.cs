@@ -12,6 +12,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Services;
 using WalletWasabi.Models;
+using WalletWasabi.Exceptions;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -151,7 +152,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnOpen()
 		{
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedAlreadyOpenInstanceException(GetType().Name);
 
 			Closing = new CancellationTokenSource();
 

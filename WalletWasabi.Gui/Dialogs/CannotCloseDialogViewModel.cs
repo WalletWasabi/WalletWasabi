@@ -7,6 +7,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Dialogs
@@ -84,7 +85,7 @@ namespace WalletWasabi.Gui.Dialogs
 
 		public override void OnOpen()
 		{
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedAlreadyOpenInstanceException(GetType().Name);
 
 			CancelTokenSource = new CancellationTokenSource().DisposeWith(Disposables);
 

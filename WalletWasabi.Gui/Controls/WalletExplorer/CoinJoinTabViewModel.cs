@@ -18,6 +18,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Services;
 using WalletWasabi.Models;
+using WalletWasabi.Exceptions;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -118,7 +119,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnOpen();
 
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedAlreadyOpenInstanceException(GetType().Name);
 
 			TargetPrivacy = Global.Config.GetTargetPrivacy();
 
