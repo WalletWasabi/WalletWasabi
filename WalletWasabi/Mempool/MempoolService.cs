@@ -24,8 +24,6 @@ namespace WalletWasabi.Mempool
 
 		public event EventHandler<SmartTransaction> TransactionReceived;
 
-		internal void OnTransactionReceived(SmartTransaction transaction) => TransactionReceived?.Invoke(this, transaction);
-
 		public MempoolService()
 		{
 			ProcessedTransactionHashes = new HashSet<uint256>();
@@ -172,7 +170,7 @@ namespace WalletWasabi.Mempool
 			{
 				if (ProcessedTransactionHashes.Add(tx.GetHash()))
 				{
-					OnTransactionReceived(new SmartTransaction(tx, Height.Mempool));
+					TransactionReceived?.Invoke(this, new SmartTransaction(tx, Height.Mempool));
 				}
 				else
 				{
