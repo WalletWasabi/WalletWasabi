@@ -88,7 +88,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
-					// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they do not.
+					// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
 					Peers = Synchronizer.TorStatus == TorStatus.NotRunning ? 0 : Nodes.Count;
 				}).DisposeWith(Disposables);
 
