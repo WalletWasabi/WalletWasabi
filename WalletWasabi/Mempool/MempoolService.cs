@@ -14,7 +14,8 @@ namespace WalletWasabi.Mempool
 {
 	public class MempoolService
 	{
-		public ConcurrentHashSet<uint256> TransactionHashes { get; }
+		private HashSet<uint256> ProcessedTransactionHashes { get; }
+		private object ProcessedLock { get; }
 
 		// Transactions that we would reply to INV messages.
 		private List<TransactionBroadcastEntry> BroadcastStore { get; }
@@ -27,7 +28,8 @@ namespace WalletWasabi.Mempool
 
 		public MempoolService()
 		{
-			TransactionHashes = new ConcurrentHashSet<uint256>();
+			ProcessedTransactionHashes = new HashSet<uint256>();
+			ProcessedLock = new object();
 			BroadcastStore = new List<TransactionBroadcastEntry>();
 			BroadcastStoreLock = new object();
 			_cleanupInProcess = 0;
@@ -106,9 +108,11 @@ namespace WalletWasabi.Mempool
 			// This function is designed to prevent forever growing mempool.
 			try
 			{
-				if (!TransactionHashes.Any())
+				// No need for locking when accessing Count.
+				if (ProcessedTransactionHashes.Count == 0)
 				{
-					return true; // There's nothing to cleanup.
+					// There's nothing to cleanup.
+					return true;
 				}
 
 				Logger.LogInfo("Start cleaning out mempool...");
@@ -117,18 +121,24 @@ namespace WalletWasabi.Mempool
 					var compactness = 10;
 					var allMempoolHashes = await client.GetMempoolHashesAsync(compactness);
 
-					var toRemove = TransactionHashes.Where(x => !allMempoolHashes.Contains(x.ToString().Substring(0, compactness)));
-
-					int removedTxCount = 0;
-					foreach (uint256 tx in toRemove)
+					lock (ProcessedLock)
 					{
-						if (TransactionHashes.TryRemove(tx))
-						{
-							removedTxCount++;
-						}
-					}
+						int removedTxCount = ProcessedTransactionHashes.RemoveWhere(x => !allMempoolHashes.Contains(x.ToString().Substring(0, compactness)));
 
-					Logger.LogInfo($"{removedTxCount} transactions were cleaned from mempool.");
+						Logger.LogInfo($"{removedTxCount} transactions were cleaned from mempool.");
+					}
+				}
+
+				// Display warning if total receives would be reached by duplicated receives.
+				// Also reset the benchmarking.
+				var totalReceived = Interlocked.Exchange(ref _totalReceives, 0);
+				var duplicatedReceived = Interlocked.Exchange(ref _duplicatedReceives, 0);
+				if (duplicatedReceived >= totalReceived)
+				{
+					// Note that the worst case scenario is not duplicatedReceived == totalReceived, but duplicatedReceived == (number of peers) * totalReceived.
+					// It's just duplicatedReceived == totalReceived is maximum what we want to tolerate.
+					// By turning off Tor, we can notice that the ratio is much better, so this mainly depends on the internet speed.
+					Logger.LogWarning($"Too many duplicated mempool transactions are downloaded.\n{nameof(duplicatedReceived)} : {duplicatedReceived}\n{nameof(totalReceived)} : {totalReceived}");
 				}
 
 				return true;
@@ -143,6 +153,34 @@ namespace WalletWasabi.Mempool
 			}
 
 			return false;
+		}
+
+		public bool IsProcessed(uint256 txid)
+		{
+			lock (ProcessedLock)
+			{
+				return ProcessedTransactionHashes.Contains(txid);
+			}
+		}
+
+		private long _totalReceives = 0;
+		private long _duplicatedReceives = 0;
+
+		public void Process(Transaction tx)
+		{
+			lock (ProcessedLock)
+			{
+				if (ProcessedTransactionHashes.Add(tx.GetHash()))
+				{
+					OnTransactionReceived(new SmartTransaction(tx, Height.Mempool));
+				}
+				else
+				{
+					Interlocked.Increment(ref _duplicatedReceives);
+				}
+
+				Interlocked.Increment(ref _totalReceives);
+			}
 		}
 	}
 }

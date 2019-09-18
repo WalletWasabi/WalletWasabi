@@ -3,6 +3,7 @@ using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -103,6 +104,8 @@ namespace WalletWasabi.Mempool
 			}
 		}
 
+		private static ConcurrentHashSet<uint256> Pending { get; } = new ConcurrentHashSet<uint256>();
+
 		private async Task ProcessInvAsync(Node node, InvPayload payload)
 		{
 			if (payload.Inventory.Count > MaxInvSize)
@@ -131,8 +134,8 @@ namespace WalletWasabi.Mempool
 					}
 				}
 
-				// if we already have it continue;
-				if (!MempoolService.TransactionHashes.TryAdd(inv.Hash))
+				// if we already processed it continue;
+				if (MempoolService.IsProcessed(inv.Hash))
 				{
 					continue;
 				}
@@ -150,7 +153,7 @@ namespace WalletWasabi.Mempool
 		private void ProcessTx(TxPayload payload)
 		{
 			Transaction transaction = payload.Object;
-			MempoolService.OnTransactionReceived(new SmartTransaction(transaction, Height.Mempool));
+			MempoolService.Process(transaction);
 		}
 
 		public override object Clone()
