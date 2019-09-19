@@ -1,5 +1,5 @@
   
-name: ASP.NET Core CI
+name: Wasabi unit test
 
 on: [push]
 
@@ -19,3 +19,5 @@ jobs:
         dotnet-version: 2.2.202
     - name: Build with dotnet
       run: dotnet build --configuration Release
+    - name: Test with dotnet
+      run: dotnet test --configuration Release --filter "UnitTests"
