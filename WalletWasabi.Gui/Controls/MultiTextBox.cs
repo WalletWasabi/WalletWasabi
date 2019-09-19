@@ -23,25 +23,25 @@ namespace WalletWasabi.Gui.Controls
 		private CompositeDisposable Disposables { get; set; }
 
 		public static readonly StyledProperty<bool> ClipboardNotificationVisibleProperty =
-		AvaloniaProperty.Register<MultiTextBox, bool>(nameof(ClipboardNotificationVisible), defaultBindingMode: BindingMode.TwoWay);
+			AvaloniaProperty.Register<MultiTextBox, bool>(nameof(ClipboardNotificationVisible), defaultBindingMode: BindingMode.TwoWay);
 
 		public static readonly StyledProperty<double> ClipboardNotificationOpacityProperty =
-		AvaloniaProperty.Register<MultiTextBox, double>(nameof(ClipboardNotificationOpacity), defaultBindingMode: BindingMode.TwoWay);
+			AvaloniaProperty.Register<MultiTextBox, double>(nameof(ClipboardNotificationOpacity), defaultBindingMode: BindingMode.TwoWay);
 
 		public static readonly StyledProperty<ReactiveCommand<Unit, Unit>> CopyToClipboardCommandProperty =
-		AvaloniaProperty.Register<MultiTextBox, ReactiveCommand<Unit, Unit>>(nameof(CopyToClipboardCommand), defaultBindingMode: BindingMode.TwoWay);
+			AvaloniaProperty.Register<MultiTextBox, ReactiveCommand<Unit, Unit>>(nameof(CopyToClipboardCommand), defaultBindingMode: BindingMode.TwoWay);
 
 		public static readonly StyledProperty<bool> PasteOnClickProperty =
-		AvaloniaProperty.Register<MultiTextBox, bool>(nameof(PasteOnClick), defaultBindingMode: BindingMode.TwoWay);
+			AvaloniaProperty.Register<MultiTextBox, bool>(nameof(PasteOnClick), defaultBindingMode: BindingMode.TwoWay);
 
 		public static readonly StyledProperty<bool> CopyOnClickProperty =
-		AvaloniaProperty.Register<MultiTextBox, bool>(nameof(CopyOnClick), defaultBindingMode: BindingMode.TwoWay);
+			AvaloniaProperty.Register<MultiTextBox, bool>(nameof(CopyOnClick), defaultBindingMode: BindingMode.TwoWay);
 
 		public static readonly StyledProperty<bool> TextVisibleProperty =
-		AvaloniaProperty.Register<MultiTextBox, bool>(nameof(TextVisible), defaultBindingMode: BindingMode.TwoWay);
+			AvaloniaProperty.Register<MultiTextBox, bool>(nameof(TextVisible), defaultBindingMode: BindingMode.TwoWay);
 
 		public static readonly StyledProperty<bool> IsSelectableProperty =
-		AvaloniaProperty.Register<MultiTextBox, bool>(nameof(IsSelectable), defaultBindingMode: BindingMode.TwoWay);
+			AvaloniaProperty.Register<MultiTextBox, bool>(nameof(IsSelectable), defaultBindingMode: BindingMode.TwoWay);
 
 		public bool ClipboardNotificationVisible
 		{
@@ -163,9 +163,7 @@ namespace WalletWasabi.Gui.Controls
 				await Task.Delay(1000, cancelToken);
 				ClipboardNotificationVisible = false;
 			}
-			catch (Exception ex) when (ex is OperationCanceledException
-									|| ex is TaskCanceledException
-									|| ex is TimeoutException)
+			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
 			{
 				Logging.Logger.LogTrace(ex);
 			}

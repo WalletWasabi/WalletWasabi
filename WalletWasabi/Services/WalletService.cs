@@ -694,9 +694,7 @@ namespace WalletWasabi.Services
 
 							await NodeTimeoutsAsync(false);
 						}
-						catch (Exception ex) when (ex is OperationCanceledException
-												|| ex is TaskCanceledException
-												|| ex is TimeoutException)
+						catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
 						{
 							Logger.LogInfo($"Disconnected node: {node.RemoteSocketAddress}, because block download took too long.");
 
@@ -1231,8 +1229,7 @@ namespace WalletWasabi.Services
 				{
 					await client.BroadcastAsync(transaction);
 				}
-				catch (HttpRequestException ex2) when (
-					ex2.Message.Contains("bad-txns-inputs-missingorspent", StringComparison.InvariantCultureIgnoreCase)
+				catch (HttpRequestException ex2) when (ex2.Message.Contains("bad-txns-inputs-missingorspent", StringComparison.InvariantCultureIgnoreCase)
 					|| ex2.Message.Contains("missing-inputs", StringComparison.InvariantCultureIgnoreCase)
 					|| ex2.Message.Contains("txn-mempool-conflict", StringComparison.InvariantCultureIgnoreCase))
 				{
