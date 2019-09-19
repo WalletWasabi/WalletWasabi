@@ -100,10 +100,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Select(x => x ? DequeuingButtonTextString : DequeueButtonTextString)
 				.Subscribe(text => DequeueButtonText = text);
 
-			this.WhenAnyValue(x => x.TargetPrivacy).Subscribe(target =>
-			{
-				CoinJoinUntilAnonymitySet = Global.Config.GetTargetLevel(target);
-			});
+			this.WhenAnyValue(x => x.TargetPrivacy)
+				.Subscribe(target => CoinJoinUntilAnonymitySet = Global.Config.GetTargetLevel(target));
 
 			this.WhenAnyValue(x => x.RoundTimesout)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -154,11 +152,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				PeersNeeded = 100;
 			}
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(AmountQueued));
-				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
-			}).DisposeWith(Disposables);
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					this.RaisePropertyChanged(nameof(AmountQueued));
+					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+				})
+				.DisposeWith(Disposables);
 
 			Observable.Interval(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -166,7 +166,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					TimeSpan left = RoundTimesout - DateTimeOffset.UtcNow;
 					TimeLeftTillRoundTimeout = left > TimeSpan.Zero ? left : TimeSpan.Zero; // Make sure cannot be less than zero.
-				}).DisposeWith(Disposables);
+				})
+				.DisposeWith(Disposables);
 		}
 
 		public override bool OnClose()

@@ -82,15 +82,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.Label).Subscribe(UpdateSuggestions);
 
-			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
-			{
-				if (Global.UiConfig?.Autocopy is false || address is null)
+			this.WhenAnyValue(x => x.SelectedAddress)
+				.Subscribe(async address =>
 				{
-					return;
-				}
+					if (Global.UiConfig?.Autocopy is false || address is null)
+					{
+						return;
+					}
 
-				await address.TryCopyToClipboardAsync();
-			});
+					await address.TryCopyToClipboardAsync();
+				});
 
 			var isCoinListItemSelected = this.WhenAnyValue(x => x.SelectedAddress).Select(coin => coin != null);
 

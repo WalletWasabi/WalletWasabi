@@ -437,7 +437,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						Logging.Logger.LogDebug(ex);
 					}
-				}).DisposeWith(Disposables);
+				})
+				.DisposeWith(Disposables);
 
 			SetSelections();
 			SetCoinJoinStatusWidth();

@@ -15,13 +15,15 @@ namespace WalletWasabi.Gui.Behaviors
 
 			base.OnAttached();
 
-			Disposables.Add(AssociatedObject.AddHandler(InputElement.KeyDownEvent, (sender, e) =>
-			{
-				if (e.Key == Key.Enter)
+			Disposables.Add(AssociatedObject.AddHandler(InputElement.KeyDownEvent,
+				(sender, e) =>
 				{
-					e.Handled = ExecuteCommand();
-				}
-			}, RoutingStrategies.Tunnel));
+					if (e.Key == Key.Enter)
+					{
+						e.Handled = ExecuteCommand();
+					}
+				},
+				RoutingStrategies.Tunnel));
 		}
 
 		protected override void OnDetaching()

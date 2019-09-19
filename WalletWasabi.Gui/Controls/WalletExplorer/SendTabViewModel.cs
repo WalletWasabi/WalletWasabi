@@ -124,60 +124,54 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.WhenAnyValue(x => x.AmountText)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(amount =>
-			{
-				if (!IsMax)
 				{
-					// Correct amount
-					Regex digitsOnly = new Regex(@"[^\d,.]");
-					string betterAmount = digitsOnly.Replace(amount, ""); // Make it digits , and . only.
-
-					betterAmount = betterAmount.Replace(',', '.');
-					int countBetterAmount = betterAmount.Count(x => x == '.');
-					if (countBetterAmount > 1) // Do not enable typing two dots.
+					if (!IsMax)
 					{
-						var index = betterAmount.IndexOf('.', betterAmount.IndexOf('.') + 1);
-						if (index > 0)
+						// Correct amount
+						Regex digitsOnly = new Regex(@"[^\d,.]");
+						string betterAmount = digitsOnly.Replace(amount, ""); // Make it digits , and . only.
+
+						betterAmount = betterAmount.Replace(',', '.');
+						int countBetterAmount = betterAmount.Count(x => x == '.');
+						if (countBetterAmount > 1) // Do not enable typing two dots.
 						{
-							betterAmount = betterAmount.Substring(0, index);
+							var index = betterAmount.IndexOf('.', betterAmount.IndexOf('.') + 1);
+							if (index > 0)
+							{
+								betterAmount = betterAmount.Substring(0, index);
+							}
+						}
+						var dotIndex = betterAmount.IndexOf('.');
+						if (dotIndex != -1 && betterAmount.Length - dotIndex > 8) // Enable max 8 decimals.
+						{
+							betterAmount = betterAmount.Substring(0, dotIndex + 1 + 8);
+						}
+
+						if (betterAmount != amount)
+						{
+							AmountText = betterAmount;
 						}
 					}
-					var dotIndex = betterAmount.IndexOf('.');
-					if (dotIndex != -1 && betterAmount.Length - dotIndex > 8) // Enable max 8 decimals.
+
+					if (Money.TryParse(amount.TrimStart('~', ' '), out Money amountBtc))
 					{
-						betterAmount = betterAmount.Substring(0, dotIndex + 1 + 8);
+						SetAmountWatermark(amountBtc);
+					}
+					else
+					{
+						SetAmountWatermark(Money.Zero);
 					}
 
-					if (betterAmount != amount)
-					{
-						AmountText = betterAmount;
-					}
-				}
-
-				if (Money.TryParse(amount.TrimStart('~', ' '), out Money amountBtc))
-				{
-					SetAmountWatermark(amountBtc);
-				}
-				else
-				{
-					SetAmountWatermark(Money.Zero);
-				}
-
-				SetFeesAndTexts();
-			});
+					SetFeesAndTexts();
+				});
 
 			this.WhenAnyValue(x => x.IsBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					SetSendText();
-				});
+				.Subscribe(_ => SetSendText());
 
 			this.WhenAnyValue(x => x.IsHardwareBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					SetSendText();
-				});
+				.Subscribe(_ => SetSendText());
 
 			this.WhenAnyValue(x => x.Label)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -193,10 +187,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.IsSliderFeeUsed)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(enabled =>
-				{
-					FeeControlOpacity = enabled ? 1 : 0.5; // Give the control the disabled feeling. Real Disable it not a solution as we have to detect if the slider is moved.
-				});
+				.Subscribe(enabled => FeeControlOpacity = enabled ? 1 : 0.5); // Give the control the disabled feeling. Real Disable it not a solution as we have to detect if the slider is moved.
 
 			MaxCommand = ReactiveCommand.Create(() => { IsMax = !IsMax; }, outputScheduler: RxApp.MainThreadScheduler);
 			this.WhenAnyValue(x => x.IsMax)
@@ -1120,21 +1111,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Global.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate).Subscribe(_ =>
-			{
-				SetFeeTargetLimits();
-
-				if (FeeTarget < MinimumFeeTarget) // Should never happen.
+			Global.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate)
+				.Subscribe(_ =>
 				{
-					FeeTarget = MinimumFeeTarget;
-				}
-				else if (FeeTarget > MaximumFeeTarget)
-				{
-					FeeTarget = MaximumFeeTarget;
-				}
+					SetFeeTargetLimits();
 
-				SetFeesAndTexts();
-			}).DisposeWith(Disposables);
+					if (FeeTarget < MinimumFeeTarget) // Should never happen.
+					{
+						FeeTarget = MinimumFeeTarget;
+					}
+					else if (FeeTarget > MaximumFeeTarget)
+					{
+						FeeTarget = MaximumFeeTarget;
+					}
+
+					SetFeesAndTexts();
+				})
+				.DisposeWith(Disposables);
 
 			_usdExchangeRate = Global.Synchronizer
 				.WhenAnyValue(x => x.UsdExchangeRate)

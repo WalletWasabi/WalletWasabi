@@ -116,7 +116,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					this.RaisePropertyChanged(nameof(PsbtJsonText));
 					this.RaisePropertyChanged(nameof(TransactionHexText));
 					this.RaisePropertyChanged(nameof(PsbtBase64Text));
-				}).DisposeWith(Disposables);
+				})
+				.DisposeWith(Disposables);
 		}
 
 		public override bool OnClose()

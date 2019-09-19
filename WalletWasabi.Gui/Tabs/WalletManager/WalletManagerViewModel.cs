@@ -42,12 +42,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			SelectedCategory = Categories.FirstOrDefault();
 			HardwareWalletRefreshCancel = new CancellationTokenSource();
 
-			this.WhenAnyValue(x => x.SelectedCategory).Subscribe(category =>
-			{
-				category?.OnCategorySelected();
+			this.WhenAnyValue(x => x.SelectedCategory)
+				.Subscribe(category =>
+				{
+					category?.OnCategorySelected();
 
-				CurrentView = category;
-			});
+					CurrentView = category;
+				});
 		}
 
 		public ObservableCollection<CategoryViewModel> Categories

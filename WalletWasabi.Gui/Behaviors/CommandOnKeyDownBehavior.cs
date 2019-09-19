@@ -15,11 +15,13 @@ namespace WalletWasabi.Gui.Behaviors
 
 			base.OnAttached();
 
-			Disposables.Add(AssociatedObject.AddHandler(InputElement.KeyDownEvent, (sender, e) =>
-			{
-				CommandParameter = e;
-				e.Handled = ExecuteCommand();
-			}, RoutingStrategies.Tunnel));
+			Disposables.Add(AssociatedObject.AddHandler(InputElement.KeyDownEvent,
+				(sender, e) =>
+				{
+					CommandParameter = e;
+					e.Handled = ExecuteCommand();
+				},
+				RoutingStrategies.Tunnel));
 		}
 
 		protected override void OnDetaching()

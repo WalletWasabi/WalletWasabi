@@ -84,13 +84,15 @@ namespace WalletWasabi.Gui.Behaviors
 
 			Disposables = new CompositeDisposable
 			{
-				AssociatedObject.GetObservable(InputElement.IsFocusedProperty).Subscribe(focused =>
-				{
-					if (!focused)
+				AssociatedObject
+					.GetObservable(InputElement.IsFocusedProperty)
+					.Subscribe(focused =>
 					{
-						MyTextBoxState = TextBoxState.None;
-					}
-				}),
+						if (!focused)
+						{
+							MyTextBoxState = TextBoxState.None;
+						}
+					}),
 				AssociatedObject
 					.GetObservable(InputElement.KeyUpEvent)
 					.Throttle(TimeSpan.FromMilliseconds(500)) // Do not remove this we need to make sure we are running on a separate Task.
@@ -113,8 +115,9 @@ namespace WalletWasabi.Gui.Behaviors
 					}));
 			}
 
-			Disposables.Add(
-				AssociatedObject.GetObservable(InputElement.PointerReleasedEvent).Subscribe(async pointer =>
+			Disposables.Add(AssociatedObject
+				.GetObservable(InputElement.PointerReleasedEvent)
+				.Subscribe(async pointer =>
 				{
 					if (Global.UiConfig.Autocopy is false)
 					{
@@ -142,8 +145,9 @@ namespace WalletWasabi.Gui.Behaviors
 				})
 			);
 
-			Disposables.Add(
-				AssociatedObject.GetObservable(InputElement.PointerEnterEvent).Subscribe(async pointerEnter =>
+			Disposables.Add(AssociatedObject
+				.GetObservable(InputElement.PointerEnterEvent)
+				.Subscribe(async pointerEnter =>
 				{
 					if (!(Global.UiConfig.Autocopy is true))
 					{

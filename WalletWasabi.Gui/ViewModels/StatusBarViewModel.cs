@@ -86,11 +86,8 @@ namespace WalletWasabi.Gui.ViewModels
 				.Merge(Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed)).Select(x => true)
 				.Merge(Synchronizer.WhenAnyValue(x => x.TorStatus).Select(x => true))))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
-					Peers = Synchronizer.TorStatus == TorStatus.NotRunning ? 0 : Nodes.Count;
-				}).DisposeWith(Disposables);
+				.Subscribe(_ => Peers = Synchronizer.TorStatus == TorStatus.NotRunning ? 0 : Nodes.Count) // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
+				.DisposeWith(Disposables);
 
 			Peers = Tor == TorStatus.NotRunning ? 0 : Nodes.Count;
 
@@ -101,17 +98,13 @@ namespace WalletWasabi.Gui.ViewModels
 
 			Synchronizer.WhenAnyValue(x => x.TorStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(status =>
-				{
-					Tor = UseTor ? status : TorStatus.TurnedOff;
-				}).DisposeWith(Disposables);
+				.Subscribe(status => Tor = UseTor ? status : TorStatus.TurnedOff)
+				.DisposeWith(Disposables);
 
 			Synchronizer.WhenAnyValue(x => x.BackendStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					Backend = Synchronizer.BackendStatus;
-				}).DisposeWith(Disposables);
+				.Subscribe(_ => Backend = Synchronizer.BackendStatus)
+				.DisposeWith(Disposables);
 
 			_filtersLeft = HashChain.WhenAnyValue(x => x.HashesLeft)
 				.Throttle(TimeSpan.FromMilliseconds(100))
@@ -121,17 +114,13 @@ namespace WalletWasabi.Gui.ViewModels
 
 			Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(usd =>
-				{
-					BtcPrice = $"${(long)usd}";
-				}).DisposeWith(Disposables);
+				.Subscribe(usd => BtcPrice = $"${(long)usd}")
+				.DisposeWith(Disposables);
 
 			Observable.FromEventPattern<bool>(Synchronizer, nameof(Synchronizer.ResponseArrivedIsGenSocksServFail))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(e =>
-				{
-					OnResponseArrivedIsGenSocksServFail(e.EventArgs);
-				}).DisposeWith(Disposables);
+				.Subscribe(e => OnResponseArrivedIsGenSocksServFail(e.EventArgs))
+				.DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.FiltersLeft, x => x.DownloadingBlock)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -225,7 +214,8 @@ namespace WalletWasabi.Gui.ViewModels
 
 					UpdateAvailable = !x.ClientUpToDate;
 					CriticalUpdateAvailable = !x.BackendCompatible;
-				}).DisposeWith(Disposables);
+				})
+				.DisposeWith(Disposables);
 
 			updateChecker.Start(TimeSpan.FromMinutes(7));
 		}

@@ -19,18 +19,19 @@ namespace WalletWasabi.Gui.Behaviors
 
 			Disposables = new CompositeDisposable
 			{
-				AssociatedObject.GetObservable(InputElement.IsEnabledProperty).Subscribe(enabled =>
-				{
-					if (enabled)
+				AssociatedObject.GetObservable(InputElement.IsEnabledProperty)
+					.Subscribe(enabled =>
 					{
-						AssociatedObject.Opacity = OriginalOpacity ?? 1;
-					}
-					else
-					{
-						OriginalOpacity = AssociatedObject.Opacity;
-						AssociatedObject.Opacity = 0.5;
-					}
-				})
+						if (enabled)
+						{
+							AssociatedObject.Opacity = OriginalOpacity ?? 1;
+						}
+						else
+						{
+							OriginalOpacity = AssociatedObject.Opacity;
+							AssociatedObject.Opacity = 0.5;
+						}
+					})
 			};
 		}
 

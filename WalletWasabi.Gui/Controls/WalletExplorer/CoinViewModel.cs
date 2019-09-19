@@ -85,17 +85,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Global.ChaumianClient,
 				nameof(Global.ChaumianClient.StateUpdated))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					RefreshSmartCoinStatus();
-				}).DisposeWith(Disposables);
+				.Subscribe(_ => RefreshSmartCoinStatus())
+				.DisposeWith(Disposables);
 
 			Global.BitcoinStore.HashChain.WhenAnyValue(x => x.ServerTipHeight)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					this.RaisePropertyChanged(nameof(Confirmations));
-				}).DisposeWith(Disposables);
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(Confirmations)))
+				.DisposeWith(Disposables);
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -103,7 +99,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					this.RaisePropertyChanged(nameof(AmountBtc));
 					this.RaisePropertyChanged(nameof(Clusters));
-				}).DisposeWith(Disposables);
+				})
+				.DisposeWith(Disposables);
 		}
 
 		public void UnsubscribeEvents()
@@ -140,17 +137,38 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				switch (Status)
 				{
-					case SmartCoinStatus.Confirmed: return "This coin is confirmed.";
-					case SmartCoinStatus.Unconfirmed: return "This coin is unconfirmed.";
-					case SmartCoinStatus.MixingOnWaitingList: return "This coin is waiting for its turn to be coinjoined.";
-					case SmartCoinStatus.MixingBanned: return $"The coordinator banned this coin from participation until {Model?.BannedUntilUtc?.ToString("yyyy - MM - dd HH: mm", CultureInfo.InvariantCulture)}.";
-					case SmartCoinStatus.MixingInputRegistration: return "This coin is registered for coinjoin.";
-					case SmartCoinStatus.MixingConnectionConfirmation: return "This coin is currently in Connection Confirmation phase.";
-					case SmartCoinStatus.MixingOutputRegistration: return "This coin is currently in Output Registration phase.";
-					case SmartCoinStatus.MixingSigning: return "This coin is currently in Signing phase.";
-					case SmartCoinStatus.SpentAccordingToBackend: return "According to the Backend, this coin is spent. Wallet state will be corrected after confirmation.";
-					case SmartCoinStatus.MixingWaitingForConfirmation: return "Coinjoining unconfirmed coins is not allowed, unless the coin is a coinjoin output itself.";
-					default: return "This is impossible.";
+					case SmartCoinStatus.Confirmed:
+						return "This coin is confirmed.";
+
+					case SmartCoinStatus.Unconfirmed:
+						return "This coin is unconfirmed.";
+
+					case SmartCoinStatus.MixingOnWaitingList:
+						return "This coin is waiting for its turn to be coinjoined.";
+
+					case SmartCoinStatus.MixingBanned:
+						return $"The coordinator banned this coin from participation until {Model?.BannedUntilUtc?.ToString("yyyy - MM - dd HH: mm", CultureInfo.InvariantCulture)}.";
+
+					case SmartCoinStatus.MixingInputRegistration:
+						return "This coin is registered for coinjoin.";
+
+					case SmartCoinStatus.MixingConnectionConfirmation:
+						return "This coin is currently in Connection Confirmation phase.";
+
+					case SmartCoinStatus.MixingOutputRegistration:
+						return "This coin is currently in Output Registration phase.";
+
+					case SmartCoinStatus.MixingSigning:
+						return "This coin is currently in Signing phase.";
+
+					case SmartCoinStatus.SpentAccordingToBackend:
+						return "According to the Backend, this coin is spent. Wallet state will be corrected after confirmation.";
+
+					case SmartCoinStatus.MixingWaitingForConfirmation:
+						return "Coinjoining unconfirmed coins is not allowed, unless the coin is a coinjoin output itself.";
+
+					default:
+						return "This is impossible.";
 				}
 			}
 		}
