@@ -25,7 +25,7 @@
           <DockPanel LastChildFill="True">
             <Grid ColumnDefinitions="*,300" DockPanel.Dock="Top" Margin="0 0 0 10">
               <StackPanel Spacing="8">
-                <controls:ExtendedTextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label (Payment reason)" CaretIndex="{Binding CaretIndex}" UseFloatingWatermark="True" Grid.Column="0" Margin="0 0 10 0">
+                <controls:ExtendedTextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Who knows this address is yours (Required)" CaretIndex="{Binding CaretIndex}" UseFloatingWatermark="True" Grid.Column="0" Margin="0 0 10 0">
                   <i:Interaction.Behaviors>
                     <behaviors:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />
                     <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
@@ -36,8 +36,8 @@
                     <StackPanel Orientation="Horizontal" Spacing="2">
                       <DrawingPresenter Width="16" Drawing="{DynamicResource Information}" Margin="0 2 6 0" VerticalAlignment="Top"/>
                       <StackPanel Spacing="2"> 
-                        <TextBlock Text="Payment reasons help future spending by not combining coins." Classes="information" />
-                        <TextBlock Text="Example: &quot;August Salary&quot;, &quot;Investment return&quot;, etc." Classes="information"/>
+                        <TextBlock Text="A comma separated list of entities and people, who are suspected or known to know the link between the wallet user and the generated address." />
+                        <TextBlock Text="Example: &quot;Sarah Connor&quot;, &quot;MyExchange&quot;, etc."/>
                       </StackPanel> 
                     </StackPanel>
                   </ToolTip.Tip>
