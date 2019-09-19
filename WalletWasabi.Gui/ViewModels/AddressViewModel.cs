@@ -10,6 +10,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.KeyManagement;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.ViewModels
@@ -50,7 +51,7 @@ namespace WalletWasabi.Gui.ViewModels
 					}
 					catch (Exception ex)
 					{
-						Logging.Logger.LogError(ex);
+						Logger.LogError(ex);
 					}
 				});
 
@@ -157,11 +158,11 @@ namespace WalletWasabi.Gui.ViewModels
 									|| ex is TaskCanceledException
 									|| ex is TimeoutException)
 			{
-				Logging.Logger.LogTrace(ex);
+				Logger.LogTrace(ex);
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning(ex);
+				Logger.LogWarning(ex);
 			}
 			finally
 			{

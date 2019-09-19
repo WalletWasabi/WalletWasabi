@@ -13,6 +13,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls
 {
@@ -167,11 +168,11 @@ namespace WalletWasabi.Gui.Controls
 									|| ex is TaskCanceledException
 									|| ex is TimeoutException)
 			{
-				Logging.Logger.LogTrace(ex);
+				Logger.LogTrace(ex);
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning(ex);
+				Logger.LogWarning(ex);
 			}
 			finally
 			{
@@ -189,7 +190,7 @@ namespace WalletWasabi.Gui.Controls
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning(ex);
+				Logger.LogWarning(ex);
 			}
 		}
 
@@ -218,7 +219,7 @@ namespace WalletWasabi.Gui.Controls
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning(ex);
+				Logger.LogWarning(ex);
 			}
 		}
 
