@@ -81,9 +81,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(_ => RefreshSmartCoinStatus())
 				.DisposeWith(Disposables);
 
-			Observable.FromEventPattern(
-				Global.ChaumianClient,
-				nameof(Global.ChaumianClient.StateUpdated))
+			Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => RefreshSmartCoinStatus())
 				.DisposeWith(Disposables);

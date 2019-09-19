@@ -152,7 +152,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				PeersNeeded = 100;
 			}
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler)
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
 					this.RaisePropertyChanged(nameof(AmountQueued));

@@ -440,10 +440,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SetFeesAndTexts();
 			});
 
-			FeeSliderClickedCommand = ReactiveCommand.Create((PointerPressedEventArgs mouse) =>
-			{
-				IsSliderFeeUsed = true;
-			});
+			FeeSliderClickedCommand = ReactiveCommand.Create((PointerPressedEventArgs mouse) => { IsSliderFeeUsed = true; });
 
 			HighLightFeeSliderCommand = ReactiveCommand.Create((bool entered) =>
 			{

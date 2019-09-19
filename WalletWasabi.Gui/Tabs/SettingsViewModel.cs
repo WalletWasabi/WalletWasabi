@@ -65,9 +65,7 @@ namespace WalletWasabi.Gui.Tabs
 			BitcoinP2pEndPoint = globalConfig.GetP2PEndpoint().ToString(defaultPort: -1);
 			IsModified = false;
 
-			this.WhenAnyValue(
-				x => x.Network,
-				x => x.UseTor)
+			this.WhenAnyValue(x => x.Network, x => x.UseTor)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(_ => Save());
 
