@@ -1,5 +1,5 @@
   
-name: Wasabi unit test
+name: Wasabi unit tests
 
 on: [push]
 
