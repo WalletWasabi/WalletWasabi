@@ -223,7 +223,7 @@ namespace WalletWasabi.Hwi
 			}
 			else
 			{
-				HwiPath = Path.Combine(fullBaseDirectory, "Hwi", "Software", "hwi-win64", "hwi.exe");
+				HwiPath = Path.Combine(fullBaseDirectory, "Hwi", "Software", "windows", "hwi.exe");
 				return;
 			}
 
@@ -262,18 +262,20 @@ namespace WalletWasabi.Hwi
 		private static async Task InstallHwiAsync(string fullBaseDirectory, string hwiDir)
 		{
 			string hwiSoftwareDir = Path.Combine(fullBaseDirectory, "Hwi", "Software");
+			Directory.CreateDirectory(hwiDir);
+			string hwiPath = Path.Combine(hwiDir, "hwi");
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				string hwiLinuxZip = Path.Combine(hwiSoftwareDir, "hwi-linux64.zip");
-				await IoHelpers.BetterExtractZipToDirectoryAsync(hwiLinuxZip, hwiDir);
-				Logger.LogInfo($"Extracted {hwiLinuxZip} to `{hwiDir}`.");
+				string hwiLinuxPath = Path.Combine(hwiSoftwareDir, "linux", "hwi");
+				File.Move(hwiLinuxPath, hwiPath);
+				Logger.LogInfo($"Moved {hwiLinuxPath} to `{hwiPath}`.");
 			}
 			else // OSX
 			{
-				string hwiOsxZip = Path.Combine(hwiSoftwareDir, "hwi-osx64.zip");
-				await IoHelpers.BetterExtractZipToDirectoryAsync(hwiOsxZip, hwiDir);
-				Logger.LogInfo($"Extracted {hwiOsxZip} to `{hwiDir}`.");
+				string hwiOsxPath = Path.Combine(hwiSoftwareDir, "mac", "hwi");
+				File.Move(hwiOsxPath, hwiPath);
+				Logger.LogInfo($"Moved {hwiOsxPath} to `{hwiPath}`.");
 			}
 
 			// Make sure there's sufficient permission.

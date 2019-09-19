@@ -228,13 +228,11 @@ namespace WalletWasabi.Packager
 			File.Move(Path.Combine(tempDir, "Tor", "tor"), Path.Combine(tempDir, "TorOsx"));
 
 			string hwiSoftwareDir = Path.Combine(LibraryProjectDirectory, "Hwi", "Software");
-			string hwiLinuxZip = Path.Combine(hwiSoftwareDir, "hwi-linux64.zip");
-			IoHelpers.BetterExtractZipToDirectoryAsync(hwiLinuxZip, tempDir).GetAwaiter().GetResult();
-			File.Move(Path.Combine(tempDir, "hwi"), Path.Combine(tempDir, "HwiLin"));
+			string hwiLinux = Path.Combine(hwiSoftwareDir, "linux", "hwi");
+			File.Copy(hwiLinux, Path.Combine(tempDir, "HwiLin"));
 
-			string hwiOsxZip = Path.Combine(hwiSoftwareDir, "hwi-osx64.zip");
-			IoHelpers.BetterExtractZipToDirectoryAsync(hwiOsxZip, tempDir).GetAwaiter().GetResult();
-			File.Move(Path.Combine(tempDir, "hwi"), Path.Combine(tempDir, "HwiOsx"));
+			string hwiOsx = Path.Combine(hwiSoftwareDir, "mac", "hwi");
+			File.Copy(hwiOsx, Path.Combine(tempDir, "HwiOsx"));
 
 			var tempDirInfo = new DirectoryInfo(tempDir);
 			var binaries = tempDirInfo.GetFiles();

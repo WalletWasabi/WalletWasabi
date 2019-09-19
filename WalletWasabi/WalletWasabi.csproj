@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Hwi\Software\hwi-win64\hwi.exe">
+    <None Update="Hwi\Software\windows\hwi.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="OnionSeeds\MainOnionSeeds.txt">
@@ -42,13 +42,10 @@
     <None Update="Hwi\Software\digests.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Hwi\Software\hwi-linux64.zip">
+    <None Update="Hwi\Software\linux\hwi">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Hwi\Software\hwi-osx64.zip">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Hwi\Software\hwi-win64.zip">
+    <None Update="Hwi\Software\mac\hwi">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TorDaemons\digests.txt">
