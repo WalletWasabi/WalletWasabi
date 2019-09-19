@@ -19,7 +19,8 @@ namespace WalletWasabi.Gui.Behaviors
 
 			Disposables = new CompositeDisposable
 			{
-				AssociatedObject.GetObservable(InputElement.IsEnabledProperty)
+				AssociatedObject
+					.GetObservable(InputElement.IsEnabledProperty)
 					.Subscribe(enabled =>
 					{
 						if (enabled)
