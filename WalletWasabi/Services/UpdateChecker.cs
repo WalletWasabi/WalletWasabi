@@ -61,9 +61,7 @@ namespace WalletWasabi.Services
 								Logger.LogTrace(ex2);
 							}
 						}
-						catch (Exception ex) when (ex is OperationCanceledException
-												|| ex is TaskCanceledException
-												|| ex is TimeoutException)
+						catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
 						{
 							Logger.LogTrace(ex);
 						}

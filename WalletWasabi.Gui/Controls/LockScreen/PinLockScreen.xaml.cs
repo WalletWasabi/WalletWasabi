@@ -12,9 +12,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 	public class PinLockScreen : UserControl
 	{
 		public static readonly DirectProperty<PinLockScreen, bool> IsLockedProperty =
-			AvaloniaProperty.RegisterDirect<PinLockScreen, bool>(nameof(IsLocked),
-																 o => o.IsLocked,
-																 (o, v) => o.IsLocked = v);
+			AvaloniaProperty.RegisterDirect<PinLockScreen, bool>(nameof(IsLocked), o => o.IsLocked, (o, v) => o.IsLocked = v);
 
 		private bool _isLocked;
 
