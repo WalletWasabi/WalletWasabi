@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using AvalonStudio.Documents;
 using AvalonStudio.Extensibility;
 using NBitcoin;
@@ -85,7 +86,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						Title = "Import Transaction"
 					};
 
-					var selected = await ofd.ShowAsync(null, fallBack: true);
+					var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+					var selected = await ofd.ShowAsync(window, fallBack: true);
 					if (selected != null && selected.Any())
 					{
 						var path = selected.First();

@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
@@ -97,7 +98,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 					}
 
-					var selected = await ofd.ShowAsync(null, fallBack: true);
+					var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+					var selected = await ofd.ShowAsync(window, fallBack: true);
 					if (selected != null && selected.Any())
 					{
 						var path = selected.First();
