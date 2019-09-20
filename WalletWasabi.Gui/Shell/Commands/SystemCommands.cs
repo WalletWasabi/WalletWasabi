@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using AvalonStudio.Commands;
 using ReactiveUI;
 using System;
@@ -12,6 +13,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 	{
 		public Global Global { get; }
 
+		[DefaultKeyGesture("ALT+F4", osxKeyGesture: "CMD+Q")]
 		[ExportCommandDefinition("File.Exit")]
 		public CommandDefinition ExitCommand { get; }
 
@@ -32,7 +34,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnExit()
 		{
-			//Application.Current.MainWindow.Close();
+			(Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow.Close();
 		}
 	}
 }
