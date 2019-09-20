@@ -182,7 +182,6 @@ namespace WalletWasabi.Gui.Controls
 					context.FillRectangle(color, rect);
 				}
 			}
-
 		}
 
 		protected override Size MeasureOverride(Size availableSize)
