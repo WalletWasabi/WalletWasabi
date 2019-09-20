@@ -32,8 +32,8 @@ namespace WalletWasabi.Backend
 		{
 			services.AddMemoryCache();
 
-			services.AddMvc(options => options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(BitcoinAddress))))
-				.AddControllersAsServices();
+			services.AddMvc(options =>
+				options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(BitcoinAddress)))).AddControllersAsServices();
 
 			// Register the Swagger generator, defining one or more Swagger documents
 			services.AddSwaggerGen(c =>
