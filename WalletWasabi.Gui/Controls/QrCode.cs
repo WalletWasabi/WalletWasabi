@@ -21,7 +21,8 @@ namespace WalletWasabi.Gui.Controls
 
 		private ReactiveCommand<Unit, Unit> SaveCommand { get; }
 
-		private const int matrixPadding = 3;
+		private const int MatrixPadding = 3;
+		private Size CoercedSize = new Size();
 
 		private static DrawingPresenter GetSavePresenter()
 		{
@@ -58,8 +59,7 @@ namespace WalletWasabi.Gui.Controls
 
 			if (source is null) return;
 
-			var curBounds = new Size(Bounds.Width, Bounds.Height);
-			var pixelBounds = PixelSize.FromSize(curBounds, 1);
+			var pixelBounds = PixelSize.FromSize(CoercedSize, 1);
 
 			var sfd = new SaveFileDialog();
 			var fileFullName = await sfd.ShowAsync(Application.Current.MainWindow, fallBack: true);
@@ -70,7 +70,7 @@ namespace WalletWasabi.Gui.Controls
 
 				if (string.IsNullOrWhiteSpace(ext))
 				{
-					fileFullName = $"{fileFullName}.bmp";
+					fileFullName = $"{fileFullName}.png";
 				}
 
 				// TODO: This will be more simplified when Avalonia 0.9 is released.
@@ -116,20 +116,18 @@ namespace WalletWasabi.Gui.Controls
 			set
 			{
 				if (value is null) return;
-
-				var h = value.GetUpperBound(0) + 1;
-				var nH = h + (matrixPadding * 2);
-
-				var w = value.GetUpperBound(1) + 1;
-				var nW = w + (matrixPadding * 2);
+ 
+				var dims = GetMatrixDimensions(value);
+				var nW = dims.W + (MatrixPadding * 2);
+				var nH = dims.H + (MatrixPadding * 2);
 
 				var paddedMatrix = new bool[nH, nW];
 
-				for (var i = 0; i < h; i++)
+				for (var i = 0; i < dims.H; i++)
 				{
-					for (var j = 0; j < w; j++)
+					for (var j = 0; j < dims.W; j++)
 					{
-						paddedMatrix[i + matrixPadding, j + matrixPadding] = value[i, j];
+						paddedMatrix[i + MatrixPadding, j + MatrixPadding] = value[i, j];
 					}
 				}
 
@@ -162,19 +160,15 @@ namespace WalletWasabi.Gui.Controls
 
 			if (source is null) return;
 
-			var h = source.GetUpperBound(0) + 1;
-			var w = source.GetUpperBound(1) + 1;
+			var dims = GetMatrixDimensions(source);
 
-			var minDimension = Math.Min(w, h);
-			var minBound = Math.Min(Bounds.Width, Bounds.Height);
-			var factorR = (float)minBound / minDimension;
-			var factor = Math.Floor(factorR);
+			var factor = CalculateDiscreteRectSize(source);
 
-			context.FillRectangle(Brushes.White, new Rect(0, 0, factor * w, factor * h));
+			context.FillRectangle(Brushes.White, new Rect(0, 0, factor * dims.W, factor * dims.H));
 
-			for (var i = 0; i < h; i++)
+			for (var i = 0; i < dims.H; i++)
 			{
-				for (var j = 0; j < w; j++)
+				for (var j = 0; j < dims.W; j++)
 				{
 					var cellValue = source[i, j];
 					var rect = new Rect(i * factor, j * factor, factor, factor);
@@ -183,6 +177,20 @@ namespace WalletWasabi.Gui.Controls
 				}
 			}
 		}
+
+		private (int W, int H) GetMatrixDimensions(bool[,] source)
+				=> (source.GetUpperBound(0) + 1,
+					source.GetUpperBound(1) + 1);
+
+		private int CalculateDiscreteRectSize(bool[,] source)
+		{
+			var dims = GetMatrixDimensions(source);
+			var minDimension = Math.Min(dims.W, dims.H);
+			var minBound = Math.Min(Bounds.Width, Bounds.Height);
+			var factorR = (float)minBound / minDimension;
+			return (int)Math.Floor(factorR);
+		}
+
 
 		protected override Size MeasureOverride(Size availableSize)
 		{
@@ -193,11 +201,14 @@ namespace WalletWasabi.Gui.Controls
 				return new Size();
 			}
 
-			var max = Math.Min(availableSize.Width, availableSize.Height);
+			var dims = GetMatrixDimensions(source);
+			var minDimension = Math.Min(dims.W, dims.H);
+			var availMax = Math.Min(availableSize.Width, availableSize.Height);
+			var factor = CalculateDiscreteRectSize(source);
+			var maxF = Math.Min(availMax, factor * minDimension);
+			CoercedSize = new Size(maxF, maxF);
 
-			var size = new Size(max, max);
-
-			return size;
+			return CoercedSize;
 		}
 	}
 }
