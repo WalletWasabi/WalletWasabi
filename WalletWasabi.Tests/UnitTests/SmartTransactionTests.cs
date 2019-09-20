@@ -168,11 +168,9 @@ namespace WalletWasabi.Tests.UnitTests
 					$"{txHash}:{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}:bar:buz",
 					// Can leave out some inputs.
 					$":{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}",
-					$"{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}",
 					$"{txHash}:{txHex}::{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}",
 					$"{txHash}:{txHex}:{height}::{blockIndex}:{label}:{unixSeconds}:{isReplacement}",
-					$"{txHash}:{txHex}:{height}:{blockHash}::{label}:{unixSeconds}:{isReplacement}",
-					$"{txHex}",
+					$"{txHash}:{txHex}:{height}:{blockHash}::{label}:{unixSeconds}:{isReplacement}"
 				})
 				{
 					stx = SmartTransaction.FromLine(inp, net);

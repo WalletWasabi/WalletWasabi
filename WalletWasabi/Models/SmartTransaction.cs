@@ -150,18 +150,18 @@ namespace WalletWasabi.Models
 
 			var parts = line.Split(':', StringSplitOptions.None).Select(x => x.Trim()).ToArray();
 
-			// Find the Transaction hex, it must be always present.
-			(Transaction transaction, int transactionHexIndex) = ParseTransactionHex(expectedNetwork, parts);
+			var transactionString = parts[1];
+			Transaction transaction = Transaction.Parse(transactionString, expectedNetwork);
 
 			try
 			{
 				// First is redundand txhash serialization.
-				var heightString = parts[transactionHexIndex + 1];
-				var blockHashString = parts[transactionHexIndex + 2];
-				var blockIndexString = parts[transactionHexIndex + 3];
-				var labelString = parts[transactionHexIndex + 4];
-				var firstSeenString = parts[transactionHexIndex + 5];
-				var isReplacementString = parts[transactionHexIndex + 6];
+				var heightString = parts[2];
+				var blockHashString = parts[3];
+				var blockIndexString = parts[4];
+				var labelString = parts[5];
+				var firstSeenString = parts[6];
+				var isReplacementString = parts[7];
 
 				if (!Height.TryParse(heightString, out Height height))
 				{
@@ -193,44 +193,6 @@ namespace WalletWasabi.Models
 				Logger.LogDebug(ex);
 				return new SmartTransaction(transaction, Height.Unknown);
 			}
-		}
-
-		private static (Transaction tx, int txHexIndex) ParseTransactionHex(Network expectedNetwork, string[] parts)
-		{
-			Transaction tx = null;
-			int txHexIndex = 1;
-			try
-			{
-				tx = Transaction.Parse(parts[txHexIndex], expectedNetwork);
-			}
-			catch
-			{
-				for (txHexIndex = 0; txHexIndex < parts.Length; txHexIndex++)
-				{
-					if (txHexIndex == 1)
-					{
-						continue; // We already checked this.
-					}
-
-					string part = parts[txHexIndex];
-					try
-					{
-						tx = Transaction.Parse(part, expectedNetwork);
-						break;
-					}
-					catch
-					{
-						continue;
-					}
-				}
-			}
-
-			if (tx is null)
-			{
-				throw new FormatException($"Transaction hex is not present.");
-			}
-
-			return (tx, txHexIndex);
 		}
 
 		#endregion LineSerialization
