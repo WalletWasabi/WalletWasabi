@@ -162,10 +162,9 @@ header {
 }
 
 header .navbar {
-  max-width: 900px;
   -webkit-box-shadow: 0 2px 30px rgba(90, 80, 90, 0.5);
           box-shadow: 0 2px 30px rgba(90, 80, 90, 0.5);
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 50%;
   -webkit-transform: translateX(-50%);
