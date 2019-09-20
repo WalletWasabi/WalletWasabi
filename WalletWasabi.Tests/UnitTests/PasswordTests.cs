@@ -116,8 +116,10 @@ namespace WalletWasabi.Tests.UnitTests
 			string emptyPw = "";
 			string nullPw = null;
 
+			Logger.TurnOff();
 			var emptyPws = PasswordHelper.GetPossiblePasswords(emptyPw);
 			var nullPws = PasswordHelper.GetPossiblePasswords(nullPw);
+			Logger.TurnOn();
 
 			var emptyPwRes = Assert.Single(emptyPws);
 			var nullPwRes = Assert.Single(nullPws);
