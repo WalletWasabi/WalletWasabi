@@ -550,7 +550,9 @@ namespace WalletWasabi.Tests.UnitTests
 
 			DigestableSafeMutexIoManager ioman = new DigestableSafeMutexIoManager(file);
 			ioman.DeleteMe();
-			await ioman.WriteAllLinesAsync(new string[0], dismissNullOrEmptyContent: false);
+			await ioman.WriteAllLinesAsync(new string[0]);
+			Assert.False(File.Exists(ioman.FilePath));
+			File.Create(ioman.FilePath).Dispose();
 
 			string RandomString()
 			{
