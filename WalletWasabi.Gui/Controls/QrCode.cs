@@ -7,6 +7,7 @@ using Avalonia.Platform;
 using AvalonStudio.Extensibility.Theme;
 using ReactiveUI;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reactive;
 using System.Runtime.InteropServices;
@@ -22,6 +23,7 @@ namespace WalletWasabi.Gui.Controls
 		private ReactiveCommand<Unit, Unit> SaveCommand { get; }
 
 		private const int MatrixPadding = 3;
+
 		private Size CoercedSize = new Size();
 
 		private static DrawingPresenter GetSavePresenter()
@@ -62,7 +64,13 @@ namespace WalletWasabi.Gui.Controls
 			var pixelBounds = PixelSize.FromSize(CoercedSize, 1);
 
 			var sfd = new SaveFileDialog();
-			var fileFullName = await sfd.ShowAsync(Application.Current.MainWindow, fallBack: true);
+
+			sfd.InitialFileName = $"{Address}.png";
+			sfd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+			sfd.Filters.Add(new FileDialogFilter() { Name = "PNG Files", Extensions = { "png" } });
+
+			var fileFullName = await sfd.ShowAsync(Application.Current.MainWindow,
+												   fallBack: true);
 
 			if (!string.IsNullOrWhiteSpace(fileFullName))
 			{
@@ -105,7 +113,10 @@ namespace WalletWasabi.Gui.Controls
 		}
 
 		public static readonly DirectProperty<QrCode, bool[,]> MatrixProperty =
-			AvaloniaProperty.RegisterDirect<QrCode, bool[,]>(nameof(Matrix), o => o.Matrix, (o, v) => o.Matrix = v);
+			AvaloniaProperty.RegisterDirect<QrCode, bool[,]>(
+				nameof(Matrix),
+				o => o.Matrix,
+				(o, v) => o.Matrix = v);
 
 		private bool[,] _matrix;
 
@@ -116,7 +127,7 @@ namespace WalletWasabi.Gui.Controls
 			set
 			{
 				if (value is null) return;
- 
+
 				var dims = GetMatrixDimensions(value);
 				var nW = dims.W + (MatrixPadding * 2);
 				var nH = dims.H + (MatrixPadding * 2);
@@ -133,6 +144,20 @@ namespace WalletWasabi.Gui.Controls
 
 				SetAndRaise(MatrixProperty, ref _matrix, paddedMatrix);
 			}
+		}
+
+		public static readonly DirectProperty<QrCode, string> AddressProperty =
+			AvaloniaProperty.RegisterDirect<QrCode, string>(
+				nameof(Address),
+				o => o.Address,
+				(o, v) => o.Address = v);
+
+		private string _address;
+
+		public string Address
+		{
+			get { return _address; }
+			set { SetAndRaise(AddressProperty, ref _address, value); }
 		}
 
 		protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -190,7 +215,6 @@ namespace WalletWasabi.Gui.Controls
 			var factorR = (float)minBound / minDimension;
 			return (int)Math.Floor(factorR);
 		}
-
 
 		protected override Size MeasureOverride(Size availableSize)
 		{
