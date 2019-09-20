@@ -175,10 +175,7 @@ namespace WalletWasabi.Gui
 
 				KillRequested = true;
 				await TryDesperateDequeueAllCoinsAsync();
-				Dispatcher.UIThread.PostLogException(() =>
-				{
-					Application.Current?.MainWindow?.Close();
-				});
+				Dispatcher.UIThread.PostLogException(() => Application.Current?.MainWindow?.Close());
 				await DisposeAsync();
 
 				Logger.LogSoftwareStopped("Wasabi");

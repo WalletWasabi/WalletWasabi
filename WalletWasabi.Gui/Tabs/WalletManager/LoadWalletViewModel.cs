@@ -140,10 +140,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 			}, outputScheduler: RxApp.MainThreadScheduler);
 
-			OpenBrowserCommand = ReactiveCommand.Create<string>(x =>
-			{
-				IoHelpers.OpenBrowser(x);
-			});
+			OpenBrowserCommand = ReactiveCommand.Create<string>(x => IoHelpers.OpenBrowser(x));
 
 			OpenBrowserCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
 			LoadCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
@@ -681,10 +678,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				try
 				{
-					await Task.Run(async () =>
-					{
-						await Global.InitializeWalletServiceAsync(keyManager);
-					});
+					await Task.Run(async () => await Global.InitializeWalletServiceAsync(keyManager));
 					// Successffully initialized.
 					Owner.OnClose();
 					// Open Wallet Explorer tabs

@@ -196,10 +196,7 @@ namespace WalletWasabi.Gui.Controls
 				_textBox.SelectionEnd = Text.Length;
 				_textBox.CaretIndex = Text.Length;
 
-				Dispatcher.UIThread.InvokeAsync(() =>
-				{
-					_textBox.Focus();
-				});
+				Dispatcher.UIThread.InvokeAsync(() => _textBox.Focus());
 			}
 			else
 			{

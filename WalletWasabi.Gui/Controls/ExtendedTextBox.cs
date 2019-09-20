@@ -29,10 +29,7 @@ namespace WalletWasabi.Gui.Controls
 		{
 			_textPasted = new Subject<string>();
 
-			CopyCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				await CopyAsync();
-			});
+			CopyCommand = ReactiveCommand.CreateFromTask(async () => await CopyAsync());
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
 			{

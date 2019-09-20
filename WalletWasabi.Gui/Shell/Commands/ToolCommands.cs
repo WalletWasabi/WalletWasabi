@@ -26,10 +26,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 			Global = global.Global;
 			var walletManagerCommand = ReactiveCommand.Create(OnWalletManager);
 
-			var settingsCommand = ReactiveCommand.Create(() =>
-			{
-				IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel(Global));
-			});
+			var settingsCommand = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel(Global)));
 
 #if DEBUG
 			var devToolsCommand = ReactiveCommand.Create(() =>

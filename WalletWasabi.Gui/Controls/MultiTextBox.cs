@@ -89,10 +89,7 @@ namespace WalletWasabi.Gui.Controls
 
 			Disposables = new CompositeDisposable();
 
-			CopyToClipboardCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				await TryCopyToClipboardAsync();
-			});
+			CopyToClipboardCommand = ReactiveCommand.CreateFromTask(async () => await TryCopyToClipboardAsync());
 		}
 
 		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
