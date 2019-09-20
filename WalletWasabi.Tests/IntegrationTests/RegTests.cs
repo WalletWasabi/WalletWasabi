@@ -828,7 +828,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.True(res2.Fee > Money.Satoshis(2 * 100)); // since there is a sanity check of 2sat/vb in the server
 				Assert.InRange(res2.FeePercentOfSent, 0, 1);
 				Assert.Single(res2.SpentCoins);
-				Assert.Equal(key2.P2wpkhScript, res2.SpentCoins.Single().ScriptPubKey);
+				Assert.Contains(new[] { key.P2wpkhScript, key2.P2wpkhScript }, x => x == res2.SpentCoins.Single().ScriptPubKey);
 				Assert.Equal(Money.Coins(1m), res2.SpentCoins.Single().Amount);
 				Assert.False(res2.SpendsUnconfirmed);
 
@@ -3460,8 +3460,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 						throw new TimeoutException("Wallet spends were not recognized.");
 					}
 				}
-				SmartCoin[] unspentChanges = wallet.Coins.Where(x => x.Label.IsEmpty && x.Unspent).ToArray();
-				await wallet.ChaumianClient.DequeueCoinsFromMixAsync(unspentChanges, "");
+				await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync("");
 
 				Assert.Equal(4, wallet.Coins.Count(x => x.Label.IsEmpty && !x.Unavailable));
 				Assert.Equal(3, wallet2.Coins.Count(x => x.Label.IsEmpty && !x.Unavailable));
