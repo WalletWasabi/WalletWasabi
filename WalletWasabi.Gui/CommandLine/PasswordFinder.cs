@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Security;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.CommandLine
 {
@@ -28,12 +29,12 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			catch (FormatException)
 			{
-				Logging.Logger.LogCritical("ERROR: The encrypted secret is invalid. Make sure you copied correctly from your wallet file.");
+				Logger.LogCritical("ERROR: The encrypted secret is invalid. Make sure you copied correctly from your wallet file.");
 				return;
 			}
 
-			Logging.Logger.LogWarning<PasswordFinder>($"WARNING: This tool will display your password if it finds it.");
-			Logging.Logger.LogWarning<PasswordFinder>($"         You can cancel this by CTRL+C combination anytime.{Environment.NewLine}");
+			Logger.LogWarning($"WARNING: This tool will display your password if it finds it.");
+			Logger.LogWarning($"         You can cancel this by CTRL+C combination anytime.{Environment.NewLine}");
 
 			Console.Write("Enter a likely password: ");
 
@@ -69,7 +70,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 			Console.WriteLine();
 			Console.WriteLine();
-			Logging.Logger.LogInfo<PasswordFinder>($"Completed in {sw.Elapsed}");
+			Logger.LogInfo($"Completed in {sw.Elapsed}");
 			Console.WriteLine(found ? $"SUCCESS: Password found: >>> {lastpwd} <<<" : "FAILED: Password not found");
 			Console.WriteLine();
 		}

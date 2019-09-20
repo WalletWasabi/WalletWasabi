@@ -13,7 +13,6 @@ namespace WalletWasabi.Services
 		public ConcurrentHashSet<SmartTransaction> TransactionCache { get; }
 
 		public KeyManager KeyManager { get; }
-		public ConcurrentHashSet<uint256> TransactionHashes { get; }
 
 		public ObservableConcurrentHashSet<SmartCoin> Coins { get; }
 		public Money DustThreshold { get; }
@@ -25,13 +24,11 @@ namespace WalletWasabi.Services
 		public event EventHandler<SmartCoin> CoinReceived;
 
 		public TransactionProcessor(KeyManager keyManager,
-			ConcurrentHashSet<uint256> transactionHashes,
 			ObservableConcurrentHashSet<SmartCoin> coins,
 			Money dustThreshold,
 			ConcurrentHashSet<SmartTransaction> transactionCache)
 		{
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
-			TransactionHashes = Guard.NotNull(nameof(transactionHashes), transactionHashes);
 			Coins = Guard.NotNull(nameof(coins), coins);
 			DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
 			TransactionCache = Guard.NotNull(nameof(transactionCache), transactionCache);
@@ -45,7 +42,6 @@ namespace WalletWasabi.Services
 			bool justUpdate = false;
 			if (tx.Confirmed)
 			{
-				TransactionHashes.TryRemove(txId); // If we have in mempool, remove.
 				if (!tx.Transaction.PossiblyP2WPKHInvolved())
 				{
 					return false; // We do not care about non-witness transactions for other than mempool cleanup.

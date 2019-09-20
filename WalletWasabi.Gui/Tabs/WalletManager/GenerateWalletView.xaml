@@ -13,11 +13,11 @@
             <TextBlock Text="You cannot recover your wallet without your password. Therefore we strongly advise you to use a password that you will not forget." TextWrapping="Wrap" />
           </StackPanel>
           <controls:ExtendedTextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
-          <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Choose a password" UseFloatingWatermark="True">
+          <controls:TogglePasswordBox Text="{Binding Password}" Watermark="Choose a password">
             <i:Interaction.Behaviors>
               <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
             </i:Interaction.Behaviors>
-          </controls:NoparaPasswordBox>
+          </controls:TogglePasswordBox>
         </StackPanel>
       </Grid>
     </controls:GroupBox>

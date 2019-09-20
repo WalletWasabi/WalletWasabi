@@ -55,11 +55,11 @@ namespace WalletWasabi.Services
 						}
 						catch (TaskCanceledException ex)
 						{
-							Logger.LogTrace<ConfigWatcher>(ex);
+							Logger.LogTrace(ex);
 						}
 						catch (Exception ex)
 						{
-							Logger.LogDebug<ConfigWatcher>(ex);
+							Logger.LogDebug(ex);
 						}
 					}
 				}

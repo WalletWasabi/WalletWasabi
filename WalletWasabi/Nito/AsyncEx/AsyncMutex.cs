@@ -305,7 +305,7 @@ namespace Nito.AsyncEx
 				}
 				catch (Exception ex)
 				{
-					Logger.LogWarning<AsyncMutex>(ex);
+					Logger.LogWarning(ex);
 					// If the thread is still alive we must stop it
 					StopThread();
 
@@ -326,12 +326,12 @@ namespace Nito.AsyncEx
 			{
 				// abandoned mutexes are still acquired, we just need
 				// to handle the exception and treat it as acquisition
-				Logger.LogWarning($"{nameof(AbandonedMutexException)} in {ShortName}.", nameof(AsyncMutex));
+				Logger.LogWarning($"{nameof(AbandonedMutexException)} in {ShortName}.");
 				return new Key(this);
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError($"{ex.ToTypeMessageString()} in {ShortName}.", nameof(AsyncMutex));
+				Logger.LogError($"{ex.ToTypeMessageString()} in {ShortName}.");
 				inner = ex;
 				// Let it go.
 			}
@@ -364,7 +364,7 @@ namespace Nito.AsyncEx
 			catch (Exception ex)
 			{
 				// Let it go...
-				Logger.LogWarning<AsyncMutex>(ex);
+				Logger.LogWarning(ex);
 			}
 
 			// Final solution, abort the thread.
@@ -410,7 +410,7 @@ namespace Nito.AsyncEx
 					{
 						return;
 					}
-					Logger.LogDebug($"Waiting for: {string.Join(", ", AsyncMutexes.Where(am => am.Value.IsAlive).Select(m => m.Value.ShortName))}.", nameof(AsyncMutex));
+					Logger.LogDebug($"Waiting for: {string.Join(", ", AsyncMutexes.Where(am => am.Value.IsAlive).Select(m => m.Value.ShortName))}.");
 				}
 				await Task.Delay(200);
 				if (DateTime.Now - start > TimeSpan.FromSeconds(60))
@@ -454,7 +454,7 @@ namespace Nito.AsyncEx
 						}
 						catch (Exception ex)
 						{
-							Logger.LogWarning<AsyncMutex>(ex);
+							Logger.LogWarning(ex);
 						}
 					}
 

@@ -61,14 +61,12 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// No segwit transaction. Ignore it.
 			var tx = CreateCreditingTransaction(new Key().PubKey.Hash.ScriptPubKey, Money.Coins(1.0m), isConfirmed: true);
-			transactionProcessor.TransactionHashes.Append(tx.GetHash()); // This transaction was already seen before
 
 			var relevant = transactionProcessor.Process(tx);
 
 			Assert.False(relevant);
 			Assert.Empty(transactionProcessor.Coins);
 			Assert.Empty(transactionProcessor.TransactionCache);
-			Assert.Empty(transactionProcessor.TransactionHashes);
 		}
 
 		[Fact]
@@ -80,7 +78,6 @@ namespace WalletWasabi.Tests.UnitTests
 			var key = transactionProcessor.KeyManager.GetKeys().First();
 
 			var tx = CreateCreditingTransaction(key.PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m));
-			transactionProcessor.TransactionHashes.Append(tx.GetHash()); // This transaction was already seen before
 			transactionProcessor.Process(tx);
 
 			var cachedTx = Assert.Single(transactionProcessor.TransactionCache);
@@ -99,8 +96,6 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.NotEqual(Height.Mempool, cachedTx.Height);
 			coin = Assert.Single(transactionProcessor.Coins);
 			Assert.Equal(blockHeight, coin.Height);
-
-			Assert.Empty(transactionProcessor.TransactionHashes);
 		}
 
 		[Fact]
@@ -127,7 +122,6 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Single(transactionProcessor.Coins, coin => coin.Unspent);
 			Assert.Single(transactionProcessor.Coins, coin => !coin.Unspent);
 			Assert.Equal(2, transactionProcessor.TransactionCache.Count());
-			Assert.Empty(transactionProcessor.TransactionHashes);
 		}
 
 		[Fact]
@@ -153,7 +147,6 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.True(relevant);
 			Assert.Single(transactionProcessor.Coins, coin => coin.Unspent && coin.Confirmed);
 			Assert.Single(transactionProcessor.Coins, coin => !coin.Unspent && coin.Confirmed);
-			Assert.Empty(transactionProcessor.TransactionHashes);
 		}
 
 		[Fact]
@@ -182,7 +175,6 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.True(relevant);
 			Assert.Single(transactionProcessor.Coins, coin => coin.Unspent && coin.Amount == Money.Coins(0.9m) && coin.IsReplaceable);
 			Assert.Single(transactionProcessor.Coins, coin => !coin.Unspent && coin.Amount == Money.Coins(1.0m) && !coin.IsReplaceable);
-			Assert.Empty(transactionProcessor.TransactionHashes);
 		}
 
 		[Fact]
@@ -305,7 +297,6 @@ namespace WalletWasabi.Tests.UnitTests
 			keyManager.AssertCleanKeysIndexed();
 			return new TransactionProcessor(
 				keyManager,
-				new ConcurrentHashSet<uint256>(),
 				new ObservableConcurrentHashSet<SmartCoin>(),
 				Money.Coins(0.0001m),
 				new ConcurrentHashSet<SmartTransaction>());

@@ -24,6 +24,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
+using WalletWasabi.Mempool;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
@@ -99,11 +100,11 @@ namespace WalletWasabi.Gui
 			}
 			catch (NotSupportedException ex)
 			{
-				Logger.LogWarning(ex.Message, nameof(Global));
+				Logger.LogWarning(ex.Message);
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning(ex, nameof(Global));
+				Logger.LogWarning(ex);
 			}
 			finally
 			{
@@ -121,7 +122,7 @@ namespace WalletWasabi.Gui
 			SmartCoin[] enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
 			if (enqueuedCoins.Any())
 			{
-				Logger.LogWarning("Unregistering coins in CoinJoin process.", nameof(Global));
+				Logger.LogWarning("Unregistering coins in CoinJoin process.");
 				await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins, "Process was signaled to kill.");
 			}
 		}
@@ -139,7 +140,7 @@ namespace WalletWasabi.Gui
 
 			Config = new Config(Path.Combine(DataDir, "Config.json"));
 			await Config.LoadOrCreateDefaultFileAsync();
-			Logger.LogInfo<Config>($"{nameof(Config)} is successfully initialized.");
+			Logger.LogInfo($"{nameof(Config)} is successfully initialized.");
 
 			#endregion ConfigInitialization
 
@@ -151,7 +152,7 @@ namespace WalletWasabi.Gui
 			var addrManTask = InitializeAddressManagerBehaviorAsync();
 
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
-			var connectionParameters = new NodeConnectionParameters { UserAgent = "/Satoshi:0.18.0/" };
+			var connectionParameters = new NodeConnectionParameters { UserAgent = "/Satoshi:0.18.1/" };
 
 			if (Config.UseTor)
 			{
@@ -170,7 +171,7 @@ namespace WalletWasabi.Gui
 			Console.CancelKeyPress += async (s, e) =>
 			{
 				e.Cancel = true;
-				Logger.LogWarning("Process was signaled for killing.", nameof(Global));
+				Logger.LogWarning("Process was signaled for killing.");
 
 				KillRequested = true;
 				await TryDesperateDequeueAllCoinsAsync();
@@ -180,7 +181,7 @@ namespace WalletWasabi.Gui
 				});
 				await DisposeAsync();
 
-				Logger.LogInfo($"Wasabi stopped gracefully.", Logger.InstanceGuid.ToString());
+				Logger.LogSoftwareStopped("Wasabi");
 			};
 
 			#endregion ProcessKillSubscription
@@ -200,7 +201,7 @@ namespace WalletWasabi.Gui
 			var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
 			TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), DataDir, fallbackRequestTestUri);
 
-			Logger.LogInfo<TorProcessManager>($"{nameof(TorProcessManager)} is initialized.");
+			Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 
 			#endregion TorProcessInitialization
 
@@ -219,7 +220,7 @@ namespace WalletWasabi.Gui
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError(ex, nameof(Global));
+				Logger.LogError(ex);
 			}
 
 			#endregion HwiProcessInitialization
@@ -244,16 +245,19 @@ namespace WalletWasabi.Gui
 				Nodes = new NodesGroup(Network, requirements: Constants.NodeRequirements);
 				try
 				{
-					Node node = await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
+					EndPoint bitcoinCoreEndpoint = Config.GetBitcoinP2pEndPoint();
+
+					Node node = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint);
+
 					Nodes.ConnectedNodes.Add(node);
 
-					RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
+					RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint);
 
 					RegTestMempoolServingNode.Behaviors.Add(new MempoolBehavior(MempoolService));
 				}
 				catch (SocketException ex)
 				{
-					Logger.LogError(ex, nameof(Global));
+					Logger.LogError(ex);
 				}
 			}
 			else
@@ -308,7 +312,7 @@ namespace WalletWasabi.Gui
 			if (Network == Network.RegTest)
 			{
 				AddressManager = new AddressManager();
-				Logger.LogInfo<AddressManager>($"Fake {nameof(AddressManager)} is initialized on the {Network.RegTest}.");
+				Logger.LogInfo($"Fake {nameof(AddressManager)} is initialized on the {Network.RegTest}.");
 			}
 			else
 			{
@@ -325,37 +329,37 @@ namespace WalletWasabi.Gui
 					// On the other side, increasing this number forces users that do not need to discover more peers
 					// to spend resources (CPU/bandwith) to discover new peers.
 					needsToDiscoverPeers = Config.UseTor is true || AddressManager.Count < 500;
-					Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
+					Logger.LogInfo($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
 				}
 				catch (DirectoryNotFoundException ex)
 				{
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
-					Logger.LogTrace<AddressManager>(ex);
+					Logger.LogInfo($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
+					Logger.LogTrace(ex);
 					AddressManager = new AddressManager();
 				}
 				catch (FileNotFoundException ex)
 				{
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
-					Logger.LogTrace<AddressManager>(ex);
+					Logger.LogInfo($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
+					Logger.LogTrace(ex);
 					AddressManager = new AddressManager();
 				}
 				catch (OverflowException ex)
 				{
 					// https://github.com/zkSNACKs/WalletWasabi/issues/712
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} has thrown `{nameof(OverflowException)}`. Attempting to autocorrect.");
+					Logger.LogInfo($"{nameof(AddressManager)} has thrown `{nameof(OverflowException)}`. Attempting to autocorrect.");
 					File.Delete(AddressManagerFilePath);
-					Logger.LogTrace<AddressManager>(ex);
+					Logger.LogTrace(ex);
 					AddressManager = new AddressManager();
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} autocorrection is successful.");
+					Logger.LogInfo($"{nameof(AddressManager)} autocorrection is successful.");
 				}
 				catch (FormatException ex)
 				{
 					// https://github.com/zkSNACKs/WalletWasabi/issues/880
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} has thrown `{nameof(FormatException)}`. Attempting to autocorrect.");
+					Logger.LogInfo($"{nameof(AddressManager)} has thrown `{nameof(FormatException)}`. Attempting to autocorrect.");
 					File.Delete(AddressManagerFilePath);
-					Logger.LogTrace<AddressManager>(ex);
+					Logger.LogTrace(ex);
 					AddressManager = new AddressManager();
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} autocorrection is successful.");
+					Logger.LogInfo($"{nameof(AddressManager)} autocorrection is successful.");
 				}
 			}
 
@@ -423,7 +427,7 @@ namespace WalletWasabi.Gui
 				}
 				catch (Exception ex) // Whatever this is not critical, but let's log it.
 				{
-					Logger.LogWarning(ex, nameof(Global));
+					Logger.LogWarning(ex);
 				}
 
 				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, MempoolService, Nodes, DataDir, Config.ServiceConfiguration);
@@ -540,7 +544,7 @@ namespace WalletWasabi.Gui
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning(ex, nameof(Global));
+				Logger.LogWarning(ex);
 			}
 		}
 
@@ -556,7 +560,7 @@ namespace WalletWasabi.Gui
 			}
 			catch (ObjectDisposedException)
 			{
-				Logger.LogWarning($"{nameof(_cancelWalletServiceInitialization)} is disposed. This can occur due to an error while processing the wallet.", nameof(Global));
+				Logger.LogWarning($"{nameof(_cancelWalletServiceInitialization)} is disposed. This can occur due to an error while processing the wallet.");
 			}
 			_cancelWalletServiceInitialization = null;
 
@@ -566,21 +570,21 @@ namespace WalletWasabi.Gui
 				{
 					string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(WalletService.KeyManager.FilePath));
 					WalletService.KeyManager?.ToFile(backupWalletFilePath);
-					Logger.LogInfo($"{nameof(KeyManager)} backup saved to `{backupWalletFilePath}`.", nameof(Global));
+					Logger.LogInfo($"{nameof(KeyManager)} backup saved to `{backupWalletFilePath}`.");
 				}
 				if (WalletService != null)
 				{
 					await WalletService.StopAsync();
 				}
 				WalletService = null;
-				Logger.LogInfo($"{nameof(WalletService)} is stopped.", nameof(Global));
+				Logger.LogInfo($"{nameof(WalletService)} is stopped.");
 			}
 
 			if (ChaumianClient != null)
 			{
 				await ChaumianClient.StopAsync();
 				ChaumianClient = null;
-				Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.", nameof(Global));
+				Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.");
 			}
 		}
 
@@ -614,13 +618,13 @@ namespace WalletWasabi.Gui
 				if (UpdateChecker != null)
 				{
 					await UpdateChecker?.StopAsync();
-					Logger.LogInfo($"{nameof(UpdateChecker)} is stopped.", nameof(Global));
+					Logger.LogInfo($"{nameof(UpdateChecker)} is stopped.");
 				}
 
 				if (Synchronizer != null)
 				{
 					await Synchronizer?.StopAsync();
-					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.", nameof(Global));
+					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.");
 				}
 
 				if (AddressManagerFilePath != null)
@@ -629,7 +633,7 @@ namespace WalletWasabi.Gui
 					if (AddressManager != null)
 					{
 						AddressManager?.SavePeerFile(AddressManagerFilePath, Config.Network);
-						Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.", nameof(Global));
+						Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.");
 					}
 				}
 
@@ -641,19 +645,19 @@ namespace WalletWasabi.Gui
 						await Task.Delay(50);
 					}
 					Nodes?.Dispose();
-					Logger.LogInfo($"{nameof(Nodes)} are disposed.", nameof(Global));
+					Logger.LogInfo($"{nameof(Nodes)} are disposed.");
 				}
 
 				if (RegTestMempoolServingNode != null)
 				{
 					RegTestMempoolServingNode.Disconnect();
-					Logger.LogInfo($"{nameof(RegTestMempoolServingNode)} is disposed.", nameof(Global));
+					Logger.LogInfo($"{nameof(RegTestMempoolServingNode)} is disposed.");
 				}
 
 				if (TorManager != null)
 				{
 					await TorManager?.StopAsync();
-					Logger.LogInfo($"{nameof(TorManager)} is stopped.", nameof(Global));
+					Logger.LogInfo($"{nameof(TorManager)} is stopped.");
 				}
 
 				if (AsyncMutex.IsAny)
@@ -661,17 +665,17 @@ namespace WalletWasabi.Gui
 					try
 					{
 						await AsyncMutex.WaitForAllMutexToCloseAsync();
-						Logger.LogInfo($"{nameof(AsyncMutex)}(es) are stopped.", nameof(Global));
+						Logger.LogInfo($"{nameof(AsyncMutex)}(es) are stopped.");
 					}
 					catch (Exception ex)
 					{
-						Logger.LogError($"Error during stopping {nameof(AsyncMutex)}: {ex}", nameof(Global));
+						Logger.LogError($"Error during stopping {nameof(AsyncMutex)}: {ex}");
 					}
 				}
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning(ex, nameof(Global));
+				Logger.LogWarning(ex);
 			}
 			finally
 			{

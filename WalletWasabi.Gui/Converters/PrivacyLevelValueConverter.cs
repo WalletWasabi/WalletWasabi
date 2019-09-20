@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Drawing;
 using System.Globalization;
+using WalletWasabi.Exceptions;
 
 namespace WalletWasabi.Gui.Converters
 {

@@ -25,9 +25,9 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.KeyManagement;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Models.TransactionBuilding;
-using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -222,9 +222,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			OnAddressPasteCommand = ReactiveCommand.Create((BitcoinUrlBuilder url) =>
 			{
-				if (!string.IsNullOrWhiteSpace(url.Label))
+				var label = new SmartLabel(url.Label);
+				if (!label.IsEmpty)
 				{
-					Label = url.Label;
+					Label = label.ToString();
 				}
 
 				if (url.Amount != null)
@@ -241,8 +242,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					IsBusy = true;
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BuildingTransaction);
 
-					Label = Label.Trim(',', ' ').Trim();
-					if (!IsMax && string.IsNullOrWhiteSpace(Label))
+					var label = new SmartLabel(Label);
+					Label = label.ToString();
+					if (!IsMax && label.IsEmpty)
 					{
 						SetWarningMessage($"{nameof(Label)} is required.");
 						return;
@@ -298,7 +300,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					bool useCustomFee = !IsSliderFeeUsed;
 					var feeStrategy = FeeStrategy.CreateFromFeeRate(FeeRate);
 
-					var label = Label;
 					var intent = new PaymentIntent(address, moneyRequest, label);
 					try
 					{
@@ -592,7 +593,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (OverflowException ex)
 				{
-					Logging.Logger.LogTrace<SendTabViewModel>(ex);
+					Logger.LogTrace(ex);
 				}
 
 				AmountWatermarkText = amountUsd != 0
@@ -813,7 +814,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogInfo<SendTabViewModel>(ex);
+				Logger.LogInfo(ex);
 			}
 		}
 
@@ -833,7 +834,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning<SendTabViewModel>(ex);
+				Logger.LogWarning(ex);
 			}
 		}
 
@@ -855,7 +856,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning<CoinJoinTabViewModel>(ex);
+				Logger.LogWarning(ex);
 				var builder = new StringBuilder(ex.ToTypeMessageString());
 				if (ex is AggregateException aggex)
 				{
@@ -966,6 +967,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _allSelectedAmount, value);
 		}
 
+		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+
+		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
 		{
 			get => _password;
@@ -1032,24 +1036,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Suggestions.Clear();
 		}
 
-		public string ValidateAddress()
+		public ErrorDescriptors ValidateAddress()
 		{
 			if (string.IsNullOrWhiteSpace(Address))
 			{
-				return "";
+				return ErrorDescriptors.Empty;
 			}
 
 			if (AddressStringParser.TryParseBitcoinAddress(Address, Global.Network, out _))
 			{
-				return "";
+				return ErrorDescriptors.Empty;
 			}
 
 			if (AddressStringParser.TryParseBitcoinUrl(Address, Global.Network, out _))
 			{
-				return "";
+				return ErrorDescriptors.Empty;
 			}
 
-			return "Invalid address.";
+			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid address."));
 		}
 
 		[ValidateMethod(nameof(ValidateAddress))]

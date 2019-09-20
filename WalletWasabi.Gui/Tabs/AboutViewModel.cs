@@ -8,6 +8,8 @@ using WalletWasabi.Gui.ViewModels;
 using System.IO;
 using ReactiveUI;
 using System.Reactive;
+using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Tabs
 {
@@ -17,7 +19,7 @@ namespace WalletWasabi.Gui.Tabs
 
 		public AboutViewModel(Global global) : base(global, "About")
 		{
-			Version = WalletWasabi.Helpers.Constants.ClientVersion;
+			Version = Constants.ClientVersion;
 
 			OpenBrowserCommand = ReactiveCommand.Create<string>(x =>
 			{
@@ -27,14 +29,14 @@ namespace WalletWasabi.Gui.Tabs
 				}
 				catch (Exception ex)
 				{
-					Logging.Logger.LogError<AboutViewModel>(ex);
+					Logger.LogError(ex);
 				}
 			});
 		}
 
 		public Version Version { get; }
 
-		public string VersionText => $"v{Version.ToVersionString()}";
+		public string VersionText => $"v{Version}";
 
 		public string ClearnetLink => "https://wasabiwallet.io/";
 
