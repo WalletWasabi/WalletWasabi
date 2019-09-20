@@ -27,7 +27,7 @@ namespace WalletWasabi.Tests.UnitTests
 				var desired = pairs.Value;
 				Logger.TurnOff();
 				var results = PasswordHelper.GetPossiblePasswords(original);
-
+				Logger.TurnOn();
 				var foundCorrectPassword = false;
 
 				foreach (var pw in results)
@@ -77,6 +77,8 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// This should not throw format exception but pw is not correct.
 			Assert.Throws<SecurityException>(() => PasswordHelper.GetMasterExtKey(keyManager, badPassword, out _));
+
+			Logger.TurnOn();
 		}
 
 		[Fact]
