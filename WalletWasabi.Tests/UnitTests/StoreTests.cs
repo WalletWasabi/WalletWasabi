@@ -87,71 +87,55 @@ namespace WalletWasabi.Tests.UnitTests
 			var newServerHeight = hashChain.ServerTipHeight + 1;
 			Assert.PropertyChanged(hashChain,
 					nameof(hashChain.ServerTipHeight),
-					() =>
-					{
-						// ASSERT FUNCTION
-						// Assert update server height raises.
-						hashChain.UpdateServerTipHeight(newServerHeight);
-					});
+					// ASSERT FUNCTION
+					// Assert update server height raises.
+					() => hashChain.UpdateServerTipHeight(newServerHeight));
+
 			newServerHeight++;
 			Assert.PropertyChanged(hashChain,
 					nameof(hashChain.HashesLeft),
-					() =>
-					{
-						// ASSERT FUNCTION
-						// Assert update server height raises.
-						hashChain.UpdateServerTipHeight(newServerHeight);
-					});
+					// ASSERT FUNCTION
+					// Assert update server height raises.
+					() => hashChain.UpdateServerTipHeight(newServerHeight));
 
 			newServerHeight++;
 			Assert.Throws<PropertyChangedException>(() =>
 				Assert.PropertyChanged(hashChain,
 					nameof(hashChain.HashCount),
-					() =>
-					{
-						// ASSERT FUNCTIONS
-						// Assert update server height does not raise unnecessary events.
-						hashChain.UpdateServerTipHeight(newServerHeight);
-					}));
+					// ASSERT FUNCTIONS
+					// Assert update server height does not raise unnecessary events.
+					() => hashChain.UpdateServerTipHeight(newServerHeight)));
+
 			newServerHeight++;
 			Assert.Throws<PropertyChangedException>(() =>
 				Assert.PropertyChanged(hashChain,
 					nameof(hashChain.TipHash),
-					() =>
-					{
-						// ASSERT FUNCTIONS
-						// Assert update server height does not raise unnecessary events.
-						hashChain.UpdateServerTipHeight(newServerHeight);
-					}));
+					// ASSERT FUNCTIONS
+					// Assert update server height does not raise unnecessary events.
+					() => hashChain.UpdateServerTipHeight(newServerHeight)));
+
 			newServerHeight++;
 			Assert.Throws<PropertyChangedException>(() =>
 				Assert.PropertyChanged(hashChain,
 					nameof(hashChain.TipHeight),
-					() =>
-					{
-						// ASSERT FUNCTIONS
-						// Assert update server height does not raise unnecessary events.
-						hashChain.UpdateServerTipHeight(newServerHeight);
-					}));
+					// ASSERT FUNCTIONS
+					// Assert update server height does not raise unnecessary events.
+					() => hashChain.UpdateServerTipHeight(newServerHeight)));
+
 			var sameServerheight = newServerHeight;
 			Assert.Throws<PropertyChangedException>(() =>
 				Assert.PropertyChanged(hashChain,
 					nameof(hashChain.ServerTipHeight),
-					() =>
-					{
-						// ASSERT FUNCTIONS
-						// Assert update server height does not raise without actually changing.
-						hashChain.UpdateServerTipHeight(sameServerheight);
-					}));
+					// ASSERT FUNCTIONS
+					// Assert update server height does not raise without actually changing.
+					() => hashChain.UpdateServerTipHeight(sameServerheight)));
+
 			Assert.Throws<PropertyChangedException>(() =>
 				Assert.PropertyChanged(hashChain,
 					nameof(hashChain.HashesLeft),
-					() =>
-					{
-						// ASSERT FUNCTIONS
-						// Assert update server height does not raise without actually changing.
-						hashChain.UpdateServerTipHeight(sameServerheight);
-					}));
+					// ASSERT FUNCTIONS
+					// Assert update server height does not raise without actually changing.
+					() => hashChain.UpdateServerTipHeight(sameServerheight)));
 
 			// ASSERT PROPERTIES
 			Assert.Equal(0, hashChain.HashCount);
@@ -204,10 +188,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			var disposable = await asyncMutex.LockAsync();
 
-			var myThread = new Thread(new ThreadStart(() =>
-			 {
-				 disposable.Dispose();
-			 }));
+			var myThread = new Thread(new ThreadStart(() => disposable.Dispose()));
 			myThread.Start();
 			myThread.Join();
 

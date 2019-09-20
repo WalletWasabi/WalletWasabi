@@ -24,19 +24,15 @@ namespace WalletWasabi.Gui.Behaviors
 		{
 			base.OnAttached();
 
-			AssociatedObject.AttachedToLogicalTree +=
-				(sender, e) =>
-				{
-					Disposables.Add(this
-						.GetObservable(IsFocusedProperty)
-						.Subscribe(focused =>
+			AssociatedObject.AttachedToLogicalTree += (sender, e) =>
+				Disposables.Add(this.GetObservable(IsFocusedProperty)
+					.Subscribe(focused =>
+					{
+						if (focused)
 						{
-							if (focused)
-							{
-								AssociatedObject.Focus();
-							}
-						}));
-				};
+							AssociatedObject.Focus();
+						}
+					}));
 		}
 
 		protected override void OnDetaching()
