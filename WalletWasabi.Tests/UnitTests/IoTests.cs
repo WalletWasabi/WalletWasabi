@@ -227,6 +227,7 @@ namespace WalletWasabi.Tests.UnitTests
 			ioman.DeleteMe();
 			await ioman.WriteAllLinesAsync(new string[0]);
 			Assert.False(File.Exists(ioman.FilePath));
+			IoHelpers.EnsureContainingDirectoryExists(ioman.FilePath);
 			File.Create(ioman.FilePath).Dispose();
 
 			string RandomString()
