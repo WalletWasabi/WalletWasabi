@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Diagnostics;
 using AvalonStudio.Commands;
 using AvalonStudio.Extensibility;
@@ -35,20 +36,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 #if DEBUG
 			var devToolsCommand = ReactiveCommand.Create(() =>
 			{
-				var devTools = new DevTools(Application.Current.Windows.FirstOrDefault());
-
-				var devToolsWindow = new Window
-				{
-					Width = 1024,
-					Height = 512,
-					Content = devTools,
-					DataTemplates =
-						{
-							new ViewLocator<Avalonia.Diagnostics.ViewModels.ViewModelBase>()
-						}
-				};
-
-				devToolsWindow.Show();
+				DevToolsExtensions.OpenDevTools((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
 			});
 #endif
 

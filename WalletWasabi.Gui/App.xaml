@@ -27,10 +27,10 @@
   <Application.DataTemplates>
     <DataTemplate DataType="Views:MainView">
       <Grid>
-        <ContentControl Content="{Binding CurrentView}" />
+        <ContentControl Content="{Binding ActiveDockable}" />
       </Grid>
     </DataTemplate>
-    <DataTemplate DataType="id:IView">
+    <DataTemplate DataType="id:IDockable">
       <cont:ViewModelViewHost DataContext="{Binding Context}" />
     </DataTemplate>
   </Application.DataTemplates>

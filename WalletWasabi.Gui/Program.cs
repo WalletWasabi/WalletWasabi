@@ -20,14 +20,13 @@ namespace WalletWasabi.Gui
 {
 	internal class Program
 	{
+		private static StatusBarViewModel StatusBar = null;
 		private static Global Global;
 #pragma warning disable IDE1006 // Naming Styles
 
 		private static async Task Main(string[] args)
 #pragma warning restore IDE1006 // Naming Styles
 		{
-			StatusBarViewModel statusBar = null;
-
 			bool runGui = false;
 			try
 			{
@@ -44,26 +43,7 @@ namespace WalletWasabi.Gui
 				}
 				Logger.LogSoftwareStarted("Wasabi GUI");
 
-				BuildAvaloniaApp()
-					.StartShellApp<AppBuilder, MainWindow>("Wasabi Wallet", null, () => MainWindowViewModel.Instance,
-					beforeStarting: async builder =>
-					{
-						MainWindowViewModel.Instance = new MainWindowViewModel { Global = Global };
-						statusBar = new StatusBarViewModel(Global);
-						MainWindowViewModel.Instance.StatusBar = statusBar;
-						MainWindowViewModel.Instance.LockScreen = new LockScreenViewModel(Global);
-
-						await Global.InitializeNoWalletAsync();
-
-						statusBar.Initialize(Global.Nodes.ConnectedNodes, Global.Synchronizer, Global.UpdateChecker);
-
-						if (Global.Network != Network.Main)
-						{
-							MainWindowViewModel.Instance.Title += $" - {Global.Network}";
-						}
-
-						Dispatcher.UIThread.Post(GC.Collect);
-					});
+				BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMain, args);
 			}
 			catch (Exception ex)
 			{
@@ -72,7 +52,7 @@ namespace WalletWasabi.Gui
 			}
 			finally
 			{
-				statusBar?.Dispose();
+				StatusBar?.Dispose();
 				await Global.DisposeAsync();
 				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
@@ -82,6 +62,25 @@ namespace WalletWasabi.Gui
 					Logger.LogSoftwareStopped("Wasabi GUI");
 				}
 			}
+		}
+
+		private static async void AppMain(string[] args)
+		{
+			MainWindowViewModel.Instance = new MainWindowViewModel { Global = Global };
+			StatusBar = new StatusBarViewModel(Global);
+			MainWindowViewModel.Instance.StatusBar = StatusBar;
+			MainWindowViewModel.Instance.LockScreen = new LockScreenViewModel(Global);
+
+			await Global.InitializeNoWalletAsync();
+
+			StatusBar.Initialize(Global.Nodes.ConnectedNodes, Global.Synchronizer, Global.UpdateChecker);
+
+			if (Global.Network != Network.Main)
+			{
+				MainWindowViewModel.Instance.Title += $" - {Global.Network}";
+			}
+
+			Dispatcher.UIThread.Post(GC.Collect);
 		}
 
 		private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)

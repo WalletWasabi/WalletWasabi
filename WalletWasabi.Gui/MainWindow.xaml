@@ -20,8 +20,7 @@
                   Width="{Binding Width}" Height="{Binding Height}"
                   WindowState="{Binding WindowState}"
                   UseLayoutRounding="True"
-                  RenderOptions.BitmapInterpolationMode="HighQuality"
-                  id:DragBehavior.IsEnabled="False" id:DropBehavior.IsEnabled="False">
+                  RenderOptions.BitmapInterpolationMode="HighQuality">
   <cont:MetroWindow.TitleBarContent>
     <StackPanel Orientation="Horizontal" IsVisible="{Binding !LockScreen.IsLocked}">
       <menu:MainMenuView DataContext="{Binding Shell.MainMenu}" Margin="4 0 0 0" Foreground="{DynamicResource ThemeForegroundBrush}" VerticalAlignment="Stretch" FontSize="13" />
@@ -41,7 +40,7 @@
       <Setter Property="Padding" Value="7 0" />
     </Style>
   </cont:MetroWindow.Styles>
-  <Grid>
+  <Grid  id:DockProperties.IsDropArea="False">
     <DockPanel LastChildFill="True">
       <wasabi:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" />
       <shell:ShellView DataContext="{Binding Shell}" />
