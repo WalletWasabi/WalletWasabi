@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
@@ -128,7 +127,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				catch (Exception ex)
 				{
 					SetWarningMessage(ex.ToTypeMessageString());
-					Logger.LogError(ex);
+					Logging.Logger.LogError(ex);
 				}
 			}, outputScheduler: RxApp.MainThreadScheduler);
 

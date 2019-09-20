@@ -306,7 +306,6 @@ namespace Nito.AsyncEx
 				catch (Exception ex)
 				{
 					Logger.LogWarning(ex);
-
 					// If the thread is still alive we must stop it
 					StopThread();
 
@@ -385,9 +384,10 @@ namespace Nito.AsyncEx
 
 			StopThread();
 
-			ChangeStatus(AsyncLockStatus.StatusReady, AsyncLockStatus.StatusReleasing);
 			// Release the local lock.
 			AsyncLock?.ReleaseLock();
+
+			ChangeStatus(AsyncLockStatus.StatusReady, AsyncLockStatus.StatusReleasing);
 		}
 
 		public static async Task WaitForAllMutexToCloseAsync()

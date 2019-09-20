@@ -8,7 +8,6 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
-using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
@@ -180,7 +179,7 @@ namespace WalletWasabi.Gui
 			}
 			else
 			{
-				throw new NotSupportedNetworkException(Network);
+				throw new NotSupportedException($"{nameof(Network)} not supported: {Network}.");
 			}
 
 			return _backendUri;
@@ -207,7 +206,7 @@ namespace WalletWasabi.Gui
 			}
 			else
 			{
-				throw new NotSupportedNetworkException(Network);
+				throw new NotSupportedException($"{nameof(Network)} not supported: {Network}.");
 			}
 
 			return _fallbackBackendUri;
@@ -234,7 +233,7 @@ namespace WalletWasabi.Gui
 			}
 			else
 			{
-				throw new NotSupportedNetworkException(Network);
+				throw new NotSupportedException($"{nameof(Network)} not supported: {Network}.");
 			}
 		}
 
@@ -274,7 +273,7 @@ namespace WalletWasabi.Gui
 			}
 			else
 			{
-				throw new NotSupportedNetworkException(Network);
+				throw new NotSupportedException("Unsupported network");
 			}
 		}
 
@@ -294,7 +293,7 @@ namespace WalletWasabi.Gui
 			}
 			else
 			{
-				throw new NotSupportedNetworkException(Network);
+				throw new NotSupportedException("Unsupported network");
 			}
 		}
 

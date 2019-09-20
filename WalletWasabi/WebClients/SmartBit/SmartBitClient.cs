@@ -9,7 +9,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Exceptions;
 using WalletWasabi.WebClients.SmartBit.Models;
 
 namespace WalletWasabi.WebClients.SmartBit
@@ -38,7 +37,7 @@ namespace WalletWasabi.WebClients.SmartBit
 			}
 			else
 			{
-				throw new NotSupportedNetworkException(network);
+				throw new NotSupportedException($"{nameof(Network)} not supported: {network}.");
 			}
 		}
 

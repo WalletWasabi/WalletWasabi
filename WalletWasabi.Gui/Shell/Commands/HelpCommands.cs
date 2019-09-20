@@ -11,7 +11,6 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Tabs;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
@@ -42,7 +41,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 					}
 					catch (Exception ex)
 					{
-						Logger.LogWarning(ex);
+						Logging.Logger.LogWarning(ex);
 						IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
 					}
 				}));
@@ -58,7 +57,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 					}
 					catch (Exception ex)
 					{
-						Logger.LogWarning(ex);
+						Logging.Logger.LogWarning(ex);
 						IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
 					}
 				}));
@@ -74,7 +73,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 					}
 					catch (Exception ex)
 					{
-						Logger.LogWarning(ex);
+						Logging.Logger.LogWarning(ex);
 						IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
 					}
 				}));

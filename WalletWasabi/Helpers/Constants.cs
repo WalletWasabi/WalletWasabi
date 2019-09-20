@@ -2,7 +2,6 @@ using NBitcoin;
 using NBitcoin.Protocol;
 using System;
 using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.Exceptions;
 
 namespace WalletWasabi.Helpers
 {
@@ -72,7 +71,7 @@ namespace WalletWasabi.Helpers
 			}
 			else
 			{
-				throw new NotSupportedNetworkException(network);
+				throw new NotSupportedException($"{nameof(network)} not supported: {network}.");
 			}
 		}
 

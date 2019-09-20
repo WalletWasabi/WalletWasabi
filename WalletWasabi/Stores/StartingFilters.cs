@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.Exceptions;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Stores
@@ -26,7 +25,7 @@ namespace WalletWasabi.Stores
 			}
 			else
 			{
-				throw new NotSupportedNetworkException(network);
+				throw new NotSupportedException($"{nameof(Network)} not supported: {network}.");
 			}
 		}
 
@@ -46,7 +45,7 @@ namespace WalletWasabi.Stores
 			}
 			else
 			{
-				throw new NotSupportedNetworkException(network);
+				throw new NotSupportedException($"{nameof(Network)} not supported: {network}.");
 			}
 		}
 	}

@@ -13,7 +13,6 @@ using System.Reactive.Linq;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Tabs;
 using WalletWasabi.Gui.Tabs.WalletManager;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
@@ -93,7 +92,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnException(Exception ex)
 		{
-			Logger.LogError(ex);
+			Logging.Logger.LogError(ex);
 		}
 
 		[ExportCommandDefinition("Tools.WalletManager")]

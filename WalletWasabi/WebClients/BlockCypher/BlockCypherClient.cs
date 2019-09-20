@@ -6,7 +6,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Exceptions;
 using WalletWasabi.WebClients.BlockCypher.Models;
 
 namespace WalletWasabi.WebClients.BlockCypher
@@ -35,7 +34,7 @@ namespace WalletWasabi.WebClients.BlockCypher
 			}
 			else
 			{
-				throw new NotSupportedNetworkException(network);
+				throw new NotSupportedException($"{nameof(Network)} not supported: {network}.");
 			}
 		}
 

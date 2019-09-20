@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using WalletWasabi.Logging;
 
 namespace Avalonia.Threading
 {
@@ -18,7 +17,7 @@ namespace Avalonia.Threading
 				}
 				catch (Exception ex)
 				{
-					Logger.LogDebug(ex);
+					WalletWasabi.Logging.Logger.LogDebug(ex);
 				}
 			}, priority);
 		}
@@ -33,7 +32,7 @@ namespace Avalonia.Threading
 				}
 				catch (Exception ex)
 				{
-					Logger.LogDebug(ex);
+					WalletWasabi.Logging.Logger.LogDebug(ex);
 				}
 			}, priority);
 		}

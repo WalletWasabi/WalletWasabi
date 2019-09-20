@@ -4,7 +4,6 @@ using ReactiveUI;
 using System;
 using System.Composition;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
@@ -22,7 +21,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 			var exit = ReactiveCommand.Create(OnExit);
 
-			exit.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
+			exit.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning(ex));
 
 			ExitCommand = new CommandDefinition(
 				"Exit",

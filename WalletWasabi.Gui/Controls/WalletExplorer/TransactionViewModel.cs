@@ -7,7 +7,6 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -83,13 +82,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				await Task.Delay(1000, cancelToken);
 				ClipboardNotificationVisible = false;
 			}
-			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
+			catch (Exception ex) when (ex is OperationCanceledException
+									|| ex is TaskCanceledException
+									|| ex is TimeoutException)
 			{
-				Logger.LogTrace(ex);
+				Logging.Logger.LogTrace(ex);
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning(ex);
+				Logging.Logger.LogWarning(ex);
 			}
 			finally
 			{
