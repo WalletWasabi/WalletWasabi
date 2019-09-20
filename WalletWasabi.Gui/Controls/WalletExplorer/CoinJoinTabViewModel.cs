@@ -54,7 +54,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			CoinsList = new CoinListViewModel(Global, CoinListContainerType.CoinJoinTabViewModel);
 
-			Observable.FromEventPattern(CoinsList, nameof(CoinsList.DequeueCoinsPressed)).Subscribe(_ => OnCoinsListDequeueCoinsPressedAsync());
+			Observable.FromEventPattern(CoinsList, nameof(CoinsList.DequeueCoinsPressed))
+				.Subscribe(_ => OnCoinsListDequeueCoinsPressedAsync());
 
 			AmountQueued = Money.Zero; // Global.ChaumianClient.State.SumAllQueuedCoinAmounts();
 
@@ -152,7 +153,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				PeersNeeded = 100;
 			}
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
+			Global.UiConfig
+				.WhenAnyValue(x => x.LurkingWifeMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{

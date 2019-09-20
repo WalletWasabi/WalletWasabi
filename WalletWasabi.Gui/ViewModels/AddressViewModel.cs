@@ -54,7 +54,8 @@ namespace WalletWasabi.Gui.ViewModels
 					}
 				});
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
+			Global.UiConfig
+				.WhenAnyValue(x => x.LurkingWifeMode)
 				.Subscribe(_ =>
 				{
 					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));

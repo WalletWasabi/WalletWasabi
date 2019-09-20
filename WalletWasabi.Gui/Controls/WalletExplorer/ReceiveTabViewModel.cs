@@ -103,7 +103,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				await SelectedAddress.TryCopyToClipboardAsync();
-			}, isCoinListItemSelected);
+			},
+			isCoinListItemSelected);
 
 			CopyLabel = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -113,7 +114,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (Exception)
 				{ }
-			}, isCoinListItemSelected);
+			},
+			isCoinListItemSelected);
 
 			ShowQrCode = ReactiveCommand.Create(() =>
 			{
@@ -123,7 +125,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (Exception)
 				{ }
-			}, isCoinListItemSelected);
+			},
+			isCoinListItemSelected);
 
 			ChangeLabelCommand = ReactiveCommand.Create(() =>
 			{

@@ -1108,7 +1108,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Global.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate)
+			Global.Synchronizer
+				.WhenAnyValue(x => x.AllFeeEstimate)
 				.Subscribe(_ =>
 				{
 					SetFeeTargetLimits();
@@ -1135,7 +1136,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SetFeesAndTexts());
 
-			_isCustomFee = Global.UiConfig.WhenAnyValue(x => x.IsCustomFee)
+			_isCustomFee = Global.UiConfig
+				.WhenAnyValue(x => x.IsCustomFee)
 				.ToProperty(this, x => x.IsCustomFee, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 

@@ -163,11 +163,13 @@ namespace WalletWasabi.Gui.Tabs
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(LurkingWifeMode)))
 				.DisposeWith(Disposables);
 
-			_isPinSet = Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
+			_isPinSet = Global.UiConfig
+				.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
 				.ToProperty(this, x => x.IsPinSet, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee)
+			Global.UiConfig
+				.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee)
 				.Throttle(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(async _ => await Global.UiConfig.ToFileAsync())

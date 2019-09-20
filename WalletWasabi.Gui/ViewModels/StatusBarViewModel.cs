@@ -76,7 +76,8 @@ namespace WalletWasabi.Gui.ViewModels
 			HashChain = synchronizer.BitcoinStore.HashChain;
 			UseTor = Global.Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
 
-			_status = ActiveStatuses.WhenAnyValue(x => x.CurrentStatus)
+			_status = ActiveStatuses
+				.WhenAnyValue(x => x.CurrentStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.ToProperty(this, x => x.Status)
 				.DisposeWith(Disposables);
@@ -106,7 +107,8 @@ namespace WalletWasabi.Gui.ViewModels
 				.Subscribe(_ => Backend = Synchronizer.BackendStatus)
 				.DisposeWith(Disposables);
 
-			_filtersLeft = HashChain.WhenAnyValue(x => x.HashesLeft)
+			_filtersLeft = HashChain
+				.WhenAnyValue(x => x.HashesLeft)
 				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.ToProperty(this, x => x.FiltersLeft)
@@ -186,7 +188,8 @@ namespace WalletWasabi.Gui.ViewModels
 					Logging.Logger.LogWarning(ex);
 					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
 				}
-			}, this.WhenAnyValue(x => x.UpdateStatus)
+			},
+			this.WhenAnyValue(x => x.UpdateStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => x != UpdateStatus.Latest));
 			this.RaisePropertyChanged(nameof(UpdateCommand)); // The binding happens after the constructor. So, if the command is not in constructor, then we need this line.
