@@ -159,34 +159,34 @@ namespace WalletWasabi.Models
 				var heightString = parts[transactionHexIndex + 1];
 				var blockHashString = parts[transactionHexIndex + 2];
 				var blockIndexString = parts[transactionHexIndex + 3];
-				var label = parts[transactionHexIndex + 4];
-				var firstSeen = parts[transactionHexIndex + 5];
+				var labelString = parts[transactionHexIndex + 4];
+				var firstSeenString = parts[transactionHexIndex + 5];
 				var isReplacementString = parts[transactionHexIndex + 6];
 
-				if (!Height.TryParse(heightString, out Height h))
+				if (!Height.TryParse(heightString, out Height height))
 				{
-					h = Height.Unknown;
+					height = Height.Unknown;
 				}
-				if (!uint256.TryParse(blockHashString, out uint256 bh))
+				if (!uint256.TryParse(blockHashString, out uint256 blockHash))
 				{
-					bh = null;
+					blockHash = null;
 				}
-				if (!int.TryParse(blockIndexString, out int bi))
+				if (!int.TryParse(blockIndexString, out int blockIndex))
 				{
-					bi = 0;
+					blockIndex = 0;
 				}
-				var sl = new SmartLabel(label);
-				DateTimeOffset fs = default;
-				if (long.TryParse(firstSeen, out long unixSeconds))
+				var label = new SmartLabel(labelString);
+				DateTimeOffset firstSeen = default;
+				if (long.TryParse(firstSeenString, out long unixSeconds))
 				{
-					fs = DateTimeOffset.FromUnixTimeSeconds(unixSeconds);
+					firstSeen = DateTimeOffset.FromUnixTimeSeconds(unixSeconds);
 				}
-				if (!bool.TryParse(isReplacementString, out bool ir))
+				if (!bool.TryParse(isReplacementString, out bool isReplacement))
 				{
-					ir = false;
+					isReplacement = false;
 				}
 
-				return new SmartTransaction(transaction, h, bh, bi, sl, ir, fs);
+				return new SmartTransaction(transaction, height, blockHash, blockIndex, label, isReplacement, firstSeen);
 			}
 			catch (Exception ex)
 			{
