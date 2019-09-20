@@ -3,12 +3,13 @@ using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Services
+namespace WalletWasabi.Mempool
 {
 	public class MempoolBehavior : NodeBehavior
 	{
@@ -131,8 +132,8 @@ namespace WalletWasabi.Services
 					}
 				}
 
-				// if we already have it continue;
-				if (!MempoolService.TransactionHashes.TryAdd(inv.Hash))
+				// if we already processed it continue;
+				if (MempoolService.IsProcessed(inv.Hash))
 				{
 					continue;
 				}
@@ -150,7 +151,7 @@ namespace WalletWasabi.Services
 		private void ProcessTx(TxPayload payload)
 		{
 			Transaction transaction = payload.Object;
-			MempoolService.OnTransactionReceived(new SmartTransaction(transaction, Height.Mempool));
+			MempoolService.Process(transaction);
 		}
 
 		public override object Clone()

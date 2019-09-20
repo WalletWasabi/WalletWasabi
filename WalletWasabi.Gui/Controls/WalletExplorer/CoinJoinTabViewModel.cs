@@ -264,20 +264,26 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void UpdateStates()
 		{
-			AmountQueued = Global.ChaumianClient.State.SumAllQueuedCoinAmounts();
+			var chaumianClient = Global?.ChaumianClient;
+			if (chaumianClient is null)
+			{
+				return;
+			}
+
+			AmountQueued = chaumianClient.State.SumAllQueuedCoinAmounts();
 			MainWindowViewModel.Instance.CanClose = AmountQueued == Money.Zero;
 
-			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
+			var registrableRound = chaumianClient.State.GetRegistrableRoundOrDefault();
 			if (registrableRound != default)
 			{
 				CoordinatorFeePercent = registrableRound.State.CoordinatorFeePercent.ToString();
 				UpdateRequiredBtcLabel(registrableRound);
 			}
-			var mostAdvancedRound = Global.ChaumianClient.State.GetMostAdvancedRoundOrDefault();
+			var mostAdvancedRound = chaumianClient.State.GetMostAdvancedRoundOrDefault();
 			if (mostAdvancedRound != default)
 			{
 				RoundId = mostAdvancedRound.State.RoundId;
-				if (!Global.ChaumianClient.State.IsInErrorState)
+				if (!chaumianClient.State.IsInErrorState)
 				{
 					Phase = mostAdvancedRound.State.Phase;
 					RoundTimesout = mostAdvancedRound.State.Phase == CcjRoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;

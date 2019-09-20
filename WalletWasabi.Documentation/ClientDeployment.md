@@ -25,7 +25,8 @@
 13. Upload the files to the pre-release.
 14. Check `This is a pre-release` and press Publish Release.
 15. Add the pre-release link to the Final Test issue.
-16. Share the Final Test issue link with developers an test it for 24 hour. 
+16. Share the Final Test issue link with developers an test it for 24 hour.
+17. Every PR which contained by the release must be at least 24 hours old.
 
 # 3. Packaging
 
@@ -33,7 +34,7 @@
 1. Update the onion seed list to the most reliable ones: `dotnet run -- --reduceonions`
 2. Run tests.
 3. Retest every PR since last release on Windows, macOS and Linux.
-4. Dump client version.
+4. Dump client version. (WalletWasabi/Helpers/Constants.cs)
 5. Run packager in publish mode.
 6. Create `.msi`
 7. Run packager in sign mode. (Set back to publish mode.)

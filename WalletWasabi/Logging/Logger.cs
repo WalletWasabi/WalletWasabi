@@ -123,7 +123,7 @@ namespace WalletWasabi.Logging
 				}
 
 				message = string.IsNullOrWhiteSpace(message) ? "" : message;
-				var category = string.IsNullOrWhiteSpace(callerFilePath) ? "" : $"{Path.GetFileNameWithoutExtension(callerFilePath)} ({callerLineNumber})";
+				var category = string.IsNullOrWhiteSpace(callerFilePath) ? "" : $"{ExtractFileName(callerFilePath)} ({callerLineNumber})";
 
 				var messageBuilder = new StringBuilder();
 				messageBuilder.Append($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {level.ToString().ToUpperInvariant()}\t");
@@ -182,7 +182,8 @@ namespace WalletWasabi.Logging
 									color = ConsoleColor.Red;
 									break;
 
-								default: break; // Keep original color.
+								default:
+									break; // Keep original color.
 							}
 
 							Console.ForegroundColor = color;
@@ -225,6 +226,27 @@ namespace WalletWasabi.Logging
 				// If it's not the first time the logging failed, then we do not try to log logging failure, so clear the failure counter.
 				Interlocked.Exchange(ref LoggingFailedCount, 0);
 			}
+		}
+
+		// This method removes the path and file extension.
+		//
+		// Given Wasabi releases are currently built using Windows, the generated assymblies contain
+		// the hardcoded "C:\Users\User\Desktop\WalletWasabi\.......\FileName.cs" string because that
+		// is the real path of the file, it doesn't matter what OS was targeted.
+		// In Windows and Linux that string is a valid path and that means Path.GetFileNameWithoutExtension
+		// can extract the file name but in the case of OSX the same string is not a valid path so, it assumes
+		// the whole string is the file name. 
+		internal static string ExtractFileName(string callerFilePath)
+		{
+			var lastSeparatorIndex = callerFilePath.LastIndexOf("\\");
+			if (lastSeparatorIndex == -1)
+			{
+				lastSeparatorIndex = callerFilePath.LastIndexOf("/");
+			}
+
+			lastSeparatorIndex++;
+			var fileNameWithoutExtension = callerFilePath.Substring(lastSeparatorIndex, callerFilePath.Length - lastSeparatorIndex - ".cs".Length);
+			return fileNameWithoutExtension;
 		}
 
 		#endregion GeneralLoggingMethods
