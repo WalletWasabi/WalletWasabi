@@ -37,15 +37,6 @@ namespace WalletWasabi.Gui
 #if DEBUG
 			this.AttachDevTools();
 #endif
-
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-			{
-				HasSystemDecorations = true;
-
-				// This will need implementing properly once this is supported by avalonia itself.
-				var color = (ColorTheme.CurrentTheme.Background as SolidColorBrush).Color;
-				(PlatformImpl as WindowImpl).SetTitleBarColor(color);
-			}
 		}
 
 		public Global Global => MainWindowViewModel.Instance.Global;

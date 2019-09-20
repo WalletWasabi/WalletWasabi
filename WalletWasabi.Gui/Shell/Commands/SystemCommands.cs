@@ -25,7 +25,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 			exit.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
 
 			ExitCommand = new CommandDefinition(
-				"Exit",
+				"Quit WasabiWallet",
 				commandIconService.GetCompletionKindImage("Exit"),
 				exit);
 		}
