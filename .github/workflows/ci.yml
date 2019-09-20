@@ -15,11 +15,14 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 2.2.202
-    - name: Build with dotnet
+    - name: Build All
       run: dotnet build --configuration Release
-    - name: Test with dotnet
+    - name: Tests
       working-directory: ./WalletWasabi.Tests
       run: dotnet test --configuration Release --filter "UnitTests"
-    - name: Publish with dotnet
+    - name: Publish Gui
+      working-directory: ./WalletWasabi.Gui
+      run: dotnet publish --configuration Release
+    - name: Publish Backend
       working-directory: ./WalletWasabi.Gui
       run: dotnet publish --configuration Release
