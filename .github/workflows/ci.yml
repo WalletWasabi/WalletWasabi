@@ -18,6 +18,8 @@ jobs:
     - name: Build with dotnet
       run: dotnet build --configuration Release
     - name: Test with dotnet
+      working-directory: ./WalletWasabi.Tests
       run: dotnet test --configuration Release --filter "UnitTests"
     - name: Publish with dotnet
+      working-directory: ./WalletWasabi.Gui
       run: dotnet publish --configuration Release
