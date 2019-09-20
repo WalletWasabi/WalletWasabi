@@ -3,11 +3,13 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Metadata;
+using Avalonia.Platform;
 using AvalonStudio.Extensibility.Theme;
 using ReactiveUI;
 using System;
 using System.IO;
 using System.Reactive;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.Controls
@@ -18,6 +20,8 @@ namespace WalletWasabi.Gui.Controls
 				"M13,9V3.5L18.5,9M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z");
 
 		private ReactiveCommand<Unit, Unit> SaveCommand { get; }
+
+		private const int matrixPadding = 3;
 
 		private static DrawingPresenter GetSavePresenter()
 		{
@@ -51,6 +55,7 @@ namespace WalletWasabi.Gui.Controls
 		private async Task SaveAsync()
 		{
 			var source = Matrix;
+
 			if (source is null) return;
 
 			var curBounds = new Size(Bounds.Width, Bounds.Height);
@@ -65,17 +70,37 @@ namespace WalletWasabi.Gui.Controls
 
 				if (string.IsNullOrWhiteSpace(ext))
 				{
-					fileFullName = $"{fileFullName}.png";
+					fileFullName = $"{fileFullName}.bmp";
 				}
 
-				if (!File.Exists(fileFullName))
-					File.Create(fileFullName).Close();
+				// TODO: This will be more simplified when Avalonia 0.9 is released.
+				//		 Remove WriteableFramebuffer and replace simply with RenderTargetBitmap
+				//		 Save bitmap function later on.
 
-				using (var rtb = new RenderTargetBitmap(new PixelSize((int)this.Width, (int)this.Height)))
+				var outputStream = File.OpenWrite(fileFullName);
+
+				var framebuffer = new WritableFramebuffer(PixelFormat.Rgba8888, pixelBounds);
+				var ipri = Avalonia.AvaloniaLocator.Current.GetService<IPlatformRenderInterface>();
+
+				using (var target = ipri.CreateRenderTarget(new object[] { framebuffer }))
+				using (var ctx = target.CreateDrawingContext(null))
+				using (var ctxi = new DrawingContext(ctx))
 				{
-					rtb.Render(this);
-					rtb.Save(fileFullName);
+					this.Render(ctxi);
 				}
+
+				var outBitmap = new Bitmap(PixelFormat.Rgba8888,
+										   framebuffer.Address,
+										   framebuffer.Size,
+										   new Vector(96, 96),
+										   framebuffer.RowBytes);
+				framebuffer.Deallocate();
+
+				outBitmap.Save(outputStream);
+
+				await outputStream.FlushAsync();
+
+				outputStream.Close();
 			}
 		}
 
@@ -91,7 +116,28 @@ namespace WalletWasabi.Gui.Controls
 		public bool[,] Matrix
 		{
 			get => _matrix;
-			set => SetAndRaise(MatrixProperty, ref _matrix, value);
+			set
+			{
+				if (value is null) return;
+
+				var h = value.GetUpperBound(0) + 1;
+				var nH = h + (matrixPadding * 2);
+
+				var w = value.GetUpperBound(1) + 1;
+				var nW = w + (matrixPadding * 2);
+
+				var paddedMatrix = new bool[nH, nW];
+
+				for (var i = 0; i < h; i++)
+				{
+					for (var j = 0; j < w; j++)
+					{
+						paddedMatrix[i + matrixPadding, j + matrixPadding] = value[i, j];
+					}
+				}
+
+				SetAndRaise(MatrixProperty, ref _matrix, paddedMatrix);
+			}
 		}
 
 		protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -124,7 +170,10 @@ namespace WalletWasabi.Gui.Controls
 
 			var minDimension = Math.Min(w, h);
 			var minBound = Math.Min(Bounds.Width, Bounds.Height);
-			var factor = (float)minBound / minDimension;
+			var factorR = (float)minBound / minDimension;
+			var factor = Math.Floor(factorR);
+
+			context.FillRectangle(Brushes.White, new Rect(0, 0, factor * w, factor * h));
 
 			for (var i = 0; i < h; i++)
 			{
