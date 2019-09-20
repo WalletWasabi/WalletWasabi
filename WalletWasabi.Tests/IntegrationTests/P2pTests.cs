@@ -11,9 +11,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Crypto;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
+using WalletWasabi.Mempool;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
@@ -47,7 +49,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			}
 			else
 			{
-				throw new NotSupportedException($"{nameof(Network)} not supported: {network}.");
+				throw new NotSupportedNetworkException(network);
 			}
 
 			var addressManagerFolderPath = Path.Combine(Global.Instance.DataDir, "AddressManager");

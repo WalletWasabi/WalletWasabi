@@ -20,6 +20,7 @@ using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Tabs;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
@@ -81,21 +82,18 @@ namespace WalletWasabi.Gui.ViewModels
 				.ToProperty(this, x => x.Status)
 				.DisposeWith(Disposables);
 
-			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Added))
+			Observable
+				.Merge(Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Added)).Select(x => true)
+				.Merge(Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed)).Select(x => true)
+				.Merge(Synchronizer.WhenAnyValue(x => x.TorStatus).Select(x => true))))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
-					SetPeers(Nodes.Count);
+					// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
+					Peers = Synchronizer.TorStatus == TorStatus.NotRunning ? 0 : Nodes.Count;
 				}).DisposeWith(Disposables);
 
-			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					SetPeers(Nodes.Count);
-				}).DisposeWith(Disposables);
-
-			SetPeers(Nodes.Count);
+			Peers = Tor == TorStatus.NotRunning ? 0 : Nodes.Count;
 
 			Observable.FromEventPattern<bool>(typeof(WalletService), nameof(WalletService.DownloadingBlockChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -106,8 +104,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(status =>
 				{
-					SetTor(status);
-					SetPeers(Nodes.Count);
+					Tor = UseTor ? status : TorStatus.TurnedOff;
 				}).DisposeWith(Disposables);
 
 			Synchronizer.WhenAnyValue(x => x.BackendStatus)
@@ -198,7 +195,7 @@ namespace WalletWasabi.Gui.ViewModels
 				}
 				catch (Exception ex)
 				{
-					Logging.Logger.LogWarning(ex);
+					Logger.LogWarning(ex);
 					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
 				}
 			}, this.WhenAnyValue(x => x.UpdateStatus)
@@ -206,20 +203,32 @@ namespace WalletWasabi.Gui.ViewModels
 				.Select(x => x != UpdateStatus.Latest));
 			this.RaisePropertyChanged(nameof(UpdateCommand)); // The binding happens after the constructor. So, if the command is not in constructor, then we need this line.
 
-			updateChecker.Start(TimeSpan.FromMinutes(7),
-				() =>
+			Observable.FromEventPattern<UpdateStatusResult>(updateChecker, nameof(updateChecker.UpdateChecked))
+				.Select(x => x.EventArgs)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
 				{
-					UpdateStatus = UpdateStatus.Critical;
-					return Task.CompletedTask;
-				},
-				() =>
-				{
-					if (UpdateStatus != UpdateStatus.Critical)
+					if (x.BackendCompatible)
 					{
-						UpdateStatus = UpdateStatus.Optional;
+						if (x.ClientUpToDate)
+						{
+							UpdateStatus = UpdateStatus.Latest;
+						}
+						else
+						{
+							UpdateStatus = UpdateStatus.Optional;
+						}
 					}
-					return Task.CompletedTask;
-				});
+					else
+					{
+						UpdateStatus = UpdateStatus.Critical;
+					}
+
+					UpdateAvailable = !x.ClientUpToDate;
+					CriticalUpdateAvailable = !x.BackendCompatible;
+				}).DisposeWith(Disposables);
+
+			updateChecker.Start(TimeSpan.FromMinutes(7));
 		}
 
 		public ReactiveCommand<Unit, Unit> UpdateCommand { get; set; }
@@ -227,20 +236,7 @@ namespace WalletWasabi.Gui.ViewModels
 		public UpdateStatus UpdateStatus
 		{
 			get => _updateStatus;
-			set
-			{
-				if (value != UpdateStatus.Latest)
-				{
-					UpdateAvailable = true;
-
-					if (value == UpdateStatus.Critical)
-					{
-						CriticalUpdateAvailable = true;
-					}
-				}
-
-				this.RaiseAndSetIfChanged(ref _updateStatus, value);
-			}
+			set => this.RaiseAndSetIfChanged(ref _updateStatus, value);
 		}
 
 		public bool UpdateAvailable
@@ -339,7 +335,7 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning(ex);
+				Logger.LogWarning(ex);
 			}
 		}
 
@@ -351,19 +347,8 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning(ex);
+				Logger.LogWarning(ex);
 			}
-		}
-
-		private void SetPeers(int peers)
-		{
-			// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they do not.
-			Peers = Tor == TorStatus.NotRunning ? 0 : peers;
-		}
-
-		private void SetTor(TorStatus tor)
-		{
-			Tor = UseTor ? tor : TorStatus.TurnedOff;
 		}
 
 		#region IDisposable Support

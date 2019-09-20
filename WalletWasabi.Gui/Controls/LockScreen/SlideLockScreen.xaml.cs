@@ -15,9 +15,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 	public class SlideLockScreen : UserControl
 	{
 		public static readonly DirectProperty<SlideLockScreen, bool> IsLockedProperty =
-			AvaloniaProperty.RegisterDirect<SlideLockScreen, bool>(nameof(IsLocked),
-																   o => o.IsLocked,
-																   (o, v) => o.IsLocked = v);
+			AvaloniaProperty.RegisterDirect<SlideLockScreen, bool>(nameof(IsLocked), o => o.IsLocked, (o, v) => o.IsLocked = v);
 
 		private bool _isLocked;
 
@@ -28,9 +26,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		}
 
 		public static readonly DirectProperty<SlideLockScreen, double> OffsetProperty =
-			AvaloniaProperty.RegisterDirect<SlideLockScreen, double>(nameof(Offset),
-																	 o => o.Offset,
-																	 (o, v) => o.Offset = v);
+			AvaloniaProperty.RegisterDirect<SlideLockScreen, double>(nameof(Offset), o => o.Offset, (o, v) => o.Offset = v);
 
 		private double _offset;
 
@@ -41,9 +37,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		}
 
 		public static readonly DirectProperty<SlideLockScreen, bool> DoneAnimatingProperty =
-			AvaloniaProperty.RegisterDirect<SlideLockScreen, bool>(nameof(DoneAnimating),
-																   o => o.DoneAnimating,
-																   (o, v) => o.DoneAnimating = v);
+			AvaloniaProperty.RegisterDirect<SlideLockScreen, bool>(nameof(DoneAnimating), o => o.DoneAnimating, (o, v) => o.DoneAnimating = v);
 
 		private bool _doneAnimating;
 

@@ -6,7 +6,7 @@ namespace WalletWasabi.Models
 	{
 		public bool HasErrors => Count > 0;
 
-		public static ErrorDescriptors Empty = new ErrorDescriptors(); 
+		public static ErrorDescriptors Empty = new ErrorDescriptors();
 
 		public ErrorDescriptors() : base()
 		{

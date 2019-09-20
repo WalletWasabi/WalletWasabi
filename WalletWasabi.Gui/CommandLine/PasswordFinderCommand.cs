@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.CommandLine
 {
@@ -51,14 +52,14 @@ namespace WalletWasabi.Gui.CommandLine
 				}
 				else if (string.IsNullOrWhiteSpace(WalletName) && string.IsNullOrWhiteSpace(EncryptedSecret))
 				{
-					Logging.Logger.LogCritical("Missing required argument `--wallet=WalletName`.");
-					Logging.Logger.LogCritical("Use `findpassword --help` for details.");
+					Logger.LogCritical("Missing required argument `--wallet=WalletName`.");
+					Logger.LogCritical("Use `findpassword --help` for details.");
 					error = true;
 				}
 				else if (!PasswordFinder.Charsets.ContainsKey(Language))
 				{
-					Logging.Logger.LogCritical($"`{Language}` is not available language, try with `en, es, pt, it or fr`.");
-					Logging.Logger.LogCritical("Use `findpassword --help` for details.");
+					Logger.LogCritical($"`{Language}` is not available language, try with `en, es, pt, it or fr`.");
+					Logger.LogCritical("Use `findpassword --help` for details.");
 					error = true;
 				}
 				else if (!string.IsNullOrWhiteSpace(WalletName))
@@ -77,7 +78,7 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			catch (Exception)
 			{
-				Logging.Logger.LogCritical($"There was a problem interpreting the command, please review it.");
+				Logger.LogCritical($"There was a problem interpreting the command, please review it.");
 				error = true;
 			}
 			Environment.Exit(error ? 1 : 0);

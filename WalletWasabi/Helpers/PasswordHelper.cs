@@ -111,7 +111,7 @@ namespace WalletWasabi.Helpers
 
 			if (IsTrimable(password, out _)) // Password should be formatted, before entering here.
 			{
-				throw new FormatException("Leading and trailing white spaces are not enabled!");
+				throw new FormatException("Leading and trailing white spaces are not allowed!");
 			}
 		}
 

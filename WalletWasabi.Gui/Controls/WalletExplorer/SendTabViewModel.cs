@@ -25,6 +25,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.KeyManagement;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Models.TransactionBuilding;
 
@@ -592,7 +593,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (OverflowException ex)
 				{
-					Logging.Logger.LogTrace(ex);
+					Logger.LogTrace(ex);
 				}
 
 				AmountWatermarkText = amountUsd != 0
@@ -813,7 +814,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogInfo(ex);
+				Logger.LogInfo(ex);
 			}
 		}
 
@@ -833,7 +834,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning(ex);
+				Logger.LogWarning(ex);
 			}
 		}
 
@@ -855,7 +856,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning(ex);
+				Logger.LogWarning(ex);
 				var builder = new StringBuilder(ex.ToTypeMessageString());
 				if (ex is AggregateException aggex)
 				{

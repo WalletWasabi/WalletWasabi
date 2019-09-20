@@ -23,6 +23,7 @@ using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Hwi;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui
 {
@@ -67,7 +68,7 @@ namespace WalletWasabi.Gui
 					{
 						Global.InitializeUiConfig(uiConfig);
 						Application.Current.Resources.AddOrReplace(Global.UiConfigResourceKey, Global.UiConfig);
-						Logging.Logger.LogInfo($"{nameof(Global.UiConfig)} is successfully initialized.");
+						Logger.LogInfo($"{nameof(Global.UiConfig)} is successfully initialized.");
 
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
@@ -84,9 +85,9 @@ namespace WalletWasabi.Gui
 					}
 					catch (Exception ex)
 					{
-						Logging.Logger.LogError(ex);
+						Logger.LogError(ex);
 					}
-				}, onError: ex => Logging.Logger.LogError(ex));
+				}, onError: ex => Logger.LogError(ex));
 		}
 
 		protected override void OnDataContextEndUpdate()
@@ -125,7 +126,7 @@ namespace WalletWasabi.Gui
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogError(ex);
+				Logger.LogError(ex);
 			}
 		}
 
@@ -160,7 +161,7 @@ namespace WalletWasabi.Gui
 							Global.UiConfig.Width = Width;
 							Global.UiConfig.Height = Height;
 							await Global.UiConfig.ToFileAsync();
-							Logging.Logger.LogInfo($"{nameof(Global.UiConfig)} is saved.");
+							Logger.LogInfo($"{nameof(Global.UiConfig)} is saved.");
 						}
 
 						Hide();
@@ -168,14 +169,14 @@ namespace WalletWasabi.Gui
 						if (wm != null)
 						{
 							wm.OnClose();
-							Logging.Logger.LogInfo($"{nameof(WalletManagerViewModel)} closed, hwi enumeration stopped.");
+							Logger.LogInfo($"{nameof(WalletManagerViewModel)} closed, hwi enumeration stopped.");
 						}
 
 						await Global.DisposeAsync();
 					}
 					catch (Exception ex)
 					{
-						Logging.Logger.LogWarning(ex);
+						Logger.LogWarning(ex);
 					}
 
 					Interlocked.Exchange(ref _closingState, 2); //now we can close the app
@@ -186,7 +187,7 @@ namespace WalletWasabi.Gui
 			catch (Exception ex)
 			{
 				Interlocked.Exchange(ref _closingState, 0); //something happened back to starting point
-				Logging.Logger.LogWarning(ex);
+				Logger.LogWarning(ex);
 			}
 			finally
 			{

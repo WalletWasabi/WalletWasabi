@@ -12,9 +12,13 @@
     <Style Selector="lockscreen|PinLockScreen[IsLocked=true] Grid.Shade">
       <Style.Animations>
         <Animation FillMode="Both" Duration="0:0:1.5" Easing="QuarticEaseInOut">
+          <KeyFrame Cue="0%">
+            <Setter Property="IsVisible" Value="True" />
+          </KeyFrame>
           <KeyFrame Cue="100%">
             <Setter Property="Opacity" Value="1" />
             <Setter Property="TranslateTransform.Y" Value="0" />
+            <Setter Property="IsVisible" Value="True" />
           </KeyFrame>
         </Animation>
       </Style.Animations>
@@ -22,7 +26,11 @@
     <Style Selector="lockscreen|PinLockScreen[IsLocked=false] Grid.Shade">
       <Style.Animations>
         <Animation FillMode="Both" Duration="0:0:1.5" Easing="QuarticEaseInOut">
+          <KeyFrame Cue="99%">
+            <Setter Property="IsVisible" Value="True" />
+          </KeyFrame>
           <KeyFrame Cue="100%">
+            <Setter Property="IsVisible" Value="False" />
             <Setter Property="Opacity" Value="0" />
             <Setter Property="TranslateTransform.Y" Value="-100" />
           </KeyFrame>
