@@ -20,6 +20,7 @@ using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Tabs;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
@@ -194,7 +195,7 @@ namespace WalletWasabi.Gui.ViewModels
 				}
 				catch (Exception ex)
 				{
-					Logging.Logger.LogWarning(ex);
+					Logger.LogWarning(ex);
 					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
 				}
 			}, this.WhenAnyValue(x => x.UpdateStatus)
@@ -334,7 +335,7 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning(ex);
+				Logger.LogWarning(ex);
 			}
 		}
 
@@ -346,7 +347,7 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning(ex);
+				Logger.LogWarning(ex);
 			}
 		}
 
