@@ -9,7 +9,6 @@ using System.IO;
 using ReactiveUI;
 using System.Reactive;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Tabs
 {
@@ -29,7 +28,7 @@ namespace WalletWasabi.Gui.Tabs
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError(ex);
+					Logging.Logger.LogError(ex);
 				}
 			});
 		}

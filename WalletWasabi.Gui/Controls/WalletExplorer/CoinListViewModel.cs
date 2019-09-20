@@ -16,7 +16,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -373,7 +372,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}, outputScheduler: RxApp.MainThreadScheduler);
 
-			InitList.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
+			InitList.ThrownExceptions.Subscribe(ex => Logging.Logger.LogError(ex));
 		}
 
 		private void OnOpen()
@@ -436,7 +435,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					catch (Exception ex)
 					{
-						Logger.LogDebug(ex);
+						Logging.Logger.LogDebug(ex);
 					}
 				}).DisposeWith(Disposables);
 

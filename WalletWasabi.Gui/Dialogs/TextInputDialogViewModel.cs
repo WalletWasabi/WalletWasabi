@@ -6,7 +6,6 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Dialogs
 {
@@ -38,8 +37,8 @@ namespace WalletWasabi.Gui.Dialogs
 				Close(false);
 			});
 
-			OKCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
-			CancelCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
+			OKCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning(ex));
+			CancelCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning(ex));
 		}
 
 		public string TextInput

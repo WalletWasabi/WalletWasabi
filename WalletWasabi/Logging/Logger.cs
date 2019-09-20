@@ -182,8 +182,7 @@ namespace WalletWasabi.Logging
 									color = ConsoleColor.Red;
 									break;
 
-								default:
-									break; // Keep original color.
+								default: break; // Keep original color.
 							}
 
 							Console.ForegroundColor = color;
@@ -240,12 +239,12 @@ namespace WalletWasabi.Logging
 		{
 			var lastSeparatorIndex = callerFilePath.LastIndexOf("\\");
 			if (lastSeparatorIndex == -1)
-			{
+			{ 
 				lastSeparatorIndex = callerFilePath.LastIndexOf("/");
 			}
 
 			lastSeparatorIndex++;
-			var fileNameWithoutExtension = callerFilePath.Substring(lastSeparatorIndex, callerFilePath.Length - lastSeparatorIndex - ".cs".Length);
+			var fileNameWithoutExtension =  callerFilePath.Substring(lastSeparatorIndex, callerFilePath.Length - lastSeparatorIndex - ".cs".Length);
 			return fileNameWithoutExtension;
 		}
 

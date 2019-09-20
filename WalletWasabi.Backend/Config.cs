@@ -9,7 +9,6 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
-using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
@@ -68,7 +67,7 @@ namespace WalletWasabi.Backend
 			}
 			else
 			{
-				throw new NotSupportedNetworkException(Network);
+				throw new NotSupportedException($"{nameof(Network)} not supported: {Network}.");
 			}
 		}
 
@@ -88,7 +87,7 @@ namespace WalletWasabi.Backend
 			}
 			else
 			{
-				throw new NotSupportedNetworkException(Network);
+				throw new NotSupportedException($"{nameof(Network)} not supported: {Network}.");
 			}
 		}
 

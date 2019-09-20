@@ -96,8 +96,11 @@ namespace WalletWasabi.Gui.Controls
 			}, RoutingStrategies.Tunnel);
 		}
 
-		public static readonly DirectProperty<EditableTextBlock, string> TextProperty =
-			TextBlock.TextProperty.AddOwner<EditableTextBlock>(o => o.Text, (o, v) => o.Text = v, defaultBindingMode: BindingMode.TwoWay, enableDataValidation: true);
+		public static readonly DirectProperty<EditableTextBlock, string> TextProperty = TextBlock.TextProperty.AddOwner<EditableTextBlock>(
+				o => o.Text,
+				(o, v) => o.Text = v,
+				defaultBindingMode: BindingMode.TwoWay,
+				enableDataValidation: true);
 
 		[Content]
 		public string Text
@@ -113,7 +116,7 @@ namespace WalletWasabi.Gui.Controls
 		}
 
 		public static readonly DirectProperty<EditableTextBlock, string> EditTextProperty =
-			AvaloniaProperty.RegisterDirect<EditableTextBlock, string>(nameof(EditText), o => o.EditText, (o, v) => o.EditText = v);
+				AvaloniaProperty.RegisterDirect<EditableTextBlock, string>(nameof(EditText), o => o.EditText, (o, v) => o.EditText = v);
 
 		public static readonly StyledProperty<bool> InEditModeProperty =
 			AvaloniaProperty.Register<EditableTextBlock, bool>(nameof(InEditMode), defaultBindingMode: BindingMode.TwoWay);

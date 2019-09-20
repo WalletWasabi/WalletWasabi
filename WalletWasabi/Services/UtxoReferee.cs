@@ -140,7 +140,7 @@ namespace WalletWasabi.Services
 
 			if (updated) // If at any time we set updated then we must update the whole thing.
 			{
-				var allLines = BannedUtxos.Select(x => x.Value.ToString());
+				var allLines = BannedUtxos.Select(x => $"{x.Value.TimeOfBan.ToString(CultureInfo.InvariantCulture)}:{x.Value.Severity}:{x.Key.N}:{x.Key.Hash}:{x.Value.IsNoted}:{x.Value.BannedForRound}");
 				await File.WriteAllLinesAsync(BannedUtxosFilePath, allLines);
 			}
 			else if (lines.Count != 0) // If we do not have to update the whole thing, we must check if we added a line and so only append.
@@ -153,7 +153,7 @@ namespace WalletWasabi.Services
 		{
 			if (BannedUtxos.TryRemove(output, out _))
 			{
-				IEnumerable<string> lines = BannedUtxos.Select(x => x.Value.ToString());
+				IEnumerable<string> lines = BannedUtxos.Select(x => x.ToString());
 				await File.WriteAllLinesAsync(BannedUtxosFilePath, lines);
 				Logger.LogInfo($"UTXO unbanned: {output.N}:{output.Hash}.");
 			}

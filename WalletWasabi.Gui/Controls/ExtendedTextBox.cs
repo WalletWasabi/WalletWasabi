@@ -14,7 +14,6 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls
 {
@@ -49,8 +48,8 @@ namespace WalletWasabi.Gui.Controls
 				}
 			});
 
-			CopyCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
-			PasteCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
+			CopyCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning(ex));
+			PasteCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning(ex));
 
 			this.GetObservable(IsReadOnlyProperty).Subscribe(isReadOnly =>
 			{
