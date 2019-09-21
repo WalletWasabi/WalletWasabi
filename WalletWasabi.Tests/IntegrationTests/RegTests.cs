@@ -828,7 +828,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.True(res2.Fee > Money.Satoshis(2 * 100)); // since there is a sanity check of 2sat/vb in the server
 				Assert.InRange(res2.FeePercentOfSent, 0, 1);
 				Assert.Single(res2.SpentCoins);
-				Assert.Contains(new[] { key.P2wpkhScript, key2.P2wpkhScript }, x => x == res2.SpentCoins.Single().ScriptPubKey);
+				var spentCoin = Assert.Single(res2.SpentCoins);
+				Assert.Contains(new[] { key.P2wpkhScript, key2.P2wpkhScript }, x => x == spentCoin.ScriptPubKey);
 				Assert.Equal(Money.Coins(1m), res2.SpentCoins.Single().Amount);
 				Assert.False(res2.SpendsUnconfirmed);
 
