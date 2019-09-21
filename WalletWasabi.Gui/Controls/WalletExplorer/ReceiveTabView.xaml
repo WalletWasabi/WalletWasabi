@@ -70,9 +70,14 @@
             </controls:ExtendedListBox.Styles>
             <controls:ExtendedListBox.ContextMenu>
               <ContextMenu>
-                <MenuItem Header="Show QR code" Command="{Binding ShowQrCode}">
+                <MenuItem Header="{Binding SelectedAddress.ExpandMenuCaption}" Command="{Binding ToggleQrCode}">
                   <MenuItem.Icon>
                     <Path HorizontalAlignment="Left" Data="M16.803,18.615h-4.535c-1,0-1.814-0.812-1.814-1.812v-4.535c0-1.002,0.814-1.814,1.814-1.814h4.535c1.001,0,1.813,0.812,1.813,1.814v4.535C18.616,17.803,17.804,18.615,16.803,18.615zM17.71,12.268c0-0.502-0.405-0.906-0.907-0.906h-4.535c-0.501,0-0.906,0.404-0.906,0.906v4.535c0,0.502,0.405,0.906,0.906,0.906h4.535c0.502,0,0.907-0.404,0.907-0.906V12.268z M16.803,9.546h-4.535c-1,0-1.814-0.812-1.814-1.814V3.198c0-1.002,0.814-1.814,1.814-1.814h4.535c1.001,0,1.813,0.812,1.813,1.814v4.534C18.616,8.734,17.804,9.546,16.803,9.546zM17.71,3.198c0-0.501-0.405-0.907-0.907-0.907h-4.535c-0.501,0-0.906,0.406-0.906,0.907v4.534c0,0.501,0.405,0.908,0.906,0.908h4.535c0.502,0,0.907-0.406,0.907-0.908V3.198z M7.733,18.615H3.198c-1.002,0-1.814-0.812-1.814-1.812v-4.535c0-1.002,0.812-1.814,1.814-1.814h4.535c1.002,0,1.814,0.812,1.814,1.814v4.535C9.547,17.803,8.735,18.615,7.733,18.615zM8.64,12.268c0-0.502-0.406-0.906-0.907-0.906H3.198c-0.501,0-0.907,0.404-0.907,0.906v4.535c0,0.502,0.406,0.906,0.907,0.906h4.535c0.501,0,0.907-0.404,0.907-0.906V12.268z M7.733,9.546H3.198c-1.002,0-1.814-0.812-1.814-1.814V3.198c0-1.002,0.812-1.814,1.814-1.814h4.535c1.002,0,1.814,0.812,1.814,1.814v4.534C9.547,8.734,8.735,9.546,7.733,9.546z M8.64,3.198c0-0.501-0.406-0.907-0.907-0.907H3.198c-0.501,0-0.907,0.406-0.907,0.907v4.534c0,0.501,0.406,0.908,0.907,0.908h4.535c0.501,0,0.907-0.406,0.907-0.908V3.198z" Fill="#22B14C" Height="16" Width="16" Stretch="Fill" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Save QR Code" Command="{Binding SaveQRCodeCommand}" IsVisible="{Binding SelectedAddress.IsExpanded}">
+                  <MenuItem.Icon>
+                    <Path HorizontalAlignment="Left" Data="M13,9V3.5L18.5,9M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z" Stretch="Fill" Fill="#22B14C" />
                   </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="Copy address" Command="{Binding CopyAddress}">
@@ -96,8 +101,8 @@
               <DataTemplate>
                 <Grid>
                   <Expander Name="coinExpander" ExpandDirection="Down" IsExpanded="{Binding IsExpanded}" Classes="coloredExpander" Background="{Binding ElementName=coinExpander, Path=IsExpanded, Converter={StaticResource CoinItemExpanderColorConverter}}">
-                    <StackPanel Orientation="Horizontal" Spacing="16" Margin="35 10 0 25">
-                      <controls:QrCode Matrix="{Binding QrCode}" Address="{Binding Address}" Width="240" Height="240" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <StackPanel Orientation="Horizontal" Spacing="16" Margin="35 10 0 10">
+                      <controls:QrCode Matrix="{Binding QrCode}" AddressQRCodeBitmap="{Binding AddressQRCodeBitmap, Mode=TwoWay}" Width="210" Height="210" Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" />
                       <Grid ColumnDefinitions="140, *" RowDefinitions="22,22" Margin="6">
                         <TextBlock Classes="monospaceFont" Text="Public key:" Grid.Row="0" Grid.Column="0" />
                         <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding PubKey}" Grid.Row="0" Grid.Column="1" />

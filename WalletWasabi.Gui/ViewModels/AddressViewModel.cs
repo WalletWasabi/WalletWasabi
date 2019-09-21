@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
@@ -24,7 +25,9 @@ namespace WalletWasabi.Gui.ViewModels
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
 		private string _label;
+		private string _expandMenuCaption = "Show QR Code";
 		private bool _inEditMode;
+		private Bitmap _qrCodeBitmap;
 
 		public HdPubKey Model { get; }
 		public Global Global { get; }
@@ -95,7 +98,19 @@ namespace WalletWasabi.Gui.ViewModels
 		public bool IsExpanded
 		{
 			get => _isExpanded;
-			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
+			set
+			{
+				if (value)
+				{
+					ExpandMenuCaption = "Hide QR Code";
+				}
+				else
+				{
+					ExpandMenuCaption = "Show QR Code";
+				}
+
+				this.RaiseAndSetIfChanged(ref _isExpanded, value);
+			}
 		}
 
 		public string Label
@@ -108,6 +123,18 @@ namespace WalletWasabi.Gui.ViewModels
 					this.RaiseAndSetIfChanged(ref _label, value);
 				}
 			}
+		}
+
+		public string ExpandMenuCaption
+		{
+			get => _expandMenuCaption;
+			private set => this.RaiseAndSetIfChanged(ref _expandMenuCaption, value);
+		}
+
+		public Bitmap AddressQRCodeBitmap
+		{
+			get => _qrCodeBitmap;
+			set => this.RaiseAndSetIfChanged(ref _qrCodeBitmap, value);
 		}
 
 		public bool InEditMode
