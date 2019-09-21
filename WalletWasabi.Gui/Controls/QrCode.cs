@@ -18,13 +18,13 @@ namespace WalletWasabi.Gui.Controls
 	public class QrCode : Control
 	{
 		private static readonly Geometry SaveIcon = Geometry.Parse(
-				"M13,9V3.5L18.5,9M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z");
+			"M13,9V3.5L18.5,9M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z");
 
 		private ReactiveCommand<Unit, Unit> SaveCommand { get; }
 
 		private const int MatrixPadding = 3;
 
-		private Size CoercedSize = new Size();
+		private Size _coercedSize = new Size();
 
 		private static DrawingPresenter GetSavePresenter()
 		{
@@ -59,9 +59,12 @@ namespace WalletWasabi.Gui.Controls
 		{
 			var source = Matrix;
 
-			if (source is null) return;
+			if (source is null)
+			{
+				return;
+			}
 
-			var pixelBounds = PixelSize.FromSize(CoercedSize, 1);
+			var pixelBounds = PixelSize.FromSize(_coercedSize, 1);
 
 			var sfd = new SaveFileDialog();
 
@@ -88,13 +91,13 @@ namespace WalletWasabi.Gui.Controls
 				var outputStream = File.OpenWrite(fileFullName);
 
 				var framebuffer = new WritableFramebuffer(PixelFormat.Rgba8888, pixelBounds);
-				var ipri = Avalonia.AvaloniaLocator.Current.GetService<IPlatformRenderInterface>();
+				var ipri = AvaloniaLocator.Current.GetService<IPlatformRenderInterface>();
 
 				using (var target = ipri.CreateRenderTarget(new object[] { framebuffer }))
 				using (var ctx = target.CreateDrawingContext(null))
 				using (var ctxi = new DrawingContext(ctx))
 				{
-					this.Render(ctxi);
+					Render(ctxi);
 				}
 
 				var outBitmap = new Bitmap(PixelFormat.Rgba8888,
@@ -126,7 +129,10 @@ namespace WalletWasabi.Gui.Controls
 			get => _matrix;
 			set
 			{
-				if (value is null) return;
+				if (value is null)
+				{
+					return;
+				}
 
 				var dims = GetMatrixDimensions(value);
 				var nW = dims.W + (MatrixPadding * 2);
@@ -156,8 +162,8 @@ namespace WalletWasabi.Gui.Controls
 
 		public string Address
 		{
-			get { return _address; }
-			set { SetAndRaise(AddressProperty, ref _address, value); }
+			get => _address;
+			set => SetAndRaise(AddressProperty, ref _address, value);
 		}
 
 		protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -172,7 +178,7 @@ namespace WalletWasabi.Gui.Controls
 
 			menuItems.Add(new MenuItem
 			{
-				Header = "Save",
+				Header = "Save QR Code",
 				Foreground = ColorTheme.CurrentTheme.Foreground,
 				Command = SaveCommand,
 				Icon = GetSavePresenter()
@@ -183,7 +189,10 @@ namespace WalletWasabi.Gui.Controls
 		{
 			var source = Matrix;
 
-			if (source is null) return;
+			if (source is null)
+			{
+				return;
+			}
 
 			var dims = GetMatrixDimensions(source);
 
@@ -230,9 +239,9 @@ namespace WalletWasabi.Gui.Controls
 			var availMax = Math.Min(availableSize.Width, availableSize.Height);
 			var factor = CalculateDiscreteRectSize(source);
 			var maxF = Math.Min(availMax, factor * minDimension);
-			CoercedSize = new Size(maxF, maxF);
+			_coercedSize = new Size(maxF, maxF);
 
-			return CoercedSize;
+			return _coercedSize;
 		}
 	}
 }
