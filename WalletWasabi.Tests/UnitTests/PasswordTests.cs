@@ -6,6 +6,7 @@ using System.Text;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using Xunit;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Tests.UnitTests
 {
@@ -24,7 +25,9 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				var original = pairs.Key;
 				var desired = pairs.Value;
+				Logger.TurnOff();
 				var results = PasswordHelper.GetPossiblePasswords(original);
+				Logger.TurnOn();
 				var foundCorrectPassword = false;
 
 				foreach (var pw in results)
@@ -49,6 +52,7 @@ namespace WalletWasabi.Tests.UnitTests
 			// Creating a wallet with buggy password.
 			var keyManager = KeyManager.CreateNew(out _, Guard.Correct(buggy)); // Every wallet was created with Guard.Correct before.
 
+			Logger.TurnOff();
 			// Password will be trimmed inside.
 			PasswordHelper.GetMasterExtKey(keyManager, original, out _);
 
@@ -73,6 +77,8 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// This should not throw format exception but pw is not correct.
 			Assert.Throws<SecurityException>(() => PasswordHelper.GetMasterExtKey(keyManager, badPassword, out _));
+
+			Logger.TurnOn();
 		}
 
 		[Fact]
@@ -90,6 +96,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			Assert.True(PasswordHelper.IsTrimable(original, out original));
 
+			Logger.TurnOff();
 			Assert.False(PasswordHelper.TryPassword(keyManager, "falsepassword", out _));
 
 			// This should pass
@@ -100,6 +107,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			Assert.True(PasswordHelper.TryPassword(keyManager, original, out string compatiblePassword));
 			Assert.Equal(buggy, compatiblePassword);
+			Logger.TurnOn();
 		}
 
 		[Fact]
@@ -108,8 +116,10 @@ namespace WalletWasabi.Tests.UnitTests
 			string emptyPw = "";
 			string nullPw = null;
 
+			Logger.TurnOff();
 			var emptyPws = PasswordHelper.GetPossiblePasswords(emptyPw);
 			var nullPws = PasswordHelper.GetPossiblePasswords(nullPw);
+			Logger.TurnOn();
 
 			var emptyPwRes = Assert.Single(emptyPws);
 			var nullPwRes = Assert.Single(nullPws);
