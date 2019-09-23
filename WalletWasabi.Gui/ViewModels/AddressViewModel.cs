@@ -1,15 +1,17 @@
 using Avalonia;
-using Avalonia.Media.Imaging;
+using Avalonia.Controls;
 using Avalonia.Threading;
 using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
+using Splat;
 using System;
+using System.IO;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Services;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -26,7 +28,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private double _clipboardNotificationOpacity;
 		private string _label;
 		private bool _inEditMode;
-		private Bitmap _qrCodeBitmap;
+		private object _qrCodeBitmap;
 
 		public HdPubKey Model { get; }
 		public Global Global { get; }
@@ -119,7 +121,7 @@ namespace WalletWasabi.Gui.ViewModels
 		internal ObservableAsPropertyHelper<string> _expandMenuCaption;
 		public string ExpandMenuCaption => _expandMenuCaption?.Value ?? string.Empty;
 
-		public Bitmap AddressQRCodeBitmap
+		public object AddressQRCodeBitmap
 		{
 			get => _qrCodeBitmap;
 			set => this.RaiseAndSetIfChanged(ref _qrCodeBitmap, value);
@@ -181,6 +183,31 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				CancelClipboardNotification?.Dispose();
 				CancelClipboardNotification = null;
+			}
+		}
+
+		public async Task SaveQRCodeAsync()
+		{
+			var sfd = new SaveFileDialog();
+
+			sfd.InitialFileName = $"{Address}.png";
+			sfd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+			sfd.Filters.Add(new FileDialogFilter() { Name = "Portable Network Graphics (PNG) Image file", Extensions = { "png" } });
+
+			var path = await sfd.ShowAsync(Application.Current.MainWindow, fallBack: true);
+
+			if (!string.IsNullOrWhiteSpace(path))
+			{
+				var ext = Path.GetExtension(path);
+
+				if (string.IsNullOrWhiteSpace(ext))
+				{
+					path = $"{path}.png";
+				}
+
+				var imageService = Locator.Current.GetService<IImageService>();
+
+				await imageService.SaveImageAsync(path, AddressQRCodeBitmap);
 			}
 		}
 

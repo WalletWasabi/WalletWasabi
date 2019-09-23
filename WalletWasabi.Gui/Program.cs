@@ -4,6 +4,7 @@ using Avalonia.Threading;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
 using NBitcoin;
+using Splat;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.Controls.LockScreen;
 using WalletWasabi.Gui.ManagedDialogs;
+using WalletWasabi.Gui.Services;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 
@@ -45,6 +47,7 @@ namespace WalletWasabi.Gui
 				BuildAvaloniaApp()
 					.BeforeStarting(async builder =>
 					{
+						Locator.CurrentMutable.RegisterConstant<IImageService>(new AvaloniaImageService());
 						MainWindowViewModel.Instance = new MainWindowViewModel { Global = Global };
 						statusBar = new StatusBarViewModel(Global);
 						MainWindowViewModel.Instance.StatusBar = statusBar;

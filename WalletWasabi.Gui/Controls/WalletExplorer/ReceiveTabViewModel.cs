@@ -1,13 +1,9 @@
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Input.Platform;
-using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -135,36 +131,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SaveQRCodeCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				await DoSaveQRCode();
+				await SelectedAddress?.SaveQRCodeAsync();
 			});
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
-		}
-
-		private async Task DoSaveQRCode()
-		{
-			var sfd = new SaveFileDialog();
-
-			sfd.InitialFileName = $"{SelectedAddress.Address}.png";
-			sfd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-			sfd.Filters.Add(new FileDialogFilter() { Name = "Portable Network Graphics (PNG) Image file", Extensions = { "png" } });
-
-			var fileFullName = await sfd.ShowAsync(Application.Current.MainWindow, fallBack: true);
-
-			if (!string.IsNullOrWhiteSpace(fileFullName))
-			{
-				var ext = Path.GetExtension(fileFullName);
-
-				if (string.IsNullOrWhiteSpace(ext))
-				{
-					fileFullName = $"{fileFullName}.png";
-				}
-
-				using (var outputStream = File.OpenWrite(fileFullName))
-				{
-					SelectedAddress.AddressQRCodeBitmap.Save(outputStream);
-				}
-			}
 		}
 
 		public override void OnOpen()
