@@ -125,7 +125,7 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		public string ExpandMenuCaption
+		internal string ExpandMenuCaption
 		{
 			get => _expandMenuCaption;
 			private set => this.RaiseAndSetIfChanged(ref _expandMenuCaption, value);

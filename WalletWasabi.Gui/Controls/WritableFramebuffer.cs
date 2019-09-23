@@ -6,7 +6,7 @@ using Avalonia.Controls.Platform.Surfaces;
 
 namespace WalletWasabi.Gui.Controls
 {
-	internal class WritableFramebuffer : ILockedFramebuffer, IFramebufferPlatformSurface
+	internal class WritableFramebuffer : ILockedFramebuffer, IFramebufferPlatformSurface, IDisposable
 	{
 		public WritableFramebuffer(PixelFormat fmt, PixelSize size)
 		{
@@ -27,16 +27,20 @@ namespace WalletWasabi.Gui.Controls
 
 		public int RowBytes { get; }
 
+		private volatile bool IsDisposed;
+
 		public void Dispose()
 		{
-			//no-op
+			if (!IsDisposed)
+			{
+				Marshal.FreeHGlobal(Address);
+				IsDisposed = true;
+			}
 		}
 
 		public ILockedFramebuffer Lock()
 		{
 			return this;
 		}
-
-		public void Deallocate() => Marshal.FreeHGlobal(Address);
 	}
 }
