@@ -25,7 +25,6 @@ namespace WalletWasabi.Gui.ViewModels
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
 		private string _label;
-		private string _expandMenuCaption = "Show QR Code";
 		private bool _inEditMode;
 		private Bitmap _qrCodeBitmap;
 
@@ -57,6 +56,10 @@ namespace WalletWasabi.Gui.ViewModels
 						Logger.LogError(ex);
 					}
 				});
+
+			_expandMenuCaption = this.WhenAnyValue(x => x.IsExpanded)
+									 .Select(x => (x ? "Hide " : "Show ") + "QR Code")
+									 .ToProperty(this, x => x.ExpandMenuCaption);
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
@@ -100,15 +103,6 @@ namespace WalletWasabi.Gui.ViewModels
 			get => _isExpanded;
 			set
 			{
-				if (value)
-				{
-					ExpandMenuCaption = "Hide QR Code";
-				}
-				else
-				{
-					ExpandMenuCaption = "Show QR Code";
-				}
-
 				this.RaiseAndSetIfChanged(ref _isExpanded, value);
 			}
 		}
@@ -125,11 +119,10 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		internal string ExpandMenuCaption
-		{
-			get => _expandMenuCaption;
-			private set => this.RaiseAndSetIfChanged(ref _expandMenuCaption, value);
-		}
+
+		internal ObservableAsPropertyHelper<string> _expandMenuCaption;
+		public string ExpandMenuCaption => _expandMenuCaption?.Value ?? string.Empty;
+
 
 		public Bitmap AddressQRCodeBitmap
 		{

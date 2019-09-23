@@ -27,10 +27,10 @@ namespace WalletWasabi.Gui.Controls
 
 		public int RowBytes { get; }
 
-		private volatile bool IsDisposed;
+		private bool IsDisposed;
 
 		public void Dispose()
-		{
+		{ 
 			if (!IsDisposed)
 			{
 				Marshal.FreeHGlobal(Address);
