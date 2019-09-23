@@ -4,7 +4,7 @@
         xmlns:internal="clr-namespace:WalletWasabi.Gui.ManagedDialogs"
         xmlns:cont="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"
         x:Class="WalletWasabi.Gui.ManagedDialogs.ManagedFileDialog"
-        Icon="resm:WalletWasabi.Gui.Assets.WasabiLogo256.png?assembly=WalletWasabi.Gui"
+        Icon="avares://WalletWasabi.Gui/Assets/WasabiLogo256.png"
         Title="{Binding Title}" Width="1100" Height="500" MinWidth="1100" MinHeight="500"
                       FontFamily="{DynamicResource UiFont}" FontSize="14"
                       Foreground="{DynamicResource ThemeForegroundBrush}">
