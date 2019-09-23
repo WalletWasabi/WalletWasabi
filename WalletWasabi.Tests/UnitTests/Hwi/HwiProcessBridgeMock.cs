@@ -25,27 +25,27 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				throw new NotImplementedException($"Cannot mock {nameof(openConsole)} mode.");
 			}
 
-			string type;
+			string model;
 			string rawPath;
 
 			if (Model == HardwareWalletModels.Trezor_T)
 			{
-				type = "trezor_t";
+				model = "trezor_t";
 				rawPath = "webusb: 001:4";
 			}
 			else if (Model == HardwareWalletModels.Trezor_1)
 			{
-				type = "trezor_1";
+				model = "trezor_1";
 				rawPath = "hid:\\\\\\\\?\\\\hid#vid_534c&pid_0001&mi_00#7&6f0b727&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
 			}
 			else if (Model == HardwareWalletModels.Coldcard)
 			{
-				type = "coldcard";
+				model = "coldcard";
 				rawPath = @"\\\\?\\hid#vid_d13e&pid_cc10&mi_00#7&1b239988&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
 			}
 			else if (Model == HardwareWalletModels.Ledger_Nano_S)
 			{
-				type = "ledger_nano_s";
+				model = "ledger_nano_s";
 				rawPath = "\\\\\\\\?\\\\hid#vid_2c97&pid_0001&mi_00#7&e45ae20&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
 			}
 			else
@@ -54,7 +54,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			}
 
 			string path = HwiParser.NormalizeRawDevicePath(rawPath);
-			string devicePathAndTypeArgumentString = $"--device-path \"{path}\" --device-type \"{type}\"";
+			string devicePathAndTypeArgumentString = $"--device-path \"{path}\" --device-type \"{model}\"";
 
 			const string successTrueResponse = "{\"success\": true}\r\n";
 
@@ -65,19 +65,19 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			{
 				if (Model == HardwareWalletModels.Trezor_T)
 				{
-					response = $"[{{\"type\": \"{type}\", \"path\": \"{rawPath}\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false, \"error\": \"Not initialized\"}}]";
+					response = $"[{{\"model\": \"{model}\", \"path\": \"{rawPath}\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false, \"error\": \"Not initialized\"}}]";
 				}
 				else if (Model == HardwareWalletModels.Trezor_1)
 				{
-					response = $"[{{\"type\": \"{type}\", \"path\": \"{rawPath}\", \"needs_pin_sent\": true, \"needs_passphrase_sent\": false, \"error\": \"Could not open client or get fingerprint information: Trezor is locked. Unlock by using 'promptpin' and then 'sendpin'.\", \"code\": -12}}]\r\n";
+					response = $"[{{\"model\": \"{model}\", \"path\": \"{rawPath}\", \"needs_pin_sent\": true, \"needs_passphrase_sent\": false, \"error\": \"Could not open client or get fingerprint information: Trezor is locked. Unlock by using 'promptpin' and then 'sendpin'.\", \"code\": -12}}]\r\n";
 				}
 				else if (Model == HardwareWalletModels.Coldcard)
 				{
-					response = $"[{{\"type\": \"{type}\", \"path\": \"{rawPath}\", \"needs_passphrase\": false, \"fingerprint\": \"a3d0d797\"}}]\r\n";
+					response = $"[{{\"model\": \"{model}\", \"path\": \"{rawPath}\", \"needs_passphrase\": false, \"fingerprint\": \"a3d0d797\"}}]\r\n";
 				}
 				else if (Model == HardwareWalletModels.Ledger_Nano_S)
 				{
-					response = $"[{{\"type\": \"{type}\", \"path\": \"{rawPath}\", \"fingerprint\": \"4054d6f6\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false}}]\r\n";
+					response = $"[{{\"model\": \"{model}\", \"path\": \"{rawPath}\", \"fingerprint\": \"4054d6f6\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false}}]\r\n";
 				}
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} wipe"))

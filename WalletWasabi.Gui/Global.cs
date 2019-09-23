@@ -687,7 +687,7 @@ namespace WalletWasabi.Gui
 			var prefix = customPrefix is null
 				? hwi is null
 					? "HardwareWallet"
-					: hwi.Type.ToString()
+					: hwi.Model.ToString()
 				: customPrefix;
 
 			for (int i = 0; i < int.MaxValue; i++)

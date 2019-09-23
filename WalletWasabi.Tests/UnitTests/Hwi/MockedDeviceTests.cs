@@ -36,7 +36,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				IEnumerable<HwiEnumerateEntry> enumerate = await client.EnumerateAsync(cts.Token);
 				Assert.Single(enumerate);
 				HwiEnumerateEntry entry = enumerate.Single();
-				Assert.Equal(HardwareWalletModels.Trezor_T, entry.Type);
+				Assert.Equal(HardwareWalletModels.Trezor_T, entry.Model);
 				Assert.Equal("webusb: 001:4", entry.Path);
 				Assert.False(entry.NeedsPassphraseSent);
 				Assert.False(entry.NeedsPinSent);
@@ -46,7 +46,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				Assert.False(entry.IsInitialized());
 				Assert.Null(entry.Fingerprint);
 
-				var deviceType = entry.Type;
+				var deviceType = entry.Model;
 				var devicePath = entry.Path;
 
 				await client.WipeAsync(deviceType, devicePath, cts.Token);
@@ -112,7 +112,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				IEnumerable<HwiEnumerateEntry> enumerate = await client.EnumerateAsync(cts.Token);
 				Assert.Single(enumerate);
 				HwiEnumerateEntry entry = enumerate.Single();
-				Assert.Equal(HardwareWalletModels.Trezor_1, entry.Type);
+				Assert.Equal(HardwareWalletModels.Trezor_1, entry.Model);
 				string rawPath = "hid:\\\\\\\\?\\\\hid#vid_534c&pid_0001&mi_00#7&6f0b727&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
 				string normalizedPath = HwiParser.NormalizeRawDevicePath(rawPath);
 				Assert.Equal(normalizedPath, entry.Path);
@@ -123,7 +123,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				Assert.Null(entry.Fingerprint);
 				Assert.True(entry.IsInitialized());
 
-				var deviceType = entry.Type;
+				var deviceType = entry.Model;
 				var devicePath = entry.Path;
 
 				await client.WipeAsync(deviceType, devicePath, cts.Token);
@@ -188,7 +188,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				IEnumerable<HwiEnumerateEntry> enumerate = await client.EnumerateAsync(cts.Token);
 				Assert.Single(enumerate);
 				HwiEnumerateEntry entry = enumerate.Single();
-				Assert.Equal(HardwareWalletModels.Coldcard, entry.Type);
+				Assert.Equal(HardwareWalletModels.Coldcard, entry.Model);
 				string rawPath = "\\\\\\\\?\\\\hid#vid_d13e&pid_cc10&mi_00#7&1b239988&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
 				string normalizedPath = HwiParser.NormalizeRawDevicePath(rawPath);
 				Assert.Equal(normalizedPath, entry.Path);
@@ -199,7 +199,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				Assert.Equal("a3d0d797", entry.Fingerprint.ToString());
 				Assert.True(entry.IsInitialized());
 
-				var deviceType = entry.Type;
+				var deviceType = entry.Model;
 				var devicePath = entry.Path;
 				HDFingerprint fingerprint = entry.Fingerprint.Value;
 
@@ -277,7 +277,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				IEnumerable<HwiEnumerateEntry> enumerate = await client.EnumerateAsync(cts.Token);
 				Assert.Single(enumerate);
 				HwiEnumerateEntry entry = enumerate.Single();
-				Assert.Equal(HardwareWalletModels.Ledger_Nano_S, entry.Type);
+				Assert.Equal(HardwareWalletModels.Ledger_Nano_S, entry.Model);
 				Assert.Equal(@"\\?\hid#vid_2c97&pid_0001&mi_00#7&e45ae20&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}", entry.Path);
 				Assert.False(entry.NeedsPassphraseSent);
 				Assert.False(entry.NeedsPinSent);
@@ -286,7 +286,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				Assert.True(entry.IsInitialized());
 				Assert.Equal("4054d6f6", entry.Fingerprint.ToString());
 
-				var deviceType = entry.Type;
+				var deviceType = entry.Model;
 				var devicePath = entry.Path;
 
 				var wipe = await Assert.ThrowsAsync<HwiException>(async () => await client.WipeAsync(deviceType, devicePath, cts.Token));

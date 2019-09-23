@@ -212,12 +212,12 @@ namespace WalletWasabi.Hwi.Parsers
 
 		public static HwiEnumerateEntry ParseHwiEnumerateEntry(JObject json)
 		{
-			JToken typeToken = json["type"];
-			var pathString = json["path"]?.ToString().Trim();
-			var serialNumberString = json["serial_number"]?.ToString().Trim();
-			var fingerprintString = json["fingerprint"]?.ToString().Trim();
-			var needsPinSentString = json["needs_pin_sent"]?.ToString().Trim();
-			var needsPassphraseSentString = json["needs_passphrase_sent"]?.ToString().Trim();
+			JToken modelToken = json["model"];
+			var pathString = json["path"]?.ToString()?.Trim();
+			var serialNumberString = json["serial_number"]?.ToString()?.Trim();
+			var fingerprintString = json["fingerprint"]?.ToString()?.Trim();
+			var needsPinSentString = json["needs_pin_sent"]?.ToString()?.Trim();
+			var needsPassphraseSentString = json["needs_passphrase_sent"]?.ToString()?.Trim();
 
 			HDFingerprint? fingerprint = null;
 			if (fingerprintString != null)
@@ -233,13 +233,13 @@ namespace WalletWasabi.Hwi.Parsers
 			}
 
 			bool? needsPinSent = null;
-			if (needsPinSentString != null)
+			if (!string.IsNullOrEmpty(needsPinSentString))
 			{
 				needsPinSent = bool.Parse(needsPinSentString);
 			}
 
 			bool? needsPassphraseSent = null;
-			if (needsPassphraseSentString != null)
+			if (!string.IsNullOrEmpty(needsPassphraseSentString))
 			{
 				needsPassphraseSent = bool.Parse(needsPassphraseSentString);
 			}
@@ -252,14 +252,14 @@ namespace WalletWasabi.Hwi.Parsers
 				errorString = err.Message;
 			}
 
-			HardwareWalletModels type = HardwareWalletModels.Unknown;
-			if (TryParseHardwareWalletVendor(typeToken, out HardwareWalletModels t))
+			HardwareWalletModels model = HardwareWalletModels.Unknown;
+			if (TryParseHardwareWalletVendor(modelToken, out HardwareWalletModels t))
 			{
-				type = t;
+				model = t;
 			}
 
 			return new HwiEnumerateEntry(
-				type: type,
+				model: model,
 				path: pathString,
 				serialNumber: serialNumberString,
 				fingerprint: fingerprint,

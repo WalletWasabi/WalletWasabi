@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui.Models
 
 		public LoadWalletEntry(HwiEnumerateEntry hwi)
 		{
-			string typeString = hwi.Type.ToString();
+			string typeString = hwi.Model.ToString();
 			var walletNameBuilder = new StringBuilder(typeString);
 
 			if (!string.IsNullOrWhiteSpace(hwi.Error))
