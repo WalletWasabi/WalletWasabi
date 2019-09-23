@@ -13,11 +13,13 @@ namespace NSubsys
 			ImageSubSystemWindowsCui = 3
 		}
 
+#pragma warning disable IDE1006 // Naming Styles
+
 		[StructLayout(LayoutKind.Explicit)]
 		public struct ImageDosHeader
 		{
 			[FieldOffset(60)]
-			public uint e_lfanew;
+			public uint FileAddressNew;
 		}
 
 		[StructLayout(LayoutKind.Explicit)]
@@ -26,6 +28,8 @@ namespace NSubsys
 			[FieldOffset(68)]
 			public ushort Subsystem;
 		}
+
+#pragma warning restore IDE1006 // Naming Styles
 
 		/// <summary>
 		/// Gets the optional header
@@ -50,7 +54,7 @@ namespace NSubsys
 			var dosHeader = FromBinaryReader<ImageDosHeader>(reader);
 
 			// Seek the new PE Header and skip NtHeadersSignature (4 bytes) & IMAGE_FILE_HEADER struct (20bytes).
-			Stream.Seek(dosHeader.e_lfanew + 4 + 20, SeekOrigin.Begin);
+			Stream.Seek(dosHeader.FileAddressNew + 4 + 20, SeekOrigin.Begin);
 
 			MainHeaderOffset = Stream.Position;
 

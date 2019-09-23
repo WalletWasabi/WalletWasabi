@@ -12,9 +12,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 	public class PinLockScreen : UserControl
 	{
 		public static readonly DirectProperty<PinLockScreen, bool> IsLockedProperty =
-			AvaloniaProperty.RegisterDirect<PinLockScreen, bool>(nameof(IsLocked),
-																 o => o.IsLocked,
-																 (o, v) => o.IsLocked = v);
+			AvaloniaProperty.RegisterDirect<PinLockScreen, bool>(nameof(IsLocked), o => o.IsLocked, (o, v) => o.IsLocked = v);
 
 		private bool _isLocked;
 
@@ -28,12 +26,16 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		{
 			InitializeComponent();
 
-			var inputField = this.FindControl<NoparaPasswordBox>("InputField");
+			var inputField = this.FindControl<TogglePasswordBox>("InputField");
 
 			this.WhenAnyValue(x => x.IsLocked)
 				.Where(x => x)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => inputField.Focus());
+				.Subscribe(_ =>
+				{
+					inputField.Text = string.Empty;
+					inputField.Focus();
+				});
 		}
 
 		private void InitializeComponent()
@@ -53,7 +55,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
-					var inputField = this.FindControl<NoparaPasswordBox>("InputField");
+					var inputField = this.FindControl<TogglePasswordBox>("InputField");
 					inputField.Focus();
 				});
 		}

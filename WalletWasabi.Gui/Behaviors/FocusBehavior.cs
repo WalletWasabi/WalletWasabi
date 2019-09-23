@@ -26,13 +26,14 @@ namespace WalletWasabi.Gui.Behaviors
 
 			AssociatedObject.AttachedToLogicalTree += (sender, e) =>
 			{
-				Disposables.Add(this.GetObservable(IsFocusedProperty).Subscribe(focused =>
-				{
-					if (focused)
+				Disposables.Add(this.GetObservable(IsFocusedProperty)
+					.Subscribe(focused =>
 					{
-						AssociatedObject.Focus();
-					}
-				}));
+						if (focused)
+						{
+							AssociatedObject.Focus();
+						}
+					}));
 			};
 		}
 

@@ -44,7 +44,7 @@ namespace WalletWasabi.TorSocks5
 				}
 				catch (Exception ex)
 				{
-					Logger.LogWarning<TorSocks5Client>(ex);
+					Logger.LogWarning(ex);
 					return false;
 				}
 			}
@@ -289,8 +289,7 @@ namespace WalletWasabi.TorSocks5
 			}
 			// ex.Message must be checked, because I'm having difficulty catching SocketExceptionFactory+ExtendedSocketException
 			// Only works on English Os-es.
-			catch (Exception ex) when (ex.Message.StartsWith(
-				"No connection could be made because the target machine actively refused it") // Windows
+			catch (Exception ex) when (ex.Message.StartsWith("No connection could be made because the target machine actively refused it") // Windows
 				|| ex.Message.StartsWith("Connection refused")) // Linux && OSX
 			{
 				error = ex;
@@ -527,7 +526,7 @@ namespace WalletWasabi.TorSocks5
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<TorSocks5Client>(ex);
+				Logger.LogWarning(ex);
 			}
 			finally
 			{

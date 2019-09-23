@@ -24,7 +24,7 @@ namespace WalletWasabi.Models
 		private Script _scriptPubKey;
 		private Money _amount;
 		private Height _height;
-		private string _label;
+		private SmartLabel _label;
 		private TxoRef[] _spentOutputs;
 		private bool _replaceable;
 		private int _anonymitySet;
@@ -99,19 +99,11 @@ namespace WalletWasabi.Models
 		/// Always set it before the Amount!
 		/// </summary>
 		[JsonProperty]
-		public string Label
+		[JsonConverter(typeof(SmartLabelJsonConverter))]
+		public SmartLabel Label
 		{
 			get => _label;
-			set
-			{
-				value = Guard.Correct(value);
-				if (value != _label)
-				{
-					_label = value;
-					OnPropertyChanged(nameof(Label));
-					HasLabel = !string.IsNullOrEmpty(value);
-				}
-			}
+			set => RaiseAndSetIfChanged(ref _label, value);
 		}
 
 		[JsonProperty]
@@ -306,12 +298,12 @@ namespace WalletWasabi.Models
 		#region Constructors
 
 		[JsonConstructor]
-		public SmartCoin(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool replaceable, int anonymitySet, bool isLikelyCoinJoinOutput, string label = "", uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
+		public SmartCoin(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool replaceable, int anonymitySet, bool isLikelyCoinJoinOutput, SmartLabel label = null, uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
 		{
 			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, replaceable, anonymitySet, isLikelyCoinJoinOutput, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
 		}
 
-		public SmartCoin(Coin coin, TxoRef[] spentOutputs, Height height, bool replaceable, int anonymitySet, bool isLikelyCoinJoinOutput, string label = "", uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
+		public SmartCoin(Coin coin, TxoRef[] spentOutputs, Height height, bool replaceable, int anonymitySet, bool isLikelyCoinJoinOutput, SmartLabel label = null, uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
 		{
 			OutPoint outpoint = Guard.NotNull($"{coin}.{coin?.Outpoint}", coin?.Outpoint);
 			uint256 transactionId = outpoint.Hash;
@@ -322,7 +314,7 @@ namespace WalletWasabi.Models
 			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, replaceable, anonymitySet, isLikelyCoinJoinOutput, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
 		}
 
-		private void Create(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool replaceable, int anonymitySet, bool isLikelyCoinJoinOutput, string label, uint256 spenderTransactionId, bool coinJoinInProgress, DateTimeOffset? bannedUntilUtc, bool spentAccordingToBackend, HdPubKey pubKey)
+		private void Create(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool replaceable, int anonymitySet, bool isLikelyCoinJoinOutput, SmartLabel label, uint256 spenderTransactionId, bool coinJoinInProgress, DateTimeOffset? bannedUntilUtc, bool spentAccordingToBackend, HdPubKey pubKey)
 		{
 			TransactionId = Guard.NotNull(nameof(transactionId), transactionId);
 			Index = Guard.NotNull(nameof(index), index);
@@ -342,8 +334,7 @@ namespace WalletWasabi.Models
 
 			HdPubKey = pubKey;
 
-			var labelBuilder = new LabelBuilder(label, pubKey?.Label);
-			Label = labelBuilder.ToString();
+			Label = SmartLabel.Merge(HdPubKey?.Label, label);
 
 			SetConfirmed();
 			SetUnspent();
@@ -369,8 +360,6 @@ namespace WalletWasabi.Models
 		{
 			return new TxoRef(TransactionId, Index);
 		}
-
-		public bool HasLabel { get; private set; }
 
 		public void SetClusters(string clusters)
 		{

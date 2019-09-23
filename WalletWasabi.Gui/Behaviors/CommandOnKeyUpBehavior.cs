@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui.Behaviors
 			Disposables.Add(AssociatedObject.AddHandler(InputElement.KeyUpEvent, (sender, e) =>
 			{
 				CommandParameter = e;
-				e.Handled = ExecuteCommand();
+				ExecuteCommand();
 			}, RoutingStrategies.Tunnel));
 		}
 

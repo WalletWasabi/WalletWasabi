@@ -1,3 +1,5 @@
+using System;
+
 namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 {
 	/// <summary>
@@ -12,7 +14,7 @@ namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 		internal override int PenaltyCalculate(BitMatrix matrix)
 		{
 			int width = matrix.Width;
-			int DarkBitCount = 0;
+			int darkBitCount = 0;
 
 			for (int j = 0; j < width; j++)
 			{
@@ -20,16 +22,16 @@ namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 				{
 					if (matrix[i, j])
 					{
-						DarkBitCount++;
+						darkBitCount++;
 					}
 				}
 			}
 
-			int MatrixCount = width * width;
+			int matrixCount = width * width;
 
-			double ratio = (double)DarkBitCount / MatrixCount;
+			double ratio = (double)darkBitCount / matrixCount;
 
-			return System.Math.Abs((int)((ratio * 100) - 50)) / 5 * 10;
+			return Math.Abs((int)((ratio * 100) - 50)) / 5 * 10;
 		}
 	}
 }

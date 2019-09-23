@@ -1,7 +1,7 @@
-﻿<lockscreen:PinLockScreen xmlns="https://github.com/avaloniaui" 
+﻿<lockscreen:PinLockScreen xmlns="https://github.com/avaloniaui"
                           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                           xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
-                          xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"                          
+                          xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
                           x:Class="WalletWasabi.Gui.Controls.LockScreen.PinLockScreen"
                           IsLocked="{Binding IsLocked}">
   <lockscreen:PinLockScreen.Styles>
@@ -12,9 +12,13 @@
     <Style Selector="lockscreen|PinLockScreen[IsLocked=true] Grid.Shade">
       <Style.Animations>
         <Animation FillMode="Both" Duration="0:0:1.5" Easing="QuarticEaseInOut">
+          <KeyFrame Cue="0%">
+            <Setter Property="IsVisible" Value="True" />
+          </KeyFrame>
           <KeyFrame Cue="100%">
             <Setter Property="Opacity" Value="1" />
             <Setter Property="TranslateTransform.Y" Value="0" />
+            <Setter Property="IsVisible" Value="True" />
           </KeyFrame>
         </Animation>
       </Style.Animations>
@@ -22,7 +26,11 @@
     <Style Selector="lockscreen|PinLockScreen[IsLocked=false] Grid.Shade">
       <Style.Animations>
         <Animation FillMode="Both" Duration="0:0:1.5" Easing="QuarticEaseInOut">
+          <KeyFrame Cue="99%">
+            <Setter Property="IsVisible" Value="True" />
+          </KeyFrame>
           <KeyFrame Cue="100%">
+            <Setter Property="IsVisible" Value="False" />
             <Setter Property="Opacity" Value="0" />
             <Setter Property="TranslateTransform.Y" Value="-100" />
           </KeyFrame>
@@ -34,7 +42,7 @@
     <Grid Classes="Shade" Background="{DynamicResource ThemeBackgroundBrush}">
       <controls:GroupBox VerticalAlignment="Center" HorizontalAlignment="Center" TextBlock.FontSize="25" Padding="20" Margin="10">
         <DockPanel LastChildFill="True">
-          <controls:NoparaPasswordBox x:Name="InputField" Password="{Binding PinInput}" Width="300" DockPanel.Dock="Top" Margin="4 0 4 20" Watermark="PIN" UseFloatingWatermark="True" />
+          <controls:TogglePasswordBox x:Name="InputField" Text="{Binding PinInput}" Width="300" DockPanel.Dock="Top" Margin="4 0 4 20" Watermark="PIN" />
           <Grid DockPanel.Dock="Bottom">
             <TextBlock Text="Wrong PIN!" Margin="0,12,0,0" VerticalAlignment="Center" FontSize="20" Classes="warningMessage" IsVisible="{Binding WarningMessageVisible}" />
           </Grid>

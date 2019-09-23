@@ -134,7 +134,7 @@ namespace WalletWasabi.Services
 			{
 				try
 				{
-					Logger.LogInfo<CcjClient>($"{nameof(CcjClient)} is successfully initialized.");
+					Logger.LogInfo($"{nameof(CcjClient)} is successfully initialized.");
 
 					while (IsRunning)
 					{
@@ -171,7 +171,7 @@ namespace WalletWasabi.Services
 						}
 						catch (Exception ex)
 						{
-							Logger.LogError<CcjClient>(ex);
+							Logger.LogError(ex);
 						}
 						finally
 						{
@@ -181,7 +181,7 @@ namespace WalletWasabi.Services
 							}
 							catch (TaskCanceledException ex)
 							{
-								Logger.LogTrace<CcjClient>(ex);
+								Logger.LogTrace(ex);
 							}
 						}
 					}
@@ -274,11 +274,11 @@ namespace WalletWasabi.Services
 			}
 			catch (TaskCanceledException ex)
 			{
-				Logger.LogTrace<CcjClient>(ex);
+				Logger.LogTrace(ex);
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError<CcjClient>(ex);
+				Logger.LogError(ex);
 			}
 			finally
 			{
@@ -330,7 +330,7 @@ namespace WalletWasabi.Services
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError<CcjClient>(ex); // Keep this in front of the logic (Logs will make more sense.)
+				Logger.LogError(ex); // Keep this in front of the logic (Logs will make more sense.)
 				if (ex.Message.StartsWith("Not Found", StringComparison.Ordinal)) // Alice timed out.
 				{
 					State.ClearRoundRegistration(ongoingRoundId);
@@ -424,7 +424,7 @@ namespace WalletWasabi.Services
 				{
 					if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput))
 					{
-						Logger.LogWarning<AliceClient>($"Round ({ongoingRound.State.RoundId}) Bobs did not have enough time to post outputs before timeout. If you see this message, contact nopara73, so he can optimize the phase timeout periods to the worst Internet/Tor connections, which may be yours.");
+						Logger.LogWarning($"Round ({ongoingRound.State.RoundId}) Bobs did not have enough time to post outputs before timeout. If you see this message, contact nopara73, so he can optimize the phase timeout periods to the worst Internet/Tor connections, which may be yours.");
 						break;
 					}
 
@@ -449,7 +449,7 @@ namespace WalletWasabi.Services
 			}
 
 			ongoingRound.Registration.SetPhaseCompleted(CcjRoundPhase.OutputRegistration);
-			Logger.LogInfo<AliceClient>($"Round ({ongoingRound.State.RoundId}) Bob Posted outputs: {ongoingRound.Registration.ActiveOutputs.Count()}.");
+			Logger.LogInfo($"Round ({ongoingRound.State.RoundId}) Bob Posted outputs: {ongoingRound.Registration.ActiveOutputs.Count()}.");
 		}
 
 		private async Task TryConfirmConnectionAsync(CcjClientRound inputRegistrableRound)
@@ -475,7 +475,7 @@ namespace WalletWasabi.Services
 				{
 					State.ClearRoundRegistration(inputRegistrableRound.State.RoundId);
 				}
-				Logger.LogError<CcjClient>(ex);
+				Logger.LogError(ex);
 			}
 		}
 
@@ -563,7 +563,7 @@ namespace WalletWasabi.Services
 
 					coin.BannedUntilUtc = DateTimeOffset.UtcNow + TimeSpan.FromMinutes(minuteInt);
 
-					Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
+					Logger.LogWarning(ex.Message.Split('\n')[1]);
 
 					await DequeueCoinsFromMixNoLockAsync(coinReference, "Failed to register the coin with the coordinator.");
 					aliceClient?.Dispose();
@@ -583,7 +583,7 @@ namespace WalletWasabi.Services
 
 					coin.SpentAccordingToBackend = true;
 
-					Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
+					Logger.LogWarning(ex.Message.Split('\n')[1]);
 
 					await DequeueCoinsFromMixNoLockAsync(coinReference, "Failed to register the coin with the coordinator. The coin is already spent.");
 					aliceClient?.Dispose();
@@ -591,13 +591,13 @@ namespace WalletWasabi.Services
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("No such running round in InputRegistration.", StringComparison.InvariantCultureIgnoreCase))
 				{
-					Logger.LogInfo<CcjClient>("Client tried to register a round that is not in InputRegistration anymore. Trying again later.");
+					Logger.LogInfo("Client tried to register a round that is not in InputRegistration anymore. Trying again later.");
 					aliceClient?.Dispose();
 					return;
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("too-long-mempool-chain", StringComparison.InvariantCultureIgnoreCase))
 				{
-					Logger.LogInfo<CcjClient>("Coordinator failed because too much unconfirmed parent transactions. Trying again later.");
+					Logger.LogInfo("Coordinator failed because too much unconfirmed parent transactions. Trying again later.");
 					aliceClient?.Dispose();
 					return;
 				}
@@ -629,7 +629,7 @@ namespace WalletWasabi.Services
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError<CcjClient>(ex);
+				Logger.LogError(ex);
 			}
 		}
 
@@ -678,7 +678,7 @@ namespace WalletWasabi.Services
 			var newKeys = new List<HdPubKey>();
 			for (int i = allLockedInternalKeys.Count(); i <= maximumMixingLevelCount + 1; i++)
 			{
-				HdPubKey k = KeyManager.GenerateNewKey("", KeyState.Locked, isInternal: true, toFile: false);
+				HdPubKey k = KeyManager.GenerateNewKey(SmartLabel.Empty, KeyState.Locked, isInternal: true, toFile: false);
 				newKeys.Add(k);
 			}
 			allLockedInternalKeys = allLockedInternalKeys.Concat(newKeys);
@@ -802,7 +802,7 @@ namespace WalletWasabi.Services
 
 					State.AddCoinToWaitingList(coin);
 					successful.Add(coin);
-					Logger.LogInfo<CcjClient>($"Coin queued: {coin.Index}:{coin.TransactionId}.");
+					Logger.LogInfo($"Coin queued: {coin.Index}:{coin.TransactionId}.");
 				}
 			}
 
@@ -1031,7 +1031,7 @@ namespace WalletWasabi.Services
 			CoinDequeued?.Invoke(this, coinWaitingForMix);
 			var correctReason = Guard.Correct(reason);
 			var reasonText = correctReason != "" ? $" Reason: {correctReason}" : "";
-			Logger.LogInfo<CcjClient>($"Coin dequeued: {coinWaitingForMix.Index}:{coinWaitingForMix.TransactionId}.{reasonText}.");
+			Logger.LogInfo($"Coin dequeued: {coinWaitingForMix.Index}:{coinWaitingForMix.TransactionId}.{reasonText}.");
 		}
 
 		public async Task StopAsync()
@@ -1068,17 +1068,17 @@ namespace WalletWasabi.Services
 					}
 					catch (Exception ex)
 					{
-						Logger.LogError<CcjClient>("Could not dequeue all coins. Some coins will likely be banned from mixing.");
+						Logger.LogError("Could not dequeue all coins. Some coins will likely be banned from mixing.");
 						if (ex is AggregateException aggrEx)
 						{
 							foreach (var innerEx in aggrEx.InnerExceptions)
 							{
-								Logger.LogError<CcjClient>(innerEx);
+								Logger.LogError(innerEx);
 							}
 						}
 						else
 						{
-							Logger.LogError<CcjClient>(ex);
+							Logger.LogError(ex);
 						}
 					}
 				}

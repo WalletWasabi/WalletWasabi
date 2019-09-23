@@ -46,14 +46,11 @@ namespace WalletWasabi.Io
 			}
 		}
 
-		public new async Task WriteAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default, bool dismissNullOrEmptyContent = true)
+		public new async Task WriteAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default)
 		{
-			if (dismissNullOrEmptyContent)
+			if (lines is null || !lines.Any())
 			{
-				if (lines is null || !lines.Any())
-				{
-					return;
-				}
+				return;
 			}
 
 			var byteArrayBuilder = new ByteArrayBuilder();
@@ -70,7 +67,7 @@ namespace WalletWasabi.Io
 				return;
 			}
 
-			await base.WriteAllLinesAsync(lines, cancellationToken, dismissNullOrEmptyContent);
+			await base.WriteAllLinesAsync(lines, cancellationToken);
 
 			await WriteOutHashAsync(res.hash);
 		}
@@ -168,8 +165,8 @@ namespace WalletWasabi.Io
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<DigestableSafeMutexIoManager>("Failed to create digest.");
-				Logger.LogInfo<DigestableSafeMutexIoManager>(ex);
+				Logger.LogWarning("Failed to create digest.");
+				Logger.LogInfo(ex);
 			}
 		}
 
@@ -195,8 +192,8 @@ namespace WalletWasabi.Io
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<DigestableSafeMutexIoManager>("Failed to read digest.");
-				Logger.LogInfo<DigestableSafeMutexIoManager>(ex);
+				Logger.LogWarning("Failed to read digest.");
+				Logger.LogInfo(ex);
 			}
 
 			return (false, hash);

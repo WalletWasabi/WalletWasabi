@@ -18,16 +18,14 @@ namespace WalletWasabi.JsonConverters
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
 			var stringValue = reader.Value as string;
-			long value;
 			if (string.IsNullOrWhiteSpace(stringValue))
 			{
-				value = default(DateTimeOffset).ToUnixTimeSeconds();
+				return default(DateTimeOffset);
 			}
 			else
 			{
-				value = long.Parse(stringValue);
+				return DateTimeOffset.FromUnixTimeSeconds(long.Parse(stringValue));
 			}
-			return DateTimeOffset.FromUnixTimeSeconds(value);
 		}
 
 		/// <inheritdoc />

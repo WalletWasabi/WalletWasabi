@@ -60,7 +60,7 @@ namespace WalletWasabi.Bases
 
 			if (!File.Exists(FilePath))
 			{
-				Logger.LogInfo<ConfigBase>($"{GetType().Name} file did not exist. Created at path: `{FilePath}`.");
+				Logger.LogInfo($"{GetType().Name} file did not exist. Created at path: `{FilePath}`.");
 			}
 			else
 			{
