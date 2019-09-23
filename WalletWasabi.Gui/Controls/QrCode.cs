@@ -43,10 +43,7 @@ namespace WalletWasabi.Gui.Controls
 		public bool[,] Matrix
 		{
 			get => _matrix;
-			set
-			{
-				SetAndRaise(MatrixProperty, ref _matrix, value);
-			}
+			set => SetAndRaise(MatrixProperty, ref _matrix, value);
 		}
 
 		private bool[,] AddPaddingToMatrix(bool[,] matrix)
@@ -76,11 +73,8 @@ namespace WalletWasabi.Gui.Controls
 
 		public Bitmap AddressQRCodeBitmap
 		{
-			get { return _AddressQRCodeBitmap; }
-			set
-			{
-				SetAndRaise(AddressQRCodeBitmapProperty, ref _AddressQRCodeBitmap, value);
-			}
+			get => _AddressQRCodeBitmap;
+			set => SetAndRaise(AddressQRCodeBitmapProperty, ref _AddressQRCodeBitmap, value);
 		}
 
 		public override void Render(DrawingContext context)
