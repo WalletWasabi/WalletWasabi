@@ -13,8 +13,9 @@ namespace WalletWasabi.Gui.Controls
 	public class QrCode : Control
 	{
 		private readonly int _matrixPadding;
-		private Size _coercedSize;
-		private double _factor;
+		private Size _coercedSize { get; set; }
+		private double _factor { get; set; }
+		private bool[,] _finalMatrix { get; set; }
 
 		static QrCode()
 		{
@@ -29,7 +30,7 @@ namespace WalletWasabi.Gui.Controls
 			this.WhenAnyValue(x => x.Matrix)
 				.Where(x => x != null)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => _matrix = AddPaddingToMatrix(x));
+				.Subscribe(x => _finalMatrix = AddPaddingToMatrix(x));
 		}
 
 		public static readonly DirectProperty<QrCode, bool[,]> MatrixProperty =
@@ -56,17 +57,19 @@ namespace WalletWasabi.Gui.Controls
 			var paddedMatrix = new bool[nH, nW];
 
 			for (var i = 0; i < dims.H; i++)
+			{
 				for (var j = 0; j < dims.W; j++)
 				{
 					paddedMatrix[i + _matrixPadding, j + _matrixPadding] = matrix[i, j];
 				}
+			}
 
 			return paddedMatrix;
 		}
 
 		public override void Render(DrawingContext context)
 		{
-			var source = Matrix;
+			var source = _finalMatrix;
 
 			if (source is null)
 			{
@@ -78,6 +81,7 @@ namespace WalletWasabi.Gui.Controls
 			context.FillRectangle(Brushes.White, new Rect(0, 0, _factor * dims.W, _factor * dims.H));
 
 			for (var i = 0; i < dims.H; i++)
+			{
 				for (var j = 0; j < dims.W; j++)
 				{
 					var cellValue = source[i, j];
@@ -85,15 +89,16 @@ namespace WalletWasabi.Gui.Controls
 					var color = cellValue ? Brushes.Black : Brushes.White;
 					context.FillRectangle(color, rect);
 				}
+			}
 		}
 
 		private (int W, int H) GetMatrixDimensions(bool[,] source)
 				=> (source.GetUpperBound(0) + 1,
 					source.GetUpperBound(1) + 1);
- 
+
 		protected override Size MeasureOverride(Size availableSize)
 		{
-			var source = Matrix;
+			var source = _finalMatrix;
 
 			if (source is null || source.Length == 0)
 			{
