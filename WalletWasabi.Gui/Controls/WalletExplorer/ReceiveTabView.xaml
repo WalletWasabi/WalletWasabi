@@ -13,10 +13,10 @@
   <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
     <controls:GroupBox.Styles>
       <Style Selector="TextBlock">
-        <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}" />
       </Style>
       <Style Selector="TextBox">
-        <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}" />
       </Style>
     </controls:GroupBox.Styles>
     <Grid Classes="content">
@@ -94,7 +94,7 @@
                     <Path HorizontalAlignment="Left" Data="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z" Height="16" Width="16" Stretch="Fill" Fill="#22B14C" />
                   </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem IsVisible="{Binding IsHardwareWallet}" Header="Display address on HardwareWallet" Command="{Binding DisplayAddressOnHwCommand}">
+                <MenuItem IsVisible="{Binding IsHardwareWallet}" Header="Display address on hardware wallet" Command="{Binding DisplayAddressOnHwCommand}">
                   <MenuItem.Icon>
                     <Path HorizontalAlignment="Left" Data="F1 M 23.5,45.5L 30,52L 40.5,41.5L 44,45L 30,59L 20,49L 23.5,45.5 Z M 20,17L 43.25,17L 56,29.75L 56,59L 32,59L 36,55L 52,55L 52,34L 39,34L 39,21L 24,21L 24,43L 20,47L 20,17 Z M 20,59L 20,51L 28,59L 20,59 Z M 43,22.25L 43,30L 50.75,30L 43,22.25 Z" Height="16" Width="16" Stretch="Fill" Fill="#22B14C" />
                   </MenuItem.Icon>

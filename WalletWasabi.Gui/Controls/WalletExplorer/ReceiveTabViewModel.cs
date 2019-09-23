@@ -140,7 +140,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				var client = new HwiClient(Global.Network);
 				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60)))
 				{
-					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, KeyManager.AccountKeyPath, cts.Token);
+					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, SelectedAddress.Model.FullKeyPath, cts.Token);
 				}
 			});
 
