@@ -273,3 +273,4 @@ lcov.info
 *.DS_Store
 /WalletWasabi.Backend/wwwroot/onion-index.html
 /NuGet.Config
+/.github/workflows
