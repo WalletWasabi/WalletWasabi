@@ -401,9 +401,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 							{
 								IsHardwareBusy = true;
 								MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.SettingUpHardwareWallet);
-								// After HWI 1.0.1 the openconsole can be made false for Trezor T.
-								// HWI will start detecting the exact type of hardware wallets.
-								await client.SetupAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, true, cts.Token);
+
+								// Trezor T doesn't require interactive mode.
+								if (selectedWallet.HardwareWalletInfo.Model == HardwareWalletModels.Trezor_T
+									|| selectedWallet.HardwareWalletInfo.Model == HardwareWalletModels.Trezor_T_Simulator)
+								{
+									await client.SetupAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, false, cts.Token);
+								}
+								else
+								{
+									await client.SetupAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, true, cts.Token);
+								}
 
 								MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.ConnectingToHardwareWallet);
 								await EnumerateHardwareWalletsAsync();
