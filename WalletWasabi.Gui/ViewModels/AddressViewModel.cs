@@ -1,4 +1,5 @@
-using Avalonia; 
+using Avalonia;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
@@ -25,6 +26,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private double _clipboardNotificationOpacity;
 		private string _label;
 		private bool _inEditMode;
+		private Bitmap _qrCodeBitmap;
 
 		public HdPubKey Model { get; }
 		public Global Global { get; }
@@ -114,17 +116,15 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		public ObservableAsPropertyHelper<string> _expandMenuCaption;
+		internal ObservableAsPropertyHelper<string> _expandMenuCaption;
 		public string ExpandMenuCaption => _expandMenuCaption?.Value ?? string.Empty;
- 
-		bool _doSaveQRCode;
 
-		public bool DoSaveQRCode
+		public Bitmap AddressQRCodeBitmap
 		{
-			get => _doSaveQRCode;
-			set => this.RaiseAndSetIfChanged(ref _doSaveQRCode, value);
+			get => _qrCodeBitmap;
+			set => this.RaiseAndSetIfChanged(ref _qrCodeBitmap, value);
 		}
-		
+
 		public bool InEditMode
 		{
 			get => _inEditMode;

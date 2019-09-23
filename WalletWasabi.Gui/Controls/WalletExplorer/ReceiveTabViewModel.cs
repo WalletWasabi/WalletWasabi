@@ -133,12 +133,38 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SelectedAddress.InEditMode = true;
 			});
 
-			SaveQRCodeCommand = ReactiveCommand.Create(() =>
+			SaveQRCodeCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				SelectedAddress.DoSaveQRCode = true;
+				await DoSaveQRCode();
 			});
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
+		}
+
+		private async Task DoSaveQRCode()
+		{
+			var sfd = new SaveFileDialog();
+
+			sfd.InitialFileName = $"{SelectedAddress.Address}.png";
+			sfd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+			sfd.Filters.Add(new FileDialogFilter() { Name = "Portable Network Graphics (PNG) Image file", Extensions = { "png" } });
+
+			var fileFullName = await sfd.ShowAsync(Application.Current.MainWindow, fallBack: true);
+
+			if (!string.IsNullOrWhiteSpace(fileFullName))
+			{
+				var ext = Path.GetExtension(fileFullName);
+
+				if (string.IsNullOrWhiteSpace(ext))
+				{
+					fileFullName = $"{fileFullName}.png";
+				}
+
+				using (var outputStream = File.OpenWrite(fileFullName))
+				{
+					SelectedAddress.AddressQRCodeBitmap.Save(outputStream);
+				}
+			}
 		}
 
 		public override void OnOpen()

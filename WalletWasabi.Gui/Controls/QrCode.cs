@@ -6,9 +6,7 @@ using Avalonia.Metadata;
 using Avalonia.Platform;
 using ReactiveUI;
 using System;
-using System.IO;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.Controls
 {
@@ -31,12 +29,6 @@ namespace WalletWasabi.Gui.Controls
 				.Where(x => x != null)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => _matrix = AddPaddingToMatrix(x));
-
-			this.WhenAnyValue(x => x.DoSaveQRCode)
-				.Where(x => x)
-				.DistinctUntilChanged()
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(async x => await SaveQRCode());
 		}
 
 		public static readonly DirectProperty<QrCode, bool[,]> MatrixProperty =
@@ -71,56 +63,18 @@ namespace WalletWasabi.Gui.Controls
 			return paddedMatrix;
 		}
 
-		public static readonly DirectProperty<QrCode, bool> DoSaveQRCodeProperty =
-			AvaloniaProperty.RegisterDirect<QrCode, bool>(
-				nameof(DoSaveQRCode),
-				o => o.DoSaveQRCode,
-				(o, v) => o.DoSaveQRCode = v);
+		public static readonly DirectProperty<QrCode, Bitmap> AddressQRCodeBitmapProperty =
+			AvaloniaProperty.RegisterDirect<QrCode, Bitmap>(
+				nameof(AddressQRCodeBitmap),
+				o => o.AddressQRCodeBitmap,
+				(o, v) => o.AddressQRCodeBitmap = v);
 
-		private bool _DoSaveQRCode;
+		private Bitmap _AddressQRCodeBitmap;
 
-		public bool DoSaveQRCode
+		public Bitmap AddressQRCodeBitmap
 		{
-			get => _DoSaveQRCode;
-			set => SetAndRaise(DoSaveQRCodeProperty, ref _DoSaveQRCode, value);
-		}
-
-		public static readonly DirectProperty<QrCode, string> AddressProperty =
-			AvaloniaProperty.RegisterDirect<QrCode, string>(
-				nameof(Address),
-				o => o.Address,
-				(o, v) => o.Address = v);
-
-		private string _Address;
-
-		public string Address
-		{
-			get => _Address;
-			set => SetAndRaise(AddressProperty, ref _Address, value);
-		}
-
-
-		private async Task SaveQRCode()
-		{
-			var sfd = new SaveFileDialog();
-
-			sfd.InitialFileName = $"{Address}.png";
-			sfd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-			sfd.Filters.Add(new FileDialogFilter() { Name = "Portable Network Graphics (PNG) Image file", Extensions = { "png" } });
-
-			var fileFullName = await sfd.ShowAsync(Application.Current.MainWindow);
-
-			if (!string.IsNullOrWhiteSpace(fileFullName))
-			{
-				var ext = Path.GetExtension(fileFullName);
-
-				if (string.IsNullOrWhiteSpace(ext))
-				{
-					fileFullName = $"{fileFullName}.png";
-				}
-
-				ExportMatrix(fileFullName);
-			}
+			get => _AddressQRCodeBitmap;
+			set => SetAndRaise(AddressQRCodeBitmapProperty, ref _AddressQRCodeBitmap, value);
 		}
 
 		public override void Render(DrawingContext context)
@@ -162,6 +116,7 @@ namespace WalletWasabi.Gui.Controls
 			var factorR = (float)minBound / minDimension;
 			return (int)Math.Floor(factorR);
 		}
+
 		protected override Size MeasureOverride(Size availableSize)
 		{
 			var source = Matrix;
@@ -179,14 +134,18 @@ namespace WalletWasabi.Gui.Controls
 
 			_coercedSize = new Size(maxF, maxF);
 
+			AddressQRCodeBitmap = RenderMatrixToBitmap();
+
 			return _coercedSize;
 		}
 
-		public void ExportMatrix(string outputPath)
+		public Bitmap RenderMatrixToBitmap()
 		{
 			// TODO: This will be more simplified when Avalonia 0.9 is released.
 			//		 Remove WriteableFramebuffer and replace simply with RenderTargetBitmap
 			//		 Save bitmap function later on.
+
+			Bitmap ret = null;
 
 			var pixelBounds = PixelSize.FromSize(_coercedSize, 1);
 
@@ -199,14 +158,14 @@ namespace WalletWasabi.Gui.Controls
 			{
 				Render(ctxi);
 
-				var ret = new Bitmap(PixelFormat.Bgra8888,
+				ret = new Bitmap(PixelFormat.Bgra8888,
 								 framebuffer.Address,
 								 framebuffer.Size,
 								 new Vector(96, 96),
 								 framebuffer.RowBytes);
-
-				ret.Save(outputPath);
 			}
+
+			return ret;
 		}
 	}
 }
