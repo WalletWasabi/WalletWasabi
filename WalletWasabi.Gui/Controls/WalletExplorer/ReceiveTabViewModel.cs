@@ -31,7 +31,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ReactiveCommand<Unit, Unit> CopyAddress { get; }
 		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
-		public ReactiveCommand<Unit, Unit> ShowQrCode { get; }
+		public ReactiveCommand<Unit, Unit> ToggleQrCode { get; }
 		public ReactiveCommand<Unit, Unit> ChangeLabelCommand { get; }
 
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
@@ -114,11 +114,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{ }
 			}, isCoinListItemSelected);
 
-			ShowQrCode = ReactiveCommand.Create(() =>
+			ToggleQrCode = ReactiveCommand.Create(() =>
 			{
 				try
 				{
-					SelectedAddress.IsExpanded = true;
+					SelectedAddress.IsExpanded = !(SelectedAddress.IsExpanded);
 				}
 				catch (Exception)
 				{ }
