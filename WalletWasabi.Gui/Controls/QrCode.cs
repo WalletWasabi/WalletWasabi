@@ -4,51 +4,31 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Metadata;
 using Avalonia.Platform;
-using AvalonStudio.Extensibility.Theme;
 using ReactiveUI;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reactive;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Controls
 {
 	public class QrCode : Control
-	{ 
-		private const int MatrixPadding = 3;
-		private Size _coercedSize = new Size();
- 		static QrCode()
+	{
+		private readonly int _matrixPadding;
+		private Size _coercedSize;
+
+		static QrCode()
 		{
 			AffectsMeasure<QrCode>(MatrixProperty);
 		}
- 
-		public Bitmap RenderQrToBitmap()
+
+		public QrCode()
 		{
-			// TODO: This will be more simplified when Avalonia 0.9 is released.
-			//		 Remove WriteableFramebuffer and replace simply with RenderTargetBitmap
-			//		 Save bitmap function later on.
+			_coercedSize = new Size();
+			_matrixPadding = 3;
 
-			var pixelBounds = PixelSize.FromSize(_coercedSize, 1);
-			var framebuffer = new WritableFramebuffer(PixelFormat.Bgra8888, pixelBounds);
-			var ipri = AvaloniaLocator.Current.GetService<IPlatformRenderInterface>();
-
-			using (var target = ipri.CreateRenderTarget(new object[] { framebuffer }))
-			using (var ctx = target.CreateDrawingContext(null))
-			using (var ctxi = new DrawingContext(ctx))
-			{
-				Render(ctxi);
-			}
-
-			var outBitmap = new Bitmap(PixelFormat.Bgra8888,
-									   framebuffer.Address,
-									   framebuffer.Size,
-									   new Vector(96, 96),
-									   framebuffer.RowBytes);
-			framebuffer.Deallocate();
-
-			return outBitmap;
+			this.WhenAnyValue(x => x.Matrix)
+				.Where(x => x != null)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => _matrix = AddPaddingToMatrix(x));
 		}
 
 		public static readonly DirectProperty<QrCode, bool[,]> MatrixProperty =
@@ -65,42 +45,44 @@ namespace WalletWasabi.Gui.Controls
 			get => _matrix;
 			set
 			{
-				if (value is null)
-				{
-					return;
-				}
-
-				var dims = GetMatrixDimensions(value);
-				var nW = dims.W + (MatrixPadding * 2);
-				var nH = dims.H + (MatrixPadding * 2);
-
-				var paddedMatrix = new bool[nH, nW];
-
-				for (var i = 0; i < dims.H; i++)
-				{
-					for (var j = 0; j < dims.W; j++)
-					{
-						paddedMatrix[i + MatrixPadding, j + MatrixPadding] = value[i, j];
-					}
-				}
-
-				SetAndRaise(MatrixProperty, ref _matrix, paddedMatrix);
+				SetAndRaise(MatrixProperty, ref _matrix, value);
 			}
 		}
- 
+
+		private bool[,] AddPaddingToMatrix(bool[,] matrix)
+		{
+			var dims = GetMatrixDimensions(matrix);
+			var nW = dims.W + (_matrixPadding * 2);
+			var nH = dims.H + (_matrixPadding * 2);
+
+			var paddedMatrix = new bool[nH, nW];
+
+			for (var i = 0; i < dims.H; i++)
+				for (var j = 0; j < dims.W; j++)
+				{
+					paddedMatrix[i + _matrixPadding, j + _matrixPadding] = matrix[i, j];
+				}
+
+			return paddedMatrix;
+		}
+
 		public static readonly DirectProperty<QrCode, Bitmap> AddressQRCodeBitmapProperty =
 			AvaloniaProperty.RegisterDirect<QrCode, Bitmap>(
 				nameof(AddressQRCodeBitmap),
 				o => o.AddressQRCodeBitmap,
 				(o, v) => o.AddressQRCodeBitmap = v);
-		
+
 		private Bitmap _AddressQRCodeBitmap;
-		
+
 		public Bitmap AddressQRCodeBitmap
 		{
 			get { return _AddressQRCodeBitmap; }
-			set { SetAndRaise(AddressQRCodeBitmapProperty, ref _AddressQRCodeBitmap, value); }
+			set
+			{
+				SetAndRaise(AddressQRCodeBitmapProperty, ref _AddressQRCodeBitmap, value);
+			}
 		}
+
 		public override void Render(DrawingContext context)
 		{
 			var source = Matrix;
@@ -155,11 +137,41 @@ namespace WalletWasabi.Gui.Controls
 			var availMax = Math.Min(availableSize.Width, availableSize.Height);
 			var factor = CalculateDiscreteRectSize(source);
 			var maxF = Math.Min(availMax, factor * minDimension);
+
 			_coercedSize = new Size(maxF, maxF);
 
-			AddressQRCodeBitmap = RenderQrToBitmap();
+			AddressQRCodeBitmap = RenderMatrixToBitmap();
 
 			return _coercedSize;
+		}
+
+		public Bitmap RenderMatrixToBitmap()
+		{
+			// TODO: This will be more simplified when Avalonia 0.9 is released.
+			//		 Remove WriteableFramebuffer and replace simply with RenderTargetBitmap
+			//		 Save bitmap function later on.
+
+			Bitmap ret = null;
+
+			var pixelBounds = PixelSize.FromSize(_coercedSize, 1);
+
+			var ipri = AvaloniaLocator.Current.GetService<IPlatformRenderInterface>();
+
+			using (var framebuffer = new WritableFramebuffer(PixelFormat.Bgra8888, pixelBounds))
+			using (var target = ipri.CreateRenderTarget(new object[] { framebuffer }))
+			using (var ctx = target.CreateDrawingContext(null))
+			using (var ctxi = new DrawingContext(ctx))
+			{
+				Render(ctxi);
+
+				ret = new Bitmap(PixelFormat.Bgra8888,
+								 framebuffer.Address,
+								 framebuffer.Size,
+								 new Vector(96, 96),
+								 framebuffer.RowBytes);
+			}
+
+			return ret;
 		}
 	}
 }
