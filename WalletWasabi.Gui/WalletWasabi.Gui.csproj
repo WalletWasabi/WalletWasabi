@@ -38,9 +38,8 @@
     <Compile Update="**\*.xaml.cs">
       <DependentUpon>%(Filename)</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="**\*.xaml;Assets\*" Exclude="bin\**;obj\**;**\*.xproj;packages\**;@(EmbeddedResource)" />
-    <AvaloniaResource Include="Assets\*" Exclude="bin\**;obj\**;**\*.xproj;packages\**;@(EmbeddedResource)" />
-  </ItemGroup>
+    <AvaloniaResource Include="**\*.xaml;Assets\*" Exclude="bin\**;obj\**;**\*.xproj;packages\**;@(EmbeddedResource)" />
+   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>bin\Debug\netcoreapp2.2\WalletWasabi.Gui.xml</DocumentationFile>

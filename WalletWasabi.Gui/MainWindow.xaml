@@ -12,7 +12,7 @@
                   xmlns:idc="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
                   xmlns:beh="clr-namespace:AvalonStudio.Utils.Behaviors;assembly=AvalonStudio.Utils"
                   x:Class="WalletWasabi.Gui.MainWindow"
-                  Icon="resm:WalletWasabi.Gui.Assets.WasabiLogo256.png?assembly=WalletWasabi.Gui"
+                  Icon="avares://WalletWasabi.Gui/Assets/WasabiLogo256.png"
                   Title="{Binding Title}"
                   MinWidth="1100" MinHeight="530"
                   FontFamily="{DynamicResource UiFont}" FontSize="14"
