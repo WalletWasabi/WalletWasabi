@@ -119,10 +119,8 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-
 		internal ObservableAsPropertyHelper<string> _expandMenuCaption;
 		public string ExpandMenuCaption => _expandMenuCaption?.Value ?? string.Empty;
-
 
 		public Bitmap AddressQRCodeBitmap
 		{
