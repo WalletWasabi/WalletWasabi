@@ -13,9 +13,9 @@ namespace WalletWasabi.Gui.Controls
 	public class QrCode : Control
 	{
 		private readonly int _matrixPadding;
-		private Size _coercedSize { get; set; }
-		private double _factor { get; set; }
-		private bool[,] _finalMatrix { get; set; }
+		private Size CoercedSize { get; set; }
+		private double GridCellFactor { get; set; }
+		private bool[,] FinalMatrix { get; set; }
 
 		static QrCode()
 		{
@@ -24,13 +24,13 @@ namespace WalletWasabi.Gui.Controls
 
 		public QrCode()
 		{
-			_coercedSize = new Size();
+			CoercedSize = new Size();
 			_matrixPadding = 2;
 
 			this.WhenAnyValue(x => x.Matrix)
 				.Where(x => x != null)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => _finalMatrix = AddPaddingToMatrix(x));
+				.Subscribe(x => FinalMatrix = AddPaddingToMatrix(x));
 		}
 
 		public static readonly DirectProperty<QrCode, bool[,]> MatrixProperty =
@@ -69,7 +69,7 @@ namespace WalletWasabi.Gui.Controls
 
 		public override void Render(DrawingContext context)
 		{
-			var source = _finalMatrix;
+			var source = FinalMatrix;
 
 			if (source is null)
 			{
@@ -78,14 +78,14 @@ namespace WalletWasabi.Gui.Controls
 
 			var dims = GetMatrixDimensions(source);
 
-			context.FillRectangle(Brushes.White, new Rect(0, 0, _factor * dims.W, _factor * dims.H));
+			context.FillRectangle(Brushes.White, new Rect(0, 0, GridCellFactor * dims.W, GridCellFactor * dims.H));
 
 			for (var i = 0; i < dims.H; i++)
 			{
 				for (var j = 0; j < dims.W; j++)
 				{
 					var cellValue = source[i, j];
-					var rect = new Rect(i * _factor, j * _factor, _factor, _factor);
+					var rect = new Rect(i * GridCellFactor, j * GridCellFactor, GridCellFactor, GridCellFactor);
 					var color = cellValue ? Brushes.Black : Brushes.White;
 					context.FillRectangle(color, rect);
 				}
@@ -98,7 +98,7 @@ namespace WalletWasabi.Gui.Controls
 
 		protected override Size MeasureOverride(Size availableSize)
 		{
-			var source = _finalMatrix;
+			var source = FinalMatrix;
 
 			if (source is null || source.Length == 0)
 			{
@@ -109,13 +109,13 @@ namespace WalletWasabi.Gui.Controls
 			var minDimension = Math.Min(dims.W, dims.H);
 			var availMax = Math.Min(availableSize.Width, availableSize.Height);
 
-			_factor = Math.Floor(availMax / minDimension);
+			GridCellFactor = Math.Floor(availMax / minDimension);
 
-			var maxF = Math.Min(availMax, _factor * minDimension);
+			var maxF = Math.Min(availMax, GridCellFactor * minDimension);
 
-			_coercedSize = new Size(maxF, maxF);
+			CoercedSize = new Size(maxF, maxF);
 
-			return _coercedSize;
+			return CoercedSize;
 		}
 	}
 }
