@@ -571,7 +571,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		private async Task EnumerateHardwareWalletsAsync()
 		{
-			var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+			var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 			IsHwWalletSearchTextVisible = true;
 			try
 			{
