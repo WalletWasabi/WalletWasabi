@@ -317,16 +317,16 @@
 
         <!-- FAQs Section -->
         <section class="faq mb-0" id="faq">
-            <div class="container">
+            <div class="container" itemscope itemtype="https://schema.org/FAQPage">
                 <h2 class="text-center text-lowercase mb-4">Frequently Asked Questions</h2>
 
-                <div class="card bg-white box-shadow border-light mb-2">
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
                     <input type="checkbox" id="faq1" class="toggle-input" />
-                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq1">
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq1" itemprop="name">
                         What is a “CoinJoin”?
                     </label>
-                    <div class="card-body toggle-content p-0">
-                        <p class="card-text border-top p-2">
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
                             A mechanism by which multiple participants combine their coins (or UTXOs, to be more precise) into one large transaction with multiple inputs and multiple outputs. An observer cannot determine which output belongs to which input, and neither can the participants themselves. This makes it difficult for outside parties to trace where a particular coin originated from and where it was sent to (as opposed to regular bitcoin transactions, where there is usually one sender and one receiver).
                             <br /><br />
                             In very simple terms, coinjoin means: “when you want to make a transaction, find someone else who also wants to make a transaction and make a joint transaction together”.
@@ -336,38 +336,38 @@
                     </div>
                 </div>
 
-                <div class="card bg-white box-shadow border-light mb-2">
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
                     <input type="checkbox" id="faq2" class="toggle-input" />
-                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq2">
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq2" itemprop="name">
                         Do I need to trust Wasabi with my coins?
                     </label>
-                    <div class="card-body toggle-content p-0">
-                        <p class="card-text border-top p-2">
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
                             No, Wasabi's coinjoin implementation is trustless by design. The participants do not need to trust each other or any third party. Both the sending address (the coinjoin input) and the receiving address (the coinjoin output) are controlled by your own private keys. Wasabi merely coordinates the process of combining the inputs of the participants into one single transaction, but the wallet can neither steal your coins, nor figure out which outputs belong to which inputs. <br /><br />
                             <small>Further reading: <a href="https://github.com/nopara73/ZeroLink#ii-chaumian-coinjoin" target="_blank">Chaumian Coinjoin</a></small>
                         </p>
                     </div>
                 </div>
 
-                <div class="card bg-white box-shadow border-light mb-2">
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
                     <input type="checkbox" id="faq3" class="toggle-input" />
-                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq3">
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq3" itemprop="name">
                         Can I hurt my privacy using Wasabi?
                     </label>
-                    <div class="card-body toggle-content p-0">
-                        <p class="card-text border-top p-2">
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
                             No. The worst thing that can happen (through user’s negligence post-mix) is that the level of your privacy stays the same as before coinjoin. It is crucial to understand that Wasabi is not a fool-proof solution if you neglect to practice coin control after the mixing process.
                         </p>
                     </div>
                 </div>
 
-                <div class="card bg-white box-shadow border-light mb-2">
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
                     <input type="checkbox" id="faq4" class="toggle-input" />
-                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq4">
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq4" itemprop="name">
                         Do I need to run Tor?
                     </label>
-                    <div class="card-body toggle-content p-0">
-                        <p class="card-text border-top p-2">
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
                             All Wasabi network traffic goes via Tor by default - no need to set up Tor yourself. If you do already have Tor, and it is running, then Wasabi will try to use that first.
                             <br /><br />
                             You can turn off Tor in the Settings. Note that in this case you are still private, except when you coinjoin and when you broadcast a transaction. In the first case, the coordinator would know the links between your inputs and outputs based on your IP address. In the second case, if you happen to broadcast a transaction of yours to a full node that is spying on you, it will know the link between your transaction and your IP address.
@@ -375,13 +375,13 @@
                     </div>
                 </div>
 
-                <div class="card bg-white box-shadow border-light mb-2">
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
                     <input type="checkbox" id="faq5" class="toggle-input" />
-                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq5">
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq5" itemprop="name">
                         My wallet cannot send to Bech32 addresses - what wallets can I use instead?
                     </label>
-                    <div class="card-body toggle-content p-0">
-                        <p class="card-text border-top p-2">
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
                             Wasabi generates Bech32 addresses only, also known as bc1 addresses or native SegWit addresses. These addresses start with the characters bc1... Some wallets/exchanges do not yet support this type of address and may give an error message (e.g. "unknown bitcoin address"). The solution is to manage your funds with a wallet which does support Bech32, <a href="https://en.bitcoin.it/wiki/Bech32_adoption" target="
                 ">see list</a>.
                             <br /><br />
@@ -390,13 +390,13 @@
                     </div>
                 </div>
 
-                <div class="card bg-white box-shadow border-light mb-2">
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
                     <input type="checkbox" id="faq6" class="toggle-input" />
-                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq6">
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq6" itemprop="name">
                         What are the fees for CoinJoins?
                     </label>
-                    <div class="card-body toggle-content p-0">
-                        <p class="card-text border-top p-2">
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
                             You currently pay a fee of 0.003% * anonymity set. If the anonymity set of a coin is 50 then you pay 0.003% * 50 (=0.15%). If you set the target anonymity set to 53 then Wasabi will continue mixing until this is reached, so you may end up with an anonymity set of say 60, and you will pay 0.003% * 60 (=0.18%).
                             <br /><br />
                             There are also edge cases where you do not pay the full fee or where you pay more. For example if you're the smallest registrant to a round, you will never pay a fee. Also when you are remixing and you cannot pay the full fee with your input, then you only pay as much as you have, but if the change amount leftover would be too small, then that is also added to the fee. Currently the minimum change amount to be paid out is 0.7% of the base denomination (~0.1BTC.)
@@ -406,13 +406,13 @@
                     </div>
                 </div>
 
-                <div class="card bg-white box-shadow border-light mb-2">
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
                     <input type="checkbox" id="faq7" class="toggle-input" />
-                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq7">
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq7" itemprop="name">
                         What is an "Anonymity Set"?
                     </label>
-                    <div class="card-body toggle-content p-0">
-                        <p class="card-text border-top p-2">
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
                             The anonymity set is effectively the size of the group you are hiding in.
                             <br /><br />
                             If 3 people take part in a CoinJoin (with equal size inputs) and there are 3 outputs then each of those output coins has an anonymity set of 3.
@@ -424,13 +424,13 @@
                     </div>
                 </div>
 
-                <div class="card bg-white box-shadow border-light mb-2">
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
                     <input type="checkbox" id="faq8" class="toggle-input" />
-                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq8">
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq8" itemprop="name">
                         Can I recombine my mixed coins?
                     </label>
-                    <div class="card-body toggle-content p-0">
-                        <p class="card-text border-top p-2">
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
                             It is advisable to limit the recombining of mixed coins because it can only decrease the privacy of said coins. This links all the consolidated UTXOs in one transaction, creating only one output, which then clearly controls all these funds. That said, if you combine less than 1 BTC it is less likely to reveal your pre-coinjoin transaction history. The potential issue comes when you spend that coin. Depending on what you do with the coin you might reduce the privacy of the resulting change (if you send half your coin to an exchange for example, as they will know that you own the coin change). As a result it is best not to recombine ALL your mixed change, though you may wish to recombine some coins if you are planning on hodling for many years as this will reduce the fees required to spend the coins later.
                             <br /><br />
                             <small>Further reading: <a href="https://www.reddit.com/r/WasabiWallet/comments/avxbjy/combining_mixed_coins_privacy_megathread/" target="_blank">[Reddit] Combining Mixed Coins</a></small>
@@ -438,13 +438,13 @@
                     </div>
                 </div>
 
-                <div class="card bg-white box-shadow border-light mb-2">
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
                     <input type="checkbox" id="faq9" class="toggle-input" />
-                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq9">
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq9" itemprop="name">
                         Am I safe to send my mixed coins to my hardware wallet?
                     </label>
-                    <div class="card-body toggle-content p-0">
-                        <p class="card-text border-top p-2">
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
                             Most hardware wallets communicate with servers to provide you with your balance. This reveals your public key to the server, which damages your privacy - the hardware company can now theoretically link together all your addresses. As a result it is not recommended that you send your mixed coins to an address associated with your hardware wallet unless you are confident that you have set up your hardware wallet in a way that it does not communicate with a 3rd party server (see below).
                             <br /><br />
                             You can however manage your hardware wallet with the Wasabi interface. Alternatively you can use your hardware wallet with Electrum, which connects to your Bitcoin Core full node through <a href="https://github.com/chris-belcher/electrum-personal-server" target="_blank">Electrum Personal Server</a>.
@@ -452,25 +452,25 @@
                     </div>
                 </div>
 
-                <div class="card bg-white box-shadow border-light mb-2">
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
                     <input type="checkbox" id="faq10" class="toggle-input" />
-                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq10">
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq10" itemprop="name">
                         How can I set up my hardware wallet with Wasabi properly?
                     </label>
-                    <div class="card-body toggle-content p-0">
-                        <p class="card-text border-top p-2">
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
                             You can use popular hardware wallets with Wasabi directly including Coldcard, Trezor and Ledger devices. Plug in the device, and select Hardware Wallet in the starting page of Wasabi. You will be able to send and receive bitcoin, but you will not be able to coinjoin the funds directly. For this, the private key needs to be hot in Wasabi. You can also import and export PSBT over SD card to communicate with your ColdCard Wallet.
                         </p>
                     </div>
                 </div>
 
-                <div class="card bg-white box-shadow border-light mb-2">
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
                     <input type="checkbox" id="faq11" class="toggle-input" />
-                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq11">
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq11" itemprop="name">
                         What to do with "change"?
                     </label>
-                    <div class="card-body toggle-content p-0">
-                        <p class="card-text border-top p-2">
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
                             There are no hard and fast rules for what to do with the change. Generally try to avoid the change and use the Max button extensively at sending. The most problematic type of change is what has anonymity set 1 (red shield.) You should treat it as a kind of toxic waste (handled with great care).
                             <br /><br />
                             <span class="text-danger">Warning You want to avoid merging anonymity set 1 coins with anonymity set > 1 coins wherever possible, because this will link your anonymity set > 1 coin to the coin you merge it with.</span> Note that, this is also true if you merge them in a mix, however that is slightly less problematic, because some blockchain analysis techniques become computationally infeasible.
@@ -494,13 +494,13 @@
                     </div>
                 </div>
 
-                <div class="card bg-white box-shadow border-light mb-2">
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
                     <input type="checkbox" id="faq12" class="toggle-input" />
-                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq12">
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq12" itemprop="name">
                         Privacy wallet alternatives to Wasabi?
                     </label>
-                    <div class="card-body toggle-content p-0">
-                        <p class="card-text border-top p-2">
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
                             Other than Wasabi Wallet, as of 2019, <a href="https://github.com/JoinMarket-Org/joinmarket-clientserver" target="_blank">JoinMarket</a> is the only sound privacy enhancing concept that has a production ready implementation.
                         </p>
                     </div>
