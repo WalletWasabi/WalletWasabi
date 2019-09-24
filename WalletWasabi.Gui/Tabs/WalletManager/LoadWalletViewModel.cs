@@ -14,6 +14,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -137,24 +138,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				IoHelpers.OpenBrowser(x);
 			});
 
-			OpenBrowserCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
-			LoadCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
-			TestPasswordCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
-			OpenFolderCommand.ThrownExceptions.Subscribe(ex =>
-			{
-				SetWarningMessage(ex.ToTypeMessageString());
-				Logger.LogError(ex);
-			});
-			ImportColdcardCommand.ThrownExceptions.Subscribe(ex =>
-			{
-				SetWarningMessage(ex.ToTypeMessageString());
-				Logger.LogError(ex);
-			});
-			EnumerateHardwareWalletsCommand.ThrownExceptions.Subscribe(ex =>
-			{
-				SetWarningMessage(ex.ToTypeMessageString());
-				Logger.LogError(ex);
-			});
+			Observable.Merge(OpenBrowserCommand.ThrownExceptions)
+				.Merge(LoadCommand.ThrownExceptions)
+				.Merge(TestPasswordCommand.ThrownExceptions)
+				.Merge(OpenFolderCommand.ThrownExceptions)
+				.Merge(ImportColdcardCommand.ThrownExceptions)
+				.Merge(EnumerateHardwareWalletsCommand.ThrownExceptions)
+				.Subscribe((ex) =>
+				{
+					SetWarningMessage(ex.ToTypeMessageString());
+					Logger.LogError(ex);
+				});
 
 			SetLoadButtonText();
 		}
