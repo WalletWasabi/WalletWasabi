@@ -6,98 +6,57 @@ using System.Text;
 using WalletWasabi.Models;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Models.TransactionBuilding
 {
 	public class SmartCoinSelector : ICoinSelector
 	{
-		private Dictionary<OutPoint, SmartCoin> SmartCoinsByOutpoint { get; }
+		private IEnumerable<SmartCoin> UnspentCoins { get; }
 
-		public SmartCoinSelector(Dictionary<OutPoint, SmartCoin> smartCoinsByOutpoint)
+		public SmartCoinSelector(IEnumerable<SmartCoin> unspentCoins)
 		{
-			SmartCoinsByOutpoint = Guard.NotNull(nameof(smartCoinsByOutpoint), smartCoinsByOutpoint);
+			UnspentCoins = Guard.NotNull(nameof(unspentCoins), unspentCoins).Distinct();
 		}
 
 		public IEnumerable<ICoin> Select(IEnumerable<ICoin> coins, IMoney target)
 		{
-			var coinsByOutpoint = coins.ToDictionary(c => c.Outpoint);
-			var totalOutAmount = (Money)target;
-			var unspentCoins = coins.Select(c => SmartCoinsByOutpoint[c.Outpoint]).ToArray();
-			var coinsToSpend = new HashSet<SmartCoin>();
-			var unspentConfirmedCoins = new List<SmartCoin>();
-			var unspentUnconfirmedCoins = new List<SmartCoin>();
-			foreach (SmartCoin coin in unspentCoins)
+			var targetMoney = target as Money;
+
+			var available = UnspentCoins.Sum(x => x.Amount);
+			if (available < targetMoney)
 			{
-				if (coin.Confirmed)
+				throw new InsufficientBalanceException(targetMoney, available);
+			}
+
+			// Group coins by scriptPubKey in order to treat them all as one.
+			var coinsByScriptPubKey = UnspentCoins
+				.GroupBy(c => c.ScriptPubKey)
+				.Select(group => new
 				{
-					unspentConfirmedCoins.Add(coin);
-				}
-				else
+					Coins = group,
+					Unconfirmed = group.Any(x => !x.Confirmed),    // If group has an unconfirmed, then the whole group is unconfirmed.
+					AnonymitySet = group.Min(x => x.AnonymitySet), // The group is as anonymous as its weakest member.
+					Amount = group.Sum(x => x.Amount)
+				});
+
+			var coinsToSpend = new List<SmartCoin>();
+
+			foreach (IGrouping<Script, SmartCoin> coinsGroup in coinsByScriptPubKey
+				.OrderBy(group => group.Unconfirmed)
+				.ThenByDescending(group => group.AnonymitySet)     // Always try to spend/merge the largest anonset coins first.
+				.ThenByDescending(group => group.Amount)           // Then always try to spend by amount.
+				.Select(group => group.Coins))
+			{
+				coinsToSpend.AddRange(coinsGroup);
+
+				if (coinsToSpend.Sum(x => x.Amount) >= targetMoney)
 				{
-					unspentUnconfirmedCoins.Add(coin);
-				}
-			}
-
-			bool haveEnough = TrySelectCoins(coinsToSpend, totalOutAmount, unspentConfirmedCoins);
-			if (!haveEnough)
-			{
-				haveEnough = TrySelectCoins(coinsToSpend, totalOutAmount, unspentUnconfirmedCoins);
-			}
-
-			if (!haveEnough)
-			{
-				throw new InsufficientBalanceException(totalOutAmount, unspentConfirmedCoins.Select(x => x.Amount).Sum() + unspentUnconfirmedCoins.Select(x => x.Amount).Sum());
-			}
-
-			return coinsToSpend.Select(c => coinsByOutpoint[c.GetOutPoint()]);
-		}
-
-		/// <returns>If the selection was successful. If there's enough coins to spend from.</returns>
-		private bool TrySelectCoins(HashSet<SmartCoin> coinsToSpend, Money totalOutAmount, IEnumerable<SmartCoin> unspentCoins)
-		{
-			// If there's no need for input merging, then use the largest selected.
-			// Do not prefer anonymity set. You can assume the user prefers anonymity set manually through the GUI.
-			SmartCoin largestCoin = unspentCoins.OrderByDescending(x => x.Amount).FirstOrDefault();
-			if (largestCoin == default)
-			{
-				return false; // If there's no coin then unsuccessful selection.
-			}
-			else // Check if we can do without input merging.
-			{
-				var largestCoins = unspentCoins.Where(x => x.ScriptPubKey == largestCoin.ScriptPubKey);
-
-				if (largestCoins.Sum(x => x.Amount) >= totalOutAmount)
-				{
-					foreach (var c in largestCoins)
-					{
-						coinsToSpend.Add(c);
-					}
-					return true;
+					break;
 				}
 			}
 
-			// If there's a need for input merging.
-			foreach (var coin in unspentCoins
-				.OrderByDescending(x => x.AnonymitySet) // Always try to spend/merge the largest anonset coins first.
-				.ThenByDescending(x => x.Amount)) // Then always try to spend by amount.
-			{
-				coinsToSpend.Add(coin);
-				// If reaches the amount, then return true, else just go with the largest coin.
-				if (coinsToSpend.Select(x => x.Amount).Sum() >= totalOutAmount)
-				{
-					// Add if we can find address reuse.
-					foreach (var c in unspentCoins
-						.Except(coinsToSpend) // So we're choosing from the non selected coins.
-						.Where(x => coinsToSpend.Any(y => y.ScriptPubKey == x.ScriptPubKey)))// Where the selected coins contains the same script.
-					{
-						coinsToSpend.Add(c);
-					}
-
-					return true;
-				}
-			}
-
-			return false;
+			return coinsToSpend.Select(c => c.GetCoin());
 		}
 	}
 }
