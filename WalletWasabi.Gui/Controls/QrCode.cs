@@ -50,14 +50,14 @@ namespace WalletWasabi.Gui.Controls
 		private bool[,] AddPaddingToMatrix(bool[,] matrix)
 		{
 			var dims = GetMatrixDimensions(matrix);
-			var nW = dims.W + (MatrixPadding * 2);
-			var nH = dims.H + (MatrixPadding * 2);
+			var nW = dims.w + (MatrixPadding * 2);
+			var nH = dims.h + (MatrixPadding * 2);
 
 			var paddedMatrix = new bool[nH, nW];
 
-			for (var i = 0; i < dims.H; i++)
+			for (var i = 0; i < dims.h; i++)
 			{
-				for (var j = 0; j < dims.W; j++)
+				for (var j = 0; j < dims.w; j++)
 				{
 					paddedMatrix[i + MatrixPadding, j + MatrixPadding] = matrix[i, j];
 				}
@@ -77,11 +77,11 @@ namespace WalletWasabi.Gui.Controls
 
 			var dims = GetMatrixDimensions(source);
 
-			context.FillRectangle(Brushes.White, new Rect(0, 0, GridCellFactor * dims.W, GridCellFactor * dims.H));
+			context.FillRectangle(Brushes.White, new Rect(0, 0, GridCellFactor * dims.w, GridCellFactor * dims.h));
 
-			for (var i = 0; i < dims.H; i++)
+			for (var i = 0; i < dims.h; i++)
 			{
-				for (var j = 0; j < dims.W; j++)
+				for (var j = 0; j < dims.w; j++)
 				{
 					var cellValue = source[i, j];
 					var rect = new Rect(i * GridCellFactor, j * GridCellFactor, GridCellFactor, GridCellFactor);
@@ -91,7 +91,7 @@ namespace WalletWasabi.Gui.Controls
 			}
 		}
 
-		private (int W, int H) GetMatrixDimensions(bool[,] source)
+		private (int w, int h) GetMatrixDimensions(bool[,] source)
 		{
 			return (source.GetUpperBound(0) + 1, source.GetUpperBound(1) + 1);
 		}
@@ -106,7 +106,7 @@ namespace WalletWasabi.Gui.Controls
 			}
 
 			var dims = GetMatrixDimensions(source);
-			var minDimension = Math.Min(dims.W, dims.H);
+			var minDimension = Math.Min(dims.w, dims.h);
 			var availMax = Math.Min(availableSize.Width, availableSize.Height);
 
 			GridCellFactor = Math.Floor(availMax / minDimension);
