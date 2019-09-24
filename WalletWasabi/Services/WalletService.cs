@@ -963,9 +963,8 @@ namespace WalletWasabi.Services
 				throw new NotSupportedException(feeStrategy.Type.ToString());
 			}
 
-			var smartCoinsByOutpoint = allowedSmartCoinInputs.ToDictionary(s => s.GetOutPoint());
 			TransactionBuilder builder = Network.CreateTransactionBuilder();
-			builder.SetCoinSelector(new SmartCoinSelector(smartCoinsByOutpoint));
+			builder.SetCoinSelector(new SmartCoinSelector(allowedSmartCoinInputs));
 			builder.AddCoins(allowedSmartCoinInputs.Select(c => c.GetCoin()));
 
 			foreach (var request in payments.Requests.Where(x => x.Amount.Type == MoneyRequestType.Value))
@@ -1013,7 +1012,7 @@ namespace WalletWasabi.Services
 
 			var psbt = builder.BuildPSBT(false);
 
-			var spentCoins = psbt.Inputs.Select(txin => smartCoinsByOutpoint[txin.PrevOut]).ToArray();
+			var spentCoins = psbt.Inputs.Select(txin => allowedSmartCoinInputs.First(y => y.GetOutPoint() == txin.PrevOut)).ToArray();
 
 			var realToSend = payments.Requests
 				.Select(t =>
