@@ -79,8 +79,8 @@ namespace WalletWasabi.Gui.ViewModels
 				});
 
 			_expandMenuCaption = this.WhenAnyValue(x => x.IsExpanded)
-									 .Select(x => (x ? "Hide " : "Show ") + "QR Code")
-									 .ToProperty(this, x => x.ExpandMenuCaption);
+				.Select(x => (x ? "Hide " : "Show ") + "QR Code")
+				.ToProperty(this, x => x.ExpandMenuCaption);
 		}
 
 		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
