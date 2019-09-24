@@ -12,7 +12,7 @@ namespace WalletWasabi.Gui.Controls
 {
 	public class QrCode : Control
 	{
-		private readonly int _matrixPadding;
+		private const int MatrixPadding = 2;
 		private Size CoercedSize { get; set; }
 		private double GridCellFactor { get; set; }
 		private bool[,] FinalMatrix { get; set; }
@@ -25,7 +25,6 @@ namespace WalletWasabi.Gui.Controls
 		public QrCode()
 		{
 			CoercedSize = new Size();
-			_matrixPadding = 2;
 
 			this.WhenAnyValue(x => x.Matrix)
 				.Where(x => x != null)
@@ -51,8 +50,8 @@ namespace WalletWasabi.Gui.Controls
 		private bool[,] AddPaddingToMatrix(bool[,] matrix)
 		{
 			var dims = GetMatrixDimensions(matrix);
-			var nW = dims.W + (_matrixPadding * 2);
-			var nH = dims.H + (_matrixPadding * 2);
+			var nW = dims.W + (MatrixPadding * 2);
+			var nH = dims.H + (MatrixPadding * 2);
 
 			var paddedMatrix = new bool[nH, nW];
 
@@ -60,7 +59,7 @@ namespace WalletWasabi.Gui.Controls
 			{
 				for (var j = 0; j < dims.W; j++)
 				{
-					paddedMatrix[i + _matrixPadding, j + _matrixPadding] = matrix[i, j];
+					paddedMatrix[i + MatrixPadding, j + MatrixPadding] = matrix[i, j];
 				}
 			}
 
@@ -93,8 +92,9 @@ namespace WalletWasabi.Gui.Controls
 		}
 
 		private (int W, int H) GetMatrixDimensions(bool[,] source)
-				=> (source.GetUpperBound(0) + 1,
-					source.GetUpperBound(1) + 1);
+		{
+			return (source.GetUpperBound(0) + 1, source.GetUpperBound(1) + 1);
+		}
 
 		protected override Size MeasureOverride(Size availableSize)
 		{
