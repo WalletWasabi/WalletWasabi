@@ -41,9 +41,9 @@ namespace WalletWasabi.Packager
 		// For 32 bit Windows there needs to be a lot of WIX configuration to be done.
 		public static string[] Targets = new[]
 		{
-			"win7-x64",
+			//"win7-x64",
 			"linux-x64",
-			"osx-x64"
+			//"osx-x64"
 		};
 
 		public static string PackagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\"));
@@ -762,7 +762,8 @@ namespace WalletWasabi.Packager
 						"sudo umount /mnt/c",
 						"sudo mount -t drvfs C: /mnt/c -o metadata",
 						$"cd {linuxPath}",
-						$"sudo find ./{newFolderName} -type f -not -name 'wassabee' -exec chmod 644 {{}} \\;",
+						$"sudo find ./{newFolderName} -type f -exec chmod 644 {{}} \\;",
+						$"sudo find ./{newFolderName} -type f \\( -name 'wassabee' -o -name 'hwi' \\) -exec chmod +x {{}} \\;",
 						$"tar -pczvf {newFolderName}.tar.gz {newFolderName}"
 					};
 					string arguments = string.Join(" && ", commands);
@@ -855,7 +856,6 @@ namespace WalletWasabi.Packager
 
 					string debExeLinuxPath = Tools.LinuxPathCombine(newFolderRelativePath, ExecutableName);
 					string debDestopFileLinuxPath = Tools.LinuxPathCombine(debUsrAppFolderRelativePath, $"{ExecutableName}.desktop");
-					var wasabiStarterScriptLinuxPath = Tools.LinuxPathCombine(debUsrLocalBinFolderRelativePath, $"{ExecutableName}");
 
 					commands = new[]
 					{
@@ -863,8 +863,8 @@ namespace WalletWasabi.Packager
 						"sudo umount /mnt/c",
 						"sudo mount -t drvfs C: /mnt/c -o metadata",
 						$"cd {linuxPath}",
-						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -not -name 'wassabee' -exec chmod 644 {{}} \\;",
-						$"sudo chmod +x {wasabiStarterScriptLinuxPath}",
+						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -exec chmod 644 {{}} \\;",
+						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f \\( -name 'wassabee' -o -name 'hwi' \\) -exec chmod +x {{}} \\;",
 						$"sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)}",
 						$"sudo chmod -R 0644 {debDestopFileLinuxPath}",
 						$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)"
