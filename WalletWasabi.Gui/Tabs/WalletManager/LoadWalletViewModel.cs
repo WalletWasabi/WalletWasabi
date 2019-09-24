@@ -144,7 +144,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				.Merge(OpenFolderCommand.ThrownExceptions)
 				.Merge(ImportColdcardCommand.ThrownExceptions)
 				.Merge(EnumerateHardwareWalletsCommand.ThrownExceptions)
-				.Subscribe((ex) =>
+				.Subscribe(ex =>
 				{
 					SetWarningMessage(ex.ToTypeMessageString());
 					Logger.LogError(ex);
