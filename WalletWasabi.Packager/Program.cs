@@ -41,9 +41,9 @@ namespace WalletWasabi.Packager
 		// For 32 bit Windows there needs to be a lot of WIX configuration to be done.
 		public static string[] Targets = new[]
 		{
-			//"win7-x64",
+			"win7-x64",
 			"linux-x64",
-			//"osx-x64"
+			"osx-x64"
 		};
 
 		public static string PackagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\"));
