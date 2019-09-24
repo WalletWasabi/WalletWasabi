@@ -227,15 +227,6 @@ namespace WalletWasabi.Packager
 			IoHelpers.BetterExtractZipToDirectoryAsync(torOsxZip, tempDir).GetAwaiter().GetResult();
 			File.Move(Path.Combine(tempDir, "Tor", "tor"), Path.Combine(tempDir, "TorOsx"));
 
-			string hwiSoftwareDir = Path.Combine(LibraryProjectDirectory, "Hwi", "Software");
-			string hwiLinuxZip = Path.Combine(hwiSoftwareDir, "hwi-linux64.zip");
-			IoHelpers.BetterExtractZipToDirectoryAsync(hwiLinuxZip, tempDir).GetAwaiter().GetResult();
-			File.Move(Path.Combine(tempDir, "hwi"), Path.Combine(tempDir, "HwiLin"));
-
-			string hwiOsxZip = Path.Combine(hwiSoftwareDir, "hwi-osx64.zip");
-			IoHelpers.BetterExtractZipToDirectoryAsync(hwiOsxZip, tempDir).GetAwaiter().GetResult();
-			File.Move(Path.Combine(tempDir, "hwi"), Path.Combine(tempDir, "HwiOsx"));
-
 			var tempDirInfo = new DirectoryInfo(tempDir);
 			var binaries = tempDirInfo.GetFiles();
 			Console.WriteLine("Digests:");
@@ -529,10 +520,6 @@ namespace WalletWasabi.Packager
 				Tools.ClearSha512Tags(currentBinDistDirectory);
 				//Tools.RemoveSosDocsUnix(currentBinDistDirectory);
 
-				// Remove HWI binaries that are not relevant to the platform.
-				// On Windows HWI starts from next to the exe because Windows Defender sometimes deletes it.
-				// On Linux and OSX HWI starts from the data folder because otherwise there'd be permission issues.
-				var hwiFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "Hwi", "Software"));
 				// Remove Tor binaries that are not relevant to the platform.
 				var torFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "TorDaemons"));
 				var toNotRemove = "";
@@ -542,13 +529,14 @@ namespace WalletWasabi.Packager
 				}
 				else if (target.StartsWith("linux"))
 				{
-					toNotRemove = "linux";
+					toNotRemove = "lin";
 				}
 				else if (target.StartsWith("osx"))
 				{
 					toNotRemove = "osx";
 				}
-				foreach (var file in torFolder.EnumerateFiles().Concat(hwiFolder.EnumerateFiles()))
+
+				foreach (var file in torFolder.EnumerateFiles())
 				{
 					if (!file.Name.Contains("data", StringComparison.OrdinalIgnoreCase) && !file.Name.Contains(toNotRemove, StringComparison.OrdinalIgnoreCase))
 					{
@@ -556,7 +544,10 @@ namespace WalletWasabi.Packager
 					}
 				}
 
-				foreach (var dir in hwiFolder.EnumerateDirectories())
+				// Remove HWI binaries that are not relevant to the platform.
+				var hwiBinaries = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "Hwi", "Binaries"));
+
+				foreach (var dir in hwiBinaries.EnumerateDirectories())
 				{
 					if (!dir.Name.Contains(toNotRemove, StringComparison.OrdinalIgnoreCase))
 					{
