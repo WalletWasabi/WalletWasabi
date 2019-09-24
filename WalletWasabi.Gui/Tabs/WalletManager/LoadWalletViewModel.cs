@@ -234,21 +234,35 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public void SetLoadButtonText()
 		{
+			var text = "Load Wallet";
 			if (IsHardwareBusy)
 			{
-				LoadButtonText = "Waiting for Hardware Wallet...";
+				text = "Waiting for Hardware Wallet...";
 			}
 			else if (IsBusy)
 			{
-				LoadButtonText = "Loading...";
+				text = "Loading...";
 			}
 			else
 			{
 				// If the hardware wallet was not initialized, then make the button say Setup, not Load.
-				LoadButtonText = SelectedWallet?.HardwareWalletInfo != null && !SelectedWallet.HardwareWalletInfo.IsInitialized()
-					? "Setup Wallet"
-					: "Load Wallet";
+				// If pin is needed, then make the button say Send Pin instead.
+
+				if (SelectedWallet?.HardwareWalletInfo != null)
+				{
+					if (!SelectedWallet.HardwareWalletInfo.IsInitialized())
+					{
+						text = "Setup Wallet";
+					}
+
+					if (SelectedWallet.HardwareWalletInfo.NeedsPinSent is true)
+					{
+						text = "Send PIN";
+					}
+				}
 			}
+
+			LoadButtonText = text;
 		}
 
 		public string LoadButtonText
