@@ -93,27 +93,39 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public static async Task UnlockAsync(Global global, HwiEnumerateEntry hwiEntry)
 		{
-			using (var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
+			// Make sure to select back the document that was selected.
+			var selectedDocument = IoC.Get<IShell>().SelectedDocument;
+			try
 			{
-				var client = new HwiClient(global.Network);
-
-				await client.PromptPinAsync(hwiEntry.Model, hwiEntry.Path, cts.Token);
-
-				PinPadViewModel pinpad = IoC.Get<IShell>().Documents.OfType<PinPadViewModel>().FirstOrDefault();
-				if (pinpad is null)
+				using (var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
 				{
-					pinpad = new PinPadViewModel(global);
-					IoC.Get<IShell>().AddOrSelectDocument(pinpad);
+					var client = new HwiClient(global.Network);
+
+					await client.PromptPinAsync(hwiEntry.Model, hwiEntry.Path, cts.Token);
+
+					PinPadViewModel pinpad = IoC.Get<IShell>().Documents.OfType<PinPadViewModel>().FirstOrDefault();
+					if (pinpad is null)
+					{
+						pinpad = new PinPadViewModel(global);
+						IoC.Get<IShell>().AddOrSelectDocument(pinpad);
+					}
+					var result = await pinpad.ShowDialogAsync();
+					if (!(result is true))
+					{
+						throw new SecurityException("PIN was not provided.");
+					}
+
+					var maskedPin = pinpad.MaskedPin;
+
+					await client.SendPinAsync(hwiEntry.Model, hwiEntry.Path, int.Parse(maskedPin), cts.Token);
 				}
-				var result = await pinpad.ShowDialogAsync();
-				if (!(result is true))
+			}
+			finally
+			{
+				if (selectedDocument != null)
 				{
-					throw new SecurityException("PIN was not provided.");
+					IoC.Get<IShell>().Select(selectedDocument);
 				}
-
-				var maskedPin = pinpad.MaskedPin;
-
-				await client.SendPinAsync(hwiEntry.Model, hwiEntry.Path, int.Parse(maskedPin), cts.Token);
 			}
 		}
 	}
