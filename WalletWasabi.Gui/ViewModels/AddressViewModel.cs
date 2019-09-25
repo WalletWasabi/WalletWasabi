@@ -80,6 +80,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			_expandMenuCaption = this.WhenAnyValue(x => x.IsExpanded)
 				.Select(x => (x ? "Hide " : "Show ") + "QR Code")
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.ToProperty(this, x => x.ExpandMenuCaption);
 		}
 
