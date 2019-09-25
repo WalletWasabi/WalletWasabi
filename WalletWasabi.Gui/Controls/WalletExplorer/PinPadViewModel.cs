@@ -77,6 +77,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SetWarningMessage(ex.ToTypeMessageString());
 		}
 
+		public static async Task UnlockAsync(Global global)
+		{
+			using (var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
+			{
+				var client = new HwiClient(global.Network);
+				IEnumerable<HwiEnumerateEntry> hwiEntries = await client.EnumerateAsync(cts.Token);
+
+				foreach (var hwiEntry in hwiEntries.Where(x => x.NeedsPinSent is true))
+				{
+					await UnlockAsync(global, hwiEntry);
+				}
+			}
+		}
+
 		public static async Task UnlockAsync(Global global, HwiEnumerateEntry hwiEntry)
 		{
 			using (var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))

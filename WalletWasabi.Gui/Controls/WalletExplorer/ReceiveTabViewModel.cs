@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Hwi;
+using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
 
@@ -140,7 +141,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				var client = new HwiClient(Global.Network);
 				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60)))
 				{
-					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, SelectedAddress.Model.FullKeyPath, cts.Token);
+					try
+					{
+						await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, SelectedAddress.Model.FullKeyPath, cts.Token);
+					}
+					catch (HwiException)
+					{
+						await PinPadViewModel.UnlockAsync(Global);
+						await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, SelectedAddress.Model.FullKeyPath, cts.Token);
+					}
 				}
 			});
 

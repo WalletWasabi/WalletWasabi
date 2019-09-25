@@ -24,6 +24,7 @@ using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
+using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
@@ -375,7 +376,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 							using (var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
 							{
-								PSBT signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
+								PSBT signedPsbt = null;
+								try
+								{
+									signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
+								}
+								catch (HwiException)
+								{
+									await PinPadViewModel.UnlockAsync(Global);
+									signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
+								}
 								signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction.Height, result.Transaction.BlockHash, result.Transaction.BlockIndex, result.Transaction.Label, result.Transaction.FirstSeen, result.Transaction.IsReplacement);
 							}
 						}
