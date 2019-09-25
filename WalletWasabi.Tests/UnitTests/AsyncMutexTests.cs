@@ -34,10 +34,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			var disposable = await asyncMutex.LockAsync();
 
-			var myThread = new Thread(new ThreadStart(() =>
-			{
-				disposable.Dispose();
-			}));
+			var myThread = new Thread(new ThreadStart(() => disposable.Dispose()));
 			myThread.Start();
 			myThread.Join();
 

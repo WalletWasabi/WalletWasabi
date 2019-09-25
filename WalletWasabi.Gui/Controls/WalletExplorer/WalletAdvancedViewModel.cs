@@ -21,7 +21,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public WalletAdvancedViewModel(WalletViewModel walletViewModel) : base(walletViewModel.Name, walletViewModel)
 		{
 			Items = new ObservableCollection<WalletActionViewModel>();
+#pragma warning disable IDE0053 // Use expression body for lambda expressions
 			ExpandItCommand = ReactiveCommand.Create(() => { IsExpanded = !IsExpanded; });
+#pragma warning restore IDE0053 // Use expression body for lambda expressions
 		}
 
 		public ObservableCollection<WalletActionViewModel> Items

@@ -85,17 +85,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Global.ChaumianClient,
 				nameof(Global.ChaumianClient.StateUpdated))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					RefreshSmartCoinStatus();
-				}).DisposeWith(Disposables);
+				.Subscribe(_ => RefreshSmartCoinStatus())
+				.DisposeWith(Disposables);
 
 			Global.BitcoinStore.HashChain.WhenAnyValue(x => x.ServerTipHeight)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					this.RaisePropertyChanged(nameof(Confirmations));
-				}).DisposeWith(Disposables);
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(Confirmations)))
+				.DisposeWith(Disposables);
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
 				.ObserveOn(RxApp.MainThreadScheduler)

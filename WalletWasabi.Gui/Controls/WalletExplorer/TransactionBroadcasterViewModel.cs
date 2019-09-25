@@ -70,10 +70,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				TransactionString = textToPaste;
 			});
 
-			BroadcastTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				await OnDoTransactionBroadcastAsync();
-			});
+			BroadcastTransactionCommand = ReactiveCommand.CreateFromTask(async () => await OnDoTransactionBroadcastAsync());
 
 			ImportTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
 			{

@@ -168,17 +168,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.IsBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					SetSendText();
-				});
+				.Subscribe(_ => SetSendText());
 
 			this.WhenAnyValue(x => x.IsHardwareBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					SetSendText();
-				});
+				.Subscribe(_ => SetSendText());
 
 			this.WhenAnyValue(x => x.Label)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -194,12 +188,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.IsSliderFeeUsed)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(enabled =>
-				{
-					FeeControlOpacity = enabled ? 1 : 0.5; // Give the control the disabled feeling. Real Disable it not a solution as we have to detect if the slider is moved.
-				});
+				.Subscribe(enabled => FeeControlOpacity = enabled ? 1 : 0.5); // Give the control the disabled feeling. Real Disable it not a solution as we have to detect if the slider is moved.
 
+#pragma warning disable IDE0053 // Use expression body for lambda expressions
 			MaxCommand = ReactiveCommand.Create(() => { IsMax = !IsMax; }, outputScheduler: RxApp.MainThreadScheduler);
+#pragma warning restore IDE0053 // Use expression body for lambda expressions
+
 			this.WhenAnyValue(x => x.IsMax)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
@@ -450,10 +444,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SetFeesAndTexts();
 			});
 
-			FeeSliderClickedCommand = ReactiveCommand.Create((PointerPressedEventArgs mouse) =>
-			{
-				IsSliderFeeUsed = true;
-			});
+#pragma warning disable IDE0053 // Use expression body for lambda expressions
+			FeeSliderClickedCommand = ReactiveCommand.Create((PointerPressedEventArgs mouse) => { IsSliderFeeUsed = true; });
+#pragma warning restore IDE0053 // Use expression body for lambda expressions
 
 			HighLightFeeSliderCommand = ReactiveCommand.Create((bool entered) =>
 			{

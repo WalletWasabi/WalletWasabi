@@ -32,14 +32,8 @@ namespace WalletWasabi.Gui.Helpers
 			var errorBuilder = new StringBuilder();
 
 			var exitCode = ExecuteShellCommand(commandName, args,
-			(s, e) =>
-			{
-				outputBuilder.AppendLine(e.Data);
-			},
-			(s, e) =>
-			{
-				errorBuilder = new StringBuilder();
-			},
+			(s, e) => outputBuilder.AppendLine(e.Data),
+			(s, e) => errorBuilder = new StringBuilder(),
 			false, "");
 
 			return new ShellExecuteResult()
@@ -147,10 +141,7 @@ namespace WalletWasabi.Gui.Helpers
 			{
 				//Use the which command
 				var outputBuilder = new StringBuilder();
-				ExecuteShellCommand("which", $"\"{fileName}\"", (s, e) =>
-				{
-					outputBuilder.AppendLine(e.Data);
-				}, (s, e) => { }, false);
+				ExecuteShellCommand("which", $"\"{fileName}\"", (s, e) => outputBuilder.AppendLine(e.Data), (s, e) => { }, false);
 				var procOutput = outputBuilder.ToString();
 				if (string.IsNullOrWhiteSpace(procOutput))
 				{

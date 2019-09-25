@@ -71,10 +71,7 @@ namespace System.IO
 		public static Task<string> ReadPartAsync(this TextReader me, char separator, CancellationToken ctsToken)
 		{
 			return Task<string>.Factory.StartNew(state =>
-			{
-				return ((TextReader)state).ReadPart(separator);
-			},
-			me, ctsToken, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
+				((TextReader)state).ReadPart(separator), me, ctsToken, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
 		}
 	}
 }
