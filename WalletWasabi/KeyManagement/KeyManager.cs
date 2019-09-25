@@ -406,26 +406,28 @@ namespace WalletWasabi.KeyManagement
 
 			lock (HdPubKeysLock)
 			{
-				IEnumerable<HdPubKey> relevantHdPubKeys = isInternal ? HdPubKeys.Where(x => x.IsInternal) : HdPubKeys.Where(x => !x.IsInternal);
+				HdPubKey[] relevantHdPubKeys = HdPubKeys.Where(x => x.IsInternal == isInternal).ToArray();
 
-				KeyPath path;
+				KeyPath path = new KeyPath($"{change}/0");
 				if (relevantHdPubKeys.Any())
 				{
 					int largestIndex = relevantHdPubKeys.Max(x => x.Index);
-					List<int> missingIndexes = Enumerable.Range(0, largestIndex).Except(relevantHdPubKeys.Select(x => x.Index)).ToList();
-					if (missingIndexes.Any())
+					var smallestMissingIndex = largestIndex;
+					var present = new bool[largestIndex+1];
+					for (int i = 0; i < relevantHdPubKeys.Length; ++i)
 					{
-						int smallestMissingIndex = missingIndexes.Min();
-						path = relevantHdPubKeys.First(x => x.Index == (smallestMissingIndex - 1)).NonHardenedKeyPath.Increment();
+						present[relevantHdPubKeys[i].Index] = true;
 					}
-					else
+					for (int i = 1; i < present.Length; ++i)
 					{
-						path = relevantHdPubKeys.First(x => x.Index == largestIndex).NonHardenedKeyPath.Increment();
+						if (!present[i]) 
+						{
+							smallestMissingIndex = i-1;
+							break;
+						}
 					}
-				}
-				else
-				{
-					path = new KeyPath($"{change}/0");
+
+					path = relevantHdPubKeys[smallestMissingIndex].NonHardenedKeyPath.Increment();
 				}
 
 				var fullPath = AccountKeyPath.Derive(path);
