@@ -14,12 +14,12 @@ jobs:
       installationPath: $(Agent.ToolsDirectory)/dotnet
   - task: DotNetCoreCLI@2
     inputs:
-      command: rebuild
-      arguments: --configuration Debug
+      command: build
+      arguments: --configuration Debug --no-incremental
   - task: DotNetCoreCLI@2
     inputs:
-      command: rebuild
-      arguments: --configuration Release
+      command: build
+      arguments: --configuration Release --no-incremental
   - task: DotNetCoreCLI@2
     inputs:
       command: test
