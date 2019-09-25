@@ -12,15 +12,15 @@ jobs:
       packageType: sdk
       version: 2.2.402
       installationPath: $(Agent.ToolsDirectory)/dotnet
-  - task: DotNetCoreCLI@2
+  - task: Build debug
     inputs:
       command: build
       arguments: --configuration Debug --no-incremental
-  - task: DotNetCoreCLI@2
+  - task: Build release
     inputs:
       command: build
       arguments: --configuration Release --no-incremental
-  - task: DotNetCoreCLI@2
+  - task: Run tests
     inputs:
       command: test
       projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
