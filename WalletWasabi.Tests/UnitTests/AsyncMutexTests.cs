@@ -14,7 +14,9 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task AsyncMutexTestsAsync()
 		{
-			AsyncMutex asyncMutex = new AsyncMutex("mutex1");
+			var mutexName1 = $"mutex1-{DateTime.Now.Ticks.ToString()}"; // Randomize the name to avoid system wide collisions.
+
+			AsyncMutex asyncMutex = new AsyncMutex(mutexName1);
 
 			// Cannot be IDisposable because the pattern is like Nito's AsyncLock.
 			Assert.False(asyncMutex is IDisposable);
@@ -110,8 +112,10 @@ namespace WalletWasabi.Tests.UnitTests
 				Assert.Equal(prevnum + 1, num);
 			}
 
+			var mutexName2 = $"mutex2-{DateTime.Now.Ticks.ToString()}";
+
 			// Test that asynclock cancellation is going to throw IOException.
-			var mutex = new AsyncMutex("foo");
+			var mutex = new AsyncMutex(mutexName2);
 			using (await mutex.LockAsync())
 			{
 				using (var cts = new CancellationTokenSource(100))
@@ -126,12 +130,12 @@ namespace WalletWasabi.Tests.UnitTests
 			}
 
 			// Test same mutex gets same asynclock.
-			var mutex1 = new AsyncMutex("foo");
+			var mutex1 = new AsyncMutex(mutexName2);
 			using (await mutex1.LockAsync())
 			{
 				using (var cts = new CancellationTokenSource(100))
 				{
-					var mutex2 = new AsyncMutex("foo");
+					var mutex2 = new AsyncMutex(mutexName2);
 					await Assert.ThrowsAsync<IOException>(async () =>
 					{
 						using (await mutex2.LockAsync(cts.Token))
@@ -142,7 +146,7 @@ namespace WalletWasabi.Tests.UnitTests
 			}
 
 			// Different AsyncMutex object but same name.
-			AsyncMutex asyncMutex2 = new AsyncMutex("mutex1");
+			AsyncMutex asyncMutex2 = new AsyncMutex(mutexName1);
 
 			locked.Reset();
 			// Acquire the first mutex with a background thread and hold it for a while.
