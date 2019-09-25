@@ -151,7 +151,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(ToggleQrCode.ThrownExceptions)
 				.Merge(CopyAddress.ThrownExceptions)
 				.Merge(CopyLabel.ThrownExceptions)
-				.Subscribe((ex) =>
+				.Subscribe(ex =>
 				{
 					SetWarningMessage(ex.ToTypeMessageString());
 				});
