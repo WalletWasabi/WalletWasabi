@@ -11,7 +11,7 @@ using WalletWasabi.Hwi.Models;
 using WalletWasabi.KeyManagement;
 using Xunit;
 
-namespace WalletWasabi.Tests.IntegrationTests.Hwi
+namespace WalletWasabi.Tests.IntegrationTests
 {
 	/// <summary>
 	/// Kata tests are intended to be run one by one.
