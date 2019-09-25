@@ -25,6 +25,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private double _clipboardNotificationOpacity;
 		private string _label;
 		private bool _inEditMode;
+		private ObservableAsPropertyHelper<string> _expandMenuCaption;
 
 		public HdPubKey Model { get; }
 		public Global Global { get; }
@@ -76,6 +77,11 @@ namespace WalletWasabi.Gui.ViewModels
 						}
 					}
 				});
+
+			_expandMenuCaption = this.WhenAnyValue(x => x.IsExpanded)
+				.Select(x => (x ? "Hide " : "Show ") + "QR Code")
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.ToProperty(this, x => x.ExpandMenuCaption);
 		}
 
 		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
@@ -127,6 +133,8 @@ namespace WalletWasabi.Gui.ViewModels
 			get => _qrCode;
 			set => this.RaiseAndSetIfChanged(ref _qrCode, value);
 		}
+
+		public string ExpandMenuCaption => _expandMenuCaption?.Value ?? string.Empty;
 
 		public CancellationTokenSource CancelClipboardNotification { get; set; }
 
