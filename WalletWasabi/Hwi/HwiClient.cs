@@ -41,7 +41,7 @@ namespace WalletWasabi.Hwi
 
 		#region Commands
 
-		private async Task<string> SendCommandAsync(IEnumerable<HwiOption> options, HwiCommands? command, string commandArguments, bool openConsole, CancellationToken cancel)
+		private async Task<string> SendCommandAsync(IEnumerable<HwiOption> options, HwiCommands? command, string commandArguments, bool openConsole, CancellationToken cancel, bool isRecursion = false)
 		{
 			string arguments = HwiParser.ToArgumentString(Network, options, command, commandArguments);
 
@@ -62,6 +62,28 @@ namespace WalletWasabi.Hwi
 			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
 			{
 				throw new OperationCanceledException($"'hwi {arguments}' operation is canceled.", ex);
+			}
+			catch (HwiException ex) when (ex.ErrorCode == HwiErrorCode.DeviceConnError)
+			{
+				// Probably didn't find device with specified fingerprint.
+				// Enumerate and call again, but not forever.
+				if (isRecursion || !options.Any(x => x.Type == HwiOptions.Fingerprint))
+				{
+					throw;
+				}
+
+				IEnumerable<HwiEnumerateEntry> hwiEntries = await EnumerateAsync(cancel, isRecursion: true);
+
+				// Trezor T will say passphrase is needed, but don't have to provide it from the software itself.
+				HwiEnumerateEntry firstEntry = hwiEntries.Where(x => x.NeedsPassphraseSent is true).FirstOrDefault();
+				if (firstEntry is null)
+				{
+					throw;
+				}
+
+				// Build options without fingerprint with device model and device path.
+				var newOptions = BuildOptions(firstEntry.Model, firstEntry.Path, fingerprint: null, options.Where(x => x.Type != HwiOptions.Fingerprint).ToArray());
+				return await SendCommandAsync(newOptions, command, arguments, openConsole, cancel, isRecursion: true);
 			}
 		}
 
@@ -222,14 +244,15 @@ namespace WalletWasabi.Hwi
 			return responseString;
 		}
 
-		public async Task<IEnumerable<HwiEnumerateEntry>> EnumerateAsync(CancellationToken cancel)
+		public async Task<IEnumerable<HwiEnumerateEntry>> EnumerateAsync(CancellationToken cancel, bool isRecursion = false)
 		{
 			string responseString = await SendCommandAsync(
 				options: null,
 				command: HwiCommands.Enumerate,
 				commandArguments: null,
 				openConsole: false,
-				cancel).ConfigureAwait(false);
+				cancel,
+				isRecursion).ConfigureAwait(false);
 			IEnumerable<HwiEnumerateEntry> response = HwiParser.ParseHwiEnumerateResponse(responseString);
 
 			return response;

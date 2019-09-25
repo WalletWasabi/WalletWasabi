@@ -181,8 +181,16 @@ namespace WalletWasabi.Hwi.Parsers
 			if (JsonHelpers.TryParseJToken(json, out JToken token))
 			{
 				var addressString = token["address"]?.ToString()?.Trim() ?? null;
-				var address = BitcoinAddress.Create(addressString, network);
-				return address;
+				try
+				{
+					var address = BitcoinAddress.Create(addressString, network);
+					return address;
+				}
+				catch (FormatException)
+				{
+					BitcoinAddress.Create(addressString, network == Network.Main ? Network.TestNet : Network.Main);
+					throw new FormatException("Wrong network.");
+				}
 			}
 			else
 			{
