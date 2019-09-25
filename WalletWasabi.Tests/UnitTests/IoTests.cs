@@ -117,33 +117,36 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// Mutex tests.
 
-			// Acquire the Mutex with a background thread.
-
-			var myTask = Task.Run(async () =>
+			using (ManualResetEvent locked = new ManualResetEvent(false))
 			{
+				// Acquire the Mutex with a background thread.
+
+				var myTask = Task.Run(async () =>
+				{
+					using (await ioman1.Mutex.LockAsync())
+					{
+						locked.Set();
+						await Task.Delay(3000);
+					}
+				});
+
+				// Wait for the Task.Run to Acquire the Mutex.
+				Assert.True(locked.WaitOne(TimeSpan.FromSeconds(5)));
+
+				// Try to get the Mutex and save the time.
+				DateTime timeOfstart = DateTime.Now;
+				DateTime timeOfAcquired = default;
+
 				using (await ioman1.Mutex.LockAsync())
 				{
-					await Task.Delay(3000);
+					timeOfAcquired = DateTime.Now;
 				}
-			});
 
-			// Wait for the Task.Run to Acquire the Mutex.
-			await Task.Delay(100);
+				Assert.True(myTask.IsCompletedSuccessfully);
 
-			// Try to get the Mutex and save the time.
-			DateTime timeOfstart = DateTime.Now;
-			DateTime timeOfAcquired = default;
-
-			using (await ioman1.Mutex.LockAsync())
-			{
-				timeOfAcquired = DateTime.Now;
+				var elapsed = timeOfAcquired - timeOfstart;
+				Assert.InRange(elapsed, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(4));
 			}
-
-			Assert.True(myTask.IsCompletedSuccessfully);
-
-			var elapsed = timeOfAcquired - timeOfstart;
-			Assert.InRange(elapsed, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(4));
-
 			// Simulate file write error and recovery logic.
 
 			// We have only *.new and *.old files.
