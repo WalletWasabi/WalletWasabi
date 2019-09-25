@@ -46,18 +46,21 @@ namespace WalletWasabi.Tests.UnitTests
 				await Task.Delay(1);
 			}
 
+			ManualResetEvent locked = new ManualResetEvent(false);
 			// Acquire the Mutex with a background thread.
 
 			var myTask = Task.Run(async () =>
 			{
 				using (await asyncMutex.LockAsync())
 				{
+					locked.Set();
 					await Task.Delay(3000);
 				}
 			});
 
 			// Wait for the Task.Run to Acquire the Mutex.
-			await Task.Delay(100);
+
+			locked.WaitOne(TimeSpan.FromSeconds(5));
 
 			// Try to get the Mutex and save the time.
 			DateTime timeOfstart = DateTime.Now;
@@ -141,17 +144,19 @@ namespace WalletWasabi.Tests.UnitTests
 			// Different AsyncMutex object but same name.
 			AsyncMutex asyncMutex2 = new AsyncMutex("mutex1");
 
+			locked.Reset();
 			// Acquire the first mutex with a background thread and hold it for a while.
 			var myTask2 = Task.Run(async () =>
 			{
 				using (await asyncMutex.LockAsync())
 				{
+					locked.Set();
 					await Task.Delay(3000);
 				}
 			});
 
 			// Make sure the task started.
-			await Task.Delay(100);
+			locked.WaitOne(TimeSpan.FromSeconds(5));
 
 			timeOfstart = DateTime.Now;
 			timeOfAcquired = default;
@@ -169,3 +174,4 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 	}
 }
+;
