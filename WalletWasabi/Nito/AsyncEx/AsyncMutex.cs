@@ -281,10 +281,10 @@ namespace Nito.AsyncEx
 				{
 					throw new OperationCanceledException($"{nameof(AsyncMutex)}.{nameof(AsyncMutex.LockAsync)} failed because quit is pending on: {ShortName}.");
 				}
-				Logger.LogInfo("Locking asynclock");
+
 				// Local lock for thread safety.
 				await AsyncLock.LockAsync(cancellationToken);
-				Logger.LogInfo("Locked asynclock");
+
 				if (IsAlive)
 				{
 					throw new InvalidOperationException("Thread should not be alive.");
@@ -300,10 +300,8 @@ namespace Nito.AsyncEx
 
 				try
 				{
-					Logger.LogInfo("Acquire Mutex");
 					// Create the mutex and acquire it.
 					await SetCommandAsync(1, cancellationToken, pollInterval);
-					Logger.LogInfo("Acquired");
 				}
 				catch (Exception ex)
 				{
@@ -384,14 +382,12 @@ namespace Nito.AsyncEx
 
 			// On multiply call we will get an exception. This is not a dispose so we can throw here.
 			ChangeStatus(AsyncLockStatus.StatusReleasing, AsyncLockStatus.StatusAcquired);
-			Logger.LogInfo("Stopping thread");
+
 			StopThread();
-			Logger.LogInfo("Stopped");
+
 			ChangeStatus(AsyncLockStatus.StatusReady, AsyncLockStatus.StatusReleasing);
-			Logger.LogInfo("Releasing lock");
 			// Release the local lock.
 			AsyncLock?.ReleaseLock();
-			Logger.LogInfo("Released");
 		}
 
 		public static async Task WaitForAllMutexToCloseAsync()
