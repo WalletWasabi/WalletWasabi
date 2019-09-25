@@ -367,14 +367,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (IsHardwareWallet && !result.Signed) // If hardware but still has a privkey then it's password, then meh.
 					{
-						var client = new HwiClient(Global.Network);
-						var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
-						PSBT signedPsbt = null;
 						try
 						{
 							IsHardwareBusy = true;
 							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.AcquiringSignatureFromHardwareWallet);
-							signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
+							var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+							var client = new HwiClient(Global.Network);
+
+							PSBT signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
 						}
 						catch (Exception ex)
 						{
@@ -383,6 +383,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 						finally
 						{
+							cts?.Dispose();
 							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.AcquiringSignatureFromHardwareWallet);
 							IsHardwareBusy = false;
 						}
