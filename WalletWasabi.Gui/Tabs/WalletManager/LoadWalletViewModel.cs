@@ -393,7 +393,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				var walletName = selectedWallet.WalletName;
 				if (isHardwareWallet)
 				{
-					using (var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1)))
+					using (var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
 					{
 						var client = new HwiClient(Global.Network);
 
@@ -410,15 +410,19 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 								IsHardwareBusy = true;
 								MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.SettingUpHardwareWallet);
 
-								// Trezor T doesn't require interactive mode.
-								if (selectedWallet.HardwareWalletInfo.Model == HardwareWalletModels.Trezor_T
+								// Setup may take a while for users to write down stuff.
+								using (var ctsSetup = new CancellationTokenSource(TimeSpan.FromMinutes(21)))
+								{
+									// Trezor T doesn't require interactive mode.
+									if (selectedWallet.HardwareWalletInfo.Model == HardwareWalletModels.Trezor_T
 									|| selectedWallet.HardwareWalletInfo.Model == HardwareWalletModels.Trezor_T_Simulator)
-								{
-									await client.SetupAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, false, cts.Token);
-								}
-								else
-								{
-									await client.SetupAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, true, cts.Token);
+									{
+										await client.SetupAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, false, ctsSetup.Token);
+									}
+									else
+									{
+										await client.SetupAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, true, ctsSetup.Token);
+									}
 								}
 
 								MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.ConnectingToHardwareWallet);
