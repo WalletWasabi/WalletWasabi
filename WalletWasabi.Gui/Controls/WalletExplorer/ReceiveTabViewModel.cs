@@ -118,7 +118,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				try
 				{
-					SelectedAddress.IsExpanded = !(SelectedAddress.IsExpanded);
+					SelectedAddress.IsExpanded = !SelectedAddress.IsExpanded;
 				}
 				catch (Exception)
 				{ }
