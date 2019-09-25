@@ -48,35 +48,35 @@ namespace WalletWasabi.Tests.UnitTests
 				await Task.Delay(1);
 			}
 
-			ManualResetEvent locked = new ManualResetEvent(false);
-			// Acquire the Mutex with a background thread.
-
-			var myTask = Task.Run(async () =>
+			using (ManualResetEvent locked = new ManualResetEvent(false))
 			{
+				// Acquire the Mutex with a background thread.
+				var myTask = Task.Run(async () =>
+				{
+					using (await asyncMutex.LockAsync())
+					{
+						locked.Set();
+						await Task.Delay(3000);
+					}
+				});
+
+				// Wait for the Task.Run to Acquire the Mutex.
+
+				Assert.True(locked.WaitOne(TimeSpan.FromSeconds(5)));
+
+				// Try to get the Mutex and save the time.
+				DateTime timeOfstart = DateTime.Now;
+				DateTime timeOfAcquired = default;
+
 				using (await asyncMutex.LockAsync())
 				{
-					locked.Set();
-					await Task.Delay(3000);
-				}
-			});
+					timeOfAcquired = DateTime.Now;
+				};
 
-			// Wait for the Task.Run to Acquire the Mutex.
-
-			Assert.True(locked.WaitOne(TimeSpan.FromSeconds(5)));
-
-			// Try to get the Mutex and save the time.
-			DateTime timeOfstart = DateTime.Now;
-			DateTime timeOfAcquired = default;
-
-			using (await asyncMutex.LockAsync())
-			{
-				timeOfAcquired = DateTime.Now;
-			};
-
-			Assert.True(myTask.IsCompletedSuccessfully);
-
-			var elapsed = timeOfAcquired - timeOfstart;
-			Assert.InRange(elapsed, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(4));
+				Assert.True(myTask.IsCompletedSuccessfully);
+				var elapsed = timeOfAcquired - timeOfstart;
+				Assert.InRange(elapsed, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(4));
+			}
 
 			// Standard Mutex test.
 			int cnt = 0;
@@ -147,34 +147,36 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// Different AsyncMutex object but same name.
 			AsyncMutex asyncMutex2 = new AsyncMutex(mutexName1);
-
-			locked.Reset();
-			// Acquire the first mutex with a background thread and hold it for a while.
-			var myTask2 = Task.Run(async () =>
+			using (ManualResetEvent locked = new ManualResetEvent(false))
 			{
-				using (await asyncMutex.LockAsync())
+				locked.Reset();
+				// Acquire the first mutex with a background thread and hold it for a while.
+				var myTask = Task.Run(async () =>
 				{
-					locked.Set();
-					await Task.Delay(3000);
+					using (await asyncMutex.LockAsync())
+					{
+						locked.Set();
+						await Task.Delay(3000);
+					}
+				});
+
+				// Make sure the task started.
+				Assert.True(locked.WaitOne(TimeSpan.FromSeconds(5)));
+
+				var timeOfstart = DateTime.Now;
+				DateTime timeOfAcquired = default;
+				// Now try to acquire another AsyncMutex object but with the same name!
+				using (await asyncMutex2.LockAsync())
+				{
+					timeOfAcquired = DateTime.Now;
 				}
-			});
 
-			// Make sure the task started.
-			Assert.True(locked.WaitOne(TimeSpan.FromSeconds(5)));
+				await myTask;
+				Assert.True(myTask.IsCompletedSuccessfully);
 
-			timeOfstart = DateTime.Now;
-			timeOfAcquired = default;
-			// Now try to acquire another AsyncMutex object but with the same name!
-			using (await asyncMutex2.LockAsync())
-			{
-				timeOfAcquired = DateTime.Now;
+				var elapsed = timeOfAcquired - timeOfstart;
+				Assert.InRange(elapsed, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(4));
 			}
-
-			await myTask2;
-			Assert.True(myTask2.IsCompletedSuccessfully);
-
-			elapsed = timeOfAcquired - timeOfstart;
-			Assert.InRange(elapsed, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(4));
 		}
 	}
 }
