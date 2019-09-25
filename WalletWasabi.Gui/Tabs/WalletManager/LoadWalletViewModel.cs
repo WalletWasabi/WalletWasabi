@@ -330,7 +330,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 			}
 
-			SelectedWallet = Wallets.FirstOrDefault();
 			TrySetWalletStates();
 		}
 
@@ -338,6 +337,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			try
 			{
+				if (SelectedWallet is null)
+				{
+					SelectedWallet = Wallets.FirstOrDefault();
+				}
+
 				IsWalletSelected = SelectedWallet != null;
 				CanTestPassword = IsWalletSelected;
 
