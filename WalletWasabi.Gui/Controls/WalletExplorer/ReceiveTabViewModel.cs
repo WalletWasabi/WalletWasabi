@@ -145,16 +145,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			});
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
-
-			Observable.Merge(DisplayAddressOnHwCommand.ThrownExceptions)
-				.Merge(ChangeLabelCommand.ThrownExceptions)
-				.Merge(ToggleQrCode.ThrownExceptions)
-				.Merge(CopyAddress.ThrownExceptions)
-				.Merge(CopyLabel.ThrownExceptions)
-				.Subscribe(ex =>
-				{
-					SetWarningMessage(ex.ToTypeMessageString());
-				});
 		}
 
 		public override void OnOpen()
@@ -167,6 +157,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				nameof(Global.WalletService.Coins.CollectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => InitializeAddresses())
+				.DisposeWith(Disposables);
+
+			Observable.Merge(DisplayAddressOnHwCommand.ThrownExceptions)
+				.Merge(ChangeLabelCommand.ThrownExceptions)
+				.Merge(ToggleQrCode.ThrownExceptions)
+				.Merge(CopyAddress.ThrownExceptions)
+				.Merge(CopyLabel.ThrownExceptions)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(ex => SetWarningMessage(ex.ToTypeMessageString()))
 				.DisposeWith(Disposables);
 		}
 
