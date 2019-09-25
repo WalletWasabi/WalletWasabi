@@ -60,7 +60,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// Wait for the Task.Run to Acquire the Mutex.
 
-			locked.WaitOne(TimeSpan.FromSeconds(5));
+			Assert.True(locked.WaitOne(TimeSpan.FromSeconds(5)));
 
 			// Try to get the Mutex and save the time.
 			DateTime timeOfstart = DateTime.Now;
@@ -156,7 +156,7 @@ namespace WalletWasabi.Tests.UnitTests
 			});
 
 			// Make sure the task started.
-			locked.WaitOne(TimeSpan.FromSeconds(5));
+			Assert.True(locked.WaitOne(TimeSpan.FromSeconds(5)));
 
 			timeOfstart = DateTime.Now;
 			timeOfAcquired = default;
