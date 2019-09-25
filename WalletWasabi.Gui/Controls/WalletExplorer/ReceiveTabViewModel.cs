@@ -148,7 +148,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Observable.Merge(DisplayAddressOnHwCommand.ThrownExceptions)
 				.Merge(ChangeLabelCommand.ThrownExceptions)
-				.Merge(ShowQrCode.ThrownExceptions)
+				.Merge(ToggleQrCode.ThrownExceptions)
 				.Merge(CopyAddress.ThrownExceptions)
 				.Merge(CopyLabel.ThrownExceptions)
 				.Subscribe((ex) =>
