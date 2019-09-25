@@ -301,7 +301,7 @@ namespace Nito.AsyncEx
 				try
 				{
 					// Create the mutex and acquire it.
-					await SetCommandAsync(1, cancellationToken, pollInterval);
+					await SetCommandAsync(10, cancellationToken, pollInterval);
 				}
 				catch (Exception ex)
 				{
