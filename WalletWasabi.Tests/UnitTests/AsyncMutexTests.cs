@@ -29,7 +29,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			using (await asyncMutex.LockAsync())
 			{
-				await Task.Delay(1);
+				await Task.Delay(10);
 			}
 
 			// Release the Mutex from another thread.
