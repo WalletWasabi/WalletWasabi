@@ -438,24 +438,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						}
 						else if (selectedWallet.HardwareWalletInfo.NeedsPinSent is true)
 						{
-							await client.PromptPinAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, cts.Token);
-
-							PinPadViewModel pinpad = IoC.Get<IShell>().Documents.OfType<PinPadViewModel>().FirstOrDefault();
-							if (pinpad is null)
-							{
-								pinpad = new PinPadViewModel(Global);
-								IoC.Get<IShell>().AddOrSelectDocument(pinpad);
-							}
-							var result = await pinpad.ShowDialogAsync();
-							if (!(result is true))
-							{
-								SetValidationMessage("PIN was not provided.");
-								return null;
-							}
-
-							var maskedPin = pinpad.MaskedPin;
-
-							await client.SendPinAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, int.Parse(maskedPin), cts.Token);
+							await PinPadViewModel.UnlockAsync(Global, selectedWallet.HardwareWalletInfo);
 
 							var p = selectedWallet.HardwareWalletInfo.Path;
 							var t = selectedWallet.HardwareWalletInfo.Model;

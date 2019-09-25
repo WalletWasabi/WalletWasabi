@@ -371,10 +371,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						{
 							IsHardwareBusy = true;
 							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.AcquiringSignatureFromHardwareWallet);
-							var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 							var client = new HwiClient(Global.Network);
 
-							PSBT signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
+							using (var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
+							{
+								PSBT signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
+								signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction.Height, result.Transaction.BlockHash, result.Transaction.BlockIndex, result.Transaction.Label, result.Transaction.FirstSeen, result.Transaction.IsReplacement);
+							}
 						}
 						catch (Exception ex)
 						{
@@ -383,12 +386,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 						finally
 						{
-							cts?.Dispose();
 							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.AcquiringSignatureFromHardwareWallet);
 							IsHardwareBusy = false;
 						}
-
-						signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction.Height, result.Transaction.BlockHash, result.Transaction.BlockIndex, result.Transaction.Label, result.Transaction.FirstSeen, result.Transaction.IsReplacement);
 					}
 
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);

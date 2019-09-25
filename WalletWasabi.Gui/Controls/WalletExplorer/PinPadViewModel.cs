@@ -8,8 +8,13 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Security;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Hwi;
+using WalletWasabi.Hwi.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -70,6 +75,32 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void OnException(Exception ex)
 		{
 			SetWarningMessage(ex.ToTypeMessageString());
+		}
+
+		public static async Task UnlockAsync(Global global, HwiEnumerateEntry hwiEntry)
+		{
+			using (var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
+			{
+				var client = new HwiClient(global.Network);
+
+				await client.PromptPinAsync(hwiEntry.Model, hwiEntry.Path, cts.Token);
+
+				PinPadViewModel pinpad = IoC.Get<IShell>().Documents.OfType<PinPadViewModel>().FirstOrDefault();
+				if (pinpad is null)
+				{
+					pinpad = new PinPadViewModel(global);
+					IoC.Get<IShell>().AddOrSelectDocument(pinpad);
+				}
+				var result = await pinpad.ShowDialogAsync();
+				if (!(result is true))
+				{
+					throw new SecurityException("PIN was not provided.");
+				}
+
+				var maskedPin = pinpad.MaskedPin;
+
+				await client.SendPinAsync(hwiEntry.Model, hwiEntry.Path, int.Parse(maskedPin), cts.Token);
+			}
 		}
 	}
 }
