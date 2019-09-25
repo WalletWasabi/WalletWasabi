@@ -142,7 +142,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.True(myTask.IsCompletedSuccessfully);
 
 			var elapsed = timeOfAcquired - timeOfstart;
-			Assert.InRange(elapsed, TimeSpan.FromMilliseconds(2000), TimeSpan.FromMilliseconds(4000));
+			Assert.InRange(elapsed, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(4));
 
 			// Simulate file write error and recovery logic.
 
