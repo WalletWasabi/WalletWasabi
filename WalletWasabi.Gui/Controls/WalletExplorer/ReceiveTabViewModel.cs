@@ -131,10 +131,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{ }
 			}, isCoinListItemSelected);
 
-			ChangeLabelCommand = ReactiveCommand.Create(() =>
-			{
-				SelectedAddress.InEditMode = true;
-			});
+#pragma warning disable IDE0053 // Use expression body for lambda expressions
+			ChangeLabelCommand = ReactiveCommand.Create(() => { SelectedAddress.InEditMode = true; });
+#pragma warning restore IDE0053 // Use expression body for lambda expressions
 
 			DisplayAddressOnHwCommand = ReactiveCommand.CreateFromTask(async () =>
 			{

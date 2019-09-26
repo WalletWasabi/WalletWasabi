@@ -41,10 +41,7 @@ namespace WalletWasabi.Gui.Controls
 				}
 			};
 
-			this.GetObservable(TextProperty).Subscribe(t =>
-			{
-				EditText = t;
-			});
+			this.GetObservable(TextProperty).Subscribe(t => EditText = t);
 
 			this.GetObservable(InEditModeProperty).Subscribe(mode =>
 			{
@@ -192,10 +189,7 @@ namespace WalletWasabi.Gui.Controls
 				_textBox.SelectionEnd = Text.Length;
 				_textBox.CaretIndex = Text.Length;
 
-				Dispatcher.UIThread.InvokeAsync(() =>
-				{
-					_textBox.Focus();
-				});
+				Dispatcher.UIThread.InvokeAsync(() => _textBox.Focus());
 			}
 			else
 			{

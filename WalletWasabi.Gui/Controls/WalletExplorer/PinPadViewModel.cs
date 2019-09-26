@@ -47,10 +47,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			},
 			this.WhenAny(x => x.MaskedPin, (maskedPin) => !string.IsNullOrWhiteSpace(maskedPin.Value)));
 
-			KeyPadCommand = ReactiveCommand.Create<string>((arg) =>
-			{
-				MaskedPin += arg;
-			});
+			KeyPadCommand = ReactiveCommand.Create<string>((arg) => MaskedPin += arg);
 
 			Observable.Merge(SendPinCommand.ThrownExceptions)
 				.Merge(KeyPadCommand.ThrownExceptions)
