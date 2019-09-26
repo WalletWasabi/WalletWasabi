@@ -260,14 +260,13 @@ namespace WalletWasabi.Tests.IntegrationTests
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await InitializeTestEnvironmentAsync(1);
 
-			var mempoolService = new MempoolService();
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
 			node.VersionHandshake();
 
 			try
 			{
-				mempoolService.TransactionReceived += MempoolAsync_MempoolService_TransactionReceived;
+				bitcoinStore.MempoolService.TransactionReceived += MempoolAsync_MempoolService_TransactionReceived;
 
 				// Using the interlocked, not because it makes sense in this context, but to
 				// set an example that these values are often concurrency sensitive
@@ -291,7 +290,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			}
 			finally
 			{
-				mempoolService.TransactionReceived -= MempoolAsync_MempoolService_TransactionReceived;
+				bitcoinStore.MempoolService.TransactionReceived -= MempoolAsync_MempoolService_TransactionReceived;
 			}
 		}
 
@@ -529,8 +528,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
-			var mempoolService = new MempoolService();
-			mempoolService.TransactionReceived += WalletTestsAsync_MempoolService_TransactionReceived;
+			bitcoinStore.MempoolService.TransactionReceived += WalletTestsAsync_MempoolService_TransactionReceived;
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
 
@@ -709,7 +707,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				await synchronizer?.StopAsync();
 
 				// Dispose mempool service.
-				mempoolService.TransactionReceived -= WalletTestsAsync_MempoolService_TransactionReceived;
+				bitcoinStore.MempoolService.TransactionReceived -= WalletTestsAsync_MempoolService_TransactionReceived;
 
 				// Dispose connection service.
 				nodes?.Dispose();
@@ -761,7 +759,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
-			var mempoolService = new MempoolService();
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
 
@@ -1235,7 +1232,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
-			var mempoolService = new MempoolService();
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
 
@@ -1398,7 +1394,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
-			var mempoolService = new MempoolService();
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
 
@@ -1561,7 +1556,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
-			var mempoolService = new MempoolService();
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
 
@@ -1729,7 +1723,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
-			var mempoolService = new MempoolService();
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
 
@@ -3347,7 +3340,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 			nodes2.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
-			var mempoolService = new MempoolService();
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 
 			var mempoolBehavior = bitcoinStore.CreateMempoolBehavior();

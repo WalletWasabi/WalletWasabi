@@ -85,7 +85,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 			}
 
 			connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
-			var mempoolService = new MempoolService();
 			connectionParameters.TemplateBehaviors.Add(bitcoinStore.CreateMempoolBehavior());
 
 			var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
@@ -104,7 +103,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			try
 			{
-				mempoolService.TransactionReceived += MempoolService_TransactionReceived;
+				bitcoinStore.MempoolService.TransactionReceived += MempoolService_TransactionReceived;
 
 				nodes.Connect();
 				var times = 0;
@@ -143,7 +142,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			{
 				nodes.ConnectedNodes.Added -= ConnectedNodes_Added;
 				nodes.ConnectedNodes.Removed -= ConnectedNodes_Removed;
-				mempoolService.TransactionReceived -= MempoolService_TransactionReceived;
+				bitcoinStore.MempoolService.TransactionReceived -= MempoolService_TransactionReceived;
 
 				// So next test will download the block.
 				foreach (var hash in blocksToDownload)
