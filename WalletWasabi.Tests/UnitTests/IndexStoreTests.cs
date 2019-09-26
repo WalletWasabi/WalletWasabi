@@ -19,7 +19,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
 			var network = Network.Main;
-			await indexStore.InitializeAsync(dir, network, new HashChain());
+			await indexStore.InitializeAsync(dir, network);
 		}
 	}
 }

@@ -24,6 +24,12 @@ namespace WalletWasabi.Mempool
 
 		public event EventHandler<SmartTransaction> TransactionReceived;
 
+		/// <summary>
+		/// This should not be a property, but a creator function, because it'll be cloned left and right by NBitcoin later.
+		/// So it should not be assumed it's some singleton.
+		/// </summary>
+		public MempoolBehavior CreateMempoolBehavior() => new MempoolBehavior(this);
+
 		public MempoolService()
 		{
 			ProcessedTransactionHashes = new HashSet<uint256>();

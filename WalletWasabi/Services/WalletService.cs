@@ -58,7 +58,7 @@ namespace WalletWasabi.Services
 		public KeyManager KeyManager { get; }
 		public WasabiSynchronizer Synchronizer { get; }
 		public CcjClient ChaumianClient { get; }
-		public MempoolService Mempool { get; }
+		public MempoolService Mempool => BitcoinStore.MempoolService;
 		public NodesGroup Nodes { get; }
 		public string BlocksFolderPath { get; }
 		public string TransactionsFolderPath { get; }
@@ -91,7 +91,6 @@ namespace WalletWasabi.Services
 			KeyManager keyManager,
 			WasabiSynchronizer syncer,
 			CcjClient chaumianClient,
-			MempoolService mempool,
 			NodesGroup nodes,
 			string workFolderDir,
 			ServiceConfiguration serviceConfiguration)
@@ -101,7 +100,6 @@ namespace WalletWasabi.Services
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
 			Synchronizer = Guard.NotNull(nameof(syncer), syncer);
 			ChaumianClient = Guard.NotNull(nameof(chaumianClient), chaumianClient);
-			Mempool = Guard.NotNull(nameof(mempool), mempool);
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 
 			ProcessedBlocks = new ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)>();

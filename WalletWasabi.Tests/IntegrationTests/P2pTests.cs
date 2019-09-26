@@ -52,6 +52,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 				throw new NotSupportedNetworkException(network);
 			}
 
+			BitcoinStore bitcoinStore = new BitcoinStore();
+			await bitcoinStore.InitializeAsync(Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName()), network);
+
 			var addressManagerFolderPath = Path.Combine(Global.Instance.DataDir, "AddressManager");
 			var addressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{network}.dat");
 			var blocksFolderPath = Path.Combine(Global.Instance.DataDir, "Blocks", network.ToString());
@@ -83,12 +86,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
 			var mempoolService = new MempoolService();
-			connectionParameters.TemplateBehaviors.Add(new MempoolBehavior(mempoolService));
+			connectionParameters.TemplateBehaviors.Add(bitcoinStore.CreateMempoolBehavior());
 
 			var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
-
-			BitcoinStore bitcoinStore = new BitcoinStore();
-			await bitcoinStore.InitializeAsync(Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName()), network);
 
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
 			WasabiSynchronizer syncer = new WasabiSynchronizer(network, bitcoinStore, new Uri("http://localhost:12345"), Global.Instance.TorSocks5Endpoint);
@@ -97,7 +97,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 				keyManager,
 				syncer,
 				new CcjClient(syncer, network, keyManager, new Uri("http://localhost:12345"), Global.Instance.TorSocks5Endpoint),
-				mempoolService,
 				nodes,
 				Global.Instance.DataDir,
 				new ServiceConfiguration(50, 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(0.0001m)));

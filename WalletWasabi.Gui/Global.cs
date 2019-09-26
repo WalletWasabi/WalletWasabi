@@ -51,7 +51,6 @@ namespace WalletWasabi.Gui
 
 		public string AddressManagerFilePath { get; private set; }
 		public AddressManager AddressManager { get; private set; }
-		public MempoolService MempoolService { get; private set; }
 
 		public NodesGroup Nodes { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
@@ -205,10 +204,15 @@ namespace WalletWasabi.Gui
 
 			#endregion TorProcessInitialization
 
+			#region BitcoinStoreInitialization
+
+			await bstoreInitTask;
+
+			#endregion BitcoinStoreInitialization
+
 			#region MempoolInitialization
 
-			MempoolService = new MempoolService();
-			connectionParameters.TemplateBehaviors.Add(new MempoolBehavior(MempoolService));
+			connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateMempoolBehavior());
 
 			#endregion MempoolInitialization
 
@@ -224,12 +228,6 @@ namespace WalletWasabi.Gui
 			}
 
 			#endregion HwiProcessInitialization
-
-			#region BitcoinStoreInitialization
-
-			await bstoreInitTask;
-
-			#endregion BitcoinStoreInitialization
 
 			#region AddressManagerInitialization
 
@@ -253,7 +251,7 @@ namespace WalletWasabi.Gui
 
 					RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint);
 
-					RegTestMempoolServingNode.Behaviors.Add(new MempoolBehavior(MempoolService));
+					RegTestMempoolServingNode.Behaviors.Add(BitcoinStore.CreateMempoolBehavior());
 				}
 				catch (SocketException ex)
 				{
@@ -430,7 +428,7 @@ namespace WalletWasabi.Gui
 					Logger.LogWarning(ex);
 				}
 
-				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, MempoolService, Nodes, DataDir, Config.ServiceConfiguration);
+				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, Nodes, DataDir, Config.ServiceConfiguration);
 
 				ChaumianClient.Start();
 				Logger.LogInfo("Start Chaumian CoinJoin service...");
