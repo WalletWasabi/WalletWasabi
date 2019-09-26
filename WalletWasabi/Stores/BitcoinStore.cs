@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Stores
 {
@@ -22,15 +23,18 @@ namespace WalletWasabi.Stores
 
 		public async Task InitializeAsync(string workFolderPath, Network network)
 		{
-			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
+			using (BenchmarkLogger.Measure())
+			{
+				WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
+				IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
-			Network = Guard.NotNull(nameof(network), network);
+				Network = Guard.NotNull(nameof(network), network);
 
-			IndexStore = new IndexStore();
-			var indexStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString(), "IndexStore");
-			HashChain = new HashChain();
-			await IndexStore.InitializeAsync(indexStoreFolderPath, Network, HashChain);
+				IndexStore = new IndexStore();
+				var indexStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString(), "IndexStore");
+				HashChain = new HashChain();
+				await IndexStore.InitializeAsync(indexStoreFolderPath, Network, HashChain);
+			}
 		}
 	}
 }
