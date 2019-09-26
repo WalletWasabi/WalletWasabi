@@ -74,15 +74,15 @@ namespace WalletWasabi.Hwi
 
 				IEnumerable<HwiEnumerateEntry> hwiEntries = await EnumerateAsync(cancel, isRecursion: true);
 
-				// Trezor T will say passphrase is needed, but don't have to provide it from the software itself.
-				HwiEnumerateEntry firstEntry = hwiEntries.Where(x => x.NeedsPassphraseSent is true).FirstOrDefault();
-				if (firstEntry is null)
+				// Trezor T won't give Fingerprint info so we'll assume that the first device that doesn't give fingerprint is what we need.
+				HwiEnumerateEntry firstNoFingerprintEntry = hwiEntries.Where(x => x.Fingerprint is null).FirstOrDefault();
+				if (firstNoFingerprintEntry is null)
 				{
 					throw;
 				}
 
 				// Build options without fingerprint with device model and device path.
-				var newOptions = BuildOptions(firstEntry.Model, firstEntry.Path, fingerprint: null, options.Where(x => x.Type != HwiOptions.Fingerprint).ToArray());
+				var newOptions = BuildOptions(firstNoFingerprintEntry.Model, firstNoFingerprintEntry.Path, fingerprint: null, options.Where(x => x.Type != HwiOptions.Fingerprint).ToArray());
 				return await SendCommandAsync(newOptions, command, arguments, openConsole, cancel, isRecursion: true);
 			}
 		}
