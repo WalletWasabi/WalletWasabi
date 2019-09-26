@@ -189,6 +189,16 @@ namespace System.IO
 			}
 		}
 
+		public static void EnsureFileExists(string filePath)
+		{
+			if (!File.Exists(filePath))
+			{
+				EnsureContainingDirectoryExists(filePath);
+
+				File.Create(filePath).Dispose();
+			}
+		}
+
 		public static void OpenBrowser(string url)
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
