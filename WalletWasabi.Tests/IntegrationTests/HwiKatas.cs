@@ -38,7 +38,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 			// displayaddress request: refuse
 			// displayaddress request: confirm
 			// displayaddress request: confirm
-			// signtx request: refuse
 			// signtx request: confirm
 			//
 			// --- USER INTERACTIONS ---
@@ -90,12 +89,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Equal(expectedAddress1, address1);
 				Assert.Equal(expectedAddress2, address2);
 
-				// USER: REFUSE
-				PSBT psbt = BuildPsbt(network, fingerprint, xpub1, keyPath1);
-				var ex = await Assert.ThrowsAsync<HwiException>(async () => await client.SignTxAsync(deviceType, devicePath, psbt, cts.Token));
-				Assert.Equal(HwiErrorCode.ActionCanceled, ex.ErrorCode);
-
 				// USER: CONFIRM
+				PSBT psbt = BuildPsbt(network, fingerprint, xpub1, keyPath1);
 				PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, psbt, cts.Token);
 
 				Transaction signedTx = signedPsbt.GetOriginalTransaction();
