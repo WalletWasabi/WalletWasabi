@@ -108,40 +108,6 @@ namespace WalletWasabi.Logging
 
 		#region GeneralLoggingMethods
 
-		public static void Log(LogLevel level, string message, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
-		{
-			switch (level)
-			{
-				case LogLevel.Trace:
-					LogTrace(message, callerFilePath, callerLineNumber);
-					break;
-
-				case LogLevel.Debug:
-					LogDebug(message, callerFilePath, callerLineNumber);
-					break;
-
-				case LogLevel.Info:
-					LogInfo(message, callerFilePath, callerLineNumber);
-					break;
-
-				case LogLevel.Warning:
-					LogWarning(message, callerFilePath, callerLineNumber);
-					break;
-
-				case LogLevel.Error:
-					LogError(message, callerFilePath, callerLineNumber);
-					break;
-
-				case LogLevel.Critical:
-					LogCritical(message, callerFilePath, callerLineNumber);
-					break;
-
-				default:
-					LogInfo(message, callerFilePath, callerLineNumber);
-					break;
-			}
-		}
-
 		private static void Log(LogLevel level, string message, int additionalEntrySeparators = 0, bool additionalEntrySeparatorsLogFileOnlyMode = true, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 		{
 			try
