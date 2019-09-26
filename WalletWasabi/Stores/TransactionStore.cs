@@ -130,30 +130,68 @@ namespace WalletWasabi.Stores
 				IoHelpers.EnsureFileExists(ConfirmedTransactionsFileManager.FilePath);
 				IoHelpers.EnsureFileExists(MempoolTransactionsFileManager.FilePath);
 
-				var allLines = await TransactionsFileManager.ReadAllLinesAsync();
-				var allTransactions = allLines.Select(x => SmartTransaction.FromLine(x, Network));
+				var readTasks = new[]
+				{
+					ConfirmedTransactionsFileManager.ReadAllLinesAsync(),
+					MempoolTransactionsFileManager.ReadAllLinesAsync()
+				};
+
+				var allTransactions = (await readTasks[1]).Concat(await readTasks[0]).Select(x => SmartTransaction.FromLine(x, Network));
 				lock (TransactionsLock)
 				{
 					TryAddNoLockNoSerialization(allTransactions);
 				}
 
-				if (allTransactions.Count() != Transactions.Count)
+				if (allTransactions.Count() != (MempoolTransactions.Count + ConfirmedTransactions.Count))
 				{
 					// Another process worked into the file and appended the same transaction into it.
 					// In this case we correct the file by serializing the unique set.
-					await SerializeAllTransactionsAsync();
+					await SerializeAllTransactionsNoMutexAsync();
 				}
 			}
-			catch (Exception ex)
+			catch
 			{
 				// We found a corrupted entry. Stop here.
 				// Delete the currupted file.
 				// Do not try to autocorrect, because the internal data structures are throwing events that may confuse the consumers of those events.
 				Logger.LogError($"{ConfirmedTransactionsFileManager.FileNameWithoutExtension} or {MempoolTransactionsFileManager.FileNameWithoutExtension} file got corrupted. Deleting them...");
-				Logger.LogError(ex);
-				TransactionsFileManager.DeleteMe();
+				ConfirmedTransactionsFileManager.DeleteMe();
+				MempoolTransactionsFileManager.DeleteMe();
+
 				throw;
 			}
+		}
+
+		protected ISet<SmartTransaction> TryAddNoLockNoSerialization(IEnumerable<SmartTransaction> transactions)
+		{
+			transactions = transactions ?? Enumerable.Empty<SmartTransaction>();
+			var added = new HashSet<SmartTransaction>();
+			foreach (var tx in transactions)
+			{
+				if (TryAddNoLockNoSerialization(tx))
+				{
+					added.Add(tx);
+				}
+			}
+
+			return added;
+		}
+
+		private bool TryAddNoLockNoSerialization(SmartTransaction tx)
+		{
+			var hash = tx.GetHash();
+
+			bool added;
+			if (tx.Confirmed)
+			{
+				MempoolTransactions.Remove(hash);
+				added = ConfirmedTransactions.TryAdd(hash, tx);
+			}
+			else
+			{
+				added = MempoolTransactions.TryAdd(hash, tx);
+			}
+			return added;
 		}
 	}
 }
