@@ -63,36 +63,7 @@ namespace WalletWasabi.Logging
 						message = $"{OperationName} finished in {Stopwatch.ElapsedMilliseconds} milliseconds.";
 					}
 
-					switch (LogLevel)
-					{
-						case LogLevel.Trace:
-							Logger.LogTrace(message, CallerFilePath, CallerLineNumber);
-							break;
-
-						case LogLevel.Debug:
-							Logger.LogDebug(message, CallerFilePath, CallerLineNumber);
-							break;
-
-						case LogLevel.Info:
-							Logger.LogInfo(message, CallerFilePath, CallerLineNumber);
-							break;
-
-						case LogLevel.Warning:
-							Logger.LogWarning(message, CallerFilePath, CallerLineNumber);
-							break;
-
-						case LogLevel.Error:
-							Logger.LogError(message, CallerFilePath, CallerLineNumber);
-							break;
-
-						case LogLevel.Critical:
-							Logger.LogCritical(message, CallerFilePath, CallerLineNumber);
-							break;
-
-						default:
-							Logger.LogInfo(message, CallerFilePath, CallerLineNumber);
-							break;
-					}
+					Logger.Log(LogLevel, message, callerFilePath: CallerFilePath, callerLineNumber: CallerLineNumber);
 				}
 
 				_disposedValue = true;

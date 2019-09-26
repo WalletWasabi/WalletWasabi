@@ -108,7 +108,7 @@ namespace WalletWasabi.Logging
 
 		#region GeneralLoggingMethods
 
-		private static void Log(LogLevel level, string message, int additionalEntrySeparators = 0, bool additionalEntrySeparatorsLogFileOnlyMode = true, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
+		public static void Log(LogLevel level, string message, int additionalEntrySeparators = 0, bool additionalEntrySeparatorsLogFileOnlyMode = true, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 		{
 			try
 			{
