@@ -38,41 +38,44 @@ namespace WalletWasabi.Stores
 
 		public async Task InitializeAsync(string workFolderPath, Network network, HashChain hashChain)
 		{
-			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-			Network = Guard.NotNull(nameof(network), network);
-			HashChain = Guard.NotNull(nameof(hashChain), hashChain);
-			var indexFilePath = Path.Combine(WorkFolderPath, "MatureIndex.dat");
-			MatureIndexFileManager = new DigestableSafeMutexIoManager(indexFilePath, digestRandomIndex: -1);
-			var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
-			ImmatureIndexFileManager = new DigestableSafeMutexIoManager(immatureIndexFilePath, digestRandomIndex: -1);
-
-			StartingFilter = StartingFilters.GetStartingFilter(Network);
-			StartingHeight = StartingFilters.GetStartingHeight(Network);
-
-			ImmatureFilters = new List<FilterModel>(150);
-
-			IndexLock = new AsyncLock();
-
-			using (await IndexLock.LockAsync())
-			using (await MatureIndexFileManager.Mutex.LockAsync())
-			using (await ImmatureIndexFileManager.Mutex.LockAsync())
+			using (BenchmarkLogger.Measure())
 			{
-				IoHelpers.EnsureDirectoryExists(WorkFolderPath);
+				WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
+				Network = Guard.NotNull(nameof(network), network);
+				HashChain = Guard.NotNull(nameof(hashChain), hashChain);
+				var indexFilePath = Path.Combine(WorkFolderPath, "MatureIndex.dat");
+				MatureIndexFileManager = new DigestableSafeMutexIoManager(indexFilePath, digestRandomIndex: -1);
+				var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
+				ImmatureIndexFileManager = new DigestableSafeMutexIoManager(immatureIndexFilePath, digestRandomIndex: -1);
 
-				await TryEnsureBackwardsCompatibilityAsync();
+				StartingFilter = StartingFilters.GetStartingFilter(Network);
+				StartingHeight = StartingFilters.GetStartingHeight(Network);
 
-				if (Network == Network.RegTest)
+				ImmatureFilters = new List<FilterModel>(150);
+
+				IndexLock = new AsyncLock();
+
+				using (await IndexLock.LockAsync())
+				using (await MatureIndexFileManager.Mutex.LockAsync())
+				using (await ImmatureIndexFileManager.Mutex.LockAsync())
 				{
-					MatureIndexFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
-					ImmatureIndexFileManager.DeleteMe();
-				}
+					IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
-				if (!MatureIndexFileManager.Exists())
-				{
-					await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToHeightlessLine() });
-				}
+					await TryEnsureBackwardsCompatibilityAsync();
 
-				await InitializeFiltersAsync();
+					if (Network == Network.RegTest)
+					{
+						MatureIndexFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
+						ImmatureIndexFileManager.DeleteMe();
+					}
+
+					if (!MatureIndexFileManager.Exists())
+					{
+						await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToHeightlessLine() });
+					}
+
+					await InitializeFiltersAsync();
+				}
 			}
 		}
 
