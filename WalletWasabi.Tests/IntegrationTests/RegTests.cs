@@ -3342,11 +3342,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 			// 2. Create mempool service.
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 
-			var mempoolBehavior = bitcoinStore.CreateMempoolBehavior();
-			node.Behaviors.Add(mempoolBehavior);
+			node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
 
 			Node node2 = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
-			node2.Behaviors.Add(mempoolBehavior);
+			node2.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
 
 			// 3. Create wasabi synchronizer service.
 			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
