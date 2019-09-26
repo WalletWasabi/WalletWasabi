@@ -5,12 +5,13 @@ using NBitcoin;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
+using WalletWasabi.Stores;
 
 namespace WalletWasabi.Services
 {
 	public class TransactionProcessor
 	{
-		public ConcurrentHashSet<SmartTransaction> TransactionCache { get; }
+		public TransactionStore TransactionStore { get; }
 
 		public KeyManager KeyManager { get; }
 
@@ -26,12 +27,12 @@ namespace WalletWasabi.Services
 		public TransactionProcessor(KeyManager keyManager,
 			ObservableConcurrentHashSet<SmartCoin> coins,
 			Money dustThreshold,
-			ConcurrentHashSet<SmartTransaction> transactionCache)
+			TransactionStore transactionStore)
 		{
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			Coins = Guard.NotNull(nameof(coins), coins);
 			DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
-			TransactionCache = Guard.NotNull(nameof(transactionCache), transactionCache);
+			TransactionStore = Guard.NotNull(nameof(transactionStore), transactionStore);
 		}
 
 		public bool Process(SmartTransaction tx)
@@ -42,6 +43,7 @@ namespace WalletWasabi.Services
 			bool justUpdate = false;
 			if (tx.Confirmed)
 			{
+				var isRemoved = TransactionStore.TryRemoveFromMempool(txId, out SmartTransaction foundUnconfTx); // If we have in mempool, remove.
 				if (!tx.Transaction.PossiblyP2WPKHInvolved())
 				{
 					return false; // We do not care about non-witness transactions for other than mempool cleanup.

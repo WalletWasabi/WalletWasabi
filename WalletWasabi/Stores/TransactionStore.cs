@@ -196,5 +196,103 @@ namespace WalletWasabi.Stores
 			}
 			return added;
 		}
+
+		public bool TryRemove(uint256 hash, out SmartTransaction stx)
+		{
+			lock (TransactionsLock)
+			{
+				var isRemoved = Transactions.Remove(hash, out stx);
+
+				if (isRemoved)
+				{
+					_ = TryRemoveFromFileAsync(hash);
+				}
+
+				return isRemoved;
+			}
+		}
+
+		public ISet<SmartTransaction> TryRemove(IEnumerable<uint256> hashes)
+		{
+			hashes = hashes ?? Enumerable.Empty<uint256>();
+			var removed = new HashSet<SmartTransaction>();
+
+			lock (TransactionsLock)
+			{
+				foreach (var hash in hashes)
+				{
+					if (Transactions.Remove(hash, out SmartTransaction stx))
+					{
+						removed.Add(stx);
+					}
+				}
+
+				if (removed.Any())
+				{
+					_ = TryRemoveFromFileAsync(removed.Select(x => x.GetHash()).ToArray());
+				}
+
+				return removed;
+			}
+		}
+
+		private async Task TryRemoveFromFileAsync(params uint256[] toRemoves)
+		{
+			try
+			{
+				if (toRemoves is null || !toRemoves.Any())
+				{
+					return;
+				}
+
+				using (await TransactionsFileManager.Mutex.LockAsync())
+				{
+					string[] allLines = await TransactionsFileManager.ReadAllLinesAsync();
+					var toSerialize = new List<string>();
+					foreach (var line in allLines)
+					{
+						var startsWith = false;
+						foreach (var toRemoveString in toRemoves.Select(x => x.ToString()))
+						{
+							startsWith = startsWith || line.StartsWith(toRemoveString, StringComparison.Ordinal);
+						}
+
+						if (!startsWith)
+						{
+							toSerialize.Add(line);
+						}
+					}
+
+					try
+					{
+						await TransactionsFileManager.WriteAllLinesAsync(toSerialize);
+					}
+					catch
+					{
+						await SerializeAllTransactionsAsync();
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError<MempoolStore>(ex);
+			}
+		}
+
+		public SmartTransaction[] GetConfirmedTransactions()
+		{
+			lock (TransactionsLock)
+			{
+				return ConfirmedTransactions.Values.OrderByBlockchain().ToArray();
+			}
+		}
+
+		public SmartTransaction[] GetMempoolTransactions()
+		{
+			lock (TransactionsLock)
+			{
+				return MempoolTransactions.Values.OrderByBlockchain().ToArray();
+			}
+		}
 	}
 }

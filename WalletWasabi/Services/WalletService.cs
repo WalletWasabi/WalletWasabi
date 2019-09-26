@@ -61,8 +61,6 @@ namespace WalletWasabi.Services
 		public MempoolService Mempool => BitcoinStore.MempoolService;
 		public NodesGroup Nodes { get; }
 		public string BlocksFolderPath { get; }
-		public string TransactionsFolderPath { get; }
-		public string TransactionsFilePath { get; }
 
 		private AsyncLock HandleFiltersLock { get; }
 
@@ -83,8 +81,6 @@ namespace WalletWasabi.Services
 		public Network Network => Synchronizer.Network;
 
 		public TransactionProcessor TransactionProcessor { get; }
-
-		private ConcurrentHashSet<SmartTransaction> TransactionCache { get; }
 
 		public WalletService(
 			BitcoinStore bitcoinStore,
@@ -108,7 +104,6 @@ namespace WalletWasabi.Services
 			Coins = new ObservableConcurrentHashSet<SmartCoin>();
 
 			BlocksFolderPath = Path.Combine(workFolderDir, "Blocks", Network.ToString());
-			TransactionsFolderPath = Path.Combine(workFolderDir, "Transactions", Network.ToString());
 			RuntimeParams.SetDataDir(workFolderDir);
 
 			BlockFolderLock = new AsyncLock();
@@ -116,9 +111,7 @@ namespace WalletWasabi.Services
 			KeyManager.AssertCleanKeysIndexed();
 			KeyManager.AssertLockedInternalKeysIndexed(14);
 
-			TransactionCache = new ConcurrentHashSet<SmartTransaction>();
-
-			TransactionProcessor = new TransactionProcessor(KeyManager, Coins, ServiceConfiguration.DustThreshold, TransactionCache);
+			TransactionProcessor = new TransactionProcessor(KeyManager, Coins, ServiceConfiguration.DustThreshold, BitcoinStore.TransactionStore);
 			TransactionProcessor.CoinSpent += TransactionProcessor_CoinSpent;
 			TransactionProcessor.CoinReceived += TransactionProcessor_CoinReceivedAsync;
 
@@ -135,25 +128,11 @@ namespace WalletWasabi.Services
 				Directory.CreateDirectory(BlocksFolderPath);
 			}
 
-			if (Directory.Exists(TransactionsFolderPath))
-			{
-				if (Synchronizer.Network == Network.RegTest)
-				{
-					Directory.Delete(TransactionsFolderPath, true);
-					Directory.CreateDirectory(TransactionsFolderPath);
-				}
-			}
-			else
-			{
-				Directory.CreateDirectory(TransactionsFolderPath);
-			}
-
 			var walletName = "UnnamedWallet";
 			if (!string.IsNullOrWhiteSpace(KeyManager.FilePath))
 			{
 				walletName = Path.GetFileNameWithoutExtension(KeyManager.FilePath);
 			}
-			TransactionsFilePath = Path.Combine(TransactionsFolderPath, $"{walletName}Transactions.json");
 
 			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
 			BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
@@ -197,11 +176,7 @@ namespace WalletWasabi.Services
 						}
 					}
 
-					var txToRemove = TryGetTxFromCache(toRemove.TransactionId);
-					if (txToRemove != default(SmartTransaction))
-					{
-						TransactionCache.TryRemove(txToRemove);
-					}
+					BitcoinStore.TransactionStore.TryRemove(toRemove.TransactionId, out _);
 				}
 			}
 
@@ -216,10 +191,7 @@ namespace WalletWasabi.Services
 			{
 				using (await TransactionProcessingLock.LockAsync())
 				{
-					if (await ProcessTransactionAsync(tx))
-					{
-						SerializeTransactionCache();
-					}
+					await ProcessTransactionAsync(tx);
 				}
 			}
 			catch (Exception ex)
@@ -299,43 +271,13 @@ namespace WalletWasabi.Services
 
 			using (await HandleFiltersLock.LockAsync())
 			{
-				var unconfirmedTransactions = new SmartTransaction[0];
-				var confirmedTransactions = new SmartTransaction[0];
-
-				// Fetch previous wallet state from transactions file
-				if (File.Exists(TransactionsFilePath))
-				{
-					try
-					{
-						IEnumerable<SmartTransaction> transactions = null;
-						string jsonString = File.ReadAllText(TransactionsFilePath, Encoding.UTF8);
-						transactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?.OrderByBlockchain();
-
-						confirmedTransactions = transactions?.Where(x => x.Confirmed)?.ToArray() ?? new SmartTransaction[0];
-
-						unconfirmedTransactions = transactions?.Where(x => !x.Confirmed)?.ToArray() ?? new SmartTransaction[0];
-					}
-					catch (Exception ex)
-					{
-						Logger.LogWarning(ex);
-						Logger.LogWarning($"Transaction cache got corrupted. Deleting {TransactionsFilePath}.");
-						File.Delete(TransactionsFilePath);
-					}
-				}
-
-				await LoadWalletStateAsync(confirmedTransactions, cancel);
+				await LoadWalletStateAsync(BitcoinStore.TransactionStore.GetConfirmedTransactions(), cancel);
 
 				// Load in dummy mempool
-				try
+				var mempoolTxs = BitcoinStore.TransactionStore.GetMempoolTransactions();
+				if (mempoolTxs.Any())
 				{
-					if (unconfirmedTransactions != null && unconfirmedTransactions.Any())
-					{
-						await LoadDummyMempoolAsync(unconfirmedTransactions);
-					}
-				}
-				finally
-				{
-					UnconfirmedTransactionsInitialized = true;
+					await LoadDummyMempoolAsync(mempoolTxs);
 				}
 			}
 			Coins.CollectionChanged += Coins_CollectionChanged;
@@ -375,7 +317,6 @@ namespace WalletWasabi.Services
 
 					var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
 
-					var count = 0;
 					foreach (var tx in unconfirmedTransactions)
 					{
 						if (mempoolHashes.Contains(tx.GetHash().ToString().Substring(0, compactness)))
@@ -384,13 +325,7 @@ namespace WalletWasabi.Services
 							await ProcessTransactionAsync(tx);
 
 							Logger.LogInfo($"Transaction was successfully tested against the backend's mempool hashes: {tx.GetHash()}.");
-							count++;
 						}
-					}
-
-					if (count != unconfirmedTransactions.Length)
-					{
-						SerializeTransactionCache();
 					}
 				}
 			}
@@ -422,10 +357,7 @@ namespace WalletWasabi.Services
 
 			Block currentBlock = await FetchBlockAsync(filterModel.BlockHash, cancel); // Wait until not downloaded.
 
-			if (await ProcessBlockAsync(filterModel.BlockHeight, currentBlock))
-			{
-				SerializeTransactionCache();
-			}
+			await ProcessBlockAsync(filterModel.BlockHeight, currentBlock);
 		}
 
 		public HdPubKey GetReceiveKey(SmartLabel label, IEnumerable<HdPubKey> dontTouch = null)
@@ -1244,10 +1176,7 @@ namespace WalletWasabi.Services
 
 			using (await TransactionProcessingLock.LockAsync())
 			{
-				if (await ProcessTransactionAsync(new SmartTransaction(transaction.Transaction, Height.Mempool)))
-				{
-					SerializeTransactionCache();
-				}
+				await ProcessTransactionAsync(new SmartTransaction(transaction.Transaction, Height.Mempool));
 			}
 
 			Logger.LogInfo($"Transaction is successfully broadcasted to backend: {transaction.GetHash()}.");
@@ -1353,22 +1282,6 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public bool UnconfirmedTransactionsInitialized { get; private set; } = false;
-
-		private void SerializeTransactionCache()
-		{
-			if (!UnconfirmedTransactionsInitialized) // If unconfirmed ones are not yet initialized, then do not serialize because unconfirmed are going to be lost.
-			{
-				return;
-			}
-
-			IoHelpers.EnsureContainingDirectoryExists(TransactionsFilePath);
-			string jsonString = JsonConvert.SerializeObject(TransactionCache.OrderByBlockchain(), Formatting.Indented);
-			File.WriteAllText(TransactionsFilePath,
-				jsonString,
-				Encoding.UTF8);
-		}
-
 		/// <summary>
 		/// Current timeout used when downloading a block from the remote node. It is defined in seconds.
 		/// </summary>
@@ -1433,11 +1346,6 @@ namespace WalletWasabi.Services
 			TransactionProcessor.CoinReceived -= TransactionProcessor_CoinReceivedAsync;
 
 			DisconnectDisposeNullLocalBitcoinCoreNode();
-		}
-
-		public SmartTransaction TryGetTxFromCache(uint256 txId)
-		{
-			return TransactionCache.FirstOrDefault(x => x.GetHash() == txId);
 		}
 	}
 }
