@@ -100,10 +100,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Select(x => x ? DequeuingButtonTextString : DequeueButtonTextString)
 				.Subscribe(text => DequeueButtonText = text);
 
-			this.WhenAnyValue(x => x.TargetPrivacy).Subscribe(target =>
-			{
-				CoinJoinUntilAnonymitySet = Global.Config.GetTargetLevel(target);
-			});
+			this.WhenAnyValue(x => x.TargetPrivacy)
+				.Subscribe(target => CoinJoinUntilAnonymitySet = Global.Config.GetTargetLevel(target));
 
 			this.WhenAnyValue(x => x.RoundTimesout)
 				.ObserveOn(RxApp.MainThreadScheduler)

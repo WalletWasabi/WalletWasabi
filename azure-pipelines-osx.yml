@@ -7,14 +7,17 @@ jobs:
     vmImage: 'macOS-10.13'
   steps:
   - task: DotNetCoreCLI@2
+    displayName: 'Build Debug'
     inputs:
       command: build
       arguments: --configuration Debug
   - task: DotNetCoreCLI@2
+    displayName: 'Build Release'
     inputs:
       command: build
       arguments: --configuration Release
   - task: DotNetCoreCLI@2
+    displayName: 'Test Debug'
     inputs:
       command: test
       projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
