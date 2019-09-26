@@ -181,7 +181,7 @@ namespace WalletWasabi.Stores
 		{
 			var hash = tx.GetHash();
 
-			bool added;
+			bool added = false;
 			if (tx.Confirmed)
 			{
 				MempoolTransactions.Remove(hash);
@@ -189,7 +189,10 @@ namespace WalletWasabi.Stores
 			}
 			else
 			{
-				added = MempoolTransactions.TryAdd(hash, tx);
+				if (!ConfirmedTransactions.ContainsKey(hash))
+				{
+					added = MempoolTransactions.TryAdd(hash, tx);
+				}
 			}
 			return added;
 		}
