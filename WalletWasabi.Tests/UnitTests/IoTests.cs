@@ -115,35 +115,6 @@ namespace WalletWasabi.Tests.UnitTests
 
 			await ioman1.WriteAllLinesAsync(lines);
 
-			// Mutex tests.
-
-			// Acquire the Mutex with a background thread.
-
-			var myTask = Task.Run(async () =>
-			{
-				using (await ioman1.Mutex.LockAsync())
-				{
-					await Task.Delay(3000);
-				}
-			});
-
-			// Wait for the Task.Run to Acquire the Mutex.
-			await Task.Delay(100);
-
-			// Try to get the Mutex and save the time.
-			DateTime timeOfstart = DateTime.Now;
-			DateTime timeOfAcquired = default;
-
-			using (await ioman1.Mutex.LockAsync())
-			{
-				timeOfAcquired = DateTime.Now;
-			}
-
-			Assert.True(myTask.IsCompletedSuccessfully);
-
-			var elapsed = timeOfAcquired - timeOfstart;
-			Assert.InRange(elapsed, TimeSpan.FromMilliseconds(2000), TimeSpan.FromMilliseconds(4000));
-
 			// Simulate file write error and recovery logic.
 
 			// We have only *.new and *.old files.
@@ -259,9 +230,11 @@ namespace WalletWasabi.Tests.UnitTests
 				}
 			};
 
+			const int iterations = 200;
+
 			var t1 = new Thread(() =>
 			{
-				for (var i = 0; i < 500; i++)
+				for (var i = 0; i < iterations; i++)
 				{
 					/* We have to block the Thread.
 					 * If we use async/await pattern then Join() function at the end will indicate that the Thread is finished -
@@ -273,14 +246,14 @@ namespace WalletWasabi.Tests.UnitTests
 			});
 			var t2 = new Thread(() =>
 			{
-				for (var i = 0; i < 500; i++)
+				for (var i = 0; i < iterations; i++)
 				{
 					WriteNextLineAsync().Wait();
 				}
 			});
 			var t3 = new Thread(() =>
 			{
-				for (var i = 0; i < 500; i++)
+				for (var i = 0; i < iterations; i++)
 				{
 					WriteNextLineAsync().Wait();
 				}

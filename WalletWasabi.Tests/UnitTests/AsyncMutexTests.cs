@@ -11,10 +11,65 @@ namespace WalletWasabi.Tests.UnitTests
 {
 	public class AsyncMutexTests
 	{
+		private static async Task TestMutexConcurrencyAsync(AsyncMutex asyncMutex, AsyncMutex asyncMutex2)
+		{
+			// Concurrency test with the same AsyncMutex object.
+			using (var phase1 = new AutoResetEvent(false))
+			using (var phase2 = new AutoResetEvent(false))
+			using (var phase3 = new AutoResetEvent(false))
+			{
+				// Acquire the Mutex with a background thread.
+				var myTask = Task.Run(async () =>
+				{
+					using (await asyncMutex.LockAsync())
+					{
+						// Phase 1: signal that the mutex has been acquired.
+						phase1.Set();
+
+						// Phase 2: wait for exclusion.
+						Assert.True(phase2.WaitOne(TimeSpan.FromSeconds(20)));
+					}
+					// Phase 3: release the mutex.
+					phase3.Set();
+				});
+
+				// Phase 1: wait for the first Task to acquire the mutex.
+				Assert.True(phase1.WaitOne(TimeSpan.FromSeconds(20)));
+
+				// Phase 2: check mutual exclusion.
+				using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(2)))
+				{
+					await Assert.ThrowsAsync<IOException>(async () =>
+					{
+						using (await asyncMutex2.LockAsync(cts.Token))
+						{
+							throw new InvalidOperationException("Mutex should not be acquired here.");
+						};
+					});
+				}
+				phase2.Set();
+
+				// Phase 3: wait for release and acquire the mutex
+				Assert.True(phase3.WaitOne(TimeSpan.FromSeconds(20)));
+
+				using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(2)))
+				{
+					// We should get this immediately.
+					using (await asyncMutex2.LockAsync())
+					{
+					};
+				}
+
+				Assert.True(myTask.IsCompletedSuccessfully);
+			}
+		}
+
 		[Fact]
 		public async Task AsyncMutexTestsAsync()
 		{
-			AsyncMutex asyncMutex = new AsyncMutex("mutex1");
+			var mutexName1 = $"mutex1-{DateTime.Now.Ticks.ToString()}"; // Randomize the name to avoid system wide collisions.
+
+			AsyncMutex asyncMutex = new AsyncMutex(mutexName1);
 
 			// Cannot be IDisposable because the pattern is like Nito's AsyncLock.
 			Assert.False(asyncMutex is IDisposable);
@@ -42,33 +97,6 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				await Task.Delay(1);
 			}
-
-			// Acquire the Mutex with a background thread.
-
-			var myTask = Task.Run(async () =>
-			{
-				using (await asyncMutex.LockAsync())
-				{
-					await Task.Delay(3000);
-				}
-			});
-
-			// Wait for the Task.Run to Acquire the Mutex.
-			await Task.Delay(100);
-
-			// Try to get the Mutex and save the time.
-			DateTime timeOfstart = DateTime.Now;
-			DateTime timeOfAcquired = default;
-
-			using (await asyncMutex.LockAsync())
-			{
-				timeOfAcquired = DateTime.Now;
-			};
-
-			Assert.True(myTask.IsCompletedSuccessfully);
-
-			var elapsed = timeOfAcquired - timeOfstart;
-			Assert.InRange(elapsed, TimeSpan.FromMilliseconds(2000), TimeSpan.FromMilliseconds(4000));
 
 			// Standard Mutex test.
 			int cnt = 0;
@@ -104,8 +132,10 @@ namespace WalletWasabi.Tests.UnitTests
 				Assert.Equal(prevnum + 1, num);
 			}
 
+			var mutexName2 = $"mutex2-{DateTime.Now.Ticks.ToString()}";
+
 			// Test that asynclock cancellation is going to throw IOException.
-			var mutex = new AsyncMutex("foo");
+			var mutex = new AsyncMutex(mutexName2);
 			using (await mutex.LockAsync())
 			{
 				using (var cts = new CancellationTokenSource(100))
@@ -120,12 +150,12 @@ namespace WalletWasabi.Tests.UnitTests
 			}
 
 			// Test same mutex gets same asynclock.
-			var mutex1 = new AsyncMutex("foo");
+			var mutex1 = new AsyncMutex(mutexName2);
 			using (await mutex1.LockAsync())
 			{
 				using (var cts = new CancellationTokenSource(100))
 				{
-					var mutex2 = new AsyncMutex("foo");
+					var mutex2 = new AsyncMutex(mutexName2);
 					await Assert.ThrowsAsync<IOException>(async () =>
 					{
 						using (await mutex2.LockAsync(cts.Token))
@@ -135,34 +165,13 @@ namespace WalletWasabi.Tests.UnitTests
 				}
 			}
 
-			// Different AsyncMutex object but same name.
-			AsyncMutex asyncMutex2 = new AsyncMutex("mutex1");
+			// Concurrency test with the same AsyncMutex object.
+			await TestMutexConcurrencyAsync(asyncMutex, asyncMutex);
 
-			// Acquire the first mutex with a background thread and hold it for a while.
-			var myTask2 = Task.Run(async () =>
-			{
-				using (await asyncMutex.LockAsync())
-				{
-					await Task.Delay(3000);
-				}
-			});
-
-			// Make sure the task started.
-			await Task.Delay(100);
-
-			timeOfstart = DateTime.Now;
-			timeOfAcquired = default;
-			// Now try to acquire another AsyncMutex object but with the same name!
-			using (await asyncMutex2.LockAsync())
-			{
-				timeOfAcquired = DateTime.Now;
-			}
-
-			await myTask2;
-			Assert.True(myTask2.IsCompletedSuccessfully);
-
-			elapsed = timeOfAcquired - timeOfstart;
-			Assert.InRange(elapsed, TimeSpan.FromMilliseconds(2000), TimeSpan.FromMilliseconds(4000));
+			// Concurrency test with different AsyncMutex object but same name.
+			AsyncMutex asyncMutex2 = new AsyncMutex(mutexName1);
+			await TestMutexConcurrencyAsync(asyncMutex, asyncMutex2);
 		}
 	}
 }
+;
