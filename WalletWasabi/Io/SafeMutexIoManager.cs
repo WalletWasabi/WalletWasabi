@@ -124,14 +124,11 @@ namespace WalletWasabi.Io
 			return TryGetSafestFileVersion(out _);
 		}
 
-		public async Task WriteAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default, bool dismissNullOrEmptyContent = true)
+		public async Task WriteAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default)
 		{
-			if (dismissNullOrEmptyContent)
+			if (lines is null || !lines.Any())
 			{
-				if (lines is null || !lines.Any())
-				{
-					return;
-				}
+				return;
 			}
 
 			IoHelpers.EnsureContainingDirectoryExists(NewFilePath);
