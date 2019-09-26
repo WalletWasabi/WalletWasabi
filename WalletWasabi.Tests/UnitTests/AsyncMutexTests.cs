@@ -9,7 +9,6 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests
 {
-	[Collection("AsyncMutexTest collection")]
 	public class AsyncMutexTests
 	{
 		[Fact]
@@ -25,12 +24,12 @@ namespace WalletWasabi.Tests.UnitTests
 			// Use the mutex two times after each other.
 			using (await asyncMutex.LockAsync())
 			{
-				await Task.Delay(10);
+				await Task.Delay(1);
 			}
 
 			using (await asyncMutex.LockAsync())
 			{
-				await Task.Delay(10);
+				await Task.Delay(1);
 			}
 
 			// Release the Mutex from another thread.
@@ -49,34 +48,53 @@ namespace WalletWasabi.Tests.UnitTests
 				await Task.Delay(1);
 			}
 
-			using (ManualResetEvent locked = new ManualResetEvent(false))
+			using (var phase1 = new AutoResetEvent(false))
+			using (var phase2 = new AutoResetEvent(false))
+			using (var phase3 = new AutoResetEvent(false))
 			{
 				// Acquire the Mutex with a background thread.
 				var myTask = Task.Run(async () =>
 				{
 					using (await asyncMutex.LockAsync())
 					{
-						locked.Set();
-						await Task.Delay(3000);
+						// Phase 1: signal that the mutex has been acquired.
+						phase1.Set();
+
+						// Phase 2: wait for exclusion.
+						Assert.True(phase2.WaitOne(TimeSpan.FromSeconds(20)));
 					}
+					// Phase 3: release the mutex.
+					phase3.Set();
 				});
 
-				// Wait for the Task.Run to Acquire the Mutex.
+				// Phase 1: wait for the first Task to acquire the mutex.
+				Assert.True(phase1.WaitOne(TimeSpan.FromSeconds(20)));
 
-				Assert.True(locked.WaitOne(TimeSpan.FromSeconds(5)));
-
-				// Try to get the Mutex and save the time.
-				DateTime timeOfstart = DateTime.Now;
-				DateTime timeOfAcquired = default;
-
-				using (await asyncMutex.LockAsync())
+				// Phase 2: check mutual exclusion.
+				using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(2)))
 				{
-					timeOfAcquired = DateTime.Now;
-				};
+					await Assert.ThrowsAsync<IOException>(async () =>
+					{
+						using (await asyncMutex.LockAsync(cts.Token))
+						{
+							throw new InvalidOperationException("Mutex should not be acquired here.");
+						};
+					});
+				}
+				phase2.Set();
+
+				// Phase 3: wait for release and acquire the mutex
+				Assert.True(phase3.WaitOne(TimeSpan.FromSeconds(20)));
+
+				using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(2)))
+				{
+					// We should get this immediately.
+					using (await asyncMutex.LockAsync())
+					{
+					};
+				}
 
 				Assert.True(myTask.IsCompletedSuccessfully);
-				var elapsed = timeOfAcquired - timeOfstart;
-				Assert.InRange(elapsed, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(4));
 			}
 
 			// Standard Mutex test.

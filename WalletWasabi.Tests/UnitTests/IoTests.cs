@@ -11,7 +11,6 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests
 {
-	[Collection("AsyncMutexTest collection")]
 	public class IoTests
 	{
 		[Fact]
