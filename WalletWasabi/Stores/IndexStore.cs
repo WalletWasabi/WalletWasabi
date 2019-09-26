@@ -38,6 +38,8 @@ namespace WalletWasabi.Stores
 
 		public async Task InitializeAsync(string workFolderPath, Network network, HashChain hashChain)
 		{
+			var initStart = DateTimeOffset.UtcNow;
+
 			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 			Network = Guard.NotNull(nameof(network), network);
 			HashChain = Guard.NotNull(nameof(hashChain), hashChain);
@@ -74,6 +76,9 @@ namespace WalletWasabi.Stores
 
 				await InitializeFiltersAsync();
 			}
+
+			var elapsedSeconds = Math.Round((DateTimeOffset.UtcNow - initStart).TotalSeconds, 1);
+			Logger.LogInfo($"Initialized in {elapsedSeconds} seconds.");
 		}
 
 		private async Task InitializeFiltersAsync()
