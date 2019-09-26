@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -7,23 +8,31 @@ namespace WalletWasabi.Logging
 {
 	public class BenchmarkLogger : IDisposable
 	{
-		public DateTimeOffset InitStart { get; }
+		private LogLevel LogLevel { get; }
+		public Stopwatch Stopwatch { get; }
 
-		public string CallerMemberName { get; }
+		public string OperationName { get; }
 		public string CallerFilePath { get; }
 		public int CallerLineNumber { get; }
 
-		private BenchmarkLogger([CallerMemberName]string callerMemberName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
+		private BenchmarkLogger(LogLevel logLevel = LogLevel.Info, [CallerMemberName]string operationName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 		{
-			InitStart = DateTimeOffset.UtcNow;
-			CallerMemberName = callerMemberName;
+			LogLevel = logLevel;
+			OperationName = operationName;
 			CallerFilePath = callerFilePath;
 			CallerLineNumber = callerLineNumber;
+
+			Stopwatch = Stopwatch.StartNew();
 		}
 
-		public static IDisposable Measure()
+		/// <summary>
+		/// Logs the time between the creation of the class and the disposing of the class.
+		/// Example usage: using(BenchmarkLogger.Measure()){}
+		/// </summary>
+		/// <param name="operationName">Which operation to measure. Default is the caller function name.</param>
+		public static IDisposable Measure(LogLevel logLevel = LogLevel.Info, [CallerMemberName]string operationName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 		{
-			return new BenchmarkLogger();
+			return new BenchmarkLogger(logLevel, operationName, callerFilePath, callerLineNumber);
 		}
 
 		#region IDisposable Support
@@ -36,8 +45,25 @@ namespace WalletWasabi.Logging
 			{
 				if (disposing)
 				{
-					var elapsedSeconds = Math.Round((DateTimeOffset.UtcNow - InitStart).TotalSeconds, 1);
-					Logger.LogInfo($"{CallerMemberName} finished in {elapsedSeconds} seconds.", CallerFilePath, CallerLineNumber);
+					Stopwatch.Stop();
+
+					var min = Stopwatch.Elapsed.TotalMinutes;
+					var sec = Stopwatch.Elapsed.TotalSeconds;
+					string message;
+					if (min > 1)
+					{
+						message = $"{OperationName} finished in {(int)min} minutes.";
+					}
+					else if (sec > 1)
+					{
+						message = $"{OperationName} finished in {(int)sec} seconds.";
+					}
+					else
+					{
+						message = $"{OperationName} finished in {Stopwatch.ElapsedMilliseconds} milliseconds.";
+					}
+
+					Logger.Log(LogLevel, message, callerFilePath: CallerFilePath, callerLineNumber: CallerLineNumber);
 				}
 
 				_disposedValue = true;

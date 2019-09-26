@@ -23,20 +23,18 @@ namespace WalletWasabi.Stores
 
 		public async Task InitializeAsync(string workFolderPath, Network network)
 		{
-			var initStart = DateTimeOffset.UtcNow;
+			using (BenchmarkLogger.Measure())
+			{
+				WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
+				IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
-			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
+				Network = Guard.NotNull(nameof(network), network);
 
-			Network = Guard.NotNull(nameof(network), network);
-
-			IndexStore = new IndexStore();
-			var indexStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString(), "IndexStore");
-			HashChain = new HashChain();
-			await IndexStore.InitializeAsync(indexStoreFolderPath, Network, HashChain);
-
-			var elapsedSeconds = Math.Round((DateTimeOffset.UtcNow - initStart).TotalSeconds, 1);
-			Logger.LogInfo($"Initialized in {elapsedSeconds} seconds.");
+				IndexStore = new IndexStore();
+				var indexStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString(), "IndexStore");
+				HashChain = new HashChain();
+				await IndexStore.InitializeAsync(indexStoreFolderPath, Network, HashChain);
+			}
 		}
 	}
 }
