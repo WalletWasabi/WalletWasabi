@@ -108,6 +108,40 @@ namespace WalletWasabi.Logging
 
 		#region GeneralLoggingMethods
 
+		public static void Log(LogLevel level, string message, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
+		{
+			switch (level)
+			{
+				case LogLevel.Trace:
+					LogTrace(message, callerFilePath, callerLineNumber);
+					break;
+
+				case LogLevel.Debug:
+					LogDebug(message, callerFilePath, callerLineNumber);
+					break;
+
+				case LogLevel.Info:
+					LogInfo(message, callerFilePath, callerLineNumber);
+					break;
+
+				case LogLevel.Warning:
+					LogWarning(message, callerFilePath, callerLineNumber);
+					break;
+
+				case LogLevel.Error:
+					LogError(message, callerFilePath, callerLineNumber);
+					break;
+
+				case LogLevel.Critical:
+					LogCritical(message, callerFilePath, callerLineNumber);
+					break;
+
+				default:
+					LogInfo(message, callerFilePath, callerLineNumber);
+					break;
+			}
+		}
+
 		private static void Log(LogLevel level, string message, int additionalEntrySeparators = 0, bool additionalEntrySeparatorsLogFileOnlyMode = true, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 		{
 			try
@@ -235,7 +269,7 @@ namespace WalletWasabi.Logging
 		// is the real path of the file, it doesn't matter what OS was targeted.
 		// In Windows and Linux that string is a valid path and that means Path.GetFileNameWithoutExtension
 		// can extract the file name but in the case of OSX the same string is not a valid path so, it assumes
-		// the whole string is the file name. 
+		// the whole string is the file name.
 		internal static string ExtractFileName(string callerFilePath)
 		{
 			var lastSeparatorIndex = callerFilePath.LastIndexOf("\\");

@@ -46,36 +46,7 @@ namespace WalletWasabi.Logging
 					var elapsedSeconds = Math.Round((DateTimeOffset.UtcNow - InitStart).TotalSeconds, 1);
 					string message = $"{OperationName} finished in {elapsedSeconds} seconds.";
 
-					switch (LogLevel)
-					{
-						case LogLevel.Trace:
-							Logger.LogTrace(message, CallerFilePath, CallerLineNumber);
-							break;
-
-						case LogLevel.Debug:
-							Logger.LogDebug(message, CallerFilePath, CallerLineNumber);
-							break;
-
-						case LogLevel.Info:
-							Logger.LogInfo(message, CallerFilePath, CallerLineNumber);
-							break;
-
-						case LogLevel.Warning:
-							Logger.LogWarning(message, CallerFilePath, CallerLineNumber);
-							break;
-
-						case LogLevel.Error:
-							Logger.LogError(message, CallerFilePath, CallerLineNumber);
-							break;
-
-						case LogLevel.Critical:
-							Logger.LogCritical(message, CallerFilePath, CallerLineNumber);
-							break;
-
-						default:
-							Logger.LogInfo(message, CallerFilePath, CallerLineNumber);
-							break;
-					}
+					Logger.Log(LogLevel, message, CallerFilePath, CallerLineNumber);
 				}
 
 				_disposedValue = true;
