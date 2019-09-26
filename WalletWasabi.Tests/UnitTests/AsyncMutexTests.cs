@@ -25,12 +25,12 @@ namespace WalletWasabi.Tests.UnitTests
 			// Use the mutex two times after each other.
 			using (await asyncMutex.LockAsync())
 			{
-				await Task.Delay(1);
+				await Task.Delay(10);
 			}
 
 			using (await asyncMutex.LockAsync())
 			{
-				await Task.Delay(1);
+				await Task.Delay(10);
 			}
 
 			// Release the Mutex from another thread.
