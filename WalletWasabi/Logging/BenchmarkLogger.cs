@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -8,7 +9,7 @@ namespace WalletWasabi.Logging
 	public class BenchmarkLogger : IDisposable
 	{
 		private LogLevel LogLevel { get; }
-		public DateTimeOffset InitStart { get; }
+		public Stopwatch Stopwatch { get; }
 
 		public string OperationName { get; }
 		public string CallerFilePath { get; }
@@ -17,10 +18,11 @@ namespace WalletWasabi.Logging
 		private BenchmarkLogger(LogLevel logLevel = LogLevel.Info, [CallerMemberName]string operationName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 		{
 			LogLevel = logLevel;
-			InitStart = DateTimeOffset.UtcNow;
 			OperationName = operationName;
 			CallerFilePath = callerFilePath;
 			CallerLineNumber = callerLineNumber;
+
+			Stopwatch = Stopwatch.StartNew();
 		}
 
 		/// <summary>
@@ -43,8 +45,23 @@ namespace WalletWasabi.Logging
 			{
 				if (disposing)
 				{
-					var elapsedSeconds = Math.Round((DateTimeOffset.UtcNow - InitStart).TotalSeconds, 1);
-					string message = $"{OperationName} finished in {elapsedSeconds} seconds.";
+					Stopwatch.Stop();
+
+					var min = Stopwatch.Elapsed.TotalMinutes;
+					var sec = Stopwatch.Elapsed.TotalSeconds;
+					string message;
+					if (min > 1)
+					{
+						message = $"{OperationName} finished in {(int)min} minutes.";
+					}
+					else if (sec > 1)
+					{
+						message = $"{OperationName} finished in {(int)sec} seconds.";
+					}
+					else
+					{
+						message = $"{OperationName} finished in {Stopwatch.ElapsedMilliseconds} milliseconds.";
+					}
 
 					switch (LogLevel)
 					{
