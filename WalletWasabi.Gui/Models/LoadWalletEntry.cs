@@ -27,7 +27,7 @@ namespace WalletWasabi.Gui.Models
 			}
 			else if (hwi.NeedsPassphraseSent is true)
 			{
-				walletNameBuilder.Append($" - Needs Passphrase Sent");
+				walletNameBuilder.Append(" - Needs Passphrase Sent");
 			}
 			else if (!string.IsNullOrWhiteSpace(hwi.Error))
 			{
