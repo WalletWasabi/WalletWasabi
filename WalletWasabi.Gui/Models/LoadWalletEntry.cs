@@ -39,7 +39,7 @@ namespace WalletWasabi.Gui.Models
 			}
 			else if (hwi.Fingerprint is null)
 			{
-				walletNameBuilder.Append($" - Could Not Acquire Fingerprint");
+				walletNameBuilder.Append(" - Could Not Acquire Fingerprint");
 			}
 
 			WalletName = walletNameBuilder.ToString();
