@@ -257,7 +257,7 @@ The landing page is reachable at `http://<server_IP_address>/index.nginx-debian.
 sudo pico /etc/nginx/sites-available/default
 ```
 
-Fill out the server name with the server's IP and domain, and remove the unneeded domains. (Note that I use `wasabiwallet.co` for testnet.)
+Fill out the first server's name with the server's IP and domain, and remove the unneeded domains and the second server. (Note that I use `wasabiwallet.co` for testnet.)
 
 ```
 server {
