@@ -380,7 +380,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 									await PinPadViewModel.UnlockAsync(Global);
 									signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
 								}
-								signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction.Height, result.Transaction.BlockHash, result.Transaction.BlockIndex, result.Transaction.Label, result.Transaction.FirstSeen, result.Transaction.IsReplacement);
+								signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction);
 							}
 						}
 						catch (Exception ex)
