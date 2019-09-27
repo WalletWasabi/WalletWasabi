@@ -23,11 +23,11 @@ namespace WalletWasabi.Gui.Models
 
 			if (hwi.NeedsPinSent is true)
 			{
-				walletNameBuilder.Append($" - Needs PIN Sent");
+				walletNameBuilder.Append(" - Needs PIN Sent");
 			}
 			else if (hwi.NeedsPassphraseSent is true)
 			{
-				walletNameBuilder.Append($" - Needs Passphrase Sent");
+				walletNameBuilder.Append(" - Needs Passphrase Sent");
 			}
 			else if (!string.IsNullOrWhiteSpace(hwi.Error))
 			{
@@ -39,7 +39,7 @@ namespace WalletWasabi.Gui.Models
 			}
 			else if (hwi.Fingerprint is null)
 			{
-				walletNameBuilder.Append($" - Could Not Acquire Fingerprint");
+				walletNameBuilder.Append(" - Could Not Acquire Fingerprint");
 			}
 
 			WalletName = walletNameBuilder.ToString();
