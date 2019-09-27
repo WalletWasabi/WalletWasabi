@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui.Models
 
 			if (hwi.NeedsPinSent is true)
 			{
-				walletNameBuilder.Append($" - Needs PIN Sent");
+				walletNameBuilder.Append(" - Needs PIN Sent");
 			}
 			else if (hwi.NeedsPassphraseSent is true)
 			{
