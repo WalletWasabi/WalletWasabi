@@ -394,108 +394,108 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				var walletName = selectedWallet.WalletName;
 				if (isHardwareWallet)
 				{
-					using (var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
-					{
-						var client = new HwiClient(Global.Network);
+					var client = new HwiClient(Global.Network);
 
-						if (selectedWallet.HardwareWalletInfo is null)
+					if (selectedWallet.HardwareWalletInfo is null)
+					{
+						SetValidationMessage("No hardware wallets detected.");
+						return null;
+					}
+
+					if (!selectedWallet.HardwareWalletInfo.IsInitialized())
+					{
+						try
 						{
-							SetValidationMessage("No hardware wallets detected.");
+							IsHardwareBusy = true;
+							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.SettingUpHardwareWallet);
+
+							// Setup may take a while for users to write down stuff.
+							using (var ctsSetup = new CancellationTokenSource(TimeSpan.FromMinutes(21)))
+							{
+								// Trezor T doesn't require interactive mode.
+								if (selectedWallet.HardwareWalletInfo.Model == HardwareWalletModels.Trezor_T
+								|| selectedWallet.HardwareWalletInfo.Model == HardwareWalletModels.Trezor_T_Simulator)
+								{
+									await client.SetupAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, false, ctsSetup.Token);
+								}
+								else
+								{
+									await client.SetupAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, true, ctsSetup.Token);
+								}
+							}
+
+							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.ConnectingToHardwareWallet);
+							await EnumerateHardwareWalletsAsync();
+						}
+						finally
+						{
+							IsHardwareBusy = false;
+							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.SettingUpHardwareWallet, StatusBarStatus.ConnectingToHardwareWallet);
+						}
+
+						return await LoadKeyManagerAsync(requirePassword, isHardwareWallet);
+					}
+					else if (selectedWallet.HardwareWalletInfo.NeedsPinSent is true)
+					{
+						await PinPadViewModel.UnlockAsync(Global, selectedWallet.HardwareWalletInfo);
+
+						var p = selectedWallet.HardwareWalletInfo.Path;
+						var t = selectedWallet.HardwareWalletInfo.Model;
+						await EnumerateHardwareWalletsAsync();
+						selectedWallet = Wallets.FirstOrDefault(x => x.HardwareWalletInfo.Model == t && x.HardwareWalletInfo.Path == p);
+						if (selectedWallet is null)
+						{
+							SetValidationMessage("Could not find the hardware wallet you are working with. Did you disconnect it?");
 							return null;
+						}
+						else
+						{
+							SelectedWallet = selectedWallet;
 						}
 
 						if (!selectedWallet.HardwareWalletInfo.IsInitialized())
 						{
-							try
-							{
-								IsHardwareBusy = true;
-								MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.SettingUpHardwareWallet);
-
-								// Setup may take a while for users to write down stuff.
-								using (var ctsSetup = new CancellationTokenSource(TimeSpan.FromMinutes(21)))
-								{
-									// Trezor T doesn't require interactive mode.
-									if (selectedWallet.HardwareWalletInfo.Model == HardwareWalletModels.Trezor_T
-									|| selectedWallet.HardwareWalletInfo.Model == HardwareWalletModels.Trezor_T_Simulator)
-									{
-										await client.SetupAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, false, ctsSetup.Token);
-									}
-									else
-									{
-										await client.SetupAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, true, ctsSetup.Token);
-									}
-								}
-
-								MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.ConnectingToHardwareWallet);
-								await EnumerateHardwareWalletsAsync();
-							}
-							finally
-							{
-								IsHardwareBusy = false;
-								MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.SettingUpHardwareWallet, StatusBarStatus.ConnectingToHardwareWallet);
-							}
-
-							return await LoadKeyManagerAsync(requirePassword, isHardwareWallet);
+							SetValidationMessage("Hardware wallet is not initialized.");
+							return null;
 						}
-						else if (selectedWallet.HardwareWalletInfo.NeedsPinSent is true)
+
+						if (selectedWallet.HardwareWalletInfo.NeedsPinSent is true)
 						{
-							await PinPadViewModel.UnlockAsync(Global, selectedWallet.HardwareWalletInfo);
-
-							var p = selectedWallet.HardwareWalletInfo.Path;
-							var t = selectedWallet.HardwareWalletInfo.Model;
-							await EnumerateHardwareWalletsAsync();
-							selectedWallet = Wallets.FirstOrDefault(x => x.HardwareWalletInfo.Model == t && x.HardwareWalletInfo.Path == p);
-							if (selectedWallet is null)
-							{
-								SetValidationMessage("Could not find the hardware wallet you are working with. Did you disconnect it?");
-								return null;
-							}
-							else
-							{
-								SelectedWallet = selectedWallet;
-							}
-
-							if (!selectedWallet.HardwareWalletInfo.IsInitialized())
-							{
-								SetValidationMessage("Hardware wallet is not initialized.");
-								return null;
-							}
-
-							if (selectedWallet.HardwareWalletInfo.NeedsPinSent is true)
-							{
-								SetValidationMessage("Hardware wallet needs a PIN to be sent.");
-								return null;
-							}
+							SetValidationMessage("Hardware wallet needs a PIN to be sent.");
+							return null;
 						}
+					}
 
-						if (selectedWallet.HardwareWalletInfo.Fingerprint is null)
-						{
-							throw new InvalidOperationException("Hardware wallet did not provide a master fingerprint.");
-						}
+					if (selectedWallet.HardwareWalletInfo.Fingerprint is null)
+					{
+						throw new InvalidOperationException("Hardware wallet did not provide a master fingerprint.");
+					}
 
-						ExtPubKey extPubKey;
-						try
-						{
-							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.AcquiringXpubFromHardwareWallet);
-							extPubKey = await client.GetXpubAsync(selectedWallet.HardwareWalletInfo.Fingerprint.Value, KeyManager.DefaultAccountKeyPath, cts.Token);
-						}
-						finally
-						{
-							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.AcquiringXpubFromHardwareWallet);
-						}
+					ExtPubKey extPubKey;
+					var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+					try
+					{
+						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.AcquiringXpubFromHardwareWallet);
+						extPubKey = await client.GetXpubAsync(selectedWallet.HardwareWalletInfo.Fingerprint.Value, KeyManager.DefaultAccountKeyPath, cts.Token);
+					}
+					finally
+					{
+						cts?.Dispose();
+						cts = null;
+						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.AcquiringXpubFromHardwareWallet);
+					}
 
-						Logger.LogInfo("Hardware wallet was not used previously on this computer. Creating new wallet file.");
+					Logger.LogInfo("Hardware wallet was not used previously on this computer. Creating new wallet file.");
 
-						if (TryFindWalletByExtPubKey(extPubKey, out string wn))
-						{
-							walletName = wn;
-						}
-						else
-						{
-							walletName = Global.GetNextHardwareWalletName(selectedWallet.HardwareWalletInfo);
-							var path = Global.GetWalletFullPath(walletName);
-							KeyManager.CreateNewHardwareWalletWatchOnly(selectedWallet.HardwareWalletInfo.Fingerprint.Value, extPubKey, path);
-						}
+					if (TryFindWalletByExtPubKey(extPubKey, out string wn))
+					{
+						walletName = wn;
+					}
+					else
+					{
+						walletName = Global.GetNextHardwareWalletName(selectedWallet.HardwareWalletInfo);
+						var path = Global.GetWalletFullPath(walletName);
+						KeyManager.CreateNewHardwareWalletWatchOnly(selectedWallet.HardwareWalletInfo.Fingerprint.Value, extPubKey, path);
 					}
 				}
 
