@@ -204,7 +204,7 @@ namespace WalletWasabi.Helpers
 			{
 				if (!fullBaseDirectory.StartsWith('/'))
 				{
-					fullBaseDirectory.Insert(0, "/");
+					fullBaseDirectory = fullBaseDirectory.Insert(0,** "/");
 				}
 			}
 
