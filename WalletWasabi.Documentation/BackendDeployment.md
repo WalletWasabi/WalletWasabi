@@ -162,7 +162,7 @@ testnet=[0/1]
 [main/test].rpcuser=bitcoinuser
 [main/test].rpcpassword=password
 [main/test].whitebind=127.0.0.1:[8333/18333]
-#[main/test].debug=rpc     # in some cases it could be good to uncomment this line. 
+#[main/test].debug=rpc     # in some cases it could be good to uncomment this line.
 ```
 https://bitcoincore.org/en/releases/0.17.0/  
 https://medium.com/@loopring/how-to-run-lighting-btc-node-and-start-mining-b55c4bab8ad  
@@ -265,7 +265,20 @@ server {
     listen        [::]:80;
     listen        443 ssl;
     listen        [::]:443 ssl;
-    server_name   [InsertServerIPHere] wasabiwallet.io www.wasabiwallet.io wasabiwallet.net www.wasabiwallet.net wasabiwallet.org www.wasabiwallet.org wasabiwallet.info www.wasabiwallet.info wasabiwallet.co www.wasabiwallet.co zerolink.info www.zerolink.info hiddenwallet.org www.hiddenwallet.org;
+    server_name   [InsertServerIPHere] wasabiwallet.net www.wasabiwallet.net wasabiwallet.org www.wasabiwallet.org wasabiwallet.info www.wasabiwallet.info wasabiwallet.co www.wasabiwallet.co zerolink.info www.zerolink.info hiddenwallet.org www.hiddenwallet.org;
+    location / {
+        sub_filter '<head>'  '<head><meta name="robots" content="noindex, nofollow" />';
+        sub_filter_once on;
+        proxy_pass         http://localhost:37127;
+    }
+}
+
+server {
+    listen        80;
+    listen        [::]:80;
+    listen        443 ssl;
+    listen        [::]:443 ssl;
+    server_name   wasabiwallet.io www.wasabiwallet.io;
     location / {
         proxy_pass         http://localhost:37127;
     }
@@ -356,7 +369,7 @@ sudo tee -a /etc/motd <<EOS
 EOS
 ```
 
-## Prompt 
+## Prompt
 
 Additionally to the welcome banner it could be good to know in what server we are all the time, in this case update the prompt as follow:
 
