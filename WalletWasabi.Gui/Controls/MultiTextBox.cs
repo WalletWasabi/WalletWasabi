@@ -112,22 +112,22 @@ namespace WalletWasabi.Gui.Controls
 			this.WhenAnyValue(x => x.ClipboardNotificationVisible).Subscribe(visible => TextVisible = !visible);
 
 			this.WhenAnyValue(x => x.SelectionStart).Subscribe(_ =>
-			{
-				if (!IsSelectable)
 				{
-					SelectionEnd = CaretIndex;
-					SelectionStart = CaretIndex;
-				}
-			});
+					if (!IsSelectable)
+					{
+						SelectionEnd = CaretIndex;
+						SelectionStart = CaretIndex;
+					}
+				});
 
 			this.WhenAnyValue(x => x.SelectionEnd).Subscribe(_ =>
-			{
-				if (!IsSelectable)
 				{
-					SelectionEnd = CaretIndex;
-					SelectionStart = CaretIndex;
-				}
-			});
+					if (!IsSelectable)
+					{
+						SelectionEnd = CaretIndex;
+						SelectionStart = CaretIndex;
+					}
+				});
 		}
 
 		public async Task TryCopyToClipboardAsync()
