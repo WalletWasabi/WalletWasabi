@@ -106,6 +106,9 @@ dotnet_style_readonly_field = false:error
 # use expression body for lambdas
 csharp_style_expression_bodied_lambdas = true:error
 
+# IDE0063: Use simple 'using' statement
+csharp_prefer_simple_using_statement = false:error
+
 
 # name all constant or static fields using PascalCase
 dotnet_naming_rule.constant_or_static_fields_should_be_pascal_case.severity = error
