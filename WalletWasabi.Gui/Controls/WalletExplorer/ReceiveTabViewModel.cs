@@ -102,7 +102,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				await SelectedAddress.TryCopyToClipboardAsync();
-			}, isCoinListItemSelected);
+			},
+			isCoinListItemSelected);
 
 			CopyLabel = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -112,7 +113,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (Exception)
 				{ }
-			}, isCoinListItemSelected);
+			},
+			isCoinListItemSelected);
 
 			ToggleQrCode = ReactiveCommand.Create(() =>
 			{
@@ -122,7 +124,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (Exception)
 				{ }
-			}, isCoinListItemSelected);
+			},
+			isCoinListItemSelected);
 
 #pragma warning disable IDE0053 // Use expression body for lambda expressions
 			ChangeLabelCommand = ReactiveCommand.Create(() => { SelectedAddress.InEditMode = true; });

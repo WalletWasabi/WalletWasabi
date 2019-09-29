@@ -138,7 +138,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					SetWarningMessage(ex.ToTypeMessageString());
 					Logger.LogError(ex);
 				}
-			}, outputScheduler: RxApp.MainThreadScheduler);
+			},
+			outputScheduler: RxApp.MainThreadScheduler);
 
 			OpenBrowserCommand = ReactiveCommand.Create<string>(x => IoHelpers.OpenBrowser(x));
 
