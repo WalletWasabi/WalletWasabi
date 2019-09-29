@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <PlatformTarget>x64</PlatformTarget>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <NoWarn>1701;1702;1705;1591;1573</NoWarn>
     <Version>3.0</Version>
@@ -22,12 +22,12 @@
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp2.2\WalletWasabi.Backend.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netcoreapp3.0\WalletWasabi.Backend.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <!-- Needed for Swagger! -->
-    <DocumentationFile>bin\Release\netcoreapp2.2\WalletWasabi.Backend.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\netcoreapp3.0\WalletWasabi.Backend.xml</DocumentationFile>
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
     <ErrorReport>none</ErrorReport>

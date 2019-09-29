@@ -6,17 +6,17 @@ jobs:
   pool:
     vmImage: 'vs2017-win2016'
   steps:
-  - task: DotNetCoreCLI@2
+  - task: DotNetCoreCLI@3
     displayName: 'Build Debug'
     inputs:
       command: build
       arguments: --configuration Debug
-  - task: DotNetCoreCLI@2
+  - task: DotNetCoreCLI@3
     displayName: 'Build Release'
     inputs:
       command: build
       arguments: --configuration Release
-  - task: DotNetCoreCLI@2
+  - task: DotNetCoreCLI@3
     displayName: 'Test Debug'
     inputs:
       command: test
