@@ -98,23 +98,14 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 			//M 00
 			//Q 11
 			//H 10
-			switch (errorLevel)
+			return errorLevel switch
 			{
-				case ErrorCorrectionLevel.H:
-					return 0x02;
-
-				case ErrorCorrectionLevel.L:
-					return 0x01;
-
-				case ErrorCorrectionLevel.M:
-					return 0x00;
-
-				case ErrorCorrectionLevel.Q:
-					return 0x03;
-
-				default:
-					throw new ArgumentException($"Unsupported error correction level [{errorLevel}]", nameof(errorLevel));
-			}
+				ErrorCorrectionLevel.H => 0x02,
+				ErrorCorrectionLevel.L => 0x01,
+				ErrorCorrectionLevel.M => 0x00,
+				ErrorCorrectionLevel.Q => 0x03,
+				_ => throw new ArgumentException($"Unsupported error correction level [{errorLevel}]", nameof(errorLevel))
+			};
 		}
 	}
 }

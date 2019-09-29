@@ -3066,41 +3066,17 @@ namespace WalletWasabi.Tests.IntegrationTests
 			// 1. Prepare and start services.
 			for (int i = 0; i < anonymitySet; i++)
 			{
-				double damount;
-				switch (i)
+				double damount = i switch
 				{
-					case 0:
-						damount = 1;
-						break;
-
-					case 1:
-						damount = 1.1;
-						break;
-
-					case 2:
-						damount = 1.2;
-						break;
-
-					case 3:
-						damount = 3.1;
-						break;
-
-					case 4:
-						damount = 4.1;
-						break;
-
-					case 5:
-						damount = 7.1;
-						break;
-
-					case 6:
-						damount = 8.1;
-						break;
-
-					default:
-						damount = 1;
-						break;
-				}
+					0 => 1,
+					1 => 1.1,
+					2 => 1.2,
+					3 => 3.1,
+					4 => 4.1,
+					5 => 7.1,
+					6 => 8.1,
+					_ => 1
+				};
 
 				var amount = Money.Coins((decimal)damount);
 
