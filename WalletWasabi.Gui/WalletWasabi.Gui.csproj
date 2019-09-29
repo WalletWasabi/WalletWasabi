@@ -42,7 +42,7 @@
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp2.2\WalletWasabi.Gui.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netcoreapp3.0\WalletWasabi.Gui.xml</DocumentationFile>
     <OutputPath />
   </PropertyGroup>
 
