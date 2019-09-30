@@ -27,21 +27,21 @@ namespace WalletWasabi.Hwi.ProcessBridge
 			var createNoWindow = !openConsole;
 			var windowStyle = openConsole ? ProcessWindowStyle.Normal : ProcessWindowStyle.Hidden;
 
-			bool unixWithConsole = openConsole && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-			if (unixWithConsole)
+			if (openConsole && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				var escapedArguments = (hwiPath + " " + arguments).Replace("\"", "\\\"");
-				useShellExecute = false;
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-				{
-					fileName = "xterm";
-					finalArguments = $"-e \"{escapedArguments}\"";
-				}
-				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-				{
-					fileName = "osascript";
-					finalArguments = $"-e 'tell application \"Terminal\" to do script \"{escapedArguments}\"'";
-				}
+				throw new PlatformNotSupportedException(RuntimeInformation.OSDescription);
+				//var escapedArguments = (hwiPath + " " + arguments).Replace("\"", "\\\"");
+				//useShellExecute = false;
+				//if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				//{
+				//	fileName = "xterm";
+				//	finalArguments = $"-e \"{escapedArguments}\"";
+				//}
+				//else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+				//{
+				//	fileName = "osascript";
+				//	finalArguments = $"-e 'tell application \"Terminal\" to do script \"{escapedArguments}\"'";
+				//}
 			}
 
 			ProcessStartInfo startInfo = new ProcessStartInfo
@@ -60,27 +60,18 @@ namespace WalletWasabi.Hwi.ProcessBridge
 					startInfo
 				))
 				{
-					var successString = "{\"success\":\"true\"}";
-					if (unixWithConsole)
+					await process.WaitForExitAsync(cancel).ConfigureAwait(false);
+
+					exitCode = process.ExitCode;
+					if (redirectStandardOutput)
 					{
-						exitCode = 0;
-						responseString = successString;
+						responseString = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
 					}
 					else
 					{
-						await process.WaitForExitAsync(cancel).ConfigureAwait(false);
-
-						exitCode = process.ExitCode;
-						if (redirectStandardOutput)
-						{
-							responseString = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
-						}
-						else
-						{
-							responseString = exitCode == 0
-								? successString
-								: $"{{\"success\":\"false\",\"error\":\"Process terminated with exit code: {exitCode}.\"}}";
-						}
+						responseString = exitCode == 0
+							? "{\"success\":\"true\"}"
+							: $"{{\"success\":\"false\",\"error\":\"Process terminated with exit code: {exitCode}.\"}}";
 					}
 				}
 			}

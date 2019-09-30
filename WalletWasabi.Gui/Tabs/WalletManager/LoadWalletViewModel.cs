@@ -425,11 +425,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 							}
 
 							// Only Windows waits for the process to exit.
-							if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-							{
-								MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.ConnectingToHardwareWallet);
-								await EnumerateHardwareWalletsAsync();
-							}
+							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.ConnectingToHardwareWallet);
+							await EnumerateHardwareWalletsAsync();
 						}
 						finally
 						{
