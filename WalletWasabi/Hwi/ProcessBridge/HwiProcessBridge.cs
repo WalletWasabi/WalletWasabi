@@ -34,7 +34,7 @@ namespace WalletWasabi.Hwi.ProcessBridge
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 				{
 					fileName = "xterm";
-					finalArguments = $"-c \"{escapedArguments}\"";
+					finalArguments = $"-e \"{escapedArguments}\"";
 				}
 				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 				{
