@@ -1,6 +1,7 @@
 using NBitcoin;
 using System;
 using System.Linq;
+using WalletWasabi.Gui.Models;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -21,7 +22,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var relevant = transactionProcessor.Process(tx);
 
 			Assert.False(relevant);
-			Assert.Empty(transactionProcessor.Coins);
+			Assert.True(transactionProcessor.Coins.IsEmpty);
 			Assert.Empty(transactionProcessor.TransactionCache);
 		}
 
@@ -36,7 +37,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var relevant = transactionProcessor.Process(tx);
 
 			Assert.False(relevant);
-			Assert.Empty(transactionProcessor.Coins);
+			Assert.True(transactionProcessor.Coins.IsEmpty);
 		}
 
 		[Fact]
@@ -50,7 +51,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var relevant = transactionProcessor.Process(tx);
 
 			Assert.False(relevant);
-			Assert.Empty(transactionProcessor.Coins);
+			Assert.True(transactionProcessor.Coins.IsEmpty);
 			Assert.Empty(transactionProcessor.TransactionCache);
 		}
 
@@ -65,7 +66,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var relevant = transactionProcessor.Process(tx);
 
 			Assert.False(relevant);
-			Assert.Empty(transactionProcessor.Coins);
+			Assert.True(transactionProcessor.Coins.IsEmpty);
 			Assert.Empty(transactionProcessor.TransactionCache);
 		}
 
@@ -81,7 +82,7 @@ namespace WalletWasabi.Tests.UnitTests
 			transactionProcessor.Process(tx);
 
 			var cachedTx = Assert.Single(transactionProcessor.TransactionCache);
-			var coin = Assert.Single(transactionProcessor.Coins);
+			var coin = Assert.Single(transactionProcessor.Coins.AsCoinsView());
 			Assert.Equal(Height.Mempool, cachedTx.Height);
 			Assert.Equal(Height.Mempool, coin.Height);
 
@@ -91,10 +92,10 @@ namespace WalletWasabi.Tests.UnitTests
 			var relevant = transactionProcessor.Process(tx);
 
 			Assert.True(relevant);
-			Assert.Single(transactionProcessor.Coins);
+			Assert.Single(transactionProcessor.Coins.AsCoinsView());
 			cachedTx = Assert.Single(transactionProcessor.TransactionCache);
 			Assert.NotEqual(Height.Mempool, cachedTx.Height);
-			coin = Assert.Single(transactionProcessor.Coins);
+			coin = Assert.Single(transactionProcessor.Coins.AsCoinsView());
 			Assert.Equal(blockHeight, coin.Height);
 		}
 
@@ -119,8 +120,9 @@ namespace WalletWasabi.Tests.UnitTests
 			var relevant = transactionProcessor.Process(tx);
 
 			Assert.False(relevant);
-			Assert.Single(transactionProcessor.Coins, coin => coin.Unspent);
-			Assert.Single(transactionProcessor.Coins, coin => !coin.Unspent);
+			var coinsView = transactionProcessor.Coins.AsCoinsView();
+			Assert.Single(coinsView, coin => coin.Unspent);
+			Assert.Single(coinsView, coin => !coin.Unspent);
 			Assert.Equal(2, transactionProcessor.TransactionCache.Count());
 		}
 
@@ -145,8 +147,9 @@ namespace WalletWasabi.Tests.UnitTests
 			var relevant = transactionProcessor.Process(tx);
 
 			Assert.True(relevant);
-			Assert.Single(transactionProcessor.Coins, coin => coin.Unspent && coin.Confirmed);
-			Assert.Single(transactionProcessor.Coins, coin => !coin.Unspent && coin.Confirmed);
+			var coinsView = transactionProcessor.Coins.AsCoinsView().Confirmed();
+			Assert.Single(coinsView, coin => coin.Unspent);
+			Assert.Single(coinsView, coin => !coin.Unspent);
 		}
 
 		[Fact]
@@ -173,8 +176,9 @@ namespace WalletWasabi.Tests.UnitTests
 			relevant = transactionProcessor.Process(tx);
 
 			Assert.True(relevant);
-			Assert.Single(transactionProcessor.Coins, coin => coin.Unspent && coin.Amount == Money.Coins(0.9m) && coin.IsReplaceable);
-			Assert.Single(transactionProcessor.Coins, coin => !coin.Unspent && coin.Amount == Money.Coins(1.0m) && !coin.IsReplaceable);
+			var coinsView = transactionProcessor.Coins.AsCoinsView();
+			Assert.Single(coinsView, coin => coin.Unspent && coin.Amount == Money.Coins(0.9m) && coin.IsReplaceable);
+			Assert.Single(coinsView, coin => !coin.Unspent && coin.Amount == Money.Coins(1.0m) && !coin.IsReplaceable);
 		}
 
 		[Fact]
@@ -190,7 +194,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// It is relevant because is funding the wallet
 			Assert.True(relevant);
-			var coin = Assert.Single(transactionProcessor.Coins);
+			var coin = Assert.Single(transactionProcessor.Coins.AsCoinsView());
 			Assert.Equal(Money.Coins(1.0m), coin.Amount);
 			Assert.Contains(transactionProcessor.TransactionCache, x => x == tx);
 			Assert.NotNull(receivedCoin);
@@ -212,7 +216,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var relevant = transactionProcessor.Process(tx);
 
 			Assert.True(relevant);
-			var coin = Assert.Single(transactionProcessor.Coins);
+			var coin = Assert.Single(transactionProcessor.Coins.AsCoinsView());
 			Assert.False(coin.Unspent);
 			Assert.NotNull(spentCoin);
 			Assert.Equal(coin, spentCoin);
@@ -231,7 +235,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// It is relevant even when all the coins can be dust.
 			Assert.True(relevant);
-			Assert.Empty(transactionProcessor.Coins);
+			Assert.True(transactionProcessor.Coins.IsEmpty);
 		}
 
 		[Fact]
@@ -254,7 +258,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// It is relevant even when all the coins can be dust.
 			Assert.True(relevant);
-			var coin = Assert.Single(transactionProcessor.Coins);
+			var coin = Assert.Single(transactionProcessor.Coins.AsCoinsView());
 			Assert.Equal(4, coin.AnonymitySet);
 			Assert.Equal(amount, coin.Amount);
 			Assert.False(coin.IsLikelyCoinJoinOutput);  // It is a coinjoin however we are reveiving but not spending.
@@ -285,7 +289,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// It is relevant even when all the coins can be dust.
 			Assert.True(relevant);
-			var coin = Assert.Single(transactionProcessor.Coins, c => c.AnonymitySet > 1);
+			var coin = Assert.Single(transactionProcessor.Coins.AsCoinsView(), c => c.AnonymitySet > 1);
 			Assert.Equal(5, coin.AnonymitySet);
 			Assert.Equal(amount, coin.Amount);
 			Assert.True(coin.IsLikelyCoinJoinOutput);  // because we are spanding and receiving almost the same amount
@@ -297,7 +301,7 @@ namespace WalletWasabi.Tests.UnitTests
 			keyManager.AssertCleanKeysIndexed();
 			return new TransactionProcessor(
 				keyManager,
-				new ObservableConcurrentHashSet<SmartCoin>(),
+				new CoinsRegistry(),
 				Money.Coins(0.0001m),
 				new ConcurrentHashSet<SmartTransaction>());
 		}
