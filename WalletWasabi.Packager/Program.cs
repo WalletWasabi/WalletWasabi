@@ -227,15 +227,6 @@ namespace WalletWasabi.Packager
 			IoHelpers.BetterExtractZipToDirectoryAsync(torOsxZip, tempDir).GetAwaiter().GetResult();
 			File.Move(Path.Combine(tempDir, "Tor", "tor"), Path.Combine(tempDir, "TorOsx"));
 
-			string hwiSoftwareDir = Path.Combine(LibraryProjectDirectory, "Hwi", "Software");
-			string hwiLinuxZip = Path.Combine(hwiSoftwareDir, "hwi-linux64.zip");
-			IoHelpers.BetterExtractZipToDirectoryAsync(hwiLinuxZip, tempDir).GetAwaiter().GetResult();
-			File.Move(Path.Combine(tempDir, "hwi"), Path.Combine(tempDir, "HwiLin"));
-
-			string hwiOsxZip = Path.Combine(hwiSoftwareDir, "hwi-osx64.zip");
-			IoHelpers.BetterExtractZipToDirectoryAsync(hwiOsxZip, tempDir).GetAwaiter().GetResult();
-			File.Move(Path.Combine(tempDir, "hwi"), Path.Combine(tempDir, "HwiOsx"));
-
 			var tempDirInfo = new DirectoryInfo(tempDir);
 			var binaries = tempDirInfo.GetFiles();
 			Console.WriteLine("Digests:");
@@ -529,10 +520,6 @@ namespace WalletWasabi.Packager
 				Tools.ClearSha512Tags(currentBinDistDirectory);
 				//Tools.RemoveSosDocsUnix(currentBinDistDirectory);
 
-				// Remove HWI binaries that are not relevant to the platform.
-				// On Windows HWI starts from next to the exe because Windows Defender sometimes deletes it.
-				// On Linux and OSX HWI starts from the data folder because otherwise there'd be permission issues.
-				var hwiFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "Hwi", "Software"));
 				// Remove Tor binaries that are not relevant to the platform.
 				var torFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "TorDaemons"));
 				var toNotRemove = "";
@@ -542,13 +529,14 @@ namespace WalletWasabi.Packager
 				}
 				else if (target.StartsWith("linux"))
 				{
-					toNotRemove = "linux";
+					toNotRemove = "lin";
 				}
 				else if (target.StartsWith("osx"))
 				{
 					toNotRemove = "osx";
 				}
-				foreach (var file in torFolder.EnumerateFiles().Concat(hwiFolder.EnumerateFiles()))
+
+				foreach (var file in torFolder.EnumerateFiles())
 				{
 					if (!file.Name.Contains("data", StringComparison.OrdinalIgnoreCase) && !file.Name.Contains(toNotRemove, StringComparison.OrdinalIgnoreCase))
 					{
@@ -556,7 +544,10 @@ namespace WalletWasabi.Packager
 					}
 				}
 
-				foreach (var dir in hwiFolder.EnumerateDirectories())
+				// Remove HWI binaries that are not relevant to the platform.
+				var hwiBinaries = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "Hwi", "Binaries"));
+
+				foreach (var dir in hwiBinaries.EnumerateDirectories())
 				{
 					if (!dir.Name.Contains(toNotRemove, StringComparison.OrdinalIgnoreCase))
 					{
@@ -771,7 +762,8 @@ namespace WalletWasabi.Packager
 						"sudo umount /mnt/c",
 						"sudo mount -t drvfs C: /mnt/c -o metadata",
 						$"cd {linuxPath}",
-						$"sudo find ./{newFolderName} -type f -not -name 'wassabee' -exec chmod 644 {{}} \\;",
+						$"sudo find ./{newFolderName} -type f -exec chmod 644 {{}} \\;",
+						$"sudo find ./{newFolderName} -type f \\( -name 'wassabee' -o -name 'hwi' \\) -exec chmod +x {{}} \\;",
 						$"tar -pczvf {newFolderName}.tar.gz {newFolderName}"
 					};
 					string arguments = string.Join(" && ", commands);
@@ -864,7 +856,6 @@ namespace WalletWasabi.Packager
 
 					string debExeLinuxPath = Tools.LinuxPathCombine(newFolderRelativePath, ExecutableName);
 					string debDestopFileLinuxPath = Tools.LinuxPathCombine(debUsrAppFolderRelativePath, $"{ExecutableName}.desktop");
-					var wasabiStarterScriptLinuxPath = Tools.LinuxPathCombine(debUsrLocalBinFolderRelativePath, $"{ExecutableName}");
 
 					commands = new[]
 					{
@@ -872,8 +863,8 @@ namespace WalletWasabi.Packager
 						"sudo umount /mnt/c",
 						"sudo mount -t drvfs C: /mnt/c -o metadata",
 						$"cd {linuxPath}",
-						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -not -name 'wassabee' -exec chmod 644 {{}} \\;",
-						$"sudo chmod +x {wasabiStarterScriptLinuxPath}",
+						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -exec chmod 644 {{}} \\;",
+						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f \\( -name 'wassabee' -o -name 'hwi' \\) -exec chmod +x {{}} \\;",
 						$"sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)}",
 						$"sudo chmod -R 0644 {debDestopFileLinuxPath}",
 						$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)"

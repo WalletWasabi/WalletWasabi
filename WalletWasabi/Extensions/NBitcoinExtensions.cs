@@ -5,6 +5,7 @@ using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
@@ -250,18 +251,58 @@ namespace NBitcoin
 
 		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt)
 		{
-			return psbt.ExtractSmartTransaction(Height.Unknown);
+			var extractedTx = psbt.ExtractTransaction();
+			return new SmartTransaction(extractedTx, Height.Unknown);
 		}
 
-		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt, Height height, uint256 blockHash = null, int blockIndex = 0, SmartLabel label = null, DateTimeOffset firstSeen = default, bool isReplacement = false)
+		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt, SmartTransaction unsignedSmartTransaction)
 		{
 			var extractedTx = psbt.ExtractTransaction();
-			return new SmartTransaction(extractedTx, height, blockHash, blockIndex, label, isReplacement, firstSeen);
+			return new SmartTransaction(extractedTx,
+				unsignedSmartTransaction.Height,
+				unsignedSmartTransaction.BlockHash,
+				unsignedSmartTransaction.BlockIndex,
+				unsignedSmartTransaction.Label,
+				unsignedSmartTransaction.IsReplacement,
+				unsignedSmartTransaction.FirstSeen);
 		}
 
 		public static void SortByAmount(this TxOutList list)
 		{
 			list.Sort((x, y) => x.Value.CompareTo(y.Value));
+		}
+
+		/// <param name="startWithM">The keypath will start with m/ or not.</param>
+		/// <param name="format">h or ', eg.: m/84h/0h/0 or m/84'/0'/0</param>
+		public static string ToString(this KeyPath me, bool startWithM, string format)
+		{
+			var toStringBuilder = new StringBuilder(me.ToString());
+
+			if (startWithM)
+			{
+				toStringBuilder.Insert(0, "m/");
+			}
+
+			if (format == "h")
+			{
+				toStringBuilder.Replace('\'', 'h');
+			}
+
+			return toStringBuilder.ToString();
+		}
+
+		public static BitcoinWitPubKeyAddress TransformToNetworkNetwork(this BitcoinWitPubKeyAddress me, Network desiredNetwork)
+		{
+			Network originalNetwork = me.Network;
+
+			if (originalNetwork == desiredNetwork)
+			{
+				return me;
+			}
+
+			var newAddress = new BitcoinWitPubKeyAddress(me.Hash, desiredNetwork);
+
+			return newAddress;
 		}
 
 		public static void SortByAmount(this TxInList list, List<Coin> coins)
