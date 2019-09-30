@@ -7,6 +7,7 @@ using Avalonia.Platform;
 using ReactiveUI;
 using System;
 using System.Reactive.Linq;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Controls
 {
@@ -29,7 +30,37 @@ namespace WalletWasabi.Gui.Controls
 			this.WhenAnyValue(x => x.Matrix)
 				.Where(x => x != null)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => FinalMatrix = AddPaddingToMatrix(x));
+				.Do(x => FinalMatrix = AddPaddingToMatrix(x))
+				.Subscribe();
+
+			this.WhenAnyValue(x => x.QRImageSavePath)
+				.Where(x => !string.IsNullOrWhiteSpace(x) || !string.IsNullOrEmpty(x))
+				.Where(x => !(FinalMatrix is null))
+				.Subscribe(x => GenerateQRCodeBitmap(x));
+		}
+
+		private void GenerateQRCodeBitmap(string x)
+		{
+			var pixSize = PixelSize.FromSize(CoercedSize, 1);
+			using (var rtb = new RenderTargetBitmap(pixSize))
+			{
+				rtb.Render(this);
+				rtb.Save(x);
+			}
+		}
+
+		public static readonly DirectProperty<QrCode, string> QRImageSavePathProperty =
+			AvaloniaProperty.RegisterDirect<QrCode, string>(
+				nameof(QRImageSavePath),
+				o => o.QRImageSavePath,
+				(o, v) => o.QRImageSavePath = v);
+
+		private string _qRImageSavePath;
+
+		public string QRImageSavePath
+		{
+			get => _qRImageSavePath;
+			set => SetAndRaise(QRImageSavePathProperty, ref _qRImageSavePath, value);
 		}
 
 		public static readonly DirectProperty<QrCode, bool[,]> MatrixProperty =

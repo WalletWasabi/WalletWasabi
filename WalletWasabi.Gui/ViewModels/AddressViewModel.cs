@@ -1,8 +1,11 @@
 using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
 using System;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -25,6 +28,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private double _clipboardNotificationOpacity;
 		private string _label;
 		private bool _inEditMode;
+		private string _qRImageSavePath;
 		private ObservableAsPropertyHelper<string> _expandMenuCaption;
 
 		public HdPubKey Model { get; }
@@ -135,9 +139,39 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _qrCode, value);
 		}
 
+		public string QRImageSavePath
+		{
+			get => _qRImageSavePath;
+			set => this.RaiseAndSetIfChanged(ref _qRImageSavePath, value);
+		}
+
 		public string ExpandMenuCaption => _expandMenuCaption?.Value ?? string.Empty;
 
 		public CancellationTokenSource CancelClipboardNotification { get; set; }
+
+		public async Task SaveQRCodeAsync()
+		{
+			var sfd = new SaveFileDialog();
+
+			sfd.InitialFileName = $"{Address}.png";
+			sfd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+			sfd.Filters.Add(new FileDialogFilter() { Name = "Portable Network Graphics (PNG) Image file", Extensions = { "png" } });
+
+			var visualRoot = (ClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime;
+			var path = await sfd.ShowAsync(visualRoot.MainWindow);
+
+			if (!string.IsNullOrWhiteSpace(path))
+			{
+				var ext = Path.GetExtension(path);
+
+				if (string.IsNullOrWhiteSpace(ext))
+				{
+					path = $"{path}.png";
+				}
+				
+				QRImageSavePath = path;
+			}
+		}
 
 		public async Task TryCopyToClipboardAsync()
 		{

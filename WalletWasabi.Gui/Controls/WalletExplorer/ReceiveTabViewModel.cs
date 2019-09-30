@@ -33,7 +33,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
 		public ReactiveCommand<Unit, Unit> ToggleQrCode { get; }
 		public ReactiveCommand<Unit, Unit> ChangeLabelCommand { get; }
-
+		public ReactiveCommand<Unit, Unit> SaveQRCodeCommand { get; }
+		
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
 		{
@@ -127,6 +128,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ChangeLabelCommand = ReactiveCommand.Create(() =>
 			{
 				SelectedAddress.InEditMode = true;
+			});
+
+			SaveQRCodeCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				await SelectedAddress?.SaveQRCodeAsync();
 			});
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
