@@ -155,9 +155,9 @@ namespace WalletWasabi.KeyManagement
 			return new KeyManager(null, null, null, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(), filePath);
 		}
 
-		public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerpring, ExtPubKey extPubKey, string filePath = null)
+		public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey extPubKey, string filePath = null)
 		{
-			return new KeyManager(null, null, masterFingerpring, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(), filePath);
+			return new KeyManager(null, null, masterFingerprint, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(), filePath);
 		}
 
 		public static KeyManager Recover(Mnemonic mnemonic, string password, string filePath = null, KeyPath accountKeyPath = null, int minGapLimit = AbsoluteMinGapLimit)

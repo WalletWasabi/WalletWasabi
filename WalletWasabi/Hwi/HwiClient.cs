@@ -63,7 +63,8 @@ namespace WalletWasabi.Hwi
 			{
 				throw new OperationCanceledException($"'hwi {arguments}' operation is canceled.", ex);
 			}
-			catch (HwiException ex) when (ex.ErrorCode == HwiErrorCode.DeviceConnError)
+			// HWI is inconsistent with error codes here.
+			catch (HwiException ex) when (ex.ErrorCode == HwiErrorCode.DeviceConnError || ex.ErrorCode == HwiErrorCode.DeviceNotReady)
 			{
 				// Probably didn't find device with specified fingerprint.
 				// Enumerate and call again, but not forever.
