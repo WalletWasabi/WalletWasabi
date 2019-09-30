@@ -141,7 +141,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return txRecordList;
 			}
 
-			foreach (SmartCoin coin in walletService.Coins)
+			foreach (SmartCoin coin in walletService.Coins.AsCoinsView())
 			{
 				var found = txRecordList.FirstOrDefault(x => x.transactionId == coin.TransactionId);
 

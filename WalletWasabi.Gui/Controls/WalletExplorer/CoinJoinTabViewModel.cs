@@ -309,14 +309,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			else
 			{
-				var queued = Global.WalletService.Coins.Where(x => x.CoinJoinInProgress);
+				var coinsView = Global.WalletService.Coins.AsCoinsView();
+				var queued = coinsView.CoinJoinInProcess();
 				if (queued.Any())
 				{
 					RequiredBTC = registrableRound.State.CalculateRequiredAmount(Global.ChaumianClient.State.GetAllQueuedCoinAmounts().ToArray());
 				}
 				else
 				{
-					var available = Global.WalletService.Coins.Where(x => x.Confirmed && !x.Unavailable);
+					var available = coinsView.Confirmed().Available();
 					RequiredBTC = available.Any()
 						? registrableRound.State.CalculateRequiredAmount(available.Where(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong).Select(x => x.Amount).ToArray())
 						: registrableRound.State.CalculateRequiredAmount();

@@ -21,6 +21,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Gui.Models;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
@@ -74,7 +75,7 @@ namespace WalletWasabi.Services
 
 		public ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)> ProcessedBlocks { get; }
 
-		public ObservableConcurrentHashSet<SmartCoin> Coins { get; }
+		public CoinsRegistry Coins { get; }
 
 		public event EventHandler<FilterModel> NewFilterProcessed;
 
@@ -107,7 +108,7 @@ namespace WalletWasabi.Services
 			ProcessedBlocks = new ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)>();
 			HandleFiltersLock = new AsyncLock();
 
-			Coins = new ObservableConcurrentHashSet<SmartCoin>();
+			Coins = new CoinsRegistry();
 
 			BlocksFolderPath = Path.Combine(workFolderDir, "Blocks", Network.ToString());
 			TransactionsFolderPath = Path.Combine(workFolderDir, "Transactions", Network.ToString());
@@ -191,14 +192,6 @@ namespace WalletWasabi.Services
 			{
 				foreach (var toRemove in e.OldItems.Cast<SmartCoin>())
 				{
-					if (toRemove.SpenderTransactionId != null)
-					{
-						foreach (var toAlsoRemove in Coins.Where(x => x.TransactionId == toRemove.SpenderTransactionId).Distinct().ToList())
-						{
-							Coins.TryRemove(toAlsoRemove);
-						}
-					}
-
 					var txToRemove = TryGetTxFromCache(toRemove.TransactionId);
 					if (txToRemove != default(SmartTransaction))
 					{
@@ -242,9 +235,9 @@ namespace WalletWasabi.Services
 					ProcessedBlocks.TryRemove(invalidBlockHash, out _);
 					if (blockState != null && blockState.BlockHeight != default(Height))
 					{
-						foreach (var toRemove in Coins.Where(x => x.Height == blockState.BlockHeight).Distinct().ToList())
+						foreach (var toRemove in Coins.AsCoinsView().AtBlockHeight(blockState.BlockHeight))
 						{
-							Coins.TryRemove(toRemove);
+							Coins.Remove(toRemove);
 						}
 					}
 				}
@@ -911,7 +904,11 @@ namespace WalletWasabi.Services
 			}
 
 			// Get allowed coins to spend.
-			List<SmartCoin> allowedSmartCoinInputs; // Inputs that can be used to build the transaction.
+			var coinsView = Coins.AsCoinsView().Available();
+			List<SmartCoin> allowedSmartCoinInputs = allowUnconfirmed // Inputs that can be used to build the transaction.
+				? coinsView.ToList()
+				: coinsView.Confirmed().ToList();
+
 			if (allowedInputs != null) // If allowedInputs are specified then select the coins from them.
 			{
 				if (!allowedInputs.Any())
@@ -919,16 +916,15 @@ namespace WalletWasabi.Services
 					throw new ArgumentException($"{nameof(allowedInputs)} is not null, but empty.");
 				}
 
-				allowedSmartCoinInputs = allowUnconfirmed
-					? Coins.Where(x => !x.Unavailable && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList()
-					: Coins.Where(x => !x.Unavailable && x.Confirmed && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
+				var availableCoinsView = coinsView 
+					.FilterBy(x=>allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index));
 
 				// Add those that have the same script, because common ownership is already exposed.
 				// But only if the user didn't click the "max" button. In this case he'd send more money than what he'd think.
 				if (payments.ChangeStrategy != ChangeStrategy.AllRemainingCustom)
 				{
 					var allScripts = allowedSmartCoinInputs.Select(x => x.ScriptPubKey).ToHashSet();
-					foreach (var coin in Coins.Where(x => !x.Unavailable && !allowedSmartCoinInputs.Any(y => x.TransactionId == y.TransactionId && x.Index == y.Index)))
+					foreach (var coin in coinsView.FilterBy(x => !allowedSmartCoinInputs.Any(y => x.TransactionId == y.TransactionId && x.Index == y.Index)))
 					{
 						if (!(allowUnconfirmed || coin.Confirmed))
 						{
@@ -941,10 +937,6 @@ namespace WalletWasabi.Services
 						}
 					}
 				}
-			}
-			else
-			{
-				allowedSmartCoinInputs = allowUnconfirmed ? Coins.Where(x => !x.Unavailable).ToList() : Coins.Where(x => !x.Unavailable && x.Confirmed).ToList();
 			}
 
 			// Get and calculate fee
@@ -1236,7 +1228,7 @@ namespace WalletWasabi.Services
 					if (transaction.Transaction.Inputs.Count == 1) // If we tried to only spend one coin, then we can mark it as spent. If there were more coins, then we do not know.
 					{
 						OutPoint input = transaction.Transaction.Inputs.First().PrevOut;
-						SmartCoin coin = Coins.FirstOrDefault(x => x.TransactionId == input.Hash && x.Index == input.N);
+						SmartCoin coin = Coins.GetByOutPoint(input);
 						if (coin != default)
 						{
 							coin.SpentAccordingToBackend = true;
@@ -1299,6 +1291,7 @@ namespace WalletWasabi.Services
 		}
 
 		public ISet<string> GetLabels() => Coins
+			.AsCoinsView()
 			.SelectMany(x => x.Label.Labels)
 			.Concat(KeyManager
 				.GetKeys()
@@ -1319,12 +1312,13 @@ namespace WalletWasabi.Services
 
 			try
 			{
-				var unspentCoins = Coins.Where(c => c.Unspent); //refreshing unspent coins clusters only
+				var coinsView = Coins.AsCoinsView();
+				var unspentCoins = coinsView.UnSpent(); //refreshing unspent coins clusters only
 				if (unspentCoins.Any())
 				{
-					ILookup<Script, SmartCoin> lookupScriptPubKey = Coins.ToLookup(c => c.ScriptPubKey, c => c);
-					ILookup<uint256, SmartCoin> lookupSpenderTransactionId = Coins.ToLookup(c => c.SpenderTransactionId, c => c);
-					ILookup<uint256, SmartCoin> lookupTransactionId = Coins.ToLookup(c => c.TransactionId, c => c);
+					ILookup<Script, SmartCoin> lookupScriptPubKey = coinsView.ToLookup(c => c.ScriptPubKey, c => c);
+					ILookup<uint256, SmartCoin> lookupSpenderTransactionId = coinsView.ToLookup(c => c.SpenderTransactionId, c => c);
+					ILookup<uint256, SmartCoin> lookupTransactionId = coinsView.ToLookup(c => c.TransactionId, c => c);
 
 					const int simultaneousThread = 2; //threads allowed to run simultaneously in threadpool
 

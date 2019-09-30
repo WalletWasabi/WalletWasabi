@@ -119,7 +119,7 @@ namespace WalletWasabi.Gui
 				return;
 			}
 
-			SmartCoin[] enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
+			SmartCoin[] enqueuedCoins = WalletService.Coins.AsCoinsView().CoinJoinInProcess().ToArray();
 			if (enqueuedCoins.Any())
 			{
 				Logger.LogWarning("Unregistering coins in CoinJoin process.");

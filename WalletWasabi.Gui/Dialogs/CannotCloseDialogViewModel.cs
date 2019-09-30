@@ -136,7 +136,7 @@ namespace WalletWasabi.Gui.Dialogs
 							return;
 						}
 
-						SmartCoin[] enqueuedCoins = Global.WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
+						SmartCoin[] enqueuedCoins = Global.WalletService.Coins.AsCoinsView().CoinJoinInProcess().ToArray();
 						Exception latestException = null;
 						foreach (var coin in enqueuedCoins)
 						{

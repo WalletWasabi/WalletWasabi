@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Gui.Models;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
@@ -14,7 +15,7 @@ namespace WalletWasabi.Services
 
 		public KeyManager KeyManager { get; }
 
-		public ObservableConcurrentHashSet<SmartCoin> Coins { get; }
+		public CoinsRegistry Coins { get; }
 		public Money DustThreshold { get; }
 
 		public event EventHandler<SmartCoin> CoinSpent;
@@ -24,7 +25,7 @@ namespace WalletWasabi.Services
 		public event EventHandler<SmartCoin> CoinReceived;
 
 		public TransactionProcessor(KeyManager keyManager,
-			ObservableConcurrentHashSet<SmartCoin> coins,
+			CoinsRegistry coins,
 			Money dustThreshold,
 			ConcurrentHashSet<SmartTransaction> transactionCache)
 		{
@@ -64,10 +65,11 @@ namespace WalletWasabi.Services
 				return false; // We do not care about non-witness transactions for other than mempool cleanup.
 			}
 
+			var coinsView = Coins.AsCoinsView();
 			if (!justUpdate && !tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
 			{
 				var doubleSpends = new List<SmartCoin>();
-				foreach (SmartCoin coin in Coins)
+				foreach (SmartCoin coin in coinsView)
 				{
 					var spent = false;
 					foreach (TxoRef spentOutput in coin.SpentOutputs)
@@ -102,7 +104,7 @@ namespace WalletWasabi.Services
 							// will add later if they came to our keys
 							foreach (SmartCoin doubleSpentCoin in doubleSpends.Where(x => !x.Confirmed))
 							{
-								Coins.TryRemove(doubleSpentCoin);
+								Coins.Remove(doubleSpentCoin);
 							}
 							tx.SetReplacement();
 							walletRelevant = true;
@@ -117,7 +119,7 @@ namespace WalletWasabi.Services
 						// remove double spent coins recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
 						foreach (SmartCoin doubleSpentCoin in doubleSpends)
 						{
-							Coins.TryRemove(doubleSpentCoin);
+							Coins.Remove(doubleSpentCoin);
 						}
 						walletRelevant = true;
 					}
@@ -133,7 +135,7 @@ namespace WalletWasabi.Services
 				if (allReceivedInternal)
 				{
 					// It is likely a coinjoin if the diff between receive and sent amount is small and have at least 2 equal outputs.
-					Money spentAmount = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).Sum(x => x.Amount);
+					Money spentAmount = coinsView.OutPoints(tx.Transaction.Inputs.ToTxoRefs()).TotalAmount();
 					Money receivedAmount = tx.Transaction.Outputs.Where(x => receiveKeys.Any(y => y.P2wpkhScript == x.ScriptPubKey)).Sum(x => x.Value);
 					bool receivedAlmostAsMuchAsSpent = spentAmount.Almost(receivedAmount, Money.Coins(0.005m));
 
@@ -160,7 +162,7 @@ namespace WalletWasabi.Services
 					}
 
 					foundKey.SetKeyState(KeyState.Used, KeyManager);
-					spentOwnCoins = spentOwnCoins ?? Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
+					spentOwnCoins = spentOwnCoins ?? coinsView.OutPoints(tx.Transaction.Inputs.ToTxoRefs()).ToList();
 					var anonset = tx.Transaction.GetAnonymitySet(i);
 					if (spentOwnCoins.Count != 0)
 					{
@@ -187,7 +189,7 @@ namespace WalletWasabi.Services
 					{
 						if (newCoin.Height != Height.Mempool) // Update the height of this old coin we already had.
 						{
-							SmartCoin oldCoin = Coins.FirstOrDefault(x => x.TransactionId == txId && x.Index == i);
+							SmartCoin oldCoin = Coins.GetByOutPoint(new OutPoint(txId, i));
 							if (oldCoin != null) // Just to be sure, it is a concurrent collection.
 							{
 								oldCoin.Height = newCoin.Height;
@@ -202,7 +204,7 @@ namespace WalletWasabi.Services
 			{
 				var input = tx.Transaction.Inputs[i];
 
-				var foundCoin = Coins.FirstOrDefault(x => x.TransactionId == input.PrevOut.Hash && x.Index == input.PrevOut.N);
+				var foundCoin = Coins.GetByOutPoint(input.PrevOut);
 				if (foundCoin != null)
 				{
 					walletRelevant = true;

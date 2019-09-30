@@ -683,7 +683,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					// Successffully initialized.
 					Owner.OnClose();
 					// Open Wallet Explorer tabs
-					if (Global.WalletService.Coins.Any())
+					if (!Global.WalletService.Coins.IsEmpty)
 					{
 						// If already have coins then open with History tab first.
 						IoC.Get<WalletExplorerViewModel>().OpenWallet(Global.WalletService, receiveDominant: false);
