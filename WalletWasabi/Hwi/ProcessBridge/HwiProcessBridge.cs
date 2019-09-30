@@ -30,7 +30,6 @@ namespace WalletWasabi.Hwi.ProcessBridge
 			if (openConsole && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				var escapedArguments = (hwiPath + " " + arguments).Replace("\"", "\\\"");
-				useShellExecute = false;
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 				{
 					fileName = "xterm";
@@ -38,6 +37,7 @@ namespace WalletWasabi.Hwi.ProcessBridge
 				}
 				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 				{
+					useShellExecute = false;
 					fileName = "open";
 					finalArguments = $"-a Terminal \"'{escapedArguments}'\"";
 				}
