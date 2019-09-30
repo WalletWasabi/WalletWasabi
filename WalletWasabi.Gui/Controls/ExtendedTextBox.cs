@@ -50,31 +50,31 @@ namespace WalletWasabi.Gui.Controls
 			PasteCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
 
 			this.GetObservable(IsReadOnlyProperty).Subscribe(isReadOnly =>
-			{
-				if (ContextMenu is null)
 				{
-					return;
-				}
-
-				var items = ContextMenu.Items as Avalonia.Controls.Controls;
-
-				if (isReadOnly)
-				{
-					if (items.Contains(_pasteItem))
+					if (ContextMenu is null)
 					{
-						items.Remove(_pasteItem);
-						_pasteItem = null;
+						return;
 					}
-				}
-				else
-				{
-					if (!items.Contains(_pasteItem))
+
+					var items = ContextMenu.Items as Avalonia.Controls.Controls;
+
+					if (isReadOnly)
 					{
-						CreatePasteItem();
-						items.Add(_pasteItem);
+						if (items.Contains(_pasteItem))
+						{
+							items.Remove(_pasteItem);
+							_pasteItem = null;
+						}
 					}
-				}
-			});
+					else
+					{
+						if (!items.Contains(_pasteItem))
+						{
+							CreatePasteItem();
+							items.Add(_pasteItem);
+						}
+					}
+				});
 		}
 
 		Type IStyleable.StyleKey => typeof(TextBox);

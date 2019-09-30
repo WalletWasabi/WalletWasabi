@@ -413,16 +413,16 @@ namespace WalletWasabi.KeyManagement
 				{
 					int largestIndex = relevantHdPubKeys.Max(x => x.Index);
 					var smallestMissingIndex = largestIndex;
-					var present = new bool[largestIndex+1];
+					var present = new bool[largestIndex + 1];
 					for (int i = 0; i < relevantHdPubKeys.Length; ++i)
 					{
 						present[relevantHdPubKeys[i].Index] = true;
 					}
 					for (int i = 1; i < present.Length; ++i)
 					{
-						if (!present[i]) 
+						if (!present[i])
 						{
-							smallestMissingIndex = i-1;
+							smallestMissingIndex = i - 1;
 							break;
 						}
 					}

@@ -41,11 +41,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			SelectedCategory = Categories.FirstOrDefault();
 
 			this.WhenAnyValue(x => x.SelectedCategory).Subscribe(category =>
-			{
-				category?.OnCategorySelected();
+				{
+					category?.OnCategorySelected();
 
-				CurrentView = category;
-			});
+					CurrentView = category;
+				});
 		}
 
 		public ObservableCollection<CategoryViewModel> Categories
