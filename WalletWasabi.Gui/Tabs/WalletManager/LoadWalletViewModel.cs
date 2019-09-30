@@ -466,7 +466,18 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						}
 					}
 
-					ExtPubKey extPubKey = await GetXpubAsync(selectedWallet, client);
+					ExtPubKey extPubKey;
+					var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+					try
+					{
+						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.AcquiringXpubFromHardwareWallet);
+						extPubKey = await client.GetXpubAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, KeyManager.DefaultAccountKeyPath, cts.Token);
+					}
+					finally
+					{
+						cts?.Dispose();
+						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.AcquiringXpubFromHardwareWallet);
+					}
 
 					Logger.LogInfo("Hardware wallet was not used previously on this computer. Creating new wallet file.");
 
@@ -478,6 +489,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					{
 						walletName = Global.GetNextHardwareWalletName(selectedWallet.HardwareWalletInfo);
 						var path = Global.GetWalletFullPath(walletName);
+
+						// Get xpub should had triggered passphrase request, so the fingerprint should be available here.
+						if (!selectedWallet.HardwareWalletInfo.Fingerprint.HasValue)
+						{
+							await EnumerateHardwareWalletsAsync();
+							selectedWallet = Wallets.FirstOrDefault(x => x.HardwareWalletInfo.Model == selectedWallet.HardwareWalletInfo.Model && x.HardwareWalletInfo.Path == selectedWallet.HardwareWalletInfo.Path);
+						}
 						KeyManager.CreateNewHardwareWalletWatchOnly(selectedWallet.HardwareWalletInfo.Fingerprint.Value, extPubKey, path);
 					}
 				}
@@ -546,31 +564,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				CanTestPassword = IsWalletSelected;
 			}
-		}
-
-		private static async Task<ExtPubKey> GetXpubAsync(LoadWalletEntry selectedWallet, HwiClient client)
-		{
-			ExtPubKey extPubKey;
-			var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-			try
-			{
-				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.AcquiringXpubFromHardwareWallet);
-				if (selectedWallet.HardwareWalletInfo.Fingerprint.HasValue)
-				{
-					extPubKey = await client.GetXpubAsync(selectedWallet.HardwareWalletInfo.Fingerprint.Value, KeyManager.DefaultAccountKeyPath, cts.Token);
-				}
-				else
-				{
-					extPubKey = await client.GetXpubAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, KeyManager.DefaultAccountKeyPath, cts.Token);
-				}
-			}
-			finally
-			{
-				cts?.Dispose();
-				MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.AcquiringXpubFromHardwareWallet);
-			}
-
-			return extPubKey;
 		}
 
 		private async Task EnumerateHardwareWalletsAsync()
