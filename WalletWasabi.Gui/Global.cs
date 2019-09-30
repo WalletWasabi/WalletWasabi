@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using NBitcoin;
 using NBitcoin.Protocol;
@@ -174,7 +175,11 @@ namespace WalletWasabi.Gui
 
 				KillRequested = true;
 				await TryDesperateDequeueAllCoinsAsync();
-				Dispatcher.UIThread.PostLogException(() => Application.Current?.MainWindow?.Close());
+				Dispatcher.UIThread.PostLogException(() =>
+				{
+					var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+					window?.Close();
+				});
 				await DisposeAsync();
 
 				Logger.LogSoftwareStopped("Wasabi");

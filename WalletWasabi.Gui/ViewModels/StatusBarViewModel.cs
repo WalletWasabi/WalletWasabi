@@ -127,7 +127,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(tup =>
 				{
-					(int filtersLeft, bool downloadingBlock) = tup.ToValueTuple();
+					(int filtersLeft, bool downloadingBlock) = tup;
 					if (filtersLeft == 0 && !downloadingBlock)
 					{
 						TryRemoveStatus(StatusBarStatus.Synchronizing);
@@ -142,7 +142,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(tup =>
 				{
-					(TorStatus tor, BackendStatus backend, int peers) = tup.ToValueTuple();
+					(TorStatus tor, BackendStatus backend, int peers) = tup;
 					if (tor == TorStatus.NotRunning || backend != BackendStatus.Connected || peers < 1)
 					{
 						TryAddStatus(StatusBarStatus.Connecting);
