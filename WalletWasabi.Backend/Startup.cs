@@ -32,10 +32,7 @@ namespace WalletWasabi.Backend
 		{
 			services.AddMemoryCache();
 
-			services.AddMvc(options =>
-			{
-				options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(BitcoinAddress)));
-			})
+			services.AddMvc(options => options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(BitcoinAddress))))
 				.AddControllersAsServices();
 
 			// Register the Swagger generator, defining one or more Swagger documents
@@ -75,10 +72,7 @@ namespace WalletWasabi.Backend
 			app.UseSwagger();
 
 			// Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
-			app.UseSwaggerUI(c =>
-			{
-				c.SwaggerEndpoint($"/swagger/v{Constants.BackendMajorVersion}/swagger.json", "Wasabi Wallet API V3");
-			});
+			app.UseSwaggerUI(c => c.SwaggerEndpoint($"/swagger/v{Constants.BackendMajorVersion}/swagger.json", "Wasabi Wallet API V3"));
 
 			// So to correctly handle HEAD requests.
 			// https://www.tpeczek.com/2017/10/exploring-head-method-behavior-in.html

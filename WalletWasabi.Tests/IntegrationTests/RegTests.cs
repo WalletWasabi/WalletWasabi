@@ -351,7 +351,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 				{
 					filterList.Add(x);
 					await Task.CompletedTask;
-				}, new Height(0));
+				},
+				new Height(0));
 				FilterModel[] filters = filterList.ToArray();
 				for (int i = 0; i < 101; i++)
 				{
@@ -444,7 +445,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 				{
 					filterList.Add(x);
 					await Task.CompletedTask;
-				}, new Height(0));
+				},
+				new Height(0));
 				var filterTip = filterList.Last();
 				Assert.Equal(tip, filterTip.BlockHash);
 
@@ -456,7 +458,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 				{
 					filterList.Add(x);
 					await Task.CompletedTask;
-				}, new Height(0));
+				},
+				new Height(0));
 				FilterModel[] filters = filterList.ToArray();
 				for (int i = 0; i < blockCountIncludingGenesis; i++)
 				{

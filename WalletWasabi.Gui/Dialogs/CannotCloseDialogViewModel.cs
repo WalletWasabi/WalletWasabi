@@ -64,7 +64,8 @@ namespace WalletWasabi.Gui.Dialogs
 				}
 				// OK pressed.
 				Close(false);
-			}, canOk);
+			},
+			canOk);
 
 			CancelCommand = ReactiveCommand.CreateFromTask(async () =>
 			{

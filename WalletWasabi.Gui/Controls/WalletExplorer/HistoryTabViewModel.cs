@@ -40,14 +40,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Transactions = new ObservableCollection<TransactionViewModel>();
 
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
-			{
-				if (Global.UiConfig?.Autocopy is false || transaction is null)
 				{
-					return;
-				}
+					if (Global.UiConfig?.Autocopy is false || transaction is null)
+					{
+						return;
+					}
 
-				await transaction.TryCopyTxIdToClipboardAsync();
-			});
+					await transaction.TryCopyTxIdToClipboardAsync();
+				});
 
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);
 
@@ -72,12 +72,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.DisposeWith(Disposables);
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
-			{
-				foreach (var transaction in Transactions)
 				{
-					transaction.Refresh();
-				}
-			}).DisposeWith(Disposables);
+					foreach (var transaction in Transactions)
+					{
+						transaction.Refresh();
+					}
+				}).DisposeWith(Disposables);
 		}
 
 		public override bool OnClose()

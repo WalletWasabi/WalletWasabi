@@ -26,7 +26,7 @@
             </StackPanel>
             <StackPanel>
               <TextBlock Text="Which hardware wallets are currently supported?" FontWeight="Bold" />
-              <TextBlock Text="- Coldcard Mk1, Mk2, Ledger Nano S, Trezor One, and Trezor T." TextWrapping="Wrap" />
+              <TextBlock Text="- Coldcard, Ledger Nano S, Trezor One, and Trezor T." TextWrapping="Wrap" />
               <TextBlock Text="- While other hardware wallets may also work, they were not tested by Wasabi developers." TextWrapping="Wrap" />
             </StackPanel>
           </StackPanel>
@@ -41,6 +41,7 @@
               <TextBlock Text="{Binding LoadButtonText}" />
             </StackPanel>
           </Button>
+          <Button IsVisible="{Binding IsHardwareWallet}" Content="Search Hardware Wallets" Command="{Binding EnumerateHardwareWalletsCommand}" DockPanel.Dock="Right" Margin="0 0 10 0" />
           <Button IsVisible="{Binding IsHardwareWallet}" Content="Import Coldcard" Command="{Binding ImportColdcardCommand}" DockPanel.Dock="Right" Margin="0 0 10 0" />
           <Button IsVisible="{Binding IsDesktopWallet}" Command="{Binding OpenFolderCommand}" DockPanel.Dock="Right" Margin="0 0 10 0">
             <StackPanel Orientation="Horizontal" Spacing="8">
@@ -65,7 +66,7 @@
             </StackPanel>
             <TextBlock Text="Make sure you set up and logged into the device, usually with a PIN. Some hardware wallets are picky about their USB cables, so you may want to try out multiple ones." TextWrapping="Wrap" />
             <TextBlock IsVisible="{Binding IsLinux}" Text="Also make sure that you properly applied udev rules. These are necessary for the devices to be reachable on Linux environments:" TextWrapping="Wrap" />
-            <StackPanel Orientation="Horizontal">
+            <StackPanel IsVisible="{Binding IsLinux}" Orientation="Horizontal">
               <Button Content="{Binding UDevRulesLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding UDevRulesLink}" />
             </StackPanel>
           </StackPanel>
@@ -77,7 +78,8 @@
                 <TextBlock Text="{Binding WalletName}">
                   <i:Interaction.Behaviors>
                     <behaviors:CommandOnDoubleClickBehavior Command="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=DataContext.LoadCommand}" />
-                  </i:Interaction.Behaviors></TextBlock>
+                  </i:Interaction.Behaviors>
+                </TextBlock>
               </DataTemplate>
             </controls:ExtendedListBox.ItemTemplate>
           </controls:ExtendedListBox>

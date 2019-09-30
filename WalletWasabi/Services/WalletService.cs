@@ -363,7 +363,8 @@ namespace WalletWasabi.Services
 				{
 					await ProcessFilterModelAsync(filterModel, cancel);
 				}
-			}, new Height(bestKeyManagerHeight.Value + 1));
+			},
+			new Height(bestKeyManagerHeight.Value + 1));
 		}
 
 		private async Task LoadDummyMempoolAsync(SmartTransaction[] unconfirmedTransactions)

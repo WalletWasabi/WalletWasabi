@@ -18,10 +18,7 @@ namespace WalletWasabi.Gui.Behaviors
 
 			base.OnAttached();
 
-			Disposables.Add(AssociatedObject.AddHandler(InputElement.LostFocusEvent, (sender, e) =>
-			{
-				e.Handled = ExecuteCommand();
-			}));
+			Disposables.Add(AssociatedObject.AddHandler(InputElement.LostFocusEvent, (sender, e) => e.Handled = ExecuteCommand()));
 		}
 
 		protected override void OnDetaching()

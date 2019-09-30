@@ -96,7 +96,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					SetWarningMessage(ex.ToTypeMessageString());
 					Logger.LogError(ex);
 				}
-			}, outputScheduler: RxApp.MainThreadScheduler);
+			},
+			outputScheduler: RxApp.MainThreadScheduler);
 		}
 
 		private void OnException(Exception ex)

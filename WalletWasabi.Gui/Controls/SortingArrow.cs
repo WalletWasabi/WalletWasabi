@@ -75,14 +75,8 @@ namespace WalletWasabi.Gui.Controls
 
 			Content = stackPnl;
 
-			this.GetObservable(SortDirectionProperty).Subscribe(x =>
-			{
-				SortDirection = x;
-			});
-			this.GetObservable(TextProperty).Subscribe(x =>
-			{
-				Text = x;
-			});
+			this.GetObservable(SortDirectionProperty).Subscribe(x => SortDirection = x);
+			this.GetObservable(TextProperty).Subscribe(x => Text = x);
 		}
 
 		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)

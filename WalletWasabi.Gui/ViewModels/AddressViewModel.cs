@@ -57,11 +57,11 @@ namespace WalletWasabi.Gui.ViewModels
 				});
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
-				this.RaisePropertyChanged(nameof(Address));
-				this.RaisePropertyChanged(nameof(Label));
-			}).DisposeWith(Disposables);
+				{
+					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+					this.RaisePropertyChanged(nameof(Address));
+					this.RaisePropertyChanged(nameof(Label));
+				}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.Label)
 				.Subscribe(newLabel =>
