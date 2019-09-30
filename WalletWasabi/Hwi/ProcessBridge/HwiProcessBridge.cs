@@ -29,7 +29,7 @@ namespace WalletWasabi.Hwi.ProcessBridge
 
 			if (openConsole && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				throw new PlatformNotSupportedException(RuntimeInformation.OSDescription);
+				throw new PlatformNotSupportedException($"{RuntimeInformation.OSDescription} is not supported.");
 				//var escapedArguments = (hwiPath + " " + arguments).Replace("\"", "\\\"");
 				//useShellExecute = false;
 				//if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
