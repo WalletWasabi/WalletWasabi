@@ -37,7 +37,8 @@ namespace Nito.AsyncEx
 				{
 					@this.TryCancel(ret, token);
 				}
-			}, useSynchronizationContext: false);
+			},
+			useSynchronizationContext: false);
 			ret.ContinueWith(_ => registration.Dispose(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
 			return ret;
 		}
