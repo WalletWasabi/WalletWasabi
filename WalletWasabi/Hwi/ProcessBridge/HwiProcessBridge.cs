@@ -27,7 +27,8 @@ namespace WalletWasabi.Hwi.ProcessBridge
 			var createNoWindow = !openConsole;
 			var windowStyle = openConsole ? ProcessWindowStyle.Normal : ProcessWindowStyle.Hidden;
 
-			if (openConsole && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			bool unixWithConsole = openConsole && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+			if (unixWithConsole)
 			{
 				var escapedArguments = (hwiPath + " " + arguments).Replace("\"", "\\\"");
 				useShellExecute = false;
@@ -59,18 +60,27 @@ namespace WalletWasabi.Hwi.ProcessBridge
 					startInfo
 				))
 				{
-					await process.WaitForExitAsync(cancel).ConfigureAwait(false);
-
-					exitCode = process.ExitCode;
-					if (redirectStandardOutput)
+					var successString = "{\"success\":\"true\"}";
+					if (unixWithConsole)
 					{
-						responseString = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+						exitCode = 0;
+						responseString = successString;
 					}
 					else
 					{
-						responseString = exitCode == 0
-							? "{\"success\":\"true\"}"
-							: $"{{\"success\":\"false\",\"error\":\"Process terminated with exit code: {exitCode}.\"}}";
+						await process.WaitForExitAsync(cancel).ConfigureAwait(false);
+
+						exitCode = process.ExitCode;
+						if (redirectStandardOutput)
+						{
+							responseString = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+						}
+						else
+						{
+							responseString = exitCode == 0
+								? successString
+								: $"{{\"success\":\"false\",\"error\":\"Process terminated with exit code: {exitCode}.\"}}";
+						}
 					}
 				}
 			}
