@@ -424,7 +424,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 								}
 							}
 
-							// Only Windows waits for the process to exit.
 							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.ConnectingToHardwareWallet);
 							await EnumerateHardwareWalletsAsync();
 						}
