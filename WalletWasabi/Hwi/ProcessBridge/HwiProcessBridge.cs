@@ -56,9 +56,7 @@ namespace WalletWasabi.Hwi.ProcessBridge
 
 			try
 			{
-				using (var process = Process.Start(
-					startInfo
-				))
+				using (var process = Process.Start(startInfo))
 				{
 					await process.WaitForExitAsync(cancel).ConfigureAwait(false);
 
