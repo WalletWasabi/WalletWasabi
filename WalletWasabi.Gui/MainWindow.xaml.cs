@@ -87,7 +87,8 @@ namespace WalletWasabi.Gui
 					{
 						Logger.LogError(ex);
 					}
-				}, onError: ex => Logger.LogError(ex));
+				},
+				onError: ex => Logger.LogError(ex));
 		}
 
 		protected override void OnDataContextEndUpdate()
