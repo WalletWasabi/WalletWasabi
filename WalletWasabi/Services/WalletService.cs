@@ -917,7 +917,7 @@ namespace WalletWasabi.Services
 				}
 
 				var availableCoinsView = coinsView 
-					.FilterBy(x=>allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index));
+					.FilterBy(x => allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index));
 
 				// Add those that have the same script, because common ownership is already exposed.
 				// But only if the user didn't click the "max" button. In this case he'd send more money than what he'd think.

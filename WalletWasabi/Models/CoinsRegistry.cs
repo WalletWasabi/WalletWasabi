@@ -38,7 +38,7 @@ namespace WalletWasabi.Gui.Models
 				added = _coins.Add(coin);
 			}
 
-			if( added )
+			if (added)
 			{
 				CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, coin));
 			}
@@ -47,11 +47,11 @@ namespace WalletWasabi.Gui.Models
 
 		public void Remove(SmartCoin coin)
 		{
-			var coinsToRemove = AsCoinsView().DescendatOf(coin).ToList();
+			var coinsToRemove = AsCoinsView().DescendantOf(coin).ToList();
 			coinsToRemove.Add(coin);
 			lock (_lock)
 			{
-				foreach(var toRemove in coinsToRemove)
+				foreach (var toRemove in coinsToRemove)
 				{
 					_coins.Remove(coin);
 				}
