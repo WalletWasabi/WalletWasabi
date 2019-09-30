@@ -19,32 +19,32 @@ namespace WalletWasabi.Gui.Models
 
 		public CoinsView UnSpent()
 		{
-			return new CoinsView(_coins.Where(x=>x.Unspent && !x.SpentAccordingToBackend));
+			return new CoinsView(_coins.Where(x => x.Unspent && !x.SpentAccordingToBackend));
 		}
 
 		public CoinsView Available()
 		{
-			return new CoinsView(_coins.Where(x=>!x.Unavailable));
+			return new CoinsView(_coins.Where(x => !x.Unavailable));
 		}
 
 		public CoinsView CoinJoinInProcess()
 		{
-			return new CoinsView(_coins.Where(x=>x.CoinJoinInProgress));
+			return new CoinsView(_coins.Where(x => x.CoinJoinInProgress));
 		}
 
 		public CoinsView Confirmed()
 		{
-			return new CoinsView(_coins.Where(x=>x.Confirmed));
+			return new CoinsView(_coins.Where(x => x.Confirmed));
 		}
 
 		public CoinsView Unconfirmed()
 		{
-			return new CoinsView(_coins.Where(x=>!x.Confirmed));
+			return new CoinsView(_coins.Where(x => !x.Confirmed));
 		}
 
 		public CoinsView AtBlockHeight(Height height)
 		{
-			return new CoinsView(_coins.Where(x=>x.Height == height));
+			return new CoinsView(_coins.Where(x => x.Height == height));
 		}
 
 		public CoinsView SpentBy(uint256 txid)
@@ -57,15 +57,15 @@ namespace WalletWasabi.Gui.Models
 			return new CoinsView(_coins.Where(x => x.TransactionId == coin.SpenderTransactionId));
 		}
 
-		public CoinsView DescendatOf(SmartCoin coin)
+		public CoinsView DescendantOf(SmartCoin coin)
 		{
 			IEnumerable<SmartCoin> Generator(SmartCoin scoin)
 			{
-				foreach(var child in ChildrenOf(scoin))
+				foreach (var child in ChildrenOf(scoin))
 				{
-					foreach(var childDescendat in ChildrenOf(child))
+					foreach (var childDescendant in ChildrenOf(child))
 					{
-						yield return childDescendat;
+						yield return childDescendant;
 					}
 
 					yield return child;
@@ -82,12 +82,12 @@ namespace WalletWasabi.Gui.Models
 
 		public CoinsView OutPoints(IEnumerable<TxoRef> outPoints)
 		{
-			return new CoinsView(_coins.Where(x=> outPoints.Any( y=> y == x.GetOutPoint())));
+			return new CoinsView(_coins.Where(x => outPoints.Any(y => y == x.GetOutPoint())));
 		}
 
 		public Money TotalAmount()
 		{
-			return _coins.Sum(x=>x.Amount);
+			return _coins.Sum(x => x.Amount);
 		}
 
 		public SmartCoin[] ToArray()
