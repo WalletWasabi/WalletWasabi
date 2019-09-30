@@ -39,7 +39,7 @@ namespace WalletWasabi.Hwi.ProcessBridge
 				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 				{
 					fileName = "osascript";
-					finalArguments = $"-e \"{escapedArguments}\"";
+					finalArguments = $"-e 'tell application \"Terminal\" to do script \"{escapedArguments}\"'";
 				}
 			}
 
