@@ -1,6 +1,7 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -146,8 +147,15 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 
 			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
 			{
-				var res = await pb.SendCommandAsync("enumerate", true, cts.Token);
-				Assert.NotEmpty(res.response);
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				{
+					var res = await pb.SendCommandAsync("enumerate", true, cts.Token);
+					Assert.NotEmpty(res.response);
+				}
+				else
+				{
+					await Assert.ThrowsAsync<PlatformNotSupportedException>(async () => await pb.SendCommandAsync("enumerate", true, cts.Token));
+				}
 			}
 		}
 
