@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
@@ -93,7 +94,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				}
 				else
 				{
-					throw new NotSupportedException($"{network} not supported.");
+					throw new NotSupportedNetworkException(network);
 				}
 
 				Assert.Equal(expectedAddress1, address1);
@@ -169,7 +170,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				}
 				else
 				{
-					throw new NotSupportedException($"{network} not supported.");
+					throw new NotSupportedNetworkException(network);
 				}
 
 				Assert.Equal(expectedAddress1, address1);
@@ -258,7 +259,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				}
 				else
 				{
-					throw new NotSupportedException($"{network} not supported.");
+					throw new NotSupportedNetworkException(network);
 				}
 
 				Assert.Equal(expectedAddress1, address1);
@@ -340,7 +341,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				}
 				else
 				{
-					throw new NotSupportedException($"{network} not supported.");
+					throw new NotSupportedNetworkException(network);
 				}
 
 				Assert.Equal(expectedAddress1, address1);
