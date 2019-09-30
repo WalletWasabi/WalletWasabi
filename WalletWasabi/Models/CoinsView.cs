@@ -59,9 +59,9 @@ namespace WalletWasabi.Gui.Models
 
 		public CoinsView DescendatOf(SmartCoin coin)
 		{
-			IEnumerable<SmartCoin> Generator(SmartCoin coin)
+			IEnumerable<SmartCoin> Generator(SmartCoin scoin)
 			{
-				foreach(var child in ChildrenOf(coin))
+				foreach(var child in ChildrenOf(scoin))
 				{
 					foreach(var childDescendat in ChildrenOf(child))
 					{

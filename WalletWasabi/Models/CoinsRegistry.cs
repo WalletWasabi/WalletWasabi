@@ -45,7 +45,6 @@ namespace WalletWasabi.Gui.Models
 			return added;
 		}
 
-
 		public void Remove(SmartCoin coin)
 		{
 			var coinsToRemove = AsCoinsView().DescendatOf(coin).ToList();
