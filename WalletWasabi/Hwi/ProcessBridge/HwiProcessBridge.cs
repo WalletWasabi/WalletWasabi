@@ -27,7 +27,7 @@ namespace WalletWasabi.Hwi.ProcessBridge
 			var createNoWindow = !openConsole;
 			var windowStyle = openConsole ? ProcessWindowStyle.Normal : ProcessWindowStyle.Hidden;
 
-			if (openConsole)
+			if (openConsole && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				var escapedArguments = (hwiPath + " " + arguments).Replace("\"", "\\\"");
 				useShellExecute = false;
