@@ -52,28 +52,42 @@ namespace WalletWasabi.Stores
 			try
 			{
 				// Before Wasabi 1.1.7
-				var oldTransactionsFolderPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), "Transactions", Network.Name);
-				if (Directory.Exists(oldTransactionsFolderPath))
+				var networkIndependentTransactionsFolderPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), "Transactions");
+				if (File.Exists(networkIndependentTransactionsFolderPath))
 				{
-					lock (Lock)
+					var oldTransactionsFolderPath = Path.Combine(networkIndependentTransactionsFolderPath, Network.Name);
+					if (Directory.Exists(oldTransactionsFolderPath))
 					{
-						foreach (var filePath in Directory.EnumerateFiles(oldTransactionsFolderPath))
+						lock (Lock)
 						{
-							try
+							foreach (var filePath in Directory.EnumerateFiles(oldTransactionsFolderPath))
 							{
-								string jsonString = File.ReadAllText(filePath, Encoding.UTF8);
-								var allTransactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?.OrderByBlockchain() ?? Enumerable.Empty<SmartTransaction>();
-								AddOrUpdateNoLock(allTransactions);
+								try
+								{
+									string jsonString = File.ReadAllText(filePath, Encoding.UTF8);
+									var allTransactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?.OrderByBlockchain() ?? Enumerable.Empty<SmartTransaction>();
+									AddOrUpdateNoLock(allTransactions);
 
-								// ToDo: Uncomment when PR is finished.
-								// File.Delete(filePath);
+									// ToDo: Uncomment when PR is finished.
+									// File.Delete(filePath);
+								}
+								catch (Exception ex)
+								{
+									Logger.LogTrace(ex);
+								}
 							}
-							catch (Exception ex)
-							{
-								Logger.LogTrace(ex);
-							}
+
+							// ToDo: Uncomment when PR is finished.
+							// Directory.Delete(oldTransactionsFolderPath, recursive: true);
 						}
 					}
+
+					// ToDo: Uncomment when PR is finished.
+					//// If all networks successfully migrated, too, then delete the transactions folder, too.
+					//if (!Directory.EnumerateFileSystemEntries(networkIndependentTransactionsFolderPath).Any())
+					//{
+					//	Directory.Delete(networkIndependentTransactionsFolderPath, recursive: true);
+					//}
 				}
 			}
 			catch (Exception ex)
