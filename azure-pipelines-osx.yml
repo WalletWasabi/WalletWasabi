@@ -6,6 +6,10 @@ jobs:
   pool:
     vmImage: 'macOS-10.13'
   steps:
+    - task: UseDotNet@2
+    displayName: 'Install .NET Core 3'
+    inputs:
+      version: 3.x
   - task: DotNetCoreCLI@2
     displayName: 'Build Debug'
     inputs:
