@@ -8,34 +8,37 @@ namespace WalletWasabi.Gui.Models
 {
 	public class CoinsRegistry
 	{
-		private HashSet<SmartCoin> _coins;
-		private object _lock;
+		private ConcurrentHashSet<SmartCoin> Coins { get; }
+		private object Lock { get; }
 		public event NotifyCollectionChangedEventHandler CollectionChanged;
 
 		public CoinsRegistry()
 		{
-			_coins = new HashSet<SmartCoin>();
-			_lock = new object();
+			Coins = new ConcurrentHashSet<SmartCoin>();
+			Lock = new object();
 		}
 
 		public CoinsView AsCoinsView()
 		{
-			return new CoinsView(_coins);
+			return new CoinsView(Coins);
 		}
 
-		public bool IsEmpty => !_coins.Any();
+		public bool IsEmpty => !Coins.Any();
 
 		public SmartCoin GetByOutPoint(OutPoint outpoint)
 		{
-			return _coins.FirstOrDefault(x => x.GetOutPoint() == outpoint);
+			return Coins.FirstOrDefault(x => x.GetOutPoint() == outpoint);
 		}
 
 		public bool TryAdd(SmartCoin coin)
 		{
 			var added = false;
-			lock (_lock)
+			lock (Lock)
 			{
-				added = _coins.Add(coin);
+				if (Coins.TryAdd(coin))
+				{
+					added = true;
+				}
 			}
 
 			if (added)
@@ -49,23 +52,38 @@ namespace WalletWasabi.Gui.Models
 		{
 			var coinsToRemove = AsCoinsView().DescendantOf(coin).ToList();
 			coinsToRemove.Add(coin);
-			lock (_lock)
+			var removed = new List<SmartCoin>();
+			lock (Lock)
 			{
 				foreach (var toRemove in coinsToRemove)
 				{
-					_coins.Remove(coin);
+					if (Coins.TryRemove(toRemove))
+					{
+						removed.Add(coin);
+					}
 				}
 			}
-			CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, coinsToRemove));
+			if(removed.Count > 0)
+			{
+				CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removed));
+			}
 		}
 
 		public void Clear()
 		{
-			lock (_lock)
+			var cleaned = false;
+			lock (Lock)
 			{
-				_coins.Clear();
+				if(Coins.Count > 0)
+				{
+					Coins.Clear();
+					cleaned = true;
+				}
 			}
-			CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+			if(cleaned)
+			{
+				CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+			}
 		}
 	}
 }
