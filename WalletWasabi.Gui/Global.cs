@@ -51,7 +51,6 @@ namespace WalletWasabi.Gui
 
 		public string AddressManagerFilePath { get; private set; }
 		public AddressManager AddressManager { get; private set; }
-		public MempoolService MempoolService { get; private set; }
 
 		public NodesGroup Nodes { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
@@ -201,18 +200,17 @@ namespace WalletWasabi.Gui
 
 			#endregion TorProcessInitialization
 
-			#region MempoolInitialization
-
-			MempoolService = new MempoolService();
-			connectionParameters.TemplateBehaviors.Add(new MempoolBehavior(MempoolService));
-
-			#endregion MempoolInitialization
-
 			#region BitcoinStoreInitialization
 
 			await bstoreInitTask;
 
 			#endregion BitcoinStoreInitialization
+
+			#region MempoolInitialization
+
+			connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateMempoolBehavior());
+
+			#endregion MempoolInitialization
 
 			#region AddressManagerInitialization
 
@@ -236,7 +234,7 @@ namespace WalletWasabi.Gui
 
 					RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint);
 
-					RegTestMempoolServingNode.Behaviors.Add(new MempoolBehavior(MempoolService));
+					RegTestMempoolServingNode.Behaviors.Add(BitcoinStore.CreateMempoolBehavior());
 				}
 				catch (SocketException ex)
 				{
@@ -413,7 +411,7 @@ namespace WalletWasabi.Gui
 					Logger.LogWarning(ex);
 				}
 
-				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, MempoolService, Nodes, DataDir, Config.ServiceConfiguration);
+				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, Nodes, DataDir, Config.ServiceConfiguration);
 
 				ChaumianClient.Start();
 				Logger.LogInfo("Start Chaumian CoinJoin service...");
@@ -513,15 +511,14 @@ namespace WalletWasabi.Gui
 							continue;
 						}
 						string amountString = coin.Amount.ToString(false, true);
-						using (var process = Process.Start(new ProcessStartInfo
+						using var process = Process.Start(new ProcessStartInfo
 						{
 							FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
 							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
 								? $"-e \"display notification \\\"Received {amountString} BTC\\\" with title \\\"Wasabi\\\"\""
 								: $"--expire-time=3000 \"Wasabi\" \"Received {amountString} BTC\"",
 							CreateNoWindow = true
-						}))
-						{ }
+						});
 					}
 				}
 			}
