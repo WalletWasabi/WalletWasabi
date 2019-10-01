@@ -12,7 +12,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Stores
 {
-	public abstract class TransactionStoreBase
+	public class TransactionStore
 	{
 		public string WorkFolderPath { get; private set; }
 		public Network Network { get; private set; }

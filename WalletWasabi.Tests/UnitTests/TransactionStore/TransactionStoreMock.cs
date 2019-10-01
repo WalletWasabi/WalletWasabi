@@ -9,7 +9,7 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Tests.UnitTests.TransactionStore
 {
-	public class TransactionStoreMock : TransactionStoreBase
+	public class TransactionStoreMock : Stores.TransactionStore
 	{
 		public TransactionStoreMock([CallerMemberName] string caller = null)
 		{
