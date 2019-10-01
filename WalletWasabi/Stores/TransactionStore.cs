@@ -21,9 +21,9 @@ namespace WalletWasabi.Stores
 		private object TransactionsLock { get; set; }
 		private MutexIoManager TransactionsFileManager { get; set; }
 
-		public async Task InitializeAsync(string workFolderPath, Network network)
+		public async Task InitializeAsync(string workFolderPath, Network network, string operationName)
 		{
-			using (BenchmarkLogger.Measure())
+			using (BenchmarkLogger.Measure(operationName: operationName))
 			{
 				WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 				Network = Guard.NotNull(nameof(network), network);

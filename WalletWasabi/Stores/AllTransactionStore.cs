@@ -37,8 +37,8 @@ namespace WalletWasabi.Stores
 
 				var initTasks = new[]
 				{
-					MempoolStore.InitializeAsync(mempoolWorkFolder, Network),
-					ConfirmedStore.InitializeAsync(confirmedWorkFolder, Network)
+					MempoolStore.InitializeAsync(mempoolWorkFolder, Network, $"{nameof(MempoolStore)}.{nameof(MempoolStore.InitializeAsync)}"),
+					ConfirmedStore.InitializeAsync(confirmedWorkFolder, Network, $"{nameof(ConfirmedStore)}.{nameof(ConfirmedStore.InitializeAsync)}")
 				};
 
 				await Task.WhenAll(initTasks).ConfigureAwait(false);

@@ -24,7 +24,7 @@ namespace WalletWasabi.Tests.UnitTests.TransactionStore
 		public async Task InitializeAsync(Network network, [CallerMemberName] string caller = null)
 		{
 			var dir = Path.Combine(Global.Instance.DataDir, caller);
-			await InitializeAsync(dir, network);
+			await InitializeAsync(dir, network, $"{nameof(TransactionStoreMock)}.{nameof(TransactionStoreMock.InitializeAsync)}");
 		}
 	}
 }
