@@ -72,7 +72,7 @@ namespace WalletWasabi.Io
 			await WriteOutHashAsync(res.hash);
 		}
 
-		public async Task AppendAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default)
+		public async new Task AppendAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default)
 		{
 			if (lines is null || !lines.Any())
 			{
