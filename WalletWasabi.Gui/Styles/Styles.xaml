@@ -16,7 +16,7 @@
       <sys:Double x:Key="FontSizeLarge">16</sys:Double>
       <FontFamily x:Key="MonospacedFont">
         <x:Arguments>
-          <x:String>Inconsolata</x:String>
+          <x:String>Cascadia Code</x:String>
           <x:Uri>resm:WalletWasabi.Gui.Assets.*.ttf?assembly=WalletWasabi.Gui</x:Uri>
         </x:Arguments>
       </FontFamily>
