@@ -1098,7 +1098,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Equal(2, res.OuterWalletOutputs.Count());
-				Assert.Equal(new SmartLabel("outgoing, outgoing2"), res.InnerWalletOutputs.Single().Label);
+				Assert.Contains("outgoing", res.InnerWalletOutputs.Single().Label.Labels);
+				Assert.Contains("outgoing2", res.InnerWalletOutputs.Single().Label.Labels);
 
 				await wallet.SendTransactionAsync(res.Transaction);
 
