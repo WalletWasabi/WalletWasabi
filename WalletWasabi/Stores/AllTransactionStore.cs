@@ -65,8 +65,8 @@ namespace WalletWasabi.Stores
 								try
 								{
 									string jsonString = File.ReadAllText(filePath, Encoding.UTF8);
-									var allTransactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?.OrderByBlockchain() ?? Enumerable.Empty<SmartTransaction>();
-									AddOrUpdateNoLock(allTransactions);
+									var allWalletTransactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?.OrderByBlockchain() ?? Enumerable.Empty<SmartTransaction>();
+									AddOrUpdateNoLock(allWalletTransactions);
 
 									// ToDo: Uncomment when PR is finished.
 									// File.Delete(filePath);
@@ -97,8 +97,7 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		/// <param name="isReorg">The tx cannot unconfirm by default, only if reorg is explicitly specified.</param>
-		private void AddOrUpdateNoLock(SmartTransaction tx, bool isReorg = false)
+		private void AddOrUpdateNoLock(SmartTransaction tx)
 		{
 			var hash = tx.GetHash();
 
@@ -114,18 +113,6 @@ namespace WalletWasabi.Stores
 					ConfirmedStore.TryAdd(tx);
 				}
 			}
-			else if (isReorg)
-			{
-				if (ConfirmedStore.TryRemove(hash, out SmartTransaction found))
-				{
-					found.SetHeight(Height.Mempool);
-					MempoolStore.TryAdd(found);
-				}
-				else
-				{
-					MempoolStore.TryAdd(tx);
-				}
-			}
 			else
 			{
 				if (!ConfirmedStore.Contains(hash))
@@ -135,8 +122,7 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		/// <param name="isReorg">The tx cannot unconfirm by default, only if reorg is explicitly specified.</param>
-		private bool UpdateNoLock(SmartTransaction tx, bool isReorg = false)
+		private bool UpdateNoLock(SmartTransaction tx)
 		{
 			var hash = tx.GetHash();
 
@@ -151,53 +137,41 @@ namespace WalletWasabi.Stores
 					}
 				}
 			}
-			else if (isReorg && ConfirmedStore.TryRemove(hash, out SmartTransaction found))
-			{
-				found.SetHeight(Height.Mempool);
-				if (MempoolStore.TryAdd(found))
-				{
-					return true;
-				}
-			}
 
 			return false;
 		}
 
-		/// <param name="isReorg">The tx cannot unconfirm by default, only if reorg is explicitly specified.</param>
-		public bool Update(SmartTransaction tx, bool isReorg = false)
+		public bool Update(SmartTransaction tx)
 		{
 			lock (Lock)
 			{
-				return UpdateNoLock(tx, isReorg);
+				return UpdateNoLock(tx);
 			}
 		}
 
-		/// <param name="isReorg">The tx cannot unconfirm by default, only if reorg is explicitly specified.</param>
-		public void AddOrUpdate(SmartTransaction tx, bool isReorg = false)
+		public void AddOrUpdate(SmartTransaction tx)
 		{
 			lock (Lock)
 			{
-				AddOrUpdateNoLock(tx, isReorg);
+				AddOrUpdateNoLock(tx);
 			}
 		}
 
-		/// <param name="isReorg">The tx cannot unconfirm by default, only if reorg is explicitly specified.</param>
-		private void AddOrUpdateNoLock(IEnumerable<SmartTransaction> txs, bool isReorg = false)
+		private void AddOrUpdateNoLock(IEnumerable<SmartTransaction> txs)
 		{
 			foreach (var tx in txs)
 			{
-				AddOrUpdateNoLock(tx, isReorg);
+				AddOrUpdateNoLock(tx);
 			}
 		}
 
-		/// <param name="isReorg">The tx cannot unconfirm by default, only if reorg is explicitly specified.</param>
-		public void AddOrUpdate(IEnumerable<SmartTransaction> txs, bool isReorg = false)
+		public void AddOrUpdate(IEnumerable<SmartTransaction> txs)
 		{
 			lock (Lock)
 			{
 				foreach (var tx in txs)
 				{
-					AddOrUpdateNoLock(tx, isReorg);
+					AddOrUpdateNoLock(tx);
 				}
 			}
 		}
