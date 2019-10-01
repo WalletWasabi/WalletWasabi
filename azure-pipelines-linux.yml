@@ -6,7 +6,7 @@ jobs:
   pool:
     vmImage: 'ubuntu-16.04'
   steps:
-    - task: UseDotNet@2
+  - task: UseDotNet@2
     displayName: 'Install .NET Core 3'
     inputs:
       version: 3.x
