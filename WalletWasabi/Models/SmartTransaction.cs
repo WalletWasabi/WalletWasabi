@@ -80,7 +80,9 @@ namespace WalletWasabi.Models
 			Transaction = transaction;
 			Label = label ?? SmartLabel.Empty;
 
-			SetHeight(height, blockHash, blockIndex);
+			Height = height;
+			BlockHash = blockHash;
+			BlockIndex = blockIndex;
 
 			FirstSeen = firstSeen == default ? DateTimeOffset.UtcNow : firstSeen;
 
@@ -89,11 +91,40 @@ namespace WalletWasabi.Models
 
 		#endregion Constructors
 
-		public void SetHeight(Height height, uint256 blockHash = null, int blockIndex = 0)
+		public void Update(SmartTransaction tx, bool forceHeightUpdate)
 		{
-			Height = height;
-			BlockHash = blockHash;
-			BlockIndex = blockIndex;
+			// If this is not the same tx, then don't update.
+			if (this != tx)
+			{
+				throw new InvalidOperationException($"{GetHash()} != {tx.GetHash()}");
+			}
+
+			// If reorg, then tx can be released back from block to the mempool.
+			if (forceHeightUpdate)
+			{
+				Height = tx.Height;
+				BlockHash = tx.BlockHash;
+				BlockIndex = tx.BlockIndex;
+			}
+			// If not reorg, then don't unconfirm.
+			else if (tx.Confirmed)
+			{
+				Height = tx.Height;
+
+				// Update the blockhash and blockindex only if they have valid values.
+				if (tx.BlockHash != null)
+				{
+					BlockHash = tx.BlockHash;
+					BlockIndex = tx.BlockIndex;
+				}
+			}
+
+			if (tx.FirstSeen < FirstSeen)
+			{
+				FirstSeen = tx.FirstSeen;
+			}
+
+			Label = SmartLabel.Merge(Label, tx.Label);
 		}
 
 		public void SetReplacement()

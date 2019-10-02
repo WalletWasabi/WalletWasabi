@@ -108,7 +108,7 @@ namespace WalletWasabi.Stores
 			{
 				if (MempoolStore.TryRemove(hash, out SmartTransaction found))
 				{
-					found.SetHeight(tx.Height, tx.BlockHash, tx.BlockIndex);
+					found.Update(tx, forceHeightUpdate: false);
 					ConfirmedStore.TryAdd(found);
 				}
 				else
@@ -133,7 +133,7 @@ namespace WalletWasabi.Stores
 			{
 				if (MempoolStore.TryRemove(hash, out SmartTransaction found))
 				{
-					found.SetHeight(tx.Height, tx.BlockHash, tx.BlockIndex);
+					found.Update(tx, forceHeightUpdate: false);
 					if (ConfirmedStore.TryAdd(found))
 					{
 						return true;
@@ -173,7 +173,7 @@ namespace WalletWasabi.Stores
 				{
 					if (MempoolStore.TryRemove(hash, out SmartTransaction found))
 					{
-						found.SetHeight(tx.Height, tx.BlockHash, tx.BlockIndex);
+						found.Update(tx, forceHeightUpdate: false);
 						toAddConfirmedStore.Add(found);
 					}
 					else
