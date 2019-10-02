@@ -899,7 +899,7 @@ namespace WalletWasabi.Services
 														bool allowUnconfirmed = false,
 														IEnumerable<TxoRef> allowedInputs = null)
 		{
-			password = password ?? ""; // Correction.
+			password ??= ""; // Correction.
 			payments = Guard.NotNull(nameof(payments), payments);
 
 			long totalAmount = payments.TotalAmount.Satoshi;

@@ -27,7 +27,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			using (await Lock.LockAsync())
 			{
 				WorkingDirectory = Path.Combine(Global.Instance.DataDir, caller);
-				version = version ?? "0.18.1";
+				version ??= "0.18.1";
 				var path = await EnsureDownloadedAsync(version);
 				return new NodeBuilder(WorkingDirectory, path);
 			}

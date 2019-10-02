@@ -195,7 +195,7 @@ namespace WalletWasabi.Services
 
 		private async Task TryProcessStatusAsync(IEnumerable<CcjRunningRoundState> states)
 		{
-			states = states ?? Enumerable.Empty<CcjRunningRoundState>();
+			states ??= Enumerable.Empty<CcjRunningRoundState>();
 
 			if (Interlocked.Read(ref _statusProcessing) == 1) // It's ok to wait for status processing next time.
 			{
@@ -387,7 +387,7 @@ namespace WalletWasabi.Services
 			}
 
 			var signedCoinJoin = unsignedCoinJoin.Clone();
-			signedCoinJoin.Sign(ongoingRound.CoinsRegistered.Select(x => x.Secret = x.Secret ?? KeyManager.GetSecrets(SaltSoup(), x.ScriptPubKey).Single()).ToArray(), ongoingRound.Registration.CoinsRegistered.Select(x => x.GetCoin()).ToArray());
+			signedCoinJoin.Sign(ongoingRound.CoinsRegistered.Select(x => x.Secret ??= KeyManager.GetSecrets(SaltSoup(), x.ScriptPubKey).Single()).ToArray(), ongoingRound.Registration.CoinsRegistered.Select(x => x.GetCoin()).ToArray());
 
 			// Old way of signing, which randomly fails! https://github.com/zkSNACKs/WalletWasabi/issues/716#issuecomment-435498906
 			// Must be fixed in NBitcoin.
@@ -531,7 +531,7 @@ namespace WalletWasabi.Services
 						throw new NotSupportedException("This is impossible.");
 					}
 
-					coin.Secret = coin.Secret ?? KeyManager.GetSecrets(SaltSoup(), coin.ScriptPubKey).Single();
+					coin.Secret ??= KeyManager.GetSecrets(SaltSoup(), coin.ScriptPubKey).Single();
 					var inputProof = new InputProofModel
 					{
 						Input = coin.GetTxoRef(),
@@ -865,7 +865,7 @@ namespace WalletWasabi.Services
 		{
 			lock (RefrigeratorLock)
 			{
-				ingredients = ingredients ?? "";
+				ingredients ??= "";
 
 				Salt = TokenGenerator.GetUniqueKey(21);
 				Soup = StringCipher.Encrypt(ingredients, Salt);
