@@ -51,7 +51,7 @@ namespace WalletWasabi.Services
 				if (isFoundTx)
 				{
 					SmartTransaction foundTx = TransactionCache.FirstOrDefault(x => x == tx);
-					if (foundTx != default(SmartTransaction)) // Must check again, because it's a concurrent collection!
+					if (foundTx != default) // Must check again, because it's a concurrent collection!
 					{
 						foundTx.SetHeight(tx.Height, tx.BlockHash, tx.BlockIndex);
 						walletRelevant = true;

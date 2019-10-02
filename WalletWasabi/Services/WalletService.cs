@@ -200,7 +200,7 @@ namespace WalletWasabi.Services
 					}
 
 					var txToRemove = TryGetTxFromCache(toRemove.TransactionId);
-					if (txToRemove != default(SmartTransaction))
+					if (txToRemove != default)
 					{
 						TransactionCache.TryRemove(txToRemove);
 					}
