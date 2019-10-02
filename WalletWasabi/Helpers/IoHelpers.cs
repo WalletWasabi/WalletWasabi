@@ -95,7 +95,7 @@ namespace System.IO
 			{
 				EnsureContainingDirectoryExists(filePath);
 
-				File.Create(filePath).Dispose();
+				File.Create(filePath)?.Dispose();
 			}
 		}
 
