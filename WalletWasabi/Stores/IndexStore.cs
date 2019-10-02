@@ -111,7 +111,7 @@ namespace WalletWasabi.Stores
 
 				if (ImmatureIndexFileManager.Exists())
 				{
-					foreach (var line in await ImmatureIndexFileManager.ReadAllLinesAsync()) // We can load ImmatureIndexFileManager to the memory, no problem.
+					foreach (var line in await ImmatureIndexFileManager.ReadAllLinesAsync().ConfigureAwait(false)) // We can load ImmatureIndexFileManager to the memory, no problem.
 					{
 						ProcessLine(height, line, enqueue: true);
 						height++;

@@ -38,7 +38,7 @@ namespace WalletWasabi.Mempool
 			{
 				if (message.Message.Payload is GetDataPayload getDataPayload)
 				{
-					await ProcessGetDataAsync(node, getDataPayload);
+					await ProcessGetDataAsync(node, getDataPayload).ConfigureAwait(false);
 					return;
 				}
 
@@ -50,7 +50,7 @@ namespace WalletWasabi.Mempool
 
 				if (message.Message.Payload is InvPayload invPayload)
 				{
-					await ProcessInvAsync(node, invPayload);
+					await ProcessInvAsync(node, invPayload).ConfigureAwait(false);
 					return;
 				}
 			}
@@ -91,7 +91,7 @@ namespace WalletWasabi.Mempool
 						}
 						else
 						{
-							await node.SendMessageAsync(txPayload);
+							await node.SendMessageAsync(txPayload).ConfigureAwait(false);
 							entry.MakeBroadcasted();
 							Logger.LogInfo($"Successfully served transaction to node ({node.RemoteSocketEndpoint}): {entry.TransactionId}.");
 						}
@@ -144,7 +144,7 @@ namespace WalletWasabi.Mempool
 			if (getDataPayload.Inventory.Any() && node.IsConnected)
 			{
 				// ask for the whole transaction
-				await node.SendMessageAsync(getDataPayload);
+				await node.SendMessageAsync(getDataPayload).ConfigureAwait(false);
 			}
 		}
 

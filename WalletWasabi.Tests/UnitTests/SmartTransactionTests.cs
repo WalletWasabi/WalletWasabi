@@ -63,6 +63,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(smartTx.Height, deserialized.Height);
 			Assert.Equal(deserialized, deserialized2);
 			Assert.Equal(deserialized, deserialized3);
+      
 			object sto = deserialized;
 			Assert.True(smartTx.Equals(sto));
 
