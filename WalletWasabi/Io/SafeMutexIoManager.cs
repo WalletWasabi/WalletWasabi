@@ -133,7 +133,7 @@ namespace WalletWasabi.Io
 
 			IoHelpers.EnsureContainingDirectoryExists(NewFilePath);
 
-			await File.WriteAllLinesAsync(NewFilePath, lines, cancellationToken);
+			await File.WriteAllLinesAsync(NewFilePath, lines, cancellationToken).ConfigureAwait(false);
 			SafeMoveNewToOriginal();
 		}
 
@@ -144,7 +144,7 @@ namespace WalletWasabi.Io
 			{
 				filePath = safestFilePath;
 			}
-			return await ReadAllLinesAsync(filePath, cancellationToken);
+			return await ReadAllLinesAsync(filePath, cancellationToken).ConfigureAwait(false);
 		}
 
 		/// <summary>
