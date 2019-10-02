@@ -44,46 +44,38 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		[MemberData(nameof(GetHwiClientConfigurationCombinationValues))]
 		public async Task GetVersionTestsAsync(HwiClient client)
 		{
-			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
-			{
-				Version version = await client.GetVersionAsync(cts.Token);
-				Assert.Equal(new Version("1.0.2"), version);
-			}
+			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
+			Version version = await client.GetVersionAsync(cts.Token);
+			Assert.Equal(new Version("1.0.2"), version);
 		}
 
 		[Theory]
 		[MemberData(nameof(GetHwiClientConfigurationCombinationValues))]
 		public async Task GetHelpTestsAsync(HwiClient client)
 		{
-			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
-			{
-				string help = await client.GetHelpAsync(cts.Token);
-				Assert.NotEmpty(help);
-			}
+			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
+			string help = await client.GetHelpAsync(cts.Token);
+			Assert.NotEmpty(help);
 		}
 
 		[Theory]
 		[MemberData(nameof(GetHwiClientConfigurationCombinationValues))]
 		public async Task CanEnumerateAsync(HwiClient client)
 		{
-			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
-			{
-				IEnumerable<HwiEnumerateEntry> enumerate = await client.EnumerateAsync(cts.Token);
-				Assert.Empty(enumerate);
-			}
+			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
+			IEnumerable<HwiEnumerateEntry> enumerate = await client.EnumerateAsync(cts.Token);
+			Assert.Empty(enumerate);
 		}
 
 		[Theory]
 		[MemberData(nameof(GetHwiClientConfigurationCombinationValues))]
 		public async Task ThrowOperationCanceledExceptionsAsync(HwiClient client)
 		{
-			using (var cts = new CancellationTokenSource())
-			{
-				cts.Cancel();
-				await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.GetVersionAsync(cts.Token));
-				await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.GetHelpAsync(cts.Token));
-				await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.EnumerateAsync(cts.Token));
-			}
+			using var cts = new CancellationTokenSource();
+			cts.Cancel();
+			await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.GetVersionAsync(cts.Token));
+			await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.GetHelpAsync(cts.Token));
+			await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.EnumerateAsync(cts.Token));
 		}
 
 		[Theory]
@@ -91,18 +83,16 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		public async Task ThrowArgumentExceptionsForWrongDevicePathAsync(HwiClient client)
 		{
 			var wrongDeviePaths = new[] { "", " " };
-			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
+			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
+			foreach (HardwareWalletModels deviceType in Enum.GetValues(typeof(HardwareWalletModels)))
 			{
-				foreach (HardwareWalletModels deviceType in Enum.GetValues(typeof(HardwareWalletModels)))
+				foreach (var wrongDevicePath in wrongDeviePaths)
 				{
-					foreach (var wrongDevicePath in wrongDeviePaths)
-					{
-						await Assert.ThrowsAsync<ArgumentException>(async () => await client.WipeAsync(deviceType, wrongDevicePath, cts.Token));
-						await Assert.ThrowsAsync<ArgumentException>(async () => await client.SetupAsync(deviceType, wrongDevicePath, false, cts.Token));
-					}
-					await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.WipeAsync(deviceType, null, cts.Token));
-					await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.SetupAsync(deviceType, null, false, cts.Token));
+					await Assert.ThrowsAsync<ArgumentException>(async () => await client.WipeAsync(deviceType, wrongDevicePath, cts.Token));
+					await Assert.ThrowsAsync<ArgumentException>(async () => await client.SetupAsync(deviceType, wrongDevicePath, false, cts.Token));
 				}
+				await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.WipeAsync(deviceType, null, cts.Token));
+				await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.SetupAsync(deviceType, null, false, cts.Token));
 			}
 		}
 
@@ -110,9 +100,8 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		[MemberData(nameof(GetHwiClientConfigurationCombinationValues))]
 		public async Task CanCallAsynchronouslyAsync(HwiClient client)
 		{
-			using (var cts = new CancellationTokenSource())
-			{
-				var tasks = new List<Task>
+			using var cts = new CancellationTokenSource();
+			var tasks = new List<Task>
 				{
 					client.GetVersionAsync(cts.Token),
 					client.GetVersionAsync(cts.Token),
@@ -122,10 +111,9 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 					client.EnumerateAsync(cts.Token)
 				};
 
-				cts.CancelAfter(ReasonableRequestTimeout * tasks.Count);
+			cts.CancelAfter(ReasonableRequestTimeout * tasks.Count);
 
-				await Task.WhenAny(tasks);
-			}
+			await Task.WhenAny(tasks);
 		}
 
 		[Fact]
@@ -133,11 +121,9 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		{
 			HwiProcessBridge pb = new HwiProcessBridge();
 
-			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
-			{
-				var res = await pb.SendCommandAsync("enumerate", false, cts.Token);
-				Assert.NotEmpty(res.response);
-			}
+			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
+			var res = await pb.SendCommandAsync("enumerate", false, cts.Token);
+			Assert.NotEmpty(res.response);
 		}
 
 		[Fact]
@@ -145,17 +131,15 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		{
 			HwiProcessBridge pb = new HwiProcessBridge();
 
-			using (var cts = new CancellationTokenSource(ReasonableRequestTimeout))
+			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-				{
-					var res = await pb.SendCommandAsync("enumerate", true, cts.Token);
-					Assert.NotEmpty(res.response);
-				}
-				else
-				{
-					await Assert.ThrowsAsync<PlatformNotSupportedException>(async () => await pb.SendCommandAsync("enumerate", true, cts.Token));
-				}
+				var res = await pb.SendCommandAsync("enumerate", true, cts.Token);
+				Assert.NotEmpty(res.response);
+			}
+			else
+			{
+				await Assert.ThrowsAsync<PlatformNotSupportedException>(async () => await pb.SendCommandAsync("enumerate", true, cts.Token));
 			}
 		}
 

@@ -420,29 +420,27 @@ namespace WalletWasabi.Services
 			shuffledOutputs.Shuffle();
 			foreach (var activeOutput in shuffledOutputs)
 			{
-				using (var bobClient = new BobClient(CcjHostUriAction, TorSocks5EndPoint))
+				using var bobClient = new BobClient(CcjHostUriAction, TorSocks5EndPoint);
+				if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput))
 				{
-					if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput))
-					{
-						Logger.LogWarning($"Round ({ongoingRound.State.RoundId}) Bobs did not have enough time to post outputs before timeout. If you see this message, contact nopara73, so he can optimize the phase timeout periods to the worst Internet/Tor connections, which may be yours.");
-						break;
-					}
+					Logger.LogWarning($"Round ({ongoingRound.State.RoundId}) Bobs did not have enough time to post outputs before timeout. If you see this message, contact nopara73, so he can optimize the phase timeout periods to the worst Internet/Tor connections, which may be yours.");
+					break;
+				}
 
-					// Unblind our exposed links.
-					foreach (TxoRef input in registeredInputs)
+				// Unblind our exposed links.
+				foreach (TxoRef input in registeredInputs)
+				{
+					if (ExposedLinks.ContainsKey(input)) // Should never not contain, but oh well, let's not disrupt the round for this.
 					{
-						if (ExposedLinks.ContainsKey(input)) // Should never not contain, but oh well, let's not disrupt the round for this.
+						var found = ExposedLinks[input].FirstOrDefault(x => x.Key.GetP2wpkhAddress(Network) == activeOutput.Address);
+						if (found != default)
 						{
-							var found = ExposedLinks[input].FirstOrDefault(x => x.Key.GetP2wpkhAddress(Network) == activeOutput.Address);
-							if (found != default)
-							{
-								found.IsBlinded = false;
-							}
-							else
-							{
-								// Should never happen, but oh well we can autocorrect it so why not.
-								ExposedLinks[input] = ExposedLinks[input].Append(new HdPubKeyBlindedPair(KeyManager.GetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey), false));
-							}
+							found.IsBlinded = false;
+						}
+						else
+						{
+							// Should never happen, but oh well we can autocorrect it so why not.
+							ExposedLinks[input] = ExposedLinks[input].Append(new HdPubKeyBlindedPair(KeyManager.GetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey), false));
 						}
 					}
 				}
@@ -825,23 +823,21 @@ namespace WalletWasabi.Services
 				return;
 			}
 
-			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+			try
 			{
-				try
+				using (await MixLock.LockAsync(cts.Token))
 				{
-					using (await MixLock.LockAsync(cts.Token))
-					{
-						await DequeueSpentCoinsFromMixNoLockAsync();
-
-						await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.GetTxoRef()).ToArray(), reason);
-					}
-				}
-				catch (TaskCanceledException)
-				{
-					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray(), reason);
+					await DequeueSpentCoinsFromMixNoLockAsync();
 
 					await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.GetTxoRef()).ToArray(), reason);
 				}
+			}
+			catch (TaskCanceledException)
+			{
+				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray(), reason);
+
+				await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.GetTxoRef()).ToArray(), reason);
 			}
 		}
 
@@ -888,41 +884,37 @@ namespace WalletWasabi.Services
 				return;
 			}
 
-			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+			try
 			{
-				try
-				{
-					using (await MixLock.LockAsync(cts.Token))
-					{
-						await DequeueSpentCoinsFromMixNoLockAsync();
-
-						await DequeueCoinsFromMixNoLockAsync(coins, reason);
-					}
-				}
-				catch (TaskCanceledException)
+				using (await MixLock.LockAsync(cts.Token))
 				{
 					await DequeueSpentCoinsFromMixNoLockAsync();
 
 					await DequeueCoinsFromMixNoLockAsync(coins, reason);
 				}
 			}
+			catch (TaskCanceledException)
+			{
+				await DequeueSpentCoinsFromMixNoLockAsync();
+
+				await DequeueCoinsFromMixNoLockAsync(coins, reason);
+			}
 		}
 
 		public async Task DequeueAllCoinsFromMixAsync(string reason)
 		{
-			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+			try
 			{
-				try
-				{
-					using (await MixLock.LockAsync(cts.Token))
-					{
-						await DequeueAllCoinsFromMixNoLockAsync(reason);
-					}
-				}
-				catch (TaskCanceledException)
+				using (await MixLock.LockAsync(cts.Token))
 				{
 					await DequeueAllCoinsFromMixNoLockAsync(reason);
 				}
+			}
+			catch (TaskCanceledException)
+			{
+				await DequeueAllCoinsFromMixNoLockAsync(reason);
 			}
 		}
 

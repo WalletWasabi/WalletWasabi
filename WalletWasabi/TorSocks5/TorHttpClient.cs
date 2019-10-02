@@ -262,10 +262,8 @@ namespace WalletWasabi.TorSocks5
 
 			await TorSocks5Client.Stream.WriteAsync(bytes, 0, bytes.Length).ConfigureAwait(false);
 			await TorSocks5Client.Stream.FlushAsync().ConfigureAwait(false);
-			using (var httpResponseMessage = new HttpResponseMessage())
-			{
-				return await HttpResponseMessageExtensions.CreateNewAsync(TorSocks5Client.Stream, request.Method).ConfigureAwait(false);
-			}
+			using var httpResponseMessage = new HttpResponseMessage();
+			return await HttpResponseMessageExtensions.CreateNewAsync(TorSocks5Client.Stream, request.Method).ConfigureAwait(false);
 		}
 
 		#region IDisposable Support

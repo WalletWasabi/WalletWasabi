@@ -81,13 +81,11 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 				zip = Path.Combine(Global.Instance.DataDir, $"bitcoin-{version}-win64.zip");
 				string url = string.Format("https://bitcoincore.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
-				using (var client = new HttpClient())
-				{
-					client.Timeout = TimeSpan.FromMinutes(10.0);
-					var data = await client.GetByteArrayAsync(url);
-					await File.WriteAllBytesAsync(zip, data);
-					ZipFile.ExtractToDirectory(zip, new FileInfo(zip).Directory.FullName);
-				}
+				using var client = new HttpClient();
+				client.Timeout = TimeSpan.FromMinutes(10.0);
+				var data = await client.GetByteArrayAsync(url);
+				await File.WriteAllBytesAsync(zip, data);
+				ZipFile.ExtractToDirectory(zip, new FileInfo(zip).Directory.FullName);
 			}
 			else
 			{
@@ -102,17 +100,13 @@ namespace WalletWasabi.Tests.NodeBuilding
 					: Path.Combine(Global.Instance.DataDir, $"bitcoin-{version}-osx64.tar.gz");
 
 				string url = string.Format("https://bitcoincore.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
-				using (var client = new HttpClient())
-				{
-					client.Timeout = TimeSpan.FromMinutes(10.0);
-					var data = await client.GetByteArrayAsync(url);
-					await File.WriteAllBytesAsync(zip, data);
+				using var client = new HttpClient();
+				client.Timeout = TimeSpan.FromMinutes(10.0);
+				var data = await client.GetByteArrayAsync(url);
+				await File.WriteAllBytesAsync(zip, data);
 
-					using (var process = Process.Start("tar", "-zxvf " + zip + " -C " + Global.Instance.DataDir))
-					{
-						process.WaitForExit();
-					}
-				}
+				using var process = Process.Start("tar", "-zxvf " + zip + " -C " + Global.Instance.DataDir);
+				process.WaitForExit();
 			}
 			File.Delete(zip);
 			return bitcoind;
@@ -156,10 +150,8 @@ namespace WalletWasabi.Tests.NodeBuilding
 						if (File.Exists(pidFile))
 						{
 							var pid = File.ReadAllText(pidFile);
-							using (var process = Process.GetProcessById(int.Parse(pid)))
-							{
-								process.WaitForExit();
-							}
+							using var process = Process.GetProcessById(int.Parse(pid));
+							process.WaitForExit();
 						}
 						else
 						{

@@ -56,21 +56,19 @@ namespace WalletWasabi.Hwi.ProcessBridge
 
 			try
 			{
-				using (var process = Process.Start(startInfo))
-				{
-					await process.WaitForExitAsync(cancel).ConfigureAwait(false);
+				using var process = Process.Start(startInfo);
+				await process.WaitForExitAsync(cancel).ConfigureAwait(false);
 
-					exitCode = process.ExitCode;
-					if (redirectStandardOutput)
-					{
-						responseString = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
-					}
-					else
-					{
-						responseString = exitCode == 0
-							? "{\"success\":\"true\"}"
-							: $"{{\"success\":\"false\",\"error\":\"Process terminated with exit code: {exitCode}.\"}}";
-					}
+				exitCode = process.ExitCode;
+				if (redirectStandardOutput)
+				{
+					responseString = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+				}
+				else
+				{
+					responseString = exitCode == 0
+						? "{\"success\":\"true\"}"
+						: $"{{\"success\":\"false\",\"error\":\"Process terminated with exit code: {exitCode}.\"}}";
 				}
 			}
 			catch

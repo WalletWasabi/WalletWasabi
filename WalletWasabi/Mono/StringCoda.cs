@@ -186,38 +186,36 @@ namespace Mono.Options
 				yield return string.Empty;
 				yield break;
 			}
-			using (IEnumerator<int> eWidths = widths.GetEnumerator())
+			using IEnumerator<int> eWidths = widths.GetEnumerator();
+			bool? hw = null;
+			int width = GetNextWidth(eWidths, int.MaxValue, ref hw);
+			int start = 0, end;
+			do
 			{
-				bool? hw = null;
-				int width = GetNextWidth(eWidths, int.MaxValue, ref hw);
-				int start = 0, end;
-				do
+				end = GetLineEnd(start, width, self);
+				char c = self[end - 1];
+				if (char.IsWhiteSpace(c))
 				{
-					end = GetLineEnd(start, width, self);
-					char c = self[end - 1];
-					if (char.IsWhiteSpace(c))
-					{
-						--end;
-					}
+					--end;
+				}
 
-					bool needContinuation = end != self.Length && !IsEolChar(c);
-					string continuation = "";
-					if (needContinuation)
-					{
-						--end;
-						continuation = "-";
-					}
-					string line = self.Substring(start, end - start) + continuation;
-					yield return line;
-					start = end;
-					if (char.IsWhiteSpace(c))
-					{
-						++start;
-					}
+				bool needContinuation = end != self.Length && !IsEolChar(c);
+				string continuation = "";
+				if (needContinuation)
+				{
+					--end;
+					continuation = "-";
+				}
+				string line = self.Substring(start, end - start) + continuation;
+				yield return line;
+				start = end;
+				if (char.IsWhiteSpace(c))
+				{
+					++start;
+				}
 
-					width = GetNextWidth(eWidths, width, ref hw);
-				} while (start < self.Length);
-			}
+				width = GetNextWidth(eWidths, width, ref hw);
+			} while (start < self.Length);
 		}
 
 		private static int GetNextWidth(IEnumerator<int> eWidths, int curWidth, ref bool? eValid)
