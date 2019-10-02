@@ -79,6 +79,28 @@ namespace WalletWasabi.Io
 			return new StreamReader(fs, Encoding.ASCII, detectEncodingFromByteOrderMarks: true, bufferSize: bufferSize, leaveOpen: false);
 		}
 
+		public async Task WriteAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default)
+		{
+			if (lines is null || !lines.Any())
+			{
+				return;
+			}
+
+			IoHelpers.EnsureContainingDirectoryExists(FilePath);
+
+			await File.WriteAllLinesAsync(FilePath, lines, cancellationToken);
+		}
+
+		public async Task AppendAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default)
+		{
+			if (lines is null || !lines.Any())
+			{
+				return;
+			}
+
+			await File.AppendAllLinesAsync(FilePath, lines, cancellationToken);
+		}
+
 		#endregion IoOperations
 	}
 }
