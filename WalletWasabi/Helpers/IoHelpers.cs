@@ -71,16 +71,6 @@ namespace System.IO
 			}
 		}
 
-		public static void EnsureFileExists(string filePath)
-		{
-			if (!File.Exists(filePath))
-			{
-				EnsureContainingDirectoryExists(filePath);
-
-				File.Create(filePath).Dispose();
-			}
-		}
-
 		public static void EnsureContainingDirectoryExists(string fileNameOrPath)
 		{
 			string fullPath = Path.GetFullPath(fileNameOrPath); // No matter if relative or absolute path is given to this.
