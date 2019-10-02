@@ -1425,7 +1425,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, mempoolService, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
-			Assert.True(wallet.Coins.IsEmpty);
+			Assert.True(wallet.Coins.IsEmpty());
 			var baseTip = await rpc.GetBestBlockHashAsync();
 
 			// Generate script
@@ -1588,7 +1588,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, mempoolService, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
-			Assert.True(wallet.Coins.IsEmpty);
+			Assert.True(wallet.Coins.IsEmpty());
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey(new SmartLabel("foo label"));
@@ -1609,13 +1609,13 @@ namespace WalletWasabi.Tests.IntegrationTests
 					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
 				}
 
-				Assert.True(wallet.Coins.IsEmpty);
+				Assert.True(wallet.Coins.IsEmpty());
 
 				// Get some money, make it confirm.
 				// this is necesary because we are in a fork now.
 				var tx0Id = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m),
 					replaceable: true);
-				while (wallet.Coins.IsEmpty)
+				while (wallet.Coins.IsEmpty())
 				{
 					await Task.Delay(500); // Waits for the funding transaction get to the mempool.
 				}
@@ -1763,7 +1763,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, mempoolService, nodes, workDir, serviceConfiguration);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
-			Assert.True(wallet.Coins.IsEmpty);
+			Assert.True(wallet.Coins.IsEmpty());
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey(new SmartLabel("foo label"));
@@ -1784,15 +1784,15 @@ namespace WalletWasabi.Tests.IntegrationTests
 					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
 				}
 
-				Assert.True(wallet.Coins.IsEmpty);
+				Assert.True(wallet.Coins.IsEmpty());
 
 				var tx0Id = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m), replaceable: true);
-				while (wallet.Coins.IsEmpty)
+				while (wallet.Coins.IsEmpty())
 				{
 					await Task.Delay(500); // Waits for the funding transaction get to the mempool.
 				}
 
-				var coinsView = wallet.Coins.AsCoinsView(); 
+				var coinsView = wallet.Coins.AsCoinsView();
 				var coin = Assert.Single(coinsView);
 				Assert.True(coin.IsReplaceable);
 
@@ -1800,7 +1800,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				var tx1Id = bfr.TransactionId;
 				await Task.Delay(2000); // Waits for the replacement transaction get to the mempool.
 
-				coinsView = wallet.Coins.AsCoinsView(); 
+				coinsView = wallet.Coins.AsCoinsView();
 				coin = Assert.Single(coinsView);
 				Assert.True(coin.IsReplaceable);
 				Assert.Equal(tx1Id, coin.TransactionId);
@@ -1809,7 +1809,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				var tx2Id = bfr.TransactionId;
 				await Task.Delay(2000); // Waits for the replacement transaction get to the mempool.
 
-				coinsView = wallet.Coins.AsCoinsView(); 
+				coinsView = wallet.Coins.AsCoinsView();
 				coin = Assert.Single(coinsView);
 				Assert.True(coin.IsReplaceable);
 				Assert.Equal(tx2Id, coin.TransactionId);
@@ -1907,6 +1907,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
 			using var torClient = new TorHttpClient(baseUri, Global.Instance.TorSocks5Endpoint);
 			using var satoshiClient = new SatoshiClient(baseUri, null);
+
 			#region PostInputsGetStates
 
 			// <-------------------------->

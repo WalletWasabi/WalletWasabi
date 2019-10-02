@@ -22,7 +22,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var relevant = transactionProcessor.Process(tx);
 
 			Assert.False(relevant);
-			Assert.True(transactionProcessor.Coins.IsEmpty);
+			Assert.True(transactionProcessor.Coins.IsEmpty());
 			Assert.Empty(transactionProcessor.TransactionCache);
 		}
 
@@ -37,7 +37,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var relevant = transactionProcessor.Process(tx);
 
 			Assert.False(relevant);
-			Assert.True(transactionProcessor.Coins.IsEmpty);
+			Assert.True(transactionProcessor.Coins.IsEmpty());
 		}
 
 		[Fact]
@@ -51,7 +51,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var relevant = transactionProcessor.Process(tx);
 
 			Assert.False(relevant);
-			Assert.True(transactionProcessor.Coins.IsEmpty);
+			Assert.True(transactionProcessor.Coins.IsEmpty());
 			Assert.Empty(transactionProcessor.TransactionCache);
 		}
 
@@ -66,7 +66,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var relevant = transactionProcessor.Process(tx);
 
 			Assert.False(relevant);
-			Assert.True(transactionProcessor.Coins.IsEmpty);
+			Assert.True(transactionProcessor.Coins.IsEmpty());
 			Assert.Empty(transactionProcessor.TransactionCache);
 		}
 
@@ -235,7 +235,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// It is relevant even when all the coins can be dust.
 			Assert.True(relevant);
-			Assert.True(transactionProcessor.Coins.IsEmpty);
+			Assert.True(transactionProcessor.Coins.IsEmpty());
 		}
 
 		[Fact]

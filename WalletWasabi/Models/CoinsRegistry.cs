@@ -8,26 +8,39 @@ namespace WalletWasabi.Gui.Models
 {
 	public class CoinsRegistry
 	{
-		private ConcurrentHashSet<SmartCoin> Coins { get; }
+		private HashSet<SmartCoin> Coins { get; }
 		private object Lock { get; }
+
 		public event NotifyCollectionChangedEventHandler CollectionChanged;
 
 		public CoinsRegistry()
 		{
-			Coins = new ConcurrentHashSet<SmartCoin>();
+			Coins = new HashSet<SmartCoin>();
 			Lock = new object();
 		}
 
 		public CoinsView AsCoinsView()
 		{
-			return new CoinsView(Coins);
+			lock (Lock)
+			{
+				return new CoinsView(Coins.ToList());
+			}
 		}
 
-		public bool IsEmpty => !Coins.Any();
+		public bool IsEmpty()
+		{
+			lock (Lock)
+			{
+				return !Coins.Any();
+			}
+		}
 
 		public SmartCoin GetByOutPoint(OutPoint outpoint)
 		{
-			return Coins.FirstOrDefault(x => x.GetOutPoint() == outpoint);
+			lock (Lock)
+			{
+				return Coins.FirstOrDefault(x => x.GetOutPoint() == outpoint);
+			}
 		}
 
 		public bool TryAdd(SmartCoin coin)
@@ -35,7 +48,7 @@ namespace WalletWasabi.Gui.Models
 			var added = false;
 			lock (Lock)
 			{
-				if (Coins.TryAdd(coin))
+				if (Coins.Add(coin))
 				{
 					added = true;
 				}
@@ -57,13 +70,13 @@ namespace WalletWasabi.Gui.Models
 			{
 				foreach (var toRemove in coinsToRemove)
 				{
-					if (Coins.TryRemove(toRemove))
+					if (Coins.Remove(toRemove))
 					{
 						removed.Add(coin);
 					}
 				}
 			}
-			if(removed.Count > 0)
+			if (removed.Count > 0)
 			{
 				CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removed));
 			}
@@ -74,13 +87,13 @@ namespace WalletWasabi.Gui.Models
 			var cleaned = false;
 			lock (Lock)
 			{
-				if(Coins.Count > 0)
+				if (Coins.Count > 0)
 				{
 					Coins.Clear();
 					cleaned = true;
 				}
 			}
-			if(cleaned)
+			if (cleaned)
 			{
 				CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
 			}
