@@ -43,42 +43,42 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			InitializeAddresses();
 
 			GenerateCommand = ReactiveCommand.Create(() =>
-			{
-				var label = new SmartLabel(Label);
-				Label = label.ToString();
-				if (label.IsEmpty)
 				{
-					LabelRequiredNotificationVisible = true;
-					LabelRequiredNotificationOpacity = 1;
-
-					Dispatcher.UIThread.PostLogException(async () =>
+					var label = new SmartLabel(Label);
+					Label = label.ToString();
+					if (label.IsEmpty)
 					{
-						await Task.Delay(TimeSpan.FromSeconds(4));
-						LabelRequiredNotificationOpacity = 0;
-					});
+						LabelRequiredNotificationVisible = true;
+						LabelRequiredNotificationOpacity = 1;
 
-					return;
-				}
+						Dispatcher.UIThread.PostLogException(async () =>
+							{
+								await Task.Delay(TimeSpan.FromSeconds(4));
+								LabelRequiredNotificationOpacity = 0;
+							});
 
-				Dispatcher.UIThread.PostLogException(() =>
-				{
-					HdPubKey newKey = Global.WalletService.GetReceiveKey(new SmartLabel(Label), Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
-
-					AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
-					if (found != default)
-					{
-						Addresses.Remove(found);
+						return;
 					}
 
-					var newAddress = new AddressViewModel(newKey, Global);
+					Dispatcher.UIThread.PostLogException(() =>
+						{
+							HdPubKey newKey = Global.WalletService.GetReceiveKey(new SmartLabel(Label), Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
 
-					Addresses.Insert(0, newAddress);
+							AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
+							if (found != default)
+							{
+								Addresses.Remove(found);
+							}
 
-					SelectedAddress = newAddress;
+							var newAddress = new AddressViewModel(newKey, Global);
 
-					Label = "";
+							Addresses.Insert(0, newAddress);
+
+							SelectedAddress = newAddress;
+
+							Label = "";
+						});
 				});
-			});
 
 			this.WhenAnyValue(x => x.Label).Subscribe(UpdateSuggestions);
 
@@ -117,15 +117,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			isCoinListItemSelected);
 
 			ToggleQrCode = ReactiveCommand.Create(() =>
-			{
-				try
 				{
-					SelectedAddress.IsExpanded = !SelectedAddress.IsExpanded;
-				}
-				catch (Exception)
-				{ }
-			},
-			isCoinListItemSelected);
+					try
+					{
+						SelectedAddress.IsExpanded = !SelectedAddress.IsExpanded;
+					}
+					catch (Exception)
+					{ }
+				},
+				isCoinListItemSelected);
 
 #pragma warning disable IDE0053 // Use expression body for lambda expressions
 			ChangeLabelCommand = ReactiveCommand.Create(() => { SelectedAddress.InEditMode = true; });

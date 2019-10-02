@@ -36,11 +36,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public PinPadViewModel(Global global) : base(global, "Pin Pad")
 		{
 			SendPinCommand = ReactiveCommand.Create(() =>
-			{
-				DialogResult = true;
-				OnClose();
-			},
-			this.WhenAny(x => x.MaskedPin, (maskedPin) => !string.IsNullOrWhiteSpace(maskedPin.Value)));
+				{
+					DialogResult = true;
+					OnClose();
+				},
+				this.WhenAny(x => x.MaskedPin, (maskedPin) => !string.IsNullOrWhiteSpace(maskedPin.Value)));
 
 			KeyPadCommand = ReactiveCommand.Create<string>((arg) => MaskedPin += arg);
 

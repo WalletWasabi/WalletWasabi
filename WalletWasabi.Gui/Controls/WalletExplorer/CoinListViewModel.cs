@@ -281,83 +281,83 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 
 			EnqueueCoin = ReactiveCommand.Create(() =>
-			{
-				if (SelectedCoin is null)
 				{
-					return;
-				}
-				//await Global.ChaumianClient.QueueCoinsToMixAsync()
-			});
+					if (SelectedCoin is null)
+					{
+						return;
+					}
+					//await Global.ChaumianClient.QueueCoinsToMixAsync()
+				});
 
 			DequeueCoin = ReactiveCommand.Create(() =>
-			{
-				if (SelectedCoin is null)
 				{
-					return;
-				}
+					if (SelectedCoin is null)
+					{
+						return;
+					}
 
-				DequeueCoinsPressed?.Invoke(this, EventArgs.Empty);
-			},
-			this.WhenAnyValue(x => x.CanDeqeue)
-				.ObserveOn(RxApp.MainThreadScheduler));
+					DequeueCoinsPressed?.Invoke(this, EventArgs.Empty);
+				},
+				this.WhenAnyValue(x => x.CanDeqeue)
+					.ObserveOn(RxApp.MainThreadScheduler));
 
 			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
-			{
-				//Global.WalletService.Coins.First(c => c.Unspent).Unspent = false;
-				switch (SelectAllCheckBoxState)
 				{
-					case true:
-						SelectAllCoins(true, x => true);
-						break;
+					//Global.WalletService.Coins.First(c => c.Unspent).Unspent = false;
+					switch (SelectAllCheckBoxState)
+					{
+						case true:
+							SelectAllCoins(true, x => true);
+							break;
 
-					case false:
-						SelectAllCoins(false, x => true);
-						break;
+						case false:
+							SelectAllCoins(false, x => true);
+							break;
 
-					case null:
-						SelectAllCoins(false, x => true);
-						SelectAllCheckBoxState = false;
-						break;
-				}
-			});
+						case null:
+							SelectAllCoins(false, x => true);
+							SelectAllCheckBoxState = false;
+							break;
+					}
+				});
 
 			SelectPrivateCheckBoxCommand = ReactiveCommand.Create(() =>
-			{
-				switch (SelectPrivateCheckBoxState)
 				{
-					case true:
-						SelectAllCoins(true, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
-						break;
+					switch (SelectPrivateCheckBoxState)
+					{
+						case true:
+							SelectAllCoins(true, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+							break;
 
-					case false:
-						SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
-						break;
+						case false:
+							SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+							break;
 
-					case null:
-						SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
-						SelectPrivateCheckBoxState = false;
-						break;
-				}
-			});
+						case null:
+							SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+							SelectPrivateCheckBoxState = false;
+							break;
+					}
+				});
 
 			SelectNonPrivateCheckBoxCommand = ReactiveCommand.Create(() =>
-			{
-				switch (SelectNonPrivateCheckBoxState)
 				{
-					case true:
-						SelectAllCoins(true, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
-						break;
+					switch (SelectNonPrivateCheckBoxState)
+					{
+						case true:
+							SelectAllCoins(true, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+							break;
 
-					case false:
-						SelectAllCoins(false, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
-						break;
+						case false:
+							SelectAllCoins(false, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+							break;
 
-					case null:
-						SelectAllCoins(false, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
-						SelectNonPrivateCheckBoxState = false;
-						break;
-				}
-			});
+						case null:
+							SelectAllCoins(false, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+							SelectNonPrivateCheckBoxState = false;
+							break;
+					}
+				});
 
 			InitList = ReactiveCommand.CreateFromTask(async () =>
 			{
