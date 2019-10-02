@@ -80,7 +80,7 @@ namespace WalletWasabi.TorSocks5
 			Guard.NotNull(nameof(method), method);
 			relativeUri = Guard.NotNull(nameof(relativeUri), relativeUri);
 			var requestUri = new Uri(DestinationUri, relativeUri);
-			var request = new HttpRequestMessage(method, requestUri);
+			using var request = new HttpRequestMessage(method, requestUri);
 			if (content != null)
 			{
 				request.Content = content;
