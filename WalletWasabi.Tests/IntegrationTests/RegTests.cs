@@ -1877,7 +1877,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
 			using var torClient = new TorHttpClient(baseUri, Global.Instance.TorSocks5Endpoint);
 			using var satoshiClient = new SatoshiClient(baseUri, null);
-
+      
 			#region PostInputsGetStates
 
 			// <-------------------------->
@@ -2418,12 +2418,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 					var blindedScript = requester.BlindScript(level.Signer.Key.PubKey, level.Signer.R.PubKey, scriptPubKey);
 					outputs.Add((requester, outputsAddress, blindedScript));
 				}
-
 				// Calculate the SHA256( blind1 || blind2 || .....|| blindN )
 				var blindedOutputScriptList = outputs.Select(x => x.blindedScript);
 				var blindedOutputScriptListBytes = ByteHelpers.Combine(blindedOutputScriptList.Select(x => x.ToBytes()));
 				var blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedOutputScriptListBytes));
-
 				// Create 4 new coins that we want to mix
 				var inputs = new List<(TxoRef input, byte[] proof, Coin coin, Key key)>();
 				for (var inputIdx = 0; inputIdx < 4; inputIdx++)
@@ -2467,11 +2465,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 				activeOutputs.Add(res.activeOutputs);
 				j++;
 			}
-
-			// OUTPUTS REGISTRATION PHASE --
 			var roundState = await satoshiClient.GetRoundStateAsync(roundId);
 			Assert.Equal(CcjRoundPhase.OutputRegistration, roundState.Phase);
-
 			var l = 0;
 			foreach (var (aliceClient, outputs, _) in participants)
 			{

@@ -347,21 +347,14 @@ namespace WalletWasabi.Gui
 
 		public int GetTargetLevel(TargetPrivacy target)
 		{
-			switch (target)
+			return target switch
 			{
-				case TargetPrivacy.None:
-					return 0;
-
-				case TargetPrivacy.Some:
-					return PrivacyLevelSome;
-
-				case TargetPrivacy.Fine:
-					return PrivacyLevelFine;
-
-				case TargetPrivacy.Strong:
-					return PrivacyLevelStrong;
-			}
-			return 0;
+				TargetPrivacy.None => 0,
+				TargetPrivacy.Some => PrivacyLevelSome,
+				TargetPrivacy.Fine => PrivacyLevelFine,
+				TargetPrivacy.Strong => PrivacyLevelStrong,
+				_ => 0
+			};
 		}
 
 		protected override bool TryEnsureBackwardsCompatibility(string jsonString)

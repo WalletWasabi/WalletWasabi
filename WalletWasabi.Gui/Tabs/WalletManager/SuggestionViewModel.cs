@@ -10,7 +10,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public string Word { get; }
 		public Action<string> OnSelection { get; }
 
-		public bool _isHighLighted;
+		private bool _isHighLighted;
 
 		public SuggestionViewModel(string word, Action<string> onSeleted)
 		{
