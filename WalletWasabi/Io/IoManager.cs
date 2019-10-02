@@ -98,6 +98,8 @@ namespace WalletWasabi.Io
 				return;
 			}
 
+			IoHelpers.EnsureContainingDirectoryExists(FilePath);
+
 			await File.AppendAllLinesAsync(FilePath, lines, cancellationToken).ConfigureAwait(false);
 		}
 
