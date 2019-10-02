@@ -22,14 +22,14 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				using (await asyncMutex.LockAsync())
 				{
-						// Phase 1: signal that the mutex has been acquired.
-						phase1.Set();
+					// Phase 1: signal that the mutex has been acquired.
+					phase1.Set();
 
-						// Phase 2: wait for exclusion.
-						Assert.True(phase2.WaitOne(TimeSpan.FromSeconds(20)));
+					// Phase 2: wait for exclusion.
+					Assert.True(phase2.WaitOne(TimeSpan.FromSeconds(20)));
 				}
-					// Phase 3: release the mutex.
-					phase3.Set();
+				// Phase 3: release the mutex.
+				phase3.Set();
 			});
 
 			// Phase 1: wait for the first Task to acquire the mutex.
@@ -138,11 +138,11 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				using var cts = new CancellationTokenSource(100);
 				await Assert.ThrowsAsync<IOException>(async () =>
-{
-using (await mutex.LockAsync(cts.Token))
-{
-}
-});
+					{
+						using (await mutex.LockAsync(cts.Token))
+						{
+						}
+					});
 			}
 
 			// Test same mutex gets same asynclock.
