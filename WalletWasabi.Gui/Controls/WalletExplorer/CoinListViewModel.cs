@@ -297,7 +297,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				DequeueCoinsPressed?.Invoke(this, EventArgs.Empty);
-			}, this.WhenAnyValue(x => x.CanDeqeue)
+			},
+			this.WhenAnyValue(x => x.CanDeqeue)
 				.ObserveOn(RxApp.MainThreadScheduler));
 
 			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
@@ -371,7 +372,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					IsCoinListLoading = false;
 				}
-			}, outputScheduler: RxApp.MainThreadScheduler);
+			},
+			outputScheduler: RxApp.MainThreadScheduler);
 
 			InitList.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
 		}

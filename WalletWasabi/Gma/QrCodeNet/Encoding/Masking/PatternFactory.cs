@@ -7,35 +7,18 @@ namespace Gma.QrCodeNet.Encoding.Masking
 	{
 		internal Pattern CreateByType(MaskPatternType maskPatternType)
 		{
-			switch (maskPatternType)
+			return maskPatternType switch
 			{
-				case MaskPatternType.Type0:
-					return new Pattern0();
-
-				case MaskPatternType.Type1:
-					return new Pattern1();
-
-				case MaskPatternType.Type2:
-					return new Pattern2();
-
-				case MaskPatternType.Type3:
-					return new Pattern3();
-
-				case MaskPatternType.Type4:
-					return new Pattern4();
-
-				case MaskPatternType.Type5:
-					return new Pattern5();
-
-				case MaskPatternType.Type6:
-					return new Pattern6();
-
-				case MaskPatternType.Type7:
-					return new Pattern7();
-
-				default:
-					throw new NotSupportedException("This is impossible.");
-			}
+				MaskPatternType.Type0 => new Pattern0(),
+				MaskPatternType.Type1 => new Pattern1(),
+				MaskPatternType.Type2 => new Pattern2(),
+				MaskPatternType.Type3 => new Pattern3(),
+				MaskPatternType.Type4 => new Pattern4(),
+				MaskPatternType.Type5 => new Pattern5(),
+				MaskPatternType.Type6 => new Pattern6(),
+				MaskPatternType.Type7 => new Pattern7(),
+				_ => throw new NotSupportedException("This is impossible.")
+			};
 		}
 
 		internal IEnumerable<Pattern> AllPatterns()

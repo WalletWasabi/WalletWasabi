@@ -21,7 +21,7 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
-using WalletWasabi.Hwi;
+using WalletWasabi.Hwi.Models;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Mempool;
@@ -146,7 +146,6 @@ namespace WalletWasabi.Gui
 
 			BitcoinStore = new BitcoinStore();
 			var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
-			var hwiInitTask = HwiProcessManager.InitializeAsync(DataDir, Network);
 			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
 			var addrManTask = InitializeAddressManagerBehaviorAsync();
@@ -208,19 +207,6 @@ namespace WalletWasabi.Gui
 			connectionParameters.TemplateBehaviors.Add(new MempoolBehavior(MempoolService));
 
 			#endregion MempoolInitialization
-
-			#region HwiProcessInitialization
-
-			try
-			{
-				await hwiInitTask;
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
-
-			#endregion HwiProcessInitialization
 
 			#region BitcoinStoreInitialization
 
@@ -527,15 +513,14 @@ namespace WalletWasabi.Gui
 							continue;
 						}
 						string amountString = coin.Amount.ToString(false, true);
-						using (var process = Process.Start(new ProcessStartInfo
+						using var process = Process.Start(new ProcessStartInfo
 						{
 							FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
 							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
 								? $"-e \"display notification \\\"Received {amountString} BTC\\\" with title \\\"Wasabi\\\"\""
 								: $"--expire-time=3000 \"Wasabi\" \"Received {amountString} BTC\"",
 							CreateNoWindow = true
-						}))
-						{ }
+						});
 					}
 				}
 			}
@@ -693,12 +678,12 @@ namespace WalletWasabi.Gui
 			throw new NotSupportedException("This is impossible.");
 		}
 
-		public string GetNextHardwareWalletName(Hwi.Models.HardwareWalletInfo hwi = null, string customPrefix = null)
+		public string GetNextHardwareWalletName(HwiEnumerateEntry hwi = null, string customPrefix = null)
 		{
 			var prefix = customPrefix is null
 				? hwi is null
 					? "HardwareWallet"
-					: hwi.Type.ToString()
+					: hwi.Model.ToString()
 				: customPrefix;
 
 			for (int i = 0; i < int.MaxValue; i++)

@@ -32,65 +32,69 @@ namespace WalletWasabi.Gui.Controls
 			};
 
 			EditClickTimer.Tick += (sender, e) =>
-			{
-				EditClickTimer.Stop();
-
-				if (IsFocused && !InEditMode)
 				{
-					EnterEditMode();
-				}
-			};
+					EditClickTimer.Stop();
+
+					if (IsFocused && !InEditMode)
+					{
+						EnterEditMode();
+					}
+				};
 
 			this.GetObservable(TextProperty).Subscribe(t => EditText = t);
 
 			this.GetObservable(InEditModeProperty).Subscribe(mode =>
-			{
-				if (mode && _textBox != null)
 				{
-					EnterEditMode();
-				}
-			});
-
-			AddHandler(PointerPressedEvent, (sender, e) =>
-			{
-				EditClickTimer.Stop();
-
-				if (!InEditMode)
-				{
-					if (e.ClickCount == 1 && e.InputModifiers == InputModifiers.LeftMouseButton && IsFocused)
+					if (mode && _textBox != null)
 					{
-						EditClickTimer.Start();
+						EnterEditMode();
 					}
-				}
-				else
+				});
+
+			AddHandler(PointerPressedEvent,
+				(sender, e) =>
 				{
-					var hit = this.InputHitTest(e.GetPosition(this));
-					if (hit is null)
+					EditClickTimer.Stop();
+
+					if (!InEditMode)
 					{
-						ExitEditMode();
+						if (e.ClickCount == 1 && e.InputModifiers == InputModifiers.LeftMouseButton && IsFocused)
+						{
+							EditClickTimer.Start();
+						}
 					}
 					else
 					{
-						e.Device.Capture(_textBox);
+						var hit = this.InputHitTest(e.GetPosition(this));
+						if (hit is null)
+						{
+							ExitEditMode();
+						}
+						else
+						{
+							e.Device.Capture(_textBox);
+						}
 					}
-				}
-			}, RoutingStrategies.Tunnel);
+				},
+				RoutingStrategies.Tunnel);
 
-			AddHandler(PointerReleasedEvent, (sender, e) =>
-			{
-				if (InEditMode)
+			AddHandler(PointerReleasedEvent,
+				(sender, e) =>
 				{
-					var hit = this.InputHitTest(e.GetPosition(this));
-					if (hit is null)
+					if (InEditMode)
 					{
-						ExitEditMode();
+						var hit = this.InputHitTest(e.GetPosition(this));
+						if (hit is null)
+						{
+							ExitEditMode();
+						}
+						else
+						{
+							e.Device.Capture(_textBox);
+						}
 					}
-					else
-					{
-						e.Device.Capture(_textBox);
-					}
-				}
-			}, RoutingStrategies.Tunnel);
+				},
+				RoutingStrategies.Tunnel);
 		}
 
 		public static readonly DirectProperty<EditableTextBlock, string> TextProperty =
