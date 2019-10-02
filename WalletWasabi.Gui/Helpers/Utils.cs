@@ -2,7 +2,6 @@ using Avalonia.Threading;
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using WalletWasabi.Hwi.Models;
 
 namespace WalletWasabi.Gui.Helpers
 {

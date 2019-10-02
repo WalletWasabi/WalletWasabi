@@ -736,51 +736,49 @@ namespace WalletWasabi.Services
 				if (LocalBitcoinCoreNode is null || (!LocalBitcoinCoreNode.IsConnected && Network != Network.RegTest)) // If RegTest then we're already connected do not try again.
 				{
 					DisconnectDisposeNullLocalBitcoinCoreNode();
-					using (var handshakeTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancel))
+					using var handshakeTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancel);
+					handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
+					var nodeConnectionParameters = new NodeConnectionParameters()
 					{
-						handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
-						var nodeConnectionParameters = new NodeConnectionParameters()
-						{
-							ConnectCancellation = handshakeTimeout.Token,
-							IsRelay = false,
-							UserAgent = $"/Wasabi:{Constants.ClientVersion.ToString()}/"
-						};
+						ConnectCancellation = handshakeTimeout.Token,
+						IsRelay = false,
+						UserAgent = $"/Wasabi:{Constants.ClientVersion.ToString()}/"
+					};
 
-						// If an onion was added must try to use Tor.
-						// onlyForOnionHosts should connect to it if it's an onion endpoint automatically and non-Tor endpoints through clearnet/localhost
-						if (Synchronizer.WasabiClient.TorClient.IsTorUsed)
+					// If an onion was added must try to use Tor.
+					// onlyForOnionHosts should connect to it if it's an onion endpoint automatically and non-Tor endpoints through clearnet/localhost
+					if (Synchronizer.WasabiClient.TorClient.IsTorUsed)
+					{
+						nodeConnectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint, onlyForOnionHosts: true, networkCredential: null, streamIsolation: false));
+					}
+
+					var localEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
+					var localNode = await Node.ConnectAsync(Network, localEndPoint, nodeConnectionParameters);
+					try
+					{
+						Logger.LogInfo("TCP Connection succeeded, handshaking...");
+						localNode.VersionHandshake(Constants.LocalNodeRequirements, handshakeTimeout.Token);
+						var peerServices = localNode.PeerVersion.Services;
+
+						//if (!peerServices.HasFlag(NodeServices.Network) && !peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
+						//{
+						//	throw new InvalidOperationException("Wasabi cannot use the local node because it does not provide blocks.");
+						//}
+
+						Logger.LogInfo("Handshake completed successfully.");
+
+						if (!localNode.IsConnected)
 						{
-							nodeConnectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint, onlyForOnionHosts: true, networkCredential: null, streamIsolation: false));
+							throw new InvalidOperationException($"Wasabi could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
+								"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
 						}
-
-						var localEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
-						var localNode = await Node.ConnectAsync(Network, localEndPoint, nodeConnectionParameters);
-						try
-						{
-							Logger.LogInfo("TCP Connection succeeded, handshaking...");
-							localNode.VersionHandshake(Constants.LocalNodeRequirements, handshakeTimeout.Token);
-							var peerServices = localNode.PeerVersion.Services;
-
-							//if (!peerServices.HasFlag(NodeServices.Network) && !peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
-							//{
-							//	throw new InvalidOperationException("Wasabi cannot use the local node because it does not provide blocks.");
-							//}
-
-							Logger.LogInfo("Handshake completed successfully.");
-
-							if (!localNode.IsConnected)
-							{
-								throw new InvalidOperationException($"Wasabi could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
-									"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
-							}
-							LocalBitcoinCoreNode = localNode;
-						}
-						catch (OperationCanceledException) when (handshakeTimeout.IsCancellationRequested)
-						{
-							Logger.LogWarning($"Wasabi could not complete the handshake with the local node. Probably Wasabi is not whitelisted by the node.{Environment.NewLine}" +
-								"Use \"whitebind\" in the node configuration. (Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.)");
-							throw;
-						}
+						LocalBitcoinCoreNode = localNode;
+					}
+					catch (OperationCanceledException) when (handshakeTimeout.IsCancellationRequested)
+					{
+						Logger.LogWarning($"Wasabi could not complete the handshake with the local node. Probably Wasabi is not whitelisted by the node.{Environment.NewLine}" +
+							"Use \"whitebind\" in the node configuration. (Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.)");
+						throw;
 					}
 				}
 
@@ -894,7 +892,7 @@ namespace WalletWasabi.Services
 														bool allowUnconfirmed = false,
 														IEnumerable<TxoRef> allowedInputs = null)
 		{
-			password = password ?? ""; // Correction.
+			password ??= ""; // Correction.
 			payments = Guard.NotNull(nameof(payments), payments);
 
 			long totalAmount = payments.TotalAmount.Satoshi;

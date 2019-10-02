@@ -33,7 +33,7 @@ namespace WalletWasabi.Stores
 				IndexStore = new IndexStore();
 				var indexStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString(), "IndexStore");
 				HashChain = new HashChain();
-				await IndexStore.InitializeAsync(indexStoreFolderPath, Network, HashChain);
+				await IndexStore.InitializeAsync(indexStoreFolderPath, Network, HashChain).ConfigureAwait(false);
 			}
 		}
 	}

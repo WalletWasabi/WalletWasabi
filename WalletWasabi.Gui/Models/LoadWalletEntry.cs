@@ -8,7 +8,7 @@ namespace WalletWasabi.Gui.Models
 	public class LoadWalletEntry
 	{
 		public string WalletName { get; set; } = null;
-		public HardwareWalletInfo HardwareWalletInfo { get; set; } = null;
+		public HwiEnumerateEntry HardwareWalletInfo { get; set; } = null;
 
 		public LoadWalletEntry(string walletName)
 		{
@@ -16,29 +16,33 @@ namespace WalletWasabi.Gui.Models
 			HardwareWalletInfo = null;
 		}
 
-		public LoadWalletEntry(HardwareWalletInfo hwi)
+		public LoadWalletEntry(HwiEnumerateEntry hwi)
 		{
-			if (string.IsNullOrWhiteSpace(hwi.Error))
+			string typeString = hwi.Model.ToString();
+			var walletNameBuilder = new StringBuilder(typeString);
+
+			if (hwi.NeedsPinSent is true)
 			{
-				WalletName = hwi.Type.ToString();
+				walletNameBuilder.Append(" - Needs PIN Sent");
 			}
-			else if (!hwi.Initialized)
+			else if (hwi.NeedsPassphraseSent is true)
 			{
-				WalletName = hwi.Type.ToString() + $" - Not Initialized";
+				walletNameBuilder.Append(" - Needs Passphrase Sent");
 			}
-			else if (!hwi.Ready)
+			else if (!string.IsNullOrWhiteSpace(hwi.Error))
 			{
-				WalletName = hwi.Type.ToString() + $" - Device Not Ready";
+				walletNameBuilder.Append($" - Error: {hwi.Error}");
 			}
-			else if (hwi.NeedPin)
+			else if (hwi.Code != null)
 			{
-				WalletName = hwi.Type.ToString();
+				walletNameBuilder.Append($" - Error: {hwi.Code}");
 			}
-			else
+			else if (hwi.Fingerprint is null)
 			{
-				WalletName = hwi.Type.ToString() + $" - Error: {hwi.Error}";
+				walletNameBuilder.Append(" - Could Not Acquire Fingerprint");
 			}
 
+			WalletName = walletNameBuilder.ToString();
 			HardwareWalletInfo = hwi;
 		}
 

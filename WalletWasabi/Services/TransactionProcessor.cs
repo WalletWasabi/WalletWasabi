@@ -162,7 +162,7 @@ namespace WalletWasabi.Services
 					}
 
 					foundKey.SetKeyState(KeyState.Used, KeyManager);
-					spentOwnCoins = spentOwnCoins ?? coinsView.OutPoints(tx.Transaction.Inputs.ToTxoRefs()).ToList();
+					spentOwnCoins ??= coinsView.OutPoints(tx.Transaction.Inputs.ToTxoRefs()).ToList();
 					var anonset = tx.Transaction.GetAnonymitySet(i);
 					if (spentOwnCoins.Count != 0)
 					{

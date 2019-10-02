@@ -48,7 +48,7 @@ namespace WalletWasabi.Gui.Helpers
 			outputReceivedCallback, Action<object, DataReceivedEventArgs> errorReceivedCallback = null, bool resolveExecutable = true,
 			string workingDirectory = "", bool executeInShell = true, bool includeSystemPaths = true, params string[] extraPaths)
 		{
-			using (var shellProc = new Process
+			using var shellProc = new Process
 			{
 				StartInfo = new ProcessStartInfo
 				{
@@ -57,58 +57,56 @@ namespace WalletWasabi.Gui.Helpers
 					UseShellExecute = false,
 					WorkingDirectory = workingDirectory
 				}
-			})
+			};
+			if (!includeSystemPaths)
 			{
-				if (!includeSystemPaths)
+				shellProc.StartInfo.Environment["PATH"] = "";
+			}
+			foreach (var extraPath in extraPaths)
+			{
+				if (extraPath != null)
 				{
-					shellProc.StartInfo.Environment["PATH"] = "";
+					shellProc.StartInfo.Environment["PATH"] += $"{Path.DirectorySeparatorChar}{extraPath}";
 				}
-				foreach (var extraPath in extraPaths)
-				{
-					if (extraPath != null)
-					{
-						shellProc.StartInfo.Environment["PATH"] += $"{Path.DirectorySeparatorChar}{extraPath}";
-					}
-				}
+			}
 
-				if (executeInShell)
+			if (executeInShell)
+			{
+				if (ExecutorType == ShellType.Windows)
 				{
-					if (ExecutorType == ShellType.Windows)
-					{
-						shellProc.StartInfo.FileName = ResolveFullExecutablePath("cmd.exe");
-						shellProc.StartInfo.Arguments = $"/C {(resolveExecutable ? ResolveFullExecutablePath(commandName, true, extraPaths) : commandName)} {args}";
-						shellProc.StartInfo.CreateNoWindow = true;
-					}
-					else //Unix
-					{
-						shellProc.StartInfo.FileName = "sh";
-						shellProc.StartInfo.Arguments = $"-c \"{(resolveExecutable ? ResolveFullExecutablePath(commandName) : commandName)} {args}\"";
-						shellProc.StartInfo.CreateNoWindow = true;
-					}
-				}
-				else
-				{
-					shellProc.StartInfo.FileName = (resolveExecutable ? ResolveFullExecutablePath(commandName, true, extraPaths) : commandName);
-					shellProc.StartInfo.Arguments = args;
+					shellProc.StartInfo.FileName = ResolveFullExecutablePath("cmd.exe");
+					shellProc.StartInfo.Arguments = $"/C {(resolveExecutable ? ResolveFullExecutablePath(commandName, true, extraPaths) : commandName)} {args}";
 					shellProc.StartInfo.CreateNoWindow = true;
 				}
-
-				shellProc.OutputDataReceived += (s, a) => outputReceivedCallback(s, a);
-
-				if (errorReceivedCallback != null)
+				else //Unix
 				{
-					shellProc.ErrorDataReceived += (s, a) => errorReceivedCallback(s, a);
+					shellProc.StartInfo.FileName = "sh";
+					shellProc.StartInfo.Arguments = $"-c \"{(resolveExecutable ? ResolveFullExecutablePath(commandName) : commandName)} {args}\"";
+					shellProc.StartInfo.CreateNoWindow = true;
 				}
-
-				shellProc.Start();
-
-				shellProc.BeginOutputReadLine();
-				shellProc.BeginErrorReadLine();
-
-				shellProc.WaitForExit();
-
-				return shellProc.ExitCode;
 			}
+			else
+			{
+				shellProc.StartInfo.FileName = (resolveExecutable ? ResolveFullExecutablePath(commandName, true, extraPaths) : commandName);
+				shellProc.StartInfo.Arguments = args;
+				shellProc.StartInfo.CreateNoWindow = true;
+			}
+
+			shellProc.OutputDataReceived += (s, a) => outputReceivedCallback(s, a);
+
+			if (errorReceivedCallback != null)
+			{
+				shellProc.ErrorDataReceived += (s, a) => errorReceivedCallback(s, a);
+			}
+
+			shellProc.Start();
+
+			shellProc.BeginOutputReadLine();
+			shellProc.BeginErrorReadLine();
+
+			shellProc.WaitForExit();
+
+			return shellProc.ExitCode;
 		}
 
 		/// <summary>

@@ -231,7 +231,7 @@ namespace Nito.AsyncEx
 			while (!Done.WaitOne(1))
 			{
 				// Waiting for Done asynchronously.
-				await Task.Delay(pollInterval, cancellationToken);
+				await Task.Delay(pollInterval, cancellationToken).ConfigureAwait(false);
 			}
 			lock (LatestHoldLockExceptionLock)
 			{
@@ -283,7 +283,7 @@ namespace Nito.AsyncEx
 				}
 
 				// Local lock for thread safety.
-				await AsyncLock.LockAsync(cancellationToken);
+				await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false);
 
 				if (IsAlive)
 				{
@@ -301,7 +301,7 @@ namespace Nito.AsyncEx
 				try
 				{
 					// Create the mutex and acquire it.
-					await SetCommandAsync(1, cancellationToken, pollInterval);
+					await SetCommandAsync(1, cancellationToken, pollInterval).ConfigureAwait(false);
 				}
 				catch (Exception ex)
 				{
@@ -412,7 +412,7 @@ namespace Nito.AsyncEx
 					}
 					Logger.LogDebug($"Waiting for: {string.Join(", ", AsyncMutexes.Where(am => am.Value.IsAlive).Select(m => m.Value.ShortName))}.");
 				}
-				await Task.Delay(200);
+				await Task.Delay(200).ConfigureAwait(false);
 				if (DateTime.Now - start > TimeSpan.FromSeconds(60))
 				{
 					var mutexesAlive = AsyncMutexes.Where(am => am.Value.IsAlive).Select(m => m.Value.ShortName);

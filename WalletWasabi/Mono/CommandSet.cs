@@ -223,7 +223,7 @@ namespace Mono.Options
 
 			base.Add(value);
 
-			Help = Help ?? value as HelpCommand;
+			Help ??= value as HelpCommand;
 		}
 
 		public CommandSet Add(string header)
@@ -393,7 +393,7 @@ namespace Mono.Options
 		private static void ExtractToken(ref string input, out string rest)
 		{
 			rest = "";
-			input = input ?? "";
+			input ??= "";
 
 			int top = input.Length;
 			for (int i = 0; i < top; i++)
