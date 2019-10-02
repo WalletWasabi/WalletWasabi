@@ -24,10 +24,8 @@ namespace System.Threading.Tasks
 					}
 					else
 					{
-						using (var cts = new CancellationTokenSource(waitForGracefulTermination))
-						{
-							return await me.WithAwaitCancellationAsync(cts.Token);
-						}
+						using var cts = new CancellationTokenSource(waitForGracefulTermination);
+						return await me.WithAwaitCancellationAsync(cts.Token);
 					}
 				}
 			}

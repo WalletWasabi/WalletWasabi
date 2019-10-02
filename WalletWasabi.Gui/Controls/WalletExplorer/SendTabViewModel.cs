@@ -368,20 +368,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.AcquiringSignatureFromHardwareWallet);
 							var client = new HwiClient(Global.Network);
 
-							using (var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
+							using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+							PSBT signedPsbt = null;
+							try
 							{
-								PSBT signedPsbt = null;
-								try
-								{
-									signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
-								}
-								catch (HwiException)
-								{
-									await PinPadViewModel.UnlockAsync(Global);
-									signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
-								}
-								signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction);
+								signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
 							}
+							catch (HwiException)
+							{
+								await PinPadViewModel.UnlockAsync(Global);
+								signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
+							}
+							signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction);
 						}
 						catch (Exception ex)
 						{

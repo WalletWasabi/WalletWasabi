@@ -87,26 +87,24 @@ namespace WalletWasabi.Stores
 
 				if (MatureIndexFileManager.Exists())
 				{
-					using (var sr = MatureIndexFileManager.OpenText())
+					using var sr = MatureIndexFileManager.OpenText();
+					if (!sr.EndOfStream)
 					{
-						if (!sr.EndOfStream)
+						var lineTask = sr.ReadLineAsync();
+						string line = null;
+						while (lineTask != null)
 						{
-							var lineTask = sr.ReadLineAsync();
-							string line = null;
-							while (lineTask != null)
+							if (line is null)
 							{
-								if (line is null)
-								{
-									line = await lineTask;
-								}
-
-								lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
-
-								ProcessLine(height, line, enqueue: false);
-								height++;
-
-								line = null;
+								line = await lineTask;
 							}
+
+							lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
+
+							ProcessLine(height, line, enqueue: false);
+							height++;
+
+							line = null;
 						}
 					}
 				}
@@ -343,66 +341,64 @@ namespace WalletWasabi.Stores
 					if (MatureIndexFileManager.Exists())
 					{
 						Height height = StartingHeight;
-						using (var sr = MatureIndexFileManager.OpenText())
+						using var sr = MatureIndexFileManager.OpenText();
+						if (!sr.EndOfStream)
 						{
-							if (!sr.EndOfStream)
+							var lineTask = sr.ReadLineAsync();
+							Task tTask = Task.CompletedTask;
+							string line = null;
+							while (lineTask != null)
 							{
-								var lineTask = sr.ReadLineAsync();
-								Task tTask = Task.CompletedTask;
-								string line = null;
-								while (lineTask != null)
-								{
-									if (firstImmatureHeight == height)
-									{
-										break; // Let's use our the immature filters from here on. The content is the same, just someone else modified the file.
-									}
-
-									if (line is null)
-									{
-										line = await lineTask;
-									}
-
-									lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
-
-									if (height < fromHeight.Value)
-									{
-										height++;
-										line = null;
-										continue;
-									}
-
-									var filter = FilterModel.FromHeightlessLine(line, height);
-
-									await tTask;
-									tTask = todo(filter);
-
-									height++;
-
-									line = null;
-								}
-								await tTask;
-							}
-
-							while (!sr.EndOfStream)
-							{
-								var line = await sr.ReadLineAsync();
-
 								if (firstImmatureHeight == height)
 								{
 									break; // Let's use our the immature filters from here on. The content is the same, just someone else modified the file.
 								}
 
+								if (line is null)
+								{
+									line = await lineTask;
+								}
+
+								lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
+
 								if (height < fromHeight.Value)
 								{
 									height++;
+									line = null;
 									continue;
 								}
 
 								var filter = FilterModel.FromHeightlessLine(line, height);
 
-								await todo(filter);
+								await tTask;
+								tTask = todo(filter);
+
 								height++;
+
+								line = null;
 							}
+							await tTask;
+						}
+
+						while (!sr.EndOfStream)
+						{
+							var line = await sr.ReadLineAsync();
+
+							if (firstImmatureHeight == height)
+							{
+								break; // Let's use our the immature filters from here on. The content is the same, just someone else modified the file.
+							}
+
+							if (height < fromHeight.Value)
+							{
+								height++;
+								continue;
+							}
+
+							var filter = FilterModel.FromHeightlessLine(line, height);
+
+							await todo(filter);
+							height++;
 						}
 					}
 				}

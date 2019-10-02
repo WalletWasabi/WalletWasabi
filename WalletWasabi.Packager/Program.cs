@@ -112,49 +112,45 @@ namespace WalletWasabi.Packager
 
 		private static void GetOnions()
 		{
-			using (var httpClient = new HttpClient())
+			using var httpClient = new HttpClient();
+			httpClient.BaseAddress = new Uri("https://bitnodes.21.co/api/v1/");
+
+			using var response = httpClient.GetAsync("snapshots/latest/", HttpCompletionOption.ResponseContentRead).GetAwaiter().GetResult();
+			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				httpClient.BaseAddress = new Uri("https://bitnodes.21.co/api/v1/");
+				throw new HttpRequestException(response.StatusCode.ToString());
+			}
 
-				using (var response = httpClient.GetAsync("snapshots/latest/", HttpCompletionOption.ResponseContentRead).GetAwaiter().GetResult())
+			var responseString = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+			var json = (JObject)JsonConvert.DeserializeObject(responseString);
+			var onions = new List<string>();
+			foreach (JProperty node in json["nodes"])
+			{
+				if (!node.Name.Contains(".onion"))
 				{
-					if (response.StatusCode != HttpStatusCode.OK)
+					continue;
+				}
+
+				var userAgent = ((JArray)node.Value)[1].ToString();
+
+				try
+				{
+					var verString = userAgent.Substring(userAgent.IndexOf("Satoshi:") + 8, 4);
+					var ver = new Version(verString);
+
+					if (ver >= new Version("0.16"))
 					{
-						throw new HttpRequestException(response.StatusCode.ToString());
-					}
-
-					var responseString = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-					var json = (JObject)JsonConvert.DeserializeObject(responseString);
-					var onions = new List<string>();
-					foreach (JProperty node in json["nodes"])
-					{
-						if (!node.Name.Contains(".onion"))
-						{
-							continue;
-						}
-
-						var userAgent = ((JArray)node.Value)[1].ToString();
-
-						try
-						{
-							var verString = userAgent.Substring(userAgent.IndexOf("Satoshi:") + 8, 4);
-							var ver = new Version(verString);
-
-							if (ver >= new Version("0.16"))
-							{
-								onions.Add(node.Name);
-							}
-						}
-						catch
-						{
-						}
-					}
-
-					foreach (var onion in onions.OrderBy(x => x))
-					{
-						Console.WriteLine(onion);
+						onions.Add(node.Name);
 					}
 				}
+				catch
+				{
+				}
+			}
+
+			foreach (var onion in onions.OrderBy(x => x))
+			{
+				Console.WriteLine(onion);
 			}
 		}
 
@@ -162,49 +158,45 @@ namespace WalletWasabi.Packager
 		{
 			var onionFile = Path.Combine(LibraryProjectDirectory, "OnionSeeds", "MainOnionSeeds.txt");
 			var currentOnions = File.ReadAllLines(onionFile).ToHashSet();
-			using (var httpClient = new HttpClient())
+			using var httpClient = new HttpClient();
+			httpClient.BaseAddress = new Uri("https://bitnodes.21.co/api/v1/");
+
+			using var response = httpClient.GetAsync("snapshots/latest/", HttpCompletionOption.ResponseContentRead).GetAwaiter().GetResult();
+			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				httpClient.BaseAddress = new Uri("https://bitnodes.21.co/api/v1/");
+				throw new HttpRequestException(response.StatusCode.ToString());
+			}
 
-				using (var response = httpClient.GetAsync("snapshots/latest/", HttpCompletionOption.ResponseContentRead).GetAwaiter().GetResult())
+			var responseString = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+			var json = (JObject)JsonConvert.DeserializeObject(responseString);
+			var onions = new List<string>();
+			foreach (JProperty node in json["nodes"])
+			{
+				if (!node.Name.Contains(".onion"))
 				{
-					if (response.StatusCode != HttpStatusCode.OK)
+					continue;
+				}
+
+				var userAgent = ((JArray)node.Value)[1].ToString();
+
+				try
+				{
+					var verString = userAgent.Substring(userAgent.IndexOf("Satoshi:") + 8, 4);
+					var ver = new Version(verString);
+
+					if (ver >= new Version("0.16") && currentOnions.Contains(node.Name))
 					{
-						throw new HttpRequestException(response.StatusCode.ToString());
-					}
-
-					var responseString = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-					var json = (JObject)JsonConvert.DeserializeObject(responseString);
-					var onions = new List<string>();
-					foreach (JProperty node in json["nodes"])
-					{
-						if (!node.Name.Contains(".onion"))
-						{
-							continue;
-						}
-
-						var userAgent = ((JArray)node.Value)[1].ToString();
-
-						try
-						{
-							var verString = userAgent.Substring(userAgent.IndexOf("Satoshi:") + 8, 4);
-							var ver = new Version(verString);
-
-							if (ver >= new Version("0.16") && currentOnions.Contains(node.Name))
-							{
-								onions.Add(node.Name);
-							}
-						}
-						catch
-						{
-						}
-					}
-
-					foreach (var onion in onions.OrderBy(x => x))
-					{
-						Console.WriteLine(onion);
+						onions.Add(node.Name);
 					}
 				}
+				catch
+				{
+				}
+			}
+
+			foreach (var onion in onions.OrderBy(x => x))
+			{
+				Console.WriteLine(onion);
 			}
 		}
 
@@ -344,16 +336,14 @@ namespace WalletWasabi.Packager
 
 		private static void RestoreProgramCs()
 		{
-			using (var process = Process.Start(new ProcessStartInfo
+			using var process = Process.Start(new ProcessStartInfo
 			{
 				FileName = "cmd",
 				RedirectStandardInput = true,
 				WorkingDirectory = PackagerProjectDirectory
-			}))
-			{
-				process.StandardInput.WriteLine($"git checkout -- Program.cs && exit");
-				process.WaitForExit();
-			}
+			});
+			process.StandardInput.WriteLine($"git checkout -- Program.cs && exit");
+			process.WaitForExit();
 		}
 
 		private static void Sign()

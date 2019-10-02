@@ -61,7 +61,7 @@ namespace WalletWasabi.KeyManagement
 
 		public void SetLabel(SmartLabel label, KeyManager kmToFile = null)
 		{
-			label = label ?? SmartLabel.Empty;
+			label ??= SmartLabel.Empty;
 
 			if (Label == label)
 			{
