@@ -200,7 +200,7 @@ namespace WalletWasabi.Services
 					}
 
 					var txToRemove = TryGetTxFromCache(toRemove.TransactionId);
-					if (txToRemove != default(SmartTransaction))
+					if (txToRemove != default)
 					{
 						TransactionCache.TryRemove(txToRemove);
 					}
@@ -383,7 +383,6 @@ namespace WalletWasabi.Services
 					{
 						if (mempoolHashes.Contains(tx.GetHash().ToString().Substring(0, compactness)))
 						{
-							tx.SetHeight(Height.Mempool);
 							await ProcessTransactionAsync(tx);
 
 							Logger.LogInfo($"Transaction was successfully tested against the backend's mempool hashes: {tx.GetHash()}.");
@@ -402,7 +401,6 @@ namespace WalletWasabi.Services
 				// When there's a connection failure do not clean the transactions, add them to processing.
 				foreach (var tx in unconfirmedTransactions)
 				{
-					tx.SetHeight(Height.Mempool);
 					await ProcessTransactionAsync(tx);
 				}
 

@@ -80,7 +80,9 @@ namespace WalletWasabi.Models
 			Transaction = transaction;
 			Label = label ?? SmartLabel.Empty;
 
-			SetHeight(height, blockHash, blockIndex);
+			Height = height;
+			BlockHash = blockHash;
+			BlockIndex = blockIndex;
 
 			FirstSeen = firstSeen == default ? DateTimeOffset.UtcNow : firstSeen;
 
@@ -89,11 +91,40 @@ namespace WalletWasabi.Models
 
 		#endregion Constructors
 
-		public void SetHeight(Height height, uint256 blockHash = null, int blockIndex = 0)
+		/// <summary>
+		/// Update the transaction with the data acquired from another transaction. (For example merge their labels.)
+		/// </summary>
+		/// <param name="canUnconfirm">By default confirmed transaction won't get unconfirmed. You can override this option.</param>
+		public void Update(SmartTransaction tx, bool canUnconfirm = false)
 		{
-			Height = height;
-			BlockHash = blockHash;
-			BlockIndex = blockIndex;
+			// If this is not the same tx, then don't update.
+			if (this != tx)
+			{
+				throw new InvalidOperationException($"{GetHash()} != {tx.GetHash()}");
+			}
+
+			// Set the height related properties.
+			if (canUnconfirm)
+			{
+				Height = tx.Height;
+				BlockHash = tx.BlockHash;
+				BlockIndex = tx.BlockIndex;
+			}
+			else if (tx.Confirmed)
+			{
+				Height = tx.Height;
+				BlockHash = tx.BlockHash;
+				BlockIndex = tx.BlockIndex;
+			}
+
+			// Always the earlier seen is the firstSeen.
+			if (tx.FirstSeen < FirstSeen)
+			{
+				FirstSeen = tx.FirstSeen;
+			}
+
+			// Merge labels.
+			Label = SmartLabel.Merge(Label, tx.Label);
 		}
 
 		public void SetReplacement()

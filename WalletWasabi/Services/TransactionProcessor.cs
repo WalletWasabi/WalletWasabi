@@ -51,9 +51,9 @@ namespace WalletWasabi.Services
 				if (isFoundTx)
 				{
 					SmartTransaction foundTx = TransactionCache.FirstOrDefault(x => x == tx);
-					if (foundTx != default(SmartTransaction)) // Must check again, because it's a concurrent collection!
+					if (foundTx != default) // Must check again, because it's a concurrent collection!
 					{
-						foundTx.SetHeight(tx.Height, tx.BlockHash, tx.BlockIndex);
+						foundTx.Update(tx);
 						walletRelevant = true;
 						justUpdate = true; // No need to check for double spend, we already processed this transaction, just update it.
 					}
