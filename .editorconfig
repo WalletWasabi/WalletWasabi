@@ -109,6 +109,12 @@ csharp_style_expression_bodied_lambdas = true:error
 # IDE0066: Convert switch statement to expression
 csharp_style_prefer_switch_expression = true:error
 
+# IDE0063: Use simple 'using' statement
+csharp_prefer_simple_using_statement = true:error
+
+# IDE0054: Use compound assignment
+dotnet_style_prefer_compound_assignment = true:error
+
 
 # name all constant or static fields using PascalCase
 dotnet_naming_rule.constant_or_static_fields_should_be_pascal_case.severity = error
