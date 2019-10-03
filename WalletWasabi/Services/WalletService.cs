@@ -358,13 +358,13 @@ namespace WalletWasabi.Services
 
 			// Go through the filters and queue to download the matches.
 			await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) =>
-			{
-				if (filterModel.Filter != null) // Filter can be null if there is no bech32 tx.
 				{
-					await ProcessFilterModelAsync(filterModel, cancel);
-				}
-			},
-			new Height(bestKeyManagerHeight.Value + 1));
+					if (filterModel.Filter != null) // Filter can be null if there is no bech32 tx.
+					{
+						await ProcessFilterModelAsync(filterModel, cancel);
+					}
+				},
+				new Height(bestKeyManagerHeight.Value + 1));
 		}
 
 		private async Task LoadDummyMempoolAsync(SmartTransaction[] unconfirmedTransactions)
