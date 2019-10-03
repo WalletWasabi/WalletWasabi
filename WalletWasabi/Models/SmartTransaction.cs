@@ -94,8 +94,7 @@ namespace WalletWasabi.Models
 		/// <summary>
 		/// Update the transaction with the data acquired from another transaction. (For example merge their labels.)
 		/// </summary>
-		/// <param name="canUnconfirm">By default confirmed transaction won't get unconfirmed. You can override this option.</param>
-		public void Update(SmartTransaction tx, bool canUnconfirm = false)
+		public void Update(SmartTransaction tx)
 		{
 			// If this is not the same tx, then don't update.
 			if (this != tx)
@@ -103,14 +102,8 @@ namespace WalletWasabi.Models
 				throw new InvalidOperationException($"{GetHash()} != {tx.GetHash()}");
 			}
 
-			// Set the height related properties.
-			if (canUnconfirm)
-			{
-				Height = tx.Height;
-				BlockHash = tx.BlockHash;
-				BlockIndex = tx.BlockIndex;
-			}
-			else if (tx.Confirmed)
+			// Set the height related properties, only if confirmed.
+			if (tx.Confirmed)
 			{
 				Height = tx.Height;
 				BlockHash = tx.BlockHash;
