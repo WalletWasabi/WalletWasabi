@@ -117,7 +117,10 @@ namespace WalletWasabi.Models
 			}
 
 			// Merge labels.
-			Label = SmartLabel.Merge(Label, tx.Label);
+			if (Label != tx.Label)
+			{
+				Label = SmartLabel.Merge(Label, tx.Label);
+			}
 		}
 
 		public void SetReplacement()
