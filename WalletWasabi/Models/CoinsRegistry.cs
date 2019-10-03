@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
@@ -6,7 +8,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Models
 {
-	public class CoinsRegistry
+	public class CoinsRegistry : ICoinsView
 	{
 		private HashSet<SmartCoin> _coins;
 		private object _lock;
@@ -18,7 +20,7 @@ namespace WalletWasabi.Models
 			_lock = new object();
 		}
 
-		public CoinsView AsCoinsView()
+		private CoinsView AsCoinsView()
 		{
 			return new CoinsView(_coins);
 		}
@@ -66,6 +68,81 @@ namespace WalletWasabi.Models
 				_coins.Clear();
 			}
 			CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+		}
+
+		public ICoinsView AtBlockHeight(Height height)
+		{
+			return AsCoinsView().AtBlockHeight(height);
+		}
+
+		public ICoinsView Available()
+		{
+			return AsCoinsView().Available();
+		}
+
+		public ICoinsView ChildrenOf(SmartCoin coin)
+		{
+			return AsCoinsView().ChildrenOf(coin);
+		}
+
+		public ICoinsView CoinJoinInProcess()
+		{
+			return AsCoinsView().CoinJoinInProcess();
+		}
+
+		public ICoinsView Confirmed()
+		{
+			return AsCoinsView().Confirmed();
+		}
+
+		public ICoinsView DescendantOf(SmartCoin coin)
+		{
+			return AsCoinsView().DescendantOf(coin);
+		}
+
+		public ICoinsView FilterBy(Func<SmartCoin, bool> expression)
+		{
+			return AsCoinsView().FilterBy(expression);
+		}
+
+		public IEnumerator<SmartCoin> GetEnumerator()
+		{
+			return AsCoinsView().GetEnumerator();
+		}
+
+		public ICoinsView OutPoints(IEnumerable<TxoRef> outPoints)
+		{
+			return AsCoinsView().OutPoints(outPoints);
+		}
+
+		public ICoinsView SpentBy(uint256 txid)
+		{
+			return AsCoinsView().SpentBy(txid);
+		}
+
+		public SmartCoin[] ToArray()
+		{
+			return AsCoinsView().ToArray();
+		}
+
+		public Money TotalAmount()
+		{
+			return AsCoinsView().TotalAmount();
+		}
+
+		public ICoinsView Unconfirmed()
+		{
+			return AsCoinsView().Unconfirmed();
+		}
+
+		public ICoinsView UnSpent()
+		{
+			return AsCoinsView().UnSpent();
+		}
+
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return AsCoinsView().GetEnumerator();
 		}
 	}
 }
