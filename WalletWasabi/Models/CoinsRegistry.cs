@@ -4,7 +4,7 @@ using System.Linq;
 using NBitcoin;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Gui.Models
+namespace WalletWasabi.Models
 {
 	public class CoinsRegistry
 	{
