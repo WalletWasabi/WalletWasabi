@@ -1,7 +1,7 @@
 
 ## Daily routine
 
-1. Start
+1. Start.
 2. Check code review requests. [link](https://github.com/zkSNACKs/WalletWasabi/pulls) __Reviews / Awaiting review from you__
 2. Check [priority issues!](https://github.com/zkSNACKs/WalletWasabi/pulls?q=is%3Aopen+is%3Apr+label%3Apriority). Take it or set Assignees and Labels if you can.
 3. Check your own PR-s and answer if neccessary. [link](https://github.com/pulls?utf8=%E2%9C%93&q=is%3Aopen+archived%3Afalse+user%3AzkSNACKs+) __Click Created__
