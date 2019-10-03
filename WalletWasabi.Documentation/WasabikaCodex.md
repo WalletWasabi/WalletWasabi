@@ -18,7 +18,7 @@
 
 ## Monthly routine
 
-- Go through all Issues and Pull requests.
+- Go through all Issues and Pull requests and triage them.
 
 ## Roadmap
 
