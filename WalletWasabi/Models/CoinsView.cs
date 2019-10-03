@@ -10,51 +10,51 @@ namespace WalletWasabi.Models
 {
 	public class CoinsView : IEnumerable<SmartCoin>
 	{
-		private IEnumerable<SmartCoin> _coins;
+		private IEnumerable<SmartCoin> Coins { get; }
 
 		public CoinsView(IEnumerable<SmartCoin> coins)
 		{
-			_coins = Guard.NotNull(nameof(coins), coins);
+			Coins = Guard.NotNull(nameof(coins), coins);
 		}
 
 		public CoinsView UnSpent()
 		{
-			return new CoinsView(_coins.Where(x => x.Unspent && !x.SpentAccordingToBackend));
+			return new CoinsView(Coins.Where(x => x.Unspent && !x.SpentAccordingToBackend));
 		}
 
 		public CoinsView Available()
 		{
-			return new CoinsView(_coins.Where(x => !x.Unavailable));
+			return new CoinsView(Coins.Where(x => !x.Unavailable));
 		}
 
 		public CoinsView CoinJoinInProcess()
 		{
-			return new CoinsView(_coins.Where(x => x.CoinJoinInProgress));
+			return new CoinsView(Coins.Where(x => x.CoinJoinInProgress));
 		}
 
 		public CoinsView Confirmed()
 		{
-			return new CoinsView(_coins.Where(x => x.Confirmed));
+			return new CoinsView(Coins.Where(x => x.Confirmed));
 		}
 
 		public CoinsView Unconfirmed()
 		{
-			return new CoinsView(_coins.Where(x => !x.Confirmed));
+			return new CoinsView(Coins.Where(x => !x.Confirmed));
 		}
 
 		public CoinsView AtBlockHeight(Height height)
 		{
-			return new CoinsView(_coins.Where(x => x.Height == height));
+			return new CoinsView(Coins.Where(x => x.Height == height));
 		}
 
 		public CoinsView SpentBy(uint256 txid)
 		{
-			return new CoinsView(_coins.Where(x => x.SpenderTransactionId == txid));
+			return new CoinsView(Coins.Where(x => x.SpenderTransactionId == txid));
 		}
 
 		public CoinsView ChildrenOf(SmartCoin coin)
 		{
-			return new CoinsView(_coins.Where(x => x.TransactionId == coin.SpenderTransactionId));
+			return new CoinsView(Coins.Where(x => x.TransactionId == coin.SpenderTransactionId));
 		}
 
 		public CoinsView DescendantOf(SmartCoin coin)
@@ -77,32 +77,32 @@ namespace WalletWasabi.Models
 
 		public CoinsView FilterBy(Func<SmartCoin, bool> expression)
 		{
-			return new CoinsView(_coins.Where(expression));
+			return new CoinsView(Coins.Where(expression));
 		}
 
 		public CoinsView OutPoints(IEnumerable<TxoRef> outPoints)
 		{
-			return new CoinsView(_coins.Where(x => outPoints.Any(y => y == x.GetOutPoint())));
+			return new CoinsView(Coins.Where(x => outPoints.Any(y => y == x.GetOutPoint())));
 		}
 
 		public Money TotalAmount()
 		{
-			return _coins.Sum(x => x.Amount);
+			return Coins.Sum(x => x.Amount);
 		}
 
 		public SmartCoin[] ToArray()
 		{
-			return _coins.ToArray();
+			return Coins.ToArray();
 		}
 
 		public IEnumerator<SmartCoin> GetEnumerator()
 		{
-			return _coins.GetEnumerator();
+			return Coins.GetEnumerator();
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()
 		{
-			return _coins.GetEnumerator();
+			return Coins.GetEnumerator();
 		}
 	}
 }
