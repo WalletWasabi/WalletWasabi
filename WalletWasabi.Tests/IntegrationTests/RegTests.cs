@@ -1877,7 +1877,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
 			using var torClient = new TorHttpClient(baseUri, Global.Instance.TorSocks5Endpoint);
 			using var satoshiClient = new SatoshiClient(baseUri, null);
-      
+
 			#region PostInputsGetStates
 
 			// <-------------------------->
