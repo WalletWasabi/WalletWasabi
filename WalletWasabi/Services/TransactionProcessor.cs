@@ -39,7 +39,6 @@ namespace WalletWasabi.Services
 			uint256 txId = tx.GetHash();
 			var walletRelevant = false;
 
-			bool justUpdate = false;
 			if (tx.Confirmed)
 			{
 				if (!tx.Transaction.PossiblyP2WPKHInvolved())
@@ -54,8 +53,12 @@ namespace WalletWasabi.Services
 					if (foundTx != default) // Must check again, because it's a concurrent collection!
 					{
 						foundTx.Update(tx);
-						walletRelevant = true;
-						justUpdate = true; // No need to check for double spend, we already processed this transaction, just update it.
+						foreach(var coin in Coins.Where(x => x.TransactionId == txId))
+						{
+							coin.Height = tx.Height;
+						}
+
+						return true; // relevant
 					}
 				}
 			}
@@ -64,7 +67,7 @@ namespace WalletWasabi.Services
 				return false; // We do not care about non-witness transactions for other than mempool cleanup.
 			}
 
-			if (!justUpdate && !tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
+			if (!tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
 			{
 				var doubleSpends = new List<SmartCoin>();
 				foreach (SmartCoin coin in Coins)
@@ -181,17 +184,6 @@ namespace WalletWasabi.Services
 						{
 							// Make sure there's always 14 internal locked keys generated and indexed.
 							KeyManager.AssertLockedInternalKeysIndexed(14);
-						}
-					}
-					else // If we had this coin already.
-					{
-						if (newCoin.Height != Height.Mempool) // Update the height of this old coin we already had.
-						{
-							SmartCoin oldCoin = Coins.FirstOrDefault(x => x.TransactionId == txId && x.Index == i);
-							if (oldCoin != null) // Just to be sure, it is a concurrent collection.
-							{
-								oldCoin.Height = newCoin.Height;
-							}
 						}
 					}
 				}
