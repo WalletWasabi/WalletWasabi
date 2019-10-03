@@ -9,14 +9,12 @@
    - If you need review __set Reviewers__.
 4. Check assigned issues. [link](https://github.com/zkSNACKs/WalletWasabi/issues) __Click Assignee / Select your profile__
 5. Check mentions. [link](https://github.com/pulls?utf8=%E2%9C%93&q=is%3Aopen+archived%3Afalse+repo%3AzkSNACKs%2FWalletWasabi+) __Click Mentioned__
-6. Check new issues.
-7. Work on anything you want - manage task progress in [Kanban board](https://github.com/molnard/WalletWasabi/projects/1)
+6. Check the bell.
+7. Work on anything you want - manage task progress in [Todo board](https://github.com/molnard/WalletWasabi/projects/1)
 
 ## Weekly routine
 
-- Monday: Community meeting [Optional]
 - Wednesday: Developer meeting
-- Thursday: Check the bell
 - Pair programming hour.
 
 ## Monthly routine
