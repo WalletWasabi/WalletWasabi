@@ -6,7 +6,7 @@ using NBitcoin;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Gui.Models
+namespace WalletWasabi.Models
 {
 	public class CoinsView : IEnumerable<SmartCoin>
 	{
