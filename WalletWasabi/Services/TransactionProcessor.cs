@@ -39,13 +39,13 @@ namespace WalletWasabi.Services
 			uint256 txId = tx.GetHash();
 			var walletRelevant = false;
 
+			if (!tx.Transaction.PossiblyP2WPKHInvolved())
+			{
+				return false; // We do not care about non-witness transactions for other than mempool cleanup.
+			}
+
 			if (tx.Confirmed)
 			{
-				if (!tx.Transaction.PossiblyP2WPKHInvolved())
-				{
-					return false; // We do not care about non-witness transactions for other than mempool cleanup.
-				}
-
 				bool isFoundTx = TransactionCache.Contains(tx); // If we have in cache, update height.
 				if (isFoundTx)
 				{
@@ -61,10 +61,6 @@ namespace WalletWasabi.Services
 						return true; // relevant
 					}
 				}
-			}
-			else if (!tx.Transaction.PossiblyP2WPKHInvolved())
-			{
-				return false; // We do not care about non-witness transactions for other than mempool cleanup.
 			}
 
 			if (!tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
