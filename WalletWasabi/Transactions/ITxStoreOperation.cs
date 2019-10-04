@@ -6,5 +6,6 @@ namespace WalletWasabi.Transactions
 {
 	public interface ITxStoreOperation
 	{
+		public bool IsEmpty { get; }
 	}
 }

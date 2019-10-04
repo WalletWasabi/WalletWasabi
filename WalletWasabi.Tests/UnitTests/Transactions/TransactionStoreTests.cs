@@ -2,9 +2,11 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Models;
+using WalletWasabi.Transactions;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions
@@ -37,8 +39,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			Assert.True(txStore.IsEmpty());
 
-			var tx = Transaction.Create(network);
-			var stx = new SmartTransaction(tx, Height.Mempool, firstSeen: DateTimeOffset.UtcNow);
+			var stx = Global.GenerateRandomSmartTransaction();
 			var isAdded = txStore.TryAdd(stx);
 			Assert.True(isAdded);
 			var isRemoved = txStore.TryRemove(stx.GetHash(), out SmartTransaction removed);
@@ -50,11 +51,11 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.False(isAdded);
 			Assert.False(txStore.TryAdd(stx));
 			Assert.False(txStore.IsEmpty());
-			Assert.True(txStore.TryGetTransaction(tx.GetHash(), out SmartTransaction sameStx));
-			Assert.True(txStore.Contains(tx.GetHash()));
+			Assert.True(txStore.TryGetTransaction(stx.GetHash(), out SmartTransaction sameStx));
+			Assert.True(txStore.Contains(stx.GetHash()));
 			Assert.Equal(stx, sameStx);
 
-			txStore.TryRemove(tx.GetHash(), out _);
+			txStore.TryRemove(stx.GetHash(), out _);
 			Assert.True(txStore.IsEmpty());
 			Assert.Empty(txStore.GetTransactions());
 			txStore.TryAdd(stx);

@@ -243,69 +243,100 @@ namespace WalletWasabi.Transactions
 		private async Task TryRemoveFromFileAsync(IEnumerable<uint256> transactionIds)
 			=> await TryCommitToFileAsync(new Remove(transactionIds)).ConfigureAwait(false);
 
+		private List<ITxStoreOperation> Operations { get; } = new List<ITxStoreOperation>();
+		private object OperationsLock { get; } = new object();
+
 		private async Task TryCommitToFileAsync(ITxStoreOperation operation)
 		{
 			try
 			{
-				if (operation is Append appendOperation)
+				if (operation is null || operation.IsEmpty)
 				{
-					IEnumerable<SmartTransaction> toAppends = appendOperation.Transactions;
-					if (toAppends is null || !toAppends.Any())
+					return;
+				}
+
+				// Make sure that only one call can continue.
+				lock (OperationsLock)
+				{
+					var isRunning = Operations.Any();
+					Operations.Add(operation);
+					if (isRunning)
 					{
 						return;
 					}
+				}
 
-					using (await TransactionsFileManager.Mutex.LockAsync().ConfigureAwait(false))
+				// Wait until the operation list calms down.
+				List<ITxStoreOperation> operationsToExecute;
+				while (true)
+				{
+					var count = Operations.Count;
+
+					await Task.Delay(100).ConfigureAwait(false);
+
+					lock (OperationsLock)
 					{
-						try
+						if (count == Operations.Count)
 						{
-							await TransactionsFileManager.AppendAllLinesAsync(toAppends.ToBlockchainOrderedLines()).ConfigureAwait(false);
-						}
-						catch
-						{
-							await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
+							// Merge operations.
+							operationsToExecute = OperationMerger.Merge(Operations).ToList();
+							Operations.Clear();
+							break;
 						}
 					}
 				}
-				else if (operation is Remove removeOperation)
+
+				using (await TransactionsFileManager.Mutex.LockAsync().ConfigureAwait(false))
 				{
-					IEnumerable<uint256> toRemoves = removeOperation.Transactions;
-					if (toRemoves is null || !toRemoves.Any())
+					foreach (ITxStoreOperation op in operationsToExecute)
 					{
-						return;
-					}
-
-					using (await TransactionsFileManager.Mutex.LockAsync().ConfigureAwait(false))
-					{
-						string[] allLines = await TransactionsFileManager.ReadAllLinesAsync().ConfigureAwait(false);
-						var toSerialize = new List<string>();
-						foreach (var line in allLines)
+						if (op is Append appendOperation)
 						{
-							var startsWith = false;
-							foreach (var toRemoveString in toRemoves.Select(x => x.ToString()))
-							{
-								startsWith = startsWith || line.StartsWith(toRemoveString, StringComparison.Ordinal);
-							}
+							var toAppends = appendOperation.Transactions;
 
-							if (!startsWith)
+							try
 							{
-								toSerialize.Add(line);
+								await TransactionsFileManager.AppendAllLinesAsync(toAppends.ToBlockchainOrderedLines()).ConfigureAwait(false);
+							}
+							catch
+							{
+								await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
 							}
 						}
+						else if (op is Remove removeOperation)
+						{
+							var toRemoves = removeOperation.Transactions;
 
-						try
-						{
-							await TransactionsFileManager.WriteAllLinesAsync(toSerialize).ConfigureAwait(false);
+							string[] allLines = await TransactionsFileManager.ReadAllLinesAsync().ConfigureAwait(false);
+							var toSerialize = new List<string>();
+							foreach (var line in allLines)
+							{
+								var startsWith = false;
+								foreach (var toRemoveString in toRemoves.Select(x => x.ToString()))
+								{
+									startsWith = startsWith || line.StartsWith(toRemoveString, StringComparison.Ordinal);
+								}
+
+								if (!startsWith)
+								{
+									toSerialize.Add(line);
+								}
+							}
+
+							try
+							{
+								await TransactionsFileManager.WriteAllLinesAsync(toSerialize).ConfigureAwait(false);
+							}
+							catch
+							{
+								await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
+							}
 						}
-						catch
+						else
 						{
-							await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
+							throw new NotSupportedException();
 						}
 					}
-				}
-				else
-				{
-					throw new ArgumentException(nameof(operation));
 				}
 			}
 			catch (Exception ex)
