@@ -6,10 +6,11 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Stores;
+using WalletWasabi.Transactions;
 
-namespace WalletWasabi.Tests.UnitTests.TransactionStore
+namespace WalletWasabi.Tests.UnitTests.Transactions
 {
-	public class TransactionStoreMock : Stores.TransactionStore
+	public class TransactionStoreMock : TransactionStore
 	{
 		public TransactionStoreMock([CallerMemberName] string caller = null)
 		{

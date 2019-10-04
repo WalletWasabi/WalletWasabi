@@ -10,7 +10,7 @@ using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Stores
+namespace WalletWasabi.Transactions
 {
 	public class TransactionStore
 	{
@@ -231,66 +231,81 @@ namespace WalletWasabi.Stores
 			await TransactionsFileManager.WriteAllLinesAsync(transactionsClone.ToBlockchainOrderedLines()).ConfigureAwait(false);
 		}
 
-		private async Task TryAppendToFileAsync(params SmartTransaction[] stxs)
-			=> await TryAppendToFileAsync(stxs as IEnumerable<SmartTransaction>).ConfigureAwait(false);
+		private async Task TryAppendToFileAsync(params SmartTransaction[] transactions)
+			=> await TryAppendToFileAsync(transactions as IEnumerable<SmartTransaction>).ConfigureAwait(false);
 
 		private async Task TryAppendToFileAsync(IEnumerable<SmartTransaction> transactions)
+			=> await TryCommitToFileAsync(new Append(transactions)).ConfigureAwait(false);
+
+		private async Task TryRemoveFromFileAsync(params uint256[] transactionIds)
+			=> await TryRemoveFromFileAsync(transactionIds as IEnumerable<uint256>).ConfigureAwait(false);
+
+		private async Task TryRemoveFromFileAsync(IEnumerable<uint256> transactionIds)
+			=> await TryCommitToFileAsync(new Remove(transactionIds)).ConfigureAwait(false);
+
+		private async Task TryCommitToFileAsync(ITxStoreOperation operation)
 		{
 			try
 			{
-				using (await TransactionsFileManager.Mutex.LockAsync().ConfigureAwait(false))
+				if (operation is Append appendOperation)
 				{
-					try
+					IEnumerable<SmartTransaction> toAppends = appendOperation.Transactions;
+					if (toAppends is null || !toAppends.Any())
 					{
-						await TransactionsFileManager.AppendAllLinesAsync(transactions.ToBlockchainOrderedLines()).ConfigureAwait(false);
+						return;
 					}
-					catch
-					{
-						await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
-		}
 
-		private async Task TryRemoveFromFileAsync(params uint256[] toRemoves)
-		{
-			try
-			{
-				if (toRemoves is null || !toRemoves.Any())
-				{
-					return;
-				}
-
-				using (await TransactionsFileManager.Mutex.LockAsync().ConfigureAwait(false))
-				{
-					string[] allLines = await TransactionsFileManager.ReadAllLinesAsync().ConfigureAwait(false);
-					var toSerialize = new List<string>();
-					foreach (var line in allLines)
+					using (await TransactionsFileManager.Mutex.LockAsync().ConfigureAwait(false))
 					{
-						var startsWith = false;
-						foreach (var toRemoveString in toRemoves.Select(x => x.ToString()))
+						try
 						{
-							startsWith = startsWith || line.StartsWith(toRemoveString, StringComparison.Ordinal);
+							await TransactionsFileManager.AppendAllLinesAsync(toAppends.ToBlockchainOrderedLines()).ConfigureAwait(false);
 						}
-
-						if (!startsWith)
+						catch
 						{
-							toSerialize.Add(line);
+							await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
 						}
 					}
+				}
+				else if (operation is Remove removeOperation)
+				{
+					IEnumerable<uint256> toRemoves = removeOperation.Transactions;
+					if (toRemoves is null || !toRemoves.Any())
+					{
+						return;
+					}
 
-					try
+					using (await TransactionsFileManager.Mutex.LockAsync().ConfigureAwait(false))
 					{
-						await TransactionsFileManager.WriteAllLinesAsync(toSerialize).ConfigureAwait(false);
+						string[] allLines = await TransactionsFileManager.ReadAllLinesAsync().ConfigureAwait(false);
+						var toSerialize = new List<string>();
+						foreach (var line in allLines)
+						{
+							var startsWith = false;
+							foreach (var toRemoveString in toRemoves.Select(x => x.ToString()))
+							{
+								startsWith = startsWith || line.StartsWith(toRemoveString, StringComparison.Ordinal);
+							}
+
+							if (!startsWith)
+							{
+								toSerialize.Add(line);
+							}
+						}
+
+						try
+						{
+							await TransactionsFileManager.WriteAllLinesAsync(toSerialize).ConfigureAwait(false);
+						}
+						catch
+						{
+							await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
+						}
 					}
-					catch
-					{
-						await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
-					}
+				}
+				else
+				{
+					throw new ArgumentException(nameof(operation));
 				}
 			}
 			catch (Exception ex)

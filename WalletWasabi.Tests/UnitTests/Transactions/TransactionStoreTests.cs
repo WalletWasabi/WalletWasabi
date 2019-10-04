@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Models;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.TransactionStore
+namespace WalletWasabi.Tests.UnitTests.Transactions
 {
 	public class TransactionStoreTests
 	{
