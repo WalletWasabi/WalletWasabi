@@ -41,10 +41,10 @@ namespace WalletWasabi.Gui
 		public const string ThemeBackgroundBrushResourceKey = "ThemeBackgroundBrush";
 		public const string ApplicationAccentForegroundBrushResourceKey = "ApplicationAccentForegroundBrush";
 
-		public string DataDir { get; }
-		public string TorLogsFile { get; }
-		public string WalletsDir { get; }
-		public string WalletBackupsDir { get; }
+		public string DataDir { get; private set; }
+		public string TorLogsFile { get; private set; }
+		public string WalletsDir { get; private set; }
+		public string WalletBackupsDir { get; private set; }
 
 		public BitcoinStore BitcoinStore { get; private set; }
 		public Config Config { get; private set; }
@@ -68,7 +68,12 @@ namespace WalletWasabi.Gui
 
 		public Global()
 		{
-			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+			SetDataDir(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")));
+		}
+
+		public void SetDataDir(string datadir)
+		{
+			DataDir = datadir;
 			TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
 			WalletsDir = Path.Combine(DataDir, "Wallets");
 			WalletBackupsDir = Path.Combine(DataDir, "WalletBackups");
