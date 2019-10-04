@@ -11,6 +11,7 @@ namespace System.Diagnostics
 	public static class ProcessExtensions
 	{
 		private static Dictionary<int, TaskCompletionSource<bool>> AwaitingTaskCompletitionSources { get; } = new Dictionary<int, TaskCompletionSource<bool>>();
+		private static object AwaitingTaskCompletitionSourcesLock { get; } = new object();
 
 		public static async Task WaitForExitAsync(this Process process, CancellationToken cancel)
 		{
@@ -18,9 +19,12 @@ namespace System.Diagnostics
 			var tcs = new TaskCompletionSource<bool>();
 			try
 			{
-				AwaitingTaskCompletitionSources.Add(process.Id, tcs);
-				process.EnableRaisingEvents = true;
-				process.Exited += Process_Exited;
+				lock (AwaitingTaskCompletitionSourcesLock)
+				{
+					AwaitingTaskCompletitionSources.Add(process.Id, tcs);
+					process.EnableRaisingEvents = true;
+					process.Exited += Process_Exited;
+				}
 
 				try
 				{
@@ -37,8 +41,11 @@ namespace System.Diagnostics
 			}
 			finally
 			{
-				process.Exited -= Process_Exited;
-				AwaitingTaskCompletitionSources.Remove(process.Id);
+				lock (AwaitingTaskCompletitionSourcesLock)
+				{
+					process.Exited -= Process_Exited;
+					AwaitingTaskCompletitionSources.Remove(process.Id);
+				}
 			}
 		}
 
@@ -46,9 +53,12 @@ namespace System.Diagnostics
 		{
 			try
 			{
-				var proc = sender as Process;
-				TaskCompletionSource<bool> tcs = AwaitingTaskCompletitionSources[proc.Id];
-				tcs.SetResult(true);
+				lock (AwaitingTaskCompletitionSourcesLock)
+				{
+					var proc = sender as Process;
+					TaskCompletionSource<bool> tcs = AwaitingTaskCompletitionSources[proc.Id];
+					tcs.SetResult(true);
+				}
 			}
 			catch (Exception ex)
 			{
