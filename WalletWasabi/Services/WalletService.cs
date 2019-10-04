@@ -215,7 +215,7 @@ namespace WalletWasabi.Services
 			{
 				using (await TransactionProcessingLock.LockAsync())
 				{
-					if (await ProcessTransactionAsync(tx))
+					if (TransactionProcessor.Process(tx))
 					{
 						SerializeTransactionCache();
 					}
@@ -380,7 +380,7 @@ namespace WalletWasabi.Services
 					{
 						if (mempoolHashes.Contains(tx.GetHash().ToString().Substring(0, compactness)))
 						{
-							await ProcessTransactionAsync(tx);
+							TransactionProcessor.Process(tx);
 
 							Logger.LogInfo($"Transaction was successfully tested against the backend's mempool hashes: {tx.GetHash()}.");
 							count++;
@@ -398,7 +398,7 @@ namespace WalletWasabi.Services
 				// When there's a connection failure do not clean the transactions, add them to processing.
 				foreach (var tx in unconfirmedTransactions)
 				{
-					await ProcessTransactionAsync(tx);
+					TransactionProcessor.Process(tx);
 				}
 
 				Logger.LogWarning(ex);
@@ -529,7 +529,7 @@ namespace WalletWasabi.Services
 					for (int i = 0; i < block.Transactions.Count; i++)
 					{
 						Transaction tx = block.Transactions[i];
-						if (await ProcessTransactionAsync(new SmartTransaction(tx, height, block.GetHash(), i)))
+						if (TransactionProcessor.Process(new SmartTransaction(tx, height, block.GetHash(), i)))
 						{
 							relevantIndices.Add(i);
 							ret = true;
@@ -551,7 +551,7 @@ namespace WalletWasabi.Services
 					foreach (var i in filterByTxIndexes.OrderBy(x => x))
 					{
 						var tx = skeletonBlock?.FirstOrDefault(x => x.BlockIndex == i) ?? new SmartTransaction(block.Transactions[i], height, block.GetHash(), i);
-						if (await ProcessTransactionAsync(tx))
+						if (TransactionProcessor.Process(tx))
 						{
 							ret = true;
 						}
@@ -564,11 +564,6 @@ namespace WalletWasabi.Services
 			NewBlockProcessed?.Invoke(this, block);
 
 			return ret;
-		}
-
-		private async Task<bool> ProcessTransactionAsync(SmartTransaction tx)
-		{
-			return await Task.FromResult(TransactionProcessor.Process(tx));
 		}
 
 		private Node _localBitcoinCoreNode = null;
@@ -1240,7 +1235,7 @@ namespace WalletWasabi.Services
 
 			using (await TransactionProcessingLock.LockAsync())
 			{
-				if (await ProcessTransactionAsync(new SmartTransaction(transaction.Transaction, Height.Mempool)))
+				if (TransactionProcessor.Process(new SmartTransaction(transaction.Transaction, Height.Mempool)))
 				{
 					SerializeTransactionCache();
 				}
