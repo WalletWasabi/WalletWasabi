@@ -135,5 +135,10 @@ namespace System.Linq
 				.OrderBy(x => x.Height)
 				.ThenBy(x => x.BlockIndex)
 				.ThenBy(x => x.FirstSeen);
+
+		public static IEnumerable<string> ToBlockchainOrderedLines(this IEnumerable<SmartTransaction> me)
+			=> me
+				.OrderByBlockchain()
+				.Select(x => x.ToLine());
 	}
 }
