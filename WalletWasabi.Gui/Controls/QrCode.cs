@@ -33,10 +33,7 @@ namespace WalletWasabi.Gui.Controls
 		}
 
 		public static readonly DirectProperty<QrCode, bool[,]> MatrixProperty =
-			AvaloniaProperty.RegisterDirect<QrCode, bool[,]>(
-				nameof(Matrix),
-				o => o.Matrix,
-				(o, v) => o.Matrix = v);
+			AvaloniaProperty.RegisterDirect<QrCode, bool[,]>(nameof(Matrix), o => o.Matrix, (o, v) => o.Matrix = v);
 
 		private bool[,] _matrix;
 
