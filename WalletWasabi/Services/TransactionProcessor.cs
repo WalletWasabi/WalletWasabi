@@ -36,14 +36,12 @@ namespace WalletWasabi.Services
 
 		public bool Process(SmartTransaction tx)
 		{
-			uint256 txId = tx.GetHash();
-			var walletRelevant = false;
-
 			if (!tx.Transaction.PossiblyP2WPKHInvolved())
 			{
 				return false; // We do not care about non-witness transactions for other than mempool cleanup.
 			}
 
+			uint256 txId = tx.GetHash();
 			if (tx.Confirmed)
 			{
 				bool isFoundTx = TransactionCache.Contains(tx); // If we have in cache, update height.
@@ -62,6 +60,8 @@ namespace WalletWasabi.Services
 					}
 				}
 			}
+
+			var walletRelevant = false;
 
 			if (!tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
 			{
