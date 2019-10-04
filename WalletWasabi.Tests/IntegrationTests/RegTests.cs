@@ -1230,6 +1230,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
+      
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
 
@@ -1877,7 +1878,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
 			using var torClient = new TorHttpClient(baseUri, Global.Instance.TorSocks5Endpoint);
 			using var satoshiClient = new SatoshiClient(baseUri, null);
-      
+
 			#region PostInputsGetStates
 
 			// <-------------------------->

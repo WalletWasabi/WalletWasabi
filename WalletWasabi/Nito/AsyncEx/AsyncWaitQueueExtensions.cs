@@ -32,13 +32,13 @@ namespace Nito.AsyncEx
 			}
 
 			var registration = token.Register(() =>
-			{
-				lock (mutex)
 				{
-					@this.TryCancel(ret, token);
-				}
-			},
-			useSynchronizationContext: false);
+					lock (mutex)
+					{
+						@this.TryCancel(ret, token);
+					}
+				},
+				useSynchronizationContext: false);
 			ret.ContinueWith(_ => registration.Dispose(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
 			return ret;
 		}
