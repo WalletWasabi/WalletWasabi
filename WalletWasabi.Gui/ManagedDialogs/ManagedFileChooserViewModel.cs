@@ -150,16 +150,16 @@ namespace WalletWasabi.Gui.ManagedDialogs
 			SelectedItems.CollectionChanged += OnSelectionChangedAsync;
 
 			EnterLocationCommand = ReactiveCommand.Create(() =>
-			{
-				if (Directory.Exists(Location))
 				{
-					Navigate(Location);
-				}
-				else if (File.Exists(Location))
-				{
-					CompleteRequested?.Invoke(new[] { Location });
-				}
-			});
+					if (Directory.Exists(Location))
+					{
+						Navigate(Location);
+					}
+					else if (File.Exists(Location))
+					{
+						CompleteRequested?.Invoke(new[] { Location });
+					}
+				});
 		}
 
 		private async void OnSelectionChangedAsync(object sender, NotifyCollectionChangedEventArgs e)

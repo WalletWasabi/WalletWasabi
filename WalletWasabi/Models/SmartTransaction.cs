@@ -91,7 +91,10 @@ namespace WalletWasabi.Models
 
 		#endregion Constructors
 
-		public void Update(SmartTransaction tx, bool forceHeightUpdate)
+		/// <summary>
+		/// Update the transaction with the data acquired from another transaction. (For example merge their labels.)
+		/// </summary>
+		public void Update(SmartTransaction tx)
 		{
 			// If this is not the same tx, then don't update.
 			if (this != tx)
@@ -99,32 +102,25 @@ namespace WalletWasabi.Models
 				throw new InvalidOperationException($"{GetHash()} != {tx.GetHash()}");
 			}
 
-			// If reorg, then tx can be released back from block to the mempool.
-			if (forceHeightUpdate)
+			// Set the height related properties, only if confirmed.
+			if (tx.Confirmed)
 			{
 				Height = tx.Height;
 				BlockHash = tx.BlockHash;
 				BlockIndex = tx.BlockIndex;
 			}
-			// If not reorg, then don't unconfirm.
-			else if (tx.Confirmed)
-			{
-				Height = tx.Height;
 
-				// Update the blockhash and blockindex only if they have valid values.
-				if (tx.BlockHash != null)
-				{
-					BlockHash = tx.BlockHash;
-					BlockIndex = tx.BlockIndex;
-				}
-			}
-
+			// Always the earlier seen is the firstSeen.
 			if (tx.FirstSeen < FirstSeen)
 			{
 				FirstSeen = tx.FirstSeen;
 			}
 
-			Label = SmartLabel.Merge(Label, tx.Label);
+			// Merge labels.
+			if (Label != tx.Label)
+			{
+				Label = SmartLabel.Merge(Label, tx.Label);
+			}
 		}
 
 		public void SetReplacement()

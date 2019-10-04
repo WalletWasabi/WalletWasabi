@@ -23,6 +23,13 @@ namespace WalletWasabi.Stores
 		public AllTransactionStore TransactionStore { get; private set; }
 
 		public HashChain HashChain { get; private set; }
+		public MempoolService MempoolService { get; private set; }
+
+		/// <summary>
+		/// This should not be a property, but a creator function, because it'll be cloned left and right by NBitcoin later.
+		/// So it should not be assumed it's some singleton.
+		/// </summary>
+		public MempoolBehavior CreateMempoolBehavior() => new MempoolBehavior(MempoolService);
 
 		public MempoolService MempoolService { get; private set; }
 
@@ -48,7 +55,6 @@ namespace WalletWasabi.Stores
 				var networkWorkFolderPath = Path.Combine(WorkFolderPath, Network.ToString());
 				var indexStoreFolderPath = Path.Combine(networkWorkFolderPath, "IndexStore");
 				HashChain = new HashChain();
-
 				var initTasks = new[]
 				{
 					IndexStore.InitializeAsync(indexStoreFolderPath, Network, HashChain),

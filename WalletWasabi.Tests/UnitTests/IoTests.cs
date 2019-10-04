@@ -51,7 +51,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// Read back the content and check.
 
-			bool IsStringArraysEqual(string[] lines1, string[] lines2)
+			static bool IsStringArraysEqual(string[] lines1, string[] lines2)
 			{
 				if (lines1.Length != lines2.Length)
 				{
@@ -201,7 +201,7 @@ namespace WalletWasabi.Tests.UnitTests
 			IoHelpers.EnsureContainingDirectoryExists(ioman.FilePath);
 			File.Create(ioman.FilePath).Dispose();
 
-			string RandomString()
+			static string RandomString()
 			{
 				StringBuilder builder = new StringBuilder();
 				var rnd = new Random();

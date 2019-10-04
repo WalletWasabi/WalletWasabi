@@ -1230,6 +1230,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
+      
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
 

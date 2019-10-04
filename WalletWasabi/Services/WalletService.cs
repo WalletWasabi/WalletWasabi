@@ -293,13 +293,13 @@ namespace WalletWasabi.Services
 
 			// Go through the filters and queue to download the matches.
 			await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) =>
-			{
-				if (filterModel.Filter != null) // Filter can be null if there is no bech32 tx.
 				{
-					await ProcessFilterModelAsync(filterModel, cancel);
-				}
-			},
-			new Height(bestKeyManagerHeight.Value + 1));
+					if (filterModel.Filter != null) // Filter can be null if there is no bech32 tx.
+					{
+						await ProcessFilterModelAsync(filterModel, cancel);
+					}
+				},
+				new Height(bestKeyManagerHeight.Value + 1));
 		}
 
 		private async Task LoadDummyMempoolAsync(IEnumerable<SmartTransaction> unconfirmedTransactions)
@@ -317,7 +317,7 @@ namespace WalletWasabi.Services
 					{
 						if (mempoolHashes.Contains(tx.GetHash().ToString().Substring(0, compactness)))
 						{
-							tx.Update(tx, forceHeightUpdate: true);
+							tx.Update(tx);
 							TransactionProcessor.Process(tx);
 
 							Logger.LogInfo($"Transaction was successfully tested against the backend's mempool hashes: {tx.GetHash()}.");
@@ -334,7 +334,7 @@ namespace WalletWasabi.Services
 				// When there's a connection failure do not clean the transactions, add them to processing.
 				foreach (var tx in unconfirmedTransactions)
 				{
-					tx.Update(tx, forceHeightUpdate: false);
+					tx.Update(tx);
 					TransactionProcessor.Process(tx);
 				}
 

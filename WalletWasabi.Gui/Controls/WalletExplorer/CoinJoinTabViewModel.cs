@@ -69,28 +69,28 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			PrivacyStrongCommand = ReactiveCommand.Create(() => TargetPrivacy = TargetPrivacy.Strong);
 
 			TargetButtonCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				switch (TargetPrivacy)
 				{
-					case TargetPrivacy.None:
-						TargetPrivacy = TargetPrivacy.Some;
-						break;
+					switch (TargetPrivacy)
+					{
+						case TargetPrivacy.None:
+							TargetPrivacy = TargetPrivacy.Some;
+							break;
 
-					case TargetPrivacy.Some:
-						TargetPrivacy = TargetPrivacy.Fine;
-						break;
+						case TargetPrivacy.Some:
+							TargetPrivacy = TargetPrivacy.Fine;
+							break;
 
-					case TargetPrivacy.Fine:
-						TargetPrivacy = TargetPrivacy.Strong;
-						break;
+						case TargetPrivacy.Fine:
+							TargetPrivacy = TargetPrivacy.Strong;
+							break;
 
-					case TargetPrivacy.Strong:
-						TargetPrivacy = TargetPrivacy.Some;
-						break;
-				}
-				Global.Config.MixUntilAnonymitySet = CoinJoinUntilAnonymitySet;
-				await Global.Config.ToFileAsync();
-			});
+						case TargetPrivacy.Strong:
+							TargetPrivacy = TargetPrivacy.Some;
+							break;
+					}
+					Global.Config.MixUntilAnonymitySet = CoinJoinUntilAnonymitySet;
+					await Global.Config.ToFileAsync();
+				});
 
 			this.WhenAnyValue(x => x.IsEnqueueBusy)
 				.Select(x => x ? EnqueuingButtonTextString : EnqueueButtonTextString)
