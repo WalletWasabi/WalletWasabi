@@ -36,17 +36,14 @@ namespace WalletWasabi.Services
 
 		public bool Process(SmartTransaction tx)
 		{
-			uint256 txId = tx.GetHash();
-			var walletRelevant = false;
+			if (!tx.Transaction.PossiblyP2WPKHInvolved())
+			{
+				return false; // We do not care about non-witness transactions for other than mempool cleanup.
+			}
 
-			bool justUpdate = false;
+			uint256 txId = tx.GetHash();
 			if (tx.Confirmed)
 			{
-				if (!tx.Transaction.PossiblyP2WPKHInvolved())
-				{
-					return false; // We do not care about non-witness transactions for other than mempool cleanup.
-				}
-
 				bool isFoundTx = TransactionCache.Contains(tx); // If we have in cache, update height.
 				if (isFoundTx)
 				{
@@ -54,17 +51,19 @@ namespace WalletWasabi.Services
 					if (foundTx != default) // Must check again, because it's a concurrent collection!
 					{
 						foundTx.Update(tx);
-						walletRelevant = true;
-						justUpdate = true; // No need to check for double spend, we already processed this transaction, just update it.
+						foreach (var coin in Coins.Where(x => x.TransactionId == txId))
+						{
+							coin.Height = tx.Height;
+						}
+
+						return true; // relevant
 					}
 				}
 			}
-			else if (!tx.Transaction.PossiblyP2WPKHInvolved())
-			{
-				return false; // We do not care about non-witness transactions for other than mempool cleanup.
-			}
 
-			if (!justUpdate && !tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
+			var walletRelevant = false;
+
+			if (!tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
 			{
 				var doubleSpends = new List<SmartCoin>();
 				foreach (SmartCoin coin in Coins)
