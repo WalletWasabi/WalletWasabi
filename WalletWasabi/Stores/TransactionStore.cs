@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -100,28 +100,33 @@ namespace WalletWasabi.Stores
 
 		public bool TryAdd(SmartTransaction tx)
 		{
+			bool isAdded;
+
 			lock (TransactionsLock)
 			{
-				var isAdded = TryAddNoLockNoSerialization(tx);
-				if (isAdded)
-				{
-					_ = TryAppendToFileAsync(tx);
-				}
-
-				return isAdded;
+				isAdded = TryAddNoLockNoSerialization(tx);
 			}
+
+			if (isAdded)
+			{
+				_ = TryAppendToFileAsync(tx);
+			}
+
+			return isAdded;
 		}
 
 		public ISet<SmartTransaction> TryAdd(IEnumerable<SmartTransaction> transactions)
 		{
 			ISet<SmartTransaction> added;
+
 			lock (TransactionsLock)
 			{
 				added = TryAddNoLockNoSerialization(transactions);
-				if (added.Any())
-				{
-					_ = TryAppendToFileAsync(transactions);
-				}
+			}
+
+			if (added.Any())
+			{
+				_ = TryAppendToFileAsync(transactions);
 			}
 			return added;
 		}
@@ -134,17 +139,19 @@ namespace WalletWasabi.Stores
 
 		public bool TryRemove(uint256 hash, out SmartTransaction stx)
 		{
+			bool isRemoved;
+
 			lock (TransactionsLock)
 			{
-				var isRemoved = Transactions.Remove(hash, out stx);
-
-				if (isRemoved)
-				{
-					_ = TryRemoveFromFileAsync(hash);
-				}
-
-				return isRemoved;
+				isRemoved = Transactions.Remove(hash, out stx);
 			}
+
+			if (isRemoved)
+			{
+				_ = TryRemoveFromFileAsync(hash);
+			}
+
+			return isRemoved;
 		}
 
 		public ISet<SmartTransaction> TryRemove(IEnumerable<uint256> hashes)
@@ -161,11 +168,11 @@ namespace WalletWasabi.Stores
 						removed.Add(stx);
 					}
 				}
+			}
 
-				if (removed.Any())
-				{
-					_ = TryRemoveFromFileAsync(removed.Select(x => x.GetHash()).ToArray());
-				}
+			if (removed.Any())
+			{
+				_ = TryRemoveFromFileAsync(removed.Select(x => x.GetHash()).ToArray());
 			}
 
 			return removed;
@@ -224,7 +231,8 @@ namespace WalletWasabi.Stores
 			await TransactionsFileManager.WriteAllLinesAsync(transactionsClone.ToBlockchainOrderedLines()).ConfigureAwait(false);
 		}
 
-		private async Task TryAppendToFileAsync(params SmartTransaction[] stxs) => await TryAppendToFileAsync(stxs).ConfigureAwait(false);
+		private async Task TryAppendToFileAsync(params SmartTransaction[] stxs)
+			=> await TryAppendToFileAsync(stxs as IEnumerable<SmartTransaction>).ConfigureAwait(false);
 
 		private async Task TryAppendToFileAsync(IEnumerable<SmartTransaction> transactions)
 		{
