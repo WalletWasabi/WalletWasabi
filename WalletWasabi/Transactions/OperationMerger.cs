@@ -10,7 +10,7 @@ namespace WalletWasabi.Transactions
 	public static class OperationMerger
 	{
 		/// <summary>
-		/// Merges the operations in a way that it leaves the order, but two consequtive remove or append cannot follow each other.
+		/// Merges the operations in a way that it leaves the order, but two consecutive remove or append cannot follow each other.
 		/// </summary>
 		public static IEnumerable<ITxStoreOperation> Merge(IEnumerable<ITxStoreOperation> operations)
 		{
