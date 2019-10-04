@@ -182,6 +182,17 @@ namespace WalletWasabi.Services
 							KeyManager.AssertLockedInternalKeysIndexed(14);
 						}
 					}
+					else // If we had this coin already.
+					{
+						if (newCoin.Height != Height.Mempool) // Update the height of this old coin we already had.
+						{
+							SmartCoin oldCoin = Coins.FirstOrDefault(x => x.TransactionId == txId && x.Index == i);
+							if (oldCoin != null) // Just to be sure, it is a concurrent collection.
+							{
+								oldCoin.Height = newCoin.Height;
+							}
+						}
+					}
 				}
 			}
 
