@@ -31,14 +31,6 @@ namespace WalletWasabi.Stores
 		/// </summary>
 		public MempoolBehavior CreateMempoolBehavior() => new MempoolBehavior(MempoolService);
 
-		public MempoolService MempoolService { get; private set; }
-
-		/// <summary>
-		/// This should not be a property, but a creator function, because it'll be cloned left and right by NBitcoin later.
-		/// So it should not be assumed it's some singleton.
-		/// </summary>
-		public MempoolBehavior CreateMempoolBehavior() => new MempoolBehavior(MempoolService);
-
 		public async Task InitializeAsync(string workFolderPath, Network network)
 		{
 			using (BenchmarkLogger.Measure())

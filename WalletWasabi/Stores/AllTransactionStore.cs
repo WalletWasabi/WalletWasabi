@@ -109,7 +109,7 @@ namespace WalletWasabi.Stores
 			{
 				if (MempoolStore.TryRemove(hash, out SmartTransaction found))
 				{
-					found.Update(tx, forceHeightUpdate: false);
+					found.Update(tx);
 					ConfirmedStore.TryAdd(found);
 				}
 				else
@@ -134,7 +134,7 @@ namespace WalletWasabi.Stores
 			{
 				if (MempoolStore.TryRemove(hash, out SmartTransaction found))
 				{
-					found.Update(tx, forceHeightUpdate: false);
+					found.Update(tx);
 					if (ConfirmedStore.TryAdd(found))
 					{
 						return true;
