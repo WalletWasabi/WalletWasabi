@@ -32,49 +32,49 @@ namespace WalletWasabi.Gui.Shell.Commands
 				"Customer Support",
 				commandIconService.GetCompletionKindImage("CustomerSupport"),
 				ReactiveCommand.Create(() =>
-				{
-					try
 					{
-						IoHelpers.OpenBrowser("https://www.reddit.com/r/WasabiWallet/");
-					}
-					catch (Exception ex)
-					{
-						Logger.LogWarning(ex);
-						IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
-					}
-				}));
+						try
+						{
+							IoHelpers.OpenBrowser("https://www.reddit.com/r/WasabiWallet/");
+						}
+						catch (Exception ex)
+						{
+							Logger.LogWarning(ex);
+							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
+						}
+					}));
 
 			ReportBugCommand = new CommandDefinition(
 				"Report Bug",
 				commandIconService.GetCompletionKindImage("ReportBug"),
 				ReactiveCommand.Create(() =>
-				{
-					try
 					{
-						IoHelpers.OpenBrowser("https://github.com/zkSNACKs/WalletWasabi/issues");
-					}
-					catch (Exception ex)
-					{
-						Logger.LogWarning(ex);
-						IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
-					}
-				}));
+						try
+						{
+							IoHelpers.OpenBrowser("https://github.com/zkSNACKs/WalletWasabi/issues");
+						}
+						catch (Exception ex)
+						{
+							Logger.LogWarning(ex);
+							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
+						}
+					}));
 
 			DocsCommand = new CommandDefinition(
 				"Documentation",
 				commandIconService.GetCompletionKindImage("Documentation"),
 				ReactiveCommand.Create(() =>
-				{
-					try
 					{
-						IoHelpers.OpenBrowser("https://docs.wasabiwallet.io/");
-					}
-					catch (Exception ex)
-					{
-						Logger.LogWarning(ex);
-						IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
-					}
-				}));
+						try
+						{
+							IoHelpers.OpenBrowser("https://docs.wasabiwallet.io/");
+						}
+						catch (Exception ex)
+						{
+							Logger.LogWarning(ex);
+							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
+						}
+					}));
 
 			PrivacyPolicyCommand = new CommandDefinition(
 				"Privacy Policy",

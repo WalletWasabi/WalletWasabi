@@ -58,7 +58,6 @@ namespace WalletWasabi.Services
 		public KeyManager KeyManager { get; }
 		public WasabiSynchronizer Synchronizer { get; }
 		public CcjClient ChaumianClient { get; }
-		public MempoolService Mempool { get; }
 		public NodesGroup Nodes { get; }
 		public string BlocksFolderPath { get; }
 		public string TransactionsFolderPath { get; }
@@ -91,7 +90,6 @@ namespace WalletWasabi.Services
 			KeyManager keyManager,
 			WasabiSynchronizer syncer,
 			CcjClient chaumianClient,
-			MempoolService mempool,
 			NodesGroup nodes,
 			string workFolderDir,
 			ServiceConfiguration serviceConfiguration)
@@ -101,7 +99,6 @@ namespace WalletWasabi.Services
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
 			Synchronizer = Guard.NotNull(nameof(syncer), syncer);
 			ChaumianClient = Guard.NotNull(nameof(chaumianClient), chaumianClient);
-			Mempool = Guard.NotNull(nameof(mempool), mempool);
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 
 			ProcessedBlocks = new ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)>();
@@ -159,7 +156,7 @@ namespace WalletWasabi.Services
 
 			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
 			BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
-			Mempool.TransactionReceived += Mempool_TransactionReceivedAsync;
+			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
 		}
 
 		private void TransactionProcessor_CoinSpent(object sender, SmartCoin spentCoin)
@@ -210,15 +207,15 @@ namespace WalletWasabi.Services
 			RefreshCoinHistories();
 		}
 
-		private static AsyncLock TransactionProcessingLock { get; } = new AsyncLock();
+		private static object TransactionProcessingLock { get; } = new object();
 
-		private async void Mempool_TransactionReceivedAsync(object sender, SmartTransaction tx)
+		private void Mempool_TransactionReceived(object sender, SmartTransaction tx)
 		{
 			try
 			{
-				using (await TransactionProcessingLock.LockAsync())
+				lock (TransactionProcessingLock)
 				{
-					if (await ProcessTransactionAsync(tx))
+					if (TransactionProcessor.Process(tx))
 					{
 						SerializeTransactionCache();
 					}
@@ -282,7 +279,7 @@ namespace WalletWasabi.Services
 					}
 				} while (Synchronizer.AreRequestsBlocked()); // If requests are blocked, delay mempool cleanup, because coinjoin answers are always priority.
 
-				await Mempool?.TryPerformMempoolCleanupAsync(Synchronizer?.WasabiClient?.TorClient?.DestinationUriAction, Synchronizer?.WasabiClient?.TorClient?.TorSocks5EndPoint);
+				await BitcoinStore.MempoolService?.TryPerformMempoolCleanupAsync(Synchronizer?.WasabiClient?.TorClient?.DestinationUriAction, Synchronizer?.WasabiClient?.TorClient?.TorSocks5EndPoint);
 			}
 			catch (Exception ex)
 			{
@@ -353,38 +350,37 @@ namespace WalletWasabi.Services
 			{
 				var relevantTransactions = confirmedTransactions.Where(x => x.BlockHash == blockState.BlockHash).ToArray();
 				var block = await FetchBlockAsync(blockState.BlockHash, cancel);
-				await ProcessBlockAsync(blockState.BlockHeight, block, blockState.TransactionIndices, relevantTransactions);
+				ProcessBlock(blockState.BlockHeight, block, blockState.TransactionIndices, relevantTransactions);
 			}
 
 			// Go through the filters and queue to download the matches.
 			await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) =>
-			{
-				if (filterModel.Filter != null) // Filter can be null if there is no bech32 tx.
 				{
-					await ProcessFilterModelAsync(filterModel, cancel);
-				}
-			},
-			new Height(bestKeyManagerHeight.Value + 1));
+					if (filterModel.Filter != null) // Filter can be null if there is no bech32 tx.
+					{
+						await ProcessFilterModelAsync(filterModel, cancel);
+					}
+				},
+				new Height(bestKeyManagerHeight.Value + 1));
 		}
 
 		private async Task LoadDummyMempoolAsync(SmartTransaction[] unconfirmedTransactions)
 		{
 			try
 			{
-				using (await TransactionProcessingLock.LockAsync())
-				using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
+				using var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint);
+				var compactness = 10;
+
+				var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
+
+				lock (TransactionProcessingLock)
 				{
-					var compactness = 10;
-
-					var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
-
 					var count = 0;
 					foreach (var tx in unconfirmedTransactions)
 					{
 						if (mempoolHashes.Contains(tx.GetHash().ToString().Substring(0, compactness)))
 						{
-							tx.SetHeight(Height.Mempool);
-							await ProcessTransactionAsync(tx);
+							TransactionProcessor.Process(tx);
 
 							Logger.LogInfo($"Transaction was successfully tested against the backend's mempool hashes: {tx.GetHash()}.");
 							count++;
@@ -402,8 +398,7 @@ namespace WalletWasabi.Services
 				// When there's a connection failure do not clean the transactions, add them to processing.
 				foreach (var tx in unconfirmedTransactions)
 				{
-					tx.SetHeight(Height.Mempool);
-					await ProcessTransactionAsync(tx);
+					TransactionProcessor.Process(tx);
 				}
 
 				Logger.LogWarning(ex);
@@ -425,7 +420,7 @@ namespace WalletWasabi.Services
 
 			Block currentBlock = await FetchBlockAsync(filterModel.BlockHash, cancel); // Wait until not downloaded.
 
-			if (await ProcessBlockAsync(filterModel.BlockHeight, currentBlock))
+			if (ProcessBlock(filterModel.BlockHeight, currentBlock))
 			{
 				SerializeTransactionCache();
 			}
@@ -523,10 +518,10 @@ namespace WalletWasabi.Services
 			return clusters;
 		}
 
-		private async Task<bool> ProcessBlockAsync(Height height, Block block, IEnumerable<int> filterByTxIndexes = null, IEnumerable<SmartTransaction> skeletonBlock = null)
+		private bool ProcessBlock(Height height, Block block, IEnumerable<int> filterByTxIndexes = null, IEnumerable<SmartTransaction> skeletonBlock = null)
 		{
 			var ret = false;
-			using (await TransactionProcessingLock.LockAsync())
+			lock (TransactionProcessingLock)
 			{
 				if (filterByTxIndexes is null)
 				{
@@ -534,7 +529,7 @@ namespace WalletWasabi.Services
 					for (int i = 0; i < block.Transactions.Count; i++)
 					{
 						Transaction tx = block.Transactions[i];
-						if (await ProcessTransactionAsync(new SmartTransaction(tx, height, block.GetHash(), i)))
+						if (TransactionProcessor.Process(new SmartTransaction(tx, height, block.GetHash(), i)))
 						{
 							relevantIndices.Add(i);
 							ret = true;
@@ -556,7 +551,7 @@ namespace WalletWasabi.Services
 					foreach (var i in filterByTxIndexes.OrderBy(x => x))
 					{
 						var tx = skeletonBlock?.FirstOrDefault(x => x.BlockIndex == i) ?? new SmartTransaction(block.Transactions[i], height, block.GetHash(), i);
-						if (await ProcessTransactionAsync(tx))
+						if (TransactionProcessor.Process(tx))
 						{
 							ret = true;
 						}
@@ -569,11 +564,6 @@ namespace WalletWasabi.Services
 			NewBlockProcessed?.Invoke(this, block);
 
 			return ret;
-		}
-
-		private async Task<bool> ProcessTransactionAsync(SmartTransaction tx)
-		{
-			return await Task.FromResult(TransactionProcessor.Process(tx));
 		}
 
 		private Node _localBitcoinCoreNode = null;
@@ -1173,7 +1163,7 @@ namespace WalletWasabi.Services
 		private async Task BroadcastTransactionToNetworkNodeAsync(SmartTransaction transaction, Node node)
 		{
 			Logger.LogInfo($"Trying to broadcast transaction with random node ({node.RemoteSocketAddress}):{transaction.GetHash()}.");
-			if (!Mempool.TryAddToBroadcastStore(transaction.Transaction, node.RemoteSocketEndpoint.ToString())) // So we'll reply to INV with this transaction.
+			if (!BitcoinStore.MempoolService.TryAddToBroadcastStore(transaction.Transaction, node.RemoteSocketEndpoint.ToString())) // So we'll reply to INV with this transaction.
 			{
 				Logger.LogWarning($"Transaction {transaction.GetHash()} was already present in the broadcast store.");
 			}
@@ -1184,7 +1174,7 @@ namespace WalletWasabi.Services
 				await node.SendMessageAsync(invPayload).WithCancellation(cts.Token); // ToDo: It's dangerous way to cancel. Implement proper cancellation to NBitcoin!
 			}
 
-			if (Mempool.TryGetFromBroadcastStore(transaction.GetHash(), out TransactionBroadcastEntry entry))
+			if (BitcoinStore.MempoolService.TryGetFromBroadcastStore(transaction.GetHash(), out TransactionBroadcastEntry entry))
 			{
 				// Give 7 seconds for serving.
 				var timeout = 0;
@@ -1243,9 +1233,9 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			using (await TransactionProcessingLock.LockAsync())
+			lock (TransactionProcessingLock)
 			{
-				if (await ProcessTransactionAsync(new SmartTransaction(transaction.Transaction, Height.Mempool)))
+				if (TransactionProcessor.Process(new SmartTransaction(transaction.Transaction, Height.Mempool)))
 				{
 					SerializeTransactionCache();
 				}
@@ -1291,7 +1281,7 @@ namespace WalletWasabi.Services
 			}
 			finally
 			{
-				Mempool.TryRemoveFromBroadcastStore(transaction.GetHash(), out _); // Remove it just to be sure. Probably has been removed previously.
+				BitcoinStore.MempoolService.TryRemoveFromBroadcastStore(transaction.GetHash(), out _); // Remove it just to be sure. Probably has been removed previously.
 				Interlocked.Decrement(ref SendCount);
 			}
 		}
@@ -1428,7 +1418,7 @@ namespace WalletWasabi.Services
 
 			BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
 			BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
-			Mempool.TransactionReceived -= Mempool_TransactionReceivedAsync;
+			BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
 			Coins.CollectionChanged -= Coins_CollectionChanged;
 			TransactionProcessor.CoinSpent -= TransactionProcessor_CoinSpent;
 			TransactionProcessor.CoinReceived -= TransactionProcessor_CoinReceivedAsync;

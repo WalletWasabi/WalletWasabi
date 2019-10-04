@@ -82,54 +82,54 @@ namespace WalletWasabi.Gui.Tabs
 			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
 
 			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				Global.UiConfig.LurkingWifeMode = !LurkingWifeMode;
-				await Global.UiConfig.ToFileAsync();
-			});
+				{
+					Global.UiConfig.LurkingWifeMode = !LurkingWifeMode;
+					await Global.UiConfig.ToFileAsync();
+				});
 
 			SetClearPinCommand = ReactiveCommand.Create(() =>
-			{
-				var pinBoxText = PinBoxText?.Trim();
-				if (string.IsNullOrWhiteSpace(pinBoxText))
 				{
-					PinWarningMessage = "Please provide PIN.";
-					return;
-				}
-
-				if (pinBoxText.Length > 10)
-				{
-					PinWarningMessage = "PIN too long.";
-					return;
-				}
-
-				if (pinBoxText.Any(x => !char.IsDigit(x)))
-				{
-					PinWarningMessage = "Invalid PIN.";
-					return;
-				}
-
-				var uiConfigPinHash = Global.UiConfig.LockScreenPinHash;
-				var enteredPinHash = HashHelpers.GenerateSha256Hash(pinBoxText);
-
-				if (IsPinSet)
-				{
-					if (uiConfigPinHash != enteredPinHash)
+					var pinBoxText = PinBoxText?.Trim();
+					if (string.IsNullOrWhiteSpace(pinBoxText))
 					{
-						PinWarningMessage = "Wrong PIN.";
-						PinBoxText = string.Empty;
+						PinWarningMessage = "Please provide PIN.";
 						return;
 					}
 
-					Global.UiConfig.LockScreenPinHash = string.Empty;
-				}
-				else
-				{
-					Global.UiConfig.LockScreenPinHash = enteredPinHash;
-				}
+					if (pinBoxText.Length > 10)
+					{
+						PinWarningMessage = "PIN too long.";
+						return;
+					}
 
-				PinBoxText = string.Empty;
-				PinWarningMessage = string.Empty;
-			});
+					if (pinBoxText.Any(x => !char.IsDigit(x)))
+					{
+						PinWarningMessage = "Invalid PIN.";
+						return;
+					}
+
+					var uiConfigPinHash = Global.UiConfig.LockScreenPinHash;
+					var enteredPinHash = HashHelpers.GenerateSha256Hash(pinBoxText);
+
+					if (IsPinSet)
+					{
+						if (uiConfigPinHash != enteredPinHash)
+						{
+							PinWarningMessage = "Wrong PIN.";
+							PinBoxText = string.Empty;
+							return;
+						}
+
+						Global.UiConfig.LockScreenPinHash = string.Empty;
+					}
+					else
+					{
+						Global.UiConfig.LockScreenPinHash = enteredPinHash;
+					}
+
+					PinBoxText = string.Empty;
+					PinWarningMessage = string.Empty;
+				});
 
 			TextBoxLostFocusCommand = ReactiveCommand.Create(Save);
 		}

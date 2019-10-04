@@ -32,35 +32,35 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SetWarningMessage("");
 
 			ToggleSensitiveKeysCommand = ReactiveCommand.Create(() =>
-			{
-				try
 				{
-					if (ShowSensitiveKeys)
+					try
 					{
-						ClearSensitiveData(true);
-					}
-					else
-					{
-						var secret = PasswordHelper.GetMasterExtKey(KeyManager, Password, out string isCompatibilityPasswordUsed);
-						Password = "";
-
-						if (isCompatibilityPasswordUsed != null)
+						if (ShowSensitiveKeys)
 						{
-							SetWarningMessage(PasswordHelper.CompatibilityPasswordWarnMessage);
+							ClearSensitiveData(true);
 						}
+						else
+						{
+							var secret = PasswordHelper.GetMasterExtKey(KeyManager, Password, out string isCompatibilityPasswordUsed);
+							Password = "";
 
-						string master = secret.GetWif(Global.Network).ToWif();
-						string account = secret.Derive(KeyManager.AccountKeyPath).GetWif(Global.Network).ToWif();
-						string masterZ = secret.ToZPrv(Global.Network);
-						string accountZ = secret.Derive(KeyManager.AccountKeyPath).ToZPrv(Global.Network);
-						SetSensitiveData(master, account, masterZ, accountZ);
+							if (isCompatibilityPasswordUsed != null)
+							{
+								SetWarningMessage(PasswordHelper.CompatibilityPasswordWarnMessage);
+							}
+
+							string master = secret.GetWif(Global.Network).ToWif();
+							string account = secret.Derive(KeyManager.AccountKeyPath).GetWif(Global.Network).ToWif();
+							string masterZ = secret.ToZPrv(Global.Network);
+							string accountZ = secret.Derive(KeyManager.AccountKeyPath).ToZPrv(Global.Network);
+							SetSensitiveData(master, account, masterZ, accountZ);
+						}
 					}
-				}
-				catch (Exception ex)
-				{
-					SetWarningMessage(ex.ToTypeMessageString());
-				}
-			});
+					catch (Exception ex)
+					{
+						SetWarningMessage(ex.ToTypeMessageString());
+					}
+				});
 		}
 
 		private void ClearSensitiveData(bool passwordToo)
@@ -133,20 +133,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ShowSensitiveKeys = true;
 
 			Dispatcher.UIThread.PostLogException(async () =>
-			{
-				try
 				{
-					await Task.Delay(21000, Closing.Token);
-				}
-				catch (TaskCanceledException)
-				{
-					// Ignore
-				}
-				finally
-				{
-					ClearSensitiveData(false);
-				}
-			});
+					try
+					{
+						await Task.Delay(21000, Closing.Token);
+					}
+					catch (TaskCanceledException)
+					{
+						// Ignore
+					}
+					finally
+					{
+						ClearSensitiveData(false);
+					}
+				});
 		}
 
 		public override void OnOpen()
