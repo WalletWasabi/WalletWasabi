@@ -61,14 +61,16 @@ namespace WalletWasabi.Stores
 					{
 						lock (Lock)
 						{
-							IEnumerable<SmartTransaction> allTransactions = Enumerable.Empty<SmartTransaction>();
 							foreach (var filePath in Directory.EnumerateFiles(oldTransactionsFolderPath))
 							{
 								try
 								{
 									string jsonString = File.ReadAllText(filePath, Encoding.UTF8);
 									var allWalletTransactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?.OrderByBlockchain() ?? Enumerable.Empty<SmartTransaction>();
-									allTransactions = allTransactions.Concat(allWalletTransactions);
+									foreach (var tx in allWalletTransactions)
+									{
+										AddOrUpdateNoLock(tx);
+									}
 
 									// ToDo: Uncomment when PR is finished.
 									// File.Delete(filePath);
@@ -78,8 +80,6 @@ namespace WalletWasabi.Stores
 									Logger.LogTrace(ex);
 								}
 							}
-
-							AddOrUpdateNoLock(allTransactions.ToList());
 
 							// ToDo: Uncomment when PR is finished.
 							// Directory.Delete(oldTransactionsFolderPath, recursive: true);
@@ -158,48 +158,6 @@ namespace WalletWasabi.Stores
 			lock (Lock)
 			{
 				AddOrUpdateNoLock(tx);
-			}
-		}
-
-		private void AddOrUpdateNoLock(IEnumerable<SmartTransaction> txs)
-		{
-			var toAddConfirmedStore = new HashSet<SmartTransaction>();
-			var toAddMempoolStore = new HashSet<SmartTransaction>();
-
-			foreach (var tx in txs.OrderByBlockchain())
-			{
-				var hash = tx.GetHash();
-
-				if (tx.Confirmed)
-				{
-					if (MempoolStore.TryRemove(hash, out SmartTransaction found))
-					{
-						found.Update(tx, forceHeightUpdate: false);
-						toAddConfirmedStore.Add(found);
-					}
-					else
-					{
-						toAddConfirmedStore.Add(tx);
-					}
-				}
-				else
-				{
-					if (!ConfirmedStore.Contains(hash))
-					{
-						toAddMempoolStore.Add(tx);
-					}
-				}
-			}
-
-			ConfirmedStore.TryAdd(toAddConfirmedStore);
-			MempoolStore.TryAdd(toAddMempoolStore.Except(toAddConfirmedStore));
-		}
-
-		public void AddOrUpdate(IEnumerable<SmartTransaction> txs)
-		{
-			lock (Lock)
-			{
-				AddOrUpdateNoLock(txs);
 			}
 		}
 
