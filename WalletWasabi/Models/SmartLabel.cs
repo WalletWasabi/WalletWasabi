@@ -21,7 +21,7 @@ namespace WalletWasabi.Models
 
 		public SmartLabel(IEnumerable<string> labels)
 		{
-			labels = labels ?? Enumerable.Empty<string>();
+			labels ??= Enumerable.Empty<string>();
 			Labels = labels
 				   .SelectMany(x => x?.Split(Separators, StringSplitOptions.RemoveEmptyEntries) ?? new string[0])
 				   .Select(x => x.Trim())
@@ -40,7 +40,7 @@ namespace WalletWasabi.Models
 
 		public static SmartLabel Merge(IEnumerable<SmartLabel> labels)
 		{
-			labels = labels ?? Enumerable.Empty<SmartLabel>();
+			labels ??= Enumerable.Empty<SmartLabel>();
 
 			IEnumerable<string> labelStrings = labels
 				.SelectMany(x => x?.Labels ?? Enumerable.Empty<string>())

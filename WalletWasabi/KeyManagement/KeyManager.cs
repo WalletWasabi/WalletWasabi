@@ -65,14 +65,13 @@ namespace WalletWasabi.KeyManagement
 		// BIP84-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
 		// https://github.com/bitcoin/bips/blob/master/bip-0084.mediawiki
-		public static readonly KeyPath DefaultAccountKeyPath = new KeyPath("m/84'/0'/0'");
+		public static readonly KeyPath DefaultAccountKeyPath = new KeyPath("m/84h/0h/0h");
 
 		public string FilePath { get; private set; }
 		private object ToFileLock { get; }
 
 		public bool IsWatchOnly => EncryptedSecret is null;
 		public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint != null;
-		public HardwareWalletInfo HardwareWalletInfo { get; set; }
 
 		public const int AbsoluteMinGapLimit = 21;
 
@@ -96,7 +95,6 @@ namespace WalletWasabi.KeyManagement
 			SetMinGapLimit(minGapLimit);
 
 			BlockchainState = blockchainState ?? new BlockchainState();
-			HardwareWalletInfo = null;
 			AccountKeyPath = accountKeyPath ?? DefaultAccountKeyPath;
 
 			SetFilePath(filePath);
@@ -114,7 +112,6 @@ namespace WalletWasabi.KeyManagement
 			ScriptHdPubKeyMapLock = new object();
 			BlockchainState = new BlockchainState();
 			BlockchainStateLock = new object();
-			HardwareWalletInfo = null;
 
 			if (password is null)
 			{
@@ -158,9 +155,9 @@ namespace WalletWasabi.KeyManagement
 			return new KeyManager(null, null, null, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(), filePath);
 		}
 
-		public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerpring, ExtPubKey extPubKey, string filePath = null)
+		public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey extPubKey, string filePath = null)
 		{
-			return new KeyManager(null, null, masterFingerpring, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(), filePath);
+			return new KeyManager(null, null, masterFingerprint, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(), filePath);
 		}
 
 		public static KeyManager Recover(Mnemonic mnemonic, string password, string filePath = null, KeyPath accountKeyPath = null, int minGapLimit = AbsoluteMinGapLimit)

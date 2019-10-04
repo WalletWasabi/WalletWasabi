@@ -36,11 +36,9 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			var assetLocator = AvaloniaLocator.Current.GetService<IAssetLoader>();
 
-			using (var stream = assetLocator.Open(target))
-			using (var reader = new StreamReader(stream))
-			{
-				return await reader.ReadToEndAsync();
-			}
+			using var stream = assetLocator.Open(target);
+			using var reader = new StreamReader(stream);
+			return await reader.ReadToEndAsync();
 		}
 
 		public override void OnOpen()

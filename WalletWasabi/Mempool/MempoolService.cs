@@ -117,7 +117,7 @@ namespace WalletWasabi.Mempool
 				using (var client = new WasabiClient(destAction, torSocks))
 				{
 					var compactness = 10;
-					var allMempoolHashes = await client.GetMempoolHashesAsync(compactness);
+					var allMempoolHashes = await client.GetMempoolHashesAsync(compactness).ConfigureAwait(false);
 
 					lock (ProcessedLock)
 					{

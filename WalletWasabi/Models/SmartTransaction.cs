@@ -10,7 +10,7 @@ using WalletWasabi.Logging;
 namespace WalletWasabi.Models
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	public class SmartTransaction : IEquatable<SmartTransaction>, IEquatable<Transaction>
+	public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		#region Members
 
@@ -80,7 +80,9 @@ namespace WalletWasabi.Models
 			Transaction = transaction;
 			Label = label ?? SmartLabel.Empty;
 
-			SetHeight(height, blockHash, blockIndex);
+			Height = height;
+			BlockHash = blockHash;
+			BlockIndex = blockIndex;
 
 			FirstSeen = firstSeen == default ? DateTimeOffset.UtcNow : firstSeen;
 
@@ -89,11 +91,36 @@ namespace WalletWasabi.Models
 
 		#endregion Constructors
 
-		public void SetHeight(Height height, uint256 blockHash = null, int blockIndex = 0)
+		/// <summary>
+		/// Update the transaction with the data acquired from another transaction. (For example merge their labels.)
+		/// </summary>
+		public void Update(SmartTransaction tx)
 		{
-			Height = height;
-			BlockHash = blockHash;
-			BlockIndex = blockIndex;
+			// If this is not the same tx, then don't update.
+			if (this != tx)
+			{
+				throw new InvalidOperationException($"{GetHash()} != {tx.GetHash()}");
+			}
+
+			// Set the height related properties, only if confirmed.
+			if (tx.Confirmed)
+			{
+				Height = tx.Height;
+				BlockHash = tx.BlockHash;
+				BlockIndex = tx.BlockIndex;
+			}
+
+			// Always the earlier seen is the firstSeen.
+			if (tx.FirstSeen < FirstSeen)
+			{
+				FirstSeen = tx.FirstSeen;
+			}
+
+			// Merge labels.
+			if (Label != tx.Label)
+			{
+				Label = SmartLabel.Merge(Label, tx.Label);
+			}
 		}
 
 		public void SetReplacement()
@@ -197,55 +224,18 @@ namespace WalletWasabi.Models
 
 		#endregion LineSerialization
 
-		#region Equality
+		#region EqualityAndComparison
 
-		public bool Equals(SmartTransaction other) => GetHash().Equals(other?.GetHash());
+		public override bool Equals(object obj) => obj is SmartTransaction tx && this == tx;
 
-		public bool Equals(Transaction other) => GetHash().Equals(other?.GetHash());
-
-		public override bool Equals(object obj) =>
-			obj is SmartTransaction transaction && this == transaction;
+		public bool Equals(SmartTransaction other) => this == other;
 
 		public override int GetHashCode() => GetHash().GetHashCode();
 
-		public static bool operator !=(SmartTransaction tx1, SmartTransaction tx2) => !(tx1 == tx2);
+		public static bool operator ==(SmartTransaction x, SmartTransaction y) => y?.GetHash() == x?.GetHash();
 
-		public static bool operator ==(SmartTransaction tx1, SmartTransaction tx2)
-		{
-			bool rc;
+		public static bool operator !=(SmartTransaction x, SmartTransaction y) => !(x == y);
 
-			if (ReferenceEquals(tx1, tx2))
-			{
-				rc = true;
-			}
-			else if (tx1 is null || tx2 is null)
-			{
-				rc = false;
-			}
-			else
-			{
-				rc = tx1.GetHash().Equals(tx2.GetHash());
-			}
-
-			return rc;
-		}
-
-		public static bool operator ==(Transaction tx1, SmartTransaction tx2)
-		{
-			bool rc = tx1 is null || tx2 is null ? false : tx1.GetHash().Equals(tx2.GetHash());
-			return rc;
-		}
-
-		public static bool operator !=(Transaction tx1, SmartTransaction tx2) => !(tx1 == tx2);
-
-		public static bool operator ==(SmartTransaction tx1, Transaction tx2)
-		{
-			bool rc = tx1 is null || tx2 is null ? false : tx1.GetHash().Equals(tx2.GetHash());
-			return rc;
-		}
-
-		public static bool operator !=(SmartTransaction tx1, Transaction tx2) => !(tx1 == tx2);
-
-		#endregion Equality
+		#endregion EqualityAndComparison
 	}
 }

@@ -51,7 +51,8 @@ namespace WalletWasabi.Gui.Controls
 					}
 				});
 
-			AddHandler(PointerPressedEvent, (sender, e) =>
+			AddHandler(PointerPressedEvent,
+				(sender, e) =>
 				{
 					EditClickTimer.Stop();
 
@@ -74,9 +75,11 @@ namespace WalletWasabi.Gui.Controls
 							e.Device.Capture(_textBox);
 						}
 					}
-				}, RoutingStrategies.Tunnel);
+				},
+				RoutingStrategies.Tunnel);
 
-			AddHandler(PointerReleasedEvent, (sender, e) =>
+			AddHandler(PointerReleasedEvent,
+				(sender, e) =>
 				{
 					if (InEditMode)
 					{
@@ -90,7 +93,8 @@ namespace WalletWasabi.Gui.Controls
 							e.Device.Capture(_textBox);
 						}
 					}
-				}, RoutingStrategies.Tunnel);
+				},
+				RoutingStrategies.Tunnel);
 		}
 
 		public static readonly DirectProperty<EditableTextBlock, string> TextProperty =
