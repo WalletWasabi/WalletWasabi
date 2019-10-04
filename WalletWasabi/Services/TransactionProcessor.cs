@@ -53,7 +53,7 @@ namespace WalletWasabi.Services
 					if (foundTx != default) // Must check again, because it's a concurrent collection!
 					{
 						foundTx.Update(tx);
-						foreach(var coin in Coins.Where(x => x.TransactionId == txId))
+						foreach (var coin in Coins.Where(x => x.TransactionId == txId))
 						{
 							coin.Height = tx.Height;
 						}
