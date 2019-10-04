@@ -10,7 +10,7 @@ using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Stores
+namespace WalletWasabi.Transactions
 {
 	public class TransactionStore
 	{
@@ -49,17 +49,6 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		private async Task SerializeAllTransactionsNoMutexAsync()
-		{
-			List<SmartTransaction> transactionsClone;
-			lock (TransactionsLock)
-			{
-				transactionsClone = Transactions.Values.ToList();
-			}
-
-			await TransactionsFileManager.WriteAllLinesAsync(transactionsClone.OrderByBlockchain().Select(x => x.ToLine())).ConfigureAwait(false);
-		}
-
 		private async Task InitializeTransactionsNoMutexAsync()
 		{
 			try
@@ -67,7 +56,9 @@ namespace WalletWasabi.Stores
 				IoHelpers.EnsureFileExists(TransactionsFileManager.FilePath);
 
 				var allLines = await TransactionsFileManager.ReadAllLinesAsync().ConfigureAwait(false);
-				var allTransactions = allLines.Select(x => SmartTransaction.FromLine(x, Network));
+				var allTransactions = allLines
+					.Select(x => SmartTransaction.FromLine(x, Network))
+					.OrderByBlockchain();
 
 				lock (TransactionsLock)
 				{
@@ -109,28 +100,33 @@ namespace WalletWasabi.Stores
 
 		public bool TryAdd(SmartTransaction tx)
 		{
+			bool isAdded;
+
 			lock (TransactionsLock)
 			{
-				var isAdded = TryAddNoLockNoSerialization(tx);
-				if (isAdded)
-				{
-					_ = TryAppendToFileAsync(tx);
-				}
-
-				return isAdded;
+				isAdded = TryAddNoLockNoSerialization(tx);
 			}
+
+			if (isAdded)
+			{
+				_ = TryAppendToFileAsync(tx);
+			}
+
+			return isAdded;
 		}
 
 		public ISet<SmartTransaction> TryAdd(IEnumerable<SmartTransaction> transactions)
 		{
 			ISet<SmartTransaction> added;
+
 			lock (TransactionsLock)
 			{
 				added = TryAddNoLockNoSerialization(transactions);
-				if (added.Any())
-				{
-					_ = TryAppendToFileAsync(transactions);
-				}
+			}
+
+			if (added.Any())
+			{
+				_ = TryAppendToFileAsync(transactions);
 			}
 			return added;
 		}
@@ -143,17 +139,19 @@ namespace WalletWasabi.Stores
 
 		public bool TryRemove(uint256 hash, out SmartTransaction stx)
 		{
+			bool isRemoved;
+
 			lock (TransactionsLock)
 			{
-				var isRemoved = Transactions.Remove(hash, out stx);
-
-				if (isRemoved)
-				{
-					_ = TryRemoveFromFileAsync(hash);
-				}
-
-				return isRemoved;
+				isRemoved = Transactions.Remove(hash, out stx);
 			}
+
+			if (isRemoved)
+			{
+				_ = TryRemoveFromFileAsync(hash);
+			}
+
+			return isRemoved;
 		}
 
 		public ISet<SmartTransaction> TryRemove(IEnumerable<uint256> hashes)
@@ -170,101 +168,14 @@ namespace WalletWasabi.Stores
 						removed.Add(stx);
 					}
 				}
+			}
 
-				if (removed.Any())
-				{
-					_ = TryRemoveFromFileAsync(removed.Select(x => x.GetHash()).ToArray());
-				}
+			if (removed.Any())
+			{
+				_ = TryRemoveFromFileAsync(removed.Select(x => x.GetHash()).ToArray());
 			}
 
 			return removed;
-		}
-
-		private async Task TryAppendToFileAsync(SmartTransaction stx)
-		{
-			try
-			{
-				using (await TransactionsFileManager.Mutex.LockAsync().ConfigureAwait(false))
-				{
-					try
-					{
-						await TransactionsFileManager.AppendAllLinesAsync(new[] { stx.ToLine() }).ConfigureAwait(false);
-					}
-					catch
-					{
-						await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
-		}
-
-		private async Task TryAppendToFileAsync(IEnumerable<SmartTransaction> transactions)
-		{
-			try
-			{
-				using (await TransactionsFileManager.Mutex.LockAsync().ConfigureAwait(false))
-				{
-					try
-					{
-						await TransactionsFileManager.AppendAllLinesAsync(transactions.Select(x => x.ToLine())).ConfigureAwait(false);
-					}
-					catch
-					{
-						await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
-		}
-
-		private async Task TryRemoveFromFileAsync(params uint256[] toRemoves)
-		{
-			try
-			{
-				if (toRemoves is null || !toRemoves.Any())
-				{
-					return;
-				}
-
-				using (await TransactionsFileManager.Mutex.LockAsync().ConfigureAwait(false))
-				{
-					string[] allLines = await TransactionsFileManager.ReadAllLinesAsync().ConfigureAwait(false);
-					var toSerialize = new List<string>();
-					foreach (var line in allLines)
-					{
-						var startsWith = false;
-						foreach (var toRemoveString in toRemoves.Select(x => x.ToString()))
-						{
-							startsWith = startsWith || line.StartsWith(toRemoveString, StringComparison.Ordinal);
-						}
-
-						if (!startsWith)
-						{
-							toSerialize.Add(line);
-						}
-					}
-
-					try
-					{
-						await TransactionsFileManager.WriteAllLinesAsync(toSerialize).ConfigureAwait(false);
-					}
-					catch
-					{
-						await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
 		}
 
 		public bool TryGetTransaction(uint256 hash, out SmartTransaction sameStx)
@@ -306,5 +217,134 @@ namespace WalletWasabi.Stores
 				return Transactions.ContainsKey(hash);
 			}
 		}
+
+		#region Serialization
+
+		private async Task SerializeAllTransactionsNoMutexAsync()
+		{
+			List<SmartTransaction> transactionsClone;
+			lock (TransactionsLock)
+			{
+				transactionsClone = Transactions.Values.ToList();
+			}
+
+			await TransactionsFileManager.WriteAllLinesAsync(transactionsClone.ToBlockchainOrderedLines()).ConfigureAwait(false);
+		}
+
+		private async Task TryAppendToFileAsync(params SmartTransaction[] transactions)
+			=> await TryAppendToFileAsync(transactions as IEnumerable<SmartTransaction>).ConfigureAwait(false);
+
+		private async Task TryAppendToFileAsync(IEnumerable<SmartTransaction> transactions)
+			=> await TryCommitToFileAsync(new Append(transactions)).ConfigureAwait(false);
+
+		private async Task TryRemoveFromFileAsync(params uint256[] transactionIds)
+			=> await TryRemoveFromFileAsync(transactionIds as IEnumerable<uint256>).ConfigureAwait(false);
+
+		private async Task TryRemoveFromFileAsync(IEnumerable<uint256> transactionIds)
+			=> await TryCommitToFileAsync(new Remove(transactionIds)).ConfigureAwait(false);
+
+		private List<ITxStoreOperation> Operations { get; } = new List<ITxStoreOperation>();
+		private object OperationsLock { get; } = new object();
+
+		private async Task TryCommitToFileAsync(ITxStoreOperation operation)
+		{
+			try
+			{
+				if (operation is null || operation.IsEmpty)
+				{
+					return;
+				}
+
+				// Make sure that only one call can continue.
+				lock (OperationsLock)
+				{
+					var isRunning = Operations.Any();
+					Operations.Add(operation);
+					if (isRunning)
+					{
+						return;
+					}
+				}
+
+				// Wait until the operation list calms down.
+				List<ITxStoreOperation> operationsToExecute;
+				while (true)
+				{
+					var count = Operations.Count;
+
+					await Task.Delay(100).ConfigureAwait(false);
+
+					lock (OperationsLock)
+					{
+						if (count == Operations.Count)
+						{
+							// Merge operations.
+							operationsToExecute = OperationMerger.Merge(Operations).ToList();
+							Operations.Clear();
+							break;
+						}
+					}
+				}
+
+				using (await TransactionsFileManager.Mutex.LockAsync().ConfigureAwait(false))
+				{
+					foreach (ITxStoreOperation op in operationsToExecute)
+					{
+						if (op is Append appendOperation)
+						{
+							var toAppends = appendOperation.Transactions;
+
+							try
+							{
+								await TransactionsFileManager.AppendAllLinesAsync(toAppends.ToBlockchainOrderedLines()).ConfigureAwait(false);
+							}
+							catch
+							{
+								await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
+							}
+						}
+						else if (op is Remove removeOperation)
+						{
+							var toRemoves = removeOperation.Transactions;
+
+							string[] allLines = await TransactionsFileManager.ReadAllLinesAsync().ConfigureAwait(false);
+							var toSerialize = new List<string>();
+							foreach (var line in allLines)
+							{
+								var startsWith = false;
+								foreach (var toRemoveString in toRemoves.Select(x => x.ToString()))
+								{
+									startsWith = startsWith || line.StartsWith(toRemoveString, StringComparison.Ordinal);
+								}
+
+								if (!startsWith)
+								{
+									toSerialize.Add(line);
+								}
+							}
+
+							try
+							{
+								await TransactionsFileManager.WriteAllLinesAsync(toSerialize).ConfigureAwait(false);
+							}
+							catch
+							{
+								await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
+							}
+						}
+						else
+						{
+							throw new NotSupportedException();
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
+		}
+
+		#endregion Serialization
 	}
 }
