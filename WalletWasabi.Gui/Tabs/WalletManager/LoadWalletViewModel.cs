@@ -570,6 +570,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 			IsHwWalletSearchTextVisible = true;
+			SetWarningMessage("");
 			try
 			{
 				var client = new HwiClient(Global.Network);
