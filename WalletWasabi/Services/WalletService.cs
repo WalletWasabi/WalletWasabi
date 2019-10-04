@@ -156,7 +156,7 @@ namespace WalletWasabi.Services
 
 			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
 			BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
-			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceivedAsync;
+			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
 		}
 
 		private void TransactionProcessor_CoinSpent(object sender, SmartCoin spentCoin)
@@ -207,13 +207,13 @@ namespace WalletWasabi.Services
 			RefreshCoinHistories();
 		}
 
-		private static AsyncLock TransactionProcessingLock { get; } = new AsyncLock();
+		private static object TransactionProcessingLock { get; } = new object();
 
-		private async void Mempool_TransactionReceivedAsync(object sender, SmartTransaction tx)
+		private void Mempool_TransactionReceived(object sender, SmartTransaction tx)
 		{
 			try
 			{
-				using (await TransactionProcessingLock.LockAsync())
+				lock (TransactionProcessingLock)
 				{
 					if (TransactionProcessor.Process(tx))
 					{
@@ -350,7 +350,7 @@ namespace WalletWasabi.Services
 			{
 				var relevantTransactions = confirmedTransactions.Where(x => x.BlockHash == blockState.BlockHash).ToArray();
 				var block = await FetchBlockAsync(blockState.BlockHash, cancel);
-				await ProcessBlockAsync(blockState.BlockHeight, block, blockState.TransactionIndices, relevantTransactions);
+				ProcessBlock(blockState.BlockHeight, block, blockState.TransactionIndices, relevantTransactions);
 			}
 
 			// Go through the filters and queue to download the matches.
@@ -368,13 +368,13 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				using (await TransactionProcessingLock.LockAsync())
-				using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
+				using var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint);
+				var compactness = 10;
+
+				var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
+
+				lock (TransactionProcessingLock)
 				{
-					var compactness = 10;
-
-					var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
-
 					var count = 0;
 					foreach (var tx in unconfirmedTransactions)
 					{
@@ -420,7 +420,7 @@ namespace WalletWasabi.Services
 
 			Block currentBlock = await FetchBlockAsync(filterModel.BlockHash, cancel); // Wait until not downloaded.
 
-			if (await ProcessBlockAsync(filterModel.BlockHeight, currentBlock))
+			if (ProcessBlock(filterModel.BlockHeight, currentBlock))
 			{
 				SerializeTransactionCache();
 			}
@@ -518,10 +518,10 @@ namespace WalletWasabi.Services
 			return clusters;
 		}
 
-		private async Task<bool> ProcessBlockAsync(Height height, Block block, IEnumerable<int> filterByTxIndexes = null, IEnumerable<SmartTransaction> skeletonBlock = null)
+		private bool ProcessBlock(Height height, Block block, IEnumerable<int> filterByTxIndexes = null, IEnumerable<SmartTransaction> skeletonBlock = null)
 		{
 			var ret = false;
-			using (await TransactionProcessingLock.LockAsync())
+			lock (TransactionProcessingLock)
 			{
 				if (filterByTxIndexes is null)
 				{
@@ -1233,7 +1233,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			using (await TransactionProcessingLock.LockAsync())
+			lock (TransactionProcessingLock)
 			{
 				if (TransactionProcessor.Process(new SmartTransaction(transaction.Transaction, Height.Mempool)))
 				{
@@ -1418,7 +1418,7 @@ namespace WalletWasabi.Services
 
 			BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
 			BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
-			BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceivedAsync;
+			BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
 			Coins.CollectionChanged -= Coins_CollectionChanged;
 			TransactionProcessor.CoinSpent -= TransactionProcessor_CoinSpent;
 			TransactionProcessor.CoinReceived -= TransactionProcessor_CoinReceivedAsync;
