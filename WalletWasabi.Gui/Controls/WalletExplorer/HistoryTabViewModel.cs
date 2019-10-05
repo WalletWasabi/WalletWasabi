@@ -129,7 +129,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		class TransactionData
+		class TransactionSummaryData
 		{
 			public DateTimeOffset DateTime { get; set; }
 			public Height Height { get; set; }
@@ -138,11 +138,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			public uint256 TransactionId { get; set; }
 		}
 
-		private List<TransactionData> BuildTxRecordList()
+		private List<TransactionSummaryData> BuildTxRecordList()
 		{
 			var walletService = Global.WalletService;
 
-			var txRecordList = new List<TransactionData>();
+			var txRecordList = new List<TransactionSummaryData>();
 			if (walletService is null)
 			{
 				return txRecordList;
@@ -176,7 +176,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				var found = txRecordList.FirstOrDefault(x => x.TransactionId == coin.TransactionId);
-				if (found != null) // if found
+				if (found != null) // if found then update
 				{
 					var label = found.Label != string.Empty ? found.Label + ", " : "";
 					found.DateTime = dateTime; 
@@ -185,7 +185,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				else
 				{
-					txRecordList.Add(new TransactionData{
+					txRecordList.Add(new TransactionSummaryData{
 						DateTime = dateTime,
 						Height = coin.Height, 
 						Amount = coin.Amount, 
@@ -225,7 +225,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					else
 					{
-						txRecordList.Add(new TransactionData{
+						txRecordList.Add(new TransactionSummaryData{
 							DateTime = dateTime,
 							Height = foundSpenderTransaction.Height, 
 							Amount = (Money.Zero - coin.Amount), 
