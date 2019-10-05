@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Gui.Converters
@@ -13,14 +14,14 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is CcjRoundPhase phase)
 			{
-				switch (phase)
+				return phase switch
 				{
-					case CcjRoundPhase.InputRegistration: return "Registration";
-					case CcjRoundPhase.ConnectionConfirmation: return "Connection Confirmation";
-					case CcjRoundPhase.OutputRegistration: return "Output Registration";
-					case CcjRoundPhase.Signing: return "Signing";
-					default: return "";
-				}
+					CcjRoundPhase.InputRegistration => "Registration",
+					CcjRoundPhase.ConnectionConfirmation => "Connection Confirmation",
+					CcjRoundPhase.OutputRegistration => "Output Registration",
+					CcjRoundPhase.Signing => "Signing",
+					_ => ""
+				};
 			}
 			else
 			{

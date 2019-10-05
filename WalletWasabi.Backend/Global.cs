@@ -61,10 +61,10 @@ namespace WalletWasabi.Backend
 			IndexBuilderService = new IndexBuilderService(RpcClient, TrustedNodeNotifyingBehavior, indexFilePath, utxoSetFilePath);
 			Coordinator = new CcjCoordinator(RpcClient.Network, TrustedNodeNotifyingBehavior, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
 			IndexBuilderService.Synchronize();
-			Logger.LogInfo<IndexBuilderService>($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
+			Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
 
 			await Coordinator.MakeSureTwoRunningRoundsAsync();
-			Logger.LogInfo<CcjCoordinator>("Chaumian CoinJoin Coordinator is successfully initialized and started two new rounds.");
+			Logger.LogInfo("Chaumian CoinJoin Coordinator is successfully initialized and started two new rounds.");
 
 			if (roundConfig.FilePath != null)
 			{
@@ -75,14 +75,14 @@ namespace WalletWasabi.Backend
 					{
 						await Coordinator.RoundConfig.UpdateOrDefaultAsync(RoundConfig, toFile: false);
 
-						Coordinator.AbortAllRoundsInInputRegistration(nameof(ConfigWatcher), $"{nameof(RoundConfig)} has changed.");
+						Coordinator.AbortAllRoundsInInputRegistration($"{nameof(RoundConfig)} has changed.");
 					}
 					catch (Exception ex)
 					{
-						Logger.LogDebug<ConfigWatcher>(ex);
+						Logger.LogDebug(ex);
 					}
 				}); // Every 10 seconds check the config
-				Logger.LogInfo<ConfigWatcher>($"{nameof(RoundConfigWatcher)} is successfully started.");
+				Logger.LogInfo($"{nameof(RoundConfigWatcher)} is successfully started.");
 			}
 		}
 
@@ -96,7 +96,7 @@ namespace WalletWasabi.Backend
 				}
 				catch (Exception ex)
 				{
-					Logger.LogDebug<WalletService>(ex);
+					Logger.LogDebug(ex);
 				}
 				finally
 				{
@@ -106,12 +106,12 @@ namespace WalletWasabi.Backend
 					}
 					catch (Exception ex)
 					{
-						Logger.LogDebug<WalletService>(ex);
+						Logger.LogDebug(ex);
 					}
 					finally
 					{
 						LocalNode = null;
-						Logger.LogInfo<WalletService>("Local Bitcoin node is disconnected.");
+						Logger.LogInfo("Local Bitcoin node is disconnected.");
 					}
 				}
 			}
@@ -122,45 +122,43 @@ namespace WalletWasabi.Backend
 			Guard.NotNull(nameof(network), network);
 			Guard.NotNull(nameof(endPoint), endPoint);
 
-			using (var handshakeTimeout = new CancellationTokenSource())
+			using var handshakeTimeout = new CancellationTokenSource();
+			handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
+			var nodeConnectionParameters = new NodeConnectionParameters()
 			{
-				handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
-				var nodeConnectionParameters = new NodeConnectionParameters()
+				ConnectCancellation = handshakeTimeout.Token,
+				IsRelay = true
+			};
+
+			nodeConnectionParameters.TemplateBehaviors.Add(new TrustedNodeNotifyingBehavior());
+			var node = await Node.ConnectAsync(network, endPoint, nodeConnectionParameters);
+			// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
+			TrustedNodeNotifyingBehavior = node.Behaviors.Find<TrustedNodeNotifyingBehavior>();
+			try
+			{
+				Logger.LogInfo("TCP Connection succeeded, handshaking...");
+				node.VersionHandshake(Constants.LocalBackendNodeRequirements, handshakeTimeout.Token);
+				var peerServices = node.PeerVersion.Services;
+
+				if (!peerServices.HasFlag(NodeServices.Network) && !peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
 				{
-					ConnectCancellation = handshakeTimeout.Token,
-					IsRelay = true
-				};
-
-				nodeConnectionParameters.TemplateBehaviors.Add(new TrustedNodeNotifyingBehavior());
-				var node = await Node.ConnectAsync(network, endPoint, nodeConnectionParameters);
-				// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
-				TrustedNodeNotifyingBehavior = node.Behaviors.Find<TrustedNodeNotifyingBehavior>();
-				try
-				{
-					Logger.LogInfo<Node>("TCP Connection succeeded, handshaking...");
-					node.VersionHandshake(Constants.LocalBackendNodeRequirements, handshakeTimeout.Token);
-					var peerServices = node.PeerVersion.Services;
-
-					if (!peerServices.HasFlag(NodeServices.Network) && !peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
-					{
-						throw new InvalidOperationException("Wasabi cannot use the local node because it does not provide blocks.");
-					}
-
-					Logger.LogInfo<Node>("Handshake completed successfully.");
-
-					if (!node.IsConnected)
-					{
-						throw new InvalidOperationException($"Wasabi could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
-							"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
-					}
-					LocalNode = node;
+					throw new InvalidOperationException("Wasabi cannot use the local node because it does not provide blocks.");
 				}
-				catch (OperationCanceledException) when (handshakeTimeout.IsCancellationRequested)
+
+				Logger.LogInfo("Handshake completed successfully.");
+
+				if (!node.IsConnected)
 				{
-					Logger.LogWarning<Node>($"Wasabi could not complete the handshake with the local node. Probably Wasabi is not whitelisted by the node.{Environment.NewLine}" +
-						"Use \"whitebind\" in the node configuration. (Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.)");
-					throw;
+					throw new InvalidOperationException($"Wasabi could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
+						"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
 				}
+				LocalNode = node;
+			}
+			catch (OperationCanceledException) when (handshakeTimeout.IsCancellationRequested)
+			{
+				Logger.LogWarning($"Wasabi could not complete the handshake with the local node. Probably Wasabi is not whitelisted by the node.{Environment.NewLine}" +
+					"Use \"whitebind\" in the node configuration. (Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.)");
+				throw;
 			}
 		}
 
@@ -187,7 +185,7 @@ namespace WalletWasabi.Backend
 					throw new NotSupportedException("Bitcoin Core is not fully synchronized.");
 				}
 
-				Logger.LogInfo<RPCClient>("Bitcoin Core is fully synchronized.");
+				Logger.LogInfo("Bitcoin Core is fully synchronized.");
 
 				var estimateSmartFeeResponse = await RpcClient.TryEstimateSmartFeeAsync(2, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
 				if (estimateSmartFeeResponse is null)
@@ -195,7 +193,7 @@ namespace WalletWasabi.Backend
 					throw new NotSupportedException("Bitcoin Core cannot estimate network fees yet.");
 				}
 
-				Logger.LogInfo<RPCClient>("Bitcoin Core fee estimation is working.");
+				Logger.LogInfo("Bitcoin Core fee estimation is working.");
 
 				if (Config.Network == Network.RegTest) // Make sure there's at least 101 block, if not generate it
 				{
@@ -213,7 +211,7 @@ namespace WalletWasabi.Backend
 						{
 							throw new NotSupportedException($"{nameof(blocks)} == 0");
 						}
-						Logger.LogInfo<RPCClient>($"Generated 101 block on {Network.RegTest}. Number of blocks {blocks}.");
+						Logger.LogInfo($"Generated 101 block on {Network.RegTest}. Number of blocks {blocks}.");
 					}
 				}
 			}

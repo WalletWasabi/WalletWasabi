@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
@@ -20,6 +21,8 @@ namespace WalletWasabi.Services
 
 		public WasabiClient WasabiClient { get; }
 
+		public event EventHandler<UpdateStatusResult> UpdateChecked;
+
 		public UpdateChecker(WasabiClient client)
 		{
 			WasabiClient = client;
@@ -27,7 +30,7 @@ namespace WalletWasabi.Services
 			Stop = new CancellationTokenSource();
 		}
 
-		public void Start(TimeSpan period, Func<Task> executeIfBackendIncompatible, Func<Task> executeIfClientOutOfDate)
+		public void Start(TimeSpan period)
 		{
 			if (Interlocked.CompareExchange(ref _running, 1, 0) != 0)
 			{
@@ -42,39 +45,29 @@ namespace WalletWasabi.Services
 					{
 						try
 						{
-							(bool backendCompatible, bool clientUpToDate) updates = await WasabiClient.CheckUpdatesAsync(Stop.Token);
+							var updates = await WasabiClient.CheckUpdatesAsync(Stop.Token);
 
-							if (!updates.backendCompatible)
-							{
-								await executeIfBackendIncompatible?.Invoke();
-							}
-
-							if (!updates.clientUpToDate)
-							{
-								await executeIfClientOutOfDate?.Invoke();
-							}
+							UpdateChecked?.Invoke(this, updates);
 						}
 						catch (ConnectionException ex)
 						{
-							Logger.LogError<UpdateChecker>(ex);
+							Logger.LogError(ex);
 							try
 							{
 								await Task.Delay(period, Stop.Token); // Give other threads time to do stuff, update check is not crucial.
 							}
 							catch (TaskCanceledException ex2)
 							{
-								Logger.LogTrace<UpdateChecker>(ex2);
+								Logger.LogTrace(ex2);
 							}
 						}
-						catch (Exception ex) when (ex is OperationCanceledException
-												|| ex is TaskCanceledException
-												|| ex is TimeoutException)
+						catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
 						{
-							Logger.LogTrace<UpdateChecker>(ex);
+							Logger.LogTrace(ex);
 						}
 						catch (Exception ex)
 						{
-							Logger.LogDebug<UpdateChecker>(ex);
+							Logger.LogDebug(ex);
 						}
 						finally
 						{

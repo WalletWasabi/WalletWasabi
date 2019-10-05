@@ -125,7 +125,7 @@ namespace WalletWasabi.Helpers
 			}
 			catch (Exception ex)
 			{
-				Logger.LogDebug(ex, nameof(EnvironmentHelpers));
+				Logger.LogDebug(ex);
 			}
 
 			return directory;
@@ -140,7 +140,7 @@ namespace WalletWasabi.Helpers
 		{
 			var escapedArgs = cmd.Replace("\"", "\\\"");
 
-			using (var process = Process.Start(
+			using var process = Process.Start(
 				new ProcessStartInfo
 				{
 					FileName = "/bin/sh",
@@ -150,15 +150,13 @@ namespace WalletWasabi.Helpers
 					CreateNoWindow = true,
 					WindowStyle = ProcessWindowStyle.Hidden
 				}
-			))
+			);
+			if (waitForExit)
 			{
-				if (waitForExit)
+				process.WaitForExit();
+				if (process.ExitCode != 0)
 				{
-					process.WaitForExit();
-					if (process.ExitCode != 0)
-					{
-						Logger.LogError($"{nameof(ShellExec)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.", nameof(EnvironmentHelpers));
-					}
+					Logger.LogError($"{nameof(ShellExec)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.");
 				}
 			}
 		}
@@ -194,6 +192,21 @@ namespace WalletWasabi.Helpers
 		public static string GetMethodName([CallerMemberName] string callerName = "")
 		{
 			return callerName;
+		}
+
+		public static string GetFullBaseDirectory()
+		{
+			var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
+
+			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				if (!fullBaseDirectory.StartsWith('/'))
+				{
+					fullBaseDirectory = fullBaseDirectory.Insert(0, "/");
+				}
+			}
+
+			return fullBaseDirectory;
 		}
 	}
 }

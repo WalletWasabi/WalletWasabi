@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -79,12 +80,12 @@ namespace WalletWasabi.TorSocks5
 			Guard.NotNull(nameof(method), method);
 			relativeUri = Guard.NotNull(nameof(relativeUri), relativeUri);
 			var requestUri = new Uri(DestinationUri, relativeUri);
-			var request = new HttpRequestMessage(method, requestUri);
+			using var request = new HttpRequestMessage(method, requestUri);
 			if (content != null)
 			{
 				request.Content = content;
 			}
-			request.Headers.AcceptEncoding.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("gzip"));
+			request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 
 			try
 			{
@@ -98,7 +99,7 @@ namespace WalletWasabi.TorSocks5
 					}
 					catch (Exception ex)
 					{
-						Logger.LogTrace<TorHttpClient>(ex);
+						Logger.LogTrace(ex);
 
 						TorSocks5Client?.Dispose(); // rebuild the connection and retry
 						TorSocks5Client = null;
@@ -113,7 +114,7 @@ namespace WalletWasabi.TorSocks5
 						// If we get ttlexpired then wait and retry again linux often do this.
 						catch (TorSocks5FailureResponseException ex2) when (ex2.RepField == RepField.TtlExpired)
 						{
-							Logger.LogTrace<TorHttpClient>(ex);
+							Logger.LogTrace(ex);
 
 							TorSocks5Client?.Dispose(); // rebuild the connection and retry
 							TorSocks5Client = null;
@@ -261,10 +262,8 @@ namespace WalletWasabi.TorSocks5
 
 			await TorSocks5Client.Stream.WriteAsync(bytes, 0, bytes.Length).ConfigureAwait(false);
 			await TorSocks5Client.Stream.FlushAsync().ConfigureAwait(false);
-			using (var httpResponseMessage = new HttpResponseMessage())
-			{
-				return await HttpResponseMessageExtensions.CreateNewAsync(TorSocks5Client.Stream, request.Method).ConfigureAwait(false);
-			}
+			using var httpResponseMessage = new HttpResponseMessage();
+			return await HttpResponseMessageExtensions.CreateNewAsync(TorSocks5Client.Stream, request.Method).ConfigureAwait(false);
 		}
 
 		#region IDisposable Support

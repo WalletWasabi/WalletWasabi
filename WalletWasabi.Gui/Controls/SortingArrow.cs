@@ -75,14 +75,8 @@ namespace WalletWasabi.Gui.Controls
 
 			Content = stackPnl;
 
-			this.GetObservable(SortDirectionProperty).Subscribe(x =>
-			{
-				SortDirection = x;
-			});
-			this.GetObservable(TextProperty).Subscribe(x =>
-			{
-				Text = x;
-			});
+			this.GetObservable(SortDirectionProperty).Subscribe(x => SortDirection = x);
+			this.GetObservable(TextProperty).Subscribe(x => Text = x);
 		}
 
 		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
@@ -110,7 +104,7 @@ namespace WalletWasabi.Gui.Controls
 		}
 
 		public static readonly StyledProperty<SortOrder> SortDirectionProperty =
-		AvaloniaProperty.Register<SortingArrow, SortOrder>(nameof(SortDirection), defaultBindingMode: BindingMode.TwoWay);
+			AvaloniaProperty.Register<SortingArrow, SortOrder>(nameof(SortDirection), defaultBindingMode: BindingMode.TwoWay);
 
 		public SortOrder SortDirection
 		{
@@ -123,7 +117,7 @@ namespace WalletWasabi.Gui.Controls
 		}
 
 		public static readonly StyledProperty<string> TextProperty =
-AvaloniaProperty.Register<SortingArrow, string>(nameof(Text), defaultBindingMode: BindingMode.TwoWay);
+			AvaloniaProperty.Register<SortingArrow, string>(nameof(Text), defaultBindingMode: BindingMode.TwoWay);
 
 		public string Text
 		{

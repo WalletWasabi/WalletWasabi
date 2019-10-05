@@ -124,19 +124,16 @@ namespace WalletWasabi.Io
 			return TryGetSafestFileVersion(out _);
 		}
 
-		public async Task WriteAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default, bool dismissNullOrEmptyContent = true)
+		public new async Task WriteAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default)
 		{
-			if (dismissNullOrEmptyContent)
+			if (lines is null || !lines.Any())
 			{
-				if (lines is null || !lines.Any())
-				{
-					return;
-				}
+				return;
 			}
 
 			IoHelpers.EnsureContainingDirectoryExists(NewFilePath);
 
-			await File.WriteAllLinesAsync(NewFilePath, lines, cancellationToken);
+			await File.WriteAllLinesAsync(NewFilePath, lines, cancellationToken).ConfigureAwait(false);
 			SafeMoveNewToOriginal();
 		}
 
@@ -147,7 +144,7 @@ namespace WalletWasabi.Io
 			{
 				filePath = safestFilePath;
 			}
-			return await ReadAllLinesAsync(filePath, cancellationToken);
+			return await ReadAllLinesAsync(filePath, cancellationToken).ConfigureAwait(false);
 		}
 
 		/// <summary>

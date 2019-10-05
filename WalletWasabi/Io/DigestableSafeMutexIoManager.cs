@@ -46,14 +46,11 @@ namespace WalletWasabi.Io
 			}
 		}
 
-		public new async Task WriteAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default, bool dismissNullOrEmptyContent = true)
+		public new async Task WriteAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default)
 		{
-			if (dismissNullOrEmptyContent)
+			if (lines is null || !lines.Any())
 			{
-				if (lines is null || !lines.Any())
-				{
-					return;
-				}
+				return;
 			}
 
 			var byteArrayBuilder = new ByteArrayBuilder();
@@ -64,18 +61,18 @@ namespace WalletWasabi.Io
 				ContinueBuildHash(byteArrayBuilder, line);
 			}
 
-			var res = await WorkWithHashAsync(byteArrayBuilder, cancellationToken);
+			var res = await WorkWithHashAsync(byteArrayBuilder, cancellationToken).ConfigureAwait(false);
 			if (res.same)
 			{
 				return;
 			}
 
-			await base.WriteAllLinesAsync(lines, cancellationToken, dismissNullOrEmptyContent);
+			await base.WriteAllLinesAsync(lines, cancellationToken).ConfigureAwait(false);
 
-			await WriteOutHashAsync(res.hash);
+			await WriteOutHashAsync(res.hash).ConfigureAwait(false);
 		}
 
-		public async Task AppendAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default)
+		public new async Task AppendAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default)
 		{
 			if (lines is null || !lines.Any())
 			{
@@ -107,7 +104,7 @@ namespace WalletWasabi.Io
 					{
 						if (line is null)
 						{
-							line = await lineTask;
+							line = await lineTask.ConfigureAwait(false);
 						}
 
 						lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
@@ -118,7 +115,7 @@ namespace WalletWasabi.Io
 							continue;
 						}
 
-						await wTask;
+						await wTask.ConfigureAwait(false);
 						wTask = sw.WriteLineAsync(line);
 
 						ContinueBuildHash(byteArrayBuilder, line);
@@ -127,31 +124,31 @@ namespace WalletWasabi.Io
 
 						line = null;
 					}
-					await wTask;
+					await wTask.ConfigureAwait(false);
 				}
-				await sw.FlushAsync();
+				await sw.FlushAsync().ConfigureAwait(false);
 
 				// 2. Then append.
 				foreach (var line in linesArray)
 				{
-					await sw.WriteLineAsync(line);
+					await sw.WriteLineAsync(line).ConfigureAwait(false);
 
 					ContinueBuildHash(byteArrayBuilder, line);
 
 					cancellationToken.ThrowIfCancellationRequested();
 				}
 
-				await sw.FlushAsync();
+				await sw.FlushAsync().ConfigureAwait(false);
 			}
 
-			var res = await WorkWithHashAsync(byteArrayBuilder, cancellationToken);
+			var res = await WorkWithHashAsync(byteArrayBuilder, cancellationToken).ConfigureAwait(false);
 			if (res.same)
 			{
 				return;
 			}
 
 			SafeMoveNewToOriginal();
-			await WriteOutHashAsync(res.hash);
+			await WriteOutHashAsync(res.hash).ConfigureAwait(false);
 		}
 
 		#endregion IoOperations
@@ -164,12 +161,12 @@ namespace WalletWasabi.Io
 			{
 				IoHelpers.EnsureContainingDirectoryExists(DigestFilePath);
 
-				await File.WriteAllBytesAsync(DigestFilePath, hash);
+				await File.WriteAllBytesAsync(DigestFilePath, hash).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<DigestableSafeMutexIoManager>("Failed to create digest.");
-				Logger.LogInfo<DigestableSafeMutexIoManager>(ex);
+				Logger.LogWarning("Failed to create digest.");
+				Logger.LogInfo(ex);
 			}
 		}
 
@@ -182,7 +179,7 @@ namespace WalletWasabi.Io
 				hash = HashHelpers.GenerateSha256Hash(bytes);
 				if (File.Exists(DigestFilePath))
 				{
-					var digest = await File.ReadAllBytesAsync(DigestFilePath, cancellationToken);
+					var digest = await File.ReadAllBytesAsync(DigestFilePath, cancellationToken).ConfigureAwait(false);
 					if (ByteHelpers.CompareFastUnsafe(hash, digest))
 					{
 						if (File.Exists(NewFilePath))
@@ -195,8 +192,8 @@ namespace WalletWasabi.Io
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<DigestableSafeMutexIoManager>("Failed to read digest.");
-				Logger.LogInfo<DigestableSafeMutexIoManager>(ex);
+				Logger.LogWarning("Failed to read digest.");
+				Logger.LogInfo(ex);
 			}
 
 			return (false, hash);

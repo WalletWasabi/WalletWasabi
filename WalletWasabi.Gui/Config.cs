@@ -8,6 +8,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
@@ -179,7 +180,7 @@ namespace WalletWasabi.Gui
 			}
 			else
 			{
-				throw new NotSupportedException($"{nameof(Network)} not supported: {Network}.");
+				throw new NotSupportedNetworkException(Network);
 			}
 
 			return _backendUri;
@@ -206,7 +207,7 @@ namespace WalletWasabi.Gui
 			}
 			else
 			{
-				throw new NotSupportedException($"{nameof(Network)} not supported: {Network}.");
+				throw new NotSupportedNetworkException(Network);
 			}
 
 			return _fallbackBackendUri;
@@ -233,7 +234,7 @@ namespace WalletWasabi.Gui
 			}
 			else
 			{
-				throw new NotSupportedException($"{nameof(Network)} not supported: {Network}.");
+				throw new NotSupportedNetworkException(Network);
 			}
 		}
 
@@ -243,6 +244,7 @@ namespace WalletWasabi.Gui
 
 		public Config(string filePath) : base(filePath)
 		{
+			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet, PrivacyLevelSome, PrivacyLevelFine, PrivacyLevelStrong, GetBitcoinP2pEndPoint(), DustThreshold);
 		}
 
 		/// <inheritdoc />
@@ -272,7 +274,7 @@ namespace WalletWasabi.Gui
 			}
 			else
 			{
-				throw new NotSupportedException("Unsupported network");
+				throw new NotSupportedNetworkException(Network);
 			}
 		}
 
@@ -292,7 +294,7 @@ namespace WalletWasabi.Gui
 			}
 			else
 			{
-				throw new NotSupportedException("Unsupported network");
+				throw new NotSupportedNetworkException(Network);
 			}
 		}
 
@@ -345,21 +347,14 @@ namespace WalletWasabi.Gui
 
 		public int GetTargetLevel(TargetPrivacy target)
 		{
-			switch (target)
+			return target switch
 			{
-				case TargetPrivacy.None:
-					return 0;
-
-				case TargetPrivacy.Some:
-					return PrivacyLevelSome;
-
-				case TargetPrivacy.Fine:
-					return PrivacyLevelFine;
-
-				case TargetPrivacy.Strong:
-					return PrivacyLevelStrong;
-			}
-			return 0;
+				TargetPrivacy.None => 0,
+				TargetPrivacy.Some => PrivacyLevelSome,
+				TargetPrivacy.Fine => PrivacyLevelFine,
+				TargetPrivacy.Strong => PrivacyLevelStrong,
+				_ => 0
+			};
 		}
 
 		protected override bool TryEnsureBackwardsCompatibility(string jsonString)
@@ -426,8 +421,8 @@ namespace WalletWasabi.Gui
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<Config>("Backwards compatibility couldn't be ensured.");
-				Logger.LogInfo<Config>(ex);
+				Logger.LogWarning("Backwards compatibility couldn't be ensured.");
+				Logger.LogInfo(ex);
 				return false;
 			}
 		}

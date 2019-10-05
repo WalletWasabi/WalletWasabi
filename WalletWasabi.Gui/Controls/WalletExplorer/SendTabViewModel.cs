@@ -15,6 +15,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Models;
@@ -23,11 +24,12 @@ using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
+using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.KeyManagement;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Models.TransactionBuilding;
-using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -125,60 +127,54 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.WhenAnyValue(x => x.AmountText)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(amount =>
-			{
-				if (!IsMax)
 				{
-					// Correct amount
-					Regex digitsOnly = new Regex(@"[^\d,.]");
-					string betterAmount = digitsOnly.Replace(amount, ""); // Make it digits , and . only.
-
-					betterAmount = betterAmount.Replace(',', '.');
-					int countBetterAmount = betterAmount.Count(x => x == '.');
-					if (countBetterAmount > 1) // Do not enable typing two dots.
+					if (!IsMax)
 					{
-						var index = betterAmount.IndexOf('.', betterAmount.IndexOf('.') + 1);
-						if (index > 0)
+						// Correct amount
+						Regex digitsOnly = new Regex(@"[^\d,.]");
+						string betterAmount = digitsOnly.Replace(amount, ""); // Make it digits , and . only.
+
+						betterAmount = betterAmount.Replace(',', '.');
+						int countBetterAmount = betterAmount.Count(x => x == '.');
+						if (countBetterAmount > 1) // Do not enable typing two dots.
 						{
-							betterAmount = betterAmount.Substring(0, index);
+							var index = betterAmount.IndexOf('.', betterAmount.IndexOf('.') + 1);
+							if (index > 0)
+							{
+								betterAmount = betterAmount.Substring(0, index);
+							}
+						}
+						var dotIndex = betterAmount.IndexOf('.');
+						if (dotIndex != -1 && betterAmount.Length - dotIndex > 8) // Enable max 8 decimals.
+						{
+							betterAmount = betterAmount.Substring(0, dotIndex + 1 + 8);
+						}
+
+						if (betterAmount != amount)
+						{
+							AmountText = betterAmount;
 						}
 					}
-					var dotIndex = betterAmount.IndexOf('.');
-					if (dotIndex != -1 && betterAmount.Length - dotIndex > 8) // Enable max 8 decimals.
+
+					if (Money.TryParse(amount.TrimStart('~', ' '), out Money amountBtc))
 					{
-						betterAmount = betterAmount.Substring(0, dotIndex + 1 + 8);
+						SetAmountWatermark(amountBtc);
+					}
+					else
+					{
+						SetAmountWatermark(Money.Zero);
 					}
 
-					if (betterAmount != amount)
-					{
-						AmountText = betterAmount;
-					}
-				}
-
-				if (Money.TryParse(amount.TrimStart('~', ' '), out Money amountBtc))
-				{
-					SetAmountWatermark(amountBtc);
-				}
-				else
-				{
-					SetAmountWatermark(Money.Zero);
-				}
-
-				SetFeesAndTexts();
-			});
+					SetFeesAndTexts();
+				});
 
 			this.WhenAnyValue(x => x.IsBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					SetSendText();
-				});
+				.Subscribe(_ => SetSendText());
 
 			this.WhenAnyValue(x => x.IsHardwareBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					SetSendText();
-				});
+				.Subscribe(_ => SetSendText());
 
 			this.WhenAnyValue(x => x.Label)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -194,12 +190,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.IsSliderFeeUsed)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(enabled =>
-				{
-					FeeControlOpacity = enabled ? 1 : 0.5; // Give the control the disabled feeling. Real Disable it not a solution as we have to detect if the slider is moved.
-				});
+				.Subscribe(enabled => FeeControlOpacity = enabled ? 1 : 0.5); // Give the control the disabled feeling. Real Disable it not a solution as we have to detect if the slider is moved.
 
+#pragma warning disable IDE0053 // Use expression body for lambda expressions
 			MaxCommand = ReactiveCommand.Create(() => { IsMax = !IsMax; }, outputScheduler: RxApp.MainThreadScheduler);
+#pragma warning restore IDE0053 // Use expression body for lambda expressions
+
 			this.WhenAnyValue(x => x.IsMax)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
@@ -222,9 +218,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			OnAddressPasteCommand = ReactiveCommand.Create((BitcoinUrlBuilder url) =>
 			{
-				if (!string.IsNullOrWhiteSpace(url.Label))
+				var label = new SmartLabel(url.Label);
+				if (!label.IsEmpty)
 				{
-					Label = url.Label;
+					Label = label.ToString();
 				}
 
 				if (url.Amount != null)
@@ -241,8 +238,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					IsBusy = true;
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BuildingTransaction);
 
-					Label = Label.Trim(',', ' ').Trim();
-					if (!IsMax && string.IsNullOrWhiteSpace(Label))
+					var label = new SmartLabel(Label);
+					Label = label.ToString();
+					if (!IsMax && label.IsEmpty)
 					{
 						SetWarningMessage($"{nameof(Label)} is required.");
 						return;
@@ -298,7 +296,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					bool useCustomFee = !IsSliderFeeUsed;
 					var feeStrategy = FeeStrategy.CreateFromFeeRate(FeeRate);
 
-					var label = Label;
 					var intent = new PaymentIntent(address, moneyRequest, label);
 					try
 					{
@@ -365,49 +362,35 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (IsHardwareWallet && !result.Signed) // If hardware but still has a privkey then it's password, then meh.
 					{
-						PSBT signedPsbt = null;
 						try
 						{
 							IsHardwareBusy = true;
-							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.ConnectingToHardwareWallet);
-							// If we have no hardware wallet info then try refresh it. If we failed, then tha's a problem.
-							if (KeyManager.HardwareWalletInfo is null)
-							{
-								var refRes = await TryRefreshHardwareWalletInfoAsync(KeyManager);
-								if (!refRes.success)
-								{
-									SetWarningMessage(refRes.error);
-									return;
-								}
-							}
-
 							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.AcquiringSignatureFromHardwareWallet);
-							signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
+							var client = new HwiClient(Global.Network);
+
+							using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+							PSBT signedPsbt = null;
+							try
+							{
+								signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
+							}
+							catch (HwiException)
+							{
+								await PinPadViewModel.UnlockAsync(Global);
+								signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
+							}
+							signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction);
 						}
-						catch (IOException ex) when (ex.Message.Contains("device not found", StringComparison.OrdinalIgnoreCase)
-													|| ex.Message.Contains("Invalid status 6f04", StringComparison.OrdinalIgnoreCase) // It comes when device asleep too.
-													|| ex.Message.Contains("Device is asleep", StringComparison.OrdinalIgnoreCase)
-													|| ex.Message.Contains("promptpin", StringComparison.OrdinalIgnoreCase))
+						catch (Exception ex)
 						{
-							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.ConnectingToHardwareWallet);
-							// The user may changed USB port. Try again with new enumeration.
-							var refRes = await TryRefreshHardwareWalletInfoAsync(KeyManager);
-							if (!refRes.success)
-							{
-								SetWarningMessage(refRes.error);
-								return;
-							}
-
-							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.AcquiringSignatureFromHardwareWallet);
-							signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
+							SetWarningMessage(ex.ToTypeMessageString());
+							return;
 						}
 						finally
 						{
-							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.ConnectingToHardwareWallet, StatusBarStatus.AcquiringSignatureFromHardwareWallet);
+							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.AcquiringSignatureFromHardwareWallet);
 							IsHardwareBusy = false;
 						}
-
-						signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction.Height, result.Transaction.BlockHash, result.Transaction.BlockIndex, result.Transaction.Label, result.Transaction.FirstSeenIfMempoolTime, result.Transaction.IsReplacement);
 					}
 
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
@@ -449,10 +432,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SetFeesAndTexts();
 			});
 
-			FeeSliderClickedCommand = ReactiveCommand.Create((PointerPressedEventArgs mouse) =>
-			{
-				IsSliderFeeUsed = true;
-			});
+#pragma warning disable IDE0053 // Use expression body for lambda expressions
+			FeeSliderClickedCommand = ReactiveCommand.Create((PointerPressedEventArgs mouse) => { IsSliderFeeUsed = true; });
+#pragma warning restore IDE0053 // Use expression body for lambda expressions
 
 			HighLightFeeSliderCommand = ReactiveCommand.Create((bool entered) =>
 			{
@@ -474,92 +456,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(HighLightFeeSliderCommand.ThrownExceptions)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(ex => SetWarningMessage(ex.ToTypeMessageString()));
-		}
-
-		private async Task<(bool success, string error)> TryRefreshHardwareWalletInfoAsync(KeyManager keyManager)
-		{
-			var hwis = await HwiProcessManager.EnumerateAsync();
-
-			bool ledgerNotReady = hwis.Any(x => x.Type == HardwareWalletType.Ledger && !x.Ready);
-			if (ledgerNotReady) // For Ledger you have to log into your "Bitcoin" account.
-			{
-				throw new InvalidOperationException("Log into your Bitcoin account on your Ledger. If you're already logged in, log out and log in again.");
-			}
-
-			var fingerprint = keyManager.MasterFingerprint;
-
-			if (fingerprint is null)
-			{
-				return (false, "This wallet is a watch-only wallet.");
-			}
-
-			keyManager.HardwareWalletInfo = hwis.FirstOrDefault(x => x.MasterFingerprint == fingerprint);
-
-			if (keyManager.HardwareWalletInfo is null)
-			{
-				var needsPinWalletInfo = hwis.FirstOrDefault(x => x.NeedPin);
-
-				if (needsPinWalletInfo != null)
-				{
-					if (!await HwiProcessManager.PromptPinAsync(needsPinWalletInfo))
-					{
-						return (false, "promptpin request failed.");
-					}
-
-					PinPadViewModel pinpad = IoC.Get<IShell>().Documents.OfType<PinPadViewModel>().FirstOrDefault();
-					if (pinpad is null)
-					{
-						pinpad = new PinPadViewModel(Global);
-						IoC.Get<IShell>().AddOrSelectDocument(pinpad);
-					}
-					var result = await pinpad.ShowDialogAsync();
-					DisplayActionTab();
-					if (!(result is true))
-					{
-						return (false, "PIN was not provided.");
-					}
-
-					var maskedPin = pinpad.MaskedPin;
-					if (!await HwiProcessManager.SendPinAsync(needsPinWalletInfo, maskedPin))
-					{
-						return (false, "Wrong PIN.");
-					}
-					var p = needsPinWalletInfo.Path;
-					var t = needsPinWalletInfo.Type;
-					var enumRes = await HwiProcessManager.EnumerateAsync();
-					needsPinWalletInfo = enumRes.FirstOrDefault(x => x.Type == t && x.Path == p);
-					if (needsPinWalletInfo is null)
-					{
-						return (false, "Could not find the hardware wallet you are working with. Did you disconnect it?");
-					}
-					else
-					{
-						keyManager.HardwareWalletInfo = needsPinWalletInfo;
-					}
-
-					if (!keyManager.HardwareWalletInfo.Initialized)
-					{
-						return (false, "Hardware wallet is not initialized.");
-					}
-					if (!keyManager.HardwareWalletInfo.Ready)
-					{
-						return (false, "Hardware wallet is not ready.");
-					}
-					if (keyManager.HardwareWalletInfo.NeedPin)
-					{
-						return (false, "Hardware wallet still needs a PIN.");
-					}
-				}
-			}
-
-			if (keyManager.HardwareWalletInfo is null)
-			{
-				return (false, "Could not find hardware wallet. Make sure it's plugged in and you're logged in with your PIN.");
-			}
-			else
-			{
-				return (true, null);
-			}
 		}
 
 		private void SetSendText()
@@ -592,7 +488,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (OverflowException ex)
 				{
-					Logging.Logger.LogTrace<SendTabViewModel>(ex);
+					Logger.LogTrace(ex);
 				}
 
 				AmountWatermarkText = amountUsd != 0
@@ -813,7 +709,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogInfo<SendTabViewModel>(ex);
+				Logger.LogInfo(ex);
 			}
 		}
 
@@ -833,7 +729,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning<SendTabViewModel>(ex);
+				Logger.LogWarning(ex);
 			}
 		}
 
@@ -855,7 +751,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning<CoinJoinTabViewModel>(ex);
+				Logger.LogWarning(ex);
 				var builder = new StringBuilder(ex.ToTypeMessageString());
 				if (ex is AggregateException aggex)
 				{
@@ -966,6 +862,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _allSelectedAmount, value);
 		}
 
+		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+
+		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
 		{
 			get => _password;
@@ -1032,24 +931,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Suggestions.Clear();
 		}
 
-		public string ValidateAddress()
+		public ErrorDescriptors ValidateAddress()
 		{
 			if (string.IsNullOrWhiteSpace(Address))
 			{
-				return "";
+				return ErrorDescriptors.Empty;
 			}
 
 			if (AddressStringParser.TryParseBitcoinAddress(Address, Global.Network, out _))
 			{
-				return "";
+				return ErrorDescriptors.Empty;
 			}
 
 			if (AddressStringParser.TryParseBitcoinUrl(Address, Global.Network, out _))
 			{
-				return "";
+				return ErrorDescriptors.Empty;
 			}
 
-			return "Invalid address.";
+			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid address."));
 		}
 
 		[ValidateMethod(nameof(ValidateAddress))]
@@ -1118,20 +1017,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			Global.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate).Subscribe(_ =>
-			{
-				SetFeeTargetLimits();
-
-				if (FeeTarget < MinimumFeeTarget) // Should never happen.
 				{
-					FeeTarget = MinimumFeeTarget;
-				}
-				else if (FeeTarget > MaximumFeeTarget)
-				{
-					FeeTarget = MaximumFeeTarget;
-				}
+					SetFeeTargetLimits();
 
-				SetFeesAndTexts();
-			}).DisposeWith(Disposables);
+					if (FeeTarget < MinimumFeeTarget) // Should never happen.
+					{
+						FeeTarget = MinimumFeeTarget;
+					}
+					else if (FeeTarget > MaximumFeeTarget)
+					{
+						FeeTarget = MaximumFeeTarget;
+					}
+
+					SetFeesAndTexts();
+				}).DisposeWith(Disposables);
 
 			_usdExchangeRate = Global.Synchronizer
 				.WhenAnyValue(x => x.UsdExchangeRate)

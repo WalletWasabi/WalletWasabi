@@ -11,11 +11,13 @@ using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Services;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -67,48 +69,28 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			PrivacyStrongCommand = ReactiveCommand.Create(() => TargetPrivacy = TargetPrivacy.Strong);
 
 			TargetButtonCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				switch (TargetPrivacy)
 				{
-					case TargetPrivacy.None:
-						TargetPrivacy = TargetPrivacy.Some;
-						break;
-
-					case TargetPrivacy.Some:
-						TargetPrivacy = TargetPrivacy.Fine;
-						break;
-
-					case TargetPrivacy.Fine:
-						TargetPrivacy = TargetPrivacy.Strong;
-						break;
-
-					case TargetPrivacy.Strong:
-						TargetPrivacy = TargetPrivacy.Some;
-						break;
-				}
-				Global.Config.MixUntilAnonymitySet = CoinJoinUntilAnonymitySet;
-				await Global.Config.ToFileAsync();
-			});
-
-			this.WhenAnyValue(x => x.Password).Subscribe(async x =>
-			{
-				try
-				{
-					if (x.NotNullAndNotEmpty())
+					switch (TargetPrivacy)
 					{
-						char lastChar = x.Last();
-						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
-						{
-							Password = x.TrimEnd('\r', '\n');
-							await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected));
-						}
+						case TargetPrivacy.None:
+							TargetPrivacy = TargetPrivacy.Some;
+							break;
+
+						case TargetPrivacy.Some:
+							TargetPrivacy = TargetPrivacy.Fine;
+							break;
+
+						case TargetPrivacy.Fine:
+							TargetPrivacy = TargetPrivacy.Strong;
+							break;
+
+						case TargetPrivacy.Strong:
+							TargetPrivacy = TargetPrivacy.Some;
+							break;
 					}
-				}
-				catch (Exception ex)
-				{
-					Logger.LogTrace(ex);
-				}
-			});
+					Global.Config.MixUntilAnonymitySet = CoinJoinUntilAnonymitySet;
+					await Global.Config.ToFileAsync();
+				});
 
 			this.WhenAnyValue(x => x.IsEnqueueBusy)
 				.Select(x => x ? EnqueuingButtonTextString : EnqueueButtonTextString)
@@ -118,10 +100,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Select(x => x ? DequeuingButtonTextString : DequeueButtonTextString)
 				.Subscribe(text => DequeueButtonText = text);
 
-			this.WhenAnyValue(x => x.TargetPrivacy).Subscribe(target =>
-			{
-				CoinJoinUntilAnonymitySet = Global.Config.GetTargetLevel(target);
-			});
+			this.WhenAnyValue(x => x.TargetPrivacy)
+				.Subscribe(target => CoinJoinUntilAnonymitySet = Global.Config.GetTargetLevel(target));
 
 			this.WhenAnyValue(x => x.RoundTimesout)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -173,10 +153,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(AmountQueued));
-				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
-			}).DisposeWith(Disposables);
+				{
+					this.RaisePropertyChanged(nameof(AmountQueued));
+					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+				}).DisposeWith(Disposables);
 
 			Observable.Interval(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -216,7 +196,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (Exception ex)
 				{
-					Logger.LogWarning<CoinJoinTabViewModel>(ex);
+					Logger.LogWarning(ex);
 					var builder = new StringBuilder(ex.ToTypeMessageString());
 					if (ex is AggregateException aggex)
 					{
@@ -240,21 +220,27 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			try
 			{
 				SetWarningMessage("");
-				Password = Guard.Correct(Password);
 
 				if (!selectedCoins.Any())
 				{
 					SetWarningMessage("No coins are selected to enqueue.");
 					return;
 				}
-
 				try
 				{
+					PasswordHelper.GetMasterExtKey(KeyManager, Password, out string compatiblityPassword); // If the password is not correct we throw.
+
+					if (compatiblityPassword != null)
+					{
+						Password = compatiblityPassword;
+						SetWarningMessage(PasswordHelper.CompatibilityPasswordWarnMessage);
+					}
+
 					await Global.ChaumianClient.QueueCoinsToMixAsync(Password, selectedCoins.Select(c => c.Model).ToArray());
 				}
 				catch (Exception ex)
 				{
-					Logger.LogWarning<CoinJoinTabViewModel>(ex);
+					Logger.LogWarning(ex);
 					var builder = new StringBuilder(ex.ToTypeMessageString());
 					if (ex is AggregateException aggex)
 					{
@@ -276,20 +262,26 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void UpdateStates()
 		{
-			AmountQueued = Global.ChaumianClient.State.SumAllQueuedCoinAmounts();
+			var chaumianClient = Global?.ChaumianClient;
+			if (chaumianClient is null)
+			{
+				return;
+			}
+
+			AmountQueued = chaumianClient.State.SumAllQueuedCoinAmounts();
 			MainWindowViewModel.Instance.CanClose = AmountQueued == Money.Zero;
 
-			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
+			var registrableRound = chaumianClient.State.GetRegistrableRoundOrDefault();
 			if (registrableRound != default)
 			{
 				CoordinatorFeePercent = registrableRound.State.CoordinatorFeePercent.ToString();
 				UpdateRequiredBtcLabel(registrableRound);
 			}
-			var mostAdvancedRound = Global.ChaumianClient.State.GetMostAdvancedRoundOrDefault();
+			var mostAdvancedRound = chaumianClient.State.GetMostAdvancedRoundOrDefault();
 			if (mostAdvancedRound != default)
 			{
 				RoundId = mostAdvancedRound.State.RoundId;
-				if (!Global.ChaumianClient.State.IsInErrorState)
+				if (!chaumianClient.State.IsInErrorState)
 				{
 					Phase = mostAdvancedRound.State.Phase;
 					RoundTimesout = mostAdvancedRound.State.Phase == CcjRoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
@@ -342,6 +334,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global.ChaumianClient.DeactivateFrequentStatusProcessingIfNotMixing();
 		}
 
+		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+
+		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
 		{
 			get => _password;
@@ -364,7 +359,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<CoinJoinTabViewModel>(ex);
+				Logger.LogWarning(ex);
 			}
 		}
 

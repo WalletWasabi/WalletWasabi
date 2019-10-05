@@ -1,23 +1,39 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Metadata;
+using Avalonia.Platform;
+using ReactiveUI;
 using System;
+using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Controls
 {
 	public class QrCode : Control
 	{
+		private const int MatrixPadding = 2;
+		private Size CoercedSize { get; set; }
+		private double GridCellFactor { get; set; }
+		private bool[,] FinalMatrix { get; set; }
+
 		static QrCode()
 		{
 			AffectsMeasure<QrCode>(MatrixProperty);
 		}
 
+		public QrCode()
+		{
+			CoercedSize = new Size();
+
+			this.WhenAnyValue(x => x.Matrix)
+				.Where(x => x != null)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => FinalMatrix = AddPaddingToMatrix(x));
+		}
+
 		public static readonly DirectProperty<QrCode, bool[,]> MatrixProperty =
-			AvaloniaProperty.RegisterDirect<QrCode, bool[,]>(
-				nameof(Matrix),
-				o => o.Matrix,
-				(o, v) => o.Matrix = v);
+			AvaloniaProperty.RegisterDirect<QrCode, bool[,]>(nameof(Matrix), o => o.Matrix, (o, v) => o.Matrix = v);
 
 		private bool[,] _matrix;
 
@@ -28,46 +44,75 @@ namespace WalletWasabi.Gui.Controls
 			set => SetAndRaise(MatrixProperty, ref _matrix, value);
 		}
 
+		private bool[,] AddPaddingToMatrix(bool[,] matrix)
+		{
+			var dims = GetMatrixDimensions(matrix);
+			var nW = dims.w + (MatrixPadding * 2);
+			var nH = dims.h + (MatrixPadding * 2);
+
+			var paddedMatrix = new bool[nH, nW];
+
+			for (var i = 0; i < dims.h; i++)
+			{
+				for (var j = 0; j < dims.w; j++)
+				{
+					paddedMatrix[i + MatrixPadding, j + MatrixPadding] = matrix[i, j];
+				}
+			}
+
+			return paddedMatrix;
+		}
+
 		public override void Render(DrawingContext context)
 		{
-			var source = Matrix;
+			var source = FinalMatrix;
 
-			if (source != null)
+			if (source is null)
 			{
-				var h = source.GetUpperBound(0) + 1;
-				var w = source.GetUpperBound(1) + 1;
+				return;
+			}
 
-				var minDimension = Math.Min(w, h);
-				var minBound = Math.Min(Bounds.Width, Bounds.Height);
-				var factor = (float)minBound / minDimension;
+			var dims = GetMatrixDimensions(source);
 
-				for (var i = 0; i < h; i++)
+			context.FillRectangle(Brushes.White, new Rect(0, 0, GridCellFactor * dims.w, GridCellFactor * dims.h));
+
+			for (var i = 0; i < dims.h; i++)
+			{
+				for (var j = 0; j < dims.w; j++)
 				{
-					for (var j = 0; j < w; j++)
-					{
-						var cellValue = source[i, j];
-						var rect = new Rect(i * factor, j * factor, factor, factor);
-						var color = cellValue ? Brushes.Black : Brushes.White;
-						context.FillRectangle(color, rect);
-					}
+					var cellValue = source[i, j];
+					var rect = new Rect(i * GridCellFactor, j * GridCellFactor, GridCellFactor, GridCellFactor);
+					var color = cellValue ? Brushes.Black : Brushes.White;
+					context.FillRectangle(color, rect);
 				}
 			}
 		}
 
+		private (int w, int h) GetMatrixDimensions(bool[,] source)
+		{
+			return (source.GetUpperBound(0) + 1, source.GetUpperBound(1) + 1);
+		}
+
 		protected override Size MeasureOverride(Size availableSize)
 		{
-			var source = Matrix;
+			var source = FinalMatrix;
 
 			if (source is null || source.Length == 0)
 			{
 				return new Size();
 			}
 
-			var max = Math.Min(availableSize.Width, availableSize.Height);
+			var dims = GetMatrixDimensions(source);
+			var minDimension = Math.Min(dims.w, dims.h);
+			var availMax = Math.Min(availableSize.Width, availableSize.Height);
 
-			var size = new Size(max, max);
+			GridCellFactor = Math.Floor(availMax / minDimension);
 
-			return size;
+			var maxF = Math.Min(availMax, GridCellFactor * minDimension);
+
+			CoercedSize = new Size(maxF, maxF);
+
+			return CoercedSize;
 		}
 	}
 }

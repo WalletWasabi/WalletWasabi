@@ -5,6 +5,8 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
+using WalletWasabi.Mempool;
 
 namespace WalletWasabi.Stores
 {
@@ -19,18 +21,30 @@ namespace WalletWasabi.Stores
 
 		public IndexStore IndexStore { get; private set; }
 		public HashChain HashChain { get; private set; }
+		public MempoolService MempoolService { get; private set; }
+
+		/// <summary>
+		/// This should not be a property, but a creator function, because it'll be cloned left and right by NBitcoin later.
+		/// So it should not be assumed it's some singleton.
+		/// </summary>
+		public MempoolBehavior CreateMempoolBehavior() => new MempoolBehavior(MempoolService);
 
 		public async Task InitializeAsync(string workFolderPath, Network network)
 		{
-			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
+			using (BenchmarkLogger.Measure())
+			{
+				WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
+				IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
-			Network = Guard.NotNull(nameof(network), network);
+				Network = Guard.NotNull(nameof(network), network);
 
-			IndexStore = new IndexStore();
-			var indexStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString(), "IndexStore");
-			HashChain = new HashChain();
-			await IndexStore.InitializeAsync(indexStoreFolderPath, Network, HashChain);
+				IndexStore = new IndexStore();
+				var indexStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString(), "IndexStore");
+				HashChain = new HashChain();
+				MempoolService = new MempoolService();
+
+				await IndexStore.InitializeAsync(indexStoreFolderPath, Network, HashChain).ConfigureAwait(false);
+			}
 		}
 	}
 }

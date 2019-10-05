@@ -1,7 +1,7 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui" 
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
-             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"             
+             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              x:Class="WalletWasabi.Gui.Controls.WalletExplorer.CoinListView">
@@ -17,10 +17,10 @@
   <UserControl.Styles>
     <Style Selector="TextBlock">
       <Setter Property="VerticalAlignment" Value="Center" />
-      <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}"/>
+      <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}" />
     </Style>
     <Style Selector="TextBox">
-      <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}"/>
+      <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}" />
     </Style>
     <Style Selector="TextBox.Transparent">
       <Setter Property="Background" Value="Transparent" />

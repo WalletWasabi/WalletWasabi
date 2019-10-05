@@ -67,17 +67,17 @@ namespace WalletWasabi.Services
 						File.WriteAllLines(BannedUtxosFilePath, newAllLines);
 					}
 
-					Logger.LogInfo<UtxoReferee>($"{allLines.Length} banned UTXOs are loaded from {BannedUtxosFilePath}.");
+					Logger.LogInfo($"{allLines.Length} banned UTXOs are loaded from {BannedUtxosFilePath}.");
 				}
 				catch (Exception ex)
 				{
-					Logger.LogWarning<UtxoReferee>($"Banned UTXO file got corrupted. Deleting {BannedUtxosFilePath}. {ex.GetType()}: {ex.Message}");
+					Logger.LogWarning($"Banned UTXO file got corrupted. Deleting {BannedUtxosFilePath}. {ex.GetType()}: {ex.Message}");
 					File.Delete(BannedUtxosFilePath);
 				}
 			}
 			else
 			{
-				Logger.LogInfo<UtxoReferee>($"No banned UTXOs are loaded from {BannedUtxosFilePath}.");
+				Logger.LogInfo($"No banned UTXOs are loaded from {BannedUtxosFilePath}.");
 			}
 		}
 
@@ -135,12 +135,12 @@ namespace WalletWasabi.Services
 					}
 				}
 
-				Logger.LogInfo<UtxoReferee>($"UTXO {(isNoted ? "noted" : "banned")} with severity: {severity}. UTXO: {utxo.N}:{utxo.Hash} for disrupting Round {bannedForRound}.");
+				Logger.LogInfo($"UTXO {(isNoted ? "noted" : "banned")} with severity: {severity}. UTXO: {utxo.N}:{utxo.Hash} for disrupting Round {bannedForRound}.");
 			}
 
 			if (updated) // If at any time we set updated then we must update the whole thing.
 			{
-				var allLines = BannedUtxos.Select(x => $"{x.Value.TimeOfBan.ToString(CultureInfo.InvariantCulture)}:{x.Value.Severity}:{x.Key.N}:{x.Key.Hash}:{x.Value.IsNoted}:{x.Value.BannedForRound}");
+				var allLines = BannedUtxos.Select(x => x.Value.ToString());
 				await File.WriteAllLinesAsync(BannedUtxosFilePath, allLines);
 			}
 			else if (lines.Count != 0) // If we do not have to update the whole thing, we must check if we added a line and so only append.
@@ -153,9 +153,9 @@ namespace WalletWasabi.Services
 		{
 			if (BannedUtxos.TryRemove(output, out _))
 			{
-				IEnumerable<string> lines = BannedUtxos.Select(x => x.ToString());
+				IEnumerable<string> lines = BannedUtxos.Select(x => x.Value.ToString());
 				await File.WriteAllLinesAsync(BannedUtxosFilePath, lines);
-				Logger.LogInfo<UtxoReferee>($"UTXO unbanned: {output.N}:{output.Hash}.");
+				Logger.LogInfo($"UTXO unbanned: {output.N}:{output.Hash}.");
 			}
 		}
 

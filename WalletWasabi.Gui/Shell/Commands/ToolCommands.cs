@@ -13,6 +13,7 @@ using System.Reactive.Linq;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Tabs;
 using WalletWasabi.Gui.Tabs.WalletManager;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
@@ -26,29 +27,26 @@ namespace WalletWasabi.Gui.Shell.Commands
 			Global = global.Global;
 			var walletManagerCommand = ReactiveCommand.Create(OnWalletManager);
 
-			var settingsCommand = ReactiveCommand.Create(() =>
-			{
-				IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel(Global));
-			});
+			var settingsCommand = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel(Global)));
 
 #if DEBUG
 			var devToolsCommand = ReactiveCommand.Create(() =>
-			{
-				var devTools = new DevTools(Application.Current.Windows.FirstOrDefault());
-
-				var devToolsWindow = new Window
 				{
-					Width = 1024,
-					Height = 512,
-					Content = devTools,
-					DataTemplates =
-						{
-							new ViewLocator<Avalonia.Diagnostics.ViewModels.ViewModelBase>()
-						}
-				};
+					var devTools = new DevTools(Application.Current.Windows.FirstOrDefault());
 
-				devToolsWindow.Show();
-			});
+					var devToolsWindow = new Window
+					{
+						Width = 1024,
+						Height = 512,
+						Content = devTools,
+						DataTemplates =
+							{
+								new ViewLocator<Avalonia.Diagnostics.ViewModels.ViewModelBase>()
+							}
+					};
+
+					devToolsWindow.Show();
+				});
 #endif
 
 			Observable
@@ -92,7 +90,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnException(Exception ex)
 		{
-			Logging.Logger.LogError<ToolCommands>(ex);
+			Logger.LogError(ex);
 		}
 
 		[ExportCommandDefinition("Tools.WalletManager")]

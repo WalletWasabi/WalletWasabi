@@ -134,7 +134,7 @@ namespace WalletWasabi.Services
 			{
 				try
 				{
-					Logger.LogInfo<CcjClient>($"{nameof(CcjClient)} is successfully initialized.");
+					Logger.LogInfo($"{nameof(CcjClient)} is successfully initialized.");
 
 					while (IsRunning)
 					{
@@ -171,7 +171,7 @@ namespace WalletWasabi.Services
 						}
 						catch (Exception ex)
 						{
-							Logger.LogError<CcjClient>(ex);
+							Logger.LogError(ex);
 						}
 						finally
 						{
@@ -181,7 +181,7 @@ namespace WalletWasabi.Services
 							}
 							catch (TaskCanceledException ex)
 							{
-								Logger.LogTrace<CcjClient>(ex);
+								Logger.LogTrace(ex);
 							}
 						}
 					}
@@ -195,7 +195,7 @@ namespace WalletWasabi.Services
 
 		private async Task TryProcessStatusAsync(IEnumerable<CcjRunningRoundState> states)
 		{
-			states = states ?? Enumerable.Empty<CcjRunningRoundState>();
+			states ??= Enumerable.Empty<CcjRunningRoundState>();
 
 			if (Interlocked.Read(ref _statusProcessing) == 1) // It's ok to wait for status processing next time.
 			{
@@ -274,11 +274,11 @@ namespace WalletWasabi.Services
 			}
 			catch (TaskCanceledException ex)
 			{
-				Logger.LogTrace<CcjClient>(ex);
+				Logger.LogTrace(ex);
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError<CcjClient>(ex);
+				Logger.LogError(ex);
 			}
 			finally
 			{
@@ -330,7 +330,7 @@ namespace WalletWasabi.Services
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError<CcjClient>(ex); // Keep this in front of the logic (Logs will make more sense.)
+				Logger.LogError(ex); // Keep this in front of the logic (Logs will make more sense.)
 				if (ex.Message.StartsWith("Not Found", StringComparison.Ordinal)) // Alice timed out.
 				{
 					State.ClearRoundRegistration(ongoingRoundId);
@@ -387,7 +387,7 @@ namespace WalletWasabi.Services
 			}
 
 			var signedCoinJoin = unsignedCoinJoin.Clone();
-			signedCoinJoin.Sign(ongoingRound.CoinsRegistered.Select(x => x.Secret = x.Secret ?? KeyManager.GetSecrets(SaltSoup(), x.ScriptPubKey).Single()).ToArray(), ongoingRound.Registration.CoinsRegistered.Select(x => x.GetCoin()).ToArray());
+			signedCoinJoin.Sign(ongoingRound.CoinsRegistered.Select(x => x.Secret ??= KeyManager.GetSecrets(SaltSoup(), x.ScriptPubKey).Single()).ToArray(), ongoingRound.Registration.CoinsRegistered.Select(x => x.GetCoin()).ToArray());
 
 			// Old way of signing, which randomly fails! https://github.com/zkSNACKs/WalletWasabi/issues/716#issuecomment-435498906
 			// Must be fixed in NBitcoin.
@@ -420,36 +420,34 @@ namespace WalletWasabi.Services
 			shuffledOutputs.Shuffle();
 			foreach (var activeOutput in shuffledOutputs)
 			{
-				using (var bobClient = new BobClient(CcjHostUriAction, TorSocks5EndPoint))
+				using var bobClient = new BobClient(CcjHostUriAction, TorSocks5EndPoint);
+				if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput))
 				{
-					if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput))
-					{
-						Logger.LogWarning<AliceClient>($"Round ({ongoingRound.State.RoundId}) Bobs did not have enough time to post outputs before timeout. If you see this message, contact nopara73, so he can optimize the phase timeout periods to the worst Internet/Tor connections, which may be yours.");
-						break;
-					}
+					Logger.LogWarning($"Round ({ongoingRound.State.RoundId}) Bobs did not have enough time to post outputs before timeout. If you see this message, contact nopara73, so he can optimize the phase timeout periods to the worst Internet/Tor connections, which may be yours.");
+					break;
+				}
 
-					// Unblind our exposed links.
-					foreach (TxoRef input in registeredInputs)
+				// Unblind our exposed links.
+				foreach (TxoRef input in registeredInputs)
+				{
+					if (ExposedLinks.ContainsKey(input)) // Should never not contain, but oh well, let's not disrupt the round for this.
 					{
-						if (ExposedLinks.ContainsKey(input)) // Should never not contain, but oh well, let's not disrupt the round for this.
+						var found = ExposedLinks[input].FirstOrDefault(x => x.Key.GetP2wpkhAddress(Network) == activeOutput.Address);
+						if (found != default)
 						{
-							var found = ExposedLinks[input].FirstOrDefault(x => x.Key.GetP2wpkhAddress(Network) == activeOutput.Address);
-							if (found != default)
-							{
-								found.IsBlinded = false;
-							}
-							else
-							{
-								// Should never happen, but oh well we can autocorrect it so why not.
-								ExposedLinks[input] = ExposedLinks[input].Append(new HdPubKeyBlindedPair(KeyManager.GetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey), false));
-							}
+							found.IsBlinded = false;
+						}
+						else
+						{
+							// Should never happen, but oh well we can autocorrect it so why not.
+							ExposedLinks[input] = ExposedLinks[input].Append(new HdPubKeyBlindedPair(KeyManager.GetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey), false));
 						}
 					}
 				}
 			}
 
 			ongoingRound.Registration.SetPhaseCompleted(CcjRoundPhase.OutputRegistration);
-			Logger.LogInfo<AliceClient>($"Round ({ongoingRound.State.RoundId}) Bob Posted outputs: {ongoingRound.Registration.ActiveOutputs.Count()}.");
+			Logger.LogInfo($"Round ({ongoingRound.State.RoundId}) Bob Posted outputs: {ongoingRound.Registration.ActiveOutputs.Count()}.");
 		}
 
 		private async Task TryConfirmConnectionAsync(CcjClientRound inputRegistrableRound)
@@ -475,7 +473,7 @@ namespace WalletWasabi.Services
 				{
 					State.ClearRoundRegistration(inputRegistrableRound.State.RoundId);
 				}
-				Logger.LogError<CcjClient>(ex);
+				Logger.LogError(ex);
 			}
 		}
 
@@ -533,7 +531,7 @@ namespace WalletWasabi.Services
 						throw new NotSupportedException("This is impossible.");
 					}
 
-					coin.Secret = coin.Secret ?? KeyManager.GetSecrets(SaltSoup(), coin.ScriptPubKey).Single();
+					coin.Secret ??= KeyManager.GetSecrets(SaltSoup(), coin.ScriptPubKey).Single();
 					var inputProof = new InputProofModel
 					{
 						Input = coin.GetTxoRef(),
@@ -563,7 +561,7 @@ namespace WalletWasabi.Services
 
 					coin.BannedUntilUtc = DateTimeOffset.UtcNow + TimeSpan.FromMinutes(minuteInt);
 
-					Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
+					Logger.LogWarning(ex.Message.Split('\n')[1]);
 
 					await DequeueCoinsFromMixNoLockAsync(coinReference, "Failed to register the coin with the coordinator.");
 					aliceClient?.Dispose();
@@ -583,7 +581,7 @@ namespace WalletWasabi.Services
 
 					coin.SpentAccordingToBackend = true;
 
-					Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
+					Logger.LogWarning(ex.Message.Split('\n')[1]);
 
 					await DequeueCoinsFromMixNoLockAsync(coinReference, "Failed to register the coin with the coordinator. The coin is already spent.");
 					aliceClient?.Dispose();
@@ -591,13 +589,13 @@ namespace WalletWasabi.Services
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("No such running round in InputRegistration.", StringComparison.InvariantCultureIgnoreCase))
 				{
-					Logger.LogInfo<CcjClient>("Client tried to register a round that is not in InputRegistration anymore. Trying again later.");
+					Logger.LogInfo("Client tried to register a round that is not in InputRegistration anymore. Trying again later.");
 					aliceClient?.Dispose();
 					return;
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("too-long-mempool-chain", StringComparison.InvariantCultureIgnoreCase))
 				{
-					Logger.LogInfo<CcjClient>("Coordinator failed because too much unconfirmed parent transactions. Trying again later.");
+					Logger.LogInfo("Coordinator failed because too much unconfirmed parent transactions. Trying again later.");
 					aliceClient?.Dispose();
 					return;
 				}
@@ -629,7 +627,7 @@ namespace WalletWasabi.Services
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError<CcjClient>(ex);
+				Logger.LogError(ex);
 			}
 		}
 
@@ -678,7 +676,7 @@ namespace WalletWasabi.Services
 			var newKeys = new List<HdPubKey>();
 			for (int i = allLockedInternalKeys.Count(); i <= maximumMixingLevelCount + 1; i++)
 			{
-				HdPubKey k = KeyManager.GenerateNewKey("", KeyState.Locked, isInternal: true, toFile: false);
+				HdPubKey k = KeyManager.GenerateNewKey(SmartLabel.Empty, KeyState.Locked, isInternal: true, toFile: false);
 				newKeys.Add(k);
 			}
 			allLockedInternalKeys = allLockedInternalKeys.Concat(newKeys);
@@ -802,7 +800,7 @@ namespace WalletWasabi.Services
 
 					State.AddCoinToWaitingList(coin);
 					successful.Add(coin);
-					Logger.LogInfo<CcjClient>($"Coin queued: {coin.Index}:{coin.TransactionId}.");
+					Logger.LogInfo($"Coin queued: {coin.Index}:{coin.TransactionId}.");
 				}
 			}
 
@@ -825,23 +823,21 @@ namespace WalletWasabi.Services
 				return;
 			}
 
-			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+			try
 			{
-				try
+				using (await MixLock.LockAsync(cts.Token))
 				{
-					using (await MixLock.LockAsync(cts.Token))
-					{
-						await DequeueSpentCoinsFromMixNoLockAsync();
-
-						await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.GetTxoRef()).ToArray(), reason);
-					}
-				}
-				catch (TaskCanceledException)
-				{
-					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray(), reason);
+					await DequeueSpentCoinsFromMixNoLockAsync();
 
 					await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.GetTxoRef()).ToArray(), reason);
 				}
+			}
+			catch (TaskCanceledException)
+			{
+				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray(), reason);
+
+				await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.GetTxoRef()).ToArray(), reason);
 			}
 		}
 
@@ -869,7 +865,7 @@ namespace WalletWasabi.Services
 		{
 			lock (RefrigeratorLock)
 			{
-				ingredients = ingredients ?? "";
+				ingredients ??= "";
 
 				Salt = TokenGenerator.GetUniqueKey(21);
 				Soup = StringCipher.Encrypt(ingredients, Salt);
@@ -888,41 +884,37 @@ namespace WalletWasabi.Services
 				return;
 			}
 
-			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+			try
 			{
-				try
-				{
-					using (await MixLock.LockAsync(cts.Token))
-					{
-						await DequeueSpentCoinsFromMixNoLockAsync();
-
-						await DequeueCoinsFromMixNoLockAsync(coins, reason);
-					}
-				}
-				catch (TaskCanceledException)
+				using (await MixLock.LockAsync(cts.Token))
 				{
 					await DequeueSpentCoinsFromMixNoLockAsync();
 
 					await DequeueCoinsFromMixNoLockAsync(coins, reason);
 				}
 			}
+			catch (TaskCanceledException)
+			{
+				await DequeueSpentCoinsFromMixNoLockAsync();
+
+				await DequeueCoinsFromMixNoLockAsync(coins, reason);
+			}
 		}
 
 		public async Task DequeueAllCoinsFromMixAsync(string reason)
 		{
-			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+			try
 			{
-				try
-				{
-					using (await MixLock.LockAsync(cts.Token))
-					{
-						await DequeueAllCoinsFromMixNoLockAsync(reason);
-					}
-				}
-				catch (TaskCanceledException)
+				using (await MixLock.LockAsync(cts.Token))
 				{
 					await DequeueAllCoinsFromMixNoLockAsync(reason);
 				}
+			}
+			catch (TaskCanceledException)
+			{
+				await DequeueAllCoinsFromMixNoLockAsync(reason);
 			}
 		}
 
@@ -1031,7 +1023,7 @@ namespace WalletWasabi.Services
 			CoinDequeued?.Invoke(this, coinWaitingForMix);
 			var correctReason = Guard.Correct(reason);
 			var reasonText = correctReason != "" ? $" Reason: {correctReason}" : "";
-			Logger.LogInfo<CcjClient>($"Coin dequeued: {coinWaitingForMix.Index}:{coinWaitingForMix.TransactionId}.{reasonText}.");
+			Logger.LogInfo($"Coin dequeued: {coinWaitingForMix.Index}:{coinWaitingForMix.TransactionId}.{reasonText}.");
 		}
 
 		public async Task StopAsync()
@@ -1068,17 +1060,17 @@ namespace WalletWasabi.Services
 					}
 					catch (Exception ex)
 					{
-						Logger.LogError<CcjClient>("Could not dequeue all coins. Some coins will likely be banned from mixing.");
+						Logger.LogError("Could not dequeue all coins. Some coins will likely be banned from mixing.");
 						if (ex is AggregateException aggrEx)
 						{
 							foreach (var innerEx in aggrEx.InnerExceptions)
 							{
-								Logger.LogError<CcjClient>(innerEx);
+								Logger.LogError(innerEx);
 							}
 						}
 						else
 						{
-							Logger.LogError<CcjClient>(ex);
+							Logger.LogError(ex);
 						}
 					}
 				}

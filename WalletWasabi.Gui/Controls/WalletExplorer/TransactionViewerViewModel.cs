@@ -10,6 +10,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Models.TransactionBuilding;
 
@@ -91,9 +92,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				catch (Exception ex)
 				{
 					SetWarningMessage(ex.ToTypeMessageString());
-					Logging.Logger.LogError<TransactionViewerViewModel>(ex);
+					Logger.LogError(ex);
 				}
-			}, outputScheduler: RxApp.MainThreadScheduler);
+			},
+			outputScheduler: RxApp.MainThreadScheduler);
 		}
 
 		private void OnException(Exception ex)

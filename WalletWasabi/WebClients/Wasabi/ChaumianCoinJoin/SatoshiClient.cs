@@ -24,17 +24,15 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 
 		public async Task<IEnumerable<CcjRunningRoundState>> GetAllRoundStatesAsync()
 		{
-			using (var response = await TorClient.SendAsync(HttpMethod.Get, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/states/"))
+			using var response = await TorClient.SendAsync(HttpMethod.Get, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/states/");
+			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				if (response.StatusCode != HttpStatusCode.OK)
-				{
-					await response.ThrowRequestExceptionFromContentAsync();
-				}
-
-				var states = await response.Content.ReadAsJsonAsync<IEnumerable<CcjRunningRoundState>>();
-
-				return states;
+				await response.ThrowRequestExceptionFromContentAsync();
 			}
+
+			var states = await response.Content.ReadAsJsonAsync<IEnumerable<CcjRunningRoundState>>();
+
+			return states;
 		}
 
 		public async Task<CcjRunningRoundState> GetRoundStateAsync(long roundId)
