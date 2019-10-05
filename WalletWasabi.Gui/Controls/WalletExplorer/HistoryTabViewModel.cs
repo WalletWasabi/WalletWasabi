@@ -142,7 +142,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			var walletService = Global.WalletService;
 
-			List<Transaction> trs = new List<Transaction>();
 			var txRecordList = new List<TransactionData>();
 			if (walletService is null)
 			{
