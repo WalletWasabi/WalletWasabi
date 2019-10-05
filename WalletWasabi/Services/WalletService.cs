@@ -1428,7 +1428,7 @@ namespace WalletWasabi.Services
 
 		public SmartTransaction TryGetTxFromCache(uint256 txId)
 		{
-			return TransactionCache.FirstOrDefault(x => x.GetHash() == txId);
+			return TransactionCache.FindBy(txId.GetHashCode(), x => x.GetHash() == txId);
 		}
 	}
 }
