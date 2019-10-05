@@ -108,7 +108,6 @@ namespace WalletWasabi.Services
 							Amount = (Money.Zero - coin.Amount), 
 							Label = "",
 							TransactionId = coin.SpenderTransactionId});
-
 					}
 				}
 			}

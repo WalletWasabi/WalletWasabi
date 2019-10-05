@@ -344,10 +344,9 @@ namespace WalletWasabi.Models
 					return current.Item;
 				}
 				current = current.Next;
-			};
+			}
 			return default(T);
 		}
-
 
 		/// <summary>
 		/// Attempts to remove the item from the <see cref="ConcurrentHashSet{T}"/>.
