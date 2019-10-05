@@ -143,7 +143,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			foreach (SmartCoin coin in walletService.Coins)
 			{
-				var found = txRecordList.FirstOrDefault(x => x.transactionId == coin.TransactionId);
 
 				var foundTransaction = walletService.TryGetTxFromCache(coin.TransactionId);
 				if (foundTransaction is null)
@@ -168,6 +167,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					dateTime = foundTransaction.FirstSeen;
 				}
 
+				var found = txRecordList.FirstOrDefault(x => x.transactionId == coin.TransactionId);
 				if (found != default) // if found
 				{
 					txRecordList.Remove(found);
