@@ -267,7 +267,7 @@ namespace WalletWasabi.Transactions
 				}
 
 				// Wait until the operation list calms down.
-				List<ITxStoreOperation> operationsToExecute;
+				IEnumerable<ITxStoreOperation> operationsToExecute;
 				while (true)
 				{
 					var count = Operations.Count;
