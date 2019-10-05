@@ -1,0 +1,4 @@
+# This file is being used by CodeFactor
+
+# Extends the default configuration.
+extends: default
