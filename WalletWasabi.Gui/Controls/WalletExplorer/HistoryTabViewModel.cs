@@ -141,9 +141,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return txRecordList;
 			}
 
+			var processedBlockTimeByHeigh = walletService.ProcessedBlocks?.Values.ToDictionary(x=>x.height, x=>x.dateTime)
+				?? new Dictionary<Height, DateTimeOffset>();
 			foreach (SmartCoin coin in walletService.Coins)
 			{
-
 				var foundTransaction = walletService.TryGetTxFromCache(coin.TransactionId);
 				if (foundTransaction is null)
 				{
@@ -153,9 +154,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				DateTimeOffset dateTime;
 				if (foundTransaction.Height.Type == HeightType.Chain)
 				{
-					if (walletService.ProcessedBlocks.Any(x => x.Value.height == foundTransaction.Height))
+					if(processedBlockTimeByHeigh.TryGetValue(foundTransaction.Height, out var blockDateTime))
 					{
-						dateTime = walletService.ProcessedBlocks.First(x => x.Value.height == foundTransaction.Height).Value.dateTime;
+						dateTime = blockDateTime;
 					}
 					else
 					{
@@ -180,7 +181,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					txRecordList.Add((dateTime, coin.Height, coin.Amount, coin.Label.ToString(), coin.TransactionId));
 				}
 
-				if (coin.SpenderTransactionId != null)
+				if (!coin.Unspent)
 				{
 					var foundSpenderTransaction = walletService.TryGetTxFromCache(coin.SpenderTransactionId);
 					if (foundSpenderTransaction is null)
@@ -190,23 +191,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (foundSpenderTransaction.Height.Type == HeightType.Chain)
 					{
-						if (walletService.ProcessedBlocks != null) // NullReferenceException appeared here.
+						if(processedBlockTimeByHeigh.TryGetValue(foundSpenderTransaction.Height, out var blockDateTime))
 						{
-							if (walletService.ProcessedBlocks.Any(x => x.Value.height == foundSpenderTransaction.Height))
-							{
-								if (walletService.ProcessedBlocks != null) // NullReferenceException appeared here.
-								{
-									dateTime = walletService.ProcessedBlocks.First(x => x.Value.height == foundSpenderTransaction.Height).Value.dateTime;
-								}
-								else
-								{
-									dateTime = DateTimeOffset.UtcNow;
-								}
-							}
-							else
-							{
-								dateTime = DateTimeOffset.UtcNow;
-							}
+							dateTime = blockDateTime;
 						}
 						else
 						{
