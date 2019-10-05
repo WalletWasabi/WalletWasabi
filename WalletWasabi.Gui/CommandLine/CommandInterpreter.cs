@@ -47,7 +47,7 @@ namespace WalletWasabi.Gui.CommandLine
 				"Usage: wassabee [OPTIONS]+",
 				"Launches Wasabi Wallet.",
 				"",
-				{ "v|version", "Displays Wasabi version and exit.",	x => showVersion = x != null },
+				{ "v|version", "Displays Wasabi version and exit.", x => showVersion = x != null },
 #if DEBUG
 				{ "d|datadir=", "Directory path where store all the Wasabi data.", x => { 
 					global.SetDataDir(x); 
@@ -80,7 +80,7 @@ namespace WalletWasabi.Gui.CommandLine
 			{
 				var nonProcessedOptions = suite.Options.Parse(args);
 				// If there is some unprocessed argument then something was wrong.
-				if( nonProcessedOptions.Any())
+				if (nonProcessedOptions.Any())
 				{
 					return false;
 				}

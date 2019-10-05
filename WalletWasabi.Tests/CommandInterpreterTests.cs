@@ -90,7 +90,7 @@ namespace WalletWasabi.Tests
 
 			// Ensure backward compatibility with --mix
 			mixCommand = CreateMixCommand(); 
-			mixCommand.Run = (s)=> invoked = true;
+			mixCommand.Run = (s) => invoked = true;
 			CommandInterpreter.Configure(mixCommand, CreateFindPasswordCommand(), output, output);
 			invoked = false;
 			runGui = await CommandInterpreter.ExecuteCommandsAsync(null, new[]{ "--mix" });
@@ -106,7 +106,7 @@ namespace WalletWasabi.Tests
 			var output = new StreamWriter(ms, Encoding.ASCII, 1024, true);
 			var invoked = false;
 			var findPasswordCommand = CreateFindPasswordCommand(); 
-			findPasswordCommand.Run = (s)=> invoked = true;
+			findPasswordCommand.Run = (s) => invoked = true;
 			CommandInterpreter.Configure(CreateMixCommand(), findPasswordCommand, output, output);
 			var runGui = await CommandInterpreter.ExecuteCommandsAsync(null, new[]{ "findpassword" });
 			Assert.True(invoked);
