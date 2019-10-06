@@ -326,6 +326,28 @@ namespace WalletWasabi.Models
 			return false;
 		}
 
+		public T FindBy(int hashcode, Func<T, bool> expression)
+		{
+			// We must capture the _table field in a local variable. It is set to a new table on each table resize.
+			var tables = _tables;
+
+			var bucketNo = GetBucket(hashcode, tables.Buckets.Length);
+
+			// We can get away w/out a lock here.
+			// The Volatile.Read ensures that the load of the fields of 'n' does not move before the load from buckets[i].
+			var current = Volatile.Read(ref tables.Buckets[bucketNo]);
+
+			while (current != null)
+			{
+				if (hashcode == current.Hashcode && expression(current.Item))
+				{
+					return current.Item;
+				}
+				current = current.Next;
+			}
+			return default(T);
+		}
+
 		/// <summary>
 		/// Attempts to remove the item from the <see cref="ConcurrentHashSet{T}"/>.
 		/// </summary>
