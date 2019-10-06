@@ -15,17 +15,17 @@ namespace WalletWasabi.Services
 			WalletService = walletService;
 		}
 
-		public List<TransactionSummaryData> BuildHistorySummary()
+		public List<TransactionSummary> BuildHistorySummary()
 		{
 			var walletService = WalletService;
 
-			var txRecordList = new List<TransactionSummaryData>();
+			var txRecordList = new List<TransactionSummary>();
 			if (walletService is null)
 			{
 				return txRecordList;
 			}
 
-			var processedBlockTimeByHeigh = walletService.ProcessedBlocks?.Values.ToDictionary(x=>x.height, x=>x.dateTime)
+			var processedBlockTimeByHeight = walletService.ProcessedBlocks?.Values.ToDictionary(x=>x.height, x=>x.dateTime)
 				?? new Dictionary<Height, DateTimeOffset>();
 			foreach (SmartCoin coin in walletService.Coins)
 			{
@@ -38,7 +38,7 @@ namespace WalletWasabi.Services
 				DateTimeOffset dateTime;
 				if (foundTransaction.Height.Type == HeightType.Chain)
 				{
-					if(processedBlockTimeByHeigh.TryGetValue(foundTransaction.Height, out var blockDateTime))
+					if(processedBlockTimeByHeight.TryGetValue(foundTransaction.Height, out var blockDateTime))
 					{
 						dateTime = blockDateTime;
 					}
@@ -62,7 +62,7 @@ namespace WalletWasabi.Services
 				}
 				else
 				{
-					txRecordList.Add(new TransactionSummaryData{
+					txRecordList.Add(new TransactionSummary{
 						DateTime = dateTime,
 						Height = coin.Height, 
 						Amount = coin.Amount, 
@@ -80,7 +80,7 @@ namespace WalletWasabi.Services
 
 					if (foundSpenderTransaction.Height.Type == HeightType.Chain)
 					{
-						if(processedBlockTimeByHeigh.TryGetValue(foundSpenderTransaction.Height, out var blockDateTime))
+						if(processedBlockTimeByHeight.TryGetValue(foundSpenderTransaction.Height, out var blockDateTime))
 						{
 							dateTime = blockDateTime;
 						}
@@ -102,7 +102,7 @@ namespace WalletWasabi.Services
 					}
 					else
 					{
-						txRecordList.Add(new TransactionSummaryData{
+						txRecordList.Add(new TransactionSummary{
 							DateTime = dateTime,
 							Height = foundSpenderTransaction.Height, 
 							Amount = (Money.Zero - coin.Amount), 

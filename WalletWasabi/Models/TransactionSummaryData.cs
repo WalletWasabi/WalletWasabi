@@ -4,7 +4,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Models
 {
-	public class TransactionSummaryData
+	public class TransactionSummary
 	{
 		public DateTimeOffset DateTime { get; set; }
 		public Height Height { get; set; }

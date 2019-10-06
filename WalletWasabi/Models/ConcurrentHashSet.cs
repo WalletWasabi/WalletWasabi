@@ -328,7 +328,7 @@ namespace WalletWasabi.Models
 
 		public T FindBy(int hashcode, Func<T, bool> expression)
 		{
-			// We must capture the _buckets field in a local variable. It is set to a new table on each table resize.
+			// We must capture the _table field in a local variable. It is set to a new table on each table resize.
 			var tables = _tables;
 
 			var bucketNo = GetBucket(hashcode, tables.Buckets.Length);
