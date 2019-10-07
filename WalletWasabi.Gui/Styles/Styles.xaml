@@ -17,7 +17,7 @@
       <sys:Double x:Key="FontSizeLarge">16</sys:Double>
       <FontFamily x:Key="MonospacedFont">
         <x:Arguments>
-          <x:String>Inconsolata</x:String>
+          <x:String>Cascadia Code</x:String>
           <x:Uri>resm:WalletWasabi.Gui.Assets.*.ttf?assembly=WalletWasabi.Gui</x:Uri>
         </x:Arguments>
       </FontFamily>
@@ -83,11 +83,11 @@
   </Style>
   <Style Selector="TextBox.monospaceFont">
     <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
-    <Setter Property="FontSize" Value="16" />
+    <Setter Property="FontSize" Value="14" />
   </Style>
   <Style Selector="TextBlock.monospaceFont">
     <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
-    <Setter Property="FontSize" Value="16" />
+    <Setter Property="FontSize" Value="14" />
   </Style>
   <Style Selector="TextBox.selectableTextBlock">
     <Setter Property="Padding" Value="0" />
