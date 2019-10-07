@@ -151,6 +151,13 @@ namespace WalletWasabi.Transactions
 				else if (MempoolStore.Contains(hash) && MempoolStore.TryGetTransaction(hash, out originalTx))
 				{
 					originalTx.Update(tx);
+
+					// If confirmed update the height.
+					if (originalTx.Confirmed && MempoolStore.TryRemove(hash, out originalTx))
+					{
+						ConfirmedStore.TryAdd(originalTx);
+					}
+
 					return true;
 				}
 			}
