@@ -61,8 +61,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			txStore.TryAdd(stx);
 
 			txStore.TryAdd(stx);
-			Assert.Equal(1, txStore.GetTransactions().Count);
-			Assert.Equal(1, txStore.GetTransactionHashes().Count);
+			Assert.Single(txStore.GetTransactions());
+			Assert.Single(txStore.GetTransactionHashes());
 		}
 	}
 }

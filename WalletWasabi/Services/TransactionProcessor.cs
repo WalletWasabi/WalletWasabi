@@ -5,12 +5,13 @@ using NBitcoin;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
+using WalletWasabi.Transactions;
 
 namespace WalletWasabi.Services
 {
 	public class TransactionProcessor
 	{
-		public ConcurrentHashSet<SmartTransaction> TransactionCache { get; }
+		public AllTransactionStore TransactionStore { get; }
 
 		public KeyManager KeyManager { get; }
 
@@ -23,15 +24,16 @@ namespace WalletWasabi.Services
 
 		public event EventHandler<SmartCoin> CoinReceived;
 
-		public TransactionProcessor(KeyManager keyManager,
+		public TransactionProcessor(
+			AllTransactionStore transactionStore,
+			KeyManager keyManager,
 			ObservableConcurrentHashSet<SmartCoin> coins,
-			Money dustThreshold,
-			ConcurrentHashSet<SmartTransaction> transactionCache)
+			Money dustThreshold)
 		{
+			TransactionStore = Guard.NotNull(nameof(transactionStore), transactionStore);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			Coins = Guard.NotNull(nameof(coins), coins);
 			DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
-			TransactionCache = Guard.NotNull(nameof(transactionCache), transactionCache);
 		}
 
 		public bool Process(SmartTransaction tx)
@@ -42,23 +44,15 @@ namespace WalletWasabi.Services
 			}
 
 			uint256 txId = tx.GetHash();
-			if (tx.Confirmed)
-			{
-				bool isFoundTx = TransactionCache.Contains(tx); // If we have in cache, update height.
-				if (isFoundTx)
-				{
-					SmartTransaction foundTx = TransactionCache.FirstOrDefault(x => x == tx);
-					if (foundTx != default) // Must check again, because it's a concurrent collection!
-					{
-						foundTx.Update(tx);
-						foreach (var coin in Coins.Where(x => x.TransactionId == txId))
-						{
-							coin.Height = tx.Height;
-						}
 
-						return true; // relevant
-					}
+			if (TransactionStore.TryUpdate(tx, out SmartTransaction updatedTx) && updatedTx.Confirmed)
+			{
+				foreach (var coin in Coins.Where(x => x.TransactionId == txId))
+				{
+					coin.Height = updatedTx.Height;
 				}
+
+				return true; // relevant
 			}
 
 			var walletRelevant = false;
@@ -170,7 +164,7 @@ namespace WalletWasabi.Services
 																																																																		   // If we did not have it.
 					if (Coins.TryAdd(newCoin))
 					{
-						TransactionCache.TryAdd(tx);
+						TransactionStore.TryAdd(tx);
 						CoinReceived?.Invoke(this, newCoin);
 
 						// Make sure there's always 21 clean keys generated and indexed.
@@ -207,7 +201,6 @@ namespace WalletWasabi.Services
 					walletRelevant = true;
 					var alreadyKnown = foundCoin.SpenderTransactionId == txId;
 					foundCoin.SpenderTransactionId = txId;
-					TransactionCache.TryAdd(tx);
 
 					if (!alreadyKnown)
 					{
@@ -219,6 +212,11 @@ namespace WalletWasabi.Services
 						SpenderConfirmed?.Invoke(this, foundCoin);
 					}
 				}
+			}
+
+			if (walletRelevant)
+			{
+				TransactionStore.TryAdd(tx);
 			}
 
 			return walletRelevant;

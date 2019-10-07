@@ -195,19 +195,19 @@ namespace WalletWasabi.Transactions
 			}
 		}
 
-		public ISet<SmartTransaction> GetTransactions()
+		public IEnumerable<SmartTransaction> GetTransactions()
 		{
 			lock (TransactionsLock)
 			{
-				return Transactions.Values.ToHashSet();
+				return Transactions.Values.OrderByBlockchain().ToList();
 			}
 		}
 
-		public ISet<uint256> GetTransactionHashes()
+		public IEnumerable<uint256> GetTransactionHashes()
 		{
 			lock (TransactionsLock)
 			{
-				return Transactions.Keys.ToHashSet();
+				return Transactions.Values.OrderByBlockchain().Select(x => x.GetHash()).ToList();
 			}
 		}
 

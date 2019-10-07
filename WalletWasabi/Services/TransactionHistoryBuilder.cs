@@ -25,12 +25,11 @@ namespace WalletWasabi.Services
 				return txRecordList;
 			}
 
-			var processedBlockTimeByHeight = walletService.ProcessedBlocks?.Values.ToDictionary(x=>x.height, x=>x.dateTime)
+			var processedBlockTimeByHeight = walletService.ProcessedBlocks?.Values.ToDictionary(x => x.height, x => x.dateTime)
 				?? new Dictionary<Height, DateTimeOffset>();
 			foreach (SmartCoin coin in walletService.Coins)
 			{
-				var foundTransaction = walletService.TryGetTxFromCache(coin.TransactionId);
-				if (foundTransaction is null)
+				if (!walletService.BitcoinStore.TransactionStore.TryGetTransaction(coin.SpenderTransactionId, out SmartTransaction foundTransaction))
 				{
 					continue;
 				}
@@ -38,7 +37,7 @@ namespace WalletWasabi.Services
 				DateTimeOffset dateTime;
 				if (foundTransaction.Height.Type == HeightType.Chain)
 				{
-					if(processedBlockTimeByHeight.TryGetValue(foundTransaction.Height, out var blockDateTime))
+					if (processedBlockTimeByHeight.TryGetValue(foundTransaction.Height, out var blockDateTime))
 					{
 						dateTime = blockDateTime;
 					}
@@ -55,32 +54,33 @@ namespace WalletWasabi.Services
 				var found = txRecordList.FirstOrDefault(x => x.TransactionId == coin.TransactionId);
 				if (found != null) // if found then update
 				{
-					var label = found.Label != string.Empty ? found.Label + ", " : "";
-					found.DateTime = dateTime; 
+					var label = !string.IsNullOrEmpty(found.Label) ? found.Label + ", " : "";
+					found.DateTime = dateTime;
 					found.Amount += coin.Amount;
 					found.Label = $"{label}{coin.Label}";
 				}
 				else
 				{
-					txRecordList.Add(new TransactionSummary{
+					txRecordList.Add(new TransactionSummary
+					{
 						DateTime = dateTime,
-						Height = coin.Height, 
-						Amount = coin.Amount, 
+						Height = coin.Height,
+						Amount = coin.Amount,
 						Label = coin.Label.ToString(),
-						TransactionId = coin.TransactionId});
+						TransactionId = coin.TransactionId
+					});
 				}
 
 				if (!coin.Unspent)
 				{
-					var foundSpenderTransaction = walletService.TryGetTxFromCache(coin.SpenderTransactionId);
-					if (foundSpenderTransaction is null)
+					if (!walletService.BitcoinStore.TransactionStore.TryGetTransaction(coin.SpenderTransactionId, out SmartTransaction foundSpenderTransaction))
 					{
 						throw new InvalidOperationException($"Transaction {coin.SpenderTransactionId} not found.");
 					}
 
 					if (foundSpenderTransaction.Height.Type == HeightType.Chain)
 					{
-						if(processedBlockTimeByHeight.TryGetValue(foundSpenderTransaction.Height, out var blockDateTime))
+						if (processedBlockTimeByHeight.TryGetValue(foundSpenderTransaction.Height, out var blockDateTime))
 						{
 							dateTime = blockDateTime;
 						}
@@ -97,17 +97,19 @@ namespace WalletWasabi.Services
 					var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.TransactionId == coin.SpenderTransactionId);
 					if (foundSpenderCoin != null) // if found
 					{
-						foundSpenderCoin.DateTime = dateTime; 
+						foundSpenderCoin.DateTime = dateTime;
 						foundSpenderCoin.Amount -= coin.Amount;
 					}
 					else
 					{
-						txRecordList.Add(new TransactionSummary{
+						txRecordList.Add(new TransactionSummary
+						{
 							DateTime = dateTime,
-							Height = foundSpenderTransaction.Height, 
-							Amount = (Money.Zero - coin.Amount), 
+							Height = foundSpenderTransaction.Height,
+							Amount = (Money.Zero - coin.Amount),
 							Label = "",
-							TransactionId = coin.SpenderTransactionId});
+							TransactionId = coin.SpenderTransactionId
+						});
 					}
 				}
 			}

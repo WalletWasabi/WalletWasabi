@@ -129,6 +129,36 @@ namespace WalletWasabi.Transactions
 			}
 		}
 
+		public void TryAdd(SmartTransaction tx)
+		{
+			lock (Lock)
+			{
+				TryAddNoLock(tx);
+			}
+		}
+
+		public bool TryUpdate(SmartTransaction tx, out SmartTransaction originalTx)
+		{
+			var hash = tx.GetHash();
+			lock (Lock)
+			{
+				// Do Contains first, because it's fast.
+				if (ConfirmedStore.Contains(hash) && ConfirmedStore.TryGetTransaction(hash, out originalTx))
+				{
+					originalTx.Update(tx);
+					return true;
+				}
+				else if (MempoolStore.Contains(hash) && MempoolStore.TryGetTransaction(hash, out originalTx))
+				{
+					originalTx.Update(tx);
+					return true;
+				}
+			}
+
+			originalTx = null;
+			return false;
+		}
+
 		public bool TryGetTransaction(uint256 hash, out SmartTransaction sameStx)
 		{
 			lock (Lock)
