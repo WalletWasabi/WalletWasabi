@@ -134,7 +134,16 @@ namespace WalletWasabi.Transactions
 		private bool TryAddNoLockNoSerialization(SmartTransaction tx)
 		{
 			var hash = tx.GetHash();
-			return Transactions.TryAdd(hash, tx);
+
+			if (Transactions.TryAdd(hash, tx))
+			{
+				return true;
+			}
+			else
+			{
+				Transactions[hash].Update(tx);
+				return false;
+			}
 		}
 
 		public bool TryRemove(uint256 hash, out SmartTransaction stx)
