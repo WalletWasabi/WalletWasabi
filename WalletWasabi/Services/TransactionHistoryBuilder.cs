@@ -29,7 +29,8 @@ namespace WalletWasabi.Services
 				?? new Dictionary<Height, DateTimeOffset>();
 			foreach (SmartCoin coin in walletService.Coins)
 			{
-				if (!walletService.BitcoinStore.TransactionStore.TryGetTransaction(coin.SpenderTransactionId, out SmartTransaction foundTransaction))
+				var spenderTxId = coin.SpenderTransactionId;
+				if (spenderTxId is null || !walletService.BitcoinStore.TransactionStore.TryGetTransaction(spenderTxId, out SmartTransaction foundTransaction))
 				{
 					continue;
 				}
