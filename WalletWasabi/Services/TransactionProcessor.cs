@@ -44,18 +44,16 @@ namespace WalletWasabi.Services
 			}
 
 			uint256 txId = tx.GetHash();
+			var walletRelevant = false;
 
-			if (TransactionStore.TryUpdate(tx, out SmartTransaction updatedTx) && updatedTx.Confirmed)
+			if (tx.Confirmed)
 			{
 				foreach (var coin in Coins.Where(x => x.TransactionId == txId))
 				{
-					coin.Height = updatedTx.Height;
+					coin.Height = tx.Height;
+					walletRelevant = true; // relevant
 				}
-
-				return true; // relevant
 			}
-
-			var walletRelevant = false;
 
 			if (!tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
 			{
