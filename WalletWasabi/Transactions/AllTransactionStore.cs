@@ -21,7 +21,7 @@ namespace WalletWasabi.Transactions
 		public TransactionStore ConfirmedStore { get; private set; }
 		private object Lock { get; set; }
 
-		public async Task InitializeAsync(string workFolderPath, Network network)
+		public async Task InitializeAsync(string workFolderPath, Network network, bool ensureBackwardsCompatibility = true)
 		{
 			using (BenchmarkLogger.Measure())
 			{
@@ -43,7 +43,10 @@ namespace WalletWasabi.Transactions
 
 				await Task.WhenAll(initTasks).ConfigureAwait(false);
 
-				TryEnsureBackwardsCompatibility();
+				if (ensureBackwardsCompatibility)
+				{
+					TryEnsureBackwardsCompatibility();
+				}
 			}
 		}
 
