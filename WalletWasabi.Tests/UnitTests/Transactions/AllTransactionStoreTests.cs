@@ -222,8 +222,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(expectedLabel, uTx1Same.Label);
 			Assert.Equal(expectedLabel, uTx2Same.Label);
 			Assert.Equal(expectedLabel, cTx1Same.Label);
-
-			// ToDo: ensure correct order.
 		}
 
 		[Fact]
