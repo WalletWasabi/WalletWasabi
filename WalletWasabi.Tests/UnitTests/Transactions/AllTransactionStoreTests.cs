@@ -71,6 +71,17 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.False(txStore.Contains(txHash));
 			Assert.True(txStore.IsEmpty());
 			Assert.False(txStore.TryGetTransaction(txHash, out _));
+
+			var dir = GetWorkDir();
+			var mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
+			var txFile = Path.Combine(dir, "ConfirmedTransactions", "Transactions.dat");
+			var mempoolContent = await File.ReadAllBytesAsync(mempoolFile);
+			var txContent = await File.ReadAllBytesAsync(txFile);
+
+			Assert.True(File.Exists(mempoolFile));
+			Assert.True(File.Exists(txFile));
+			Assert.Empty(mempoolContent);
+			Assert.Empty(txContent);
 		}
 
 		#region Helpers
