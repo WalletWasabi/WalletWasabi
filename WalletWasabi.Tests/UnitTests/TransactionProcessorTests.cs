@@ -1,4 +1,4 @@
-using NBitcoin;
+﻿using NBitcoin;
 using System;
 using System.Linq;
 using WalletWasabi.KeyManagement;
