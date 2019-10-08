@@ -68,7 +68,8 @@ namespace WalletWasabi.Services
 						Height = coin.Height,
 						Amount = coin.Amount,
 						Label = coin.Label.ToString(),
-						TransactionId = coin.TransactionId
+						TransactionId = coin.TransactionId,
+						BlockIndex = foundTransaction.BlockIndex
 					});
 				}
 
@@ -109,12 +110,13 @@ namespace WalletWasabi.Services
 							Height = foundSpenderTransaction.Height,
 							Amount = (Money.Zero - coin.Amount),
 							Label = "",
-							TransactionId = coin.SpenderTransactionId
+							TransactionId = coin.SpenderTransactionId,
+							BlockIndex = foundSpenderTransaction.BlockIndex
 						});
 					}
 				}
 			}
-			txRecordList = txRecordList.OrderByDescending(x => x.DateTime).ThenBy(x => x.Amount).ToList();
+			txRecordList = txRecordList.OrderByBlockchain().ToList();
 			return txRecordList;
 		}
 	}
