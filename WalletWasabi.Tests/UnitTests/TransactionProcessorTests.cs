@@ -130,9 +130,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.False(relevant);
 			Assert.Single(transactionProcessor.Coins, coin => coin.Unspent);
 			Assert.Single(transactionProcessor.Coins, coin => !coin.Unspent);
-			Assert.Equal(
-				2,
-				transactionProcessor.TransactionStore.GetTransactions().Count());
+			Assert.Equal(2, transactionProcessor.TransactionStore.GetTransactions().Count());
 		}
 
 		[Fact]
