@@ -184,8 +184,25 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(2, txStore.MempoolStore.GetTransactions().Count());
 			Assert.Equal(4, txStore.ConfirmedStore.GetTransactions().Count());
 
+			// Duplication is resolved with labels merged.
+			//mempoolFileContent = new[]
+			//{
+			//	uTx1.ToLine(),
+			//	uTx2.ToLine(),
+			//	uTx3.ToLine(),
+			//	new SmartTransaction(cTx1.Transaction, Height.Mempool).ToLine()
+			//};
+			//txFileContent = new[]
+			//{
+			//	cTx1.ToLine(),
+			//	cTx2.ToLine(),
+			//	cTx3.ToLine(),
+			//	new SmartTransaction(uTx1.Transaction, new Height(2)).ToLine()
+			//};
+			//await File.WriteAllLinesAsync(mempoolFile, mempoolFileContent);
+			//await File.WriteAllLinesAsync(txFile, txFileContent);
+
 			// ToDo: ensure correct order.
-			// ToDo: ensure labels get merged.
 		}
 
 		[Theory]
