@@ -214,7 +214,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.True(txStore.ConfirmedStore.Contains(uTx1.GetHash()));
 			Assert.True(txStore.ConfirmedStore.Contains(cTx1.GetHash()));
 
-			// CI brainfuck
+			// CI random brainfuck on expectedLabel asserts.
 			//Assert.True(txStore.TryGetTransaction(uTx1.GetHash(), out SmartTransaction uTx1Same));
 			//Assert.True(txStore.TryGetTransaction(uTx2.GetHash(), out SmartTransaction uTx2Same));
 			//Assert.True(txStore.TryGetTransaction(cTx1.GetHash(), out SmartTransaction cTx1Same));
