@@ -42,10 +42,29 @@ namespace WalletWasabi.Transactions
 				};
 
 				await Task.WhenAll(initTasks).ConfigureAwait(false);
+				EnsureConsistency();
 
 				if (ensureBackwardsCompatibility)
 				{
 					TryEnsureBackwardsCompatibility();
+				}
+			}
+		}
+
+		private void EnsureConsistency()
+		{
+			lock (Lock)
+			{
+				var mempoolTransactions = MempoolStore.GetTransactionHashes();
+				foreach (var hash in mempoolTransactions)
+				{
+					// Contains is fast, so do this first.
+					if (ConfirmedStore.Contains(hash)
+						&& MempoolStore.TryRemove(hash, out SmartTransaction uTx)
+						&& ConfirmedStore.TryGetTransaction(hash, out SmartTransaction cTx))
+					{
+						cTx.Update(uTx);
+					}
 				}
 			}
 		}
