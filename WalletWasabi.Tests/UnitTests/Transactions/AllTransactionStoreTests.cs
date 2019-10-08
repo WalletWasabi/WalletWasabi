@@ -185,22 +185,43 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(4, txStore.ConfirmedStore.GetTransactions().Count());
 
 			// Duplication is resolved with labels merged.
-			//mempoolFileContent = new[]
-			//{
-			//	uTx1.ToLine(),
-			//	uTx2.ToLine(),
-			//	uTx3.ToLine(),
-			//	new SmartTransaction(cTx1.Transaction, Height.Mempool).ToLine()
-			//};
-			//txFileContent = new[]
-			//{
-			//	cTx1.ToLine(),
-			//	cTx2.ToLine(),
-			//	cTx3.ToLine(),
-			//	new SmartTransaction(uTx1.Transaction, new Height(2)).ToLine()
-			//};
-			//await File.WriteAllLinesAsync(mempoolFile, mempoolFileContent);
-			//await File.WriteAllLinesAsync(txFile, txFileContent);
+			mempoolFileContent = new[]
+			{
+				new SmartTransaction(uTx1.Transaction, uTx1.Height, label: new SmartLabel("buz, qux")).ToLine(),
+				new SmartTransaction(uTx2.Transaction, uTx2.Height, label: new SmartLabel("buz, qux")).ToLine(),
+				new SmartTransaction(uTx2.Transaction, uTx2.Height, label: new SmartLabel("foo, bar")).ToLine(),
+				uTx3.ToLine(),
+				new SmartTransaction(cTx1.Transaction, Height.Mempool, label: new SmartLabel("buz", "qux")).ToLine()
+			};
+			txFileContent = new[]
+			{
+				new SmartTransaction(cTx1.Transaction, cTx1.Height, label: new SmartLabel("foo", "bar")).ToLine(),
+				cTx2.ToLine(),
+				cTx3.ToLine(),
+				new SmartTransaction(uTx1.Transaction, new Height(2), label: new SmartLabel("foo, bar")).ToLine()
+			};
+			await File.WriteAllLinesAsync(mempoolFile, mempoolFileContent);
+			await File.WriteAllLinesAsync(txFile, txFileContent);
+
+			txStore = new AllTransactionStore();
+			await txStore.InitializeAsync(dir, network, ensureBackwardsCompatibility: false);
+
+			Assert.Equal(6, txStore.GetTransactions().Count());
+			Assert.Equal(2, txStore.MempoolStore.GetTransactions().Count());
+			Assert.Equal(4, txStore.ConfirmedStore.GetTransactions().Count());
+
+			Assert.True(txStore.MempoolStore.Contains(uTx2.GetHash()));
+			Assert.True(txStore.ConfirmedStore.Contains(uTx1.GetHash()));
+			Assert.True(txStore.ConfirmedStore.Contains(cTx1.GetHash()));
+
+			Assert.True(txStore.TryGetTransaction(uTx1.GetHash(), out SmartTransaction uTx1Same));
+			Assert.True(txStore.TryGetTransaction(uTx2.GetHash(), out SmartTransaction uTx2Same));
+			Assert.True(txStore.TryGetTransaction(cTx1.GetHash(), out SmartTransaction cTx1Same));
+
+			var expectedLabel = new SmartLabel("foo", "bar", "buz", "qux");
+			Assert.Equal(expectedLabel, uTx1Same.Label);
+			Assert.Equal(expectedLabel, uTx2Same.Label);
+			Assert.Equal(expectedLabel, cTx1Same.Label);
 
 			// ToDo: ensure correct order.
 		}
