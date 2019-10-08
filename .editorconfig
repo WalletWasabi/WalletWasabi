@@ -189,7 +189,7 @@ dotnet_naming_rule.most_members_must_be_pascal_case.severity = error
 dotnet_naming_rule.most_members_must_be_pascal_case.symbols  = most_members_symbols
 dotnet_naming_rule.most_members_must_be_pascal_case.style    = pascal_case_style
 
-dotnet_naming_symbols.most_members_symbols.applicable_kinds   = class, struct, enum, property, method, event, namespace
+dotnet_naming_symbols.most_members_symbols.applicable_kinds   = class, struct, enum, property, method, event, namespace, local_function
 dotnet_naming_symbols.most_members_symbols.applicable_accessibilities = *
 
 # name Local variables & parameters using camelCase
