@@ -451,7 +451,7 @@ namespace WalletWasabi.Services
 			return clusters;
 		}
 
-		private void ProcessBlock(Height height, Block block = null, IEnumerable<int> filterByTxIndexes = null, IEnumerable<SmartTransaction> skeletonBlock = null)
+		private void ProcessBlock(Height height, Block block, IEnumerable<int> filterByTxIndexes = null, IEnumerable<SmartTransaction> skeletonBlock = null)
 		{
 			lock (TransactionProcessingLock)
 			{
