@@ -117,7 +117,7 @@ namespace WalletWasabi.Transactions
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning($"Backwards compatibility could not be ensured.");
+				Logger.LogWarning("Backwards compatibility could not be ensured.");
 				Logger.LogWarning(ex);
 			}
 		}
