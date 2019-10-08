@@ -33,6 +33,17 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.False(txStore.Contains(txHash));
 			Assert.True(txStore.IsEmpty());
 			Assert.False(txStore.TryGetTransaction(txHash, out _));
+
+			var dir = GetWorkDir();
+			var mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
+			var txFile = Path.Combine(dir, "ConfirmedTransactions", "Transactions.dat");
+			var mempoolContent = await File.ReadAllBytesAsync(mempoolFile);
+			var txContent = await File.ReadAllBytesAsync(txFile);
+
+			Assert.True(File.Exists(mempoolFile));
+			Assert.True(File.Exists(txFile));
+			Assert.Empty(mempoolContent);
+			Assert.Empty(txContent);
 		}
 
 		[Theory]
@@ -66,14 +77,19 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 		private string PrepareWorkDir([CallerMemberName] string caller = null)
 		{
-			// Make sure starts with clear state.
-			var dir = Path.Combine(Global.Instance.DataDir, nameof(AllTransactionStoreTests), caller);
+			string dir = GetWorkDir(caller);
 			if (Directory.Exists(dir))
 			{
 				Directory.Delete(dir, true);
 			}
 
 			return dir;
+		}
+
+		private static string GetWorkDir([CallerMemberName] string caller = null)
+		{
+			// Make sure starts with clear state.
+			return Path.Combine(Global.Instance.DataDir, nameof(AllTransactionStoreTests), caller);
 		}
 
 		public static IEnumerable<object[]> GetDifferentNetworkValues()
