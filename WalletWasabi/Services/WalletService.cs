@@ -264,6 +264,13 @@ namespace WalletWasabi.Services
 				throw new NotSupportedException($"{nameof(Synchronizer)} is not running.");
 			}
 
+			while (!BitcoinStore.IsInitialized)
+			{
+				await Task.Delay(100).ConfigureAwait(false);
+
+				cancel.ThrowIfCancellationRequested();
+			}
+
 			await RuntimeParams.LoadAsync();
 
 			using (await HandleFiltersLock.LockAsync())

@@ -17,6 +17,7 @@ namespace WalletWasabi.Stores
 	/// </summary>
 	public class BitcoinStore
 	{
+		public bool IsInitialized { get; private set; }
 		private string WorkFolderPath { get; set; }
 		private Network Network { get; set; }
 
@@ -56,6 +57,8 @@ namespace WalletWasabi.Stores
 				await Task.WhenAll(initTasks).ConfigureAwait(false);
 
 				await IndexStore.InitializeAsync(indexStoreFolderPath, Network, HashChain).ConfigureAwait(false);
+
+				IsInitialized = true;
 			}
 		}
 	}
