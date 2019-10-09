@@ -162,7 +162,6 @@ namespace WalletWasabi.Services
 																																																																		   // If we did not have it.
 					if (Coins.TryAdd(newCoin))
 					{
-						TransactionStore.AddOrUpdate(tx);
 						CoinReceived?.Invoke(this, newCoin);
 
 						// Make sure there's always 21 clean keys generated and indexed.
