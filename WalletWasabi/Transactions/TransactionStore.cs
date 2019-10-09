@@ -62,7 +62,10 @@ namespace WalletWasabi.Transactions
 
 				lock (TransactionsLock)
 				{
-					TryAddNoLockNoSerialization(allTransactions);
+					foreach (var tx in allTransactions)
+					{
+						TryAddNoLockNoSerialization(tx);
+					}
 				}
 
 				if (allTransactions.Count() != Transactions.Count)
@@ -83,21 +86,6 @@ namespace WalletWasabi.Transactions
 			}
 		}
 
-		private ISet<SmartTransaction> TryAddNoLockNoSerialization(IEnumerable<SmartTransaction> transactions)
-		{
-			transactions ??= Enumerable.Empty<SmartTransaction>();
-			var added = new HashSet<SmartTransaction>();
-			foreach (var tx in transactions)
-			{
-				if (TryAddNoLockNoSerialization(tx))
-				{
-					added.Add(tx);
-				}
-			}
-
-			return added;
-		}
-
 		public bool TryAdd(SmartTransaction tx)
 		{
 			bool isAdded;
@@ -113,22 +101,6 @@ namespace WalletWasabi.Transactions
 			}
 
 			return isAdded;
-		}
-
-		public ISet<SmartTransaction> TryAdd(IEnumerable<SmartTransaction> transactions)
-		{
-			ISet<SmartTransaction> added;
-
-			lock (TransactionsLock)
-			{
-				added = TryAddNoLockNoSerialization(transactions);
-			}
-
-			if (added.Any())
-			{
-				_ = TryAppendToFileAsync(transactions);
-			}
-			return added;
 		}
 
 		private bool TryAddNoLockNoSerialization(SmartTransaction tx)
@@ -161,30 +133,6 @@ namespace WalletWasabi.Transactions
 			}
 
 			return isRemoved;
-		}
-
-		public ISet<SmartTransaction> TryRemove(IEnumerable<uint256> hashes)
-		{
-			hashes ??= Enumerable.Empty<uint256>();
-			var removed = new HashSet<SmartTransaction>();
-
-			lock (TransactionsLock)
-			{
-				foreach (var hash in hashes)
-				{
-					if (Transactions.Remove(hash, out SmartTransaction stx))
-					{
-						removed.Add(stx);
-					}
-				}
-			}
-
-			if (removed.Any())
-			{
-				_ = TryRemoveFromFileAsync(removed.Select(x => x.GetHash()).ToArray());
-			}
-
-			return removed;
 		}
 
 		public bool TryGetTransaction(uint256 hash, out SmartTransaction sameStx)
