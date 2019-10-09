@@ -14,6 +14,8 @@ namespace WalletWasabi.Transactions
 {
 	public class TransactionStore
 	{
+		#region Initializers
+
 		public string WorkFolderPath { get; private set; }
 		public Network Network { get; private set; }
 
@@ -86,6 +88,10 @@ namespace WalletWasabi.Transactions
 			}
 		}
 
+		#endregion Initializers
+
+		#region Modifiers
+
 		public bool TryAdd(SmartTransaction tx)
 		{
 			bool isAdded;
@@ -135,6 +141,10 @@ namespace WalletWasabi.Transactions
 			return isRemoved;
 		}
 
+		#endregion Modifiers
+
+		#region Accessors
+
 		public bool TryGetTransaction(uint256 hash, out SmartTransaction sameStx)
 		{
 			lock (TransactionsLock)
@@ -174,6 +184,8 @@ namespace WalletWasabi.Transactions
 				return Transactions.ContainsKey(hash);
 			}
 		}
+
+		#endregion Accessors
 
 		#region Serialization
 
