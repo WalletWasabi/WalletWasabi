@@ -94,8 +94,9 @@ namespace WalletWasabi.Models
 		/// <summary>
 		/// Update the transaction with the data acquired from another transaction. (For example merge their labels.)
 		/// </summary>
-		public void Update(SmartTransaction tx)
+		public bool TryUpdate(SmartTransaction tx)
 		{
+			var updated = false;
 			// If this is not the same tx, then don't update.
 			if (this != tx)
 			{
@@ -105,22 +106,38 @@ namespace WalletWasabi.Models
 			// Set the height related properties, only if confirmed.
 			if (tx.Confirmed)
 			{
-				Height = tx.Height;
-				BlockHash = tx.BlockHash;
-				BlockIndex = tx.BlockIndex;
+				if (Height != tx.Height)
+				{
+					Height = tx.Height;
+					updated = true;
+				}
+				if (BlockHash != tx.BlockHash)
+				{
+					BlockHash = tx.BlockHash;
+					updated = true;
+				}
+				if (BlockIndex != tx.BlockIndex)
+				{
+					BlockIndex = tx.BlockIndex;
+					updated = true;
+				}
 			}
 
 			// Always the earlier seen is the firstSeen.
 			if (tx.FirstSeen < FirstSeen)
 			{
 				FirstSeen = tx.FirstSeen;
+				updated = true;
 			}
 
 			// Merge labels.
 			if (Label != tx.Label)
 			{
 				Label = SmartLabel.Merge(Label, tx.Label);
+				updated = true;
 			}
+
+			return updated;
 		}
 
 		public void SetReplacement()

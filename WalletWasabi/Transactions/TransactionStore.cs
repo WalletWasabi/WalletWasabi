@@ -119,7 +119,7 @@ namespace WalletWasabi.Transactions
 			}
 			else
 			{
-				Transactions[hash].Update(tx);
+				Transactions[hash].TryUpdate(tx);
 				return false;
 			}
 		}

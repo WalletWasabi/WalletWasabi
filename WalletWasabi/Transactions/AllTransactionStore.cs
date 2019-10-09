@@ -118,7 +118,7 @@ namespace WalletWasabi.Transactions
 			{
 				if (MempoolStore.TryRemove(hash, out SmartTransaction found))
 				{
-					found.Update(tx);
+					found.TryUpdate(tx);
 					ConfirmedStore.TryAdd(found);
 				}
 				else
@@ -130,7 +130,7 @@ namespace WalletWasabi.Transactions
 			{
 				if (ConfirmedStore.TryGetTransaction(hash, out SmartTransaction found))
 				{
-					found.Update(tx);
+					found.TryUpdate(tx);
 				}
 				else
 				{
@@ -155,12 +155,12 @@ namespace WalletWasabi.Transactions
 				// Do Contains first, because it's fast.
 				if (ConfirmedStore.Contains(hash) && ConfirmedStore.TryGetTransaction(hash, out originalTx))
 				{
-					originalTx.Update(tx);
+					originalTx.TryUpdate(tx);
 					return true;
 				}
 				else if (MempoolStore.Contains(hash) && MempoolStore.TryGetTransaction(hash, out originalTx))
 				{
-					originalTx.Update(tx);
+					originalTx.TryUpdate(tx);
 
 					// If confirmed update the height.
 					if (originalTx.Confirmed && MempoolStore.TryRemove(hash, out originalTx))
@@ -188,7 +188,7 @@ namespace WalletWasabi.Transactions
 						&& MempoolStore.TryRemove(hash, out SmartTransaction uTx)
 						&& ConfirmedStore.TryGetTransaction(hash, out SmartTransaction cTx))
 					{
-						cTx.Update(uTx);
+						cTx.TryUpdate(uTx);
 					}
 				}
 			}
