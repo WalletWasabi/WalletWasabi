@@ -461,7 +461,7 @@ namespace WalletWasabi.Services
 					for (int i = 0; i < block.Transactions.Count; i++)
 					{
 						Transaction tx = block.Transactions[i];
-						if (TransactionProcessor.Process(new SmartTransaction(tx, height, block.GetHash(), i)))
+						if (TransactionProcessor.Process(new SmartTransaction(tx, height, block.GetHash(), i, firstSeen: block.Header.BlockTime)))
 						{
 							relevantIndices.Add(i);
 						}
