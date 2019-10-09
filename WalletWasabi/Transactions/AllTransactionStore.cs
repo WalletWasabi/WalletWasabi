@@ -14,6 +14,8 @@ namespace WalletWasabi.Transactions
 {
 	public class AllTransactionStore
 	{
+		#region Initializers
+
 		private string WorkFolderPath { get; set; }
 		private Network Network { get; set; }
 
@@ -46,30 +48,12 @@ namespace WalletWasabi.Transactions
 
 				if (ensureBackwardsCompatibility)
 				{
-					TryEnsureBackwardsCompatibility();
+					EnsureBackwardsCompatibility();
 				}
 			}
 		}
 
-		private void EnsureConsistency()
-		{
-			lock (Lock)
-			{
-				var mempoolTransactions = MempoolStore.GetTransactionHashes();
-				foreach (var hash in mempoolTransactions)
-				{
-					// Contains is fast, so do this first.
-					if (ConfirmedStore.Contains(hash)
-						&& MempoolStore.TryRemove(hash, out SmartTransaction uTx)
-						&& ConfirmedStore.TryGetTransaction(hash, out SmartTransaction cTx))
-					{
-						cTx.Update(uTx);
-					}
-				}
-			}
-		}
-
-		private void TryEnsureBackwardsCompatibility()
+		private void EnsureBackwardsCompatibility()
 		{
 			try
 			{
@@ -90,7 +74,7 @@ namespace WalletWasabi.Transactions
 									var allWalletTransactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?.OrderByBlockchain() ?? Enumerable.Empty<SmartTransaction>();
 									foreach (var tx in allWalletTransactions)
 									{
-										TryAddNoLock(tx);
+										AddOrUpdateNoLock(tx);
 									}
 
 									// ToDo: Uncomment when PR is finished.
@@ -122,7 +106,11 @@ namespace WalletWasabi.Transactions
 			}
 		}
 
-		private void TryAddNoLock(SmartTransaction tx)
+		#endregion Initializers
+
+		#region Modifiers
+
+		private void AddOrUpdateNoLock(SmartTransaction tx)
 		{
 			var hash = tx.GetHash();
 
@@ -151,11 +139,11 @@ namespace WalletWasabi.Transactions
 			}
 		}
 
-		public void TryAdd(SmartTransaction tx)
+		public void AddOrUpdate(SmartTransaction tx)
 		{
 			lock (Lock)
 			{
-				TryAddNoLock(tx);
+				AddOrUpdateNoLock(tx);
 			}
 		}
 
@@ -187,6 +175,28 @@ namespace WalletWasabi.Transactions
 			originalTx = null;
 			return false;
 		}
+
+		private void EnsureConsistency()
+		{
+			lock (Lock)
+			{
+				var mempoolTransactions = MempoolStore.GetTransactionHashes();
+				foreach (var hash in mempoolTransactions)
+				{
+					// Contains is fast, so do this first.
+					if (ConfirmedStore.Contains(hash)
+						&& MempoolStore.TryRemove(hash, out SmartTransaction uTx)
+						&& ConfirmedStore.TryGetTransaction(hash, out SmartTransaction cTx))
+					{
+						cTx.Update(uTx);
+					}
+				}
+			}
+		}
+
+		#endregion Modifiers
+
+		#region Accessors
 
 		public bool TryGetTransaction(uint256 hash, out SmartTransaction sameStx)
 		{
@@ -232,5 +242,7 @@ namespace WalletWasabi.Transactions
 				return ConfirmedStore.Contains(hash) || MempoolStore.Contains(hash);
 			}
 		}
+
+		#endregion Accessors
 	}
 }

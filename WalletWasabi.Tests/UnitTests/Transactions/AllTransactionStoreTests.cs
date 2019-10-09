@@ -213,16 +213,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.True(txStore.MempoolStore.Contains(uTx2.GetHash()));
 			Assert.True(txStore.ConfirmedStore.Contains(uTx1.GetHash()));
 			Assert.True(txStore.ConfirmedStore.Contains(cTx1.GetHash()));
-
-			// CI random brainfuck on expectedLabel asserts.
-			//Assert.True(txStore.TryGetTransaction(uTx1.GetHash(), out SmartTransaction uTx1Same));
-			//Assert.True(txStore.TryGetTransaction(uTx2.GetHash(), out SmartTransaction uTx2Same));
-			//Assert.True(txStore.TryGetTransaction(cTx1.GetHash(), out SmartTransaction cTx1Same));
-
-			//var expectedLabel = new SmartLabel("foo", "bar", "buz", "qux");
-			//Assert.Equal(expectedLabel, uTx1Same.Label);
-			//Assert.Equal(expectedLabel, uTx2Same.Label);
-			//Assert.Equal(expectedLabel, cTx1Same.Label);
+			Assert.True(txStore.TryGetTransaction(uTx1.GetHash(), out _));
+			Assert.True(txStore.TryGetTransaction(uTx2.GetHash(), out _));
+			Assert.True(txStore.TryGetTransaction(cTx1.GetHash(), out _));
 		}
 
 		[Fact]
@@ -279,12 +272,12 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			txStore = new AllTransactionStore();
 			await txStore.InitializeAsync(PrepareWorkDir(), network, ensureBackwardsCompatibility: false);
 
-			txStore.TryAdd(uTx3);
-			txStore.TryAdd(uTx1);
-			txStore.TryAdd(uTx2);
-			txStore.TryAdd(cTx3);
-			txStore.TryAdd(cTx1);
-			txStore.TryAdd(cTx2);
+			txStore.AddOrUpdate(uTx3);
+			txStore.AddOrUpdate(uTx1);
+			txStore.AddOrUpdate(uTx2);
+			txStore.AddOrUpdate(cTx3);
+			txStore.AddOrUpdate(cTx1);
+			txStore.AddOrUpdate(cTx2);
 
 			txs = txStore.GetTransactions();
 			txHashes = txStore.GetTransactionHashes();
