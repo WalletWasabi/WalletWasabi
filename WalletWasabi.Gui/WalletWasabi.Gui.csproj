@@ -64,7 +64,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AvalonStudio.Shell" Version="0.8.2" />
+    <PackageReference Include="AvalonStudio.Shell" Version="0.8.3" />
   </ItemGroup>
 
   <ItemGroup>
