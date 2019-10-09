@@ -4,7 +4,6 @@
       <Value>preprocessor,pre-processor</Value>
       <Value>shortlived,short-lived</Value>
     </CollectionProperty>
-    <BooleanProperty Name="AutoCheckForUpdate">False</BooleanProperty>
     <BooleanProperty Name="WriteCache">False</BooleanProperty>
     <StringProperty Name="MergeSettingsFiles">NoMerge</StringProperty>
   </GlobalSettings>
@@ -319,22 +318,12 @@
     </Analyzer>
     <Analyzer AnalyzerId="StyleCop.CSharp.LayoutRules">
       <Rules>
-        <Rule Name="CurlyBracketsMustNotBeOmitted">
-          <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
-          </RuleSettings>
-        </Rule>
         <Rule Name="ElementsMustBeSeparatedByBlankLine">
           <RuleSettings>
             <BooleanProperty Name="Enabled">False</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="ClosingCurlyBracketMustBeFollowedByBlankLine">
-          <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
-          </RuleSettings>
-        </Rule>
-        <Rule Name="CurlyBracketsForMultiLineStatementsMustNotShareLine">
           <RuleSettings>
             <BooleanProperty Name="Enabled">False</BooleanProperty>
           </RuleSettings>
@@ -349,22 +338,7 @@
             <BooleanProperty Name="Enabled">False</BooleanProperty>
           </RuleSettings>
         </Rule>
-        <Rule Name="StatementMustNotBeOnSingleLine">
-          <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
-          </RuleSettings>
-        </Rule>
-        <Rule Name="ElementMustNotBeOnSingleLine">
-          <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
-          </RuleSettings>
-        </Rule>
         <Rule Name="SingleLineCommentsMustNotBeFollowedByBlankLine">
-          <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
-          </RuleSettings>
-        </Rule>
-        <Rule Name="AllAccessorsMustBeMultiLineOrSingleLine">
           <RuleSettings>
             <BooleanProperty Name="Enabled">False</BooleanProperty>
           </RuleSettings>
