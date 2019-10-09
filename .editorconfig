@@ -212,6 +212,9 @@ dotnet_naming_style.T_pascal_case_style.required_prefix = T
 dotnet_naming_style.T_pascal_case_style.capitalization = pascal_case
 
 
+# SA1027: Use tabs correctly
+dotnet_diagnostic.SA1027.severity = error
+
 [*.xaml]
 indent_style = space
 indent_size = 2
