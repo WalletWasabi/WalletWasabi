@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using WalletWasabi.Transactions;
+using WalletWasabi.Transactions.Operations;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions

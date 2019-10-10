@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Transactions
+namespace WalletWasabi.Transactions.Operations
 {
 	public static class OperationMerger
 	{

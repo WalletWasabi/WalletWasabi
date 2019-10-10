@@ -9,6 +9,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Transactions.Operations;
 
 namespace WalletWasabi.Transactions
 {
