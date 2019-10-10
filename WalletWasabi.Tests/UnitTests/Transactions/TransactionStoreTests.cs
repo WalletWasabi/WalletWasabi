@@ -40,16 +40,35 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.True(txStore.IsEmpty());
 
 			var stx = Global.GenerateRandomSmartTransaction();
-			var isAdded = txStore.TryAdd(stx);
-			Assert.True(isAdded);
+			var operation = txStore.TryAdd(stx);
+			Assert.True(operation.isAdded);
+			Assert.False(operation.isUpdated);
 			var isRemoved = txStore.TryRemove(stx.GetHash(), out SmartTransaction removed);
 			Assert.True(isRemoved);
 			Assert.Equal(stx, removed);
-			isAdded = txStore.TryAdd(stx);
-			Assert.True(isAdded);
-			isAdded = txStore.TryAdd(stx);
-			Assert.False(isAdded);
-			Assert.False(txStore.TryAdd(stx));
+			operation = txStore.TryAdd(stx);
+			Assert.True(operation.isAdded);
+			Assert.False(operation.isUpdated);
+			operation = txStore.TryAdd(stx);
+			Assert.False(operation.isAdded);
+			Assert.False(operation.isUpdated);
+
+			operation = txStore.TryAdd(
+				new SmartTransaction(
+					stx.Transaction,
+					height: stx.Height,
+					stx.BlockHash,
+					stx.BlockIndex,
+					new SmartLabel("totally random new label"),
+					stx.IsReplacement,
+					stx.FirstSeen));
+			Assert.False(operation.isAdded);
+			Assert.True(operation.isUpdated);
+
+			operation = txStore.TryAdd(stx);
+			Assert.False(operation.isAdded);
+			Assert.False(operation.isUpdated);
+
 			Assert.False(txStore.IsEmpty());
 			Assert.True(txStore.TryGetTransaction(stx.GetHash(), out SmartTransaction sameStx));
 			Assert.True(txStore.Contains(stx.GetHash()));

@@ -66,7 +66,7 @@ namespace WalletWasabi.Transactions
 				{
 					foreach (var tx in allTransactions)
 					{
-						TryAddNoLockNoSerialization(tx);
+						TryAddOrUpdateNoLockNoSerialization(tx);
 					}
 				}
 
@@ -92,35 +92,41 @@ namespace WalletWasabi.Transactions
 
 		#region Modifiers
 
-		public bool TryAdd(SmartTransaction tx)
+		public (bool isAdded, bool isUpdated) TryAdd(SmartTransaction tx)
 		{
-			bool isAdded;
+			(bool isAdded, bool isUpdated) ret;
 
 			lock (TransactionsLock)
 			{
-				isAdded = TryAddNoLockNoSerialization(tx);
+				ret = TryAddOrUpdateNoLockNoSerialization(tx);
 			}
 
-			if (isAdded)
+			if (ret.isAdded)
 			{
 				_ = TryAppendToFileAsync(tx);
 			}
 
-			return isAdded;
+			return ret;
 		}
 
-		private bool TryAddNoLockNoSerialization(SmartTransaction tx)
+		private (bool isAdded, bool isUpdated) TryAddOrUpdateNoLockNoSerialization(SmartTransaction tx)
 		{
 			var hash = tx.GetHash();
 
 			if (Transactions.TryAdd(hash, tx))
 			{
-				return true;
+				return (true, false);
 			}
 			else
 			{
-				Transactions[hash].TryUpdate(tx);
-				return false;
+				if (Transactions[hash].TryUpdate(tx))
+				{
+					return (false, true);
+				}
+				else
+				{
+					return (false, false);
+				}
 			}
 		}
 
