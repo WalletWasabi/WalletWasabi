@@ -103,7 +103,7 @@ namespace WalletWasabi.Transactions
 
 		#region Modifiers
 
-		public (bool isAdded, bool isUpdated) TryAdd(SmartTransaction tx)
+		public (bool isAdded, bool isUpdated) TryAddOrUpdate(SmartTransaction tx)
 		{
 			(bool isAdded, bool isUpdated) ret;
 

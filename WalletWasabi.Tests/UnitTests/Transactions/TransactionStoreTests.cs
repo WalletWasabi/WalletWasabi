@@ -40,20 +40,20 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.True(txStore.IsEmpty());
 
 			var stx = Global.GenerateRandomSmartTransaction();
-			var operation = txStore.TryAdd(stx);
+			var operation = txStore.TryAddOrUpdate(stx);
 			Assert.True(operation.isAdded);
 			Assert.False(operation.isUpdated);
 			var isRemoved = txStore.TryRemove(stx.GetHash(), out SmartTransaction removed);
 			Assert.True(isRemoved);
 			Assert.Equal(stx, removed);
-			operation = txStore.TryAdd(stx);
+			operation = txStore.TryAddOrUpdate(stx);
 			Assert.True(operation.isAdded);
 			Assert.False(operation.isUpdated);
-			operation = txStore.TryAdd(stx);
+			operation = txStore.TryAddOrUpdate(stx);
 			Assert.False(operation.isAdded);
 			Assert.False(operation.isUpdated);
 
-			operation = txStore.TryAdd(
+			operation = txStore.TryAddOrUpdate(
 				new SmartTransaction(
 					stx.Transaction,
 					height: stx.Height,
@@ -65,7 +65,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.False(operation.isAdded);
 			Assert.True(operation.isUpdated);
 
-			operation = txStore.TryAdd(stx);
+			operation = txStore.TryAddOrUpdate(stx);
 			Assert.False(operation.isAdded);
 			Assert.False(operation.isUpdated);
 
@@ -77,9 +77,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			txStore.TryRemove(stx.GetHash(), out _);
 			Assert.True(txStore.IsEmpty());
 			Assert.Empty(txStore.GetTransactions());
-			txStore.TryAdd(stx);
+			txStore.TryAddOrUpdate(stx);
 
-			txStore.TryAdd(stx);
+			txStore.TryAddOrUpdate(stx);
 			Assert.Single(txStore.GetTransactions());
 			Assert.Single(txStore.GetTransactionHashes());
 		}
