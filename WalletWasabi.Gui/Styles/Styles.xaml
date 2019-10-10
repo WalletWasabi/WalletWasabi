@@ -15,12 +15,7 @@
       <sys:Double x:Key="FontSizeSmall">12</sys:Double>
       <sys:Double x:Key="FontSizeNormal">14</sys:Double>
       <sys:Double x:Key="FontSizeLarge">16</sys:Double>
-      <FontFamily x:Key="MonospacedFont">
-        <x:Arguments>
-          <x:String>Cascadia Code</x:String>
-          <x:Uri>resm:WalletWasabi.Gui.Assets.*.ttf?assembly=WalletWasabi.Gui</x:Uri>
-        </x:Arguments>
-      </FontFamily>
+      <FontFamily x:Key="MonospacedFont">avares://WalletWasabi.Gui/Assets#Cascadia Code</FontFamily>
       <converters:ErrorDescriptorsJsonConverter x:Key="ErrorDescriptorsJsonConverter" />
       <converters:ErrorSeverityColorConverter x:Key="ErrorSeverityColorConverter" />
       <converters:ErrorDescriptorToBorderColorConverter x:Key="ErrorDescriptorToBorderColorConverter" />
