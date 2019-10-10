@@ -56,8 +56,6 @@ namespace WalletWasabi.Stores
 
 				await Task.WhenAll(initTasks).ConfigureAwait(false);
 
-				await IndexStore.InitializeAsync(indexStoreFolderPath, Network, HashChain).ConfigureAwait(false);
-
 				IsInitialized = true;
 			}
 		}
