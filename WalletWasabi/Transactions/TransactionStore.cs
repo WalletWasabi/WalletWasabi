@@ -63,15 +63,25 @@ namespace WalletWasabi.Transactions
 					.Select(x => SmartTransaction.FromLine(x, Network))
 					.OrderByBlockchain();
 
+				var added = false;
+				var updated = false;
 				lock (TransactionsLock)
 				{
 					foreach (var tx in allTransactions)
 					{
-						TryAddOrUpdateNoLockNoSerialization(tx);
+						var res = TryAddOrUpdateNoLockNoSerialization(tx);
+						if (res.isAdded)
+						{
+							added = true;
+						}
+						if (res.isUpdated)
+						{
+							updated = true;
+						}
 					}
 				}
 
-				if (allTransactions.Count() != Transactions.Count)
+				if (added || updated)
 				{
 					// Another process worked into the file and appended the same transaction into it.
 					// In this case we correct the file by serializing the unique set.
@@ -105,6 +115,11 @@ namespace WalletWasabi.Transactions
 			if (ret.isAdded)
 			{
 				_ = TryAppendToFileAsync(tx);
+			}
+
+			if (ret.isUpdated)
+			{
+				_ = TryUpdateFileAsync(tx);
 			}
 
 			return ret;
@@ -219,6 +234,12 @@ namespace WalletWasabi.Transactions
 		private async Task TryRemoveFromFileAsync(IEnumerable<uint256> transactionIds)
 			=> await TryCommitToFileAsync(new Remove(transactionIds)).ConfigureAwait(false);
 
+		private async Task TryUpdateFileAsync(params SmartTransaction[] transactions)
+			=> await TryUpdateFileAsync(transactions as IEnumerable<SmartTransaction>).ConfigureAwait(false);
+
+		private async Task TryUpdateFileAsync(IEnumerable<SmartTransaction> transactions)
+			=> await TryCommitToFileAsync(new Update(transactions)).ConfigureAwait(false);
+
 		private List<ITxStoreOperation> Operations { get; } = new List<ITxStoreOperation>();
 		private object OperationsLock { get; } = new object();
 
@@ -302,6 +323,33 @@ namespace WalletWasabi.Transactions
 							try
 							{
 								await TransactionsFileManager.WriteAllLinesAsync(toSerialize).ConfigureAwait(false);
+							}
+							catch
+							{
+								await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
+							}
+						}
+						else if (op is Update updateOperation)
+						{
+							var toUpdates = updateOperation.Transactions;
+
+							string[] allLines = await TransactionsFileManager.ReadAllLinesAsync().ConfigureAwait(false);
+							IEnumerable<SmartTransaction> allTransactions = allLines.Select(x => SmartTransaction.FromLine(x, Network));
+							var toSerialize = new List<SmartTransaction>();
+
+							foreach (SmartTransaction tx in allTransactions)
+							{
+								var txsToUpdateWith = toUpdates.Where(x => x == tx);
+								foreach (var txToUpdateWith in txsToUpdateWith)
+								{
+									tx.TryUpdate(txToUpdateWith);
+								}
+								toSerialize.Add(tx);
+							}
+
+							try
+							{
+								await TransactionsFileManager.WriteAllLinesAsync(toSerialize.ToBlockchainOrderedLines()).ConfigureAwait(false);
 							}
 							catch
 							{

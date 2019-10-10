@@ -16,37 +16,75 @@ namespace WalletWasabi.Transactions.Operations
 		{
 			var tempToAppends = new List<SmartTransaction>();
 			var tempToRemoves = new List<uint256>();
-			bool wasLastOpAppend = operations.First() is Append;
+			var tempToUpdates = new List<SmartTransaction>();
+			ITxStoreOperation prevOperation = operations.First();
 			foreach (ITxStoreOperation op in operations)
 			{
-				if (wasLastOpAppend)
+				if (prevOperation is Append)
 				{
 					if (op is Append opApp)
 					{
 						tempToAppends.AddRange(opApp.Transactions);
 					}
-					else if (op is Remove opRem)
+					else
 					{
 						yield return new Append(tempToAppends);
 						tempToAppends = new List<SmartTransaction>();
-						tempToRemoves.AddRange(opRem.Transactions);
+
+						if (op is Remove opRem)
+						{
+							tempToRemoves.AddRange(opRem.Transactions);
+						}
+						else if (op is Update opUpd)
+						{
+							tempToUpdates.AddRange(opUpd.Transactions);
+						}
 					}
 				}
-				else
+				else if (prevOperation is Remove)
 				{
 					if (op is Remove opRem)
 					{
 						tempToRemoves.AddRange(opRem.Transactions);
 					}
-					else if (op is Append opApp)
+					else
 					{
 						yield return new Remove(tempToRemoves);
 						tempToRemoves = new List<uint256>();
-						tempToAppends.AddRange(opApp.Transactions);
+
+						if (op is Append opApp)
+						{
+							tempToAppends.AddRange(opApp.Transactions);
+						}
+						else if (op is Update opUpd)
+						{
+							tempToUpdates.AddRange(opUpd.Transactions);
+						}
+					}
+				}
+				else if (prevOperation is Update)
+				{
+					if (op is Update opUpd)
+					{
+						tempToUpdates.AddRange(opUpd.Transactions);
+					}
+					else
+					{
+						yield return new Update(tempToUpdates);
+						tempToUpdates = new List<SmartTransaction>();
+
+						if (op is Append opApp)
+						{
+							tempToAppends.AddRange(opApp.Transactions);
+						}
+						else if (op is Remove opRem)
+						{
+							tempToRemoves.AddRange(opRem.Transactions);
+						}
 					}
 				}
 
-				wasLastOpAppend = op is Append;
+				prevOperation = op;
 			}
 
 			if (tempToAppends.Any())
@@ -57,6 +95,11 @@ namespace WalletWasabi.Transactions.Operations
 			if (tempToRemoves.Any())
 			{
 				yield return new Remove(tempToRemoves);
+			}
+
+			if (tempToUpdates.Any())
+			{
+				yield return new Update(tempToUpdates);
 			}
 		}
 	}
