@@ -146,6 +146,34 @@ namespace WalletWasabi.Transactions
 			}
 		}
 
+		public bool TryUpdate(SmartTransaction tx)
+		{
+			bool ret;
+			lock (TransactionsLock)
+			{
+				ret = TryUpdateNoLockNoSerialization(tx);
+			}
+
+			if (ret)
+			{
+				_ = TryUpdateFileAsync(tx);
+			}
+
+			return ret;
+		}
+
+		private bool TryUpdateNoLockNoSerialization(SmartTransaction tx)
+		{
+			var hash = tx.GetHash();
+
+			if (Transactions.TryGetValue(hash, out SmartTransaction found))
+			{
+				return found.TryUpdate(tx);
+			}
+
+			return false;
+		}
+
 		public bool TryRemove(uint256 hash, out SmartTransaction stx)
 		{
 			bool isRemoved;

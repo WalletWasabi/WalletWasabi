@@ -111,13 +111,10 @@ namespace WalletWasabi.Models
 					Height = tx.Height;
 					updated = true;
 				}
-				if (BlockHash != tx.BlockHash)
+
+				if (tx.BlockHash != null && BlockHash != tx.BlockHash)
 				{
 					BlockHash = tx.BlockHash;
-					updated = true;
-				}
-				if (BlockIndex != tx.BlockIndex)
-				{
 					BlockIndex = tx.BlockIndex;
 					updated = true;
 				}

@@ -128,11 +128,7 @@ namespace WalletWasabi.Transactions
 			}
 			else
 			{
-				if (ConfirmedStore.TryGetTransaction(hash, out SmartTransaction found))
-				{
-					found.TryUpdate(tx);
-				}
-				else
+				if (!ConfirmedStore.TryUpdate(tx))
 				{
 					MempoolStore.TryAddOrUpdate(tx);
 				}
@@ -147,32 +143,28 @@ namespace WalletWasabi.Transactions
 			}
 		}
 
-		public bool TryUpdate(SmartTransaction tx, out SmartTransaction originalTx)
+		public bool TryUpdate(SmartTransaction tx)
 		{
 			var hash = tx.GetHash();
 			lock (Lock)
 			{
 				// Do Contains first, because it's fast.
-				if (ConfirmedStore.Contains(hash) && ConfirmedStore.TryGetTransaction(hash, out originalTx))
+				if (ConfirmedStore.TryUpdate(tx))
 				{
-					originalTx.TryUpdate(tx);
 					return true;
 				}
-				else if (MempoolStore.Contains(hash) && MempoolStore.TryGetTransaction(hash, out originalTx))
+				else if (tx.Confirmed && MempoolStore.TryRemove(hash, out SmartTransaction originalTx))
 				{
 					originalTx.TryUpdate(tx);
-
-					// If confirmed update the height.
-					if (originalTx.Confirmed && MempoolStore.TryRemove(hash, out originalTx))
-					{
-						ConfirmedStore.TryAddOrUpdate(originalTx);
-					}
-
+					ConfirmedStore.TryAddOrUpdate(originalTx);
+					return true;
+				}
+				else if (MempoolStore.TryUpdate(tx))
+				{
 					return true;
 				}
 			}
 
-			originalTx = null;
 			return false;
 		}
 
@@ -185,10 +177,9 @@ namespace WalletWasabi.Transactions
 				{
 					// Contains is fast, so do this first.
 					if (ConfirmedStore.Contains(hash)
-						&& MempoolStore.TryRemove(hash, out SmartTransaction uTx)
-						&& ConfirmedStore.TryGetTransaction(hash, out SmartTransaction cTx))
+						&& MempoolStore.TryRemove(hash, out SmartTransaction uTx))
 					{
-						cTx.TryUpdate(uTx);
+						ConfirmedStore.TryAddOrUpdate(uTx);
 					}
 				}
 			}

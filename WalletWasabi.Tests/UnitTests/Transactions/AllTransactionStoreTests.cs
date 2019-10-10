@@ -294,7 +294,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			await txStore.InitializeAsync(PrepareWorkDir(), network, ensureBackwardsCompatibility: false);
 
 			var tx = Global.GenerateRandomSmartTransaction();
-			Assert.False(txStore.TryUpdate(tx, out _));
+			Assert.False(txStore.TryUpdate(tx));
 
 			// Assert TryUpdate didn't modify anything.
 
