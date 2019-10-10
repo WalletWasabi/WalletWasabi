@@ -177,20 +177,20 @@ namespace WalletWasabi.Gui.ViewModels
 				});
 
 			UpdateCommand = ReactiveCommand.Create(() =>
-			{
-				try
 				{
-					IoHelpers.OpenBrowser("https://wasabiwallet.io/#download");
-				}
-				catch (Exception ex)
-				{
-					Logger.LogWarning(ex);
-					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
-				}
-			},
-			this.WhenAnyValue(x => x.UpdateStatus)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Select(x => x != UpdateStatus.Latest));
+					try
+					{
+						IoHelpers.OpenBrowser("https://wasabiwallet.io/#download");
+					}
+					catch (Exception ex)
+					{
+						Logger.LogWarning(ex);
+						IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
+					}
+				},
+				this.WhenAnyValue(x => x.UpdateStatus)
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Select(x => x != UpdateStatus.Latest));
 
 			this.RaisePropertyChanged(nameof(UpdateCommand)); // The binding happens after the constructor. So, if the command is not in constructor, then we need this line.
 

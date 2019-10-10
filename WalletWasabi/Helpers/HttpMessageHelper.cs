@@ -136,11 +136,9 @@ namespace System.Net.Http
 				using (var src = new MemoryStream(decodedBodyArray))
 				using (var unzipStream = new GZipStream(src, CompressionMode.Decompress))
 				{
-					using (var targetStream = new MemoryStream())
-					{
-						unzipStream.CopyTo(targetStream);
-						decodedBodyArray = targetStream.ToArray();
-					}
+					using var targetStream = new MemoryStream();
+					unzipStream.CopyTo(targetStream);
+					decodedBodyArray = targetStream.ToArray();
 				}
 				contentHeaders.ContentEncoding.Remove("gzip");
 				if (!contentHeaders.ContentEncoding.Any())

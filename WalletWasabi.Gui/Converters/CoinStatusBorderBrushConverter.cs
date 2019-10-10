@@ -17,12 +17,12 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is SmartCoinStatus status)
 			{
-				switch (status)
+				return status switch
 				{
-					case SmartCoinStatus.Confirmed: return Brushes.Transparent;
-					case SmartCoinStatus.Unconfirmed: return Brushes.Transparent;
-					default: return Brushes.Black;
-				}
+					SmartCoinStatus.Confirmed => Brushes.Transparent,
+					SmartCoinStatus.Unconfirmed => Brushes.Transparent,
+					_ => Brushes.Black
+				};
 			}
 			else
 			{

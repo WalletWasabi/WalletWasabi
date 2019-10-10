@@ -15,7 +15,7 @@
 [9]: https://www.codefactor.io/repository/github/zksnacks/walletwasabi/badge
 [10]: https://www.codefactor.io/repository/github/zksnacks/walletwasabi
 
-[Wasabi Wallet](https://wasabiwallet.io) is an open-source, non-custodial, privacy-focused Bitcoin wallet for desktop, that implements trustless coin shuffling with mathematically provable anonymity - [ZeroLink CoinJoin](https://github.com/nopara73/zerolink).
+[Wasabi Wallet](https://wasabiwallet.io) is an open-source, non-custodial, privacy-focused Bitcoin wallet for desktop, that implements [Chaumian CoinJoin](https://github.com/nopara73/ZeroLink/#ii-chaumian-coinjoin).
 
 The main privacy features on the network level:
 - Tor-only by default.

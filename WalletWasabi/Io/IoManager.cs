@@ -54,12 +54,12 @@ namespace WalletWasabi.Io
 
 		public async Task<string[]> ReadAllLinesAsync(CancellationToken cancellationToken = default)
 		{
-			return await ReadAllLinesAsync(FilePath, cancellationToken);
+			return await ReadAllLinesAsync(FilePath, cancellationToken).ConfigureAwait(false);
 		}
 
 		protected static async Task<string[]> ReadAllLinesAsync(string filePath, CancellationToken cancellationToken)
 		{
-			return await File.ReadAllLinesAsync(filePath, cancellationToken);
+			return await File.ReadAllLinesAsync(filePath, cancellationToken).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -77,6 +77,30 @@ namespace WalletWasabi.Io
 		{
 			var fs = File.OpenRead(filePath);
 			return new StreamReader(fs, Encoding.ASCII, detectEncodingFromByteOrderMarks: true, bufferSize: bufferSize, leaveOpen: false);
+		}
+
+		public async Task WriteAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default)
+		{
+			if (lines is null || !lines.Any())
+			{
+				return;
+			}
+
+			IoHelpers.EnsureContainingDirectoryExists(FilePath);
+
+			await File.WriteAllLinesAsync(FilePath, lines, cancellationToken).ConfigureAwait(false);
+		}
+
+		public async Task AppendAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default)
+		{
+			if (lines is null || !lines.Any())
+			{
+				return;
+			}
+
+			IoHelpers.EnsureContainingDirectoryExists(FilePath);
+
+			await File.AppendAllLinesAsync(FilePath, lines, cancellationToken).ConfigureAwait(false);
 		}
 
 		#endregion IoOperations

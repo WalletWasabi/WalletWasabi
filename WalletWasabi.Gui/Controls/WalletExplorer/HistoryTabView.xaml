@@ -15,7 +15,7 @@
   <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
     <controls:GroupBox.Styles>
       <Style Selector="TextBlock">
-        <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}" />
       </Style>
     </controls:GroupBox.Styles>
     <Grid Classes="content">

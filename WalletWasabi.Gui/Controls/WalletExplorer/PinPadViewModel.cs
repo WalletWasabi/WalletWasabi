@@ -41,11 +41,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public PinPadViewModel(Global global) : base(global, "Pin Pad")
 		{
 			SendPinCommand = ReactiveCommand.Create(() =>
-			{
-				DialogResult = true;
-				OnClose();
-			},
-			this.WhenAny(x => x.MaskedPin, (maskedPin) => !string.IsNullOrWhiteSpace(maskedPin.Value)));
+				{
+					DialogResult = true;
+					OnClose();
+				},
+				this.WhenAny(x => x.MaskedPin, (maskedPin) => !string.IsNullOrWhiteSpace(maskedPin.Value)));
 
 			KeyPadCommand = ReactiveCommand.Create<string>((arg) => MaskedPin += arg);
 
@@ -76,15 +76,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public static async Task UnlockAsync(Global global)
 		{
-			using (var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
-			{
-				var client = new HwiClient(global.Network);
-				IEnumerable<HwiEnumerateEntry> hwiEntries = await client.EnumerateAsync(cts.Token);
+			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+			var client = new HwiClient(global.Network);
+			IEnumerable<HwiEnumerateEntry> hwiEntries = await client.EnumerateAsync(cts.Token);
 
-				foreach (var hwiEntry in hwiEntries.Where(x => x.NeedsPinSent is true))
-				{
-					await UnlockAsync(global, hwiEntry);
-				}
+			foreach (var hwiEntry in hwiEntries.Where(x => x.NeedsPinSent is true))
+			{
+				await UnlockAsync(global, hwiEntry);
 			}
 		}
 
@@ -94,28 +92,26 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var selectedDocument = IoC.Get<IShell>().SelectedDocument;
 			try
 			{
-				using (var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
+				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+				var client = new HwiClient(global.Network);
+
+				await client.PromptPinAsync(hwiEntry.Model, hwiEntry.Path, cts.Token);
+
+				PinPadViewModel pinpad = IoC.Get<IShell>().Documents.OfType<PinPadViewModel>().FirstOrDefault();
+				if (pinpad is null)
 				{
-					var client = new HwiClient(global.Network);
-
-					await client.PromptPinAsync(hwiEntry.Model, hwiEntry.Path, cts.Token);
-
-					PinPadViewModel pinpad = IoC.Get<IShell>().Documents.OfType<PinPadViewModel>().FirstOrDefault();
-					if (pinpad is null)
-					{
-						pinpad = new PinPadViewModel(global);
-						IoC.Get<IShell>().AddOrSelectDocument(pinpad);
-					}
-					var result = await pinpad.ShowDialogAsync();
-					if (!(result is true))
-					{
-						throw new SecurityException("PIN was not provided.");
-					}
-
-					var maskedPin = pinpad.MaskedPin;
-
-					await client.SendPinAsync(hwiEntry.Model, hwiEntry.Path, int.Parse(maskedPin), cts.Token);
+					pinpad = new PinPadViewModel(global);
+					IoC.Get<IShell>().AddOrSelectDocument(pinpad);
 				}
+				var result = await pinpad.ShowDialogAsync();
+				if (!(result is true))
+				{
+					throw new SecurityException("PIN was not provided.");
+				}
+
+				var maskedPin = pinpad.MaskedPin;
+
+				await client.SendPinAsync(hwiEntry.Model, hwiEntry.Path, int.Parse(maskedPin), cts.Token);
 			}
 			finally
 			{

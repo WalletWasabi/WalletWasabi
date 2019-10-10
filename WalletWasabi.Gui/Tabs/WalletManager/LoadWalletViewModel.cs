@@ -125,7 +125,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					}
 					HDFingerprint mfp = NBitcoinHelpers.BetterParseHDFingerprint(mfpString, reverseByteOrder: reverseByteOrder);
 					ExtPubKey extPubKey = NBitcoinHelpers.BetterParseExtPubKey(xpubString);
-					Logger.LogInfo("Creating new wallet file.");
+					Logger.LogInfo("Creating a new wallet file.");
 					var walletName = Global.GetNextHardwareWalletName(customPrefix: "Coldcard");
 					var walletFullPath = Global.GetWalletFullPath(walletName);
 					KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath);
@@ -400,7 +400,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 					if (selectedWallet.HardwareWalletInfo is null)
 					{
-						SetValidationMessage("No hardware wallets detected.");
+						SetValidationMessage("No hardware wallet detected.");
 						return null;
 					}
 
@@ -447,7 +447,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						selectedWallet = Wallets.FirstOrDefault(x => x.HardwareWalletInfo.Model == t && x.HardwareWalletInfo.Path == p);
 						if (selectedWallet is null)
 						{
-							SetValidationMessage("Could not find the hardware wallet you are working with. Did you disconnect it?");
+							SetValidationMessage("Could not find the hardware wallet. Did you disconnect it?");
 							return null;
 						}
 						else
@@ -481,7 +481,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.AcquiringXpubFromHardwareWallet);
 					}
 
-					Logger.LogInfo("Hardware wallet was not used previously on this computer. Creating new wallet file.");
+					Logger.LogInfo("Hardware wallet was not used previously on this computer. Creating a new wallet file.");
 
 					if (TryFindWalletByExtPubKey(extPubKey, out string wn))
 					{
@@ -572,6 +572,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 			IsHwWalletSearchTextVisible = true;
+			SetWarningMessage("");
 			try
 			{
 				var client = new HwiClient(Global.Network);

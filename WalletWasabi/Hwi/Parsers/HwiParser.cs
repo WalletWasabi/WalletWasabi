@@ -333,7 +333,7 @@ namespace WalletWasabi.Hwi.Parsers
 
 		public static string ToArgumentString(Network network, IEnumerable<HwiOption> options, HwiCommands? command, string commandArguments)
 		{
-			options = options ?? Enumerable.Empty<HwiOption>();
+			options ??= Enumerable.Empty<HwiOption>();
 			var fullOptions = new List<HwiOption>(options);
 
 			if (network != Network.Main)
