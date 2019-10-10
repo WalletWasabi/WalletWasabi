@@ -77,8 +77,7 @@ namespace WalletWasabi.Transactions
 										AddOrUpdateNoLock(tx);
 									}
 
-									// ToDo: Uncomment when PR is finished.
-									// File.Delete(filePath);
+									File.Delete(filePath);
 								}
 								catch (Exception ex)
 								{
@@ -86,17 +85,15 @@ namespace WalletWasabi.Transactions
 								}
 							}
 
-							// ToDo: Uncomment when PR is finished.
-							// Directory.Delete(oldTransactionsFolderPath, recursive: true);
+							Directory.Delete(oldTransactionsFolderPath, recursive: true);
 						}
 					}
 
-					// ToDo: Uncomment when PR is finished.
-					//// If all networks successfully migrated, too, then delete the transactions folder, too.
-					//if (!Directory.EnumerateFileSystemEntries(networkIndependentTransactionsFolderPath).Any())
-					//{
-					//	Directory.Delete(networkIndependentTransactionsFolderPath, recursive: true);
-					//}
+					// If all networks successfully migrated, too, then delete the transactions folder, too.
+					if (!Directory.EnumerateFileSystemEntries(networkIndependentTransactionsFolderPath).Any())
+					{
+						Directory.Delete(networkIndependentTransactionsFolderPath, recursive: true);
+					}
 				}
 			}
 			catch (Exception ex)
