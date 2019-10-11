@@ -429,8 +429,9 @@ namespace WalletWasabi.Tests.UnitTests
 			keyManager.AssertCleanKeysIndexed();
 
 			var keys = keyManager.GetKeys().Take(10).ToArray();
-			var scoins = coins.Select(x => Coin(x.Label, keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToList();
-			return new TransactionFactory(Network.Main, keyManager, scoins, password, allowUnconfirmed);
+			var scoins = coins.Select(x => Coin(x.Label, keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet));
+			var coinsView = new CoinsView(scoins.ToArray());
+			return new TransactionFactory(Network.Main, keyManager, coinsView, password, allowUnconfirmed);
 		}
 
 		private static (string, KeyManager) DefaultKeyManager()
