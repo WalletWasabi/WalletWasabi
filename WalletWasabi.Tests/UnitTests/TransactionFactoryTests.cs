@@ -76,7 +76,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			var changeCoin = Assert.Single(result.InnerWalletOutputs);
 			Assert.True(changeCoin.HdPubKey.IsInternal);
-			Assert.Equal("Sophie", changeCoin.Label.ToString());  // Shouldn't this say: "Sophie, Joseph"????
+			Assert.Equal("Joseph, Sophie", changeCoin.Label.ToString());
 		}
 
 		[Fact]
@@ -132,7 +132,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(Money.Coins(0.15m), result.SpentCoins.Select(x => x.Amount).Sum());
 
 			var changeCoin = Assert.Single(result.InnerWalletOutputs);
-			Assert.Equal("Sophie", changeCoin.Label.ToString());  // Shouldn't this say: "Sophie, Maria, Daniel"????
+			Assert.Equal("Daniel, Maria, Pablo, Sophie", changeCoin.Label.ToString());
 
 			var tx = result.Transaction.Transaction;
 			// it must select the unconfirm coin even when the anonymity set is lower

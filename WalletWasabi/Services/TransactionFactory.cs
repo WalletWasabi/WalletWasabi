@@ -247,7 +247,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label));
+			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(spentCoins.Select(x => x.Label)));
 			var outerWalletOutputs = new List<SmartCoin>();
 			var innerWalletOutputs = new List<SmartCoin>();
 			for (var i = 0U; i < tx.Outputs.Count; i++)
