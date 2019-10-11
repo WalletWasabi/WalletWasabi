@@ -44,7 +44,7 @@ namespace WalletWasabi.Gui.Tabs
 
 		public string SourceCodeLink => "https://github.com/zkSNACKs/WalletWasabi/";
 
-		public string StatusPageLink => "https://stats.uptimerobot.com/W7q65in4y";
+		public string StatusPageLink => "https://stats.uptimerobot.com/YQqGyUL8A7";
 
 		public string CustomerSupportLink => "https://www.reddit.com/r/WasabiWallet/";
 

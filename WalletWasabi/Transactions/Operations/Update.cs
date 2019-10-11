@@ -4,19 +4,19 @@ using System.Linq;
 using System.Text;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Transactions
+namespace WalletWasabi.Transactions.Operations
 {
-	public class Append : ITxStoreOperation
+	public class Update : ITxStoreOperation
 	{
 		public IEnumerable<SmartTransaction> Transactions { get; }
 
 		public bool IsEmpty => Transactions is null || !Transactions.Any();
 
-		public Append(params SmartTransaction[] transactions) : this(transactions as IEnumerable<SmartTransaction>)
+		public Update(params SmartTransaction[] transactions) : this(transactions as IEnumerable<SmartTransaction>)
 		{
 		}
 
-		public Append(IEnumerable<SmartTransaction> transactions)
+		public Update(IEnumerable<SmartTransaction> transactions)
 		{
 			Transactions = transactions;
 		}

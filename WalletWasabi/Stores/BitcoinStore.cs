@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Mempool;
+using WalletWasabi.Transactions;
 
 namespace WalletWasabi.Stores
 {
@@ -16,10 +17,12 @@ namespace WalletWasabi.Stores
 	/// </summary>
 	public class BitcoinStore
 	{
+		public bool IsInitialized { get; private set; }
 		private string WorkFolderPath { get; set; }
 		private Network Network { get; set; }
 
 		public IndexStore IndexStore { get; private set; }
+		public AllTransactionStore TransactionStore { get; private set; }
 		public HashChain HashChain { get; private set; }
 		public MempoolService MempoolService { get; private set; }
 
@@ -39,11 +42,21 @@ namespace WalletWasabi.Stores
 				Network = Guard.NotNull(nameof(network), network);
 
 				IndexStore = new IndexStore();
-				var indexStoreFolderPath = Path.Combine(WorkFolderPath, Network.ToString(), "IndexStore");
+				TransactionStore = new AllTransactionStore();
+				var networkWorkFolderPath = Path.Combine(WorkFolderPath, Network.ToString());
+				var indexStoreFolderPath = Path.Combine(networkWorkFolderPath, "IndexStore");
 				HashChain = new HashChain();
 				MempoolService = new MempoolService();
 
-				await IndexStore.InitializeAsync(indexStoreFolderPath, Network, HashChain).ConfigureAwait(false);
+				var initTasks = new[]
+				{
+					IndexStore.InitializeAsync(indexStoreFolderPath, Network, HashChain),
+					TransactionStore.InitializeAsync(networkWorkFolderPath, Network)
+				};
+
+				await Task.WhenAll(initTasks).ConfigureAwait(false);
+
+				IsInitialized = true;
 			}
 		}
 	}

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace WalletWasabi.Transactions
+namespace WalletWasabi.Transactions.Operations
 {
 	public class Remove : ITxStoreOperation
 	{
