@@ -315,9 +315,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 		#region Helpers
 
-		private void PrepareTestEnv(out string dir, out Network network, out string mempoolFile, out string txFile, out SmartTransaction uTx1, out SmartTransaction uTx2, out SmartTransaction uTx3, out SmartTransaction cTx1, out SmartTransaction cTx2, out SmartTransaction cTx3)
+		private void PrepareTestEnv(out string dir, out Network network, out string mempoolFile, out string txFile, out SmartTransaction uTx1, out SmartTransaction uTx2, out SmartTransaction uTx3, out SmartTransaction cTx1, out SmartTransaction cTx2, out SmartTransaction cTx3, [CallerMemberName] string caller = null)
 		{
-			dir = PrepareWorkDir();
+			dir = PrepareWorkDir(caller);
 			network = Network.TestNet;
 			mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
 			txFile = Path.Combine(dir, "ConfirmedTransactions", "Transactions.dat");
