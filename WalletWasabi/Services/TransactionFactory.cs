@@ -33,9 +33,10 @@ namespace WalletWasabi.Services
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <exception cref="ArgumentOutOfRangeException"></exception>
-		public BuildTransactionResult BuildTransaction(PaymentIntent payments,
-														FeeRate feeRate,
-														IEnumerable<TxoRef> allowedInputs = null)
+		public BuildTransactionResult BuildTransaction(
+			PaymentIntent payments,
+			FeeRate feeRate,
+			IEnumerable<TxoRef> allowedInputs = null)
 		{
 			payments = Guard.NotNull(nameof(payments), payments);
 
