@@ -16,7 +16,8 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void InsufficientBalance()
 		{
-			var transactionFactory = CreateTransactionFactory(new[]{
+			var transactionFactory = CreateTransactionFactory(new[]
+			{
 				("Martin", 0, 0.01m, confirmed: true, anonymitySet: 1),
 				("Jean",  1, 0.02m, confirmed: true, anonymitySet: 1)
 			});
@@ -34,7 +35,8 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void TooMuchFeePaid()
 		{
-			var transactionFactory = CreateTransactionFactory(new[]{
+			var transactionFactory = CreateTransactionFactory(new[]
+			{
 				("Pablo", 0, 0.0001m, confirmed: true, anonymitySet: 1),
 			});
 
@@ -52,7 +54,8 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void SelectMostPrivateCoin()
 		{
-			var transactionFactory = CreateTransactionFactory(new[]{
+			var transactionFactory = CreateTransactionFactory(new[]
+			{
 				("Maria",  0, 0.08m, confirmed: true, anonymitySet:  50),
 				("Joseph", 1, 0.16m, confirmed: true, anonymitySet: 200),
 			});
@@ -79,7 +82,8 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void SelectMostPrivateCoins()
 		{
-			var transactionFactory = CreateTransactionFactory(new[]{
+			var transactionFactory = CreateTransactionFactory(new[]
+			{
 				("Pablo",  0, 0.01m, confirmed: true, anonymitySet: 1),
 				("Jean",   1, 0.02m, confirmed: true, anonymitySet: 1),
 				("Daniel", 2, 0.04m, confirmed: true, anonymitySet: 100),
@@ -109,7 +113,8 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void SelectSameScriptPubKeyCoins()
 		{
-			var transactionFactory = CreateTransactionFactory(new[]{
+			var transactionFactory = CreateTransactionFactory(new[]
+			{
 				("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 10),
 				("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
 				("Daniel", 1, 0.04m, confirmed: true, anonymitySet: 1),
@@ -138,13 +143,15 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void CustomChangeScript()
 		{
-			var transactionFactory = CreateTransactionFactory(new[]{
+			var transactionFactory = CreateTransactionFactory(new[]
+			{
 				("Maria",  0, 1m, confirmed: true, anonymitySet: 100),
 			});
 
 			var destination = new Key().ScriptPubKey;
 			var changeDestination = new Key().ScriptPubKey;
-			var payment = new PaymentIntent(new[]{
+			var payment = new PaymentIntent(new[]
+			{
 				new DestinationRequest(destination, Money.Coins(0.1m)),
 				new DestinationRequest(changeDestination, MoneyRequest.CreateChange(subtractFee: true))
 			});
@@ -166,14 +173,16 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void SubtractFeeFromSpecificOutput()
 		{
-			var transactionFactory = CreateTransactionFactory(new[]{
+			var transactionFactory = CreateTransactionFactory(new[]
+			{
 				("Maria",  0, 1m, confirmed: true, anonymitySet: 100),
 			});
 
 			var destination1 = new Key().ScriptPubKey;
 			var destination2 = new Key().ScriptPubKey;
 			var destination3 = new Key().ScriptPubKey;
-			var payment = new PaymentIntent(new[]{
+			var payment = new PaymentIntent(new[]
+			{
 				new DestinationRequest(destination1, Money.Coins(0.3m)),
 				new DestinationRequest(destination2, Money.Coins(0.3m), subtractFee: true),
 				new DestinationRequest(destination3, Money.Coins(0.3m)),
@@ -198,14 +207,16 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void SubtractFeeFromTooSmallOutput()
 		{
-			var transactionFactory = CreateTransactionFactory(new[]{
+			var transactionFactory = CreateTransactionFactory(new[]
+			{
 				("Maria",  0, 1m, confirmed: true, anonymitySet: 100),
 			});
 
 			var destination1 = new Key().ScriptPubKey;
 			var destination2 = new Key().ScriptPubKey;
 			var destination3 = new Key().ScriptPubKey;
-			var payment = new PaymentIntent(new[]{
+			var payment = new PaymentIntent(new[]
+			{
 				new DestinationRequest(destination1, Money.Coins(0.3m)),
 				new DestinationRequest(destination2, Money.Coins(0.00001m), subtractFee: true),
 				new DestinationRequest(destination3, Money.Coins(0.3m)),
@@ -219,12 +230,14 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void MultiplePaymentsToSameAddress()
 		{
-			var transactionFactory = CreateTransactionFactory(new[]{
+			var transactionFactory = CreateTransactionFactory(new[]
+			{
 				("Maria",  0, 1m, confirmed: true, anonymitySet: 100),
 			});
 
 			var destination = new Key().ScriptPubKey;
-			var payment = new PaymentIntent(new[]{
+			var payment = new PaymentIntent(new[]
+			{
 				new DestinationRequest(destination, Money.Coins(0.3m)),
 				new DestinationRequest(destination, Money.Coins(0.3m), subtractFee: true),
 				new DestinationRequest(destination, Money.Coins(0.3m)),
@@ -250,7 +263,8 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void SendAbsolutelyAllCoins()
 		{
-			var transactionFactory = CreateTransactionFactory(new[]{
+			var transactionFactory = CreateTransactionFactory(new[]
+			{
 				("Maria",  0, 0.5m, confirmed: false, anonymitySet: 1),
 				("Joseph", 1, 0.4m, confirmed: true, anonymitySet: 10),
 				("Eve",    2, 0.3m, confirmed: false, anonymitySet: 40),
@@ -258,7 +272,8 @@ namespace WalletWasabi.Tests.UnitTests
 			});
 
 			var destination = new Key().ScriptPubKey;
-			var payment = new PaymentIntent(new[]{
+			var payment = new PaymentIntent(new[]
+			{
 				new DestinationRequest(destination, MoneyRequest.CreateAllRemaining(subtractFee:true))
 			});
 			var feeRate = new FeeRate(2m);
@@ -274,7 +289,8 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void SpendOnlyAllowedCoins()
 		{
-			var transactionFactory = CreateTransactionFactory(new[]{
+			var transactionFactory = CreateTransactionFactory(new[]
+			{
 				("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 50),
 				("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
 				("Suyin",  2, 0.04m, confirmed: true, anonymitySet: 1),
@@ -301,7 +317,8 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void SpendWholeAllowedCoins()
 		{
-			var transactionFactory = CreateTransactionFactory(new[]{
+			var transactionFactory = CreateTransactionFactory(new[]
+			{
 				("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 50),
 				("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
 				("Suyin",  2, 0.04m, confirmed: true, anonymitySet: 1),
@@ -335,7 +352,8 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void InsufficientAllowedCoins()
 		{
-			var transactionFactory = CreateTransactionFactory(new[]{
+			var transactionFactory = CreateTransactionFactory(new[]
+			{
 				("Pablo", 0, 0.01m, confirmed: true, anonymitySet: 1),
 				("Jean",  1, 0.08m, confirmed: true, anonymitySet: 1)
 			});
@@ -357,7 +375,8 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void SpendWholeCoinsEvenWhenNotAllowed()
 		{
-			var transactionFactory = CreateTransactionFactory(new[]{
+			var transactionFactory = CreateTransactionFactory(new[]
+			{
 				("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 50),
 				("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
 				("Daniel", 1, 0.04m, confirmed: true, anonymitySet: 1),
@@ -388,7 +407,8 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void DoNotSignWatchOnly()
 		{
-			var transactionFactory = CreateTransactionFactory(new[]{
+			var transactionFactory = CreateTransactionFactory(new[]
+			{
 				("Pablo", 0, 1m, confirmed: true, anonymitySet: 1),
 			}, watchOnly: true);
 
@@ -430,7 +450,8 @@ namespace WalletWasabi.Tests.UnitTests
 			var randomIndex = new Func<int>(() => new Random().Next(0, 200));
 			var height = confirmed ? new Height(randomIndex()) : Height.Mempool;
 			var slabel = new SmartLabel(label);
-			var spentOutput = new[]{
+			var spentOutput = new[]
+			{
 				new TxoRef(RandomUtils.GetUInt256(), (uint)randomIndex())
 			};
 			pubKey.SetLabel(slabel);
