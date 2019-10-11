@@ -71,7 +71,7 @@ namespace WalletWasabi.Services
 
 		public ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)> ProcessedBlocks { get; }
 
-		public ObservableConcurrentHashSet<SmartCoin> Coins { get; }
+		public CoinsRegistry Coins { get; }
 
 		public event EventHandler<FilterModel> NewFilterProcessed;
 
@@ -100,8 +100,6 @@ namespace WalletWasabi.Services
 			ProcessedBlocks = new ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)>();
 			HandleFiltersLock = new AsyncLock();
 
-			Coins = new ObservableConcurrentHashSet<SmartCoin>();
-
 			BlocksFolderPath = Path.Combine(workFolderDir, "Blocks", Network.ToString());
 			RuntimeParams.SetDataDir(workFolderDir);
 
@@ -110,7 +108,8 @@ namespace WalletWasabi.Services
 			KeyManager.AssertCleanKeysIndexed();
 			KeyManager.AssertLockedInternalKeysIndexed(14);
 
-			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, Coins, ServiceConfiguration.DustThreshold);
+			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold);
+			Coins = TransactionProcessor.Coins;
 			TransactionProcessor.CoinSpent += TransactionProcessor_CoinSpent;
 			TransactionProcessor.CoinReceived += TransactionProcessor_CoinReceivedAsync;
 
@@ -171,7 +170,7 @@ namespace WalletWasabi.Services
 					{
 						foreach (var toAlsoRemove in Coins.Where(x => x.TransactionId == toRemove.SpenderTransactionId).Distinct().ToList())
 						{
-							Coins.TryRemove(toAlsoRemove);
+							Coins.Remove(toAlsoRemove);
 						}
 					}
 				}
@@ -209,9 +208,9 @@ namespace WalletWasabi.Services
 					ProcessedBlocks.TryRemove(invalidBlockHash, out _);
 					if (blockState != null && blockState.BlockHeight != default(Height))
 					{
-						foreach (var toRemove in Coins.Where(x => x.Height == blockState.BlockHeight).Distinct().ToList())
+						foreach (var toRemove in Coins.AtBlockHeight(blockState.BlockHeight))
 						{
-							Coins.TryRemove(toRemove);
+							Coins.Remove(toRemove);
 						}
 					}
 				}
@@ -919,7 +918,7 @@ namespace WalletWasabi.Services
 					if (transaction.Transaction.Inputs.Count == 1) // If we tried to only spend one coin, then we can mark it as spent. If there were more coins, then we do not know.
 					{
 						OutPoint input = transaction.Transaction.Inputs.First().PrevOut;
-						SmartCoin coin = Coins.FirstOrDefault(x => x.TransactionId == input.Hash && x.Index == input.N);
+						SmartCoin coin = Coins.GetByOutPoint(input);
 						if (coin != default)
 						{
 							coin.SpentAccordingToBackend = true;
@@ -999,7 +998,7 @@ namespace WalletWasabi.Services
 
 			try
 			{
-				var unspentCoins = Coins.Where(c => c.Unspent); //refreshing unspent coins clusters only
+				var unspentCoins = Coins.UnSpent(); //refreshing unspent coins clusters only
 				if (unspentCoins.Any())
 				{
 					ILookup<Script, SmartCoin> lookupScriptPubKey = Coins.ToLookup(c => c.ScriptPubKey, c => c);

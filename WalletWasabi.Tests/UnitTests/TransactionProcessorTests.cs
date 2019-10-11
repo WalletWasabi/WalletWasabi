@@ -313,7 +313,6 @@ namespace WalletWasabi.Tests.UnitTests
 			return new TransactionProcessor(
 				txStore,
 				keyManager,
-				new ObservableConcurrentHashSet<SmartCoin>(),
 				Money.Coins(0.0001m));
 		}
 

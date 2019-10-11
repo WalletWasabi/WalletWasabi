@@ -593,7 +593,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 2);
 				Assert.Equal(3, await wallet.CountBlocksAsync());
 
-				Assert.Equal(3, wallet.Coins.Count);
+				Assert.Equal(3, wallet.Coins.Count());
 				firstCoin = wallet.Coins.OrderBy(x => x.Height).First();
 				var secondCoin = wallet.Coins.OrderBy(x => x.Height).Take(2).Last();
 				var thirdCoin = wallet.Coins.OrderBy(x => x.Height).Last();
@@ -652,7 +652,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				Assert.Equal(4, await wallet.CountBlocksAsync());
 
-				Assert.Equal(4, wallet.Coins.Count);
+				Assert.Equal(4, wallet.Coins.Count());
 				Assert.Empty(wallet.Coins.Where(x => x.TransactionId == txId4));
 				Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == tx4bumpRes.TransactionId));
 				var rbfCoin = wallet.Coins.Single(x => x.TransactionId == tx4bumpRes.TransactionId);
@@ -1612,7 +1612,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// this is necesary because we are in a fork now.
 				var tx0Id = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m),
 					replaceable: true);
-				while (wallet.Coins.Count == 0)
+				while (wallet.Coins.Count() == 0)
 				{
 					await Task.Delay(500); // Waits for the funding transaction get to the mempool.
 				}
@@ -1632,7 +1632,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				tx1Res = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
 				await wallet.SendTransactionAsync(tx1Res.Transaction);
 
-				while (wallet.Coins.Count != 3)
+				while (wallet.Coins.Count() != 3)
 				{
 					await Task.Delay(500); // Waits for the funding transaction get to the mempool.
 				}
@@ -1654,7 +1654,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				var tx2Res = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
 				await wallet.SendTransactionAsync(tx2Res.Transaction);
 
-				while (wallet.Coins.Count != 4)
+				while (wallet.Coins.Count() != 4)
 				{
 					await Task.Delay(500); // Waits for the transaction get to the mempool.
 				}
@@ -1692,16 +1692,16 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.True(wallet.Coins.All(x => x.Confirmed));
 
 				// Test coin basic count.
-				var coinCount = wallet.Coins.Count;
+				var coinCount = wallet.Coins.Count();
 				var to = wallet.GetReceiveKey(new SmartLabel("foo"));
 				var res = wallet.BuildTransaction(password, new PaymentIntent(to.P2wpkhScript, Money.Coins(0.2345m), label: new SmartLabel("bar")), FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
 				await wallet.SendTransactionAsync(res.Transaction);
-				Assert.Equal(coinCount + 2, wallet.Coins.Count);
+				Assert.Equal(coinCount + 2, wallet.Coins.Count());
 				Assert.Equal(2, wallet.Coins.Count(x => !x.Confirmed));
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
-				Assert.Equal(coinCount + 2, wallet.Coins.Count);
+				Assert.Equal(coinCount + 2, wallet.Coins.Count());
 				Assert.Equal(0, wallet.Coins.Count(x => !x.Confirmed));
 			}
 			finally
@@ -1777,7 +1777,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Empty(wallet.Coins);
 
 				var tx0Id = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m), replaceable: true);
-				while (wallet.Coins.Count == 0)
+				while (wallet.Coins.Count() == 0)
 				{
 					await Task.Delay(500); // Waits for the funding transaction get to the mempool.
 				}
@@ -3416,7 +3416,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.True(3 == (await chaumianClient2.QueueCoinsToMixAsync(password, wallet2.Coins.ToArray())).Count());
 
 				Task timeout = Task.Delay(TimeSpan.FromSeconds(2 * (1 + 11 + 7 + 3 * (3 + 7))));
-				while (wallet.Coins.Count != 7)
+				while (wallet.Coins.Count() != 7)
 				{
 					if (timeout.IsCompletedSuccessfully)
 					{

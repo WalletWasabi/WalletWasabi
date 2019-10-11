@@ -4,40 +4,53 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using NBitcoin;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Models
 {
 	public class CoinsRegistry : ICoinsView
 	{
-		private HashSet<SmartCoin> _coins;
-		private object _lock;
+		private HashSet<SmartCoin> Coins { get; }
+		private HashSet<SmartCoin> LatestCoinsSnapshot { get; set; }
+		private bool InvalidateSnapshot { get; set; }
+		private object Lock { get; set; }
+
 		public event NotifyCollectionChangedEventHandler CollectionChanged;
 
 		public CoinsRegistry()
 		{
-			_coins = new HashSet<SmartCoin>();
-			_lock = new object();
+			Coins = new HashSet<SmartCoin>();
+			LatestCoinsSnapshot = new HashSet<SmartCoin>();
+			InvalidateSnapshot = false;
+			Lock = new object();
 		}
 
 		private CoinsView AsCoinsView()
 		{
-			return new CoinsView(_coins);
+			lock (Lock)
+			{
+				if (InvalidateSnapshot)
+				{
+					LatestCoinsSnapshot = Coins.ToHashSet(); // Creates a clone
+					InvalidateSnapshot = false;
+				}
+			}
+			return new CoinsView(LatestCoinsSnapshot);
 		}
 
-		public bool IsEmpty => !_coins.Any();
+		public bool IsEmpty => !AsCoinsView().Any();
 
 		public SmartCoin GetByOutPoint(OutPoint outpoint)
 		{
-			return _coins.FirstOrDefault(x => x.GetOutPoint() == outpoint);
+			return AsCoinsView().FirstOrDefault(x => x.GetOutPoint() == outpoint);
 		}
 
 		public bool TryAdd(SmartCoin coin)
 		{
 			var added = false;
-			lock (_lock)
+			lock (Lock)
 			{
-				added = _coins.Add(coin);
+				added = Coins.Add(coin);
+				InvalidateSnapshot |= added;
 			}
 
 			if (added)
@@ -51,21 +64,27 @@ namespace WalletWasabi.Models
 		{
 			var coinsToRemove = AsCoinsView().DescendantOf(coin).ToList();
 			coinsToRemove.Add(coin);
-			lock (_lock)
+			var removedCoins = new List<SmartCoin>();
+			lock (Lock)
 			{
 				foreach (var toRemove in coinsToRemove)
 				{
-					_coins.Remove(coin);
+					if (Coins.Remove(toRemove))
+					{
+						removedCoins.Add(toRemove);
+					}
 				}
+				InvalidateSnapshot = true;
 			}
-			CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, coinsToRemove));
+			CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedCoins));
 		}
 
 		public void Clear()
 		{
-			lock (_lock)
+			lock (Lock)
 			{
-				_coins.Clear();
+				Coins.Clear();
+				InvalidateSnapshot = true;
 			}
 			CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
 		}

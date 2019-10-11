@@ -382,7 +382,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent))
+			foreach (var sc in Global.WalletService.Coins.UnSpent())
 			{
 				var newCoinVm = new CoinViewModel(this, sc);
 				newCoinVm.SubscribeEvents();
@@ -408,7 +408,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						switch (e.Action)
 						{
 							case NotifyCollectionChangedAction.Add:
-								foreach (SmartCoin c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent))
+								var added = new CoinsView(e.NewItems.Cast<SmartCoin>());
+								foreach (SmartCoin c in added.UnSpent())
 								{
 									var newCoinVm = new CoinViewModel(this, c);
 									newCoinVm.SubscribeEvents();
@@ -417,7 +418,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 								break;
 
 							case NotifyCollectionChangedAction.Remove:
-								foreach (var c in e.OldItems.Cast<SmartCoin>())
+								var removed = new CoinsView(e.OldItems.Cast<SmartCoin>());
+								foreach (var c in removed)
 								{
 									CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == c);
 									if (toRemove != default)
