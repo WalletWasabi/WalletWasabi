@@ -271,7 +271,6 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Single(tx.Outputs);
 		}
 
-
 		[Fact]
 		public void SpendOnlyAllowedCoins()
 		{

@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using System;
 using System.IO;
 using System.Linq;
