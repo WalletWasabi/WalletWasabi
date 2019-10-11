@@ -61,7 +61,7 @@ namespace WalletWasabi.Stores
 				{
 					IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
-					await TryEnsureBackwardsCompatibilityAsync().ConfigureAwait(false);
+					await EnsureBackwardsCompatibilityAsync().ConfigureAwait(false);
 
 					if (Network == Network.RegTest)
 					{
@@ -145,7 +145,7 @@ namespace WalletWasabi.Stores
 			HashChain.AddOrReplace(filter.BlockHeight.Value, filter.BlockHash);
 		}
 
-		private async Task TryEnsureBackwardsCompatibilityAsync()
+		private async Task EnsureBackwardsCompatibilityAsync()
 		{
 			try
 			{

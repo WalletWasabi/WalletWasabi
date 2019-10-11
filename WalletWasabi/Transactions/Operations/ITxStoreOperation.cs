@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace WalletWasabi.Transactions
+namespace WalletWasabi.Transactions.Operations
 {
 	public interface ITxStoreOperation
 	{

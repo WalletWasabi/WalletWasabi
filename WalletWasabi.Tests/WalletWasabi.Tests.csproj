@@ -5,7 +5,7 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <IsPackable>false</IsPackable>
     <LangVersion>latest</LangVersion>
-    <NoWarn>1701;1702;1705;1591</NoWarn>
+    <NoWarn>1701;1702;1705;1591;CA1031</NoWarn>
     <ApplicationIcon />
     <OutputType>Library</OutputType>
     <StartupObject />
