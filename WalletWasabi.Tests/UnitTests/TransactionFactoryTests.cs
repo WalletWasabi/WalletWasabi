@@ -37,7 +37,7 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var transactionFactory = CreateTransactionFactory(new[]
 			{
-				("Pablo", 0, 0.0001m, confirmed: true, anonymitySet: 1),
+				("Pablo", 0, 0.0001m, confirmed: true, anonymitySet: 1)
 			});
 
 			var payment = new PaymentIntent(new Key().ScriptPubKey, MoneyRequest.CreateAllRemaining(subtractFee: true));
@@ -57,7 +57,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var transactionFactory = CreateTransactionFactory(new[]
 			{
 				("Maria",  0, 0.08m, confirmed: true, anonymitySet:  50),
-				("Joseph", 1, 0.16m, confirmed: true, anonymitySet: 200),
+				("Joseph", 1, 0.16m, confirmed: true, anonymitySet: 200)
 			});
 
 			// There is a 0.8 coin with AS=50. However it selects the most private one with AS= 200
@@ -88,7 +88,7 @@ namespace WalletWasabi.Tests.UnitTests
 				("Jean",   1, 0.02m, confirmed: true, anonymitySet: 1),
 				("Daniel", 2, 0.04m, confirmed: true, anonymitySet: 100),
 				("Maria",  3, 0.08m, confirmed: true, anonymitySet: 50),
-				("Joseph", 4, 0.16m, confirmed: true, anonymitySet: 200),
+				("Joseph", 4, 0.16m, confirmed: true, anonymitySet: 200)
 			});
 
 			// It has to select the most private coins regarless of the amounts
@@ -118,7 +118,7 @@ namespace WalletWasabi.Tests.UnitTests
 				("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 10),
 				("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
 				("Daniel", 1, 0.04m, confirmed: true, anonymitySet: 1),
-				("Maria",  2, 0.08m, confirmed: true, anonymitySet: 20),
+				("Maria",  2, 0.08m, confirmed: true, anonymitySet: 20)
 			});
 
 			// Selecting 0.08 + 0.04 should be enough but it has to select 0.02 too because it is the same address
@@ -145,7 +145,7 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var transactionFactory = CreateTransactionFactory(new[]
 			{
-				("Maria",  0, 1m, confirmed: true, anonymitySet: 100),
+				("Maria",  0, 1m, confirmed: true, anonymitySet: 100)
 			});
 
 			var destination = new Key().ScriptPubKey;
@@ -185,7 +185,7 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				new DestinationRequest(destination1, Money.Coins(0.3m)),
 				new DestinationRequest(destination2, Money.Coins(0.3m), subtractFee: true),
-				new DestinationRequest(destination3, Money.Coins(0.3m)),
+				new DestinationRequest(destination3, Money.Coins(0.3m))
 			});
 			var feeRate = new FeeRate(2m);
 			var result = transactionFactory.BuildTransaction(payment, feeRate);
@@ -209,7 +209,7 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var transactionFactory = CreateTransactionFactory(new[]
 			{
-				("Maria",  0, 1m, confirmed: true, anonymitySet: 100),
+				("Maria",  0, 1m, confirmed: true, anonymitySet: 100)
 			});
 
 			var destination1 = new Key().ScriptPubKey;
@@ -219,7 +219,7 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				new DestinationRequest(destination1, Money.Coins(0.3m)),
 				new DestinationRequest(destination2, Money.Coins(0.00001m), subtractFee: true),
-				new DestinationRequest(destination3, Money.Coins(0.3m)),
+				new DestinationRequest(destination3, Money.Coins(0.3m))
 			});
 			var feeRate = new FeeRate(20m);
 			var ex = Assert.Throws<NBitcoin.NotEnoughFundsException>(() => transactionFactory.BuildTransaction(payment, feeRate));
@@ -232,7 +232,7 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var transactionFactory = CreateTransactionFactory(new[]
 			{
-				("Maria",  0, 1m, confirmed: true, anonymitySet: 100),
+				("Maria",  0, 1m, confirmed: true, anonymitySet: 100)
 			});
 
 			var destination = new Key().ScriptPubKey;
@@ -240,7 +240,7 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				new DestinationRequest(destination, Money.Coins(0.3m)),
 				new DestinationRequest(destination, Money.Coins(0.3m), subtractFee: true),
-				new DestinationRequest(destination, Money.Coins(0.3m)),
+				new DestinationRequest(destination, Money.Coins(0.3m))
 			});
 			var feeRate = new FeeRate(2m);
 			var result = transactionFactory.BuildTransaction(payment, feeRate);
@@ -268,7 +268,7 @@ namespace WalletWasabi.Tests.UnitTests
 				("Maria",  0, 0.5m, confirmed: false, anonymitySet: 1),
 				("Joseph", 1, 0.4m, confirmed: true, anonymitySet: 10),
 				("Eve",    2, 0.3m, confirmed: false, anonymitySet: 40),
-				("Julio",  3, 0.2m, confirmed: true, anonymitySet: 100),
+				("Julio",  3, 0.2m, confirmed: true, anonymitySet: 100)
 			});
 
 			var destination = new Key().ScriptPubKey;
@@ -294,7 +294,7 @@ namespace WalletWasabi.Tests.UnitTests
 				("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 50),
 				("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
 				("Suyin",  2, 0.04m, confirmed: true, anonymitySet: 1),
-				("Maria",  3, 0.08m, confirmed: true, anonymitySet: 100),
+				("Maria",  3, 0.08m, confirmed: true, anonymitySet: 100)
 			});
 
 			var destination = new Key().ScriptPubKey;
@@ -322,7 +322,7 @@ namespace WalletWasabi.Tests.UnitTests
 				("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 50),
 				("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
 				("Suyin",  2, 0.04m, confirmed: true, anonymitySet: 1),
-				("Maria",  3, 0.08m, confirmed: true, anonymitySet: 100),
+				("Maria",  3, 0.08m, confirmed: true, anonymitySet: 100)
 			});
 
 			var destination = new Key().ScriptPubKey;
@@ -380,7 +380,7 @@ namespace WalletWasabi.Tests.UnitTests
 				("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 50),
 				("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
 				("Daniel", 1, 0.04m, confirmed: true, anonymitySet: 1),
-				("Maria",  2, 0.08m, confirmed: true, anonymitySet: 100),
+				("Maria",  2, 0.08m, confirmed: true, anonymitySet: 100)
 			});
 
 			// Selecting 0.08 + 0.02 should be enough but it has to select 0.02 too because it is the same address
@@ -409,7 +409,7 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var transactionFactory = CreateTransactionFactory(new[]
 			{
-				("Pablo", 0, 1m, confirmed: true, anonymitySet: 1),
+				("Pablo", 0, 1m, confirmed: true, anonymitySet: 1)
 			}, watchOnly: true);
 
 			var payment = new PaymentIntent(new Key().ScriptPubKey, MoneyRequest.CreateAllRemaining(subtractFee: true));
