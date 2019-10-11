@@ -44,7 +44,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			var result = transactionFactory.BuildTransaction(payment, new FeeRate(44.25m));
 			var output = Assert.Single(result.OuterWalletOutputs);
-			Assert.Equal(result.Fee, output.Amount); // edge case! paid amout equal to paid fee
+			Assert.Equal(result.Fee, output.Amount); // edge case! paid amount equal to paid fee
 
 			// The transaction cost is higher than the intended payment.
 			var ex = Assert.Throws<InvalidOperationException>(() => transactionFactory.BuildTransaction(payment, new FeeRate(50m)));
