@@ -1100,20 +1100,30 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Equal(2, res.OuterWalletOutputs.Count());
-				Assert.Equal(new SmartLabel("outgoing, outgoing2"), res.InnerWalletOutputs.Single().Label);
+				IEnumerable<string> change = res.InnerWalletOutputs.Single().Label.Labels;
+				Assert.Contains("outgoing", change);
+				Assert.Contains("outgoing2", change);
 
 				await wallet.SendTransactionAsync(res.Transaction);
 
-				Assert.Contains(new SmartLabel("outgoing, outgoing2"), wallet.Coins.Where(x => x.Height == Height.Mempool).Select(x => x.Label));
-				Assert.Contains(new SmartLabel("outgoing, outgoing2"), keyManager.GetKeys().Select(x => x.Label));
+				IEnumerable<string> unconfirmedCoinLabels = wallet.Coins.Where(x => x.Height == Height.Mempool).SelectMany(x => x.Label.Labels);
+				Assert.Contains("outgoing", unconfirmedCoinLabels);
+				Assert.Contains("outgoing2", unconfirmedCoinLabels);
+				IEnumerable<string> allKeyLabels = keyManager.GetKeys().SelectMany(x => x.Label.Labels);
+				Assert.Contains("outgoing", allKeyLabels);
+				Assert.Contains("outgoing2", allKeyLabels);
 
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
 				var bestHeight = new Height(bitcoinStore.HashChain.TipHeight);
-				Assert.Contains(new SmartLabel("outgoing, outgoing2"), wallet.Coins.Where(x => x.Height == bestHeight).Select(x => x.Label));
-				Assert.Contains(new SmartLabel("outgoing, outgoing2"), keyManager.GetKeys().Select(x => x.Label));
+				IEnumerable<string> confirmedCoinLabels = wallet.Coins.Where(x => x.Height == bestHeight).SelectMany(x => x.Label.Labels);
+				Assert.Contains("outgoing", confirmedCoinLabels);
+				Assert.Contains("outgoing2", confirmedCoinLabels);
+				allKeyLabels = keyManager.GetKeys().SelectMany(x => x.Label.Labels);
+				Assert.Contains("outgoing", allKeyLabels);
+				Assert.Contains("outgoing2", allKeyLabels);
 
 				#endregion Labeling
 
@@ -1268,7 +1278,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			Assert.Throws<ArgumentNullException>(() => wallet.BuildTransaction(null, new PaymentIntent(new[] { (DestinationRequest)null }), FeeStrategy.CreateFromConfirmationTarget(0)));
 
 			// toSend cannot have a zero element
-			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, new PaymentIntent(new DestinationRequest[] { }), FeeStrategy.SevenDaysConfirmationTargetStrategy));
+			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, new PaymentIntent(Array.Empty<DestinationRequest>()), FeeStrategy.SevenDaysConfirmationTargetStrategy));
 
 			// feeTarget has to be in the range 0 to 1008
 			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, validIntent, FeeStrategy.CreateFromConfirmationTarget(-10)));
@@ -1289,7 +1299,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				FeeStrategy.TwentyMinutesConfirmationTargetStrategy));
 
 			// allowedInputs cannot be empty
-			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, validIntent, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowedInputs: new TxoRef[0]));
+			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, validIntent, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowedInputs: Array.Empty<TxoRef>()));
 
 			// "Only one element can contain the AllRemaining flag.
 			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(
@@ -1919,9 +1929,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 			var roundId = round.RoundId;
 			inputsRequest.RoundId = roundId;
-			var registeredAddresses = new BitcoinAddress[] { };
+			var registeredAddresses = Array.Empty<BitcoinAddress>();
 			var schnorrPubKeys = round.MixingLevels.SchnorrPubKeys;
-			var requesters = new Requester[] { };
+			var requesters = Array.Empty<Requester>();
 
 			HttpRequestException httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, inputsRequest, baseUri, null));
 			Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nInvalid request.", httpRequestException.Message);
