@@ -822,22 +822,25 @@ namespace WalletWasabi.Services
 														bool allowUnconfirmed = false,
 														IEnumerable<TxoRef> allowedInputs = null)
 		{
-			FeeRate feeRate;
-			if (feeStrategy.Type == FeeStrategyType.Target)
-			{
-				feeRate = Synchronizer.GetFeeRate(feeStrategy.Target);
-			}
-			else if (feeStrategy.Type == FeeStrategyType.Rate)
-			{
-				feeRate = feeStrategy.Rate;
-			}
-			else
-			{
-				throw new NotSupportedException(feeStrategy.Type.ToString());
-			}
-
 			var builder = new TransactionFactory(Network, KeyManager, Coins, password, allowUnconfirmed);
-			return builder.BuildTransaction(payments, feeRate, allowedInputs);
+			return builder.BuildTransaction(
+				payments,
+				() =>
+				{
+					if (feeStrategy.Type == FeeStrategyType.Target)
+					{
+						return Synchronizer.GetFeeRate(feeStrategy.Target);
+					}
+					else if (feeStrategy.Type == FeeStrategyType.Rate)
+					{
+						return feeStrategy.Rate;
+					}
+					else
+					{
+						throw new NotSupportedException(feeStrategy.Type.ToString());
+					}
+				},
+				allowedInputs);
 		}
 
 		public void RenameLabel(SmartCoin coin, SmartLabel newLabel)

@@ -37,6 +37,15 @@ namespace WalletWasabi.Services
 			PaymentIntent payments,
 			FeeRate feeRate,
 			IEnumerable<TxoRef> allowedInputs = null)
+			=> BuildTransaction(payments, () => feeRate, allowedInputs);
+
+		/// <exception cref="ArgumentException"></exception>
+		/// <exception cref="ArgumentNullException"></exception>
+		/// <exception cref="ArgumentOutOfRangeException"></exception>
+		public BuildTransactionResult BuildTransaction(
+			PaymentIntent payments,
+			Func<FeeRate> feeRateFetcher,
+			IEnumerable<TxoRef> allowedInputs = null)
 		{
 			payments = Guard.NotNull(nameof(payments), payments);
 
@@ -131,6 +140,7 @@ namespace WalletWasabi.Services
 				builder.SetChange(changeHdPubKey.P2wpkhScript);
 			}
 
+			FeeRate feeRate = feeRateFetcher();
 			builder.SendEstimatedFees(feeRate);
 
 			var psbt = builder.BuildPSBT(false);
