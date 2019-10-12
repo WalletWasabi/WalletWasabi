@@ -377,7 +377,7 @@ namespace WalletWasabi.Hwi.Parsers
 			}
 
 			commandArguments = Guard.Correct(commandArguments);
-			if (commandArguments.Length == 0)
+			if (commandArguments.Length != 0)
 			{
 				argumentBuilder.Append(' ');
 				argumentBuilder.Append(commandArguments);
