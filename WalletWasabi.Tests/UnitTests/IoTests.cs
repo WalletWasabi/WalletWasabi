@@ -196,7 +196,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			DigestableSafeMutexIoManager ioman = new DigestableSafeMutexIoManager(file);
 			ioman.DeleteMe();
-			await ioman.WriteAllLinesAsync(new string[0]);
+			await ioman.WriteAllLinesAsync(Array.Empty<string>());
 			Assert.False(File.Exists(ioman.FilePath));
 			IoHelpers.EnsureContainingDirectoryExists(ioman.FilePath);
 			File.Create(ioman.FilePath).Dispose();

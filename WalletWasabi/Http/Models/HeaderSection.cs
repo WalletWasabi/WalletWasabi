@@ -126,7 +126,7 @@ namespace WalletWasabi.Http.Models
 		{
 			using var message = new HttpRequestMessage
 			{
-				Content = new ByteArrayContent(new byte[] { })
+				Content = new ByteArrayContent(Array.Empty<byte>())
 			};
 			message.Content.Headers.ContentLength = null;
 			foreach (var field in Fields)
@@ -152,7 +152,7 @@ namespace WalletWasabi.Http.Models
 		{
 			using var message = new HttpResponseMessage
 			{
-				Content = new ByteArrayContent(new byte[] { })
+				Content = new ByteArrayContent(Array.Empty<byte>())
 			};
 			message.Content.Headers.ContentLength = null;
 			foreach (var field in Fields)

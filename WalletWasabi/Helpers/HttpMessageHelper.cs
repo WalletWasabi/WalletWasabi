@@ -532,7 +532,7 @@ namespace System.Net.Http
 		{
 			if (contentHeaders.NotNullAndNotEmpty())
 			{
-				return new byte[] { }; // dummy empty content
+				return Array.Empty<byte>(); // dummy empty content
 			}
 			return null;
 		}

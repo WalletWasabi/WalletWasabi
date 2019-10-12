@@ -23,7 +23,7 @@ namespace WalletWasabi.Models
 		{
 			labels ??= Enumerable.Empty<string>();
 			Labels = labels
-				   .SelectMany(x => x?.Split(Separators, StringSplitOptions.RemoveEmptyEntries) ?? new string[0])
+				   .SelectMany(x => x?.Split(Separators, StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>())
 				   .Select(x => x.Trim())
 				   .Where(x => x != "")
 				   .Distinct(StringComparer.OrdinalIgnoreCase)

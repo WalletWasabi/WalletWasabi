@@ -248,7 +248,7 @@ namespace Mono.Options
 		{
 			if (ValueSeparators is null)
 			{
-				return new string[0];
+				return Array.Empty<string>();
 			}
 
 			return (string[])ValueSeparators.Clone();

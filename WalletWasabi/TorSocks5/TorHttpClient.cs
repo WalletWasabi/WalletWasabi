@@ -243,7 +243,7 @@ namespace WalletWasabi.TorSocks5
 				{
 					if (request.Content is null)
 					{
-						request.Content = new ByteArrayContent(new byte[] { }); // dummy empty content
+						request.Content = new ByteArrayContent(Array.Empty<byte>()); // dummy empty content
 						request.Content.Headers.ContentLength = 0;
 					}
 					else
