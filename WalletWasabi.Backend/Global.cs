@@ -126,6 +126,7 @@ namespace WalletWasabi.Backend
 			handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
 			var nodeConnectionParameters = new NodeConnectionParameters()
 			{
+				UserAgent = $"/WasabiCoordinator:{Constants.BackendMajorVersion.ToString()}/",
 				ConnectCancellation = handshakeTimeout.Token,
 				IsRelay = true
 			};
