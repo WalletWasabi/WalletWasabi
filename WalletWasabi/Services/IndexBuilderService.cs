@@ -475,6 +475,11 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		public FilterModel GetLastFilter()
+		{
+			return Index.Last();
+		}
+
 		public async Task StopAsync()
 		{
 			if (TrustedNodeNotifyingBehavior != null)
