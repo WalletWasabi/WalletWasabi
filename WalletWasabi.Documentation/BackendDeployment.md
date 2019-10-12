@@ -164,7 +164,7 @@ testnet=[0/1]
 [main/test].whitelist=127.0.0.1
 #[main/test].debug=rpc     # in some cases it could be good to uncomment this line.
 ```
-https://bitcoincore.org/en/releases/0.17.0/
+https://bitcoincore.org/en/releases/0.18.0/
 https://medium.com/@loopring/how-to-run-lighting-btc-node-and-start-mining-b55c4bab8ad
 https://github.com/MrChrisJ/fullnode/issues/18
 
