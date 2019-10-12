@@ -250,7 +250,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				using (HttpContent content = response.Content)
 				{
 					var resp = await content.ReadAsJsonAsync<StatusResponse>();
-					Assert.True(resp.FilterCreation);
+					Assert.True(resp.FilterCreationActive);
 				}
 
 				// Simulate an unintended stop
@@ -263,7 +263,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				using (HttpContent content = response.Content)
 				{
 					var resp = await content.ReadAsJsonAsync<StatusResponse>();
-					Assert.True(resp.FilterCreation);
+					Assert.True(resp.FilterCreationActive);
 				}
 
 				await rpc.GenerateAsync(1);
@@ -272,7 +272,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				using (HttpContent content = response.Content)
 				{
 					var resp = await content.ReadAsJsonAsync<StatusResponse>();
-					Assert.False(resp.FilterCreation);
+					Assert.False(resp.FilterCreationActive);
 				}
 			}
 			finally

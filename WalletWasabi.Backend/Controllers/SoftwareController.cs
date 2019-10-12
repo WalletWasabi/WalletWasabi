@@ -54,7 +54,7 @@ namespace WalletWasabi.Backend.Controllers
 
 				if (bestHash == lastFilterHash || prevHash == lastFilterHash)
 				{
-					result.FilterCreation = true;
+					result.FilterCreationActive = true;
 				}
 			}
 			catch
