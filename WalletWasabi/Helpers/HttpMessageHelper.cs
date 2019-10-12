@@ -339,7 +339,7 @@ namespace System.Net.Http
 			{
 				var chunkData = await ReadBytesTillLengthAsync(stream, chunkSize, ctsToken);
 				string crlfLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken);
-				if (crlfLine.Length == 0)
+				if (crlfLine.Length != 0)
 				{
 					throw new FormatException("Chunk does not end with CRLF.");
 				}
