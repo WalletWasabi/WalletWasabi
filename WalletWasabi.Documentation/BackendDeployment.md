@@ -228,6 +228,12 @@ systemctl status walletwasabi.service
 tail -10000 .walletwasabi/backend/Logs.txt
 ```
 
+(optional) After starting bitcoind and the walletwasabi.service we can check the indexing service progress by doing:
+```sh
+bitcoin-cli getblockchaininfo | grep blocks
+cat .walletwasabi/backend/Logs.txt | grep filter | tail -1
+```
+
 ## Tor
 
 ```sh
