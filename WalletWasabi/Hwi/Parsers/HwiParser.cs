@@ -78,7 +78,7 @@ namespace WalletWasabi.Hwi.Parsers
 			{
 				error = new HwiException(code.Value, err);
 			}
-			else if (err != "")
+			else if (err.Length != 0)
 			{
 				error = new HwiException(HwiErrorCode.UnknownError, err);
 			}

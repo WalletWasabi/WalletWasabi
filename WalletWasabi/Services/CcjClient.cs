@@ -1022,7 +1022,7 @@ namespace WalletWasabi.Services
 			coinWaitingForMix.Secret = null;
 			CoinDequeued?.Invoke(this, coinWaitingForMix);
 			var correctReason = Guard.Correct(reason);
-			var reasonText = correctReason != "" ? $" Reason: {correctReason}" : "";
+			var reasonText = correctReason.Length != 0 ? $" Reason: {correctReason}" : "";
 			Logger.LogInfo($"Coin dequeued: {coinWaitingForMix.Index}:{coinWaitingForMix.TransactionId}.{reasonText}.");
 		}
 

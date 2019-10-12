@@ -25,7 +25,7 @@ namespace WalletWasabi.Models
 			Labels = labels
 				   .SelectMany(x => x?.Split(Separators, StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>())
 				   .Select(x => x.Trim())
-				   .Where(x => x != "")
+				   .Where(x => x.Length != 0)
 				   .Distinct(StringComparer.OrdinalIgnoreCase)
 				   .OrderBy(x => x)
 				   .ToArray();
