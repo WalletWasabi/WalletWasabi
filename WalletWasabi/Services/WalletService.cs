@@ -162,20 +162,6 @@ namespace WalletWasabi.Services
 
 		private void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
-			if (e.Action == NotifyCollectionChangedAction.Remove)
-			{
-				foreach (var toRemove in e.OldItems.Cast<SmartCoin>())
-				{
-					if (toRemove.SpenderTransactionId != null)
-					{
-						foreach (var toAlsoRemove in Coins.Where(x => x.TransactionId == toRemove.SpenderTransactionId).Distinct().ToList())
-						{
-							Coins.Remove(toAlsoRemove);
-						}
-					}
-				}
-			}
-
 			RefreshCoinHistories();
 		}
 
@@ -208,10 +194,7 @@ namespace WalletWasabi.Services
 					ProcessedBlocks.TryRemove(invalidBlockHash, out _);
 					if (blockState != null && blockState.BlockHeight != default(Height))
 					{
-						foreach (var toRemove in Coins.AtBlockHeight(blockState.BlockHeight))
-						{
-							Coins.Remove(toRemove);
-						}
+						TransactionProcessor.UndoBlock(blockState.BlockHeight);
 					}
 				}
 			}

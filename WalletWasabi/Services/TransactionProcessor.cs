@@ -217,5 +217,13 @@ namespace WalletWasabi.Services
 
 			return walletRelevant;
 		}
+
+		public void UndoBlock(Height blockHeight)
+		{
+			foreach (var toRemove in Coins.AtBlockHeight(blockHeight))
+			{
+				Coins.Remove(toRemove);
+			}
+		}
 	}
 }
