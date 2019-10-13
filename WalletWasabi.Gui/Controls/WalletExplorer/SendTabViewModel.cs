@@ -94,7 +94,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IsMax = false;
 			LabelToolTip = "Start labeling today and your privacy will thank you tomorrow!";
 			AmountText = "0.0";
-			UserFeeText = "";
+			UserFeeText = "1";
 		}
 
 		public SendTabViewModel(WalletViewModel walletViewModel, bool isTransactionBuilder = false)
