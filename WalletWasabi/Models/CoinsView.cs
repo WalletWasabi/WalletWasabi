@@ -47,6 +47,11 @@ namespace WalletWasabi.Models
 			return new CoinsView(Coins.Where(x => x.Height == height));
 		}
 
+		public ICoinsView CreatedBy(uint256 txid)
+		{
+			return new CoinsView(Coins.Where(x => x.TransactionId == txid));
+		}
+
 		public ICoinsView SpentBy(uint256 txid)
 		{
 			return new CoinsView(Coins.Where(x => x.SpenderTransactionId == txid));

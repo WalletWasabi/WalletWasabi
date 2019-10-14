@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using NBitcoin;
 
@@ -13,8 +12,6 @@ namespace WalletWasabi.Models
 		private HashSet<SmartCoin> LatestCoinsSnapshot { get; set; }
 		private bool InvalidateSnapshot { get; set; }
 		private object Lock { get; set; }
-
-		public event NotifyCollectionChangedEventHandler CollectionChanged;
 
 		public CoinsRegistry()
 		{
@@ -52,11 +49,6 @@ namespace WalletWasabi.Models
 				added = Coins.Add(coin);
 				InvalidateSnapshot |= added;
 			}
-
-			if (added)
-			{
-				CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, coin));
-			}
 			return added;
 		}
 
@@ -76,7 +68,6 @@ namespace WalletWasabi.Models
 				}
 				InvalidateSnapshot = true;
 			}
-			CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedCoins));
 		}
 
 		public void Clear()
@@ -86,7 +77,6 @@ namespace WalletWasabi.Models
 				Coins.Clear();
 				InvalidateSnapshot = true;
 			}
-			CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
 		}
 
 		public ICoinsView AtBlockHeight(Height height)
@@ -132,6 +122,11 @@ namespace WalletWasabi.Models
 		public ICoinsView OutPoints(IEnumerable<TxoRef> outPoints)
 		{
 			return AsCoinsView().OutPoints(outPoints);
+		}
+
+		public ICoinsView CreatedBy(uint256 txid)
+		{
+			return AsCoinsView().CreatedBy(txid);
 		}
 
 		public ICoinsView SpentBy(uint256 txid)

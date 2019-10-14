@@ -14,6 +14,7 @@ namespace WalletWasabi.Models
 		ICoinsView DescendantOf(SmartCoin coin);
 		ICoinsView FilterBy(Func<SmartCoin, bool> expression);
 		ICoinsView OutPoints(IEnumerable<TxoRef> outPoints);
+		ICoinsView CreatedBy(uint256 txid);
 		ICoinsView SpentBy(uint256 txid);
 		SmartCoin[] ToArray();
 		Money TotalAmount();
