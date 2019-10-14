@@ -19,5 +19,6 @@ namespace WalletWasabi.Models
 		Money TotalAmount();
 		ICoinsView Unconfirmed();
 		ICoinsView UnSpent();
+		SmartCoin GetByOutPoint(OutPoint outpoint);
 	}
 }

@@ -84,6 +84,10 @@ namespace WalletWasabi.Models
 		{
 			return new CoinsView(Coins.Where(x => outPoints.Any(y => y == x.GetOutPoint())));
 		}
+		public SmartCoin GetByOutPoint(OutPoint outpoint)
+		{
+			return Coins.FirstOrDefault(x => x.GetOutPoint() == outpoint);
+		}
 
 		public Money TotalAmount()
 		{

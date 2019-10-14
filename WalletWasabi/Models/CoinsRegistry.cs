@@ -41,7 +41,7 @@ namespace WalletWasabi.Models
 
 		public SmartCoin GetByOutPoint(OutPoint outpoint)
 		{
-			return AsCoinsView().FirstOrDefault(x => x.GetOutPoint() == outpoint);
+			return AsCoinsView().GetByOutPoint(outpoint);
 		}
 
 		public bool TryAdd(SmartCoin coin)
