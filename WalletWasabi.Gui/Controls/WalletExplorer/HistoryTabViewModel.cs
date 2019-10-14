@@ -63,8 +63,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
-				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed)))
+			Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed))
 				.Merge(Observable.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent)))
 				.Merge(Observable.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.SpenderConfirmed)))
 				.Throttle(TimeSpan.FromSeconds(5))

@@ -71,7 +71,7 @@ namespace WalletWasabi.Services
 
 		public ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)> ProcessedBlocks { get; }
 
-		public CoinsRegistry Coins { get; }
+		public ICoinsView Coins { get; }
 
 		public event EventHandler<FilterModel> NewFilterProcessed;
 
@@ -140,6 +140,7 @@ namespace WalletWasabi.Services
 		private void TransactionProcessor_CoinSpent(object sender, SmartCoin spentCoin)
 		{
 			ChaumianClient.ExposedLinks.TryRemove(spentCoin.GetTxoRef(), out _);
+			RefreshCoinHistories();
 		}
 
 		private async void TransactionProcessor_CoinReceivedAsync(object sender, SmartCoin newCoin)
@@ -158,10 +159,6 @@ namespace WalletWasabi.Services
 					Logger.LogError(ex);
 				}
 			}
-		}
-
-		private void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-		{
 			RefreshCoinHistories();
 		}
 
@@ -260,7 +257,6 @@ namespace WalletWasabi.Services
 				await LoadWalletStateAsync(cancel);
 				await LoadDummyMempoolAsync();
 			}
-			Coins.CollectionChanged += Coins_CollectionChanged;
 			RefreshCoinHistories();
 		}
 
@@ -1077,7 +1073,6 @@ namespace WalletWasabi.Services
 			BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
 			BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
 			BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
-			Coins.CollectionChanged -= Coins_CollectionChanged;
 			TransactionProcessor.CoinSpent -= TransactionProcessor_CoinSpent;
 			TransactionProcessor.CoinReceived -= TransactionProcessor_CoinReceivedAsync;
 

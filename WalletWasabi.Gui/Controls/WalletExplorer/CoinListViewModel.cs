@@ -398,49 +398,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsAnyCoinSelected = x is null ? false : x > Money.Zero);
 
-			Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
+			Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
+				.Subscribe(coin =>
 				{
-					var e = x.EventArgs;
-					try
-					{
-						switch (e.Action)
-						{
-							case NotifyCollectionChangedAction.Add:
-								var added = new CoinsView(e.NewItems.Cast<SmartCoin>());
-								foreach (SmartCoin c in added.UnSpent())
-								{
-									var newCoinVm = new CoinViewModel(this, c);
-									newCoinVm.SubscribeEvents();
-									RootList.Add(newCoinVm);
-								}
-								break;
+					var newCoinVm = new CoinViewModel(this, coin.EventArgs);
+					newCoinVm.SubscribeEvents();
+					RootList.Add(newCoinVm);
+				}).DisposeWith(Disposables);
 
-							case NotifyCollectionChangedAction.Remove:
-								var removed = new CoinsView(e.OldItems.Cast<SmartCoin>());
-								foreach (var c in removed)
-								{
-									CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == c);
-									if (toRemove != default)
-									{
-										toRemove.IsSelected = false;
-										RootList.Remove(toRemove);
-										toRemove.UnsubscribeEvents();
-									}
-								}
-								break;
-
-							case NotifyCollectionChangedAction.Reset:
-								{
-									ClearRootList();
-								}
-								break;
-						}
-					}
-					catch (Exception ex)
+			Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(coin =>
+				{
+					CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == coin.EventArgs);
+					if (toRemove != default)
 					{
-						Logger.LogDebug(ex);
+						toRemove.IsSelected = false;
+						RootList.Remove(toRemove);
+						toRemove.UnsubscribeEvents();
 					}
 				}).DisposeWith(Disposables);
 
