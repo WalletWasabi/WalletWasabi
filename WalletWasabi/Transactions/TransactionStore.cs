@@ -9,11 +9,14 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Transactions.Operations;
 
 namespace WalletWasabi.Transactions
 {
 	public class TransactionStore
 	{
+		#region Initializers
+
 		public string WorkFolderPath { get; private set; }
 		public Network Network { get; private set; }
 
@@ -60,12 +63,25 @@ namespace WalletWasabi.Transactions
 					.Select(x => SmartTransaction.FromLine(x, Network))
 					.OrderByBlockchain();
 
+				var added = false;
+				var updated = false;
 				lock (TransactionsLock)
 				{
-					TryAddNoLockNoSerialization(allTransactions);
+					foreach (var tx in allTransactions)
+					{
+						var res = TryAddOrUpdateNoLockNoSerialization(tx);
+						if (res.isAdded)
+						{
+							added = true;
+						}
+						if (res.isUpdated)
+						{
+							updated = true;
+						}
+					}
 				}
 
-				if (allTransactions.Count() != Transactions.Count)
+				if (added || updated)
 				{
 					// Another process worked into the file and appended the same transaction into it.
 					// In this case we correct the file by serializing the unique set.
@@ -83,67 +99,79 @@ namespace WalletWasabi.Transactions
 			}
 		}
 
-		private ISet<SmartTransaction> TryAddNoLockNoSerialization(IEnumerable<SmartTransaction> transactions)
-		{
-			transactions ??= Enumerable.Empty<SmartTransaction>();
-			var added = new HashSet<SmartTransaction>();
-			foreach (var tx in transactions)
-			{
-				if (TryAddNoLockNoSerialization(tx))
-				{
-					added.Add(tx);
-				}
-			}
+		#endregion Initializers
 
-			return added;
-		}
+		#region Modifiers
 
-		public bool TryAdd(SmartTransaction tx)
+		public (bool isAdded, bool isUpdated) TryAddOrUpdate(SmartTransaction tx)
 		{
-			bool isAdded;
+			(bool isAdded, bool isUpdated) ret;
 
 			lock (TransactionsLock)
 			{
-				isAdded = TryAddNoLockNoSerialization(tx);
+				ret = TryAddOrUpdateNoLockNoSerialization(tx);
 			}
 
-			if (isAdded)
+			if (ret.isAdded)
 			{
 				_ = TryAppendToFileAsync(tx);
 			}
 
-			return isAdded;
-		}
-
-		public ISet<SmartTransaction> TryAdd(IEnumerable<SmartTransaction> transactions)
-		{
-			ISet<SmartTransaction> added;
-
-			lock (TransactionsLock)
+			if (ret.isUpdated)
 			{
-				added = TryAddNoLockNoSerialization(transactions);
+				_ = TryUpdateFileAsync(tx);
 			}
 
-			if (added.Any())
-			{
-				_ = TryAppendToFileAsync(transactions);
-			}
-			return added;
+			return ret;
 		}
 
-		private bool TryAddNoLockNoSerialization(SmartTransaction tx)
+		private (bool isAdded, bool isUpdated) TryAddOrUpdateNoLockNoSerialization(SmartTransaction tx)
 		{
 			var hash = tx.GetHash();
 
 			if (Transactions.TryAdd(hash, tx))
 			{
-				return true;
+				return (true, false);
 			}
 			else
 			{
-				Transactions[hash].Update(tx);
-				return false;
+				if (Transactions[hash].TryUpdate(tx))
+				{
+					return (false, true);
+				}
+				else
+				{
+					return (false, false);
+				}
 			}
+		}
+
+		public bool TryUpdate(SmartTransaction tx)
+		{
+			bool ret;
+			lock (TransactionsLock)
+			{
+				ret = TryUpdateNoLockNoSerialization(tx);
+			}
+
+			if (ret)
+			{
+				_ = TryUpdateFileAsync(tx);
+			}
+
+			return ret;
+		}
+
+		private bool TryUpdateNoLockNoSerialization(SmartTransaction tx)
+		{
+			var hash = tx.GetHash();
+
+			if (Transactions.TryGetValue(hash, out SmartTransaction found))
+			{
+				return found.TryUpdate(tx);
+			}
+
+			return false;
 		}
 
 		public bool TryRemove(uint256 hash, out SmartTransaction stx)
@@ -163,29 +191,9 @@ namespace WalletWasabi.Transactions
 			return isRemoved;
 		}
 
-		public ISet<SmartTransaction> TryRemove(IEnumerable<uint256> hashes)
-		{
-			hashes ??= Enumerable.Empty<uint256>();
-			var removed = new HashSet<SmartTransaction>();
+		#endregion Modifiers
 
-			lock (TransactionsLock)
-			{
-				foreach (var hash in hashes)
-				{
-					if (Transactions.Remove(hash, out SmartTransaction stx))
-					{
-						removed.Add(stx);
-					}
-				}
-			}
-
-			if (removed.Any())
-			{
-				_ = TryRemoveFromFileAsync(removed.Select(x => x.GetHash()).ToArray());
-			}
-
-			return removed;
-		}
+		#region Accessors
 
 		public bool TryGetTransaction(uint256 hash, out SmartTransaction sameStx)
 		{
@@ -195,19 +203,19 @@ namespace WalletWasabi.Transactions
 			}
 		}
 
-		public ISet<SmartTransaction> GetTransactions()
+		public IEnumerable<SmartTransaction> GetTransactions()
 		{
 			lock (TransactionsLock)
 			{
-				return Transactions.Values.ToHashSet();
+				return Transactions.Values.OrderByBlockchain().ToList();
 			}
 		}
 
-		public ISet<uint256> GetTransactionHashes()
+		public IEnumerable<uint256> GetTransactionHashes()
 		{
 			lock (TransactionsLock)
 			{
-				return Transactions.Keys.ToHashSet();
+				return Transactions.Values.OrderByBlockchain().Select(x => x.GetHash()).ToList();
 			}
 		}
 
@@ -226,6 +234,8 @@ namespace WalletWasabi.Transactions
 				return Transactions.ContainsKey(hash);
 			}
 		}
+
+		#endregion Accessors
 
 		#region Serialization
 
@@ -251,6 +261,12 @@ namespace WalletWasabi.Transactions
 
 		private async Task TryRemoveFromFileAsync(IEnumerable<uint256> transactionIds)
 			=> await TryCommitToFileAsync(new Remove(transactionIds)).ConfigureAwait(false);
+
+		private async Task TryUpdateFileAsync(params SmartTransaction[] transactions)
+			=> await TryUpdateFileAsync(transactions as IEnumerable<SmartTransaction>).ConfigureAwait(false);
+
+		private async Task TryUpdateFileAsync(IEnumerable<SmartTransaction> transactions)
+			=> await TryCommitToFileAsync(new Update(transactions)).ConfigureAwait(false);
 
 		private List<ITxStoreOperation> Operations { get; } = new List<ITxStoreOperation>();
 		private object OperationsLock { get; } = new object();
@@ -335,6 +351,33 @@ namespace WalletWasabi.Transactions
 							try
 							{
 								await TransactionsFileManager.WriteAllLinesAsync(toSerialize).ConfigureAwait(false);
+							}
+							catch
+							{
+								await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
+							}
+						}
+						else if (op is Update updateOperation)
+						{
+							var toUpdates = updateOperation.Transactions;
+
+							string[] allLines = await TransactionsFileManager.ReadAllLinesAsync().ConfigureAwait(false);
+							IEnumerable<SmartTransaction> allTransactions = allLines.Select(x => SmartTransaction.FromLine(x, Network));
+							var toSerialize = new List<SmartTransaction>();
+
+							foreach (SmartTransaction tx in allTransactions)
+							{
+								var txsToUpdateWith = toUpdates.Where(x => x == tx);
+								foreach (var txToUpdateWith in txsToUpdateWith)
+								{
+									tx.TryUpdate(txToUpdateWith);
+								}
+								toSerialize.Add(tx);
+							}
+
+							try
+							{
+								await TransactionsFileManager.WriteAllLinesAsync(toSerialize.ToBlockchainOrderedLines()).ConfigureAwait(false);
 							}
 							catch
 							{

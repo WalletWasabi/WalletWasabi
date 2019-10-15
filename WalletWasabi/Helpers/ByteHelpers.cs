@@ -147,7 +147,7 @@ namespace System
 
 			if (string.IsNullOrWhiteSpace(hex))
 			{
-				return new byte[0];
+				return Array.Empty<byte>();
 			}
 
 			var bytes = new byte[hex.Length / 2];

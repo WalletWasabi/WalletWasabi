@@ -32,7 +32,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			Inputs = Guard.NotNullOrEmpty(nameof(inputs), inputs);
 			NetworkFeeToPayAfterBaseDenomination = Guard.NotNull(nameof(networkFeeToPayAfterBaseDenomination), networkFeeToPayAfterBaseDenomination);
 
-			BlindedOutputScripts = blindedOutputScripts?.ToArray() ?? new uint256[0];
+			BlindedOutputScripts = blindedOutputScripts?.ToArray() ?? Array.Empty<uint256>();
 
 			ChangeOutputAddress = Guard.NotNull(nameof(changeOutputAddress), changeOutputAddress);
 			LastSeen = DateTimeOffset.UtcNow;
@@ -43,7 +43,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			State = AliceState.InputsRegistered;
 
-			BlindedOutputSignatures = new uint256[0];
+			BlindedOutputSignatures = Array.Empty<uint256>();
 		}
 	}
 }

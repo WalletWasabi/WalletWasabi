@@ -64,7 +64,7 @@ namespace WalletWasabi.Models
 			height = default;
 
 			var correct = Guard.Correct(heightOrHeightType);
-			if (correct == "")
+			if (correct.Length == 0)
 			{
 				return false;
 			}

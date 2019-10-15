@@ -57,7 +57,7 @@ namespace WalletWasabi.Http.Models
 			using var reader = new StringReader(fieldString);
 			var name = reader.ReadPart(':');
 			// if empty
-			if (name is null || name.Trim() == "")
+			if (string.IsNullOrEmpty(name?.Trim()))
 			{
 				throw new FormatException($"Wrong {nameof(HeaderField)}: {fieldString}.");
 			}
