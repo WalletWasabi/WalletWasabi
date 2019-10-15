@@ -727,7 +727,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				{
 					Logger.LogError($"Cannot calculate CoinJoin transaction fee. (some spent coins are missing or {nameof(spentCoins)} is null)");
 				}
-				else if (fee == Money.Zero)
+				else if (fee <= Money.Zero)
 				{
 					Logger.LogError("CoinJoin transaction is not paying any fee.");
 				}
