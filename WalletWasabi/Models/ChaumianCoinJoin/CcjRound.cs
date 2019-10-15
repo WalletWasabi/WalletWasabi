@@ -725,11 +725,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				FeeRate currentFeeRate = null;
 				if (fee is null)
 				{
-					Logger.LogError($"Cannot calculate CoinJoin transaction fee (some spentCoins are missing or spentCoins is null");
+					Logger.LogError("Cannot calculate CoinJoin transaction fee. (some spentCoins are missing or spentCoins is null)");
 				}
 				else if (fee == Money.Zero)
 				{
-					Logger.LogError($"CoinJoin transaction is not paying any fee.");
+					Logger.LogError("CoinJoin transaction is not paying any fee.");
 				}
 				else
 				{
