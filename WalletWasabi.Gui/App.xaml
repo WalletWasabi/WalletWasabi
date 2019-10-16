@@ -33,4 +33,7 @@
       <cont:ViewModelViewHost DataContext="{Binding Context}" />
     </DataTemplate>
   </Application.DataTemplates>
+  <NativeMenu.Menu>
+    <NativeMenu />
+  </NativeMenu.Menu>
 </Application>
