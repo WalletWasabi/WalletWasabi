@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -113,7 +114,7 @@ namespace WalletWasabi.Services
 		private Dictionary<OutPoint, Script> Bech32UtxoSet { get; }
 		private List<ActionHistoryHelper> Bech32UtxoSetHistory { get; }
 
-		private Height StartingHeight { get; set; }
+		private int StartingHeight { get; set; }
 
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
@@ -134,7 +135,8 @@ namespace WalletWasabi.Services
 			Index = new List<FilterModel>();
 			IndexLock = new AsyncLock();
 
-			StartingHeight = StartingFilters.GetStartingHeight(RpcClient.Network);
+			var startingHeader = SmartHeader.GetStartingHeader(RpcClient.Network);
+			StartingHeight = startingHeader.Height;
 
 			_running = 0;
 
@@ -221,7 +223,7 @@ namespace WalletWasabi.Services
 									syncInfo = await GetSyncInfoAsync();
 								}
 
-								Height heightToRequest = StartingHeight;
+								var heightToRequest = StartingHeight;
 								uint256 currentHash = null;
 								using (await IndexLock.LockAsync())
 								{
@@ -357,7 +359,7 @@ namespace WalletWasabi.Services
 
 								// If not close to the tip, just log debug.
 								// Use height.Value instead of simply height, because it cannot be negative height.
-								if (syncInfo.BlockCount - heightToRequest.Value <= 3 || heightToRequest % 100 == 0)
+								if (syncInfo.BlockCount - heightToRequest <= 3 || heightToRequest % 100 == 0)
 								{
 									Logger.LogInfo($"Created filter for block: {heightToRequest}.");
 								}

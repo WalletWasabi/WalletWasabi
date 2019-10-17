@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using WalletWasabi.Logging;
@@ -28,7 +29,7 @@ namespace WalletWasabi.Stores
 		public HashChain HashChain { get; private set; }
 
 		private FilterModel StartingFilter { get; set; }
-		private Height StartingHeight { get; set; }
+		private int StartingHeight { get; set; }
 		private List<FilterModel> ImmatureFilters { get; set; }
 		private AsyncLock IndexLock { get; set; }
 
@@ -48,8 +49,11 @@ namespace WalletWasabi.Stores
 				var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
 				ImmatureIndexFileManager = new DigestableSafeMutexIoManager(immatureIndexFilePath, digestRandomIndex: -1);
 
-				StartingFilter = StartingFilters.GetStartingFilter(Network);
-				StartingHeight = StartingFilters.GetStartingHeight(Network);
+				var startingHeader = SmartHeader.GetStartingHeader(Network);
+				var filterPart = startingHeader.Filter is null ? "" : $":{startingHeader.Filter}";
+				var heightlessFilterLine = $"{startingHeader.BlockHash}{filterPart}";
+				StartingFilter = FilterModel.FromHeightlessLine(heightlessFilterLine, startingHeader.Height);
+				StartingHeight = startingHeader.Height;
 
 				ImmatureFilters = new List<FilterModel>(150);
 
@@ -83,7 +87,7 @@ namespace WalletWasabi.Stores
 		{
 			try
 			{
-				Height height = StartingHeight;
+				int height = StartingHeight;
 
 				if (MatureIndexFileManager.Exists())
 				{
@@ -340,7 +344,7 @@ namespace WalletWasabi.Stores
 				{
 					if (MatureIndexFileManager.Exists())
 					{
-						Height height = StartingHeight;
+						int height = StartingHeight;
 						using var sr = MatureIndexFileManager.OpenText();
 						if (!sr.EndOfStream)
 						{

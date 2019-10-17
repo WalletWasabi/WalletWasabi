@@ -3,7 +3,9 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.Blockchain;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
@@ -47,7 +49,11 @@ namespace WalletWasabi.Tests.IntegrationTests
 		public async Task GetFiltersAsync(NetworkType networkType)
 		{
 			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.Instance.TorSocks5Endpoint);
-			var filterModel = StartingFilters.GetStartingFilter(Network.GetNetwork(networkType.ToString()));
+
+			var startingHeader = SmartHeader.GetStartingHeader(Network.GetNetwork(networkType.ToString()));
+			var filterPart = startingHeader.Filter is null ? "" : $":{startingHeader.Filter}";
+			var heightlessFilterLine = $"{startingHeader.BlockHash}{filterPart}";
+			var filterModel = FilterModel.FromHeightlessLine(heightlessFilterLine, startingHeader.Height);
 
 			FiltersResponse filtersResponse = await client.GetFiltersAsync(filterModel.BlockHash, 2);
 
