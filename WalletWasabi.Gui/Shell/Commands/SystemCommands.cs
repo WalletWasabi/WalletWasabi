@@ -13,7 +13,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 	{
 		public Global Global { get; }
 
-		[DefaultKeyGesture("ALT+F4", osxKeyGesture: "CMD+Q")]
+		[DefaultKeyGesture("ALT+F4")]
 		[ExportCommandDefinition("File.Exit")]
 		public CommandDefinition ExitCommand { get; }
 
@@ -27,7 +27,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 			exit.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
 
 			ExitCommand = new CommandDefinition(
-				"Quit Wasabi Wallet",
+				"Exit",
 				commandIconService.GetCompletionKindImage("Exit"),
 				exit);
 		}

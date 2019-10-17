@@ -35,6 +35,7 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[DefaultOrder(1)]
 		public object DiskGroup => null;
 
+		[ExportOnPlatform(osx: false)]
 		[ExportMainMenuDefaultGroup("File", "System")]
 		[DefaultOrder(2)]
 		public object SystemGroup => null;
