@@ -140,7 +140,6 @@ namespace WalletWasabi.Services
 		private void TransactionProcessor_CoinSpent(object sender, SmartCoin spentCoin)
 		{
 			ChaumianClient.ExposedLinks.TryRemove(spentCoin.GetTxoRef(), out _);
-			RefreshCoinHistories();
 		}
 
 		private async void TransactionProcessor_CoinReceivedAsync(object sender, SmartCoin newCoin)
@@ -159,7 +158,6 @@ namespace WalletWasabi.Services
 					Logger.LogError(ex);
 				}
 			}
-			RefreshCoinHistories();
 		}
 
 		private static object TransactionProcessingLock { get; } = new object();
@@ -257,7 +255,6 @@ namespace WalletWasabi.Services
 				await LoadWalletStateAsync(cancel);
 				await LoadDummyMempoolAsync();
 			}
-			RefreshCoinHistories();
 		}
 
 		private async Task LoadWalletStateAsync(CancellationToken cancel)
@@ -963,55 +960,8 @@ namespace WalletWasabi.Services
 				.SelectMany(x => x.Label.Labels))
 			.ToHashSet();
 
-		private int _refreshCoinHistoriesRerunRequested = 0;
-		private int _refreshCoinHistoriesRunning = 0;
-
 		public void RefreshCoinHistories()
 		{
-			// If already running, then make sure another run is requested, else do the work.
-			if (Interlocked.CompareExchange(ref _refreshCoinHistoriesRunning, 1, 0) == 1)
-			{
-				Interlocked.Exchange(ref _refreshCoinHistoriesRerunRequested, 1);
-				return;
-			}
-
-			try
-			{
-				var unspentCoins = Coins.UnSpent(); //refreshing unspent coins clusters only
-				if (unspentCoins.Any())
-				{
-					ILookup<Script, SmartCoin> lookupScriptPubKey = Coins.ToLookup(c => c.ScriptPubKey, c => c);
-					ILookup<uint256, SmartCoin> lookupSpenderTransactionId = Coins.ToLookup(c => c.SpenderTransactionId, c => c);
-					ILookup<uint256, SmartCoin> lookupTransactionId = Coins.ToLookup(c => c.TransactionId, c => c);
-
-					const int simultaneousThread = 2; //threads allowed to run simultaneously in threadpool
-
-					Parallel.ForEach(unspentCoins, new ParallelOptions { MaxDegreeOfParallelism = simultaneousThread }, coin =>
-					{
-						var result = string.Join(
-							", ",
-							GetClusters(coin, new List<SmartCoin>(), lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId)
-							.SelectMany(x => x.Label.Labels)
-							.Distinct(StringComparer.OrdinalIgnoreCase));
-						coin.SetClusters(result);
-					});
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError($"Refreshing coin clusters failed: {ex}.");
-			}
-			finally
-			{
-				// It's not running anymore, but someone may requested another run.
-				Interlocked.Exchange(ref _refreshCoinHistoriesRunning, 0);
-
-				// Clear the rerun request, too and if it was requested, then rerun.
-				if (Interlocked.Exchange(ref _refreshCoinHistoriesRerunRequested, 0) == 1)
-				{
-					RefreshCoinHistories();
-				}
-			}
 		}
 
 		/// <summary>

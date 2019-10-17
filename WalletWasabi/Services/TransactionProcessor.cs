@@ -200,6 +200,7 @@ namespace WalletWasabi.Services
 
 					if (!alreadyKnown)
 					{
+						Coins.Spend(foundCoin);
 						CoinSpent?.Invoke(this, foundCoin);
 					}
 

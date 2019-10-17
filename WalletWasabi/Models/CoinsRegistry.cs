@@ -12,10 +12,14 @@ namespace WalletWasabi.Models
 		private HashSet<SmartCoin> LatestCoinsSnapshot { get; set; }
 		private bool InvalidateSnapshot { get; set; }
 		private object Lock { get; set; }
+		private HashSet<SmartCoin> SpentCoins { get; }
+		//		private Dictionary<SmartCoin, List<SmartCoin>> Clusters { get; }
 
 		public CoinsRegistry()
 		{
 			Coins = new HashSet<SmartCoin>();
+			SpentCoins = new HashSet<SmartCoin>();
+			//			Clusters = new Dictionary<SmartCoin, List<SmartCoin>>();
 			LatestCoinsSnapshot = new HashSet<SmartCoin>();
 			InvalidateSnapshot = false;
 			Lock = new object();
@@ -47,7 +51,11 @@ namespace WalletWasabi.Models
 			lock (Lock)
 			{
 				added = Coins.Add(coin);
-				InvalidateSnapshot |= added;
+				if (added)
+				{
+					//					Clusters.Add(coin, new List<SmartCoin>() { coin });
+					InvalidateSnapshot = true;
+				}
 			}
 			return added;
 		}
@@ -56,26 +64,42 @@ namespace WalletWasabi.Models
 		{
 			var coinsToRemove = AsCoinsView().DescendantOf(coin).ToList();
 			coinsToRemove.Add(coin);
-			var removedCoins = new List<SmartCoin>();
 			lock (Lock)
 			{
 				foreach (var toRemove in coinsToRemove)
 				{
 					if (Coins.Remove(toRemove))
 					{
-						removedCoins.Add(toRemove);
+						//Clusters.Remove(toRemove);
 					}
 				}
 				InvalidateSnapshot = true;
 			}
 		}
 
-		public void Clear()
+		public void Spend(SmartCoin spentCoin)
 		{
 			lock (Lock)
 			{
-				Coins.Clear();
+				if (Coins.Remove(spentCoin))
+				{
+					SpentCoins.Add(spentCoin);
+					var createdCoins = Coins.Where(x => x.TransactionId == spentCoin.SpenderTransactionId);
+					foreach (var newCoin in createdCoins)
+					{
+						spentCoin.Clusters.Merge(newCoin.Clusters);
+						newCoin.Clusters = spentCoin.Clusters;
+					}
+				}
 				InvalidateSnapshot = true;
+			}
+		}
+
+		public ICoinsView AsAllCoinsView()
+		{
+			lock (Lock)
+			{
+				return new CoinsView(AsCoinsView().Concat(SpentCoins));
 			}
 		}
 

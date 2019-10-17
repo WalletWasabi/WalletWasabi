@@ -27,7 +27,8 @@ namespace WalletWasabi.Services
 
 			var processedBlockTimeByHeight = walletService.ProcessedBlocks?.Values.ToDictionary(x => x.height, x => x.dateTime)
 				?? new Dictionary<Height, DateTimeOffset>();
-			foreach (SmartCoin coin in walletService.Coins)
+			var allCoins = ((CoinsRegistry)walletService.Coins).AsAllCoinsView();
+			foreach (SmartCoin coin in allCoins)
 			{
 				var txId = coin.TransactionId;
 				if (txId is null || !walletService.BitcoinStore.TransactionStore.TryGetTransaction(txId, out SmartTransaction foundTransaction))

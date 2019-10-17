@@ -161,7 +161,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string InCoinJoin => Model.CoinJoinInProgress ? "Yes" : "No";
 
-		public string Clusters => string.IsNullOrEmpty(Model.Clusters) ? "" : Model.Clusters; //If the value is null the bind do not update the view. It shows the previous state for example: ##### even if PrivMode false.
+		public string Clusters => Model.Clusters.Labels; //If the value is null the bind do not update the view. It shows the previous state for example: ##### even if PrivMode false.
 
 		public string PubKey => Model.HdPubKey?.PubKey?.ToString() ?? "";
 
