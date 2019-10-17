@@ -1,0 +1,73 @@
+using NBitcoin;
+using NBitcoin.DataEncoders;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using WalletWasabi.Blockchain;
+using Xunit;
+
+namespace WalletWasabi.Tests.UnitTests.Blockchain
+{
+	public class SmartHeaderTests
+	{
+		// TODO
+		// equality
+		// comparision
+		// line serialization
+		// need mempool too
+		[Fact]
+		public void ConstructorTests()
+		{
+			var blockTime = DateTimeOffset.UtcNow;
+			new SmartHeader(uint256.Zero, uint256.One, 0, blockTime, null);
+			new SmartHeader(uint256.Zero, uint256.One, 1, blockTime, null);
+			new SmartHeader(uint256.Zero, uint256.One, 1, blockTime, GolombRiceFilter.Parse("fd03034edef909e52909ed7e88725f78a00e251d43a8819813becf90f26cf6295091319919931cc6b423ca62f84d686574222952fb91fa9c46e2821f07498f3a3900ef86463e0008f941920333dc2f42ded7a54e3219abf99cfd4551cdd9bc2701fc01e76f42cb4820a6e207cc96a7e483b03171a742e4877ad8394bbaa0ab1988b69590a147be384849841a3dca97e4393f825409a9b67c3c837be9893270a210c454ecbf04b4845cdb108a26bc85b88e77413ddd4299956706a86de25927237bc19304188f55aa8828375669859c337ab6687077f35a578bd48e4278758820d7d5b67614ee86d5ae954aac520a249f761cd61abc3108fbcf097706e655249a76c38dc2822b902c95dbbce44df488a7cad6d89c51414759b8a7581b2ed932e68c040bb58f030e0bd461abc21f3eda8ddb9c5cefc3527c8ccb8c9b3ecae9bb7617b9741a39f2e98834d62842c0d071cb1c9a22a9b08831e2c14234016f1857d6312c1a3d56cc62f41beb97eb370743a4cfecf31c44a614417eb90b2b47a43b92666cb33b97bafe276282ccf89f9c6869a4ed8d2e527096bb80c2d0ee3659f75d5819459fa4705a48944e70d561f629fff3cf14e5eb920d0930c7c2404ac731c9fb7d4f75a2a70f25662b77c69216ed6b170bd7c594567912ca3739b158ff1240a802c6595a743e14c1fd5eea8476d2e0307a2397c13f3a3179680c357c0df7dafe7f6cc59141c4b43d4a405c233e0d71d53a5cb92350867c3cfd21933d6e0b8640ac6033609d65df043bb8fee98c9fbf218b702ff7c1dd78ca1b402bf35eda3a64b67764d5ece8e061dbdb9cdbbceab8a9772b18b26c36050d147c27dc97cd224abcf2f00561c0ac2e7421f3b9a28e15edf05aa21fe0c484d3829a1dbd315224d18e7b1826c107dac5976186b9a4c2ee5f60e95e0d576b0c811b58df227a0491fd64e90b1003323c6017a20ec01ed66920fb3ac147d1843fb1b706c08f81ceceff825e97e638bb42a88bad7f8b107a16f773f7dd081db63e2be0180122655e2a992c7f367181e452ac399ceaa10514956cf9398e3add7612b203b8d9c46844414ff217d8c8fda620a9377adfa8deec7aabf20f3c422b0126cfe2e80a83c4f3a66c074601cd1ab9d09b1199114112279604ba127be45091969d031018932f58587c25e4614f9cd7ec1d02c4cb0b2ddd683b060f642843e850e53a230d4423120328d6b0c7880d64cf32cf22e3090ee1a93ebf020ee63281ba26155ea50c207ba71a2f916b1d0e86140776529e2b8e36182f79353d5710d77cd61bc38b1d8ec1a8d354ebdc9215ece11e578f6190e743704d77250bb89914b6d86dbefe7b4cc4983e9307e986ce03111c4e7a5d11698293a29b1b789733e005fe3c9c59ceccc260f24fd5024ec5cf4e8ebaa96070f31634876ba620b34181822f7c6a211c2e0555e84621b8ddb287dfc39edeec31c689c3ee11cf03decc94e1b92d1e4d03291707517dc858509a379c432c2d89a3289f34ddf11c58c2b882515ffe18d68aa53c454aaa3bbed65db3e14e9d40db0e887fe3c448da4c0c71a3fc4483d3f3f409e475a255d9b9535971798891296cbdd4a53ce588b9560daf7eac0f501231d7e7022d6c1e82f0d71e86e8400af88b5df98740bc3a9ba848f0abac7d0c29d823baa64a39eacc3a5865050c790321c844ccca1a6eb55f678c4f3c4190e5bbf0367d809ee2cbfcb80b4a8e8ccbdeb57181bb4b115390686e293dd79672336179e390e455bed25475c03e49f170d8b9b2a4159d6e94dd8a8c338d2b655c48310c732b4a6cf3c8e1713d0c9378387c04c3de9b1410430f6bb91f2fdcf3a420a634fa1c359483de66245b9421e5a61e830a950a308c0ce9006c5a25c9b01e9939fec78aeda1837e712579708f49500063c89d4f16a02e94b262b657671ddb24b410c674c5939e1b8d4261351bcb482f54a68d9946784023cd2b38a759de39695d11081aee6b7070c56d6ecf87262622e0d5cecc644181ab83067e9c2279d889bc2c0f7139c45898da35adcc843d046f328e09efee3bc9784faad8c4d71f4c94f873642aae2c80829190c93a12008cb9c79a45d405ab5636eb2fc98f485797fbcb3d478e25ae95addb414d6e38b748e0d07592c2f10fad9155ed3478d9de06b3e92a1f2119298acecf07b240f4dea8321294e7a4fd03916dedc07bc6243ab1755e141df11added59262875e9696eb2fff47f01534001dae7c83f9c94bc040de594f23a37d89d0f45fb2d8a5c8343c9f9fd68aca7b32438bc6658e3c7d15c5cf09218b4bfde530f4b8967f4adaef9de35cce062d51f6d4d51931d20bc1c942ee60d7562b23dc6592e111fa8434d8605fcb0ef6fc0f1f20e179556a950aad12d7eb87176e82354cf9200e776125bf0576e36b4e7f09089addc2ced25d45c6aa9dbd269d52e807f43740c785e50f5b993ba117936b9be6f1d216df88011c172770b4ce8514b50a78c458242318209943ee0cfc6a09abf6e4e0312f3c2046ac6021e35c35027e187dcd6868169fd9680fec03d3966006a8f0648888530767730e6c4739ea72ccac912931ec8097b74255f8618a25256029026bed29ee86c4753ae8483a8b006a39b7eb0424126c6339374711c7e225a7733bc21837743de2f6afeb14b4c43ae4bd00b09804d010b1c4f952b2b7e899b71566d3e84e9141df03f93623377f58cae42462cc791dabeec810939aae9b6040642f411cbeb8564dad841a3a2378b92f9e675e69f258e7ba02c0abd718b6a9e455a1db9892136c6309b719f5f1d3d8e82c75d748ad628ae9671c4df2c85c92a3f8cb03f7606851f8b5ebf0ecfb931578ebde42ca77fcd5ece781de2e708a2468df55aebf28c9fe0ac2531b048489cfbf663a20287d401651680bad351ac93e850e4e4d2bad0c8bf988ca9a302844d8b481539fa218280"));
+
+			Assert.Throws<ArgumentNullException>(() => new SmartHeader(null, uint256.One, 1, blockTime, null));
+			Assert.Throws<ArgumentNullException>(() => new SmartHeader(uint256.Zero, null, 1, blockTime, null));
+			Assert.Throws<InvalidOperationException>(() => new SmartHeader(uint256.Zero, uint256.Zero, 1, blockTime, null));
+			Assert.Throws<ArgumentOutOfRangeException>(() => new SmartHeader(uint256.Zero, uint256.One, -1, blockTime, null));
+		}
+
+		[Fact]
+		public void StartingHeaderTests()
+		{
+			var startingMain = SmartHeader.GetStartingHeader(Network.Main);
+			var startingTest = SmartHeader.GetStartingHeader(Network.TestNet);
+			var startingReg = SmartHeader.GetStartingHeader(Network.RegTest);
+
+			var expectedHashMain = new uint256("0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893");
+			var expectedHeightMain = 481824;
+			var expectedTimeMain = DateTimeOffset.FromUnixTimeSeconds(1503539857);
+			var expectedFilterMain = new GolombRiceFilter(Encoders.Hex.DecodeData("02832810ec08a0"), 20, 1 << 20);
+
+			var expectedHashTest = new uint256("00000000000f0d5edcaeba823db17f366be49a80d91d15b77747c2e017b8c20a");
+			var expectedHeightTest = 828575;
+			var expectedTimeTest = DateTimeOffset.FromUnixTimeSeconds(1463079943);
+			var expectedFilterTest = new GolombRiceFilter(Encoders.Hex.DecodeData("017821b8"), 20, 1 << 20);
+
+			var expectedHashReg = Network.RegTest.GenesisHash;
+			var expectedHeightReg = 0;
+			var expectedTimeReg = Network.RegTest.GetGenesis().Header.BlockTime;
+
+			Assert.Equal(expectedHashMain, startingMain.BlockHash);
+			Assert.Null(startingMain.PrevHash);
+			Assert.Equal(expectedHeightMain, startingMain.Height);
+			Assert.Equal(expectedTimeMain, startingMain.BlockTime);
+			// ToDo: Implement IEquitable for GolombRiceFilter in NBitcoin.
+			Assert.Equal(expectedFilterMain.ToString(), startingMain.Filter.ToString());
+
+			Assert.Equal(expectedHashTest, startingTest.BlockHash);
+			Assert.Null(startingTest.PrevHash);
+			Assert.Equal(expectedHeightTest, startingTest.Height);
+			Assert.Equal(expectedTimeTest, startingTest.BlockTime);
+			Assert.Equal(expectedFilterTest.ToString(), startingTest.Filter.ToString());
+
+			Assert.Equal(expectedHashReg, startingReg.BlockHash);
+			Assert.Null(startingReg.PrevHash);
+			Assert.Equal(expectedHeightReg, startingReg.Height);
+			Assert.Equal(expectedTimeReg, startingReg.BlockTime);
+			Assert.Null(startingReg.Filter);
+		}
+	}
+}
