@@ -34,7 +34,7 @@
       <Setter Property="Padding" Value="7 0" />
     </Style>
   </cont:MetroWindow.Styles>
-  <Grid  id:DockProperties.IsDropArea="False">
+  <Grid  id:DockProperties.IsDragEnabled="False" id:DockProperties.IsDropEnabled="False">
     <DockPanel LastChildFill="True">
       <wasabi:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" />
       <shell:ShellView DataContext="{Binding Shell}" />
