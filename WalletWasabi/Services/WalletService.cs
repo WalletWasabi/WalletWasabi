@@ -69,7 +69,7 @@ namespace WalletWasabi.Services
 
 		public ServiceConfiguration ServiceConfiguration { get; }
 
-		public ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)> ProcessedBlocks { get; }
+		public ConcurrentDictionary<uint256, (uint height, DateTimeOffset dateTime)> ProcessedBlocks { get; }
 
 		public ObservableConcurrentHashSet<SmartCoin> Coins { get; }
 
@@ -97,7 +97,7 @@ namespace WalletWasabi.Services
 			ChaumianClient = Guard.NotNull(nameof(chaumianClient), chaumianClient);
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 
-			ProcessedBlocks = new ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)>();
+			ProcessedBlocks = new ConcurrentDictionary<uint256, (uint height, DateTimeOffset dateTime)>();
 			HandleFiltersLock = new AsyncLock();
 
 			Coins = new ObservableConcurrentHashSet<SmartCoin>();
@@ -285,7 +285,7 @@ namespace WalletWasabi.Services
 		private async Task LoadWalletStateAsync(CancellationToken cancel)
 		{
 			KeyManager.AssertNetworkOrClearBlockState(Network);
-			Height bestKeyManagerHeight = KeyManager.GetBestHeight();
+			uint bestKeyManagerHeight = KeyManager.GetBestHeight();
 
 			foreach (BlockState blockState in KeyManager.GetTransactionIndex())
 			{
@@ -302,7 +302,7 @@ namespace WalletWasabi.Services
 						await ProcessFilterModelAsync(filterModel, cancel);
 					}
 				},
-				new Height(bestKeyManagerHeight.Value + 1));
+				bestKeyManagerHeight + 1);
 		}
 
 		private async Task LoadDummyMempoolAsync()
@@ -458,8 +458,10 @@ namespace WalletWasabi.Services
 			return clusters;
 		}
 
-		private void ProcessBlock(Height height, Block block, IEnumerable<int> filterByTxIndexes = null, IEnumerable<SmartTransaction> skeletonBlock = null)
+		private void ProcessBlock(uint height, Block block, IEnumerable<int> filterByTxIndexes = null, IEnumerable<SmartTransaction> skeletonBlock = null)
 		{
+			var parsedHeight = new Height(height);
+
 			lock (TransactionProcessingLock)
 			{
 				if (filterByTxIndexes is null)
@@ -468,7 +470,7 @@ namespace WalletWasabi.Services
 					for (int i = 0; i < block.Transactions.Count; i++)
 					{
 						Transaction tx = block.Transactions[i];
-						if (TransactionProcessor.Process(new SmartTransaction(tx, height, block.GetHash(), i, firstSeen: block.Header.BlockTime)))
+						if (TransactionProcessor.Process(new SmartTransaction(tx, parsedHeight, block.GetHash(), i, firstSeen: block.Header.BlockTime)))
 						{
 							relevantIndices.Add(i);
 						}
@@ -488,7 +490,7 @@ namespace WalletWasabi.Services
 				{
 					foreach (var i in filterByTxIndexes.OrderBy(x => x))
 					{
-						var tx = skeletonBlock?.FirstOrDefault(x => x.BlockIndex == i) ?? new SmartTransaction(block.Transactions[i], height, block.GetHash(), i);
+						var tx = skeletonBlock?.FirstOrDefault(x => x.BlockIndex == i) ?? new SmartTransaction(block.Transactions[i], parsedHeight, block.GetHash(), i);
 						TransactionProcessor.Process(tx);
 					}
 				}

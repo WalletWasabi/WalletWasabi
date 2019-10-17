@@ -114,7 +114,7 @@ namespace WalletWasabi.Services
 		private Dictionary<OutPoint, Script> Bech32UtxoSet { get; }
 		private List<ActionHistoryHelper> Bech32UtxoSetHistory { get; }
 
-		private int StartingHeight { get; set; }
+		private uint StartingHeight { get; set; }
 
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
@@ -441,7 +441,7 @@ namespace WalletWasabi.Services
 			Bech32UtxoSetHistory.Add(new ActionHistoryHelper());
 		}
 
-		public (Height bestHeight, IEnumerable<FilterModel> filters) GetFilterLinesExcluding(uint256 bestKnownBlockHash, int count, out bool found)
+		public (uint bestHeight, IEnumerable<FilterModel> filters) GetFilterLinesExcluding(uint256 bestKnownBlockHash, int count, out bool found)
 		{
 			using (IndexLock.Lock())
 			{
@@ -468,7 +468,7 @@ namespace WalletWasabi.Services
 
 				if (Index.Count == 0)
 				{
-					return (Height.Unknown, Enumerable.Empty<FilterModel>());
+					throw new InvalidDataException("Index is empty.");
 				}
 				else
 				{

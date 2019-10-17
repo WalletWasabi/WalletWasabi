@@ -15,7 +15,7 @@ namespace WalletWasabi.Backend.Models
 	public class FilterModel
 	{
 		[JsonConverter(typeof(HeightJsonConverter))]
-		public Height BlockHeight { get; set; }
+		public uint BlockHeight { get; set; }
 
 		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 BlockHash { get; set; }
@@ -76,7 +76,7 @@ namespace WalletWasabi.Backend.Models
 				filter = new GolombRiceFilter(data, 20, 1 << 20);
 			}
 
-			if (Height.TryParse(parts[0], out Height blockHeight))
+			if (uint.TryParse(parts[0], out uint blockHeight))
 			{
 				return new FilterModel
 				{
@@ -91,7 +91,7 @@ namespace WalletWasabi.Backend.Models
 			}
 		}
 
-		public static FilterModel FromHeightlessLine(string line, Height height)
+		public static FilterModel FromHeightlessLine(string line, uint height)
 		{
 			Guard.NotNullOrEmptyOrWhitespace(nameof(line), line);
 			var parts = line.Split(':');
@@ -100,7 +100,7 @@ namespace WalletWasabi.Backend.Models
 			{
 				return new FilterModel
 				{
-					BlockHeight = Guard.NotNull(nameof(height), height),
+					BlockHeight = height,
 					BlockHash = new uint256(parts[0]),
 					Filter = null
 				};
@@ -111,7 +111,7 @@ namespace WalletWasabi.Backend.Models
 
 			return new FilterModel
 			{
-				BlockHeight = Guard.NotNull(nameof(height), height),
+				BlockHeight = height,
 				BlockHash = new uint256(parts[0]),
 				Filter = filter
 			};
@@ -129,7 +129,7 @@ namespace WalletWasabi.Backend.Models
 			return buffer;
 		}
 
-		public static FilterModel FromStream(Stream stream, Height height)
+		public static FilterModel FromStream(Stream stream, uint height)
 		{
 			uint256 blockHash = new uint256(stream.ReadBytes(32));
 			int filterSize = BitConverter.ToInt32(stream.ReadBytes(4));
@@ -138,7 +138,7 @@ namespace WalletWasabi.Backend.Models
 
 			return new FilterModel
 			{
-				BlockHeight = Guard.NotNull(nameof(height), height),
+				BlockHeight = height,
 				BlockHash = blockHash,
 				Filter = filter
 			};

@@ -17,14 +17,13 @@ namespace WalletWasabi.KeyManagement
 		public uint256 BlockHash { get; }
 
 		[JsonProperty(Order = 2)]
-		[JsonConverter(typeof(HeightJsonConverter))]
-		public Height BlockHeight { get; }
+		public uint BlockHeight { get; }
 
 		[JsonProperty(Order = 3)]
 		public List<int> TransactionIndices { get; }
 
 		[JsonConstructor]
-		public BlockState(uint256 blockHash, Height blockHeight, IEnumerable<int> transactionIndices)
+		public BlockState(uint256 blockHash, uint blockHeight, IEnumerable<int> transactionIndices)
 		{
 			BlockHash = blockHash;
 			BlockHeight = blockHeight;

@@ -12,11 +12,11 @@ namespace WalletWasabi.Blockchain
 	{
 		public uint256 BlockHash { get; }
 		public uint256 PrevHash { get; }
-		public int Height { get; }
+		public uint Height { get; }
 		public DateTimeOffset BlockTime { get; }
 		public GolombRiceFilter Filter { get; }
 
-		public SmartHeader(uint256 blockHash, uint256 prevHash, int height, DateTimeOffset blockTime, GolombRiceFilter filter) : this(blockHash, height, blockTime, filter)
+		public SmartHeader(uint256 blockHash, uint256 prevHash, uint height, DateTimeOffset blockTime, GolombRiceFilter filter) : this(blockHash, height, blockTime, filter)
 		{
 			if (blockHash == prevHash)
 			{
@@ -26,10 +26,10 @@ namespace WalletWasabi.Blockchain
 			PrevHash = Guard.NotNull(nameof(prevHash), prevHash);
 		}
 
-		private SmartHeader(uint256 blockHash, int height, DateTimeOffset blockTime, GolombRiceFilter filter)
+		private SmartHeader(uint256 blockHash, uint height, DateTimeOffset blockTime, GolombRiceFilter filter)
 		{
 			BlockHash = Guard.NotNull(nameof(blockHash), blockHash);
-			Height = Guard.MinimumAndNotNull(nameof(height), height, 0);
+			Height = height;
 			BlockTime = blockTime;
 			Filter = filter;
 		}

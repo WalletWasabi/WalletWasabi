@@ -121,7 +121,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public string Address => Model.ScriptPubKey.GetDestinationAddress(Global.Network).ToString();
 
 		public int Confirmations => Model.Height.Type == HeightType.Chain
-			? Global.BitcoinStore.HashChain.TipHeight - Model.Height.Value + 1
+			? new Height(Global.BitcoinStore.HashChain.TipHeight) - Model.Height.Value + 1
 			: 0;
 
 		public bool IsSelected

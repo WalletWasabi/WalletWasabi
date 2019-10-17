@@ -26,7 +26,6 @@ namespace WalletWasabi.Tests.UnitTests.Blockchain
 			Assert.Throws<ArgumentNullException>(() => new SmartHeader(null, uint256.One, 1, blockTime, null));
 			Assert.Throws<ArgumentNullException>(() => new SmartHeader(uint256.Zero, null, 1, blockTime, null));
 			Assert.Throws<InvalidOperationException>(() => new SmartHeader(uint256.Zero, uint256.Zero, 1, blockTime, null));
-			Assert.Throws<ArgumentOutOfRangeException>(() => new SmartHeader(uint256.Zero, uint256.One, -1, blockTime, null));
 		}
 
 		[Fact]
@@ -37,17 +36,17 @@ namespace WalletWasabi.Tests.UnitTests.Blockchain
 			var startingReg = SmartHeader.GetStartingHeader(Network.RegTest);
 
 			var expectedHashMain = new uint256("0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893");
-			var expectedHeightMain = 481824;
+			uint expectedHeightMain = 481824;
 			var expectedTimeMain = DateTimeOffset.FromUnixTimeSeconds(1503539857);
 			var expectedFilterMain = new GolombRiceFilter(Encoders.Hex.DecodeData("02832810ec08a0"), 20, 1 << 20);
 
 			var expectedHashTest = new uint256("00000000000f0d5edcaeba823db17f366be49a80d91d15b77747c2e017b8c20a");
-			var expectedHeightTest = 828575;
+			uint expectedHeightTest = 828575;
 			var expectedTimeTest = DateTimeOffset.FromUnixTimeSeconds(1463079943);
 			var expectedFilterTest = new GolombRiceFilter(Encoders.Hex.DecodeData("017821b8"), 20, 1 << 20);
 
 			var expectedHashReg = Network.RegTest.GenesisHash;
-			var expectedHeightReg = 0;
+			uint expectedHeightReg = 0;
 			var expectedTimeReg = Network.RegTest.GetGenesis().Header.BlockTime;
 
 			Assert.Equal(expectedHashMain, startingMain.BlockHash);

@@ -25,7 +25,7 @@ namespace WalletWasabi.Services
 				return txRecordList;
 			}
 
-			var processedBlockTimeByHeight = walletService.ProcessedBlocks?.Values.ToDictionary(x => x.height, x => x.dateTime)
+			var processedBlockTimeByHeight = walletService.ProcessedBlocks?.Values.ToDictionary(x => new Height(x.height), x => x.dateTime)
 				?? new Dictionary<Height, DateTimeOffset>();
 			foreach (SmartCoin coin in walletService.Coins)
 			{

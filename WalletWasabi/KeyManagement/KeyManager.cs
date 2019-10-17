@@ -238,11 +238,11 @@ namespace WalletWasabi.KeyManagement
 		{
 			IoHelpers.EnsureContainingDirectoryExists(filePath);
 			// Remove the last 100 blocks to ensure verification on the next run. This is needed of reorg.
-			int maturity = 101;
-			Height prevHeight = BlockchainState.BestHeight;
-			int matureHeight = Math.Max(0, prevHeight.Value - maturity);
+			uint maturity = 101;
+			var prevHeight = BlockchainState.BestHeight;
+			uint matureHeight = (uint)Math.Max(0, (int)prevHeight - (int)maturity);
 
-			BlockchainState.BestHeight = new Height(matureHeight);
+			BlockchainState.BestHeight = matureHeight;
 			HashSet<BlockState> toRemove = BlockchainState.BlockStates.Where(x => x.BlockHeight >= BlockchainState.BestHeight).ToHashSet();
 			BlockchainState.BlockStates.RemoveAll(x => toRemove.Contains(x));
 
@@ -651,10 +651,10 @@ namespace WalletWasabi.KeyManagement
 				var toAdd = new List<BlockState>();
 				foreach (var state in BlockchainState.BlockStates)
 				{
-					if (hashChain.TryGetHeight(state.BlockHash, out int foundHeight) && foundHeight != state.BlockHeight.Value)
+					if (hashChain.TryGetHeight(state.BlockHash, out uint foundHeight) && foundHeight != state.BlockHeight)
 					{
 						toRemove.Add(state.BlockHash);
-						toAdd.Add(new BlockState(state.BlockHash, new Height(foundHeight), state.TransactionIndices));
+						toAdd.Add(new BlockState(state.BlockHash, foundHeight, state.TransactionIndices));
 					}
 				}
 
@@ -676,14 +676,12 @@ namespace WalletWasabi.KeyManagement
 			}
 		}
 
-		public Height GetBestHeight()
+		public uint GetBestHeight()
 		{
-			Height res;
 			lock (BlockchainStateLock)
 			{
-				res = BlockchainState.BestHeight;
+				return (uint)BlockchainState.BestHeight;
 			}
-			return res;
 		}
 
 		public IEnumerable<BlockState> GetTransactionIndex()
@@ -766,7 +764,7 @@ namespace WalletWasabi.KeyManagement
 			}
 		}
 
-		public void SetBestHeight(Height height)
+		public void SetBestHeight(uint height)
 		{
 			lock (BlockchainStateLock)
 			{

@@ -17,14 +17,13 @@ namespace WalletWasabi.KeyManagement
 		public Network Network { get; set; }
 
 		[JsonProperty(Order = 1)]
-		[JsonConverter(typeof(HeightJsonConverter))]
-		public Height BestHeight { get; set; }
+		public uint BestHeight { get; set; }
 
 		[JsonProperty(Order = 2)]
 		public List<BlockState> BlockStates { get; }
 
 		[JsonConstructor]
-		public BlockchainState(Network network, Height bestHeight, IEnumerable<BlockState> blockStates)
+		public BlockchainState(Network network, uint bestHeight, IEnumerable<BlockState> blockStates)
 		{
 			Network = network;
 			BestHeight = bestHeight;

@@ -345,13 +345,13 @@ namespace WalletWasabi.Tests.IntegrationTests
 					filterList.Add(x);
 					await Task.CompletedTask;
 				},
-				new Height(0));
+				0);
 				FilterModel[] filters = filterList.ToArray();
-				for (int i = 0; i < 101; i++)
+				for (uint i = 0; i < 101; i++)
 				{
 					var expectedHash = await rpc.GetBlockHashAsync(i);
 					var filter = filters[i];
-					Assert.Equal(i, filter.BlockHeight.Value);
+					Assert.Equal(i, filter.BlockHeight);
 					Assert.Equal(expectedHash, filter.BlockHash);
 					Assert.Null(filter.Filter);
 				}
@@ -439,12 +439,12 @@ namespace WalletWasabi.Tests.IntegrationTests
 					filterList.Add(x);
 					await Task.CompletedTask;
 				},
-				new Height(0));
+				0);
 				var filterTip = filterList.Last();
 				Assert.Equal(tip, filterTip.BlockHash);
 
 				// Test filter block hashes are correct after fork.
-				var blockCountIncludingGenesis = await rpc.GetBlockCountAsync() + 1;
+				var blockCountIncludingGenesis = (uint)await rpc.GetBlockCountAsync() + 1;
 
 				filterList.Clear();
 				await bitcoinStore.IndexStore.ForeachFiltersAsync(async x =>
@@ -452,13 +452,13 @@ namespace WalletWasabi.Tests.IntegrationTests
 					filterList.Add(x);
 					await Task.CompletedTask;
 				},
-				new Height(0));
+				0);
 				FilterModel[] filters = filterList.ToArray();
-				for (int i = 0; i < blockCountIncludingGenesis; i++)
+				for (uint i = 0; i < blockCountIncludingGenesis; i++)
 				{
 					var expectedHash = await rpc.GetBlockHashAsync(i);
 					var filter = filters[i];
-					Assert.Equal(i, filter.BlockHeight.Value);
+					Assert.Equal(i, filter.BlockHeight);
 					Assert.Equal(expectedHash, filter.BlockHash);
 					if (i < 101) // Later other tests may fill the filter.
 					{

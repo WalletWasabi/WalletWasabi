@@ -29,7 +29,7 @@ namespace WalletWasabi.Stores
 		public HashChain HashChain { get; private set; }
 
 		private FilterModel StartingFilter { get; set; }
-		private int StartingHeight { get; set; }
+		private uint StartingHeight { get; set; }
 		private List<FilterModel> ImmatureFilters { get; set; }
 		private AsyncLock IndexLock { get; set; }
 
@@ -87,7 +87,7 @@ namespace WalletWasabi.Stores
 		{
 			try
 			{
-				int height = StartingHeight;
+				uint height = StartingHeight;
 
 				if (MatureIndexFileManager.Exists())
 				{
@@ -134,7 +134,7 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		private void ProcessLine(Height height, string line, bool enqueue)
+		private void ProcessLine(uint height, string line, bool enqueue)
 		{
 			var filter = FilterModel.FromHeightlessLine(line, height);
 			ProcessFilter(filter, enqueue);
@@ -146,7 +146,7 @@ namespace WalletWasabi.Stores
 			{
 				ImmatureFilters.Add(filter);
 			}
-			HashChain.AddOrReplace(filter.BlockHeight.Value, filter.BlockHash);
+			HashChain.AddOrReplace(filter.BlockHeight, filter.BlockHash);
 		}
 
 		private async Task EnsureBackwardsCompatibilityAsync()
@@ -223,7 +223,7 @@ namespace WalletWasabi.Stores
 			{
 				filter = ImmatureFilters.Last();
 				ImmatureFilters.RemoveLast();
-				if (HashChain.TipHeight != filter.BlockHeight.Value)
+				if (HashChain.TipHeight != filter.BlockHeight)
 				{
 					throw new InvalidOperationException($"{nameof(HashChain)} and {nameof(ImmatureFilters)} are not in sync.");
 				}
@@ -334,7 +334,7 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight)
+		public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, uint fromHeight)
 		{
 			using (await MatureIndexFileManager.Mutex.LockAsync().ConfigureAwait(false))
 			using (await IndexLock.LockAsync().ConfigureAwait(false))
@@ -344,7 +344,7 @@ namespace WalletWasabi.Stores
 				{
 					if (MatureIndexFileManager.Exists())
 					{
-						int height = StartingHeight;
+						uint height = StartingHeight;
 						using var sr = MatureIndexFileManager.OpenText();
 						if (!sr.EndOfStream)
 						{
@@ -365,7 +365,7 @@ namespace WalletWasabi.Stores
 
 								lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
 
-								if (height < fromHeight.Value)
+								if (height < fromHeight)
 								{
 									height++;
 									line = null;
@@ -393,7 +393,7 @@ namespace WalletWasabi.Stores
 								break; // Let's use our the immature filters from here on. The content is the same, just someone else modified the file.
 							}
 
-							if (height < fromHeight.Value)
+							if (height < fromHeight)
 							{
 								height++;
 								continue;

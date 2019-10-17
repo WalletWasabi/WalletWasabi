@@ -15,16 +15,16 @@ namespace WalletWasabi.Stores
 	/// </summary>
 	public class HashChain : NotifyPropertyChangedBase
 	{
-		private int _tipHeight;
+		private uint _tipHeight;
 		private uint256 _tipHash;
-		private int _serverTipHeight;
+		private uint _serverTipHeight;
 		private int _hashesLeft;
 		private int _hashesCount;
 
-		private SortedDictionary<int, uint256> Chain { get; }
+		private SortedDictionary<uint, uint256> Chain { get; }
 		private object Lock { get; }
 
-		public int TipHeight
+		public uint TipHeight
 		{
 			get => _tipHeight;
 			private set => RaiseAndSetIfChanged(ref _tipHeight, value);
@@ -36,7 +36,7 @@ namespace WalletWasabi.Stores
 			private set => RaiseAndSetIfChanged(ref _tipHash, value);
 		}
 
-		public int ServerTipHeight
+		public uint ServerTipHeight
 		{
 			get => _serverTipHeight;
 			private set => RaiseAndSetIfChanged(ref _serverTipHeight, value);
@@ -56,11 +56,11 @@ namespace WalletWasabi.Stores
 
 		public HashChain()
 		{
-			Chain = new SortedDictionary<int, uint256>();
+			Chain = new SortedDictionary<uint, uint256>();
 			Lock = new object();
 		}
 
-		public void AddOrReplace(int height, uint256 hash)
+		public void AddOrReplace(uint height, uint256 hash)
 		{
 			lock (Lock)
 			{
@@ -74,7 +74,8 @@ namespace WalletWasabi.Stores
 
 		private void SetHashesLeft()
 		{
-			HashesLeft = Math.Max(0, ServerTipHeight - TipHeight);
+			var hashesLeft = (int)ServerTipHeight - (int)TipHeight;
+			HashesLeft = Math.Max(0, hashesLeft);
 		}
 
 		public void RemoveLast()
@@ -93,7 +94,7 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		public void UpdateServerTipHeight(int height)
+		public void UpdateServerTipHeight(uint height)
 		{
 			lock (Lock)
 			{
@@ -102,7 +103,7 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		public (int height, uint256 hash)[] GetChain()
+		public (uint height, uint256 hash)[] GetChain()
 		{
 			lock (Lock)
 			{
@@ -110,7 +111,7 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		public bool TryGetHeight(uint256 hash, out int height)
+		public bool TryGetHeight(uint256 hash, out uint height)
 		{
 			lock (Lock)
 			{

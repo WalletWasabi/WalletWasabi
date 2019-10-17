@@ -14,7 +14,7 @@ namespace WalletWasabi.Backend.Models.Responses
 		[JsonProperty(ItemConverterType = typeof(FilterModelJsonConverter))] // Do not use the deafult jsonifyer, because that's too much data.
 		public IEnumerable<FilterModel> Filters { get; set; }
 
-		public int BestHeight { get; set; }
+		public uint BestHeight { get; set; }
 
 		public IEnumerable<CcjRunningRoundState> CcjRoundStates { get; set; }
 
