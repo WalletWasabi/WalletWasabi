@@ -23,13 +23,7 @@
                   RenderOptions.BitmapInterpolationMode="HighQuality">
   <cont:MetroWindow.TitleBarContent>
     <StackPanel Orientation="Horizontal" IsVisible="{Binding !LockScreen.IsLocked}">
-      <menu:MainMenuView DataContext="{Binding Shell.MainMenu}" Margin="4 0 0 0" Foreground="{DynamicResource ThemeForegroundBrush}" VerticalAlignment="Stretch" FontSize="13" />
-      <Button Command="{Binding LockScreenCommand}" Margin="10 0" Background="Transparent" BorderBrush="Transparent">
-        <StackPanel Orientation="Horizontal" Spacing="8">
-          <DrawingPresenter Height="10" Width="10" Drawing="{StaticResource Lock}" />
-          <TextBlock FontSize="13" Text="Lock Screen" />
-        </StackPanel>
-      </Button>
+      <menu:MainMenuView DataContext="{Binding Shell.MainMenu}" Margin="4 0 0 0" Foreground="{DynamicResource ThemeForegroundBrush}" VerticalAlignment="Stretch" FontSize="13" />      
     </StackPanel>
   </cont:MetroWindow.TitleBarContent>
   <cont:MetroWindow.Styles>
