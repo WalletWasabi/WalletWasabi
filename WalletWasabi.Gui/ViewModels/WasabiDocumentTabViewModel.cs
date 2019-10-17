@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private string _successMessage;
 		private object _dialogResult;
 
-		public WasabiDocumentTabViewModel(Global global, string title)
+		protected WasabiDocumentTabViewModel(Global global, string title)
 		{
 			Title = title;
 			Global = Guard.NotNull(nameof(global), global);

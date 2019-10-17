@@ -2,13 +2,15 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Models
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	public class SmartTransaction : IEquatable<SmartTransaction>, IEquatable<Transaction>
+	public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		#region Members
 
@@ -30,12 +32,6 @@ namespace WalletWasabi.Models
 		[JsonProperty]
 		[JsonConverter(typeof(SmartLabelJsonConverter))]
 		public SmartLabel Label { get; set; }
-
-		public bool Confirmed => Height.Type == HeightType.Chain;
-
-		public uint256 GetHash() => Transaction.GetHash();
-
-		public int GetConfirmationCount(Height bestHeight) => Height == Height.Mempool ? 0 : bestHeight.Value - Height.Value + 1;
 
 		[JsonProperty]
 		[JsonConverter(typeof(DateTimeOffsetUnixSecondsConverter))]
@@ -62,6 +58,12 @@ namespace WalletWasabi.Models
 		[JsonProperty]
 		public bool IsReplacement { get; private set; }
 
+		public bool Confirmed => Height.Type == HeightType.Chain;
+
+		public uint256 GetHash() => Transaction.GetHash();
+
+		public int GetConfirmationCount(Height bestHeight) => Height == Height.Mempool ? 0 : bestHeight.Value - Height.Value + 1;
+
 		/// <summary>
 		/// A transaction can signal that is replaceable by fee in two ways:
 		/// * Explicitly by using a nSequence &lt; (0xffffffff - 1) or,
@@ -78,7 +80,9 @@ namespace WalletWasabi.Models
 			Transaction = transaction;
 			Label = label ?? SmartLabel.Empty;
 
-			SetHeight(height, blockHash, blockIndex);
+			Height = height;
+			BlockHash = blockHash;
+			BlockIndex = blockIndex;
 
 			FirstSeen = firstSeen == default ? DateTimeOffset.UtcNow : firstSeen;
 
@@ -87,11 +91,50 @@ namespace WalletWasabi.Models
 
 		#endregion Constructors
 
-		public void SetHeight(Height height, uint256 blockHash = null, int blockIndex = 0)
+		/// <summary>
+		/// Update the transaction with the data acquired from another transaction. (For example merge their labels.)
+		/// </summary>
+		public bool TryUpdate(SmartTransaction tx)
 		{
-			Height = height;
-			BlockHash = blockHash;
-			BlockIndex = blockIndex;
+			var updated = false;
+			// If this is not the same tx, then don't update.
+			if (this != tx)
+			{
+				throw new InvalidOperationException($"{GetHash()} != {tx.GetHash()}");
+			}
+
+			// Set the height related properties, only if confirmed.
+			if (tx.Confirmed)
+			{
+				if (Height != tx.Height)
+				{
+					Height = tx.Height;
+					updated = true;
+				}
+
+				if (tx.BlockHash != null && BlockHash != tx.BlockHash)
+				{
+					BlockHash = tx.BlockHash;
+					BlockIndex = tx.BlockIndex;
+					updated = true;
+				}
+			}
+
+			// Always the earlier seen is the firstSeen.
+			if (tx.FirstSeen < FirstSeen)
+			{
+				FirstSeen = tx.FirstSeen;
+				updated = true;
+			}
+
+			// Merge labels.
+			if (Label != tx.Label)
+			{
+				Label = SmartLabel.Merge(Label, tx.Label);
+				updated = true;
+			}
+
+			return updated;
 		}
 
 		public void SetReplacement()
@@ -124,55 +167,89 @@ namespace WalletWasabi.Models
 			});
 		}
 
-		#region Equality
+		#region LineSerialization
 
-		public bool Equals(SmartTransaction other) => GetHash().Equals(other?.GetHash());
+		public string ToLine()
+		{
+			// GetHash is also serialized, so file can be interpreted with our eyes better.
 
-		public bool Equals(Transaction other) => GetHash().Equals(other?.GetHash());
+			return string.Join(':',
+				GetHash(),
+				Transaction.ToHex(),
+				Height,
+				BlockHash,
+				BlockIndex,
+				Label,
+				FirstSeen.ToUnixTimeSeconds(),
+				IsReplacement);
+		}
 
-		public override bool Equals(object obj) =>
-			obj is SmartTransaction transaction && this == transaction;
+		public static SmartTransaction FromLine(string line, Network expectedNetwork)
+		{
+			line = Guard.NotNullOrEmptyOrWhitespace(nameof(line), line, trim: true);
+			expectedNetwork = Guard.NotNull(nameof(expectedNetwork), expectedNetwork);
+
+			var parts = line.Split(':', StringSplitOptions.None).Select(x => x.Trim()).ToArray();
+
+			var transactionString = parts[1];
+			Transaction transaction = Transaction.Parse(transactionString, expectedNetwork);
+
+			try
+			{
+				// First is redundand txhash serialization.
+				var heightString = parts[2];
+				var blockHashString = parts[3];
+				var blockIndexString = parts[4];
+				var labelString = parts[5];
+				var firstSeenString = parts[6];
+				var isReplacementString = parts[7];
+
+				if (!Height.TryParse(heightString, out Height height))
+				{
+					height = Height.Unknown;
+				}
+				if (!uint256.TryParse(blockHashString, out uint256 blockHash))
+				{
+					blockHash = null;
+				}
+				if (!int.TryParse(blockIndexString, out int blockIndex))
+				{
+					blockIndex = 0;
+				}
+				var label = new SmartLabel(labelString);
+				DateTimeOffset firstSeen = default;
+				if (long.TryParse(firstSeenString, out long unixSeconds))
+				{
+					firstSeen = DateTimeOffset.FromUnixTimeSeconds(unixSeconds);
+				}
+				if (!bool.TryParse(isReplacementString, out bool isReplacement))
+				{
+					isReplacement = false;
+				}
+
+				return new SmartTransaction(transaction, height, blockHash, blockIndex, label, isReplacement, firstSeen);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogDebug(ex);
+				return new SmartTransaction(transaction, Height.Unknown);
+			}
+		}
+
+		#endregion LineSerialization
+
+		#region EqualityAndComparison
+
+		public override bool Equals(object obj) => obj is SmartTransaction tx && this == tx;
+
+		public bool Equals(SmartTransaction other) => this == other;
 
 		public override int GetHashCode() => GetHash().GetHashCode();
 
-		public static bool operator !=(SmartTransaction tx1, SmartTransaction tx2) => !(tx1 == tx2);
+		public static bool operator ==(SmartTransaction x, SmartTransaction y) => y?.GetHash() == x?.GetHash();
 
-		public static bool operator ==(SmartTransaction tx1, SmartTransaction tx2)
-		{
-			bool rc;
+		public static bool operator !=(SmartTransaction x, SmartTransaction y) => !(x == y);
 
-			if (ReferenceEquals(tx1, tx2))
-			{
-				rc = true;
-			}
-			else if (tx1 is null || tx2 is null)
-			{
-				rc = false;
-			}
-			else
-			{
-				rc = tx1.GetHash().Equals(tx2.GetHash());
-			}
-
-			return rc;
-		}
-
-		public static bool operator ==(Transaction tx1, SmartTransaction tx2)
-		{
-			bool rc = tx1 is null || tx2 is null ? false : tx1.GetHash().Equals(tx2.GetHash());
-			return rc;
-		}
-
-		public static bool operator !=(Transaction tx1, SmartTransaction tx2) => !(tx1 == tx2);
-
-		public static bool operator ==(SmartTransaction tx1, Transaction tx2)
-		{
-			bool rc = tx1 is null || tx2 is null ? false : tx1.GetHash().Equals(tx2.GetHash());
-			return rc;
-		}
-
-		public static bool operator !=(SmartTransaction tx1, Transaction tx2) => !(tx1 == tx2);
-
-		#endregion Equality
+		#endregion EqualityAndComparison
 	}
 }

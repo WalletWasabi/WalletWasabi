@@ -61,7 +61,7 @@ namespace System.Net.Http
 					throw new FormatException("Malformed HTTP message: End of headers must be CRLF.");
 				}
 
-				if (header == "")
+				if (header.Length == 0)
 				{
 					// 2 CRLF was read in row so it's the end of the headers
 					break;
@@ -136,11 +136,9 @@ namespace System.Net.Http
 				using (var src = new MemoryStream(decodedBodyArray))
 				using (var unzipStream = new GZipStream(src, CompressionMode.Decompress))
 				{
-					using (var targetStream = new MemoryStream())
-					{
-						unzipStream.CopyTo(targetStream);
-						decodedBodyArray = targetStream.ToArray();
-					}
+					using var targetStream = new MemoryStream();
+					unzipStream.CopyTo(targetStream);
+					decodedBodyArray = targetStream.ToArray();
 				}
 				contentHeaders.ContentEncoding.Remove("gzip");
 				if (!contentHeaders.ContentEncoding.Any())
@@ -340,7 +338,8 @@ namespace System.Net.Http
 			while (chunkSize > 0)
 			{
 				var chunkData = await ReadBytesTillLengthAsync(stream, chunkSize, ctsToken);
-				if (await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken) != "")
+				string crlfLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken);
+				if (crlfLine.Length != 0)
 				{
 					throw new FormatException("Chunk does not end with CRLF.");
 				}
@@ -534,7 +533,7 @@ namespace System.Net.Http
 		{
 			if (contentHeaders.NotNullAndNotEmpty())
 			{
-				return new byte[] { }; // dummy empty content
+				return Array.Empty<byte>(); // dummy empty content
 			}
 			return null;
 		}

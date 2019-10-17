@@ -69,28 +69,28 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			PrivacyStrongCommand = ReactiveCommand.Create(() => TargetPrivacy = TargetPrivacy.Strong);
 
 			TargetButtonCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				switch (TargetPrivacy)
 				{
-					case TargetPrivacy.None:
-						TargetPrivacy = TargetPrivacy.Some;
-						break;
+					switch (TargetPrivacy)
+					{
+						case TargetPrivacy.None:
+							TargetPrivacy = TargetPrivacy.Some;
+							break;
 
-					case TargetPrivacy.Some:
-						TargetPrivacy = TargetPrivacy.Fine;
-						break;
+						case TargetPrivacy.Some:
+							TargetPrivacy = TargetPrivacy.Fine;
+							break;
 
-					case TargetPrivacy.Fine:
-						TargetPrivacy = TargetPrivacy.Strong;
-						break;
+						case TargetPrivacy.Fine:
+							TargetPrivacy = TargetPrivacy.Strong;
+							break;
 
-					case TargetPrivacy.Strong:
-						TargetPrivacy = TargetPrivacy.Some;
-						break;
-				}
-				Global.Config.MixUntilAnonymitySet = CoinJoinUntilAnonymitySet;
-				await Global.Config.ToFileAsync();
-			});
+						case TargetPrivacy.Strong:
+							TargetPrivacy = TargetPrivacy.Some;
+							break;
+					}
+					Global.Config.MixUntilAnonymitySet = CoinJoinUntilAnonymitySet;
+					await Global.Config.ToFileAsync();
+				});
 
 			this.WhenAnyValue(x => x.IsEnqueueBusy)
 				.Select(x => x ? EnqueuingButtonTextString : EnqueueButtonTextString)
@@ -100,10 +100,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Select(x => x ? DequeuingButtonTextString : DequeueButtonTextString)
 				.Subscribe(text => DequeueButtonText = text);
 
-			this.WhenAnyValue(x => x.TargetPrivacy).Subscribe(target =>
-			{
-				CoinJoinUntilAnonymitySet = Global.Config.GetTargetLevel(target);
-			});
+			this.WhenAnyValue(x => x.TargetPrivacy)
+				.Subscribe(target => CoinJoinUntilAnonymitySet = Global.Config.GetTargetLevel(target));
 
 			this.WhenAnyValue(x => x.RoundTimesout)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -155,10 +153,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(AmountQueued));
-				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
-			}).DisposeWith(Disposables);
+				{
+					this.RaisePropertyChanged(nameof(AmountQueued));
+					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+				}).DisposeWith(Disposables);
 
 			Observable.Interval(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)

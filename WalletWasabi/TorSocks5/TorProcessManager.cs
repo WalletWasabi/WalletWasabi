@@ -195,19 +195,17 @@ namespace WalletWasabi.TorSocks5
 		/// <param name="torSocks5EndPoint">Opt out Tor with null.</param>
 		public static async Task<bool> IsTorRunningAsync(EndPoint torSocks5EndPoint)
 		{
-			using (var client = new TorSocks5Client(torSocks5EndPoint))
+			using var client = new TorSocks5Client(torSocks5EndPoint);
+			try
 			{
-				try
-				{
-					await client.ConnectAsync().ConfigureAwait(false);
-					await client.HandshakeAsync().ConfigureAwait(false);
-				}
-				catch (ConnectionException)
-				{
-					return false;
-				}
-				return true;
+				await client.ConnectAsync().ConfigureAwait(false);
+				await client.HandshakeAsync().ConfigureAwait(false);
 			}
+			catch (ConnectionException)
+			{
+				return false;
+			}
+			return true;
 		}
 
 		public async Task<bool> IsTorRunningAsync()
@@ -217,19 +215,17 @@ namespace WalletWasabi.TorSocks5
 				return true;
 			}
 
-			using (var client = new TorSocks5Client(TorSocks5EndPoint))
+			using var client = new TorSocks5Client(TorSocks5EndPoint);
+			try
 			{
-				try
-				{
-					await client.ConnectAsync().ConfigureAwait(false);
-					await client.HandshakeAsync().ConfigureAwait(false);
-				}
-				catch (ConnectionException)
-				{
-					return false;
-				}
-				return true;
+				await client.ConnectAsync().ConfigureAwait(false);
+				await client.HandshakeAsync().ConfigureAwait(false);
 			}
+			catch (ConnectionException)
+			{
+				return false;
+			}
+			return true;
 		}
 
 		#region Monitor

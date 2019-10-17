@@ -191,11 +191,9 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		public async Task BroadcastBlocksAsync(IEnumerable<Block> blocks)
 		{
-			using (var node = await CreateNodeClientAsync())
-			{
-				node.VersionHandshake();
-				BroadcastBlocks(blocks, node);
-			}
+			using var node = await CreateNodeClientAsync();
+			node.VersionHandshake();
+			BroadcastBlocks(blocks, node);
 		}
 
 		public void BroadcastBlocks(IEnumerable<Block> blocks, Node node)

@@ -36,7 +36,7 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 
 		public static T InvokeMethod<T>(object instance, string methodName)
 		{
-			MethodInfo info = instance.GetType().GetRuntimeMethod(methodName, new Type[0]);
+			MethodInfo info = instance.GetType().GetRuntimeMethod(methodName, Array.Empty<Type>());
 
 			if (info != null &&
 				info.ReturnType == typeof(T) &&
@@ -52,7 +52,7 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 
 		public static MethodInfo GetMethodInfo<T>(object instance, string methodName)
 		{
-			MethodInfo info = instance.GetType().GetRuntimeMethod(methodName, new Type[0]);
+			MethodInfo info = instance.GetType().GetRuntimeMethod(methodName, Array.Empty<Type>());
 
 			if (info != null &&
 				info.ReturnType == typeof(T) &&

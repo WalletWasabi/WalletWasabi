@@ -21,6 +21,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		azure-pipelines-windows.yml = azure-pipelines-windows.yml
 		Directory.Build.props = Directory.Build.props
 		README.md = README.md
+		Settings.StyleCop = Settings.StyleCop
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Gui", "WalletWasabi.Gui\WalletWasabi.Gui.csproj", "{B007DC0F-8C86-439D-BE3C-283218D8308B}"

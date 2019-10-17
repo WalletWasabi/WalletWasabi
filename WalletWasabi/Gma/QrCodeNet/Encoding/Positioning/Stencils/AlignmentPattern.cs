@@ -58,7 +58,7 @@ namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 		private static byte[][] AlignmentPatternCoordinatesByVersion { get; } = new[]
 																						{
 																							null,
-																							new byte[] { },
+																							System.Array.Empty<byte>(),
 																							new byte[] { 6, 18},
 																							new byte[] { 6, 22 },
 																							new byte[] { 6, 26 },

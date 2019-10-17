@@ -27,16 +27,13 @@ namespace WalletWasabi.Gui.Dialogs
 			var canOk = this.WhenAnyValue(x => x.TextInput)
 				.Select(x => !string.IsNullOrWhiteSpace(TextInput));
 
-			OKCommand = ReactiveCommand.Create(() =>
-			{
-				Close(true);
-			}, canOk);
+			OKCommand = ReactiveCommand.Create(() => Close(true), canOk);
 
 			CancelCommand = ReactiveCommand.Create(() =>
-			{
-				TextInput = "";
-				Close(false);
-			});
+				{
+					TextInput = "";
+					Close(false);
+				});
 
 			OKCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
 			CancelCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
