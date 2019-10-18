@@ -102,7 +102,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			observed.Subscribe(_ =>
 				{
-					Money balance = WalletService.Coins.UnSpent().TotalAmount();
+					Money balance = WalletService.Coins.TotalAmount();
 
 					Title = $"{Name} ({(Global.UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
 				})

@@ -382,7 +382,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			foreach (var sc in Global.WalletService.Coins.UnSpent())
+			foreach (var sc in Global.WalletService.Coins)
 			{
 				var newCoinVm = new CoinViewModel(this, sc);
 				newCoinVm.SubscribeEvents();
