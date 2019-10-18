@@ -260,7 +260,7 @@ namespace WalletWasabi.Services
 									isImmature = true;
 								}
 
-								Block block = await RpcClient.GetBlockAsync(heightToRequest);
+								Block block = await RPCClientExtensions.GetBlockAsync(RpcClient, heightToRequest);
 
 								// Reorg check, except if we're requesting the starting height, because then the "currentHash" wouldn't exist.
 

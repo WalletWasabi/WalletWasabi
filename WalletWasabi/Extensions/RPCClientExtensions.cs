@@ -251,6 +251,7 @@ namespace NBitcoin.RPC
 		public static Block GetBlock(this RPCClient rpc, uint height)
 			=> rpc.GetBlock((int)height);
 
+		// ToDo: NBitcoin's GetBlockAsync uint256 height is called instead of GetBlockAsync uint height. Fix it! Maybe make everything and extension method?
 		public static async Task<Block> GetBlockAsync(this RPCClient rpc, uint height)
 			=> await rpc.GetBlockAsync((int)height);
 
