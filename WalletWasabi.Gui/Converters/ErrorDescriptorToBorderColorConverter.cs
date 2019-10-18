@@ -12,14 +12,12 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is ErrorDescriptors descriptors)
-			{
-				return GetColorFromDescriptors(descriptors);
-			}
-			else if (value is IEnumerable<Exception> exList)
-			{
-				return GetColorFromDescriptors(ErrorDescriptorsJsonConverter.ExceptionListToErrorDescriptor(exList));
-			}
+			if (value is IEnumerable<object> rawObj)
+ 			{
+				var descriptors = new ErrorDescriptors();
+				descriptors.AddRange(rawObj.Cast<ErrorDescriptor>());
+ 				return GetColorFromDescriptors(descriptors);
+ 			}
 
 			return null;
 		}

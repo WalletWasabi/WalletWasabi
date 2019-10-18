@@ -16,7 +16,6 @@
       <sys:Double x:Key="FontSizeNormal">14</sys:Double>
       <sys:Double x:Key="FontSizeLarge">16</sys:Double>
       <FontFamily x:Key="MonospacedFont">avares://WalletWasabi.Gui/Assets#Cascadia Code</FontFamily>
-      <converters:ErrorDescriptorsJsonConverter x:Key="ErrorDescriptorsJsonConverter" />
       <converters:ErrorSeverityColorConverter x:Key="ErrorSeverityColorConverter" />
       <converters:ErrorDescriptorToBorderColorConverter x:Key="ErrorDescriptorToBorderColorConverter" />
     </Style.Resources>
@@ -138,7 +137,7 @@
             DockPanel.Dock="Bottom"
             ContentTemplate="{TemplateBinding ErrorTemplate}"
             DataContext="{TemplateBinding Owner}"
-            Content="{Binding (DataValidationErrors.Errors), Converter={StaticResource ErrorDescriptorsJsonConverter}}"
+            Content="{Binding (DataValidationErrors.Errors)}"
             IsVisible="{Binding (DataValidationErrors.HasErrors)}" />
           <ContentPresenter
             Name="PART_ContentPresenter"
