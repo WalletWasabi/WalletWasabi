@@ -405,7 +405,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					var newCoinVm = new CoinViewModel(this, coin.EventArgs);
 					newCoinVm.SubscribeEvents();
 					RootList.Add(newCoinVm);
-				}).DisposeWith(Disposables);
+				})
+				.DisposeWith(Disposables);
 
 			Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -418,7 +419,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						RootList.Remove(toRemove);
 						toRemove.UnsubscribeEvents();
 					}
-				}).DisposeWith(Disposables);
+				})
+				.DisposeWith(Disposables);
 
 			SetSelections();
 			SetCoinJoinStatusWidth();
