@@ -468,7 +468,7 @@ namespace WalletWasabi.Services
 
 				if (Index.Count == 0)
 				{
-					throw new InvalidDataException("Index is empty.");
+					return (0, Enumerable.Empty<FilterModel>());
 				}
 				else
 				{
