@@ -250,5 +250,8 @@ namespace NBitcoin.RPC
 
 		public static async Task<uint256> GetBlockHashAsync(this RPCClient rpc, uint height)
 			=> await rpc.GetBlockHashAsync((int)height);
+
+		public static async Task<Block> GetBlockAsync(this RPCClient rpc, uint height)
+			=> await rpc.GetBlockAsync((int)height);
 	}
 }
