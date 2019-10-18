@@ -248,10 +248,22 @@ namespace NBitcoin.RPC
 			return hashSet;
 		}
 
-		public static async Task<uint256> GetBlockHashAsync(this RPCClient rpc, uint height)
-			=> await rpc.GetBlockHashAsync((int)height);
+		public static Block GetBlock(this RPCClient rpc, uint height)
+			=> rpc.GetBlock((int)height);
 
 		public static async Task<Block> GetBlockAsync(this RPCClient rpc, uint height)
 			=> await rpc.GetBlockAsync((int)height);
+
+		public static uint256 GetBlockHash(this RPCClient rpc, uint height)
+			=> rpc.GetBlockHash((int)height);
+
+		public static async Task<uint256> GetBlockHashAsync(this RPCClient rpc, uint height)
+			=> await rpc.GetBlockHashAsync((int)height);
+
+		public static BlockHeader GetBlockHeader(this RPCClient rpc, uint height)
+			=> rpc.GetBlockHeader((int)height);
+
+		public static async Task<BlockHeader> GetBlockHeaderAsync(this RPCClient rpc, uint height)
+			=> await rpc.GetBlockHeaderAsync((int)height);
 	}
 }
