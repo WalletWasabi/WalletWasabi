@@ -1,30 +1,21 @@
 using NBitcoin;
-using NBitcoin.BitcoinCore;
 using NBitcoin.DataEncoders;
-using NBitcoin.Policy;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
-using Newtonsoft.Json;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
-using WalletWasabi.Mempool;
 using WalletWasabi.Models;
 using WalletWasabi.Models.TransactionBuilding;
 using WalletWasabi.Stores;
@@ -72,6 +63,7 @@ namespace WalletWasabi.Services
 		public ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)> ProcessedBlocks { get; }
 
 		public ICoinsView Coins { get; }
+		public ICoinsView AllCoins { get; }
 
 		public event EventHandler<FilterModel> NewFilterProcessed;
 
@@ -110,6 +102,8 @@ namespace WalletWasabi.Services
 
 			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.PrivacyLevelStrong);
 			Coins = TransactionProcessor.Coins;
+			AllCoins = TransactionProcessor.Coins.AsAllCoinsView();
+
 			TransactionProcessor.CoinSpent += TransactionProcessor_CoinSpent;
 			TransactionProcessor.CoinReceived += TransactionProcessor_CoinReceivedAsync;
 
@@ -884,7 +878,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public ISet<string> GetLabels() => Coins
+		public ISet<string> GetLabels() => AllCoins
 			.SelectMany(x => x.Label.Labels)
 			.Concat(KeyManager
 				.GetKeys()
