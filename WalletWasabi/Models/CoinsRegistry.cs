@@ -13,15 +13,15 @@ namespace WalletWasabi.Models
 		private bool InvalidateSnapshot { get; set; }
 		private object Lock { get; set; }
 		private HashSet<SmartCoin> SpentCoins { get; }
-		//		private Dictionary<SmartCoin, List<SmartCoin>> Clusters { get; }
+		private Dictionary<Script, Cluster> ClustersByScriptPubKey { get; }
 
 		public CoinsRegistry()
 		{
 			Coins = new HashSet<SmartCoin>();
 			SpentCoins = new HashSet<SmartCoin>();
-			//			Clusters = new Dictionary<SmartCoin, List<SmartCoin>>();
 			LatestCoinsSnapshot = new HashSet<SmartCoin>();
 			InvalidateSnapshot = false;
+			ClustersByScriptPubKey = new Dictionary<Script, Cluster>();
 			Lock = new object();
 		}
 
@@ -53,7 +53,10 @@ namespace WalletWasabi.Models
 				added = Coins.Add(coin);
 				if (added)
 				{
-					//					Clusters.Add(coin, new List<SmartCoin>() { coin });
+					if (ClustersByScriptPubKey.TryGetValue(coin.ScriptPubKey, out var cluster))
+					{
+						coin.Clusters = cluster;
+					}
 					InvalidateSnapshot = true;
 				}
 			}
@@ -87,8 +90,12 @@ namespace WalletWasabi.Models
 					var createdCoins = Coins.Where(x => x.TransactionId == spentCoin.SpenderTransactionId);
 					foreach (var newCoin in createdCoins)
 					{
-						spentCoin.Clusters.Merge(newCoin.Clusters);
-						newCoin.Clusters = spentCoin.Clusters;
+						if (newCoin.AnonymitySet < 50)
+						{
+							spentCoin.Clusters.Merge(newCoin.Clusters);
+							newCoin.Clusters = spentCoin.Clusters;
+							ClustersByScriptPubKey.AddOrReplace(newCoin.ScriptPubKey, newCoin.Clusters);
+						}
 					}
 				}
 				InvalidateSnapshot = true;

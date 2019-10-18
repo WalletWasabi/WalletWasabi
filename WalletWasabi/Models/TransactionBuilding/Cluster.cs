@@ -26,15 +26,21 @@ namespace WalletWasabi.Models
 			private set => RaiseAndSetIfChanged(ref _labels, value);
 		}
 
-		internal void Merge(Cluster clusters)
+		public void Merge(Cluster clusters)
+		{
+			Merge(clusters.Coins);
+		}
+
+		public void Merge(IEnumerable<SmartCoin> coins)
 		{
 			var insertPosition = 0;
-			foreach (var coin in clusters.Coins.ToList())
+			foreach (var coin in coins.ToList())
 			{
 				if (!Coins.Contains(coin))
 				{
 					Coins.Insert(insertPosition++, coin);
 				}
+				coin.Clusters = this;
 			}
 			Labels = string.Join(", ", Coins.SelectMany(x => x.Label.Labels).Distinct(StringComparer.OrdinalIgnoreCase));
 		}
