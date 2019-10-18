@@ -108,7 +108,7 @@ namespace WalletWasabi.Services
 			KeyManager.AssertCleanKeysIndexed();
 			KeyManager.AssertLockedInternalKeysIndexed(14);
 
-			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold);
+			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.PrivacyLevelStrong);
 			Coins = TransactionProcessor.Coins;
 			TransactionProcessor.CoinSpent += TransactionProcessor_CoinSpent;
 			TransactionProcessor.CoinReceived += TransactionProcessor_CoinReceivedAsync;
@@ -362,75 +362,6 @@ namespace WalletWasabi.Services
 			ret.SetLabel(label, KeyManager);
 
 			return ret;
-		}
-
-		public List<SmartCoin> GetClusters(SmartCoin coin, List<SmartCoin> current, ILookup<Script, SmartCoin> lookupScriptPubKey, ILookup<uint256, SmartCoin> lookupSpenderTransactionId, ILookup<uint256, SmartCoin> lookupTransactionId)
-		{
-			Guard.NotNull(nameof(coin), coin);
-			if (current.Contains(coin))
-			{
-				return current;
-			}
-
-			var clusters = current.Concat(new List<SmartCoin> { coin }).ToList(); // The coin is the first elem in its cluster.
-
-			// If the script is the same then we have a match, no matter of the anonymity set.
-			foreach (var c in lookupScriptPubKey[coin.ScriptPubKey])
-			{
-				if (!clusters.Contains(c))
-				{
-					var h = GetClusters(c, clusters, lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId);
-					foreach (var hr in h)
-					{
-						if (!clusters.Contains(hr))
-						{
-							clusters.Add(hr);
-						}
-					}
-				}
-			}
-
-			// If it spends someone and has not been sufficiently anonymized.
-			if (coin.AnonymitySet < ServiceConfiguration.PrivacyLevelStrong)
-			{
-				var c = lookupSpenderTransactionId[coin.TransactionId].FirstOrDefault(x => !clusters.Contains(x));
-				if (c != default)
-				{
-					var h = GetClusters(c, clusters, lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId);
-					foreach (var hr in h)
-					{
-						if (!clusters.Contains(hr))
-						{
-							clusters.Add(hr);
-						}
-					}
-				}
-			}
-
-			// If it's being spent by someone and that someone has not been sufficiently anonymized.
-			if (!coin.Unspent)
-			{
-				var c = lookupTransactionId[coin.SpenderTransactionId].FirstOrDefault(x => !clusters.Contains(x));
-				if (c != default)
-				{
-					if (c.AnonymitySet < ServiceConfiguration.PrivacyLevelStrong)
-					{
-						if (c != default)
-						{
-							var h = GetClusters(c, clusters, lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId);
-							foreach (var hr in h)
-							{
-								if (!clusters.Contains(hr))
-								{
-									clusters.Add(hr);
-								}
-							}
-						}
-					}
-				}
-			}
-
-			return clusters;
 		}
 
 		private void ProcessBlock(Height height, Block block, IEnumerable<int> filterByTxIndexes = null, IEnumerable<SmartTransaction> skeletonBlock = null)

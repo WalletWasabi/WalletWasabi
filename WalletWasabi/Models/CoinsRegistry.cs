@@ -14,14 +14,16 @@ namespace WalletWasabi.Models
 		private object Lock { get; set; }
 		private HashSet<SmartCoin> SpentCoins { get; }
 		private Dictionary<Script, Cluster> ClustersByScriptPubKey { get; }
+		private int PrivacyLevelThreshold { get; }
 
-		public CoinsRegistry()
+		public CoinsRegistry(int privacyLevelThreshold)
 		{
 			Coins = new HashSet<SmartCoin>();
 			SpentCoins = new HashSet<SmartCoin>();
 			LatestCoinsSnapshot = new HashSet<SmartCoin>();
 			InvalidateSnapshot = false;
 			ClustersByScriptPubKey = new Dictionary<Script, Cluster>();
+			PrivacyLevelThreshold = privacyLevelThreshold;
 			Lock = new object();
 		}
 
@@ -90,7 +92,7 @@ namespace WalletWasabi.Models
 					var createdCoins = Coins.Where(x => x.TransactionId == spentCoin.SpenderTransactionId);
 					foreach (var newCoin in createdCoins)
 					{
-						if (newCoin.AnonymitySet < 50)
+						if (newCoin.AnonymitySet < PrivacyLevelThreshold)
 						{
 							spentCoin.Clusters.Merge(newCoin.Clusters);
 							newCoin.Clusters = spentCoin.Clusters;

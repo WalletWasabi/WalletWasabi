@@ -27,12 +27,13 @@ namespace WalletWasabi.Services
 		public TransactionProcessor(
 			AllTransactionStore transactionStore,
 			KeyManager keyManager,
-			Money dustThreshold)
+			Money dustThreshold,
+			int privacyLevelThreshold = 100)
 		{
 			TransactionStore = Guard.NotNull(nameof(transactionStore), transactionStore);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
-			Coins = new CoinsRegistry();
+			Coins = new CoinsRegistry(privacyLevelThreshold);
 		}
 
 		public bool Process(SmartTransaction tx)
