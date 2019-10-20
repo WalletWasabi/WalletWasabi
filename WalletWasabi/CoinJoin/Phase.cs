@@ -1,4 +1,4 @@
-namespace WalletWasabi.CoinJoin.Common
+namespace WalletWasabi.CoinJoin
 {
 	public enum Phase
 	{

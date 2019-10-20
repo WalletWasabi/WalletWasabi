@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using static NBitcoin.Crypto.SchnorrBlinding;

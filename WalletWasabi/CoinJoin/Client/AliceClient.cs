@@ -11,8 +11,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
-using WalletWasabi.CoinJoin.Common;
-using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Logging;
 using static NBitcoin.Crypto.SchnorrBlinding;

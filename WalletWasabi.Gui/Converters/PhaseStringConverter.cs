@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
-using WalletWasabi.CoinJoin.Common;
+using WalletWasabi.CoinJoin;
 using WalletWasabi.Exceptions;
 
 namespace WalletWasabi.Gui.Converters

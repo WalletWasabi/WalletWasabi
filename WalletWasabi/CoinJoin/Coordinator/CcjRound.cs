@@ -10,7 +10,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.CoinJoin.Common;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using static NBitcoin.Crypto.SchnorrBlinding;

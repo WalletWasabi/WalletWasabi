@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
-using WalletWasabi.CoinJoin.Common;
 using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.CoinJoin.Client

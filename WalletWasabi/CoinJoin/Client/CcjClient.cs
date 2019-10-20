@@ -12,8 +12,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.CoinJoin.Common;
-using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;

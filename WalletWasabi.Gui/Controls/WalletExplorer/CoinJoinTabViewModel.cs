@@ -17,8 +17,8 @@ using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Models;
-using WalletWasabi.CoinJoin.Common;
 using WalletWasabi.CoinJoin.Client;
+using WalletWasabi.CoinJoin;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
