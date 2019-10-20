@@ -428,7 +428,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			UserFeeTextKeyUpCommand = ReactiveCommand.Create((KeyEventArgs key) =>
 			{
-				IsSliderFeeUsed = string.IsNullOrEmpty(UserFeeText);
+				IsSliderFeeUsed = !IsCustomFee;
 				SetFeesAndTexts();
 			});
 
