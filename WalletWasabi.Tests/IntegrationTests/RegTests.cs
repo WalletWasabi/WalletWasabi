@@ -1836,7 +1836,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		}
 
 		[Fact]
-		public async Task CcjCoordinatorCtorTestsAsync()
+		public async Task CoordinatorCtorTestsAsync()
 		{
 			(string password, RPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await InitializeTestEnvironmentAsync(1);
 
@@ -3147,7 +3147,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		}
 
 		[Fact]
-		public async Task CcjClientTestsAsync()
+		public async Task CoinJoinClientTestsAsync()
 		{
 			(string password, RPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await InitializeTestEnvironmentAsync(1);
 
