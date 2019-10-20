@@ -1122,7 +1122,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			{
 				using (RoundSynchronizerLock.Lock())
 				{
-					if (Phase != RoundPhase.InputRegistration && Phase != RoundPhase.ConnectionConfirmation || Status != CoordinatorRoundStatus.Running)
+					if ((Phase != RoundPhase.InputRegistration && Phase != RoundPhase.ConnectionConfirmation) || Status != CoordinatorRoundStatus.Running)
 					{
 						throw new InvalidOperationException($"Updating anonymity set is not allowed in {Phase.ToString()} phase.");
 					}
@@ -1131,7 +1131,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			}
 			else
 			{
-				if (Phase != RoundPhase.InputRegistration && Phase != RoundPhase.ConnectionConfirmation || Status != CoordinatorRoundStatus.Running)
+				if ((Phase != RoundPhase.InputRegistration && Phase != RoundPhase.ConnectionConfirmation) || Status != CoordinatorRoundStatus.Running)
 				{
 					throw new InvalidOperationException($"Updating anonymity set is not allowed in {Phase.ToString()} phase.");
 				}
@@ -1179,7 +1179,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 			using (await RoundSynchronizerLock.LockAsync())
 			{
-				if (Phase != RoundPhase.InputRegistration && Phase != RoundPhase.ConnectionConfirmation || Status != CoordinatorRoundStatus.Running)
+				if ((Phase != RoundPhase.InputRegistration && Phase != RoundPhase.ConnectionConfirmation) || Status != CoordinatorRoundStatus.Running)
 				{
 					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				}
@@ -1220,7 +1220,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			var numberOfRemovedAlices = 0;
 			using (RoundSynchronizerLock.Lock())
 			{
-				if (Phase != RoundPhase.InputRegistration && Phase != RoundPhase.ConnectionConfirmation || Status != CoordinatorRoundStatus.Running)
+				if ((Phase != RoundPhase.InputRegistration && Phase != RoundPhase.ConnectionConfirmation) || Status != CoordinatorRoundStatus.Running)
 				{
 					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				}
