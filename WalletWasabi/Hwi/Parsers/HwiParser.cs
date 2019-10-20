@@ -78,7 +78,7 @@ namespace WalletWasabi.Hwi.Parsers
 			{
 				error = new HwiException(code.Value, err);
 			}
-			else if (err != "")
+			else if (err.Length != 0)
 			{
 				error = new HwiException(HwiErrorCode.UnknownError, err);
 			}
@@ -377,7 +377,7 @@ namespace WalletWasabi.Hwi.Parsers
 			}
 
 			commandArguments = Guard.Correct(commandArguments);
-			if (commandArguments != "")
+			if (commandArguments.Length != 0)
 			{
 				argumentBuilder.Append(' ');
 				argumentBuilder.Append(commandArguments);

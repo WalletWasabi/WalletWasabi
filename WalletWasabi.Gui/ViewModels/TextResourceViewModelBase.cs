@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private string _text;
 
-		public TextResourceViewModelBase(Global global, string title, Uri target) : base(global, title)
+		protected TextResourceViewModelBase(Global global, string title, Uri target) : base(global, title)
 		{
 			Text = "";
 			Target = target;

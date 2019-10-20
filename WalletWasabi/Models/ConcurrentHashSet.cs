@@ -345,7 +345,7 @@ namespace WalletWasabi.Models
 				}
 				current = current.Next;
 			}
-			return default(T);
+			return default;
 		}
 
 		/// <summary>

@@ -36,7 +36,7 @@
                     <behaviors:FocusBehavior IsFocused="{Binding IsSelected}" />
                     <iac:FocusOnAttachedToVisualTreeBehavior />
                   </i:Interaction.Behaviors>
-                  <ToolTip.Tip>Start labeling today and your privacy will thank you tomorrow!</ToolTip.Tip>
+                  <ToolTip.Tip>Who knows this address is yours? E.g.: "Max, BitPay"</ToolTip.Tip>
                 </controls:ExtendedTextBox>
                 <ItemsControl Items="{Binding Suggestions}">
                   <ItemsControl.ItemsPanel>

@@ -171,7 +171,7 @@ namespace Mono.Options
 
 		public override async Task<int> InvokeAsync(IEnumerable<string> arguments)
 		{
-			var extra = new List<string>(arguments ?? new string[0]);
+			var extra = new List<string>(arguments ?? Array.Empty<string>());
 			if (extra.Count == 0)
 			{
 				CommandSet.Options.WriteOptionDescriptions(CommandSet.Out);

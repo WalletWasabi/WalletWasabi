@@ -122,15 +122,15 @@ namespace WalletWasabi.Logging
 					return;
 				}
 
-				message = string.IsNullOrWhiteSpace(message) ? "" : message;
+				message = Guard.Correct(message);
 				var category = string.IsNullOrWhiteSpace(callerFilePath) ? "" : $"{ExtractFileName(callerFilePath)} ({callerLineNumber})";
 
 				var messageBuilder = new StringBuilder();
 				messageBuilder.Append($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {level.ToString().ToUpperInvariant()}\t");
 
-				if (message == "")
+				if (message.Length == 0)
 				{
-					if (category == "") // If both empty. It probably never happens though.
+					if (category.Length == 0) // If both empty. It probably never happens though.
 					{
 						messageBuilder.Append($"{EntrySeparator}");
 					}
@@ -141,7 +141,7 @@ namespace WalletWasabi.Logging
 				}
 				else
 				{
-					if (category == "") // If only the category is empty.
+					if (category.Length == 0) // If only the category is empty.
 					{
 						messageBuilder.Append($"{message}{EntrySeparator}");
 					}

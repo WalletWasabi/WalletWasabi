@@ -19,7 +19,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var transactionFactory = CreateTransactionFactory(new[]
 			{
 				("Martin", 0, 0.01m, confirmed: true, anonymitySet: 1),
-				("Jean",  1, 0.02m, confirmed: true, anonymitySet: 1)
+				("Jean",   1, 0.02m, confirmed: true, anonymitySet: 1)
 			});
 
 			// We try to spend 100btc but we only have 0.03
@@ -145,7 +145,7 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var transactionFactory = CreateTransactionFactory(new[]
 			{
-				("Maria",  0, 1m, confirmed: true, anonymitySet: 100)
+				("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
 			});
 
 			var destination = new Key().ScriptPubKey;
@@ -175,7 +175,7 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var transactionFactory = CreateTransactionFactory(new[]
 			{
-				("Maria",  0, 1m, confirmed: true, anonymitySet: 100),
+				("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
 			});
 
 			var destination1 = new Key().ScriptPubKey;
@@ -209,7 +209,7 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var transactionFactory = CreateTransactionFactory(new[]
 			{
-				("Maria",  0, 1m, confirmed: true, anonymitySet: 100)
+				("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
 			});
 
 			var destination1 = new Key().ScriptPubKey;
@@ -232,7 +232,7 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var transactionFactory = CreateTransactionFactory(new[]
 			{
-				("Maria",  0, 1m, confirmed: true, anonymitySet: 100)
+				("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
 			});
 
 			var destination = new Key().ScriptPubKey;
@@ -250,7 +250,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(Money.Coins(1m), spentCoin.Amount);
 
 			var tx = result.Transaction.Transaction;
-			Assert.Equal(2, tx.Outputs.Count());  // consolidates same address payment
+			Assert.Equal(2, tx.Outputs.Count()); // consolidates same address payment
 
 			var destinationOutput = Assert.Single(result.OuterWalletOutputs);
 			Assert.Equal(destination, destinationOutput.ScriptPubKey);
@@ -301,9 +301,10 @@ namespace WalletWasabi.Tests.UnitTests
 			var payment = new PaymentIntent(new Key().ScriptPubKey, Money.Coins(0.095m));
 			var feeRate = new FeeRate(2m);
 			var coins = transactionFactory.Coins;
-			var allowedCoins = new[] {
-				coins.Single(x=>x.Label.ToString() == "Maria"),
-				coins.Single(x=>x.Label.ToString() == "Suyin")
+			var allowedCoins = new[]
+			{
+				coins.Single(x => x.Label.ToString() == "Maria"),
+				coins.Single(x => x.Label.ToString() == "Suyin")
 			}.ToArray();
 			var result = transactionFactory.BuildTransaction(payment, feeRate, allowedCoins.Select(x => x.GetTxoRef()));
 
@@ -329,10 +330,11 @@ namespace WalletWasabi.Tests.UnitTests
 			var payment = new PaymentIntent(destination, MoneyRequest.CreateAllRemaining(subtractFee: true));
 			var feeRate = new FeeRate(2m);
 			var coins = transactionFactory.Coins;
-			var allowedCoins = new[] {
-				coins.Single(x=>x.Label.ToString() == "Pablo"),
-				coins.Single(x=>x.Label.ToString() == "Maria"),
-				coins.Single(x=>x.Label.ToString() == "Suyin")
+			var allowedCoins = new[]
+			{
+				coins.Single(x => x.Label.ToString() == "Pablo"),
+				coins.Single(x => x.Label.ToString() == "Maria"),
+				coins.Single(x => x.Label.ToString() == "Suyin")
 			}.ToArray();
 			var result = transactionFactory.BuildTransaction(payment, feeRate, allowedCoins.Select(x => x.GetTxoRef()));
 
@@ -358,11 +360,12 @@ namespace WalletWasabi.Tests.UnitTests
 				("Jean",  1, 0.08m, confirmed: true, anonymitySet: 1)
 			});
 
-			var allowedCoins = new[] {
-				transactionFactory.Coins.Single(x=>x.Label.ToString() == "Pablo")
+			var allowedCoins = new[]
+			{
+				transactionFactory.Coins.Single(x => x.Label.ToString() == "Pablo")
 			}.ToArray();
 
-			var amount = Money.Coins(0.5m);  // it is not enough
+			var amount = Money.Coins(0.5m); // it is not enough
 			var payment = new PaymentIntent(new Key().ScriptPubKey, amount);
 
 			var ex = Assert.Throws<InsufficientBalanceException>(() =>
@@ -390,9 +393,10 @@ namespace WalletWasabi.Tests.UnitTests
 			var coins = transactionFactory.Coins;
 			// the allowed coins contain enough money but one of those has the same script that
 			// one unselected coins. That unselected coin has to be spent too.
-			var allowedInputs = new[] {
-				coins.Single(x=>x.Amount == Money.Coins(0.08m)).GetTxoRef(),
-				coins.Single(x=>x.Amount == Money.Coins(0.02m)).GetTxoRef()
+			var allowedInputs = new[]
+			{
+				coins.Single(x => x.Amount == Money.Coins(0.08m)).GetTxoRef(),
+				coins.Single(x => x.Amount == Money.Coins(0.02m)).GetTxoRef()
 			}.ToArray();
 			var result = transactionFactory.BuildTransaction(payment, feeRate, allowedInputs);
 
