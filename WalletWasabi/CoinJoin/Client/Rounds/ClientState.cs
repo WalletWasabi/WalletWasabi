@@ -175,7 +175,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 					return Enumerable.Empty<TxoRef>();
 				}
 
-				Money amountNeededExceptInputFees = denomination + feePerOutputs * 2;
+				Money amountNeededExceptInputFees = denomination + (feePerOutputs * 2);
 				var confirmedResult = GetRegistrableCoinsNoLock(maximumInputCountPerPeer, feePerInputs, amountNeededExceptInputFees, allowUnconfirmedZeroLink: false);
 				if (confirmedResult.Any())
 				{
@@ -216,7 +216,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 			for (int i = 1; i <= maximumInputCountPerPeer; i++) // The smallest number of coins we can register the better it is.
 			{
 				List<IEnumerable<SmartCoin>> coinGroups;
-				Money amountNeeded = amountNeededExceptInputFees + feePerInputs * i; // If the sum reaches the minimum amount.
+				Money amountNeeded = amountNeededExceptInputFees + (feePerInputs * i); // If the sum reaches the minimum amount.
 
 				if (lazyMode) // Do the largest valid combination.
 				{

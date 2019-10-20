@@ -627,7 +627,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				}
 
 				// Check if inputs have enough coins.
-				Money networkFeeToPay = alice.Inputs.Count() * FeePerInputs + 2 * FeePerOutputs;
+				Money networkFeeToPay = (alice.Inputs.Count() * FeePerInputs) + (2 * FeePerOutputs);
 				Money changeAmount = alice.InputSum - (newDenomination + networkFeeToPay);
 				var acceptedBlindedOutputScriptsCount = 1;
 
@@ -685,7 +685,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			Money newDenomination = CalculateNewDenomination();
 
 			// Check if inputs have enough coins.
-			Money networkFeeToPay = alice.Inputs.Count() * FeePerInputs + 2 * FeePerOutputs;
+			Money networkFeeToPay = (alice.Inputs.Count() * FeePerInputs) + (2 * FeePerOutputs);
 			Money changeAmount = alice.InputSum - (newDenomination + networkFeeToPay);
 			var acceptedBlindedOutputScriptsCount = 1;
 
@@ -819,7 +819,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 			Money feePerInputs = null;
 			Money feePerOutputs = null;
-			var inputSizeInBytes = (int)Math.Ceiling((3 * Constants.P2wpkhInputSizeInBytes + Constants.P2pkhInputSizeInBytes) / 4m);
+			var inputSizeInBytes = (int)Math.Ceiling(((3 * Constants.P2wpkhInputSizeInBytes) + Constants.P2pkhInputSizeInBytes) / 4m);
 			var outputSizeInBytes = Constants.OutputSizeInBytes;
 			try
 			{
