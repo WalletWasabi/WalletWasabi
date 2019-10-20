@@ -17,7 +17,7 @@ namespace WalletWasabi.Backend.Models.Responses
 
 		public int BestHeight { get; set; }
 
-		public IEnumerable<RoundStateResponse> RoundStateResponses { get; set; }
+		public IEnumerable<RoundStateResponse> CcjRoundStates { get; set; }
 
 		public AllFeeEstimate AllFeeEstimate { get; set; }
 
