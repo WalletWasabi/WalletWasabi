@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
-using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 
 namespace WalletWasabi.CoinJoin
 {
