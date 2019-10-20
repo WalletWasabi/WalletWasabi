@@ -43,7 +43,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 			LockScreenCommand = new CommandDefinition(
 				"Lock Screen",
-				commandIconService.GetCompletionKindImage("Exit"),
+				commandIconService.GetCompletionKindImage("Lock"),
 				lockCommand);
 		}
 
