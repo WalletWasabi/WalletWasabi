@@ -25,7 +25,9 @@ namespace WalletWasabi.Bench
 		private List<SmartTransaction> _txs;
 
 		[Params(100, 1_000, 10_000)]
+#pragma warning disable IDE1006 // Naming Styles
 		public int TRANSACTIONS;
+#pragma warning restore IDE1006 // Naming Styles
 
 		[GlobalSetup]
 		public void Setup()
