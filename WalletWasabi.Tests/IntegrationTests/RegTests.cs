@@ -19,7 +19,9 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.CoinJoin;
+using WalletWasabi.CoinJoin.Client;
+using WalletWasabi.CoinJoin.Common;
+using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.Crypto;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
@@ -1912,7 +1914,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Equal(anonymitySet, rs.RequiredPeerCount);
 				Assert.Equal(connectionConfirmationTimeout, rs.RegistrationTimeout);
 				// Changes per phases.
-				Assert.Equal(CcjRoundPhase.InputRegistration, rs.Phase);
+				Assert.Equal(Phase.InputRegistration, rs.Phase);
 				Assert.Equal(0, rs.RegisteredPeerCount);
 			}
 
@@ -2053,18 +2055,18 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.True(aliceClient.RoundId > 0);
 
 				CcjRunningRoundState roundState = await satoshiClient.GetRoundStateAsync(aliceClient.RoundId);
-				Assert.Equal(CcjRoundPhase.InputRegistration, roundState.Phase);
+				Assert.Equal(Phase.InputRegistration, roundState.Phase);
 				Assert.Equal(1, roundState.RegisteredPeerCount);
 
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, inputsRequest, baseUri, null));
 				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nBlinded output has already been registered.", httpRequestException.Message);
 
 				roundState = await satoshiClient.GetRoundStateAsync(aliceClient.RoundId);
-				Assert.Equal(CcjRoundPhase.InputRegistration, roundState.Phase);
+				Assert.Equal(Phase.InputRegistration, roundState.Phase);
 				Assert.Equal(1, roundState.RegisteredPeerCount);
 
 				roundState = await satoshiClient.GetRoundStateAsync(aliceClient.RoundId);
-				Assert.Equal(CcjRoundPhase.InputRegistration, roundState.Phase);
+				Assert.Equal(Phase.InputRegistration, roundState.Phase);
 				Assert.Equal(1, roundState.RegisteredPeerCount);
 			}
 
@@ -2081,7 +2083,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.True(aliceClient.RoundId > 0);
 
 				var roundState = await satoshiClient.GetRoundStateAsync(aliceClient.RoundId);
-				Assert.Equal(CcjRoundPhase.InputRegistration, roundState.Phase);
+				Assert.Equal(Phase.InputRegistration, roundState.Phase);
 				Assert.Equal(1, roundState.RegisteredPeerCount);
 			}
 
@@ -2119,7 +2121,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				await Task.Delay(1000);
 				var roundState = await satoshiClient.GetRoundStateAsync(aliceClient.RoundId);
-				Assert.Equal(CcjRoundPhase.ConnectionConfirmation, roundState.Phase);
+				Assert.Equal(Phase.ConnectionConfirmation, roundState.Phase);
 				Assert.Equal(2, roundState.RegisteredPeerCount);
 				var inputRegistrableRoundState = await satoshiClient.GetRegistrableRoundStateAsync();
 				Assert.Equal(0, inputRegistrableRoundState.RegisteredPeerCount);
@@ -2133,7 +2135,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				schnorrPubKeys = round.MixingLevels.SchnorrPubKeys;
 
 				roundState = await satoshiClient.GetRoundStateAsync(aliceClient.RoundId);
-				Assert.Equal(CcjRoundPhase.ConnectionConfirmation, roundState.Phase);
+				Assert.Equal(Phase.ConnectionConfirmation, roundState.Phase);
 				Assert.Equal(2, roundState.RegisteredPeerCount);
 			}
 
@@ -2157,7 +2159,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			Assert.Null(await utxos.TryGetBannedAsync(bannedCoin.ToOutPoint(), false));
 
 			states = await satoshiClient.GetAllRoundStatesAsync();
-			foreach (var rs in states.Where(x => x.Phase == CcjRoundPhase.InputRegistration))
+			foreach (var rs in states.Where(x => x.Phase == Phase.InputRegistration))
 			{
 				Assert.Equal(0, rs.RegisteredPeerCount);
 			}
@@ -2303,7 +2305,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Equal($"{HttpStatusCode.Gone.ToReasonString()}\nParticipation can be only confirmed from InputRegistration or ConnectionConfirmation phase. Current phase: OutputRegistration.", httpRequestException.Message);
 
 				var roundState = await satoshiClient.GetRoundStateAsync(aliceClient1.RoundId);
-				Assert.Equal(CcjRoundPhase.OutputRegistration, roundState.Phase);
+				Assert.Equal(Phase.OutputRegistration, roundState.Phase);
 
 				if (!round.MixingLevels.GetBaseLevel().Signer.VerifyUnblindedSignature(connConfResp2.activeOutputs.First().Signature, outputAddress2.ScriptPubKey.ToBytes()))
 				{
@@ -2318,7 +2320,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				}
 
 				roundState = await satoshiClient.GetRoundStateAsync(aliceClient1.RoundId);
-				Assert.Equal(CcjRoundPhase.Signing, roundState.Phase);
+				Assert.Equal(Phase.Signing, roundState.Phase);
 				Assert.Equal(2, roundState.RegisteredPeerCount);
 				Assert.Equal(2, roundState.RequiredPeerCount);
 
@@ -2483,7 +2485,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			// OUTPUTS REGISTRATION PHASE --
 			var roundState = await satoshiClient.GetRoundStateAsync(roundId);
-			Assert.Equal(CcjRoundPhase.OutputRegistration, roundState.Phase);
+			Assert.Equal(Phase.OutputRegistration, roundState.Phase);
 
 			var l = 0;
 			foreach (var (aliceClient, outputs, _) in participants)
@@ -2502,7 +2504,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			// SIGNING PHASE --
 			roundState = await satoshiClient.GetRoundStateAsync(roundId);
-			Assert.Equal(CcjRoundPhase.Signing, roundState.Phase);
+			Assert.Equal(Phase.Signing, roundState.Phase);
 
 			uint256 transactionId = null;
 			foreach (var (aliceClient, outputs, inputs) in participants)
@@ -2606,7 +2608,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		{
 			using var satoshiClient = new SatoshiClient(baseUri, null);
 			var times = 0;
-			while (!(await satoshiClient.GetAllRoundStatesAsync()).All(x => x.Phase == CcjRoundPhase.InputRegistration))
+			while (!(await satoshiClient.GetAllRoundStatesAsync()).All(x => x.Phase == Phase.InputRegistration))
 			{
 				await Task.Delay(100);
 				if (times > 50) // 5 sec, 3 should be enough
@@ -2718,19 +2720,19 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			Assert.Equal(users.Count, roundConfig.AnonymitySet);
 
-			var confirmationRequests = new List<Task<(CcjRoundPhase currentPhase, IEnumerable<ActiveOutput>)>>();
+			var confirmationRequests = new List<Task<(Phase currentPhase, IEnumerable<ActiveOutput>)>>();
 
 			foreach (var user in users)
 			{
 				confirmationRequests.Add(user.aliceClient.PostConfirmationAsync());
 			}
 
-			CcjRoundPhase roundPhase = CcjRoundPhase.InputRegistration;
+			Phase roundPhase = Phase.InputRegistration;
 			int k = 0;
 			foreach (var request in confirmationRequests)
 			{
 				var resp = await request;
-				if (roundPhase == CcjRoundPhase.InputRegistration)
+				if (roundPhase == Phase.InputRegistration)
 				{
 					roundPhase = resp.currentPhase;
 				}
@@ -2746,7 +2748,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			using (var satoshiClient = new SatoshiClient(baseUri, null))
 			{
 				var times = 0;
-				while (!(await satoshiClient.GetAllRoundStatesAsync()).All(x => x.Phase == CcjRoundPhase.InputRegistration))
+				while (!(await satoshiClient.GetAllRoundStatesAsync()).All(x => x.Phase == Phase.InputRegistration))
 				{
 					await Task.Delay(100);
 					if (times > 50) // 5 sec, 3 should be enough
@@ -2789,7 +2791,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			Assert.Equal(users.Count, roundConfig.AnonymitySet);
 
-			confirmationRequests = new List<Task<(CcjRoundPhase currentPhase, IEnumerable<ActiveOutput>)>>();
+			confirmationRequests = new List<Task<(Phase currentPhase, IEnumerable<ActiveOutput>)>>();
 
 			foreach (var user in users)
 			{
@@ -2799,7 +2801,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			using (var satoshiClient = new SatoshiClient(baseUri, null))
 			{
 				var times = 0;
-				while (!(await satoshiClient.GetAllRoundStatesAsync()).All(x => x.Phase == CcjRoundPhase.InputRegistration))
+				while (!(await satoshiClient.GetAllRoundStatesAsync()).All(x => x.Phase == Phase.InputRegistration))
 				{
 					await Task.Delay(100);
 					if (times > 50) // 5 sec, 3 should be enough
@@ -2924,19 +2926,19 @@ namespace WalletWasabi.Tests.IntegrationTests
 			Logger.TurnOn();
 
 			Assert.Equal(users.Count, roundConfig.AnonymitySet);
-			var confirmationRequests = new List<Task<(CcjRoundPhase currentPhase, IEnumerable<ActiveOutput>)>>();
+			var confirmationRequests = new List<Task<(Phase currentPhase, IEnumerable<ActiveOutput>)>>();
 
 			foreach (var user in users)
 			{
 				confirmationRequests.Add(user.aliceClient.PostConfirmationAsync());
 			}
 
-			CcjRoundPhase roundPhase = CcjRoundPhase.InputRegistration;
+			Phase roundPhase = Phase.InputRegistration;
 			int k = 0;
 			foreach (var request in confirmationRequests)
 			{
 				var resp = await request;
-				if (roundPhase == CcjRoundPhase.InputRegistration)
+				if (roundPhase == Phase.InputRegistration)
 				{
 					roundPhase = resp.currentPhase;
 				}

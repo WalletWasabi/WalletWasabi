@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.CoinJoin
+namespace WalletWasabi.CoinJoin.Client
 {
 	public class BobClient : TorDisposableBase
 	{

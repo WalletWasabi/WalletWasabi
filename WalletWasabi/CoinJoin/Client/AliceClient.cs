@@ -11,11 +11,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.CoinJoin.Common;
+using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Logging;
 using static NBitcoin.Crypto.SchnorrBlinding;
 
-namespace WalletWasabi.CoinJoin
+namespace WalletWasabi.CoinJoin.Client
 {
 	public class AliceClient : TorDisposableBase
 	{
@@ -143,7 +145,7 @@ namespace WalletWasabi.CoinJoin
 			return await CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, request, baseUriAction, torSocks5EndPoint);
 		}
 
-		public async Task<(CcjRoundPhase currentPhase, IEnumerable<ActiveOutput> activeOutputs)> PostConfirmationAsync()
+		public async Task<(Phase currentPhase, IEnumerable<ActiveOutput> activeOutputs)> PostConfirmationAsync()
 		{
 			using HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId={UniqueId}&roundId={RoundId}");
 			if (response.StatusCode != HttpStatusCode.OK)

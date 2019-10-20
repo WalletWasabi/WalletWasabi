@@ -2,7 +2,7 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using WalletWasabi.CoinJoin;
+using WalletWasabi.CoinJoin.Coordinator;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests

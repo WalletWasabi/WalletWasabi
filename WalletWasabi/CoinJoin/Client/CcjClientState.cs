@@ -3,11 +3,12 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.CoinJoin.Common;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.CoinJoin
+namespace WalletWasabi.CoinJoin.Client
 {
 	public class CcjClientState
 	{
@@ -322,7 +323,7 @@ namespace WalletWasabi.CoinJoin
 		{
 			lock (StateLock)
 			{
-				return Rounds.Where(x => !(x.Registration is null) && x.State.Phase >= CcjRoundPhase.ConnectionConfirmation).Select(x => x.State.RoundId).ToArray();
+				return Rounds.Where(x => !(x.Registration is null) && x.State.Phase >= Phase.ConnectionConfirmation).Select(x => x.State.RoundId).ToArray();
 			}
 		}
 
@@ -330,7 +331,7 @@ namespace WalletWasabi.CoinJoin
 		{
 			lock (StateLock)
 			{
-				return Rounds.Where(x => !(x.Registration is null) && x.State.Phase == CcjRoundPhase.InputRegistration).Select(x => x.State.RoundId).ToArray();
+				return Rounds.Where(x => !(x.Registration is null) && x.State.Phase == Phase.InputRegistration).Select(x => x.State.RoundId).ToArray();
 			}
 		}
 
@@ -346,7 +347,7 @@ namespace WalletWasabi.CoinJoin
 		{
 			lock (StateLock)
 			{
-				return Rounds.FirstOrDefault(x => x.State.Phase == CcjRoundPhase.InputRegistration);
+				return Rounds.FirstOrDefault(x => x.State.Phase == Phase.InputRegistration);
 			}
 		}
 
@@ -362,7 +363,7 @@ namespace WalletWasabi.CoinJoin
 		{
 			lock (StateLock)
 			{
-				var foundAdvanced = Rounds.FirstOrDefault(x => x.State.Phase != CcjRoundPhase.InputRegistration);
+				var foundAdvanced = Rounds.FirstOrDefault(x => x.State.Phase != Phase.InputRegistration);
 				if (foundAdvanced != default)
 				{
 					return foundAdvanced;
@@ -419,7 +420,7 @@ namespace WalletWasabi.CoinJoin
 
 					foreach (SmartCoin coin in round.CoinsRegistered)
 					{
-						if (round.Registration.IsPhaseActionsComleted(CcjRoundPhase.Signing))
+						if (round.Registration.IsPhaseActionsComleted(Phase.Signing))
 						{
 							var delayRegistration = TimeSpan.FromSeconds(60);
 							WaitingList.Add(coin, DateTimeOffset.UtcNow + delayRegistration);

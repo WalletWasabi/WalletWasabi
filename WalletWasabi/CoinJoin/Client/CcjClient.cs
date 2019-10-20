@@ -12,6 +12,8 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.CoinJoin.Common;
+using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
@@ -20,7 +22,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Services;
 using static NBitcoin.Crypto.SchnorrBlinding;
 
-namespace WalletWasabi.CoinJoin
+namespace WalletWasabi.CoinJoin.Client
 {
 	public class CcjClient
 	{
@@ -295,34 +297,34 @@ namespace WalletWasabi.CoinJoin
 					throw new NotSupportedException("This is impossible.");
 				}
 
-				if (ongoingRound.State.Phase == CcjRoundPhase.ConnectionConfirmation)
+				if (ongoingRound.State.Phase == Phase.ConnectionConfirmation)
 				{
-					if (!ongoingRound.Registration.IsPhaseActionsComleted(CcjRoundPhase.ConnectionConfirmation)) // If we did not already confirm connection in connection confirmation phase confirm it.
+					if (!ongoingRound.Registration.IsPhaseActionsComleted(Phase.ConnectionConfirmation)) // If we did not already confirm connection in connection confirmation phase confirm it.
 					{
 						var res = await ongoingRound.Registration.AliceClient.PostConfirmationAsync();
 						if (res.activeOutputs.Any())
 						{
 							ongoingRound.Registration.ActiveOutputs = res.activeOutputs;
 						}
-						ongoingRound.Registration.SetPhaseCompleted(CcjRoundPhase.ConnectionConfirmation);
+						ongoingRound.Registration.SetPhaseCompleted(Phase.ConnectionConfirmation);
 					}
 				}
-				else if (ongoingRound.State.Phase == CcjRoundPhase.OutputRegistration)
+				else if (ongoingRound.State.Phase == Phase.OutputRegistration)
 				{
-					if (!ongoingRound.Registration.IsPhaseActionsComleted(CcjRoundPhase.OutputRegistration))
+					if (!ongoingRound.Registration.IsPhaseActionsComleted(Phase.OutputRegistration))
 					{
 						await RegisterOutputAsync(ongoingRound);
 					}
 				}
-				else if (ongoingRound.State.Phase == CcjRoundPhase.Signing)
+				else if (ongoingRound.State.Phase == Phase.Signing)
 				{
-					if (!ongoingRound.Registration.IsPhaseActionsComleted(CcjRoundPhase.Signing))
+					if (!ongoingRound.Registration.IsPhaseActionsComleted(Phase.Signing))
 					{
 						Transaction unsignedCoinJoin = await ongoingRound.Registration.AliceClient.GetUnsignedCoinJoinAsync();
 						Dictionary<int, WitScript> myDic = SignCoinJoin(ongoingRound, unsignedCoinJoin);
 
 						await ongoingRound.Registration.AliceClient.PostSignaturesAsync(myDic);
-						ongoingRound.Registration.SetPhaseCompleted(CcjRoundPhase.Signing);
+						ongoingRound.Registration.SetPhaseCompleted(Phase.Signing);
 					}
 				}
 			}
@@ -444,7 +446,7 @@ namespace WalletWasabi.CoinJoin
 				}
 			}
 
-			ongoingRound.Registration.SetPhaseCompleted(CcjRoundPhase.OutputRegistration);
+			ongoingRound.Registration.SetPhaseCompleted(Phase.OutputRegistration);
 			Logger.LogInfo($"Round ({ongoingRound.State.RoundId}) Bob Posted outputs: {ongoingRound.Registration.ActiveOutputs.Count()}.");
 		}
 
@@ -459,9 +461,9 @@ namespace WalletWasabi.CoinJoin
 					inputRegistrableRound.Registration.ActiveOutputs = res.activeOutputs;
 				}
 
-				if (res.currentPhase > CcjRoundPhase.InputRegistration) // Then the phase went to connection confirmation (probably).
+				if (res.currentPhase > Phase.InputRegistration) // Then the phase went to connection confirmation (probably).
 				{
-					inputRegistrableRound.Registration.SetPhaseCompleted(CcjRoundPhase.ConnectionConfirmation);
+					inputRegistrableRound.Registration.SetPhaseCompleted(Phase.ConnectionConfirmation);
 					inputRegistrableRound.State.Phase = res.currentPhase;
 				}
 			}

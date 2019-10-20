@@ -4,14 +4,16 @@ using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.CoinJoin.Common;
+using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.JsonConverters;
 
-namespace WalletWasabi.CoinJoin
+namespace WalletWasabi.CoinJoin.Client
 {
 	public class CcjRunningRoundState
 	{
 		[JsonConverter(typeof(StringEnumConverter))]
-		public CcjRoundPhase Phase { get; set; }
+		public Phase Phase { get; set; }
 
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money Denomination { get; set; }

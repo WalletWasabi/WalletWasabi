@@ -1,4 +1,4 @@
-namespace WalletWasabi.CoinJoin
+namespace WalletWasabi.CoinJoin.Coordinator
 {
 	public enum CcjRoundStatus
 	{

@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using WalletWasabi.CoinJoin;
+using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Models;
 

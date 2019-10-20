@@ -5,7 +5,8 @@ using System.Globalization;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using WalletWasabi.CoinJoin;
+using WalletWasabi.CoinJoin.Client;
+using WalletWasabi.CoinJoin.Common;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
@@ -197,19 +198,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						if (round.CoinsRegistered.Contains(Model))
 						{
-							if (round.State.Phase == CcjRoundPhase.InputRegistration)
+							if (round.State.Phase == Phase.InputRegistration)
 							{
 								return SmartCoinStatus.MixingInputRegistration;
 							}
-							else if (round.State.Phase == CcjRoundPhase.ConnectionConfirmation)
+							else if (round.State.Phase == Phase.ConnectionConfirmation)
 							{
 								return SmartCoinStatus.MixingConnectionConfirmation;
 							}
-							else if (round.State.Phase == CcjRoundPhase.OutputRegistration)
+							else if (round.State.Phase == Phase.OutputRegistration)
 							{
 								return SmartCoinStatus.MixingOutputRegistration;
 							}
-							else if (round.State.Phase == CcjRoundPhase.Signing)
+							else if (round.State.Phase == Phase.Signing)
 							{
 								return SmartCoinStatus.MixingSigning;
 							}

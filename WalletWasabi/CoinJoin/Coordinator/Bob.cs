@@ -1,7 +1,7 @@
 using NBitcoin;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.CoinJoin
+namespace WalletWasabi.CoinJoin.Coordinator
 {
 	public class Bob
 	{

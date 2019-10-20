@@ -8,12 +8,13 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.CoinJoin.Common;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 
-namespace WalletWasabi.CoinJoin
+namespace WalletWasabi.CoinJoin.Coordinator
 {
 	public class CcjCoordinator : IDisposable
 	{
@@ -206,13 +207,13 @@ namespace WalletWasabi.CoinJoin
 					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate);
 					round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					round.StatusChanged += Round_StatusChangedAsync;
-					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration, feePerInputs, feePerOutputs);
+					await round.ExecuteNextPhaseAsync(Phase.InputRegistration, feePerInputs, feePerOutputs);
 					Rounds.Add(round);
 
 					var round2 = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate);
 					round2.StatusChanged += Round_StatusChangedAsync;
 					round2.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
-					await round2.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration, feePerInputs, feePerOutputs);
+					await round2.ExecuteNextPhaseAsync(Phase.InputRegistration, feePerInputs, feePerOutputs);
 					Rounds.Add(round2);
 				}
 				else if (runningRoundCount == 1)
@@ -220,7 +221,7 @@ namespace WalletWasabi.CoinJoin
 					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate);
 					round.StatusChanged += Round_StatusChangedAsync;
 					round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
-					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration, feePerInputs, feePerOutputs);
+					await round.ExecuteNextPhaseAsync(Phase.InputRegistration, feePerInputs, feePerOutputs);
 					Rounds.Add(round);
 				}
 			}
@@ -309,7 +310,7 @@ namespace WalletWasabi.CoinJoin
 				}
 
 				// If aborted in signing phase, then ban Alices that did not sign.
-				if (status == CcjRoundStatus.Aborted && round.Phase == CcjRoundPhase.Signing)
+				if (status == CcjRoundStatus.Aborted && round.Phase == Phase.Signing)
 				{
 					IEnumerable<Alice> alicesDidntSign = round.GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: false);
 
@@ -334,7 +335,7 @@ namespace WalletWasabi.CoinJoin
 							if (nextRoundAlicesCount >= nextRound.AnonymitySet)
 							{
 								// Progress to the next phase, which will be OutputRegistration
-								await nextRound.ExecuteNextPhaseAsync(CcjRoundPhase.ConnectionConfirmation);
+								await nextRound.ExecuteNextPhaseAsync(Phase.ConnectionConfirmation);
 							}
 						}
 					}
@@ -365,7 +366,7 @@ namespace WalletWasabi.CoinJoin
 		{
 			using (RoundsListLock.Lock())
 			{
-				foreach (var r in Rounds.Where(x => x.Status == CcjRoundStatus.Running && x.Phase == CcjRoundPhase.InputRegistration))
+				foreach (var r in Rounds.Where(x => x.Status == CcjRoundStatus.Running && x.Phase == Phase.InputRegistration))
 				{
 					r.Abort(reason, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 				}
@@ -386,11 +387,11 @@ namespace WalletWasabi.CoinJoin
 			{
 				using (RoundsListLock.Lock())
 				{
-					return Rounds.FirstOrDefault(x => x.Status == CcjRoundStatus.Running && x.Phase == CcjRoundPhase.InputRegistration);
+					return Rounds.FirstOrDefault(x => x.Status == CcjRoundStatus.Running && x.Phase == Phase.InputRegistration);
 				}
 			}
 
-			return Rounds.FirstOrDefault(x => x.Status == CcjRoundStatus.Running && x.Phase == CcjRoundPhase.InputRegistration);
+			return Rounds.FirstOrDefault(x => x.Status == CcjRoundStatus.Running && x.Phase == Phase.InputRegistration);
 		}
 
 		public CcjRound TryGetRound(long roundId)

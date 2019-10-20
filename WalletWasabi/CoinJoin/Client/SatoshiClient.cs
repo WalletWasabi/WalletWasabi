@@ -5,8 +5,9 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.CoinJoin.Common;
 
-namespace WalletWasabi.CoinJoin
+namespace WalletWasabi.CoinJoin.Client
 {
 	public class SatoshiClient : TorDisposableBase
 	{
@@ -42,7 +43,7 @@ namespace WalletWasabi.CoinJoin
 		public async Task<CcjRunningRoundState> GetRegistrableRoundStateAsync()
 		{
 			IEnumerable<CcjRunningRoundState> states = await GetAllRoundStatesAsync();
-			return states.First(x => x.Phase == CcjRoundPhase.InputRegistration);
+			return states.First(x => x.Phase == Phase.InputRegistration);
 		}
 	}
 }

@@ -7,7 +7,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.KeyManagement;
 
-namespace WalletWasabi.CoinJoin
+namespace WalletWasabi.CoinJoin.Client
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class HdPubKeyBlindedPair

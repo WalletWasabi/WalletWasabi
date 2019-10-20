@@ -12,7 +12,7 @@ using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.CoinJoin
+namespace WalletWasabi.CoinJoin.Coordinator
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class CcjRoundConfig : ConfigBase

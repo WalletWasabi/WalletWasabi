@@ -7,7 +7,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using static NBitcoin.Crypto.SchnorrBlinding;
 
-namespace WalletWasabi.CoinJoin
+namespace WalletWasabi.CoinJoin.Common.Crypto
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class SchnorrPubKey : IEquatable<SchnorrPubKey>

@@ -5,17 +5,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.CoinJoin.Common;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.CoinJoin
+namespace WalletWasabi.CoinJoin.Client
 {
 	public class ClientRoundRegistration : IDisposable
 	{
 		/// <summary>
 		/// Completed all the necessary actions in the phase.
 		/// </summary>
-		public CcjRoundPhase CompletedPhase { get; set; }
+		public Phase CompletedPhase { get; set; }
 
 		public BitcoinAddress ChangeAddress { get; }
 
@@ -34,9 +35,9 @@ namespace WalletWasabi.CoinJoin
 			ActiveOutputs = Enumerable.Empty<ActiveOutput>();
 		}
 
-		public bool IsPhaseActionsComleted(CcjRoundPhase phase) => CompletedPhase >= phase;
+		public bool IsPhaseActionsComleted(Phase phase) => CompletedPhase >= phase;
 
-		public void SetPhaseCompleted(CcjRoundPhase phase)
+		public void SetPhaseCompleted(Phase phase)
 		{
 			if (!IsPhaseActionsComleted(phase))
 			{

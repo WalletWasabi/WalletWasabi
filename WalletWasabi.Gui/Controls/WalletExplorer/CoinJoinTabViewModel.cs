@@ -17,7 +17,8 @@ using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Models;
-using WalletWasabi.CoinJoin;
+using WalletWasabi.CoinJoin.Common;
+using WalletWasabi.CoinJoin.Client;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -26,7 +27,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private CompositeDisposable Disposables { get; set; }
 
 		private long _roundId;
-		private CcjRoundPhase _phase;
+		private Phase _phase;
 		private DateTimeOffset _roundTimesout;
 		private TimeSpan _timeLeftTillRoundTimeout;
 		private Money _requiredBTC;
@@ -139,14 +140,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				RoundId = mostAdvancedRound.State.RoundId;
 				Phase = mostAdvancedRound.State.Phase;
-				RoundTimesout = mostAdvancedRound.State.Phase == CcjRoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
+				RoundTimesout = mostAdvancedRound.State.Phase == Phase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
 				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
 				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
 			}
 			else
 			{
 				RoundId = -1;
-				Phase = CcjRoundPhase.InputRegistration;
+				Phase = Phase.InputRegistration;
 				RoundTimesout = DateTimeOffset.UtcNow;
 				PeersRegistered = 0;
 				PeersNeeded = 100;
@@ -284,7 +285,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				if (!chaumianClient.State.IsInErrorState)
 				{
 					Phase = mostAdvancedRound.State.Phase;
-					RoundTimesout = mostAdvancedRound.State.Phase == CcjRoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
+					RoundTimesout = mostAdvancedRound.State.Phase == Phase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
 				}
 				this.RaisePropertyChanged(nameof(Phase));
 				this.RaisePropertyChanged(nameof(RoundTimesout));
@@ -375,7 +376,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _roundId, value);
 		}
 
-		public CcjRoundPhase Phase
+		public Phase Phase
 		{
 			get => _phase;
 			set => this.RaiseAndSetIfChanged(ref _phase, value);

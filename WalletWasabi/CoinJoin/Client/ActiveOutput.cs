@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.CoinJoin
+namespace WalletWasabi.CoinJoin.Client
 {
 	public class ActiveOutput
 	{

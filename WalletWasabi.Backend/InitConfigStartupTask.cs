@@ -9,7 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.CoinJoin;
+using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Backend

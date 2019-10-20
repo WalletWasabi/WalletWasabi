@@ -4,10 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.Helpers;
 using static NBitcoin.Crypto.SchnorrBlinding;
 
-namespace WalletWasabi.CoinJoin
+namespace WalletWasabi.CoinJoin.Coordinator
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class MixingLevels

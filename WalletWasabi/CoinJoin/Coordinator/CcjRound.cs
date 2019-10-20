@@ -10,11 +10,12 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.CoinJoin.Common;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using static NBitcoin.Crypto.SchnorrBlinding;
 
-namespace WalletWasabi.CoinJoin
+namespace WalletWasabi.CoinJoin.Coordinator
 {
 	public class CcjRound
 	{
@@ -69,10 +70,10 @@ namespace WalletWasabi.CoinJoin
 
 		private static AsyncLock RoundSynchronizerLock { get; } = new AsyncLock();
 
-		private CcjRoundPhase _phase;
+		private Phase _phase;
 		private object PhaseLock { get; }
 
-		public CcjRoundPhase Phase
+		public Phase Phase
 		{
 			get
 			{
@@ -100,7 +101,7 @@ namespace WalletWasabi.CoinJoin
 			}
 		}
 
-		public event EventHandler<CcjRoundPhase> PhaseChanged;
+		public event EventHandler<Phase> PhaseChanged;
 
 		private CcjRoundStatus _status;
 
@@ -173,7 +174,7 @@ namespace WalletWasabi.CoinJoin
 				SigningTimeout = TimeSpan.FromSeconds(config.SigningTimeout);
 
 				PhaseLock = new object();
-				Phase = CcjRoundPhase.InputRegistration;
+				Phase = Phase.InputRegistration;
 				StatusLock = new object();
 				Status = CcjRoundStatus.NotStarted;
 
@@ -213,9 +214,9 @@ namespace WalletWasabi.CoinJoin
 			InputRegistrationTimesout = DateTimeOffset.UtcNow + InputRegistrationTimeout;
 		}
 
-		public static ConcurrentDictionary<(long roundId, CcjRoundPhase phase), DateTimeOffset> PhaseTimeoutLog { get; } = new ConcurrentDictionary<(long roundId, CcjRoundPhase phase), DateTimeOffset>();
+		public static ConcurrentDictionary<(long roundId, Phase phase), DateTimeOffset> PhaseTimeoutLog { get; } = new ConcurrentDictionary<(long roundId, Phase phase), DateTimeOffset>();
 
-		public async Task ExecuteNextPhaseAsync(CcjRoundPhase expectedPhase, Money feePerInputs = null, Money feePerOutputs = null)
+		public async Task ExecuteNextPhaseAsync(Phase expectedPhase, Money feePerInputs = null, Money feePerOutputs = null)
 		{
 			using (await RoundSynchronizerLock.LockAsync())
 			{
@@ -225,7 +226,7 @@ namespace WalletWasabi.CoinJoin
 
 					if (Status == CcjRoundStatus.NotStarted) // So start the input registration phase
 					{
-						if (expectedPhase != CcjRoundPhase.InputRegistration)
+						if (expectedPhase != Phase.InputRegistration)
 						{
 							return;
 						}
@@ -249,27 +250,27 @@ namespace WalletWasabi.CoinJoin
 					{
 						return;
 					}
-					else if (Phase == CcjRoundPhase.InputRegistration)
+					else if (Phase == Phase.InputRegistration)
 					{
-						if (expectedPhase != CcjRoundPhase.ConnectionConfirmation)
+						if (expectedPhase != Phase.ConnectionConfirmation)
 						{
 							return;
 						}
 
-						Phase = CcjRoundPhase.ConnectionConfirmation;
+						Phase = Phase.ConnectionConfirmation;
 					}
-					else if (Phase == CcjRoundPhase.ConnectionConfirmation)
+					else if (Phase == Phase.ConnectionConfirmation)
 					{
-						if (expectedPhase != CcjRoundPhase.OutputRegistration)
+						if (expectedPhase != Phase.OutputRegistration)
 						{
 							return;
 						}
 
-						Phase = CcjRoundPhase.OutputRegistration;
+						Phase = Phase.OutputRegistration;
 					}
-					else if (Phase == CcjRoundPhase.OutputRegistration)
+					else if (Phase == Phase.OutputRegistration)
 					{
-						if (expectedPhase != CcjRoundPhase.Signing)
+						if (expectedPhase != Phase.Signing)
 						{
 							return;
 						}
@@ -419,7 +420,7 @@ namespace WalletWasabi.CoinJoin
 
 						SignedCoinJoin = Transaction.Parse(UnsignedCoinJoin.ToHex(), Network);
 
-						Phase = CcjRoundPhase.Signing;
+						Phase = Phase.Signing;
 					}
 					else // Phase == CcjRoundPhase.Signing
 					{
@@ -443,22 +444,22 @@ namespace WalletWasabi.CoinJoin
 						TimeSpan timeout;
 						switch (expectedPhase)
 						{
-							case CcjRoundPhase.InputRegistration:
+							case Phase.InputRegistration:
 								{
 									SetInputRegistrationTimesout(); // Update it, it's going to be slightly more accurate.
 									timeout = InputRegistrationTimeout;
 								}
 								break;
 
-							case CcjRoundPhase.ConnectionConfirmation:
+							case Phase.ConnectionConfirmation:
 								timeout = ConnectionConfirmationTimeout;
 								break;
 
-							case CcjRoundPhase.OutputRegistration:
+							case Phase.OutputRegistration:
 								timeout = OutputRegistrationTimeout;
 								break;
 
-							case CcjRoundPhase.Signing:
+							case Phase.Signing:
 								timeout = SigningTimeout;
 								break;
 
@@ -479,11 +480,11 @@ namespace WalletWasabi.CoinJoin
 							PhaseTimeoutLog.TryAdd((RoundId, Phase), DateTimeOffset.UtcNow);
 							string timedOutLogString = $"Round ({RoundId}): {expectedPhase.ToString()} timed out after {timeout.TotalSeconds} seconds.";
 
-							if (expectedPhase == CcjRoundPhase.ConnectionConfirmation)
+							if (expectedPhase == Phase.ConnectionConfirmation)
 							{
 								Logger.LogInfo(timedOutLogString);
 							}
-							else if (expectedPhase == CcjRoundPhase.OutputRegistration)
+							else if (expectedPhase == Phase.OutputRegistration)
 							{
 								Logger.LogInfo($"{timedOutLogString} Progressing to signing phase to blame...");
 							}
@@ -499,7 +500,7 @@ namespace WalletWasabi.CoinJoin
 									{
 										switch (expectedPhase)
 										{
-											case CcjRoundPhase.InputRegistration:
+											case Phase.InputRegistration:
 												{
 													// Only abort if less than two one Alice is registered.
 													// Do not ban anyone, it's ok if they lost connection.
@@ -513,12 +514,12 @@ namespace WalletWasabi.CoinJoin
 													{
 														UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
 														// Progress to the next phase, which will be ConnectionConfirmation
-														await ExecuteNextPhaseAsync(CcjRoundPhase.ConnectionConfirmation);
+														await ExecuteNextPhaseAsync(Phase.ConnectionConfirmation);
 													}
 												}
 												break;
 
-											case CcjRoundPhase.ConnectionConfirmation:
+											case Phase.ConnectionConfirmation:
 												{
 													IEnumerable<Alice> alicesToBan = GetAlicesBy(AliceState.InputsRegistered);
 
@@ -526,16 +527,16 @@ namespace WalletWasabi.CoinJoin
 												}
 												break;
 
-											case CcjRoundPhase.OutputRegistration:
+											case Phase.OutputRegistration:
 												{
 													// Output registration never aborts.
 													// We do not know which Alice to ban.
 													// Therefore proceed to signing, and whichever Alice does not sign, ban her.
-													await ExecuteNextPhaseAsync(CcjRoundPhase.Signing);
+													await ExecuteNextPhaseAsync(Phase.Signing);
 												}
 												break;
 
-											case CcjRoundPhase.Signing:
+											case Phase.Signing:
 												{
 													Alice[] alicesToBan = GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: true).ToArray();
 
@@ -608,7 +609,7 @@ namespace WalletWasabi.CoinJoin
 					UpdateAnonymitySet(aliceCountAfterConnectionConfirmationTimeout);
 				}
 				// Progress to the next phase, which will be OutputRegistration
-				await ExecuteNextPhaseAsync(CcjRoundPhase.OutputRegistration);
+				await ExecuteNextPhaseAsync(Phase.OutputRegistration);
 			}
 		}
 
@@ -1018,7 +1019,7 @@ namespace WalletWasabi.CoinJoin
 			var started = DateTimeOffset.UtcNow;
 			using (RoundSynchronizerLock.Lock())
 			{
-				if (Phase != CcjRoundPhase.InputRegistration || Status != CcjRoundStatus.Running)
+				if (Phase != Phase.InputRegistration || Status != CcjRoundStatus.Running)
 				{
 					return; // Then no need to timeout alice.
 				}
@@ -1041,7 +1042,7 @@ namespace WalletWasabi.CoinJoin
 					using (await RoundSynchronizerLock.LockAsync())
 					{
 						// 3. If the round is still running and the phase is still InputRegistration
-						if (Status == CcjRoundStatus.Running && Phase == CcjRoundPhase.InputRegistration)
+						if (Status == CcjRoundStatus.Running && Phase == Phase.InputRegistration)
 						{
 							Alice alice = Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
 							if (alice != default(Alice))
@@ -1118,7 +1119,7 @@ namespace WalletWasabi.CoinJoin
 			{
 				using (RoundSynchronizerLock.Lock())
 				{
-					if (Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation || Status != CcjRoundStatus.Running)
+					if (Phase != Phase.InputRegistration && Phase != Phase.ConnectionConfirmation || Status != CcjRoundStatus.Running)
 					{
 						throw new InvalidOperationException($"Updating anonymity set is not allowed in {Phase.ToString()} phase.");
 					}
@@ -1127,7 +1128,7 @@ namespace WalletWasabi.CoinJoin
 			}
 			else
 			{
-				if (Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation || Status != CcjRoundStatus.Running)
+				if (Phase != Phase.InputRegistration && Phase != Phase.ConnectionConfirmation || Status != CcjRoundStatus.Running)
 				{
 					throw new InvalidOperationException($"Updating anonymity set is not allowed in {Phase.ToString()} phase.");
 				}
@@ -1140,7 +1141,7 @@ namespace WalletWasabi.CoinJoin
 		{
 			using (RoundSynchronizerLock.Lock())
 			{
-				if (Phase != CcjRoundPhase.InputRegistration || Status != CcjRoundStatus.Running)
+				if (Phase != Phase.InputRegistration || Status != CcjRoundStatus.Running)
 				{
 					throw new InvalidOperationException("Adding Alice is only allowed in InputRegistration phase.");
 				}
@@ -1156,7 +1157,7 @@ namespace WalletWasabi.CoinJoin
 		{
 			using (RoundSynchronizerLock.Lock())
 			{
-				if (Phase != CcjRoundPhase.OutputRegistration || Status != CcjRoundStatus.Running)
+				if (Phase != Phase.OutputRegistration || Status != CcjRoundStatus.Running)
 				{
 					throw new InvalidOperationException("Adding Bob is only allowed in OutputRegistration phase.");
 				}
@@ -1175,7 +1176,7 @@ namespace WalletWasabi.CoinJoin
 
 			using (await RoundSynchronizerLock.LockAsync())
 			{
-				if (Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation || Status != CcjRoundStatus.Running)
+				if (Phase != Phase.InputRegistration && Phase != Phase.ConnectionConfirmation || Status != CcjRoundStatus.Running)
 				{
 					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				}
@@ -1216,7 +1217,7 @@ namespace WalletWasabi.CoinJoin
 			var numberOfRemovedAlices = 0;
 			using (RoundSynchronizerLock.Lock())
 			{
-				if (Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation || Status != CcjRoundStatus.Running)
+				if (Phase != Phase.InputRegistration && Phase != Phase.ConnectionConfirmation || Status != CcjRoundStatus.Running)
 				{
 					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				}

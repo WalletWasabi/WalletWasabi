@@ -1,6 +1,6 @@
-namespace WalletWasabi.CoinJoin
+namespace WalletWasabi.CoinJoin.Common
 {
-	public enum CcjRoundPhase
+	public enum Phase
 	{
 		InputRegistration,
 		ConnectionConfirmation,

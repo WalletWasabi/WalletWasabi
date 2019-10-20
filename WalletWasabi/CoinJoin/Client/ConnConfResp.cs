@@ -5,9 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
+using WalletWasabi.CoinJoin.Common;
 using WalletWasabi.JsonConverters;
 
-namespace WalletWasabi.CoinJoin
+namespace WalletWasabi.CoinJoin.Client
 {
 	public class ConnConfResp
 	{
@@ -15,6 +16,6 @@ namespace WalletWasabi.CoinJoin
 		public IEnumerable<uint256> BlindedOutputSignatures { get; set; }
 
 		[Required]
-		public CcjRoundPhase CurrentPhase { get; set; }
+		public Phase CurrentPhase { get; set; }
 	}
 }

@@ -6,7 +6,7 @@ using System.Net.Http;
 using System.Text;
 using WalletWasabi.JsonConverters;
 
-namespace WalletWasabi.CoinJoin
+namespace WalletWasabi.CoinJoin.Client
 {
 	public class InputsRequest
 	{
