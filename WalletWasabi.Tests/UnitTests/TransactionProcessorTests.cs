@@ -433,7 +433,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task SameClusterAfterReṕlacedByFeeAsync()
+		public async Task SameClusterAfterReplacedByFeeAsync()
 		{
 			// --tx0---> (A) --+
 			//                 |
@@ -476,7 +476,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task UpdateClustersAfterReṕlacedByFeeWithNewCoinsAsync()
+		public async Task UpdateClustersAfterReplacedByFeeWithNewCoinsAsync()
 		{
 			// --tx0---> (A) --+
 			//                 |

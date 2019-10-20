@@ -887,10 +887,6 @@ namespace WalletWasabi.Services
 				.SelectMany(x => x.Label.Labels))
 			.ToHashSet();
 
-		public void RefreshCoinHistories()
-		{
-		}
-
 		/// <summary>
 		/// Current timeout used when downloading a block from the remote node. It is defined in seconds.
 		/// </summary>

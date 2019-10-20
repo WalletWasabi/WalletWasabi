@@ -14,8 +14,7 @@ namespace WalletWasabi.Models
 		public Cluster(SmartCoin coin)
 		{
 			Labels = "";
-			Coins = new List<SmartCoin>();
-			Coins.Add(coin);
+			Coins = new List<SmartCoin>() { coin };
 			Labels = string.Join(", ", coin.Label.Labels);
 		}
 
@@ -41,7 +40,10 @@ namespace WalletWasabi.Models
 				}
 				coin.Clusters = this;
 			}
-			Labels = string.Join(", ", Coins.SelectMany(x => x.Label.Labels).Distinct(StringComparer.OrdinalIgnoreCase));
+			if (insertPosition > 0) // at least one element was inserted
+			{
+				Labels = string.Join(", ", Coins.SelectMany(x => x.Label.Labels).Distinct(StringComparer.OrdinalIgnoreCase));
+			}
 		}
 	}
 }
