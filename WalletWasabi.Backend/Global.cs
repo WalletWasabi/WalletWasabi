@@ -6,9 +6,10 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.CoinJoin.Coordinator;
+using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.Backend
@@ -25,13 +26,13 @@ namespace WalletWasabi.Backend
 
 		public IndexBuilderService IndexBuilderService { get; private set; }
 
-		public CcjCoordinator Coordinator { get; private set; }
+		public Coordinator Coordinator { get; private set; }
 
 		public ConfigWatcher RoundConfigWatcher { get; private set; }
 
 		public Config Config { get; private set; }
 
-		public CcjRoundConfig RoundConfig { get; private set; }
+		public CoordinatorRoundConfig RoundConfig { get; private set; }
 
 		public Global(string dataDir)
 		{
@@ -42,7 +43,7 @@ namespace WalletWasabi.Backend
 		{
 		}
 
-		public async Task InitializeAsync(Config config, CcjRoundConfig roundConfig, RPCClient rpc)
+		public async Task InitializeAsync(Config config, CoordinatorRoundConfig roundConfig, RPCClient rpc)
 		{
 			Config = Guard.NotNull(nameof(config), config);
 			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
@@ -59,7 +60,7 @@ namespace WalletWasabi.Backend
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
 			var utxoSetFilePath = Path.Combine(indexBuilderServiceDir, $"UtxoSet{RpcClient.Network}.dat");
 			IndexBuilderService = new IndexBuilderService(RpcClient, TrustedNodeNotifyingBehavior, indexFilePath, utxoSetFilePath);
-			Coordinator = new CcjCoordinator(RpcClient.Network, TrustedNodeNotifyingBehavior, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
+			Coordinator = new Coordinator(RpcClient.Network, TrustedNodeNotifyingBehavior, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
 			IndexBuilderService.Synchronize();
 			Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
 
