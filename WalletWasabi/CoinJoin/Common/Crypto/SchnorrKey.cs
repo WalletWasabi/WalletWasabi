@@ -6,7 +6,7 @@ using System.Text;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 
-namespace WalletWasabi.CoinJoin.Common.Crytpo
+namespace WalletWasabi.CoinJoin.Common.Crypto
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class SchnorrKey : IEquatable<SchnorrKey>

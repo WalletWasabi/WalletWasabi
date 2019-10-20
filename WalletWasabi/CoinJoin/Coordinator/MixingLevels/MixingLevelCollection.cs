@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using WalletWasabi.CoinJoin.Common.Crytpo;
+using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.Helpers;
 using static NBitcoin.Crypto.SchnorrBlinding;
 
