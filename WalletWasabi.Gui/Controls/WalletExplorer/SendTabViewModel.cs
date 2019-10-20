@@ -94,7 +94,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IsMax = false;
 			LabelToolTip = "Who can link this transaction to you? E.g.: \"Max, BitPay\"";
 			AmountText = "0.0";
-			UserFeeText = "";
 		}
 
 		public SendTabViewModel(WalletViewModel walletViewModel, bool isTransactionBuilder = false)
