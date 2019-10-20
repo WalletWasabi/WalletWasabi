@@ -17,8 +17,8 @@ using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Models;
-using WalletWasabi.CoinJoin.Client;
-using WalletWasabi.CoinJoin;
+using WalletWasabi.CoinJoin.Common.Models;
+using WalletWasabi.CoinJoin.Client.Rounds;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -27,7 +27,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private CompositeDisposable Disposables { get; set; }
 
 		private long _roundId;
-		private Phase _phase;
+		private RoundPhase _phase;
 		private DateTimeOffset _roundTimesout;
 		private TimeSpan _timeLeftTillRoundTimeout;
 		private Money _requiredBTC;
@@ -134,20 +134,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(_ => UpdateStates())
 				.DisposeWith(Disposables);
 
-			CcjClientRound mostAdvancedRound = Global.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
+			ClientRound mostAdvancedRound = Global.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
 
 			if (mostAdvancedRound != default)
 			{
 				RoundId = mostAdvancedRound.State.RoundId;
 				Phase = mostAdvancedRound.State.Phase;
-				RoundTimesout = mostAdvancedRound.State.Phase == Phase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
+				RoundTimesout = mostAdvancedRound.State.Phase == RoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
 				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
 				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
 			}
 			else
 			{
 				RoundId = -1;
-				Phase = Phase.InputRegistration;
+				Phase = RoundPhase.InputRegistration;
 				RoundTimesout = DateTimeOffset.UtcNow;
 				PeersRegistered = 0;
 				PeersNeeded = 100;
@@ -285,7 +285,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				if (!chaumianClient.State.IsInErrorState)
 				{
 					Phase = mostAdvancedRound.State.Phase;
-					RoundTimesout = mostAdvancedRound.State.Phase == Phase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
+					RoundTimesout = mostAdvancedRound.State.Phase == RoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
 				}
 				this.RaisePropertyChanged(nameof(Phase));
 				this.RaisePropertyChanged(nameof(RoundTimesout));
@@ -294,7 +294,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private void UpdateRequiredBtcLabel(CcjClientRound registrableRound)
+		private void UpdateRequiredBtcLabel(ClientRound registrableRound)
 		{
 			if (Global.WalletService is null)
 			{
@@ -376,7 +376,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _roundId, value);
 		}
 
-		public Phase Phase
+		public RoundPhase Phase
 		{
 			get => _phase;
 			set => this.RaiseAndSetIfChanged(ref _phase, value);

@@ -10,7 +10,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.CoinJoin.Client;
+using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.Crypto;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
@@ -96,7 +96,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				bitcoinStore,
 				keyManager,
 				syncer,
-				new CcjClient(syncer, network, keyManager, new Uri("http://localhost:12345"), Global.Instance.TorSocks5Endpoint),
+				new CoinJoinClient(syncer, network, keyManager, new Uri("http://localhost:12345"), Global.Instance.TorSocks5Endpoint),
 				nodes,
 				Global.Instance.DataDir,
 				new ServiceConfiguration(50, 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(0.0001m)));

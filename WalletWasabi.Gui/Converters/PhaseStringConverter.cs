@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
-using WalletWasabi.CoinJoin;
+using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Exceptions;
 
 namespace WalletWasabi.Gui.Converters
@@ -12,20 +12,20 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is Phase phase)
+			if (value is RoundPhase phase)
 			{
 				return phase switch
 				{
-					Phase.InputRegistration => "Registration",
-					Phase.ConnectionConfirmation => "Connection Confirmation",
-					Phase.OutputRegistration => "Output Registration",
-					Phase.Signing => "Signing",
+					RoundPhase.InputRegistration => "Registration",
+					RoundPhase.ConnectionConfirmation => "Connection Confirmation",
+					RoundPhase.OutputRegistration => "Output Registration",
+					RoundPhase.Signing => "Signing",
 					_ => ""
 				};
 			}
 			else
 			{
-				throw new TypeArgumentException(value, typeof(Phase), nameof(value));
+				throw new TypeArgumentException(value, typeof(RoundPhase), nameof(value));
 			}
 		}
 
@@ -33,21 +33,21 @@ namespace WalletWasabi.Gui.Converters
 		{
 			var s = value.ToString();
 
-			if (s.Equals("Registration", StringComparison.OrdinalIgnoreCase) || s.Equals(Phase.InputRegistration.ToString(), StringComparison.OrdinalIgnoreCase))
+			if (s.Equals("Registration", StringComparison.OrdinalIgnoreCase) || s.Equals(RoundPhase.InputRegistration.ToString(), StringComparison.OrdinalIgnoreCase))
 			{
-				return Phase.InputRegistration;
+				return RoundPhase.InputRegistration;
 			}
-			else if (s.Equals("Connection Confirmation", StringComparison.OrdinalIgnoreCase) || s.Equals(Phase.ConnectionConfirmation.ToString(), StringComparison.OrdinalIgnoreCase))
+			else if (s.Equals("Connection Confirmation", StringComparison.OrdinalIgnoreCase) || s.Equals(RoundPhase.ConnectionConfirmation.ToString(), StringComparison.OrdinalIgnoreCase))
 			{
-				return Phase.ConnectionConfirmation;
+				return RoundPhase.ConnectionConfirmation;
 			}
-			else if (s.Equals("Output Registration", StringComparison.OrdinalIgnoreCase) || s.Equals(Phase.OutputRegistration.ToString(), StringComparison.OrdinalIgnoreCase))
+			else if (s.Equals("Output Registration", StringComparison.OrdinalIgnoreCase) || s.Equals(RoundPhase.OutputRegistration.ToString(), StringComparison.OrdinalIgnoreCase))
 			{
-				return Phase.OutputRegistration;
+				return RoundPhase.OutputRegistration;
 			}
-			else if (s.Equals("Signing", StringComparison.OrdinalIgnoreCase) || s.Equals(Phase.Signing.ToString(), StringComparison.OrdinalIgnoreCase))
+			else if (s.Equals("Signing", StringComparison.OrdinalIgnoreCase) || s.Equals(RoundPhase.Signing.ToString(), StringComparison.OrdinalIgnoreCase))
 			{
-				return Phase.Signing;
+				return RoundPhase.Signing;
 			}
 
 			throw new InvalidOperationException();

@@ -20,7 +20,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.CoinJoin.Client;
+using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
@@ -58,7 +58,7 @@ namespace WalletWasabi.Services
 		public BitcoinStore BitcoinStore { get; }
 		public KeyManager KeyManager { get; }
 		public WasabiSynchronizer Synchronizer { get; }
-		public CcjClient ChaumianClient { get; }
+		public CoinJoinClient ChaumianClient { get; }
 		public NodesGroup Nodes { get; }
 		public string BlocksFolderPath { get; }
 
@@ -86,7 +86,7 @@ namespace WalletWasabi.Services
 			BitcoinStore bitcoinStore,
 			KeyManager keyManager,
 			WasabiSynchronizer syncer,
-			CcjClient chaumianClient,
+			CoinJoinClient chaumianClient,
 			NodesGroup nodes,
 			string workFolderDir,
 			ServiceConfiguration serviceConfiguration)
