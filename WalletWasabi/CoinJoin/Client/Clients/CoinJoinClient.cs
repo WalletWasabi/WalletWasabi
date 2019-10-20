@@ -107,13 +107,13 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			var lastResponse = Synchronizer.LastResponse;
 			if (lastResponse != null)
 			{
-				_ = TryProcessStatusAsync(Synchronizer.LastResponse.CcjRoundStates);
+				_ = TryProcessStatusAsync(Synchronizer.LastResponse.RoundStateResponses);
 			}
 		}
 
 		private async void Synchronizer_ResponseArrivedAsync(object sender, SynchronizeResponse e)
 		{
-			await TryProcessStatusAsync(e?.CcjRoundStates).ConfigureAwait(false);
+			await TryProcessStatusAsync(e?.RoundStateResponses).ConfigureAwait(false);
 		}
 
 		public void Start()

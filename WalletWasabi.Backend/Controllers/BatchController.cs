@@ -76,7 +76,7 @@ namespace WalletWasabi.Backend.Controllers
 				response.Filters = filters;
 			}
 
-			response.CcjRoundStates = ChaumianCoinJoinController.GetStatesCollection();
+			response.RoundStateResponses = ChaumianCoinJoinController.GetStatesCollection();
 
 			if (estimateSmartFee)
 			{
