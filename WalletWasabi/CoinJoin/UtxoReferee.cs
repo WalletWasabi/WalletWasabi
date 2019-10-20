@@ -9,10 +9,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
-using WalletWasabi.Models.ChaumianCoinJoin;
 
-namespace WalletWasabi.Services
+namespace WalletWasabi.CoinJoin
 {
 	public class UtxoReferee
 	{

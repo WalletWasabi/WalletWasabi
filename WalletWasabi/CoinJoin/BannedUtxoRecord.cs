@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.Models
+namespace WalletWasabi.CoinJoin
 {
 	public class BannedUtxoRecord
 	{

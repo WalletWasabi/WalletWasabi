@@ -6,9 +6,9 @@ using System.Linq;
 using System.Text;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Helpers;
-using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
+using WalletWasabi.Models;
 
-namespace WalletWasabi.Models.ChaumianCoinJoin
+namespace WalletWasabi.CoinJoin
 {
 	public class ClientRoundRegistration : IDisposable
 	{

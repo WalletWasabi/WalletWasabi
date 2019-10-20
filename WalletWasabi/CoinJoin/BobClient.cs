@@ -4,12 +4,10 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
-using WalletWasabi.Models.ChaumianCoinJoin;
 
-namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
+namespace WalletWasabi.CoinJoin
 {
 	public class BobClient : TorDisposableBase
 	{

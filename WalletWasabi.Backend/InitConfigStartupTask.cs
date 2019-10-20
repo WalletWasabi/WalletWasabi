@@ -9,8 +9,8 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.CoinJoin;
 using WalletWasabi.Logging;
-using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Backend
 {

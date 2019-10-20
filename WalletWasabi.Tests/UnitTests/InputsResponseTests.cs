@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.CoinJoin;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests

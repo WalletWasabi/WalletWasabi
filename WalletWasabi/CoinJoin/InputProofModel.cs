@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Backend.Models
+namespace WalletWasabi.CoinJoin
 {
 	public class InputProofModel
 	{

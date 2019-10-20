@@ -10,9 +10,9 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend;
+using WalletWasabi.CoinJoin;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Tests.NodeBuilding;
 
 namespace WalletWasabi.Tests.XunitConfiguration

@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Models.ChaumianCoinJoin;
+using WalletWasabi.Services;
 
-namespace WalletWasabi.Services
+namespace WalletWasabi.CoinJoin
 {
 	public class CcjCoordinator : IDisposable
 	{
@@ -295,7 +295,7 @@ namespace WalletWasabi.Services
 							feePerInputs = fees.feePerInputs;
 							feePerOutputs = fees.feePerOutputs;
 
-							Money newDenominationToGetInWithactiveOutputs = activeOutputAmount - (feePerInputs + (2 * feePerOutputs));
+							Money newDenominationToGetInWithactiveOutputs = activeOutputAmount - (feePerInputs + 2 * feePerOutputs);
 							if (newDenominationToGetInWithactiveOutputs < RoundConfig.Denomination)
 							{
 								if (newDenominationToGetInWithactiveOutputs > Money.Coins(0.01m))

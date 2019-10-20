@@ -8,9 +8,9 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.CoinJoin;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
-using WalletWasabi.Models.ChaumianCoinJoin;
 using static NBitcoin.Crypto.SchnorrBlinding;
 
 namespace NBitcoin

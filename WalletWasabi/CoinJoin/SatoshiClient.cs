@@ -4,11 +4,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
-using WalletWasabi.Models.ChaumianCoinJoin;
 
-namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
+namespace WalletWasabi.CoinJoin
 {
 	public class SatoshiClient : TorDisposableBase
 	{

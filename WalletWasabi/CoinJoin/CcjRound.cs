@@ -12,10 +12,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Services;
 using static NBitcoin.Crypto.SchnorrBlinding;
 
-namespace WalletWasabi.Models.ChaumianCoinJoin
+namespace WalletWasabi.CoinJoin
 {
 	public class CcjRound
 	{
@@ -624,7 +623,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				}
 
 				// Check if inputs have enough coins.
-				Money networkFeeToPay = (alice.Inputs.Count() * FeePerInputs) + (2 * FeePerOutputs);
+				Money networkFeeToPay = alice.Inputs.Count() * FeePerInputs + 2 * FeePerOutputs;
 				Money changeAmount = alice.InputSum - (newDenomination + networkFeeToPay);
 				var acceptedBlindedOutputScriptsCount = 1;
 
@@ -643,7 +642,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						break;
 					}
 
-					changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentage(CoordinatorFeePercent * bobsOnThisLevel)));
+					changeAmount -= level.Denomination + FeePerOutputs + level.Denomination.Percentage(CoordinatorFeePercent * bobsOnThisLevel);
 
 					if (changeAmount < Money.Zero)
 					{
@@ -682,7 +681,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			Money newDenomination = CalculateNewDenomination();
 
 			// Check if inputs have enough coins.
-			Money networkFeeToPay = (alice.Inputs.Count() * FeePerInputs) + (2 * FeePerOutputs);
+			Money networkFeeToPay = alice.Inputs.Count() * FeePerInputs + 2 * FeePerOutputs;
 			Money changeAmount = alice.InputSum - (newDenomination + networkFeeToPay);
 			var acceptedBlindedOutputScriptsCount = 1;
 
@@ -697,7 +696,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					break;
 				}
 
-				changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentage(CoordinatorFeePercent * potentialAlicesOnThisLevel)));
+				changeAmount -= level.Denomination + FeePerOutputs + level.Denomination.Percentage(CoordinatorFeePercent * potentialAlicesOnThisLevel);
 
 				if (changeAmount < Money.Zero)
 				{
@@ -816,7 +815,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			Money feePerInputs = null;
 			Money feePerOutputs = null;
-			var inputSizeInBytes = (int)Math.Ceiling(((3 * Constants.P2wpkhInputSizeInBytes) + Constants.P2pkhInputSizeInBytes) / 4m);
+			var inputSizeInBytes = (int)Math.Ceiling((3 * Constants.P2wpkhInputSizeInBytes + Constants.P2pkhInputSizeInBytes) / 4m);
 			var outputSizeInBytes = Constants.OutputSizeInBytes;
 			try
 			{
@@ -827,7 +826,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				}
 
 				var feeRate = estimateSmartFeeResponse.FeeRate;
-				Money feePerBytes = (feeRate.FeePerK / 1000);
+				Money feePerBytes = feeRate.FeePerK / 1000;
 
 				// Make sure min relay fee (1000 sat) is hit.
 				feePerInputs = Math.Max(feePerBytes * inputSizeInBytes, Money.Satoshis(500));
@@ -1119,7 +1118,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			{
 				using (RoundSynchronizerLock.Lock())
 				{
-					if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
+					if (Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation || Status != CcjRoundStatus.Running)
 					{
 						throw new InvalidOperationException($"Updating anonymity set is not allowed in {Phase.ToString()} phase.");
 					}
@@ -1128,7 +1127,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 			else
 			{
-				if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
+				if (Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation || Status != CcjRoundStatus.Running)
 				{
 					throw new InvalidOperationException($"Updating anonymity set is not allowed in {Phase.ToString()} phase.");
 				}
@@ -1176,7 +1175,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			using (await RoundSynchronizerLock.LockAsync())
 			{
-				if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
+				if (Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation || Status != CcjRoundStatus.Running)
 				{
 					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				}
@@ -1217,7 +1216,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			var numberOfRemovedAlices = 0;
 			using (RoundSynchronizerLock.Lock())
 			{
-				if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
+				if (Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation || Status != CcjRoundStatus.Running)
 				{
 					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				}

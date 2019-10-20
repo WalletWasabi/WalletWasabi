@@ -7,7 +7,7 @@ using System.Text;
 using WalletWasabi.Helpers;
 using static NBitcoin.Crypto.SchnorrBlinding;
 
-namespace WalletWasabi.Models.ChaumianCoinJoin
+namespace WalletWasabi.CoinJoin
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class MixingLevels

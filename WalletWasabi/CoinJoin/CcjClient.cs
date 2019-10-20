@@ -11,18 +11,16 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Models.ChaumianCoinJoin;
-using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
+using WalletWasabi.Services;
 using static NBitcoin.Crypto.SchnorrBlinding;
 
-namespace WalletWasabi.Services
+namespace WalletWasabi.CoinJoin
 {
 	public class CcjClient
 	{

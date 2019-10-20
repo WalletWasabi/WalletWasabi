@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using WalletWasabi.JsonConverters;
 
-namespace WalletWasabi.Backend.Models.Responses
+namespace WalletWasabi.CoinJoin
 {
 	public class InputsResponse
 	{

@@ -6,9 +6,8 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using WalletWasabi.JsonConverters;
-using WalletWasabi.Models.ChaumianCoinJoin;
 
-namespace WalletWasabi.Backend.Models.Responses
+namespace WalletWasabi.CoinJoin
 {
 	public class ConnConfResp
 	{

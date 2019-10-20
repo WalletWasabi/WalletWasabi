@@ -15,9 +15,9 @@ using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
-using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Services;
 using WalletWasabi.Models;
+using WalletWasabi.CoinJoin;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {

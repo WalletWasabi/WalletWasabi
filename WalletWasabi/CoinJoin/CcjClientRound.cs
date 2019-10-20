@@ -2,11 +2,11 @@ using NBitcoin;
 using NBitcoin.Crypto;
 using System.Collections.Generic;
 using System.Linq;
-using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Helpers;
+using WalletWasabi.Models;
 using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 
-namespace WalletWasabi.Models.ChaumianCoinJoin
+namespace WalletWasabi.CoinJoin
 {
 	public class CcjClientRound
 	{

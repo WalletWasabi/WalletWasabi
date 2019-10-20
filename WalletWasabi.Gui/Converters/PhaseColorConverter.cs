@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
-using WalletWasabi.Models.ChaumianCoinJoin;
+using WalletWasabi.CoinJoin;
 
 namespace WalletWasabi.Gui.Converters
 {

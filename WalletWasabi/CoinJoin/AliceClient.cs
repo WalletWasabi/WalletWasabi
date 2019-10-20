@@ -10,16 +10,12 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models;
-using WalletWasabi.Backend.Models.Requests;
-using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Logging;
-using WalletWasabi.Models.ChaumianCoinJoin;
 using static NBitcoin.Crypto.SchnorrBlinding;
 
-namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
+namespace WalletWasabi.CoinJoin
 {
 	public class AliceClient : TorDisposableBase
 	{
