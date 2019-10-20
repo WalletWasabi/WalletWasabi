@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.CoinJoin
+namespace WalletWasabi.CoinJoin.Coordinator
 {
 	public class Alice
 	{
