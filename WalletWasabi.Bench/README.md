@@ -1,10 +1,10 @@
 # WalletWasabi.Bench
 
-This project use BenchmarkDotnet to measure performance of parts of Wasabi implementation.
+This project uses BenchmarkDotnet to measure performance of parts of Wasabi implementation.
 
 ## Analyzing performance in Windows:
 
-You can generate flamegraph to view with Perfview on Windows with the following command:
+You can generate flamegraph to view with PerfView on Windows with the following command:
 ```powershell
 dotnet run -c Release -- --runtimes netcoreapp2.2 --filter TransactionProcessorBench --profiler ETW
 ```

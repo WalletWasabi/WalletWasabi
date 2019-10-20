@@ -30,12 +30,12 @@ namespace WalletWasabi.Bench
 		[GlobalSetup]
 		public void Setup()
 		{
-			var random = new Random(Seed:145);
+			var random = new Random(Seed: 145);
 			var utxos = new List<Coin>();
 			_tp = CreateTransactionProcessorAsync().Result;
 
 			// Crediting transactions
-			for(var i = 0; i < 100; i++)
+			for (var i = 0; i < 100; i++)
 			{
 				var stx = CreateCreditingTransaction(GetP2wpkhScript(_tp), Money.Coins(2.0m), true);
 				utxos.Add(stx.Transaction.Outputs.AsCoins().First());
@@ -43,7 +43,7 @@ namespace WalletWasabi.Bench
 			}
 
 			_txs = new List<SmartTransaction>(TRANSACTIONS);
-			for(var i = 0; i < TRANSACTIONS; i++)
+			for (var i = 0; i < TRANSACTIONS; i++)
 			{
 				var numOfCoinsToSpend = Math.Min(random.Next(1, 3), utxos.Count());
 				var coinsToSpend = utxos.Take(numOfCoinsToSpend);
@@ -56,7 +56,7 @@ namespace WalletWasabi.Bench
 		[Benchmark]
 		public void Process()
 		{
-			foreach(var stx in _txs)
+			foreach (var stx in _txs)
 			{
 				_tp.Process(stx);
 			}
@@ -76,14 +76,14 @@ namespace WalletWasabi.Bench
 			var serviceConfiguration = new ServiceConfiguration(2, 2, 21, 50, new IPEndPoint(IPAddress.Parse("127.0.0.1"), 45678), Money.Coins(0.0001m));
 
 			// 2. Create wasabi synchronizer service.
-			var synchronizer = new WasabiSynchronizer(Network.Main, bitcoinStore, ()=>new Uri("http://localhost:35474"), null);
+			var synchronizer = new WasabiSynchronizer(Network.Main, bitcoinStore, () => new Uri("http://localhost:35474"), null);
 			synchronizer.Start(requestInterval: TimeSpan.FromDays(1), TimeSpan.FromDays(1), 1000);
 
 			// 3. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// 4. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(synchronizer, Network.Main, keyManager, ()=>new Uri("http://localhost:354874"), null);
+			var chaumianClient = new CcjClient(synchronizer, Network.Main, keyManager, () => new Uri("http://localhost:354874"), null);
 
 			// 5. Create wallet service.
 			await bitcoinStore.InitializeAsync(dir, Network.Main);
@@ -92,7 +92,7 @@ namespace WalletWasabi.Bench
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, nodes, workDir, serviceConfiguration);
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 			{
-				await wallet.InitializeAsync(cts.Token); 
+				await wallet.InitializeAsync(cts.Token);
 			}
 
 			return wallet.TransactionProcessor;
