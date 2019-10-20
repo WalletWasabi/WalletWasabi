@@ -92,7 +92,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Password = "";
 			AllSelectedAmount = Money.Zero;
 			IsMax = false;
-			LabelToolTip = "Start labeling today and your privacy will thank you tomorrow!";
+			LabelToolTip = "Who can link this transaction to you? E.g.: \"Max, BitPay\"";
 			AmountText = "0.0";
 			UserFeeText = "";
 		}
@@ -210,7 +210,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						AmountText = "0.0";
 
-						LabelToolTip = "Start labeling today and your privacy will thank you tomorrow!";
+						LabelToolTip = "Who can link this transaction to you? E.g.: \"Max, BitPay\"";
 					}
 				});
 
