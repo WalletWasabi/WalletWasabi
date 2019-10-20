@@ -29,14 +29,14 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			Guard.NotNull(nameof(activeOutput), activeOutput);
 
 			var request = new OutputRequest { OutputAddress = activeOutput.Address, UnblindedSignature = activeOutput.Signature, Level = activeOutput.MixingLevel };
-			using var response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Constants.BackendMajorVersion}/btc/chaumiancoinjoin/output?roundId={roundId}", request.ToHttpStringContent());
+			using var response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Constants.BackendMajorVersion}/btc/chaumiancoinjoin/output?roundId={roundId}", request.ToHttpStringContent()).ConfigureAwait(false);
 			if (response.StatusCode == HttpStatusCode.Conflict)
 			{
 				return false;
 			}
 			else if (response.StatusCode != HttpStatusCode.NoContent)
 			{
-				await response.ThrowRequestExceptionFromContentAsync();
+				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 			}
 
 			return true;

@@ -57,7 +57,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			Uri baseUri,
 			EndPoint torSocks5EndPoint)
 		{
-			return await CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, request, () => baseUri, torSocks5EndPoint);
+			return await CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, request, () => baseUri, torSocks5EndPoint).ConfigureAwait(false);
 		}
 
 		public static async Task<AliceClient> CreateNewAsync(long roundId,
@@ -84,13 +84,13 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 						throw new NotSupportedException($"InputRequest {nameof(roundId)} does not match to the provided {nameof(roundId)}: {request.RoundId} != {roundId}.");
 					}
 				}
-				using HttpResponseMessage response = await client.TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent());
+				using HttpResponseMessage response = await client.TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()).ConfigureAwait(false);
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
-					await response.ThrowRequestExceptionFromContentAsync();
+					await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 				}
 
-				var inputsResponse = await response.Content.ReadAsJsonAsync<InputsResponse>();
+				var inputsResponse = await response.Content.ReadAsJsonAsync<InputsResponse>().ConfigureAwait(false);
 
 				if (inputsResponse.RoundId != roundId) // This should never happen. If it does, that's a bug in the coordinator.
 				{
@@ -121,7 +121,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			Uri baseUri,
 			EndPoint torSocks5EndPoint)
 		{
-			return await CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, changeOutput, blindedOutputScriptHashes, inputs, () => baseUri, torSocks5EndPoint);
+			return await CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, changeOutput, blindedOutputScriptHashes, inputs, () => baseUri, torSocks5EndPoint).ConfigureAwait(false);
 		}
 
 		public static async Task<AliceClient> CreateNewAsync(long roundId,
@@ -142,18 +142,18 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				ChangeOutputAddress = changeOutput,
 				Inputs = inputs
 			};
-			return await CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, request, baseUriAction, torSocks5EndPoint);
+			return await CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, request, baseUriAction, torSocks5EndPoint).ConfigureAwait(false);
 		}
 
 		public async Task<(RoundPhase currentPhase, IEnumerable<ActiveOutput> activeOutputs)> PostConfirmationAsync()
 		{
-			using HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId={UniqueId}&roundId={RoundId}");
+			using HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId={UniqueId}&roundId={RoundId}").ConfigureAwait(false);
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				await response.ThrowRequestExceptionFromContentAsync();
+				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 			}
 
-			ConnectionConfirmationResponse resp = await response.Content.ReadAsJsonAsync<ConnectionConfirmationResponse>();
+			ConnectionConfirmationResponse resp = await response.Content.ReadAsJsonAsync<ConnectionConfirmationResponse>().ConfigureAwait(false);
 			Logger.LogInfo($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection. Phase: {resp.CurrentPhase}.");
 
 			var activeOutputs = new List<ActiveOutput>();
@@ -199,10 +199,10 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			{
 				try
 				{
-					using HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/unconfirmation?uniqueId={UniqueId}&roundId={RoundId}", cancel: cts.Token);
+					using HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/unconfirmation?uniqueId={UniqueId}&roundId={RoundId}", cancel: cts.Token).ConfigureAwait(false);
 					if (response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.Gone) // Otherwise maybe some internet connection issue there's. Let's consider that as timed out.
 					{
-						await response.ThrowRequestExceptionFromContentAsync();
+						await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 					}
 				}
 				catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException) // If could not do it within 3 seconds then it'll likely time out and take it as unconfirmed.
@@ -223,13 +223,13 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public async Task<Transaction> GetUnsignedCoinJoinAsync()
 		{
-			using HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Get, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/coinjoin?uniqueId={UniqueId}&roundId={RoundId}");
+			using HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Get, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/coinjoin?uniqueId={UniqueId}&roundId={RoundId}").ConfigureAwait(false);
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				await response.ThrowRequestExceptionFromContentAsync();
+				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 			}
 
-			var coinjoinHex = await response.Content.ReadAsJsonAsync<string>();
+			var coinjoinHex = await response.Content.ReadAsJsonAsync<string>().ConfigureAwait(false);
 
 			Transaction coinJoin = Transaction.Parse(coinjoinHex, Network.Main);
 			Logger.LogInfo($"Round ({RoundId}), Alice ({UniqueId}): Acquired unsigned CoinJoin: {coinJoin.GetHash()}.");
@@ -243,10 +243,10 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			var jsonSignatures = JsonConvert.SerializeObject(myDic, Formatting.None);
 			var signatureRequestContent = new StringContent(jsonSignatures, Encoding.UTF8, "application/json");
 
-			using HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/signatures?uniqueId={UniqueId}&roundId={RoundId}", signatureRequestContent);
+			using HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/signatures?uniqueId={UniqueId}&roundId={RoundId}", signatureRequestContent).ConfigureAwait(false);
 			if (response.StatusCode != HttpStatusCode.NoContent)
 			{
-				await response.ThrowRequestExceptionFromContentAsync();
+				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 			}
 			Logger.LogInfo($"Round ({RoundId}), Alice ({UniqueId}): Posted {signatures.Count} signatures.");
 		}

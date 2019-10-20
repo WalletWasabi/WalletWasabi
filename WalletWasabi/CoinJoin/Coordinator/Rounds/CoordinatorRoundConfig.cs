@@ -85,7 +85,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 			if (toFile)
 			{
-				await ToFileAsync();
+				await ToFileAsync().ConfigureAwait(false);
 			}
 		}
 	}

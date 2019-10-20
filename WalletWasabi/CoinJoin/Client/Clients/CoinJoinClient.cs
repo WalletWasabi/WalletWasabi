@@ -113,7 +113,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		private async void Synchronizer_ResponseArrivedAsync(object sender, SynchronizeResponse e)
 		{
-			await TryProcessStatusAsync(e?.CcjRoundStates);
+			await TryProcessStatusAsync(e?.CcjRoundStates).ConfigureAwait(false);
 		}
 
 		public void Start()
@@ -141,9 +141,9 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					{
 						try
 						{
-							using (await MixLock.LockAsync())
+							using (await MixLock.LockAsync().ConfigureAwait(false))
 							{
-								await DequeueSpentCoinsFromMixNoLockAsync();
+								await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
 
 								// If stop was requested return.
 								if (!IsRunning)
@@ -178,7 +178,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 						{
 							try
 							{
-								await Task.Delay(1000, Cancel.Token);
+								await Task.Delay(1000, Cancel.Token).ConfigureAwait(false);
 							}
 							catch (TaskCanceledException ex)
 							{
@@ -208,7 +208,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				Synchronizer.BlockRequests();
 
 				Interlocked.Exchange(ref _statusProcessing, 1);
-				using (await MixLock.LockAsync())
+				using (await MixLock.LockAsync().ConfigureAwait(false))
 				{
 					// First, if there's delayed round registration update based on the state.
 					if (DelayedRoundRegistration != null)
@@ -218,7 +218,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 						DelayedRoundRegistration = null; // Do not dispose.
 					}
 
-					await DequeueSpentCoinsFromMixNoLockAsync();
+					await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
 
 					State.UpdateRoundsByStates(ExposedLinks, states.ToArray());
 
@@ -236,7 +236,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 						if (!registrableRound.State.HaveEnoughQueued(State.GetAllQueuedCoinAmounts().ToArray())
 							|| dequeueBecauseCoordinatorFeeChanged)
 						{
-							await DequeueAllCoinsFromMixNoLockAsync("The total value of the registered coins is not enough or the coordinator's fee changed.");
+							await DequeueAllCoinsFromMixNoLockAsync("The total value of the registered coins is not enough or the coordinator's fee changed.").ConfigureAwait(false);
 						}
 					}
 				}
@@ -249,26 +249,26 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					delaySeconds = 0;
 				}
 
-				await Task.Delay(TimeSpan.FromSeconds(delaySeconds), Cancel.Token);
+				await Task.Delay(TimeSpan.FromSeconds(delaySeconds), Cancel.Token).ConfigureAwait(false);
 
-				using (await MixLock.LockAsync())
+				using (await MixLock.LockAsync().ConfigureAwait(false))
 				{
 					foreach (long ongoingRoundId in State.GetActivelyMixingRounds())
 					{
-						await TryProcessRoundStateAsync(ongoingRoundId);
+						await TryProcessRoundStateAsync(ongoingRoundId).ConfigureAwait(false);
 					}
 
-					await DequeueSpentCoinsFromMixNoLockAsync();
+					await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
 					ClientRound inputRegistrableRound = State.GetRegistrableRoundOrDefault();
 					if (inputRegistrableRound != null)
 					{
 						if (inputRegistrableRound.Registration is null) // If did not register already, check what can we register.
 						{
-							await TryRegisterCoinsAsync(inputRegistrableRound);
+							await TryRegisterCoinsAsync(inputRegistrableRound).ConfigureAwait(false);
 						}
 						else // We registered, let's confirm we're online.
 						{
-							await TryConfirmConnectionAsync(inputRegistrableRound);
+							await TryConfirmConnectionAsync(inputRegistrableRound).ConfigureAwait(false);
 						}
 					}
 				}
@@ -302,7 +302,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				{
 					if (!ongoingRound.Registration.IsPhaseActionsComleted(RoundPhase.ConnectionConfirmation)) // If we did not already confirm connection in connection confirmation phase confirm it.
 					{
-						var res = await ongoingRound.Registration.AliceClient.PostConfirmationAsync();
+						var res = await ongoingRound.Registration.AliceClient.PostConfirmationAsync().ConfigureAwait(false);
 						if (res.activeOutputs.Any())
 						{
 							ongoingRound.Registration.ActiveOutputs = res.activeOutputs;
@@ -314,17 +314,17 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				{
 					if (!ongoingRound.Registration.IsPhaseActionsComleted(RoundPhase.OutputRegistration))
 					{
-						await RegisterOutputAsync(ongoingRound);
+						await RegisterOutputAsync(ongoingRound).ConfigureAwait(false);
 					}
 				}
 				else if (ongoingRound.State.Phase == RoundPhase.Signing)
 				{
 					if (!ongoingRound.Registration.IsPhaseActionsComleted(RoundPhase.Signing))
 					{
-						Transaction unsignedCoinJoin = await ongoingRound.Registration.AliceClient.GetUnsignedCoinJoinAsync();
+						Transaction unsignedCoinJoin = await ongoingRound.Registration.AliceClient.GetUnsignedCoinJoinAsync().ConfigureAwait(false);
 						Dictionary<int, WitScript> myDic = SignCoinJoin(ongoingRound, unsignedCoinJoin);
 
-						await ongoingRound.Registration.AliceClient.PostSignaturesAsync(myDic);
+						await ongoingRound.Registration.AliceClient.PostSignaturesAsync(myDic).ConfigureAwait(false);
 						ongoingRound.Registration.SetPhaseCompleted(RoundPhase.Signing);
 					}
 				}
@@ -422,7 +422,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			foreach (var activeOutput in shuffledOutputs)
 			{
 				using var bobClient = new BobClient(CcjHostUriAction, TorSocks5EndPoint);
-				if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput))
+				if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput).ConfigureAwait(false))
 				{
 					Logger.LogWarning($"Round ({ongoingRound.State.RoundId}) Bobs did not have enough time to post outputs before timeout. If you see this message, contact nopara73, so he can optimize the phase timeout periods to the worst Internet/Tor connections, which may be yours.");
 					break;
@@ -455,7 +455,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		{
 			try
 			{
-				var res = await inputRegistrableRound.Registration.AliceClient.PostConfirmationAsync();
+				var res = await inputRegistrableRound.Registration.AliceClient.PostConfirmationAsync().ConfigureAwait(false);
 
 				if (res.activeOutputs.Any())
 				{
@@ -544,7 +544,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				AliceClient aliceClient = null;
 				try
 				{
-					aliceClient = await AliceClient.CreateNewAsync(inputRegistrableRound.RoundId, registeredAddresses, schnorrPubKeys, requesters, Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, CcjHostUriAction, TorSocks5EndPoint);
+					aliceClient = await AliceClient.CreateNewAsync(inputRegistrableRound.RoundId, registeredAddresses, schnorrPubKeys, requesters, Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, CcjHostUriAction, TorSocks5EndPoint).ConfigureAwait(false);
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("Input is banned", StringComparison.InvariantCultureIgnoreCase))
 				{
@@ -564,7 +564,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 					Logger.LogWarning(ex.Message.Split('\n')[1]);
 
-					await DequeueCoinsFromMixNoLockAsync(coinReference, "Failed to register the coin with the coordinator.");
+					await DequeueCoinsFromMixNoLockAsync(coinReference, "Failed to register the coin with the coordinator.").ConfigureAwait(false);
 					aliceClient?.Dispose();
 					return;
 				}
@@ -584,7 +584,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 					Logger.LogWarning(ex.Message.Split('\n')[1]);
 
-					await DequeueCoinsFromMixNoLockAsync(coinReference, "Failed to register the coin with the coordinator. The coin is already spent.");
+					await DequeueCoinsFromMixNoLockAsync(coinReference, "Failed to register the coin with the coordinator. The coin is already spent.").ConfigureAwait(false);
 					aliceClient?.Dispose();
 					return;
 				}
@@ -737,7 +737,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public async Task QueueCoinsToMixAsync(params SmartCoin[] coins)
 		{
-			await QueueCoinsToMixAsync(SaltSoup(), coins);
+			await QueueCoinsToMixAsync(SaltSoup(), coins).ConfigureAwait(false);
 		}
 
 		public void ActivateFrequentStatusProcessing()
@@ -762,9 +762,9 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			}
 
 			var successful = new List<SmartCoin>();
-			using (await MixLock.LockAsync())
+			using (await MixLock.LockAsync().ConfigureAwait(false))
 			{
-				await DequeueSpentCoinsFromMixNoLockAsync();
+				await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
 
 				// Every time the user enqueues (intentionally writes in password) then the coordinator fee percent must be noted and dequeue later if changes.
 				ClientRound latestRound = State.GetLatestRoundOrDefault();
@@ -814,7 +814,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public async Task DequeueCoinsFromMixAsync(SmartCoin coin, string reason)
 		{
-			await DequeueCoinsFromMixAsync(new[] { coin }, reason);
+			await DequeueCoinsFromMixAsync(new[] { coin }, reason).ConfigureAwait(false);
 		}
 
 		public async Task DequeueCoinsFromMixAsync(IEnumerable<SmartCoin> coins, string reason)
@@ -827,18 +827,18 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
 			try
 			{
-				using (await MixLock.LockAsync(cts.Token))
+				using (await MixLock.LockAsync(cts.Token).ConfigureAwait(false))
 				{
-					await DequeueSpentCoinsFromMixNoLockAsync();
+					await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
 
-					await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.GetTxoRef()).ToArray(), reason);
+					await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.GetTxoRef()).ToArray(), reason).ConfigureAwait(false);
 				}
 			}
 			catch (TaskCanceledException)
 			{
-				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray(), reason);
+				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray(), reason).ConfigureAwait(false);
 
-				await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.GetTxoRef()).ToArray(), reason);
+				await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.GetTxoRef()).ToArray(), reason).ConfigureAwait(false);
 			}
 		}
 
@@ -875,7 +875,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public async Task DequeueCoinsFromMixAsync(TxoRef coin, string reason)
 		{
-			await DequeueCoinsFromMixAsync(new[] { coin }, reason);
+			await DequeueCoinsFromMixAsync(new[] { coin }, reason).ConfigureAwait(false);
 		}
 
 		public async Task DequeueCoinsFromMixAsync(TxoRef[] coins, string reason)
@@ -888,18 +888,18 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
 			try
 			{
-				using (await MixLock.LockAsync(cts.Token))
+				using (await MixLock.LockAsync(cts.Token).ConfigureAwait(false))
 				{
-					await DequeueSpentCoinsFromMixNoLockAsync();
+					await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
 
-					await DequeueCoinsFromMixNoLockAsync(coins, reason);
+					await DequeueCoinsFromMixNoLockAsync(coins, reason).ConfigureAwait(false);
 				}
 			}
 			catch (TaskCanceledException)
 			{
-				await DequeueSpentCoinsFromMixNoLockAsync();
+				await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
 
-				await DequeueCoinsFromMixNoLockAsync(coins, reason);
+				await DequeueCoinsFromMixNoLockAsync(coins, reason).ConfigureAwait(false);
 			}
 		}
 
@@ -908,30 +908,30 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
 			try
 			{
-				using (await MixLock.LockAsync(cts.Token))
+				using (await MixLock.LockAsync(cts.Token).ConfigureAwait(false))
 				{
-					await DequeueAllCoinsFromMixNoLockAsync(reason);
+					await DequeueAllCoinsFromMixNoLockAsync(reason).ConfigureAwait(false);
 				}
 			}
 			catch (TaskCanceledException)
 			{
-				await DequeueAllCoinsFromMixNoLockAsync(reason);
+				await DequeueAllCoinsFromMixNoLockAsync(reason).ConfigureAwait(false);
 			}
 		}
 
 		private async Task DequeueAllCoinsFromMixNoLockAsync(string reason)
 		{
-			await DequeueCoinsFromMixNoLockAsync(State.GetAllQueuedCoins().ToArray(), reason);
+			await DequeueCoinsFromMixNoLockAsync(State.GetAllQueuedCoins().ToArray(), reason).ConfigureAwait(false);
 		}
 
 		private async Task DequeueSpentCoinsFromMixNoLockAsync()
 		{
-			await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
+			await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray()).ConfigureAwait(false);
 		}
 
 		private async Task DequeueCoinsFromMixNoLockAsync(TxoRef coin, string reason = null)
 		{
-			await DequeueCoinsFromMixNoLockAsync(new[] { coin }, reason);
+			await DequeueCoinsFromMixNoLockAsync(new[] { coin }, reason).ConfigureAwait(false);
 		}
 
 		private async Task DequeueCoinsFromMixNoLockAsync(TxoRef[] coins, string reason = null)
@@ -963,7 +963,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					{
 						try
 						{
-							await round.Registration.AliceClient.PostUnConfirmationAsync(); // AliceUniqueId must be there.
+							await round.Registration.AliceClient.PostUnConfirmationAsync().ConfigureAwait(false); // AliceUniqueId must be there.
 							State.ClearRoundRegistration(round.State.RoundId);
 						}
 						catch (Exception ex)
@@ -1035,15 +1035,15 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			Cancel?.Cancel();
 			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
 			{
-				await Task.Delay(50);
+				await Task.Delay(50).ConfigureAwait(false);
 			}
 
 			Cancel?.Dispose();
 			Cancel = null;
 
-			using (await MixLock.LockAsync())
+			using (await MixLock.LockAsync().ConfigureAwait(false))
 			{
-				await DequeueSpentCoinsFromMixNoLockAsync();
+				await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
 
 				State.DisposeAllAliceClients();
 
@@ -1057,7 +1057,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 						{
 							continue; // The coin is not present anymore. Good. This should never happen though.
 						}
-						await DequeueCoinsFromMixNoLockAsync(coin.GetTxoRef(), "Stopping Wasabi.");
+						await DequeueCoinsFromMixNoLockAsync(coin.GetTxoRef(), "Stopping Wasabi.").ConfigureAwait(false);
 					}
 					catch (Exception ex)
 					{
