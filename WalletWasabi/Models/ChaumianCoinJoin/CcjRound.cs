@@ -720,8 +720,21 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				int estimatedSigSizeBytes = UnsignedCoinJoin.Inputs.Count * Constants.P2wpkhInputSizeInBytes;
 				int estimatedFinalTxSize = UnsignedCoinJoin.GetSerializedSize() + estimatedSigSizeBytes;
 				Money fee = UnsignedCoinJoin.GetFee(spentCoins.ToArray());
+
 				// There is a currentFeeRate null check later.
-				FeeRate currentFeeRate = fee is null ? null : new FeeRate(fee, estimatedFinalTxSize);
+				FeeRate currentFeeRate = null;
+				if (fee is null)
+				{
+					Logger.LogError($"Cannot calculate CoinJoin transaction fee. Some spent coins are missing.");
+				}
+				else if (fee <= Money.Zero)
+				{
+					Logger.LogError("CoinJoin transaction is not paying any fee.");
+				}
+				else
+				{
+					currentFeeRate = new FeeRate(fee, estimatedFinalTxSize);
+				}
 
 				// 8.2. Get the most optimal FeeRate.
 				EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(AdjustedConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
