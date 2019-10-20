@@ -14,7 +14,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using WalletWasabi.CoinJoin;
 using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.CoinJoin.Common;
 using WalletWasabi.CoinJoin.Coordinator;
