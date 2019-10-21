@@ -21,13 +21,13 @@
           <StackPanel IsVisible="{Binding IsHardwareWallet}" Spacing="8">
             <StackPanel>
               <TextBlock Text="Limitations?" FontWeight="Bold" />
-              <TextBlock Text="- Currently all hardware wallets on the market are incompatible with coinjoins." />
-              <TextBlock Text="- Only bech32 keypaths are supported, so your legacy hardware wallet transactions won't show up in Wasabi." />
+              <TextBlock Text="- Currently all hardware wallets are incompatible with coinjoins." />
+              <TextBlock Text="- Only bech32 keypaths are supported, your legacy hardware wallet transactions won't show up." />
             </StackPanel>
             <StackPanel>
-              <TextBlock Text="Which hardware wallets are currently supported?" FontWeight="Bold" />
+              <TextBlock Text="Which hardware wallets are supported?" FontWeight="Bold" />
               <TextBlock Text="- Coldcard, Ledger Nano S, Trezor One, and Trezor T." TextWrapping="Wrap" />
-              <TextBlock Text="- While other hardware wallets may also work, they were not tested by Wasabi developers." TextWrapping="Wrap" />
+              <TextBlock Text="- While other hardware wallets may work, they were not tested by Wasabi developers." TextWrapping="Wrap" />
             </StackPanel>
           </StackPanel>
         </Grid>
@@ -64,7 +64,8 @@
               <controls:Spinner Height="15" Width="15" Margin="0 0 8 0" />
               <TextBlock Text="Looking for hardware wallets..." FontWeight="Bold" />
             </StackPanel>
-            <TextBlock Text="Set up the device and log in to it, usually with a PIN. Some hardware wallets are picky about their USB cables, so try out multiple ones." TextWrapping="Wrap" />
+            <TextBlock Text="Be sure to set up and log into the device, usually with a PIN." TextWrapping="Wrap" />
+            <TextBlock Text="Hardware wallets are picky about their USB cables, so try out multiple ones." TextWrapping="Wrap" />
             <TextBlock IsVisible="{Binding IsLinux}" Text="Make sure that you properly applied udev rules. These are necessary for the devices to be reachable on Linux environments:" TextWrapping="Wrap" />
             <StackPanel IsVisible="{Binding IsLinux}" Orientation="Horizontal">
               <Button Content="{Binding UDevRulesLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding UDevRulesLink}" />
