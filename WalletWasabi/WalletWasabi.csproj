@@ -21,7 +21,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<PackageReference Include="NBitcoin" Version="4.2.14" />
+	<PackageReference Include="NBitcoin" Version="4.2.15" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.6.0" />
   </ItemGroup>
   
