@@ -93,6 +93,30 @@
           </Animation>
         </Style.Animations>
       </Style>
+      <Style Selector="lockscreen|SlideLockScreen[IsLocked=true]">
+        <Style.Animations>
+          <Animation FillMode="Both" Duration="0:0:1.5">
+            <KeyFrame Cue="0%">
+              <Setter Property="IsVisible" Value="True" />
+            </KeyFrame>
+            <KeyFrame Cue="100%"> 
+              <Setter Property="IsVisible" Value="True" />
+            </KeyFrame>
+          </Animation>
+        </Style.Animations>
+      </Style>
+      <Style Selector="lockscreen|SlideLockScreen[IsLocked=false]">
+        <Style.Animations>
+          <Animation FillMode="Both" Duration="0:0:1.5">
+            <KeyFrame Cue="99%">
+              <Setter Property="IsVisible" Value="True" />
+            </KeyFrame>
+            <KeyFrame Cue="100%">
+              <Setter Property="IsVisible" Value="False" />
+            </KeyFrame>
+          </Animation>
+        </Style.Animations>
+      </Style>
     </Styles>
   </lockscreen:SlideLockScreen.Styles>
   <Grid>

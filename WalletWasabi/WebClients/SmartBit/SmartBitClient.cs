@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Exceptions;
 using WalletWasabi.WebClients.SmartBit.Models;
 
 namespace WalletWasabi.WebClients.SmartBit
@@ -37,7 +38,7 @@ namespace WalletWasabi.WebClients.SmartBit
 			}
 			else
 			{
-				throw new NotSupportedException($"{nameof(Network)} not supported: {network}.");
+				throw new NotSupportedNetworkException(network);
 			}
 		}
 
@@ -116,12 +117,6 @@ namespace WalletWasabi.WebClients.SmartBit
 				_disposedValue = true;
 			}
 		}
-
-		// override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-		// ~BlockCypherClient() {
-		//   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-		//   Dispose(false);
-		// }
 
 		// This code added to correctly implement the disposable pattern.
 		public void Dispose()

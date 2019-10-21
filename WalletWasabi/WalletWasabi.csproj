@@ -5,7 +5,7 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <LangVersion>latest</LangVersion>
-    <NoWarn>1701;1702;1705;1591;1573</NoWarn>
+    <NoWarn>1701;1702;1705;1591;1573;CA1031</NoWarn>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -21,8 +21,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<PackageReference Include="NBitcoin" Version="4.2.4" />
-    <PackageReference Include="Microsoft.Win32.Registry" Version="4.5.0" />
+	<PackageReference Include="NBitcoin" Version="4.2.15" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="4.6.0" />
   </ItemGroup>
   
   <ItemGroup>
@@ -30,25 +30,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Hwi\Software\hwi-win64\hwi.exe">
+    <None Update="Hwi\Binaries\hwi-lin64\hwi">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Hwi\Binaries\hwi-osx64\hwi">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Hwi\Binaries\hwi-win64\hwi.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="OnionSeeds\MainOnionSeeds.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="OnionSeeds\TestNetOnionSeeds.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Hwi\Software\digests.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Hwi\Software\hwi-linux64.zip">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Hwi\Software\hwi-osx64.zip">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Hwi\Software\hwi-win64.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TorDaemons\digests.txt">

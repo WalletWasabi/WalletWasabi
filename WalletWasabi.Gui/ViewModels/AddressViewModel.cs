@@ -10,6 +10,8 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.KeyManagement;
+using WalletWasabi.Logging;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -23,6 +25,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private double _clipboardNotificationOpacity;
 		private string _label;
 		private bool _inEditMode;
+		private ObservableAsPropertyHelper<string> _expandMenuCaption;
 
 		public HdPubKey Model { get; }
 		public Global Global { get; }
@@ -33,13 +36,13 @@ namespace WalletWasabi.Gui.ViewModels
 			Model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
-			_label = model.Label;
+			_label = model.Label.ToString();
 
 			this.WhenAnyValue(x => x.IsExpanded)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Where(x => x)
 				.Take(1)
-				.Subscribe(x =>
+				.Subscribe(_ =>
 				{
 					try
 					{
@@ -49,16 +52,16 @@ namespace WalletWasabi.Gui.ViewModels
 					}
 					catch (Exception ex)
 					{
-						Logging.Logger.LogError<AddressViewModel>(ex);
+						Logger.LogError(ex);
 					}
 				});
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
-				this.RaisePropertyChanged(nameof(Address));
-				this.RaisePropertyChanged(nameof(Label));
-			}).DisposeWith(Disposables);
+				{
+					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+					this.RaisePropertyChanged(nameof(Address));
+					this.RaisePropertyChanged(nameof(Label));
+				}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.Label)
 				.Subscribe(newLabel =>
@@ -70,10 +73,16 @@ namespace WalletWasabi.Gui.ViewModels
 
 						if (hdPubKey != default)
 						{
-							hdPubKey.SetLabel(newLabel, kmToFile: keyManager);
+							hdPubKey.SetLabel(new SmartLabel(newLabel), kmToFile: keyManager);
 						}
 					}
 				});
+
+			_expandMenuCaption = this.WhenAnyValue(x => x.IsExpanded)
+				.Select(x => (x ? "Hide " : "Show ") + "QR Code")
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.ToProperty(this, x => x.ExpandMenuCaption)
+				.DisposeWith(Disposables);
 		}
 
 		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
@@ -126,6 +135,8 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _qrCode, value);
 		}
 
+		public string ExpandMenuCaption => _expandMenuCaption?.Value ?? string.Empty;
+
 		public CancellationTokenSource CancelClipboardNotification { get; set; }
 
 		public async Task TryCopyToClipboardAsync()
@@ -152,15 +163,13 @@ namespace WalletWasabi.Gui.ViewModels
 				await Task.Delay(1000, cancelToken);
 				ClipboardNotificationVisible = false;
 			}
-			catch (Exception ex) when (ex is OperationCanceledException
-									|| ex is TaskCanceledException
-									|| ex is TimeoutException)
+			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
 			{
-				Logging.Logger.LogTrace<AddressViewModel>(ex);
+				Logger.LogTrace(ex);
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning<AddressViewModel>(ex);
+				Logger.LogWarning(ex);
 			}
 			finally
 			{

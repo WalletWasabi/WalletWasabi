@@ -65,14 +65,13 @@ namespace WalletWasabi.KeyManagement
 		// BIP84-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
 		// https://github.com/bitcoin/bips/blob/master/bip-0084.mediawiki
-		public static readonly KeyPath DefaultAccountKeyPath = new KeyPath("m/84'/0'/0'");
+		public static readonly KeyPath DefaultAccountKeyPath = new KeyPath("m/84h/0h/0h");
 
 		public string FilePath { get; private set; }
 		private object ToFileLock { get; }
 
 		public bool IsWatchOnly => EncryptedSecret is null;
 		public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint != null;
-		public HardwareWalletInfo HardwareWalletInfo { get; set; }
 
 		public const int AbsoluteMinGapLimit = 21;
 
@@ -96,7 +95,6 @@ namespace WalletWasabi.KeyManagement
 			SetMinGapLimit(minGapLimit);
 
 			BlockchainState = blockchainState ?? new BlockchainState();
-			HardwareWalletInfo = null;
 			AccountKeyPath = accountKeyPath ?? DefaultAccountKeyPath;
 
 			SetFilePath(filePath);
@@ -114,7 +112,6 @@ namespace WalletWasabi.KeyManagement
 			ScriptHdPubKeyMapLock = new object();
 			BlockchainState = new BlockchainState();
 			BlockchainStateLock = new object();
-			HardwareWalletInfo = null;
 
 			if (password is null)
 			{
@@ -158,9 +155,9 @@ namespace WalletWasabi.KeyManagement
 			return new KeyManager(null, null, null, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(), filePath);
 		}
 
-		public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerpring, ExtPubKey extPubKey, string filePath = null)
+		public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey extPubKey, string filePath = null)
 		{
-			return new KeyManager(null, null, masterFingerpring, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(), filePath);
+			return new KeyManager(null, null, masterFingerprint, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(), filePath);
 		}
 
 		public static KeyManager Recover(Mnemonic mnemonic, string password, string filePath = null, KeyPath accountKeyPath = null, int minGapLimit = AbsoluteMinGapLimit)
@@ -401,7 +398,7 @@ namespace WalletWasabi.KeyManagement
 			return true;
 		}
 
-		public HdPubKey GenerateNewKey(string label, KeyState keyState, bool isInternal, bool toFile = true)
+		public HdPubKey GenerateNewKey(SmartLabel label, KeyState keyState, bool isInternal, bool toFile = true)
 		{
 			// BIP44-ish derivation scheme
 			// m / purpose' / coin_type' / account' / change / address_index
@@ -409,26 +406,28 @@ namespace WalletWasabi.KeyManagement
 
 			lock (HdPubKeysLock)
 			{
-				IEnumerable<HdPubKey> relevantHdPubKeys = isInternal ? HdPubKeys.Where(x => x.IsInternal) : HdPubKeys.Where(x => !x.IsInternal);
+				HdPubKey[] relevantHdPubKeys = HdPubKeys.Where(x => x.IsInternal == isInternal).ToArray();
 
-				KeyPath path;
+				KeyPath path = new KeyPath($"{change}/0");
 				if (relevantHdPubKeys.Any())
 				{
 					int largestIndex = relevantHdPubKeys.Max(x => x.Index);
-					List<int> missingIndexes = Enumerable.Range(0, largestIndex).Except(relevantHdPubKeys.Select(x => x.Index)).ToList();
-					if (missingIndexes.Any())
+					var smallestMissingIndex = largestIndex;
+					var present = new bool[largestIndex + 1];
+					for (int i = 0; i < relevantHdPubKeys.Length; ++i)
 					{
-						int smallestMissingIndex = missingIndexes.Min();
-						path = relevantHdPubKeys.First(x => x.Index == (smallestMissingIndex - 1)).NonHardenedKeyPath.Increment();
+						present[relevantHdPubKeys[i].Index] = true;
 					}
-					else
+					for (int i = 1; i < present.Length; ++i)
 					{
-						path = relevantHdPubKeys.First(x => x.Index == largestIndex).NonHardenedKeyPath.Increment();
+						if (!present[i])
+						{
+							smallestMissingIndex = i - 1;
+							break;
+						}
 					}
-				}
-				else
-				{
-					path = new KeyPath($"{change}/0");
+
+					path = relevantHdPubKeys[smallestMissingIndex].NonHardenedKeyPath.Increment();
 				}
 
 				var fullPath = AccountKeyPath.Derive(path);
@@ -593,12 +592,12 @@ namespace WalletWasabi.KeyManagement
 			{
 				while (GetKeys(KeyState.Clean, true).Count() < MinGapLimit)
 				{
-					GenerateNewKey("", KeyState.Clean, true, toFile: false);
+					GenerateNewKey(SmartLabel.Empty, KeyState.Clean, true, toFile: false);
 					generated = true;
 				}
 				while (GetKeys(KeyState.Clean, false).Count() < MinGapLimit)
 				{
-					GenerateNewKey("", KeyState.Clean, false, toFile: false);
+					GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false, toFile: false);
 					generated = true;
 				}
 			}
@@ -606,7 +605,7 @@ namespace WalletWasabi.KeyManagement
 			{
 				while (GetKeys(KeyState.Clean, isInternal).Count() < MinGapLimit)
 				{
-					GenerateNewKey("", KeyState.Clean, (bool)isInternal, toFile: false);
+					GenerateNewKey(SmartLabel.Empty, KeyState.Clean, (bool)isInternal, toFile: false);
 					generated = true;
 				}
 			}
@@ -628,7 +627,7 @@ namespace WalletWasabi.KeyManagement
 
 			while (GetKeys(KeyState.Locked, true).Count() < howMany)
 			{
-				GenerateNewKey("", KeyState.Locked, true, toFile: false);
+				GenerateNewKey(SmartLabel.Empty, KeyState.Locked, true, toFile: false);
 				generated = true;
 			}
 
@@ -672,7 +671,7 @@ namespace WalletWasabi.KeyManagement
 				if (toRemove.Any())
 				{
 					ToFileNoBlockchainStateLock();
-					Logger.LogInfo<KeyManager>($"Corrected {toRemove.Count} heights.");
+					Logger.LogInfo($"Corrected {toRemove.Count} heights.");
 				}
 			}
 		}
@@ -790,9 +789,9 @@ namespace WalletWasabi.KeyManagement
 
 					if (lastNetwork != null)
 					{
-						Logger.LogWarning<KeyManager>($"Wallet is opened on {expectedNetwork}. Last time it was opened on {lastNetwork}.");
+						Logger.LogWarning($"Wallet is opened on {expectedNetwork}. Last time it was opened on {lastNetwork}.");
 					}
-					Logger.LogInfo<KeyManager>("Blockchain cache is cleared.");
+					Logger.LogInfo("Blockchain cache is cleared.");
 				}
 			}
 		}

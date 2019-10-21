@@ -26,10 +26,8 @@ namespace WalletWasabi.Gui.Behaviors
 		{
 			Disposables = new CompositeDisposable
 			{
-				Observable.FromEventPattern<RoutedEventArgs>(AssociatedObject, nameof(AssociatedObject.LostFocus)).Subscribe(args=>
-				{
-					TargetProperty = null;
-				})
+				Observable.FromEventPattern<RoutedEventArgs>(AssociatedObject, nameof(AssociatedObject.LostFocus))
+					.Subscribe(_ => TargetProperty = null)
 			};
 
 			base.OnAttached();

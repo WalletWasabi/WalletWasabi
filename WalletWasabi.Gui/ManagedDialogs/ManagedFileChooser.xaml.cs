@@ -27,9 +27,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 
 		private void OnPointerPressed(object sender, PointerPressedEventArgs e)
 		{
-			var model = (e.Source as StyledElement)?.DataContext as ManagedFileChooserItemViewModel;
-
-			if (model == null)
+			if (!((e.Source as StyledElement)?.DataContext is ManagedFileChooserItemViewModel model))
 			{
 				return;
 			}
@@ -54,16 +52,15 @@ namespace WalletWasabi.Gui.ManagedDialogs
 		{
 			base.OnDataContextChanged(e);
 
-			var model = (DataContext as ManagedFileChooserViewModel);
-
-			if (model == null)
+			if (DataContext is null)
 			{
 				return;
 			}
 
-			var preselected = model.SelectedItems.FirstOrDefault();
+			var model = DataContext as ManagedFileChooserViewModel;
 
-			if (preselected == null)
+			var preselected = model.SelectedItems.FirstOrDefault();
+			if (preselected is null)
 			{
 				return;
 			}

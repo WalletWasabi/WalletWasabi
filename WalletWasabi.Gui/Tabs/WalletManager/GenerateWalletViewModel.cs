@@ -3,13 +3,17 @@ using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
@@ -26,7 +30,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			Owner = owner;
 
-			GenerateCommand = ReactiveCommand.Create(DoGenerateCommand, this.WhenAnyValue(x => x.TermsAccepted));
+			IObservable<bool> canGenerate = Observable.CombineLatest(
+				this.WhenAnyValue(x => x.TermsAccepted),
+				this.WhenAnyValue(x => x.Password).Select(pw => !ValidatePassword().HasErrors),
+				(terms, pw) => terms && pw);
+
+			GenerateCommand = ReactiveCommand.Create(DoGenerateCommand, canGenerate);
 		}
 
 		private void DoGenerateCommand()
@@ -40,7 +49,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 
 			string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
-			Password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
 
 			if (!TermsAccepted)
 			{
@@ -58,7 +66,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				try
 				{
-					PasswordHelper.Guard(Password);
+					PasswordHelper.Guard(Password); // Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password bacause of compatibility.
 
 					KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
 
@@ -67,7 +75,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				catch (Exception ex)
 				{
 					ValidationMessage = ex.ToTypeMessageString();
-					Logger.LogError<GenerateWalletViewModel>(ex);
+					Logger.LogError(ex);
 				}
 			}
 		}
@@ -87,6 +95,26 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			return isValid && !isReserved;
 		}
 
+		public ErrorDescriptors ValidatePassword()
+		{
+			string password = Password;
+
+			var errors = new ErrorDescriptors();
+
+			if (PasswordHelper.IsTrimable(password, out _))
+			{
+				errors.Add(new ErrorDescriptor(ErrorSeverity.Error, "Leading and trailing white spaces are not allowed!"));
+			}
+
+			if (PasswordHelper.IsTooLong(password, out _))
+			{
+				errors.Add(new ErrorDescriptor(ErrorSeverity.Error, PasswordHelper.PasswordTooLongMessage));
+			}
+
+			return errors;
+		}
+
+		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
 		{
 			get => _password;

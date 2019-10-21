@@ -47,11 +47,6 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			public void ClearActionHistory()
-			{
-				ActionHistory.Clear();
-			}
-
 			public void StoreAction(ActionItem actionItem)
 			{
 				ActionHistory.Add(actionItem);
@@ -271,7 +266,7 @@ namespace WalletWasabi.Services
 									}
 									else
 									{
-										Logger.LogCritical<IndexBuilderService>("This is something serious! Over 100 block reorg is noticed! We cannot handle that!");
+										Logger.LogCritical("This is something serious! Over 100 block reorg is noticed! We cannot handle that!");
 									}
 
 									// Skip the current block.
@@ -359,16 +354,16 @@ namespace WalletWasabi.Services
 								// Use height.Value instead of simply height, because it cannot be negative height.
 								if (syncInfo.BlockCount - heightToRequest.Value <= 3 || heightToRequest % 100 == 0)
 								{
-									Logger.LogInfo<IndexBuilderService>($"Created filter for block: {heightToRequest}.");
+									Logger.LogInfo($"Created filter for block: {heightToRequest}.");
 								}
 								else
 								{
-									Logger.LogDebug<IndexBuilderService>($"Created filter for block: {heightToRequest}.");
+									Logger.LogDebug($"Created filter for block: {heightToRequest}.");
 								}
 							}
 							catch (Exception ex)
 							{
-								Logger.LogDebug<IndexBuilderService>(ex);
+								Logger.LogDebug(ex);
 							}
 						}
 					}
@@ -380,7 +375,7 @@ namespace WalletWasabi.Services
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError<IndexBuilderService>($"Synchronization attempt failed to start: {ex}");
+					Logger.LogError($"Synchronization attempt failed to start: {ex}");
 				}
 			});
 		}
@@ -401,7 +396,7 @@ namespace WalletWasabi.Services
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError<IndexBuilderService>(ex);
+				Logger.LogError(ex);
 			}
 		}
 
@@ -410,7 +405,7 @@ namespace WalletWasabi.Services
 			// 1. Rollback index
 			using (await IndexLock.LockAsync())
 			{
-				Logger.LogInfo<IndexBuilderService>($"REORG invalid block: {Index.Last().BlockHash}");
+				Logger.LogInfo($"REORG invalid block: {Index.Last().BlockHash}");
 				Index.RemoveLast();
 			}
 

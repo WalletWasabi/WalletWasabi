@@ -120,7 +120,7 @@ namespace WalletWasabi.Backend.Models
 		public byte[] ToBytes()
 		{
 			byte[] blockHashBytes = BlockHash.ToBytes();
-			byte[] filterBytes = Filter is null ? new byte[0] : Filter.ToBytes();
+			byte[] filterBytes = Filter is null ? Array.Empty<byte>() : Filter.ToBytes();
 			byte[] filterLengthBytes = BitConverter.GetBytes(filterBytes.Length);
 			byte[] buffer = new byte[blockHashBytes.Length + filterLengthBytes.Length + filterBytes.Length];
 			Buffer.BlockCopy(blockHashBytes, 0, buffer, 0, blockHashBytes.Length);

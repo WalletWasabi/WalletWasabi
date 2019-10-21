@@ -1,6 +1,6 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui" 
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"             
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom"
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
@@ -10,6 +10,7 @@
   <UserControl.Resources>
     <converters:AmountForegroundConverter x:Key="AmountForegroundConverter" />
     <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
+    <converters:FeeTargetTimeConverter x:Key="FeeTargetTimeConverter" />
     <converters:UsdExchangeRateAmountToolTipConverter x:Key="UsdExchangeRateAmountToolTipConverter" />
   </UserControl.Resources>
   <i:Interaction.Behaviors>
@@ -25,12 +26,15 @@
       <Style Selector="ListBoxItem">
         <Setter Property="Padding" Value="0 0 5 0" />
       </Style>
+      <Style Selector="TextBox">
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}" />
+      </Style>
     </DockPanel.Styles>
     <Grid Classes="content">
       <DockPanel LastChildFill="True" Margin="20">
         <StackPanel DockPanel.Dock="Bottom" Margin="0 10" Spacing="10" HorizontalAlignment="Left">
           <TextBlock>You must select coins you want to spend from.</TextBlock>
-          <controls:ExtendedTextBox Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True">
+          <controls:ExtendedTextBox Classes="monospaceFont" Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True">
             <i:Interaction.Behaviors>
               <behaviors:PasteAddressOnClickBehavior Command="{Binding OnAddressPasteCommand}" />
             </i:Interaction.Behaviors>
@@ -92,7 +96,7 @@
               </StackPanel>
               <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="4">
                 <TextBlock Text="Confirmation Expected In:" VerticalAlignment="Center" />
-                <TextBlock Foreground="YellowGreen" Text="{Binding ConfirmationExpectedText}" Width="80" VerticalAlignment="Center" />
+                <TextBlock Foreground="YellowGreen" Text="{Binding FeeTarget, Converter={StaticResource FeeTargetTimeConverter}}" Width="80" VerticalAlignment="Center" />
                 <Button Content="{Binding FeeText}" ToolTip.Tip="{Binding FeeToolTip}" Command="{Binding FeeRateCommand}" Padding="0" Background="{DynamicResource EditorBackgroundBrush}" BorderBrush="{DynamicResource EditorBackgroundBrush}" VerticalAlignment="Top" />
               </StackPanel>
             </StackPanel>
@@ -106,11 +110,11 @@
             </StackPanel>
           </StackPanel>
           <StackPanel Spacing="10" Orientation="Horizontal">
-            <controls:NoparaPasswordBox Password="{Binding Password}" IsVisible="{Binding !IsWatchOnly}" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" MaxWidth="173">
+            <controls:TogglePasswordBox Text="{Binding Password}" IsVisible="{Binding !IsWatchOnly}" MaxWidth = "600">
               <i:Interaction.Behaviors>
                 <behaviors:CommandOnEnterBehavior Command="{Binding BuildTransactionCommand}" />
               </i:Interaction.Behaviors>
-            </controls:NoparaPasswordBox>
+            </controls:TogglePasswordBox>
             <DockPanel VerticalAlignment="Top" LastChildFill="True">
               <Button Command="{Binding BuildTransactionCommand}" DockPanel.Dock="Right">
                 <StackPanel Orientation="Horizontal">

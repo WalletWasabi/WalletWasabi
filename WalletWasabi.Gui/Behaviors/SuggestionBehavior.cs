@@ -31,71 +31,73 @@ namespace WalletWasabi.Gui.Behaviors
 
 			base.OnAttached();
 
-			Disposables.Add(AssociatedObject.AddHandler(InputElement.KeyDownEvent, (sender, e) =>
-			{
-				if (e.Key == Key.Tab)
+			Disposables.Add(AssociatedObject.AddHandler(
+				InputElement.KeyDownEvent,
+				(sender, e) =>
 				{
-					HandleAutoUpdate();
-					e.Handled = true;
-				}
-				else if (e.Key == Key.Down)
-				{
-					if (SuggestionItems != null)
+					if (e.Key == Key.Tab)
 					{
-						if (SuggestionItems.All(x => !x.IsHighLighted))
+						HandleAutoUpdate();
+						e.Handled = true;
+					}
+					else if (e.Key == Key.Down)
+					{
+						if (SuggestionItems != null)
 						{
-							var item = SuggestionItems.FirstOrDefault();
-							if (item != null)
+							if (SuggestionItems.All(x => !x.IsHighLighted))
 							{
-								item.IsHighLighted = true;
-							}
-						}
-						else
-						{
-							var index = SuggestionItems.Select((v, i) => new { sugg = v, index = i })?.FirstOrDefault(x => x.sugg.IsHighLighted)?.index;
-							if (index != null)
-							{
-								var suggItemsArray = SuggestionItems.ToArray();
-								suggItemsArray[index.Value].IsHighLighted = false;
-								index++;
-								if (suggItemsArray.Length <= index.Value)
+								var item = SuggestionItems.FirstOrDefault();
+								if (item != null)
 								{
-									index = 0;
+									item.IsHighLighted = true;
 								}
-								suggItemsArray[index.Value].IsHighLighted = true;
 							}
-						}
-
-						e.Handled = true;
-					}
-				}
-				else if (e.Key == Key.Up)
-				{
-					if (SuggestionItems != null)
-					{
-						foreach (var item in SuggestionItems)
-						{
-							item.IsHighLighted = false;
-						}
-						e.Handled = true;
-					}
-				}
-				else if (e.Key == Key.Enter)
-				{
-					if (SuggestionItems != null)
-					{
-						foreach (var item in SuggestionItems)
-						{
-							if (item.IsHighLighted)
+							else
 							{
-								item.OnSelected();
-								break;
+								var index = SuggestionItems.Select((v, i) => new { sugg = v, index = i })?.FirstOrDefault(x => x.sugg.IsHighLighted)?.index;
+								if (index != null)
+								{
+									var suggItemsArray = SuggestionItems.ToArray();
+									suggItemsArray[index.Value].IsHighLighted = false;
+									index++;
+									if (suggItemsArray.Length <= index.Value)
+									{
+										index = 0;
+									}
+									suggItemsArray[index.Value].IsHighLighted = true;
+								}
 							}
+
+							e.Handled = true;
 						}
-						e.Handled = true;
 					}
-				}
-			}));
+					else if (e.Key == Key.Up)
+					{
+						if (SuggestionItems != null)
+						{
+							foreach (var item in SuggestionItems)
+							{
+								item.IsHighLighted = false;
+							}
+							e.Handled = true;
+						}
+					}
+					else if (e.Key == Key.Enter)
+					{
+						if (SuggestionItems != null)
+						{
+							foreach (var item in SuggestionItems)
+							{
+								if (item.IsHighLighted)
+								{
+									item.OnSelected();
+									break;
+								}
+							}
+							e.Handled = true;
+						}
+					}
+				}));
 		}
 
 		protected override void OnDetaching()

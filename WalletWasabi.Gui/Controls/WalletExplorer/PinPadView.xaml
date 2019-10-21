@@ -1,13 +1,13 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              x:Class="WalletWasabi.Gui.Controls.WalletExplorer.PinPadView"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450">
   <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
     <DockPanel LastChildFill="True">
-      <controls:NoparaPasswordBox DockPanel.Dock="Top" Margin="4 0 4 20" Password="{Binding MaskedPin}" Watermark="PIN" UseFloatingWatermark="True"></controls:NoparaPasswordBox>
+      <controls:TogglePasswordBox DockPanel.Dock="Top" Margin="4 0 4 20" Text="{Binding MaskedPin}" Watermark="PIN" />
       <StackPanel DockPanel.Dock="Bottom">
         <Button Margin="4 20" Content="Send PIN to Device" Command="{Binding SendPinCommand}" />
         <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />

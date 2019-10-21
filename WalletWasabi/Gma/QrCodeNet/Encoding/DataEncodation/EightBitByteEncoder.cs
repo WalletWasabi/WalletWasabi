@@ -37,7 +37,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		/// <summary>
 		/// Bitcount, Chapter 8.4.4, P.24
 		/// </summary>
-		private const int EIGHT_BIT_BYTE_BITCOUNT = 8;
+		private const int EightBitByteBitcount = 8;
 
 		internal override BitList GetDataBits(string content)
 		{
@@ -46,7 +46,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			{
 				throw new ArgumentOutOfRangeException(
 					nameof(Encoding),
-					"Current ECI table does not support this encoding. Please check ECISet class for more info");
+					$"Current ECI table does not support this encoding. Please check {nameof(ECISet)} class for more info.");
 			}
 
 			byte[] contentBytes = EncodeContent(content, Encoding);
@@ -64,13 +64,13 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 				byte[] utf8BOM = QRCodeConstantVariable.UTF8ByteOrderMark;
 				for (int index = 0; index < utf8BOM.Length; index++)
 				{
-					dataBits.Add(utf8BOM[index], EIGHT_BIT_BYTE_BITCOUNT);
+					dataBits.Add(utf8BOM[index], EightBitByteBitcount);
 				}
 			}
 
 			for (int index = 0; index < encodeContent.Length; index++)
 			{
-				dataBits.Add(encodeContent[index], EIGHT_BIT_BYTE_BITCOUNT);
+				dataBits.Add(encodeContent[index], EightBitByteBitcount);
 			}
 			return dataBits;
 		}

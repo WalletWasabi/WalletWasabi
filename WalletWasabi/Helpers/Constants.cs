@@ -2,35 +2,35 @@ using NBitcoin;
 using NBitcoin.Protocol;
 using System;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.Exceptions;
 
 namespace WalletWasabi.Helpers
 {
 	public static class Constants
 	{
-		public static readonly Version ClientVersion = new Version(1, 1, 6, 99);
+		public static readonly Version ClientVersion = new Version(1, 1, 9, 3);
 		public const string BackendMajorVersion = "3";
-		public static readonly VersionsResponse VersionsResponse = new VersionsResponse { ClientVersion = ClientVersion.ToString(3), BackendMajorVersion = BackendMajorVersion };
 
-		public const uint ProtocolVersion_WITNESS_VERSION = 70012;
+		public const uint ProtocolVersionWitnessVersion = 70012;
 
 		public static readonly NodeRequirement NodeRequirements = new NodeRequirement
 		{
 			RequiredServices = NodeServices.NODE_WITNESS,
-			MinVersion = ProtocolVersion_WITNESS_VERSION,
+			MinVersion = ProtocolVersionWitnessVersion,
 			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true, SupportMempoolQuery = true }
 		};
 
 		public static readonly NodeRequirement LocalNodeRequirements = new NodeRequirement
 		{
 			RequiredServices = NodeServices.NODE_WITNESS,
-			MinVersion = ProtocolVersion_WITNESS_VERSION,
+			MinVersion = ProtocolVersionWitnessVersion,
 			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true }
 		};
 
 		public static readonly NodeRequirement LocalBackendNodeRequirements = new NodeRequirement
 		{
 			RequiredServices = NodeServices.NODE_WITNESS,
-			MinVersion = ProtocolVersion_WITNESS_VERSION,
+			MinVersion = ProtocolVersionWitnessVersion,
 			MinProtocolCapabilities = new ProtocolCapabilities
 			{
 				SupportGetBlock = true,
@@ -72,7 +72,7 @@ namespace WalletWasabi.Helpers
 			}
 			else
 			{
-				throw new NotSupportedException($"{nameof(network)} not supported: {network}.");
+				throw new NotSupportedNetworkException(network);
 			}
 		}
 

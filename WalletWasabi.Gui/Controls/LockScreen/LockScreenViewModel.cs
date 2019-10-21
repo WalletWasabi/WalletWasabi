@@ -52,17 +52,17 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				.DisposeWith(Disposables);
 
 			_pinHash = Global.UiConfig
-							 .WhenAnyValue(x => x.LockScreenPinHash)
-							 .ObserveOn(RxApp.MainThreadScheduler)
-							 .Do(x => CheckLockScreenType(x))
-							 .ToProperty(this, x => x.PinHash);
+				.WhenAnyValue(x => x.LockScreenPinHash)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Do(x => CheckLockScreenType(x))
+				.ToProperty(this, x => x.PinHash);
 		}
 
 		private void CheckLockScreenType(string currentHash)
 		{
 			ActiveLockScreen?.Dispose();
 
-			if (currentHash != string.Empty)
+			if (currentHash.Length != 0)
 			{
 				ActiveLockScreen = new PinLockScreenViewModel(this);
 			}

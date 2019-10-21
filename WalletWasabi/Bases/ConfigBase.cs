@@ -16,13 +16,13 @@ namespace WalletWasabi.Bases
 		/// <inheritdoc />
 		public string FilePath { get; private set; } = null;
 
-		public ConfigBase()
-		{
-		}
-
-		public ConfigBase(string filePath)
+		protected ConfigBase(string filePath)
 		{
 			SetFilePath(filePath);
+		}
+
+		protected ConfigBase()
+		{
 		}
 
 		/// <inheritdoc />
@@ -60,7 +60,7 @@ namespace WalletWasabi.Bases
 
 			if (!File.Exists(FilePath))
 			{
-				Logger.LogInfo<ConfigBase>($"{GetType().Name} file did not exist. Created at path: `{FilePath}`.");
+				Logger.LogInfo($"{GetType().Name} file did not exist. Created at path: `{FilePath}`.");
 			}
 			else
 			{

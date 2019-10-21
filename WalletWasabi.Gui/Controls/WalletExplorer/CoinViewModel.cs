@@ -5,10 +5,11 @@ using System.Globalization;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using WalletWasabi.CoinJoin.Client.Rounds;
+using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
-using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -85,25 +86,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Global.ChaumianClient,
 				nameof(Global.ChaumianClient.StateUpdated))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					RefreshSmartCoinStatus();
-				}).DisposeWith(Disposables);
+				.Subscribe(_ => RefreshSmartCoinStatus())
+				.DisposeWith(Disposables);
 
 			Global.BitcoinStore.HashChain.WhenAnyValue(x => x.ServerTipHeight)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					this.RaisePropertyChanged(nameof(Confirmations));
-				}).DisposeWith(Disposables);
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(Confirmations)))
+				.DisposeWith(Disposables);
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(AmountBtc));
-				this.RaisePropertyChanged(nameof(Clusters));
-			}).DisposeWith(Disposables);
+				{
+					this.RaisePropertyChanged(nameof(AmountBtc));
+					this.RaisePropertyChanged(nameof(Clusters));
+				}).DisposeWith(Disposables);
 		}
 
 		public void UnsubscribeEvents()
@@ -134,32 +131,26 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _isSelected, value);
 		}
 
-		public string ToolTip
+		public string ToolTip => Status switch
 		{
-			get
-			{
-				switch (Status)
-				{
-					case SmartCoinStatus.Confirmed: return "This coin is confirmed.";
-					case SmartCoinStatus.Unconfirmed: return "This coin is unconfirmed.";
-					case SmartCoinStatus.MixingOnWaitingList: return "This coin is waiting for its turn to be coinjoined.";
-					case SmartCoinStatus.MixingBanned: return $"The coordinator banned this coin from participation until {Model?.BannedUntilUtc?.ToString("yyyy - MM - dd HH: mm", CultureInfo.InvariantCulture)}.";
-					case SmartCoinStatus.MixingInputRegistration: return "This coin is registered for coinjoin.";
-					case SmartCoinStatus.MixingConnectionConfirmation: return "This coin is currently in Connection Confirmation phase.";
-					case SmartCoinStatus.MixingOutputRegistration: return "This coin is currently in Output Registration phase.";
-					case SmartCoinStatus.MixingSigning: return "This coin is currently in Signing phase.";
-					case SmartCoinStatus.SpentAccordingToBackend: return "According to the Backend, this coin is spent. Wallet state will be corrected after confirmation.";
-					case SmartCoinStatus.MixingWaitingForConfirmation: return "Coinjoining unconfirmed coins is not allowed, unless the coin is a coinjoin output itself.";
-					default: return "This is impossible.";
-				}
-			}
-		}
+			SmartCoinStatus.Confirmed => "This coin is confirmed.",
+			SmartCoinStatus.Unconfirmed => "This coin is unconfirmed.",
+			SmartCoinStatus.MixingOnWaitingList => "This coin is waiting for its turn to be coinjoined.",
+			SmartCoinStatus.MixingBanned => $"The coordinator banned this coin from participation until {Model?.BannedUntilUtc?.ToString("yyyy - MM - dd HH: mm", CultureInfo.InvariantCulture)}.",
+			SmartCoinStatus.MixingInputRegistration => "This coin is registered for coinjoin.",
+			SmartCoinStatus.MixingConnectionConfirmation => "This coin is currently in Connection Confirmation phase.",
+			SmartCoinStatus.MixingOutputRegistration => "This coin is currently in Output Registration phase.",
+			SmartCoinStatus.MixingSigning => "This coin is currently in Signing phase.",
+			SmartCoinStatus.SpentAccordingToBackend => "According to the Backend, this coin is spent. Wallet state will be corrected after confirmation.",
+			SmartCoinStatus.MixingWaitingForConfirmation => "Coinjoining unconfirmed coins is not allowed, unless the coin is a coinjoin output itself.",
+			_ => "This is impossible."
+		};
 
 		public Money Amount => Model.Amount;
 
 		public string AmountBtc => Model.Amount.ToString(false, true);
 
-		public string Label => Model.Label;
+		public string Label => Model.Label.ToString();
 
 		public int Height => Model.Height;
 
@@ -173,9 +164,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string Clusters => string.IsNullOrEmpty(Model.Clusters) ? "" : Model.Clusters; //If the value is null the bind do not update the view. It shows the previous state for example: ##### even if PrivMode false.
 
-		public string PubKey => Model.HdPubKey.PubKey.ToString();
+		public string PubKey => Model.HdPubKey?.PubKey?.ToString() ?? "";
 
-		public string KeyPath => Model.HdPubKey.FullKeyPath.ToString();
+		public string KeyPath => Model.HdPubKey?.FullKeyPath?.ToString() ?? "";
 
 		public SmartCoinStatus Status
 		{
@@ -196,30 +187,30 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return SmartCoinStatus.MixingBanned;
 			}
 
-			CcjClientState clientState = Global.ChaumianClient.State;
+			ClientState clientState = Global.ChaumianClient.State;
 
 			if (Model.CoinJoinInProgress)
 			{
 				foreach (long roundId in clientState.GetAllMixingRounds())
 				{
-					CcjClientRound round = clientState.GetSingleOrDefaultRound(roundId);
+					ClientRound round = clientState.GetSingleOrDefaultRound(roundId);
 					if (round != default)
 					{
 						if (round.CoinsRegistered.Contains(Model))
 						{
-							if (round.State.Phase == CcjRoundPhase.InputRegistration)
+							if (round.State.Phase == RoundPhase.InputRegistration)
 							{
 								return SmartCoinStatus.MixingInputRegistration;
 							}
-							else if (round.State.Phase == CcjRoundPhase.ConnectionConfirmation)
+							else if (round.State.Phase == RoundPhase.ConnectionConfirmation)
 							{
 								return SmartCoinStatus.MixingConnectionConfirmation;
 							}
-							else if (round.State.Phase == CcjRoundPhase.OutputRegistration)
+							else if (round.State.Phase == RoundPhase.OutputRegistration)
 							{
 								return SmartCoinStatus.MixingOutputRegistration;
 							}
-							else if (round.State.Phase == CcjRoundPhase.Signing)
+							else if (round.State.Phase == RoundPhase.Signing)
 							{
 								return SmartCoinStatus.MixingSigning;
 							}

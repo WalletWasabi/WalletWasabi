@@ -7,6 +7,7 @@ using System;
 using System.Reactive;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls.LockScreen;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -69,12 +70,11 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			Shell = IoC.Get<IShell>();
 
-			LockScreenCommand = ReactiveCommand.Create(() =>
-			{
-				Global.UiConfig.LockScreenActive = true;
-			});
+#pragma warning disable IDE0053 // Use expression body for lambda expressions
+			LockScreenCommand = ReactiveCommand.Create(() => { Global.UiConfig.LockScreenActive = true; });
+#pragma warning restore IDE0053 // Use expression body for lambda expressions
 
-			LockScreenCommand.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<MainWindowViewModel>);
+			LockScreenCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
 		}
 
 		public IShell Shell { get; }

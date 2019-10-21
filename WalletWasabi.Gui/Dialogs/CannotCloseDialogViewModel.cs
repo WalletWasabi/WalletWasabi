@@ -7,6 +7,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Dialogs
@@ -63,7 +64,8 @@ namespace WalletWasabi.Gui.Dialogs
 				}
 				// OK pressed.
 				Close(false);
-			}, canOk);
+			},
+			canOk);
 
 			CancelCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -78,8 +80,8 @@ namespace WalletWasabi.Gui.Dialogs
 			},
 			canCancel);
 
-			OKCommand.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<CannotCloseDialogViewModel>);
-			CancelCommand.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<CannotCloseDialogViewModel>);
+			OKCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
+			CancelCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
 		}
 
 		public override void OnOpen()
@@ -201,7 +203,7 @@ namespace WalletWasabi.Gui.Dialogs
 				}
 				catch (TaskCanceledException ex)
 				{
-					Logging.Logger.LogTrace<CannotCloseDialogViewModel>(ex);
+					Logger.LogTrace(ex);
 				}
 
 				if (WarningMessage == message)

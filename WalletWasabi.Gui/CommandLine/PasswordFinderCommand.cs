@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.CommandLine
 {
@@ -33,8 +34,8 @@ namespace WalletWasabi.Gui.CommandLine
 				{ "w|wallet=", "The name of the wallet file.", x => WalletName = x },
 				{ "s|secret=", "You can specify an encrypted secret key instead of wallet. Example of encrypted secret: 6PYTMDmkxQrSv8TK4761tuKrV8yFwPyZDqjJafcGEiLBHiqBV6WviFxJV4", x => EncryptedSecret = Guard.Correct(x) },
 				{ "l|language=", "The charset to use: en, es, it, fr, pt. Default=en.", v => Language = v },
-				{ "n|numbers=", "Try passwords with numbers. Default=true.", v => UseNumbers = (v=="" || v=="1" || v.ToUpper()=="TRUE") },
-				{ "x|symbols=", "Try passwords with symbolds. Default=true.", v => UseSymbols = (v=="" || v=="1" || v.ToUpper()=="TRUE") },
+				{ "n|numbers=", "Try passwords with numbers. Default=true.", v => UseNumbers = (v.Length==0 || v=="1" || v.ToUpper()=="TRUE") },
+				{ "x|symbols=", "Try passwords with symbolds. Default=true.", v => UseSymbols = (v.Length==0 || v=="1" || v.ToUpper()=="TRUE") },
 				{ "h|help", "Show Help", v => ShowHelp = true }
 			};
 		}
@@ -51,14 +52,14 @@ namespace WalletWasabi.Gui.CommandLine
 				}
 				else if (string.IsNullOrWhiteSpace(WalletName) && string.IsNullOrWhiteSpace(EncryptedSecret))
 				{
-					Logging.Logger.LogCritical<PasswordFinderCommand>("Missing required argument `--wallet=WalletName`.");
-					Logging.Logger.LogCritical<PasswordFinderCommand>("Use `findpassword --help` for details.");
+					Logger.LogCritical("Missing required argument `--wallet=WalletName`.");
+					Logger.LogCritical("Use `findpassword --help` for details.");
 					error = true;
 				}
 				else if (!PasswordFinder.Charsets.ContainsKey(Language))
 				{
-					Logging.Logger.LogCritical<PasswordFinderCommand>($"`{Language}` is not available language, try with `en, es, pt, it or fr`.");
-					Logging.Logger.LogCritical<PasswordFinderCommand>("Use `findpassword --help` for details.");
+					Logger.LogCritical($"`{Language}` is not available language, try with `en, es, pt, it or fr`.");
+					Logger.LogCritical("Use `findpassword --help` for details.");
 					error = true;
 				}
 				else if (!string.IsNullOrWhiteSpace(WalletName))
@@ -77,7 +78,7 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			catch (Exception)
 			{
-				Logging.Logger.LogCritical<PasswordFinderCommand>($"There was a problem interpreting the command, please review it.");
+				Logger.LogCritical($"There was a problem interpreting the command, please review it.");
 				error = true;
 			}
 			Environment.Exit(error ? 1 : 0);

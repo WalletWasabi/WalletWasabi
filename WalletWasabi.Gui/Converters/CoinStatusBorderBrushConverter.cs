@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Models;
-using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Gui.Converters
 {
@@ -16,12 +16,12 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is SmartCoinStatus status)
 			{
-				switch (status)
+				return status switch
 				{
-					case SmartCoinStatus.Confirmed: return Brushes.Transparent;
-					case SmartCoinStatus.Unconfirmed: return Brushes.Transparent;
-					default: return Brushes.Black;
-				}
+					SmartCoinStatus.Confirmed => Brushes.Transparent,
+					SmartCoinStatus.Unconfirmed => Brushes.Transparent,
+					_ => Brushes.Black
+				};
 			}
 			else
 			{

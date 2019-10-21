@@ -1,7 +1,8 @@
-<Styles xmlns="https://github.com/avaloniaui" 
+<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:dock="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
-        xmlns:shell="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"        
+        xmlns:shell="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"
+        xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
   <Style>
@@ -14,6 +15,15 @@
       <sys:Double x:Key="FontSizeSmall">12</sys:Double>
       <sys:Double x:Key="FontSizeNormal">14</sys:Double>
       <sys:Double x:Key="FontSizeLarge">16</sys:Double>
+      <FontFamily x:Key="MonospacedFont">
+        <x:Arguments>
+          <x:String>Cascadia Code</x:String>
+          <x:Uri>resm:WalletWasabi.Gui.Assets.*.ttf?assembly=WalletWasabi.Gui</x:Uri>
+        </x:Arguments>
+      </FontFamily>
+      <converters:ErrorDescriptorsJsonConverter x:Key="ErrorDescriptorsJsonConverter" />
+      <converters:ErrorSeverityColorConverter x:Key="ErrorSeverityColorConverter" />
+      <converters:ErrorDescriptorToBorderColorConverter x:Key="ErrorDescriptorToBorderColorConverter" />
     </Style.Resources>
   </Style>
   <Style Selector="shell|MetroWindow /template/ Button#minimiseButton">
@@ -71,6 +81,14 @@
       </Template>
     </Setter>
   </Style>
+  <Style Selector="TextBox.monospaceFont">
+    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+    <Setter Property="FontSize" Value="14" />
+  </Style>
+  <Style Selector="TextBlock.monospaceFont">
+    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+    <Setter Property="FontSize" Value="14" />
+  </Style>
   <Style Selector="TextBox.selectableTextBlock">
     <Setter Property="Padding" Value="0" />
     <Setter Property="BorderThickness" Value="0" />
@@ -125,7 +143,7 @@
             DockPanel.Dock="Bottom"
             ContentTemplate="{TemplateBinding ErrorTemplate}"
             DataContext="{TemplateBinding Owner}"
-            Content="{Binding (DataValidationErrors.Errors)}"
+            Content="{Binding (DataValidationErrors.Errors), Converter={StaticResource ErrorDescriptorsJsonConverter}}"
             IsVisible="{Binding (DataValidationErrors.HasErrors)}" />
           <ContentPresenter
             Name="PART_ContentPresenter"
@@ -139,19 +157,24 @@
     </Setter>
     <Setter Property="ErrorTemplate">
       <DataTemplate>
-        <Grid>
-          <Grid.Styles>
-            <Style>
-              <Setter Property="TextBlock.Foreground" Value="{DynamicResource ErrorBrush}" />
-            </Style>
-          </Grid.Styles>
-          <ItemsControl Items="{Binding}" MemberSelector="Message" />
-        </Grid>
+        <ItemsControl Items="{Binding}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Message}" Foreground="{Binding Severity, Converter={StaticResource ErrorSeverityColorConverter}}" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
       </DataTemplate>
     </Setter>
   </Style>
+  <Style Selector="TextBox:pointerover /template/ Border#border">
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighBrush}" />
+  </Style>
+  <Style Selector="TextBox:focus /template/ Border#border">
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighBrush}" />
+  </Style>
   <Style Selector="TextBox:error /template/ Border#border">
-    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}" />
+    <Setter Property="BorderBrush" Value="{Binding $parent[TextBox].(DataValidationErrors.Errors), Converter={StaticResource ErrorDescriptorToBorderColorConverter}}" />
   </Style>
   <Style Selector="TextBox">
     <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
@@ -208,12 +231,6 @@
         </DockPanel>
       </ControlTemplate>
     </Setter>
-  </Style>
-  <Style Selector="TextBox:pointerover /template/ Border#border">
-    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighBrush}" />
-  </Style>
-  <Style Selector="TextBox:focus /template/ Border#border">
-    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighBrush}" />
   </Style>
   <Style Selector="ListBoxItem:pointerover Grid Expander /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
     <Setter Property="Background" Value="{DynamicResource ThemeControlHighlightMidBrush}" />

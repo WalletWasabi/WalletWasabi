@@ -34,7 +34,7 @@ namespace System.IO
 						throw;
 					}
 					// System.IO.IOException: The directory is not empty
-					Logger.LogDebug($"Gnomes prevent deletion of {destinationDir}! Applying magic dust, attempt #{gnomes}.", nameof(IoHelpers));
+					Logger.LogDebug($"Gnomes prevent deletion of {destinationDir}! Applying magic dust, attempt #{gnomes}.");
 
 					// see http://stackoverflow.com/questions/329355/cannot-delete-directory-with-directory-deletepath-true for more magic
 					await Task.Delay(100);
@@ -47,7 +47,7 @@ namespace System.IO
 						throw;
 					}
 					// Wait, maybe another software make us authorized a little later
-					Logger.LogDebug($"Gnomes prevent deletion of {destinationDir}! Applying magic dust, attempt #{gnomes}.", nameof(IoHelpers));
+					Logger.LogDebug($"Gnomes prevent deletion of {destinationDir}! Applying magic dust, attempt #{gnomes}.");
 
 					// see http://stackoverflow.com/questions/329355/cannot-delete-directory-with-directory-deletepath-true for more magic
 					await Task.Delay(100);
@@ -89,6 +89,16 @@ namespace System.IO
 			}
 		}
 
+		public static void EnsureFileExists(string filePath)
+		{
+			if (!File.Exists(filePath))
+			{
+				EnsureContainingDirectoryExists(filePath);
+
+				File.Create(filePath)?.Dispose();
+			}
+		}
+
 		public static byte[] GetHashFile(string filePath)
 		{
 			var bytes = File.ReadAllBytes(filePath);
@@ -121,7 +131,7 @@ namespace System.IO
 		{
 			if (Directory.Exists(dirPath))
 			{
-				using (Process process = Process.Start(new ProcessStartInfo
+				using Process process = Process.Start(new ProcessStartInfo
 				{
 					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
 						? "explorer.exe"
@@ -130,8 +140,7 @@ namespace System.IO
 							: "xdg-open"),
 					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"\"{dirPath}\"" : dirPath,
 					CreateNoWindow = true
-				}))
-				{ }
+				});
 			}
 		}
 
@@ -157,21 +166,19 @@ namespace System.IO
 						}
 						catch (Exception ex)
 						{
-							Logger.LogError(ex, nameof(IoHelpers));
+							Logger.LogError(ex);
 						}
 
 						if (openWithNotepad)
 						{
 							// Open file using Notepad.
-							using (Process process = Process.Start(new ProcessStartInfo
+							using Process process = Process.Start(new ProcessStartInfo
 							{
 								FileName = "notepad.exe",
 								Arguments = filePath,
 								CreateNoWindow = true,
 								UseShellExecute = false
-							}))
-							{ }
-
+							});
 							return; // Opened with notepad, return.
 						}
 					}
@@ -199,14 +206,13 @@ namespace System.IO
 			}
 			else
 			{
-				using (Process process = Process.Start(new ProcessStartInfo
+				using Process process = Process.Start(new ProcessStartInfo
 				{
 					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? url : "open",
 					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e {url}" : "",
 					CreateNoWindow = true,
 					UseShellExecute = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-				}))
-				{ }
+				});
 			}
 		}
 

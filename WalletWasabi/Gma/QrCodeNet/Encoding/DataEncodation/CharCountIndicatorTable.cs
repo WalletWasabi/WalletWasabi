@@ -8,7 +8,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		public static int[] GetCharCountIndicatorSet()
 		{
 			return new int[] { 8, 16, 16 };
-		} //
+		}
 
 		public static int GetBitCountInCharCountIndicator(int version)
 		{
@@ -26,7 +26,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		{
 			if (version > 40)
 			{
-				throw new InvalidOperationException($"Unexpected version: {version}");
+				throw new InvalidOperationException($"Unexpected version: {version}.");
 			}
 			else if (version >= 27)
 			{
@@ -42,7 +42,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			}
 			else
 			{
-				throw new InvalidOperationException($"Unexpected version: {version}");
+				throw new InvalidOperationException($"Unexpected version: {version}.");
 			}
 		}
 	}

@@ -41,54 +41,11 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			int dataCodewordsCount = dataCodewords.Count;
 			if ((dataCodewordsCount & 0x7) != 0)
 			{
-				throw new ArgumentException("datacodewords is not byte sized.");
+				throw new ArgumentException($"{nameof(dataCodewords)} is not byte sized.");
 			}
 			else if (dataCodewordsCount >> 3 != vcStruct.VersionDetail.NumDataBytes)
 			{
-				throw new ArgumentException("datacodewords num of bytes not equal to NumDataBytes for current version");
-			}
-
-			var encStruct = new EncodationStruct(vcStruct)
-			{
-				DataCodewords = dataCodewords
-			};
-			return encStruct;
-		}
-
-		internal static EncodationStruct Encode(IEnumerable<byte> content, ErrorCorrectionLevel eclevel)
-		{
-			EncoderBase encoderBase = CreateEncoder(QRCodeConstantVariable.DefaultEncoding);
-
-			BitList encodeContent = new BitList(content);
-
-			int encodeContentLength = encodeContent.Count;
-
-			VersionControlStruct vcStruct =
-				VersionControl.InitialSetup(encodeContentLength, eclevel, QRCodeConstantVariable.DefaultEncoding);
-
-			BitList dataCodewords = new BitList();
-			//Eci header
-			if (vcStruct.IsContainECI && !(vcStruct.ECIHeader is null))
-			{
-				dataCodewords.Add(vcStruct.ECIHeader);
-			}
-			//Header
-			dataCodewords.Add(encoderBase.GetModeIndicator());
-			int numLetter = encodeContentLength >> 3;
-			dataCodewords.Add(encoderBase.GetCharCountIndicator(numLetter, vcStruct.VersionDetail.Version));
-			//Data
-			dataCodewords.Add(encodeContent);
-			//Terminator Padding
-			dataCodewords.TerminateBites(dataCodewords.Count, vcStruct.VersionDetail.NumDataBytes);
-
-			int dataCodewordsCount = dataCodewords.Count;
-			if ((dataCodewordsCount & 0x7) != 0)
-			{
-				throw new ArgumentException("datacodewords is not byte sized.");
-			}
-			else if (dataCodewordsCount >> 3 != vcStruct.VersionDetail.NumDataBytes)
-			{
-				throw new ArgumentException("datacodewords num of bytes not equal to NumDataBytes for current version");
+				throw new ArgumentException($"{nameof(dataCodewords)} num of bytes not equal to {nameof(vcStruct.VersionDetail.NumDataBytes)} for current version");
 			}
 
 			var encStruct = new EncodationStruct(vcStruct)

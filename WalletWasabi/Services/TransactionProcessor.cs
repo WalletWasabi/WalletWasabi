@@ -5,15 +5,15 @@ using NBitcoin;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
+using WalletWasabi.Transactions;
 
 namespace WalletWasabi.Services
 {
 	public class TransactionProcessor
 	{
-		public ConcurrentHashSet<SmartTransaction> TransactionCache { get; }
+		public AllTransactionStore TransactionStore { get; }
 
 		public KeyManager KeyManager { get; }
-		public ConcurrentHashSet<uint256> TransactionHashes { get; }
 
 		public ObservableConcurrentHashSet<SmartCoin> Coins { get; }
 		public Money DustThreshold { get; }
@@ -24,51 +24,38 @@ namespace WalletWasabi.Services
 
 		public event EventHandler<SmartCoin> CoinReceived;
 
-		public TransactionProcessor(KeyManager keyManager,
-			ConcurrentHashSet<uint256> transactionHashes,
+		public TransactionProcessor(
+			AllTransactionStore transactionStore,
+			KeyManager keyManager,
 			ObservableConcurrentHashSet<SmartCoin> coins,
-			Money dustThreshold,
-			ConcurrentHashSet<SmartTransaction> transactionCache)
+			Money dustThreshold)
 		{
+			TransactionStore = Guard.NotNull(nameof(transactionStore), transactionStore);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
-			TransactionHashes = Guard.NotNull(nameof(transactionHashes), transactionHashes);
 			Coins = Guard.NotNull(nameof(coins), coins);
 			DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
-			TransactionCache = Guard.NotNull(nameof(transactionCache), transactionCache);
 		}
 
 		public bool Process(SmartTransaction tx)
 		{
-			uint256 txId = tx.GetHash();
-			var walletRelevant = false;
-
-			bool justUpdate = false;
-			if (tx.Confirmed)
-			{
-				TransactionHashes.TryRemove(txId); // If we have in mempool, remove.
-				if (!tx.Transaction.PossiblyP2WPKHInvolved())
-				{
-					return false; // We do not care about non-witness transactions for other than mempool cleanup.
-				}
-
-				bool isFoundTx = TransactionCache.Contains(tx); // If we have in cache, update height.
-				if (isFoundTx)
-				{
-					SmartTransaction foundTx = TransactionCache.FirstOrDefault(x => x == tx);
-					if (foundTx != default(SmartTransaction)) // Must check again, because it's a concurrent collection!
-					{
-						foundTx.SetHeight(tx.Height, tx.BlockHash, tx.BlockIndex);
-						walletRelevant = true;
-						justUpdate = true; // No need to check for double spend, we already processed this transaction, just update it.
-					}
-				}
-			}
-			else if (!tx.Transaction.PossiblyP2WPKHInvolved())
+			if (!tx.Transaction.PossiblyP2WPKHInvolved())
 			{
 				return false; // We do not care about non-witness transactions for other than mempool cleanup.
 			}
 
-			if (!justUpdate && !tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
+			uint256 txId = tx.GetHash();
+			var walletRelevant = false;
+
+			if (tx.Confirmed)
+			{
+				foreach (var coin in Coins.Where(x => x.TransactionId == txId))
+				{
+					coin.Height = tx.Height;
+					walletRelevant = true; // relevant
+				}
+			}
+
+			if (!tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
 			{
 				var doubleSpends = new List<SmartCoin>();
 				foreach (SmartCoin coin in Coins)
@@ -164,7 +151,7 @@ namespace WalletWasabi.Services
 					}
 
 					foundKey.SetKeyState(KeyState.Used, KeyManager);
-					spentOwnCoins = spentOwnCoins ?? Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
+					spentOwnCoins ??= Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
 					var anonset = tx.Transaction.GetAnonymitySet(i);
 					if (spentOwnCoins.Count != 0)
 					{
@@ -175,7 +162,6 @@ namespace WalletWasabi.Services
 																																																																		   // If we did not have it.
 					if (Coins.TryAdd(newCoin))
 					{
-						TransactionCache.TryAdd(tx);
 						CoinReceived?.Invoke(this, newCoin);
 
 						// Make sure there's always 21 clean keys generated and indexed.
@@ -212,7 +198,6 @@ namespace WalletWasabi.Services
 					walletRelevant = true;
 					var alreadyKnown = foundCoin.SpenderTransactionId == txId;
 					foundCoin.SpenderTransactionId = txId;
-					TransactionCache.TryAdd(tx);
 
 					if (!alreadyKnown)
 					{
@@ -224,6 +209,11 @@ namespace WalletWasabi.Services
 						SpenderConfirmed?.Invoke(this, foundCoin);
 					}
 				}
+			}
+
+			if (walletRelevant)
+			{
+				TransactionStore.AddOrUpdate(tx);
 			}
 
 			return walletRelevant;

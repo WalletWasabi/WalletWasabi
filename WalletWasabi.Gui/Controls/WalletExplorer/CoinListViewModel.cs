@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -234,128 +235,129 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.WhenAnyValue(x => x.AmountSortDirection)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
-			{
-				if (x != SortOrder.None)
 				{
-					PrivacySortDirection = SortOrder.None;
-					StatusSortDirection = SortOrder.None;
-					ClustersSortDirection = SortOrder.None;
-				}
-			});
+					if (x != SortOrder.None)
+					{
+						PrivacySortDirection = SortOrder.None;
+						StatusSortDirection = SortOrder.None;
+						ClustersSortDirection = SortOrder.None;
+					}
+				});
 
 			this.WhenAnyValue(x => x.ClustersSortDirection)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
-			{
-				if (x != SortOrder.None)
 				{
-					AmountSortDirection = SortOrder.None;
-					StatusSortDirection = SortOrder.None;
-					PrivacySortDirection = SortOrder.None;
-				}
-			});
+					if (x != SortOrder.None)
+					{
+						AmountSortDirection = SortOrder.None;
+						StatusSortDirection = SortOrder.None;
+						PrivacySortDirection = SortOrder.None;
+					}
+				});
 
 			this.WhenAnyValue(x => x.StatusSortDirection)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
-			{
-				if (x != SortOrder.None)
 				{
-					AmountSortDirection = SortOrder.None;
-					PrivacySortDirection = SortOrder.None;
-					ClustersSortDirection = SortOrder.None;
-				}
-			});
+					if (x != SortOrder.None)
+					{
+						AmountSortDirection = SortOrder.None;
+						PrivacySortDirection = SortOrder.None;
+						ClustersSortDirection = SortOrder.None;
+					}
+				});
 
 			this.WhenAnyValue(x => x.PrivacySortDirection)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
-			{
-				if (x != SortOrder.None)
 				{
-					AmountSortDirection = SortOrder.None;
-					StatusSortDirection = SortOrder.None;
-					ClustersSortDirection = SortOrder.None;
-				}
-			});
+					if (x != SortOrder.None)
+					{
+						AmountSortDirection = SortOrder.None;
+						StatusSortDirection = SortOrder.None;
+						ClustersSortDirection = SortOrder.None;
+					}
+				});
 
 			EnqueueCoin = ReactiveCommand.Create(() =>
-			{
-				if (SelectedCoin is null)
 				{
-					return;
-				}
-				//await Global.ChaumianClient.QueueCoinsToMixAsync()
-			});
+					if (SelectedCoin is null)
+					{
+						return;
+					}
+					//await Global.ChaumianClient.QueueCoinsToMixAsync()
+				});
 
 			DequeueCoin = ReactiveCommand.Create(() =>
-			{
-				if (SelectedCoin is null)
 				{
-					return;
-				}
+					if (SelectedCoin is null)
+					{
+						return;
+					}
 
-				DequeueCoinsPressed?.Invoke(this, EventArgs.Empty);
-			}, this.WhenAnyValue(x => x.CanDeqeue)
-				.ObserveOn(RxApp.MainThreadScheduler));
+					DequeueCoinsPressed?.Invoke(this, EventArgs.Empty);
+				},
+				this.WhenAnyValue(x => x.CanDeqeue)
+					.ObserveOn(RxApp.MainThreadScheduler));
 
 			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
-			{
-				//Global.WalletService.Coins.First(c => c.Unspent).Unspent = false;
-				switch (SelectAllCheckBoxState)
 				{
-					case true:
-						SelectAllCoins(true, x => true);
-						break;
+					//Global.WalletService.Coins.First(c => c.Unspent).Unspent = false;
+					switch (SelectAllCheckBoxState)
+					{
+						case true:
+							SelectAllCoins(true, x => true);
+							break;
 
-					case false:
-						SelectAllCoins(false, x => true);
-						break;
+						case false:
+							SelectAllCoins(false, x => true);
+							break;
 
-					case null:
-						SelectAllCoins(false, x => true);
-						SelectAllCheckBoxState = false;
-						break;
-				}
-			});
+						case null:
+							SelectAllCoins(false, x => true);
+							SelectAllCheckBoxState = false;
+							break;
+					}
+				});
 
 			SelectPrivateCheckBoxCommand = ReactiveCommand.Create(() =>
-			{
-				switch (SelectPrivateCheckBoxState)
 				{
-					case true:
-						SelectAllCoins(true, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
-						break;
+					switch (SelectPrivateCheckBoxState)
+					{
+						case true:
+							SelectAllCoins(true, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+							break;
 
-					case false:
-						SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
-						break;
+						case false:
+							SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+							break;
 
-					case null:
-						SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
-						SelectPrivateCheckBoxState = false;
-						break;
-				}
-			});
+						case null:
+							SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+							SelectPrivateCheckBoxState = false;
+							break;
+					}
+				});
 
 			SelectNonPrivateCheckBoxCommand = ReactiveCommand.Create(() =>
-			{
-				switch (SelectNonPrivateCheckBoxState)
 				{
-					case true:
-						SelectAllCoins(true, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
-						break;
+					switch (SelectNonPrivateCheckBoxState)
+					{
+						case true:
+							SelectAllCoins(true, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+							break;
 
-					case false:
-						SelectAllCoins(false, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
-						break;
+						case false:
+							SelectAllCoins(false, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+							break;
 
-					case null:
-						SelectAllCoins(false, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
-						SelectNonPrivateCheckBoxState = false;
-						break;
-				}
-			});
+						case null:
+							SelectAllCoins(false, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+							SelectNonPrivateCheckBoxState = false;
+							break;
+					}
+				});
 
 			InitList = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -370,9 +372,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					IsCoinListLoading = false;
 				}
-			}, outputScheduler: RxApp.MainThreadScheduler);
+			},
+			outputScheduler: RxApp.MainThreadScheduler);
 
-			InitList.ThrownExceptions.Subscribe(Logging.Logger.LogError<CoinListViewModel>);
+			InitList.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		private void OnOpen()
@@ -435,7 +438,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					catch (Exception ex)
 					{
-						Logging.Logger.LogDebug<Dispatcher>(ex);
+						Logger.LogDebug(ex);
 					}
 				}).DisposeWith(Disposables);
 

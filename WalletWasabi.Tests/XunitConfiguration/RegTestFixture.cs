@@ -10,9 +10,9 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend;
+using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Tests.NodeBuilding;
 
 namespace WalletWasabi.Tests.XunitConfiguration
@@ -27,7 +27,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 
 		public RegTestFixture()
 		{
-			BackendNodeBuilder = NodeBuilder.CreateAsync(nameof(RegTestFixture)).GetAwaiter().GetResult();
+			BackendNodeBuilder = NodeBuilder.CreateAsync(EnvironmentHelpers.GetMethodName()).GetAwaiter().GetResult();
 			BackendNodeBuilder.CreateNodeAsync().GetAwaiter().GetResult();
 			BackendNodeBuilder.StartAllAsync().GetAwaiter().GetResult();
 			BackendRegTestNode = BackendNodeBuilder.Nodes[0];
@@ -68,13 +68,13 @@ namespace WalletWasabi.Tests.XunitConfiguration
 					.Build();
 			Global = (Backend.Global)BackendHost.Services.GetService(typeof(Backend.Global));
 			var hostInitializationTask = BackendHost.RunWithTasksAsync();
-			Logger.LogInfo($"Started Backend webhost: {BackendEndPoint}", nameof(Global));
+			Logger.LogInfo($"Started Backend webhost: {BackendEndPoint}");
 
 			var delayTask = Task.Delay(3000);
 			Task.WaitAny(delayTask, hostInitializationTask); // Wait for server to initialize (Without this OSX CI will fail)
 		}
 
-		public static CcjRoundConfig CreateRoundConfig(Money denomination,
+		public static CoordinatorRoundConfig CreateRoundConfig(Money denomination,
 												int confirmationTarget,
 												double confirmationTargetReductionRate,
 												decimal coordinatorFeePercent,
@@ -88,7 +88,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 												bool dosNoteBeforeBan,
 												int maximumMixingLevelCount)
 		{
-			return new CcjRoundConfig
+			return new CoordinatorRoundConfig
 			{
 				Denomination = denomination,
 				ConfirmationTarget = confirmationTarget,

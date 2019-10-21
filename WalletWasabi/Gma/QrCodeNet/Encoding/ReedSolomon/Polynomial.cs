@@ -20,7 +20,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 
 			if (coefficientsLength == 0 || coefficients is null)
 			{
-				throw new ArithmeticException("Cannot create empty Polynomial");
+				throw new ArithmeticException($"Cannot create empty {nameof(Polynomial)}.");
 			}
 
 			GField = gfield;
@@ -72,7 +72,8 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			if (Primitive != other.Primitive)
 			{
-				throw new ArgumentException("Polynomial cannot perform AddOrSubtract as they do not have same Primitive for GaloisField256");
+				throw new ArgumentException($"{nameof(Polynomial)} cannot perform {nameof(AddOrSubtract)} as they do not have the same {nameof(Primitive)}" +
+					$" for {nameof(GaloisField256)}.");
 			}
 			if (IsMonomialZero)
 			{
@@ -100,7 +101,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			if (smallerCoefficients.Length > largerCoefficients.Length)
 			{
-				throw new ArgumentException("Cannot perform CoefficientXor method as smaller Coefficients length is greater than the larger one.");
+				throw new ArgumentException($"Cannot perform {nameof(CoefficientXor)} method as smaller {nameof(Coefficients)} length is greater than the larger one.");
 			}
 
 			int targetLength = largerCoefficients.Length;
@@ -125,7 +126,8 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			if (Primitive != other.Primitive)
 			{
-				throw new ArgumentException("Polynomial cannot perform Multiply as they do not have same Primitive for GaloisField256");
+				throw new ArgumentException($"{nameof(Polynomial)} cannot perform {nameof(Multiply)} as they do not have the same {nameof(Primitive)}" +
+					$" for {nameof(GaloisField256)}.");
 			}
 			if (IsMonomialZero || other.IsMonomialZero)
 			{
@@ -184,11 +186,12 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			if (Primitive != other.Primitive)
 			{
-				throw new ArgumentException("Polynomial cannot perform Divide as they do not have same Primitive for GaloisField256");
+				throw new ArgumentException($"{nameof(Polynomial)} cannot perform {nameof(Divide)} as they do not have the same {nameof(Primitive)}" +
+					$" for {nameof(GaloisField256)}.");
 			}
 			if (other.IsMonomialZero)
 			{
-				throw new ArgumentException("Cannot divide by Polynomial Zero");
+				throw new ArgumentException($"Cannot divide by {nameof(Polynomial)} Zero.");
 			}
 			//this divide by other = a divide by b
 			int aLength = Coefficients.Length;

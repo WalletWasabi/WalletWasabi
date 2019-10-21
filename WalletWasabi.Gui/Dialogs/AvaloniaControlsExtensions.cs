@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 
 namespace Avalonia.Controls
 {
@@ -34,7 +35,7 @@ namespace Avalonia.Controls
 				}
 				catch (Exception ex)
 				{
-					WalletWasabi.Logging.Logger.LogWarning(ex, me.GetType().Name);
+					Logger.LogWarning(ex);
 
 					string title = !string.IsNullOrWhiteSpace(me.Title)
 						? me.Title
@@ -74,7 +75,7 @@ namespace Avalonia.Controls
 					}
 					else
 					{
-						return new string[0];
+						return Array.Empty<string>();
 					}
 				}
 			}
