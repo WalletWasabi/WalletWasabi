@@ -166,7 +166,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
 
 			// A confirmed segwit transaction for us
-			var tx = CreateCreditingTransaction(keys[0].PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m), height:54321);
+			var tx = CreateCreditingTransaction(keys[0].PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m), height: 54321);
 			transactionProcessor.Process(tx);
 
 			var createdCoin = tx.Transaction.Outputs.AsCoins().First();
@@ -524,7 +524,6 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal("D, A, B, C, X", paymentCoin.Clusters.Labels);
 		}
 
-
 		[Fact]
 		public async Task RememberClusteringAfterReorgAsync()
 		{
@@ -534,7 +533,7 @@ namespace WalletWasabi.Tests.UnitTests
 			//                 |    ^
 			// --tx2---> (C) --+    |
 			//                      +---- The block is reorg and tx3 is removed
-			//                       
+			//
 			var transactionProcessor = await CreateTransactionProcessorAsync();
 			var key = transactionProcessor.NewKey("A");
 			var tx0 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m), height: 54321);
@@ -648,7 +647,6 @@ namespace WalletWasabi.Tests.UnitTests
 			return new SmartTransaction(tx, height == 0 ? Height.Mempool : new Height(height));
 		}
 
-
 		private static SmartTransaction CreateCreditingTransaction(Script scriptPubKey, Money amount, int height = 0)
 		{
 			var tx = Network.RegTest.CreateTransaction();
@@ -665,7 +663,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 	}
 
-	static class TransactionProcessorExtensions
+	internal static class TransactionProcessorExtensions
 	{
 		public static HdPubKey NewKey(this TransactionProcessor me, string label)
 		{
