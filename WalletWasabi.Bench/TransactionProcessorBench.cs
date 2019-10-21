@@ -17,7 +17,7 @@ using System.Net;
 
 namespace WalletWasabi.Bench
 {
-	[ClrJob(baseline: true), CoreJob, RankColumn]
+	[CoreJob, RankColumn]
 	public class TransactionProcessorBench
 	{
 		private TransactionProcessor _tp;
