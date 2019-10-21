@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 using NBitcoin.Protocol;
 using WalletWasabi.Stores;
 using System.Net;
+using WalletWasabi.CoinJoin.Client.Clients;
 
 namespace WalletWasabi.Bench
 {
@@ -26,6 +27,7 @@ namespace WalletWasabi.Bench
 		[Params(100, 1_000, 10_000)]
 #pragma warning disable IDE1006 // Naming Styles
 		public int TRANSACTIONS;
+
 #pragma warning restore IDE1006 // Naming Styles
 
 		[GlobalSetup]
@@ -84,7 +86,7 @@ namespace WalletWasabi.Bench
 			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// 4. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(synchronizer, Network.Main, keyManager, () => new Uri("http://localhost:354874"), null);
+			var chaumianClient = new CoinJoinClient(synchronizer, Network.Main, keyManager, () => new Uri("http://localhost:354874"), null);
 
 			// 5. Create wallet service.
 			await bitcoinStore.InitializeAsync(dir, Network.Main);
