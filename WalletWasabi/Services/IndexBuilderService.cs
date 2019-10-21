@@ -47,11 +47,6 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			public void ClearActionHistory()
-			{
-				ActionHistory.Clear();
-			}
-
 			public void StoreAction(ActionItem actionItem)
 			{
 				ActionHistory.Add(actionItem);
