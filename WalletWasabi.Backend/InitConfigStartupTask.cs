@@ -9,8 +9,8 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Logging;
-using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Backend
 {
@@ -38,7 +38,7 @@ namespace WalletWasabi.Backend
 			Logger.LogInfo("Config is successfully initialized.");
 
 			var roundConfigFilePath = Path.Combine(Global.DataDir, "CcjRoundConfig.json");
-			var roundConfig = new CcjRoundConfig(roundConfigFilePath);
+			var roundConfig = new CoordinatorRoundConfig(roundConfigFilePath);
 			await roundConfig.LoadOrCreateDefaultFileAsync();
 			Logger.LogInfo("RoundConfig is successfully initialized.");
 

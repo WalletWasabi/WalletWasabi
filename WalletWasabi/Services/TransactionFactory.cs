@@ -140,6 +140,8 @@ namespace WalletWasabi.Services
 				builder.SetChange(changeHdPubKey.P2wpkhScript);
 			}
 
+			builder.OptInRBF = new Random().NextDouble() < 0.02; // 2% RBF transactions
+
 			FeeRate feeRate = feeRateFetcher();
 			builder.SendEstimatedFees(feeRate);
 

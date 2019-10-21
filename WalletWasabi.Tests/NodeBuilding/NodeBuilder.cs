@@ -208,10 +208,5 @@ namespace WalletWasabi.Tests.NodeBuilding
 		}
 
 		private List<IDisposable> Disposables { get; } = new List<IDisposable>();
-
-		internal void AddDisposable(IDisposable group)
-		{
-			Disposables.Add(group);
-		}
 	}
 }

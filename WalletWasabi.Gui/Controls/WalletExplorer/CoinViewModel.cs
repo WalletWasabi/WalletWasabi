@@ -5,10 +5,11 @@ using System.Globalization;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using WalletWasabi.CoinJoin.Client.Rounds;
+using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
-using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -186,30 +187,30 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return SmartCoinStatus.MixingBanned;
 			}
 
-			CcjClientState clientState = Global.ChaumianClient.State;
+			ClientState clientState = Global.ChaumianClient.State;
 
 			if (Model.CoinJoinInProgress)
 			{
 				foreach (long roundId in clientState.GetAllMixingRounds())
 				{
-					CcjClientRound round = clientState.GetSingleOrDefaultRound(roundId);
+					ClientRound round = clientState.GetSingleOrDefaultRound(roundId);
 					if (round != default)
 					{
 						if (round.CoinsRegistered.Contains(Model))
 						{
-							if (round.State.Phase == CcjRoundPhase.InputRegistration)
+							if (round.State.Phase == RoundPhase.InputRegistration)
 							{
 								return SmartCoinStatus.MixingInputRegistration;
 							}
-							else if (round.State.Phase == CcjRoundPhase.ConnectionConfirmation)
+							else if (round.State.Phase == RoundPhase.ConnectionConfirmation)
 							{
 								return SmartCoinStatus.MixingConnectionConfirmation;
 							}
-							else if (round.State.Phase == CcjRoundPhase.OutputRegistration)
+							else if (round.State.Phase == RoundPhase.OutputRegistration)
 							{
 								return SmartCoinStatus.MixingOutputRegistration;
 							}
-							else if (round.State.Phase == CcjRoundPhase.Signing)
+							else if (round.State.Phase == RoundPhase.Signing)
 							{
 								return SmartCoinStatus.MixingSigning;
 							}

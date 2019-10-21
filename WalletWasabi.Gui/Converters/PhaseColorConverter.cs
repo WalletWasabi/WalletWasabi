@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
-using WalletWasabi.Models.ChaumianCoinJoin;
+using WalletWasabi.CoinJoin.Common.Models;
 
 namespace WalletWasabi.Gui.Converters
 {
@@ -13,14 +13,14 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (!Enum.TryParse(typeof(CcjRoundPhase), parameter.ToString(), false, out var p))
+			if (!Enum.TryParse(typeof(RoundPhase), parameter.ToString(), false, out var p))
 			{
 				throw new ArgumentException($"Unknown '{parameter}' value");
 			}
 			var global = Application.Current.Resources[Global.GlobalResourceKey] as Global;
 			var phaseError = global.ChaumianClient.State.IsInErrorState;
 
-			return (CcjRoundPhase)p <= (CcjRoundPhase)value
+			return (RoundPhase)p <= (RoundPhase)value
 				? phaseError
 					? Brushes.IndianRed
 					: Brushes.Green
