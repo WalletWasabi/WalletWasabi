@@ -283,11 +283,6 @@ namespace WalletWasabi.TorSocks5
 			}
 		}
 
-		// ~TorHttpClient() {
-		// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-		//   Dispose(false);
-		// }
-
 		// This code added to correctly implement the disposable pattern.
 		public void Dispose()
 		{
