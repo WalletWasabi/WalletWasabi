@@ -425,7 +425,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 						Phase = RoundPhase.Signing;
 					}
-					else // Phase == CcjRoundPhase.Signing
+					else // Phase == RoundPhase.Signing
 					{
 						return;
 					}
