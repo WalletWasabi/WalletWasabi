@@ -26,10 +26,15 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Folder Include="Gma\QrCodeNet\Encoding\ReedSolomon\" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <None Update="BitcoinCore\Binaries\bitcoincore-lin64\bitcoind">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="BitcoinCore\Binaries\bitcoincore-osx64\bitcoind">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="BitcoinCore\Binaries\bitcoincore-win64\bitcoind.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Hwi\Binaries\hwi-lin64\hwi">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

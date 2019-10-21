@@ -199,14 +199,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 				node?.TryKillAsync().GetAwaiter().GetResult();
 			}
 
-			foreach (IDisposable disposable in Disposables)
-			{
-				disposable?.Dispose();
-			}
-
 			TryRemoveWorkingDirectoryAsync().GetAwaiter().GetResult();
 		}
-
-		private List<IDisposable> Disposables { get; } = new List<IDisposable>();
 	}
 }
