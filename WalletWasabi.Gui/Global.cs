@@ -18,6 +18,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.Crypto;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.ViewModels;
@@ -55,7 +56,7 @@ namespace WalletWasabi.Gui
 
 		public NodesGroup Nodes { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
-		public CcjClient ChaumianClient { get; private set; }
+		public CoinJoinClient ChaumianClient { get; private set; }
 		public WalletService WalletService { get; private set; }
 		public Node RegTestMempoolServingNode { get; private set; }
 		public UpdateChecker UpdateChecker { get; private set; }
@@ -393,11 +394,11 @@ namespace WalletWasabi.Gui
 
 				if (Config.UseTor)
 				{
-					ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
+					ChaumianClient = new CoinJoinClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
 				}
 				else
 				{
-					ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, Config.GetFallbackBackendUri(), null);
+					ChaumianClient = new CoinJoinClient(Synchronizer, Network, keyManager, Config.GetFallbackBackendUri(), null);
 				}
 
 				try

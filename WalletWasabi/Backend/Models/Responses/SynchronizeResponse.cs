@@ -2,6 +2,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Models;
 
@@ -16,7 +17,7 @@ namespace WalletWasabi.Backend.Models.Responses
 
 		public int BestHeight { get; set; }
 
-		public IEnumerable<CcjRunningRoundState> CcjRoundStates { get; set; }
+		public IEnumerable<RoundStateResponse> CcjRoundStates { get; set; }
 
 		public AllFeeEstimate AllFeeEstimate { get; set; }
 
