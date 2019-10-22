@@ -161,7 +161,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		private readonly AsyncLock KillerLock = new AsyncLock();
 
-		public async Task TryKillAsync(bool cleanFolder = true)
+		public async Task TryKillAsync()
 		{
 			try
 			{
@@ -180,10 +180,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 					State = CoreNodeState.Killed;
 				}
-				if (cleanFolder)
-				{
-					await IoHelpers.DeleteRecursivelyWithMagicDustAsync(Folder);
-				}
+				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(Folder);
 			}
 			catch
 			{ }
