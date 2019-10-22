@@ -19,22 +19,14 @@ using WalletWasabi.Tests.XunitConfiguration;
 
 namespace WalletWasabi.Tests.NodeBuilding
 {
-	public class NodeBuilder
+	public static class NodeBuilder
 	{
-		private int Last { get; set; }
-		private string Root { get; }
+		private static int Last { get; set; }
 
-		public NodeBuilder([CallerMemberName]string caller = null)
+		public static async Task<CoreNode> CreateNodeAsync([CallerMemberName]string caller = null)
 		{
-			Root = Path.Combine(Global.Instance.DataDir, caller);
-		}
-
-		public CoreNode Node { get; private set; }
-		public Network Network => Network.RegTest;
-
-		public async Task<CoreNode> CreateNodeAsync()
-		{
-			var child = Path.Combine(Root, Last.ToString());
+			var root = Path.Combine(Global.Instance.DataDir, caller);
+			var child = Path.Combine(root, Last.ToString());
 			Last++;
 			try
 			{
@@ -75,15 +67,15 @@ namespace WalletWasabi.Tests.NodeBuilding
 					}
 				}
 				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(child);
-				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(Root);
-				IoHelpers.EnsureDirectoryExists(Root);
+				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(root);
+				IoHelpers.EnsureDirectoryExists(root);
 			}
 			catch (DirectoryNotFoundException)
 			{
 			}
-			Node = new CoreNode(child);
-			await Node.StartAsync();
-			return Node;
+			var node = new CoreNode(child);
+			await node.StartAsync();
+			return node;
 		}
 	}
 }
