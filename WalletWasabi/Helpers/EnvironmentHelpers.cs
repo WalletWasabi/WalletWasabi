@@ -210,7 +210,7 @@ namespace WalletWasabi.Helpers
 		}
 
 		/// <summary>
-		/// Acessibility of binaries must follow the convention: {binariesContainingFolderRelativePath}/Binaries/{binaryNameWithoutExtension}-{os}64/binaryNameWithoutExtension(.exe)
+		/// Accessibility of binaries must follow the convention: {binariesContainingFolderRelativePath}/Binaries/{binaryNameWithoutExtension}-{os}64/binaryNameWithoutExtension(.exe)
 		/// </summary>
 		public static string GetBinaryPath(string binariesContainingFolderRelativePath, string binaryNameWithoutExtension)
 		{
