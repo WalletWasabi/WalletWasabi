@@ -31,15 +31,13 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			BackendNodeBuilder.CreateNodeAsync().GetAwaiter().GetResult();
 			BackendRegTestNode = BackendNodeBuilder.Node;
 
-			var connectionString = $"{BackendRegTestNode.Creds.UserName}:{BackendRegTestNode.Creds.Password}";
-
 			var testnetBackendDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests", "Backend"));
 			IoHelpers.DeleteRecursivelyWithMagicDustAsync(testnetBackendDir).GetAwaiter().GetResult();
 			Thread.Sleep(100);
 			Directory.CreateDirectory(testnetBackendDir);
 			Thread.Sleep(100);
 			var config = new Config(
-				BackendNodeBuilder.Network, connectionString,
+				BackendNodeBuilder.Network, BackendRegTestNode.RpcClient.CredentialString.ToString(),
 				new IPEndPoint(IPAddress.Loopback, Network.Main.DefaultPort),
 				new IPEndPoint(IPAddress.Loopback, Network.TestNet.DefaultPort),
 				BackendRegTestNode.P2pEndPoint,

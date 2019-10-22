@@ -20,11 +20,10 @@ namespace WalletWasabi.Tests.NodeBuilding
 		public string Folder { get; }
 
 		public int P2pPort { get; }
-		public int RpcPort { get; }
 
 		public EndPoint P2pEndPoint { get; }
 		public EndPoint RpcEndPoint { get; }
-
+		public RPCClient RpcClient { get; }
 		public string Config { get; }
 
 		public NodeConfigParameters ConfigParameters { get; } = new NodeConfigParameters();
@@ -37,7 +36,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			DataDir = Path.Combine(folder, "data");
 			Directory.CreateDirectory(DataDir);
 			var pass = Encoders.Hex.EncodeData(RandomUtils.GetBytes(20));
-			Creds = new NetworkCredential(pass, pass);
+			var creds = new NetworkCredential(pass, pass);
 			Config = Path.Combine(DataDir, "bitcoin.conf");
 			ConfigParameters.Import(builder.ConfigParameters);
 
@@ -66,16 +65,17 @@ namespace WalletWasabi.Tests.NodeBuilding
 			}
 
 			P2pPort = portArray[0];
-			RpcPort = portArray[1];
+			var rpcPort = portArray[1];
 			P2pEndPoint = new IPEndPoint(IPAddress.Loopback, P2pPort);
-			RpcEndPoint = new IPEndPoint(IPAddress.Loopback, RpcPort);
+			RpcEndPoint = new IPEndPoint(IPAddress.Loopback, rpcPort);
+
+			RpcClient = new RPCClient($"{creds.UserName}:{creds.Password}", RpcEndPoint.ToString(rpcPort), Network.RegTest);
 		}
 
 		public async Task<IEnumerable<Block>> GenerateAsync(int blockCount)
 		{
-			var rpc = CreateRpcClient();
-			var blocks = await rpc.GenerateAsync(blockCount);
-			rpc = rpc.PrepareBatch();
+			var blocks = await RpcClient.GenerateAsync(blockCount);
+			var rpc = RpcClient.PrepareBatch();
 			var tasks = blocks.Select(b => rpc.GetBlockAsync(b));
 			rpc.SendBatch();
 			return await Task.WhenAll(tasks);
@@ -90,13 +90,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 		}
 
 		public CoreNodeState State { get; private set; }
-
-		internal readonly NetworkCredential Creds;
-
-		public RPCClient CreateRpcClient()
-		{
-			return new RPCClient($"{Creds.UserName}:{Creds.Password}", RpcEndPoint.ToString(RpcPort), Network.RegTest);
-		}
 
 		public async Task<Node> CreateNodeClientAsync()
 		{
@@ -117,10 +110,10 @@ namespace WalletWasabi.Tests.NodeBuilding
 				{"regtest.listenonion", "0"},
 				{"regtest.server", "1"},
 				{"regtest.txindex", "1"},
-				{"regtest.rpcuser", Creds.UserName},
-				{"regtest.rpcpassword", Creds.Password},
+				{"regtest.rpcuser", RpcClient.CredentialString.UserPassword.UserName},
+				{"regtest.rpcpassword", RpcClient.CredentialString.UserPassword.Password},
 				{"regtest.whitebind", "127.0.0.1:" + P2pPort.ToString()},
-				{"regtest.rpcport", RpcPort.ToString()},
+				{"regtest.rpcport", RpcEndPoint.GetPortOrDefault().ToString()},
 				{"regtest.printtoconsole", "0"}, // Set it to one if do not mind loud debug logs
 				{"regtest.keypool", "10"},
 				{"regtest.pid", "bitcoind.pid"}
@@ -142,7 +135,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			{
 				try
 				{
-					await CreateRpcClient().GetBlockHashAsync(0);
+					await RpcClient.GetBlockHashAsync(0);
 					State = CoreNodeState.Running;
 					break;
 				}
@@ -169,7 +162,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 				{
 					try
 					{
-						await CreateRpcClient().StopAsync();
+						await RpcClient.StopAsync();
 						if (!Process.WaitForExit(20000))
 						{
 							//log this
