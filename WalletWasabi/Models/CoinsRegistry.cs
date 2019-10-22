@@ -52,14 +52,17 @@ namespace WalletWasabi.Models
 			var added = false;
 			lock (Lock)
 			{
-				added = Coins.Add(coin);
-				if (added)
+				if (!SpentCoins.Contains(coin))
 				{
-					if (ClustersByScriptPubKey.TryGetValue(coin.ScriptPubKey, out var cluster))
+					added = Coins.Add(coin);
+					if (added)
 					{
-						coin.Clusters = cluster;
+						if (ClustersByScriptPubKey.TryGetValue(coin.ScriptPubKey, out var cluster))
+						{
+							coin.Clusters = cluster;
+						}
+						InvalidateSnapshot = true;
 					}
-					InvalidateSnapshot = true;
 				}
 			}
 			return added;
@@ -67,10 +70,9 @@ namespace WalletWasabi.Models
 
 		public void Remove(SmartCoin coin)
 		{
-			var coinsToRemove = AsCoinsView().DescendantOf(coin).ToList();
-			coinsToRemove.Add(coin);
 			lock (Lock)
 			{
+				var coinsToRemove = DescendantOfAndSelf(coin).ToList();
 				foreach (var toRemove in coinsToRemove)
 				{
 					if (Coins.Remove(toRemove))
@@ -89,7 +91,7 @@ namespace WalletWasabi.Models
 				if (Coins.Remove(spentCoin))
 				{
 					SpentCoins.Add(spentCoin);
-					var createdCoins = Coins.Where(x => x.TransactionId == spentCoin.SpenderTransactionId);
+					var createdCoins = CreatedBy(spentCoin.SpenderTransactionId);
 					foreach (var newCoin in createdCoins)
 					{
 						if (newCoin.AnonymitySet < PrivacyLevelThreshold)
@@ -101,6 +103,32 @@ namespace WalletWasabi.Models
 					}
 				}
 				InvalidateSnapshot = true;
+			}
+		}
+
+		public void RemoveFromBlock(Height blockHeight)
+		{
+			lock (Lock)
+			{
+				var allCoins = AsAllCoinsView();
+				foreach (var toRemove in allCoins.AtBlockHeight(blockHeight).ToList())
+				{
+					var coinsToRemove = allCoins.DescendantOfAndSelf(toRemove).ToList();
+					foreach (var coin in coinsToRemove)
+					{
+						if (coin.Unspent)
+						{
+							if (Coins.Remove(coin))
+							{
+								InvalidateSnapshot = true;
+							}
+						}
+						else
+						{
+							SpentCoins.Remove(toRemove);
+						}
+					}
+				}
 			}
 		}
 
@@ -140,6 +168,11 @@ namespace WalletWasabi.Models
 		public ICoinsView DescendantOf(SmartCoin coin)
 		{
 			return AsCoinsView().DescendantOf(coin);
+		}
+
+		public ICoinsView DescendantOfAndSelf(SmartCoin coin)
+		{
+			return AsCoinsView().DescendantOfAndSelf(coin);
 		}
 
 		public ICoinsView FilterBy(Func<SmartCoin, bool> expression)

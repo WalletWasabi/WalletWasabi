@@ -64,8 +64,8 @@ namespace WalletWasabi.Services
 
 		public ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)> ProcessedBlocks { get; }
 
-		public ICoinsView Coins { get; }
-		public ICoinsView AllCoins { get; }
+		public ICoinsView Coins { get; }  // UTXOs
+		public ICoinsView AllCoins { get; } // all TXOs (spent and unspent)
 
 		public event EventHandler<FilterModel> NewFilterProcessed;
 

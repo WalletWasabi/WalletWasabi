@@ -80,6 +80,11 @@ namespace WalletWasabi.Models
 			return new CoinsView(Generator(coin));
 		}
 
+		public ICoinsView DescendantOfAndSelf(SmartCoin coin)
+		{
+			return new CoinsView(DescendantOf(coin).Concat(new[] { coin }));
+		}
+
 		public ICoinsView FilterBy(Func<SmartCoin, bool> expression)
 		{
 			return new CoinsView(Coins.Where(expression));

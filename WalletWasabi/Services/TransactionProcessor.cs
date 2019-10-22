@@ -48,7 +48,7 @@ namespace WalletWasabi.Services
 
 			if (tx.Confirmed)
 			{
-				foreach (var coin in Coins.Where(x => x.TransactionId == txId))
+				foreach (var coin in Coins.AsAllCoinsView().CreatedBy(txId))
 				{
 					coin.Height = tx.Height;
 					walletRelevant = true; // relevant
@@ -177,7 +177,7 @@ namespace WalletWasabi.Services
 					{
 						if (newCoin.Height != Height.Mempool) // Update the height of this old coin we already had.
 						{
-							SmartCoin oldCoin = Coins.GetByOutPoint(new OutPoint(txId, i));
+							SmartCoin oldCoin = Coins.AsAllCoinsView().GetByOutPoint(new OutPoint(txId, i));
 							if (oldCoin != null) // Just to be sure, it is a concurrent collection.
 							{
 								oldCoin.Height = newCoin.Height;
@@ -222,10 +222,7 @@ namespace WalletWasabi.Services
 
 		public void UndoBlock(Height blockHeight)
 		{
-			foreach (var toRemove in Coins.AtBlockHeight(blockHeight))
-			{
-				Coins.Remove(toRemove);
-			}
+			Coins.RemoveFromBlock(blockHeight);
 		}
 	}
 }
