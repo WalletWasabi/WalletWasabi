@@ -19,7 +19,7 @@ using WalletWasabi.Tests.XunitConfiguration;
 
 namespace WalletWasabi.Tests.NodeBuilding
 {
-	public class NodeBuilder : IDisposable
+	public class NodeBuilder
 	{
 		private int Last { get; set; }
 		private string Root { get; }
@@ -84,11 +84,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 			Node = new CoreNode(child);
 			await Node.StartAsync();
 			return Node;
-		}
-
-		public void Dispose()
-		{
-			Node?.TryKillAsync().GetAwaiter().GetResult();
 		}
 	}
 }

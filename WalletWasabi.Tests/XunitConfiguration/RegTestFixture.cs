@@ -21,15 +21,13 @@ namespace WalletWasabi.Tests.XunitConfiguration
 	{
 		public string BackendEndPoint { get; internal set; }
 		public IWebHost BackendHost { get; internal set; }
-		public NodeBuilder BackendNodeBuilder { get; internal set; }
 		public CoreNode BackendRegTestNode { get; internal set; }
 		public Backend.Global Global { get; }
 
 		public RegTestFixture()
 		{
-			BackendNodeBuilder = new NodeBuilder(EnvironmentHelpers.GetMethodName());
-			BackendNodeBuilder.CreateNodeAsync().GetAwaiter().GetResult();
-			BackendRegTestNode = BackendNodeBuilder.Node;
+			var nodeBuilder = new NodeBuilder(EnvironmentHelpers.GetMethodName());
+			BackendRegTestNode = nodeBuilder.CreateNodeAsync().GetAwaiter().GetResult();
 
 			var testnetBackendDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests", "Backend"));
 			IoHelpers.DeleteRecursivelyWithMagicDustAsync(testnetBackendDir).GetAwaiter().GetResult();
@@ -37,7 +35,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			Directory.CreateDirectory(testnetBackendDir);
 			Thread.Sleep(100);
 			var config = new Config(
-				BackendNodeBuilder.Network, BackendRegTestNode.RpcClient.CredentialString.ToString(),
+				BackendRegTestNode.RpcClient.Network, BackendRegTestNode.RpcClient.CredentialString.ToString(),
 				new IPEndPoint(IPAddress.Loopback, Network.Main.DefaultPort),
 				new IPEndPoint(IPAddress.Loopback, Network.TestNet.DefaultPort),
 				BackendRegTestNode.P2pEndPoint,
@@ -110,7 +108,6 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			BackendHost?.StopAsync().GetAwaiter().GetResult();
 			BackendHost?.Dispose();
 			BackendRegTestNode?.TryKillAsync().GetAwaiter().GetResult();
-			BackendNodeBuilder?.Dispose();
 		}
 	}
 }
