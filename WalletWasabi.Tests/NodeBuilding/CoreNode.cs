@@ -32,7 +32,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 		{
 			Builder = builder;
 			Folder = folder;
-			State = CoreNodeState.Stopped;
 			DataDir = Path.Combine(folder, "data");
 			Directory.CreateDirectory(DataDir);
 			var pass = Encoders.Hex.EncodeData(RandomUtils.GetBytes(20));
@@ -89,8 +88,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 			return new CoreNode(folder, builder);
 		}
 
-		public CoreNodeState State { get; private set; }
-
 		public async Task<Node> CreateNodeClientAsync()
 		{
 			return await Node.ConnectAsync(Network.RegTest, P2pEndPoint);
@@ -118,7 +115,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 			using (await KillerLock.LockAsync())
 			{
 				Process = Process.Start(new FileInfo(Builder.BitcoinD).FullName, "-conf=bitcoin.conf" + " -datadir=" + DataDir + " -debug=1");
-				State = CoreNodeState.Starting;
 				string pidFile = Path.Combine(DataDir, "regtest", "bitcoind.pid");
 				if (!File.Exists(pidFile))
 				{
@@ -131,7 +127,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 				try
 				{
 					await RpcClient.GetBlockHashAsync(0);
-					State = CoreNodeState.Running;
 					break;
 				}
 				catch
@@ -165,8 +160,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 					}
 					catch (Exception)
 					{ }
-
-					State = CoreNodeState.Killed;
 				}
 				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(Folder);
 			}
