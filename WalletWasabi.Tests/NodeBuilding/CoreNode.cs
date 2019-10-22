@@ -11,12 +11,12 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Tests.NodeBuilding
 {
 	public class CoreNode
 	{
-		private NodeBuilder Builder { get; }
 		public string Folder { get; }
 
 		public int P2pPort { get; }
@@ -28,16 +28,14 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		public NodeConfigParameters ConfigParameters { get; } = new NodeConfigParameters();
 
-		private CoreNode(string folder, NodeBuilder builder)
+		private CoreNode(string folder)
 		{
-			Builder = builder;
 			Folder = folder;
 			DataDir = Path.Combine(folder, "data");
 			Directory.CreateDirectory(DataDir);
 			var pass = Encoders.Hex.EncodeData(RandomUtils.GetBytes(20));
 			var creds = new NetworkCredential(pass, pass);
 			Config = Path.Combine(DataDir, "bitcoin.conf");
-			ConfigParameters.Import(builder.ConfigParameters);
 
 			var portArray = new int[2];
 			var i = 0;
@@ -80,12 +78,12 @@ namespace WalletWasabi.Tests.NodeBuilding
 			return await Task.WhenAll(tasks);
 		}
 
-		public static async Task<CoreNode> CreateAsync(string folder, NodeBuilder builder)
+		public static async Task<CoreNode> CreateAsync(string folder)
 		{
 			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(folder);
 			Directory.CreateDirectory(folder);
 
-			return new CoreNode(folder, builder);
+			return new CoreNode(folder);
 		}
 
 		public async Task<Node> CreateNodeClientAsync()
@@ -114,7 +112,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			await File.WriteAllTextAsync(Config, config.ToString());
 			using (await KillerLock.LockAsync())
 			{
-				Process = Process.Start(new FileInfo(Builder.BitcoinD).FullName, "-conf=bitcoin.conf" + " -datadir=" + DataDir + " -debug=1");
+				Process = Process.Start(new FileInfo(EnvironmentHelpers.GetBinaryPath("BitcoinCore", "bitcoind")).FullName, "-conf=bitcoin.conf" + " -datadir=" + DataDir + " -debug=1");
 				string pidFile = Path.Combine(DataDir, "regtest", "bitcoind.pid");
 				if (!File.Exists(pidFile))
 				{

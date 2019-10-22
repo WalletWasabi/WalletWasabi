@@ -27,12 +27,9 @@ namespace WalletWasabi.Tests.NodeBuilding
 		public NodeBuilder([CallerMemberName]string caller = null)
 		{
 			Root = Path.Combine(Global.Instance.DataDir, caller);
-			BitcoinD = EnvironmentHelpers.GetBinaryPath("BitcoinCore", "bitcoind");
 		}
 
-		public string BitcoinD { get; }
 		public CoreNode Node { get; private set; }
-		public NodeConfigParameters ConfigParameters { get; } = new NodeConfigParameters();
 		public Network Network => Network.RegTest;
 
 		public async Task<CoreNode> CreateNodeAsync()
@@ -84,7 +81,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			catch (DirectoryNotFoundException)
 			{
 			}
-			Node = await CoreNode.CreateAsync(child, this);
+			Node = await CoreNode.CreateAsync(child);
 			await Node.StartAsync();
 			return Node;
 		}
