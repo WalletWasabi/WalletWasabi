@@ -112,7 +112,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 				{
 					BackendHost?.StopAsync().GetAwaiter().GetResult();
 					BackendHost?.Dispose();
-					BackendRegTestNode?.TryKillAsync().GetAwaiter().GetResult();
+					BackendRegTestNode?.StopAsync().GetAwaiter().GetResult();
 				}
 
 				_disposedValue = true;

@@ -25,7 +25,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 		public EndPoint RpcEndPoint { get; private set; }
 		public RPCClient RpcClient { get; private set; }
 
-		private Process Process { get; set; }
+		public Process Process { get; private set; }
 		private string DataDir { get; set; }
 
 		public static async Task<CoreNode> CreateAsync([CallerMemberName]string caller = null)
@@ -169,7 +169,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		private readonly AsyncLock KillerLock = new AsyncLock();
 
-		public async Task TryKillAsync()
+		public async Task StopAsync()
 		{
 			try
 			{
