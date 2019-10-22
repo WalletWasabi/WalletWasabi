@@ -24,16 +24,21 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		}
 
 		[Fact]
-		public async Task DataDirDiffersAsync()
+		public async Task NodesDifferAsync()
 		{
 			var coreNodes = await Task.WhenAll(CoreNode.CreateAsync(additionalFolder: "0"), CoreNode.CreateAsync(additionalFolder: "1"));
+			CoreNode node1 = coreNodes[0];
+			CoreNode node2 = coreNodes[1];
 			try
 			{
-				Assert.NotEqual(coreNodes[0].DataDir, coreNodes[1].DataDir);
+				Assert.NotEqual(node1.DataDir, node2.DataDir);
+				Assert.NotEqual(node1.Process.Id, node2.Process.Id);
+				Assert.NotEqual(node1.P2pEndPoint, node2.P2pEndPoint);
+				Assert.NotEqual(node1.RpcEndPoint, node2.RpcEndPoint);
 			}
 			finally
 			{
-				await Task.WhenAll(coreNodes[0].StopAsync(), coreNodes[1].StopAsync());
+				await Task.WhenAll(node1.StopAsync(), node2.StopAsync());
 			}
 		}
 	}

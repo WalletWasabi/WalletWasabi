@@ -19,8 +19,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 {
 	public class CoreNode
 	{
-		public int P2pPort { get; private set; }
-
 		public EndPoint P2pEndPoint { get; private set; }
 		public EndPoint RpcEndPoint { get; private set; }
 		public RPCClient RpcClient { get; private set; }
@@ -100,9 +98,9 @@ namespace WalletWasabi.Tests.NodeBuilding
 				}
 			}
 
-			coreNode.P2pPort = portArray[0];
+			var p2pPort = portArray[0];
 			var rpcPort = portArray[1];
-			coreNode.P2pEndPoint = new IPEndPoint(IPAddress.Loopback, coreNode.P2pPort);
+			coreNode.P2pEndPoint = new IPEndPoint(IPAddress.Loopback, p2pPort);
 			coreNode.RpcEndPoint = new IPEndPoint(IPAddress.Loopback, rpcPort);
 
 			coreNode.RpcClient = new RPCClient($"{creds.UserName}:{creds.Password}", coreNode.RpcEndPoint.ToString(rpcPort), Network.RegTest);
@@ -116,7 +114,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 				{"regtest.txindex", "1"},
 				{"regtest.rpcuser", coreNode.RpcClient.CredentialString.UserPassword.UserName},
 				{"regtest.rpcpassword", coreNode.RpcClient.CredentialString.UserPassword.Password},
-				{"regtest.whitebind", "127.0.0.1:" + coreNode.P2pPort.ToString()},
+				{"regtest.whitebind", "127.0.0.1:" + p2pPort.ToString()},
 				{"regtest.rpcport", coreNode.RpcEndPoint.GetPortOrDefault().ToString()},
 				{"regtest.printtoconsole", "0"}, // Set it to one if do not mind loud debug logs
 				{"regtest.keypool", "10"},
