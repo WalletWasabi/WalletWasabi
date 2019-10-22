@@ -96,11 +96,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 			return await Node.ConnectAsync(Network.RegTest, P2pEndPoint);
 		}
 
-		public async Task<Node> CreateNodeClientAsync(NodeConnectionParameters parameters)
-		{
-			return await Node.ConnectAsync(Network.RegTest, P2pEndPoint, parameters);
-		}
-
 		public async Task StartAsync()
 		{
 			var config = new NodeConfigParameters
