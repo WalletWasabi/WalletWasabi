@@ -20,36 +20,13 @@ namespace WalletWasabi.Tests.NodeBuilding
 {
 	public class NodeBuilder : IDisposable
 	{
-		public static string WorkingDirectory { get; private set; }
-
-		public static NodeBuilder Create([CallerMemberName]string caller = null)
-		{
-			WorkingDirectory = Path.Combine(Global.Instance.DataDir, caller);
-			return new NodeBuilder(WorkingDirectory, EnvironmentHelpers.GetBinaryPath("BitcoinCore", "bitcoind"));
-		}
-
-		private static async Task TryRemoveWorkingDirectoryAsync()
-		{
-			try
-			{
-				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(WorkingDirectory);
-			}
-			catch (DirectoryNotFoundException)
-			{
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
-		}
-
 		private int Last { get; set; }
 		private string Root { get; }
 
-		public NodeBuilder(string root, string bitcoindPath)
+		public NodeBuilder([CallerMemberName]string caller = null)
 		{
-			Root = root;
-			BitcoinD = bitcoindPath;
+			Root = Path.Combine(Global.Instance.DataDir, caller);
+			BitcoinD = EnvironmentHelpers.GetBinaryPath("BitcoinCore", "bitcoind");
 		}
 
 		public string BitcoinD { get; }
@@ -100,8 +77,8 @@ namespace WalletWasabi.Tests.NodeBuilding
 					}
 				}
 				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(child);
-				await TryRemoveWorkingDirectoryAsync();
-				Directory.CreateDirectory(WorkingDirectory);
+				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(Root);
+				IoHelpers.EnsureDirectoryExists(Root);
 			}
 			catch (DirectoryNotFoundException)
 			{
@@ -130,7 +107,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 				node?.TryKillAsync().GetAwaiter().GetResult();
 			}
 
-			TryRemoveWorkingDirectoryAsync().GetAwaiter().GetResult();
+			IoHelpers.DeleteRecursivelyWithMagicDustAsync(Root).GetAwaiter().GetResult();
 		}
 	}
 }
