@@ -133,7 +133,7 @@ namespace WalletWasabi.Helpers
 
 		// This method removes the path and file extension.
 		//
-		// Given Wasabi releases are currently built using Windows, the generated assymblies contain
+		// Given Wasabi releases are currently built using Windows, the generated assemblies contain
 		// the hardcoded "C:\Users\User\Desktop\WalletWasabi\.......\FileName.cs" string because that
 		// is the real path of the file, it doesn't matter what OS was targeted.
 		// In Windows and Linux that string is a valid path and that means Path.GetFileNameWithoutExtension
