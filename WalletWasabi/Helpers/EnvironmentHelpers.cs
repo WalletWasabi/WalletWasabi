@@ -208,5 +208,34 @@ namespace WalletWasabi.Helpers
 
 			return fullBaseDirectory;
 		}
+
+		/// <summary>
+		/// Acessibility of binaries must follow the convention: {binariesContainingFolderRelativePath}/Binaries/{binaryNameWithoutExtension}-{os}64/binaryNameWithoutExtension(.exe)
+		/// </summary>
+		public static string GetBinaryPath(string binariesContainingFolderRelativePath, string binaryNameWithoutExtension)
+		{
+			var fullBaseDirectory = GetFullBaseDirectory();
+
+			string commonPartialPath = Path.Combine(fullBaseDirectory, binariesContainingFolderRelativePath, "Binaries");
+			string path;
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				path = Path.Combine(commonPartialPath, $"{binaryNameWithoutExtension}-win64", $"{binaryNameWithoutExtension}.exe");
+			}
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			{
+				path = Path.Combine(commonPartialPath, $"{binaryNameWithoutExtension}-lin64", binaryNameWithoutExtension);
+			}
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				path = Path.Combine(commonPartialPath, $"{binaryNameWithoutExtension}-osx64", binaryNameWithoutExtension);
+			}
+			else
+			{
+				throw new NotSupportedException("Operating system is not supported.");
+			}
+
+			return path;
+		}
 	}
 }

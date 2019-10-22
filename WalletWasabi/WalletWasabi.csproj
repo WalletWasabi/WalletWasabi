@@ -26,13 +26,13 @@
   </ItemGroup>
   
   <ItemGroup>
-    <None Update="BitcoinCore\Binaries\bitcoincore-lin64\bitcoind">
+    <None Update="BitcoinCore\Binaries\bitcoind-lin64\bitcoind">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="BitcoinCore\Binaries\bitcoincore-osx64\bitcoind">
+    <None Update="BitcoinCore\Binaries\bitcoind-osx64\bitcoind">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="BitcoinCore\Binaries\bitcoincore-win64\bitcoind.exe">
+    <None Update="BitcoinCore\Binaries\bitcoind-win64\bitcoind.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Hwi\Binaries\hwi-lin64\hwi">

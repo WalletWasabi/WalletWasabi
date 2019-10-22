@@ -12,6 +12,7 @@ using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tests.XunitConfiguration;
 
@@ -19,18 +20,12 @@ namespace WalletWasabi.Tests.NodeBuilding
 {
 	public class NodeBuilder : IDisposable
 	{
-		public static readonly AsyncLock Lock = new AsyncLock();
 		public static string WorkingDirectory { get; private set; }
 
-		public static async Task<NodeBuilder> CreateAsync([CallerMemberName]string caller = null, string version = "0.18.1")
+		public static NodeBuilder Create([CallerMemberName]string caller = null)
 		{
-			using (await Lock.LockAsync())
-			{
-				WorkingDirectory = Path.Combine(Global.Instance.DataDir, caller);
-				version ??= "0.18.1";
-				var path = await EnsureDownloadedAsync(version);
-				return new NodeBuilder(WorkingDirectory, path);
-			}
+			WorkingDirectory = Path.Combine(Global.Instance.DataDir, caller);
+			return new NodeBuilder(WorkingDirectory, EnvironmentHelpers.GetBinaryPath("BitcoinCore", "bitcoind"));
 		}
 
 		private static async Task TryRemoveWorkingDirectoryAsync()
@@ -46,70 +41,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 			{
 				Logger.LogError(ex);
 			}
-		}
-
-		private static async Task<string> EnsureDownloadedAsync(string version)
-		{
-			//is a file
-			if (version.Length >= 2 && version[1] == ':')
-			{
-				return version;
-			}
-
-			string zip;
-			string bitcoind;
-			string bitcoindFolderName = $"bitcoin-{version}";
-
-			// Remove old bitcoind folders.
-			IEnumerable<string> existingBitcoindFolderPaths = Directory.EnumerateDirectories(Global.Instance.DataDir, "bitcoin-*", SearchOption.TopDirectoryOnly);
-			foreach (string dirPath in existingBitcoindFolderPaths)
-			{
-				string dirName = Path.GetFileName(dirPath);
-				if (bitcoindFolderName != dirName)
-				{
-					await IoHelpers.DeleteRecursivelyWithMagicDustAsync(dirPath);
-				}
-			}
-
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				bitcoind = Path.Combine(Global.Instance.DataDir, bitcoindFolderName, "bin", "bitcoind.exe");
-				if (File.Exists(bitcoind))
-				{
-					return bitcoind;
-				}
-
-				zip = Path.Combine(Global.Instance.DataDir, $"bitcoin-{version}-win64.zip");
-				string url = string.Format("https://bitcoincore.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
-				using var client = new HttpClient();
-				client.Timeout = TimeSpan.FromMinutes(10.0);
-				var data = await client.GetByteArrayAsync(url);
-				await File.WriteAllBytesAsync(zip, data);
-				ZipFile.ExtractToDirectory(zip, new FileInfo(zip).Directory.FullName);
-			}
-			else
-			{
-				bitcoind = Path.Combine(Global.Instance.DataDir, bitcoindFolderName, "bin", "bitcoind");
-				if (File.Exists(bitcoind))
-				{
-					return bitcoind;
-				}
-
-				zip = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-					? Path.Combine(Global.Instance.DataDir, $"bitcoin-{version}-x86_64-linux-gnu.tar.gz")
-					: Path.Combine(Global.Instance.DataDir, $"bitcoin-{version}-osx64.tar.gz");
-
-				string url = string.Format("https://bitcoincore.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
-				using var client = new HttpClient();
-				client.Timeout = TimeSpan.FromMinutes(10.0);
-				var data = await client.GetByteArrayAsync(url);
-				await File.WriteAllBytesAsync(zip, data);
-
-				using var process = Process.Start("tar", "-zxvf " + zip + " -C " + Global.Instance.DataDir);
-				process.WaitForExit();
-			}
-			File.Delete(zip);
-			return bitcoind;
 		}
 
 		private int Last { get; set; }
