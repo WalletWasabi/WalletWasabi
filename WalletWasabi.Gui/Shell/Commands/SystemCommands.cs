@@ -19,7 +19,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		[DefaultKeyGesture("CTRL+L", osxKeyGesture: "CMD+L")]
 		[ExportCommandDefinition("File.LockScreen")]
-		public CommandDefinition LockScreenCommand {get;}
+		public CommandDefinition LockScreenCommand { get; }
 
 		[ImportingConstructor]
 		public SystemCommands(CommandIconService commandIconService, AvaloniaGlobalComponent global)

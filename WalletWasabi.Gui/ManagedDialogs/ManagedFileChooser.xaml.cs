@@ -26,7 +26,6 @@ namespace WalletWasabi.Gui.ManagedDialogs
 
 		private ManagedFileChooserViewModel Model => DataContext as ManagedFileChooserViewModel;
 
-		
 		private void OnPointerPressed(object sender, PointerPressedEventArgs e)
 		{
 			if (!((e.Source as StyledElement)?.DataContext is ManagedFileChooserItemViewModel model))
