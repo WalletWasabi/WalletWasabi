@@ -17,8 +17,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 {
 	public class CoreNode
 	{
-		public string Folder { get; }
-
 		public int P2pPort { get; }
 
 		public EndPoint P2pEndPoint { get; }
@@ -26,11 +24,10 @@ namespace WalletWasabi.Tests.NodeBuilding
 		public RPCClient RpcClient { get; }
 		public string Config { get; }
 
-		public CoreNode(string folder)
+		public CoreNode(string dataDir)
 		{
-			Folder = Guard.NotNullOrEmptyOrWhitespace(nameof(folder), folder);
-			IoHelpers.EnsureDirectoryExists(Folder);
-			DataDir = Path.Combine(folder, "data");
+			IoHelpers.EnsureDirectoryExists(dataDir);
+			DataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 			Directory.CreateDirectory(DataDir);
 			var pass = Encoders.Hex.EncodeData(RandomUtils.GetBytes(20));
 			var creds = new NetworkCredential(pass, pass);
@@ -149,7 +146,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 					catch (Exception)
 					{ }
 				}
-				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(Folder);
+				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(DataDir);
 			}
 			catch
 			{ }
