@@ -1,3 +1,4 @@
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -39,6 +40,39 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			finally
 			{
 				await Task.WhenAll(node1.StopAsync(), node2.StopAsync());
+			}
+		}
+
+		[Fact]
+		public async Task RpcWorksAsync()
+		{
+			var coreNode = await CoreNode.CreateAsync();
+			try
+			{
+				var blockCount = await coreNode.RpcClient.GetBlockCountAsync();
+				Assert.Equal(0, blockCount);
+			}
+			finally
+			{
+				await coreNode.StopAsync();
+			}
+		}
+
+		[Fact]
+		public async Task P2pWorksAsync()
+		{
+			var coreNode = await CoreNode.CreateAsync();
+			using var node = await coreNode.CreateP2pNodeAsync();
+			try
+			{
+				var blocks = node.GetBlocks(new[] { Network.RegTest.GenesisHash });
+				var genesis = Assert.Single(blocks);
+				Assert.Equal(genesis.GetHash(), Network.RegTest.GenesisHash);
+			}
+			finally
+			{
+				node.Disconnect();
+				await coreNode.StopAsync();
 			}
 		}
 	}

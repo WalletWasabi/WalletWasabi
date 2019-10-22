@@ -151,7 +151,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			return coreNode;
 		}
 
-		public async Task<Node> CreateNodeClientAsync()
+		public async Task<Node> CreateP2pNodeAsync()
 		{
 			return await Node.ConnectAsync(Network.RegTest, P2pEndPoint);
 		}
