@@ -26,11 +26,10 @@ namespace WalletWasabi.Tests.NodeBuilding
 		public RPCClient RpcClient { get; }
 		public string Config { get; }
 
-		public NodeConfigParameters ConfigParameters { get; } = new NodeConfigParameters();
-
-		private CoreNode(string folder)
+		public CoreNode(string folder)
 		{
-			Folder = folder;
+			Folder = Guard.NotNullOrEmptyOrWhitespace(nameof(folder), folder);
+			IoHelpers.EnsureDirectoryExists(Folder);
 			DataDir = Path.Combine(folder, "data");
 			Directory.CreateDirectory(DataDir);
 			var pass = Encoders.Hex.EncodeData(RandomUtils.GetBytes(20));
@@ -78,14 +77,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 			return await Task.WhenAll(tasks);
 		}
 
-		public static async Task<CoreNode> CreateAsync(string folder)
-		{
-			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(folder);
-			Directory.CreateDirectory(folder);
-
-			return new CoreNode(folder);
-		}
-
 		public async Task<Node> CreateNodeClientAsync()
 		{
 			return await Node.ConnectAsync(Network.RegTest, P2pEndPoint);
@@ -108,7 +99,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 				{"regtest.keypool", "10"},
 				{"regtest.pid", "bitcoind.pid"}
 			};
-			config.Import(ConfigParameters);
 			await File.WriteAllTextAsync(Config, config.ToString());
 			using (await KillerLock.LockAsync())
 			{

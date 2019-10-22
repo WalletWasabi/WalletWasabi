@@ -81,7 +81,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			catch (DirectoryNotFoundException)
 			{
 			}
-			Node = await CoreNode.CreateAsync(child);
+			Node = new CoreNode(child);
 			await Node.StartAsync();
 			return Node;
 		}
