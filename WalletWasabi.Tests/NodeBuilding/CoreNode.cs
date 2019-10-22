@@ -188,22 +188,5 @@ namespace WalletWasabi.Tests.NodeBuilding
 			catch
 			{ }
 		}
-
-		public async Task BroadcastBlocksAsync(IEnumerable<Block> blocks)
-		{
-			using var node = await CreateNodeClientAsync();
-			node.VersionHandshake();
-			BroadcastBlocks(blocks, node);
-		}
-
-		public void BroadcastBlocks(IEnumerable<Block> blocks, Node node)
-		{
-			foreach (var block in blocks)
-			{
-				node.SendMessageAsync(new InvPayload(block));
-				node.SendMessageAsync(new BlockPayload(block));
-			}
-			node.PingPong();
-		}
 	}
 }
