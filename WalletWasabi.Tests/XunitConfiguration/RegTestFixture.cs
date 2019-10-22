@@ -100,13 +100,32 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			};
 		}
 
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					BackendHost?.StopAsync().GetAwaiter().GetResult();
+					BackendHost?.Dispose();
+					BackendRegTestNode?.TryKillAsync().GetAwaiter().GetResult();
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
 		public void Dispose()
 		{
-			// Cleanup tests...
-
-			BackendHost?.StopAsync().GetAwaiter().GetResult();
-			BackendHost?.Dispose();
-			BackendRegTestNode?.TryKillAsync().GetAwaiter().GetResult();
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
 		}
+
+		#endregion IDisposable Support
 	}
 }
