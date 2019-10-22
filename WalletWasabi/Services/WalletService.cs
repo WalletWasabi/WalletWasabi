@@ -65,7 +65,6 @@ namespace WalletWasabi.Services
 		public ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)> ProcessedBlocks { get; }
 
 		public ICoinsView Coins { get; }  // UTXOs
-		public ICoinsView AllCoins { get; } // all TXOs (spent and unspent)
 
 		public event EventHandler<FilterModel> NewFilterProcessed;
 
@@ -104,7 +103,6 @@ namespace WalletWasabi.Services
 
 			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.PrivacyLevelStrong);
 			Coins = TransactionProcessor.Coins;
-			AllCoins = TransactionProcessor.Coins.AsAllCoinsView();
 
 			TransactionProcessor.CoinSpent += TransactionProcessor_CoinSpent;
 			TransactionProcessor.CoinReceived += TransactionProcessor_CoinReceivedAsync;
@@ -880,7 +878,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public ISet<string> GetLabels() => AllCoins
+		public ISet<string> GetLabels() => TransactionProcessor.Coins.AsAllCoinsView()
 			.SelectMany(x => x.Label.Labels)
 			.Concat(KeyManager
 				.GetKeys()
