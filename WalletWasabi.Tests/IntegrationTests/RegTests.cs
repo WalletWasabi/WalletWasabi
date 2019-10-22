@@ -3431,7 +3431,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				}
 
 				var times = 0;
-				while (wallet.TransactionProcessor.Coins.AsAllCoinsView().FirstOrDefault(x => x.Label.IsEmpty) is null)
+				while (wallet.Coins.FirstOrDefault(x => x.Label.IsEmpty) is null)
 				{
 					await Task.Delay(1000);
 					times++;
@@ -3440,10 +3440,11 @@ namespace WalletWasabi.Tests.IntegrationTests
 						throw new TimeoutException("Wallet spends were not recognized.");
 					}
 				}
+				await Task.Delay(5000);
 				await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync("");
 
-				var allCoins = wallet.TransactionProcessor.Coins.AsAllCoinsView();
-				var allCoins2 = wallet.TransactionProcessor.Coins.AsAllCoinsView();
+				var allCoins = wallet.TransactionProcessor.Coins.AsAllCoinsView().ToArray();
+				var allCoins2 = wallet2.TransactionProcessor.Coins.AsAllCoinsView().ToArray();
 
 				Assert.Equal(4, allCoins.Count(x => x.Label.IsEmpty && !x.Unavailable));
 				Assert.Equal(3, allCoins2.Count(x => x.Label.IsEmpty && !x.Unavailable));
