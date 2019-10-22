@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using Xunit;
 
@@ -21,7 +22,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[InlineData("~/Github/WalletWasabi/WalletWasabi.Gui/Program.cs")]
 		public void EndPointParserTests(string path)
 		{
-			var sourceFileName = Logger.ExtractFileName(path);
+			var sourceFileName = EnvironmentHelpers.ExtractFileName(path);
 			Assert.Equal("Program", sourceFileName);
 		}
 	}

@@ -26,12 +26,12 @@ namespace WalletWasabi.Tests.NodeBuilding
 		public RPCClient RpcClient { get; private set; }
 
 		public Process Process { get; private set; }
-		private string DataDir { get; set; }
+		public string DataDir { get; private set; }
 
-		public static async Task<CoreNode> CreateAsync([CallerMemberName]string caller = null)
+		public static async Task<CoreNode> CreateAsync([CallerFilePath]string callerFilePath = null, [CallerMemberName]string callerMemberName = null, string additionalFolder = null)
 		{
 			var coreNode = new CoreNode();
-			coreNode.DataDir = Path.Combine(Global.Instance.DataDir, caller);
+			coreNode.DataDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName, additionalFolder ?? "");
 
 			var configPath = Path.Combine(coreNode.DataDir, "bitcoin.conf");
 			if (File.Exists(configPath))
