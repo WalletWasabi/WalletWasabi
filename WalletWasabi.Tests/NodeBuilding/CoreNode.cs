@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 
@@ -138,10 +139,8 @@ namespace WalletWasabi.Tests.NodeBuilding
 					try
 					{
 						await RpcClient.StopAsync();
-						if (!Process.WaitForExit(20000))
-						{
-							//log this
-						}
+						using var timeout = new CancellationTokenSource(20000);
+						await Process.WaitForExitAsync(timeout.Token);
 					}
 					catch (Exception)
 					{ }
