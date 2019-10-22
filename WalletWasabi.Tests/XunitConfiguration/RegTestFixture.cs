@@ -26,7 +26,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 
 		public RegTestFixture()
 		{
-			BackendRegTestNode = NodeBuilder.CreateNodeAsync(EnvironmentHelpers.GetMethodName()).GetAwaiter().GetResult();
+			BackendRegTestNode = CoreNode.CreateAsync(EnvironmentHelpers.GetMethodName()).GetAwaiter().GetResult();
 
 			var testnetBackendDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests", "Backend"));
 			IoHelpers.DeleteRecursivelyWithMagicDustAsync(testnetBackendDir).GetAwaiter().GetResult();
