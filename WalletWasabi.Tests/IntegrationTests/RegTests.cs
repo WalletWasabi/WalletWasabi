@@ -325,7 +325,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Equal(blockCount, bitcoinStore.HashChain.HashCount);
 
 				// Test later synchronization.
-				RegTestFixture.BackendRegTestNode.Generate(10);
+				await RegTestFixture.BackendRegTestNode.GenerateAsync(10);
 				times = 0;
 				while ((filterCount = bitcoinStore.HashChain.HashCount) < blockCount + 10)
 				{

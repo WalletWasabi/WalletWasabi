@@ -29,8 +29,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 		{
 			BackendNodeBuilder = new NodeBuilder(EnvironmentHelpers.GetMethodName());
 			BackendNodeBuilder.CreateNodeAsync().GetAwaiter().GetResult();
-			BackendNodeBuilder.StartAllAsync().GetAwaiter().GetResult();
-			BackendRegTestNode = BackendNodeBuilder.Nodes[0];
+			BackendRegTestNode = BackendNodeBuilder.Node;
 
 			var connectionString = $"{BackendRegTestNode.Creds.UserName}:{BackendRegTestNode.Creds.Password}";
 

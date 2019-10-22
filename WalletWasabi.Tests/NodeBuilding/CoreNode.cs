@@ -71,14 +71,14 @@ namespace WalletWasabi.Tests.NodeBuilding
 			RpcEndPoint = new IPEndPoint(IPAddress.Loopback, RpcPort);
 		}
 
-		public Block[] Generate(int blockCount)
+		public async Task<IEnumerable<Block>> GenerateAsync(int blockCount)
 		{
 			var rpc = CreateRpcClient();
-			var blocks = rpc.Generate(blockCount);
+			var blocks = await rpc.GenerateAsync(blockCount);
 			rpc = rpc.PrepareBatch();
-			var tasks = blocks.Select(b => rpc.GetBlockAsync(b)).ToArray();
+			var tasks = blocks.Select(b => rpc.GetBlockAsync(b));
 			rpc.SendBatch();
-			return tasks.Select(b => b.GetAwaiter().GetResult()).ToArray();
+			return await Task.WhenAll(tasks);
 		}
 
 		public static async Task<CoreNode> CreateAsync(string folder, NodeBuilder builder)
@@ -126,7 +126,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 				{"regtest.pid", "bitcoind.pid"}
 			};
 			config.Import(ConfigParameters);
-			File.WriteAllText(Config, config.ToString());
+			await File.WriteAllTextAsync(Config, config.ToString());
 			using (await KillerLock.LockAsync())
 			{
 				Process = Process.Start(new FileInfo(Builder.BitcoinD).FullName, "-conf=bitcoin.conf" + " -datadir=" + DataDir + " -debug=1");
@@ -135,7 +135,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 				if (!File.Exists(pidFile))
 				{
 					Directory.CreateDirectory(Path.Combine(DataDir, "regtest"));
-					File.WriteAllText(pidFile, Process.Id.ToString());
+					await File.WriteAllTextAsync(pidFile, Process.Id.ToString());
 				}
 			}
 			while (true)

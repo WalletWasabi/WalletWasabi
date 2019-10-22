@@ -11,6 +11,7 @@ using System.Net;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -30,11 +31,11 @@ namespace WalletWasabi.Tests.NodeBuilding
 		}
 
 		public string BitcoinD { get; }
-		public List<CoreNode> Nodes { get; } = new List<CoreNode>();
+		public CoreNode Node { get; private set; }
 		public NodeConfigParameters ConfigParameters { get; } = new NodeConfigParameters();
 		public Network Network => Network.RegTest;
 
-		public async Task<CoreNode> CreateNodeAsync(bool start = false)
+		public async Task<CoreNode> CreateNodeAsync()
 		{
 			var child = Path.Combine(Root, Last.ToString());
 			Last++;
@@ -43,7 +44,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 				var cfgPath = Path.Combine(child, "data", "bitcoin.conf");
 				if (File.Exists(cfgPath))
 				{
-					var config = NodeConfigParameters.Load(cfgPath);
+					var config = await NodeConfigParameters.LoadAsync(cfgPath);
 					var rpcPort = config["regtest.rpcport"];
 					var rpcUser = config["regtest.rpcuser"];
 					var rpcPassword = config["regtest.rpcpassword"];
@@ -57,9 +58,9 @@ namespace WalletWasabi.Tests.NodeBuilding
 						var pidFile = Path.Combine(child, "data", "regtest", pidFileName);
 						if (File.Exists(pidFile))
 						{
-							var pid = File.ReadAllText(pidFile);
+							var pid = await File.ReadAllTextAsync(pidFile);
 							using var process = Process.GetProcessById(int.Parse(pid));
-							process.WaitForExit();
+							await process.WaitForExitAsync(CancellationToken.None);
 						}
 						else
 						{
@@ -68,7 +69,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 							if (bitcoindProcesses.Count() == 1)
 							{
 								var bitcoind = bitcoindProcesses.First();
-								bitcoind.WaitForExit();
+								await bitcoind.WaitForExitAsync(CancellationToken.None);
 							}
 						}
 					}
@@ -83,31 +84,14 @@ namespace WalletWasabi.Tests.NodeBuilding
 			catch (DirectoryNotFoundException)
 			{
 			}
-			var node = await CoreNode.CreateAsync(child, this);
-			Nodes.Add(node);
-			if (start)
-			{
-				await node.StartAsync();
-			}
-			return node;
-		}
-
-		public Task StartAllAsync()
-		{
-			var startNodesTaskList = Nodes
-				.Where(n => n.State == CoreNodeState.Stopped)
-				.Select(n => n.StartAsync()).ToArray();
-			return Task.WhenAll(startNodesTaskList);
+			Node = await CoreNode.CreateAsync(child, this);
+			await Node.StartAsync();
+			return Node;
 		}
 
 		public void Dispose()
 		{
-			foreach (CoreNode node in Nodes)
-			{
-				node?.TryKillAsync().GetAwaiter().GetResult();
-			}
-
-			IoHelpers.DeleteRecursivelyWithMagicDustAsync(Root).GetAwaiter().GetResult();
+			Node?.TryKillAsync().GetAwaiter().GetResult();
 		}
 	}
 }
