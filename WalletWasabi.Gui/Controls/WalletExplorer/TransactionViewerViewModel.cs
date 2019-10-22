@@ -76,7 +76,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 					{
-						sfd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+						sfd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 					}
 
 					var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;

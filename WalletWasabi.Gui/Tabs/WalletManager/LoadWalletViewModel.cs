@@ -92,7 +92,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
-					ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+					ofd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 				}
 
 				var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;

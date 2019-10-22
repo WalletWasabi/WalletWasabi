@@ -13,6 +13,7 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.ManagedDialogs
 {
+	[Obsolete]
 	internal class ManagedFileChooserViewModel : ViewModelBase
 	{
 		public event Action CancelRequested;
