@@ -136,19 +136,16 @@ namespace WalletWasabi.Tests.NodeBuilding
 			{
 				using (await KillerLock.LockAsync())
 				{
-					try
-					{
-						await RpcClient.StopAsync();
-						using var timeout = new CancellationTokenSource(20000);
-						await Process.WaitForExitAsync(timeout.Token);
-					}
-					catch (Exception)
-					{ }
+					await RpcClient.StopAsync();
+					using var timeout = new CancellationTokenSource(20000);
+					await Process.WaitForExitAsync(timeout.Token);
+					await IoHelpers.DeleteRecursivelyWithMagicDustAsync(DataDir);
 				}
-				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(DataDir);
 			}
-			catch
-			{ }
+			catch (Exception ex)
+			{
+				Logging.Logger.LogWarning(ex);
+			}
 		}
 	}
 }
