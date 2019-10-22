@@ -26,9 +26,9 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		public CoreNode(string dataDir)
 		{
-			IoHelpers.EnsureDirectoryExists(dataDir);
 			DataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
-			Directory.CreateDirectory(DataDir);
+			IoHelpers.EnsureDirectoryExists(DataDir);
+
 			var pass = Encoders.Hex.EncodeData(RandomUtils.GetBytes(20));
 			var creds = new NetworkCredential(pass, pass);
 			Config = Path.Combine(DataDir, "bitcoin.conf");
