@@ -230,53 +230,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 		#region ServicesTests
 
 		[Fact]
-		public async Task MempoolAsync()
-		{
-			(string password, RPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await InitializeTestEnvironmentAsync(1);
-
-			Node node = await RegTestFixture.BackendRegTestNode.CreateP2pNodeAsync();
-			node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
-			node.VersionHandshake();
-
-			try
-			{
-				bitcoinStore.MempoolService.TransactionReceived += MempoolAsync_MempoolService_TransactionReceived;
-
-				// Using the interlocked, not because it makes sense in this context, but to
-				// set an example that these values are often concurrency sensitive
-				for (int i = 0; i < 10; i++)
-				{
-					var addr = await rpc.GetNewAddressAsync();
-					var res = await rpc.SendToAddressAsync(addr, Money.Coins(0.01m));
-					Assert.NotNull(res);
-				}
-
-				var times = 0;
-				while (Interlocked.Read(ref _mempoolTransactionCount) < 10)
-				{
-					if (times > 100) // 10 seconds
-					{
-						throw new TimeoutException($"{nameof(MempoolService)} test timed out.");
-					}
-					await Task.Delay(100);
-					times++;
-				}
-			}
-			finally
-			{
-				bitcoinStore.MempoolService.TransactionReceived -= MempoolAsync_MempoolService_TransactionReceived;
-			}
-		}
-
-		private long _mempoolTransactionCount = 0;
-
-		private void MempoolAsync_MempoolService_TransactionReceived(object sender, SmartTransaction e)
-		{
-			Interlocked.Increment(ref _mempoolTransactionCount);
-			Logger.LogDebug($"Mempool transaction received: {e.GetHash()}.");
-		}
-
-		[Fact]
 		public async Task FilterDownloaderTestAsync()
 		{
 			(string password, RPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await InitializeTestEnvironmentAsync(1);
