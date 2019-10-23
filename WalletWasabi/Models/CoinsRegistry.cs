@@ -97,7 +97,7 @@ namespace WalletWasabi.Models
 				{
 					InvalidateSnapshot = true;
 					SpentCoins.Add(spentCoin);
-					var createdCoins = CreatedBy(spentCoin.SpenderTransactionId);
+					var createdCoins = CreatedByNoLock(spentCoin.SpenderTransactionId);
 					foreach (var newCoin in createdCoins)
 					{
 						if (newCoin.AnonymitySet < PrivacyLevelThreshold)
@@ -175,7 +175,7 @@ namespace WalletWasabi.Models
 			return AsCoinsView().DescendantOf(coin);
 		}
 
-		public ICoinsView DescendantOfAndSelfNoLock(SmartCoin coin)
+		private ICoinsView DescendantOfAndSelfNoLock(SmartCoin coin)
 		{
 			return AsCoinsViewNoLock().DescendantOfAndSelf(coin);
 		}
@@ -203,6 +203,11 @@ namespace WalletWasabi.Models
 		public ICoinsView CreatedBy(uint256 txid)
 		{
 			return AsCoinsView().CreatedBy(txid);
+		}
+
+		private ICoinsView CreatedByNoLock(uint256 txid)
+		{
+			return AsCoinsViewNoLock().CreatedBy(txid);
 		}
 
 		public ICoinsView SpentBy(uint256 txid)
