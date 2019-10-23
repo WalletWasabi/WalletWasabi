@@ -160,7 +160,7 @@ namespace WalletWasabi.Services
 					}
 
 					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, isLikelyCoinJoinOutput, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
-																																																																		// If we did not have it.
+																																																																		   // If we did not have it.
 					if (Coins.TryAdd(newCoin))
 					{
 						newCoins.Add(newCoin);
@@ -213,7 +213,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			foreach(var newCoin in newCoins)
+			foreach (var newCoin in newCoins)
 			{
 				CoinReceived?.Invoke(this, newCoin);
 			}

@@ -19,7 +19,7 @@ namespace WalletWasabi.Models
 		ICoinsView DescendantOf(SmartCoin coin);
 
 		ICoinsView DescendantOfAndSelf(SmartCoin coin);
-		
+
 		ICoinsView FilterBy(Func<SmartCoin, bool> expression);
 
 		ICoinsView OutPoints(IEnumerable<TxoRef> outPoints);
