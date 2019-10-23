@@ -27,16 +27,21 @@ namespace WalletWasabi.Models
 			Lock = new object();
 		}
 
+		private CoinsView AsCoinsViewNoLock()
+		{
+			if (InvalidateSnapshot)
+			{
+				LatestCoinsSnapshot = Coins.ToHashSet(); // Creates a clone
+				InvalidateSnapshot = false;
+			}
+			return new CoinsView(LatestCoinsSnapshot);
+		}
+
 		private CoinsView AsCoinsView()
 		{
 			lock (Lock)
 			{
-				if (InvalidateSnapshot)
-				{
-					LatestCoinsSnapshot = Coins.ToHashSet(); // Creates a clone
-					InvalidateSnapshot = false;
-				}
-				return new CoinsView(LatestCoinsSnapshot);
+				return AsCoinsViewNoLock();
 			}
 		}
 
@@ -136,7 +141,7 @@ namespace WalletWasabi.Models
 		{
 			lock (Lock)
 			{
-				return new CoinsView(AsCoinsView().Concat(SpentCoins).ToList());
+				return new CoinsView(AsCoinsViewNoLock().Concat(SpentCoins).ToList());
 			}
 		}
 
