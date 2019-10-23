@@ -14,7 +14,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 {
-	public class P2pTests
+	public class P2pBasedTests
 	{
 		[Fact]
 		public async Task MempoolWorksAsync()
@@ -25,16 +25,16 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			{
 				var rpc = coreNode.RpcClient;
 				await rpc.GenerateAsync(101);
-
 				var network = rpc.Network;
 				var bitcoinStore = new BitcoinStore();
+
 				var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
 				await bitcoinStore.InitializeAsync(dir, network);
 
 				node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
 				node.VersionHandshake();
 
-				var addr = await rpc.GetNewAddressAsync();
+				var addr = new Key().PubKey.GetSegwitAddress(network);
 
 				for (int i = 0; i < 10; i++)
 				{
