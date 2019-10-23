@@ -8,12 +8,11 @@ namespace System.Threading.Tasks
 		/// </summary>
 		public static async Task<T> WithAwaitCancellationAsync<T>(this Task<T> me, CancellationToken cancel, int waitForGracefulTerminationMilliseconds = 0)
 		{
-			// The tasck completion source.
+			// The task completion source.
 			var tcs = new TaskCompletionSource<bool>();
 
 			// Register with the cancellation token.
-			using (cancel.Register(
-						s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs))
+			using (cancel.Register(s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs))
 			{
 				// If the task waited on is the cancellation token...
 				if (me != await Task.WhenAny(me, tcs.Task).ConfigureAwait(false))
@@ -40,12 +39,11 @@ namespace System.Threading.Tasks
 		/// </summary>
 		public static async Task WithAwaitCancellationAsync(this Task me, CancellationToken cancel, int waitForGracefulTerminationMilliseconds = 0)
 		{
-			// The tasck completion source.
+			// The task completion source.
 			var tcs = new TaskCompletionSource<bool>();
 
 			// Register with the cancellation token.
-			using (cancel.Register(
-						s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs))
+			using (cancel.Register(s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs))
 			{
 				// If the task waited on is the cancellation token...
 				if (me != await Task.WhenAny(me, tcs.Task).ConfigureAwait(false))
