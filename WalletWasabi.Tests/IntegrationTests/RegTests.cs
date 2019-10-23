@@ -3370,7 +3370,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 					if (DateTime.Now - start > TimeSpan.FromMinutes(1))
 					{
-						throw new TimeoutException("DequeueAllCoinsFromMixAsync timeout.");
+						throw new TimeoutException("Dequeueing timed out.");
 					}
 				}
 				while (true);
