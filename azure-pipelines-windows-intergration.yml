@@ -2,7 +2,7 @@ variables:
   testConfiguration: 'Debug'
 
 jobs:
-- job: Windows
+- job: Windows.Integration
   pool:
     vmImage: 'vs2017-win2016'
   steps:
