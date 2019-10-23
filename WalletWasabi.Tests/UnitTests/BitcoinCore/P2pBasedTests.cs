@@ -45,8 +45,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 					var txid = await rpc.SendToAddressAsync(addr, Money.Coins(1));
 					Assert.NotNull(txid);
 
-					using var cts = new CancellationTokenSource(1000);
-					var stx = await eventAwaiter.Task.WithCancellation(cts.Token);
+					var stx = await eventAwaiter.Task.WithAwaitCancellationAsync(1000);
 
 					Assert.Equal(txid, stx.GetHash());
 				}

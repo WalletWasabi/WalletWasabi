@@ -35,7 +35,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		{
 			await RuntimeParams.LoadAsync();
 			var network = Network.GetNetwork(networkString);
-			var blocksToDownload = new HashSet<uint256>();
+			var blocksToDownload = new List<uint256>();
 			if (network == Network.Main)
 			{
 				blocksToDownload.Add(new uint256("00000000000000000037c2de35bd85f3e57f14ddd741ce6cee5b28e51473d5d0"));
@@ -107,26 +107,41 @@ namespace WalletWasabi.Tests.IntegrationTests
 				var mempoolTransactionAwaiter = new EventAwaiter<SmartTransaction>(
 					h => bitcoinStore.MempoolService.TransactionReceived += h,
 					h => bitcoinStore.MempoolService.TransactionReceived -= h);
-				using var mempoolTransactionReceivedTimeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
 
 				var nodeConnectionAwaiter = new EventAwaiter<NodeEventArgs>(
 					h => nodes.ConnectedNodes.Added += h,
 					h => nodes.ConnectedNodes.Added -= h);
-				using var nodeAddedTimeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
 
 				nodes.Connect();
 
+				await nodeConnectionAwaiter.Task.WithAwaitCancellationAsync(TimeSpan.FromMinutes(1));
+
+				nodeConnectionAwaiter = new EventAwaiter<NodeEventArgs>(
+					h => nodes.ConnectedNodes.Added += h,
+					h => nodes.ConnectedNodes.Added -= h);
+				await nodeConnectionAwaiter.Task.WithAwaitCancellationAsync(TimeSpan.FromMinutes(1));
+
+				nodeConnectionAwaiter = new EventAwaiter<NodeEventArgs>(
+					h => nodes.ConnectedNodes.Added += h,
+					h => nodes.ConnectedNodes.Added -= h);
+				await nodeConnectionAwaiter.Task.WithAwaitCancellationAsync(TimeSpan.FromMinutes(1));
+
+				var downloadTasks = new List<Task<Block>>();
 				foreach (var hash in blocksToDownload)
 				{
 					using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-					var block = await walletService.FetchBlockAsync(hash, cts.Token);
-					Assert.True(File.Exists(Path.Combine(blocksFolderPath, hash.ToString())));
-					Logger.LogInfo($"Full block is downloaded: {hash}.");
+					downloadTasks.Add(walletService.FetchBlockAsync(hash, cts.Token));
 				}
 
-				await Task.WhenAll(
-					mempoolTransactionAwaiter.Task.WithCancellation(mempoolTransactionReceivedTimeoutCts.Token),
-					nodeConnectionAwaiter.Task.WithCancellation(nodeAddedTimeoutCts.Token));
+				var i = 0;
+				var hashArray = blocksToDownload.ToArray();
+				foreach (var block in await Task.WhenAll(downloadTasks))
+				{
+					Assert.True(File.Exists(Path.Combine(blocksFolderPath, hashArray[i].ToString())));
+					i++;
+				}
+
+				await mempoolTransactionAwaiter.Task.WithAwaitCancellationAsync(TimeSpan.FromMinutes(1));
 			}
 			finally
 			{
