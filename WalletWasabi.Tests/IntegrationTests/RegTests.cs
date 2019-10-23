@@ -3440,8 +3440,26 @@ namespace WalletWasabi.Tests.IntegrationTests
 						throw new TimeoutException("Wallet spends were not recognized.");
 					}
 				}
-				await Task.Delay(5000);
-				await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync("");
+
+				DateTime start = DateTime.Now;
+				do
+				{
+					try
+					{
+						await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync("");
+						break;
+					}
+					catch (NotSupportedException)
+					{
+						await Task.Delay(1000);
+					}
+
+					if (DateTime.Now - start > TimeSpan.FromMinutes(1))
+					{
+						throw new TimeoutException("DequeueAllCoinsFromMixAsync timeout.");
+					}
+				}
+				while (true);
 
 				var allCoins = wallet.TransactionProcessor.Coins.AsAllCoinsView().ToArray();
 				var allCoins2 = wallet2.TransactionProcessor.Coins.AsAllCoinsView().ToArray();
