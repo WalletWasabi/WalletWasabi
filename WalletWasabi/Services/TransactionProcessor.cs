@@ -135,6 +135,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
+			List<SmartCoin> newCoins = new List<SmartCoin>();
 			List<SmartCoin> spentOwnCoins = null;
 			for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 			{
@@ -159,10 +160,10 @@ namespace WalletWasabi.Services
 					}
 
 					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, isLikelyCoinJoinOutput, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
-																																																																		   // If we did not have it.
+																																																																		// If we did not have it.
 					if (Coins.TryAdd(newCoin))
 					{
-						CoinReceived?.Invoke(this, newCoin);
+						newCoins.Add(newCoin);
 
 						// Make sure there's always 21 clean keys generated and indexed.
 						KeyManager.AssertCleanKeysIndexed(isInternal: foundKey.IsInternal);
@@ -210,6 +211,11 @@ namespace WalletWasabi.Services
 						SpenderConfirmed?.Invoke(this, foundCoin);
 					}
 				}
+			}
+
+			foreach(var newCoin in newCoins)
+			{
+				CoinReceived?.Invoke(this, newCoin);
 			}
 
 			if (walletRelevant)

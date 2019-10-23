@@ -36,8 +36,8 @@ namespace WalletWasabi.Models
 					LatestCoinsSnapshot = Coins.ToHashSet(); // Creates a clone
 					InvalidateSnapshot = false;
 				}
+				return new CoinsView(LatestCoinsSnapshot);
 			}
-			return new CoinsView(LatestCoinsSnapshot);
 		}
 
 		public bool IsEmpty => !AsCoinsView().Any();
@@ -90,6 +90,7 @@ namespace WalletWasabi.Models
 			{
 				if (Coins.Remove(spentCoin))
 				{
+					InvalidateSnapshot = true;
 					SpentCoins.Add(spentCoin);
 					var createdCoins = CreatedBy(spentCoin.SpenderTransactionId);
 					foreach (var newCoin in createdCoins)
@@ -102,7 +103,6 @@ namespace WalletWasabi.Models
 						}
 					}
 				}
-				InvalidateSnapshot = true;
 			}
 		}
 
@@ -136,7 +136,7 @@ namespace WalletWasabi.Models
 		{
 			lock (Lock)
 			{
-				return new CoinsView(AsCoinsView().Concat(SpentCoins));
+				return new CoinsView(AsCoinsView().Concat(SpentCoins).ToList());
 			}
 		}
 

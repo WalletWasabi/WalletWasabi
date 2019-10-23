@@ -3446,7 +3446,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 				{
 					try
 					{
-						await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync("");
+						await chaumianClient.DequeueAllCoinsFromMixAsync("");
+						await chaumianClient2.DequeueAllCoinsFromMixAsync("");
 						break;
 					}
 					catch (NotSupportedException)
