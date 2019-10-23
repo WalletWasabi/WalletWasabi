@@ -68,15 +68,15 @@ namespace System.Threading.Tasks
 		}
 
 		public static async Task<T> WithAwaitCancellationAsync<T>(this Task<T> me, int millisecondsDelay)
-			=> await me.WithAwaitCancellationAsync(CancellationToken.None, millisecondsDelay).ConfigureAwait(false);
+			=> await me.WithAwaitCancellationAsync(ThreadingHelpers.Cancelled, millisecondsDelay).ConfigureAwait(false);
 
 		public static async Task<T> WithAwaitCancellationAsync<T>(this Task<T> me, TimeSpan timeout)
-			=> await me.WithAwaitCancellationAsync(CancellationToken.None, (int)timeout.TotalMilliseconds).ConfigureAwait(false);
+			=> await me.WithAwaitCancellationAsync(ThreadingHelpers.Cancelled, (int)timeout.TotalMilliseconds).ConfigureAwait(false);
 
 		public static async Task WithAwaitCancellationAsync(this Task me, int millisecondsDelay)
-			=> await me.WithAwaitCancellationAsync(CancellationToken.None, millisecondsDelay).ConfigureAwait(false);
+			=> await me.WithAwaitCancellationAsync(ThreadingHelpers.Cancelled, millisecondsDelay).ConfigureAwait(false);
 
 		public static async Task WithAwaitCancellationAsync(this Task me, TimeSpan timeout)
-			=> await me.WithAwaitCancellationAsync(CancellationToken.None, (int)timeout.TotalMilliseconds).ConfigureAwait(false);
+			=> await me.WithAwaitCancellationAsync(ThreadingHelpers.Cancelled, (int)timeout.TotalMilliseconds).ConfigureAwait(false);
 	}
 }

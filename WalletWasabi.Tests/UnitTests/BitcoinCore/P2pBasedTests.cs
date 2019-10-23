@@ -36,18 +36,27 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 
 				var addr = new Key().PubKey.GetSegwitAddress(network);
 
-				for (int i = 0; i < 10; i++)
-				{
-					var eventAwaiter = new EventAwaiter<SmartTransaction>(
+				var txNum = 10;
+				var eventAwaiter = new EventsAwaiter<SmartTransaction>(
 						h => bitcoinStore.MempoolService.TransactionReceived += h,
-						h => bitcoinStore.MempoolService.TransactionReceived -= h);
+						h => bitcoinStore.MempoolService.TransactionReceived -= h,
+						txNum);
 
-					var txid = await rpc.SendToAddressAsync(addr, Money.Coins(1));
-					Assert.NotNull(txid);
+				var txTasks = new List<Task<uint256>>();
+				var batch = rpc.PrepareBatch();
+				for (int i = 0; i < txNum; i++)
+				{
+					txTasks.Add(batch.SendToAddressAsync(addr, Money.Coins(1)));
+				}
+				var batchTask = batch.SendBatchAsync();
 
-					var stx = await eventAwaiter.Task.WithAwaitCancellationAsync(1000);
+				var stxs = await Task.WhenAll(eventAwaiter.Tasks).WithAwaitCancellationAsync(TimeSpan.FromSeconds(7));
 
-					Assert.Equal(txid, stx.GetHash());
+				await batchTask;
+				var hashes = await Task.WhenAll(txTasks);
+				foreach (var stx in stxs)
+				{
+					Assert.Contains(stx.GetHash(), hashes);
 				}
 			}
 			finally
