@@ -449,9 +449,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var nodes = new NodesGroup(global.Config.Network, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateP2pNodeAsync());
 
-			// 2. Create mempool service.
-
-			bitcoinStore.MempoolService.TransactionReceived += WalletTestsAsync_MempoolService_TransactionReceived;
 			Node node = await RegTestFixture.BackendRegTestNode.CreateP2pNodeAsync();
 			node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
 
@@ -629,9 +626,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// Dispose wasabi synchronizer service.
 				await synchronizer?.StopAsync();
 
-				// Dispose mempool service.
-				bitcoinStore.MempoolService.TransactionReceived -= WalletTestsAsync_MempoolService_TransactionReceived;
-
 				// Dispose connection service.
 				nodes?.Dispose();
 
@@ -665,10 +659,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 		private void Wallet_NewFilterProcessed(object sender, FilterModel e)
 		{
 			Interlocked.Increment(ref _filtersProcessedByWalletCount);
-		}
-
-		private void WalletTestsAsync_MempoolService_TransactionReceived(object sender, SmartTransaction e)
-		{
 		}
 
 		[Fact]
