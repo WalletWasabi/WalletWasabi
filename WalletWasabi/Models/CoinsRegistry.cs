@@ -115,7 +115,7 @@ namespace WalletWasabi.Models
 		{
 			lock (Lock)
 			{
-				var allCoins = AsAllCoinsView();
+				var allCoins = AsAllCoinsViewNoLock();
 				foreach (var toRemove in allCoins.AtBlockHeight(blockHeight).ToList())
 				{
 					var coinsToRemove = allCoins.DescendantOfAndSelf(toRemove).ToList();
@@ -143,6 +143,11 @@ namespace WalletWasabi.Models
 			{
 				return new CoinsView(AsCoinsViewNoLock().Concat(SpentCoins).ToList());
 			}
+		}
+
+		private ICoinsView AsAllCoinsViewNoLock()
+		{
+			return new CoinsView(AsCoinsViewNoLock().Concat(SpentCoins).ToList());
 		}
 
 		public ICoinsView AtBlockHeight(Height height)
