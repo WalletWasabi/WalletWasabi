@@ -38,7 +38,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 
 				for (int i = 0; i < 10; i++)
 				{
-					var valueChangedEventAwaiter = new EventAwaiter<SmartTransaction>(
+					var eventAwaiter = new EventAwaiter<SmartTransaction>(
 							h => bitcoinStore.MempoolService.TransactionReceived += h,
 							h => bitcoinStore.MempoolService.TransactionReceived -= h);
 
@@ -46,7 +46,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 					Assert.NotNull(txid);
 
 					using var cts = new CancellationTokenSource(1000);
-					var stx = await valueChangedEventAwaiter.Task.WithCancellation(cts.Token);
+					var stx = await eventAwaiter.Task.WithCancellation(cts.Token);
 
 					Assert.Equal(txid, stx.GetHash());
 				}

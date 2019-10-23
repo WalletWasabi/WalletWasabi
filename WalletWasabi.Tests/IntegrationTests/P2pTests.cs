@@ -88,7 +88,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
 			connectionParameters.TemplateBehaviors.Add(bitcoinStore.CreateMempoolBehavior());
 
-			var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
+			using var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
 
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
 			WasabiSynchronizer syncer = new WasabiSynchronizer(network, bitcoinStore, new Uri("http://localhost:12345"), Global.Instance.TorSocks5Endpoint);
@@ -104,30 +104,17 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			try
 			{
-				bitcoinStore.MempoolService.TransactionReceived += MempoolService_TransactionReceived;
+				var mempoolTransactionAwaiter = new EventAwaiter<SmartTransaction>(
+							h => bitcoinStore.MempoolService.TransactionReceived += h,
+							h => bitcoinStore.MempoolService.TransactionReceived -= h);
+				using var mempoolTransactionReceivedTimeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+
+				var nodeConnectionAwaiter = new EventAwaiter<NodeEventArgs>(
+							h => nodes.ConnectedNodes.Added += h,
+							h => nodes.ConnectedNodes.Added -= h);
+				using var nodeAddedTimeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
 
 				nodes.Connect();
-				var times = 0;
-				while (nodes.ConnectedNodes.Count < 3)
-				{
-					if (times > 4200) // 7 minutes
-					{
-						throw new TimeoutException("Connection test timed out.");
-					}
-					await Task.Delay(100);
-					times++;
-				}
-
-				times = 0;
-				while (Interlocked.Read(ref _mempoolTransactionCount) < 3)
-				{
-					if (times > 3000) // 3 minutes
-					{
-						throw new TimeoutException($"{nameof(MempoolService)} test timed out.");
-					}
-					await Task.Delay(100);
-					times++;
-				}
 
 				foreach (var hash in blocksToDownload)
 				{
@@ -136,13 +123,13 @@ namespace WalletWasabi.Tests.IntegrationTests
 					Assert.True(File.Exists(Path.Combine(blocksFolderPath, hash.ToString())));
 					Logger.LogInfo($"Full block is downloaded: {hash}.");
 				}
+
+				await Task.WhenAll(
+					mempoolTransactionAwaiter.Task.WithCancellation(mempoolTransactionReceivedTimeoutCts.Token),
+					nodeConnectionAwaiter.Task.WithCancellation(nodeAddedTimeoutCts.Token));
 			}
 			finally
 			{
-				nodes.ConnectedNodes.Added -= ConnectedNodes_Added;
-				nodes.ConnectedNodes.Removed -= ConnectedNodes_Removed;
-				bitcoinStore.MempoolService.TransactionReceived -= MempoolService_TransactionReceived;
-
 				// So next test will download the block.
 				foreach (var hash in blocksToDownload)
 				{
@@ -161,38 +148,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 				IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);
 				addressManager?.SavePeerFile(addressManagerFilePath, network);
 				Logger.LogInfo($"Saved {nameof(AddressManager)} to `{addressManagerFilePath}`.");
-				nodes?.Dispose();
 
 				await syncer?.StopAsync();
 			}
-		}
-
-		private long _nodeCount = 0;
-
-		private void ConnectedNodes_Added(object sender, NodeEventArgs e)
-		{
-			long nodeCount = Interlocked.Increment(ref _nodeCount);
-			if (nodeCount == 8)
-			{
-				Logger.LogTrace($"Max node count reached: {nodeCount}.");
-			}
-
-			Logger.LogTrace($"Node count: {nodeCount}.");
-		}
-
-		private void ConnectedNodes_Removed(object sender, NodeEventArgs e)
-		{
-			var nodeCount = Interlocked.Decrement(ref _nodeCount);
-			// Trace is fine here, building the connections is more exciting than removing them.
-			Logger.LogTrace($"Node count: {nodeCount}.");
-		}
-
-		private long _mempoolTransactionCount = 0;
-
-		private void MempoolService_TransactionReceived(object sender, SmartTransaction e)
-		{
-			Interlocked.Increment(ref _mempoolTransactionCount);
-			Logger.LogDebug($"Mempool transaction received: {e.GetHash()}.");
 		}
 	}
 }
