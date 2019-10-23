@@ -39,8 +39,8 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				for (int i = 0; i < 10; i++)
 				{
 					var eventAwaiter = new EventAwaiter<SmartTransaction>(
-							h => bitcoinStore.MempoolService.TransactionReceived += h,
-							h => bitcoinStore.MempoolService.TransactionReceived -= h);
+						h => bitcoinStore.MempoolService.TransactionReceived += h,
+						h => bitcoinStore.MempoolService.TransactionReceived -= h);
 
 					var txid = await rpc.SendToAddressAsync(addr, Money.Coins(1));
 					Assert.NotNull(txid);

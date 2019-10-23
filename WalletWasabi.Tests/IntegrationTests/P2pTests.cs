@@ -105,13 +105,13 @@ namespace WalletWasabi.Tests.IntegrationTests
 			try
 			{
 				var mempoolTransactionAwaiter = new EventAwaiter<SmartTransaction>(
-							h => bitcoinStore.MempoolService.TransactionReceived += h,
-							h => bitcoinStore.MempoolService.TransactionReceived -= h);
+					h => bitcoinStore.MempoolService.TransactionReceived += h,
+					h => bitcoinStore.MempoolService.TransactionReceived -= h);
 				using var mempoolTransactionReceivedTimeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
 
 				var nodeConnectionAwaiter = new EventAwaiter<NodeEventArgs>(
-							h => nodes.ConnectedNodes.Added += h,
-							h => nodes.ConnectedNodes.Added -= h);
+					h => nodes.ConnectedNodes.Added += h,
+					h => nodes.ConnectedNodes.Added -= h);
 				using var nodeAddedTimeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
 
 				nodes.Connect();
