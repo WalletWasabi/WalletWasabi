@@ -26,18 +26,23 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Folder Include="Gma\QrCodeNet\Encoding\ReedSolomon\" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <None Update="BitcoinCore\Binaries\bitcoind-lin64\bitcoind">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="BitcoinCore\Binaries\bitcoind-osx64\bitcoind">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="BitcoinCore\Binaries\bitcoind-win64\bitcoind.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Hwi\Binaries\hwi-lin64\hwi">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Hwi\Binaries\hwi-osx64\hwi">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Hwi\Binaries\hwi-win64\hwi.exe">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="OnionSeeds\MainOnionSeeds.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

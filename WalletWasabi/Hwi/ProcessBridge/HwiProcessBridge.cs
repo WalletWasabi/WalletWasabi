@@ -18,7 +18,7 @@ namespace WalletWasabi.Hwi.ProcessBridge
 		{
 			string responseString;
 			int exitCode;
-			string hwiPath = GetHwiPath();
+			string hwiPath = EnvironmentHelpers.GetBinaryPath("Hwi", "hwi");
 
 			var fileName = hwiPath;
 			var finalArguments = arguments;
@@ -84,32 +84,6 @@ namespace WalletWasabi.Hwi.ProcessBridge
 			}
 
 			return (responseString, exitCode);
-		}
-
-		private string GetHwiPath()
-		{
-			var fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
-
-			string commonPartialPath = Path.Combine(fullBaseDirectory, "Hwi", "Binaries");
-			string path;
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				path = Path.Combine(commonPartialPath, "hwi-win64", "hwi.exe");
-			}
-			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-			{
-				path = Path.Combine(commonPartialPath, "hwi-lin64", "hwi");
-			}
-			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-			{
-				path = Path.Combine(commonPartialPath, "hwi-osx64", "hwi");
-			}
-			else
-			{
-				throw new NotSupportedException("Operating system is not supported.");
-			}
-
-			return path;
 		}
 	}
 }

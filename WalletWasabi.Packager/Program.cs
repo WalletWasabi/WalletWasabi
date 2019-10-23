@@ -534,10 +534,11 @@ namespace WalletWasabi.Packager
 					}
 				}
 
-				// Remove HWI binaries that are not relevant to the platform.
+				// Remove binaries that are not relevant to the platform.
 				var hwiBinaries = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "Hwi", "Binaries"));
+				var bitcoinCoreBinaries = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "BitcoinCore", "Binaries"));
 
-				foreach (var dir in hwiBinaries.EnumerateDirectories())
+				foreach (var dir in hwiBinaries.EnumerateDirectories().Concat(bitcoinCoreBinaries.EnumerateDirectories()))
 				{
 					if (!dir.Name.Contains(toNotRemove, StringComparison.OrdinalIgnoreCase))
 					{
@@ -753,7 +754,7 @@ namespace WalletWasabi.Packager
 						"sudo mount -t drvfs C: /mnt/c -o metadata",
 						$"cd {linuxPath}",
 						$"sudo find ./{newFolderName} -type f -exec chmod 644 {{}} \\;",
-						$"sudo find ./{newFolderName} -type f \\( -name 'wassabee' -o -name 'hwi' \\) -exec chmod +x {{}} \\;",
+						$"sudo find ./{newFolderName} -type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' \\) -exec chmod +x {{}} \\;",
 						$"tar -pczvf {newFolderName}.tar.gz {newFolderName}"
 					};
 					string arguments = string.Join(" && ", commands);
@@ -854,7 +855,7 @@ namespace WalletWasabi.Packager
 						"sudo mount -t drvfs C: /mnt/c -o metadata",
 						$"cd {linuxPath}",
 						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -exec chmod 644 {{}} \\;",
-						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f \\( -name 'wassabee' -o -name 'hwi' \\) -exec chmod +x {{}} \\;",
+						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' \\) -exec chmod +x {{}} \\;",
 						$"sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)}",
 						$"sudo chmod -R 0644 {debDestopFileLinuxPath}",
 						$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)"
