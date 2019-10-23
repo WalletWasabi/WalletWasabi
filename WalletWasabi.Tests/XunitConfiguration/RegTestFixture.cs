@@ -10,9 +10,9 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend;
+using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Tests.NodeBuilding;
 
 namespace WalletWasabi.Tests.XunitConfiguration
@@ -74,7 +74,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			Task.WaitAny(delayTask, hostInitializationTask); // Wait for server to initialize (Without this OSX CI will fail)
 		}
 
-		public static CcjRoundConfig CreateRoundConfig(Money denomination,
+		public static CoordinatorRoundConfig CreateRoundConfig(Money denomination,
 												int confirmationTarget,
 												double confirmationTargetReductionRate,
 												decimal coordinatorFeePercent,
@@ -88,7 +88,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 												bool dosNoteBeforeBan,
 												int maximumMixingLevelCount)
 		{
-			return new CcjRoundConfig
+			return new CoordinatorRoundConfig
 			{
 				Denomination = denomination,
 				ConfirmationTarget = confirmationTarget,

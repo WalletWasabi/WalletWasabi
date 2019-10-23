@@ -156,7 +156,7 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				using (await ioman1.Mutex.LockAsync())
 				{
-					// Should not be a problem because they using different Mutexes.
+					// Should not be a problem because they use different Mutexes.
 					using (await ioman2.Mutex.LockAsync())
 					{
 						await ioman1.WriteAllLinesAsync(lines);

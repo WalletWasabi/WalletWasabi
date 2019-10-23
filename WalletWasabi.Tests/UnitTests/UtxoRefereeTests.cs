@@ -2,7 +2,7 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using WalletWasabi.Models;
+using WalletWasabi.CoinJoin.Coordinator.Banning;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests
@@ -12,7 +12,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void UtxoRefereeSerialization()
 		{
-			var record = BannedUtxoRecord.FromString("2018-11-23 15-23-14:1:44:2716e680f47d74c1bc6f031da22331564dd4c6641d7216576aad1b846c85d492:True:195");
+			var record = BannedUtxo.FromString("2018-11-23 15-23-14:1:44:2716e680f47d74c1bc6f031da22331564dd4c6641d7216576aad1b846c85d492:True:195");
 
 			Assert.Equal(new DateTimeOffset(2018, 11, 23, 15, 23, 14, TimeSpan.Zero), record.TimeOfBan);
 			Assert.Equal(1, record.Severity);
@@ -23,9 +23,9 @@ namespace WalletWasabi.Tests.UnitTests
 
 			DateTimeOffset dateTime = DateTimeOffset.UtcNow;
 			DateTimeOffset now = new DateTimeOffset(dateTime.Ticks - (dateTime.Ticks % TimeSpan.TicksPerSecond), TimeSpan.Zero);
-			var record2Init = new BannedUtxoRecord(record.Utxo, 3, now, false, 99);
+			var record2Init = new BannedUtxo(record.Utxo, 3, now, false, 99);
 			string record2Line = record2Init.ToString();
-			var record2 = BannedUtxoRecord.FromString(record2Line);
+			var record2 = BannedUtxo.FromString(record2Line);
 
 			Assert.Equal(now, record2.TimeOfBan);
 			Assert.Equal(3, record2.Severity);
