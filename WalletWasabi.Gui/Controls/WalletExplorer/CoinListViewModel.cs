@@ -490,11 +490,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SetSelections();
 			SelectionChanged?.Invoke(this, cvm);
 			SelectedAmount = Coins.Where(x => x.IsSelected).Sum(x => x.Amount);
-			LabelExposeCommonOwnershipWarning = CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel
-				? false // Because in CoinJoin the selection algorithm makes sure not to combine red with non-red.
-				: Coins.Any(c =>
-					c.AnonymitySet == 1 && c.IsSelected && Coins.Any(x =>
-						x.AnonymitySet > 1 && x.IsSelected));
+			LabelExposeCommonOwnershipWarning = Coins.Any(c => c.AnonymitySet == 1 && c.IsSelected && Coins.Any(x => x.AnonymitySet > 1 && x.IsSelected));
 		}
 
 		public void OnCoinStatusChanged()

@@ -57,7 +57,7 @@
           <TextBlock Text="Selected Amount:" />
           <TextBlock Foreground="YellowGreen" Text="{Binding SelectedAmount, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}}" />
           <TextBlock Text="BTC" />
-          <TextBlock Text="Merging unmixed coins with mixed ones undoes those mixes." Classes="warningMessage" IsVisible="{Binding LabelExposeCommonOwnershipWarning}" />
+          <TextBlock Text="Merging unmixed coins with mixed ones undoes the mixes." Classes="warningMessage" IsVisible="{Binding LabelExposeCommonOwnershipWarning}" />
         </StackPanel>
       </StackPanel>
       <controls:BusyIndicator IsBusy="{Binding IsCoinListLoading}" Text="Loading...">
