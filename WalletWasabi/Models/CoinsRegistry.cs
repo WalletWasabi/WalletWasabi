@@ -77,7 +77,7 @@ namespace WalletWasabi.Models
 		{
 			lock (Lock)
 			{
-				var coinsToRemove = DescendantOfAndSelf(coin).ToList();
+				var coinsToRemove = DescendantOfAndSelfNoLock(coin).ToList();
 				foreach (var toRemove in coinsToRemove)
 				{
 					if (Coins.Remove(toRemove))
@@ -173,6 +173,11 @@ namespace WalletWasabi.Models
 		public ICoinsView DescendantOf(SmartCoin coin)
 		{
 			return AsCoinsView().DescendantOf(coin);
+		}
+
+		public ICoinsView DescendantOfAndSelfNoLock(SmartCoin coin)
+		{
+			return AsCoinsViewNoLock().DescendantOfAndSelf(coin);
 		}
 
 		public ICoinsView DescendantOfAndSelf(SmartCoin coin)
