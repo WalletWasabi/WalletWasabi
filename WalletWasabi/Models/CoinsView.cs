@@ -17,50 +17,23 @@ namespace WalletWasabi.Models
 			Coins = Guard.NotNull(nameof(coins), coins);
 		}
 
-		public ICoinsView UnSpent()
-		{
-			return new CoinsView(Coins.Where(x => x.Unspent && !x.SpentAccordingToBackend));
-		}
+		public ICoinsView UnSpent() => new CoinsView(Coins.Where(x => x.Unspent && !x.SpentAccordingToBackend));
 
-		public ICoinsView Available()
-		{
-			return new CoinsView(Coins.Where(x => !x.Unavailable));
-		}
+		public ICoinsView Available() => new CoinsView(Coins.Where(x => !x.Unavailable));
 
-		public ICoinsView CoinJoinInProcess()
-		{
-			return new CoinsView(Coins.Where(x => x.CoinJoinInProgress));
-		}
+		public ICoinsView CoinJoinInProcess() => new CoinsView(Coins.Where(x => x.CoinJoinInProgress));
 
-		public ICoinsView Confirmed()
-		{
-			return new CoinsView(Coins.Where(x => x.Confirmed));
-		}
+		public ICoinsView Confirmed() => new CoinsView(Coins.Where(x => x.Confirmed));
 
-		public ICoinsView Unconfirmed()
-		{
-			return new CoinsView(Coins.Where(x => !x.Confirmed));
-		}
+		public ICoinsView Unconfirmed() => new CoinsView(Coins.Where(x => !x.Confirmed));
 
-		public ICoinsView AtBlockHeight(Height height)
-		{
-			return new CoinsView(Coins.Where(x => x.Height == height));
-		}
+		public ICoinsView AtBlockHeight(Height height) => new CoinsView(Coins.Where(x => x.Height == height));
 
-		public ICoinsView CreatedBy(uint256 txid)
-		{
-			return new CoinsView(Coins.Where(x => x.TransactionId == txid));
-		}
+		public ICoinsView CreatedBy(uint256 txid) => new CoinsView(Coins.Where(x => x.TransactionId == txid));
 
-		public ICoinsView SpentBy(uint256 txid)
-		{
-			return new CoinsView(Coins.Where(x => x.SpenderTransactionId == txid));
-		}
+		public ICoinsView SpentBy(uint256 txid) => new CoinsView(Coins.Where(x => x.SpenderTransactionId == txid));
 
-		public ICoinsView ChildrenOf(SmartCoin coin)
-		{
-			return new CoinsView(Coins.Where(x => x.TransactionId == coin.SpenderTransactionId));
-		}
+		public ICoinsView ChildrenOf(SmartCoin coin) => new CoinsView(Coins.Where(x => x.TransactionId == coin.SpenderTransactionId));
 
 		public ICoinsView DescendantOf(SmartCoin coin)
 		{
@@ -80,44 +53,20 @@ namespace WalletWasabi.Models
 			return new CoinsView(Generator(coin));
 		}
 
-		public ICoinsView DescendantOfAndSelf(SmartCoin coin)
-		{
-			return new CoinsView(DescendantOf(coin).Concat(new[] { coin }));
-		}
+		public ICoinsView DescendantOfAndSelf(SmartCoin coin) => new CoinsView(DescendantOf(coin).Concat(new[] { coin }));
 
-		public ICoinsView FilterBy(Func<SmartCoin, bool> expression)
-		{
-			return new CoinsView(Coins.Where(expression));
-		}
+		public ICoinsView FilterBy(Func<SmartCoin, bool> expression) => new CoinsView(Coins.Where(expression));
 
-		public ICoinsView OutPoints(IEnumerable<TxoRef> outPoints)
-		{
-			return new CoinsView(Coins.Where(x => outPoints.Any(y => y == x.GetOutPoint())));
-		}
+		public ICoinsView OutPoints(IEnumerable<TxoRef> outPoints) => new CoinsView(Coins.Where(x => outPoints.Any(y => y == x.GetOutPoint())));
 
-		public SmartCoin GetByOutPoint(OutPoint outpoint)
-		{
-			return Coins.FirstOrDefault(x => x.GetOutPoint() == outpoint);
-		}
+		public SmartCoin GetByOutPoint(OutPoint outpoint) => Coins.FirstOrDefault(x => x.GetOutPoint() == outpoint);
 
-		public Money TotalAmount()
-		{
-			return Coins.Sum(x => x.Amount);
-		}
+		public Money TotalAmount() => Coins.Sum(x => x.Amount);
 
-		public SmartCoin[] ToArray()
-		{
-			return Coins.ToArray();
-		}
+		public SmartCoin[] ToArray() => Coins.ToArray();
 
-		public IEnumerator<SmartCoin> GetEnumerator()
-		{
-			return Coins.GetEnumerator();
-		}
+		public IEnumerator<SmartCoin> GetEnumerator() => Coins.GetEnumerator();
 
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return Coins.GetEnumerator();
-		}
+		IEnumerator IEnumerable.GetEnumerator() => Coins.GetEnumerator();
 	}
 }

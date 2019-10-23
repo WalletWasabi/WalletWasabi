@@ -145,104 +145,44 @@ namespace WalletWasabi.Models
 			}
 		}
 
-		private ICoinsView AsAllCoinsViewNoLock()
-		{
-			return new CoinsView(AsCoinsViewNoLock().Concat(SpentCoins).ToList());
-		}
+		private ICoinsView AsAllCoinsViewNoLock() => new CoinsView(AsCoinsViewNoLock().Concat(SpentCoins).ToList());
 
-		public ICoinsView AtBlockHeight(Height height)
-		{
-			return AsCoinsView().AtBlockHeight(height);
-		}
+		public ICoinsView AtBlockHeight(Height height) => AsCoinsView().AtBlockHeight(height);
 
-		public ICoinsView Available()
-		{
-			return AsCoinsView().Available();
-		}
+		public ICoinsView Available() => AsCoinsView().Available();
 
-		public ICoinsView ChildrenOf(SmartCoin coin)
-		{
-			return AsCoinsView().ChildrenOf(coin);
-		}
+		public ICoinsView ChildrenOf(SmartCoin coin) => AsCoinsView().ChildrenOf(coin);
 
-		public ICoinsView CoinJoinInProcess()
-		{
-			return AsCoinsView().CoinJoinInProcess();
-		}
+		public ICoinsView CoinJoinInProcess() => AsCoinsView().CoinJoinInProcess();
 
-		public ICoinsView Confirmed()
-		{
-			return AsCoinsView().Confirmed();
-		}
+		public ICoinsView Confirmed() => AsCoinsView().Confirmed();
 
-		public ICoinsView DescendantOf(SmartCoin coin)
-		{
-			return AsCoinsView().DescendantOf(coin);
-		}
+		public ICoinsView DescendantOf(SmartCoin coin) => AsCoinsView().DescendantOf(coin);
 
-		private ICoinsView DescendantOfAndSelfNoLock(SmartCoin coin)
-		{
-			return AsCoinsViewNoLock().DescendantOfAndSelf(coin);
-		}
+		private ICoinsView DescendantOfAndSelfNoLock(SmartCoin coin) => AsCoinsViewNoLock().DescendantOfAndSelf(coin);
 
-		public ICoinsView DescendantOfAndSelf(SmartCoin coin)
-		{
-			return AsCoinsView().DescendantOfAndSelf(coin);
-		}
+		public ICoinsView DescendantOfAndSelf(SmartCoin coin) => AsCoinsView().DescendantOfAndSelf(coin);
 
-		public ICoinsView FilterBy(Func<SmartCoin, bool> expression)
-		{
-			return AsCoinsView().FilterBy(expression);
-		}
+		public ICoinsView FilterBy(Func<SmartCoin, bool> expression) => AsCoinsView().FilterBy(expression);
 
-		public IEnumerator<SmartCoin> GetEnumerator()
-		{
-			return AsCoinsView().GetEnumerator();
-		}
+		public IEnumerator<SmartCoin> GetEnumerator() => AsCoinsView().GetEnumerator();
 
-		public ICoinsView OutPoints(IEnumerable<TxoRef> outPoints)
-		{
-			return AsCoinsView().OutPoints(outPoints);
-		}
+		public ICoinsView OutPoints(IEnumerable<TxoRef> outPoints) => AsCoinsView().OutPoints(outPoints);
 
-		public ICoinsView CreatedBy(uint256 txid)
-		{
-			return AsCoinsView().CreatedBy(txid);
-		}
+		public ICoinsView CreatedBy(uint256 txid) => AsCoinsView().CreatedBy(txid);
 
-		private ICoinsView CreatedByNoLock(uint256 txid)
-		{
-			return AsCoinsViewNoLock().CreatedBy(txid);
-		}
+		private ICoinsView CreatedByNoLock(uint256 txid) => AsCoinsViewNoLock().CreatedBy(txid);
 
-		public ICoinsView SpentBy(uint256 txid)
-		{
-			return AsCoinsView().SpentBy(txid);
-		}
+		public ICoinsView SpentBy(uint256 txid) => AsCoinsView().SpentBy(txid);
 
-		public SmartCoin[] ToArray()
-		{
-			return AsCoinsView().ToArray();
-		}
+		public SmartCoin[] ToArray() => AsCoinsView().ToArray();
 
-		public Money TotalAmount()
-		{
-			return AsCoinsView().TotalAmount();
-		}
+		public Money TotalAmount() => AsCoinsView().TotalAmount();
 
-		public ICoinsView Unconfirmed()
-		{
-			return AsCoinsView().Unconfirmed();
-		}
+		public ICoinsView Unconfirmed() => AsCoinsView().Unconfirmed();
 
-		public ICoinsView UnSpent()
-		{
-			return AsCoinsView().UnSpent();
-		}
+		public ICoinsView UnSpent() => AsCoinsView().UnSpent();
 
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return AsCoinsView().GetEnumerator();
-		}
+		IEnumerator IEnumerable.GetEnumerator() => AsCoinsView().GetEnumerator();
 	}
 }

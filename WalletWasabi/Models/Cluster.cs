@@ -24,10 +24,7 @@ namespace WalletWasabi.Models
 			private set => RaiseAndSetIfChanged(ref _labels, value);
 		}
 
-		public void Merge(Cluster clusters)
-		{
-			Merge(clusters.Coins);
-		}
+		public void Merge(Cluster clusters) => Merge(clusters.Coins);
 
 		public void Merge(IEnumerable<SmartCoin> coins)
 		{
