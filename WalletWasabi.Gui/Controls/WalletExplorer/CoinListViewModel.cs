@@ -43,7 +43,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isCoinListLoading;
 		private bool _labelExposeCommonOwnershipWarning;
 		public Global Global { get; }
-		public CoinListContainerType CoinListContainerType { get; }
 		public ReactiveCommand<Unit, Unit> EnqueueCoin { get; }
 		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
 		public ReactiveCommand<Unit, Unit> SelectAllCheckBoxCommand { get; }
@@ -206,10 +205,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public CoinListViewModel(Global global, CoinListContainerType coinListContainerType)
+		public CoinListViewModel(Global global)
 		{
 			Global = global;
-			CoinListContainerType = coinListContainerType;
 			AmountSortDirection = SortOrder.Decreasing;
 			IsCoinListLoading = true;
 			RefreshOrdering();
