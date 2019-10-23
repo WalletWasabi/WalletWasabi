@@ -150,7 +150,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			SetLoadButtonText();
 		}
 
-		public string UDevRulesLink => "https://github.com/bitcoin-core/HWI/tree/master/udev";
+		public string UDevRulesLink => "https://github.com/bitcoin-core/HWI/tree/master/hwilib/udev";
 
 		public bool IsHwWalletSearchTextVisible
 		{
