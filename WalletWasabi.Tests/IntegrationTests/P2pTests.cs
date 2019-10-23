@@ -104,34 +104,26 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			try
 			{
-				var mempoolTransactionAwaiter = new EventAwaiter<SmartTransaction>(
+				var mempoolTransactionAwaiter = new EventsAwaiter<SmartTransaction>(
 					h => bitcoinStore.MempoolService.TransactionReceived += h,
-					h => bitcoinStore.MempoolService.TransactionReceived -= h);
+					h => bitcoinStore.MempoolService.TransactionReceived -= h,
+					3);
 
-				var nodeConnectionAwaiter = new EventAwaiter<NodeEventArgs>(
+				var nodeConnectionAwaiter = new EventsAwaiter<NodeEventArgs>(
 					h => nodes.ConnectedNodes.Added += h,
-					h => nodes.ConnectedNodes.Added -= h);
+					h => nodes.ConnectedNodes.Added -= h,
+					3);
 
 				nodes.Connect();
 
-				await nodeConnectionAwaiter.Task.WithAwaitCancellationAsync(TimeSpan.FromMinutes(1));
-
-				nodeConnectionAwaiter = new EventAwaiter<NodeEventArgs>(
-					h => nodes.ConnectedNodes.Added += h,
-					h => nodes.ConnectedNodes.Added -= h);
-				await nodeConnectionAwaiter.Task.WithAwaitCancellationAsync(TimeSpan.FromMinutes(1));
-
-				nodeConnectionAwaiter = new EventAwaiter<NodeEventArgs>(
-					h => nodes.ConnectedNodes.Added += h,
-					h => nodes.ConnectedNodes.Added -= h);
-				await nodeConnectionAwaiter.Task.WithAwaitCancellationAsync(TimeSpan.FromMinutes(1));
-
 				var downloadTasks = new List<Task<Block>>();
+				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(4));
 				foreach (var hash in blocksToDownload)
 				{
-					using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 					downloadTasks.Add(walletService.FetchBlockAsync(hash, cts.Token));
 				}
+
+				await Task.WhenAll(nodeConnectionAwaiter.Tasks).WithAwaitCancellationAsync(TimeSpan.FromMinutes(3));
 
 				var i = 0;
 				var hashArray = blocksToDownload.ToArray();
@@ -141,7 +133,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 					i++;
 				}
 
-				await mempoolTransactionAwaiter.Task.WithAwaitCancellationAsync(TimeSpan.FromMinutes(1));
+				await Task.WhenAll(mempoolTransactionAwaiter.Tasks).WithAwaitCancellationAsync(TimeSpan.FromMinutes(1));
 			}
 			finally
 			{

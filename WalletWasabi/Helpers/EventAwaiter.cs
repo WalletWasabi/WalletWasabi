@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,25 +9,12 @@ namespace System
 	/// <summary>
 	/// https://stackoverflow.com/a/42117130/2061103
 	/// </summary>
-	public class EventAwaiter<TEventArgs>
+	public class EventAwaiter<TEventArgs> : EventsAwaiter<TEventArgs>
 	{
-		private TaskCompletionSource<TEventArgs> EventArrived { get; }
-
-		private readonly Action<EventHandler<TEventArgs>> Unsubscribe;
-
-		public EventAwaiter(Action<EventHandler<TEventArgs>> subscribe, Action<EventHandler<TEventArgs>> unsubscribe)
+		public EventAwaiter(Action<EventHandler<TEventArgs>> subscribe, Action<EventHandler<TEventArgs>> unsubscribe) : base(subscribe, unsubscribe, 1)
 		{
-			EventArrived = new TaskCompletionSource<TEventArgs>();
-			subscribe(Subscription);
-			Unsubscribe = unsubscribe;
 		}
 
-		public Task<TEventArgs> Task => EventArrived.Task;
-
-		private EventHandler<TEventArgs> Subscription => (s, e) =>
-		{
-			EventArrived.TrySetResult(e);
-			Unsubscribe(Subscription);
-		};
+		public Task<TEventArgs> Task => EventsArrived.First().Task;
 	}
 }
