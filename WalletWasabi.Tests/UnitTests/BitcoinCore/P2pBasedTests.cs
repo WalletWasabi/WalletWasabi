@@ -38,9 +38,9 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 
 				var txNum = 10;
 				var eventAwaiter = new EventsAwaiter<SmartTransaction>(
-						h => bitcoinStore.MempoolService.TransactionReceived += h,
-						h => bitcoinStore.MempoolService.TransactionReceived -= h,
-						txNum);
+					h => bitcoinStore.MempoolService.TransactionReceived += h,
+					h => bitcoinStore.MempoolService.TransactionReceived -= h,
+					txNum);
 
 				var txTasks = new List<Task<uint256>>();
 				var batch = rpc.PrepareBatch();
