@@ -1609,18 +1609,18 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.True(wallet.Coins.All(x => x.Confirmed));
 
 				// Test coin basic count.
-				Func<ICoinsView> getAllCoins = () => wallet.TransactionProcessor.Coins.AsAllCoinsView();
-				var coinCount = getAllCoins().Count();
+				ICoinsView GetAllCoins() => wallet.TransactionProcessor.Coins.AsAllCoinsView();
+				var coinCount = GetAllCoins().Count();
 				var to = wallet.GetReceiveKey(new SmartLabel("foo"));
 				var res = wallet.BuildTransaction(password, new PaymentIntent(to.P2wpkhScript, Money.Coins(0.2345m), label: new SmartLabel("bar")), FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
 				await wallet.SendTransactionAsync(res.Transaction);
-				Assert.Equal(coinCount + 2, getAllCoins().Count());
-				Assert.Equal(2, getAllCoins().Count(x => !x.Confirmed));
+				Assert.Equal(coinCount + 2, GetAllCoins().Count());
+				Assert.Equal(2, GetAllCoins().Count(x => !x.Confirmed));
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
-				Assert.Equal(coinCount + 2, getAllCoins().Count());
-				Assert.Equal(0, getAllCoins().Count(x => !x.Confirmed));
+				Assert.Equal(coinCount + 2, GetAllCoins().Count());
+				Assert.Equal(0, GetAllCoins().Count(x => !x.Confirmed));
 			}
 			finally
 			{
