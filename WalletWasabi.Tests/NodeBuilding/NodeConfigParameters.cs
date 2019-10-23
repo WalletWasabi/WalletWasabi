@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Tests.NodeBuilding
 {
@@ -28,10 +29,10 @@ namespace WalletWasabi.Tests.NodeBuilding
 			return builder.ToString();
 		}
 
-		public static NodeConfigParameters Load(string configFile)
+		public static async Task<NodeConfigParameters> LoadAsync(string configFile)
 		{
 			var config = new NodeConfigParameters();
-			foreach (var line in File.ReadAllLines(configFile))
+			foreach (var line in await File.ReadAllLinesAsync(configFile))
 			{
 				var parts = line.Split('=');
 				config.Add(parts[0], parts[1]);
