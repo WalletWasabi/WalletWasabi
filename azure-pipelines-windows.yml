@@ -30,7 +30,7 @@ jobs:
       command: test
       projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
       arguments: --configuration $(testConfiguration) --filter "UnitTests"
-- job: Windows.Integration
+- job: WindowsIntegration
   pool:
     vmImage: 'vs2017-win2016'
   steps:
