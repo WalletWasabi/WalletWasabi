@@ -29,4 +29,4 @@ jobs:
     inputs:
       command: test
       projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
-      arguments: --configuration $(testConfiguration) --filter "RegTests" 
+      arguments: --configuration $(testConfiguration) --filter "RegTests"
