@@ -123,7 +123,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 					downloadTasks.Add(walletService.FetchBlockAsync(hash, cts.Token));
 				}
 
-				await Task.WhenAll(nodeConnectionAwaiter.Tasks).WithAwaitCancellationAsync(TimeSpan.FromMinutes(3));
+				await nodeConnectionAwaiter.WaitAsync(TimeSpan.FromMinutes(3));
 
 				var i = 0;
 				var hashArray = blocksToDownload.ToArray();
@@ -133,7 +133,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 					i++;
 				}
 
-				await Task.WhenAll(mempoolTransactionAwaiter.Tasks).WithAwaitCancellationAsync(TimeSpan.FromMinutes(1));
+				await mempoolTransactionAwaiter.WaitAsync(TimeSpan.FromMinutes(1));
 			}
 			finally
 			{

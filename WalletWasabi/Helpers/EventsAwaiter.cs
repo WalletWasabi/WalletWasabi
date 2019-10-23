@@ -31,7 +31,7 @@ namespace System
 			Unsubscribe = unsubscribe;
 		}
 
-		public IEnumerable<Task<TEventArgs>> Tasks => EventsArrived.Select(x => x.Task);
+		protected IEnumerable<Task<TEventArgs>> Tasks => EventsArrived.Select(x => x.Task);
 
 		private EventHandler<TEventArgs> Subscription => (s, e) =>
 		{
@@ -46,5 +46,11 @@ namespace System
 				}
 			}
 		};
+
+		public async Task<IEnumerable<TEventArgs>> WaitAsync(TimeSpan timeout)
+			=> await Task.WhenAll(Tasks).WithAwaitCancellationAsync(timeout).ConfigureAwait(false);
+
+		public async Task<IEnumerable<TEventArgs>> WaitAsync(int millisecondsTimeout)
+			=> await Task.WhenAll(Tasks).WithAwaitCancellationAsync(millisecondsTimeout).ConfigureAwait(false);
 	}
 }

@@ -15,6 +15,12 @@ namespace System
 		{
 		}
 
-		public Task<TEventArgs> Task => EventsArrived.First().Task;
+		protected Task<TEventArgs> Task => EventsArrived.First().Task;
+
+		public new async Task<TEventArgs> WaitAsync(TimeSpan timeout)
+			=> await Task.WithAwaitCancellationAsync(timeout).ConfigureAwait(false);
+
+		public new async Task<TEventArgs> WaitAsync(int millisecondsTimeout)
+			=> await Task.WithAwaitCancellationAsync(millisecondsTimeout).ConfigureAwait(false);
 	}
 }

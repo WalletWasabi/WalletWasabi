@@ -314,8 +314,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			await rpc.GenerateAsync(2); // Generate two, so we can test for two reorg
 
-			_reorgTestAsync_ReorgCount = 0;
-
 			var node = RegTestFixture.BackendRegTestNode;
 
 			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
@@ -324,7 +322,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 			{
 				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 1000);
 
-				bitcoinStore.IndexStore.Reorged += ReorgTestAsync_Downloader_Reorged;
+				var reorgAwaiter = new EventsAwaiter<FilterModel>(
+					h => bitcoinStore.IndexStore.Reorged += h,
+					h => bitcoinStore.IndexStore.Reorged -= h,
+					2);
 
 				// Test initial synchronization.
 				await WaitForIndexesToSyncAsync(global, TimeSpan.FromSeconds(90), bitcoinStore);
@@ -410,11 +411,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 				}
 
 				// Assert reorg happened exactly as many times as we reorged.
-				Assert.Equal(2, Interlocked.Read(ref _reorgTestAsync_ReorgCount));
+				await reorgAwaiter.WaitAsync(TimeSpan.FromSeconds(10));
 			}
 			finally
 			{
-				bitcoinStore.IndexStore.Reorged -= ReorgTestAsync_Downloader_Reorged;
 				await synchronizer?.StopAsync();
 			}
 		}
@@ -433,14 +433,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 				await Task.Delay(TimeSpan.FromSeconds(1));
 				times++;
 			}
-		}
-
-		private long _reorgTestAsync_ReorgCount;
-
-		private void ReorgTestAsync_Downloader_Reorged(object sender, FilterModel e)
-		{
-			Assert.NotNull(e);
-			Interlocked.Increment(ref _reorgTestAsync_ReorgCount);
 		}
 
 		#endregion ServicesTests

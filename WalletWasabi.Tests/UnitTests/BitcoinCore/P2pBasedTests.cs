@@ -17,7 +17,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 	public class P2pBasedTests
 	{
 		[Fact]
-		public async Task MempoolWorksAsync()
+		public async Task MempoolNotifiesAsync()
 		{
 			var coreNode = await CoreNode.CreateAsync();
 			using var node = await coreNode.CreateP2pNodeAsync();
@@ -50,7 +50,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				}
 				var batchTask = batch.SendBatchAsync();
 
-				var stxs = await Task.WhenAll(eventAwaiter.Tasks).WithAwaitCancellationAsync(TimeSpan.FromSeconds(7));
+				var stxs = await eventAwaiter.WaitAsync(TimeSpan.FromSeconds(7));
 
 				await batchTask;
 				var hashes = await Task.WhenAll(txTasks);
