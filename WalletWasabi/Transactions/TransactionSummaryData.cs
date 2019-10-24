@@ -2,7 +2,7 @@ using NBitcoin;
 using System;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Models
+namespace WalletWasabi.Transactions
 {
 	public class TransactionSummary
 	{

@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Coins;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
-using WalletWasabi.Transactions;
 
-namespace WalletWasabi.Services
+namespace WalletWasabi.Transactions
 {
 	public class TransactionProcessor
 	{
@@ -15,7 +15,7 @@ namespace WalletWasabi.Services
 
 		public KeyManager KeyManager { get; }
 
-		public ObservableConcurrentHashSet<SmartCoin> Coins { get; }
+		public CoinsRegistry Coins { get; }
 		public Money DustThreshold { get; }
 
 		public event EventHandler<SmartCoin> CoinSpent;
@@ -27,13 +27,13 @@ namespace WalletWasabi.Services
 		public TransactionProcessor(
 			AllTransactionStore transactionStore,
 			KeyManager keyManager,
-			ObservableConcurrentHashSet<SmartCoin> coins,
-			Money dustThreshold)
+			Money dustThreshold,
+			int privacyLevelThreshold = 100)
 		{
 			TransactionStore = Guard.NotNull(nameof(transactionStore), transactionStore);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
-			Coins = Guard.NotNull(nameof(coins), coins);
 			DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
+			Coins = new CoinsRegistry(privacyLevelThreshold);
 		}
 
 		public bool Process(SmartTransaction tx)
@@ -48,7 +48,7 @@ namespace WalletWasabi.Services
 
 			if (tx.Confirmed)
 			{
-				foreach (var coin in Coins.Where(x => x.TransactionId == txId))
+				foreach (var coin in Coins.AsAllCoinsView().CreatedBy(txId))
 				{
 					coin.Height = tx.Height;
 					walletRelevant = true; // relevant
@@ -93,7 +93,7 @@ namespace WalletWasabi.Services
 							// will add later if they came to our keys
 							foreach (SmartCoin doubleSpentCoin in doubleSpends.Where(x => !x.Confirmed))
 							{
-								Coins.TryRemove(doubleSpentCoin);
+								Coins.Remove(doubleSpentCoin);
 							}
 							tx.SetReplacement();
 							walletRelevant = true;
@@ -108,7 +108,7 @@ namespace WalletWasabi.Services
 						// remove double spent coins recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
 						foreach (SmartCoin doubleSpentCoin in doubleSpends)
 						{
-							Coins.TryRemove(doubleSpentCoin);
+							Coins.Remove(doubleSpentCoin);
 						}
 						walletRelevant = true;
 					}
@@ -124,7 +124,7 @@ namespace WalletWasabi.Services
 				if (allReceivedInternal)
 				{
 					// It is likely a coinjoin if the diff between receive and sent amount is small and have at least 2 equal outputs.
-					Money spentAmount = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).Sum(x => x.Amount);
+					Money spentAmount = Coins.OutPoints(tx.Transaction.Inputs.ToTxoRefs()).TotalAmount();
 					Money receivedAmount = tx.Transaction.Outputs.Where(x => receiveKeys.Any(y => y.P2wpkhScript == x.ScriptPubKey)).Sum(x => x.Value);
 					bool receivedAlmostAsMuchAsSpent = spentAmount.Almost(receivedAmount, Money.Coins(0.005m));
 
@@ -135,6 +135,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
+			List<SmartCoin> newCoins = new List<SmartCoin>();
 			List<SmartCoin> spentOwnCoins = null;
 			for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 			{
@@ -151,7 +152,7 @@ namespace WalletWasabi.Services
 					}
 
 					foundKey.SetKeyState(KeyState.Used, KeyManager);
-					spentOwnCoins ??= Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
+					spentOwnCoins ??= Coins.OutPoints(tx.Transaction.Inputs.ToTxoRefs()).ToList();
 					var anonset = tx.Transaction.GetAnonymitySet(i);
 					if (spentOwnCoins.Count != 0)
 					{
@@ -162,7 +163,7 @@ namespace WalletWasabi.Services
 																																																																		   // If we did not have it.
 					if (Coins.TryAdd(newCoin))
 					{
-						CoinReceived?.Invoke(this, newCoin);
+						newCoins.Add(newCoin);
 
 						// Make sure there's always 21 clean keys generated and indexed.
 						KeyManager.AssertCleanKeysIndexed(isInternal: foundKey.IsInternal);
@@ -177,7 +178,7 @@ namespace WalletWasabi.Services
 					{
 						if (newCoin.Height != Height.Mempool) // Update the height of this old coin we already had.
 						{
-							SmartCoin oldCoin = Coins.FirstOrDefault(x => x.TransactionId == txId && x.Index == i);
+							SmartCoin oldCoin = Coins.AsAllCoinsView().GetByOutPoint(new OutPoint(txId, i));
 							if (oldCoin != null) // Just to be sure, it is a concurrent collection.
 							{
 								oldCoin.Height = newCoin.Height;
@@ -192,7 +193,7 @@ namespace WalletWasabi.Services
 			{
 				var input = tx.Transaction.Inputs[i];
 
-				var foundCoin = Coins.FirstOrDefault(x => x.TransactionId == input.PrevOut.Hash && x.Index == input.PrevOut.N);
+				var foundCoin = Coins.GetByOutPoint(input.PrevOut);
 				if (foundCoin != null)
 				{
 					walletRelevant = true;
@@ -201,6 +202,7 @@ namespace WalletWasabi.Services
 
 					if (!alreadyKnown)
 					{
+						Coins.Spend(foundCoin);
 						CoinSpent?.Invoke(this, foundCoin);
 					}
 
@@ -211,12 +213,22 @@ namespace WalletWasabi.Services
 				}
 			}
 
+			foreach (var newCoin in newCoins)
+			{
+				CoinReceived?.Invoke(this, newCoin);
+			}
+
 			if (walletRelevant)
 			{
 				TransactionStore.AddOrUpdate(tx);
 			}
 
 			return walletRelevant;
+		}
+
+		public void UndoBlock(Height blockHeight)
+		{
+			Coins.RemoveFromBlock(blockHeight);
 		}
 	}
 }

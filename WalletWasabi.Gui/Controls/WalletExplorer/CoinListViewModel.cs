@@ -15,8 +15,8 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Models;
 using WalletWasabi.Logging;
+using WalletWasabi.Coins;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -382,7 +382,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent))
+			foreach (var sc in Global.WalletService.Coins)
 			{
 				var newCoinVm = new CoinViewModel(this, sc);
 				newCoinVm.SubscribeEvents();
@@ -398,49 +398,29 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsAnyCoinSelected = x is null ? false : x > Money.Zero);
 
-			Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
+			Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
+				.Subscribe(coin =>
 				{
-					var e = x.EventArgs;
-					try
-					{
-						switch (e.Action)
-						{
-							case NotifyCollectionChangedAction.Add:
-								foreach (SmartCoin c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent))
-								{
-									var newCoinVm = new CoinViewModel(this, c);
-									newCoinVm.SubscribeEvents();
-									RootList.Add(newCoinVm);
-								}
-								break;
+					var newCoinVm = new CoinViewModel(this, coin.EventArgs);
+					newCoinVm.SubscribeEvents();
+					RootList.Add(newCoinVm);
+				})
+				.DisposeWith(Disposables);
 
-							case NotifyCollectionChangedAction.Remove:
-								foreach (var c in e.OldItems.Cast<SmartCoin>())
-								{
-									CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == c);
-									if (toRemove != default)
-									{
-										toRemove.IsSelected = false;
-										RootList.Remove(toRemove);
-										toRemove.UnsubscribeEvents();
-									}
-								}
-								break;
-
-							case NotifyCollectionChangedAction.Reset:
-								{
-									ClearRootList();
-								}
-								break;
-						}
-					}
-					catch (Exception ex)
+			Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(coin =>
+				{
+					CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == coin.EventArgs);
+					if (toRemove != default)
 					{
-						Logger.LogDebug(ex);
+						toRemove.IsSelected = false;
+						RootList.Remove(toRemove);
+						toRemove.UnsubscribeEvents();
 					}
-				}).DisposeWith(Disposables);
+				})
+				.DisposeWith(Disposables);
 
 			SetSelections();
 			SetCoinJoinStatusWidth();

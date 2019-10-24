@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.Models.TransactionBuilding
+namespace WalletWasabi.Transactions.TransactionBuilding
 {
 	public class FeeStrategy
 	{

@@ -95,14 +95,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			var observed = Observable.Merge(
 				Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Select(_ => Unit.Default),
-				Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged)).Select(_ => Unit.Default),
+				Observable.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived)).Select(_ => Unit.Default),
 				Observable.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent)).Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler);
 
 			observed.Subscribe(_ =>
 				{
-					Money balance = Enumerable.Where(WalletService.Coins, c => c.Unspent && !c.SpentAccordingToBackend).Sum(c => (long?)c.Amount) ?? 0;
+					Money balance = WalletService.Coins.TotalAmount();
 
 					Title = $"{Name} ({(Global.UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
 				})

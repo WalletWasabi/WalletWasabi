@@ -2,9 +2,9 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
+using WalletWasabi.BlockchainAnalysis;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.KeyManagement
 {

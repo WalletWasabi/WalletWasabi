@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 
-namespace WalletWasabi.Models
+namespace WalletWasabi.Coins
 {
 	/// <summary>
 	/// The same functionality as Outpoint, but it's JsonSerializable

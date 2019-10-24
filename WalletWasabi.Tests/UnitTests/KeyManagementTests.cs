@@ -2,10 +2,10 @@ using NBitcoin;
 using System;
 using System.IO;
 using System.Security;
+using WalletWasabi.BlockchainAnalysis;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 using WalletWasabi.Tests.XunitConfiguration;
 using Xunit;
 

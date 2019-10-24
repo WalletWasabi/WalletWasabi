@@ -5,11 +5,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using WalletWasabi.Bases;
+using WalletWasabi.BlockchainAnalysis;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.KeyManagement;
+using WalletWasabi.Models;
 
-namespace WalletWasabi.Models
+namespace WalletWasabi.Coins
 {
 	/// <summary>
 	/// An UTXO that knows more.
@@ -35,7 +37,8 @@ namespace WalletWasabi.Models
 		private HdPubKey _hdPubKey;
 
 		private ISecret _secret;
-		private string _clusters;
+
+		private Cluster _clusters;
 
 		private bool _confirmed;
 		private bool _unavailable;
@@ -221,10 +224,10 @@ namespace WalletWasabi.Models
 			set => RaiseAndSetIfChanged(ref _secret, value);
 		}
 
-		public string Clusters
+		public Cluster Clusters
 		{
 			get => _clusters;
-			private set => RaiseAndSetIfChanged(ref _clusters, value);
+			set => RaiseAndSetIfChanged(ref _clusters, value);
 		}
 
 		#endregion NonSerializableProperties
@@ -336,6 +339,8 @@ namespace WalletWasabi.Models
 
 			Label = SmartLabel.Merge(HdPubKey?.Label, label);
 
+			Clusters = new Cluster(this);
+
 			SetConfirmed();
 			SetUnspent();
 			SetIsBanned();
@@ -359,11 +364,6 @@ namespace WalletWasabi.Models
 		public TxoRef GetTxoRef()
 		{
 			return new TxoRef(TransactionId, Index);
-		}
-
-		public void SetClusters(string clusters)
-		{
-			Clusters = clusters;
 		}
 
 		#endregion Methods

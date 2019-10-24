@@ -7,6 +7,7 @@ using System.Text;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Transactions;
 
 namespace WalletWasabi.Tests
 {

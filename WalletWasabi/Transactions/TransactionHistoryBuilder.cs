@@ -2,9 +2,11 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Coins;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 
-namespace WalletWasabi.Services
+namespace WalletWasabi.Transactions
 {
 	public class TransactionHistoryBuilder
 	{
@@ -27,7 +29,8 @@ namespace WalletWasabi.Services
 
 			var processedBlockTimeByHeight = walletService.ProcessedBlocks?.Values.ToDictionary(x => x.height, x => x.dateTime)
 				?? new Dictionary<Height, DateTimeOffset>();
-			foreach (SmartCoin coin in walletService.Coins)
+			var allCoins = ((CoinsRegistry)walletService.Coins).AsAllCoinsView();
+			foreach (SmartCoin coin in allCoins)
 			{
 				var txId = coin.TransactionId;
 				if (txId is null || !walletService.BitcoinStore.TransactionStore.TryGetTransaction(txId, out SmartTransaction foundTransaction))
@@ -108,7 +111,7 @@ namespace WalletWasabi.Services
 						{
 							DateTime = dateTime,
 							Height = foundSpenderTransaction.Height,
-							Amount = (Money.Zero - coin.Amount),
+							Amount = Money.Zero - coin.Amount,
 							Label = "",
 							TransactionId = coin.SpenderTransactionId,
 							BlockIndex = foundSpenderTransaction.BlockIndex

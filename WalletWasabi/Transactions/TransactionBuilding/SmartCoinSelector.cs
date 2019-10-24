@@ -3,12 +3,12 @@ using System.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using WalletWasabi.Models;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Coins;
 
-namespace WalletWasabi.Models.TransactionBuilding
+namespace WalletWasabi.Transactions.TransactionBuilding
 {
 	public class SmartCoinSelector : ICoinSelector
 	{

@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
-using WalletWasabi.Models;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.NodeBuilding;
 using WalletWasabi.Transactions;
@@ -50,7 +49,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				}
 				var batchTask = batch.SendBatchAsync();
 
-				var stxs = await eventAwaiter.WaitAsync(TimeSpan.FromSeconds(7));
+				var stxs = await eventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
 
 				await batchTask;
 				var hashes = await Task.WhenAll(txTasks);

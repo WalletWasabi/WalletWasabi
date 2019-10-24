@@ -3,25 +3,27 @@ using NBitcoin.Policy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.BlockchainAnalysis;
+using WalletWasabi.Coins;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Models.TransactionBuilding;
+using WalletWasabi.Transactions.TransactionBuilding;
 
-namespace WalletWasabi.Services
+namespace WalletWasabi.Transactions
 {
 	public class TransactionFactory
 	{
 		public Network Network { get; }
 		public KeyManager KeyManager { get; }
-		public IEnumerable<SmartCoin> Coins { get; }
+		public ICoinsView Coins { get; }
 		public string Password { get; }
 		public bool AllowUnconfirmed { get; }
 
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
-		public TransactionFactory(Network network, KeyManager keyManager, IEnumerable<SmartCoin> coins, string password = "", bool allowUnconfirmed = false)
+		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, string password = "", bool allowUnconfirmed = false)
 		{
 			Network = network;
 			KeyManager = keyManager;
@@ -56,7 +58,10 @@ namespace WalletWasabi.Services
 			}
 
 			// Get allowed coins to spend.
-			List<SmartCoin> allowedSmartCoinInputs; // Inputs that can be used to build the transaction.
+			var availableCoinsView = Coins.Available();
+			List<SmartCoin> allowedSmartCoinInputs = AllowUnconfirmed // Inputs that can be used to build the transaction.
+					? availableCoinsView.ToList()
+					: availableCoinsView.Confirmed().ToList();
 			if (allowedInputs != null) // If allowedInputs are specified then select the coins from them.
 			{
 				if (!allowedInputs.Any())
@@ -64,16 +69,16 @@ namespace WalletWasabi.Services
 					throw new ArgumentException($"{nameof(allowedInputs)} is not null, but empty.");
 				}
 
-				allowedSmartCoinInputs = AllowUnconfirmed
-					? Coins.Where(x => !x.Unavailable && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList()
-					: Coins.Where(x => !x.Unavailable && x.Confirmed && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
+				allowedSmartCoinInputs = allowedSmartCoinInputs
+					.Where(x => allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index))
+					.ToList();
 
 				// Add those that have the same script, because common ownership is already exposed.
 				// But only if the user didn't click the "max" button. In this case he'd send more money than what he'd think.
 				if (payments.ChangeStrategy != ChangeStrategy.AllRemainingCustom)
 				{
 					var allScripts = allowedSmartCoinInputs.Select(x => x.ScriptPubKey).ToHashSet();
-					foreach (var coin in Coins.Where(x => !x.Unavailable && !allowedSmartCoinInputs.Any(y => x.TransactionId == y.TransactionId && x.Index == y.Index)))
+					foreach (var coin in availableCoinsView.Where(x => !allowedSmartCoinInputs.Any(y => x.TransactionId == y.TransactionId && x.Index == y.Index)))
 					{
 						if (!(AllowUnconfirmed || coin.Confirmed))
 						{
@@ -86,10 +91,6 @@ namespace WalletWasabi.Services
 						}
 					}
 				}
-			}
-			else
-			{
-				allowedSmartCoinInputs = AllowUnconfirmed ? Coins.Where(x => !x.Unavailable).ToList() : Coins.Where(x => !x.Unavailable && x.Confirmed).ToList();
 			}
 
 			// Get and calculate fee
@@ -185,7 +186,7 @@ namespace WalletWasabi.Services
 			decimal totalOutgoingAmountNoFeeDecimal = totalOutgoingAmountNoFee.ToDecimal(MoneyUnit.BTC);
 			// Cannot divide by zero, so use the closest number we have to zero.
 			decimal totalOutgoingAmountNoFeeDecimalDivisor = totalOutgoingAmountNoFeeDecimal == 0 ? decimal.MinValue : totalOutgoingAmountNoFeeDecimal;
-			decimal feePc = (100 * fee.ToDecimal(MoneyUnit.BTC)) / totalOutgoingAmountNoFeeDecimalDivisor;
+			decimal feePc = 100 * fee.ToDecimal(MoneyUnit.BTC) / totalOutgoingAmountNoFeeDecimalDivisor;
 
 			if (feePc > 1)
 			{
@@ -255,7 +256,7 @@ namespace WalletWasabi.Services
 			for (var i = 0U; i < tx.Outputs.Count; i++)
 			{
 				TxOut output = tx.Outputs[i];
-				var anonset = (tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet)) - 1; // Minus 1, because count own only once.
+				var anonset = tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because count own only once.
 				var foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
 				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, anonset, isLikelyCoinJoinOutput: false, pubKey: foundKey);
 				label = SmartLabel.Merge(label, coin.Label); // foundKey's label is already added to the coinlabel.
