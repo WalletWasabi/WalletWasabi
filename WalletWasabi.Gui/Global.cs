@@ -19,6 +19,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.CoinJoin.Client.Clients;
+using WalletWasabi.Coins;
 using WalletWasabi.Crypto;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.ViewModels;
@@ -27,7 +28,6 @@ using WalletWasabi.Hwi.Models;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Mempool;
-using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.TorSocks5;
@@ -120,7 +120,7 @@ namespace WalletWasabi.Gui
 				return;
 			}
 
-			SmartCoin[] enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
+			SmartCoin[] enqueuedCoins = WalletService.Coins.CoinJoinInProcess().ToArray();
 			if (enqueuedCoins.Any())
 			{
 				Logger.LogWarning("Unregistering coins in CoinJoin process.");
@@ -420,7 +420,7 @@ namespace WalletWasabi.Gui
 				Logger.LogInfo($"{nameof(WalletService)} started.");
 
 				token.ThrowIfCancellationRequested();
-				WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
+				WalletService.TransactionProcessor.CoinReceived += CoinReceived;
 			}
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
 		}
@@ -487,39 +487,29 @@ namespace WalletWasabi.Gui
 			return keyManager;
 		}
 
-		private void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+		private void CoinReceived(object sender, SmartCoin coin)
 		{
 			try
 			{
+				if (coin.HdPubKey.IsInternal)
+				{
+					return;
+				}
+
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || UiConfig?.LurkingWifeMode is true)
 				{
 					return;
 				}
 
-				if (e.Action == NotifyCollectionChangedAction.Add)
+				string amountString = coin.Amount.ToString(false, true);
+				using var process = Process.Start(new ProcessStartInfo
 				{
-					foreach (SmartCoin coin in e.NewItems)
-					{
-						//if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSDescription.StartsWith("Microsoft Windows 10"))
-						//{
-						//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
-						//}
-						// else
-						if (coin.HdPubKey.IsInternal)
-						{
-							continue;
-						}
-						string amountString = coin.Amount.ToString(false, true);
-						using var process = Process.Start(new ProcessStartInfo
-						{
-							FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
-							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-								? $"-e \"display notification \\\"Received {amountString} BTC\\\" with title \\\"Wasabi\\\"\""
-								: $"--expire-time=3000 \"Wasabi\" \"Received {amountString} BTC\"",
-							CreateNoWindow = true
-						});
-					}
-				}
+					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
+					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+						? $"-e \"display notification \\\"Received {amountString} BTC\\\" with title \\\"Wasabi\\\"\""
+						: $"--expire-time=3000 \"Wasabi\" \"Received {amountString} BTC\"",
+					CreateNoWindow = true
+				});
 			}
 			catch (Exception ex)
 			{
@@ -531,7 +521,7 @@ namespace WalletWasabi.Gui
 		{
 			if (WalletService != null)
 			{
-				WalletService.Coins.CollectionChanged -= Coins_CollectionChanged;
+				WalletService.TransactionProcessor.CoinReceived -= CoinReceived;
 			}
 			try
 			{

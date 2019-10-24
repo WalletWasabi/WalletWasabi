@@ -131,6 +131,27 @@ namespace WalletWasabi.Helpers
 			return directory;
 		}
 
+		// This method removes the path and file extension.
+		//
+		// Given Wasabi releases are currently built using Windows, the generated assemblies contain
+		// the hardcoded "C:\Users\User\Desktop\WalletWasabi\.......\FileName.cs" string because that
+		// is the real path of the file, it doesn't matter what OS was targeted.
+		// In Windows and Linux that string is a valid path and that means Path.GetFileNameWithoutExtension
+		// can extract the file name but in the case of OSX the same string is not a valid path so, it assumes
+		// the whole string is the file name.
+		public static string ExtractFileName(string callerFilePath)
+		{
+			var lastSeparatorIndex = callerFilePath.LastIndexOf("\\");
+			if (lastSeparatorIndex == -1)
+			{
+				lastSeparatorIndex = callerFilePath.LastIndexOf("/");
+			}
+
+			lastSeparatorIndex++;
+			var fileNameWithoutExtension = callerFilePath.Substring(lastSeparatorIndex, callerFilePath.Length - lastSeparatorIndex - ".cs".Length);
+			return fileNameWithoutExtension;
+		}
+
 		/// <summary>
 		/// Executes a command with bash.
 		/// https://stackoverflow.com/a/47918132/2061103
@@ -207,6 +228,35 @@ namespace WalletWasabi.Helpers
 			}
 
 			return fullBaseDirectory;
+		}
+
+		/// <summary>
+		/// Accessibility of binaries must follow the convention: {binariesContainingFolderRelativePath}/Binaries/{binaryNameWithoutExtension}-{os}64/binaryNameWithoutExtension(.exe)
+		/// </summary>
+		public static string GetBinaryPath(string binariesContainingFolderRelativePath, string binaryNameWithoutExtension)
+		{
+			var fullBaseDirectory = GetFullBaseDirectory();
+
+			string commonPartialPath = Path.Combine(fullBaseDirectory, binariesContainingFolderRelativePath, "Binaries");
+			string path;
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				path = Path.Combine(commonPartialPath, $"{binaryNameWithoutExtension}-win64", $"{binaryNameWithoutExtension}.exe");
+			}
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			{
+				path = Path.Combine(commonPartialPath, $"{binaryNameWithoutExtension}-lin64", binaryNameWithoutExtension);
+			}
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				path = Path.Combine(commonPartialPath, $"{binaryNameWithoutExtension}-osx64", binaryNameWithoutExtension);
+			}
+			else
+			{
+				throw new NotSupportedException("Operating system is not supported.");
+			}
+
+			return path;
 		}
 	}
 }

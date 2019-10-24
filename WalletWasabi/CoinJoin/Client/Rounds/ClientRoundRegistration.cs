@@ -7,8 +7,8 @@ using System.Text;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.CoinJoin.Common.Models;
+using WalletWasabi.Coins;
 using WalletWasabi.Helpers;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.CoinJoin.Client.Rounds
 {

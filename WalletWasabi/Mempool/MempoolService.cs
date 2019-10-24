@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Transactions;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Mempool

@@ -7,8 +7,8 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Coins;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Dialogs
 {
@@ -136,7 +136,7 @@ namespace WalletWasabi.Gui.Dialogs
 							return;
 						}
 
-						SmartCoin[] enqueuedCoins = Global.WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
+						SmartCoin[] enqueuedCoins = Global.WalletService.Coins.CoinJoinInProcess().ToArray();
 						Exception latestException = null;
 						foreach (var coin in enqueuedCoins)
 						{
