@@ -49,7 +49,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				}
 				var batchTask = batch.SendBatchAsync();
 
-				var stxs = await eventAwaiter.WaitAsync(TimeSpan.FromSeconds(7));
+				var stxs = await eventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
 
 				await batchTask;
 				var hashes = await Task.WhenAll(txTasks);
