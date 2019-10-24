@@ -35,7 +35,7 @@ namespace WalletWasabi.Coins
 
 		ICoinsView Unconfirmed();
 
-		ICoinsView UnSpent();
+		ICoinsView Unspent();
 
 		SmartCoin GetByOutPoint(OutPoint outpoint);
 	}
