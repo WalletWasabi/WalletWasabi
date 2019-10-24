@@ -99,7 +99,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				new CoinJoinClient(syncer, network, keyManager, new Uri("http://localhost:12345"), Global.Instance.TorSocks5Endpoint),
 				nodes,
 				Global.Instance.DataDir,
-				new ServiceConfiguration(50, 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(0.00001m)));
+				new ServiceConfiguration(50, 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold)));
 			Assert.True(Directory.Exists(blocksFolderPath));
 
 			try
