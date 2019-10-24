@@ -4,13 +4,14 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using WalletWasabi.BlockchainAnalysis;
+using WalletWasabi.Coins;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
-using WalletWasabi.Services;
 using WalletWasabi.Transactions;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests
+namespace WalletWasabi.Tests.UnitTests.Transactions
 {
 	public class TransactionProcessorTests
 	{

@@ -3,14 +3,16 @@ using NBitcoin.Policy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.BlockchainAnalysis;
+using WalletWasabi.Coins;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Models.TransactionBuilding;
+using WalletWasabi.Transactions.TransactionBuilding;
 
-namespace WalletWasabi.Services
+namespace WalletWasabi.Transactions
 {
 	public class TransactionFactory
 	{
@@ -184,7 +186,7 @@ namespace WalletWasabi.Services
 			decimal totalOutgoingAmountNoFeeDecimal = totalOutgoingAmountNoFee.ToDecimal(MoneyUnit.BTC);
 			// Cannot divide by zero, so use the closest number we have to zero.
 			decimal totalOutgoingAmountNoFeeDecimalDivisor = totalOutgoingAmountNoFeeDecimal == 0 ? decimal.MinValue : totalOutgoingAmountNoFeeDecimal;
-			decimal feePc = (100 * fee.ToDecimal(MoneyUnit.BTC)) / totalOutgoingAmountNoFeeDecimalDivisor;
+			decimal feePc = 100 * fee.ToDecimal(MoneyUnit.BTC) / totalOutgoingAmountNoFeeDecimalDivisor;
 
 			if (feePc > 1)
 			{
@@ -254,7 +256,7 @@ namespace WalletWasabi.Services
 			for (var i = 0U; i < tx.Outputs.Count; i++)
 			{
 				TxOut output = tx.Outputs[i];
-				var anonset = (tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet)) - 1; // Minus 1, because count own only once.
+				var anonset = tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because count own only once.
 				var foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
 				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, anonset, isLikelyCoinJoinOutput: false, pubKey: foundKey);
 				label = SmartLabel.Merge(label, coin.Label); // foundKey's label is already added to the coinlabel.

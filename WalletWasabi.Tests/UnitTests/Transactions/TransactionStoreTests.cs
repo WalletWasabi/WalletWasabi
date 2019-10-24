@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WalletWasabi.Models;
+using WalletWasabi.BlockchainAnalysis;
 using WalletWasabi.Transactions;
 using Xunit;
 

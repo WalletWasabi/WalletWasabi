@@ -15,8 +15,8 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Models;
 using WalletWasabi.Logging;
+using WalletWasabi.Coins;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {

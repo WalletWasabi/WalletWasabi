@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Coins;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
-using WalletWasabi.Transactions;
 
-namespace WalletWasabi.Services
+namespace WalletWasabi.Transactions
 {
 	public class TransactionProcessor
 	{

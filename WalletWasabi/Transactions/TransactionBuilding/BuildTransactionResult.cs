@@ -1,8 +1,10 @@
 using NBitcoin;
 using System.Collections.Generic;
+using WalletWasabi.Coins;
 using WalletWasabi.Helpers;
+using WalletWasabi.Transactions;
 
-namespace WalletWasabi.Models.TransactionBuilding
+namespace WalletWasabi.Transactions.TransactionBuilding
 {
 	public class BuildTransactionResult
 	{

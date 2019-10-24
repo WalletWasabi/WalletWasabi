@@ -13,6 +13,7 @@ using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Transactions;
 
 namespace WalletWasabi.WebClients.Wasabi
 {

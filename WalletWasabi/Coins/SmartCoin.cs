@@ -5,11 +5,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using WalletWasabi.Bases;
+using WalletWasabi.BlockchainAnalysis;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.KeyManagement;
+using WalletWasabi.Models;
 
-namespace WalletWasabi.Models
+namespace WalletWasabi.Coins
 {
 	/// <summary>
 	/// An UTXO that knows more.

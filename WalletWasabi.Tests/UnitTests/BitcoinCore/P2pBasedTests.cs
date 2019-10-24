@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
-using WalletWasabi.Models;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.NodeBuilding;
 using WalletWasabi.Transactions;

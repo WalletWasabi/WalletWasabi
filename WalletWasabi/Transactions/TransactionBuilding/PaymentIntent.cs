@@ -3,9 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using WalletWasabi.BlockchainAnalysis;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.Models.TransactionBuilding
+namespace WalletWasabi.Transactions.TransactionBuilding
 {
 	public class PaymentIntent
 	{

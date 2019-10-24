@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.Collections.Generic;
-using WalletWasabi.Models;
+using WalletWasabi.Coins;
+using WalletWasabi.Transactions;
 
 namespace System.Linq
 {

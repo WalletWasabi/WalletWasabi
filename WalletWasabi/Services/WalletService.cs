@@ -13,14 +13,17 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.BlockchainAnalysis;
 using WalletWasabi.CoinJoin.Client.Clients;
+using WalletWasabi.Coins;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Models.TransactionBuilding;
 using WalletWasabi.Stores;
+using WalletWasabi.Transactions;
+using WalletWasabi.Transactions.TransactionBuilding;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services

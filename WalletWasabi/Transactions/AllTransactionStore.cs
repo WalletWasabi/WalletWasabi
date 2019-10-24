@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Transactions
 {

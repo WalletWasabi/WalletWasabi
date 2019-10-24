@@ -5,11 +5,13 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using WalletWasabi.BlockchainAnalysis;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Transactions;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests
+namespace WalletWasabi.Tests.UnitTests.Transactions
 {
 	public class SmartTransactionTests
 	{

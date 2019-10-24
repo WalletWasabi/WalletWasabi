@@ -3,11 +3,13 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.BlockchainAnalysis;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 
-namespace WalletWasabi.Models
+namespace WalletWasabi.Transactions
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class SmartTransaction : IEquatable<SmartTransaction>
@@ -48,7 +50,7 @@ namespace WalletWasabi.Models
 			{
 				// If it's null, let FirstSeen's default to be set.
 				// If it's not null, then check if FirstSeen has just been recently set to utcnow which is its default.
-				if (value.HasValue && (DateTimeOffset.UtcNow - FirstSeen) < TimeSpan.FromSeconds(1))
+				if (value.HasValue && DateTimeOffset.UtcNow - FirstSeen < TimeSpan.FromSeconds(1))
 				{
 					FirstSeen = value.Value;
 				}

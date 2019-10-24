@@ -22,6 +22,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.NodeBuilding;
 using WalletWasabi.Tests.XunitConfiguration;
+using WalletWasabi.Transactions;
 using Xunit;
 
 namespace WalletWasabi.Tests.IntegrationTests

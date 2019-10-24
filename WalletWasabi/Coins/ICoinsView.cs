@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using NBitcoin;
+using WalletWasabi.Models;
 
-namespace WalletWasabi.Models
+namespace WalletWasabi.Coins
 {
 	public interface ICoinsView : IEnumerable<SmartCoin>
 	{

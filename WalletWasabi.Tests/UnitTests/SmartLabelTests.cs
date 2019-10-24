@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using WalletWasabi.Models;
+using WalletWasabi.BlockchainAnalysis;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests

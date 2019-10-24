@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace WalletWasabi.Models
+namespace WalletWasabi.BlockchainAnalysis
 {
 	public class SmartLabel : IEquatable<SmartLabel>
 	{

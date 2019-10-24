@@ -3,8 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.BlockchainAnalysis;
+using WalletWasabi.Models;
 
-namespace WalletWasabi.Models
+namespace WalletWasabi.Coins
 {
 	public class CoinsRegistry : ICoinsView
 	{

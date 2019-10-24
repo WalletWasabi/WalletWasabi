@@ -7,6 +7,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.CoinJoin.Common.Models;
+using WalletWasabi.Coins;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;

@@ -2,9 +2,11 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Coins;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 
-namespace WalletWasabi.Services
+namespace WalletWasabi.Transactions
 {
 	public class TransactionHistoryBuilder
 	{
@@ -109,7 +111,7 @@ namespace WalletWasabi.Services
 						{
 							DateTime = dateTime,
 							Height = foundSpenderTransaction.Height,
-							Amount = (Money.Zero - coin.Amount),
+							Amount = Money.Zero - coin.Amount,
 							Label = "",
 							TransactionId = coin.SpenderTransactionId,
 							BlockIndex = foundSpenderTransaction.BlockIndex

@@ -19,10 +19,10 @@ using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.CoinJoin.Coordinator.MixingLevels;
 using WalletWasabi.CoinJoin.Coordinator.Participants;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
+using WalletWasabi.Coins;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 using static NBitcoin.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.Backend.Controllers

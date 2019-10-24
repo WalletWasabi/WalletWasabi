@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using WalletWasabi.Models;
+using WalletWasabi.BlockchainAnalysis;
 
 namespace WalletWasabi.JsonConverters
 {

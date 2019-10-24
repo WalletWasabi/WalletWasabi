@@ -2,14 +2,16 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.BlockchainAnalysis;
+using WalletWasabi.Coins;
 using WalletWasabi.Exceptions;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
-using WalletWasabi.Models.TransactionBuilding;
-using WalletWasabi.Services;
+using WalletWasabi.Transactions;
+using WalletWasabi.Transactions.TransactionBuilding;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests
+namespace WalletWasabi.Tests.UnitTests.Transactions
 {
 	public class TransactionFactoryTests
 	{
@@ -222,7 +224,7 @@ namespace WalletWasabi.Tests.UnitTests
 				new DestinationRequest(destination3, Money.Coins(0.3m))
 			});
 			var feeRate = new FeeRate(20m);
-			var ex = Assert.Throws<NBitcoin.NotEnoughFundsException>(() => transactionFactory.BuildTransaction(payment, feeRate));
+			var ex = Assert.Throws<NotEnoughFundsException>(() => transactionFactory.BuildTransaction(payment, feeRate));
 
 			Assert.Equal(Money.Satoshis(3240), ex.Missing);
 		}

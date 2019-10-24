@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Bases;
+using WalletWasabi.Coins;
 
-namespace WalletWasabi.Models
+namespace WalletWasabi.BlockchainAnalysis
 {
 	public class Cluster : NotifyPropertyChangedBase
 	{

@@ -7,8 +7,8 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Coins;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Dialogs
 {
