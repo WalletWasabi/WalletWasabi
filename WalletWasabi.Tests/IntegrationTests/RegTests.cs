@@ -1270,8 +1270,14 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are NOT allowed)
 				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, false));
 
-				// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are allowed)
+				// Enough money (one unconfirmed coin, unconfirmed are allowed)
 				var btx = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, true);
+				var spentCoin = Assert.Single(btx.SpentCoins);
+				Assert.False(spentCoin.Confirmed);
+
+				// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are allowed)
+				operations = new PaymentIntent(scp, Money.Coins(2.5m));
+				btx = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, true);
 				Assert.Equal(2, btx.SpentCoins.Count());
 				Assert.Equal(1, btx.SpentCoins.Count(c => c.Confirmed));
 				Assert.Equal(1, btx.SpentCoins.Count(c => !c.Confirmed));
