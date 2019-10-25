@@ -149,18 +149,18 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			keyManager.AssertCleanKeysIndexed();
 
-			Func<HdPubKey> newKey = () => keyManager.GenerateNewKey(new SmartLabel(""), KeyState.Used, true, false);
+			HdPubKey NewKey() => keyManager.GenerateNewKey(new SmartLabel(""), KeyState.Used, true, false);
 			var scoins = new[] {
-				Coin("Pablo",  newKey(), 0.9m),
-				Coin("Daniel", newKey(), 0.9m),
-				Coin("Adolf",  newKey(), 0.9m),
-				Coin("Maria",  newKey(), 0.9m),
-				Coin("Ding",   newKey(), 0.9m),
-				Coin("Joseph", newKey(), 0.9m),
-				Coin("Eve",    newKey(), 0.9m),
-				Coin("Julio",  newKey(), 0.9m),
-				Coin("Donald, Jean, Lee, Onur", newKey(), 0.9m),
-				Coin("Satoshi",newKey(), 0.9m)
+				Coin("Pablo",  NewKey(), 0.9m),
+				Coin("Daniel", NewKey(), 0.9m),
+				Coin("Adolf",  NewKey(), 0.9m),
+				Coin("Maria",  NewKey(), 0.9m),
+				Coin("Ding",   NewKey(), 0.9m),
+				Coin("Joseph", NewKey(), 0.9m),
+				Coin("Eve",    NewKey(), 0.9m),
+				Coin("Julio",  NewKey(), 0.9m),
+				Coin("Donald, Jean, Lee, Onur", NewKey(), 0.9m),
+				Coin("Satoshi",NewKey(), 0.9m)
 			};
 			var coinsByLabel = scoins.ToDictionary(x => x.Label.ToString());
 
