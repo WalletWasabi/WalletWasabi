@@ -12,7 +12,6 @@ namespace WalletWasabi.BlockchainAnalysis
 
 		private string _labels;
 
-
 		public Cluster(params SmartCoin[] coins)
 			: this(coins as IEnumerable<SmartCoin>)
 		{
