@@ -17,7 +17,7 @@ namespace WalletWasabi.Coins
 			Coins = Guard.NotNull(nameof(coins), coins);
 		}
 
-		public ICoinsView UnSpent() => new CoinsView(Coins.Where(x => x.Unspent && !x.SpentAccordingToBackend));
+		public ICoinsView Unspent() => new CoinsView(Coins.Where(x => x.Unspent && !x.SpentAccordingToBackend));
 
 		public ICoinsView Available() => new CoinsView(Coins.Where(x => !x.Unavailable));
 

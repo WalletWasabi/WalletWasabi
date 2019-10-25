@@ -183,7 +183,7 @@ namespace WalletWasabi.Coins
 
 		public ICoinsView Unconfirmed() => AsCoinsView().Unconfirmed();
 
-		public ICoinsView UnSpent() => AsCoinsView().UnSpent();
+		public ICoinsView Unspent() => AsCoinsView().Unspent();
 
 		IEnumerator IEnumerable.GetEnumerator() => AsCoinsView().GetEnumerator();
 	}
