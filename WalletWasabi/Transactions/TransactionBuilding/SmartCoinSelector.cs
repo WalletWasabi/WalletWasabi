@@ -30,12 +30,16 @@ namespace WalletWasabi.Transactions.TransactionBuilding
 				throw new InsufficientBalanceException(targetMoney, available);
 			}
 
-			var clusters = UnspentCoins
+			var uniqueClusters = UnspentCoins
 				.Select(coin => coin.Clusters)
-				.Distinct()
-				.CombinationsWithoutRepetition(ofLength: 1, upToLength: 6)
-				.Select(clusterCombination => UnspentCoins.Where(coin=> clusterCombination.Contains(coin.Clusters)))
-				.ToList();
+				.Distinct();
+
+			var clusters = (uniqueClusters.Count() < 10)
+				? uniqueClusters
+					.CombinationsWithoutRepetition(ofLength: 1, upToLength: 6)
+					.Select(clusterCombination => UnspentCoins.Where(coin=> clusterCombination.Contains(coin.Clusters)))
+					.ToList()
+				: new List<IEnumerable<SmartCoin>>();
 
 			clusters.Add(UnspentCoins);
 
