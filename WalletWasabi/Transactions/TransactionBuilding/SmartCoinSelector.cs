@@ -47,7 +47,7 @@ namespace WalletWasabi.Transactions.TransactionBuilding
 				.Select(coins => (Coins: coins, Privacy: 1.0m / coins.SelectMany(x => x.Clusters.KnownBy).Count()))
 				.Select(group => new
 				{
-					Coins = group.Coins,
+					group.Coins,
 					Unconfirmed = group.Coins.Any(x => !x.Confirmed),    // If group has an unconfirmed, then the whole group is unconfirmed.
 					AnonymitySet = group.Coins.Min(x => x.AnonymitySet), // The group is as anonymous as its weakest member.
 					ClusterPrivacy = group.Privacy, // The number people/entities that know the cluster.
