@@ -37,14 +37,14 @@ namespace WalletWasabi.Transactions.TransactionBuilding
 			var clusters = (uniqueClusters.Count() < 10)
 				? uniqueClusters
 					.CombinationsWithoutRepetition(ofLength: 1, upToLength: 6)
-					.Select(clusterCombination => UnspentCoins.Where(coin=> clusterCombination.Contains(coin.Clusters)))
+					.Select(clusterCombination => UnspentCoins.Where(coin => clusterCombination.Contains(coin.Clusters)))
 					.ToList()
 				: new List<IEnumerable<SmartCoin>>();
 
 			clusters.Add(UnspentCoins);
 
 			var coinsByCluster = clusters
-				.Select(coins => (Coins: coins, Privacy: 1.0m / coins.SelectMany(x=>x.Clusters.KnownBy).Count()))
+				.Select(coins => (Coins: coins, Privacy: 1.0m / coins.SelectMany(x => x.Clusters.KnownBy).Count()))
 				.Select(group => new
 				{
 					Coins = group.Coins,
@@ -71,7 +71,7 @@ namespace WalletWasabi.Transactions.TransactionBuilding
 					Unconfirmed = group.Any(x => !x.Confirmed),    // If group has an unconfirmed, then the whole group is unconfirmed.
 					AnonymitySet = group.Min(x => x.AnonymitySet), // The group is as anonymous as its weakest member.
 					ClusterPrivacy = 1.0 / group.First().Clusters.KnownBy.Count(), // The number people/entities that know the cluster.
-					ClusterSize  = group.First().Clusters.Size,    // The number of coins in the cluster.
+					ClusterSize = group.First().Clusters.Size,    // The number of coins in the cluster.
 					Amount = group.Sum(x => x.Amount)
 				});
 

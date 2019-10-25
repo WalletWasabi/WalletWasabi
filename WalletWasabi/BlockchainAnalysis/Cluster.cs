@@ -30,7 +30,7 @@ namespace WalletWasabi.BlockchainAnalysis
 		}
 
 		public int Size => Coins.Count();
-		
+
 		public IEnumerable<string> KnownBy => Coins.SelectMany(x => x.Label.Labels).Distinct(StringComparer.OrdinalIgnoreCase);
 
 		public void Merge(Cluster clusters) => Merge(clusters.Coins);

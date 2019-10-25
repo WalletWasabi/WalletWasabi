@@ -149,7 +149,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			keyManager.AssertCleanKeysIndexed();
 
-			Func<HdPubKey> newKey = ()=> keyManager.GenerateNewKey(new SmartLabel(""), KeyState.Used, true, false);
+			Func<HdPubKey> newKey = () => keyManager.GenerateNewKey(new SmartLabel(""), KeyState.Used, true, false);
 			var scoins = new[] {
 				Coin("Pablo",  newKey(), 0.9m),
 				Coin("Daniel", newKey(), 0.9m),
@@ -162,20 +162,20 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				Coin("Donald, Jean, Lee, Onur", newKey(), 0.9m),
 				Coin("Satoshi",newKey(), 0.9m)
 			};
-			var coinsByLabel = scoins.ToDictionary(x=>x.Label.ToString());
+			var coinsByLabel = scoins.ToDictionary(x => x.Label.ToString());
 
 			// cluster 1 is known by 7 people: Pablo, Daniel, Adolf, Maria, Ding, Joseph and Eve
-			var coinsCluster1 = new[]{scoins[0], scoins[1], scoins[2], scoins[3], scoins[4], scoins[5], scoins[6]};
+			var coinsCluster1 = new[] { scoins[0], scoins[1], scoins[2], scoins[3], scoins[4], scoins[5], scoins[6] };
 			var cluster1 = new Cluster(coinsCluster1);
-			foreach(var coin in coinsCluster1)
+			foreach (var coin in coinsCluster1)
 			{
 				coin.Clusters = cluster1;
 			}
-			
+
 			// cluster 2 is known by 6 people: Julio, Lee, Jean, Donald, Onur and Satoshi
-			var coinsCluster2 = new[]{scoins[7], scoins[8], scoins[9]};
+			var coinsCluster2 = new[] { scoins[7], scoins[8], scoins[9] };
 			var cluster2 = new Cluster(coinsCluster2);
-			foreach(var coin in coinsCluster2)
+			foreach (var coin in coinsCluster2)
 			{
 				coin.Clusters = cluster2;
 			}
@@ -189,7 +189,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var result = transactionFactory.BuildTransaction(payment, feeRate);
 
 			Assert.Equal(2, result.SpentCoins.Count());
-			Assert.All(result.SpentCoins, c=> Assert.Equal(c.Clusters, cluster2));
+			Assert.All(result.SpentCoins, c => Assert.Equal(c.Clusters, cluster2));
 			Assert.Contains(coinsByLabel["Julio"], result.SpentCoins);
 			Assert.Contains(coinsByLabel["Donald, Jean, Lee, Onur"], result.SpentCoins);
 
@@ -199,7 +199,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			result = transactionFactory.BuildTransaction(payment, feeRate);
 
 			Assert.Equal(3, result.SpentCoins.Count());
-			Assert.All(result.SpentCoins, c=> Assert.Equal(c.Clusters, cluster2));
+			Assert.All(result.SpentCoins, c => Assert.Equal(c.Clusters, cluster2));
 			Assert.Contains(coinsByLabel["Julio"], result.SpentCoins);
 			Assert.Contains(coinsByLabel["Donald, Jean, Lee, Onur"], result.SpentCoins);
 			Assert.Contains(coinsByLabel["Satoshi"], result.SpentCoins);
@@ -211,7 +211,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			result = transactionFactory.BuildTransaction(payment, feeRate);
 
 			Assert.Equal(4, result.SpentCoins.Count());
-			Assert.All(result.SpentCoins, c=> Assert.Equal(c.Clusters, cluster1));
+			Assert.All(result.SpentCoins, c => Assert.Equal(c.Clusters, cluster1));
 			Assert.Contains(coinsByLabel["Pablo"], result.SpentCoins);
 			Assert.Contains(coinsByLabel["Daniel"], result.SpentCoins);
 			Assert.Contains(coinsByLabel["Adolf"], result.SpentCoins);
@@ -520,9 +520,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var keys = keyManager.GetKeys().Take(10).ToArray();
 			var scoins = coins.Select(x => Coin(x.Label, keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
-			foreach(var coin in scoins)
+			foreach (var coin in scoins)
 			{
-				foreach(var sameLabelCoin in scoins.Where(c=>c.Label == coin.Label))
+				foreach (var sameLabelCoin in scoins.Where(c => c.Label == coin.Label))
 				{
 					sameLabelCoin.Clusters = coin.Clusters;
 				}
