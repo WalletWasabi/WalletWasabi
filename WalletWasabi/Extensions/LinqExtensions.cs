@@ -87,11 +87,12 @@ namespace System.Linq
 			this IEnumerable<T> items,
 			int ofLength)
 		{
-			return (ofLength == 1) ?
-				items.Select(item => new[] { item }) :
-				items.SelectMany((item, i) => items.Skip(i + 1)
-												.CombinationsWithoutRepetition(ofLength - 1)
-												.Select(result => new T[] { item }.Concat(result)));
+			return (ofLength == 1)
+				? items.Select(item => new[] { item })
+				: items.SelectMany((item, i) => items.Skip(i + 1)
+					.CombinationsWithoutRepetition(ofLength - 1)
+					.Select(result => new T[] { item }
+					.Concat(result)));
 		}
 
 		public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
@@ -99,8 +100,9 @@ namespace System.Linq
 			int ofLength,
 			int upToLength)
 		{
-			return Enumerable.Range(ofLength, Math.Max(0, upToLength - ofLength + 1))
-							.SelectMany(len => items.CombinationsWithoutRepetition(ofLength: len));
+			return Enumerable
+				.Range(ofLength, Math.Max(0, upToLength - ofLength + 1))
+				.SelectMany(len => items.CombinationsWithoutRepetition(ofLength: len));
 		}
 
 		public static IEnumerable<IEnumerable<T>> GetPermutations<T>(this IEnumerable<T> items, int count)
