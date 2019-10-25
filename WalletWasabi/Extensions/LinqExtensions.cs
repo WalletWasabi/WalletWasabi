@@ -89,7 +89,8 @@ namespace System.Linq
 		{
 			return (ofLength == 1)
 				? items.Select(item => new[] { item })
-				: items.SelectMany((item, i) => items.Skip(i + 1)
+				: items.SelectMany((item, i) => items
+					.Skip(i + 1)
 					.CombinationsWithoutRepetition(ofLength - 1)
 					.Select(result => new T[] { item }
 					.Concat(result)));
