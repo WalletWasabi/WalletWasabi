@@ -295,7 +295,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						return;
 					}
 
-					bool useCustomFee = !IsSliderFeeUsed;
 					var feeStrategy = FeeStrategy.CreateFromFeeRate(FeeRate);
 
 					var intent = new PaymentIntent(address, moneyRequest, label);
