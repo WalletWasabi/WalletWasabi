@@ -97,6 +97,6 @@ namespace WalletWasabi.Helpers
 
 		public const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-		public const decimal DefaultDustThreshold = 0.00001m;
+		public const decimal DefaultDustThreshold = 0.00005m;
 	}
 }
