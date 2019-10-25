@@ -67,12 +67,7 @@ namespace WalletWasabi.Transactions.TransactionBuilding
 				.GroupBy(c => c.ScriptPubKey)
 				.Select(group => new
 				{
-					Coins = group,
-					Unconfirmed = group.Any(x => !x.Confirmed),    // If group has an unconfirmed, then the whole group is unconfirmed.
-					AnonymitySet = group.Min(x => x.AnonymitySet), // The group is as anonymous as its weakest member.
-					ClusterPrivacy = 1.0 / group.First().Clusters.KnownBy.Count(), // The number people/entities that know the cluster.
-					ClusterSize = group.First().Clusters.Size,    // The number of coins in the cluster.
-					Amount = group.Sum(x => x.Amount)
+					Coins = group
 				});
 
 			var coinsToSpend = new List<SmartCoin>();
