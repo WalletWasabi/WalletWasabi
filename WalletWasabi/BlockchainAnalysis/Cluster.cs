@@ -29,7 +29,7 @@ namespace WalletWasabi.BlockchainAnalysis
 			private set => RaiseAndSetIfChanged(ref _labels, value);
 		}
 
-		public int Size => Coins.Count();
+		public int Size => Coins.Count;
 
 		public IEnumerable<string> KnownBy => Coins.SelectMany(x => x.Label.Labels).Distinct(StringComparer.OrdinalIgnoreCase);
 
