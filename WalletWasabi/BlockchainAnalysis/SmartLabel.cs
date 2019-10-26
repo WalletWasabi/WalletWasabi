@@ -30,7 +30,6 @@ namespace WalletWasabi.BlockchainAnalysis
 				   .OrderBy(x => x)
 				   .ToArray();
 
-			HashCode = ((IStructuralEquatable)Labels).GetHashCode(EqualityComparer<string>.Default);
 			IsEmpty = !Labels.Any();
 
 			LabelString = string.Join(", ", Labels);
@@ -63,9 +62,7 @@ namespace WalletWasabi.BlockchainAnalysis
 
 		public bool Equals(string other) => this == other;
 
-		private int HashCode { get; }
-
-		public override int GetHashCode() => HashCode;
+		public override int GetHashCode() => ((IStructuralEquatable)Labels).GetHashCode(EqualityComparer<string>.Default);
 
 		public static bool operator ==(SmartLabel x, SmartLabel y)
 		{
