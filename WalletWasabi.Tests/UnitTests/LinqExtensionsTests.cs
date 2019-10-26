@@ -27,7 +27,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public void CombinationsWithoutRepetitionUpToLenth()
+		public void CombinationsWithoutRepetitionUpToLength()
 		{
 			var combinations = Enumerable.Range(0, 5).CombinationsWithoutRepetition(ofLength: 1, upToLength: 4);
 			var asString = combinations.Select(x => string.Join(", ", x)).ToArray();

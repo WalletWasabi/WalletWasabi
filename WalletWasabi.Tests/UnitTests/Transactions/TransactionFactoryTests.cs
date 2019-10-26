@@ -150,7 +150,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			keyManager.AssertCleanKeysIndexed();
 
 			HdPubKey NewKey() => keyManager.GenerateNewKey("", KeyState.Used, true, false);
-			var scoins = new[] {
+			var scoins = new[]
+			{
 				Coin("Pablo",  NewKey(), 0.9m),
 				Coin("Daniel", NewKey(), 0.9m),
 				Coin("Adolf",  NewKey(), 0.9m),
