@@ -220,10 +220,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			OnAddressPasteCommand = ReactiveCommand.Create((BitcoinUrlBuilder url) =>
 			{
-				var label = new SmartLabel(url.Label);
+				SmartLabel label = url.Label;
 				if (!label.IsEmpty)
 				{
-					Label = label.ToString();
+					Label = label;
 				}
 
 				if (url.Amount != null)
@@ -241,7 +241,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BuildingTransaction);
 
 					var label = new SmartLabel(Label);
-					Label = label.ToString();
+					Label = label;
 					if (!IsMax && label.IsEmpty)
 					{
 						SetWarningMessage($"{nameof(Label)} is required.");

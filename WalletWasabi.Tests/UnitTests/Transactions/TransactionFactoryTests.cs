@@ -64,7 +64,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// There is a 0.8 coin with AS=50. However it selects the most private one with AS= 200
 			var destination = new Key().ScriptPubKey;
-			var payment = new PaymentIntent(destination, Money.Coins(0.07m), label: new SmartLabel("Sophie"));
+			var payment = new PaymentIntent(destination, Money.Coins(0.07m), label: "Sophie");
 			var feeRate = new FeeRate(2m);
 			var result = transactionFactory.BuildTransaction(payment, feeRate);
 
@@ -78,7 +78,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var changeCoin = Assert.Single(result.InnerWalletOutputs);
 			Assert.True(changeCoin.HdPubKey.IsInternal);
-			Assert.Equal("Joseph, Sophie", changeCoin.Label.ToString());
+			Assert.Equal("Joseph, Sophie", changeCoin.Label);
 		}
 
 		[Fact]
@@ -124,22 +124,107 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			});
 
 			// Selecting 0.08 + 0.04 should be enough but it has to select 0.02 too because it is the same address
-			var payment = new PaymentIntent(new Key().ScriptPubKey, Money.Coins(0.1m), label: new SmartLabel("Sophie"));
+			var payment = new PaymentIntent(new Key().ScriptPubKey, Money.Coins(0.1m), label: "Sophie");
 			var feeRate = new FeeRate(2m);
 			var result = transactionFactory.BuildTransaction(payment, feeRate);
 
 			Assert.True(result.Signed);
 			Assert.True(result.SpendsUnconfirmed);
-			Assert.Equal(4, result.SpentCoins.Count());
-			Assert.Equal(Money.Coins(0.15m), result.SpentCoins.Select(x => x.Amount).Sum());
+			Assert.Equal(3, result.SpentCoins.Count());
+			Assert.Equal(Money.Coins(0.14m), result.SpentCoins.Select(x => x.Amount).Sum());
 
 			var changeCoin = Assert.Single(result.InnerWalletOutputs);
-			Assert.Equal("Daniel, Maria, Pablo, Sophie", changeCoin.Label.ToString());
+			Assert.Equal("Daniel, Maria, Sophie", changeCoin.Label);
 
 			var tx = result.Transaction.Transaction;
 			// it must select the unconfirm coin even when the anonymity set is lower
 			Assert.True(result.SpendsUnconfirmed);
 			Assert.Equal(2, tx.Outputs.Count());
+		}
+
+		[Fact]
+		public void SelectSameClusterCoins()
+		{
+			var (password, keyManager) = DefaultKeyManager();
+
+			keyManager.AssertCleanKeysIndexed();
+
+			HdPubKey NewKey() => keyManager.GenerateNewKey("", KeyState.Used, true, false);
+			var scoins = new[]
+			{
+				Coin("Pablo",  NewKey(), 0.9m),
+				Coin("Daniel", NewKey(), 0.9m),
+				Coin("Adolf",  NewKey(), 0.9m),
+				Coin("Maria",  NewKey(), 0.9m),
+				Coin("Ding",   NewKey(), 0.9m),
+				Coin("Joseph", NewKey(), 0.9m),
+				Coin("Eve",    NewKey(), 0.9m),
+				Coin("Julio",  NewKey(), 0.9m),
+				Coin("Donald, Jean, Lee, Onur", NewKey(), 0.9m),
+				Coin("Satoshi",NewKey(), 0.9m)
+			};
+			var coinsByLabel = scoins.ToDictionary(x => x.Label);
+
+			// cluster 1 is known by 7 people: Pablo, Daniel, Adolf, Maria, Ding, Joseph and Eve
+			var coinsCluster1 = new[] { scoins[0], scoins[1], scoins[2], scoins[3], scoins[4], scoins[5], scoins[6] };
+			var cluster1 = new Cluster(coinsCluster1);
+			foreach (var coin in coinsCluster1)
+			{
+				coin.Clusters = cluster1;
+			}
+
+			// cluster 2 is known by 6 people: Julio, Lee, Jean, Donald, Onur and Satoshi
+			var coinsCluster2 = new[] { scoins[7], scoins[8], scoins[9] };
+			var cluster2 = new Cluster(coinsCluster2);
+			foreach (var coin in coinsCluster2)
+			{
+				coin.Clusters = cluster2;
+			}
+
+			var coinsView = new CoinsView(scoins.ToArray());
+			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, password);
+
+			// Two 0.9btc coins are enough
+			var payment = new PaymentIntent(new Key().ScriptPubKey, Money.Coins(1.75m), label: "Sophie");
+			var feeRate = new FeeRate(2m);
+			var result = transactionFactory.BuildTransaction(payment, feeRate);
+
+			Assert.Equal(2, result.SpentCoins.Count());
+			Assert.All(result.SpentCoins, c => Assert.Equal(c.Clusters, cluster2));
+			Assert.Contains(coinsByLabel["Julio"], result.SpentCoins);
+			Assert.Contains(coinsByLabel["Donald, Jean, Lee, Onur"], result.SpentCoins);
+
+			// Three 0.9btc coins are enough
+			payment = new PaymentIntent(new Key().ScriptPubKey, Money.Coins(1.85m), label: "Sophie");
+			feeRate = new FeeRate(2m);
+			result = transactionFactory.BuildTransaction(payment, feeRate);
+
+			Assert.Equal(3, result.SpentCoins.Count());
+			Assert.All(result.SpentCoins, c => Assert.Equal(c.Clusters, cluster2));
+			Assert.Contains(coinsByLabel["Julio"], result.SpentCoins);
+			Assert.Contains(coinsByLabel["Donald, Jean, Lee, Onur"], result.SpentCoins);
+			Assert.Contains(coinsByLabel["Satoshi"], result.SpentCoins);
+
+			// Four 0.9btc coins are enough but this time the more private cluster is NOT enough
+			// That's why it has to use the coins in the cluster number 1
+			payment = new PaymentIntent(new Key().ScriptPubKey, Money.Coins(3.5m), label: "Sophie");
+			feeRate = new FeeRate(2m);
+			result = transactionFactory.BuildTransaction(payment, feeRate);
+
+			Assert.Equal(4, result.SpentCoins.Count());
+			Assert.All(result.SpentCoins, c => Assert.Equal(c.Clusters, cluster1));
+			Assert.Contains(coinsByLabel["Pablo"], result.SpentCoins);
+			Assert.Contains(coinsByLabel["Daniel"], result.SpentCoins);
+			Assert.Contains(coinsByLabel["Adolf"], result.SpentCoins);
+			Assert.Contains(coinsByLabel["Maria"], result.SpentCoins);
+
+			// Nine 0.9btc coins are enough but there is no cluster big enough
+			// That's why it has to use the coins from both the clusters
+			payment = new PaymentIntent(new Key().ScriptPubKey, Money.Coins(7.4m), label: "Sophie");
+			feeRate = new FeeRate(2m);
+			result = transactionFactory.BuildTransaction(payment, feeRate);
+
+			Assert.Equal(9, result.SpentCoins.Count());
 		}
 
 		[Fact]
@@ -305,8 +390,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var coins = transactionFactory.Coins;
 			var allowedCoins = new[]
 			{
-				coins.Single(x => x.Label.ToString() == "Maria"),
-				coins.Single(x => x.Label.ToString() == "Suyin")
+				coins.Single(x => x.Label == "Maria"),
+				coins.Single(x => x.Label == "Suyin")
 			}.ToArray();
 			var result = transactionFactory.BuildTransaction(payment, feeRate, allowedCoins.Select(x => x.GetTxoRef()));
 
@@ -334,9 +419,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var coins = transactionFactory.Coins;
 			var allowedCoins = new[]
 			{
-				coins.Single(x => x.Label.ToString() == "Pablo"),
-				coins.Single(x => x.Label.ToString() == "Maria"),
-				coins.Single(x => x.Label.ToString() == "Suyin")
+				coins.Single(x => x.Label == "Pablo"),
+				coins.Single(x => x.Label == "Maria"),
+				coins.Single(x => x.Label == "Suyin")
 			}.ToArray();
 			var result = transactionFactory.BuildTransaction(payment, feeRate, allowedCoins.Select(x => x.GetTxoRef()));
 
@@ -364,7 +449,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var allowedCoins = new[]
 			{
-				transactionFactory.Coins.Single(x => x.Label.ToString() == "Pablo")
+				transactionFactory.Coins.Single(x => x.Label == "Pablo")
 			}.ToArray();
 
 			var amount = Money.Coins(0.5m); // it is not enough
@@ -405,7 +490,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.True(result.Signed);
 			Assert.Equal(Money.Coins(0.14m), result.SpentCoins.Select(x => x.Amount).Sum());
 			Assert.Equal(3, result.SpentCoins.Count());
-			var danielCoin = coins.Where(x => x.Label.ToString() == "Daniel").ToArray();
+			var danielCoin = coins.Where(x => x.Label == "Daniel").ToArray();
 			Assert.Contains(danielCoin[0], result.SpentCoins);
 			Assert.Contains(danielCoin[1], result.SpentCoins);
 		}
@@ -435,8 +520,15 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			keyManager.AssertCleanKeysIndexed();
 
 			var keys = keyManager.GetKeys().Take(10).ToArray();
-			var scoins = coins.Select(x => Coin(x.Label, keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet));
-			var coinsView = new CoinsView(scoins.ToArray());
+			var scoins = coins.Select(x => Coin(x.Label, keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
+			foreach (var coin in scoins)
+			{
+				foreach (var sameLabelCoin in scoins.Where(c => c.Label == coin.Label))
+				{
+					sameLabelCoin.Clusters = coin.Clusters;
+				}
+			}
+			var coinsView = new CoinsView(scoins);
 			return new TransactionFactory(Network.Main, keyManager, coinsView, password, allowUnconfirmed);
 		}
 
@@ -456,7 +548,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		{
 			var randomIndex = new Func<int>(() => new Random().Next(0, 200));
 			var height = confirmed ? new Height(randomIndex()) : Height.Mempool;
-			var slabel = new SmartLabel(label);
+			SmartLabel slabel = label;
 			var spentOutput = new[]
 			{
 				new TxoRef(RandomUtils.GetUInt256(), (uint)randomIndex())

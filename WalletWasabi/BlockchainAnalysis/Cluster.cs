@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Bases;
@@ -6,23 +7,29 @@ using WalletWasabi.Coins;
 
 namespace WalletWasabi.BlockchainAnalysis
 {
-	public class Cluster : NotifyPropertyChangedBase
+	public class Cluster : NotifyPropertyChangedBase, IEquatable<Cluster>
 	{
 		private List<SmartCoin> Coins { get; set; }
 
-		private string _labels;
+		private SmartLabel _labels;
 
-		public Cluster(SmartCoin coin)
-		{
-			Labels = "";
-			Coins = new List<SmartCoin>() { coin };
-			Labels = string.Join(", ", coin.Label.Labels);
-		}
-
-		public string Labels
+		public SmartLabel Labels
 		{
 			get => _labels;
 			private set => RaiseAndSetIfChanged(ref _labels, value);
+		}
+
+		public int Size => Coins.Count;
+
+		public Cluster(params SmartCoin[] coins)
+			: this(coins as IEnumerable<SmartCoin>)
+		{
+		}
+
+		public Cluster(IEnumerable<SmartCoin> coins)
+		{
+			Coins = coins.ToList();
+			Labels = SmartLabel.Merge(Coins.Select(x => x.Label));
 		}
 
 		public void Merge(Cluster clusters) => Merge(clusters.Coins);
@@ -40,8 +47,57 @@ namespace WalletWasabi.BlockchainAnalysis
 			}
 			if (insertPosition > 0) // at least one element was inserted
 			{
-				Labels = string.Join(", ", Coins.SelectMany(x => x.Label.Labels).Distinct(StringComparer.OrdinalIgnoreCase));
+				Labels = SmartLabel.Merge(Coins.Select(x => x.Label));
 			}
 		}
+
+		#region EqualityAndComparison
+
+		public override bool Equals(object obj) => obj is Cluster clus && this == clus;
+
+		public bool Equals(Cluster other) => this == other;
+
+		public override int GetHashCode()
+		{
+			int hash = 0;
+			if (Coins != null)
+			{
+				foreach (var coin in Coins)
+				{
+					hash ^= coin.GetHashCode();
+				}
+			}
+			return hash;
+		}
+
+		public static bool operator ==(Cluster x, Cluster y)
+		{
+			if (x is null)
+			{
+				if (y is null)
+				{
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			else
+			{
+				if (y is null)
+				{
+					return false;
+				}
+				else
+				{
+					return x.Coins.SequenceEqual(y.Coins);
+				}
+			}
+		}
+
+		public static bool operator !=(Cluster x, Cluster y) => !(x == y);
+
+		#endregion EqualityAndComparison
 	}
 }

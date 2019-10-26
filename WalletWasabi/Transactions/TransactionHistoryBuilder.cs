@@ -70,7 +70,7 @@ namespace WalletWasabi.Transactions
 						DateTime = dateTime,
 						Height = coin.Height,
 						Amount = coin.Amount,
-						Label = coin.Label.ToString(),
+						Label = coin.Label,
 						TransactionId = coin.TransactionId,
 						BlockIndex = foundTransaction.BlockIndex
 					});

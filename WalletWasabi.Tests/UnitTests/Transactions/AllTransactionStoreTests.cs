@@ -157,9 +157,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// Duplication is resolved with labels merged.
 			var mempoolFileContent = new[]
 			{
-				new SmartTransaction(uTx1.Transaction, uTx1.Height, label: new SmartLabel("buz, qux")).ToLine(),
-				new SmartTransaction(uTx2.Transaction, uTx2.Height, label: new SmartLabel("buz, qux")).ToLine(),
-				new SmartTransaction(uTx2.Transaction, uTx2.Height, label: new SmartLabel("foo, bar")).ToLine(),
+				new SmartTransaction(uTx1.Transaction, uTx1.Height, label: "buz, qux").ToLine(),
+				new SmartTransaction(uTx2.Transaction, uTx2.Height, label: "buz, qux").ToLine(),
+				new SmartTransaction(uTx2.Transaction, uTx2.Height, label: "foo, bar").ToLine(),
 				uTx3.ToLine(),
 				new SmartTransaction(cTx1.Transaction, Height.Mempool, label: new SmartLabel("buz", "qux")).ToLine()
 			};
@@ -168,7 +168,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				new SmartTransaction(cTx1.Transaction, cTx1.Height, label: new SmartLabel("foo", "bar")).ToLine(),
 				cTx2.ToLine(),
 				cTx3.ToLine(),
-				new SmartTransaction(uTx1.Transaction, new Height(2), label: new SmartLabel("foo, bar")).ToLine()
+				new SmartTransaction(uTx1.Transaction, new Height(2), label: "foo, bar").ToLine()
 			};
 			await File.WriteAllLinesAsync(mempoolFile, mempoolFileContent);
 			await File.WriteAllLinesAsync(txFile, txFileContent);
