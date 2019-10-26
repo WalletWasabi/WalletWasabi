@@ -52,7 +52,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			GenerateCommand = ReactiveCommand.Create(() =>
 				{
 					var label = new SmartLabel(Label);
-					Label = label.ToString();
+					Label = label;
 					if (label.IsEmpty)
 					{
 						LabelRequiredNotificationVisible = true;
@@ -69,7 +69,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					Dispatcher.UIThread.PostLogException(() =>
 						{
-							HdPubKey newKey = Global.WalletService.GetReceiveKey(new SmartLabel(Label), Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
+							HdPubKey newKey = Global.WalletService.GetReceiveKey(Label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
 
 							AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
 							if (found != default)

@@ -1,5 +1,4 @@
 using NBitcoin;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,7 +6,6 @@ using System.Runtime.CompilerServices;
 using WalletWasabi.Bases;
 using WalletWasabi.BlockchainAnalysis;
 using WalletWasabi.Helpers;
-using WalletWasabi.JsonConverters;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
 
@@ -16,7 +14,6 @@ namespace WalletWasabi.Coins
 	/// <summary>
 	/// An UTXO that knows more.
 	/// </summary>
-	[JsonObject(MemberSerialization.OptIn)]
 	public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>
 	{
 		#region Fields
@@ -49,41 +46,30 @@ namespace WalletWasabi.Coins
 
 		#region Properties
 
-		#region SerializableProperties
-
-		[JsonProperty]
-		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 TransactionId
 		{
 			get => _transactionId;
 			set => RaiseAndSetIfChanged(ref _transactionId, value);
 		}
 
-		[JsonProperty]
 		public uint Index
 		{
 			get => _index;
 			set => RaiseAndSetIfChanged(ref _index, value);
 		}
 
-		[JsonProperty]
-		[JsonConverter(typeof(ScriptJsonConverter))]
 		public Script ScriptPubKey
 		{
 			get => _scriptPubKey;
 			set => RaiseAndSetIfChanged(ref _scriptPubKey, value);
 		}
 
-		[JsonProperty]
-		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money Amount
 		{
 			get => _amount;
 			set => RaiseAndSetIfChanged(ref _amount, value);
 		}
 
-		[JsonProperty]
-		[JsonConverter(typeof(HeightJsonConverter))]
 		public Height Height
 		{
 			get => _height;
@@ -101,38 +87,30 @@ namespace WalletWasabi.Coins
 		/// <summary>
 		/// Always set it before the Amount!
 		/// </summary>
-		[JsonProperty]
-		[JsonConverter(typeof(SmartLabelJsonConverter))]
 		public SmartLabel Label
 		{
 			get => _label;
 			set => RaiseAndSetIfChanged(ref _label, value);
 		}
 
-		[JsonProperty]
 		public TxoRef[] SpentOutputs
 		{
 			get => _spentOutputs;
 			set => RaiseAndSetIfChanged(ref _spentOutputs, value);
 		}
 
-		[JsonProperty]
-		[JsonConverter(typeof(FunnyBoolJsonConverter))]
 		public bool IsReplaceable
 		{
 			get => _replaceable && !Confirmed;
 			set => RaiseAndSetIfChanged(ref _replaceable, value);
 		}
 
-		[JsonProperty]
 		public int AnonymitySet
 		{
 			get => _anonymitySet;
 			private set => RaiseAndSetIfChanged(ref _anonymitySet, value);
 		}
 
-		[JsonProperty]
-		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 SpenderTransactionId
 		{
 			get => _spenderTransactionId;
@@ -148,8 +126,6 @@ namespace WalletWasabi.Coins
 			}
 		}
 
-		[JsonProperty]
-		[JsonConverter(typeof(FunnyBoolJsonConverter))]
 		public bool CoinJoinInProgress
 		{
 			get => _coinJoinInProgress;
@@ -165,7 +141,6 @@ namespace WalletWasabi.Coins
 			}
 		}
 
-		[JsonProperty]
 		public DateTimeOffset? BannedUntilUtc
 		{
 			get => _bannedUntilUtc;
@@ -184,7 +159,6 @@ namespace WalletWasabi.Coins
 		/// <summary>
 		/// If the backend thinks it's spent, but Wasabi does not yet know.
 		/// </summary>
-		[JsonProperty]
 		public bool SpentAccordingToBackend
 		{
 			get => _spentAccordingToBackend;
@@ -200,19 +174,13 @@ namespace WalletWasabi.Coins
 			}
 		}
 
-		[JsonProperty]
 		public HdPubKey HdPubKey
 		{
 			get => _hdPubKey;
 			private set => RaiseAndSetIfChanged(ref _hdPubKey, value);
 		}
 
-		[JsonProperty]
 		public bool IsLikelyCoinJoinOutput { get; private set; }
-
-		#endregion SerializableProperties
-
-		#region NonSerializableProperties
 
 		/// <summary>
 		/// It's a secret, so it's usually going to be null. Do not use it.
@@ -229,8 +197,6 @@ namespace WalletWasabi.Coins
 			get => _clusters;
 			set => RaiseAndSetIfChanged(ref _clusters, value);
 		}
-
-		#endregion NonSerializableProperties
 
 		#region DependentProperties
 
@@ -300,7 +266,6 @@ namespace WalletWasabi.Coins
 
 		#region Constructors
 
-		[JsonConstructor]
 		public SmartCoin(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool replaceable, int anonymitySet, bool isLikelyCoinJoinOutput, SmartLabel label = null, uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
 		{
 			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, replaceable, anonymitySet, isLikelyCoinJoinOutput, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);

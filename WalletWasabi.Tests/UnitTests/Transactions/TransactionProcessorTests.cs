@@ -323,7 +323,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx1 = CreateSpendingTransaction(new[] { createdCoin.GetCoin() }, new Key().ScriptPubKey, changeScript1);
 			transactionProcessor.Process(tx1);
 			createdCoin = transactionProcessor.Coins.First();
-			Assert.Equal("B, A", createdCoin.Clusters.Labels);
+			Assert.Equal("A, B", createdCoin.Clusters.Labels);
 
 			// Spend the received coin to mylself else C
 			var myselfScript = transactionProcessor.NewKey("C").P2wpkhScript;
@@ -333,10 +333,10 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			Assert.Equal(2, transactionProcessor.Coins.Count());
 			createdCoin = transactionProcessor.Coins.First();
-			Assert.Equal("C, B, A", createdCoin.Clusters.Labels);
+			Assert.Equal("A, B, C", createdCoin.Clusters.Labels);
 
 			var createdchangeCoin = transactionProcessor.Coins.Last();
-			Assert.Equal("C, B, A", createdchangeCoin.Clusters.Labels);
+			Assert.Equal("A, B, C", createdchangeCoin.Clusters.Labels);
 		}
 
 		[Fact]
@@ -374,7 +374,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			transactionProcessor.Process(tx3);
 
 			var changeCoinD = Assert.Single(transactionProcessor.Coins);
-			Assert.Equal("D, A, B, C", changeCoinD.Clusters.Labels);
+			Assert.Equal("A, B, C, D", changeCoinD.Clusters.Labels);
 
 			key = transactionProcessor.NewKey("E");
 			var tx4 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m));
@@ -387,7 +387,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			transactionProcessor.Process(tx5);
 
 			var changeCoin = Assert.Single(transactionProcessor.Coins);
-			Assert.Equal("F, D, A, B, C, E", changeCoin.Clusters.Labels);
+			Assert.Equal("A, B, C, D, E, F", changeCoin.Clusters.Labels);
 		}
 
 		[Fact]
@@ -424,13 +424,13 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			transactionProcessor.Process(tx3);
 
 			var paymentCoin = Assert.Single(transactionProcessor.Coins, c => c.ScriptPubKey == myself);
-			Assert.Equal("D, A, B, C", paymentCoin.Clusters.Labels);
+			Assert.Equal("A, B, C, D", paymentCoin.Clusters.Labels);
 
 			var tx4 = CreateCreditingTransaction(myself, Money.Coins(7.0m));
 			transactionProcessor.Process(tx4);
 			Assert.Equal(2, transactionProcessor.Coins.Count(c => c.ScriptPubKey == myself));
 			var newPaymentCoin = Assert.Single(transactionProcessor.Coins, c => c.Amount == Money.Coins(7.0m));
-			Assert.Equal("D, A, B, C", newPaymentCoin.Clusters.Labels);
+			Assert.Equal("A, B, C, D", newPaymentCoin.Clusters.Labels);
 		}
 
 		[Fact]
@@ -466,14 +466,14 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			transactionProcessor.Process(tx3);
 
 			var paymentCoin = Assert.Single(transactionProcessor.Coins, c => c.ScriptPubKey == myself);
-			Assert.Equal("D, A, B, C", paymentCoin.Clusters.Labels);
+			Assert.Equal("A, B, C, D", paymentCoin.Clusters.Labels);
 
 			coins = new[] { scoinB.GetCoin(), scoinC.GetCoin(), scoinA.GetCoin() };
 			var tx4 = CreateSpendingTransaction(coins, myself, changeScript);
 			transactionProcessor.Process(tx4);
 
 			paymentCoin = Assert.Single(transactionProcessor.Coins, c => c.ScriptPubKey == myself);
-			Assert.Equal("D, A, B, C", paymentCoin.Clusters.Labels);
+			Assert.Equal("A, B, C, D", paymentCoin.Clusters.Labels);
 		}
 
 		[Fact]
@@ -510,7 +510,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			transactionProcessor.Process(tx3);
 
 			var paymentCoin = Assert.Single(transactionProcessor.Coins, c => c.ScriptPubKey == myself);
-			Assert.Equal("D, A, B, C", paymentCoin.Clusters.Labels);
+			Assert.Equal("A, B, C, D", paymentCoin.Clusters.Labels);
 
 			key = transactionProcessor.NewKey("X");
 			var tx4 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m));
@@ -522,7 +522,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			transactionProcessor.Process(tx5);
 
 			paymentCoin = Assert.Single(transactionProcessor.Coins, c => c.ScriptPubKey == myself);
-			Assert.Equal("D, A, B, C, X", paymentCoin.Clusters.Labels);
+			Assert.Equal("A, B, C, D, X", paymentCoin.Clusters.Labels);
 		}
 
 		[Fact]
@@ -558,7 +558,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			transactionProcessor.Process(tx3);
 
 			var changeCoinD = Assert.Single(transactionProcessor.Coins);
-			Assert.Equal("D, A, B, C", changeCoinD.Clusters.Labels);
+			Assert.Equal("A, B, C, D", changeCoinD.Clusters.Labels);
 			Assert.Equal(scoinA.Clusters, changeCoinD.Clusters);
 			Assert.Equal(scoinB.Clusters, changeCoinD.Clusters);
 			Assert.Equal(scoinC.Clusters, changeCoinD.Clusters);
@@ -566,7 +566,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// reorg
 			transactionProcessor.UndoBlock(tx3.Height);
 			Assert.DoesNotContain(changeCoinD, transactionProcessor.Coins);
-			Assert.Equal("D, A, B, C", changeCoinD.Clusters.Labels);
+			Assert.Equal("A, B, C, D", changeCoinD.Clusters.Labels);
 			Assert.Equal(scoinA.Clusters, changeCoinD.Clusters);
 			Assert.Equal(scoinB.Clusters, changeCoinD.Clusters);
 			Assert.Equal(scoinC.Clusters, changeCoinD.Clusters);
@@ -668,8 +668,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 	{
 		public static HdPubKey NewKey(this TransactionProcessor me, string label)
 		{
-			var slable = new SmartLabel(label);
-			return me.KeyManager.GenerateNewKey(slable, KeyState.Clean, true);
+			return me.KeyManager.GenerateNewKey(label, KeyState.Clean, true);
 		}
 	}
 }

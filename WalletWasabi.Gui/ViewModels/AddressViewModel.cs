@@ -36,7 +36,7 @@ namespace WalletWasabi.Gui.ViewModels
 			Model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
-			_label = model.Label.ToString();
+			_label = model.Label;
 
 			this.WhenAnyValue(x => x.IsExpanded)
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -73,7 +73,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 						if (hdPubKey != default)
 						{
-							hdPubKey.SetLabel(new SmartLabel(newLabel), kmToFile: keyManager);
+							hdPubKey.SetLabel(newLabel, kmToFile: keyManager);
 						}
 					}
 				});

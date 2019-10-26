@@ -24,7 +24,7 @@ namespace WalletWasabi.JsonConverters
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
 			var label = value as SmartLabel;
-			writer.WriteValue(label?.ToString() ?? "");
+			writer.WriteValue(label ?? "");
 		}
 	}
 }

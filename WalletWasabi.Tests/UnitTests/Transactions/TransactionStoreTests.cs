@@ -59,7 +59,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 					height: stx.Height,
 					stx.BlockHash,
 					stx.BlockIndex,
-					new SmartLabel("totally random new label"),
+					"totally random new label",
 					stx.IsReplacement,
 					stx.FirstSeen));
 			Assert.False(operation.isAdded);
