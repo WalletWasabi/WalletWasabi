@@ -10,7 +10,7 @@ namespace WalletWasabi.BlockchainAnalysis
 	{
 		private List<SmartCoin> Coins { get; set; }
 
-		private string _labels;
+		private SmartLabel _labels;
 
 		public Cluster(params SmartCoin[] coins)
 			: this(coins as IEnumerable<SmartCoin>)
@@ -20,18 +20,16 @@ namespace WalletWasabi.BlockchainAnalysis
 		public Cluster(IEnumerable<SmartCoin> coins)
 		{
 			Coins = coins.ToList();
-			Labels = string.Join(", ", KnownBy);
+			Labels = SmartLabel.Merge(Coins.Select(x => x.Label));
 		}
 
-		public string Labels
+		public SmartLabel Labels
 		{
 			get => _labels;
 			private set => RaiseAndSetIfChanged(ref _labels, value);
 		}
 
 		public int Size => Coins.Count;
-
-		public IEnumerable<string> KnownBy => Coins.SelectMany(x => x.Label.Labels).Distinct(StringComparer.OrdinalIgnoreCase);
 
 		public void Merge(Cluster clusters) => Merge(clusters.Coins);
 
@@ -48,7 +46,7 @@ namespace WalletWasabi.BlockchainAnalysis
 			}
 			if (insertPosition > 0) // at least one element was inserted
 			{
-				Labels = string.Join(", ", KnownBy);
+				Labels = SmartLabel.Merge(Coins.Select(x => x.Label));
 			}
 		}
 	}

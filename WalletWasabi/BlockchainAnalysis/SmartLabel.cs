@@ -6,7 +6,7 @@ using System.Text;
 
 namespace WalletWasabi.BlockchainAnalysis
 {
-	public class SmartLabel : IEquatable<SmartLabel>
+	public class SmartLabel : IEquatable<SmartLabel>, IEquatable<string>, IEnumerable<string>
 	{
 		public static SmartLabel Empty { get; } = new SmartLabel();
 		public static char[] Separators { get; } = new[] { ',', ':' };
@@ -51,11 +51,17 @@ namespace WalletWasabi.BlockchainAnalysis
 
 		public static SmartLabel Merge(params SmartLabel[] labels) => Merge(labels as IEnumerable<SmartLabel>);
 
+		public IEnumerator<string> GetEnumerator() => Labels.GetEnumerator();
+
+		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
 		#region Equality
 
-		public override bool Equals(object obj) => obj is SmartLabel label && this == label;
+		public override bool Equals(object obj) => (obj is SmartLabel slabel && this == slabel) || (obj is string label && this == label);
 
 		public bool Equals(SmartLabel other) => this == other;
+
+		public bool Equals(string other) => this == other;
 
 		private int HashCode { get; }
 
@@ -87,7 +93,43 @@ namespace WalletWasabi.BlockchainAnalysis
 			}
 		}
 
+		public static bool operator ==(string x, SmartLabel y)
+		{
+			if (x is null)
+			{
+				if (y is null)
+				{
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			else
+			{
+				if (y is null)
+				{
+					return false;
+				}
+				else
+				{
+					return x == y.LabelString;
+				}
+			}
+		}
+
+		public static bool operator ==(SmartLabel x, string y) => y == x;
+
 		public static bool operator !=(SmartLabel x, SmartLabel y) => !(x == y);
+
+		public static bool operator !=(string x, SmartLabel y) => !(x == y);
+
+		public static bool operator !=(SmartLabel x, string y) => !(x == y);
+
+		public static implicit operator SmartLabel(string labels) => labels is null ? null : new SmartLabel(labels);
+
+		public static implicit operator string(SmartLabel label) => label?.LabelString;
 
 		#endregion Equality
 	}

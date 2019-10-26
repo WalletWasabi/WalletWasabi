@@ -44,7 +44,7 @@ namespace WalletWasabi.Transactions.TransactionBuilding
 			clusters.Add(UnspentCoins);
 
 			var coinsByCluster = clusters
-				.Select(coins => (Coins: coins, Privacy: 1.0m / coins.SelectMany(x => x.Clusters.KnownBy).Count()))
+				.Select(coins => (Coins: coins, Privacy: 1.0m / coins.Sum(x => x.Clusters.Labels.Count())))
 				.Select(group => new
 				{
 					group.Coins,
