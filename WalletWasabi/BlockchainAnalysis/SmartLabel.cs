@@ -124,7 +124,7 @@ namespace WalletWasabi.BlockchainAnalysis
 
 		public static bool operator !=(SmartLabel x, string y) => !(x == y);
 
-		public static implicit operator SmartLabel(string labels) => labels is null ? null : new SmartLabel(labels);
+		public static implicit operator SmartLabel(string labels) => new SmartLabel(labels);
 
 		public static implicit operator string(SmartLabel label) => label?.LabelString;
 
