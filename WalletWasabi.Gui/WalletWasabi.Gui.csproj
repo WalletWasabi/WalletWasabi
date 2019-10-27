@@ -55,6 +55,7 @@
 
   <ItemGroup>
     <None Remove="Extensions\DummyHack.txt" />
+    <None Remove="Tabs\LegalDocs\LegalDocsView.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -73,6 +74,12 @@
 
   <ItemGroup>
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Tabs\LegalDocs\LegalDocsView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

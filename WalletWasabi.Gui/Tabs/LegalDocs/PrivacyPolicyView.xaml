@@ -1,10 +1,10 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui" 
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
-             x:Class="WalletWasabi.Gui.Tabs.PrivacyPolicyView">
+             x:Class="WalletWasabi.Gui.Tabs.LegalDocs.PrivacyPolicyView">
   <controls:GroupBox Title="{Binding Title}" BorderThickness="0" Classes="docTabContainer">
     <Grid Classes="content" Margin="10">
-      <controls:ExtendedTextBox Text="{Binding Text}" Classes="selectableTextBlock" TextWrapping="Wrap" AcceptsReturn="True" />
+      <controls:MultiTextBox Text="{Binding Text}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
     </Grid>
   </controls:GroupBox>
 </UserControl>

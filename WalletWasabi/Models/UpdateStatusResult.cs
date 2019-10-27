@@ -23,10 +23,10 @@ namespace WalletWasabi.Models
 			BackendCompatible = int.Parse(Constants.BackendMajorVersion) == backendMajorVersion;
 
 			// If the legal documents updated with small fixes like typos - the user won't be bothered with the agreement procedure.
-			LegalDocsRevisionUpToDate = RuntimeParams.Instance.LegalDocsVersion >= legalDocsVersion;
+			LegalDocsRevisionUpToDate = RuntimeParams.Instance.DownloadedLegalDocsVersion >= legalDocsVersion;
 
 			// If the legal documents updated and need to be agreed again.
-			LegalDocsUpToDate = RuntimeParams.Instance.LegalDocsVersion.ToVersion(3) >= legalDocsVersion.ToVersion(3);
+			LegalDocsUpToDate = RuntimeParams.Instance.DownloadedLegalDocsVersion.ToVersion(3) >= legalDocsVersion.ToVersion(3);
 
 			LegalDocsBackendVersion = legalDocsVersion;
 		}

@@ -10,11 +10,11 @@ using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Reactive.Disposables;
 
-namespace WalletWasabi.Gui.Tabs
+namespace WalletWasabi.Gui.Tabs.LegalDocs
 {
 	public class TermsAndConditionsViewModel : TextResourceViewModelBase
 	{
-		public TermsAndConditionsViewModel(Global global) : base(global, "Terms and Conditions", new Uri("resm:WalletWasabi.Gui.Assets.TermsAndConditions.txt"))
+		public TermsAndConditionsViewModel(Global global) : base(global, "Terms and Conditions", new Uri(Path.Combine(global.DataDir, "UpdateChecker", "TermsAndConditions.txt")))
 		{
 		}
 	}

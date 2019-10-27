@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Tabs;
+using WalletWasabi.Gui.Tabs.LegalDocs;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Shell.Commands
@@ -79,17 +80,17 @@ namespace WalletWasabi.Gui.Shell.Commands
 			PrivacyPolicyCommand = new CommandDefinition(
 				"Privacy Policy",
 				commandIconService.GetCompletionKindImage("PrivacyPolicy"),
-				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel(Global))));
+				ReactiveCommand.Create(() => IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectPrivacyPolicy()));
 
 			TermsAndConditionsCommand = new CommandDefinition(
 				"Terms and Conditions",
 				commandIconService.GetCompletionKindImage("TermsAndConditions"),
-				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel(Global))));
+				ReactiveCommand.Create(() => IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectTermsAndConditions()));
 
 			LegalIssuesCommand = new CommandDefinition(
 				"Legal Issues",
 				commandIconService.GetCompletionKindImage("LegalIssues"),
-				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel(Global))));
+				ReactiveCommand.Create(() => IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectLegalIssues()));
 		}
 
 		[ExportCommandDefinition("Help.About")]

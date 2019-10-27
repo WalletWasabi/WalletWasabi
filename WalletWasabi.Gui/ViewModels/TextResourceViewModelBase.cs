@@ -12,13 +12,13 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.ViewModels
 {
-	public abstract class TextResourceViewModelBase : WasabiDocumentTabViewModel
+	public abstract class TextResourceViewModelBase : CategoryViewModel, IDisposable
 	{
 		protected CompositeDisposable Disposables { get; private set; }
 
 		private string _text;
 
-		protected TextResourceViewModelBase(Global global, string title, Uri target) : base(global, title)
+		public TextResourceViewModelBase(Global global, string title, Uri target) : base(title)
 		{
 			Text = "";
 			Target = target;
@@ -34,16 +34,38 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private async Task<string> LoadDocumentAsync(Uri target)
 		{
-			var assetLocator = AvaloniaLocator.Current.GetService<IAssetLoader>();
+			try
+			{
+				Stream stream;
+				if (target.IsFile)
+				{
+					stream = new FileStream(target.AbsolutePath, FileMode.Open);
+				}
+				else
+				{
+					var assetLocator = AvaloniaLocator.Current.GetService<IAssetLoader>();
+					stream = assetLocator.Open(target);
+				}
 
-			using var stream = assetLocator.Open(target);
-			using var reader = new StreamReader(stream);
-			return await reader.ReadToEndAsync();
+				using (stream)
+				using (var reader = new StreamReader(stream))
+				{
+					return await reader.ReadToEndAsync();
+				}
+			}
+			catch (Exception ex)
+			{
+				return await Task.FromResult<string>($"Could not load document - {ex.ToTypeMessageString()}");
+			}
 		}
 
-		public override void OnOpen()
+		public override void OnCategorySelected()
 		{
-			base.OnOpen();
+			base.OnCategorySelected();
+			if (Disposables != null)
+			{
+				return;
+			}
 
 			Disposables = new CompositeDisposable();
 			LoadDocumentAsync(Target)
@@ -54,12 +76,28 @@ namespace WalletWasabi.Gui.ViewModels
 				.DisposeWith(Disposables);
 		}
 
-		public override bool OnClose()
-		{
-			Disposables?.Dispose();
-			Disposables = null;
+		#region IDisposable Support
 
-			return base.OnClose();
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					Disposables?.Dispose();
+				}
+
+				_disposedValue = true;
+			}
 		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }
