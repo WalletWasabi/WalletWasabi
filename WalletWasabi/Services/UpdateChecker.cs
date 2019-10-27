@@ -61,10 +61,12 @@ namespace WalletWasabi.Services
 
 							if (!updates.LegalDocsRevisionUpToDate || !updates.LegalDocsUpToDate)
 							{
+								IoHelpers.EnsureContainingDirectoryExists(LegalIssuesPath);
+
 								await File.WriteAllBytesAsync(LegalIssuesPath, await WasabiClient.GetLegalIssuesAsync(Stop.Token));
 								await File.WriteAllBytesAsync(PrivacyPolicyPath, await WasabiClient.GetPrivacyPolicyAsync(Stop.Token));
 								await File.WriteAllBytesAsync(TermsAndConditionsPath, await WasabiClient.GetTermsAndConditionsAsync(Stop.Token));
-								RuntimeParams.Instance.LegalDocsVersion = updates.LegalDocsBackendVersion;
+								RuntimeParams.Instance.DownloadedLegalDocsVersion = updates.LegalDocsBackendVersion;
 								await RuntimeParams.Instance.SaveAsync();
 							}
 

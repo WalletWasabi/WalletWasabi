@@ -100,7 +100,6 @@ namespace WalletWasabi.Services
 			HandleFiltersLock = new AsyncLock();
 
 			BlocksFolderPath = Path.Combine(workFolderDir, "Blocks", Network.ToString());
-			RuntimeParams.SetDataDir(workFolderDir);
 
 			BlockFolderLock = new AsyncLock();
 
@@ -247,8 +246,6 @@ namespace WalletWasabi.Services
 
 				cancel.ThrowIfCancellationRequested();
 			}
-
-			await RuntimeParams.LoadAsync();
 
 			using (await HandleFiltersLock.LockAsync())
 			{

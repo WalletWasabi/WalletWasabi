@@ -12,6 +12,7 @@ using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.Controls.LockScreen;
 using WalletWasabi.Gui.ManagedDialogs;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui
@@ -45,6 +46,9 @@ namespace WalletWasabi.Gui
 				BuildAvaloniaApp()
 					.BeforeStarting(async builder =>
 					{
+						RuntimeParams.SetDataDir(Global.DataDir);
+						await RuntimeParams.LoadAsync();
+
 						MainWindowViewModel.Instance = new MainWindowViewModel { Global = Global };
 						statusBar = new StatusBarViewModel(Global);
 						MainWindowViewModel.Instance.StatusBar = statusBar;

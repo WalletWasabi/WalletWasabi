@@ -217,6 +217,11 @@ namespace WalletWasabi.Gui.ViewModels
 
 					UpdateAvailable = !x.ClientUpToDate;
 					CriticalUpdateAvailable = !x.BackendCompatible;
+
+					if (!x.LegalDocsUpToDate)
+					{
+						// TODO: ensure that the user agreed with the terms and conditions.
+					}
 				}).DisposeWith(Disposables);
 
 			updateChecker.Start(TimeSpan.FromMinutes(7));

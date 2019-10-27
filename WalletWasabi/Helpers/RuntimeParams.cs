@@ -16,8 +16,10 @@ namespace WalletWasabi.Helpers
 		public int NetworkNodeTimeout { get; set; } = 64;
 
 		[JsonConverter(typeof(VersionJsonConverter))]
-		[JsonProperty(PropertyName = "LegalDocsVersion")]
-		public Version LegalDocsVersion { get; set; }
+		public Version DownloadedLegalDocsVersion { get; set; } = new Version(0, 0, 0, 0);
+
+		[JsonConverter(typeof(VersionJsonConverter))]
+		public Version AgreedLegalDocsVersion { get; set; } = new Version(0, 0, 0);
 
 		#region Business logic
 

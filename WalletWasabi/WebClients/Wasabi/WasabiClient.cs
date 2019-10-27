@@ -183,7 +183,7 @@ namespace WalletWasabi.WebClients.Wasabi
 			if (response.StatusCode == HttpStatusCode.NotFound)
 			{
 				// Meaning this things was not just yet implemented on the running server.
-				return (new Version(0, 7), 1, new Version(0, 0));
+				return (new Version(0, 7), 1, new Version(0, 0, 0, 0));
 			}
 
 			if (response.StatusCode != HttpStatusCode.OK)
