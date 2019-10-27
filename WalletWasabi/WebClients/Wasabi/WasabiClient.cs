@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Transactions;
@@ -176,13 +177,13 @@ namespace WalletWasabi.WebClients.Wasabi
 
 		#region software
 
-		public async Task<(Version ClientVersion, int BackendMajorVersion)> GetVersionsAsync(CancellationToken cancel)
+		public async Task<(Version ClientVersion, int BackendMajorVersion, Version LegalDocsVersion)> GetVersionsAsync(CancellationToken cancel)
 		{
 			using var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, "/api/software/versions", cancel: cancel);
 			if (response.StatusCode == HttpStatusCode.NotFound)
 			{
 				// Meaning this things was not just yet implemented on the running server.
-				return (new Version(0, 7), 1);
+				return (new Version(0, 7), 1, new Version(0, 0));
 			}
 
 			if (response.StatusCode != HttpStatusCode.OK)
@@ -192,16 +193,43 @@ namespace WalletWasabi.WebClients.Wasabi
 
 			using HttpContent content = response.Content;
 			var resp = await content.ReadAsJsonAsync<VersionsResponse>();
-			return (Version.Parse(resp.ClientVersion), int.Parse(resp.BackendMajorVersion));
+			return (Version.Parse(resp.ClientVersion), int.Parse(resp.BackendMajorVersion), Version.Parse(resp.LegalDocsVersion));
 		}
 
 		public async Task<UpdateStatusResult> CheckUpdatesAsync(CancellationToken cancel)
 		{
 			var versions = await GetVersionsAsync(cancel);
-			var clientUpToDate = Constants.ClientVersion >= versions.ClientVersion; // If the client version locally is greater than or equal to the backend's reported client version, then good.
-			var backendCompatible = int.Parse(Constants.BackendMajorVersion) == versions.BackendMajorVersion; // If the backend major and the client major are equal, then our softwares are compatible.
 
-			return new UpdateStatusResult(backendCompatible, clientUpToDate);
+			return new UpdateStatusResult(versions.ClientVersion, versions.BackendMajorVersion, versions.LegalDocsVersion);
+		}
+
+		public async Task<byte[]> GetLegalIssuesAsync(CancellationToken cancel)
+		{
+			return await GetFileAsync("/api/software/legalissues", cancel: cancel);
+		}
+
+		public async Task<byte[]> GetPrivacyPolicyAsync(CancellationToken cancel)
+		{
+			return await GetFileAsync("/api/software/privacypolicy", cancel: cancel);
+		}
+
+		public async Task<byte[]> GetTermsAndConditionsAsync(CancellationToken cancel)
+		{
+			return await GetFileAsync("/api/software/termsandconditions", cancel: cancel);
+		}
+
+		public async Task<byte[]> GetFileAsync(string relativeUri, CancellationToken cancel)
+		{
+			using var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, relativeUri, cancel: cancel);
+
+			if (response.StatusCode != HttpStatusCode.OK)
+			{
+				await response.ThrowRequestExceptionFromContentAsync();
+			}
+
+			using HttpContent content = response.Content;
+
+			return await content.ReadAsJsonAsync<byte[]>();
 		}
 
 		#endregion software

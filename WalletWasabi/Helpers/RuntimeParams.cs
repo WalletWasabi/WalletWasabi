@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Helpers
@@ -13,6 +14,10 @@ namespace WalletWasabi.Helpers
 	{
 		[JsonProperty(PropertyName = "NetworkNodeTimeout")]
 		public int NetworkNodeTimeout { get; set; } = 64;
+
+		[JsonConverter(typeof(VersionJsonConverter))]
+		[JsonProperty(PropertyName = "LegalDocsVersion")]
+		public Version LegalDocsVersion { get; set; }
 
 		#region Business logic
 

@@ -162,7 +162,7 @@ namespace WalletWasabi.Gui
 				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
 			}
 
-			UpdateChecker = new UpdateChecker(Synchronizer.WasabiClient);
+			UpdateChecker = new UpdateChecker(Synchronizer.WasabiClient, Path.Combine(DataDir, "UpdateChecker"));
 
 			#region ProcessKillSubscription
 
