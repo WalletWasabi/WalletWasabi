@@ -12,6 +12,7 @@ namespace WalletWasabi.Helpers
 		public const string BackendMajorVersion = "3";
 
 		public const uint ProtocolVersionWitnessVersion = 70012;
+		public static readonly Version LegalDocsVersion = new Version(1, 0, 0, 0);
 
 		public static readonly NodeRequirement NodeRequirements = new NodeRequirement
 		{
