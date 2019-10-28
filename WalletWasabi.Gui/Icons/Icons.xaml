@@ -376,6 +376,20 @@
           <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M7.7744,8.6772C7.1354,8.5682 6.5634,8.4252 6.0484,8.2732 6.0274,8.3222 6.0194,8.3762 6.0004,8.4252L6.0004,9.0002 5.8154,9.0002C5.7384,9.3222 5.6874,9.6542 5.6874,10.0002 5.6874,10.1012 5.6954,10.2022 5.7034,10.3022 6.2864,10.5002 6.9834,10.7012 7.7904,10.8472 7.7424,10.4322 7.7114,10.0212 7.7164,9.6212 7.7194,9.2932 7.7424,8.9812 7.7744,8.6772" />
         </DrawingGroup.Children>
       </DrawingGroup>
+      <DrawingGroup x:Key="Checkmark">
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M6.0003,9.1717L2.7073,5.8787 0.000300000000000189,8.5857 0.000300000000000189,8.8277 6.0003,14.8277 16.0003,4.8287 16.0003,4.5857 13.2933,1.8787z" />
+          <GeometryDrawing Brush="#FF388A34" Geometry="F1M14.707,4.707L6,13.414 1.293,8.707 2.707,7.293 6,10.586 13.293,3.293z" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+      <DrawingGroup x:Key="Cancel">
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8.0001,5.1721L3.4571,0.6291 0.629099999999999,3.4571 5.1721,8.0001 0.629099999999999,12.5431 3.4571,15.3711 8.0001,10.8281 12.5431,15.3711 15.3711,12.5431 10.8281,8.0001 15.3711,3.4571 12.5431,0.6291z" />
+          <GeometryDrawing Brush="#FFA1260C" Geometry="F1M9.4141,8L13.9571,12.543 12.5431,13.957 8.0001,9.414 3.4571,13.957 2.0431,12.543 6.5861,8 2.0431,3.457 3.4571,2.043 8.0001,6.586 12.5431,2.043 13.9571,3.457z" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
     </Style.Resources>
   </Style>
 </Styles>

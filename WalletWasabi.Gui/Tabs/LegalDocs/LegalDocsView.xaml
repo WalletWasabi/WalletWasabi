@@ -18,7 +18,30 @@
         </controls:ExtendedListBox>
       </Grid>
       <DockPanel LastChildFill="True">
-        <Button Content="Accept all" DockPanel.Dock="Bottom" Command="{Binding AcceptTermsCommand}" />
+        <Border DockPanel.Dock="Top"  Margin="4" Padding="4" BorderThickness="1" BorderBrush="{DynamicResource ThemeBorderHighBrush}">
+          <DockPanel LastChildFill="True">
+            <Grid DockPanel.Dock="Left" Height="60" Width="60">
+              <DrawingPresenter  VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource LegalIssues}" />
+            </Grid>
+            <StackPanel>
+
+              <StackPanel Orientation="Horizontal" Height="30">
+                <Grid Height="20" Width="20">
+                  <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource Checkmark}" />
+                </Grid>
+                <TextBlock Text="I agree to the " VerticalAlignment="Center" />
+                <Button Content="Terms and Conditions" VerticalAlignment="Center" Classes="activeHyperLink" Command="{Binding OnTermsClicked}" />
+                <TextBlock Text=", " VerticalAlignment="Center" />
+                <Button Content="Privacy Policy" VerticalAlignment="Center" Classes="activeHyperLink" Command="{Binding OnPrivacyClicked}" />
+                <TextBlock Text=", and " VerticalAlignment="Center" />
+                <Button Content="Legal Issues" VerticalAlignment="Center" Classes="activeHyperLink" Command="{Binding OnLegalClicked}" />
+                <TextBlock Text=" documents." VerticalAlignment="Center" />
+              </StackPanel>
+
+              <Button Content="Accept all" Command="{Binding AcceptTermsCommand}" />
+            </StackPanel>
+          </DockPanel>
+        </Border>
         <cont:ViewModelViewHost DataContext="{Binding CurrentView}" Margin="4" />
       </DockPanel>
     </DockPanel>

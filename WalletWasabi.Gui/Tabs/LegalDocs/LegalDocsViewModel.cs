@@ -1,3 +1,5 @@
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
 using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
@@ -86,6 +88,21 @@ namespace WalletWasabi.Gui.Tabs.LegalDocs
 				category.Dispose();
 			}
 			return base.OnClose();
+		}
+
+		public void OnTermsClicked()
+		{
+			IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectTermsAndConditions();
+		}
+
+		public void OnPrivacyClicked()
+		{
+			IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectPrivacyPolicy();
+		}
+
+		public void OnLegalClicked()
+		{
+			IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectLegalIssues();
 		}
 	}
 }
