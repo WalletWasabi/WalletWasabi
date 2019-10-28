@@ -17,8 +17,6 @@ namespace WalletWasabi.JsonConverters
 		{
 			var txHex = reader.Value.ToString();
 			var tx = Transaction.Parse(txHex, Network.Main);
-			// Because we don't modify those transactions, we can cache the hash
-			tx.PrecomputeHash(false, true);
 			return tx;
 		}
 
