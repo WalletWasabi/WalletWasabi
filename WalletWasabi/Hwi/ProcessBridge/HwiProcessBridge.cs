@@ -9,81 +9,35 @@ using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
+using WalletWasabi.Microservices;
 
 namespace WalletWasabi.Hwi.ProcessBridge
 {
-	public class HwiProcessBridge : IProcessBridge
+	public class HwiProcessBridge : Microservices.ProcessBridge
 	{
-		public async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel)
+		public HwiProcessBridge() : base(EnvironmentHelpers.GetBinaryPath("Hwi", "hwi"))
 		{
-			string responseString;
-			int exitCode;
-			string hwiPath = EnvironmentHelpers.GetBinaryPath("Hwi", "hwi");
+		}
 
-			var fileName = hwiPath;
-			var finalArguments = arguments;
+		public new async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel)
+		{
 			var redirectStandardOutput = !openConsole;
-			var useShellExecute = openConsole;
-			var createNoWindow = !openConsole;
-			var windowStyle = openConsole ? ProcessWindowStyle.Normal : ProcessWindowStyle.Hidden;
 
-			if (openConsole && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			var (responseString, exitCode) = await base.SendCommandAsync(arguments, openConsole, cancel).ConfigureAwait(false);
+
+			string modifiedResponseString;
+			if (redirectStandardOutput)
 			{
-				throw new PlatformNotSupportedException($"{RuntimeInformation.OSDescription} is not supported.");
-				//var escapedArguments = (hwiPath + " " + arguments).Replace("\"", "\\\"");
-				//useShellExecute = false;
-				//if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-				//{
-				//	fileName = "xterm";
-				//	finalArguments = $"-e \"{escapedArguments}\"";
-				//}
-				//else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-				//{
-				//	fileName = "osascript";
-				//	finalArguments = $"-e 'tell application \"Terminal\" to do script \"{escapedArguments}\"'";
-				//}
+				modifiedResponseString = responseString;
+			}
+			else
+			{
+				modifiedResponseString = exitCode == 0
+					? "{\"success\":\"true\"}"
+					: $"{{\"success\":\"false\",\"error\":\"Process terminated with exit code: {exitCode}.\"}}";
 			}
 
-			ProcessStartInfo startInfo = new ProcessStartInfo
-			{
-				FileName = fileName,
-				Arguments = finalArguments,
-				RedirectStandardOutput = redirectStandardOutput,
-				UseShellExecute = useShellExecute,
-				CreateNoWindow = createNoWindow,
-				WindowStyle = windowStyle
-			};
-
-			try
-			{
-				using var process = Process.Start(startInfo);
-				await process.WaitForExitAsync(cancel).ConfigureAwait(false);
-
-				exitCode = process.ExitCode;
-				if (redirectStandardOutput)
-				{
-					responseString = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
-				}
-				else
-				{
-					responseString = exitCode == 0
-						? "{\"success\":\"true\"}"
-						: $"{{\"success\":\"false\",\"error\":\"Process terminated with exit code: {exitCode}.\"}}";
-				}
-			}
-			catch
-			{
-				Logger.LogInfo($"{nameof(startInfo.FileName)}: {startInfo.FileName}");
-				Logger.LogInfo($"{nameof(startInfo.Arguments)}: {startInfo.Arguments}");
-				Logger.LogInfo($"{nameof(startInfo.RedirectStandardOutput)}: {startInfo.RedirectStandardOutput}");
-				Logger.LogInfo($"{nameof(startInfo.UseShellExecute)}: {startInfo.UseShellExecute}");
-				Logger.LogInfo($"{nameof(startInfo.CreateNoWindow)}: {startInfo.CreateNoWindow}");
-				Logger.LogInfo($"{nameof(startInfo.WindowStyle)}: {startInfo.WindowStyle}");
-
-				throw;
-			}
-
-			return (responseString, exitCode);
+			return (modifiedResponseString, exitCode);
 		}
 	}
 }

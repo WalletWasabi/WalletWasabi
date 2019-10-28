@@ -22,7 +22,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 		public EndPoint P2pEndPoint { get; private set; }
 		public EndPoint RpcEndPoint { get; private set; }
 		public RPCClient RpcClient { get; private set; }
-
+		private BitcoindProcessBridge Bridge { get; set; }
 		public Process Process { get; private set; }
 		public string DataDir { get; private set; }
 
@@ -124,7 +124,8 @@ namespace WalletWasabi.Tests.NodeBuilding
 			await File.WriteAllTextAsync(configPath, config.ToString());
 			using (await coreNode.KillerLock.LockAsync())
 			{
-				coreNode.Process = Process.Start(new FileInfo(EnvironmentHelpers.GetBinaryPath("BitcoinCore", "bitcoind")).FullName, "-conf=bitcoin.conf" + " -datadir=" + coreNode.DataDir + " -debug=1");
+				coreNode.Bridge = new BitcoindProcessBridge();
+				coreNode.Process = coreNode.Bridge.Start($"-conf=bitcoin.conf -datadir={coreNode.DataDir} -debug=1", false);
 				string pidFile = Path.Combine(coreNode.DataDir, "regtest", "bitcoind.pid");
 				if (!File.Exists(pidFile))
 				{
@@ -149,6 +150,22 @@ namespace WalletWasabi.Tests.NodeBuilding
 			}
 
 			return coreNode;
+		}
+
+		public static async Task<Version> GetVersionAsync(CancellationToken cancel)
+		{
+			var arguments = "-version";
+			var bridge = new BitcoindProcessBridge();
+			var (responseString, exitCode) = await bridge.SendCommandAsync(arguments, false, cancel).ConfigureAwait(false);
+
+			if (exitCode != 0)
+			{
+				throw new BitcoindException($"'bitcoind {arguments}' exited with incorrect exit code: {exitCode}.");
+			}
+			var firstLine = responseString.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).First();
+			var versionString = firstLine.TrimStart("Bitcoin Core Daemon version v", StringComparison.OrdinalIgnoreCase);
+			var version = new Version(versionString);
+			return version;
 		}
 
 		public async Task<Node> CreateP2pNodeAsync()

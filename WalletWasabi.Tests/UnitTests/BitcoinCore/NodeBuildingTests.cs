@@ -2,6 +2,7 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.NodeBuilding;
 using Xunit;
@@ -74,6 +75,14 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				node.Disconnect();
 				await coreNode.StopAsync();
 			}
+		}
+
+		[Fact]
+		public async Task GetVersionTestsAsync()
+		{
+			using var cts = new CancellationTokenSource(7000);
+			Version version = await CoreNode.GetVersionAsync(cts.Token);
+			Assert.Equal(Helpers.Constants.BitcoinCoreVersion, version);
 		}
 	}
 }

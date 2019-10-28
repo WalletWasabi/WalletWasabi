@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Hwi.Parsers;
-using WalletWasabi.Interfaces;
+using WalletWasabi.Microservices;
 
 namespace WalletWasabi.Tests.UnitTests.Hwi
 {
@@ -260,6 +261,11 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			}
 
 			return extPubKey != null;
+		}
+
+		public Process Start(string arguments, bool openConsole)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }
