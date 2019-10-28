@@ -13,11 +13,23 @@ namespace WalletWasabi.Gui.Converters
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if (value is IEnumerable<object> rawObj)
- 			{
+			{
 				var descriptors = new ErrorDescriptors();
-				descriptors.AddRange(rawObj.Cast<ErrorDescriptor>());
- 				return GetColorFromDescriptors(descriptors);
- 			}
+
+				foreach (var obj in rawObj)
+				{
+					switch (obj)
+					{
+						case ErrorDescriptor ed:
+							descriptors.Add(ed);
+							break;
+						case Exception ex:
+							break;
+					}
+				}
+
+				return GetColorFromDescriptors(descriptors);
+			}
 
 			return null;
 		}
