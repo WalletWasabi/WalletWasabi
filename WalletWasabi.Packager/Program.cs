@@ -535,10 +535,9 @@ namespace WalletWasabi.Packager
 				}
 
 				// Remove binaries that are not relevant to the platform.
-				var hwiBinaries = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "Hwi", "Binaries"));
-				var bitcoinCoreBinaries = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "BitcoinCore", "Binaries"));
+				var binaryFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "Microservices", "Binaries"));
 
-				foreach (var dir in hwiBinaries.EnumerateDirectories().Concat(bitcoinCoreBinaries.EnumerateDirectories()))
+				foreach (var dir in binaryFolder.EnumerateDirectories())
 				{
 					if (!dir.Name.Contains(toNotRemove, StringComparison.OrdinalIgnoreCase))
 					{
