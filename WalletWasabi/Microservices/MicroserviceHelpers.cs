@@ -17,15 +17,15 @@ namespace WalletWasabi.Microservices
 			string path;
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				path = Path.Combine(commonPartialPath, $"{binaryNameWithoutExtension}-win64", $"{binaryNameWithoutExtension}.exe");
+				path = Path.Combine(commonPartialPath, $"win64", $"{binaryNameWithoutExtension}.exe");
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				path = Path.Combine(commonPartialPath, $"{binaryNameWithoutExtension}-lin64", binaryNameWithoutExtension);
+				path = Path.Combine(commonPartialPath, $"lin64", binaryNameWithoutExtension);
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				path = Path.Combine(commonPartialPath, $"{binaryNameWithoutExtension}-osx64", binaryNameWithoutExtension);
+				path = Path.Combine(commonPartialPath, $"osx64", binaryNameWithoutExtension);
 			}
 			else
 			{
