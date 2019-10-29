@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using WalletWasabi.Models;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Converters
 {
@@ -24,6 +25,7 @@ namespace WalletWasabi.Gui.Converters
 							descriptors.Add(ed);
 							break;
 						case Exception ex:
+							Logger.LogError(ex);
 							break;
 					}
 				}
