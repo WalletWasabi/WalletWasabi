@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace WalletWasabi.Tests.NodeBuilding
+namespace WalletWasabi.BitcoinCore
 {
 	public class BitcoindException : Exception
 	{

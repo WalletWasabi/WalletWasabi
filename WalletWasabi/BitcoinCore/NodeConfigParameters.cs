@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WalletWasabi.Tests.NodeBuilding
+namespace WalletWasabi.BitcoinCore
 {
 	public class NodeConfigParameters : Dictionary<string, string>
 	{

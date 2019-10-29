@@ -11,11 +11,11 @@ using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
 
-namespace WalletWasabi.Tests.NodeBuilding
+namespace WalletWasabi.BitcoinCore
 {
 	public class BitcoindProcessBridge : ProcessBridge
 	{
-		public BitcoindProcessBridge() : base(EnvironmentHelpers.GetBinaryPath("BitcoinCore", "bitcoind"))
+		public BitcoindProcessBridge() : base(EnvironmentHelpers.GetBinaryPath("bitcoind"))
 		{
 		}
 	}

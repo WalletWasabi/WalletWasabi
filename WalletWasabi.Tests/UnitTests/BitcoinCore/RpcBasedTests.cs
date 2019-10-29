@@ -5,11 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
-using WalletWasabi.Tests.NodeBuilding;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BitcoinCore

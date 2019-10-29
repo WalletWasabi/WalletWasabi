@@ -15,7 +15,7 @@ namespace WalletWasabi.Hwi.ProcessBridge
 {
 	public class HwiProcessBridge : Microservices.ProcessBridge
 	{
-		public HwiProcessBridge() : base(EnvironmentHelpers.GetBinaryPath("Hwi", "hwi"))
+		public HwiProcessBridge() : base(MicroserviceHelpers.GetBinaryPath("hwi"))
 		{
 		}
 

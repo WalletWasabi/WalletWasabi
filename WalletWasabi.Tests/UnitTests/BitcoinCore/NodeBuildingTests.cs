@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Tests.NodeBuilding;
+using WalletWasabi.BitcoinCore;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BitcoinCore

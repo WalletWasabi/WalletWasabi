@@ -10,10 +10,10 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Tests.NodeBuilding;
 
 namespace WalletWasabi.Tests.XunitConfiguration
 {

@@ -15,7 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.Tests.NodeBuilding
+namespace WalletWasabi.BitcoinCore
 {
 	public class CoreNode
 	{

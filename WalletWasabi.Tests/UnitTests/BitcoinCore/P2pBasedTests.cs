@@ -5,9 +5,9 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.Helpers;
 using WalletWasabi.Stores;
-using WalletWasabi.Tests.NodeBuilding;
 using WalletWasabi.Transactions;
 using Xunit;
 
