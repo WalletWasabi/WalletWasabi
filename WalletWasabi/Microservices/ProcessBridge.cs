@@ -79,21 +79,14 @@ namespace WalletWasabi.Microservices
 
 		public async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel)
 		{
-			string responseString;
 			int exitCode;
 
 			using var process = Start(arguments, openConsole);
 			await process.WaitForExitAsync(cancel).ConfigureAwait(false);
 
 			exitCode = process.ExitCode;
-			if (!openConsole)
-			{
-				responseString = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
-			}
-			else
-			{
-				responseString = string.Empty;
-			}
+
+			string responseString = openConsole ? string.Empty : await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
 
 			return (responseString, exitCode);
 		}
