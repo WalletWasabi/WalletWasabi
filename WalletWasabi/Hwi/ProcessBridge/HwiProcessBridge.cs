@@ -21,12 +21,11 @@ namespace WalletWasabi.Hwi.ProcessBridge
 
 		public new async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel)
 		{
-			var redirectStandardOutput = !openConsole;
-
 			var (responseString, exitCode) = await base.SendCommandAsync(arguments, openConsole, cancel).ConfigureAwait(false);
 
 			string modifiedResponseString;
-			if (redirectStandardOutput)
+
+			if (!openConsole)
 			{
 				modifiedResponseString = responseString;
 			}
