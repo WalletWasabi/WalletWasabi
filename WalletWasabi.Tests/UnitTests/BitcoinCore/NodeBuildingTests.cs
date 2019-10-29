@@ -2,8 +2,10 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Tests.NodeBuilding;
+using WalletWasabi.BitcoinCore;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BitcoinCore
@@ -13,7 +15,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task CanBuildCoreNodeAsync()
 		{
-			var coreNode = await CoreNode.CreateAsync();
+			var coreNode = await TestNodeBuilder.CreateAsync();
 			try
 			{
 				Assert.False(coreNode.Process.HasExited);
@@ -27,7 +29,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task NodesDifferAsync()
 		{
-			var coreNodes = await Task.WhenAll(CoreNode.CreateAsync(additionalFolder: "0"), CoreNode.CreateAsync(additionalFolder: "1"));
+			var coreNodes = await Task.WhenAll(TestNodeBuilder.CreateAsync(additionalFolder: "0"), TestNodeBuilder.CreateAsync(additionalFolder: "1"));
 			CoreNode node1 = coreNodes[0];
 			CoreNode node2 = coreNodes[1];
 			try
@@ -46,7 +48,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task RpcWorksAsync()
 		{
-			var coreNode = await CoreNode.CreateAsync();
+			var coreNode = await TestNodeBuilder.CreateAsync();
 			try
 			{
 				var blockCount = await coreNode.RpcClient.GetBlockCountAsync();
@@ -61,7 +63,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task P2pWorksAsync()
 		{
-			var coreNode = await CoreNode.CreateAsync();
+			var coreNode = await TestNodeBuilder.CreateAsync();
 			using var node = await coreNode.CreateP2pNodeAsync();
 			try
 			{
@@ -74,6 +76,14 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				node.Disconnect();
 				await coreNode.StopAsync();
 			}
+		}
+
+		[Fact]
+		public async Task GetVersionTestsAsync()
+		{
+			using var cts = new CancellationTokenSource(7000);
+			Version version = await CoreNode.GetVersionAsync(cts.Token);
+			Assert.Equal(WalletWasabi.Helpers.Constants.BitcoinCoreVersion, version);
 		}
 	}
 }

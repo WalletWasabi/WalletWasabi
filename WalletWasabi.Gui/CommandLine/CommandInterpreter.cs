@@ -72,6 +72,8 @@ namespace WalletWasabi.Gui.CommandLine
 		{
 			Console.WriteLine($"Wasabi Client Version: {Constants.ClientVersion}");
 			Console.WriteLine($"Compatible Coordinator Version: {Constants.BackendMajorVersion}");
+			Console.WriteLine($"Compatible Bitcoin Core Version: {Constants.BitcoinCoreVersion}");
+			Console.WriteLine($"Compatible Hardware Wallet Interface Version: {Constants.HwiVersion}");
 		}
 
 		private static void ShowHelp(OptionSet p)

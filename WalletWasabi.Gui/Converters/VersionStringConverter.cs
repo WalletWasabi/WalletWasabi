@@ -7,23 +7,23 @@ using WalletWasabi.Exceptions;
 
 namespace WalletWasabi.Gui.Converters
 {
-	public class UsdExchangeRateAmountToolTipConverter : IValueConverter
+	public class VersionStringConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is decimal usdExchangeRate)
+			if (value is Version version)
 			{
-				return $"Exchange Rate: {(long)usdExchangeRate} BTC/USD.";
+				return version.ToString();
 			}
 			else
 			{
-				throw new TypeArgumentException(value, typeof(decimal), nameof(value));
+				throw new TypeArgumentException(value, typeof(Version), nameof(value));
 			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			throw new NotSupportedException();
+			return Version.Parse(value as string);
 		}
 	}
 }
