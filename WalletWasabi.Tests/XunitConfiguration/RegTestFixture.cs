@@ -14,6 +14,7 @@ using WalletWasabi.BitcoinCore;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Tests.Helpers;
 
 namespace WalletWasabi.Tests.XunitConfiguration
 {
@@ -26,7 +27,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 
 		public RegTestFixture()
 		{
-			BackendRegTestNode = CoreNode.CreateAsync(callerMemberName: "RegTests").GetAwaiter().GetResult();
+			BackendRegTestNode = TestNodeBuilder.CreateAsync(callerMemberName: "RegTests").GetAwaiter().GetResult();
 
 			var testnetBackendDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests", "Backend"));
 			IoHelpers.DeleteRecursivelyWithMagicDustAsync(testnetBackendDir).GetAwaiter().GetResult();

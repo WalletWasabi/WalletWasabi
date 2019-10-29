@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.Helpers;
 using WalletWasabi.Stores;
+using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Transactions;
 using Xunit;
 
@@ -18,7 +19,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task MempoolNotifiesAsync()
 		{
-			var coreNode = await CoreNode.CreateAsync();
+			var coreNode = await TestNodeBuilder.CreateAsync();
 			using var node = await coreNode.CreateP2pNodeAsync();
 			try
 			{

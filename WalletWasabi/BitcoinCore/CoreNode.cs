@@ -26,10 +26,10 @@ namespace WalletWasabi.BitcoinCore
 		public Process Process { get; private set; }
 		public string DataDir { get; private set; }
 
-		public static async Task<CoreNode> CreateAsync([CallerFilePath]string callerFilePath = null, [CallerMemberName]string callerMemberName = null, string additionalFolder = null)
+		public static async Task<CoreNode> CreateAsync(string dataDir)
 		{
 			var coreNode = new CoreNode();
-			coreNode.DataDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName, additionalFolder ?? "");
+			coreNode.DataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 
 			var configPath = Path.Combine(coreNode.DataDir, "bitcoin.conf");
 			if (File.Exists(configPath))
