@@ -13,7 +13,6 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is Version version)
 			{
-				// When the amount starts with a '~' then Max is selected
 				return version.ToString();
 			}
 			else
