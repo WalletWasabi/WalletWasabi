@@ -47,7 +47,7 @@ namespace WalletWasabi.Transactions.TransactionBuilding
 
 			// This operation is doing super advanced grouping on the coin clusters and adding properties to each of them.
 			var sayajinCoinClusters = coinClusters
-				.Select(coins => (Coins: coins, Privacy: 1.0m / ( 1 + coins.Sum(x => x.Clusters.Labels.Count()))))
+				.Select(coins => (Coins: coins, Privacy: 1.0m / (1 + coins.Sum(x => x.Clusters.Labels.Count()))))
 				.Select(group => new
 				{
 					group.Coins,

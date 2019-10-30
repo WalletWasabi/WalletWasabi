@@ -15,7 +15,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 {
 	public class TransactionFactoryTests
 	{
-
 		[Fact]
 		public void InsufficientBalance()
 		{
