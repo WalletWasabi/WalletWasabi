@@ -21,7 +21,6 @@
     <StyleInclude Source="resm:WalletWasabi.Gui.Icons.Icons.xaml?assembly=WalletWasabi.Gui" />
     <StyleInclude Source="resm:WalletWasabi.Gui.Controls.TogglePasswordBox.xaml?assembly=WalletWasabi.Gui" />
     <StyleInclude Source="resm:WalletWasabi.Gui.Controls.MultiTextBox.xaml?assembly=WalletWasabi.Gui" />
-    <StyleInclude Source="resm:WalletWasabi.Gui.Controls.BusyIndicator.xaml?assembly=WalletWasabi.Gui" />
     <StyleInclude Source="resm:WalletWasabi.Gui.Controls.EditableTextBlock.xaml?assembly=WalletWasabi.Gui" />
   </Application.Styles>
   <Application.DataTemplates>
