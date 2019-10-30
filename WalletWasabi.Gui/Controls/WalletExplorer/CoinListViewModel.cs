@@ -40,7 +40,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _clustersSortDirection;
 		private Money _selectedAmount;
 		private bool _isAnyCoinSelected;
-		private bool _isCoinListLoading;
 		private bool _labelExposeCommonOwnershipWarning;
 		public Global Global { get; }
 		public CoinListContainerType CoinListContainerType { get; }
@@ -86,12 +85,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _selectPrivateCheckBoxState;
 			set => this.RaiseAndSetIfChanged(ref _selectPrivateCheckBoxState, value);
-		}
-
-		public bool IsCoinListLoading
-		{
-			get => _isCoinListLoading;
-			set => this.RaiseAndSetIfChanged(ref _isCoinListLoading, value);
 		}
 
 		public SortOrder StatusSortDirection
@@ -211,7 +204,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global = global;
 			CoinListContainerType = coinListContainerType;
 			AmountSortDirection = SortOrder.Decreasing;
-			IsCoinListLoading = true;
 			RefreshOrdering();
 
 			// Otherwise they're all selected as null on load.
@@ -359,21 +351,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				});
 
-			InitList = ReactiveCommand.CreateFromTask(async () =>
-			{
-				try
-				{
-					IsCoinListLoading = true;
-					// We have to wait for the UI to became visible to the user.
-					await Task.Delay(800); // Let other tasks run to display the gui.
-					OnOpen();
-				}
-				finally
-				{
-					IsCoinListLoading = false;
-				}
-			},
-			outputScheduler: RxApp.MainThreadScheduler);
+			InitList = ReactiveCommand.Create(() =>	OnOpen(), outputScheduler: RxApp.MainThreadScheduler);
 
 			InitList.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
 		}

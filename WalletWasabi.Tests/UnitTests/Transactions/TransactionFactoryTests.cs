@@ -54,6 +54,34 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		}
 
 		[Fact]
+		public void SelectMostPrivateIndependentlyOfCluster()
+		{
+			var transactionFactory = CreateTransactionFactory(new[]
+			{
+				("", 0, 0.08m, confirmed: true, anonymitySet:  50),
+				("", 1, 0.16m, confirmed: true, anonymitySet: 200)
+			});
+
+			// There is a 0.08 coin with AS=50. However it selects the most private one with AS= 200
+			var destination = new Key().ScriptPubKey;
+			var payment = new PaymentIntent(destination, Money.Coins(0.07m), label: "Sophie");
+			var feeRate = new FeeRate(2m);
+			var result = transactionFactory.BuildTransaction(payment, feeRate);
+
+			Assert.True(result.Signed);
+			var spentCoin = Assert.Single(result.SpentCoins);
+			Assert.Equal(Money.Coins(0.16m), spentCoin.Amount);
+			Assert.Equal(200, spentCoin.AnonymitySet);
+			Assert.False(result.SpendsUnconfirmed);
+			var tx = result.Transaction.Transaction;
+			Assert.Equal(2, tx.Outputs.Count());
+
+			var changeCoin = Assert.Single(result.InnerWalletOutputs);
+			Assert.True(changeCoin.HdPubKey.IsInternal);
+			Assert.Equal("Sophie", changeCoin.Label);
+		}
+
+		[Fact]
 		public void SelectMostPrivateCoin()
 		{
 			var transactionFactory = CreateTransactionFactory(new[]
@@ -523,7 +551,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var scoins = coins.Select(x => Coin(x.Label, keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
 			foreach (var coin in scoins)
 			{
-				foreach (var sameLabelCoin in scoins.Where(c => c.Label == coin.Label))
+				foreach (var sameLabelCoin in scoins.Where(c => !c.Label.IsEmpty && c.Label == coin.Label))
 				{
 					sameLabelCoin.Clusters = coin.Clusters;
 				}
