@@ -551,7 +551,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var scoins = coins.Select(x => Coin(x.Label, keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
 			foreach (var coin in scoins)
 			{
-				foreach (var sameLabelCoin in scoins.Where(c => c.Label != "" && c.Label == coin.Label))
+				foreach (var sameLabelCoin in scoins.Where(c => !c.Label.IsEmpty && c.Label == coin.Label))
 				{
 					sameLabelCoin.Clusters = coin.Clusters;
 				}
