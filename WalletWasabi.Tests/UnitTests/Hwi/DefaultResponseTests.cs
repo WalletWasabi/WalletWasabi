@@ -46,7 +46,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		{
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 			Version version = await client.GetVersionAsync(cts.Token);
-			Assert.Equal(new Version("1.0.3"), version);
+			Assert.Equal(WalletWasabi.Helpers.Constants.HwiVersion, version);
 		}
 
 		[Theory]

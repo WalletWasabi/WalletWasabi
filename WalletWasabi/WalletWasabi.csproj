@@ -26,22 +26,22 @@
   </ItemGroup>
   
   <ItemGroup>
-    <None Update="BitcoinCore\Binaries\bitcoind-lin64\bitcoind">
+    <None Update="Microservices\Binaries\lin64\bitcoind">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="BitcoinCore\Binaries\bitcoind-osx64\bitcoind">
+    <None Update="Microservices\Binaries\osx64\bitcoind">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="BitcoinCore\Binaries\bitcoind-win64\bitcoind.exe">
+    <None Update="Microservices\Binaries\win64\bitcoind.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Hwi\Binaries\hwi-lin64\hwi">
+    <None Update="Microservices\Binaries\lin64\hwi">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Hwi\Binaries\hwi-osx64\hwi">
+    <None Update="Microservices\Binaries\osx64\hwi">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Hwi\Binaries\hwi-win64\hwi.exe">
+    <None Update="Microservices\Binaries\win64\hwi.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="OnionSeeds\MainOnionSeeds.txt">
