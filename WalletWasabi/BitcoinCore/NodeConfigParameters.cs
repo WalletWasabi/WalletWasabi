@@ -34,6 +34,10 @@ namespace WalletWasabi.BitcoinCore
 			var config = new NodeConfigParameters();
 			foreach (var line in await File.ReadAllLinesAsync(configFile))
 			{
+				if (string.IsNullOrWhiteSpace(line))
+				{
+					continue;
+				}
 				var parts = line.Split('=');
 				config.Add(parts[0], parts[1]);
 			}

@@ -17,6 +17,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.Coins;
 using WalletWasabi.Crypto;
@@ -60,6 +61,7 @@ namespace WalletWasabi.Gui
 		public Node RegTestMempoolServingNode { get; private set; }
 		public UpdateChecker UpdateChecker { get; private set; }
 		public TorProcessManager TorManager { get; private set; }
+		public CoreNode BitcoinCoreNode { get; private set; }
 
 		public bool KillRequested { get; private set; } = false;
 
@@ -149,6 +151,7 @@ namespace WalletWasabi.Gui
 			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
 			var addrManTask = InitializeAddressManagerBehaviorAsync();
+			var nodeCreationTask = CoreNode.CreateAsync(EnvironmentHelpers.TryGetDefaultBitcoinCoreDataDir());
 
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
 			var connectionParameters = new NodeConnectionParameters { UserAgent = "/Satoshi:0.18.1/" };
@@ -206,6 +209,19 @@ namespace WalletWasabi.Gui
 			await bstoreInitTask;
 
 			#endregion BitcoinStoreInitialization
+
+			#region BitcoinCoreInitialization
+
+			try
+			{
+				BitcoinCoreNode = await nodeCreationTask.ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
+
+			#endregion BitcoinCoreInitialization
 
 			#region MempoolInitialization
 
@@ -616,6 +632,12 @@ namespace WalletWasabi.Gui
 				{
 					RegTestMempoolServingNode.Disconnect();
 					Logger.LogInfo($"{nameof(RegTestMempoolServingNode)} is disposed.");
+				}
+
+				if (BitcoinCoreNode != null)
+				{
+					await BitcoinCoreNode.StopAsync().ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(BitcoinCoreNode)} is stopped.");
 				}
 
 				if (TorManager != null)
