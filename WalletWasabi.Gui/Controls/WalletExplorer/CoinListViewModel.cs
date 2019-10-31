@@ -50,6 +50,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> SelectNonPrivateCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 		public ReactiveCommand<Unit, Unit> InitList { get; }
+		public bool IsCoinJoinTab { get; }
 
 		public event EventHandler DequeueCoinsPressed;
 
@@ -203,6 +204,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Global = global;
 			CoinListContainerType = coinListContainerType;
+			IsCoinJoinTab = CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel;
 			AmountSortDirection = SortOrder.Decreasing;
 			RefreshOrdering();
 
@@ -351,7 +353,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				});
 
-			InitList = ReactiveCommand.Create(() =>	OnOpen(), outputScheduler: RxApp.MainThreadScheduler);
+			InitList = ReactiveCommand.Create(() => OnOpen(), outputScheduler: RxApp.MainThreadScheduler);
 
 			InitList.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
 		}
