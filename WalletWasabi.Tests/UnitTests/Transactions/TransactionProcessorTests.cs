@@ -1,5 +1,6 @@
 using NBitcoin;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -183,8 +184,51 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			relevant = transactionProcessor.Process(tx);
 
 			Assert.True(relevant);
-			Assert.Single(transactionProcessor.Coins, coin => coin.Unspent && coin.Amount == Money.Coins(0.9m) && coin.IsReplaceable);
+			Assert.Single(transactionProcessor.Coins, coin => coin.Amount == Money.Coins(0.9m) && coin.IsReplaceable);
 			Assert.Single(transactionProcessor.Coins.AsAllCoinsView(), coin => !coin.Unspent && coin.Amount == Money.Coins(1.0m) && !coin.IsReplaceable);
+		}
+
+		[Fact]
+		public async Task HandlesBumpFeeAsync()
+		{
+			// Replaces a previous RBF transaction by a new one that contains one more input (higher fee)
+			var transactionProcessor = await CreateTransactionProcessorAsync();
+			Script NewScript(string label) => transactionProcessor.NewKey(label).P2wpkhScript;
+
+			// A confirmed segwit transaction for us
+			var tx = CreateCreditingTransaction( NewScript("A"), Money.Coins(1.0m), height: 54321);
+			transactionProcessor.Process(tx);
+			
+			// Another confirmed segwit transaction for us
+			tx = CreateCreditingTransaction(NewScript("B"), Money.Coins(1.0m), height: 54321);
+			transactionProcessor.Process(tx);
+
+			var createdCoins = transactionProcessor.Coins.Select(x=> x.GetCoin()).ToArray(); // 2 coins of 1.0 btc each
+
+			// Spend the received coins 
+			var destinationScript = NewScript("myself");;
+			var changeScript = NewScript("Change myself");
+			tx = CreateSpendingTransaction(createdCoins, destinationScript, changeScript); // spends 1.2btc
+			tx.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
+			var relevant = transactionProcessor.Process(tx);
+			Assert.True(relevant);
+
+			// Another confirmed segwit transaction for us
+			tx = CreateCreditingTransaction(NewScript("C"), Money.Coins(1.0m), height: 54322);
+			transactionProcessor.Process(tx);
+
+			// At this moment we have one 1.2btc and one 0.8btc replaceable coins and one 1.0btc final coin
+			var latestCreatedCoin = Assert.Single(transactionProcessor.Coins.CreatedBy(tx.Transaction.GetHash()));
+			var coinsToSpend = createdCoins.Concat(new[]{ latestCreatedCoin.GetCoin() }).ToArray();
+
+			// Spend them again with a different amount
+			destinationScript = new Key().PubKey.WitHash.ScriptPubKey;  // spend to someone else
+			tx = CreateSpendingTransaction(coinsToSpend, destinationScript, changeScript);
+			relevant = transactionProcessor.Process(tx);
+
+			Assert.True(relevant);
+			var coin = Assert.Single(transactionProcessor.Coins);
+			Assert.True(coin.IsReplaceable);
 		}
 
 		[Fact]
@@ -634,7 +678,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			return new SmartTransaction(tx, height == 0 ? Height.Mempool : new Height(height));
 		}
 
-		private static SmartTransaction CreateSpendingTransaction(Coin[] coins, Script scriptPubKey, Script scriptPubKeyChange, bool replaceable = false, int height = 0)
+		private static SmartTransaction CreateSpendingTransaction(IEnumerable<Coin> coins, Script scriptPubKey, Script scriptPubKeyChange, bool replaceable = false, int height = 0)
 		{
 			var tx = Network.RegTest.CreateTransaction();
 			var amount = Money.Zero;
@@ -653,6 +697,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx = Network.RegTest.CreateTransaction();
 			tx.Version = 1;
 			tx.LockTime = LockTime.Zero;
+			tx.Inputs.Add(GetRandomOutPoint(), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
 			tx.Inputs.Add(GetRandomOutPoint(), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
 			tx.Outputs.Add(amount, scriptPubKey);
 			return new SmartTransaction(tx, height == 0 ? Height.Mempool : new Height(height));
