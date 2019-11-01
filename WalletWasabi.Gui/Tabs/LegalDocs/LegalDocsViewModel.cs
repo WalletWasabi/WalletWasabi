@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Composition;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 
@@ -15,10 +16,13 @@ namespace WalletWasabi.Gui.Tabs.LegalDocs
 	[Shared]
 	internal class LegalDocsViewModel : WasabiDocumentTabViewModel
 	{
+		private CompositeDisposable Disposables { get; set; }
 		private ObservableCollection<CategoryViewModel> _categories;
 		private CategoryViewModel _selectedCategory;
 		private ViewModelBase _currentView;
 		public ReactiveCommand<Unit, Unit> AcceptTermsCommand { get; }
+		private ObservableAsPropertyHelper<bool> _isLegalDocsAgreed;
+		public bool IsLegalDocsAgreed => _isLegalDocsAgreed?.Value ?? false;
 
 		[ImportingConstructor]
 		public LegalDocsViewModel(AvaloniaGlobalComponent global) : base(global.Global, "Legal documents")
@@ -79,6 +83,18 @@ namespace WalletWasabi.Gui.Tabs.LegalDocs
 		{
 			get => _currentView;
 			set => this.RaiseAndSetIfChanged(ref _currentView, value);
+		}
+
+		public override void OnOpen()
+		{
+			base.OnOpen();
+			Disposables =
+				Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+
+			_isLegalDocsAgreed = RuntimeParams.Instance
+				.WhenAnyValue(x => x.IsLegalDocsAgreed)
+				.ToProperty(this, x => x.IsLegalDocsAgreed, scheduler: RxApp.MainThreadScheduler)
+				.DisposeWith(Disposables);
 		}
 
 		public override bool OnClose()
