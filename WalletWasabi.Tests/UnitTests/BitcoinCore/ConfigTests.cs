@@ -56,6 +56,30 @@ bar
 			var add2 = "foo=bar";
 			var add3 = "too=0";
 
+			coreConfig.TryAdd(add1);
+			coreConfig2.AddOrUpdate(add1);
+			coreConfig.TryAdd(add2);
+			coreConfig2.AddOrUpdate(add2);
+			coreConfig.TryAdd(add3);
+			coreConfig2.AddOrUpdate(add3);
+
+			configDic = coreConfig.ToDictionary();
+			configDic2 = coreConfig2.ToDictionary();
+
+			Assert.True(configDic.TryGetValue("moo", out string mooValue));
+			Assert.True(configDic.TryGetValue("foo", out string fooValue));
+			Assert.True(configDic.TryGetValue("too", out string tooValue));
+			Assert.Equal("1", mooValue);
+			Assert.Equal("buz", fooValue);
+			Assert.Equal("1", tooValue);
+
+			Assert.True(configDic2.TryGetValue("moo", out mooValue));
+			Assert.True(configDic2.TryGetValue("foo", out fooValue));
+			Assert.True(configDic2.TryGetValue("too", out tooValue));
+			Assert.Equal("1", mooValue);
+			Assert.Equal("bar", fooValue);
+			Assert.Equal("0", tooValue);
+
 			var expectedConfig =
 @"foo=bar
 foo = bar
