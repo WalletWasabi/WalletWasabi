@@ -13,6 +13,7 @@
     <converters:CoinStatusForegroundConverter x:Key="CoinStatusForegroundConverter" />
     <converters:CoinItemExpanderColorConverter x:Key="CoinItemExpanderColorConverter" />
     <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
+    <converters:SelectNonPrivateCheckBoxVisibilityConverter x:Key="SelectNonPrivateCheckBoxVisibilityConverter" />
   </UserControl.Resources>
   <UserControl.Styles>
     <Style Selector="TextBlock">
@@ -51,7 +52,7 @@
       <StackPanel Margin="0 10 0 0" Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal">
         <CheckBox Content="Select All" IsThreeState="True" IsChecked="{Binding SelectAllCheckBoxState}" Command="{Binding SelectAllCheckBoxCommand}" />
         <CheckBox Content="Select All Private" IsThreeState="True" IsChecked="{Binding SelectPrivateCheckBoxState}" Command="{Binding SelectPrivateCheckBoxCommand}" ToolTip.Tip="Coins that have acquired the privacy target." />
-        <CheckBox Content="Select All Non-Private" IsThreeState="True" IsChecked="{Binding SelectNonPrivateCheckBoxState}" Command="{Binding SelectNonPrivateCheckBoxCommand}" ToolTip.Tip="Coins that have not acquired the privacy target." IsVisible="{Binding IsCoinJoinTab}" />
+        <CheckBox Content="Select All Non-Private" IsThreeState="True" IsChecked="{Binding SelectNonPrivateCheckBoxState}" Command="{Binding SelectNonPrivateCheckBoxCommand}" ToolTip.Tip="Coins that have not acquired the privacy target." IsVisible="{Binding IsSelectNonPrivateCheckBoxVisible, Converter={StaticResource SelectNonPrivateCheckBoxVisibilityConverter}}" />
         <StackPanel Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal" IsVisible="{Binding IsAnyCoinSelected}">
           <TextBlock Text="|" />
           <TextBlock Text="Selected Amount:" />

@@ -50,7 +50,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> SelectNonPrivateCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 		public ReactiveCommand<Unit, Unit> InitList { get; }
-		public bool IsCoinJoinTab { get; }
+		public bool IsSelectNonPrivateCheckBoxVisible { get; }
 
 		public event EventHandler DequeueCoinsPressed;
 
@@ -204,7 +204,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Global = global;
 			CoinListContainerType = coinListContainerType;
-			IsCoinJoinTab = CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel;
+			IsSelectNonPrivateCheckBoxVisible = CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel;
 			AmountSortDirection = SortOrder.Decreasing;
 			RefreshOrdering();
 
