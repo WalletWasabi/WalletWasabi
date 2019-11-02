@@ -618,7 +618,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		private bool CanUseAdditionalOutputs(Money newDenomination)
 		{
-			// If all alices only registeredone blinded output, then we cannot tinker with additional denomination.
+			// If all alices only registered one blinded output, then we cannot tinker with additional denomination.
 			if (Alices.All(x => x.BlindedOutputScripts.Length == 1))
 			{
 				return false;
