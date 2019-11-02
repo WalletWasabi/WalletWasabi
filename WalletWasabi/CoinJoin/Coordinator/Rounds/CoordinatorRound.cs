@@ -618,14 +618,15 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		private bool CanUseAdditionalOutputs(Money newDenomination)
 		{
-			bool tinkerWithAdditionalMixingLevels = !Alices.All(x => x.BlindedOutputScripts.Length == 1);
+			// If all alices only registeredone blinded output, then we cannot tinker with additional denomination.
+			if (Alices.All(x => x.BlindedOutputScripts.Length == 1))
+			{
+				return false;
+			}
+
+			bool tinkerWithAdditionalMixingLevels = true;
 			foreach (Alice alice in Alices)
 			{
-				if (!tinkerWithAdditionalMixingLevels)
-				{
-					break;
-				}
-
 				// Check if inputs have enough coins.
 				Money networkFeeToPay = (alice.Inputs.Count() * FeePerInputs) + (2 * FeePerOutputs);
 				Money changeAmount = alice.InputSum - (newDenomination + networkFeeToPay);
