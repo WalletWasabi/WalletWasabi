@@ -27,6 +27,7 @@ namespace WalletWasabi.BitcoinCore
 		private BitcoindProcessBridge Bridge { get; set; }
 		public Process Process { get; private set; }
 		public string DataDir { get; private set; }
+		public Network Network { get; private set; }
 
 		public static async Task<CoreNode> CreateAsync(CoreNodeParams coreNodeParams)
 		{
@@ -36,6 +37,7 @@ namespace WalletWasabi.BitcoinCore
 			{
 				var coreNode = new CoreNode();
 				coreNode.DataDir = coreNodeParams.DataDir;
+				coreNode.Network = coreNodeParams.Network;
 
 				var configPath = Path.Combine(coreNode.DataDir, "bitcoin.conf");
 				var config = new CoreConfig();
@@ -47,7 +49,7 @@ namespace WalletWasabi.BitcoinCore
 
 				if (coreNodeParams.TryRestart)
 				{
-					await TryStopNoLockAsync(coreNode.DataDir, deleteDataDir: coreNodeParams.TryDeleteDataDir).ConfigureAwait(false);
+					await TryStopNoLockAsync(coreNode.Network, coreNode.DataDir, deleteDataDir: coreNodeParams.TryDeleteDataDir).ConfigureAwait(false);
 				}
 				IoHelpers.EnsureDirectoryExists(coreNode.DataDir);
 
@@ -83,33 +85,34 @@ namespace WalletWasabi.BitcoinCore
 				coreNode.P2pEndPoint = new IPEndPoint(IPAddress.Loopback, p2pPort);
 				coreNode.RpcEndPoint = new IPEndPoint(IPAddress.Loopback, rpcPort);
 
-				coreNode.RpcClient = new RPCClient($"{creds.UserName}:{creds.Password}", coreNode.RpcEndPoint.ToString(rpcPort), Network.RegTest);
+				coreNode.RpcClient = new RPCClient($"{creds.UserName}:{creds.Password}", coreNode.RpcEndPoint.ToString(rpcPort), coreNode.Network);
 
+				var configPrefix = NetworkTranslator.GetConfigPrefix(coreNode.Network, mainnetEmpty: false);
 				var desiredConfigString =
-@$"regtest				= 1
-regtest.rest			= 1
-regtest.listenonion		= 0
-regtest.server			= 1
-regtest.txindex			= 1
-regtest.rpcuser			= {coreNode.RpcClient.CredentialString.UserPassword.UserName}
-regtest.rpcpassword		= {coreNode.RpcClient.CredentialString.UserPassword.Password}
-regtest.whitebind		= 127.0.0.1:{p2pPort}
-regtest.rpcport			= {coreNode.RpcEndPoint.GetPortOrDefault()}
-regtest.printtoconsole	= 0
-regtest.keypool			= 10
-regtest.pid				= bitcoind.pid
-regtest.checklevel		= 0
-regtest.checkblocks		= 1";
+@$"regtest						= 1
+{configPrefix}.rest				= 1
+{configPrefix}.listenonion		= 0
+{configPrefix}.server			= 1
+{configPrefix}.txindex			= 1
+{configPrefix}.rpcuser			= {coreNode.RpcClient.CredentialString.UserPassword.UserName}
+{configPrefix}.rpcpassword		= {coreNode.RpcClient.CredentialString.UserPassword.Password}
+{configPrefix}.whitebind		= 127.0.0.1:{p2pPort}
+{configPrefix}.rpcport			= {coreNode.RpcEndPoint.GetPortOrDefault()}
+{configPrefix}.printtoconsole	= 0
+{configPrefix}.keypool			= 10
+{configPrefix}.pid				= bitcoind.pid
+{configPrefix}.checklevel		= 0
+{configPrefix}.checkblocks		= 1";
 
 				config.AddOrUpdate(desiredConfigString);
 				await File.WriteAllTextAsync(configPath, config.ToString());
 
 				coreNode.Bridge = new BitcoindProcessBridge();
 				coreNode.Process = coreNode.Bridge.Start($"-conf=bitcoin.conf -datadir={coreNode.DataDir} -debug=1", false);
-				string pidFile = Path.Combine(coreNode.DataDir, "regtest", "bitcoind.pid");
+				string pidFile = Path.Combine(coreNode.DataDir, NetworkTranslator.GetDataDirPrefix(coreNode.Network), "bitcoind.pid");
 				if (!File.Exists(pidFile))
 				{
-					Directory.CreateDirectory(Path.Combine(coreNode.DataDir, "regtest"));
+					IoHelpers.EnsureDirectoryExists(Path.Combine(coreNode.DataDir, NetworkTranslator.GetDataDirPrefix(coreNode.Network)));
 					await File.WriteAllTextAsync(pidFile, coreNode.Process.Id.ToString());
 				}
 
@@ -151,7 +154,7 @@ regtest.checkblocks		= 1";
 
 		public async Task<Node> CreateP2pNodeAsync()
 		{
-			return await Node.ConnectAsync(Network.RegTest, P2pEndPoint).ConfigureAwait(false);
+			return await Node.ConnectAsync(Network, P2pEndPoint).ConfigureAwait(false);
 		}
 
 		public async Task<IEnumerable<Block>> GenerateAsync(int blockCount)
@@ -165,22 +168,23 @@ regtest.checkblocks		= 1";
 
 		public async Task StopAsync(bool deleteDataDir)
 		{
-			await TryStopAsync(DataDir, deleteDataDir).ConfigureAwait(false);
+			await TryStopAsync(Network, DataDir, deleteDataDir).ConfigureAwait(false);
 		}
 
 		private static AsyncLock KillerLock { get; } = new AsyncLock();
 
-		public static async Task TryStopAsync(string dataDir, bool deleteDataDir)
+		public static async Task TryStopAsync(Network network, string dataDir, bool deleteDataDir)
 		{
 			using (await KillerLock.LockAsync().ConfigureAwait(false))
 			{
-				await TryStopNoLockAsync(dataDir, deleteDataDir).ConfigureAwait(false);
+				await TryStopNoLockAsync(network, dataDir, deleteDataDir).ConfigureAwait(false);
 			}
 		}
 
-		public static async Task TryStopNoLockAsync(string dataDir, bool deleteDataDir)
+		public static async Task TryStopNoLockAsync(Network network, string dataDir, bool deleteDataDir)
 		{
 			dataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
+			network = Guard.NotNull(nameof(network), network);
 
 			try
 			{
@@ -194,16 +198,17 @@ regtest.checkblocks		= 1";
 
 					var foundConfigDic = config.ToDictionary();
 
-					var rpcPortString = foundConfigDic.TryGet("regtest.rpcport");
-					var rpcUser = foundConfigDic.TryGet("regtest.rpcuser");
-					var rpcPassword = foundConfigDic.TryGet("regtest.rpcpassword");
-					var pidFileName = foundConfigDic.TryGet("regtest.pid");
+					var networkEntry = NetworkTranslator.GetConfigPrefix(network, mainnetEmpty: false);
+					var rpcPortString = foundConfigDic.TryGet($"{networkEntry}.rpcport");
+					var rpcUser = foundConfigDic.TryGet($"{networkEntry}.rpcuser");
+					var rpcPassword = foundConfigDic.TryGet($"{networkEntry}.rpcpassword");
+					var pidFileName = foundConfigDic.TryGet($"{networkEntry}.pid");
 
 					var credentials = new NetworkCredential(rpcUser, rpcPassword);
-					var rpc = new RPCClient(credentials, new Uri("http://127.0.0.1:" + rpcPortString + "/"), Network.RegTest);
+					var rpc = new RPCClient(credentials, new Uri("http://127.0.0.1:" + rpcPortString + "/"), network);
 					await rpc.StopAsync().ConfigureAwait(false);
 
-					var pidFile = Path.Combine(dataDir, "regtest", pidFileName);
+					var pidFile = Path.Combine(dataDir, NetworkTranslator.GetDataDirPrefix(network), pidFileName);
 					using CancellationTokenSource cts = new CancellationTokenSource(reasonableCoreShutdownTimeout);
 					if (File.Exists(pidFile))
 					{

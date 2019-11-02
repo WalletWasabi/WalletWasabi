@@ -1,3 +1,4 @@
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,6 +14,7 @@ namespace WalletWasabi.Tests.Helpers
 	{
 		public static async Task<CoreNode> CreateAsync([CallerFilePath]string callerFilePath = null, [CallerMemberName]string callerMemberName = null, string additionalFolder = null)
 			=> await CoreNode.CreateAsync(new CoreNodeParams(
+				Network.RegTest,
 				Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName, additionalFolder ?? ""),
 				tryRestart: true,
 				tryDeleteDataDir: true));

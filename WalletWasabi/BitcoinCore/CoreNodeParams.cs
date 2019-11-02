@@ -1,3 +1,4 @@
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,14 +8,16 @@ namespace WalletWasabi.BitcoinCore
 {
 	public class CoreNodeParams
 	{
-		public CoreNodeParams(string dataDir, bool tryRestart, bool tryDeleteDataDir)
+		public CoreNodeParams(Network network, string dataDir, bool tryRestart, bool tryDeleteDataDir)
 		{
+			Network = Guard.NotNull(nameof(network), network);
 			DataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 			TryRestart = tryRestart;
 			TryDeleteDataDir = tryDeleteDataDir;
 		}
 
 		public string DataDir { get; }
+		public Network Network { get; }
 		public bool TryRestart { get; }
 		public bool TryDeleteDataDir { get; }
 	}
