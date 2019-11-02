@@ -15,6 +15,7 @@ namespace WalletWasabi.Coins
 		private bool InvalidateSnapshot { get; set; }
 		private object Lock { get; set; }
 		private HashSet<SmartCoin> SpentCoins { get; }
+		private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; }
 		private Dictionary<Script, Cluster> ClustersByScriptPubKey { get; }
 		private int PrivacyLevelThreshold { get; }
 
@@ -23,6 +24,7 @@ namespace WalletWasabi.Coins
 			Coins = new HashSet<SmartCoin>();
 			SpentCoins = new HashSet<SmartCoin>();
 			LatestCoinsSnapshot = new HashSet<SmartCoin>();
+			LatestSpentCoinsSnapshot = new HashSet<SmartCoin>();
 			InvalidateSnapshot = false;
 			ClustersByScriptPubKey = new Dictionary<Script, Cluster>();
 			PrivacyLevelThreshold = privacyLevelThreshold;
@@ -34,9 +36,21 @@ namespace WalletWasabi.Coins
 			if (InvalidateSnapshot)
 			{
 				LatestCoinsSnapshot = Coins.ToHashSet(); // Creates a clone
+				LatestSpentCoinsSnapshot = SpentCoins.ToHashSet(); // Creates a clone
 				InvalidateSnapshot = false;
 			}
 			return new CoinsView(LatestCoinsSnapshot);
+		}
+
+		private CoinsView AsSpentCoinsViewNoLock()
+		{
+			if (InvalidateSnapshot)
+			{
+				LatestCoinsSnapshot = Coins.ToHashSet(); // Creates a clone
+				LatestSpentCoinsSnapshot = SpentCoins.ToHashSet(); // Creates a clone
+				InvalidateSnapshot = false;
+			}
+			return new CoinsView(LatestSpentCoinsSnapshot);
 		}
 
 		private CoinsView AsCoinsView()
@@ -44,6 +58,14 @@ namespace WalletWasabi.Coins
 			lock (Lock)
 			{
 				return AsCoinsViewNoLock();
+			}
+		}
+
+		private CoinsView AsSpentCoinsView()
+		{
+			lock (Lock)
+			{
+				return AsSpentCoinsViewNoLock();
 			}
 		}
 
@@ -139,15 +161,35 @@ namespace WalletWasabi.Coins
 			}
 		}
 
+		internal void Undo(uint256 txId)
+		{
+			lock (Lock)
+			{
+				// remove recursively the coins created by the transaction
+				foreach (SmartCoin createdCoin in CreatedByNoLock(txId))
+				{
+					Coins.Remove(createdCoin);
+				}
+				// destroyed (spent) coins are now (unspent)
+				foreach (SmartCoin destroyedCoin in SpentByNoLock(txId))
+				{
+					if(SpentCoins.Remove(destroyedCoin))
+					{
+						Coins.Add(destroyedCoin);
+					}
+				}
+			}
+		}
+
 		public ICoinsView AsAllCoinsView()
 		{
 			lock (Lock)
 			{
-				return new CoinsView(AsCoinsViewNoLock().Concat(SpentCoins).ToList());
+				return new CoinsView(AsAllCoinsViewNoLock().ToList());
 			}
 		}
 
-		private ICoinsView AsAllCoinsViewNoLock() => new CoinsView(AsCoinsViewNoLock().Concat(SpentCoins).ToList());
+		private ICoinsView AsAllCoinsViewNoLock() => new CoinsView(AsCoinsViewNoLock().Concat(AsSpentCoinsViewNoLock()).ToList());
 
 		public ICoinsView AtBlockHeight(Height height) => AsCoinsView().AtBlockHeight(height);
 
@@ -175,7 +217,9 @@ namespace WalletWasabi.Coins
 
 		private ICoinsView CreatedByNoLock(uint256 txid) => AsCoinsViewNoLock().CreatedBy(txid);
 
-		public ICoinsView SpentBy(uint256 txid) => AsCoinsView().SpentBy(txid);
+		public ICoinsView SpentBy(uint256 txid) => AsSpentCoinsView().SpentBy(txid);
+
+		private ICoinsView SpentByNoLock(uint256 txid) => AsSpentCoinsViewNoLock().SpentBy(txid);
 
 		public SmartCoin[] ToArray() => AsCoinsView().ToArray();
 

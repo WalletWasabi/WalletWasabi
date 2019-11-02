@@ -232,6 +232,41 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		}
 
 		[Fact]
+		public async Task HandlesRbfWithLessCoinsAsync()
+		{
+			// Replaces a previous RBF transaction by a new one that contains one more input (higher fee)
+			var transactionProcessor = await CreateTransactionProcessorAsync();
+			Script NewScript(string label) => transactionProcessor.NewKey(label).P2wpkhScript;
+
+			// A confirmed segwit transaction for us
+			var tx = CreateCreditingTransaction( NewScript("A"), Money.Coins(1.0m), height: 54321);
+			transactionProcessor.Process(tx);
+			
+			// Another confirmed segwit transaction for us
+			tx = CreateCreditingTransaction(NewScript("B"), Money.Coins(1.0m), height: 54321);
+			transactionProcessor.Process(tx);
+
+			var createdCoins = transactionProcessor.Coins.Select(x=> x.GetCoin()).ToArray(); // 2 coins of 1.0 btc each
+
+			// Spend the received coins (replaceable)
+			var destinationScript = NewScript("myself");;
+			var changeScript = NewScript("Change myself");
+			tx = CreateSpendingTransaction(createdCoins, destinationScript, changeScript); // spends 1.2btc
+			tx.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
+			var relevant = transactionProcessor.Process(tx);
+			Assert.True(relevant);
+
+			// replace previous tx with another one spending only one coin
+			destinationScript = new Key().PubKey.WitHash.ScriptPubKey;  // spend to someone else
+			tx = CreateSpendingTransaction(createdCoins.Take(1), destinationScript, changeScript); // spends 1.2btc
+			relevant = transactionProcessor.Process(tx);
+
+			Assert.True(relevant);
+			Assert.Equal(2, transactionProcessor.Coins.Count());
+			//Assert.True(coin.IsReplaceable);
+		}
+
+		[Fact]
 		public async Task ReceiveTransactionForWalletAsync()
 		{
 			var transactionProcessor = await CreateTransactionProcessorAsync();
