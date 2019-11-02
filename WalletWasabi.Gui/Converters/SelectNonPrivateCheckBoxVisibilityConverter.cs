@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using WalletWasabi.Gui.Models;
 
 namespace WalletWasabi.Gui.Converters
 {
@@ -10,7 +11,7 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is true)
+			if (value is CoinListContainerType.CoinJoinTabViewModel)
 			{
 				return true;
 			}
