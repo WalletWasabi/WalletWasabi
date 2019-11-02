@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.BitcoinCore
+namespace WalletWasabi.BitcoinCore.Configuration
 {
 	public class CoreConfig
 	{

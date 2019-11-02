@@ -13,6 +13,7 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.Configuration;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
@@ -35,13 +36,16 @@ namespace WalletWasabi.BitcoinCore
 				coreNode.DataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 
 				var configPath = Path.Combine(coreNode.DataDir, "bitcoin.conf");
+				var config = new CoreConfig();
 				if (File.Exists(configPath))
 				{
-					var foundConfig = await NodeConfigParameters.LoadAsync(configPath);
-					var rpcPortString = foundConfig["regtest.rpcport"];
-					var rpcUser = foundConfig["regtest.rpcuser"];
-					var rpcPassword = foundConfig["regtest.rpcpassword"];
-					var pidFileName = foundConfig["regtest.pid"];
+					var configString = await File.ReadAllTextAsync(configPath).ConfigureAwait(false);
+					config.TryAdd(configString);
+					var foundConfigDic = config.ToDictionary();
+					var rpcPortString = foundConfigDic["regtest.rpcport"];
+					var rpcUser = foundConfigDic["regtest.rpcuser"];
+					var rpcPassword = foundConfigDic["regtest.rpcpassword"];
+					var pidFileName = foundConfigDic["regtest.pid"];
 					var credentials = new NetworkCredential(rpcUser, rpcPassword);
 					try
 					{
@@ -108,22 +112,21 @@ namespace WalletWasabi.BitcoinCore
 
 				coreNode.RpcClient = new RPCClient($"{creds.UserName}:{creds.Password}", coreNode.RpcEndPoint.ToString(rpcPort), Network.RegTest);
 
-				var config = new NodeConfigParameters
-				{
-					{"regtest", "1"},
-					{"regtest.rest", "1"},
-					{"regtest.listenonion", "0"},
-					{"regtest.server", "1"},
-					{"regtest.txindex", "1"},
-					{"regtest.rpcuser", coreNode.RpcClient.CredentialString.UserPassword.UserName},
-					{"regtest.rpcpassword", coreNode.RpcClient.CredentialString.UserPassword.Password},
-					{"regtest.whitebind", "127.0.0.1:" + p2pPort.ToString()},
-					{"regtest.rpcport", coreNode.RpcEndPoint.GetPortOrDefault().ToString()},
-					{"regtest.printtoconsole", "0"}, // Set it to one if do not mind loud debug logs
-					{"regtest.keypool", "10"},
-					{"regtest.pid", "bitcoind.pid"}
-				};
+				var desiredConfigString =
+@$"regtest				= 1
+regtest.rest			= 1
+regtest.listenonion		= 0
+regtest.server			= 1
+regtest.txindex			= 1
+regtest.rpcuser			= {coreNode.RpcClient.CredentialString.UserPassword.UserName}
+regtest.rpcpassword		= {coreNode.RpcClient.CredentialString.UserPassword.Password}
+regtest.whitebind		= 127.0.0.1:{p2pPort}
+regtest.rpcport			= {coreNode.RpcEndPoint.GetPortOrDefault()}
+regtest.printtoconsole	= 0
+regtest.keypool			= 10
+regtest.pid				= bitcoind.pid";
 
+				config.AddOrUpdate(desiredConfigString);
 				await File.WriteAllTextAsync(configPath, config.ToString());
 				using (await coreNode.KillerLock.LockAsync())
 				{

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using WalletWasabi.BitcoinCore;
+using WalletWasabi.BitcoinCore.Configuration;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BitcoinCore
