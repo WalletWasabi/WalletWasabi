@@ -25,6 +25,19 @@ bar
 			var coreConfig = new CoreConfig();
 			coreConfig.TryAdd(testConfig);
 
+			var expectedConfig =
+@"foo = buz
+
+foo bar = buz quxx
+
+too = 1
+foo
+bar
+#qoo=boo
+";
+
+			Assert.Equal(expectedConfig, coreConfig.ToString());
+
 			var configDic = coreConfig.ToDictionary();
 
 			Assert.True(configDic.TryGetValue("foo", out string v1));
@@ -80,16 +93,31 @@ bar
 			Assert.Equal("bar", fooValue);
 			Assert.Equal("0", tooValue);
 
-			var expectedConfig =
-@"foo=bar
-foo = bar
- foo = bar
+			expectedConfig =
+@"foo = buz
+
 foo bar = buz quxx
 
+too = 1
 foo
+bar
 #qoo=boo
 moo = 1
-too = 0";
+";
+
+			Assert.Equal(expectedConfig, coreConfig.ToString());
+
+			var expectedConfig2 =
+@"foo bar = buz quxx
+
+foo
+bar
+#qoo=boo
+moo = 1
+foo = bar
+too = 0
+";
+			Assert.Equal(expectedConfig2, coreConfig2.ToString());
 		}
 	}
 }

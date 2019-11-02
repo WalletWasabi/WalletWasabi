@@ -36,6 +36,7 @@ namespace WalletWasabi.BitcoinCore
 
 			Key = parts[0];
 			Value = parts[1];
+			Line = $"{Key} = {Value}";
 		}
 
 		public override string ToString() => Line;
