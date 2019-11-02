@@ -42,13 +42,15 @@ namespace WalletWasabi.BitcoinCore
 					var configString = await File.ReadAllTextAsync(configPath).ConfigureAwait(false);
 					config.TryAdd(configString);
 					var foundConfigDic = config.ToDictionary();
-					var rpcPortString = foundConfigDic["regtest.rpcport"];
-					var rpcUser = foundConfigDic["regtest.rpcuser"];
-					var rpcPassword = foundConfigDic["regtest.rpcpassword"];
-					var pidFileName = foundConfigDic["regtest.pid"];
-					var credentials = new NetworkCredential(rpcUser, rpcPassword);
+
 					try
 					{
+						var rpcPortString = foundConfigDic.TryGet("regtest.rpcport");
+						var rpcUser = foundConfigDic.TryGet("regtest.rpcuser");
+						var rpcPassword = foundConfigDic.TryGet("regtest.rpcpassword");
+						var pidFileName = foundConfigDic.TryGet("regtest.pid");
+
+						var credentials = new NetworkCredential(rpcUser, rpcPassword);
 						var rpc = new RPCClient(credentials, new Uri("http://127.0.0.1:" + rpcPortString + "/"), Network.RegTest);
 						await rpc.StopAsync();
 
@@ -70,11 +72,13 @@ namespace WalletWasabi.BitcoinCore
 							}
 						}
 					}
-					catch (Exception)
+					catch (Exception ex)
 					{
+						Logger.LogWarning(ex);
 					}
 				}
-
+				return;
+				// DO NOT LET IT GO FURTHER. IT'D DELETE YOUR BITCOIN CORE FOLDER
 				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(coreNode.DataDir);
 				IoHelpers.EnsureDirectoryExists(coreNode.DataDir);
 
