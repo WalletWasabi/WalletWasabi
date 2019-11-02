@@ -151,7 +151,7 @@ namespace WalletWasabi.Gui
 			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
 			var addrManTask = InitializeAddressManagerBehaviorAsync();
-			var nodeCreationTask = CoreNode.CreateAsync(EnvironmentHelpers.TryGetDefaultBitcoinCoreDataDir());
+			var nodeCreationTask = CoreNode.CreateAsync(new CoreNodeParams(EnvironmentHelpers.TryGetDefaultBitcoinCoreDataDir(), tryRestart: false, tryDeleteDataDir: false));
 
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
 			var connectionParameters = new NodeConnectionParameters { UserAgent = "/Satoshi:0.18.1/" };
@@ -636,7 +636,7 @@ namespace WalletWasabi.Gui
 
 				if (BitcoinCoreNode != null)
 				{
-					await BitcoinCoreNode.StopAsync().ConfigureAwait(false);
+					await BitcoinCoreNode.StopAsync(deleteDataDir: false).ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(BitcoinCoreNode)} is stopped.");
 				}
 
