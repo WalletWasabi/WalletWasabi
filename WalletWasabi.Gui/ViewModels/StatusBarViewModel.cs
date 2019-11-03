@@ -19,6 +19,7 @@ using WalletWasabi.Gui.Converters;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Tabs;
+using WalletWasabi.Gui.Tabs.LegalDocs;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -55,6 +56,9 @@ namespace WalletWasabi.Gui.ViewModels
 		private bool _downloadingBlock;
 		public Global Global { get; }
 		private StatusBarStatusSet ActiveStatuses { get; }
+
+		private ObservableAsPropertyHelper<bool> _isLegalDocsAgreed;
+		public bool IsLegalDocsAgreed => _isLegalDocsAgreed?.Value ?? false;
 
 		public StatusBarViewModel(Global global)
 		{
@@ -224,6 +228,12 @@ namespace WalletWasabi.Gui.ViewModels
 					}
 				}).DisposeWith(Disposables);
 
+			_isLegalDocsAgreed = RuntimeParams.Instance
+				.WhenAnyValue(x => x.IsLegalDocsAgreed)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.ToProperty(this, x => x.IsLegalDocsAgreed, scheduler: RxApp.MainThreadScheduler)
+				.DisposeWith(Disposables);
+
 			updateChecker.Start(TimeSpan.FromMinutes(7));
 		}
 
@@ -345,6 +355,11 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				Logger.LogWarning(ex);
 			}
+		}
+
+		public void OnLegalClicked()
+		{
+			IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectLegalIssues();
 		}
 
 		#region IDisposable Support

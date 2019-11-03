@@ -7,6 +7,8 @@ using System.Composition;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 
@@ -46,7 +48,8 @@ namespace WalletWasabi.Gui.Tabs.LegalDocs
 			AcceptTermsCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				RuntimeParams.Instance.AgreedLegalDocsVersion = RuntimeParams.Instance.DownloadedLegalDocsVersion;
-				await RuntimeParams.Instance.SaveAsync();
+				await RuntimeParams.Instance.SaveAsync(); //TODO: remove comment.
+				OnClose();
 			});
 
 			AcceptTermsCommand.ThrownExceptions.Subscribe((ex) => Logging.Logger.LogWarning(ex));
@@ -93,6 +96,7 @@ namespace WalletWasabi.Gui.Tabs.LegalDocs
 
 			_isLegalDocsAgreed = RuntimeParams.Instance
 				.WhenAnyValue(x => x.IsLegalDocsAgreed)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.ToProperty(this, x => x.IsLegalDocsAgreed, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 		}
@@ -103,6 +107,10 @@ namespace WalletWasabi.Gui.Tabs.LegalDocs
 			{
 				category.Dispose();
 			}
+
+			Disposables?.Dispose();
+			Disposables = null;
+
 			return base.OnClose();
 		}
 

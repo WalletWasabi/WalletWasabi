@@ -36,10 +36,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				this.WhenAnyValue(x => x.Password).Select(pw => !ValidatePassword().HasErrors),
 				(terms, pw) => terms && pw);
 
-			GenerateCommand = ReactiveCommand.Create(DoGenerateCommand, canGenerate);
+			GenerateCommand = ReactiveCommand.CreateFromTask(DoGenerateCommandAsync, canGenerate);
 		}
 
-		private void DoGenerateCommand()
+		private async System.Threading.Tasks.Task DoGenerateCommandAsync()
 		{
 			WalletName = Guard.Correct(WalletName);
 
@@ -68,8 +68,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				try
 				{
 					PasswordHelper.Guard(Password); // Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password bacause of compatibility.
-
 					KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
+
+					RuntimeParams.Instance.AgreedLegalDocsVersion = RuntimeParams.Instance.DownloadedLegalDocsVersion;
+					await RuntimeParams.Instance.SaveAsync();
 
 					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, mnemonic);
 				}

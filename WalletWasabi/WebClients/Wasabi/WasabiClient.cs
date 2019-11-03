@@ -193,7 +193,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 			using HttpContent content = response.Content;
 			var resp = await content.ReadAsJsonAsync<VersionsResponse>();
-			return (Version.Parse(resp.ClientVersion), int.Parse(resp.BackendMajorVersion), Version.Parse(resp.LegalDocsVersion));
+			return (Version.Parse(resp.ClientVersion), int.Parse(resp.BackendMajorVersion), Version.Parse(resp.LegalDocsVersion ?? "0.0.0.0"));
 		}
 
 		public async Task<UpdateStatusResult> CheckUpdatesAsync(CancellationToken cancel)
