@@ -4,13 +4,14 @@ using Avalonia.Data;
 using Avalonia.Markup.Xaml;
 using ReactiveUI;
 using System;
+using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinListView : UserControl
 	{
 		public static readonly StyledProperty<bool> SelectAllNonPrivateVisibleProperty =
-			AvaloniaProperty.Register<CoinListView, bool>(nameof(SelectAllNonPrivateVisible), defaultBindingMode: BindingMode.TwoWay);
+			AvaloniaProperty.Register<CoinListView, bool>(nameof(SelectAllNonPrivateVisible), defaultBindingMode: BindingMode.OneWayToSource);
 
 		public bool SelectAllNonPrivateVisible
 		{
@@ -29,6 +30,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					if (dataContext is CoinListViewModel viewmodel)
 					{
+						// Value is only propagated when DataContext is set at the beginning.
 						viewmodel.SelectAllNonPrivateVisible = SelectAllNonPrivateVisible;
 					}
 				});
