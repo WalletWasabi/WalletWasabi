@@ -643,7 +643,7 @@ namespace WalletWasabi.Gui
 
 				if (BitcoinCoreNode != null)
 				{
-					await BitcoinCoreNode.StopAsync(deleteDataDir: false).ConfigureAwait(false);
+					await BitcoinCoreNode.TryStopAsync(deleteDataDir: false).ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(BitcoinCoreNode)} is stopped.");
 				}
 

@@ -30,6 +30,8 @@ namespace WalletWasabi.BitcoinCore
 		public string DataDir { get; private set; }
 		public Network Network { get; private set; }
 
+		public CoreConfig Config { get; private set; }
+
 		public static async Task<CoreNode> CreateAsync(CoreNodeParams coreNodeParams)
 		{
 			Guard.NotNull(nameof(coreNodeParams), coreNodeParams);
@@ -41,20 +43,14 @@ namespace WalletWasabi.BitcoinCore
 				coreNode.Network = coreNodeParams.Network;
 
 				var configPath = Path.Combine(coreNode.DataDir, "bitcoin.conf");
-				var config = new CoreConfig();
+				coreNode.Config = new CoreConfig();
 				if (File.Exists(configPath))
 				{
 					var configString = await File.ReadAllTextAsync(configPath).ConfigureAwait(false);
-					config.TryAdd(configString);
+					coreNode.Config.TryAdd(configString);
 				}
 
-				if (coreNodeParams.TryRestart)
-				{
-					await TryStopNoLockAsync(coreNode.Network, coreNode.DataDir, deleteDataDir: coreNodeParams.TryDeleteDataDir).ConfigureAwait(false);
-				}
-				IoHelpers.EnsureDirectoryExists(coreNode.DataDir);
-
-				var configDic = config.ToDictionary();
+				var configDic = coreNode.Config.ToDictionary();
 				string rpcUser = null;
 				string rpcPassword = null;
 				EndPoint whitebind = null;
@@ -102,6 +98,12 @@ namespace WalletWasabi.BitcoinCore
 				coreNode.RpcClient = new RPCClient($"{creds.UserName}:{creds.Password}", coreNode.RpcEndPoint.ToString(coreNode.Network.DefaultPort), coreNode.Network);
 				var pidFileName = "bitcoind.pid";
 
+				if (coreNodeParams.TryRestart)
+				{
+					await coreNode.TryStopNoLockAsync(deleteDataDir: coreNodeParams.TryDeleteDataDir).ConfigureAwait(false);
+				}
+				IoHelpers.EnsureDirectoryExists(coreNode.DataDir);
+
 				var configPrefix = NetworkTranslator.GetConfigPrefix(coreNode.Network);
 				var desiredConfigLines = new List<string>()
 				{
@@ -119,16 +121,16 @@ namespace WalletWasabi.BitcoinCore
 				// If the comment is not already present.
 				// And there would be new config entries added.
 				var throwAwayConfig = new CoreConfig();
-				throwAwayConfig.TryAdd(config.ToString());
+				throwAwayConfig.TryAdd(coreNode.Config.ToString());
 				throwAwayConfig.AddOrUpdate(string.Join(Environment.NewLine, desiredConfigLines));
-				if (!config.ToString().Contains(sectionComment, StringComparison.Ordinal)
-					&& throwAwayConfig.ToDictionary().Count != config.ToDictionary().Count)
+				if (!coreNode.Config.ToString().Contains(sectionComment, StringComparison.Ordinal)
+					&& throwAwayConfig.ToDictionary().Count != coreNode.Config.ToDictionary().Count)
 				{
 					desiredConfigLines.Insert(0, sectionComment);
 				}
 
-				config.AddOrUpdate(string.Join(Environment.NewLine, desiredConfigLines));
-				await File.WriteAllTextAsync(configPath, config.ToString());
+				coreNode.Config.AddOrUpdate(string.Join(Environment.NewLine, desiredConfigLines));
+				await File.WriteAllTextAsync(configPath, coreNode.Config.ToString());
 				var configFileName = Path.GetFileName(configPath);
 
 				coreNode.Bridge = new BitcoindProcessBridge();
@@ -191,71 +193,51 @@ namespace WalletWasabi.BitcoinCore
 			return await Task.WhenAll(tasks).ConfigureAwait(false);
 		}
 
-		public async Task StopAsync(bool deleteDataDir)
-		{
-			await TryStopAsync(Network, DataDir, deleteDataDir).ConfigureAwait(false);
-		}
-
 		private static AsyncLock KillerLock { get; } = new AsyncLock();
 
-		public static async Task TryStopAsync(Network network, string dataDir, bool deleteDataDir)
+		public async Task TryStopAsync(bool deleteDataDir)
 		{
 			using (await KillerLock.LockAsync().ConfigureAwait(false))
 			{
-				await TryStopNoLockAsync(network, dataDir, deleteDataDir).ConfigureAwait(false);
+				await TryStopNoLockAsync(deleteDataDir).ConfigureAwait(false);
 			}
 		}
 
-		public static async Task TryStopNoLockAsync(Network network, string dataDir, bool deleteDataDir)
+		public async Task TryStopNoLockAsync(bool deleteDataDir)
 		{
-			dataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
-			network = Guard.NotNull(nameof(network), network);
-
 			try
 			{
 				var reasonableCoreShutdownTimeout = TimeSpan.FromSeconds(21);
-				var configPath = Path.Combine(dataDir, "bitcoin.conf");
-				var config = new CoreConfig();
-				if (File.Exists(configPath))
+
+				var foundConfigDic = Config.ToDictionary();
+
+				var networkEntry = NetworkTranslator.GetConfigPrefix(Network);
+				var pidFileName = foundConfigDic.TryGet($"{networkEntry}.pid");
+
+				await RpcClient.StopAsync().ConfigureAwait(false);
+
+				var pidFile = Path.Combine(DataDir, NetworkTranslator.GetDataDirPrefix(Network), pidFileName);
+				using CancellationTokenSource cts = new CancellationTokenSource(reasonableCoreShutdownTimeout);
+				if (File.Exists(pidFile))
 				{
-					var configString = await File.ReadAllTextAsync(configPath).ConfigureAwait(false);
-					config.TryAdd(configString);
-
-					var foundConfigDic = config.ToDictionary();
-
-					var networkEntry = NetworkTranslator.GetConfigPrefix(network);
-					var rpcPortString = foundConfigDic.TryGet($"{networkEntry}.rpcport");
-					var rpcUser = foundConfigDic.TryGet($"{networkEntry}.rpcuser");
-					var rpcPassword = foundConfigDic.TryGet($"{networkEntry}.rpcpassword");
-					var pidFileName = foundConfigDic.TryGet($"{networkEntry}.pid");
-
-					var credentials = new NetworkCredential(rpcUser, rpcPassword);
-					var rpc = new RPCClient(credentials, new Uri("http://127.0.0.1:" + rpcPortString + "/"), network);
-					await rpc.StopAsync().ConfigureAwait(false);
-
-					var pidFile = Path.Combine(dataDir, NetworkTranslator.GetDataDirPrefix(network), pidFileName);
-					using CancellationTokenSource cts = new CancellationTokenSource(reasonableCoreShutdownTimeout);
-					if (File.Exists(pidFile))
+					var pid = await File.ReadAllTextAsync(pidFile).ConfigureAwait(false);
+					using var process = Process.GetProcessById(int.Parse(pid));
+					await process.WaitForExitAsync(cts.Token).ConfigureAwait(false);
+				}
+				else
+				{
+					var allProcesses = Process.GetProcesses();
+					var bitcoindProcesses = allProcesses.Where(x => x.ProcessName.Contains("bitcoind"));
+					if (bitcoindProcesses.Count() == 1)
 					{
-						var pid = await File.ReadAllTextAsync(pidFile).ConfigureAwait(false);
-						using var process = Process.GetProcessById(int.Parse(pid));
-						await process.WaitForExitAsync(cts.Token).ConfigureAwait(false);
-					}
-					else
-					{
-						var allProcesses = Process.GetProcesses();
-						var bitcoindProcesses = allProcesses.Where(x => x.ProcessName.Contains("bitcoind"));
-						if (bitcoindProcesses.Count() == 1)
-						{
-							var bitcoind = bitcoindProcesses.First();
-							await bitcoind.WaitForExitAsync(cts.Token).ConfigureAwait(false);
-						}
+						var bitcoind = bitcoindProcesses.First();
+						await bitcoind.WaitForExitAsync(cts.Token).ConfigureAwait(false);
 					}
 				}
 
 				if (deleteDataDir)
 				{
-					await IoHelpers.DeleteRecursivelyWithMagicDustAsync(dataDir).ConfigureAwait(false);
+					await IoHelpers.DeleteRecursivelyWithMagicDustAsync(DataDir).ConfigureAwait(false);
 				}
 			}
 			catch (Exception ex)
