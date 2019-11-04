@@ -222,10 +222,6 @@ namespace WalletWasabi.BitcoinCore
 					await process.WaitForExitAsync(cts.Token).ConfigureAwait(false);
 					return true;
 				}
-				else
-				{
-					await RpcClient.StopAsync().ConfigureAwait(false);
-				}
 			}
 			catch (Exception ex)
 			{
