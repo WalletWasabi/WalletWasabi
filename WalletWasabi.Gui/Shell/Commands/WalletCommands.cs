@@ -7,6 +7,8 @@ using ReactiveUI;
 using System.Composition;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using Avalonia;
+using WalletWasabi.Helpers;
+using WalletWasabi.Gui.Tabs.LegalDocs;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
@@ -33,16 +35,34 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnGenerateWallet()
 		{
+			if (!RuntimeParams.Instance.IsLegalDocsAgreed)
+			{
+				IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectLegalIssues();
+				return;
+			}
+
 			IoC.Get<IShell>().GetOrCreate<WalletManagerViewModel>().SelectGenerateWallet();
 		}
 
 		private void OnRecoverWallet()
 		{
+			if (!RuntimeParams.Instance.IsLegalDocsAgreed)
+			{
+				IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectLegalIssues();
+				return;
+			}
+
 			IoC.Get<IShell>().GetOrCreate<WalletManagerViewModel>().SelectRecoverWallet();
 		}
 
 		private void OnLoadWallet()
 		{
+			if (!RuntimeParams.Instance.IsLegalDocsAgreed)
+			{
+				IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectLegalIssues();
+				return;
+			}
+
 			IoC.Get<IShell>().GetOrCreate<WalletManagerViewModel>().SelectLoadWallet();
 		}
 

@@ -48,7 +48,7 @@ namespace WalletWasabi.Gui.Tabs.LegalDocs
 			AcceptTermsCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				RuntimeParams.Instance.AgreedLegalDocsVersion = RuntimeParams.Instance.DownloadedLegalDocsVersion;
-				await RuntimeParams.Instance.SaveAsync(); //TODO: remove comment.
+				await RuntimeParams.Instance.SaveAsync();
 				OnClose();
 			});
 

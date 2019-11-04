@@ -12,7 +12,9 @@ using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Tabs;
+using WalletWasabi.Gui.Tabs.LegalDocs;
 using WalletWasabi.Gui.Tabs.WalletManager;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Shell.Commands
@@ -77,6 +79,12 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnWalletManager()
 		{
+			if (!RuntimeParams.Instance.IsLegalDocsAgreed)
+			{
+				IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectLegalIssues();
+				return;
+			}
+
 			var walletManagerViewModel = IoC.Get<IShell>().GetOrCreate<WalletManagerViewModel>();
 			if (Directory.Exists(Global.WalletsDir) && Directory.EnumerateFiles(Global.WalletsDir).Any())
 			{

@@ -58,7 +58,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private StatusBarStatusSet ActiveStatuses { get; }
 
 		private ObservableAsPropertyHelper<bool> _isLegalDocsAgreed;
-		public bool IsLegalDocsAgreed => _isLegalDocsAgreed?.Value ?? false;
+		public bool IsLegalDocsAgreed => _isLegalDocsAgreed?.Value ?? true;
 
 		public StatusBarViewModel(Global global)
 		{
@@ -85,6 +85,12 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.ToProperty(this, x => x.Status)
 				.DisposeWith(Disposables);
+
+			_isLegalDocsAgreed = RuntimeParams.Instance.WhenAnyValue(x => x.IsLegalDocsAgreed)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.ToProperty(this, x => x.IsLegalDocsAgreed)
+				.DisposeWith(Disposables);
+			this.RaisePropertyChanged(nameof(IsLegalDocsAgreed)); // You have to put this here otherwise it is not picking up the initial value.
 
 			Observable
 				.Merge(Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Added)).Select(x => true)
@@ -221,18 +227,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 					UpdateAvailable = !x.ClientUpToDate;
 					CriticalUpdateAvailable = !x.BackendCompatible;
-
-					if (!x.LegalDocsUpToDate)
-					{
-						// TODO: ensure that the user agreed with the terms and conditions.
-					}
 				}).DisposeWith(Disposables);
-
-			_isLegalDocsAgreed = RuntimeParams.Instance
-				.WhenAnyValue(x => x.IsLegalDocsAgreed)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.ToProperty(this, x => x.IsLegalDocsAgreed, scheduler: RxApp.MainThreadScheduler)
-				.DisposeWith(Disposables);
 
 			updateChecker.Start(TimeSpan.FromMinutes(7));
 		}

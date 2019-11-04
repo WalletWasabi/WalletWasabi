@@ -20,8 +20,10 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Dialogs;
+using WalletWasabi.Gui.Tabs.LegalDocs;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui
@@ -53,7 +55,25 @@ namespace WalletWasabi.Gui
 		{
 			Closing += MainWindow_ClosingAsync;
 			AvaloniaXamlLoader.Load(this);
-			DisplayWalletManager();
+
+			//_isLegalDocsAgreed = RuntimeParams.Instance
+			//	.WhenAnyValue(x => x.IsLegalDocsAgreed)
+			//	.ObserveOn(RxApp.MainThreadScheduler)
+			//	.ToProperty(this, x => x.IsLegalDocsAgreed, scheduler: RxApp.MainThreadScheduler)
+			//	.DisposeWith(Disposables);
+			if (RuntimeParams.Instance.IsLegalDocsAgreed)
+			{
+				DisplayWalletManager();
+			}
+			else
+			{
+				RuntimeParams.Instance
+				.WhenAnyValue(x => x.IsLegalDocsAgreed)
+				.Where(x => x)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Take(1)
+				.Subscribe(_ => DisplayWalletManager());
+			}
 
 			var uiConfigFilePath = Path.Combine(Global.DataDir, "UiConfig.json");
 			var uiConfig = new UiConfig(uiConfigFilePath);
@@ -81,6 +101,11 @@ namespace WalletWasabi.Gui
 						}
 
 						MainWindowViewModel.Instance.LockScreen.Initialize();
+
+						if (!RuntimeParams.Instance.IsLegalDocsAgreed)
+						{
+							IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectLegalIssues();
+						}
 					}
 					catch (Exception ex)
 					{
