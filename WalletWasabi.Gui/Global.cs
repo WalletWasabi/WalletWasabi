@@ -18,6 +18,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
+using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.Coins;
 using WalletWasabi.Crypto;
@@ -151,7 +152,13 @@ namespace WalletWasabi.Gui
 			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
 			var addrManTask = InitializeAddressManagerBehaviorAsync();
-			var nodeCreationTask = CoreNode.CreateAsync(new CoreNodeParams(Network, EnvironmentHelpers.TryGetDefaultBitcoinCoreDataDir(), tryRestart: false, tryDeleteDataDir: false));
+			var nodeCreationTask = CoreNode.CreateAsync(new CoreNodeParams(
+				Network,
+				EnvironmentHelpers.TryGetDefaultBitcoinCoreDataDir(),
+				tryRestart: false,
+				tryDeleteDataDir: false,
+				EndPointStrategy.Custom(Config.GetBitcoinP2pEndPoint()),
+				EndPointStrategy.Default(Network, EndPointType.Rpc)));
 
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
 			var connectionParameters = new NodeConnectionParameters { UserAgent = "/Satoshi:0.18.1/" };

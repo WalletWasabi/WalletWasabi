@@ -9,19 +9,12 @@ namespace WalletWasabi.BitcoinCore.Configuration
 {
 	public static class NetworkTranslator
 	{
-		public static string GetConfigPrefix(Network network, bool mainnetEmpty)
+		public static string GetConfigPrefix(Network network)
 		{
 			Guard.NotNull(nameof(network), network);
 			if (network == Network.Main)
 			{
-				if (mainnetEmpty)
-				{
-					return string.Empty;
-				}
-				else
-				{
-					return "main";
-				}
+				return "main";
 			}
 			else if (network == Network.TestNet)
 			{
@@ -34,6 +27,17 @@ namespace WalletWasabi.BitcoinCore.Configuration
 			else
 			{
 				throw new NotSupportedNetworkException(network);
+			}
+		}
+
+		public static IEnumerable<string> GetConfigPrefixesWithDots(Network network)
+		{
+			Guard.NotNull(nameof(network), network);
+
+			yield return $"{GetConfigPrefix(network)}.";
+			if (network == Network.Main)
+			{
+				yield return string.Empty;
 			}
 		}
 

@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Configuration;
+using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
@@ -53,63 +54,72 @@ namespace WalletWasabi.BitcoinCore
 				}
 				IoHelpers.EnsureDirectoryExists(coreNode.DataDir);
 
-				var pass = Encoders.Hex.EncodeData(RandomUtils.GetBytes(20));
-				var creds = new NetworkCredential(pass, pass);
-
-				var portArray = new int[2];
-				var i = 0;
-				while (i < portArray.Length)
+				var configDic = config.ToDictionary();
+				string rpcUser = null;
+				string rpcPassword = null;
+				EndPoint whitebind = null;
+				string rpcHost = null;
+				int? rpcPort = null;
+				foreach (var networkPrefixWithDot in NetworkTranslator.GetConfigPrefixesWithDots(coreNode.Network))
 				{
-					var port = RandomUtils.GetUInt32() % 4000;
-					port += 10000;
-					if (portArray.Any(p => p == port))
-					{
-						continue;
-					}
+					var ru = configDic.TryGet($"{networkPrefixWithDot}rpcuser");
+					var rp = configDic.TryGet($"{networkPrefixWithDot}rpcpassword");
+					var wbs = configDic.TryGet($"{networkPrefixWithDot}whitebind");
+					var rpst = configDic.TryGet($"{networkPrefixWithDot}rpchost");
+					var rpts = configDic.TryGet($"{networkPrefixWithDot}rpcport");
 
-					try
+					if (ru != null)
 					{
-						var listener = new TcpListener(IPAddress.Loopback, (int)port);
-						listener.Start();
-						listener.Stop();
-						portArray[i] = (int)port;
-						i++;
+						rpcUser = ru;
 					}
-					catch (SocketException)
+					if (rp != null)
 					{
+						rpcUser = rp;
+					}
+					if (wbs != null && EndPointParser.TryParse(wbs, coreNode.Network.DefaultPort, out EndPoint wb))
+					{
+						whitebind = wb;
+					}
+					if (rpst != null)
+					{
+						rpcHost = rpst;
+					}
+					if (rpts != null && int.TryParse(rpts, out int rpt))
+					{
+						rpcPort = rpt;
 					}
 				}
+				rpcUser ??= Encoders.Hex.EncodeData(RandomUtils.GetBytes(21));
+				rpcPassword ??= Encoders.Hex.EncodeData(RandomUtils.GetBytes(21));
+				var creds = new NetworkCredential(rpcUser, rpcPassword);
 
-				var p2pPort = portArray[0];
-				var rpcPort = portArray[1];
-				coreNode.P2pEndPoint = new IPEndPoint(IPAddress.Loopback, p2pPort);
-				coreNode.RpcEndPoint = new IPEndPoint(IPAddress.Loopback, rpcPort);
+				coreNode.P2pEndPoint = whitebind ?? coreNodeParams.P2pEndPointStrategy.EndPoint;
+				rpcHost ??= coreNodeParams.RpcEndPointStrategy.EndPoint.GetHostOrDefault();
+				rpcPort ??= coreNodeParams.RpcEndPointStrategy.EndPoint.GetPortOrDefault();
+				EndPointParser.TryParse($"{rpcHost}:{rpcPort}", coreNode.Network.RPCPort, out EndPoint rpce);
+				coreNode.RpcEndPoint = rpce;
 
-				coreNode.RpcClient = new RPCClient($"{creds.UserName}:{creds.Password}", coreNode.RpcEndPoint.ToString(rpcPort), coreNode.Network);
+				coreNode.RpcClient = new RPCClient($"{creds.UserName}:{creds.Password}", coreNode.RpcEndPoint.ToString(coreNode.Network.DefaultPort), coreNode.Network);
+				var pidFileName = "bitcoind.pid";
 
-				var configPrefix = NetworkTranslator.GetConfigPrefix(coreNode.Network, mainnetEmpty: false);
+				var configPrefix = NetworkTranslator.GetConfigPrefix(coreNode.Network);
 				var desiredConfigString =
-@$"regtest						= 1
-{configPrefix}.rest				= 1
-{configPrefix}.listenonion		= 0
-{configPrefix}.server			= 1
+@$"{configPrefix}.server		= 1
 {configPrefix}.txindex			= 1
+{configPrefix}.whitebind		= {coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}
 {configPrefix}.rpcuser			= {coreNode.RpcClient.CredentialString.UserPassword.UserName}
 {configPrefix}.rpcpassword		= {coreNode.RpcClient.CredentialString.UserPassword.Password}
-{configPrefix}.whitebind		= 127.0.0.1:{p2pPort}
+{configPrefix}.rpchost			= {coreNode.RpcEndPoint.GetHostOrDefault()}
 {configPrefix}.rpcport			= {coreNode.RpcEndPoint.GetPortOrDefault()}
-{configPrefix}.printtoconsole	= 0
-{configPrefix}.keypool			= 10
-{configPrefix}.pid				= bitcoind.pid
-{configPrefix}.checklevel		= 0
-{configPrefix}.checkblocks		= 1";
+{configPrefix}.pid				= {pidFileName}";
 
 				config.AddOrUpdate(desiredConfigString);
 				await File.WriteAllTextAsync(configPath, config.ToString());
+				var configFileName = Path.GetFileName(configPath);
 
 				coreNode.Bridge = new BitcoindProcessBridge();
-				coreNode.Process = coreNode.Bridge.Start($"-conf=bitcoin.conf -datadir={coreNode.DataDir} -debug=1", false);
-				string pidFile = Path.Combine(coreNode.DataDir, NetworkTranslator.GetDataDirPrefix(coreNode.Network), "bitcoind.pid");
+				coreNode.Process = coreNode.Bridge.Start($"-{coreNode.Network.ToString().ToLowerInvariant()} -conf={configFileName} -datadir={coreNode.DataDir} -printtoconsole=0", false);
+				string pidFile = Path.Combine(coreNode.DataDir, NetworkTranslator.GetDataDirPrefix(coreNode.Network), pidFileName);
 				if (!File.Exists(pidFile))
 				{
 					IoHelpers.EnsureDirectoryExists(Path.Combine(coreNode.DataDir, NetworkTranslator.GetDataDirPrefix(coreNode.Network)));
@@ -123,8 +133,9 @@ namespace WalletWasabi.BitcoinCore
 						await coreNode.RpcClient.GetBlockHashAsync(0).ConfigureAwait(false);
 						break;
 					}
-					catch
+					catch (Exception ex)
 					{
+						Logger.LogTrace(ex);
 					}
 					if (coreNode.Process is null || coreNode.Process.HasExited)
 					{
@@ -198,7 +209,7 @@ namespace WalletWasabi.BitcoinCore
 
 					var foundConfigDic = config.ToDictionary();
 
-					var networkEntry = NetworkTranslator.GetConfigPrefix(network, mainnetEmpty: false);
+					var networkEntry = NetworkTranslator.GetConfigPrefix(network);
 					var rpcPortString = foundConfigDic.TryGet($"{networkEntry}.rpcport");
 					var rpcUser = foundConfigDic.TryGet($"{networkEntry}.rpcuser");
 					var rpcPassword = foundConfigDic.TryGet($"{networkEntry}.rpcpassword");

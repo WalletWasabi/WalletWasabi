@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
+using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Tests.Helpers
@@ -17,6 +18,8 @@ namespace WalletWasabi.Tests.Helpers
 				Network.RegTest,
 				Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName, additionalFolder ?? ""),
 				tryRestart: true,
-				tryDeleteDataDir: true));
+				tryDeleteDataDir: true,
+				EndPointStrategy.Random,
+				EndPointStrategy.Random));
 	}
 }
