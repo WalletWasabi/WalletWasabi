@@ -107,13 +107,22 @@ namespace WalletWasabi.BitcoinCore
 				var desiredConfigLines = new List<string>()
 				{
 					$"{configPrefix}.server			= 1",
-					$"{configPrefix}.txindex		= 1",
 					$"{configPrefix}.whitebind		= {coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
 					$"{configPrefix}.rpcuser		= {coreNode.RpcClient.CredentialString.UserPassword.UserName}",
 					$"{configPrefix}.rpcpassword	= {coreNode.RpcClient.CredentialString.UserPassword.Password}",
 					$"{configPrefix}.rpchost		= {coreNode.RpcEndPoint.GetHostOrDefault()}",
 					$"{configPrefix}.rpcport		= {coreNode.RpcEndPoint.GetPortOrDefault()}"
 				};
+
+				if (coreNodeParams.TxIndex != null)
+				{
+					desiredConfigLines.Add($"{configPrefix}.txindex = {coreNodeParams.TxIndex}");
+				}
+
+				if (coreNodeParams.Prune != null)
+				{
+					desiredConfigLines.Add($"{configPrefix}.prune = {coreNodeParams.Prune}");
+				}
 
 				var sectionComment = $"# The following configuration options were added or modified by Wasabi Wallet.";
 				// If the comment is not already present.

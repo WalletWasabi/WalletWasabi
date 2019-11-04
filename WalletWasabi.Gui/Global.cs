@@ -158,7 +158,9 @@ namespace WalletWasabi.Gui
 			//	tryRestart: false,
 			//	tryDeleteDataDir: false,
 			//	EndPointStrategy.Custom(Config.GetBitcoinP2pEndPoint()),
-			//	EndPointStrategy.Default(Network, EndPointType.Rpc)));
+			//	EndPointStrategy.Default(Network, EndPointType.Rpc),
+			//	txIndex: null,
+			//	prune: null)));
 
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
 			var connectionParameters = new NodeConnectionParameters { UserAgent = "/Satoshi:0.18.1/" };

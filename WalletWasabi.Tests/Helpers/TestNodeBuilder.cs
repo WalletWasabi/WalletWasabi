@@ -20,6 +20,8 @@ namespace WalletWasabi.Tests.Helpers
 				tryRestart: true,
 				tryDeleteDataDir: true,
 				EndPointStrategy.Random,
-				EndPointStrategy.Random));
+				EndPointStrategy.Random,
+				txIndex: 1,
+				prune: 0));
 	}
 }

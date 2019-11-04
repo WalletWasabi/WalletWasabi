@@ -15,7 +15,9 @@ namespace WalletWasabi.BitcoinCore
 			bool tryRestart,
 			bool tryDeleteDataDir,
 			EndPointStrategy p2pEndPointStrategy,
-			EndPointStrategy rpcEndPointStrategy)
+			EndPointStrategy rpcEndPointStrategy,
+			int? txIndex,
+			int? prune)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			DataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
@@ -23,12 +25,16 @@ namespace WalletWasabi.BitcoinCore
 			TryDeleteDataDir = tryDeleteDataDir;
 			P2pEndPointStrategy = Guard.NotNull(nameof(p2pEndPointStrategy), p2pEndPointStrategy);
 			RpcEndPointStrategy = Guard.NotNull(nameof(rpcEndPointStrategy), rpcEndPointStrategy);
+			TxIndex = txIndex;
+			Prune = prune;
 		}
 
 		public string DataDir { get; }
 		public Network Network { get; }
 		public bool TryRestart { get; }
 		public bool TryDeleteDataDir { get; }
+		public int? TxIndex { get; }
+		public int? Prune { get; }
 		public EndPointStrategy P2pEndPointStrategy { get; }
 		public EndPointStrategy RpcEndPointStrategy { get; }
 	}
