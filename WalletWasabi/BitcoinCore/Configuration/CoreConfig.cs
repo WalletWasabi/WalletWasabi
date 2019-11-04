@@ -8,7 +8,19 @@ namespace WalletWasabi.BitcoinCore.Configuration
 {
 	public class CoreConfig
 	{
-		private List<CoreConfigLine> Lines { get; } = new List<CoreConfigLine>();
+		private List<CoreConfigLine> Lines { get; }
+
+		public int Count => Lines.Count;
+
+		public CoreConfig(CoreConfig coreConfig)
+		{
+			Lines = coreConfig.Lines.ToList();
+		}
+
+		public CoreConfig()
+		{
+			Lines = new List<CoreConfigLine>();
+		}
 
 		public IDictionary<string, string> ToDictionary()
 		{
@@ -52,8 +64,9 @@ namespace WalletWasabi.BitcoinCore.Configuration
 		/// <summary>
 		/// TryAdd and AddOrUpdate are sisters. TryAdd always considers the first occurrence of a key as valid, while AddOrUpdate considers the last occurrence of it.
 		/// </summary>
-		public void AddOrUpdate(string configString)
+		public bool AddOrUpdate(string configString)
 		{
+			var ret = false;
 			foreach (var line in ParseConfigLines(configString))
 			{
 				if (line.HasKeyValuePair)
@@ -62,22 +75,27 @@ namespace WalletWasabi.BitcoinCore.Configuration
 					if (foundLine is null)
 					{
 						Lines.Add(line);
+						ret = true;
 					}
 					else if (foundLine.Value != line.Value)
 					{
 						Lines.Remove(foundLine);
 						Lines.Add(line);
+						ret = true;
 					}
 				}
 				else
 				{
 					Lines.Add(line);
+					ret = true;
 				}
-				RemoveFirstEmptyDuplication();
+				ret = ret || RemoveFirstEmptyDuplication();
 			}
+
+			return ret;
 		}
 
-		private void RemoveFirstEmptyDuplication()
+		private bool RemoveFirstEmptyDuplication()
 		{
 			CoreConfigLine toRemove = null;
 			for (int i = 1; i < Lines.Count; i++)
@@ -90,10 +108,14 @@ namespace WalletWasabi.BitcoinCore.Configuration
 					break;
 				}
 			}
+
 			if (toRemove != null)
 			{
 				Lines.Remove(toRemove);
+				return true;
 			}
+
+			return false;
 		}
 
 		private static IEnumerable<CoreConfigLine> ParseConfigLines(string configString)

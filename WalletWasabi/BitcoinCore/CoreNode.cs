@@ -36,7 +36,6 @@ namespace WalletWasabi.BitcoinCore
 		{
 			Guard.NotNull(nameof(coreNodeParams), coreNodeParams);
 			using (BenchmarkLogger.Measure())
-			using (await KillerLock.LockAsync().ConfigureAwait(false))
 			{
 				var coreNode = new CoreNode();
 				coreNode.DataDir = coreNodeParams.DataDir;
@@ -97,12 +96,7 @@ namespace WalletWasabi.BitcoinCore
 
 				coreNode.RpcClient = new RPCClient($"{creds.UserName}:{creds.Password}", coreNode.RpcEndPoint.ToString(coreNode.Network.DefaultPort), coreNode.Network);
 
-				if (coreNodeParams.TryRestart)
-				{
-					await coreNode.TryStopNoLockAsync().ConfigureAwait(false);
-				}
-
-				if (coreNodeParams.TryDeleteDataDir)
+				if (coreNodeParams.TryRestart && await coreNode.TryStopAsync().ConfigureAwait(false) && coreNodeParams.TryDeleteDataDir)
 				{
 					await IoHelpers.DeleteRecursivelyWithMagicDustAsync(coreNode.DataDir).ConfigureAwait(false);
 				}
@@ -124,17 +118,18 @@ namespace WalletWasabi.BitcoinCore
 				var sectionComment = $"# The following configuration options were added or modified by Wasabi Wallet.";
 				// If the comment is not already present.
 				// And there would be new config entries added.
-				var throwAwayConfig = new CoreConfig();
-				throwAwayConfig.TryAdd(coreNode.Config.ToString());
+				var throwAwayConfig = new CoreConfig(coreNode.Config);
 				throwAwayConfig.AddOrUpdate(string.Join(Environment.NewLine, desiredConfigLines));
 				if (!coreNode.Config.ToString().Contains(sectionComment, StringComparison.Ordinal)
-					&& throwAwayConfig.ToDictionary().Count != coreNode.Config.ToDictionary().Count)
+					&& throwAwayConfig.Count != coreNode.Config.Count)
 				{
 					desiredConfigLines.Insert(0, sectionComment);
 				}
 
-				coreNode.Config.AddOrUpdate(string.Join(Environment.NewLine, desiredConfigLines));
-				await File.WriteAllTextAsync(configPath, coreNode.Config.ToString());
+				if (coreNode.Config.AddOrUpdate(string.Join(Environment.NewLine, desiredConfigLines)))
+				{
+					await File.WriteAllTextAsync(configPath, coreNode.Config.ToString());
+				}
 				var configFileName = Path.GetFileName(configPath);
 
 				coreNode.Bridge = new BitcoindProcessBridge();
@@ -147,7 +142,7 @@ namespace WalletWasabi.BitcoinCore
 				{
 					try
 					{
-						await coreNode.RpcClient.GetBlockHashAsync(0).ConfigureAwait(false);
+						await coreNode.RpcClient.GetBlockchainInfoAsync().ConfigureAwait(false);
 						break;
 					}
 					catch (Exception ex)
@@ -194,17 +189,7 @@ namespace WalletWasabi.BitcoinCore
 			return await Task.WhenAll(tasks).ConfigureAwait(false);
 		}
 
-		private static AsyncLock KillerLock { get; } = new AsyncLock();
-
-		public async Task TryStopAsync()
-		{
-			using (await KillerLock.LockAsync().ConfigureAwait(false))
-			{
-				await TryStopNoLockAsync().ConfigureAwait(false);
-			}
-		}
-
-		public async Task TryStopNoLockAsync()
+		public async Task<bool> TryStopAsync()
 		{
 			try
 			{
@@ -218,17 +203,19 @@ namespace WalletWasabi.BitcoinCore
 
 				if (pid.HasValue)
 				{
+					using Process process = Process.GetProcessById(pid.Value);
+					var waitForExit = process.WaitForExitAsync(cts.Token);
 					try
 					{
-						using Process process = Process.GetProcessById(pid.Value);
-						var waitForExit = process.WaitForExitAsync(cts.Token);
 						await RpcClient.StopAsync().ConfigureAwait(false);
-						await waitForExit.ConfigureAwait(false);
 					}
 					catch (Exception ex)
 					{
+						process.Kill();
 						Logger.LogDebug(ex);
 					}
+					await waitForExit.ConfigureAwait(false);
+					return true;
 				}
 				else
 				{
@@ -239,6 +226,8 @@ namespace WalletWasabi.BitcoinCore
 			{
 				Logger.LogWarning(ex);
 			}
+
+			return false;
 		}
 	}
 }
