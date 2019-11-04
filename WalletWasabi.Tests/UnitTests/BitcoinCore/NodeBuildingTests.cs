@@ -22,7 +22,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
-				await coreNode.TryStopAsync(deleteDataDir: true);
+				await coreNode.TryStopAsync();
 			}
 		}
 
@@ -41,7 +41,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
-				await Task.WhenAll(node1.TryStopAsync(deleteDataDir: true), node2.TryStopAsync(deleteDataDir: true));
+				await Task.WhenAll(node1.TryStopAsync(), node2.TryStopAsync());
 			}
 		}
 
@@ -56,7 +56,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
-				await coreNode.TryStopAsync(deleteDataDir: true);
+				await coreNode.TryStopAsync();
 			}
 		}
 
@@ -74,7 +74,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			finally
 			{
 				node.Disconnect();
-				await coreNode.TryStopAsync(deleteDataDir: true);
+				await coreNode.TryStopAsync();
 			}
 		}
 

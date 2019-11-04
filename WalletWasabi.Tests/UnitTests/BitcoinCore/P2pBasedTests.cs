@@ -62,7 +62,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			finally
 			{
 				node.Disconnect();
-				await coreNode.TryStopAsync(deleteDataDir: true);
+				await coreNode.TryStopAsync();
 			}
 		}
 	}
