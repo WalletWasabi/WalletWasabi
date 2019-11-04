@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.BitcoinCore.Configuration
 {
@@ -41,11 +42,18 @@ namespace WalletWasabi.BitcoinCore.Configuration
 			await File.WriteAllTextAsync(FilePath, pid.ToString()).ConfigureAwait(false);
 		}
 
-		public void Delete()
+		public void TryDelete()
 		{
-			if (File.Exists(FilePath))
+			try
 			{
-				File.Delete(FilePath);
+				if (File.Exists(FilePath))
+				{
+					File.Delete(FilePath);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex);
 			}
 		}
 	}

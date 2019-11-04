@@ -15,6 +15,11 @@ namespace System.Diagnostics
 
 		public static async Task WaitForExitAsync(this Process process, CancellationToken cancel)
 		{
+			if (process.HasExited)
+			{
+				return;
+			}
+
 			// https://stackoverflow.com/a/12858633
 			var tcs = new TaskCompletionSource<bool>();
 			try

@@ -26,7 +26,6 @@ namespace WalletWasabi.BitcoinCore
 		public EndPoint RpcEndPoint { get; private set; }
 		public RPCClient RpcClient { get; private set; }
 		private BitcoindProcessBridge Bridge { get; set; }
-		public Process Process { get; private set; }
 		public string DataDir { get; private set; }
 		public Network Network { get; private set; }
 
@@ -142,10 +141,10 @@ namespace WalletWasabi.BitcoinCore
 				var configFileName = Path.GetFileName(configPath);
 
 				coreNode.Bridge = new BitcoindProcessBridge();
-				coreNode.Process = coreNode.Bridge.Start($"{NetworkTranslator.GetCommandLineArguments(coreNode.Network)} -conf={configFileName} -datadir={coreNode.DataDir} -printtoconsole=0", false);
+				using var process = coreNode.Bridge.Start($"{NetworkTranslator.GetCommandLineArguments(coreNode.Network)} -conf={configFileName} -datadir={coreNode.DataDir} -printtoconsole=0", false);
 
 				var pidFile = new PidFile(coreNode.DataDir, coreNode.Network);
-				await pidFile.SerializeAsync(coreNode.Process.Id).ConfigureAwait(false);
+				await pidFile.SerializeAsync(process.Id).ConfigureAwait(false);
 
 				while (true)
 				{
@@ -157,7 +156,7 @@ namespace WalletWasabi.BitcoinCore
 					catch (Exception ex)
 					{
 						Logger.LogTrace(ex);
-						if (coreNode.Process is null || coreNode.Process.HasExited)
+						if (process is null || process.HasExited)
 						{
 							throw ex;
 						}
@@ -205,15 +204,12 @@ namespace WalletWasabi.BitcoinCore
 			{
 				var reasonableCoreShutdownTimeout = TimeSpan.FromSeconds(21);
 
-				var foundConfigDic = Config.ToDictionary();
-
 				using CancellationTokenSource cts = new CancellationTokenSource(reasonableCoreShutdownTimeout);
 				var pid = await pidFile.TryReadAsync().ConfigureAwait(false);
 
 				if (pid.HasValue)
 				{
 					using Process process = Process.GetProcessById(pid.Value);
-					var waitForExit = process.WaitForExitAsync(cts.Token);
 					try
 					{
 						await RpcClient.StopAsync().ConfigureAwait(false);
@@ -223,7 +219,7 @@ namespace WalletWasabi.BitcoinCore
 						process.Kill();
 						Logger.LogDebug(ex);
 					}
-					await waitForExit.ConfigureAwait(false);
+					await process.WaitForExitAsync(cts.Token).ConfigureAwait(false);
 					return true;
 				}
 				else
@@ -237,7 +233,7 @@ namespace WalletWasabi.BitcoinCore
 			}
 			finally
 			{
-				pidFile.Delete();
+				pidFile.TryDelete();
 			}
 
 			return false;
