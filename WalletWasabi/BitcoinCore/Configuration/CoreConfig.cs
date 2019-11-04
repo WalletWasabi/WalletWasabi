@@ -63,7 +63,7 @@ namespace WalletWasabi.BitcoinCore.Configuration
 					{
 						Lines.Add(line);
 					}
-					else
+					else if (foundLine.Value != line.Value)
 					{
 						Lines.Remove(foundLine);
 						Lines.Add(line);

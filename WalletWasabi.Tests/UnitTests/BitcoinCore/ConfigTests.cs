@@ -108,16 +108,39 @@ moo = 1
 			Assert.Equal(expectedConfig, coreConfig.ToString());
 
 			var expectedConfig2 =
-@"foo bar = buz quxx
+@"foo = bar
+
+foo bar = buz quxx
 
 foo
 bar
 #qoo=boo
 moo = 1
-foo = bar
 too = 0
 ";
 			Assert.Equal(expectedConfig2, coreConfig2.ToString());
+		}
+
+		[Fact]
+		public void KeepsOrder()
+		{
+			var testConfig =
+@"foo=bar
+buz=qux";
+			var coreConfig = new CoreConfig();
+			coreConfig.TryAdd(testConfig);
+
+			var expectedConfig =
+@"foo = bar
+buz = qux
+";
+
+			Assert.Equal(expectedConfig, coreConfig.ToString());
+
+			var add1 = "foo=bar";
+			coreConfig.AddOrUpdate(add1);
+
+			Assert.Equal(expectedConfig, coreConfig.ToString());
 		}
 	}
 }
