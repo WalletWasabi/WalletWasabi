@@ -191,6 +191,7 @@ namespace WalletWasabi.BitcoinCore
 
 		public async Task<bool> TryStopAsync()
 		{
+			var pidFile = new PidFile(DataDir, Network);
 			try
 			{
 				var reasonableCoreShutdownTimeout = TimeSpan.FromSeconds(21);
@@ -198,7 +199,6 @@ namespace WalletWasabi.BitcoinCore
 				var foundConfigDic = Config.ToDictionary();
 
 				using CancellationTokenSource cts = new CancellationTokenSource(reasonableCoreShutdownTimeout);
-				var pidFile = new PidFile(DataDir, Network);
 				var pid = await pidFile.TryReadAsync().ConfigureAwait(false);
 
 				if (pid.HasValue)
@@ -225,6 +225,10 @@ namespace WalletWasabi.BitcoinCore
 			catch (Exception ex)
 			{
 				Logger.LogWarning(ex);
+			}
+			finally
+			{
+				pidFile.Delete();
 			}
 
 			return false;

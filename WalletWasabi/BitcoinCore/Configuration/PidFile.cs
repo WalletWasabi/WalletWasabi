@@ -40,5 +40,13 @@ namespace WalletWasabi.BitcoinCore.Configuration
 			IoHelpers.EnsureContainingDirectoryExists(FilePath);
 			await File.WriteAllTextAsync(FilePath, pid.ToString()).ConfigureAwait(false);
 		}
+
+		public void Delete()
+		{
+			if (File.Exists(FilePath)
+			{
+				File.Delete(FilePath);
+			}
+		}
 	}
 }
