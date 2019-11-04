@@ -26,14 +26,7 @@
       <menu:MainMenuView DataContext="{Binding Shell.MainMenu}" Margin="4 0 0 0" Foreground="{DynamicResource ThemeForegroundBrush}" VerticalAlignment="Stretch" FontSize="13" />      
     </StackPanel>
   </cont:MetroWindow.TitleBarContent>
-  <cont:MetroWindow.Styles>
-    <Style Selector="Menu > MenuItem:selected /template/ Border#root">
-      <Setter Property="Background" Value="{DynamicResource ThemeControlMidBrush}" />
-    </Style>
-    <Style Selector="Menu > MenuItem">
-      <Setter Property="Padding" Value="7 0" />
-    </Style>
-  </cont:MetroWindow.Styles>
+
   <Grid  id:DockProperties.IsDragEnabled="False" id:DockProperties.IsDropEnabled="False">
     <DockPanel LastChildFill="True">
       <wasabi:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" />
