@@ -62,7 +62,7 @@ namespace WalletWasabi.Gui
 		public Node RegTestMempoolServingNode { get; private set; }
 		public UpdateChecker UpdateChecker { get; private set; }
 		public TorProcessManager TorManager { get; private set; }
-		public CoreNode BitcoinCoreNode { get; private set; }
+		//public CoreNode BitcoinCoreNode { get; private set; }
 
 		public bool KillRequested { get; private set; } = false;
 
@@ -152,13 +152,13 @@ namespace WalletWasabi.Gui
 			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
 			var addrManTask = InitializeAddressManagerBehaviorAsync();
-			var nodeCreationTask = CoreNode.CreateAsync(new CoreNodeParams(
-				Network,
-				EnvironmentHelpers.TryGetDefaultBitcoinCoreDataDir(),
-				tryRestart: false,
-				tryDeleteDataDir: false,
-				EndPointStrategy.Custom(Config.GetBitcoinP2pEndPoint()),
-				EndPointStrategy.Default(Network, EndPointType.Rpc)));
+			//var nodeCreationTask = CoreNode.CreateAsync(new CoreNodeParams(
+			//	Network,
+			//	EnvironmentHelpers.TryGetDefaultBitcoinCoreDataDir(),
+			//	tryRestart: false,
+			//	tryDeleteDataDir: false,
+			//	EndPointStrategy.Custom(Config.GetBitcoinP2pEndPoint()),
+			//	EndPointStrategy.Default(Network, EndPointType.Rpc)));
 
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
 			var connectionParameters = new NodeConnectionParameters { UserAgent = "/Satoshi:0.18.1/" };
@@ -217,18 +217,18 @@ namespace WalletWasabi.Gui
 
 			#endregion BitcoinStoreInitialization
 
-			#region BitcoinCoreInitialization
+			//#region BitcoinCoreInitialization
 
-			try
-			{
-				BitcoinCoreNode = await nodeCreationTask.ConfigureAwait(false);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
+			//try
+			//{
+			//	BitcoinCoreNode = await nodeCreationTask.ConfigureAwait(false);
+			//}
+			//catch (Exception ex)
+			//{
+			//	Logger.LogError(ex);
+			//}
 
-			#endregion BitcoinCoreInitialization
+			//#endregion BitcoinCoreInitialization
 
 			#region MempoolInitialization
 
@@ -641,11 +641,11 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(RegTestMempoolServingNode)} is disposed.");
 				}
 
-				if (BitcoinCoreNode != null)
-				{
-					await BitcoinCoreNode.TryStopAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(BitcoinCoreNode)} is stopped.");
-				}
+				//if (BitcoinCoreNode != null)
+				//{
+				//	await BitcoinCoreNode.TryStopAsync().ConfigureAwait(false);
+				//	Logger.LogInfo($"{nameof(BitcoinCoreNode)} is stopped.");
+				//}
 
 				if (TorManager != null)
 				{
