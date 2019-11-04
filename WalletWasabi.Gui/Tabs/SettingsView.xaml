@@ -30,8 +30,18 @@
                     </DropDown.ItemTemplate>
                   </DropDown>
                 </StackPanel>
-                <controls:GroupBox Title="{Binding Network, StringFormat=My Node for \{0\}, Converter={StaticResource NetworkStringConverter}}" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+                <controls:GroupBox Title="Local Bitcoin Core" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
                   <StackPanel Orientation="Vertical" Spacing="5">
+                    <TextBlock>Use your own or Wasabi's built-in Bitcoin Core.</TextBlock>
+                    <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
+                      <ToggleButton IsChecked="{Binding StartLocalBitcoinCoreOnStartup}" Content="{Binding StartLocalBitcoinCoreOnStartup, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" />
+                      <TextBlock VerticalAlignment="Center">Run Bitcoin Core at Wasabi's startup.</TextBlock>
+                    </StackPanel>
+                  </StackPanel>
+                </controls:GroupBox>
+                <controls:GroupBox Title="{Binding Network, StringFormat=Alternative Block Source for \{0\}, Converter={StaticResource NetworkStringConverter}}" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+                  <StackPanel Orientation="Vertical" Spacing="5">
+                    <TextBlock>Set Wasabi to download blocks from a full node you control.</TextBlock>
                     <StackPanel Margin="0 10" Spacing="5">
                       <TextBlock>Bitcoin P2P Endpoint</TextBlock>
                       <TextBox Text="{Binding BitcoinP2pEndPoint}">

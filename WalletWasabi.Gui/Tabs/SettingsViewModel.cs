@@ -30,6 +30,7 @@ namespace WalletWasabi.Gui.Tabs
 		private bool _autocopy;
 		private bool _customFee;
 		private bool _useTor;
+		private bool _startLocalBitcoinCoreOnStartup;
 		private bool _isModified;
 		private string _somePrivacyLevel;
 		private string _finePrivacyLevel;
@@ -58,6 +59,7 @@ namespace WalletWasabi.Gui.Tabs
 			Network = globalConfig.Network;
 			TorSocks5EndPoint = globalConfig.TorSocks5EndPoint.ToString(-1);
 			UseTor = globalConfig.UseTor;
+			StartLocalBitcoinCoreOnStartup = globalConfig.StartLocalBitcoinCoreOnStartup;
 			SomePrivacyLevel = globalConfig.PrivacyLevelSome.ToString();
 			FinePrivacyLevel = globalConfig.PrivacyLevelFine.ToString();
 			StrongPrivacyLevel = globalConfig.PrivacyLevelStrong.ToString();
@@ -67,7 +69,8 @@ namespace WalletWasabi.Gui.Tabs
 
 			this.WhenAnyValue(
 				x => x.Network,
-				x => x.UseTor)
+				x => x.UseTor,
+				x => x.StartLocalBitcoinCoreOnStartup)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(_ => Save());
 
@@ -147,6 +150,7 @@ namespace WalletWasabi.Gui.Tabs
 					Network = x.Network;
 					TorSocks5EndPoint = x.TorSocks5EndPoint.ToString(-1);
 					UseTor = x.UseTor;
+					StartLocalBitcoinCoreOnStartup = x.StartLocalBitcoinCoreOnStartup;
 
 					SomePrivacyLevel = x.PrivacyLevelSome.ToString();
 					FinePrivacyLevel = x.PrivacyLevelFine.ToString();
@@ -229,6 +233,12 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			get => _customFee;
 			set => this.RaiseAndSetIfChanged(ref _customFee, value);
+		}
+
+		public bool StartLocalBitcoinCoreOnStartup
+		{
+			get => _startLocalBitcoinCoreOnStartup;
+			set => this.RaiseAndSetIfChanged(ref _startLocalBitcoinCoreOnStartup, value);
 		}
 
 		public bool UseTor
@@ -318,6 +328,7 @@ namespace WalletWasabi.Gui.Tabs
 							config.SetP2PEndpoint(p2pEp);
 						}
 						config.UseTor = UseTor;
+						config.StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup;
 						config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? Money.Coins(threshold) : Config.DefaultDustThreshold;
 						config.PrivacyLevelSome = int.TryParse(SomePrivacyLevel, out int level) ? level : Config.DefaultPrivacyLevelSome;
 						config.PrivacyLevelStrong = int.TryParse(StrongPrivacyLevel, out level) ? level : Config.DefaultPrivacyLevelStrong;
