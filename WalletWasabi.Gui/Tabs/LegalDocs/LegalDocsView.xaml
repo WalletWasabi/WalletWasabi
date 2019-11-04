@@ -34,15 +34,18 @@
                   </StackPanel>
                 </Button>
               </Border>
-              <StackPanel Orientation="Horizontal" Height="30" Margin="8,0,0,0">
-                <TextBlock Text="Please read the " VerticalAlignment="Center" IsVisible="{Binding !IsLegalDocsAgreed}" />
-                <TextBlock Text="You have already accepted the " VerticalAlignment="Center" IsVisible="{Binding IsLegalDocsAgreed}" />
-                <Button Content="Terms and Conditions" VerticalAlignment="Center" Classes="activeHyperLink" Command="{Binding OnTermsClicked}" />
-                <TextBlock Text=", " VerticalAlignment="Center" />
-                <Button Content="Privacy Policy" VerticalAlignment="Center" Classes="activeHyperLink" Command="{Binding OnPrivacyClicked}" />
-                <TextBlock Text=", and " VerticalAlignment="Center" />
-                <Button Content="Legal Issues" VerticalAlignment="Center" Classes="activeHyperLink" Command="{Binding OnLegalClicked}" />
-                <TextBlock Text=" documents." VerticalAlignment="Center" />
+              <StackPanel Margin="8 10 0 0">
+                <TextBlock IsVisible="{Binding !IsLegalDocsAgreed}" FontWeight="Bold" Text="Welcome! To use Wasabi you must accept our terms!" VerticalAlignment="Center" />
+                <StackPanel Orientation="Horizontal" Margin="0 10 0 0">
+                  <TextBlock IsVisible="{Binding !IsLegalDocsAgreed}" Text="Please read the " VerticalAlignment="Center" />
+                  <TextBlock IsVisible="{Binding IsLegalDocsAgreed}" Text="You have already accepted the " VerticalAlignment="Center" />
+                  <Button Content="Terms and Conditions" VerticalAlignment="Center" Classes="activeHyperLink" Command="{Binding OnTermsClicked}" />
+                  <TextBlock Text=", " VerticalAlignment="Center" />
+                  <Button Content="Privacy Policy" VerticalAlignment="Center" Classes="activeHyperLink" Command="{Binding OnPrivacyClicked}" />
+                  <TextBlock Text=", and " VerticalAlignment="Center" />
+                  <Button Content="Legal Issues" VerticalAlignment="Center" Classes="activeHyperLink" Command="{Binding OnLegalClicked}" />
+                  <TextBlock Text=" documents." VerticalAlignment="Center" />
+                </StackPanel>
               </StackPanel>
             </DockPanel>
           </DockPanel>
