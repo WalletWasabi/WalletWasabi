@@ -61,5 +61,26 @@ namespace WalletWasabi.BitcoinCore.Configuration
 				throw new NotSupportedNetworkException(network);
 			}
 		}
+
+		public static string GetCommandLineArguments(Network network)
+		{
+			Guard.NotNull(nameof(network), network);
+			if (network == Network.Main)
+			{
+				return "-regtest=0 -testnet=0";
+			}
+			else if (network == Network.TestNet)
+			{
+				return "-regtest=0 -testnet=1";
+			}
+			else if (network == Network.RegTest)
+			{
+				return "-regtest=1 -testnet=0";
+			}
+			else
+			{
+				throw new NotSupportedNetworkException(network);
+			}
+		}
 	}
 }

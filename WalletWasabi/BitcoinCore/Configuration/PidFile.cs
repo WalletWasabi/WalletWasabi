@@ -43,7 +43,7 @@ namespace WalletWasabi.BitcoinCore.Configuration
 
 		public void Delete()
 		{
-			if (File.Exists(FilePath)
+			if (File.Exists(FilePath))
 			{
 				File.Delete(FilePath);
 			}

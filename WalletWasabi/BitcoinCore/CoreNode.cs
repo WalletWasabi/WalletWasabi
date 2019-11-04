@@ -133,7 +133,7 @@ namespace WalletWasabi.BitcoinCore
 				var configFileName = Path.GetFileName(configPath);
 
 				coreNode.Bridge = new BitcoindProcessBridge();
-				coreNode.Process = coreNode.Bridge.Start($"-{coreNode.Network.ToString().ToLowerInvariant()} -conf={configFileName} -datadir={coreNode.DataDir} -printtoconsole=0", false);
+				coreNode.Process = coreNode.Bridge.Start($"{NetworkTranslator.GetCommandLineArguments(coreNode.Network)} -conf={configFileName} -datadir={coreNode.DataDir} -printtoconsole=0", false);
 
 				var pidFile = new PidFile(coreNode.DataDir, coreNode.Network);
 				await pidFile.SerializeAsync(coreNode.Process.Id).ConfigureAwait(false);
@@ -148,10 +148,10 @@ namespace WalletWasabi.BitcoinCore
 					catch (Exception ex)
 					{
 						Logger.LogTrace(ex);
-					}
-					if (coreNode.Process is null || coreNode.Process.HasExited)
-					{
-						break;
+						if (coreNode.Process is null || coreNode.Process.HasExited)
+						{
+							throw ex;
+						}
 					}
 				}
 
