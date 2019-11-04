@@ -214,12 +214,12 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				if (Config.StartBitcoinCoreOnStartup)
+				if (Config.StartLocalBitcoinCoreOnStartup)
 				{
 					BitcoinCoreNode = await CoreNode
 						.CreateAsync(new CoreNodeParams(
 							Network,
-							Config.BitcoinCoreDataDir,
+							Config.LocalBitcoinCoreDataDir,
 							tryRestart: false,
 							tryDeleteDataDir: false,
 							EndPointStrategy.Custom(Config.GetBitcoinP2pEndPoint()),
@@ -647,7 +647,7 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(RegTestMempoolServingNode)} is disposed.");
 				}
 
-				if (Config.StopBitcoinCoreOnShutdown && BitcoinCoreNode != null)
+				if (Config.StopLocalBitcoinCoreOnShutdown && BitcoinCoreNode != null)
 				{
 					await BitcoinCoreNode.TryStopAsync().ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(BitcoinCoreNode)} is stopped.");
