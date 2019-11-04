@@ -74,7 +74,7 @@ namespace WalletWasabi.BitcoinCore
 					}
 					if (rp != null)
 					{
-						rpcUser = rp;
+						rpcPassword = rp;
 					}
 					if (wbs != null && EndPointParser.TryParse(wbs, coreNode.Network.DefaultPort, out EndPoint wb))
 					{
