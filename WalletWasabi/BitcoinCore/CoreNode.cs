@@ -103,17 +103,31 @@ namespace WalletWasabi.BitcoinCore
 				var pidFileName = "bitcoind.pid";
 
 				var configPrefix = NetworkTranslator.GetConfigPrefix(coreNode.Network);
-				var desiredConfigString =
-@$"{configPrefix}.server		= 1
-{configPrefix}.txindex			= 1
-{configPrefix}.whitebind		= {coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}
-{configPrefix}.rpcuser			= {coreNode.RpcClient.CredentialString.UserPassword.UserName}
-{configPrefix}.rpcpassword		= {coreNode.RpcClient.CredentialString.UserPassword.Password}
-{configPrefix}.rpchost			= {coreNode.RpcEndPoint.GetHostOrDefault()}
-{configPrefix}.rpcport			= {coreNode.RpcEndPoint.GetPortOrDefault()}
-{configPrefix}.pid				= {pidFileName}";
+				var desiredConfigLines = new List<string>()
+				{
+					$"{configPrefix}.server			= 1",
+					$"{configPrefix}.txindex		= 1",
+					$"{configPrefix}.whitebind		= {coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
+					$"{configPrefix}.rpcuser		= {coreNode.RpcClient.CredentialString.UserPassword.UserName}",
+					$"{configPrefix}.rpcpassword	= {coreNode.RpcClient.CredentialString.UserPassword.Password}",
+					$"{configPrefix}.rpchost		= {coreNode.RpcEndPoint.GetHostOrDefault()}",
+					$"{configPrefix}.rpcport		= {coreNode.RpcEndPoint.GetPortOrDefault()}",
+					$"{configPrefix}.pid			= {pidFileName}"
+				};
 
-				config.AddOrUpdate(desiredConfigString);
+				var sectionComment = $"# The following configuration options were added or modified by Wasabi Wallet.";
+				// If the comment is not already present.
+				// And there would be new config entries added.
+				var throwAwayConfig = new CoreConfig();
+				throwAwayConfig.TryAdd(config.ToString());
+				throwAwayConfig.AddOrUpdate(string.Join(Environment.NewLine, desiredConfigLines));
+				if (!config.ToString().Contains(sectionComment, StringComparison.Ordinal)
+					&& throwAwayConfig.ToDictionary().Count != config.ToDictionary().Count)
+				{
+					desiredConfigLines.Insert(0, sectionComment);
+				}
+
+				config.AddOrUpdate(string.Join(Environment.NewLine, desiredConfigLines));
 				await File.WriteAllTextAsync(configPath, config.ToString());
 				var configFileName = Path.GetFileName(configPath);
 
