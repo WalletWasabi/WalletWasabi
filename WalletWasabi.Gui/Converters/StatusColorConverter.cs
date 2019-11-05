@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using WalletWasabi.BitcoinCore.Monitor;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Converters
@@ -15,6 +16,7 @@ namespace WalletWasabi.Gui.Converters
 		{
 			switch (parameter?.ToString())
 			{
+				case "BitcoinCoreStatus" when !(value as RpcStatus).Synchronized:
 				case "Tor" when Enum.Parse<TorStatus>(value.ToString()) != TorStatus.Running:
 				case "Backend" when Enum.Parse<BackendStatus>(value.ToString()) == BackendStatus.NotConnected:
 				case "Peers" when (int)value == 0:

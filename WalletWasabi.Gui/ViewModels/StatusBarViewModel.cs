@@ -15,6 +15,7 @@ using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.Monitor;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Models;
@@ -46,7 +47,9 @@ namespace WalletWasabi.Gui.ViewModels
 		private UpdateStatus _updateStatus;
 		private bool _updateAvailable;
 		private bool _criticalUpdateAvailable;
+		private bool _useBitcoinCore;
 		private BackendStatus _backend;
+		private ObservableAsPropertyHelper<RpcStatus> _bitcoinCoreStatus;
 		private TorStatus _tor;
 		private int _peers;
 		private ObservableAsPropertyHelper<int> _filtersLeft;
@@ -76,6 +79,7 @@ namespace WalletWasabi.Gui.ViewModels
 			Synchronizer = synchronizer;
 			HashChain = synchronizer.BitcoinStore.HashChain;
 			UseTor = Global.Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
+			UseBitcoinCore = Global.Config.StartLocalBitcoinCoreOnStartup;
 
 			_status = ActiveStatuses.WhenAnyValue(x => x.CurrentStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -117,6 +121,13 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(usd => BtcPrice = $"${(long)usd}")
 				.DisposeWith(Disposables);
+
+			_bitcoinCoreStatus = Global.RpcMonitor
+					.WhenAnyValue(x => x.Status)
+					.Throttle(TimeSpan.FromMilliseconds(100))
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.ToProperty(this, x => x.BitcoinCoreStatus)
+					.DisposeWith(Disposables);
 
 			Observable.FromEventPattern<bool>(Synchronizer, nameof(Synchronizer.ResponseArrivedIsGenSocksServFail))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -242,6 +253,12 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _criticalUpdateAvailable, value);
 		}
 
+		public bool UseBitcoinCore
+		{
+			get => _useBitcoinCore;
+			set => this.RaiseAndSetIfChanged(ref _useBitcoinCore, value);
+		}
+
 		public BackendStatus Backend
 		{
 			get => _backend;
@@ -261,6 +278,7 @@ namespace WalletWasabi.Gui.ViewModels
 		}
 
 		public int FiltersLeft => _filtersLeft?.Value ?? 0;
+		public RpcStatus BitcoinCoreStatus => _bitcoinCoreStatus?.Value ?? RpcStatus.Unresponsive;
 
 		public string BtcPrice
 		{

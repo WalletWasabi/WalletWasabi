@@ -19,6 +19,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Endpointing;
+using WalletWasabi.BitcoinCore.Monitor;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.Coins;
 using WalletWasabi.Crypto;
@@ -64,6 +65,8 @@ namespace WalletWasabi.Gui
 		public TorProcessManager TorManager { get; private set; }
 		public CoreNode BitcoinCoreNode { get; private set; }
 
+		public RpcMonitor RpcMonitor { get; private set; }
+
 		public bool KillRequested { get; private set; } = false;
 
 		public UiConfig UiConfig { get; private set; }
@@ -80,6 +83,7 @@ namespace WalletWasabi.Gui
 			Directory.CreateDirectory(DataDir);
 			Directory.CreateDirectory(WalletsDir);
 			Directory.CreateDirectory(WalletBackupsDir);
+			RpcMonitor = new RpcMonitor();
 		}
 
 		public void InitializeUiConfig(UiConfig uiConfig)
@@ -227,6 +231,8 @@ namespace WalletWasabi.Gui
 							txIndex: null,
 							prune: null))
 						.ConfigureAwait(false);
+
+					RpcMonitor.Start(BitcoinCoreNode.RpcClient, TimeSpan.FromSeconds(3));
 				}
 			}
 			catch (Exception ex)
@@ -645,6 +651,12 @@ namespace WalletWasabi.Gui
 				{
 					RegTestMempoolServingNode.Disconnect();
 					Logger.LogInfo($"{nameof(RegTestMempoolServingNode)} is disposed.");
+				}
+
+				if (RpcMonitor != null)
+				{
+					await RpcMonitor.StopAsync();
+					Logger.LogInfo("Stopped monitoring RPC.");
 				}
 
 				if (Config.StopLocalBitcoinCoreOnShutdown && BitcoinCoreNode != null)
