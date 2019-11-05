@@ -15,15 +15,8 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task CanBuildCoreNodeAsync()
 		{
-			CoreNode coreNode = null;
-			try
-			{
-				coreNode = await TestNodeBuilder.CreateAsync();
-			}
-			finally
-			{
-				await coreNode.TryStopAsync();
-			}
+			CoreNode coreNode = await TestNodeBuilder.CreateAsync();
+			await coreNode.TryStopAsync();
 		}
 
 		[Fact]

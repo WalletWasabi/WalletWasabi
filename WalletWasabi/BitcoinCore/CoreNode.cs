@@ -55,14 +55,20 @@ namespace WalletWasabi.BitcoinCore
 				EndPoint whitebind = null;
 				string rpcHost = null;
 				int? rpcPort = null;
+				string rpcCookieFilePath = null;
 				foreach (var networkPrefixWithDot in NetworkTranslator.GetConfigPrefixesWithDots(coreNode.Network))
 				{
+					var rpcc = configDic.TryGet($"{networkPrefixWithDot}rpccookiefile");
 					var ru = configDic.TryGet($"{networkPrefixWithDot}rpcuser");
 					var rp = configDic.TryGet($"{networkPrefixWithDot}rpcpassword");
 					var wbs = configDic.TryGet($"{networkPrefixWithDot}whitebind");
 					var rpst = configDic.TryGet($"{networkPrefixWithDot}rpchost");
 					var rpts = configDic.TryGet($"{networkPrefixWithDot}rpcport");
 
+					if (rpcc != null)
+					{
+						rpcCookieFilePath = rpcc;
+					}
 					if (ru != null)
 					{
 						rpcUser = ru;
@@ -84,9 +90,19 @@ namespace WalletWasabi.BitcoinCore
 						rpcPort = rpt;
 					}
 				}
-				rpcUser ??= Encoders.Hex.EncodeData(RandomUtils.GetBytes(21));
-				rpcPassword ??= Encoders.Hex.EncodeData(RandomUtils.GetBytes(21));
-				var creds = new NetworkCredential(rpcUser, rpcPassword);
+
+				string authString;
+				bool cookieAuth = rpcCookieFilePath != null;
+				if (cookieAuth)
+				{
+					authString = $"cookiefile={rpcCookieFilePath}";
+				}
+				else
+				{
+					rpcUser ??= Encoders.Hex.EncodeData(RandomUtils.GetBytes(21));
+					rpcPassword ??= Encoders.Hex.EncodeData(RandomUtils.GetBytes(21));
+					authString = $"{rpcUser}:{rpcPassword}";
+				}
 
 				coreNode.P2pEndPoint = whitebind ?? coreNodeParams.P2pEndPointStrategy.EndPoint;
 				rpcHost ??= coreNodeParams.RpcEndPointStrategy.EndPoint.GetHostOrDefault();
@@ -94,7 +110,7 @@ namespace WalletWasabi.BitcoinCore
 				EndPointParser.TryParse($"{rpcHost}:{rpcPort}", coreNode.Network.RPCPort, out EndPoint rpce);
 				coreNode.RpcEndPoint = rpce;
 
-				coreNode.RpcClient = new RPCClient($"{creds.UserName}:{creds.Password}", coreNode.RpcEndPoint.ToString(coreNode.Network.DefaultPort), coreNode.Network);
+				coreNode.RpcClient = new RPCClient($"{authString}", coreNode.RpcEndPoint.ToString(coreNode.Network.DefaultPort), coreNode.Network);
 
 				if (coreNodeParams.TryRestart && await coreNode.TryStopAsync().ConfigureAwait(false) && coreNodeParams.TryDeleteDataDir)
 				{
@@ -108,11 +124,15 @@ namespace WalletWasabi.BitcoinCore
 				{
 					$"{configPrefix}.server			= 1",
 					$"{configPrefix}.whitebind		= {coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
-					$"{configPrefix}.rpcuser		= {coreNode.RpcClient.CredentialString.UserPassword.UserName}",
-					$"{configPrefix}.rpcpassword	= {coreNode.RpcClient.CredentialString.UserPassword.Password}",
 					$"{configPrefix}.rpchost		= {coreNode.RpcEndPoint.GetHostOrDefault()}",
 					$"{configPrefix}.rpcport		= {coreNode.RpcEndPoint.GetPortOrDefault()}"
 				};
+
+				if (!cookieAuth)
+				{
+					desiredConfigLines.Add($"{configPrefix}.rpcuser		= {coreNode.RpcClient.CredentialString.UserPassword.UserName}");
+					desiredConfigLines.Add($"{configPrefix}.rpcpassword	= {coreNode.RpcClient.CredentialString.UserPassword.Password}");
+				}
 
 				if (coreNodeParams.TxIndex != null)
 				{
