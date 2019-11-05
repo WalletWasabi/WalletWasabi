@@ -97,7 +97,7 @@ namespace WalletWasabi.Helpers
 		private AsyncLock AsyncLock { get; } = new AsyncLock();
 		private static string FileDir;
 		private Version _downloadedLegalDocsVersion = new Version(0, 0, 0, 0);
-		private Version _agreedLegalDocsVersion = new Version(0, 0, 0);
+		private Version _agreedLegalDocsVersion = new Version(0, 0, 0, 0);
 
 		private static string FilePath => Path.Combine(FileDir, "RuntimeParams.json");
 
