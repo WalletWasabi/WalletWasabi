@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using System;
 using System.IO;
@@ -43,7 +44,23 @@ namespace WalletWasabi.Helpers
 			}
 		}
 
-		public bool IsLegalDocsAgreed => DownloadedLegalDocsVersion.ToVersion(3) <= AgreedLegalDocsVersion.ToVersion(3);
+		[JsonIgnore]
+		public bool IsLegalDocsAgreed
+		{
+			get
+			{
+				if (AgreedLegalDocsVersion == new Version(0, 0, 0, 0))
+				{
+					// LegalDocs was never agreed.
+					return false;
+				}
+
+				// Check version except the Revision.
+				return DownloadedLegalDocsVersion.ToVersion(3) <= AgreedLegalDocsVersion.ToVersion(3);
+			}
+		}
+
+		private static readonly Version AlreadyAgreedVersion = new Version(9999, 9999, 9999, 9999);
 
 		#region Business logic
 
@@ -69,7 +86,6 @@ namespace WalletWasabi.Helpers
 
 		private AsyncLock AsyncLock { get; } = new AsyncLock();
 		private static string FileDir;
-		private bool _isLegalDocsAgreed;
 		private Version _downloadedLegalDocsVersion = new Version(0, 0, 0, 0);
 		private Version _agreedLegalDocsVersion = new Version(0, 0, 0);
 
@@ -113,19 +129,33 @@ namespace WalletWasabi.Helpers
 			{
 				if (!File.Exists(FilePath))
 				{
+					// Create the default file
 					var file = new RuntimeParams();
 					await file.SaveAsync();
 				}
 
 				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
+
 				InternalInstance = JsonConvert.DeserializeObject<RuntimeParams>(jsonString);
+
+				// Ensure that users who already Agreed the legal docs won't be bothered after updating.
+				if (JsonHelpers.TryParseJToken(jsonString, out JToken token))
+				{
+					var addressString = token["AgreedLegalDocsVersion"]?.ToString()?.Trim() ?? null;
+					if (addressString is null)
+					{
+						// The file is there but the string is missing so the client was installed before and legal docs was agreed.
+						InternalInstance.AgreedLegalDocsVersion = AlreadyAgreedVersion;
+						await InternalInstance.SaveAsync();
+					}
+				}
+
 				return;
 			}
 			catch (Exception ex)
 			{
 				Logger.LogInfo($"Could not load {nameof(RuntimeParams)}: {ex}.");
 			}
-			InternalInstance = new RuntimeParams();
 		}
 
 		#endregion Business logic

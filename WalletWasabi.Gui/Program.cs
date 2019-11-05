@@ -43,12 +43,12 @@ namespace WalletWasabi.Gui
 				}
 				Logger.LogSoftwareStarted("Wasabi GUI");
 
+				RuntimeParams.SetDataDir(Global.DataDir);
+				await RuntimeParams.LoadAsync();
+
 				BuildAvaloniaApp()
 					.BeforeStarting(async builder =>
 					{
-						RuntimeParams.SetDataDir(Global.DataDir);
-						await RuntimeParams.LoadAsync();
-
 						MainWindowViewModel.Instance = new MainWindowViewModel { Global = Global };
 						statusBar = new StatusBarViewModel(Global);
 						MainWindowViewModel.Instance.StatusBar = statusBar;

@@ -56,11 +56,6 @@ namespace WalletWasabi.Gui
 			Closing += MainWindow_ClosingAsync;
 			AvaloniaXamlLoader.Load(this);
 
-			//_isLegalDocsAgreed = RuntimeParams.Instance
-			//	.WhenAnyValue(x => x.IsLegalDocsAgreed)
-			//	.ObserveOn(RxApp.MainThreadScheduler)
-			//	.ToProperty(this, x => x.IsLegalDocsAgreed, scheduler: RxApp.MainThreadScheduler)
-			//	.DisposeWith(Disposables);
 			if (RuntimeParams.Instance.IsLegalDocsAgreed)
 			{
 				DisplayWalletManager();
