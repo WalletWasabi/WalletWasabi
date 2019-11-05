@@ -24,7 +24,7 @@
               <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource LegalIssues}" />
             </Grid>
             <DockPanel LastChildFill="True">
-              <Border DockPanel.Dock="Right" BorderBrush="#74b64a" BorderThickness="4" IsVisible="{Binding !IsLegalDocsAgreed}">
+              <Border DockPanel.Dock="Right" IsVisible="{Binding !IsLegalDocsAgreed}" BorderBrush="#74b64a" BorderThickness="4">
                 <Button Command="{Binding AcceptTermsCommand}">
                   <StackPanel Orientation="Horizontal">
                     <Grid Height="20" Width="20">
@@ -34,9 +34,9 @@
                   </StackPanel>
                 </Button>
               </Border>
-              <StackPanel Margin="8 0 0 0">
-                <TextBlock IsVisible="{Binding !IsLegalDocsAgreed}" Margin="0 8 0 0" FontWeight="Bold" Text="Welcome! To use Wasabi you must accept our terms!" VerticalAlignment="Center" />
-                <StackPanel Orientation="Horizontal" Margin="0 10 0 0">
+              <StackPanel Margin="8 8">
+                <TextBlock IsVisible="{Binding !IsLegalDocsAgreed}" FontWeight="Bold" Text="Welcome! To use Wasabi you must accept our terms!" VerticalAlignment="Center" />
+                <StackPanel Orientation="Horizontal" Margin="0 8">
                   <TextBlock IsVisible="{Binding !IsLegalDocsAgreed}" Text="Please read the " VerticalAlignment="Center" />
                   <TextBlock IsVisible="{Binding IsLegalDocsAgreed}" Text="You have already accepted the " VerticalAlignment="Center" />
                   <Button Content="Terms and Conditions" VerticalAlignment="Center" Classes="activeHyperLink" Command="{Binding OnTermsClicked}" />
