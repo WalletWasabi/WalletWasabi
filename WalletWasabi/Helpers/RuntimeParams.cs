@@ -60,7 +60,17 @@ namespace WalletWasabi.Helpers
 			}
 		}
 
-		private static readonly Version AlreadyAgreedVersion = new Version(9999, 9999, 9999, 9999);
+		public void EnsureCompatiblityAsync()
+		{
+			if (AgreedLegalDocsVersion != AgreeFirstAutomatically)
+			{
+				return;
+			}
+
+			AgreedLegalDocsVersion = DownloadedLegalDocsVersion;
+		}
+
+		private static readonly Version AgreeFirstAutomatically = new Version(9999, 9999, 9999, 9999);
 
 		#region Business logic
 
@@ -145,7 +155,7 @@ namespace WalletWasabi.Helpers
 					if (addressString is null)
 					{
 						// The file is there but the string is missing so the client was installed before and legal docs was agreed.
-						InternalInstance.AgreedLegalDocsVersion = AlreadyAgreedVersion;
+						InternalInstance.AgreedLegalDocsVersion = AgreeFirstAutomatically;
 						await InternalInstance.SaveAsync();
 					}
 				}

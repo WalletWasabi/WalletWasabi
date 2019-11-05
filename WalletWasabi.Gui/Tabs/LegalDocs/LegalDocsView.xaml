@@ -34,8 +34,8 @@
                   </StackPanel>
                 </Button>
               </Border>
-              <StackPanel Margin="8 10 0 0">
-                <TextBlock IsVisible="{Binding !IsLegalDocsAgreed}" FontWeight="Bold" Text="Welcome! To use Wasabi you must accept our terms!" VerticalAlignment="Center" />
+              <StackPanel Margin="8 0 0 0">
+                <TextBlock IsVisible="{Binding !IsLegalDocsAgreed}" Margin="0 8 0 0" FontWeight="Bold" Text="Welcome! To use Wasabi you must accept our terms!" VerticalAlignment="Center" />
                 <StackPanel Orientation="Horizontal" Margin="0 10 0 0">
                   <TextBlock IsVisible="{Binding !IsLegalDocsAgreed}" Text="Please read the " VerticalAlignment="Center" />
                   <TextBlock IsVisible="{Binding IsLegalDocsAgreed}" Text="You have already accepted the " VerticalAlignment="Center" />
@@ -50,7 +50,7 @@
             </DockPanel>
           </DockPanel>
         </Border>
-        <cont:ViewModelViewHost DataContext="{Binding CurrentView}" Margin="0" />
+        <cont:ViewModelViewHost DataContext="{Binding CurrentView}" />
       </DockPanel>
     </DockPanel>
   </Grid>

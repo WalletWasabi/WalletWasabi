@@ -67,6 +67,10 @@ namespace WalletWasabi.Services
 								await File.WriteAllBytesAsync(PrivacyPolicyPath, await WasabiClient.GetPrivacyPolicyAsync(Stop.Token));
 								await File.WriteAllBytesAsync(TermsAndConditionsPath, await WasabiClient.GetTermsAndConditionsAsync(Stop.Token));
 								RuntimeParams.Instance.DownloadedLegalDocsVersion = updates.LegalDocsBackendVersion;
+
+								// Checking compatibility.
+								RuntimeParams.Instance.EnsureCompatiblityAsync();
+
 								await RuntimeParams.Instance.SaveAsync();
 							}
 
