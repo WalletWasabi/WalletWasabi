@@ -42,6 +42,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isAnyCoinSelected;
 		private bool _labelExposeCommonOwnershipWarning;
 		private bool _selectAllNonPrivateVisible;
+		private bool _selectAllPrivateVisible;
 
 		public Global Global { get; }
 		public CoinListContainerType CoinListContainerType { get; }
@@ -176,6 +177,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _selectAllNonPrivateVisible;
 			set => this.RaiseAndSetIfChanged(ref _selectAllNonPrivateVisible, value);
+		}
+
+		public bool SelectAllPrivateVisible
+		{
+			get => _selectAllPrivateVisible;
+			set => this.RaiseAndSetIfChanged(ref _selectAllPrivateVisible, value);
 		}
 
 		private bool? GetCheckBoxesSelectedState(Func<CoinViewModel, bool> coinFilterPredicate)

@@ -19,11 +19,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => SetValue(SelectAllNonPrivateVisibleProperty, value);
 		}
 
+		public static readonly StyledProperty<bool> SelectAllPrivateVisibleProperty =
+			AvaloniaProperty.Register<CoinListView, bool>(nameof(SelectAllPrivateVisible), defaultBindingMode: BindingMode.OneWayToSource);
+
+		public bool SelectAllPrivateVisible
+		{
+			get => GetValue(SelectAllPrivateVisibleProperty);
+			set => SetValue(SelectAllPrivateVisibleProperty, value);
+		}
+
 		public CoinListView()
 		{
 			InitializeComponent();
 
 			SelectAllNonPrivateVisible = true;
+			SelectAllPrivateVisible = true;
 
 			this.WhenAnyValue(x => x.DataContext)
 				.Subscribe(dataContext =>
@@ -32,6 +42,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						// Value is only propagated when DataContext is set at the beginning.
 						viewmodel.SelectAllNonPrivateVisible = SelectAllNonPrivateVisible;
+
+						viewmodel.SelectAllPrivateVisible = SelectAllPrivateVisible;
 					}
 				});
 		}
