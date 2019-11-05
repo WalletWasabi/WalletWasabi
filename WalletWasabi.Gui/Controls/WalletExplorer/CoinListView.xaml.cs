@@ -42,7 +42,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						// Value is only propagated when DataContext is set at the beginning.
 						viewmodel.SelectAllNonPrivateVisible = SelectAllNonPrivateVisible;
-
 						viewmodel.SelectAllPrivateVisible = SelectAllPrivateVisible;
 					}
 				});
