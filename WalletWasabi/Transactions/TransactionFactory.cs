@@ -39,7 +39,7 @@ namespace WalletWasabi.Transactions
 			PaymentIntent payments,
 			FeeRate feeRate,
 			IEnumerable<TxoRef> allowedInputs = null)
-			=> BuildTransaction(payments, () => feeRate, allowedInputs);
+			=> BuildTransaction(payments, () => feeRate, allowedInputs, ()=> LockTime.Zero);
 
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
@@ -47,9 +47,11 @@ namespace WalletWasabi.Transactions
 		public BuildTransactionResult BuildTransaction(
 			PaymentIntent payments,
 			Func<FeeRate> feeRateFetcher,
-			IEnumerable<TxoRef> allowedInputs = null)
+			IEnumerable<TxoRef> allowedInputs = null,
+			Func<LockTime> lockTimeSelector = null)
 		{
 			payments = Guard.NotNull(nameof(payments), payments);
+			lockTimeSelector ??= ()=> LockTime.Zero;
 
 			long totalAmount = payments.TotalAmount.Satoshi;
 			if (totalAmount < 0 || totalAmount > Constants.MaximumNumberOfSatoshis)
@@ -217,6 +219,7 @@ namespace WalletWasabi.Transactions
 			{
 				IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(Password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
 				builder = builder.AddKeys(signingKeys.ToArray());
+				builder.SetLockTime(lockTimeSelector());
 				builder.SignPSBT(psbt);
 				psbt.Finalize();
 				tx = psbt.ExtractTransaction();

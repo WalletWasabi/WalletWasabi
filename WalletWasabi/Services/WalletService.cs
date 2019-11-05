@@ -746,7 +746,8 @@ namespace WalletWasabi.Services
 						throw new NotSupportedException(feeStrategy.Type.ToString());
 					}
 				},
-				allowedInputs);
+				allowedInputs,
+				SelectLockTimeForTransaction);
 		}
 
 		public void RenameLabel(SmartCoin coin, SmartLabel newLabel)
@@ -756,6 +757,23 @@ namespace WalletWasabi.Services
 			if (key != null)
 			{
 				key.SetLabel(coin.Label, KeyManager);
+			}
+		}
+
+		private LockTime SelectLockTimeForTransaction()
+		{
+			try
+			{
+				// discourage "fee sniping".
+				var tipHeight = Synchronizer.BitcoinStore.HashChain.TipHeight;
+				var rand = new Random();
+				// sometimes pick locktime a bit further back, to help privacy.
+				var randomize = rand.Next(0, 10) == 0;
+				return tipHeight - (randomize ? rand.Next(0, 10) : 0);
+			}
+			catch(Exception)
+			{
+				return LockTime.Zero;
 			}
 		}
 
