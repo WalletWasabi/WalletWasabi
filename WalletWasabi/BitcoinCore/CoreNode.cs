@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Configuration;
 using WalletWasabi.BitcoinCore.Endpointing;
+using WalletWasabi.BitcoinCore.Processes;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
@@ -25,7 +26,7 @@ namespace WalletWasabi.BitcoinCore
 		public EndPoint P2pEndPoint { get; private set; }
 		public EndPoint RpcEndPoint { get; private set; }
 		public RPCClient RpcClient { get; private set; }
-		private BitcoindProcessBridge Bridge { get; set; }
+		private BitcoindRpcProcessBridge Bridge { get; set; }
 		public string DataDir { get; private set; }
 		public Network Network { get; private set; }
 
@@ -140,27 +141,16 @@ namespace WalletWasabi.BitcoinCore
 				}
 				var configFileName = Path.GetFileName(configPath);
 
-				coreNode.Bridge = new BitcoindProcessBridge();
-				using var process = coreNode.Bridge.Start($"{NetworkTranslator.GetCommandLineArguments(coreNode.Network)} -conf={configFileName} -datadir={coreNode.DataDir} -printtoconsole=0", false);
-
-				var pidFile = new PidFile(coreNode.DataDir, coreNode.Network);
-				await pidFile.SerializeAsync(process.Id).ConfigureAwait(false);
-
-				while (true)
+				// If it isn't already running, then we run it.
+				if (await coreNode.RpcClient.TestAsync().ConfigureAwait(false) is null)
 				{
-					try
-					{
-						await coreNode.RpcClient.GetBlockchainInfoAsync().ConfigureAwait(false);
-						break;
-					}
-					catch (Exception ex)
-					{
-						Logger.LogTrace(ex);
-						if (process is null || process.HasExited)
-						{
-							throw ex;
-						}
-					}
+					Logger.LogInfo("Bitcoin Core is already running.");
+				}
+				else
+				{
+					coreNode.Bridge = new BitcoindRpcProcessBridge(coreNode.RpcClient, coreNode.DataDir, printToConsole: false);
+					await coreNode.Bridge.StartAsync().ConfigureAwait(false);
+					Logger.LogInfo("Started Bitcoin Core.");
 				}
 
 				return coreNode;
@@ -199,39 +189,30 @@ namespace WalletWasabi.BitcoinCore
 
 		public async Task<bool> TryStopAsync()
 		{
-			var pidFile = new PidFile(DataDir, Network);
-			try
+			Exception exThrown = null;
+			if (Bridge != null)
 			{
-				var reasonableCoreShutdownTimeout = TimeSpan.FromSeconds(21);
-
-				using CancellationTokenSource cts = new CancellationTokenSource(reasonableCoreShutdownTimeout);
-				var pid = await pidFile.TryReadAsync().ConfigureAwait(false);
-
-				if (pid.HasValue)
+				try
 				{
-					using Process process = Process.GetProcessById(pid.Value);
-					try
-					{
-						await RpcClient.StopAsync().ConfigureAwait(false);
-					}
-					catch (Exception ex)
-					{
-						process.Kill();
-						Logger.LogDebug(ex);
-					}
-					await process.WaitForExitAsync(cts.Token).ConfigureAwait(false);
+					await Bridge.StopAsync().ConfigureAwait(false);
+					Logger.LogInfo("Stopped.");
 					return true;
 				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning(ex);
-			}
-			finally
-			{
-				pidFile.TryDelete();
+				catch (Exception ex)
+				{
+					exThrown = ex;
+				}
 			}
 
+			Logger.LogInfo("Did not stop Bitcoin Core. Reason:");
+			if (exThrown is null)
+			{
+				Logger.LogInfo("Bitcoin Core was started externally.");
+			}
+			else
+			{
+				Logger.LogWarning(exThrown);
+			}
 			return false;
 		}
 	}

@@ -650,7 +650,6 @@ namespace WalletWasabi.Gui
 				if (Config.StopLocalBitcoinCoreOnShutdown && BitcoinCoreNode != null)
 				{
 					await BitcoinCoreNode.TryStopAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(BitcoinCoreNode)} is stopped.");
 				}
 
 				if (TorManager != null)

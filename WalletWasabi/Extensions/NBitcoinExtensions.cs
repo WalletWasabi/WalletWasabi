@@ -28,14 +28,14 @@ namespace NBitcoin
 
 			using var listener = node.CreateListener();
 			var getdata = new GetDataPayload(new InventoryVector(node.AddSupportedOptions(InventoryType.MSG_BLOCK), hash));
-			await node.SendMessageAsync(getdata);
+			await node.SendMessageAsync(getdata).ConfigureAwait(false);
 			cancellationToken.ThrowIfCancellationRequested();
 
 			// Bitcoin Core processes the messages sequentially and does not send a NOTFOUND message if the remote node is pruned and the data not available.
 			// A good way to get any feedback about whether the node knows the block or not is to send a ping request.
 			// If block is not known by the remote node, the pong will be sent immediately, else it will be sent after the block download.
 			ulong pingNonce = RandomUtils.GetUInt64();
-			await node.SendMessageAsync(new PingPayload() { Nonce = pingNonce });
+			await node.SendMessageAsync(new PingPayload() { Nonce = pingNonce }).ConfigureAwait(false);
 			while (true)
 			{
 				cancellationToken.ThrowIfCancellationRequested();
@@ -244,9 +244,21 @@ namespace NBitcoin
 			return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
 		}
 
-		public static async Task StopAsync(this RPCClient rpc)
+		/// <summary>
+		/// If null is returned, no exception is thrown, so the test was successful.
+		/// </summary>
+		public static async Task<Exception> TestAsync(this RPCClient rpc)
 		{
-			await rpc.SendCommandAsync("stop");
+			try
+			{
+				await rpc.GetBlockchainInfoAsync().ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				return ex;
+			}
+
+			return null;
 		}
 
 		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt)

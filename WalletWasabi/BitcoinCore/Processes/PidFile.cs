@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.Configuration;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.BitcoinCore.Configuration
+namespace WalletWasabi.BitcoinCore.Processes
 {
 	public class PidFile
 	{
