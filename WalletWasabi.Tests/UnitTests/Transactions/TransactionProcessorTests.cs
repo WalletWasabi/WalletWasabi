@@ -196,17 +196,17 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Script NewScript(string label) => transactionProcessor.NewKey(label).P2wpkhScript;
 
 			// A confirmed segwit transaction for us
-			var tx = CreateCreditingTransaction( NewScript("A"), Money.Coins(1.0m), height: 54321);
+			var tx = CreateCreditingTransaction(NewScript("A"), Money.Coins(1.0m), height: 54321);
 			transactionProcessor.Process(tx);
-			
+
 			// Another confirmed segwit transaction for us
 			tx = CreateCreditingTransaction(NewScript("B"), Money.Coins(1.0m), height: 54321);
 			transactionProcessor.Process(tx);
 
-			var createdCoins = transactionProcessor.Coins.Select(x=> x.GetCoin()).ToArray(); // 2 coins of 1.0 btc each
+			var createdCoins = transactionProcessor.Coins.Select(x => x.GetCoin()).ToArray(); // 2 coins of 1.0 btc each
 
-			// Spend the received coins 
-			var destinationScript = NewScript("myself");;
+			// Spend the received coins
+			var destinationScript = NewScript("myself");
 			var changeScript = NewScript("Change myself");
 			tx = CreateSpendingTransaction(createdCoins, destinationScript, changeScript); // spends 1.2btc
 			tx.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
@@ -219,7 +219,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// At this moment we have one 1.2btc and one 0.8btc replaceable coins and one 1.0btc final coin
 			var latestCreatedCoin = Assert.Single(transactionProcessor.Coins.CreatedBy(tx.Transaction.GetHash()));
-			var coinsToSpend = createdCoins.Concat(new[]{ latestCreatedCoin.GetCoin() }).ToArray();
+			var coinsToSpend = createdCoins.Concat(new[] { latestCreatedCoin.GetCoin() }).ToArray();
 
 			// Spend them again with a different amount
 			destinationScript = new Key().PubKey.WitHash.ScriptPubKey;  // spend to someone else
