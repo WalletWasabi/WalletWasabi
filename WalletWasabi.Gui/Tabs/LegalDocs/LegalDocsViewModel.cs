@@ -1,9 +1,12 @@
+using Avalonia;
+using Avalonia.Platform;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
 using System.Composition;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -47,8 +50,7 @@ namespace WalletWasabi.Gui.Tabs.LegalDocs
 
 			AcceptTermsCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				RuntimeParams.Instance.AgreedLegalDocsVersion = RuntimeParams.Instance.DownloadedLegalDocsVersion;
-				await RuntimeParams.Instance.SaveAsync();
+				await Global.LegalDocsManager.SetAgreedLegalDocsVersionAsync(Global.LegalDocsManager.DownloadedLegalDocsVersion);
 				OnClose();
 			});
 
@@ -94,7 +96,7 @@ namespace WalletWasabi.Gui.Tabs.LegalDocs
 			Disposables =
 				Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			_isLegalDocsAgreed = RuntimeParams.Instance
+			_isLegalDocsAgreed = Global.LegalDocsManager
 				.WhenAnyValue(x => x.IsLegalDocsAgreed)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.ToProperty(this, x => x.IsLegalDocsAgreed, scheduler: RxApp.MainThreadScheduler)

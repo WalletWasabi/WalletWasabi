@@ -79,7 +79,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnWalletManager()
 		{
-			if (!RuntimeParams.Instance.IsLegalDocsAgreed)
+			if (!Global.LegalDocsManager.IsLegalDocsAgreed)
 			{
 				IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectLegalIssues();
 				return;

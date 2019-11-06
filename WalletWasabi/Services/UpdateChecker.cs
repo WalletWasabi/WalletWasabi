@@ -22,24 +22,18 @@ namespace WalletWasabi.Services
 		private CancellationTokenSource Stop { get; set; }
 
 		public WasabiClient WasabiClient { get; }
-
-		private readonly string LegalIssuesPath;
-		private readonly string PrivacyPolicyPath;
-		private readonly string TermsAndConditionsPath;
+		public LegalDocsManager LegalDocsManager { get; }
 
 		public event EventHandler<UpdateStatusResult> UpdateChecked;
 
-		public UpdateChecker(WasabiClient client, string workFolderPath)
+		public UpdateChecker(WasabiClient client, LegalDocsManager legalDocsManager, string workFolderPath)
 		{
 			WasabiClient = client;
+			LegalDocsManager = legalDocsManager;
 			_running = 0;
 			Stop = new CancellationTokenSource();
 
 			workFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-
-			LegalIssuesPath = Path.Combine(workFolderPath, "LegalIssues.txt");
-			PrivacyPolicyPath = Path.Combine(workFolderPath, "PrivacyPolicy.txt");
-			TermsAndConditionsPath = Path.Combine(workFolderPath, "TermsAndConditions.txt");
 		}
 
 		public void Start(TimeSpan period)
@@ -61,15 +55,13 @@ namespace WalletWasabi.Services
 
 							if (!updates.LegalDocsRevisionUpToDate || !updates.LegalDocsUpToDate)
 							{
-								IoHelpers.EnsureContainingDirectoryExists(LegalIssuesPath);
+								IoHelpers.EnsureContainingDirectoryExists(LegalDocsManager.LegalIssuesPath);
 
-								await File.WriteAllBytesAsync(LegalIssuesPath, await WasabiClient.GetLegalIssuesAsync(Stop.Token));
-								await File.WriteAllBytesAsync(PrivacyPolicyPath, await WasabiClient.GetPrivacyPolicyAsync(Stop.Token));
-								await File.WriteAllBytesAsync(TermsAndConditionsPath, await WasabiClient.GetTermsAndConditionsAsync(Stop.Token));
-								RuntimeParams.Instance.DownloadedLegalDocsVersion = updates.LegalDocsBackendVersion;
+								await File.WriteAllBytesAsync(LegalDocsManager.LegalIssuesPath, await WasabiClient.GetLegalIssuesAsync(Stop.Token));
+								await File.WriteAllBytesAsync(LegalDocsManager.PrivacyPolicyPath, await WasabiClient.GetPrivacyPolicyAsync(Stop.Token));
+								await File.WriteAllBytesAsync(LegalDocsManager.TermsAndConditionsPath, await WasabiClient.GetTermsAndConditionsAsync(Stop.Token));
 
-								// Checking compatibility.
-								RuntimeParams.Instance.EnsureCompatiblityAsync();
+								await LegalDocsManager.SetDownloadedLegalDocsVersionAsync(updates.LegalDocsBackendVersion);
 
 								await RuntimeParams.Instance.SaveAsync();
 							}

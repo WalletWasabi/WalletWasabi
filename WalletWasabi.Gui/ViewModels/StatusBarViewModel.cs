@@ -86,7 +86,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.ToProperty(this, x => x.Status)
 				.DisposeWith(Disposables);
 
-			_isLegalDocsAgreed = RuntimeParams.Instance.WhenAnyValue(x => x.IsLegalDocsAgreed)
+			_isLegalDocsAgreed = Global.LegalDocsManager.WhenAnyValue(x => x.IsLegalDocsAgreed)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.ToProperty(this, x => x.IsLegalDocsAgreed)
 				.DisposeWith(Disposables);

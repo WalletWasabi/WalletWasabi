@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Native;
+using Avalonia.Platform;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Extensibility.Theme;
 using AvalonStudio.Shell;
@@ -25,6 +26,7 @@ using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui
 {
@@ -56,18 +58,18 @@ namespace WalletWasabi.Gui
 			Closing += MainWindow_ClosingAsync;
 			AvaloniaXamlLoader.Load(this);
 
-			if (RuntimeParams.Instance.IsLegalDocsAgreed)
+			if (Global.LegalDocsManager.IsLegalDocsAgreed)
 			{
 				DisplayWalletManager();
 			}
 			else
 			{
-				RuntimeParams.Instance
-				.WhenAnyValue(x => x.IsLegalDocsAgreed)
-				.Where(x => x)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Take(1)
-				.Subscribe(_ => DisplayWalletManager());
+				Global.LegalDocsManager
+					.WhenAnyValue(x => x.IsLegalDocsAgreed)
+					.Where(x => x)
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Take(1)
+					.Subscribe(_ => DisplayWalletManager());
 			}
 
 			var uiConfigFilePath = Path.Combine(Global.DataDir, "UiConfig.json");
@@ -76,7 +78,7 @@ namespace WalletWasabi.Gui
 				.ToObservable(RxApp.TaskpoolScheduler)
 				.Take(1)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
+				.Subscribe(async _ =>
 				{
 					try
 					{
@@ -97,7 +99,9 @@ namespace WalletWasabi.Gui
 
 						MainWindowViewModel.Instance.LockScreen.Initialize();
 
-						if (!RuntimeParams.Instance.IsLegalDocsAgreed)
+						await Global.LegalDocsManager.EnsureLegalDocsExistAsync();
+
+						if (!Global.LegalDocsManager.IsLegalDocsAgreed)
 						{
 							IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectLegalIssues();
 						}

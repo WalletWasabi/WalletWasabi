@@ -67,6 +67,8 @@ namespace WalletWasabi.Gui
 
 		public Network Network => Config.Network;
 
+		public LegalDocsManager LegalDocsManager { get; private set; }
+
 		public Global()
 		{
 			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
@@ -77,6 +79,8 @@ namespace WalletWasabi.Gui
 			Directory.CreateDirectory(DataDir);
 			Directory.CreateDirectory(WalletsDir);
 			Directory.CreateDirectory(WalletBackupsDir);
+
+			LegalDocsManager = new LegalDocsManager(Path.Combine(DataDir, "UpdateChecker"));
 		}
 
 		public void InitializeUiConfig(UiConfig uiConfig)
@@ -162,7 +166,7 @@ namespace WalletWasabi.Gui
 				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
 			}
 
-			UpdateChecker = new UpdateChecker(Synchronizer.WasabiClient, Path.Combine(DataDir, "UpdateChecker"));
+			UpdateChecker = new UpdateChecker(Synchronizer.WasabiClient, LegalDocsManager, Path.Combine(DataDir, "UpdateChecker"));
 
 			#region ProcessKillSubscription
 

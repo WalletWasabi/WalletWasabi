@@ -9,14 +9,19 @@ using WalletWasabi.Gui.Tabs.WalletManager;
 using Avalonia;
 using WalletWasabi.Helpers;
 using WalletWasabi.Gui.Tabs.LegalDocs;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
 	internal class WalletCommands
 	{
+		public Global Global { get; }
+
 		[ImportingConstructor]
-		public WalletCommands(CommandIconService commandIconService)
+		public WalletCommands(CommandIconService commandIconService, AvaloniaGlobalComponent global)
 		{
+			Global = global.Global;
+
 			GenerateWalletCommand = new CommandDefinition(
 				"Generate Wallet",
 				commandIconService.GetCompletionKindImage("GenerateWallet"),
@@ -35,7 +40,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnGenerateWallet()
 		{
-			if (!RuntimeParams.Instance.IsLegalDocsAgreed)
+			if (!Global.LegalDocsManager.IsLegalDocsAgreed)
 			{
 				IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectLegalIssues();
 				return;
@@ -46,7 +51,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnRecoverWallet()
 		{
-			if (!RuntimeParams.Instance.IsLegalDocsAgreed)
+			if (!Global.LegalDocsManager.IsLegalDocsAgreed)
 			{
 				IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectLegalIssues();
 				return;
@@ -57,7 +62,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnLoadWallet()
 		{
-			if (!RuntimeParams.Instance.IsLegalDocsAgreed)
+			if (!Global.LegalDocsManager.IsLegalDocsAgreed)
 			{
 				IoC.Get<IShell>().GetOrCreate<LegalDocsViewModel>().SelectLegalIssues();
 				return;

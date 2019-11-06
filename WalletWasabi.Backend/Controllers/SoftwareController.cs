@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using System.IO;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Helpers;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Backend.Controllers
 {
@@ -13,10 +15,6 @@ namespace WalletWasabi.Backend.Controllers
 	public class SoftwareController : Controller
 	{
 		private readonly VersionsResponse VersionsResponse;
-
-		private const string LegalIssuesPath = "Assets/LegalIssues.txt";
-		private const string PrivacyPolicyPath = "Assets/PrivacyPolicy.txt";
-		private const string TermsAndConditionsPath = "Assets/TermsAndConditions.txt";
 
 		public SoftwareController()
 		{
@@ -49,7 +47,9 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(typeof(byte[]), 200)]
 		public async Task<IActionResult> GetLegalIssuesAsync()
 		{
-			return Ok(await System.IO.File.ReadAllBytesAsync(LegalIssuesPath));
+			using var memoryStream = new MemoryStream();
+			await EmbeddedResourceHelper.GetResourceAsync(LegalDocsManager.EmbeddedResourceLegalIssues, memoryStream);
+			return Ok(memoryStream.ToArray());
 		}
 
 		/// <summary>
@@ -61,7 +61,9 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(typeof(byte[]), 200)]
 		public async Task<IActionResult> GetPrivacyPolicyAsync()
 		{
-			return Ok(await System.IO.File.ReadAllBytesAsync(PrivacyPolicyPath));
+			using var memoryStream = new MemoryStream();
+			await EmbeddedResourceHelper.GetResourceAsync(LegalDocsManager.EmbeddedResourcePrivacyPolicy, memoryStream);
+			return Ok(memoryStream.ToArray());
 		}
 
 		/// <summary>
@@ -73,7 +75,9 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(typeof(byte[]), 200)]
 		public async Task<IActionResult> GetTermsAndConditionsAsync()
 		{
-			return Ok(await System.IO.File.ReadAllBytesAsync(TermsAndConditionsPath));
+			using var memoryStream = new MemoryStream();
+			await EmbeddedResourceHelper.GetResourceAsync(LegalDocsManager.EmbeddedResourceTermsAndConditions, memoryStream);
+			return Ok(memoryStream.ToArray());
 		}
 	}
 }

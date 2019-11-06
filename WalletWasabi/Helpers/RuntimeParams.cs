@@ -10,6 +10,7 @@ using WalletWasabi.Bases;
 using WalletWasabi.Extensions;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Helpers
 {
@@ -19,58 +20,10 @@ namespace WalletWasabi.Helpers
 		public int NetworkNodeTimeout { get; set; } = 64;
 
 		[JsonConverter(typeof(VersionJsonConverter))]
-		public Version DownloadedLegalDocsVersion
-		{
-			get => _downloadedLegalDocsVersion;
-			set
-			{
-				if (RaiseAndSetIfChanged(ref _downloadedLegalDocsVersion, value))
-				{
-					OnPropertyChanged(nameof(IsLegalDocsAgreed));
-				}
-			}
-		}
+		public Version DownloadedLegalDocsVersion { get; set; } = new Version(0, 0, 0, 0);
 
 		[JsonConverter(typeof(VersionJsonConverter))]
-		public Version AgreedLegalDocsVersion
-		{
-			get => _agreedLegalDocsVersion;
-			set
-			{
-				if (RaiseAndSetIfChanged(ref _agreedLegalDocsVersion, value))
-				{
-					OnPropertyChanged(nameof(IsLegalDocsAgreed));
-				}
-			}
-		}
-
-		[JsonIgnore]
-		public bool IsLegalDocsAgreed
-		{
-			get
-			{
-				if (AgreedLegalDocsVersion == new Version(0, 0, 0, 0))
-				{
-					// LegalDocs was never agreed.
-					return false;
-				}
-
-				// Check version except the Revision.
-				return DownloadedLegalDocsVersion.ToVersion(3) <= AgreedLegalDocsVersion.ToVersion(3);
-			}
-		}
-
-		public void EnsureCompatiblityAsync()
-		{
-			if (AgreedLegalDocsVersion != AgreeFirstAutomatically)
-			{
-				return;
-			}
-
-			AgreedLegalDocsVersion = DownloadedLegalDocsVersion;
-		}
-
-		private static readonly Version AgreeFirstAutomatically = new Version(9999, 9999, 9999, 9999);
+		public Version AgreedLegalDocsVersion { get; set; } = new Version(0, 0, 0, 0);
 
 		#region Business logic
 
@@ -96,8 +49,6 @@ namespace WalletWasabi.Helpers
 
 		private AsyncLock AsyncLock { get; } = new AsyncLock();
 		private static string FileDir;
-		private Version _downloadedLegalDocsVersion = new Version(0, 0, 0, 0);
-		private Version _agreedLegalDocsVersion = new Version(0, 0, 0, 0);
 
 		private static string FilePath => Path.Combine(FileDir, "RuntimeParams.json");
 
@@ -148,17 +99,7 @@ namespace WalletWasabi.Helpers
 
 				InternalInstance = JsonConvert.DeserializeObject<RuntimeParams>(jsonString);
 
-				// Ensure that users who already Agreed the legal docs won't be bothered after updating.
-				if (JsonHelpers.TryParseJToken(jsonString, out JToken token))
-				{
-					var addressString = token["AgreedLegalDocsVersion"]?.ToString()?.Trim() ?? null;
-					if (addressString is null)
-					{
-						// The file is there but the string is missing so the client was installed before and legal docs was agreed.
-						InternalInstance.AgreedLegalDocsVersion = AgreeFirstAutomatically;
-						await InternalInstance.SaveAsync();
-					}
-				}
+				await LegalDocsManager.EnsureCompatiblityAsync(jsonString);
 
 				return;
 			}
