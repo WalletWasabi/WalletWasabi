@@ -50,8 +50,8 @@
       </Grid>
       <StackPanel Margin="0 10 0 0" Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal">
         <CheckBox Content="Select All" IsThreeState="True" IsChecked="{Binding SelectAllCheckBoxState}" Command="{Binding SelectAllCheckBoxCommand}" />
-        <CheckBox Content="Select All Private" IsThreeState="True" IsChecked="{Binding SelectPrivateCheckBoxState}" Command="{Binding SelectPrivateCheckBoxCommand}" IsVisible="{Binding SelectAllPrivateVisible}" ToolTip.Tip="Coins that have acquired the privacy target." />
-        <CheckBox Content="Select All Non-Private" IsThreeState="True" IsChecked="{Binding SelectNonPrivateCheckBoxState}" Command="{Binding SelectNonPrivateCheckBoxCommand}" IsVisible="{Binding SelectAllNonPrivateVisible}" ToolTip.Tip="Coins that have not acquired the privacy target." />
+        <CheckBox Content="Select All Private" IsThreeState="True" IsChecked="{Binding SelectPrivateCheckBoxState}" Command="{Binding SelectPrivateCheckBoxCommand}" IsVisible="{Binding SelectAllPrivateVisible}" ToolTip.Tip="Coins that have acquired the anonymity set target." />
+        <CheckBox Content="Select All Non-Private" IsThreeState="True" IsChecked="{Binding SelectNonPrivateCheckBoxState}" Command="{Binding SelectNonPrivateCheckBoxCommand}" IsVisible="{Binding SelectAllNonPrivateVisible}" ToolTip.Tip="Coins that have not acquired the anonymity set target." />
         <StackPanel Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal" IsVisible="{Binding IsAnyCoinSelected}">
           <TextBlock Text="|" />
           <TextBlock Text="Selected Amount:" />
