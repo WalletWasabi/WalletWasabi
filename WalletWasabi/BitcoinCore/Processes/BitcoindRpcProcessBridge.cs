@@ -23,6 +23,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 		public string DataDir { get; }
 		public bool PrintToConsole { get; }
 		public PidFile PidFile { get; }
+		private int? CachedPid { get; set; }
 
 		public BitcoindRpcProcessBridge(RPCClient rpc, string dataDir, bool printToConsole) : base()
 		{
@@ -31,6 +32,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 			DataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 			PrintToConsole = printToConsole;
 			PidFile = new PidFile(DataDir, Network);
+			CachedPid = null;
 		}
 
 		public async Task StartAsync()
@@ -39,6 +41,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 			using var process = Start($"{NetworkTranslator.GetCommandLineArguments(Network)} -datadir={DataDir} -printtoconsole={ptcv}", false);
 
 			await PidFile.SerializeAsync(process.Id).ConfigureAwait(false);
+			CachedPid = process.Id;
 
 			while (true)
 			{
@@ -55,33 +58,47 @@ namespace WalletWasabi.BitcoinCore.Processes
 			}
 		}
 
-		public async Task StopAsync()
+		/// <param name="onlyOwned">Only stop if this node owns the process.</param>
+		public async Task StopAsync(bool onlyOwned)
 		{
+			var rpcRan = false;
 			try
 			{
 				var reasonableCoreShutdownTimeout = TimeSpan.FromSeconds(21);
 
 				using CancellationTokenSource cts = new CancellationTokenSource(reasonableCoreShutdownTimeout);
-				var pid = await PidFile.TryReadAsync().ConfigureAwait(false);
+				int? pid = await PidFile.TryReadAsync().ConfigureAwait(false);
 
-				if (pid.HasValue)
+				// If the cached pid is pid, then we own the process.
+				if (!pid.HasValue && (!onlyOwned || CachedPid == pid))
 				{
-					using Process process = Process.GetProcessById(pid.Value);
 					try
 					{
-						await RpcClient.StopAsync().ConfigureAwait(false);
+						using Process process = Process.GetProcessById(pid.Value);
+						try
+						{
+							await RpcClient.StopAsync().ConfigureAwait(false);
+							rpcRan = true;
+						}
+						catch (Exception ex)
+						{
+							process.Kill();
+							Logger.LogDebug(ex);
+						}
+						await process.WaitForExitAsync(cts.Token).ConfigureAwait(false);
 					}
-					catch (Exception ex)
+					finally
 					{
-						process.Kill();
-						Logger.LogDebug(ex);
+						PidFile.TryDelete();
 					}
-					await process.WaitForExitAsync(cts.Token).ConfigureAwait(false);
 				}
 			}
-			finally
+			catch
 			{
-				PidFile.TryDelete();
+				if (!onlyOwned && !rpcRan)
+				{
+					await RpcClient.StopAsync().ConfigureAwait(false);
+				}
 			}
 		}
 	}

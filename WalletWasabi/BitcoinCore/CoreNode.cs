@@ -112,7 +112,7 @@ namespace WalletWasabi.BitcoinCore
 
 				coreNode.RpcClient = new RPCClient($"{authString}", coreNode.RpcEndPoint.ToString(coreNode.Network.DefaultPort), coreNode.Network);
 
-				if (coreNodeParams.TryRestart && await coreNode.TryStopAsync().ConfigureAwait(false) && coreNodeParams.TryDeleteDataDir)
+				if (coreNodeParams.TryRestart && await coreNode.TryStopAsync(false).ConfigureAwait(false) && coreNodeParams.TryDeleteDataDir)
 				{
 					await IoHelpers.DeleteRecursivelyWithMagicDustAsync(coreNode.DataDir).ConfigureAwait(false);
 				}
@@ -207,14 +207,15 @@ namespace WalletWasabi.BitcoinCore
 			return await Task.WhenAll(tasks).ConfigureAwait(false);
 		}
 
-		public async Task<bool> TryStopAsync()
+		/// <param name="onlyOwned">Only stop if this node owns the process.</param>
+		public async Task<bool> TryStopAsync(bool onlyOwned = true)
 		{
 			Exception exThrown = null;
 			if (Bridge != null)
 			{
 				try
 				{
-					await Bridge.StopAsync().ConfigureAwait(false);
+					await Bridge.StopAsync(onlyOwned).ConfigureAwait(false);
 					Logger.LogInfo("Stopped.");
 					return true;
 				}
