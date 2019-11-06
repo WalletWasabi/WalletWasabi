@@ -13,9 +13,13 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		{
 			var testConfig =
 @"foo=buz
-foo = bar
+foo = bar";
 
- foo = bar
+			testConfig += Environment.NewLine;
+			testConfig += Environment.NewLine;
+			testConfig += Environment.NewLine;
+			testConfig +=
+@" foo = bar
 foo bar = buz quxx
 
 too =1
