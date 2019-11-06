@@ -13,9 +13,13 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
+			if (value is null)
+			{
+				return string.Empty;
+			}
 			if (value is RpcStatus val)
 			{
-				return Guard.Correct(val?.ToString());
+				return val.ToString();
 			}
 			else
 			{
