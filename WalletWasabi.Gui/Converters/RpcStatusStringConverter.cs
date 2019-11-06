@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui.Converters
 			}
 			else
 			{
-				throw new TypeArgumentException(value, typeof(Version), nameof(value));
+				throw new TypeArgumentException(value, typeof(RpcStatus), nameof(value));
 			}
 		}
 
