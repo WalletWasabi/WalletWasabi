@@ -65,7 +65,7 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "StopLocalBitcoinCoreOnShutdown", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool StopLocalBitcoinCoreOnShutdown { get; internal set; }
 
-		[JsonProperty(PropertyName = "BitcoinCoreDataDir")]
+		[JsonProperty(PropertyName = "LocalBitcoinCoreDataDir")]
 		public string LocalBitcoinCoreDataDir { get; internal set; } = EnvironmentHelpers.TryGetDefaultBitcoinCoreDataDir() ?? "";
 
 		[JsonProperty(PropertyName = "TorSocks5EndPoint")]
