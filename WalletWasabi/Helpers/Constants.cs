@@ -99,7 +99,7 @@ namespace WalletWasabi.Helpers
 
 		public const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-		public const float TransactionRBFSignalRate = 0.02F; // 2% RBF transactions
+		public const double TransactionRBFSignalRate = 0.02; // 2% RBF transactions
 
 		public const decimal DefaultDustThreshold = 0.00005m;
 	}
