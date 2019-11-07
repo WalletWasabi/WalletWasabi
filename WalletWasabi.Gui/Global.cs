@@ -83,7 +83,7 @@ namespace WalletWasabi.Gui
 			Directory.CreateDirectory(DataDir);
 			Directory.CreateDirectory(WalletsDir);
 			Directory.CreateDirectory(WalletBackupsDir);
-			RpcMonitor = new RpcMonitor();
+			RpcMonitor = new RpcMonitor(TimeSpan.FromSeconds(3));
 		}
 
 		public void InitializeUiConfig(UiConfig uiConfig)
@@ -169,7 +169,7 @@ namespace WalletWasabi.Gui
 				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
 			}
 
-			UpdateChecker = new UpdateChecker(Synchronizer.WasabiClient);
+			UpdateChecker = new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer.WasabiClient);
 
 			#region ProcessKillSubscription
 
@@ -232,7 +232,8 @@ namespace WalletWasabi.Gui
 							prune: null))
 						.ConfigureAwait(false);
 
-					RpcMonitor.Start(BitcoinCoreNode.RpcClient, TimeSpan.FromSeconds(3));
+					RpcMonitor.RpcClient = BitcoinCoreNode.RpcClient;
+					RpcMonitor.Start();
 				}
 			}
 			catch (Exception ex)

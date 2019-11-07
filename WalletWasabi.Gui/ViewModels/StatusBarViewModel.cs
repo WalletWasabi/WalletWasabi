@@ -230,7 +230,7 @@ namespace WalletWasabi.Gui.ViewModels
 					CriticalUpdateAvailable = !x.BackendCompatible;
 				}).DisposeWith(Disposables);
 
-			updateChecker.Start(TimeSpan.FromMinutes(7));
+			updateChecker.Start();
 		}
 
 		public ReactiveCommand<Unit, Unit> UpdateCommand { get; set; }

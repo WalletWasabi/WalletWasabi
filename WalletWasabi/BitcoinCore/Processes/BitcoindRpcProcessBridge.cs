@@ -70,7 +70,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 				int? pid = await PidFile.TryReadAsync().ConfigureAwait(false);
 
 				// If the cached pid is pid, then we own the process.
-				if (!pid.HasValue && (!onlyOwned || CachedPid == pid))
+				if (pid.HasValue && (!onlyOwned || CachedPid == pid))
 				{
 					try
 					{
