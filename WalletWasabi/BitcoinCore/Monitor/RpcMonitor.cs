@@ -12,33 +12,26 @@ namespace WalletWasabi.BitcoinCore.Monitor
 {
 	public class RpcMonitor : PeriodicRunner
 	{
-		private RpcStatus _status;
-
-		public RpcStatus Status
-		{
-			get => _status;
-			private set => RaiseAndSetIfChanged(ref _status, value);
-		}
-
 		public RPCClient RpcClient { get; set; }
 
-		public RpcMonitor(TimeSpan period) : base(period)
+		public RpcMonitor(TimeSpan period) : base(period, RpcStatus.Unresponsive)
 		{
 		}
 
-		public override async Task ActionAsync(CancellationToken cancel)
+		public override async Task<object> ActionAsync(CancellationToken cancel)
 		{
 			try
 			{
 				var bci = await RpcClient.GetBlockchainInfoAsync().ConfigureAwait(false);
+				cancel.ThrowIfCancellationRequested();
 				var pi = await RpcClient.GetPeersInfoAsync().ConfigureAwait(false);
 
-				Status = RpcStatus.Responsive(bci.Headers, bci.Blocks, pi.Length);
+				return RpcStatus.Responsive(bci.Headers, bci.Blocks, pi.Length);
 			}
-			catch
+			catch (Exception ex) when (!(ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException))
 			{
-				Status = RpcStatus.Unresponsive;
-				throw;
+				Logger.LogError(ex);
+				return RpcStatus.Unresponsive;
 			}
 		}
 	}

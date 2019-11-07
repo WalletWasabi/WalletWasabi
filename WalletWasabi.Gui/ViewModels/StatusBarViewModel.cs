@@ -28,13 +28,6 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Gui.ViewModels
 {
-	public enum UpdateStatus
-	{
-		Latest,
-		Optional,
-		Critical
-	}
-
 	public class StatusBarViewModel : ViewModelBase
 	{
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
@@ -44,12 +37,13 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private bool UseTor { get; set; }
 
-		private UpdateStatus _updateStatus;
+		private ObservableAsPropertyHelper<RpcStatus> _bitcoinCoreStatus;
+		private ObservableAsPropertyHelper<UpdateStatus> _updateStatus;
 		private bool _updateAvailable;
 		private bool _criticalUpdateAvailable;
+
 		private bool _useBitcoinCore;
 		private BackendStatus _backend;
-		private ObservableAsPropertyHelper<RpcStatus> _bitcoinCoreStatus;
 		private TorStatus _tor;
 		private int _peers;
 		private ObservableAsPropertyHelper<int> _filtersLeft;
@@ -62,9 +56,6 @@ namespace WalletWasabi.Gui.ViewModels
 		public StatusBarViewModel(Global global)
 		{
 			Global = global;
-			UpdateStatus = UpdateStatus.Latest;
-			UpdateAvailable = false;
-			CriticalUpdateAvailable = false;
 			Backend = BackendStatus.NotConnected;
 			UseTor = false;
 			Tor = TorStatus.NotRunning;
@@ -125,8 +116,17 @@ namespace WalletWasabi.Gui.ViewModels
 			_bitcoinCoreStatus = Global.RpcMonitor
 					.WhenAnyValue(x => x.Status)
 					.Throttle(TimeSpan.FromMilliseconds(100))
+					.Select(x => x as RpcStatus)
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.ToProperty(this, x => x.BitcoinCoreStatus)
+					.DisposeWith(Disposables);
+
+			_updateStatus = Global.UpdateChecker
+					.WhenAnyValue(x => x.Status)
+					.Throttle(TimeSpan.FromMilliseconds(100))
+					.Select(x => x as UpdateStatus)
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.ToProperty(this, x => x.UpdateStatus)
 					.DisposeWith(Disposables);
 
 			Observable.FromEventPattern<bool>(Synchronizer, nameof(Synchronizer.ResponseArrivedIsGenSocksServFail))
@@ -168,90 +168,47 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
-					if (x == UpdateStatus.Critical)
-					{
-						TryAddStatus(StatusBarStatus.CriticalUpdate);
-					}
-					else
+					if (UpdateStatus.BackendCompatible)
 					{
 						TryRemoveStatus(StatusBarStatus.CriticalUpdate);
 					}
-
-					if (x == UpdateStatus.Optional)
-					{
-						TryAddStatus(StatusBarStatus.OptionalUpdate);
-					}
 					else
+					{
+						TryAddStatus(StatusBarStatus.CriticalUpdate);
+					}
+
+					if (UpdateStatus.ClientUpToDate)
 					{
 						TryRemoveStatus(StatusBarStatus.OptionalUpdate);
 					}
-				});
-
-			UpdateCommand = ReactiveCommand.Create(() =>
-				{
-					try
-					{
-						IoHelpers.OpenBrowser("https://wasabiwallet.io/#download");
-					}
-					catch (Exception ex)
-					{
-						Logger.LogWarning(ex);
-						IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
-					}
-				},
-				this.WhenAnyValue(x => x.UpdateStatus)
-					.ObserveOn(RxApp.MainThreadScheduler)
-					.Select(x => x != UpdateStatus.Latest));
-
-			this.RaisePropertyChanged(nameof(UpdateCommand)); // The binding happens after the constructor. So, if the command is not in constructor, then we need this line.
-
-			Observable.FromEventPattern<UpdateStatusResult>(updateChecker, nameof(updateChecker.UpdateChecked))
-				.Select(x => x.EventArgs)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					if (x.BackendCompatible)
-					{
-						if (x.ClientUpToDate)
-						{
-							UpdateStatus = UpdateStatus.Latest;
-						}
-						else
-						{
-							UpdateStatus = UpdateStatus.Optional;
-						}
-					}
 					else
 					{
-						UpdateStatus = UpdateStatus.Critical;
+						TryAddStatus(StatusBarStatus.OptionalUpdate);
 					}
 
 					UpdateAvailable = !x.ClientUpToDate;
 					CriticalUpdateAvailable = !x.BackendCompatible;
-				}).DisposeWith(Disposables);
+				});
+
+			UpdateCommand = ReactiveCommand.Create(() =>
+			{
+				try
+				{
+					IoHelpers.OpenBrowser("https://wasabiwallet.io/#download");
+				}
+				catch (Exception ex)
+				{
+					Logger.LogWarning(ex);
+					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
+				}
+			});
+
+			this.RaisePropertyChanged(nameof(UpdateCommand)); // The binding happens after the constructor. So, if the command is not in constructor, then we need this line.
 
 			updateChecker.Start();
 		}
 
 		public ReactiveCommand<Unit, Unit> UpdateCommand { get; set; }
-
-		public UpdateStatus UpdateStatus
-		{
-			get => _updateStatus;
-			set => this.RaiseAndSetIfChanged(ref _updateStatus, value);
-		}
-
-		public bool UpdateAvailable
-		{
-			get => _updateAvailable;
-			set => this.RaiseAndSetIfChanged(ref _updateAvailable, value);
-		}
-
-		public bool CriticalUpdateAvailable
-		{
-			get => _criticalUpdateAvailable;
-			set => this.RaiseAndSetIfChanged(ref _criticalUpdateAvailable, value);
-		}
 
 		public bool UseBitcoinCore
 		{
@@ -279,6 +236,19 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public int FiltersLeft => _filtersLeft?.Value ?? 0;
 		public RpcStatus BitcoinCoreStatus => _bitcoinCoreStatus?.Value ?? RpcStatus.Unresponsive;
+		public UpdateStatus UpdateStatus => _updateStatus?.Value ?? new UpdateStatus(true, true);
+
+		public bool UpdateAvailable
+		{
+			get => _updateAvailable;
+			set => this.RaiseAndSetIfChanged(ref _updateAvailable, value);
+		}
+
+		public bool CriticalUpdateAvailable
+		{
+			get => _criticalUpdateAvailable;
+			set => this.RaiseAndSetIfChanged(ref _criticalUpdateAvailable, value);
+		}
 
 		public string BtcPrice
 		{

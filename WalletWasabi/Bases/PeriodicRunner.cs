@@ -9,18 +9,27 @@ namespace WalletWasabi.Bases
 {
 	public abstract class PeriodicRunner : NotifyPropertyChangedBase
 	{
+		private object _status;
+
+		public object Status
+		{
+			get => _status;
+			private set => RaiseAndSetIfChanged(ref _status, value);
+		}
+
 		private CancellationTokenSource Stop { get; set; }
 		public TimeSpan Period { get; }
 		private Task ForeverTask { get; set; }
 
-		protected PeriodicRunner(TimeSpan period)
+		protected PeriodicRunner(TimeSpan period, object defaultResult)
 		{
 			Stop = new CancellationTokenSource();
 			Period = period;
 			ForeverTask = Task.CompletedTask;
+			Status = defaultResult;
 		}
 
-		public abstract Task ActionAsync(CancellationToken cancel);
+		public abstract Task<object> ActionAsync(CancellationToken cancel);
 
 		public void Start()
 		{
@@ -33,7 +42,7 @@ namespace WalletWasabi.Bases
 			{
 				try
 				{
-					await ActionAsync(Stop.Token).ConfigureAwait(false);
+					Status = await ActionAsync(Stop.Token).ConfigureAwait(false);
 				}
 				catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
 				{

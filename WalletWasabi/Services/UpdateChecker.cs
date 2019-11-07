@@ -14,17 +14,14 @@ namespace WalletWasabi.Services
 	{
 		public WasabiClient WasabiClient { get; }
 
-		public event EventHandler<UpdateStatusResult> UpdateChecked;
-
-		public UpdateChecker(TimeSpan period, WasabiClient client) : base(period)
+		public UpdateChecker(TimeSpan period, WasabiClient client) : base(period, new UpdateStatus(true, true))
 		{
 			WasabiClient = Guard.NotNull(nameof(client), client);
 		}
 
-		public override async Task ActionAsync(CancellationToken cancel)
+		public override async Task<object> ActionAsync(CancellationToken cancel)
 		{
-			var updates = await WasabiClient.CheckUpdatesAsync(cancel);
-			UpdateChecked?.Invoke(this, updates);
+			return await WasabiClient.CheckUpdatesAsync(cancel);
 		}
 	}
 }
