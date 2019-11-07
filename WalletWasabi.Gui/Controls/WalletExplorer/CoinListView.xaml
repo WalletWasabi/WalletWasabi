@@ -113,7 +113,7 @@
                   <ColumnDefinition SharedSizeGroup="A" />
                   <ColumnDefinition Width="150" />
                   <ColumnDefinition Width="100" />
-                  <ColumnDefinition Width="Auto" />
+                  <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <CheckBox HorizontalContentAlignment="Left" IsChecked="{Binding IsSelected}" Background="{DynamicResource ThemeBackgroundBrush}" />
                 <Border Background="Transparent" IsVisible="{Binding Confirmed}" Grid.Column="1" ToolTip.Tip="{Binding Confirmations, StringFormat=\{0\} Confirmations}">
