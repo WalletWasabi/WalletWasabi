@@ -89,7 +89,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					Title = "Import Coldcard"
 				};
 
-				if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				{
+					ofd.InitialDirectory = Path.Combine("/media", Environment.UserName);
+				}
+				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 				{
 					ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 				}
