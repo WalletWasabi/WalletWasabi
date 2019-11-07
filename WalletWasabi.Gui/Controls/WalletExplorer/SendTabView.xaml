@@ -129,7 +129,7 @@
           <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
           <Grid ColumnDefinitions="60,100,100,600,100,Auto"></Grid>
         </StackPanel>
-        <local:CoinListView DataContext="{Binding CoinList}" />
+        <local:CoinListView SelectAllNonPrivateVisible="False" DataContext="{Binding CoinList}" />
       </DockPanel>
     </Grid>
   </DockPanel>

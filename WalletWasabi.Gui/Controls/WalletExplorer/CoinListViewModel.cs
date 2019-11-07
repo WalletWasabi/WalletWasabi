@@ -41,6 +41,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private Money _selectedAmount;
 		private bool _isAnyCoinSelected;
 		private bool _labelExposeCommonOwnershipWarning;
+		private bool _selectAllNonPrivateVisible;
+		private bool _selectAllPrivateVisible;
+
 		public Global Global { get; }
 		public CoinListContainerType CoinListContainerType { get; }
 		public ReactiveCommand<Unit, Unit> EnqueueCoin { get; }
@@ -168,6 +171,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _coinJoinStatusWidth;
 			set => this.RaiseAndSetIfChanged(ref _coinJoinStatusWidth, value);
+		}
+
+		public bool SelectAllNonPrivateVisible
+		{
+			get => _selectAllNonPrivateVisible;
+			set => this.RaiseAndSetIfChanged(ref _selectAllNonPrivateVisible, value);
+		}
+
+		public bool SelectAllPrivateVisible
+		{
+			get => _selectAllPrivateVisible;
+			set => this.RaiseAndSetIfChanged(ref _selectAllPrivateVisible, value);
 		}
 
 		private bool? GetCheckBoxesSelectedState(Func<CoinViewModel, bool> coinFilterPredicate)
@@ -351,7 +366,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				});
 
-			InitList = ReactiveCommand.Create(() =>	OnOpen(), outputScheduler: RxApp.MainThreadScheduler);
+			InitList = ReactiveCommand.Create(() => OnOpen(), outputScheduler: RxApp.MainThreadScheduler);
 
 			InitList.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
 		}
