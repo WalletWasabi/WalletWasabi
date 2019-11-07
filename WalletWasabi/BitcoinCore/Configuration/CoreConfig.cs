@@ -122,9 +122,41 @@ namespace WalletWasabi.BitcoinCore.Configuration
 		{
 			configString = Guard.Correct(configString);
 			var allLines = configString.Split('\n', StringSplitOptions.None);
-			return allLines
-				.Select(x => Guard.Correct(x))
-				.Where((x, i) => i == 0 || x != allLines[i - 1])
+			var allCorrectedLines = allLines.Select(x => Guard.Correct(x))
+				.Where((x, i) => i == 0 || x != allLines[i - 1]);
+
+			var retLines = new List<string>();
+			string section = null;
+			foreach (var line in allCorrectedLines)
+			{
+				if (line == "[main]")
+				{
+					section = "main.";
+				}
+				else if (line == "[test]")
+				{
+					section = "test.";
+				}
+				else if (line == "[regtest]")
+				{
+					section = "regtest.";
+				}
+				else
+				{
+					if (section is null
+						|| line.StartsWith("main.", StringComparison.OrdinalIgnoreCase)
+						|| line.StartsWith("test.", StringComparison.OrdinalIgnoreCase)
+						|| line.StartsWith("regtest.", StringComparison.OrdinalIgnoreCase))
+					{
+						retLines.Add(line);
+					}
+					else
+					{
+						retLines.Add($"{section}{line}");
+					}
+				}
+			}
+			return retLines
 				.Select(x => new CoreConfigLine(x));
 		}
 	}

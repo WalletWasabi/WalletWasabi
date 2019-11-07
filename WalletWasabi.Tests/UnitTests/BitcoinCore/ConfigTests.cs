@@ -146,5 +146,40 @@ buz = qux
 
 			Assert.Equal(expectedConfig, coreConfig.ToString());
 		}
+
+		[Fact]
+		public void HandlesSections()
+		{
+			var testConfig =
+@"qux=1
+[main]
+foo=1
+bar=1
+[test]
+foo=2
+bar=2
+[regtest]
+foo=3
+bar=4
+[main]
+buz=1
+test.buz=2";
+			var coreConfig = new CoreConfig();
+			coreConfig.TryAdd(testConfig);
+
+			var expectedConfig =
+@"qux = 1
+main.foo = 1
+main.bar = 1
+test.foo = 2
+test.bar = 2
+regtest.foo = 3
+regtest.bar = 4
+main.buz = 1
+test.buz = 2
+";
+
+			Assert.Equal(expectedConfig, coreConfig.ToString());
+		}
 	}
 }
