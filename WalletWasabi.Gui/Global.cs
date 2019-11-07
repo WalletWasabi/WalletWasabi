@@ -154,6 +154,25 @@ namespace WalletWasabi.Gui
 			BitcoinStore = new BitcoinStore();
 			var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
 			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
+			Task<CoreNode> bitcoinCoreNodeInitTask;
+			if (Config.StartLocalBitcoinCoreOnStartup)
+			{
+				bitcoinCoreNodeInitTask = CoreNode
+					.CreateAsync(new CoreNodeParams(
+						Network,
+						Config.LocalBitcoinCoreDataDir,
+						tryRestart: false,
+						tryDeleteDataDir: false,
+						EndPointStrategy.Custom(Config.GetBitcoinP2pEndPoint()),
+						EndPointStrategy.Default(Network, EndPointType.Rpc),
+						txIndex: null,
+						prune: null));
+			}
+			else
+			{
+				bitcoinCoreNodeInitTask = Task.FromResult<CoreNode>(null);
+			}
+
 			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
 			var addrManTask = InitializeAddressManagerBehaviorAsync();
 
@@ -218,20 +237,9 @@ namespace WalletWasabi.Gui
 
 			try
 			{
+				BitcoinCoreNode = await bitcoinCoreNodeInitTask.ConfigureAwait(false);
 				if (Config.StartLocalBitcoinCoreOnStartup)
 				{
-					BitcoinCoreNode = await CoreNode
-						.CreateAsync(new CoreNodeParams(
-							Network,
-							Config.LocalBitcoinCoreDataDir,
-							tryRestart: false,
-							tryDeleteDataDir: false,
-							EndPointStrategy.Custom(Config.GetBitcoinP2pEndPoint()),
-							EndPointStrategy.Default(Network, EndPointType.Rpc),
-							txIndex: null,
-							prune: null))
-						.ConfigureAwait(false);
-
 					RpcMonitor.RpcClient = BitcoinCoreNode.RpcClient;
 					RpcMonitor.Start();
 				}
