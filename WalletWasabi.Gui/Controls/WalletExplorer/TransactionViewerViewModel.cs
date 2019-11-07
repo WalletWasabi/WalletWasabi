@@ -70,7 +70,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					var sfd = new SaveFileDialog
 					{
 						DefaultExtension = psbtExtension,
-						InitialFileName = TxId,
+						InitialFileName = TxId.Substring(0, 7),
 						Title = "Export Binary PSBT"
 					};
 
