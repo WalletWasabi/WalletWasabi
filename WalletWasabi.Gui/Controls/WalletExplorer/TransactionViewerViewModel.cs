@@ -73,7 +73,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						Title = "Export Binary PSBT"
 					};
 
-					if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+					{
+						var initialDirectory = Path.Combine("/media", Environment.UserName);
+						if (!Directory.Exists(initialDirectory))
+						{
+							initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+						}
+						sfd.InitialDirectory = initialDirectory;
+					}
+					else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 					{
 						sfd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 					}
