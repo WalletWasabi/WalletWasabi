@@ -188,7 +188,11 @@ namespace WalletWasabi.Gui.ManagedDialogs
 
 						if (!SelectingFolder)
 						{
-							FileName = SelectedItems.FirstOrDefault()?.DisplayName;
+							var selectedItem = SelectedItems.FirstOrDefault();
+							if (selectedItem != null)
+							{
+								FileName = selectedItem.DisplayName;
+							}
 						}
 					}
 				}
