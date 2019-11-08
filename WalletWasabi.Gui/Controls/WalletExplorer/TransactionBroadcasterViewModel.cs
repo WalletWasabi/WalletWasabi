@@ -85,7 +85,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 					{
-						var initailDirectory = Path.Combine("/media", Environment.UserName);;
+						var initailDirectory = Path.Combine("/media", Environment.UserName);
 						if (!Directory.Exists(initailDirectory))
 						{
 							initailDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
