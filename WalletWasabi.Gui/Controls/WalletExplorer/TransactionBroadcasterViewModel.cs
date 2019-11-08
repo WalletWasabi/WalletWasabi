@@ -85,12 +85,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 					{
-						var initailDirectory = Path.Combine("/media", Environment.UserName);
-						if (!Directory.Exists(initailDirectory))
+						var initialDirectory = Path.Combine("/media", Environment.UserName);
+						if (!Directory.Exists(initialDirectory))
 						{
-							initailDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+							initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 						}
-						ofd.InitialDirectory = initailDirectory;
+						ofd.InitialDirectory = initialDirectory;
 					}
 					else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 					{
