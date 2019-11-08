@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
@@ -82,9 +83,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						AllowMultiple = false,
 						Title = "Import Transaction"
 					};
+          
+					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+					{
+						var initialDirectory = Path.Combine("/media", Environment.UserName);
+						if (!Directory.Exists(initialDirectory))
+						{
+							initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+						}
+						ofd.InitialDirectory = initialDirectory;
+					}
+					else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+					{
+						ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+					}
 
-					var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+          var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
 					var selected = await ofd.ShowAsync(window, fallBack: true);
+          
 					if (selected != null && selected.Any())
 					{
 						var path = selected.First();
