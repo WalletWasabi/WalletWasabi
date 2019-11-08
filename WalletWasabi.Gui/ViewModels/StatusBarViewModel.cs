@@ -168,7 +168,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
-					if (UpdateStatus.BackendCompatible)
+					if (x.BackendCompatible)
 					{
 						TryRemoveStatus(StatusBarStatus.CriticalUpdate);
 					}
@@ -177,7 +177,7 @@ namespace WalletWasabi.Gui.ViewModels
 						TryAddStatus(StatusBarStatus.CriticalUpdate);
 					}
 
-					if (UpdateStatus.ClientUpToDate)
+					if (x.ClientUpToDate)
 					{
 						TryRemoveStatus(StatusBarStatus.OptionalUpdate);
 					}
