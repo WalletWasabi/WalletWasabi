@@ -769,7 +769,7 @@ namespace WalletWasabi.Services
 				var rand = new Random();
 				// sometimes pick locktime a bit further back, to help privacy.
 				var randomize = rand.Next(0, 10) == 0;
-				return tipHeight - (randomize ? rand.Next(0, 10) : 0);
+				return tipHeight - (randomize ? rand.Next(0, 100) : 0);
 			}
 			catch(Exception)
 			{
