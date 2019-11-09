@@ -2,7 +2,7 @@ using NBitcoin;
 using System;
 using System.IO;
 using System.Security;
-using WalletWasabi.BlockchainAnalysis;
+using WalletWasabi.BlockchainAnalysis.Clustering;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;

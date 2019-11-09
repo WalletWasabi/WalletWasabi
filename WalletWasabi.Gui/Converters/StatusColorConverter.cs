@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
-using WalletWasabi.BitcoinCore.Monitor;
+using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Converters

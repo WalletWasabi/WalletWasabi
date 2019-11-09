@@ -2,7 +2,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
-using WalletWasabi.BlockchainAnalysis;
+using WalletWasabi.BlockchainAnalysis.Clustering;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 

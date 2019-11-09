@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.Models
+namespace WalletWasabi.BlockchainAnalysis.FeesEstimation
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class AllFeeEstimate : IEquatable<AllFeeEstimate>

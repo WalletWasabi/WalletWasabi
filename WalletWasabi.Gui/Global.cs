@@ -19,7 +19,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Endpointing;
-using WalletWasabi.BitcoinCore.Monitor;
+using WalletWasabi.BitcoinCore.Monitoring;
+using WalletWasabi.BlockchainAnalysis.FeesEstimation;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.Coins;
 using WalletWasabi.Crypto;
@@ -58,6 +59,8 @@ namespace WalletWasabi.Gui
 
 		public NodesGroup Nodes { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
+		public RpcFeeProvider RpcFeeProvider { get; private set; }
+		public FeeProviders FeeProviders { get; private set; }
 		public CoinJoinClient ChaumianClient { get; private set; }
 		public WalletService WalletService { get; private set; }
 		public Node RegTestMempoolServingNode { get; private set; }
@@ -235,6 +238,7 @@ namespace WalletWasabi.Gui
 
 			#region BitcoinCoreInitialization
 
+			var feeProviderList = new List<IFeeProvider>();
 			try
 			{
 				BitcoinCoreNode = await bitcoinCoreNodeInitTask.ConfigureAwait(false);
@@ -242,12 +246,19 @@ namespace WalletWasabi.Gui
 				{
 					RpcMonitor.RpcClient = BitcoinCoreNode.RpcClient;
 					RpcMonitor.Start();
+
+					RpcFeeProvider = new RpcFeeProvider(TimeSpan.FromMinutes(1), BitcoinCoreNode.RpcClient, tolerateFailure: false);
+					RpcFeeProvider.Start();
+					feeProviderList.Add(RpcFeeProvider);
 				}
 			}
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
 			}
+
+			feeProviderList.Add(Synchronizer);
+			FeeProviders = new FeeProviders(feeProviderList);
 
 			#endregion BitcoinCoreInitialization
 
@@ -449,7 +460,7 @@ namespace WalletWasabi.Gui
 					Logger.LogWarning(ex);
 				}
 
-				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, Nodes, DataDir, Config.ServiceConfiguration);
+				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders);
 
 				ChaumianClient.Start();
 				Logger.LogInfo("Start Chaumian CoinJoin service...");
@@ -629,10 +640,22 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(UpdateChecker)} is stopped.");
 				}
 
+				if (FeeProviders != null)
+				{
+					FeeProviders.Dispose();
+					Logger.LogInfo("Disposed feeprovider container.");
+				}
+
 				if (Synchronizer != null)
 				{
 					await Synchronizer?.StopAsync();
 					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.");
+				}
+
+				if (RpcFeeProvider != null)
+				{
+					await RpcFeeProvider.StopAsync();
+					Logger.LogInfo("Stopped synching fees through RPC.");
 				}
 
 				if (AddressManagerFilePath != null)

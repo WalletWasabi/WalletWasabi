@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
+using WalletWasabi.BlockchainAnalysis.FeesEstimation;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -23,7 +24,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
-	public class WasabiSynchronizer : NotifyPropertyChangedBase
+	public class WasabiSynchronizer : NotifyPropertyChangedBase, IFeeProvider
 	{
 		#region MembersPropertiesEvents
 

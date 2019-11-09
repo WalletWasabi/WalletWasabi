@@ -2,7 +2,7 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using WalletWasabi.BlockchainAnalysis;
+using WalletWasabi.BlockchainAnalysis.Clustering;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Transactions.TransactionBuilding

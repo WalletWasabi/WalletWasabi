@@ -244,23 +244,6 @@ namespace NBitcoin
 			return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
 		}
 
-		/// <summary>
-		/// If null is returned, no exception is thrown, so the test was successful.
-		/// </summary>
-		public static async Task<Exception> TestAsync(this RPCClient rpc)
-		{
-			try
-			{
-				await rpc.GetBlockchainInfoAsync().ConfigureAwait(false);
-			}
-			catch (Exception ex)
-			{
-				return ex;
-			}
-
-			return null;
-		}
-
 		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt)
 		{
 			var extractedTx = psbt.ExtractTransaction();

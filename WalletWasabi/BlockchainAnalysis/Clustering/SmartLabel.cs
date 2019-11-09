@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace WalletWasabi.BlockchainAnalysis
+namespace WalletWasabi.BlockchainAnalysis.Clustering
 {
 	public class SmartLabel : IEquatable<SmartLabel>, IEquatable<string>, IEnumerable<string>
 	{
@@ -56,7 +56,7 @@ namespace WalletWasabi.BlockchainAnalysis
 
 		#region Equality
 
-		public override bool Equals(object obj) => (obj is SmartLabel slabel && this == slabel) || (obj is string label && this == label);
+		public override bool Equals(object obj) => obj is SmartLabel slabel && this == slabel || obj is string label && this == label;
 
 		public bool Equals(SmartLabel other) => this == other;
 

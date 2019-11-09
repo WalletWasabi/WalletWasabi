@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using WalletWasabi.Models;
+using WalletWasabi.BlockchainAnalysis.FeesEstimation;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests

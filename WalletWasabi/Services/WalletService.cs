@@ -13,7 +13,8 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.BlockchainAnalysis;
+using WalletWasabi.BlockchainAnalysis.Clustering;
+using WalletWasabi.BlockchainAnalysis.FeesEstimation;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.Coins;
 using WalletWasabi.Exceptions;
@@ -87,7 +88,8 @@ namespace WalletWasabi.Services
 			CoinJoinClient chaumianClient,
 			NodesGroup nodes,
 			string workFolderDir,
-			ServiceConfiguration serviceConfiguration)
+			ServiceConfiguration serviceConfiguration,
+			IFeeProvider feeProvider)
 		{
 			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
@@ -95,6 +97,7 @@ namespace WalletWasabi.Services
 			Synchronizer = Guard.NotNull(nameof(syncer), syncer);
 			ChaumianClient = Guard.NotNull(nameof(chaumianClient), chaumianClient);
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
+			FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
 
 			ProcessedBlocks = new ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)>();
 			HandleFiltersLock = new AsyncLock();
@@ -421,6 +424,8 @@ namespace WalletWasabi.Services
 			private set => _localBitcoinCoreNode = value;
 		}
 
+		public IFeeProvider FeeProvider { get; }
+
 		/// <param name="hash">Block hash of the desired block, represented as a 256 bit integer.</param>
 		/// <exception cref="OperationCanceledException"></exception>
 		public async Task<Block> FetchBlockAsync(uint256 hash, CancellationToken cancel)
@@ -735,7 +740,7 @@ namespace WalletWasabi.Services
 				{
 					if (feeStrategy.Type == FeeStrategyType.Target)
 					{
-						return Synchronizer.GetFeeRate(feeStrategy.Target);
+						return FeeProvider.GetFeeRate(feeStrategy.Target);
 					}
 					else if (feeStrategy.Type == FeeStrategyType.Rate)
 					{

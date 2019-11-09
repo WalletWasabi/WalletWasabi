@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
-using WalletWasabi.BlockchainAnalysis;
+using WalletWasabi.BlockchainAnalysis.Clustering;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Coins

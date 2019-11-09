@@ -2,9 +2,9 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using WalletWasabi.BlockchainAnalysis.FeesEstimation;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.JsonConverters;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Backend.Models.Responses
 {

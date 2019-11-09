@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.BlockchainAnalysis.FeesEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -112,6 +113,23 @@ namespace NBitcoin.RPC
 			FeeRate feeRate = new FeeRate(feePerK);
 			var resp = new EstimateSmartFeeResponse { Blocks = confirmationTarget, FeeRate = feeRate };
 			return resp;
+		}
+
+		/// <summary>
+		/// If null is returned, no exception is thrown, so the test was successful.
+		/// </summary>
+		public static async Task<Exception> TestAsync(this RPCClient rpc)
+		{
+			try
+			{
+				await rpc.GetBlockchainInfoAsync().ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				return ex;
+			}
+
+			return null;
 		}
 
 		public static async Task<AllFeeEstimate> EstimateAllFeeAsync(this RPCClient rpc, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tolerateBitcoinCoreBrainfuck = true)

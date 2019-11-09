@@ -8,7 +8,7 @@ using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.BitcoinCore.Monitor
+namespace WalletWasabi.BitcoinCore.Monitoring
 {
 	public class RpcMonitor : PeriodicRunner
 	{

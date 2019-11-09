@@ -17,7 +17,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BlockchainAnalysis;
+using WalletWasabi.BlockchainAnalysis.Clustering;
+using WalletWasabi.BlockchainAnalysis.FeesEstimation;
 using WalletWasabi.Coins;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Models;
@@ -510,7 +511,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFeesAndTexts()
 		{
-			AllFeeEstimate allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
+			AllFeeEstimate allFeeEstimate = Global.FeeProviders?.AllFeeEstimate;
 
 			int feeTarget = -1; // 1 => 10 minutes
 			if (IsSliderFeeUsed)
@@ -686,7 +687,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFeeTargetLimits()
 		{
-			var allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
+			var allFeeEstimate = Global.FeeProviders?.AllFeeEstimate;
 
 			if (allFeeEstimate != null)
 			{
@@ -1017,7 +1018,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Global.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate).Subscribe(_ =>
+			Global.FeeProviders.WhenAnyValue(x => x.AllFeeEstimate).Subscribe(_ =>
 				{
 					SetFeeTargetLimits();
 

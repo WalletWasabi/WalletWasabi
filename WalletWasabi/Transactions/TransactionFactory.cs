@@ -3,7 +3,7 @@ using NBitcoin.Policy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using WalletWasabi.BlockchainAnalysis;
+using WalletWasabi.BlockchainAnalysis.Clustering;
 using WalletWasabi.Coins;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;

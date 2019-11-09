@@ -5,7 +5,7 @@ using System.Linq;
 using WalletWasabi.Bases;
 using WalletWasabi.Coins;
 
-namespace WalletWasabi.BlockchainAnalysis
+namespace WalletWasabi.BlockchainAnalysis.Clustering
 {
 	public class Cluster : NotifyPropertyChangedBase, IEquatable<Cluster>
 	{
