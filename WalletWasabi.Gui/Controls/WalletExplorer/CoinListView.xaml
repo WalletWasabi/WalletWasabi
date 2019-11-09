@@ -49,10 +49,9 @@
         <controls:SortingArrow Grid.Column="5" Text="Clusters" Command="{Binding SortCommand}" SortDirection="{Binding ClustersSortDirection}" />
       </Grid>
       <StackPanel Margin="0 10 0 0" Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal">
-        <CheckBox Content="Select All Private" IsThreeState="True" IsChecked="{Binding SelectPrivateCheckBoxState}" Command="{Binding SelectPrivateCheckBoxCommand}" IsVisible="{Binding SelectAllPrivateVisible}" ToolTip.Tip="Coins that have acquired the anonymity set target." />
+        <CheckBox Content="Select" IsThreeState="True" IsChecked="{Binding SelectPrivateCheckBoxState}" Command="{Binding SelectPrivateCheckBoxCommand}" IsVisible="{Binding SelectAllPrivateVisible}" ToolTip.Tip="Coins that have acquired the anonymity set target." />
         <DrawingPresenter Height="16" Width="16" VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource PrivacyStrong}" IsVisible="{Binding SelectAllPrivateVisible}" />
-        <DrawingPresenter Height="16" Width="16" VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource PrivacySaiyan}" IsVisible="{Binding SelectAllPrivateVisible}" />
-        <CheckBox Content="Select All Non-Private" IsThreeState="True" IsChecked="{Binding SelectNonPrivateCheckBoxState}" Command="{Binding SelectNonPrivateCheckBoxCommand}" IsVisible="{Binding SelectAllNonPrivateVisible}" ToolTip.Tip="Coins that have not acquired the anonymity set target." />
+        <CheckBox Content="Select" IsThreeState="True" IsChecked="{Binding SelectNonPrivateCheckBoxState}" Command="{Binding SelectNonPrivateCheckBoxCommand}" IsVisible="{Binding SelectAllNonPrivateVisible}" ToolTip.Tip="Coins that have not acquired the anonymity set target." />
         <DrawingPresenter Height="16" Width="16" VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource PrivacyCritical}" IsVisible="{Binding SelectAllNonPrivateVisible}" />
         <DrawingPresenter Height="16" Width="16" VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource PrivacySome}" IsVisible="{Binding SelectAllNonPrivateVisible}" />
         <DrawingPresenter Height="16" Width="16" VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource PrivacyFine}" IsVisible="{Binding SelectAllNonPrivateVisible}" />
