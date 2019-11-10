@@ -22,9 +22,14 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 		{
 			try
 			{
-				var bci = await RpcClient.GetBlockchainInfoAsync().ConfigureAwait(false);
+				var batch = RpcClient.PrepareBatch();
+				var bciTask = batch.GetBlockchainInfoAsync();
+				var piTask = RpcClient.GetPeersInfoAsync();
+				batch.SendBatch();
+
+				var bci = await bciTask.ConfigureAwait(false);
 				cancel.ThrowIfCancellationRequested();
-				var pi = await RpcClient.GetPeersInfoAsync().ConfigureAwait(false);
+				var pi = await piTask.ConfigureAwait(false);
 
 				return RpcStatus.Responsive(bci.Headers, bci.Blocks, pi.Length);
 			}
