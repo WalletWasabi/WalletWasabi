@@ -643,7 +643,7 @@ namespace WalletWasabi.Gui
 				if (FeeProviders != null)
 				{
 					FeeProviders.Dispose();
-					Logger.LogInfo("Disposed feeprovider container.");
+					Logger.LogInfo($"Disposed {nameof(FeeProviders)}.");
 				}
 
 				if (Synchronizer != null)
