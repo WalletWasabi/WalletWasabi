@@ -75,6 +75,10 @@
       </Template>
     </Setter>
   </Style>
+  <Style Selector="ScrollBar">
+    <Setter Property="SmallChange" Value="15" />
+    <Setter Property="LargeChange" Value="150" />
+  </Style>
   <Style Selector="TextBox.monospaceFont">
     <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
     <Setter Property="FontSize" Value="14" />
