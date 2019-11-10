@@ -54,14 +54,5 @@ namespace WalletWasabi.BlockchainAnalysis.FeesEstimation
 				}
 			}
 		}
-
-		public FeeRate GetFeeRate(int feeTarget)
-		{
-			if (AllFeeEstimate is null)
-			{
-				throw new InvalidOperationException("Cannot get fee estimations.");
-			}
-			return AllFeeEstimate.GetFeeRate(feeTarget);
-		}
 	}
 }

@@ -9,7 +9,5 @@ namespace WalletWasabi.BlockchainAnalysis.FeesEstimation
 	public interface IFeeProvider : INotifyPropertyChanged
 	{
 		public AllFeeEstimate AllFeeEstimate { get; }
-
-		public FeeRate GetFeeRate(int feeTarget);
 	}
 }

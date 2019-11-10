@@ -349,15 +349,6 @@ namespace WalletWasabi.Services
 			ResponseArrivedIsGenSocksServFail?.Invoke(this, false);
 		}
 
-		public FeeRate GetFeeRate(int feeTarget)
-		{
-			if (AllFeeEstimate is null)
-			{
-				throw new InvalidOperationException("Cannot get fee estimations.");
-			}
-			return AllFeeEstimate.GetFeeRate(feeTarget);
-		}
-
 		#endregion Methods
 
 		public async Task StopAsync()

@@ -63,29 +63,6 @@ namespace WalletWasabi.BlockchainAnalysis.FeesEstimation
 			}
 		}
 
-		public FeeRate GetFeeRate(int feeTarget)
-		{
-			IFeeProvider[] providerArray = Providers.ToArray();
-			for (int i = 0; i < providerArray.Length - 1; i++)
-			{
-				IFeeProvider provider = providerArray[i];
-				try
-				{
-					var feeRate = provider.GetFeeRate(feeTarget);
-					if (feeRate != null)
-					{
-						return feeRate;
-					}
-				}
-				catch (Exception ex)
-				{
-					Logger.LogWarning(ex);
-				}
-			}
-
-			return providerArray[providerArray.Length - 1].GetFeeRate(feeTarget);
-		}
-
 		#region IDisposable Support
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
