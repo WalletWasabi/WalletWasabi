@@ -43,7 +43,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 			{
 				if (TolerateFailure)
 				{
-					// Will be cought by the periodic runner.
+					// Will be caught by the periodic runner.
 					// The point is that the result isn't changing to null, so it can still serve the latest fee it knew about.
 					throw;
 				}
