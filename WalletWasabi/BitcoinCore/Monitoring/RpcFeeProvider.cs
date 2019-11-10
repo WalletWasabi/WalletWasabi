@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.Bases;
+using WalletWasabi.BlockchainAnalysis.FeesEstimation;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.BlockchainAnalysis.FeesEstimation
+namespace WalletWasabi.BitcoinCore.Monitoring
 {
 	public class RpcFeeProvider : PeriodicRunner, IFeeProvider
 	{
