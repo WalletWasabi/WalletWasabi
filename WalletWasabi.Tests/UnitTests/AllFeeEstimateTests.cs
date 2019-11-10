@@ -19,7 +19,7 @@ namespace WalletWasabi.Tests.UnitTests
 				{ 3, 20 },
 				{ 19, 1 }
 			};
-			var allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations);
+			var allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
 			var serialized = JsonConvert.SerializeObject(allFee);
 			var deserialized = JsonConvert.DeserializeObject<AllFeeEstimate>(serialized);
 

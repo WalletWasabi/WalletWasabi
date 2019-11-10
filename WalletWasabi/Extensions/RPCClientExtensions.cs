@@ -3,7 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BlockchainAnalysis.FeesEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -134,9 +136,32 @@ namespace NBitcoin.RPC
 
 		public static async Task<AllFeeEstimate> EstimateAllFeeAsync(this RPCClient rpc, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tolerateBitcoinCoreBrainfuck = true)
 		{
-			var estimations = await rpc.EstimateHalfFeesAsync(new Dictionary<int, int>(), 2, 0, Constants.SevenDaysConfirmationTarget, 0, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck);
-			var allFeeEstimate = new AllFeeEstimate(estimateMode, estimations);
+			var rpcStatus = await rpc.GetRpcStatusAsync(CancellationToken.None).ConfigureAwait(false);
+			var estimations = await rpc.EstimateHalfFeesAsync(new Dictionary<int, int>(), 2, 0, Constants.SevenDaysConfirmationTarget, 0, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck).ConfigureAwait(false);
+			var allFeeEstimate = new AllFeeEstimate(estimateMode, estimations, rpcStatus.Synchronized);
 			return allFeeEstimate;
+		}
+
+		public static async Task<RpcStatus> GetRpcStatusAsync(this RPCClient rpc, CancellationToken cancel)
+		{
+			try
+			{
+				var batch = rpc.PrepareBatch();
+				var bciTask = batch.GetBlockchainInfoAsync();
+				var piTask = rpc.GetPeersInfoAsync();
+				batch.SendBatch();
+
+				var bci = await bciTask.ConfigureAwait(false);
+				cancel.ThrowIfCancellationRequested();
+				var pi = await piTask.ConfigureAwait(false);
+
+				return RpcStatus.Responsive(bci.Headers, bci.Blocks, pi.Length);
+			}
+			catch (Exception ex) when (!(ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException))
+			{
+				Logger.LogError(ex);
+				return RpcStatus.Unresponsive;
+			}
 		}
 
 		private static async Task<Dictionary<int, int>> EstimateHalfFeesAsync(this RPCClient rpc, IDictionary<int, int> estimations, int smallTarget, int smallFee, int largeTarget, int largeFee, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tolerateBitcoinCoreBrainfuck = true)

@@ -16,15 +16,22 @@ namespace WalletWasabi.BlockchainAnalysis.FeesEstimation
 		public EstimateSmartFeeMode Type { get; }
 
 		/// <summary>
+		/// If it's been fetched from a fully synced node.
+		/// </summary>
+		[JsonProperty]
+		public bool IsAccurate { get; }
+
+		/// <summary>
 		/// int: fee target, decimal: satoshi/byte
 		/// </summary>
 		[JsonProperty]
 		public Dictionary<int, int> Estimations { get; }
 
 		[JsonConstructor]
-		public AllFeeEstimate(EstimateSmartFeeMode type, IDictionary<int, int> estimations)
+		public AllFeeEstimate(EstimateSmartFeeMode type, IDictionary<int, int> estimations, bool isAccurate)
 		{
 			Type = type;
+			IsAccurate = isAccurate;
 			Guard.NotNullOrEmpty(nameof(estimations), estimations);
 			Estimations = new Dictionary<int, int>();
 			var valueSet = new HashSet<decimal>();
