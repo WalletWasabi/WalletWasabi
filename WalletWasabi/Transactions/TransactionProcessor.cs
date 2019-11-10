@@ -87,14 +87,15 @@ namespace WalletWasabi.Transactions
 						// if the received transaction is spending at least one input already
 						// spent by a previous unconfirmed transaction signaling RBF then it is not a double
 						// spanding transaction but a replacement transaction.
-						if (doubleSpends.Any(x => x.IsReplaceable))
+						var isReplacemenetTx = doubleSpends.Any(x => x.IsReplaceable && !x.Confirmed);
+						if (isReplacemenetTx)
 						{
-							// remove double spent coins (if other coin spends it, remove that too and so on)
-							// will add later if they came to our keys
-							foreach (SmartCoin doubleSpentCoin in doubleSpends.Where(x => !x.Confirmed))
-							{
-								Coins.Remove(doubleSpentCoin);
-							}
+							// Undo the replaced transaction by removing the coins it created (if other coin
+							// spends it, remove that too and so on) and restoring those that it destroyed 
+							// ones. After undoing the replaced transaction it will process the replacement 
+							// transaction.
+							var replacedTxId = doubleSpends.First().TransactionId;
+							Coins.Undo(replacedTxId);
 							tx.SetReplacement();
 							walletRelevant = true;
 						}

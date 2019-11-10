@@ -41,7 +41,7 @@ namespace WalletWasabi.Coins
 			{
 				foreach (var child in ChildrenOf(scoin))
 				{
-					foreach (var childDescendant in ChildrenOf(child))
+					foreach (var childDescendant in Generator(child))
 					{
 						yield return childDescendant;
 					}
