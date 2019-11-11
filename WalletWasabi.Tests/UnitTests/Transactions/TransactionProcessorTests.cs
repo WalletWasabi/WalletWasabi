@@ -323,7 +323,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var createdCoins = transactionProcessor.Coins.Select(x => x.GetCoin()).ToArray(); // 2 coins of 1.0 btc each
 
 			// Spend the received coins (replaceable)
-			var destinationScript = NewScript("myself"); ;
+			var destinationScript = NewScript("myself");
 			var changeScript = NewScript("Change myself");
 			tx = CreateSpendingTransaction(createdCoins, destinationScript, changeScript); // spends 1.2btc
 			tx.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
