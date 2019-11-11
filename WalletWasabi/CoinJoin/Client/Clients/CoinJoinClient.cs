@@ -389,7 +389,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			}
 
 			var signedCoinJoin = unsignedCoinJoin.Clone();
-			signedCoinJoin.Sign(ongoingRound.CoinsRegistered.Select(x => x.Secret ??= KeyManager.GetSecrets(SaltSoup(), x.ScriptPubKey).Single()).ToArray(), ongoingRound.Registration.CoinsRegistered.Select(x => x.GetCoin()).ToArray());
+			signedCoinJoin.Sign((IEnumerable<BitcoinSecret>)ongoingRound.CoinsRegistered.Select(x => x.Secret ??= KeyManager.GetSecrets(SaltSoup(), x.ScriptPubKey).Single()).ToArray(), ongoingRound.Registration.CoinsRegistered.Select(x => x.GetCoin()).ToArray());
 
 			// Old way of signing, which randomly fails! https://github.com/zkSNACKs/WalletWasabi/issues/716#issuecomment-435498906
 			// Must be fixed in NBitcoin.

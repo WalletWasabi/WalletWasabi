@@ -18,7 +18,7 @@ namespace WalletWasabi.JsonConverters
 		{
 			var value = Guard.Correct((string)reader.Value);
 
-			return string.IsNullOrWhiteSpace(value) ? default : Network.Parse<BitcoinAddress>(value);
+			return string.IsNullOrWhiteSpace(value) ? default : Network.Parse<BitcoinAddress>(value, Network.Main);
 		}
 
 		/// <inheritdoc />
