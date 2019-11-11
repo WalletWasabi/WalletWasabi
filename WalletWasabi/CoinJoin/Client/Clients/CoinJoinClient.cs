@@ -392,20 +392,14 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			signedCoinJoin.Sign(
 				ongoingRound
 					.CoinsRegistered
-					.Select(x => (x.Secret ??= KeyManager.GetSecrets(SaltSoup(), x.ScriptPubKey).Single()) as BitcoinSecret),
+					.Select(x =>
+						(x.Secret ??= KeyManager.GetSecrets(SaltSoup(), x.ScriptPubKey).Single())
+						.PrivateKey
+						.GetBitcoinSecret(Network)),
 				ongoingRound
 					.Registration
 					.CoinsRegistered
 					.Select(x => x.GetCoin()));
-
-			// Old way of signing, which randomly fails! https://github.com/zkSNACKs/WalletWasabi/issues/716#issuecomment-435498906
-			// Must be fixed in NBitcoin.
-			//var builder = Network.CreateTransactionBuilder();
-			//var signedCoinJoin = builder
-			//	.ContinueToBuild(unsignedCoinJoin)
-			//	.AddKeys(ongoingRound.Registration.CoinsRegistered.Select(x => x.Secret = x.Secret ?? KeyManager.GetSecrets(OnePiece, x.ScriptPubKey).Single()).ToArray())
-			//	.AddCoins(ongoingRound.Registration.CoinsRegistered.Select(x => x.GetCoin()))
-			//	.BuildTransaction(true);
 
 			var myDic = new Dictionary<int, WitScript>();
 
