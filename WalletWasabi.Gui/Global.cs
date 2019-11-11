@@ -247,7 +247,7 @@ namespace WalletWasabi.Gui
 					RpcMonitor.RpcClient = BitcoinCoreNode.RpcClient;
 					RpcMonitor.Start();
 
-					RpcFeeProvider = new RpcFeeProvider(TimeSpan.FromMinutes(1), BitcoinCoreNode.RpcClient, tolerateFailure: false);
+					RpcFeeProvider = new RpcFeeProvider(TimeSpan.FromMinutes(1), BitcoinCoreNode.RpcClient);
 					RpcFeeProvider.Start();
 					feeProviderList.Add(RpcFeeProvider);
 				}
