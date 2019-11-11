@@ -70,9 +70,24 @@ namespace WalletWasabi.Helpers
 			}
 			catch
 			{
-				// Try hex, Old wallet format was like this.
-				epk = new ExtPubKey(ByteHelpers.FromHex(extPubKeyString)); // Starts with "ExtPubKey": "hexbytes...
+				try
+				{
+					epk = ExtPubKey.Parse(extPubKeyString, Network.TestNet); // Starts with "ExtPubKey": "xpub...
+				}
+				catch
+				{
+					try
+					{
+						epk = ExtPubKey.Parse(extPubKeyString, Network.RegTest); // Starts with "ExtPubKey": "xpub...
+					}
+					catch
+					{
+						// Try hex, Old wallet format was like this.
+						epk = new ExtPubKey(ByteHelpers.FromHex(extPubKeyString)); // Starts with "ExtPubKey": "hexbytes...
+					}
+				}
 			}
+
 			return epk;
 		}
 
