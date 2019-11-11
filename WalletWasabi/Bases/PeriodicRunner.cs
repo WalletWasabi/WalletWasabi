@@ -20,6 +20,7 @@ namespace WalletWasabi.Bases
 		private CancellationTokenSource Stop { get; set; }
 		public TimeSpan Period { get; }
 		private Task ForeverTask { get; set; }
+		public Exception LastException { get; set; }
 
 		protected PeriodicRunner(TimeSpan period, T defaultResult)
 		{
@@ -27,6 +28,7 @@ namespace WalletWasabi.Bases
 			Period = period;
 			ForeverTask = Task.CompletedTask;
 			Status = defaultResult;
+			LastException = null;
 		}
 
 		public abstract Task<T> ActionAsync(CancellationToken cancel);
@@ -50,7 +52,12 @@ namespace WalletWasabi.Bases
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError(ex);
+					// Only log one type of exception once.
+					if (LastException is null || ex.GetType() != LastException.GetType() || ex.Message != LastException.Message)
+					{
+						Logger.LogError(ex);
+						LastException = ex;
+					}
 				}
 				finally
 				{
