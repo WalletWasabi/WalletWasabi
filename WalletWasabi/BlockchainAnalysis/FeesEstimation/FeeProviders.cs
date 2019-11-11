@@ -15,12 +15,12 @@ namespace WalletWasabi.BlockchainAnalysis.FeesEstimation
 	{
 		private IEnumerable<IFeeProvider> Providers { get; }
 
-		private AllFeeEstimate _allFeeEstimate;
+		private AllFeeEstimate _status;
 
-		public AllFeeEstimate AllFeeEstimate
+		public AllFeeEstimate Status
 		{
-			get => _allFeeEstimate;
-			private set => RaiseAndSetIfChanged(ref _allFeeEstimate, value);
+			get => _status;
+			private set => RaiseAndSetIfChanged(ref _status, value);
 		}
 
 		private object Lock { get; }
@@ -41,7 +41,7 @@ namespace WalletWasabi.BlockchainAnalysis.FeesEstimation
 		private void Provider_PropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
 			IFeeProvider feeProvider;
-			if (e.PropertyName == nameof(feeProvider.AllFeeEstimate))
+			if (e.PropertyName == nameof(feeProvider.Status))
 			{
 				SetAllFeeEstimate();
 			}
@@ -55,15 +55,15 @@ namespace WalletWasabi.BlockchainAnalysis.FeesEstimation
 				for (int i = 0; i < providerArray.Length - 1; i++)
 				{
 					IFeeProvider provider = providerArray[i];
-					var allFee = provider.AllFeeEstimate;
+					var allFee = provider.Status;
 					if (allFee != null && allFee.IsAccurate)
 					{
-						AllFeeEstimate = allFee;
+						Status = allFee;
 						return;
 					}
 				}
 
-				AllFeeEstimate = providerArray[providerArray.Length - 1].AllFeeEstimate;
+				Status = providerArray[providerArray.Length - 1].Status;
 			}
 		}
 

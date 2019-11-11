@@ -511,7 +511,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFeesAndTexts()
 		{
-			AllFeeEstimate allFeeEstimate = Global.FeeProviders?.AllFeeEstimate;
+			AllFeeEstimate allFeeEstimate = Global.FeeProviders?.Status;
 
 			int feeTarget = -1; // 1 => 10 minutes
 			if (IsSliderFeeUsed)
@@ -687,7 +687,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFeeTargetLimits()
 		{
-			var allFeeEstimate = Global.FeeProviders?.AllFeeEstimate;
+			var allFeeEstimate = Global.FeeProviders?.Status;
 
 			if (allFeeEstimate != null)
 			{
@@ -1018,7 +1018,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Global.FeeProviders.WhenAnyValue(x => x.AllFeeEstimate).Subscribe(_ =>
+			Global.FeeProviders.WhenAnyValue(x => x.Status).Subscribe(_ =>
 				{
 					SetFeeTargetLimits();
 

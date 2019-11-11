@@ -8,6 +8,6 @@ namespace WalletWasabi.BlockchainAnalysis.FeesEstimation
 {
 	public interface IFeeProvider : INotifyPropertyChanged
 	{
-		public AllFeeEstimate AllFeeEstimate { get; }
+		public AllFeeEstimate Status { get; }
 	}
 }

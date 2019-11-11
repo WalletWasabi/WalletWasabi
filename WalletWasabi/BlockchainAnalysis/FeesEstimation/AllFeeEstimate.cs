@@ -13,22 +13,32 @@ namespace WalletWasabi.BlockchainAnalysis.FeesEstimation
 	public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 	{
 		[JsonProperty]
-		public EstimateSmartFeeMode Type { get; }
+		public EstimateSmartFeeMode Type { get; private set; }
 
 		/// <summary>
 		/// If it's been fetched from a fully synced node.
 		/// </summary>
 		[JsonProperty]
-		public bool IsAccurate { get; }
+		public bool IsAccurate { get; private set; }
 
 		/// <summary>
 		/// int: fee target, decimal: satoshi/byte
 		/// </summary>
 		[JsonProperty]
-		public Dictionary<int, int> Estimations { get; }
+		public Dictionary<int, int> Estimations { get; private set; }
 
 		[JsonConstructor]
 		public AllFeeEstimate(EstimateSmartFeeMode type, IDictionary<int, int> estimations, bool isAccurate)
+		{
+			Create(type, estimations, isAccurate);
+		}
+
+		public AllFeeEstimate(AllFeeEstimate other, bool isAccurate)
+		{
+			Create(other.Type, other.Estimations, isAccurate);
+		}
+
+		private void Create(EstimateSmartFeeMode type, IDictionary<int, int> estimations, bool isAccurate)
 		{
 			Type = type;
 			IsAccurate = isAccurate;
@@ -43,7 +53,6 @@ namespace WalletWasabi.BlockchainAnalysis.FeesEstimation
 					Estimations.TryAdd(estimation.Key, estimation.Value);
 				}
 			}
-			_hashCode = null;
 		}
 
 		public FeeRate GetFeeRate(int feeTarget)
@@ -62,21 +71,16 @@ namespace WalletWasabi.BlockchainAnalysis.FeesEstimation
 
 		public bool Equals(AllFeeEstimate other) => this == other;
 
-		private int? _hashCode;
-
 		public override int GetHashCode()
 		{
-			if (!_hashCode.HasValue)
+			int hash = Type.GetHashCode();
+			foreach (KeyValuePair<int, int> est in Estimations)
 			{
-				int hash = Type.GetHashCode();
-				foreach (KeyValuePair<int, int> est in Estimations)
-				{
-					hash = hash ^ est.Key.GetHashCode() ^ est.Value.GetHashCode();
-				}
-				_hashCode = hash;
+				hash ^= est.Key.GetHashCode() ^ est.Value.GetHashCode();
 			}
+			hash ^= IsAccurate.GetHashCode();
 
-			return _hashCode.Value;
+			return hash;
 		}
 
 		public static bool operator ==(AllFeeEstimate x, AllFeeEstimate y)
@@ -92,6 +96,11 @@ namespace WalletWasabi.BlockchainAnalysis.FeesEstimation
 			}
 
 			if (x.Type != y.Type)
+			{
+				return false;
+			}
+
+			if (x.IsAccurate != y.IsAccurate)
 			{
 				return false;
 			}

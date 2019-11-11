@@ -13,14 +13,6 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 {
 	public class RpcFeeProvider : PeriodicRunner<AllFeeEstimate>, IFeeProvider
 	{
-		private AllFeeEstimate _allFeeEstimate;
-
-		public AllFeeEstimate AllFeeEstimate
-		{
-			get => _allFeeEstimate;
-			private set => RaiseAndSetIfChanged(ref _allFeeEstimate, value);
-		}
-
 		public RPCClient RpcClient { get; set; }
 
 		public RpcFeeProvider(TimeSpan period, RPCClient rpcClient) : base(period, null)
@@ -32,14 +24,11 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 		{
 			try
 			{
-				var afs = await RpcClient.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, true, true).ConfigureAwait(false);
-
-				AllFeeEstimate = afs;
-				return afs;
+				return await RpcClient.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, true, true).ConfigureAwait(false);
 			}
 			catch
 			{
-				AllFeeEstimate = null;
+				Status = new AllFeeEstimate(Status, false);
 				throw;
 			}
 		}

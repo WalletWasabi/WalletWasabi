@@ -45,12 +45,12 @@ namespace WalletWasabi.Services
 			private set => RaiseAndSetIfChanged(ref _usdExchangeRate, value);
 		}
 
-		private AllFeeEstimate _allFeeEstimate;
+		private AllFeeEstimate _status;
 
-		public AllFeeEstimate AllFeeEstimate
+		public AllFeeEstimate Status
 		{
-			get => _allFeeEstimate;
-			private set => RaiseAndSetIfChanged(ref _allFeeEstimate, value);
+			get => _status;
+			private set => RaiseAndSetIfChanged(ref _status, value);
 		}
 
 		private TorStatus _torStatus;
@@ -200,7 +200,7 @@ namespace WalletWasabi.Services
 							if (response.AllFeeEstimate != null && response.AllFeeEstimate.Estimations.Any())
 							{
 								lastFeeQueried = DateTimeOffset.UtcNow;
-								AllFeeEstimate = response.AllFeeEstimate;
+								Status = response.AllFeeEstimate;
 							}
 
 							if (response.Filters.Count() == maxFiltersToSyncAtInitialization)

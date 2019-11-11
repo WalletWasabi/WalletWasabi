@@ -14,7 +14,7 @@ namespace WalletWasabi.Bases
 		public T Status
 		{
 			get => _status;
-			private set => RaiseAndSetIfChanged(ref _status, value);
+			protected set => RaiseAndSetIfChanged(ref _status, value);
 		}
 
 		private CancellationTokenSource Stop { get; set; }
