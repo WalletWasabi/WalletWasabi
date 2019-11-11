@@ -189,6 +189,36 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		}
 
 		[Fact]
+		public async Task ConfirmTransactionTestAsync()
+		{
+			var transactionProcessor = await CreateTransactionProcessorAsync();
+
+			var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
+			int coinsReceived = 0;
+			int confirmed = 0;
+			transactionProcessor.CoinReceived += (s, e) => coinsReceived++;
+			transactionProcessor.CoinSpent += (s, e) => throw new InvalidOperationException("We are not spending the coin.");
+			transactionProcessor.SpenderConfirmed += (s, e) => confirmed++;
+
+			// A confirmed segwit transaction for us
+			var tx = CreateCreditingTransaction(keys[0].PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m));
+			transactionProcessor.Process(tx);
+			Assert.Equal(1, coinsReceived);
+
+			var coin = Assert.Single(transactionProcessor.Coins);
+			Assert.False(coin.Confirmed);
+
+			var tx2 = new SmartTransaction(tx.Transaction.Clone(), new Height(54321));
+
+			Assert.Equal(tx.GetHash(), tx2.GetHash());
+			transactionProcessor.Process(tx2);
+			Assert.Equal(1, coinsReceived);
+			Assert.True(coin.Confirmed);
+
+			Assert.Equal(0, confirmed);
+		}
+
+		[Fact]
 		public async Task HandlesBumpFeeAsync()
 		{
 			// Replaces a previous RBF transaction by a new one that contains one more input (higher fee)
@@ -239,17 +269,17 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Script NewScript(string label) => transactionProcessor.NewKey(label).P2wpkhScript;
 
 			// A confirmed segwit transaction for us
-			var tx = CreateCreditingTransaction( NewScript("A"), Money.Coins(1.0m), height: 54321);
+			var tx = CreateCreditingTransaction(NewScript("A"), Money.Coins(1.0m), height: 54321);
 			transactionProcessor.Process(tx);
-			
+
 			// Another confirmed segwit transaction for us
 			tx = CreateCreditingTransaction(NewScript("B"), Money.Coins(1.0m), height: 54321);
 			transactionProcessor.Process(tx);
 
-			var createdCoins = transactionProcessor.Coins.Select(x=> x.GetCoin()).ToArray(); // 2 coins of 1.0 btc each
+			var createdCoins = transactionProcessor.Coins.Select(x => x.GetCoin()).ToArray(); // 2 coins of 1.0 btc each
 
 			// Spend the received coins (replaceable)
-			var destinationScript = NewScript("myself");;
+			var destinationScript = NewScript("myself"); ;
 			var changeScript = NewScript("Change myself");
 			tx = CreateSpendingTransaction(createdCoins, destinationScript, changeScript); // spends 1.2btc
 			tx.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
