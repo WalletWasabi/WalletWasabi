@@ -40,7 +40,11 @@ namespace WalletWasabi.BlockchainAnalysis.FeesEstimation
 
 		private void Provider_PropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
-			SetAllFeeEstimate();
+			IFeeProvider feeProvider;
+			if (e.PropertyName == nameof(feeProvider.AllFeeEstimate))
+			{
+				SetAllFeeEstimate();
+			}
 		}
 
 		private void SetAllFeeEstimate()
