@@ -135,10 +135,11 @@ namespace WalletWasabi.Coins
 			}
 		}
 
-		public void RemoveFromBlock(Height blockHeight)
+		public ICoinsView RemoveFromBlock(Height blockHeight)
 		{
 			lock (Lock)
 			{
+				var removedCoins = new List<SmartCoin>();
 				var allCoins = AsAllCoinsViewNoLock();
 				foreach (var toRemove in allCoins.AtBlockHeight(blockHeight).ToList())
 				{
@@ -156,28 +157,35 @@ namespace WalletWasabi.Coins
 						{
 							SpentCoins.Remove(toRemove);
 						}
+
+						removedCoins.Add(coin);
 					}
 				}
+				return new CoinsView(removedCoins);
 			}
 		}
 
-		internal void Undo(uint256 txId)
+		internal (ICoinsView toRemove, ICoinsView toAdd) Undo(uint256 txId)
 		{
 			lock (Lock)
 			{
+				var toRemove = CreatedByNoLock(txId);
+				var toAdd = SpentByNoLock(txId);
+
 				// remove recursively the coins created by the transaction
-				foreach (SmartCoin createdCoin in CreatedByNoLock(txId))
+				foreach (SmartCoin createdCoin in toRemove)
 				{
 					Coins.Remove(createdCoin);
 				}
 				// destroyed (spent) coins are now (unspent)
-				foreach (SmartCoin destroyedCoin in SpentByNoLock(txId))
+				foreach (SmartCoin destroyedCoin in toAdd)
 				{
-					if(SpentCoins.Remove(destroyedCoin))
+					if (SpentCoins.Remove(destroyedCoin))
 					{
 						Coins.Add(destroyedCoin);
 					}
 				}
+				return (toRemove, toAdd);
 			}
 		}
 

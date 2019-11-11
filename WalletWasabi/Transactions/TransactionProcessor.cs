@@ -9,6 +9,20 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Transactions
 {
+	public class ReplaceTransactionArg
+	{
+		public ReplaceTransactionArg(SmartTransaction smartTransaction, IEnumerable<SmartCoin> added, IEnumerable<SmartCoin> remove)
+		{
+			SmartTransaction = smartTransaction;
+			Added = added;
+			Remove = remove;
+		}
+
+		public SmartTransaction SmartTransaction { get; }
+		public IEnumerable<SmartCoin> Added { get; }
+		public IEnumerable<SmartCoin> Remove { get; }
+	}
+
 	public class TransactionProcessor
 	{
 		public AllTransactionStore TransactionStore { get; }
@@ -23,6 +37,8 @@ namespace WalletWasabi.Transactions
 		public event EventHandler<SmartCoin> SpenderConfirmed;
 
 		public event EventHandler<SmartCoin> CoinReceived;
+
+		public event EventHandler<ReplaceTransactionArg> TransactionReplaced;
 
 		public TransactionProcessor(
 			AllTransactionStore transactionStore,
@@ -101,7 +117,10 @@ namespace WalletWasabi.Transactions
 							// ones. After undoing the replaced transaction it will process the replacement
 							// transaction.
 							var replacedTxId = doubleSpends.First().TransactionId;
-							Coins.Undo(replacedTxId);
+							var (toRemove, toAdd) = Coins.Undo(replacedTxId);
+
+							TransactionReplaced?.Invoke(this, new ReplaceTransactionArg(tx, toAdd, toRemove));
+
 							tx.SetReplacement();
 							walletRelevant = true;
 						}
@@ -117,6 +136,8 @@ namespace WalletWasabi.Transactions
 						{
 							Coins.Remove(doubleSpentCoin);
 						}
+
+						TransactionReplaced?.Invoke(this, new ReplaceTransactionArg(tx, Enumerable.Empty<SmartCoin>(), doubleSpends));
 						walletRelevant = true;
 					}
 				}
@@ -233,9 +254,9 @@ namespace WalletWasabi.Transactions
 			return walletRelevant;
 		}
 
-		public void UndoBlock(Height blockHeight)
+		public ICoinsView UndoBlock(Height blockHeight)
 		{
-			Coins.RemoveFromBlock(blockHeight);
+			return Coins.RemoveFromBlock(blockHeight);
 		}
 	}
 }
