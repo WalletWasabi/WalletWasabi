@@ -159,7 +159,7 @@ namespace NBitcoin.RPC
 			}
 			catch (Exception ex) when (!(ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException))
 			{
-				Logger.LogError(ex);
+				Logger.LogTrace(ex);
 				return RpcStatus.Unresponsive;
 			}
 		}
