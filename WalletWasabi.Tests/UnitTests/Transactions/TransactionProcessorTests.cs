@@ -169,6 +169,19 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var transactionProcessor = await CreateTransactionProcessorAsync();
 
 			var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
+			int replaceTransactionReceivedCalled = 0;
+			transactionProcessor.ReplaceTransactionReceived += (s, e) =>
+			{
+				// Move the original coin from spent to unspent - so add.
+				var originalCoin = Assert.Single(e.RestoredCoins);
+				Assert.Equal(Money.Coins(1.0m), originalCoin.Amount);
+
+				// Remove the created coin by the transaction.
+				var createdCoin = Assert.Single(e.DestroyedCoins);
+				Assert.Equal(Money.Coins(0.95m), createdCoin.Amount);
+
+				replaceTransactionReceivedCalled++;
+			};
 
 			// A confirmed segwit transaction for us
 			var tx = CreateCreditingTransaction(keys[0].PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m), height: 54321);
@@ -178,13 +191,16 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// Spend the received coin
 			tx = CreateSpendingTransaction(createdCoin, keys[1].PubKey.WitHash.ScriptPubKey);
 			tx.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
+			tx.Transaction.Outputs[0].Value = Money.Coins(0.95m);
 			var relevant = transactionProcessor.Process(tx);
 			Assert.True(relevant);
+			Assert.Equal(0, replaceTransactionReceivedCalled);
 
 			// Spend it coin
 			tx = CreateSpendingTransaction(createdCoin, keys[2].PubKey.WitHash.ScriptPubKey);
 			tx.Transaction.Outputs[0].Value = Money.Coins(0.9m);
 			relevant = transactionProcessor.Process(tx);
+			Assert.Equal(1, replaceTransactionReceivedCalled);
 
 			Assert.True(relevant);
 			Assert.Single(transactionProcessor.Coins, coin => coin.Amount == Money.Coins(0.9m) && coin.IsReplaceable);

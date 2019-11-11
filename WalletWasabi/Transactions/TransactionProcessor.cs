@@ -23,16 +23,16 @@ namespace WalletWasabi.Transactions
 
 	public class ReplaceTransactionReceivedEventArgs
 	{
-		public ReplaceTransactionReceivedEventArgs(SmartTransaction smartTransaction, IEnumerable<SmartCoin> remove, IEnumerable<SmartCoin> add)
+		public ReplaceTransactionReceivedEventArgs(SmartTransaction smartTransaction, IEnumerable<SmartCoin> destroyedCoins, IEnumerable<SmartCoin> restoredCoins)
 		{
 			SmartTransaction = smartTransaction;
-			Remove = remove;
-			Add = add;
+			DestroyedCoins = destroyedCoins;
+			RestoredCoins = restoredCoins;
 		}
 
 		public SmartTransaction SmartTransaction { get; }
-		public IEnumerable<SmartCoin> Remove { get; }
-		public IEnumerable<SmartCoin> Add { get; }
+		public IEnumerable<SmartCoin> DestroyedCoins { get; }
+		public IEnumerable<SmartCoin> RestoredCoins { get; }
 	}
 
 	public class TransactionProcessor
@@ -134,9 +134,9 @@ namespace WalletWasabi.Transactions
 							// ones. After undoing the replaced transaction it will process the replacement
 							// transaction.
 							var replacedTxId = doubleSpends.First().TransactionId;
-							var (toRemove, toAdd) = Coins.Undo(replacedTxId);
+							var (destroyed, restored) = Coins.Undo(replacedTxId);
 
-							ReplaceTransactionReceived?.Invoke(this, new ReplaceTransactionReceivedEventArgs(tx, toAdd, toRemove));
+							ReplaceTransactionReceived?.Invoke(this, new ReplaceTransactionReceivedEventArgs(tx, destroyed, restored));
 
 							tx.SetReplacement();
 							walletRelevant = true;
