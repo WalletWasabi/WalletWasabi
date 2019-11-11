@@ -141,6 +141,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var transactionProcessor = await CreateTransactionProcessorAsync();
 
 			var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
+			transactionProcessor.DoubleSpendReceived += (s, e) =>
+			{
+			};
 
 			// An unconfirmed segwit transaction for us
 			var tx = CreateCreditingTransaction(keys[0].PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m), height: 54321);

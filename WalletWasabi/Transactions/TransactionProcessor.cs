@@ -9,18 +9,30 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Transactions
 {
-	public class ReplaceTransactionArg
+	public class DoubleSpendReceivedEventArgs
 	{
-		public ReplaceTransactionArg(SmartTransaction smartTransaction, IEnumerable<SmartCoin> added, IEnumerable<SmartCoin> remove)
+		public DoubleSpendReceivedEventArgs(SmartTransaction smartTransaction, IEnumerable<SmartCoin> remove)
 		{
 			SmartTransaction = smartTransaction;
-			Added = added;
 			Remove = remove;
 		}
 
 		public SmartTransaction SmartTransaction { get; }
-		public IEnumerable<SmartCoin> Added { get; }
 		public IEnumerable<SmartCoin> Remove { get; }
+	}
+
+	public class ReplaceTransactionReceivedEventArgs
+	{
+		public ReplaceTransactionReceivedEventArgs(SmartTransaction smartTransaction, IEnumerable<SmartCoin> remove, IEnumerable<SmartCoin> add)
+		{
+			SmartTransaction = smartTransaction;
+			Remove = remove;
+			Add = add;
+		}
+
+		public SmartTransaction SmartTransaction { get; }
+		public IEnumerable<SmartCoin> Remove { get; }
+		public IEnumerable<SmartCoin> Add { get; }
 	}
 
 	public class TransactionProcessor
@@ -38,7 +50,12 @@ namespace WalletWasabi.Transactions
 
 		public event EventHandler<SmartCoin> CoinReceived;
 
-		public event EventHandler<ReplaceTransactionArg> TransactionReplaced;
+		/// <summary>
+		/// Received a confirmed double spend transaction.
+		/// </summary>
+		public event EventHandler<DoubleSpendReceivedEventArgs> DoubleSpendReceived;
+
+		public event EventHandler<ReplaceTransactionReceivedEventArgs> ReplaceTransactionReceived;
 
 		public TransactionProcessor(
 			AllTransactionStore transactionStore,
@@ -119,7 +136,7 @@ namespace WalletWasabi.Transactions
 							var replacedTxId = doubleSpends.First().TransactionId;
 							var (toRemove, toAdd) = Coins.Undo(replacedTxId);
 
-							TransactionReplaced?.Invoke(this, new ReplaceTransactionArg(tx, toAdd, toRemove));
+							ReplaceTransactionReceived?.Invoke(this, new ReplaceTransactionReceivedEventArgs(tx, toAdd, toRemove));
 
 							tx.SetReplacement();
 							walletRelevant = true;
@@ -137,7 +154,7 @@ namespace WalletWasabi.Transactions
 							Coins.Remove(doubleSpentCoin);
 						}
 
-						TransactionReplaced?.Invoke(this, new ReplaceTransactionArg(tx, Enumerable.Empty<SmartCoin>(), doubleSpends));
+						DoubleSpendReceived?.Invoke(this, new DoubleSpendReceivedEventArgs(tx, doubleSpends));
 						walletRelevant = true;
 					}
 				}
