@@ -141,8 +141,31 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var transactionProcessor = await CreateTransactionProcessorAsync();
 
 			var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
+
+			int doubleSpendReceivedCalled = 0;
 			transactionProcessor.DoubleSpendReceived += (s, e) =>
 			{
+				var coin = Assert.Single(e.Remove);
+				// Double spend to ourself but to a different address. So checking the address.
+				Assert.Equal(keys[1].PubKey.WitHash.ScriptPubKey, coin.ScriptPubKey);
+
+				doubleSpendReceivedCalled++;
+			};
+
+			int coinReceivedCalled = 0;
+			// The coin with the confirmed tx should win.
+			transactionProcessor.CoinReceived += (s, c) =>
+			{
+				switch (coinReceivedCalled)
+				{
+					case 0: Assert.Equal(keys[0].PubKey.WitHash.ScriptPubKey, c.ScriptPubKey); break;
+					case 1: Assert.Equal(keys[1].PubKey.WitHash.ScriptPubKey, c.ScriptPubKey); break;
+					case 2: Assert.Equal(keys[2].PubKey.WitHash.ScriptPubKey, c.ScriptPubKey); break;
+					default:
+						throw new InvalidOperationException();
+				};
+
+				coinReceivedCalled++;
 			};
 
 			// An unconfirmed segwit transaction for us
@@ -154,9 +177,11 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			tx = CreateSpendingTransaction(createdCoin, keys[1].PubKey.WitHash.ScriptPubKey);
 			transactionProcessor.Process(tx);
 
+			Assert.Equal(0, doubleSpendReceivedCalled);
 			// Spend it coin
 			tx = CreateSpendingTransaction(createdCoin, keys[2].PubKey.WitHash.ScriptPubKey, height: 54321);
 			var relevant = transactionProcessor.Process(tx);
+			Assert.Equal(1, doubleSpendReceivedCalled);
 
 			Assert.True(relevant);
 			Assert.Single(transactionProcessor.Coins, coin => coin.Unspent && coin.Confirmed);
