@@ -11,7 +11,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.BitcoinCore.Monitoring
 {
-	public class RpcFeeProvider : PeriodicRunner, IFeeProvider
+	public class RpcFeeProvider : PeriodicRunner<AllFeeEstimate>, IFeeProvider
 	{
 		private AllFeeEstimate _allFeeEstimate;
 
@@ -28,7 +28,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 			RpcClient = Guard.NotNull(nameof(rpcClient), rpcClient);
 		}
 
-		public override async Task<object> ActionAsync(CancellationToken cancel)
+		public override async Task<AllFeeEstimate> ActionAsync(CancellationToken cancel)
 		{
 			try
 			{

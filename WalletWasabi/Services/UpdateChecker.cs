@@ -10,7 +10,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
-	public class UpdateChecker : PeriodicRunner
+	public class UpdateChecker : PeriodicRunner<UpdateStatus>
 	{
 		public WasabiClient WasabiClient { get; }
 
@@ -19,9 +19,9 @@ namespace WalletWasabi.Services
 			WasabiClient = Guard.NotNull(nameof(client), client);
 		}
 
-		public override async Task<object> ActionAsync(CancellationToken cancel)
+		public override async Task<UpdateStatus> ActionAsync(CancellationToken cancel)
 		{
-			return await WasabiClient.CheckUpdatesAsync(cancel);
+			return await WasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
 		}
 	}
 }

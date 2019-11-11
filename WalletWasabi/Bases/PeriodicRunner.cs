@@ -7,11 +7,11 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Bases
 {
-	public abstract class PeriodicRunner : NotifyPropertyChangedBase
+	public abstract class PeriodicRunner<T> : NotifyPropertyChangedBase where T : IEquatable<T>
 	{
-		private object _status;
+		private T _status;
 
-		public object Status
+		public T Status
 		{
 			get => _status;
 			private set => RaiseAndSetIfChanged(ref _status, value);
@@ -21,7 +21,7 @@ namespace WalletWasabi.Bases
 		public TimeSpan Period { get; }
 		private Task ForeverTask { get; set; }
 
-		protected PeriodicRunner(TimeSpan period, object defaultResult)
+		protected PeriodicRunner(TimeSpan period, T defaultResult)
 		{
 			Stop = new CancellationTokenSource();
 			Period = period;
@@ -29,7 +29,7 @@ namespace WalletWasabi.Bases
 			Status = defaultResult;
 		}
 
-		public abstract Task<object> ActionAsync(CancellationToken cancel);
+		public abstract Task<T> ActionAsync(CancellationToken cancel);
 
 		public void Start()
 		{

@@ -116,7 +116,6 @@ namespace WalletWasabi.Gui.ViewModels
 			_bitcoinCoreStatus = Global.RpcMonitor
 					.WhenAnyValue(x => x.Status)
 					.Throttle(TimeSpan.FromMilliseconds(100))
-					.Select(x => x as RpcStatus)
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.ToProperty(this, x => x.BitcoinCoreStatus)
 					.DisposeWith(Disposables);
@@ -124,7 +123,6 @@ namespace WalletWasabi.Gui.ViewModels
 			_updateStatus = Global.UpdateChecker
 					.WhenAnyValue(x => x.Status)
 					.Throttle(TimeSpan.FromMilliseconds(100))
-					.Select(x => x as UpdateStatus)
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.ToProperty(this, x => x.UpdateStatus)
 					.DisposeWith(Disposables);
