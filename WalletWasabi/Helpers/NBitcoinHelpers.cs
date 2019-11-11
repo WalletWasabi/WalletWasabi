@@ -91,6 +91,30 @@ namespace WalletWasabi.Helpers
 			return epk;
 		}
 
+		public static BitcoinAddress BetterParseBitcoinAddress(string bitcoinAddressString)
+		{
+			bitcoinAddressString = Guard.NotNullOrEmptyOrWhitespace(nameof(bitcoinAddressString), bitcoinAddressString, trim: true);
+
+			BitcoinAddress ba;
+			try
+			{
+				ba = BitcoinAddress.Create(bitcoinAddressString, Network.Main);
+			}
+			catch
+			{
+				try
+				{
+					ba = BitcoinAddress.Create(bitcoinAddressString, Network.TestNet);
+				}
+				catch
+				{
+					ba = BitcoinAddress.Create(bitcoinAddressString, Network.RegTest);
+				}
+			}
+
+			return ba;
+		}
+
 		public static HDFingerprint BetterParseHDFingerprint(string hdFingerprintString, bool reverseByteOrder = false)
 		{
 			hdFingerprintString = Guard.NotNullOrEmptyOrWhitespace(nameof(hdFingerprintString), hdFingerprintString, trim: true);
