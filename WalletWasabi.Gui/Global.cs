@@ -86,7 +86,7 @@ namespace WalletWasabi.Gui
 			Directory.CreateDirectory(DataDir);
 			Directory.CreateDirectory(WalletsDir);
 			Directory.CreateDirectory(WalletBackupsDir);
-			RpcMonitor = new RpcMonitor(TimeSpan.FromSeconds(3));
+			RpcMonitor = new RpcMonitor(TimeSpan.FromSeconds(7));
 		}
 
 		public void InitializeUiConfig(UiConfig uiConfig)

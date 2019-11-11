@@ -146,14 +146,9 @@ namespace NBitcoin.RPC
 		{
 			try
 			{
-				var batch = rpc.PrepareBatch();
-				var bciTask = batch.GetBlockchainInfoAsync();
-				var piTask = rpc.GetPeersInfoAsync();
-				batch.SendBatch();
-
-				var bci = await bciTask.ConfigureAwait(false);
+				var bci = await rpc.GetBlockchainInfoAsync().ConfigureAwait(false);
 				cancel.ThrowIfCancellationRequested();
-				var pi = await piTask.ConfigureAwait(false);
+				var pi = await rpc.GetPeersInfoAsync().ConfigureAwait(false);
 
 				return RpcStatus.Responsive(bci.Headers, bci.Blocks, pi.Length);
 			}
