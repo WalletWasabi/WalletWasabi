@@ -74,7 +74,7 @@ namespace WalletWasabi.Gui.Controls
 						}
 						else
 						{
-							e.GetCurrentPoint(this).Pointer.Capture(_textBox);							
+							e.GetCurrentPoint(this).Pointer.Capture(_textBox);
 						}
 					}
 				},

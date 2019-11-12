@@ -83,7 +83,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						AllowMultiple = false,
 						Title = "Import Transaction"
 					};
-          
+
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 					{
 						var initialDirectory = Path.Combine("/media", Environment.UserName);
