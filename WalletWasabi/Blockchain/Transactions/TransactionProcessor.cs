@@ -98,7 +98,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			if (!tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
 			{
 				var doubleSpends = new List<SmartCoin>();
-				foreach (SmartCoin coin in Coins)
+				foreach (SmartCoin coin in Coins.AsAllCoinsView())
 				{
 					var spent = false;
 					foreach (TxoRef spentOutput in coin.SpentOutputs)
@@ -272,9 +272,9 @@ namespace WalletWasabi.Blockchain.Transactions
 			return walletRelevant;
 		}
 
-		public ICoinsView UndoBlock(Height blockHeight)
+		public void UndoBlock(Height blockHeight)
 		{
-			return Coins.RemoveFromBlock(blockHeight);
+			Coins.SwitchToUnconfirmFromBlock(blockHeight);
 		}
 	}
 }

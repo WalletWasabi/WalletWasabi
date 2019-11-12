@@ -97,11 +97,11 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			return added;
 		}
 
-		public void Remove(SmartCoin coin)
+		public ICoinsView Remove(SmartCoin coin)
 		{
 			lock (Lock)
 			{
-				var coinsToRemove = DescendantOfAndSelfNoLock(coin).ToList();
+				var coinsToRemove = DescendantOfAndSelfNoLock(coin);
 				foreach (var toRemove in coinsToRemove)
 				{
 					if (Coins.Remove(toRemove))
@@ -110,6 +110,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 					}
 				}
 				InvalidateSnapshot = true;
+				return coinsToRemove;
 			}
 		}
 
@@ -135,33 +136,18 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			}
 		}
 
-		public ICoinsView RemoveFromBlock(Height blockHeight)
+		public void SwitchToUnconfirmFromBlock(Height blockHeight)
 		{
 			lock (Lock)
 			{
-				var removedCoins = new List<SmartCoin>();
-				var allCoins = AsAllCoinsViewNoLock();
-				foreach (var toRemove in allCoins.AtBlockHeight(blockHeight).ToList())
+				foreach (var coin in AsCoinsView().AtBlockHeight(blockHeight))
 				{
-					var coinsToRemove = allCoins.DescendantOfAndSelf(toRemove).ToList();
-					foreach (var coin in coinsToRemove)
+					var descendantCoins = DescendantOfAndSelf(coin);
+					foreach (var toSwitch in descendantCoins)
 					{
-						if (coin.Unspent)
-						{
-							if (Coins.Remove(coin))
-							{
-								InvalidateSnapshot = true;
-							}
-						}
-						else
-						{
-							SpentCoins.Remove(toRemove);
-						}
-
-						removedCoins.Add(coin);
+						toSwitch.Height = Height.Mempool;
 					}
 				}
-				return new CoinsView(removedCoins);
 			}
 		}
 
@@ -169,23 +155,25 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		{
 			lock (Lock)
 			{
-				var toRemove = CreatedByNoLock(txId);
-				var toAdd = SpentByNoLock(txId);
+				var allCoins = AsAllCoinsViewNoLock();
+				var toRemove = new List<SmartCoin>();
+				var toAdd = new List<SmartCoin>();
 
 				// remove recursively the coins created by the transaction
-				foreach (SmartCoin createdCoin in toRemove)
+				foreach (SmartCoin createdCoin in allCoins.CreatedBy(txId))
 				{
-					Coins.Remove(createdCoin);
+					toRemove.AddRange(Remove(createdCoin));
 				}
 				// destroyed (spent) coins are now (unspent)
-				foreach (SmartCoin destroyedCoin in toAdd)
+				foreach (SmartCoin destroyedCoin in allCoins.SpentBy(txId))
 				{
 					if (SpentCoins.Remove(destroyedCoin))
 					{
 						Coins.Add(destroyedCoin);
+						toAdd.Add(destroyedCoin);
 					}
 				}
-				return (toRemove, toAdd);
+				return (new CoinsView(toRemove), new CoinsView(toAdd));
 			}
 		}
 
