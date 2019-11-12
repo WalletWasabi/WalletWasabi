@@ -2,20 +2,23 @@
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
   xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui" 
   xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity" 
-  xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui" x:Class="WalletWasabi.Gui.Controls.StatusBar" Height="25">
+  xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui" 
+  x:Class="WalletWasabi.Gui.Controls.StatusBar" 
+  Height="25">
+  
   <UserControl.Resources>
     <converters:FilterLeftStatusConverter x:Key="FilterLeftStatusConverter" />
     <converters:StatusColorConverter x:Key="StatusColorConverter" />
-    <converters:UpdateStatusBrushConverter x:Key="UpdateStatusBrushConverter" />
     <converters:ShowCursorConverter x:Key="ShowCursorConverter" />
     <converters:ShouldDisplayValueConverter x:Key="ShouldDisplayValueConverter" />
     <converters:StatusBarStatusStringConverter x:Key="StatusBarStatusStringConverter" />
-    <converters:RpcStatusStringConverter x:Key="RpcStatusStringConverter" />
   </UserControl.Resources>
-  <Grid Cursor="{Binding UpdateAvailable, Converter={StaticResource ShowCursorConverter}}" Background="{Binding UpdateStatus, Converter={StaticResource UpdateStatusBrushConverter}}">
+
+  <Grid Cursor="{Binding UpdateAvailable, Converter={StaticResource ShowCursorConverter}}" Background="{DynamicResource ApplicationAccentBrushLow}" >
     <i:Interaction.Behaviors>
       <behaviors:CommandOnClickBehavior Command="{Binding UpdateCommand}" />
     </i:Interaction.Behaviors>
+    <Grid IsVisible="{Binding CriticalUpdateAvailable}" Background="IndianRed" />
     <DockPanel LastChildFill="True" Margin="10 0" VerticalAlignment="Center">
       <Grid IsVisible="{Binding !CriticalUpdateAvailable}" DockPanel.Dock="Right">
         <StackPanel Orientation="Horizontal" Spacing="20">
@@ -49,7 +52,7 @@
               <Grid Height="10" Width="10">
                 <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_ServerGlobe}" />
               </Grid>
-              <TextBlock Text="{Binding BitcoinCoreStatus, Converter={StaticResource RpcStatusStringConverter}}" Foreground="{Binding BitcoinCoreStatus, ConverterParameter=BitcoinCoreStatus, Converter={StaticResource StatusColorConverter}}" />
+              <TextBlock Text="{Binding BitcoinCoreStatusString}" Foreground="{Binding BitcoinCoreStatus, ConverterParameter=BitcoinCoreStatus, Converter={StaticResource StatusColorConverter}}" />
             </StackPanel>
           </Panel>
           <StackPanel Orientation="Horizontal" Spacing="4">
@@ -74,22 +77,17 @@
       </Grid>
 
       <StackPanel Orientation="Horizontal" Spacing="4">
-        <Grid Height="10" Width="10" IsVisible="{Binding UpdateAvailable}">
-          <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center">
-            <DrawingPresenter.Drawing>
-              <DrawingGroup>
-                <DrawingGroup.Children>
-                  <GeometryDrawing Brush="{DynamicResource GreenBrush}" Geometry="F1M7,9L10,15 8,15 1,1 15,1z" />
-                </DrawingGroup.Children>
-              </DrawingGroup>
-            </DrawingPresenter.Drawing>
-          </DrawingPresenter>
+        <Grid IsVisible="{Binding !CriticalUpdateAvailable}">
+          <Grid Height="10" Width="10" IsVisible="{Binding UpdateAvailable}">
+            <DrawingPresenter Drawing="{DynamicResource StatusBar_GreenFlag}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+          </Grid>
+        </Grid>
+        <Grid Height="10" Width="10" IsVisible="{Binding CriticalUpdateAvailable}">
+          <DrawingPresenter Drawing="{DynamicResource StatusBar_YellowFlag}" VerticalAlignment="Center" HorizontalAlignment="Center" />
         </Grid>
         <TextBlock Text="{Binding Status, Converter={StaticResource StatusBarStatusStringConverter}}" />
       </StackPanel>
 
-
     </DockPanel>
-
   </Grid>
 </UserControl>

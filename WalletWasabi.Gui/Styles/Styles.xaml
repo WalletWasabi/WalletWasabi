@@ -11,7 +11,6 @@
       <SolidColorBrush x:Key="HyperLinkForeground">#00A2E8</SolidColorBrush>
       <SolidColorBrush x:Key="ErrorBrush">#F25022</SolidColorBrush>
       <SolidColorBrush x:Key="WarningMessageForeground">#FFDD00</SolidColorBrush>
-      <SolidColorBrush x:Key="GreenBrush">#00DD10</SolidColorBrush>
       <sys:Double x:Key="FontSizeSmall">12</sys:Double>
       <sys:Double x:Key="FontSizeNormal">14</sys:Double>
       <sys:Double x:Key="FontSizeLarge">16</sys:Double>

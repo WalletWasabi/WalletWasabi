@@ -1,6 +1,6 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="clr-namespace:AvalonStudio.Controls.Standard.CodeEditor;assembly=AvalonStudio.Controls.Standard">
+<Styles xmlns="https://github.com/avaloniaui" 
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+  xmlns:local="clr-namespace:AvalonStudio.Controls.Standard.CodeEditor;assembly=AvalonStudio.Controls.Standard">
   <Style>
     <Style.Resources>
       <DrawingGroup x:Key="GenerateWallet">
@@ -213,6 +213,16 @@
           <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M3.5,16C1.57,16 0,14.43 0,12.5 0,11.13 0.805,9.907 2,9.338L2,6.662C0.805,6.093 0,4.87 0,3.5 0,1.57 1.57,0 3.5,0 5.43,0 7,1.57 7,3.5 7,3.584 6.996,3.67 6.989,3.757L11.025,7.332C11.484,7.113 11.983,7 12.5,7 14.43,7 16,8.57 16,10.5 16,12.43 14.43,14 12.5,14 10.57,14 9,12.43 9,10.5 9,10.211 9.037,9.925 9.111,9.645L5.447,6.4C5.304,6.497,5.155,6.584,5,6.659L5,9.338C6.195,9.907 7,11.13 7,12.5 7,14.43 5.43,16 3.5,16" />
           <GeometryDrawing Brush="#FF424242" Geometry="F1M12.5,12C11.673,12 11,11.327 11,10.5 11,9.673 11.673,9 12.5,9 13.327,9 14,9.673 14,10.5 14,11.327 13.327,12 12.5,12 M12.5,8C11.898,8,11.353,8.222,10.921,8.576L5.908,4.136C5.962,3.932 6,3.721 6,3.5 6,2.119 4.881,1 3.5,1 2.119,1 1,2.119 1,3.5 1,4.709 1.859,5.718 3,5.95L3,10.05C1.859,10.282 1,11.291 1,12.5 1,13.881 2.119,15 3.5,15 4.881,15 6,13.881 6,12.5 6,11.291 5.141,10.282 4,10.05L4,5.95C4.582,5.831,5.082,5.504,5.441,5.058L10.291,9.353C10.111,9.698 10,10.084 10,10.5 10,11.881 11.119,13 12.5,13 13.881,13 15,11.881 15,10.5 15,9.119 13.881,8 12.5,8" />
           <GeometryDrawing Brush="#FFEFEFF0" Geometry="F1M12.5,12C11.673,12 11,11.327 11,10.5 11,9.673 11.673,9 12.5,9 13.327,9 14,9.673 14,10.5 14,11.327 13.327,12 12.5,12" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+      <DrawingGroup x:Key="StatusBar_GreenFlag">
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#00DD10" Geometry="F1M7,9L10,15 8,15 1,1 15,1z" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+      <DrawingGroup x:Key="StatusBar_YellowFlag">
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#FFDD00" Geometry="F1M7,9L10,15 8,15 1,1 15,1z" />
         </DrawingGroup.Children>
       </DrawingGroup>
       <!-- SendTabView Icons -->
