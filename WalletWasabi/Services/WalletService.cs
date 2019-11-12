@@ -91,7 +91,7 @@ namespace WalletWasabi.Services
 			string workFolderDir,
 			ServiceConfiguration serviceConfiguration,
 			IFeeProvider feeProvider,
-			RPCClient rPCClient)
+			RPCClient rpcClient = null)
 		{
 			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
@@ -100,7 +100,7 @@ namespace WalletWasabi.Services
 			ChaumianClient = Guard.NotNull(nameof(chaumianClient), chaumianClient);
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 			FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
-			RPCClient = rPCClient;
+			RPCClient = rpcClient;
 
 			ProcessedBlocks = new ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)>();
 			HandleFiltersLock = new AsyncLock();
