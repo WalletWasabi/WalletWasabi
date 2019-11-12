@@ -361,7 +361,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.True(txStore.TryUpdate(tx1Confirmed));
 			Assert.True(txStore.TryUpdate(tx2Confirmed));
 
-			// Two transaction is in the ConfirmedStore store and confirmed.
+			// Two transactions are in the ConfirmedStore store and confirmed.
 			Assert.True(txStore.ConfirmedStore.TryGetTransaction(uTx1.GetHash(), out SmartTransaction mytx1));
 			Assert.False(txStore.MempoolStore.TryGetTransaction(uTx1.GetHash(), out _));
 			Assert.True(mytx1.Confirmed);
