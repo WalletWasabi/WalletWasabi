@@ -372,7 +372,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// Now reorg.
 			txStore.TryReorg(reorgedBlockHash);
 
-			// Two transaction is in the mempool store and unconfirmed.
+			// Two transactions are in the mempool store and unconfirmed.
 			Assert.True(txStore.MempoolStore.TryGetTransaction(uTx1.GetHash(), out SmartTransaction myReorgedTx1));
 			Assert.False(txStore.ConfirmedStore.TryGetTransaction(uTx1.GetHash(), out _));
 			Assert.False(myReorgedTx1.Confirmed);
