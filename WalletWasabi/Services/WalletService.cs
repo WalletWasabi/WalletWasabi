@@ -100,7 +100,7 @@ namespace WalletWasabi.Services
 			ChaumianClient = Guard.NotNull(nameof(chaumianClient), chaumianClient);
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 			FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
-			RPCClient = rpcClient;
+			RpcClient = rpcClient;
 
 			ProcessedBlocks = new ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)>();
 			HandleFiltersLock = new AsyncLock();
@@ -573,7 +573,7 @@ namespace WalletWasabi.Services
 
 		private async Task<Block> TryDownloadBlockFromLocalNodeAsync(uint256 hash, CancellationToken cancel)
 		{
-			if (RPCClient is null)
+			if (RpcClient is null)
 			{
 				try
 				{
@@ -662,7 +662,7 @@ namespace WalletWasabi.Services
 			{
 				try
 				{
-					var block = await RPCClient.GetBlockAsync(hash);
+					var block = await RpcClient.GetBlockAsync(hash);
 					Logger.LogInfo($"Block acquired from RPC connection: {hash}.");
 					return block;
 				}
@@ -843,7 +843,7 @@ namespace WalletWasabi.Services
 
 		public bool IsDisposed => _disposedValue;
 
-		public RPCClient RPCClient { get; }
+		public RPCClient RpcClient { get; }
 
 		protected virtual void Dispose(bool disposing)
 		{
