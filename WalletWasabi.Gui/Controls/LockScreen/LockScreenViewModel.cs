@@ -62,13 +62,13 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		{
 			ActiveLockScreen?.Dispose();
 
-			if (currentHash.Length == 0)
+			if (currentHash.Length != 0)
 			{
-				ActiveLockScreen = new SlideLockScreenViewModel(this);
+				ActiveLockScreen = new PinLockScreenViewModel(this);
 			}
 			else
 			{
-				ActiveLockScreen = new PinLockScreenViewModel(this);
+				ActiveLockScreen = new SlideLockScreenViewModel(this);
 			}
 		}
 	}
