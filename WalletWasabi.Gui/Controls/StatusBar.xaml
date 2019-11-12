@@ -59,12 +59,14 @@
           </Grid>
           <TextBlock Text="{Binding Backend, StringFormat=Backend is \{0\}, Converter={StaticResource PascalToPhraseConverter}}" Foreground="{Binding Backend, ConverterParameter=Backend, Converter={StaticResource StatusColorConverter}}" />
         </StackPanel>
-        <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding !CriticalUpdateAvailable}">
-          <Grid Height="10" Width="10">
-            <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_Peer}" />
-          </Grid>
-          <TextBlock Text="{Binding Peers, StringFormat=Peers: \{0\}}" Foreground="{Binding Peers, ConverterParameter=Peers, Converter={StaticResource StatusColorConverter}}" />
-        </StackPanel>
+        <Panel IsVisible="{Binding !UseBitcoinCore}">
+          <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding !CriticalUpdateAvailable}">
+            <Grid Height="10" Width="10">
+              <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_Peer}" />
+            </Grid>
+            <TextBlock Text="{Binding Peers, StringFormat=Peers: \{0\}}" Foreground="{Binding Peers, ConverterParameter=Peers, Converter={StaticResource StatusColorConverter}}" />
+          </StackPanel>
+        </Panel>
         <StackPanel Orientation="Horizontal" Spacing="0" IsVisible="{Binding !CriticalUpdateAvailable}">
           <TextBlock Text="Price: " />
           <TextBlock Text="{Binding BtcPrice}" />
