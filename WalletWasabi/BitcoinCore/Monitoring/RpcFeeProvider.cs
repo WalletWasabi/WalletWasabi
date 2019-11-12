@@ -28,7 +28,10 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 			}
 			catch
 			{
-				Status = new AllFeeEstimate(Status, false);
+				if (Status != null)
+				{
+					Status = new AllFeeEstimate(Status, false);
+				}
 				throw;
 			}
 		}
