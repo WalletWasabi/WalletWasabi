@@ -201,6 +201,11 @@ namespace WalletWasabi.WebClients.Wasabi
 			var clientUpToDate = Constants.ClientVersion >= versions.ClientVersion; // If the client version locally is greater than or equal to the backend's reported client version, then good.
 			var backendCompatible = int.Parse(Constants.BackendMajorVersion) == versions.BackendMajorVersion; // If the backend major and the client major are equal, then our softwares are compatible.
 
+			if (!backendCompatible)
+			{
+				clientUpToDate = false;
+			}
+
 			return new UpdateStatus(backendCompatible, clientUpToDate);
 		}
 
