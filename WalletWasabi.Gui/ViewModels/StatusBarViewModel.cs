@@ -49,6 +49,8 @@ namespace WalletWasabi.Gui.ViewModels
 		private ObservableAsPropertyHelper<int> _filtersLeft;
 		private string _btcPrice;
 		private ObservableAsPropertyHelper<StatusBarStatus> _status;
+		private ObservableAsPropertyHelper<string> _torStatusString;
+		private ObservableAsPropertyHelper<string> _backendStatusString;
 		private bool _downloadingBlock;
 		public Global Global { get; }
 		private StatusBarStatusSet ActiveStatuses { get; }
@@ -119,6 +121,16 @@ namespace WalletWasabi.Gui.ViewModels
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.ToProperty(this, x => x.BitcoinCoreStatus)
 					.DisposeWith(Disposables);
+
+			_torStatusString = this.WhenAnyValue(x => x.Tor)
+								   .Select(x => StringHelpers.PascalCaseToPhrase(x.ToString()))
+								   .ToProperty(this, x => x.TorStatusString)
+								   .DisposeWith(Disposables);
+
+			_backendStatusString = this.WhenAnyValue(x => x.Backend)
+								   .Select(x => StringHelpers.PascalCaseToPhrase(x.ToString()))
+								   .ToProperty(this, x => x.BackendStatusString)
+								   .DisposeWith(Disposables);
 
 			_updateStatus = Global.UpdateChecker
 					.WhenAnyValue(x => x.Status)
@@ -238,6 +250,8 @@ namespace WalletWasabi.Gui.ViewModels
 		public int FiltersLeft => _filtersLeft?.Value ?? 0;
 		public RpcStatus BitcoinCoreStatus => _bitcoinCoreStatus?.Value ?? RpcStatus.Unresponsive;
 		public UpdateStatus UpdateStatus => _updateStatus?.Value ?? new UpdateStatus(true, true);
+		public string TorStatusString => _torStatusString?.Value ?? StringHelpers.PascalCaseToPhrase(nameof(TorStatus.NotRunning));
+		public string BackendStatusString => _backendStatusString?.Value ?? StringHelpers.PascalCaseToPhrase(nameof(BackendStatus.NotConnected));
 
 		public bool UpdateAvailable
 		{
