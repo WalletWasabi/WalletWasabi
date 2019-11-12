@@ -172,6 +172,19 @@ namespace WalletWasabi.Blockchain.Transactions
 			});
 		}
 
+		public bool SetUnconfirmed()
+		{
+			if (!Confirmed)
+			{
+				return false;
+			}
+
+			Height = Height.Mempool;
+			BlockHash = null;
+			BlockIndex = 0;
+			return true;
+		}
+
 		#region LineSerialization
 
 		public string ToLine()
