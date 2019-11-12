@@ -11,12 +11,12 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BlockchainAnalysis.Clustering;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
-using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {

@@ -17,9 +17,11 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BlockchainAnalysis.Clustering;
-using WalletWasabi.BlockchainAnalysis.FeesEstimation;
-using WalletWasabi.Coins;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Tabs.WalletManager;
@@ -29,11 +31,8 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Transactions;
-using WalletWasabi.Transactions.TransactionBuilding;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {

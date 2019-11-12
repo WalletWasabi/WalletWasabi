@@ -13,18 +13,18 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.BlockchainAnalysis.Clustering;
-using WalletWasabi.BlockchainAnalysis.FeesEstimation;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients;
-using WalletWasabi.Coins;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
-using WalletWasabi.Transactions;
-using WalletWasabi.Transactions.TransactionBuilding;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services

@@ -2,8 +2,8 @@ using Mono.Options;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Helpers;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.CommandLine

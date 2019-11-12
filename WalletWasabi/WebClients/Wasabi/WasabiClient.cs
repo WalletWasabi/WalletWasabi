@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
-using WalletWasabi.Transactions;
 
 namespace WalletWasabi.WebClients.Wasabi
 {

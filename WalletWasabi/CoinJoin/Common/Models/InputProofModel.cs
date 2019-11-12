@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
-using WalletWasabi.Coins;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.CoinJoin.Common.Models

@@ -8,11 +8,11 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Common.Crypto;
-using WalletWasabi.Coins;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
-using WalletWasabi.Transactions;
 using static NBitcoin.Crypto.SchnorrBlinding;
 
 namespace NBitcoin

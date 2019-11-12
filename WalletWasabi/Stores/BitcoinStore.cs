@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Mempool;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Mempool;
-using WalletWasabi.Transactions;
 
 namespace WalletWasabi.Stores
 {

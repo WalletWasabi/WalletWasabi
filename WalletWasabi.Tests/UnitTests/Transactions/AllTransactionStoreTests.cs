@@ -6,9 +6,9 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using WalletWasabi.BlockchainAnalysis.Clustering;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
-using WalletWasabi.Transactions;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions

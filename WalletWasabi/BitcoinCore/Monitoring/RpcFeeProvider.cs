@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.Bases;
-using WalletWasabi.BlockchainAnalysis.FeesEstimation;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.BitcoinCore.Monitoring

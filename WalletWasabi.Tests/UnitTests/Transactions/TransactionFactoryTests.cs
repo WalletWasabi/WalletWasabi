@@ -2,13 +2,13 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using WalletWasabi.BlockchainAnalysis.Clustering;
-using WalletWasabi.Coins;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
-using WalletWasabi.Transactions;
-using WalletWasabi.Transactions.TransactionBuilding;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions

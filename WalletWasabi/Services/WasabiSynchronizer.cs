@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
-using WalletWasabi.BlockchainAnalysis.FeesEstimation;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
