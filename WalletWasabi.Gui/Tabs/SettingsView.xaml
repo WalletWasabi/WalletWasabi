@@ -53,7 +53,7 @@
                     </StackPanel>
                   </StackPanel>
                 </controls:GroupBox>
-                <controls:GroupBox Title="{Binding Network, StringFormat=Alternative Block Source for \{0\}, Converter={StaticResource NetworkStringConverter}}" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+                <controls:GroupBox IsVisible="{Binding !StartLocalBitcoinCoreOnStartup}" Title="{Binding Network, StringFormat=Alternative Block Source for \{0\}, Converter={StaticResource NetworkStringConverter}}" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
                   <StackPanel Orientation="Vertical" Spacing="5">
                     <TextBlock>Set Wasabi to download blocks from a full node you control.</TextBlock>
                     <StackPanel Margin="0 10" Spacing="5">

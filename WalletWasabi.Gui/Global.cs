@@ -463,7 +463,7 @@ namespace WalletWasabi.Gui
 					Logger.LogWarning(ex);
 				}
 
-				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders);
+				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode?.RpcClient);
 
 				ChaumianClient.Start();
 				Logger.LogInfo("Start Chaumian CoinJoin service...");
