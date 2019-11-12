@@ -56,7 +56,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		public async Task P2pWorksAsync()
 		{
 			var coreNode = await TestNodeBuilder.CreateAsync();
-			using var node = await coreNode.CreateP2pNodeAsync();
+			using var node = await coreNode.CreateNewP2pNodeAsync();
 			try
 			{
 				var blocks = node.GetBlocks(new[] { Network.RegTest.GenesisHash });

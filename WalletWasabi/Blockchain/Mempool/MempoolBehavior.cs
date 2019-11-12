@@ -39,19 +39,14 @@ namespace WalletWasabi.Blockchain.Mempool
 				if (message.Message.Payload is GetDataPayload getDataPayload)
 				{
 					await ProcessGetDataAsync(node, getDataPayload).ConfigureAwait(false);
-					return;
 				}
-
-				if (message.Message.Payload is TxPayload txPayload)
+				else if (message.Message.Payload is TxPayload txPayload)
 				{
 					ProcessTx(txPayload);
-					return;
 				}
-
-				if (message.Message.Payload is InvPayload invPayload)
+				else if (message.Message.Payload is InvPayload invPayload)
 				{
 					await ProcessInvAsync(node, invPayload).ConfigureAwait(false);
-					return;
 				}
 			}
 			catch (OperationCanceledException ex)
@@ -151,6 +146,7 @@ namespace WalletWasabi.Blockchain.Mempool
 		private void ProcessTx(TxPayload payload)
 		{
 			Transaction transaction = payload.Object;
+			transaction.PrecomputeHash(false, true);
 			MempoolService.Process(transaction);
 		}
 
