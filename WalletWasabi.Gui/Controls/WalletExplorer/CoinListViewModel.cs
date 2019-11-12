@@ -43,6 +43,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _labelExposeCommonOwnershipWarning;
 		private bool _selectAllNonPrivateVisible;
 		private bool _selectAllPrivateVisible;
+		private ShieldState _selectAllPrivateShieldState;
+		private ShieldState _selectAllNonPrivateShieldState;
 
 		public Global Global { get; }
 		public CoinListContainerType CoinListContainerType { get; }
@@ -183,6 +185,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _selectAllPrivateVisible;
 			set => this.RaiseAndSetIfChanged(ref _selectAllPrivateVisible, value);
+		}
+
+		public ShieldState SelectAllPrivateShieldState
+		{
+			get => _selectAllPrivateShieldState;
+			set => this.RaiseAndSetIfChanged(ref _selectAllPrivateShieldState, value);
+		}
+
+		public ShieldState SelectAllNonPrivateShieldState
+		{
+			get => _selectAllNonPrivateShieldState;
+			set => this.RaiseAndSetIfChanged(ref _selectAllNonPrivateShieldState, value);
 		}
 
 		private bool? GetCheckBoxesSelectedState(Func<CoinViewModel, bool> coinFilterPredicate)
@@ -415,8 +429,35 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				})
 				.DisposeWith(Disposables);
 
+			Global.Config.WhenAnyValue(x => x.MixUntilAnonymitySet)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => RefreshSelectCheckBoxesShields(x))
+				.DisposeWith(Disposables);
+
 			SetSelections();
 			SetCoinJoinStatusWidth();
+		}
+
+		private void RefreshSelectCheckBoxesShields(int mixUntilAnonymitySet)
+		{
+			var isCriticalPrivate = false;
+			var isSomePrivate = mixUntilAnonymitySet <= Global.Config.PrivacyLevelSome;
+			var isFinePrivate = mixUntilAnonymitySet <= Global.Config.PrivacyLevelFine;
+			var isStrongPrivate = mixUntilAnonymitySet <= Global.Config.PrivacyLevelStrong;
+
+			SelectAllNonPrivateShieldState = new ShieldState(
+					!isCriticalPrivate,
+					!isSomePrivate,
+					!isFinePrivate,
+					!isStrongPrivate
+					);
+
+			SelectAllPrivateShieldState = new ShieldState(
+					isCriticalPrivate,
+					isSomePrivate,
+					isFinePrivate,
+					isStrongPrivate
+					);
 		}
 
 		private void ClearRootList()

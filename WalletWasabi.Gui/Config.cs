@@ -80,9 +80,8 @@ namespace WalletWasabi.Gui
 			get => _mixUntilAnonymitySet;
 			internal set
 			{
-				if (_mixUntilAnonymitySet != value)
+				if (RaiseAndSetIfChanged(ref _mixUntilAnonymitySet, value))
 				{
-					_mixUntilAnonymitySet = value;
 					if (ServiceConfiguration != default)
 					{
 						ServiceConfiguration.MixUntilAnonymitySet = value;

@@ -1,0 +1,23 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+        xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
+        xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity">
+  <Style Selector="controls|Shields">
+    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}" />
+    <Setter Property="Padding" Value="4" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <StackPanel Spacing="5" Orientation="Horizontal">
+          <DrawingPresenter IsVisible="{TemplateBinding IsPrivacyCriticalVisible}"  Height="16" Width="16" VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource PrivacyCritical}" />
+          <DrawingPresenter IsVisible="{TemplateBinding IsPrivacySomeVisible}" Height="16" Width="16" VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource PrivacySome}" />
+          <DrawingPresenter IsVisible="{TemplateBinding IsPrivacyFineVisible}" Height="16" Width="16" VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource PrivacyFine}" />
+          <DrawingPresenter IsVisible="{TemplateBinding IsPrivacyStrongVisible}" Height="16" Width="16" VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource PrivacyStrong}" />
+          <DrawingPresenter IsVisible="{TemplateBinding IsPrivacySaiyanVisible}" Height="16" Width="16" VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource PrivacySaiyan}" />
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>
