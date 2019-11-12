@@ -192,7 +192,10 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				try
 				{
-					IoHelpers.OpenBrowser("https://wasabiwallet.io/#download");
+					if (UpdateAvailable)
+					{
+						IoHelpers.OpenBrowser("https://wasabiwallet.io/#download");
+					}
 				}
 				catch (Exception ex)
 				{
