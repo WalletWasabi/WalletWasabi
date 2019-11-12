@@ -143,10 +143,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				{
 					await walletService?.DeleteBlockAsync(hash);
 				}
-				if (walletService != null)
-				{
-					await walletService.StopAsync();
-				}
+				walletService?.Dispose();
 
 				if (Directory.Exists(blocksFolderPath))
 				{

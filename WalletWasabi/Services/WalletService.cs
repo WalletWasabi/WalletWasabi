@@ -29,7 +29,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
-	public class WalletService
+	public class WalletService : IDisposable
 	{
 		public static event EventHandler<bool> DownloadingBlockChanged;
 
@@ -163,13 +163,11 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private static object TransactionProcessingLock { get; } = new object();
-
 		private void Mempool_TransactionReceived(object sender, SmartTransaction tx)
 		{
 			try
 			{
-				lock (TransactionProcessingLock)
+				lock (TransactionProcessor.Lock)
 				{
 					TransactionProcessor.Process(tx);
 				}
@@ -297,7 +295,7 @@ namespace WalletWasabi.Services
 
 				var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
 
-				lock (TransactionProcessingLock)
+				lock (TransactionProcessor.Lock)
 				{
 					foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
 					{
@@ -369,7 +367,7 @@ namespace WalletWasabi.Services
 
 		private void ProcessBlock(Height height, Block block, IEnumerable<int> filterByTxIndexes = null, IEnumerable<SmartTransaction> skeletonBlock = null)
 		{
-			lock (TransactionProcessingLock)
+			lock (TransactionProcessor.Lock)
 			{
 				if (filterByTxIndexes is null)
 				{
@@ -764,128 +762,6 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private static long SendCount = 0;
-
-		private async Task BroadcastTransactionToNetworkNodeAsync(SmartTransaction transaction, Node node)
-		{
-			Logger.LogInfo($"Trying to broadcast transaction with random node ({node.RemoteSocketAddress}):{transaction.GetHash()}.");
-			if (!BitcoinStore.MempoolService.TryAddToBroadcastStore(transaction.Transaction, node.RemoteSocketEndpoint.ToString())) // So we'll reply to INV with this transaction.
-			{
-				Logger.LogWarning($"Transaction {transaction.GetHash()} was already present in the broadcast store.");
-			}
-			var invPayload = new InvPayload(transaction.Transaction);
-			// Give 7 seconds to send the inv payload.
-			await node.SendMessageAsync(invPayload).WithAwaitCancellationAsync(TimeSpan.FromSeconds(7)); // ToDo: It's dangerous way to cancel. Implement proper cancellation to NBitcoin!
-
-			if (BitcoinStore.MempoolService.TryGetFromBroadcastStore(transaction.GetHash(), out TransactionBroadcastEntry entry))
-			{
-				// Give 7 seconds for serving.
-				var timeout = 0;
-				while (!entry.IsBroadcasted())
-				{
-					if (timeout > 7)
-					{
-						throw new TimeoutException("Did not serve the transaction.");
-					}
-					await Task.Delay(1_000);
-					timeout++;
-				}
-				node.DisconnectAsync("Thank you!");
-				Logger.LogInfo($"Disconnected node: {node.RemoteSocketAddress}. Successfully broadcasted transaction: {transaction.GetHash()}.");
-
-				// Give 21 seconds for propagation.
-				timeout = 0;
-				while (entry.GetPropagationConfirmations() < 2)
-				{
-					if (timeout > 21)
-					{
-						throw new TimeoutException("Did not serve the transaction.");
-					}
-					await Task.Delay(1_000);
-					timeout++;
-				}
-				Logger.LogInfo($"Transaction is successfully propagated: {transaction.GetHash()}.");
-			}
-			else
-			{
-				Logger.LogWarning($"Expected transaction {transaction.GetHash()} was not found in the broadcast store.");
-			}
-		}
-
-		private async Task BroadcastTransactionToBackendAsync(SmartTransaction transaction)
-		{
-			using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
-			{
-				try
-				{
-					await client.BroadcastAsync(transaction);
-				}
-				catch (HttpRequestException ex2) when (ex2.Message.Contains("bad-txns-inputs-missingorspent", StringComparison.InvariantCultureIgnoreCase)
-					|| ex2.Message.Contains("missing-inputs", StringComparison.InvariantCultureIgnoreCase)
-					|| ex2.Message.Contains("txn-mempool-conflict", StringComparison.InvariantCultureIgnoreCase))
-				{
-					if (transaction.Transaction.Inputs.Count == 1) // If we tried to only spend one coin, then we can mark it as spent. If there were more coins, then we do not know.
-					{
-						OutPoint input = transaction.Transaction.Inputs.First().PrevOut;
-						SmartCoin coin = Coins.GetByOutPoint(input);
-						if (coin != default)
-						{
-							coin.SpentAccordingToBackend = true;
-						}
-					}
-				}
-			}
-
-			lock (TransactionProcessingLock)
-			{
-				TransactionProcessor.Process(new SmartTransaction(transaction.Transaction, Height.Mempool));
-			}
-
-			Logger.LogInfo($"Transaction is successfully broadcasted to backend: {transaction.GetHash()}.");
-		}
-
-		public async Task SendTransactionAsync(SmartTransaction transaction)
-		{
-			try
-			{
-				Interlocked.Increment(ref SendCount);
-				// Broadcast to a random node.
-				// Wait until it arrives to at least two other nodes.
-				// If something's wrong, fall back broadcasting with backend.
-
-				if (Network == Network.RegTest)
-				{
-					throw new InvalidOperationException($"Transaction broadcasting to nodes does not work in {Network.RegTest}.");
-				}
-
-				Node node = Nodes.ConnectedNodes.RandomElement();
-				while (node == default(Node) || !node.IsConnected || Nodes.ConnectedNodes.Count < 5)
-				{
-					// As long as we are connected to at least 4 nodes, we can always try again.
-					// 3 should be enough, but make it 5 so 2 nodes could disconnect the meantime.
-					if (Nodes.ConnectedNodes.Count < 5)
-					{
-						throw new InvalidOperationException("We are not connected to enough nodes.");
-					}
-					await Task.Delay(100);
-					node = Nodes.ConnectedNodes.RandomElement();
-				}
-				await BroadcastTransactionToNetworkNodeAsync(transaction, node);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogInfo($"Random node could not broadcast transaction. Broadcasting with backend... Reason: {ex.Message}.");
-				Logger.LogDebug(ex);
-
-				await BroadcastTransactionToBackendAsync(transaction);
-			}
-			finally
-			{
-				BitcoinStore.MempoolService.TryRemoveFromBroadcastStore(transaction.GetHash(), out _); // Remove it just to be sure. Probably has been removed previously.
-				Interlocked.Decrement(ref SendCount);
-			}
-		}
-
 		public ISet<string> GetLabels() => TransactionProcessor.Coins.AsAllCoinsView()
 			.SelectMany(x => x.Label.Labels)
 			.Concat(KeyManager
@@ -942,20 +818,38 @@ namespace WalletWasabi.Services
 			Logger.LogInfo($"Current timeout value used on block download is: {timeout} seconds.");
 		}
 
-		public async Task StopAsync()
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		public bool IsDisposed => _disposedValue;
+
+		protected virtual void Dispose(bool disposing)
 		{
-			while (Interlocked.Read(ref SendCount) != 0) // Make sure to wait for send to finish.
+			if (!_disposedValue)
 			{
-				await Task.Delay(50);
+				if (disposing)
+				{
+					BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
+					BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
+					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
+					TransactionProcessor.CoinSpent -= TransactionProcessor_CoinSpent;
+					TransactionProcessor.CoinReceived -= TransactionProcessor_CoinReceivedAsync;
+
+					DisconnectDisposeNullLocalBitcoinCoreNode();
+				}
+
+				_disposedValue = true;
 			}
-
-			BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
-			BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
-			BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
-			TransactionProcessor.CoinSpent -= TransactionProcessor_CoinSpent;
-			TransactionProcessor.CoinReceived -= TransactionProcessor_CoinReceivedAsync;
-
-			DisconnectDisposeNullLocalBitcoinCoreNode();
 		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }

@@ -37,6 +37,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.TorSocks5;
+using WalletWasabi.Transactions.TransactionBroadcasting;
 using WalletWasabi.Transactions.TransactionBuilding;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
@@ -621,10 +622,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			finally
 			{
 				wallet.NewFilterProcessed -= Wallet_NewFilterProcessed;
-				if (wallet != null)
-				{
-					await wallet.StopAsync();
-				}
+				wallet?.Dispose();
 				// Dispose wasabi synchronizer service.
 				await synchronizer?.StopAsync();
 
@@ -718,6 +716,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 				{
 					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
 				}
+				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, rpc);
+				broadcaster.AddWalletService(wallet);
 
 				var waitCount = 0;
 				while (wallet.Coins.Sum(x => x.Amount) == Money.Zero)
@@ -746,7 +746,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Equal(Money.Coins(1m), res2.SpentCoins.Single().Amount);
 				Assert.False(res2.SpendsUnconfirmed);
 
-				await wallet.SendTransactionAsync(res2.Transaction);
+				await broadcaster.SendTransactionAsync(res2.Transaction);
 
 				Assert.Contains(res2.InnerWalletOutputs.Single(), wallet.Coins);
 
@@ -794,7 +794,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				}
 				Assert.True(foundReceive);
 
-				await wallet.SendTransactionAsync(res.Transaction);
+				await broadcaster.SendTransactionAsync(res.Transaction);
 
 				#endregion Basic
 
@@ -933,7 +933,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.InRange(res.Fee, Money.Zero, res.Fee);
 				Assert.InRange(res.Fee, res.Fee, res.Fee);
 
-				await wallet.SendTransactionAsync(res.Transaction);
+				await broadcaster.SendTransactionAsync(res.Transaction);
 
 				#endregion HighFee
 
@@ -954,7 +954,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Equal(receive, maxBuiltTxOutput.ScriptPubKey);
 				Assert.Equal(wallet.Coins.Where(x => !x.Unavailable).Sum(x => x.Amount) - res.Fee, maxBuiltTxOutput.Value);
 
-				await wallet.SendTransactionAsync(res.Transaction);
+				await broadcaster.SendTransactionAsync(res.Transaction);
 
 				#endregion MaxAmount
 
@@ -1021,7 +1021,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Contains("outgoing", change);
 				Assert.Contains("outgoing2", change);
 
-				await wallet.SendTransactionAsync(res.Transaction);
+				await broadcaster.SendTransactionAsync(res.Transaction);
 
 				IEnumerable<string> unconfirmedCoinLabels = wallet.Coins.Where(x => x.Height == Height.Mempool).SelectMany(x => x.Label.Labels);
 				Assert.Contains("outgoing", unconfirmedCoinLabels);
@@ -1129,10 +1129,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			finally
 			{
 				wallet.NewFilterProcessed -= Wallet_NewFilterProcessed;
-				if (wallet != null)
-				{
-					await wallet.StopAsync();
-				}
+				wallet?.Dispose();
 				// Dispose wasabi synchronizer service.
 				await synchronizer?.StopAsync();
 				// Dispose connection service.
@@ -1298,10 +1295,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			}
 			finally
 			{
-				if (wallet != null)
-				{
-					await wallet.StopAsync();
-				}
+				wallet?.Dispose();
 				// Dispose wasabi synchronizer service.
 				await synchronizer?.StopAsync();
 				// Dispose connection service.
@@ -1374,15 +1368,17 @@ namespace WalletWasabi.Tests.IntegrationTests
 					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
 				}
 				Assert.Single(wallet.Coins);
+				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, rpc);
+				broadcaster.AddWalletService(wallet);
 
 				// Send money before reorg.
 				var operations = new PaymentIntent(scp, Money.Coins(0.011m));
 				var btx1 = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy);
-				await wallet.SendTransactionAsync(btx1.Transaction);
+				await broadcaster.SendTransactionAsync(btx1.Transaction);
 
 				operations = new PaymentIntent(scp, Money.Coins(0.012m));
 				var btx2 = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
-				await wallet.SendTransactionAsync(btx2.Transaction);
+				await broadcaster.SendTransactionAsync(btx2.Transaction);
 
 				// Test synchronization after fork.
 				// Invalidate the blocks containing the funding transaction
@@ -1401,11 +1397,11 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// are reintroduced when we generate a new block through the rpc call
 				operations = new PaymentIntent(scp, Money.Coins(0.013m));
 				var btx3 = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy);
-				await wallet.SendTransactionAsync(btx3.Transaction);
+				await broadcaster.SendTransactionAsync(btx3.Transaction);
 
 				operations = new PaymentIntent(scp, Money.Coins(0.014m));
 				var btx4 = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
-				await wallet.SendTransactionAsync(btx4.Transaction);
+				await broadcaster.SendTransactionAsync(btx4.Transaction);
 
 				// Test synchronization after fork with different transactions.
 				// Create a fork that invalidates the blocks containing the funding transaction
@@ -1461,10 +1457,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			}
 			finally
 			{
-				if (wallet != null)
-				{
-					await wallet.StopAsync();
-				}
+				wallet?.Dispose();
 				// Dispose wasabi synchronizer service.
 				await synchronizer?.StopAsync();
 				// Dispose connection service.
@@ -1542,6 +1535,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				Assert.Single(wallet.Coins);
 
+				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, rpc);
+				broadcaster.AddWalletService(wallet);
+
 				var operations = new PaymentIntent(
 					new DestinationRequest(key.P2wpkhScript, Money.Coins(0.01m)),
 					new DestinationRequest(new Key().ScriptPubKey, Money.Coins(0.01m)),
@@ -1553,7 +1549,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// Spend the unconfirmed coin (send it to ourself)
 				operations = new PaymentIntent(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m));
 				tx1Res = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
-				await wallet.SendTransactionAsync(tx1Res.Transaction);
+				await broadcaster.SendTransactionAsync(tx1Res.Transaction);
 
 				while (wallet.Coins.Count() != 2)
 				{
@@ -1576,7 +1572,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// Spend the unconfirmed and unspent coin (send it to ourself)
 				operations = new PaymentIntent(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m), subtractFee: true);
 				var tx2Res = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
-				await wallet.SendTransactionAsync(tx2Res.Transaction);
+				await broadcaster.SendTransactionAsync(tx2Res.Transaction);
 
 				while (wallet.Coins.Count() != 2)
 				{
@@ -1621,7 +1617,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				var coinCount = GetAllCoins().Count();
 				var to = wallet.GetReceiveKey("foo");
 				var res = wallet.BuildTransaction(password, new PaymentIntent(to.P2wpkhScript, Money.Coins(0.2345m), label: "bar"), FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
-				await wallet.SendTransactionAsync(res.Transaction);
+				await broadcaster.SendTransactionAsync(res.Transaction);
 				Assert.Equal(coinCount + 2, GetAllCoins().Count());
 				Assert.Equal(2, GetAllCoins().Count(x => !x.Confirmed));
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
@@ -1632,10 +1628,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			}
 			finally
 			{
-				if (wallet != null)
-				{
-					await wallet.StopAsync();
-				}
+				wallet?.Dispose();
 				// Dispose wasabi synchronizer service.
 				await synchronizer?.StopAsync();
 				// Dispose connection service.
@@ -1741,10 +1734,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			}
 			finally
 			{
-				if (wallet != null)
-				{
-					await wallet.StopAsync();
-				}
+				wallet?.Dispose();
 				// Dispose wasabi synchronizer service.
 				await synchronizer?.StopAsync();
 				// Dispose connection service.
@@ -3399,10 +3389,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			finally
 			{
 				wallet.NewFilterProcessed -= Wallet_NewFilterProcessed;
-				if (wallet != null)
-				{
-					await wallet.StopAsync();
-				}
+				wallet?.Dispose();
 				// Dispose connection service.
 				nodes?.Dispose();
 				// Dispose mempool serving node.
@@ -3412,10 +3399,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				{
 					await chaumianClient.StopAsync();
 				}
-				if (wallet2 != null)
-				{
-					await wallet2.StopAsync();
-				}
+				wallet2?.Dispose();
 				// Dispose wasabi synchronizer service.
 				await synchronizer?.StopAsync();
 				// Dispose connection service.

@@ -11,6 +11,7 @@ namespace WalletWasabi.Transactions
 {
 	public class TransactionProcessor
 	{
+		public static object Lock { get; } = new object();
 		public AllTransactionStore TransactionStore { get; }
 
 		public KeyManager KeyManager { get; }
@@ -91,8 +92,8 @@ namespace WalletWasabi.Transactions
 						if (isReplacemenetTx)
 						{
 							// Undo the replaced transaction by removing the coins it created (if other coin
-							// spends it, remove that too and so on) and restoring those that it destroyed 
-							// ones. After undoing the replaced transaction it will process the replacement 
+							// spends it, remove that too and so on) and restoring those that it destroyed
+							// ones. After undoing the replaced transaction it will process the replacement
 							// transaction.
 							var replacedTxId = doubleSpends.First().TransactionId;
 							Coins.Undo(replacedTxId);

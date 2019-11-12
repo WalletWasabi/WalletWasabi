@@ -196,7 +196,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
-				await Task.Run(async () => await Global.WalletService.SendTransactionAsync(transaction));
+				await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(transaction));
 
 				SetSuccessMessage("Transaction is successfully sent!");
 				TransactionString = "";

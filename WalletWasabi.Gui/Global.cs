@@ -34,6 +34,7 @@ using WalletWasabi.Mempool;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.TorSocks5;
+using WalletWasabi.Transactions.TransactionBroadcasting;
 
 namespace WalletWasabi.Gui
 {
@@ -63,6 +64,7 @@ namespace WalletWasabi.Gui
 		public FeeProviders FeeProviders { get; private set; }
 		public CoinJoinClient ChaumianClient { get; private set; }
 		public WalletService WalletService { get; private set; }
+		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public Node RegTestMempoolServingNode { get; private set; }
 		public UpdateChecker UpdateChecker { get; private set; }
 		public TorProcessManager TorManager { get; private set; }
@@ -340,6 +342,8 @@ namespace WalletWasabi.Gui
 
 			#endregion SynchronizerInitialization
 
+			TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, Nodes, BitcoinCoreNode?.RpcClient);
+
 			Initialized = true;
 		}
 
@@ -471,6 +475,8 @@ namespace WalletWasabi.Gui
 
 				token.ThrowIfCancellationRequested();
 				WalletService.TransactionProcessor.CoinReceived += CoinReceived;
+
+				TransactionBroadcaster.AddWalletService(WalletService);
 			}
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
 		}
@@ -591,10 +597,7 @@ namespace WalletWasabi.Gui
 					WalletService.KeyManager?.ToFile(backupWalletFilePath);
 					Logger.LogInfo($"{nameof(KeyManager)} backup saved to `{backupWalletFilePath}`.");
 				}
-				if (WalletService != null)
-				{
-					await WalletService.StopAsync();
-				}
+				WalletService?.Dispose();
 				WalletService = null;
 				Logger.LogInfo($"{nameof(WalletService)} is stopped.");
 			}
