@@ -271,9 +271,9 @@ namespace WalletWasabi.Transactions
 			return walletRelevant;
 		}
 
-		public ICoinsView UndoBlock(Height blockHeight)
+		public void UndoBlock(Height blockHeight)
 		{
-			return Coins.RemoveFromBlock(blockHeight);
+			Coins.SwitchToUnconfirmFromBlock(blockHeight);
 		}
 	}
 }

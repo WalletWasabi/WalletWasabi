@@ -738,8 +738,10 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(scoinC.Clusters, changeCoinD.Clusters);
 
 			// reorg
+			Assert.True(changeCoinD.Confirmed);
 			transactionProcessor.UndoBlock(tx3.Height);
-			Assert.DoesNotContain(changeCoinD, transactionProcessor.Coins);
+			Assert.False(changeCoinD.Confirmed);
+
 			Assert.Equal("A, B, C, D", changeCoinD.Clusters.Labels);
 			Assert.Equal(scoinA.Clusters, changeCoinD.Clusters);
 			Assert.Equal(scoinB.Clusters, changeCoinD.Clusters);

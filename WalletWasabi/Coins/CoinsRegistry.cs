@@ -136,33 +136,18 @@ namespace WalletWasabi.Coins
 			}
 		}
 
-		public ICoinsView RemoveFromBlock(Height blockHeight)
+		public void SwitchToUnconfirmFromBlock(Height blockHeight)
 		{
 			lock (Lock)
 			{
-				var removedCoins = new List<SmartCoin>();
-				var allCoins = AsAllCoinsViewNoLock();
-				foreach (var toRemove in allCoins.AtBlockHeight(blockHeight).ToList())
+				foreach (var coin in AsCoinsView().AtBlockHeight(blockHeight))
 				{
-					var coinsToRemove = allCoins.DescendantOfAndSelf(toRemove).ToList();
-					foreach (var coin in coinsToRemove)
+					var descendantCoins = DescendantOfAndSelf(coin);
+					foreach (var toSwitch in descendantCoins)
 					{
-						if (coin.Unspent)
-						{
-							if (Coins.Remove(coin))
-							{
-								InvalidateSnapshot = true;
-							}
-						}
-						else
-						{
-							SpentCoins.Remove(toRemove);
-						}
-
-						removedCoins.Add(coin);
+						toSwitch.Height = Height.Mempool;
 					}
 				}
-				return new CoinsView(removedCoins);
 			}
 		}
 
