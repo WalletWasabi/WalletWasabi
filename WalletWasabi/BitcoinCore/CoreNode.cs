@@ -126,6 +126,7 @@ namespace WalletWasabi.BitcoinCore
 				var desiredConfigLines = new List<string>()
 				{
 					$"{configPrefix}.server			= 1",
+					$"{configPrefix}.listen			= 1",
 					$"{configPrefix}.whitebind		= {coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
 					$"{configPrefix}.rpchost		= {coreNode.RpcEndPoint.GetHostOrDefault()}",
 					$"{configPrefix}.rpcport		= {coreNode.RpcEndPoint.GetPortOrDefault()}"
