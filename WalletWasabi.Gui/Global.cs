@@ -18,16 +18,20 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore;
+using WalletWasabi.BitcoinCore.Endpointing;
+using WalletWasabi.BitcoinCore.Monitoring;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionBroadcasting;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.CoinJoin.Client.Clients;
-using WalletWasabi.Coins;
 using WalletWasabi.Crypto;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
-using WalletWasabi.Mempool;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.TorSocks5;
@@ -56,11 +60,17 @@ namespace WalletWasabi.Gui
 
 		public NodesGroup Nodes { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
+		public RpcFeeProvider RpcFeeProvider { get; private set; }
+		public FeeProviders FeeProviders { get; private set; }
 		public CoinJoinClient ChaumianClient { get; private set; }
 		public WalletService WalletService { get; private set; }
+		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public Node RegTestMempoolServingNode { get; private set; }
 		public UpdateChecker UpdateChecker { get; private set; }
 		public TorProcessManager TorManager { get; private set; }
+		public CoreNode BitcoinCoreNode { get; private set; }
+
+		public RpcMonitor RpcMonitor { get; private set; }
 
 		public bool KillRequested { get; private set; } = false;
 
@@ -78,6 +88,7 @@ namespace WalletWasabi.Gui
 			Directory.CreateDirectory(DataDir);
 			Directory.CreateDirectory(WalletsDir);
 			Directory.CreateDirectory(WalletBackupsDir);
+			RpcMonitor = new RpcMonitor(TimeSpan.FromSeconds(7));
 		}
 
 		public void InitializeUiConfig(UiConfig uiConfig)
@@ -148,6 +159,25 @@ namespace WalletWasabi.Gui
 			BitcoinStore = new BitcoinStore();
 			var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
 			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
+			Task<CoreNode> bitcoinCoreNodeInitTask;
+			if (Config.StartLocalBitcoinCoreOnStartup)
+			{
+				bitcoinCoreNodeInitTask = CoreNode
+					.CreateAsync(new CoreNodeParams(
+						Network,
+						Config.LocalBitcoinCoreDataDir,
+						tryRestart: false,
+						tryDeleteDataDir: false,
+						EndPointStrategy.Custom(Config.GetBitcoinP2pEndPoint()),
+						EndPointStrategy.Default(Network, EndPointType.Rpc),
+						txIndex: null,
+						prune: null));
+			}
+			else
+			{
+				bitcoinCoreNodeInitTask = Task.FromResult<CoreNode>(null);
+			}
+
 			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
 			var addrManTask = InitializeAddressManagerBehaviorAsync();
 
@@ -163,7 +193,7 @@ namespace WalletWasabi.Gui
 				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
 			}
 
-			UpdateChecker = new UpdateChecker(Synchronizer.WasabiClient);
+			UpdateChecker = new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer.WasabiClient);
 
 			#region ProcessKillSubscription
 
@@ -211,6 +241,32 @@ namespace WalletWasabi.Gui
 			await bstoreInitTask;
 
 			#endregion BitcoinStoreInitialization
+
+			#region BitcoinCoreInitialization
+
+			var feeProviderList = new List<IFeeProvider>();
+			try
+			{
+				BitcoinCoreNode = await bitcoinCoreNodeInitTask.ConfigureAwait(false);
+				if (Config.StartLocalBitcoinCoreOnStartup)
+				{
+					RpcMonitor.RpcClient = BitcoinCoreNode.RpcClient;
+					RpcMonitor.Start();
+
+					RpcFeeProvider = new RpcFeeProvider(TimeSpan.FromMinutes(1), BitcoinCoreNode.RpcClient);
+					RpcFeeProvider.Start();
+					feeProviderList.Add(RpcFeeProvider);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
+
+			feeProviderList.Add(Synchronizer);
+			FeeProviders = new FeeProviders(feeProviderList);
+
+			#endregion BitcoinCoreInitialization
 
 			#region MempoolInitialization
 
@@ -289,6 +345,8 @@ namespace WalletWasabi.Gui
 			Logger.LogInfo("Start synchronizing filters...");
 
 			#endregion SynchronizerInitialization
+
+			TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, Nodes, BitcoinCoreNode?.RpcClient);
 
 			Initialized = true;
 		}
@@ -410,7 +468,7 @@ namespace WalletWasabi.Gui
 					Logger.LogWarning(ex);
 				}
 
-				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, Nodes, DataDir, Config.ServiceConfiguration);
+				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode?.RpcClient);
 
 				ChaumianClient.Start();
 				Logger.LogInfo("Start Chaumian CoinJoin service...");
@@ -421,6 +479,8 @@ namespace WalletWasabi.Gui
 
 				token.ThrowIfCancellationRequested();
 				WalletService.TransactionProcessor.CoinReceived += CoinReceived;
+
+				TransactionBroadcaster.AddWalletService(WalletService);
 			}
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
 		}
@@ -541,10 +601,7 @@ namespace WalletWasabi.Gui
 					WalletService.KeyManager?.ToFile(backupWalletFilePath);
 					Logger.LogInfo($"{nameof(KeyManager)} backup saved to `{backupWalletFilePath}`.");
 				}
-				if (WalletService != null)
-				{
-					await WalletService.StopAsync();
-				}
+				WalletService?.Dispose();
 				WalletService = null;
 				Logger.LogInfo($"{nameof(WalletService)} is stopped.");
 			}
@@ -590,10 +647,22 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(UpdateChecker)} is stopped.");
 				}
 
+				if (FeeProviders != null)
+				{
+					FeeProviders.Dispose();
+					Logger.LogInfo($"Disposed {nameof(FeeProviders)}.");
+				}
+
 				if (Synchronizer != null)
 				{
 					await Synchronizer?.StopAsync();
 					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.");
+				}
+
+				if (RpcFeeProvider != null)
+				{
+					await RpcFeeProvider.StopAsync();
+					Logger.LogInfo("Stopped synching fees through RPC.");
 				}
 
 				if (AddressManagerFilePath != null)
@@ -621,6 +690,17 @@ namespace WalletWasabi.Gui
 				{
 					RegTestMempoolServingNode.Disconnect();
 					Logger.LogInfo($"{nameof(RegTestMempoolServingNode)} is disposed.");
+				}
+
+				if (RpcMonitor != null)
+				{
+					await RpcMonitor.StopAsync();
+					Logger.LogInfo("Stopped monitoring RPC.");
+				}
+
+				if (Config.StopLocalBitcoinCoreOnShutdown && BitcoinCoreNode != null)
+				{
+					await BitcoinCoreNode.TryStopAsync().ConfigureAwait(false);
 				}
 
 				if (TorManager != null)

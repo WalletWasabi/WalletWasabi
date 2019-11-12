@@ -15,15 +15,8 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task CanBuildCoreNodeAsync()
 		{
-			var coreNode = await TestNodeBuilder.CreateAsync();
-			try
-			{
-				Assert.False(coreNode.Process.HasExited);
-			}
-			finally
-			{
-				await coreNode.StopAsync();
-			}
+			CoreNode coreNode = await TestNodeBuilder.CreateAsync();
+			await coreNode.TryStopAsync();
 		}
 
 		[Fact]
@@ -35,13 +28,12 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			try
 			{
 				Assert.NotEqual(node1.DataDir, node2.DataDir);
-				Assert.NotEqual(node1.Process.Id, node2.Process.Id);
 				Assert.NotEqual(node1.P2pEndPoint, node2.P2pEndPoint);
 				Assert.NotEqual(node1.RpcEndPoint, node2.RpcEndPoint);
 			}
 			finally
 			{
-				await Task.WhenAll(node1.StopAsync(), node2.StopAsync());
+				await Task.WhenAll(node1.TryStopAsync(), node2.TryStopAsync());
 			}
 		}
 
@@ -56,7 +48,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
-				await coreNode.StopAsync();
+				await coreNode.TryStopAsync();
 			}
 		}
 
@@ -74,7 +66,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			finally
 			{
 				node.Disconnect();
-				await coreNode.StopAsync();
+				await coreNode.TryStopAsync();
 			}
 		}
 

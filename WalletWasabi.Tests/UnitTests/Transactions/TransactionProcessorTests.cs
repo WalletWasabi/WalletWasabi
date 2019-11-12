@@ -5,11 +5,10 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using WalletWasabi.BlockchainAnalysis;
-using WalletWasabi.Coins;
-using WalletWasabi.KeyManagement;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
-using WalletWasabi.Transactions;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions
@@ -239,17 +238,17 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Script NewScript(string label) => transactionProcessor.NewKey(label).P2wpkhScript;
 
 			// A confirmed segwit transaction for us
-			var tx = CreateCreditingTransaction( NewScript("A"), Money.Coins(1.0m), height: 54321);
+			var tx = CreateCreditingTransaction(NewScript("A"), Money.Coins(1.0m), height: 54321);
 			transactionProcessor.Process(tx);
-			
+
 			// Another confirmed segwit transaction for us
 			tx = CreateCreditingTransaction(NewScript("B"), Money.Coins(1.0m), height: 54321);
 			transactionProcessor.Process(tx);
 
-			var createdCoins = transactionProcessor.Coins.Select(x=> x.GetCoin()).ToArray(); // 2 coins of 1.0 btc each
+			var createdCoins = transactionProcessor.Coins.Select(x => x.GetCoin()).ToArray(); // 2 coins of 1.0 btc each
 
 			// Spend the received coins (replaceable)
-			var destinationScript = NewScript("myself");;
+			var destinationScript = NewScript("myself"); ;
 			var changeScript = NewScript("Change myself");
 			tx = CreateSpendingTransaction(createdCoins, destinationScript, changeScript); // spends 1.2btc
 			tx.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;

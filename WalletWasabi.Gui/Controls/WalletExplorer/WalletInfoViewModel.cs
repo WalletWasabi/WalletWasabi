@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Services;
 using WalletWasabi.Models;
 
