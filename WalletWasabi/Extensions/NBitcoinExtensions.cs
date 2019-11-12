@@ -8,11 +8,11 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Common.Crypto;
-using WalletWasabi.Coins;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
-using WalletWasabi.Transactions;
 using static NBitcoin.Crypto.SchnorrBlinding;
 
 namespace NBitcoin
@@ -28,14 +28,14 @@ namespace NBitcoin
 
 			using var listener = node.CreateListener();
 			var getdata = new GetDataPayload(new InventoryVector(node.AddSupportedOptions(InventoryType.MSG_BLOCK), hash));
-			await node.SendMessageAsync(getdata);
+			await node.SendMessageAsync(getdata).ConfigureAwait(false);
 			cancellationToken.ThrowIfCancellationRequested();
 
 			// Bitcoin Core processes the messages sequentially and does not send a NOTFOUND message if the remote node is pruned and the data not available.
 			// A good way to get any feedback about whether the node knows the block or not is to send a ping request.
 			// If block is not known by the remote node, the pong will be sent immediately, else it will be sent after the block download.
 			ulong pingNonce = RandomUtils.GetUInt64();
-			await node.SendMessageAsync(new PingPayload() { Nonce = pingNonce });
+			await node.SendMessageAsync(new PingPayload() { Nonce = pingNonce }).ConfigureAwait(false);
 			while (true)
 			{
 				cancellationToken.ThrowIfCancellationRequested();
@@ -242,11 +242,6 @@ namespace NBitcoin
 				: new byte[] { (0x04), (0x5F), (0x18), (0xBC) };
 
 			return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
-		}
-
-		public static async Task StopAsync(this RPCClient rpc)
-		{
-			await rpc.SendCommandAsync("stop");
 		}
 
 		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt)

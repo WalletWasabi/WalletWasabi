@@ -2,7 +2,7 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using WalletWasabi.Coins;
+using WalletWasabi.Blockchain.TransactionOutputs;
 
 namespace WalletWasabi.Tests.XunitConfiguration
 {

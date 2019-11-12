@@ -17,8 +17,11 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BlockchainAnalysis;
-using WalletWasabi.Coins;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Tabs.WalletManager;
@@ -28,11 +31,8 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Transactions;
-using WalletWasabi.Transactions.TransactionBuilding;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -395,7 +395,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
-					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(signedTransaction));
+					await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(signedTransaction));
 
 					TryResetInputsOnSuccess("Transaction is successfully sent!");
 
@@ -510,7 +510,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFeesAndTexts()
 		{
-			AllFeeEstimate allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
+			AllFeeEstimate allFeeEstimate = Global.FeeProviders?.Status;
 
 			int feeTarget = -1; // 1 => 10 minutes
 			if (IsSliderFeeUsed)
@@ -686,7 +686,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFeeTargetLimits()
 		{
-			var allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
+			var allFeeEstimate = Global.FeeProviders?.Status;
 
 			if (allFeeEstimate != null)
 			{
@@ -1017,7 +1017,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Global.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate).Subscribe(_ =>
+			Global.FeeProviders.WhenAnyValue(x => x.Status).Subscribe(_ =>
 				{
 					SetFeeTargetLimits();
 

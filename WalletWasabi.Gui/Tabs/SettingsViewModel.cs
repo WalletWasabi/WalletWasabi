@@ -27,9 +27,12 @@ namespace WalletWasabi.Gui.Tabs
 		private Network _network;
 		private string _torSocks5EndPoint;
 		private string _bitcoinP2pEndPoint;
+		private string _localBitcoinCoreDataDir;
 		private bool _autocopy;
 		private bool _customFee;
 		private bool _useTor;
+		private bool _startLocalBitcoinCoreOnStartup;
+		private bool _stopLocalBitcoinCoreOnShutdown;
 		private bool _isModified;
 		private string _somePrivacyLevel;
 		private string _finePrivacyLevel;
@@ -58,16 +61,21 @@ namespace WalletWasabi.Gui.Tabs
 			Network = globalConfig.Network;
 			TorSocks5EndPoint = globalConfig.TorSocks5EndPoint.ToString(-1);
 			UseTor = globalConfig.UseTor;
+			StartLocalBitcoinCoreOnStartup = globalConfig.StartLocalBitcoinCoreOnStartup;
+			StopLocalBitcoinCoreOnShutdown = globalConfig.StopLocalBitcoinCoreOnShutdown;
 			SomePrivacyLevel = globalConfig.PrivacyLevelSome.ToString();
 			FinePrivacyLevel = globalConfig.PrivacyLevelFine.ToString();
 			StrongPrivacyLevel = globalConfig.PrivacyLevelStrong.ToString();
 			DustThreshold = globalConfig.DustThreshold.ToString();
 			BitcoinP2pEndPoint = globalConfig.GetP2PEndpoint().ToString(defaultPort: -1);
+			LocalBitcoinCoreDataDir = globalConfig.LocalBitcoinCoreDataDir;
 			IsModified = false;
 
 			this.WhenAnyValue(
 				x => x.Network,
-				x => x.UseTor)
+				x => x.UseTor,
+				x => x.StartLocalBitcoinCoreOnStartup,
+				x => x.StopLocalBitcoinCoreOnShutdown)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(_ => Save());
 
@@ -147,6 +155,8 @@ namespace WalletWasabi.Gui.Tabs
 					Network = x.Network;
 					TorSocks5EndPoint = x.TorSocks5EndPoint.ToString(-1);
 					UseTor = x.UseTor;
+					StartLocalBitcoinCoreOnStartup = x.StartLocalBitcoinCoreOnStartup;
+					StopLocalBitcoinCoreOnShutdown = x.StopLocalBitcoinCoreOnShutdown;
 
 					SomePrivacyLevel = x.PrivacyLevelSome.ToString();
 					FinePrivacyLevel = x.PrivacyLevelFine.ToString();
@@ -155,6 +165,7 @@ namespace WalletWasabi.Gui.Tabs
 					DustThreshold = x.DustThreshold.ToString();
 
 					BitcoinP2pEndPoint = x.GetP2PEndpoint().ToString(defaultPort: -1);
+					LocalBitcoinCoreDataDir = x.LocalBitcoinCoreDataDir;
 
 					IsModified = !Global.Config.AreDeepEqual(x);
 				})
@@ -186,6 +197,8 @@ namespace WalletWasabi.Gui.Tabs
 			return base.OnClose();
 		}
 
+		public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
+
 		public IEnumerable<Network> Networks => new[]
 		{
 			Network.Main,
@@ -213,6 +226,12 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _bitcoinP2pEndPoint, value);
 		}
 
+		public string LocalBitcoinCoreDataDir
+		{
+			get => _localBitcoinCoreDataDir;
+			set => this.RaiseAndSetIfChanged(ref _localBitcoinCoreDataDir, value);
+		}
+
 		public bool IsModified
 		{
 			get => _isModified;
@@ -229,6 +248,18 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			get => _customFee;
 			set => this.RaiseAndSetIfChanged(ref _customFee, value);
+		}
+
+		public bool StartLocalBitcoinCoreOnStartup
+		{
+			get => _startLocalBitcoinCoreOnStartup;
+			set => this.RaiseAndSetIfChanged(ref _startLocalBitcoinCoreOnStartup, value);
+		}
+
+		public bool StopLocalBitcoinCoreOnShutdown
+		{
+			get => _stopLocalBitcoinCoreOnShutdown;
+			set => this.RaiseAndSetIfChanged(ref _stopLocalBitcoinCoreOnShutdown, value);
 		}
 
 		public bool UseTor
@@ -318,6 +349,9 @@ namespace WalletWasabi.Gui.Tabs
 							config.SetP2PEndpoint(p2pEp);
 						}
 						config.UseTor = UseTor;
+						config.StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup;
+						config.StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown;
+						config.LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir);
 						config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? Money.Coins(threshold) : Config.DefaultDustThreshold;
 						config.PrivacyLevelSome = int.TryParse(SomePrivacyLevel, out int level) ? level : Config.DefaultPrivacyLevelSome;
 						config.PrivacyLevelStrong = int.TryParse(StrongPrivacyLevel, out level) ? level : Config.DefaultPrivacyLevelStrong;

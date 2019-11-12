@@ -8,6 +8,7 @@
   <UserControl.Resources>
     <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
     <converters:NetworkStringConverter x:Key="NetworkStringConverter" />
+    <converters:VersionStringConverter x:Key="VersionStringConverter" />
   </UserControl.Resources>
   <DockPanel LastChildFill="true">
     <StackPanel DockPanel.Dock="Top" IsVisible="{Binding IsModified}" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 5 10 5">
@@ -30,8 +31,31 @@
                     </DropDown.ItemTemplate>
                   </DropDown>
                 </StackPanel>
-                <controls:GroupBox Title="{Binding Network, StringFormat=My Node for \{0\}, Converter={StaticResource NetworkStringConverter}}" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+                <controls:GroupBox Title="{Binding BitcoinCoreVersion, StringFormat=Local Bitcoin Core v\{0\}, Converter={StaticResource VersionStringConverter}}" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
                   <StackPanel Orientation="Vertical" Spacing="5">
+                    <TextBlock>Use your own or Wasabi's built-in Bitcoin Core.</TextBlock>
+                    <TextBlock>Expect high CPU, network usage and 300+ GB disk space requirement.</TextBlock>
+                    <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
+                      <ToggleButton IsChecked="{Binding StartLocalBitcoinCoreOnStartup}" Content="{Binding StartLocalBitcoinCoreOnStartup, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" />
+                      <TextBlock VerticalAlignment="Center">Run Bitcoin Core at Wasabi's startup.</TextBlock>
+                    </StackPanel>
+                    <StackPanel Margin="0 10" Spacing="5" IsVisible="{Binding StartLocalBitcoinCoreOnStartup}">
+                      <TextBlock>Bitcoin Core Data Folder</TextBlock>
+                      <TextBox Text="{Binding LocalBitcoinCoreDataDir}">
+                        <i:Interaction.Behaviors>
+                          <behaviors:CommandOnLostFocusBehavior Command="{Binding TextBoxLostFocusCommand}" />
+                        </i:Interaction.Behaviors>
+                      </TextBox>
+                    </StackPanel>
+                    <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5" IsVisible="{Binding StartLocalBitcoinCoreOnStartup}">
+                      <ToggleButton IsChecked="{Binding StopLocalBitcoinCoreOnShutdown}" Content="{Binding StopLocalBitcoinCoreOnShutdown, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" />
+                      <TextBlock VerticalAlignment="Center">Stop Bitcoin Core when Wasabi is shut down.</TextBlock>
+                    </StackPanel>
+                  </StackPanel>
+                </controls:GroupBox>
+                <controls:GroupBox Title="{Binding Network, StringFormat=Alternative Block Source for \{0\}, Converter={StaticResource NetworkStringConverter}}" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+                  <StackPanel Orientation="Vertical" Spacing="5">
+                    <TextBlock>Set Wasabi to download blocks from a full node you control.</TextBlock>
                     <StackPanel Margin="0 10" Spacing="5">
                       <TextBlock>Bitcoin P2P Endpoint</TextBlock>
                       <TextBox Text="{Binding BitcoinP2pEndPoint}">
@@ -50,7 +74,7 @@
                   <ToggleButton IsChecked="{Binding UseTor}" Content="{Binding UseTor, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" />
                   <TextBlock VerticalAlignment="Center">Tor can be turned off for debugging.</TextBlock>
                 </StackPanel>
-                <StackPanel Margin="0 10" Spacing="5">
+                <StackPanel Margin="0 10" Spacing="5" IsVisible="{Binding UseTor}">
                   <TextBlock>Tor SOCKS5 Endpoint</TextBlock>
                   <TextBox Text="{Binding TorSocks5EndPoint}">
                     <i:Interaction.Behaviors>

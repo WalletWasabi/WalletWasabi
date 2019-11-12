@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -23,7 +24,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
-	public class WasabiSynchronizer : NotifyPropertyChangedBase
+	public class WasabiSynchronizer : NotifyPropertyChangedBase, IFeeProvider
 	{
 		#region MembersPropertiesEvents
 
@@ -44,12 +45,12 @@ namespace WalletWasabi.Services
 			private set => RaiseAndSetIfChanged(ref _usdExchangeRate, value);
 		}
 
-		private AllFeeEstimate _allFeeEstimate;
+		private AllFeeEstimate _status;
 
-		public AllFeeEstimate AllFeeEstimate
+		public AllFeeEstimate Status
 		{
-			get => _allFeeEstimate;
-			private set => RaiseAndSetIfChanged(ref _allFeeEstimate, value);
+			get => _status;
+			private set => RaiseAndSetIfChanged(ref _status, value);
 		}
 
 		private TorStatus _torStatus;
@@ -199,7 +200,7 @@ namespace WalletWasabi.Services
 							if (response.AllFeeEstimate != null && response.AllFeeEstimate.Estimations.Any())
 							{
 								lastFeeQueried = DateTimeOffset.UtcNow;
-								AllFeeEstimate = response.AllFeeEstimate;
+								Status = response.AllFeeEstimate;
 							}
 
 							if (response.Filters.Count() == maxFiltersToSyncAtInitialization)
@@ -346,15 +347,6 @@ namespace WalletWasabi.Services
 		private void DoNotGenSocksServFail()
 		{
 			ResponseArrivedIsGenSocksServFail?.Invoke(this, false);
-		}
-
-		public FeeRate GetFeeRate(int feeTarget)
-		{
-			if (AllFeeEstimate is null)
-			{
-				throw new InvalidOperationException("Cannot get fee estimations.");
-			}
-			return AllFeeEstimate.GetFeeRate(feeTarget);
 		}
 
 		#endregion Methods

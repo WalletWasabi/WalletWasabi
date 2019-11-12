@@ -4,6 +4,7 @@ using Avalonia.Media;
 using System;
 using System.Globalization;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Converters
 {
@@ -11,13 +12,9 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is UpdateStatus status)
+			if (value is UpdateStatus status && !status.BackendCompatible)
 			{
-				switch (status)
-				{
-					case UpdateStatus.Critical:
-						return Brushes.IndianRed;
-				}
+				return Brushes.IndianRed;
 			}
 
 			return Application.Current.Resources.TryGetResource("ApplicationAccentBrushLow", out object brush)

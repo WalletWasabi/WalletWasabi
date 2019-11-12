@@ -4,8 +4,8 @@ using AvalonStudio.Shell;
 using ReactiveUI;
 using System.Reactive;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
