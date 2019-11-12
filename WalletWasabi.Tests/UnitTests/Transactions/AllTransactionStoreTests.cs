@@ -346,7 +346,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var txStore = new AllTransactionStore();
 			await txStore.InitializeAsync(dir, network, ensureBackwardsCompatibility: false);
 
-			// Two transaction is in the mempool store and unconfirmed.
+			// Two transactions are in the mempool store and unconfirmed.
 			Assert.True(txStore.MempoolStore.TryGetTransaction(uTx1.GetHash(), out SmartTransaction myUnconfirmedTx1));
 			Assert.False(myUnconfirmedTx1.Confirmed);
 			Assert.True(txStore.MempoolStore.TryGetTransaction(uTx2.GetHash(), out SmartTransaction myUnconfirmedTx2));
