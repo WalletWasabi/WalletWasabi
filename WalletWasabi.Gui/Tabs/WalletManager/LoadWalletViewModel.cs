@@ -92,7 +92,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 				{
-					ofd.InitialDirectory = Path.Combine("/media", Environment.UserName);
+					ofd.Directory = Path.Combine("/media", Environment.UserName);
 				}
 				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 				{

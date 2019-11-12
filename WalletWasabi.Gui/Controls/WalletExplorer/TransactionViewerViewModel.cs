@@ -81,7 +81,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						{
 							initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 						}
-						sfd.InitialDirectory = initialDirectory;
+						sfd.Directory = initialDirectory;
 					}
 					else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 					{

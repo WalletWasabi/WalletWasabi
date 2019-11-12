@@ -91,11 +91,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						{
 							initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 						}
-						ofd.InitialDirectory = initialDirectory;
+						ofd.Directory = initialDirectory;
 					}
 					else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 					{
-						ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+						ofd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 					}
 
           var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
