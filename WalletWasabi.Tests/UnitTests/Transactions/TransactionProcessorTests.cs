@@ -145,7 +145,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			transactionProcessor.DoubleSpendReceived += (s, e) =>
 			{
 				var coin = Assert.Single(e.Remove);
-				// Double spend to ourself but to a different address. So checking the address.
+				// Double spend to ourselves but to a different address. So checking the address.
 				Assert.Equal(keys[1].PubKey.WitHash.ScriptPubKey, coin.ScriptPubKey);
 
 				doubleSpendReceivedCalled++;
