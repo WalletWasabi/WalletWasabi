@@ -3,7 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.Monitoring;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -114,11 +117,46 @@ namespace NBitcoin.RPC
 			return resp;
 		}
 
+		/// <summary>
+		/// If null is returned, no exception is thrown, so the test was successful.
+		/// </summary>
+		public static async Task<Exception> TestAsync(this RPCClient rpc)
+		{
+			try
+			{
+				await rpc.GetBlockchainInfoAsync().ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				return ex;
+			}
+
+			return null;
+		}
+
 		public static async Task<AllFeeEstimate> EstimateAllFeeAsync(this RPCClient rpc, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tolerateBitcoinCoreBrainfuck = true)
 		{
-			var estimations = await rpc.EstimateHalfFeesAsync(new Dictionary<int, int>(), 2, 0, Constants.SevenDaysConfirmationTarget, 0, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck);
-			var allFeeEstimate = new AllFeeEstimate(estimateMode, estimations);
+			var rpcStatus = await rpc.GetRpcStatusAsync(CancellationToken.None).ConfigureAwait(false);
+			var estimations = await rpc.EstimateHalfFeesAsync(new Dictionary<int, int>(), 2, 0, Constants.SevenDaysConfirmationTarget, 0, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck).ConfigureAwait(false);
+			var allFeeEstimate = new AllFeeEstimate(estimateMode, estimations, rpcStatus.Synchronized);
 			return allFeeEstimate;
+		}
+
+		public static async Task<RpcStatus> GetRpcStatusAsync(this RPCClient rpc, CancellationToken cancel)
+		{
+			try
+			{
+				var bci = await rpc.GetBlockchainInfoAsync().ConfigureAwait(false);
+				cancel.ThrowIfCancellationRequested();
+				var pi = await rpc.GetPeersInfoAsync().ConfigureAwait(false);
+
+				return RpcStatus.Responsive(bci.Headers, bci.Blocks, pi.Length);
+			}
+			catch (Exception ex) when (!(ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException))
+			{
+				Logger.LogTrace(ex);
+				return RpcStatus.Unresponsive;
+			}
 		}
 
 		private static async Task<Dictionary<int, int>> EstimateHalfFeesAsync(this RPCClient rpc, IDictionary<int, int> estimations, int smallTarget, int smallFee, int largeTarget, int largeFee, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tolerateBitcoinCoreBrainfuck = true)

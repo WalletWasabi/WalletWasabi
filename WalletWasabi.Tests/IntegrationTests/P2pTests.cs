@@ -10,18 +10,17 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.Crypto;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
-using WalletWasabi.Mempool;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
-using WalletWasabi.Transactions;
 using Xunit;
 
 namespace WalletWasabi.Tests.IntegrationTests
@@ -99,7 +98,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 				new CoinJoinClient(syncer, network, keyManager, new Uri("http://localhost:12345"), Global.Instance.TorSocks5Endpoint),
 				nodes,
 				Global.Instance.DataDir,
-				new ServiceConfiguration(50, 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold)));
+				new ServiceConfiguration(50, 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold)),
+				syncer);
 			Assert.True(Directory.Exists(blocksFolderPath));
 
 			try
@@ -142,10 +142,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				{
 					await walletService?.DeleteBlockAsync(hash);
 				}
-				if (walletService != null)
-				{
-					await walletService.StopAsync();
-				}
+				walletService?.Dispose();
 
 				if (Directory.Exists(blocksFolderPath))
 				{
