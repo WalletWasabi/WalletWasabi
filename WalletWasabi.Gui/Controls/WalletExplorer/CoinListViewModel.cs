@@ -395,16 +395,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(coin =>
 				{
-					try
-					{
-						var newCoinVm = new CoinViewModel(this, coin.EventArgs);
-						newCoinVm.SubscribeEvents();
-						RootList.Add(newCoinVm);
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
-					}
+					var newCoinVm = new CoinViewModel(this, coin.EventArgs);
+					newCoinVm.SubscribeEvents();
+					RootList.Add(newCoinVm);
 				})
 				.DisposeWith(Disposables);
 
@@ -412,17 +405,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(coin =>
 				{
-					try
+					CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == coin.EventArgs);
+					if (toRemove != default)
 					{
-						CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == coin.EventArgs);
-						if (toRemove != default)
-						{
-							OnCoinUnspentChanged(toRemove);
-						}
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
+						toRemove.IsSelected = false;
+						RootList.Remove(toRemove);
+						toRemove.UnsubscribeEvents();
 					}
 				})
 				.DisposeWith(Disposables);
