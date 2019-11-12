@@ -129,12 +129,8 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		//	try
 		//	{
 		//		var rpc = coreNode.RpcClient;
-		//		await rpc.GenerateAsync(101);
-		//		var network = rpc.Network;
 
-		//		var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
-
-		//		var addr = new Key().PubKey.GetSegwitAddress(network);
+		//		var addr = new Key().PubKey.GetSegwitAddress(rpc.Network);
 		//		var notifier = coreNode.TrustedNodeNotifyingBehavior;
 
 		//		var blockNum = 10;
@@ -148,13 +144,11 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		//			h => notifier.Block -= h,
 		//			blockNum);
 
-		//		var blockTask = rpc.GenerateToAddressAsync(blockNum, addr);
+		//		var hashes = await rpc.GenerateToAddressAsync(blockNum, addr);
 
 		//		var aht = blockInvEventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
 		//		var arrivedBlocks = await blockEventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
 		//		var arrivedHashes = await aht;
-
-		//		var hashes = await blockTask;
 
 		//		foreach (var hash in arrivedHashes)
 		//		{
