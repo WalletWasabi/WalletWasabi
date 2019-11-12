@@ -5,11 +5,10 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using WalletWasabi.BlockchainAnalysis;
-using WalletWasabi.Coins;
-using WalletWasabi.KeyManagement;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
-using WalletWasabi.Transactions;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions

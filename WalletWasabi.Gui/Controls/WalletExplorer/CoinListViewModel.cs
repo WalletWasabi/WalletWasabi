@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
-using WalletWasabi.Coins;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Transactions;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer

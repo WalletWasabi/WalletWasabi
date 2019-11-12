@@ -12,7 +12,7 @@ namespace System
 		{
 			var trimmed = Guard.Correct(ex.Message);
 
-			if (trimmed == "")
+			if (trimmed.Length == 0)
 			{
 				if (ex is HwiException hwiEx)
 				{
@@ -40,7 +40,7 @@ namespace System
 		public static string ToUserFriendlyString(this HttpRequestException ex)
 		{
 			var trimmed = Guard.Correct(ex.Message);
-			if (trimmed == "")
+			if (trimmed.Length == 0)
 			{
 				return ex.ToTypeMessageString();
 			}

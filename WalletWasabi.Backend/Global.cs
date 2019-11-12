@@ -69,20 +69,23 @@ namespace WalletWasabi.Backend
 
 			if (roundConfig.FilePath != null)
 			{
-				RoundConfigWatcher = new ConfigWatcher(RoundConfig);
-				RoundConfigWatcher.Start(TimeSpan.FromSeconds(10), async () =>
-				{
-					try
+				RoundConfigWatcher = new ConfigWatcher(
+					TimeSpan.FromSeconds(10), // Every 10 seconds check the config
+					RoundConfig,
+					async () =>
 					{
-						await Coordinator.RoundConfig.UpdateOrDefaultAsync(RoundConfig, toFile: false);
+						try
+						{
+							await Coordinator.RoundConfig.UpdateOrDefaultAsync(RoundConfig, toFile: false);
 
-						Coordinator.AbortAllRoundsInInputRegistration($"{nameof(RoundConfig)} has changed.");
-					}
-					catch (Exception ex)
-					{
-						Logger.LogDebug(ex);
-					}
-				}); // Every 10 seconds check the config
+							Coordinator.AbortAllRoundsInInputRegistration($"{nameof(RoundConfig)} has changed.");
+						}
+						catch (Exception ex)
+						{
+							Logger.LogDebug(ex);
+						}
+					});
+				RoundConfigWatcher.Start();
 				Logger.LogInfo($"{nameof(RoundConfigWatcher)} is successfully started.");
 			}
 		}
