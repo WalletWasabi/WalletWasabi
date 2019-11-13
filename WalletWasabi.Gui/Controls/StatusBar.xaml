@@ -76,11 +76,11 @@
       <StackPanel Orientation="Horizontal" Spacing="4">
         <Grid IsVisible="{Binding !CriticalUpdateAvailable}">
           <Grid Height="10" Width="10" IsVisible="{Binding UpdateAvailable}">
-            <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_GreenFlag"/>
+            <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_GreenFlag}"/>
           </Grid>
         </Grid>
         <Grid Height="10" Width="10" IsVisible="{Binding CriticalUpdateAvailable}">
-            <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_YellowFlag"/>
+            <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_YellowFlag}"/>
         </Grid>
         <TextBlock Text="{Binding Status, Converter={StaticResource StatusBarStatusStringConverter}}" />
       </StackPanel>
