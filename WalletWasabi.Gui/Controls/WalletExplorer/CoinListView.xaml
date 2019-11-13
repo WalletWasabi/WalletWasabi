@@ -49,12 +49,12 @@
         <controls:SortingArrow Grid.Column="5" Text="Clusters" Command="{Binding SortCommand}" SortDirection="{Binding ClustersSortDirection}" />
       </Grid>
       <StackPanel Margin="0 10 0 0" Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal">
-        <StackPanel Spacing="5" Orientation="Horizontal" IsVisible="{Binding SelectAllPrivateVisible}">
+        <StackPanel Spacing="5" Orientation="Horizontal" IsVisible="{Binding SelectAllPrivateVisible}" ToolTip.Tip="Coins that have acquired the anonymity set target.">
           <CheckBox Content="Select" IsThreeState="True" IsChecked="{Binding SelectPrivateCheckBoxState}" Command="{Binding SelectPrivateCheckBoxCommand}" />
           <controls:Shields ShieldState ="{Binding SelectAllPrivateShieldState}" />
           <TextBlock Text="Coins" />
         </StackPanel>
-        <StackPanel Spacing="5" Orientation="Horizontal" IsVisible="{Binding SelectAllNonPrivateVisible}">
+        <StackPanel Spacing="5" Orientation="Horizontal" IsVisible="{Binding SelectAllNonPrivateVisible}" ToolTip.Tip="Coins that have not acquired the anonymity set target.">
           <CheckBox Content="Select" IsThreeState="True" IsChecked="{Binding SelectNonPrivateCheckBoxState}" Command="{Binding SelectNonPrivateCheckBoxCommand}" />
           <controls:Shields ShieldState ="{Binding SelectAllNonPrivateShieldState}" />
           <TextBlock Text="Coins" />
