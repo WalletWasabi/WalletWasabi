@@ -1,4 +1,4 @@
-﻿# Updating HWI
+# Updating HWI and bitcoind
 
 1. Replace executables.
 2. Properties/Copy to Output: Copy if newer.
