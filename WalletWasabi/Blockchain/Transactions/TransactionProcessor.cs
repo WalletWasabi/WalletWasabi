@@ -65,11 +65,10 @@ namespace WalletWasabi.Blockchain.Transactions
 				if (walletRelevant)
 				{
 					TransactionStore.AddOrUpdate(tx);
-					return walletRelevant;
 				}
 			}
 
-			if (!tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
+			if (!tx.Transaction.IsCoinBase && !walletRelevant) // Transactions we already have and processed would be "double spends" but they shouldn't.
 			{
 				var doubleSpends = new List<SmartCoin>();
 				foreach (SmartCoin coin in Coins.AsAllCoinsView())
