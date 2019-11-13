@@ -49,9 +49,21 @@
         <controls:SortingArrow Grid.Column="5" Text="Clusters" Command="{Binding SortCommand}" SortDirection="{Binding ClustersSortDirection}" />
       </Grid>
       <StackPanel Margin="0 10 0 0" Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal">
+        <CheckBox IsThreeState="True" IsChecked="{Binding SelectPrivateCheckBoxState}" IsVisible="{Binding SelectAllPrivateVisible}" Command="{Binding SelectPrivateCheckBoxCommand}">
+          <StackPanel Spacing="5" Orientation="Horizontal"  ToolTip.Tip="Coins that have acquired the anonymity set target.">
+            <TextBlock Text="Select" />
+            <controls:Shields ShieldState ="{Binding SelectAllPrivateShieldState}" />
+            <TextBlock Text="Coins" />
+          </StackPanel>
+        </CheckBox>
+        <CheckBox IsThreeState="True" IsChecked="{Binding SelectNonPrivateCheckBoxState}" IsVisible="{Binding SelectAllNonPrivateVisible}" Command="{Binding SelectNonPrivateCheckBoxCommand}">
+          <StackPanel Spacing="5" Orientation="Horizontal" ToolTip.Tip="Coins that have not acquired the anonymity set target.">
+            <TextBlock Text="Select" />
+            <controls:Shields ShieldState ="{Binding SelectAllNonPrivateShieldState}" />
+            <TextBlock Text="Coins" />
+          </StackPanel>
+        </CheckBox>
         <CheckBox Content="Select All" IsThreeState="True" IsChecked="{Binding SelectAllCheckBoxState}" Command="{Binding SelectAllCheckBoxCommand}" />
-        <CheckBox Content="Select All Private" IsThreeState="True" IsChecked="{Binding SelectPrivateCheckBoxState}" Command="{Binding SelectPrivateCheckBoxCommand}" IsVisible="{Binding SelectAllPrivateVisible}" ToolTip.Tip="Coins that have acquired the anonymity set target." />
-        <CheckBox Content="Select All Non-Private" IsThreeState="True" IsChecked="{Binding SelectNonPrivateCheckBoxState}" Command="{Binding SelectNonPrivateCheckBoxCommand}" IsVisible="{Binding SelectAllNonPrivateVisible}" ToolTip.Tip="Coins that have not acquired the anonymity set target." />
         <StackPanel Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal" IsVisible="{Binding IsAnyCoinSelected}">
           <TextBlock Text="|" />
           <TextBlock Text="Selected Amount:" />

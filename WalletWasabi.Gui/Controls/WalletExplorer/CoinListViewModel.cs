@@ -43,6 +43,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _labelExposeCommonOwnershipWarning;
 		private bool _selectAllNonPrivateVisible;
 		private bool _selectAllPrivateVisible;
+		private ShieldState _selectAllPrivateShieldState;
+		private ShieldState _selectAllNonPrivateShieldState;
 
 		public Global Global { get; }
 		public CoinListContainerType CoinListContainerType { get; }
@@ -185,6 +187,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _selectAllPrivateVisible, value);
 		}
 
+		public ShieldState SelectAllPrivateShieldState
+		{
+			get => _selectAllPrivateShieldState;
+			set => this.RaiseAndSetIfChanged(ref _selectAllPrivateShieldState, value);
+		}
+
+		public ShieldState SelectAllNonPrivateShieldState
+		{
+			get => _selectAllNonPrivateShieldState;
+			set => this.RaiseAndSetIfChanged(ref _selectAllNonPrivateShieldState, value);
+		}
+
 		private bool? GetCheckBoxesSelectedState(Func<CoinViewModel, bool> coinFilterPredicate)
 		{
 			var coins = Coins.Where(coinFilterPredicate).ToArray();
@@ -199,6 +213,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (isAllSelected)
 			{
+				if (coins.Length != Coins.Count(coin => coin.IsSelected))
+				{
+					return null;
+				}
 				return true;
 			}
 
@@ -415,8 +433,37 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				})
 				.DisposeWith(Disposables);
 
+			Global.Config.WhenAnyValue(x => x.MixUntilAnonymitySet)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => RefreshSelectCheckBoxesShields(x))
+				.DisposeWith(Disposables);
+
 			SetSelections();
 			SetCoinJoinStatusWidth();
+		}
+
+		private void RefreshSelectCheckBoxesShields(int mixUntilAnonymitySet)
+		{
+			var isCriticalPrivate = false;
+			var isSomePrivate = mixUntilAnonymitySet <= Global.Config.PrivacyLevelSome;
+			var isFinePrivate = mixUntilAnonymitySet <= Global.Config.PrivacyLevelFine;
+			var isStrongPrivate = mixUntilAnonymitySet <= Global.Config.PrivacyLevelStrong;
+
+			SelectAllNonPrivateShieldState = new ShieldState(
+					!isCriticalPrivate,
+					!isSomePrivate,
+					!isFinePrivate,
+					!isStrongPrivate
+					);
+
+			SelectAllPrivateShieldState = new ShieldState(
+					isCriticalPrivate,
+					isSomePrivate,
+					isFinePrivate,
+					isStrongPrivate
+					);
+
+			SetSelections();
 		}
 
 		private void ClearRootList()

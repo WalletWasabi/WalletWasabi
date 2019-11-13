@@ -18,6 +18,7 @@
     <StyleInclude Source="avares://WalletWasabi.Gui/Controls/TogglePasswordBox.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Controls/MultiTextBox.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Controls/EditableTextBlock.xaml" />
+	<StyleInclude Source="avares://WalletWasabi.Gui/Controls/Shields.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Styles/Styles.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Icons/Icons.xaml" />
   </Application.Styles>
