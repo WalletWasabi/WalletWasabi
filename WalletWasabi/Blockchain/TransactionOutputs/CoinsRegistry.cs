@@ -173,6 +173,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 						toAdd.Add(destroyedCoin);
 					}
 				}
+				InvalidateSnapshot = true;
 				return (new CoinsView(toRemove), new CoinsView(toAdd));
 			}
 		}
