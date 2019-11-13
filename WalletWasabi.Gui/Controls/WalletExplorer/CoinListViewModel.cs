@@ -17,6 +17,7 @@ using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -413,9 +414,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(coin =>
 				{
-					var newCoinVm = new CoinViewModel(this, coin.EventArgs);
-					newCoinVm.SubscribeEvents();
-					RootList.Add(newCoinVm);
+					try
+					{
+						var newCoinVm = new CoinViewModel(this, coin.EventArgs);
+						newCoinVm.SubscribeEvents();
+						RootList.Add(newCoinVm);
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+					}
 				})
 				.DisposeWith(Disposables);
 
@@ -423,12 +431,54 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(coin =>
 				{
-					CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == coin.EventArgs);
-					if (toRemove != default)
+					try
 					{
-						toRemove.IsSelected = false;
-						RootList.Remove(toRemove);
-						toRemove.UnsubscribeEvents();
+						CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == coin.EventArgs);
+						if (toRemove != default)
+						{
+							toRemove.IsSelected = false;
+							RootList.Remove(toRemove);
+							toRemove.UnsubscribeEvents();
+						}
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+					}
+				})
+				.DisposeWith(Disposables);
+
+			Observable.FromEventPattern<ReplaceTransactionReceivedEventArgs>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.ReplaceTransactionReceived))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(args =>
+				{
+					try
+					{
+						var toRemove = args.EventArgs.DestroyedCoins;
+						RemoveCoins(RootList.Items.Where(cvm => toRemove.Any(sm => cvm.Model == sm)));
+
+						var toRestore = args.EventArgs.RestoredCoins;
+						AddCoins(toRestore);
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+					}
+				})
+				.DisposeWith(Disposables);
+
+			Observable.FromEventPattern<DoubleSpendReceivedEventArgs>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.DoubleSpendReceived))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(args =>
+				{
+					try
+					{
+						var toRemove = args.EventArgs.Remove;
+						RemoveCoins(RootList.Items.Where(cvm => toRemove.Any(sm => cvm.Model == sm)));
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
 					}
 				})
 				.DisposeWith(Disposables);
@@ -526,13 +576,35 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			if (!cvm.Unspent)
 			{
+				RemoveCoins(new[] { cvm });
+			}
+			else
+			{
+				SetSelections();
+				SetCoinJoinStatusWidth();
+			}
+		}
+
+		private void RemoveCoins(IEnumerable<CoinViewModel> cvms)
+		{
+			foreach (var cvm in cvms)
+			{
 				cvm.IsSelected = false;
 				RootList.Remove(cvm);
 				cvm.UnsubscribeEvents();
 			}
-
 			SetSelections();
 			SetCoinJoinStatusWidth();
+		}
+
+		private void AddCoins(IEnumerable<SmartCoin> coins)
+		{
+			foreach (var coin in coins)
+			{
+				var newCoinVm = new CoinViewModel(this, coin);
+				newCoinVm.SubscribeEvents();
+				RootList.Add(newCoinVm);
+			}
 		}
 	}
 }
