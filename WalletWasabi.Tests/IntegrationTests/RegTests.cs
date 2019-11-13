@@ -1502,8 +1502,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 					blockCount--;
 				}
 
-				// There shouldn't be any `confirmed` coin
-				Assert.Empty(wallet.Coins.Where(x => x.Confirmed));
 				// Get some money, make it confirm.
 				// this is necesary because we are in a fork now.
 				var coinAwaiter = new EventAwaiter<SmartCoin>(
@@ -1512,13 +1510,13 @@ namespace WalletWasabi.Tests.IntegrationTests
 				fundingTxId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m), replaceable: true);
 				var coinArrived = await coinAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
 				Assert.Equal(fundingTxId, coinArrived.TransactionId);
-				var fundingCoin = Assert.Single(wallet.Coins.Where(x => !x.Confirmed));
-				Assert.Equal(fundingTxId, fundingCoin.TransactionId);
+				Assert.Contains(fundingTxId, wallet.Coins.Select(x => x.TransactionId));
 
 				var fundingBumpTxId = await rpc.BumpFeeAsync(fundingTxId);
 				await Task.Delay(2000); // Waits for the funding transaction get to the mempool.
-				Assert.Single(wallet.Coins.Where(x => !x.Confirmed));
-				Assert.Single(wallet.Coins.Where(x => x.TransactionId == fundingBumpTxId.TransactionId));
+				Assert.Contains(fundingBumpTxId.TransactionId, wallet.Coins.Select(x => x.TransactionId));
+				Assert.DoesNotContain(fundingTxId, wallet.Coins.Select(x => x.TransactionId));
+				Assert.Equal(2, wallet.Coins.Count());
 
 				// Confirm the coin
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
