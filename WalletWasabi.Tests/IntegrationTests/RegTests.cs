@@ -12,6 +12,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
 using System.Threading;
@@ -1430,8 +1431,12 @@ namespace WalletWasabi.Tests.IntegrationTests
 				{
 					await rpc.AbandonTransactionAsync(fundingTxId);
 				}
-				catch
+				catch (Exception ex)
 				{
+					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+					{
+						throw ex;
+					}
 					return; // Occassionally this fails on Linux or OSX, I have no idea why.
 				}
 				await rpc.GenerateAsync(10);
