@@ -1460,8 +1460,11 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				// Get some money, make it confirm.
 				// this is necesary because we are in a fork now.
+				var coinAwaiter = new EventAwaiter<SmartCoin>(
+								h => wallet.TransactionProcessor.CoinReceived += h,
+								h => wallet.TransactionProcessor.CoinReceived -= h);
 				fundingTxId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m), replaceable: true);
-				await Task.Delay(1000); // Waits for the funding transaction get to the mempool.
+				await coinAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
 				var fundingCoin = Assert.Single(wallet.Coins.Where(x => !x.Confirmed));
 				Assert.Equal(fundingTxId, fundingCoin.TransactionId);
 
