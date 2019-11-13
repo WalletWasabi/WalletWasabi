@@ -215,6 +215,16 @@
           <GeometryDrawing Brush="#FFEFEFF0" Geometry="F1M12.5,12C11.673,12 11,11.327 11,10.5 11,9.673 11.673,9 12.5,9 13.327,9 14,9.673 14,10.5 14,11.327 13.327,12 12.5,12" />
         </DrawingGroup.Children>
       </DrawingGroup>
+      <DrawingGroup x:Key="StatusBar_GreenFlag">
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="Green" Geometry="F1M7,9L10,15 8,15 1,1 15,1z" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+      <DrawingGroup x:Key="StatusBar_YellowFlag">
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="Yellow" Geometry="F1M7,9L10,15 8,15 1,1 15,1z" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
       <!-- SendTabView Icons -->
       <DrawingGroup x:Key="SendTabView_Lightning">
         <DrawingGroup>
