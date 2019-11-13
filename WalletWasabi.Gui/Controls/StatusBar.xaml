@@ -72,17 +72,15 @@
           <TextBlock Text="{Binding BtcPrice}" />
         </StackPanel>
       </StackPanel>
+
       <StackPanel Orientation="Horizontal" Spacing="4">
-        <Grid Height="10" Width="10" IsVisible="{Binding UpdateAvailable}">
-          <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center">
-            <DrawingPresenter.Drawing>
-              <DrawingGroup>
-                <DrawingGroup.Children>
-                  <GeometryDrawing Brush="{DynamicResource GreenBrush}" Geometry="F1M7,9L10,15 8,15 1,1 15,1z" />
-                </DrawingGroup.Children>
-              </DrawingGroup>
-            </DrawingPresenter.Drawing>
-          </DrawingPresenter>
+        <Grid IsVisible="{Binding !CriticalUpdateAvailable}">
+          <Grid Height="10" Width="10" IsVisible="{Binding UpdateAvailable}">
+            <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_GreenFlag}"/>
+          </Grid>
+        </Grid>
+        <Grid Height="10" Width="10" IsVisible="{Binding CriticalUpdateAvailable}">
+            <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_YellowFlag}"/>
         </Grid>
         <TextBlock Text="{Binding Status, Converter={StaticResource StatusBarStatusStringConverter}}" />
       </StackPanel>
