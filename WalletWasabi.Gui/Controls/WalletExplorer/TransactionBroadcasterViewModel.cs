@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using AvalonStudio.Documents;
 using AvalonStudio.Extensibility;
 using NBitcoin;
@@ -12,11 +13,11 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Transactions;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -90,14 +91,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						{
 							initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 						}
-						ofd.InitialDirectory = initialDirectory;
+						ofd.Directory = initialDirectory;
 					}
 					else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 					{
-						ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+						ofd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 					}
 
-					var selected = await ofd.ShowAsync(Application.Current.MainWindow, fallBack: true);
+          var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+					var selected = await ofd.ShowAsync(window, fallBack: true);
+          
 					if (selected != null && selected.Any())
 					{
 						var path = selected.First();
@@ -196,7 +199,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
-				await Task.Run(async () => await Global.WalletService.SendTransactionAsync(transaction));
+				await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(transaction));
 
 				SetSuccessMessage("Transaction is successfully sent!");
 				TransactionString = "";

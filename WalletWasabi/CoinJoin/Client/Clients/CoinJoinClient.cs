@@ -12,14 +12,14 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.BlockchainAnalysis;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.CoinJoin.Common.Models;
-using WalletWasabi.Coins;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using static NBitcoin.Crypto.SchnorrBlinding;
@@ -389,16 +389,17 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			}
 
 			var signedCoinJoin = unsignedCoinJoin.Clone();
-			signedCoinJoin.Sign(ongoingRound.CoinsRegistered.Select(x => x.Secret ??= KeyManager.GetSecrets(SaltSoup(), x.ScriptPubKey).Single()).ToArray(), ongoingRound.Registration.CoinsRegistered.Select(x => x.GetCoin()).ToArray());
-
-			// Old way of signing, which randomly fails! https://github.com/zkSNACKs/WalletWasabi/issues/716#issuecomment-435498906
-			// Must be fixed in NBitcoin.
-			//var builder = Network.CreateTransactionBuilder();
-			//var signedCoinJoin = builder
-			//	.ContinueToBuild(unsignedCoinJoin)
-			//	.AddKeys(ongoingRound.Registration.CoinsRegistered.Select(x => x.Secret = x.Secret ?? KeyManager.GetSecrets(OnePiece, x.ScriptPubKey).Single()).ToArray())
-			//	.AddCoins(ongoingRound.Registration.CoinsRegistered.Select(x => x.GetCoin()))
-			//	.BuildTransaction(true);
+			signedCoinJoin.Sign(
+				ongoingRound
+					.CoinsRegistered
+					.Select(x =>
+						(x.Secret ??= KeyManager.GetSecrets(SaltSoup(), x.ScriptPubKey).Single())
+						.PrivateKey
+						.GetBitcoinSecret(Network)),
+				ongoingRound
+					.Registration
+					.CoinsRegistered
+					.Select(x => x.GetCoin()));
 
 			var myDic = new Dictionary<int, WitScript>();
 

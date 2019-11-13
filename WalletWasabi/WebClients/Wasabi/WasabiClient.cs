@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
-using WalletWasabi.Transactions;
 
 namespace WalletWasabi.WebClients.Wasabi
 {
@@ -195,13 +195,13 @@ namespace WalletWasabi.WebClients.Wasabi
 			return (Version.Parse(resp.ClientVersion), int.Parse(resp.BackendMajorVersion));
 		}
 
-		public async Task<UpdateStatusResult> CheckUpdatesAsync(CancellationToken cancel)
+		public async Task<UpdateStatus> CheckUpdatesAsync(CancellationToken cancel)
 		{
 			var versions = await GetVersionsAsync(cancel);
 			var clientUpToDate = Constants.ClientVersion >= versions.ClientVersion; // If the client version locally is greater than or equal to the backend's reported client version, then good.
 			var backendCompatible = int.Parse(Constants.BackendMajorVersion) == versions.BackendMajorVersion; // If the backend major and the client major are equal, then our softwares are compatible.
 
-			return new UpdateStatusResult(backendCompatible, clientUpToDate);
+			return new UpdateStatus(backendCompatible, clientUpToDate);
 		}
 
 		#endregion software

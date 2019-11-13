@@ -10,6 +10,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Gui.ManagedDialogs
 {
+	[Obsolete]
 	internal class ManagedFileChooser : UserControl
 	{
 		private Control _quickLinksRoot;

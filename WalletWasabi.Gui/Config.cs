@@ -57,6 +57,17 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "UseTor", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool UseTor { get; internal set; }
 
+		[DefaultValue(false)]
+		[JsonProperty(PropertyName = "StartLocalBitcoinCoreOnStartup", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool StartLocalBitcoinCoreOnStartup { get; internal set; }
+
+		[DefaultValue(true)]
+		[JsonProperty(PropertyName = "StopLocalBitcoinCoreOnShutdown", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool StopLocalBitcoinCoreOnShutdown { get; internal set; }
+
+		[JsonProperty(PropertyName = "LocalBitcoinCoreDataDir")]
+		public string LocalBitcoinCoreDataDir { get; internal set; } = EnvironmentHelpers.TryGetDefaultBitcoinCoreDataDir() ?? "";
+
 		[JsonProperty(PropertyName = "TorSocks5EndPoint")]
 		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTorSocksPort)]
 		public EndPoint TorSocks5EndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTorSocksPort);

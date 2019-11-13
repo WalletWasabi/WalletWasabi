@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
@@ -19,6 +20,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Models;
@@ -27,7 +29,6 @@ using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
@@ -91,14 +92,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 				{
-					ofd.InitialDirectory = Path.Combine("/media", Environment.UserName);
+					ofd.Directory = Path.Combine("/media", Environment.UserName);
 				}
 				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 				{
-					ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+					ofd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 				}
 
-				var selected = await ofd.ShowAsync(Application.Current.MainWindow, fallBack: true);
+				var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+				var selected = await ofd.ShowAsync(window, fallBack: true);
 				if (selected != null && selected.Any())
 				{
 					var path = selected.First();

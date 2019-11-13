@@ -9,8 +9,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BlockchainAnalysis;
-using WalletWasabi.KeyManagement;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.ViewModels

@@ -13,7 +13,12 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.Configuration;
+using WalletWasabi.BitcoinCore.Endpointing;
+using WalletWasabi.BitcoinCore.Processes;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.BitcoinCore
 {
@@ -22,134 +27,171 @@ namespace WalletWasabi.BitcoinCore
 		public EndPoint P2pEndPoint { get; private set; }
 		public EndPoint RpcEndPoint { get; private set; }
 		public RPCClient RpcClient { get; private set; }
-		private BitcoindProcessBridge Bridge { get; set; }
-		public Process Process { get; private set; }
+		private BitcoindRpcProcessBridge Bridge { get; set; }
 		public string DataDir { get; private set; }
+		public Network Network { get; private set; }
 
-		public static async Task<CoreNode> CreateAsync(string dataDir)
+		public CoreConfig Config { get; private set; }
+		public TrustedNodeNotifyingBehavior TrustedNodeNotifyingBehavior => P2pNode.Behaviors.Find<TrustedNodeNotifyingBehavior>();
+		public Node P2pNode { get; private set; }
+
+		public static async Task<CoreNode> CreateAsync(CoreNodeParams coreNodeParams)
 		{
-			var coreNode = new CoreNode();
-			coreNode.DataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
-
-			var configPath = Path.Combine(coreNode.DataDir, "bitcoin.conf");
-			if (File.Exists(configPath))
+			Guard.NotNull(nameof(coreNodeParams), coreNodeParams);
+			using (BenchmarkLogger.Measure())
 			{
-				var foundConfig = await NodeConfigParameters.LoadAsync(configPath);
-				var rpcPortString = foundConfig["regtest.rpcport"];
-				var rpcUser = foundConfig["regtest.rpcuser"];
-				var rpcPassword = foundConfig["regtest.rpcpassword"];
-				var pidFileName = foundConfig["regtest.pid"];
-				var credentials = new NetworkCredential(rpcUser, rpcPassword);
-				try
-				{
-					var rpc = new RPCClient(credentials, new Uri("http://127.0.0.1:" + rpcPortString + "/"), Network.RegTest);
-					await rpc.StopAsync();
+				var coreNode = new CoreNode();
+				coreNode.DataDir = coreNodeParams.DataDir;
+				coreNode.Network = coreNodeParams.Network;
 
-					var pidFile = Path.Combine(coreNode.DataDir, "regtest", pidFileName);
-					if (File.Exists(pidFile))
+				var configPath = Path.Combine(coreNode.DataDir, "bitcoin.conf");
+				coreNode.Config = new CoreConfig();
+				if (File.Exists(configPath))
+				{
+					var configString = await File.ReadAllTextAsync(configPath).ConfigureAwait(false);
+					coreNode.Config.TryAdd(configString);
+				}
+
+				var configDic = coreNode.Config.ToDictionary();
+				string rpcUser = null;
+				string rpcPassword = null;
+				EndPoint whitebind = null;
+				string rpcHost = null;
+				int? rpcPort = null;
+				string rpcCookieFilePath = null;
+				foreach (var networkPrefixWithDot in NetworkTranslator.GetConfigPrefixesWithDots(coreNode.Network))
+				{
+					var rpcc = configDic.TryGet($"{networkPrefixWithDot}rpccookiefile");
+					var ru = configDic.TryGet($"{networkPrefixWithDot}rpcuser");
+					var rp = configDic.TryGet($"{networkPrefixWithDot}rpcpassword");
+					var wbs = configDic.TryGet($"{networkPrefixWithDot}whitebind");
+					var rpst = configDic.TryGet($"{networkPrefixWithDot}rpchost");
+					var rpts = configDic.TryGet($"{networkPrefixWithDot}rpcport");
+
+					if (rpcc != null)
 					{
-						var pid = await File.ReadAllTextAsync(pidFile);
-						using var process = Process.GetProcessById(int.Parse(pid));
-						await process.WaitForExitAsync(CancellationToken.None);
+						rpcCookieFilePath = rpcc;
 					}
-					else
+					if (ru != null)
 					{
-						var allProcesses = Process.GetProcesses();
-						var bitcoindProcesses = allProcesses.Where(x => x.ProcessName.Contains("bitcoind"));
-						if (bitcoindProcesses.Count() == 1)
-						{
-							var bitcoind = bitcoindProcesses.First();
-							await bitcoind.WaitForExitAsync(CancellationToken.None);
-						}
+						rpcUser = ru;
+					}
+					if (rp != null)
+					{
+						rpcPassword = rp;
+					}
+					if (wbs != null && EndPointParser.TryParse(wbs, coreNode.Network.DefaultPort, out EndPoint wb))
+					{
+						whitebind = wb;
+					}
+					if (rpst != null)
+					{
+						rpcHost = rpst;
+					}
+					if (rpts != null && int.TryParse(rpts, out int rpt))
+					{
+						rpcPort = rpt;
 					}
 				}
-				catch (Exception)
+
+				string authString;
+				bool cookieAuth = rpcCookieFilePath != null;
+				if (cookieAuth)
 				{
+					authString = $"cookiefile={rpcCookieFilePath}";
 				}
+				else
+				{
+					rpcUser ??= Encoders.Hex.EncodeData(RandomUtils.GetBytes(21));
+					rpcPassword ??= Encoders.Hex.EncodeData(RandomUtils.GetBytes(21));
+					authString = $"{rpcUser}:{rpcPassword}";
+				}
+
+				coreNode.P2pEndPoint = whitebind ?? coreNodeParams.P2pEndPointStrategy.EndPoint;
+				rpcHost ??= coreNodeParams.RpcEndPointStrategy.EndPoint.GetHostOrDefault();
+				rpcPort ??= coreNodeParams.RpcEndPointStrategy.EndPoint.GetPortOrDefault();
+				EndPointParser.TryParse($"{rpcHost}:{rpcPort}", coreNode.Network.RPCPort, out EndPoint rpce);
+				coreNode.RpcEndPoint = rpce;
+
+				coreNode.RpcClient = new RPCClient($"{authString}", coreNode.RpcEndPoint.ToString(coreNode.Network.DefaultPort), coreNode.Network);
+
+				if (coreNodeParams.TryRestart && await coreNode.TryStopAsync(false).ConfigureAwait(false) && coreNodeParams.TryDeleteDataDir)
+				{
+					await IoHelpers.DeleteRecursivelyWithMagicDustAsync(coreNode.DataDir).ConfigureAwait(false);
+				}
+
+				IoHelpers.EnsureDirectoryExists(coreNode.DataDir);
+
+				var configPrefix = NetworkTranslator.GetConfigPrefix(coreNode.Network);
+				var desiredConfigLines = new List<string>()
+				{
+					$"{configPrefix}.server			= 1",
+					$"{configPrefix}.listen			= 1",
+					$"{configPrefix}.whitebind		= {coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
+					$"{configPrefix}.rpchost		= {coreNode.RpcEndPoint.GetHostOrDefault()}",
+					$"{configPrefix}.rpcport		= {coreNode.RpcEndPoint.GetPortOrDefault()}"
+				};
+
+				if (!cookieAuth)
+				{
+					desiredConfigLines.Add($"{configPrefix}.rpcuser		= {coreNode.RpcClient.CredentialString.UserPassword.UserName}");
+					desiredConfigLines.Add($"{configPrefix}.rpcpassword	= {coreNode.RpcClient.CredentialString.UserPassword.Password}");
+				}
+
+				if (coreNodeParams.TxIndex != null)
+				{
+					desiredConfigLines.Add($"{configPrefix}.txindex = {coreNodeParams.TxIndex}");
+				}
+
+				if (coreNodeParams.Prune != null)
+				{
+					desiredConfigLines.Add($"{configPrefix}.prune = {coreNodeParams.Prune}");
+				}
+
+				var sectionComment = $"# The following configuration options were added or modified by Wasabi Wallet.";
+				// If the comment is not already present.
+				// And there would be new config entries added.
+				var throwAwayConfig = new CoreConfig(coreNode.Config);
+				throwAwayConfig.AddOrUpdate(string.Join(Environment.NewLine, desiredConfigLines));
+				if (!coreNode.Config.ToString().Contains(sectionComment, StringComparison.Ordinal)
+					&& throwAwayConfig.Count != coreNode.Config.Count)
+				{
+					desiredConfigLines.Insert(0, sectionComment);
+				}
+
+				if (coreNode.Config.AddOrUpdate(string.Join(Environment.NewLine, desiredConfigLines)))
+				{
+					await File.WriteAllTextAsync(configPath, coreNode.Config.ToString());
+				}
+				var configFileName = Path.GetFileName(configPath);
+
+				// If it isn't already running, then we run it.
+				if (await coreNode.RpcClient.TestAsync().ConfigureAwait(false) is null)
+				{
+					Logger.LogInfo("Bitcoin Core is already running.");
+				}
+				else
+				{
+					coreNode.Bridge = new BitcoindRpcProcessBridge(coreNode.RpcClient, coreNode.DataDir, printToConsole: false);
+					await coreNode.Bridge.StartAsync().ConfigureAwait(false);
+					Logger.LogInfo("Started Bitcoin Core.");
+				}
+
+				using var handshakeTimeout = new CancellationTokenSource();
+				handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(21));
+				var nodeConnectionParameters = new NodeConnectionParameters()
+				{
+					UserAgent = $"/WasabiClient:{Constants.ClientVersion.ToString()}/",
+					ConnectCancellation = handshakeTimeout.Token,
+					IsRelay = true
+				};
+
+				nodeConnectionParameters.TemplateBehaviors.Add(new TrustedNodeNotifyingBehavior());
+				coreNode.P2pNode = await Node.ConnectAsync(coreNode.Network, coreNode.P2pEndPoint, nodeConnectionParameters).ConfigureAwait(false);
+				coreNode.P2pNode.VersionHandshake();
+
+				return coreNode;
 			}
-
-			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(coreNode.DataDir);
-			IoHelpers.EnsureDirectoryExists(coreNode.DataDir);
-
-			var pass = Encoders.Hex.EncodeData(RandomUtils.GetBytes(20));
-			var creds = new NetworkCredential(pass, pass);
-
-			var portArray = new int[2];
-			var i = 0;
-			while (i < portArray.Length)
-			{
-				var port = RandomUtils.GetUInt32() % 4000;
-				port += 10000;
-				if (portArray.Any(p => p == port))
-				{
-					continue;
-				}
-
-				try
-				{
-					var listener = new TcpListener(IPAddress.Loopback, (int)port);
-					listener.Start();
-					listener.Stop();
-					portArray[i] = (int)port;
-					i++;
-				}
-				catch (SocketException)
-				{
-				}
-			}
-
-			var p2pPort = portArray[0];
-			var rpcPort = portArray[1];
-			coreNode.P2pEndPoint = new IPEndPoint(IPAddress.Loopback, p2pPort);
-			coreNode.RpcEndPoint = new IPEndPoint(IPAddress.Loopback, rpcPort);
-
-			coreNode.RpcClient = new RPCClient($"{creds.UserName}:{creds.Password}", coreNode.RpcEndPoint.ToString(rpcPort), Network.RegTest);
-
-			var config = new NodeConfigParameters
-			{
-				{"regtest", "1"},
-				{"regtest.rest", "1"},
-				{"regtest.listenonion", "0"},
-				{"regtest.server", "1"},
-				{"regtest.txindex", "1"},
-				{"regtest.rpcuser", coreNode.RpcClient.CredentialString.UserPassword.UserName},
-				{"regtest.rpcpassword", coreNode.RpcClient.CredentialString.UserPassword.Password},
-				{"regtest.whitebind", "127.0.0.1:" + p2pPort.ToString()},
-				{"regtest.rpcport", coreNode.RpcEndPoint.GetPortOrDefault().ToString()},
-				{"regtest.printtoconsole", "0"}, // Set it to one if do not mind loud debug logs
-				{"regtest.keypool", "10"},
-				{"regtest.pid", "bitcoind.pid"}
-			};
-
-			await File.WriteAllTextAsync(configPath, config.ToString());
-			using (await coreNode.KillerLock.LockAsync())
-			{
-				coreNode.Bridge = new BitcoindProcessBridge();
-				coreNode.Process = coreNode.Bridge.Start($"-conf=bitcoin.conf -datadir={coreNode.DataDir} -debug=1", false);
-				string pidFile = Path.Combine(coreNode.DataDir, "regtest", "bitcoind.pid");
-				if (!File.Exists(pidFile))
-				{
-					Directory.CreateDirectory(Path.Combine(coreNode.DataDir, "regtest"));
-					await File.WriteAllTextAsync(pidFile, coreNode.Process.Id.ToString());
-				}
-			}
-			while (true)
-			{
-				try
-				{
-					await coreNode.RpcClient.GetBlockHashAsync(0);
-					break;
-				}
-				catch
-				{
-				}
-				if (coreNode.Process is null || coreNode.Process.HasExited)
-				{
-					break;
-				}
-			}
-
-			return coreNode;
 		}
 
 		public static async Task<Version> GetVersionAsync(CancellationToken cancel)
@@ -168,37 +210,79 @@ namespace WalletWasabi.BitcoinCore
 			return version;
 		}
 
-		public async Task<Node> CreateP2pNodeAsync()
+		public async Task<Node> CreateNewP2pNodeAsync()
 		{
-			return await Node.ConnectAsync(Network.RegTest, P2pEndPoint);
+			return await Node.ConnectAsync(Network, P2pEndPoint).ConfigureAwait(false);
 		}
 
 		public async Task<IEnumerable<Block>> GenerateAsync(int blockCount)
 		{
-			var blocks = await RpcClient.GenerateAsync(blockCount);
+			var blocks = await RpcClient.GenerateAsync(blockCount).ConfigureAwait(false);
 			var rpc = RpcClient.PrepareBatch();
 			var tasks = blocks.Select(b => rpc.GetBlockAsync(b));
 			rpc.SendBatch();
-			return await Task.WhenAll(tasks);
+			return await Task.WhenAll(tasks).ConfigureAwait(false);
 		}
 
-		private readonly AsyncLock KillerLock = new AsyncLock();
-
-		public async Task StopAsync()
+		/// <param name="onlyOwned">Only stop if this node owns the process.</param>
+		public async Task<bool> TryStopAsync(bool onlyOwned = true)
 		{
-			try
+			DisconnectDisposeNullP2pNode();
+			Exception exThrown = null;
+			if (Bridge != null)
 			{
-				using (await KillerLock.LockAsync())
+				try
 				{
-					await RpcClient.StopAsync();
-					using var timeout = new CancellationTokenSource(20000);
-					await Process.WaitForExitAsync(timeout.Token);
-					await IoHelpers.DeleteRecursivelyWithMagicDustAsync(DataDir);
+					await Bridge.StopAsync(onlyOwned).ConfigureAwait(false);
+					Logger.LogInfo("Stopped.");
+					return true;
+				}
+				catch (Exception ex)
+				{
+					exThrown = ex;
 				}
 			}
-			catch (Exception ex)
+
+			Logger.LogInfo("Did not stop Bitcoin Core. Reason:");
+			if (exThrown is null)
 			{
-				Logging.Logger.LogWarning(ex);
+				Logger.LogInfo("Bitcoin Core was started externally.");
+			}
+			else
+			{
+				Logger.LogWarning(exThrown);
+			}
+			return false;
+		}
+
+		public void DisconnectDisposeNullP2pNode()
+		{
+			if (P2pNode != null)
+			{
+				try
+				{
+					P2pNode?.Disconnect();
+				}
+				catch (Exception ex)
+				{
+					Logger.LogDebug(ex);
+				}
+				finally
+				{
+					try
+					{
+						P2pNode?.Dispose();
+					}
+					catch (Exception ex)
+					{
+						Logger.LogDebug(ex);
+					}
+					finally
+					{
+						P2pNode = null;
+						Logger.LogInfo("P2p Bitcoin node is disconnected.");
+					}
+				}
 			}
 		}
 	}

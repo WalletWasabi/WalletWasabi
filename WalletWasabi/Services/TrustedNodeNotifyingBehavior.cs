@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Services
 {
@@ -15,7 +17,7 @@ namespace WalletWasabi.Services
 
 		public event EventHandler<uint256> BlockInv;
 
-		public event EventHandler<Transaction> Transaction;
+		public event EventHandler<SmartTransaction> Transaction;
 
 		public event EventHandler<Block> Block;
 
@@ -37,36 +39,37 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				if (message.Message.Payload is InvPayload invPayload)
+				if (message.Message.Payload is TxPayload txPayload)
 				{
-					var payload = new GetDataPayload();
+					Transaction?.Invoke(this, new SmartTransaction(txPayload.Object, Height.Mempool));
+				}
+				else if (message.Message.Payload is BlockPayload blockPayload)
+				{
+					Block?.Invoke(this, blockPayload.Object);
+				}
+				else if (message.Message.Payload is InvPayload invPayload)
+				{
+					var getDataPayload = new GetDataPayload();
 					foreach (var inv in invPayload.Inventory)
 					{
 						if (inv.Type.HasFlag(InventoryType.MSG_TX))
 						{
 							TransactionInv?.Invoke(this, inv.Hash);
-							payload.Inventory.Add(inv);
+							getDataPayload.Inventory.Add(inv);
 						}
-						else if (inv.Type.HasFlag(InventoryType.MSG_BLOCK))
+
+						if (inv.Type.HasFlag(InventoryType.MSG_BLOCK))
 						{
 							BlockInv?.Invoke(this, inv.Hash);
-							payload.Inventory.Add(inv);
+							getDataPayload.Inventory.Add(inv);
 						}
 					}
 
-					if (payload.Inventory.Any() && node.IsConnected)
+					if (getDataPayload.Inventory.Any() && node.IsConnected)
 					{
 						// ask for the whole transaction
-						await node.SendMessageAsync(payload);
+						await node.SendMessageAsync(getDataPayload).ConfigureAwait(false);
 					}
-				}
-				else if (message.Message.Payload is TxPayload txPayload)
-				{
-					Transaction?.Invoke(this, txPayload.Object);
-				}
-				else if (message.Message.Payload is BlockPayload blockPayload)
-				{
-					Block?.Invoke(this, blockPayload.Object);
 				}
 			}
 			catch (OperationCanceledException ex)

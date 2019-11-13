@@ -7,7 +7,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Coins;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Dialogs

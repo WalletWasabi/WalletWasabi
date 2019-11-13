@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.KeyManagement;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Services;
 using Xunit;
 

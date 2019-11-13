@@ -15,20 +15,18 @@ namespace WalletWasabi.Gui.Controls
 			AddHandler(PointerPressedEvent,
 				(sender, e) =>
 				{
-					if (e.MouseButton == MouseButton.Left || e.MouseButton == MouseButton.Right)
+					var properties = e.GetCurrentPoint(this).Properties;
+
+					if (properties.IsLeftButtonPressed || properties.IsRightButtonPressed)
 					{
 						UpdateSelectionFromEventSource(
 							e.Source,
 							true,
-							(e.InputModifiers & InputModifiers.Shift) != 0,
-							(e.InputModifiers & InputModifiers.Control) != 0);
+							e.KeyModifiers.HasFlag(KeyModifiers.Shift),
+							e.KeyModifiers.HasFlag(KeyModifiers.Control));
 					}
 				},
 				RoutingStrategies.Tunnel, true);
-		}
-
-		protected override void OnPointerPressed(PointerPressedEventArgs e)
-		{
 		}
 	}
 }

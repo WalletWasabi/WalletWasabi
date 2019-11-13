@@ -3,8 +3,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.CoinJoin.Common.Models;
-using WalletWasabi.Coins;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
