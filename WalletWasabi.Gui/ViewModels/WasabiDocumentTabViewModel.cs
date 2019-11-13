@@ -32,7 +32,7 @@ namespace WalletWasabi.Gui.ViewModels
 		public object Context { get; set; }
 		public double Width { get; set; }
 		public double Height { get; set; }
-		public IView Parent { get; set; }
+		public IDockable Parent { get; set; }
 
 		public string Title
 		{

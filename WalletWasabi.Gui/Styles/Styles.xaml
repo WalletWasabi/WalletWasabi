@@ -15,13 +15,7 @@
       <sys:Double x:Key="FontSizeSmall">12</sys:Double>
       <sys:Double x:Key="FontSizeNormal">14</sys:Double>
       <sys:Double x:Key="FontSizeLarge">16</sys:Double>
-      <FontFamily x:Key="MonospacedFont">
-        <x:Arguments>
-          <x:String>Cascadia Code</x:String>
-          <x:Uri>resm:WalletWasabi.Gui.Assets.*.ttf?assembly=WalletWasabi.Gui</x:Uri>
-        </x:Arguments>
-      </FontFamily>
-      <converters:ErrorDescriptorsJsonConverter x:Key="ErrorDescriptorsJsonConverter" />
+      <FontFamily x:Key="MonospacedFont">avares://WalletWasabi.Gui/Assets#Cascadia Code</FontFamily>
       <converters:ErrorSeverityColorConverter x:Key="ErrorSeverityColorConverter" />
       <converters:ErrorDescriptorToBorderColorConverter x:Key="ErrorDescriptorToBorderColorConverter" />
     </Style.Resources>
@@ -104,13 +98,13 @@
   <Style Selector="Grid.content">
     <Setter Property="TextBlock.FontSize" Value="14" />
   </Style>
-  <Style Selector=".hyperLink">
+  <Style Selector="TextBlock.hyperLink">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource HyperLinkForeground}" />
   </Style>
-  <Style Selector=".errorMessage">
+  <Style Selector="TextBlock.errorMessage">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource ErrorBrush}" />
   </Style>
-  <Style Selector=".warningMessage">
+  <Style Selector="TextBlock.warningMessage">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource WarningMessageForeground}" />
   </Style>
   <Style Selector="Button.activeHyperLink">
@@ -143,7 +137,7 @@
             DockPanel.Dock="Bottom"
             ContentTemplate="{TemplateBinding ErrorTemplate}"
             DataContext="{TemplateBinding Owner}"
-            Content="{Binding (DataValidationErrors.Errors), Converter={StaticResource ErrorDescriptorsJsonConverter}}"
+            Content="{Binding (DataValidationErrors.Errors)}"
             IsVisible="{Binding (DataValidationErrors.HasErrors)}" />
           <ContentPresenter
             Name="PART_ContentPresenter"
@@ -180,6 +174,8 @@
     <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}" />
     <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}" />
+    <Setter Property="SelectionBrush" Value="{DynamicResource HighlightBrush}"/>
+    <Setter Property="SelectionForegroundBrush" Value="{DynamicResource HighlightForegroundBrush}"/>
     <Setter Property="Padding" Value="4" />
     <Setter Property="Template">
       <ControlTemplate>
@@ -220,7 +216,10 @@
                     SelectionEnd="{TemplateBinding SelectionEnd}"
                     TextAlignment="{TemplateBinding TextAlignment}"
                     TextWrapping="{TemplateBinding TextWrapping}"
-                    PasswordChar="{TemplateBinding PasswordChar}" />
+                    PasswordChar="{TemplateBinding PasswordChar}"
+                    SelectionBrush="{TemplateBinding SelectionBrush}"
+                    SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                    CaretBrush="{TemplateBinding CaretBrush}"/>
                 </Panel>
               </ScrollViewer>
             </DockPanel>
@@ -252,5 +251,11 @@
   </Style>
   <Style Selector="ListBoxItem:selected Grid Expander:expanded /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
     <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
+  </Style>
+
+  <!-- Dock doesnt have feature to disable resizing. Make the Splitters that allow resize
+       not visible to hit testing, in order to disable them.-->
+  <Style Selector="dock|ProportionalStackPanelSplitter">
+    <Setter Property="IsHitTestVisible" Value="False" />
   </Style>
 </Styles>

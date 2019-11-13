@@ -37,7 +37,7 @@
           <ColumnDefinition Width="30" />
           <ColumnDefinition Width="30" />
           <ColumnDefinition SharedSizeGroup="A" Width="{Binding CoinJoinStatusWidth, Mode=OneWay}" />
-          <ColumnDefinition Width="140" />
+          <ColumnDefinition Width="150" />
           <ColumnDefinition Width="100" />
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
@@ -111,9 +111,9 @@
                   <ColumnDefinition Width="30" />
                   <ColumnDefinition Width="30" />
                   <ColumnDefinition SharedSizeGroup="A" />
-                  <ColumnDefinition Width="123" />
+                  <ColumnDefinition Width="150" />
                   <ColumnDefinition Width="100" />
-                  <ColumnDefinition Width="Auto" />
+                  <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <CheckBox HorizontalContentAlignment="Left" IsChecked="{Binding IsSelected}" Background="{DynamicResource ThemeBackgroundBrush}" />
                 <Border Background="Transparent" IsVisible="{Binding Confirmed}" Grid.Column="1" ToolTip.Tip="{Binding Confirmations, StringFormat=\{0\} Confirmations}">
@@ -126,8 +126,7 @@
                 <Panel Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent" DataContext="{Binding AnonymitySet, Converter={StaticResource PrivacyLevelValueConverter}}" ToolTip.Tip="{Binding ToolTip}">
                   <DrawingPresenter Drawing="{Binding Icon}" Height="16" Width="16" Margin="0 0 25 0" />
                 </Panel>
-                <controls:ExtendedTextBox Classes="selectableTextBlock" Background="Transparent" Grid.Column="5" Text="{Binding Clusters, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
-                <TextBlock Text="" Grid.Column="6" />
+                <controls:ExtendedTextBox Grid.Column="5" Classes="selectableTextBlock" Background="Transparent" Text="{Binding Clusters, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
               </Grid>
             </Grid>
           </DataTemplate>
