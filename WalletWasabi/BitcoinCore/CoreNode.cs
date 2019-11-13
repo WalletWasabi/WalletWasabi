@@ -186,7 +186,7 @@ namespace WalletWasabi.BitcoinCore
 					IsRelay = true
 				};
 
-				nodeConnectionParameters.TemplateBehaviors.Add(new TrustedNodeNotifyingBehavior());
+				nodeConnectionParameters.TemplateBehaviors.Add(new TrustedNodeNotifyingBehavior(coreNode.RpcClient));
 				coreNode.P2pNode = await Node.ConnectAsync(coreNode.Network, coreNode.P2pEndPoint, nodeConnectionParameters).ConfigureAwait(false);
 				coreNode.P2pNode.VersionHandshake();
 

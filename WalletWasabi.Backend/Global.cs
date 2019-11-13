@@ -135,7 +135,7 @@ namespace WalletWasabi.Backend
 				IsRelay = true
 			};
 
-			nodeConnectionParameters.TemplateBehaviors.Add(new TrustedNodeNotifyingBehavior());
+			nodeConnectionParameters.TemplateBehaviors.Add(new TrustedNodeNotifyingBehavior(RpcClient));
 			var node = await Node.ConnectAsync(network, endPoint, nodeConnectionParameters);
 			// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
 			TrustedNodeNotifyingBehavior = node.Behaviors.Find<TrustedNodeNotifyingBehavior>();

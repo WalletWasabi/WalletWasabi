@@ -122,47 +122,62 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 		}
 
-		//[Fact]
-		//public async Task TrustedNotifierNotifiesBlockAsync()
-		//{
-		//	var coreNode = await TestNodeBuilder.CreateAsync();
-		//	try
-		//	{
-		//		var rpc = coreNode.RpcClient;
+		[Fact]
+		public async Task TrustedNotifierNotifiesBlockAsync()
+		{
+			var coreNode = await TestNodeBuilder.CreateAsync();
+			try
+			{
+				var rpc = coreNode.RpcClient;
 
-		//		var addr = new Key().PubKey.GetSegwitAddress(rpc.Network);
-		//		var notifier = coreNode.TrustedNodeNotifyingBehavior;
+				var addr = new Key().PubKey.GetSegwitAddress(rpc.Network);
+				var notifier = coreNode.TrustedNodeNotifyingBehavior;
 
-		//		var blockNum = 10;
-		//		var blockInvEventAwaiter = new EventsAwaiter<uint256>(
-		//			h => notifier.BlockInv += h,
-		//			h => notifier.BlockInv -= h,
-		//			blockNum);
+				int invs = 0;
+				notifier.BlockInv += (s, h) =>
+				{
+					Interlocked.Increment(ref invs);
+				};
 
-		//		var blockEventAwaiter = new EventsAwaiter<Block>(
-		//			h => notifier.Block += h,
-		//			h => notifier.Block -= h,
-		//			blockNum);
+				int blocks = 0;
+				notifier.Block += (s, h) =>
+				{
+					Interlocked.Increment(ref blocks);
+				};
 
-		//		var hashes = await rpc.GenerateToAddressAsync(blockNum, addr);
+				var blockNum = 11;
+				var blockInvEventAwaiter = new EventsAwaiter<uint256>(
+					h => notifier.BlockInv += h,
+					h => notifier.BlockInv -= h,
+					blockNum);
 
-		//		var aht = blockInvEventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
-		//		var arrivedBlocks = await blockEventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
-		//		var arrivedHashes = await aht;
+				var blockEventAwaiter = new EventsAwaiter<Block>(
+					h => notifier.Block += h,
+					h => notifier.Block -= h,
+					blockNum);
 
-		//		foreach (var hash in arrivedHashes)
-		//		{
-		//			Assert.Contains(hash, hashes);
-		//		}
-		//		foreach (var hash in arrivedBlocks.Select(x => x.GetHash()))
-		//		{
-		//			Assert.Contains(hash, hashes);
-		//		}
-		//	}
-		//	finally
-		//	{
-		//		await coreNode.TryStopAsync();
-		//	}
-		//}
+				var hashes = (await rpc.GenerateToAddressAsync(blockNum - 1, addr)).ToList();
+				// Core does not always send notifications. Wait 1sec and send the notification.
+				await Task.Delay(1000);
+				hashes.Add((await rpc.GenerateAsync(1)).First());
+
+				var aht = blockInvEventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
+				var arrivedBlocks = await blockEventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
+				var arrivedHashes = await aht;
+
+				foreach (var hash in arrivedHashes)
+				{
+					Assert.Contains(hash, hashes);
+				}
+				foreach (var hash in arrivedBlocks.Select(x => x.GetHash()))
+				{
+					Assert.Contains(hash, hashes);
+				}
+			}
+			finally
+			{
+				await coreNode.TryStopAsync();
+			}
+		}
 	}
 }
