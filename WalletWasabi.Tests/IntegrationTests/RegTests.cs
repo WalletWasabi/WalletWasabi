@@ -1516,7 +1516,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				await Task.Delay(2000); // Waits for the funding transaction get to the mempool.
 				Assert.Contains(fundingBumpTxId.TransactionId, wallet.Coins.Select(x => x.TransactionId));
 				Assert.DoesNotContain(fundingTxId, wallet.Coins.Select(x => x.TransactionId));
-				Assert.Equal(2, wallet.Coins.Count());
+				Assert.Single(wallet.Coins.Where(x => x.TransactionId == fundingBumpTxId.TransactionId));
 
 				// Confirm the coin
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
