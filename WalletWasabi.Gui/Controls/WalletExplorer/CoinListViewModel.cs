@@ -458,6 +458,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					isFinePrivate,
 					isStrongPrivate
 					);
+
+			SetSelections();
 		}
 
 		private void ClearRootList()
