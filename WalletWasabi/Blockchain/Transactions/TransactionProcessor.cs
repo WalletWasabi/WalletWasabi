@@ -9,32 +9,6 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.Transactions
 {
-	public class DoubleSpendReceivedEventArgs
-	{
-		public DoubleSpendReceivedEventArgs(SmartTransaction smartTransaction, IEnumerable<SmartCoin> remove)
-		{
-			SmartTransaction = smartTransaction;
-			Remove = remove;
-		}
-
-		public SmartTransaction SmartTransaction { get; }
-		public IEnumerable<SmartCoin> Remove { get; }
-	}
-
-	public class ReplaceTransactionReceivedEventArgs
-	{
-		public ReplaceTransactionReceivedEventArgs(SmartTransaction smartTransaction, IEnumerable<SmartCoin> destroyedCoins, IEnumerable<SmartCoin> restoredCoins)
-		{
-			SmartTransaction = smartTransaction;
-			DestroyedCoins = destroyedCoins;
-			RestoredCoins = restoredCoins;
-		}
-
-		public SmartTransaction SmartTransaction { get; }
-		public IEnumerable<SmartCoin> DestroyedCoins { get; }
-		public IEnumerable<SmartCoin> RestoredCoins { get; }
-	}
-
 	public class TransactionProcessor
 	{
 		public static object Lock { get; } = new object();
