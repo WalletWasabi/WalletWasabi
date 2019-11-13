@@ -1439,6 +1439,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				var curBlockHash = await rpc.GetBestBlockHashAsync();
 				blockCount = await rpc.GetBlockCountAsync();
+				Assert.Equal(bitcoinStore.HashChain.TipHash, curBlockHash);
+				Assert.Equal(bitcoinStore.HashChain.TipHeight, blockCount);
 
 				// Make sure the funding transaction is not in any block of the chain
 				while (curBlockHash != rpc.Network.GenesisHash)
@@ -1460,7 +1462,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// this is necesary because we are in a fork now.
 				fundingTxId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m), replaceable: true);
 				await Task.Delay(1000); // Waits for the funding transaction get to the mempool.
-				Assert.Single(wallet.Coins.Where(x => !x.Confirmed));
+				var fundingCoin = Assert.Single(wallet.Coins.Where(x => !x.Confirmed));
+				Assert.Equal(fundingTxId, fundingCoin.TransactionId);
 
 				var fundingBumpTxId = await rpc.BumpFeeAsync(fundingTxId);
 				await Task.Delay(2000); // Waits for the funding transaction get to the mempool.
