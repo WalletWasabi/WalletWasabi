@@ -213,6 +213,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (isAllSelected)
 			{
+				if (coins.Length != Coins.Count(coin => coin.IsSelected))
+				{
+					return null;
+				}
 				return true;
 			}
 
