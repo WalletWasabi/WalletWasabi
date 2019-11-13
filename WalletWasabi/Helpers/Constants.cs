@@ -8,8 +8,10 @@ namespace WalletWasabi.Helpers
 {
 	public static class Constants
 	{
-		public static readonly Version ClientVersion = new Version(1, 1, 9, 1);
+		public static readonly Version ClientVersion = new Version(1, 1, 9, 3);
 		public const string BackendMajorVersion = "3";
+		public static readonly Version HwiVersion = new Version("1.0.3");
+		public static readonly Version BitcoinCoreVersion = new Version("0.18.1");
 
 		public const uint ProtocolVersionWitnessVersion = 70012;
 
@@ -96,5 +98,9 @@ namespace WalletWasabi.Helpers
 		public const int DefaultRegTestBitcoinCoreRpcPort = 18443;
 
 		public const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+		public const double TransactionRBFSignalRate = 0.02; // 2% RBF transactions
+
+		public const decimal DefaultDustThreshold = 0.00005m;
 	}
 }

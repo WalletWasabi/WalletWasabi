@@ -33,14 +33,13 @@
   <DockPanel>
     <DockPanel DockPanel.Dock="Top" Margin="5">
       <dialogs:ChildFitter DockPanel.Dock="Right" Width="{Binding ElementName=Location, Path=Bounds.Height}">
-        <Button Command="{Binding GoUp}" >
-
-          <DrawingPresenter Drawing="{StaticResource LevelUp}" Stretch="Fill"/>
+        <Button Command="{Binding GoUp}">
+          <DrawingPresenter Drawing="{StaticResource LevelUp}" Stretch="Fill" />
         </Button>
       </dialogs:ChildFitter>
       <TextBox x:Name="Location" Text="{Binding Location}" Margin="0 0 5 0">
         <TextBox.KeyBindings>
-          <KeyBinding Command="{Binding EnterLocationCommand}" Gesture="Enter"/>
+          <KeyBinding Command="{Binding EnterLocationCommand}" Gesture="Enter" />
         </TextBox.KeyBindings>
       </TextBox>
     </DockPanel>
@@ -60,19 +59,18 @@
         <Button Command="{Binding Cancel}">Cancel</Button>
       </StackPanel>
     </DockPanel>
-    <DropDown DockPanel.Dock="Bottom" 
-                  IsVisible="{Binding ShowFilters}" 
+    <DropDown DockPanel.Dock="Bottom"
+                  IsVisible="{Binding ShowFilters}"
                   Items="{Binding Filters}"
-                  SelectedItem="{Binding SelectedFilter}"
-                  />
+                  SelectedItem="{Binding SelectedFilter}" />
     <ListBox Margin="5" BorderBrush="Transparent" x:Name="QuickLinks" Items="{Binding QuickLinks}"
                  SelectedIndex="{Binding QuickLinksSelectedIndex}"
                  DockPanel.Dock="Left" Background="{DynamicResource ThemeControlMidBrush}" Focusable="False">
       <ListBox.ItemTemplate>
         <DataTemplate>
           <StackPanel Spacing="4" Orientation="Horizontal" Background="Transparent">
-            <DrawingPresenter Width="16" Height="16" Drawing="{Binding IconKey, Converter={StaticResource Icons}}"/>
-            <TextBlock Text="{Binding DisplayName}"/>
+            <DrawingPresenter Width="16" Height="16" Drawing="{Binding IconKey, Converter={StaticResource Icons}}" />
+            <TextBlock Text="{Binding DisplayName}" />
           </StackPanel>
         </DataTemplate>
       </ListBox.ItemTemplate>
@@ -82,12 +80,12 @@
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="20" />
           <ColumnDefinition Width="16" />
-          <ColumnDefinition Width="400"/>
+          <ColumnDefinition Width="400" />
           <ColumnDefinition Width="16" />
           <ColumnDefinition Width="200" />
           <ColumnDefinition Width="16" />
           <ColumnDefinition Width="150" />
-          <ColumnDefinition Width="16"/>
+          <ColumnDefinition Width="16" />
           <ColumnDefinition Width="200" />
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Column="2" Text="Name" />
@@ -114,11 +112,11 @@
                 <ColumnDefinition Width="200" />
                 <ColumnDefinition Width="16" />
                 <ColumnDefinition Width="150" />
-                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="16" />
                 <ColumnDefinition Width="200" />
               </Grid.ColumnDefinitions>
-              <DrawingPresenter Width="16" Height="16" Drawing="{Binding IconKey, Converter={StaticResource Icons}}"/>
-              <TextBlock Grid.Column="2" Text="{Binding DisplayName}"/>
+              <DrawingPresenter Width="16" Height="16" Drawing="{Binding IconKey, Converter={StaticResource Icons}}" />
+              <TextBlock Grid.Column="2" Text="{Binding DisplayName}" />
               <TextBlock Grid.Column="4" Text="{Binding Modified}" />
               <TextBlock Grid.Column="6" Text="{Binding Type}" />
               <TextBlock Grid.Column="8" Text="{Binding Size, Converter={StaticResource FileSizeConverter}}" />
@@ -128,5 +126,4 @@
       </ListBox>
     </DockPanel>
   </DockPanel>
-
 </UserControl>

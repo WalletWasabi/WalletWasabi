@@ -11,9 +11,9 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Models.TransactionBuilding;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -70,13 +70,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					var sfd = new SaveFileDialog
 					{
 						DefaultExtension = psbtExtension,
-						InitialFileName = TxId,
+						InitialFileName = TxId.Substring(0, 7),
 						Title = "Export Binary PSBT"
 					};
 
-					if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 					{
-						sfd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+						var initialDirectory = Path.Combine("/media", Environment.UserName);
+						if (!Directory.Exists(initialDirectory))
+						{
+							initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+						}
+						sfd.Directory = initialDirectory;
+					}
+					else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+					{
+						sfd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 					}
 
 					var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
@@ -96,7 +105,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					SetWarningMessage(ex.ToTypeMessageString());
 					Logger.LogError(ex);
 				}
-			}, outputScheduler: RxApp.MainThreadScheduler);
+			},
+			outputScheduler: RxApp.MainThreadScheduler);
 		}
 
 		private void OnException(Exception ex)

@@ -9,7 +9,6 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
-using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Backend
 {
@@ -24,13 +23,11 @@ namespace WalletWasabi.Backend
 			{
 				var endPoint = "http://localhost:37127/";
 
-				using (var host = WebHost.CreateDefaultBuilder(args)
+				using var host = WebHost.CreateDefaultBuilder(args)
 					.UseStartup<Startup>()
 					.UseUrls(endPoint)
-					.Build())
-				{
-					await host.RunWithTasksAsync();
-				}
+					.Build();
+				await host.RunWithTasksAsync();
 			}
 			catch (Exception ex)
 			{

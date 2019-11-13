@@ -10,6 +10,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Gui.ManagedDialogs
 {
+	[Obsolete]
 	internal class ManagedFileChooser : UserControl
 	{
 		private Control _quickLinksRoot;
@@ -27,8 +28,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 
 		private void OnPointerPressed(object sender, PointerPressedEventArgs e)
 		{
-			var model = (e.Source as StyledElement)?.DataContext as ManagedFileChooserItemViewModel;
-			if (model is null)
+			if (!((e.Source as StyledElement)?.DataContext is ManagedFileChooserItemViewModel model))
 			{
 				return;
 			}
@@ -53,11 +53,12 @@ namespace WalletWasabi.Gui.ManagedDialogs
 		{
 			base.OnDataContextChanged(e);
 
-			var model = DataContext as ManagedFileChooserViewModel;
-			if (model is null)
+			if (DataContext is null)
 			{
 				return;
 			}
+
+			var model = DataContext as ManagedFileChooserViewModel;
 
 			var preselected = model.SelectedItems.FirstOrDefault();
 			if (preselected is null)

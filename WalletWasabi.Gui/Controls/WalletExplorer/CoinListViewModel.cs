@@ -15,8 +15,8 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Models;
 using WalletWasabi.Logging;
+using WalletWasabi.Blockchain.TransactionOutputs;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -40,8 +40,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _clustersSortDirection;
 		private Money _selectedAmount;
 		private bool _isAnyCoinSelected;
-		private bool _isCoinListLoading;
 		private bool _labelExposeCommonOwnershipWarning;
+		private bool _selectAllNonPrivateVisible;
+		private bool _selectAllPrivateVisible;
+		private ShieldState _selectAllPrivateShieldState;
+		private ShieldState _selectAllNonPrivateShieldState;
+
 		public Global Global { get; }
 		public CoinListContainerType CoinListContainerType { get; }
 		public ReactiveCommand<Unit, Unit> EnqueueCoin { get; }
@@ -86,12 +90,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _selectPrivateCheckBoxState;
 			set => this.RaiseAndSetIfChanged(ref _selectPrivateCheckBoxState, value);
-		}
-
-		public bool IsCoinListLoading
-		{
-			get => _isCoinListLoading;
-			set => this.RaiseAndSetIfChanged(ref _isCoinListLoading, value);
 		}
 
 		public SortOrder StatusSortDirection
@@ -177,6 +175,30 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _coinJoinStatusWidth, value);
 		}
 
+		public bool SelectAllNonPrivateVisible
+		{
+			get => _selectAllNonPrivateVisible;
+			set => this.RaiseAndSetIfChanged(ref _selectAllNonPrivateVisible, value);
+		}
+
+		public bool SelectAllPrivateVisible
+		{
+			get => _selectAllPrivateVisible;
+			set => this.RaiseAndSetIfChanged(ref _selectAllPrivateVisible, value);
+		}
+
+		public ShieldState SelectAllPrivateShieldState
+		{
+			get => _selectAllPrivateShieldState;
+			set => this.RaiseAndSetIfChanged(ref _selectAllPrivateShieldState, value);
+		}
+
+		public ShieldState SelectAllNonPrivateShieldState
+		{
+			get => _selectAllNonPrivateShieldState;
+			set => this.RaiseAndSetIfChanged(ref _selectAllNonPrivateShieldState, value);
+		}
+
 		private bool? GetCheckBoxesSelectedState(Func<CoinViewModel, bool> coinFilterPredicate)
 		{
 			var coins = Coins.Where(coinFilterPredicate).ToArray();
@@ -191,6 +213,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (isAllSelected)
 			{
+				if (coins.Length != Coins.Count(coin => coin.IsSelected))
+				{
+					return null;
+				}
 				return true;
 			}
 
@@ -211,7 +237,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global = global;
 			CoinListContainerType = coinListContainerType;
 			AmountSortDirection = SortOrder.Decreasing;
-			IsCoinListLoading = true;
 			RefreshOrdering();
 
 			// Otherwise they're all selected as null on load.
@@ -281,97 +306,85 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 
 			EnqueueCoin = ReactiveCommand.Create(() =>
-			{
-				if (SelectedCoin is null)
 				{
-					return;
-				}
-				//await Global.ChaumianClient.QueueCoinsToMixAsync()
-			});
+					if (SelectedCoin is null)
+					{
+						return;
+					}
+					//await Global.ChaumianClient.QueueCoinsToMixAsync()
+				});
 
 			DequeueCoin = ReactiveCommand.Create(() =>
-			{
-				if (SelectedCoin is null)
 				{
-					return;
-				}
+					if (SelectedCoin is null)
+					{
+						return;
+					}
 
-				DequeueCoinsPressed?.Invoke(this, EventArgs.Empty);
-			}, this.WhenAnyValue(x => x.CanDeqeue)
-				.ObserveOn(RxApp.MainThreadScheduler));
+					DequeueCoinsPressed?.Invoke(this, EventArgs.Empty);
+				},
+				this.WhenAnyValue(x => x.CanDeqeue)
+					.ObserveOn(RxApp.MainThreadScheduler));
 
 			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
-			{
-				//Global.WalletService.Coins.First(c => c.Unspent).Unspent = false;
-				switch (SelectAllCheckBoxState)
 				{
-					case true:
-						SelectAllCoins(true, x => true);
-						break;
+					//Global.WalletService.Coins.First(c => c.Unspent).Unspent = false;
+					switch (SelectAllCheckBoxState)
+					{
+						case true:
+							SelectAllCoins(true, x => true);
+							break;
 
-					case false:
-						SelectAllCoins(false, x => true);
-						break;
+						case false:
+							SelectAllCoins(false, x => true);
+							break;
 
-					case null:
-						SelectAllCoins(false, x => true);
-						SelectAllCheckBoxState = false;
-						break;
-				}
-			});
+						case null:
+							SelectAllCoins(false, x => true);
+							SelectAllCheckBoxState = false;
+							break;
+					}
+				});
 
 			SelectPrivateCheckBoxCommand = ReactiveCommand.Create(() =>
-			{
-				switch (SelectPrivateCheckBoxState)
 				{
-					case true:
-						SelectAllCoins(true, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
-						break;
+					switch (SelectPrivateCheckBoxState)
+					{
+						case true:
+							SelectAllCoins(true, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+							break;
 
-					case false:
-						SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
-						break;
+						case false:
+							SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+							break;
 
-					case null:
-						SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
-						SelectPrivateCheckBoxState = false;
-						break;
-				}
-			});
+						case null:
+							SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+							SelectPrivateCheckBoxState = false;
+							break;
+					}
+				});
 
 			SelectNonPrivateCheckBoxCommand = ReactiveCommand.Create(() =>
-			{
-				switch (SelectNonPrivateCheckBoxState)
 				{
-					case true:
-						SelectAllCoins(true, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
-						break;
+					switch (SelectNonPrivateCheckBoxState)
+					{
+						case true:
+							SelectAllCoins(true, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+							break;
 
-					case false:
-						SelectAllCoins(false, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
-						break;
+						case false:
+							SelectAllCoins(false, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+							break;
 
-					case null:
-						SelectAllCoins(false, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
-						SelectNonPrivateCheckBoxState = false;
-						break;
-				}
-			});
+						case null:
+							SelectAllCoins(false, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+							SelectNonPrivateCheckBoxState = false;
+							break;
+					}
+				});
 
-			InitList = ReactiveCommand.CreateFromTask(async () =>
-			{
-				try
-				{
-					IsCoinListLoading = true;
-					// We have to wait for the UI to became visible to the user.
-					await Task.Delay(800); // Let other tasks run to display the gui.
-					OnOpen();
-				}
-				finally
-				{
-					IsCoinListLoading = false;
-				}
-			}, outputScheduler: RxApp.MainThreadScheduler);
+			InitList = ReactiveCommand.Create(() => OnOpen(), outputScheduler: RxApp.MainThreadScheduler);
 
 			InitList.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
 		}
@@ -380,7 +393,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent))
+			foreach (var sc in Global.WalletService.Coins)
 			{
 				var newCoinVm = new CoinViewModel(this, sc);
 				newCoinVm.SubscribeEvents();
@@ -396,52 +409,61 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsAnyCoinSelected = x is null ? false : x > Money.Zero);
 
-			Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
+			Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
+				.Subscribe(coin =>
 				{
-					var e = x.EventArgs;
-					try
-					{
-						switch (e.Action)
-						{
-							case NotifyCollectionChangedAction.Add:
-								foreach (SmartCoin c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent))
-								{
-									var newCoinVm = new CoinViewModel(this, c);
-									newCoinVm.SubscribeEvents();
-									RootList.Add(newCoinVm);
-								}
-								break;
+					var newCoinVm = new CoinViewModel(this, coin.EventArgs);
+					newCoinVm.SubscribeEvents();
+					RootList.Add(newCoinVm);
+				})
+				.DisposeWith(Disposables);
 
-							case NotifyCollectionChangedAction.Remove:
-								foreach (var c in e.OldItems.Cast<SmartCoin>())
-								{
-									CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == c);
-									if (toRemove != default)
-									{
-										toRemove.IsSelected = false;
-										RootList.Remove(toRemove);
-										toRemove.UnsubscribeEvents();
-									}
-								}
-								break;
-
-							case NotifyCollectionChangedAction.Reset:
-								{
-									ClearRootList();
-								}
-								break;
-						}
-					}
-					catch (Exception ex)
+			Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(coin =>
+				{
+					CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == coin.EventArgs);
+					if (toRemove != default)
 					{
-						Logger.LogDebug(ex);
+						toRemove.IsSelected = false;
+						RootList.Remove(toRemove);
+						toRemove.UnsubscribeEvents();
 					}
-				}).DisposeWith(Disposables);
+				})
+				.DisposeWith(Disposables);
+
+			Global.Config.WhenAnyValue(x => x.MixUntilAnonymitySet)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => RefreshSelectCheckBoxesShields(x))
+				.DisposeWith(Disposables);
 
 			SetSelections();
 			SetCoinJoinStatusWidth();
+		}
+
+		private void RefreshSelectCheckBoxesShields(int mixUntilAnonymitySet)
+		{
+			var isCriticalPrivate = false;
+			var isSomePrivate = mixUntilAnonymitySet <= Global.Config.PrivacyLevelSome;
+			var isFinePrivate = mixUntilAnonymitySet <= Global.Config.PrivacyLevelFine;
+			var isStrongPrivate = mixUntilAnonymitySet <= Global.Config.PrivacyLevelStrong;
+
+			SelectAllNonPrivateShieldState = new ShieldState(
+					!isCriticalPrivate,
+					!isSomePrivate,
+					!isFinePrivate,
+					!isStrongPrivate
+					);
+
+			SelectAllPrivateShieldState = new ShieldState(
+					isCriticalPrivate,
+					isSomePrivate,
+					isFinePrivate,
+					isStrongPrivate
+					);
+
+			SetSelections();
 		}
 
 		private void ClearRootList()
@@ -489,7 +511,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SelectionChanged?.Invoke(this, cvm);
 			SelectedAmount = Coins.Where(x => x.IsSelected).Sum(x => x.Amount);
 			LabelExposeCommonOwnershipWarning = CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel
-				? false // Because in CoinJoin the selection algorithm makes sure not to combine red with non-red.
+				? false
 				: Coins.Any(c =>
 					c.AnonymitySet == 1 && c.IsSelected && Coins.Any(x =>
 						x.AnonymitySet > 1 && x.IsSelected));

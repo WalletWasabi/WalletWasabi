@@ -69,13 +69,6 @@ namespace WalletWasabi.Gui.ViewModels
 		public MainWindowViewModel()
 		{
 			Shell = IoC.Get<IShell>();
-
-			LockScreenCommand = ReactiveCommand.Create(() =>
-			{
-				Global.UiConfig.LockScreenActive = true;
-			});
-
-			LockScreenCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
 		}
 
 		public IShell Shell { get; }

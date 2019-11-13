@@ -1,4 +1,4 @@
-<Styles xmlns="https://github.com/avaloniaui" 
+<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:dock="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
         xmlns:shell="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"
@@ -15,8 +15,7 @@
       <sys:Double x:Key="FontSizeSmall">12</sys:Double>
       <sys:Double x:Key="FontSizeNormal">14</sys:Double>
       <sys:Double x:Key="FontSizeLarge">16</sys:Double>
-      <FontFamily x:Key="MonospacedFont">avares://WalletWasabi.Gui/Assets#Inconsolata</FontFamily>
-      <converters:ErrorDescriptorsJsonConverter x:Key="ErrorDescriptorsJsonConverter" />
+      <FontFamily x:Key="MonospacedFont">avares://WalletWasabi.Gui/Assets#Cascadia Code</FontFamily>
       <converters:ErrorSeverityColorConverter x:Key="ErrorSeverityColorConverter" />
       <converters:ErrorDescriptorToBorderColorConverter x:Key="ErrorDescriptorToBorderColorConverter" />
     </Style.Resources>
@@ -77,12 +76,12 @@
     </Setter>
   </Style>
   <Style Selector="TextBox.monospaceFont">
-    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}"/>
-    <Setter Property="FontSize" Value="16"/>
+    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+    <Setter Property="FontSize" Value="14" />
   </Style>
   <Style Selector="TextBlock.monospaceFont">
-    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}"/>
-    <Setter Property="FontSize" Value="16"/>
+    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+    <Setter Property="FontSize" Value="14" />
   </Style>
   <Style Selector="TextBox.selectableTextBlock">
     <Setter Property="Padding" Value="0" />
@@ -138,7 +137,7 @@
             DockPanel.Dock="Bottom"
             ContentTemplate="{TemplateBinding ErrorTemplate}"
             DataContext="{TemplateBinding Owner}"
-            Content="{Binding (DataValidationErrors.Errors), Converter={StaticResource ErrorDescriptorsJsonConverter}}"
+            Content="{Binding (DataValidationErrors.Errors)}"
             IsVisible="{Binding (DataValidationErrors.HasErrors)}" />
           <ContentPresenter
             Name="PART_ContentPresenter"
@@ -155,7 +154,7 @@
         <ItemsControl Items="{Binding}">
           <ItemsControl.ItemTemplate>
             <DataTemplate>
-              <TextBlock Text="{Binding Message}" Foreground="{Binding Severity, Converter={StaticResource ErrorSeverityColorConverter}}"/>
+              <TextBlock Text="{Binding Message}" Foreground="{Binding Severity, Converter={StaticResource ErrorSeverityColorConverter}}" />
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
@@ -175,6 +174,8 @@
     <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}" />
     <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}" />
+    <Setter Property="SelectionBrush" Value="{DynamicResource HighlightBrush}"/>
+    <Setter Property="SelectionForegroundBrush" Value="{DynamicResource HighlightForegroundBrush}"/>
     <Setter Property="Padding" Value="4" />
     <Setter Property="Template">
       <ControlTemplate>
@@ -215,7 +216,10 @@
                     SelectionEnd="{TemplateBinding SelectionEnd}"
                     TextAlignment="{TemplateBinding TextAlignment}"
                     TextWrapping="{TemplateBinding TextWrapping}"
-                    PasswordChar="{TemplateBinding PasswordChar}" />
+                    PasswordChar="{TemplateBinding PasswordChar}"
+                    SelectionBrush="{TemplateBinding SelectionBrush}"
+                    SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                    CaretBrush="{TemplateBinding CaretBrush}"/>
                 </Panel>
               </ScrollViewer>
             </DockPanel>
@@ -247,5 +251,11 @@
   </Style>
   <Style Selector="ListBoxItem:selected Grid Expander:expanded /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
     <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
+  </Style>
+
+  <!-- Dock doesnt have feature to disable resizing. Make the Splitters that allow resize
+       not visible to hit testing, in order to disable them.-->
+  <Style Selector="dock|ProportionalStackPanelSplitter">
+    <Setter Property="IsHitTestVisible" Value="False" />
   </Style>
 </Styles>

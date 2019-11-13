@@ -80,7 +80,7 @@ namespace WalletWasabi.TorSocks5
 			Guard.NotNull(nameof(method), method);
 			relativeUri = Guard.NotNull(nameof(relativeUri), relativeUri);
 			var requestUri = new Uri(DestinationUri, relativeUri);
-			var request = new HttpRequestMessage(method, requestUri);
+			using var request = new HttpRequestMessage(method, requestUri);
 			if (content != null)
 			{
 				request.Content = content;
@@ -243,7 +243,7 @@ namespace WalletWasabi.TorSocks5
 				{
 					if (request.Content is null)
 					{
-						request.Content = new ByteArrayContent(new byte[] { }); // dummy empty content
+						request.Content = new ByteArrayContent(Array.Empty<byte>()); // dummy empty content
 						request.Content.Headers.ContentLength = 0;
 					}
 					else
@@ -262,10 +262,8 @@ namespace WalletWasabi.TorSocks5
 
 			await TorSocks5Client.Stream.WriteAsync(bytes, 0, bytes.Length).ConfigureAwait(false);
 			await TorSocks5Client.Stream.FlushAsync().ConfigureAwait(false);
-			using (var httpResponseMessage = new HttpResponseMessage())
-			{
-				return await HttpResponseMessageExtensions.CreateNewAsync(TorSocks5Client.Stream, request.Method).ConfigureAwait(false);
-			}
+			using var httpResponseMessage = new HttpResponseMessage();
+			return await HttpResponseMessageExtensions.CreateNewAsync(TorSocks5Client.Stream, request.Method).ConfigureAwait(false);
 		}
 
 		#region IDisposable Support
@@ -284,11 +282,6 @@ namespace WalletWasabi.TorSocks5
 				_disposedValue = true;
 			}
 		}
-
-		// ~TorHttpClient() {
-		// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-		//   Dispose(false);
-		// }
 
 		// This code added to correctly implement the disposable pattern.
 		public void Dispose()

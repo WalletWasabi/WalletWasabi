@@ -25,12 +25,12 @@ namespace WalletWasabi.Helpers
 				throw new ArgumentNullException(nameof(parameterName), "Parameter cannot be null.");
 			}
 
-			if (parameterName == "")
+			if (parameterName.Length == 0)
 			{
 				throw new ArgumentException("Parameter cannot be empty.", nameof(parameterName));
 			}
 
-			if (parameterName.Trim() == "")
+			if (parameterName.Trim().Length == 0)
 			{
 				throw new ArgumentException("Parameter cannot be whitespace.", nameof(parameterName));
 			}
@@ -98,7 +98,7 @@ namespace WalletWasabi.Helpers
 			NotNullOrEmpty(parameterName, value);
 
 			string trimmedValue = value.Trim();
-			if (trimmedValue == "")
+			if (trimmedValue.Length == 0)
 			{
 				throw new ArgumentException("Parameter cannot be whitespace.", parameterName);
 			}

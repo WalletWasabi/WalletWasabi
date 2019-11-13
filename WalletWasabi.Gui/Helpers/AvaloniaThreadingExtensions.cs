@@ -20,7 +20,8 @@ namespace Avalonia.Threading
 				{
 					Logger.LogDebug(ex);
 				}
-			}, priority);
+			},
+			priority);
 		}
 
 		public static void PostLogException(this Dispatcher dispatcher, Action action, DispatcherPriority priority = DispatcherPriority.Normal)
@@ -35,7 +36,8 @@ namespace Avalonia.Threading
 				{
 					Logger.LogDebug(ex);
 				}
-			}, priority);
+			},
+			priority);
 		}
 	}
 }

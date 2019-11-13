@@ -9,11 +9,14 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.KeyManagement;
-using WalletWasabi.Models;
+using WalletWasabi.Hwi;
+using WalletWasabi.Hwi.Exceptions;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -33,8 +36,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
 		public ReactiveCommand<Unit, Unit> ToggleQrCode { get; }
 		public ReactiveCommand<Unit, Unit> ChangeLabelCommand { get; }
+		public ReactiveCommand<Unit, Unit> DisplayAddressOnHwCommand { get; }
+		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
 		public ReactiveCommand<Unit, Unit> SaveQRCodeCommand { get; }
-		
+
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
 		{
@@ -44,54 +49,54 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			InitializeAddresses();
 
 			GenerateCommand = ReactiveCommand.Create(() =>
-			{
-				var label = new SmartLabel(Label);
-				Label = label.ToString();
-				if (label.IsEmpty)
 				{
-					LabelRequiredNotificationVisible = true;
-					LabelRequiredNotificationOpacity = 1;
-
-					Dispatcher.UIThread.PostLogException(async () =>
+					var label = new SmartLabel(Label);
+					Label = label;
+					if (label.IsEmpty)
 					{
-						await Task.Delay(TimeSpan.FromSeconds(4));
-						LabelRequiredNotificationOpacity = 0;
-					});
+						LabelRequiredNotificationVisible = true;
+						LabelRequiredNotificationOpacity = 1;
 
-					return;
-				}
+						Dispatcher.UIThread.PostLogException(async () =>
+							{
+								await Task.Delay(TimeSpan.FromSeconds(4));
+								LabelRequiredNotificationOpacity = 0;
+							});
 
-				Dispatcher.UIThread.PostLogException(() =>
-				{
-					HdPubKey newKey = Global.WalletService.GetReceiveKey(new SmartLabel(Label), Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
-
-					AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
-					if (found != default)
-					{
-						Addresses.Remove(found);
+						return;
 					}
 
-					var newAddress = new AddressViewModel(newKey, Global);
+					Dispatcher.UIThread.PostLogException(() =>
+						{
+							HdPubKey newKey = Global.WalletService.GetReceiveKey(Label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
 
-					Addresses.Insert(0, newAddress);
+							AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
+							if (found != default)
+							{
+								Addresses.Remove(found);
+							}
 
-					SelectedAddress = newAddress;
+							var newAddress = new AddressViewModel(newKey, Global);
 
-					Label = "";
+							Addresses.Insert(0, newAddress);
+
+							SelectedAddress = newAddress;
+
+							Label = "";
+						});
 				});
-			});
 
 			this.WhenAnyValue(x => x.Label).Subscribe(UpdateSuggestions);
 
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
-			{
-				if (Global.UiConfig?.Autocopy is false || address is null)
 				{
-					return;
-				}
+					if (Global.UiConfig?.Autocopy is false || address is null)
+					{
+						return;
+					}
 
-				await address.TryCopyToClipboardAsync();
-			});
+					await address.TryCopyToClipboardAsync();
+				});
 
 			var isCoinListItemSelected = this.WhenAnyValue(x => x.SelectedAddress).Select(coin => coin != null);
 
@@ -103,7 +108,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				await SelectedAddress.TryCopyToClipboardAsync();
-			}, isCoinListItemSelected);
+			},
+			isCoinListItemSelected);
 
 			CopyLabel = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -113,21 +119,37 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (Exception)
 				{ }
-			}, isCoinListItemSelected);
+			},
+			isCoinListItemSelected);
 
 			ToggleQrCode = ReactiveCommand.Create(() =>
+				{
+					try
+					{
+						SelectedAddress.IsExpanded = !SelectedAddress.IsExpanded;
+					}
+					catch (Exception)
+					{ }
+				},
+				isCoinListItemSelected);
+
+#pragma warning disable IDE0053 // Use expression body for lambda expressions
+			ChangeLabelCommand = ReactiveCommand.Create(() => { SelectedAddress.InEditMode = true; });
+#pragma warning restore IDE0053 // Use expression body for lambda expressions
+
+			DisplayAddressOnHwCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
+				var client = new HwiClient(Global.Network);
+				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 				try
 				{
-					SelectedAddress.IsExpanded = !SelectedAddress.IsExpanded;
+					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, SelectedAddress.Model.FullKeyPath, cts.Token);
 				}
-				catch (Exception)
-				{ }
-			}, isCoinListItemSelected);
-
-			ChangeLabelCommand = ReactiveCommand.Create(() =>
-			{
-				SelectedAddress.InEditMode = true;
+				catch (HwiException)
+				{
+					await PinPadViewModel.UnlockAsync(Global);
+					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, SelectedAddress.Model.FullKeyPath, cts.Token);
+				}
 			});
 
 			SaveQRCodeCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -144,10 +166,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Observable.FromEventPattern(Global.WalletService.Coins,
-				nameof(Global.WalletService.Coins.CollectionChanged))
+			Observable.FromEventPattern(Global.WalletService.TransactionProcessor,
+				nameof(Global.WalletService.TransactionProcessor.CoinReceived))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => InitializeAddresses())
+				.DisposeWith(Disposables);
+
+			Observable.Merge(DisplayAddressOnHwCommand.ThrownExceptions)
+				.Merge(ChangeLabelCommand.ThrownExceptions)
+				.Merge(ToggleQrCode.ThrownExceptions)
+				.Merge(CopyAddress.ThrownExceptions)
+				.Merge(CopyLabel.ThrownExceptions)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(ex => SetWarningMessage(ex.ToTypeMessageString()))
 				.DisposeWith(Disposables);
 		}
 
@@ -269,7 +300,5 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Suggestions.Clear();
 		}
-
-		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
 	}
 }

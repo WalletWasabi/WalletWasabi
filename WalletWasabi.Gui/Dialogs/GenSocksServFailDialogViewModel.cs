@@ -7,11 +7,7 @@ namespace WalletWasabi.Gui.Dialogs
 	{
 		public GenSocksServFailDialogViewModel() : base("", true, false)
 		{
-			OKCommand = ReactiveCommand.Create(() =>
-			{
-				// OK pressed.
-				Close(true);
-			});
+			OKCommand = ReactiveCommand.Create(() => Close(true)); // OK pressed.
 		}
 	}
 }

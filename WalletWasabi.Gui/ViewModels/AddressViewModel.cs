@@ -12,9 +12,8 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.KeyManagement;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -40,7 +39,7 @@ namespace WalletWasabi.Gui.ViewModels
 			Model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
-			_label = model.Label.ToString();
+			_label = model.Label;
 
 			this.WhenAnyValue(x => x.IsExpanded)
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -61,11 +60,11 @@ namespace WalletWasabi.Gui.ViewModels
 				});
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
-				this.RaisePropertyChanged(nameof(Address));
-				this.RaisePropertyChanged(nameof(Label));
-			}).DisposeWith(Disposables);
+				{
+					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+					this.RaisePropertyChanged(nameof(Address));
+					this.RaisePropertyChanged(nameof(Label));
+				}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.Label)
 				.Subscribe(newLabel =>
@@ -77,7 +76,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 						if (hdPubKey != default)
 						{
-							hdPubKey.SetLabel(new SmartLabel(newLabel), kmToFile: keyManager);
+							hdPubKey.SetLabel(newLabel, kmToFile: keyManager);
 						}
 					}
 				});

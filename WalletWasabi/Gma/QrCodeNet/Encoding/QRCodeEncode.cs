@@ -17,13 +17,6 @@ namespace Gma.QrCodeNet.Encoding
 			return ProcessEncodationResult(encodeStruct, errorLevel);
 		}
 
-		internal static BitMatrix Encode(IEnumerable<byte> content, ErrorCorrectionLevel errorLevel)
-		{
-			EncodationStruct encodeStruct = DataEncode.Encode(content, errorLevel);
-
-			return ProcessEncodationResult(encodeStruct, errorLevel);
-		}
-
 		private static BitMatrix ProcessEncodationResult(EncodationStruct encodeStruct, ErrorCorrectionLevel errorLevel)
 		{
 			BitList codewords = ECGenerator.FillECCodewords(encodeStruct.DataCodewords, encodeStruct.VersionDetail);

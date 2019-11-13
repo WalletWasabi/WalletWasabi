@@ -19,8 +19,6 @@ namespace WalletWasabi.Gui.Tabs
 
 		public AboutViewModel(Global global) : base(global, "About")
 		{
-			Version = Constants.ClientVersion;
-
 			OpenBrowserCommand = ReactiveCommand.Create<string>(x =>
 			{
 				try
@@ -34,9 +32,10 @@ namespace WalletWasabi.Gui.Tabs
 			});
 		}
 
-		public Version Version { get; }
-
-		public string VersionText => $"v{Version}";
+		public Version ClientVersion => Constants.ClientVersion;
+		public string BackendMajorVersion => Constants.BackendMajorVersion;
+		public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
+		public Version HwiVersion => Constants.HwiVersion;
 
 		public string ClearnetLink => "https://wasabiwallet.io/";
 
@@ -44,7 +43,7 @@ namespace WalletWasabi.Gui.Tabs
 
 		public string SourceCodeLink => "https://github.com/zkSNACKs/WalletWasabi/";
 
-		public string StatusPageLink => "https://stats.uptimerobot.com/W7q65in4y";
+		public string StatusPageLink => "https://stats.uptimerobot.com/YQqGyUL8A7";
 
 		public string CustomerSupportLink => "https://www.reddit.com/r/WasabiWallet/";
 

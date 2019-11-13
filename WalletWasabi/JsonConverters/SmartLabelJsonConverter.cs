@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using WalletWasabi.Models;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 
 namespace WalletWasabi.JsonConverters
 {
@@ -24,7 +24,7 @@ namespace WalletWasabi.JsonConverters
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
 			var label = value as SmartLabel;
-			writer.WriteValue(label?.ToString() ?? "");
+			writer.WriteValue(label ?? "");
 		}
 	}
 }

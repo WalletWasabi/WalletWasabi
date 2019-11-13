@@ -33,7 +33,7 @@
     <Grid Classes="content">
       <DockPanel LastChildFill="True" Margin="20">
         <StackPanel DockPanel.Dock="Bottom" Margin="0 10" Spacing="10" HorizontalAlignment="Left">
-          <TextBlock>You must select coins you want to spend from.</TextBlock>
+          <TextBlock>Select coins you want to spend.</TextBlock>
           <controls:ExtendedTextBox Classes="monospaceFont" Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True">
             <i:Interaction.Behaviors>
               <behaviors:PasteAddressOnClickBehavior Command="{Binding OnAddressPasteCommand}" />
@@ -129,7 +129,7 @@
           <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
           <Grid ColumnDefinitions="60,100,100,600,100,Auto"></Grid>
         </StackPanel>
-        <local:CoinListView DataContext="{Binding CoinList}" />
+        <local:CoinListView SelectAllNonPrivateVisible="False" DataContext="{Binding CoinList}" />
       </DockPanel>
     </Grid>
   </DockPanel>

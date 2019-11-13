@@ -147,7 +147,7 @@ namespace System
 
 			if (string.IsNullOrWhiteSpace(hex))
 			{
-				return new byte[0];
+				return Array.Empty<byte>();
 			}
 
 			var bytes = new byte[hex.Length / 2];
@@ -160,7 +160,7 @@ namespace System
 
 			for (int x = 0, i = 0; i < hex.Length; i += 2, x += 1)
 			{
-				bytes[x] = (byte)(hexValue[char.ToUpper(hex[i + 0]) - '0'] << 4 |
+				bytes[x] = (byte)((hexValue[char.ToUpper(hex[i + 0]) - '0'] << 4) |
 					hexValue[char.ToUpper(hex[i + 1]) - '0']);
 			}
 

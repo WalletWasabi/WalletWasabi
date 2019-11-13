@@ -27,7 +27,7 @@ namespace WalletWasabi.Gui
 		public const int DefaultPrivacyLevelStrong = 50;
 		public const int DefaultMixUntilAnonymitySet = 50;
 		public const int DefaultTorSock5Port = 9050;
-		public static readonly Money DefaultDustThreshold = Money.Coins(0.0001m);
+		public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
 
 		[JsonProperty(PropertyName = "Network")]
 		[JsonConverter(typeof(NetworkJsonConverter))]
@@ -57,6 +57,17 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "UseTor", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool UseTor { get; internal set; }
 
+		[DefaultValue(false)]
+		[JsonProperty(PropertyName = "StartLocalBitcoinCoreOnStartup", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool StartLocalBitcoinCoreOnStartup { get; internal set; }
+
+		[DefaultValue(true)]
+		[JsonProperty(PropertyName = "StopLocalBitcoinCoreOnShutdown", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool StopLocalBitcoinCoreOnShutdown { get; internal set; }
+
+		[JsonProperty(PropertyName = "LocalBitcoinCoreDataDir")]
+		public string LocalBitcoinCoreDataDir { get; internal set; } = EnvironmentHelpers.TryGetDefaultBitcoinCoreDataDir() ?? "";
+
 		[JsonProperty(PropertyName = "TorSocks5EndPoint")]
 		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTorSocksPort)]
 		public EndPoint TorSocks5EndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTorSocksPort);
@@ -80,9 +91,8 @@ namespace WalletWasabi.Gui
 			get => _mixUntilAnonymitySet;
 			internal set
 			{
-				if (_mixUntilAnonymitySet != value)
+				if (RaiseAndSetIfChanged(ref _mixUntilAnonymitySet, value))
 				{
-					_mixUntilAnonymitySet = value;
 					if (ServiceConfiguration != default)
 					{
 						ServiceConfiguration.MixUntilAnonymitySet = value;
@@ -347,21 +357,14 @@ namespace WalletWasabi.Gui
 
 		public int GetTargetLevel(TargetPrivacy target)
 		{
-			switch (target)
+			return target switch
 			{
-				case TargetPrivacy.None:
-					return 0;
-
-				case TargetPrivacy.Some:
-					return PrivacyLevelSome;
-
-				case TargetPrivacy.Fine:
-					return PrivacyLevelFine;
-
-				case TargetPrivacy.Strong:
-					return PrivacyLevelStrong;
-			}
-			return 0;
+				TargetPrivacy.None => 0,
+				TargetPrivacy.Some => PrivacyLevelSome,
+				TargetPrivacy.Fine => PrivacyLevelFine,
+				TargetPrivacy.Strong => PrivacyLevelStrong,
+				_ => 0
+			};
 		}
 
 		protected override bool TryEnsureBackwardsCompatibility(string jsonString)

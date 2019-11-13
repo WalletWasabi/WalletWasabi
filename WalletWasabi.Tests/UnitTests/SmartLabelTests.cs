@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using WalletWasabi.Models;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests
@@ -13,55 +13,55 @@ namespace WalletWasabi.Tests.UnitTests
 		public void LabelParsingTests()
 		{
 			var label = new SmartLabel();
-			Assert.Equal("", label.ToString());
+			Assert.Equal("", label);
 
 			label = new SmartLabel("");
-			Assert.Equal("", label.ToString());
+			Assert.Equal("", label);
 
 			label = new SmartLabel(null);
-			Assert.Equal("", label.ToString());
+			Assert.Equal("", label);
 
 			label = new SmartLabel(null, null);
-			Assert.Equal("", label.ToString());
+			Assert.Equal("", label);
 
 			label = new SmartLabel(" ");
-			Assert.Equal("", label.ToString());
+			Assert.Equal("", label);
 
 			label = new SmartLabel(",");
-			Assert.Equal("", label.ToString());
+			Assert.Equal("", label);
 
 			label = new SmartLabel(":");
-			Assert.Equal("", label.ToString());
+			Assert.Equal("", label);
 
 			label = new SmartLabel("foo");
-			Assert.Equal("foo", label.ToString());
+			Assert.Equal("foo", label);
 
 			label = new SmartLabel("foo", "bar");
-			Assert.Equal("bar, foo", label.ToString());
+			Assert.Equal("bar, foo", label);
 
 			label = new SmartLabel("foo bar");
-			Assert.Equal("foo bar", label.ToString());
+			Assert.Equal("foo bar", label);
 
 			label = new SmartLabel("foo bar", "Buz quX@");
-			Assert.Equal("Buz quX@, foo bar", label.ToString());
+			Assert.Equal("Buz quX@, foo bar", label);
 
 			label = new SmartLabel(new List<string>() { "foo", "bar" });
-			Assert.Equal("bar, foo", label.ToString());
+			Assert.Equal("bar, foo", label);
 
 			label = new SmartLabel("  foo    ");
-			Assert.Equal("foo", label.ToString());
+			Assert.Equal("foo", label);
 
 			label = new SmartLabel("foo      ", "      bar");
-			Assert.Equal("bar, foo", label.ToString());
+			Assert.Equal("bar, foo", label);
 
 			label = new SmartLabel(new List<string>() { "   foo   ", "   bar    " });
-			Assert.Equal("bar, foo", label.ToString());
+			Assert.Equal("bar, foo", label);
 
 			label = new SmartLabel(new List<string>() { "foo:", ":bar", null, ":buz:", ",", ": , :", "qux:quux", "corge,grault", "", "  ", " , garply, waldo,", " : ,  :  ,  fred  , : , :   plugh, : , : ," });
-			Assert.Equal("bar, buz, corge, foo, fred, garply, grault, plugh, quux, qux, waldo", label.ToString());
+			Assert.Equal("bar, buz, corge, foo, fred, garply, grault, plugh, quux, qux, waldo", label);
 
 			label = new SmartLabel(",: foo::bar :buz:,: , :qux:quux, corge,grault  , garply, waldo, : ,  :  ,  fred  , : , :   plugh, : , : ,");
-			Assert.Equal("bar, buz, corge, foo, fred, garply, grault, plugh, quux, qux, waldo", label.ToString());
+			Assert.Equal("bar, buz, corge, foo, fred, garply, grault, plugh, quux, qux, waldo", label);
 		}
 
 		[Fact]
@@ -100,17 +100,17 @@ namespace WalletWasabi.Tests.UnitTests
 			var label2 = new SmartLabel("qux");
 
 			label = SmartLabel.Merge(label, label2);
-			Assert.Equal("bar, buz, foo, qux", label.ToString());
+			Assert.Equal("bar, buz, foo, qux", label);
 
 			label2 = new SmartLabel("qux", "bar");
 			label = SmartLabel.Merge(label, label2);
 			Assert.Equal(4, label.Labels.Count());
-			Assert.Equal("bar, buz, foo, qux", label.ToString());
+			Assert.Equal("bar, buz, foo, qux", label);
 
 			label2 = new SmartLabel("Qux", "Bar");
 			label = SmartLabel.Merge(label, label2, null);
 			Assert.Equal(4, label.Labels.Count());
-			Assert.Equal("bar, buz, foo, qux", label.ToString());
+			Assert.Equal("bar, buz, foo, qux", label);
 		}
 	}
 }

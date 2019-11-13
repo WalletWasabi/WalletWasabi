@@ -22,7 +22,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Hwi;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui
@@ -78,7 +77,8 @@ namespace WalletWasabi.Gui
 					{
 						Logger.LogError(ex);
 					}
-				}, onError: ex => Logger.LogError(ex));
+				},
+				onError: ex => Logger.LogError(ex));
 		}
 
 		protected override void OnDataContextEndUpdate()
