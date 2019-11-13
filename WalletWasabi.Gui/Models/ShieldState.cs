@@ -1,6 +1,6 @@
 namespace WalletWasabi.Gui.Models
 {
-	public class ShieldState
+	public struct ShieldState
 	{
 		public bool IsPrivacyCriticalVisible { get; }
 		public bool IsPrivacySomeVisible { get; }
@@ -15,6 +15,48 @@ namespace WalletWasabi.Gui.Models
 			IsPrivacyFineVisible = isPrivacyFineVisible;
 			IsPrivacyStrongVisible = isPrivacyStrongVisible;
 			IsPrivacySaiyanVisible = isPrivacySaiyanVisible;
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (obj is ShieldState state)
+			{
+				if (state.GetHashCode() == GetHashCode())
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		public override int GetHashCode()
+		{
+			var items = new[]
+			{
+				IsPrivacyCriticalVisible,
+				IsPrivacySomeVisible,
+				IsPrivacyFineVisible,
+				IsPrivacyStrongVisible,
+				IsPrivacySaiyanVisible,
+			};
+
+			uint result = 0;
+			for (int i = 0; i < items.Length; i++)
+			{
+				result |= (uint)(items[i] ? 1 : 0) << i;
+			}
+			return result.GetHashCode();
+		}
+
+		public static bool operator ==(ShieldState left, ShieldState right)
+		{
+			return left.Equals(right);
+		}
+
+		public static bool operator !=(ShieldState left, ShieldState right)
+		{
+			return !(left == right);
 		}
 	}
 }
