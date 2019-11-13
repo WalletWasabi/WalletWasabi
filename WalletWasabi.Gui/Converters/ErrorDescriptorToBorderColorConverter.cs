@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using WalletWasabi.Models;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Converters
 {
@@ -12,13 +13,24 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is ErrorDescriptors descriptors)
+			if (value is IEnumerable<object> rawObj)
 			{
+				var descriptors = new ErrorDescriptors();
+
+				foreach (var obj in rawObj)
+				{
+					switch (obj)
+					{
+						case ErrorDescriptor ed:
+							descriptors.Add(ed);
+							break;
+						case Exception ex:
+							Logger.LogError(ex);
+							break;
+					}
+				}
+
 				return GetColorFromDescriptors(descriptors);
-			}
-			else if (value is IEnumerable<Exception> exList)
-			{
-				return GetColorFromDescriptors(ErrorDescriptorsJsonConverter.ExceptionListToErrorDescriptor(exList));
 			}
 
 			return null;

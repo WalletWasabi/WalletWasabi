@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
@@ -91,14 +92,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 				{
-					ofd.InitialDirectory = Path.Combine("/media", Environment.UserName);
+					ofd.Directory = Path.Combine("/media", Environment.UserName);
 				}
 				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 				{
-					ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+					ofd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 				}
 
-				var selected = await ofd.ShowAsync(Application.Current.MainWindow, fallBack: true);
+				var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+				var selected = await ofd.ShowAsync(window, fallBack: true);
 				if (selected != null && selected.Any())
 				{
 					var path = selected.First();

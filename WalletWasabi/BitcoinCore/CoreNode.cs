@@ -18,6 +18,7 @@ using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.BitcoinCore.Processes;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.BitcoinCore
 {
@@ -31,6 +32,8 @@ namespace WalletWasabi.BitcoinCore
 		public Network Network { get; private set; }
 
 		public CoreConfig Config { get; private set; }
+		public TrustedNodeNotifyingBehavior TrustedNodeNotifyingBehavior => P2pNode.Behaviors.Find<TrustedNodeNotifyingBehavior>();
+		public Node P2pNode { get; private set; }
 
 		public static async Task<CoreNode> CreateAsync(CoreNodeParams coreNodeParams)
 		{
@@ -123,6 +126,7 @@ namespace WalletWasabi.BitcoinCore
 				var desiredConfigLines = new List<string>()
 				{
 					$"{configPrefix}.server			= 1",
+					$"{configPrefix}.listen			= 1",
 					$"{configPrefix}.whitebind		= {coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
 					$"{configPrefix}.rpchost		= {coreNode.RpcEndPoint.GetHostOrDefault()}",
 					$"{configPrefix}.rpcport		= {coreNode.RpcEndPoint.GetPortOrDefault()}"
@@ -173,6 +177,19 @@ namespace WalletWasabi.BitcoinCore
 					Logger.LogInfo("Started Bitcoin Core.");
 				}
 
+				using var handshakeTimeout = new CancellationTokenSource();
+				handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(21));
+				var nodeConnectionParameters = new NodeConnectionParameters()
+				{
+					UserAgent = $"/WasabiClient:{Constants.ClientVersion.ToString()}/",
+					ConnectCancellation = handshakeTimeout.Token,
+					IsRelay = true
+				};
+
+				nodeConnectionParameters.TemplateBehaviors.Add(new TrustedNodeNotifyingBehavior());
+				coreNode.P2pNode = await Node.ConnectAsync(coreNode.Network, coreNode.P2pEndPoint, nodeConnectionParameters).ConfigureAwait(false);
+				coreNode.P2pNode.VersionHandshake();
+
 				return coreNode;
 			}
 		}
@@ -193,7 +210,7 @@ namespace WalletWasabi.BitcoinCore
 			return version;
 		}
 
-		public async Task<Node> CreateP2pNodeAsync()
+		public async Task<Node> CreateNewP2pNodeAsync()
 		{
 			return await Node.ConnectAsync(Network, P2pEndPoint).ConfigureAwait(false);
 		}
@@ -210,6 +227,7 @@ namespace WalletWasabi.BitcoinCore
 		/// <param name="onlyOwned">Only stop if this node owns the process.</param>
 		public async Task<bool> TryStopAsync(bool onlyOwned = true)
 		{
+			DisconnectDisposeNullP2pNode();
 			Exception exThrown = null;
 			if (Bridge != null)
 			{
@@ -235,6 +253,37 @@ namespace WalletWasabi.BitcoinCore
 				Logger.LogWarning(exThrown);
 			}
 			return false;
+		}
+
+		public void DisconnectDisposeNullP2pNode()
+		{
+			if (P2pNode != null)
+			{
+				try
+				{
+					P2pNode?.Disconnect();
+				}
+				catch (Exception ex)
+				{
+					Logger.LogDebug(ex);
+				}
+				finally
+				{
+					try
+					{
+						P2pNode?.Dispose();
+					}
+					catch (Exception ex)
+					{
+						Logger.LogDebug(ex);
+					}
+					finally
+					{
+						P2pNode = null;
+						Logger.LogInfo("P2p Bitcoin node is disconnected.");
+					}
+				}
+			}
 		}
 	}
 }

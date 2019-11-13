@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using AvalonStudio.Documents;
 using AvalonStudio.Extensibility;
 using NBitcoin;
@@ -90,14 +91,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						{
 							initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 						}
-						ofd.InitialDirectory = initialDirectory;
+						ofd.Directory = initialDirectory;
 					}
 					else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 					{
-						ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+						ofd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 					}
 
-					var selected = await ofd.ShowAsync(Application.Current.MainWindow, fallBack: true);
+          var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+					var selected = await ofd.ShowAsync(window, fallBack: true);
+          
 					if (selected != null && selected.Any())
 					{
 						var path = selected.First();

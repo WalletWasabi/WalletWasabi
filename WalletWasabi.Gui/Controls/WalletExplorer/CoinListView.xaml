@@ -37,7 +37,7 @@
           <ColumnDefinition Width="30" />
           <ColumnDefinition Width="30" />
           <ColumnDefinition SharedSizeGroup="A" Width="{Binding CoinJoinStatusWidth, Mode=OneWay}" />
-          <ColumnDefinition Width="140" />
+          <ColumnDefinition Width="150" />
           <ColumnDefinition Width="100" />
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
@@ -49,9 +49,21 @@
         <controls:SortingArrow Grid.Column="5" Text="Clusters" Command="{Binding SortCommand}" SortDirection="{Binding ClustersSortDirection}" />
       </Grid>
       <StackPanel Margin="0 10 0 0" Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal">
+        <CheckBox IsThreeState="True" IsChecked="{Binding SelectPrivateCheckBoxState}" IsVisible="{Binding SelectAllPrivateVisible}" Command="{Binding SelectPrivateCheckBoxCommand}">
+          <StackPanel Spacing="5" Orientation="Horizontal"  ToolTip.Tip="Coins that have acquired the anonymity set target.">
+            <TextBlock Text="Select" />
+            <controls:Shields ShieldState ="{Binding SelectAllPrivateShieldState}" />
+            <TextBlock Text="Coins" />
+          </StackPanel>
+        </CheckBox>
+        <CheckBox IsThreeState="True" IsChecked="{Binding SelectNonPrivateCheckBoxState}" IsVisible="{Binding SelectAllNonPrivateVisible}" Command="{Binding SelectNonPrivateCheckBoxCommand}">
+          <StackPanel Spacing="5" Orientation="Horizontal" ToolTip.Tip="Coins that have not acquired the anonymity set target.">
+            <TextBlock Text="Select" />
+            <controls:Shields ShieldState ="{Binding SelectAllNonPrivateShieldState}" />
+            <TextBlock Text="Coins" />
+          </StackPanel>
+        </CheckBox>
         <CheckBox Content="Select All" IsThreeState="True" IsChecked="{Binding SelectAllCheckBoxState}" Command="{Binding SelectAllCheckBoxCommand}" />
-        <CheckBox Content="Select All Private" IsThreeState="True" IsChecked="{Binding SelectPrivateCheckBoxState}" Command="{Binding SelectPrivateCheckBoxCommand}" IsVisible="{Binding SelectAllPrivateVisible}" ToolTip.Tip="Coins that have acquired the anonymity set target." />
-        <CheckBox Content="Select All Non-Private" IsThreeState="True" IsChecked="{Binding SelectNonPrivateCheckBoxState}" Command="{Binding SelectNonPrivateCheckBoxCommand}" IsVisible="{Binding SelectAllNonPrivateVisible}" ToolTip.Tip="Coins that have not acquired the anonymity set target." />
         <StackPanel Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal" IsVisible="{Binding IsAnyCoinSelected}">
           <TextBlock Text="|" />
           <TextBlock Text="Selected Amount:" />
@@ -111,9 +123,9 @@
                   <ColumnDefinition Width="30" />
                   <ColumnDefinition Width="30" />
                   <ColumnDefinition SharedSizeGroup="A" />
-                  <ColumnDefinition Width="123" />
+                  <ColumnDefinition Width="150" />
                   <ColumnDefinition Width="100" />
-                  <ColumnDefinition Width="Auto" />
+                  <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <CheckBox HorizontalContentAlignment="Left" IsChecked="{Binding IsSelected}" Background="{DynamicResource ThemeBackgroundBrush}" />
                 <Border Background="Transparent" IsVisible="{Binding Confirmed}" Grid.Column="1" ToolTip.Tip="{Binding Confirmations, StringFormat=\{0\} Confirmations}">
@@ -126,8 +138,7 @@
                 <Panel Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent" DataContext="{Binding AnonymitySet, Converter={StaticResource PrivacyLevelValueConverter}}" ToolTip.Tip="{Binding ToolTip}">
                   <DrawingPresenter Drawing="{Binding Icon}" Height="16" Width="16" Margin="0 0 25 0" />
                 </Panel>
-                <controls:ExtendedTextBox Classes="selectableTextBlock" Background="Transparent" Grid.Column="5" Text="{Binding Clusters, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
-                <TextBlock Text="" Grid.Column="6" />
+                <controls:ExtendedTextBox Grid.Column="5" Classes="selectableTextBlock" Background="Transparent" Text="{Binding Clusters, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
               </Grid>
             </Grid>
           </DataTemplate>
