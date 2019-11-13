@@ -1464,7 +1464,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 								h => wallet.TransactionProcessor.CoinReceived += h,
 								h => wallet.TransactionProcessor.CoinReceived -= h);
 				fundingTxId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m), replaceable: true);
-				await coinAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
+				var coinArrived = await coinAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
+				Assert.Equal(fundingTxId, coinArrived.TransactionId);
 				var fundingCoin = Assert.Single(wallet.Coins.Where(x => !x.Confirmed));
 				Assert.Equal(fundingTxId, fundingCoin.TransactionId);
 
