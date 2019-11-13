@@ -24,6 +24,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.CoinJoin.Common.Models;
@@ -1434,8 +1435,49 @@ namespace WalletWasabi.Tests.IntegrationTests
 				{
 					return; // Occassionally this fails on Linux or OSX, I have no idea why.
 				}
+				// Spend the inputs of the tx so we know
+				var success = bitcoinStore.TransactionStore.TryGetTransaction(fundingTxId, out SmartTransaction invalidSmartTransaction);
+				Assert.True(success);
+				var invalidCoin = Assert.Single(((CoinsRegistry)wallet.Coins).AsAllCoinsView().CreatedBy(invalidSmartTransaction.GetHash()));
+				Assert.True(invalidCoin.SpenderTransactionId != null);
+				Assert.True(invalidCoin.Confirmed);
+
+				var overwriteTx = Transaction.Create(network);
+				overwriteTx.Inputs.AddRange(invalidSmartTransaction.Transaction.Inputs);
+				var walletAddress = wallet.GetReceiveKey("").GetP2wpkhAddress(network);
+				bool onAddress = false;
+				foreach (var invalidOutput in invalidSmartTransaction.Transaction.Outputs)
+				{
+					if (onAddress)
+					{
+						overwriteTx.Outputs.Add(new TxOut(invalidOutput.Value, new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network)));
+					}
+					else
+					{
+						overwriteTx.Outputs.Add(new TxOut(invalidOutput.Value, walletAddress));
+						onAddress = true;
+					}
+				}
+				var srtxwwreq = new SignRawTransactionRequest();
+				srtxwwreq.Transaction = overwriteTx;
+				var srtxwwres = await rpc.SignRawTransactionWithWalletAsync(srtxwwreq);
+
+				var doubleSpendAwaiter = new EventAwaiter<DoubleSpendReceivedEventArgs>(
+					h => wallet.TransactionProcessor.DoubleSpendReceived += h,
+					h => wallet.TransactionProcessor.DoubleSpendReceived -= h);
+				await rpc.SendRawTransactionAsync(srtxwwres.SignedTransaction);
+				var doubleSpend = await doubleSpendAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
+				Assert.Equal(srtxwwres.SignedTransaction.GetHash(), doubleSpend.SmartTransaction.GetHash());
+				Assert.Empty(doubleSpend.Remove);
+
+				doubleSpendAwaiter = new EventAwaiter<DoubleSpendReceivedEventArgs>(
+					h => wallet.TransactionProcessor.DoubleSpendReceived += h,
+					h => wallet.TransactionProcessor.DoubleSpendReceived -= h);
 				await rpc.GenerateAsync(10);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 10);
+				doubleSpend = await doubleSpendAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
+				Assert.Equal(srtxwwres.SignedTransaction.GetHash(), doubleSpend.SmartTransaction.GetHash());
+				Assert.NotEmpty(doubleSpend.Remove);
 
 				var curBlockHash = await rpc.GetBestBlockHashAsync();
 				blockCount = await rpc.GetBlockCountAsync();
@@ -1457,7 +1499,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				// There shouldn't be any `confirmed` coin
 				Assert.Empty(wallet.Coins.Where(x => x.Confirmed));
-
 				// Get some money, make it confirm.
 				// this is necesary because we are in a fork now.
 				var coinAwaiter = new EventAwaiter<SmartCoin>(

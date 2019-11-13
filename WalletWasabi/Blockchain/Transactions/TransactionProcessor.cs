@@ -117,6 +117,7 @@ namespace WalletWasabi.Blockchain.Transactions
 						}
 						else
 						{
+							DoubleSpendReceived?.Invoke(this, new DoubleSpendReceivedEventArgs(tx, Enumerable.Empty<SmartCoin>()));
 							return false;
 						}
 					}
