@@ -1366,7 +1366,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 				{
 					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
 				}
-				Assert.Single(wallet.Coins);
+				var coin = Assert.Single(wallet.Coins);
+				Assert.True(coin.Confirmed);
 				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, rpc);
 				broadcaster.AddWalletService(wallet);
 
@@ -1374,10 +1375,16 @@ namespace WalletWasabi.Tests.IntegrationTests
 				var operations = new PaymentIntent(scp, Money.Coins(0.011m));
 				var btx1 = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy);
 				await broadcaster.SendTransactionAsync(btx1.Transaction);
+				var coin2 = Assert.Single(wallet.Coins);
+				Assert.NotEqual(coin, coin2);
+				Assert.False(coin2.Confirmed);
 
 				operations = new PaymentIntent(scp, Money.Coins(0.012m));
 				var btx2 = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
 				await broadcaster.SendTransactionAsync(btx2.Transaction);
+				var coin3 = Assert.Single(wallet.Coins);
+				Assert.NotEqual(coin2, coin3);
+				Assert.False(coin3.Confirmed);
 
 				// Test synchronization after fork.
 				// Invalidate the blocks containing the funding transaction
@@ -1391,16 +1398,29 @@ namespace WalletWasabi.Tests.IntegrationTests
 				await rpc.GenerateAsync(3);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 3);
 
+				var coin4 = Assert.Single(wallet.Coins);
+				Assert.Equal(coin3, coin4);
+				Assert.True(coin.Confirmed);
+				Assert.True(coin2.Confirmed);
+				Assert.True(coin3.Confirmed);
+				Assert.True(coin4.Confirmed);
+
 				// Send money after reorg.
 				// When we invalidate a block, the transactions set in the invalidated block
 				// are reintroduced when we generate a new block through the rpc call
 				operations = new PaymentIntent(scp, Money.Coins(0.013m));
 				var btx3 = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy);
 				await broadcaster.SendTransactionAsync(btx3.Transaction);
+				var coin5 = Assert.Single(wallet.Coins);
+				Assert.NotEqual(coin4, coin5);
+				Assert.False(coin5.Confirmed);
 
 				operations = new PaymentIntent(scp, Money.Coins(0.014m));
 				var btx4 = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
 				await broadcaster.SendTransactionAsync(btx4.Transaction);
+				var coin6 = Assert.Single(wallet.Coins);
+				Assert.NotEqual(coin5, coin6);
+				Assert.False(coin6.Confirmed);
 
 				// Test synchronization after fork with different transactions.
 				// Create a fork that invalidates the blocks containing the funding transaction

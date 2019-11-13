@@ -232,14 +232,14 @@ namespace WalletWasabi.Blockchain.Transactions
 				}
 			}
 
-			foreach (var newCoin in newCoins)
-			{
-				CoinReceived?.Invoke(this, newCoin);
-			}
-
 			if (walletRelevant)
 			{
 				TransactionStore.AddOrUpdate(tx);
+			}
+
+			foreach (var newCoin in newCoins)
+			{
+				CoinReceived?.Invoke(this, newCoin);
 			}
 
 			return walletRelevant;
