@@ -230,6 +230,29 @@ namespace WalletWasabi.Blockchain.Transactions
 			}
 		}
 
+		public IEnumerable<SmartTransaction> TryReorg(uint256 invalidBlockHash)
+		{
+			lock (Lock)
+			{
+				List<SmartTransaction> reorgedTxs = new List<SmartTransaction>();
+				foreach (var txHash in ConfirmedStore
+					.GetTransactions()
+					.Where(tx => tx.BlockHash == invalidBlockHash)
+					.Select(tx => tx.GetHash()))
+				{
+					if (ConfirmedStore.TryRemove(txHash, out SmartTransaction removedTx))
+					{
+						removedTx.SetUnconfirmed();
+						if (MempoolStore.TryAddOrUpdate(removedTx).isAdded)
+						{
+							reorgedTxs.Add(removedTx);
+						}
+					}
+				}
+				return reorgedTxs;
+			}
+		}
+
 		#endregion Accessors
 	}
 }

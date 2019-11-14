@@ -194,6 +194,7 @@ namespace WalletWasabi.Services
 					if (blockState != null && blockState.BlockHeight != default(Height))
 					{
 						TransactionProcessor.UndoBlock(blockState.BlockHeight);
+						BitcoinStore.TransactionStore.TryReorg(invalidBlockHash);
 					}
 				}
 			}
