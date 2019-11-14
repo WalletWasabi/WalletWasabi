@@ -42,6 +42,16 @@ ul {
             transform: translateY(-100%);
 }
 
+.btn-danger { 
+	border-radius: 5;
+	background-color: #74B64A;
+	border-color: #74B64A;}
+	.btn-danger:hover {
+    color: #fff;
+    background-color: #4b8c57;
+    border-color: #4b8c57; }
+
+
 .btn-labeled {
   position: relative;
   padding-left: 2rem;
