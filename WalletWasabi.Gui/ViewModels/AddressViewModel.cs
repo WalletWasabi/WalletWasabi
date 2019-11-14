@@ -163,7 +163,7 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				var ext = Path.GetExtension(path);
 
-				if (string.IsNullOrWhiteSpace(ext))
+				if (string.IsNullOrWhiteSpace(ext) || ext.ToLowerInvariant() != "png")
 				{
 					path = $"{path}.png";
 				}
