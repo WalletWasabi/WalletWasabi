@@ -11,7 +11,7 @@ namespace System
 			{
 				try
 				{
-					h.Invoke(null, args);
+					h.Invoke(sender, args);
 				}
 				catch(Exception ex)
 				{
