@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using NBitcoin;
-using WalletWasabi.KeyManagement;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using System.IO;
@@ -15,6 +15,9 @@ using NBitcoin.Protocol;
 using WalletWasabi.Stores;
 using System.Net;
 using WalletWasabi.CoinJoin.Client.Clients;
+using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 
 namespace WalletWasabi.Bench
 {
@@ -92,7 +95,9 @@ namespace WalletWasabi.Bench
 			await bitcoinStore.InitializeAsync(dir, Network.Main);
 
 			var workDir = Path.Combine(datadir, EnvironmentHelpers.GetMethodName());
-			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, nodes, workDir, serviceConfiguration);
+			var feeProviders = new FeeProviders(new[]{ synchronizer });
+
+			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, nodes, workDir, serviceConfiguration, feeProviders);
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 			{
 				await wallet.InitializeAsync(cts.Token);
