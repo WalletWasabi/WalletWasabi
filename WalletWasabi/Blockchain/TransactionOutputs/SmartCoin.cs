@@ -2,10 +2,12 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
@@ -25,6 +27,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		private Height _height;
 		private SmartLabel _label;
 		private TxoRef[] _spentOutputs;
+		private List<CoinLink> _coinLinks;
 		private bool _replaceable;
 		private int _anonymitySet;
 		private uint256 _spenderTransactionId;
@@ -97,6 +100,12 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			private set => RaiseAndSetIfChanged(ref _spentOutputs, value);
 		}
 
+		public List<CoinLink> Links
+		{
+			get => _coinLinks;
+			private set => _coinLinks = value;
+		}
+
 		public bool IsReplaceable
 		{
 			get => _replaceable && !Confirmed;
@@ -119,6 +128,21 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 					SetUnspent();
 				}
 			}
+		}
+
+		internal void ShareSameScriptPubKeyWith(SmartCoin otherCoin)
+		{
+			Links.Add(new CoinLink(this, otherCoin, LinkType.SameScriptPubKey));
+		}
+
+		public void Spends(SmartCoin otherCoin)
+		{
+			Links.Add(new CoinLink(this, otherCoin, LinkType.Spends));
+		}
+		
+		public void SpentBy(SmartCoin otherCoin)
+		{
+			Links.Add(new CoinLink(this, otherCoin, LinkType.SpentBy));
 		}
 
 		public bool CoinJoinInProgress
@@ -250,6 +274,13 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		#region Constructors
 
+		public SmartCoin(SmartTransaction stx, uint index, int anonymitySet, bool isLikelyCoinJoinOutput, SmartLabel label = null, uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
+		{
+			var output = stx.Transaction.Outputs[index];
+			var spentOutputs = stx.Transaction.Inputs.ToTxoRefs().ToArray();
+			Create(stx.GetHash(), index, output.ScriptPubKey, output.Value, spentOutputs, stx.Height, stx.IsRBF, anonymitySet, isLikelyCoinJoinOutput, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
+		}
+
 		public SmartCoin(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool replaceable, int anonymitySet, bool isLikelyCoinJoinOutput, SmartLabel label = null, uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
 		{
 			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, replaceable, anonymitySet, isLikelyCoinJoinOutput, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
@@ -288,6 +319,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 			Label = SmartLabel.Merge(HdPubKey?.Label, label);
 
+			Links = new List<CoinLink>();
 			Clusters = new Cluster(this);
 
 			SetConfirmed();

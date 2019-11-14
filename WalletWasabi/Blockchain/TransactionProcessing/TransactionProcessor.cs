@@ -106,7 +106,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 				uint256 txId = tx.GetHash();
 
 				// Performance ToDo: txids could be cached in a hashset here by the AllCoinsView and then the contains would be fast.
-				if (!tx.Transaction.IsCoinBase && !Coins.AsAllCoinsView().CreatedBy(txId).Any()) // Transactions we already have and processed would be "double spends" but they shouldn't.
+				if (!tx.Transaction.IsCoinBase && !Coins.CreatedBy(txId).Any()) // Transactions we already have and processed would be "double spends" but they shouldn't.
 				{
 					var doubleSpends = new List<SmartCoin>();
 					foreach (SmartCoin coin in Coins.AsAllCoinsView())

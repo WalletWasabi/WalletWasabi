@@ -25,10 +25,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		ICoinsView OutPoints(IEnumerable<TxoRef> outPoints);
 
-		ICoinsView CreatedBy(uint256 txid);
-
-		ICoinsView SpentBy(uint256 txid);
-
 		SmartCoin[] ToArray();
 
 		Money TotalAmount();

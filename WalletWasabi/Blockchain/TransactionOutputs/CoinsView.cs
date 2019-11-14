@@ -29,11 +29,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public ICoinsView AtBlockHeight(Height height) => new CoinsView(Coins.Where(x => x.Height == height));
 
-		public ICoinsView CreatedBy(uint256 txid) => new CoinsView(Coins.Where(x => x.TransactionId == txid));
-
-		public ICoinsView SpentBy(uint256 txid) => new CoinsView(Coins.Where(x => x.SpenderTransactionId == txid));
-
-		public ICoinsView ChildrenOf(SmartCoin coin) => new CoinsView(Coins.Where(x => x.TransactionId == coin.SpenderTransactionId));
+		public ICoinsView ChildrenOf(SmartCoin coin) => new CoinsView(coin.Links.Where(l => l.LinkType == LinkType.SpentBy).Select(l=>l.TargetCoin));
 
 		public ICoinsView DescendantOf(SmartCoin coin)
 		{

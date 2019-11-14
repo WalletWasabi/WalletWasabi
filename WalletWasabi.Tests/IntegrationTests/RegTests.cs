@@ -1517,7 +1517,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// Spend the inputs of the tx so we know
 				var success = bitcoinStore.TransactionStore.TryGetTransaction(fundingTxId, out SmartTransaction invalidSmartTransaction);
 				Assert.True(success);
-				var invalidCoin = Assert.Single(((CoinsRegistry)wallet.Coins).AsAllCoinsView().CreatedBy(invalidSmartTransaction.GetHash()));
+				var invalidCoin = Assert.Single(((CoinsRegistry)wallet.Coins).CreatedBy(invalidSmartTransaction.GetHash()));
 				Assert.True(invalidCoin.SpenderTransactionId != null);
 				Assert.True(invalidCoin.Confirmed);
 

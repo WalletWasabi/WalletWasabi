@@ -17,6 +17,8 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		private HashSet<SmartCoin> SpentCoins { get; }
 		private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; }
 		private Dictionary<Script, Cluster> ClustersByScriptPubKey { get; }
+		private Dictionary<uint256, List<SmartCoin>> CoinsCreatedByTransaction { get; }
+		private Dictionary<uint256, List<SmartCoin>> CoinsDestroyedByTransaction { get; }
 		private int PrivacyLevelThreshold { get; }
 
 		public CoinsRegistry(int privacyLevelThreshold)
@@ -27,6 +29,8 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			LatestSpentCoinsSnapshot = new HashSet<SmartCoin>();
 			InvalidateSnapshot = false;
 			ClustersByScriptPubKey = new Dictionary<Script, Cluster>();
+			CoinsCreatedByTransaction = new Dictionary<uint256, List<SmartCoin>>();
+			CoinsDestroyedByTransaction = new Dictionary<uint256, List<SmartCoin>>();
 			PrivacyLevelThreshold = privacyLevelThreshold;
 			Lock = new object();
 		}
@@ -89,10 +93,24 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 						if (ClustersByScriptPubKey.TryGetValue(coin.ScriptPubKey, out var cluster))
 						{
 							coin.Clusters = cluster;
+							foreach(var coinInCluster in cluster.Coins)
+							{
+								coin.ShareSameScriptPubKeyWith(coinInCluster);
+								coinInCluster.ShareSameScriptPubKeyWith(coin);
+							}
 						}
 						else
 						{
 							ClustersByScriptPubKey.Add(coin.ScriptPubKey, coin.Clusters);
+						}
+
+						if (CoinsCreatedByTransaction.TryGetValue(coin.TransactionId, out var coinList))
+						{
+							coinList.Add(coin);
+						}
+						else
+						{
+							CoinsCreatedByTransaction[coin.TransactionId] = new List<SmartCoin>{ coin };
 						}
 						InvalidateSnapshot = true;
 					}
@@ -110,9 +128,16 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 				{
 					if (!Coins.Remove(toRemove))
 					{
-						if (SpentCoins.Remove(toRemove))
+						SpentCoins.Remove(toRemove);
+
+						CoinsCreatedByTransaction[toRemove.TransactionId].Remove(toRemove);
+						if(toRemove.SpenderTransactionId != null)
 						{
-							// Clusters.Remove(toRemove);
+							CoinsDestroyedByTransaction[toRemove.SpenderTransactionId].Remove(toRemove);
+						}
+						foreach(var link in toRemove.Links)
+						{
+							link.TargetCoin.Links.RemoveAll(l=>l.TargetCoin == coin);
 						}
 					}
 				}
@@ -129,9 +154,22 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 				{
 					InvalidateSnapshot = true;
 					SpentCoins.Add(spentCoin);
+
+					if (CoinsDestroyedByTransaction.TryGetValue(spentCoin.SpenderTransactionId, out var coinList))
+					{
+						coinList.Add(spentCoin);
+					}
+					else
+					{
+						CoinsDestroyedByTransaction[spentCoin.SpenderTransactionId] = new List<SmartCoin>{ spentCoin };
+					}
+
 					var createdCoins = CreatedByNoLock(spentCoin.SpenderTransactionId);
 					foreach (var newCoin in createdCoins)
 					{
+						newCoin.Spends(spentCoin);
+						spentCoin.SpentBy(newCoin);
+
 						if (newCoin.AnonymitySet < PrivacyLevelThreshold)
 						{
 							spentCoin.Clusters.Merge(newCoin.Clusters);
@@ -162,17 +200,16 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		{
 			lock (Lock)
 			{
-				var allCoins = AsAllCoinsViewNoLock();
 				var toRemove = new List<SmartCoin>();
 				var toAdd = new List<SmartCoin>();
 
 				// remove recursively the coins created by the transaction
-				foreach (SmartCoin createdCoin in allCoins.CreatedBy(txId))
+				foreach (SmartCoin createdCoin in CreatedByNoLock(txId).ToList())
 				{
 					toRemove.AddRange(Remove(createdCoin));
 				}
 				// destroyed (spent) coins are now (unspent)
-				foreach (SmartCoin destroyedCoin in allCoins.SpentBy(txId))
+				foreach (SmartCoin destroyedCoin in SpentByNoLock(txId).ToList())
 				{
 					if (SpentCoins.Remove(destroyedCoin))
 					{
@@ -180,6 +217,10 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 						toAdd.Add(destroyedCoin);
 					}
 				}
+
+				CoinsCreatedByTransaction.Remove(txId);
+				CoinsDestroyedByTransaction.Remove(txId);
+
 				InvalidateSnapshot = true;
 				return (new CoinsView(toRemove), new CoinsView(toAdd));
 			}
@@ -217,14 +258,41 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public ICoinsView OutPoints(IEnumerable<TxoRef> outPoints) => AsCoinsView().OutPoints(outPoints);
 
-		public ICoinsView CreatedBy(uint256 txid) => AsCoinsView().CreatedBy(txid);
+		private static List<SmartCoin> EmptyListOfSmartCoins = new List<SmartCoin>(0);
+		public ICoinsView CreatedBy(uint256 txid)
+		{
+			lock(Lock)
+			{
+				return CreatedByNoLock(txid);
+			}
+		}
 
-		private ICoinsView CreatedByNoLock(uint256 txid) => AsCoinsViewNoLock().CreatedBy(txid);
+		public ICoinsView SpentBy(uint256 txid)
+		{
+			lock(Lock)
+			{
+				return SpentByNoLock(txid);
+			}
+		}
 
-		public ICoinsView SpentBy(uint256 txid) => AsSpentCoinsView().SpentBy(txid);
+		private ICoinsView CreatedByNoLock(uint256 txid)
+		{
+			if (!CoinsCreatedByTransaction.TryGetValue(txid, out var coins))
+			{
+				coins = EmptyListOfSmartCoins;
+			}
+			return new CoinsView(coins);
+		}
 
-		private ICoinsView SpentByNoLock(uint256 txid) => AsSpentCoinsViewNoLock().SpentBy(txid);
-
+		private ICoinsView SpentByNoLock(uint256 txid)
+		{
+			if (!CoinsDestroyedByTransaction.TryGetValue(txid, out var coins))
+			{
+				coins = EmptyListOfSmartCoins;
+			}
+			return new CoinsView(coins);
+		}
+		
 		public SmartCoin[] ToArray() => AsCoinsView().ToArray();
 
 		public Money TotalAmount() => AsCoinsView().TotalAmount();
