@@ -171,10 +171,12 @@ header .navbar {
           transform: translateX(-50%);
   z-index: 999;
   width: 100%;
+  max-width: 900px;
+  max-height: 70px;
 }
 
 header .navbar .nav-link {
-  color: #fff;
+  color: #aff;
 }
 
 main {
