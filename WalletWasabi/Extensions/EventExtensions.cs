@@ -11,11 +11,11 @@ namespace System
 			{
 				try
 				{
-					h(null, args);
+					h.Invoke(null, args);
 				}
 				catch(Exception ex)
 				{
-					Logger.LogInfo(ex);
+					Logger.LogError(ex);
 				}
 			}
 		}
