@@ -110,14 +110,14 @@ namespace WalletWasabi.Blockchain.Transactions
 							var replacedTxId = doubleSpends.First().TransactionId;
 							var (destroyed, restored) = Coins.Undo(replacedTxId);
 
-							ReplaceTransactionReceived?.Invoke(this, new ReplaceTransactionReceivedEventArgs(tx, destroyed, restored));
+							ReplaceTransactionReceived.SafeInvoke(this, new ReplaceTransactionReceivedEventArgs(tx, destroyed, restored));
 
 							tx.SetReplacement();
 							walletRelevant = true;
 						}
 						else
 						{
-							DoubleSpendReceived?.Invoke(this, new DoubleSpendReceivedEventArgs(tx, Enumerable.Empty<SmartCoin>()));
+							DoubleSpendReceived.SafeInvoke(this, new DoubleSpendReceivedEventArgs(tx, Enumerable.Empty<SmartCoin>()));
 							return false;
 						}
 					}
@@ -129,7 +129,7 @@ namespace WalletWasabi.Blockchain.Transactions
 							Coins.Remove(doubleSpentCoin);
 						}
 
-						DoubleSpendReceived?.Invoke(this, new DoubleSpendReceivedEventArgs(tx, doubleSpends));
+						DoubleSpendReceived.SafeInvoke(this, new DoubleSpendReceivedEventArgs(tx, doubleSpends));
 						walletRelevant = true;
 					}
 				}
@@ -223,12 +223,12 @@ namespace WalletWasabi.Blockchain.Transactions
 					if (!alreadyKnown)
 					{
 						Coins.Spend(foundCoin);
-						CoinSpent?.Invoke(this, foundCoin);
+						CoinSpent.SafeInvoke(this, foundCoin);
 					}
 
 					if (tx.Confirmed)
 					{
-						SpenderConfirmed?.Invoke(this, foundCoin);
+						SpenderConfirmed.SafeInvoke(this, foundCoin);
 					}
 				}
 			}
@@ -240,7 +240,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			foreach (var newCoin in newCoins)
 			{
-				CoinReceived?.Invoke(this, newCoin);
+				CoinReceived.SafeInvoke(this, newCoin);
 			}
 
 			return walletRelevant;
