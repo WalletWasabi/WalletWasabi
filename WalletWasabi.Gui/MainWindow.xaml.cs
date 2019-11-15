@@ -49,13 +49,6 @@ namespace WalletWasabi.Gui
 			};
 
 			Locator.CurrentMutable.RegisterConstant<INotificationManager>(notificationManager);
-
-			Dispatcher.UIThread.InvokeAsync(async () =>
-			{
-				await Task.Delay(3000);
-
-				NotificationHelpers.Information("Welcome!", "Welcome to Wasabi");
-			});
 		}
 
 		public Global Global => MainWindowViewModel.Instance.Global;
