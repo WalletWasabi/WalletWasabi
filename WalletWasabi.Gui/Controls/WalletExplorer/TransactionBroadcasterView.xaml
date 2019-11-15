@@ -21,11 +21,7 @@
               <TextBlock Text="{Binding ButtonText}"></TextBlock>
             </StackPanel>
           </Button>
-          <Button Margin="0 0 10 0" DockPanel.Dock="Right" Command="{Binding ImportTransactionCommand}" Content="Import Transaction" />
-          <StackPanel Orientation="Vertical">
-            <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
-            <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
-          </StackPanel>
+          <Button Margin="0 0 10 0" DockPanel.Dock="Right" Command="{Binding ImportTransactionCommand}" Content="Import Transaction" />          
         </DockPanel>
         <controls:MultiTextBox Text="{Binding TransactionString, Mode=TwoWay}" PasteOnClick="True" IsReadOnly="{Binding IsBusy}" Margin="0 8" Watermark="Click here to copy from clipboard!" TextWrapping="Wrap" AcceptsReturn="True" />
       </DockPanel>

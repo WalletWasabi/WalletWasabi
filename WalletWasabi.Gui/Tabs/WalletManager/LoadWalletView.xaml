@@ -32,8 +32,7 @@
           </StackPanel>
         </Grid>
       </controls:GroupBox>
-      <StackPanel DockPanel.Dock="Bottom" Margin="20 10">
-        <DockPanel LastChildFill="True">
+      <DockPanel LastChildFill="True" Margin="20 10">
           <Button IsVisible="{Binding IsPasswordRequired}" Content="Test Password" Command="{Binding TestPasswordCommand}" DockPanel.Dock="Right" Margin="10 0 0 0" />
           <Button Command="{Binding LoadCommand}" DockPanel.Dock="Right">
             <StackPanel Orientation="Horizontal">
@@ -51,10 +50,6 @@
           </Button>
           <Grid></Grid>
         </DockPanel>
-        <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
-        <TextBlock Text="{Binding ValidationMessage}" Classes="errorMessage" />
-        <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
-      </StackPanel>
     </StackPanel>
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" BorderThickness="0">
       <DockPanel LastChildFill="True">

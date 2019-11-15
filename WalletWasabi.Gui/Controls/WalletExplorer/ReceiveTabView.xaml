@@ -20,11 +20,6 @@
       </Style>
     </controls:GroupBox.Styles>
     <Grid Classes="content">
-      <DockPanel LastChildFill="True">
-        <StackPanel DockPanel.Dock="Bottom">
-          <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
-          <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
-        </StackPanel>
         <Grid RowDefinitions="Auto,*" DockPanel.Dock="Top">
           <DockPanel LastChildFill="True">
             <Grid ColumnDefinitions="*,300" DockPanel.Dock="Top" Margin="0 0 0 10">
@@ -132,7 +127,6 @@
             </controls:ExtendedListBox.ItemTemplate>
           </controls:ExtendedListBox>
         </Grid>
-      </DockPanel>
     </Grid>
   </controls:GroupBox>
 </UserControl>
