@@ -66,14 +66,53 @@ namespace WalletWasabi.Helpers
 			ExtPubKey epk;
 			try
 			{
-				epk = ExtPubKey.Parse(extPubKeyString); // Starts with "ExtPubKey": "xpub...
+				epk = ExtPubKey.Parse(extPubKeyString, Network.Main); // Starts with "ExtPubKey": "xpub...
 			}
 			catch
 			{
-				// Try hex, Old wallet format was like this.
-				epk = new ExtPubKey(ByteHelpers.FromHex(extPubKeyString)); // Starts with "ExtPubKey": "hexbytes...
+				try
+				{
+					epk = ExtPubKey.Parse(extPubKeyString, Network.TestNet); // Starts with "ExtPubKey": "xpub...
+				}
+				catch
+				{
+					try
+					{
+						epk = ExtPubKey.Parse(extPubKeyString, Network.RegTest); // Starts with "ExtPubKey": "xpub...
+					}
+					catch
+					{
+						// Try hex, Old wallet format was like this.
+						epk = new ExtPubKey(ByteHelpers.FromHex(extPubKeyString)); // Starts with "ExtPubKey": "hexbytes...
+					}
+				}
 			}
+
 			return epk;
+		}
+
+		public static BitcoinAddress BetterParseBitcoinAddress(string bitcoinAddressString)
+		{
+			bitcoinAddressString = Guard.NotNullOrEmptyOrWhitespace(nameof(bitcoinAddressString), bitcoinAddressString, trim: true);
+
+			BitcoinAddress ba;
+			try
+			{
+				ba = BitcoinAddress.Create(bitcoinAddressString, Network.Main);
+			}
+			catch
+			{
+				try
+				{
+					ba = BitcoinAddress.Create(bitcoinAddressString, Network.TestNet);
+				}
+				catch
+				{
+					ba = BitcoinAddress.Create(bitcoinAddressString, Network.RegTest);
+				}
+			}
+
+			return ba;
 		}
 
 		public static HDFingerprint BetterParseHDFingerprint(string hdFingerprintString, bool reverseByteOrder = false)

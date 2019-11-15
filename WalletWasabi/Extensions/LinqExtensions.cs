@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.Collections.Generic;
-using WalletWasabi.Models;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 
 namespace System.Linq
 {
@@ -82,6 +83,29 @@ namespace System.Linq
 			return !(source is null) && source.Any();
 		}
 
+		public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
+			this IEnumerable<T> items,
+			int ofLength)
+		{
+			return (ofLength == 1)
+				? items.Select(item => new[] { item })
+				: items.SelectMany((item, i) => items
+					.Skip(i + 1)
+					.CombinationsWithoutRepetition(ofLength - 1)
+					.Select(result => new T[] { item }
+					.Concat(result)));
+		}
+
+		public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
+			this IEnumerable<T> items,
+			int ofLength,
+			int upToLength)
+		{
+			return Enumerable
+				.Range(ofLength, Math.Max(0, upToLength - ofLength + 1))
+				.SelectMany(len => items.CombinationsWithoutRepetition(ofLength: len));
+		}
+
 		public static IEnumerable<IEnumerable<T>> GetPermutations<T>(this IEnumerable<T> items, int count)
 		{
 			int i = 0;
@@ -135,5 +159,16 @@ namespace System.Linq
 				.OrderBy(x => x.Height)
 				.ThenBy(x => x.BlockIndex)
 				.ThenBy(x => x.FirstSeen);
+
+		public static IOrderedEnumerable<TransactionSummary> OrderByBlockchain(this IEnumerable<TransactionSummary> me)
+			=> me
+				.OrderBy(x => x.Height)
+				.ThenBy(x => x.BlockIndex)
+				.ThenBy(x => x.DateTime);
+
+		public static IEnumerable<string> ToBlockchainOrderedLines(this IEnumerable<SmartTransaction> me)
+			=> me
+				.OrderByBlockchain()
+				.Select(x => x.ToLine());
 	}
 }

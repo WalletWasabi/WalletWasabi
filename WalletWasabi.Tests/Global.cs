@@ -1,10 +1,13 @@
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Tests
 {
@@ -28,6 +31,13 @@ namespace WalletWasabi.Tests
 			Logger.SetFilePath(Path.Combine(DataDir, "Logs.txt"));
 			Logger.SetMinimumLevel(LogLevel.Info);
 			Logger.SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
+		}
+
+		public static SmartTransaction GenerateRandomSmartTransaction()
+		{
+			var tx = Transaction.Create(Network.Main);
+			tx.Outputs.Add(Money.Coins(1), new Key());
+			return new SmartTransaction(tx, Height.Mempool);
 		}
 	}
 }

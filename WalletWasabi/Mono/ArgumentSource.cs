@@ -174,11 +174,6 @@ namespace Mono.Options
 
 		public abstract bool GetArguments(string value, out IEnumerable<string> replacement);
 
-		public static IEnumerable<string> GetArgumentsFromFile(string file)
-		{
-			return GetArguments(File.OpenText(file), true);
-		}
-
 		public static IEnumerable<string> GetArguments(TextReader reader)
 		{
 			return GetArguments(reader, false);

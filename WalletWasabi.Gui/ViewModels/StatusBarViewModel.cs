@@ -15,6 +15,7 @@ using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Models;
@@ -27,13 +28,6 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Gui.ViewModels
 {
-	public enum UpdateStatus
-	{
-		Latest,
-		Optional,
-		Critical
-	}
-
 	public class StatusBarViewModel : ViewModelBase
 	{
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
@@ -43,9 +37,12 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private bool UseTor { get; set; }
 
-		private UpdateStatus _updateStatus;
+		private ObservableAsPropertyHelper<RpcStatus> _bitcoinCoreStatus;
+		private ObservableAsPropertyHelper<UpdateStatus> _updateStatus;
 		private bool _updateAvailable;
 		private bool _criticalUpdateAvailable;
+
+		private bool _useBitcoinCore;
 		private BackendStatus _backend;
 		private TorStatus _tor;
 		private int _peers;
@@ -59,9 +56,6 @@ namespace WalletWasabi.Gui.ViewModels
 		public StatusBarViewModel(Global global)
 		{
 			Global = global;
-			UpdateStatus = UpdateStatus.Latest;
-			UpdateAvailable = false;
-			CriticalUpdateAvailable = false;
 			Backend = BackendStatus.NotConnected;
 			UseTor = false;
 			Tor = TorStatus.NotRunning;
@@ -76,6 +70,7 @@ namespace WalletWasabi.Gui.ViewModels
 			Synchronizer = synchronizer;
 			HashChain = synchronizer.BitcoinStore.HashChain;
 			UseTor = Global.Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
+			UseBitcoinCore = Global.Config.StartLocalBitcoinCoreOnStartup;
 
 			_status = ActiveStatuses.WhenAnyValue(x => x.CurrentStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -87,11 +82,8 @@ namespace WalletWasabi.Gui.ViewModels
 				.Merge(Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed)).Select(x => true)
 				.Merge(Synchronizer.WhenAnyValue(x => x.TorStatus).Select(x => true))))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
-					Peers = Synchronizer.TorStatus == TorStatus.NotRunning ? 0 : Nodes.Count;
-				}).DisposeWith(Disposables);
+				.Subscribe(_ => Peers = Synchronizer.TorStatus == TorStatus.NotRunning ? 0 : Nodes.Count) // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
+				.DisposeWith(Disposables);
 
 			Peers = Tor == TorStatus.NotRunning ? 0 : Nodes.Count;
 
@@ -102,17 +94,13 @@ namespace WalletWasabi.Gui.ViewModels
 
 			Synchronizer.WhenAnyValue(x => x.TorStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(status =>
-				{
-					Tor = UseTor ? status : TorStatus.TurnedOff;
-				}).DisposeWith(Disposables);
+				.Subscribe(status => Tor = UseTor ? status : TorStatus.TurnedOff)
+				.DisposeWith(Disposables);
 
 			Synchronizer.WhenAnyValue(x => x.BackendStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					Backend = Synchronizer.BackendStatus;
-				}).DisposeWith(Disposables);
+				.Subscribe(_ => Backend = Synchronizer.BackendStatus)
+				.DisposeWith(Disposables);
 
 			_filtersLeft = HashChain.WhenAnyValue(x => x.HashesLeft)
 				.Throttle(TimeSpan.FromMilliseconds(100))
@@ -122,23 +110,33 @@ namespace WalletWasabi.Gui.ViewModels
 
 			Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(usd =>
-				{
-					BtcPrice = $"${(long)usd}";
-				}).DisposeWith(Disposables);
+				.Subscribe(usd => BtcPrice = $"${(long)usd}")
+				.DisposeWith(Disposables);
+
+			_bitcoinCoreStatus = Global.RpcMonitor
+					.WhenAnyValue(x => x.Status)
+					.Throttle(TimeSpan.FromMilliseconds(100))
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.ToProperty(this, x => x.BitcoinCoreStatus)
+					.DisposeWith(Disposables);
+
+			_updateStatus = Global.UpdateChecker
+					.WhenAnyValue(x => x.Status)
+					.Throttle(TimeSpan.FromMilliseconds(100))
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.ToProperty(this, x => x.UpdateStatus)
+					.DisposeWith(Disposables);
 
 			Observable.FromEventPattern<bool>(Synchronizer, nameof(Synchronizer.ResponseArrivedIsGenSocksServFail))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(e =>
-				{
-					OnResponseArrivedIsGenSocksServFail(e.EventArgs);
-				}).DisposeWith(Disposables);
+				.Subscribe(e => OnResponseArrivedIsGenSocksServFail(e.EventArgs))
+				.DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.FiltersLeft, x => x.DownloadingBlock)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(tup =>
 				{
-					(int filtersLeft, bool downloadingBlock) = tup.ToValueTuple();
+					(int filtersLeft, bool downloadingBlock) = tup;
 					if (filtersLeft == 0 && !downloadingBlock)
 					{
 						TryRemoveStatus(StatusBarStatus.Synchronizing);
@@ -153,7 +151,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(tup =>
 				{
-					(TorStatus tor, BackendStatus backend, int peers) = tup.ToValueTuple();
+					(TorStatus tor, BackendStatus backend, int peers) = tup;
 					if (tor == TorStatus.NotRunning || backend != BackendStatus.Connected || peers < 1)
 					{
 						TryAddStatus(StatusBarStatus.Connecting);
@@ -168,23 +166,26 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
-					if (x == UpdateStatus.Critical)
-					{
-						TryAddStatus(StatusBarStatus.CriticalUpdate);
-					}
-					else
+					if (x.BackendCompatible)
 					{
 						TryRemoveStatus(StatusBarStatus.CriticalUpdate);
 					}
-
-					if (x == UpdateStatus.Optional)
-					{
-						TryAddStatus(StatusBarStatus.OptionalUpdate);
-					}
 					else
+					{
+						TryAddStatus(StatusBarStatus.CriticalUpdate);
+					}
+
+					if (x.ClientUpToDate)
 					{
 						TryRemoveStatus(StatusBarStatus.OptionalUpdate);
 					}
+					else
+					{
+						TryAddStatus(StatusBarStatus.OptionalUpdate);
+					}
+
+					UpdateAvailable = !x.ClientUpToDate;
+					CriticalUpdateAvailable = !x.BackendCompatible;
 				});
 
 			UpdateCommand = ReactiveCommand.Create(() =>
@@ -198,57 +199,19 @@ namespace WalletWasabi.Gui.ViewModels
 					Logger.LogWarning(ex);
 					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
 				}
-			}, this.WhenAnyValue(x => x.UpdateStatus)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Select(x => x != UpdateStatus.Latest));
+			});
+
 			this.RaisePropertyChanged(nameof(UpdateCommand)); // The binding happens after the constructor. So, if the command is not in constructor, then we need this line.
 
-			Observable.FromEventPattern<UpdateStatusResult>(updateChecker, nameof(updateChecker.UpdateChecked))
-				.Select(x => x.EventArgs)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					if (x.BackendCompatible)
-					{
-						if (x.ClientUpToDate)
-						{
-							UpdateStatus = UpdateStatus.Latest;
-						}
-						else
-						{
-							UpdateStatus = UpdateStatus.Optional;
-						}
-					}
-					else
-					{
-						UpdateStatus = UpdateStatus.Critical;
-					}
-
-					UpdateAvailable = !x.ClientUpToDate;
-					CriticalUpdateAvailable = !x.BackendCompatible;
-				}).DisposeWith(Disposables);
-
-			updateChecker.Start(TimeSpan.FromMinutes(7));
+			updateChecker.Start();
 		}
 
 		public ReactiveCommand<Unit, Unit> UpdateCommand { get; set; }
 
-		public UpdateStatus UpdateStatus
+		public bool UseBitcoinCore
 		{
-			get => _updateStatus;
-			set => this.RaiseAndSetIfChanged(ref _updateStatus, value);
-		}
-
-		public bool UpdateAvailable
-		{
-			get => _updateAvailable;
-			set => this.RaiseAndSetIfChanged(ref _updateAvailable, value);
-		}
-
-		public bool CriticalUpdateAvailable
-		{
-			get => _criticalUpdateAvailable;
-			set => this.RaiseAndSetIfChanged(ref _criticalUpdateAvailable, value);
+			get => _useBitcoinCore;
+			set => this.RaiseAndSetIfChanged(ref _useBitcoinCore, value);
 		}
 
 		public BackendStatus Backend
@@ -270,6 +233,20 @@ namespace WalletWasabi.Gui.ViewModels
 		}
 
 		public int FiltersLeft => _filtersLeft?.Value ?? 0;
+		public RpcStatus BitcoinCoreStatus => _bitcoinCoreStatus?.Value ?? RpcStatus.Unresponsive;
+		public UpdateStatus UpdateStatus => _updateStatus?.Value ?? new UpdateStatus(true, true);
+
+		public bool UpdateAvailable
+		{
+			get => _updateAvailable;
+			set => this.RaiseAndSetIfChanged(ref _updateAvailable, value);
+		}
+
+		public bool CriticalUpdateAvailable
+		{
+			get => _criticalUpdateAvailable;
+			set => this.RaiseAndSetIfChanged(ref _criticalUpdateAvailable, value);
+		}
 
 		public string BtcPrice
 		{

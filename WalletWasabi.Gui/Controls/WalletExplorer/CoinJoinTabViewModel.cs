@@ -13,11 +13,11 @@ using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
-using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Services;
 using WalletWasabi.Models;
+using WalletWasabi.CoinJoin.Common.Models;
+using WalletWasabi.CoinJoin.Client.Rounds;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -26,7 +26,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private CompositeDisposable Disposables { get; set; }
 
 		private long _roundId;
-		private CcjRoundPhase _phase;
+		private RoundPhase _phase;
 		private DateTimeOffset _roundTimesout;
 		private TimeSpan _timeLeftTillRoundTimeout;
 		private Money _requiredBTC;
@@ -69,28 +69,28 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			PrivacyStrongCommand = ReactiveCommand.Create(() => TargetPrivacy = TargetPrivacy.Strong);
 
 			TargetButtonCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				switch (TargetPrivacy)
 				{
-					case TargetPrivacy.None:
-						TargetPrivacy = TargetPrivacy.Some;
-						break;
+					switch (TargetPrivacy)
+					{
+						case TargetPrivacy.None:
+							TargetPrivacy = TargetPrivacy.Some;
+							break;
 
-					case TargetPrivacy.Some:
-						TargetPrivacy = TargetPrivacy.Fine;
-						break;
+						case TargetPrivacy.Some:
+							TargetPrivacy = TargetPrivacy.Fine;
+							break;
 
-					case TargetPrivacy.Fine:
-						TargetPrivacy = TargetPrivacy.Strong;
-						break;
+						case TargetPrivacy.Fine:
+							TargetPrivacy = TargetPrivacy.Strong;
+							break;
 
-					case TargetPrivacy.Strong:
-						TargetPrivacy = TargetPrivacy.Some;
-						break;
-				}
-				Global.Config.MixUntilAnonymitySet = CoinJoinUntilAnonymitySet;
-				await Global.Config.ToFileAsync();
-			});
+						case TargetPrivacy.Strong:
+							TargetPrivacy = TargetPrivacy.Some;
+							break;
+					}
+					Global.Config.MixUntilAnonymitySet = CoinJoinUntilAnonymitySet;
+					await Global.Config.ToFileAsync();
+				});
 
 			this.WhenAnyValue(x => x.IsEnqueueBusy)
 				.Select(x => x ? EnqueuingButtonTextString : EnqueueButtonTextString)
@@ -100,10 +100,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Select(x => x ? DequeuingButtonTextString : DequeueButtonTextString)
 				.Subscribe(text => DequeueButtonText = text);
 
-			this.WhenAnyValue(x => x.TargetPrivacy).Subscribe(target =>
-			{
-				CoinJoinUntilAnonymitySet = Global.Config.GetTargetLevel(target);
-			});
+			this.WhenAnyValue(x => x.TargetPrivacy)
+				.Subscribe(target => CoinJoinUntilAnonymitySet = Global.Config.GetTargetLevel(target));
 
 			this.WhenAnyValue(x => x.RoundTimesout)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -135,30 +133,30 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(_ => UpdateStates())
 				.DisposeWith(Disposables);
 
-			CcjClientRound mostAdvancedRound = Global.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
+			ClientRound mostAdvancedRound = Global.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
 
 			if (mostAdvancedRound != default)
 			{
 				RoundId = mostAdvancedRound.State.RoundId;
 				Phase = mostAdvancedRound.State.Phase;
-				RoundTimesout = mostAdvancedRound.State.Phase == CcjRoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
+				RoundTimesout = mostAdvancedRound.State.Phase == RoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
 				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
 				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
 			}
 			else
 			{
 				RoundId = -1;
-				Phase = CcjRoundPhase.InputRegistration;
+				Phase = RoundPhase.InputRegistration;
 				RoundTimesout = DateTimeOffset.UtcNow;
 				PeersRegistered = 0;
 				PeersNeeded = 100;
 			}
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(AmountQueued));
-				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
-			}).DisposeWith(Disposables);
+				{
+					this.RaisePropertyChanged(nameof(AmountQueued));
+					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+				}).DisposeWith(Disposables);
 
 			Observable.Interval(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -286,7 +284,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				if (!chaumianClient.State.IsInErrorState)
 				{
 					Phase = mostAdvancedRound.State.Phase;
-					RoundTimesout = mostAdvancedRound.State.Phase == CcjRoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
+					RoundTimesout = mostAdvancedRound.State.Phase == RoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
 				}
 				this.RaisePropertyChanged(nameof(Phase));
 				this.RaisePropertyChanged(nameof(RoundTimesout));
@@ -295,7 +293,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private void UpdateRequiredBtcLabel(CcjClientRound registrableRound)
+		private void UpdateRequiredBtcLabel(ClientRound registrableRound)
 		{
 			if (Global.WalletService is null)
 			{
@@ -311,14 +309,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			else
 			{
-				var queued = Global.WalletService.Coins.Where(x => x.CoinJoinInProgress);
+				var coins = Global.WalletService.Coins;
+				var queued = coins.CoinJoinInProcess();
 				if (queued.Any())
 				{
 					RequiredBTC = registrableRound.State.CalculateRequiredAmount(Global.ChaumianClient.State.GetAllQueuedCoinAmounts().ToArray());
 				}
 				else
 				{
-					var available = Global.WalletService.Coins.Where(x => x.Confirmed && !x.Unavailable);
+					var available = coins.Confirmed().Available();
 					RequiredBTC = available.Any()
 						? registrableRound.State.CalculateRequiredAmount(available.Where(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong).Select(x => x.Amount).ToArray())
 						: registrableRound.State.CalculateRequiredAmount();
@@ -377,7 +376,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _roundId, value);
 		}
 
-		public CcjRoundPhase Phase
+		public RoundPhase Phase
 		{
 			get => _phase;
 			set => this.RaiseAndSetIfChanged(ref _phase, value);

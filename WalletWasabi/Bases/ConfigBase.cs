@@ -16,13 +16,13 @@ namespace WalletWasabi.Bases
 		/// <inheritdoc />
 		public string FilePath { get; private set; } = null;
 
-		public ConfigBase()
-		{
-		}
-
-		public ConfigBase(string filePath)
+		protected ConfigBase(string filePath)
 		{
 			SetFilePath(filePath);
+		}
+
+		protected ConfigBase()
+		{
 		}
 
 		/// <inheritdoc />

@@ -13,6 +13,7 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.ManagedDialogs
 {
+	[Obsolete]
 	internal class ManagedFileChooserViewModel : ViewModelBase
 	{
 		public event Action CancelRequested;
@@ -150,16 +151,16 @@ namespace WalletWasabi.Gui.ManagedDialogs
 			SelectedItems.CollectionChanged += OnSelectionChangedAsync;
 
 			EnterLocationCommand = ReactiveCommand.Create(() =>
-			{
-				if (Directory.Exists(Location))
 				{
-					Navigate(Location);
-				}
-				else if (File.Exists(Location))
-				{
-					CompleteRequested?.Invoke(new[] { Location });
-				}
-			});
+					if (Directory.Exists(Location))
+					{
+						Navigate(Location);
+					}
+					else if (File.Exists(Location))
+					{
+						CompleteRequested?.Invoke(new[] { Location });
+					}
+				});
 		}
 
 		private async void OnSelectionChangedAsync(object sender, NotifyCollectionChangedEventArgs e)
@@ -188,7 +189,11 @@ namespace WalletWasabi.Gui.ManagedDialogs
 
 						if (!SelectingFolder)
 						{
-							FileName = SelectedItems.FirstOrDefault()?.DisplayName;
+							var selectedItem = SelectedItems.FirstOrDefault();
+							if (selectedItem != null)
+							{
+								FileName = selectedItem.DisplayName;
+							}
 						}
 					}
 				}

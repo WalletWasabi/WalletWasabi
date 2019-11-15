@@ -7,8 +7,8 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Dialogs
 {
@@ -64,7 +64,8 @@ namespace WalletWasabi.Gui.Dialogs
 				}
 				// OK pressed.
 				Close(false);
-			}, canOk);
+			},
+			canOk);
 
 			CancelCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -135,7 +136,7 @@ namespace WalletWasabi.Gui.Dialogs
 							return;
 						}
 
-						SmartCoin[] enqueuedCoins = Global.WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
+						SmartCoin[] enqueuedCoins = Global.WalletService.Coins.CoinJoinInProcess().ToArray();
 						Exception latestException = null;
 						foreach (var coin in enqueuedCoins)
 						{

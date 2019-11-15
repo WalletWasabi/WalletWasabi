@@ -108,7 +108,7 @@ namespace WalletWasabi.Logging
 
 		#region GeneralLoggingMethods
 
-		private static void Log(LogLevel level, string message, int additionalEntrySeparators = 0, bool additionalEntrySeparatorsLogFileOnlyMode = true, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
+		public static void Log(LogLevel level, string message, int additionalEntrySeparators = 0, bool additionalEntrySeparatorsLogFileOnlyMode = true, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 		{
 			try
 			{
@@ -122,15 +122,15 @@ namespace WalletWasabi.Logging
 					return;
 				}
 
-				message = string.IsNullOrWhiteSpace(message) ? "" : message;
-				var category = string.IsNullOrWhiteSpace(callerFilePath) ? "" : $"{ExtractFileName(callerFilePath)} ({callerLineNumber})";
+				message = Guard.Correct(message);
+				var category = string.IsNullOrWhiteSpace(callerFilePath) ? "" : $"{EnvironmentHelpers.ExtractFileName(callerFilePath)} ({callerLineNumber})";
 
 				var messageBuilder = new StringBuilder();
 				messageBuilder.Append($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {level.ToString().ToUpperInvariant()}\t");
 
-				if (message == "")
+				if (message.Length == 0)
 				{
-					if (category == "") // If both empty. It probably never happens though.
+					if (category.Length == 0) // If both empty. It probably never happens though.
 					{
 						messageBuilder.Append($"{EntrySeparator}");
 					}
@@ -141,7 +141,7 @@ namespace WalletWasabi.Logging
 				}
 				else
 				{
-					if (category == "") // If only the category is empty.
+					if (category.Length == 0) // If only the category is empty.
 					{
 						messageBuilder.Append($"{message}{EntrySeparator}");
 					}
@@ -226,27 +226,6 @@ namespace WalletWasabi.Logging
 				// If it's not the first time the logging failed, then we do not try to log logging failure, so clear the failure counter.
 				Interlocked.Exchange(ref LoggingFailedCount, 0);
 			}
-		}
-
-		// This method removes the path and file extension.
-		//
-		// Given Wasabi releases are currently built using Windows, the generated assymblies contain
-		// the hardcoded "C:\Users\User\Desktop\WalletWasabi\.......\FileName.cs" string because that
-		// is the real path of the file, it doesn't matter what OS was targeted.
-		// In Windows and Linux that string is a valid path and that means Path.GetFileNameWithoutExtension
-		// can extract the file name but in the case of OSX the same string is not a valid path so, it assumes
-		// the whole string is the file name. 
-		internal static string ExtractFileName(string callerFilePath)
-		{
-			var lastSeparatorIndex = callerFilePath.LastIndexOf("\\");
-			if (lastSeparatorIndex == -1)
-			{
-				lastSeparatorIndex = callerFilePath.LastIndexOf("/");
-			}
-
-			lastSeparatorIndex++;
-			var fileNameWithoutExtension = callerFilePath.Substring(lastSeparatorIndex, callerFilePath.Length - lastSeparatorIndex - ".cs".Length);
-			return fileNameWithoutExtension;
 		}
 
 		#endregion GeneralLoggingMethods

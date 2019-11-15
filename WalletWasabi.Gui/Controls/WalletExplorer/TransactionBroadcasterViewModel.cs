@@ -11,12 +11,13 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -71,10 +72,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				TransactionString = textToPaste;
 			});
 
-			BroadcastTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				await OnDoTransactionBroadcastAsync();
-			});
+			BroadcastTransactionCommand = ReactiveCommand.CreateFromTask(async () => await OnDoTransactionBroadcastAsync());
 
 			ImportTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -86,8 +84,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						Title = "Import Transaction"
 					};
 
-					var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+					{
+						var initialDirectory = Path.Combine("/media", Environment.UserName);
+						if (!Directory.Exists(initialDirectory))
+						{
+							initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+						}
+						ofd.Directory = initialDirectory;
+					}
+					else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+					{
+						ofd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+					}
+
+          var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
 					var selected = await ofd.ShowAsync(window, fallBack: true);
+          
 					if (selected != null && selected.Any())
 					{
 						var path = selected.First();
@@ -132,7 +145,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					SetWarningMessage(ex.ToTypeMessageString());
 					Logger.LogError(ex);
 				}
-			}, outputScheduler: RxApp.MainThreadScheduler);
+			},
+			outputScheduler: RxApp.MainThreadScheduler);
 
 			Observable.Merge(PasteCommand.ThrownExceptions)
 				.Merge(BroadcastTransactionCommand.ThrownExceptions)
@@ -185,7 +199,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
-				await Task.Run(async () => await Global.WalletService.SendTransactionAsync(transaction));
+				await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(transaction));
 
 				SetSuccessMessage("Transaction is successfully sent!");
 				TransactionString = "";

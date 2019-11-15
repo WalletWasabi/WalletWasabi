@@ -62,7 +62,7 @@ namespace WalletWasabi.Gui.Converters
 					toolTip = "It's over 9000!!!";
 				}
 
-				toolTip = toolTip ?? $"Anonymity Set: {integer}";
+				toolTip ??= $"Anonymity Set: {integer}";
 				var icon = GetIconByName($"Privacy{shield}");
 				return new { Icon = icon, ToolTip = toolTip };
 			}

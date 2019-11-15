@@ -30,17 +30,11 @@ namespace WalletWasabi.Gui.Controls
 
 			this.GetObservable(IsPasswordVisibleProperty)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					IsPasswordVisible = x;
-				});
+				.Subscribe(x => IsPasswordVisible = x);
 
 			this.WhenAnyValue(x => x.IsPasswordVisible)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					PasswordChar = x ? '\0' : '\u2022';
-				});
+				.Subscribe(x => PasswordChar = x ? '\0' : '\u2022');
 		}
 
 		protected override bool IsCopyEnabled => false;
@@ -53,10 +47,7 @@ namespace WalletWasabi.Gui.Controls
 			maskedButton.WhenAnyValue(x => x.IsPressed)
 				.Where(x => x)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					IsPasswordVisible = !IsPasswordVisible;
-				});
+				.Subscribe(_ => IsPasswordVisible = !IsPasswordVisible);
 		}
 	}
 }

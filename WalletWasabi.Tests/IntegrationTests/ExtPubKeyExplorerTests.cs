@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Services;
 using Xunit;
 
@@ -21,7 +22,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			var mnemonic = new Mnemonic("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about");
 			ExtKey = mnemonic.DeriveExtKey();
-			ExtPubKey = ExtKey.Derive(new KeyPath("m/84'/0'/0'/1/0")).Neuter();
+			ExtPubKey = ExtKey.Derive(new KeyPath($"{KeyManager.DefaultAccountKeyPath.ToString(true, "h")}/1/0")).Neuter();
 		}
 
 		[Fact]

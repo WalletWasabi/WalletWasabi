@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text;
 using WalletWasabi.Helpers;
+using WalletWasabi.Hwi.Exceptions;
 
 namespace System
 {
@@ -9,9 +11,19 @@ namespace System
 		public static string ToTypeMessageString(this Exception ex)
 		{
 			var trimmed = Guard.Correct(ex.Message);
-			return trimmed == ""
-				? ex.GetType().Name
-				: $"{ex.GetType().Name}: {ex.Message}";
+
+			if (trimmed.Length == 0)
+			{
+				if (ex is HwiException hwiEx)
+				{
+					return $"{hwiEx.GetType().Name}: {hwiEx.ErrorCode}";
+				}
+				return ex.GetType().Name;
+			}
+			else
+			{
+				return $"{ex.GetType().Name}: {ex.Message}";
+			}
 		}
 
 		public static Dictionary<string, string> BitcoinCoreTranslations { get; } = new Dictionary<string, string>
@@ -28,7 +40,7 @@ namespace System
 		public static string ToUserFriendlyString(this HttpRequestException ex)
 		{
 			var trimmed = Guard.Correct(ex.Message);
-			if (trimmed == "")
+			if (trimmed.Length == 0)
 			{
 				return ex.ToTypeMessageString();
 			}

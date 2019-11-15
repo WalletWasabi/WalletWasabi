@@ -159,6 +159,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
+using WalletWasabi.Helpers;
 
 namespace Mono.Options
 {
@@ -176,20 +177,8 @@ namespace Mono.Options
 
 		protected Option(string prototype, string description, int maxValueCount, bool hidden)
 		{
-			if (prototype is null)
-			{
-				throw new ArgumentNullException(nameof(prototype));
-			}
-
-			if (prototype == "")
-			{
-				throw new ArgumentException("Cannot be an empty string.", nameof(prototype));
-			}
-
-			if (maxValueCount < 0)
-			{
-				throw new ArgumentOutOfRangeException(nameof(maxValueCount));
-			}
+			Guard.NotNullOrEmptyOrWhitespace(nameof(prototype), prototype);
+			Guard.MinimumAndNotNull(nameof(maxValueCount), maxValueCount, 0);
 
 			Prototype = prototype;
 			Description = description;
@@ -248,7 +237,7 @@ namespace Mono.Options
 		{
 			if (ValueSeparators is null)
 			{
-				return new string[0];
+				return Array.Empty<string>();
 			}
 
 			return (string[])ValueSeparators.Clone();
@@ -296,7 +285,7 @@ namespace Mono.Options
 			for (int i = 0; i < Names.Length; ++i)
 			{
 				string name = Names[i];
-				if (name == "")
+				if (string.IsNullOrEmpty(name))
 				{
 					throw new ArgumentException("Empty option names are not supported.", nameof(Prototype));
 				}
@@ -342,7 +331,7 @@ namespace Mono.Options
 				{
 					ValueSeparators = new string[] { ":", "=" };
 				}
-				else if (seps.Count == 1 && seps[0] == "")
+				else if (seps.Count == 1 && string.IsNullOrEmpty(seps[0]))
 				{
 					ValueSeparators = null;
 				}

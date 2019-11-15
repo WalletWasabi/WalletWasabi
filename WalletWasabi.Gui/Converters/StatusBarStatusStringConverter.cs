@@ -14,24 +14,24 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is StatusBarStatus status)
 			{
-				switch (status)
+				return status switch
 				{
-					case StatusBarStatus.Ready: return "Ready";
-					case StatusBarStatus.CriticalUpdate: return "THE BACKEND WAS UPGRADED WITH BREAKING CHANGES - PLEASE UPDATE YOUR WASABI WALLET!";
-					case StatusBarStatus.OptionalUpdate: return "A new version of Wasabi Wallet is available.";
-					case StatusBarStatus.Connecting: return "Connecting...";
-					case StatusBarStatus.Synchronizing: return "Synchronizing...";
-					case StatusBarStatus.Loading: return "Loading...";
-					case StatusBarStatus.SettingUpHardwareWallet: return "Setting up hardware wallet...";
-					case StatusBarStatus.ConnectingToHardwareWallet: return "Connecting to hardware wallet...";
-					case StatusBarStatus.AcquiringXpubFromHardwareWallet: return "Acquiring xpub from hardware wallet...";
-					case StatusBarStatus.AcquiringSignatureFromHardwareWallet: return "Acquiring signature from hardware wallet...";
-					case StatusBarStatus.BuildingTransaction: return "Building transaction...";
-					case StatusBarStatus.SigningTransaction: return "Signing transaction...";
-					case StatusBarStatus.BroadcastingTransaction: return "Broadcasting transaction...";
-					case StatusBarStatus.DequeuingSelectedCoins: return "Dequeuing selected coins...";
-					default: return status.ToString();
-				}
+					StatusBarStatus.Ready => "Ready",
+					StatusBarStatus.CriticalUpdate => "THE BACKEND WAS UPGRADED WITH BREAKING CHANGES - PLEASE UPDATE YOUR WASABI WALLET!",
+					StatusBarStatus.OptionalUpdate => "A new version of Wasabi Wallet is available.",
+					StatusBarStatus.Connecting => "Connecting...",
+					StatusBarStatus.Synchronizing => "Synchronizing...",
+					StatusBarStatus.Loading => "Loading...",
+					StatusBarStatus.SettingUpHardwareWallet => "Setting up hardware wallet...",
+					StatusBarStatus.ConnectingToHardwareWallet => "Connecting to hardware wallet...",
+					StatusBarStatus.AcquiringXpubFromHardwareWallet => "Acquiring xpub from hardware wallet...",
+					StatusBarStatus.AcquiringSignatureFromHardwareWallet => "Acquiring signature from hardware wallet...",
+					StatusBarStatus.BuildingTransaction => "Building transaction...",
+					StatusBarStatus.SigningTransaction => "Signing transaction...",
+					StatusBarStatus.BroadcastingTransaction => "Broadcasting transaction...",
+					StatusBarStatus.DequeuingSelectedCoins => "Dequeuing selected coins...",
+					_ => status.ToString()
+				};
 			}
 			else
 			{

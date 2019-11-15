@@ -1,5 +1,5 @@
-﻿<Styles xmlns="https://github.com/avaloniaui" 
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"        
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
         xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
         xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity">
@@ -7,6 +7,8 @@
     <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}" />
     <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}" />
+    <Setter Property="SelectionBrush" Value="{DynamicResource HighlightBrush}"/>
+    <Setter Property="SelectionForegroundBrush" Value="{DynamicResource HighlightForegroundBrush}"/>
     <Setter Property="Padding" Value="4" />
     <Setter Property="Template">
       <ControlTemplate>
@@ -45,7 +47,10 @@
                       SelectionEnd="{TemplateBinding SelectionEnd}"
                       TextAlignment="{TemplateBinding TextAlignment}"
                       TextWrapping="{TemplateBinding TextWrapping}"
-                      PasswordChar="{TemplateBinding PasswordChar}" />
+                      PasswordChar="{TemplateBinding PasswordChar}" 
+                      SelectionBrush="{TemplateBinding SelectionBrush}"
+                      SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                      CaretBrush="{TemplateBinding CaretBrush}"/>
                   </Panel>
                 </ScrollViewer>
               </DataValidationErrors>

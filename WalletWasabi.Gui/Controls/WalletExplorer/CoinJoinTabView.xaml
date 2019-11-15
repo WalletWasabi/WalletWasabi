@@ -29,7 +29,7 @@
           <Setter Property="Padding" Value="0 0 5 0" />
         </Style>
       </Grid.Styles>
-      <local:CoinListView DataContext="{Binding CoinsList}" />
+      <local:CoinListView SelectAllPrivateVisible="False" DataContext="{Binding CoinsList}" />
     </Grid>
     <Grid Grid.Row="1">
       <Grid.RowDefinitions>

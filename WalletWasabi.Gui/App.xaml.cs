@@ -7,12 +7,15 @@ namespace WalletWasabi.Gui
 {
 	public class App : Application
 	{
+		public App ()
+		{
+			Name = "Wasabi Wallet";
+		}
+
 		public override void Initialize()
 		{
 			AvaloniaXamlLoader.Load(this);
 		}
-
-		public override string Title => "Wasabi Wallet";
 
 		public override void OnFrameworkInitializationCompleted()
 		{

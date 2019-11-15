@@ -2,10 +2,10 @@ using NBitcoin;
 using System;
 using System.IO;
 using System.Security;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Helpers;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 using WalletWasabi.Tests.XunitConfiguration;
 using Xunit;
 
@@ -80,7 +80,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.NotEqual(manager.ExtPubKey, differentManager.ExtPubKey);
 
 			differentManager.AssertCleanKeysIndexed();
-			var newKey = differentManager.GenerateNewKey(new SmartLabel("some-label"), KeyState.Clean, true, false);
+			var newKey = differentManager.GenerateNewKey("some-label", KeyState.Clean, true, false);
 			Assert.Equal(newKey.Index, differentManager.MinGapLimit);
 			Assert.Equal("999'/999'/999'/1/55", newKey.FullKeyPath.ToString());
 		}
@@ -109,7 +109,7 @@ namespace WalletWasabi.Tests.UnitTests
 			for (int i = 0; i < 1000; i++)
 			{
 				var isInternal = random.Next(2) == 0;
-				var label = new SmartLabel(RandomString.Generate(21));
+				var label = RandomString.Generate(21);
 				var keyState = (KeyState)random.Next(3);
 				manager.GenerateNewKey(label, keyState, isInternal, toFile: false);
 			}
@@ -142,14 +142,14 @@ namespace WalletWasabi.Tests.UnitTests
 			for (int i = 0; i < 1000; i++)
 			{
 				var isInternal = random.Next(2) == 0;
-				var label = new SmartLabel(RandomString.Generate(21));
+				var label = RandomString.Generate(21);
 				var keyState = (KeyState)random.Next(3);
 				var generatedKey = manager.GenerateNewKey(label, keyState, isInternal);
 
 				Assert.Equal(isInternal, generatedKey.IsInternal);
 				Assert.Equal(label, generatedKey.Label);
 				Assert.Equal(keyState, generatedKey.KeyState);
-				Assert.StartsWith("84'/0'/0'", generatedKey.FullKeyPath.ToString());
+				Assert.StartsWith(KeyManager.DefaultAccountKeyPath.ToString(), generatedKey.FullKeyPath.ToString());
 			}
 		}
 

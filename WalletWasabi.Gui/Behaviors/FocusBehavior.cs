@@ -25,7 +25,6 @@ namespace WalletWasabi.Gui.Behaviors
 			base.OnAttached();
 
 			AssociatedObject.AttachedToLogicalTree += (sender, e) =>
-			{
 				Disposables.Add(this.GetObservable(IsFocusedProperty)
 					.Subscribe(focused =>
 					{
@@ -34,7 +33,6 @@ namespace WalletWasabi.Gui.Behaviors
 							AssociatedObject.Focus();
 						}
 					}));
-			};
 		}
 
 		protected override void OnDetaching()
