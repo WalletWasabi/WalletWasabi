@@ -1,6 +1,4 @@
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests
@@ -13,21 +11,29 @@ namespace WalletWasabi.Tests.UnitTests
 		public void InvokeAllSubscribers()
 		{
 			var count = 0;
-			handler += (s, e) => count++;
-			handler += (s, e) => count++;
-			handler += (s, e) => count++;
+			var action = new EventHandler<EventArgs>((s, e) => count++);
+			handler += action;
+			handler += action;
+			handler += action;
 
 			handler.SafeInvoke(this, null);
 			Assert.Equal(3, count);
+
+			handler -= action;
+			handler -= action;
+			handler -= action;
 		}
 
 		[Fact]
 		public void InvokeAllSubscribersEvenIfExceptions()
 		{
 			var count = 0;
-			handler += (s, e) => count++;
-			handler += (s, e) => throw new Exception("Something really bad happened here!");
-			handler += (s, e) => count++;
+			var action = new EventHandler<EventArgs>((s, e) => count++);
+			var failingAction = new EventHandler<EventArgs>((s, e) => throw new Exception("Something really bad happened here!"));
+
+			handler += action;
+			handler += failingAction;
+			handler += action;
 
 			// In a normal Invoke, if there is an exception in one of the handlers the next handlers are not invoked.
 			try
@@ -44,6 +50,10 @@ namespace WalletWasabi.Tests.UnitTests
 			// The SafeInvoke makes sure that even if one handler fails, the others are invoked anyway.
 			handler.SafeInvoke(this, null);
 			Assert.Equal(2, count);
+
+			handler -= action;
+			handler -= action;
+			handler -= failingAction;
 		}
 	}
 }
