@@ -18,6 +18,8 @@ namespace WalletWasabi.Bases
 		}
 
 		private CancellationTokenSource Stop { get; set; }
+		private CancellationTokenSource Trigger { get; set; }
+		private object TriggerLock { get; }
 		public TimeSpan Period { get; }
 		private Task ForeverTask { get; set; }
 		public Exception LastException { get; set; }
@@ -27,6 +29,8 @@ namespace WalletWasabi.Bases
 		protected PeriodicRunner(TimeSpan period, T defaultResult)
 		{
 			Stop = new CancellationTokenSource();
+			Trigger = new CancellationTokenSource();
+			TriggerLock = new object();
 			Period = period;
 			ForeverTask = Task.CompletedTask;
 			Status = defaultResult;
@@ -40,7 +44,21 @@ namespace WalletWasabi.Bases
 			LastExceptionFirstAppeared = DateTimeOffset.MinValue;
 		}
 
-		public abstract Task<T> ActionAsync(CancellationToken cancel);
+		public void TriggerRound()
+		{
+			lock (TriggerLock)
+			{
+				if (Trigger != null)
+				{
+					if (!Trigger.IsCancellationRequested)
+					{
+						Trigger.Cancel();
+					}
+				}
+			}
+		}
+
+		protected abstract Task<T> ActionAsync(CancellationToken cancel);
 
 		public void Start()
 		{
@@ -85,11 +103,24 @@ namespace WalletWasabi.Bases
 				{
 					try
 					{
-						await Task.Delay(Period, Stop.Token).ConfigureAwait(false);
+						using var linked = CancellationTokenSource.CreateLinkedTokenSource(Stop.Token, Trigger.Token);
+						await Task.Delay(Period, linked.Token).ConfigureAwait(false);
 					}
 					catch (TaskCanceledException ex)
 					{
 						Logger.LogTrace(ex);
+					}
+					finally
+					{
+						lock (TriggerLock)
+						{
+							if (Trigger.IsCancellationRequested)
+							{
+								Trigger?.Dispose();
+								Trigger = null;
+								Trigger = new CancellationTokenSource();
+							}
+						}
 					}
 				}
 			}
@@ -110,6 +141,8 @@ namespace WalletWasabi.Bases
 			await ForeverTask.ConfigureAwait(false);
 			Stop?.Dispose();
 			Stop = null;
+			Trigger?.Dispose();
+			Trigger = null;
 		}
 	}
 }

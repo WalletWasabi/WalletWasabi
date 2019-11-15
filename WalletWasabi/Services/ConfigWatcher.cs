@@ -20,7 +20,7 @@ namespace WalletWasabi.Services
 			config.AssertFilePathSet();
 		}
 
-		public override async Task<bool> ActionAsync(CancellationToken cancel)
+		protected override async Task<bool> ActionAsync(CancellationToken cancel)
 		{
 			if (await Config.CheckFileChangeAsync().ConfigureAwait(false))
 			{
