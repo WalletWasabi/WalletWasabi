@@ -114,7 +114,14 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		private async void Synchronizer_ResponseArrivedAsync(object sender, SynchronizeResponse e)
 		{
-			await TryProcessStatusAsync(e?.CcjRoundStates).ConfigureAwait(false);
+			try
+			{
+				await TryProcessStatusAsync(e?.CcjRoundStates).ConfigureAwait(false);
+			}
+			catch(Exception ex)
+			{
+				Logger.LogWarning(ex);
+			}
 		}
 
 		public void Start()

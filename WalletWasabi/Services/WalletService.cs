@@ -150,19 +150,19 @@ namespace WalletWasabi.Services
 
 		private async void TransactionProcessor_CoinReceivedAsync(object sender, SmartCoin newCoin)
 		{
-			// If it's being mixed and anonset is not sufficient, then queue it.
-			if (newCoin.Unspent && ChaumianClient.HasIngredients
-				&& newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet
-				&& ChaumianClient.State.Contains(newCoin.SpentOutputs))
+			try
 			{
-				try
+				// If it's being mixed and anonset is not sufficient, then queue it.
+				if (newCoin.Unspent && ChaumianClient.HasIngredients
+					&& newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet
+					&& ChaumianClient.State.Contains(newCoin.SpentOutputs))
 				{
 					await ChaumianClient.QueueCoinsToMixAsync(newCoin);
 				}
-				catch (Exception ex)
-				{
-					Logger.LogError(ex);
-				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
 			}
 		}
 
