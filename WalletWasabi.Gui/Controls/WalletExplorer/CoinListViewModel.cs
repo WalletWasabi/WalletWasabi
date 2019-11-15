@@ -46,6 +46,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _selectAllPrivateVisible;
 		private ShieldState _selectAllPrivateShieldState;
 		private ShieldState _selectAllNonPrivateShieldState;
+		private bool _isCoinListLoading;
 
 		public Global Global { get; }
 		public CoinListContainerType CoinListContainerType { get; }
@@ -200,6 +201,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _selectAllNonPrivateShieldState, value);
 		}
 
+		public bool IsCoinListLoading
+		{
+			get => _isCoinListLoading;
+			set => this.RaiseAndSetIfChanged(ref _isCoinListLoading, value);
+		}
+
 		private bool? GetCheckBoxesSelectedState(Func<CoinViewModel, bool> coinFilterPredicate)
 		{
 			var coins = Coins.Where(coinFilterPredicate).ToArray();
@@ -238,6 +245,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global = global;
 			CoinListContainerType = coinListContainerType;
 			AmountSortDirection = SortOrder.Decreasing;
+			IsCoinListLoading = true;
 			RefreshOrdering();
 
 			// Otherwise they're all selected as null on load.
@@ -245,15 +253,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SelectPrivateCheckBoxState = false;
 			SelectNonPrivateCheckBoxState = false;
 
-			var sortChanged = this.WhenValueChanged(@this => MyComparer)
+			var sortChanged = this
+				.WhenAnyValue(x => x.MyComparer)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(_ => MyComparer);
 
 			RootList = new SourceList<CoinViewModel>();
-			RootList.Connect()
+			RootList
+				.Connect()
 				.Sort(MyComparer, comparerChanged: sortChanged, resetThreshold: 5)
-				.Bind(out _coinViewModels)
 				.ObserveOn(RxApp.MainThreadScheduler)
+				.Bind(out _coinViewModels)
 				.Subscribe();
 
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);
@@ -324,8 +334,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					DequeueCoinsPressed?.Invoke(this, EventArgs.Empty);
 				},
-				this.WhenAnyValue(x => x.CanDeqeue)
-					.ObserveOn(RxApp.MainThreadScheduler));
+				this.WhenAnyValue(x => x.CanDeqeue));
 
 			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
 				{
@@ -385,7 +394,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				});
 
-			InitList = ReactiveCommand.Create(() => OnOpen(), outputScheduler: RxApp.MainThreadScheduler);
+			InitList = ReactiveCommand.CreateFromTask(async () =>
+			{
+				try
+				{
+					IsCoinListLoading = true;
+					// We have to wait for the UI to became visible to the user.
+					await Task.Delay(800); // Let other tasks run to display the gui.
+					OnOpen();
+				}
+				finally
+				{
+					IsCoinListLoading = false;
+				}
+			});
 
 			InitList.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
 		}
@@ -394,14 +416,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			foreach (var sc in Global.WalletService.Coins)
+			var list = Global.WalletService.Coins.Select(x => new CoinViewModel(this, x)).ToList();
+
+			foreach (var vm in list)
 			{
-				var newCoinVm = new CoinViewModel(this, sc);
-				newCoinVm.SubscribeEvents();
-				RootList.Add(newCoinVm);
+				vm.SubscribeEvents();
 			}
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
+			RootList.AddRange(list);
+
+			Global.UiConfig
+				.WhenAnyValue(x => x.LurkingWifeMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedAmount)))
 				.DisposeWith(Disposables);
@@ -483,7 +508,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				})
 				.DisposeWith(Disposables);
 
-			Global.Config.WhenAnyValue(x => x.MixUntilAnonymitySet)
+			Global.Config
+				.WhenAnyValue(x => x.MixUntilAnonymitySet)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => RefreshSelectCheckBoxesShields(x))
 				.DisposeWith(Disposables);
