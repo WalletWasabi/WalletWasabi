@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Configuration;
 using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.BitcoinCore.Processes;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
@@ -34,6 +35,7 @@ namespace WalletWasabi.BitcoinCore
 		public CoreConfig Config { get; private set; }
 		public TrustedNodeNotifyingBehavior TrustedNodeNotifyingBehavior => P2pNode.Behaviors.Find<TrustedNodeNotifyingBehavior>();
 		public Node P2pNode { get; private set; }
+		public BlockNotifier BlockNotifier { get; private set; }
 
 		public static async Task<CoreNode> CreateAsync(CoreNodeParams coreNodeParams)
 		{
@@ -115,7 +117,12 @@ namespace WalletWasabi.BitcoinCore
 
 				coreNode.RpcClient = new RPCClient($"{authString}", coreNode.RpcEndPoint.ToString(coreNode.Network.DefaultPort), coreNode.Network);
 
-				if (coreNodeParams.TryRestart && await coreNode.TryStopAsync(false).ConfigureAwait(false) && coreNodeParams.TryDeleteDataDir)
+				if (coreNodeParams.TryRestart)
+				{
+					await coreNode.TryStopAsync(false).ConfigureAwait(false);
+				}
+
+				if (coreNodeParams.TryDeleteDataDir)
 				{
 					await IoHelpers.DeleteRecursivelyWithMagicDustAsync(coreNode.DataDir).ConfigureAwait(false);
 				}
@@ -159,11 +166,12 @@ namespace WalletWasabi.BitcoinCore
 					desiredConfigLines.Insert(0, sectionComment);
 				}
 
-				if (coreNode.Config.AddOrUpdate(string.Join(Environment.NewLine, desiredConfigLines)))
+				if (coreNode.Config.AddOrUpdate(string.Join(Environment.NewLine, desiredConfigLines))
+					|| !File.Exists(configPath))
 				{
+					IoHelpers.EnsureContainingDirectoryExists(configPath);
 					await File.WriteAllTextAsync(configPath, coreNode.Config.ToString());
 				}
-				var configFileName = Path.GetFileName(configPath);
 
 				// If it isn't already running, then we run it.
 				if (await coreNode.RpcClient.TestAsync().ConfigureAwait(false) is null)
@@ -189,6 +197,9 @@ namespace WalletWasabi.BitcoinCore
 				nodeConnectionParameters.TemplateBehaviors.Add(new TrustedNodeNotifyingBehavior());
 				coreNode.P2pNode = await Node.ConnectAsync(coreNode.Network, coreNode.P2pEndPoint, nodeConnectionParameters).ConfigureAwait(false);
 				coreNode.P2pNode.VersionHandshake();
+
+				coreNode.BlockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.TrustedNodeNotifyingBehavior);
+				coreNode.BlockNotifier.Start();
 
 				return coreNode;
 			}
@@ -227,13 +238,28 @@ namespace WalletWasabi.BitcoinCore
 		/// <param name="onlyOwned">Only stop if this node owns the process.</param>
 		public async Task<bool> TryStopAsync(bool onlyOwned = true)
 		{
+			if (BlockNotifier != null)
+			{
+				await BlockNotifier.StopAsync().ConfigureAwait(false);
+			}
 			DisconnectDisposeNullP2pNode();
 			Exception exThrown = null;
+
+			BitcoindRpcProcessBridge bridge = null;
 			if (Bridge != null)
+			{
+				bridge = Bridge;
+			}
+			else if (!onlyOwned)
+			{
+				bridge = new BitcoindRpcProcessBridge(RpcClient, DataDir, printToConsole: false);
+			}
+
+			if (bridge != null)
 			{
 				try
 				{
-					await Bridge.StopAsync(onlyOwned).ConfigureAwait(false);
+					await bridge.StopAsync(onlyOwned).ConfigureAwait(false);
 					Logger.LogInfo("Stopped.");
 					return true;
 				}

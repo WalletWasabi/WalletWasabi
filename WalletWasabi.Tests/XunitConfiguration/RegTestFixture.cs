@@ -27,6 +27,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 
 		public RegTestFixture()
 		{
+			RuntimeParams.SetDataDir(Path.Combine(Tests.Global.Instance.DataDir, nameof(RegTestFixture)));
 			RuntimeParams.LoadAsync().GetAwaiter().GetResult();
 			BackendRegTestNode = TestNodeBuilder.CreateAsync(callerMemberName: "RegTests").GetAwaiter().GetResult();
 

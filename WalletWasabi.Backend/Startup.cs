@@ -103,6 +103,12 @@ namespace WalletWasabi.Backend
 				Logger.LogInfo($"{nameof(global.IndexBuilderService)} is disposed.");
 			}
 
+			if (global.BlockNotifier != null)
+			{
+				await global.BlockNotifier.StopAsync();
+				Logger.LogInfo($"{nameof(global.BlockNotifier)} is disposed.");
+			}
+
 			if (global.RoundConfigWatcher != null)
 			{
 				await global.RoundConfigWatcher.StopAsync();

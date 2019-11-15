@@ -20,7 +20,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 			RpcClient = Guard.NotNull(nameof(rpcClient), rpcClient);
 		}
 
-		public override async Task<AllFeeEstimate> ActionAsync(CancellationToken cancel)
+		protected override async Task<AllFeeEstimate> ActionAsync(CancellationToken cancel)
 		{
 			try
 			{
