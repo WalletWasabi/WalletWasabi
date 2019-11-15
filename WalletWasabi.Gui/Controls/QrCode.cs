@@ -34,7 +34,7 @@ namespace WalletWasabi.Gui.Controls
 
 			this.WhenAnyValue(x => x.QRImageSavePath)
 				.Where(x => !string.IsNullOrWhiteSpace(x) || !string.IsNullOrEmpty(x))
-				.Where(x => !(FinalMatrix is null))
+				.Where(x => FinalMatrix != null)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => GenerateQRCodeBitmap(x));
 		}
