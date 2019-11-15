@@ -138,7 +138,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 					h => notifier.OnBlock -= h);
 
 				var hash = (await rpc.GenerateAsync(1)).First();
-				var block = await blockEventAwaiter.WaitAsync(TimeSpan.FromSeconds(7));
+				var block = await blockEventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
 				Assert.Equal(hash, block.GetHash());
 
 				// Make sure we get notifications about 10 blocks created the same time.
@@ -166,7 +166,6 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 					h => notifier.OnReorg += h,
 					h => notifier.OnReorg -= h,
 					reorgNum);
-				blockNum = 10;
 				blockEventsAwaiter = new EventsAwaiter<Block>(
 					h => notifier.OnBlock += h,
 					h => notifier.OnBlock -= h,

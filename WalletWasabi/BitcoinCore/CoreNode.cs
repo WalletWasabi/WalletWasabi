@@ -117,7 +117,12 @@ namespace WalletWasabi.BitcoinCore
 
 				coreNode.RpcClient = new RPCClient($"{authString}", coreNode.RpcEndPoint.ToString(coreNode.Network.DefaultPort), coreNode.Network);
 
-				if (coreNodeParams.TryRestart && await coreNode.TryStopAsync(false).ConfigureAwait(false) && coreNodeParams.TryDeleteDataDir)
+				if (coreNodeParams.TryRestart)
+				{
+					await coreNode.TryStopAsync(false).ConfigureAwait(false);
+				}
+
+				if (coreNodeParams.TryDeleteDataDir)
 				{
 					await IoHelpers.DeleteRecursivelyWithMagicDustAsync(coreNode.DataDir).ConfigureAwait(false);
 				}
@@ -161,8 +166,10 @@ namespace WalletWasabi.BitcoinCore
 					desiredConfigLines.Insert(0, sectionComment);
 				}
 
-				if (coreNode.Config.AddOrUpdate(string.Join(Environment.NewLine, desiredConfigLines)))
+				if (coreNode.Config.AddOrUpdate(string.Join(Environment.NewLine, desiredConfigLines))
+					|| !File.Exists(configPath))
 				{
+					IoHelpers.EnsureContainingDirectoryExists(configPath);
 					await File.WriteAllTextAsync(configPath, coreNode.Config.ToString());
 				}
 				var configFileName = Path.GetFileName(configPath);
@@ -232,14 +239,28 @@ namespace WalletWasabi.BitcoinCore
 		/// <param name="onlyOwned">Only stop if this node owns the process.</param>
 		public async Task<bool> TryStopAsync(bool onlyOwned = true)
 		{
-			await BlockNotifier.StopAsync().ConfigureAwait(false);
+			if (BlockNotifier != null)
+			{
+				await BlockNotifier.StopAsync().ConfigureAwait(false);
+			}
 			DisconnectDisposeNullP2pNode();
 			Exception exThrown = null;
+
+			BitcoindRpcProcessBridge bridge = null;
 			if (Bridge != null)
+			{
+				bridge = Bridge;
+			}
+			else if (!onlyOwned)
+			{
+				bridge = new BitcoindRpcProcessBridge(RpcClient, DataDir, printToConsole: false);
+			}
+
+			if (bridge != null)
 			{
 				try
 				{
-					await Bridge.StopAsync(onlyOwned).ConfigureAwait(false);
+					await bridge.StopAsync(onlyOwned).ConfigureAwait(false);
 					Logger.LogInfo("Stopped.");
 					return true;
 				}
