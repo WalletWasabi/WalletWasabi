@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -98,7 +99,7 @@ namespace WalletWasabi.Services
 		}
 
 		public RPCClient RpcClient { get; }
-		public TrustedNodeNotifyingBehavior TrustedNodeNotifyingBehavior { get; }
+		public BlockNotifier BlockNotifier { get; }
 		public string IndexFilePath { get; }
 		public string Bech32UtxoSetFilePath { get; }
 
@@ -117,10 +118,10 @@ namespace WalletWasabi.Services
 
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 
-		public IndexBuilderService(RPCClient rpc, TrustedNodeNotifyingBehavior trustedNodeNotifyingBehavior, string indexFilePath, string bech32UtxoSetFilePath)
+		public IndexBuilderService(RPCClient rpc, BlockNotifier blockNotifier, string indexFilePath, string bech32UtxoSetFilePath)
 		{
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
-			TrustedNodeNotifyingBehavior = Guard.NotNull(nameof(trustedNodeNotifyingBehavior), trustedNodeNotifyingBehavior);
+			BlockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
 			IndexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
 			Bech32UtxoSetFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(bech32UtxoSetFilePath), bech32UtxoSetFilePath);
 
@@ -173,7 +174,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			TrustedNodeNotifyingBehavior.BlockInv += TrustedNodeNotifyingBehavior_BlockInv;
+			BlockNotifier.OnBlock += BlockNotifier_OnBlock;
 		}
 
 		private long _runner;
@@ -387,7 +388,7 @@ namespace WalletWasabi.Services
 			return pbcinfo;
 		}
 
-		private void TrustedNodeNotifyingBehavior_BlockInv(object sender, uint256 e)
+		private void BlockNotifier_OnBlock(object sender, Block e)
 		{
 			try
 			{
@@ -472,9 +473,9 @@ namespace WalletWasabi.Services
 
 		public async Task StopAsync()
 		{
-			if (TrustedNodeNotifyingBehavior != null)
+			if (BlockNotifier != null)
 			{
-				TrustedNodeNotifyingBehavior.BlockInv -= TrustedNodeNotifyingBehavior_BlockInv;
+				BlockNotifier.OnBlock -= BlockNotifier_OnBlock;
 			}
 
 			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.

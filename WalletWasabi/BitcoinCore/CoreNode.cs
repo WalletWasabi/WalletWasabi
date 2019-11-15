@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Configuration;
 using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.BitcoinCore.Processes;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
@@ -34,6 +35,7 @@ namespace WalletWasabi.BitcoinCore
 		public CoreConfig Config { get; private set; }
 		public TrustedNodeNotifyingBehavior TrustedNodeNotifyingBehavior => P2pNode.Behaviors.Find<TrustedNodeNotifyingBehavior>();
 		public Node P2pNode { get; private set; }
+		public BlockNotifier BlockNotifier { get; private set; }
 
 		public static async Task<CoreNode> CreateAsync(CoreNodeParams coreNodeParams)
 		{
@@ -190,6 +192,9 @@ namespace WalletWasabi.BitcoinCore
 				coreNode.P2pNode = await Node.ConnectAsync(coreNode.Network, coreNode.P2pEndPoint, nodeConnectionParameters).ConfigureAwait(false);
 				coreNode.P2pNode.VersionHandshake();
 
+				coreNode.BlockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.TrustedNodeNotifyingBehavior);
+				coreNode.BlockNotifier.Start();
+
 				return coreNode;
 			}
 		}
@@ -227,6 +232,7 @@ namespace WalletWasabi.BitcoinCore
 		/// <param name="onlyOwned">Only stop if this node owns the process.</param>
 		public async Task<bool> TryStopAsync(bool onlyOwned = true)
 		{
+			await BlockNotifier.StopAsync().ConfigureAwait(false);
 			DisconnectDisposeNullP2pNode();
 			Exception exThrown = null;
 			if (Bridge != null)

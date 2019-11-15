@@ -19,8 +19,6 @@ namespace WalletWasabi.Services
 
 		public event EventHandler<SmartTransaction> Transaction;
 
-		public event EventHandler<Block> Block;
-
 		public TrustedNodeNotifyingBehavior()
 		{
 		}
@@ -43,10 +41,6 @@ namespace WalletWasabi.Services
 				{
 					Transaction?.Invoke(this, new SmartTransaction(txPayload.Object, Height.Mempool));
 				}
-				else if (message.Message.Payload is BlockPayload blockPayload)
-				{
-					Block?.Invoke(this, blockPayload.Object);
-				}
 				else if (message.Message.Payload is InvPayload invPayload)
 				{
 					var getDataPayload = new GetDataPayload();
@@ -61,7 +55,6 @@ namespace WalletWasabi.Services
 						if (inv.Type.HasFlag(InventoryType.MSG_BLOCK))
 						{
 							BlockInv?.Invoke(this, inv.Hash);
-							getDataPayload.Inventory.Add(inv);
 						}
 					}
 

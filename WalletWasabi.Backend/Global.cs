@@ -6,6 +6,7 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;
@@ -22,7 +23,7 @@ namespace WalletWasabi.Backend
 
 		public Node LocalNode { get; private set; }
 
-		public TrustedNodeNotifyingBehavior TrustedNodeNotifyingBehavior { get; private set; }
+		public BlockNotifier BlockNotifier { get; private set; }
 
 		public IndexBuilderService IndexBuilderService { get; private set; }
 
@@ -59,8 +60,8 @@ namespace WalletWasabi.Backend
 			var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
 			var utxoSetFilePath = Path.Combine(indexBuilderServiceDir, $"UtxoSet{RpcClient.Network}.dat");
-			IndexBuilderService = new IndexBuilderService(RpcClient, TrustedNodeNotifyingBehavior, indexFilePath, utxoSetFilePath);
-			Coordinator = new Coordinator(RpcClient.Network, TrustedNodeNotifyingBehavior, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
+			IndexBuilderService = new IndexBuilderService(RpcClient, BlockNotifier, indexFilePath, utxoSetFilePath);
+			Coordinator = new Coordinator(RpcClient.Network, BlockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
 			IndexBuilderService.Synchronize();
 			Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
 
@@ -138,7 +139,7 @@ namespace WalletWasabi.Backend
 			nodeConnectionParameters.TemplateBehaviors.Add(new TrustedNodeNotifyingBehavior());
 			var node = await Node.ConnectAsync(network, endPoint, nodeConnectionParameters);
 			// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
-			TrustedNodeNotifyingBehavior = node.Behaviors.Find<TrustedNodeNotifyingBehavior>();
+			BlockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), RpcClient, node.Behaviors.Find<TrustedNodeNotifyingBehavior>());
 			try
 			{
 				Logger.LogInfo("TCP Connection succeeded, handshaking...");

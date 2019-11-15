@@ -169,7 +169,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
 			var utxoSetFilePath = Path.Combine(indexBuilderServiceDir, $"UtxoSet{rpc.Network}.dat");
 
-			var indexBuilderService = new IndexBuilderService(rpc, global.TrustedNodeNotifyingBehavior, indexFilePath, utxoSetFilePath);
+			var indexBuilderService = new IndexBuilderService(rpc, global.BlockNotifier, indexFilePath, utxoSetFilePath);
 			try
 			{
 				indexBuilderService.Synchronize();
@@ -1838,7 +1838,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var cjfile = Path.Combine(folder, $"CoinJoins{network}.txt");
 			File.WriteAllLines(cjfile, new[] { coinbaseTxId.ToString(), offchainTxId.ToString(), mempoolTxId.ToString() });
 
-			using (var coordinatorToTest = new Coordinator(network, global.TrustedNodeNotifyingBehavior, folder, rpc, coordinator.RoundConfig))
+			using (var coordinatorToTest = new Coordinator(network, global.BlockNotifier, folder, rpc, coordinator.RoundConfig))
 			{
 				var txIds = await File.ReadAllLinesAsync(cjfile);
 
@@ -1850,7 +1850,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Directory.CreateDirectory(folder);
 				File.WriteAllLines(cjfile, new[] { coinbaseTxId.ToString(), "This line is invalid (the file is corrupted)", offchainTxId.ToString() });
 
-				var coordinatorToTest2 = new Coordinator(network, global.TrustedNodeNotifyingBehavior, folder, rpc, coordinatorToTest.RoundConfig);
+				var coordinatorToTest2 = new Coordinator(network, global.BlockNotifier, folder, rpc, coordinatorToTest.RoundConfig);
 				coordinatorToTest2?.Dispose();
 				txIds = await File.ReadAllLinesAsync(cjfile);
 				Assert.Single(txIds);
