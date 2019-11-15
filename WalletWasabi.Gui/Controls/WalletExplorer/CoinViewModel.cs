@@ -47,19 +47,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Disposables = new CompositeDisposable();
 
 				//TODO defer subscription to when accessed (will be faster in ui.)
-				_coinJoinInProgress = Model.WhenAnyValue(x => x.CoinJoinInProgress)
+				_coinJoinInProgress = Model
+					.WhenAnyValue(x => x.CoinJoinInProgress)
 					.ToProperty(this, x => x.CoinJoinInProgress, scheduler: RxApp.MainThreadScheduler)
 					.DisposeWith(Disposables);
 
-				_unspent = Model.WhenAnyValue(x => x.Unspent)
+				_unspent = Model
+					.WhenAnyValue(x => x.Unspent)
 					.ToProperty(this, x => x.Unspent, scheduler: RxApp.MainThreadScheduler)
 					.DisposeWith(Disposables);
 
-				_confirmed = Model.WhenAnyValue(x => x.Confirmed)
+				_confirmed = Model
+					.WhenAnyValue(x => x.Confirmed)
 					.ToProperty(this, x => x.Confirmed, scheduler: RxApp.MainThreadScheduler)
 					.DisposeWith(Disposables);
 
-				_unavailable = Model.WhenAnyValue(x => x.Unavailable)
+				_unavailable = Model
+					.WhenAnyValue(x => x.Unavailable)
 					.ToProperty(this, x => x.Unavailable, scheduler: RxApp.MainThreadScheduler)
 					.DisposeWith(Disposables);
 
@@ -87,20 +91,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					.Subscribe(_ => RefreshSmartCoinStatus())
 					.DisposeWith(Disposables);
 
-				Observable.FromEventPattern(
-					Global.ChaumianClient,
-					nameof(Global.ChaumianClient.StateUpdated))
+				Observable
+					.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated))
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Subscribe(_ => RefreshSmartCoinStatus())
 					.DisposeWith(Disposables);
 
-				Global.BitcoinStore.HashChain.WhenAnyValue(x => x.TipHeight).Select(x => new Height(x))
+				Global.BitcoinStore.HashChain
+					.WhenAnyValue(x => x.TipHeight)
+					.Select(x => new Height(x))
 					.Merge(Model.WhenAnyValue(x => x.Height))
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Subscribe(_ => this.RaisePropertyChanged(nameof(Confirmations)))
 					.DisposeWith(Disposables);
 
-				Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
+				Global.UiConfig
+					.WhenAnyValue(x => x.LurkingWifeMode)
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Subscribe(_ =>
 					{
