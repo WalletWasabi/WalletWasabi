@@ -48,13 +48,7 @@ namespace WalletWasabi.Bases
 		{
 			lock (TriggerLock)
 			{
-				if (Trigger != null)
-				{
-					if (!Trigger.IsCancellationRequested)
-					{
-						Trigger.Cancel();
-					}
-				}
+				Trigger?.Cancel();
 			}
 		}
 
