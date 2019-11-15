@@ -68,7 +68,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				this.WhenAnyValue(x => x.Confirmed, x => x.CoinJoinInProgress, x => x.Confirmations)
 					.ObserveOn(RxApp.MainThreadScheduler)
-					.Subscribe(_ => RefreshSmartCoinStatus());
+					.Subscribe(_ => 
+					{
+						this.RaisePropertyChanged(nameof(Confirmations));
+						RefreshSmartCoinStatus();
+					});
 
 				this.WhenAnyValue(x => x.IsSelected)
 					.ObserveOn(RxApp.MainThreadScheduler)
@@ -131,7 +135,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public string Address => Model.ScriptPubKey.GetDestinationAddress(Global.Network).ToString();
 
 		public int Confirmations => Model.Height.Type == HeightType.Chain
-			? Global.BitcoinStore.HashChain.TipHeight - Model.Height.Value + 1
+			? Global.BitcoinStore.HashChain.TipHeight - Height + 1
 			: 0;
 
 		public bool IsSelected
