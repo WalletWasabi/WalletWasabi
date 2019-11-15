@@ -12,6 +12,7 @@ using System.Security;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
@@ -71,7 +72,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void OnException(Exception ex)
 		{
-			SetWarningMessage(ex.ToTypeMessageString());
+			NotificationHelpers.Error(ex.ToTypeMessageString());
 		}
 
 		public static async Task UnlockAsync(Global global)

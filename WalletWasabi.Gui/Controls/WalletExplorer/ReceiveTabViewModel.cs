@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Hwi;
@@ -174,7 +175,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(CopyAddress.ThrownExceptions)
 				.Merge(CopyLabel.ThrownExceptions)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(ex => SetWarningMessage(ex.ToTypeMessageString()))
+				.Subscribe(ex => NotificationHelpers.Error(ex.ToTypeMessageString()))
 				.DisposeWith(Disposables);
 		}
 

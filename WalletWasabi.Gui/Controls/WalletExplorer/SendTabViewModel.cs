@@ -23,6 +23,7 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
@@ -244,7 +245,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Label = label;
 					if (!IsMax && label.IsEmpty)
 					{
-						SetWarningMessage($"{nameof(Label)} is required.");
+						NotificationHelpers.Warning($"{nameof(Label)} is required.");
 						return;
 					}
 
@@ -253,7 +254,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (!selectedCoinReferences.Any())
 					{
-						SetWarningMessage("No coins are selected to spend.");
+						NotificationHelpers.Warning("No coins are selected to spend.");
 						return;
 					}
 
@@ -264,7 +265,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					catch (FormatException)
 					{
-						SetWarningMessage("Invalid address.");
+						NotificationHelpers.Warning("Invalid address.");
 						return;
 					}
 
@@ -277,13 +278,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						if (!Money.TryParse(AmountText, out Money amount) || amount == Money.Zero)
 						{
-							SetWarningMessage("Invalid amount.");
+							NotificationHelpers.Warning("Invalid amount.");
 							return;
 						}
 
 						if (amount == selectedCoinViewModels.Sum(x => x.Amount))
 						{
-							SetWarningMessage("Looks like you want to spend a whole coin. Try Max button instead.");
+							NotificationHelpers.Warning("Looks like you want to spend a whole coin. Try Max button instead.");
 							return;
 						}
 						moneyRequest = MoneyRequest.Create(amount);
@@ -291,7 +292,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (FeeRate is null || FeeRate.SatoshiPerByte < 1)
 					{
-						SetWarningMessage("Invalid fee rate, must be greater than or equal to one.");
+						NotificationHelpers.Warning("Invalid fee rate, must be greater than or equal to one.");
 						return;
 					}
 
@@ -309,7 +310,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					catch
 					{
-						SetWarningMessage("Spending coins that are being actively mixed is not allowed.");
+						NotificationHelpers.Warning("Spending coins that are being actively mixed is not allowed.");
 						return;
 					}
 					finally
@@ -330,7 +331,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 						catch (Exception ex)
 						{
-							SetWarningMessage(ex.ToTypeMessageString());
+							NotificationHelpers.Error(ex.ToTypeMessageString());
 							return;
 						}
 					}
@@ -384,7 +385,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 						catch (Exception ex)
 						{
-							SetWarningMessage(ex.ToTypeMessageString());
+							NotificationHelpers.Error(ex.ToTypeMessageString());
 							return;
 						}
 						finally
@@ -407,15 +408,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				catch (InsufficientBalanceException ex)
 				{
 					Money needed = ex.Minimum - ex.Actual;
-					SetWarningMessage($"Not enough coins selected. You need an estimated {needed.ToString(false, true)} BTC more to make this transaction.");
+					NotificationHelpers.Warning($"Not enough coins selected. You need an estimated {needed.ToString(false, true)} BTC more to make this transaction.");
 				}
 				catch (HttpRequestException ex)
 				{
-					SetWarningMessage(ex.ToUserFriendlyString());
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				}
 				catch (Exception ex)
 				{
-					SetWarningMessage(ex.ToTypeMessageString());
+					NotificationHelpers.Error(ex.ToTypeMessageString());
 				}
 				finally
 				{
@@ -456,7 +457,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(FeeSliderClickedCommand.ThrownExceptions)
 				.Merge(HighLightFeeSliderCommand.ThrownExceptions)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(ex => SetWarningMessage(ex.ToTypeMessageString()));
+				.Subscribe(ex => NotificationHelpers.Error(ex.ToTypeMessageString()));
 		}
 
 		private void SetSendText()
@@ -706,7 +707,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				ResetUi();
 
-				SetSuccessMessage(successMessage);
+				NotificationHelpers.Success(successMessage);
 			}
 			catch (Exception ex)
 			{
@@ -738,12 +739,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			if (!selectedCoins.Any())
 			{
-				SetWarningMessage("No coins are selected to dequeue.");
+				NotificationHelpers.Warning("No coins are selected to dequeue.");
 				return;
-			}
-			else
-			{
-				SetWarningMessage("");
 			}
 
 			try
@@ -761,7 +758,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						builder.Append(Environment.NewLine + iex.ToTypeMessageString());
 					}
 				}
-				SetWarningMessage(builder.ToString());
+				NotificationHelpers.Error(builder.ToString());
 			}
 		}
 

@@ -18,6 +18,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Models;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Client.Rounds;
+using WalletWasabi.Gui.Helpers;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -182,11 +183,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IsDequeueBusy = true;
 			try
 			{
-				SetWarningMessage("");
-
 				if (!selectedCoins.Any())
 				{
-					SetWarningMessage("No coins are selected to dequeue.");
+					NotificationHelpers.Warning("No coins are selected to dequeue.");
 					return;
 				}
 
@@ -205,7 +204,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							builder.Append(Environment.NewLine + iex.ToTypeMessageString());
 						}
 					}
-					SetWarningMessage(builder.ToString());
+					NotificationHelpers.Error(builder.ToString());
 				}
 			}
 			finally
@@ -219,11 +218,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IsEnqueueBusy = true;
 			try
 			{
-				SetWarningMessage("");
-
 				if (!selectedCoins.Any())
 				{
-					SetWarningMessage("No coins are selected to enqueue.");
+					NotificationHelpers.Warning("No coins are selected to enqueue.");
 					return;
 				}
 				try
@@ -233,7 +230,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					if (compatiblityPassword != null)
 					{
 						Password = compatiblityPassword;
-						SetWarningMessage(PasswordHelper.CompatibilityPasswordWarnMessage);
+						NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
 					}
 
 					await Global.ChaumianClient.QueueCoinsToMixAsync(Password, selectedCoins.Select(c => c.Model).ToArray());
@@ -249,7 +246,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							builder.Append(Environment.NewLine + iex.ToTypeMessageString());
 						}
 					}
-					SetWarningMessage(builder.ToString());
+					NotificationHelpers.Warning(builder.ToString());
 				}
 
 				Password = string.Empty;
