@@ -94,7 +94,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					.Subscribe(_ => RefreshSmartCoinStatus())
 					.DisposeWith(Disposables);
 
-				Global.BitcoinStore.HashChain.WhenAnyValue(x => x.ServerTipHeight)
+				Global.BitcoinStore.HashChain.WhenAnyValue(x => x.TipHeight).Select(x => new Height(x))
+					.Merge(Model.WhenAnyValue(x => x.Height))
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Subscribe(_ => this.RaisePropertyChanged(nameof(Confirmations)))
 					.DisposeWith(Disposables);
