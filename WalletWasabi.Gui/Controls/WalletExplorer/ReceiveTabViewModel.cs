@@ -56,14 +56,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Label = label;
 					if (label.IsEmpty)
 					{
-						LabelRequiredNotificationVisible = true;
-						LabelRequiredNotificationOpacity = 1;
-
-						Dispatcher.UIThread.PostLogException(async () =>
-							{
-								await Task.Delay(TimeSpan.FromSeconds(4));
-								LabelRequiredNotificationOpacity = 0;
-							});
+						NotificationHelpers.Warning("Label is required.");
 
 						return;
 					}
@@ -224,18 +217,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _label;
 			set => this.RaiseAndSetIfChanged(ref _label, value);
-		}
-
-		public double LabelRequiredNotificationOpacity
-		{
-			get => _labelRequiredNotificationOpacity;
-			set => this.RaiseAndSetIfChanged(ref _labelRequiredNotificationOpacity, value);
-		}
-
-		public bool LabelRequiredNotificationVisible
-		{
-			get => _labelRequiredNotificationVisible;
-			set => this.RaiseAndSetIfChanged(ref _labelRequiredNotificationVisible, value);
 		}
 
 		public int CaretIndex

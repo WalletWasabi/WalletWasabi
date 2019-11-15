@@ -354,7 +354,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 						if (isCompatibilityPasswordUsed)
 						{
-							WarningMessage = PasswordHelper.CompatibilityPasswordWarnMessage;
+							NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
 						}
 						return;
 					}
@@ -402,7 +402,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (isCompatibilityPasswordUsed)
 					{
-						WarningMessage = PasswordHelper.CompatibilityPasswordWarnMessage;
+						NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
 					}
 				}
 				catch (InsufficientBalanceException ex)

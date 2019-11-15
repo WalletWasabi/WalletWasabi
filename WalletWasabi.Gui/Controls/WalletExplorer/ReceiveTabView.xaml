@@ -48,14 +48,6 @@
               </StackPanel>
               <Button Content="Generate Receive Address" Command="{Binding GenerateCommand}" VerticalAlignment="Top" Grid.Column="1" />
             </Grid>
-            <Grid IsVisible="{Binding LabelRequiredNotificationVisible}">
-              <Grid Opacity="{Binding LabelRequiredNotificationOpacity}">
-                <Grid.Transitions>
-                  <DoubleTransition Property="Opacity" Easing="CircularEaseIn" Duration="0:0:0.5" />
-                </Grid.Transitions>
-                <TextBlock Classes="warningMessage" Text="Label Is Required!" VerticalAlignment="Center" HorizontalAlignment="Center" />
-              </Grid>
-            </Grid>
           </DockPanel>
           <Grid ColumnDefinitions="300, *, 50" Margin="5 10 5 0" Grid.Row="1">
             <TextBlock Text="Label:" />
