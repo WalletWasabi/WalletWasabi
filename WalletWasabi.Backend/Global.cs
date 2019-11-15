@@ -140,6 +140,8 @@ namespace WalletWasabi.Backend
 			var node = await Node.ConnectAsync(network, endPoint, nodeConnectionParameters);
 			// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
 			BlockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), RpcClient, node.Behaviors.Find<TrustedNodeNotifyingBehavior>());
+			BlockNotifier.Start();
+
 			try
 			{
 				Logger.LogInfo("TCP Connection succeeded, handshaking...");
