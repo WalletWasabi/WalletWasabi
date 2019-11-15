@@ -172,7 +172,6 @@ namespace WalletWasabi.BitcoinCore
 					IoHelpers.EnsureContainingDirectoryExists(configPath);
 					await File.WriteAllTextAsync(configPath, coreNode.Config.ToString());
 				}
-				var configFileName = Path.GetFileName(configPath);
 
 				// If it isn't already running, then we run it.
 				if (await coreNode.RpcClient.TestAsync().ConfigureAwait(false) is null)
