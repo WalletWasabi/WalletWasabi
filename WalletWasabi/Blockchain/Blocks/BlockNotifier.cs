@@ -23,7 +23,6 @@ namespace WalletWasabi.Blockchain.Blocks
 		public RPCClient RpcClient { get; set; }
 		public TrustedNodeNotifyingBehavior P2pNotifier { get; }
 		private List<BlockHeader> ProcessedBlocks { get; }
-		private AsyncLock Lock { get; } = new AsyncLock();
 
 		public BlockNotifier(TimeSpan period, RPCClient rpcClient, TrustedNodeNotifyingBehavior p2pNotifier) : base(period, null)
 		{
@@ -42,99 +41,96 @@ namespace WalletWasabi.Blockchain.Blocks
 
 		protected override async Task<uint256> ActionAsync(CancellationToken cancel)
 		{
-			using (await Lock.LockAsync(cancel).ConfigureAwait(false))
+			var bestBlockHash = await RpcClient.GetBestBlockHashAsync().ConfigureAwait(false);
+
+			// If there's no new block.
+			// Don't notify about the genesis block.
+			if (bestBlockHash == Status || bestBlockHash == RpcClient.Network.GenesisHash)
 			{
-				var bestBlockHash = await RpcClient.GetBestBlockHashAsync().ConfigureAwait(false);
+				return bestBlockHash;
+			}
 
-				// If there's no new block.
-				// Don't notify about the genesis block.
-				if (bestBlockHash == Status || bestBlockHash == RpcClient.Network.GenesisHash)
-				{
-					return bestBlockHash;
-				}
+			var arrivedBlock = await RpcClient.GetBlockAsync(bestBlockHash).ConfigureAwait(false);
+			var arrivedHeader = arrivedBlock.Header;
+			arrivedHeader.PrecomputeHash(false, true);
 
-				var arrivedBlock = await RpcClient.GetBlockAsync(bestBlockHash).ConfigureAwait(false);
-				var arrivedHeader = arrivedBlock.Header;
-				arrivedHeader.PrecomputeHash(false, true);
+			// If we haven't processed any block yet then we're processing it without checks.
+			if (!ProcessedBlocks.Any())
+			{
+				AddBlock(arrivedBlock);
+				return bestBlockHash;
+			}
 
-				// If we haven't processed any block yet then we're processing it without checks.
-				if (!ProcessedBlocks.Any())
-				{
-					AddBlock(arrivedBlock);
-					return bestBlockHash;
-				}
+			// If block was already processed return.
+			if (ProcessedBlocks.Any(x => x.GetHash() == arrivedHeader.GetHash()))
+			{
+				return bestBlockHash;
+			}
 
-				// If block was already processed return.
-				if (ProcessedBlocks.Any(x => x.GetHash() == arrivedHeader.GetHash()))
-				{
-					return bestBlockHash;
-				}
+			// If this block follows the proper order then add.
+			if (ProcessedBlocks.Last().GetHash() == arrivedHeader.HashPrevBlock)
+			{
+				AddBlock(arrivedBlock);
+				return bestBlockHash;
+			}
 
-				// If this block follows the proper order then add.
-				if (ProcessedBlocks.Last().GetHash() == arrivedHeader.HashPrevBlock)
-				{
-					AddBlock(arrivedBlock);
-					return bestBlockHash;
-				}
+			// Else let's sort out things.
+			var foundPrevBlock = ProcessedBlocks.FirstOrDefault(x => x.GetHash() == arrivedHeader.HashPrevBlock);
+			// Missed notifications on some previous blocks.
+			if (foundPrevBlock != null)
+			{
+				// Reorg happened.
+				ReorgToBlock(foundPrevBlock);
+				AddBlock(arrivedBlock);
+				return bestBlockHash;
+			}
 
-				// Else let's sort out things.
-				var foundPrevBlock = ProcessedBlocks.FirstOrDefault(x => x.GetHash() == arrivedHeader.HashPrevBlock);
-				// Missed notifications on some previous blocks.
-				if (foundPrevBlock != null)
-				{
-					// Reorg happened.
-					ReorgToBlock(foundPrevBlock);
-					AddBlock(arrivedBlock);
-					return bestBlockHash;
-				}
-
-				var missedBlocks = new List<Block>
+			var missedBlocks = new List<Block>
 				{
 					arrivedBlock
 				};
-				var currentHeader = arrivedHeader;
-				while (true)
+			var currentHeader = arrivedHeader;
+			while (true)
+			{
+				Block missedBlock = missedBlock = await RpcClient.GetBlockAsync(currentHeader.HashPrevBlock).ConfigureAwait(false);
+
+				currentHeader = missedBlock.Header;
+				currentHeader.PrecomputeHash(false, true);
+				missedBlocks.Add(missedBlock);
+
+				if (missedBlocks.Count > 100)
 				{
-					Block missedBlock = missedBlock = await RpcClient.GetBlockAsync(currentHeader.HashPrevBlock).ConfigureAwait(false);
-
-					currentHeader = missedBlock.Header;
-					currentHeader.PrecomputeHash(false, true);
-					missedBlocks.Add(missedBlock);
-
-					if (missedBlocks.Count > 100)
+					var processedBlocksClone = ProcessedBlocks.ToList();
+					ProcessedBlocks.Clear();
+					foreach (var processedBlock in processedBlocksClone)
 					{
-						var processedBlocksClone = ProcessedBlocks.ToList();
-						ProcessedBlocks.Clear();
-						foreach (var processedBlock in processedBlocksClone)
-						{
-							OnReorg?.Invoke(this, processedBlock);
-						}
-						Logger.LogCritical("A reorg detected over 100 blocks. Wasabi cannot handle that.");
-						break;
+						OnReorg?.Invoke(this, processedBlock);
 					}
-
-					// If we found the proper chain.
-					foundPrevBlock = ProcessedBlocks.FirstOrDefault(x => x.GetHash() == currentHeader.HashPrevBlock);
-					if (foundPrevBlock != null)
-					{
-						// If the last block hash is not what we found, then we missed a reorg also.
-						if (foundPrevBlock.GetHash() != ProcessedBlocks.Last().GetHash())
-						{
-							ReorgToBlock(foundPrevBlock);
-						}
-
-						break;
-					}
+					Logger.LogCritical("A reorg detected over 100 blocks. Wasabi cannot handle that.");
+					break;
 				}
 
-				missedBlocks.Reverse();
-				foreach (var b in missedBlocks)
+				// If we found the proper chain.
+				foundPrevBlock = ProcessedBlocks.FirstOrDefault(x => x.GetHash() == currentHeader.HashPrevBlock);
+				if (foundPrevBlock != null)
 				{
-					AddBlock(b);
-				}
+					// If the last block hash is not what we found, then we missed a reorg also.
+					if (foundPrevBlock.GetHash() != ProcessedBlocks.Last().GetHash())
+					{
+						ReorgToBlock(foundPrevBlock);
+					}
 
-				return bestBlockHash;
+					break;
+				}
 			}
+
+			missedBlocks.Reverse();
+			foreach (var b in missedBlocks)
+			{
+				AddBlock(b);
+			}
+
+			return bestBlockHash;
 		}
 
 		private void AddBlock(Block block)
