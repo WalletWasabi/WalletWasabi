@@ -9,95 +9,17 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.BlockFilters.History;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
 
-namespace WalletWasabi.Services
+namespace WalletWasabi.Blockchain.BlockFilters
 {
 	public class IndexBuilderService
 	{
-		private class ActionHistoryHelper
-		{
-			public enum Operation
-			{
-				Add,
-				Remove
-			}
-
-			private List<ActionItem> ActionHistory { get; }
-
-			public ActionHistoryHelper()
-			{
-				ActionHistory = new List<ActionItem>();
-			}
-
-			public class ActionItem
-			{
-				public Operation Action { get; }
-				public OutPoint OutPoint { get; }
-				public Script Script { get; }
-
-				public ActionItem(Operation action, OutPoint outPoint, Script script)
-				{
-					Action = action;
-					OutPoint = outPoint;
-					Script = script;
-				}
-			}
-
-			public void StoreAction(ActionItem actionItem)
-			{
-				ActionHistory.Add(actionItem);
-			}
-
-			public void StoreAction(Operation action, OutPoint outpoint, Script script)
-			{
-				StoreAction(new ActionItem(action, outpoint, script));
-			}
-
-			public void Rollback(Dictionary<OutPoint, Script> toRollBack)
-			{
-				for (var i = ActionHistory.Count - 1; i >= 0; i--)
-				{
-					ActionItem act = ActionHistory[i];
-					switch (act.Action)
-					{
-						case Operation.Add:
-							toRollBack.Remove(act.OutPoint);
-							break;
-
-						case Operation.Remove:
-							toRollBack.Add(act.OutPoint, act.Script);
-							break;
-
-						default:
-							throw new ArgumentOutOfRangeException();
-					}
-				}
-				ActionHistory.Clear();
-			}
-		}
-
-		private class SyncInfo
-		{
-			public BlockchainInfo BlockchainInfo { get; }
-			public int BlockCount { get; }
-			public DateTimeOffset BlockchainInfoUpdated { get; }
-			public bool IsCoreSynchornized { get; }
-
-			public SyncInfo(BlockchainInfo bcinfo)
-			{
-				Guard.NotNull(nameof(bcinfo), bcinfo);
-				BlockCount = (int)bcinfo.Blocks;
-				int headerCount = (int)bcinfo.Headers;
-				BlockchainInfoUpdated = DateTimeOffset.UtcNow;
-				IsCoreSynchornized = BlockCount == headerCount;
-			}
-		}
-
 		public RPCClient RpcClient { get; }
 		public BlockNotifier BlockNotifier { get; }
 		public string IndexFilePath { get; }
@@ -230,7 +152,7 @@ namespace WalletWasabi.Services
 								}
 
 								// If not synchronized or already 5 min passed since last update, get the latest blockchain info.
-								if (!syncInfo.IsCoreSynchornized || (syncInfo.BlockchainInfoUpdated - DateTimeOffset.UtcNow) > TimeSpan.FromMinutes(5))
+								if (!syncInfo.IsCoreSynchornized || syncInfo.BlockchainInfoUpdated - DateTimeOffset.UtcNow > TimeSpan.FromMinutes(5))
 								{
 									syncInfo = await GetSyncInfoAsync();
 								}
@@ -300,7 +222,7 @@ namespace WalletWasabi.Services
 											Bech32UtxoSet.Add(outpoint, output.ScriptPubKey);
 											if (isImmature)
 											{
-												Bech32UtxoSetHistory.Last().StoreAction(ActionHistoryHelper.Operation.Add, outpoint, output.ScriptPubKey);
+												Bech32UtxoSetHistory.Last().StoreAction(Operation.Add, outpoint, output.ScriptPubKey);
 											}
 											scripts.Add(output.ScriptPubKey);
 										}
@@ -314,7 +236,7 @@ namespace WalletWasabi.Services
 											Bech32UtxoSet.Remove(prevOut);
 											if (isImmature)
 											{
-												Bech32UtxoSetHistory.Last().StoreAction(ActionHistoryHelper.Operation.Remove, prevOut, foundScript);
+												Bech32UtxoSetHistory.Last().StoreAction(Operation.Remove, prevOut, foundScript);
 											}
 											scripts.Add(foundScript);
 										}
