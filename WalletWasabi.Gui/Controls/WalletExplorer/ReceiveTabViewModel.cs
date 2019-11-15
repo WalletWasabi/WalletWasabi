@@ -14,6 +14,7 @@ using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -34,7 +35,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> ToggleQrCode { get; }
 		public ReactiveCommand<Unit, Unit> ChangeLabelCommand { get; }
 		public ReactiveCommand<Unit, Unit> SaveQRCodeCommand { get; }
-		
+
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
 		{
@@ -132,7 +133,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SaveQRCodeCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				await SelectedAddress?.SaveQRCodeAsync();
+				try
+				{
+					await SelectedAddress?.SaveQRCodeAsync();
+				}
+				catch (Exception ex)
+				{
+					Logger.LogDebug(ex);
+				}
 			});
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();

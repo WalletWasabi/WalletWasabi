@@ -30,23 +30,22 @@ namespace WalletWasabi.Gui.Controls
 			this.WhenAnyValue(x => x.Matrix)
 				.Where(x => x != null)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Do(x => FinalMatrix = AddPaddingToMatrix(x))
-				.Subscribe();
+				.Subscribe(x => FinalMatrix = AddPaddingToMatrix(x));
 
 			this.WhenAnyValue(x => x.QRImageSavePath)
 				.Where(x => !string.IsNullOrWhiteSpace(x) || !string.IsNullOrEmpty(x))
 				.Where(x => !(FinalMatrix is null))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => GenerateQRCodeBitmap(x));
 		}
 
 		private void GenerateQRCodeBitmap(string x)
 		{
 			var pixSize = PixelSize.FromSize(CoercedSize, 1);
-			using (var rtb = new RenderTargetBitmap(pixSize))
-			{
-				rtb.Render(this);
-				rtb.Save(x);
-			}
+			using var rtb = new RenderTargetBitmap(pixSize);
+			
+			rtb.Render(this);
+			rtb.Save(x);
 		}
 
 		public static readonly DirectProperty<QrCode, string> QRImageSavePathProperty =
