@@ -25,6 +25,13 @@ namespace WalletWasabi.Blockchain.Transactions
 
 		public event EventHandler<SmartCoin> CoinReceived;
 
+		/// <summary>
+		/// Received a confirmed double spend transaction.
+		/// </summary>
+		public event EventHandler<DoubleSpendReceivedEventArgs> DoubleSpendReceived;
+
+		public event EventHandler<ReplaceTransactionReceivedEventArgs> ReplaceTransactionReceived;
+
 		public TransactionProcessor(
 			AllTransactionStore transactionStore,
 			KeyManager keyManager,
@@ -54,12 +61,17 @@ namespace WalletWasabi.Blockchain.Transactions
 					coin.Height = tx.Height;
 					walletRelevant = true; // relevant
 				}
+
+				if (walletRelevant)
+				{
+					TransactionStore.AddOrUpdate(tx);
+				}
 			}
 
-			if (!tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
+			if (!tx.Transaction.IsCoinBase && !walletRelevant) // Transactions we already have and processed would be "double spends" but they shouldn't.
 			{
 				var doubleSpends = new List<SmartCoin>();
-				foreach (SmartCoin coin in Coins)
+				foreach (SmartCoin coin in Coins.AsAllCoinsView())
 				{
 					var spent = false;
 					foreach (TxoRef spentOutput in coin.SpentOutputs)
@@ -96,12 +108,16 @@ namespace WalletWasabi.Blockchain.Transactions
 							// ones. After undoing the replaced transaction it will process the replacement
 							// transaction.
 							var replacedTxId = doubleSpends.First().TransactionId;
-							Coins.Undo(replacedTxId);
+							var (destroyed, restored) = Coins.Undo(replacedTxId);
+
+							ReplaceTransactionReceived?.Invoke(this, new ReplaceTransactionReceivedEventArgs(tx, destroyed, restored));
+
 							tx.SetReplacement();
 							walletRelevant = true;
 						}
 						else
 						{
+							DoubleSpendReceived?.Invoke(this, new DoubleSpendReceivedEventArgs(tx, Enumerable.Empty<SmartCoin>()));
 							return false;
 						}
 					}
@@ -112,6 +128,8 @@ namespace WalletWasabi.Blockchain.Transactions
 						{
 							Coins.Remove(doubleSpentCoin);
 						}
+
+						DoubleSpendReceived?.Invoke(this, new DoubleSpendReceivedEventArgs(tx, doubleSpends));
 						walletRelevant = true;
 					}
 				}
@@ -215,14 +233,14 @@ namespace WalletWasabi.Blockchain.Transactions
 				}
 			}
 
-			foreach (var newCoin in newCoins)
-			{
-				CoinReceived?.Invoke(this, newCoin);
-			}
-
 			if (walletRelevant)
 			{
 				TransactionStore.AddOrUpdate(tx);
+			}
+
+			foreach (var newCoin in newCoins)
+			{
+				CoinReceived?.Invoke(this, newCoin);
 			}
 
 			return walletRelevant;
@@ -230,7 +248,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 		public void UndoBlock(Height blockHeight)
 		{
-			Coins.RemoveFromBlock(blockHeight);
+			Coins.SwitchToUnconfirmFromBlock(blockHeight);
 		}
 	}
 }

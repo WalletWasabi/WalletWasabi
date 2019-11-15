@@ -314,6 +314,73 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.False(txStore.TryGetTransaction(txHash, out _));
 		}
 
+		[Fact]
+		public async Task ReorgAsync()
+		{
+			PrepareTestEnv(out string dir,
+				out Network network,
+				out string mempoolFile,
+				out string txFile,
+				out SmartTransaction uTx1,
+				out SmartTransaction uTx2,
+				out SmartTransaction uTx3,
+				out SmartTransaction cTx1,
+				out SmartTransaction cTx2,
+				out SmartTransaction cTx3);
+
+			// Duplication is resolved with labels merged.
+			var mempoolFileContent = new[]
+			{
+				uTx1.ToLine(),
+				uTx2.ToLine(),
+				uTx3.ToLine(),
+			};
+			var txFileContent = new[]
+			{
+				cTx2.ToLine(),
+				cTx3.ToLine()
+			};
+			await File.WriteAllLinesAsync(mempoolFile, mempoolFileContent);
+			await File.WriteAllLinesAsync(txFile, txFileContent);
+
+			var txStore = new AllTransactionStore();
+			await txStore.InitializeAsync(dir, network, ensureBackwardsCompatibility: false);
+
+			// Two transactions are in the mempool store and unconfirmed.
+			Assert.True(txStore.MempoolStore.TryGetTransaction(uTx1.GetHash(), out SmartTransaction myUnconfirmedTx1));
+			Assert.False(myUnconfirmedTx1.Confirmed);
+			Assert.True(txStore.MempoolStore.TryGetTransaction(uTx2.GetHash(), out SmartTransaction myUnconfirmedTx2));
+			Assert.False(myUnconfirmedTx2.Confirmed);
+
+			// Create the same transaction but now with a Height to make it confirmed.
+			const int reorgedBlockHeight = 34532;
+			uint256 reorgedBlockHash = new uint256(5);
+
+			var tx1Confirmed = new SmartTransaction(uTx1.Transaction, new Height(reorgedBlockHeight), blockHash: reorgedBlockHash, label: "buz, qux");
+			var tx2Confirmed = new SmartTransaction(uTx2.Transaction, new Height(reorgedBlockHeight), blockHash: reorgedBlockHash, label: "buz, qux");
+			Assert.True(txStore.TryUpdate(tx1Confirmed));
+			Assert.True(txStore.TryUpdate(tx2Confirmed));
+
+			// Two transactions are in the ConfirmedStore store and confirmed.
+			Assert.True(txStore.ConfirmedStore.TryGetTransaction(uTx1.GetHash(), out SmartTransaction mytx1));
+			Assert.False(txStore.MempoolStore.TryGetTransaction(uTx1.GetHash(), out _));
+			Assert.True(mytx1.Confirmed);
+			Assert.True(txStore.ConfirmedStore.TryGetTransaction(uTx2.GetHash(), out SmartTransaction mytx2));
+			Assert.False(txStore.MempoolStore.TryGetTransaction(uTx2.GetHash(), out _));
+			Assert.True(mytx2.Confirmed);
+
+			// Now reorg.
+			txStore.TryReorg(reorgedBlockHash);
+
+			// Two transactions are in the mempool store and unconfirmed.
+			Assert.True(txStore.MempoolStore.TryGetTransaction(uTx1.GetHash(), out SmartTransaction myReorgedTx1));
+			Assert.False(txStore.ConfirmedStore.TryGetTransaction(uTx1.GetHash(), out _));
+			Assert.False(myReorgedTx1.Confirmed);
+			Assert.True(txStore.MempoolStore.TryGetTransaction(uTx2.GetHash(), out SmartTransaction myReorgedTx2));
+			Assert.False(txStore.ConfirmedStore.TryGetTransaction(uTx2.GetHash(), out _));
+			Assert.False(myReorgedTx2.Confirmed);
+		}
+
 		#region Helpers
 
 		private void PrepareTestEnv(out string dir, out Network network, out string mempoolFile, out string txFile, out SmartTransaction uTx1, out SmartTransaction uTx2, out SmartTransaction uTx3, out SmartTransaction cTx1, out SmartTransaction cTx2, out SmartTransaction cTx3, [CallerMemberName] string caller = null)

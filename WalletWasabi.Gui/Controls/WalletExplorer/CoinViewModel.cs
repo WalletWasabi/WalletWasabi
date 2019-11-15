@@ -196,10 +196,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return SmartCoinStatus.MixingBanned;
 			}
 
-			ClientState clientState = Global.ChaumianClient.State;
-
-			if (Model.CoinJoinInProgress)
+			if (Model.CoinJoinInProgress && Global.ChaumianClient != null)
 			{
+				ClientState clientState = Global.ChaumianClient.State;
 				foreach (long roundId in clientState.GetAllMixingRounds())
 				{
 					ClientRound round = clientState.GetSingleOrDefaultRound(roundId);

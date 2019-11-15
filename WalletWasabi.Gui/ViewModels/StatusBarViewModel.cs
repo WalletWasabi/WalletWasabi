@@ -136,7 +136,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(tup =>
 				{
-					(int filtersLeft, bool downloadingBlock) = tup.ToValueTuple();
+					(int filtersLeft, bool downloadingBlock) = tup;
 					if (filtersLeft == 0 && !downloadingBlock)
 					{
 						TryRemoveStatus(StatusBarStatus.Synchronizing);
@@ -151,7 +151,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(tup =>
 				{
-					(TorStatus tor, BackendStatus backend, int peers) = tup.ToValueTuple();
+					(TorStatus tor, BackendStatus backend, int peers) = tup;
 					if (tor == TorStatus.NotRunning || backend != BackendStatus.Connected || peers < 1)
 					{
 						TryAddStatus(StatusBarStatus.Connecting);
@@ -199,7 +199,7 @@ namespace WalletWasabi.Gui.ViewModels
 					Logger.LogWarning(ex);
 					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
 				}
-			});
+			}, this.WhenAnyValue(x => x.UpdateAvailable, x => x.CriticalUpdateAvailable, (x, y) => x || y));
 
 			this.RaisePropertyChanged(nameof(UpdateCommand)); // The binding happens after the constructor. So, if the command is not in constructor, then we need this line.
 

@@ -69,12 +69,6 @@ namespace WalletWasabi.Gui.ViewModels
 		public MainWindowViewModel()
 		{
 			Shell = IoC.Get<IShell>();
-
-#pragma warning disable IDE0053 // Use expression body for lambda expressions
-			LockScreenCommand = ReactiveCommand.Create(() => { Global.UiConfig.LockScreenActive = true; });
-#pragma warning restore IDE0053 // Use expression body for lambda expressions
-
-			LockScreenCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
 		}
 
 		public IShell Shell { get; }

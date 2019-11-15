@@ -1,35 +1,34 @@
 ﻿<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:cont="clr-namespace:AvalonStudio.Controls;assembly=AvalonStudio.Shell.Extensibility"
              xmlns:id="clr-namespace:Dock.Model;assembly=Dock.Model"
-             xmlns:Views="clr-namespace:AvaloniaDemo.ViewModels.Views;assembly=AvalonStudio.Shell">
+             xmlns:Views="clr-namespace:AvaloniaDemo.ViewModels.Views;assembly=AvalonStudio.Shell"
+             x:Class="WalletWasabi.Gui.App">
   <Application.Styles>
-    <StyleInclude Source="resm:Avalonia.Themes.Default.DefaultTheme.xaml?assembly=Avalonia.Themes.Default" />
-    <StyleInclude Source="resm:Avalonia.Themes.Default.Accents.BaseLight.xaml?assembly=Avalonia.Themes.Default" />
-    <StyleInclude Source="resm:AvalonStudio.Shell.Themes.BaseDark.xaml?assembly=AvalonStudio.Shell" />
-    <StyleInclude Source="resm:AvalonStudio.Shell.Themes.Theme.xaml?assembly=AvalonStudio.Shell" />
-    <StyleInclude Source="resm:AvalonStudio.Shell.Themes.Accents.DarkAccent.xaml?assembly=AvalonStudio.Shell" />
-    <StyleInclude Source="resm:AvalonStudio.Shell.Icons.Icons.xaml?assembly=AvalonStudio.Shell" />
-    <StyleInclude Source="resm:AvalonStudio.Shell.Controls.MetroWindowTheme.paml?assembly=AvalonStudio.Shell" />
-    <StyleInclude Source="resm:AvalonStudio.Shell.Extensibility.Controls.ControlTheme.paml?assembly=AvalonStudio.Shell.Extensibility" />
-    <StyleInclude Source="resm:AvalonStudio.Shell.Styles.GlobalStyles.xaml?assembly=AvalonStudio.Shell" />
-    <StyleInclude Source="avares://Dock.Avalonia/Controls/DockPanelSplitter.xaml" />
-    <StyleInclude Source="avares://Dock.Avalonia/Controls/DockTarget.xaml" />
-    <StyleInclude Source="avares://Dock.Avalonia/Controls/DockToolChrome.xaml" />
-    <StyleInclude Source="avares://Dock.Avalonia/Controls/MetroWindow.xaml" />
-    <StyleInclude Source="resm:WalletWasabi.Gui.Controls.GroupBox.xaml?assembly=WalletWasabi.Gui" />
-    <StyleInclude Source="resm:WalletWasabi.Gui.Styles.Styles.xaml?assembly=WalletWasabi.Gui" />
-    <StyleInclude Source="resm:WalletWasabi.Gui.Icons.Icons.xaml?assembly=WalletWasabi.Gui" />
-    <StyleInclude Source="resm:WalletWasabi.Gui.Controls.TogglePasswordBox.xaml?assembly=WalletWasabi.Gui" />
-    <StyleInclude Source="resm:WalletWasabi.Gui.Controls.MultiTextBox.xaml?assembly=WalletWasabi.Gui" />
-    <StyleInclude Source="resm:WalletWasabi.Gui.Controls.EditableTextBlock.xaml?assembly=WalletWasabi.Gui" />
+    <StyleInclude Source="avares://Avalonia.Themes.Default/DefaultTheme.xaml"/>
+    <StyleInclude Source="avares://AvalonStudio.Shell/Themes/BaseDark.xaml"/>
+    <StyleInclude Source="avares://AvalonStudio.Shell/Themes/Accents/DarkAccent.xaml"/>
+    <StyleInclude Source="avares://AvalonStudio.Shell/Icons/Icons.xaml"/>
+    <StyleInclude Source="avares://AvalonStudio.Shell/Controls/MetroWindowTheme.paml" />
+    <StyleInclude Source="avares://AvalonStudio.Shell.Extensibility/Controls/ControlTheme.paml" />
+    <StyleInclude Source="avares://AvalonStudio.Shell/Styles/GlobalStyles.xaml" />
+    <StyleInclude Source="avares://Dock.Avalonia.Themes.Default/DefaultTheme.xaml"/>
+    <StyleInclude Source="avares://Dock.Avalonia.Themes.Metro/DefaultTheme.xaml"/>
+    <StyleInclude Source="avares://WalletWasabi.Gui/Controls/GroupBox.xaml" />
+    <StyleInclude Source="avares://WalletWasabi.Gui/Controls/TogglePasswordBox.xaml" />
+    <StyleInclude Source="avares://WalletWasabi.Gui/Controls/MultiTextBox.xaml" />
+    <StyleInclude Source="avares://WalletWasabi.Gui/Controls/EditableTextBlock.xaml" />
+	<StyleInclude Source="avares://WalletWasabi.Gui/Controls/Shields.xaml" />
+    <StyleInclude Source="avares://WalletWasabi.Gui/Styles/Styles.xaml" />
+    <StyleInclude Source="avares://WalletWasabi.Gui/Icons/Icons.xaml" />
   </Application.Styles>
   <Application.DataTemplates>
     <DataTemplate DataType="Views:MainView">
       <Grid>
-        <ContentControl Content="{Binding CurrentView}" />
+        <ContentControl Content="{Binding ActiveDockable}" />
       </Grid>
     </DataTemplate>
-    <DataTemplate DataType="id:IView">
+    <DataTemplate DataType="id:IDockable">
       <cont:ViewModelViewHost DataContext="{Binding Context}" />
     </DataTemplate>
   </Application.DataTemplates>
