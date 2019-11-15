@@ -156,7 +156,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				try
 				{
-					await SelectedAddress?.SaveQRCodeAsync();
+					if (SelectedAddress != null)
+					{
+						await SelectedAddress.SaveQRCodeAsync();
+					}
 				}
 				catch (Exception ex)
 				{

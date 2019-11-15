@@ -8,6 +8,7 @@ using ReactiveUI;
 using System;
 using System.Reactive.Linq;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls
 {
@@ -34,18 +35,25 @@ namespace WalletWasabi.Gui.Controls
 
 			this.WhenAnyValue(x => x.QRImageSavePath)
 				.Where(x => !string.IsNullOrWhiteSpace(x) || !string.IsNullOrEmpty(x))
-				.Where(x => !(FinalMatrix is null))
+				.Where(x => FinalMatrix != null)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => GenerateQRCodeBitmap(x));
 		}
 
 		private void GenerateQRCodeBitmap(string x)
 		{
-			var pixSize = PixelSize.FromSize(CoercedSize, 1);
-			using var rtb = new RenderTargetBitmap(pixSize);
-			
-			rtb.Render(this);
-			rtb.Save(x);
+			try
+			{
+				var pixSize = PixelSize.FromSize(CoercedSize, 1);
+				using var rtb = new RenderTargetBitmap(pixSize);
+
+				rtb.Render(this);
+				rtb.Save(x);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogDebug(ex);
+			}
 		}
 
 		public static readonly DirectProperty<QrCode, string> QRImageSavePathProperty =
