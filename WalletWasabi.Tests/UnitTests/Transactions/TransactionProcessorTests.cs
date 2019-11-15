@@ -103,9 +103,10 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Single(transactionProcessor.Coins);
 			Assert.True(transactionProcessor.TransactionStore.MempoolStore.IsEmpty());
 			cachedTx = Assert.Single(transactionProcessor.TransactionStore.ConfirmedStore.GetTransactions());
-			Assert.NotEqual(Height.Mempool, cachedTx.Height);
+			Assert.Equal(blockHeight, cachedTx.Height);
 			coin = Assert.Single(transactionProcessor.Coins);
 			Assert.Equal(blockHeight, coin.Height);
+			Assert.True(coin.Confirmed);
 		}
 
 		[Fact]
@@ -244,12 +245,14 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			tx = CreateSpendingTransaction(createdCoin, transactionProcessor.NewKey("E").P2wpkhScript);
 			tx.Transaction.Outputs[0].Value = Money.Coins(0.9m);
 			relevant = transactionProcessor.Process(tx);
-			Assert.Equal(1, replaceTransactionReceivedCalled);
 
 			Assert.True(relevant);
+			Assert.Equal(1, replaceTransactionReceivedCalled);
 			var finalCoin = Assert.Single(transactionProcessor.Coins);
 			Assert.True(finalCoin.IsReplaceable);
 			Assert.Equal("E", finalCoin.HdPubKey.Label);
+
+			Assert.False(transactionProcessor.Coins.AsAllCoinsView().Contains(unconfirmedCoin1));
 		}
 
 		[Fact]
