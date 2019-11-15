@@ -178,6 +178,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				var reorgedHeaders = (await reorgEventsAwaiter.WaitAsync(TimeSpan.FromSeconds(21))).ToArray();
 				var newBlocks = (await blockEventsAwaiter.WaitAsync(TimeSpan.FromSeconds(21))).ToArray();
 
+				reorgedHashes = reorgedHashes.Reverse().ToArray();
 				for (int i = 0; i < reorgedHashes.Length; i++)
 				{
 					var expected = reorgedHashes[i];

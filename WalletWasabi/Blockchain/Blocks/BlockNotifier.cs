@@ -100,9 +100,10 @@ namespace WalletWasabi.Blockchain.Blocks
 
 				if (missedBlocks.Count > 100)
 				{
-					var processedBlocksClone = ProcessedBlocks.ToList();
+					var processedBlocksClone = ProcessedBlocks.ToArray();
+					var processedReversedBlocks = processedBlocksClone.Reverse();
 					ProcessedBlocks.Clear();
-					foreach (var processedBlock in processedBlocksClone)
+					foreach (var processedBlock in processedReversedBlocks)
 					{
 						OnReorg?.Invoke(this, processedBlock);
 					}
@@ -145,6 +146,7 @@ namespace WalletWasabi.Blockchain.Blocks
 			int countToRemove = ProcessedBlocks.Count - (index + 1);
 			var toRemoves = ProcessedBlocks.TakeLast(countToRemove).ToList();
 			ProcessedBlocks.RemoveRange(index + 1, countToRemove);
+			toRemoves.Reverse();
 			foreach (var toRemove in toRemoves)
 			{
 				OnReorg?.Invoke(this, toRemove);
