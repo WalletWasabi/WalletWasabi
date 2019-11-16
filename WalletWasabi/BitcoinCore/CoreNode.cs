@@ -219,7 +219,7 @@ namespace WalletWasabi.BitcoinCore
 		{
 			var isConnected = node.IsConnected;
 			var trustedNodeMode = MempoolService.TrustedNodeMode;
-			if (isConnected != trustedNodeMode)
+			if (trustedNodeMode != isConnected)
 			{
 				MempoolService.TrustedNodeMode = isConnected;
 				Logger.LogInfo($"CoreNode connection state changed. Triggered {nameof(MempoolService)}.{nameof(MempoolService.TrustedNodeMode)} to be {MempoolService.TrustedNodeMode}");
