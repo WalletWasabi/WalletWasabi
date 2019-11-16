@@ -14,6 +14,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
@@ -91,7 +92,7 @@ namespace WalletWasabi.Services
 			string workFolderDir,
 			ServiceConfiguration serviceConfiguration,
 			IFeeProvider feeProvider,
-			RPCClient rpcClient = null)
+			CoreNode coreNode = null)
 		{
 			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
@@ -100,7 +101,7 @@ namespace WalletWasabi.Services
 			ChaumianClient = Guard.NotNull(nameof(chaumianClient), chaumianClient);
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 			FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
-			RpcClient = rpcClient;
+			CoreNode = coreNode;
 
 			ProcessedBlocks = new ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)>();
 			HandleFiltersLock = new AsyncLock();
@@ -574,7 +575,7 @@ namespace WalletWasabi.Services
 
 		private async Task<Block> TryDownloadBlockFromLocalNodeAsync(uint256 hash, CancellationToken cancel)
 		{
-			if (RpcClient is null)
+			if (CoreNode?.RpcClient is null)
 			{
 				try
 				{
@@ -663,7 +664,7 @@ namespace WalletWasabi.Services
 			{
 				try
 				{
-					var block = await RpcClient.GetBlockAsync(hash);
+					var block = await CoreNode.RpcClient.GetBlockAsync(hash);
 					Logger.LogInfo($"Block acquired from RPC connection: {hash}.");
 					return block;
 				}
@@ -844,7 +845,7 @@ namespace WalletWasabi.Services
 
 		public bool IsDisposed => _disposedValue;
 
-		public RPCClient RpcClient { get; }
+		public CoreNode CoreNode { get; }
 
 		protected virtual void Dispose(bool disposing)
 		{
