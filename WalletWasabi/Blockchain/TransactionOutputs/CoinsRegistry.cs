@@ -104,9 +104,12 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 				var coinsToRemove = DescendantOfAndSelfNoLock(coin);
 				foreach (var toRemove in coinsToRemove)
 				{
-					if (Coins.Remove(toRemove))
+					if (!Coins.Remove(toRemove))
 					{
-						//Clusters.Remove(toRemove);
+						if (SpentCoins.Remove(toRemove))
+						{
+							//Clusters.Remove(toRemove);
+						}
 					}
 				}
 				InvalidateSnapshot = true;

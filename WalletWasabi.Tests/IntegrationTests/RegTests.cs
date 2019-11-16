@@ -1597,13 +1597,15 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				// Get some money, make it confirm.
 				// this is necesary because we are in a fork now.
-				var tx0Id = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m),
+				var receiveWaiter = new EventAwaiter<SmartCoin>(
+					h => wallet.TransactionProcessor.CoinReceived += h,
+					h => wallet.TransactionProcessor.CoinReceived -= h);
+				var tx0Id = await rpc.SendToAddressAsync(
+					key.GetP2wpkhAddress(network),
+					Money.Coins(1m),
 					replaceable: true);
-				while (wallet.Coins.Count() == 0)
-				{
-					await Task.Delay(500); // Waits for the funding transaction get to the mempool.
-				}
-
+				var receivedCoin = await receiveWaiter.WaitAsync(TimeSpan.FromSeconds(21));
+				Assert.Equal(tx0Id, receivedCoin.TransactionId);
 				Assert.Single(wallet.Coins);
 
 				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, rpc);
@@ -1620,12 +1622,17 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// Spend the unconfirmed coin (send it to ourself)
 				operations = new PaymentIntent(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m));
 				tx1Res = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
+				receiveWaiter = new EventAwaiter<SmartCoin>(
+					h => wallet.TransactionProcessor.CoinReceived += h,
+					h => wallet.TransactionProcessor.CoinReceived -= h);
+				var spendWaiter = new EventAwaiter<SmartCoin>(
+					h => wallet.TransactionProcessor.CoinSpent += h,
+					h => wallet.TransactionProcessor.CoinSpent -= h);
 				await broadcaster.SendTransactionAsync(tx1Res.Transaction);
-
-				while (wallet.Coins.Count() != 2)
-				{
-					await Task.Delay(500); // Waits for the funding transaction get to the mempool.
-				}
+				var spentCoin = await spendWaiter.WaitAsync(TimeSpan.FromSeconds(21));
+				Assert.Equal(tx0Id, spentCoin.TransactionId);
+				receivedCoin = await receiveWaiter.WaitAsync(TimeSpan.FromSeconds(21));
+				Assert.Equal(tx1Res.Transaction.GetHash(), receivedCoin.TransactionId);
 
 				// There is a coin created by the latest spending transaction
 				Assert.Contains(wallet.Coins, x => x.TransactionId == tx1Res.Transaction.GetHash());
@@ -1643,19 +1650,28 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// Spend the unconfirmed and unspent coin (send it to ourself)
 				operations = new PaymentIntent(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m), subtractFee: true);
 				var tx2Res = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
-				await broadcaster.SendTransactionAsync(tx2Res.Transaction);
 
-				while (wallet.Coins.Count() != 2)
-				{
-					await Task.Delay(500); // Waits for the transaction get to the mempool.
-				}
+				var receivesWaiter = new EventsAwaiter<SmartCoin>(
+								h => wallet.TransactionProcessor.CoinReceived += h,
+								h => wallet.TransactionProcessor.CoinReceived -= h,
+								2);
+				spendWaiter = new EventAwaiter<SmartCoin>(
+					h => wallet.TransactionProcessor.CoinSpent += h,
+					h => wallet.TransactionProcessor.CoinSpent -= h);
+				await broadcaster.SendTransactionAsync(tx2Res.Transaction);
+				spentCoin = await spendWaiter.WaitAsync(TimeSpan.FromSeconds(21));
+				Assert.Equal(tx1Res.Transaction.GetHash(), spentCoin.TransactionId);
+				var receivedCoins = (await receivesWaiter.WaitAsync(TimeSpan.FromSeconds(21))).ToArray();
+				uint256 tx2Hash = tx2Res.Transaction.GetHash();
+				Assert.Equal(tx2Hash, receivedCoins[0].TransactionId);
+				Assert.Equal(tx2Hash, receivedCoins[1].TransactionId);
 
 				// There is a coin created by the latest spending transaction
 				Assert.Contains(wallet.Coins, x => x.TransactionId == tx2Res.Transaction.GetHash());
 
 				// There is a coin destroyed
 				allCoins = wallet.TransactionProcessor.Coins.AsAllCoinsView();
-				Assert.Equal(1, allCoins.Count(x => x.Unavailable && x.SpenderTransactionId == tx2Res.Transaction.GetHash()));
+				Assert.Equal(2, allCoins.Count(x => x.Unavailable && x.SpenderTransactionId == tx2Hash));
 
 				// There is at least one coin created from the destruction of the first coin
 				Assert.Contains(wallet.Coins, x => x.SpentOutputs.Any(o => o.TransactionId == tx1Res.Transaction.GetHash()));
