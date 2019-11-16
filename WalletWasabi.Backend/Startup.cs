@@ -75,14 +75,15 @@ namespace WalletWasabi.Backend
 		{
 			app.UseStaticFiles();
 
-			app.UseRouting();
-
-			app.UseAuthorization();
 			// Enable middleware to serve generated Swagger as a JSON endpoint.
 			app.UseSwagger();
 
 			// Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
 			app.UseSwaggerUI(c => c.SwaggerEndpoint($"/swagger/v{Constants.BackendMajorVersion}/swagger.json", "Wasabi Wallet API V3"));
+
+			app.UseRouting();
+
+			app.UseAuthorization();
 
 			// So to correctly handle HEAD requests.
 			// https://www.tpeczek.com/2017/10/exploring-head-method-behavior-in.html
@@ -90,6 +91,8 @@ namespace WalletWasabi.Backend
 			app.UseMiddleware<HeadMethodMiddleware>();
 
 			app.UseResponseCompression();
+
+			app.UseEndpoints(endpoints => endpoints.MapControllers());
 
 			var applicationLifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
 			applicationLifetime.ApplicationStopping.Register(() => OnShutdown(global)); // Don't register async, that won't hold up the shutdown
