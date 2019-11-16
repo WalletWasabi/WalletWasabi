@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using Swashbuckle.AspNetCore.Swagger;
@@ -73,6 +74,9 @@ namespace WalletWasabi.Backend
 		{
 			app.UseStaticFiles();
 
+			app.UseRouting();
+
+			app.UseAuthorization();
 			// Enable middleware to serve generated Swagger as a JSON endpoint.
 			app.UseSwagger();
 
@@ -86,11 +90,7 @@ namespace WalletWasabi.Backend
 
 			app.UseResponseCompression();
 
-			app.UseRouting();
-
-			app.UseAuthorization();
-
-			var applicationLifetime = app.ApplicationServices.GetRequiredService<IApplicationLifetime>();
+			var applicationLifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
 			applicationLifetime.ApplicationStopping.Register(() => OnShutdown(global)); // Don't register async, that won't hold up the shutdown
 		}
 
