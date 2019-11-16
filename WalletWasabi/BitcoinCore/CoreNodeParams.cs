@@ -3,7 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using WalletWasabi.BitcoinCore.Endpointing;
+using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Helpers;
+using WalletWasabi.Stores;
 
 namespace WalletWasabi.BitcoinCore
 {
@@ -11,6 +13,7 @@ namespace WalletWasabi.BitcoinCore
 	{
 		public CoreNodeParams(
 			Network network,
+			MempoolService mempoolService,
 			string dataDir,
 			bool tryRestart,
 			bool tryDeleteDataDir,
@@ -20,6 +23,7 @@ namespace WalletWasabi.BitcoinCore
 			int? prune)
 		{
 			Network = Guard.NotNull(nameof(network), network);
+			MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
 			DataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 			TryRestart = tryRestart;
 			TryDeleteDataDir = tryDeleteDataDir;
@@ -31,6 +35,7 @@ namespace WalletWasabi.BitcoinCore
 
 		public string DataDir { get; }
 		public Network Network { get; }
+		public MempoolService MempoolService { get; }
 		public bool TryRestart { get; }
 		public bool TryDeleteDataDir { get; }
 		public int? TxIndex { get; }

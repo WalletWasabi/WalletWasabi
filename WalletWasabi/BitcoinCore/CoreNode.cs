@@ -17,9 +17,11 @@ using WalletWasabi.BitcoinCore.Configuration;
 using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.BitcoinCore.Processes;
 using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
+using WalletWasabi.Stores;
 
 namespace WalletWasabi.BitcoinCore
 {
@@ -31,6 +33,7 @@ namespace WalletWasabi.BitcoinCore
 		private BitcoindRpcProcessBridge Bridge { get; set; }
 		public string DataDir { get; private set; }
 		public Network Network { get; private set; }
+		public MempoolService MempoolService { get; private set; }
 
 		public CoreConfig Config { get; private set; }
 		public TrustedNodeNotifyingBehavior TrustedNodeNotifyingBehavior => P2pNode.Behaviors.Find<TrustedNodeNotifyingBehavior>();
@@ -45,6 +48,7 @@ namespace WalletWasabi.BitcoinCore
 				var coreNode = new CoreNode();
 				coreNode.DataDir = coreNodeParams.DataDir;
 				coreNode.Network = coreNodeParams.Network;
+				coreNode.MempoolService = coreNodeParams.MempoolService;
 
 				var configPath = Path.Combine(coreNode.DataDir, "bitcoin.conf");
 				coreNode.Config = new CoreConfig();
@@ -194,14 +198,32 @@ namespace WalletWasabi.BitcoinCore
 					IsRelay = true
 				};
 
-				nodeConnectionParameters.TemplateBehaviors.Add(new TrustedNodeNotifyingBehavior());
+				nodeConnectionParameters.TemplateBehaviors.Add(new TrustedNodeNotifyingBehavior(coreNode.MempoolService));
 				coreNode.P2pNode = await Node.ConnectAsync(coreNode.Network, coreNode.P2pEndPoint, nodeConnectionParameters).ConfigureAwait(false);
 				coreNode.P2pNode.VersionHandshake();
+				coreNode.P2pNode.StateChanged += coreNode.P2pNode_StateChanged;
+				coreNode.P2pNodeStateChangedSubscribed = true;
 
 				coreNode.BlockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.TrustedNodeNotifyingBehavior);
 				coreNode.BlockNotifier.Start();
 
 				return coreNode;
+			}
+		}
+
+		private bool P2pNodeStateChangedSubscribed { get; set; }
+
+		private void P2pNode_StateChanged(Node node, NodeState oldState)
+		{
+			if (node.IsConnected)
+			{
+				Logger.LogInfo("Local node got connected. Turned on trusted mempool mode.");
+				MempoolService.TrustedNodeMode = true;
+			}
+			else
+			{
+				Logger.LogInfo("Local node isn't connected. Turned off trusted mempool mode.");
+				MempoolService.TrustedNodeMode = false;
 			}
 		}
 
@@ -235,14 +257,58 @@ namespace WalletWasabi.BitcoinCore
 			return await Task.WhenAll(tasks).ConfigureAwait(false);
 		}
 
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		public async Task DisposeAsync()
+		{
+			if (!_disposedValue)
+			{
+				if (BlockNotifier != null)
+				{
+					await BlockNotifier.StopAsync().ConfigureAwait(false);
+				}
+
+				if (P2pNodeStateChangedSubscribed)
+				{
+					P2pNode.StateChanged -= P2pNode_StateChanged;
+				}
+
+				if (P2pNode != null)
+				{
+					try
+					{
+						P2pNode?.Disconnect();
+					}
+					catch (Exception ex)
+					{
+						Logger.LogDebug(ex);
+					}
+					finally
+					{
+						try
+						{
+							P2pNode?.Dispose();
+						}
+						catch (Exception ex)
+						{
+							Logger.LogDebug(ex);
+						}
+						finally
+						{
+							P2pNode = null;
+							Logger.LogInfo("P2p Bitcoin node is disconnected.");
+						}
+					}
+				}
+				_disposedValue = true;
+			}
+		}
+
 		/// <param name="onlyOwned">Only stop if this node owns the process.</param>
 		public async Task<bool> TryStopAsync(bool onlyOwned = true)
 		{
-			if (BlockNotifier != null)
-			{
-				await BlockNotifier.StopAsync().ConfigureAwait(false);
-			}
-			DisconnectDisposeNullP2pNode();
+			await DisposeAsync().ConfigureAwait(false);
+
 			Exception exThrown = null;
 
 			BitcoindRpcProcessBridge bridge = null;
@@ -279,37 +345,6 @@ namespace WalletWasabi.BitcoinCore
 				Logger.LogWarning(exThrown);
 			}
 			return false;
-		}
-
-		public void DisconnectDisposeNullP2pNode()
-		{
-			if (P2pNode != null)
-			{
-				try
-				{
-					P2pNode?.Disconnect();
-				}
-				catch (Exception ex)
-				{
-					Logger.LogDebug(ex);
-				}
-				finally
-				{
-					try
-					{
-						P2pNode?.Dispose();
-					}
-					catch (Exception ex)
-					{
-						Logger.LogDebug(ex);
-					}
-					finally
-					{
-						P2pNode = null;
-						Logger.LogInfo("P2p Bitcoin node is disconnected.");
-					}
-				}
-			}
 		}
 	}
 }

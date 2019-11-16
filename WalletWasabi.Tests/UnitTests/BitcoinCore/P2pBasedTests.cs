@@ -25,13 +25,13 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			using var node = await coreNode.CreateNewP2pNodeAsync();
 			try
 			{
+				var network = coreNode.Network;
 				var rpc = coreNode.RpcClient;
-				await rpc.GenerateAsync(101);
-				var network = rpc.Network;
 				var bitcoinStore = new BitcoinStore();
-
 				var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
 				await bitcoinStore.InitializeAsync(dir, network);
+
+				await rpc.GenerateAsync(101);
 
 				node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
 				node.VersionHandshake();
@@ -81,17 +81,12 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
 
 				var addr = new Key().PubKey.GetSegwitAddress(network);
-				var notifier = coreNode.TrustedNodeNotifyingBehavior;
+				var notifier = coreNode.MempoolService;
 
 				var txNum = 10;
-				var txInvEventAwaiter = new EventsAwaiter<uint256>(
-					h => notifier.TransactionInv += h,
-					h => notifier.TransactionInv -= h,
-					txNum);
-
 				var txEventAwaiter = new EventsAwaiter<SmartTransaction>(
-					h => notifier.Transaction += h,
-					h => notifier.Transaction -= h,
+					h => notifier.TransactionReceived += h,
+					h => notifier.TransactionReceived -= h,
 					txNum);
 
 				var txTasks = new List<Task<uint256>>();
@@ -102,16 +97,10 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				}
 				var batchTask = batch.SendBatchAsync();
 
-				var aht = txInvEventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
 				var arrivedTxs = await txEventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
-				var arrivedHashes = await aht;
 
 				await batchTask;
 				var hashes = await Task.WhenAll(txTasks);
-				foreach (var hash in arrivedHashes)
-				{
-					Assert.Contains(hash, hashes);
-				}
 				foreach (var hash in arrivedTxs.Select(x => x.GetHash()))
 				{
 					Assert.Contains(hash, hashes);

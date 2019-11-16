@@ -51,6 +51,14 @@ namespace WalletWasabi.Blockchain.Transactions
 			}
 		}
 
+		public void ConfirmPropagationForGood()
+		{
+			lock (Lock)
+			{
+				PropagationConfirmations = 21;
+			}
+		}
+
 		public int GetPropagationConfirmations()
 		{
 			lock (Lock)

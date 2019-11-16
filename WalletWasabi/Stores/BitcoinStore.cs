@@ -19,7 +19,7 @@ namespace WalletWasabi.Stores
 	{
 		public bool IsInitialized { get; private set; }
 		private string WorkFolderPath { get; set; }
-		private Network Network { get; set; }
+		public Network Network { get; private set; }
 
 		public IndexStore IndexStore { get; private set; }
 		public AllTransactionStore TransactionStore { get; private set; }

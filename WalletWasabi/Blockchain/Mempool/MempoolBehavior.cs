@@ -40,7 +40,7 @@ namespace WalletWasabi.Blockchain.Mempool
 				{
 					await ProcessGetDataAsync(node, getDataPayload).ConfigureAwait(false);
 				}
-				else if (message.Message.Payload is TxPayload txPayload)
+				else if (message.Message.Payload is TxPayload txPayload && !MempoolService.TrustedNodeMode)
 				{
 					ProcessTx(txPayload);
 				}
@@ -127,8 +127,8 @@ namespace WalletWasabi.Blockchain.Mempool
 					}
 				}
 
-				// if we already processed it continue;
-				if (MempoolService.IsProcessed(inv.Hash))
+				// if we already processed it or we're in trusted node mode, then don't ask for it;
+				if (MempoolService.TrustedNodeMode || MempoolService.IsProcessed(inv.Hash))
 				{
 					continue;
 				}

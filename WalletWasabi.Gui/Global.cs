@@ -159,24 +159,6 @@ namespace WalletWasabi.Gui
 			BitcoinStore = new BitcoinStore();
 			var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
 			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
-			Task<CoreNode> bitcoinCoreNodeInitTask;
-			if (Config.StartLocalBitcoinCoreOnStartup)
-			{
-				bitcoinCoreNodeInitTask = CoreNode
-					.CreateAsync(new CoreNodeParams(
-						Network,
-						Config.LocalBitcoinCoreDataDir,
-						tryRestart: false,
-						tryDeleteDataDir: false,
-						EndPointStrategy.Custom(Config.GetBitcoinP2pEndPoint()),
-						EndPointStrategy.Default(Network, EndPointType.Rpc),
-						txIndex: null,
-						prune: null));
-			}
-			else
-			{
-				bitcoinCoreNodeInitTask = Task.FromResult<CoreNode>(null);
-			}
 
 			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
 			var addrManTask = InitializeAddressManagerBehaviorAsync();
@@ -247,9 +229,21 @@ namespace WalletWasabi.Gui
 			var feeProviderList = new List<IFeeProvider>();
 			try
 			{
-				BitcoinCoreNode = await bitcoinCoreNodeInitTask.ConfigureAwait(false);
 				if (Config.StartLocalBitcoinCoreOnStartup)
 				{
+					BitcoinCoreNode = await CoreNode
+					   .CreateAsync(new CoreNodeParams(
+						   Network,
+						   BitcoinStore.MempoolService,
+						   Config.LocalBitcoinCoreDataDir,
+						   tryRestart: false,
+						   tryDeleteDataDir: false,
+						   EndPointStrategy.Custom(Config.GetBitcoinP2pEndPoint()),
+						   EndPointStrategy.Default(Network, EndPointType.Rpc),
+						   txIndex: null,
+						   prune: null))
+					   .ConfigureAwait(false);
+
 					RpcMonitor.RpcClient = BitcoinCoreNode.RpcClient;
 					RpcMonitor.Start();
 
@@ -698,9 +692,14 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo("Stopped monitoring RPC.");
 				}
 
-				if (Config.StopLocalBitcoinCoreOnShutdown && BitcoinCoreNode != null)
+				if (BitcoinCoreNode != null)
 				{
-					await BitcoinCoreNode.TryStopAsync().ConfigureAwait(false);
+					await BitcoinCoreNode.DisposeAsync().ConfigureAwait(false);
+
+					if (Config.StopLocalBitcoinCoreOnShutdown)
+					{
+						await BitcoinCoreNode.TryStopAsync().ConfigureAwait(false);
+					}
 				}
 
 				if (TorManager != null)

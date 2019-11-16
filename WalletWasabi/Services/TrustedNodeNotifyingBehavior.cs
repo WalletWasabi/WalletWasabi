@@ -5,7 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
@@ -13,14 +16,13 @@ namespace WalletWasabi.Services
 {
 	public class TrustedNodeNotifyingBehavior : NodeBehavior
 	{
-		public event EventHandler<uint256> TransactionInv;
-
 		public event EventHandler<uint256> BlockInv;
 
-		public event EventHandler<SmartTransaction> Transaction;
+		public MempoolService MempoolService { get; }
 
-		public TrustedNodeNotifyingBehavior()
+		public TrustedNodeNotifyingBehavior(MempoolService mempoolService)
 		{
+			MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
 		}
 
 		protected override void AttachCore()
@@ -39,30 +41,11 @@ namespace WalletWasabi.Services
 			{
 				if (message.Message.Payload is TxPayload txPayload)
 				{
-					Transaction?.Invoke(this, new SmartTransaction(txPayload.Object, Height.Mempool));
+					ProcessTx(txPayload);
 				}
 				else if (message.Message.Payload is InvPayload invPayload)
 				{
-					var getDataPayload = new GetDataPayload();
-					foreach (var inv in invPayload.Inventory)
-					{
-						if (inv.Type.HasFlag(InventoryType.MSG_TX))
-						{
-							TransactionInv?.Invoke(this, inv.Hash);
-							getDataPayload.Inventory.Add(inv);
-						}
-
-						if (inv.Type.HasFlag(InventoryType.MSG_BLOCK))
-						{
-							BlockInv?.Invoke(this, inv.Hash);
-						}
-					}
-
-					if (getDataPayload.Inventory.Any() && node.IsConnected)
-					{
-						// ask for the whole transaction
-						await node.SendMessageAsync(getDataPayload).ConfigureAwait(false);
-					}
+					await ProcessInvAsync(node, invPayload).ConfigureAwait(false);
 				}
 			}
 			catch (OperationCanceledException ex)
@@ -76,10 +59,64 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		private async Task ProcessInvAsync(Node node, InvPayload invPayload)
+		{
+			var getDataPayload = new GetDataPayload();
+			foreach (var inv in invPayload.Inventory)
+			{
+				if (inv.Type.HasFlag(InventoryType.MSG_TX))
+				{
+					if (MempoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry entry)) // If we have the transaction then adjust confirmation.
+					{
+						try
+						{
+							if (entry.NodeRemoteSocketEndpoint == node.RemoteSocketEndpoint.ToString())
+							{
+								continue; // Wtf, why are you trying to broadcast it back to us?
+							}
+
+							entry.MakeBroadcasted();
+							entry.ConfirmPropagationForGood();
+						}
+						catch (Exception ex)
+						{
+							Logger.LogInfo(ex);
+						}
+					}
+
+					// if we already processed it continue;
+					if (MempoolService.IsProcessed(inv.Hash))
+					{
+						continue;
+					}
+
+					getDataPayload.Inventory.Add(inv);
+				}
+
+				if (inv.Type.HasFlag(InventoryType.MSG_BLOCK))
+				{
+					BlockInv?.Invoke(this, inv.Hash);
+				}
+			}
+
+			if (getDataPayload.Inventory.Any() && node.IsConnected)
+			{
+				// ask for the whole transaction
+				await node.SendMessageAsync(getDataPayload).ConfigureAwait(false);
+			}
+		}
+
+		private void ProcessTx(TxPayload payload)
+		{
+			Transaction transaction = payload.Object;
+			transaction.PrecomputeHash(false, true);
+			MempoolService.Process(transaction);
+		}
+
 		public override object Clone()
 		{
 			// Note that, this is not clone! So this must be used after we are connected to a node, because it'll have as many clones as nodes.
-			return new TrustedNodeNotifyingBehavior();
+			return new TrustedNodeNotifyingBehavior(MempoolService);
 		}
 	}
 }
