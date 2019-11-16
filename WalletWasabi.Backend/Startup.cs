@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
 using NBitcoin;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
@@ -44,12 +45,12 @@ namespace WalletWasabi.Backend
 			// Register the Swagger generator, defining one or more Swagger documents
 			services.AddSwaggerGen(c =>
 			{
-				c.SwaggerDoc($"v{Constants.BackendMajorVersion}", new Info
+				c.SwaggerDoc($"v{Constants.BackendMajorVersion}", new OpenApiInfo
 				{
 					Version = $"v{Constants.BackendMajorVersion}",
 					Title = "Wasabi Wallet API",
 					Description = "Privacy focused, ZeroLink compliant Bitcoin Web API.",
-					License = new License { Name = "Use under MIT.", Url = "https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md" }
+					License = new OpenApiLicense { Name = "Use under MIT.", Url = new Uri("https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md") }
 				});
 
 				// Set the comments path for the Swagger JSON and UI.
