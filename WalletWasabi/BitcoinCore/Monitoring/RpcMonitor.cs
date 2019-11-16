@@ -18,7 +18,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 		{
 		}
 
-		public override async Task<RpcStatus> ActionAsync(CancellationToken cancel)
+		protected override async Task<RpcStatus> ActionAsync(CancellationToken cancel)
 		{
 			return await RpcClient.GetRpcStatusAsync(cancel).ConfigureAwait(false);
 		}

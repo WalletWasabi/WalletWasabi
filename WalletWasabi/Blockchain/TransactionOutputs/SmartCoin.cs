@@ -75,10 +75,8 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			get => _height;
 			set
 			{
-				if (value != _height)
+				if (RaiseAndSetIfChanged(ref _height, value))
 				{
-					_height = value;
-					OnPropertyChanged(nameof(Height));
 					SetConfirmed();
 				}
 			}
