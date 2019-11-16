@@ -664,7 +664,7 @@ namespace WalletWasabi.Services
 			{
 				try
 				{
-					var block = await CoreNode.RpcClient.GetBlockAsync(hash);
+					var block = await CoreNode.RpcClient.GetBlockAsync(hash).ConfigureAwait(false);
 					Logger.LogInfo($"Block acquired from RPC connection: {hash}.");
 					return block;
 				}

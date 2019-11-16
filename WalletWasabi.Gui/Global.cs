@@ -284,11 +284,11 @@ namespace WalletWasabi.Gui
 				{
 					EndPoint bitcoinCoreEndpoint = Config.GetBitcoinP2pEndPoint();
 
-					Node node = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint);
+					Node node = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint).ConfigureAwait(false);
 
 					Nodes.ConnectedNodes.Add(node);
 
-					RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint);
+					RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint).ConfigureAwait(false);
 
 					RegTestMempoolServingNode.Behaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
 				}
