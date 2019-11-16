@@ -19,7 +19,7 @@ namespace WalletWasabi.Services
 			WasabiClient = Guard.NotNull(nameof(client), client);
 		}
 
-		public override async Task<UpdateStatus> ActionAsync(CancellationToken cancel)
+		protected override async Task<UpdateStatus> ActionAsync(CancellationToken cancel)
 		{
 			return await WasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
 		}

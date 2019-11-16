@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator.Banning;
 using WalletWasabi.CoinJoin.Coordinator.Participants;
@@ -36,16 +37,16 @@ namespace WalletWasabi.CoinJoin.Coordinator
 
 		public Network Network { get; }
 
-		public TrustedNodeNotifyingBehavior TrustedNodeNotifyingBehavior { get; }
+		public BlockNotifier BlockNotifier { get; }
 
 		public string FolderPath { get; }
 
 		public UtxoReferee UtxoReferee { get; }
 
-		public Coordinator(Network network, TrustedNodeNotifyingBehavior trustedNodeNotifyingBehavior, string folderPath, RPCClient rpc, CoordinatorRoundConfig roundConfig)
+		public Coordinator(Network network, BlockNotifier blockNotifier, string folderPath, RPCClient rpc, CoordinatorRoundConfig roundConfig)
 		{
 			Network = Guard.NotNull(nameof(network), network);
-			TrustedNodeNotifyingBehavior = Guard.NotNull(nameof(trustedNodeNotifyingBehavior), trustedNodeNotifyingBehavior);
+			BlockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
 			FolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(folderPath), folderPath, trim: true);
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
 			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
@@ -142,10 +143,10 @@ namespace WalletWasabi.CoinJoin.Coordinator
 				Logger.LogDebug(ex);
 			}
 
-			TrustedNodeNotifyingBehavior.Block += TrustedNodeNotifyingBehavior_BlockAsync;
+			BlockNotifier.OnBlock += BlockNotifier_OnBlockAsync;
 		}
 
-		private async void TrustedNodeNotifyingBehavior_BlockAsync(object sender, Block block)
+		private async void BlockNotifier_OnBlockAsync(object sender, Block block)
 		{
 			try
 			{
@@ -449,9 +450,9 @@ namespace WalletWasabi.CoinJoin.Coordinator
 				{
 					using (RoundsListLock.Lock())
 					{
-						if (TrustedNodeNotifyingBehavior != null)
+						if (BlockNotifier != null)
 						{
-							TrustedNodeNotifyingBehavior.Block -= TrustedNodeNotifyingBehavior_BlockAsync;
+							BlockNotifier.OnBlock -= BlockNotifier_OnBlockAsync;
 						}
 
 						foreach (CoordinatorRound round in Rounds)
