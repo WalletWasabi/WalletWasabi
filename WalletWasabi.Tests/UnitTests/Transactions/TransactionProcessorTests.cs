@@ -252,7 +252,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.True(finalCoin.IsReplaceable);
 			Assert.Equal("E", finalCoin.HdPubKey.Label);
 
-			Assert.False(transactionProcessor.Coins.AsAllCoinsView().Contains(unconfirmedCoin1));
+			Assert.DoesNotContain(unconfirmedCoin1, transactionProcessor.Coins.AsAllCoinsView());
 		}
 
 		[Fact]
