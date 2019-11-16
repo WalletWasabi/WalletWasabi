@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.Blockchain.P2p;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
@@ -21,17 +22,17 @@ namespace WalletWasabi.Blockchain.Blocks
 		public event EventHandler<BlockHeader> OnReorg;
 
 		public RPCClient RpcClient { get; set; }
-		public TrustedNodeNotifyingBehavior P2pNotifier { get; }
+		public TrustedP2pBehavior TrustedP2pBehavior { get; }
 		private List<BlockHeader> ProcessedBlocks { get; }
 
-		public BlockNotifier(TimeSpan period, RPCClient rpcClient, TrustedNodeNotifyingBehavior p2pNotifier) : base(period, null)
+		public BlockNotifier(TimeSpan period, RPCClient rpcClient, TrustedP2pBehavior trustedP2pBehavior) : base(period, null)
 		{
 			RpcClient = Guard.NotNull(nameof(rpcClient), rpcClient);
-			P2pNotifier = Guard.NotNull(nameof(p2pNotifier), p2pNotifier);
+			TrustedP2pBehavior = Guard.NotNull(nameof(trustedP2pBehavior), trustedP2pBehavior);
 
 			ProcessedBlocks = new List<BlockHeader>();
 
-			P2pNotifier.BlockInv += P2pNotifier_BlockInv;
+			TrustedP2pBehavior.BlockInv += P2pNotifier_BlockInv;
 		}
 
 		private void P2pNotifier_BlockInv(object sender, uint256 blockHash)
@@ -155,7 +156,7 @@ namespace WalletWasabi.Blockchain.Blocks
 
 		public new async Task StopAsync()
 		{
-			P2pNotifier.BlockInv -= P2pNotifier_BlockInv;
+			TrustedP2pBehavior.BlockInv -= P2pNotifier_BlockInv;
 			await base.StopAsync().ConfigureAwait(false);
 		}
 	}

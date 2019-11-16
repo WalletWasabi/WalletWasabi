@@ -2,22 +2,26 @@ using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
+using System.Net;
+using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Blockchain.Mempool
+namespace WalletWasabi.Blockchain.P2p
 {
-	public class MempoolBehavior : NodeBehavior
+	public abstract class P2pBehavior : NodeBehavior
 	{
 		private const int MaxInvSize = 50000;
 
 		public MempoolService MempoolService { get; }
 
-		public MempoolBehavior(MempoolService mempoolService)
+		protected P2pBehavior(MempoolService mempoolService)
 		{
 			MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
 		}
@@ -40,13 +44,13 @@ namespace WalletWasabi.Blockchain.Mempool
 				{
 					await ProcessGetDataAsync(node, getDataPayload).ConfigureAwait(false);
 				}
-				else if (message.Message.Payload is TxPayload txPayload && !MempoolService.TrustedNodeMode)
+				if (message.Message.Payload is TxPayload txPayload)
 				{
 					ProcessTx(txPayload);
 				}
 				else if (message.Message.Payload is InvPayload invPayload)
 				{
-					await ProcessInvAsync(node, invPayload).ConfigureAwait(false);
+					await ProcessInventoryAsync(node, invPayload).ConfigureAwait(false);
 				}
 			}
 			catch (OperationCanceledException ex)
@@ -59,6 +63,24 @@ namespace WalletWasabi.Blockchain.Mempool
 				Logger.LogDebug(ex);
 			}
 		}
+
+		private async Task ProcessInventoryAsync(Node node, InvPayload invPayload)
+		{
+			var getDataPayload = new GetDataPayload();
+			foreach (var inv in invPayload.Inventory)
+			{
+				if (ProcessInventoryVector(inv, node.RemoteSocketEndpoint))
+				{
+					getDataPayload.Inventory.Add(inv);
+				}
+			}
+			if (getDataPayload.Inventory.Any() && node.IsConnected)
+			{
+				await node.SendMessageAsync(getDataPayload).ConfigureAwait(false);
+			}
+		}
+
+		protected abstract bool ProcessInventoryVector(InventoryVector inv, EndPoint remoteSocketEndpoint);
 
 		private async Task ProcessGetDataAsync(Node node, GetDataPayload payload)
 		{
@@ -99,60 +121,11 @@ namespace WalletWasabi.Blockchain.Mempool
 			}
 		}
 
-		private async Task ProcessInvAsync(Node node, InvPayload payload)
-		{
-			if (payload.Inventory.Count > MaxInvSize)
-			{
-				Logger.LogDebug($"Received inventory too big. {nameof(MaxInvSize)}: {MaxInvSize}, Node: {node.RemoteSocketEndpoint}");
-				return;
-			}
-
-			var getDataPayload = new GetDataPayload();
-			foreach (var inv in payload.Inventory.Where(inv => inv.Type.HasFlag(InventoryType.MSG_TX)))
-			{
-				if (MempoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry entry)) // If we have the transaction then adjust confirmation.
-				{
-					try
-					{
-						if (entry.NodeRemoteSocketEndpoint == node.RemoteSocketEndpoint.ToString())
-						{
-							continue; // Wtf, why are you trying to broadcast it back to us?
-						}
-
-						entry.ConfirmPropagationOnce();
-					}
-					catch (Exception ex)
-					{
-						Logger.LogInfo(ex);
-					}
-				}
-
-				// if we already processed it or we're in trusted node mode, then don't ask for it;
-				if (MempoolService.TrustedNodeMode || MempoolService.IsProcessed(inv.Hash))
-				{
-					continue;
-				}
-
-				getDataPayload.Inventory.Add(inv);
-			}
-
-			if (getDataPayload.Inventory.Any() && node.IsConnected)
-			{
-				// ask for the whole transaction
-				await node.SendMessageAsync(getDataPayload).ConfigureAwait(false);
-			}
-		}
-
-		private void ProcessTx(TxPayload payload)
+		protected virtual void ProcessTx(TxPayload payload)
 		{
 			Transaction transaction = payload.Object;
 			transaction.PrecomputeHash(false, true);
 			MempoolService.Process(transaction);
-		}
-
-		public override object Clone()
-		{
-			return new MempoolBehavior(MempoolService);
 		}
 	}
 }

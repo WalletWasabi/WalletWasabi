@@ -18,6 +18,7 @@ using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.BitcoinCore.Processes;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
+using WalletWasabi.Blockchain.P2p;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
@@ -36,7 +37,7 @@ namespace WalletWasabi.BitcoinCore
 		public MempoolService MempoolService { get; private set; }
 
 		public CoreConfig Config { get; private set; }
-		public TrustedNodeNotifyingBehavior TrustedNodeNotifyingBehavior => P2pNode.Behaviors.Find<TrustedNodeNotifyingBehavior>();
+		public TrustedP2pBehavior TrustedP2pBehavior => P2pNode.Behaviors.Find<TrustedP2pBehavior>();
 		public Node P2pNode { get; private set; }
 		public BlockNotifier BlockNotifier { get; private set; }
 
@@ -198,13 +199,13 @@ namespace WalletWasabi.BitcoinCore
 					IsRelay = true
 				};
 
-				nodeConnectionParameters.TemplateBehaviors.Add(new TrustedNodeNotifyingBehavior(coreNode.MempoolService));
+				nodeConnectionParameters.TemplateBehaviors.Add(new TrustedP2pBehavior(coreNode.MempoolService));
 				coreNode.P2pNode = await Node.ConnectAsync(coreNode.Network, coreNode.P2pEndPoint, nodeConnectionParameters).ConfigureAwait(false);
 				coreNode.P2pNode.VersionHandshake();
 				coreNode.P2pNode.StateChanged += coreNode.P2pNode_StateChanged;
 				coreNode.P2pNodeStateChangedSubscribed = true;
 
-				coreNode.BlockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.TrustedNodeNotifyingBehavior);
+				coreNode.BlockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.TrustedP2pBehavior);
 				coreNode.BlockNotifier.Start();
 
 				return coreNode;

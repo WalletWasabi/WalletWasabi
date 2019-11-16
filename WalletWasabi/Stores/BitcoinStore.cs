@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Mempool;
+using WalletWasabi.Blockchain.P2p;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -30,7 +31,7 @@ namespace WalletWasabi.Stores
 		/// This should not be a property, but a creator function, because it'll be cloned left and right by NBitcoin later.
 		/// So it should not be assumed it's some singleton.
 		/// </summary>
-		public MempoolBehavior CreateMempoolBehavior() => new MempoolBehavior(MempoolService);
+		public UntrustedP2pBehavior CreateUntrustedP2pBehavior() => new UntrustedP2pBehavior(MempoolService);
 
 		public async Task InitializeAsync(string workFolderPath, Network network)
 		{

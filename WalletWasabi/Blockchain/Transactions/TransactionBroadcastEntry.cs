@@ -47,6 +47,7 @@ namespace WalletWasabi.Blockchain.Transactions
 		{
 			lock (Lock)
 			{
+				Broadcasted = true;
 				PropagationConfirmations++;
 			}
 		}
@@ -55,6 +56,7 @@ namespace WalletWasabi.Blockchain.Transactions
 		{
 			lock (Lock)
 			{
+				Broadcasted = true;
 				PropagationConfirmations = 21;
 			}
 		}
