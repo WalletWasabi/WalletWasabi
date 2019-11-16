@@ -204,6 +204,7 @@ namespace WalletWasabi.BitcoinCore
 				coreNode.P2pNode.VersionHandshake();
 				coreNode.P2pNode.StateChanged += coreNode.P2pNode_StateChanged;
 				coreNode.P2pNodeStateChangedSubscribed = true;
+				coreNode.MempoolService.TrustedNodeMode = coreNode.P2pNode.IsConnected;
 
 				coreNode.BlockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.TrustedP2pBehavior);
 				coreNode.BlockNotifier.Start();
@@ -216,15 +217,12 @@ namespace WalletWasabi.BitcoinCore
 
 		private void P2pNode_StateChanged(Node node, NodeState oldState)
 		{
-			if (node.IsConnected)
+			var isConnected = node.IsConnected;
+			var trustedNodeMode = MempoolService.TrustedNodeMode;
+			if (isConnected != trustedNodeMode)
 			{
-				Logger.LogInfo("Local node got connected. Turned on trusted mempool mode.");
-				MempoolService.TrustedNodeMode = true;
-			}
-			else
-			{
-				Logger.LogInfo("Local node isn't connected. Turned off trusted mempool mode.");
-				MempoolService.TrustedNodeMode = false;
+				MempoolService.TrustedNodeMode = isConnected;
+				Logger.LogInfo($"CoreNode connection state changed. Triggered {nameof(MempoolService)}.{nameof(MempoolService.TrustedNodeMode)} to be {MempoolService.TrustedNodeMode}");
 			}
 		}
 
