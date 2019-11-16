@@ -34,6 +34,12 @@ namespace WalletWasabi.Backend
 			services.AddMvc(options => options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(BitcoinAddress))))
 				.AddControllersAsServices();
 
+			services.AddMvc()
+				.AddNewtonsoftJson();
+
+			services.AddControllers()
+				.AddNewtonsoftJson();
+
 			// Register the Swagger generator, defining one or more Swagger documents
 			services.AddSwaggerGen(c =>
 			{
