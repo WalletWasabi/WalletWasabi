@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 
 				await rpc.GenerateAsync(101);
 
-				node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
+				node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 				node.VersionHandshake();
 
 				var addr = new Key().PubKey.GetSegwitAddress(network);

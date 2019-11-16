@@ -85,7 +85,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			}
 
 			connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
-			connectionParameters.TemplateBehaviors.Add(bitcoinStore.CreateMempoolBehavior());
+			connectionParameters.TemplateBehaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			using var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
 

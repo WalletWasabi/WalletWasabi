@@ -232,17 +232,17 @@ namespace WalletWasabi.Gui
 				if (Config.StartLocalBitcoinCoreOnStartup)
 				{
 					BitcoinCoreNode = await CoreNode
-					   .CreateAsync(new CoreNodeParams(
-						   Network,
-						   BitcoinStore.MempoolService,
-						   Config.LocalBitcoinCoreDataDir,
-						   tryRestart: false,
-						   tryDeleteDataDir: false,
-						   EndPointStrategy.Custom(Config.GetBitcoinP2pEndPoint()),
-						   EndPointStrategy.Default(Network, EndPointType.Rpc),
-						   txIndex: null,
-						   prune: null))
-					   .ConfigureAwait(false);
+						.CreateAsync(new CoreNodeParams(
+							Network,
+							BitcoinStore.MempoolService,
+							Config.LocalBitcoinCoreDataDir,
+							tryRestart: false,
+							tryDeleteDataDir: false,
+							EndPointStrategy.Custom(Config.GetBitcoinP2pEndPoint()),
+							EndPointStrategy.Default(Network, EndPointType.Rpc),
+							txIndex: null,
+							prune: null))
+						.ConfigureAwait(false);
 
 					RpcMonitor.RpcClient = BitcoinCoreNode.RpcClient;
 					RpcMonitor.Start();
@@ -264,7 +264,7 @@ namespace WalletWasabi.Gui
 
 			#region MempoolInitialization
 
-			connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateMempoolBehavior());
+			connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
 
 			#endregion MempoolInitialization
 
@@ -290,7 +290,7 @@ namespace WalletWasabi.Gui
 
 					RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint);
 
-					RegTestMempoolServingNode.Behaviors.Add(BitcoinStore.CreateMempoolBehavior());
+					RegTestMempoolServingNode.Behaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
 				}
 				catch (SocketException ex)
 				{

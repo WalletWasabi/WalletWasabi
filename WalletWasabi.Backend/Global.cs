@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
+using WalletWasabi.Blockchain.P2p;
 using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;
@@ -138,10 +139,10 @@ namespace WalletWasabi.Backend
 				IsRelay = true
 			};
 
-			nodeConnectionParameters.TemplateBehaviors.Add(new TrustedNodeNotifyingBehavior(new MempoolService()));
+			nodeConnectionParameters.TemplateBehaviors.Add(new TrustedP2pBehavior(new MempoolService()));
 			var node = await Node.ConnectAsync(network, endPoint, nodeConnectionParameters);
 			// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
-			BlockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), RpcClient, node.Behaviors.Find<TrustedNodeNotifyingBehavior>());
+			BlockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), RpcClient, node.Behaviors.Find<TrustedP2pBehavior>());
 			BlockNotifier.Start();
 
 			try

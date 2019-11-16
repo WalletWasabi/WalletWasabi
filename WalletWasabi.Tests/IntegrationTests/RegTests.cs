@@ -455,7 +455,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync());
 
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync();
-			node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
+			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			// 3. Create wasabi synchronizer service.
 			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
@@ -676,7 +676,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			// 2. Create mempool service.
 
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync();
-			node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
+			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			// 3. Create wasabi synchronizer service.
 			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
@@ -1159,7 +1159,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			// 2. Create mempool service.
 
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync();
-			node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
+			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			// 3. Create wasabi synchronizer service.
 			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
@@ -1325,7 +1325,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			// 2. Create mempool service.
 
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync();
-			node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
+			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			// 3. Create wasabi synchronizer service.
 			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
@@ -1556,7 +1556,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			// 2. Create mempool service.
 
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync();
-			node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
+			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			// 3. Create wasabi synchronizer service.
 			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
@@ -1743,7 +1743,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			// 2. Create mempool service.
 
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync();
-			node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
+			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			// 3. Create wasabi synchronizer service.
 			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
@@ -3330,10 +3330,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 			// 2. Create mempool service.
 
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync();
-			node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
+			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			Node node2 = await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync();
-			node2.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
+			node2.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			// 3. Create wasabi synchronizer service.
 			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
