@@ -13,8 +13,6 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 	{
 		public P2pNode P2pNode { get; set; }
 
-		public event EventHandler<object> Reconnected;
-
 		public P2pReconnector(TimeSpan period, P2pNode p2pNode) : base(period, false)
 		{
 			P2pNode = Guard.NotNull(nameof(p2pNode), p2pNode);
@@ -34,26 +32,17 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 				throw;
 			}
 
-			Reconnected?.Invoke(this, null);
+			Logger.LogInfo("Successfully reconnected to P2P.");
 			return true;
 		}
 
 		public async Task StartAndAwaitReconnectionAsync(CancellationToken cancel)
 		{
-			var awaiter = new EventAwaiter<object>(
-				h => Reconnected += h,
-				h => Reconnected -= h);
-			Start();
-			using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancel, Stop.Token);
-			try
-			{
-				await awaiter.WaitAsync(linked.Token, 10).ConfigureAwait(false);
-				Logger.LogInfo("Successfully reconnected to P2P.");
-			}
-			finally
-			{
-				await StopAsync().ConfigureAwait(false);
-			}
+			Stop?.Dispose();
+			Stop = CancellationTokenSource.CreateLinkedTokenSource(cancel);
+			ForeverTask = ForeverMethodAsync(x => x is true);
+			await ForeverTask.ConfigureAwait(false);
+			await StopAsync().ConfigureAwait(false);
 		}
 	}
 }

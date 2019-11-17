@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace WalletWasabi.Bases
 		private CancellationTokenSource Trigger { get; set; }
 		private object TriggerLock { get; }
 		public TimeSpan Period { get; }
-		private Task ForeverTask { get; set; }
+		protected Task ForeverTask { get; set; }
 		public Exception LastException { get; set; }
 		public long LastExceptionCount { get; set; }
 		public DateTimeOffset LastExceptionFirstAppeared { get; set; }
@@ -56,10 +57,10 @@ namespace WalletWasabi.Bases
 
 		public void Start()
 		{
-			ForeverTask = ForeverMethodAsync();
+			ForeverTask = ForeverMethodAsync(x => false);
 		}
 
-		private async Task ForeverMethodAsync()
+		protected async Task ForeverMethodAsync(Func<T, bool> finishIf)
 		{
 			while (!Stop.IsCancellationRequested)
 			{
@@ -67,6 +68,10 @@ namespace WalletWasabi.Bases
 				{
 					Status = await ActionAsync(Stop.Token).ConfigureAwait(false);
 					LogAndResetLastExceptionIfNotNull();
+					if (finishIf(Status))
+					{
+						Stop?.Cancel();
+					}
 				}
 				catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
 				{
