@@ -17,7 +17,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.BitcoinCore
 {
-	public class P2pNode
+	public class P2pNode : IDisposable
 	{
 		private Node Node { get; set; }
 		private TrustedP2pBehavior TrustedP2pBehavior { get; set; }
@@ -123,12 +123,31 @@ namespace WalletWasabi.BitcoinCore
 			}
 		}
 
-		public async Task DisposeAsync()
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
 		{
-			Stop?.Cancel();
-			Disconnect();
-			Stop?.Dispose();
-			Stop = null;
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					Stop?.Cancel();
+					Disconnect();
+					Stop?.Dispose();
+					Stop = null;
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
 		}
 
 		/// <summary>
@@ -176,5 +195,7 @@ namespace WalletWasabi.BitcoinCore
 				}
 			}
 		}
+
+		#endregion IDisposable Support
 	}
 }
