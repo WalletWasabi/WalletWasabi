@@ -97,27 +97,27 @@ namespace WalletWasabi.Backend
 			global.Coordinator?.Dispose();
 			Logger.LogInfo($"{nameof(global.Coordinator)} is disposed.");
 
-			if (global.IndexBuilderService != null)
+			if (global.IndexBuilderService is { })
 			{
 				await global.IndexBuilderService.StopAsync();
 				Logger.LogInfo($"{nameof(global.IndexBuilderService)} is disposed.");
 			}
 
-			if (global.BlockNotifier != null)
+			if (global.BlockNotifier is { })
 			{
 				await global.BlockNotifier.StopAsync();
 				Logger.LogInfo($"{nameof(global.BlockNotifier)} is disposed.");
 			}
 
-			if (global.RoundConfigWatcher != null)
+			if (global.RoundConfigWatcher is { })
 			{
 				await global.RoundConfigWatcher.StopAsync();
 				Logger.LogInfo($"{nameof(global.RoundConfigWatcher)} is disposed.");
 			}
 
-			if (global.P2pNode != null)
+			if (global.P2pNode is { })
 			{
-				global.P2pNode.Dispose();
+				await global.P2pNode.DisposeAsync().ConfigureAwait(false);
 				Logger.LogInfo($"{nameof(global.P2pNode)} is disposed.");
 			}
 

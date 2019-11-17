@@ -1,11 +1,14 @@
 using NBitcoin;
 using NBitcoin.Protocol;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.P2p;
@@ -14,7 +17,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.BitcoinCore
 {
-	public class P2pNode : IDisposable
+	public class P2pNode
 	{
 		private Node Node { get; set; }
 		private TrustedP2pBehavior TrustedP2pBehavior { get; set; }
@@ -28,6 +31,8 @@ namespace WalletWasabi.BitcoinCore
 		private object SubscriptionLock { get; }
 
 		private CancellationTokenSource Stop { get; set; }
+		private P2pReconnector Reconnector { get; set; }
+		private AsyncLock ReconnectorLock { get; }
 
 		public P2pNode(Network network, EndPoint endPoint, MempoolService mempoolService, string userAgent)
 		{
@@ -39,6 +44,8 @@ namespace WalletWasabi.BitcoinCore
 			Stop = new CancellationTokenSource();
 			NodeEventsSubscribed = false;
 			SubscriptionLock = new object();
+			Reconnector = null;
+			ReconnectorLock = new AsyncLock();
 		}
 
 		public async Task ConnectAsync(CancellationToken cancel)
@@ -81,54 +88,45 @@ namespace WalletWasabi.BitcoinCore
 			}
 		}
 
-		private bool Reconnecting { get; set; }
-		private object ReconnectingLock { get; set; } = new object();
-
 		private async void Node_DisconnectedAsync(Node node)
 		{
-			lock (ReconnectingLock)
-			{
-				if (Reconnecting)
-				{
-					return;
-				}
-				Reconnecting = true;
-			}
 			try
 			{
-				while (true)
+				using (await ReconnectorLock.LockAsync(Stop.Token).ConfigureAwait(false))
 				{
-					try
+					if (Reconnector is { })
 					{
-						Logger.LogInfo("Trying to reconnect to P2P...");
-						Disconnect();
-						await ConnectAsync(Stop.Token).ConfigureAwait(false);
-						Logger.LogInfo("Successfully reconnected to P2P...");
-
-						// If successfully connected, return.
 						return;
 					}
-					catch (Exception ex)
-					{
-						Stop.Token.ThrowIfCancellationRequested();
-						Logger.LogError(ex);
-						// Make sure things are disposed properly.
-						Disconnect();
 
-						await Task.Delay(TimeSpan.FromSeconds(7), Stop.Token).ConfigureAwait(false);
+					Reconnector = new P2pReconnector(TimeSpan.FromSeconds(7), this);
+					Reconnector.PropertyChanged += Reconnector_PropertyChangedAsync;
+					Reconnector.Start();
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogDebug(ex);
+			}
+		}
+
+		private async void Reconnector_PropertyChangedAsync(object sender, PropertyChangedEventArgs e)
+		{
+			try
+			{
+				using (await ReconnectorLock.LockAsync(Stop.Token).ConfigureAwait(false))
+				{
+					if (e.PropertyName == nameof(Reconnector.Status) && Reconnector.Status)
+					{
+						Reconnector.PropertyChanged -= Reconnector_PropertyChangedAsync;
+						await Reconnector.StopAsync().ConfigureAwait(false);
+						Reconnector = null;
 					}
 				}
 			}
-			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
+			catch (Exception ex)
 			{
-				Logger.LogTrace(ex);
-			}
-			finally
-			{
-				lock (ReconnectingLock)
-				{
-					Reconnecting = false;
-				}
+				Logger.LogDebug(ex);
 			}
 		}
 
@@ -150,27 +148,27 @@ namespace WalletWasabi.BitcoinCore
 			}
 		}
 
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
+		public async Task DisposeAsync()
 		{
-			if (!_disposedValue)
+			Stop?.Cancel();
+			using (await ReconnectorLock.LockAsync().ConfigureAwait(false))
 			{
-				if (disposing)
+				if (Reconnector is { })
 				{
-					Stop?.Cancel();
-					Disconnect();
-					Stop?.Dispose();
-					Stop = null;
+					Reconnector.PropertyChanged -= Reconnector_PropertyChangedAsync;
+					await Reconnector.StopAsync().ConfigureAwait(false);
+					Reconnector = null;
 				}
-
-				_disposedValue = true;
 			}
+			Disconnect();
+			Stop?.Dispose();
+			Stop = null;
 		}
 
-		private void Disconnect()
+		/// <summary>
+		/// It is not equivalent to Dispose, but it is being called from Dispose.
+		/// </summary>
+		public void Disconnect()
 		{
 			lock (SubscriptionLock)
 			{
@@ -212,14 +210,5 @@ namespace WalletWasabi.BitcoinCore
 				}
 			}
 		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }
