@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.BitcoinCore;
+using WalletWasabi.Blockchain.P2p;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
@@ -21,20 +23,18 @@ namespace WalletWasabi.Blockchain.Blocks
 		public event EventHandler<BlockHeader> OnReorg;
 
 		public RPCClient RpcClient { get; set; }
-		public TrustedNodeNotifyingBehavior P2pNotifier { get; }
 		private List<BlockHeader> ProcessedBlocks { get; }
+		public P2pNode P2pNode { get; }
 
-		public BlockNotifier(TimeSpan period, RPCClient rpcClient, TrustedNodeNotifyingBehavior p2pNotifier) : base(period, null)
+		public BlockNotifier(TimeSpan period, RPCClient rpcClient, P2pNode p2pNode) : base(period, null)
 		{
 			RpcClient = Guard.NotNull(nameof(rpcClient), rpcClient);
-			P2pNotifier = Guard.NotNull(nameof(p2pNotifier), p2pNotifier);
-
+			P2pNode = p2pNode;
 			ProcessedBlocks = new List<BlockHeader>();
-
-			P2pNotifier.BlockInv += P2pNotifier_BlockInv;
+			P2pNode.BlockInv += P2pNode_BlockInv;
 		}
 
-		private void P2pNotifier_BlockInv(object sender, uint256 blockHash)
+		private void P2pNode_BlockInv(object sender, uint256 blockHash)
 		{
 			TriggerRound();
 		}
@@ -155,7 +155,7 @@ namespace WalletWasabi.Blockchain.Blocks
 
 		public new async Task StopAsync()
 		{
-			P2pNotifier.BlockInv -= P2pNotifier_BlockInv;
+			P2pNode.BlockInv -= P2pNode_BlockInv;
 			await base.StopAsync().ConfigureAwait(false);
 		}
 	}
