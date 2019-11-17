@@ -362,7 +362,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(400)]
 		[ProducesResponseType(404)]
 		[ProducesResponseType(410)]
-		public async Task<IActionResult> PostConfirmationAsync([FromQuery, Required]string uniqueId, [FromQuery, Required]long roundId)
+		public async Task<IActionResult> PostConfirmationAsync([FromQuery]string uniqueId, [FromQuery]long roundId)
 		{
 			if (roundId < 0 || !ModelState.IsValid)
 			{
