@@ -61,23 +61,23 @@ namespace WalletWasabi.Blockchain.Blocks
 			//   - 100 blocks would be the sure, but that'd be a huge performance overkill.
 			if (!ProcessedBlocks.Any())
 			{
-				var reorgProtection7Blocks = new List<Block>()
+				var reorgProtection7Headers = new List<BlockHeader>()
 				{
-					arrivedBlock
+					arrivedHeader
 				};
 
-				var currentBlock = arrivedBlock;
-				while (reorgProtection7Blocks.Count < 7 && currentBlock.GetHash() != Network.GenesisHash)
+				var currentHeader = arrivedHeader;
+				while (reorgProtection7Headers.Count < 7 && currentHeader.GetHash() != Network.GenesisHash)
 				{
-					currentBlock = await RpcClient.GetBlockAsync(currentBlock.Header.HashPrevBlock).ConfigureAwait(false);
-					reorgProtection7Blocks.Add(currentBlock);
+					currentHeader = await RpcClient.GetBlockHeaderAsync(currentHeader.HashPrevBlock).ConfigureAwait(false);
+					reorgProtection7Headers.Add(currentHeader);
 				}
 
-				reorgProtection7Blocks.Reverse();
-				foreach (var b in reorgProtection7Blocks)
+				reorgProtection7Headers.Reverse();
+				foreach (var header in reorgProtection7Headers)
 				{
 					// It's initialization. Don't notify about it.
-					AddBlock(b, notify: false);
+					AddHeader(header);
 				}
 
 				return bestBlockHash;
@@ -125,7 +125,7 @@ namespace WalletWasabi.Blockchain.Blocks
 
 				if (missedBlocks.Count > 144)
 				{
-					ProcessedBlocks.RemoveFirst();
+					missedBlocks.RemoveFirst();
 				}
 
 				currentHeader = missedBlock.Header;
@@ -165,13 +165,15 @@ namespace WalletWasabi.Blockchain.Blocks
 			}
 		}
 
-		private void AddBlock(Block block, bool notify = true)
+		private void AddBlock(Block block)
 		{
-			ProcessedBlocks.Add(block.Header);
-			if (notify)
-			{
-				OnBlock?.Invoke(this, block);
-			}
+			AddHeader(block.Header);
+			OnBlock?.Invoke(this, block);
+		}
+
+		private void AddHeader(BlockHeader block)
+		{
+			ProcessedBlocks.Add(block);
 		}
 
 		private void ReorgToBlock(BlockHeader correctBlock)
