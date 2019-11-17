@@ -219,8 +219,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public ICoinsView SpentBy(uint256 txid) => AsSpentCoinsView().SpentBy(txid);
 
-		private ICoinsView SpentByNoLock(uint256 txid) => AsSpentCoinsViewNoLock().SpentBy(txid);
-
 		public SmartCoin[] ToArray() => AsCoinsView().ToArray();
 
 		public Money TotalAmount() => AsCoinsView().TotalAmount();
