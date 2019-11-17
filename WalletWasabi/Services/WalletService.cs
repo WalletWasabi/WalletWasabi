@@ -746,11 +746,12 @@ namespace WalletWasabi.Services
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <exception cref="ArgumentOutOfRangeException"></exception>
-		public BuildTransactionResult BuildTransaction(string password,
-														PaymentIntent payments,
-														FeeStrategy feeStrategy,
-														bool allowUnconfirmed = false,
-														IEnumerable<TxoRef> allowedInputs = null)
+		public BuildTransactionResult BuildTransaction(
+			string password,
+			PaymentIntent payments,
+			FeeStrategy feeStrategy,
+			bool allowUnconfirmed = false,
+			IEnumerable<TxoRef> allowedInputs = null)
 		{
 			var builder = new TransactionFactory(Network, KeyManager, Coins, password, allowUnconfirmed);
 			return builder.BuildTransaction(

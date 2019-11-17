@@ -71,19 +71,20 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			Task.WaitAny(delayTask, hostInitializationTask); // Wait for server to initialize (Without this OSX CI will fail)
 		}
 
-		public static CoordinatorRoundConfig CreateRoundConfig(Money denomination,
-												int confirmationTarget,
-												double confirmationTargetReductionRate,
-												decimal coordinatorFeePercent,
-												int anonymitySet,
-												long inputRegistrationTimeout,
-												long connectionConfirmationTimeout,
-												long outputRegistrationTimeout,
-												long signingTimeout,
-												int dosSeverity,
-												long dosDurationHours,
-												bool dosNoteBeforeBan,
-												int maximumMixingLevelCount)
+		public static CoordinatorRoundConfig CreateRoundConfig(
+			Money denomination,
+			int confirmationTarget,
+			double confirmationTargetReductionRate,
+			decimal coordinatorFeePercent,
+			int anonymitySet,
+			long inputRegistrationTimeout,
+			long connectionConfirmationTimeout,
+			long outputRegistrationTimeout,
+			long signingTimeout,
+			int dosSeverity,
+			long dosDurationHours,
+			bool dosNoteBeforeBan,
+			int maximumMixingLevelCount)
 		{
 			return new CoordinatorRoundConfig
 			{
