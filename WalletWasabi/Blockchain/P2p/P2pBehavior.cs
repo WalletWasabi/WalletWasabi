@@ -44,7 +44,7 @@ namespace WalletWasabi.Blockchain.P2p
 				{
 					await ProcessGetDataAsync(node, getDataPayload).ConfigureAwait(false);
 				}
-				if (message.Message.Payload is TxPayload txPayload)
+				else if (message.Message.Payload is TxPayload txPayload)
 				{
 					ProcessTx(txPayload);
 				}
