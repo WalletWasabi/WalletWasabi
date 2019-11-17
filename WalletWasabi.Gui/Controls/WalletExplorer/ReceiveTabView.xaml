@@ -8,7 +8,7 @@
              x:Class="WalletWasabi.Gui.Controls.WalletExplorer.ReceiveTabView">
   <UserControl.Resources>
     <converters:CoinItemExpanderColorConverter x:Key="CoinItemExpanderColorConverter" />
-    <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
+    <converters:ShieldedScreenModeStringConverter x:Key="ShieldedScreenModeStringConverter" />
   </UserControl.Resources>
   <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
     <controls:GroupBox.Styles>
@@ -116,7 +116,7 @@
                     </StackPanel>
                   </Expander>
                   <Grid ColumnDefinitions="400, *, 100" Margin="30 0 0 0">
-                    <TextBlock Classes="monospaceFont" IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding Address, ConverterParameter=27, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}"></TextBlock>
+                    <TextBlock Classes="monospaceFont" IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding Address, ConverterParameter=27, Converter={StaticResource ShieldedScreenModeStringConverter}, Mode=OneWay}"></TextBlock>
                     <Grid IsVisible="{Binding ClipboardNotificationVisible}">
                       <Grid Opacity="{Binding ClipboardNotificationOpacity}">
                         <Grid.Transitions>
@@ -125,7 +125,7 @@
                         <TextBlock Text="Copied" Foreground="White" FontWeight="Bold" />
                       </Grid>
                     </Grid>
-                    <controls:EditableTextBlock VerticalAlignment="Top" Text="{Binding Label, ConverterParameter=27, Converter={StaticResource LurkingWifeModeStringConverter}}" InEditMode="{Binding InEditMode}" ReadOnlyMode="{Binding IsLurkingWifeMode}" Grid.Column="1" />
+                    <controls:EditableTextBlock VerticalAlignment="Top" Text="{Binding Label, ConverterParameter=27, Converter={StaticResource ShieldedScreenModeStringConverter}}" InEditMode="{Binding InEditMode}" ReadOnlyMode="{Binding IsShieldedScreenMode}" Grid.Column="1" />
                   </Grid>
                 </Grid>
               </DataTemplate>

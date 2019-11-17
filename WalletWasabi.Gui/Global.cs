@@ -554,7 +554,7 @@ namespace WalletWasabi.Gui
 					return;
 				}
 
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || UiConfig?.LurkingWifeMode is true)
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || UiConfig?.ShieldedScreenMode is true)
 				{
 					return;
 				}

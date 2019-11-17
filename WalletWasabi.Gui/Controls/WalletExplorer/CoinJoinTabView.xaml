@@ -13,7 +13,7 @@
     <converters:PhaseStringConverter x:Key="PhaseStringConverter" />
     <converters:PhaseColorConverter x:Key="PhaseColorConverter" />
     <converters:PrivacyLevelValueConverter x:Key="PrivacyLevelValueConverter" />
-    <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
+    <converters:ShieldedScreenModeStringConverter x:Key="ShieldedScreenModeStringConverter" />
     <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
     <converters:TimeSpanStringConverter x:Key="TimeSpanStringConverter" />
     <converters:TimeSpanVisibilityConverter x:Key="TimeSpanVisibilityConverter" />
@@ -51,8 +51,8 @@
             </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding AmountQueued, Converter={StaticResource CoinJoinedVisibilityConverter}}">
               <TextBlock Text="You have queued" />
-              <TextBlock Foreground="YellowGreen" IsVisible="{Binding IsLurkingWifeMode, Converter={StaticResource InverseBooleanConverter}}" Text="{Binding AmountQueued, Converter={StaticResource MoneyStringConverter}}" />
-              <TextBlock Foreground="YellowGreen" IsVisible="{Binding IsLurkingWifeMode}" Text="{Binding AmountQueued, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
+              <TextBlock Foreground="YellowGreen" IsVisible="{Binding IsShieldedScreenMode, Converter={StaticResource InverseBooleanConverter}}" Text="{Binding AmountQueued, Converter={StaticResource MoneyStringConverter}}" />
+              <TextBlock Foreground="YellowGreen" IsVisible="{Binding IsShieldedScreenMode}" Text="{Binding AmountQueued, ConverterParameter=8, Converter={StaticResource ShieldedScreenModeStringConverter}, Mode=OneWay}" />
               <TextBlock Foreground="YellowGreen" Text="BTC" />
               <TextBlock Text="for CoinJoin." />
             </StackPanel>

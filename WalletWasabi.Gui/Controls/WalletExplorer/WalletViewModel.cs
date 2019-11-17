@@ -82,9 +82,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				historyTab.DisplayActionTab(); // So history should be shown to the user.
 			}
 
-			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
+			ShieldedScreenModeCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				Global.UiConfig.LurkingWifeMode = !Global.UiConfig.LurkingWifeMode;
+				Global.UiConfig.ShieldedScreenMode = !Global.UiConfig.ShieldedScreenMode;
 				await Global.UiConfig.ToFileAsync();
 			});
 		}
@@ -94,7 +94,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			var observed = Observable.Merge(
-				Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Select(_ => Unit.Default),
+				Global.UiConfig.WhenAnyValue(x => x.ShieldedScreenMode).Select(_ => Unit.Default),
 				Observable.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived)).Select(_ => Unit.Default),
 				Observable.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent)).Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromSeconds(1))
@@ -104,7 +104,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					Money balance = WalletService.Coins.TotalAmount();
 
-					Title = $"{Name} ({(Global.UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
+					Title = $"{Name} ({(Global.UiConfig.ShieldedScreenMode ? "#########" : balance.ToString(false, true))} BTC)";
 				})
 				.DisposeWith(Disposables);
 
@@ -122,7 +122,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public WalletService WalletService { get; }
 
-		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
+		public ReactiveCommand<Unit, Unit> ShieldedScreenModeCommand { get; }
 
 		public ObservableCollection<WalletActionViewModel> Actions
 		{

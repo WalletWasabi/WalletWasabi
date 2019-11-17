@@ -152,10 +152,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				PeersNeeded = 100;
 			}
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			Global.UiConfig.WhenAnyValue(x => x.ShieldedScreenMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 				{
 					this.RaisePropertyChanged(nameof(AmountQueued));
-					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+					this.RaisePropertyChanged(nameof(IsShieldedScreenMode));
 				}).DisposeWith(Disposables);
 
 			Observable.Interval(TimeSpan.FromSeconds(1))
@@ -454,7 +454,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _targetPrivacy, value);
 		}
 
-		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
+		public bool IsShieldedScreenMode => Global.UiConfig.ShieldedScreenMode is true;
 
 		public ReactiveCommand<Unit, Unit> EnqueueCommand { get; }
 

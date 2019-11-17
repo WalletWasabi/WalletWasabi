@@ -9,12 +9,12 @@ using System.Text;
 
 namespace WalletWasabi.Gui.Converters
 {
-	public class LurkingWifeModeStringConverter : IValueConverter
+	public class ShieldedScreenModeStringConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			var uiConfig = Application.Current.Resources[Global.UiConfigResourceKey] as UiConfig;
-			if (uiConfig.LurkingWifeMode is true)
+			if (uiConfig.ShieldedScreenMode is true)
 			{
 				int len = 10;
 				if (int.TryParse(parameter.ToString(), out int newLength))

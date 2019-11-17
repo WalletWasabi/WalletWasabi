@@ -21,7 +21,7 @@ namespace WalletWasabi.Gui
 	[JsonObject(MemberSerialization.OptIn)]
 	public class UiConfig : ConfigBase
 	{
-		private bool _lurkingWifeMode;
+		private bool _ShieldedScreenMode;
 		private bool _lockScreenActive;
 		private string _lockScreenPinHash;
 		private bool _isCustomFee;
@@ -64,11 +64,11 @@ namespace WalletWasabi.Gui
 		}
 
 		[DefaultValue(false)]
-		[JsonProperty(PropertyName = "LurkingWifeMode", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public bool LurkingWifeMode
+		[JsonProperty(PropertyName = "ShieldedScreenMode", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool ShieldedScreenMode
 		{
-			get => _lurkingWifeMode;
-			set => RaiseAndSetIfChanged(ref _lurkingWifeMode, value);
+			get => _ShieldedScreenMode;
+			set => RaiseAndSetIfChanged(ref _ShieldedScreenMode, value);
 		}
 
 		[DefaultValue(false)]

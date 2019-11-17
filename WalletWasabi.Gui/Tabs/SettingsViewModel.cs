@@ -47,7 +47,7 @@ namespace WalletWasabi.Gui.Tabs
 		private AsyncLock ConfigLock { get; } = new AsyncLock();
 
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
-		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
+		public ReactiveCommand<Unit, Unit> ShieldedScreenModeCommand { get; }
 		public ReactiveCommand<Unit, Unit> SetClearPinCommand { get; }
 		public ReactiveCommand<Unit, Unit> TextBoxLostFocusCommand { get; }
 
@@ -89,9 +89,9 @@ namespace WalletWasabi.Gui.Tabs
 
 			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
 
-			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
+			ShieldedScreenModeCommand = ReactiveCommand.CreateFromTask(async () =>
 				{
-					Global.UiConfig.LurkingWifeMode = !LurkingWifeMode;
+					Global.UiConfig.ShieldedScreenMode = !ShieldedScreenMode;
 					await Global.UiConfig.ToFileAsync();
 				});
 
@@ -172,8 +172,8 @@ namespace WalletWasabi.Gui.Tabs
 				.DisposeWith(Disposables);
 
 			Global.UiConfig
-				.WhenAnyValue(x => x.LurkingWifeMode)
-				.Subscribe(_ => this.RaisePropertyChanged(nameof(LurkingWifeMode)))
+				.WhenAnyValue(x => x.ShieldedScreenMode)
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(ShieldedScreenMode)))
 				.DisposeWith(Disposables);
 
 			_isPinSet = Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
@@ -296,7 +296,7 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _dustThreshold, value);
 		}
 
-		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
+		public bool ShieldedScreenMode => Global.UiConfig.ShieldedScreenMode is true;
 
 		public string PinBoxText
 		{

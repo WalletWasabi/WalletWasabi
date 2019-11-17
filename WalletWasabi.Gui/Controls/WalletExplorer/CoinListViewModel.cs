@@ -426,7 +426,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			RootList.AddRange(list);
 
 			Global.UiConfig
-				.WhenAnyValue(x => x.LurkingWifeMode)
+				.WhenAnyValue(x => x.ShieldedScreenMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedAmount)))
 				.DisposeWith(Disposables);

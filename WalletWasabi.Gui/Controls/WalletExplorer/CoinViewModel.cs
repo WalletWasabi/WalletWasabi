@@ -106,7 +106,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					.DisposeWith(Disposables);
 
 				Global.UiConfig
-					.WhenAnyValue(x => x.LurkingWifeMode)
+					.WhenAnyValue(x => x.ShieldedScreenMode)
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Subscribe(_ =>
 					{

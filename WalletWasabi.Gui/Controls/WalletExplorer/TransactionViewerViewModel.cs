@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private byte[] _psbtBytes;
 		public ReactiveCommand<Unit, Unit> ExportBinaryPsbtCommand { get; set; }
 
-		public bool? IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
+		public bool? IsShieldedScreenMode => Global.UiConfig.ShieldedScreenMode;
 
 		public string TxId
 		{
@@ -120,11 +120,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			base.OnOpen();
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
+			Global.UiConfig.WhenAnyValue(x => x.ShieldedScreenMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
-					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+					this.RaisePropertyChanged(nameof(IsShieldedScreenMode));
 					this.RaisePropertyChanged(nameof(TxId));
 					this.RaisePropertyChanged(nameof(PsbtJsonText));
 					this.RaisePropertyChanged(nameof(TransactionHexText));
