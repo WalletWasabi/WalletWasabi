@@ -23,6 +23,7 @@ namespace WalletWasabi.Blockchain.Blocks
 		public event EventHandler<BlockHeader> OnReorg;
 
 		public RPCClient RpcClient { get; set; }
+		public Network Network => RpcClient.Network;
 		private List<BlockHeader> ProcessedBlocks { get; }
 		public P2pNode P2pNode { get; }
 
@@ -44,8 +45,7 @@ namespace WalletWasabi.Blockchain.Blocks
 			var bestBlockHash = await RpcClient.GetBestBlockHashAsync().ConfigureAwait(false);
 
 			// If there's no new block.
-			// Don't notify about the genesis block.
-			if (bestBlockHash == Status || bestBlockHash == RpcClient.Network.GenesisHash)
+			if (bestBlockHash == Status)
 			{
 				return bestBlockHash;
 			}
@@ -54,10 +54,32 @@ namespace WalletWasabi.Blockchain.Blocks
 			var arrivedHeader = arrivedBlock.Header;
 			arrivedHeader.PrecomputeHash(false, true);
 
-			// If we haven't processed any block yet then we're processing it without checks.
+			// If we haven't processed any block yet then we're processing the first seven to avoid accidental reogs.
+			// 7 blocks, because
+			//   - That was the largest recorded reorg so far.
+			//   - Reorg in this point of time would be very unlikely anyway.
+			//   - 100 blocks would be the sure, but that'd be a huge performance overkill.
 			if (!ProcessedBlocks.Any())
 			{
-				AddBlock(arrivedBlock);
+				var reorgProtection7Blocks = new List<Block>()
+				{
+					arrivedBlock
+				};
+
+				var currentBlock = arrivedBlock;
+				while (reorgProtection7Blocks.Count < 7 && currentBlock.GetHash() != Network.GenesisHash)
+				{
+					currentBlock = await RpcClient.GetBlockAsync(currentBlock.Header.HashPrevBlock).ConfigureAwait(false);
+					reorgProtection7Blocks.Add(currentBlock);
+				}
+
+				reorgProtection7Blocks.Reverse();
+				foreach (var b in reorgProtection7Blocks)
+				{
+					// It's initialization. Don't notify about it.
+					AddBlock(b, notify: false);
+				}
+
 				return bestBlockHash;
 			}
 
@@ -85,20 +107,32 @@ namespace WalletWasabi.Blockchain.Blocks
 				return bestBlockHash;
 			}
 
-			var missedBlocks = new List<Block>
-				{
-					arrivedBlock
-				};
-			var currentHeader = arrivedHeader;
+			await HandleMissedBlocksAsync(arrivedBlock);
+
+			return bestBlockHash;
+		}
+
+		private async Task HandleMissedBlocksAsync(Block arrivedBlock)
+		{
+			List<Block> missedBlocks = new List<Block>
+			{
+				arrivedBlock
+			};
+			var currentHeader = arrivedBlock.Header;
 			while (true)
 			{
-				Block missedBlock = missedBlock = await RpcClient.GetBlockAsync(currentHeader.HashPrevBlock).ConfigureAwait(false);
+				Block missedBlock = await RpcClient.GetBlockAsync(currentHeader.HashPrevBlock).ConfigureAwait(false);
+
+				if (missedBlocks.Count > 144)
+				{
+					ProcessedBlocks.RemoveFirst();
+				}
 
 				currentHeader = missedBlock.Header;
 				currentHeader.PrecomputeHash(false, true);
 				missedBlocks.Add(missedBlock);
 
-				if (missedBlocks.Count > 100)
+				if (currentHeader.GetHash() == Network.GenesisHash)
 				{
 					var processedBlocksClone = ProcessedBlocks.ToArray();
 					var processedReversedBlocks = processedBlocksClone.Reverse();
@@ -107,12 +141,11 @@ namespace WalletWasabi.Blockchain.Blocks
 					{
 						OnReorg?.Invoke(this, processedBlock);
 					}
-					Logger.LogCritical("A reorg detected over 100 blocks. Wasabi cannot handle that.");
 					break;
 				}
 
 				// If we found the proper chain.
-				foundPrevBlock = ProcessedBlocks.FirstOrDefault(x => x.GetHash() == currentHeader.HashPrevBlock);
+				var foundPrevBlock = ProcessedBlocks.FirstOrDefault(x => x.GetHash() == currentHeader.HashPrevBlock);
 				if (foundPrevBlock != null)
 				{
 					// If the last block hash is not what we found, then we missed a reorg also.
@@ -130,14 +163,15 @@ namespace WalletWasabi.Blockchain.Blocks
 			{
 				AddBlock(b);
 			}
-
-			return bestBlockHash;
 		}
 
-		private void AddBlock(Block block)
+		private void AddBlock(Block block, bool notify = true)
 		{
 			ProcessedBlocks.Add(block.Header);
-			OnBlock?.Invoke(this, block);
+			if (notify)
+			{
+				OnBlock?.Invoke(this, block);
+			}
 		}
 
 		private void ReorgToBlock(BlockHeader correctBlock)
