@@ -48,7 +48,7 @@ namespace WalletWasabi.Backend
 					hostOrUri: host,
 					network: config.Network);
 
-			await Global.InitializeAsync(config, roundConfig, rpc);
+			await Global.InitializeAsync(config, roundConfig, rpc, cancellationToken);
 
 			try
 			{
