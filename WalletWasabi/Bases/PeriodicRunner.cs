@@ -17,7 +17,7 @@ namespace WalletWasabi.Bases
 			protected set => RaiseAndSetIfChanged(ref _status, value);
 		}
 
-		private CancellationTokenSource Stop { get; set; }
+		protected CancellationTokenSource Stop { get; set; }
 		private CancellationTokenSource Trigger { get; set; }
 		private object TriggerLock { get; }
 		public TimeSpan Period { get; }

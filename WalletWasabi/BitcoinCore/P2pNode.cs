@@ -29,10 +29,8 @@ namespace WalletWasabi.BitcoinCore
 
 		private bool NodeEventsSubscribed { get; set; }
 		private object SubscriptionLock { get; }
-
+		public AsyncLock ReconnectorLock { get; }
 		private CancellationTokenSource Stop { get; set; }
-		private P2pReconnector Reconnector { get; set; }
-		private AsyncLock ReconnectorLock { get; }
 
 		public P2pNode(Network network, EndPoint endPoint, MempoolService mempoolService, string userAgent)
 		{
@@ -44,7 +42,6 @@ namespace WalletWasabi.BitcoinCore
 			Stop = new CancellationTokenSource();
 			NodeEventsSubscribed = false;
 			SubscriptionLock = new object();
-			Reconnector = null;
 			ReconnectorLock = new AsyncLock();
 		}
 
@@ -94,34 +91,12 @@ namespace WalletWasabi.BitcoinCore
 			{
 				using (await ReconnectorLock.LockAsync(Stop.Token).ConfigureAwait(false))
 				{
-					if (Reconnector is { })
+					if (node.IsConnected)
 					{
 						return;
 					}
-
-					Reconnector = new P2pReconnector(TimeSpan.FromSeconds(7), this);
-					Reconnector.PropertyChanged += Reconnector_PropertyChangedAsync;
-					Reconnector.Start();
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogDebug(ex);
-			}
-		}
-
-		private async void Reconnector_PropertyChangedAsync(object sender, PropertyChangedEventArgs e)
-		{
-			try
-			{
-				using (await ReconnectorLock.LockAsync(Stop.Token).ConfigureAwait(false))
-				{
-					if (e.PropertyName == nameof(Reconnector.Status) && Reconnector.Status)
-					{
-						Reconnector.PropertyChanged -= Reconnector_PropertyChangedAsync;
-						await Reconnector.StopAsync().ConfigureAwait(false);
-						Reconnector = null;
-					}
+					var reconnector = new P2pReconnector(TimeSpan.FromSeconds(7), this);
+					await reconnector.StartAndAwaitReconnectionAsync(Stop.Token).ConfigureAwait(false);
 				}
 			}
 			catch (Exception ex)
@@ -151,15 +126,6 @@ namespace WalletWasabi.BitcoinCore
 		public async Task DisposeAsync()
 		{
 			Stop?.Cancel();
-			using (await ReconnectorLock.LockAsync().ConfigureAwait(false))
-			{
-				if (Reconnector is { })
-				{
-					Reconnector.PropertyChanged -= Reconnector_PropertyChangedAsync;
-					await Reconnector.StopAsync().ConfigureAwait(false);
-					Reconnector = null;
-				}
-			}
 			Disconnect();
 			Stop?.Dispose();
 			Stop = null;
