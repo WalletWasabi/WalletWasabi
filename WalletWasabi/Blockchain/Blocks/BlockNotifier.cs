@@ -67,7 +67,7 @@ namespace WalletWasabi.Blockchain.Blocks
 				};
 
 				var currentBlock = arrivedBlock;
-				while (reorgProtection7Blocks.Count < 7 || currentBlock.GetHash() == Network.GenesisHash)
+				while (reorgProtection7Blocks.Count < 7 && currentBlock.GetHash() != Network.GenesisHash)
 				{
 					currentBlock = await RpcClient.GetBlockAsync(currentBlock.Header.HashPrevBlock).ConfigureAwait(false);
 					reorgProtection7Blocks.Add(currentBlock);
