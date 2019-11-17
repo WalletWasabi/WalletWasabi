@@ -24,18 +24,27 @@ namespace WalletWasabi.BitcoinCore
 
 		public event EventHandler<uint256> BlockInv;
 
+		private bool NodeEventsSubscribed { get; set; }
+		private object SubscriptionLock { get; }
+
+		private CancellationTokenSource Stop { get; set; }
+
 		public P2pNode(Network network, EndPoint endPoint, MempoolService mempoolService, string userAgent)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			EndPoint = Guard.NotNull(nameof(endPoint), endPoint);
 			MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
 			UserAgent = Guard.NotNullOrEmptyOrWhitespace(nameof(userAgent), userAgent, trim: true);
+
+			Stop = new CancellationTokenSource();
+			NodeEventsSubscribed = false;
+			SubscriptionLock = new object();
 		}
 
 		public async Task ConnectAsync(CancellationToken cancel)
 		{
 			using var handshakeTimeout = new CancellationTokenSource();
-			using var linked = CancellationTokenSource.CreateLinkedTokenSource(handshakeTimeout.Token, cancel);
+			using var linked = CancellationTokenSource.CreateLinkedTokenSource(handshakeTimeout.Token, cancel, Stop.Token);
 			handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(21));
 			var parameters = new NodeConnectionParameters()
 			{
@@ -61,23 +70,73 @@ namespace WalletWasabi.BitcoinCore
 					"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
 			}
 
-			Node.StateChanged += P2pNode_StateChanged;
-			P2pNodeStateChangedSubscribed = true;
-			MempoolService.TrustedNodeMode = Node.IsConnected;
-
-			TrustedP2pBehavior = Node.Behaviors.Find<TrustedP2pBehavior>();
-			TrustedP2pBehavior.BlockInv += TrustedP2pBehavior_BlockInv;
-			TrustedP2pBehaviorBlockInvSubscribed = true;
+			lock (SubscriptionLock)
+			{
+				TrustedP2pBehavior = Node.Behaviors.Find<TrustedP2pBehavior>();
+				Node.StateChanged += P2pNode_StateChanged;
+				Node.Disconnected += Node_DisconnectedAsync;
+				TrustedP2pBehavior.BlockInv += TrustedP2pBehavior_BlockInv;
+				NodeEventsSubscribed = true;
+				MempoolService.TrustedNodeMode = Node.IsConnected;
+			}
 		}
 
-		private bool TrustedP2pBehaviorBlockInvSubscribed { get; set; }
+		private bool Reconnecting { get; set; }
+		private object ReconnectingLock { get; set; } = new object();
+
+		private async void Node_DisconnectedAsync(Node node)
+		{
+			lock (ReconnectingLock)
+			{
+				if (Reconnecting)
+				{
+					return;
+				}
+				Reconnecting = true;
+			}
+			try
+			{
+				while (true)
+				{
+					try
+					{
+						Logger.LogInfo("Trying to reconnect to P2P...");
+						Disconnect();
+						await ConnectAsync(Stop.Token).ConfigureAwait(false);
+						Logger.LogInfo("Successfully reconnected to P2P...");
+
+						// If successfully connected, return.
+						return;
+					}
+					catch (Exception ex)
+					{
+						Stop.Token.ThrowIfCancellationRequested();
+						Logger.LogError(ex);
+						// Make sure things are disposed properly.
+						Disconnect();
+
+						await Task.Delay(TimeSpan.FromSeconds(7), Stop.Token).ConfigureAwait(false);
+					}
+				}
+			}
+			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
+			{
+				Logger.LogTrace(ex);
+			}
+			finally
+			{
+				lock (ReconnectingLock)
+				{
+					Reconnecting = false;
+				}
+			}
+		}
 
 		private void TrustedP2pBehavior_BlockInv(object sender, uint256 e)
 		{
 			BlockInv?.Invoke(this, e);
 		}
 
-		private bool P2pNodeStateChangedSubscribed { get; set; }
 		public string UserAgent { get; }
 
 		private void P2pNode_StateChanged(Node node, NodeState oldState)
@@ -101,45 +160,56 @@ namespace WalletWasabi.BitcoinCore
 			{
 				if (disposing)
 				{
-					if (TrustedP2pBehaviorBlockInvSubscribed)
-					{
-						TrustedP2pBehavior.BlockInv -= TrustedP2pBehavior_BlockInv;
-					}
-					if (P2pNodeStateChangedSubscribed)
-					{
-						Node.StateChanged -= P2pNode_StateChanged;
-					}
-
-					if (Node != null)
-					{
-						try
-						{
-							Node?.Disconnect();
-						}
-						catch (Exception ex)
-						{
-							Logger.LogDebug(ex);
-						}
-						finally
-						{
-							try
-							{
-								Node?.Dispose();
-							}
-							catch (Exception ex)
-							{
-								Logger.LogDebug(ex);
-							}
-							finally
-							{
-								Node = null;
-								Logger.LogInfo("P2p Bitcoin node is disconnected.");
-							}
-						}
-					}
+					Stop?.Cancel();
+					Disconnect();
+					Stop?.Dispose();
+					Stop = null;
 				}
 
 				_disposedValue = true;
+			}
+		}
+
+		private void Disconnect()
+		{
+			lock (SubscriptionLock)
+			{
+				MempoolService.TrustedNodeMode = false;
+				if (NodeEventsSubscribed)
+				{
+					TrustedP2pBehavior.BlockInv -= TrustedP2pBehavior_BlockInv;
+					Node.Disconnected -= Node_DisconnectedAsync;
+					Node.StateChanged -= P2pNode_StateChanged;
+					NodeEventsSubscribed = false;
+				}
+			}
+
+			if (Node != null)
+			{
+				try
+				{
+					Node?.Disconnect();
+				}
+				catch (Exception ex)
+				{
+					Logger.LogDebug(ex);
+				}
+				finally
+				{
+					try
+					{
+						Node?.Dispose();
+					}
+					catch (Exception ex)
+					{
+						Logger.LogDebug(ex);
+					}
+					finally
+					{
+						Node = null;
+						Logger.LogInfo("P2p Bitcoin node is disconnected.");
+					}
+				}
 			}
 		}
 
