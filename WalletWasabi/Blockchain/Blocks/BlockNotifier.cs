@@ -92,7 +92,7 @@ namespace WalletWasabi.Blockchain.Blocks
 			var currentHeader = arrivedHeader;
 			while (true)
 			{
-				Block missedBlock = missedBlock = await RpcClient.GetBlockAsync(currentHeader.HashPrevBlock).ConfigureAwait(false);
+				Block missedBlock = await RpcClient.GetBlockAsync(currentHeader.HashPrevBlock).ConfigureAwait(false);
 
 				currentHeader = missedBlock.Header;
 				currentHeader.PrecomputeHash(false, true);
