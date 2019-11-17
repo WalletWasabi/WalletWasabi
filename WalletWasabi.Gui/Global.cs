@@ -159,24 +159,6 @@ namespace WalletWasabi.Gui
 			BitcoinStore = new BitcoinStore();
 			var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
 			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
-			Task<CoreNode> bitcoinCoreNodeInitTask;
-			if (Config.StartLocalBitcoinCoreOnStartup)
-			{
-				bitcoinCoreNodeInitTask = CoreNode
-					.CreateAsync(new CoreNodeParams(
-						Network,
-						Config.LocalBitcoinCoreDataDir,
-						tryRestart: false,
-						tryDeleteDataDir: false,
-						EndPointStrategy.Custom(Config.GetBitcoinP2pEndPoint()),
-						EndPointStrategy.Default(Network, EndPointType.Rpc),
-						txIndex: null,
-						prune: null));
-			}
-			else
-			{
-				bitcoinCoreNodeInitTask = Task.FromResult<CoreNode>(null);
-			}
 
 			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
 			var addrManTask = InitializeAddressManagerBehaviorAsync();
@@ -247,9 +229,24 @@ namespace WalletWasabi.Gui
 			var feeProviderList = new List<IFeeProvider>();
 			try
 			{
-				BitcoinCoreNode = await bitcoinCoreNodeInitTask.ConfigureAwait(false);
 				if (Config.StartLocalBitcoinCoreOnStartup)
 				{
+					BitcoinCoreNode = await CoreNode
+						.CreateAsync(
+							new CoreNodeParams(
+								Network,
+								BitcoinStore.MempoolService,
+								Config.LocalBitcoinCoreDataDir,
+								tryRestart: false,
+								tryDeleteDataDir: false,
+								EndPointStrategy.Custom(Config.GetBitcoinP2pEndPoint()),
+								EndPointStrategy.Default(Network, EndPointType.Rpc),
+								txIndex: null,
+								prune: null,
+								userAgent: $"/WasabiClient:{Constants.ClientVersion.ToString()}/"),
+							CancellationToken.None)
+						.ConfigureAwait(false);
+
 					RpcMonitor.RpcClient = BitcoinCoreNode.RpcClient;
 					RpcMonitor.Start();
 
@@ -270,7 +267,7 @@ namespace WalletWasabi.Gui
 
 			#region MempoolInitialization
 
-			connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateMempoolBehavior());
+			connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
 
 			#endregion MempoolInitialization
 
@@ -290,13 +287,13 @@ namespace WalletWasabi.Gui
 				{
 					EndPoint bitcoinCoreEndpoint = Config.GetBitcoinP2pEndPoint();
 
-					Node node = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint);
+					Node node = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint).ConfigureAwait(false);
 
 					Nodes.ConnectedNodes.Add(node);
 
-					RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint);
+					RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint).ConfigureAwait(false);
 
-					RegTestMempoolServingNode.Behaviors.Add(BitcoinStore.CreateMempoolBehavior());
+					RegTestMempoolServingNode.Behaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
 				}
 				catch (SocketException ex)
 				{
@@ -323,9 +320,10 @@ namespace WalletWasabi.Gui
 			Nodes.Connect();
 			Logger.LogInfo("Start connecting to nodes...");
 
-			if (RegTestMempoolServingNode != null)
+			var regTestMempoolServingNode = RegTestMempoolServingNode;
+			if (RegTestMempoolServingNode is { })
 			{
-				RegTestMempoolServingNode.VersionHandshake();
+				regTestMempoolServingNode.VersionHandshake();
 				Logger.LogInfo("Start connecting to mempool serving regtest node...");
 			}
 
@@ -468,7 +466,7 @@ namespace WalletWasabi.Gui
 					Logger.LogWarning(ex);
 				}
 
-				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode?.RpcClient);
+				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
 
 				ChaumianClient.Start();
 				Logger.LogInfo("Start Chaumian CoinJoin service...");
@@ -579,10 +577,12 @@ namespace WalletWasabi.Gui
 
 		public async Task DisposeInWalletDependentServicesAsync()
 		{
-			if (WalletService != null)
+			var walletService = WalletService;
+			if (walletService is { })
 			{
-				WalletService.TransactionProcessor.CoinReceived -= CoinReceived;
+				walletService.TransactionProcessor.CoinReceived -= CoinReceived;
 			}
+
 			try
 			{
 				_cancelWalletServiceInitialization?.Cancel();
@@ -593,22 +593,25 @@ namespace WalletWasabi.Gui
 			}
 			_cancelWalletServiceInitialization = null;
 
-			if (WalletService != null)
+			walletService = WalletService;
+			if (walletService is { })
 			{
-				if (WalletService.KeyManager != null) // This should not ever happen.
+				var keyManager = walletService.KeyManager;
+				if (keyManager is { }) // This should not ever happen.
 				{
-					string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(WalletService.KeyManager.FilePath));
-					WalletService.KeyManager?.ToFile(backupWalletFilePath);
-					Logger.LogInfo($"{nameof(KeyManager)} backup saved to `{backupWalletFilePath}`.");
+					string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(keyManager.FilePath));
+					keyManager.ToFile(backupWalletFilePath);
+					Logger.LogInfo($"{nameof(walletService.KeyManager)} backup saved to `{backupWalletFilePath}`.");
 				}
-				WalletService?.Dispose();
+				walletService?.Dispose();
 				WalletService = null;
 				Logger.LogInfo($"{nameof(WalletService)} is stopped.");
 			}
 
-			if (ChaumianClient != null)
+			var chaumianClient = ChaumianClient;
+			if (chaumianClient is { })
 			{
-				await ChaumianClient.StopAsync();
+				await chaumianClient.StopAsync();
 				ChaumianClient = null;
 				Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.");
 			}
@@ -641,71 +644,87 @@ namespace WalletWasabi.Gui
 			{
 				await DisposeInWalletDependentServicesAsync();
 
-				if (UpdateChecker != null)
+				var updateChecker = UpdateChecker;
+				if (updateChecker is { })
 				{
-					await UpdateChecker?.StopAsync();
+					await updateChecker.StopAsync();
 					Logger.LogInfo($"{nameof(UpdateChecker)} is stopped.");
 				}
 
-				if (FeeProviders != null)
+				var feeProviders = FeeProviders;
+				if (feeProviders is { })
 				{
-					FeeProviders.Dispose();
+					feeProviders.Dispose();
 					Logger.LogInfo($"Disposed {nameof(FeeProviders)}.");
 				}
 
-				if (Synchronizer != null)
+				var synchronizer = Synchronizer;
+				if (synchronizer is { })
 				{
-					await Synchronizer?.StopAsync();
+					await synchronizer.StopAsync();
 					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.");
 				}
 
-				if (RpcFeeProvider != null)
+				var rpcFeeProvider = RpcFeeProvider;
+				if (rpcFeeProvider is { })
 				{
-					await RpcFeeProvider.StopAsync();
+					await rpcFeeProvider.StopAsync();
 					Logger.LogInfo("Stopped synching fees through RPC.");
 				}
 
-				if (AddressManagerFilePath != null)
+				var addressManagerFilePath = AddressManagerFilePath;
+				if (addressManagerFilePath is { })
 				{
-					IoHelpers.EnsureContainingDirectoryExists(AddressManagerFilePath);
-					if (AddressManager != null)
+					IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);
+					var addressManager = AddressManager;
+					if (addressManager is { })
 					{
-						AddressManager?.SavePeerFile(AddressManagerFilePath, Config.Network);
+						addressManager.SavePeerFile(AddressManagerFilePath, Config.Network);
 						Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.");
 					}
 				}
 
-				if (Nodes != null)
+				var nodes = Nodes;
+				if (nodes is { })
 				{
-					Nodes?.Disconnect();
-					while (Nodes.ConnectedNodes.Any(x => x.IsConnected))
+					nodes.Disconnect();
+					while (nodes.ConnectedNodes.Any(x => x.IsConnected))
 					{
 						await Task.Delay(50);
 					}
-					Nodes?.Dispose();
+					nodes.Dispose();
 					Logger.LogInfo($"{nameof(Nodes)} are disposed.");
 				}
 
-				if (RegTestMempoolServingNode != null)
+				var regTestMempoolServingNode = RegTestMempoolServingNode;
+				if (regTestMempoolServingNode is { })
 				{
-					RegTestMempoolServingNode.Disconnect();
+					regTestMempoolServingNode.Disconnect();
 					Logger.LogInfo($"{nameof(RegTestMempoolServingNode)} is disposed.");
 				}
 
-				if (RpcMonitor != null)
+				var rpcMonitor = RpcMonitor;
+				if (rpcMonitor is { })
 				{
-					await RpcMonitor.StopAsync();
+					await rpcMonitor.StopAsync();
 					Logger.LogInfo("Stopped monitoring RPC.");
 				}
 
-				if (Config.StopLocalBitcoinCoreOnShutdown && BitcoinCoreNode != null)
+				var bitcoinCoreNode = BitcoinCoreNode;
+				if (bitcoinCoreNode is { })
 				{
-					await BitcoinCoreNode.TryStopAsync().ConfigureAwait(false);
+					await bitcoinCoreNode.DisposeAsync().ConfigureAwait(false);
+
+					if (Config.StopLocalBitcoinCoreOnShutdown)
+					{
+						await bitcoinCoreNode.TryStopAsync().ConfigureAwait(false);
+					}
 				}
 
-				if (TorManager != null)
+				var torManager = TorManager;
+				if (torManager is { })
 				{
-					await TorManager?.StopAsync();
+					await torManager.StopAsync();
 					Logger.LogInfo($"{nameof(TorManager)} is stopped.");
 				}
 
