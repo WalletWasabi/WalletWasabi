@@ -8,22 +8,17 @@
     <Clock />
   </lockscreen:SlideLockScreen.Clock>
   <lockscreen:SlideLockScreen.Styles>
-    <Styles>
-      <Styles.Resources>
-        <Template x:Key="Chevron">
-          <Path Stretch="Uniform" Fill="{DynamicResource ThemeForegroundBrush}" Data="M 478.97852 464.25977
-                      L 446.12109 470.33203
-                      L 446.12109 478.72461
-                      L 478.97852 472.65234
-                      L 511.83398 478.72461
-                      L 511.83398 470.33203
-                      L 478.97852 464.25977 z " />
-        </Template>
-      </Styles.Resources>
+    <Styles> 
       <Style Selector="Border.Chevron">
         <Setter Property="Width" Value="103" />
         <Setter Property="Height" Value="50" />
-        <Setter Property="Child" Value="{StaticResource Chevron}" />
+        <Setter Property="Child">
+          <Setter.Value>
+            <Template>
+              <DrawingPresenter Drawing="{StaticResource LockScreen_Chevron}"/>
+            </Template>
+          </Setter.Value>
+        </Setter>
       </Style>
       <Style Selector="Grid[IsVisible=true] Border.Chev1">
         <Style.Animations>
