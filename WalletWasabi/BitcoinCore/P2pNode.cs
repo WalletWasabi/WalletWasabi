@@ -155,20 +155,23 @@ namespace WalletWasabi.BitcoinCore
 		/// </summary>
 		public void Disconnect()
 		{
-			lock (SubscriptionLock)
+			if (Node is { })
 			{
-				MempoolService.TrustedNodeMode = false;
-				if (NodeEventsSubscribed)
+				lock (SubscriptionLock)
 				{
-					TrustedP2pBehavior.BlockInv -= TrustedP2pBehavior_BlockInv;
-					Node.Disconnected -= Node_DisconnectedAsync;
-					Node.StateChanged -= P2pNode_StateChanged;
-					NodeEventsSubscribed = false;
+					MempoolService.TrustedNodeMode = false;
+					if (NodeEventsSubscribed)
+					{
+						if (TrustedP2pBehavior is { })
+						{
+							TrustedP2pBehavior.BlockInv -= TrustedP2pBehavior_BlockInv;
+						}
+						Node.Disconnected -= Node_DisconnectedAsync;
+						Node.StateChanged -= P2pNode_StateChanged;
+						NodeEventsSubscribed = false;
+					}
 				}
-			}
 
-			if (Node != null)
-			{
 				try
 				{
 					Node?.Disconnect();
