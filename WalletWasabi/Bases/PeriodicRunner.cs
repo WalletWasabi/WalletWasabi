@@ -66,9 +66,10 @@ namespace WalletWasabi.Bases
 			{
 				try
 				{
-					Status = await ActionAsync(Stop.Token).ConfigureAwait(false);
+					var status = await ActionAsync(Stop.Token).ConfigureAwait(false);
+					Status = status;
 					LogAndResetLastExceptionIfNotNull();
-					if (finishIf(Status))
+					if (finishIf(status))
 					{
 						Stop?.Cancel();
 					}
