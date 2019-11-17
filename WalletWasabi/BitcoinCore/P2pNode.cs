@@ -174,7 +174,7 @@ namespace WalletWasabi.BitcoinCore
 
 				try
 				{
-					Node?.Disconnect();
+					Node.Disconnect();
 				}
 				catch (Exception ex)
 				{
@@ -184,7 +184,7 @@ namespace WalletWasabi.BitcoinCore
 				{
 					try
 					{
-						Node?.Dispose();
+						Node.Dispose();
 					}
 					catch (Exception ex)
 					{

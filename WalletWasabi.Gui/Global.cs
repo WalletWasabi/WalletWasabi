@@ -603,7 +603,7 @@ namespace WalletWasabi.Gui
 					keyManager.ToFile(backupWalletFilePath);
 					Logger.LogInfo($"{nameof(walletService.KeyManager)} backup saved to `{backupWalletFilePath}`.");
 				}
-				walletService?.Dispose();
+				walletService.Dispose();
 				WalletService = null;
 				Logger.LogInfo($"{nameof(WalletService)} is stopped.");
 			}
