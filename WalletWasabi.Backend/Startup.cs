@@ -115,10 +115,10 @@ namespace WalletWasabi.Backend
 				Logger.LogInfo($"{nameof(global.RoundConfigWatcher)} is disposed.");
 			}
 
-			if (global.LocalNode != null)
+			if (global.P2pNode != null)
 			{
-				global.DisconnectDisposeNullLocalNode();
-				Logger.LogInfo($"{nameof(global.LocalNode)} is disposed.");
+				global.P2pNode.Dispose();
+				Logger.LogInfo($"{nameof(global.P2pNode)} is disposed.");
 			}
 
 			Logger.LogSoftwareStopped("Wasabi Backend");

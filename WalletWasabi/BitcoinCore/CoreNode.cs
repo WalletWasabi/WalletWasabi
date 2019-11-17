@@ -37,11 +37,10 @@ namespace WalletWasabi.BitcoinCore
 		public MempoolService MempoolService { get; private set; }
 
 		public CoreConfig Config { get; private set; }
-		public TrustedP2pBehavior TrustedP2pBehavior => P2pNode.Behaviors.Find<TrustedP2pBehavior>();
-		public Node P2pNode { get; private set; }
+		public P2pNode P2pNode { get; private set; }
 		public BlockNotifier BlockNotifier { get; private set; }
 
-		public static async Task<CoreNode> CreateAsync(CoreNodeParams coreNodeParams)
+		public static async Task<CoreNode> CreateAsync(CoreNodeParams coreNodeParams, CancellationToken cancel)
 		{
 			Guard.NotNull(nameof(coreNodeParams), coreNodeParams);
 			using (BenchmarkLogger.Measure())
@@ -190,39 +189,13 @@ namespace WalletWasabi.BitcoinCore
 					Logger.LogInfo("Started Bitcoin Core.");
 				}
 
-				using var handshakeTimeout = new CancellationTokenSource();
-				handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(21));
-				var nodeConnectionParameters = new NodeConnectionParameters()
-				{
-					UserAgent = $"/WasabiClient:{Constants.ClientVersion.ToString()}/",
-					ConnectCancellation = handshakeTimeout.Token,
-					IsRelay = true
-				};
+				coreNode.P2pNode = new P2pNode(coreNode.Network, coreNode.P2pEndPoint, coreNode.MempoolService, coreNodeParams.UserAgent);
+				await coreNode.P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
 
-				nodeConnectionParameters.TemplateBehaviors.Add(new TrustedP2pBehavior(coreNode.MempoolService));
-				coreNode.P2pNode = await Node.ConnectAsync(coreNode.Network, coreNode.P2pEndPoint, nodeConnectionParameters).ConfigureAwait(false);
-				coreNode.P2pNode.VersionHandshake();
-				coreNode.P2pNode.StateChanged += coreNode.P2pNode_StateChanged;
-				coreNode.P2pNodeStateChangedSubscribed = true;
-				coreNode.MempoolService.TrustedNodeMode = coreNode.P2pNode.IsConnected;
-
-				coreNode.BlockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.TrustedP2pBehavior);
+				coreNode.BlockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode);
 				coreNode.BlockNotifier.Start();
 
 				return coreNode;
-			}
-		}
-
-		private bool P2pNodeStateChangedSubscribed { get; set; }
-
-		private void P2pNode_StateChanged(Node node, NodeState oldState)
-		{
-			var isConnected = node.IsConnected;
-			var trustedNodeMode = MempoolService.TrustedNodeMode;
-			if (trustedNodeMode != isConnected)
-			{
-				MempoolService.TrustedNodeMode = isConnected;
-				Logger.LogInfo($"CoreNode connection state changed. Triggered {nameof(MempoolService)}.{nameof(MempoolService.TrustedNodeMode)} to be {MempoolService.TrustedNodeMode}");
 			}
 		}
 
@@ -267,38 +240,7 @@ namespace WalletWasabi.BitcoinCore
 					await BlockNotifier.StopAsync().ConfigureAwait(false);
 				}
 
-				if (P2pNodeStateChangedSubscribed)
-				{
-					P2pNode.StateChanged -= P2pNode_StateChanged;
-				}
-
-				if (P2pNode != null)
-				{
-					try
-					{
-						P2pNode?.Disconnect();
-					}
-					catch (Exception ex)
-					{
-						Logger.LogDebug(ex);
-					}
-					finally
-					{
-						try
-						{
-							P2pNode?.Dispose();
-						}
-						catch (Exception ex)
-						{
-							Logger.LogDebug(ex);
-						}
-						finally
-						{
-							P2pNode = null;
-							Logger.LogInfo("P2p Bitcoin node is disconnected.");
-						}
-					}
-				}
+				P2pNode?.Dispose();
 				_disposedValue = true;
 			}
 		}

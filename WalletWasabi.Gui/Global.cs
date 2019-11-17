@@ -232,16 +232,19 @@ namespace WalletWasabi.Gui
 				if (Config.StartLocalBitcoinCoreOnStartup)
 				{
 					BitcoinCoreNode = await CoreNode
-						.CreateAsync(new CoreNodeParams(
-							Network,
-							BitcoinStore.MempoolService,
-							Config.LocalBitcoinCoreDataDir,
-							tryRestart: false,
-							tryDeleteDataDir: false,
-							EndPointStrategy.Custom(Config.GetBitcoinP2pEndPoint()),
-							EndPointStrategy.Default(Network, EndPointType.Rpc),
-							txIndex: null,
-							prune: null))
+						.CreateAsync(
+							new CoreNodeParams(
+								Network,
+								BitcoinStore.MempoolService,
+								Config.LocalBitcoinCoreDataDir,
+								tryRestart: false,
+								tryDeleteDataDir: false,
+								EndPointStrategy.Custom(Config.GetBitcoinP2pEndPoint()),
+								EndPointStrategy.Default(Network, EndPointType.Rpc),
+								txIndex: null,
+								prune: null,
+								userAgent: $"/WasabiClient:{Constants.ClientVersion.ToString()}/"),
+							CancellationToken.None)
 						.ConfigureAwait(false);
 
 					RpcMonitor.RpcClient = BitcoinCoreNode.RpcClient;

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Endpointing;
@@ -18,16 +19,19 @@ namespace WalletWasabi.Tests.Helpers
 		public static async Task<CoreNode> CreateAsync([CallerFilePath]string callerFilePath = null, [CallerMemberName]string callerMemberName = null, string additionalFolder = null, MempoolService mempoolService = null)
 		{
 			var network = Network.RegTest;
-			return await CoreNode.CreateAsync(new CoreNodeParams(
-						   network,
-						   mempoolService ?? new MempoolService(),
-						   Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName, additionalFolder ?? ""),
-						   tryRestart: true,
-						   tryDeleteDataDir: true,
-						   EndPointStrategy.Random,
-						   EndPointStrategy.Random,
-						   txIndex: 1,
-						   prune: 0));
+			return await CoreNode.CreateAsync(
+				new CoreNodeParams(
+					network,
+					mempoolService ?? new MempoolService(),
+					Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName, additionalFolder ?? ""),
+					tryRestart: true,
+					tryDeleteDataDir: true,
+					EndPointStrategy.Random,
+					EndPointStrategy.Random,
+					txIndex: 1,
+					prune: 0,
+					userAgent: $"/WasabiClient:{Constants.ClientVersion.ToString()}/"),
+				CancellationToken.None);
 		}
 	}
 }
