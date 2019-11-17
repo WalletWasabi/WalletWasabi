@@ -2027,7 +2027,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nNot enough inputs are provided. Fee to pay:", httpRequestException.Message);
 
 			roundConfig.Denomination = Money.Coins(0.008m); // one satoshi less than our output
-			roundConfig.ConnectionConfirmationTimeout = 2;
+			roundConfig.ConnectionConfirmationTimeout = 7;
 			await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
 			round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
@@ -2071,6 +2071,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				roundState = await satoshiClient.GetRoundStateAsync(aliceClient.RoundId);
 				Assert.Equal(RoundPhase.InputRegistration, roundState.Phase);
 				Assert.Equal(1, roundState.RegisteredPeerCount);
+				await aliceClient.PostUnConfirmationAsync();
 			}
 
 			round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
@@ -2080,10 +2081,20 @@ namespace WalletWasabi.Tests.IntegrationTests
 			blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedData.ToBytes()));
 			proof = key.SignCompact(blindedOutputScriptsHash);
 			inputsRequest.Inputs.First().Proof = proof;
+
+			var currentRound = coordinator.TryGetRound(roundId);
+			Assert.NotNull(currentRound);
+			Assert.Equal(RoundPhase.InputRegistration, currentRound.Phase);
+			Assert.Equal(2, currentRound.AnonymitySet);
+			Assert.Equal(0, currentRound.CountAlices());
+
 			using (var aliceClient = await AliceClient.CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, inputsRequest, baseUri, null))
 			{
 				Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
 				Assert.True(aliceClient.RoundId > 0);
+
+				Assert.Equal(2, currentRound.AnonymitySet);
+				Assert.Equal(1, currentRound.CountAlices());
 
 				var roundState = await satoshiClient.GetRoundStateAsync(aliceClient.RoundId);
 				Assert.Equal(RoundPhase.InputRegistration, roundState.Phase);
@@ -2117,12 +2128,25 @@ namespace WalletWasabi.Tests.IntegrationTests
 			Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nMaximum 7 inputs can be registered.", httpRequestException.Message);
 			inputProofs.RemoveLast();
 			inputsRequest.Inputs = inputProofs;
+
+			Assert.NotNull(currentRound);
+			Assert.Equal(RoundPhase.InputRegistration, currentRound.Phase);
+			Assert.Equal(2, currentRound.AnonymitySet);
+			Assert.Equal(1, currentRound.CountAlices());
+
+			var awaiter = new EventAwaiter<RoundPhase>(
+				h => currentRound.PhaseChanged += h,
+				h => currentRound.PhaseChanged -= h);
+
 			using (var aliceClient = await AliceClient.CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, inputsRequest, baseUri, null))
 			{
+				Assert.Equal(2, currentRound.AnonymitySet);
+				Assert.Equal(2, currentRound.CountAlices());
 				Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
 				Assert.True(aliceClient.RoundId > 0);
 
-				await Task.Delay(1000);
+				await awaiter.WaitAsync(TimeSpan.FromSeconds(7));
+
 				var roundState = await satoshiClient.GetRoundStateAsync(aliceClient.RoundId);
 				Assert.Equal(RoundPhase.ConnectionConfirmation, roundState.Phase);
 				Assert.Equal(2, roundState.RegisteredPeerCount);
@@ -2146,7 +2170,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nInput is already registered in another round.", httpRequestException.Message);
 
 			// Wait until input registration times out.
-			await Task.Delay(3000);
+			await Task.Delay(TimeSpan.FromSeconds(8));
 			httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, inputsRequest, baseUri, null));
 			Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nInput is banned from participation for", httpRequestException.Message);
 
