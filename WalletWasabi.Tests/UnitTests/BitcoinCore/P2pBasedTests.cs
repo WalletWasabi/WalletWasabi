@@ -121,7 +121,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				var rpc = coreNode.RpcClient;
 				BlockNotifier notifier = coreNode.BlockNotifier;
 
-				// Make we get notification for one block.
+				// Make sure we get notification for one block.
 				var blockEventAwaiter = new EventAwaiter<Block>(
 					h => notifier.OnBlock += h,
 					h => notifier.OnBlock -= h);
@@ -130,7 +130,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				var block = await blockEventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
 				Assert.Equal(hash, block.GetHash());
 
-				// Make sure we get notifications about 10 blocks created the same time.
+				// Make sure we get notifications about 10 blocks created at the same time.
 				var blockNum = 10;
 				var blockEventsAwaiter = new EventsAwaiter<Block>(
 					h => notifier.OnBlock += h,
