@@ -98,7 +98,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					await address.TryCopyToClipboardAsync();
 				});
 
-			var isCoinListItemSelected = this.WhenAnyValue(x => x.SelectedAddress).Select(coin => coin != null);
+			var isCoinListItemSelected = this.WhenAnyValue(x => x.SelectedAddress).Select(coin => coin is { });
 
 			CopyAddress = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -111,27 +111,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			},
 			isCoinListItemSelected);
 
-			CopyLabel = ReactiveCommand.CreateFromTask(async () =>
-			{
-				try
-				{
-					await Application.Current.Clipboard.SetTextAsync(SelectedAddress.Label ?? string.Empty);
-				}
-				catch (Exception)
-				{ }
-			},
-			isCoinListItemSelected);
+			CopyLabel = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(SelectedAddress.Label ?? string.Empty), isCoinListItemSelected);
 
-			ToggleQrCode = ReactiveCommand.Create(() =>
-				{
-					try
-					{
-						SelectedAddress.IsExpanded = !SelectedAddress.IsExpanded;
-					}
-					catch (Exception)
-					{ }
-				},
-				isCoinListItemSelected);
+			ToggleQrCode = ReactiveCommand.Create(() => ToggleSelectedAddress(), isCoinListItemSelected);
 
 #pragma warning disable IDE0053 // Use expression body for lambda expressions
 			ChangeLabelCommand = ReactiveCommand.Create(() => { SelectedAddress.InEditMode = true; });
@@ -154,23 +136,29 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SaveQRCodeCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				if (SelectedAddress != null)
+				if (SelectedAddress is { })
 				{
 					await SelectedAddress.SaveQRCodeAsync();
 				}
 			});
 
-			_suggestions = new ObservableCollection<SuggestionViewModel>();
-
 			Observable
+				.Merge(DisplayAddressOnHwCommand.ThrownExceptions)
+				.Merge(ChangeLabelCommand.ThrownExceptions)
+				.Merge(ToggleQrCode.ThrownExceptions)
 				.Merge(CopyAddress.ThrownExceptions)
 				.Merge(CopyLabel.ThrownExceptions)
-				.Merge(ToggleQrCode.ThrownExceptions)
-				.Merge(ChangeLabelCommand.ThrownExceptions)
-				.Merge(DisplayAddressOnHwCommand.ThrownExceptions)
 				.Merge(GenerateCommand.ThrownExceptions)
 				.Merge(SaveQRCodeCommand.ThrownExceptions)
-				.Subscribe(ex => Logger.LogWarning(ex));
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(ex => SetWarningMessage(ex.ToTypeMessageString()));
+
+			_suggestions = new ObservableCollection<SuggestionViewModel>();
+		}
+
+		private void ToggleSelectedAddress()
+		{
+			SelectedAddress.IsExpanded = !SelectedAddress.IsExpanded;
 		}
 
 		public override void OnOpen()
@@ -179,19 +167,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Observable.FromEventPattern(Global.WalletService.TransactionProcessor,
-				nameof(Global.WalletService.TransactionProcessor.CoinReceived))
+			Observable
+				.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => InitializeAddresses())
-				.DisposeWith(Disposables);
-
-			Observable.Merge(DisplayAddressOnHwCommand.ThrownExceptions)
-				.Merge(ChangeLabelCommand.ThrownExceptions)
-				.Merge(ToggleQrCode.ThrownExceptions)
-				.Merge(CopyAddress.ThrownExceptions)
-				.Merge(CopyLabel.ThrownExceptions)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(ex => SetWarningMessage(ex.ToTypeMessageString()))
 				.DisposeWith(Disposables);
 		}
 
@@ -302,7 +281,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			else
 			{
-				words[words.Length - 1] = word;
+				words[^1] = word;
 				Label = string.Join(", ", words) + ", ";
 			}
 
