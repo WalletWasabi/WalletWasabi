@@ -22,6 +22,7 @@ namespace WalletWasabi.Blockchain.Mempool
 		private List<TransactionBroadcastEntry> BroadcastStore { get; }
 
 		private object BroadcastStoreLock { get; }
+		public bool TrustedNodeMode { get; set; }
 
 		public event EventHandler<SmartTransaction> TransactionReceived;
 
@@ -32,6 +33,7 @@ namespace WalletWasabi.Blockchain.Mempool
 			BroadcastStore = new List<TransactionBroadcastEntry>();
 			BroadcastStoreLock = new object();
 			_cleanupInProcess = 0;
+			TrustedNodeMode = false;
 		}
 
 		public bool TryAddToBroadcastStore(Transaction transaction, string nodeRemoteSocketEndpoint)

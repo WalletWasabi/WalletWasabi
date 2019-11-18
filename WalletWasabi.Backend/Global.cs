@@ -6,6 +6,11 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore;
+using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Blockchain.Mempool;
+using WalletWasabi.Blockchain.P2p;
 using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;
@@ -20,9 +25,9 @@ namespace WalletWasabi.Backend
 
 		public RPCClient RpcClient { get; private set; }
 
-		public Node LocalNode { get; private set; }
+		public P2pNode P2pNode { get; private set; }
 
-		public TrustedNodeNotifyingBehavior TrustedNodeNotifyingBehavior { get; private set; }
+		public BlockNotifier BlockNotifier { get; private set; }
 
 		public IndexBuilderService IndexBuilderService { get; private set; }
 
@@ -43,7 +48,7 @@ namespace WalletWasabi.Backend
 		{
 		}
 
-		public async Task InitializeAsync(Config config, CoordinatorRoundConfig roundConfig, RPCClient rpc)
+		public async Task InitializeAsync(Config config, CoordinatorRoundConfig roundConfig, RPCClient rpc, CancellationToken cancel)
 		{
 			Config = Guard.NotNull(nameof(config), config);
 			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
@@ -53,14 +58,14 @@ namespace WalletWasabi.Backend
 			await AssertRpcNodeFullyInitializedAsync();
 
 			// Make sure P2P works.
-			await InitializeP2pAsync(config.Network, config.GetBitcoinP2pEndPoint());
+			await InitializeP2pAsync(config.Network, config.GetBitcoinP2pEndPoint(), cancel);
 
 			// Initialize index building
 			var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
 			var utxoSetFilePath = Path.Combine(indexBuilderServiceDir, $"UtxoSet{RpcClient.Network}.dat");
-			IndexBuilderService = new IndexBuilderService(RpcClient, TrustedNodeNotifyingBehavior, indexFilePath, utxoSetFilePath);
-			Coordinator = new Coordinator(RpcClient.Network, TrustedNodeNotifyingBehavior, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
+			IndexBuilderService = new IndexBuilderService(RpcClient, BlockNotifier, indexFilePath, utxoSetFilePath);
+			Coordinator = new Coordinator(RpcClient.Network, BlockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
 			IndexBuilderService.Synchronize();
 			Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
 
@@ -90,81 +95,16 @@ namespace WalletWasabi.Backend
 			}
 		}
 
-		public void DisconnectDisposeNullLocalNode()
-		{
-			if (LocalNode != null)
-			{
-				try
-				{
-					LocalNode?.Disconnect();
-				}
-				catch (Exception ex)
-				{
-					Logger.LogDebug(ex);
-				}
-				finally
-				{
-					try
-					{
-						LocalNode?.Dispose();
-					}
-					catch (Exception ex)
-					{
-						Logger.LogDebug(ex);
-					}
-					finally
-					{
-						LocalNode = null;
-						Logger.LogInfo("Local Bitcoin node is disconnected.");
-					}
-				}
-			}
-		}
-
-		private async Task InitializeP2pAsync(Network network, EndPoint endPoint)
+		private async Task InitializeP2pAsync(Network network, EndPoint endPoint, CancellationToken cancel)
 		{
 			Guard.NotNull(nameof(network), network);
 			Guard.NotNull(nameof(endPoint), endPoint);
 
-			using var handshakeTimeout = new CancellationTokenSource();
-			handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
-			var nodeConnectionParameters = new NodeConnectionParameters()
-			{
-				UserAgent = $"/WasabiCoordinator:{Constants.BackendMajorVersion.ToString()}/",
-				ConnectCancellation = handshakeTimeout.Token,
-				IsRelay = true
-			};
-
-			nodeConnectionParameters.TemplateBehaviors.Add(new TrustedNodeNotifyingBehavior());
-			var node = await Node.ConnectAsync(network, endPoint, nodeConnectionParameters);
 			// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
-			TrustedNodeNotifyingBehavior = node.Behaviors.Find<TrustedNodeNotifyingBehavior>();
-			try
-			{
-				Logger.LogInfo("TCP Connection succeeded, handshaking...");
-				node.VersionHandshake(Constants.LocalBackendNodeRequirements, handshakeTimeout.Token);
-				var peerServices = node.PeerVersion.Services;
-
-				if (!peerServices.HasFlag(NodeServices.Network) && !peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
-				{
-					throw new InvalidOperationException("Wasabi cannot use the local node because it does not provide blocks.");
-				}
-
-				Logger.LogInfo("Handshake completed successfully.");
-
-				if (!node.IsConnected)
-				{
-					throw new InvalidOperationException($"Wasabi could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
-						"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
-				}
-				LocalNode = node;
-			}
-			catch (OperationCanceledException) when (handshakeTimeout.IsCancellationRequested)
-			{
-				Logger.LogWarning($"Wasabi could not complete the handshake with the local node. Probably Wasabi is not whitelisted by the node.{Environment.NewLine}" +
-					"Use \"whitebind\" in the node configuration. (Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.)");
-				throw;
-			}
+			P2pNode = new P2pNode(network, endPoint, new MempoolService(), $"/WasabiCoordinator:{Constants.BackendMajorVersion.ToString()}/");
+			await P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
+			BlockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), new RpcWrappedClient(RpcClient), P2pNode);
+			BlockNotifier.Start();
 		}
 
 		private async Task AssertRpcNodeFullyInitializedAsync()

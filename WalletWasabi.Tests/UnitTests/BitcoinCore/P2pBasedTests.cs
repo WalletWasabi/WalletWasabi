@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Stores;
@@ -24,15 +25,15 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			using var node = await coreNode.CreateNewP2pNodeAsync();
 			try
 			{
+				var network = coreNode.Network;
 				var rpc = coreNode.RpcClient;
-				await rpc.GenerateAsync(101);
-				var network = rpc.Network;
 				var bitcoinStore = new BitcoinStore();
-
 				var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
 				await bitcoinStore.InitializeAsync(dir, network);
 
-				node.Behaviors.Add(bitcoinStore.CreateMempoolBehavior());
+				await rpc.GenerateAsync(101);
+
+				node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 				node.VersionHandshake();
 
 				var addr = new Key().PubKey.GetSegwitAddress(network);
@@ -80,17 +81,12 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
 
 				var addr = new Key().PubKey.GetSegwitAddress(network);
-				var notifier = coreNode.TrustedNodeNotifyingBehavior;
+				var notifier = coreNode.MempoolService;
 
 				var txNum = 10;
-				var txInvEventAwaiter = new EventsAwaiter<uint256>(
-					h => notifier.TransactionInv += h,
-					h => notifier.TransactionInv -= h,
-					txNum);
-
 				var txEventAwaiter = new EventsAwaiter<SmartTransaction>(
-					h => notifier.Transaction += h,
-					h => notifier.Transaction -= h,
+					h => notifier.TransactionReceived += h,
+					h => notifier.TransactionReceived -= h,
 					txNum);
 
 				var txTasks = new List<Task<uint256>>();
@@ -101,16 +97,10 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				}
 				var batchTask = batch.SendBatchAsync();
 
-				var aht = txInvEventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
 				var arrivedTxs = await txEventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
-				var arrivedHashes = await aht;
 
 				await batchTask;
 				var hashes = await Task.WhenAll(txTasks);
-				foreach (var hash in arrivedHashes)
-				{
-					Assert.Contains(hash, hashes);
-				}
 				foreach (var hash in arrivedTxs.Select(x => x.GetHash()))
 				{
 					Assert.Contains(hash, hashes);
@@ -122,47 +112,80 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 		}
 
-		//[Fact]
-		//public async Task TrustedNotifierNotifiesBlockAsync()
-		//{
-		//	var coreNode = await TestNodeBuilder.CreateAsync();
-		//	try
-		//	{
-		//		var rpc = coreNode.RpcClient;
+		[Fact]
+		public async Task BlockNotifierTestsAsync()
+		{
+			var coreNode = await TestNodeBuilder.CreateAsync();
+			try
+			{
+				var rpc = coreNode.RpcClient;
+				BlockNotifier notifier = coreNode.BlockNotifier;
 
-		//		var addr = new Key().PubKey.GetSegwitAddress(rpc.Network);
-		//		var notifier = coreNode.TrustedNodeNotifyingBehavior;
+				// Make sure we get notification for one block.
+				var blockEventAwaiter = new EventAwaiter<Block>(
+					h => notifier.OnBlock += h,
+					h => notifier.OnBlock -= h);
 
-		//		var blockNum = 10;
-		//		var blockInvEventAwaiter = new EventsAwaiter<uint256>(
-		//			h => notifier.BlockInv += h,
-		//			h => notifier.BlockInv -= h,
-		//			blockNum);
+				var hash = (await rpc.GenerateAsync(1)).First();
+				var block = await blockEventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
+				Assert.Equal(hash, block.GetHash());
 
-		//		var blockEventAwaiter = new EventsAwaiter<Block>(
-		//			h => notifier.Block += h,
-		//			h => notifier.Block -= h,
-		//			blockNum);
+				// Make sure we get notifications about 10 blocks created at the same time.
+				var blockNum = 10;
+				var blockEventsAwaiter = new EventsAwaiter<Block>(
+					h => notifier.OnBlock += h,
+					h => notifier.OnBlock -= h,
+					blockNum);
 
-		//		var hashes = await rpc.GenerateToAddressAsync(blockNum, addr);
+				var hashes = (await rpc.GenerateAsync(blockNum)).ToArray();
 
-		//		var aht = blockInvEventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
-		//		var arrivedBlocks = await blockEventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
-		//		var arrivedHashes = await aht;
+				var arrivedBlocks = (await blockEventsAwaiter.WaitAsync(TimeSpan.FromSeconds(21))).ToArray();
 
-		//		foreach (var hash in arrivedHashes)
-		//		{
-		//			Assert.Contains(hash, hashes);
-		//		}
-		//		foreach (var hash in arrivedBlocks.Select(x => x.GetHash()))
-		//		{
-		//			Assert.Contains(hash, hashes);
-		//		}
-		//	}
-		//	finally
-		//	{
-		//		await coreNode.TryStopAsync();
-		//	}
-		//}
+				for (int i = 0; i < hashes.Length; i++)
+				{
+					var expected = hashes[i];
+					var actual = arrivedBlocks[i].GetHash();
+					Assert.Equal(expected, actual);
+				}
+
+				// Make sure we get reorg notifications.
+				var reorgNum = 3;
+				var newBlockNum = reorgNum + 1;
+				var reorgEventsAwaiter = new EventsAwaiter<BlockHeader>(
+					h => notifier.OnReorg += h,
+					h => notifier.OnReorg -= h,
+					reorgNum);
+				blockEventsAwaiter = new EventsAwaiter<Block>(
+					h => notifier.OnBlock += h,
+					h => notifier.OnBlock -= h,
+					newBlockNum);
+
+				var reorgedHashes = hashes.TakeLast(reorgNum).ToArray();
+				await rpc.InvalidateBlockAsync(reorgedHashes[0]);
+				var newHashes = (await rpc.GenerateAsync(newBlockNum)).ToArray();
+
+				var reorgedHeaders = (await reorgEventsAwaiter.WaitAsync(TimeSpan.FromSeconds(21))).ToArray();
+				var newBlocks = (await blockEventsAwaiter.WaitAsync(TimeSpan.FromSeconds(21))).ToArray();
+
+				reorgedHashes = reorgedHashes.Reverse().ToArray();
+				for (int i = 0; i < reorgedHashes.Length; i++)
+				{
+					var expected = reorgedHashes[i];
+					var actual = reorgedHeaders[i].GetHash();
+					Assert.Equal(expected, actual);
+				}
+
+				for (int i = 0; i < newHashes.Length; i++)
+				{
+					var expected = newHashes[i];
+					var actual = newBlocks[i].GetHash();
+					Assert.Equal(expected, actual);
+				}
+			}
+			finally
+			{
+				await coreNode.TryStopAsync();
+			}
+		}
 	}
 }

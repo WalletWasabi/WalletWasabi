@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Hosting.Internal;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using NBitcoin.RPC;
@@ -19,10 +19,10 @@ namespace WalletWasabi.Backend
 		public WebsiteTorifier WebsiteTorifier { get; }
 		public Global Global { get; }
 
-		public InitConfigStartupTask(Global global, IHostingEnvironment hostingEnvironment)
+		public InitConfigStartupTask(Global global, IWebHostEnvironment hostingEnvironment)
 		{
 			Global = global;
-			WebsiteTorifier = new WebsiteTorifier(((HostingEnvironment)hostingEnvironment).WebRootPath);
+			WebsiteTorifier = new WebsiteTorifier(hostingEnvironment.WebRootPath);
 		}
 
 		public async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -48,7 +48,7 @@ namespace WalletWasabi.Backend
 					hostOrUri: host,
 					network: config.Network);
 
-			await Global.InitializeAsync(config, roundConfig, rpc);
+			await Global.InitializeAsync(config, roundConfig, rpc, cancellationToken);
 
 			try
 			{
