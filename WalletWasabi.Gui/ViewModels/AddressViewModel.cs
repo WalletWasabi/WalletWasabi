@@ -26,7 +26,6 @@ namespace WalletWasabi.Gui.ViewModels
 		private string _label;
 		private bool _inEditMode;
 		private ObservableAsPropertyHelper<string> _expandMenuCaption;
-		private ReactiveCommand<string, Unit> _executeSaveQRCodeCommand;
 
 		public HdPubKey Model { get; }
 		public Global Global { get; }
@@ -136,11 +135,7 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _qrCode, value);
 		}
 
-		public ReactiveCommand<string, Unit> ExecuteSaveQRCodeCommand
-		{
-			get => _executeSaveQRCodeCommand;
-			set => this.RaiseAndSetIfChanged(ref _executeSaveQRCodeCommand, value, nameof(ExecuteSaveQRCodeCommand));
-		}
+		public ReactiveCommand<string, Unit> ExecuteSaveQRCodeCommand { get; set; }
 
 		public string ExpandMenuCaption => _expandMenuCaption?.Value ?? string.Empty;
 
