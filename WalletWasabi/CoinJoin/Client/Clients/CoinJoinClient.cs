@@ -345,7 +345,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			TxOut[] myOutputs = unsignedCoinJoin.Outputs
 				.Where(x => x.ScriptPubKey == ongoingRound.Registration.ChangeAddress.ScriptPubKey
 					|| ongoingRound.Registration.ActiveOutputs.Select(y => y.Address.ScriptPubKey).Contains(x.ScriptPubKey))
-					.ToArray();
+				.ToArray();
 			Money amountBack = myOutputs.Sum(y => y.Value);
 
 			// Make sure change is counted.

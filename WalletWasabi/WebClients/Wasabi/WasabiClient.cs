@@ -42,10 +42,7 @@ namespace WalletWasabi.WebClients.Wasabi
 				relativeUri = $"{relativeUri}&estimateSmartFeeMode={estimateMode}";
 			}
 
-			using var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
-																	HttpStatusCode.OK,
-																	relativeUri,
-																	cancel: cancel);
+			using var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, relativeUri, cancel: cancel);
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
 				await response.ThrowRequestExceptionFromContentAsync();
@@ -65,10 +62,11 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// </remarks>
 		public async Task<FiltersResponse> GetFiltersAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancel = default)
 		{
-			using var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
-																	HttpStatusCode.OK,
-																	$"/api/v{Constants.BackendMajorVersion}/btc/blockchain/filters?bestKnownBlockHash={bestKnownBlockHash}&count={count}",
-																	cancel: cancel);
+			using var response = await TorClient.SendAndRetryAsync(
+				HttpMethod.Get,
+				HttpStatusCode.OK,
+				$"/api/v{Constants.BackendMajorVersion}/btc/blockchain/filters?bestKnownBlockHash={bestKnownBlockHash}&count={count}",
+				cancel: cancel);
 			if (response.StatusCode == HttpStatusCode.NoContent)
 			{
 				return null;
@@ -120,10 +118,11 @@ namespace WalletWasabi.WebClients.Wasabi
 
 		public async Task<IEnumerable<uint256>> GetMempoolHashesAsync(CancellationToken cancel = default)
 		{
-			using var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
-																	HttpStatusCode.OK,
-																	$"/api/v{Constants.BackendMajorVersion}/btc/blockchain/mempool-hashes",
-																	cancel: cancel);
+			using var response = await TorClient.SendAndRetryAsync(
+				HttpMethod.Get,
+				HttpStatusCode.OK,
+				$"/api/v{Constants.BackendMajorVersion}/btc/blockchain/mempool-hashes",
+				cancel: cancel);
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
 				await response.ThrowRequestExceptionFromContentAsync();
@@ -141,10 +140,11 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// <param name="compactness">1 to 64</param>
 		public async Task<ISet<string>> GetMempoolHashesAsync(int compactness, CancellationToken cancel = default)
 		{
-			using var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
-																	HttpStatusCode.OK,
-																	$"/api/v{Constants.BackendMajorVersion}/btc/blockchain/mempool-hashes?compactness={compactness}",
-																	cancel: cancel);
+			using var response = await TorClient.SendAndRetryAsync(
+				HttpMethod.Get,
+				HttpStatusCode.OK,
+				$"/api/v{Constants.BackendMajorVersion}/btc/blockchain/mempool-hashes?compactness={compactness}",
+				cancel: cancel);
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
 				await response.ThrowRequestExceptionFromContentAsync();
