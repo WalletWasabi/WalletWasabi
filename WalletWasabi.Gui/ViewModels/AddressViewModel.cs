@@ -182,7 +182,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public async Task SaveQRCodeAsync()
 		{
-			await ExecuteSaveQRCodeCommand.Execute(Address);
+			await ExecuteSaveQRCodeCommand?.Execute(Address);
 		}
 
 		#region IDisposable Support

@@ -37,9 +37,9 @@ namespace WalletWasabi.Gui.Controls
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => FinalMatrix = AddPaddingToMatrix(x));
 
-			QRImageSaveCommand = ReactiveCommand.CreateFromTask<string, Unit>(SaveQRCodeAsync);
+			SaveCommand = ReactiveCommand.CreateFromTask<string, Unit>(SaveQRCodeAsync);
 
-			QRImageSaveCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
+			SaveCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
 		}
 
 		public async Task<Unit> SaveQRCodeAsync(string address)
@@ -84,18 +84,18 @@ namespace WalletWasabi.Gui.Controls
 			return Unit.Default;
 		}
 
-		public static readonly DirectProperty<QrCode, ReactiveCommand<string, Unit>> QRImageSaveCommandProperty =
+		public static readonly DirectProperty<QrCode, ReactiveCommand<string, Unit>> SaveCommandProperty =
 			AvaloniaProperty.RegisterDirect<QrCode, ReactiveCommand<string, Unit>>(
-				nameof(QRImageSaveCommand),
-				o => o.QRImageSaveCommand,
-				(o, v) => o.QRImageSaveCommand = v);
+				nameof(SaveCommand),
+				o => o.SaveCommand,
+				(o, v) => o.SaveCommand = v);
 
-		private ReactiveCommand<string, Unit> _qRImageSavePath;
+		private ReactiveCommand<string, Unit> _saveCommand;
 
-		public ReactiveCommand<string, Unit> QRImageSaveCommand
+		public ReactiveCommand<string, Unit> SaveCommand
 		{
-			get => _qRImageSavePath;
-			set => SetAndRaise(QRImageSaveCommandProperty, ref _qRImageSavePath, value);
+			get => _saveCommand;
+			set => SetAndRaise(SaveCommandProperty, ref _saveCommand, value);
 		}
 
 		public static readonly DirectProperty<QrCode, bool[,]> MatrixProperty =
