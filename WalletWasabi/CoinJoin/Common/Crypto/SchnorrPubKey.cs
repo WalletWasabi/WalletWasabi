@@ -1,5 +1,6 @@
 using NBitcoin;
 using System;
+using System.Text.Json.Serialization;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using static NBitcoin.Crypto.SchnorrBlinding;
