@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.JsonConverters;
 
