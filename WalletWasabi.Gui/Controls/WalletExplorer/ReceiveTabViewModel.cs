@@ -15,8 +15,6 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.KeyManagement;
-using WalletWasabi.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;

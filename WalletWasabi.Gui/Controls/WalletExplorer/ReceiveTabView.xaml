@@ -111,7 +111,7 @@
                 <Grid>
                   <Expander Name="coinExpander" ExpandDirection="Down" IsExpanded="{Binding IsExpanded}" Classes="coloredExpander" Background="{Binding ElementName=coinExpander, Path=IsExpanded, Converter={StaticResource CoinItemExpanderColorConverter}}">
                     <StackPanel Orientation="Horizontal" Spacing="16" Margin="35 10 0 5">
-                      <controls:QrCode Height="220" Matrix="{Binding QrCode}" QRImageSavePath="{Binding QRImageSavePath, Mode=TwoWay}" HorizontalAlignment="Left" />
+                      <controls:QrCode Height="220" Matrix="{Binding QrCode}" QRImageSaveCommand="{Binding ExecuteSaveQRCodeCommand, Mode=OneWayToSource}" HorizontalAlignment="Left" />
                       <Grid ColumnDefinitions="140, *" RowDefinitions="22,22" Margin="6">
                         <TextBlock Classes="monospaceFont" Text="Public key:" Grid.Row="0" Grid.Column="0" />
                         <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding PubKey}" Grid.Row="0" Grid.Column="1" />

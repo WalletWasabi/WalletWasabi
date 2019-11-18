@@ -1,12 +1,16 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Metadata;
 using Avalonia.Platform;
 using ReactiveUI;
 using System;
+using System.IO;
+using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
@@ -33,41 +37,63 @@ namespace WalletWasabi.Gui.Controls
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => FinalMatrix = AddPaddingToMatrix(x));
 
-			this.WhenAnyValue(x => x.QRImageSavePath)
-				.Where(x => !string.IsNullOrWhiteSpace(x) || !string.IsNullOrEmpty(x))
-				.Where(x => FinalMatrix != null)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => GenerateQRCodeBitmap(x));
+			QRImageSaveCommand = ReactiveCommand.CreateFromTask<string, Unit>(SaveQRCodeAsync);
 		}
 
-		private void GenerateQRCodeBitmap(string x)
+		public async Task<Unit> SaveQRCodeAsync(string address)
 		{
-			try
+			if (FinalMatrix is null)
 			{
-				var pixSize = PixelSize.FromSize(CoercedSize, 1);
-				using var rtb = new RenderTargetBitmap(pixSize);
+				return Unit.Default;
+			}
 
-				rtb.Render(this);
-				rtb.Save(x);
-			}
-			catch (Exception ex)
+			var sfd = new SaveFileDialog();
+
+			sfd.InitialFileName = $"{address}.png";
+			sfd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+			sfd.Filters.Add(new FileDialogFilter() { Name = "Portable Network Graphics (PNG) Image file", Extensions = { "png" } });
+
+			var visualRoot = (ClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime;
+			var path = await sfd.ShowAsync(visualRoot.MainWindow);
+
+			if (!string.IsNullOrWhiteSpace(path))
 			{
-				Logger.LogDebug(ex);
+				var ext = Path.GetExtension(path);
+
+				if (string.IsNullOrWhiteSpace(ext) || ext.ToLowerInvariant() != "png")
+				{
+					path = $"{path}.png";
+				}
+
+				try
+				{
+					var pixSize = PixelSize.FromSize(CoercedSize, 1);
+					using var rtb = new RenderTargetBitmap(pixSize);
+
+					rtb.Render(this);
+					rtb.Save(path);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogDebug(ex);
+				}
 			}
+
+			return Unit.Default;
 		}
 
-		public static readonly DirectProperty<QrCode, string> QRImageSavePathProperty =
-			AvaloniaProperty.RegisterDirect<QrCode, string>(
-				nameof(QRImageSavePath),
-				o => o.QRImageSavePath,
-				(o, v) => o.QRImageSavePath = v);
+		public static readonly DirectProperty<QrCode, ReactiveCommand<string, Unit>> QRImageSaveCommandProperty =
+			AvaloniaProperty.RegisterDirect<QrCode, ReactiveCommand<string, Unit>>(
+				nameof(QRImageSaveCommand),
+				o => o.QRImageSaveCommand,
+				(o, v) => o.QRImageSaveCommand = v);
 
-		private string _qRImageSavePath;
+		private ReactiveCommand<string, Unit> _qRImageSavePath;
 
-		public string QRImageSavePath
+		public ReactiveCommand<string, Unit> QRImageSaveCommand
 		{
 			get => _qRImageSavePath;
-			set => SetAndRaise(QRImageSavePathProperty, ref _qRImageSavePath, value);
+			set => SetAndRaise(QRImageSaveCommandProperty, ref _qRImageSavePath, value);
 		}
 
 		public static readonly DirectProperty<QrCode, bool[,]> MatrixProperty =

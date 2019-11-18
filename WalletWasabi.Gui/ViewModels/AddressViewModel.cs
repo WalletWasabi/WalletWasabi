@@ -1,6 +1,4 @@
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
@@ -27,8 +25,8 @@ namespace WalletWasabi.Gui.ViewModels
 		private double _clipboardNotificationOpacity;
 		private string _label;
 		private bool _inEditMode;
-		private string _qRImageSavePath;
 		private ObservableAsPropertyHelper<string> _expandMenuCaption;
+		private ReactiveCommand<string, Unit> _executeSaveQRCodeCommand;
 
 		public HdPubKey Model { get; }
 		public Global Global { get; }
@@ -138,39 +136,15 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _qrCode, value);
 		}
 
-		public string QRImageSavePath
+		public ReactiveCommand<string, Unit> ExecuteSaveQRCodeCommand
 		{
-			get => _qRImageSavePath;
-			set => this.RaiseAndSetIfChanged(ref _qRImageSavePath, value);
+			get => _executeSaveQRCodeCommand;
+			set => this.RaiseAndSetIfChanged(ref _executeSaveQRCodeCommand, value, nameof(ExecuteSaveQRCodeCommand));
 		}
 
 		public string ExpandMenuCaption => _expandMenuCaption?.Value ?? string.Empty;
 
 		public CancellationTokenSource CancelClipboardNotification { get; set; }
-
-		public async Task SaveQRCodeAsync()
-		{
-			var sfd = new SaveFileDialog();
-
-			sfd.InitialFileName = $"{Address}.png";
-			sfd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-			sfd.Filters.Add(new FileDialogFilter() { Name = "Portable Network Graphics (PNG) Image file", Extensions = { "png" } });
-
-			var visualRoot = (ClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime;
-			var path = await sfd.ShowAsync(visualRoot.MainWindow);
-
-			if (!string.IsNullOrWhiteSpace(path))
-			{
-				var ext = Path.GetExtension(path);
-
-				if (string.IsNullOrWhiteSpace(ext) || ext.ToLowerInvariant() != "png")
-				{
-					path = $"{path}.png";
-				}
-				
-				QRImageSavePath = path;
-			}
-		}
 
 		public async Task TryCopyToClipboardAsync()
 		{
@@ -209,6 +183,11 @@ namespace WalletWasabi.Gui.ViewModels
 				CancelClipboardNotification?.Dispose();
 				CancelClipboardNotification = null;
 			}
+		}
+
+		public async Task SaveQRCodeAsync()
+		{
+			await ExecuteSaveQRCodeCommand.Execute(Address);
 		}
 
 		#region IDisposable Support
