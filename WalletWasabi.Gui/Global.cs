@@ -597,7 +597,7 @@ namespace WalletWasabi.Gui
 			if (walletService is { })
 			{
 				var keyManager = walletService.KeyManager;
-				if (keyManager is { }) // This should not ever happen.
+				if (keyManager is { }) // This should never happen.
 				{
 					string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(keyManager.FilePath));
 					keyManager.ToFile(backupWalletFilePath);
