@@ -5,7 +5,7 @@ using NBitcoin.BouncyCastle.Math;
 using NBitcoin.Crypto;
 using NBitcoin.Protocol;
 using NBitcoin.RPC;
-using Newtonsoft.Json.Linq;
+
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;

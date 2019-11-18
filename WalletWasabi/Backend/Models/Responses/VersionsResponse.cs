@@ -1,5 +1,3 @@
-using Newtonsoft.Json;
-
 namespace WalletWasabi.Backend.Models.Responses
 {
 	public class VersionsResponse

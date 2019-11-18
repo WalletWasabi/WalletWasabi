@@ -1,32 +1,22 @@
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class FilterModelJsonConverter : JsonConverter
+	public class FilterModelJsonConverter : JsonConverter<FilterModel>
 	{
-		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
+		public override FilterModel Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 		{
-			return objectType == typeof(FilterModel);
+			var value = Guard.Correct(reader.GetString());
+			return value.Length == 0 ? default : FilterModel.FromFullLine(value);
 		}
 
-		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+		public override void Write(Utf8JsonWriter writer, FilterModel value, JsonSerializerOptions options)
 		{
-			var value = Guard.Correct((string)reader.Value);
-
-			return string.IsNullOrWhiteSpace(value) ? default : FilterModel.FromFullLine(value);
-		}
-
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			writer.WriteValue(((FilterModel)value).ToFullLine());
+			writer.WriteStringValue(value.ToFullLine());
 		}
 	}
 }

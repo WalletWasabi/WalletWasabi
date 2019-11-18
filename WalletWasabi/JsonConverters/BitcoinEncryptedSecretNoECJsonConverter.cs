@@ -1,34 +1,16 @@
 using NBitcoin;
-using Newtonsoft.Json;
 using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class BitcoinEncryptedSecretNoECJsonConverter : JsonConverter
+	public class BitcoinEncryptedSecretNoECJsonConverter : JsonConverter<BitcoinEncryptedSecretNoEC>
 	{
-		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
-		{
-			return objectType == typeof(BitcoinEncryptedSecretNoEC);
-		}
+		public override BitcoinEncryptedSecretNoEC Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+			=> reader.CreateObject(value => new BitcoinEncryptedSecretNoEC(value));
 
-		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			var value = reader.Value as string;
-
-			if (string.IsNullOrWhiteSpace(value))
-			{
-				return null;
-			}
-
-			return new BitcoinEncryptedSecretNoEC(value);
-		}
-
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			writer.WriteValue(((BitcoinEncryptedSecretNoEC)value).ToWif());
-		}
+		public override void Write(Utf8JsonWriter writer, BitcoinEncryptedSecretNoEC value, JsonSerializerOptions options)
+			=> writer.WriteStringValue(value.ToWif());
 	}
 }

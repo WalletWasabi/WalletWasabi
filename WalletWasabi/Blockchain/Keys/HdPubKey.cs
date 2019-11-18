@@ -1,5 +1,4 @@
 using NBitcoin;
-using Newtonsoft.Json;
 using System;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;

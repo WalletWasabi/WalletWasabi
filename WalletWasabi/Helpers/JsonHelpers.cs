@@ -1,9 +1,9 @@
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using WalletWasabi.Helpers;
 
-namespace Newtonsoft.Json
+namespace System.Text.Json
 {
 	public static class JsonHelpers
 	{
@@ -19,6 +19,12 @@ namespace Newtonsoft.Json
 			{
 				return false;
 			}
+		}
+
+		public static T CreateObject<T>(this Utf8JsonReader reader, Func<string, T> stringConversion)
+		{
+			var value = Guard.Correct(reader.GetString());
+			return value.Length == 0 ? default : stringConversion(value);
 		}
 	}
 }

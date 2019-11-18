@@ -1,7 +1,4 @@
-using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.JsonConverters;

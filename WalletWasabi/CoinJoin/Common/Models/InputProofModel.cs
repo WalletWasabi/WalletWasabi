@@ -1,4 +1,3 @@
-using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.JsonConverters;

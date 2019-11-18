@@ -1,37 +1,15 @@
-using Newtonsoft.Json;
 using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace WalletWasabi.JsonConverters
 {
-	/// <summary>
-	/// Converter used to convert <see cref="byte"/> arrays to and from JSON.
-	/// </summary>
-	/// <seealso cref="JsonConverter" />
-	public class ByteArrayJsonConverter : JsonConverter
+	public class ByteArrayJsonConverter : JsonConverter<byte[]>
 	{
-		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
-		{
-			return objectType == typeof(byte[]);
-		}
+		public override byte[] Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+			=> reader.CreateObject(value => Convert.FromBase64String(value));
 
-		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			var value = reader.Value as string;
-
-			if (string.IsNullOrWhiteSpace(value))
-			{
-				return null;
-			}
-
-			return Convert.FromBase64String(value);
-		}
-
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			writer.WriteValue(Convert.ToBase64String((byte[])value));
-		}
+		public override void Write(Utf8JsonWriter writer, byte[] value, JsonSerializerOptions options)
+			=> writer.WriteStringValue(Convert.ToBase64String(value));
 	}
 }

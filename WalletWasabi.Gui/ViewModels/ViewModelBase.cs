@@ -1,4 +1,3 @@
-using Newtonsoft.Json;
 using ReactiveUI;
 using System;
 using System.Collections;

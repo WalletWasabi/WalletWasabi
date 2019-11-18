@@ -1,35 +1,16 @@
-using Newtonsoft.Json;
 using System;
 using System.Globalization;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class BlockCypherDateTimeOffsetJsonConverter : JsonConverter
+	public class BlockCypherDateTimeOffsetJsonConverter : JsonConverter<DateTimeOffset>
 	{
-		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
-		{
-			return objectType == typeof(DateTimeOffset);
-		}
+		public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+			=> reader.CreateObject(value => DateTimeOffset.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal));
 
-		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			var value = reader.Value as string;
-
-			if (string.IsNullOrWhiteSpace(value))
-			{
-				return null;
-			}
-
-			string time = value.Trim();
-			return DateTimeOffset.Parse(time, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
-		}
-
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			writer.WriteValue(((DateTimeOffset)value).ToString(CultureInfo.InvariantCulture));
-		}
+		public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options)
+			=> writer.WriteStringValue(value.ToString(CultureInfo.InvariantCulture));
 	}
 }

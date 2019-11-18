@@ -1,6 +1,5 @@
 using NBitcoin;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;

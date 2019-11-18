@@ -5,8 +5,7 @@ using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+
 using Nito.AsyncEx;
 using ReactiveUI;
 using System;

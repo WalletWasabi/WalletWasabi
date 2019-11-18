@@ -1,6 +1,5 @@
 using NBitcoin;
 using NBitcoin.Crypto;
-using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 using System.Net.Http;
 using System.Text;

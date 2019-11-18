@@ -1,37 +1,15 @@
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class DateTimeOffsetUnixSecondsConverter : JsonConverter
+	public class DateTimeOffsetUnixSecondsConverter : JsonConverter<DateTimeOffset>
 	{
-		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
-		{
-			return objectType == typeof(DateTimeOffset);
-		}
+		public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+			=> reader.CreateObject(value => DateTimeOffset.FromUnixTimeSeconds(long.Parse(value)));
 
-		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			var stringValue = reader.Value as string;
-			if (string.IsNullOrWhiteSpace(stringValue))
-			{
-				return default(DateTimeOffset);
-			}
-			else
-			{
-				return DateTimeOffset.FromUnixTimeSeconds(long.Parse(stringValue));
-			}
-		}
-
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			writer.WriteValue(((DateTimeOffset)value).ToUnixTimeSeconds());
-		}
+		public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options)
+			=> writer.WriteStringValue(value.ToUnixTimeSeconds().ToString());
 	}
 }

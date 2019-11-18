@@ -1,10 +1,6 @@
 using NBitcoin;
-using NBitcoin.BouncyCastle.Math;
-using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.CoinJoin.Common.Models

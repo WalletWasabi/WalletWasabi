@@ -1,5 +1,3 @@
-using Newtonsoft.Json;
-
 namespace WalletWasabi.WebClients.SmartBit.Models
 {
 	[JsonObject(MemberSerialization.OptIn)]

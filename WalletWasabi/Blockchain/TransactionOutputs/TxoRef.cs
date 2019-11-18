@@ -1,5 +1,4 @@
 using NBitcoin;
-using Newtonsoft.Json;
 using System;
 using System.ComponentModel.DataAnnotations;
 using WalletWasabi.Helpers;

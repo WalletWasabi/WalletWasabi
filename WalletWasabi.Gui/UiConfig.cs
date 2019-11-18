@@ -1,6 +1,5 @@
 using Avalonia.Controls;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+
 using ReactiveUI;
 using System;
 using System.Collections.Generic;

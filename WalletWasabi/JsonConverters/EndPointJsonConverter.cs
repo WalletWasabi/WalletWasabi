@@ -1,13 +1,14 @@
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class EndPointJsonConverter : JsonConverter
+	public class EndPointJsonConverter : JsonConverter<EndPoint>
 	{
 		public int DefaultPort { get; }
 
@@ -25,38 +26,18 @@ namespace WalletWasabi.JsonConverters
 			DefaultPort = defaultPort;
 		}
 
-		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
-		{
-			return objectType == typeof(EndPoint);
-		}
+		public override EndPoint Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+			=> reader.CreateObject(value =>
+			{
+				if (EndPointParser.TryParse(value, DefaultPort, out EndPoint endPoint))
+				{
+					return endPoint;
+				}
 
-		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			string endPointString = reader.Value as string;
-			if (EndPointParser.TryParse(endPointString, DefaultPort, out EndPoint endPoint))
-			{
-				return endPoint;
-			}
-			else
-			{
-				throw new FormatException($"{nameof(endPointString)} is in the wrong format: {endPointString}.");
-			}
-		}
+				throw new FormatException($"{nameof(value)} is in the wrong format: {value}.");
+			});
 
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			if (value is EndPoint endPoint)
-			{
-				var endPointString = endPoint.ToString(DefaultPort);
-				writer.WriteValue(endPointString);
-			}
-			else
-			{
-				throw new NotSupportedException($"{nameof(EndPointJsonConverter)} can only convert {nameof(EndPoint)}.");
-			}
-		}
+		public override void Write(Utf8JsonWriter writer, EndPoint value, JsonSerializerOptions options)
+			=> writer.WriteStringValue(value.ToString(DefaultPort));
 	}
 }

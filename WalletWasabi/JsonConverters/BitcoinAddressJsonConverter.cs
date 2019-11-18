@@ -1,38 +1,17 @@
 using NBitcoin;
-using Newtonsoft.Json;
 using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class BitcoinAddressJsonConverter : JsonConverter
+	public class BitcoinAddressJsonConverter : JsonConverter<BitcoinAddress>
 	{
-		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
-		{
-			return objectType == typeof(BitcoinAddress);
-		}
+		public override BitcoinAddress Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+			=> reader.CreateObject(value => NBitcoinHelpers.BetterParseBitcoinAddress(value));
 
-		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			var bitcoinAddressString = reader.Value as string;
-			if (string.IsNullOrWhiteSpace(bitcoinAddressString))
-			{
-				return default;
-			}
-			else
-			{
-				return NBitcoinHelpers.BetterParseBitcoinAddress(bitcoinAddressString);
-			}
-		}
-
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			var bitcoinAddress = value as BitcoinAddress;
-
-			writer.WriteValue(bitcoinAddress.ToString());
-		}
+		public override void Write(Utf8JsonWriter writer, BitcoinAddress value, JsonSerializerOptions options)
+			=> writer.WriteStringValue(value.ToString());
 	}
 }
