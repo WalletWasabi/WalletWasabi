@@ -1,38 +1,16 @@
 using NBitcoin;
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class KeyPathJsonConverter : JsonConverter
+	public class KeyPathJsonConverter : JsonConverter<KeyPath>
 	{
-		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
-		{
-			return objectType == typeof(KeyPath);
-		}
+		public override KeyPath Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+			=> reader.CreateObject(value => KeyPath.Parse(value));
 
-		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			var s = (string)reader.Value;
-			if (string.IsNullOrWhiteSpace(s))
-			{
-				return null;
-			}
-			var kp = KeyPath.Parse(s.Trim());
-
-			return kp;
-		}
-
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			var kp = (KeyPath)value;
-
-			var s = kp.ToString();
-			writer.WriteValue(s);
-		}
+		public override void Write(Utf8JsonWriter writer, KeyPath value, JsonSerializerOptions options)
+			=> writer.WriteStringValue(value.ToString());
 	}
 }

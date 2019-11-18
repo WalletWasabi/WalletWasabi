@@ -10,11 +10,11 @@ namespace WalletWasabi.JsonConverters
 	public class GolombRiceFilterJsonConverter : JsonConverter<GolombRiceFilter>
 	{
 		public override GolombRiceFilter Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-		{
-			var value = Guard.Correct(reader.GetString());
-			var data = Encoders.Hex.DecodeData(value);
-			return data.Length == 0 ? null : new GolombRiceFilter(data, 20, 1 << 20);
-		}
+			=> reader.CreateObject(value =>
+				{
+					var data = Encoders.Hex.DecodeData(value);
+					return new GolombRiceFilter(data, 20, 1 << 20);
+				});
 
 		public override void Write(Utf8JsonWriter writer, GolombRiceFilter value, JsonSerializerOptions options)
 			=> writer.WriteStringValue(value.ToString());
