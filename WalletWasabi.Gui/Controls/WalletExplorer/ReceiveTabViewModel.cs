@@ -197,11 +197,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return;
 			}
 
-			foreach (HdPubKey key in walletService.KeyManager.GetKeys(x =>
-																		!x.Label.IsEmpty
-																		&& !x.IsInternal
-																		&& x.KeyState == KeyState.Clean)
-																	.Reverse())
+			IEnumerable<HdPubKey> keys = walletService.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
+			foreach (HdPubKey key in keys)
 			{
 				_addresses.Add(new AddressViewModel(key, Global));
 			}
