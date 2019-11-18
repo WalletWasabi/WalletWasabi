@@ -103,8 +103,7 @@ namespace WalletWasabi.Backend
 			// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
 			P2pNode = new P2pNode(network, endPoint, new MempoolService(), $"/WasabiCoordinator:{Constants.BackendMajorVersion.ToString()}/");
 			await P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
-			BlockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), new RpcWrappedClient(RpcClient));
-			P2pNode.BlockInv += (s, e) => BlockNotifier.TriggerRound();
+			BlockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), new RpcWrappedClient(RpcClient), P2pNode);
 			BlockNotifier.Start();
 		}
 

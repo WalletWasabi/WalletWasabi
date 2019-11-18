@@ -240,11 +240,7 @@ namespace WalletWasabi.BitcoinCore
 				{
 					await blockNotifier.StopAsync().ConfigureAwait(false);
 				}
-				var p2pNode = P2pNode;
-				if (p2pNode is { })
-				{
-					p2pNode.Dispose();
-				}
+				P2pNode?.Dispose();
 				_disposedValue = true;
 			}
 		}
