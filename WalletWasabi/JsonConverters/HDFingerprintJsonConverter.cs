@@ -1,39 +1,16 @@
 using NBitcoin;
-
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class HDFingerprintJsonConverter : JsonConverter
+	public class HDFingerprintJsonConverter : JsonConverter<HDFingerprint>
 	{
-		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
-		{
-			return objectType == typeof(HDFingerprint);
-		}
+		public override HDFingerprint Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+			=> reader.CreateObject(value => new HDFingerprint(ByteHelpers.FromHex(value)));
 
-		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			var s = (string)reader.Value;
-			if (string.IsNullOrWhiteSpace(s))
-			{
-				return null;
-			}
-
-			var fp = new HDFingerprint(ByteHelpers.FromHex(s));
-			return fp;
-		}
-
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			var fp = (HDFingerprint)value;
-
-			var s = fp.ToString();
-			writer.WriteValue(s);
-		}
+		public override void Write(Utf8JsonWriter writer, HDFingerprint value, JsonSerializerOptions options)
+			=> writer.WriteStringValue(value.ToString());
 	}
 }

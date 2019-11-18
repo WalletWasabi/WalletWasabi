@@ -1,32 +1,22 @@
 using NBitcoin;
-using NBitcoin.BouncyCastle.Math;
 using NBitcoin.DataEncoders;
 using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class GolombRiceFilterJsonConverter : JsonConverter
+	public class GolombRiceFilterJsonConverter : JsonConverter<GolombRiceFilter>
 	{
-		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
+		public override GolombRiceFilter Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 		{
-			return objectType == typeof(GolombRiceFilter);
-		}
-
-		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			var value = Guard.Correct((string)reader.Value);
-
+			var value = Guard.Correct(reader.GetString());
 			var data = Encoders.Hex.DecodeData(value);
 			return data.Length == 0 ? null : new GolombRiceFilter(data, 20, 1 << 20);
 		}
 
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			writer.WriteValue(((GolombRiceFilter)value).ToString());
-		}
+		public override void Write(Utf8JsonWriter writer, GolombRiceFilter value, JsonSerializerOptions options)
+			=> writer.WriteStringValue(value.ToString());
 	}
 }

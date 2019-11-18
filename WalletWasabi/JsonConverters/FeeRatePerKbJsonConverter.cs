@@ -1,27 +1,16 @@
 using NBitcoin;
 using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class FeeRatePerKbJsonConverter : JsonConverter
+	public class FeeRatePerKbJsonConverter : JsonConverter<FeeRate>
 	{
-		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
-		{
-			return objectType == typeof(FeeRate);
-		}
+		public override FeeRate Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+			=> new FeeRate(new Money(reader.GetInt64()));
 
-		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			var value = ((long)reader.Value);
-			return new FeeRate(new Money(value));
-		}
-
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			writer.WriteValue(((FeeRate)value).FeePerK.Satoshi.ToString());
-		}
+		public override void Write(Utf8JsonWriter writer, FeeRate value, JsonSerializerOptions options)
+			=> writer.WriteStringValue(value.FeePerK.Satoshi.ToString());
 	}
 }
