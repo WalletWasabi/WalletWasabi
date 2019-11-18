@@ -62,7 +62,7 @@ namespace WalletWasabi.Gui.Controls
 			{
 				var ext = Path.GetExtension(path);
 
-				if (string.IsNullOrWhiteSpace(ext) || ext.ToLowerInvariant() != "png")
+				if (string.IsNullOrWhiteSpace(ext) || ext.ToLowerInvariant().TrimStart('.') != "png")
 				{
 					path = $"{path}.png";
 				}
