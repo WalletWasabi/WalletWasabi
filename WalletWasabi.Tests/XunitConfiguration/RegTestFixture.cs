@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using NBitcoin.RPC;
 using System;
@@ -21,7 +22,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 	public class RegTestFixture : IDisposable
 	{
 		public string BackendEndPoint { get; internal set; }
-		public IWebHost BackendHost { get; internal set; }
+		public IHost BackendHost { get; internal set; }
 		public CoreNode BackendRegTestNode { get; internal set; }
 		public Backend.Global Global { get; }
 
@@ -57,12 +58,15 @@ namespace WalletWasabi.Tests.XunitConfiguration
 				.AddInMemoryCollection(new[] { new KeyValuePair<string, string>("datadir", testnetBackendDir) })
 				.Build();
 			BackendEndPoint = $"http://localhost:{new Random().Next(37130, 38000)}/";
-			BackendHost = WebHost.CreateDefaultBuilder()
-					.UseStartup<Startup>()
-					.UseConfiguration(conf)
-					.UseWebRoot("../../../../WalletWasabi.Backend/wwwroot")
-					.UseUrls(BackendEndPoint)
+
+			BackendHost = Host.CreateDefaultBuilder()
+					.ConfigureWebHostDefaults(webBuilder => webBuilder
+							.UseStartup<Startup>()
+							.UseConfiguration(conf)
+							.UseWebRoot("../../../../WalletWasabi.Backend/wwwroot")
+							.UseUrls(BackendEndPoint))
 					.Build();
+
 			Global = (Backend.Global)BackendHost.Services.GetService(typeof(Backend.Global));
 			var hostInitializationTask = BackendHost.RunWithTasksAsync();
 			Logger.LogInfo($"Started Backend webhost: {BackendEndPoint}");

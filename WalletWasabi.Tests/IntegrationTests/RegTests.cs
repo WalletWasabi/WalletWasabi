@@ -2226,12 +2226,11 @@ namespace WalletWasabi.Tests.IntegrationTests
 				}
 				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId={aliceClient.UniqueId}"))
 				{
-					Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 				}
 				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?roundId={aliceClient.RoundId}"))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-					Assert.Equal("Invalid uniqueId provided.", await response.Content.ReadAsJsonAsync<string>());
 				}
 				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId=foo&roundId={aliceClient.RoundId}"))
 				{
