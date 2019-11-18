@@ -321,7 +321,7 @@ namespace WalletWasabi.Gui
 			Logger.LogInfo("Start connecting to nodes...");
 
 			var regTestMempoolServingNode = RegTestMempoolServingNode;
-			if (RegTestMempoolServingNode is { })
+			if (regTestMempoolServingNode is { })
 			{
 				regTestMempoolServingNode.VersionHandshake();
 				Logger.LogInfo("Start connecting to mempool serving regtest node...");
