@@ -1,6 +1,7 @@
 using NBitcoin;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 
