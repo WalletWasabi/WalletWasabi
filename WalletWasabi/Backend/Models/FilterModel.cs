@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Models;

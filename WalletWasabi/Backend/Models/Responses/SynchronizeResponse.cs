@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.JsonConverters;
@@ -9,7 +10,7 @@ namespace WalletWasabi.Backend.Models.Responses
 	{
 		public FiltersResponseState FiltersResponseState { get; set; }
 
-		[JsonProperty(ItemConverterType = typeof(FilterModelJsonConverter))] // Do not use the deafult jsonifyer, because that's too much data.
+		[JsonConverter(typeof(FilterModelJsonConverter))] // Do not use the deafult jsonifyer, because that's too much data.
 		public IEnumerable<FilterModel> Filters { get; set; }
 
 		public int BestHeight { get; set; }
