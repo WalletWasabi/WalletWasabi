@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Exceptions;
@@ -81,7 +82,7 @@ namespace WalletWasabi.WebClients.SmartBit
 				var ret = new HashSet<SmartBitExchangeRate>();
 				foreach (var jtoken in exchangeRates)
 				{
-					ret.Add(JsonConvert.DeserializeObject<SmartBitExchangeRate>(jtoken.ToString()));
+					ret.Add(JsonSerializer.Deserialize<SmartBitExchangeRate>(jtoken.ToString()));
 				}
 				return ret;
 			}

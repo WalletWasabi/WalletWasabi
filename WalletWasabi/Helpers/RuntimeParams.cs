@@ -2,6 +2,7 @@ using Nito.AsyncEx;
 using System;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
@@ -10,6 +11,8 @@ namespace WalletWasabi.Helpers
 {
 	public class RuntimeParams
 	{
+		private static JsonSerializerOptions JsonSerializerOptions { get; } = new JsonSerializerOptions { WriteIndented = true };
+
 		[JsonProperty(PropertyName = "NetworkNodeTimeout")]
 		public int NetworkNodeTimeout { get; set; } = 64;
 
@@ -59,7 +62,7 @@ namespace WalletWasabi.Helpers
 						Directory.CreateDirectory(FileDir);
 					}
 
-					string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
+					string jsonString = JsonSerializer.Serialize(this, JsonSerializerOptions);
 					await File.WriteAllTextAsync(FilePath,
 					jsonString,
 					Encoding.UTF8);
@@ -82,7 +85,7 @@ namespace WalletWasabi.Helpers
 				}
 
 				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-				InternalInstance = JsonConvert.DeserializeObject<RuntimeParams>(jsonString);
+				InternalInstance = JsonSerializer.Deserialize<RuntimeParams>(jsonString);
 				return;
 			}
 			catch (Exception ex)

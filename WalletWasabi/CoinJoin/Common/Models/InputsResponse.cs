@@ -2,6 +2,7 @@ using NBitcoin.BouncyCastle.Math;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.CoinJoin.Common.Models

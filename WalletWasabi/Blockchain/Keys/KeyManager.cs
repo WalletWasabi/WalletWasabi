@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Security;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Helpers;
@@ -18,6 +19,8 @@ namespace WalletWasabi.Blockchain.Keys
 	[JsonObject(MemberSerialization.OptIn)]
 	public class KeyManager
 	{
+		private static JsonSerializerOptions JsonSerializerOptions { get; } = new JsonSerializerOptions { WriteIndented = true };
+
 		[JsonProperty(Order = 1)]
 		[JsonConverter(typeof(BitcoinEncryptedSecretNoECJsonConverter))]
 		public BitcoinEncryptedSecretNoEC EncryptedSecret { get; }
@@ -246,7 +249,7 @@ namespace WalletWasabi.Blockchain.Keys
 			HashSet<BlockState> toRemove = BlockchainState.BlockStates.Where(x => x.BlockHeight >= BlockchainState.BestHeight).ToHashSet();
 			BlockchainState.BlockStates.RemoveAll(x => toRemove.Contains(x));
 
-			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
+			string jsonString = JsonSerializer.Serialize(this, JsonSerializerOptions);
 			File.WriteAllText(filePath, jsonString, Encoding.UTF8);
 
 			// Re-add removed items for further operations.
@@ -264,7 +267,7 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 
 			string jsonString = File.ReadAllText(filePath, Encoding.UTF8);
-			var km = JsonConvert.DeserializeObject<KeyManager>(jsonString);
+			var km = JsonSerializer.Deserialize<KeyManager>(jsonString);
 
 			km.SetFilePath(filePath);
 			lock (km.HdPubKeyScriptBytesLock)

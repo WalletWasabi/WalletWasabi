@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
@@ -238,7 +239,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		{
 			var myDic = signatures.ToDictionary(signature => signature.Key, signature => signature.Value.ToString());
 
-			var jsonSignatures = JsonConvert.SerializeObject(myDic, Formatting.None);
+			string jsonSignatures = JsonSerializer.Serialize(myDic);
 			var signatureRequestContent = new StringContent(jsonSignatures, Encoding.UTF8, "application/json");
 
 			using HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/signatures?uniqueId={UniqueId}&roundId={RoundId}", signatureRequestContent).ConfigureAwait(false);

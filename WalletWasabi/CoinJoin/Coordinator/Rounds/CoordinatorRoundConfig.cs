@@ -3,6 +3,7 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
@@ -78,7 +79,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		public async Task UpdateOrDefaultAsync(CoordinatorRoundConfig config, bool toFile)
 		{
 			Denomination = config.Denomination ?? Denomination;
-			var configSerialized = JsonConvert.SerializeObject(config);
+			var configSerialized = JsonSerializer.Serialize(config);
 			JsonConvert.PopulateObject(configSerialized, this);
 
 			if (toFile)

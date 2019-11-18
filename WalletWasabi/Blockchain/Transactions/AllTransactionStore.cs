@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -69,7 +70,7 @@ namespace WalletWasabi.Blockchain.Transactions
 								try
 								{
 									string jsonString = File.ReadAllText(filePath, Encoding.UTF8);
-									var allWalletTransactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?.OrderByBlockchain() ?? Enumerable.Empty<SmartTransaction>();
+									var allWalletTransactions = JsonSerializer.Deserialize<IEnumerable<SmartTransaction>>(jsonString)?.OrderByBlockchain() ?? Enumerable.Empty<SmartTransaction>();
 									foreach (var tx in allWalletTransactions)
 									{
 										AddOrUpdateNoLock(tx);

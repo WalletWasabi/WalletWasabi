@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace System.Net.Http
@@ -12,7 +13,7 @@ namespace System.Net.Http
 			}
 
 			var jsonString = await me.ReadAsStringAsync();
-			return JsonConvert.DeserializeObject<T>(jsonString);
+			return JsonSerializer.Deserialize<T>(jsonString);
 		}
 	}
 }
