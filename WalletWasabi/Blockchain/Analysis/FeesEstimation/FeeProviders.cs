@@ -63,7 +63,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 					}
 				}
 
-				Status = providerArray[providerArray.Length - 1].Status;
+				Status = providerArray[^1].Status;
 			}
 		}
 

@@ -216,7 +216,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 			else
 			{
-				words[words.Length - 1] = word;
+				words[^1] = word;
 				MnemonicWords = string.Join(' ', words) + " ";
 			}
 
