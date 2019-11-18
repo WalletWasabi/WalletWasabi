@@ -1,6 +1,7 @@
 using NBitcoin;
 using NBitcoin.RPC;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.BitcoinCore
 {
@@ -10,7 +11,7 @@ namespace WalletWasabi.BitcoinCore
 
 		public RpcWrappedClient(RPCClient rpc)
 		{
-			Rpc = rpc;
+			Rpc = Guard.NotNull(nameof(rpc), rpc);
 		}
 
 		public Network Network => Rpc.Network;
