@@ -185,12 +185,12 @@ cd WalletWasabi
 dotnet restore
 dotnet build
 dotnet publish WalletWasabi.Backend --configuration Release --self-contained false
-dotnet WalletWasabi.Backend/bin/Release/netcoreapp2.2/publish/WalletWasabi.Backend.dll
+dotnet WalletWasabi.Backend/bin/Release/netcoreapp3.0/publish/WalletWasabi.Backend.dll
 cd ..
 cat .walletwasabi/backend/Logs.txt
 pico .walletwasabi/backend/Config.json
 pico .walletwasabi/backend/CcjRoundConfig.json
-dotnet WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp2.2/publish/WalletWasabi.Backend.dll
+dotnet WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp3.0/publish/WalletWasabi.Backend.dll
 cat .walletwasabi/backend/Logs.txt
 ```
 
@@ -209,8 +209,8 @@ sudo pico /etc/systemd/system/walletwasabi.service
 Description=WalletWasabi Backend API
 
 [Service]
-WorkingDirectory=/home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp2.2/publish
-ExecStart=/usr/bin/dotnet /home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp2.2/publish/WalletWasabi.Backend.dll
+WorkingDirectory=/home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp3.0/publish
+ExecStart=/usr/bin/dotnet /home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp3.0/publish/WalletWasabi.Backend.dll
 Restart=always
 RestartSec=10  # Restart service after 10 seconds if dotnet service crashes
 SyslogIdentifier=walletwasabi-backend
