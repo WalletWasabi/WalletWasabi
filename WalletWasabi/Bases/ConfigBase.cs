@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
@@ -10,6 +11,8 @@ namespace WalletWasabi.Bases
 {
 	public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 	{
+		public static JsonSerializerOptions JsonSerializerOptions { get; } = new JsonSerializerOptions { WriteIndented = true };
+
 		/// <inheritdoc />
 		public string FilePath { get; private set; } = null;
 
@@ -99,7 +102,7 @@ namespace WalletWasabi.Bases
 		{
 			AssertFilePathSet();
 
-			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
+			string jsonString = JsonSerializer.Serialize(this, JsonSerializerOptions);
 			await File.WriteAllTextAsync(FilePath, jsonString, Encoding.UTF8);
 		}
 

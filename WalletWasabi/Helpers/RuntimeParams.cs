@@ -2,6 +2,7 @@ using Nito.AsyncEx;
 using System;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
@@ -82,7 +83,7 @@ namespace WalletWasabi.Helpers
 				}
 
 				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-				InternalInstance = JsonConvert.DeserializeObject<RuntimeParams>(jsonString);
+				InternalInstance = JsonSerializer.Deserialize<RuntimeParams>(jsonString);
 				return;
 			}
 			catch (Exception ex)

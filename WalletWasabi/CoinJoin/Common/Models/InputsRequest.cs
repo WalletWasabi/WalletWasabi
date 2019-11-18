@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using WalletWasabi.JsonConverters;
 
@@ -17,7 +18,7 @@ namespace WalletWasabi.CoinJoin.Common.Models
 		public IEnumerable<InputProofModel> Inputs { get; set; }
 
 		[Required, MinLength(1)]
-		[JsonProperty(ItemConverterType = typeof(Uint256JsonConverter))]
+		[JsonConverter(typeof(Uint256JsonConverter))]
 		public IEnumerable<uint256> BlindedOutputScripts { get; set; }
 
 		[Required]
@@ -26,7 +27,7 @@ namespace WalletWasabi.CoinJoin.Common.Models
 
 		public StringContent ToHttpStringContent()
 		{
-			string jsonString = JsonConvert.SerializeObject(this, Formatting.None);
+			string jsonString = JsonSerializer.Serialize(this);
 			return new StringContent(jsonString, Encoding.UTF8, "application/json");
 		}
 	}
