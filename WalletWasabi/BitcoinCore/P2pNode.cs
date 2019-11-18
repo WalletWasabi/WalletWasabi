@@ -155,7 +155,8 @@ namespace WalletWasabi.BitcoinCore
 		/// </summary>
 		public void Disconnect()
 		{
-			if (Node is { })
+			Node node = Node;
+			if (node is { })
 			{
 				lock (SubscriptionLock)
 				{
@@ -166,15 +167,15 @@ namespace WalletWasabi.BitcoinCore
 						{
 							TrustedP2pBehavior.BlockInv -= TrustedP2pBehavior_BlockInv;
 						}
-						Node.Disconnected -= Node_DisconnectedAsync;
-						Node.StateChanged -= P2pNode_StateChanged;
+						node.Disconnected -= Node_DisconnectedAsync;
+						node.StateChanged -= P2pNode_StateChanged;
 						NodeEventsSubscribed = false;
 					}
 				}
 
 				try
 				{
-					Node.Disconnect();
+					node.Disconnect();
 				}
 				catch (Exception ex)
 				{
@@ -184,7 +185,7 @@ namespace WalletWasabi.BitcoinCore
 				{
 					try
 					{
-						Node.Dispose();
+						node.Dispose();
 					}
 					catch (Exception ex)
 					{
