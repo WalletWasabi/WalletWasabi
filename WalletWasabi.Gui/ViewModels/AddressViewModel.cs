@@ -3,6 +3,7 @@ using Avalonia.Threading;
 using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
 using System;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -134,6 +135,8 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _qrCode, value);
 		}
 
+		public ReactiveCommand<string, Unit> ExecuteSaveQRCodeCommand { get; set; }
+
 		public string ExpandMenuCaption => _expandMenuCaption?.Value ?? string.Empty;
 
 		public CancellationTokenSource CancelClipboardNotification { get; set; }
@@ -175,6 +178,11 @@ namespace WalletWasabi.Gui.ViewModels
 				CancelClipboardNotification?.Dispose();
 				CancelClipboardNotification = null;
 			}
+		}
+
+		public async Task SaveQRCodeAsync()
+		{
+			await ExecuteSaveQRCodeCommand?.Execute(Address);
 		}
 
 		#region IDisposable Support

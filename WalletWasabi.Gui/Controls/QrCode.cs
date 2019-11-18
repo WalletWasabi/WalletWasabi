@@ -1,12 +1,18 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Metadata;
 using Avalonia.Platform;
 using ReactiveUI;
 using System;
+using System.IO;
+using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
+using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls
 {
@@ -27,9 +33,71 @@ namespace WalletWasabi.Gui.Controls
 			CoercedSize = new Size();
 
 			this.WhenAnyValue(x => x.Matrix)
-				.Where(x => x != null)
+				.Where(x => x is { })
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => FinalMatrix = AddPaddingToMatrix(x));
+
+			SaveCommand = ReactiveCommand.CreateFromTask<string, Unit>(SaveQRCodeAsync);
+
+			SaveCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogWarning(ex));
+		}
+
+		public async Task<Unit> SaveQRCodeAsync(string address)
+		{
+			if (FinalMatrix is null)
+			{
+				return Unit.Default;
+			}
+
+			var sfd = new SaveFileDialog();
+
+			sfd.InitialFileName = $"{address}.png";
+			sfd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+			sfd.Filters.Add(new FileDialogFilter() { Name = "Portable Network Graphics (PNG) Image file", Extensions = { "png" } });
+
+			var visualRoot = (ClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime;
+			var path = await sfd.ShowAsync(visualRoot.MainWindow);
+
+			if (!string.IsNullOrWhiteSpace(path))
+			{
+				var ext = Path.GetExtension(path);
+
+				if (string.IsNullOrWhiteSpace(ext) || ext.ToLowerInvariant().TrimStart('.') != "png")
+				{
+					path = $"{path}.png";
+				}
+
+				try
+				{
+					var pixSize = PixelSize.FromSize(CoercedSize, 1);
+					using var rtb = new RenderTargetBitmap(pixSize);
+
+					rtb.Render(this);
+					rtb.Save(path);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogDebug(ex);
+				}
+			}
+
+			return Unit.Default;
+		}
+
+		public static readonly DirectProperty<QrCode, ReactiveCommand<string, Unit>> SaveCommandProperty =
+			AvaloniaProperty.RegisterDirect<QrCode, ReactiveCommand<string, Unit>>(
+				nameof(SaveCommand),
+				o => o.SaveCommand,
+				(o, v) => o.SaveCommand = v);
+
+		private ReactiveCommand<string, Unit> _saveCommand;
+
+		public ReactiveCommand<string, Unit> SaveCommand
+		{
+			get => _saveCommand;
+			set => SetAndRaise(SaveCommandProperty, ref _saveCommand, value);
 		}
 
 		public static readonly DirectProperty<QrCode, bool[,]> MatrixProperty =
