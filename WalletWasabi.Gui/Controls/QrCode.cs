@@ -38,6 +38,8 @@ namespace WalletWasabi.Gui.Controls
 				.Subscribe(x => FinalMatrix = AddPaddingToMatrix(x));
 
 			QRImageSaveCommand = ReactiveCommand.CreateFromTask<string, Unit>(SaveQRCodeAsync);
+
+			QRImageSaveCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
 		}
 
 		public async Task<Unit> SaveQRCodeAsync(string address)

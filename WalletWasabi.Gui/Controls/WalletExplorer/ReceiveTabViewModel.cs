@@ -154,20 +154,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SaveQRCodeCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				try
+				if (SelectedAddress != null)
 				{
-					if (SelectedAddress != null)
-					{
-						await SelectedAddress.SaveQRCodeAsync();
-					}
-				}
-				catch (Exception ex)
-				{
-					Logger.LogDebug(ex);
+					await SelectedAddress.SaveQRCodeAsync();
 				}
 			});
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
+
+			Observable
+				.Merge(CopyAddress.ThrownExceptions)
+				.Merge(CopyLabel.ThrownExceptions)
+				.Merge(ToggleQrCode.ThrownExceptions)
+				.Merge(ChangeLabelCommand.ThrownExceptions)
+				.Merge(DisplayAddressOnHwCommand.ThrownExceptions)
+				.Merge(GenerateCommand.ThrownExceptions)
+				.Merge(SaveQRCodeCommand.ThrownExceptions)
+				.Subscribe(ex => Logger.LogWarning(ex));
 		}
 
 		public override void OnOpen()
