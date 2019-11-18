@@ -191,8 +191,8 @@ namespace WalletWasabi.BitcoinCore
 
 				coreNode.P2pNode = new P2pNode(coreNode.Network, coreNode.P2pEndPoint, coreNode.MempoolService, coreNodeParams.UserAgent);
 				await coreNode.P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
+				coreNode.BlockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), new RpcWrappedClient(coreNode.RpcClient), coreNode.P2pNode);
 
-				coreNode.BlockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode);
 				coreNode.BlockNotifier.Start();
 
 				return coreNode;

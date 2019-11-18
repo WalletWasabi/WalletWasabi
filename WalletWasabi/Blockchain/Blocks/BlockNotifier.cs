@@ -22,17 +22,20 @@ namespace WalletWasabi.Blockchain.Blocks
 
 		public event EventHandler<BlockHeader> OnReorg;
 
-		public RPCClient RpcClient { get; set; }
+		public IRPCClient RpcClient { get; set; }
 		public Network Network => RpcClient.Network;
 		private List<BlockHeader> ProcessedBlocks { get; }
 		public P2pNode P2pNode { get; }
 
-		public BlockNotifier(TimeSpan period, RPCClient rpcClient, P2pNode p2pNode) : base(period, null)
+		public BlockNotifier(TimeSpan period, IRPCClient rpcClient, P2pNode p2pNode = null) : base(period, null)
 		{
 			RpcClient = Guard.NotNull(nameof(rpcClient), rpcClient);
 			P2pNode = p2pNode;
 			ProcessedBlocks = new List<BlockHeader>();
-			P2pNode.BlockInv += P2pNode_BlockInv;
+			if (p2pNode is { })
+			{
+				p2pNode.BlockInv += P2pNode_BlockInv;
+			}
 		}
 
 		private void P2pNode_BlockInv(object sender, uint256 blockHash)
@@ -191,7 +194,11 @@ namespace WalletWasabi.Blockchain.Blocks
 
 		public new async Task StopAsync()
 		{
-			P2pNode.BlockInv -= P2pNode_BlockInv;
+			if (P2pNode is { })
+			{
+				P2pNode.BlockInv -= P2pNode_BlockInv;
+			}
+
 			await base.StopAsync().ConfigureAwait(false);
 		}
 	}
