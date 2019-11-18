@@ -12,22 +12,22 @@ namespace WalletWasabi.BitcoinCore
 		{
 			Rpc = rpc;
 		}
-		
+
 		public Network Network => Rpc.Network;
 
-		public Task<uint256> GetBestBlockHashAsync()
+		public async Task<uint256> GetBestBlockHashAsync()
 		{
-			return Rpc.GetBestBlockHashAsync();
+			return await Rpc.GetBestBlockHashAsync().ConfigureAwait(false);
 		}
 
-		public Task<Block> GetBlockAsync(uint256 blockId)
+		public async Task<Block> GetBlockAsync(uint256 blockId)
 		{
-			return Rpc.GetBlockAsync(blockId);
+			return await Rpc.GetBlockAsync(blockId).ConfigureAwait(false);
 		}
 
-		public Task<BlockHeader> GetBlockHeaderAsync(uint256 blockHash)
+		public async Task<BlockHeader> GetBlockHeaderAsync(uint256 blockHash)
 		{
-			return Rpc.GetBlockHeaderAsync(blockHash);
+			return await Rpc.GetBlockHeaderAsync(blockHash).ConfigureAwait(false);
 		}
 	}
 }

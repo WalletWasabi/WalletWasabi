@@ -191,18 +191,12 @@ namespace WalletWasabi.BitcoinCore
 
 				coreNode.P2pNode = new P2pNode(coreNode.Network, coreNode.P2pEndPoint, coreNode.MempoolService, coreNodeParams.UserAgent);
 				await coreNode.P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
-				coreNode.BlockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), new RpcWrappedClient(coreNode.RpcClient));
-				coreNode.P2pNode.BlockInv += coreNode.OnP2pBlockInv; 
-				
+				coreNode.BlockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), new RpcWrappedClient(coreNode.RpcClient), coreNode.P2pNode);
+
 				coreNode.BlockNotifier.Start();
 
 				return coreNode;
 			}
-		}
-
-		private void OnP2pBlockInv(object sender, uint256 e)
-		{
-			BlockNotifier.TriggerRound();
 		}
 
 		public static async Task<Version> GetVersionAsync(CancellationToken cancel)
@@ -249,7 +243,6 @@ namespace WalletWasabi.BitcoinCore
 				var p2pNode = P2pNode;
 				if (p2pNode is { })
 				{
-					p2pNode.BlockInv -= OnP2pBlockInv;
 					p2pNode.Dispose();
 				}
 				_disposedValue = true;
