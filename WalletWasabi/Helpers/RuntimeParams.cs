@@ -11,6 +11,8 @@ namespace WalletWasabi.Helpers
 {
 	public class RuntimeParams
 	{
+		private static JsonSerializerOptions JsonSerializerOptions { get; } = new JsonSerializerOptions { WriteIndented = true };
+
 		[JsonProperty(PropertyName = "NetworkNodeTimeout")]
 		public int NetworkNodeTimeout { get; set; } = 64;
 
@@ -60,7 +62,7 @@ namespace WalletWasabi.Helpers
 						Directory.CreateDirectory(FileDir);
 					}
 
-					string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
+					string jsonString = JsonSerializer.Serialize(this, JsonSerializerOptions);
 					await File.WriteAllTextAsync(FilePath,
 					jsonString,
 					Encoding.UTF8);

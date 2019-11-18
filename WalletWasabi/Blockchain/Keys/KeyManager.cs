@@ -19,7 +19,7 @@ namespace WalletWasabi.Blockchain.Keys
 	[JsonObject(MemberSerialization.OptIn)]
 	public class KeyManager
 	{
-		public static JsonSerializerOptions JsonSerializerOptions { get; } = new JsonSerializerOptions { WriteIndented = true };
+		private static JsonSerializerOptions JsonSerializerOptions { get; } = new JsonSerializerOptions { WriteIndented = true };
 
 		[JsonProperty(Order = 1)]
 		[JsonConverter(typeof(BitcoinEncryptedSecretNoECJsonConverter))]

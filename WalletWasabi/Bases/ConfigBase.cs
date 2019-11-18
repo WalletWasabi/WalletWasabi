@@ -11,7 +11,7 @@ namespace WalletWasabi.Bases
 {
 	public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 	{
-		public static JsonSerializerOptions JsonSerializerOptions { get; } = new JsonSerializerOptions { WriteIndented = true };
+		private static JsonSerializerOptions JsonSerializerOptions { get; } = new JsonSerializerOptions { WriteIndented = true };
 
 		/// <inheritdoc />
 		public string FilePath { get; private set; } = null;
