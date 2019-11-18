@@ -24,7 +24,7 @@ namespace WalletWasabi.Backend
 			{
 				var endPoint = "http://localhost:37127/";
 
-				var host = Host.CreateDefaultBuilder(args)
+				using var host = Host.CreateDefaultBuilder(args)
 					.ConfigureWebHostDefaults(webBuilder => webBuilder
 							.UseStartup<Startup>()
 							.UseUrls(endPoint))
