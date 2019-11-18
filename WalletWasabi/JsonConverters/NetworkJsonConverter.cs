@@ -1,38 +1,25 @@
 using NBitcoin;
 
 using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace WalletWasabi.JsonConverters
 {
-	/// <summary>
-	/// Converter used to convert <see cref="Network"/> to and from JSON.
-	/// </summary>
-	/// <seealso cref="JsonConverter" />
-	public class NetworkJsonConverter : JsonConverter
+	public class NetworkJsonConverter : JsonConverter<Network>
 	{
-		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
-		{
-			return objectType == typeof(Network);
-		}
-
-		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			// check additional strings that are not checked by GetNetwork
-			string networkString = ((string)reader.Value).Trim();
-			if ("regression".Equals(networkString, StringComparison.OrdinalIgnoreCase))
+		public override Network Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+			=> reader.CreateObject(value =>
 			{
-				return Network.RegTest;
-			}
+				if ("regression".Equals(value, StringComparison.OrdinalIgnoreCase))
+				{
+					return Network.RegTest;
+				}
 
-			return Network.GetNetwork(networkString);
-		}
+				return Network.GetNetwork(value);
+			});
 
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			writer.WriteValue(((Network)value).ToString());
-		}
+		public override void Write(Utf8JsonWriter writer, Network value, JsonSerializerOptions options)
+			=> writer.WriteStringValue(value.ToString());
 	}
 }

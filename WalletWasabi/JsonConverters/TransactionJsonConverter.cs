@@ -1,29 +1,16 @@
 using NBitcoin;
-
 using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class TransactionJsonConverter : JsonConverter
+	public class TransactionJsonConverter : JsonConverter<Transaction>
 	{
-		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
-		{
-			return objectType == typeof(Transaction);
-		}
+		public override Transaction Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+			=> reader.CreateObject(value => Transaction.Parse(value, Network.Main));
 
-		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			var txHex = reader.Value.ToString();
-			var tx = Transaction.Parse(txHex, Network.Main);
-			return tx;
-		}
-
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			writer.WriteValue(((Transaction)value).ToHex());
-		}
+		public override void Write(Utf8JsonWriter writer, Transaction value, JsonSerializerOptions options)
+			=> writer.WriteStringValue(value.ToHex());
 	}
 }
