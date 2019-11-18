@@ -1,36 +1,23 @@
-using NBitcoin;
 using NBitcoin.BouncyCastle.Math;
 using NBitcoin.Crypto;
 using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class UnblindedSignatureJsonConverter : JsonConverter
+	public class UnblindedSignatureJsonConverter : JsonConverter<UnblindedSignature>
 	{
-		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
+		public override UnblindedSignature Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 		{
-			return objectType == typeof(UnblindedSignature);
+			return new UnblindedSignature(new BigInteger(reader.GetString()), new BigInteger(reader.GetString()));
 		}
 
-		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+		public override void Write(Utf8JsonWriter writer, UnblindedSignature value, JsonSerializerOptions options)
 		{
-			JArray arr = JArray.Load(reader);
-
-			string c = arr[0].Value<string>();
-			string s = arr[1].Value<string>();
-
-			return new UnblindedSignature(new BigInteger(c), new BigInteger(s));
-		}
-
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			UnblindedSignature signature = (UnblindedSignature)value;
 			writer.WriteStartArray();
-			writer.WriteValue(signature.C.ToString());
-			writer.WriteValue(signature.S.ToString());
+			writer.WriteStringValue(value.C.ToString());
+			writer.WriteStringValue(value.S.ToString());
 			writer.WriteEndArray();
 		}
 	}

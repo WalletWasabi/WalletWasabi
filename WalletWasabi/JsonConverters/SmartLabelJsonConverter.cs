@@ -1,29 +1,16 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class SmartLabelJsonConverter : JsonConverter
+	public class SmartLabelJsonConverter : JsonConverter<SmartLabel>
 	{
-		public override bool CanConvert(Type objectType)
-		{
-			return objectType == typeof(SmartLabel);
-		}
+		public override SmartLabel Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+			=> reader.CreateObject(value => new SmartLabel(value));
 
-		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			var s = reader.Value as string;
-			return new SmartLabel(s);
-		}
-
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			var label = value as SmartLabel;
-			writer.WriteValue(label ?? "");
-		}
+		public override void Write(Utf8JsonWriter writer, SmartLabel value, JsonSerializerOptions options)
+			=> writer.WriteStringValue(value ?? "");
 	}
 }
