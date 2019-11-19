@@ -285,7 +285,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					SelectionCheckBoxesInvalidated?.Invoke(this, null);
 					CoinListStatusColumnInvalidated?.Invoke(this, null);
-					cvm.Dispose();
+					cvm?.Dispose();
 				})
 				.Subscribe();
 
@@ -428,18 +428,35 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
-					SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
-					SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
-					SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+					try
+					{
+						SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
+						SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+						SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+					}
 				});
 
 			Observable
 				.FromEventPattern(this, nameof(CoinListStatusColumnInvalidated))
 				.Throttle(TimeSpan.FromSeconds(0.5))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => CoinJoinStatusWidth = Coins.Any() && Coins.All(x => NotVisibleStatuses.Contains(x.Status))
-						? new GridLength(0)
-						: new GridLength(180));
+				.Subscribe(_ =>
+				{
+					try
+					{
+						CoinJoinStatusWidth = Coins.Any() && Coins.All(x => NotVisibleStatuses.Contains(x.Status))
+							 ? new GridLength(0)
+							 : new GridLength(180);
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+					}
+				});
 
 			Observable
 				.Merge(InitList.ThrownExceptions)
@@ -544,7 +561,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global.Config
 				.WhenAnyValue(x => x.MixUntilAnonymitySet)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => RefreshSelectCheckBoxesShields(x))
+				.Subscribe(x =>
+				{
+					try
+					{
+						RefreshSelectCheckBoxesShields(x);
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+					}
+				})
 				.DisposeWith(Disposables);
 
 			SelectionCheckBoxesInvalidated?.Invoke(this, null);
@@ -577,7 +604,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void OnClose()
 		{
-			RootList.Clear(); // This must be called to trigger the OnItemRemoved for every items in the list.
+			RootList?.Clear(); // This must be called to trigger the OnItemRemoved for every items in the list.
 
 			// Do not dispose the RootList here. It will be reused next time when you open CoinJoinTab or SendTab.
 			Disposables?.Dispose();
