@@ -448,9 +448,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					try
 					{
-						CoinJoinStatusWidth = Coins.Any() && Coins.All(x => NotVisibleStatuses.Contains(x.Status))
-							 ? new GridLength(0)
-							 : new GridLength(180);
+						RefreshStatusColumnWidth();
 					}
 					catch (Exception ex)
 					{
@@ -468,6 +466,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
+		private void RefreshStatusColumnWidth()
+		{
+			CoinJoinStatusWidth = Coins.Any() && Coins.All(x => NotVisibleStatuses.Contains(x.Status))
+										 ? new GridLength(0)
+										 : new GridLength(180);
+		}
+
 		private void OnOpen()
 		{
 			Disposables = Disposables is null ?
@@ -477,6 +482,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var list = Global.WalletService.Coins.Select(x => new CoinViewModel(this, x)).ToList();
 
 			RootList.AddRange(list);
+
+			RefreshStatusColumnWidth();
 
 			Global.UiConfig
 				.WhenAnyValue(x => x.LurkingWifeMode)
