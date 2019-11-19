@@ -437,7 +437,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.FromEventPattern(this, nameof(CoinListStatusColumnInvalidated))
 				.Throttle(TimeSpan.FromSeconds(0.5))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => CoinJoinStatusWidth = Coins.Any() || Coins.All(x => NotVisibleStatuses.Contains(x.Status))
+				.Subscribe(_ => CoinJoinStatusWidth = Coins.Any() && Coins.All(x => NotVisibleStatuses.Contains(x.Status))
 						? new GridLength(0)
 						: new GridLength(180));
 
@@ -460,7 +460,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var list = Global.WalletService.Coins.Select(x => new CoinViewModel(this, x)).ToList();
 
 			RootList.AddRange(list);
-			RootList.DisposeWith(Disposables);
 
 			Global.UiConfig
 				.WhenAnyValue(x => x.LurkingWifeMode)
@@ -579,6 +578,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public void OnClose()
 		{
 			RootList.Clear(); // This must be called to trigger the OnItemRemoved for every items in the list.
+
+			// Do not dispose the RootList here. It will be reused next time when you open CoinJoinTab or SendTab.
 			Disposables?.Dispose();
 			Disposables = null;
 		}
