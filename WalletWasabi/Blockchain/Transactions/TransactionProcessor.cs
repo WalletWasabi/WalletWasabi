@@ -130,6 +130,9 @@ namespace WalletWasabi.Blockchain.Transactions
 						}
 
 						DoubleSpendReceived?.Invoke(this, new DoubleSpendReceivedEventArgs(tx, doubleSpends));
+
+						var unconfirmedDoubleSpentTxId = doubleSpends.First().TransactionId;
+						TransactionStore.MempoolStore.TryRemove(unconfirmedDoubleSpentTxId, out _);
 						walletRelevant = true;
 					}
 				}
