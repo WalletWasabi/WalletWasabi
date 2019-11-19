@@ -23,6 +23,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinListViewModel : ViewModelBase
 	{
+		private static HashSet<SmartCoinStatus> NotVisibleStatuses = new HashSet<SmartCoinStatus>()
+			{
+				SmartCoinStatus.Confirmed,
+				SmartCoinStatus.Unconfirmed
+			};
+
 		private CompositeDisposable Disposables { get; set; }
 
 		public SourceList<CoinViewModel> RootList { get; private set; }
@@ -47,8 +53,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ShieldState _selectAllPrivateShieldState;
 		private ShieldState _selectAllNonPrivateShieldState;
 		private bool _isCoinListLoading;
-		private bool _invalidateCoinSelections;
-		private bool _invalidateCoinStatuses;
 
 		public Global Global { get; }
 		public CoinListContainerType CoinListContainerType { get; }
@@ -63,6 +67,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public event EventHandler DequeueCoinsPressed;
 
 		public event EventHandler<CoinViewModel> SelectionChanged;
+
+		public event EventHandler SelectionCheckBoxesInvalidated;
+
+		public event EventHandler CoinListStatusColumnInvalidated;
 
 		public ReadOnlyObservableCollection<CoinViewModel> Coins => _coinViewModels;
 
@@ -136,18 +144,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _labelExposeCommonOwnershipWarning;
 			set => this.RaiseAndSetIfChanged(backingField: ref _labelExposeCommonOwnershipWarning, value);
-		}
-
-		public bool InvalidateCoinSelections
-		{
-			get => _invalidateCoinSelections;
-			set => this.RaiseAndSetIfChanged(ref _invalidateCoinSelections, value);
-		}
-
-		public bool InvalidateCoinStatuses
-		{
-			get => _invalidateCoinStatuses;
-			set => this.RaiseAndSetIfChanged(ref _invalidateCoinStatuses, value);
 		}
 
 		private void RefreshOrdering()
@@ -260,6 +256,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			CoinListContainerType = coinListContainerType;
 			AmountSortDirection = SortOrder.Decreasing;
 			IsCoinListLoading = true;
+			CoinJoinStatusWidth = new GridLength(0);
+
 			RefreshOrdering();
 
 			// Otherwise they're all selected as null on load.
@@ -278,7 +276,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Sort(MyComparer, comparerChanged: sortChanged, resetThreshold: 5)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(out _coinViewModels)
-				.OnItemRemoved(cvm => cvm.Dispose())
+				.OnItemAdded(cvm =>
+				{
+					SelectionCheckBoxesInvalidated?.Invoke(this, null);
+					CoinListStatusColumnInvalidated?.Invoke(this, null);
+				})
+				.OnItemRemoved(cvm =>
+				{
+					SelectionCheckBoxesInvalidated?.Invoke(this, null);
+					CoinListStatusColumnInvalidated?.Invoke(this, null);
+					cvm.Dispose();
+				})
 				.Subscribe();
 
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);
@@ -344,7 +352,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
 				{
-					//Global.WalletService.Coins.First(c => c.Unspent).Unspent = false;
 					switch (SelectAllCheckBoxState)
 					{
 						case true:
@@ -414,6 +421,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					IsCoinListLoading = false;
 				}
 			});
+
+			Observable
+				.FromEventPattern(this, nameof(SelectionCheckBoxesInvalidated))
+				.Throttle(TimeSpan.FromSeconds(0.5))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
+					SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+					SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+				});
+
+			Observable
+				.FromEventPattern(this, nameof(CoinListStatusColumnInvalidated))
+				.Throttle(TimeSpan.FromSeconds(0.5))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => CoinJoinStatusWidth = Coins.Any() || Coins.All(x => NotVisibleStatuses.Contains(x.Status))
+						? new GridLength(0)
+						: new GridLength(180));
 
 			Observable
 				.Merge(InitList.ThrownExceptions)
@@ -492,9 +518,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 						var toRestore = args.EventArgs.RestoredCoins;
 						RootList.AddRange(toRestore.Select(coin => new CoinViewModel(this, coin)));
-
-						SetSelections();
-						SetCoinJoinStatusWidth();
 					}
 					catch (Exception ex)
 					{
@@ -511,9 +534,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						var toRemove = args.EventArgs.Remove;
 						RootList.RemoveMany(RootList.Items.Where(cvm => toRemove.Any(sm => cvm.Model == sm)));
-
-						SetSelections();
-						SetCoinJoinStatusWidth();
 					}
 					catch (Exception ex)
 					{
@@ -528,8 +548,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(x => RefreshSelectCheckBoxesShields(x))
 				.DisposeWith(Disposables);
 
-			SetSelections();
-			SetCoinJoinStatusWidth();
+			SelectionCheckBoxesInvalidated?.Invoke(this, null);
+			CoinListStatusColumnInvalidated?.Invoke(this, null);
 		}
 
 		private void RefreshSelectCheckBoxesShields(int mixUntilAnonymitySet)
@@ -553,7 +573,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					isStrongPrivate
 					);
 
-			SetSelections();
+			SelectionCheckBoxesInvalidated?.Invoke(this, null);
 		}
 
 		public void OnClose()
@@ -563,29 +583,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Disposables = null;
 		}
 
-		private void SetSelections()
-		{
-			SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
-			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
-			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
-		}
-
-		private void SetCoinJoinStatusWidth()
-		{
-			CoinJoinStatusWidth = Coins.Any(x => x.Status == SmartCoinStatus.MixingConnectionConfirmation
-				 || x.Status == SmartCoinStatus.MixingInputRegistration
-				 || x.Status == SmartCoinStatus.MixingOnWaitingList
-				 || x.Status == SmartCoinStatus.MixingOutputRegistration
-				 || x.Status == SmartCoinStatus.MixingSigning
-				 || x.Status == SmartCoinStatus.MixingWaitingForConfirmation
-				 || x.Status == SmartCoinStatus.SpentAccordingToBackend)
-				? new GridLength(180)
-				: new GridLength(0);
-		}
-
 		public void OnCoinIsSelectedChanged(CoinViewModel cvm)
 		{
-			SetSelections();
+			SelectionCheckBoxesInvalidated?.Invoke(this, null);
+
 			SelectionChanged?.Invoke(this, cvm);
 			SelectedAmount = Coins.Where(x => x.IsSelected).Sum(x => x.Amount);
 			LabelExposeCommonOwnershipWarning = CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel
@@ -597,18 +598,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void OnCoinStatusChanged()
 		{
-			SetCoinJoinStatusWidth();
+			CoinListStatusColumnInvalidated?.Invoke(this, null);
 		}
 
 		public void OnCoinUnspentChanged(CoinViewModel cvm)
 		{
-			if (!cvm.Unspent)
-			{
-				RootList.Remove(cvm);
-			}
-
-			SetSelections();
-			SetCoinJoinStatusWidth();
+			// Removing the coin in Global.WalletService.TransactionProcessor.CoinSpent not here.
+			CoinListStatusColumnInvalidated?.Invoke(this, null);
 		}
 	}
 }
