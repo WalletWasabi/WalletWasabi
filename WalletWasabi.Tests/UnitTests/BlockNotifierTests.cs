@@ -13,7 +13,7 @@ namespace WalletWasabi.Tests.UnitTests
 	public class BlockNotifierTests
 	{
 		[Fact]
-		public async Task GenesisBlockOny()
+		public async Task GenesisBlockOnlyAsync()
 		{
 			var chain = new ConcurrentChain(Network.RegTest);
 			var notifier = CreateNotifier(chain);
@@ -36,7 +36,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task HitGenesisBlockDuringInitialization()
+		public async Task HitGenesisBlockDuringInitializationAsync()
 		{
 			var chain = new ConcurrentChain(Network.RegTest);
 			foreach (var n in Enumerable.Range(0, 3))
@@ -63,7 +63,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task NotifyBlocks()
+		public async Task NotifyBlocksAsync()
 		{
 			var chain = new ConcurrentChain(Network.RegTest);
 			var notifier = CreateNotifier(chain);
@@ -100,7 +100,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task SimpleReorg()
+		public async Task SimpleReorgAsync()
 		{
 			var chain = new ConcurrentChain(Network.RegTest);
 			var notifier = CreateNotifier(chain);
@@ -139,7 +139,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task LongChainReorg()
+		public async Task LongChainReorgAsync()
 		{
 			var chain = new ConcurrentChain(Network.RegTest);
 			var notifier = CreateNotifier(chain);
@@ -193,7 +193,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task SuperFastNodeValidation()
+		public async Task SuperFastNodeValidationAsync()
 		{
 			var chain = new ConcurrentChain(Network.RegTest);
 			var notifier = CreateNotifier(chain);
