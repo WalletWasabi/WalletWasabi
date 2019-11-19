@@ -39,7 +39,7 @@ namespace WalletWasabi.Tests.UnitTests
 		public async Task HitGenesisBlockDuringInitialization()
 		{
 			var chain = new ConcurrentChain(Network.RegTest);
-			foreach(var n in Enumerable.Range(0, 3))
+			foreach (var n in Enumerable.Range(0, 3))
 			{
 				await AddBlockAsync(chain);
 			}
@@ -80,7 +80,7 @@ namespace WalletWasabi.Tests.UnitTests
 			EventHandler<Block> onBlockInv = (s, b) => Assert.Equal(b.GetHash(), chain.GetBlock(height++).HashBlock);
 			notifier.OnBlock += onBlockInv;
 
-			foreach(var n in Enumerable.Range(0, blockCount))
+			foreach (var n in Enumerable.Range(0, blockCount))
 			{
 				await AddBlockAsync(chain);
 			}
@@ -88,13 +88,12 @@ namespace WalletWasabi.Tests.UnitTests
 			notifier.TriggerRound();
 			await Task.Delay(TimeSpan.FromMilliseconds(100)); // give it time to process the blocks
 
-			// Three blocks notifications  
+			// Three blocks notifications
 			Assert.Equal(chain.Height, height);
 
 			// No reorg notifications
 			await Assert.ThrowsAsync<OperationCanceledException>(() => reorgAwaiter.WaitAsync(TimeSpan.FromSeconds(1)));
 			Assert.Equal(chain.Tip.HashBlock, notifier.Status);
-
 
 			notifier.OnBlock -= onBlockInv;
 			await notifier.StopAsync();
@@ -127,7 +126,7 @@ namespace WalletWasabi.Tests.UnitTests
 			await AddBlockAsync(chain);
 			notifier.TriggerRound();
 
-			// Three blocks notifications  
+			// Three blocks notifications
 			await blockAwaiter.WaitAsync(TimeSpan.FromSeconds(2));
 
 			// No reorg notifications
@@ -181,18 +180,17 @@ namespace WalletWasabi.Tests.UnitTests
 			await AddBlockAsync(chain, wait: false);
 			await AddBlockAsync(chain);
 
-			// Three blocks notifications  
+			// Three blocks notifications
 			await blockAwaiter.WaitAsync(TimeSpan.FromSeconds(2));
 
 			// No reorg notifications
 			var reorgedkBlock = await reorgAwaiter.WaitAsync(TimeSpan.FromSeconds(1));
-			var expectedReorgedBlocks = firstReorgedChain.ToList().Concat(new[]{ secondReorgedChain[2]});
-			Assert.Subset(reorgedkBlock.Select(x=>x.GetHash()).ToHashSet(), expectedReorgedBlocks.Select(x=>x.Header.GetHash()).ToHashSet());
+			var expectedReorgedBlocks = firstReorgedChain.ToList().Concat(new[] { secondReorgedChain[2] });
+			Assert.Subset(reorgedkBlock.Select(x => x.GetHash()).ToHashSet(), expectedReorgedBlocks.Select(x => x.Header.GetHash()).ToHashSet());
 			Assert.Equal(chain.Tip.HashBlock, notifier.Status);
 
 			await notifier.StopAsync();
 		}
-
 
 		[Fact]
 		public async Task SuperFastNodeValidation()
@@ -208,25 +206,25 @@ namespace WalletWasabi.Tests.UnitTests
 
 			var lastKnownBlock = await AddBlockAsync(chain);
 
-			foreach(var i in Enumerable.Range(0, 200))
+			foreach (var i in Enumerable.Range(0, 200))
 			{
 				await AddBlockAsync(chain, wait: false);
 			}
 			await AddBlockAsync(chain, wait: true);
 			notifier.TriggerRound();
-			
+
 			Assert.Equal(chain.Tip.HashBlock, notifier.Status);
 
 			var nofifiedBlocks = (await blockAwaiter.WaitAsync(TimeSpan.FromSeconds(1))).ToArray();
-			
+
 			var tip = chain.Tip;
-			var pos = nofifiedBlocks.Length -1;
-			while( tip.HashBlock != nofifiedBlocks[pos].GetHash())
+			var pos = nofifiedBlocks.Length - 1;
+			while (tip.HashBlock != nofifiedBlocks[pos].GetHash())
 			{
 				tip = tip.Previous;
 			}
 
-			while(pos >= 0)
+			while (pos >= 0)
 			{
 				Assert.Equal(tip.HashBlock, nofifiedBlocks[pos].GetHash());
 				tip = tip.Previous;
@@ -262,7 +260,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 	}
 
-	class MockRpcClient : IRPCClient
+	internal class MockRpcClient : IRPCClient
 	{
 		public Func<Task<uint256>> OnGetBestBlockHashAsync { get; set; }
 		public Func<uint256, Task<Block>> OnGetBlockAsync { get; set; }
@@ -272,7 +270,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 		public Task<uint256> GetBestBlockHashAsync()
 		{
-			return OnGetBestBlockHashAsync();;
+			return OnGetBestBlockHashAsync();
 		}
 
 		public Task<Block> GetBlockAsync(uint256 blockId)
