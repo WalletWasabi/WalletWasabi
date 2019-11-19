@@ -47,6 +47,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ShieldState _selectAllPrivateShieldState;
 		private ShieldState _selectAllNonPrivateShieldState;
 		private bool _isCoinListLoading;
+		private bool _invalidateCoinSelections;
+		private bool _invalidateCoinStatuses;
 
 		public Global Global { get; }
 		public CoinListContainerType CoinListContainerType { get; }
@@ -134,6 +136,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _labelExposeCommonOwnershipWarning;
 			set => this.RaiseAndSetIfChanged(backingField: ref _labelExposeCommonOwnershipWarning, value);
+		}
+
+		public bool InvalidateCoinSelections
+		{
+			get => _invalidateCoinSelections;
+			set => this.RaiseAndSetIfChanged(ref _invalidateCoinSelections, value);
+		}
+
+		public bool InvalidateCoinStatuses
+		{
+			get => _invalidateCoinStatuses;
+			set => this.RaiseAndSetIfChanged(ref _invalidateCoinStatuses, value);
 		}
 
 		private void RefreshOrdering()
@@ -317,15 +331,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				});
 
-			EnqueueCoin = ReactiveCommand.Create(() =>
-				{
-					if (SelectedCoin is null)
-					{
-						return;
-					}
-					//await Global.ChaumianClient.QueueCoinsToMixAsync()
-				});
-
 			DequeueCoin = ReactiveCommand.Create(() =>
 				{
 					if (SelectedCoin is null)
@@ -410,7 +415,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
-			InitList.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
+			Observable
+				.Merge(InitList.ThrownExceptions)
+				.Merge(SelectNonPrivateCheckBoxCommand.ThrownExceptions)
+				.Merge(SelectPrivateCheckBoxCommand.ThrownExceptions)
+				.Merge(SelectAllCheckBoxCommand.ThrownExceptions)
+				.Merge(DequeueCoin.ThrownExceptions)
+				.Merge(SortCommand.ThrownExceptions)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		private void OnOpen()
