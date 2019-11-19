@@ -77,12 +77,18 @@ namespace WalletWasabi.BitcoinCore
 			lock (SubscriptionLock)
 			{
 				TrustedP2pBehavior = Node.Behaviors.Find<TrustedP2pBehavior>();
+				Node.UncaughtException += Node_UncaughtException;
 				Node.StateChanged += P2pNode_StateChanged;
 				Node.Disconnected += Node_DisconnectedAsync;
 				TrustedP2pBehavior.BlockInv += TrustedP2pBehavior_BlockInv;
 				NodeEventsSubscribed = true;
 				MempoolService.TrustedNodeMode = Node.IsConnected;
 			}
+		}
+
+		private void Node_UncaughtException(Node sender, Exception ex)
+		{
+			Logger.LogInfo($"Node {sender.Peer.Endpoint} failed with exception: {ex}");
 		}
 
 		private async void Node_DisconnectedAsync(Node node)
@@ -168,6 +174,7 @@ namespace WalletWasabi.BitcoinCore
 						}
 						Node.Disconnected -= Node_DisconnectedAsync;
 						Node.StateChanged -= P2pNode_StateChanged;
+						Node.UncaughtException -= Node_UncaughtException;
 						NodeEventsSubscribed = false;
 					}
 				}
