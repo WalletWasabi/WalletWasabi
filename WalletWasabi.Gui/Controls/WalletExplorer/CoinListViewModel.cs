@@ -264,6 +264,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Sort(MyComparer, comparerChanged: sortChanged, resetThreshold: 5)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(out _coinViewModels)
+				.OnItemRemoved(cvm => cvm.Dispose())
 				.Subscribe();
 
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);
@@ -414,16 +415,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void OnOpen()
 		{
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+			Disposables = Disposables is null ?
+				new CompositeDisposable() :
+				throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			var list = Global.WalletService.Coins.Select(x => new CoinViewModel(this, x)).ToList();
 
-			foreach (var vm in list)
-			{
-				vm.SubscribeEvents();
-			}
-
 			RootList.AddRange(list);
+			RootList.DisposeWith(Disposables);
 
 			Global.UiConfig
 				.WhenAnyValue(x => x.LurkingWifeMode)
@@ -441,9 +440,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					try
 					{
-						var newCoinVm = new CoinViewModel(this, coin.EventArgs);
-						newCoinVm.SubscribeEvents();
-						RootList.Add(newCoinVm);
+						RootList.Add(new CoinViewModel(this, coin.EventArgs));
 					}
 					catch (Exception ex)
 					{
@@ -463,7 +460,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						{
 							toRemove.IsSelected = false;
 							RootList.Remove(toRemove);
-							toRemove.UnsubscribeEvents();
 						}
 					}
 					catch (Exception ex)
@@ -480,10 +476,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					try
 					{
 						var toRemove = args.EventArgs.DestroyedCoins;
-						RemoveCoins(RootList.Items.Where(cvm => toRemove.Any(sm => cvm.Model == sm)));
+						RootList.RemoveMany(RootList.Items.Where(cvm => toRemove.Any(sm => cvm.Model == sm)));
 
 						var toRestore = args.EventArgs.RestoredCoins;
-						AddCoins(toRestore);
+						RootList.AddRange(toRestore.Select(coin => new CoinViewModel(this, coin)));
+
+						SetSelections();
+						SetCoinJoinStatusWidth();
 					}
 					catch (Exception ex)
 					{
@@ -499,7 +498,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					try
 					{
 						var toRemove = args.EventArgs.Remove;
-						RemoveCoins(RootList.Items.Where(cvm => toRemove.Any(sm => cvm.Model == sm)));
+						RootList.RemoveMany(RootList.Items.Where(cvm => toRemove.Any(sm => cvm.Model == sm)));
+
+						SetSelections();
+						SetCoinJoinStatusWidth();
 					}
 					catch (Exception ex)
 					{
@@ -542,21 +544,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SetSelections();
 		}
 
-		private void ClearRootList()
-		{
-			IEnumerable<CoinViewModel> toRemoves = RootList?.Items?.ToList() ?? Enumerable.Empty<CoinViewModel>(); // Clone so we can unsubscribe after clear.
-			RootList?.Clear();
-
-			foreach (CoinViewModel toRemove in toRemoves)
-			{
-				toRemove.UnsubscribeEvents();
-			}
-		}
-
 		public void OnClose()
 		{
-			ClearRootList();
-
+			RootList.Clear(); // This must be called to trigger the OnItemRemoved for every items in the list.
 			Disposables?.Dispose();
 			Disposables = null;
 		}
@@ -602,35 +592,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			if (!cvm.Unspent)
 			{
-				RemoveCoins(new[] { cvm });
-			}
-			else
-			{
-				SetSelections();
-				SetCoinJoinStatusWidth();
-			}
-		}
-
-		private void RemoveCoins(IEnumerable<CoinViewModel> cvms)
-		{
-			foreach (var cvm in cvms)
-			{
-				cvm.IsSelected = false;
 				RootList.Remove(cvm);
-				cvm.UnsubscribeEvents();
 			}
+
 			SetSelections();
 			SetCoinJoinStatusWidth();
-		}
-
-		private void AddCoins(IEnumerable<SmartCoin> coins)
-		{
-			foreach (var coin in coins)
-			{
-				var newCoinVm = new CoinViewModel(this, coin);
-				newCoinVm.SubscribeEvents();
-				RootList.Add(newCoinVm);
-			}
 		}
 	}
 }
