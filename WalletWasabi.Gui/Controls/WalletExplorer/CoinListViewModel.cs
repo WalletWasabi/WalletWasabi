@@ -424,7 +424,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Observable
 				.FromEventPattern(this, nameof(SelectionCheckBoxesInvalidated))
-				.Throttle(TimeSpan.FromSeconds(0.5))
+				.Sample(TimeSpan.FromSeconds(0.5))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
@@ -442,7 +442,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Observable
 				.FromEventPattern(this, nameof(CoinListStatusColumnInvalidated))
-				.Throttle(TimeSpan.FromSeconds(0.5))
+				.Sample(TimeSpan.FromSeconds(0.5))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
