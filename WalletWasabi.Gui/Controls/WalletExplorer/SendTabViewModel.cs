@@ -923,7 +923,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			else
 			{
-				words[words.Length - 1] = word;
+				words[^1] = word;
 				Label = string.Join(", ", words) + ", ";
 			}
 
