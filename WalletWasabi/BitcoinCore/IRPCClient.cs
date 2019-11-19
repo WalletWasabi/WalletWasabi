@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.BitcoinCore
 {
-	public interface IRPCClient 
+	public interface IRPCClient
 	{
 		Network Network { get; }
 		Task<uint256> GetBestBlockHashAsync();
