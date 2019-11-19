@@ -103,31 +103,39 @@ namespace WalletWasabi.Backend
 
 		private async Task CleanupAsync(Global global)
 		{
-			global.Coordinator?.Dispose();
-			Logger.LogInfo($"{nameof(global.Coordinator)} is disposed.");
-
-			if (global.IndexBuilderService is { })
+			var coordinator = global.Coordinator;
+			if (coordinator is { })
 			{
-				await global.IndexBuilderService.StopAsync();
-				Logger.LogInfo($"{nameof(global.IndexBuilderService)} is disposed.");
+				coordinator.Dispose();
+				Logger.LogInfo($"{nameof(coordinator)} is disposed.");
 			}
 
-			if (global.BlockNotifier is { })
+			var indexBuilderService = global.IndexBuilderService;
+			if (indexBuilderService is { })
 			{
-				await global.BlockNotifier.StopAsync();
-				Logger.LogInfo($"{nameof(global.BlockNotifier)} is disposed.");
+				await indexBuilderService.StopAsync();
+				Logger.LogInfo($"{nameof(indexBuilderService)} is stopped.");
 			}
 
-			if (global.RoundConfigWatcher is { })
+			var blockNotifier = global.BlockNotifier;
+			if (blockNotifier is { })
 			{
-				await global.RoundConfigWatcher.StopAsync();
-				Logger.LogInfo($"{nameof(global.RoundConfigWatcher)} is disposed.");
+				await blockNotifier.StopAsync();
+				Logger.LogInfo($"{nameof(blockNotifier)} is stopped.");
 			}
 
-			if (global.P2pNode is { })
+			var roundConfigWatcher = global.RoundConfigWatcher;
+			if (roundConfigWatcher is { })
 			{
-				global.P2pNode?.Dispose();
-				Logger.LogInfo($"{nameof(global.P2pNode)} is disposed.");
+				await roundConfigWatcher.StopAsync();
+				Logger.LogInfo($"{nameof(roundConfigWatcher)} is stopped.");
+			}
+
+			var p2pNode = global.P2pNode;
+			if (p2pNode is { })
+			{
+				p2pNode.Dispose();
+				Logger.LogInfo($"{nameof(p2pNode)} is disposed.");
 			}
 
 			Logger.LogSoftwareStopped("Wasabi Backend");
