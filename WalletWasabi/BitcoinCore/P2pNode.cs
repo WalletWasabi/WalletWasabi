@@ -163,9 +163,10 @@ namespace WalletWasabi.BitcoinCore
 					MempoolService.TrustedNodeMode = false;
 					if (NodeEventsSubscribed)
 					{
-						if (TrustedP2pBehavior is { })
+						var trustedP2pBehavior = TrustedP2pBehavior;
+						if (trustedP2pBehavior is { })
 						{
-							TrustedP2pBehavior.BlockInv -= TrustedP2pBehavior_BlockInv;
+							trustedP2pBehavior.BlockInv -= TrustedP2pBehavior_BlockInv;
 						}
 						node.Disconnected -= Node_DisconnectedAsync;
 						node.StateChanged -= P2pNode_StateChanged;
