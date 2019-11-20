@@ -717,7 +717,7 @@ namespace WalletWasabi.Gui
 				var bitcoinCoreNode = BitcoinCoreNode;
 				if (bitcoinCoreNode is { })
 				{
-					bitcoinCoreNode.Dispose();
+					await bitcoinCoreNode.DisposeAsync().ConfigureAwait(false);
 
 					if (Config.StopLocalBitcoinCoreOnShutdown)
 					{

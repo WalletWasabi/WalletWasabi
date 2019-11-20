@@ -129,7 +129,7 @@ namespace WalletWasabi.Backend
 			var p2pNode = global.P2pNode;
 			if (p2pNode is { })
 			{
-				p2pNode.Dispose();
+				await p2pNode.DisposeAsync();
 				Logger.LogInfo($"{nameof(p2pNode)} is disposed.");
 			}
 

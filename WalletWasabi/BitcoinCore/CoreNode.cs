@@ -232,21 +232,19 @@ namespace WalletWasabi.BitcoinCore
 			return await Task.WhenAll(tasks).ConfigureAwait(false);
 		}
 
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		public void Dispose()
+		public async Task DisposeAsync()
 		{
-			if (!_disposedValue)
+			var p2pNode = P2pNode;
+			if (p2pNode is { })
 			{
-				P2pNode?.Dispose();
-				_disposedValue = true;
+				await p2pNode.DisposeAsync().ConfigureAwait(false);
 			}
 		}
 
 		/// <param name="onlyOwned">Only stop if this node owns the process.</param>
 		public async Task<bool> TryStopAsync(bool onlyOwned = true)
 		{
-			Dispose();
+			await DisposeAsync().ConfigureAwait(false);
 
 			Exception exThrown = null;
 
