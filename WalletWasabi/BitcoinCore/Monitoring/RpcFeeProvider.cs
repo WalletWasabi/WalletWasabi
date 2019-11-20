@@ -13,9 +13,9 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 {
 	public class RpcFeeProvider : PeriodicRunner, IFeeProvider
 	{
-		private AllFeeEstimate _allFeeEstimate;
-
 		public event EventHandler<AllFeeEstimate> AllFeeEstimateChanged;
+
+		private AllFeeEstimate _allFeeEstimate;
 
 		public AllFeeEstimate AllFeeEstimate
 		{

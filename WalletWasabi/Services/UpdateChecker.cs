@@ -13,9 +13,22 @@ namespace WalletWasabi.Services
 {
 	public class UpdateChecker : PeriodicRunner
 	{
+		private UpdateStatus _updateStatus;
+
 		public WasabiClient WasabiClient { get; }
 
-		public UpdateStatus UpdateStatus { get; private set; }
+		public UpdateStatus UpdateStatus
+		{
+			get => _updateStatus;
+			private set
+			{
+				if (value != _updateStatus)
+				{
+					_updateStatus = value;
+					UpdateStatusChanged?.Invoke(this, value);
+				}
+			}
+		}
 
 		public event EventHandler<UpdateStatus> UpdateStatusChanged;
 
@@ -27,12 +40,7 @@ namespace WalletWasabi.Services
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
-			var updateStatus = await WasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
-			if (updateStatus != UpdateStatus)
-			{
-				UpdateStatus = updateStatus;
-				UpdateStatusChanged?.Invoke(this, updateStatus);
-			}
+			UpdateStatus = await WasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
 		}
 	}
 }

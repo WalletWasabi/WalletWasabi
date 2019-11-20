@@ -15,7 +15,20 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 	{
 		public event EventHandler<AllFeeEstimate> AllFeeEstimateChanged;
 
-		public AllFeeEstimate AllFeeEstimate { get; private set; }
+		private AllFeeEstimate _allFeeEstimate;
+
+		public AllFeeEstimate AllFeeEstimate
+		{
+			get => _allFeeEstimate;
+			private set
+			{
+				if (value != _allFeeEstimate)
+				{
+					_allFeeEstimate = value;
+					AllFeeEstimateChanged?.Invoke(this, value);
+				}
+			}
+		}
 
 		private IEnumerable<IFeeProvider> Providers { get; }
 
@@ -48,21 +61,14 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 				{
 					IFeeProvider provider = providerArray[i];
 					var af = provider.AllFeeEstimate;
-					if (af != null && af.IsAccurate && af != AllFeeEstimate)
+					if (af != null && af.IsAccurate)
 					{
 						AllFeeEstimate = af;
-						AllFeeEstimateChanged?.Invoke(this, af);
 						return;
 					}
 				}
 
-				var allFee = providerArray[^1].AllFeeEstimate;
-				if (allFee != AllFeeEstimate)
-				{
-					AllFeeEstimate = allFee;
-					AllFeeEstimateChanged?.Invoke(this, allFee);
-					return;
-				}
+				AllFeeEstimate = providerArray[^1].AllFeeEstimate;
 			}
 		}
 

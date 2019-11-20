@@ -12,9 +12,22 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 {
 	public class RpcMonitor : PeriodicRunner
 	{
+		private RpcStatus _rpcStatus;
+
 		public RPCClient RpcClient { get; set; }
 
-		public RpcStatus RpcStatus { get; private set; }
+		public RpcStatus RpcStatus
+		{
+			get => _rpcStatus;
+			private set
+			{
+				if (value != _rpcStatus)
+				{
+					_rpcStatus = value;
+					RpcStatusChanged?.Invoke(this, value);
+				}
+			}
+		}
 
 		public event EventHandler<RpcStatus> RpcStatusChanged;
 
@@ -26,12 +39,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
-			var rpcStatus = await RpcClient.GetRpcStatusAsync(cancel).ConfigureAwait(false);
-			if (rpcStatus != RpcStatus)
-			{
-				RpcStatus = rpcStatus;
-				RpcStatusChanged?.Invoke(this, rpcStatus);
-			}
+			RpcStatus = await RpcClient.GetRpcStatusAsync(cancel).ConfigureAwait(false);
 		}
 	}
 }
