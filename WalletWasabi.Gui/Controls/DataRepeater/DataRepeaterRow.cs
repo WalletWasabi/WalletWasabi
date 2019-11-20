@@ -92,7 +92,6 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
 
             Children.Clear();
 
-
             for (int i = 0; i < obj.Count; i++)
             {
                 var headerDesc = obj[i];

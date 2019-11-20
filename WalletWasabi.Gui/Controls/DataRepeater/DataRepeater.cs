@@ -150,7 +150,6 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
 			}
 		}
 
-
 		internal Type GetItemType(IEnumerable list)
 		{
 			Type listType = list.GetType();
