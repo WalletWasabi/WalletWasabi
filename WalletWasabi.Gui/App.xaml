@@ -24,6 +24,7 @@
     <StyleInclude Source="avares://WalletWasabi.Gui/Icons/Icons.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Controls/BusyIndicator.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Controls/LockScreen/SlideLock.xaml" />
+    <StyleInclude Source="avares://WalletWasabi.Gui/Controls/DataRepeater/DataRepeater.xaml" />
   </Application.Styles>
   <Application.Resources>
     <SolidColorBrush x:Key="Main">#007ACC</SolidColorBrush>
