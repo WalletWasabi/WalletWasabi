@@ -269,7 +269,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			RootList = new SourceList<CoinViewModel>();
 			RootList
 				.Connect()
-				.Sort(MyComparer, comparerChanged: sortChanged)
+				.Sort(MyComparer, comparerChanged: sortChanged, resetThreshold: 5)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(out _coinViewModels)
 				// .OnItemAdded() Do not use this, brings instability on OSX
