@@ -272,17 +272,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Sort(MyComparer, comparerChanged: sortChanged)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(out _coinViewModels)
-				.OnItemAdded(cvm =>
-				{
-					RefreshSelectionCheckBoxes();
-					RefreshStatusColumnWidth();
-				})
-				.OnItemRemoved(cvm =>
-				{
-					RefreshSelectionCheckBoxes();
-					RefreshStatusColumnWidth();
-					cvm?.Dispose();
-				})
+				// .OnItemAdded() Do not use this, brings instability on OSX
+				// .OnItemRemoved() Do not use this, brings instability on OSX
 				.Subscribe();
 
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);
@@ -428,6 +419,34 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
+		private void RemoveCoin(CoinViewModel cvm)
+		{
+			RemoveCoins(new[] { cvm });
+		}
+
+		private void RemoveCoins(IEnumerable<CoinViewModel> cvms)
+		{
+			RootList.RemoveMany(cvms);
+			RefreshSelectionCheckBoxes();
+			RefreshStatusColumnWidth();
+			foreach (var cvm in cvms)
+			{
+				cvm?.Dispose();
+			}
+		}
+
+		private void AddCoin(CoinViewModel cvm)
+		{
+			AddCoins(new[] { cvm });
+		}
+
+		private void AddCoins(IEnumerable<CoinViewModel> cvms)
+		{
+			RootList.AddRange(cvms);
+			RefreshSelectionCheckBoxes();
+			RefreshStatusColumnWidth();
+		}
+
 		private void RefreshSelectionCheckBoxes()
 		{
 			SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
@@ -450,9 +469,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			var list = Global.WalletService.Coins.Select(x => new CoinViewModel(this, x)).ToList();
 
-			RootList.AddRange(list);
-
-			RefreshStatusColumnWidth();
+			AddCoins(list);
 
 			Global.UiConfig
 				.WhenAnyValue(x => x.LurkingWifeMode)
@@ -470,7 +487,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					try
 					{
-						RootList.Add(new CoinViewModel(this, coin.EventArgs));
+						AddCoin(new CoinViewModel(this, coin.EventArgs));
 					}
 					catch (Exception ex)
 					{
@@ -488,8 +505,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == coin.EventArgs);
 						if (toRemove != default)
 						{
-							toRemove.IsSelected = false;
-							RootList.Remove(toRemove);
+							RemoveCoin(toRemove);
 						}
 					}
 					catch (Exception ex)
@@ -506,10 +522,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					try
 					{
 						var toRemove = args.EventArgs.DestroyedCoins;
-						RootList.RemoveMany(RootList.Items.Where(cvm => toRemove.Any(sm => cvm.Model == sm)));
+						RemoveCoins(RootList.Items.Where(cvm => toRemove.Any(sm => cvm.Model == sm)));
 
 						var toRestore = args.EventArgs.RestoredCoins;
-						RootList.AddRange(toRestore.Select(coin => new CoinViewModel(this, coin)));
+						AddCoins(toRestore.Select(coin => new CoinViewModel(this, coin)));
 					}
 					catch (Exception ex)
 					{
@@ -525,7 +541,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					try
 					{
 						var toRemove = args.EventArgs.Remove;
-						RootList.RemoveMany(RootList.Items.Where(cvm => toRemove.Any(sm => cvm.Model == sm)));
+						RemoveCoins(RootList.Items.Where(cvm => toRemove.Any(sm => cvm.Model == sm)));
 					}
 					catch (Exception ex)
 					{
@@ -580,7 +596,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void OnClose()
 		{
-			RootList?.Clear(); // This must be called to trigger the OnItemRemoved for every items in the list.
+			foreach (var cvm in RootList.Items)
+			{
+				cvm.Dispose();
+			}
+
+			RootList.Clear(); // This must be called to trigger the OnItemRemoved for every items in the list.
 
 			// Do not dispose the RootList here. It will be reused next time when you open CoinJoinTab or SendTab.
 			Disposables?.Dispose();
