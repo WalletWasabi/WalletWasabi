@@ -11,62 +11,59 @@ using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Controls.DataRepeater
 {
+	public class DataRepeaterHeader : DataRepeaterDockPanel
+	{
+		internal static readonly DirectProperty<DataRepeaterHeader, DataRepeaterHeaderDescriptors> HeaderDescriptorsProperty =
+			AvaloniaProperty.RegisterDirect<DataRepeaterHeader, DataRepeaterHeaderDescriptors>(
+				nameof(HeaderDescriptors),
+				o => o.HeaderDescriptors,
+				(o, v) => o.HeaderDescriptors = v);
 
+		private DataRepeaterHeaderDescriptors _headerDescriptors;
 
+		internal DataRepeaterHeaderDescriptors HeaderDescriptors
+		{
+			get => _headerDescriptors;
+			set => SetAndRaise(HeaderDescriptorsProperty, ref _headerDescriptors, value);
+		}
 
-    public class DataRepeaterHeader : DataRepeaterDockPanel
-    {
-        internal static readonly DirectProperty<DataRepeaterHeader, DataRepeaterHeaderDescriptors> HeaderDescriptorsProperty =
-            AvaloniaProperty.RegisterDirect<DataRepeaterHeader, DataRepeaterHeaderDescriptors>(
-                nameof(HeaderDescriptors),
-                o => o.HeaderDescriptors,
-                (o, v) => o.HeaderDescriptors = v);
+		private CompositeDisposable _disposables;
 
-        private DataRepeaterHeaderDescriptors _headerDescriptors;
+		public DataRepeaterHeader()
+		{
+			this.WhenAnyValue(x => x.HeaderDescriptors)
+				.DistinctUntilChanged()
+				.Subscribe(DescriptorsChanged);
+		}
 
-        internal DataRepeaterHeaderDescriptors HeaderDescriptors
-        {
-            get => _headerDescriptors;
-            set
-            {
-                SetAndRaise(HeaderDescriptorsProperty, ref _headerDescriptors, value);
-            }
-        }
+		private void DescriptorsChanged(DataRepeaterHeaderDescriptors obj)
+		{
+			if (obj is { })
+			{
+				return;
+			}
 
-        private CompositeDisposable _disposables;
+			_disposables?.Dispose();
+			_disposables = new CompositeDisposable();
 
-        public DataRepeaterHeader()
-        {
-            this.WhenAnyValue(x => x.HeaderDescriptors)
-                .DistinctUntilChanged()
-                .Subscribe(DescriptorsChanged);
-        }
+			Children.Clear();
 
-        private void DescriptorsChanged(DataRepeaterHeaderDescriptors obj)
-        {
-            if (obj == null) return;
+			for (int i = 0; i < obj.Count; i++)
+			{
+				var headerDesc = obj[i];
 
-            _disposables?.Dispose();
-            _disposables = new CompositeDisposable();
+				var boundCellContent = new DataRepeaterHeaderCell
+				{
+					Content = headerDesc
+				};
 
-            Children.Clear();
+				if (i + 1 == obj.Count)
+				{
+					boundCellContent.Classes.Add("LastColumn");
+				}
 
-            for (int i = 0; i < obj.Count; i++)
-            {
-                var headerDesc = obj[i];
-
-                var boundCellContent = new DataRepeaterHeaderCell
-                { 
-                    Content = headerDesc
-                };
-
-                if (i + 1 == obj.Count)
-                {
-                    boundCellContent.Classes.Add("LastColumn");
-                }
-
-                Children.Add(boundCellContent);
-            }
-        }
-    }
+				Children.Add(boundCellContent);
+			}
+		}
+	}
 }

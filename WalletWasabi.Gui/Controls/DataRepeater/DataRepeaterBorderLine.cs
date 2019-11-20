@@ -47,10 +47,9 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
 
         protected override Geometry CreateDefiningGeometry()
         {
-            if (_orientation == Orientation.Horizontal)
-                return new RectangleGeometry(new Rect(0, 0, _length, 1));
-            else
-                return new RectangleGeometry(new Rect(0, 0, 1, _length));
-        }
+			return _orientation == Orientation.Horizontal
+				? new RectangleGeometry(new Rect(0, 0, _length, 1))
+				: new RectangleGeometry(new Rect(0, 0, 1, _length));
+		}
     }
 }

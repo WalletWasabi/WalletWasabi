@@ -43,9 +43,11 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
             content.HeaderWidth = _contentControl.Bounds.Width;
 
             if (_rightThumbResizer == null)
-                return;
+			{
+				return;
+			}
 
-            _rightThumbResizer.DragDelta += ResizerDragDelta;
+			_rightThumbResizer.DragDelta += ResizerDragDelta;
             _rightThumbResizer.DragStarted += ResizerDragStarted;
             _rightThumbResizer.DragCompleted += delegate { InvalidateMeasure(); };
 
@@ -79,21 +81,21 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
         }
 
         private void ResizerDragStarted(object sender, VectorEventArgs e)
-        {
-            if (!double.IsNaN(_contentControl.Width))
-                return;
+		{
+			if (double.IsNaN(_contentControl.Width))
+			{
+				_contentControl.Width = _contentControl.Bounds.Width;
+			}
+		}
 
-            _contentControl.Width = _contentControl.Bounds.Width;
-        }
+		private void ResizerDragDelta(object sender, VectorEventArgs e)
+		{
+			var newW = _contentControl.Width + e.Vector.X;
 
-        private void ResizerDragDelta(object sender, VectorEventArgs e)
-        {
-            var newW = _contentControl.Width + e.Vector.X;
-
-            if (newW <= 0)
-                return;
-
-            _contentControl.Width = newW;
-        }
-    }
+			if (newW > 0)
+			{
+				_contentControl.Width = newW;
+			}
+		}
+	}
 }

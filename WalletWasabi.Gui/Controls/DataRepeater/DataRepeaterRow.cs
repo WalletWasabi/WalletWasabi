@@ -22,25 +22,19 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
         private DataRepeaterHeaderDescriptors _headerDescriptors;
 
         internal DataRepeaterHeaderDescriptors HeaderDescriptors
-        {
-            get => _headerDescriptors;
-            set
-            {
-                SetAndRaise(HeaderDescriptorsProperty, ref _headerDescriptors, value);
-            }
-        }
+		{
+			get => _headerDescriptors;
+			set => SetAndRaise(HeaderDescriptorsProperty, ref _headerDescriptors, value);
+		}
 
-        public DataRepeaterRow()
+		public DataRepeaterRow()
         {
             this.WhenAnyValue(x => x.HeaderDescriptors)
                 .DistinctUntilChanged()
                 .Subscribe(DescriptorsChanged);
 
             this.WhenAnyValue(x => x.DataContext)
-                .Subscribe(x =>
-                {
-                    RefreshRowWidths();
-                });
+                .Subscribe(x => RefreshRowWidths());
         }
 
         protected override void ArrangeCore(Rect finalRect)
@@ -60,22 +54,26 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
 
         private void RefreshRowWidths()
         {
-            if (HeaderDescriptors is null || _curCells is null) return;
+            if (HeaderDescriptors is null || _curCells is null)
+			{
+				return;
+			}
 
-            foreach (var desc in HeaderDescriptors)
+			foreach (var desc in HeaderDescriptors)
             {
                 var index = HeaderDescriptors.IndexOf(desc);
                 var target = _curCells[index];
 
                 if (target.Classes.Contains("LastColumn"))
-                    continue;
+				{
+					continue;
+				}
 
-                if (target._cellContent is DataRepeaterCellContent cell)
-                {
-                    if (cell.Width != desc.HeaderWidth)
-                        cell.Width = desc.HeaderWidth;
-                }
-            }
+				if (target._cellContent is DataRepeaterCellContent cell && cell.Width != desc.HeaderWidth)
+				{
+					cell.Width = desc.HeaderWidth;
+				}
+			}
         }
 
         CompositeDisposable _disposables;
@@ -84,9 +82,12 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
 
         private void DescriptorsChanged(DataRepeaterHeaderDescriptors obj)
         {
-            if (obj == null) return;
+            if (obj == null)
+			{
+				return;
+			}
 
-            _disposables?.Dispose();
+			_disposables?.Dispose();
             _disposables = new CompositeDisposable();
 
             Children.Clear();
