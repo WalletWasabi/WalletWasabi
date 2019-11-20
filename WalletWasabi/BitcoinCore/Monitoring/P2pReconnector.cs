@@ -38,10 +38,10 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 
 		public async Task StartAndAwaitReconnectionAsync(CancellationToken cancel)
 		{
-			Stop?.Dispose();
-			Stop = CancellationTokenSource.CreateLinkedTokenSource(cancel);
-			ForeverTask = ForeverMethodAsync(x => x is true);
-			await ForeverTask.ConfigureAwait(false);
+			StoppingCts?.Dispose();
+			StoppingCts = CancellationTokenSource.CreateLinkedTokenSource(cancel);
+			ExecutingTask = ForeverMethodAsync(x => x is true);
+			await ExecutingTask.ConfigureAwait(false);
 			await StopAsync().ConfigureAwait(false);
 		}
 	}

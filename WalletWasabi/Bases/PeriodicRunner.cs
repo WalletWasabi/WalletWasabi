@@ -18,22 +18,22 @@ namespace WalletWasabi.Bases
 			protected set => RaiseAndSetIfChanged(ref _status, value);
 		}
 
-		protected CancellationTokenSource Stop { get; set; }
-		private CancellationTokenSource Trigger { get; set; }
+		protected CancellationTokenSource StoppingCts { get; set; }
+		private CancellationTokenSource TriggeringCts { get; set; }
 		private object TriggerLock { get; }
 		public TimeSpan Period { get; }
-		protected Task ForeverTask { get; set; }
+		protected Task ExecutingTask { get; set; }
 		public Exception LastException { get; set; }
 		public long LastExceptionCount { get; set; }
 		public DateTimeOffset LastExceptionFirstAppeared { get; set; }
 
 		protected PeriodicRunner(TimeSpan period, T defaultResult)
 		{
-			Stop = new CancellationTokenSource();
-			Trigger = new CancellationTokenSource();
+			StoppingCts = new CancellationTokenSource();
+			TriggeringCts = new CancellationTokenSource();
 			TriggerLock = new object();
 			Period = period;
-			ForeverTask = Task.CompletedTask;
+			ExecutingTask = Task.CompletedTask;
 			Status = defaultResult;
 			ResetLastException();
 		}
@@ -49,7 +49,7 @@ namespace WalletWasabi.Bases
 		{
 			lock (TriggerLock)
 			{
-				Trigger?.Cancel();
+				TriggeringCts?.Cancel();
 			}
 		}
 
@@ -57,21 +57,21 @@ namespace WalletWasabi.Bases
 
 		public void Start()
 		{
-			ForeverTask = ForeverMethodAsync(x => false);
+			ExecutingTask = ForeverMethodAsync(x => false);
 		}
 
 		protected async Task ForeverMethodAsync(Func<T, bool> finishIf)
 		{
-			while (!Stop.IsCancellationRequested)
+			while (!StoppingCts.IsCancellationRequested)
 			{
 				try
 				{
-					var status = await ActionAsync(Stop.Token).ConfigureAwait(false);
+					var status = await ActionAsync(StoppingCts.Token).ConfigureAwait(false);
 					Status = status;
 					LogAndResetLastExceptionIfNotNull();
 					if (finishIf(status))
 					{
-						Stop?.Cancel();
+						StoppingCts?.Cancel();
 					}
 				}
 				catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
@@ -103,7 +103,7 @@ namespace WalletWasabi.Bases
 				{
 					try
 					{
-						using var linked = CancellationTokenSource.CreateLinkedTokenSource(Stop.Token, Trigger.Token);
+						using var linked = CancellationTokenSource.CreateLinkedTokenSource(StoppingCts.Token, TriggeringCts.Token);
 						await Task.Delay(Period, linked.Token).ConfigureAwait(false);
 					}
 					catch (TaskCanceledException ex)
@@ -114,11 +114,11 @@ namespace WalletWasabi.Bases
 					{
 						lock (TriggerLock)
 						{
-							if (Trigger.IsCancellationRequested)
+							if (TriggeringCts.IsCancellationRequested)
 							{
-								Trigger?.Dispose();
-								Trigger = null;
-								Trigger = new CancellationTokenSource();
+								TriggeringCts?.Dispose();
+								TriggeringCts = null;
+								TriggeringCts = new CancellationTokenSource();
 							}
 						}
 					}
@@ -137,12 +137,12 @@ namespace WalletWasabi.Bases
 
 		public async Task StopAsync()
 		{
-			Stop?.Cancel();
-			await ForeverTask.ConfigureAwait(false);
-			Stop?.Dispose();
-			Stop = null;
-			Trigger?.Dispose();
-			Trigger = null;
+			StoppingCts?.Cancel();
+			await ExecutingTask.ConfigureAwait(false);
+			StoppingCts?.Dispose();
+			StoppingCts = null;
+			TriggeringCts?.Dispose();
+			TriggeringCts = null;
 		}
 	}
 }
