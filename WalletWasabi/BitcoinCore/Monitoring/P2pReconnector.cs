@@ -12,10 +12,12 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 	public class P2pReconnector : PeriodicRunner
 	{
 		public P2pNode P2pNode { get; set; }
+		private bool Success { get; set; }
 
 		public P2pReconnector(TimeSpan period, P2pNode p2pNode) : base(period)
 		{
 			P2pNode = Guard.NotNull(nameof(p2pNode), p2pNode);
+			Success = false;
 		}
 
 		protected override async Task ActionAsync(CancellationToken cancel)
@@ -34,16 +36,34 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 
 			Logger.LogInfo("Successfully reconnected to P2P.");
 
-			StoppingCts?.Cancel();
+			Success = true;
 		}
 
 		public async Task StartAndAwaitReconnectionAsync(CancellationToken cancel)
 		{
-			StoppingCts?.Dispose();
-			StoppingCts = CancellationTokenSource.CreateLinkedTokenSource(cancel);
-			ExecutingTask = ForeverMethodAsync();
-			await ExecutingTask.ConfigureAwait(false);
-			await StopAsync().ConfigureAwait(false);
+			await StartAsync(cancel).ConfigureAwait(false);
+			try
+			{
+				while (!Success)
+				{
+					await Task.Delay(100, cancel).ConfigureAwait(false);
+				}
+			}
+			catch (TaskCanceledException ex)
+			{
+				Logger.LogTrace(ex);
+			}
+
+			try
+			{
+				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
+				await StopAsync(cts.Token).ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
+			Dispose();
 		}
 	}
 }

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,24 +9,20 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Bases
 {
-	public abstract class PeriodicRunner
+	public abstract class PeriodicRunner : BackgroundService
 	{
-		protected CancellationTokenSource StoppingCts { get; set; }
 		private CancellationTokenSource TriggeringCts { get; set; }
 		private object TriggerLock { get; }
 		public TimeSpan Period { get; }
-		protected Task ExecutingTask { get; set; }
 		public Exception LastException { get; set; }
 		public long LastExceptionCount { get; set; }
 		public DateTimeOffset LastExceptionFirstAppeared { get; set; }
 
 		protected PeriodicRunner(TimeSpan period)
 		{
-			StoppingCts = new CancellationTokenSource();
 			TriggeringCts = new CancellationTokenSource();
 			TriggerLock = new object();
 			Period = period;
-			ExecutingTask = Task.CompletedTask;
 			ResetLastException();
 		}
 
@@ -46,18 +43,13 @@ namespace WalletWasabi.Bases
 
 		protected abstract Task ActionAsync(CancellationToken cancel);
 
-		public void Start()
+		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
-			ExecutingTask = ForeverMethodAsync();
-		}
-
-		protected async Task ForeverMethodAsync()
-		{
-			while (!StoppingCts.IsCancellationRequested)
+			while (!stoppingToken.IsCancellationRequested)
 			{
 				try
 				{
-					await ActionAsync(StoppingCts.Token).ConfigureAwait(false);
+					await ActionAsync(stoppingToken).ConfigureAwait(false);
 					LogAndResetLastExceptionIfNotNull();
 				}
 				catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
@@ -89,7 +81,7 @@ namespace WalletWasabi.Bases
 				{
 					try
 					{
-						using var linked = CancellationTokenSource.CreateLinkedTokenSource(StoppingCts.Token, TriggeringCts.Token);
+						using var linked = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, TriggeringCts.Token);
 						await Task.Delay(Period, linked.Token).ConfigureAwait(false);
 					}
 					catch (TaskCanceledException ex)
@@ -121,14 +113,12 @@ namespace WalletWasabi.Bases
 			}
 		}
 
-		public async Task StopAsync()
+		public override void Dispose()
 		{
-			StoppingCts?.Cancel();
-			await ExecutingTask.ConfigureAwait(false);
-			StoppingCts?.Dispose();
-			StoppingCts = null;
 			TriggeringCts?.Dispose();
 			TriggeringCts = null;
+
+			base.Dispose();
 		}
 	}
 }

@@ -10,6 +10,7 @@ using NBitcoin;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Middlewares;
 using WalletWasabi.Helpers;
@@ -117,18 +118,12 @@ namespace WalletWasabi.Backend
 				Logger.LogInfo($"{nameof(indexBuilderService)} is stopped.");
 			}
 
-			var blockNotifier = global.BlockNotifier;
-			if (blockNotifier is { })
+			var hostedServices = global.HostedServices;
+			if (hostedServices is { })
 			{
-				await blockNotifier.StopAsync();
-				Logger.LogInfo($"{nameof(blockNotifier)} is stopped.");
-			}
-
-			var roundConfigWatcher = global.RoundConfigWatcher;
-			if (roundConfigWatcher is { })
-			{
-				await roundConfigWatcher.StopAsync();
-				Logger.LogInfo($"{nameof(roundConfigWatcher)} is stopped.");
+				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
+				await hostedServices.StopAllAsync(cts.Token);
+				hostedServices?.Dispose();
 			}
 
 			var p2pNode = global.P2pNode;

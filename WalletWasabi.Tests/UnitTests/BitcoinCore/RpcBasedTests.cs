@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.Models;
@@ -19,7 +20,9 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task AllFeeEstimateAsync()
 		{
-			var coreNode = await TestNodeBuilder.CreateAsync();
+			using var services = new HostedServices();
+			var coreNode = await TestNodeBuilder.CreateAsync(services);
+			await services.StartAllAsync(CancellationToken.None);
 			try
 			{
 				var rpc = coreNode.RpcClient;
@@ -41,6 +44,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
+				await services.StopAllAsync(CancellationToken.None);
 				await coreNode.TryStopAsync();
 			}
 		}

@@ -18,9 +18,10 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 
 		public event EventHandler<RpcStatus> RpcStatusChanged;
 
-		public RpcMonitor(TimeSpan period) : base(period)
+		public RpcMonitor(TimeSpan period, RPCClient rpcClient) : base(period)
 		{
 			RpcStatus = RpcStatus.Unresponsive;
+			RpcClient = Guard.NotNull(nameof(rpcClient), rpcClient);
 		}
 
 		protected override async Task ActionAsync(CancellationToken cancel)

@@ -28,10 +28,7 @@ namespace WalletWasabi.Services
 				await Config.LoadOrCreateDefaultFileAsync().ConfigureAwait(false);
 
 				await ExecuteWhenChangedAsync?.Invoke();
-				return;
 			}
-
-			return;
 		}
 	}
 }

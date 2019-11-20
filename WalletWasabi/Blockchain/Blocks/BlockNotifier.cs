@@ -198,14 +198,13 @@ namespace WalletWasabi.Blockchain.Blocks
 			}
 		}
 
-		public new async Task StopAsync()
+		public override void Dispose()
 		{
 			if (P2pNode is { })
 			{
 				P2pNode.BlockInv -= P2pNode_BlockInv;
 			}
-
-			await base.StopAsync().ConfigureAwait(false);
+			base.Dispose();
 		}
 	}
 }

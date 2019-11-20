@@ -64,15 +64,21 @@ namespace WalletWasabi.Gui.ViewModels
 			ActiveStatuses = new StatusBarStatusSet();
 		}
 
-		public void Initialize(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
+		public void Initialize(NodesCollection nodes, WasabiSynchronizer synchronizer)
 		{
 			Nodes = nodes;
 			Synchronizer = synchronizer;
 			HashChain = synchronizer.BitcoinStore.HashChain;
 			UseTor = Global.Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
 			UseBitcoinCore = Global.Config.StartLocalBitcoinCoreOnStartup;
-			BitcoinCoreStatus = Global.RpcMonitor.RpcStatus;
-			UpdateStatus = Global.UpdateChecker.UpdateStatus;
+			var hostedServices = Global.HostedServices;
+
+			var updateChecker = hostedServices.FirstOrDefault<UpdateChecker>();
+			Guard.NotNull(nameof(updateChecker), updateChecker);
+			UpdateStatus = updateChecker.UpdateStatus;
+
+			var rpcMonitor = hostedServices.FirstOrDefault<RpcMonitor>();
+			BitcoinCoreStatus = rpcMonitor?.RpcStatus ?? RpcStatus.Unresponsive;
 
 			_status = ActiveStatuses.WhenAnyValue(x => x.CurrentStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -115,12 +121,15 @@ namespace WalletWasabi.Gui.ViewModels
 				.Subscribe(usd => BtcPrice = $"${(long)usd}")
 				.DisposeWith(Disposables);
 
-			Observable.FromEventPattern<RpcStatus>(Global.RpcMonitor, nameof(Global.RpcMonitor.RpcStatusChanged))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(e => BitcoinCoreStatus = e.EventArgs)
-				.DisposeWith(Disposables);
+			if (rpcMonitor is { })
+			{
+				Observable.FromEventPattern<RpcStatus>(rpcMonitor, nameof(rpcMonitor.RpcStatusChanged))
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(e => BitcoinCoreStatus = e.EventArgs)
+					.DisposeWith(Disposables);
+			}
 
-			Observable.FromEventPattern<UpdateStatus>(Global.UpdateChecker, nameof(Global.UpdateChecker.UpdateStatusChanged))
+			Observable.FromEventPattern<UpdateStatus>(updateChecker, nameof(updateChecker.UpdateStatusChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(e => UpdateStatus = e.EventArgs)
 				.DisposeWith(Disposables);
@@ -200,8 +209,6 @@ namespace WalletWasabi.Gui.ViewModels
 			}, this.WhenAnyValue(x => x.UpdateAvailable, x => x.CriticalUpdateAvailable, (x, y) => x || y));
 
 			this.RaisePropertyChanged(nameof(UpdateCommand)); // The binding happens after the constructor. So, if the command is not in constructor, then we need this line.
-
-			updateChecker.Start();
 		}
 
 		public ReactiveCommand<Unit, Unit> UpdateCommand { get; set; }
