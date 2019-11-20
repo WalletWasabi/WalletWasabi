@@ -51,6 +51,15 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 			}
 		}
 
+		internal bool IsKnownBy(string userOrEntity)
+		{
+			if(string.IsNullOrWhiteSpace(userOrEntity))
+			{
+				return false;
+			}
+			return Labels.Any(label => string.Equals(label, userOrEntity, StringComparison.OrdinalIgnoreCase));
+		}
+
 		#region EqualityAndComparison
 
 		public override bool Equals(object obj) => obj is Cluster clus && this == clus;

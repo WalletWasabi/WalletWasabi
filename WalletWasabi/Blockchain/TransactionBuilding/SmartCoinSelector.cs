@@ -14,10 +14,12 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 	public class SmartCoinSelector : ICoinSelector
 	{
 		private IEnumerable<SmartCoin> UnspentCoins { get; }
+		private string Receiver { get; }
 
-		public SmartCoinSelector(IEnumerable<SmartCoin> unspentCoins)
+		public SmartCoinSelector(IEnumerable<SmartCoin> unspentCoins, string receiver = null)
 		{
 			UnspentCoins = Guard.NotNull(nameof(unspentCoins), unspentCoins).Distinct();
+			Receiver = receiver;
 		}
 
 		public IEnumerable<ICoin> Select(IEnumerable<ICoin> coins, IMoney target)
@@ -33,6 +35,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 			// Get unique clusters.
 			IEnumerable<Cluster> uniqueClusters = UnspentCoins
 				.Select(coin => coin.Clusters)
+				.Where(cluster => Receiver is {} ? cluster.IsKnownBy(Receiver) : true )
 				.Distinct();
 
 			// Build all the possible coin clusters, except when it's computationally too expensive.
