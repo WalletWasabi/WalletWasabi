@@ -38,7 +38,7 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
 
 		private void DescriptorsChanged(DataRepeaterHeaderDescriptors obj)
 		{
-			if (obj is { })
+			if (obj is null)
 			{
 				return;
 			}
