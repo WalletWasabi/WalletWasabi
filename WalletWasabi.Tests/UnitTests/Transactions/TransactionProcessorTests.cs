@@ -395,7 +395,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			//                    |
 			//                    +--- tx3 (replaces tx2)
 
-			// Replaces a previous RBF transaction by a new one that contains one more input (higher fee)
+			// Replaces a previous RBF transaction by a new one that contains one less input (higher fee)
 			var transactionProcessor = await CreateTransactionProcessorAsync();
 			Script NewScript(string label) => transactionProcessor.NewKey(label).P2wpkhScript;
 
@@ -419,7 +419,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// replace previous tx with another one spending only one coin
 			destinationScript = new Key().PubKey.WitHash.ScriptPubKey;  // spend to someone else
-			var tx3 = CreateSpendingTransaction(createdCoins.Take(1), destinationScript, changeScript); // spends 1.2btc
+			var tx3 = CreateSpendingTransaction(createdCoins.Take(1), destinationScript, changeScript); // spends 0.6btc
 			relevant = transactionProcessor.Process(tx3);
 
 			Assert.True(relevant);
@@ -512,7 +512,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// Transaction store assertions
 			var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
-			Assert.Equal(1, mempool.Count());  // it doesn't matter if it is a dust only tx, we save the tx anyway.
+			Assert.Single(mempool);  // it doesn't matter if it is a dust only tx, we save the tx anyway.
 
 			var matureTxs = transactionProcessor.TransactionStore.ConfirmedStore.GetTransactions().ToArray();
 			Assert.Empty(matureTxs);
