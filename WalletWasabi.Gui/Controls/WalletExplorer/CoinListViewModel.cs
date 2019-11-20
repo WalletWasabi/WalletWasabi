@@ -53,8 +53,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ShieldState _selectAllPrivateShieldState;
 		private ShieldState _selectAllNonPrivateShieldState;
 		private bool _isCoinListLoading;
-		private bool _isSelectionCheckBoxesInvalidated;
-		private bool _isCoinListStatusColumnInvalidated;
 
 		public Global Global { get; }
 		public CoinListContainerType CoinListContainerType { get; }
@@ -69,18 +67,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public event EventHandler DequeueCoinsPressed;
 
 		public event EventHandler<CoinViewModel> SelectionChanged;
-
-		public bool IsSelectionCheckBoxesInvalidated
-		{
-			get => _isSelectionCheckBoxesInvalidated;
-			set => this.RaiseAndSetIfChanged(ref _isSelectionCheckBoxesInvalidated, value);
-		}
-
-		public bool IsCoinListStatusColumnInvalidated
-		{
-			get => _isCoinListStatusColumnInvalidated;
-			set => this.RaiseAndSetIfChanged(ref _isCoinListStatusColumnInvalidated, value);
-		}
 
 		public ReadOnlyObservableCollection<CoinViewModel> Coins => _coinViewModels;
 
@@ -288,13 +274,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Bind(out _coinViewModels)
 				.OnItemAdded(cvm =>
 				{
-					OnSelectionCheckBoxesInvalidated();
-					OnCoinListStatusColumnInvalidated();
+					RefreshSelectionCheckBoxes();
+					RefreshStatusColumnWidth();
 				})
 				.OnItemRemoved(cvm =>
 				{
-					OnSelectionCheckBoxesInvalidated();
-					OnCoinListStatusColumnInvalidated();
+					RefreshSelectionCheckBoxes();
+					RefreshStatusColumnWidth();
 					cvm?.Dispose();
 				})
 				.Subscribe();
@@ -432,40 +418,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
-			this.WhenValueChanged(x => x.IsSelectionCheckBoxesInvalidated)
-				.Sample(TimeSpan.FromSeconds(0.5))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					IsSelectionCheckBoxesInvalidated = false;
-					try
-					{
-						SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
-						SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
-						SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
-					}
-				});
-
-			this.WhenValueChanged(x => x.IsCoinListStatusColumnInvalidated)
-				.Sample(TimeSpan.FromSeconds(0.5))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					IsCoinListStatusColumnInvalidated = false;
-					try
-					{
-						RefreshStatusColumnWidth();
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
-					}
-				});
-
 			Observable
 				.Merge(InitList.ThrownExceptions)
 				.Merge(SelectNonPrivateCheckBoxCommand.ThrownExceptions)
@@ -474,6 +426,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(DequeueCoin.ThrownExceptions)
 				.Merge(SortCommand.ThrownExceptions)
 				.Subscribe(ex => Logger.LogError(ex));
+		}
+
+		private void RefreshSelectionCheckBoxes()
+		{
+			SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
+			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
 		}
 
 		private void RefreshStatusColumnWidth()
@@ -591,8 +550,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				})
 				.DisposeWith(Disposables);
 
-			OnSelectionCheckBoxesInvalidated();
-			OnCoinListStatusColumnInvalidated();
+			RefreshSelectionCheckBoxes();
+			RefreshStatusColumnWidth();
 		}
 
 		private void RefreshSelectCheckBoxesShields(int mixUntilAnonymitySet)
@@ -616,7 +575,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					isStrongPrivate
 					);
 
-			OnSelectionCheckBoxesInvalidated();
+			RefreshSelectionCheckBoxes();
 		}
 
 		public void OnClose()
@@ -630,7 +589,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void OnCoinIsSelectedChanged(CoinViewModel cvm)
 		{
-			OnSelectionCheckBoxesInvalidated();
+			RefreshSelectionCheckBoxes();
 
 			SelectionChanged?.Invoke(this, cvm);
 			SelectedAmount = Coins.Where(x => x.IsSelected).Sum(x => x.Amount);
@@ -643,23 +602,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void OnCoinStatusChanged()
 		{
-			OnCoinListStatusColumnInvalidated();
+			RefreshStatusColumnWidth();
 		}
 
-		public void OnCoinUnspentChanged(CoinViewModel cvm)
+		public void OnCoinUnspentChanged(CoinViewModel _)
 		{
 			// Removing the coin in Global.WalletService.TransactionProcessor.CoinSpent not here.
-			OnCoinListStatusColumnInvalidated();
-		}
-
-		public void OnSelectionCheckBoxesInvalidated()
-		{
-			IsSelectionCheckBoxesInvalidated = true;
-		}
-
-		public void OnCoinListStatusColumnInvalidated()
-		{
-			IsCoinListStatusColumnInvalidated = true;
+			RefreshStatusColumnWidth();
 		}
 	}
 }
