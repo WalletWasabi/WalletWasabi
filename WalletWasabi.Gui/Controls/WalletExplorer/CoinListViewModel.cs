@@ -273,18 +273,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			RootList = new SourceList<CoinViewModel>();
 			RootList
 				.Connect()
-				.Sort(MyComparer, comparerChanged: sortChanged, resetThreshold: 5)
+				.Sort(MyComparer, comparerChanged: sortChanged)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(out _coinViewModels)
 				.OnItemAdded(cvm =>
 				{
-					SelectionCheckBoxesInvalidated?.Invoke(this, null);
-					CoinListStatusColumnInvalidated?.Invoke(this, null);
+					OnSelectionCheckBoxesInvalidated();
+					OnCoinListStatusColumnInvalidated();
 				})
 				.OnItemRemoved(cvm =>
 				{
-					SelectionCheckBoxesInvalidated?.Invoke(this, null);
-					CoinListStatusColumnInvalidated?.Invoke(this, null);
+					OnSelectionCheckBoxesInvalidated();
+					OnCoinListStatusColumnInvalidated();
 					cvm?.Dispose();
 				})
 				.Subscribe();
@@ -581,8 +581,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				})
 				.DisposeWith(Disposables);
 
-			SelectionCheckBoxesInvalidated?.Invoke(this, null);
-			CoinListStatusColumnInvalidated?.Invoke(this, null);
+			OnSelectionCheckBoxesInvalidated();
+			OnCoinListStatusColumnInvalidated();
 		}
 
 		private void RefreshSelectCheckBoxesShields(int mixUntilAnonymitySet)
@@ -606,7 +606,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					isStrongPrivate
 					);
 
-			SelectionCheckBoxesInvalidated?.Invoke(this, null);
+			OnSelectionCheckBoxesInvalidated();
 		}
 
 		public void OnClose()
@@ -620,7 +620,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void OnCoinIsSelectedChanged(CoinViewModel cvm)
 		{
-			SelectionCheckBoxesInvalidated?.Invoke(this, null);
+			OnSelectionCheckBoxesInvalidated();
 
 			SelectionChanged?.Invoke(this, cvm);
 			SelectedAmount = Coins.Where(x => x.IsSelected).Sum(x => x.Amount);
@@ -633,12 +633,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void OnCoinStatusChanged()
 		{
-			CoinListStatusColumnInvalidated?.Invoke(this, null);
+			OnCoinListStatusColumnInvalidated();
 		}
 
 		public void OnCoinUnspentChanged(CoinViewModel cvm)
 		{
 			// Removing the coin in Global.WalletService.TransactionProcessor.CoinSpent not here.
+			OnCoinListStatusColumnInvalidated();
+		}
+
+		public void OnSelectionCheckBoxesInvalidated()
+		{
+			SelectionCheckBoxesInvalidated?.Invoke(this, null);
+		}
+
+		public void OnCoinListStatusColumnInvalidated()
+		{
 			CoinListStatusColumnInvalidated?.Invoke(this, null);
 		}
 	}
