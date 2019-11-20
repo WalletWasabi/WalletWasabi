@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
@@ -10,18 +11,28 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
-	public class UpdateChecker : PeriodicRunner<UpdateStatus>
+	public class UpdateChecker : PeriodicRunner
 	{
 		public WasabiClient WasabiClient { get; }
 
-		public UpdateChecker(TimeSpan period, WasabiClient client) : base(period, new UpdateStatus(true, true))
+		public UpdateStatus UpdateStatus { get; private set; }
+
+		public event EventHandler<UpdateStatus> UpdateStatusChanged;
+
+		public UpdateChecker(TimeSpan period, WasabiClient client) : base(period)
 		{
 			WasabiClient = Guard.NotNull(nameof(client), client);
+			UpdateStatus = new UpdateStatus(true, true);
 		}
 
-		protected override async Task<UpdateStatus> ActionAsync(CancellationToken cancel)
+		protected override async Task ActionAsync(CancellationToken cancel)
 		{
-			return await WasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
+			var updateStatus = await WasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
+			if (updateStatus != UpdateStatus)
+			{
+				UpdateStatus = updateStatus;
+				UpdateStatusChanged?.Invoke(this, updateStatus);
+			}
 		}
 	}
 }

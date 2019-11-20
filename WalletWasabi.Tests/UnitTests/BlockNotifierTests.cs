@@ -30,7 +30,7 @@ namespace WalletWasabi.Tests.UnitTests
 			await Assert.ThrowsAsync<OperationCanceledException>(() => blockAwaiter.WaitAsync(TimeSpan.FromSeconds(1)));
 			await Assert.ThrowsAsync<OperationCanceledException>(() => reorgAwaiter.WaitAsync(TimeSpan.FromSeconds(1)));
 
-			Assert.Equal(Network.RegTest.GenesisHash, notifier.Status);
+			Assert.Equal(Network.RegTest.GenesisHash, notifier.BestBlockHash);
 
 			await notifier.StopAsync();
 		}
@@ -57,7 +57,7 @@ namespace WalletWasabi.Tests.UnitTests
 			await Assert.ThrowsAsync<OperationCanceledException>(() => blockAwaiter.WaitAsync(TimeSpan.FromSeconds(1)));
 			await Assert.ThrowsAsync<OperationCanceledException>(() => reorgAwaiter.WaitAsync(TimeSpan.FromSeconds(1)));
 
-			Assert.Equal(chain.Tip.HashBlock, notifier.Status);
+			Assert.Equal(chain.Tip.HashBlock, notifier.BestBlockHash);
 
 			await notifier.StopAsync();
 		}
@@ -93,7 +93,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// No reorg notifications
 			await Assert.ThrowsAsync<OperationCanceledException>(() => reorgAwaiter.WaitAsync(TimeSpan.FromSeconds(1)));
-			Assert.Equal(chain.Tip.HashBlock, notifier.Status);
+			Assert.Equal(chain.Tip.HashBlock, notifier.BestBlockHash);
 
 			notifier.OnBlock -= onBlockInv;
 			await notifier.StopAsync();
@@ -133,7 +133,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var reorgedkBlock = await reorgAwaiter.WaitAsync(TimeSpan.FromSeconds(1));
 			Assert.Equal(forkPoint.HashBlock, reorgedkBlock.HashPrevBlock);
 			Assert.Equal(blockToBeReorged.HashBlock, reorgedkBlock.GetHash());
-			Assert.Equal(chain.Tip.HashBlock, notifier.Status);
+			Assert.Equal(chain.Tip.HashBlock, notifier.BestBlockHash);
 
 			await notifier.StopAsync();
 		}
@@ -187,7 +187,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var reorgedkBlock = await reorgAwaiter.WaitAsync(TimeSpan.FromSeconds(1));
 			var expectedReorgedBlocks = firstReorgedChain.ToList().Concat(new[] { secondReorgedChain[2] });
 			Assert.Subset(reorgedkBlock.Select(x => x.GetHash()).ToHashSet(), expectedReorgedBlocks.Select(x => x.Header.GetHash()).ToHashSet());
-			Assert.Equal(chain.Tip.HashBlock, notifier.Status);
+			Assert.Equal(chain.Tip.HashBlock, notifier.BestBlockHash);
 
 			await notifier.StopAsync();
 		}
@@ -213,7 +213,7 @@ namespace WalletWasabi.Tests.UnitTests
 			await AddBlockAsync(chain, wait: true);
 			notifier.TriggerRound();
 
-			Assert.Equal(chain.Tip.HashBlock, notifier.Status);
+			Assert.Equal(chain.Tip.HashBlock, notifier.BestBlockHash);
 
 			var nofifiedBlocks = (await blockAwaiter.WaitAsync(TimeSpan.FromSeconds(1))).ToArray();
 

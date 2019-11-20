@@ -37,8 +37,8 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private bool UseTor { get; set; }
 
-		private ObservableAsPropertyHelper<RpcStatus> _bitcoinCoreStatus;
-		private ObservableAsPropertyHelper<UpdateStatus> _updateStatus;
+		private RpcStatus _bitcoinCoreStatus;
+		private UpdateStatus _updateStatus;
 		private bool _updateAvailable;
 		private bool _criticalUpdateAvailable;
 
@@ -71,6 +71,8 @@ namespace WalletWasabi.Gui.ViewModels
 			HashChain = synchronizer.BitcoinStore.HashChain;
 			UseTor = Global.Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
 			UseBitcoinCore = Global.Config.StartLocalBitcoinCoreOnStartup;
+			BitcoinCoreStatus = Global.RpcMonitor.RpcStatus;
+			UpdateStatus = Global.UpdateChecker.UpdateStatus;
 
 			_status = ActiveStatuses.WhenAnyValue(x => x.CurrentStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -113,19 +115,15 @@ namespace WalletWasabi.Gui.ViewModels
 				.Subscribe(usd => BtcPrice = $"${(long)usd}")
 				.DisposeWith(Disposables);
 
-			_bitcoinCoreStatus = Global.RpcMonitor
-					.WhenAnyValue(x => x.Status)
-					.Throttle(TimeSpan.FromMilliseconds(100))
-					.ObserveOn(RxApp.MainThreadScheduler)
-					.ToProperty(this, x => x.BitcoinCoreStatus)
-					.DisposeWith(Disposables);
+			Observable.FromEventPattern<RpcStatus>(Global.RpcMonitor, nameof(Global.RpcMonitor.RpcStatusChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(e => BitcoinCoreStatus = e.EventArgs)
+				.DisposeWith(Disposables);
 
-			_updateStatus = Global.UpdateChecker
-					.WhenAnyValue(x => x.Status)
-					.Throttle(TimeSpan.FromMilliseconds(100))
-					.ObserveOn(RxApp.MainThreadScheduler)
-					.ToProperty(this, x => x.UpdateStatus)
-					.DisposeWith(Disposables);
+			Observable.FromEventPattern<UpdateStatus>(Global.UpdateChecker, nameof(Global.UpdateChecker.UpdateStatusChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(e => UpdateStatus = e.EventArgs)
+				.DisposeWith(Disposables);
 
 			Observable.FromEventPattern<bool>(Synchronizer, nameof(Synchronizer.ResponseArrivedIsGenSocksServFail))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -233,8 +231,18 @@ namespace WalletWasabi.Gui.ViewModels
 		}
 
 		public int FiltersLeft => _filtersLeft?.Value ?? 0;
-		public RpcStatus BitcoinCoreStatus => _bitcoinCoreStatus?.Value ?? RpcStatus.Unresponsive;
-		public UpdateStatus UpdateStatus => _updateStatus?.Value ?? new UpdateStatus(true, true);
+
+		public RpcStatus BitcoinCoreStatus
+		{
+			get => _bitcoinCoreStatus;
+			set => this.RaiseAndSetIfChanged(ref _bitcoinCoreStatus, value);
+		}
+
+		public UpdateStatus UpdateStatus
+		{
+			get => _updateStatus;
+			set => this.RaiseAndSetIfChanged(ref _updateStatus, value);
+		}
 
 		public bool UpdateAvailable
 		{

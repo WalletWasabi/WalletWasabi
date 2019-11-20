@@ -510,7 +510,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFeesAndTexts()
 		{
-			AllFeeEstimate allFeeEstimate = Global.FeeProviders?.Status;
+			AllFeeEstimate allFeeEstimate = Global.FeeProviders?.AllFeeEstimate;
 
 			int feeTarget = -1; // 1 => 10 minutes
 			if (IsSliderFeeUsed)
@@ -686,7 +686,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFeeTargetLimits()
 		{
-			var allFeeEstimate = Global.FeeProviders?.Status;
+			var allFeeEstimate = Global.FeeProviders?.AllFeeEstimate;
 
 			if (allFeeEstimate != null)
 			{
@@ -1017,7 +1017,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Global.FeeProviders.WhenAnyValue(x => x.Status).Subscribe(_ =>
+			Observable
+				.FromEventPattern<UpdateStatus>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
 				{
 					SetFeeTargetLimits();
 
@@ -1031,7 +1034,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 
 					SetFeesAndTexts();
-				}).DisposeWith(Disposables);
+				})
+				.DisposeWith(Disposables);
 
 			_usdExchangeRate = Global.Synchronizer
 				.WhenAnyValue(x => x.UsdExchangeRate)
