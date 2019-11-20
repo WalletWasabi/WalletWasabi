@@ -77,12 +77,18 @@ namespace WalletWasabi.BitcoinCore
 			lock (SubscriptionLock)
 			{
 				TrustedP2pBehavior = Node.Behaviors.Find<TrustedP2pBehavior>();
+				Node.UncaughtException += Node_UncaughtException;
 				Node.StateChanged += P2pNode_StateChanged;
 				Node.Disconnected += Node_DisconnectedAsync;
 				TrustedP2pBehavior.BlockInv += TrustedP2pBehavior_BlockInv;
 				NodeEventsSubscribed = true;
 				MempoolService.TrustedNodeMode = Node.IsConnected;
 			}
+		}
+
+		private void Node_UncaughtException(Node sender, Exception ex)
+		{
+			Logger.LogInfo($"Node {sender.Peer.Endpoint} failed with exception: {ex}");
 		}
 
 		private async void Node_DisconnectedAsync(Node node)
@@ -155,26 +161,29 @@ namespace WalletWasabi.BitcoinCore
 		/// </summary>
 		public void Disconnect()
 		{
-			if (Node is { })
+			Node node = Node;
+			if (node is { })
 			{
 				lock (SubscriptionLock)
 				{
 					MempoolService.TrustedNodeMode = false;
 					if (NodeEventsSubscribed)
 					{
-						if (TrustedP2pBehavior is { })
+						var trustedP2pBehavior = TrustedP2pBehavior;
+						if (trustedP2pBehavior is { })
 						{
-							TrustedP2pBehavior.BlockInv -= TrustedP2pBehavior_BlockInv;
+							trustedP2pBehavior.BlockInv -= TrustedP2pBehavior_BlockInv;
 						}
-						Node.Disconnected -= Node_DisconnectedAsync;
-						Node.StateChanged -= P2pNode_StateChanged;
+						node.Disconnected -= Node_DisconnectedAsync;
+						node.StateChanged -= P2pNode_StateChanged;
+						node.UncaughtException -= Node_UncaughtException;
 						NodeEventsSubscribed = false;
 					}
 				}
 
 				try
 				{
-					Node?.Disconnect();
+					node.Disconnect();
 				}
 				catch (Exception ex)
 				{
@@ -184,7 +193,7 @@ namespace WalletWasabi.BitcoinCore
 				{
 					try
 					{
-						Node?.Dispose();
+						node.Dispose();
 					}
 					catch (Exception ex)
 					{
