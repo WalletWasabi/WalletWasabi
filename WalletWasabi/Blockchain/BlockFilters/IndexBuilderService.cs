@@ -243,16 +243,12 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									}
 								}
 
-								GolombRiceFilter filter = null;
-								if (scripts.Count != 0)
-								{
-									filter = new GolombRiceFilterBuilder()
-										.SetKey(block.GetHash())
-										.SetP(20)
-										.SetM(1 << 20)
-										.AddEntries(scripts.Select(x => x.ToCompressedBytes()))
-										.Build();
-								}
+								GolombRiceFilter filter = new GolombRiceFilterBuilder()
+									.SetKey(block.GetHash())
+									.SetP(20)
+									.SetM(1 << 20)
+									.AddEntries(scripts.Select(x => x.ToCompressedBytes()))
+									.Build();
 
 								var filterModel = new FilterModel
 								{
