@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui.Helpers
 		{
 			RxApp.MainThreadScheduler
 				.Schedule(() => GetNotificationManager()
-				.Show(new Notification(title, message, NotificationType.Warning)));
+				.Show(new Notification(title, message, NotificationType.Information)));
 		}
 
 		public static void Warning (string message, string title = "Warning!")
