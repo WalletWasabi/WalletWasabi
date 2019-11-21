@@ -3,10 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Stores
+namespace WalletWasabi.Blockchain.BlockFilters
 {
 	public static class StartingFilters
 	{
@@ -30,24 +31,7 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		public static Height GetStartingHeight(Network network) // First possible bech32 transaction ever.
-		{
-			if (network == Network.Main)
-			{
-				return new Height(481824);
-			}
-			else if (network == Network.TestNet)
-			{
-				return new Height(828575);
-			}
-			else if (network == Network.RegTest)
-			{
-				return new Height(0);
-			}
-			else
-			{
-				throw new NotSupportedNetworkException(network);
-			}
-		}
+		public static Height GetStartingHeight(Network network)
+		=> (int)SmartHeader.GetStartingHeader(network).Height;
 	}
 }
