@@ -11,11 +11,6 @@ namespace WalletWasabi.Tests.UnitTests
 {
 	public class SmartHeaderTests
 	{
-		// TODO
-		// equality
-		// comparision
-		// line serialization
-		// need mempool too
 		[Fact]
 		public void ConstructorTests()
 		{
