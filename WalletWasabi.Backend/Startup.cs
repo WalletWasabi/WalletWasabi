@@ -123,7 +123,7 @@ namespace WalletWasabi.Backend
 			{
 				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
 				await hostedServices.StopAllAsync(cts.Token);
-				hostedServices?.Dispose();
+				hostedServices.Dispose();
 			}
 
 			var p2pNode = global.P2pNode;
