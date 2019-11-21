@@ -65,11 +65,9 @@ namespace WalletWasabi.Blockchain.BlockFilters
 				}
 				else
 				{
-					var height = StartingHeight;
 					foreach (var line in File.ReadAllLines(IndexFilePath))
 					{
-						var filter = FilterModel.FromHeightlessLine(line, height);
-						height++;
+						var filter = FilterModel.FromFullLine(line);
 						Index.Add(filter);
 					}
 				}
@@ -250,14 +248,9 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									.AddEntries(scripts.Select(x => x.ToCompressedBytes()))
 									.Build();
 
-								var filterModel = new FilterModel
-								{
-									BlockHash = block.GetHash(),
-									BlockHeight = heightToRequest,
-									Filter = filter
-								};
+								var filterModel = new FilterModel(heightToRequest, block.GetHash(), filter);
 
-								await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToHeightlessLine() });
+								await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToFullLine() });
 								using (await IndexLock.LockAsync())
 								{
 									Index.Add(filterModel);

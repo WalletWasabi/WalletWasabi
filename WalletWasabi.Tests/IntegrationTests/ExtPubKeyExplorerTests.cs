@@ -30,7 +30,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		{
 			var filters = new[]
 			{
-				FilterModel.FromHeightlessLine("000000000000de90e633e1b1330859842795d39018d033044e8b003e8cbf58e4:050a2f58828c9820642769ae320a40", 0)
+				FilterModel.FromFullLine("0:000000000000de90e633e1b1330859842795d39018d033044e8b003e8cbf58e4:050a2f58828c9820642769ae320a40")
 			};
 
 			var unusedKeyIndex = ExtPubKeyExplorer.GetUnusedBech32Keys(1, true, ExtPubKey.GetWif(Network.Main), filters).First().ScriptPubKey.ToCompressedBytes();
@@ -118,12 +118,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				.SetP(20);
 
 			builder.AddEntries(scripts);
-			return new FilterModel
-			{
-				BlockHeight = 0,
-				BlockHash = new uint256(blockHash),
-				Filter = builder.Build()
-			};
+			return new FilterModel(0, new uint256(blockHash), builder.Build());
 		}
 
 		private byte[][] GetScripts(bool isInternal, int offset, int count)

@@ -15,31 +15,25 @@ namespace WalletWasabi.Backend.Models
 	public class FilterModel
 	{
 		[JsonConverter(typeof(HeightJsonConverter))]
-		public Height BlockHeight { get; set; }
+		public Height BlockHeight { get; }
 
 		[JsonConverter(typeof(Uint256JsonConverter))]
-		public uint256 BlockHash { get; set; }
+		public uint256 BlockHash { get; }
 
 		[JsonConverter(typeof(GolombRiceFilterJsonConverter))]
-		public GolombRiceFilter Filter { get; set; }
+		public GolombRiceFilter Filter { get; }
+
+		public FilterModel(Height blockHeight, uint256 blockHash, GolombRiceFilter filter)
+		{
+			BlockHeight = blockHeight;
+			BlockHash = Guard.NotNull(nameof(blockHash), blockHash);
+			Filter = Guard.NotNull(nameof(filter), filter);
+		}
 
 		// https://github.com/bitcoin/bips/blob/master/bip-0158.mediawiki
 		// The parameter k MUST be set to the first 16 bytes of the hash of the block for which the filter
 		// is constructed.This ensures the key is deterministic while still varying from block to block.
 		public byte[] FilterKey => BlockHash.ToBytes().Take(16).ToArray();
-
-		public string ToHeightlessLine()
-		{
-			var builder = new StringBuilder();
-			builder.Append(BlockHash);
-			if (Filter != null) // bech found here
-			{
-				builder.Append(":");
-				builder.Append(Filter);
-			}
-
-			return builder.ToString();
-		}
 
 		public string ToFullLine()
 		{
@@ -68,7 +62,7 @@ namespace WalletWasabi.Backend.Models
 			}
 			else if (parts.Length == 2) // no bech here
 			{
-				filter = null;
+				filter = new GolombRiceFilter(new byte[] { 0 });
 			}
 			else
 			{
@@ -78,70 +72,13 @@ namespace WalletWasabi.Backend.Models
 
 			if (Height.TryParse(parts[0], out Height blockHeight))
 			{
-				return new FilterModel
-				{
-					BlockHeight = blockHeight,
-					BlockHash = new uint256(parts[1]),
-					Filter = filter
-				};
+				uint256 blockHash = new uint256(parts[1]);
+				return new FilterModel(blockHeight, blockHash, filter);
 			}
 			else
 			{
 				throw new FormatException($"Could not parse {nameof(Height)}.");
 			}
-		}
-
-		public static FilterModel FromHeightlessLine(string line, Height height)
-		{
-			Guard.NotNullOrEmptyOrWhitespace(nameof(line), line);
-			var parts = line.Split(':');
-
-			if (parts.Length == 1) // no bech here
-			{
-				return new FilterModel
-				{
-					BlockHeight = Guard.NotNull(nameof(height), height),
-					BlockHash = new uint256(parts[0]),
-					Filter = null
-				};
-			}
-
-			var data = Encoders.Hex.DecodeData(parts[1]);
-			var filter = new GolombRiceFilter(data, 20, 1 << 20);
-
-			return new FilterModel
-			{
-				BlockHeight = Guard.NotNull(nameof(height), height),
-				BlockHash = new uint256(parts[0]),
-				Filter = filter
-			};
-		}
-
-		public byte[] ToBytes()
-		{
-			byte[] blockHashBytes = BlockHash.ToBytes();
-			byte[] filterBytes = Filter is null ? Array.Empty<byte>() : Filter.ToBytes();
-			byte[] filterLengthBytes = BitConverter.GetBytes(filterBytes.Length);
-			byte[] buffer = new byte[blockHashBytes.Length + filterLengthBytes.Length + filterBytes.Length];
-			Buffer.BlockCopy(blockHashBytes, 0, buffer, 0, blockHashBytes.Length);
-			Buffer.BlockCopy(filterLengthBytes, 0, buffer, blockHashBytes.Length, filterLengthBytes.Length);
-			Buffer.BlockCopy(filterBytes, 0, buffer, blockHashBytes.Length + filterLengthBytes.Length, filterBytes.Length);
-			return buffer;
-		}
-
-		public static FilterModel FromStream(Stream stream, Height height)
-		{
-			uint256 blockHash = new uint256(stream.ReadBytes(32));
-			int filterSize = BitConverter.ToInt32(stream.ReadBytes(4));
-			byte[] data = stream.ReadBytes(filterSize);
-			GolombRiceFilter filter = filterSize > 0 ? new GolombRiceFilter(data, 20, 1 << 20) : null;
-
-			return new FilterModel
-			{
-				BlockHeight = Guard.NotNull(nameof(height), height),
-				BlockHash = blockHash,
-				Filter = filter
-			};
 		}
 	}
 }

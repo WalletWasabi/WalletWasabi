@@ -72,7 +72,7 @@ namespace WalletWasabi.Stores
 
 					if (!MatureIndexFileManager.Exists())
 					{
-						await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToHeightlessLine() }).ConfigureAwait(false);
+						await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToFullLine() }).ConfigureAwait(false);
 					}
 
 					await InitializeFiltersAsync().ConfigureAwait(false);
@@ -80,12 +80,44 @@ namespace WalletWasabi.Stores
 			}
 		}
 
+		private async Task DeleteIfDeprecatedAsync()
+		{
+			if (MatureIndexFileManager.Exists())
+			{
+				await DeleteIfDeprecatedAsync(MatureIndexFileManager).ConfigureAwait(false);
+			}
+
+			if (ImmatureIndexFileManager.Exists())
+			{
+				await DeleteIfDeprecatedAsync(ImmatureIndexFileManager).ConfigureAwait(false);
+			}
+		}
+
+		private async Task DeleteIfDeprecatedAsync(DigestableSafeMutexIoManager ioManager)
+		{
+			string firstLine;
+			using (var content = ioManager.OpenText())
+			{
+				firstLine = await content.ReadLineAsync().ConfigureAwait(false);
+			}
+
+			try
+			{
+				FilterModel.FromFullLine(firstLine);
+			}
+			catch
+			{
+				Logger.LogWarning("Old Index file detected. Deleting it.");
+				MatureIndexFileManager.DeleteMe();
+				ImmatureIndexFileManager.DeleteMe();
+				Logger.LogWarning("Successfully deleted old Index file.");
+			}
+		}
+
 		private async Task InitializeFiltersAsync()
 		{
 			try
 			{
-				Height height = StartingHeight;
-
 				if (MatureIndexFileManager.Exists())
 				{
 					using var sr = MatureIndexFileManager.OpenText();
@@ -102,8 +134,7 @@ namespace WalletWasabi.Stores
 
 							lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
 
-							ProcessLine(height, line, enqueue: false);
-							height++;
+							ProcessLine(line, enqueue: false);
 
 							line = null;
 						}
@@ -114,8 +145,7 @@ namespace WalletWasabi.Stores
 				{
 					foreach (var line in await ImmatureIndexFileManager.ReadAllLinesAsync().ConfigureAwait(false)) // We can load ImmatureIndexFileManager to the memory, no problem.
 					{
-						ProcessLine(height, line, enqueue: true);
-						height++;
+						ProcessLine(line, enqueue: true);
 					}
 				}
 			}
@@ -131,9 +161,9 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		private void ProcessLine(Height height, string line, bool enqueue)
+		private void ProcessLine(string line, bool enqueue)
 		{
-			var filter = FilterModel.FromHeightlessLine(line, height);
+			var filter = FilterModel.FromFullLine(line);
 			ProcessFilter(filter, enqueue);
 		}
 
@@ -190,6 +220,8 @@ namespace WalletWasabi.Stores
 
 					File.Delete(oldIndexFilePath);
 				}
+
+				await DeleteIfDeprecatedAsync().ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -310,7 +342,7 @@ namespace WalletWasabi.Stores
 				using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
 				{
 					// Do not feed the cancellationToken here I always want this to finish running for safety.
-					var currentImmatureLines = ImmatureFilters.Select(x => x.ToHeightlessLine()).ToArray(); // So we do not read on ImmatureFilters while removing them.
+					var currentImmatureLines = ImmatureFilters.Select(x => x.ToFullLine()).ToArray(); // So we do not read on ImmatureFilters while removing them.
 					var matureLinesToAppend = currentImmatureLines.SkipLast(100);
 					var immatureLines = currentImmatureLines.TakeLast(100);
 					var tasks = new Task[] { MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend), ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines) };
@@ -369,7 +401,7 @@ namespace WalletWasabi.Stores
 									continue;
 								}
 
-								var filter = FilterModel.FromHeightlessLine(line, height);
+								var filter = FilterModel.FromFullLine(line);
 
 								await tTask.ConfigureAwait(false);
 								tTask = todo(filter);
@@ -396,7 +428,7 @@ namespace WalletWasabi.Stores
 								continue;
 							}
 
-							var filter = FilterModel.FromHeightlessLine(line, height);
+							var filter = FilterModel.FromFullLine(line);
 
 							await todo(filter).ConfigureAwait(false);
 							height++;
