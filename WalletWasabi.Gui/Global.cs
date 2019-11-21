@@ -679,7 +679,7 @@ namespace WalletWasabi.Gui
 				{
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
 					await backgroundServices.StopAllAsync(cts.Token).ConfigureAwait(false);
-					backgroundServices?.Dispose();
+					backgroundServices.Dispose();
 					Logger.LogInfo("Stopped background services.");
 				}
 
