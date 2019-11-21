@@ -27,6 +27,11 @@
       <converters:ErrorDescriptorToBorderColorConverter x:Key="ErrorDescriptorToBorderColorConverter" />
     </Style.Resources>
   </Style>
+
+  <Style Selector="NotificationCard/template/ ContentControl#PART_Content">
+    <Setter Property="MinHeight" Value="50" />
+  </Style>
+  
   <Style Selector="shell|MetroWindow /template/ Button#minimiseButton">
     <Setter Property="Content">
       <Template>
