@@ -511,14 +511,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFeesAndTexts()
 		{
-			AllFeeEstimate allFeeEstimate = Global.FeeProviders?.Status;
+			AllFeeEstimate allFeeEstimate = Global.FeeProviders?.AllFeeEstimate;
 
-			int feeTarget = -1; // 1 => 10 minutes
-			if (IsSliderFeeUsed)
+			if (allFeeEstimate is { })
 			{
-				feeTarget = FeeTarget;
-				if (allFeeEstimate != null)
+				int feeTarget = -1; // 1 => 10 minutes
+				if (IsSliderFeeUsed)
 				{
+					feeTarget = FeeTarget;
+
 					int prevKey = allFeeEstimate.Estimations.Keys.First();
 					foreach (int target in allFeeEstimate.Estimations.Keys)
 					{
@@ -534,12 +535,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						prevKey = target;
 					}
 				}
-			}
-			else
-			{
-				FeeRate = null;
-				if (allFeeEstimate != null)
+				else
 				{
+					FeeRate = null;
+
 					// In decimal ',' means order of magnitude.
 					// User could think it is decimal point but 3,5 means 35 Satoshi.
 					// For this reason we treat ',' as an invalid character.
@@ -559,10 +558,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 				}
-			}
 
-			if (allFeeEstimate != null)
-			{
 				SetFees(allFeeEstimate, feeTarget);
 				if (FeeRate is null)
 				{
@@ -687,7 +683,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFeeTargetLimits()
 		{
-			var allFeeEstimate = Global.FeeProviders?.Status;
+			var allFeeEstimate = Global.FeeProviders?.AllFeeEstimate;
 
 			if (allFeeEstimate != null)
 			{
@@ -920,7 +916,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			else
 			{
-				words[words.Length - 1] = word;
+				words[^1] = word;
 				Label = string.Join(", ", words) + ", ";
 			}
 
@@ -1014,7 +1010,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Global.FeeProviders.WhenAnyValue(x => x.Status).Subscribe(_ =>
+			Observable
+				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
 				{
 					SetFeeTargetLimits();
 
@@ -1028,7 +1027,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 
 					SetFeesAndTexts();
-				}).DisposeWith(Disposables);
+				})
+				.DisposeWith(Disposables);
 
 			_usdExchangeRate = Global.Synchronizer
 				.WhenAnyValue(x => x.UsdExchangeRate)

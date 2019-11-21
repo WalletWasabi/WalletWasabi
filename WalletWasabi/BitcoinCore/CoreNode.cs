@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Configuration;
 using WalletWasabi.BitcoinCore.Endpointing;
+using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinCore.Processes;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
@@ -32,13 +33,13 @@ namespace WalletWasabi.BitcoinCore
 		public EndPoint RpcEndPoint { get; private set; }
 		public RPCClient RpcClient { get; private set; }
 		private BitcoindRpcProcessBridge Bridge { get; set; }
+		public HostedServices HostedServices { get; private set; }
 		public string DataDir { get; private set; }
 		public Network Network { get; private set; }
 		public MempoolService MempoolService { get; private set; }
 
 		public CoreConfig Config { get; private set; }
 		public P2pNode P2pNode { get; private set; }
-		public BlockNotifier BlockNotifier { get; private set; }
 
 		public static async Task<CoreNode> CreateAsync(CoreNodeParams coreNodeParams, CancellationToken cancel)
 		{
@@ -46,6 +47,7 @@ namespace WalletWasabi.BitcoinCore
 			using (BenchmarkLogger.Measure())
 			{
 				var coreNode = new CoreNode();
+				coreNode.HostedServices = coreNodeParams.HostedServices;
 				coreNode.DataDir = coreNodeParams.DataDir;
 				coreNode.Network = coreNodeParams.Network;
 				coreNode.MempoolService = coreNodeParams.MempoolService;
@@ -192,8 +194,9 @@ namespace WalletWasabi.BitcoinCore
 				coreNode.P2pNode = new P2pNode(coreNode.Network, coreNode.P2pEndPoint, coreNode.MempoolService, coreNodeParams.UserAgent);
 				await coreNode.P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
 
-				coreNode.BlockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode);
-				coreNode.BlockNotifier.Start();
+				coreNode.HostedServices.Register(new BlockNotifier(TimeSpan.FromSeconds(7), new RpcWrappedClient(coreNode.RpcClient), coreNode.P2pNode), "Block Notifier");
+				coreNode.HostedServices.Register(new RpcMonitor(TimeSpan.FromSeconds(7), coreNode.RpcClient), "RPC Monitor");
+				coreNode.HostedServices.Register(new RpcFeeProvider(TimeSpan.FromMinutes(1), coreNode.RpcClient), "RPC Fee Provider");
 
 				return coreNode;
 			}
@@ -229,19 +232,12 @@ namespace WalletWasabi.BitcoinCore
 			return await Task.WhenAll(tasks).ConfigureAwait(false);
 		}
 
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
 		public async Task DisposeAsync()
 		{
-			if (!_disposedValue)
+			var p2pNode = P2pNode;
+			if (p2pNode is { })
 			{
-				var blockNotifier = BlockNotifier;
-				if (blockNotifier is { })
-				{
-					await blockNotifier.StopAsync().ConfigureAwait(false);
-				}
-				P2pNode?.Dispose();
-				_disposedValue = true;
+				await p2pNode.DisposeAsync().ConfigureAwait(false);
 			}
 		}
 

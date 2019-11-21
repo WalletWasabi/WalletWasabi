@@ -99,9 +99,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						ofd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 					}
 
-          var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+					var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
 					var selected = await ofd.ShowAsync(window, fallBack: true);
-          
+
 					if (selected != null && selected.Any())
 					{
 						var path = selected.First();

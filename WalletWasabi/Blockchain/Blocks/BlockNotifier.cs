@@ -16,23 +16,27 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Blockchain.Blocks
 {
-	public class BlockNotifier : PeriodicRunner<uint256>
+	public class BlockNotifier : PeriodicRunner
 	{
 		public event EventHandler<Block> OnBlock;
 
 		public event EventHandler<BlockHeader> OnReorg;
 
-		public RPCClient RpcClient { get; set; }
+		public IRPCClient RpcClient { get; set; }
 		public Network Network => RpcClient.Network;
 		private List<BlockHeader> ProcessedBlocks { get; }
 		public P2pNode P2pNode { get; }
+		public uint256 BestBlockHash { get; private set; }
 
-		public BlockNotifier(TimeSpan period, RPCClient rpcClient, P2pNode p2pNode) : base(period, null)
+		public BlockNotifier(TimeSpan period, IRPCClient rpcClient, P2pNode p2pNode = null) : base(period)
 		{
 			RpcClient = Guard.NotNull(nameof(rpcClient), rpcClient);
 			P2pNode = p2pNode;
 			ProcessedBlocks = new List<BlockHeader>();
-			P2pNode.BlockInv += P2pNode_BlockInv;
+			if (p2pNode is { })
+			{
+				p2pNode.BlockInv += P2pNode_BlockInv;
+			}
 		}
 
 		private void P2pNode_BlockInv(object sender, uint256 blockHash)
@@ -40,14 +44,14 @@ namespace WalletWasabi.Blockchain.Blocks
 			TriggerRound();
 		}
 
-		protected override async Task<uint256> ActionAsync(CancellationToken cancel)
+		protected override async Task ActionAsync(CancellationToken cancel)
 		{
 			var bestBlockHash = await RpcClient.GetBestBlockHashAsync().ConfigureAwait(false);
 
 			// If there's no new block.
-			if (bestBlockHash == Status)
+			if (bestBlockHash == BestBlockHash)
 			{
-				return bestBlockHash;
+				return;
 			}
 
 			var arrivedBlock = await RpcClient.GetBlockAsync(bestBlockHash).ConfigureAwait(false);
@@ -80,20 +84,23 @@ namespace WalletWasabi.Blockchain.Blocks
 					AddHeader(header);
 				}
 
-				return bestBlockHash;
+				BestBlockHash = bestBlockHash;
+				return;
 			}
 
 			// If block was already processed return.
 			if (ProcessedBlocks.Any(x => x.GetHash() == arrivedHeader.GetHash()))
 			{
-				return bestBlockHash;
+				BestBlockHash = bestBlockHash;
+				return;
 			}
 
 			// If this block follows the proper order then add.
 			if (ProcessedBlocks.Last().GetHash() == arrivedHeader.HashPrevBlock)
 			{
 				AddBlock(arrivedBlock);
-				return bestBlockHash;
+				BestBlockHash = bestBlockHash;
+				return;
 			}
 
 			// Else let's sort out things.
@@ -104,12 +111,14 @@ namespace WalletWasabi.Blockchain.Blocks
 				// Reorg happened.
 				ReorgToBlock(foundPrevBlock);
 				AddBlock(arrivedBlock);
-				return bestBlockHash;
+				BestBlockHash = bestBlockHash;
+				return;
 			}
 
 			await HandleMissedBlocksAsync(arrivedBlock);
 
-			return bestBlockHash;
+			BestBlockHash = bestBlockHash;
+			return;
 		}
 
 		private async Task HandleMissedBlocksAsync(Block arrivedBlock)
@@ -189,10 +198,13 @@ namespace WalletWasabi.Blockchain.Blocks
 			}
 		}
 
-		public new async Task StopAsync()
+		public override void Dispose()
 		{
-			P2pNode.BlockInv -= P2pNode_BlockInv;
-			await base.StopAsync().ConfigureAwait(false);
+			if (P2pNode is { })
+			{
+				P2pNode.BlockInv -= P2pNode_BlockInv;
+			}
+			base.Dispose();
 		}
 	}
 }

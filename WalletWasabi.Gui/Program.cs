@@ -43,7 +43,7 @@ namespace WalletWasabi.Gui
 				}
 				Logger.LogSoftwareStarted("Wasabi GUI");
 
-				BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMain, args);
+				BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMainAsync, args);
 			}
 			catch (Exception ex)
 			{
@@ -64,7 +64,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private static async void AppMain(string[] args)
+		private static async void AppMainAsync(string[] args)
 		{
 			AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
 			MainWindowViewModel.Instance = new MainWindowViewModel { Global = Global };
@@ -74,7 +74,7 @@ namespace WalletWasabi.Gui
 
 			await Global.InitializeNoWalletAsync();
 
-			StatusBar.Initialize(Global.Nodes.ConnectedNodes, Global.Synchronizer, Global.UpdateChecker);
+			StatusBar.Initialize(Global.Nodes.ConnectedNodes, Global.Synchronizer);
 
 			if (Global.Network != Network.Main)
 			{

@@ -35,9 +35,9 @@ namespace WalletWasabi.Gui.Shell.Commands
 				commandIconService.GetCompletionKindImage("Exit"),
 				exit);
 
-				#pragma warning disable IDE0053 // Use expression body for lambda expressions
-				var lockCommand = ReactiveCommand.Create(() => { Global.UiConfig.LockScreenActive = true; });
-				#pragma warning restore IDE0053 // Use expression body for lambda expressions
+#pragma warning disable IDE0053 // Use expression body for lambda expressions
+			var lockCommand = ReactiveCommand.Create(() => { Global.UiConfig.LockScreenActive = true; });
+#pragma warning restore IDE0053 // Use expression body for lambda expressions
 
 			lockCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
 

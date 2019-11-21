@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <PlatformTarget>x64</PlatformTarget>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <LangVersion>latest</LangVersion>
     <NoWarn>1701;1702;1705;1591;CA1031</NoWarn>
@@ -13,9 +13,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AltCover" Version="6.2.719" />
-    <PackageReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.3.0" />
+    <PackageReference Include="AltCover" Version="6.5.739" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
       <PrivateAssets>all</PrivateAssets>

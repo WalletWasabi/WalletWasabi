@@ -7,7 +7,7 @@ namespace WalletWasabi.Gui
 {
 	public class App : Application
 	{
-		public App ()
+		public App()
 		{
 			Name = "Wasabi Wallet";
 		}

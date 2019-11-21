@@ -8,19 +8,19 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services
 {
-	public class ConfigWatcher : PeriodicRunner<bool>
+	public class ConfigWatcher : PeriodicRunner
 	{
 		public IConfig Config { get; }
 		public Func<Task> ExecuteWhenChangedAsync { get; }
 
-		public ConfigWatcher(TimeSpan period, IConfig config, Func<Task> executeWhenChangedAsync) : base(period, false)
+		public ConfigWatcher(TimeSpan period, IConfig config, Func<Task> executeWhenChangedAsync) : base(period)
 		{
 			Config = Guard.NotNull(nameof(config), config);
 			ExecuteWhenChangedAsync = Guard.NotNull(nameof(executeWhenChangedAsync), executeWhenChangedAsync);
 			config.AssertFilePathSet();
 		}
 
-		protected override async Task<bool> ActionAsync(CancellationToken cancel)
+		protected override async Task ActionAsync(CancellationToken cancel)
 		{
 			if (await Config.CheckFileChangeAsync().ConfigureAwait(false))
 			{
@@ -28,10 +28,7 @@ namespace WalletWasabi.Services
 				await Config.LoadOrCreateDefaultFileAsync().ConfigureAwait(false);
 
 				await ExecuteWhenChangedAsync?.Invoke();
-				return true;
 			}
-
-			return false;
 		}
 	}
 }

@@ -11,17 +11,26 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 {
-	public class FeeProviders : NotifyPropertyChangedBase, IFeeProvider, IDisposable
+	public class FeeProviders : IFeeProvider, IDisposable
 	{
-		private IEnumerable<IFeeProvider> Providers { get; }
+		public event EventHandler<AllFeeEstimate> AllFeeEstimateChanged;
 
-		private AllFeeEstimate _status;
+		private AllFeeEstimate _allFeeEstimate;
 
-		public AllFeeEstimate Status
+		public AllFeeEstimate AllFeeEstimate
 		{
-			get => _status;
-			private set => RaiseAndSetIfChanged(ref _status, value);
+			get => _allFeeEstimate;
+			private set
+			{
+				if (value != _allFeeEstimate)
+				{
+					_allFeeEstimate = value;
+					AllFeeEstimateChanged?.Invoke(this, value);
+				}
+			}
 		}
+
+		private IEnumerable<IFeeProvider> Providers { get; }
 
 		private object Lock { get; }
 
@@ -34,17 +43,13 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 
 			foreach (var provider in Providers)
 			{
-				provider.PropertyChanged += Provider_PropertyChanged;
+				provider.AllFeeEstimateChanged += Provider_AllFeeEstimateChanged;
 			}
 		}
 
-		private void Provider_PropertyChanged(object sender, PropertyChangedEventArgs e)
+		private void Provider_AllFeeEstimateChanged(object sender, AllFeeEstimate e)
 		{
-			IFeeProvider feeProvider;
-			if (e.PropertyName == nameof(feeProvider.Status))
-			{
-				SetAllFeeEstimate();
-			}
+			SetAllFeeEstimate();
 		}
 
 		private void SetAllFeeEstimate()
@@ -55,15 +60,15 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 				for (int i = 0; i < providerArray.Length - 1; i++)
 				{
 					IFeeProvider provider = providerArray[i];
-					var allFee = provider.Status;
-					if (allFee != null && allFee.IsAccurate)
+					var af = provider.AllFeeEstimate;
+					if (af != null && af.IsAccurate)
 					{
-						Status = allFee;
+						AllFeeEstimate = af;
 						return;
 					}
 				}
 
-				Status = providerArray[providerArray.Length - 1].Status;
+				AllFeeEstimate = providerArray[^1].AllFeeEstimate;
 			}
 		}
 
@@ -79,7 +84,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 				{
 					foreach (var provider in Providers)
 					{
-						provider.PropertyChanged -= Provider_PropertyChanged;
+						provider.AllFeeEstimateChanged -= Provider_AllFeeEstimateChanged;
 					}
 				}
 
