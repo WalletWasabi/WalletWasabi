@@ -512,12 +512,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			AllFeeEstimate allFeeEstimate = Global.FeeProviders?.AllFeeEstimate;
 
-			int feeTarget = -1; // 1 => 10 minutes
-			if (IsSliderFeeUsed)
+			if (allFeeEstimate is { })
 			{
-				feeTarget = FeeTarget;
-				if (allFeeEstimate != null)
+				int feeTarget = -1; // 1 => 10 minutes
+				if (IsSliderFeeUsed)
 				{
+					feeTarget = FeeTarget;
+
 					int prevKey = allFeeEstimate.Estimations.Keys.First();
 					foreach (int target in allFeeEstimate.Estimations.Keys)
 					{
@@ -533,12 +534,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						prevKey = target;
 					}
 				}
-			}
-			else
-			{
-				FeeRate = null;
-				if (allFeeEstimate != null)
+				else
 				{
+					FeeRate = null;
+
 					// In decimal ',' means order of magnitude.
 					// User could think it is decimal point but 3,5 means 35 Satoshi.
 					// For this reason we treat ',' as an invalid character.
@@ -558,10 +557,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 				}
-			}
 
-			if (allFeeEstimate != null)
-			{
 				SetFees(allFeeEstimate, feeTarget);
 				if (FeeRate is null)
 				{
