@@ -219,7 +219,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				{
 					var expectedHash = await rpc.GetBlockHashAsync(i + 1);
 					var filterModel = filters[i];
-					Assert.Equal(expectedHash, filterModel.BlockHash);
+					Assert.Equal(expectedHash, filterModel.Header.BlockHash);
 				}
 			}
 			finally
@@ -290,8 +290,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 				{
 					var expectedHash = await rpc.GetBlockHashAsync(i);
 					var filter = filters[i];
-					Assert.Equal(i, filter.BlockHeight.Value);
-					Assert.Equal(expectedHash, filter.BlockHash);
+					Assert.Equal(i, (int)filter.Header.Height);
+					Assert.Equal(expectedHash, filter.Header.BlockHash);
 					Assert.Null(filter.Filter);
 				}
 			}
@@ -339,7 +339,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				var tip = await rpc.GetBestBlockHashAsync();
 				Assert.Equal(tip, bitcoinStore.HashChain.TipHash);
 				var tipBlock = await rpc.GetBlockHeaderAsync(tip);
-				Assert.Equal(tipBlock.HashPrevBlock, bitcoinStore.HashChain.GetChain().Select(x => x.hash).ToArray()[bitcoinStore.HashChain.HashCount - 2]);
+				Assert.Equal(tipBlock.HashPrevBlock, bitcoinStore.HashChain.GetChain().Select(x => x.header.BlockHash).ToArray()[bitcoinStore.HashChain.HashCount - 2]);
 
 				var utxoPath = global.IndexBuilderService.Bech32UtxoSetFilePath;
 				var utxoLines = await File.ReadAllTextAsync(utxoPath);
@@ -366,7 +366,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.DoesNotContain(tx4.ToString(), utxoLines);
 				Assert.DoesNotContain(tx5.ToString(), utxoLines);
 
-				var hashes = bitcoinStore.HashChain.GetChain().Select(x => x.hash).ToArray();
+				var hashes = bitcoinStore.HashChain.GetChain().Select(x => x.header.BlockHash).ToArray();
 				Assert.DoesNotContain(tip, hashes);
 				Assert.DoesNotContain(tipBlock.HashPrevBlock, hashes);
 
@@ -381,7 +381,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				},
 				new Height(0));
 				var filterTip = filterList.Last();
-				Assert.Equal(tip, filterTip.BlockHash);
+				Assert.Equal(tip, filterTip.Header.BlockHash);
 
 				// Test filter block hashes are correct after fork.
 				var blockCountIncludingGenesis = await rpc.GetBlockCountAsync() + 1;
@@ -398,8 +398,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 				{
 					var expectedHash = await rpc.GetBlockHashAsync(i);
 					var filter = filters[i];
-					Assert.Equal(i, filter.BlockHeight.Value);
-					Assert.Equal(expectedHash, filter.BlockHash);
+					Assert.Equal(i, (int)filter.Header.Height);
+					Assert.Equal(expectedHash, filter.Header.BlockHash);
 					if (i < 101) // Later other tests may fill the filter.
 					{
 						Assert.Null(filter.Filter);
@@ -498,7 +498,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Single(wallet.Coins);
 				var firstCoin = wallet.Coins.Single();
 				Assert.Equal(Money.Coins(0.1m), firstCoin.Amount);
-				Assert.Equal(new Height(bitcoinStore.HashChain.TipHeight), firstCoin.Height);
+				Assert.Equal(new Height((int)bitcoinStore.HashChain.TipHeight), firstCoin.Height);
 				Assert.InRange(firstCoin.Index, 0U, 1U);
 				Assert.False(firstCoin.Unavailable);
 				Assert.Equal("foo label", firstCoin.Label);
@@ -1489,7 +1489,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				var curBlockHash = await rpc.GetBestBlockHashAsync();
 				blockCount = await rpc.GetBlockCountAsync();
 				Assert.Equal(bitcoinStore.HashChain.TipHash, curBlockHash);
-				Assert.Equal(bitcoinStore.HashChain.TipHeight, blockCount);
+				Assert.Equal((int)bitcoinStore.HashChain.TipHeight, blockCount);
 
 				// Make sure the funding transaction is not in any block of the chain
 				while (curBlockHash != rpc.Network.GenesisHash)

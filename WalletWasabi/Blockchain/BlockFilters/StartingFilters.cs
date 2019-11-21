@@ -13,25 +13,23 @@ namespace WalletWasabi.Blockchain.BlockFilters
 	{
 		public static FilterModel GetStartingFilter(Network network)
 		{
+			var startingHeader = SmartHeader.GetStartingHeader(network);
 			if (network == Network.Main)
 			{
-				return FilterModel.FromFullLine($"{GetStartingHeight(network)}:0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893:02832810ec08a0");
+				return FilterModel.FromLine($"{startingHeader.Height}:{startingHeader.BlockHash}:02832810ec08a0:{startingHeader.PrevHash}:{startingHeader.BlockTime.ToUnixTimeSeconds()}");
 			}
 			else if (network == Network.TestNet)
 			{
-				return FilterModel.FromFullLine($"{GetStartingHeight(network)}:00000000000f0d5edcaeba823db17f366be49a80d91d15b77747c2e017b8c20a:017821b8");
+				return FilterModel.FromLine($"{startingHeader.Height}:{startingHeader.BlockHash}:00000000000f0d5edcaeba823db17f366be49a80d91d15b77747c2e017b8c20a:{startingHeader.PrevHash}:{startingHeader.BlockTime.ToUnixTimeSeconds()}");
 			}
 			else if (network == Network.RegTest)
 			{
-				return FilterModel.FromFullLine($"{GetStartingHeight(network)}:0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206");
+				return FilterModel.FromLine($"{startingHeader.Height}:{startingHeader.BlockHash}:0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206:{startingHeader.PrevHash}:{startingHeader.BlockTime.ToUnixTimeSeconds()}");
 			}
 			else
 			{
 				throw new NotSupportedNetworkException(network);
 			}
 		}
-
-		public static Height GetStartingHeight(Network network)
-		=> (int)SmartHeader.GetStartingHeader(network).Height;
 	}
 }

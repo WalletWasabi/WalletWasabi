@@ -49,7 +49,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.Instance.TorSocks5Endpoint);
 			var filterModel = StartingFilters.GetStartingFilter(Network.GetNetwork(networkType.ToString()));
 
-			FiltersResponse filtersResponse = await client.GetFiltersAsync(filterModel.BlockHash, 2);
+			FiltersResponse filtersResponse = await client.GetFiltersAsync(filterModel.Header.BlockHash, 2);
 
 			Assert.NotNull(filtersResponse);
 			Assert.True(filtersResponse.Filters.Count() == 2);

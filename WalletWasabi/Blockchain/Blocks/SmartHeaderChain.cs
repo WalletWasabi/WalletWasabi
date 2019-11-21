@@ -8,23 +8,23 @@ using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Stores
+namespace WalletWasabi.Blockchain.Blocks
 {
 	/// <summary>
 	/// High performance chain index and cache.
 	/// </summary>
-	public class HashChain : NotifyPropertyChangedBase
+	public class SmartHeaderChain : NotifyPropertyChangedBase
 	{
-		private int _tipHeight;
+		private uint _tipHeight;
 		private uint256 _tipHash;
-		private int _serverTipHeight;
+		private uint _serverTipHeight;
 		private int _hashesLeft;
 		private int _hashesCount;
 
-		private SortedDictionary<int, uint256> Chain { get; }
+		private SortedDictionary<uint, SmartHeader> Chain { get; }
 		private object Lock { get; }
 
-		public int TipHeight
+		public uint TipHeight
 		{
 			get => _tipHeight;
 			private set => RaiseAndSetIfChanged(ref _tipHeight, value);
@@ -36,7 +36,7 @@ namespace WalletWasabi.Stores
 			private set => RaiseAndSetIfChanged(ref _tipHash, value);
 		}
 
-		public int ServerTipHeight
+		public uint ServerTipHeight
 		{
 			get => _serverTipHeight;
 			private set => RaiseAndSetIfChanged(ref _serverTipHeight, value);
@@ -54,19 +54,19 @@ namespace WalletWasabi.Stores
 			private set => RaiseAndSetIfChanged(ref _hashesCount, value);
 		}
 
-		public HashChain()
+		public SmartHeaderChain()
 		{
-			Chain = new SortedDictionary<int, uint256>();
+			Chain = new SortedDictionary<uint, SmartHeader>();
 			Lock = new object();
 		}
 
-		public void AddOrReplace(int height, uint256 hash)
+		public void AddOrReplace(SmartHeader header)
 		{
 			lock (Lock)
 			{
-				Chain.AddOrReplace(height, hash);
-				TipHeight = height;
-				TipHash = hash;
+				Chain.AddOrReplace(header.Height, header);
+				TipHeight = header.Height;
+				TipHash = header.BlockHash;
 				HashCount = Chain.Count;
 				SetHashesLeft();
 			}
@@ -74,7 +74,7 @@ namespace WalletWasabi.Stores
 
 		private void SetHashesLeft()
 		{
-			HashesLeft = Math.Max(0, ServerTipHeight - TipHeight);
+			HashesLeft = (int)Math.Max(0, (long)ServerTipHeight - TipHeight);
 		}
 
 		public void RemoveLast()
@@ -86,14 +86,14 @@ namespace WalletWasabi.Stores
 					Chain.Remove(Chain.Keys.Max());
 					var last = Chain.Last();
 					TipHeight = last.Key;
-					TipHash = last.Value;
+					TipHash = last.Value.BlockHash;
 					HashCount = Chain.Count;
 					SetHashesLeft();
 				}
 			}
 		}
 
-		public void UpdateServerTipHeight(int height)
+		public void UpdateServerTipHeight(uint height)
 		{
 			lock (Lock)
 			{
@@ -102,7 +102,7 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		public (int height, uint256 hash)[] GetChain()
+		public (uint height, SmartHeader header)[] GetChain()
 		{
 			lock (Lock)
 			{
@@ -110,16 +110,16 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		public bool TryGetHeight(uint256 hash, out int height)
+		public bool TryGetHeight(uint256 hash, out uint height)
 		{
 			lock (Lock)
 			{
-				height = Chain.FirstOrDefault(x => x.Value == hash).Key;
+				height = Chain.FirstOrDefault(x => x.Value.BlockHash == hash).Key;
 
 				// Default int will be 0. We do not know if this refers to the 0th hash or it just means the hash was not found.
 				// So let's check if the height contains or not.
 				// If the given height is 0, then check if the chain has a key with 0. If it does not have, then return false. If it has, check if the hash is the same or not.
-				if (height == 0 && (!Chain.ContainsKey(0) || Chain[0] != hash))
+				if (height == 0 && (!Chain.ContainsKey(0) || Chain[0].BlockHash != hash))
 				{
 					return false;
 				}

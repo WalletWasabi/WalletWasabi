@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
@@ -14,71 +15,55 @@ namespace WalletWasabi.Backend.Models
 {
 	public class FilterModel
 	{
-		[JsonConverter(typeof(HeightJsonConverter))]
-		public Height BlockHeight { get; }
+		public SmartHeader Header { get; }
 
-		[JsonConverter(typeof(Uint256JsonConverter))]
-		public uint256 BlockHash { get; }
-
-		[JsonConverter(typeof(GolombRiceFilterJsonConverter))]
 		public GolombRiceFilter Filter { get; }
 
-		public FilterModel(Height blockHeight, uint256 blockHash, GolombRiceFilter filter)
+		public FilterModel(SmartHeader header, GolombRiceFilter filter)
 		{
-			BlockHeight = blockHeight;
-			BlockHash = Guard.NotNull(nameof(blockHash), blockHash);
+			Header = header;
 			Filter = Guard.NotNull(nameof(filter), filter);
 		}
 
 		// https://github.com/bitcoin/bips/blob/master/bip-0158.mediawiki
 		// The parameter k MUST be set to the first 16 bytes of the hash of the block for which the filter
 		// is constructed.This ensures the key is deterministic while still varying from block to block.
-		public byte[] FilterKey => BlockHash.ToBytes().Take(16).ToArray();
+		public byte[] FilterKey => Header.BlockHash.ToBytes().Take(16).ToArray();
 
-		public string ToFullLine()
+		public string ToLine()
 		{
 			var builder = new StringBuilder();
-			builder.Append(BlockHeight.ToString());
+			builder.Append(Header.Height);
 			builder.Append(":");
-			builder.Append(BlockHash);
-			if (Filter != null) // bech found here
-			{
-				builder.Append(":");
-				builder.Append(Filter);
-			}
+			builder.Append(Header.BlockHash);
+			builder.Append(":");
+			builder.Append(Filter);
+			builder.Append(":");
+			builder.Append(Header.PrevHash);
+			builder.Append(":");
+			builder.Append(Header.BlockTime.ToUnixTimeSeconds());
 
 			return builder.ToString();
 		}
 
-		public static FilterModel FromFullLine(string line)
+		public static FilterModel FromLine(string line)
 		{
 			Guard.NotNullOrEmptyOrWhitespace(nameof(line), line);
 			string[] parts = line.Split(':');
 
-			GolombRiceFilter filter;
-			if (parts.Length <= 1)
+			if (parts.Length < 5)
 			{
 				throw new ArgumentException(nameof(line), line);
 			}
-			else if (parts.Length == 2) // no bech here
-			{
-				filter = new GolombRiceFilter(new byte[] { 0 });
-			}
-			else
-			{
-				var data = Encoders.Hex.DecodeData(parts[2]);
-				filter = new GolombRiceFilter(data, 20, 1 << 20);
-			}
 
-			if (Height.TryParse(parts[0], out Height blockHeight))
-			{
-				uint256 blockHash = new uint256(parts[1]);
-				return new FilterModel(blockHeight, blockHash, filter);
-			}
-			else
-			{
-				throw new FormatException($"Could not parse {nameof(Height)}.");
-			}
+			var blockHeight = uint.Parse(parts[0]);
+			var blockHash = uint256.Parse(parts[1]);
+			var filterData = Encoders.Hex.DecodeData(parts[2]);
+			GolombRiceFilter filter = new GolombRiceFilter(filterData, 20, 1 << 20);
+			var prevBlockHash = uint256.Parse(parts[3]);
+			var blockTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(parts[4]));
+
+			return new FilterModel(new SmartHeader(blockHash, prevBlockHash, blockHeight, blockTime), filter);
 		}
 	}
 }

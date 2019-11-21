@@ -99,7 +99,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				Global.BitcoinStore.HashChain
 					.WhenAnyValue(x => x.TipHeight)
-					.Select(x => new Height(x))
+					.Select(x => new Height((int)x))
 					.Merge(Model.WhenAnyValue(x => x.Height))
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Subscribe(_ => this.RaisePropertyChanged(nameof(Confirmations)))
@@ -138,7 +138,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public string Address => Model.ScriptPubKey.GetDestinationAddress(Global.Network).ToString();
 
 		public int Confirmations => Model.Height.Type == HeightType.Chain
-			? Global.BitcoinStore.HashChain.TipHeight - Model.Height.Value + 1
+			? (int)Global.BitcoinStore.HashChain.TipHeight - Model.Height.Value + 1
 			: 0;
 
 		public bool IsSelected

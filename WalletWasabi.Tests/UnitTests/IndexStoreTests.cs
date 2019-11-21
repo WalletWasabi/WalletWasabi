@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Stores;
 using Xunit;
@@ -19,7 +20,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
 			var network = Network.Main;
-			await indexStore.InitializeAsync(dir, network, new HashChain());
+			await indexStore.InitializeAsync(dir, network, new SmartHeaderChain());
 		}
 	}
 }

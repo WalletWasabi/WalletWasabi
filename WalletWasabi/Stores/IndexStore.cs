@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using WalletWasabi.Logging;
@@ -26,10 +27,10 @@ namespace WalletWasabi.Stores
 		private Network Network { get; set; }
 		private DigestableSafeMutexIoManager MatureIndexFileManager { get; set; }
 		private DigestableSafeMutexIoManager ImmatureIndexFileManager { get; set; }
-		public HashChain HashChain { get; private set; }
+		public SmartHeaderChain HashChain { get; private set; }
 
 		private FilterModel StartingFilter { get; set; }
-		private Height StartingHeight { get; set; }
+		private uint StartingHeight { get; set; }
 		private List<FilterModel> ImmatureFilters { get; set; }
 		private AsyncLock IndexLock { get; set; }
 
@@ -37,7 +38,7 @@ namespace WalletWasabi.Stores
 
 		public event EventHandler<FilterModel> NewFilter;
 
-		public async Task InitializeAsync(string workFolderPath, Network network, HashChain hashChain)
+		public async Task InitializeAsync(string workFolderPath, Network network, SmartHeaderChain hashChain)
 		{
 			using (BenchmarkLogger.Measure())
 			{
@@ -50,7 +51,7 @@ namespace WalletWasabi.Stores
 				ImmatureIndexFileManager = new DigestableSafeMutexIoManager(immatureIndexFilePath, digestRandomIndex: -1);
 
 				StartingFilter = StartingFilters.GetStartingFilter(Network);
-				StartingHeight = StartingFilters.GetStartingHeight(Network);
+				StartingHeight = StartingFilter.Header.Height;
 
 				ImmatureFilters = new List<FilterModel>(150);
 
@@ -72,7 +73,7 @@ namespace WalletWasabi.Stores
 
 					if (!MatureIndexFileManager.Exists())
 					{
-						await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToFullLine() }).ConfigureAwait(false);
+						await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToLine() }).ConfigureAwait(false);
 					}
 
 					await InitializeFiltersAsync().ConfigureAwait(false);
@@ -103,7 +104,7 @@ namespace WalletWasabi.Stores
 
 			try
 			{
-				FilterModel.FromFullLine(firstLine);
+				FilterModel.FromLine(firstLine);
 			}
 			catch
 			{
@@ -163,7 +164,7 @@ namespace WalletWasabi.Stores
 
 		private void ProcessLine(string line, bool enqueue)
 		{
-			var filter = FilterModel.FromFullLine(line);
+			var filter = FilterModel.FromLine(line);
 			ProcessFilter(filter, enqueue);
 		}
 
@@ -173,7 +174,7 @@ namespace WalletWasabi.Stores
 			{
 				ImmatureFilters.Add(filter);
 			}
-			HashChain.AddOrReplace(filter.BlockHeight.Value, filter.BlockHash);
+			HashChain.AddOrReplace(filter.Header);
 		}
 
 		private async Task EnsureBackwardsCompatibilityAsync()
@@ -252,7 +253,7 @@ namespace WalletWasabi.Stores
 			{
 				filter = ImmatureFilters.Last();
 				ImmatureFilters.RemoveLast();
-				if (HashChain.TipHeight != filter.BlockHeight.Value)
+				if (HashChain.TipHeight != filter.Header.Height)
 				{
 					throw new InvalidOperationException($"{nameof(HashChain)} and {nameof(ImmatureFilters)} are not in sync.");
 				}
@@ -342,7 +343,7 @@ namespace WalletWasabi.Stores
 				using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
 				{
 					// Do not feed the cancellationToken here I always want this to finish running for safety.
-					var currentImmatureLines = ImmatureFilters.Select(x => x.ToFullLine()).ToArray(); // So we do not read on ImmatureFilters while removing them.
+					var currentImmatureLines = ImmatureFilters.Select(x => x.ToLine()).ToArray(); // So we do not read on ImmatureFilters while removing them.
 					var matureLinesToAppend = currentImmatureLines.SkipLast(100);
 					var immatureLines = currentImmatureLines.TakeLast(100);
 					var tasks = new Task[] { MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend), ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines) };
@@ -368,12 +369,12 @@ namespace WalletWasabi.Stores
 			using (await MatureIndexFileManager.Mutex.LockAsync().ConfigureAwait(false))
 			using (await IndexLock.LockAsync().ConfigureAwait(false))
 			{
-				var firstImmatureHeight = ImmatureFilters.FirstOrDefault()?.BlockHeight;
+				var firstImmatureHeight = ImmatureFilters.FirstOrDefault()?.Header?.Height;
 				if (!firstImmatureHeight.HasValue || firstImmatureHeight.Value > fromHeight)
 				{
 					if (MatureIndexFileManager.Exists())
 					{
-						Height height = StartingHeight;
+						uint height = StartingHeight;
 						using var sr = MatureIndexFileManager.OpenText();
 						if (!sr.EndOfStream)
 						{
@@ -401,7 +402,7 @@ namespace WalletWasabi.Stores
 									continue;
 								}
 
-								var filter = FilterModel.FromFullLine(line);
+								var filter = FilterModel.FromLine(line);
 
 								await tTask.ConfigureAwait(false);
 								tTask = todo(filter);
@@ -428,7 +429,7 @@ namespace WalletWasabi.Stores
 								continue;
 							}
 
-							var filter = FilterModel.FromFullLine(line);
+							var filter = FilterModel.FromLine(line);
 
 							await todo(filter).ConfigureAwait(false);
 							height++;

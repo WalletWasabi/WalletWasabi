@@ -220,7 +220,7 @@ namespace WalletWasabi.Services
 								ignoreRequestInterval = false;
 							}
 
-							hashChain.UpdateServerTipHeight(response.BestHeight);
+							hashChain.UpdateServerTipHeight((uint)response.BestHeight);
 							ExchangeRate exchangeRate = response.ExchangeRates.FirstOrDefault();
 							if (exchangeRate != default && exchangeRate.Rate != 0)
 							{
@@ -232,7 +232,7 @@ namespace WalletWasabi.Services
 								var filters = response.Filters;
 
 								var firstFilter = filters.First();
-								if (hashChain.TipHeight + 1 != firstFilter.BlockHeight)
+								if (hashChain.TipHeight + 1 != firstFilter.Header.Height)
 								{
 									// We have a problem.
 									// We have wrong filters, the heights are not in sync with the server's.
@@ -242,8 +242,8 @@ namespace WalletWasabi.Services
 										$"{nameof(hashChain)}.{nameof(hashChain.TipHash)}:{hashChain.TipHash}{Environment.NewLine}" +
 										$"{nameof(hashChain)}.{nameof(hashChain.HashCount)}:{hashChain.HashCount}{Environment.NewLine}" +
 										$"{nameof(hashChain)}.{nameof(hashChain.ServerTipHeight)}:{hashChain.ServerTipHeight}{Environment.NewLine}" +
-										$"{nameof(firstFilter)}.{nameof(firstFilter.BlockHash)}:{firstFilter.BlockHash}{Environment.NewLine}" +
-										$"{nameof(firstFilter)}.{nameof(firstFilter.BlockHeight)}:{firstFilter.BlockHeight}");
+										$"{nameof(firstFilter)}.{nameof(firstFilter.Header)}.{nameof(firstFilter.Header.BlockHash)}:{firstFilter.Header.BlockHash}{Environment.NewLine}" +
+										$"{nameof(firstFilter)}.{nameof(firstFilter.Header)}.{nameof(firstFilter.Header.Height)}:{firstFilter.Header.Height}");
 
 									await BitcoinStore.IndexStore.RemoveAllImmmatureFiltersAsync(Cancel.Token, deleteAndCrashIfMature: true);
 								}
@@ -253,11 +253,11 @@ namespace WalletWasabi.Services
 
 									if (filters.Count() == 1)
 									{
-										Logger.LogInfo($"Downloaded filter for block {firstFilter.BlockHeight}.");
+										Logger.LogInfo($"Downloaded filter for block {firstFilter.Header.Height}.");
 									}
 									else
 									{
-										Logger.LogInfo($"Downloaded filters for blocks from {firstFilter.BlockHeight} to {filters.Last().BlockHeight}.");
+										Logger.LogInfo($"Downloaded filters for blocks from {firstFilter.Header.Height} to {filters.Last().Header.Height}.");
 									}
 								}
 							}
@@ -266,7 +266,7 @@ namespace WalletWasabi.Services
 								// Reorg happened
 								// 1. Rollback index
 								FilterModel reorgedFilter = await BitcoinStore.IndexStore.RemoveLastFilterAsync(Cancel.Token);
-								Logger.LogInfo($"REORG Invalid Block: {reorgedFilter.BlockHash}.");
+								Logger.LogInfo($"REORG Invalid Block: {reorgedFilter.Header.BlockHash}.");
 
 								ignoreRequestInterval = true;
 							}

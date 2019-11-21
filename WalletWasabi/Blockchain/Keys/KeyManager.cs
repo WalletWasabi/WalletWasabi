@@ -7,12 +7,12 @@ using System.Linq;
 using System.Security;
 using System.Text;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Stores;
 
 namespace WalletWasabi.Blockchain.Keys
 {
@@ -642,7 +642,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 		#region BlockchainState
 
-		public void CorrectBlockHeights(HashChain hashChain)
+		public void CorrectBlockHeights(SmartHeaderChain hashChain)
 		{
 			lock (BlockchainStateLock)
 			{
@@ -652,10 +652,10 @@ namespace WalletWasabi.Blockchain.Keys
 				var toAdd = new List<BlockState>();
 				foreach (var state in BlockchainState.BlockStates)
 				{
-					if (hashChain.TryGetHeight(state.BlockHash, out int foundHeight) && foundHeight != state.BlockHeight.Value)
+					if (hashChain.TryGetHeight(state.BlockHash, out uint foundHeight) && foundHeight != state.BlockHeight.Value)
 					{
 						toRemove.Add(state.BlockHash);
-						toAdd.Add(new BlockState(state.BlockHash, new Height(foundHeight), state.TransactionIndices));
+						toAdd.Add(new BlockState(state.BlockHash, new Height((int)foundHeight), state.TransactionIndices));
 					}
 				}
 

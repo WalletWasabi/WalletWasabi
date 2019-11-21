@@ -16,6 +16,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Monitoring;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Models;
@@ -24,7 +25,6 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
-using WalletWasabi.Stores;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -33,7 +33,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 		private NodesCollection Nodes { get; set; }
 		private WasabiSynchronizer Synchronizer { get; set; }
-		private HashChain HashChain { get; set; }
+		private SmartHeaderChain HashChain { get; set; }
 
 		private bool UseTor { get; set; }
 

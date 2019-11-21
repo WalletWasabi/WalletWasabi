@@ -27,11 +27,9 @@ namespace WalletWasabi.Blockchain.BlockFilters
 
 		private List<FilterModel> Index { get; }
 		private AsyncLock IndexLock { get; }
-
+		public uint StartingHeight { get; }
 		private Dictionary<OutPoint, Script> Bech32UtxoSet { get; }
 		private List<ActionHistoryHelper> Bech32UtxoSetHistory { get; }
-
-		private Height StartingHeight { get; set; }
 
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
@@ -52,7 +50,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			Index = new List<FilterModel>();
 			IndexLock = new AsyncLock();
 
-			StartingHeight = StartingFilters.GetStartingHeight(RpcClient.Network);
+			StartingHeight = SmartHeader.GetStartingHeader(RpcClient.Network).Height;
 
 			_running = 0;
 
@@ -67,7 +65,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 				{
 					foreach (var line in File.ReadAllLines(IndexFilePath))
 					{
-						var filter = FilterModel.FromFullLine(line);
+						var filter = FilterModel.FromLine(line);
 						Index.Add(filter);
 					}
 				}
@@ -137,15 +135,15 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									syncInfo = await GetSyncInfoAsync();
 								}
 
-								Height heightToRequest = StartingHeight;
+								uint heightToRequest = StartingHeight;
 								uint256 currentHash = null;
 								using (await IndexLock.LockAsync())
 								{
 									if (Index.Count != 0)
 									{
 										var lastIndex = Index.Last();
-										heightToRequest = lastIndex.BlockHeight + 1;
-										currentHash = lastIndex.BlockHash;
+										heightToRequest = lastIndex.Header.Height + 1;
+										currentHash = lastIndex.Header.BlockHash;
 									}
 								}
 
@@ -248,9 +246,9 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									.AddEntries(scripts.Select(x => x.ToCompressedBytes()))
 									.Build();
 
-								var filterModel = new FilterModel(heightToRequest, block.GetHash(), filter);
+								var filterModel = new FilterModel(new SmartHeader(block.GetHash(), block.Header.HashPrevBlock, heightToRequest, block.Header.BlockTime), filter);
 
-								await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToFullLine() });
+								await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToLine() });
 								using (await IndexLock.LockAsync())
 								{
 									Index.Add(filterModel);
@@ -264,7 +262,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 
 								// If not close to the tip, just log debug.
 								// Use height.Value instead of simply height, because it cannot be negative height.
-								if (syncInfo.BlockCount - heightToRequest.Value <= 3 || heightToRequest % 100 == 0)
+								if (syncInfo.BlockCount - heightToRequest <= 3 || heightToRequest % 100 == 0)
 								{
 									Logger.LogInfo($"Created filter for block: {heightToRequest}.");
 								}
@@ -317,7 +315,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			// 1. Rollback index
 			using (await IndexLock.LockAsync())
 			{
-				Logger.LogInfo($"REORG invalid block: {Index.Last().BlockHash}");
+				Logger.LogInfo($"REORG invalid block: {Index.Last().Header.BlockHash}");
 				Index.RemoveLast();
 			}
 
@@ -364,7 +362,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 					}
 					else
 					{
-						if (filter.BlockHash == bestKnownBlockHash)
+						if (filter.Header.BlockHash == bestKnownBlockHash)
 						{
 							found = true;
 						}
@@ -377,7 +375,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 				}
 				else
 				{
-					return (Index.Last().BlockHeight, filters);
+					return ((int)Index.Last().Header.Height, filters);
 				}
 			}
 		}

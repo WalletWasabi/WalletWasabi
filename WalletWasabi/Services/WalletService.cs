@@ -188,7 +188,7 @@ namespace WalletWasabi.Services
 			{
 				using (await HandleFiltersLock.LockAsync())
 				{
-					uint256 invalidBlockHash = invalidFilter.BlockHash;
+					uint256 invalidBlockHash = invalidFilter.Header.BlockHash;
 					await DeleteBlockAsync(invalidBlockHash);
 					var blockState = KeyManager.TryRemoveBlockState(invalidBlockHash);
 					ProcessedBlocks.TryRemove(invalidBlockHash, out _);
@@ -211,7 +211,7 @@ namespace WalletWasabi.Services
 			{
 				using (await HandleFiltersLock.LockAsync())
 				{
-					if (filterModel.Filter != null && !KeyManager.CointainsBlockState(filterModel.BlockHash))
+					if (filterModel.Filter != null && !KeyManager.CointainsBlockState(filterModel.Header.BlockHash))
 					{
 						await ProcessFilterModelAsync(filterModel, CancellationToken.None);
 					}
@@ -226,7 +226,7 @@ namespace WalletWasabi.Services
 						return;
 					}
 					// Make sure fully synced and this filter is the lastest filter.
-					if (BitcoinStore.HashChain.HashesLeft != 0 || BitcoinStore.HashChain.TipHash != filterModel.BlockHash)
+					if (BitcoinStore.HashChain.HashesLeft != 0 || BitcoinStore.HashChain.TipHash != filterModel.Header.BlockHash)
 					{
 						return;
 					}
@@ -332,7 +332,7 @@ namespace WalletWasabi.Services
 
 		private async Task ProcessFilterModelAsync(FilterModel filterModel, CancellationToken cancel)
 		{
-			if (ProcessedBlocks.ContainsKey(filterModel.BlockHash))
+			if (ProcessedBlocks.ContainsKey(filterModel.Header.BlockHash))
 			{
 				return;
 			}
@@ -343,8 +343,8 @@ namespace WalletWasabi.Services
 				return;
 			}
 
-			Block currentBlock = await FetchBlockAsync(filterModel.BlockHash, cancel); // Wait until not downloaded.
-			ProcessBlock(filterModel.BlockHeight, currentBlock);
+			Block currentBlock = await FetchBlockAsync(filterModel.Header.BlockHash, cancel); // Wait until not downloaded.
+			ProcessBlock((int)filterModel.Header.Height, currentBlock);
 		}
 
 		public HdPubKey GetReceiveKey(SmartLabel label, IEnumerable<HdPubKey> dontTouch = null)

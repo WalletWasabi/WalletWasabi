@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.P2p;
 using WalletWasabi.Blockchain.Transactions;
@@ -24,7 +25,7 @@ namespace WalletWasabi.Stores
 
 		public IndexStore IndexStore { get; private set; }
 		public AllTransactionStore TransactionStore { get; private set; }
-		public HashChain HashChain { get; private set; }
+		public SmartHeaderChain HashChain { get; private set; }
 		public MempoolService MempoolService { get; private set; }
 
 		/// <summary>
@@ -46,7 +47,7 @@ namespace WalletWasabi.Stores
 				TransactionStore = new AllTransactionStore();
 				var networkWorkFolderPath = Path.Combine(WorkFolderPath, Network.ToString());
 				var indexStoreFolderPath = Path.Combine(networkWorkFolderPath, "IndexStore");
-				HashChain = new HashChain();
+				HashChain = new SmartHeaderChain();
 				MempoolService = new MempoolService();
 
 				var initTasks = new[]
