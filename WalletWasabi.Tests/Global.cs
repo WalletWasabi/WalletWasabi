@@ -8,6 +8,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Tests
 {
