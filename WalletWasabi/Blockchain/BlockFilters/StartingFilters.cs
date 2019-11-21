@@ -24,7 +24,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			}
 			else if (network == Network.RegTest)
 			{
-				return FilterModel.FromLine($"{startingHeader.Height}:{startingHeader.BlockHash}:0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206:{startingHeader.PrevHash}:{startingHeader.BlockTime.ToUnixTimeSeconds()}");
+				return FilterModel.FromLine($"{startingHeader.Height}:{startingHeader.BlockHash}:00:{startingHeader.PrevHash}:{startingHeader.BlockTime.ToUnixTimeSeconds()}");
 			}
 			else
 			{
