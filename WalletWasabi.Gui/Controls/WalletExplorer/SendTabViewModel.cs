@@ -6,7 +6,6 @@ using NBitcoin.Payment;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -25,7 +24,6 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
-using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
@@ -58,13 +56,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private Money _allSelectedAmount;
 		private string _password;
 		private string _address;
-		private string _label;
 		private string _labelToolTip;
 		private string _feeToolTip;
 		private string _amountWaterMarkText;
 		private bool _isBusy;
 		private bool _isHardwareBusy;
-		private int _caretIndex;
 		private ObservableAsPropertyHelper<bool> _isCustomFee;
 
 		private const string SendTransactionButtonTextString = "Send Transaction";
@@ -73,10 +69,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private const string BuildTransactionButtonTextString = "Build Transaction";
 		private const string BuildingTransactionButtonTextString = "Building Transaction...";
 
-		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private FeeDisplayFormat _feeDisplayFormat;
 		private bool _isSliderFeeUsed = true;
 		private double _feeControlOpacity;
+
+		private SuggestLabelViewModel _labelSuggestion;
 
 		private FeeDisplayFormat FeeDisplayFormat
 		{
@@ -90,9 +87,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void ResetUi()
 		{
-			Suggestions = new ObservableCollection<SuggestionViewModel>();
+			_labelSuggestion.Reset();
 			Address = "";
-			Label = "";
 			Password = "";
 			AllSelectedAmount = Money.Zero;
 			IsMax = false;
@@ -103,6 +99,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public SendTabViewModel(WalletViewModel walletViewModel, bool isTransactionBuilder = false)
 			: base(isTransactionBuilder ? "Build Transaction" : "Send", walletViewModel)
 		{
+			_labelSuggestion = new SuggestLabelViewModel(Global);
 			IsTransactionBuilder = isTransactionBuilder;
 			BuildTransactionButtonText = IsTransactionBuilder ? BuildTransactionButtonTextString : SendTransactionButtonTextString;
 
@@ -175,10 +172,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SetSendText());
 
-			this.WhenAnyValue(x => x.Label)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(UpdateSuggestions);
-
 			this.WhenAnyValue(x => x.FeeTarget)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
@@ -220,7 +213,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SmartLabel label = url.Label;
 				if (!label.IsEmpty)
 				{
-					Label = label;
+					_labelSuggestion.Label = label;
 				}
 
 				if (url.Amount != null)
@@ -237,11 +230,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					IsBusy = true;
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BuildingTransaction);
 
-					var label = new SmartLabel(Label);
-					Label = label;
+					var label = new SmartLabel(_labelSuggestion.Label);
+					_labelSuggestion.Label = label;
 					if (!IsMax && label.IsEmpty)
 					{
-						NotificationHelpers.Warning($"{nameof(Label)} is required.");
+						NotificationHelpers.Warning($"{nameof(_labelSuggestion.Label)} is required.");
 						return;
 					}
 
@@ -455,6 +448,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(ex => NotificationHelpers.Error(ex.ToTypeMessageString()));
 		}
+
+		public SuggestLabelViewModel LabelSuggestion => _labelSuggestion;
 
 		private void SetSendText()
 		{
@@ -816,66 +811,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _password, value);
 		}
 
-		public int CaretIndex
-		{
-			get => _caretIndex;
-			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
-		}
-
-		public ObservableCollection<SuggestionViewModel> Suggestions
-		{
-			get => _suggestions;
-			set => this.RaiseAndSetIfChanged(ref _suggestions, value);
-		}
-
-		private void UpdateSuggestions(string words)
-		{
-			if (string.IsNullOrWhiteSpace(words))
-			{
-				Suggestions?.Clear();
-				return;
-			}
-
-			var enteredWordList = words.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim());
-			var lastWord = enteredWordList?.LastOrDefault()?.Replace("\t", "") ?? "";
-
-			if (!lastWord.Any())
-			{
-				Suggestions.Clear();
-				return;
-			}
-
-			var labels = Global.WalletService.GetLabels();
-			IEnumerable<string> suggestedWords = labels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
-				.Union(labels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
-				.Except(enteredWordList)
-				.Take(3);
-
-			Suggestions.Clear();
-			foreach (var suggestion in suggestedWords)
-			{
-				Suggestions.Add(new SuggestionViewModel(suggestion, OnAddWord));
-			}
-		}
-
-		public void OnAddWord(string word)
-		{
-			var words = Label.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray();
-			if (words.Length == 0)
-			{
-				Label = word + ", ";
-			}
-			else
-			{
-				words[^1] = word;
-				Label = string.Join(", ", words) + ", ";
-			}
-
-			CaretIndex = Label.Length;
-
-			Suggestions.Clear();
-		}
-
 		public ErrorDescriptors ValidateAddress()
 		{
 			if (string.IsNullOrWhiteSpace(Address))
@@ -901,12 +836,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _address;
 			set => this.RaiseAndSetIfChanged(ref _address, value);
-		}
-
-		public string Label
-		{
-			get => _label;
-			set => this.RaiseAndSetIfChanged(ref _label, value);
 		}
 
 		public string LabelToolTip

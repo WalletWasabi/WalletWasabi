@@ -27,11 +27,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
-		private string _label;
+		private SuggestLabelViewModel _labelSuggestion;
 		private double _labelRequiredNotificationOpacity;
 		private bool _labelRequiredNotificationVisible;
-		private int _caretIndex;
-		private ObservableCollection<SuggestionViewModel> _suggestions;
+		
 
 		public ReactiveCommand<Unit, Unit> CopyAddress { get; }
 		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
@@ -44,15 +43,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
 		{
+			_labelSuggestion = new SuggestLabelViewModel(Global);
 			_addresses = new ObservableCollection<AddressViewModel>();
-			Label = "";
+			_labelSuggestion.Label = "";
 
 			InitializeAddresses();
 
 			GenerateCommand = ReactiveCommand.Create(() =>
 				{
-					var label = new SmartLabel(Label);
-					Label = label;
+					var label = new SmartLabel(_labelSuggestion.Label);
+					_labelSuggestion.Label = label;
 					if (label.IsEmpty)
 					{
 						NotificationHelpers.Warning("Label is required.");
@@ -62,7 +62,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					Dispatcher.UIThread.PostLogException(() =>
 						{
-							HdPubKey newKey = Global.WalletService.GetReceiveKey(Label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
+							HdPubKey newKey = Global.WalletService.GetReceiveKey(_labelSuggestion.Label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
 
 							AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
 							if (found != default)
@@ -76,11 +76,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 							SelectedAddress = newAddress;
 
-							Label = "";
+							_labelSuggestion.Label = "";
 						});
 				});
-
-			this.WhenAnyValue(x => x.Label).Subscribe(UpdateSuggestions);
 
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
 				{
@@ -146,9 +144,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(SaveQRCodeCommand.ThrownExceptions)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(ex => NotificationHelpers.Error(ex.ToTypeMessageString()));
-
-			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
+
+		public SuggestLabelViewModel LabelSuggestion => _labelSuggestion;
 
 		private void ToggleSelectedAddress()
 		{
@@ -211,72 +209,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _selectedAddress;
 			set => this.RaiseAndSetIfChanged(ref _selectedAddress, value);
-		}
-
-		public string Label
-		{
-			get => _label;
-			set => this.RaiseAndSetIfChanged(ref _label, value);
-		}
-
-		public int CaretIndex
-		{
-			get => _caretIndex;
-			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
-		}
-
-		public ObservableCollection<SuggestionViewModel> Suggestions
-		{
-			get => _suggestions;
-			set => this.RaiseAndSetIfChanged(ref _suggestions, value);
-		}
-
-		private void UpdateSuggestions(string words)
-		{
-			if (string.IsNullOrWhiteSpace(words))
-			{
-				Suggestions?.Clear();
-				return;
-			}
-
-			var enteredWordList = words.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim());
-			var lastWord = enteredWordList?.LastOrDefault()?.Replace("\t", "") ?? "";
-
-			if (!lastWord.Any())
-			{
-				Suggestions.Clear();
-				return;
-			}
-
-			var labels = Global.WalletService.GetLabels();
-			IEnumerable<string> suggestedWords = labels.Where(w => w.StartsWith(lastWord, StringComparison.OrdinalIgnoreCase))
-				.Union(labels.Where(w => w.Contains(lastWord, StringComparison.OrdinalIgnoreCase)))
-				.Except(enteredWordList)
-				.Take(3);
-
-			Suggestions.Clear();
-			foreach (var suggestion in suggestedWords)
-			{
-				Suggestions.Add(new SuggestionViewModel(suggestion, OnAddWord));
-			}
-		}
-
-		public void OnAddWord(string word)
-		{
-			var words = Label.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray();
-			if (words.Length == 0)
-			{
-				Label = word + ", ";
-			}
-			else
-			{
-				words[^1] = word;
-				Label = string.Join(", ", words) + ", ";
-			}
-
-			CaretIndex = Label.Length;
-
-			Suggestions.Clear();
 		}
 	}
 }
