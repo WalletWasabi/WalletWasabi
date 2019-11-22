@@ -23,6 +23,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinListViewModel : ViewModelBase
 	{
+		private static HashSet<SmartCoinStatus> NotVisibleStatuses = new HashSet<SmartCoinStatus>()
+		{
+			SmartCoinStatus.Confirmed,
+			SmartCoinStatus.Unconfirmed
+		};
+
 		private CompositeDisposable Disposables { get; set; }
 
 		public SourceList<CoinViewModel> RootList { get; private set; }
@@ -246,6 +252,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			CoinListContainerType = coinListContainerType;
 			AmountSortDirection = SortOrder.Decreasing;
 			IsCoinListLoading = true;
+			CoinJoinStatusWidth = new GridLength(0);
+
 			RefreshOrdering();
 
 			// Otherwise they're all selected as null on load.
@@ -264,6 +272,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Sort(MyComparer, comparerChanged: sortChanged, resetThreshold: 5)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(out _coinViewModels)
+				// .OnItemAdded() Do not use this, brings instability on OSX
+				// .OnItemRemoved() Do not use this, brings instability on OSX
 				.Subscribe();
 
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);
@@ -316,15 +326,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				});
 
-			EnqueueCoin = ReactiveCommand.Create(() =>
-				{
-					if (SelectedCoin is null)
-					{
-						return;
-					}
-					//await Global.ChaumianClient.QueueCoinsToMixAsync()
-				});
-
 			DequeueCoin = ReactiveCommand.Create(() =>
 				{
 					if (SelectedCoin is null)
@@ -338,7 +339,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
 				{
-					//Global.WalletService.Coins.First(c => c.Unspent).Unspent = false;
 					switch (SelectAllCheckBoxState)
 					{
 						case true:
@@ -409,21 +409,67 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
-			InitList.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
+			Observable
+				.Merge(InitList.ThrownExceptions)
+				.Merge(SelectNonPrivateCheckBoxCommand.ThrownExceptions)
+				.Merge(SelectPrivateCheckBoxCommand.ThrownExceptions)
+				.Merge(SelectAllCheckBoxCommand.ThrownExceptions)
+				.Merge(DequeueCoin.ThrownExceptions)
+				.Merge(SortCommand.ThrownExceptions)
+				.Subscribe(ex => Logger.LogError(ex));
+		}
+
+		private void RemoveCoin(CoinViewModel cvm)
+		{
+			RemoveCoins(new[] { cvm });
+		}
+
+		private void RemoveCoins(IEnumerable<CoinViewModel> cvms)
+		{
+			RootList.RemoveMany(cvms);
+			RefreshSelectionCheckBoxes();
+			RefreshStatusColumnWidth();
+			foreach (var cvm in cvms)
+			{
+				cvm?.Dispose();
+			}
+		}
+
+		private void AddCoin(CoinViewModel cvm)
+		{
+			AddCoins(new[] { cvm });
+		}
+
+		private void AddCoins(IEnumerable<CoinViewModel> cvms)
+		{
+			RootList.AddRange(cvms);
+			RefreshSelectionCheckBoxes();
+			RefreshStatusColumnWidth();
+		}
+
+		private void RefreshSelectionCheckBoxes()
+		{
+			SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
+			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+		}
+
+		private void RefreshStatusColumnWidth()
+		{
+			CoinJoinStatusWidth = Coins.Any() && Coins.All(x => NotVisibleStatuses.Contains(x.Status))
+										 ? new GridLength(0)
+										 : new GridLength(180);
 		}
 
 		private void OnOpen()
 		{
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+			Disposables = Disposables is null ?
+				new CompositeDisposable() :
+				throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			var list = Global.WalletService.Coins.Select(x => new CoinViewModel(this, x)).ToList();
 
-			foreach (var vm in list)
-			{
-				vm.SubscribeEvents();
-			}
-
-			RootList.AddRange(list);
+			AddCoins(list);
 
 			Global.UiConfig
 				.WhenAnyValue(x => x.LurkingWifeMode)
@@ -441,9 +487,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					try
 					{
-						var newCoinVm = new CoinViewModel(this, coin.EventArgs);
-						newCoinVm.SubscribeEvents();
-						RootList.Add(newCoinVm);
+						AddCoin(new CoinViewModel(this, coin.EventArgs));
 					}
 					catch (Exception ex)
 					{
@@ -461,9 +505,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == coin.EventArgs);
 						if (toRemove != default)
 						{
-							toRemove.IsSelected = false;
-							RootList.Remove(toRemove);
-							toRemove.UnsubscribeEvents();
+							RemoveCoin(toRemove);
 						}
 					}
 					catch (Exception ex)
@@ -483,7 +525,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						RemoveCoins(RootList.Items.Where(cvm => toRemove.Any(sm => cvm.Model == sm)));
 
 						var toRestore = args.EventArgs.RestoredCoins;
-						AddCoins(toRestore);
+						AddCoins(toRestore.Select(coin => new CoinViewModel(this, coin)));
 					}
 					catch (Exception ex)
 					{
@@ -511,11 +553,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global.Config
 				.WhenAnyValue(x => x.MixUntilAnonymitySet)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => RefreshSelectCheckBoxesShields(x))
+				.Subscribe(x =>
+				{
+					try
+					{
+						RefreshSelectCheckBoxesShields(x);
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+					}
+				})
 				.DisposeWith(Disposables);
 
-			SetSelections();
-			SetCoinJoinStatusWidth();
+			RefreshSelectionCheckBoxes();
+			RefreshStatusColumnWidth();
 		}
 
 		private void RefreshSelectCheckBoxesShields(int mixUntilAnonymitySet)
@@ -539,51 +591,27 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					isStrongPrivate
 					);
 
-			SetSelections();
-		}
-
-		private void ClearRootList()
-		{
-			IEnumerable<CoinViewModel> toRemoves = RootList?.Items?.ToList() ?? Enumerable.Empty<CoinViewModel>(); // Clone so we can unsubscribe after clear.
-			RootList?.Clear();
-
-			foreach (CoinViewModel toRemove in toRemoves)
-			{
-				toRemove.UnsubscribeEvents();
-			}
+			RefreshSelectionCheckBoxes();
 		}
 
 		public void OnClose()
 		{
-			ClearRootList();
+			foreach (var cvm in RootList.Items)
+			{
+				cvm.Dispose();
+			}
 
+			RootList.Clear(); // This must be called to trigger the OnItemRemoved for every item in the list.
+
+			// Do not dispose the RootList here. It will be reused next time when you open CoinJoinTab or SendTab.
 			Disposables?.Dispose();
 			Disposables = null;
 		}
 
-		private void SetSelections()
-		{
-			SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
-			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
-			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
-		}
-
-		private void SetCoinJoinStatusWidth()
-		{
-			CoinJoinStatusWidth = Coins.Any(x => x.Status == SmartCoinStatus.MixingConnectionConfirmation
-				 || x.Status == SmartCoinStatus.MixingInputRegistration
-				 || x.Status == SmartCoinStatus.MixingOnWaitingList
-				 || x.Status == SmartCoinStatus.MixingOutputRegistration
-				 || x.Status == SmartCoinStatus.MixingSigning
-				 || x.Status == SmartCoinStatus.MixingWaitingForConfirmation
-				 || x.Status == SmartCoinStatus.SpentAccordingToBackend)
-				? new GridLength(180)
-				: new GridLength(0);
-		}
-
 		public void OnCoinIsSelectedChanged(CoinViewModel cvm)
 		{
-			SetSelections();
+			RefreshSelectionCheckBoxes();
+
 			SelectionChanged?.Invoke(this, cvm);
 			SelectedAmount = Coins.Where(x => x.IsSelected).Sum(x => x.Amount);
 			LabelExposeCommonOwnershipWarning = CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel
@@ -595,42 +623,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void OnCoinStatusChanged()
 		{
-			SetCoinJoinStatusWidth();
+			RefreshStatusColumnWidth();
 		}
 
-		public void OnCoinUnspentChanged(CoinViewModel cvm)
+		public void OnCoinUnspentChanged(CoinViewModel _)
 		{
-			if (!cvm.Unspent)
-			{
-				RemoveCoins(new[] { cvm });
-			}
-			else
-			{
-				SetSelections();
-				SetCoinJoinStatusWidth();
-			}
-		}
-
-		private void RemoveCoins(IEnumerable<CoinViewModel> cvms)
-		{
-			foreach (var cvm in cvms)
-			{
-				cvm.IsSelected = false;
-				RootList.Remove(cvm);
-				cvm.UnsubscribeEvents();
-			}
-			SetSelections();
-			SetCoinJoinStatusWidth();
-		}
-
-		private void AddCoins(IEnumerable<SmartCoin> coins)
-		{
-			foreach (var coin in coins)
-			{
-				var newCoinVm = new CoinViewModel(this, coin);
-				newCoinVm.SubscribeEvents();
-				RootList.Add(newCoinVm);
-			}
+			// Removing the coin in Global.WalletService.TransactionProcessor.CoinSpent not here.
+			RefreshStatusColumnWidth();
 		}
 	}
 }

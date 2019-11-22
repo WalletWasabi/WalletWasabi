@@ -72,9 +72,17 @@ namespace WalletWasabi.Blockchain.Blocks
 			lock (Lock)
 			{
 				var lastHeader = Chain.LastOrDefault().Value;
-				if (lastHeader is { BlockHash: var prevHash } && prevHash != header.PrevHash)
+				if (lastHeader is { })
 				{
-					throw new InvalidOperationException($"Header doesn't point to previous header. Actual: {prevHash}, tried: {header.PrevHash}.");
+					if (lastHeader.BlockHash != header.PrevHash)
+					{
+						throw new InvalidOperationException($"Header doesn't point to previous header. Actual: {lastHeader.PrevHash}. Expected: {header.PrevHash}.");
+					}
+
+					if (lastHeader.Height != header.Height - 1)
+					{
+						throw new InvalidOperationException($"Header height isn't one more than the previous header height. Actual: {lastHeader.Height}. Expected: {header.Height - 1}.");
+					}
 				}
 
 				Chain.AddOrReplace(header.Height, header);

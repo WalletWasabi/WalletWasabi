@@ -160,7 +160,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				// Make sure we get reorg notifications.
 				var reorgNum = 3;
 				var newBlockNum = reorgNum + 1;
-				var reorgEventsAwaiter = new EventsAwaiter<BlockHeader>(
+				var reorgEventsAwaiter = new EventsAwaiter<uint256>(
 					h => notifier.OnReorg += h,
 					h => notifier.OnReorg -= h,
 					reorgNum);
@@ -180,7 +180,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				for (int i = 0; i < reorgedHashes.Length; i++)
 				{
 					var expected = reorgedHashes[i];
-					var actual = reorgedHeaders[i].GetHash();
+					var actual = reorgedHeaders[i];
 					Assert.Equal(expected, actual);
 				}
 
