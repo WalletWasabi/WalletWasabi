@@ -34,10 +34,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task InconsistentMatureIndexAsync()
 		{
-			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName(), "IndexStore");
-			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir);
-			var matureFilters = Path.Combine(dir, "MatureIndex.dat");
-			IoHelpers.EnsureContainingDirectoryExists(matureFilters);
+			var (dir, matureFilters, _) = await GetIndexStorePathsAsync();
 
 			var indexStore = new IndexStore();
 
@@ -63,12 +60,9 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task InconsistentImatureIndexAsyncAsync()
+		public async Task InconsistentImatureIndexAsync()
 		{
-			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName(), "IndexStore");
-			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir);
-			var immatureFilters = Path.Combine(dir, "ImmatureIndex.dat");
-			IoHelpers.EnsureContainingDirectoryExists(immatureFilters);
+			var (dir, _, immatureFilters) = await GetIndexStorePathsAsync();
 
 			var indexStore = new IndexStore();
 
@@ -96,14 +90,9 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task GapInIndexAsyncAsync()
+		public async Task GapInIndexAsync()
 		{
-			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName(), "IndexStore");
-			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir);
-			var matureFilters = Path.Combine(dir, "MatureIndex.dat");
-			var immatureFilters = Path.Combine(dir, "ImmatureIndex.dat");
-			IoHelpers.EnsureContainingDirectoryExists(matureFilters);
-			IoHelpers.EnsureContainingDirectoryExists(immatureFilters);
+			var (dir, matureFilters, immatureFilters) = await GetIndexStorePathsAsync();
 
 			var indexStore = new IndexStore();
 
@@ -131,6 +120,49 @@ namespace WalletWasabi.Tests.UnitTests
 
 			Assert.False(File.Exists(matureFilters));   // mature filters are ok but they are deleted anyway??
 			Assert.False(File.Exists(immatureFilters)); // immature filters are NOT ok
+		}
+
+		[Fact]
+		public async Task ReceiveNonMatchingFilterAsync()
+		{
+			var (dir, matureFilters, immatureFilters) = await GetIndexStorePathsAsync();
+
+			var indexStore = new IndexStore();
+
+			var network = Network.Main;
+			var headersChain = new SmartHeaderChain();
+
+			var dummyFilter = GolombRiceFilter.Parse("00");
+			DateTimeOffset minutesAgo(int mins) => DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(mins));
+			var matureIndexStoreContent = new[]
+			{
+				new FilterModel(new SmartHeader(new uint256(2), new uint256(1), 1, minutesAgo(30)), dummyFilter),
+				new FilterModel(new SmartHeader(new uint256(3), new uint256(2), 2, minutesAgo(20)), dummyFilter),
+			};
+			await File.WriteAllLinesAsync(matureFilters, matureIndexStoreContent.Select(x => x.ToLine()));
+
+			await indexStore.InitializeAsync(dir, network, headersChain);
+			Assert.Equal(new uint256(3), headersChain.TipHash);
+			Assert.Equal(2u, headersChain.TipHeight);
+
+			Assert.True(File.Exists(matureFilters));   // mature filters are ok
+
+			var nonMatchingFilter =	new FilterModel(new SmartHeader(new uint256(2), new uint256(1), 1, minutesAgo(30)), dummyFilter);
+
+			await indexStore.AddNewFiltersAsync(new[]{ nonMatchingFilter }, CancellationToken.None);
+			Assert.Equal(new uint256(3), headersChain.TipHash);  // the filter is nor added!
+			Assert.Equal(2u, headersChain.TipHeight);
+		}
+
+		private async Task<(string, string, string)> GetIndexStorePathsAsync()
+		{
+			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName(), "IndexStore");
+			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir);
+			var matureFilters = Path.Combine(dir, "MatureIndex.dat");
+			var immatureFilters = Path.Combine(dir, "ImmatureIndex.dat");
+			IoHelpers.EnsureContainingDirectoryExists(matureFilters);
+			IoHelpers.EnsureContainingDirectoryExists(immatureFilters);
+			return (dir, matureFilters, immatureFilters);
 		}
 	}
 }
