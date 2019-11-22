@@ -41,14 +41,37 @@ namespace WalletWasabi.Blockchain.Blocks
 			}
 		}
 
+		private uint256 LastInv { get; set; } = null;
+		private object LastInvLock { get; } = new object();
+
 		private void P2pNode_BlockInv(object sender, uint256 blockHash)
 		{
+			lock (LastInvLock)
+			{
+				LastInv = blockHash;
+			}
 			TriggerRound();
 		}
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
-			var bestBlockHash = await RpcClient.GetBestBlockHashAsync().ConfigureAwait(false);
+			uint256 bestBlockHash;
+			uint256 lastInv;
+			lock (LastInvLock)
+			{
+				lastInv = LastInv;
+			}
+
+			// If we did not yet process our last inv, then we can take this as the best known block hash, so we don't need the RPC command.
+			// Otherwise make the RPC command.
+			if (lastInv is { } && !ProcessedBlocks.Contains(lastInv))
+			{
+				bestBlockHash = lastInv;
+			}
+			else
+			{
+				bestBlockHash = await RpcClient.GetBestBlockHashAsync().ConfigureAwait(false);
+			}
 
 			// If there's no new block.
 			if (bestBlockHash == BestBlockHash)
