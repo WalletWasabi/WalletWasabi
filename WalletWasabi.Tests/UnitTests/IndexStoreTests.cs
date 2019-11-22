@@ -42,12 +42,13 @@ namespace WalletWasabi.Tests.UnitTests
 			var headersChain = new SmartHeaderChain();
 
 			var dummyFilter = GolombRiceFilter.Parse("00");
-			DateTimeOffset minutesAgo(int mins) => DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(mins));
+
+			static DateTimeOffset MinutesAgo(int mins) => DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(mins));
 			var matureIndexStoreContent = new[]
 			{
-				new FilterModel(new SmartHeader(new uint256(2), new uint256(1), 1, minutesAgo(30)), dummyFilter),
-				new FilterModel(new SmartHeader(new uint256(3), new uint256(2), 2, minutesAgo(20)), dummyFilter),
-				new FilterModel(new SmartHeader(new uint256(99), new uint256(98), 98, minutesAgo(10)), dummyFilter)
+				new FilterModel(new SmartHeader(new uint256(2), new uint256(1), 1, MinutesAgo(30)), dummyFilter),
+				new FilterModel(new SmartHeader(new uint256(3), new uint256(2), 2, MinutesAgo(20)), dummyFilter),
+				new FilterModel(new SmartHeader(new uint256(99), new uint256(98), 98, MinutesAgo(10)), dummyFilter)
 			};
 			await File.WriteAllLinesAsync(matureFilters, matureIndexStoreContent.Select(x => x.ToLine()));
 
@@ -70,14 +71,15 @@ namespace WalletWasabi.Tests.UnitTests
 			var headersChain = new SmartHeaderChain();
 
 			var dummyFilter = GolombRiceFilter.Parse("00");
-			DateTimeOffset minutesAgo(int mins) => DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(mins));
+
+			static DateTimeOffset MinutesAgo(int mins) => DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(mins));
 			var startingFilter = StartingFilters.GetStartingFilter(network);
 
 			var immatureIndexStoreContent = new[]
 			{
-				new FilterModel(new SmartHeader(new uint256(2), startingFilter.Header.BlockHash, startingFilter.Header.Height + 1, minutesAgo(30)), dummyFilter),
-				new FilterModel(new SmartHeader(new uint256(3), new uint256(2), startingFilter.Header.Height + 2, minutesAgo(20)), dummyFilter),
-				new FilterModel(new SmartHeader(new uint256(99), new uint256(98), startingFilter.Header.Height + 98, minutesAgo(10)), dummyFilter)
+				new FilterModel(new SmartHeader(new uint256(2), startingFilter.Header.BlockHash, startingFilter.Header.Height + 1, MinutesAgo(30)), dummyFilter),
+				new FilterModel(new SmartHeader(new uint256(3), new uint256(2), startingFilter.Header.Height + 2, MinutesAgo(20)), dummyFilter),
+				new FilterModel(new SmartHeader(new uint256(99), new uint256(98), startingFilter.Header.Height + 98, MinutesAgo(10)), dummyFilter)
 			};
 			await File.WriteAllLinesAsync(immatureFilters, immatureIndexStoreContent.Select(x => x.ToLine()));
 
@@ -100,17 +102,18 @@ namespace WalletWasabi.Tests.UnitTests
 			var headersChain = new SmartHeaderChain();
 
 			var dummyFilter = GolombRiceFilter.Parse("00");
-			DateTimeOffset minutesAgo(int mins) => DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(mins));
+
+			static DateTimeOffset MinutesAgo(int mins) => DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(mins));
 			var matureIndexStoreContent = new[]
 			{
-				new FilterModel(new SmartHeader(new uint256(2), new uint256(1), 1, minutesAgo(30)), dummyFilter),
-				new FilterModel(new SmartHeader(new uint256(3), new uint256(2), 2, minutesAgo(20)), dummyFilter),
+				new FilterModel(new SmartHeader(new uint256(2), new uint256(1), 1, MinutesAgo(30)), dummyFilter),
+				new FilterModel(new SmartHeader(new uint256(3), new uint256(2), 2, MinutesAgo(20)), dummyFilter),
 			};
 			await File.WriteAllLinesAsync(matureFilters, matureIndexStoreContent.Select(x => x.ToLine()));
 			var immatureIndexStoreContent = new[]
 			{
-				new FilterModel(new SmartHeader(new uint256(5), new uint256(4), 4, minutesAgo(30)), dummyFilter),
-				new FilterModel(new SmartHeader(new uint256(6), new uint256(5), 5, minutesAgo(20)), dummyFilter),
+				new FilterModel(new SmartHeader(new uint256(5), new uint256(4), 4, MinutesAgo(30)), dummyFilter),
+				new FilterModel(new SmartHeader(new uint256(6), new uint256(5), 5, MinutesAgo(20)), dummyFilter),
 			};
 			await File.WriteAllLinesAsync(immatureFilters, immatureIndexStoreContent.Select(x => x.ToLine()));
 
@@ -133,11 +136,12 @@ namespace WalletWasabi.Tests.UnitTests
 			var headersChain = new SmartHeaderChain();
 
 			var dummyFilter = GolombRiceFilter.Parse("00");
-			DateTimeOffset minutesAgo(int mins) => DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(mins));
+
+			static DateTimeOffset MinutesAgo(int mins) => DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(mins));
 			var matureIndexStoreContent = new[]
 			{
-				new FilterModel(new SmartHeader(new uint256(2), new uint256(1), 1, minutesAgo(30)), dummyFilter),
-				new FilterModel(new SmartHeader(new uint256(3), new uint256(2), 2, minutesAgo(20)), dummyFilter),
+				new FilterModel(new SmartHeader(new uint256(2), new uint256(1), 1, MinutesAgo(30)), dummyFilter),
+				new FilterModel(new SmartHeader(new uint256(3), new uint256(2), 2, MinutesAgo(20)), dummyFilter),
 			};
 			await File.WriteAllLinesAsync(matureFilters, matureIndexStoreContent.Select(x => x.ToLine()));
 
@@ -147,9 +151,9 @@ namespace WalletWasabi.Tests.UnitTests
 
 			Assert.True(File.Exists(matureFilters));   // mature filters are ok
 
-			var nonMatchingFilter =	new FilterModel(new SmartHeader(new uint256(2), new uint256(1), 1, minutesAgo(30)), dummyFilter);
+			var nonMatchingFilter = new FilterModel(new SmartHeader(new uint256(2), new uint256(1), 1, MinutesAgo(30)), dummyFilter);
 
-			await indexStore.AddNewFiltersAsync(new[]{ nonMatchingFilter }, CancellationToken.None);
+			await indexStore.AddNewFiltersAsync(new[] { nonMatchingFilter }, CancellationToken.None);
 			Assert.Equal(new uint256(3), headersChain.TipHash);  // the filter is nor added!
 			Assert.Equal(2u, headersChain.TipHeight);
 		}
