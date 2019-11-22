@@ -20,6 +20,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 {
 	public class IndexBuilderService
 	{
+		private static byte[][] DummyScript { get; } = new byte[][] { ByteHelpers.FromHex("0009BBE4C2D17185643765C265819BF5261755247D") };
 		public RPCClient RpcClient { get; }
 		public BlockNotifier BlockNotifier { get; }
 		public string IndexFilePath { get; }
@@ -238,12 +239,27 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									}
 								}
 
-								GolombRiceFilter filter = new GolombRiceFilterBuilder()
-									.SetKey(block.GetHash())
-									.SetP(20)
-									.SetM(1 << 20)
-									.AddEntries(scripts.Select(x => x.ToCompressedBytes()))
-									.Build();
+								GolombRiceFilter filter;
+								if (scripts.Any())
+								{
+									filter = new GolombRiceFilterBuilder()
+										.SetKey(block.GetHash())
+										.SetP(20)
+										.SetM(1 << 20)
+										.AddEntries(scripts.Select(x => x.ToCompressedBytes()))
+										.Build();
+								}
+								else
+								{
+									// We cannot have empty filters, because there was a bug in GolombRiceFilterBuilder that evaluates empty filters to true.
+									// And this must be fixed in a backwards compatible way, so we create a fake filter with a random scp instead.
+									filter = new GolombRiceFilterBuilder()
+										.SetKey(block.GetHash())
+										.SetP(20)
+										.SetM(1 << 20)
+										.AddEntries(DummyScript)
+										.Build();
+								}
 
 								var smartHeader = new SmartHeader(block.GetHash(), block.Header.HashPrevBlock, heightToRequest, block.Header.BlockTime);
 								var filterModel = new FilterModel(smartHeader, filter);
