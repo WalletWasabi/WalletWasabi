@@ -68,7 +68,8 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
 
 				if (dispNameAttrib is null)
 				{
-					dName = property.Name;
+					continue;
+					// dName = property.Name;
 				}
 				else
 				{
