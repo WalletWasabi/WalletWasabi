@@ -63,7 +63,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> SelectNonPrivateCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 		public ReactiveCommand<Unit, Unit> InitList { get; }
-		public ReactiveCommand<Unit, Unit> RefreshCoinList { get; }
 
 		public event EventHandler DequeueCoinsPressed;
 
