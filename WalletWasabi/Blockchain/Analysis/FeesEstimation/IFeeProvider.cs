@@ -6,8 +6,10 @@ using System.Text;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 {
-	public interface IFeeProvider : INotifyPropertyChanged
+	public interface IFeeProvider
 	{
-		public AllFeeEstimate Status { get; }
+		public event EventHandler<AllFeeEstimate> AllFeeEstimateChanged;
+
+		public AllFeeEstimate AllFeeEstimate { get; }
 	}
 }

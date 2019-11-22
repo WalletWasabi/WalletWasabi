@@ -146,24 +146,31 @@ namespace WalletWasabi.Services
 
 		private void TransactionProcessor_CoinSpent(object sender, SmartCoin spentCoin)
 		{
-			ChaumianClient.ExposedLinks.TryRemove(spentCoin.GetTxoRef(), out _);
+			try
+			{
+				ChaumianClient.ExposedLinks.TryRemove(spentCoin.GetTxoRef(), out _);
+			}
+			catch(Exception ex)
+			{
+				Logger.LogError(ex);
+			}
 		}
 
 		private async void TransactionProcessor_CoinReceivedAsync(object sender, SmartCoin newCoin)
 		{
-			// If it's being mixed and anonset is not sufficient, then queue it.
-			if (newCoin.Unspent && ChaumianClient.HasIngredients
-				&& newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet
-				&& ChaumianClient.State.Contains(newCoin.SpentOutputs))
+			try
 			{
-				try
+				// If it's being mixed and anonset is not sufficient, then queue it.
+				if (newCoin.Unspent && ChaumianClient.HasIngredients
+					&& newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet
+					&& ChaumianClient.State.Contains(newCoin.SpentOutputs))
 				{
-					await ChaumianClient.QueueCoinsToMixAsync(newCoin);
+						await ChaumianClient.QueueCoinsToMixAsync(newCoin);
 				}
-				catch (Exception ex)
-				{
-					Logger.LogError(ex);
-				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
 			}
 		}
 
@@ -760,7 +767,7 @@ namespace WalletWasabi.Services
 				{
 					if (feeStrategy.Type == FeeStrategyType.Target)
 					{
-						return FeeProvider.Status?.GetFeeRate(feeStrategy.Target) ?? throw new InvalidOperationException("Cannot get fee estimations.");
+						return FeeProvider.AllFeeEstimate?.GetFeeRate(feeStrategy.Target) ?? throw new InvalidOperationException("Cannot get fee estimations.");
 					}
 					else if (feeStrategy.Type == FeeStrategyType.Rate)
 					{

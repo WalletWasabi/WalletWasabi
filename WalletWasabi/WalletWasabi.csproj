@@ -22,7 +22,7 @@
 
   <ItemGroup>
 	  <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.0.0" />
-	  <PackageReference Include="NBitcoin" Version="5.0.0" />
+	  <PackageReference Include="NBitcoin" Version="5.0.5" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.6.0" />
   </ItemGroup>
   

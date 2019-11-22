@@ -24,10 +24,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	public class CoinListViewModel : ViewModelBase
 	{
 		private static HashSet<SmartCoinStatus> NotVisibleStatuses = new HashSet<SmartCoinStatus>()
-			{
-				SmartCoinStatus.Confirmed,
-				SmartCoinStatus.Unconfirmed
-			};
+		{
+			SmartCoinStatus.Confirmed,
+			SmartCoinStatus.Unconfirmed
+		};
 
 		private CompositeDisposable Disposables { get; set; }
 
@@ -568,7 +568,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				cvm.Dispose();
 			}
 
-			RootList.Clear(); // This must be called to trigger the OnItemRemoved for every items in the list.
+			RootList.Clear(); // This must be called to trigger the OnItemRemoved for every item in the list.
 
 			// Do not dispose the RootList here. It will be reused next time when you open CoinJoinTab or SendTab.
 			Disposables?.Dispose();

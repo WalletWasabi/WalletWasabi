@@ -10,17 +10,36 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.BitcoinCore.Monitoring
 {
-	public class RpcMonitor : PeriodicRunner<RpcStatus>
+	public class RpcMonitor : PeriodicRunner
 	{
+		private RpcStatus _rpcStatus;
+
 		public RPCClient RpcClient { get; set; }
 
-		public RpcMonitor(TimeSpan period) : base(period, RpcStatus.Unresponsive)
+		public RpcStatus RpcStatus
 		{
+			get => _rpcStatus;
+			private set
+			{
+				if (value != _rpcStatus)
+				{
+					_rpcStatus = value;
+					RpcStatusChanged?.Invoke(this, value);
+				}
+			}
 		}
 
-		protected override async Task<RpcStatus> ActionAsync(CancellationToken cancel)
+		public event EventHandler<RpcStatus> RpcStatusChanged;
+
+		public RpcMonitor(TimeSpan period, RPCClient rpcClient) : base(period)
 		{
-			return await RpcClient.GetRpcStatusAsync(cancel).ConfigureAwait(false);
+			RpcStatus = RpcStatus.Unresponsive;
+			RpcClient = Guard.NotNull(nameof(rpcClient), rpcClient);
+		}
+
+		protected override async Task ActionAsync(CancellationToken cancel)
+		{
+			RpcStatus = await RpcClient.GetRpcStatusAsync(cancel).ConfigureAwait(false);
 		}
 	}
 }

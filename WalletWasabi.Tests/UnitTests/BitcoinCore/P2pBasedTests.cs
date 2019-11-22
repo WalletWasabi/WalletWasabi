@@ -10,6 +10,7 @@ using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
@@ -21,7 +22,9 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task MempoolNotifiesAsync()
 		{
-			var coreNode = await TestNodeBuilder.CreateAsync();
+			using var services = new HostedServices();
+			var coreNode = await TestNodeBuilder.CreateAsync(services);
+			await services.StartAllAsync(CancellationToken.None);
 			using var node = await coreNode.CreateNewP2pNodeAsync();
 			try
 			{
@@ -63,6 +66,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
+				await services.StopAllAsync(CancellationToken.None);
 				node.Disconnect();
 				await coreNode.TryStopAsync();
 			}
@@ -71,7 +75,9 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task TrustedNotifierNotifiesTxAsync()
 		{
-			var coreNode = await TestNodeBuilder.CreateAsync();
+			using var services = new HostedServices();
+			var coreNode = await TestNodeBuilder.CreateAsync(services);
+			await services.StartAllAsync(CancellationToken.None);
 			try
 			{
 				var rpc = coreNode.RpcClient;
@@ -108,6 +114,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
+				await services.StopAllAsync(CancellationToken.None);
 				await coreNode.TryStopAsync();
 			}
 		}
@@ -115,11 +122,13 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task BlockNotifierTestsAsync()
 		{
-			var coreNode = await TestNodeBuilder.CreateAsync();
+			using var services = new HostedServices();
+			var coreNode = await TestNodeBuilder.CreateAsync(services);
+			await services.StartAllAsync(CancellationToken.None);
 			try
 			{
 				var rpc = coreNode.RpcClient;
-				BlockNotifier notifier = coreNode.BlockNotifier;
+				BlockNotifier notifier = services.FirstOrDefault<BlockNotifier>();
 
 				// Make sure we get notification for one block.
 				var blockEventAwaiter = new EventAwaiter<Block>(
@@ -184,6 +193,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
+				await services.StopAllAsync(CancellationToken.None);
 				await coreNode.TryStopAsync();
 			}
 		}

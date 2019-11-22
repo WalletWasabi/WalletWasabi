@@ -17,7 +17,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.BitcoinCore
 {
-	public class P2pNode : IDisposable
+	public class P2pNode
 	{
 		private Node Node { get; set; }
 		private TrustedP2pBehavior TrustedP2pBehavior { get; set; }
@@ -91,6 +91,8 @@ namespace WalletWasabi.BitcoinCore
 			Logger.LogInfo($"Node {sender.Peer.Endpoint} failed with exception: {ex}");
 		}
 
+		private Task ReconnectorTask { get; set; } = Task.CompletedTask;
+
 		private async void Node_DisconnectedAsync(Node node)
 		{
 			try
@@ -102,7 +104,8 @@ namespace WalletWasabi.BitcoinCore
 						return;
 					}
 					var reconnector = new P2pReconnector(TimeSpan.FromSeconds(7), this);
-					await reconnector.StartAndAwaitReconnectionAsync(Stop.Token).ConfigureAwait(false);
+					ReconnectorTask = reconnector.StartAndAwaitReconnectionAsync(Stop.Token);
+					await ReconnectorTask.ConfigureAwait(false);
 				}
 			}
 			catch (Exception ex)
@@ -129,31 +132,13 @@ namespace WalletWasabi.BitcoinCore
 			}
 		}
 
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
+		public async Task DisposeAsync()
 		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Stop?.Cancel();
-					Disconnect();
-					Stop?.Dispose();
-					Stop = null;
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
+			Stop?.Cancel();
+			await ReconnectorTask.ConfigureAwait(false);
+			Disconnect();
+			Stop?.Dispose();
+			Stop = null;
 		}
 
 		/// <summary>
@@ -207,7 +192,5 @@ namespace WalletWasabi.BitcoinCore
 				}
 			}
 		}
-
-		#endregion IDisposable Support
 	}
 }
