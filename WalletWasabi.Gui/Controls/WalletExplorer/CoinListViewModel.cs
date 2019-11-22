@@ -595,7 +595,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void OnCoinListChanged()
 		{
-			IsCoinListLoading = true;
 			CoinListChanged?.Invoke(this, null);
 		}
 	}
