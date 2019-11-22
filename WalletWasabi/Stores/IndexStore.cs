@@ -27,7 +27,7 @@ namespace WalletWasabi.Stores
 		private Network Network { get; set; }
 		private DigestableSafeMutexIoManager MatureIndexFileManager { get; set; }
 		private DigestableSafeMutexIoManager ImmatureIndexFileManager { get; set; }
-		public SmartHeaderChain HashChain { get; private set; }
+		public SmartHeaderChain SmartHeaderChain { get; private set; }
 
 		private FilterModel StartingFilter { get; set; }
 		private uint StartingHeight { get; set; }
@@ -44,7 +44,7 @@ namespace WalletWasabi.Stores
 			{
 				WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 				Network = Guard.NotNull(nameof(network), network);
-				HashChain = Guard.NotNull(nameof(hashChain), hashChain);
+				SmartHeaderChain = Guard.NotNull(nameof(hashChain), hashChain);
 				var indexFilePath = Path.Combine(WorkFolderPath, "MatureIndex.dat");
 				MatureIndexFileManager = new DigestableSafeMutexIoManager(indexFilePath, digestRandomIndex: -1);
 				var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
@@ -165,16 +165,29 @@ namespace WalletWasabi.Stores
 		private void ProcessLine(string line, bool enqueue)
 		{
 			var filter = FilterModel.FromLine(line);
-			ProcessFilter(filter, enqueue);
+			if (!TryProcessFilter(filter, enqueue))
+			{
+				throw new InvalidOperationException("Index file inconsistency detected.");
+			}
 		}
 
-		private void ProcessFilter(FilterModel filter, bool enqueue)
+		private bool TryProcessFilter(FilterModel filter, bool enqueue)
 		{
-			if (enqueue)
+			try
 			{
-				ImmatureFilters.Add(filter);
+				SmartHeaderChain.AddOrReplace(filter.Header);
+				if (enqueue)
+				{
+					ImmatureFilters.Add(filter);
+				}
+
+				return true;
 			}
-			HashChain.AddOrReplace(filter.Header);
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+				return false;
+			}
 		}
 
 		private async Task EnsureBackwardsCompatibilityAsync()
@@ -232,17 +245,26 @@ namespace WalletWasabi.Stores
 
 		public async Task AddNewFiltersAsync(IEnumerable<FilterModel> filters, CancellationToken cancel)
 		{
+			var successAny = false;
 			foreach (var filter in filters)
 			{
+				var success = false;
 				using (await IndexLock.LockAsync().ConfigureAwait(false))
 				{
-					ProcessFilter(filter, enqueue: true);
+					success = TryProcessFilter(filter, enqueue: true);
 				}
+				successAny = successAny || success;
 
-				NewFilter?.Invoke(this, filter); // Event always outside the lock.
+				if (success)
+				{
+					NewFilter?.Invoke(this, filter); // Event always outside the lock.
+				}
 			}
 
-			_ = TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel);
+			if (successAny)
+			{
+				_ = TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel);
+			}
 		}
 
 		public async Task<FilterModel> RemoveLastFilterAsync(CancellationToken cancel)
@@ -253,11 +275,11 @@ namespace WalletWasabi.Stores
 			{
 				filter = ImmatureFilters.Last();
 				ImmatureFilters.RemoveLast();
-				if (HashChain.TipHeight != filter.Header.Height)
+				if (SmartHeaderChain.TipHeight != filter.Header.Height)
 				{
-					throw new InvalidOperationException($"{nameof(HashChain)} and {nameof(ImmatureFilters)} are not in sync.");
+					throw new InvalidOperationException($"{nameof(SmartHeaderChain)} and {nameof(ImmatureFilters)} are not in sync.");
 				}
-				HashChain.RemoveLast();
+				SmartHeaderChain.RemoveLast();
 			}
 
 			Reorged?.Invoke(this, filter);

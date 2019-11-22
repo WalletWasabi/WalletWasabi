@@ -16,6 +16,7 @@ namespace WalletWasabi.Blockchain.Blocks
 	public class SmartHeaderChain : NotifyPropertyChangedBase
 	{
 		private uint _tipHeight;
+		private SmartHeader _tip;
 		private uint256 _tipHash;
 		private uint _serverTipHeight;
 		private int _hashesLeft;
@@ -23,6 +24,12 @@ namespace WalletWasabi.Blockchain.Blocks
 
 		private SortedDictionary<uint, SmartHeader> Chain { get; }
 		private object Lock { get; }
+
+		public SmartHeader Tip
+		{
+			get => _tip;
+			private set => RaiseAndSetIfChanged(ref _tip, value);
+		}
 
 		public uint TipHeight
 		{
@@ -64,12 +71,24 @@ namespace WalletWasabi.Blockchain.Blocks
 		{
 			lock (Lock)
 			{
+				var lastHeader = Chain.LastOrDefault().Value;
+				if (lastHeader is { BlockHash: var prevHash } && prevHash != header.PrevHash)
+				{
+					throw new InvalidOperationException($"Header doesn't point to previous header. Actual: {prevHash}, tried: {header.PrevHash}.");
+				}
+
 				Chain.AddOrReplace(header.Height, header);
-				TipHeight = header.Height;
-				TipHash = header.BlockHash;
-				HashCount = Chain.Count;
-				SetHashesLeft();
+				SetTip(header);
 			}
+		}
+
+		private void SetTip(SmartHeader header)
+		{
+			Tip = header;
+			TipHeight = header.Height;
+			TipHash = header.BlockHash;
+			HashCount = Chain.Count;
+			SetHashesLeft();
 		}
 
 		private void SetHashesLeft()
@@ -85,10 +104,7 @@ namespace WalletWasabi.Blockchain.Blocks
 				{
 					Chain.Remove(Chain.Keys.Max());
 					var last = Chain.Last();
-					TipHeight = last.Key;
-					TipHash = last.Value.BlockHash;
-					HashCount = Chain.Count;
-					SetHashesLeft();
+					SetTip(last.Value);
 				}
 			}
 		}

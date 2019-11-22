@@ -19,6 +19,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var indexStore = new IndexStore();
 
 			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
+			Directory.Delete(dir, true);
 			var network = Network.Main;
 			await indexStore.InitializeAsync(dir, network, new SmartHeaderChain());
 		}

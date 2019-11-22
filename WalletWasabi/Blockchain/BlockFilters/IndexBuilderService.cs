@@ -175,7 +175,6 @@ namespace WalletWasabi.Blockchain.BlockFilters
 								Block block = await RpcClient.GetBlockAsync(heightToRequest);
 
 								// Reorg check, except if we're requesting the starting height, because then the "currentHash" wouldn't exist.
-
 								if (heightToRequest != StartingHeight && currentHash != block.Header.HashPrevBlock)
 								{
 									// Reorg can happen only when immature. (If it'd not be immature, that'd be a huge issue.)
@@ -246,7 +245,8 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									.AddEntries(scripts.Select(x => x.ToCompressedBytes()))
 									.Build();
 
-								var filterModel = new FilterModel(new SmartHeader(block.GetHash(), block.Header.HashPrevBlock, heightToRequest, block.Header.BlockTime), filter);
+								var smartHeader = new SmartHeader(block.GetHash(), block.Header.HashPrevBlock, heightToRequest, block.Header.BlockTime);
+								var filterModel = new FilterModel(smartHeader, filter);
 
 								await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToLine() });
 								using (await IndexLock.LockAsync())
