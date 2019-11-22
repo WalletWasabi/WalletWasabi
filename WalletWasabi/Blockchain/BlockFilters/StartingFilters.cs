@@ -24,12 +24,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			}
 			else if (network == Network.RegTest)
 			{
-				var filter = new GolombRiceFilterBuilder()
-					.SetKey(startingHeader.BlockHash)
-					.SetP(20)
-					.SetM(1 << 20)
-					.AddEntries(IndexBuilderService.DummyScript)
-					.Build();
+				GolombRiceFilter filter = IndexBuilderService.CreateDummyEmptyFilter(startingHeader.BlockHash);
 				return FilterModel.FromLine($"{startingHeader.Height}:{startingHeader.BlockHash}:{filter.ToString()}:{startingHeader.PrevHash}:{startingHeader.BlockTime.ToUnixTimeSeconds()}");
 			}
 			else

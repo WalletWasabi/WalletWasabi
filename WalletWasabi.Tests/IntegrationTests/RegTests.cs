@@ -292,7 +292,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 					var filter = filters[i];
 					Assert.Equal(i, (int)filter.Header.Height);
 					Assert.Equal(expectedHash, filter.Header.BlockHash);
-					Assert.Equal("01053a58", filter.Filter.ToString());
+					Assert.Equal(IndexBuilderService.CreateDummyEmptyFilter(expectedHash).ToString(), filter.Filter.ToString());
 				}
 			}
 			finally
@@ -402,7 +402,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 					Assert.Equal(expectedHash, filter.Header.BlockHash);
 					if (i < 101) // Later other tests may fill the filter.
 					{
-						Assert.Equal("01053a58", filter.Filter.ToString());
+						Assert.Equal(IndexBuilderService.CreateDummyEmptyFilter(expectedHash).ToString(), filter.Filter.ToString());
 					}
 				}
 
