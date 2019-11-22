@@ -733,6 +733,14 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		public async Task<int> CountBlocksAsync()
+		{
+			using (await BlockFolderLock.LockAsync())
+			{
+				return Directory.EnumerateFiles(BlocksFolderPath).Count();
+			}
+		}
+
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
 		/// <param name="allowedInputs">Only these inputs allowed to be used to build the transaction. The wallet must know the corresponding private keys.</param>
 		/// <exception cref="ArgumentException"></exception>

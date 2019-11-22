@@ -493,6 +493,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				{
 					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
 				}
+				Assert.Equal(1, await wallet.CountBlocksAsync());
 
 				Assert.Single(wallet.Coins);
 				var firstCoin = wallet.Coins.Single();
@@ -518,6 +519,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				await rpc.GenerateAsync(1);
 
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 2);
+				Assert.Equal(3, await wallet.CountBlocksAsync());
 
 				Assert.Equal(3, wallet.Coins.Count());
 				firstCoin = wallet.Coins.OrderBy(x => x.Height).First();
@@ -575,6 +577,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(3);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 3);
+				Assert.Equal(4, await wallet.CountBlocksAsync());
 
 				Assert.Equal(4, wallet.Coins.Count());
 				Assert.Empty(wallet.Coins.Where(x => x.TransactionId == txId4));
