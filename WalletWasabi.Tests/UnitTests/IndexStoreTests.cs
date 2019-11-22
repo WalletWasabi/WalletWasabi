@@ -118,7 +118,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(new uint256(3), headersChain.TipHash);
 			Assert.Equal(2u, headersChain.TipHeight);
 
-			Assert.False(File.Exists(matureFilters));   // mature filters are ok but they are deleted anyway??
+			Assert.True(File.Exists(matureFilters));    // mature filters are ok
 			Assert.False(File.Exists(immatureFilters)); // immature filters are NOT ok
 		}
 
