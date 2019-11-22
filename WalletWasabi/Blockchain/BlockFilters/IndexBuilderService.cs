@@ -20,7 +20,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 {
 	public class IndexBuilderService
 	{
-		private static byte[][] DummyScript { get; } = new byte[][] { ByteHelpers.FromHex("0009BBE4C2D17185643765C265819BF5261755247D") };
+		public static byte[][] DummyScript { get; } = new byte[][] { ByteHelpers.FromHex("0009BBE4C2D17185643765C265819BF5261755247D") };
 		public RPCClient RpcClient { get; }
 		public BlockNotifier BlockNotifier { get; }
 		public string IndexFilePath { get; }
