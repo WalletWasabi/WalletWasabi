@@ -115,10 +115,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SetFeesAndTexts());
 
-			Observable.FromEventPattern(CoinList, nameof(CoinList.DequeueCoinsPressed))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => OnCoinsListDequeueCoinsPressedAsync());
-
 			_minMaxFeeTargetsEqual = this.WhenAnyValue(x => x.MinimumFeeTarget, x => x.MaximumFeeTarget, (x, y) => x == y)
 				.ToProperty(this, x => x.MinMaxFeeTargetsEqual, scheduler: RxApp.MainThreadScheduler);
 
@@ -712,51 +708,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public CoinListViewModel CoinList { get; }
-
-		private async void OnCoinsListDequeueCoinsPressedAsync()
-		{
-			try
-			{
-				var selectedCoin = CoinList?.SelectedCoin;
-				if (selectedCoin is null)
-				{
-					return;
-				}
-
-				await DoDequeueAsync(new[] { selectedCoin });
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning(ex);
-			}
-		}
-
-		private async Task DoDequeueAsync(IEnumerable<CoinViewModel> selectedCoins)
-		{
-			if (!selectedCoins.Any())
-			{
-				NotificationHelpers.Warning("No coins are selected to dequeue.");
-				return;
-			}
-
-			try
-			{
-				await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray(), "Dequeued by the user.");
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning(ex);
-				var builder = new StringBuilder(ex.ToTypeMessageString());
-				if (ex is AggregateException aggex)
-				{
-					foreach (var iex in aggex.InnerExceptions)
-					{
-						builder.Append(Environment.NewLine + iex.ToTypeMessageString());
-					}
-				}
-				NotificationHelpers.Error(builder.ToString());
-			}
-		}
 
 		public bool IsBusy
 		{
