@@ -63,10 +63,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> SelectNonPrivateCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 		public ReactiveCommand<Unit, Unit> InitList { get; }
+		public ReactiveCommand<Unit, Unit> RefreshCoinList { get; }
 
 		public event EventHandler DequeueCoinsPressed;
 
 		public event EventHandler<CoinViewModel> SelectionChanged;
+
+		public event EventHandler CoinListChanged;
+
+		public event EventHandler<CoinViewModel> CoinStatusChanged;
+
+		public event EventHandler CoinListShown;
 
 		public ReadOnlyObservableCollection<CoinViewModel> Coins => _coinViewModels;
 
@@ -251,7 +258,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global = global;
 			CoinListContainerType = coinListContainerType;
 			AmountSortDirection = SortOrder.Decreasing;
-			IsCoinListLoading = true;
+
 			CoinJoinStatusWidth = new GridLength(0);
 
 			RefreshOrdering();
@@ -396,17 +403,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			InitList = ReactiveCommand.CreateFromTask(async () =>
 			{
-				try
-				{
-					IsCoinListLoading = true;
-					// We have to wait for the UI to became visible to the user.
-					await Task.Delay(800); // Let other tasks run to display the gui.
-					OnOpen();
-				}
-				finally
-				{
-					IsCoinListLoading = false;
-				}
+				IsCoinListLoading = true;
+				await Task.Delay(800);
+				CoinListShown?.Invoke(this, null);
 			});
 
 			Observable
@@ -417,34 +416,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(DequeueCoin.ThrownExceptions)
 				.Merge(SortCommand.ThrownExceptions)
 				.Subscribe(ex => Logger.LogError(ex));
-		}
 
-		private void RemoveCoin(CoinViewModel cvm)
-		{
-			RemoveCoins(new[] { cvm });
-		}
-
-		private void RemoveCoins(IEnumerable<CoinViewModel> cvms)
-		{
-			RootList.RemoveMany(cvms);
-			RefreshSelectionCheckBoxes();
-			RefreshStatusColumnWidth();
-			foreach (var cvm in cvms)
-			{
-				cvm?.Dispose();
-			}
-		}
-
-		private void AddCoin(CoinViewModel cvm)
-		{
-			AddCoins(new[] { cvm });
-		}
-
-		private void AddCoins(IEnumerable<CoinViewModel> cvms)
-		{
-			RootList.AddRange(cvms);
-			RefreshSelectionCheckBoxes();
-			RefreshStatusColumnWidth();
+			OnOpen();
 		}
 
 		private void RefreshSelectionCheckBoxes()
@@ -467,10 +440,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				new CompositeDisposable() :
 				throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			var list = Global.WalletService.Coins.Select(x => new CoinViewModel(this, x)).ToList();
-
-			AddCoins(list);
-
 			Global.UiConfig
 				.WhenAnyValue(x => x.LurkingWifeMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -481,13 +450,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsAnyCoinSelected = x is null ? false : x > Money.Zero);
 
-			Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived))
+			Observable
+				.Merge(Observable.FromEventPattern<ReplaceTransactionReceivedEventArgs>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.ReplaceTransactionReceived)).Select(_ => Unit.Default))
+				.Merge(Observable.FromEventPattern<DoubleSpendReceivedEventArgs>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.DoubleSpendReceived)).Select(_ => Unit.Default))
+				.Merge(Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent)).Select(_ => Unit.Default))
+				.Merge(Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived)).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(coin =>
+				.Subscribe(args =>
 				{
 					try
 					{
-						AddCoin(new CoinViewModel(this, coin.EventArgs));
+						OnCoinListChanged();
 					}
 					catch (Exception ex)
 					{
@@ -496,52 +469,50 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				})
 				.DisposeWith(Disposables);
 
-			Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent))
+			Observable
+				.Merge(Observable.FromEventPattern(this, nameof(CoinListChanged)).Select(_ => Unit.Default))
+				.Throttle(TimeSpan.FromSeconds(2)) // Throttle TransactionProcessor events adds/removes.
+				.Merge(Observable.FromEventPattern(this, nameof(CoinListShown)).Select(_ => Unit.Default)) // Load the list immediately.
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(coin =>
+				.Subscribe(args =>
 				{
 					try
 					{
-						CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == coin.EventArgs);
-						if (toRemove != default)
+						var actual = Global.WalletService.TransactionProcessor.Coins.ToHashSet();
+						var old = RootList.Items.ToDictionary(c => c.Model, c => c);
+
+						var coinToRemove = old.Where(c => !actual.Contains(c.Key)).ToArray();
+						var coinToAdd = actual.Where(c => !old.ContainsKey(c)).ToArray();
+
+						foreach (var item in coinToRemove)
 						{
-							RemoveCoin(toRemove);
+							item.Value.Dispose();
 						}
+						RootList.RemoveMany(coinToRemove.Select(kp => kp.Value));
+						RootList.AddRange(coinToAdd.Select(c => new CoinViewModel(this, c)));
+
+						RefreshSelectionCheckBoxes();
+						RefreshStatusColumnWidth();
 					}
 					catch (Exception ex)
 					{
 						Logger.LogError(ex);
 					}
+					finally
+					{
+						IsCoinListLoading = false;
+					}
 				})
 				.DisposeWith(Disposables);
 
-			Observable.FromEventPattern<ReplaceTransactionReceivedEventArgs>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.ReplaceTransactionReceived))
+			Observable.FromEventPattern<CoinViewModel>(this, nameof(CoinStatusChanged))
+				.Throttle(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(args =>
 				{
 					try
 					{
-						var toRemove = args.EventArgs.DestroyedCoins;
-						RemoveCoins(RootList.Items.Where(cvm => toRemove.Any(sm => cvm.Model == sm)));
-
-						var toRestore = args.EventArgs.RestoredCoins;
-						AddCoins(toRestore.Select(coin => new CoinViewModel(this, coin)));
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
-					}
-				})
-				.DisposeWith(Disposables);
-
-			Observable.FromEventPattern<DoubleSpendReceivedEventArgs>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.DoubleSpendReceived))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(args =>
-				{
-					try
-					{
-						var toRemove = args.EventArgs.Remove;
-						RemoveCoins(RootList.Items.Where(cvm => toRemove.Any(sm => cvm.Model == sm)));
+						RefreshStatusColumnWidth();
 					}
 					catch (Exception ex)
 					{
@@ -565,9 +536,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				})
 				.DisposeWith(Disposables);
-
-			RefreshSelectionCheckBoxes();
-			RefreshStatusColumnWidth();
 		}
 
 		private void RefreshSelectCheckBoxesShields(int mixUntilAnonymitySet)
@@ -621,15 +589,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						x.AnonymitySet > 1 && x.IsSelected));
 		}
 
-		public void OnCoinStatusChanged()
+		public void OnCoinStatusChanged(CoinViewModel cvm)
 		{
-			RefreshStatusColumnWidth();
+			CoinStatusChanged?.Invoke(cvm, null);
 		}
 
-		public void OnCoinUnspentChanged(CoinViewModel _)
+		public void OnCoinListChanged()
 		{
-			// Removing the coin in Global.WalletService.TransactionProcessor.CoinSpent not here.
-			RefreshStatusColumnWidth();
+			IsCoinListLoading = true;
+			CoinListChanged?.Invoke(this, null);
 		}
 	}
 }

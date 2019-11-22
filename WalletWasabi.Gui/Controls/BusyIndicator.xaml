@@ -8,7 +8,7 @@
     <Setter Property="Template">
       <ControlTemplate>
         <Grid>
-          <StackPanel ZIndex="2" Orientation="Horizontal" VerticalAlignment="Top" IsVisible="{TemplateBinding IsBusy}">
+          <StackPanel ZIndex="2" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Center" IsVisible="{TemplateBinding IsBusy}" Opacity="0.5">
             <controls:Spinner Height="20" Width="20" IsVisible="True" Margin="8" />
             <TextBlock Text="{TemplateBinding Text}" VerticalAlignment="Center" />
           </StackPanel>

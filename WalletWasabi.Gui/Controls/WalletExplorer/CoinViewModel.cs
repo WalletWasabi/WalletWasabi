@@ -31,6 +31,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Model = model;
 			_owner = owner;
+
+			RefreshSmartCoinStatus();
+
 			Disposables = new CompositeDisposable();
 
 			_coinJoinInProgress = Model
@@ -66,11 +69,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.Status)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => _owner.OnCoinStatusChanged());
-
-			this.WhenAnyValue(x => x.Unspent)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => _owner.OnCoinUnspentChanged(this));
+				.Subscribe(_ => _owner.OnCoinStatusChanged(this));
 
 			Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend)
 				.ObserveOn(RxApp.MainThreadScheduler)

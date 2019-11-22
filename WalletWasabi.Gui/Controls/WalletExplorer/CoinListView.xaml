@@ -72,7 +72,7 @@
           <TextBlock Text="Merging unmixed coins with mixed ones undoes the mixes." Classes="warningMessage" IsVisible="{Binding LabelExposeCommonOwnershipWarning}" />
         </StackPanel>
       </StackPanel>
-      <controls:BusyIndicator IsBusy="{Binding IsCoinListLoading}" Text="Loading...">
+      <controls:BusyIndicator IsBusy="{Binding IsCoinListLoading}" Text="Updating...">
         <controls:ExtendedListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
           <controls:ExtendedListBox.ContextMenu>
             <ContextMenu>
