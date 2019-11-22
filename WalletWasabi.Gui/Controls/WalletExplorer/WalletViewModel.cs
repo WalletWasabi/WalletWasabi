@@ -9,6 +9,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Services;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -93,22 +94,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			var observed = Observable.Merge(
-				Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Select(_ => Unit.Default),
+			Observable.Merge(
 				Observable.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived)).Select(_ => Unit.Default),
 				Observable.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent)).Select(_ => Unit.Default))
-				.Throttle(TimeSpan.FromSeconds(1))
-				.ObserveOn(RxApp.MainThreadScheduler);
-
-			observed.Subscribe(_ =>
+				.Throttle(TimeSpan.FromSeconds(0.5))
+				.Merge(Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Select(_ => Unit.Default))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
 				{
-					Money balance = WalletService.Coins.TotalAmount();
-
-					Title = $"{Name} ({(Global.UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
+					try
+					{
+						Money balance = WalletService.Coins.TotalAmount();
+						Title = $"{Name} ({(Global.UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+					}
 				})
 				.DisposeWith(Disposables);
-
-			observed.Next();
 
 			IsExpanded = true;
 		}
