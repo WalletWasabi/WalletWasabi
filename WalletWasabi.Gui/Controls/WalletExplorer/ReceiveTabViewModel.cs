@@ -28,9 +28,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
 		private SuggestLabelViewModel _labelSuggestion;
-		private double _labelRequiredNotificationOpacity;
-		private bool _labelRequiredNotificationVisible;
-		
 
 		public ReactiveCommand<Unit, Unit> CopyAddress { get; }
 		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
