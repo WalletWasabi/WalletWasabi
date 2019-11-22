@@ -20,11 +20,13 @@ namespace WalletWasabi.Blockchain.Blocks
 	{
 		public event EventHandler<Block> OnBlock;
 
-		public event EventHandler<BlockHeader> OnReorg;
+		public event EventHandler<uint256> OnReorg;
 
 		public IRPCClient RpcClient { get; set; }
 		public Network Network => RpcClient.Network;
-		private List<BlockHeader> ProcessedBlocks { get; }
+
+		private List<uint256> ProcessedBlocks { get; }
+
 		public P2pNode P2pNode { get; }
 		public uint256 BestBlockHash { get; private set; }
 
@@ -32,7 +34,7 @@ namespace WalletWasabi.Blockchain.Blocks
 		{
 			RpcClient = Guard.NotNull(nameof(rpcClient), rpcClient);
 			P2pNode = p2pNode;
-			ProcessedBlocks = new List<BlockHeader>();
+			ProcessedBlocks = new List<uint256>();
 			if (p2pNode is { })
 			{
 				p2pNode.BlockInv += P2pNode_BlockInv;
@@ -89,14 +91,14 @@ namespace WalletWasabi.Blockchain.Blocks
 			}
 
 			// If block was already processed return.
-			if (ProcessedBlocks.Any(x => x.GetHash() == arrivedHeader.GetHash()))
+			if (ProcessedBlocks.Contains(arrivedHeader.GetHash()))
 			{
 				BestBlockHash = bestBlockHash;
 				return;
 			}
 
 			// If this block follows the proper order then add.
-			if (ProcessedBlocks.Last().GetHash() == arrivedHeader.HashPrevBlock)
+			if (ProcessedBlocks.Last() == arrivedHeader.HashPrevBlock)
 			{
 				AddBlock(arrivedBlock);
 				BestBlockHash = bestBlockHash;
@@ -104,7 +106,7 @@ namespace WalletWasabi.Blockchain.Blocks
 			}
 
 			// Else let's sort out things.
-			var foundPrevBlock = ProcessedBlocks.FirstOrDefault(x => x.GetHash() == arrivedHeader.HashPrevBlock);
+			var foundPrevBlock = ProcessedBlocks.FirstOrDefault(x => x == arrivedHeader.HashPrevBlock);
 			// Missed notifications on some previous blocks.
 			if (foundPrevBlock != null)
 			{
@@ -154,11 +156,11 @@ namespace WalletWasabi.Blockchain.Blocks
 				}
 
 				// If we found the proper chain.
-				var foundPrevBlock = ProcessedBlocks.FirstOrDefault(x => x.GetHash() == currentHeader.HashPrevBlock);
+				var foundPrevBlock = ProcessedBlocks.FirstOrDefault(x => x == currentHeader.HashPrevBlock);
 				if (foundPrevBlock != null)
 				{
 					// If the last block hash is not what we found, then we missed a reorg also.
-					if (foundPrevBlock.GetHash() != ProcessedBlocks.Last().GetHash())
+					if (foundPrevBlock != ProcessedBlocks.Last())
 					{
 						ReorgToBlock(foundPrevBlock);
 					}
@@ -182,10 +184,10 @@ namespace WalletWasabi.Blockchain.Blocks
 
 		private void AddHeader(BlockHeader block)
 		{
-			ProcessedBlocks.Add(block);
+			ProcessedBlocks.Add(block.GetHash());
 		}
 
-		private void ReorgToBlock(BlockHeader correctBlock)
+		private void ReorgToBlock(uint256 correctBlock)
 		{
 			var index = ProcessedBlocks.IndexOf(correctBlock);
 			int countToRemove = ProcessedBlocks.Count - (index + 1);
