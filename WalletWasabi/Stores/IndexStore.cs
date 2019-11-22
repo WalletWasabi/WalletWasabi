@@ -141,7 +141,20 @@ namespace WalletWasabi.Stores
 						}
 					}
 				}
+			}
+			catch
+			{
+				// We found a corrupted entry. Stop here.
+				// Delete the currupted file.
+				// Do not try to autocorrect, because the internal data structures are throwing events that may confuse the consumers of those events.
+				Logger.LogError("Mature index got corrupted. Deleting both mature and immature index...");
+				MatureIndexFileManager.DeleteMe();
+				ImmatureIndexFileManager.DeleteMe();
+				throw;
+			}
 
+			try
+			{
 				if (ImmatureIndexFileManager.Exists())
 				{
 					foreach (var line in await ImmatureIndexFileManager.ReadAllLinesAsync().ConfigureAwait(false)) // We can load ImmatureIndexFileManager to the memory, no problem.
@@ -155,8 +168,7 @@ namespace WalletWasabi.Stores
 				// We found a corrupted entry. Stop here.
 				// Delete the currupted file.
 				// Do not try to autocorrect, because the internal data structures are throwing events that may confuse the consumers of those events.
-				Logger.LogError("An index file got corrupted. Deleting index files...");
-				MatureIndexFileManager.DeleteMe();
+				Logger.LogError("Immature index got corrupted. Deleting it...");
 				ImmatureIndexFileManager.DeleteMe();
 				throw;
 			}
