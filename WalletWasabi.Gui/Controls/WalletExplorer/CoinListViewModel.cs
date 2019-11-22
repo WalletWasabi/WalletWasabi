@@ -590,7 +590,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void OnCoinStatusChanged(CoinViewModel cvm)
 		{
-			CoinStatusChanged?.Invoke(cvm, null);
+			CoinStatusChanged?.Invoke(this, cvm);
 		}
 
 		public void OnCoinListChanged()
