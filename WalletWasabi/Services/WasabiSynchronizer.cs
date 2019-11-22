@@ -151,7 +151,7 @@ namespace WalletWasabi.Services
 				{
 					DateTimeOffset lastFeeQueried = DateTimeOffset.UtcNow - feeQueryRequestInterval;
 					bool ignoreRequestInterval = false;
-					var hashChain = BitcoinStore.HashChain;
+					var hashChain = BitcoinStore.SmartHeaderChain;
 					EnableRequests();
 					while (IsRunning)
 					{

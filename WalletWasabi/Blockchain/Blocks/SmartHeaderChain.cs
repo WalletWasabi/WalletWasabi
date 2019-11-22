@@ -134,6 +134,23 @@ namespace WalletWasabi.Blockchain.Blocks
 			}
 		}
 
+		public bool TryGetHeader(uint height, out SmartHeader header)
+		{
+			header = null;
+			lock (Lock)
+			{
+				if (Chain.ContainsKey(height))
+				{
+					header = Chain[height];
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+		}
+
 		public bool TryGetHeight(uint256 hash, out uint height)
 		{
 			lock (Lock)

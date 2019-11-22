@@ -68,7 +68,7 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			Nodes = nodes;
 			Synchronizer = synchronizer;
-			HashChain = synchronizer.BitcoinStore.HashChain;
+			HashChain = synchronizer.BitcoinStore.SmartHeaderChain;
 			UseTor = Global.Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
 			UseBitcoinCore = Global.Config.StartLocalBitcoinCoreOnStartup;
 			var hostedServices = Global.HostedServices;

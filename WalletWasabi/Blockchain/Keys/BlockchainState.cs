@@ -12,30 +12,23 @@ namespace WalletWasabi.Blockchain.Keys
 	[JsonObject(MemberSerialization.OptIn)]
 	public class BlockchainState
 	{
-		[JsonProperty(Order = 0)]
 		[JsonConverter(typeof(NetworkJsonConverter))]
 		public Network Network { get; set; }
 
-		[JsonProperty(Order = 1)]
 		[JsonConverter(typeof(HeightJsonConverter))]
-		public Height BestHeight { get; set; }
-
-		[JsonProperty(Order = 2)]
-		public List<BlockState> BlockStates { get; }
+		public Height Height { get; set; }
 
 		[JsonConstructor]
-		public BlockchainState(Network network, Height bestHeight, IEnumerable<BlockState> blockStates)
+		public BlockchainState(Network network, Height height)
 		{
 			Network = network;
-			BestHeight = bestHeight;
-			BlockStates = blockStates?.OrderBy(x => x).ToList() ?? new List<BlockState>();
+			Height = height;
 		}
 
 		public BlockchainState()
 		{
 			Network = Network.Main;
-			BestHeight = 0;
-			BlockStates = new List<BlockState>();
+			Height = 0;
 		}
 	}
 }

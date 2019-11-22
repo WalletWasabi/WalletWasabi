@@ -467,15 +467,6 @@ namespace WalletWasabi.Gui
 					ChaumianClient = new CoinJoinClient(Synchronizer, Network, keyManager, Config.GetFallbackBackendUri(), null);
 				}
 
-				try
-				{
-					keyManager.CorrectBlockHeights(BitcoinStore.HashChain); // Block heights are wrong sometimes. It's a hack. We have to retroactively fix existing wallets, but also we have to figure out where we ruin the block heights.
-				}
-				catch (Exception ex) // Whatever this is not critical, but let's log it.
-				{
-					Logger.LogWarning(ex);
-				}
-
 				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
 
 				ChaumianClient.Start();
