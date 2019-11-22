@@ -38,7 +38,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var dir = GetWorkDir();
 			var mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
-			var txFile = Path.Combine(dir, "ConfirmedTransactions", "Transactions.dat");
+			var txFile = Path.Combine(dir, "ConfirmedTransactions", "2", "Transactions.dat");
 			var mempoolContent = await File.ReadAllBytesAsync(mempoolFile);
 			var txContent = await File.ReadAllBytesAsync(txFile);
 
@@ -54,7 +54,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			string dir = PrepareWorkDir();
 			var network = Network.TestNet;
 			var mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
-			var txFile = Path.Combine(dir, "ConfirmedTransactions", "Transactions.dat");
+			var txFile = Path.Combine(dir, "ConfirmedTransactions", "2", "Transactions.dat");
 			IoHelpers.EnsureContainingDirectoryExists(mempoolFile);
 			IoHelpers.EnsureContainingDirectoryExists(txFile);
 
@@ -225,7 +225,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			string dir = PrepareWorkDir();
 			var network = Network.TestNet;
 			var mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
-			var txFile = Path.Combine(dir, "ConfirmedTransactions", "Transactions.dat");
+			var txFile = Path.Combine(dir, "ConfirmedTransactions", "2", "Transactions.dat");
 			IoHelpers.EnsureContainingDirectoryExists(mempoolFile);
 			IoHelpers.EnsureContainingDirectoryExists(txFile);
 
@@ -388,7 +388,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			dir = PrepareWorkDir(caller);
 			network = Network.TestNet;
 			mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
-			txFile = Path.Combine(dir, "ConfirmedTransactions", "Transactions.dat");
+			txFile = Path.Combine(dir, "ConfirmedTransactions", "2", "Transactions.dat");
 			IoHelpers.EnsureContainingDirectoryExists(mempoolFile);
 			IoHelpers.EnsureContainingDirectoryExists(txFile);
 

@@ -15,6 +15,7 @@ namespace WalletWasabi.Blockchain.Transactions
 	{
 		#region Initializers
 
+		private const int ConfirmedTransactionsVersion = 2;
 		private string WorkFolderPath { get; set; }
 		private Network Network { get; set; }
 
@@ -34,7 +35,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				Lock = new object();
 
 				var mempoolWorkFolder = Path.Combine(WorkFolderPath, "Mempool");
-				var confirmedWorkFolder = Path.Combine(WorkFolderPath, "ConfirmedTransactions");
+				var confirmedWorkFolder = Path.Combine(WorkFolderPath, "ConfirmedTransactions", ConfirmedTransactionsVersion.ToString());
 
 				var initTasks = new[]
 				{
