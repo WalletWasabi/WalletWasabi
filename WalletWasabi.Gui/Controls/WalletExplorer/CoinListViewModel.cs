@@ -68,8 +68,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public event EventHandler<CoinViewModel> SelectionChanged;
 
-		public event EventHandler CoinListChanged;
-
 		public event EventHandler<CoinViewModel> CoinStatusChanged;
 
 		public event EventHandler CoinListShown;
@@ -439,36 +437,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Global.UiConfig
 				.WhenAnyValue(x => x.LurkingWifeMode)
+				.Synchronize()
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedAmount)))
 				.DisposeWith(Disposables);
-
-			this.WhenAnyValue(x => x.SelectedAmount)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => IsAnyCoinSelected = x is null ? false : x > Money.Zero);
 
 			Observable
 				.Merge(Observable.FromEventPattern<ReplaceTransactionReceivedEventArgs>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.ReplaceTransactionReceived)).Select(_ => Unit.Default))
 				.Merge(Observable.FromEventPattern<DoubleSpendReceivedEventArgs>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.DoubleSpendReceived)).Select(_ => Unit.Default))
 				.Merge(Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent)).Select(_ => Unit.Default))
 				.Merge(Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived)).Select(_ => Unit.Default))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(args =>
-				{
-					try
-					{
-						OnCoinListChanged();
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
-					}
-				})
-				.DisposeWith(Disposables);
-
-			Observable
-				.Merge(Observable.FromEventPattern(this, nameof(CoinListChanged)).Select(_ => Unit.Default))
-				.Throttle(TimeSpan.FromSeconds(2)) // Throttle TransactionProcessor events adds/removes.
+				.Throttle(TimeSpan.FromSeconds(2), RxApp.MainThreadScheduler) // Throttle TransactionProcessor events adds/removes.
 				.Merge(Observable.FromEventPattern(this, nameof(CoinListShown)).Select(_ => Unit.Default)) // Load the list immediately.
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(args =>
@@ -504,6 +483,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.DisposeWith(Disposables);
 
 			Observable.FromEventPattern<CoinViewModel>(this, nameof(CoinStatusChanged))
+				.Synchronize()
 				.Throttle(TimeSpan.FromSeconds(2))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(args =>
@@ -520,6 +500,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.DisposeWith(Disposables);
 
 			Observable.FromEventPattern<CoinViewModel>(this, nameof(SelectionChanged))
+				.Synchronize()
 				.Throttle(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(args =>
@@ -529,12 +510,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						var coins = RootList.Items.ToArray();
 
 						RefreshSelectionCheckBoxes(coins);
-						SelectedAmount = coins.Where(x => x.IsSelected).Sum(x => x.Amount);
+						var selectedCoins = coins.Where(x => x.IsSelected).ToArray();
+
+						SelectedAmount = selectedCoins.Sum(x => x.Amount);
+						IsAnyCoinSelected = selectedCoins.Any();
+
 						LabelExposeCommonOwnershipWarning = CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel
 							? false
-							: coins.Any(c =>
-								c.AnonymitySet == 1 && c.IsSelected && coins.Any(x =>
-									x.AnonymitySet > 1 && x.IsSelected));
+							: selectedCoins
+								.Where(c => c.AnonymitySet == 1)
+								.Any(x => selectedCoins.Any(x => x.AnonymitySet > 1));
 					}
 					catch (Exception ex)
 					{
@@ -545,6 +530,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Global.Config
 				.WhenAnyValue(x => x.MixUntilAnonymitySet)
+				.Synchronize()
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
@@ -599,22 +585,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void OnCoinIsSelectedChanged(CoinViewModel cvm)
 		{
-			OnSelectionChanged();
+			SelectionChanged?.Invoke(this, null);
 		}
 
 		public void OnCoinStatusChanged(CoinViewModel cvm)
 		{
 			CoinStatusChanged?.Invoke(this, cvm);
-		}
-
-		public void OnCoinListChanged()
-		{
-			CoinListChanged?.Invoke(this, null);
-		}
-
-		public void OnSelectionChanged()
-		{
-			SelectionChanged?.Invoke(this, null);
 		}
 	}
 }
