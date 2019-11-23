@@ -381,6 +381,61 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.False(myReorgedTx2.Confirmed);
 		}
 
+
+		[Fact]
+		public async Task ReorgSameBlockAgainAsync()
+		{
+			const int Blocks = 300;
+			const int TransactionsPerBlock = 3;
+			string dir = PrepareWorkDir();
+
+			var txStore = new AllTransactionStore();
+			var network = Network.Main;
+			await txStore.InitializeAsync(dir, network, ensureBackwardsCompatibility: false);
+
+			foreach(var height in Enumerable.Range(1, Blocks))
+			{
+				var blockHash = RandomUtils.GetUInt256();
+				foreach(var n in Enumerable.Range(0, TransactionsPerBlock))
+				{
+					txStore.AddOrUpdate(CreateTransaction(height, blockHash));
+				}
+			}
+			var storedTxs = txStore.GetTransactions();
+			Assert.Equal(Blocks * TransactionsPerBlock, storedTxs.Count());
+			var newestConfirmedTx = storedTxs.Last();
+			var tipHeight = Blocks;
+			var tipHash = newestConfirmedTx.BlockHash;
+			Assert.Equal(tipHeight, newestConfirmedTx.Height.Value);
+
+			// reorgs non-existing block
+			var reorgedTxs = txStore.TryReorg(RandomUtils.GetUInt256());
+			Assert.Empty(reorgedTxs);
+
+			// reorgs most recent block
+			reorgedTxs = txStore.TryReorg(newestConfirmedTx.BlockHash);
+			Assert.Equal(3, reorgedTxs.Count());
+			Assert.All(reorgedTxs, tx => Assert.False(tx.Confirmed));
+			Assert.All(reorgedTxs, tx => Assert.True(txStore.TryGetTransaction(tx.GetHash(), out _)));
+
+			Assert.False(txStore.TryGetTransaction(tipHash, out _));
+			Assert.DoesNotContain(tipHash, txStore.GetTransactionHashes());
+
+			// reorgs the same block again
+			reorgedTxs = txStore.TryReorg(newestConfirmedTx.BlockHash);
+			Assert.Empty(reorgedTxs);
+			Assert.False(txStore.TryGetTransaction(tipHash, out _));
+			Assert.DoesNotContain(tipHash, txStore.GetTransactionHashes());
+
+			// reorgs deep block
+			var oldestConfirmedTx = storedTxs.First();
+			var firstBlockHash = oldestConfirmedTx.BlockHash;
+
+			// What to do here
+			reorgedTxs = txStore.TryReorg(firstBlockHash);
+			//Assert.Empty(reorgedTxs);
+		}
+
 		#region Helpers
 
 		private void PrepareTestEnv(out string dir, out Network network, out string mempoolFile, out string txFile, out SmartTransaction uTx1, out SmartTransaction uTx2, out SmartTransaction uTx3, out SmartTransaction cTx1, out SmartTransaction cTx2, out SmartTransaction cTx3, [CallerMemberName] string caller = null)
@@ -430,6 +485,16 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			{
 				yield return new object[] { network };
 			}
+		}
+
+		private static SmartTransaction CreateTransaction(int height, uint256 blockHash)
+		{
+			var tx = Network.RegTest.CreateTransaction();
+			tx.Version = 1;
+			tx.LockTime = LockTime.Zero;
+			tx.Inputs.Add(new OutPoint(RandomUtils.GetUInt256(), 0), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
+			tx.Outputs.Add(Money.Coins(1), Script.Empty);
+			return new SmartTransaction(tx, new Height(height), blockHash);
 		}
 
 		#endregion Helpers
