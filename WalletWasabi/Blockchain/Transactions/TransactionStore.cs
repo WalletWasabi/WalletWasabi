@@ -33,7 +33,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				Transactions = new Dictionary<uint256, SmartTransaction>();
 				TransactionsLock = new object();
 
-				var fileName = Path.Combine(WorkFolderPath, $"Transactions.dat");
+				var fileName = Path.Combine(WorkFolderPath, "Transactions.dat");
 				var transactionsFilePath = Path.Combine(WorkFolderPath, fileName);
 				TransactionsFileManager = new MutexIoManager(transactionsFilePath);
 
