@@ -219,9 +219,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _isCoinListLoading, value);
 		}
 
-		private bool? GetCheckBoxesSelectedState(Func<CoinViewModel, bool> coinFilterPredicate)
+		private bool? GetCheckBoxesSelectedState(CoinViewModel[] allCoins, Func<CoinViewModel, bool> coinFilterPredicate)
 		{
-			var coins = Coins.Where(coinFilterPredicate).ToArray();
+			var coins = allCoins.Where(coinFilterPredicate).ToArray();
 
 			bool isAllSelected = coins.All(coin => coin.IsSelected);
 			bool isAllDeselected = coins.All(coin => !coin.IsSelected);
@@ -233,7 +233,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (isAllSelected)
 			{
-				if (coins.Length != Coins.Count(coin => coin.IsSelected))
+				if (coins.Length != allCoins.Count(coin => coin.IsSelected))
 				{
 					return null;
 				}
@@ -278,8 +278,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Sort(MyComparer, comparerChanged: sortChanged, resetThreshold: 5)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(out _coinViewModels)
-				// .OnItemAdded() Do not use this, brings instability on OSX
-				// .OnItemRemoved() Do not use this, brings instability on OSX
 				.Subscribe();
 
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);
@@ -419,16 +417,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			OnOpen();
 		}
 
-		private void RefreshSelectionCheckBoxes()
+		private void RefreshSelectionCheckBoxes(CoinViewModel[] coins)
 		{
-			SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
-			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
-			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+			SelectAllCheckBoxState = GetCheckBoxesSelectedState(coins, x => true);
+			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(coins, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(coins, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
 		}
 
-		private void RefreshStatusColumnWidth()
+		private void RefreshStatusColumnWidth(CoinViewModel[] coins)
 		{
-			CoinJoinStatusWidth = Coins.Any() && Coins.All(x => NotVisibleStatuses.Contains(x.Status))
+			CoinJoinStatusWidth = coins.Any() && coins.All(x => NotVisibleStatuses.Contains(x.Status))
 										 ? new GridLength(0)
 										 : new GridLength(180);
 		}
@@ -489,9 +487,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 						RootList.RemoveMany(coinToRemove.Select(kp => kp.Value));
 						RootList.AddRange(coinToAdd.Select(c => new CoinViewModel(this, c)));
+						var coins = RootList.Items.ToArray();
 
-						RefreshSelectionCheckBoxes();
-						RefreshStatusColumnWidth();
+						RefreshSelectionCheckBoxes(coins);
+						RefreshStatusColumnWidth(coins);
 					}
 					catch (Exception ex)
 					{
@@ -505,13 +504,37 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.DisposeWith(Disposables);
 
 			Observable.FromEventPattern<CoinViewModel>(this, nameof(CoinStatusChanged))
+				.Throttle(TimeSpan.FromSeconds(2))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(args =>
+				{
+					try
+					{
+						RefreshStatusColumnWidth(RootList.Items.ToArray());
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+					}
+				})
+				.DisposeWith(Disposables);
+
+			Observable.FromEventPattern<CoinViewModel>(this, nameof(SelectionChanged))
 				.Throttle(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(args =>
 				{
 					try
 					{
-						RefreshStatusColumnWidth();
+						var coins = RootList.Items.ToArray();
+
+						RefreshSelectionCheckBoxes(coins);
+						SelectedAmount = coins.Where(x => x.IsSelected).Sum(x => x.Amount);
+						LabelExposeCommonOwnershipWarning = CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel
+							? false
+							: coins.Any(c =>
+								c.AnonymitySet == 1 && c.IsSelected && coins.Any(x =>
+									x.AnonymitySet > 1 && x.IsSelected));
 					}
 					catch (Exception ex)
 					{
@@ -528,6 +551,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					try
 					{
 						RefreshSelectCheckBoxesShields(x);
+						RefreshSelectionCheckBoxes(RootList.Items.ToArray());
 					}
 					catch (Exception ex)
 					{
@@ -557,8 +581,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					isFinePrivate,
 					isStrongPrivate
 					);
-
-			RefreshSelectionCheckBoxes();
 		}
 
 		public void OnClose()
@@ -577,15 +599,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void OnCoinIsSelectedChanged(CoinViewModel cvm)
 		{
-			RefreshSelectionCheckBoxes();
-
-			SelectionChanged?.Invoke(this, cvm);
-			SelectedAmount = Coins.Where(x => x.IsSelected).Sum(x => x.Amount);
-			LabelExposeCommonOwnershipWarning = CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel
-				? false
-				: Coins.Any(c =>
-					c.AnonymitySet == 1 && c.IsSelected && Coins.Any(x =>
-						x.AnonymitySet > 1 && x.IsSelected));
+			OnSelectionChanged();
 		}
 
 		public void OnCoinStatusChanged(CoinViewModel cvm)
@@ -596,6 +610,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public void OnCoinListChanged()
 		{
 			CoinListChanged?.Invoke(this, null);
+		}
+
+		public void OnSelectionChanged()
+		{
+			SelectionChanged?.Invoke(this, null);
 		}
 	}
 }
