@@ -87,7 +87,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(new uint256(3), headersChain.TipHash);
 			Assert.Equal(startingFilter.Header.Height + 2u, headersChain.TipHeight);
 
-			// Check if the matureIndex is deleted
+			// Check if the immatureIndex is deleted
 			Assert.False(File.Exists(immatureFilters));
 		}
 
