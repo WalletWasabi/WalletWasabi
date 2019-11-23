@@ -119,7 +119,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 				.SetP(20);
 
 			builder.AddEntries(scripts);
-			return new FilterModel(new SmartHeader(new uint256(blockHash), uint256.One, 0, DateTimeOffset.UtcNow), builder.Build());
+			return new FilterModel(
+				new SmartHeader(new uint256(blockHash), uint256.One, 0, DateTimeOffset.UtcNow),
+				builder.Build());
 		}
 
 		private byte[][] GetScripts(bool isInternal, int offset, int count)
