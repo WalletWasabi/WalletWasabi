@@ -19,6 +19,7 @@ using WalletWasabi.Models;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.Gui.Helpers;
+using System.Security;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -185,7 +186,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				if (!selectedCoins.Any())
 				{
-					NotificationHelpers.Warning("No coins are selected to dequeue.");
+					NotificationHelpers.Error("No coins are selected to dequeue.");
 					return;
 				}
 
@@ -220,7 +221,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				if (!selectedCoins.Any())
 				{
-					NotificationHelpers.Warning("No coins are selected to enqueue.");
+					NotificationHelpers.Error("No coins are selected to enqueue.");
 					return;
 				}
 				try
@@ -235,6 +236,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					await Global.ChaumianClient.QueueCoinsToMixAsync(Password, selectedCoins.Select(c => c.Model).ToArray());
 				}
+				catch (SecurityException ex)
+				{
+					NotificationHelpers.Error(ex.Message);
+				}
 				catch (Exception ex)
 				{
 					Logger.LogWarning(ex);
@@ -246,7 +251,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							builder.Append(Environment.NewLine + iex.ToTypeMessageString());
 						}
 					}
-					NotificationHelpers.Warning(builder.ToString());
+					NotificationHelpers.Error(builder.ToString());
 				}
 
 				Password = string.Empty;
