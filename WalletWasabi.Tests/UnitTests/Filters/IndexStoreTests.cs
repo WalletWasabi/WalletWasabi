@@ -14,7 +14,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Stores;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests
+namespace WalletWasabi.Tests.UnitTests.Filters
 {
 	public class IndexStoreTests
 	{
