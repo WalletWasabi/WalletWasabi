@@ -111,7 +111,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 		public void DummyFilterMatchesToFalse()
 		{
 			byte[][] DummyScript  = new byte[][] { ByteHelpers.FromHex("0009BBE4C2D17185643765C265819BF5261755247D") };
-			var blockHash = RandomUtils.GetBytes(32);
+
+			var rnd = new Random(123456);
+			var blockHash = new byte[32];
+			rnd.NextBytes(blockHash);
 
 			var filter = new GolombRiceFilterBuilder()
 								.SetKey(new uint256(blockHash))
@@ -120,7 +123,11 @@ namespace WalletWasabi.Tests.IntegrationTests
 								.AddEntries(DummyScript)
 								.Build();
 		
-			var scriptPubKeys = Enumerable.Range(0, 1000).Select(x => RandomUtils.GetBytes(20));
+			var scriptPubKeys = Enumerable.Range(0, 1000).Select(x => {
+				var buffer = new byte[20];
+				rnd.NextBytes(buffer);
+				return buffer;
+			});
 			var key = blockHash[0..16];
 			Assert.False(filter.MatchAny(scriptPubKeys, key));
 			Assert.True( filter.MatchAny(DummyScript, key));
