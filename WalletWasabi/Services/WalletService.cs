@@ -339,7 +339,20 @@ namespace WalletWasabi.Services
 			}
 
 			Block currentBlock = await FetchBlockAsync(filterModel.Header.BlockHash, cancel); // Wait until not downloaded.
-			ProcessBlock((int)filterModel.Header.Height, currentBlock);
+			var height = new Height(filterModel.Header.Height);
+
+			lock (TransactionProcessor.Lock)
+			{
+				for (int i = 0; i < currentBlock.Transactions.Count; i++)
+				{
+					Transaction tx = currentBlock.Transactions[i];
+					TransactionProcessor.Process(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime));
+				}
+
+				KeyManager.SetBestHeight(height);
+			}
+
+			NewBlockProcessed?.Invoke(this, currentBlock);
 		}
 
 		public HdPubKey GetReceiveKey(SmartLabel label, IEnumerable<HdPubKey> dontTouch = null)
@@ -363,33 +376,6 @@ namespace WalletWasabi.Services
 			ret.SetLabel(label, KeyManager);
 
 			return ret;
-		}
-
-		private void ProcessBlock(Height height, Block block, IEnumerable<int> filterByTxIndexes = null, IEnumerable<SmartTransaction> skeletonBlock = null)
-		{
-			lock (TransactionProcessor.Lock)
-			{
-				if (filterByTxIndexes is null)
-				{
-					for (int i = 0; i < block.Transactions.Count; i++)
-					{
-						Transaction tx = block.Transactions[i];
-						TransactionProcessor.Process(new SmartTransaction(tx, height, block.GetHash(), i, firstSeen: block.Header.BlockTime));
-					}
-
-					KeyManager.SetBestHeight(height);
-				}
-				else
-				{
-					foreach (var i in filterByTxIndexes.OrderBy(x => x))
-					{
-						var tx = skeletonBlock?.FirstOrDefault(x => x.BlockIndex == i) ?? new SmartTransaction(block.Transactions[i], height, block.GetHash(), i);
-						TransactionProcessor.Process(tx);
-					}
-				}
-			}
-
-			NewBlockProcessed?.Invoke(this, block);
 		}
 
 		private Node _localBitcoinCoreNode = null;
