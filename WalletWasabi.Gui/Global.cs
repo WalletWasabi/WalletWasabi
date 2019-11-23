@@ -29,7 +29,6 @@ using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.TorSocks5;
-using Utils = NBitcoin.Utils;
 
 namespace WalletWasabi.Gui
 {
@@ -434,7 +433,7 @@ namespace WalletWasabi.Gui
 			onions.Shuffle();
 			foreach (var onion in onions.Take(60))
 			{
-				if (Utils.TryParseEndpoint(onion, Network.DefaultPort, out var endpoint))
+				if (EndPointParser.TryParse(onion, Network.DefaultPort, out var endpoint))
 				{
 					await addressManager.AddAsync(endpoint);
 				}
