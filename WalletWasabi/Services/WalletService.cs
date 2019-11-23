@@ -196,7 +196,7 @@ namespace WalletWasabi.Services
 					await DeleteBlockAsync(invalidBlockHash);
 					KeyManager.SetMaxBestHeight(new Height(invalidFilter.Header.Height - 1));
 					TransactionProcessor.UndoBlock((int)invalidFilter.Header.Height);
-					BitcoinStore.TransactionStore.TryReorg(invalidBlockHash);
+					BitcoinStore.TransactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
 				}
 			}
 			catch (Exception ex)

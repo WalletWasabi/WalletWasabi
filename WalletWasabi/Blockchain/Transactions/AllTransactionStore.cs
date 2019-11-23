@@ -230,14 +230,14 @@ namespace WalletWasabi.Blockchain.Transactions
 			}
 		}
 
-		public IEnumerable<SmartTransaction> TryReorg(uint256 invalidBlockHash)
+		public IEnumerable<SmartTransaction> ReleaseToMempoolFromBlock(uint256 blockHash)
 		{
 			lock (Lock)
 			{
 				List<SmartTransaction> reorgedTxs = new List<SmartTransaction>();
 				foreach (var txHash in ConfirmedStore
 					.GetTransactions()
-					.Where(tx => tx.BlockHash == invalidBlockHash)
+					.Where(tx => tx.BlockHash == blockHash)
 					.Select(tx => tx.GetHash()))
 				{
 					if (ConfirmedStore.TryRemove(txHash, out SmartTransaction removedTx))
