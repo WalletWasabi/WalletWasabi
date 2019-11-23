@@ -151,7 +151,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			Assert.True(File.Exists(matureFilters));   // mature filters are ok
 
-			var nonMatchingBlockHashFilter =	new FilterModel(new SmartHeader(new uint256(2), new uint256(1), 1, MinutesAgo(30)), dummyFilter);
+			var nonMatchingBlockHashFilter = new FilterModel(new SmartHeader(new uint256(2), new uint256(1), 1, MinutesAgo(30)), dummyFilter);
 			await indexStore.AddNewFiltersAsync(new[]{ nonMatchingBlockHashFilter }, CancellationToken.None);
 			Assert.Equal(new uint256(3), headersChain.TipHash);  // the filter is nor added!
 			Assert.Equal(2u, headersChain.TipHeight);
