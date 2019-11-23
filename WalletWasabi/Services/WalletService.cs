@@ -320,10 +320,13 @@ namespace WalletWasabi.Services
 			}
 			catch (Exception ex)
 			{
-				// When there's a connection failure do not clean the transactions, add them to processing.
-				foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
+				lock (TransactionProcessor.Lock)
 				{
-					TransactionProcessor.Process(tx);
+					// When there's a connection failure do not clean the transactions, add them to processing.
+					foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
+					{
+						TransactionProcessor.Process(tx);
+					}
 				}
 
 				Logger.LogWarning(ex);
