@@ -158,7 +158,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			var nonMatchingHeightFilter = new FilterModel(new SmartHeader(new uint256(4), new uint256(3), 37, MinutesAgo(1)), dummyFilter);
 			await indexStore.AddNewFiltersAsync(new[]{ nonMatchingHeightFilter }, CancellationToken.None);
-			Assert.Equal(new uint256(3), headersChain.TipHash);  // the filter is nor added!
+			Assert.Equal(new uint256(3), headersChain.TipHash); // the filter is not added!
 			Assert.Equal(2u, headersChain.TipHeight);
 
 			var correctFilter = new FilterModel(new SmartHeader(new uint256(4), new uint256(3), 3, MinutesAgo(1)), dummyFilter);
