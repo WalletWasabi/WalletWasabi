@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
@@ -22,7 +23,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _password;
 		private string _walletName;
 		private bool _termsAccepted;
-		private string _validationMessage;
 		public WalletManagerViewModel Owner { get; }
 		public Global Global => Owner.Global;
 
@@ -44,7 +44,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			if (!ValidateWalletName(WalletName))
 			{
-				ValidationMessage = $"The name {WalletName} is not valid.";
+				NotificationHelpers.Error("Invalid wallet name.");
 				return;
 			}
 
@@ -52,15 +52,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			if (!TermsAccepted)
 			{
-				ValidationMessage = "Terms are not accepted.";
+				NotificationHelpers.Error("Terms are not accepted.");
 			}
 			else if (string.IsNullOrWhiteSpace(WalletName))
 			{
-				ValidationMessage = $"The name {WalletName} is not valid.";
+				NotificationHelpers.Error("Invalid wallet name.");
 			}
 			else if (File.Exists(walletFilePath))
 			{
-				ValidationMessage = $"The name {WalletName} is already taken.";
+				NotificationHelpers.Error("Wallet name is already taken.");
 			}
 			else
 			{
@@ -70,11 +70,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 					KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
 
+					NotificationHelpers.Success("Wallet is successfully generated!");
+
 					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, mnemonic);
 				}
 				catch (Exception ex)
 				{
-					ValidationMessage = ex.ToTypeMessageString();
+					NotificationHelpers.Error(ex.ToTypeMessageString());
 					Logger.LogError(ex);
 				}
 			}
@@ -133,12 +135,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _termsAccepted, value);
 		}
 
-		public string ValidationMessage
-		{
-			get => _validationMessage;
-			set => this.RaiseAndSetIfChanged(ref _validationMessage, value);
-		}
-
 		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
 
 		public void OnTermsClicked()
@@ -163,7 +159,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			Password = "";
 			WalletName = Global.GetNextWalletName();
 			TermsAccepted = false;
-			ValidationMessage = "";
 		}
 	}
 }
