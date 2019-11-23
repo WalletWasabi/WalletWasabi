@@ -93,9 +93,9 @@ namespace WalletWasabi.Blockchain.Blocks
 		private void SetTip(SmartHeader header)
 		{
 			Tip = header;
-			TipHeight = header.Height;
-			TipHash = header.BlockHash;
-			HashCount = Chain.Count;
+			TipHeight = header?.Height ?? default;
+			TipHash = header?.BlockHash;
+			HashCount = Chain?.Count ?? default;
 			SetHashesLeft();
 		}
 
@@ -110,9 +110,16 @@ namespace WalletWasabi.Blockchain.Blocks
 			{
 				if (Chain.Any())
 				{
-					Chain.Remove(Chain.Keys.Max());
-					var last = Chain.Last();
-					SetTip(last.Value);
+					Chain.Remove(Chain.Last().Key);
+					if (Chain.Any())
+					{
+						var newLast = Chain.Last();
+						SetTip(newLast.Value);
+					}
+					else
+					{
+						SetTip(null);
+					}
 				}
 			}
 		}
