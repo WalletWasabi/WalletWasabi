@@ -14,6 +14,7 @@ using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
@@ -142,7 +143,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (Exception ex)
 				{
-					SetWarningMessage(ex.ToTypeMessageString());
+					NotificationHelpers.Error(ex.ToTypeMessageString());
 					Logger.LogError(ex);
 				}
 			},
@@ -155,7 +156,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void OnException(Exception ex)
 		{
-			SetWarningMessage(ex.ToTypeMessageString());
+			NotificationHelpers.Error(ex.ToTypeMessageString());
 		}
 
 		public override void OnOpen()
@@ -201,12 +202,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
 				await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(transaction));
 
-				SetSuccessMessage("Transaction is successfully sent!");
+				NotificationHelpers.Success("Transaction is successfully sent!");
 				TransactionString = "";
 			}
 			catch (PSBTException ex)
 			{
-				SetWarningMessage($"The PSBT cannot be finalized: {ex.Errors.FirstOrDefault()}");
+				NotificationHelpers.Error($"The PSBT cannot be finalized: {ex.Errors.FirstOrDefault()}");
 			}
 			catch (Exception ex)
 			{

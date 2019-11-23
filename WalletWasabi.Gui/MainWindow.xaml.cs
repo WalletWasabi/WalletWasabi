@@ -1,14 +1,17 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Notifications;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Native;
+using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Extensibility.Theme;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Controls;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.ComponentModel;
 using System.Composition;
@@ -20,6 +23,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Dialogs;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
@@ -36,6 +40,15 @@ namespace WalletWasabi.Gui
 #if DEBUG
 			this.AttachDevTools();
 #endif
+
+			var notificationManager = new WindowNotificationManager(this)
+			{
+				Position = NotificationPosition.BottomRight,
+				MaxItems = 4,
+				Margin = new Thickness(0, 0, 15, 40)
+			};
+
+			Locator.CurrentMutable.RegisterConstant<INotificationManager>(notificationManager);
 		}
 
 		public Global Global => MainWindowViewModel.Instance.Global;
