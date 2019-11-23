@@ -20,46 +20,13 @@
       </Style>
     </controls:GroupBox.Styles>
     <Grid Classes="content">
-      <DockPanel LastChildFill="True">
-        <StackPanel DockPanel.Dock="Bottom">
-          <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
-          <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
-        </StackPanel>
         <Grid RowDefinitions="Auto,*" DockPanel.Dock="Top">
           <DockPanel LastChildFill="True">
             <Grid ColumnDefinitions="*,300" DockPanel.Dock="Top" Margin="0 0 0 10">
-              <StackPanel Spacing="8">
-                <controls:ExtendedTextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label (Required)" CaretIndex="{Binding CaretIndex}" UseFloatingWatermark="True" Grid.Column="0" Margin="0 0 10 0">
-                  <i:Interaction.Behaviors>
-                    <behaviors:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />
-                    <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
-                    <behaviors:FocusBehavior IsFocused="{Binding IsSelected}" />
-                    <iac:FocusOnAttachedToVisualTreeBehavior />
-                  </i:Interaction.Behaviors>
-                  <ToolTip.Tip>Who knows this address is yours? E.g.: "Max, BitPay"</ToolTip.Tip>
-                </controls:ExtendedTextBox>
-                <ItemsControl Items="{Binding Suggestions}">
-                  <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                      <StackPanel Orientation="Horizontal" Spacing="2" />
-                    </ItemsPanelTemplate>
-                  </ItemsControl.ItemsPanel>
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                      <Button Focusable="False" Content="{Binding Word}" Command="{Binding OnSelected}" IsPressed="{Binding IsHighLighted}" />
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-              </StackPanel>
+              <controls:SuggestLabelView DataContext="{Binding LabelSuggestion}">
+                <ToolTip.Tip>Who knows this address is yours? E.g.: "Max, BitPay"</ToolTip.Tip>
+              </controls:SuggestLabelView>
               <Button Content="Generate Receive Address" Command="{Binding GenerateCommand}" VerticalAlignment="Top" Grid.Column="1" />
-            </Grid>
-            <Grid IsVisible="{Binding LabelRequiredNotificationVisible}">
-              <Grid Opacity="{Binding LabelRequiredNotificationOpacity}">
-                <Grid.Transitions>
-                  <DoubleTransition Property="Opacity" Easing="CircularEaseIn" Duration="0:0:0.5" />
-                </Grid.Transitions>
-                <TextBlock Classes="warningMessage" Text="Label Is Required!" VerticalAlignment="Center" HorizontalAlignment="Center" />
-              </Grid>
             </Grid>
           </DockPanel>
           <Grid ColumnDefinitions="300, *, 50" Margin="5 10 5 0" Grid.Row="1">
@@ -137,7 +104,6 @@
             </controls:ExtendedListBox.ItemTemplate>
           </controls:ExtendedListBox>
         </Grid>
-      </DockPanel>
     </Grid>
   </controls:GroupBox>
 </UserControl>

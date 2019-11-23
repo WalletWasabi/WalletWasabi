@@ -11,6 +11,7 @@ using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 using WalletWasabi.Models;
+using WalletWasabi.Gui.Helpers;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -28,7 +29,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public WalletInfoViewModel(WalletViewModel walletViewModel) : base(walletViewModel.Name, walletViewModel)
 		{
 			ClearSensitiveData(true);
-			SetWarningMessage("");
 
 			ToggleSensitiveKeysCommand = ReactiveCommand.Create(() =>
 				{
@@ -45,7 +45,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 							if (isCompatibilityPasswordUsed != null)
 							{
-								SetWarningMessage(PasswordHelper.CompatibilityPasswordWarnMessage);
+								NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
 							}
 
 							string master = secret.GetWif(Global.Network).ToWif();
@@ -57,7 +57,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					catch (Exception ex)
 					{
-						SetWarningMessage(ex.ToTypeMessageString());
+						NotificationHelpers.Error(ex.ToTypeMessageString());
 					}
 				});
 		}

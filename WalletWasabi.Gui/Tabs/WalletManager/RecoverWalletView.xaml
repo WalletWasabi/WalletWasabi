@@ -54,6 +54,5 @@
       <Button Content="Recover" Command="{Binding RecoverCommand}" DockPanel.Dock="Right" />
       <Grid></Grid>
     </DockPanel>
-    <TextBlock Text="{Binding ValidationMessage}" Classes="errorMessage" />
   </StackPanel>
 </UserControl>
