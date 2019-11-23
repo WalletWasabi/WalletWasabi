@@ -163,7 +163,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			var correctFilter = new FilterModel(new SmartHeader(new uint256(4), new uint256(3), 3, MinutesAgo(1)), dummyFilter);
 			await indexStore.AddNewFiltersAsync(new[]{ correctFilter }, CancellationToken.None);
-			Assert.Equal(new uint256(4), headersChain.TipHash);  // the filter is nor added!
+			Assert.Equal(new uint256(4), headersChain.TipHash); // the filter is not added!
 			Assert.Equal(3u, headersChain.TipHeight);
 		}
 
