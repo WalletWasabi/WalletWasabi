@@ -10,13 +10,8 @@ using System.Text;
 
 namespace WalletWasabi.Gui.Controls
 {
-	public class GroupBox : ContentControl, IStyleable
+	public class GroupBox : ContentControl
 	{
-		private ContentPresenter _titlePresenter;
-		private Border _border;
-
-		Type IStyleable.StyleKey => typeof(GroupBox);
-
 		public static readonly StyledProperty<object> TitleProperty =
 			AvaloniaProperty.Register<GroupBox, object>(nameof(Title));
 
@@ -24,25 +19,6 @@ namespace WalletWasabi.Gui.Controls
 		{
 			get => GetValue(TitleProperty);
 			set => SetValue(TitleProperty, value);
-		}
-
-		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
-		{
-			base.OnTemplateApplied(e);
-
-			_titlePresenter = e.NameScope.Find<ContentPresenter>("PART_TitlePresenter");
-
-			_border = e.NameScope.Find<Border>("PART_Border");
-		}
-
-		protected override Size ArrangeOverride(Size finalSize)
-		{
-			_border.Margin = new Thickness(0, -(_titlePresenter.DesiredSize.Height / 3), 0, 0);
-			_border.Padding = new Thickness(0, (_titlePresenter.DesiredSize.Height / 3), 0, 0);
-
-			_titlePresenter.Margin = new Thickness(Padding.Left, 0, 0, 0);
-
-			return base.ArrangeOverride(finalSize);
 		}
 	}
 }
