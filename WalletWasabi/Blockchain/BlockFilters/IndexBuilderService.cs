@@ -25,11 +25,11 @@ namespace WalletWasabi.Blockchain.BlockFilters
 		public static GolombRiceFilter CreateDummyEmptyFilter(uint256 blockHash)
 		{
 			return new GolombRiceFilterBuilder()
-								.SetKey(blockHash)
-								.SetP(20)
-								.SetM(1 << 20)
-								.AddEntries(DummyScript)
-								.Build();
+				.SetKey(blockHash)
+				.SetP(20)
+				.SetM(1 << 20)
+				.AddEntries(DummyScript)
+				.Build();
 		}
 
 		public RPCClient RpcClient { get; }
