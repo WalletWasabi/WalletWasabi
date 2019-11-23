@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -152,24 +153,24 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.True(File.Exists(matureFilters)); // mature filters are ok
 
 			var nonMatchingBlockHashFilter = new FilterModel(new SmartHeader(new uint256(2), new uint256(1), 1, MinutesAgo(30)), dummyFilter);
-			await indexStore.AddNewFiltersAsync(new[]{ nonMatchingBlockHashFilter }, CancellationToken.None);
+			await indexStore.AddNewFiltersAsync(new[] { nonMatchingBlockHashFilter }, CancellationToken.None);
 			Assert.Equal(new uint256(3), headersChain.TipHash); // the filter is not added!
 			Assert.Equal(2u, headersChain.TipHeight);
 
 			var nonMatchingHeightFilter = new FilterModel(new SmartHeader(new uint256(4), new uint256(3), 37, MinutesAgo(1)), dummyFilter);
-			await indexStore.AddNewFiltersAsync(new[]{ nonMatchingHeightFilter }, CancellationToken.None);
+			await indexStore.AddNewFiltersAsync(new[] { nonMatchingHeightFilter }, CancellationToken.None);
 			Assert.Equal(new uint256(3), headersChain.TipHash); // the filter is not added!
 			Assert.Equal(2u, headersChain.TipHeight);
 
 			var correctFilter = new FilterModel(new SmartHeader(new uint256(4), new uint256(3), 3, MinutesAgo(1)), dummyFilter);
-			await indexStore.AddNewFiltersAsync(new[]{ correctFilter }, CancellationToken.None);
+			await indexStore.AddNewFiltersAsync(new[] { correctFilter }, CancellationToken.None);
 			Assert.Equal(new uint256(4), headersChain.TipHash); // the filter is not added!
 			Assert.Equal(3u, headersChain.TipHeight);
 		}
 
-		private async Task<(string, string, string)> GetIndexStorePathsAsync()
+		private async Task<(string, string, string)> GetIndexStorePathsAsync([CallerMemberName] string callerName = "")
 		{
-			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName(), "IndexStore");
+			var dir = Path.Combine(Global.Instance.DataDir, callerName, "IndexStore");
 			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir);
 			var matureFilters = Path.Combine(dir, "MatureIndex.dat");
 			var immatureFilters = Path.Combine(dir, "ImmatureIndex.dat");
