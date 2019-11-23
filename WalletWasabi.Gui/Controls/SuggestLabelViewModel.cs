@@ -23,11 +23,12 @@ namespace WalletWasabi.Gui.Controls
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 
 			this.WhenAnyValue(x => x.Label)
+				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(UpdateSuggestions);
 		}
 
-		public void Reset ()
+		public void Reset()
 		{
 			Suggestions = new ObservableCollection<SuggestionViewModel>();
 
