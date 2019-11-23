@@ -44,9 +44,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private bool _isWalletOpened;
 		private bool _canLoadWallet;
 		private bool _canTestPassword;
-		private string _warningMessage;
-		private string _validationMessage;
-		private string _successMessage;
 		private bool _isBusy;
 		private bool _isHardwareBusy;
 		private string _loadButtonText;
@@ -302,6 +299,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 
 			TrySetWalletStates();
+
+			if (!CanLoadWallet)
+			{
+				NotificationHelpers.Warning("There is already an open wallet. Restart the application in order to open a different one.");
+			}
 		}
 
 		private bool TrySetWalletStates()
@@ -329,7 +331,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					IsWalletOpened = true;
 					CanLoadWallet = false;
-					NotificationHelpers.Warning("There is already an open wallet. Restart the application in order to open a different one.");
 				}
 
 				SetLoadButtonText();
