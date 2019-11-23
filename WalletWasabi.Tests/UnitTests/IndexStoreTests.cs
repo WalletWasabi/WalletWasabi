@@ -61,7 +61,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task InconsistentImatureIndexAsync()
+		public async Task InconsistentImmatureIndexAsync()
 		{
 			var (dir, _, immatureFilters) = await GetIndexStorePathsAsync();
 
@@ -87,7 +87,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(new uint256(3), headersChain.TipHash);
 			Assert.Equal(startingFilter.Header.Height + 2u, headersChain.TipHeight);
 
-			// Check if the matureIndex is deleted
+			// Check if the immatureIndex is deleted
 			Assert.False(File.Exists(immatureFilters));
 		}
 
@@ -149,21 +149,21 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(new uint256(3), headersChain.TipHash);
 			Assert.Equal(2u, headersChain.TipHeight);
 
-			Assert.True(File.Exists(matureFilters));   // mature filters are ok
+			Assert.True(File.Exists(matureFilters)); // mature filters are ok
 
-			var nonMatchingBlockHashFilter =	new FilterModel(new SmartHeader(new uint256(2), new uint256(1), 1, MinutesAgo(30)), dummyFilter);
+			var nonMatchingBlockHashFilter = new FilterModel(new SmartHeader(new uint256(2), new uint256(1), 1, MinutesAgo(30)), dummyFilter);
 			await indexStore.AddNewFiltersAsync(new[]{ nonMatchingBlockHashFilter }, CancellationToken.None);
-			Assert.Equal(new uint256(3), headersChain.TipHash);  // the filter is nor added!
+			Assert.Equal(new uint256(3), headersChain.TipHash); // the filter is not added!
 			Assert.Equal(2u, headersChain.TipHeight);
 
 			var nonMatchingHeightFilter = new FilterModel(new SmartHeader(new uint256(4), new uint256(3), 37, MinutesAgo(1)), dummyFilter);
 			await indexStore.AddNewFiltersAsync(new[]{ nonMatchingHeightFilter }, CancellationToken.None);
-			Assert.Equal(new uint256(3), headersChain.TipHash);  // the filter is nor added!
+			Assert.Equal(new uint256(3), headersChain.TipHash); // the filter is not added!
 			Assert.Equal(2u, headersChain.TipHeight);
 
 			var correctFilter = new FilterModel(new SmartHeader(new uint256(4), new uint256(3), 3, MinutesAgo(1)), dummyFilter);
 			await indexStore.AddNewFiltersAsync(new[]{ correctFilter }, CancellationToken.None);
-			Assert.Equal(new uint256(4), headersChain.TipHash);  // the filter is nor added!
+			Assert.Equal(new uint256(4), headersChain.TipHash); // the filter is not added!
 			Assert.Equal(3u, headersChain.TipHeight);
 		}
 
