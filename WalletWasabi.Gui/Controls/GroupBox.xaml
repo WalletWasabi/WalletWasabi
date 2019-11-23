@@ -1,21 +1,21 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui" 
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
   xmlns:local="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+  <!-- This source file contains a derivative code from the Windows Presentation Foundation project (https://github.com/dotnet/wpf/). Derivative use with attribution is permitted under the terms of MIT License, courtesy of the .NET Foundation. -->
   <Style Selector="local|GroupBox">
     <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderLowBrush}" />
-    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderThickness" Value="1"/>
     <Setter Property="Template">
-      <ControlTemplate>
-        <Grid UseLayoutRounding="True" ColumnDefinitions="6,Auto,*,6" RowDefinitions="Auto,Auto,*,6">
-          <Border CornerRadius="4" Grid.Row="1" Grid.RowSpan="3" Grid.Column="0" Grid.ColumnSpan="4" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="Transparent" Background="{TemplateBinding Background}" />
-          <Border CornerRadius="4" Grid.Row="1" Grid.RowSpan="3" Grid.ColumnSpan="4" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" />
-          <Border x:Name="Header" Padding="3,0,3,0" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1">
-            <ContentPresenter Content="{TemplateBinding Title}" />
-          </Border>
-          <ContentPresenter Content="{TemplateBinding Content}" /> 
-        </Grid>
-      </ControlTemplate>
+      <Setter.Value>
+        <ControlTemplate>
+          <Grid ColumnDefinitions="6,Auto,*,6" RowDefinitions="Auto,Auto,*,6">
+            <Border Grid.Row="1" Grid.RowSpan="3" Grid.ColumnSpan="4" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" />
+            <ContentPresenter Padding="3" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Background="{TemplateBinding Background}" Content="{TemplateBinding Title}" />
+            <ContentPresenter Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="{TemplateBinding Padding}" Content="{TemplateBinding Content}" />
+          </Grid>
+        </ControlTemplate>
+      </Setter.Value>
     </Setter>
   </Style>
 </Styles>
