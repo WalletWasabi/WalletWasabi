@@ -1,6 +1,6 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui" 
-  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
-  xmlns:local="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+        xmlns:local="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
   <!-- This source file contains a derivative code from the Windows Presentation Foundation project (https://github.com/dotnet/wpf/). Derivative use with attribution is permitted under the terms of MIT License, courtesy of the .NET Foundation. -->
   <Style Selector="local|GroupBox">
     <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
