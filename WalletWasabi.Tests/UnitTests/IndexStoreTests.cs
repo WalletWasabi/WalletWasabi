@@ -61,7 +61,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task InconsistentImatureIndexAsync()
+		public async Task InconsistentImmatureIndexAsync()
 		{
 			var (dir, _, immatureFilters) = await GetIndexStorePathsAsync();
 
