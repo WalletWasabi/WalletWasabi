@@ -396,11 +396,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				});
 
+			// This will be triggered after the Tab became visible for the user.
 			InitList = ReactiveCommand.CreateFromTask(async () =>
 			{
-				IsCoinListLoading = true;
-				await Task.Delay(800);
-				CoinListShown?.Invoke(this, null);
+				IsCoinListLoading = true; // Set the Loading animation.
+				await Task.Delay(800); // Let the UI to be rendered to the user.
+				OnOpen();
+				CoinListShown?.Invoke(this, null); // Trigger this event to refresh the list.
 			});
 
 			Observable
@@ -411,8 +413,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(DequeueCoin.ThrownExceptions)
 				.Merge(SortCommand.ThrownExceptions)
 				.Subscribe(ex => Logger.LogError(ex));
-
-			OnOpen();
 		}
 
 		private void RefreshSelectionCheckBoxes(CoinViewModel[] coins)
@@ -447,7 +447,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(Observable.FromEventPattern<DoubleSpendReceivedEventArgs>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.DoubleSpendReceived)).Select(_ => Unit.Default))
 				.Merge(Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent)).Select(_ => Unit.Default))
 				.Merge(Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived)).Select(_ => Unit.Default))
-				.Throttle(TimeSpan.FromSeconds(2), RxApp.MainThreadScheduler) // Throttle TransactionProcessor events adds/removes.
+				.Throttle(TimeSpan.FromSeconds(2), RxApp.MainThreadScheduler) // Throttle TransactionProcessor events adds/removes. In the next line we want subscribe to an event and we want to do that on UI thread.
 				.Merge(Observable.FromEventPattern(this, nameof(CoinListShown)).Select(_ => Unit.Default)) // Load the list immediately.
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(args =>
@@ -467,6 +467,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						RootList.RemoveMany(coinToRemove.Select(kp => kp.Value));
 						RootList.AddRange(coinToAdd.Select(c => new CoinViewModel(this, c)));
 						var coins = RootList.Items.ToArray();
+						if (coins.Length != actual.Count())
+						{
+							Logger.LogError("We got a problem here!"); // TODO: remove this before merge!
+						}
 
 						RefreshSelectionCheckBoxes(coins);
 						RefreshStatusColumnWidth(coins);
@@ -501,7 +505,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Observable.FromEventPattern<CoinViewModel>(this, nameof(SelectionChanged))
 				.Synchronize()
-				.Throttle(TimeSpan.FromSeconds(1))
+				.Throttle(TimeSpan.FromSeconds(0.5))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(args =>
 				{
