@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.Helpers
 				.Show(new Notification(title, message, NotificationType.Success, TimeSpan.FromSeconds(7))));
 		}
 
-		public static void Information(string message, string title = "Info!")
+		public static void Information(string message, string title = "Info")
 		{
 			RxApp.MainThreadScheduler
 				.Schedule(() => GetNotificationManager()
@@ -34,7 +34,7 @@ namespace WalletWasabi.Gui.Helpers
 				.Show(new Notification(title, message, NotificationType.Warning, TimeSpan.FromSeconds(7))));
 		}
 
-		public static void Error(string message, string title = "Error!")
+		public static void Error(string message, string title = "Error")
 		{
 			RxApp.MainThreadScheduler
 				.Schedule(() => GetNotificationManager()

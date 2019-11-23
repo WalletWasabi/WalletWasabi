@@ -23,6 +23,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Dialogs;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
@@ -149,7 +150,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				.Merge(EnumerateHardwareWalletsCommand.ThrownExceptions)
 				.Subscribe(ex =>
 				{
-					SetWarningMessage(ex.ToTypeMessageString());
+					NotificationHelpers.Error(ex.ToTypeMessageString());
 					Logger.LogError(ex);
 				});
 
@@ -195,38 +196,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			get => _isWalletOpened;
 			set => this.RaiseAndSetIfChanged(ref _isWalletOpened, value);
-		}
-
-		public string WarningMessage
-		{
-			get => _warningMessage;
-			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
-		}
-
-		public string ValidationMessage
-		{
-			get => _validationMessage;
-			set => this.RaiseAndSetIfChanged(ref _validationMessage, value);
-		}
-
-		public string SuccessMessage
-		{
-			get => _successMessage;
-			set => this.RaiseAndSetIfChanged(ref _successMessage, value);
-		}
-
-		public void SetWarningMessage(string message)
-		{
-			WarningMessage = message;
-			ValidationMessage = "";
-			SuccessMessage = "";
-		}
-
-		public void SetValidationMessage(string message)
-		{
-			WarningMessage = "";
-			ValidationMessage = message;
-			SuccessMessage = "";
 		}
 
 		public void SetLoadButtonText()
@@ -313,7 +282,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			Wallets.Clear();
 			Password = "";
-			SetValidationMessage("");
 
 			var directoryInfo = new DirectoryInfo(Global.WalletsDir);
 			var walletFiles = directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
@@ -361,7 +329,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					IsWalletOpened = true;
 					CanLoadWallet = false;
-					SetWarningMessage("There is already an open wallet. Restart the application in order to open a different one.");
+					NotificationHelpers.Warning("There is already an open wallet. Restart the application in order to open a different one.");
 				}
 
 				SetLoadButtonText();
@@ -385,7 +353,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			try
 			{
-				SetValidationMessage("");
 				CanTestPassword = false;
 				var password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
 				Password = ""; // Clear password field.
@@ -393,7 +360,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				var selectedWallet = SelectedWallet;
 				if (selectedWallet is null)
 				{
-					SetValidationMessage("No wallet selected.");
+					NotificationHelpers.Warning("No wallet selected.");
 					return null;
 				}
 
@@ -404,7 +371,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 					if (selectedWallet.HardwareWalletInfo is null)
 					{
-						SetValidationMessage("No hardware wallet detected.");
+						NotificationHelpers.Warning("No hardware wallet detected.");
 						return null;
 					}
 
@@ -451,7 +418,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						selectedWallet = Wallets.FirstOrDefault(x => x.HardwareWalletInfo.Model == t && x.HardwareWalletInfo.Path == p);
 						if (selectedWallet is null)
 						{
-							SetValidationMessage("Could not find the hardware wallet. Did you disconnect it?");
+							NotificationHelpers.Warning("Could not find the hardware wallet. Did you disconnect it?");
 							return null;
 						}
 						else
@@ -461,13 +428,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 						if (!selectedWallet.HardwareWalletInfo.IsInitialized())
 						{
-							SetValidationMessage("Hardware wallet is not initialized.");
+							NotificationHelpers.Warning("Hardware wallet is not initialized.");
 							return null;
 						}
 
 						if (selectedWallet.HardwareWalletInfo.NeedsPinSent is true)
 						{
-							SetValidationMessage("Hardware wallet needs a PIN to be sent.");
+							NotificationHelpers.Warning("Hardware wallet needs a PIN to be sent.");
 							return null;
 						}
 					}
@@ -512,7 +479,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					// The selected wallet is not available any more (someone deleted it?).
 					OnCategorySelected();
-					SetValidationMessage("The selected wallet and its backup do not exist, did you delete them?");
+					NotificationHelpers.Warning("The selected wallet and its backup do not exist, did you delete them?");
 					return null;
 				}
 
@@ -523,18 +490,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					if (PasswordHelper.TryPassword(keyManager, password, out string compatibilityPasswordUsed))
 					{
-						SuccessMessage = "Correct password.";
+						NotificationHelpers.Success("Correct password.");
 						if (compatibilityPasswordUsed != null)
 						{
-							WarningMessage = PasswordHelper.CompatibilityPasswordWarnMessage;
-							ValidationMessage = "";
+							NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
 						}
 
 						keyManager.SetPasswordVerified();
 					}
 					else
 					{
-						SetValidationMessage("Wrong password.");
+						NotificationHelpers.Error("Wrong password.");
 						return null;
 					}
 				}
@@ -561,7 +527,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 
 				// Initialization failed.
-				SetValidationMessage(ex.ToTypeMessageString());
+				NotificationHelpers.Error(ex.ToTypeMessageString());
 				Logger.LogError(ex);
 
 				return null;
@@ -576,7 +542,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 			IsHwWalletSearchTextVisible = true;
-			SetWarningMessage("");
 			try
 			{
 				var client = new HwiClient(Global.Network);
@@ -640,7 +605,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			try
 			{
 				IsBusy = true;
-				SetValidationMessage("");
 				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.Loading);
 
 				var keyManager = await LoadKeyManagerAsync(IsPasswordRequired, IsHardwareWallet);
@@ -668,7 +632,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				catch (Exception ex)
 				{
 					// Initialization failed.
-					SetValidationMessage(ex.ToTypeMessageString());
+					NotificationHelpers.Error(ex.ToTypeMessageString());
 					if (!(ex is OperationCanceledException))
 					{
 						Logger.LogError(ex);
