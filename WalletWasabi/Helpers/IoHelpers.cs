@@ -121,7 +121,7 @@ namespace System.IO
 				}
 				return false;
 			}
-			catch (Exception)
+			catch
 			{
 				return false;
 			}

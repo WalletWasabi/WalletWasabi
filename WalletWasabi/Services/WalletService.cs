@@ -425,7 +425,7 @@ namespace WalletWasabi.Services
 						var blockBytes = await File.ReadAllBytesAsync(filePath, cancel);
 						block = Block.Load(blockBytes, Synchronizer.Network);
 					}
-					catch (Exception)
+					catch
 					{
 						// In case the block file is corrupted and we get an EndOfStreamException exception
 						// Ignore any error and continue to re-downloading the block.

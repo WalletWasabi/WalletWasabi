@@ -76,7 +76,7 @@ namespace WalletWasabi.Gui.CommandLine
 					PasswordFinder.Find(EncryptedSecret, Language, UseNumbers, UseSymbols);
 				}
 			}
-			catch (Exception)
+			catch
 			{
 				Logger.LogCritical($"There was a problem interpreting the command, please review it.");
 				error = true;
