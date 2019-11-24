@@ -49,31 +49,31 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public uint256 TransactionId
 		{
 			get => _transactionId;
-			set => RaiseAndSetIfChanged(ref _transactionId, value);
+			private set => RaiseAndSetIfChanged(ref _transactionId, value);
 		}
 
 		public uint Index
 		{
 			get => _index;
-			set => RaiseAndSetIfChanged(ref _index, value);
+			private set => RaiseAndSetIfChanged(ref _index, value);
 		}
 
 		public Script ScriptPubKey
 		{
 			get => _scriptPubKey;
-			set => RaiseAndSetIfChanged(ref _scriptPubKey, value);
+			private set => RaiseAndSetIfChanged(ref _scriptPubKey, value);
 		}
 
 		public Money Amount
 		{
 			get => _amount;
-			set => RaiseAndSetIfChanged(ref _amount, value);
+			private set => RaiseAndSetIfChanged(ref _amount, value);
 		}
 
 		public Height Height
 		{
 			get => _height;
-			set
+			private set
 			{
 				if (RaiseAndSetIfChanged(ref _height, value))
 				{
@@ -88,19 +88,19 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public SmartLabel Label
 		{
 			get => _label;
-			set => RaiseAndSetIfChanged(ref _label, value);
+			private set => RaiseAndSetIfChanged(ref _label, value);
 		}
 
 		public TxoRef[] SpentOutputs
 		{
 			get => _spentOutputs;
-			set => RaiseAndSetIfChanged(ref _spentOutputs, value);
+			private set => RaiseAndSetIfChanged(ref _spentOutputs, value);
 		}
 
 		public bool IsReplaceable
 		{
 			get => _replaceable && !Confirmed;
-			set => RaiseAndSetIfChanged(ref _replaceable, value);
+			private set => RaiseAndSetIfChanged(ref _replaceable, value);
 		}
 
 		public int AnonymitySet
@@ -112,13 +112,10 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public uint256 SpenderTransactionId
 		{
 			get => _spenderTransactionId;
-			set
+			private set
 			{
-				if (value != _spenderTransactionId)
+				if (RaiseAndSetIfChanged(ref _spenderTransactionId, value))
 				{
-					_spenderTransactionId = value;
-					OnPropertyChanged(nameof(SpenderTransactionId));
-
 					SetUnspent();
 				}
 			}
@@ -127,13 +124,10 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public bool CoinJoinInProgress
 		{
 			get => _coinJoinInProgress;
-			set
+			private set
 			{
-				if (_coinJoinInProgress != value)
+				if (RaiseAndSetIfChanged(ref _coinJoinInProgress, value))
 				{
-					_coinJoinInProgress = value;
-					OnPropertyChanged(nameof(CoinJoinInProgress));
-
 					SetUnavailable();
 				}
 			}
@@ -142,13 +136,11 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public DateTimeOffset? BannedUntilUtc
 		{
 			get => _bannedUntilUtc;
-			set
+			private set
 			{
 				// ToDo: IsBanned does not get notified when it gets unbanned.
-				if (_bannedUntilUtc != value)
+				if (RaiseAndSetIfChanged(ref _bannedUntilUtc, value))
 				{
-					_bannedUntilUtc = value;
-					OnPropertyChanged(nameof(BannedUntilUtc));
 					SetIsBanned();
 				}
 			}
@@ -160,13 +152,10 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public bool SpentAccordingToBackend
 		{
 			get => _spentAccordingToBackend;
-			set
+			private set
 			{
-				if (value != _spentAccordingToBackend)
+				if (RaiseAndSetIfChanged(ref _spentAccordingToBackend, value))
 				{
-					_spentAccordingToBackend = value;
-					OnPropertyChanged(nameof(SpentAccordingToBackend));
-
 					SetUnavailable();
 				}
 			}
@@ -187,13 +176,13 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public ISecret Secret
 		{
 			get => _secret;
-			set => RaiseAndSetIfChanged(ref _secret, value);
+			private set => RaiseAndSetIfChanged(ref _secret, value);
 		}
 
 		public Cluster Clusters
 		{
 			get => _clusters;
-			set => RaiseAndSetIfChanged(ref _clusters, value);
+			private set => RaiseAndSetIfChanged(ref _clusters, value);
 		}
 
 		#region DependentProperties
@@ -218,11 +207,8 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			get => _unspent;
 			private set
 			{
-				if (value != _unspent)
+				if (RaiseAndSetIfChanged(ref _unspent, value))
 				{
-					_unspent = value;
-					OnPropertyChanged(nameof(Unspent));
-
 					SetUnavailable();
 				}
 			}
@@ -250,7 +236,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public void SetIsBanned()
 		{
-			IsBanned = BannedUntilUtc != null && BannedUntilUtc > DateTimeOffset.UtcNow;
+			IsBanned = BannedUntilUtc is { } && BannedUntilUtc > DateTimeOffset.UtcNow;
 		}
 
 		private void SetUnavailable()
