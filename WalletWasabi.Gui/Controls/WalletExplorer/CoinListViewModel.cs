@@ -437,7 +437,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Global.UiConfig
 				.WhenAnyValue(x => x.LurkingWifeMode)
-				.Synchronize() // To ensure thread safety.
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedAmount)))
 				.DisposeWith(Disposables);
@@ -491,7 +490,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Global.Config
 				.WhenAnyValue(x => x.MixUntilAnonymitySet)
-				.Synchronize() // To ensure thread safety.
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{

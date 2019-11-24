@@ -68,17 +68,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.DisposeWith(Disposables);
 
 			Global.BitcoinStore.HashChain
-				.WhenAnyValue(x => x.TipHeight)
-				.Throttle(TimeSpan.FromMilliseconds(100))
-				.Select(x => new Height(x))
-				.Merge(Model.WhenAnyValue(x => x.Height))
+				.WhenAnyValue(x => x.TipHeight).Select(_ => Unit.Default)
+				.Merge(Model.WhenAnyValue(x => x.Height).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(Confirmations)))
 				.DisposeWith(Disposables);
 
 			Global.UiConfig
 				.WhenAnyValue(x => x.LurkingWifeMode)
-				.Synchronize()
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
