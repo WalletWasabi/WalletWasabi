@@ -53,6 +53,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ShieldState _selectAllPrivateShieldState;
 		private ShieldState _selectAllNonPrivateShieldState;
 		private bool _isCoinListLoading;
+		private object SelectionChangedLock { get; } = new object();
+		private object StateChangedLock { get; } = new object();
 
 		public Global Global { get; }
 		public CoinListContainerType CoinListContainerType { get; }
@@ -66,11 +68,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public event EventHandler DequeueCoinsPressed;
 
-		public event EventHandler<CoinViewModel> SelectionChanged;
-
-		public event EventHandler<CoinViewModel> CoinStatusChanged;
-
 		public event EventHandler CoinListShown;
+
+		public event EventHandler SelectionChanged;
 
 		public ReadOnlyObservableCollection<CoinViewModel> Coins => _coinViewModels;
 
@@ -437,7 +437,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Global.UiConfig
 				.WhenAnyValue(x => x.LurkingWifeMode)
-				.Synchronize()
+				.Synchronize() // To ensure thread safety.
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedAmount)))
 				.DisposeWith(Disposables);
@@ -466,22 +466,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 						RootList.RemoveMany(coinToRemove.Select(kp => kp.Value));
 
-						var coinViewModels = coinToAdd.Select(c => new CoinViewModel(Global, c)).ToArray();
-						foreach (var cvm in coinViewModels)
+						var newCoinViewModels = coinToAdd.Select(c => new CoinViewModel(Global, c)).ToArray();
+						foreach (var cvm in newCoinViewModels)
 						{
-							cvm.WhenAnyValue(x => x.IsSelected).Subscribe(x => OnCoinIsSelectedChanged()).DisposeWith(cvm.Disposables);
-							cvm.WhenAnyValue(x => x.Status).Subscribe(x => OnCoinStatusChanged()).DisposeWith(cvm.Disposables);
+							SubscribeToCoinEvents(cvm);
 						}
-						RootList.AddRange(coinViewModels);
+						RootList.AddRange(newCoinViewModels);
 
-						var coins = RootList.Items.ToArray();
-						if (coins.Length != actual.Count())
-						{
-							Logger.LogError("We got a problem here!"); // TODO: remove this before merge!
-						}
+						var allCoins = RootList.Items.ToArray();
 
-						RefreshSelectionCheckBoxes(coins);
-						RefreshStatusColumnWidth(coins);
+						RefreshSelectionCheckBoxes(allCoins);
+						RefreshStatusColumnWidth(allCoins);
 					}
 					catch (Exception ex)
 					{
@@ -494,15 +489,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				})
 				.DisposeWith(Disposables);
 
-			Observable.FromEventPattern<CoinViewModel>(this, nameof(CoinStatusChanged))
-				.Synchronize()
-				.Throttle(TimeSpan.FromSeconds(2))
+			Global.Config
+				.WhenAnyValue(x => x.MixUntilAnonymitySet)
+				.Synchronize() // To ensure thread safety.
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(args =>
+				.Subscribe(x =>
 				{
 					try
 					{
-						RefreshStatusColumnWidth(RootList.Items.ToArray());
+						RefreshSelectCheckBoxesShields(x);
+						RefreshSelectionCheckBoxes(RootList.Items.ToArray());
 					}
 					catch (Exception ex)
 					{
@@ -510,12 +506,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				})
 				.DisposeWith(Disposables);
+		}
 
-			Observable.FromEventPattern<CoinViewModel>(this, nameof(SelectionChanged))
-				.Synchronize()
+		private void SubscribeToCoinEvents(CoinViewModel cvm)
+		{
+			cvm.WhenAnyValue(x => x.IsSelected)
+				.Synchronize(SelectionChangedLock) // Use the same lock to ensure thread safety.
 				.Throttle(TimeSpan.FromSeconds(0.5))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(args =>
+				.Subscribe(x =>
 				{
 					try
 					{
@@ -532,31 +531,32 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							: selectedCoins
 								.Where(c => c.AnonymitySet == 1)
 								.Any(x => selectedCoins.Any(x => x.AnonymitySet > 1));
+
+						SelectionChanged?.Invoke(this, null);
 					}
 					catch (Exception ex)
 					{
 						Logger.LogError(ex);
 					}
 				})
-				.DisposeWith(Disposables);
+				.DisposeWith(cvm.GetDisposables()); // Subscription will be disposed with the coinViewModel.
 
-			Global.Config
-				.WhenAnyValue(x => x.MixUntilAnonymitySet)
-				.Synchronize()
+			cvm.WhenAnyValue(x => x.Status)
+				.Synchronize(StateChangedLock) // Use the same lock to ensure thread safety.
+				.Throttle(TimeSpan.FromSeconds(2))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
 					try
 					{
-						RefreshSelectCheckBoxesShields(x);
-						RefreshSelectionCheckBoxes(RootList.Items.ToArray());
+						RefreshStatusColumnWidth(RootList.Items.ToArray());
 					}
 					catch (Exception ex)
 					{
 						Logger.LogError(ex);
 					}
 				})
-				.DisposeWith(Disposables);
+				.DisposeWith(cvm.GetDisposables()); // Subscription will be disposed with the coinViewModel.
 		}
 
 		private void RefreshSelectCheckBoxesShields(int mixUntilAnonymitySet)
@@ -588,21 +588,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				cvm.Dispose();
 			}
 
-			RootList.Clear(); // This must be called to trigger the OnItemRemoved for every item in the list.
+			RootList.Clear();
 
 			// Do not dispose the RootList here. It will be reused next time when you open CoinJoinTab or SendTab.
 			Disposables?.Dispose();
 			Disposables = null;
-		}
-
-		public void OnCoinIsSelectedChanged()
-		{
-			SelectionChanged?.Invoke(this, null);
-		}
-
-		public void OnCoinStatusChanged()
-		{
-			CoinStatusChanged?.Invoke(this, null);
 		}
 	}
 }
