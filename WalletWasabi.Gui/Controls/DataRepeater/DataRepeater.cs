@@ -62,6 +62,7 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
 			foreach (var property in dataType.GetProperties())
 			{
 				string dName;
+				
 				var dispNameAttrib = (DisplayNameAttribute)property
 										.GetCustomAttributes(typeof(DisplayNameAttribute), false)
 										.SingleOrDefault();
@@ -69,7 +70,6 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
 				if (dispNameAttrib is null)
 				{
 					continue;
-					// dName = property.Name;
 				}
 				else
 				{

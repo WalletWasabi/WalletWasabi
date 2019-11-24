@@ -2,6 +2,7 @@ using NBitcoin;
 using ReactiveUI;
 using Splat;
 using System;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Reactive;
@@ -176,6 +177,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public Money Amount => Model.Amount;
 
+		[DisplayName("Amount (BTC)")]
 		public string AmountBtc => Model.Amount.ToString(false, true);
 
 		public int Height => Model.Height;
@@ -184,10 +186,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public uint OutputIndex => Model.Index;
 
+		[DisplayName("Privacy")]
 		public int AnonymitySet => Model.AnonymitySet;
 
+		[DisplayName(" ")]
 		public string InCoinJoin => Model.CoinJoinInProgress ? "Yes" : "No";
 
+		[DisplayName("Clusters")]
 		public string Clusters => _cluster?.Value ?? "";
 
 		public string PubKey => Model.HdPubKey?.PubKey?.ToString() ?? "";
