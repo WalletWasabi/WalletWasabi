@@ -61,8 +61,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(ToolTip)));
 
 			Observable
-				.Merge(this.WhenAnyValue(x => x.Confirmed, x => x.CoinJoinInProgress, x => x.Confirmations).Select(_ => Unit.Default))
-				.Merge(Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend).Select(_ => Unit.Default))
+				.Merge(Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend, x => x.Confirmed, x => x.CoinJoinInProgress).Select(_ => Unit.Default))
 				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated)).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => RefreshSmartCoinStatus())
