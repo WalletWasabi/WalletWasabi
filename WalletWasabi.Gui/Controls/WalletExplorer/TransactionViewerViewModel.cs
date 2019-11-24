@@ -12,6 +12,7 @@ using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
@@ -102,7 +103,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (Exception ex)
 				{
-					SetWarningMessage(ex.ToTypeMessageString());
+					NotificationHelpers.Error(ex.ToTypeMessageString());
 					Logger.LogError(ex);
 				}
 			},
@@ -111,7 +112,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void OnException(Exception ex)
 		{
-			SetWarningMessage(ex.ToTypeMessageString());
+			NotificationHelpers.Error(ex.ToTypeMessageString());
 		}
 
 		public override void OnOpen()

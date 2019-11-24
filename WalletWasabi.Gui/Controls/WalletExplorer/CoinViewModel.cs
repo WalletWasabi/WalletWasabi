@@ -69,6 +69,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Global.BitcoinStore.HashChain
 				.WhenAnyValue(x => x.TipHeight)
+				.Throttle(TimeSpan.FromMilliseconds(100))
 				.Select(x => new Height(x))
 				.Merge(Model.WhenAnyValue(x => x.Height))
 				.ObserveOn(RxApp.MainThreadScheduler)

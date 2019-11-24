@@ -36,6 +36,5 @@
       <Button Content="Generate" Command="{Binding GenerateCommand}" DockPanel.Dock="Right" />
       <Grid></Grid>
     </DockPanel>
-    <TextBlock Text="{Binding ValidationMessage}" Classes="errorMessage" />
   </StackPanel>
 </UserControl>

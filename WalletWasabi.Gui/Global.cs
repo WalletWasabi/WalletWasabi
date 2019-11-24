@@ -8,14 +8,10 @@ using NBitcoin.Protocol.Connectors;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
@@ -26,9 +22,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.CoinJoin.Client.Clients;
-using WalletWasabi.Crypto;
-using WalletWasabi.Gui.Dialogs;
-using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
@@ -439,7 +433,7 @@ namespace WalletWasabi.Gui
 			onions.Shuffle();
 			foreach (var onion in onions.Take(60))
 			{
-				if (Utils.TryParseEndpoint(onion, Network.DefaultPort, out var endpoint))
+				if (EndPointParser.TryParse(onion, Network.DefaultPort, out var endpoint))
 				{
 					await addressManager.AddAsync(endpoint);
 				}
@@ -557,32 +551,19 @@ namespace WalletWasabi.Gui
 
 		private void CoinReceived(object sender, SmartCoin coin)
 		{
-			try
+			if (coin.HdPubKey.IsInternal)
 			{
-				if (coin.HdPubKey.IsInternal)
-				{
-					return;
-				}
-
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || UiConfig?.LurkingWifeMode is true)
-				{
-					return;
-				}
-
-				string amountString = coin.Amount.ToString(false, true);
-				using var process = Process.Start(new ProcessStartInfo
-				{
-					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
-					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-						? $"-e \"display notification \\\"Received {amountString} BTC\\\" with title \\\"Wasabi\\\"\""
-						: $"--expire-time=3000 \"Wasabi\" \"Received {amountString} BTC\"",
-					CreateNoWindow = true
-				});
+				return;
 			}
-			catch (Exception ex)
+
+			if (UiConfig?.LurkingWifeMode is true)
 			{
-				Logger.LogWarning(ex);
+				return;
 			}
+
+			string amountString = coin.Amount.ToString(false, true);
+
+			NotificationHelpers.Information($"{amountString} BTC", "Received");
 		}
 
 		public async Task DisposeInWalletDependentServicesAsync()

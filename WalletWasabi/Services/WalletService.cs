@@ -150,7 +150,7 @@ namespace WalletWasabi.Services
 			{
 				ChaumianClient.ExposedLinks.TryRemove(spentCoin.GetTxoRef(), out _);
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				Logger.LogError(ex);
 			}
@@ -165,7 +165,7 @@ namespace WalletWasabi.Services
 					&& newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet
 					&& ChaumianClient.State.Contains(newCoin.SpentOutputs))
 				{
-						await ChaumianClient.QueueCoinsToMixAsync(newCoin);
+					await ChaumianClient.QueueCoinsToMixAsync(newCoin);
 				}
 			}
 			catch (Exception ex)
@@ -202,7 +202,7 @@ namespace WalletWasabi.Services
 					if (blockState != null && blockState.BlockHeight != default(Height))
 					{
 						TransactionProcessor.UndoBlock(blockState.BlockHeight);
-						BitcoinStore.TransactionStore.TryReorg(invalidBlockHash);
+						BitcoinStore.TransactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
 					}
 				}
 			}

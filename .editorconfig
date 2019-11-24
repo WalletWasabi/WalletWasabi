@@ -104,7 +104,7 @@ csharp_prefer_braces = true:error
 dotnet_style_readonly_field = false:error
 
 # use expression body for lambdas
-csharp_style_expression_bodied_lambdas = true:error
+csharp_style_expression_bodied_lambdas = true:suggestion
 
 # IDE0066: Convert switch statement to expression
 csharp_style_prefer_switch_expression = true:error
