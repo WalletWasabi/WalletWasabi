@@ -76,7 +76,6 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
 					dName = dispNameAttrib.DisplayName;
 				}
 
-
 				var xdgh = new DataRepeaterHeaderDescriptor()
 				{
 					HeaderText = dName,

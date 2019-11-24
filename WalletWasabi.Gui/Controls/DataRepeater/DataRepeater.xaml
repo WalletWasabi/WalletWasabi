@@ -1,10 +1,11 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.DataRepeater;assembly=WalletWasabi.Gui">
+        xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.DataRepeater;assembly=WalletWasabi.Gui"
+        xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
   <Style Selector="local|DataRepeaterHeaderCell">
     <Setter Property="Template">
       <ControlTemplate>
-        <TextBlock Text="{Binding HeaderText}" />
+        <ExtendedTextBox Text="{Binding HeaderText}" />
       </ControlTemplate>
     </Setter>
   </Style>
@@ -26,7 +27,7 @@
                       Background="Transparent">
                   <local:DataRepeaterBorderLine Grid.Column="1"
                                              Orientation="Vertical"
-                                             Fill="Black"
+                                             Fill="{DynamicResource ThemeBorderLowBrush}"
                                              Length="{Binding #PART_RightThumbResizer.Bounds.Height}" />
                 </Grid>
               </ControlTemplate>
@@ -53,6 +54,12 @@
       </ControlTemplate>
     </Setter>
   </Style>
+  <Style Selector="local|DataRepeaterRow">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="local|DataRepeaterRow:pointerover">
+    <Setter Property="Background" Value="{DynamicResource ApplicationAccentBrushLow}" />
+  </Style>
   <Style Selector="local|DataRepeaterCell">
     <Setter Property="Template">
       <ControlTemplate>
@@ -61,8 +68,9 @@
                                       Grid.Column="0"
                                       Grid.ColumnSpan="1" />
           <local:DataRepeaterBorderLine Grid.Column="1"
+                                     IsHitTestVisible="False"
                                      Orientation="Vertical"
-                                     Fill="Black"
+                                     Fill="{DynamicResource ThemeBorderLowBrush}"
                                      Length="{Binding #PART_CellContent.Bounds.Height}" />
         </Grid>
       </ControlTemplate>
@@ -104,7 +112,7 @@
                 <local:DataRepeaterHeader Name="PART_Header"
                                        HeaderDescriptors="{TemplateBinding HeaderDescriptors}" />
                 <local:DataRepeaterBorderLine Grid.Row="1"
-                                           Fill="Black"
+                                           Fill="{DynamicResource ThemeBorderLowBrush}"
                                            VerticalAlignment="Bottom"
                                            Length="{Binding #PART_VertScroller.Viewport.Width}" />
               </Grid>
@@ -123,7 +131,7 @@
                                             HeaderDescriptors="{Binding #PART_Header.HeaderDescriptors}"
                                             HorizontalAlignment="Left" />
                         <local:DataRepeaterBorderLine Grid.Row="1"
-                                                   Fill="Black"
+                                                   Fill="{DynamicResource ThemeBorderLowBrush}"
                                                    Length="{Binding #PART_VertScroller.Viewport.Width}" />
                       </Grid>
                     </DataTemplate>
