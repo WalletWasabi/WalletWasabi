@@ -143,7 +143,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public bool LabelExposeCommonOwnershipWarning
 		{
 			get => _labelExposeCommonOwnershipWarning;
-			set => this.RaiseAndSetIfChanged(backingField: ref _labelExposeCommonOwnershipWarning, value);
+			set => this.RaiseAndSetIfChanged(ref _labelExposeCommonOwnershipWarning, value);
 		}
 
 		private void RefreshOrdering()
