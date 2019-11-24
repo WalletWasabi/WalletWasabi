@@ -3,6 +3,7 @@ using ReactiveUI;
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -16,7 +17,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinViewModel : ViewModelBase, IDisposable
 	{
-		private CompositeDisposable Disposables { get; set; }
+		public CompositeDisposable Disposables { get; set; }
 
 		private bool _isSelected;
 		private SmartCoinStatus _status;
@@ -24,13 +25,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<bool> _unspent;
 		private ObservableAsPropertyHelper<bool> _confirmed;
 		private ObservableAsPropertyHelper<bool> _unavailable;
-		private CoinListViewModel _owner;
-		public Global Global => _owner.Global;
+		public Global Global { get; set; }
 
-		public CoinViewModel(CoinListViewModel owner, SmartCoin model)
+		public CoinViewModel(Global global, SmartCoin model)
 		{
 			Model = model;
-			_owner = owner;
+			Global = global;
 
 			RefreshSmartCoinStatus();
 
@@ -59,25 +59,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.WhenAnyValue(x => x.Status)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(ToolTip)));
 
-			this.WhenAnyValue(x => x.Confirmed, x => x.CoinJoinInProgress, x => x.Confirmations)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => RefreshSmartCoinStatus());
-
-			this.WhenAnyValue(x => x.IsSelected)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => _owner.OnCoinIsSelectedChanged(this));
-
-			this.WhenAnyValue(x => x.Status)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => _owner.OnCoinStatusChanged(this));
-
-			Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => RefreshSmartCoinStatus())
-				.DisposeWith(Disposables);
-
 			Observable
-				.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated))
+				.Merge(this.WhenAnyValue(x => x.Confirmed, x => x.CoinJoinInProgress, x => x.Confirmations).Select(_ => Unit.Default).Synchronize())
+				.Merge(Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend).Select(_ => Unit.Default).Synchronize())
+				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated)).Select(_ => Unit.Default).Synchronize())
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => RefreshSmartCoinStatus())
 				.DisposeWith(Disposables);

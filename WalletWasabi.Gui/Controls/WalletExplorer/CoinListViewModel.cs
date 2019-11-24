@@ -465,7 +465,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							item.Value.Dispose();
 						}
 						RootList.RemoveMany(coinToRemove.Select(kp => kp.Value));
-						RootList.AddRange(coinToAdd.Select(c => new CoinViewModel(this, c)));
+
+						var coinViewModels = coinToAdd.Select(c => new CoinViewModel(Global, c)).ToArray();
+						foreach (var cvm in coinViewModels)
+						{
+							cvm.WhenAnyValue(x => x.IsSelected).Subscribe(x => OnCoinIsSelectedChanged()).DisposeWith(cvm.Disposables);
+							cvm.WhenAnyValue(x => x.Status).Subscribe(x => OnCoinStatusChanged()).DisposeWith(cvm.Disposables);
+						}
+						RootList.AddRange(coinViewModels);
+
 						var coins = RootList.Items.ToArray();
 						if (coins.Length != actual.Count())
 						{
@@ -587,14 +595,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Disposables = null;
 		}
 
-		public void OnCoinIsSelectedChanged(CoinViewModel cvm)
+		public void OnCoinIsSelectedChanged()
 		{
 			SelectionChanged?.Invoke(this, null);
 		}
 
-		public void OnCoinStatusChanged(CoinViewModel cvm)
+		public void OnCoinStatusChanged()
 		{
-			CoinStatusChanged?.Invoke(this, cvm);
+			CoinStatusChanged?.Invoke(this, null);
 		}
 	}
 }
