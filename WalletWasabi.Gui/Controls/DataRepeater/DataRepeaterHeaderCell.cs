@@ -10,77 +10,80 @@ using ReactiveUI;
 
 namespace WalletWasabi.Gui.Controls.DataRepeater
 {
-    public class DataRepeaterHeaderCell : ContentControl
-    {
-        private Thumb _rightThumbResizer;
-        internal ContentControl _contentControl;
+	public class DataRepeaterHeaderCell : ContentControl
+	{
+		private Thumb _rightThumbResizer;
+		internal ContentControl _contentControl;
 
-        public DataRepeaterHeaderCell()
-        {
-            TemplateApplied += TemplateAppliedCore;
-        }
+		public DataRepeaterHeaderCell()
+		{
+			TemplateApplied += TemplateAppliedCore;
+		}
 
-        protected override Size MeasureOverride(Size availableSize)
-        {
-            var desc = (Content as DataRepeaterHeaderDescriptor);
+		protected override Size MeasureOverride(Size availableSize)
+		{
+			var desc = (Content as DataRepeaterHeaderDescriptor);
 
-            if (_contentControl != null || desc != null)
-            {
-                var content = (Content as DataRepeaterHeaderDescriptor);
-                content.HeaderWidth = _contentControl.Bounds.Width;
-            }
+			if (_contentControl != null || desc != null)
+			{
+				var content = (Content as DataRepeaterHeaderDescriptor);
+				content.HeaderWidth = _contentControl.Bounds.Width;
+			}
 
-            return base.MeasureOverride(availableSize);
-        }
+			return base.MeasureOverride(availableSize);
+		}
 
-        private void TemplateAppliedCore(object sender, TemplateAppliedEventArgs e)
-        {
-            _contentControl = e.NameScope.Find<ContentControl>("PART_ContentControl");
+		private void TemplateAppliedCore(object sender, TemplateAppliedEventArgs e)
+		{
+			_contentControl = e.NameScope.Find<ContentControl>("PART_ContentControl");
 
-            _rightThumbResizer = e.NameScope.Find<Thumb>("PART_RightThumbResizer");
+			_rightThumbResizer = e.NameScope.Find<Thumb>("PART_RightThumbResizer");
 
-            var content = (Content as DataRepeaterHeaderDescriptor);
-            content.HeaderWidth = _contentControl.Bounds.Width;
+			var content = (Content as DataRepeaterHeaderDescriptor);
+			content.HeaderWidth = _contentControl.Bounds.Width;
 
-            if (_rightThumbResizer == null)
+			if (_rightThumbResizer is null)
 			{
 				return;
 			}
 
 			_rightThumbResizer.DragDelta += ResizerDragDelta;
-            _rightThumbResizer.DragStarted += ResizerDragStarted;
-            _rightThumbResizer.DragCompleted += delegate { InvalidateMeasure(); };
+			_rightThumbResizer.DragStarted += ResizerDragStarted;
+			_rightThumbResizer.DragCompleted += delegate { InvalidateMeasure(); };
 
-            _rightThumbResizer.Cursor = new Cursor(StandardCursorType.SizeWestEast);
+			_rightThumbResizer.Cursor = new Cursor(StandardCursorType.SizeWestEast);
 
-            PointerPressed += HeaderCell_PointerPressed;
-        }
+			PointerPressed += HeaderCell_PointerPressed;
+		}
 
-        private void HeaderCell_PointerPressed(object sender, PointerPressedEventArgs e)
-        {
-            base.OnPointerPressed(e);
+		private void HeaderCell_PointerPressed(object sender, PointerPressedEventArgs e)
+		{
+			if (e.Pointer.Type == PointerType.Mouse)
+			{
+				var eProp = e.GetCurrentPoint(this).Properties;
+				if (eProp.IsLeftButtonPressed)
+				{
+					e.Handled = true;
+					HeaderSort();
+				}
+			}
 
-            if (e.MouseButton == MouseButton.Left)
-            {
-                e.Handled = true;
+			base.OnPointerPressed(e);
+		}
 
-                HeaderSort();
-            }
-        }
+		private void HeaderSort()
+		{
+			var desc = (Content as DataRepeaterHeaderDescriptor);
+			var parent = (Parent as DataRepeaterHeader);
 
-        private void HeaderSort()
-        {
-            var desc = (Content as DataRepeaterHeaderDescriptor);
-            var parent = (Parent as DataRepeaterHeader);
+			if (_contentControl != null || desc != null || parent != null)
+			{
+				var dx = parent.HeaderDescriptors;
+				dx.SortDescriptor(desc);
+			}
+		}
 
-            if (_contentControl != null || desc != null || parent != null)
-            { 
-                var dx = parent.HeaderDescriptors;
-                dx.SortDescriptor(desc);
-            }
-        }
-
-        private void ResizerDragStarted(object sender, VectorEventArgs e)
+		private void ResizerDragStarted(object sender, VectorEventArgs e)
 		{
 			if (double.IsNaN(_contentControl.Width))
 			{
