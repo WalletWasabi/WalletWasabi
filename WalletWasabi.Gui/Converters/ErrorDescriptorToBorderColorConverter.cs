@@ -17,17 +17,9 @@ namespace WalletWasabi.Gui.Converters
 			{
 				var descriptors = new ErrorDescriptors();
 
-				foreach (var obj in rawObj)
+				foreach (var error in rawObj.OfType<ErrorDescriptor>())
 				{
-					switch (obj)
-					{
-						case ErrorDescriptor ed:
-							descriptors.Add(ed);
-							break;
-						case Exception ex:
-							Logger.LogError(ex);
-							break;
-					}
+					descriptors.Add(error);
 				}
 
 				return GetColorFromDescriptors(descriptors);
