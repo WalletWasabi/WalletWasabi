@@ -73,7 +73,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public Height Height
 		{
 			get => _height;
-			private set
+			set
 			{
 				if (RaiseAndSetIfChanged(ref _height, value))
 				{
@@ -88,7 +88,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public SmartLabel Label
 		{
 			get => _label;
-			private set => RaiseAndSetIfChanged(ref _label, value);
+			set => RaiseAndSetIfChanged(ref _label, value);
 		}
 
 		public TxoRef[] SpentOutputs
@@ -112,7 +112,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public uint256 SpenderTransactionId
 		{
 			get => _spenderTransactionId;
-			private set
+			set
 			{
 				if (RaiseAndSetIfChanged(ref _spenderTransactionId, value))
 				{
@@ -124,7 +124,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public bool CoinJoinInProgress
 		{
 			get => _coinJoinInProgress;
-			private set
+			set
 			{
 				if (RaiseAndSetIfChanged(ref _coinJoinInProgress, value))
 				{
@@ -136,7 +136,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public DateTimeOffset? BannedUntilUtc
 		{
 			get => _bannedUntilUtc;
-			private set
+			set
 			{
 				// ToDo: IsBanned does not get notified when it gets unbanned.
 				if (RaiseAndSetIfChanged(ref _bannedUntilUtc, value))
@@ -152,7 +152,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public bool SpentAccordingToBackend
 		{
 			get => _spentAccordingToBackend;
-			private set
+			set
 			{
 				if (RaiseAndSetIfChanged(ref _spentAccordingToBackend, value))
 				{
@@ -176,13 +176,13 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public ISecret Secret
 		{
 			get => _secret;
-			private set => RaiseAndSetIfChanged(ref _secret, value);
+			set => RaiseAndSetIfChanged(ref _secret, value);
 		}
 
 		public Cluster Clusters
 		{
 			get => _clusters;
-			private set => RaiseAndSetIfChanged(ref _clusters, value);
+			set => RaiseAndSetIfChanged(ref _clusters, value);
 		}
 
 		#region DependentProperties
