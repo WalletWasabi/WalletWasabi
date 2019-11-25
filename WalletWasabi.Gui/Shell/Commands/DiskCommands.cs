@@ -11,7 +11,6 @@ namespace WalletWasabi.Gui.Shell.Commands
 {
 	internal class DiskCommands
 	{
-
 		[ImportingConstructor]
 		public DiskCommands(CommandIconService commandIconService)
 		{

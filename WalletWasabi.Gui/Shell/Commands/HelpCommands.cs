@@ -17,7 +17,6 @@ namespace WalletWasabi.Gui.Shell.Commands
 {
 	internal class HelpCommands
 	{
-
 		[ImportingConstructor]
 		public HelpCommands(CommandIconService commandIconService)
 		{
