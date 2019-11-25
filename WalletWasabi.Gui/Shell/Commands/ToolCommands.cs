@@ -30,7 +30,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 			var settingsCommand = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel(Global)));
 
-			var transationBroadcasterCommand = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel(Global)));
+			var transactionBroadcasterCommand = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel(Global)));
 
 #if DEBUG
 			var devToolsCommand = ReactiveCommand.Create(() =>
