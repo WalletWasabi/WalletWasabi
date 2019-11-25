@@ -39,7 +39,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _maskedPin, value);
 		}
 
-		public PinPadViewModel(Global global) : base(global, "Pin Pad")
+		public PinPadViewModel() : base("Pin Pad")
 		{
 			SendPinCommand = ReactiveCommand.Create(() =>
 				{
@@ -101,7 +101,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				PinPadViewModel pinpad = IoC.Get<IShell>().Documents.OfType<PinPadViewModel>().FirstOrDefault();
 				if (pinpad is null)
 				{
-					pinpad = new PinPadViewModel(global);
+					pinpad = new PinPadViewModel();
 					IoC.Get<IShell>().AddOrSelectDocument(pinpad);
 				}
 				var result = await pinpad.ShowDialogAsync();

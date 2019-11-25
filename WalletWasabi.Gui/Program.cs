@@ -5,6 +5,7 @@ using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.IO;
 using System.Reactive.Concurrency;
@@ -31,8 +32,10 @@ namespace WalletWasabi.Gui
 			try
 			{
 				Global = new Global();
+
+				Locator.CurrentMutable.RegisterConstant(Global);
+
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
-				AvaloniaGlobalComponent.AvaloniaInstance = Global;
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 

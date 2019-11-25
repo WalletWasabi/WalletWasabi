@@ -2,6 +2,7 @@ using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -28,11 +29,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _accountKeyPath;
 		private int _minGapLimit;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
-		public Global Global { get; }
 
 		public RecoverWalletViewModel(WalletManagerViewModel owner) : base("Recover Wallet")
 		{
-			Global = owner.Global;
 			MnemonicWords = "";
 
 			RecoverCommand = ReactiveCommand.Create(() =>
@@ -41,7 +40,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				MnemonicWords = Guard.Correct(MnemonicWords);
 				Password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
 
-				string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
+				var global = Locator.Current.GetService<Global>();
+				string walletFilePath = Path.Combine(global.WalletsDir, $"{WalletName}.json");
 
 				if (string.IsNullOrWhiteSpace(WalletName))
 				{
@@ -150,17 +150,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public void OnTermsClicked()
 		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel(Global));
+			IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel());
 		}
 
 		public void OnPrivacyClicked()
 		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel(Global));
+			IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel());
 		}
 
 		public void OnLegalClicked()
 		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel(Global));
+			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel());
 		}
 
 		public override void OnCategorySelected()
@@ -170,7 +170,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			Password = null;
 			MnemonicWords = "";
 
-			WalletName = Global.GetNextWalletName();
+			WalletName = Locator.Current.GetService<Global>().GetNextWalletName();
 
 			ShowAdvancedOptions = false;
 			AccountKeyPath = $"m/{KeyManager.DefaultAccountKeyPath}";

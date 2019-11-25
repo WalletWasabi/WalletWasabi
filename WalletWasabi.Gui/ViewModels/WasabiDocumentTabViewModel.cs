@@ -18,15 +18,13 @@ namespace WalletWasabi.Gui.ViewModels
 		private bool _isClosed;
 		private object _dialogResult;
 
-		protected WasabiDocumentTabViewModel(Global global, string title)
+		protected WasabiDocumentTabViewModel(string title)
 		{
 			Title = title;
-			Global = Guard.NotNull(nameof(global), global);
+			
 			DoItCommand = ReactiveCommand.Create(DisplayActionTab);
 		}
-
-		public Global Global { get; }
-		public Guid Id { get; set; } = Guid.NewGuid();
+		
 		public object Context { get; set; }
 		public double Width { get; set; }
 		public double Height { get; set; }

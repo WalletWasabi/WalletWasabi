@@ -2,6 +2,7 @@ using Avalonia.Threading;
 using NBitcoin;
 using Nito.AsyncEx;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -40,6 +41,7 @@ namespace WalletWasabi.Gui.Tabs
 		private string _dustThreshold;
 		private string _pinBoxText;
 		private string _pinWarningMessage;
+		private Global _global;
 
 		private ObservableAsPropertyHelper<bool> _isPinSet;
 
@@ -51,13 +53,14 @@ namespace WalletWasabi.Gui.Tabs
 		public ReactiveCommand<Unit, Unit> SetClearPinCommand { get; }
 		public ReactiveCommand<Unit, Unit> TextBoxLostFocusCommand { get; }
 
-		public SettingsViewModel(Global global) : base(global, "Settings")
+		public SettingsViewModel() : base("Settings")
 		{
-			Autocopy = Global.UiConfig?.Autocopy is true;
-			CustomFee = Global.UiConfig?.IsCustomFee is true;
+			_global = Locator.Current.GetService<Global>();
+			Autocopy = _global.UiConfig?.Autocopy is true;
+			CustomFee = _global.UiConfig?.IsCustomFee is true;
 
 			// Use global config's data as default filler until the real data is filled out by the loading of the config onopen.
-			var globalConfig = Global.Config;
+			var globalConfig = _global.Config;
 			Network = globalConfig.Network;
 			TorSocks5EndPoint = globalConfig.TorSocks5EndPoint.ToString(-1);
 			UseTor = globalConfig.UseTor;
@@ -81,18 +84,18 @@ namespace WalletWasabi.Gui.Tabs
 
 			this.WhenAnyValue(x => x.Autocopy)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(x => Global.UiConfig.Autocopy = x);
+				.Subscribe(x => _global.UiConfig.Autocopy = x);
 
 			this.WhenAnyValue(x => x.CustomFee)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(x => Global.UiConfig.IsCustomFee = x);
+				.Subscribe(x => _global.UiConfig.IsCustomFee = x);
 
 			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
 
 			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
 				{
-					Global.UiConfig.LurkingWifeMode = !LurkingWifeMode;
-					await Global.UiConfig.ToFileAsync();
+					_global.UiConfig.LurkingWifeMode = !LurkingWifeMode;
+					await _global.UiConfig.ToFileAsync();
 				});
 
 			SetClearPinCommand = ReactiveCommand.Create(() =>
@@ -116,7 +119,7 @@ namespace WalletWasabi.Gui.Tabs
 						return;
 					}
 
-					var uiConfigPinHash = Global.UiConfig.LockScreenPinHash;
+					var uiConfigPinHash = _global.UiConfig.LockScreenPinHash;
 					var enteredPinHash = HashHelpers.GenerateSha256Hash(pinBoxText);
 
 					if (IsPinSet)
@@ -128,11 +131,11 @@ namespace WalletWasabi.Gui.Tabs
 							return;
 						}
 
-						Global.UiConfig.LockScreenPinHash = string.Empty;
+						_global.UiConfig.LockScreenPinHash = string.Empty;
 					}
 					else
 					{
-						Global.UiConfig.LockScreenPinHash = enteredPinHash;
+						_global.UiConfig.LockScreenPinHash = enteredPinHash;
 					}
 
 					PinBoxText = string.Empty;
@@ -146,7 +149,7 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Config.LoadOrCreateDefaultFileAsync(Global.Config.FilePath)
+			Config.LoadOrCreateDefaultFileAsync(_global.Config.FilePath)
 				.ToObservable(RxApp.TaskpoolScheduler)
 				.Take(1)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -167,23 +170,23 @@ namespace WalletWasabi.Gui.Tabs
 					BitcoinP2pEndPoint = x.GetP2PEndpoint().ToString(defaultPort: -1);
 					LocalBitcoinCoreDataDir = x.LocalBitcoinCoreDataDir;
 
-					IsModified = !Global.Config.AreDeepEqual(x);
+					IsModified = !_global.Config.AreDeepEqual(x);
 				})
 				.DisposeWith(Disposables);
 
-			Global.UiConfig
+			_global.UiConfig
 				.WhenAnyValue(x => x.LurkingWifeMode)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(LurkingWifeMode)))
 				.DisposeWith(Disposables);
 
-			_isPinSet = Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
+			_isPinSet = _global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
 				.ToProperty(this, x => x.IsPinSet, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee)
+			_global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee)
 				.Throttle(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(async _ => await Global.UiConfig.ToFileAsync())
+				.Subscribe(async _ => await _global.UiConfig.ToFileAsync())
 				.DisposeWith(Disposables);
 
 			base.OnOpen();
@@ -296,7 +299,7 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _dustThreshold, value);
 		}
 
-		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
+		public bool LurkingWifeMode => _global.UiConfig.LurkingWifeMode is true;
 
 		public string PinBoxText
 		{
@@ -331,7 +334,7 @@ namespace WalletWasabi.Gui.Tabs
 				return;
 			}
 
-			var config = new Config(Global.Config.FilePath);
+			var config = new Config(_global.Config.FilePath);
 
 			Dispatcher.UIThread.PostLogException(async () =>
 			{
@@ -363,14 +366,14 @@ namespace WalletWasabi.Gui.Tabs
 						BitcoinP2pEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
 					}
 					await config.ToFileAsync();
-					IsModified = !Global.Config.AreDeepEqual(config);
+					IsModified = !_global.Config.AreDeepEqual(config);
 				}
 			});
 		}
 
 		private void OpenConfigFile()
 		{
-			IoHelpers.OpenFileInTextEditor(Global.Config.FilePath);
+			IoHelpers.OpenFileInTextEditor(_global.Config.FilePath);
 		}
 
 		#region Validation

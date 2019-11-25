@@ -17,16 +17,14 @@ namespace WalletWasabi.Gui.Shell.Commands
 {
 	internal class HelpCommands
 	{
-		public Global Global { get; }
 
 		[ImportingConstructor]
-		public HelpCommands(CommandIconService commandIconService, AvaloniaGlobalComponent global)
+		public HelpCommands(CommandIconService commandIconService)
 		{
-			Global = global.Global;
 			AboutCommand = new CommandDefinition(
 				"About",
 				commandIconService.GetCompletionKindImage("About"),
-				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global))));
+				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel())));
 
 			CustomerSupportCommand = new CommandDefinition(
 				"Customer Support",
@@ -40,7 +38,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 						catch (Exception ex)
 						{
 							Logger.LogWarning(ex);
-							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
+							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
 						}
 					}));
 
@@ -56,7 +54,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 						catch (Exception ex)
 						{
 							Logger.LogWarning(ex);
-							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
+							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
 						}
 					}));
 
@@ -72,24 +70,24 @@ namespace WalletWasabi.Gui.Shell.Commands
 						catch (Exception ex)
 						{
 							Logger.LogWarning(ex);
-							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
+							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
 						}
 					}));
 
 			PrivacyPolicyCommand = new CommandDefinition(
 				"Privacy Policy",
 				commandIconService.GetCompletionKindImage("PrivacyPolicy"),
-				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel(Global))));
+				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel())));
 
 			TermsAndConditionsCommand = new CommandDefinition(
 				"Terms and Conditions",
 				commandIconService.GetCompletionKindImage("TermsAndConditions"),
-				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel(Global))));
+				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel())));
 
 			LegalIssuesCommand = new CommandDefinition(
 				"Legal Issues",
 				commandIconService.GetCompletionKindImage("LegalIssues"),
-				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel(Global))));
+				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel())));
 		}
 
 		[ExportCommandDefinition("Help.About")]

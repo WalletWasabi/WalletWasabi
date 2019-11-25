@@ -10,26 +10,23 @@ using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Services;
 using WalletWasabi.Logging;
+using Splat;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class WalletViewModel : WasabiDocumentTabViewModel
+	public class WalletViewModel : ViewModelBase
 	{
 		private CompositeDisposable Disposables { get; set; }
 
 		private ObservableCollection<WalletActionViewModel> _actions;
-
+		private string _title;
 		private bool _isExpanded;
 
-		public bool IsExpanded
+		public WalletViewModel(bool receiveDominant)
 		{
-			get => _isExpanded;
-			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
-		}
+			var global = Locator.Current.GetService<Global>();
 
-		public WalletViewModel(Global global, bool receiveDominant)
-			: base(global, Path.GetFileNameWithoutExtension(global.WalletService.KeyManager.FilePath))
-		{
+			_title = Path.GetFileNameWithoutExtension(global.WalletService.KeyManager.FilePath);
 			WalletService = global.WalletService;
 			var keyManager = WalletService.KeyManager;
 			Name = Path.GetFileNameWithoutExtension(keyManager.FilePath);
@@ -85,27 +82,45 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				Global.UiConfig.LurkingWifeMode = !Global.UiConfig.LurkingWifeMode;
-				await Global.UiConfig.ToFileAsync();
+				var global = Locator.Current.GetService<Global>();
+
+				global.UiConfig.LurkingWifeMode = !global.UiConfig.LurkingWifeMode;
+				await global.UiConfig.ToFileAsync();
 			});
 		}
+
+		public bool IsExpanded
+		{
+			get => _isExpanded;
+			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
+		}
+
+		public string Title
+		{
+			get => _title;
+			set => this.RaiseAndSetIfChanged(ref _title, value);
+		}
+
+		public Guid Id { get; set; } = Guid.NewGuid();
 
 		public void OnWalletOpened()
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
+			var global = Locator.Current.GetService<Global>();
+
 			Observable.Merge(
-				Observable.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived)).Select(_ => Unit.Default),
-				Observable.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent)).Select(_ => Unit.Default))
+				Observable.FromEventPattern(global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived)).Select(_ => Unit.Default),
+				Observable.FromEventPattern(global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent)).Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromSeconds(0.5))
-				.Merge(Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Select(_ => Unit.Default))
+				.Merge(global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
 					try
 					{
 						Money balance = WalletService.Coins.TotalAmount();
-						Title = $"{Name} ({(Global.UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
+						Title = $"{Name} ({(global.UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
 					}
 					catch (Exception ex)
 					{

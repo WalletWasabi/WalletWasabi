@@ -8,7 +8,7 @@ namespace WalletWasabi.Gui.Tabs
 {
 	public class PrivacyPolicyViewModel : TextResourceViewModelBase
 	{
-		public PrivacyPolicyViewModel(Global global) : base(global, "Privacy Policy", new Uri("avares://WalletWasabi.Gui/Assets/PrivacyPolicy.txt"))
+		public PrivacyPolicyViewModel() : base("Privacy Policy", new Uri("avares://WalletWasabi.Gui/Assets/PrivacyPolicy.txt"))
 		{
 		}
 	}

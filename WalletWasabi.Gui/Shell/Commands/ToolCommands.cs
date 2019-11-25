@@ -23,12 +23,11 @@ namespace WalletWasabi.Gui.Shell.Commands
 		public Global Global { get; }
 
 		[ImportingConstructor]
-		public ToolCommands(CommandIconService commandIconService, AvaloniaGlobalComponent global)
+		public ToolCommands(CommandIconService commandIconService)
 		{
-			Global = global.Global;
 			var walletManagerCommand = ReactiveCommand.Create(OnWalletManager);
 
-			var settingsCommand = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel(Global)));
+			var settingsCommand = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel()));
 
 #if DEBUG
 			var devToolsCommand = ReactiveCommand.Create(() =>
@@ -65,7 +64,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnWalletManager()
 		{
-			var walletManagerViewModel = IoC.Get<IShell>().GetOrCreate<WalletManagerViewModel>();
+			var walletManagerViewModel = AvalonStudioShellExtensions.GetOrCreate<WalletManagerViewModel>(IoC.Get<IShell>());
 			if (Directory.Exists(Global.WalletsDir) && Directory.EnumerateFiles(Global.WalletsDir).Any())
 			{
 				walletManagerViewModel.SelectLoadWallet();

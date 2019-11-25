@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.IO;
 using System.Linq;
@@ -27,42 +28,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _psbtHexText;
 		private string _psbtBase64Text;
 		private byte[] _psbtBytes;
-		public ReactiveCommand<Unit, Unit> ExportBinaryPsbtCommand { get; set; }
-
-		public bool? IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
-
-		public string TxId
-		{
-			get => _txId;
-			set => this.RaiseAndSetIfChanged(ref _txId, value);
-		}
-
-		public string PsbtJsonText
-		{
-			get => _psbtJsonText;
-			set => this.RaiseAndSetIfChanged(ref _psbtJsonText, value);
-		}
-
-		public string TransactionHexText
-		{
-			get => _psbtHexText;
-			set => this.RaiseAndSetIfChanged(ref _psbtHexText, value);
-		}
-
-		public string PsbtBase64Text
-		{
-			get => _psbtBase64Text;
-			set => this.RaiseAndSetIfChanged(ref _psbtBase64Text, value);
-		}
-
-		public byte[] PsbtBytes
-		{
-			get => _psbtBytes;
-			set => this.RaiseAndSetIfChanged(ref _psbtBytes, value);
-		}
+		private Global _global;
 
 		public TransactionViewerViewModel(WalletViewModel walletViewModel) : base("Transaction", walletViewModel)
 		{
+			_global = Locator.Current.GetService<Global>();
+
 			ExportBinaryPsbtCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				try
@@ -110,6 +81,40 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			outputScheduler: RxApp.MainThreadScheduler);
 		}
 
+		public ReactiveCommand<Unit, Unit> ExportBinaryPsbtCommand { get; set; }
+
+		public bool? IsLurkingWifeMode => _global.UiConfig.LurkingWifeMode;
+
+		public string TxId
+		{
+			get => _txId;
+			set => this.RaiseAndSetIfChanged(ref _txId, value);
+		}
+
+		public string PsbtJsonText
+		{
+			get => _psbtJsonText;
+			set => this.RaiseAndSetIfChanged(ref _psbtJsonText, value);
+		}
+
+		public string TransactionHexText
+		{
+			get => _psbtHexText;
+			set => this.RaiseAndSetIfChanged(ref _psbtHexText, value);
+		}
+
+		public string PsbtBase64Text
+		{
+			get => _psbtBase64Text;
+			set => this.RaiseAndSetIfChanged(ref _psbtBase64Text, value);
+		}
+
+		public byte[] PsbtBytes
+		{
+			get => _psbtBytes;
+			set => this.RaiseAndSetIfChanged(ref _psbtBytes, value);
+		}
+
 		private void OnException(Exception ex)
 		{
 			NotificationHelpers.Error(ex.ToTypeMessageString());
@@ -121,7 +126,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			base.OnOpen();
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
+			_global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{

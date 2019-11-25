@@ -204,7 +204,7 @@ namespace WalletWasabi.Gui.ViewModels
 				catch (Exception ex)
 				{
 					Logger.LogWarning(ex);
-					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
+					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
 				}
 			}, this.WhenAnyValue(x => x.UpdateAvailable, x => x.CriticalUpdateAvailable, (x, y) => x || y));
 

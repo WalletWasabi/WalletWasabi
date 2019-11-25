@@ -5,6 +5,7 @@ using AvalonStudio.Documents;
 using AvalonStudio.Extensibility;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.IO;
 using System.Linq;
@@ -77,6 +78,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			ImportTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
+				var global = Locator.Current.GetService<Global>();
+
 				try
 				{
 					var ofd = new OpenFileDialog
@@ -110,7 +113,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						Transaction transaction = null;
 						try
 						{
-							psbt = PSBT.Load(psbtBytes, Global.Network);
+							psbt = PSBT.Load(psbtBytes, global.Network);
 						}
 						catch
 						{
@@ -118,11 +121,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							text = text.Trim();
 							try
 							{
-								psbt = PSBT.Parse(text, Global.Network);
+								psbt = PSBT.Parse(text, global.Network);
 							}
 							catch
 							{
-								transaction = Transaction.Parse(text, Global.Network);
+								transaction = Transaction.Parse(text, global.Network);
 							}
 						}
 
@@ -180,12 +183,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			try
 			{
+				var global = Locator.Current.GetService<Global>();
+
 				IsBusy = true;
 				ButtonText = "Broadcasting Transaction...";
 
 				SmartTransaction transaction;
 
-				if (PSBT.TryParse(TransactionString, Global.Network ?? Network.Main, out var signedPsbt))
+				if (PSBT.TryParse(TransactionString, global.Network ?? Network.Main, out var signedPsbt))
 				{
 					if (!signedPsbt.IsAllFinalized())
 					{
@@ -196,11 +201,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				else
 				{
-					transaction = new SmartTransaction(Transaction.Parse(TransactionString, Global.Network ?? Network.Main), WalletWasabi.Models.Height.Unknown);
+					transaction = new SmartTransaction(Transaction.Parse(TransactionString, global.Network ?? Network.Main), WalletWasabi.Models.Height.Unknown);
 				}
 
 				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
-				await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(transaction));
+				await Task.Run(async () => await global.TransactionBroadcaster.SendTransactionAsync(transaction));
 
 				NotificationHelpers.Success("Transaction is successfully sent!");
 				TransactionString = "";

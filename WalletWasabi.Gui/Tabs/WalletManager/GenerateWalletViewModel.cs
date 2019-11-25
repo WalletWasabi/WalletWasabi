@@ -2,6 +2,7 @@ using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,8 +25,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _walletName;
 		private bool _termsAccepted;
 		public WalletManagerViewModel Owner { get; }
-		public Global Global => Owner.Global;
-
 		public GenerateWalletViewModel(WalletManagerViewModel owner) : base("Generate Wallet")
 		{
 			Owner = owner;
@@ -48,7 +47,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				return;
 			}
 
-			string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
+			string walletFilePath = Path.Combine(Locator.Current.GetService<Global>().WalletsDir, $"{WalletName}.json");
 
 			if (!TermsAccepted)
 			{
@@ -139,17 +138,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public void OnTermsClicked()
 		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel(Global));
+			IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel());
 		}
 
 		public void OnPrivacyClicked()
 		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel(Global));
+			IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel());
 		}
 
 		public void OnLegalClicked()
 		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel(Global));
+			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel());
 		}
 
 		public override void OnCategorySelected()
@@ -157,7 +156,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			base.OnCategorySelected();
 
 			Password = "";
-			WalletName = Global.GetNextWalletName();
+			WalletName = Locator.Current.GetService<Global>().GetNextWalletName();
 			TermsAccepted = false;
 		}
 	}
