@@ -133,38 +133,41 @@ namespace WalletWasabi.Gui.Dialogs
 
 					try
 					{
-						if (Global.WalletService is null || Global.ChaumianClient is null)
+						if (Global.ChaumianClient is null)
 						{
 							return;
 						}
 
-						SmartCoin[] enqueuedCoins = Global.WalletService.Coins.CoinJoinInProcess().ToArray();
-						Exception latestException = null;
-						foreach (var coin in enqueuedCoins)
+						foreach (var walletService in Global.WalletServiceManager.GetWalletServices())
 						{
-							try
+							SmartCoin[] enqueuedCoins = walletService.Coins.CoinJoinInProcess().ToArray();
+							Exception latestException = null;
+							foreach (var coin in enqueuedCoins)
 							{
-								if (CancelTokenSource.IsCancellationRequested)
+								try
 								{
-									break;
-								}
+									if (CancelTokenSource.IsCancellationRequested)
+									{
+										break;
+									}
 
-								await Global.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }, "Closing Wasabi."); // Dequeue coins one-by-one to check cancel flag more frequently.
+									await Global.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }, "Closing Wasabi."); // Dequeue coins one-by-one to check cancel flag more frequently.
+								}
+								catch (Exception ex)
+								{
+									latestException = ex;
+
+									if (last) //if this is the last iteration and we are still failing then we throw the exception
+									{
+										throw ex;
+									}
+								}
 							}
-							catch (Exception ex)
+
+							if (latestException is null) //no exceptions were thrown during the for-each so we are done with dequeuing
 							{
-								latestException = ex;
-
-								if (last) //if this is the last iteration and we are still failing then we throw the exception
-								{
-									throw ex;
-								}
+								last = true;
 							}
-						}
-
-						if (latestException is null) //no exceptions were thrown during the for-each so we are done with dequeuing
-						{
-							last = true;
 						}
 					}
 					catch (Exception ex)

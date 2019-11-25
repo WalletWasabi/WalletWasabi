@@ -22,12 +22,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _title;
 		private bool _isExpanded;
 
-		public WalletViewModel(bool receiveDominant)
+		public WalletViewModel(bool receiveDominant, WalletService walletService)
 		{
 			var global = Locator.Current.GetService<Global>();
+			WalletService = walletService;
 
-			_title = Path.GetFileNameWithoutExtension(global.WalletService.KeyManager.FilePath);
-			WalletService = global.WalletService;
+			_title = Path.GetFileNameWithoutExtension(WalletService.KeyManager.FilePath);
+			
 			var keyManager = WalletService.KeyManager;
 			Name = Path.GetFileNameWithoutExtension(keyManager.FilePath);
 
@@ -108,8 +109,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var global = Locator.Current.GetService<Global>();
 
 			Observable.Merge(
-				Observable.FromEventPattern(global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived)).Select(_ => Unit.Default),
-				Observable.FromEventPattern(global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent)).Select(_ => Unit.Default))
+				Observable.FromEventPattern(WalletService.TransactionProcessor, nameof(WalletService.TransactionProcessor.CoinReceived)).Select(_ => Unit.Default),
+				Observable.FromEventPattern(WalletService.TransactionProcessor, nameof(WalletService.TransactionProcessor.CoinSpent)).Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromSeconds(0.5))
 				.Merge(global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler)

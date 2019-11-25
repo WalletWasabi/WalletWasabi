@@ -70,12 +70,14 @@ namespace WalletWasabi.Gui.ViewModels
 				{
 					if (InEditMode)
 					{
-						KeyManager keyManager = Global.WalletService.KeyManager;
-						HdPubKey hdPubKey = keyManager.GetKeys(x => Model == x).FirstOrDefault();
-
-						if (hdPubKey != default)
+						foreach (var keyManager in Global.WalletServiceManager.GetWalletServices().Select(x => x.KeyManager))
 						{
-							hdPubKey.SetLabel(newLabel, kmToFile: keyManager);
+							HdPubKey hdPubKey = keyManager.GetKeys(x => Model == x).FirstOrDefault();
+
+							if (hdPubKey != default)
+							{
+								hdPubKey.SetLabel(newLabel, kmToFile: keyManager);
+							}
 						}
 					}
 				});

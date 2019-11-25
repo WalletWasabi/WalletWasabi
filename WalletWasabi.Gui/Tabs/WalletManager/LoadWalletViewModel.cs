@@ -322,7 +322,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				IsWalletSelected = SelectedWallet != null;
 				CanTestPassword = IsWalletSelected;
 
-				if (Global.WalletService is null)
+				if (Global.WalletServiceManager.AnyWalletService())
+				{
+					IsWalletOpened = true;
+					CanLoadWallet = false;
+				}
+				else
 				{
 					IsWalletOpened = false;
 
@@ -330,11 +335,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					// And wallet is selected.
 					// And no wallet is opened.
 					CanLoadWallet = !IsBusy && IsWalletSelected;
-				}
-				else
-				{
-					IsWalletOpened = true;
-					CanLoadWallet = false;
 				}
 
 				SetLoadButtonText();
@@ -620,18 +620,18 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				try
 				{
-					await Task.Run(async () => await Global.InitializeWalletServiceAsync(keyManager));
+					var walletService = await Task.Run(async () => await Global.InitializeWalletServiceAsync(keyManager));
 					// Successffully initialized.
 					Owner.OnClose();
 					// Open Wallet Explorer tabs
-					if (Global.WalletService.Coins.Any())
+					if (walletService.Coins.Any())
 					{
 						// If already have coins then open with History tab first.
-						IoC.Get<WalletExplorerViewModel>().OpenWallet(Global.WalletService, receiveDominant: false);
+						IoC.Get<WalletExplorerViewModel>().OpenWallet(walletService, receiveDominant: false);
 					}
 					else // Else open with Receive tab first.
 					{
-						IoC.Get<WalletExplorerViewModel>().OpenWallet(Global.WalletService, receiveDominant: true);
+						IoC.Get<WalletExplorerViewModel>().OpenWallet(walletService, receiveDominant: true);
 					}
 				}
 				catch (Exception ex)

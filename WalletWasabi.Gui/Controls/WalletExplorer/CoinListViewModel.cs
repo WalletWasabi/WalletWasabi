@@ -20,6 +20,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using Splat;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -60,6 +61,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private Global Global { get; }
 		public CoinListContainerType CoinListContainerType { get; }
+		public WalletService WalletService { get; }
 		public ReactiveCommand<Unit, Unit> EnqueueCoin { get; }
 		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
 		public ReactiveCommand<Unit, Unit> SelectAllCheckBoxCommand { get; }
@@ -252,10 +254,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public CoinListViewModel(CoinListContainerType coinListContainerType)
+		public CoinListViewModel(CoinListContainerType coinListContainerType, WalletService walletService)
 		{
 			Global = Locator.Current.GetService<Global>();
 			CoinListContainerType = coinListContainerType;
+			WalletService = Guard.NotNull(nameof(walletService), walletService);
 			AmountSortDirection = SortOrder.Decreasing;
 
 			CoinJoinStatusWidth = new GridLength(0);
@@ -444,10 +447,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.DisposeWith(Disposables);
 
 			Observable
-				.Merge(Observable.FromEventPattern<ReplaceTransactionReceivedEventArgs>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.ReplaceTransactionReceived)).Select(_ => Unit.Default))
-				.Merge(Observable.FromEventPattern<DoubleSpendReceivedEventArgs>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.DoubleSpendReceived)).Select(_ => Unit.Default))
-				.Merge(Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent)).Select(_ => Unit.Default))
-				.Merge(Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived)).Select(_ => Unit.Default))
+				.Merge(Observable.FromEventPattern<ReplaceTransactionReceivedEventArgs>(WalletService.TransactionProcessor, nameof(WalletService.TransactionProcessor.ReplaceTransactionReceived)).Select(_ => Unit.Default))
+				.Merge(Observable.FromEventPattern<DoubleSpendReceivedEventArgs>(WalletService.TransactionProcessor, nameof(WalletService.TransactionProcessor.DoubleSpendReceived)).Select(_ => Unit.Default))
+				.Merge(Observable.FromEventPattern<SmartCoin>(WalletService.TransactionProcessor, nameof(WalletService.TransactionProcessor.CoinSpent)).Select(_ => Unit.Default))
+				.Merge(Observable.FromEventPattern<SmartCoin>(WalletService.TransactionProcessor, nameof(WalletService.TransactionProcessor.CoinReceived)).Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromSeconds(2)) // Throttle TransactionProcessor events adds/removes.
 				.Merge(Observable.FromEventPattern(this, nameof(CoinListShown), RxApp.MainThreadScheduler).Select(_ => Unit.Default)) // Load the list immediately.
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -455,7 +458,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					try
 					{
-						var actual = Global.WalletService.TransactionProcessor.Coins.ToHashSet();
+						var actual = WalletService.TransactionProcessor.Coins.ToHashSet();
 						var old = RootList.Items.ToDictionary(c => c.Model, c => c);
 
 						var coinToRemove = old.Where(c => !actual.Contains(c.Key)).ToArray();

@@ -723,8 +723,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 				{
 					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
 				}
-				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, rpc);
-				broadcaster.AddWalletService(wallet);
+				var wsm = new WalletServiceManager();
+				wsm.AddWalletService(wallet);
+				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, rpc, wsm);
 
 				var waitCount = 0;
 				while (wallet.Coins.Sum(x => x.Amount) == Money.Zero)
@@ -1376,8 +1377,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 				}
 				var coin = Assert.Single(wallet.Coins);
 				Assert.True(coin.Confirmed);
-				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, rpc);
-				broadcaster.AddWalletService(wallet);
+				var wsm = new WalletServiceManager();
+				wsm.AddWalletService(wallet);
+				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, rpc, wsm);
 
 				// Send money before reorg.
 				var operations = new PaymentIntent(scp, Money.Coins(0.011m));
@@ -1613,8 +1615,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Equal(tx0Id, receivedCoin.TransactionId);
 				Assert.Single(wallet.Coins);
 
-				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, rpc);
-				broadcaster.AddWalletService(wallet);
+
+				var wsm = new WalletServiceManager();
+				wsm.AddWalletService(wallet);
+				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, rpc, wsm);
 
 				var operations = new PaymentIntent(
 					new DestinationRequest(key.P2wpkhScript, Money.Coins(0.01m)),

@@ -50,7 +50,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return;
 			}
 
-			WalletViewModel walletViewModel = new WalletViewModel(receiveDominant);
+			WalletViewModel walletViewModel = new WalletViewModel(receiveDominant, walletService);
 			_wallets.Add(walletViewModel);
 			walletViewModel.OnWalletOpened();
 
