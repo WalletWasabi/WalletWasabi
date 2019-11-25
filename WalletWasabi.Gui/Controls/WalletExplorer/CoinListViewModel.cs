@@ -72,6 +72,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public event EventHandler SelectionChanged;
 
+		public event EventHandler CoinsStatusChanged;
+
 		public ReadOnlyObservableCollection<CoinViewModel> Coins => _coinViewModels;
 
 		private SortExpressionComparer<CoinViewModel> MyComparer
@@ -488,6 +490,54 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				})
 				.DisposeWith(Disposables);
 
+			Observable.FromEventPattern(this, nameof(SelectionChanged))
+				.Synchronize(SelectionChangedLock)
+				.Throttle(TimeSpan.FromMilliseconds(100))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(args =>
+				{
+					try
+					{
+						var coins = RootList.Items.ToArray();
+
+						RefreshSelectionCheckBoxes(coins);
+						var selectedCoins = coins.Where(x => x.IsSelected).ToArray();
+
+						SelectedAmount = selectedCoins.Sum(x => x.Amount);
+						IsAnyCoinSelected = selectedCoins.Any();
+
+						LabelExposeCommonOwnershipWarning = CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel
+							? false
+							: selectedCoins
+								.Where(c => c.AnonymitySet == 1)
+								.Any(x => selectedCoins.Any(x => x.AnonymitySet > 1));
+						Logger.LogInfo("Throttle Selection");
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+					}
+				})
+				.DisposeWith(Disposables);
+
+			Observable.FromEventPattern(this, nameof(CoinsStatusChanged))
+				.Synchronize(StateChangedLock)
+				.Throttle(TimeSpan.FromMilliseconds(100))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					try
+					{
+						RefreshStatusColumnWidth(RootList.Items.ToArray());
+						Logger.LogInfo("Throttle Status");
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+					}
+				})
+				.DisposeWith(Disposables); // Subscription will be disposed with the coinViewModel.
+
 			Global.Config
 				.WhenAnyValue(x => x.MixUntilAnonymitySet)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -510,26 +560,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			cvm.WhenAnyValue(x => x.IsSelected)
 				.Synchronize(SelectionChangedLock) // Use the same lock to ensure thread safety.
-				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
+				.Subscribe(_ =>
 				{
 					try
 					{
-						var coins = RootList.Items.ToArray();
-
-						RefreshSelectionCheckBoxes(coins);
-						var selectedCoins = coins.Where(x => x.IsSelected).ToArray();
-
-						SelectedAmount = selectedCoins.Sum(x => x.Amount);
-						IsAnyCoinSelected = selectedCoins.Any();
-
-						LabelExposeCommonOwnershipWarning = CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel
-							? false
-							: selectedCoins
-								.Where(c => c.AnonymitySet == 1)
-								.Any(x => selectedCoins.Any(x => x.AnonymitySet > 1));
-
 						SelectionChanged?.Invoke(this, null);
 					}
 					catch (Exception ex)
@@ -539,17 +574,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				})
 				.DisposeWith(cvm.GetDisposables()); // Subscription will be disposed with the coinViewModel.
 
-			Observable
-				.Merge(cvm.Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend, x => x.Confirmed, x => x.CoinJoinInProgress).Select(_ => Unit.Default))
-				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated)).Select(_ => Unit.Default))
+			cvm.WhenAnyValue(x => x.Status)
 				.Synchronize(StateChangedLock) // Use the same lock to ensure thread safety.
-				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
+				.Subscribe(_ =>
 				{
 					try
 					{
-						RefreshStatusColumnWidth(RootList.Items.ToArray());
+						CoinsStatusChanged?.Invoke(this, null);
 					}
 					catch (Exception ex)
 					{
