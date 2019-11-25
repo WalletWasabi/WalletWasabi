@@ -107,7 +107,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ResetUi();
 			SetAmountWatermark(Money.Zero);
 
-			CoinList = new CoinListViewModel(Global, CoinListContainerType.SendTabViewModel);
+			CoinList = new CoinListViewModel(Global, CoinListContainerType.SendTabViewModel, WalletService);
 
 			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -330,7 +330,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 
-					BuildTransactionResult result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
+					BuildTransactionResult result = await Task.Run(() => WalletService.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 
 					if (IsTransactionBuilder)
 					{

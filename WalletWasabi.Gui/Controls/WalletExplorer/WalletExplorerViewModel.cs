@@ -55,7 +55,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return;
 			}
 
-			WalletViewModel walletViewModel = new WalletViewModel(Global, receiveDominant);
+			WalletViewModel walletViewModel = new WalletViewModel(Global, receiveDominant, walletService);
 			_wallets.Add(walletViewModel);
 			walletViewModel.OnWalletOpened();
 

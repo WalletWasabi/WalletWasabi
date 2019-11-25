@@ -56,7 +56,7 @@ namespace WalletWasabi.Gui
 		public WasabiSynchronizer Synchronizer { get; private set; }
 		public FeeProviders FeeProviders { get; private set; }
 		public CoinJoinClient ChaumianClient { get; private set; }
-		public WalletService WalletService { get; private set; }
+		public WalletServiceManager WalletServiceManager { get; }
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public Node RegTestMempoolServingNode { get; private set; }
 		public TorProcessManager TorManager { get; private set; }
@@ -82,6 +82,7 @@ namespace WalletWasabi.Gui
 			Directory.CreateDirectory(WalletBackupsDir);
 
 			HostedServices = new HostedServices();
+			WalletServiceManager = new WalletServiceManager();
 		}
 
 		public void InitializeUiConfig(UiConfig uiConfig)
@@ -119,16 +120,22 @@ namespace WalletWasabi.Gui
 
 		public async Task DesperateDequeueAllCoinsAsync()
 		{
-			if (WalletService is null || ChaumianClient is null)
+			if (ChaumianClient is null)
 			{
 				return;
 			}
 
-			SmartCoin[] enqueuedCoins = WalletService.Coins.CoinJoinInProcess().ToArray();
-			if (enqueuedCoins.Any())
+			var allEnqueuedCoins = new List<SmartCoin>();
+			foreach (var walletService in WalletServiceManager.GetWalletServices())
+			{
+				var enqueuedCoins = walletService.Coins.CoinJoinInProcess().ToArray();
+				allEnqueuedCoins.AddRange(enqueuedCoins);
+			}
+
+			if (allEnqueuedCoins.Any())
 			{
 				Logger.LogWarning("Unregistering coins in CoinJoin process.");
-				await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins, "Process was signaled to kill.");
+				await ChaumianClient.DequeueCoinsFromMixAsync(allEnqueuedCoins, "Process was signaled to kill.");
 			}
 		}
 
@@ -139,7 +146,6 @@ namespace WalletWasabi.Gui
 		{
 			try
 			{
-				WalletService = null;
 				ChaumianClient = null;
 				AddressManager = null;
 				TorManager = null;
@@ -345,7 +351,7 @@ namespace WalletWasabi.Gui
 
 				#endregion SynchronizerInitialization
 
-				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, Nodes, BitcoinCoreNode?.RpcClient);
+				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, Nodes, BitcoinCoreNode?.RpcClient, WalletServiceManager);
 			}
 			finally
 			{
@@ -442,23 +448,30 @@ namespace WalletWasabi.Gui
 
 		private CancellationTokenSource _cancelWalletServiceInitialization = null;
 
-		public async Task InitializeWalletServiceAsync(KeyManager keyManager)
+		private AsyncLock WalletInitializationLock { get; } = new AsyncLock();
+
+		public async Task<WalletService> InitializeWalletServiceAsync(KeyManager keyManager)
 		{
+			WalletService walletService = null;
 			using (_cancelWalletServiceInitialization = new CancellationTokenSource())
+			using (await WalletInitializationLock.LockAsync().ConfigureAwait(false))
 			{
 				var token = _cancelWalletServiceInitialization.Token;
 				while (!InitializationCompleted)
 				{
-					await Task.Delay(100, token);
+					await Task.Delay(100, token).ConfigureAwait(false);
 				}
 
-				if (Config.UseTor)
+				if (ChaumianClient is null)
 				{
-					ChaumianClient = new CoinJoinClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
-				}
-				else
-				{
-					ChaumianClient = new CoinJoinClient(Synchronizer, Network, keyManager, Config.GetFallbackBackendUri(), null);
+					if (Config.UseTor)
+					{
+						ChaumianClient = new CoinJoinClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
+					}
+					else
+					{
+						ChaumianClient = new CoinJoinClient(Synchronizer, Network, keyManager, Config.GetFallbackBackendUri(), null);
+					}
 				}
 
 				try
@@ -470,21 +483,21 @@ namespace WalletWasabi.Gui
 					Logger.LogWarning(ex);
 				}
 
-				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
+				walletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
+				WalletServiceManager.AddWalletService(walletService);
 
 				ChaumianClient.Start();
 				Logger.LogInfo("Start Chaumian CoinJoin service...");
 
 				Logger.LogInfo($"Starting {nameof(WalletService)}...");
-				await WalletService.InitializeAsync(token);
+				await walletService.InitializeAsync(token).ConfigureAwait(false);
 				Logger.LogInfo($"{nameof(WalletService)} started.");
 
 				token.ThrowIfCancellationRequested();
-				WalletService.TransactionProcessor.CoinReceived += CoinReceived;
-
-				TransactionBroadcaster.AddWalletService(WalletService);
+				walletService.TransactionProcessor.CoinReceived += CoinReceived;
 			}
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
+			return walletService;
 		}
 
 		public string GetWalletFullPath(string walletName)
@@ -568,43 +581,44 @@ namespace WalletWasabi.Gui
 
 		public async Task DisposeInWalletDependentServicesAsync()
 		{
-			var walletService = WalletService;
-			if (walletService is { })
+			foreach (var walletService in WalletServiceManager.GetWalletServices())
 			{
-				walletService.TransactionProcessor.CoinReceived -= CoinReceived;
-			}
-
-			try
-			{
-				_cancelWalletServiceInitialization?.Cancel();
-			}
-			catch (ObjectDisposedException)
-			{
-				Logger.LogWarning($"{nameof(_cancelWalletServiceInitialization)} is disposed. This can occur due to an error while processing the wallet.");
-			}
-			_cancelWalletServiceInitialization = null;
-
-			walletService = WalletService;
-			if (walletService is { })
-			{
-				var keyManager = walletService.KeyManager;
-				if (keyManager is { }) // This should never happen.
+				if (walletService is { })
 				{
-					string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(keyManager.FilePath));
-					keyManager.ToFile(backupWalletFilePath);
-					Logger.LogInfo($"{nameof(walletService.KeyManager)} backup saved to `{backupWalletFilePath}`.");
+					walletService.TransactionProcessor.CoinReceived -= CoinReceived;
 				}
-				walletService.Dispose();
-				WalletService = null;
-				Logger.LogInfo($"{nameof(WalletService)} is stopped.");
-			}
 
-			var chaumianClient = ChaumianClient;
-			if (chaumianClient is { })
-			{
-				await chaumianClient.StopAsync();
-				ChaumianClient = null;
-				Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.");
+				try
+				{
+					_cancelWalletServiceInitialization?.Cancel();
+				}
+				catch (ObjectDisposedException)
+				{
+					Logger.LogWarning($"{nameof(_cancelWalletServiceInitialization)} is disposed. This can occur due to an error while processing the wallet.");
+				}
+				_cancelWalletServiceInitialization = null;
+
+				if (walletService is { })
+				{
+					var keyManager = walletService.KeyManager;
+					if (keyManager is { }) // This should never happen.
+					{
+						string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(keyManager.FilePath));
+						keyManager.ToFile(backupWalletFilePath);
+						Logger.LogInfo($"{nameof(walletService.KeyManager)} backup saved to `{backupWalletFilePath}`.");
+					}
+					walletService.Dispose();
+					WalletServiceManager.RemoveWalletService(walletService);
+					Logger.LogInfo($"{nameof(WalletService)} is stopped.");
+				}
+
+				var chaumianClient = ChaumianClient;
+				if (chaumianClient is { })
+				{
+					await chaumianClient.StopAsync();
+					ChaumianClient = null;
+					Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.");
+				}
 			}
 		}
 

@@ -59,7 +59,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					Dispatcher.UIThread.PostLogException(() =>
 						{
-							HdPubKey newKey = Global.WalletService.GetReceiveKey(_labelSuggestion.Label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
+							HdPubKey newKey = WalletService.GetReceiveKey(_labelSuggestion.Label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
 
 							AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
 							if (found != default)
@@ -157,7 +157,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			Observable
-				.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived))
+				.FromEventPattern(WalletService.TransactionProcessor, nameof(WalletService.TransactionProcessor.CoinReceived))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => InitializeAddresses())
 				.DisposeWith(Disposables);
@@ -177,7 +177,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			try
 			{
 				_addresses?.Clear();
-				var walletService = Global.WalletService;
+				var walletService = WalletService;
 
 				if (walletService is null)
 				{
@@ -190,7 +190,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					_addresses.Add(new AddressViewModel(key, Global));
 				}
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				Logger.LogError(ex);
 			}

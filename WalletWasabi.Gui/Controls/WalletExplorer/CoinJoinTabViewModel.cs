@@ -54,7 +54,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Password = "";
 			TimeLeftTillRoundTimeout = TimeSpan.Zero;
 
-			CoinsList = new CoinListViewModel(Global, CoinListContainerType.CoinJoinTabViewModel);
+			CoinsList = new CoinListViewModel(Global, CoinListContainerType.CoinJoinTabViewModel, WalletService);
 
 			Observable.FromEventPattern(CoinsList, nameof(CoinsList.DequeueCoinsPressed)).Subscribe(_ => OnCoinsListDequeueCoinsPressedAsync());
 
@@ -297,11 +297,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void UpdateRequiredBtcLabel(ClientRound registrableRound)
 		{
-			if (Global.WalletService is null)
-			{
-				return; // Otherwise NullReferenceException at shutdown.
-			}
-
 			if (registrableRound == default)
 			{
 				if (RequiredBTC == default)
@@ -311,18 +306,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			else
 			{
-				var coins = Global.WalletService.Coins;
-				var queued = coins.CoinJoinInProcess();
-				if (queued.Any())
+				foreach (var walletService in Global.WalletServiceManager.GetWalletServices())
 				{
-					RequiredBTC = registrableRound.State.CalculateRequiredAmount(Global.ChaumianClient.State.GetAllQueuedCoinAmounts().ToArray());
-				}
-				else
-				{
-					var available = coins.Confirmed().Available();
-					RequiredBTC = available.Any()
-						? registrableRound.State.CalculateRequiredAmount(available.Where(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong).Select(x => x.Amount).ToArray())
-						: registrableRound.State.CalculateRequiredAmount();
+					var coins = walletService.Coins;
+					var queued = coins.CoinJoinInProcess();
+					if (queued.Any())
+					{
+						RequiredBTC = registrableRound.State.CalculateRequiredAmount(Global.ChaumianClient.State.GetAllQueuedCoinAmounts().ToArray());
+					}
+					else
+					{
+						var available = coins.Confirmed().Available();
+						RequiredBTC = available.Any()
+							? registrableRound.State.CalculateRequiredAmount(available.Where(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong).Select(x => x.Amount).ToArray())
+							: registrableRound.State.CalculateRequiredAmount();
+					}
 				}
 			}
 		}

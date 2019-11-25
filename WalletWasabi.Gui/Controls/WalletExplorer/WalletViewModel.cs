@@ -27,10 +27,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
 		}
 
-		public WalletViewModel(Global global, bool receiveDominant)
-			: base(global, Path.GetFileNameWithoutExtension(global.WalletService.KeyManager.FilePath))
+		public WalletViewModel(Global global, bool receiveDominant, WalletService walletService)
+			: base(global, Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath))
 		{
-			WalletService = global.WalletService;
+			WalletService = walletService;
 			var keyManager = WalletService.KeyManager;
 			Name = Path.GetFileNameWithoutExtension(keyManager.FilePath);
 
@@ -95,8 +95,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			Observable.Merge(
-				Observable.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived)).Select(_ => Unit.Default),
-				Observable.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent)).Select(_ => Unit.Default))
+				Observable.FromEventPattern(WalletService.TransactionProcessor, nameof(WalletService.TransactionProcessor.CoinReceived)).Select(_ => Unit.Default),
+				Observable.FromEventPattern(WalletService.TransactionProcessor, nameof(WalletService.TransactionProcessor.CoinSpent)).Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromSeconds(0.5))
 				.Merge(Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler)

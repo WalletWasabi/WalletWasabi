@@ -176,13 +176,16 @@ namespace WalletWasabi.Gui.CommandLine
 		{
 			try
 			{
-				var coinsView = Global.WalletService.Coins;
-				var coinsToMix = coinsView.Available();
-				if (!mixAll)
+				foreach (var walletService in Global.WalletServiceManager.GetWalletServices())
 				{
-					coinsToMix = coinsToMix.FilterBy(x => x.AnonymitySet < Global.WalletService.ServiceConfiguration.MixUntilAnonymitySet);
+					var coinsView = walletService.Coins;
+					var coinsToMix = coinsView.Available();
+					if (!mixAll)
+					{
+						coinsToMix = coinsToMix.FilterBy(x => x.AnonymitySet < walletService.ServiceConfiguration.MixUntilAnonymitySet);
+					}
+					await Global.ChaumianClient.QueueCoinsToMixAsync(password, coinsToMix.ToArray());
 				}
-				await Global.ChaumianClient.QueueCoinsToMixAsync(password, coinsToMix.ToArray());
 			}
 			catch (Exception ex)
 			{
