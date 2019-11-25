@@ -222,11 +222,6 @@ namespace WalletWasabi.Helpers
 			return callerName;
 		}
 
-		public static string GetCallerFilePath([CallerFilePath] string callerFilePath = "")
-		{
-			return callerFilePath;
-		}
-
 		public static string GetCallerFileName([CallerFilePath] string callerFilePath = "")
 		{
 			return ExtractFileName(callerFilePath);
