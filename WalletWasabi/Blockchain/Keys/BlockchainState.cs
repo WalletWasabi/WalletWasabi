@@ -12,9 +12,11 @@ namespace WalletWasabi.Blockchain.Keys
 	[JsonObject(MemberSerialization.OptIn)]
 	public class BlockchainState
 	{
+		[JsonProperty]
 		[JsonConverter(typeof(NetworkJsonConverter))]
 		public Network Network { get; set; }
 
+		[JsonProperty]
 		[JsonConverter(typeof(HeightJsonConverter))]
 		public Height Height { get; set; }
 
