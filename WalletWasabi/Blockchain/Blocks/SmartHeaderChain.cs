@@ -22,7 +22,7 @@ namespace WalletWasabi.Blockchain.Blocks
 		private int _hashesLeft;
 		private int _hashesCount;
 
-		private SortedDictionary<uint, SmartHeader> Chain { get; }
+		private Dictionary<uint, SmartHeader> Chain { get; }
 		private object Lock { get; }
 
 		public SmartHeader Tip
@@ -63,7 +63,7 @@ namespace WalletWasabi.Blockchain.Blocks
 
 		public SmartHeaderChain()
 		{
-			Chain = new SortedDictionary<uint, SmartHeader>();
+			Chain = new Dictionary<uint, SmartHeader>();
 			Lock = new object();
 		}
 
@@ -71,8 +71,7 @@ namespace WalletWasabi.Blockchain.Blocks
 		{
 			lock (Lock)
 			{
-				var lastHeader = Chain.LastOrDefault().Value;
-				if (lastHeader is { })
+				if (Chain.TryGetValue(TipHeight, out SmartHeader lastHeader))
 				{
 					if (lastHeader.BlockHash != header.PrevHash)
 					{
@@ -85,7 +84,7 @@ namespace WalletWasabi.Blockchain.Blocks
 					}
 				}
 
-				Chain.AddOrReplace(header.Height, header);
+				Chain.Add(header.Height, header);
 				SetTip(header);
 			}
 		}
