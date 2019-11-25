@@ -446,7 +446,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(Observable.FromEventPattern<DoubleSpendReceivedEventArgs>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.DoubleSpendReceived)).Select(_ => Unit.Default))
 				.Merge(Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent)).Select(_ => Unit.Default))
 				.Merge(Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived)).Select(_ => Unit.Default))
-				.Throttle(TimeSpan.FromSeconds(2)) // Throttle TransactionProcessor events adds/removes.
+				.Throttle(TimeSpan.FromMilliseconds(100)) // Throttle TransactionProcessor events adds/removes.
 				.Merge(Observable.FromEventPattern(this, nameof(CoinListShown), RxApp.MainThreadScheduler).Select(_ => Unit.Default)) // Load the list immediately.
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(args =>
@@ -459,14 +459,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						var coinToRemove = old.Where(c => !actual.Contains(c.Key)).ToArray();
 						var coinToAdd = actual.Where(c => !old.ContainsKey(c)).ToArray();
 
-						RootList.RemoveMany(coinToRemove.Select(kp => kp.Value));
-
 						var newCoinViewModels = coinToAdd.Select(c => new CoinViewModel(Global, c)).ToArray();
 						foreach (var cvm in newCoinViewModels)
 						{
 							SubscribeToCoinEvents(cvm);
 						}
 						RootList.AddRange(newCoinViewModels);
+						RootList.RemoveMany(coinToRemove.Select(kp => kp.Value));
 
 						var allCoins = RootList.Items.ToArray();
 
@@ -511,7 +510,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			cvm.WhenAnyValue(x => x.IsSelected)
 				.Synchronize(SelectionChangedLock) // Use the same lock to ensure thread safety.
-				.Throttle(TimeSpan.FromSeconds(0.5))
+				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
@@ -544,7 +543,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(cvm.Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend, x => x.Confirmed, x => x.CoinJoinInProgress).Select(_ => Unit.Default))
 				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated)).Select(_ => Unit.Default))
 				.Synchronize(StateChangedLock) // Use the same lock to ensure thread safety.
-				.Throttle(TimeSpan.FromSeconds(2))
+				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
