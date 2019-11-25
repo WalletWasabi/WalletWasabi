@@ -21,7 +21,7 @@ namespace WalletWasabi.Backend.Models
 
 		public FilterModel(SmartHeader header, GolombRiceFilter filter)
 		{
-			Header = header;
+			Header = Guard.NotNull(nameof(header), header);
 			Filter = Guard.NotNull(nameof(filter), filter);
 		}
 
