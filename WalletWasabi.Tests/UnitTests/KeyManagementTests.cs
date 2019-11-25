@@ -90,7 +90,7 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			string password = "password";
 
-			var filePath = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName(), "Wallet.json");
+			var filePath = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFilePath(), EnvironmentHelpers.GetMethodName(), "Wallet.json");
 			DeleteFileAndDirectoryIfExists(filePath);
 
 			Logger.TurnOff();
