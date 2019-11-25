@@ -147,8 +147,15 @@ namespace WalletWasabi.Helpers
 				lastSeparatorIndex = callerFilePath.LastIndexOf("/");
 			}
 
-			lastSeparatorIndex++;
-			var fileNameWithoutExtension = callerFilePath.Substring(lastSeparatorIndex, callerFilePath.Length - lastSeparatorIndex - ".cs".Length);
+			var fileName = callerFilePath;
+
+			if (lastSeparatorIndex != -1)
+			{
+				lastSeparatorIndex++;
+				fileName = callerFilePath[lastSeparatorIndex..]; // From lastSeparatorIndex until the end of the string.
+			}
+
+			var fileNameWithoutExtension = fileName.TrimEnd(".cs", StringComparison.InvariantCultureIgnoreCase);
 			return fileNameWithoutExtension;
 		}
 
@@ -213,6 +220,16 @@ namespace WalletWasabi.Helpers
 		public static string GetMethodName([CallerMemberName] string callerName = "")
 		{
 			return callerName;
+		}
+
+		public static string GetCallerFilePath([CallerFilePath] string callerFilePath = "")
+		{
+			return callerFilePath;
+		}
+
+		public static string GetCallerFileName([CallerFilePath] string callerFilePath = "")
+		{
+			return ExtractFileName(callerFilePath);
 		}
 
 		public static string GetFullBaseDirectory()
