@@ -59,7 +59,7 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[ExportMainMenuItem("Tools", "Broadcast Transaction")]
 		[DefaultOrder(1)]
 		[DefaultGroup("Utilities")]
-		public IMenuItem BroadcastTransation => MenuItemFactory.CreateCommandMenuItem("Tools.BroadcastTransaction");
+		public IMenuItem BroadcastTransaction => MenuItemFactory.CreateCommandMenuItem("Tools.BroadcastTransaction");
 
 		[ExportMainMenuItem("Tools", "Settings")]
 		[DefaultOrder(20)]
