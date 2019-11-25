@@ -447,7 +447,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent)).Select(_ => Unit.Default))
 				.Merge(Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived)).Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromSeconds(2)) // Throttle TransactionProcessor events adds/removes.
-				.Merge(Observable.FromEventPattern(this, nameof(CoinListShown)).Select(_ => Unit.Default)) // Load the list immediately.
+				.Merge(Observable.FromEventPattern(this, nameof(CoinListShown), RxApp.MainThreadScheduler).Select(_ => Unit.Default)) // Load the list immediately.
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(args =>
 				{
@@ -459,10 +459,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						var coinToRemove = old.Where(c => !actual.Contains(c.Key)).ToArray();
 						var coinToAdd = actual.Where(c => !old.ContainsKey(c)).ToArray();
 
-						foreach (var item in coinToRemove)
-						{
-							item.Value.Dispose();
-						}
 						RootList.RemoveMany(coinToRemove.Select(kp => kp.Value));
 
 						var newCoinViewModels = coinToAdd.Select(c => new CoinViewModel(Global, c)).ToArray();
@@ -476,6 +472,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 						RefreshSelectionCheckBoxes(allCoins);
 						RefreshStatusColumnWidth(allCoins);
+
+						foreach (var item in coinToRemove)
+						{
+							item.Value.Dispose();
+						}
 					}
 					catch (Exception ex)
 					{
