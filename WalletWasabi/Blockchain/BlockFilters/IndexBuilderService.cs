@@ -284,7 +284,9 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									File.Delete(Bech32UtxoSetFilePath);
 								}
 								var bech32UtxoSetLines = Bech32UtxoSet.Select(entry => entry.Value.Line);
-								await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, bech32UtxoSetLines);
+
+								// Keep it sync unless you fix the performance issue with async.
+								File.WriteAllLines(Bech32UtxoSetFilePath, bech32UtxoSetLines);
 
 								// If not close to the tip, just log debug.
 								// Use height.Value instead of simply height, because it cannot be negative height.
