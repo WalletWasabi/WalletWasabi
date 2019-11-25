@@ -40,7 +40,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 		private List<FilterModel> Index { get; }
 		private AsyncLock IndexLock { get; }
 		public uint StartingHeight { get; }
-		private Dictionary<OutPoint, Script> Bech32UtxoSet { get; }
+		private Dictionary<OutPoint, UtxoEntry> Bech32UtxoSet { get; }
 		private List<ActionHistoryHelper> Bech32UtxoSetHistory { get; }
 
 		/// <summary>
@@ -57,7 +57,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			IndexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
 			Bech32UtxoSetFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(bech32UtxoSetFilePath), bech32UtxoSetFilePath);
 
-			Bech32UtxoSet = new Dictionary<OutPoint, Script>();
+			Bech32UtxoSet = new Dictionary<OutPoint, UtxoEntry>();
 			Bech32UtxoSetHistory = new List<ActionHistoryHelper>(capacity: 100);
 			Index = new List<FilterModel>();
 			IndexLock = new AsyncLock();
@@ -99,7 +99,9 @@ namespace WalletWasabi.Blockchain.BlockFilters
 						var txHash = new uint256(parts[0]);
 						var nIn = int.Parse(parts[1]);
 						var script = new Script(ByteHelpers.FromHex(parts[2]), true);
-						Bech32UtxoSet.Add(new OutPoint(txHash, nIn), script);
+						OutPoint outPoint = new OutPoint(txHash, nIn);
+						var utxoEntry = new UtxoEntry(outPoint, script);
+						Bech32UtxoSet.Add(outPoint, utxoEntry);
 					}
 				}
 			}
@@ -226,7 +228,8 @@ namespace WalletWasabi.Blockchain.BlockFilters
 										if (output.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
 										{
 											var outpoint = new OutPoint(tx.GetHash(), i);
-											Bech32UtxoSet.Add(outpoint, output.ScriptPubKey);
+											var utxoEntry = new UtxoEntry(outpoint, output.ScriptPubKey);
+											Bech32UtxoSet.Add(outpoint, utxoEntry);
 											if (isImmature)
 											{
 												Bech32UtxoSetHistory.Last().StoreAction(Operation.Add, outpoint, output.ScriptPubKey);
@@ -238,8 +241,9 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									foreach (var input in tx.Inputs)
 									{
 										OutPoint prevOut = input.PrevOut;
-										if (Bech32UtxoSet.TryGetValue(prevOut, out Script foundScript))
+										if (Bech32UtxoSet.TryGetValue(prevOut, out UtxoEntry foundUtxoEntry))
 										{
+											var foundScript = foundUtxoEntry.Script;
 											Bech32UtxoSet.Remove(prevOut);
 											if (isImmature)
 											{
@@ -279,8 +283,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 								{
 									File.Delete(Bech32UtxoSetFilePath);
 								}
-								var bech32UtxoSetLines = Bech32UtxoSet
-									.Select(entry => $"{entry.Key.Hash}:{entry.Key.N}:{ByteHelpers.ToHex(entry.Value.ToCompressedBytes())}");
+								var bech32UtxoSetLines = Bech32UtxoSet.Select(entry => entry.Value.Line);
 								await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, bech32UtxoSetLines);
 
 								// If not close to the tip, just log debug.
@@ -353,8 +356,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 				Bech32UtxoSetHistory.RemoveLast();
 
 				// 4. Serialize Bech32UtxoSet.
-				await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet
-					.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes())));
+				await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet.Select(entry => entry.Value.Line));
 			}
 		}
 

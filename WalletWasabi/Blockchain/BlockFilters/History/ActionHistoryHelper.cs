@@ -24,7 +24,7 @@ namespace WalletWasabi.Blockchain.BlockFilters.History
 			StoreAction(new ActionItem(action, outpoint, script));
 		}
 
-		public void Rollback(Dictionary<OutPoint, Script> toRollBack)
+		public void Rollback(Dictionary<OutPoint, UtxoEntry> toRollBack)
 		{
 			for (var i = ActionHistory.Count - 1; i >= 0; i--)
 			{
@@ -36,7 +36,7 @@ namespace WalletWasabi.Blockchain.BlockFilters.History
 						break;
 
 					case Operation.Remove:
-						toRollBack.Add(act.OutPoint, act.Script);
+						toRollBack.Add(act.OutPoint, new UtxoEntry(act.OutPoint, act.Script));
 						break;
 
 					default:
