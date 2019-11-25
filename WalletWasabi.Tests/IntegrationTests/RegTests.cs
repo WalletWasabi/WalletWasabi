@@ -98,7 +98,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var network = global.RpcClient.Network;
 			var serviceConfiguration = new ServiceConfiguration(2, 2, 21, 50, RegTestFixture.BackendRegTestNode.P2pEndPoint, Money.Coins(Constants.DefaultDustThreshold));
 			var bitcoinStore = new BitcoinStore();
-			var dir = GetWorkDir();
+			var dir = GetWorkDir(callerFilePath, callerMemberName);
 			await bitcoinStore.InitializeAsync(dir, network);
 			return ("password", global.RpcClient, network, global.Coordinator, serviceConfiguration, bitcoinStore, global);
 		}
