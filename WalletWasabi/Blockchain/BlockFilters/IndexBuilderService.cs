@@ -279,8 +279,9 @@ namespace WalletWasabi.Blockchain.BlockFilters
 								{
 									File.Delete(Bech32UtxoSetFilePath);
 								}
-								await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet
-									.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes())));
+								var bech32UtxoSetLines = Bech32UtxoSet
+									.Select(entry => $"{entry.Key.Hash}:{entry.Key.N}:{ByteHelpers.ToHex(entry.Value.ToCompressedBytes())}");
+								await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, bech32UtxoSetLines);
 
 								// If not close to the tip, just log debug.
 								// Use height.Value instead of simply height, because it cannot be negative height.
