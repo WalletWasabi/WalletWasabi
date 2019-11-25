@@ -23,7 +23,7 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 		{
 			var indexStore = new IndexStore();
 
-			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
+			var dir = (await GetIndexStorePathsAsync()).dir;
 			if (Directory.Exists(dir))
 			{
 				Directory.Delete(dir, true);
@@ -168,9 +168,9 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 			Assert.Equal(3u, headersChain.TipHeight);
 		}
 
-		private async Task<(string, string, string)> GetIndexStorePathsAsync([CallerMemberName] string callerName = "")
+		private async Task<(string dir, string matureFilters, string immatureFilters)> GetIndexStorePathsAsync([CallerFilePath]string callerFilePath = null, [CallerMemberName] string callerName = "")
 		{
-			var dir = Path.Combine(Global.Instance.DataDir, callerName, "IndexStore");
+			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerName, "IndexStore");
 			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir);
 			var matureFilters = Path.Combine(dir, "MatureIndex.dat");
 			var immatureFilters = Path.Combine(dir, "ImmatureIndex.dat");

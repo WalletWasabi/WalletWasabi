@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using Xunit;
 
@@ -202,7 +203,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(tx0, matureTxs.First());
 			Assert.Equal(tx2, matureTxs.Last());
 
-			// Unconfirmed transaction must be removed from the mempool because there is confirmed tx now 
+			// Unconfirmed transaction must be removed from the mempool because there is confirmed tx now
 			var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
 			Assert.Empty(mempool);
 		}
@@ -277,10 +278,10 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var matureTxs = transactionProcessor.TransactionStore.ConfirmedStore.GetTransactions();
 			Assert.Equal(tx0, matureTxs.First());
 
-			// All the replaced transactions tx1 and tx2 have to be removed because tx4 replaced tx1 
+			// All the replaced transactions tx1 and tx2 have to be removed because tx4 replaced tx1
 			var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
 			var txInMempool = Assert.Single(mempool);
-			Assert.Equal(tx3, txInMempool); 
+			Assert.Equal(tx3, txInMempool);
 		}
 
 		[Fact]
@@ -318,14 +319,14 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var matureTxs = transactionProcessor.TransactionStore.ConfirmedStore.GetTransactions();
 			var confirmedTx = Assert.Single(matureTxs);
-			Assert.Equal(tx1, confirmedTx); 
-			Assert.Equal(tx2, confirmedTx); 
+			Assert.Equal(tx1, confirmedTx);
+			Assert.Equal(tx2, confirmedTx);
 		}
 
 		[Fact]
 		public async Task HandlesBumpFeeAsync()
 		{
-			// --tx0---> (A) --+ 
+			// --tx0---> (A) --+
 			//                 +--+-- tx2 (replaceable --+---> (myself)
 			// --tx1---> (B) --+  |                      |
 			//                    |                      +---> (change myself)
@@ -381,8 +382,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var matureTxs = transactionProcessor.TransactionStore.ConfirmedStore.GetTransactions().ToArray();
 			Assert.Equal(3, matureTxs.Length);
 			Assert.Equal(tx0, matureTxs[0]);
-			Assert.Equal(tx1, matureTxs[1]); 
-			Assert.Equal(tx3, matureTxs[2]); 
+			Assert.Equal(tx1, matureTxs[1]);
+			Assert.Equal(tx3, matureTxs[2]);
 		}
 
 		[Fact]
@@ -437,7 +438,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var matureTxs = transactionProcessor.TransactionStore.ConfirmedStore.GetTransactions().ToArray();
 			Assert.Equal(2, matureTxs.Length);
 			Assert.Equal(tx0, matureTxs[0]);
-			Assert.Equal(tx1, matureTxs[1]); 
+			Assert.Equal(tx1, matureTxs[1]);
 		}
 
 		[Fact]
@@ -886,13 +887,13 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.NotEmpty(changeCoin.Clusters.Labels);
 		}
 
-		private async Task<TransactionProcessor> CreateTransactionProcessorAsync([CallerMemberName] string callerName = "")
+		private async Task<TransactionProcessor> CreateTransactionProcessorAsync([CallerFilePath]string callerFilePath = null, [CallerMemberName] string callerName = "")
 		{
 			var keyManager = KeyManager.CreateNew(out _, "password");
 			keyManager.AssertCleanKeysIndexed();
 
 			var txStore = new AllTransactionStore();
-			var dir = Path.Combine(Global.Instance.DataDir, callerName, "TransactionStore");
+			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerName, "TransactionStore");
 			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir);
 			await txStore.InitializeAsync(dir, Network.RegTest);
 

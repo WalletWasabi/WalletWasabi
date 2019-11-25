@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using Xunit;
 
@@ -20,7 +21,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		public async Task CanInitializeEmptyAsync(Network network)
 		{
 			var txStore = new AllTransactionStore();
-			await txStore.InitializeAsync(PrepareWorkDir(), network, ensureBackwardsCompatibility: false);
+			var dir = PrepareWorkDir();
+			await txStore.InitializeAsync(dir, network, ensureBackwardsCompatibility: false);
 
 			Assert.NotNull(txStore.ConfirmedStore);
 			Assert.NotNull(txStore.MempoolStore);
@@ -36,7 +38,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.True(txStore.IsEmpty());
 			Assert.False(txStore.TryGetTransaction(txHash, out _));
 
-			var dir = GetWorkDir();
 			var mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
 			var txFile = Path.Combine(dir, "ConfirmedTransactions", WalletWasabi.Helpers.Constants.ConfirmedTransactionsVersion, "Transactions.dat");
 			var mempoolContent = await File.ReadAllBytesAsync(mempoolFile);
@@ -437,9 +438,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 		#region Helpers
 
-		private void PrepareTestEnv(out string dir, out Network network, out string mempoolFile, out string txFile, out SmartTransaction uTx1, out SmartTransaction uTx2, out SmartTransaction uTx3, out SmartTransaction cTx1, out SmartTransaction cTx2, out SmartTransaction cTx3, [CallerMemberName] string caller = null)
+		private void PrepareTestEnv(out string dir, out Network network, out string mempoolFile, out string txFile, out SmartTransaction uTx1, out SmartTransaction uTx2, out SmartTransaction uTx3, out SmartTransaction cTx1, out SmartTransaction cTx2, out SmartTransaction cTx3, [CallerFilePath]string callerFilePath = null, [CallerMemberName] string callerMemberName = null)
 		{
-			dir = PrepareWorkDir(caller);
+			dir = PrepareWorkDir(EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
 			network = Network.TestNet;
 			mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
 			txFile = Path.Combine(dir, "ConfirmedTransactions", WalletWasabi.Helpers.Constants.ConfirmedTransactionsVersion, "Transactions.dat");
@@ -454,21 +455,15 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			cTx3 = SmartTransaction.FromLine("ebcef423f6b03ef89dce076b53e624c966381f76e5d8b2b5034d3615ae950b2f:01000000000101296d58df626f1e250c661bd45497d159647526eb8166aec86852eb37104c37950100000000ffffffff01facb100300000000160014d5461e0e7077d62c4cf9c18a4e9ba10efd4930340247304402206d2c5b2b182474531ed07587e44ea22b136a37d5ddbd35aa2d984da7be5f7e5202202abd8435d9856e3d0892dbd54e9c05f2a20d9d5f333247314b925947a480a2eb01210321dd0574c773a35d4a7ebf17bf8f974b5665c0183598f1db53153e74c876768500000000:1580673:0000000017b09a77b815f3df513ff698d1f3b0e8c5e16ac0d6558e2d831f3bf9:130::1570462988:False", network);
 		}
 
-		private string PrepareWorkDir([CallerMemberName] string caller = null)
+		private string PrepareWorkDir([CallerFilePath]string callerFilePath = null, [CallerMemberName] string callerMemberName = null)
 		{
-			string dir = GetWorkDir(caller);
+			string dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
 			if (Directory.Exists(dir))
 			{
 				Directory.Delete(dir, true);
 			}
 
 			return dir;
-		}
-
-		private static string GetWorkDir([CallerMemberName] string caller = null)
-		{
-			// Make sure starts with clear state.
-			return Path.Combine(Global.Instance.DataDir, nameof(AllTransactionStoreTests), caller);
 		}
 
 		public static IEnumerable<object[]> GetDifferentNetworkValues()
