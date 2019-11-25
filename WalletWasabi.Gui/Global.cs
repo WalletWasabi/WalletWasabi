@@ -235,7 +235,7 @@ namespace WalletWasabi.Gui
 									Config.LocalBitcoinCoreDataDir,
 									tryRestart: false,
 									tryDeleteDataDir: false,
-									EndPointStrategy.Custom(Config.GetBitcoinP2pEndPoint()),
+									EndPointStrategy.Default(Network, EndPointType.P2p),
 									EndPointStrategy.Default(Network, EndPointType.Rpc),
 									txIndex: null,
 									prune: null,
