@@ -396,7 +396,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				});
 
-			// This will be triggered after the Tab became visible for the user.
+			// This will be triggered after the Tab becomes visible for the user.
 			InitList = ReactiveCommand.CreateFromTask(async () =>
 			{
 				IsCoinListLoading = true; // Set the Loading animation.
