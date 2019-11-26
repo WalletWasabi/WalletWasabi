@@ -1,6 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
 using System;
@@ -27,7 +29,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _psbtHexText;
 		private string _psbtBase64Text;
 		private byte[] _psbtBytes;
-		public ReactiveCommand<Unit, Unit> ExportBinaryPsbtCommand { get; set; }
+		public ReactiveCommand<Unit, Unit> ExportBinaryPsbt { get; set; }
+		public ReactiveCommand<Unit, Unit> OpenTransactionBroadcaster { get; set; }
 
 		public bool? IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
 
@@ -63,7 +66,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public TransactionViewerViewModel(WalletViewModel walletViewModel) : base("Transaction", walletViewModel)
 		{
-			ExportBinaryPsbtCommand = ReactiveCommand.CreateFromTask(async () =>
+			OpenTransactionBroadcaster = ReactiveCommand.Create(() =>
+			{
+				try
+				{
+					IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel(Global));
+				}
+				catch (Exception ex)
+				{
+					NotificationHelpers.Error(ex.ToTypeMessageString());
+					Logger.LogError(ex);
+				}
+			});
+			ExportBinaryPsbt = ReactiveCommand.CreateFromTask(async () =>
 			{
 				try
 				{
@@ -106,8 +121,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					NotificationHelpers.Error(ex.ToTypeMessageString());
 					Logger.LogError(ex);
 				}
-			},
-			outputScheduler: RxApp.MainThreadScheduler);
+			});
 		}
 
 		private void OnException(Exception ex)

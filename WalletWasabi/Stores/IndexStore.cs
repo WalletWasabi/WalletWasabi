@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using WalletWasabi.Logging;
@@ -25,10 +27,10 @@ namespace WalletWasabi.Stores
 		private Network Network { get; set; }
 		private DigestableSafeMutexIoManager MatureIndexFileManager { get; set; }
 		private DigestableSafeMutexIoManager ImmatureIndexFileManager { get; set; }
-		public HashChain HashChain { get; private set; }
+		public SmartHeaderChain SmartHeaderChain { get; private set; }
 
 		private FilterModel StartingFilter { get; set; }
-		private Height StartingHeight { get; set; }
+		private uint StartingHeight { get; set; }
 		private List<FilterModel> ImmatureFilters { get; set; }
 		private AsyncLock IndexLock { get; set; }
 
@@ -36,20 +38,20 @@ namespace WalletWasabi.Stores
 
 		public event EventHandler<FilterModel> NewFilter;
 
-		public async Task InitializeAsync(string workFolderPath, Network network, HashChain hashChain)
+		public async Task InitializeAsync(string workFolderPath, Network network, SmartHeaderChain hashChain)
 		{
 			using (BenchmarkLogger.Measure())
 			{
 				WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 				Network = Guard.NotNull(nameof(network), network);
-				HashChain = Guard.NotNull(nameof(hashChain), hashChain);
+				SmartHeaderChain = Guard.NotNull(nameof(hashChain), hashChain);
 				var indexFilePath = Path.Combine(WorkFolderPath, "MatureIndex.dat");
 				MatureIndexFileManager = new DigestableSafeMutexIoManager(indexFilePath, digestRandomIndex: -1);
 				var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
 				ImmatureIndexFileManager = new DigestableSafeMutexIoManager(immatureIndexFilePath, digestRandomIndex: -1);
 
 				StartingFilter = StartingFilters.GetStartingFilter(Network);
-				StartingHeight = StartingFilters.GetStartingHeight(Network);
+				StartingHeight = StartingFilter.Header.Height;
 
 				ImmatureFilters = new List<FilterModel>(150);
 
@@ -71,7 +73,7 @@ namespace WalletWasabi.Stores
 
 					if (!MatureIndexFileManager.Exists())
 					{
-						await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToHeightlessLine() }).ConfigureAwait(false);
+						await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToLine() }).ConfigureAwait(false);
 					}
 
 					await InitializeFiltersAsync().ConfigureAwait(false);
@@ -79,12 +81,44 @@ namespace WalletWasabi.Stores
 			}
 		}
 
+		private async Task DeleteIfDeprecatedAsync()
+		{
+			if (MatureIndexFileManager.Exists())
+			{
+				await DeleteIfDeprecatedAsync(MatureIndexFileManager).ConfigureAwait(false);
+			}
+
+			if (ImmatureIndexFileManager.Exists())
+			{
+				await DeleteIfDeprecatedAsync(ImmatureIndexFileManager).ConfigureAwait(false);
+			}
+		}
+
+		private async Task DeleteIfDeprecatedAsync(DigestableSafeMutexIoManager ioManager)
+		{
+			string firstLine;
+			using (var content = ioManager.OpenText())
+			{
+				firstLine = await content.ReadLineAsync().ConfigureAwait(false);
+			}
+
+			try
+			{
+				FilterModel.FromLine(firstLine);
+			}
+			catch
+			{
+				Logger.LogWarning("Old Index file detected. Deleting it.");
+				MatureIndexFileManager.DeleteMe();
+				ImmatureIndexFileManager.DeleteMe();
+				Logger.LogWarning("Successfully deleted old Index file.");
+			}
+		}
+
 		private async Task InitializeFiltersAsync()
 		{
 			try
 			{
-				Height height = StartingHeight;
-
 				if (MatureIndexFileManager.Exists())
 				{
 					using var sr = MatureIndexFileManager.OpenText();
@@ -101,20 +135,10 @@ namespace WalletWasabi.Stores
 
 							lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
 
-							ProcessLine(height, line, enqueue: false);
-							height++;
+							ProcessLine(line, enqueue: false);
 
 							line = null;
 						}
-					}
-				}
-
-				if (ImmatureIndexFileManager.Exists())
-				{
-					foreach (var line in await ImmatureIndexFileManager.ReadAllLinesAsync().ConfigureAwait(false)) // We can load ImmatureIndexFileManager to the memory, no problem.
-					{
-						ProcessLine(height, line, enqueue: true);
-						height++;
 					}
 				}
 			}
@@ -123,26 +147,59 @@ namespace WalletWasabi.Stores
 				// We found a corrupted entry. Stop here.
 				// Delete the currupted file.
 				// Do not try to autocorrect, because the internal data structures are throwing events that may confuse the consumers of those events.
-				Logger.LogError("An index file got corrupted. Deleting index files...");
+				Logger.LogError("Mature index got corrupted. Deleting both mature and immature index...");
 				MatureIndexFileManager.DeleteMe();
+				ImmatureIndexFileManager.DeleteMe();
+				throw;
+			}
+
+			try
+			{
+				if (ImmatureIndexFileManager.Exists())
+				{
+					foreach (var line in await ImmatureIndexFileManager.ReadAllLinesAsync().ConfigureAwait(false)) // We can load ImmatureIndexFileManager to the memory, no problem.
+					{
+						ProcessLine(line, enqueue: true);
+					}
+				}
+			}
+			catch
+			{
+				// We found a corrupted entry. Stop here.
+				// Delete the currupted file.
+				// Do not try to autocorrect, because the internal data structures are throwing events that may confuse the consumers of those events.
+				Logger.LogError("Immature index got corrupted. Deleting it...");
 				ImmatureIndexFileManager.DeleteMe();
 				throw;
 			}
 		}
 
-		private void ProcessLine(Height height, string line, bool enqueue)
+		private void ProcessLine(string line, bool enqueue)
 		{
-			var filter = FilterModel.FromHeightlessLine(line, height);
-			ProcessFilter(filter, enqueue);
+			var filter = FilterModel.FromLine(line);
+			if (!TryProcessFilter(filter, enqueue))
+			{
+				throw new InvalidOperationException("Index file inconsistency detected.");
+			}
 		}
 
-		private void ProcessFilter(FilterModel filter, bool enqueue)
+		private bool TryProcessFilter(FilterModel filter, bool enqueue)
 		{
-			if (enqueue)
+			try
 			{
-				ImmatureFilters.Add(filter);
+				SmartHeaderChain.AddOrReplace(filter.Header);
+				if (enqueue)
+				{
+					ImmatureFilters.Add(filter);
+				}
+
+				return true;
 			}
-			HashChain.AddOrReplace(filter.BlockHeight.Value, filter.BlockHash);
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+				return false;
+			}
 		}
 
 		private async Task EnsureBackwardsCompatibilityAsync()
@@ -189,6 +246,8 @@ namespace WalletWasabi.Stores
 
 					File.Delete(oldIndexFilePath);
 				}
+
+				await DeleteIfDeprecatedAsync().ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -198,17 +257,26 @@ namespace WalletWasabi.Stores
 
 		public async Task AddNewFiltersAsync(IEnumerable<FilterModel> filters, CancellationToken cancel)
 		{
+			var successAny = false;
 			foreach (var filter in filters)
 			{
+				var success = false;
 				using (await IndexLock.LockAsync().ConfigureAwait(false))
 				{
-					ProcessFilter(filter, enqueue: true);
+					success = TryProcessFilter(filter, enqueue: true);
 				}
+				successAny = successAny || success;
 
-				NewFilter?.Invoke(this, filter); // Event always outside the lock.
+				if (success)
+				{
+					NewFilter?.Invoke(this, filter); // Event always outside the lock.
+				}
 			}
 
-			_ = TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel);
+			if (successAny)
+			{
+				_ = TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel);
+			}
 		}
 
 		public async Task<FilterModel> RemoveLastFilterAsync(CancellationToken cancel)
@@ -219,11 +287,11 @@ namespace WalletWasabi.Stores
 			{
 				filter = ImmatureFilters.Last();
 				ImmatureFilters.RemoveLast();
-				if (HashChain.TipHeight != filter.BlockHeight.Value)
+				if (SmartHeaderChain.TipHeight != filter.Header.Height)
 				{
-					throw new InvalidOperationException($"{nameof(HashChain)} and {nameof(ImmatureFilters)} are not in sync.");
+					throw new InvalidOperationException($"{nameof(SmartHeaderChain)} and {nameof(ImmatureFilters)} are not in sync.");
 				}
-				HashChain.RemoveLast();
+				SmartHeaderChain.RemoveLast();
 			}
 
 			Reorged?.Invoke(this, filter);
@@ -309,7 +377,7 @@ namespace WalletWasabi.Stores
 				using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
 				{
 					// Do not feed the cancellationToken here I always want this to finish running for safety.
-					var currentImmatureLines = ImmatureFilters.Select(x => x.ToHeightlessLine()).ToArray(); // So we do not read on ImmatureFilters while removing them.
+					var currentImmatureLines = ImmatureFilters.Select(x => x.ToLine()).ToArray(); // So we do not read on ImmatureFilters while removing them.
 					var matureLinesToAppend = currentImmatureLines.SkipLast(100);
 					var immatureLines = currentImmatureLines.TakeLast(100);
 					var tasks = new Task[] { MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend), ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines) };
@@ -335,12 +403,12 @@ namespace WalletWasabi.Stores
 			using (await MatureIndexFileManager.Mutex.LockAsync().ConfigureAwait(false))
 			using (await IndexLock.LockAsync().ConfigureAwait(false))
 			{
-				var firstImmatureHeight = ImmatureFilters.FirstOrDefault()?.BlockHeight;
+				var firstImmatureHeight = ImmatureFilters.FirstOrDefault()?.Header?.Height;
 				if (!firstImmatureHeight.HasValue || firstImmatureHeight.Value > fromHeight)
 				{
 					if (MatureIndexFileManager.Exists())
 					{
-						Height height = StartingHeight;
+						uint height = StartingHeight;
 						using var sr = MatureIndexFileManager.OpenText();
 						if (!sr.EndOfStream)
 						{
@@ -368,7 +436,7 @@ namespace WalletWasabi.Stores
 									continue;
 								}
 
-								var filter = FilterModel.FromHeightlessLine(line, height);
+								var filter = FilterModel.FromLine(line);
 
 								await tTask.ConfigureAwait(false);
 								tTask = todo(filter);
@@ -395,7 +463,7 @@ namespace WalletWasabi.Stores
 								continue;
 							}
 
-							var filter = FilterModel.FromHeightlessLine(line, height);
+							var filter = FilterModel.FromLine(line);
 
 							await todo(filter).ConfigureAwait(false);
 							height++;
