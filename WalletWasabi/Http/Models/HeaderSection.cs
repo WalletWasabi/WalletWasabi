@@ -81,7 +81,7 @@ namespace WalletWasabi.Http.Models
 				}
 			}
 
-			if (hostToCorrect != null)
+			if (hostToCorrect is { })
 			{
 				hs.Fields.Remove(hostToCorrect);
 				hs.Fields.Insert(0, hostToCorrect);
@@ -189,7 +189,7 @@ namespace WalletWasabi.Http.Models
 			// - And I explicitly expand the "headers" variable
 			if (headers is HttpContentHeaders contentHeaders)
 			{
-				if (contentHeaders.ContentLength != null)
+				if (contentHeaders.ContentLength is { })
 				{
 					if (hs.Fields.All(x => x.Name != "Content-Length"))
 					{

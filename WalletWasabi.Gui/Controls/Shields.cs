@@ -74,7 +74,7 @@ namespace WalletWasabi.Gui.Controls
 				.Subscribe(x => ShieldState = x);
 
 			this.WhenAnyValue(x => x.ShieldState)
-				.Where(x => x != null)
+				.Where(x => x is { })
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(st =>
 				{

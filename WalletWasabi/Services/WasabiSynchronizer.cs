@@ -205,7 +205,7 @@ namespace WalletWasabi.Services
 								throw;
 							}
 
-							if (response.AllFeeEstimate != null && response.AllFeeEstimate.Estimations.Any())
+							if (response.AllFeeEstimate is { } && response.AllFeeEstimate.Estimations.Any())
 							{
 								lastFeeQueried = DateTimeOffset.UtcNow;
 								AllFeeEstimate = response.AllFeeEstimate;

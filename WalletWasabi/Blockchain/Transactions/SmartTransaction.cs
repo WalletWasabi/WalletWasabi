@@ -117,7 +117,7 @@ namespace WalletWasabi.Blockchain.Transactions
 					updated = true;
 				}
 
-				if (tx.BlockHash != null && BlockHash != tx.BlockHash)
+				if (tx.BlockHash is { } && BlockHash != tx.BlockHash)
 				{
 					BlockHash = tx.BlockHash;
 					BlockIndex = tx.BlockIndex;

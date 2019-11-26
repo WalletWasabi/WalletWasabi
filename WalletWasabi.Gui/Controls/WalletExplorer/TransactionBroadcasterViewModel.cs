@@ -102,7 +102,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
 					var selected = await ofd.ShowAsync(window, fallBack: true);
 
-					if (selected != null && selected.Any())
+					if (selected is { } && selected.Any())
 					{
 						var path = selected.First();
 						var psbtBytes = await File.ReadAllBytesAsync(path);
@@ -126,7 +126,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							}
 						}
 
-						if (psbt != null)
+						if (psbt is { })
 						{
 							if (!psbt.IsAllFinalized())
 							{

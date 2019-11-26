@@ -157,7 +157,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			Logger.LogInfo($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection. Phase: {resp.CurrentPhase}.");
 
 			var activeOutputs = new List<ActiveOutput>();
-			if (resp.BlindedOutputSignatures != null && resp.BlindedOutputSignatures.Any())
+			if (resp.BlindedOutputSignatures is { } && resp.BlindedOutputSignatures.Any())
 			{
 				var unblindedSignatures = new List<UnblindedSignature>();
 				var blindedSignatures = resp.BlindedOutputSignatures.ToArray();

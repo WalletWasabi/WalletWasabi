@@ -60,7 +60,7 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 		public override int GetHashCode()
 		{
 			int hash = 0;
-			if (Coins != null)
+			if (Coins is { })
 			{
 				foreach (var coin in Coins)
 				{

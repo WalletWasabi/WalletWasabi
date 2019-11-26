@@ -91,14 +91,14 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 		{
 			request = Requests.SingleOrDefault(x => x.Amount.Type == MoneyRequestType.Change || x.Amount.Type == MoneyRequestType.AllRemaining);
 
-			return request != null;
+			return request is { };
 		}
 
 		public bool TryGetFeeSubtractionRequest(out DestinationRequest request)
 		{
 			request = Requests.SingleOrDefault(x => x.Amount.SubtractFee);
 
-			return request != null;
+			return request is { };
 		}
 	}
 }

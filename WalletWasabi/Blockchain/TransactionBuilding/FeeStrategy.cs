@@ -50,7 +50,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 			Type = type;
 			if (type == FeeStrategyType.Rate)
 			{
-				if (confirmationTarget != null)
+				if (confirmationTarget is { })
 				{
 					throw new ArgumentException($"{nameof(confirmationTarget)} must be null.");
 				}
@@ -63,7 +63,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 			}
 			else if (type == FeeStrategyType.Target)
 			{
-				if (feeRate != null)
+				if (feeRate is { })
 				{
 					throw new ArgumentException($"{nameof(feeRate)} must be null.");
 				}

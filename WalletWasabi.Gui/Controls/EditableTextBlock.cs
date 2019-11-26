@@ -45,7 +45,7 @@ namespace WalletWasabi.Gui.Controls
 
 			this.GetObservable(InEditModeProperty).Subscribe(mode =>
 				{
-					if (mode && _textBox != null)
+					if (mode && _textBox is { })
 					{
 						EnterEditMode();
 					}

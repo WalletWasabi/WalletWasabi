@@ -26,7 +26,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 		public Network Network { get; }
 		public NodesGroup Nodes { get; }
 		public List<WalletService> WalletServices { get; }
-		public IEnumerable<WalletService> AliveWalletServices => WalletServices.Where(x => x != null && !x.IsDisposed);
+		public IEnumerable<WalletService> AliveWalletServices => WalletServices.Where(x => x is { } && !x.IsDisposed);
 		public object WalletServicesLock { get; }
 		public RPCClient RpcClient { get; private set; }
 
@@ -176,7 +176,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 				Logger.LogInfo($"Random node could not broadcast transaction. Reason: {ex.Message}.");
 				Logger.LogDebug(ex);
 
-				if (RpcClient != null)
+				if (RpcClient is { })
 				{
 					try
 					{

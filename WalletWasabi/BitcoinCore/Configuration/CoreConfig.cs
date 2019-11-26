@@ -109,7 +109,7 @@ namespace WalletWasabi.BitcoinCore.Configuration
 				}
 			}
 
-			if (toRemove != null)
+			if (toRemove is { })
 			{
 				Lines.Remove(toRemove);
 				return true;

@@ -21,7 +21,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 		{
 			if (type == MoneyRequestType.AllRemaining || type == MoneyRequestType.Change)
 			{
-				if (amount != null)
+				if (amount is { })
 				{
 					throw new ArgumentException($"{nameof(amount)} must be null.");
 				}

@@ -99,7 +99,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
 				var selected = await ofd.ShowAsync(window, fallBack: true);
-				if (selected != null && selected.Any())
+				if (selected is { } && selected.Any())
 				{
 					var path = selected.First();
 					var jsonString = await File.ReadAllTextAsync(path);
@@ -211,7 +211,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				// If the hardware wallet was not initialized, then make the button say Setup, not Load.
 				// If pin is needed, then make the button say Send Pin instead.
 
-				if (SelectedWallet?.HardwareWalletInfo != null)
+				if (SelectedWallet?.HardwareWalletInfo is { })
 				{
 					if (!SelectedWallet.HardwareWalletInfo.IsInitialized())
 					{
@@ -315,7 +315,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					SelectedWallet = Wallets.FirstOrDefault();
 				}
 
-				IsWalletSelected = SelectedWallet != null;
+				IsWalletSelected = SelectedWallet is { };
 				CanTestPassword = IsWalletSelected;
 
 				if (Global.WalletService is null)
@@ -492,7 +492,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					if (PasswordHelper.TryPassword(keyManager, password, out string compatibilityPasswordUsed))
 					{
 						NotificationHelpers.Success("Correct password.");
-						if (compatibilityPasswordUsed != null)
+						if (compatibilityPasswordUsed is { })
 						{
 							NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
 						}

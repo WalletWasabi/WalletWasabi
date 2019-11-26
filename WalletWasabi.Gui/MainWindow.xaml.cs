@@ -139,7 +139,7 @@ namespace WalletWasabi.Gui
 			bool closeApplication = false;
 			try
 			{
-				if (Global.ChaumianClient != null)
+				if (Global.ChaumianClient is { })
 				{
 					Global.ChaumianClient.IsQuitPending = true; // indicate -> do not add any more alices to the coinjoin
 				}
@@ -159,7 +159,7 @@ namespace WalletWasabi.Gui
 				{
 					try
 					{
-						if (Global.UiConfig != null) // UiConfig not yet loaded.
+						if (Global.UiConfig is { }) // UiConfig not yet loaded.
 						{
 							Global.UiConfig.WindowState = WindowState;
 							Global.UiConfig.Width = Width;
@@ -170,7 +170,7 @@ namespace WalletWasabi.Gui
 
 						Hide();
 						var wm = IoC.Get<IShell>().Documents?.OfType<WalletManagerViewModel>().FirstOrDefault();
-						if (wm != null)
+						if (wm is { })
 						{
 							wm.OnClose();
 							Logger.LogInfo($"{nameof(WalletManagerViewModel)} closed, hwi enumeration stopped.");
@@ -198,7 +198,7 @@ namespace WalletWasabi.Gui
 				if (!closeApplication) //we are not closing the application for some reason
 				{
 					Interlocked.Exchange(ref _closingState, 0);
-					if (Global.ChaumianClient != null)
+					if (Global.ChaumianClient is { })
 					{
 						Global.ChaumianClient.IsQuitPending = false; //re-enable enqueuing coins
 					}

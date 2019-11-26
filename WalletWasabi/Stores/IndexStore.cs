@@ -92,7 +92,7 @@ namespace WalletWasabi.Stores
 					{
 						var lineTask = sr.ReadLineAsync();
 						string line = null;
-						while (lineTask != null)
+						while (lineTask is { })
 						{
 							if (line is null)
 							{
@@ -347,7 +347,7 @@ namespace WalletWasabi.Stores
 							var lineTask = sr.ReadLineAsync();
 							Task tTask = Task.CompletedTask;
 							string line = null;
-							while (lineTask != null)
+							while (lineTask is { })
 							{
 								if (firstImmatureHeight == height)
 								{

@@ -136,7 +136,7 @@ namespace WalletWasabi.Backend
 				var regTestBitcoinCoreHost = jsObject.Value<string>("RegTestBitcoinCoreHost");
 				var regTestBitcoinCorePort = jsObject.Value<int?>("RegTestBitcoinCorePort");
 
-				if (mainNetBitcoinCoreHost != null)
+				if (mainNetBitcoinCoreHost is { })
 				{
 					int port = mainNetBitcoinCorePort ?? Constants.DefaultMainNetBitcoinP2pPort;
 
@@ -147,7 +147,7 @@ namespace WalletWasabi.Backend
 					}
 				}
 
-				if (testNetBitcoinCoreHost != null)
+				if (testNetBitcoinCoreHost is { })
 				{
 					int port = testNetBitcoinCorePort ?? Constants.DefaultTestNetBitcoinP2pPort;
 
@@ -158,7 +158,7 @@ namespace WalletWasabi.Backend
 					}
 				}
 
-				if (regTestBitcoinCoreHost != null)
+				if (regTestBitcoinCoreHost is { })
 				{
 					int port = regTestBitcoinCorePort ?? Constants.DefaultRegTestBitcoinP2pPort;
 

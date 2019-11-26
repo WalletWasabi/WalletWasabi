@@ -123,8 +123,8 @@
 //      var p = new OptionSet () {
 //        { "a", s => a = s },
 //      };
-//      p.Parse (new string[]{"-a"});   // sets v != null
-//      p.Parse (new string[]{"-a+"});  // sets v != null
+//      p.Parse (new string[]{"-a"});   // sets v is { }
+//      p.Parse (new string[]{"-a+"});  // sets v is { }
 //      p.Parse (new string[]{"-a-"});  // sets v is null
 //
 
@@ -258,7 +258,7 @@ namespace Mono.Options
 			T t = default;
 			try
 			{
-				if (value != null)
+				if (value is { })
 				{
 					TypeConverter conv = TypeDescriptor.GetConverter(targetType);
 					t = (T)conv.ConvertFromString(value);

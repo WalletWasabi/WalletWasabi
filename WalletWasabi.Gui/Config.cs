@@ -171,7 +171,7 @@ namespace WalletWasabi.Gui
 				return GetFallbackBackendUri();
 			}
 
-			if (_backendUri != null)
+			if (_backendUri is { })
 			{
 				return _backendUri;
 			}
@@ -198,7 +198,7 @@ namespace WalletWasabi.Gui
 
 		public Uri GetFallbackBackendUri()
 		{
-			if (_fallbackBackendUri != null)
+			if (_fallbackBackendUri is { })
 			{
 				return _fallbackBackendUri;
 			}
@@ -383,7 +383,7 @@ namespace WalletWasabi.Gui
 				var regTestBitcoinCoreHost = jsObject.Value<string>("RegTestBitcoinCoreHost");
 				var regTestBitcoinCorePort = jsObject.Value<int?>("RegTestBitcoinCorePort");
 
-				if (torHost != null)
+				if (torHost is { })
 				{
 					int port = torSocks5Port ?? Constants.DefaultTorSocksPort;
 
@@ -394,7 +394,7 @@ namespace WalletWasabi.Gui
 					}
 				}
 
-				if (mainNetBitcoinCoreHost != null)
+				if (mainNetBitcoinCoreHost is { })
 				{
 					int port = mainNetBitcoinCorePort ?? Constants.DefaultMainNetBitcoinP2pPort;
 
@@ -405,7 +405,7 @@ namespace WalletWasabi.Gui
 					}
 				}
 
-				if (testNetBitcoinCoreHost != null)
+				if (testNetBitcoinCoreHost is { })
 				{
 					int port = testNetBitcoinCorePort ?? Constants.DefaultTestNetBitcoinP2pPort;
 
@@ -416,7 +416,7 @@ namespace WalletWasabi.Gui
 					}
 				}
 
-				if (regTestBitcoinCoreHost != null)
+				if (regTestBitcoinCoreHost is { })
 				{
 					int port = regTestBitcoinCorePort ?? Constants.DefaultRegTestBitcoinP2pPort;
 

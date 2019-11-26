@@ -303,7 +303,7 @@ namespace Nito.Collections
 				return true;
 			}
 
-			if (value != null)
+			if (value is { })
 			{
 				return false;
 			}
@@ -313,7 +313,7 @@ namespace Nito.Collections
 
 		int IList.Add(object value)
 		{
-			if (value is null && default(T) != null)
+			if (value is null && default(T) is { })
 			{
 				throw new ArgumentNullException(nameof(value), $"{nameof(value)} cannot be null.");
 			}
@@ -339,7 +339,7 @@ namespace Nito.Collections
 
 		void IList.Insert(int index, object value)
 		{
-			if (value is null && default(T) != null)
+			if (value is null && default(T) is { })
 			{
 				throw new ArgumentNullException(nameof(value), $"{nameof(value)} cannot be null.");
 			}
@@ -370,7 +370,7 @@ namespace Nito.Collections
 
 			set
 			{
-				if (value is null && default(T) != null)
+				if (value is null && default(T) is { })
 				{
 					throw new ArgumentNullException(nameof(value), $"{nameof(value)} cannot be null.");
 				}

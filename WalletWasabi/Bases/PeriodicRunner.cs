@@ -106,7 +106,7 @@ namespace WalletWasabi.Bases
 
 		private void LogAndResetLastExceptionIfNotNull()
 		{
-			if (LastException != null)
+			if (LastException is { })
 			{
 				Logger.LogInfo($"Exception stopped coming. It came for {(DateTimeOffset.UtcNow - LastExceptionFirstAppeared).TotalSeconds} seconds, {LastExceptionCount} times: {LastException.ToTypeMessageString()}");
 				ResetLastException();

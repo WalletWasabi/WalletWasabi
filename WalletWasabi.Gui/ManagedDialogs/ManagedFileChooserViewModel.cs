@@ -190,7 +190,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 						if (!SelectingFolder)
 						{
 							var selectedItem = SelectedItems.FirstOrDefault();
-							if (selectedItem != null)
+							if (selectedItem is { })
 							{
 								FileName = selectedItem.DisplayName;
 							}
@@ -241,7 +241,7 @@ namespace WalletWasabi.Gui.ManagedDialogs
 							: infos.Where(i => !i.Name.StartsWith("."));
 					}
 
-					if (SelectedFilter != null)
+					if (SelectedFilter is { })
 					{
 						infos = infos.Where(i => i is DirectoryInfo || SelectedFilter.Match(i.Name));
 					}
@@ -271,11 +271,11 @@ namespace WalletWasabi.Gui.ManagedDialogs
 					.OrderByDescending(x => x.IsDirectory)
 					.ThenBy(x => x.DisplayName, StringComparer.InvariantCultureIgnoreCase));
 
-					if (initialSelectionName != null)
+					if (initialSelectionName is { })
 					{
 						var sel = Items.FirstOrDefault(i => !i.IsDirectory && i.DisplayName == initialSelectionName);
 
-						if (sel != null)
+						if (sel is { })
 						{
 							SelectedItems.Add(sel);
 						}

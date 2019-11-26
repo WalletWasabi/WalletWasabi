@@ -199,7 +199,7 @@ namespace WalletWasabi.Gui.Controls
 			// This is a workaround, fix inside avalonia to come in next release.
 			Dispatcher.UIThread.PostLogException(() =>
 			{
-				if (ContextMenu != null && ContextMenu.IsOpen)
+				if (ContextMenu is { } && ContextMenu.IsOpen)
 				{
 					// Do not call base method, as this will clear selection.
 				}
@@ -212,7 +212,7 @@ namespace WalletWasabi.Gui.Controls
 
 		private void CreatePasteItem()
 		{
-			if (_pasteItem != null)
+			if (_pasteItem is { })
 			{
 				return;
 			}

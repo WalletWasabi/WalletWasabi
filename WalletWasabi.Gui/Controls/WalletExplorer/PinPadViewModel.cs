@@ -116,7 +116,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			finally
 			{
-				if (selectedDocument != null)
+				if (selectedDocument is { })
 				{
 					IoC.Get<IShell>().Select(selectedDocument);
 				}

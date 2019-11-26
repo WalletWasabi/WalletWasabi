@@ -21,7 +21,7 @@ namespace WalletWasabi.Hwi.Models
 		public bool IsInitialized()
 		{
 			// Check for error message, too, not only code, because the currently released version doesn't have error code. This can be removed if HWI > 1.0.1 version is updated.
-			var notInitialized = (Code != null && Code == HwiErrorCode.DeviceNotInitialized) || (Error?.Contains("Not initialized", StringComparison.OrdinalIgnoreCase) is true);
+			var notInitialized = (Code is { } && Code == HwiErrorCode.DeviceNotInitialized) || (Error?.Contains("Not initialized", StringComparison.OrdinalIgnoreCase) is true);
 			return !notInitialized;
 		}
 

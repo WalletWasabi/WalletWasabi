@@ -217,7 +217,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					_labelSuggestion.Label = label;
 				}
 
-				if (url.Amount != null)
+				if (url.Amount is { })
 				{
 					AmountText = url.Amount.ToString(false, true);
 				}
@@ -292,7 +292,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.DequeuingSelectedCoins);
 						TxoRef[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => x.Model.GetTxoRef()).ToArray();
-						if (toDequeue != null && toDequeue.Any())
+						if (toDequeue is { } && toDequeue.Any())
 						{
 							await Global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, "Coin is used in a spending transaction built by the user.");
 						}
@@ -312,7 +312,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						try
 						{
 							PasswordHelper.GetMasterExtKey(KeyManager, Password, out string compatiblityPasswordUsed); // We could use TryPassword but we need the exception.
-							if (compatiblityPasswordUsed != null)
+							if (compatiblityPasswordUsed is { })
 							{
 								Password = compatiblityPasswordUsed; // Overwrite the password for BuildTransaction function.
 								NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
@@ -633,7 +633,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 
-			if (FeeRate != null)
+			if (FeeRate is { })
 			{
 				EstimatedBtcFee = FeeRate.GetTotalFee(vsize);
 			}
@@ -672,7 +672,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			var allFeeEstimate = Global.FeeProviders?.AllFeeEstimate;
 
-			if (allFeeEstimate != null)
+			if (allFeeEstimate is { })
 			{
 				MinimumFeeTarget = allFeeEstimate.Estimations.Min(x => x.Key); // This should be always 2, but bugs will be seen at least if it is not.
 				MaximumFeeTarget = allFeeEstimate.Estimations.Max(x => x.Key);

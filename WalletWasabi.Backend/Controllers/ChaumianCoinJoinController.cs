@@ -183,7 +183,7 @@ namespace WalletWasabi.Backend.Controllers
 
 						OutPoint outpoint = inputProof.Input.ToOutPoint();
 						var bannedElem = await Coordinator.UtxoReferee.TryGetBannedAsync(outpoint, notedToo: false);
-						if (bannedElem != null)
+						if (bannedElem is { })
 						{
 							return BadRequest($"Input is banned from participation for {(int)bannedElem.BannedRemaining.TotalMinutes} minutes: {inputProof.Input.Index}:{inputProof.Input.TransactionId}.");
 						}
@@ -370,7 +370,7 @@ namespace WalletWasabi.Backend.Controllers
 			}
 
 			(CoordinatorRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, RoundPhase.ConnectionConfirmation, out IActionResult returnFailureResponse);
-			if (returnFailureResponse != null)
+			if (returnFailureResponse is { })
 			{
 				return returnFailureResponse;
 			}
@@ -440,7 +440,7 @@ namespace WalletWasabi.Backend.Controllers
 			}
 
 			Guid uniqueIdGuid = GetGuidOrFailureResponse(uniqueId, out IActionResult returnFailureResponse);
-			if (returnFailureResponse != null)
+			if (returnFailureResponse is { })
 			{
 				return returnFailureResponse;
 			}
@@ -605,7 +605,7 @@ namespace WalletWasabi.Backend.Controllers
 			}
 
 			(CoordinatorRound round, _) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, RoundPhase.Signing, out IActionResult returnFailureResponse);
-			if (returnFailureResponse != null)
+			if (returnFailureResponse is { })
 			{
 				return returnFailureResponse;
 			}
@@ -656,7 +656,7 @@ namespace WalletWasabi.Backend.Controllers
 			}
 
 			(CoordinatorRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, RoundPhase.Signing, out IActionResult returnFailureResponse);
-			if (returnFailureResponse != null)
+			if (returnFailureResponse is { })
 			{
 				return returnFailureResponse;
 			}
@@ -765,7 +765,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			Guid uniqueIdGuid = GetGuidOrFailureResponse(uniqueId, out IActionResult guidFail);
 
-			if (guidFail != null)
+			if (guidFail is { })
 			{
 				returnFailureResponse = guidFail;
 				return (null, null);

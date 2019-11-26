@@ -146,7 +146,7 @@ namespace WalletWasabi.Gui.ViewModels
 			try
 			{
 				CancelClipboardNotification?.Cancel();
-				while (CancelClipboardNotification != null)
+				while (CancelClipboardNotification is { })
 				{
 					await Task.Delay(50);
 				}

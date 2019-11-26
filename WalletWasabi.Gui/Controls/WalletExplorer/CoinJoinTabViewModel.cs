@@ -228,7 +228,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					PasswordHelper.GetMasterExtKey(KeyManager, Password, out string compatiblityPassword); // If the password is not correct we throw.
 
-					if (compatiblityPassword != null)
+					if (compatiblityPassword is { })
 					{
 						Password = compatiblityPassword;
 						NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);

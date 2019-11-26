@@ -236,7 +236,7 @@ namespace Nito.AsyncEx
 			lock (LatestHoldLockExceptionLock)
 			{
 				// If we had an exception then throw it.
-				if (LatestHoldLockException != null)
+				if (LatestHoldLockException is { })
 				{
 					throw LatestHoldLockException;
 				}

@@ -224,7 +224,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			}
 			finally
 			{
-				if (indexBuilderService != null)
+				if (indexBuilderService is { })
 				{
 					await indexBuilderService.StopAsync();
 				}
@@ -636,7 +636,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				node?.Disconnect();
 
 				// Dispose chaumian coinjoin client.
-				if (chaumianClient != null)
+				if (chaumianClient is { })
 				{
 					await chaumianClient.StopAsync();
 				}
@@ -1140,7 +1140,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// Dispose mempool serving node.
 				node?.Disconnect();
 				// Dispose chaumian coinjoin client.
-				if (chaumianClient != null)
+				if (chaumianClient is { })
 				{
 					await chaumianClient.StopAsync();
 				}
@@ -1306,7 +1306,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// Dispose mempool serving node.
 				node?.Disconnect();
 				// Dispose chaumian coinjoin client.
-				if (chaumianClient != null)
+				if (chaumianClient is { })
 				{
 					await chaumianClient.StopAsync();
 				}
@@ -1446,7 +1446,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				var success = bitcoinStore.TransactionStore.TryGetTransaction(fundingTxId, out SmartTransaction invalidSmartTransaction);
 				Assert.True(success);
 				var invalidCoin = Assert.Single(((CoinsRegistry)wallet.Coins).AsAllCoinsView().CreatedBy(invalidSmartTransaction.GetHash()));
-				Assert.True(invalidCoin.SpenderTransactionId != null);
+				Assert.True(invalidCoin.SpenderTransactionId is { });
 				Assert.True(invalidCoin.Confirmed);
 
 				var overwriteTx = Transaction.Create(network);
@@ -1537,7 +1537,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// Dispose mempool serving node.
 				node?.Disconnect();
 				// Dispose chaumian coinjoin client.
-				if (chaumianClient != null)
+				if (chaumianClient is { })
 				{
 					await chaumianClient.StopAsync();
 				}
@@ -1724,7 +1724,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// Dispose mempool serving node.
 				node?.Disconnect();
 				// Dispose chaumian coinjoin client.
-				if (chaumianClient != null)
+				if (chaumianClient is { })
 				{
 					await chaumianClient.StopAsync();
 				}
@@ -1830,7 +1830,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// Dispose mempool serving node.
 				node?.Disconnect();
 				// Dispose chaumian coinjoin client.
-				if (chaumianClient != null)
+				if (chaumianClient is { })
 				{
 					await chaumianClient.StopAsync();
 				}
@@ -3165,7 +3165,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 						await Task.Delay(1000);
 					}
 
-					if (chaumianClient != null)
+					if (chaumianClient is { })
 					{
 						await chaumianClient.DequeueAllCoinsFromMixAsync("");
 						await chaumianClient.StopAsync();
@@ -3319,11 +3319,11 @@ namespace WalletWasabi.Tests.IntegrationTests
 			}
 			finally
 			{
-				if (chaumianClient1 != null)
+				if (chaumianClient1 is { })
 				{
 					await chaumianClient1.StopAsync();
 				}
-				if (chaumianClient2 != null)
+				if (chaumianClient2 is { })
 				{
 					await chaumianClient2.StopAsync();
 				}
@@ -3506,7 +3506,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// Dispose mempool serving node.
 				node?.Disconnect();
 				// Dispose chaumian coinjoin client.
-				if (chaumianClient != null)
+				if (chaumianClient is { })
 				{
 					await chaumianClient.StopAsync();
 				}
@@ -3516,7 +3516,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// Dispose connection service.
 				nodes2?.Dispose();
 				// Dispose chaumian coinjoin client.
-				if (chaumianClient2 != null)
+				if (chaumianClient2 is { })
 				{
 					await chaumianClient2.StopAsync();
 				}

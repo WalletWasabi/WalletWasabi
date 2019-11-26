@@ -32,7 +32,7 @@ namespace WalletWasabi.Backend.Models
 		{
 			var builder = new StringBuilder();
 			builder.Append(BlockHash);
-			if (Filter != null) // bech found here
+			if (Filter is { }) // bech found here
 			{
 				builder.Append(":");
 				builder.Append(Filter);
@@ -47,7 +47,7 @@ namespace WalletWasabi.Backend.Models
 			builder.Append(BlockHeight.ToString());
 			builder.Append(":");
 			builder.Append(BlockHash);
-			if (Filter != null) // bech found here
+			if (Filter is { }) // bech found here
 			{
 				builder.Append(":");
 				builder.Append(Filter);

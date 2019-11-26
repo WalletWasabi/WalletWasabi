@@ -103,7 +103,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				if (Transactions.Count > 0 && !(rememberSelectedTransactionId is null))
 				{
 					var txToSelect = Transactions.FirstOrDefault(x => x.TransactionId == rememberSelectedTransactionId);
-					if (txToSelect != null)
+					if (txToSelect is { })
 					{
 						SelectedTransaction = txToSelect;
 					}

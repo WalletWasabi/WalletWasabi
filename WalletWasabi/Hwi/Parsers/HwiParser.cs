@@ -33,15 +33,15 @@ namespace WalletWasabi.Hwi.Parsers
 
 			// Help text has error in it, so if help command is requested, then don't throw the error.
 			// https://github.com/bitcoin-core/HWI/issues/252
-			if (error != null
-				&& options != null
+			if (error is { }
+				&& options is { }
 				&& options.Contains(HwiOption.Help)
 				&& error.ErrorCode == HwiErrorCode.HelpText)
 			{
 				error = null;
 			}
 
-			return error != null;
+			return error is { };
 		}
 
 		public static bool TryParseError(JToken token, out HwiException error)
@@ -57,7 +57,7 @@ namespace WalletWasabi.Hwi.Parsers
 			var successToken = token["success"];
 
 			string err = "";
-			if (errToken != null)
+			if (errToken is { })
 			{
 				err = Guard.Correct(errToken.Value<string>());
 			}
@@ -82,12 +82,12 @@ namespace WalletWasabi.Hwi.Parsers
 			{
 				error = new HwiException(HwiErrorCode.UnknownError, err);
 			}
-			else if (successToken != null && successToken.Value<bool>() == false)
+			else if (successToken is { } && successToken.Value<bool>() == false)
 			{
 				error = new HwiException(HwiErrorCode.UnknownError, "");
 			}
 
-			return error != null;
+			return error is { };
 		}
 
 		public static bool TryParseErrorCode(JToken codeToken, out HwiErrorCode code)
@@ -228,7 +228,7 @@ namespace WalletWasabi.Hwi.Parsers
 			var needsPassphraseSentString = json["needs_passphrase_sent"]?.ToString()?.Trim();
 
 			HDFingerprint? fingerprint = null;
-			if (fingerprintString != null)
+			if (fingerprintString is { })
 			{
 				if (HDFingerprint.TryParse(fingerprintString, out HDFingerprint fp))
 				{
@@ -318,7 +318,7 @@ namespace WalletWasabi.Hwi.Parsers
 				version = v1;
 			}
 
-			return version != null;
+			return version is { };
 		}
 
 		public static Version ParseVersion(string hwiResponse)
@@ -367,7 +367,7 @@ namespace WalletWasabi.Hwi.Parsers
 			}));
 			optionsString = string.IsNullOrWhiteSpace(optionsString) ? "" : $"--{optionsString}";
 			var argumentBuilder = new StringBuilder(optionsString);
-			if (command != null)
+			if (command is { })
 			{
 				if (argumentBuilder.Length != 0)
 				{

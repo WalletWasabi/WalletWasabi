@@ -100,7 +100,7 @@ namespace WalletWasabi.Io
 					var lineTask = sr.ReadLineAsync();
 					Task wTask = Task.CompletedTask;
 					string line = null;
-					while (lineTask != null)
+					while (lineTask is { })
 					{
 						if (line is null)
 						{

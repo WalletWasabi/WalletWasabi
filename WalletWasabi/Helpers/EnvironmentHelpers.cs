@@ -195,10 +195,10 @@ namespace WalletWasabi.Helpers
 
 			using (RegistryKey key = Registry.ClassesRoot.OpenSubKey($".{fileExtension}"))
 			{
-				if (key != null)
+				if (key is { })
 				{
 					object val = key.GetValue(null); // Read the (Default) value.
-					if (val != null)
+					if (val is { })
 					{
 						return true;
 					}

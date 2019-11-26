@@ -395,7 +395,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 
 		public async Task StopAsync()
 		{
-			if (BlockNotifier != null)
+			if (BlockNotifier is { })
 			{
 				BlockNotifier.OnBlock -= BlockNotifier_OnBlock;
 			}

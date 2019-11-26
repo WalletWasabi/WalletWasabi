@@ -24,7 +24,7 @@ namespace WalletWasabi.WebClients.SmartBit
 		public SmartBitClient(Network network, HttpMessageHandler handler = null, bool disposeHandler = false)
 		{
 			Network = network ?? throw new ArgumentNullException(nameof(network));
-			HttpClient = handler != null
+			HttpClient = handler is { }
 				? new HttpClient(handler, disposeHandler)
 				: new HttpClient();
 

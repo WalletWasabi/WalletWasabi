@@ -46,7 +46,7 @@ namespace System.Net.Http
 			response.Content = contentBytes is null ? null : new ByteArrayContent(contentBytes);
 
 			HttpMessageHelper.CopyHeaders(headerStruct.ResponseHeaders, response.Headers);
-			if (response.Content != null)
+			if (response.Content is { })
 			{
 				HttpMessageHelper.CopyHeaders(headerStruct.ContentHeaders, response.Content.Headers);
 			}
@@ -70,7 +70,7 @@ namespace System.Net.Http
 			}
 
 			var messageBody = "";
-			if (me.Content != null)
+			if (me.Content is { })
 			{
 				if (me.Content.Headers.NotNullAndNotEmpty())
 				{

@@ -56,7 +56,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				}
 
 				var found = txRecordList.FirstOrDefault(x => x.TransactionId == coin.TransactionId);
-				if (found != null) // if found then update
+				if (found is { }) // if found then update
 				{
 					var label = !string.IsNullOrEmpty(found.Label) ? found.Label + ", " : "";
 					found.DateTime = dateTime;
@@ -100,7 +100,7 @@ namespace WalletWasabi.Blockchain.Transactions
 					}
 
 					var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.TransactionId == coin.SpenderTransactionId);
-					if (foundSpenderCoin != null) // if found
+					if (foundSpenderCoin is { }) // if found
 					{
 						foundSpenderCoin.DateTime = dateTime;
 						foundSpenderCoin.Amount -= coin.Amount;

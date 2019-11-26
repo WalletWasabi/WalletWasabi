@@ -72,7 +72,7 @@ namespace WalletWasabi.Blockchain.Keys
 		private object ToFileLock { get; }
 
 		public bool IsWatchOnly => EncryptedSecret is null;
-		public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint != null;
+		public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint is { };
 
 		public const int AbsoluteMinGapLimit = 21;
 
@@ -704,7 +704,7 @@ namespace WalletWasabi.Blockchain.Keys
 			lock (BlockchainStateLock)
 			{
 				found = BlockchainState.BlockStates.FirstOrDefault(x => x.BlockHash == blockHash);
-				if (found != null)
+				if (found is { })
 				{
 					if (BlockchainState.BlockStates.Remove(found))
 					{
@@ -737,7 +737,7 @@ namespace WalletWasabi.Blockchain.Keys
 				// Note same hash diff height makes no sense.
 
 				BlockState foundWithHash = BlockchainState.BlockStates.FirstOrDefault(x => x.BlockHash == state.BlockHash);
-				if (foundWithHash != null)
+				if (foundWithHash is { })
 				{
 					IEnumerable<int> newIndices = state.TransactionIndices.Where(x => !foundWithHash.TransactionIndices.Contains(x));
 					if (newIndices.Any())
@@ -749,7 +749,7 @@ namespace WalletWasabi.Blockchain.Keys
 				else
 				{
 					BlockState foundWithHeight = BlockchainState.BlockStates.FirstOrDefault(x => x.BlockHeight == state.BlockHeight);
-					if (foundWithHeight != null)
+					if (foundWithHeight is { })
 					{
 						BlockchainState.BlockStates.Remove(foundWithHeight);
 					}
@@ -788,7 +788,7 @@ namespace WalletWasabi.Blockchain.Keys
 					BlockchainState.BlockStates.Clear();
 					ToFileNoBlockchainStateLock();
 
-					if (lastNetwork != null)
+					if (lastNetwork is { })
 					{
 						Logger.LogWarning($"Wallet is opened on {expectedNetwork}. Last time it was opened on {lastNetwork}.");
 					}

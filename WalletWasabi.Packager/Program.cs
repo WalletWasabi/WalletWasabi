@@ -260,7 +260,7 @@ namespace WalletWasabi.Packager
 		private static bool IsOnlyBinariesMode(string[] args)
 		{
 			bool onlyBinaries = false;
-			if (args != null)
+			if (args is { })
 			{
 				foreach (var arg in args)
 				{
@@ -278,7 +278,7 @@ namespace WalletWasabi.Packager
 		private static bool IsOnlyCreateDigestsMode(string[] args)
 		{
 			bool onlyCreateDigests = false;
-			if (args != null)
+			if (args is { })
 			{
 				foreach (var arg in args)
 				{
@@ -299,7 +299,7 @@ namespace WalletWasabi.Packager
 		private static bool IsGetOnionsMode(string[] args)
 		{
 			bool getOnions = false;
-			if (args != null)
+			if (args is { })
 			{
 				foreach (var arg in args)
 				{
@@ -318,7 +318,7 @@ namespace WalletWasabi.Packager
 		private static bool IsReduceOnionsMode(string[] args)
 		{
 			bool getOnions = false;
-			if (args != null)
+			if (args is { })
 			{
 				foreach (var arg in args)
 				{

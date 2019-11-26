@@ -106,7 +106,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			Synchronizer.ResponseArrived += Synchronizer_ResponseArrivedAsync;
 
 			var lastResponse = Synchronizer.LastResponse;
-			if (lastResponse != null)
+			if (lastResponse is { })
 			{
 				_ = TryProcessStatusAsync(Synchronizer.LastResponse.CcjRoundStates);
 			}
@@ -212,7 +212,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				using (await MixLock.LockAsync().ConfigureAwait(false))
 				{
 					// First, if there's delayed round registration update based on the state.
-					if (DelayedRoundRegistration != null)
+					if (DelayedRoundRegistration is { })
 					{
 						ClientRound roundRegistered = State.GetSingleOrDefaultRound(DelayedRoundRegistration.AliceClient.RoundId);
 						roundRegistered.Registration = DelayedRoundRegistration;
@@ -261,7 +261,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 					await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
 					ClientRound inputRegistrableRound = State.GetRegistrableRoundOrDefault();
-					if (inputRegistrableRound != null)
+					if (inputRegistrableRound is { })
 					{
 						if (inputRegistrableRound.Registration is null) // If did not register already, check what can we register.
 						{
@@ -844,7 +844,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			}
 		}
 
-		public bool HasIngredients => Salt != null && Soup != null;
+		public bool HasIngredients => Salt is { } && Soup is { };
 
 		private string SaltSoup()
 		{
@@ -1001,7 +1001,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				}
 
 				SmartCoin coinWaitingForMix = State.GetSingleOrDefaultFromWaitingList(coinToDequeue);
-				if (coinWaitingForMix != null) // If it is not being mixed, we can just remove it.
+				if (coinWaitingForMix is { }) // If it is not being mixed, we can just remove it.
 				{
 					RemoveCoin(coinWaitingForMix, reason);
 				}

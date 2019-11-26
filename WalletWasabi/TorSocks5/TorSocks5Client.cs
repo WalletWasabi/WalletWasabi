@@ -314,7 +314,7 @@ namespace WalletWasabi.TorSocks5
 				// Ignored, since error is null.
 			}
 
-			return error != null;
+			return error is { };
 		}
 
 		/// <summary>
@@ -510,7 +510,7 @@ namespace WalletWasabi.TorSocks5
 		{
 			try
 			{
-				if (TcpClient != null)
+				if (TcpClient is { })
 				{
 					if (TcpClient.Connected)
 					{

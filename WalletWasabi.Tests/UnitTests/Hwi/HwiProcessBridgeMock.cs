@@ -260,7 +260,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				}
 			}
 
-			return extPubKey != null;
+			return extPubKey is { };
 		}
 
 		public Process Start(string arguments, bool openConsole)

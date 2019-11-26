@@ -199,7 +199,7 @@ namespace WalletWasabi.Services
 					await DeleteBlockAsync(invalidBlockHash);
 					var blockState = KeyManager.TryRemoveBlockState(invalidBlockHash);
 					ProcessedBlocks.TryRemove(invalidBlockHash, out _);
-					if (blockState != null && blockState.BlockHeight != default(Height))
+					if (blockState is { } && blockState.BlockHeight != default(Height))
 					{
 						TransactionProcessor.UndoBlock(blockState.BlockHeight);
 						BitcoinStore.TransactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
@@ -218,7 +218,7 @@ namespace WalletWasabi.Services
 			{
 				using (await HandleFiltersLock.LockAsync())
 				{
-					if (filterModel.Filter != null && !KeyManager.CointainsBlockState(filterModel.BlockHash))
+					if (filterModel.Filter is { } && !KeyManager.CointainsBlockState(filterModel.BlockHash))
 					{
 						await ProcessFilterModelAsync(filterModel, CancellationToken.None);
 					}
@@ -285,7 +285,7 @@ namespace WalletWasabi.Services
 			// Go through the filters and queue to download the matches.
 			await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) =>
 				{
-					if (filterModel.Filter != null) // Filter can be null if there is no bech32 tx.
+					if (filterModel.Filter is { }) // Filter can be null if there is no bech32 tx.
 					{
 						await ProcessFilterModelAsync(filterModel, cancel);
 					}
@@ -360,7 +360,7 @@ namespace WalletWasabi.Services
 			KeyManager.AssertCleanKeysIndexed(isInternal: false);
 
 			IEnumerable<HdPubKey> keys = KeyManager.GetKeys(KeyState.Clean, isInternal: false);
-			if (dontTouch != null)
+			if (dontTouch is { })
 			{
 				keys = keys.Except(dontTouch);
 				if (!keys.Any())
@@ -496,7 +496,7 @@ namespace WalletWasabi.Services
 						// Try to get block information from local running Core node first.
 						block = await TryDownloadBlockFromLocalNodeAsync(hash, cancel);
 
-						if (block != null)
+						if (block is { })
 						{
 							break;
 						}
@@ -686,7 +686,7 @@ namespace WalletWasabi.Services
 
 		private void DisconnectDisposeNullLocalBitcoinCoreNode()
 		{
-			if (LocalBitcoinCoreNode != null)
+			if (LocalBitcoinCoreNode is { })
 			{
 				try
 				{
@@ -785,7 +785,7 @@ namespace WalletWasabi.Services
 		{
 			coin.Label = newLabel ?? SmartLabel.Empty;
 			var key = KeyManager.GetKeys(x => x.P2wpkhScript == coin.ScriptPubKey).SingleOrDefault();
-			if (key != null)
+			if (key is { })
 			{
 				key.SetLabel(coin.Label, KeyManager);
 			}

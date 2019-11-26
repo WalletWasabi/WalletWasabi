@@ -154,7 +154,7 @@ namespace WalletWasabi.Helpers
 			BitcoinStream stream = new BitcoinStream(data) { Type = SerializationType.Disk };
 			uint magic = 0;
 			stream.ReadWrite(ref magic);
-			if (expectedNetwork != null && expectedNetwork.Magic != magic)
+			if (expectedNetwork is { } && expectedNetwork.Magic != magic)
 			{
 				throw new FormatException("This file is not for the expected network");
 			}

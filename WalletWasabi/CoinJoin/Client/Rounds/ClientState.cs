@@ -412,7 +412,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 				foreach (ClientRound round in Rounds.Where(x => roundsToRemove.Contains(x.State.RoundId)))
 				{
 					var newSuccessfulRoundCount = allRunningRoundsStates.FirstOrDefault()?.SuccessfulRoundCount;
-					bool roundFailed = newSuccessfulRoundCount != null && round.State.SuccessfulRoundCount == newSuccessfulRoundCount;
+					bool roundFailed = newSuccessfulRoundCount is { } && round.State.SuccessfulRoundCount == newSuccessfulRoundCount;
 					if (roundFailed)
 					{
 						IsInErrorState = true;

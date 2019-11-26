@@ -59,7 +59,7 @@ namespace WalletWasabi.Backend
 			// Make sure P2P works.
 			await InitializeP2pAsync(config.Network, config.GetBitcoinP2pEndPoint(), cancel);
 
-			if (roundConfig.FilePath != null)
+			if (roundConfig.FilePath is { })
 			{
 				HostedServices.Register(new ConfigWatcher(
 					TimeSpan.FromSeconds(10), // Every 10 seconds check the config
