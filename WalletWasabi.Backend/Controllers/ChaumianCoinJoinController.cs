@@ -740,7 +740,7 @@ namespace WalletWasabi.Backend.Controllers
 		/// </summary>
 		/// <returns>The the list of CoinJoin transactions in the mempool.</returns>
 		/// <response code="200">An array of transactions Ids</response>
-		[HttpGet("unconfirmedcoinjoins")]
+		[HttpGet("unconfirmed-coinjoins")]
 		[ProducesResponseType(200)]
 		public async Task<IActionResult> GetUnconfirmedCoinjoinAsync()
 		{
