@@ -86,9 +86,10 @@ namespace WalletWasabi.WebClients.Wasabi
 
 		public async Task<IEnumerable<Transaction>> GetTransactionsAsync(Network network, IEnumerable<uint256> txHashes, CancellationToken cancel)
 		{
-			// todo: order
 			// todo: handle max 10tx
 			// todo: TransactionCache
+
+			var allTxs = new List<Transaction>();
 			//lock (TransactionCacheLock)
 			//{
 			//	var notCachedTxHashses = TransactionCache.Where(x => x.Key)
@@ -118,8 +119,9 @@ namespace WalletWasabi.WebClients.Wasabi
 					}
 				}
 			}
+			allTxs.AddRange(ret);
 
-			return ret;
+			return allTxs.ToDependencyGraph().OrderByDependency();
 		}
 
 		public async Task<IDictionary<int, FeeEstimationPair>> GetFeesAsync(params int[] confirmationTargets)
