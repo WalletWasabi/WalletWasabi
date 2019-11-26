@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui" 
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ViewModels="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui"
              x:Class="WalletWasabi.Gui.Controls.WalletExplorer.WalletExplorerView">
@@ -57,14 +57,6 @@
             <StackPanel Orientation="Horizontal" Spacing="6">
               <DrawingPresenter Width="20" Height="20" Drawing="{DynamicResource WalletExplorerView_Info}" />
               <TextBlock Text="Wallet Info" Height="19" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-        </TreeDataTemplate>
-        <TreeDataTemplate DataType="ViewModels:TransactionBroadcasterViewModel">
-          <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <DrawingPresenter Width="20" Height="20" Drawing="{DynamicResource WalletExplorerView_Broadcast}" />
-              <TextBlock Text="Broadcast Transaction" Height="19" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
         </TreeDataTemplate>
