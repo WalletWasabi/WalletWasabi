@@ -58,7 +58,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				settingsCommand);
 
 			TransactionBroadcasterCommand = new CommandDefinition(
-				"Broadcast Transaction",
+				"Transaction Broadcaster",
 				commandIconService.GetCompletionKindImage("BroadcastTransaction"),
 				transactionBroadcasterCommand);
 
