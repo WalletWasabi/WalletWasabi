@@ -81,6 +81,47 @@ namespace WalletWasabi.WebClients.Wasabi
 			return ret;
 		}
 
+		public static Dictionary<uint256, Transaction> TransactionCache { get; } = new Dictionary<uint256, Transaction>();
+		public static object TransactionCacheLock { get; } = new object();
+
+		public async Task<IEnumerable<Transaction>> GetTransactionsAsync(Network network, IEnumerable<uint256> txHashes, CancellationToken cancel)
+		{
+			// todo: order
+			// todo: handle max 10tx
+			// todo: TransactionCache
+			//lock (TransactionCacheLock)
+			//{
+			//	var notCachedTxHashses = TransactionCache.Where(x => x.Key)
+			//}
+
+			using var response = await TorClient.SendAndRetryAsync(
+				HttpMethod.Get,
+				HttpStatusCode.OK,
+				$"/api/v{Constants.BackendMajorVersion}/btc/blockchain/transaction-hexes?&transactionIds={string.Join("&transactionIds=", txHashes.Select(x => x.ToString()))}",
+				cancel: cancel);
+			if (response.StatusCode != HttpStatusCode.OK)
+			{
+				await response.ThrowRequestExceptionFromContentAsync();
+			}
+
+			using HttpContent content = response.Content;
+			var retString = await content.ReadAsJsonAsync<IEnumerable<string>>();
+			var ret = retString.Select(x => Transaction.Parse(x, network)).ToList();
+
+			lock (TransactionCacheLock)
+			{
+				foreach (var tx in ret)
+				{
+					if (TransactionCache.TryAdd(tx.GetHash(), tx) && TransactionCache.Count >= 1000)
+					{
+						TransactionCache.Remove(TransactionCache.Keys.First());
+					}
+				}
+			}
+
+			return ret;
+		}
+
 		public async Task<IDictionary<int, FeeEstimationPair>> GetFeesAsync(params int[] confirmationTargets)
 		{
 			var confirmationTargetsString = string.Join(",", confirmationTargets);
