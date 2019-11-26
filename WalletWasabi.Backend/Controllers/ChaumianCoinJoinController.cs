@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.BouncyCastle.Math;
 using NBitcoin.Crypto;
@@ -34,13 +35,15 @@ namespace WalletWasabi.Backend.Controllers
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class ChaumianCoinJoinController : Controller
 	{
+		private IMemoryCache Cache { get; }
 		public Global Global { get; }
 		private RPCClient RpcClient => Global.RpcClient;
 		private Network Network => Global.Config.Network;
 		private Coordinator Coordinator => Global.Coordinator;
 
-		public ChaumianCoinJoinController(Global global)
+		public ChaumianCoinJoinController(IMemoryCache memoryCache, Global global)
 		{
+			Cache = memoryCache;
 			Global = global;
 		}
 
@@ -737,17 +740,27 @@ namespace WalletWasabi.Backend.Controllers
 		/// </summary>
 		/// <returns>The the list of CoinJoin transactions in the mempool.</returns>
 		/// <response code="200">An array of transactions Ids</response>
-		[HttpGet("unconfirmedcoinjoins")]
+		[HttpGet("unconfirmed-coinjoins")]
 		[ProducesResponseType(200)]
 		public async Task<IActionResult> GetUnconfirmedCoinjoinAsync()
 		{
-			var coinjoins = await Global.Coordinator.GetCoinJoinsAsync();
+			var cacheKey = nameof(GetUnconfirmedCoinjoinAsync);
+			if (!Cache.TryGetValue(cacheKey, out IEnumerable<string> unconfirmedList))
+			{
+				var coinjoins = await Global.Coordinator.GetCoinJoinsAsync();
 
-			uint256[] mempoolHashes = await Global.RpcClient.GetRawMempoolAsync().ConfigureAwait(false);
-			var unconfirmedList = coinjoins.Intersect(mempoolHashes).Select(x => x.ToString());
+				uint256[] mempoolHashes = await Global.RpcClient.GetRawMempoolAsync();
+				unconfirmedList = coinjoins.Intersect(mempoolHashes).Select(x=>x.ToString());
 
+				var cacheEntryOptions = new MemoryCacheEntryOptions()
+					.SetAbsoluteExpiration(TimeSpan.FromSeconds(4));
+
+				Cache.Set(cacheKey, unconfirmedList, cacheEntryOptions);
+			}
 			return Ok(unconfirmedList);
 		}
+
+
 
 		private Guid GetGuidOrFailureResponse(string uniqueId, out IActionResult returnFailureResponse)
 		{
