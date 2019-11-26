@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.Services;
-using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.TorSocks5;
 using WalletWasabi.WebClients.Wasabi;
@@ -49,7 +49,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.Instance.TorSocks5Endpoint);
 			var filterModel = StartingFilters.GetStartingFilter(Network.GetNetwork(networkType.ToString()));
 
-			FiltersResponse filtersResponse = await client.GetFiltersAsync(filterModel.BlockHash, 2);
+			FiltersResponse filtersResponse = await client.GetFiltersAsync(filterModel.Header.BlockHash, 2);
 
 			Assert.NotNull(filtersResponse);
 			Assert.True(filtersResponse.Filters.Count() == 2);

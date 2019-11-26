@@ -7,12 +7,12 @@ using System.Linq;
 using System.Security;
 using System.Text;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Stores;
 
 namespace WalletWasabi.Blockchain.Keys
 {
@@ -240,19 +240,16 @@ namespace WalletWasabi.Blockchain.Keys
 			IoHelpers.EnsureContainingDirectoryExists(filePath);
 			// Remove the last 100 blocks to ensure verification on the next run. This is needed of reorg.
 			int maturity = 101;
-			Height prevHeight = BlockchainState.BestHeight;
+			Height prevHeight = BlockchainState.Height;
 			int matureHeight = Math.Max(0, prevHeight.Value - maturity);
 
-			BlockchainState.BestHeight = new Height(matureHeight);
-			HashSet<BlockState> toRemove = BlockchainState.BlockStates.Where(x => x.BlockHeight >= BlockchainState.BestHeight).ToHashSet();
-			BlockchainState.BlockStates.RemoveAll(x => toRemove.Contains(x));
+			BlockchainState.Height = new Height(matureHeight);
 
 			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
 			File.WriteAllText(filePath, jsonString, Encoding.UTF8);
 
 			// Re-add removed items for further operations.
-			BlockchainState.BlockStates.AddRange(toRemove.OrderBy(x => x));
-			BlockchainState.BestHeight = prevHeight;
+			BlockchainState.Height = prevHeight;
 		}
 
 		public static KeyManager FromFile(string filePath)
@@ -642,136 +639,30 @@ namespace WalletWasabi.Blockchain.Keys
 
 		#region BlockchainState
 
-		public void CorrectBlockHeights(HashChain hashChain)
-		{
-			lock (BlockchainStateLock)
-			{
-				// Block heights are wrong sometimes. It's a hack. We have to retroactively fix existing wallets, but also we have to figure out where we ruin the block heights.
-				// Assert the correct height.
-				var toRemove = new List<uint256>();
-				var toAdd = new List<BlockState>();
-				foreach (var state in BlockchainState.BlockStates)
-				{
-					if (hashChain.TryGetHeight(state.BlockHash, out int foundHeight) && foundHeight != state.BlockHeight.Value)
-					{
-						toRemove.Add(state.BlockHash);
-						toAdd.Add(new BlockState(state.BlockHash, new Height(foundHeight), state.TransactionIndices));
-					}
-				}
-
-				foreach (var rem in toRemove)
-				{
-					TryRemoveBlockState(rem);
-				}
-
-				foreach (var add in toAdd)
-				{
-					AddBlockState(add, setItsHeightToBest: false);
-				}
-
-				if (toRemove.Any())
-				{
-					ToFileNoBlockchainStateLock();
-					Logger.LogInfo($"Corrected {toRemove.Count} heights.");
-				}
-			}
-		}
-
 		public Height GetBestHeight()
 		{
 			Height res;
 			lock (BlockchainStateLock)
 			{
-				res = BlockchainState.BestHeight;
+				res = BlockchainState.Height;
 			}
 			return res;
-		}
-
-		public IEnumerable<BlockState> GetTransactionIndex()
-		{
-			IEnumerable<BlockState> res = null;
-			lock (BlockchainStateLock)
-			{
-				res = BlockchainState.BlockStates.ToList();
-			}
-			return res;
-		}
-
-		/// <returns>Removed element.</returns>
-		public BlockState TryRemoveBlockState(uint256 blockHash)
-		{
-			BlockState found = null;
-			lock (BlockchainStateLock)
-			{
-				found = BlockchainState.BlockStates.FirstOrDefault(x => x.BlockHash == blockHash);
-				if (found != null)
-				{
-					if (BlockchainState.BlockStates.Remove(found))
-					{
-						ToFileNoBlockchainStateLock();
-					}
-				}
-			}
-			return found;
-		}
-
-		public bool CointainsBlockState(uint256 blockHash)
-		{
-			bool res = false;
-			lock (BlockchainStateLock)
-			{
-				res = BlockchainState.BlockStates.Any(x => x.BlockHash == blockHash);
-			}
-			return res;
-		}
-
-		public void AddBlockState(BlockState state, bool setItsHeightToBest)
-		{
-			lock (BlockchainStateLock)
-			{
-				// Make sure of proper ordering here.
-
-				// If found same hash then update.
-				// Else If found same height then replace.
-				// Else add.
-				// Note same hash diff height makes no sense.
-
-				BlockState foundWithHash = BlockchainState.BlockStates.FirstOrDefault(x => x.BlockHash == state.BlockHash);
-				if (foundWithHash != null)
-				{
-					IEnumerable<int> newIndices = state.TransactionIndices.Where(x => !foundWithHash.TransactionIndices.Contains(x));
-					if (newIndices.Any())
-					{
-						foundWithHash.TransactionIndices.AddRange(newIndices);
-						foundWithHash.TransactionIndices.Sort();
-					}
-				}
-				else
-				{
-					BlockState foundWithHeight = BlockchainState.BlockStates.FirstOrDefault(x => x.BlockHeight == state.BlockHeight);
-					if (foundWithHeight != null)
-					{
-						BlockchainState.BlockStates.Remove(foundWithHeight);
-					}
-
-					BlockchainState.BlockStates.Add(state);
-					BlockchainState.BlockStates.Sort();
-				}
-
-				if (setItsHeightToBest)
-				{
-					BlockchainState.BestHeight = state.BlockHeight;
-				}
-
-				ToFileNoBlockchainStateLock();
-			}
 		}
 
 		public void SetBestHeight(Height height)
 		{
 			lock (BlockchainStateLock)
 			{
-				BlockchainState.BestHeight = height;
+				BlockchainState.Height = height;
+				ToFileNoBlockchainStateLock();
+			}
+		}
+
+		public void SetMaxBestHeight(Height height)
+		{
+			lock (BlockchainStateLock)
+			{
+				BlockchainState.Height = Math.Min(BlockchainState.Height, height);
 				ToFileNoBlockchainStateLock();
 			}
 		}
@@ -784,8 +675,7 @@ namespace WalletWasabi.Blockchain.Keys
 				if (lastNetwork is null || lastNetwork != expectedNetwork)
 				{
 					BlockchainState.Network = expectedNetwork;
-					BlockchainState.BestHeight = 0;
-					BlockchainState.BlockStates.Clear();
+					BlockchainState.Height = 0;
 					ToFileNoBlockchainStateLock();
 
 					if (lastNetwork != null)

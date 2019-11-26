@@ -61,6 +61,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Observable.FromEventPattern(_global.WalletService, nameof(_global.WalletService.NewBlockProcessed))
 				.Merge(Observable.FromEventPattern(_global.WalletService.TransactionProcessor, nameof(_global.WalletService.TransactionProcessor.CoinSpent)))
 				.Merge(Observable.FromEventPattern(_global.WalletService.TransactionProcessor, nameof(_global.WalletService.TransactionProcessor.SpenderConfirmed)))
+				.Merge(Observable.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(_global.WalletService.TransactionProcessor.CoinReceived)))
 				.Throttle(TimeSpan.FromSeconds(5))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async _ => await TryRewriteTableAsync())
@@ -97,7 +98,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					DateTime = txr.DateTime.ToLocalTime(),
 					Confirmed = txr.Height.Type == HeightType.Chain,
-					Confirmations = txr.Height.Type == HeightType.Chain ? _global.BitcoinStore.HashChain.TipHeight - txr.Height.Value + 1 : 0,
+					Confirmations = txr.Height.Type == HeightType.Chain ? (int)_global.BitcoinStore.SmartHeaderChain.TipHeight - txr.Height.Value + 1 : 0,
 					AmountBtc = $"{txr.Amount.ToString(fplus: true, trimExcessZero: true)}",
 					Label = txr.Label,
 					TransactionId = txr.TransactionId.ToString()

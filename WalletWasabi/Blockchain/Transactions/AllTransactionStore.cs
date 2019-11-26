@@ -34,7 +34,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				Lock = new object();
 
 				var mempoolWorkFolder = Path.Combine(WorkFolderPath, "Mempool");
-				var confirmedWorkFolder = Path.Combine(WorkFolderPath, "ConfirmedTransactions");
+				var confirmedWorkFolder = Path.Combine(WorkFolderPath, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion);
 
 				var initTasks = new[]
 				{

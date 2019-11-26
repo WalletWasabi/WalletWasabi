@@ -29,6 +29,8 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 			var settingsCommand = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel()));
 
+			var transactionBroadcasterCommand = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel(Global)));
+
 #if DEBUG
 			var devToolsCommand = ReactiveCommand.Create(() =>
 			{
@@ -53,6 +55,11 @@ namespace WalletWasabi.Gui.Shell.Commands
 				"Settings",
 				commandIconService.GetCompletionKindImage("Settings"),
 				settingsCommand);
+
+			TransactionBroadcasterCommand = new CommandDefinition(
+				"Transaction Broadcaster",
+				commandIconService.GetCompletionKindImage("BroadcastTransaction"),
+				transactionBroadcasterCommand);
 
 #if DEBUG
 			DevToolsCommand = new CommandDefinition(
@@ -85,6 +92,9 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		[ExportCommandDefinition("Tools.Settings")]
 		public CommandDefinition SettingsCommand { get; }
+
+		[ExportCommandDefinition("Tools.BroadcastTransaction")]
+		public CommandDefinition TransactionBroadcasterCommand { get; }
 
 #if DEBUG
 

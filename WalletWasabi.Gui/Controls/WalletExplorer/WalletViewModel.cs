@@ -54,7 +54,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var advancedAction = new WalletAdvancedViewModel(this);
 			WalletInfoViewModel infoTab = new WalletInfoViewModel(this);
 			SendTabViewModel buildTab = new SendTabViewModel(this, isTransactionBuilder: true);
-			TransactionBroadcasterViewModel broadcastTab = new TransactionBroadcasterViewModel(this);
 
 			Actions.Add(receiveTab);
 			Actions.Add(coinjoinTab);
@@ -63,7 +62,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Actions.Add(advancedAction);
 			advancedAction.Items.Add(infoTab);
 			advancedAction.Items.Add(buildTab);
-			advancedAction.Items.Add(broadcastTab);
 
 			// Open and select tabs.
 			sendTab?.DisplayActionTab();

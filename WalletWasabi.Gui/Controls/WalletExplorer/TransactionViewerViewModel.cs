@@ -1,6 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
 using Splat;
@@ -29,12 +31,57 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _psbtBase64Text;
 		private byte[] _psbtBytes;
 		private Global _global;
+		public ReactiveCommand<Unit, Unit> ExportBinaryPsbt { get; set; }
+		public ReactiveCommand<Unit, Unit> OpenTransactionBroadcaster { get; set; }
+
+		public bool? IsLurkingWifeMode => _global.UiConfig.LurkingWifeMode;
+
+		public string TxId
+		{
+			get => _txId;
+			set => this.RaiseAndSetIfChanged(ref _txId, value);
+		}
+
+		public string PsbtJsonText
+		{
+			get => _psbtJsonText;
+			set => this.RaiseAndSetIfChanged(ref _psbtJsonText, value);
+		}
+
+		public string TransactionHexText
+		{
+			get => _psbtHexText;
+			set => this.RaiseAndSetIfChanged(ref _psbtHexText, value);
+		}
+
+		public string PsbtBase64Text
+		{
+			get => _psbtBase64Text;
+			set => this.RaiseAndSetIfChanged(ref _psbtBase64Text, value);
+		}
+
+		public byte[] PsbtBytes
+		{
+			get => _psbtBytes;
+			set => this.RaiseAndSetIfChanged(ref _psbtBytes, value);
+		}
 
 		public TransactionViewerViewModel(WalletViewModel walletViewModel) : base("Transaction", walletViewModel)
 		{
 			_global = Locator.Current.GetService<Global>();
-
-			ExportBinaryPsbtCommand = ReactiveCommand.CreateFromTask(async () =>
+			OpenTransactionBroadcaster = ReactiveCommand.Create(() =>
+			{
+				try
+				{
+					IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel(_global));
+				}
+				catch (Exception ex)
+				{
+					NotificationHelpers.Error(ex.ToTypeMessageString());
+					Logger.LogError(ex);
+				}
+			});
+			ExportBinaryPsbt = ReactiveCommand.CreateFromTask(async () =>
 			{
 				try
 				{
@@ -77,8 +124,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					NotificationHelpers.Error(ex.ToTypeMessageString());
 					Logger.LogError(ex);
 				}
-			},
-			outputScheduler: RxApp.MainThreadScheduler);
+			});
 		}
 
 		public ReactiveCommand<Unit, Unit> ExportBinaryPsbtCommand { get; set; }

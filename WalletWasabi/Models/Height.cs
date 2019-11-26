@@ -24,6 +24,10 @@ namespace WalletWasabi.Models
 		/// <returns></returns>
 		public static Height Unknown { get; } = new Height(HeightType.Unknown);
 
+		public Height(uint height) : this((int)height)
+		{
+		}
+
 		/// <summary>
 		/// Creates and initializes a new Height instance
 		/// </summary>

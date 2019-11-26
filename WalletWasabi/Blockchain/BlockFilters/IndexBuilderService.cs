@@ -20,6 +20,18 @@ namespace WalletWasabi.Blockchain.BlockFilters
 {
 	public class IndexBuilderService
 	{
+		public static byte[][] DummyScript { get; } = new byte[][] { ByteHelpers.FromHex("0009BBE4C2D17185643765C265819BF5261755247D") };
+
+		public static GolombRiceFilter CreateDummyEmptyFilter(uint256 blockHash)
+		{
+			return new GolombRiceFilterBuilder()
+				.SetKey(blockHash)
+				.SetP(20)
+				.SetM(1 << 20)
+				.AddEntries(DummyScript)
+				.Build();
+		}
+
 		public RPCClient RpcClient { get; }
 		public BlockNotifier BlockNotifier { get; }
 		public string IndexFilePath { get; }
@@ -27,11 +39,9 @@ namespace WalletWasabi.Blockchain.BlockFilters
 
 		private List<FilterModel> Index { get; }
 		private AsyncLock IndexLock { get; }
-
-		private Dictionary<OutPoint, Script> Bech32UtxoSet { get; }
+		public uint StartingHeight { get; }
+		private Dictionary<OutPoint, UtxoEntry> Bech32UtxoSet { get; }
 		private List<ActionHistoryHelper> Bech32UtxoSetHistory { get; }
-
-		private Height StartingHeight { get; set; }
 
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
@@ -47,12 +57,12 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			IndexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
 			Bech32UtxoSetFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(bech32UtxoSetFilePath), bech32UtxoSetFilePath);
 
-			Bech32UtxoSet = new Dictionary<OutPoint, Script>();
+			Bech32UtxoSet = new Dictionary<OutPoint, UtxoEntry>();
 			Bech32UtxoSetHistory = new List<ActionHistoryHelper>(capacity: 100);
 			Index = new List<FilterModel>();
 			IndexLock = new AsyncLock();
 
-			StartingHeight = StartingFilters.GetStartingHeight(RpcClient.Network);
+			StartingHeight = SmartHeader.GetStartingHeader(RpcClient.Network).Height;
 
 			_running = 0;
 
@@ -65,11 +75,9 @@ namespace WalletWasabi.Blockchain.BlockFilters
 				}
 				else
 				{
-					var height = StartingHeight;
 					foreach (var line in File.ReadAllLines(IndexFilePath))
 					{
-						var filter = FilterModel.FromHeightlessLine(line, height);
-						height++;
+						var filter = FilterModel.FromLine(line);
 						Index.Add(filter);
 					}
 				}
@@ -91,7 +99,9 @@ namespace WalletWasabi.Blockchain.BlockFilters
 						var txHash = new uint256(parts[0]);
 						var nIn = int.Parse(parts[1]);
 						var script = new Script(ByteHelpers.FromHex(parts[2]), true);
-						Bech32UtxoSet.Add(new OutPoint(txHash, nIn), script);
+						OutPoint outPoint = new OutPoint(txHash, nIn);
+						var utxoEntry = new UtxoEntry(outPoint, script);
+						Bech32UtxoSet.Add(outPoint, utxoEntry);
 					}
 				}
 			}
@@ -139,15 +149,15 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									syncInfo = await GetSyncInfoAsync();
 								}
 
-								Height heightToRequest = StartingHeight;
+								uint heightToRequest = StartingHeight;
 								uint256 currentHash = null;
 								using (await IndexLock.LockAsync())
 								{
 									if (Index.Count != 0)
 									{
 										var lastIndex = Index.Last();
-										heightToRequest = lastIndex.BlockHeight + 1;
-										currentHash = lastIndex.BlockHash;
+										heightToRequest = lastIndex.Header.Height + 1;
+										currentHash = lastIndex.Header.BlockHash;
 									}
 								}
 
@@ -179,7 +189,6 @@ namespace WalletWasabi.Blockchain.BlockFilters
 								Block block = await RpcClient.GetBlockAsync(heightToRequest);
 
 								// Reorg check, except if we're requesting the starting height, because then the "currentHash" wouldn't exist.
-
 								if (heightToRequest != StartingHeight && currentHash != block.Header.HashPrevBlock)
 								{
 									// Reorg can happen only when immature. (If it'd not be immature, that'd be a huge issue.)
@@ -219,7 +228,8 @@ namespace WalletWasabi.Blockchain.BlockFilters
 										if (output.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
 										{
 											var outpoint = new OutPoint(tx.GetHash(), i);
-											Bech32UtxoSet.Add(outpoint, output.ScriptPubKey);
+											var utxoEntry = new UtxoEntry(outpoint, output.ScriptPubKey);
+											Bech32UtxoSet.Add(outpoint, utxoEntry);
 											if (isImmature)
 											{
 												Bech32UtxoSetHistory.Last().StoreAction(Operation.Add, outpoint, output.ScriptPubKey);
@@ -231,8 +241,9 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									foreach (var input in tx.Inputs)
 									{
 										OutPoint prevOut = input.PrevOut;
-										if (Bech32UtxoSet.TryGetValue(prevOut, out Script foundScript))
+										if (Bech32UtxoSet.TryGetValue(prevOut, out UtxoEntry foundUtxoEntry))
 										{
+											var foundScript = foundUtxoEntry.Script;
 											Bech32UtxoSet.Remove(prevOut);
 											if (isImmature)
 											{
@@ -243,8 +254,8 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									}
 								}
 
-								GolombRiceFilter filter = null;
-								if (scripts.Count != 0)
+								GolombRiceFilter filter;
+								if (scripts.Any())
 								{
 									filter = new GolombRiceFilterBuilder()
 										.SetKey(block.GetHash())
@@ -253,15 +264,17 @@ namespace WalletWasabi.Blockchain.BlockFilters
 										.AddEntries(scripts.Select(x => x.ToCompressedBytes()))
 										.Build();
 								}
-
-								var filterModel = new FilterModel
+								else
 								{
-									BlockHash = block.GetHash(),
-									BlockHeight = heightToRequest,
-									Filter = filter
-								};
+									// We cannot have empty filters, because there was a bug in GolombRiceFilterBuilder that evaluates empty filters to true.
+									// And this must be fixed in a backwards compatible way, so we create a fake filter with a random scp instead.
+									filter = CreateDummyEmptyFilter(block.GetHash());
+								}
 
-								await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToHeightlessLine() });
+								var smartHeader = new SmartHeader(block.GetHash(), block.Header.HashPrevBlock, heightToRequest, block.Header.BlockTime);
+								var filterModel = new FilterModel(smartHeader, filter);
+
+								await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToLine() });
 								using (await IndexLock.LockAsync())
 								{
 									Index.Add(filterModel);
@@ -270,12 +283,14 @@ namespace WalletWasabi.Blockchain.BlockFilters
 								{
 									File.Delete(Bech32UtxoSetFilePath);
 								}
-								await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet
-									.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes())));
+								var bech32UtxoSetLines = Bech32UtxoSet.Select(entry => entry.Value.Line);
+
+								// Keep it sync unless you fix the performance issue with async.
+								File.WriteAllLines(Bech32UtxoSetFilePath, bech32UtxoSetLines);
 
 								// If not close to the tip, just log debug.
 								// Use height.Value instead of simply height, because it cannot be negative height.
-								if (syncInfo.BlockCount - heightToRequest.Value <= 3 || heightToRequest % 100 == 0)
+								if (syncInfo.BlockCount - heightToRequest <= 3 || heightToRequest % 100 == 0)
 								{
 									Logger.LogInfo($"Created filter for block: {heightToRequest}.");
 								}
@@ -328,7 +343,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			// 1. Rollback index
 			using (await IndexLock.LockAsync())
 			{
-				Logger.LogInfo($"REORG invalid block: {Index.Last().BlockHash}");
+				Logger.LogInfo($"REORG invalid block: {Index.Last().Header.BlockHash}");
 				Index.RemoveLast();
 			}
 
@@ -343,8 +358,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 				Bech32UtxoSetHistory.RemoveLast();
 
 				// 4. Serialize Bech32UtxoSet.
-				await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet
-					.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes())));
+				await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet.Select(entry => entry.Value.Line));
 			}
 		}
 
@@ -375,7 +389,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 					}
 					else
 					{
-						if (filter.BlockHash == bestKnownBlockHash)
+						if (filter.Header.BlockHash == bestKnownBlockHash)
 						{
 							found = true;
 						}
@@ -388,7 +402,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 				}
 				else
 				{
-					return (Index.Last().BlockHeight, filters);
+					return ((int)Index.Last().Header.Height, filters);
 				}
 			}
 		}
