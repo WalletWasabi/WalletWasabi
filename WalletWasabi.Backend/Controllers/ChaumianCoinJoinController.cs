@@ -732,6 +732,23 @@ namespace WalletWasabi.Backend.Controllers
 			}
 		}
 
+		/// <summary>
+		/// Gets the list of unconfirmed CoinJoins transactions id.
+		/// </summary>
+		/// <returns>The the list of CoinJoin transactions in the mempool.</returns>
+		/// <response code="200">An array of transactions Ids</response>
+		[HttpGet("unconfirmedcoinjoins")]
+		[ProducesResponseType(200)]
+		public async Task<IActionResult> GetUnconfirmedCoinjoinAsync()
+		{
+			var coinjoins = Global.Coordinator.CoinJoins.ToArray();
+
+			uint256[] mempoolHashes = await Global.RpcClient.GetRawMempoolAsync().ConfigureAwait(false);
+			var unconfirmedList = coinjoins.Intersect(mempoolHashes).Select(x=>x.ToString());
+
+			return Ok(unconfirmedList);
+		}
+
 		private Guid GetGuidOrFailureResponse(string uniqueId, out IActionResult returnFailureResponse)
 		{
 			returnFailureResponse = null;
