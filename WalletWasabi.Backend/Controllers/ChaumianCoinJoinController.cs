@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.BouncyCastle.Math;
 using NBitcoin.Crypto;
@@ -34,13 +35,17 @@ namespace WalletWasabi.Backend.Controllers
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class ChaumianCoinJoinController : Controller
 	{
+		public BlockchainController BlockchainController { get; }
+		private IMemoryCache Cache { get; }
 		public Global Global { get; }
 		private RPCClient RpcClient => Global.RpcClient;
 		private Network Network => Global.Config.Network;
 		private Coordinator Coordinator => Global.Coordinator;
 
-		public ChaumianCoinJoinController(Global global)
+		public ChaumianCoinJoinController(BlockchainController blockchainController, IMemoryCache memoryCache, Global global)
 		{
+			BlockchainController = blockchainController;
+			Cache = memoryCache;
 			Global = global;
 		}
 
@@ -730,6 +735,22 @@ namespace WalletWasabi.Backend.Controllers
 						return Conflict($"CoinJoin can only be requested from Signing phase. Current phase: {phase}.");
 					}
 			}
+		}
+
+		/// <summary>
+		/// Gets the list of unconfirmed CoinJoins transactions id.
+		/// </summary>
+		/// <returns>The the list of CoinJoin transactions in the mempool.</returns>
+		/// <response code="200">An array of transactions Ids</response>
+		[HttpGet("unconfirmed-coinjoins")]
+		[ProducesResponseType(200)]
+		public async Task<IActionResult> GetUnconfirmedCoinjoinAsync()
+		{
+			var coinJoins = await Global.Coordinator.GetCoinJoinsAsync();
+			var mempool = await BlockchainController.GetRawMempoolStringsAsync();
+			var coinJoinsStrings = coinJoins.Select(x => x.ToString());
+			var unconfirmedCoinJoins = coinJoinsStrings.Intersect(mempool);
+			return Ok(unconfirmedCoinJoins);
 		}
 
 		private Guid GetGuidOrFailureResponse(string uniqueId, out IActionResult returnFailureResponse)
