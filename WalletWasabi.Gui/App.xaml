@@ -33,4 +33,9 @@
       <cont:ViewModelViewHost DataContext="{Binding Context}" />
     </DataTemplate>
   </Application.DataTemplates>
+  <NativeMenu.Menu>
+    <NativeMenu>
+      <NativeMenuItem Header="About Wasabi Wallet" Command="{Binding AboutCommand}" />
+    </NativeMenu>
+  </NativeMenu.Menu>
 </Application>

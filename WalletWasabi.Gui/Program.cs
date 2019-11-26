@@ -66,6 +66,7 @@ namespace WalletWasabi.Gui
 
 		private static async void AppMainAsync(string[] args)
 		{
+			(Application.Current as App).SetDataContext(Global);
 			AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
 			MainWindowViewModel.Instance = new MainWindowViewModel { Global = Global };
 			StatusBar = new StatusBarViewModel(Global);
