@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Threading;
 using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
+using Splat;
 using System;
 using System.IO;
 using System.Linq;
@@ -31,9 +32,9 @@ namespace WalletWasabi.Gui.ViewModels
 		public HdPubKey Model { get; }
 		public Global Global { get; }
 
-		public AddressViewModel(HdPubKey model, Global global)
+		public AddressViewModel(HdPubKey model)
 		{
-			Global = Guard.NotNull(nameof(global), global);
+			Global = Locator.Current.GetService<Global>();
 			Model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;

@@ -71,9 +71,9 @@ namespace WalletWasabi.Gui
 		{
 			AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
 			MainWindowViewModel.Instance = new MainWindowViewModel { Global = Global };
-			StatusBar = new StatusBarViewModel(Global);
+			StatusBar = new StatusBarViewModel();
 			MainWindowViewModel.Instance.StatusBar = StatusBar;
-			MainWindowViewModel.Instance.LockScreen = new LockScreenViewModel(Global);
+			MainWindowViewModel.Instance.LockScreen = new LockScreenViewModel();
 
 			await Global.InitializeNoWalletAsync();
 

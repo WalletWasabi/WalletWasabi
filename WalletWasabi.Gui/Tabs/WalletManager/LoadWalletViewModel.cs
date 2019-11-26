@@ -415,7 +415,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					}
 					else if (selectedWallet.HardwareWalletInfo.NeedsPinSent is true)
 					{
-						await PinPadViewModel.UnlockAsync(Global, selectedWallet.HardwareWalletInfo);
+						await PinPadViewModel.UnlockAsync(Global.Network, selectedWallet.HardwareWalletInfo);
 
 						var p = selectedWallet.HardwareWalletInfo.Path;
 						var t = selectedWallet.HardwareWalletInfo.Model;

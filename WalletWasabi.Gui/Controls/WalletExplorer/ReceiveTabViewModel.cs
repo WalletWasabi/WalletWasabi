@@ -44,7 +44,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Global = Locator.Current.GetService<Global>();
 
-			_labelSuggestion = new SuggestLabelViewModel(Global);
+			_labelSuggestion = new SuggestLabelViewModel();
 			_addresses = new ObservableCollection<AddressViewModel>();
 			_labelSuggestion.Label = "";
 
@@ -71,7 +71,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 								Addresses.Remove(found);
 							}
 
-							var newAddress = new AddressViewModel(newKey, Global);
+							var newAddress = new AddressViewModel(newKey);
 
 							Addresses.Insert(0, newAddress);
 
@@ -122,7 +122,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (HwiException)
 				{
-					await PinPadViewModel.UnlockAsync(Global);
+					await PinPadViewModel.UnlockAsync(Global.Network);
 					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, SelectedAddress.Model.FullKeyPath, cts.Token);
 				}
 			});
@@ -191,7 +191,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				IEnumerable<HdPubKey> keys = walletService.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
 				foreach (HdPubKey key in keys)
 				{
-					_addresses.Add(new AddressViewModel(key, Global));
+					_addresses.Add(new AddressViewModel(key));
 				}
 			}
 			catch (Exception ex)

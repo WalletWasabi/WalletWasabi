@@ -1,4 +1,5 @@
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -17,9 +18,9 @@ namespace WalletWasabi.Gui.Controls
 		private int _caretIndex;
 		private string _label;
 
-		public SuggestLabelViewModel(Global global)
+		public SuggestLabelViewModel()
 		{
-			Global = Guard.NotNull(nameof(global), global);
+			Global = Locator.Current.GetService<Global>();
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 

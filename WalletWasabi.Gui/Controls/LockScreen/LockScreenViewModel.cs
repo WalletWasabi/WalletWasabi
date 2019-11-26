@@ -4,6 +4,7 @@ using System.Reactive.Disposables;
 using WalletWasabi.Helpers;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
+using Splat;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
@@ -13,9 +14,9 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 		public Global Global { get; }
 
-		public LockScreenViewModel(Global global)
+		public LockScreenViewModel()
 		{
-			Global = Guard.NotNull(nameof(Global), global);
+			Global = Locator.Current.GetService<Global>();
 			Disposables = new CompositeDisposable();
 		}
 

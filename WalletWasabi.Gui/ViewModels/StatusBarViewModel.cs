@@ -4,6 +4,7 @@ using AvalonStudio.Shell;
 using NBitcoin.Protocol;
 using Nito.AsyncEx;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -53,9 +54,9 @@ namespace WalletWasabi.Gui.ViewModels
 		public Global Global { get; }
 		private StatusBarStatusSet ActiveStatuses { get; }
 
-		public StatusBarViewModel(Global global)
+		public StatusBarViewModel()
 		{
-			Global = Guard.NotNull(nameof(global), global);
+			Global = Locator.Current.GetService<Global>();
 			Backend = BackendStatus.NotConnected;
 			UseTor = false;
 			Tor = TorStatus.NotRunning;

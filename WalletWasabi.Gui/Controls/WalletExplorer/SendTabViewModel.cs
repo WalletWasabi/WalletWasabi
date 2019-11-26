@@ -104,14 +104,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			: base(isTransactionBuilder ? "Build Transaction" : "Send", walletViewModel)
 		{
 			Global = Locator.Current.GetService<Global>();
-			_labelSuggestion = new SuggestLabelViewModel(Global);
+			_labelSuggestion = new SuggestLabelViewModel();
 			IsTransactionBuilder = isTransactionBuilder;
 			BuildTransactionButtonText = IsTransactionBuilder ? BuildTransactionButtonTextString : SendTransactionButtonTextString;
 
 			ResetUi();
 			SetAmountWatermark(Money.Zero);
 
-			CoinList = new CoinListViewModel(Global, CoinListContainerType.SendTabViewModel);
+			CoinList = new CoinListViewModel(CoinListContainerType.SendTabViewModel);
 
 			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -372,7 +372,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							}
 							catch (HwiException)
 							{
-								await PinPadViewModel.UnlockAsync(Global);
+								await PinPadViewModel.UnlockAsync(Global.Network);
 								signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
 							}
 							signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction);

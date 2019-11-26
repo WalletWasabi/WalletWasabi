@@ -19,6 +19,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
+using Splat;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -251,9 +252,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public CoinListViewModel(Global global, CoinListContainerType coinListContainerType)
+		public CoinListViewModel(CoinListContainerType coinListContainerType)
 		{
-			Global = Guard.NotNull(nameof(global), global);
+			Global = Locator.Current.GetService<Global>();
 			CoinListContainerType = coinListContainerType;
 			AmountSortDirection = SortOrder.Decreasing;
 
@@ -462,7 +463,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 						RootList.RemoveMany(coinToRemove.Select(kp => kp.Value));
 
-						var newCoinViewModels = coinToAdd.Select(c => new CoinViewModel(Global, c)).ToArray();
+						var newCoinViewModels = coinToAdd.Select(c => new CoinViewModel(c)).ToArray();
 						foreach (var cvm in newCoinViewModels)
 						{
 							SubscribeToCoinEvents(cvm);

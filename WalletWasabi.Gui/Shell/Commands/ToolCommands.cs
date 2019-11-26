@@ -6,6 +6,7 @@ using AvalonStudio.Commands;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Composition;
 using System.IO;
@@ -25,6 +26,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 		[ImportingConstructor]
 		public ToolCommands(CommandIconService commandIconService)
 		{
+			Global = Locator.Current.GetService<Global>();
 			var walletManagerCommand = ReactiveCommand.Create(OnWalletManager);
 
 			var settingsCommand = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel()));

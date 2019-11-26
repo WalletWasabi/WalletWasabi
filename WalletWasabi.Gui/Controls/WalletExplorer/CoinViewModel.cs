@@ -1,5 +1,6 @@
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Globalization;
 using System.Linq;
@@ -28,10 +29,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<bool> _unavailable;
 		public Global Global { get; set; }
 
-		public CoinViewModel(Global global, SmartCoin model)
+		public CoinViewModel(SmartCoin model)
 		{
 			Model = model;
-			Global = Guard.NotNull(nameof(global), global);
+			Global = Locator.Current.GetService<Global>();
 
 			RefreshSmartCoinStatus();
 

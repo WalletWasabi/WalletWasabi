@@ -1,6 +1,7 @@
 using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
+using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -75,26 +76,26 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			NotificationHelpers.Error(ex.ToTypeMessageString());
 		}
 
-		public static async Task UnlockAsync(Global global)
+		public static async Task UnlockAsync(Network network)
 		{
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-			var client = new HwiClient(global.Network);
+			var client = new HwiClient(network);
 			IEnumerable<HwiEnumerateEntry> hwiEntries = await client.EnumerateAsync(cts.Token);
 
 			foreach (var hwiEntry in hwiEntries.Where(x => x.NeedsPinSent is true))
 			{
-				await UnlockAsync(global, hwiEntry);
+				await UnlockAsync(network, hwiEntry);
 			}
 		}
 
-		public static async Task UnlockAsync(Global global, HwiEnumerateEntry hwiEntry)
+		public static async Task UnlockAsync(Network network, HwiEnumerateEntry hwiEntry)
 		{
 			// Make sure to select back the document that was selected.
 			var selectedDocument = IoC.Get<IShell>().SelectedDocument;
 			try
 			{
 				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-				var client = new HwiClient(global.Network);
+				var client = new HwiClient(network);
 
 				await client.PromptPinAsync(hwiEntry.Model, hwiEntry.Path, cts.Token);
 
