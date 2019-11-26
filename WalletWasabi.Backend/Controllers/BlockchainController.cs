@@ -154,10 +154,10 @@ namespace WalletWasabi.Backend.Controllers
 		/// <param name="compactness">Can strip the last x characters from the hashes.</param>
 		/// <returns>A collection of transaction hashes.</returns>
 		/// <response code="200">A collection of transaction hashes.</response>
-		/// <response code="404">Invalid model state.</response>
+		/// <response code="400">Invalid model state.</response>
 		[HttpGet("mempool-hashes")]
 		[ProducesResponseType(200)]
-		[ProducesResponseType(404)]
+		[ProducesResponseType(400)]
 		[ResponseCache(Duration = 3, Location = ResponseCacheLocation.Client)]
 		public async Task<IActionResult> GetMempoolHashesAsync([FromQuery]int compactness = 64)
 		{
@@ -195,6 +195,98 @@ namespace WalletWasabi.Backend.Controllers
 				Cache.Set(cacheKey, hashes, cacheEntryOptions);
 			}
 			return hashes;
+		}
+
+		public static Dictionary<uint256, string> TransactionHexCache { get; } = new Dictionary<uint256, string>();
+		public static object TransactionHexCacheLock { get; } = new object();
+
+		/// <summary>
+		/// Attempts to get transactions.
+		/// </summary>
+		/// <param name="transactionIds">The transactions the client is interested in.</param>
+		/// <returns>200 Ok on with the list of found transactions. This list can be empty if none of the transactions are found.</returns>
+		/// <response code="200">Returns the list of transactions hexes. The list can be empty.</response>
+		/// <response code="400">Something went wrong.</response>
+		[HttpGet("transaction-hexes")]
+		[ProducesResponseType(200)]
+		[ProducesResponseType(400)]
+		public async Task<IActionResult> GetTransactionsAsync([FromQuery, Required]IEnumerable<string> transactionIds)
+		{
+			if (!ModelState.IsValid)
+			{
+				return BadRequest("Invalid transaction ids.");
+			}
+
+			var maxTxToRequest = 10;
+			if (transactionIds.Count() > maxTxToRequest)
+			{
+				return BadRequest($"Maximum {maxTxToRequest} transactions can be requested.");
+			}
+
+			IEnumerable<uint256> parsedIds;
+			try
+			{
+				parsedIds = transactionIds.Distinct().Select(x => new uint256(x));
+			}
+			catch
+			{
+				return BadRequest("Invalid transaction ids.");
+			}
+
+			try
+			{
+				var hexes = new List<string>();
+				var queryRpc = false;
+				RPCClient batchingRpc = null;
+				List<Task<Transaction>> tasks = null;
+				lock (TransactionHexCacheLock)
+				{
+					foreach (var txid in parsedIds)
+					{
+						if (TransactionHexCache.TryGetValue(txid, out string hex))
+						{
+							hexes.Add(hex);
+						}
+						else
+						{
+							if (!queryRpc)
+							{
+								queryRpc = true;
+								batchingRpc = RpcClient.PrepareBatch();
+								tasks = new List<Task<Transaction>>();
+							}
+							tasks.Add(batchingRpc.GetRawTransactionAsync(txid));
+						}
+					}
+				}
+
+				if (queryRpc)
+				{
+					await batchingRpc.SendBatchAsync();
+
+					foreach (var txTask in tasks)
+					{
+						var tx = await txTask;
+						string hex = tx.ToHex();
+						hexes.Add(hex);
+
+						lock (TransactionHexCacheLock)
+						{
+							if (TransactionHexCache.TryAdd(tx.GetHash(), hex) && TransactionHexCache.Count >= 1000)
+							{
+								TransactionHexCache.Remove(TransactionHexCache.Keys.First());
+							}
+						}
+					}
+				}
+
+				return Ok(hexes);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogDebug(ex);
+				return BadRequest(ex.Message);
+			}
 		}
 
 		/// <summary>
