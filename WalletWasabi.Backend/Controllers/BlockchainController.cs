@@ -204,7 +204,7 @@ namespace WalletWasabi.Backend.Controllers
 		/// <returns>200 Ok on with the list of found transactions. This list can be empty if none of the transactions are found.</returns>
 		/// <response code="200">Returns the list of transactions hexes. The list can be empty.</response>
 		/// <response code="400">Something went wrong.</response>
-		[HttpGet("transactions-hexes")]
+		[HttpGet("transaction-hexes")]
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400)]
 		public async Task<IActionResult> GetTransactionsAsync([FromQuery, Required]IEnumerable<string> transactionIds)
@@ -232,16 +232,25 @@ namespace WalletWasabi.Backend.Controllers
 
 			try
 			{
-				var hexes = new List<string>();
+				var batchingRpc = RpcClient.PrepareBatch();
+				var tasks = new List<Task<Transaction>>();
 				foreach (var txid in parsedIds)
 				{
-					var tx = await RpcClient.GetRawTransactionAsync(txid);
+					tasks.Add(batchingRpc.GetRawTransactionAsync(txid));
+				}
+
+				await batchingRpc.SendBatchAsync();
+
+				var hexes = new List<string>();
+				foreach (var txTask in tasks)
+				{
+					var tx = await txTask;
 					hexes.Add(tx.ToHex());
 				}
 
 				return Ok(hexes);
 			}
-			catch (RPCException ex)
+			catch (Exception ex)
 			{
 				Logger.LogDebug(ex);
 				return BadRequest(ex.Message);
