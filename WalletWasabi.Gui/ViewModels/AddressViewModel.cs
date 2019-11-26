@@ -30,7 +30,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private ObservableAsPropertyHelper<string> _expandMenuCaption;
 
 		public HdPubKey Model { get; }
-		public Global Global { get; }
+		private Global Global { get; }
 
 		public AddressViewModel(HdPubKey model)
 		{

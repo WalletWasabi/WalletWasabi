@@ -51,7 +51,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private string _btcPrice;
 		private ObservableAsPropertyHelper<StatusBarStatus> _status;
 		private bool _downloadingBlock;
-		public Global Global { get; }
+		private Global Global { get; }
 		private StatusBarStatusSet ActiveStatuses { get; }
 
 		public StatusBarViewModel()

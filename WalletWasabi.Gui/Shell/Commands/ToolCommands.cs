@@ -21,7 +21,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 {
 	internal class ToolCommands
 	{
-		public Global Global { get; }
+		private Global Global { get; }
 
 		[ImportingConstructor]
 		public ToolCommands(CommandIconService commandIconService)

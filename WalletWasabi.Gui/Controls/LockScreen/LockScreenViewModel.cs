@@ -12,7 +12,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 	{
 		private CompositeDisposable Disposables { get; }
 
-		public Global Global { get; }
+		private Global Global { get; }
 
 		public LockScreenViewModel()
 		{

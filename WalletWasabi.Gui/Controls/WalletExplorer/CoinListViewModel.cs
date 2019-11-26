@@ -58,7 +58,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private object SelectionChangedLock { get; } = new object();
 		private object StateChangedLock { get; } = new object();
 
-		public Global Global { get; }
+		private Global Global { get; }
 		public CoinListContainerType CoinListContainerType { get; }
 		public ReactiveCommand<Unit, Unit> EnqueueCoin { get; }
 		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
