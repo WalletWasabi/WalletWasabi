@@ -51,6 +51,17 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(2, graph.Skip(1).First().Children.Count());  // tx1 has two children tx3 and tx4
 			Assert.Equal(1, graph.Last().Children.Count());  // tx2 has only one children tx7
 			Assert.Equal(2, graph.Last().Children.Single().Parents.Count());  // tx7 has two parents tx2 and tx6
+
+			var txs = graph.OrderByDependency().ToArray();
+			Assert.Equal(8, txs.Count());
+			Assert.Equal(tx0, txs[0]);
+			Assert.Equal(tx1, txs[1]);
+			Assert.Equal(tx2, txs[2]);
+			Assert.Equal(tx3, txs[3]);
+			Assert.Equal(tx4, txs[4]);
+			Assert.Equal(tx5, txs[5]);
+			Assert.Equal(tx6, txs[6]);
+			Assert.Equal(tx7, txs[7]);
 		}
 
 		private static (Transaction, Coin[])  CreateTransaction(params Coin[] coins)
