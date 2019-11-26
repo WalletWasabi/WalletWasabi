@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -84,47 +85,53 @@ namespace WalletWasabi.WebClients.Wasabi
 		public static Dictionary<uint256, Transaction> TransactionCache { get; } = new Dictionary<uint256, Transaction>();
 		public static object TransactionCacheLock { get; } = new object();
 
-		public async Task<IEnumerable<Transaction>> GetTransactionsAsync(Network network, IEnumerable<uint256> txHashes, CancellationToken cancel)
+		public async IAsyncEnumerable<Transaction> GetTransactionsAsync(Network network, IEnumerable<uint256> txHashes, [EnumeratorCancellation] CancellationToken cancel)
 		{
-			// todo: handle max 10tx
-
-			var allTxs = new List<Transaction>();
-			var txHashesToQuery = new List<uint256>();
-			lock (TransactionCacheLock)
+			foreach (IEnumerable<uint256> chunk in txHashes.ChunkBy(10))
 			{
-				var cachedTxs = TransactionCache.Where(x => txHashes.Contains(x.Key));
-				allTxs.AddRange(cachedTxs.Select(x => x.Value));
-				txHashesToQuery.AddRange(txHashes.Except(cachedTxs.Select(x => x.Key)));
-			}
-
-			using var response = await TorClient.SendAndRetryAsync(
-				HttpMethod.Get,
-				HttpStatusCode.OK,
-				$"/api/v{Constants.BackendMajorVersion}/btc/blockchain/transaction-hexes?&transactionIds={string.Join("&transactionIds=", txHashesToQuery.Select(x => x.ToString()))}",
-				cancel: cancel);
-			if (response.StatusCode != HttpStatusCode.OK)
-			{
-				await response.ThrowRequestExceptionFromContentAsync();
-			}
-
-			using HttpContent content = response.Content;
-			var retString = await content.ReadAsJsonAsync<IEnumerable<string>>();
-			var ret = retString.Select(x => Transaction.Parse(x, network)).ToList();
-
-			lock (TransactionCacheLock)
-			{
-				foreach (var tx in ret)
+				var allTxs = new List<Transaction>();
+				var txHashesToQuery = new List<uint256>();
+				lock (TransactionCacheLock)
 				{
-					tx.PrecomputeHash(false, true);
-					if (TransactionCache.TryAdd(tx.GetHash(), tx) && TransactionCache.Count >= 1000)
+					var cachedTxs = TransactionCache.Where(x => chunk.Contains(x.Key));
+					allTxs.AddRange(cachedTxs.Select(x => x.Value));
+					txHashesToQuery.AddRange(chunk.Except(cachedTxs.Select(x => x.Key)));
+				}
+
+				using var response = await TorClient.SendAndRetryAsync(
+					HttpMethod.Get,
+					HttpStatusCode.OK,
+					$"/api/v{Constants.BackendMajorVersion}/btc/blockchain/transaction-hexes?&transactionIds={string.Join("&transactionIds=", txHashesToQuery.Select(x => x.ToString()))}",
+					cancel: cancel);
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					await response.ThrowRequestExceptionFromContentAsync();
+				}
+
+				using HttpContent content = response.Content;
+				var retString = await content.ReadAsJsonAsync<IEnumerable<string>>();
+				var ret = retString.Select(x => Transaction.Parse(x, network)).ToList();
+
+				lock (TransactionCacheLock)
+				{
+					foreach (var tx in ret)
 					{
-						TransactionCache.Remove(TransactionCache.Keys.First());
+						tx.PrecomputeHash(false, true);
+						if (TransactionCache.TryAdd(tx.GetHash(), tx) && TransactionCache.Count >= 1000)
+						{
+							TransactionCache.Remove(TransactionCache.Keys.First());
+						}
 					}
 				}
-			}
-			allTxs.AddRange(ret);
+				allTxs.AddRange(ret);
 
-			return allTxs.ToDependencyGraph().OrderByDependency();
+				foreach (var tx in allTxs.ToDependencyGraph().OrderByDependency())
+				{
+					yield return tx;
+				}
+
+				cancel.ThrowIfCancellationRequested();
+			}
 		}
 
 		public async Task<IDictionary<int, FeeEstimationPair>> GetFeesAsync(params int[] confirmationTargets)

@@ -63,13 +63,12 @@ namespace WalletWasabi.CoinJoin.Client
 					}
 
 					using var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint);
-					var unconfirmedCoinJoins = await client.GetTransactionsAsync(Synchronizer.Network, txsNotKnownByAWalletService, CancellationToken.None).ConfigureAwait(false);
 
-					foreach (var tx in unconfirmedCoinJoins)
+					await foreach (Transaction tx in client.GetTransactionsAsync(Synchronizer.Network, txsNotKnownByAWalletService, CancellationToken.None).ConfigureAwait(false))
 					{
 						if (RpcClient is null
 							|| await TryBroadcastTransactionWithRpcAsync(tx).ConfigureAwait(false)
-							|| (await RpcClient.TestAsync().ConfigureAwait(false) is { })) // If the test throws exception then I believe it, because RPC is down and the backend is the god.
+							|| (await RpcClient.TestAsync().ConfigureAwait(false)) is { }) // If the test throws exception then I believe it, because RPC is down and the backend is the god.
 						{
 							BelieveTransaction(tx);
 						}
