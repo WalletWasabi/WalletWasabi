@@ -197,6 +197,9 @@ namespace WalletWasabi.Backend.Controllers
 			return hashes;
 		}
 
+		public static Dictionary<uint256, string> TransactionHexCache { get; } = new Dictionary<uint256, string>();
+		public static object TransactionHexCacheLock { get; } = new object();
+
 		/// <summary>
 		/// Attempts to get transactions.
 		/// </summary>
@@ -223,7 +226,7 @@ namespace WalletWasabi.Backend.Controllers
 			IEnumerable<uint256> parsedIds;
 			try
 			{
-				parsedIds = transactionIds.ToHashSet().Select(x => new uint256(x));
+				parsedIds = transactionIds.Distinct().Select(x => new uint256(x));
 			}
 			catch
 			{
@@ -232,20 +235,49 @@ namespace WalletWasabi.Backend.Controllers
 
 			try
 			{
-				var batchingRpc = RpcClient.PrepareBatch();
-				var tasks = new List<Task<Transaction>>();
-				foreach (var txid in parsedIds)
+				var hexes = new List<string>();
+				var queryRpc = false;
+				RPCClient batchingRpc = null;
+				List<Task<Transaction>> tasks = null;
+				lock (TransactionHexCacheLock)
 				{
-					tasks.Add(batchingRpc.GetRawTransactionAsync(txid));
+					foreach (var txid in parsedIds)
+					{
+						if (TransactionHexCache.TryGetValue(txid, out string hex))
+						{
+							hexes.Add(hex);
+						}
+						else
+						{
+							if (!queryRpc)
+							{
+								queryRpc = true;
+								batchingRpc = RpcClient.PrepareBatch();
+								tasks = new List<Task<Transaction>>();
+							}
+							tasks.Add(batchingRpc.GetRawTransactionAsync(txid));
+						}
+					}
 				}
 
-				await batchingRpc.SendBatchAsync();
-
-				var hexes = new List<string>();
-				foreach (var txTask in tasks)
+				if (queryRpc)
 				{
-					var tx = await txTask;
-					hexes.Add(tx.ToHex());
+					await batchingRpc.SendBatchAsync();
+
+					foreach (var txTask in tasks)
+					{
+						var tx = await txTask;
+						string hex = tx.ToHex();
+						hexes.Add(hex);
+
+						lock (TransactionHexCacheLock)
+						{
+							if (TransactionHexCache.TryAdd(tx.GetHash(), hex) && TransactionHexCache.Count >= 1000)
+							{
+								TransactionHexCache.Remove(TransactionHexCache.Keys.First());
+							}
+						}
+					}
 				}
 
 				return Ok(hexes);
