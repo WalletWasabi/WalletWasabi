@@ -13,6 +13,12 @@
         </Style>
       </TreeView.Styles>
       <TreeView.DataTemplates>
+        <TreeDataTemplate DataType="ViewModels:ClosedWalletViewModel">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <DrawingPresenter Width="20" Height="20" Drawing="{DynamicResource WalletExplorerView_ClosedWallet}" />
+            <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" Background="Transparent" />
+          </StackPanel>
+        </TreeDataTemplate>
         <TreeDataTemplate DataType="ViewModels:WalletViewModel" ItemsSource="{Binding Actions}">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <DrawingPresenter Width="20" Height="20" Drawing="{DynamicResource WalletExplorerView_OpenFolder}" />

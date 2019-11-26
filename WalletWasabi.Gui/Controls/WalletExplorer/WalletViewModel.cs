@@ -14,12 +14,11 @@ using Splat;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class WalletViewModel : ViewModelBase
+	public class WalletViewModel : WalletViewModelBase
 	{
 		private CompositeDisposable Disposables { get; set; }
 
 		private ObservableCollection<WalletActionViewModel> _actions;
-		private string _title;
 		private bool _isExpanded;
 
 		public WalletViewModel(bool receiveDominant, WalletService walletService)
@@ -27,7 +26,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var global = Locator.Current.GetService<Global>();
 			WalletService = walletService;
 
-			_title = Path.GetFileNameWithoutExtension(WalletService.KeyManager.FilePath);
+			Title = Path.GetFileNameWithoutExtension(WalletService.KeyManager.FilePath);
 			
 			var keyManager = WalletService.KeyManager;
 			Name = Path.GetFileNameWithoutExtension(keyManager.FilePath);
@@ -92,12 +91,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _isExpanded;
 			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
-		}
-
-		public string Title
-		{
-			get => _title;
-			set => this.RaiseAndSetIfChanged(ref _title, value);
 		}
 
 		public Guid Id { get; set; } = Guid.NewGuid();
