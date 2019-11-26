@@ -29,7 +29,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
 		private SuggestLabelViewModel _labelSuggestion;
-		private Global _global;
+		private Global Global { get; }
 
 		public ReactiveCommand<Unit, Unit> CopyAddress { get; }
 		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
@@ -42,9 +42,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
 		{
-			_global = Locator.Current.GetService<Global>();
+			Global = Locator.Current.GetService<Global>();
 
-			_labelSuggestion = new SuggestLabelViewModel(_global);
+			_labelSuggestion = new SuggestLabelViewModel(Global);
 			_addresses = new ObservableCollection<AddressViewModel>();
 			_labelSuggestion.Label = "";
 
@@ -63,7 +63,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					Dispatcher.UIThread.PostLogException(() =>
 						{
-							HdPubKey newKey = _global.WalletService.GetReceiveKey(_labelSuggestion.Label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
+							HdPubKey newKey = Global.WalletService.GetReceiveKey(_labelSuggestion.Label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
 
 							AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
 							if (found != default)
@@ -71,7 +71,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 								Addresses.Remove(found);
 							}
 
-							var newAddress = new AddressViewModel(newKey, _global);
+							var newAddress = new AddressViewModel(newKey, Global);
 
 							Addresses.Insert(0, newAddress);
 
@@ -83,7 +83,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
 				{
-					if (_global.UiConfig?.Autocopy is false || address is null)
+					if (Global.UiConfig?.Autocopy is false || address is null)
 					{
 						return;
 					}
@@ -114,7 +114,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			DisplayAddressOnHwCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				var client = new HwiClient(_global.Network);
+				var client = new HwiClient(Global.Network);
 				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 				try
 				{
@@ -122,7 +122,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (HwiException)
 				{
-					await PinPadViewModel.UnlockAsync(_global);
+					await PinPadViewModel.UnlockAsync(Global);
 					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, SelectedAddress.Model.FullKeyPath, cts.Token);
 				}
 			});
@@ -161,7 +161,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			Observable
-				.FromEventPattern(_global.WalletService.TransactionProcessor, nameof(_global.WalletService.TransactionProcessor.CoinReceived))
+				.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => InitializeAddresses())
 				.DisposeWith(Disposables);
@@ -181,7 +181,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			try
 			{
 				_addresses?.Clear();
-				var walletService = _global.WalletService;
+				var walletService = Global.WalletService;
 
 				if (walletService is null)
 				{
@@ -191,10 +191,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				IEnumerable<HdPubKey> keys = walletService.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
 				foreach (HdPubKey key in keys)
 				{
-					_addresses.Add(new AddressViewModel(key, _global));
+					_addresses.Add(new AddressViewModel(key, Global));
 				}
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				Logger.LogError(ex);
 			}

@@ -8,6 +8,7 @@ using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Dialogs
@@ -50,7 +51,7 @@ namespace WalletWasabi.Gui.Dialogs
 
 		public CannotCloseDialogViewModel(Global global) : base("", false, false)
 		{
-			Global = global;
+			Global = Guard.NotNull(nameof(global), global);
 			OperationMessage = "Dequeuing coins...Please wait";
 			var canCancel = this.WhenAnyValue(x => x.IsBusy);
 			var canOk = this.WhenAnyValue(x => x.IsBusy, (isbusy) => !isbusy);

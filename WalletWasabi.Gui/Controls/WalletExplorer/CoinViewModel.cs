@@ -11,6 +11,7 @@ using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
@@ -30,7 +31,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public CoinViewModel(Global global, SmartCoin model)
 		{
 			Model = model;
-			Global = global;
+			Global = Guard.NotNull(nameof(global), global);
 
 			RefreshSmartCoinStatus();
 

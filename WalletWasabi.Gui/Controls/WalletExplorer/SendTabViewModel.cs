@@ -75,7 +75,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isSliderFeeUsed = true;
 		private double _feeControlOpacity;
 
-		private Global _global;
+		private Global Global { get; }
 
 		private SuggestLabelViewModel _labelSuggestion;
 
@@ -85,7 +85,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set
 			{
 				_feeDisplayFormat = value;
-				_global.UiConfig.FeeDisplayFormat = (int)value;
+				Global.UiConfig.FeeDisplayFormat = (int)value;
 			}
 		}
 
@@ -103,15 +103,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public SendTabViewModel(WalletViewModel walletViewModel, bool isTransactionBuilder = false)
 			: base(isTransactionBuilder ? "Build Transaction" : "Send", walletViewModel)
 		{
-			_global = Locator.Current.GetService<Global>();
-			_labelSuggestion = new SuggestLabelViewModel(_global);
+			Global = Locator.Current.GetService<Global>();
+			_labelSuggestion = new SuggestLabelViewModel(Global);
 			IsTransactionBuilder = isTransactionBuilder;
 			BuildTransactionButtonText = IsTransactionBuilder ? BuildTransactionButtonTextString : SendTransactionButtonTextString;
 
 			ResetUi();
 			SetAmountWatermark(Money.Zero);
 
-			CoinList = new CoinListViewModel(_global, CoinListContainerType.SendTabViewModel);
+			CoinList = new CoinListViewModel(Global, CoinListContainerType.SendTabViewModel);
 
 			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -121,8 +121,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ToProperty(this, x => x.MinMaxFeeTargetsEqual, scheduler: RxApp.MainThreadScheduler);
 
 			SetFeeTargetLimits();
-			FeeTarget = _global.UiConfig.FeeTarget;
-			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), _global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
+			FeeTarget = Global.UiConfig.FeeTarget;
+			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			SetFeesAndTexts();
 
 			this.WhenAnyValue(x => x.AmountText)
@@ -254,7 +254,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					BitcoinAddress address;
 					try
 					{
-						address = BitcoinAddress.Create(Address.Trim(), _global.Network);
+						address = BitcoinAddress.Create(Address.Trim(), Global.Network);
 					}
 					catch (FormatException)
 					{
@@ -298,7 +298,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						TxoRef[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => x.Model.GetTxoRef()).ToArray();
 						if (toDequeue != null && toDequeue.Any())
 						{
-							await _global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, "Coin is used in a spending transaction built by the user.");
+							await Global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, "Coin is used in a spending transaction built by the user.");
 						}
 					}
 					catch
@@ -334,7 +334,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 
-					BuildTransactionResult result = await Task.Run(() => _global.WalletService.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
+					BuildTransactionResult result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 
 					if (IsTransactionBuilder)
 					{
@@ -362,7 +362,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						{
 							IsHardwareBusy = true;
 							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.AcquiringSignatureFromHardwareWallet);
-							var client = new HwiClient(_global.Network);
+							var client = new HwiClient(Global.Network);
 
 							using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 							PSBT signedPsbt = null;
@@ -372,7 +372,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							}
 							catch (HwiException)
 							{
-								await PinPadViewModel.UnlockAsync(_global);
+								await PinPadViewModel.UnlockAsync(Global);
 								signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
 							}
 							signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction);
@@ -390,7 +390,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
-					await Task.Run(async () => await _global.TransactionBroadcaster.SendTransactionAsync(signedTransaction));
+					await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(signedTransaction));
 
 					TryResetInputsOnSuccess("Transaction is successfully sent!");
 				}
@@ -502,7 +502,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFeesAndTexts()
 		{
-			AllFeeEstimate allFeeEstimate = _global.FeeProviders?.AllFeeEstimate;
+			AllFeeEstimate allFeeEstimate = Global.FeeProviders?.AllFeeEstimate;
 
 			if (allFeeEstimate is { })
 			{
@@ -674,7 +674,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFeeTargetLimits()
 		{
-			var allFeeEstimate = _global.FeeProviders?.AllFeeEstimate;
+			var allFeeEstimate = Global.FeeProviders?.AllFeeEstimate;
 
 			if (allFeeEstimate != null)
 			{
@@ -746,7 +746,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set
 			{
 				this.RaiseAndSetIfChanged(ref _feeTarget, value);
-				_global.UiConfig.FeeTarget = value;
+				Global.UiConfig.FeeTarget = value;
 			}
 		}
 
@@ -818,12 +818,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return ErrorDescriptors.Empty;
 			}
 
-			if (AddressStringParser.TryParseBitcoinAddress(Address, _global.Network, out _))
+			if (AddressStringParser.TryParseBitcoinAddress(Address, Global.Network, out _))
 			{
 				return ErrorDescriptors.Empty;
 			}
 
-			if (AddressStringParser.TryParseBitcoinUrl(Address, _global.Network, out _))
+			if (AddressStringParser.TryParseBitcoinUrl(Address, Global.Network, out _))
 			{
 				return ErrorDescriptors.Empty;
 			}
@@ -891,7 +891,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			Observable
-				.FromEventPattern<AllFeeEstimate>(_global.FeeProviders, nameof(_global.FeeProviders.AllFeeEstimateChanged))
+				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
@@ -910,7 +910,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				})
 				.DisposeWith(Disposables);
 
-			_usdExchangeRate = _global.Synchronizer
+			_usdExchangeRate = Global.Synchronizer
 				.WhenAnyValue(x => x.UsdExchangeRate)
 				.ToProperty(this, x => x.UsdExchangeRate, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
@@ -919,7 +919,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SetFeesAndTexts());
 
-			_isCustomFee = _global.UiConfig.WhenAnyValue(x => x.IsCustomFee)
+			_isCustomFee = Global.UiConfig.WhenAnyValue(x => x.IsCustomFee)
 				.ToProperty(this, x => x.IsCustomFee, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 

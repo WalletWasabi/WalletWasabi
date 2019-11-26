@@ -6,19 +6,20 @@ using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Controls
 {
 	public class SuggestLabelViewModel : ViewModelBase
 	{
 		private ObservableCollection<SuggestionViewModel> _suggestions;
-		private Global _global;
+		private Global Global { get; }
 		private int _caretIndex;
 		private string _label;
 
 		public SuggestLabelViewModel(Global global)
 		{
-			_global = global;
+			Global = Guard.NotNull(nameof(global), global);
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 
@@ -70,7 +71,7 @@ namespace WalletWasabi.Gui.Controls
 				return;
 			}
 
-			var labels = _global.WalletService.GetLabels();
+			var labels = Global.WalletService.GetLabels();
 			IEnumerable<string> suggestedWords = labels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
 				.Union(labels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
 				.Except(enteredWordList)

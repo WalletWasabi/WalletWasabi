@@ -11,6 +11,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.ViewModels
@@ -32,7 +33,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public AddressViewModel(HdPubKey model, Global global)
 		{
-			Global = global;
+			Global = Guard.NotNull(nameof(global), global);
 			Model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;

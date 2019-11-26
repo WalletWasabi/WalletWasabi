@@ -49,7 +49,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private bool _isHardwareBusy;
 		private string _loadButtonText;
 		private bool _isHwWalletSearchTextVisible;
-		private Global _global;
+		private Global Global { get; }
 
 		public bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
@@ -64,7 +64,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public LoadWalletViewModel(WalletManagerViewModel owner, LoadWalletType loadWalletType)
 			: base(loadWalletType == LoadWalletType.Password ? "Test Password" : (loadWalletType == LoadWalletType.Desktop ? "Load Wallet" : "Hardware Wallet"))
 		{
-			_global = Locator.Current.GetService<Global>();
+			Global = Locator.Current.GetService<Global>();
 
 			Owner = owner;
 			Password = "";
@@ -132,8 +132,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					HDFingerprint mfp = NBitcoinHelpers.BetterParseHDFingerprint(mfpString, reverseByteOrder: reverseByteOrder);
 					ExtPubKey extPubKey = NBitcoinHelpers.BetterParseExtPubKey(xpubString);
 					Logger.LogInfo("Creating a new wallet file.");
-					var walletName = _global.GetNextHardwareWalletName(customPrefix: "Coldcard");
-					var walletFullPath = _global.GetWalletFullPath(walletName);
+					var walletName = Global.GetNextHardwareWalletName(customPrefix: "Coldcard");
+					var walletFullPath = Global.GetWalletFullPath(walletName);
 					KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath);
 					owner.SelectLoadWallet();
 				}
@@ -284,7 +284,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			Wallets.Clear();
 			Password = "";
 
-			var directoryInfo = new DirectoryInfo(_global.WalletsDir);
+			var directoryInfo = new DirectoryInfo(Global.WalletsDir);
 			var walletFiles = directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
 			foreach (var file in walletFiles)
 			{
@@ -322,7 +322,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				IsWalletSelected = SelectedWallet != null;
 				CanTestPassword = IsWalletSelected;
 
-				if (_global.WalletService is null)
+				if (Global.WalletService is null)
 				{
 					IsWalletOpened = false;
 
@@ -372,7 +372,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				var walletName = selectedWallet.WalletName;
 				if (isHardwareWallet)
 				{
-					var client = new HwiClient(_global.Network);
+					var client = new HwiClient(Global.Network);
 
 					if (selectedWallet.HardwareWalletInfo is null)
 					{
@@ -415,7 +415,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					}
 					else if (selectedWallet.HardwareWalletInfo.NeedsPinSent is true)
 					{
-						await PinPadViewModel.UnlockAsync(_global, selectedWallet.HardwareWalletInfo);
+						await PinPadViewModel.UnlockAsync(Global, selectedWallet.HardwareWalletInfo);
 
 						var p = selectedWallet.HardwareWalletInfo.Path;
 						var t = selectedWallet.HardwareWalletInfo.Model;
@@ -465,8 +465,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					}
 					else
 					{
-						walletName = _global.GetNextHardwareWalletName(selectedWallet.HardwareWalletInfo);
-						var path = _global.GetWalletFullPath(walletName);
+						walletName = Global.GetNextHardwareWalletName(selectedWallet.HardwareWalletInfo);
+						var path = Global.GetWalletFullPath(walletName);
 
 						// Get xpub should had triggered passphrase request, so the fingerprint should be available here.
 						if (!selectedWallet.HardwareWalletInfo.Fingerprint.HasValue)
@@ -478,8 +478,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					}
 				}
 
-				var walletFullPath = _global.GetWalletFullPath(walletName);
-				var walletBackupFullPath = _global.GetWalletBackupFullPath(walletName);
+				var walletFullPath = Global.GetWalletFullPath(walletName);
+				var walletBackupFullPath = Global.GetWalletBackupFullPath(walletName);
 				if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
 				{
 					// The selected wallet is not available any more (someone deleted it?).
@@ -488,7 +488,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					return null;
 				}
 
-				KeyManager keyManager = _global.LoadKeyManager(walletFullPath, walletBackupFullPath);
+				KeyManager keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
 
 				// Only check requirepassword here, because the above checks are applicable to loadwallet, too and we are using this function from load wallet.
 				if (requirePassword)
@@ -549,7 +549,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			IsHwWalletSearchTextVisible = true;
 			try
 			{
-				var client = new HwiClient(_global.Network);
+				var client = new HwiClient(Global.Network);
 				var devices = await client.EnumerateAsync(cts.Token);
 
 				Wallets.Clear();
@@ -572,8 +572,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			// Start searching for the real wallet name.
 			walletName = null;
 
-			var walletFiles = new DirectoryInfo(_global.WalletsDir);
-			var walletBackupFiles = new DirectoryInfo(_global.WalletBackupsDir);
+			var walletFiles = new DirectoryInfo(Global.WalletsDir);
+			var walletBackupFiles = new DirectoryInfo(Global.WalletBackupsDir);
 
 			List<FileInfo> walletFileNames = new List<FileInfo>();
 
@@ -620,18 +620,18 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				try
 				{
-					await Task.Run(async () => await _global.InitializeWalletServiceAsync(keyManager));
+					await Task.Run(async () => await Global.InitializeWalletServiceAsync(keyManager));
 					// Successffully initialized.
 					Owner.OnClose();
 					// Open Wallet Explorer tabs
-					if (_global.WalletService.Coins.Any())
+					if (Global.WalletService.Coins.Any())
 					{
 						// If already have coins then open with History tab first.
-						IoC.Get<WalletExplorerViewModel>().OpenWallet(_global.WalletService, receiveDominant: false);
+						IoC.Get<WalletExplorerViewModel>().OpenWallet(Global.WalletService, receiveDominant: false);
 					}
 					else // Else open with Receive tab first.
 					{
-						IoC.Get<WalletExplorerViewModel>().OpenWallet(_global.WalletService, receiveDominant: true);
+						IoC.Get<WalletExplorerViewModel>().OpenWallet(Global.WalletService, receiveDominant: true);
 					}
 				}
 				catch (Exception ex)
@@ -642,7 +642,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					{
 						Logger.LogError(ex);
 					}
-					await _global.DisposeInWalletDependentServicesAsync();
+					await Global.DisposeInWalletDependentServicesAsync();
 				}
 			}
 			finally
@@ -656,7 +656,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public void OpenWalletsFolder()
 		{
-			var path = _global.WalletsDir;
+			var path = Global.WalletsDir;
 			IoHelpers.OpenFolderInFileExplorer(path);
 		}
 	}

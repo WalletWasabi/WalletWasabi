@@ -24,20 +24,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
-		private Global _global;
+		private Global Global { get; }
 
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 
 		public HistoryTabViewModel(WalletViewModel walletViewModel)
 			: base("History", walletViewModel)
 		{
-			_global = Locator.Current.GetService<Global>();
+			Global = Locator.Current.GetService<Global>();
 
 			Transactions = new ObservableCollection<TransactionViewModel>();
 
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
 				{
-					if (_global.UiConfig?.Autocopy is false || transaction is null)
+					if (Global.UiConfig?.Autocopy is false || transaction is null)
 					{
 						return;
 					}
@@ -58,16 +58,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Observable.FromEventPattern(_global.WalletService, nameof(_global.WalletService.NewBlockProcessed))
-				.Merge(Observable.FromEventPattern(_global.WalletService.TransactionProcessor, nameof(_global.WalletService.TransactionProcessor.CoinSpent)))
-				.Merge(Observable.FromEventPattern(_global.WalletService.TransactionProcessor, nameof(_global.WalletService.TransactionProcessor.SpenderConfirmed)))
-				.Merge(Observable.FromEventPattern(_global.WalletService.TransactionProcessor, nameof(_global.WalletService.TransactionProcessor.CoinReceived)))
+			Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed))
+				.Merge(Observable.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent)))
+				.Merge(Observable.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.SpenderConfirmed)))
+				.Merge(Observable.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived)))
 				.Throttle(TimeSpan.FromSeconds(5))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async _ => await TryRewriteTableAsync())
 				.DisposeWith(Disposables);
 
-			_global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 				{
 					foreach (var transaction in Transactions)
 					{
@@ -88,7 +88,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			try
 			{
-				var historyBuilder = new TransactionHistoryBuilder(_global.WalletService);
+				var historyBuilder = new TransactionHistoryBuilder(Global.WalletService);
 				var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
 
 				var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
@@ -98,7 +98,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					DateTime = txr.DateTime.ToLocalTime(),
 					Confirmed = txr.Height.Type == HeightType.Chain,
-					Confirmations = txr.Height.Type == HeightType.Chain ? (int)_global.BitcoinStore.SmartHeaderChain.TipHeight - txr.Height.Value + 1 : 0,
+					Confirmations = txr.Height.Type == HeightType.Chain ? (int)Global.BitcoinStore.SmartHeaderChain.TipHeight - txr.Height.Value + 1 : 0,
 					AmountBtc = $"{txr.Amount.ToString(fplus: true, trimExcessZero: true)}",
 					Label = txr.Label,
 					TransactionId = txr.TransactionId.ToString()

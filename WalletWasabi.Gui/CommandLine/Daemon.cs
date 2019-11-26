@@ -16,7 +16,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 		public Daemon(Global global)
 		{
-			Global = global;
+			Global = Guard.NotNull(nameof(global), global);
 		}
 
 		internal async Task RunAsync(string walletName, bool mixAll, bool keepMixAlive)

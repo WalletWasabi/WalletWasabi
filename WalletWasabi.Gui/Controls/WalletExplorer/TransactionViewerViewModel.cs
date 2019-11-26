@@ -30,13 +30,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _psbtHexText;
 		private string _psbtBase64Text;
 		private byte[] _psbtBytes;
-		private Global _global;
+		private Global Global { get; }
 		public ReactiveCommand<Unit, Unit> ExportBinaryPsbt { get; set; }
 		public ReactiveCommand<Unit, Unit> OpenTransactionBroadcaster { get; set; }
 
 		public TransactionViewerViewModel(WalletViewModel walletViewModel) : base("Transaction", walletViewModel)
 		{
-			_global = Locator.Current.GetService<Global>();
+			Global = Locator.Current.GetService<Global>();
 			OpenTransactionBroadcaster = ReactiveCommand.Create(() =>
 			{
 				try
@@ -97,7 +97,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ReactiveCommand<Unit, Unit> ExportBinaryPsbtCommand { get; set; }
 
-		public bool? IsLurkingWifeMode => _global.UiConfig.LurkingWifeMode;
+		public bool? IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
 
 		public string TxId
 		{
@@ -140,7 +140,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			base.OnOpen();
 
-			_global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{

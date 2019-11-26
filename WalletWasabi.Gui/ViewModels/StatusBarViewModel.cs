@@ -55,7 +55,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public StatusBarViewModel(Global global)
 		{
-			Global = global;
+			Global = Guard.NotNull(nameof(global), global);
 			Backend = BackendStatus.NotConnected;
 			UseTor = false;
 			Tor = TorStatus.NotRunning;

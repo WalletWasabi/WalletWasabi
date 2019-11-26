@@ -18,6 +18,7 @@ using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -252,7 +253,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CoinListViewModel(Global global, CoinListContainerType coinListContainerType)
 		{
-			Global = global;
+			Global = Guard.NotNull(nameof(global), global);
 			CoinListContainerType = coinListContainerType;
 			AmountSortDirection = SortOrder.Decreasing;
 
