@@ -43,7 +43,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private LoadWalletEntry _selectedWallet;
 		private bool _isWalletSelected;
 		private bool _isWalletOpened;
-		private bool _canLoadWallet;
 		private bool _canTestPassword;
 		private bool _isBusy;
 		private bool _isHardwareBusy;
@@ -81,7 +80,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			this.WhenAnyValue(x => x.IsBusy)
 				.Subscribe(_ => TrySetWalletStates());
 
-			LoadCommand = ReactiveCommand.CreateFromTask(async () => await LoadWalletAsync(), this.WhenAnyValue(x => x.CanLoadWallet));
+			LoadCommand = ReactiveCommand.CreateFromTask(async () => await LoadWalletAsync(), this.WhenAnyValue(x => x.IsBusy).Select(x => !x));
 			TestPasswordCommand = ReactiveCommand.CreateFromTask(async () => await LoadKeyManagerAsync(requirePassword: true, isHardwareWallet: false), this.WhenAnyValue(x => x.CanTestPassword));
 			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
 			ImportColdcardCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -238,12 +237,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _loadButtonText, value);
 		}
 
-		public bool CanLoadWallet
-		{
-			get => _canLoadWallet;
-			set => this.RaiseAndSetIfChanged(ref _canLoadWallet, value);
-		}
-
 		public bool CanTestPassword
 		{
 			get => _canTestPassword;
@@ -303,11 +296,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 
 			TrySetWalletStates();
-
-			if (!CanLoadWallet)
-			{
-				NotificationHelpers.Warning("There is already an open wallet. Restart the application in order to open a different one.");
-			}
 		}
 
 		private bool TrySetWalletStates()
@@ -325,16 +313,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				if (Global.WalletServiceManager.AnyWalletService())
 				{
 					IsWalletOpened = true;
-					CanLoadWallet = false;
 				}
 				else
 				{
 					IsWalletOpened = false;
-
-					// If not busy loading.
-					// And wallet is selected.
-					// And no wallet is opened.
-					CanLoadWallet = !IsBusy && IsWalletSelected;
 				}
 
 				SetLoadButtonText();
