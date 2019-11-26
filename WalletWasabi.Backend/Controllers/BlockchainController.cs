@@ -198,6 +198,57 @@ namespace WalletWasabi.Backend.Controllers
 		}
 
 		/// <summary>
+		/// Attempts to get transactions.
+		/// </summary>
+		/// <param name="transactionIds">The transactions the client is interested in.</param>
+		/// <returns>200 Ok on with the list of found transactions. This list can be empty if none of the transactions are found.</returns>
+		/// <response code="200">Returns the list of transactions hexes. The list can be empty.</response>
+		/// <response code="400">Something went wrong.</response>
+		[HttpGet("transactions-hexes")]
+		[ProducesResponseType(200)]
+		[ProducesResponseType(400)]
+		public async Task<IActionResult> GetTransactionsAsync([FromQuery, Required]IEnumerable<string> transactionIds)
+		{
+			if (!ModelState.IsValid)
+			{
+				return BadRequest("Invalid transaction ids.");
+			}
+
+			var maxTxToRequest = 10;
+			if (transactionIds.Count() > maxTxToRequest)
+			{
+				return BadRequest($"Maximum {maxTxToRequest} transactions can be requested.");
+			}
+
+			IEnumerable<uint256> parsedIds;
+			try
+			{
+				parsedIds = transactionIds.ToHashSet().Select(x => new uint256(x));
+			}
+			catch
+			{
+				return BadRequest("Invalid transaction ids.");
+			}
+
+			try
+			{
+				var hexes = new List<string>();
+				foreach (var txid in parsedIds)
+				{
+					var tx = await RpcClient.GetRawTransactionAsync(txid);
+					hexes.Add(tx.ToHex());
+				}
+
+				return Ok(hexes);
+			}
+			catch (RPCException ex)
+			{
+				Logger.LogDebug(ex);
+				return BadRequest(ex.Message);
+			}
+		}
+
+		/// <summary>
 		/// Attempts to broadcast a transaction.
 		/// </summary>
 		/// <remarks>

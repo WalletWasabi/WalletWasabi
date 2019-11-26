@@ -438,6 +438,14 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			return CoinJoins.Count;
 		}
 
+		public async Task<IEnumerable<uint256>> GetCoinJoinsAsync()
+		{
+			using (await CoinJoinsLock.LockAsync())
+			{
+				return CoinJoins.ToArray();
+			}
+		}
+
 		#region IDisposable Support
 
 		private volatile bool _disposedValue = false; // To detect redundant calls

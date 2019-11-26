@@ -741,10 +741,10 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(200)]
 		public async Task<IActionResult> GetUnconfirmedCoinjoinAsync()
 		{
-			var coinjoins = Global.Coordinator.CoinJoins.ToArray();
+			var coinjoins = await Global.Coordinator.GetCoinJoinsAsync();
 
 			uint256[] mempoolHashes = await Global.RpcClient.GetRawMempoolAsync().ConfigureAwait(false);
-			var unconfirmedList = coinjoins.Intersect(mempoolHashes).Select(x=>x.ToString());
+			var unconfirmedList = coinjoins.Intersect(mempoolHashes).Select(x => x.ToString());
 
 			return Ok(unconfirmedList);
 		}
