@@ -35,16 +35,14 @@ namespace WalletWasabi.Backend.Controllers
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class ChaumianCoinJoinController : Controller
 	{
-		public BlockchainController BlockchainController { get; }
 		private IMemoryCache Cache { get; }
 		public Global Global { get; }
 		private RPCClient RpcClient => Global.RpcClient;
 		private Network Network => Global.Config.Network;
 		private Coordinator Coordinator => Global.Coordinator;
 
-		public ChaumianCoinJoinController(BlockchainController blockchainController, IMemoryCache memoryCache, Global global)
+		public ChaumianCoinJoinController(IMemoryCache memoryCache, Global global)
 		{
-			BlockchainController = blockchainController;
 			Cache = memoryCache;
 			Global = global;
 		}
@@ -222,7 +220,7 @@ namespace WalletWasabi.Backend.Controllers
 						if (getTxOutResponse.Confirmations <= 0)
 						{
 							// If it spends a CJ then it may be acceptable to register.
-							if (!await Coordinator.ContainsCoinJoinAsync(inputProof.Input.TransactionId))
+							if (!await Coordinator.ContainsUnconfirmedCoinJoinAsync(inputProof.Input.TransactionId))
 							{
 								return BadRequest("Provided input is neither confirmed, nor is from an unconfirmed coinjoin.");
 							}
@@ -746,10 +744,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(200)]
 		public async Task<IActionResult> GetUnconfirmedCoinjoinAsync()
 		{
-			var coinJoins = await Global.Coordinator.GetCoinJoinsAsync();
-			var mempool = await BlockchainController.GetRawMempoolStringsAsync();
-			var coinJoinsStrings = coinJoins.Select(x => x.ToString());
-			var unconfirmedCoinJoins = coinJoinsStrings.Intersect(mempool);
+			var unconfirmedCoinJoins = await Global.Coordinator.GetUnconfirmedCoinJoinsAsync();
 			return Ok(unconfirmedCoinJoins);
 		}
 
