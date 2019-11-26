@@ -266,7 +266,7 @@ namespace Mono.Options
 					added.Add(option.Names[i]);
 				}
 			}
-			catch (Exception)
+			catch
 			{
 				foreach (string name in added)
 				{

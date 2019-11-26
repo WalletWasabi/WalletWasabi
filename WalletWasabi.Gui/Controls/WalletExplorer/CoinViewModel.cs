@@ -67,7 +67,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(_ => RefreshSmartCoinStatus())
 				.DisposeWith(Disposables);
 
-			Global.BitcoinStore.HashChain
+			Global.BitcoinStore.SmartHeaderChain
 				.WhenAnyValue(x => x.TipHeight).Select(_ => Unit.Default)
 				.Merge(Model.WhenAnyValue(x => x.Height).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -97,7 +97,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public string Address => Model.ScriptPubKey.GetDestinationAddress(Global.Network).ToString();
 
 		public int Confirmations => Model.Height.Type == HeightType.Chain
-			? Global.BitcoinStore.HashChain.TipHeight - Model.Height.Value + 1
+			? (int)Global.BitcoinStore.SmartHeaderChain.TipHeight - Model.Height.Value + 1
 			: 0;
 
 		public bool IsSelected

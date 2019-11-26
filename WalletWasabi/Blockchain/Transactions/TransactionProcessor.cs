@@ -112,7 +112,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 							ReplaceTransactionReceived?.Invoke(this, new ReplaceTransactionReceivedEventArgs(tx, destroyed, restored));
 
-							foreach(var replacedTransactionId in destroyed.Select(coin => coin.TransactionId))
+							foreach (var replacedTransactionId in destroyed.Select(coin => coin.TransactionId))
 							{
 								TransactionStore.MempoolStore.TryRemove(replacedTransactionId, out _);
 							}

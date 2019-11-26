@@ -2,6 +2,7 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -27,8 +28,6 @@ namespace WalletWasabi.Blockchain.Transactions
 				return txRecordList;
 			}
 
-			var processedBlockTimeByHeight = walletService.ProcessedBlocks?.Values.ToDictionary(x => x.height, x => x.dateTime)
-				?? new Dictionary<Height, DateTimeOffset>();
 			var allCoins = ((CoinsRegistry)walletService.Coins).AsAllCoinsView();
 			foreach (SmartCoin coin in allCoins)
 			{
@@ -41,9 +40,9 @@ namespace WalletWasabi.Blockchain.Transactions
 				DateTimeOffset dateTime;
 				if (foundTransaction.Height.Type == HeightType.Chain)
 				{
-					if (processedBlockTimeByHeight.TryGetValue(foundTransaction.Height, out var blockDateTime))
+					if (walletService.BitcoinStore.SmartHeaderChain.TryGetHeader((uint)foundTransaction.Height.Value, out SmartHeader header))
 					{
-						dateTime = blockDateTime;
+						dateTime = header.BlockTime;
 					}
 					else
 					{
@@ -85,9 +84,9 @@ namespace WalletWasabi.Blockchain.Transactions
 
 					if (foundSpenderTransaction.Height.Type == HeightType.Chain)
 					{
-						if (processedBlockTimeByHeight.TryGetValue(foundSpenderTransaction.Height, out var blockDateTime))
+						if (walletService.BitcoinStore.SmartHeaderChain.TryGetHeader((uint)foundSpenderTransaction.Height.Value, out SmartHeader header))
 						{
-							dateTime = blockDateTime;
+							dateTime = header.BlockTime;
 						}
 						else
 						{

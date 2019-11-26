@@ -20,13 +20,13 @@ namespace WalletWasabi.JsonConverters
 		{
 			var value = Guard.Correct((string)reader.Value);
 
-			return string.IsNullOrWhiteSpace(value) ? default : FilterModel.FromFullLine(value);
+			return string.IsNullOrWhiteSpace(value) ? default : FilterModel.FromLine(value);
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			writer.WriteValue(((FilterModel)value).ToFullLine());
+			writer.WriteValue(((FilterModel)value).ToLine());
 		}
 	}
 }
