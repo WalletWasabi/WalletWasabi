@@ -622,7 +622,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					var walletService = await Task.Run(async () => await Global.InitializeWalletServiceAsync(keyManager));
 					// Successffully initialized.
-					Owner.OnClose();
+
 					// Open Wallet Explorer tabs
 					if (walletService.Coins.Any())
 					{
