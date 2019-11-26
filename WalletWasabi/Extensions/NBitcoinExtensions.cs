@@ -314,5 +314,40 @@ namespace NBitcoin
 		{
 			return Money.Satoshis(Math.Round(me.SatoshiPerByte * vsize));
 		}
+
+		public class TransactionDependencyNode
+		{
+			public List<TransactionDependencyNode> Children = new List<TransactionDependencyNode>();
+			public List<TransactionDependencyNode> Parents = new List<TransactionDependencyNode>();
+			public Transaction Transaction { get; set; }
+		}
+
+		public static IEnumerable<TransactionDependencyNode> ToDependencyGraph(this IEnumerable<Transaction> txs)
+		{
+			var lookup = new Dictionary<uint256, TransactionDependencyNode>();
+			foreach(var tx in txs)
+			{
+				lookup.Add(tx.GetHash(), new TransactionDependencyNode { Transaction = tx });
+			}
+
+			foreach (var node in lookup.Values)
+			{
+				foreach(var input in node.Transaction.Inputs)
+				{
+					if (lookup.TryGetValue(input.PrevOut.Hash, out var parent))
+					{
+						if(!node.Parents.Contains(parent))
+						{
+							node.Parents.Add(parent);
+						}
+						if(!parent.Children.Contains(node))
+						{
+							parent.Children.Add(node);
+						}
+					}
+				}
+			}
+			return lookup.Values.Where(x => !x.Parents.Any());
+		}
 	}
 }
