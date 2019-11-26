@@ -59,7 +59,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
 		}
 
-		public TransactionBroadcasterViewModel(Global global) : base(global, "Transaction Broadcaster")
+		public TransactionBroadcasterViewModel() : base("Transaction Broadcaster")
 		{
 			ButtonText = "Broadcast Transaction";
 

@@ -34,38 +34,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> ExportBinaryPsbt { get; set; }
 		public ReactiveCommand<Unit, Unit> OpenTransactionBroadcaster { get; set; }
 
-		public bool? IsLurkingWifeMode => _global.UiConfig.LurkingWifeMode;
-
-		public string TxId
-		{
-			get => _txId;
-			set => this.RaiseAndSetIfChanged(ref _txId, value);
-		}
-
-		public string PsbtJsonText
-		{
-			get => _psbtJsonText;
-			set => this.RaiseAndSetIfChanged(ref _psbtJsonText, value);
-		}
-
-		public string TransactionHexText
-		{
-			get => _psbtHexText;
-			set => this.RaiseAndSetIfChanged(ref _psbtHexText, value);
-		}
-
-		public string PsbtBase64Text
-		{
-			get => _psbtBase64Text;
-			set => this.RaiseAndSetIfChanged(ref _psbtBase64Text, value);
-		}
-
-		public byte[] PsbtBytes
-		{
-			get => _psbtBytes;
-			set => this.RaiseAndSetIfChanged(ref _psbtBytes, value);
-		}
-
 		public TransactionViewerViewModel(WalletViewModel walletViewModel) : base("Transaction", walletViewModel)
 		{
 			_global = Locator.Current.GetService<Global>();
@@ -73,7 +41,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				try
 				{
-					IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel(_global));
+					IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel());
 				}
 				catch (Exception ex)
 				{
