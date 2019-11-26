@@ -20,6 +20,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[InlineData("C:\\User\\user\\Github\\WalletWasabi\\WalletWasabi.Gui\\Program.cs")]
 		[InlineData("/mnt/C/User/user/Github/WalletWasabi/WalletWasabi.Gui/Program.cs")]
 		[InlineData("~/Github/WalletWasabi/WalletWasabi.Gui/Program.cs")]
+		[InlineData("Program")]
 		public void EndPointParserTests(string path)
 		{
 			var sourceFileName = EnvironmentHelpers.ExtractFileName(path);

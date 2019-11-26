@@ -31,7 +31,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				var network = coreNode.Network;
 				var rpc = coreNode.RpcClient;
 				var bitcoinStore = new BitcoinStore();
-				var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
+				var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
 				await bitcoinStore.InitializeAsync(dir, network);
 
 				await rpc.GenerateAsync(101);
@@ -84,7 +84,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				await rpc.GenerateAsync(101);
 				var network = rpc.Network;
 
-				var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName());
+				var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
 
 				var addr = new Key().PubKey.GetSegwitAddress(network);
 				var notifier = coreNode.MempoolService;
@@ -160,7 +160,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				// Make sure we get reorg notifications.
 				var reorgNum = 3;
 				var newBlockNum = reorgNum + 1;
-				var reorgEventsAwaiter = new EventsAwaiter<BlockHeader>(
+				var reorgEventsAwaiter = new EventsAwaiter<uint256>(
 					h => notifier.OnReorg += h,
 					h => notifier.OnReorg -= h,
 					reorgNum);
@@ -180,7 +180,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				for (int i = 0; i < reorgedHashes.Length; i++)
 				{
 					var expected = reorgedHashes[i];
-					var actual = reorgedHeaders[i].GetHash();
+					var actual = reorgedHeaders[i];
 					Assert.Equal(expected, actual);
 				}
 

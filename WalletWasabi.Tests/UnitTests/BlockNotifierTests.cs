@@ -21,7 +21,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var blockAwaiter = new EventAwaiter<Block>(
 				h => notifier.OnBlock += h,
 				h => notifier.OnBlock -= h);
-			var reorgAwaiter = new EventAwaiter<BlockHeader>(
+			var reorgAwaiter = new EventAwaiter<uint256>(
 				h => notifier.OnReorg += h,
 				h => notifier.OnReorg -= h);
 
@@ -48,7 +48,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var blockAwaiter = new EventAwaiter<Block>(
 				h => notifier.OnBlock += h,
 				h => notifier.OnBlock -= h);
-			var reorgAwaiter = new EventAwaiter<BlockHeader>(
+			var reorgAwaiter = new EventAwaiter<uint256>(
 				h => notifier.OnReorg += h,
 				h => notifier.OnReorg -= h);
 
@@ -70,7 +70,7 @@ namespace WalletWasabi.Tests.UnitTests
 			using var notifier = CreateNotifier(chain);
 			var blockCount = 3;
 
-			var reorgAwaiter = new EventAwaiter<BlockHeader>(
+			var reorgAwaiter = new EventAwaiter<uint256>(
 				h => notifier.OnReorg += h,
 				h => notifier.OnReorg -= h);
 
@@ -111,7 +111,7 @@ namespace WalletWasabi.Tests.UnitTests
 				h => notifier.OnBlock -= h,
 				5);
 
-			var reorgAwaiter = new EventAwaiter<BlockHeader>(
+			var reorgAwaiter = new EventAwaiter<uint256>(
 				h => notifier.OnReorg += h,
 				h => notifier.OnReorg -= h);
 
@@ -132,8 +132,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// No reorg notifications
 			var reorgedkBlock = await reorgAwaiter.WaitAsync(TimeSpan.FromSeconds(1));
-			Assert.Equal(forkPoint.HashBlock, reorgedkBlock.HashPrevBlock);
-			Assert.Equal(blockToBeReorged.HashBlock, reorgedkBlock.GetHash());
+			Assert.Equal(blockToBeReorged.HashBlock, reorgedkBlock);
 			Assert.Equal(chain.Tip.HashBlock, notifier.BestBlockHash);
 
 			await notifier.StopAsync(CancellationToken.None);
@@ -150,7 +149,7 @@ namespace WalletWasabi.Tests.UnitTests
 				h => notifier.OnBlock -= h,
 				11);
 
-			var reorgAwaiter = new EventsAwaiter<BlockHeader>(
+			var reorgAwaiter = new EventsAwaiter<uint256>(
 				h => notifier.OnReorg += h,
 				h => notifier.OnReorg -= h,
 				3);
@@ -187,7 +186,7 @@ namespace WalletWasabi.Tests.UnitTests
 			// No reorg notifications
 			var reorgedkBlock = await reorgAwaiter.WaitAsync(TimeSpan.FromSeconds(1));
 			var expectedReorgedBlocks = firstReorgedChain.ToList().Concat(new[] { secondReorgedChain[2] });
-			Assert.Subset(reorgedkBlock.Select(x => x.GetHash()).ToHashSet(), expectedReorgedBlocks.Select(x => x.Header.GetHash()).ToHashSet());
+			Assert.Subset(reorgedkBlock.ToHashSet(), expectedReorgedBlocks.Select(x => x.Header.GetHash()).ToHashSet());
 			Assert.Equal(chain.Tip.HashBlock, notifier.BestBlockHash);
 
 			await notifier.StopAsync(CancellationToken.None);

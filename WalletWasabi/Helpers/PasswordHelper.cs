@@ -95,7 +95,7 @@ namespace WalletWasabi.Helpers
 			{
 				GetMasterExtKey(keyManager, password, out compatibilityPasswordUsed);
 			}
-			catch (Exception)
+			catch
 			{
 				return false;
 			}

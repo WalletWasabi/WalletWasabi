@@ -22,7 +22,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class TransactionBroadcasterViewModel : WalletActionViewModel, IDocumentTabViewModel
+	public class TransactionBroadcasterViewModel : WasabiDocumentTabViewModel
 	{
 		private string _transactionString;
 		private bool _isBusy;
@@ -58,7 +58,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
 		}
 
-		public TransactionBroadcasterViewModel(WalletViewModel walletViewModel) : base("Transaction Broadcaster", walletViewModel)
+		public TransactionBroadcasterViewModel(Global global) : base(global, "Transaction Broadcaster")
 		{
 			ButtonText = "Broadcast Transaction";
 
