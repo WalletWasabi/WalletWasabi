@@ -87,18 +87,20 @@ namespace WalletWasabi.WebClients.Wasabi
 		public async Task<IEnumerable<Transaction>> GetTransactionsAsync(Network network, IEnumerable<uint256> txHashes, CancellationToken cancel)
 		{
 			// todo: handle max 10tx
-			// todo: TransactionCache
 
 			var allTxs = new List<Transaction>();
-			//lock (TransactionCacheLock)
-			//{
-			//	var notCachedTxHashses = TransactionCache.Where(x => x.Key)
-			//}
+			var txHashesToQuery = new List<uint256>();
+			lock (TransactionCacheLock)
+			{
+				var cachedTxs = TransactionCache.Where(x => txHashes.Contains(x.Key));
+				allTxs.AddRange(cachedTxs.Select(x => x.Value));
+				txHashesToQuery.AddRange(txHashes.Except(cachedTxs.Select(x => x.Key)));
+			}
 
 			using var response = await TorClient.SendAndRetryAsync(
 				HttpMethod.Get,
 				HttpStatusCode.OK,
-				$"/api/v{Constants.BackendMajorVersion}/btc/blockchain/transaction-hexes?&transactionIds={string.Join("&transactionIds=", txHashes.Select(x => x.ToString()))}",
+				$"/api/v{Constants.BackendMajorVersion}/btc/blockchain/transaction-hexes?&transactionIds={string.Join("&transactionIds=", txHashesToQuery.Select(x => x.ToString()))}",
 				cancel: cancel);
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
@@ -113,6 +115,7 @@ namespace WalletWasabi.WebClients.Wasabi
 			{
 				foreach (var tx in ret)
 				{
+					tx.PrecomputeHash(false, true);
 					if (TransactionCache.TryAdd(tx.GetHash(), tx) && TransactionCache.Count >= 1000)
 					{
 						TransactionCache.Remove(TransactionCache.Keys.First());
