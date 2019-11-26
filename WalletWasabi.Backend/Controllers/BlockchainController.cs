@@ -154,10 +154,10 @@ namespace WalletWasabi.Backend.Controllers
 		/// <param name="compactness">Can strip the last x characters from the hashes.</param>
 		/// <returns>A collection of transaction hashes.</returns>
 		/// <response code="200">A collection of transaction hashes.</response>
-		/// <response code="404">Invalid model state.</response>
+		/// <response code="400">Invalid model state.</response>
 		[HttpGet("mempool-hashes")]
 		[ProducesResponseType(200)]
-		[ProducesResponseType(404)]
+		[ProducesResponseType(400)]
 		[ResponseCache(Duration = 3, Location = ResponseCacheLocation.Client)]
 		public async Task<IActionResult> GetMempoolHashesAsync([FromQuery]int compactness = 64)
 		{

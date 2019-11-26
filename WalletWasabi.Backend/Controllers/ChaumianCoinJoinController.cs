@@ -35,14 +35,16 @@ namespace WalletWasabi.Backend.Controllers
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class ChaumianCoinJoinController : Controller
 	{
+		public BlockchainController BlockchainController { get; }
 		private IMemoryCache Cache { get; }
 		public Global Global { get; }
 		private RPCClient RpcClient => Global.RpcClient;
 		private Network Network => Global.Config.Network;
 		private Coordinator Coordinator => Global.Coordinator;
 
-		public ChaumianCoinJoinController(IMemoryCache memoryCache, Global global)
+		public ChaumianCoinJoinController(BlockchainController blockchainController, IMemoryCache memoryCache, Global global)
 		{
+			BlockchainController = blockchainController;
 			Cache = memoryCache;
 			Global = global;
 		}
@@ -744,23 +746,12 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(200)]
 		public async Task<IActionResult> GetUnconfirmedCoinjoinAsync()
 		{
-			var cacheKey = nameof(GetUnconfirmedCoinjoinAsync);
-			if (!Cache.TryGetValue(cacheKey, out IEnumerable<string> unconfirmedList))
-			{
-				var coinjoins = await Global.Coordinator.GetCoinJoinsAsync();
-
-				uint256[] mempoolHashes = await Global.RpcClient.GetRawMempoolAsync();
-				unconfirmedList = coinjoins.Intersect(mempoolHashes).Select(x=>x.ToString());
-
-				var cacheEntryOptions = new MemoryCacheEntryOptions()
-					.SetAbsoluteExpiration(TimeSpan.FromSeconds(4));
-
-				Cache.Set(cacheKey, unconfirmedList, cacheEntryOptions);
-			}
-			return Ok(unconfirmedList);
+			var coinJoins = await Global.Coordinator.GetCoinJoinsAsync();
+			var mempool = await BlockchainController.GetRawMempoolStringsAsync();
+			var coinJoinsStrings = coinJoins.Select(x => x.ToString());
+			var unconfirmedCoinJoins = coinJoinsStrings.Intersect(mempool);
+			return Ok(unconfirmedCoinJoins);
 		}
-
-
 
 		private Guid GetGuidOrFailureResponse(string uniqueId, out IActionResult returnFailureResponse)
 		{
