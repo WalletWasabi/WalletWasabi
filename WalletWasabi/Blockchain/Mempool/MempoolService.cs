@@ -134,7 +134,7 @@ namespace WalletWasabi.Blockchain.Mempool
 				// Also reset the benchmarking.
 				var totalReceived = Interlocked.Exchange(ref _totalReceives, 0);
 				var duplicatedReceived = Interlocked.Exchange(ref _duplicatedReceives, 0);
-				if (duplicatedReceived >= totalReceived)
+				if (duplicatedReceived >= totalReceived && totalReceived != 0)
 				{
 					// Note that the worst case scenario is not duplicatedReceived == totalReceived, but duplicatedReceived == (number of peers) * totalReceived.
 					// It's just duplicatedReceived == totalReceived is maximum what we want to tolerate.

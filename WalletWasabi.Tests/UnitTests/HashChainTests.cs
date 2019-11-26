@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using WalletWasabi.Stores;
+using WalletWasabi.Blockchain.Blocks;
 using Xunit;
 using Xunit.Sdk;
 
@@ -12,7 +12,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void GeneralHashChainTests()
 		{
-			var hashChain = new HashChain();
+			var hashChain = new SmartHeaderChain();
 
 			// ASSERT PROPERTIES
 
@@ -125,19 +125,19 @@ namespace WalletWasabi.Tests.UnitTests
 			// ASSERT PROPERTIES
 			Assert.Equal(0, hashChain.HashCount);
 			var hashesLeft = sameServerheight;
-			Assert.Equal(hashesLeft, hashChain.HashesLeft);
+			Assert.Equal((int)hashesLeft, hashChain.HashesLeft);
 			Assert.Equal(hashesLeft, hashChain.ServerTipHeight);
 			Assert.Null(hashChain.TipHash);
-			Assert.Equal(0, hashChain.TipHeight);
+			Assert.Equal(0u, hashChain.TipHeight);
 		}
 
-		private static void AssertEverythingDefault(HashChain hashChain)
+		private static void AssertEverythingDefault(SmartHeaderChain hashChain)
 		{
 			Assert.Equal(0, hashChain.HashCount);
 			Assert.Equal(0, hashChain.HashesLeft);
-			Assert.Equal(0, hashChain.ServerTipHeight);
+			Assert.Equal(0u, hashChain.ServerTipHeight);
 			Assert.Null(hashChain.TipHash);
-			Assert.Equal(0, hashChain.TipHeight);
+			Assert.Equal(0u, hashChain.TipHeight);
 		}
 	}
 }
