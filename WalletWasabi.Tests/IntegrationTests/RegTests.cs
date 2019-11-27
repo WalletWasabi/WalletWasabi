@@ -2126,7 +2126,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				proof = key.SignCompact(blindedOutputScriptsHash);
 				inputProofs.Add(new InputProofModel { Input = coin.Outpoint.ToTxoRef(), Proof = proof });
 			}
-			await rpc.GenerateAsync(1);
+			var blockHashed = await rpc.GenerateAsync(1);
 
 			inputsRequest.Inputs = inputProofs;
 			httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, inputsRequest, baseUri, null));
@@ -2421,6 +2421,11 @@ namespace WalletWasabi.Tests.IntegrationTests
 				uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
 				Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);
 
+				var wasabiClient = new WasabiClient(baseUri, null);
+				var syncInfo = await wasabiClient.GetSynchronizeAsync(blockHashed[0], 1);
+				Assert.Contains(unsignedCoinJoin.GetHash(), syncInfo.UnconfirmedCoinJoins);
+				var txs = await wasabiClient.GetTransactionsAsync(network, new[] { unsignedCoinJoin.GetHash() }, CancellationToken.None);
+				Assert.NotEmpty(txs);
 				#endregion PostSignatures
 			}
 		}

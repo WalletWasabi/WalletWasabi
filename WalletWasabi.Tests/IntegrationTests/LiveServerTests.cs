@@ -2,6 +2,8 @@ using NBitcoin;
 using System;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.BlockFilters;
@@ -64,6 +66,23 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var states = await client.GetAllRoundStatesAsync();
 			Assert.True(states.NotNullAndNotEmpty());
 			Assert.True(states.Count() >= 1);
+		}
+
+		[Theory]
+		[InlineData(NetworkType.Mainnet)]
+		[InlineData(NetworkType.Testnet)]
+		public async Task GetTransactionsAsync(NetworkType networkType)
+		{
+			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.Instance.TorSocks5Endpoint);
+			var randomTxIds = Enumerable.Range(0, 20).Select(_=> RandomUtils.GetUInt256());
+			var network = networkType == NetworkType.Mainnet ? Network.Main : Network.TestNet;
+			var ex1 = await Assert.ThrowsAsync<HttpRequestException>(async ()=>
+				await client.GetTransactionsAsync(network, randomTxIds, CancellationToken.None));
+			Assert.Equal("Bad Request\nMaximum 10 transactions can be requested.", ex1.Message);
+
+			var ex2 = await Assert.ThrowsAsync<HttpRequestException>(async ()=>
+				await client.GetTransactionsAsync(network, randomTxIds.Take(4), CancellationToken.None));
+			Assert.Equal("Bad Request\nNo such mempool or blockchain transaction. Use gettransaction for wallet transactions.", ex2.Message);
 		}
 
 		#endregion Blockchain
