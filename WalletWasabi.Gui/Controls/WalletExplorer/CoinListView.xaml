@@ -16,14 +16,18 @@
   </UserControl.Resources>
   <UserControl.Styles>
     <Style Selector="TextBlock">
-      <Setter Property="VerticalAlignment" Value="Center" />
-      <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}" />
+      <Setter Property="VerticalAlignment"
+              Value="Center" />
+      <Setter Property="FontSize"
+              Value="{DynamicResource FontSizeNormal}" />
     </Style>
     <Style Selector="TextBox">
-      <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}" />
+      <Setter Property="FontSize"
+              Value="{DynamicResource FontSizeNormal}" />
     </Style>
     <Style Selector="TextBox.Transparent">
-      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Background"
+              Value="Transparent" />
     </Style>
   </UserControl.Styles>
   <i:Interaction.Behaviors>
@@ -32,119 +36,219 @@
   </i:Interaction.Behaviors>
   <Grid IsSharedSizeScope="True">
     <DockPanel LastChildFill="True">
-      <Grid Margin="30 0 0 0" DockPanel.Dock="Top">
+      <Grid Margin="30 0 0 0"
+            DockPanel.Dock="Top">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="30" />
           <ColumnDefinition Width="30" />
-          <ColumnDefinition SharedSizeGroup="A" Width="{Binding CoinJoinStatusWidth, Mode=OneWay}" />
+          <ColumnDefinition SharedSizeGroup="A"
+                            Width="{Binding CoinJoinStatusWidth, Mode=OneWay}" />
           <ColumnDefinition Width="150" />
           <ColumnDefinition Width="100" />
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <TextBlock Text="" Width="0" />
-        <TextBlock Text="" Grid.Column="1" />
-        <controls:SortingArrow Grid.Column="2" Text="Status" Command="{Binding SortCommand}" SortDirection="{Binding StatusSortDirection}" />
-        <controls:SortingArrow Grid.Column="3" Text="Amount (BTC)" Command="{Binding SortCommand}" SortDirection="{Binding AmountSortDirection}" />
-        <controls:SortingArrow Grid.Column="4" Text="Privacy" Command="{Binding SortCommand}" SortDirection="{Binding PrivacySortDirection}" />
-        <controls:SortingArrow Grid.Column="5" Text="Clusters" Command="{Binding SortCommand}" SortDirection="{Binding ClustersSortDirection}" />
+        <TextBlock Text=""
+                   Width="0" />
+        <TextBlock Text=""
+                   Grid.Column="1" />
+        <controls:SortingArrow Grid.Column="2"
+                               Text="Status"
+                               Command="{Binding SortCommand}"
+                               SortDirection="{Binding StatusSortDirection}" />
+        <controls:SortingArrow Grid.Column="3"
+                               Text="Amount (BTC)"
+                               Command="{Binding SortCommand}"
+                               SortDirection="{Binding AmountSortDirection}" />
+        <controls:SortingArrow Grid.Column="4"
+                               Text="Privacy"
+                               Command="{Binding SortCommand}"
+                               SortDirection="{Binding PrivacySortDirection}" />
+        <controls:SortingArrow Grid.Column="5"
+                               Text="Clusters"
+                               Command="{Binding SortCommand}"
+                               SortDirection="{Binding ClustersSortDirection}" />
       </Grid>
-      <StackPanel Margin="0 10 0 0" Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal">
-        <CheckBox IsThreeState="True" IsChecked="{Binding SelectPrivateCheckBoxState}" IsVisible="{Binding SelectAllPrivateVisible}" Command="{Binding SelectPrivateCheckBoxCommand}">
-          <StackPanel Spacing="5" Orientation="Horizontal"  ToolTip.Tip="Coins that have acquired the anonymity set target.">
+      <StackPanel Margin="0 10 0 0"
+                  Spacing="10"
+                  DockPanel.Dock="Bottom"
+                  Orientation="Horizontal">
+        <CheckBox IsThreeState="True"
+                  IsChecked="{Binding SelectPrivateCheckBoxState}"
+                  IsVisible="{Binding SelectAllPrivateVisible}"
+                  Command="{Binding SelectPrivateCheckBoxCommand}">
+          <StackPanel Spacing="5"
+                      Orientation="Horizontal"
+                      ToolTip.Tip="Coins that have acquired the anonymity set target.">
             <TextBlock Text="Select" />
-            <controls:Shields ShieldState ="{Binding SelectAllPrivateShieldState}" />
+            <controls:Shields ShieldState="{Binding SelectAllPrivateShieldState}" />
             <TextBlock Text="Coins" />
           </StackPanel>
         </CheckBox>
-        <CheckBox IsThreeState="True" IsChecked="{Binding SelectNonPrivateCheckBoxState}" IsVisible="{Binding SelectAllNonPrivateVisible}" Command="{Binding SelectNonPrivateCheckBoxCommand}">
-          <StackPanel Spacing="5" Orientation="Horizontal" ToolTip.Tip="Coins that have not acquired the anonymity set target.">
+        <CheckBox IsThreeState="True"
+                  IsChecked="{Binding SelectNonPrivateCheckBoxState}"
+                  IsVisible="{Binding SelectAllNonPrivateVisible}"
+                  Command="{Binding SelectNonPrivateCheckBoxCommand}">
+          <StackPanel Spacing="5"
+                      Orientation="Horizontal"
+                      ToolTip.Tip="Coins that have not acquired the anonymity set target.">
             <TextBlock Text="Select" />
-            <controls:Shields ShieldState ="{Binding SelectAllNonPrivateShieldState}" />
+            <controls:Shields ShieldState="{Binding SelectAllNonPrivateShieldState}" />
             <TextBlock Text="Coins" />
           </StackPanel>
         </CheckBox>
-        <CheckBox Content="Select All" IsThreeState="True" IsChecked="{Binding SelectAllCheckBoxState}" Command="{Binding SelectAllCheckBoxCommand}" />
-        <StackPanel Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal" IsVisible="{Binding IsAnyCoinSelected}">
+        <CheckBox Content="Select All"
+                  IsThreeState="True"
+                  IsChecked="{Binding SelectAllCheckBoxState}"
+                  Command="{Binding SelectAllCheckBoxCommand}" />
+        <StackPanel Spacing="10"
+                    DockPanel.Dock="Bottom"
+                    Orientation="Horizontal"
+                    IsVisible="{Binding IsAnyCoinSelected}">
           <TextBlock Text="|" />
           <TextBlock Text="Selected Amount:" />
-          <TextBlock Foreground="YellowGreen" Text="{Binding SelectedAmount, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}}" />
+          <TextBlock Foreground="YellowGreen"
+                     Text="{Binding SelectedAmount, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}}" />
           <TextBlock Text="BTC" />
-          <TextBlock Text="Merging unmixed coins with mixed ones undoes the mixes." Classes="warningMessage" IsVisible="{Binding LabelExposeCommonOwnershipWarning}" />
+          <TextBlock Text="Merging unmixed coins with mixed ones undoes the mixes."
+                     Classes="warningMessage"
+                     IsVisible="{Binding LabelExposeCommonOwnershipWarning}" />
         </StackPanel>
       </StackPanel>
-      <controls:BusyIndicator IsBusy="{Binding IsCoinListLoading}" Text="Loading...">
-        <controls:ExtendedListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
-          <controls:ExtendedListBox.ContextMenu>
-            <ContextMenu>
-              <!--Enqueuing needs password, TODO: jump to password box OR display pw box in context menu + send button-->
-              <MenuItem Command="{Binding EnqueueCoin}" IsVisible="false">
-                <MenuItem.Header>
-                  <Grid>
+      <controls:BusyIndicator IsBusy="{Binding IsCoinListLoading}"
+                              Text="Loading...">
+        <ScrollViewer Name="PART_VertScroller"
+                      HorizontalScrollBarVisibility="Visible"
+                      VerticalScrollBarVisibility="Visible">
+          <ItemsRepeater Name="PART_Repeater"
+                         Items="{Binding Coins}">
+            <ItemsRepeater.ItemTemplate>
+              <DataTemplate>
+                <Grid>
+                  <Expander Name="coinExpander"
+                            ExpandDirection="Down"
+                            Classes="coloredExpander"
+                            Background="{Binding ElementName=coinExpander, Path=IsExpanded, Converter={StaticResource CoinItemExpanderColorConverter}}">
+                    <Grid HorizontalAlignment="Left"
+                          ColumnDefinitions="150, *"
+                          RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+                          MaxWidth="800"
+                          Margin="35 10 0 25">
+                      <TextBlock Classes="monospaceFont"
+                                 Text="Transaction Id:"
+                                 Grid.Row="0" />
+                      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent"
+                                                Text="{Binding TransactionId}"
+                                                Background="Transparent"
+                                                Grid.Column="1"
+                                                Grid.Row="0" />
+                      <TextBlock Classes="monospaceFont"
+                                 Text="Output Index:"
+                                 Grid.Row="1" />
+                      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent"
+                                                Text="{Binding OutputIndex}"
+                                                Grid.Column="1"
+                                                Grid.Row="1" />
+                      <TextBlock Classes="monospaceFont"
+                                 Text="Label:"
+                                 Grid.Row="2" />
+                      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent"
+                                                Text="{Binding Label}"
+                                                Grid.Column="1"
+                                                Grid.Row="2" />
+                      <TextBlock Classes="monospaceFont"
+                                 Text="Address:"
+                                 Grid.Row="3" />
+                      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent"
+                                                Text="{Binding Address}"
+                                                Grid.Column="1"
+                                                Grid.Row="3" />
+                      <TextBlock Classes="monospaceFont"
+                                 Text="Confirmations:"
+                                 Grid.Row="4" />
+                      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent"
+                                                Text="{Binding Confirmations}"
+                                                Grid.Column="1"
+                                                Grid.Row="4" />
+                      <TextBlock Classes="monospaceFont"
+                                 Text="Anonymity Set:"
+                                 Grid.Row="5" />
+                      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent"
+                                                Text="{Binding AnonymitySet}"
+                                                Grid.Column="1"
+                                                Grid.Row="5" />
+                      <TextBlock Classes="monospaceFont"
+                                 Text="Key Path:"
+                                 Grid.Row="6" />
+                      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent"
+                                                Text="{Binding KeyPath}"
+                                                Grid.Column="1"
+                                                Grid.Row="6" />
+                      <TextBlock Classes="monospaceFont"
+                                 Text="Public Key:"
+                                 Grid.Row="7" />
+                      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent"
+                                                Text="{Binding PubKey}"
+                                                Grid.Column="1"
+                                                Grid.Row="7" />
+                    </Grid>
+                  </Expander>
+                  <Grid Margin="30 0 0 0"
+                        VerticalAlignment="Top">
                     <Grid.ColumnDefinitions>
-                      <ColumnDefinition />
-                      <ColumnDefinition />
+                      <ColumnDefinition Width="30" />
+                      <ColumnDefinition Width="30" />
+                      <ColumnDefinition SharedSizeGroup="A" />
+                      <ColumnDefinition Width="150" />
+                      <ColumnDefinition Width="100" />
+                      <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Text="Enqueue Coin, password:" VerticalAlignment="Center" />
-                    <TextBox Width="50" Grid.Column="1" />
+                    <CheckBox HorizontalContentAlignment="Left"
+                              IsChecked="{Binding IsSelected}"
+                              Background="{DynamicResource ThemeBackgroundBrush}" />
+                    <Border Background="Transparent"
+                            IsVisible="{Binding Confirmed}"
+                            Grid.Column="1"
+                            ToolTip.Tip="{Binding Confirmations, StringFormat=\{0\} Confirmations}">
+                      <DrawingPresenter HorizontalAlignment="Left"
+                                        Height="16"
+                                        Width="16"
+                                        Stretch="Fill"
+                                        Drawing="{StaticResource ConfirmationIcon}" />
+                    </Border>
+                    <Border ToolTip.Tip="{Binding ToolTip}"
+                            Padding="1"
+                            Grid.Column="2"
+                            Background="{Binding Status, Converter={StaticResource CoinStatusColorConverter}}"
+                            BorderBrush="{Binding Status, Converter={StaticResource CoinStatusBorderBrushConverter}}"
+                            HorizontalAlignment="Left"
+                            BorderThickness="1"
+                            CornerRadius="0,6,6,0">
+                      <TextBlock Text="{Binding Status, Converter={StaticResource CoinStatusStringConverter}, Mode=OneWay}"
+                                 Foreground="{Binding Status, Converter={StaticResource CoinStatusForegroundConverter}}" />
+                    </Border>
+                    <TextBlock Grid.Column="3"
+                               Text="{Binding AmountBtc, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
+                    <Panel Grid.Column="4"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"
+                           Background="Transparent"
+                           DataContext="{Binding AnonymitySet, Converter={StaticResource PrivacyLevelValueConverter}}"
+                           ToolTip.Tip="{Binding ToolTip}">
+                      <DrawingPresenter Drawing="{Binding Icon}"
+                                        Height="16"
+                                        Width="16"
+                                        Margin="0 0 25 0" />
+                    </Panel>
+                    <controls:ExtendedTextBox Grid.Column="5"
+                                              Classes="selectableTextBlock"
+                                              Background="Transparent"
+                                              Text="{Binding Clusters, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
                   </Grid>
-                </MenuItem.Header>
-              </MenuItem>
-              <MenuItem Header="Dequeue from CoinJoin" Command="{Binding DequeueCoin}">
-                <MenuItem.Icon>
-                  <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource CoinListView_DequeueCoin}" />
-                </MenuItem.Icon>
-              </MenuItem>
-            </ContextMenu>
-          </controls:ExtendedListBox.ContextMenu>
-          <controls:ExtendedListBox.ItemTemplate>
-            <DataTemplate>
-              <Grid>
-                <Expander Name="coinExpander" ExpandDirection="Down" Classes="coloredExpander" Background="{Binding ElementName=coinExpander, Path=IsExpanded, Converter={StaticResource CoinItemExpanderColorConverter}}">
-                  <Grid HorizontalAlignment="Left" ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" MaxWidth="800" Margin="35 10 0 25">
-                    <TextBlock Classes="monospaceFont" Text="Transaction Id:" Grid.Row="0" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding TransactionId}" Background="Transparent" Grid.Column="1" Grid.Row="0" />
-                    <TextBlock Classes="monospaceFont" Text="Output Index:" Grid.Row="1" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding OutputIndex}" Grid.Column="1" Grid.Row="1" />
-                    <TextBlock Classes="monospaceFont" Text="Label:" Grid.Row="2" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Label}" Grid.Column="1" Grid.Row="2" />
-                    <TextBlock Classes="monospaceFont" Text="Address:" Grid.Row="3" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Address}" Grid.Column="1" Grid.Row="3" />
-                    <TextBlock Classes="monospaceFont" Text="Confirmations:" Grid.Row="4" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Confirmations}" Grid.Column="1" Grid.Row="4" />
-                    <TextBlock Classes="monospaceFont" Text="Anonymity Set:" Grid.Row="5" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding AnonymitySet}" Grid.Column="1" Grid.Row="5" />
-                    <TextBlock Classes="monospaceFont" Text="Key Path:" Grid.Row="6" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding KeyPath}" Grid.Column="1" Grid.Row="6" />
-                    <TextBlock Classes="monospaceFont" Text="Public Key:" Grid.Row="7" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding PubKey}" Grid.Column="1" Grid.Row="7" />
-                  </Grid>
-                </Expander>
-                <Grid Margin="30 0 0 0" VerticalAlignment="Top">
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="30" />
-                    <ColumnDefinition Width="30" />
-                    <ColumnDefinition SharedSizeGroup="A" />
-                    <ColumnDefinition Width="150" />
-                    <ColumnDefinition Width="100" />
-                    <ColumnDefinition Width="*" />
-                  </Grid.ColumnDefinitions>
-                  <CheckBox HorizontalContentAlignment="Left" IsChecked="{Binding IsSelected}" Background="{DynamicResource ThemeBackgroundBrush}" />
-                  <Border Background="Transparent" IsVisible="{Binding Confirmed}" Grid.Column="1" ToolTip.Tip="{Binding Confirmations, StringFormat=\{0\} Confirmations}">
-                    <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource ConfirmationIcon}" />
-                  </Border>
-                  <Border ToolTip.Tip="{Binding ToolTip}" Padding="1" Grid.Column="2" Background="{Binding Status, Converter={StaticResource CoinStatusColorConverter}}" BorderBrush="{Binding Status, Converter={StaticResource CoinStatusBorderBrushConverter}}" HorizontalAlignment="Left" BorderThickness="1" CornerRadius="0,6,6,0">
-                    <TextBlock Text="{Binding Status, Converter={StaticResource CoinStatusStringConverter}, Mode=OneWay}" Foreground="{Binding Status, Converter={StaticResource CoinStatusForegroundConverter}}" />
-                  </Border>
-                  <TextBlock Grid.Column="3" Text="{Binding AmountBtc, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
-                  <Panel Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent" DataContext="{Binding AnonymitySet, Converter={StaticResource PrivacyLevelValueConverter}}" ToolTip.Tip="{Binding ToolTip}">
-                    <DrawingPresenter Drawing="{Binding Icon}" Height="16" Width="16" Margin="0 0 25 0" />
-                  </Panel>
-                  <controls:ExtendedTextBox Grid.Column="5" Classes="selectableTextBlock" Background="Transparent" Text="{Binding Clusters, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
                 </Grid>
-              </Grid>
-            </DataTemplate>
-          </controls:ExtendedListBox.ItemTemplate>
-        </controls:ExtendedListBox>
+              </DataTemplate>
+            </ItemsRepeater.ItemTemplate>
+          </ItemsRepeater>
+        </ScrollViewer>
       </controls:BusyIndicator>
     </DockPanel>
   </Grid>
