@@ -241,7 +241,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			return null;
 		}
 
-		private void SelectAllCoins(Func<CoinViewModel, bool> coinFilterPredicate)
+		private void SelectCoins(Func<CoinViewModel, bool> coinFilterPredicate)
 		{
 			foreach (var c in Coins.ToArray())
 			{
@@ -343,12 +343,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					switch (SelectAllCheckBoxState)
 					{
 						case true:
-							SelectAllCoins(x => true);
+							SelectCoins(x => true);
 							break;
 
 						case null:
 						case false:
-							SelectAllCoins(x => false);
+							SelectCoins(x => false);
 							SelectAllCheckBoxState = false;
 							break;
 					}
@@ -359,12 +359,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					switch (SelectPrivateCheckBoxState)
 					{
 						case true:
-							SelectAllCoins(x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+							SelectCoins(x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
 							break;
 
 						case null:
 						case false:
-							SelectAllCoins(x => false);
+							SelectCoins(x => false);
 							SelectPrivateCheckBoxState = false;
 							break;
 					}
@@ -375,12 +375,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					switch (SelectNonPrivateCheckBoxState)
 					{
 						case true:
-							SelectAllCoins(x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+							SelectCoins(x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
 							break;
 
 						case false:
 						case null:
-							SelectAllCoins(x => false);
+							SelectCoins(x => false);
 							SelectNonPrivateCheckBoxState = false;
 							break;
 					}
