@@ -1204,6 +1204,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					{
 						alicesRemoved.Add(t.alice);
 						Alices.Remove(t.alice);
+						Logger.LogInfo($"Mempool acceptance failed: {result.reason ?? "no reason"}.");
 					}
 				}
 			}
