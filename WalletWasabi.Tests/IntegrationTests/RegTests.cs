@@ -2492,7 +2492,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				// Save alice client and the outputs, requesters, etc
 				var changeOutput = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
-				var inputProof = inputs.Select(x => new InputProofModel { Input = x.input, Proof = x.proof });
+				var inputProof = inputs.Select(x => new InputProofModel { Input = x.input, Proof = x.proof }).ToArray();
 				var aliceClient = await AliceClient.CreateNewAsync(
 					round.RoundId,
 					outputs.Select(x => x.outputAddress),
@@ -3023,7 +3023,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				partSignedCj = Network.RegTest.CreateTransactionBuilder()
 							.ContinueToBuild(partSignedCj)
 							.AddKeys(user.userInputData.Select(x => x.key).ToArray())
-							.AddCoins(user.userInputData.Select(x => new Coin(x.tx, x.input.N)))
+							.AddCoins(user.userInputData.Select(x => new Coin(x.tx, x.input.N)).ToArray())
 							.BuildTransaction(true);
 
 				var myDic = new Dictionary<int, WitScript>();
