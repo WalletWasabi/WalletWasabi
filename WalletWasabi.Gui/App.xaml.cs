@@ -17,6 +17,11 @@ namespace WalletWasabi.Gui
 			AvaloniaXamlLoader.Load(this);
 		}
 
+		public void SetDataContext(Global global)
+		{
+			DataContext = new ApplicationViewModel(global);
+		}
+
 		public override void OnFrameworkInitializationCompleted()
 		{
 			if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
