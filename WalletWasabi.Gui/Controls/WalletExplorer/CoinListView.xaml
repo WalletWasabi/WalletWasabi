@@ -117,13 +117,13 @@
       <controls:BusyIndicator IsBusy="{Binding IsCoinListLoading}"
                               Text="Loading...">
         <ScrollViewer Name="PART_VertScroller"
-                      HorizontalScrollBarVisibility="Visible"
-                      VerticalScrollBarVisibility="Visible">
+                      HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Auto">
           <ItemsRepeater Name="PART_Repeater"
                          Items="{Binding Coins}">
             <ItemsRepeater.ItemTemplate>
               <DataTemplate>
-                <Grid>
+                <Grid Background="Transparent">
                   <Expander Name="coinExpander"
                             ExpandDirection="Down"
                             Classes="coloredExpander"
