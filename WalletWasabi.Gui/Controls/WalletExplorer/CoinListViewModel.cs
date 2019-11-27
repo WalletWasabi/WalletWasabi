@@ -241,12 +241,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			return null;
 		}
 
-		private void SelectAllCoins(bool valueOfSelected, Func<CoinViewModel, bool> coinFilterPredicate)
+		private void SelectAllCoins(Func<CoinViewModel, bool> coinFilterPredicate)
 		{
-			var coins = Coins.Where(coinFilterPredicate).ToArray();
-			foreach (var c in coins)
+			foreach (var c in Coins.ToArray())
 			{
-				c.IsSelected = valueOfSelected;
+				c.IsSelected = coinFilterPredicate(c);
 			}
 		}
 
@@ -344,15 +343,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					switch (SelectAllCheckBoxState)
 					{
 						case true:
-							SelectAllCoins(true, x => true);
-							break;
-
-						case false:
-							SelectAllCoins(false, x => true);
+							SelectAllCoins(x => true);
 							break;
 
 						case null:
-							SelectAllCoins(false, x => true);
+						case false:
+							SelectAllCoins(x => false);
 							SelectAllCheckBoxState = false;
 							break;
 					}
@@ -363,15 +359,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					switch (SelectPrivateCheckBoxState)
 					{
 						case true:
-							SelectAllCoins(true, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
-							break;
-
-						case false:
-							SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+							SelectAllCoins(x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
 							break;
 
 						case null:
-							SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+						case false:
+							SelectAllCoins(x => false);
 							SelectPrivateCheckBoxState = false;
 							break;
 					}
@@ -382,15 +375,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					switch (SelectNonPrivateCheckBoxState)
 					{
 						case true:
-							SelectAllCoins(true, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+							SelectAllCoins(x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
 							break;
 
 						case false:
-							SelectAllCoins(false, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
-							break;
-
 						case null:
-							SelectAllCoins(false, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+							SelectAllCoins(x => false);
 							SelectNonPrivateCheckBoxState = false;
 							break;
 					}
@@ -446,7 +436,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(Observable.FromEventPattern<DoubleSpendReceivedEventArgs>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.DoubleSpendReceived)).Select(_ => Unit.Default))
 				.Merge(Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent)).Select(_ => Unit.Default))
 				.Merge(Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived)).Select(_ => Unit.Default))
-				.Throttle(TimeSpan.FromSeconds(2)) // Throttle TransactionProcessor events adds/removes.
+				.Throttle(TimeSpan.FromSeconds(1)) // Throttle TransactionProcessor events adds/removes.
 				.Merge(Observable.FromEventPattern(this, nameof(CoinListShown), RxApp.MainThreadScheduler).Select(_ => Unit.Default)) // Load the list immediately.
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(args =>
@@ -511,7 +501,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			cvm.WhenAnyValue(x => x.IsSelected)
 				.Synchronize(SelectionChangedLock) // Use the same lock to ensure thread safety.
-				.Throttle(TimeSpan.FromSeconds(0.5))
+				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
@@ -544,7 +534,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(cvm.Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend, x => x.Confirmed, x => x.CoinJoinInProgress).Select(_ => Unit.Default))
 				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated)).Select(_ => Unit.Default))
 				.Synchronize(StateChangedLock) // Use the same lock to ensure thread safety.
-				.Throttle(TimeSpan.FromSeconds(2))
+				.Throttle(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
