@@ -103,7 +103,7 @@ namespace WalletWasabi.WebClients.Wasabi
 				using var response = await TorClient.SendAndRetryAsync(
 					HttpMethod.Get,
 					HttpStatusCode.OK,
-					$"/api/v{Constants.BackendMajorVersion}/btc/blockchain/transaction-hexes?&transactionIds={string.Join("&transactionIds=", txHashesToQuery.Select(x => x.ToString()))}",
+					$"/api/v{Constants.BackendMajorVersion}/btc/blockchain/transaction-hexes?&transactionIds={string.Join("&transactionIds=", chunk.Select(x => x.ToString()))}",
 					cancel: cancel);
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
