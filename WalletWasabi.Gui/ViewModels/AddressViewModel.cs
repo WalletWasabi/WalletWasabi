@@ -47,17 +47,7 @@ namespace WalletWasabi.Gui.ViewModels
 					return qrCode.Matrix.InternalArray;
 				})
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(qr =>
-				{
-					try
-					{
-						QrCode = qr;
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
-					}
-				}, onError: ex => Logger.LogError(ex)); // Catch the exceptions everywhere (e.g.: Select) except in Subscribe.
+				.Subscribe(qr => QrCode = qr, onError: ex => Logger.LogError(ex)); // Catch the exceptions everywhere (e.g.: Select) except in Subscribe.
 
 			Global.UiConfig
 				.WhenAnyValue(x => x.LurkingWifeMode)
