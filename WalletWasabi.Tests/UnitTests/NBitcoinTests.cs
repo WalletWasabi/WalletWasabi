@@ -21,7 +21,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public void DepencencyTransactionsGraph()
+		public void DependencyTransactionsGraph()
 		{
 			//  tx0 -----+
 			//           |
@@ -49,7 +49,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(3, graph.Count());  // tx0, tx1 and tx2
 			Assert.Equal(2, graph.First().Children.Count());  // tx0 has two children tx3 and tx4
 			Assert.Equal(2, graph.Skip(1).First().Children.Count());  // tx1 has two children tx3 and tx4
-			Assert.Equal(1, graph.Last().Children.Count());  // tx2 has only one children tx7
+			Assert.Single(graph.Last().Children);  // tx2 has only one children tx7
 			Assert.Equal(2, graph.Last().Children.Single().Parents.Count());  // tx7 has two parents tx2 and tx6
 
 			var txs = graph.OrderByDependency().ToArray();
@@ -64,11 +64,11 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(tx7, txs[7]);
 		}
 
-		private static (Transaction, Coin[])  CreateTransaction(params Coin[] coins)
+		private static (Transaction, Coin[]) CreateTransaction(params Coin[] coins)
 		{
-			if( coins == null || coins.Length == 0)
+			if (coins is null || coins.Length == 0)
 			{
-				coins = Enumerable.Range(0, 10).Select(_=>new Coin(RandomUtils.GetUInt256(), 0u, Money.Coins(10), Script.Empty)).ToArray();
+				coins = Enumerable.Range(0, 10).Select(_ => new Coin(RandomUtils.GetUInt256(), 0u, Money.Coins(10), Script.Empty)).ToArray();
 			}
 			var tx = Network.RegTest.CreateTransaction();
 			foreach (var coin in coins)
@@ -81,6 +81,5 @@ namespace WalletWasabi.Tests.UnitTests
 			tx.PrecomputeHash(true, false);
 			return (tx, tx.Outputs.AsCoins().ToArray());
 		}
-
 	}
 }
