@@ -21,6 +21,7 @@ using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Helpers;
@@ -58,6 +59,7 @@ namespace WalletWasabi.Gui
 		public CoinJoinClient ChaumianClient { get; private set; }
 		public WalletService WalletService { get; private set; }
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
+		public CoinJoinProcessor CoinJoinProcessor { get; set; }
 		public Node RegTestMempoolServingNode { get; private set; }
 		public TorProcessManager TorManager { get; private set; }
 		public CoreNode BitcoinCoreNode { get; private set; }
@@ -346,6 +348,7 @@ namespace WalletWasabi.Gui
 				#endregion SynchronizerInitialization
 
 				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, Nodes, BitcoinCoreNode?.RpcClient);
+				CoinJoinProcessor = new CoinJoinProcessor(Synchronizer, BitcoinCoreNode?.RpcClient);
 			}
 			finally
 			{
@@ -474,6 +477,7 @@ namespace WalletWasabi.Gui
 				WalletService.TransactionProcessor.CoinReceived += CoinReceived;
 
 				TransactionBroadcaster.AddWalletService(WalletService);
+				CoinJoinProcessor.AddWalletService(WalletService);
 			}
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
 		}
@@ -637,6 +641,13 @@ namespace WalletWasabi.Gui
 				{
 					feeProviders.Dispose();
 					Logger.LogInfo($"Disposed {nameof(FeeProviders)}.");
+				}
+
+				var coinJoinProcessor = CoinJoinProcessor;
+				if (coinJoinProcessor is { })
+				{
+					coinJoinProcessor.Dispose();
+					Logger.LogInfo($"{nameof(CoinJoinProcessor)} is disposed.");
 				}
 
 				var synchronizer = Synchronizer;

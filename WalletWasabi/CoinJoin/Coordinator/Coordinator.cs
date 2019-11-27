@@ -29,6 +29,8 @@ namespace WalletWasabi.CoinJoin.Coordinator
 		public string CoinJoinsFilePath => Path.Combine(FolderPath, $"CoinJoins{Network}.txt");
 		private AsyncLock CoinJoinsLock { get; }
 
+		private List<uint256> UnconfirmedCoinJoins { get; }
+
 		public event EventHandler<Transaction> CoinJoinBroadcasted;
 
 		public RPCClient RpcClient { get; }
@@ -55,6 +57,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			RoundsListLock = new AsyncLock();
 
 			CoinJoins = new List<uint256>();
+			UnconfirmedCoinJoins = new List<uint256>();
 			CoinJoinsLock = new AsyncLock();
 
 			Directory.CreateDirectory(FolderPath);
@@ -120,6 +123,9 @@ namespace WalletWasabi.CoinJoin.Coordinator
 					Logger.LogWarning($"CoinJoins file got corrupted. Deleting {CoinJoinsFilePath}. {ex.GetType()}: {ex.Message}");
 					File.Delete(CoinJoinsFilePath);
 				}
+
+				uint256[] mempoolHashes = RpcClient.GetRawMempoolAsync().GetAwaiter().GetResult();
+				UnconfirmedCoinJoins.AddRange(CoinJoins.Intersect(mempoolHashes));
 			}
 
 			try
@@ -150,9 +156,12 @@ namespace WalletWasabi.CoinJoin.Coordinator
 		{
 			try
 			{
-				foreach (Transaction tx in block.Transactions)
+				using (await CoinJoinsLock.LockAsync())
 				{
-					await ProcessTransactionAsync(tx).ConfigureAwait(false);
+					foreach (Transaction tx in block.Transactions)
+					{
+						await ProcessConfirmedTransactionAsync(tx).ConfigureAwait(false);
+					}
 				}
 			}
 			catch (Exception ex)
@@ -161,7 +170,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			}
 		}
 
-		public async Task ProcessTransactionAsync(Transaction tx)
+		public async Task ProcessConfirmedTransactionAsync(Transaction tx)
 		{
 			// This should not be needed until we would only accept unconfirmed CJ outputs an no other unconf outs. But it'll be more bulletproof for future extensions.
 			// Turns out you shouldn't accept RBF at all never. (See below.)
@@ -169,6 +178,9 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			// https://github.com/zkSNACKs/WalletWasabi/issues/145
 			// if it spends a banned output AND it's not CJ output
 			// ban all the outputs of the transaction
+			tx.PrecomputeHash(false, true);
+
+			UnconfirmedCoinJoins.Remove(tx.GetHash()); // Locked outside.
 
 			if (RoundConfig.DosSeverity <= 1)
 			{
@@ -239,18 +251,17 @@ namespace WalletWasabi.CoinJoin.Coordinator
 		{
 			try
 			{
-				uint256[] mempoolHashes = await RpcClient.GetRawMempoolAsync().ConfigureAwait(false);
 				int unconfirmedCoinJoinsCount = 0;
 				if (lockCoinJoins)
 				{
 					using (await CoinJoinsLock.LockAsync().ConfigureAwait(false))
 					{
-						unconfirmedCoinJoinsCount = CoinJoins.Intersect(mempoolHashes).Count();
+						unconfirmedCoinJoinsCount = UnconfirmedCoinJoins.Count;
 					}
 				}
 				else
 				{
-					unconfirmedCoinJoinsCount = CoinJoins.Intersect(mempoolHashes).Count();
+					unconfirmedCoinJoinsCount = UnconfirmedCoinJoins.Count;
 				}
 
 				int confirmationTarget = CoordinatorRound.AdjustConfirmationTarget(unconfirmedCoinJoinsCount, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate);
@@ -286,6 +297,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 					{
 						uint256 coinJoinHash = round.SignedCoinJoin.GetHash();
 						CoinJoins.Add(coinJoinHash);
+						UnconfirmedCoinJoins.Add(coinJoinHash);
 						await File.AppendAllLinesAsync(CoinJoinsFilePath, new[] { coinJoinHash.ToString() }).ConfigureAwait(false);
 
 						// When a round succeeded, adjust the denomination as to users still be able to register with the latest round's active output amount.
@@ -425,11 +437,11 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			}
 		}
 
-		public async Task<bool> ContainsCoinJoinAsync(uint256 hash)
+		public async Task<bool> ContainsUnconfirmedCoinJoinAsync(uint256 hash)
 		{
 			using (await CoinJoinsLock.LockAsync().ConfigureAwait(false))
 			{
-				return CoinJoins.Contains(hash);
+				return UnconfirmedCoinJoins.Contains(hash);
 			}
 		}
 
@@ -438,11 +450,11 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			return CoinJoins.Count;
 		}
 
-		public async Task<IEnumerable<uint256>> GetCoinJoinsAsync()
+		public async Task<IEnumerable<uint256>> GetUnconfirmedCoinJoinsAsync()
 		{
 			using (await CoinJoinsLock.LockAsync())
 			{
-				return CoinJoins.ToArray();
+				return UnconfirmedCoinJoins.ToArray();
 			}
 		}
 
