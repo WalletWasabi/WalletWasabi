@@ -18,13 +18,7 @@
           <Button Command="{Binding OpenTransactionBroadcaster}" Content="Open Transaction Broadcaster" />
           <Button Command="{Binding ExportBinaryPsbt}" Content="Export Binary PSBT" />
         </StackPanel>
-        <Grid ScrollViewer.VerticalScrollBarVisibility="Auto">
-          <Grid.RowDefinitions>
-            <RowDefinition Height="26" />
-            <RowDefinition Height="1*" />
-            <RowDefinition Height="1*" />
-            <RowDefinition Height="1*" />
-          </Grid.RowDefinitions>
+        <Grid ScrollViewer.VerticalScrollBarVisibility="Auto" RowDefinitions="26,1*,1*,1*">
           <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0 8 0 0" Spacing="5">
             <TextBlock Text="Transaction ID:" FontWeight="Bold" />
             <controls:ExtendedTextBox Text="{Binding TxId, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock" />
