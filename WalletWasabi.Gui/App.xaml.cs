@@ -17,7 +17,7 @@ namespace WalletWasabi.Gui
 			AvaloniaXamlLoader.Load(this);
 		}
 
-		public void SetDataContext (Global global)
+		public void SetDataContext(Global global)
 		{
 			DataContext = new ApplicationViewModel(global);
 		}
