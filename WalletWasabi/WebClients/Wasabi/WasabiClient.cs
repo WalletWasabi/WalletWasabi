@@ -85,18 +85,20 @@ namespace WalletWasabi.WebClients.Wasabi
 		public static Dictionary<uint256, Transaction> TransactionCache { get; } = new Dictionary<uint256, Transaction>();
 		public static object TransactionCacheLock { get; } = new object();
 
-		public async IAsyncEnumerable<Transaction> GetTransactionsAsync(Network network, IEnumerable<uint256> txHashes, [EnumeratorCancellation] CancellationToken cancel)
+		public async Task<IEnumerable<Transaction>> GetTransactionsAsync(Network network, IEnumerable<uint256> txHashes, CancellationToken cancel)
 		{
-			foreach (IEnumerable<uint256> chunk in txHashes.ChunkBy(10))
+			var allTxs = new List<Transaction>();
+			var txHashesToQuery = new List<uint256>();
+			lock (TransactionCacheLock)
 			{
-				var allTxs = new List<Transaction>();
-				var txHashesToQuery = new List<uint256>();
-				lock (TransactionCacheLock)
-				{
-					var cachedTxs = TransactionCache.Where(x => chunk.Contains(x.Key));
-					allTxs.AddRange(cachedTxs.Select(x => x.Value));
-					txHashesToQuery.AddRange(chunk.Except(cachedTxs.Select(x => x.Key)));
-				}
+				var cachedTxs = TransactionCache.Where(x => txHashes.Contains(x.Key));
+				allTxs.AddRange(cachedTxs.Select(x => x.Value));
+				txHashesToQuery.AddRange(txHashes.Except(cachedTxs.Select(x => x.Key)));
+			}
+
+			foreach (IEnumerable<uint256> chunk in txHashesToQuery.ChunkBy(10))
+			{
+				cancel.ThrowIfCancellationRequested();
 
 				using var response = await TorClient.SendAndRetryAsync(
 					HttpMethod.Get,
@@ -124,14 +126,9 @@ namespace WalletWasabi.WebClients.Wasabi
 					}
 				}
 				allTxs.AddRange(ret);
-
-				foreach (var tx in allTxs.ToDependencyGraph().OrderByDependency())
-				{
-					yield return tx;
-				}
-
-				cancel.ThrowIfCancellationRequested();
 			}
+
+			return allTxs.ToDependencyGraph().OrderByDependency();
 		}
 
 		public async Task<IDictionary<int, FeeEstimationPair>> GetFeesAsync(params int[] confirmationTargets)

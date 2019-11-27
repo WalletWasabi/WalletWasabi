@@ -64,7 +64,9 @@ namespace WalletWasabi.CoinJoin.Client
 
 					using var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint);
 
-					await foreach (Transaction tx in client.GetTransactionsAsync(Synchronizer.Network, txsNotKnownByAWalletService, CancellationToken.None).ConfigureAwait(false))
+					var unconfirmedCoinJoins = await client.GetTransactionsAsync(Synchronizer.Network, txsNotKnownByAWalletService, CancellationToken.None).ConfigureAwait(false);
+
+					foreach (Transaction tx in unconfirmedCoinJoins)
 					{
 						if (RpcClient is null
 							|| await TryBroadcastTransactionWithRpcAsync(tx).ConfigureAwait(false)
