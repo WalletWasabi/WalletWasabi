@@ -108,7 +108,6 @@
                     <Button DockPanel.Dock="Left" Content="{Binding IsPinSet, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Clear:Set}" Margin="0 0 10 0" Command="{Binding SetClearPinCommand}" />
                     <controls:TogglePasswordBox Watermark="PIN" Text="{Binding PinBoxText}" />
                   </DockPanel>
-                  <TextBlock Text="{Binding PinWarningMessage}" Classes="warningMessage" Margin="0 0 3 0" />
                 </StackPanel>
               </StackPanel>
             </controls:GroupBox>
