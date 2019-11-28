@@ -97,15 +97,14 @@ namespace WalletWasabi.Blockchain.Transactions
 							if (isReplacemenetTx)
 							{
 								// Undo the replaced transaction by removing the coins it created (if other coin
-								// spends it, remove that too and so on) and restoring those that it destroyed
-								// ones. After undoing the replaced transaction it will process the replacement
-								// transaction.
+								// spends it, remove that too and so on) and restoring those that it replaced.
+								// After undoing the replaced transaction it will process the replacement transaction.
 								var replacedTxId = doubleSpends.First().TransactionId;
-								var (destroyed, restored) = Coins.Undo(replacedTxId);
+								var (replaced, restored) = Coins.Undo(replacedTxId);
 
-								ReplaceTransactionReceived?.Invoke(this, new ReplaceTransactionReceivedEventArgs(tx, destroyed, restored));
+								ReplaceTransactionReceived?.Invoke(this, new ReplaceTransactionReceivedEventArgs(tx, replaced, restored));
 
-								foreach (var replacedTransactionId in destroyed.Select(coin => coin.TransactionId))
+								foreach (var replacedTransactionId in replaced.Select(coin => coin.TransactionId))
 								{
 									TransactionStore.MempoolStore.TryRemove(replacedTransactionId, out _);
 								}
