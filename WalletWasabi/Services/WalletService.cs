@@ -21,6 +21,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Blockchain.Transactions.Processing;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;

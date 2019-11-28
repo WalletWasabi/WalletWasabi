@@ -7,7 +7,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Blockchain.Transactions
+namespace WalletWasabi.Blockchain.Transactions.Processing
 {
 	public class TransactionProcessor
 	{

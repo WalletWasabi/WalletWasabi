@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Blockchain.Transactions.Processing;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using WalletWasabi.Blockchain.TransactionOutputs;
 
-namespace WalletWasabi.Blockchain.Transactions
+namespace WalletWasabi.Blockchain.Transactions.Processing
 {
 	public class DoubleSpendReceivedEventArgs
 	{
