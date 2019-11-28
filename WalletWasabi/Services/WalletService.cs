@@ -80,7 +80,7 @@ namespace WalletWasabi.Services
 
 		public Network Network => Synchronizer.Network;
 
-		public TransactionProcessor TransactionProcessor { get; }
+		private TransactionProcessor TransactionProcessor { get; }
 
 		public WalletService(
 			BitcoinStore bitcoinStore,
@@ -115,9 +115,6 @@ namespace WalletWasabi.Services
 			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.PrivacyLevelStrong);
 			Coins = TransactionProcessor.Coins;
 
-			TransactionProcessor.CoinSpent += TransactionProcessor_CoinSpent;
-			TransactionProcessor.CoinReceived += TransactionProcessor_CoinReceivedAsync;
-
 			if (Directory.Exists(BlocksFolderPath))
 			{
 				if (Synchronizer.Network == Network.RegTest)
@@ -139,47 +136,68 @@ namespace WalletWasabi.Services
 
 			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
 			BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
-			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
+			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceivedAsync;
 		}
 
-		private void TransactionProcessor_CoinSpent(object sender, SmartCoin spentCoin)
-		{
-			try
-			{
-				ChaumianClient.ExposedLinks.TryRemove(spentCoin.GetTxoRef(), out _);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
-		}
+		public async Task ProcessTransactionsAsync(params SmartTransaction[] transactions)
+			=> await ProcessTransactionsAsync(transactions as IEnumerable<SmartTransaction>).ConfigureAwait(false);
 
-		private async void TransactionProcessor_CoinReceivedAsync(object sender, SmartCoin newCoin)
+		public async Task ProcessTransactionsAsync(IEnumerable<SmartTransaction> transactions)
 		{
-			try
+			foreach (var res in TransactionProcessor.Process(transactions))
 			{
-				// If it's being mixed and anonset is not sufficient, then queue it.
-				if (newCoin.Unspent && ChaumianClient.HasIngredients
-					&& newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet
-					&& ChaumianClient.State.Contains(newCoin.SpentOutputs))
+				foreach (var toRemove in res.SpentCoins.Concat(res.DoubleSpentCoins).Concat(res.ReplacedCoins))
 				{
-					await ChaumianClient.QueueCoinsToMixAsync(newCoin);
+					try
+					{
+						ChaumianClient.ExposedLinks.TryRemove(toRemove.GetTxoRef(), out _);
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+					}
+				}
+
+				try
+				{
+					IEnumerable<SmartCoin> newCoins = res.ReceivedCoins.Concat(res.RestoredCoins);
+					if (newCoins.Any())
+					{
+						if (ChaumianClient.State.Contains(res.SpentCoins.Concat(res.DoubleSpentCoins).Concat(res.ReplacedCoins).Select(x => x.GetTxoRef())))
+						{
+							var toQueue = new List<SmartCoin>();
+							foreach (var newCoin in newCoins)
+							{
+								try
+								{
+									// If it's being mixed and anonset is not sufficient, then queue it.
+									if (newCoin.Unspent && ChaumianClient.HasIngredients
+										&& newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet)
+									{
+										toQueue.Add(newCoin);
+									}
+								}
+								catch (Exception ex)
+								{
+									Logger.LogError(ex);
+								}
+							}
+							await ChaumianClient.QueueCoinsToMixAsync(toQueue).ConfigureAwait(false);
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError(ex);
 				}
 			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
 		}
 
-		private void Mempool_TransactionReceived(object sender, SmartTransaction tx)
+		private async void Mempool_TransactionReceivedAsync(object sender, SmartTransaction tx)
 		{
 			try
 			{
-				lock (TransactionProcessor.Lock)
-				{
-					TransactionProcessor.Process(tx);
-				}
+				await ProcessTransactionsAsync(tx).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -268,13 +286,7 @@ namespace WalletWasabi.Services
 		{
 			KeyManager.AssertNetworkOrClearBlockState(Network);
 			Height bestKeyManagerHeight = KeyManager.GetBestHeight();
-			lock (TransactionProcessor.Lock)
-			{
-				foreach (var tx in BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight))
-				{
-					TransactionProcessor.Process(tx);
-				}
-			}
+			await ProcessTransactionsAsync(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight)).ConfigureAwait(false);
 
 			// Go through the filters and queue to download the matches.
 			await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) =>
@@ -301,34 +313,28 @@ namespace WalletWasabi.Services
 
 				var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
 
-				lock (TransactionProcessor.Lock)
+				var transactions = new List<SmartTransaction>();
+				foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
 				{
-					foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
+					uint256 hash = tx.GetHash();
+					if (mempoolHashes.Contains(hash.ToString().Substring(0, compactness)))
 					{
-						uint256 hash = tx.GetHash();
-						if (mempoolHashes.Contains(hash.ToString().Substring(0, compactness)))
-						{
-							TransactionProcessor.Process(tx);
+						transactions.Add(tx);
 
-							Logger.LogInfo($"Transaction was successfully tested against the backend's mempool hashes: {hash}.");
-						}
-						else
-						{
-							BitcoinStore.TransactionStore.MempoolStore.TryRemove(tx.GetHash(), out _);
-						}
+						Logger.LogInfo($"Transaction was successfully tested against the backend's mempool hashes: {hash}.");
+					}
+					else
+					{
+						BitcoinStore.TransactionStore.MempoolStore.TryRemove(tx.GetHash(), out _);
 					}
 				}
+
+				await ProcessTransactionsAsync(transactions).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
-				lock (TransactionProcessor.Lock)
-				{
-					// When there's a connection failure do not clean the transactions, add them to processing.
-					foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
-					{
-						TransactionProcessor.Process(tx);
-					}
-				}
+				// When there's a connection failure do not clean the transactions, add them to processing.
+				await ProcessTransactionsAsync(BitcoinStore.TransactionStore.MempoolStore.GetTransactions()).ConfigureAwait(false);
 
 				Logger.LogWarning(ex);
 			}
@@ -345,16 +351,16 @@ namespace WalletWasabi.Services
 			Block currentBlock = await FetchBlockAsync(filterModel.Header.BlockHash, cancel); // Wait until not downloaded.
 			var height = new Height(filterModel.Header.Height);
 
-			lock (TransactionProcessor.Lock)
+			var txCount = currentBlock.Transactions.Count;
+			var transactions = new List<SmartTransaction>(txCount);
+			for (int i = 0; i < txCount; i++)
 			{
-				for (int i = 0; i < currentBlock.Transactions.Count; i++)
-				{
-					Transaction tx = currentBlock.Transactions[i];
-					TransactionProcessor.Process(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime));
-				}
-
-				KeyManager.SetBestHeight(height);
+				Transaction tx = currentBlock.Transactions[i];
+				transactions.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime));
 			}
+
+			await ProcessTransactionsAsync(transactions).ConfigureAwait(false);
+			KeyManager.SetBestHeight(height);
 
 			NewBlockProcessed?.Invoke(this, currentBlock);
 		}
@@ -827,9 +833,7 @@ namespace WalletWasabi.Services
 				{
 					BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
 					BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
-					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
-					TransactionProcessor.CoinSpent -= TransactionProcessor_CoinSpent;
-					TransactionProcessor.CoinReceived -= TransactionProcessor_CoinReceivedAsync;
+					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceivedAsync;
 
 					DisconnectDisposeNullLocalBitcoinCoreNode();
 				}

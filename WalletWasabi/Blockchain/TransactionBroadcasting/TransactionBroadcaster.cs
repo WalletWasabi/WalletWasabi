@@ -26,8 +26,16 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 		public WasabiSynchronizer Synchronizer { get; }
 		public Network Network { get; }
 		public NodesGroup Nodes { get; }
-		public List<WalletService> WalletServices { get; }
-		public IEnumerable<WalletService> AliveWalletServices => WalletServices.Where(x => x != null && !x.IsDisposed);
+		private List<WalletService> WalletServices { get; }
+
+		public IEnumerable<WalletService> GetAliveWalletServices()
+		{
+			lock (WalletServicesLock)
+			{
+				return WalletServices.Where(x => x != null && !x.IsDisposed);
+			}
+		}
+
 		public object WalletServicesLock { get; }
 		public RPCClient RpcClient { get; private set; }
 
@@ -115,7 +123,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 						OutPoint input = transaction.Transaction.Inputs.First().PrevOut;
 						lock (WalletServicesLock)
 						{
-							foreach (var walletService in AliveWalletServices)
+							foreach (var walletService in GetAliveWalletServices())
 							{
 								SmartCoin coin = walletService.Coins.GetByOutPoint(input);
 								if (coin != default)
@@ -128,21 +136,17 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 				}
 			}
 
-			BelieveTransaction(transaction);
+			await BelieveTransactionAsync(transaction).ConfigureAwait(false);
 
 			Logger.LogInfo($"Transaction is successfully broadcasted to backend: {transaction.GetHash()}.");
 		}
 
-		private void BelieveTransaction(SmartTransaction transaction)
+		private async Task BelieveTransactionAsync(SmartTransaction transaction)
 		{
-			lock (WalletServicesLock)
-				lock (TransactionProcessor.Lock)
-				{
-					foreach (var walletService in AliveWalletServices)
-					{
-						walletService.TransactionProcessor.Process(new SmartTransaction(transaction.Transaction, Height.Mempool));
-					}
-				}
+			foreach (var walletService in GetAliveWalletServices())
+			{
+				await walletService.ProcessTransactionsAsync(new SmartTransaction(transaction.Transaction, Height.Mempool)).ConfigureAwait(false);
+			}
 		}
 
 		public async Task SendTransactionAsync(SmartTransaction transaction)
@@ -205,7 +209,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 		private async Task BroadcastTransactionWithRpcAsync(SmartTransaction transaction)
 		{
 			await RpcClient.SendRawTransactionAsync(transaction.Transaction).ConfigureAwait(false);
-			BelieveTransaction(transaction);
+			await BelieveTransactionAsync(transaction).ConfigureAwait(false);
 			Logger.LogInfo($"Transaction is successfully broadcasted with RPC: {transaction.GetHash()}.");
 		}
 	}
