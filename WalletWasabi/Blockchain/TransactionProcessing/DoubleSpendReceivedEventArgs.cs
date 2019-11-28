@@ -5,9 +5,9 @@ using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.Blockchain.TransactionProcessing
 {
-	public class DoubleSpendReceivedEventArgs
+	public class DoubleSpendReceivedEventArgs : EventArgs
 	{
-		public DoubleSpendReceivedEventArgs(SmartTransaction smartTransaction, IEnumerable<SmartCoin> remove)
+		public DoubleSpendReceivedEventArgs(SmartTransaction smartTransaction, IEnumerable<SmartCoin> remove) : base()
 		{
 			SmartTransaction = smartTransaction;
 			Remove = remove;
