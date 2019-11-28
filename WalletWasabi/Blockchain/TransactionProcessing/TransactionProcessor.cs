@@ -4,10 +4,11 @@ using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Blockchain.Transactions
+namespace WalletWasabi.Blockchain.TransactionProcessing
 {
 	public class TransactionProcessor
 	{

@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 
-namespace WalletWasabi.Blockchain.Transactions
+namespace WalletWasabi.Blockchain.TransactionProcessing
 {
 	public class ReplaceTransactionReceivedEventArgs
 	{
