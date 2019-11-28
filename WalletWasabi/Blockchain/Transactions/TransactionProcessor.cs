@@ -59,11 +59,6 @@ namespace WalletWasabi.Blockchain.Transactions
 						coin.Height = tx.Height;
 						walletRelevant = true; // relevant
 					}
-
-					if (walletRelevant)
-					{
-						TransactionStore.AddOrUpdate(tx);
-					}
 				}
 
 				if (!tx.Transaction.IsCoinBase && !walletRelevant) // Transactions we already have and processed would be "double spends" but they shouldn't.
