@@ -41,7 +41,7 @@
           </controls:ExtendedTextBox>
 
           <controls:SuggestLabelView DataContext="{Binding LabelSuggestion}" />
-          
+
           <StackPanel Orientation="Horizontal" Spacing="10">
             <Button Content="{Binding IsMax, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Clear:Max}" Command="{Binding MaxCommand}" VerticalAlignment="Top" Height="40" />
             <controls:ExtendedTextBox
@@ -83,7 +83,7 @@
             </StackPanel>
             <StackPanel IsVisible="{Binding IsCustomFee}" VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
               <TextBlock Text="or set Fee:" />
-              <controls:ExtendedTextBox Text="{Binding UserFeeText, Mode=TwoWay}" Watermark="Fee (sat/byte)" UseFloatingWatermark="True" MinWidth="124" MaxWidth="124" MinHeight="46">
+              <controls:ExtendedTextBox Text="{Binding UserFeeText, Mode=TwoWay}" Watermark="Fee (sat/vByte)" UseFloatingWatermark="True" MinWidth="124" MaxWidth="124" MinHeight="46">
                 <i:Interaction.Behaviors>
                   <behaviors:CommandOnKeyUpBehavior Command="{Binding UserFeeTextKeyUpCommand}" />
                 </i:Interaction.Behaviors>

@@ -164,7 +164,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			Logger.LogInfo($"Fee: {fee.Satoshi} Satoshi.");
 
 			var vSize = builder.EstimateSize(psbt.GetOriginalTransaction(), true);
-			Logger.LogInfo($"Estimated tx size: {vSize} vbytes.");
+			Logger.LogInfo($"Estimated tx size: {vSize} vBytes.");
 
 			// Do some checks
 			Money totalSendAmountNoFee = realToSend.Sum(x => x.amount);
