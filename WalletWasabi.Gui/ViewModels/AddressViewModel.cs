@@ -108,7 +108,7 @@ namespace WalletWasabi.Gui.ViewModels
 			get => _label;
 			set
 			{
-				if (!IsLurkingWifeMode)
+				if (!IsLurkingWifeMode && value != string.Empty)
 				{
 					this.RaiseAndSetIfChanged(ref _label, value);
 				}
