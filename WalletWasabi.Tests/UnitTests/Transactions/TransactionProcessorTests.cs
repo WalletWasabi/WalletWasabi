@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
@@ -227,10 +228,10 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				Assert.Equal(Money.Coins(1.0m), originalCoin.Amount);
 
 				// Remove the created coin by the transaction.
-				Assert.Equal(3, e.DestroyedCoins.Count());
-				Assert.Single(e.DestroyedCoins, coin => coin.HdPubKey.Label == "B");
-				Assert.Single(e.DestroyedCoins, coin => coin.HdPubKey.Label == "C");
-				Assert.Single(e.DestroyedCoins, coin => coin.HdPubKey.Label == "D");
+				Assert.Equal(3, e.ReplacedCoins.Count());
+				Assert.Single(e.ReplacedCoins, coin => coin.HdPubKey.Label == "B");
+				Assert.Single(e.ReplacedCoins, coin => coin.HdPubKey.Label == "C");
+				Assert.Single(e.ReplacedCoins, coin => coin.HdPubKey.Label == "D");
 
 				replaceTransactionReceivedCalled++;
 			};
