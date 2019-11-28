@@ -11,7 +11,7 @@ namespace WalletWasabi.Blockchain.Transactions
 {
 	public class TransactionProcessor
 	{
-		public static object Lock { get; } = new object();
+		private object Lock { get; } = new object();
 		public AllTransactionStore TransactionStore { get; }
 
 		public KeyManager KeyManager { get; }

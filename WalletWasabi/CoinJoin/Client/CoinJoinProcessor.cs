@@ -95,15 +95,14 @@ namespace WalletWasabi.CoinJoin.Client
 		private void BelieveTransaction(Transaction transaction)
 		{
 			lock (WalletServicesLock)
-				lock (TransactionProcessor.Lock)
+			{
+				foreach (var pair in AliveWalletServices.Where(x => !x.Value.Contains(transaction.GetHash())))
 				{
-					foreach (var pair in AliveWalletServices.Where(x => !x.Value.Contains(transaction.GetHash())))
-					{
-						var walletService = pair.Key;
-						pair.Value.Add(transaction.GetHash());
-						walletService.TransactionProcessor.Process(new SmartTransaction(transaction, Height.Mempool));
-					}
+					var walletService = pair.Key;
+					pair.Value.Add(transaction.GetHash());
+					walletService.TransactionProcessor.Process(new SmartTransaction(transaction, Height.Mempool));
 				}
+			}
 		}
 
 		private async Task<bool> TryBroadcastTransactionWithRpcAsync(Transaction transaction)

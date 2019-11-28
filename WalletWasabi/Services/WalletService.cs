@@ -176,10 +176,7 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				lock (TransactionProcessor.Lock)
-				{
-					TransactionProcessor.Process(tx);
-				}
+				TransactionProcessor.Process(tx);
 			}
 			catch (Exception ex)
 			{
@@ -268,13 +265,9 @@ namespace WalletWasabi.Services
 		{
 			KeyManager.AssertNetworkOrClearBlockState(Network);
 			Height bestKeyManagerHeight = KeyManager.GetBestHeight();
-			lock (TransactionProcessor.Lock)
-			{
-				foreach (var tx in BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight))
-				{
-					TransactionProcessor.Process(tx);
-				}
-			}
+
+			var transactions = BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight);
+			TransactionProcessor.Process(transactions);
 
 			// Go through the filters and queue to download the matches.
 			await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) =>
@@ -301,34 +294,26 @@ namespace WalletWasabi.Services
 
 				var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
 
-				lock (TransactionProcessor.Lock)
+				foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
 				{
-					foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
+					uint256 hash = tx.GetHash();
+					if (mempoolHashes.Contains(hash.ToString().Substring(0, compactness)))
 					{
-						uint256 hash = tx.GetHash();
-						if (mempoolHashes.Contains(hash.ToString().Substring(0, compactness)))
-						{
-							TransactionProcessor.Process(tx);
+						TransactionProcessor.Process(tx);
 
-							Logger.LogInfo($"Transaction was successfully tested against the backend's mempool hashes: {hash}.");
-						}
-						else
-						{
-							BitcoinStore.TransactionStore.MempoolStore.TryRemove(tx.GetHash(), out _);
-						}
+						Logger.LogInfo($"Transaction was successfully tested against the backend's mempool hashes: {hash}.");
+					}
+					else
+					{
+						BitcoinStore.TransactionStore.MempoolStore.TryRemove(tx.GetHash(), out _);
 					}
 				}
 			}
 			catch (Exception ex)
 			{
-				lock (TransactionProcessor.Lock)
-				{
-					// When there's a connection failure do not clean the transactions, add them to processing.
-					foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
-					{
-						TransactionProcessor.Process(tx);
-					}
-				}
+				// When there's a connection failure do not clean the transactions, add them to processing.
+				var transactions = BitcoinStore.TransactionStore.MempoolStore.GetTransactions();
+				TransactionProcessor.Process(transactions);
 
 				Logger.LogWarning(ex);
 			}
@@ -345,16 +330,13 @@ namespace WalletWasabi.Services
 			Block currentBlock = await FetchBlockAsync(filterModel.Header.BlockHash, cancel); // Wait until not downloaded.
 			var height = new Height(filterModel.Header.Height);
 
-			lock (TransactionProcessor.Lock)
+			for (int i = 0; i < currentBlock.Transactions.Count; i++)
 			{
-				for (int i = 0; i < currentBlock.Transactions.Count; i++)
-				{
-					Transaction tx = currentBlock.Transactions[i];
-					TransactionProcessor.Process(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime));
-				}
-
-				KeyManager.SetBestHeight(height);
+				Transaction tx = currentBlock.Transactions[i];
+				TransactionProcessor.Process(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime));
 			}
+
+			KeyManager.SetBestHeight(height);
 
 			NewBlockProcessed?.Invoke(this, currentBlock);
 		}
