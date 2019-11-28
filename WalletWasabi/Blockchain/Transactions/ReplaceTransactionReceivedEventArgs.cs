@@ -1,9 +1,10 @@
+using System;
 using System.Collections.Generic;
 using WalletWasabi.Blockchain.TransactionOutputs;
 
 namespace WalletWasabi.Blockchain.Transactions
 {
-	public class ReplaceTransactionReceivedEventArgs
+	public class ReplaceTransactionReceivedEventArgs : EventArgs
 	{
 		public ReplaceTransactionReceivedEventArgs(SmartTransaction smartTransaction, IEnumerable<SmartCoin> destroyedCoins, IEnumerable<SmartCoin> restoredCoins)
 		{

@@ -19,11 +19,11 @@ namespace WalletWasabi.Blockchain.Transactions
 		public CoinsRegistry Coins { get; }
 		public Money DustThreshold { get; }
 
-		public event EventHandler<SmartCoin> CoinSpent;
+		public event EventHandler<CoinSpentEventArgs> CoinSpent;
 
-		public event EventHandler<SmartCoin> SpenderConfirmed;
+		public event EventHandler<SpenderConfirmedEventArgs> SpenderConfirmed;
 
-		public event EventHandler<SmartCoin> CoinReceived;
+		public event EventHandler<CoinReceivedEventArgs> CoinReceived;
 
 		/// <summary>
 		/// Received a confirmed double spend transaction.
@@ -44,7 +44,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			Coins = new CoinsRegistry(privacyLevelThreshold);
 		}
 
-		public bool Process(SmartTransaction tx)
+		private bool ProcessnNoLock(SmartTransaction tx, List<EventArgs> eventsToInvoke)
 		{
 			if (!tx.Transaction.PossiblyP2WPKHInvolved())
 			{
@@ -110,7 +110,7 @@ namespace WalletWasabi.Blockchain.Transactions
 							var replacedTxId = doubleSpends.First().TransactionId;
 							var (destroyed, restored) = Coins.Undo(replacedTxId);
 
-							ReplaceTransactionReceived?.Invoke(this, new ReplaceTransactionReceivedEventArgs(tx, destroyed, restored));
+							eventsToInvoke.Add(new ReplaceTransactionReceivedEventArgs(tx, destroyed, restored));
 
 							foreach (var replacedTransactionId in destroyed.Select(coin => coin.TransactionId))
 							{
@@ -122,7 +122,7 @@ namespace WalletWasabi.Blockchain.Transactions
 						}
 						else
 						{
-							DoubleSpendReceived?.Invoke(this, new DoubleSpendReceivedEventArgs(tx, Enumerable.Empty<SmartCoin>()));
+							eventsToInvoke.Add(new DoubleSpendReceivedEventArgs(tx, Enumerable.Empty<SmartCoin>()));
 							return false;
 						}
 					}
@@ -134,7 +134,7 @@ namespace WalletWasabi.Blockchain.Transactions
 							Coins.Remove(doubleSpentCoin);
 						}
 
-						DoubleSpendReceived?.Invoke(this, new DoubleSpendReceivedEventArgs(tx, doubleSpends));
+						eventsToInvoke.Add(new DoubleSpendReceivedEventArgs(tx, doubleSpends));
 
 						var unconfirmedDoubleSpentTxId = doubleSpends.First().TransactionId;
 						TransactionStore.MempoolStore.TryRemove(unconfirmedDoubleSpentTxId, out _);
@@ -231,12 +231,12 @@ namespace WalletWasabi.Blockchain.Transactions
 					if (!alreadyKnown)
 					{
 						Coins.Spend(foundCoin);
-						CoinSpent?.Invoke(this, foundCoin);
+						eventsToInvoke.Add(new CoinSpentEventArgs(foundCoin));
 					}
 
 					if (tx.Confirmed)
 					{
-						SpenderConfirmed?.Invoke(this, foundCoin);
+						eventsToInvoke.Add(new SpenderConfirmedEventArgs(foundCoin));
 					}
 				}
 			}
@@ -248,10 +248,56 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			foreach (var newCoin in newCoins)
 			{
-				CoinReceived?.Invoke(this, newCoin);
+				eventsToInvoke.Add(new CoinReceivedEventArgs(newCoin));
 			}
 
 			return walletRelevant;
+		}
+
+		public bool Process(IEnumerable<SmartTransaction> txs)
+		{
+			var anyWalletRelevant = false;
+			var eventsToInvoke = new List<EventArgs>();
+			lock (Lock)
+			{
+				foreach (var tx in txs.ToArray())
+				{
+					anyWalletRelevant |= ProcessnNoLock(tx, eventsToInvoke);
+				}
+			}
+
+			foreach (var ev in eventsToInvoke)
+			{
+				switch (ev)
+				{
+					case CoinSpentEventArgs coinSpents:
+						CoinSpent?.Invoke(this, coinSpents);
+						break;
+
+					case SpenderConfirmedEventArgs spenderConfirmeds:
+						SpenderConfirmed?.Invoke(this, spenderConfirmeds);
+						break;
+
+					case CoinReceivedEventArgs coinReceived:
+						CoinReceived?.Invoke(this, coinReceived);
+						break;
+
+					case DoubleSpendReceivedEventArgs doubleSpends:
+						DoubleSpendReceived?.Invoke(this, doubleSpends);
+						break;
+
+					case ReplaceTransactionReceivedEventArgs replaceTransactions:
+						ReplaceTransactionReceived?.Invoke(this, replaceTransactions);
+						break;
+				}
+			}
+
+			return anyWalletRelevant;
+		}
+
+		public bool Process(SmartTransaction tx)
+		{
+			return Process(new[] { tx });
 		}
 
 		public void UndoBlock(Height blockHeight)

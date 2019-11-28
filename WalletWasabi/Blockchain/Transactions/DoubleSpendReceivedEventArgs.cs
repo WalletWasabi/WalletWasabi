@@ -4,7 +4,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 
 namespace WalletWasabi.Blockchain.Transactions
 {
-	public class DoubleSpendReceivedEventArgs
+	public class DoubleSpendReceivedEventArgs : EventArgs
 	{
 		public DoubleSpendReceivedEventArgs(SmartTransaction smartTransaction, IEnumerable<SmartCoin> remove)
 		{

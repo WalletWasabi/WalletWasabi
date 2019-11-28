@@ -169,9 +169,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			{
 				switch (coinReceivedCalled)
 				{
-					case 0: Assert.Equal(keys[0].PubKey.WitHash.ScriptPubKey, c.ScriptPubKey); break;
-					case 1: Assert.Equal(keys[1].PubKey.WitHash.ScriptPubKey, c.ScriptPubKey); break;
-					case 2: Assert.Equal(keys[2].PubKey.WitHash.ScriptPubKey, c.ScriptPubKey); break;
+					case 0: Assert.Equal(keys[0].PubKey.WitHash.ScriptPubKey, c.SmartCoin.ScriptPubKey); break;
+					case 1: Assert.Equal(keys[1].PubKey.WitHash.ScriptPubKey, c.SmartCoin.ScriptPubKey); break;
+					case 2: Assert.Equal(keys[2].PubKey.WitHash.ScriptPubKey, c.SmartCoin.ScriptPubKey); break;
 					default:
 						throw new InvalidOperationException();
 				};
@@ -446,7 +446,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		{
 			var transactionProcessor = await CreateTransactionProcessorAsync();
 			SmartCoin receivedCoin = null;
-			transactionProcessor.CoinReceived += (s, theCoin) => receivedCoin = theCoin;
+			transactionProcessor.CoinReceived += (s, theCoin) => receivedCoin = theCoin.SmartCoin;
 			var keys = transactionProcessor.KeyManager.GetKeys();
 			var tx = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(1.0m));
 
@@ -472,7 +472,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		{
 			var transactionProcessor = await CreateTransactionProcessorAsync();
 			SmartCoin spentCoin = null;
-			transactionProcessor.CoinSpent += (s, theCoin) => spentCoin = theCoin;
+			transactionProcessor.CoinSpent += (s, theCoin) => spentCoin = theCoin.SmartCoin;
 			var keys = transactionProcessor.KeyManager.GetKeys();
 			var tx0 = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(1.0m));
 			transactionProcessor.Process(tx0);

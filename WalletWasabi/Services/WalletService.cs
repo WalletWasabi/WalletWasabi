@@ -141,11 +141,11 @@ namespace WalletWasabi.Services
 			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
 		}
 
-		private void TransactionProcessor_CoinSpent(object sender, SmartCoin spentCoin)
+		private void TransactionProcessor_CoinSpent(object sender, CoinSpentEventArgs spentCoin)
 		{
 			try
 			{
-				ChaumianClient.ExposedLinks.TryRemove(spentCoin.GetTxoRef(), out _);
+				ChaumianClient.ExposedLinks.TryRemove(spentCoin.SmartCoin.GetTxoRef(), out _);
 			}
 			catch (Exception ex)
 			{
@@ -153,10 +153,11 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private async void TransactionProcessor_CoinReceivedAsync(object sender, SmartCoin newCoin)
+		private async void TransactionProcessor_CoinReceivedAsync(object sender, CoinReceivedEventArgs newCoinEventArgs)
 		{
 			try
 			{
+				var newCoin = newCoinEventArgs.SmartCoin;
 				// If it's being mixed and anonset is not sufficient, then queue it.
 				if (newCoin.Unspent && ChaumianClient.HasIngredients
 					&& newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet

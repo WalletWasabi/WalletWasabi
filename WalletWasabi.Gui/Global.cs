@@ -21,6 +21,7 @@ using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.Gui.Helpers;
@@ -544,9 +545,9 @@ namespace WalletWasabi.Gui
 			return keyManager;
 		}
 
-		private void CoinReceived(object sender, SmartCoin coin)
+		private void CoinReceived(object sender, CoinReceivedEventArgs coinEventArgs)
 		{
-			if (coin.HdPubKey.IsInternal)
+			if (coinEventArgs.SmartCoin.HdPubKey.IsInternal)
 			{
 				return;
 			}
@@ -556,7 +557,7 @@ namespace WalletWasabi.Gui
 				return;
 			}
 
-			string amountString = coin.Amount.ToString(false, true);
+			string amountString = coinEventArgs.SmartCoin.Amount.ToString(false, true);
 
 			NotificationHelpers.Information($"{amountString} BTC", "Received");
 		}
