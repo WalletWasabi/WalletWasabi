@@ -300,7 +300,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			TrySetWalletStates();
 
-			if (!CanLoadWallet)
+			if (!CanLoadWallet && Wallets.Count > 0)
 			{
 				NotificationHelpers.Warning("There is already an open wallet. Restart the application in order to open a different one.");
 			}
