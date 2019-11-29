@@ -477,10 +477,11 @@ namespace WalletWasabi.Gui
 				Logger.LogInfo($"{nameof(WalletService)} started.");
 
 				token.ThrowIfCancellationRequested();
-				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 
 				TransactionBroadcaster.AddWalletService(WalletService);
 				CoinJoinProcessor.AddWalletService(WalletService);
+
+				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 			}
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
 		}
@@ -507,16 +508,26 @@ namespace WalletWasabi.Gui
 				// Received coinbase -> mined
 				// Tx confirmed
 
-				if (e.NewlyReceivedCoins.Any() || e.NewlySpentCoins.Any())
+				bool isSpent = e.NewlySpentCoins.Any();
+				bool isReceived = e.NewlyReceivedCoins.Any();
+				if (isReceived || isSpent)
 				{
-					Money diff = e.NewlyReceivedCoins.Sum(x => x.Amount) - e.NewlySpentCoins.Sum(x => x.Amount);
-					var diffAbs = diff.Abs();
-					string amountString = diffAbs.ToString(false, true);
-					if (diff > Money.Zero)
+					Money receivedSum = e.NewlyReceivedCoins.Sum(x => x.Amount);
+					Money spentSum = e.NewlySpentCoins.Sum(x => x.Amount);
+					Money miningFee = e.Transaction.Transaction.GetFee(e.SpentCoins.Select(x => x.GetCoin()).ToArray());
+					Money incoming = receivedSum - spentSum;
+					Money receiveSpentDiff = incoming.Abs();
+					string amountString = receiveSpentDiff.ToString(false, true);
+
+					if (isSpent && receiveSpentDiff == miningFee)
 					{
-						NotifyAndLog($"{amountString} BTC", "Received", NotificationType.Information, e);
+						NotifyAndLog($"Mining Fee: {amountString} BTC", "Self Spend", NotificationType.Information, e);
 					}
-					else if (diff < Money.Zero)
+					else if (incoming > Money.Zero)
+					{
+						NotifyAndLog($"{amountString} BTC", "Received", NotificationType.Success, e);
+					}
+					else if (incoming < Money.Zero)
 					{
 						NotifyAndLog($"{amountString} BTC", "Sent", NotificationType.Information, e);
 					}
