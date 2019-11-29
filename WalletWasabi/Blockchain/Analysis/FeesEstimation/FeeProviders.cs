@@ -25,7 +25,6 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 				if (value != _allFeeEstimate)
 				{
 					_allFeeEstimate = value;
-					AllFeeEstimateChanged?.Invoke(this, value);
 				}
 			}
 		}
@@ -70,6 +69,8 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 
 				AllFeeEstimate = providerArray[^1].AllFeeEstimate;
 			}
+
+			AllFeeEstimateChanged?.Invoke(this, AllFeeEstimate);
 		}
 
 		#region IDisposable Support
