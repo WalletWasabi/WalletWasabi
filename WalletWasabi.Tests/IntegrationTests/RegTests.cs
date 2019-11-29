@@ -1475,22 +1475,14 @@ namespace WalletWasabi.Tests.IntegrationTests
 				srtxwwreq.Transaction = overwriteTx;
 				var srtxwwres = await rpc.SignRawTransactionWithWalletAsync(srtxwwreq);
 
-				var doubleSpendAwaiter = new EventAwaiter<TxCoinsEventArgs>(
-					h => wallet.TransactionProcessor.DoubleSpendReceived += h,
-					h => wallet.TransactionProcessor.DoubleSpendReceived -= h);
-				await rpc.SendRawTransactionAsync(srtxwwres.SignedTransaction);
-				var doubleSpend = await doubleSpendAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
-				Assert.Equal(srtxwwres.SignedTransaction.GetHash(), doubleSpend.SmartTransaction.GetHash());
-				Assert.Empty(doubleSpend.Coins);
-
-				doubleSpendAwaiter = new EventAwaiter<TxCoinsEventArgs>(
-					h => wallet.TransactionProcessor.DoubleSpendReceived += h,
-					h => wallet.TransactionProcessor.DoubleSpendReceived -= h);
+				var walletRelevantTransactionProcessedAwaiter = new EventAwaiter<TransactionProcessedResult>(
+					h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed += h,
+					h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed -= h);
 				await rpc.GenerateAsync(10);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 10);
-				doubleSpend = await doubleSpendAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
-				Assert.Equal(srtxwwres.SignedTransaction.GetHash(), doubleSpend.SmartTransaction.GetHash());
-				Assert.NotEmpty(doubleSpend.Coins);
+				var walletRelevantTransactionProcessed = await walletRelevantTransactionProcessedAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
+				var doubleSpend = Assert.Single(walletRelevantTransactionProcessed.SuccessfullyDoubleSpentCoins);
+				Assert.Equal(srtxwwres.SignedTransaction.GetHash(), doubleSpend.TransactionId);
 
 				var curBlockHash = await rpc.GetBestBlockHashAsync();
 				blockCount = await rpc.GetBlockCountAsync();

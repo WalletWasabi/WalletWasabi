@@ -20,16 +20,13 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 		public CoinsRegistry Coins { get; }
 		public Money DustThreshold { get; }
 
+		public event EventHandler<TransactionProcessedResult> WalletRelevantTransactionProcessed;
+
 		public event EventHandler<TxCoinsEventArgs> CoinsSpent;
 
 		public event EventHandler<TxCoinsEventArgs> SpendersConfirmed;
 
 		public event EventHandler<TxCoinsEventArgs> CoinsReceived;
-
-		/// <summary>
-		/// Received a confirmed double spend transaction.
-		/// </summary>
-		public event EventHandler<TxCoinsEventArgs> DoubleSpendReceived;
 
 		public event EventHandler<ReplaceTransactionReceivedEventArgs> ReplaceTransactionReceived;
 
@@ -45,30 +42,42 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			Coins = new CoinsRegistry(privacyLevelThreshold);
 		}
 
-		public IEnumerable<bool> Process(IEnumerable<SmartTransaction> txs)
+		public IEnumerable<TransactionProcessedResult> Process(IEnumerable<SmartTransaction> txs)
 		{
+			var rets = new List<TransactionProcessedResult>();
+
 			lock (Lock)
 			{
-				var ret = new List<bool>();
 				foreach (var tx in txs)
 				{
-					ret.Add(ProcessNoLock(tx));
+					rets.Add(ProcessNoLock(tx));
 				}
-				return ret;
 			}
+
+			foreach (var ret in rets.Where(x => x.IsWalletRelevant))
+			{
+				WalletRelevantTransactionProcessed?.Invoke(this, ret);
+			}
+
+			return rets;
 		}
 
-		public bool Process(SmartTransaction tx)
+		public TransactionProcessedResult Process(SmartTransaction tx)
 		{
+			TransactionProcessedResult ret;
 			lock (Lock)
 			{
-				return ProcessNoLock(tx);
+				ret = ProcessNoLock(tx);
 			}
+			WalletRelevantTransactionProcessed?.Invoke(this, ret);
+			return ret;
 		}
 
-		private bool ProcessNoLock(SmartTransaction tx)
+		private TransactionProcessedResult ProcessNoLock(SmartTransaction tx)
 		{
 			var walletRelevant = false;
+			var result = new TransactionProcessedResult(tx);
+
 			// We do not care about non-witness transactions for other than mempool cleanup.
 			if (tx.Transaction.PossiblyP2WPKHInvolved())
 			{
@@ -136,8 +145,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 							}
 							else
 							{
-								DoubleSpendReceived?.Invoke(this, new TxCoinsEventArgs(tx, Enumerable.Empty<SmartCoin>()));
-								return false;
+								return result;
 							}
 						}
 						else // new confirmation always enjoys priority
@@ -148,7 +156,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 								Coins.Remove(doubleSpentCoin);
 							}
 
-							DoubleSpendReceived?.Invoke(this, new TxCoinsEventArgs(tx, doubleSpends));
+							result.SuccessfullyDoubleSpentCoins.AddRange(doubleSpends);
 
 							var unconfirmedDoubleSpentTxId = doubleSpends.First().TransactionId;
 							TransactionStore.MempoolStore.TryRemove(unconfirmedDoubleSpentTxId, out _);
@@ -157,7 +165,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
-				var isLikelyCoinJoinOutput = false;
 				bool hasEqualOutputs = tx.Transaction.GetIndistinguishableOutputs(includeSingle: false).FirstOrDefault() != default;
 				if (hasEqualOutputs)
 				{
@@ -172,7 +179,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 
 						if (receivedAlmostAsMuchAsSpent)
 						{
-							isLikelyCoinJoinOutput = true;
+							result.IsLikelyOwnCoinJoin = true;
 						}
 					}
 				}
@@ -203,8 +210,8 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 							anonset += spentOwnCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because do not count own.
 						}
 
-						SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, isLikelyCoinJoinOutput, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
-																																																																			   // If we did not have it.
+						SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, result.IsLikelyOwnCoinJoin, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
+																																																																				   // If we did not have it.
 						if (Coins.TryAdd(newCoin))
 						{
 							newCoins.Add(newCoin);
@@ -276,7 +283,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 				}
 			}
 
-			return walletRelevant;
+			return result;
 		}
 
 		public void UndoBlock(Height blockHeight)
