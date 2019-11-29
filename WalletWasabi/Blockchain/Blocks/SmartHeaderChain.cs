@@ -85,8 +85,9 @@ namespace WalletWasabi.Blockchain.Blocks
 				}
 
 				Chain.Add(header.Height, header);
-				SetTip(header);
 			}
+
+			SetTip(header);
 		}
 
 		private void SetTip(SmartHeader header)
@@ -95,16 +96,18 @@ namespace WalletWasabi.Blockchain.Blocks
 			TipHeight = header?.Height ?? default;
 			TipHash = header?.BlockHash;
 			HashCount = Chain?.Count ?? default;
-			SetHashesLeft();
+			SetHashesLeft(ServerTipHeight, TipHeight);
 		}
 
-		private void SetHashesLeft()
+		private void SetHashesLeft(uint serverTipHeight, uint tipHeight)
 		{
-			HashesLeft = (int)Math.Max(0, (long)ServerTipHeight - TipHeight);
+			HashesLeft = (int)Math.Max(0, (long)serverTipHeight - tipHeight);
 		}
 
 		public void RemoveLast()
 		{
+			KeyValuePair<uint, SmartHeader> newLast = default;
+			bool isSetTip = false;
 			lock (Lock)
 			{
 				if (Chain.Any())
@@ -112,24 +115,26 @@ namespace WalletWasabi.Blockchain.Blocks
 					Chain.Remove(Chain.Last().Key);
 					if (Chain.Any())
 					{
-						var newLast = Chain.Last();
-						SetTip(newLast.Value);
-					}
-					else
-					{
-						SetTip(null);
+						newLast = Chain.Last();
+						isSetTip = true;
 					}
 				}
+			}
+
+			if (isSetTip)
+			{
+				SetTip(newLast.Value);
+			}
+			else
+			{
+				SetTip(null);
 			}
 		}
 
 		public void UpdateServerTipHeight(uint height)
 		{
-			lock (Lock)
-			{
-				ServerTipHeight = height;
-				SetHashesLeft();
-			}
+			ServerTipHeight = height;
+			SetHashesLeft(height, TipHeight);
 		}
 
 		public (uint height, SmartHeader header)[] GetChain()
