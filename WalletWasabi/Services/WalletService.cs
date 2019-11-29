@@ -115,8 +115,8 @@ namespace WalletWasabi.Services
 			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.PrivacyLevelStrong);
 			Coins = TransactionProcessor.Coins;
 
-			TransactionProcessor.CoinSpent += TransactionProcessor_CoinSpent;
-			TransactionProcessor.CoinReceived += TransactionProcessor_CoinReceivedAsync;
+			TransactionProcessor.CoinsSpent += TransactionProcessor_CoinsSpent;
+			TransactionProcessor.CoinsReceived += TransactionProcessor_CoinsReceivedAsync;
 
 			if (Directory.Exists(BlocksFolderPath))
 			{
@@ -142,11 +142,14 @@ namespace WalletWasabi.Services
 			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
 		}
 
-		private void TransactionProcessor_CoinSpent(object sender, SmartCoin spentCoin)
+		private void TransactionProcessor_CoinsSpent(object sender, TxCoinsEventArgs args)
 		{
 			try
 			{
-				ChaumianClient.ExposedLinks.TryRemove(spentCoin.GetTxoRef(), out _);
+				foreach (var coin in args.Coins)
+				{
+					ChaumianClient.ExposedLinks.TryRemove(coin.GetTxoRef(), out _);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -154,16 +157,24 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private async void TransactionProcessor_CoinReceivedAsync(object sender, SmartCoin newCoin)
+		private async void TransactionProcessor_CoinsReceivedAsync(object sender, TxCoinsEventArgs args)
 		{
 			try
 			{
-				// If it's being mixed and anonset is not sufficient, then queue it.
-				if (newCoin.Unspent && ChaumianClient.HasIngredients
-					&& newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet
-					&& ChaumianClient.State.Contains(newCoin.SpentOutputs))
+				if (ChaumianClient.State.Contains(args.SmartTransaction.Transaction.Inputs.Select(x => x.PrevOut.ToTxoRef())))
 				{
-					await ChaumianClient.QueueCoinsToMixAsync(newCoin);
+					var coinsToQueue = new List<SmartCoin>();
+					foreach (var newCoin in args.Coins)
+					{
+						// If it's being mixed and anonset is not sufficient, then queue it.
+						if (newCoin.Unspent && ChaumianClient.HasIngredients
+							&& newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet)
+						{
+							coinsToQueue.Add(newCoin);
+						}
+					}
+
+					await ChaumianClient.QueueCoinsToMixAsync(coinsToQueue).ConfigureAwait(false);
 				}
 			}
 			catch (Exception ex)
@@ -811,8 +822,8 @@ namespace WalletWasabi.Services
 					BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
 					BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
 					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
-					TransactionProcessor.CoinSpent -= TransactionProcessor_CoinSpent;
-					TransactionProcessor.CoinReceived -= TransactionProcessor_CoinReceivedAsync;
+					TransactionProcessor.CoinsSpent -= TransactionProcessor_CoinsSpent;
+					TransactionProcessor.CoinsReceived -= TransactionProcessor_CoinsReceivedAsync;
 
 					DisconnectDisposeNullLocalBitcoinCoreNode();
 				}

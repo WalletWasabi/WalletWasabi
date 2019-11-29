@@ -68,7 +68,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 			}
 		}
 
-		public bool Contains(params TxoRef[] txos)
+		public bool Contains(IEnumerable<TxoRef> txos)
 		{
 			lock (StateLock)
 			{
