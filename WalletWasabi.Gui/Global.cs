@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
 using NBitcoin;
 using NBitcoin.Protocol;
@@ -12,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
@@ -504,20 +506,34 @@ namespace WalletWasabi.Gui
 				// Received dust
 				// Received coinbase -> mined
 				// Tx confirmed
-				// Log
 
-				if (e.NewlyReceivedCoins.Any())
+				if (e.NewlyReceivedCoins.Any() || e.NewlySpentCoins.Any())
 				{
-					Money satSum = e.NewlyReceivedCoins.Where(x => !x.HdPubKey.IsInternal).Sum(x => x.Amount);
-					string amountString = satSum.ToString(false, true);
-
-					NotificationHelpers.Information($"{amountString} BTC", "Received");
+					Money diff = e.NewlyReceivedCoins.Sum(x => x.Amount) - e.NewlySpentCoins.Sum(x => x.Amount);
+					var diffAbs = diff.Abs();
+					string amountString = diffAbs.ToString(false, true);
+					if (diff > Money.Zero)
+					{
+						NotifyAndLog($"{amountString} BTC", "Received", NotificationType.Information);
+					}
+					else if (diff < Money.Zero)
+					{
+						NotifyAndLog($"{amountString} BTC", "Sent", NotificationType.Information);
+					}
 				}
 			}
 			catch (Exception ex)
 			{
 				Logger.LogWarning(ex);
 			}
+		}
+
+		private static void NotifyAndLog(string message, string title, NotificationType notificationType)
+		{
+			message = Guard.Correct(message);
+			title = Guard.Correct(title);
+			NotificationHelpers.Notify(message, title, notificationType, () => IoHelpers.OpenFileInTextEditor(Logger.FilePath));
+			Logger.LogInfo($"Notification ({notificationType}): {title} - {message}");
 		}
 
 		public string GetWalletFullPath(string walletName)

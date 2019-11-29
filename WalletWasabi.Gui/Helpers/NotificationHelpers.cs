@@ -13,6 +13,13 @@ namespace WalletWasabi.Gui.Helpers
 			return Locator.Current.GetService<INotificationManager>();
 		}
 
+		public static void Notify(string message, string title, NotificationType type, Action onClick = null)
+		{
+			RxApp.MainThreadScheduler
+				.Schedule(() => GetNotificationManager()
+				.Show(new Notification(title, message, type, TimeSpan.FromSeconds(7), onClick)));
+		}
+
 		public static void Success(string message, string title = "Success!")
 		{
 			RxApp.MainThreadScheduler
