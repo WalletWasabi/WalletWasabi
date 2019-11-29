@@ -12,6 +12,8 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
@@ -42,6 +44,8 @@ namespace WalletWasabi.Gui
 
 		public const string ThemeBackgroundBrushResourceKey = "ThemeBackgroundBrush";
 		public const string ApplicationAccentForegroundBrushResourceKey = "ApplicationAccentForegroundBrush";
+
+		private CompositeDisposable _walletServiceDisposables;
 
 		public string DataDir { get; }
 		public string TorLogsFile { get; }
@@ -475,7 +479,24 @@ namespace WalletWasabi.Gui
 				Logger.LogInfo($"{nameof(WalletService)} started.");
 
 				token.ThrowIfCancellationRequested();
-				WalletService.TransactionProcessor.CoinsReceived += CoinsReceived;
+
+				_walletServiceDisposables?.Dispose();
+				_walletServiceDisposables = new CompositeDisposable();
+
+				var onCoinsReceived = Observable.FromEventPattern<TxCoinsEventArgs>(WalletService.TransactionProcessor, nameof(WalletService.TransactionProcessor.CoinsReceived))
+					.Select(x => x.EventArgs);
+
+				onCoinsReceived
+					.Subscribe(x => HandleCoinsReceived(x))
+					.DisposeWith(_walletServiceDisposables);
+
+				onCoinsReceived
+					.SelectMany(x => x.Coins)
+					.Where(x => x.IsLikelyCoinJoinOutput)
+					.Throttle(TimeSpan.FromMilliseconds(500))
+					.Subscribe(x => NotificationHelpers.Success("CoinJoin Completed!"))
+					.DisposeWith(_walletServiceDisposables);
+					
 
 				TransactionBroadcaster.AddWalletService(WalletService);
 				CoinJoinProcessor.AddWalletService(WalletService);
@@ -545,7 +566,7 @@ namespace WalletWasabi.Gui
 			return keyManager;
 		}
 
-		private void CoinsReceived(object sender, TxCoinsEventArgs args)
+		private void HandleCoinsReceived(TxCoinsEventArgs args)
 		{
 			if (UiConfig?.LurkingWifeMode is true)
 			{
@@ -566,10 +587,8 @@ namespace WalletWasabi.Gui
 		public async Task DisposeInWalletDependentServicesAsync()
 		{
 			var walletService = WalletService;
-			if (walletService is { })
-			{
-				walletService.TransactionProcessor.CoinsReceived -= CoinsReceived;
-			}
+
+			_walletServiceDisposables?.Dispose();
 
 			try
 			{
