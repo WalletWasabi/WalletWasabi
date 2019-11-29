@@ -485,17 +485,38 @@ namespace WalletWasabi.Gui
 
 		private void TransactionProcessor_WalletRelevantTransactionProcessed(object sender, ProcessedResult e)
 		{
-			if (UiConfig?.LurkingWifeMode is true)
+			try
 			{
-				return;
+				// In lurking wife mode no notification is raised.
+				// If there are no news, then don't bother too.
+				if (UiConfig?.LurkingWifeMode is true || !e.IsNews)
+				{
+					return;
+				}
+
+				// ToDo
+				// Received.
+				// Self spend.
+				// RBF-ed.
+				// Double spent.
+				// CoinJoin?
+				// Anonymity set gained?
+				// Received dust
+				// Received coinbase -> mined
+				// Tx confirmed
+				// Log
+
+				if (e.NewlyReceivedCoins.Any())
+				{
+					Money satSum = e.NewlyReceivedCoins.Where(x => !x.HdPubKey.IsInternal).Sum(x => x.Amount);
+					string amountString = satSum.ToString(false, true);
+
+					NotificationHelpers.Information($"{amountString} BTC", "Received");
+				}
 			}
-
-			if (e.NewlyReceivedCoins.Any())
+			catch (Exception ex)
 			{
-				Money satSum = e.NewlyReceivedCoins.Where(x => !x.HdPubKey.IsInternal).Sum(x => x.Amount);
-				string amountString = satSum.ToString(false, true);
-
-				NotificationHelpers.Information($"{amountString} BTC", "Received");
+				Logger.LogWarning(ex);
 			}
 		}
 
