@@ -70,7 +70,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 
 		private TransactionProcessedResult ProcessNoLock(SmartTransaction tx)
 		{
-			var walletRelevant = false;
 			var result = new TransactionProcessedResult(tx);
 
 			// We do not care about non-witness transactions for other than mempool cleanup.
@@ -78,11 +77,11 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			{
 				uint256 txId = tx.GetHash();
 
+				var walletRelevant = false;
 				if (tx.Confirmed)
 				{
 					foreach (var coin in Coins.AsAllCoinsView().CreatedBy(txId))
 					{
-						coin.Height = tx.Height;
 						walletRelevant = true; // relevant
 					}
 				}
@@ -101,7 +100,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 								{
 									doubleSpends.Add(coin);
 									spent = true;
-									walletRelevant = true;
 									break;
 								}
 							}
@@ -137,7 +135,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 								}
 
 								tx.SetReplacement();
-								walletRelevant = true;
 							}
 							else
 							{
@@ -156,12 +153,11 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 
 							var unconfirmedDoubleSpentTxId = doubleSpends.First().TransactionId;
 							TransactionStore.MempoolStore.TryRemove(unconfirmedDoubleSpentTxId, out _);
-							walletRelevant = true;
 						}
 					}
 				}
 
-				bool hasEqualOutputs = tx.Transaction.GetIndistinguishableOutputs(includeSingle: false).FirstOrDefault() != default;
+				bool hasEqualOutputs = tx.Transaction.HasIndistinguishableOutputs();
 				if (hasEqualOutputs)
 				{
 					var receiveKeys = KeyManager.GetKeys(x => tx.Transaction.Outputs.Any(y => y.ScriptPubKey == x.P2wpkhScript));
@@ -188,8 +184,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					HdPubKey foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
 					if (foundKey != default)
 					{
-						walletRelevant = true;
-
 						if (output.Value <= DustThreshold)
 						{
 							result.ReceivedDusts.Add(output);
@@ -226,7 +220,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 							if (newCoin.Height != Height.Mempool) // Update the height of this old coin we already had.
 							{
 								SmartCoin oldCoin = Coins.AsAllCoinsView().GetByOutPoint(new OutPoint(txId, i));
-								if (oldCoin != null) // Just to be sure, it is a concurrent collection.
+								if (oldCoin is { }) // Just to be sure, it is a concurrent collection.
 								{
 									result.NewlyConfirmedReceivedCoins.Add(newCoin);
 									oldCoin.Height = newCoin.Height;
@@ -244,7 +238,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					var foundCoin = Coins.GetByOutPoint(input.PrevOut);
 					if (foundCoin != null)
 					{
-						walletRelevant = true;
 						var alreadyKnown = foundCoin.SpenderTransactionId == txId;
 						foundCoin.SpenderTransactionId = txId;
 						result.SpentCoins.Add(foundCoin);
@@ -262,7 +255,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
-				if (walletRelevant)
+				if (result.IsWalletRelevant)
 				{
 					TransactionStore.AddOrUpdate(tx);
 				}
