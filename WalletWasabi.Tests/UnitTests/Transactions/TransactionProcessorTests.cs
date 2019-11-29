@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
@@ -156,7 +157,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			int doubleSpendReceivedCalled = 0;
 			transactionProcessor.DoubleSpendReceived += (s, e) =>
 			{
-				var coin = Assert.Single(e.Remove);
+				var coin = Assert.Single(e.Coins);
 				// Double spend to ourselves but to a different address. So checking the address.
 				Assert.Equal(keys[1].PubKey.WitHash.ScriptPubKey, coin.ScriptPubKey);
 
@@ -165,18 +166,21 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			int coinReceivedCalled = 0;
 			// The coin with the confirmed tx should win.
-			transactionProcessor.CoinReceived += (s, c) =>
+			transactionProcessor.CoinsReceived += (s, cs) =>
 			{
-				switch (coinReceivedCalled)
+				foreach (var c in cs.Coins)
 				{
-					case 0: Assert.Equal(keys[0].PubKey.WitHash.ScriptPubKey, c.ScriptPubKey); break;
-					case 1: Assert.Equal(keys[1].PubKey.WitHash.ScriptPubKey, c.ScriptPubKey); break;
-					case 2: Assert.Equal(keys[2].PubKey.WitHash.ScriptPubKey, c.ScriptPubKey); break;
-					default:
-						throw new InvalidOperationException();
-				};
+					switch (coinReceivedCalled)
+					{
+						case 0: Assert.Equal(keys[0].PubKey.WitHash.ScriptPubKey, c.ScriptPubKey); break;
+						case 1: Assert.Equal(keys[1].PubKey.WitHash.ScriptPubKey, c.ScriptPubKey); break;
+						case 2: Assert.Equal(keys[2].PubKey.WitHash.ScriptPubKey, c.ScriptPubKey); break;
+						default:
+							throw new InvalidOperationException();
+					};
 
-				coinReceivedCalled++;
+					coinReceivedCalled++;
+				}
 			};
 
 			// An unconfirmed segwit transaction for us
@@ -227,10 +231,10 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				Assert.Equal(Money.Coins(1.0m), originalCoin.Amount);
 
 				// Remove the created coin by the transaction.
-				Assert.Equal(3, e.DestroyedCoins.Count());
-				Assert.Single(e.DestroyedCoins, coin => coin.HdPubKey.Label == "B");
-				Assert.Single(e.DestroyedCoins, coin => coin.HdPubKey.Label == "C");
-				Assert.Single(e.DestroyedCoins, coin => coin.HdPubKey.Label == "D");
+				Assert.Equal(3, e.ReplacedCoins.Count());
+				Assert.Single(e.ReplacedCoins, coin => coin.HdPubKey.Label == "B");
+				Assert.Single(e.ReplacedCoins, coin => coin.HdPubKey.Label == "C");
+				Assert.Single(e.ReplacedCoins, coin => coin.HdPubKey.Label == "D");
 
 				replaceTransactionReceivedCalled++;
 			};
@@ -292,9 +296,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
 			int coinsReceived = 0;
 			int confirmed = 0;
-			transactionProcessor.CoinReceived += (s, e) => coinsReceived++;
-			transactionProcessor.CoinSpent += (s, e) => throw new InvalidOperationException("We are not spending the coin.");
-			transactionProcessor.SpenderConfirmed += (s, e) => confirmed++;
+			transactionProcessor.CoinsReceived += (s, e) => coinsReceived++;
+			transactionProcessor.CoinsSpent += (s, e) => throw new InvalidOperationException("We are not spending the coin.");
+			transactionProcessor.SpendersConfirmed += (s, e) => confirmed++;
 
 			// A confirmed segwit transaction for us
 			var tx1 = CreateCreditingTransaction(keys[0].PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m));
@@ -446,7 +450,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		{
 			var transactionProcessor = await CreateTransactionProcessorAsync();
 			SmartCoin receivedCoin = null;
-			transactionProcessor.CoinReceived += (s, theCoin) => receivedCoin = theCoin;
+			transactionProcessor.CoinsReceived += (s, theCoin) => receivedCoin = theCoin.Coins.Single();
 			var keys = transactionProcessor.KeyManager.GetKeys();
 			var tx = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(1.0m));
 
@@ -472,7 +476,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		{
 			var transactionProcessor = await CreateTransactionProcessorAsync();
 			SmartCoin spentCoin = null;
-			transactionProcessor.CoinSpent += (s, theCoin) => spentCoin = theCoin;
+			transactionProcessor.CoinsSpent += (s, theCoin) => spentCoin = theCoin.Coins.Single();
 			var keys = transactionProcessor.KeyManager.GetKeys();
 			var tx0 = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(1.0m));
 			transactionProcessor.Process(tx0);
@@ -500,7 +504,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		public async Task ReceiveTransactionWithDustForWalletAsync()
 		{
 			var transactionProcessor = await CreateTransactionProcessorAsync();
-			transactionProcessor.CoinReceived += (s, theCoin)
+			transactionProcessor.CoinsReceived += (s, theCoin)
 				=> throw new Exception("The dust coin raised an event when it shouldn't.");
 			var keys = transactionProcessor.KeyManager.GetKeys();
 			var tx = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(0.000099m));

@@ -557,8 +557,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					switch (FeeDisplayFormat)
 					{
 						case FeeDisplayFormat.SatoshiPerByte:
-							FeeText = $"(~ {FeeRate.SatoshiPerByte} sat/byte)";
-							FeeToolTip = "Expected fee rate in satoshi / vbyte.";
+							FeeText = $"(~ {FeeRate.SatoshiPerByte} sat/vByte)";
+							FeeToolTip = "Expected fee rate in satoshi/vByte.";
 							break;
 
 						case FeeDisplayFormat.USD:

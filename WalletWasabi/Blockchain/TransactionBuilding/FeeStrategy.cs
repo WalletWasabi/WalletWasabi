@@ -57,7 +57,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 				Guard.NotNull(nameof(feeRate), feeRate);
 				if (feeRate < new FeeRate(1m))
 				{
-					throw new ArgumentOutOfRangeException(nameof(feeRate), feeRate, "Cannot be less than 1 sat/byte.");
+					throw new ArgumentOutOfRangeException(nameof(feeRate), feeRate, "Cannot be less than 1 sat/vByte.");
 				}
 				_rate = feeRate;
 			}

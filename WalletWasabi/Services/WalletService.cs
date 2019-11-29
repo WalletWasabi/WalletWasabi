@@ -20,6 +20,7 @@ using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.Exceptions;
@@ -114,8 +115,8 @@ namespace WalletWasabi.Services
 			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.PrivacyLevelStrong);
 			Coins = TransactionProcessor.Coins;
 
-			TransactionProcessor.CoinSpent += TransactionProcessor_CoinSpent;
-			TransactionProcessor.CoinReceived += TransactionProcessor_CoinReceivedAsync;
+			TransactionProcessor.CoinsSpent += TransactionProcessor_CoinsSpent;
+			TransactionProcessor.CoinsReceived += TransactionProcessor_CoinsReceivedAsync;
 
 			if (Directory.Exists(BlocksFolderPath))
 			{
@@ -141,11 +142,14 @@ namespace WalletWasabi.Services
 			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
 		}
 
-		private void TransactionProcessor_CoinSpent(object sender, SmartCoin spentCoin)
+		private void TransactionProcessor_CoinsSpent(object sender, TxCoinsEventArgs args)
 		{
 			try
 			{
-				ChaumianClient.ExposedLinks.TryRemove(spentCoin.GetTxoRef(), out _);
+				foreach (var coin in args.Coins)
+				{
+					ChaumianClient.ExposedLinks.TryRemove(coin.GetTxoRef(), out _);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -153,16 +157,24 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private async void TransactionProcessor_CoinReceivedAsync(object sender, SmartCoin newCoin)
+		private async void TransactionProcessor_CoinsReceivedAsync(object sender, TxCoinsEventArgs args)
 		{
 			try
 			{
-				// If it's being mixed and anonset is not sufficient, then queue it.
-				if (newCoin.Unspent && ChaumianClient.HasIngredients
-					&& newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet
-					&& ChaumianClient.State.Contains(newCoin.SpentOutputs))
+				if (ChaumianClient.State.Contains(args.SmartTransaction.Transaction.Inputs.Select(x => x.PrevOut.ToTxoRef())))
 				{
-					await ChaumianClient.QueueCoinsToMixAsync(newCoin);
+					var coinsToQueue = new List<SmartCoin>();
+					foreach (var newCoin in args.Coins)
+					{
+						// If it's being mixed and anonset is not sufficient, then queue it.
+						if (newCoin.Unspent && ChaumianClient.HasIngredients
+							&& newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet)
+						{
+							coinsToQueue.Add(newCoin);
+						}
+					}
+
+					await ChaumianClient.QueueCoinsToMixAsync(coinsToQueue).ConfigureAwait(false);
 				}
 			}
 			catch (Exception ex)
@@ -175,10 +187,7 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				lock (TransactionProcessor.Lock)
-				{
-					TransactionProcessor.Process(tx);
-				}
+				TransactionProcessor.Process(tx);
 			}
 			catch (Exception ex)
 			{
@@ -267,13 +276,8 @@ namespace WalletWasabi.Services
 		{
 			KeyManager.AssertNetworkOrClearBlockState(Network);
 			Height bestKeyManagerHeight = KeyManager.GetBestHeight();
-			lock (TransactionProcessor.Lock)
-			{
-				foreach (var tx in BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight))
-				{
-					TransactionProcessor.Process(tx);
-				}
-			}
+
+			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
 
 			// Go through the filters and queue to download the matches.
 			await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) =>
@@ -300,34 +304,27 @@ namespace WalletWasabi.Services
 
 				var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
 
-				lock (TransactionProcessor.Lock)
+				var txsToProcess = new List<SmartTransaction>();
+				foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
 				{
-					foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
+					uint256 hash = tx.GetHash();
+					if (mempoolHashes.Contains(hash.ToString().Substring(0, compactness)))
 					{
-						uint256 hash = tx.GetHash();
-						if (mempoolHashes.Contains(hash.ToString().Substring(0, compactness)))
-						{
-							TransactionProcessor.Process(tx);
-
-							Logger.LogInfo($"Transaction was successfully tested against the backend's mempool hashes: {hash}.");
-						}
-						else
-						{
-							BitcoinStore.TransactionStore.MempoolStore.TryRemove(tx.GetHash(), out _);
-						}
+						txsToProcess.Add(tx);
+						Logger.LogInfo($"Transaction was successfully tested against the backend's mempool hashes: {hash}.");
+					}
+					else
+					{
+						BitcoinStore.TransactionStore.MempoolStore.TryRemove(tx.GetHash(), out _);
 					}
 				}
+
+				TransactionProcessor.Process(txsToProcess);
 			}
 			catch (Exception ex)
 			{
-				lock (TransactionProcessor.Lock)
-				{
-					// When there's a connection failure do not clean the transactions, add them to processing.
-					foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
-					{
-						TransactionProcessor.Process(tx);
-					}
-				}
+				// When there's a connection failure do not clean the transactions, add them to processing.
+				TransactionProcessor.Process(BitcoinStore.TransactionStore.MempoolStore.GetTransactions());
 
 				Logger.LogWarning(ex);
 			}
@@ -344,16 +341,14 @@ namespace WalletWasabi.Services
 			Block currentBlock = await FetchBlockAsync(filterModel.Header.BlockHash, cancel); // Wait until not downloaded.
 			var height = new Height(filterModel.Header.Height);
 
-			lock (TransactionProcessor.Lock)
+			var txsToProcess = new List<SmartTransaction>();
+			for (int i = 0; i < currentBlock.Transactions.Count; i++)
 			{
-				for (int i = 0; i < currentBlock.Transactions.Count; i++)
-				{
-					Transaction tx = currentBlock.Transactions[i];
-					TransactionProcessor.Process(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime));
-				}
-
-				KeyManager.SetBestHeight(height);
+				Transaction tx = currentBlock.Transactions[i];
+				txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime));
 			}
+			TransactionProcessor.Process(txsToProcess);
+			KeyManager.SetBestHeight(height);
 
 			NewBlockProcessed?.Invoke(this, currentBlock);
 		}
@@ -827,8 +822,8 @@ namespace WalletWasabi.Services
 					BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
 					BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
 					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
-					TransactionProcessor.CoinSpent -= TransactionProcessor_CoinSpent;
-					TransactionProcessor.CoinReceived -= TransactionProcessor_CoinReceivedAsync;
+					TransactionProcessor.CoinsSpent -= TransactionProcessor_CoinsSpent;
+					TransactionProcessor.CoinsReceived -= TransactionProcessor_CoinsReceivedAsync;
 
 					DisconnectDisposeNullLocalBitcoinCoreNode();
 				}
