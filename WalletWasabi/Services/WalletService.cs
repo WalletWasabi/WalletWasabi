@@ -141,7 +141,7 @@ namespace WalletWasabi.Services
 			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
 		}
 
-		private async void TransactionProcessor_WalletRelevantTransactionProcessedAsync(object sender, TransactionProcessedResult e)
+		private async void TransactionProcessor_WalletRelevantTransactionProcessedAsync(object sender, ProcessedResult e)
 		{
 			try
 			{

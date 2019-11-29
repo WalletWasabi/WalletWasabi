@@ -1475,7 +1475,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				srtxwwreq.Transaction = overwriteTx;
 				var srtxwwres = await rpc.SignRawTransactionWithWalletAsync(srtxwwreq);
 
-				var walletRelevantTransactionProcessedAwaiter = new EventAwaiter<TransactionProcessedResult>(
+				var walletRelevantTransactionProcessedAwaiter = new EventAwaiter<ProcessedResult>(
 					h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed += h,
 					h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed -= h);
 				await rpc.GenerateAsync(10);
@@ -1504,7 +1504,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				// Get some money, make it confirm.
 				// this is necesary because we are in a fork now.
-				var eventAwaiter = new EventAwaiter<TransactionProcessedResult>(
+				var eventAwaiter = new EventAwaiter<ProcessedResult>(
 								h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed += h,
 								h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed -= h);
 				fundingTxId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m), replaceable: true);
@@ -1596,7 +1596,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				// Get some money, make it confirm.
 				// this is necesary because we are in a fork now.
-				var eventAwaiter = new EventAwaiter<TransactionProcessedResult>(
+				var eventAwaiter = new EventAwaiter<ProcessedResult>(
 					h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed += h,
 					h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed -= h);
 				var tx0Id = await rpc.SendToAddressAsync(
@@ -1621,7 +1621,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// Spend the unconfirmed coin (send it to ourself)
 				operations = new PaymentIntent(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m));
 				tx1Res = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
-				eventAwaiter = new EventAwaiter<TransactionProcessedResult>(
+				eventAwaiter = new EventAwaiter<ProcessedResult>(
 					h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed += h,
 					h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed -= h);
 				await broadcaster.SendTransactionAsync(tx1Res.Transaction);
@@ -1646,7 +1646,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				operations = new PaymentIntent(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m), subtractFee: true);
 				var tx2Res = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
 
-				eventAwaiter = new EventAwaiter<TransactionProcessedResult>(
+				eventAwaiter = new EventAwaiter<ProcessedResult>(
 								h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed += h,
 								h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed -= h);
 				await broadcaster.SendTransactionAsync(tx2Res.Transaction);

@@ -20,7 +20,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 		public CoinsRegistry Coins { get; }
 		public Money DustThreshold { get; }
 
-		public event EventHandler<TransactionProcessedResult> WalletRelevantTransactionProcessed;
+		public event EventHandler<ProcessedResult> WalletRelevantTransactionProcessed;
 
 		public TransactionProcessor(
 			AllTransactionStore transactionStore,
@@ -34,9 +34,9 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			Coins = new CoinsRegistry(privacyLevelThreshold);
 		}
 
-		public IEnumerable<TransactionProcessedResult> Process(IEnumerable<SmartTransaction> txs)
+		public IEnumerable<ProcessedResult> Process(IEnumerable<SmartTransaction> txs)
 		{
-			var rets = new List<TransactionProcessedResult>();
+			var rets = new List<ProcessedResult>();
 
 			lock (Lock)
 			{
@@ -54,9 +54,9 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			return rets;
 		}
 
-		public TransactionProcessedResult Process(SmartTransaction tx)
+		public ProcessedResult Process(SmartTransaction tx)
 		{
-			TransactionProcessedResult ret;
+			ProcessedResult ret;
 			lock (Lock)
 			{
 				ret = ProcessNoLock(tx);
@@ -68,9 +68,9 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			return ret;
 		}
 
-		private TransactionProcessedResult ProcessNoLock(SmartTransaction tx)
+		private ProcessedResult ProcessNoLock(SmartTransaction tx)
 		{
-			var result = new TransactionProcessedResult(tx);
+			var result = new ProcessedResult(tx);
 
 			// We do not care about non-witness transactions for other than mempool cleanup.
 			if (tx.Transaction.PossiblyP2WPKHInvolved())

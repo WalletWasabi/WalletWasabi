@@ -483,7 +483,7 @@ namespace WalletWasabi.Gui
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
 		}
 
-		private void TransactionProcessor_WalletRelevantTransactionProcessed(object sender, TransactionProcessedResult e)
+		private void TransactionProcessor_WalletRelevantTransactionProcessed(object sender, ProcessedResult e)
 		{
 			if (UiConfig?.LurkingWifeMode is true)
 			{
