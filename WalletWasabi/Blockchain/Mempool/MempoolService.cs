@@ -169,18 +169,22 @@ namespace WalletWasabi.Blockchain.Mempool
 
 		public void Process(Transaction tx)
 		{
+			var txAdded = new SmartTransaction(tx, Height.Mempool);
 			lock (ProcessedLock)
 			{
 				if (ProcessedTransactionHashes.Add(tx.GetHash()))
 				{
-					TransactionReceived?.Invoke(this, new SmartTransaction(tx, Height.Mempool));
+					txAdded = new SmartTransaction(tx, Height.Mempool);
 				}
 				else
 				{
 					Interlocked.Increment(ref _duplicatedReceives);
 				}
-
 				Interlocked.Increment(ref _totalReceives);
+			}
+			if (txAdded is { })
+			{
+				TransactionReceived?.Invoke(this, txAdded);
 			}
 		}
 	}
