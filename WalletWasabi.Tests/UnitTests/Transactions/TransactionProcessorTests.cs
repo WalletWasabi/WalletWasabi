@@ -27,7 +27,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var relevant = transactionProcessor.Process(tx);
 
-			Assert.False(relevant.IsWalletRelevant);
+			Assert.False(relevant.IsNews);
 			Assert.Empty(transactionProcessor.Coins);
 			Assert.True(transactionProcessor.TransactionStore.MempoolStore.IsEmpty());
 			Assert.True(transactionProcessor.TransactionStore.ConfirmedStore.IsEmpty());
@@ -43,7 +43,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx = CreateCreditingTransaction(keys.First().P2pkhScript, Money.Coins(1.0m));
 			var relevant = transactionProcessor.Process(tx);
 
-			Assert.False(relevant.IsWalletRelevant);
+			Assert.False(relevant.IsNews);
 			Assert.Empty(transactionProcessor.Coins);
 			Assert.True(transactionProcessor.TransactionStore.MempoolStore.IsEmpty());
 			Assert.True(transactionProcessor.TransactionStore.ConfirmedStore.IsEmpty());
@@ -59,7 +59,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var relevant = transactionProcessor.Process(tx);
 
-			Assert.False(relevant.IsWalletRelevant);
+			Assert.False(relevant.IsNews);
 			Assert.Empty(transactionProcessor.Coins);
 			Assert.True(transactionProcessor.TransactionStore.MempoolStore.IsEmpty());
 			Assert.True(transactionProcessor.TransactionStore.ConfirmedStore.IsEmpty());
@@ -75,7 +75,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var relevant = transactionProcessor.Process(tx);
 
-			Assert.False(relevant.IsWalletRelevant);
+			Assert.False(relevant.IsNews);
 			Assert.Empty(transactionProcessor.Coins);
 			Assert.True(transactionProcessor.TransactionStore.MempoolStore.IsEmpty());
 			Assert.True(transactionProcessor.TransactionStore.ConfirmedStore.IsEmpty());
@@ -103,7 +103,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			tx = new SmartTransaction(tx.Transaction, blockHeight);
 			var relevant = transactionProcessor.Process(tx);
 
-			Assert.True(relevant.IsWalletRelevant);
+			Assert.True(relevant.IsNews);
 			Assert.Single(transactionProcessor.Coins);
 
 			// Transaction store assertions
@@ -135,7 +135,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx2 = CreateSpendingTransaction(createdCoin, keys[2].PubKey.WitHash.ScriptPubKey);
 			var relevant = transactionProcessor.Process(tx2);
 
-			Assert.False(relevant.IsWalletRelevant);
+			Assert.False(relevant.IsNews);
 			Assert.Single(transactionProcessor.Coins, coin => coin.Unspent);
 			Assert.Single(transactionProcessor.Coins.AsAllCoinsView(), coin => !coin.Unspent);
 
@@ -202,7 +202,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var relevant = transactionProcessor.Process(tx2);
 			Assert.Equal(1, doubleSpendReceived);
 
-			Assert.True(relevant.IsWalletRelevant);
+			Assert.True(relevant.IsNews);
 			Assert.Single(transactionProcessor.Coins, coin => coin.Unspent && coin.Confirmed);
 			Assert.Single(transactionProcessor.Coins.AsAllCoinsView(), coin => !coin.Unspent && coin.Confirmed);
 
@@ -257,7 +257,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			tx1.Transaction.Outputs[0].Value = Money.Coins(0.95m);
 			tx1.Transaction.Outputs.Add(Money.Coins(0.1m), transactionProcessor.NewKey("C").P2wpkhScript);
 			var relevant = transactionProcessor.Process(tx1);
-			Assert.True(relevant.IsWalletRelevant);
+			Assert.True(relevant.IsNews);
 			Assert.Equal(0, replaceTransactionReceivedCalled);
 
 			var unconfirmedCoin1 = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Label == "B");
@@ -269,7 +269,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx2 = CreateSpendingTransaction(unconfirmedCoin1.GetCoin(), transactionProcessor.NewKey("D").P2wpkhScript);
 			tx2.Transaction.Outputs[0].Value = Money.Coins(0.7m);
 			relevant = transactionProcessor.Process(tx2);
-			Assert.True(relevant.IsWalletRelevant);
+			Assert.True(relevant.IsNews);
 			Assert.Equal(0, replaceTransactionReceivedCalled);
 
 			// Spend it coin
@@ -277,7 +277,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			tx3.Transaction.Outputs[0].Value = Money.Coins(0.9m);
 			relevant = transactionProcessor.Process(tx3);
 
-			Assert.True(relevant.IsWalletRelevant);
+			Assert.True(relevant.IsNews);
 			Assert.Equal(1, replaceTransactionReceivedCalled);
 			var finalCoin = Assert.Single(transactionProcessor.Coins);
 			Assert.True(finalCoin.IsReplaceable);
@@ -301,12 +301,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var transactionProcessor = await CreateTransactionProcessorAsync();
 
 			var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
-			int coinsReceived = 0;
 			int confirmed = 0;
-			transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
-			{
-				coinsReceived += e.NewlyReceivedCoins.Count;
-			};
 			transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
 			{
 				if (e.NewlySpentCoins.Any())
@@ -321,8 +316,22 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// A confirmed segwit transaction for us
 			var tx1 = CreateCreditingTransaction(keys[0].PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m));
-			transactionProcessor.Process(tx1);
-			Assert.Equal(1, coinsReceived);
+			var res = transactionProcessor.Process(tx1);
+			Assert.True(res.IsNews);
+			Assert.Single(res.NewlyReceivedCoins);
+			Assert.Single(res.ReceivedCoins);
+			Assert.Empty(res.NewlyConfirmedReceivedCoins);
+			Assert.Empty(res.ReceivedDusts);
+
+			// Process it again.
+			res = transactionProcessor.Process(tx1);
+			Assert.False(res.IsNews);
+			Assert.Empty(res.ReplacedCoins);
+			Assert.Empty(res.RestoredCoins);
+			Assert.Empty(res.SuccessfullyDoubleSpentCoins);
+			Assert.Single(res.ReceivedCoins);
+			Assert.Empty(res.NewlyConfirmedReceivedCoins);
+			Assert.Empty(res.ReceivedDusts);
 
 			var coin = Assert.Single(transactionProcessor.Coins);
 			Assert.False(coin.Confirmed);
@@ -330,8 +339,14 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx2 = new SmartTransaction(tx1.Transaction.Clone(), new Height(54321));
 
 			Assert.Equal(tx1.GetHash(), tx2.GetHash());
-			transactionProcessor.Process(tx2);
-			Assert.Equal(1, coinsReceived);
+			res = transactionProcessor.Process(tx2);
+			Assert.True(res.IsNews);
+			Assert.Empty(res.ReplacedCoins);
+			Assert.Empty(res.RestoredCoins);
+			Assert.Empty(res.SuccessfullyDoubleSpentCoins);
+			Assert.Single(res.ReceivedCoins);
+			Assert.Single(res.NewlyConfirmedReceivedCoins);
+			Assert.Empty(res.ReceivedDusts);
 			Assert.True(coin.Confirmed);
 
 			Assert.Equal(0, confirmed);
@@ -378,7 +393,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx2 = CreateSpendingTransaction(createdCoins, destinationScript, changeScript); // spends 1.2btc
 			tx2.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
 			var relevant = transactionProcessor.Process(tx2);
-			Assert.True(relevant.IsWalletRelevant);
+			Assert.True(relevant.IsNews);
 
 			// Another confirmed segwit transaction for us
 			var tx3 = CreateCreditingTransaction(NewScript("C"), Money.Coins(1.0m), height: 54322);
@@ -393,7 +408,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx4 = CreateSpendingTransaction(coinsToSpend, destinationScript, changeScript);
 			relevant = transactionProcessor.Process(tx4);
 
-			Assert.True(relevant.IsWalletRelevant);
+			Assert.True(relevant.IsNews);
 			var coin = Assert.Single(transactionProcessor.Coins);
 			Assert.True(coin.IsReplaceable);
 
@@ -439,14 +454,14 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx2 = CreateSpendingTransaction(createdCoins, destinationScript, changeScript); // spends 1.2btc
 			tx2.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
 			var relevant = transactionProcessor.Process(tx2);
-			Assert.True(relevant.IsWalletRelevant);
+			Assert.True(relevant.IsNews);
 
 			// replace previous tx with another one spending only one coin
 			destinationScript = new Key().PubKey.WitHash.ScriptPubKey;  // spend to someone else
 			var tx3 = CreateSpendingTransaction(createdCoins.Take(1), destinationScript, changeScript); // spends 0.6btc
 			relevant = transactionProcessor.Process(tx3);
 
-			Assert.True(relevant.IsWalletRelevant);
+			Assert.True(relevant.IsNews);
 			var replaceableCoin = Assert.Single(transactionProcessor.Coins, c => c.IsReplaceable);
 			Assert.Equal(tx3.Transaction.GetHash(), replaceableCoin.TransactionId);
 
@@ -476,7 +491,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var relevant = transactionProcessor.Process(tx);
 
 			// It is relevant because is funding the wallet
-			Assert.True(relevant.IsWalletRelevant);
+			Assert.True(relevant.IsNews);
 			var coin = Assert.Single(transactionProcessor.Coins);
 			Assert.Equal(Money.Coins(1.0m), coin.Amount);
 			Assert.NotNull(receivedCoin);
@@ -511,7 +526,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx1 = CreateSpendingTransaction(createdCoin, new Key().PubKey.ScriptPubKey);
 			var relevant = transactionProcessor.Process(tx1);
 
-			Assert.True(relevant.IsWalletRelevant);
+			Assert.True(relevant.IsNews);
 			var coin = Assert.Single(transactionProcessor.Coins.AsAllCoinsView());
 			Assert.False(coin.Unspent);
 			Assert.NotNull(spentCoin);
@@ -543,7 +558,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var relevant = transactionProcessor.Process(tx);
 
 			// It is relevant even when all the coins can be dust.
-			Assert.True(relevant.IsWalletRelevant);
+			Assert.True(relevant.IsNews);
 			Assert.Empty(transactionProcessor.Coins);
 
 			// Transaction store assertions
@@ -573,7 +588,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var relevant = transactionProcessor.Process(new SmartTransaction(tx, Height.Mempool));
 
 			// It is relevant even when all the coins can be dust.
-			Assert.True(relevant.IsWalletRelevant);
+			Assert.True(relevant.IsNews);
 			var coin = Assert.Single(transactionProcessor.Coins);
 			Assert.Equal(4, coin.AnonymitySet);
 			Assert.Equal(amount, coin.Amount);
@@ -604,7 +619,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var relevant = transactionProcessor.Process(new SmartTransaction(tx, Height.Mempool));
 
 			// It is relevant even when all the coins can be dust.
-			Assert.True(relevant.IsWalletRelevant);
+			Assert.True(relevant.IsNews);
 			var coin = Assert.Single(transactionProcessor.Coins, c => c.AnonymitySet > 1);
 			Assert.Equal(5, coin.AnonymitySet);
 			Assert.Equal(amount, coin.Amount);

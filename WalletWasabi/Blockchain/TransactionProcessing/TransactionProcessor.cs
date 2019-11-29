@@ -46,7 +46,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 				}
 			}
 
-			foreach (var ret in rets.Where(x => x.IsWalletRelevant))
+			foreach (var ret in rets.Where(x => x.IsNews))
 			{
 				WalletRelevantTransactionProcessed?.Invoke(this, ret);
 			}
@@ -61,7 +61,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			{
 				ret = ProcessNoLock(tx);
 			}
-			if (ret.IsWalletRelevant)
+			if (ret.IsNews)
 			{
 				WalletRelevantTransactionProcessed?.Invoke(this, ret);
 			}
@@ -77,16 +77,8 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			{
 				uint256 txId = tx.GetHash();
 
-				var walletRelevant = false;
-				if (tx.Confirmed)
-				{
-					foreach (var coin in Coins.AsAllCoinsView().CreatedBy(txId))
-					{
-						walletRelevant = true; // relevant
-					}
-				}
-
-				if (!tx.Transaction.IsCoinBase && !walletRelevant) // Transactions we already have and processed would be "double spends" but they shouldn't.
+				// Performance ToDo: txids could be cached in a hashset here by the AllCoinsView and then the contains would be fast.
+				if (!tx.Transaction.IsCoinBase && !Coins.AsAllCoinsView().CreatedBy(txId).Any()) // Transactions we already have and processed would be "double spends" but they shouldn't.
 				{
 					var doubleSpends = new List<SmartCoin>();
 					foreach (SmartCoin coin in Coins.AsAllCoinsView())
@@ -255,7 +247,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
-				if (result.IsWalletRelevant)
+				if (result.IsNews)
 				{
 					TransactionStore.AddOrUpdate(tx);
 				}

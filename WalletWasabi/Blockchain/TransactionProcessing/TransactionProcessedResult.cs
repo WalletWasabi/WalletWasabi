@@ -13,7 +13,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 	{
 		public SmartTransaction Transaction { get; }
 
-		public bool IsWalletRelevant =>
+		public bool IsNews =>
 			SuccessfullyDoubleSpentCoins.Any()
 			|| ReplacedCoins.Any()
 			|| RestoredCoins.Any()
@@ -21,7 +21,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			|| NewlyConfirmedReceivedCoins.Any()
 			|| NewlySpentCoins.Any()
 			|| NewlyConfirmedSpentCoins.Any()
-			|| ReceivedDusts.Any();
+			|| ReceivedDusts.Any(); // To be fair it isn't necessarily news, the algorithm of the processor can be improved for that. Not sure it is worth it though.
 
 		public bool IsLikelyOwnCoinJoin { get; set; } = false;
 
