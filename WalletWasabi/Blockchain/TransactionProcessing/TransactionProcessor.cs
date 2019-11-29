@@ -20,16 +20,16 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 		public CoinsRegistry Coins { get; }
 		public Money DustThreshold { get; }
 
-		public event EventHandler<SmartCoin> CoinSpent;
+		public event EventHandler<TxCoinsEventArgs> CoinsSpent;
 
-		public event EventHandler<SmartCoin> SpenderConfirmed;
+		public event EventHandler<TxCoinsEventArgs> SpendersConfirmed;
 
-		public event EventHandler<SmartCoin> CoinReceived;
+		public event EventHandler<TxCoinsEventArgs> CoinsReceived;
 
 		/// <summary>
 		/// Received a confirmed double spend transaction.
 		/// </summary>
-		public event EventHandler<DoubleSpendReceivedEventArgs> DoubleSpendReceived;
+		public event EventHandler<TxCoinsEventArgs> DoubleSpendReceived;
 
 		public event EventHandler<ReplaceTransactionReceivedEventArgs> ReplaceTransactionReceived;
 
@@ -136,7 +136,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 							}
 							else
 							{
-								DoubleSpendReceived?.Invoke(this, new DoubleSpendReceivedEventArgs(tx, Enumerable.Empty<SmartCoin>()));
+								DoubleSpendReceived?.Invoke(this, new TxCoinsEventArgs(tx, Enumerable.Empty<SmartCoin>()));
 								return false;
 							}
 						}
@@ -148,7 +148,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 								Coins.Remove(doubleSpentCoin);
 							}
 
-							DoubleSpendReceived?.Invoke(this, new DoubleSpendReceivedEventArgs(tx, doubleSpends));
+							DoubleSpendReceived?.Invoke(this, new TxCoinsEventArgs(tx, doubleSpends));
 
 							var unconfirmedDoubleSpentTxId = doubleSpends.First().TransactionId;
 							TransactionStore.MempoolStore.TryRemove(unconfirmedDoubleSpentTxId, out _);
@@ -178,6 +178,8 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 				}
 
 				List<SmartCoin> newCoins = new List<SmartCoin>();
+				List<SmartCoin> coinsSpent = new List<SmartCoin>();
+				List<SmartCoin> spendersConfirmed = new List<SmartCoin>();
 				List<SmartCoin> spentOwnCoins = null;
 				for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 				{
@@ -245,12 +247,12 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 						if (!alreadyKnown)
 						{
 							Coins.Spend(foundCoin);
-							CoinSpent?.Invoke(this, foundCoin);
+							coinsSpent.Add(foundCoin);
 						}
 
 						if (tx.Confirmed)
 						{
-							SpenderConfirmed?.Invoke(this, foundCoin);
+							spendersConfirmed.Add(foundCoin);
 						}
 					}
 				}
@@ -260,9 +262,17 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					TransactionStore.AddOrUpdate(tx);
 				}
 
-				foreach (var newCoin in newCoins)
+				if (coinsSpent.Any())
 				{
-					CoinReceived?.Invoke(this, newCoin);
+					CoinsSpent?.Invoke(this, new TxCoinsEventArgs(tx, coinsSpent));
+				}
+				if (spendersConfirmed.Any())
+				{
+					SpendersConfirmed?.Invoke(this, new TxCoinsEventArgs(tx, spendersConfirmed));
+				}
+				if (newCoins.Any())
+				{
+					CoinsReceived?.Invoke(this, new TxCoinsEventArgs(tx, newCoins));
 				}
 			}
 

@@ -21,6 +21,7 @@ using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.Gui.Helpers;
@@ -474,7 +475,7 @@ namespace WalletWasabi.Gui
 				Logger.LogInfo($"{nameof(WalletService)} started.");
 
 				token.ThrowIfCancellationRequested();
-				WalletService.TransactionProcessor.CoinReceived += CoinReceived;
+				WalletService.TransactionProcessor.CoinsReceived += CoinsReceived;
 
 				TransactionBroadcaster.AddWalletService(WalletService);
 				CoinJoinProcessor.AddWalletService(WalletService);
@@ -544,19 +545,20 @@ namespace WalletWasabi.Gui
 			return keyManager;
 		}
 
-		private void CoinReceived(object sender, SmartCoin coin)
+		private void CoinsReceived(object sender, TxCoinsEventArgs args)
 		{
-			if (coin.HdPubKey.IsInternal)
-			{
-				return;
-			}
-
 			if (UiConfig?.LurkingWifeMode is true)
 			{
 				return;
 			}
 
-			string amountString = coin.Amount.ToString(false, true);
+			Money satSum = args.Coins.Where(x => !x.HdPubKey.IsInternal).Sum(x => x.Amount);
+			if (satSum == Money.Zero)
+			{
+				return;
+			}
+
+			string amountString = satSum.ToString(false, true);
 
 			NotificationHelpers.Information($"{amountString} BTC", "Received");
 		}
@@ -566,7 +568,7 @@ namespace WalletWasabi.Gui
 			var walletService = WalletService;
 			if (walletService is { })
 			{
-				walletService.TransactionProcessor.CoinReceived -= CoinReceived;
+				walletService.TransactionProcessor.CoinsReceived -= CoinsReceived;
 			}
 
 			try
