@@ -1624,13 +1624,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 				eventAwaiter = new EventAwaiter<TransactionProcessedResult>(
 					h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed += h,
 					h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed -= h);
-				var spendWaiter = new EventAwaiter<TxCoinsEventArgs>(
-					h => wallet.TransactionProcessor.CoinsSpent += h,
-					h => wallet.TransactionProcessor.CoinsSpent -= h);
 				await broadcaster.SendTransactionAsync(tx1Res.Transaction);
-				var spentCoins = await spendWaiter.WaitAsync(TimeSpan.FromSeconds(21));
-				Assert.Equal(tx0Id, spentCoins.Coins.Single().TransactionId);
 				var eventArgs = await eventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
+				Assert.Equal(tx0Id, eventArgs.NewlySpentCoins.Single().TransactionId);
 				Assert.Equal(tx1Res.Transaction.GetHash(), eventArgs.NewlyReceivedCoins.First().TransactionId);
 
 				// There is a coin created by the latest spending transaction
@@ -1653,14 +1649,12 @@ namespace WalletWasabi.Tests.IntegrationTests
 				eventAwaiter = new EventAwaiter<TransactionProcessedResult>(
 								h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed += h,
 								h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed -= h);
-				spendWaiter = new EventAwaiter<TxCoinsEventArgs>(
-					h => wallet.TransactionProcessor.CoinsSpent += h,
-					h => wallet.TransactionProcessor.CoinsSpent -= h);
 				await broadcaster.SendTransactionAsync(tx2Res.Transaction);
-				spentCoins = await spendWaiter.WaitAsync(TimeSpan.FromSeconds(21));
-				Assert.Equal(tx1Res.Transaction.GetHash(), spentCoins.Coins.First().TransactionId);
-				var receivedCoins = (await eventAwaiter.WaitAsync(TimeSpan.FromSeconds(21))).NewlyReceivedCoins.ToArray();
+				eventArgs = await eventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
+				var spentCoins = eventArg.NewlySpentCoins.ToArray();
+				Assert.Equal(tx1Res.Transaction.GetHash(), spentCoins.First().TransactionId);
 				uint256 tx2Hash = tx2Res.Transaction.GetHash();
+				var receivedCoins = eventArg.NewlyReceivedCoins.ToArray();
 				Assert.Equal(tx2Hash, receivedCoins[0].TransactionId);
 				Assert.Equal(tx2Hash, receivedCoins[1].TransactionId);
 

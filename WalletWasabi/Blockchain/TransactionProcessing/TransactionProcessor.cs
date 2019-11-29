@@ -22,10 +22,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 
 		public event EventHandler<TransactionProcessedResult> WalletRelevantTransactionProcessed;
 
-		public event EventHandler<TxCoinsEventArgs> CoinsSpent;
-
-		public event EventHandler<TxCoinsEventArgs> SpendersConfirmed;
-
 		public TransactionProcessor(
 			AllTransactionStore transactionStore,
 			KeyManager keyManager,
@@ -184,8 +180,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
-				List<SmartCoin> coinsSpent = new List<SmartCoin>();
-				List<SmartCoin> spendersConfirmed = new List<SmartCoin>();
 				List<SmartCoin> spentOwnCoins = null;
 				for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 				{
@@ -198,6 +192,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 
 						if (output.Value <= DustThreshold)
 						{
+							result.ReceivedDusts.Add(output);
 							continue;
 						}
 
@@ -252,16 +247,17 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 						walletRelevant = true;
 						var alreadyKnown = foundCoin.SpenderTransactionId == txId;
 						foundCoin.SpenderTransactionId = txId;
+						result.SpentCoins.Add(foundCoin);
 
 						if (!alreadyKnown)
 						{
 							Coins.Spend(foundCoin);
-							coinsSpent.Add(foundCoin);
+							result.NewlySpentCoins.Add(foundCoin);
 						}
 
 						if (tx.Confirmed)
 						{
-							spendersConfirmed.Add(foundCoin);
+							result.NewlyConfirmedSpentCoins.Add(foundCoin);
 						}
 					}
 				}
@@ -269,15 +265,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 				if (walletRelevant)
 				{
 					TransactionStore.AddOrUpdate(tx);
-				}
-
-				if (coinsSpent.Any())
-				{
-					CoinsSpent?.Invoke(this, new TxCoinsEventArgs(tx, coinsSpent));
-				}
-				if (spendersConfirmed.Any())
-				{
-					SpendersConfirmed?.Invoke(this, new TxCoinsEventArgs(tx, spendersConfirmed));
 				}
 			}
 

@@ -307,8 +307,17 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			{
 				coinsReceived += e.NewlyReceivedCoins.Count;
 			};
-			transactionProcessor.CoinsSpent += (s, e) => throw new InvalidOperationException("We are not spending the coin.");
-			transactionProcessor.SpendersConfirmed += (s, e) => confirmed++;
+			transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
+			{
+				if (e.NewlySpentCoins.Any())
+				{
+					throw new InvalidOperationException("We are not spending the coin.");
+				}
+				else if (e.NewlyConfirmedSpentCoins.Any())
+				{
+					confirmed++;
+				}
+			};
 
 			// A confirmed segwit transaction for us
 			var tx1 = CreateCreditingTransaction(keys[0].PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m));
@@ -486,7 +495,13 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		{
 			var transactionProcessor = await CreateTransactionProcessorAsync();
 			SmartCoin spentCoin = null;
-			transactionProcessor.CoinsSpent += (s, theCoin) => spentCoin = theCoin.Coins.Single();
+			transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
+			{
+				if (e.NewlySpentCoins.Any())
+				{
+					spentCoin = e.NewlySpentCoins.Single();
+				}
+			};
 			var keys = transactionProcessor.KeyManager.GetKeys();
 			var tx0 = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(1.0m));
 			transactionProcessor.Process(tx0);
@@ -514,8 +529,14 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		public async Task ReceiveTransactionWithDustForWalletAsync()
 		{
 			var transactionProcessor = await CreateTransactionProcessorAsync();
-			transactionProcessor.WalletRelevantTransactionProcessed += (s, e)
-				=> throw new Exception("The dust coin raised an event when it shouldn't.");
+			transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
+			{
+				// The dust coin should raise an event, but it shouldn't be fully processed.
+				Assert.NotEmpty(e.ReceivedDusts);
+				Assert.Empty(e.ReceivedCoins);
+				Assert.Empty(e.NewlyReceivedCoins);
+				Assert.Empty(e.NewlyConfirmedReceivedCoins);
+			};
 			var keys = transactionProcessor.KeyManager.GetKeys();
 			var tx = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(0.000099m));
 
