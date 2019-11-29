@@ -519,7 +519,11 @@ namespace WalletWasabi.Gui
 					Money receiveSpentDiff = incoming.Abs();
 					string amountString = receiveSpentDiff.ToString(false, true);
 
-					if (isSpent && receiveSpentDiff == miningFee)
+					if (e.Transaction.Transaction.IsCoinBase)
+					{
+						NotifyAndLog($"{amountString} BTC", "Mined", NotificationType.Success, e);
+					}
+					else if (isSpent && receiveSpentDiff == miningFee)
 					{
 						NotifyAndLog($"Mining Fee: {amountString} BTC", "Self Spend", NotificationType.Information, e);
 					}
