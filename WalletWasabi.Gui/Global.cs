@@ -498,14 +498,11 @@ namespace WalletWasabi.Gui
 				}
 
 				// ToDo
-				// Received.
-				// Self spend.
 				// RBF-ed.
 				// Double spent.
 				// CoinJoin?
 				// Anonymity set gained?
 				// Received dust
-				// Received coinbase -> mined
 				// Tx confirmed
 
 				bool isSpent = e.NewlySpentCoins.Any();
@@ -529,7 +526,22 @@ namespace WalletWasabi.Gui
 					}
 					else if (incoming > Money.Zero)
 					{
-						NotifyAndLog($"{amountString} BTC", "Received", NotificationType.Success, e);
+						if (e.Transaction.IsRBF && e.Transaction.IsReplacement)
+						{
+							NotifyAndLog($"{amountString} BTC", "Received Replacable Replacement Transaction", NotificationType.Information, e);
+						}
+						else if (e.Transaction.IsRBF)
+						{
+							NotifyAndLog($"{amountString} BTC", "Received Replacable Transaction", NotificationType.Success, e);
+						}
+						else if (e.Transaction.IsReplacement)
+						{
+							NotifyAndLog($"{amountString} BTC", "Received Replacement Transaction", NotificationType.Information, e);
+						}
+						else
+						{
+							NotifyAndLog($"{amountString} BTC", "Received", NotificationType.Success, e);
+						}
 					}
 					else if (incoming < Money.Zero)
 					{
