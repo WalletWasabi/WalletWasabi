@@ -12,7 +12,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 {
 	public class TransactionProcessor
 	{
-		public static object Lock { get; } = new object();
+		private static object Lock { get; } = new object();
 		public AllTransactionStore TransactionStore { get; }
 
 		public KeyManager KeyManager { get; }
@@ -45,7 +45,28 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			Coins = new CoinsRegistry(privacyLevelThreshold);
 		}
 
+		public IEnumerable<bool> Process(IEnumerable<SmartTransaction> txs)
+		{
+			lock (Lock)
+			{
+				var ret = new List<bool>();
+				foreach (var tx in txs)
+				{
+					ret.Add(ProcessNoLock(tx));
+				}
+				return ret;
+			}
+		}
+
 		public bool Process(SmartTransaction tx)
+		{
+			lock (Lock)
+			{
+				return ProcessNoLock(tx);
+			}
+		}
+
+		private bool ProcessNoLock(SmartTransaction tx)
 		{
 			var walletRelevant = false;
 			// We do not care about non-witness transactions for other than mempool cleanup.
