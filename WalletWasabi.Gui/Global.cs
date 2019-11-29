@@ -514,11 +514,11 @@ namespace WalletWasabi.Gui
 					string amountString = diffAbs.ToString(false, true);
 					if (diff > Money.Zero)
 					{
-						NotifyAndLog($"{amountString} BTC", "Received", NotificationType.Information);
+						NotifyAndLog($"{amountString} BTC", "Received", NotificationType.Information, e);
 					}
 					else if (diff < Money.Zero)
 					{
-						NotifyAndLog($"{amountString} BTC", "Sent", NotificationType.Information);
+						NotifyAndLog($"{amountString} BTC", "Sent", NotificationType.Information, e);
 					}
 				}
 			}
@@ -528,12 +528,12 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private static void NotifyAndLog(string message, string title, NotificationType notificationType)
+		private static void NotifyAndLog(string message, string title, NotificationType notificationType, ProcessedResult e)
 		{
 			message = Guard.Correct(message);
 			title = Guard.Correct(title);
 			NotificationHelpers.Notify(message, title, notificationType, () => IoHelpers.OpenFileInTextEditor(Logger.FilePath));
-			Logger.LogInfo($"Notification ({notificationType}): {title} - {message}");
+			Logger.LogInfo($"Transaction Notification ({notificationType}): {title} - {message} - {e.Transaction.GetHash()}");
 		}
 
 		public string GetWalletFullPath(string walletName)
