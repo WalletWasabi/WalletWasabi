@@ -28,8 +28,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 
 		public event EventHandler<TxCoinsEventArgs> CoinsReceived;
 
-		public event EventHandler<ReplaceTransactionReceivedEventArgs> ReplaceTransactionReceived;
-
 		public TransactionProcessor(
 			AllTransactionStore transactionStore,
 			KeyManager keyManager,
@@ -69,7 +67,10 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			{
 				ret = ProcessNoLock(tx);
 			}
-			WalletRelevantTransactionProcessed?.Invoke(this, ret);
+			if (ret.IsWalletRelevant)
+			{
+				WalletRelevantTransactionProcessed?.Invoke(this, ret);
+			}
 			return ret;
 		}
 
@@ -133,7 +134,8 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 								var replacedTxId = doubleSpends.First().TransactionId;
 								var (replaced, restored) = Coins.Undo(replacedTxId);
 
-								ReplaceTransactionReceived?.Invoke(this, new ReplaceTransactionReceivedEventArgs(tx, replaced, restored));
+								result.ReplacedCoins.AddRange(replaced);
+								result.ReplacedCoins.AddRange(restored);
 
 								foreach (var replacedTransactionId in replaced.Select(coin => coin.TransactionId))
 								{

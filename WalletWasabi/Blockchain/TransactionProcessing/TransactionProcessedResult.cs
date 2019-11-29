@@ -11,7 +11,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 	public class TransactionProcessedResult
 	{
 		public SmartTransaction Transaction { get; }
-		public bool IsWalletRelevant => SuccessfullyDoubleSpentCoins.Any();
+		public bool IsWalletRelevant => SuccessfullyDoubleSpentCoins.Any() || ReplacedCoins.Any() || RestoredCoins.Any();
 		public bool IsLikelyOwnCoinJoin { get; set; } = false;
 
 		/// <summary>
@@ -20,6 +20,16 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 		/// some of the same inputs.
 		/// </summary>
 		public List<SmartCoin> SuccessfullyDoubleSpentCoins { get; set; } = new List<SmartCoin>();
+
+		/// <summary>
+		/// Unconfirmed coins those were replaced by the coins of the transaction.
+		/// </summary>
+		public List<SmartCoin> ReplacedCoins { get; set; } = new List<SmartCoin>();
+
+		/// <summary>
+		/// Coins those were made unspent again by this double spend transaction.
+		/// </summary>
+		public List<SmartCoin> RestoredCoins { get; set; } = new List<SmartCoin>();
 
 		public TransactionProcessedResult(SmartTransaction transaction)
 		{

@@ -442,7 +442,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.DisposeWith(Disposables);
 
 			Observable
-				.Merge(Observable.FromEventPattern<ReplaceTransactionReceivedEventArgs>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.ReplaceTransactionReceived)).Select(_ => Unit.Default))
 				.Merge(Observable.FromEventPattern<TransactionProcessedResult>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
 				.Merge(Observable.FromEventPattern<TxCoinsEventArgs>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinsSpent)).Select(_ => Unit.Default))
 				.Merge(Observable.FromEventPattern<TxCoinsEventArgs>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinsReceived)).Select(_ => Unit.Default))

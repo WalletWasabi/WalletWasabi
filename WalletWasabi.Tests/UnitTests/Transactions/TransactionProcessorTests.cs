@@ -228,19 +228,22 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var transactionProcessor = await CreateTransactionProcessorAsync();
 
 			int replaceTransactionReceivedCalled = 0;
-			transactionProcessor.ReplaceTransactionReceived += (s, e) =>
+			transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
 			{
-				// Move the original coin from spent to unspent - so add.
-				var originalCoin = Assert.Single(e.RestoredCoins);
-				Assert.Equal(Money.Coins(1.0m), originalCoin.Amount);
+				if (e.ReplacedCoins.Any() || e.RestoredCoins.Any())
+				{
+					// Move the original coin from spent to unspent - so add.
+					var originalCoin = Assert.Single(e.RestoredCoins);
+					Assert.Equal(Money.Coins(1.0m), originalCoin.Amount);
 
-				// Remove the created coin by the transaction.
-				Assert.Equal(3, e.ReplacedCoins.Count());
-				Assert.Single(e.ReplacedCoins, coin => coin.HdPubKey.Label == "B");
-				Assert.Single(e.ReplacedCoins, coin => coin.HdPubKey.Label == "C");
-				Assert.Single(e.ReplacedCoins, coin => coin.HdPubKey.Label == "D");
+					// Remove the created coin by the transaction.
+					Assert.Equal(3, e.ReplacedCoins.Count());
+					Assert.Single(e.ReplacedCoins, coin => coin.HdPubKey.Label == "B");
+					Assert.Single(e.ReplacedCoins, coin => coin.HdPubKey.Label == "C");
+					Assert.Single(e.ReplacedCoins, coin => coin.HdPubKey.Label == "D");
 
-				replaceTransactionReceivedCalled++;
+					replaceTransactionReceivedCalled++;
+				}
 			};
 
 			// A confirmed segwit transaction for us
