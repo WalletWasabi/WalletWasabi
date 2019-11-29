@@ -1031,7 +1031,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				await broadcaster.SendTransactionAsync(res.Transaction);
 
-				IEnumerable<string> unconfirmedCoinLabels = wallet.Coins.Where(x => x.Height == Height.Mempool).SelectMany(x => x.Label.Labels);
+				IEnumerable<SmartCoin> unconfirmedCoins = wallet.Coins.Where(x => x.Height == Height.Mempool).ToArray();
+				IEnumerable<string> unconfirmedCoinLabels = unconfirmedCoins.SelectMany(x => x.Label.Labels).ToArray();
 				Assert.Contains("outgoing", unconfirmedCoinLabels);
 				Assert.Contains("outgoing2", unconfirmedCoinLabels);
 				IEnumerable<string> allKeyLabels = keyManager.GetKeys().SelectMany(x => x.Label.Labels);
@@ -2427,6 +2428,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Contains(unsignedCoinJoin.GetHash(), syncInfo.UnconfirmedCoinJoins);
 				var txs = await wasabiClient.GetTransactionsAsync(network, new[] { unsignedCoinJoin.GetHash() }, CancellationToken.None);
 				Assert.NotEmpty(txs);
+
 				#endregion PostSignatures
 			}
 		}

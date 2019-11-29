@@ -135,6 +135,11 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 
 		private void BelieveTransaction(SmartTransaction transaction)
 		{
+			if (transaction.Height == Height.Unknown)
+			{
+				transaction.SetUnconfirmed();
+			}
+
 			lock (WalletServicesLock)
 			{
 				foreach (var walletService in AliveWalletServices)
