@@ -1512,12 +1512,12 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				// Get some money, make it confirm.
 				// this is necesary because we are in a fork now.
-				var coinAwaiter = new EventAwaiter<SmartCoin>(
-								h => wallet.TransactionProcessor.CoinReceived += h,
-								h => wallet.TransactionProcessor.CoinReceived -= h);
+				var coinAwaiter = new EventAwaiter<TxCoinsEventArgs>(
+								h => wallet.TransactionProcessor.CoinsReceived += h,
+								h => wallet.TransactionProcessor.CoinsReceived -= h);
 				fundingTxId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m), replaceable: true);
 				var coinArrived = await coinAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
-				Assert.Equal(fundingTxId, coinArrived.TransactionId);
+				Assert.Equal(fundingTxId, coinArrived.Coins.Single().TransactionId);
 				Assert.Contains(fundingTxId, wallet.Coins.Select(x => x.TransactionId));
 
 				var fundingBumpTxId = await rpc.BumpFeeAsync(fundingTxId);
@@ -1604,15 +1604,15 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				// Get some money, make it confirm.
 				// this is necesary because we are in a fork now.
-				var receiveWaiter = new EventAwaiter<SmartCoin>(
-					h => wallet.TransactionProcessor.CoinReceived += h,
-					h => wallet.TransactionProcessor.CoinReceived -= h);
+				var receiveWaiter = new EventAwaiter<TxCoinsEventArgs>(
+					h => wallet.TransactionProcessor.CoinsReceived += h,
+					h => wallet.TransactionProcessor.CoinsReceived -= h);
 				var tx0Id = await rpc.SendToAddressAsync(
 					key.GetP2wpkhAddress(network),
 					Money.Coins(1m),
 					replaceable: true);
-				var receivedCoin = await receiveWaiter.WaitAsync(TimeSpan.FromSeconds(21));
-				Assert.Equal(tx0Id, receivedCoin.TransactionId);
+				var receivedCoinsArgs = await receiveWaiter.WaitAsync(TimeSpan.FromSeconds(21));
+				Assert.Equal(tx0Id, receivedCoinsArgs.Coins.Single().TransactionId);
 				Assert.Single(wallet.Coins);
 
 				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, rpc);
@@ -1629,17 +1629,17 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// Spend the unconfirmed coin (send it to ourself)
 				operations = new PaymentIntent(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m));
 				tx1Res = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
-				receiveWaiter = new EventAwaiter<SmartCoin>(
-					h => wallet.TransactionProcessor.CoinReceived += h,
-					h => wallet.TransactionProcessor.CoinReceived -= h);
-				var spendWaiter = new EventAwaiter<SmartCoin>(
-					h => wallet.TransactionProcessor.CoinSpent += h,
-					h => wallet.TransactionProcessor.CoinSpent -= h);
+				receiveWaiter = new EventAwaiter<TxCoinsEventArgs>(
+					h => wallet.TransactionProcessor.CoinsReceived += h,
+					h => wallet.TransactionProcessor.CoinsReceived -= h);
+				var spendWaiter = new EventAwaiter<TxCoinsEventArgs>(
+					h => wallet.TransactionProcessor.CoinsSpent += h,
+					h => wallet.TransactionProcessor.CoinsSpent -= h);
 				await broadcaster.SendTransactionAsync(tx1Res.Transaction);
-				var spentCoin = await spendWaiter.WaitAsync(TimeSpan.FromSeconds(21));
-				Assert.Equal(tx0Id, spentCoin.TransactionId);
-				receivedCoin = await receiveWaiter.WaitAsync(TimeSpan.FromSeconds(21));
-				Assert.Equal(tx1Res.Transaction.GetHash(), receivedCoin.TransactionId);
+				var spentCoins = await spendWaiter.WaitAsync(TimeSpan.FromSeconds(21));
+				Assert.Equal(tx0Id, spentCoins.Coins.Single().TransactionId);
+				receivedCoinsArgs = await receiveWaiter.WaitAsync(TimeSpan.FromSeconds(21));
+				Assert.Equal(tx1Res.Transaction.GetHash(), receivedCoinsArgs.Coins.Single().TransactionId);
 
 				// There is a coin created by the latest spending transaction
 				Assert.Contains(wallet.Coins, x => x.TransactionId == tx1Res.Transaction.GetHash());
@@ -1658,17 +1658,17 @@ namespace WalletWasabi.Tests.IntegrationTests
 				operations = new PaymentIntent(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m), subtractFee: true);
 				var tx2Res = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
 
-				var receivesWaiter = new EventsAwaiter<SmartCoin>(
-								h => wallet.TransactionProcessor.CoinReceived += h,
-								h => wallet.TransactionProcessor.CoinReceived -= h,
+				var receivesWaiter = new EventsAwaiter<TxCoinsEventArgs>(
+								h => wallet.TransactionProcessor.CoinsReceived += h,
+								h => wallet.TransactionProcessor.CoinsReceived -= h,
 								2);
-				spendWaiter = new EventAwaiter<SmartCoin>(
-					h => wallet.TransactionProcessor.CoinSpent += h,
-					h => wallet.TransactionProcessor.CoinSpent -= h);
+				spendWaiter = new EventAwaiter<TxCoinsEventArgs>(
+					h => wallet.TransactionProcessor.CoinsSpent += h,
+					h => wallet.TransactionProcessor.CoinsSpent -= h);
 				await broadcaster.SendTransactionAsync(tx2Res.Transaction);
-				spentCoin = await spendWaiter.WaitAsync(TimeSpan.FromSeconds(21));
-				Assert.Equal(tx1Res.Transaction.GetHash(), spentCoin.TransactionId);
-				var receivedCoins = (await receivesWaiter.WaitAsync(TimeSpan.FromSeconds(21))).ToArray();
+				spentCoins = await spendWaiter.WaitAsync(TimeSpan.FromSeconds(21));
+				Assert.Equal(tx1Res.Transaction.GetHash(), spentCoins.Coins.Single().TransactionId);
+				var receivedCoins = (await receivesWaiter.WaitAsync(TimeSpan.FromSeconds(21))).Single().Coins.ToArray();
 				uint256 tx2Hash = tx2Res.Transaction.GetHash();
 				Assert.Equal(tx2Hash, receivedCoins[0].TransactionId);
 				Assert.Equal(tx2Hash, receivedCoins[1].TransactionId);
