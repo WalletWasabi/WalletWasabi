@@ -11,8 +11,30 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 	public class TransactionProcessedResult
 	{
 		public SmartTransaction Transaction { get; }
-		public bool IsWalletRelevant => SuccessfullyDoubleSpentCoins.Any() || ReplacedCoins.Any() || RestoredCoins.Any();
+
+		public bool IsWalletRelevant =>
+			SuccessfullyDoubleSpentCoins.Any()
+			|| ReplacedCoins.Any()
+			|| RestoredCoins.Any()
+			|| NewlyReceivedCoins.Any()
+			|| NewlyConfirmedReceivedCoins.Any();
+
 		public bool IsLikelyOwnCoinJoin { get; set; } = false;
+
+		/// <summary>
+		/// Coins we received in this transaction.
+		/// </summary>
+		public List<SmartCoin> ReceivedCoins { get; set; } = new List<SmartCoin>();
+
+		/// <summary>
+		/// Coins we received in this transaction and we did not previously known about.
+		/// </summary>
+		public List<SmartCoin> NewlyReceivedCoins { get; set; } = new List<SmartCoin>();
+
+		/// <summary>
+		/// Coins we received in this transaction, we have known already about, but it just got confirmed.
+		/// </summary>
+		public List<SmartCoin> NewlyConfirmedReceivedCoins { get; set; } = new List<SmartCoin>();
 
 		/// <summary>
 		/// Coins those we previously had in the mempool, but this confirmed

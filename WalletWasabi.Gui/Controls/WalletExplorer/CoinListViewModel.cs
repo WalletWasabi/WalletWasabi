@@ -444,7 +444,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Observable
 				.Merge(Observable.FromEventPattern<TransactionProcessedResult>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
 				.Merge(Observable.FromEventPattern<TxCoinsEventArgs>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinsSpent)).Select(_ => Unit.Default))
-				.Merge(Observable.FromEventPattern<TxCoinsEventArgs>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinsReceived)).Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromSeconds(2)) // Throttle TransactionProcessor events adds/removes.
 				.Merge(Observable.FromEventPattern(this, nameof(CoinListShown), RxApp.MainThreadScheduler).Select(_ => Unit.Default)) // Load the list immediately.
 				.ObserveOn(RxApp.MainThreadScheduler)

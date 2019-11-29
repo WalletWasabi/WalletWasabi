@@ -170,9 +170,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			int coinReceivedCalled = 0;
 			// The coin with the confirmed tx should win.
-			transactionProcessor.CoinsReceived += (s, cs) =>
+			transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
 			{
-				foreach (var c in cs.Coins)
+				foreach (var c in e.NewlyReceivedCoins)
 				{
 					switch (coinReceivedCalled)
 					{
@@ -303,7 +303,10 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
 			int coinsReceived = 0;
 			int confirmed = 0;
-			transactionProcessor.CoinsReceived += (s, e) => coinsReceived++;
+			transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
+			{
+				coinsReceived += e.NewlyReceivedCoins.Count;
+			};
 			transactionProcessor.CoinsSpent += (s, e) => throw new InvalidOperationException("We are not spending the coin.");
 			transactionProcessor.SpendersConfirmed += (s, e) => confirmed++;
 
@@ -457,7 +460,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		{
 			var transactionProcessor = await CreateTransactionProcessorAsync();
 			SmartCoin receivedCoin = null;
-			transactionProcessor.CoinsReceived += (s, theCoin) => receivedCoin = theCoin.Coins.Single();
+			transactionProcessor.WalletRelevantTransactionProcessed += (s, e) => receivedCoin = e.NewlyReceivedCoins.Single();
 			var keys = transactionProcessor.KeyManager.GetKeys();
 			var tx = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(1.0m));
 
@@ -511,7 +514,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		public async Task ReceiveTransactionWithDustForWalletAsync()
 		{
 			var transactionProcessor = await CreateTransactionProcessorAsync();
-			transactionProcessor.CoinsReceived += (s, theCoin)
+			transactionProcessor.WalletRelevantTransactionProcessed += (s, e)
 				=> throw new Exception("The dust coin raised an event when it shouldn't.");
 			var keys = transactionProcessor.KeyManager.GetKeys();
 			var tx = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(0.000099m));

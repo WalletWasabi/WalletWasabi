@@ -26,8 +26,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 
 		public event EventHandler<TxCoinsEventArgs> SpendersConfirmed;
 
-		public event EventHandler<TxCoinsEventArgs> CoinsReceived;
-
 		public TransactionProcessor(
 			AllTransactionStore transactionStore,
 			KeyManager keyManager,
@@ -135,7 +133,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 								var (replaced, restored) = Coins.Undo(replacedTxId);
 
 								result.ReplacedCoins.AddRange(replaced);
-								result.ReplacedCoins.AddRange(restored);
+								result.RestoredCoins.AddRange(restored);
 
 								foreach (var replacedTransactionId in replaced.Select(coin => coin.TransactionId))
 								{
@@ -186,7 +184,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
-				List<SmartCoin> newCoins = new List<SmartCoin>();
 				List<SmartCoin> coinsSpent = new List<SmartCoin>();
 				List<SmartCoin> spendersConfirmed = new List<SmartCoin>();
 				List<SmartCoin> spentOwnCoins = null;
@@ -213,10 +210,12 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 						}
 
 						SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, result.IsLikelyOwnCoinJoin, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
-																																																																				   // If we did not have it.
+
+						result.ReceivedCoins.Add(newCoin);
+						// If we did not have it.
 						if (Coins.TryAdd(newCoin))
 						{
-							newCoins.Add(newCoin);
+							result.NewlyReceivedCoins.Add(newCoin);
 
 							// Make sure there's always 21 clean keys generated and indexed.
 							KeyManager.AssertCleanKeysIndexed(isInternal: foundKey.IsInternal);
@@ -234,6 +233,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 								SmartCoin oldCoin = Coins.AsAllCoinsView().GetByOutPoint(new OutPoint(txId, i));
 								if (oldCoin != null) // Just to be sure, it is a concurrent collection.
 								{
+									result.NewlyConfirmedReceivedCoins.Add(newCoin);
 									oldCoin.Height = newCoin.Height;
 								}
 							}
@@ -278,10 +278,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 				if (spendersConfirmed.Any())
 				{
 					SpendersConfirmed?.Invoke(this, new TxCoinsEventArgs(tx, spendersConfirmed));
-				}
-				if (newCoins.Any())
-				{
-					CoinsReceived?.Invoke(this, new TxCoinsEventArgs(tx, newCoins));
 				}
 			}
 

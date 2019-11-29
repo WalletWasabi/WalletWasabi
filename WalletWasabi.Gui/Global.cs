@@ -475,12 +475,28 @@ namespace WalletWasabi.Gui
 				Logger.LogInfo($"{nameof(WalletService)} started.");
 
 				token.ThrowIfCancellationRequested();
-				WalletService.TransactionProcessor.CoinsReceived += CoinsReceived;
+				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 
 				TransactionBroadcaster.AddWalletService(WalletService);
 				CoinJoinProcessor.AddWalletService(WalletService);
 			}
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
+		}
+
+		private void TransactionProcessor_WalletRelevantTransactionProcessed(object sender, TransactionProcessedResult e)
+		{
+			if (UiConfig?.LurkingWifeMode is true)
+			{
+				return;
+			}
+
+			if (e.NewlyReceivedCoins.Any())
+			{
+				Money satSum = e.NewlyReceivedCoins.Where(x => !x.HdPubKey.IsInternal).Sum(x => x.Amount);
+				string amountString = satSum.ToString(false, true);
+
+				NotificationHelpers.Information($"{amountString} BTC", "Received");
+			}
 		}
 
 		public string GetWalletFullPath(string walletName)
@@ -545,30 +561,12 @@ namespace WalletWasabi.Gui
 			return keyManager;
 		}
 
-		private void CoinsReceived(object sender, TxCoinsEventArgs args)
-		{
-			if (UiConfig?.LurkingWifeMode is true)
-			{
-				return;
-			}
-
-			Money satSum = args.Coins.Where(x => !x.HdPubKey.IsInternal).Sum(x => x.Amount);
-			if (satSum == Money.Zero)
-			{
-				return;
-			}
-
-			string amountString = satSum.ToString(false, true);
-
-			NotificationHelpers.Information($"{amountString} BTC", "Received");
-		}
-
 		public async Task DisposeInWalletDependentServicesAsync()
 		{
 			var walletService = WalletService;
 			if (walletService is { })
 			{
-				walletService.TransactionProcessor.CoinsReceived -= CoinsReceived;
+				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
 			}
 
 			try

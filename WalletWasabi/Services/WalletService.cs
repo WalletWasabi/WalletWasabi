@@ -116,7 +116,7 @@ namespace WalletWasabi.Services
 			Coins = TransactionProcessor.Coins;
 
 			TransactionProcessor.CoinsSpent += TransactionProcessor_CoinsSpent;
-			TransactionProcessor.CoinsReceived += TransactionProcessor_CoinsReceivedAsync;
+			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessedAsync;
 
 			if (Directory.Exists(BlocksFolderPath))
 			{
@@ -157,14 +157,14 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private async void TransactionProcessor_CoinsReceivedAsync(object sender, TxCoinsEventArgs args)
+		private async void TransactionProcessor_WalletRelevantTransactionProcessedAsync(object sender, TransactionProcessedResult e)
 		{
 			try
 			{
-				if (ChaumianClient.State.Contains(args.SmartTransaction.Transaction.Inputs.Select(x => x.PrevOut.ToTxoRef())))
+				if (ChaumianClient.State.Contains(e.Transaction.Transaction.Inputs.Select(x => x.PrevOut.ToTxoRef())))
 				{
-					var coinsToQueue = new List<SmartCoin>();
-					foreach (var newCoin in args.Coins)
+					var coinsToQueue = new HashSet<SmartCoin>();
+					foreach (var newCoin in e.NewlyReceivedCoins.Concat(e.RestoredCoins).Distinct())
 					{
 						// If it's being mixed and anonset is not sufficient, then queue it.
 						if (newCoin.Unspent && ChaumianClient.HasIngredients
@@ -823,7 +823,7 @@ namespace WalletWasabi.Services
 					BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
 					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
 					TransactionProcessor.CoinsSpent -= TransactionProcessor_CoinsSpent;
-					TransactionProcessor.CoinsReceived -= TransactionProcessor_CoinsReceivedAsync;
+					TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessedAsync;
 
 					DisconnectDisposeNullLocalBitcoinCoreNode();
 				}
