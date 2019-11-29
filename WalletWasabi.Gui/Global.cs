@@ -498,7 +498,6 @@ namespace WalletWasabi.Gui
 				}
 
 				// ToDo
-				// RBF-ed.
 				// Double spent.
 				// CoinJoin?
 				// Anonymity set gained?
@@ -507,11 +506,13 @@ namespace WalletWasabi.Gui
 
 				bool isSpent = e.NewlySpentCoins.Any();
 				bool isReceived = e.NewlyReceivedCoins.Any();
+				bool isConfirmedReceive = e.NewlyConfirmedReceivedCoins.Any();
+				bool isConfirmedSpent = e.NewlyConfirmedReceivedCoins.Any();
+				Money miningFee = e.Transaction.Transaction.GetFee(e.SpentCoins.Select(x => x.GetCoin()).ToArray());
 				if (isReceived || isSpent)
 				{
 					Money receivedSum = e.NewlyReceivedCoins.Sum(x => x.Amount);
 					Money spentSum = e.NewlySpentCoins.Sum(x => x.Amount);
-					Money miningFee = e.Transaction.Transaction.GetFee(e.SpentCoins.Select(x => x.GetCoin()).ToArray());
 					Money incoming = receivedSum - spentSum;
 					Money receiveSpentDiff = incoming.Abs();
 					string amountString = receiveSpentDiff.ToString(false, true);
@@ -546,6 +547,27 @@ namespace WalletWasabi.Gui
 					else if (incoming < Money.Zero)
 					{
 						NotifyAndLog($"{amountString} BTC", "Sent", NotificationType.Information, e);
+					}
+				}
+				else if (isConfirmedReceive || isConfirmedSpent)
+				{
+					Money receivedSum = e.ReceivedCoins.Sum(x => x.Amount);
+					Money spentSum = e.SpentCoins.Sum(x => x.Amount);
+					Money incoming = receivedSum - spentSum;
+					Money receiveSpentDiff = incoming.Abs();
+					string amountString = receiveSpentDiff.ToString(false, true);
+
+					if (isSpent && receiveSpentDiff == miningFee)
+					{
+						NotifyAndLog($"Mining Fee: {amountString} BTC", "Self Spend Confirmed", NotificationType.Information, e);
+					}
+					else if (incoming > Money.Zero)
+					{
+						NotifyAndLog($"{amountString} BTC", "Receive Confirmed", NotificationType.Information, e);
+					}
+					else if (incoming < Money.Zero)
+					{
+						NotifyAndLog($"{amountString} BTC", "Send Confirmed", NotificationType.Information, e);
 					}
 				}
 			}
