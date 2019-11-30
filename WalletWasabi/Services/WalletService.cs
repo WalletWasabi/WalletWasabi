@@ -338,7 +338,7 @@ namespace WalletWasabi.Services
 				return;
 			}
 
-			Block currentBlock = await FetchBlockAsync(filterModel.Header.BlockHash, cancel); // Wait until not downloaded.
+			Block currentBlock = await FetchBlockAsync(filterModel.Header.BlockHash, filterModel.Header.Height, cancel); // Wait until not downloaded.
 			var height = new Height(filterModel.Header.Height);
 
 			var txsToProcess = new List<SmartTransaction>();
@@ -396,12 +396,12 @@ namespace WalletWasabi.Services
 
 		/// <param name="hash">Block hash of the desired block, represented as a 256 bit integer.</param>
 		/// <exception cref="OperationCanceledException"></exception>
-		public async Task<Block> FetchBlockAsync(uint256 hash, CancellationToken cancel)
+		public async Task<Block> FetchBlockAsync(uint256 hash, uint height, CancellationToken cancel)
 		{
 			Block block = await TryGetBlockFromFileAsync(hash, cancel);
 			if (block is null)
 			{
-				block = await DownloadBlockAsync(hash, cancel);
+				block = await DownloadBlockAsync(hash, height, cancel);
 			}
 			return block;
 		}
@@ -438,7 +438,7 @@ namespace WalletWasabi.Services
 
 		/// <param name="hash">Block hash of the desired block, represented as a 256 bit integer.</param>
 		/// <exception cref="OperationCanceledException"></exception>
-		private async Task<Block> DownloadBlockAsync(uint256 hash, CancellationToken cancel)
+		private async Task<Block> DownloadBlockAsync(uint256 hash, uint height, CancellationToken cancel)
 		{
 			Block block = null;
 			try
@@ -491,7 +491,7 @@ namespace WalletWasabi.Services
 
 							if (Nodes.ConnectedNodes.Count > 1) // To minimize risking missing unconfirmed transactions.
 							{
-								Logger.LogInfo($"Disconnected node: {node.RemoteSocketAddress}. Block downloaded: {block.GetHash()}.");
+								Logger.LogInfo($"Disconnected node: {node.RemoteSocketAddress}. Block downloaded: ({height}) {block.GetHash()}.");
 								node.DisconnectAsync("Thank you!");
 							}
 

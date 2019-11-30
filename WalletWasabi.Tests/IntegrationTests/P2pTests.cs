@@ -120,9 +120,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				var downloadTasks = new List<Task<Block>>();
 				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(4));
+				uint height = 0;
 				foreach (var hash in blocksToDownload)
 				{
-					downloadTasks.Add(walletService.FetchBlockAsync(hash, cts.Token));
+					downloadTasks.Add(walletService.FetchBlockAsync(hash, height++, cts.Token));
 				}
 
 				await nodeConnectionAwaiter.WaitAsync(TimeSpan.FromMinutes(3));
