@@ -502,7 +502,6 @@ namespace WalletWasabi.Gui
 				// CoinJoin?
 				// Anonymity set gained?
 				// Received dust
-				// Tx confirmed
 
 				bool isSpent = e.NewlySpentCoins.Any();
 				bool isReceived = e.NewlyReceivedCoins.Any();
@@ -524,6 +523,10 @@ namespace WalletWasabi.Gui
 					else if (isSpent && receiveSpentDiff == miningFee)
 					{
 						NotifyAndLog($"Mining Fee: {amountString} BTC", "Self Spend", NotificationType.Information, e);
+					}
+					else if (isSpent && receiveSpentDiff.Almost(Money.Zero, Money.Coins(0.01m)) && e.IsLikelyOwnCoinJoin)
+					{
+						NotifyAndLog($"CoinJoin Completed!", "", NotificationType.Success, e);
 					}
 					else if (incoming > Money.Zero)
 					{
