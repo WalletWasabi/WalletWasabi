@@ -121,49 +121,48 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			SetFeesAndTexts();
 
-			this.WhenAnyValue(x => x.AmountText)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(amount =>
+			AmountKeyUpCommand = ReactiveCommand.Create((KeyEventArgs key) =>
+			{
+				var amount = AmountText;
+				if (!IsMax)
 				{
-					if (!IsMax)
+					// Correct amount
+					Regex digitsOnly = new Regex(@"[^\d,.]");
+					string betterAmount = digitsOnly.Replace(amount, ""); // Make it digits , and . only.
+
+					betterAmount = betterAmount.Replace(',', '.');
+					int countBetterAmount = betterAmount.Count(x => x == '.');
+					if (countBetterAmount > 1) // Do not enable typing two dots.
 					{
-						// Correct amount
-						Regex digitsOnly = new Regex(@"[^\d,.]");
-						string betterAmount = digitsOnly.Replace(amount, ""); // Make it digits , and . only.
-
-						betterAmount = betterAmount.Replace(',', '.');
-						int countBetterAmount = betterAmount.Count(x => x == '.');
-						if (countBetterAmount > 1) // Do not enable typing two dots.
+						var index = betterAmount.IndexOf('.', betterAmount.IndexOf('.') + 1);
+						if (index > 0)
 						{
-							var index = betterAmount.IndexOf('.', betterAmount.IndexOf('.') + 1);
-							if (index > 0)
-							{
-								betterAmount = betterAmount.Substring(0, index);
-							}
-						}
-						var dotIndex = betterAmount.IndexOf('.');
-						if (dotIndex != -1 && betterAmount.Length - dotIndex > 8) // Enable max 8 decimals.
-						{
-							betterAmount = betterAmount.Substring(0, dotIndex + 1 + 8);
-						}
-
-						if (betterAmount != amount)
-						{
-							AmountText = betterAmount;
+							betterAmount = betterAmount.Substring(0, index);
 						}
 					}
-
-					if (Money.TryParse(amount.TrimStart('~', ' '), out Money amountBtc))
+					var dotIndex = betterAmount.IndexOf('.');
+					if (dotIndex != -1 && betterAmount.Length - dotIndex > 8) // Enable max 8 decimals.
 					{
-						SetAmountWatermark(amountBtc);
-					}
-					else
-					{
-						SetAmountWatermark(Money.Zero);
+						betterAmount = betterAmount.Substring(0, dotIndex + 1 + 8);
 					}
 
-					SetFeesAndTexts();
-				});
+					if (betterAmount != amount)
+					{
+						AmountText = betterAmount;
+					}
+				}
+
+				if (Money.TryParse(amount.TrimStart('~', ' '), out Money amountBtc))
+				{
+					SetAmountWatermark(amountBtc);
+				}
+				else
+				{
+					SetAmountWatermark(Money.Zero);
+				}
+
+				SetFeesAndTexts();
+			});
 
 			this.WhenAnyValue(x => x.IsBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -869,6 +868,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<PointerPressedEventArgs, Unit> FeeSliderClickedCommand { get; }
 
 		public ReactiveCommand<bool, Unit> HighLightFeeSliderCommand { get; }
+
+		public ReactiveCommand<KeyEventArgs, Unit> AmountKeyUpCommand { get; }
 
 		public bool IsTransactionBuilder { get; }
 
