@@ -22,6 +22,7 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 
 			Task<HttpResponseMessage> FakeServerCode(HttpMethod method, string action, string[] parameters)
 			{
+				Assert.True(parameters.Length <= 10);
 				var requestedTxId = parameters.Select(p => uint256.Parse(p[(p.IndexOf('=')+1)..]));
 				var result = mempool.Where(tx => requestedTxId.Contains(tx.GetHash())).Select(tx=> tx.ToHex());
 
