@@ -169,7 +169,7 @@ namespace WalletWasabi.Blockchain.Mempool
 
 		public void Process(Transaction tx)
 		{
-			var txAdded = new SmartTransaction(tx, Height.Mempool);
+			SmartTransaction txAdded = null;
 			lock (ProcessedLock)
 			{
 				if (ProcessedTransactionHashes.Add(tx.GetHash()))
