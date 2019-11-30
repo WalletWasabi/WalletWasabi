@@ -110,7 +110,6 @@ namespace WalletWasabi.Gui
 			{
 				if (_privacyLevelSome != value)
 				{
-					RefreshMixUntilValue(_privacyLevelSome, value);
 					_privacyLevelSome = value;
 					if (ServiceConfiguration != default)
 					{
@@ -129,7 +128,6 @@ namespace WalletWasabi.Gui
 			{
 				if (_privacyLevelFine != value)
 				{
-					RefreshMixUntilValue(_privacyLevelFine, value);
 					_privacyLevelFine = value;
 					if (ServiceConfiguration != default)
 					{
@@ -148,7 +146,6 @@ namespace WalletWasabi.Gui
 			{
 				if (_privacyLevelStrong != value)
 				{
-					RefreshMixUntilValue(_privacyLevelStrong, value);
 					_privacyLevelStrong = value;
 					if (ServiceConfiguration != default)
 					{
