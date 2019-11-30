@@ -520,31 +520,40 @@ namespace WalletWasabi.Gui
 					{
 						NotifyAndLog($"{amountString} BTC", "Mined", NotificationType.Success, e);
 					}
-					else if (isSpent && receiveSpentDiff == miningFee)
+					else if (isSpent)
 					{
-						NotifyAndLog($"Mining Fee: {amountString} BTC", "Self Spend", NotificationType.Information, e);
-					}
-					else if (isSpent && receiveSpentDiff.Almost(Money.Zero, Money.Coins(0.01m)) && e.IsLikelyOwnCoinJoin)
-					{
-						NotifyAndLog($"CoinJoin Completed!", "", NotificationType.Success, e);
+						if (receiveSpentDiff == miningFee)
+						{
+							NotifyAndLog($"Mining Fee: {amountString} BTC", "Self Spend", NotificationType.Information, e);
+						}
+						else if (receiveSpentDiff.Almost(Money.Zero, Money.Coins(0.01m)) && e.IsLikelyOwnCoinJoin)
+						{
+							NotifyAndLog($"CoinJoin Completed!", "", NotificationType.Success, e);
+						}
 					}
 					else if (incoming > Money.Zero)
 					{
-						if (e.Transaction.IsRBF && e.Transaction.IsReplacement)
+						if (e.Transaction.IsRBF)
 						{
-							NotifyAndLog($"{amountString} BTC", "Received Replacable Replacement Transaction", NotificationType.Information, e);
-						}
-						else if (e.Transaction.IsRBF)
-						{
-							NotifyAndLog($"{amountString} BTC", "Received Replacable Transaction", NotificationType.Success, e);
-						}
-						else if (e.Transaction.IsReplacement)
-						{
-							NotifyAndLog($"{amountString} BTC", "Received Replacement Transaction", NotificationType.Information, e);
+							if (e.Transaction.IsReplacement)
+							{
+								NotifyAndLog($"{amountString} BTC", "Received Replacable Replacement Transaction", NotificationType.Information, e);
+							}
+							else
+							{
+								NotifyAndLog($"{amountString} BTC", "Received Replacable Transaction", NotificationType.Success, e);
+							}
 						}
 						else
 						{
-							NotifyAndLog($"{amountString} BTC", "Received", NotificationType.Success, e);
+							if (e.Transaction.IsReplacement)
+							{
+								NotifyAndLog($"{amountString} BTC", "Received Replacement Transaction", NotificationType.Information, e);
+							}
+							else
+							{
+								NotifyAndLog($"{amountString} BTC", "Received", NotificationType.Success, e);
+							}
 						}
 					}
 					else if (incoming < Money.Zero)
