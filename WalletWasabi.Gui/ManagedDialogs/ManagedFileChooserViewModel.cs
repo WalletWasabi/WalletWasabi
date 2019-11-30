@@ -10,6 +10,7 @@ using Avalonia.Controls;
 using Avalonia.Threading;
 using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.ManagedDialogs
 {
@@ -161,6 +162,8 @@ namespace WalletWasabi.Gui.ManagedDialogs
 						CompleteRequested?.Invoke(new[] { Location });
 					}
 				});
+
+			EnterLocationCommand.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		private async void OnSelectionChangedAsync(object sender, NotifyCollectionChangedEventArgs e)

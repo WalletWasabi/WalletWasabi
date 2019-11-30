@@ -1,9 +1,11 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using AvalonStudio.Commands;
+using AvalonStudio.Shell;
 using ReactiveUI;
 using System;
 using System.Composition;
+using System.Reactive.Linq;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
@@ -26,25 +28,20 @@ namespace WalletWasabi.Gui.Shell.Commands
 		{
 			Global = Guard.NotNull(nameof(Global), global.Global);
 
-			var exit = ReactiveCommand.Create(OnExit);
-
-			exit.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
-
 			ExitCommand = new CommandDefinition(
 				"Exit",
 				commandIconService.GetCompletionKindImage("Exit"),
-				exit);
-
-#pragma warning disable IDE0053 // Use expression body for lambda expressions
-			var lockCommand = ReactiveCommand.Create(() => { Global.UiConfig.LockScreenActive = true; });
-#pragma warning restore IDE0053 // Use expression body for lambda expressions
-
-			lockCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
+				ReactiveCommand.Create(OnExit));
 
 			LockScreenCommand = new CommandDefinition(
 				"Lock Screen",
 				commandIconService.GetCompletionKindImage("Lock"),
-				lockCommand);
+				ReactiveCommand.Create(() => { Global.UiConfig.LockScreenActive = true; }));
+
+			Observable
+				.Merge(ExitCommand.GetReactiveCommand().ThrownExceptions)
+				.Merge(ExitCommand.GetReactiveCommand().ThrownExceptions)
+				.Subscribe(ex => Logger.LogWarning(ex));
 		}
 
 		private void OnExit()

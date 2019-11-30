@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				.Merge(onOpenLogFile.ThrownExceptions)
 				.Merge(onOpenTorLogFile.ThrownExceptions)
 				.Merge(onOpenConfigFile.ThrownExceptions)
-				.Subscribe(OnFileOpenException);
+				.Subscribe(ex => Logger.LogError(ex));
 
 			OpenDataFolderCommand = new CommandDefinition(
 				"Data Folder",
@@ -79,11 +79,6 @@ namespace WalletWasabi.Gui.Shell.Commands
 		private void OnOpenConfigFile()
 		{
 			IoHelpers.OpenFileInTextEditor(Global.Config.FilePath);
-		}
-
-		private void OnFileOpenException(Exception ex)
-		{
-			Logger.LogError(ex);
 		}
 
 		[ExportCommandDefinition("File.Open.DataFolder")]

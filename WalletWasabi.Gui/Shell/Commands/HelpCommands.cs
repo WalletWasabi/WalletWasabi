@@ -90,6 +90,16 @@ namespace WalletWasabi.Gui.Shell.Commands
 				"Legal Issues",
 				commandIconService.GetCompletionKindImage("LegalIssues"),
 				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel(Global))));
+
+			Observable
+				.Merge(AboutCommand.GetReactiveCommand().ThrownExceptions)
+				.Merge(CustomerSupportCommand.GetReactiveCommand().ThrownExceptions)
+				.Merge(ReportBugCommand.GetReactiveCommand().ThrownExceptions)
+				.Merge(DocsCommand.GetReactiveCommand().ThrownExceptions)
+				.Merge(PrivacyPolicyCommand.GetReactiveCommand().ThrownExceptions)
+				.Merge(TermsAndConditionsCommand.GetReactiveCommand().ThrownExceptions)
+				.Merge(LegalIssuesCommand.GetReactiveCommand().ThrownExceptions)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		[ExportCommandDefinition("Help.About")]
