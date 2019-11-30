@@ -1475,14 +1475,15 @@ namespace WalletWasabi.Tests.IntegrationTests
 				srtxwwreq.Transaction = overwriteTx;
 				var srtxwwres = await rpc.SignRawTransactionWithWalletAsync(srtxwwreq);
 
-				var walletRelevantTransactionProcessedAwaiter = new EventAwaiter<ProcessedResult>(
+				var eventAwaiter = new EventAwaiter<ProcessedResult>(
 					h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed += h,
 					h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed -= h);
+				await rpc.SendRawTransactionAsync(srtxwwres.SignedTransaction);
 				await rpc.GenerateAsync(10);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 10);
-				var walletRelevantTransactionProcessed = await walletRelevantTransactionProcessedAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
-				var doubleSpend = Assert.Single(walletRelevantTransactionProcessed.SuccessfullyDoubleSpentCoins);
-				Assert.Equal(srtxwwres.SignedTransaction.GetHash(), doubleSpend.TransactionId);
+				var eventArgs = await eventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
+				var doubleSpend = Assert.Single(eventArgs.SuccessfullyDoubleSpentCoins);
+				Assert.Equal(invalidCoin.TransactionId, doubleSpend.TransactionId);
 
 				var curBlockHash = await rpc.GetBestBlockHashAsync();
 				blockCount = await rpc.GetBlockCountAsync();
@@ -1504,12 +1505,12 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				// Get some money, make it confirm.
 				// this is necesary because we are in a fork now.
-				var eventAwaiter = new EventAwaiter<ProcessedResult>(
+				eventAwaiter = new EventAwaiter<ProcessedResult>(
 								h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed += h,
 								h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed -= h);
 				fundingTxId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m), replaceable: true);
-				var eventArrived = await eventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
-				Assert.Equal(fundingTxId, eventArrived.NewlyReceivedCoins.Single().TransactionId);
+				eventArgs = await eventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
+				Assert.Equal(fundingTxId, eventArgs.NewlyReceivedCoins.Single().TransactionId);
 				Assert.Contains(fundingTxId, wallet.Coins.Select(x => x.TransactionId));
 
 				var fundingBumpTxId = await rpc.BumpFeeAsync(fundingTxId);

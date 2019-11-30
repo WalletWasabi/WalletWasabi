@@ -227,7 +227,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 				{
 					var input = tx.Transaction.Inputs[i];
 
-					var foundCoin = Coins.GetByOutPoint(input.PrevOut);
+					var foundCoin = Coins.AsAllCoinsView().GetByOutPoint(input.PrevOut);
 					if (foundCoin != null)
 					{
 						var alreadyKnown = foundCoin.SpenderTransactionId == txId;

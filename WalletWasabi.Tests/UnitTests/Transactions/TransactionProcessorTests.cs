@@ -82,6 +82,81 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		}
 
 		[Fact]
+		public async Task ProcessResultAfterConfirmationCorrectAsync()
+		{
+			var transactionProcessor = await CreateTransactionProcessorAsync();
+
+			// An unconfirmed segwit transaction for us
+			var key = transactionProcessor.KeyManager.GetKeys().First();
+
+			var tx1 = CreateCreditingTransaction(key.PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m));
+			var res = transactionProcessor.Process(tx1);
+			Assert.False(res.IsLikelyOwnCoinJoin);
+			Assert.Empty(res.NewlyConfirmedReceivedCoins);
+			Assert.Empty(res.NewlyConfirmedSpentCoins);
+			Assert.Single(res.NewlyReceivedCoins);
+			Assert.Empty(res.NewlySpentCoins);
+			Assert.Single(res.ReceivedCoins);
+			Assert.Empty(res.SpentCoins);
+			Assert.Empty(res.ReceivedDusts);
+			Assert.Empty(res.ReplacedCoins);
+			Assert.Empty(res.RestoredCoins);
+			Assert.Empty(res.SuccessfullyDoubleSpentCoins);
+			Assert.True(res.IsNews);
+			Assert.NotNull(res.Transaction);
+
+			var blockHeight = new Height(77551);
+			tx1 = new SmartTransaction(tx1.Transaction, blockHeight);
+			res = transactionProcessor.Process(tx1);
+			Assert.False(res.IsLikelyOwnCoinJoin);
+			Assert.Single(res.NewlyConfirmedReceivedCoins);
+			Assert.Empty(res.NewlyConfirmedSpentCoins);
+			Assert.Empty(res.NewlyReceivedCoins);
+			Assert.Empty(res.NewlySpentCoins);
+			Assert.Single(res.ReceivedCoins);
+			Assert.Empty(res.SpentCoins);
+			Assert.Empty(res.ReceivedDusts);
+			Assert.Empty(res.ReplacedCoins);
+			Assert.Empty(res.RestoredCoins);
+			Assert.Empty(res.SuccessfullyDoubleSpentCoins);
+			Assert.True(res.IsNews);
+			Assert.NotNull(res.Transaction);
+
+			var tx2 = CreateSpendingTransaction(tx1.Transaction.Outputs.AsCoins().First(), new Key().PubKey.WitHash.ScriptPubKey);
+			res = transactionProcessor.Process(tx2);
+			Assert.False(res.IsLikelyOwnCoinJoin);
+			Assert.Empty(res.NewlyConfirmedReceivedCoins);
+			Assert.Empty(res.NewlyConfirmedSpentCoins);
+			Assert.Empty(res.NewlyReceivedCoins);
+			Assert.Single(res.NewlySpentCoins);
+			Assert.Empty(res.ReceivedCoins);
+			Assert.Single(res.SpentCoins);
+			Assert.Empty(res.ReceivedDusts);
+			Assert.Empty(res.ReplacedCoins);
+			Assert.Empty(res.RestoredCoins);
+			Assert.Empty(res.SuccessfullyDoubleSpentCoins);
+			Assert.True(res.IsNews);
+			Assert.NotNull(res.Transaction);
+
+			blockHeight = new Height(77552);
+			tx2 = new SmartTransaction(tx2.Transaction, blockHeight);
+			res = transactionProcessor.Process(tx2);
+			Assert.False(res.IsLikelyOwnCoinJoin);
+			Assert.Empty(res.NewlyConfirmedReceivedCoins);
+			Assert.Single(res.NewlyConfirmedSpentCoins);
+			Assert.Empty(res.NewlyReceivedCoins);
+			Assert.Empty(res.NewlySpentCoins);
+			Assert.Empty(res.ReceivedCoins);
+			Assert.Single(res.SpentCoins);
+			Assert.Empty(res.ReceivedDusts);
+			Assert.Empty(res.ReplacedCoins);
+			Assert.Empty(res.RestoredCoins);
+			Assert.Empty(res.SuccessfullyDoubleSpentCoins);
+			Assert.True(res.IsNews);
+			Assert.NotNull(res.Transaction);
+		}
+
+		[Fact]
 		public async Task UpdateTransactionHeightAfterConfirmationAsync()
 		{
 			var transactionProcessor = await CreateTransactionProcessorAsync();

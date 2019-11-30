@@ -186,7 +186,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				if (!selectedCoins.Any())
 				{
-					NotificationHelpers.Error("No coins are selected to dequeue.");
+					NotificationHelpers.Warning("No coins are selected.", "");
 					return;
 				}
 
@@ -221,7 +221,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				if (!selectedCoins.Any())
 				{
-					NotificationHelpers.Error("No coins are selected to enqueue.");
+					NotificationHelpers.Warning("No coins are selected.", "");
 					return;
 				}
 				try
@@ -238,7 +238,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (SecurityException ex)
 				{
-					NotificationHelpers.Error(ex.Message);
+					NotificationHelpers.Error(ex.Message, "");
 				}
 				catch (Exception ex)
 				{
