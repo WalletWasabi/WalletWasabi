@@ -315,6 +315,26 @@ namespace WalletWasabi.Gui
 		{
 			var config = new Config(path);
 			await config.LoadOrCreateDefaultFileAsync();
+
+			// MixUntilAnonymitySet sanity check.
+			if (config.MixUntilAnonymitySet != config.PrivacyLevelFine &&
+				config.MixUntilAnonymitySet != config.PrivacyLevelSome &&
+				config.MixUntilAnonymitySet != config.PrivacyLevelStrong)
+			{
+				if (config.MixUntilAnonymitySet < config.PrivacyLevelSome)
+				{
+					config.MixUntilAnonymitySet = config.PrivacyLevelSome;
+				}
+				else if (config.MixUntilAnonymitySet < config.PrivacyLevelFine)
+				{
+					config.MixUntilAnonymitySet = config.PrivacyLevelFine;
+				}
+				else
+				{
+					config.MixUntilAnonymitySet = config.PrivacyLevelStrong;
+				}
+			}
+
 			return config;
 		}
 
