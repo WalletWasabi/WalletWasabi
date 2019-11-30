@@ -452,6 +452,35 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 		}
 
+		public HdPubKey GetNextReceiveKey(SmartLabel label, out bool minGapLimitIncreased)
+		{
+			if (label.IsEmpty)
+			{
+				throw new InvalidOperationException("Label is required.");
+			}
+
+			minGapLimitIncreased = false;
+
+			AssertCleanKeysIndexed(isInternal: false);
+
+			// Find the next clean external key with empty label.
+			var newKey = GetKeys(x => x.IsInternal == false && x.KeyState == KeyState.Clean && x.Label.IsEmpty).FirstOrDefault();
+
+			// If not found, generate a new.
+			if (newKey is null)
+			{
+				SetMinGapLimit(MinGapLimit.Value + 1);
+				newKey = AssertCleanKeysIndexed(isInternal: false).First();
+
+				// If the new is over the MinGapLimit, set minGapLimitIncreased to true.
+				minGapLimitIncreased = true;
+			}
+
+			newKey.SetLabel(label, kmToFile: this);
+
+			return newKey;
+		}
+
 		public IEnumerable<HdPubKey> GetKeys(Func<HdPubKey, bool> wherePredicate)
 		{
 			// BIP44-ish derivation scheme
@@ -582,38 +611,35 @@ namespace WalletWasabi.Blockchain.Keys
 		/// Make sure there's always clean keys generated and indexed.
 		/// Call SetMinGapLimit() to set how many keys should be asserted.
 		/// </summary>
-		public bool AssertCleanKeysIndexed(bool? isInternal = null)
+		public IEnumerable<HdPubKey> AssertCleanKeysIndexed(bool? isInternal = null)
 		{
-			var generated = false;
+			var newNewKeys = new List<HdPubKey>();
 
 			if (isInternal is null)
 			{
 				while (GetKeys(KeyState.Clean, true).Count() < MinGapLimit)
 				{
-					GenerateNewKey(SmartLabel.Empty, KeyState.Clean, true, toFile: false);
-					generated = true;
+					newNewKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, true, toFile: false));
 				}
 				while (GetKeys(KeyState.Clean, false).Count() < MinGapLimit)
 				{
-					GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false, toFile: false);
-					generated = true;
+					newNewKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false, toFile: false));
 				}
 			}
 			else
 			{
 				while (GetKeys(KeyState.Clean, isInternal).Count() < MinGapLimit)
 				{
-					GenerateNewKey(SmartLabel.Empty, KeyState.Clean, (bool)isInternal, toFile: false);
-					generated = true;
+					newNewKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, (bool)isInternal, toFile: false));
 				}
 			}
 
-			if (generated)
+			if (newNewKeys.Any())
 			{
 				ToFile();
 			}
 
-			return generated;
+			return newNewKeys;
 		}
 
 		/// <summary>
