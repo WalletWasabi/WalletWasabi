@@ -20,18 +20,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 		public CoinsRegistry Coins { get; }
 		public Money DustThreshold { get; }
 
-		public event EventHandler<TxCoinsEventArgs> CoinsSpent;
-
-		public event EventHandler<TxCoinsEventArgs> SpendersConfirmed;
-
-		public event EventHandler<TxCoinsEventArgs> CoinsReceived;
-
-		/// <summary>
-		/// Received a confirmed double spend transaction.
-		/// </summary>
-		public event EventHandler<TxCoinsEventArgs> DoubleSpendReceived;
-
-		public event EventHandler<ReplaceTransactionReceivedEventArgs> ReplaceTransactionReceived;
+		public event EventHandler<ProcessedResult> WalletRelevantTransactionProcessed;
 
 		public TransactionProcessor(
 			AllTransactionStore transactionStore,
@@ -45,45 +34,51 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			Coins = new CoinsRegistry(privacyLevelThreshold);
 		}
 
-		public IEnumerable<bool> Process(IEnumerable<SmartTransaction> txs)
+		public IEnumerable<ProcessedResult> Process(IEnumerable<SmartTransaction> txs)
 		{
+			var rets = new List<ProcessedResult>();
+
 			lock (Lock)
 			{
-				var ret = new List<bool>();
 				foreach (var tx in txs)
 				{
-					ret.Add(ProcessNoLock(tx));
+					rets.Add(ProcessNoLock(tx));
 				}
-				return ret;
 			}
+
+			foreach (var ret in rets.Where(x => x.IsNews))
+			{
+				WalletRelevantTransactionProcessed?.Invoke(this, ret);
+			}
+
+			return rets;
 		}
 
-		public bool Process(SmartTransaction tx)
+		public ProcessedResult Process(SmartTransaction tx)
 		{
+			ProcessedResult ret;
 			lock (Lock)
 			{
-				return ProcessNoLock(tx);
+				ret = ProcessNoLock(tx);
 			}
+			if (ret.IsNews)
+			{
+				WalletRelevantTransactionProcessed?.Invoke(this, ret);
+			}
+			return ret;
 		}
 
-		private bool ProcessNoLock(SmartTransaction tx)
+		private ProcessedResult ProcessNoLock(SmartTransaction tx)
 		{
-			var walletRelevant = false;
+			var result = new ProcessedResult(tx);
+
 			// We do not care about non-witness transactions for other than mempool cleanup.
 			if (tx.Transaction.PossiblyP2WPKHInvolved())
 			{
 				uint256 txId = tx.GetHash();
 
-				if (tx.Confirmed)
-				{
-					foreach (var coin in Coins.AsAllCoinsView().CreatedBy(txId))
-					{
-						coin.Height = tx.Height;
-						walletRelevant = true; // relevant
-					}
-				}
-
-				if (!tx.Transaction.IsCoinBase && !walletRelevant) // Transactions we already have and processed would be "double spends" but they shouldn't.
+				// Performance ToDo: txids could be cached in a hashset here by the AllCoinsView and then the contains would be fast.
+				if (!tx.Transaction.IsCoinBase && !Coins.AsAllCoinsView().CreatedBy(txId).Any()) // Transactions we already have and processed would be "double spends" but they shouldn't.
 				{
 					var doubleSpends = new List<SmartCoin>();
 					foreach (SmartCoin coin in Coins.AsAllCoinsView())
@@ -97,7 +92,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 								{
 									doubleSpends.Add(coin);
 									spent = true;
-									walletRelevant = true;
 									break;
 								}
 							}
@@ -124,7 +118,8 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 								var replacedTxId = doubleSpends.First().TransactionId;
 								var (replaced, restored) = Coins.Undo(replacedTxId);
 
-								ReplaceTransactionReceived?.Invoke(this, new ReplaceTransactionReceivedEventArgs(tx, replaced, restored));
+								result.ReplacedCoins.AddRange(replaced);
+								result.RestoredCoins.AddRange(restored);
 
 								foreach (var replacedTransactionId in replaced.Select(coin => coin.TransactionId))
 								{
@@ -132,12 +127,10 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 								}
 
 								tx.SetReplacement();
-								walletRelevant = true;
 							}
 							else
 							{
-								DoubleSpendReceived?.Invoke(this, new TxCoinsEventArgs(tx, Enumerable.Empty<SmartCoin>()));
-								return false;
+								return result;
 							}
 						}
 						else // new confirmation always enjoys priority
@@ -148,17 +141,15 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 								Coins.Remove(doubleSpentCoin);
 							}
 
-							DoubleSpendReceived?.Invoke(this, new TxCoinsEventArgs(tx, doubleSpends));
+							result.SuccessfullyDoubleSpentCoins.AddRange(doubleSpends);
 
 							var unconfirmedDoubleSpentTxId = doubleSpends.First().TransactionId;
 							TransactionStore.MempoolStore.TryRemove(unconfirmedDoubleSpentTxId, out _);
-							walletRelevant = true;
 						}
 					}
 				}
 
-				var isLikelyCoinJoinOutput = false;
-				bool hasEqualOutputs = tx.Transaction.GetIndistinguishableOutputs(includeSingle: false).FirstOrDefault() != default;
+				bool hasEqualOutputs = tx.Transaction.HasIndistinguishableOutputs();
 				if (hasEqualOutputs)
 				{
 					var receiveKeys = KeyManager.GetKeys(x => tx.Transaction.Outputs.Any(y => y.ScriptPubKey == x.P2wpkhScript));
@@ -172,14 +163,11 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 
 						if (receivedAlmostAsMuchAsSpent)
 						{
-							isLikelyCoinJoinOutput = true;
+							result.IsLikelyOwnCoinJoin = true;
 						}
 					}
 				}
 
-				List<SmartCoin> newCoins = new List<SmartCoin>();
-				List<SmartCoin> coinsSpent = new List<SmartCoin>();
-				List<SmartCoin> spendersConfirmed = new List<SmartCoin>();
 				List<SmartCoin> spentOwnCoins = null;
 				for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 				{
@@ -188,10 +176,9 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					HdPubKey foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
 					if (foundKey != default)
 					{
-						walletRelevant = true;
-
 						if (output.Value <= DustThreshold)
 						{
+							result.ReceivedDusts.Add(output);
 							continue;
 						}
 
@@ -203,11 +190,13 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 							anonset += spentOwnCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because do not count own.
 						}
 
-						SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, isLikelyCoinJoinOutput, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
-																																																																			   // If we did not have it.
+						SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, result.IsLikelyOwnCoinJoin, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
+
+						result.ReceivedCoins.Add(newCoin);
+						// If we did not have it.
 						if (Coins.TryAdd(newCoin))
 						{
-							newCoins.Add(newCoin);
+							result.NewlyReceivedCoins.Add(newCoin);
 
 							// Make sure there's always 21 clean keys generated and indexed.
 							KeyManager.AssertCleanKeysIndexed(isInternal: foundKey.IsInternal);
@@ -223,8 +212,9 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 							if (newCoin.Height != Height.Mempool) // Update the height of this old coin we already had.
 							{
 								SmartCoin oldCoin = Coins.AsAllCoinsView().GetByOutPoint(new OutPoint(txId, i));
-								if (oldCoin != null) // Just to be sure, it is a concurrent collection.
+								if (oldCoin is { }) // Just to be sure, it is a concurrent collection.
 								{
+									result.NewlyConfirmedReceivedCoins.Add(newCoin);
 									oldCoin.Height = newCoin.Height;
 								}
 							}
@@ -237,46 +227,33 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 				{
 					var input = tx.Transaction.Inputs[i];
 
-					var foundCoin = Coins.GetByOutPoint(input.PrevOut);
+					var foundCoin = Coins.AsAllCoinsView().GetByOutPoint(input.PrevOut);
 					if (foundCoin != null)
 					{
-						walletRelevant = true;
 						var alreadyKnown = foundCoin.SpenderTransactionId == txId;
 						foundCoin.SpenderTransactionId = txId;
+						result.SpentCoins.Add(foundCoin);
 
 						if (!alreadyKnown)
 						{
 							Coins.Spend(foundCoin);
-							coinsSpent.Add(foundCoin);
+							result.NewlySpentCoins.Add(foundCoin);
 						}
 
 						if (tx.Confirmed)
 						{
-							spendersConfirmed.Add(foundCoin);
+							result.NewlyConfirmedSpentCoins.Add(foundCoin);
 						}
 					}
 				}
 
-				if (walletRelevant)
+				if (result.IsNews)
 				{
 					TransactionStore.AddOrUpdate(tx);
 				}
-
-				if (coinsSpent.Any())
-				{
-					CoinsSpent?.Invoke(this, new TxCoinsEventArgs(tx, coinsSpent));
-				}
-				if (spendersConfirmed.Any())
-				{
-					SpendersConfirmed?.Invoke(this, new TxCoinsEventArgs(tx, spendersConfirmed));
-				}
-				if (newCoins.Any())
-				{
-					CoinsReceived?.Invoke(this, new TxCoinsEventArgs(tx, newCoins));
-				}
 			}
 
-			return walletRelevant;
+			return result;
 		}
 
 		public void UndoBlock(Height blockHeight)
