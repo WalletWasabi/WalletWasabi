@@ -214,7 +214,7 @@ namespace WalletWasabi.Backend.Controllers
 		{
 			if (!ModelState.IsValid)
 			{
-				return BadRequest("Invalid transaction ids.");
+				return BadRequest("Invalid transaction Ids.");
 			}
 
 			var maxTxToRequest = 10;
@@ -237,7 +237,7 @@ namespace WalletWasabi.Backend.Controllers
 			}
 			catch
 			{
-				return BadRequest("Invalid transaction ids.");
+				return BadRequest("Invalid transaction Ids.");
 			}
 
 			try

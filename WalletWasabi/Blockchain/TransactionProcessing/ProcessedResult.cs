@@ -37,12 +37,12 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 		public List<SmartCoin> ReceivedCoins { get; } = new List<SmartCoin>();
 
 		/// <summary>
-		/// Coins we received in this transaction and we did not previously known about.
+		/// Coins we received in this transaction and we did not previously know about.
 		/// </summary>
 		public List<SmartCoin> NewlyReceivedCoins { get; } = new List<SmartCoin>();
 
 		/// <summary>
-		/// Coins we received in this transaction, we have known already about, but it just got confirmed.
+		/// Coins we received in this transaction, we have known already about, but they just got confirmed.
 		/// </summary>
 		public List<SmartCoin> NewlyConfirmedReceivedCoins { get; } = new List<SmartCoin>();
 
@@ -52,12 +52,12 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 		public List<SmartCoin> SpentCoins { get; } = new List<SmartCoin>();
 
 		/// <summary>
-		/// Coins we spent in this transaction and we did not previously known about.
+		/// Coins we spent in this transaction and we did not previously know about.
 		/// </summary>
 		public List<SmartCoin> NewlySpentCoins { get; } = new List<SmartCoin>();
 
 		/// <summary>
-		/// Coins we spent in this transaction, we have known already about, but it just got confirmed.
+		/// Coins we spent in this transaction, we have known already about, but they just got confirmed.
 		/// </summary>
 		public List<SmartCoin> NewlyConfirmedSpentCoins { get; } = new List<SmartCoin>();
 
