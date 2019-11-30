@@ -91,6 +91,8 @@ namespace WalletWasabi.Gui.Controls
 			Disposables = new CompositeDisposable();
 
 			CopyToClipboardCommand = ReactiveCommand.CreateFromTask(async () => await TryCopyToClipboardAsync());
+
+			CopyToClipboardCommand.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
@@ -161,10 +163,6 @@ namespace WalletWasabi.Gui.Controls
 			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
 			{
 				Logger.LogTrace(ex);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning(ex);
 			}
 			finally
 			{

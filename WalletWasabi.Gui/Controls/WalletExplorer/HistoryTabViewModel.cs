@@ -41,6 +41,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);
+			SortCommand.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
 
 			DateSortDirection = SortOrder.Decreasing;
 

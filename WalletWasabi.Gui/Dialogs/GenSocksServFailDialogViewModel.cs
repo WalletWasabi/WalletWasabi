@@ -1,5 +1,7 @@
 using AvalonStudio.Extensibility.Dialogs;
 using ReactiveUI;
+using WalletWasabi.Logging;
+using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Dialogs
 {
@@ -8,6 +10,7 @@ namespace WalletWasabi.Gui.Dialogs
 		public GenSocksServFailDialogViewModel() : base("", true, false)
 		{
 			OKCommand = ReactiveCommand.Create(() => Close(true)); // OK pressed.
+			OKCommand.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
 		}
 	}
 }

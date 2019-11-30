@@ -32,34 +32,29 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			ToggleSensitiveKeysCommand = ReactiveCommand.Create(() =>
 				{
-					try
+					if (ShowSensitiveKeys)
 					{
-						if (ShowSensitiveKeys)
-						{
-							ClearSensitiveData(true);
-						}
-						else
-						{
-							var secret = PasswordHelper.GetMasterExtKey(KeyManager, Password, out string isCompatibilityPasswordUsed);
-							Password = "";
-
-							if (isCompatibilityPasswordUsed != null)
-							{
-								NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
-							}
-
-							string master = secret.GetWif(Global.Network).ToWif();
-							string account = secret.Derive(KeyManager.AccountKeyPath).GetWif(Global.Network).ToWif();
-							string masterZ = secret.ToZPrv(Global.Network);
-							string accountZ = secret.Derive(KeyManager.AccountKeyPath).ToZPrv(Global.Network);
-							SetSensitiveData(master, account, masterZ, accountZ);
-						}
+						ClearSensitiveData(true);
 					}
-					catch (Exception ex)
+					else
 					{
-						NotificationHelpers.Error(ex.ToTypeMessageString());
+						var secret = PasswordHelper.GetMasterExtKey(KeyManager, Password, out string isCompatibilityPasswordUsed);
+						Password = "";
+
+						if (isCompatibilityPasswordUsed != null)
+						{
+							NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
+						}
+
+						string master = secret.GetWif(Global.Network).ToWif();
+						string account = secret.Derive(KeyManager.AccountKeyPath).GetWif(Global.Network).ToWif();
+						string masterZ = secret.ToZPrv(Global.Network);
+						string accountZ = secret.Derive(KeyManager.AccountKeyPath).ToZPrv(Global.Network);
+						SetSensitiveData(master, account, masterZ, accountZ);
 					}
 				});
+
+			ToggleSensitiveKeysCommand.ThrownExceptions.Subscribe(ex => NotificationHelpers.Error(ex.ToTypeMessageString()));
 		}
 
 		private void ClearSensitiveData(bool passwordToo)

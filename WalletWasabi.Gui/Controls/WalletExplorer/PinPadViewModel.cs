@@ -50,9 +50,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			KeyPadCommand = ReactiveCommand.Create<string>((arg) => MaskedPin += arg);
 
-			Observable.Merge(SendPinCommand.ThrownExceptions)
+			Observable
+				.Merge(SendPinCommand.ThrownExceptions)
 				.Merge(KeyPadCommand.ThrownExceptions)
-				.Subscribe(OnException);
+				.Subscribe(ex => NotificationHelpers.Error(ex.ToTypeMessageString()));
 		}
 
 		public override void OnOpen()
@@ -68,11 +69,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Disposables = null;
 
 			return base.OnClose();
-		}
-
-		private void OnException(Exception ex)
-		{
-			NotificationHelpers.Error(ex.ToTypeMessageString());
 		}
 
 		public static async Task UnlockAsync(Global global)

@@ -149,8 +149,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			},
 			outputScheduler: RxApp.MainThreadScheduler);
 
-			Observable.Merge(PasteCommand.ThrownExceptions)
+			Observable
+				.Merge(PasteCommand.ThrownExceptions)
 				.Merge(BroadcastTransactionCommand.ThrownExceptions)
+				.Merge(ImportTransactionCommand.ThrownExceptions)
 				.Subscribe(OnException);
 		}
 
