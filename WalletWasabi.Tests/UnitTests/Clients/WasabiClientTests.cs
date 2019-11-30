@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.Filters
+namespace WalletWasabi.Tests.UnitTests.Clients
 {
 	public class WasabiClientTests
 	{
