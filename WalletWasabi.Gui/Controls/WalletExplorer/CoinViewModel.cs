@@ -70,6 +70,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global.BitcoinStore.SmartHeaderChain
 				.WhenAnyValue(x => x.TipHeight).Select(_ => Unit.Default)
 				.Merge(Model.WhenAnyValue(x => x.Height).Select(_ => Unit.Default))
+				.Throttle(TimeSpan.FromSeconds(0.1)) // DO NOT TAKE THIS THROTTLE OUT, OTHERWISE SYNCING WITH COINS IN THE WALLET WILL STACKOVERFLOW!
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(Confirmations)))
 				.DisposeWith(Disposables);

@@ -97,22 +97,15 @@ namespace WalletWasabi.BitcoinCore.Configuration
 
 		private bool RemoveFirstEmptyDuplication()
 		{
-			CoreConfigLine toRemove = null;
 			for (int i = 1; i < Lines.Count; i++)
 			{
 				CoreConfigLine currentLine = Lines[i];
 				CoreConfigLine prevLine = Lines[i - 1];
 				if (string.IsNullOrWhiteSpace(currentLine.Line) && string.IsNullOrWhiteSpace(prevLine.Line))
 				{
-					toRemove = currentLine;
-					break;
+					Lines.Remove(currentLine);
+					return true;
 				}
-			}
-
-			if (toRemove != null)
-			{
-				Lines.Remove(toRemove);
-				return true;
 			}
 
 			return false;
