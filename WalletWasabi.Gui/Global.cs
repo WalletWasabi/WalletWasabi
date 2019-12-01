@@ -26,6 +26,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.CoinJoin.Client.Clients;
+using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Helpers;
@@ -134,7 +135,7 @@ namespace WalletWasabi.Gui
 			if (enqueuedCoins.Any())
 			{
 				Logger.LogWarning("Unregistering coins in CoinJoin process.");
-				await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins, "Process was signaled to kill.");
+				await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins, DequeueReason.ApplicationExit);
 			}
 		}
 
@@ -483,21 +484,59 @@ namespace WalletWasabi.Gui
 				CoinJoinProcessor.AddWalletService(WalletService);
 
 				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
-				ChaumianClient.CoinDequeued += ChaumianClient_CoinDequeued;
+				ChaumianClient.OnDequeued += ChaumianClient_OnDequeued;
 			}
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
 		}
 
-		private void ChaumianClient_CoinDequeued(object sender, DequeueCoin coin)
+		private void ChaumianClient_OnDequeued(object sender, DequeueResult e)
 		{
 			try
 			{
-				if (UiConfig?.LurkingWifeMode is true || string.IsNullOrWhiteSpace(coin.Reason))
+				if (UiConfig?.LurkingWifeMode is true)
 				{
 					return;
 				}
 
-				NotificationHelpers.Information(coin.Reason, $"Coin ({coin.Coin.Amount.ToString(false, true)}) Dequeued");
+				foreach (var success in e.Successful.Where(x => x.Value.Any()))
+				{
+					DequeueReason reason = success.Key;
+					if (success.Value.Count() == 1)
+					{
+						var single = success.Value.First();
+						NotificationHelpers.Information(reason.ToString(), $"Coin ({single.Amount.ToString(false, true)}) Dequeued");
+					}
+					else
+					{
+						if (reason != DequeueReason.Spent)
+						{
+							var message = reason.ToString();
+							var title = $"{success.Value.Count()} Coins Dequeued";
+							if (reason == DequeueReason.UserRequested)
+							{
+								NotificationHelpers.Information("", title);
+							}
+							else
+							{
+								NotificationHelpers.Warning(message, title);
+							}
+						}
+					}
+				}
+
+				foreach (var failure in e.Unsuccessful.Where(x => x.Value.Any()))
+				{
+					DequeueReason reason = failure.Key;
+					if (failure.Value.Count() == 1)
+					{
+						var single = failure.Value.First();
+						NotificationHelpers.Warning(reason.ToString(), $"Couldn't Dequeue Coin ({single.Amount.ToString(false, true)})");
+					}
+					else
+					{
+						NotificationHelpers.Warning(reason.ToString(), $"Couldn't Dequeue {failure.Value.Count()} Coins");
+					}
+				}
 			}
 			catch (Exception ex)
 			{
@@ -674,7 +713,7 @@ namespace WalletWasabi.Gui
 			if (walletService is { })
 			{
 				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
-				ChaumianClient.CoinDequeued -= ChaumianClient_CoinDequeued;
+				ChaumianClient.OnDequeued -= ChaumianClient_OnDequeued;
 			}
 
 			try
