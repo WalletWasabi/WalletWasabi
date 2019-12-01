@@ -613,33 +613,33 @@ namespace WalletWasabi.Blockchain.Keys
 		/// </summary>
 		public IEnumerable<HdPubKey> AssertCleanKeysIndexed(bool? isInternal = null)
 		{
-			var newNewKeys = new List<HdPubKey>();
+			var newKeys = new List<HdPubKey>();
 
 			if (isInternal is null)
 			{
 				while (GetKeys(KeyState.Clean, true).Count() < MinGapLimit)
 				{
-					newNewKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, true, toFile: false));
+					newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, true, toFile: false));
 				}
 				while (GetKeys(KeyState.Clean, false).Count() < MinGapLimit)
 				{
-					newNewKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false, toFile: false));
+					newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false, toFile: false));
 				}
 			}
 			else
 			{
 				while (GetKeys(KeyState.Clean, isInternal).Count() < MinGapLimit)
 				{
-					newNewKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, (bool)isInternal, toFile: false));
+					newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, (bool)isInternal, toFile: false));
 				}
 			}
 
-			if (newNewKeys.Any())
+			if (newKeys.Any())
 			{
 				ToFile();
 			}
 
-			return newNewKeys;
+			return newKeys;
 		}
 
 		/// <summary>
