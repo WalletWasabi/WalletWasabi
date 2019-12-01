@@ -214,7 +214,7 @@ namespace WalletWasabi.Backend.Controllers
 		{
 			if (!ModelState.IsValid)
 			{
-				return BadRequest("Invalid transaction ids.");
+				return BadRequest("Invalid transaction Ids.");
 			}
 
 			var maxTxToRequest = 10;
@@ -223,19 +223,26 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest($"Maximum {maxTxToRequest} transactions can be requested.");
 			}
 
-			IEnumerable<uint256> parsedIds;
+			var parsedIds = new List<uint256>();
 			try
 			{
-				parsedIds = transactionIds.Distinct().Select(x => new uint256(x));
+				// Remove duplicates, do not use Distinct(), order is not guaranteed.
+				foreach (var txid in transactionIds.Select(x => new uint256(x)))
+				{
+					if (!parsedIds.Contains(txid))
+					{
+						parsedIds.Add(txid);
+					}
+				}
 			}
 			catch
 			{
-				return BadRequest("Invalid transaction ids.");
+				return BadRequest("Invalid transaction Ids.");
 			}
 
 			try
 			{
-				var hexes = new List<string>();
+				var hexes = new Dictionary<uint256, string>();
 				var queryRpc = false;
 				RPCClient batchingRpc = null;
 				List<Task<Transaction>> tasks = null;
@@ -245,7 +252,7 @@ namespace WalletWasabi.Backend.Controllers
 					{
 						if (TransactionHexCache.TryGetValue(txid, out string hex))
 						{
-							hexes.Add(hex);
+							hexes.Add(txid, hex);
 						}
 						else
 						{
@@ -268,7 +275,7 @@ namespace WalletWasabi.Backend.Controllers
 					{
 						var tx = await txTask;
 						string hex = tx.ToHex();
-						hexes.Add(hex);
+						hexes.Add(tx.GetHash(), hex);
 
 						lock (TransactionHexCacheLock)
 						{
@@ -280,7 +287,9 @@ namespace WalletWasabi.Backend.Controllers
 					}
 				}
 
-				return Ok(hexes);
+				// Order hexes according to the order of the query.
+				var orderedResult = parsedIds.Where(x => hexes.ContainsKey(x)).Select(x => hexes[x]);
+				return Ok(orderedResult);
 			}
 			catch (Exception ex)
 			{

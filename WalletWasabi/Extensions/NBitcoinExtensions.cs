@@ -103,6 +103,19 @@ namespace NBitcoin
 			return false;
 		}
 
+		public static bool HasIndistinguishableOutputs(this Transaction me)
+		{
+			var hashset = new HashSet<long>();
+			foreach (var name in me.Outputs.Select(x => x.Value))
+			{
+				if (!hashset.Add(name))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
 		public static IEnumerable<(Money value, int count)> GetIndistinguishableOutputs(this Transaction me, bool includeSingle)
 		{
 			return me.Outputs.GroupBy(x => x.Value)
@@ -313,6 +326,72 @@ namespace NBitcoin
 		public static Money GetTotalFee(this FeeRate me, int vsize)
 		{
 			return Money.Satoshis(Math.Round(me.SatoshiPerByte * vsize));
+		}
+
+		public static IEnumerable<TransactionDependencyNode> ToDependencyGraph(this IEnumerable<Transaction> txs)
+		{
+			var lookup = new Dictionary<uint256, TransactionDependencyNode>();
+			foreach (var tx in txs)
+			{
+				lookup.Add(tx.GetHash(), new TransactionDependencyNode { Transaction = tx });
+			}
+
+			foreach (var node in lookup.Values)
+			{
+				foreach (var input in node.Transaction.Inputs)
+				{
+					if (lookup.TryGetValue(input.PrevOut.Hash, out var parent))
+					{
+						if (!node.Parents.Contains(parent))
+						{
+							node.Parents.Add(parent);
+						}
+						if (!parent.Children.Contains(node))
+						{
+							parent.Children.Add(node);
+						}
+					}
+				}
+			}
+			var nodes = lookup.Values;
+			return nodes.Where(x => !x.Parents.Any());
+		}
+
+		public static IEnumerable<Transaction> OrderByDependency(this IEnumerable<TransactionDependencyNode> roots)
+		{
+			var parentCounter = new Dictionary<TransactionDependencyNode, int>();
+
+			void Walk(TransactionDependencyNode node)
+			{
+				if (!parentCounter.ContainsKey(node))
+				{
+					parentCounter.Add(node, node.Parents.Count());
+					foreach (var child in node.Children)
+					{
+						Walk(child);
+					}
+				}
+			}
+
+			foreach (var root in roots)
+			{
+				Walk(root);
+			}
+
+			var nodes = parentCounter.Where(x => x.Value == 0).Select(x => x.Key).Distinct().ToArray();
+			while (nodes.Any())
+			{
+				foreach (var node in nodes)
+				{
+					yield return node.Transaction;
+					parentCounter.Remove(node);
+					foreach (var child in node.Children)
+					{
+						parentCounter[child] = parentCounter[child] - 1;
+					}
+				}
+				nodes = parentCounter.Where(x => x.Value == 0).Select(x => x.Key).Distinct().ToArray();
+			}
 		}
 	}
 }

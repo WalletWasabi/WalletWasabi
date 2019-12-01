@@ -738,6 +738,9 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		}
 
 		public async Task QueueCoinsToMixAsync(params SmartCoin[] coins)
+			=> await QueueCoinsToMixAsync(coins as IEnumerable<SmartCoin>).ConfigureAwait(false);
+
+		public async Task QueueCoinsToMixAsync(IEnumerable<SmartCoin> coins)
 		{
 			await QueueCoinsToMixAsync(SaltSoup(), coins).ConfigureAwait(false);
 		}
@@ -757,6 +760,9 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		private object RefrigeratorLock { get; } = new object();
 
 		public async Task<IEnumerable<SmartCoin>> QueueCoinsToMixAsync(string password, params SmartCoin[] coins)
+			=> await QueueCoinsToMixAsync(password, coins as IEnumerable<SmartCoin>).ConfigureAwait(false);
+
+		public async Task<IEnumerable<SmartCoin>> QueueCoinsToMixAsync(string password, IEnumerable<SmartCoin> coins)
 		{
 			if (coins is null || !coins.Any() || IsQuitPending)
 			{

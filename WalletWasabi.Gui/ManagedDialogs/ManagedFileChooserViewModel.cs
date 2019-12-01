@@ -246,30 +246,32 @@ namespace WalletWasabi.Gui.ManagedDialogs
 						infos = infos.Where(i => i is DirectoryInfo || SelectedFilter.Match(i.Name));
 					}
 
-					Items.AddRange(infos.Where(x =>
-					{
-						if (SelectingFolder)
+					var items = infos.Where(x =>
 						{
-							if (!(x is DirectoryInfo))
+							if (SelectingFolder)
 							{
-								return false;
+								if (!(x is DirectoryInfo))
+								{
+									return false;
+								}
 							}
-						}
 
-						return true;
-					})
-					.Where(x => x.Exists)
-					.Select(info => new ManagedFileChooserItemViewModel
-					{
-						DisplayName = info.Name,
-						Path = info.FullName,
-						IsDirectory = info is DirectoryInfo,
-						Type = info is FileInfo ? info.Extension : "File Folder",
-						Size = info is FileInfo f ? f.Length : 0,
-						Modified = info.LastWriteTime
-					})
-					.OrderByDescending(x => x.IsDirectory)
-					.ThenBy(x => x.DisplayName, StringComparer.InvariantCultureIgnoreCase));
+							return true;
+						})
+						.Where(x => x.Exists)
+						.Select(info => new ManagedFileChooserItemViewModel
+						{
+							DisplayName = info.Name,
+							Path = info.FullName,
+							IsDirectory = info is DirectoryInfo,
+							Type = info is FileInfo ? info.Extension : "File Folder",
+							Size = info is FileInfo f ? f.Length : 0,
+							Modified = info.LastWriteTime
+						})
+						.OrderByDescending(x => x.IsDirectory)
+						.ThenBy(x => x.DisplayName, StringComparer.InvariantCultureIgnoreCase);
+
+					Items.AddRange(items);
 
 					if (initialSelectionName != null)
 					{

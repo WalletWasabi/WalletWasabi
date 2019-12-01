@@ -53,28 +53,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					if (label.IsEmpty)
 					{
 						NotificationHelpers.Warning("Label is required.");
-
 						return;
 					}
 
-					Dispatcher.UIThread.PostLogException(() =>
-						{
-							HdPubKey newKey = Global.WalletService.GetReceiveKey(_labelSuggestion.Label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
+					AvaloniaThreadingExtensions.PostLogException(Dispatcher.UIThread, () =>
+					 {
+						 var newKey = KeyManager.GetNextReceiveKey(label, out bool minGapLimitIncreased);
+						 if (minGapLimitIncreased)
+						 {
+							 int minGapLimit = KeyManager.MinGapLimit.Value;
+							 int prevMinGapLimit = minGapLimit - 1;
+							 NotificationHelpers.Warning($"{nameof(KeyManager.MinGapLimit)} increased from {prevMinGapLimit} to {minGapLimit}.");
+						 }
 
-							AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
-							if (found != default)
-							{
-								Addresses.Remove(found);
-							}
-
-							var newAddress = new AddressViewModel(newKey, Global);
-
-							Addresses.Insert(0, newAddress);
-
-							SelectedAddress = newAddress;
-
-							_labelSuggestion.Label = "";
-						});
+						 var newAddress = new AddressViewModel(newKey, Global);
+						 Addresses.Insert(0, newAddress);
+						 SelectedAddress = newAddress;
+						 _labelSuggestion.Label = "";
+					 });
 				});
 
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
@@ -157,7 +153,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			Observable
-				.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived))
+				.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.WalletRelevantTransactionProcessed))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => InitializeAddresses())
 				.DisposeWith(Disposables);
@@ -190,7 +186,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					_addresses.Add(new AddressViewModel(key, Global));
 				}
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				Logger.LogError(ex);
 			}
