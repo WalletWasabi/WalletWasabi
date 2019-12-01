@@ -504,7 +504,7 @@ namespace WalletWasabi.Gui
 					if (reason != DequeueReason.Spent)
 					{
 						var type = reason == DequeueReason.UserRequested ? NotificationType.Information : NotificationType.Warning;
-						var message = reason == DequeueReason.UserRequested ? "" : reason.ToString();
+						var message = reason == DequeueReason.UserRequested ? "" : reason.ToFriendlyString();
 						var title = success.Value.Count() == 1 ? $"Coin ({success.Value.First().Amount.ToString(false, true)}) Dequeued" : $"{success.Value.Count()} Coins Dequeued";
 						NotificationHelpers.Notify(message, title, type);
 					}
@@ -514,7 +514,7 @@ namespace WalletWasabi.Gui
 				{
 					DequeueReason reason = failure.Key;
 					var type = NotificationType.Warning;
-					var message = reason.ToString();
+					var message = reason.ToFriendlyString();
 					var title = failure.Value.Count() == 1 ? $"Couldn't Dequeue Coin ({failure.Value.First().Amount.ToString(false, true)})" : $"Couldn't Dequeue {failure.Value.Count()} Coins";
 					NotificationHelpers.Notify(message, title, type);
 				}
