@@ -52,7 +52,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public event EventHandler<SmartCoin> CoinQueued;
 
-		public event EventHandler<DequeueResult> OnDequeued;
+		public event EventHandler<DequeueResult> OnDequeue;
 
 		private long _frequentStatusProcessingIfNotMixing;
 
@@ -849,37 +849,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			}
 		}
 
-		public bool HasIngredients => Salt != null && Soup != null;
-
-		private string SaltSoup()
-		{
-			if (!HasIngredients)
-			{
-				return null;
-			}
-
-			string res;
-			lock (RefrigeratorLock)
-			{
-				res = StringCipher.Decrypt(Soup, Salt);
-			}
-
-			Cook(res);
-
-			return res;
-		}
-
-		private void Cook(string ingredients)
-		{
-			lock (RefrigeratorLock)
-			{
-				ingredients ??= "";
-
-				Salt = TokenGenerator.GetUniqueKey(21);
-				Soup = StringCipher.Encrypt(ingredients, Salt);
-			}
-		}
-
 		public async Task DequeueCoinsFromMixAsync(TxoRef coin, DequeueReason reason)
 		{
 			await DequeueCoinsFromMixAsync(new[] { coin }, reason).ConfigureAwait(false);
@@ -1010,9 +979,9 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 			var result = new DequeueResult(successful.ToDictionary(x => x.Key, x => x.Value as IEnumerable<SmartCoin>), unsuccessful.ToDictionary(x => x.Key, x => x.Value as IEnumerable<SmartCoin>));
 
-			if (result.Successful.Any())
+			if (result.Successful.Concat(result.Unsuccessful).Any())
 			{
-				OnDequeued?.Invoke(this, result);
+				OnDequeue?.Invoke(this, result);
 			}
 
 			if (exceptions.Count == 1)
@@ -1025,6 +994,37 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				throw new AggregateException(exceptions);
 			}
 			return result;
+		}
+
+		public bool HasIngredients => Salt != null && Soup != null;
+
+		private string SaltSoup()
+		{
+			if (!HasIngredients)
+			{
+				return null;
+			}
+
+			string res;
+			lock (RefrigeratorLock)
+			{
+				res = StringCipher.Decrypt(Soup, Salt);
+			}
+
+			Cook(res);
+
+			return res;
+		}
+
+		private void Cook(string ingredients)
+		{
+			lock (RefrigeratorLock)
+			{
+				ingredients ??= "";
+
+				Salt = TokenGenerator.GetUniqueKey(21);
+				Soup = StringCipher.Encrypt(ingredients, Salt);
+			}
 		}
 
 		public async Task StopAsync()

@@ -484,7 +484,7 @@ namespace WalletWasabi.Gui
 				CoinJoinProcessor.AddWalletService(WalletService);
 
 				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
-				ChaumianClient.OnDequeued += ChaumianClient_OnDequeued;
+				ChaumianClient.OnDequeue += ChaumianClient_OnDequeued;
 			}
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
 		}
@@ -501,41 +501,22 @@ namespace WalletWasabi.Gui
 				foreach (var success in e.Successful.Where(x => x.Value.Any()))
 				{
 					DequeueReason reason = success.Key;
-					if (success.Value.Count() == 1)
+					if (reason != DequeueReason.Spent)
 					{
-						var single = success.Value.First();
-						NotificationHelpers.Information(reason.ToString(), $"Coin ({single.Amount.ToString(false, true)}) Dequeued");
-					}
-					else
-					{
-						if (reason != DequeueReason.Spent)
-						{
-							var message = reason.ToString();
-							var title = $"{success.Value.Count()} Coins Dequeued";
-							if (reason == DequeueReason.UserRequested)
-							{
-								NotificationHelpers.Information("", title);
-							}
-							else
-							{
-								NotificationHelpers.Warning(message, title);
-							}
-						}
+						var type = reason == DequeueReason.UserRequested ? NotificationType.Information : NotificationType.Warning;
+						var message = reason == DequeueReason.UserRequested ? "" : reason.ToString();
+						var title = success.Value.Count() == 1 ? $"Coin ({success.Value.First().Amount.ToString(false, true)}) Dequeued" : $"{success.Value.Count()} Coins Dequeued";
+						NotificationHelpers.Notify(message, title, type);
 					}
 				}
 
 				foreach (var failure in e.Unsuccessful.Where(x => x.Value.Any()))
 				{
 					DequeueReason reason = failure.Key;
-					if (failure.Value.Count() == 1)
-					{
-						var single = failure.Value.First();
-						NotificationHelpers.Warning(reason.ToString(), $"Couldn't Dequeue Coin ({single.Amount.ToString(false, true)})");
-					}
-					else
-					{
-						NotificationHelpers.Warning(reason.ToString(), $"Couldn't Dequeue {failure.Value.Count()} Coins");
-					}
+					var type = NotificationType.Warning;
+					var message = reason.ToString();
+					var title = failure.Value.Count() == 1 ? $"Couldn't Dequeue Coin ({failure.Value.First().Amount.ToString(false, true)})" : $"Couldn't Dequeue {failure.Value.Count()} Coins";
+					NotificationHelpers.Notify(message, title, type);
 				}
 			}
 			catch (Exception ex)
@@ -713,7 +694,7 @@ namespace WalletWasabi.Gui
 			if (walletService is { })
 			{
 				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
-				ChaumianClient.OnDequeued -= ChaumianClient_OnDequeued;
+				ChaumianClient.OnDequeue -= ChaumianClient_OnDequeued;
 			}
 
 			try

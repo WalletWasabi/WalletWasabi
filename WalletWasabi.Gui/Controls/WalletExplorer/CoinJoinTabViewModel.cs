@@ -130,7 +130,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			CoordinatorFeePercent = registrableRound?.State?.CoordinatorFeePercent.ToString() ?? "0.003";
 
 			Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.CoinQueued))
-				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.OnDequeued)))
+				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.OnDequeue)))
 				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated)))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => UpdateStates())
@@ -198,15 +198,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				catch (Exception ex)
 				{
 					Logger.LogWarning(ex);
-					var builder = new StringBuilder(ex.ToTypeMessageString());
-					if (ex is AggregateException aggex)
-					{
-						foreach (var iex in aggex.InnerExceptions)
-						{
-							builder.Append(Environment.NewLine + iex.ToTypeMessageString());
-						}
-					}
-					NotificationHelpers.Error(builder.ToString());
 				}
 			}
 			finally
