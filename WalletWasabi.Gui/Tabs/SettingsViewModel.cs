@@ -100,7 +100,7 @@ namespace WalletWasabi.Gui.Tabs
 					var pinBoxText = PinBoxText?.Trim();
 					if (string.IsNullOrWhiteSpace(pinBoxText))
 					{
-						NotificationHelpers.Error("Please provide a PIN");
+						NotificationHelpers.Error("Please provide a PIN.");
 						return;
 					}
 
