@@ -26,6 +26,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.CoinJoin.Client.Clients;
+using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
@@ -482,8 +483,26 @@ namespace WalletWasabi.Gui
 				CoinJoinProcessor.AddWalletService(WalletService);
 
 				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
+				ChaumianClient.CoinDequeued += ChaumianClient_CoinDequeued;
 			}
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
+		}
+
+		private void ChaumianClient_CoinDequeued(object sender, DequeueCoin coin)
+		{
+			try
+			{
+				if (UiConfig?.LurkingWifeMode is true || string.IsNullOrWhiteSpace(coin.Reason))
+				{
+					return;
+				}
+
+				NotificationHelpers.Information(coin.Reason, $"Coin ({coin.Coin.Amount.ToString(false, true)}) Dequeued");
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex);
+			}
 		}
 
 		private void TransactionProcessor_WalletRelevantTransactionProcessed(object sender, ProcessedResult e)
@@ -499,7 +518,6 @@ namespace WalletWasabi.Gui
 
 				// ToDo
 				// Double spent.
-				// CoinJoin?
 				// Anonymity set gained?
 				// Received dust
 
@@ -656,6 +674,7 @@ namespace WalletWasabi.Gui
 			if (walletService is { })
 			{
 				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
+				ChaumianClient.CoinDequeued -= ChaumianClient_CoinDequeued;
 			}
 
 			try

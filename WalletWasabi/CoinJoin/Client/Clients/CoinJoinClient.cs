@@ -50,7 +50,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public event EventHandler<SmartCoin> CoinQueued;
 
-		public event EventHandler<SmartCoin> CoinDequeued;
+		public event EventHandler<DequeueCoin> CoinDequeued;
 
 		private long _frequentStatusProcessingIfNotMixing;
 
@@ -1009,7 +1009,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				SmartCoin coinWaitingForMix = State.GetSingleOrDefaultFromWaitingList(coinToDequeue);
 				if (coinWaitingForMix != null) // If it is not being mixed, we can just remove it.
 				{
-					RemoveCoin(coinWaitingForMix, reason);
+					RemoveCoin(new DequeueCoin(coinWaitingForMix, reason));
 				}
 			}
 
@@ -1024,15 +1024,14 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			}
 		}
 
-		private void RemoveCoin(SmartCoin coinWaitingForMix, string reason = null)
+		private void RemoveCoin(DequeueCoin coinWaitingForMix)
 		{
-			State.RemoveCoinFromWaitingList(coinWaitingForMix);
-			coinWaitingForMix.CoinJoinInProgress = false;
-			coinWaitingForMix.Secret = null;
+			State.RemoveCoinFromWaitingList(coinWaitingForMix.Coin);
+			coinWaitingForMix.Coin.CoinJoinInProgress = false;
+			coinWaitingForMix.Coin.Secret = null;
 			CoinDequeued?.Invoke(this, coinWaitingForMix);
-			var correctReason = Guard.Correct(reason);
-			var reasonText = correctReason.Length != 0 ? $" Reason: {correctReason}" : "";
-			Logger.LogInfo($"Coin dequeued: {coinWaitingForMix.Index}:{coinWaitingForMix.TransactionId}.{reasonText}.");
+			var reasonText = coinWaitingForMix.HasReason ? $" Reason: {coinWaitingForMix.Reason}" : "";
+			Logger.LogInfo($"Coin dequeued: {coinWaitingForMix.Coin.Index}:{coinWaitingForMix.Coin.TransactionId}.{reasonText}.");
 		}
 
 		public async Task StopAsync()
