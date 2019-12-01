@@ -8,6 +8,7 @@ using System;
 using System.Reactive;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -23,6 +24,8 @@ namespace WalletWasabi.Gui.ViewModels
 			Title = title;
 			Global = Guard.NotNull(nameof(global), global);
 			DoItCommand = ReactiveCommand.Create(DisplayActionTab);
+
+			DoItCommand.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public Global Global { get; }

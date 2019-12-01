@@ -36,6 +36,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				(terms, pw) => terms && pw);
 
 			GenerateCommand = ReactiveCommand.Create(DoGenerateCommand, canGenerate);
+
+			GenerateCommand.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		private void DoGenerateCommand()

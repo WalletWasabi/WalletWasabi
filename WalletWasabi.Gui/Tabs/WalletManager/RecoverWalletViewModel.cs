@@ -93,6 +93,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			this.WhenAnyValue(x => x.MnemonicWords).Subscribe(UpdateSuggestions);
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
+
+			RecoverCommand.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);

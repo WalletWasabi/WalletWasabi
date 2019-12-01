@@ -28,24 +28,24 @@ namespace WalletWasabi.Gui.Shell.Commands
 			Global = global.Global;
 			var walletManagerCommand = ReactiveCommand.Create(OnWalletManager);
 
-			var settingsCommand = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel(Global)));
+			var settingsCommand = ReactiveCommand.Create(() =>
+				IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel(Global)));
 
-			var transactionBroadcasterCommand = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel(Global)));
+			var transactionBroadcasterCommand = ReactiveCommand.Create(() =>
+				IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel(Global)));
 
 #if DEBUG
 			var devToolsCommand = ReactiveCommand.Create(() =>
-			{
-				DevToolsExtensions.OpenDevTools((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
-			});
+				DevToolsExtensions.OpenDevTools((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow));
 #endif
-
 			Observable
 				.Merge(walletManagerCommand.ThrownExceptions)
 				.Merge(settingsCommand.ThrownExceptions)
+				.Merge(transactionBroadcasterCommand.ThrownExceptions)
 #if DEBUG
 				.Merge(devToolsCommand.ThrownExceptions)
 #endif
-				.Subscribe(OnException);
+				.Subscribe(ex => Logger.LogError(ex));
 
 			WalletManagerCommand = new CommandDefinition(
 				"Wallet Manager",
@@ -81,11 +81,6 @@ namespace WalletWasabi.Gui.Shell.Commands
 			{
 				walletManagerViewModel.SelectGenerateWallet();
 			}
-		}
-
-		private void OnException(Exception ex)
-		{
-			Logger.LogError(ex);
 		}
 
 		[ExportCommandDefinition("Tools.WalletManager")]

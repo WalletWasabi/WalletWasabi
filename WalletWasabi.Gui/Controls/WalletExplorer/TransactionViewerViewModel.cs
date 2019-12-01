@@ -66,10 +66,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public TransactionViewerViewModel(WalletViewModel walletViewModel) : base("Transaction", walletViewModel)
 		{
-			OpenTransactionBroadcaster = ReactiveCommand.Create(() =>
-			{
-				IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel(Global));
-			});
+			OpenTransactionBroadcaster = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel(Global)));
 			ExportBinaryPsbt = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var psbtExtension = "psbt";

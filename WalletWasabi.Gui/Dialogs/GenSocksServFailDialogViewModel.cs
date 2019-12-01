@@ -2,6 +2,7 @@ using AvalonStudio.Extensibility.Dialogs;
 using ReactiveUI;
 using WalletWasabi.Logging;
 using System.Reactive.Linq;
+using System;
 
 namespace WalletWasabi.Gui.Dialogs
 {

@@ -7,6 +7,8 @@ using ReactiveUI;
 using System.Composition;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using Avalonia;
+using System.Reactive.Linq;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
@@ -29,6 +31,12 @@ namespace WalletWasabi.Gui.Shell.Commands
 				"Load Wallet",
 				commandIconService.GetCompletionKindImage("LoadWallet"),
 				ReactiveCommand.Create(OnLoadWallet));
+
+			Observable
+				.Merge(GenerateWalletCommand.GetReactiveCommand().ThrownExceptions)
+				.Merge(RecoverWalletCommand.GetReactiveCommand().ThrownExceptions)
+				.Merge(LoadWallet.GetReactiveCommand().ThrownExceptions)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		private void OnGenerateWallet()

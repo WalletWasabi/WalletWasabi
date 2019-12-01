@@ -1,8 +1,9 @@
 using ReactiveUI;
 using System.Collections.ObjectModel;
 using System.Reactive;
-using WalletWasabi.Gui.Helpers;
+using System.Reactive.Linq;
 using WalletWasabi.Logging;
+using System;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
