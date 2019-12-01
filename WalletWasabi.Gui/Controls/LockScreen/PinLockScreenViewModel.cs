@@ -55,8 +55,8 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 			this.WhenAnyValue(x => x.PinInput)
 				.Throttle(TimeSpan.FromSeconds(1))
-				.ObserveOn(RxApp.MainThreadScheduler)
 				.Where(x => !string.IsNullOrWhiteSpace(x))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
 					if (ParentVM.PinHash != HashHelpers.GenerateSha256Hash(x))
