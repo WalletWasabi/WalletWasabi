@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -81,8 +82,11 @@ namespace WalletWasabi.Gui.Dialogs
 			},
 			canCancel);
 
-			OKCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
-			CancelCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
+			Observable
+				.Merge(OKCommand.ThrownExceptions)
+				.Merge(CancelCommand.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public override void OnOpen()

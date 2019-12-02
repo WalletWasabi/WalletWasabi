@@ -35,8 +35,11 @@ namespace WalletWasabi.Gui.Dialogs
 					Close(false);
 				});
 
-			OKCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
-			CancelCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
+			Observable
+				.Merge(OKCommand.ThrownExceptions)
+				.Merge(CancelCommand.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogWarning(ex));
 		}
 
 		public string TextInput

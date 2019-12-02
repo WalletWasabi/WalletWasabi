@@ -412,6 +412,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(SelectAllCheckBoxCommand.ThrownExceptions)
 				.Merge(DequeueCoin.ThrownExceptions)
 				.Merge(SortCommand.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 

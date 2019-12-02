@@ -113,6 +113,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					TimeSpan left = x - DateTimeOffset.UtcNow;
 					TimeLeftTillRoundTimeout = left > TimeSpan.Zero ? left : TimeSpan.Zero; // Make sure cannot be less than zero.
 				});
+
+			Observable
+				.Merge(EnqueueCommand.ThrownExceptions)
+				.Merge(DequeueCommand.ThrownExceptions)
+				.Merge(PrivacySomeCommand.ThrownExceptions)
+				.Merge(PrivacyFineCommand.ThrownExceptions)
+				.Merge(PrivacyStrongCommand.ThrownExceptions)
+				.Merge(TargetButtonCommand.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public override void OnOpen()
