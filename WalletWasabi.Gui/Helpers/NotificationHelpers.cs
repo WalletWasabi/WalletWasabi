@@ -8,9 +8,18 @@ namespace WalletWasabi.Gui.Helpers
 {
 	public static class NotificationHelpers
 	{
+		private static INotificationManager NullNotificationManager { get; } = new NullNotificationManager();
+
 		public static INotificationManager GetNotificationManager()
 		{
-			return Locator.Current.GetService<INotificationManager>();
+			return Locator.Current.GetService<INotificationManager>() ?? NullNotificationManager;
+		}
+
+		public static void Notify(string message, string title, NotificationType type, Action onClick = null)
+		{
+			RxApp.MainThreadScheduler
+				.Schedule(() => GetNotificationManager()
+				.Show(new Notification(title, message, type, TimeSpan.FromSeconds(7), onClick)));
 		}
 
 		public static void Success(string message, string title = "Success!")

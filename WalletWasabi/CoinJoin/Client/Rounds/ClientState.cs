@@ -68,7 +68,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 			}
 		}
 
-		public bool Contains(params TxoRef[] txos)
+		public bool Contains(IEnumerable<TxoRef> txos)
 		{
 			lock (StateLock)
 			{
@@ -319,27 +319,27 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 			}
 		}
 
-		public IEnumerable<long> GetActivelyMixingRounds()
+		public IEnumerable<ClientRound> GetActivelyMixingRounds()
 		{
 			lock (StateLock)
 			{
-				return Rounds.Where(x => !(x.Registration is null) && x.State.Phase >= RoundPhase.ConnectionConfirmation).Select(x => x.State.RoundId).ToArray();
+				return Rounds.Where(x => x.Registration is { } && x.State.Phase >= RoundPhase.ConnectionConfirmation).ToArray();
 			}
 		}
 
-		public IEnumerable<long> GetPassivelyMixingRounds()
+		public IEnumerable<ClientRound> GetPassivelyMixingRounds()
 		{
 			lock (StateLock)
 			{
-				return Rounds.Where(x => !(x.Registration is null) && x.State.Phase == RoundPhase.InputRegistration).Select(x => x.State.RoundId).ToArray();
+				return Rounds.Where(x => x.Registration is { } && x.State.Phase == RoundPhase.InputRegistration).ToArray();
 			}
 		}
 
-		public IEnumerable<long> GetAllMixingRounds()
+		public IEnumerable<ClientRound> GetAllMixingRounds()
 		{
 			lock (StateLock)
 			{
-				return Rounds.Where(x => !(x.Registration is null)).Select(x => x.State.RoundId).ToArray();
+				return Rounds.Where(x => x.Registration is { }).ToArray();
 			}
 		}
 

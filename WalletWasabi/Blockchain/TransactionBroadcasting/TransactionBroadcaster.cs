@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -134,14 +135,18 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 
 		private void BelieveTransaction(SmartTransaction transaction)
 		{
+			if (transaction.Height == Height.Unknown)
+			{
+				transaction.SetUnconfirmed();
+			}
+
 			lock (WalletServicesLock)
-				lock (TransactionProcessor.Lock)
+			{
+				foreach (var walletService in AliveWalletServices)
 				{
-					foreach (var walletService in AliveWalletServices)
-					{
-						walletService.TransactionProcessor.Process(new SmartTransaction(transaction.Transaction, Height.Mempool));
-					}
+					walletService.TransactionProcessor.Process(transaction);
 				}
+			}
 		}
 
 		public async Task SendTransactionAsync(SmartTransaction transaction)

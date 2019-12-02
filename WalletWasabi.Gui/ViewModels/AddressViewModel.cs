@@ -8,6 +8,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Logging;
 
@@ -108,7 +109,7 @@ namespace WalletWasabi.Gui.ViewModels
 			get => _label;
 			set
 			{
-				if (!IsLurkingWifeMode)
+				if (!IsLurkingWifeMode && !new SmartLabel(value).IsEmpty)
 				{
 					this.RaiseAndSetIfChanged(ref _label, value);
 				}

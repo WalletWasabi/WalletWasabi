@@ -139,12 +139,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			OpenBrowserCommand = ReactiveCommand.Create<string>(x => IoHelpers.OpenBrowser(x));
 
-			Observable.Merge(OpenBrowserCommand.ThrownExceptions)
+			Observable
+				.Merge(OpenBrowserCommand.ThrownExceptions)
 				.Merge(LoadCommand.ThrownExceptions)
 				.Merge(TestPasswordCommand.ThrownExceptions)
 				.Merge(OpenFolderCommand.ThrownExceptions)
 				.Merge(ImportColdcardCommand.ThrownExceptions)
 				.Merge(EnumerateHardwareWalletsCommand.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
 					NotificationHelpers.Error(ex.ToTypeMessageString());
@@ -300,7 +302,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			TrySetWalletStates();
 
-			if (!CanLoadWallet)
+			if (!CanLoadWallet && Wallets.Count > 0)
 			{
 				NotificationHelpers.Warning("There is already an open wallet. Restart the application in order to open a different one.");
 			}

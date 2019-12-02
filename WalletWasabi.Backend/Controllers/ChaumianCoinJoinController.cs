@@ -736,10 +736,10 @@ namespace WalletWasabi.Backend.Controllers
 		}
 
 		/// <summary>
-		/// Gets the list of unconfirmed CoinJoins transactions id.
+		/// Gets the list of unconfirmed CoinJoin transaction Ids.
 		/// </summary>
-		/// <returns>The the list of CoinJoin transactions in the mempool.</returns>
-		/// <response code="200">An array of transactions Ids</response>
+		/// <returns>The list of CoinJoin transactions in the mempool.</returns>
+		/// <response code="200">An array of transaction Ids</response>
 		[HttpGet("unconfirmed-coinjoins")]
 		[ProducesResponseType(200)]
 		public async Task<IActionResult> GetUnconfirmedCoinjoinsAsync()

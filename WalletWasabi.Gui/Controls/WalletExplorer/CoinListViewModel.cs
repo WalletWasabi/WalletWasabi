@@ -17,7 +17,7 @@ using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Blockchain.TransactionProcessing;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -241,12 +241,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			return null;
 		}
 
-		private void SelectAllCoins(bool valueOfSelected, Func<CoinViewModel, bool> coinFilterPredicate)
+		private void SelectCoins(Func<CoinViewModel, bool> coinFilterPredicate)
 		{
-			var coins = Coins.Where(coinFilterPredicate).ToArray();
-			foreach (var c in coins)
+			foreach (var c in Coins.ToArray())
 			{
-				c.IsSelected = valueOfSelected;
+				c.IsSelected = coinFilterPredicate(c);
 			}
 		}
 
@@ -344,15 +343,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					switch (SelectAllCheckBoxState)
 					{
 						case true:
-							SelectAllCoins(true, x => true);
-							break;
-
-						case false:
-							SelectAllCoins(false, x => true);
+							SelectCoins(x => true);
 							break;
 
 						case null:
-							SelectAllCoins(false, x => true);
+						case false:
+							SelectCoins(x => false);
 							SelectAllCheckBoxState = false;
 							break;
 					}
@@ -363,15 +359,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					switch (SelectPrivateCheckBoxState)
 					{
 						case true:
-							SelectAllCoins(true, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
-							break;
-
-						case false:
-							SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+							SelectCoins(x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
 							break;
 
 						case null:
-							SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+						case false:
+							SelectCoins(x => false);
 							SelectPrivateCheckBoxState = false;
 							break;
 					}
@@ -382,15 +375,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					switch (SelectNonPrivateCheckBoxState)
 					{
 						case true:
-							SelectAllCoins(true, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+							SelectCoins(x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
 							break;
 
 						case false:
-							SelectAllCoins(false, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
-							break;
-
 						case null:
-							SelectAllCoins(false, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+							SelectCoins(x => false);
 							SelectNonPrivateCheckBoxState = false;
 							break;
 					}
@@ -412,6 +402,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(SelectAllCheckBoxCommand.ThrownExceptions)
 				.Merge(DequeueCoin.ThrownExceptions)
 				.Merge(SortCommand.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
@@ -442,11 +433,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.DisposeWith(Disposables);
 
 			Observable
-				.Merge(Observable.FromEventPattern<ReplaceTransactionReceivedEventArgs>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.ReplaceTransactionReceived)).Select(_ => Unit.Default))
-				.Merge(Observable.FromEventPattern<DoubleSpendReceivedEventArgs>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.DoubleSpendReceived)).Select(_ => Unit.Default))
-				.Merge(Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinSpent)).Select(_ => Unit.Default))
-				.Merge(Observable.FromEventPattern<SmartCoin>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.CoinReceived)).Select(_ => Unit.Default))
-				.Throttle(TimeSpan.FromSeconds(2)) // Throttle TransactionProcessor events adds/removes.
+				.Merge(Observable.FromEventPattern<ProcessedResult>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
+				.Throttle(TimeSpan.FromSeconds(1)) // Throttle TransactionProcessor events adds/removes.
 				.Merge(Observable.FromEventPattern(this, nameof(CoinListShown), RxApp.MainThreadScheduler).Select(_ => Unit.Default)) // Load the list immediately.
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(args =>
@@ -511,7 +499,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			cvm.WhenAnyValue(x => x.IsSelected)
 				.Synchronize(SelectionChangedLock) // Use the same lock to ensure thread safety.
-				.Throttle(TimeSpan.FromSeconds(0.5))
+				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
@@ -544,7 +532,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(cvm.Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend, x => x.Confirmed, x => x.CoinJoinInProgress).Select(_ => Unit.Default))
 				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated)).Select(_ => Unit.Default))
 				.Synchronize(StateChangedLock) // Use the same lock to ensure thread safety.
-				.Throttle(TimeSpan.FromSeconds(2))
+				.Throttle(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
