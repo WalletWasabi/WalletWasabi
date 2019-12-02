@@ -15,6 +15,7 @@ using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.TorSocks5;
 
 namespace WalletWasabi.WebClients.Wasabi
 {
@@ -27,6 +28,10 @@ namespace WalletWasabi.WebClients.Wasabi
 
 		/// <inheritdoc/>
 		public WasabiClient(Uri baseUri, EndPoint torSocks5EndPoint) : base(baseUri, torSocks5EndPoint)
+		{
+		}
+
+		public WasabiClient(ITorHttpClient torHttpClient) : base(torHttpClient)
 		{
 		}
 
@@ -83,6 +88,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		}
 
 		public static Dictionary<uint256, Transaction> TransactionCache { get; } = new Dictionary<uint256, Transaction>();
+		private static Queue<uint256> TransactionIdQueue { get; } = new Queue<uint256>();
 		public static object TransactionCacheLock { get; } = new object();
 
 		public async Task<IEnumerable<Transaction>> GetTransactionsAsync(Network network, IEnumerable<uint256> txHashes, CancellationToken cancel)
@@ -119,9 +125,14 @@ namespace WalletWasabi.WebClients.Wasabi
 					foreach (var tx in ret)
 					{
 						tx.PrecomputeHash(false, true);
-						if (TransactionCache.TryAdd(tx.GetHash(), tx) && TransactionCache.Count >= 1000)
+						if (TransactionCache.TryAdd(tx.GetHash(), tx))
 						{
-							TransactionCache.Remove(TransactionCache.Keys.First());
+							TransactionIdQueue.Enqueue(tx.GetHash());
+							if (TransactionCache.Count > 1000) // No more than 1000 txs in cache
+							{
+								var toRemove = TransactionIdQueue.Dequeue();
+								TransactionCache.Remove(toRemove);
+							}
 						}
 					}
 				}
