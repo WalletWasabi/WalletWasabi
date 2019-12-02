@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
@@ -93,6 +94,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			this.WhenAnyValue(x => x.MnemonicWords).Subscribe(UpdateSuggestions);
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
+
+			RecoverCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);

@@ -6,6 +6,7 @@ using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
@@ -52,6 +53,10 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 					PinInput += arg;
 				}
 			});
+
+			KeyPadCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 
 			this.WhenAnyValue(x => x.PinInput)
 				.Throttle(TimeSpan.FromSeconds(1))

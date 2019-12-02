@@ -22,6 +22,7 @@ using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
@@ -293,9 +294,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						TxoRef[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => x.Model.GetTxoRef()).ToArray();
 						if (toDequeue != null && toDequeue.Any())
 						{
-							var reason = "Coins dequeued, because of normal send.";
-							await Global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, reason);
-							NotificationHelpers.Warning(reason, "");
+							await Global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, DequeueReason.TransactionBuilding);
 						}
 					}
 					catch
@@ -444,8 +443,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(UserFeeTextKeyUpCommand.ThrownExceptions)
 				.Merge(FeeSliderClickedCommand.ThrownExceptions)
 				.Merge(HighLightFeeSliderCommand.ThrownExceptions)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(ex => NotificationHelpers.Warning(ex.ToTypeMessageString()));
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex =>
+				{
+					NotificationHelpers.Warning(ex.ToTypeMessageString());
+					Logger.LogError(ex);
+				});
 		}
 
 		public SuggestLabelViewModel LabelSuggestion => _labelSuggestion;

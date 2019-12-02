@@ -66,7 +66,7 @@ namespace WalletWasabi.CoinJoin.Common.Models
 			//return baseMinimum + (FeePerInputs * MaximumInputCountPerPeer);
 		}
 
-		public bool HaveEnoughQueued(params Money[] queuedCoinAmounts)
+		public bool HaveEnoughQueued(IEnumerable<Money> queuedCoinAmounts)
 		{
 			var tried = new List<Money>();
 			Money baseMinimum = Denomination + (FeePerOutputs * 2); // + (Denomination.Percentange(CoordinatorFeePercent) * RequiredPeerCount);

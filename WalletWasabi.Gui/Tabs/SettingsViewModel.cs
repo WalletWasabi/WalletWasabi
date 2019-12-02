@@ -18,6 +18,7 @@ using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Tabs
 {
@@ -141,6 +142,14 @@ namespace WalletWasabi.Gui.Tabs
 				});
 
 			TextBoxLostFocusCommand = ReactiveCommand.Create(Save);
+
+			Observable
+				.Merge(OpenConfigFileCommand.ThrownExceptions)
+				.Merge(LurkingWifeModeCommand.ThrownExceptions)
+				.Merge(SetClearPinCommand.ThrownExceptions)
+				.Merge(TextBoxLostFocusCommand.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public override void OnOpen()
