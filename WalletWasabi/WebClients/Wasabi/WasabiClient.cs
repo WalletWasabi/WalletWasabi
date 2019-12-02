@@ -125,12 +125,12 @@ namespace WalletWasabi.WebClients.Wasabi
 					foreach (var tx in ret)
 					{
 						tx.PrecomputeHash(false, true);
-						if (TransactionCache.TryAdd(tx.GetHash(), tx)) 
+						if (TransactionCache.TryAdd(tx.GetHash(), tx))
 						{
 							TransactionIdQueue.Enqueue(tx.GetHash());
 							if (TransactionCache.Count > 1000) // No more than 1000 txs in cache
 							{
-								var toRemove = TransactionIdQueue.Dequeue(); 
+								var toRemove = TransactionIdQueue.Dequeue();
 								TransactionCache.Remove(toRemove);
 							}
 						}

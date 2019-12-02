@@ -74,10 +74,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 		public async Task GetTransactionsAsync(NetworkType networkType)
 		{
 			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.Instance.TorSocks5Endpoint);
-			var randomTxIds = Enumerable.Range(0, 20).Select(_=> RandomUtils.GetUInt256());
+			var randomTxIds = Enumerable.Range(0, 20).Select(_ => RandomUtils.GetUInt256());
 			var network = networkType == NetworkType.Mainnet ? Network.Main : Network.TestNet;
 
-			var ex = await Assert.ThrowsAsync<HttpRequestException>(async ()=>
+			var ex = await Assert.ThrowsAsync<HttpRequestException>(async () =>
 				await client.GetTransactionsAsync(network, randomTxIds.Take(4), CancellationToken.None));
 			Assert.Equal("Bad Request\nNo such mempool or blockchain transaction. Use gettransaction for wallet transactions.", ex.Message);
 
