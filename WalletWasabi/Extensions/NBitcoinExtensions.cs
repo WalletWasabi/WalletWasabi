@@ -103,6 +103,19 @@ namespace NBitcoin
 			return false;
 		}
 
+		public static bool HasIndistinguishableOutputs(this Transaction me)
+		{
+			var hashset = new HashSet<long>();
+			foreach (var name in me.Outputs.Select(x => x.Value))
+			{
+				if (!hashset.Add(name))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
 		public static IEnumerable<(Money value, int count)> GetIndistinguishableOutputs(this Transaction me, bool includeSingle)
 		{
 			return me.Outputs.GroupBy(x => x.Value)

@@ -7,6 +7,9 @@ using System.Text;
 using AvalonStudio.Extensibility;
 using Avalonia.Threading;
 using System.Threading.Tasks;
+using ReactiveUI;
+using AvalonStudio.Commands;
+using System.Reactive;
 
 namespace AvalonStudio.Shell
 {
@@ -33,6 +36,11 @@ namespace AvalonStudio.Shell
 			}
 
 			return document;
+		}
+
+		public static ReactiveCommand<Unit, Unit> GetReactiveCommand(this CommandDefinition cmd)
+		{
+			return cmd.Command as ReactiveCommand<Unit, Unit>;
 		}
 	}
 }

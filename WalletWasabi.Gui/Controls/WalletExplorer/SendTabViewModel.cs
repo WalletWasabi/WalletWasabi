@@ -22,6 +22,7 @@ using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
@@ -121,49 +122,48 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			SetFeesAndTexts();
 
-			this.WhenAnyValue(x => x.AmountText)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(amount =>
+			AmountKeyUpCommand = ReactiveCommand.Create((KeyEventArgs key) =>
+			{
+				var amount = AmountText;
+				if (!IsMax)
 				{
-					if (!IsMax)
+					// Correct amount
+					Regex digitsOnly = new Regex(@"[^\d,.]");
+					string betterAmount = digitsOnly.Replace(amount, ""); // Make it digits , and . only.
+
+					betterAmount = betterAmount.Replace(',', '.');
+					int countBetterAmount = betterAmount.Count(x => x == '.');
+					if (countBetterAmount > 1) // Do not enable typing two dots.
 					{
-						// Correct amount
-						Regex digitsOnly = new Regex(@"[^\d,.]");
-						string betterAmount = digitsOnly.Replace(amount, ""); // Make it digits , and . only.
-
-						betterAmount = betterAmount.Replace(',', '.');
-						int countBetterAmount = betterAmount.Count(x => x == '.');
-						if (countBetterAmount > 1) // Do not enable typing two dots.
+						var index = betterAmount.IndexOf('.', betterAmount.IndexOf('.') + 1);
+						if (index > 0)
 						{
-							var index = betterAmount.IndexOf('.', betterAmount.IndexOf('.') + 1);
-							if (index > 0)
-							{
-								betterAmount = betterAmount.Substring(0, index);
-							}
-						}
-						var dotIndex = betterAmount.IndexOf('.');
-						if (dotIndex != -1 && betterAmount.Length - dotIndex > 8) // Enable max 8 decimals.
-						{
-							betterAmount = betterAmount.Substring(0, dotIndex + 1 + 8);
-						}
-
-						if (betterAmount != amount)
-						{
-							AmountText = betterAmount;
+							betterAmount = betterAmount.Substring(0, index);
 						}
 					}
-
-					if (Money.TryParse(amount.TrimStart('~', ' '), out Money amountBtc))
+					var dotIndex = betterAmount.IndexOf('.');
+					if (dotIndex != -1 && betterAmount.Length - dotIndex > 8) // Enable max 8 decimals.
 					{
-						SetAmountWatermark(amountBtc);
-					}
-					else
-					{
-						SetAmountWatermark(Money.Zero);
+						betterAmount = betterAmount.Substring(0, dotIndex + 1 + 8);
 					}
 
-					SetFeesAndTexts();
-				});
+					if (betterAmount != amount)
+					{
+						AmountText = betterAmount;
+					}
+				}
+
+				if (Money.TryParse(amount.TrimStart('~', ' '), out Money amountBtc))
+				{
+					SetAmountWatermark(amountBtc);
+				}
+				else
+				{
+					SetAmountWatermark(Money.Zero);
+				}
+
+				SetFeesAndTexts();
+			});
 
 			this.WhenAnyValue(x => x.IsBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -234,7 +234,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					_labelSuggestion.Label = label;
 					if (!IsMax && label.IsEmpty)
 					{
-						NotificationHelpers.Error($"{nameof(_labelSuggestion.Label)} is required.");
+						NotificationHelpers.Warning($"{nameof(_labelSuggestion.Label)} is required.", "");
 						return;
 					}
 
@@ -243,7 +243,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (!selectedCoinReferences.Any())
 					{
-						NotificationHelpers.Error("No coins are selected to spend.");
+						NotificationHelpers.Warning("No coins are selected to spend.", "");
 						return;
 					}
 
@@ -254,7 +254,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					catch (FormatException)
 					{
-						NotificationHelpers.Error("Invalid address.");
+						NotificationHelpers.Warning("Invalid address.", "");
 						return;
 					}
 
@@ -267,13 +267,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						if (!Money.TryParse(AmountText, out Money amount) || amount == Money.Zero)
 						{
-							NotificationHelpers.Error("Invalid amount.");
+							NotificationHelpers.Warning("Invalid amount.");
 							return;
 						}
 
 						if (amount == selectedCoinViewModels.Sum(x => x.Amount))
 						{
-							NotificationHelpers.Error("Looks like you want to spend a whole coin. Try Max button instead.");
+							NotificationHelpers.Warning("Looks like you want to spend whole coins. Try Max button instead.", "");
 							return;
 						}
 						moneyRequest = MoneyRequest.Create(amount);
@@ -281,7 +281,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (FeeRate is null || FeeRate.SatoshiPerByte < 1)
 					{
-						NotificationHelpers.Error("Invalid fee rate, must be greater than or equal to one.");
+						NotificationHelpers.Warning("Invalid fee rate.", "");
 						return;
 					}
 
@@ -294,12 +294,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						TxoRef[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => x.Model.GetTxoRef()).ToArray();
 						if (toDequeue != null && toDequeue.Any())
 						{
-							await Global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, "Coin is used in a spending transaction built by the user.");
+							await Global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, DequeueReason.TransactionBuilding);
 						}
 					}
 					catch
 					{
-						NotificationHelpers.Error("Spending coins that are being actively mixed is not allowed.");
+						NotificationHelpers.Error("Cannot spend mixing coins.", "");
 						return;
 					}
 					finally
@@ -320,7 +320,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 						catch (SecurityException ex)
 						{
-							NotificationHelpers.Error(ex.Message);
+							NotificationHelpers.Error(ex.Message, "");
 							return;
 						}
 						catch (Exception ex)
@@ -344,7 +344,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 						txviewer.Update(result);
 
-						TryResetInputsOnSuccess("Transaction is successfully built!");
+						ResetUi();
+
+						NotificationHelpers.Success("Transaction is successfully built!", "");
 
 						return;
 					}
@@ -388,12 +390,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
 					await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(signedTransaction));
 
-					TryResetInputsOnSuccess("Transaction is successfully sent!");
+					ResetUi();
 				}
 				catch (InsufficientBalanceException ex)
 				{
 					Money needed = ex.Minimum - ex.Actual;
-					NotificationHelpers.Error($"Not enough coins selected. You need an estimated {needed.ToString(false, true)} BTC more to make this transaction.");
+					NotificationHelpers.Error($"Not enough coins selected. You need an estimated {needed.ToString(false, true)} BTC more to make this transaction.", "");
 				}
 				catch (HttpRequestException ex)
 				{
@@ -441,8 +443,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(UserFeeTextKeyUpCommand.ThrownExceptions)
 				.Merge(FeeSliderClickedCommand.ThrownExceptions)
 				.Merge(HighLightFeeSliderCommand.ThrownExceptions)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(ex => NotificationHelpers.Warning(ex.ToTypeMessageString()));
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex =>
+				{
+					NotificationHelpers.Warning(ex.ToTypeMessageString());
+					Logger.LogError(ex);
+				});
 		}
 
 		public SuggestLabelViewModel LabelSuggestion => _labelSuggestion;
@@ -557,8 +563,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					switch (FeeDisplayFormat)
 					{
 						case FeeDisplayFormat.SatoshiPerByte:
-							FeeText = $"(~ {FeeRate.SatoshiPerByte} sat/byte)";
-							FeeToolTip = "Expected fee rate in satoshi / vbyte.";
+							FeeText = $"(~ {FeeRate.SatoshiPerByte} sat/vByte)";
+							FeeToolTip = "Expected fee rate in satoshi/vByte.";
 							break;
 
 						case FeeDisplayFormat.USD:
@@ -681,20 +687,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				MinimumFeeTarget = 2;
 				MaximumFeeTarget = Constants.SevenDaysConfirmationTarget;
-			}
-		}
-
-		private void TryResetInputsOnSuccess(string successMessage)
-		{
-			try
-			{
-				ResetUi();
-
-				NotificationHelpers.Success(successMessage);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogInfo(ex);
 			}
 		}
 
@@ -879,6 +871,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<PointerPressedEventArgs, Unit> FeeSliderClickedCommand { get; }
 
 		public ReactiveCommand<bool, Unit> HighLightFeeSliderCommand { get; }
+
+		public ReactiveCommand<KeyEventArgs, Unit> AmountKeyUpCommand { get; }
 
 		public bool IsTransactionBuilder { get; }
 

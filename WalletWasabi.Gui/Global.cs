@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
 using NBitcoin;
 using NBitcoin.Protocol;
@@ -12,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
@@ -21,8 +23,11 @@ using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.CoinJoin.Client.Clients;
+using WalletWasabi.CoinJoin.Client.Clients.Queuing;
+using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
@@ -130,7 +135,7 @@ namespace WalletWasabi.Gui
 			if (enqueuedCoins.Any())
 			{
 				Logger.LogWarning("Unregistering coins in CoinJoin process.");
-				await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins, "Process was signaled to kill.");
+				await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins, DequeueReason.ApplicationExit);
 			}
 		}
 
@@ -474,12 +479,151 @@ namespace WalletWasabi.Gui
 				Logger.LogInfo($"{nameof(WalletService)} started.");
 
 				token.ThrowIfCancellationRequested();
-				WalletService.TransactionProcessor.CoinReceived += CoinReceived;
 
 				TransactionBroadcaster.AddWalletService(WalletService);
 				CoinJoinProcessor.AddWalletService(WalletService);
+
+				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
+				ChaumianClient.OnDequeue += ChaumianClient_OnDequeued;
 			}
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
+		}
+
+		private void ChaumianClient_OnDequeued(object sender, DequeueResult e)
+		{
+			try
+			{
+				if (UiConfig?.LurkingWifeMode is true)
+				{
+					return;
+				}
+
+				foreach (var success in e.Successful.Where(x => x.Value.Any()))
+				{
+					DequeueReason reason = success.Key;
+					if (reason != DequeueReason.Spent)
+					{
+						var type = reason == DequeueReason.UserRequested ? NotificationType.Information : NotificationType.Warning;
+						var message = reason == DequeueReason.UserRequested ? "" : reason.ToFriendlyString();
+						var title = success.Value.Count() == 1 ? $"Coin ({success.Value.First().Amount.ToString(false, true)}) Dequeued" : $"{success.Value.Count()} Coins Dequeued";
+						NotificationHelpers.Notify(message, title, type);
+					}
+				}
+
+				foreach (var failure in e.Unsuccessful.Where(x => x.Value.Any()))
+				{
+					DequeueReason reason = failure.Key;
+					var type = NotificationType.Warning;
+					var message = reason.ToFriendlyString();
+					var title = failure.Value.Count() == 1 ? $"Couldn't Dequeue Coin ({failure.Value.First().Amount.ToString(false, true)})" : $"Couldn't Dequeue {failure.Value.Count()} Coins";
+					NotificationHelpers.Notify(message, title, type);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex);
+			}
+		}
+
+		private void TransactionProcessor_WalletRelevantTransactionProcessed(object sender, ProcessedResult e)
+		{
+			try
+			{
+				// In lurking wife mode no notification is raised.
+				// If there are no news, then don't bother too.
+				if (UiConfig?.LurkingWifeMode is true || !e.IsNews)
+				{
+					return;
+				}
+
+				// ToDo
+				// Double spent.
+				// Anonymity set gained?
+				// Received dust
+
+				bool isSpent = e.NewlySpentCoins.Any();
+				bool isReceived = e.NewlyReceivedCoins.Any();
+				bool isConfirmedReceive = e.NewlyConfirmedReceivedCoins.Any();
+				bool isConfirmedSpent = e.NewlyConfirmedReceivedCoins.Any();
+				Money miningFee = e.Transaction.Transaction.GetFee(e.SpentCoins.Select(x => x.GetCoin()).ToArray());
+				if (isReceived || isSpent)
+				{
+					Money receivedSum = e.NewlyReceivedCoins.Sum(x => x.Amount);
+					Money spentSum = e.NewlySpentCoins.Sum(x => x.Amount);
+					Money incoming = receivedSum - spentSum;
+					Money receiveSpentDiff = incoming.Abs();
+					string amountString = receiveSpentDiff.ToString(false, true);
+
+					if (e.Transaction.Transaction.IsCoinBase)
+					{
+						NotifyAndLog($"{amountString} BTC", "Mined", NotificationType.Success, e);
+					}
+					else if (isSpent && receiveSpentDiff == miningFee)
+					{
+						NotifyAndLog($"Mining Fee: {amountString} BTC", "Self Spend", NotificationType.Information, e);
+					}
+					else if (isSpent && receiveSpentDiff.Almost(Money.Zero, Money.Coins(0.01m)) && e.IsLikelyOwnCoinJoin)
+					{
+						NotifyAndLog($"CoinJoin Completed!", "", NotificationType.Success, e);
+					}
+					else if (incoming > Money.Zero)
+					{
+						if (e.Transaction.IsRBF && e.Transaction.IsReplacement)
+						{
+							NotifyAndLog($"{amountString} BTC", "Received Replacable Replacement Transaction", NotificationType.Information, e);
+						}
+						else if (e.Transaction.IsRBF)
+						{
+							NotifyAndLog($"{amountString} BTC", "Received Replacable Transaction", NotificationType.Success, e);
+						}
+						else if (e.Transaction.IsReplacement)
+						{
+							NotifyAndLog($"{amountString} BTC", "Received Replacement Transaction", NotificationType.Information, e);
+						}
+						else
+						{
+							NotifyAndLog($"{amountString} BTC", "Received", NotificationType.Success, e);
+						}
+					}
+					else if (incoming < Money.Zero)
+					{
+						NotifyAndLog($"{amountString} BTC", "Sent", NotificationType.Information, e);
+					}
+				}
+				else if (isConfirmedReceive || isConfirmedSpent)
+				{
+					Money receivedSum = e.ReceivedCoins.Sum(x => x.Amount);
+					Money spentSum = e.SpentCoins.Sum(x => x.Amount);
+					Money incoming = receivedSum - spentSum;
+					Money receiveSpentDiff = incoming.Abs();
+					string amountString = receiveSpentDiff.ToString(false, true);
+
+					if (isConfirmedSpent && receiveSpentDiff == miningFee)
+					{
+						NotifyAndLog($"Mining Fee: {amountString} BTC", "Self Spend Confirmed", NotificationType.Information, e);
+					}
+					else if (incoming > Money.Zero)
+					{
+						NotifyAndLog($"{amountString} BTC", "Receive Confirmed", NotificationType.Information, e);
+					}
+					else if (incoming < Money.Zero)
+					{
+						NotifyAndLog($"{amountString} BTC", "Send Confirmed", NotificationType.Information, e);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex);
+			}
+		}
+
+		private static void NotifyAndLog(string message, string title, NotificationType notificationType, ProcessedResult e)
+		{
+			message = Guard.Correct(message);
+			title = Guard.Correct(title);
+			NotificationHelpers.Notify(message, title, notificationType, () => IoHelpers.OpenFileInTextEditor(Logger.FilePath));
+			Logger.LogInfo($"Transaction Notification ({notificationType}): {title} - {message} - {e.Transaction.GetHash()}");
 		}
 
 		public string GetWalletFullPath(string walletName)
@@ -544,29 +688,13 @@ namespace WalletWasabi.Gui
 			return keyManager;
 		}
 
-		private void CoinReceived(object sender, SmartCoin coin)
-		{
-			if (coin.HdPubKey.IsInternal)
-			{
-				return;
-			}
-
-			if (UiConfig?.LurkingWifeMode is true)
-			{
-				return;
-			}
-
-			string amountString = coin.Amount.ToString(false, true);
-
-			NotificationHelpers.Information($"{amountString} BTC", "Received");
-		}
-
 		public async Task DisposeInWalletDependentServicesAsync()
 		{
 			var walletService = WalletService;
 			if (walletService is { })
 			{
-				walletService.TransactionProcessor.CoinReceived -= CoinReceived;
+				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
+				ChaumianClient.OnDequeue -= ChaumianClient_OnDequeued;
 			}
 
 			try

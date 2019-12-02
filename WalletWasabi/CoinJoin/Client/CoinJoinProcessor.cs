@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -66,7 +67,7 @@ namespace WalletWasabi.CoinJoin.Client
 
 					var unconfirmedCoinJoins = await client.GetTransactionsAsync(Synchronizer.Network, txsNotKnownByAWalletService, CancellationToken.None).ConfigureAwait(false);
 
-					foreach (Transaction tx in unconfirmedCoinJoins)
+					foreach (var tx in unconfirmedCoinJoins.Select(x => new SmartTransaction(x, Height.Mempool)))
 					{
 						if (RpcClient is null
 							|| await TryBroadcastTransactionWithRpcAsync(tx).ConfigureAwait(false)
@@ -92,25 +93,24 @@ namespace WalletWasabi.CoinJoin.Client
 			}
 		}
 
-		private void BelieveTransaction(Transaction transaction)
+		private void BelieveTransaction(SmartTransaction transaction)
 		{
 			lock (WalletServicesLock)
-				lock (TransactionProcessor.Lock)
+			{
+				foreach (var pair in AliveWalletServices.Where(x => !x.Value.Contains(transaction.GetHash())))
 				{
-					foreach (var pair in AliveWalletServices.Where(x => !x.Value.Contains(transaction.GetHash())))
-					{
-						var walletService = pair.Key;
-						pair.Value.Add(transaction.GetHash());
-						walletService.TransactionProcessor.Process(new SmartTransaction(transaction, Height.Mempool));
-					}
+					var walletService = pair.Key;
+					pair.Value.Add(transaction.GetHash());
+					walletService.TransactionProcessor.Process(transaction);
 				}
+			}
 		}
 
-		private async Task<bool> TryBroadcastTransactionWithRpcAsync(Transaction transaction)
+		private async Task<bool> TryBroadcastTransactionWithRpcAsync(SmartTransaction transaction)
 		{
 			try
 			{
-				await RpcClient.SendRawTransactionAsync(transaction).ConfigureAwait(false);
+				await RpcClient.SendRawTransactionAsync(transaction.Transaction).ConfigureAwait(false);
 				Logger.LogInfo($"Transaction is successfully broadcasted with RPC: {transaction.GetHash()}.");
 
 				return true;
