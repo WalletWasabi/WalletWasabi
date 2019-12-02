@@ -157,7 +157,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					if (allReceivedInternal)
 					{
 						// It is likely a coinjoin if the diff between receive and sent amount is small and have at least 2 equal outputs.
-						Money spentAmount = Coins.OutPoints(tx.Transaction.Inputs.ToTxoRefs()).TotalAmount();
+						Money spentAmount = Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.ToTxoRefs()).TotalAmount();
 						Money receivedAmount = tx.Transaction.Outputs.Where(x => receiveKeys.Any(y => y.P2wpkhScript == x.ScriptPubKey)).Sum(x => x.Value);
 						bool receivedAlmostAsMuchAsSpent = spentAmount.Almost(receivedAmount, Money.Coins(0.005m));
 
