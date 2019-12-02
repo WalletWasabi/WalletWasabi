@@ -166,29 +166,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (Model.CoinJoinInProgress && Global.ChaumianClient != null)
 			{
 				ClientState clientState = Global.ChaumianClient.State;
-				foreach (long roundId in clientState.GetAllMixingRounds())
+				foreach (var round in clientState.GetAllMixingRounds())
 				{
-					ClientRound round = clientState.GetSingleOrDefaultRound(roundId);
-					if (round != default)
+					if (round.CoinsRegistered.Contains(Model))
 					{
-						if (round.CoinsRegistered.Contains(Model))
+						if (round.State.Phase == RoundPhase.InputRegistration)
 						{
-							if (round.State.Phase == RoundPhase.InputRegistration)
-							{
-								return SmartCoinStatus.MixingInputRegistration;
-							}
-							else if (round.State.Phase == RoundPhase.ConnectionConfirmation)
-							{
-								return SmartCoinStatus.MixingConnectionConfirmation;
-							}
-							else if (round.State.Phase == RoundPhase.OutputRegistration)
-							{
-								return SmartCoinStatus.MixingOutputRegistration;
-							}
-							else if (round.State.Phase == RoundPhase.Signing)
-							{
-								return SmartCoinStatus.MixingSigning;
-							}
+							return SmartCoinStatus.MixingInputRegistration;
+						}
+						else if (round.State.Phase == RoundPhase.ConnectionConfirmation)
+						{
+							return SmartCoinStatus.MixingConnectionConfirmation;
+						}
+						else if (round.State.Phase == RoundPhase.OutputRegistration)
+						{
+							return SmartCoinStatus.MixingOutputRegistration;
+						}
+						else if (round.State.Phase == RoundPhase.Signing)
+						{
+							return SmartCoinStatus.MixingSigning;
 						}
 					}
 				}

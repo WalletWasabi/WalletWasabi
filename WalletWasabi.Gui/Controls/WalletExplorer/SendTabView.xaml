@@ -52,7 +52,11 @@
               Watermark="{Binding AmountWatermarkText}"
               UseFloatingWatermark="True"
               MinWidth="124"
-              MinHeight="46" />
+              MinHeight="46">
+              <i:Interaction.Behaviors>
+                <behaviors:CommandOnKeyUpBehavior Command="{Binding AmountKeyUpCommand}" />
+              </i:Interaction.Behaviors>
+            </controls:ExtendedTextBox>
             <StackPanel Opacity="{Binding FeeControlOpacity}">
               <StackPanel IsVisible="{Binding !MinMaxFeeTargetsEqual}" Orientation="Horizontal" Spacing="10">
                 <TextBlock Text="Fee:" />

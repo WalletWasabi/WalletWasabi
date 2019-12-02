@@ -30,6 +30,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients;
+using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator;
@@ -479,7 +480,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			// Get some money, make it confirm.
-			var key = wallet.GetReceiveKey("foo label");
+			var key = keyManager.GetNextReceiveKey("foo label", out _);
 			var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
 			await rpc.GenerateAsync(1);
 
@@ -517,7 +518,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Equal("foo label", keyManager.GetKeys(KeyState.Used, false).Single().Label);
 
 				// Get some money, make it confirm.
-				var key2 = wallet.GetReceiveKey("bar label");
+				var key2 = keyManager.GetNextReceiveKey("bar label", out _);
 				var txId2 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), Money.Coins(0.01m));
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(1);
@@ -699,8 +700,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			// Get some money, make it confirm.
-			var key = wallet.GetReceiveKey("foo label");
-			var key2 = wallet.GetReceiveKey("foo label");
+			var key = keyManager.GetNextReceiveKey("foo label", out _);
+			var key2 = keyManager.GetNextReceiveKey("foo label", out _);
 			var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
 			Assert.NotNull(txId);
 			await rpc.GenerateAsync(1);
@@ -760,7 +761,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				#region Basic
 
-				Script receive = wallet.GetReceiveKey("Basic").P2wpkhScript;
+				Script receive = keyManager.GetNextReceiveKey("Basic", out _).P2wpkhScript;
 				Money amountToSend = wallet.Coins.Where(x => !x.Unavailable).Sum(x => x.Amount) / 2;
 				var res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, label: "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 
@@ -808,7 +809,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				#region SubtractFeeFromAmount
 
-				receive = wallet.GetReceiveKey("SubtractFeeFromAmount").P2wpkhScript;
+				receive = keyManager.GetNextReceiveKey("SubtractFeeFromAmount", out _).P2wpkhScript;
 				amountToSend = wallet.Coins.Where(x => !x.Unavailable).Sum(x => x.Amount) / 3;
 				res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, subtractFee: true, label: "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 
@@ -947,7 +948,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				#region MaxAmount
 
-				receive = wallet.GetReceiveKey("MaxAmount").P2wpkhScript;
+				receive = keyManager.GetNextReceiveKey("MaxAmount", out _).P2wpkhScript;
 
 				res = wallet.BuildTransaction(password, new PaymentIntent(receive, MoneyRequest.CreateAllRemaining(), "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 
@@ -968,7 +969,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				#region InputSelection
 
-				receive = wallet.GetReceiveKey("InputSelection").P2wpkhScript;
+				receive = keyManager.GetNextReceiveKey("InputSelection", out _).P2wpkhScript;
 
 				var inputCountBefore = res.SpentCoins.Count();
 
@@ -1008,11 +1009,11 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				#region Labeling
 
-				Script receive2 = wallet.GetReceiveKey(SmartLabel.Empty).P2wpkhScript;
+				Script receive2 = keyManager.GetNextReceiveKey("foo", out _).P2wpkhScript;
 				res = wallet.BuildTransaction(password, new PaymentIntent(receive2, MoneyRequest.CreateAllRemaining(), "my label"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 
 				Assert.Single(res.InnerWalletOutputs);
-				Assert.Equal("my label", res.InnerWalletOutputs.Single().Label);
+				Assert.Equal("foo, my label", res.InnerWalletOutputs.Single().Label);
 
 				amountToSend = wallet.Coins.Where(x => !x.Unavailable).Sum(x => x.Amount) / 3;
 				res = wallet.BuildTransaction(
@@ -1057,7 +1058,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				inputCountBefore = res.SpentCoins.Count();
 
-				receive = wallet.GetReceiveKey("AllowedInputsDisallowUnconfirmed").P2wpkhScript;
+				receive = keyManager.GetNextReceiveKey("AllowedInputsDisallowUnconfirmed", out _).P2wpkhScript;
 
 				var allowedInputs = wallet.Coins.Where(x => !x.Unavailable).Select(x => new TxoRef(x.TransactionId, x.Index)).Take(1);
 				var toSend = new PaymentIntent(receive, MoneyRequest.CreateAllRemaining(), "fizz");
@@ -1234,7 +1235,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				false));
 
 			// Get some money, make it confirm.
-			var key = wallet.GetReceiveKey("foo label");
+			var key = keyManager.GetNextReceiveKey("foo label", out _);
 			var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
 
 			// Generate some coins
@@ -1355,7 +1356,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var scp = new Key().ScriptPubKey;
 
 			// Get some money, make it confirm.
-			var key = wallet.GetReceiveKey("foo label");
+			var key = keyManager.GetNextReceiveKey("foo label", out _);
 			var fundingTxId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
 
 			// Generate some coins
@@ -1457,7 +1458,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				var overwriteTx = Transaction.Create(network);
 				overwriteTx.Inputs.AddRange(invalidSmartTransaction.Transaction.Inputs);
-				var walletAddress = wallet.GetReceiveKey("").GetP2wpkhAddress(network);
+				var walletAddress = keyManager.GetNextReceiveKey("foo", out _).GetP2wpkhAddress(network);
 				bool onAddress = false;
 				foreach (var invalidOutput in invalidSmartTransaction.Transaction.Outputs)
 				{
@@ -1575,7 +1576,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			Assert.Empty(wallet.Coins);
 
 			// Get some money, make it confirm.
-			var key = wallet.GetReceiveKey("foo label");
+			var key = keyManager.GetNextReceiveKey("foo label", out _);
 
 			try
 			{
@@ -1695,7 +1696,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// Test coin basic count.
 				ICoinsView GetAllCoins() => wallet.TransactionProcessor.Coins.AsAllCoinsView();
 				var coinCount = GetAllCoins().Count();
-				var to = wallet.GetReceiveKey("foo");
+				var to = keyManager.GetNextReceiveKey("foo", out _);
 				var res = wallet.BuildTransaction(password, new PaymentIntent(to.P2wpkhScript, Money.Coins(0.2345m), label: "bar"), FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
 				await broadcaster.SendTransactionAsync(res.Transaction);
 				Assert.Equal(coinCount + 2, GetAllCoins().Count());
@@ -1755,7 +1756,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			Assert.Empty(wallet.Coins);
 
 			// Get some money, make it confirm.
-			var key = wallet.GetReceiveKey("foo label");
+			var key = keyManager.GetNextReceiveKey("foo label", out _);
 
 			try
 			{
@@ -3165,7 +3166,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 					if (chaumianClient != null)
 					{
-						await chaumianClient.DequeueAllCoinsFromMixAsync("");
+						await chaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.UserRequested);
 						await chaumianClient.StopAsync();
 					}
 				}
@@ -3246,19 +3247,19 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.True(smartCoin2.CoinJoinInProgress);
 
 				// Make sure it does not throw.
-				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 1, new Script(), Money.Parse("3"), new TxoRef[] { new TxoRef((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 0) }, Height.Mempool, replaceable: false, anonymitySet: 1, isLikelyCoinJoinOutput: false), "");
+				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 1, new Script(), Money.Parse("3"), new TxoRef[] { new TxoRef((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 0) }, Height.Mempool, replaceable: false, anonymitySet: 1, isLikelyCoinJoinOutput: false), DequeueReason.UserRequested);
 
 				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
-				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, "");
+				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, DequeueReason.UserRequested);
 				Assert.False(smartCoin1.CoinJoinInProgress);
-				await chaumianClient1.DequeueCoinsFromMixAsync(new[] { smartCoin1, smartCoin2 }, "");
+				await chaumianClient1.DequeueCoinsFromMixAsync(new[] { smartCoin1, smartCoin2 }, DequeueReason.UserRequested);
 				Assert.False(smartCoin1.CoinJoinInProgress);
 				Assert.False(smartCoin2.CoinJoinInProgress);
 				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
 				Assert.True(smartCoin1.CoinJoinInProgress);
 				Assert.True(smartCoin2.CoinJoinInProgress);
-				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, "");
-				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin2, "");
+				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, DequeueReason.UserRequested);
+				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin2, DequeueReason.UserRequested);
 				Assert.False(smartCoin1.CoinJoinInProgress);
 				Assert.False(smartCoin2.CoinJoinInProgress);
 
@@ -3288,7 +3289,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
 				coordinator.AbortAllRoundsInInputRegistration("");
 				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
-				await chaumianClient1.DequeueAllCoinsFromMixAsync("");
+				await chaumianClient1.DequeueAllCoinsFromMixAsync(DequeueReason.UserRequested);
 				Assert.Empty(chaumianClient1.State.GetAllQueuedCoins());
 				await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin4);
 				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
@@ -3382,12 +3383,12 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var wallet2 = new WalletService(bitcoinStore, keyManager2, synchronizer2, chaumianClient2, nodes2, workDir2, serviceConfiguration, synchronizer2);
 
 			// Get some money, make it confirm.
-			var key = wallet.GetReceiveKey("fundZeroLink");
+			var key = keyManager.GetNextReceiveKey("fundZeroLink", out _);
 			var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
 			Assert.NotNull(txId);
-			var key2 = wallet2.GetReceiveKey("fundZeroLink");
-			var key3 = wallet2.GetReceiveKey("fundZeroLink");
-			var key4 = wallet2.GetReceiveKey("fundZeroLink");
+			var key2 = keyManager2.GetNextReceiveKey("fundZeroLink", out _);
+			var key3 = keyManager2.GetNextReceiveKey("fundZeroLink", out _);
+			var key4 = keyManager2.GetNextReceiveKey("fundZeroLink", out _);
 			var txId2 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), Money.Coins(0.11m));
 			var txId3 = await rpc.SendToAddressAsync(key3.GetP2wpkhAddress(network), Money.Coins(0.12m));
 			var txId4 = await rpc.SendToAddressAsync(key4.GetP2wpkhAddress(network), Money.Coins(0.13m));
@@ -3469,8 +3470,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 				{
 					try
 					{
-						await chaumianClient.DequeueAllCoinsFromMixAsync("");
-						await chaumianClient2.DequeueAllCoinsFromMixAsync("");
+						await chaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.UserRequested);
+						await chaumianClient2.DequeueAllCoinsFromMixAsync(DequeueReason.UserRequested);
 						break;
 					}
 					catch (NotSupportedException)

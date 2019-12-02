@@ -86,6 +86,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Global.UiConfig.LurkingWifeMode = !Global.UiConfig.LurkingWifeMode;
 				await Global.UiConfig.ToFileAsync();
 			});
+
+			LurkingWifeModeCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public void OnWalletOpened()
