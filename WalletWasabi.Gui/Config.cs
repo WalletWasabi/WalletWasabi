@@ -456,13 +456,5 @@ namespace WalletWasabi.Gui
 				return false;
 			}
 		}
-
-		private void RefreshMixUntilValue(int oldPrivacyLevel, int newPrivacyLevel)
-		{
-			if (MixUntilAnonymitySet == oldPrivacyLevel) // We are changing the current MixUntilAnonymitySet.
-			{
-				MixUntilAnonymitySet = newPrivacyLevel;
-			}
-		}
 	}
 }
