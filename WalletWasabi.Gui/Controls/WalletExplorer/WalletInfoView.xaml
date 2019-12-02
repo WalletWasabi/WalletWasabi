@@ -64,7 +64,6 @@
                 <Button Content="{Binding ShowSensitiveKeys, StringFormat=\{0\} Sensitive Keys, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Hide:Show}" Command="{Binding ToggleSensitiveKeysCommand}" DockPanel.Dock="Right" />
                 <Grid></Grid>
               </DockPanel>
-              <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
             </StackPanel>
           </StackPanel>
         </Grid>

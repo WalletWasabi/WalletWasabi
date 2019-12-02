@@ -5,6 +5,8 @@ using System.Reactive;
 using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
@@ -27,14 +29,6 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			set => this.RaiseAndSetIfChanged(ref _pinInput, value);
 		}
 
-		private bool _warningMessageVisible;
-
-		public bool WarningMessageVisible
-		{
-			get => _warningMessageVisible;
-			set => this.RaiseAndSetIfChanged(ref _warningMessageVisible, value);
-		}
-
 		public PinLockScreenViewModel(LockScreenViewModel lockScreenViewModel)
 		{
 			ParentVM = Guard.NotNull(nameof(lockScreenViewModel), lockScreenViewModel);
@@ -48,13 +42,11 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 					if (PinInput.Length > 0)
 					{
 						PinInput = PinInput.Substring(0, PinInput.Length - 1);
-						WarningMessageVisible = false;
 					}
 				}
 				else if (arg == "CLEAR")
 				{
 					PinInput = string.Empty;
-					WarningMessageVisible = false;
 				}
 				else
 				{
@@ -62,22 +54,19 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				}
 			});
 
+			KeyPadCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
+
 			this.WhenAnyValue(x => x.PinInput)
 				.Throttle(TimeSpan.FromSeconds(1))
+				.Where(x => !string.IsNullOrWhiteSpace(x))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
-					if (string.IsNullOrWhiteSpace(x))
+					if (ParentVM.PinHash != HashHelpers.GenerateSha256Hash(x))
 					{
-						WarningMessageVisible = false;
-					}
-					else if (ParentVM.PinHash == HashHelpers.GenerateSha256Hash(x))
-					{
-						WarningMessageVisible = false;
-					}
-					else
-					{
-						WarningMessageVisible = true;
+						NotificationHelpers.Error("PIN is incorrect!");
 					}
 				});
 

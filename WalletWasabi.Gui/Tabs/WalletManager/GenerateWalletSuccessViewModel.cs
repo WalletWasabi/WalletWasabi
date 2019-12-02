@@ -2,6 +2,9 @@ using NBitcoin;
 using ReactiveUI;
 using System.Reactive;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Logging;
+using System;
+using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
@@ -13,7 +16,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			_mnemonicWords = mnemonic.ToString();
 
-			ConfirmCommand = ReactiveCommand.Create(owner.SelectTestPassword);
+			ConfirmCommand = ReactiveCommand.Create(() => owner.SelectTestPassword());
+
+			ConfirmCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public string MnemonicWords

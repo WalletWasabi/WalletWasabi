@@ -139,12 +139,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			OpenBrowserCommand = ReactiveCommand.Create<string>(x => IoHelpers.OpenBrowser(x));
 
-			Observable.Merge(OpenBrowserCommand.ThrownExceptions)
+			Observable
+				.Merge(OpenBrowserCommand.ThrownExceptions)
 				.Merge(LoadCommand.ThrownExceptions)
 				.Merge(TestPasswordCommand.ThrownExceptions)
 				.Merge(OpenFolderCommand.ThrownExceptions)
 				.Merge(ImportColdcardCommand.ThrownExceptions)
 				.Merge(EnumerateHardwareWalletsCommand.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
 					NotificationHelpers.Error(ex.ToTypeMessageString());

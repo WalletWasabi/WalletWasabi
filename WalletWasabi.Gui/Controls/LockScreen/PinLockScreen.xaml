@@ -43,9 +43,6 @@
       <controls:GroupBox VerticalAlignment="Center" HorizontalAlignment="Center" TextBlock.FontSize="25" Padding="20" Margin="10">
         <DockPanel LastChildFill="True">
           <controls:TogglePasswordBox x:Name="InputField" Text="{Binding PinInput}" Width="300" DockPanel.Dock="Top" Margin="4 0 4 20" Watermark="PIN" />
-          <Grid DockPanel.Dock="Bottom">
-            <TextBlock Text="Wrong PIN!" Margin="0,12,0,0" VerticalAlignment="Center" FontSize="20" Classes="warningMessage" IsVisible="{Binding WarningMessageVisible}" />
-          </Grid>
           <Grid RowDefinitions="*,*,*,*" ColumnDefinitions="*,*,*">
             <Grid.Styles>
               <Style Selector="Button">

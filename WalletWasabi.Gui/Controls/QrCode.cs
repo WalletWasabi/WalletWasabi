@@ -41,7 +41,7 @@ namespace WalletWasabi.Gui.Controls
 
 			SaveCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogWarning(ex));
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public async Task<Unit> SaveQRCodeAsync(string address)
