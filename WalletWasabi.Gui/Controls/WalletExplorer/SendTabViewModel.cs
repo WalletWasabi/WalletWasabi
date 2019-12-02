@@ -63,7 +63,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _amountWaterMarkText;
 		private bool _isBusy;
 		private bool _isHardwareBusy;
-		private ObservableAsPropertyHelper<bool> _isCustomFee;
+		private bool _isCustomFee;
 
 		private const string SendTransactionButtonTextString = "Send Transaction";
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
@@ -856,7 +856,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _feeControlOpacity, value);
 		}
 
-		public bool IsCustomFee => _isCustomFee?.Value ?? false;
+		public bool IsCustomFee 
+		{
+			get => _isCustomFee;
+			private set => this.RaiseAndSetIfChanged(ref _isCustomFee, value);
+		}
 
 		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
 
@@ -909,8 +913,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SetFeesAndTexts());
 
-			_isCustomFee = Global.UiConfig.WhenAnyValue(x => x.IsCustomFee)
-				.ToProperty(this, x => x.IsCustomFee, scheduler: RxApp.MainThreadScheduler)
+			Global.UiConfig.WhenAnyValue(x => x.IsCustomFee)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => IsCustomFee = x)
 				.DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.IsCustomFee)
