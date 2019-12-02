@@ -82,10 +82,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 			Assert.Equal("Bad Request\nNo such mempool or blockchain transaction. Use gettransaction for wallet transactions.", ex.Message);
 
 			var mempoolTxIds = await client.GetMempoolHashesAsync(CancellationToken.None);
-			randomTxIds = Enumerable.Range(0, 5).Select(_ => mempoolTxIds.RandomElement()).ToArray();
+			randomTxIds = Enumerable.Range(0, 5).Select(_ => mempoolTxIds.RandomElement()).Distinct().ToArray();
 			var txs = await client.GetTransactionsAsync(network, randomTxIds, CancellationToken.None);
 			var returnedTxIds = txs.Select(tx => tx.GetHash());
-			Assert.Equal(returnedTxIds, randomTxIds);
+			Assert.Equal(returnedTxIds.OrderBy(x => x).ToArray(), randomTxIds.OrderBy(x => x).ToArray());
 		}
 
 		#endregion Blockchain
