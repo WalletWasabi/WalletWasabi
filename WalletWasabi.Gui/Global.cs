@@ -602,6 +602,10 @@ namespace WalletWasabi.Gui
 					{
 						NotifyAndLog($"Mining Fee: {amountString} BTC", "Self Spend Confirmed", NotificationType.Information, e);
 					}
+					else if (isConfirmedSpent && receiveSpentDiff.Almost(Money.Zero, Money.Coins(0.01m)) && e.IsLikelyOwnCoinJoin)
+					{
+						NotifyAndLog($"CoinJoin Confirmed!", "", NotificationType.Information, e);
+					}
 					else if (incoming > Money.Zero)
 					{
 						NotifyAndLog($"{amountString} BTC", "Receive Confirmed", NotificationType.Information, e);
