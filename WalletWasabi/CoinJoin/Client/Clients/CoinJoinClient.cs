@@ -949,10 +949,12 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					}
 					else
 					{
-						if (coinToDequeue.Unspent) // If coin was spent, well that sucks, except if it was spent by the tumbler in signing phase.
+						// If coin is unspent we're cannot dequeue.
+						if (coinToDequeue.Unspent)
 						{
 							exception = new NotSupportedException($"Cannot deque coin in {round.State.Phase} phase. Coin: {coinToDequeue.Index}:{coinToDequeue.TransactionId}.");
 						}
+						// If coin is spent, then we're going to DoS the round, there's nothing to do about it, except if it was spent by the tumbler in signing phase.
 						else
 						{
 							State.ClearRoundRegistration(round.State.RoundId);
