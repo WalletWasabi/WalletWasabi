@@ -20,6 +20,7 @@ using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.Gui.Helpers;
 using System.Security;
+using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -138,7 +139,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			CoordinatorFeePercent = registrableRound?.State?.CoordinatorFeePercent.ToString() ?? "0.003";
 
 			Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.CoinQueued))
-				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.CoinDequeued)))
+				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.OnDequeue)))
 				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated)))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => UpdateStates())
@@ -201,20 +202,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				try
 				{
-					await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray(), "Dequeued by the user.");
+					await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray(), DequeueReason.UserRequested);
 				}
 				catch (Exception ex)
 				{
 					Logger.LogWarning(ex);
-					var builder = new StringBuilder(ex.ToTypeMessageString());
-					if (ex is AggregateException aggex)
-					{
-						foreach (var iex in aggex.InnerExceptions)
-						{
-							builder.Append(Environment.NewLine + iex.ToTypeMessageString());
-						}
-					}
-					NotificationHelpers.Error(builder.ToString());
 				}
 			}
 			finally

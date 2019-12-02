@@ -9,6 +9,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Dialogs
@@ -150,7 +151,7 @@ namespace WalletWasabi.Gui.Dialogs
 									break;
 								}
 
-								await Global.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }, "Closing Wasabi."); // Dequeue coins one-by-one to check cancel flag more frequently.
+								await Global.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }, DequeueReason.ApplicationExit); // Dequeue coins one-by-one to check cancel flag more frequently.
 							}
 							catch (Exception ex)
 							{
