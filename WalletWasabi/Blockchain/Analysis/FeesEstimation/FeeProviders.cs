@@ -25,6 +25,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 				if (value != _allFeeEstimate)
 				{
 					_allFeeEstimate = value;
+					AllFeeEstimateChanged?.Invoke(this, value);
 				}
 			}
 		}
@@ -53,24 +54,22 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 
 		private void SetAllFeeEstimate()
 		{
+			IFeeProvider[] providerArray;
 			lock (Lock)
 			{
-				IFeeProvider[] providerArray = Providers.ToArray();
+				providerArray = Providers.ToArray();
 				for (int i = 0; i < providerArray.Length - 1; i++)
 				{
 					IFeeProvider provider = providerArray[i];
 					var af = provider.AllFeeEstimate;
-					if (af != null && af.IsAccurate)
+					if (af is { } && af.IsAccurate)
 					{
 						AllFeeEstimate = af;
 						return;
 					}
 				}
-
-				AllFeeEstimate = providerArray[^1].AllFeeEstimate;
 			}
-
-			AllFeeEstimateChanged?.Invoke(this, AllFeeEstimate);
+			AllFeeEstimate = providerArray[^1].AllFeeEstimate;
 		}
 
 		#region IDisposable Support
