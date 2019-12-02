@@ -37,7 +37,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			GenerateCommand = ReactiveCommand.Create(DoGenerateCommand, canGenerate);
 
-			GenerateCommand.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
+			GenerateCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		private void DoGenerateCommand()

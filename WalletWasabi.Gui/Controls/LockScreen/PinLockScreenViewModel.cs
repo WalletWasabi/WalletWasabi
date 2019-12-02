@@ -63,7 +63,9 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				}
 			});
 
-			KeyPadCommand.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
+			KeyPadCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 
 			this.WhenAnyValue(x => x.PinInput)
 				.Throttle(TimeSpan.FromSeconds(1))

@@ -99,6 +99,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				.Merge(PrivacyPolicyCommand.GetReactiveCommand().ThrownExceptions)
 				.Merge(TermsAndConditionsCommand.GetReactiveCommand().ThrownExceptions)
 				.Merge(LegalIssuesCommand.GetReactiveCommand().ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 

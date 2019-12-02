@@ -121,6 +121,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(PrivacyFineCommand.ThrownExceptions)
 				.Merge(PrivacyStrongCommand.ThrownExceptions)
 				.Merge(TargetButtonCommand.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 

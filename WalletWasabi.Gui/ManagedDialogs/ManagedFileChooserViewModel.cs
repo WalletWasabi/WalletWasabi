@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Collections;
@@ -163,7 +164,9 @@ namespace WalletWasabi.Gui.ManagedDialogs
 					}
 				});
 
-			EnterLocationCommand.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
+			EnterLocationCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		private async void OnSelectionChangedAsync(object sender, NotifyCollectionChangedEventArgs e)

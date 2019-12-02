@@ -12,6 +12,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 using WalletWasabi.Models;
 using WalletWasabi.Gui.Helpers;
+using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -54,7 +55,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				});
 
-			ToggleSensitiveKeysCommand.ThrownExceptions.Subscribe(ex => NotificationHelpers.Error(ex.ToTypeMessageString()));
+			ToggleSensitiveKeysCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex =>
+				{
+					Logging.Logger.LogError(ex);
+					NotificationHelpers.Error(ex.ToTypeMessageString());
+				});
 		}
 
 		private void ClearSensitiveData(bool passwordToo)

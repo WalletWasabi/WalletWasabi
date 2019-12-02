@@ -53,7 +53,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Observable
 				.Merge(SendPinCommand.ThrownExceptions)
 				.Merge(KeyPadCommand.ThrownExceptions)
-				.Subscribe(ex => NotificationHelpers.Error(ex.ToTypeMessageString()));
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex =>
+				{
+					NotificationHelpers.Error(ex.ToTypeMessageString());
+					Logging.Logger.LogError(ex);
+				});
 		}
 
 		public override void OnOpen()

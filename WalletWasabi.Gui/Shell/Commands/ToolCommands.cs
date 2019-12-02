@@ -45,6 +45,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 #if DEBUG
 				.Merge(devToolsCommand.ThrownExceptions)
 #endif
+				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 
 			WalletManagerCommand = new CommandDefinition(

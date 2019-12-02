@@ -27,7 +27,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			ExpandItCommand = ReactiveCommand.Create(() => { IsExpanded = !IsExpanded; });
 
-			ExpandItCommand.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
+			ExpandItCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public ObservableCollection<WalletActionViewModel> Items

@@ -153,12 +153,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(PasteCommand.ThrownExceptions)
 				.Merge(BroadcastTransactionCommand.ThrownExceptions)
 				.Merge(ImportTransactionCommand.ThrownExceptions)
-				.Subscribe(OnException);
-		}
-
-		private void OnException(Exception ex)
-		{
-			NotificationHelpers.Error(ex.ToTypeMessageString());
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex =>
+				{
+					NotificationHelpers.Error(ex.ToTypeMessageString());
+					Logger.LogError(ex);
+				});
 		}
 
 		public override void OnOpen()
@@ -210,10 +210,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			catch (PSBTException ex)
 			{
 				NotificationHelpers.Error($"The PSBT cannot be finalized: {ex.Errors.FirstOrDefault()}");
-			}
-			catch (Exception ex)
-			{
-				OnException(ex);
 			}
 			finally
 			{

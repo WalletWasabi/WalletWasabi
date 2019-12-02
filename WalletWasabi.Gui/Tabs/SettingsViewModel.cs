@@ -147,6 +147,7 @@ namespace WalletWasabi.Gui.Tabs
 				.Merge(LurkingWifeModeCommand.ThrownExceptions)
 				.Merge(SetClearPinCommand.ThrownExceptions)
 				.Merge(TextBoxLostFocusCommand.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 

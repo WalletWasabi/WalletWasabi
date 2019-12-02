@@ -41,6 +41,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 			Observable
 				.Merge(ExitCommand.GetReactiveCommand().ThrownExceptions)
 				.Merge(ExitCommand.GetReactiveCommand().ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogWarning(ex));
 		}
 

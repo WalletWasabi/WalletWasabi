@@ -10,6 +10,7 @@ using ReactiveUI;
 using System.Reactive;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Tabs
 {
@@ -21,7 +22,9 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			OpenBrowserCommand = ReactiveCommand.Create<string>(x => IoHelpers.OpenBrowser(x));
 
-			OpenBrowserCommand.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
+			OpenBrowserCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public Version ClientVersion => Constants.ClientVersion;

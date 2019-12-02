@@ -107,16 +107,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Observable
 				.Merge(ExportBinaryPsbt.ThrownExceptions)
 				.Merge(OpenTransactionBroadcaster.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
-					Logger.LogError(ex);
 					NotificationHelpers.Error(ex.ToTypeMessageString());
+					Logger.LogError(ex);
 				});
-		}
-
-		private void OnException(Exception ex)
-		{
-			NotificationHelpers.Error(ex.ToTypeMessageString());
 		}
 
 		public override void OnOpen()
@@ -157,7 +153,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				OnException(ex);
+				NotificationHelpers.Error(ex.ToTypeMessageString());
+				Logger.LogError(ex);
 			}
 		}
 	}

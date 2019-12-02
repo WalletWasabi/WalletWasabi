@@ -135,8 +135,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(CopyLabel.ThrownExceptions)
 				.Merge(GenerateCommand.ThrownExceptions)
 				.Merge(SaveQRCodeCommand.ThrownExceptions)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(ex => NotificationHelpers.Error(ex.ToTypeMessageString()));
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex =>
+				{
+					NotificationHelpers.Error(ex.ToTypeMessageString());
+					Logger.LogWarning(ex);
+				});
 		}
 
 		public SuggestLabelViewModel LabelSuggestion => _labelSuggestion;

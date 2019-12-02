@@ -6,6 +6,7 @@ using Dock.Model;
 using ReactiveUI;
 using System;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -25,7 +26,9 @@ namespace WalletWasabi.Gui.ViewModels
 			Global = Guard.NotNull(nameof(global), global);
 			DoItCommand = ReactiveCommand.Create(DisplayActionTab);
 
-			DoItCommand.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
+			DoItCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public Global Global { get; }

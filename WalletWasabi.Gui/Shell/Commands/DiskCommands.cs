@@ -28,6 +28,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				.Merge(onOpenLogFile.ThrownExceptions)
 				.Merge(onOpenTorLogFile.ThrownExceptions)
 				.Merge(onOpenConfigFile.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 
 			OpenDataFolderCommand = new CommandDefinition(

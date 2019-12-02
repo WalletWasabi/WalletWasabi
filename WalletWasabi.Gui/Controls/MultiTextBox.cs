@@ -92,7 +92,9 @@ namespace WalletWasabi.Gui.Controls
 
 			CopyToClipboardCommand = ReactiveCommand.CreateFromTask(async () => await TryCopyToClipboardAsync());
 
-			CopyToClipboardCommand.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
+			CopyToClipboardCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)

@@ -39,7 +39,9 @@ namespace WalletWasabi.Gui.Controls
 
 			SaveCommand = ReactiveCommand.CreateFromTask<string, Unit>(SaveQRCodeAsync);
 
-			SaveCommand.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
+			SaveCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public async Task<Unit> SaveQRCodeAsync(string address)

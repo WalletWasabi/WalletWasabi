@@ -36,6 +36,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				.Merge(GenerateWalletCommand.GetReactiveCommand().ThrownExceptions)
 				.Merge(RecoverWalletCommand.GetReactiveCommand().ThrownExceptions)
 				.Merge(LoadWallet.GetReactiveCommand().ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 

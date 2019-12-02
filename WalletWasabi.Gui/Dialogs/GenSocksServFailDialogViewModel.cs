@@ -11,7 +11,9 @@ namespace WalletWasabi.Gui.Dialogs
 		public GenSocksServFailDialogViewModel() : base("", true, false)
 		{
 			OKCommand = ReactiveCommand.Create(() => Close(true)); // OK pressed.
-			OKCommand.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
+			OKCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 	}
 }

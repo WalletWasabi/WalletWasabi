@@ -146,6 +146,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				.Merge(OpenFolderCommand.ThrownExceptions)
 				.Merge(ImportColdcardCommand.ThrownExceptions)
 				.Merge(EnumerateHardwareWalletsCommand.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
 					NotificationHelpers.Error(ex.ToTypeMessageString());

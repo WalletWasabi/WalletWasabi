@@ -18,7 +18,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			ConfirmCommand = ReactiveCommand.Create(() => owner.SelectTestPassword());
 
-			ConfirmCommand.ThrownExceptions.Subscribe(ex => Logger.LogError(ex));
+			ConfirmCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public string MnemonicWords

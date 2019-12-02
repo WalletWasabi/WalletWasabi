@@ -443,8 +443,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(UserFeeTextKeyUpCommand.ThrownExceptions)
 				.Merge(FeeSliderClickedCommand.ThrownExceptions)
 				.Merge(HighLightFeeSliderCommand.ThrownExceptions)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(ex => NotificationHelpers.Warning(ex.ToTypeMessageString()));
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex =>
+				{
+					NotificationHelpers.Warning(ex.ToTypeMessageString());
+					Logger.LogError(ex);
+				});
 		}
 
 		public SuggestLabelViewModel LabelSuggestion => _labelSuggestion;
