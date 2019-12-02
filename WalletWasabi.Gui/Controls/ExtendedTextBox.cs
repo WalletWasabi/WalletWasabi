@@ -46,8 +46,11 @@ namespace WalletWasabi.Gui.Controls
 				}
 			});
 
-			CopyCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
-			PasteCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
+			Observable
+				.Merge(CopyCommand.ThrownExceptions)
+				.Merge(PasteCommand.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogWarning(ex));
 
 			this.GetObservable(IsReadOnlyProperty).Subscribe(isReadOnly =>
 				{

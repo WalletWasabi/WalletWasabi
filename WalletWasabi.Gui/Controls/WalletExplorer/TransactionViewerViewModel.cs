@@ -66,67 +66,53 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public TransactionViewerViewModel(WalletViewModel walletViewModel) : base("Transaction", walletViewModel)
 		{
-			OpenTransactionBroadcaster = ReactiveCommand.Create(() =>
-			{
-				try
-				{
-					IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel(Global));
-				}
-				catch (Exception ex)
-				{
-					NotificationHelpers.Error(ex.ToTypeMessageString());
-					Logger.LogError(ex);
-				}
-			});
+			OpenTransactionBroadcaster = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel(Global)));
 			ExportBinaryPsbt = ReactiveCommand.CreateFromTask(async () =>
 			{
-				try
+				var psbtExtension = "psbt";
+				var sfd = new SaveFileDialog
 				{
-					var psbtExtension = "psbt";
-					var sfd = new SaveFileDialog
-					{
-						DefaultExtension = psbtExtension,
-						InitialFileName = TxId.Substring(0, 7),
-						Title = "Export Binary PSBT"
-					};
+					DefaultExtension = psbtExtension,
+					InitialFileName = TxId.Substring(0, 7),
+					Title = "Export Binary PSBT"
+				};
 
-					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				{
+					var initialDirectory = Path.Combine("/media", Environment.UserName);
+					if (!Directory.Exists(initialDirectory))
 					{
-						var initialDirectory = Path.Combine("/media", Environment.UserName);
-						if (!Directory.Exists(initialDirectory))
-						{
-							initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-						}
-						sfd.Directory = initialDirectory;
+						initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 					}
-					else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-					{
-						sfd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-					}
-
-					var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
-					string fileFullName = await sfd.ShowAsync(window, fallBack: true);
-					if (!string.IsNullOrWhiteSpace(fileFullName))
-					{
-						var ext = Path.GetExtension(fileFullName);
-						if (string.IsNullOrWhiteSpace(ext))
-						{
-							fileFullName = $"{fileFullName}.{psbtExtension}";
-						}
-						await File.WriteAllBytesAsync(fileFullName, PsbtBytes);
-					}
+					sfd.Directory = initialDirectory;
 				}
-				catch (Exception ex)
+				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+				{
+					sfd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+				}
+
+				var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+				string fileFullName = await sfd.ShowAsync(window, fallBack: true);
+				if (!string.IsNullOrWhiteSpace(fileFullName))
+				{
+					var ext = Path.GetExtension(fileFullName);
+					if (string.IsNullOrWhiteSpace(ext))
+					{
+						fileFullName = $"{fileFullName}.{psbtExtension}";
+					}
+					await File.WriteAllBytesAsync(fileFullName, PsbtBytes);
+				}
+			});
+
+			Observable
+				.Merge(ExportBinaryPsbt.ThrownExceptions)
+				.Merge(OpenTransactionBroadcaster.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex =>
 				{
 					NotificationHelpers.Error(ex.ToTypeMessageString());
 					Logger.LogError(ex);
-				}
-			});
-		}
-
-		private void OnException(Exception ex)
-		{
-			NotificationHelpers.Error(ex.ToTypeMessageString());
+				});
 		}
 
 		public override void OnOpen()
@@ -167,7 +153,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				OnException(ex);
+				NotificationHelpers.Error(ex.ToTypeMessageString());
+				Logger.LogError(ex);
 			}
 		}
 	}

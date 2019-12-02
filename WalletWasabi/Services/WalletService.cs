@@ -353,29 +353,6 @@ namespace WalletWasabi.Services
 			NewBlockProcessed?.Invoke(this, currentBlock);
 		}
 
-		public HdPubKey GetReceiveKey(SmartLabel label, IEnumerable<HdPubKey> dontTouch = null)
-		{
-			// Make sure there's always 21 clean keys generated and indexed.
-			KeyManager.AssertCleanKeysIndexed(isInternal: false);
-
-			IEnumerable<HdPubKey> keys = KeyManager.GetKeys(KeyState.Clean, isInternal: false);
-			if (dontTouch != null)
-			{
-				keys = keys.Except(dontTouch);
-				if (!keys.Any())
-				{
-					throw new InvalidOperationException($"{nameof(dontTouch)} covers all the possible keys.");
-				}
-			}
-
-			var foundLabelless = keys.FirstOrDefault(x => x.Label.IsEmpty); // Return the first labelless.
-			HdPubKey ret = foundLabelless ?? keys.RandomElement(); // Return the first, because that's the oldest.
-
-			ret.SetLabel(label, KeyManager);
-
-			return ret;
-		}
-
 		private Node _localBitcoinCoreNode = null;
 
 		public Node LocalBitcoinCoreNode

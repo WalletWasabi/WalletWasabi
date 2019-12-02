@@ -59,6 +59,18 @@ namespace System.Linq
 			}
 		}
 
+		public static void AddToValueList<TKey, TValue, Telem>(this Dictionary<TKey, TValue> myDic, TKey key, Telem elem) where TValue : List<Telem>
+		{
+			if (myDic.ContainsKey(key))
+			{
+				myDic[key].Add(elem);
+			}
+			else
+			{
+				myDic.Add(key, new List<Telem>() { elem } as TValue);
+			}
+		}
+
 		// https://stackoverflow.com/a/2992364
 		public static void RemoveByValue<TKey, TValue>(this SortedDictionary<TKey, TValue> me, TValue value)
 		{
