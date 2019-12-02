@@ -5,9 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.TorSocks5;
 
-namespace WalletWasabi.Tests.UnitTests.Filters
+namespace WalletWasabi.Tests.UnitTests.Clients
 {
-	class MockTorHttpClient : ITorHttpClient
+	public class MockTorHttpClient : ITorHttpClient
 	{
 		public Uri DestinationUri => new Uri("DestinationUri");
 
@@ -23,7 +23,7 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 		{
 			var sepPos = relativeUri.IndexOf('?');
 			var action = relativeUri[..sepPos];
-			var parameters = relativeUri[(sepPos+1)..].Split('&', StringSplitOptions.RemoveEmptyEntries);
+			var parameters = relativeUri[(sepPos + 1)..].Split('&', StringSplitOptions.RemoveEmptyEntries);
 			return OnSendAsync_Method(method, action, parameters);
 		}
 
@@ -31,8 +31,30 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 		{
 			throw new NotImplementedException();
 		}
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
 		public void Dispose()
 		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
 		}
+
+		#endregion IDisposable Support
 	}
 }
