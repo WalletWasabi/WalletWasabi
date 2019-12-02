@@ -13,6 +13,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Text.RegularExpressions;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
@@ -40,7 +41,6 @@ namespace WalletWasabi.Gui.Tabs
 		private string _strongPrivacyLevel;
 		private string _dustThreshold;
 		private string _pinBoxText;
-		private string _pinWarningMessage;
 
 		private ObservableAsPropertyHelper<bool> _isPinSet;
 
@@ -101,19 +101,19 @@ namespace WalletWasabi.Gui.Tabs
 					var pinBoxText = PinBoxText?.Trim();
 					if (string.IsNullOrWhiteSpace(pinBoxText))
 					{
-						PinWarningMessage = "Please provide PIN.";
+						NotificationHelpers.Error("Please provide a PIN.");
 						return;
 					}
 
 					if (pinBoxText.Length > 10)
 					{
-						PinWarningMessage = "PIN too long.";
+						NotificationHelpers.Error("PIN is too long.");
 						return;
 					}
 
 					if (pinBoxText.Any(x => !char.IsDigit(x)))
 					{
-						PinWarningMessage = "Invalid PIN.";
+						NotificationHelpers.Error("Invalid PIN.");
 						return;
 					}
 
@@ -124,20 +124,21 @@ namespace WalletWasabi.Gui.Tabs
 					{
 						if (uiConfigPinHash != enteredPinHash)
 						{
-							PinWarningMessage = "Wrong PIN.";
+							NotificationHelpers.Error("PIN is incorrect!");
 							PinBoxText = string.Empty;
 							return;
 						}
 
 						Global.UiConfig.LockScreenPinHash = string.Empty;
+						NotificationHelpers.Success("PIN cleared successfully.");
 					}
 					else
 					{
 						Global.UiConfig.LockScreenPinHash = enteredPinHash;
+						NotificationHelpers.Success("PIN changed successfully.");
 					}
 
 					PinBoxText = string.Empty;
-					PinWarningMessage = string.Empty;
 				});
 
 			TextBoxLostFocusCommand = ReactiveCommand.Create(Save);
@@ -311,12 +312,6 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			get => _pinBoxText;
 			set => this.RaiseAndSetIfChanged(ref _pinBoxText, value);
-		}
-
-		public string PinWarningMessage
-		{
-			get => _pinWarningMessage;
-			set => this.RaiseAndSetIfChanged(ref _pinWarningMessage, value);
 		}
 
 		private void Save()
