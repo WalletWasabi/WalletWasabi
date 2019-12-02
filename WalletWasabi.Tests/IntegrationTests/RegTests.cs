@@ -30,6 +30,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients;
+using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator;
@@ -3165,7 +3166,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 					if (chaumianClient != null)
 					{
-						await chaumianClient.DequeueAllCoinsFromMixAsync("");
+						await chaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.UserRequested);
 						await chaumianClient.StopAsync();
 					}
 				}
@@ -3246,19 +3247,19 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.True(smartCoin2.CoinJoinInProgress);
 
 				// Make sure it does not throw.
-				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 1, new Script(), Money.Parse("3"), new TxoRef[] { new TxoRef((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 0) }, Height.Mempool, replaceable: false, anonymitySet: 1, isLikelyCoinJoinOutput: false), "");
+				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 1, new Script(), Money.Parse("3"), new TxoRef[] { new TxoRef((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 0) }, Height.Mempool, replaceable: false, anonymitySet: 1, isLikelyCoinJoinOutput: false), DequeueReason.UserRequested);
 
 				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
-				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, "");
+				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, DequeueReason.UserRequested);
 				Assert.False(smartCoin1.CoinJoinInProgress);
-				await chaumianClient1.DequeueCoinsFromMixAsync(new[] { smartCoin1, smartCoin2 }, "");
+				await chaumianClient1.DequeueCoinsFromMixAsync(new[] { smartCoin1, smartCoin2 }, DequeueReason.UserRequested);
 				Assert.False(smartCoin1.CoinJoinInProgress);
 				Assert.False(smartCoin2.CoinJoinInProgress);
 				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
 				Assert.True(smartCoin1.CoinJoinInProgress);
 				Assert.True(smartCoin2.CoinJoinInProgress);
-				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, "");
-				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin2, "");
+				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, DequeueReason.UserRequested);
+				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin2, DequeueReason.UserRequested);
 				Assert.False(smartCoin1.CoinJoinInProgress);
 				Assert.False(smartCoin2.CoinJoinInProgress);
 
@@ -3288,7 +3289,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
 				coordinator.AbortAllRoundsInInputRegistration("");
 				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
-				await chaumianClient1.DequeueAllCoinsFromMixAsync("");
+				await chaumianClient1.DequeueAllCoinsFromMixAsync(DequeueReason.UserRequested);
 				Assert.Empty(chaumianClient1.State.GetAllQueuedCoins());
 				await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin4);
 				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
@@ -3469,8 +3470,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 				{
 					try
 					{
-						await chaumianClient.DequeueAllCoinsFromMixAsync("");
-						await chaumianClient2.DequeueAllCoinsFromMixAsync("");
+						await chaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.UserRequested);
+						await chaumianClient2.DequeueAllCoinsFromMixAsync(DequeueReason.UserRequested);
 						break;
 					}
 					catch (NotSupportedException)
