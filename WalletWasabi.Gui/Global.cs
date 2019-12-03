@@ -7,12 +7,14 @@ using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using NBitcoin.Protocol.Connectors;
 using Nito.AsyncEx;
+using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,10 +31,13 @@ using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.Models;
+using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
+using WalletWasabi.Services.LoadStatusReporting;
 using WalletWasabi.Stores;
 using WalletWasabi.TorSocks5;
 
@@ -452,41 +457,59 @@ namespace WalletWasabi.Gui
 
 		public async Task InitializeWalletServiceAsync(KeyManager keyManager)
 		{
-			using (_cancelWalletServiceInitialization = new CancellationTokenSource())
+			IDisposable statusObserver = null;
+			try
 			{
-				var token = _cancelWalletServiceInitialization.Token;
-				while (!InitializationCompleted)
+				using (_cancelWalletServiceInitialization = new CancellationTokenSource())
 				{
-					await Task.Delay(100, token);
+					var token = _cancelWalletServiceInitialization.Token;
+					while (!InitializationCompleted)
+					{
+						await Task.Delay(100, token);
+					}
+
+					if (Config.UseTor)
+					{
+						ChaumianClient = new CoinJoinClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
+					}
+					else
+					{
+						ChaumianClient = new CoinJoinClient(Synchronizer, Network, keyManager, Config.GetFallbackBackendUri(), null);
+					}
+
+					WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
+
+					statusObserver = Observable.FromEventPattern<LoadStatusReport>(WalletService, nameof(WalletService.OnLoadStatusChanged))
+						.Throttle(TimeSpan.FromMilliseconds(100))
+						.ObserveOn(RxApp.MainThreadScheduler)
+						.Subscribe(x =>
+						{
+							var status = x.EventArgs;
+							MainWindowViewModel.Instance?.StatusBar?.TryAddStatus(StatusBarStatus.Loading);
+						});
+
+					ChaumianClient.Start();
+					Logger.LogInfo("Start Chaumian CoinJoin service...");
+
+					Logger.LogInfo($"Starting {nameof(WalletService)}...");
+					await WalletService.InitializeAsync(token);
+					Logger.LogInfo($"{nameof(WalletService)} started.");
+
+					token.ThrowIfCancellationRequested();
+
+					TransactionBroadcaster.AddWalletService(WalletService);
+					CoinJoinProcessor.AddWalletService(WalletService);
+
+					WalletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
+					ChaumianClient.OnDequeue += ChaumianClient_OnDequeued;
 				}
-
-				if (Config.UseTor)
-				{
-					ChaumianClient = new CoinJoinClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
-				}
-				else
-				{
-					ChaumianClient = new CoinJoinClient(Synchronizer, Network, keyManager, Config.GetFallbackBackendUri(), null);
-				}
-
-				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
-
-				ChaumianClient.Start();
-				Logger.LogInfo("Start Chaumian CoinJoin service...");
-
-				Logger.LogInfo($"Starting {nameof(WalletService)}...");
-				await WalletService.InitializeAsync(token);
-				Logger.LogInfo($"{nameof(WalletService)} started.");
-
-				token.ThrowIfCancellationRequested();
-
-				TransactionBroadcaster.AddWalletService(WalletService);
-				CoinJoinProcessor.AddWalletService(WalletService);
-
-				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
-				ChaumianClient.OnDequeue += ChaumianClient_OnDequeued;
+				_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
 			}
-			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
+			finally
+			{
+				statusObserver?.Dispose();
+				Dispatcher.UIThread.PostLogException(() => MainWindowViewModel.Instance?.StatusBar?.TryRemoveStatus(StatusBarStatus.Loading));
+			}
 		}
 
 		private void ChaumianClient_OnDequeued(object sender, DequeueResult e)

@@ -25,6 +25,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Services.LoadStatusReporting;
 
 namespace WalletWasabi.Gui.ViewModels
 {

@@ -37,6 +37,8 @@ namespace WalletWasabi.Services
 	{
 		public static event EventHandler<bool> DownloadingBlockChanged;
 
+		public event EventHandler<LoadStatusReport> OnLoadStatusChanged;
+
 		// So we will make sure when blocks are downloading with multiple wallet services, they do not conflict.
 		private static AsyncLock BlockDownloadLock { get; } = new AsyncLock();
 
@@ -250,13 +252,11 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public event EventHandler<LoadStatusReport> LoadStatusReporter;
-
 		public async Task InitializeAsync(CancellationToken cancel)
 		{
 			try
 			{
-				LoadStatusReporter?.Invoke(this, new LoadStatusReport(LoadStatus.Starting));
+				OnLoadStatusChanged?.Invoke(this, new LoadStatusReport(LoadStatus.Starting));
 
 				if (!Synchronizer.IsRunning)
 				{
@@ -265,7 +265,7 @@ namespace WalletWasabi.Services
 
 				if (!BitcoinStore.IsInitialized)
 				{
-					LoadStatusReporter?.Invoke(this, new LoadStatusReport(LoadStatus.WaitingForBitcoinStore));
+					OnLoadStatusChanged?.Invoke(this, new LoadStatusReport(LoadStatus.WaitingForBitcoinStore));
 				}
 				while (!BitcoinStore.IsInitialized)
 				{
@@ -279,13 +279,13 @@ namespace WalletWasabi.Services
 				using (await HandleFiltersLock.LockAsync())
 				{
 					await LoadWalletStateAsync(cancel);
-					LoadStatusReporter?.Invoke(this, new LoadStatusReport(LoadStatus.ProcessingMempool));
+					OnLoadStatusChanged?.Invoke(this, new LoadStatusReport(LoadStatus.ProcessingMempool));
 					await LoadDummyMempoolAsync();
 				}
 			}
 			finally
 			{
-				LoadStatusReporter?.Invoke(this, new LoadStatusReport(LoadStatus.Completed));
+				OnLoadStatusChanged?.Invoke(this, new LoadStatusReport(LoadStatus.Completed));
 			}
 		}
 
@@ -295,7 +295,7 @@ namespace WalletWasabi.Services
 			Height bestKeyManagerHeight = KeyManager.GetBestHeight();
 			uint bestKeyManagerHeightUint = (uint)bestKeyManagerHeight.Value;
 
-			LoadStatusReporter?.Invoke(this, new LoadStatusReport(LoadStatus.ProcessingTransactions));
+			OnLoadStatusChanged?.Invoke(this, new LoadStatusReport(LoadStatus.ProcessingTransactions));
 			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
 
 			// Go through the filters and queue to download the matches.
@@ -308,7 +308,7 @@ namespace WalletWasabi.Services
 						LoadStatusReport filterProcessReport = new LoadStatusReport(LoadStatus.ProcessingFilters);
 						filterProcessReport.FiltersProcessed = filterModel.Header.Height - bestKeyManagerHeightUint;
 						filterProcessReport.AllFiltersToBeProcessed = bestHeight - bestKeyManagerHeightUint;
-						LoadStatusReporter?.Invoke(this, filterProcessReport);
+						OnLoadStatusChanged?.Invoke(this, filterProcessReport);
 					}
 				},
 				new Height(bestKeyManagerHeight.Value + 1));
