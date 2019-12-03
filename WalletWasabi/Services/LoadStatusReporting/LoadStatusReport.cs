@@ -12,5 +12,21 @@ namespace WalletWasabi.Services.LoadStatusReporting
 		}
 
 		public LoadStatus Status { get; }
+
+		public uint AllTransactionsToBeProcessed { get; set; }
+		public uint TransactionsProcessed { get; set; }
+
+		public decimal TransactionProcessProgressPercentage
+			=> AllTransactionsToBeProcessed == 0 ?
+				100m
+				: TransactionsProcessed / AllTransactionsToBeProcessed * 100;
+
+		public uint AllFiltersToBeProcessed { get; set; }
+		public uint FiltersProcessed { get; set; }
+
+		public decimal FilterProcessProgressPercentage
+			=> AllFiltersToBeProcessed == 0 ?
+				100m
+				: FiltersProcessed / AllFiltersToBeProcessed * 100;
 	}
 }
