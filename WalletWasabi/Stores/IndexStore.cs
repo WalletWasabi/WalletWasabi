@@ -398,7 +398,7 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight)
+		public async Task ForeachFiltersAsync(Func<FilterModel, uint, Task> todo, Height fromHeight)
 		{
 			using (await MatureIndexFileManager.Mutex.LockAsync().ConfigureAwait(false))
 			using (await IndexLock.LockAsync().ConfigureAwait(false))
@@ -439,7 +439,7 @@ namespace WalletWasabi.Stores
 								var filter = FilterModel.FromLine(line);
 
 								await tTask.ConfigureAwait(false);
-								tTask = todo(filter);
+								tTask = todo(filter, GetBestKnownHeightNoLock(filter));
 
 								height++;
 
@@ -465,7 +465,7 @@ namespace WalletWasabi.Stores
 
 							var filter = FilterModel.FromLine(line);
 
-							await todo(filter).ConfigureAwait(false);
+							await todo(filter, GetBestKnownHeightNoLock(filter)).ConfigureAwait(false);
 							height++;
 						}
 					}
@@ -473,9 +473,23 @@ namespace WalletWasabi.Stores
 
 				foreach (FilterModel filter in ImmatureFilters)
 				{
-					await todo(filter).ConfigureAwait(false);
+					await todo(filter, GetBestKnownHeightNoLock(filter)).ConfigureAwait(false);
 				}
 			}
+		}
+
+		/// <summary>
+		/// Gets the best known height, assuming this filter is known.
+		/// </summary>
+		private uint GetBestKnownHeightNoLock(FilterModel filter)
+		{
+			var bestKnownHeight = ImmatureFilters.LastOrDefault()?.Header?.Height;
+			if (bestKnownHeight is null)
+			{
+				bestKnownHeight = filter.Header.Height;
+			}
+
+			return bestKnownHeight.Value;
 		}
 	}
 }
