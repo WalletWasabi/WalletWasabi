@@ -42,7 +42,9 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			{
 				foreach (var tx in txs)
 				{
-					rets.Add(ProcessNoLock(tx));
+					var ret = ProcessNoLock(tx);
+					yield return ret;
+					rets.Add(ret);
 				}
 			}
 
@@ -50,8 +52,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			{
 				WalletRelevantTransactionProcessed?.Invoke(this, ret);
 			}
-
-			return rets;
 		}
 
 		public ProcessedResult Process(SmartTransaction tx)

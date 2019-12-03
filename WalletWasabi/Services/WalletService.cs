@@ -295,8 +295,16 @@ namespace WalletWasabi.Services
 			Height bestKeyManagerHeight = KeyManager.GetBestHeight();
 			uint bestKeyManagerHeightUint = (uint)bestKeyManagerHeight.Value;
 
-			OnLoadStatusChanged?.Invoke(this, new LoadStatusReport(LoadStatus.ProcessingTransactions));
-			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
+			var txsToProcess = BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight).ToArray();
+			LoadStatusReport txProcessReport = new LoadStatusReport(LoadStatus.ProcessingTransactions);
+			txProcessReport.AllTransactionsToBeProcessed = (uint)txsToProcess.Length;
+			uint processedTxCounter = 0;
+			foreach (var processResult in TransactionProcessor.Process(txsToProcess))
+			{
+				processedTxCounter++;
+				txProcessReport.TransactionsProcessed = processedTxCounter;
+				OnLoadStatusChanged?.Invoke(this, txProcessReport);
+			}
 
 			// Go through the filters and queue to download the matches.
 			await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel, bestHeight) =>
