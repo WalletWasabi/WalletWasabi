@@ -323,9 +323,9 @@ namespace WalletWasabi.Gui.Tabs
 			}
 
 			var isValid =
-				!ValidatePrivacyLevel(SomePrivacyLevel, whiteSpaceOk: false).HasErrors
-				&& !ValidatePrivacyLevel(FinePrivacyLevel, whiteSpaceOk: false).HasErrors
-				&& !ValidatePrivacyLevel(StrongPrivacyLevel, whiteSpaceOk: false).HasErrors
+				!ValidatePrivacyLevel(nameof(SomePrivacyLevel), SomePrivacyLevel, whiteSpaceOk: false).HasErrors
+				&& !ValidatePrivacyLevel(nameof(FinePrivacyLevel), FinePrivacyLevel, whiteSpaceOk: false).HasErrors
+				&& !ValidatePrivacyLevel(nameof(StrongPrivacyLevel), StrongPrivacyLevel, whiteSpaceOk: false).HasErrors
 				&& !ValidateDustThreshold(DustThreshold, whiteSpaceOk: false).HasErrors
 				&& !ValidateEndPoint(TorSocks5EndPoint, Constants.DefaultTorSocksPort, whiteSpaceOk: false).HasErrors
 				&& !ValidateEndPoint(BitcoinP2pEndPoint, network.DefaultPort, whiteSpaceOk: false).HasErrors;
@@ -380,13 +380,13 @@ namespace WalletWasabi.Gui.Tabs
 		#region Validation
 
 		public ErrorDescriptors ValidateSomePrivacyLevel()
-			=> ValidatePrivacyLevel(SomePrivacyLevel, whiteSpaceOk: true);
+			=> ValidatePrivacyLevel(nameof(SomePrivacyLevel), SomePrivacyLevel, whiteSpaceOk: true);
 
 		public ErrorDescriptors ValidateFinePrivacyLevel()
-			=> ValidatePrivacyLevel(FinePrivacyLevel, whiteSpaceOk: true);
+			=> ValidatePrivacyLevel(nameof(FinePrivacyLevel), FinePrivacyLevel, whiteSpaceOk: true);
 
 		public ErrorDescriptors ValidateStrongPrivacyLevel()
-			=> ValidatePrivacyLevel(StrongPrivacyLevel, whiteSpaceOk: true);
+			=> ValidatePrivacyLevel(nameof(StrongPrivacyLevel), StrongPrivacyLevel, whiteSpaceOk: true);
 
 		public ErrorDescriptors ValidateDustThreshold()
 			=> ValidateDustThreshold(DustThreshold, whiteSpaceOk: true);
@@ -397,19 +397,144 @@ namespace WalletWasabi.Gui.Tabs
 		public ErrorDescriptors ValidateBitcoinP2pEndPoint()
 			=> ValidateEndPoint(BitcoinP2pEndPoint, Network.DefaultPort, whiteSpaceOk: true);
 
-		public ErrorDescriptors ValidatePrivacyLevel(string value, bool whiteSpaceOk)
+		public ErrorDescriptors ValidatePrivacyLevel(string privacyLevel, string value, bool whiteSpaceOk)
 		{
-			if (whiteSpaceOk && string.IsNullOrWhiteSpace(value))
+			if (whiteSpaceOk && value is null)
 			{
 				return ErrorDescriptors.Empty;
 			}
 
-			if (uint.TryParse(value, out _))
+			if (uint.TryParse(value, out uint result))
 			{
+				ValidatePrivacyLevelValue(privacyLevel, result, out bool isUnderMinimumPrivacyLevel, out uint minimumPrivacyLevel, out bool isAboveMaximumPrivacyLevel, out uint maximumPrivacyLevel);
+
+				if (isUnderMinimumPrivacyLevel)
+				{
+					return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, $"Minimum privacy for this level is {minimumPrivacyLevel}."));
+				}
+				else if (isAboveMaximumPrivacyLevel)
+				{
+					return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, $"Maximum privacy for this level is {maximumPrivacyLevel}."));
+				}
+
 				return ErrorDescriptors.Empty;
 			}
 
 			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid privacy level."));
+		}
+
+		private void ValidatePrivacyLevelValue(string privacyLevel, uint result, out bool isUnderMinimumPrivacyLevel, out uint minimumPrivacyLevel, out bool isAboveMaximumPrivacyLevel, out uint maximumPrivacyLevel)
+		{
+			isUnderMinimumPrivacyLevel = false;
+			minimumPrivacyLevel = 2;
+
+			isAboveMaximumPrivacyLevel = false;
+			maximumPrivacyLevel = uint.MaxValue;
+
+			if (privacyLevel == nameof(SomePrivacyLevel))
+			{
+				if (result < 2)
+				{
+					isUnderMinimumPrivacyLevel = true;
+				}
+				else
+				{
+					uint.TryParse(FinePrivacyLevel, out uint fineValue);
+					if (result >= fineValue)
+					{
+						if (fineValue > 2)
+						{
+							isAboveMaximumPrivacyLevel = true;
+							maximumPrivacyLevel = fineValue - 1;
+						}
+						else
+						{
+							uint.TryParse(StrongPrivacyLevel, out uint strongValue);
+							if (result >= strongValue - 1 || result >= maximumPrivacyLevel - 1)
+							{
+								isAboveMaximumPrivacyLevel = true;
+								maximumPrivacyLevel = strongValue > 3 ? strongValue - 2 : maximumPrivacyLevel - 2;
+							}
+						}
+					}
+				}
+			}
+			else if (privacyLevel == nameof(FinePrivacyLevel))
+			{
+				uint.TryParse(SomePrivacyLevel, out uint someValue);
+				if (result < 3)
+				{
+					isUnderMinimumPrivacyLevel = true;
+					minimumPrivacyLevel = result < someValue ? someValue + 1 : 3;
+				}
+				else
+				{
+					if (result <= someValue)
+					{
+						isUnderMinimumPrivacyLevel = true;
+						minimumPrivacyLevel = someValue + 1;
+					}
+
+					uint.TryParse(StrongPrivacyLevel, out uint strongValue);
+					if (result >= strongValue)
+					{
+						if (strongValue > 3)
+						{
+							if (strongValue > someValue + 1)
+							{
+								isAboveMaximumPrivacyLevel = true;
+								maximumPrivacyLevel = strongValue - 1;
+							}
+						}
+						else
+						{
+							if (result == maximumPrivacyLevel)
+							{
+								isAboveMaximumPrivacyLevel = true;
+								maximumPrivacyLevel -= 1;
+							}
+						}
+					}
+				}
+			}
+			else
+			{
+				uint.TryParse(FinePrivacyLevel, out uint fineValue);
+				if (result > fineValue)
+				{
+					if (fineValue <= 2)
+					{
+						uint.TryParse(SomePrivacyLevel, out uint someValue);
+						if (result > someValue + 1)
+						{
+							if (result <= minimumPrivacyLevel + 1)
+							{
+								isUnderMinimumPrivacyLevel = true;
+								minimumPrivacyLevel += 2;
+							}
+						}
+						else
+						{
+							isUnderMinimumPrivacyLevel = true;
+							minimumPrivacyLevel = someValue > 1 ? someValue + 2 : minimumPrivacyLevel + 2;
+						}
+					}
+				}
+				else
+				{
+					isUnderMinimumPrivacyLevel = true;
+
+					if (fineValue > 2)
+					{
+						minimumPrivacyLevel = fineValue + 1;
+					}
+					else
+					{
+						uint.TryParse(SomePrivacyLevel, out uint someValue);
+						minimumPrivacyLevel = someValue > 1 ? someValue + 2 : minimumPrivacyLevel + 2;
+					}
+				}
+			}
 		}
 
 		public ErrorDescriptors ValidateDustThreshold(string dustThreshold, bool whiteSpaceOk)
