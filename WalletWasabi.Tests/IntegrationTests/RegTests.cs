@@ -286,7 +286,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				// Test filter block hashes are correct.
 				var filterList = new List<FilterModel>();
-				await bitcoinStore.IndexStore.ForeachFiltersAsync(async x =>
+				await bitcoinStore.IndexStore.ForeachFiltersAsync(async (x, y) =>
 				{
 					filterList.Add(x);
 					await Task.CompletedTask;
@@ -381,7 +381,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Equal(tip, bitcoinStore.SmartHeaderChain.TipHash);
 
 				var filterList = new List<FilterModel>();
-				await bitcoinStore.IndexStore.ForeachFiltersAsync(async x =>
+				await bitcoinStore.IndexStore.ForeachFiltersAsync(async (x, y) =>
 				{
 					filterList.Add(x);
 					await Task.CompletedTask;
@@ -394,7 +394,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				var blockCountIncludingGenesis = await rpc.GetBlockCountAsync() + 1;
 
 				filterList.Clear();
-				await bitcoinStore.IndexStore.ForeachFiltersAsync(async x =>
+				await bitcoinStore.IndexStore.ForeachFiltersAsync(async (x, y) =>
 				{
 					filterList.Add(x);
 					await Task.CompletedTask;
