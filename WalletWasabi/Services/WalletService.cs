@@ -27,6 +27,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Services.LoadStatusReporting;
 using WalletWasabi.Stores;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -249,26 +250,42 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		public event EventHandler<LoadStatusReport> LoadStatusReporter;
+
 		public async Task InitializeAsync(CancellationToken cancel)
 		{
-			if (!Synchronizer.IsRunning)
+			try
 			{
-				throw new NotSupportedException($"{nameof(Synchronizer)} is not running.");
+				LoadStatusReporter?.Invoke(this, new LoadStatusReport(LoadStatus.Starting));
+
+				if (!Synchronizer.IsRunning)
+				{
+					throw new NotSupportedException($"{nameof(Synchronizer)} is not running.");
+				}
+
+				if (!BitcoinStore.IsInitialized)
+				{
+					LoadStatusReporter?.Invoke(this, new LoadStatusReport(LoadStatus.WaitingForBitcoinStore));
+				}
+				while (!BitcoinStore.IsInitialized)
+				{
+					await Task.Delay(100).ConfigureAwait(false);
+
+					cancel.ThrowIfCancellationRequested();
+				}
+
+				await RuntimeParams.LoadAsync();
+
+				using (await HandleFiltersLock.LockAsync())
+				{
+					await LoadWalletStateAsync(cancel);
+					LoadStatusReporter?.Invoke(this, new LoadStatusReport(LoadStatus.ProcessingMempool));
+					await LoadDummyMempoolAsync();
+				}
 			}
-
-			while (!BitcoinStore.IsInitialized)
+			finally
 			{
-				await Task.Delay(100).ConfigureAwait(false);
-
-				cancel.ThrowIfCancellationRequested();
-			}
-
-			await RuntimeParams.LoadAsync();
-
-			using (await HandleFiltersLock.LockAsync())
-			{
-				await LoadWalletStateAsync(cancel);
-				await LoadDummyMempoolAsync();
+				LoadStatusReporter?.Invoke(this, new LoadStatusReport(LoadStatus.Completed));
 			}
 		}
 
@@ -277,8 +294,10 @@ namespace WalletWasabi.Services
 			KeyManager.AssertNetworkOrClearBlockState(Network);
 			Height bestKeyManagerHeight = KeyManager.GetBestHeight();
 
+			LoadStatusReporter?.Invoke(this, new LoadStatusReport(LoadStatus.ProcessingTransactions));
 			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
 
+			LoadStatusReporter?.Invoke(this, new LoadStatusReport(LoadStatus.ProcessingFilters));
 			// Go through the filters and queue to download the matches.
 			await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) =>
 				{
