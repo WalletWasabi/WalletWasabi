@@ -228,7 +228,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				try
 				{
 					IsBusy = true;
-					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BuildingTransaction);
+					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatusType.BuildingTransaction);
 
 					var label = new SmartLabel(_labelSuggestion.Label);
 					_labelSuggestion.Label = label;
@@ -290,7 +290,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					var intent = new PaymentIntent(address, moneyRequest, label);
 					try
 					{
-						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.DequeuingSelectedCoins);
+						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatusType.DequeuingSelectedCoins);
 						TxoRef[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => x.Model.GetTxoRef()).ToArray();
 						if (toDequeue != null && toDequeue.Any())
 						{
@@ -304,7 +304,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					finally
 					{
-						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.DequeuingSelectedCoins);
+						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatusType.DequeuingSelectedCoins);
 					}
 
 					if (!KeyManager.IsWatchOnly)
@@ -351,7 +351,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						return;
 					}
 
-					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.SigningTransaction);
+					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatusType.SigningTransaction);
 					SmartTransaction signedTransaction = result.Transaction;
 
 					if (IsHardwareWallet && !result.Signed) // If hardware but still has a privkey then it's password, then meh.
@@ -359,7 +359,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						try
 						{
 							IsHardwareBusy = true;
-							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.AcquiringSignatureFromHardwareWallet);
+							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatusType.AcquiringSignatureFromHardwareWallet);
 							var client = new HwiClient(Global.Network);
 
 							using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
@@ -382,12 +382,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 						finally
 						{
-							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.AcquiringSignatureFromHardwareWallet);
+							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatusType.AcquiringSignatureFromHardwareWallet);
 							IsHardwareBusy = false;
 						}
 					}
 
-					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
+					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatusType.BroadcastingTransaction);
 					await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(signedTransaction));
 
 					ResetUi();
@@ -407,7 +407,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				finally
 				{
-					MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.BuildingTransaction, StatusBarStatus.SigningTransaction, StatusBarStatus.BroadcastingTransaction);
+					MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatusType.BuildingTransaction, StatusBarStatusType.SigningTransaction, StatusBarStatusType.BroadcastingTransaction);
 					IsBusy = false;
 				}
 			},
@@ -856,7 +856,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _feeControlOpacity, value);
 		}
 
-		public bool IsCustomFee 
+		public bool IsCustomFee
 		{
 			get => _isCustomFee;
 			private set => this.RaiseAndSetIfChanged(ref _isCustomFee, value);

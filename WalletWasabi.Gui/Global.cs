@@ -480,13 +480,8 @@ namespace WalletWasabi.Gui
 					WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
 
 					statusObserver = Observable.FromEventPattern<LoadStatusReport>(WalletService, nameof(WalletService.OnLoadStatusChanged))
-						.Throttle(TimeSpan.FromMilliseconds(100))
 						.ObserveOn(RxApp.MainThreadScheduler)
-						.Subscribe(x =>
-						{
-							var status = x.EventArgs;
-							MainWindowViewModel.Instance?.StatusBar?.TryAddStatus(StatusBarStatus.Loading);
-						});
+						.Subscribe(x => MainWindowViewModel.Instance?.StatusBar?.TrySetLoadStatus(x.EventArgs));
 
 					ChaumianClient.Start();
 					Logger.LogInfo("Start Chaumian CoinJoin service...");
@@ -508,7 +503,7 @@ namespace WalletWasabi.Gui
 			finally
 			{
 				statusObserver?.Dispose();
-				Dispatcher.UIThread.PostLogException(() => MainWindowViewModel.Instance?.StatusBar?.TryRemoveStatus(StatusBarStatus.Loading));
+				Dispatcher.UIThread.PostLogException(() => MainWindowViewModel.Instance?.StatusBar?.TrySetLoadStatus(new LoadStatusReport(LoadStatus.Completed)));
 			}
 		}
 

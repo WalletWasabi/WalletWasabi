@@ -147,11 +147,11 @@ namespace WalletWasabi.Gui.ViewModels
 					(int filtersLeft, bool downloadingBlock) = tup;
 					if (filtersLeft == 0 && !downloadingBlock)
 					{
-						TryRemoveStatus(StatusBarStatus.Synchronizing);
+						TryRemoveStatus(StatusBarStatusType.Synchronizing);
 					}
 					else
 					{
-						TryAddStatus(StatusBarStatus.Synchronizing);
+						TryAddStatus(StatusBarStatusType.Synchronizing);
 					}
 				});
 
@@ -162,11 +162,11 @@ namespace WalletWasabi.Gui.ViewModels
 					(TorStatus tor, BackendStatus backend, int peers) = tup;
 					if (tor == TorStatus.NotRunning || backend != BackendStatus.Connected || peers < 1)
 					{
-						TryAddStatus(StatusBarStatus.Connecting);
+						TryAddStatus(StatusBarStatusType.Connecting);
 					}
 					else
 					{
-						TryRemoveStatus(StatusBarStatus.Connecting);
+						TryRemoveStatus(StatusBarStatusType.Connecting);
 					}
 				});
 
@@ -176,20 +176,20 @@ namespace WalletWasabi.Gui.ViewModels
 				{
 					if (x.BackendCompatible)
 					{
-						TryRemoveStatus(StatusBarStatus.CriticalUpdate);
+						TryRemoveStatus(StatusBarStatusType.CriticalUpdate);
 					}
 					else
 					{
-						TryAddStatus(StatusBarStatus.CriticalUpdate);
+						TryAddStatus(StatusBarStatusType.CriticalUpdate);
 					}
 
 					if (x.ClientUpToDate)
 					{
-						TryRemoveStatus(StatusBarStatus.OptionalUpdate);
+						TryRemoveStatus(StatusBarStatusType.OptionalUpdate);
 					}
 					else
 					{
-						TryAddStatus(StatusBarStatus.OptionalUpdate);
+						TryAddStatus(StatusBarStatusType.OptionalUpdate);
 					}
 
 					UpdateAvailable = !x.ClientUpToDate;
@@ -274,7 +274,7 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _btcPrice, value);
 		}
 
-		public StatusBarStatus Status => _status?.Value ?? StatusBarStatus.Loading;
+		public StatusBarStatus Status => _status?.Value ?? new StatusBarStatus(StatusBarStatusType.Loading);
 
 		public bool DownloadingBlock
 		{
@@ -324,7 +324,19 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		public void TryAddStatus(StatusBarStatus status)
+		public void TrySetLoadStatus(LoadStatusReport loadStatus)
+		{
+			try
+			{
+				ActiveStatuses.TrySetLoadStatus(loadStatus);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex);
+			}
+		}
+
+		public void TryAddStatus(StatusBarStatusType status)
 		{
 			try
 			{
@@ -336,7 +348,7 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		public void TryRemoveStatus(params StatusBarStatus[] statuses)
+		public void TryRemoveStatus(params StatusBarStatusType[] statuses)
 		{
 			try
 			{

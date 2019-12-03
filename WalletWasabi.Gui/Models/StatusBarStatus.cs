@@ -4,24 +4,29 @@ using System.Text;
 
 namespace WalletWasabi.Gui.Models
 {
-	/// <summary>
-	/// Order matter: piority the lower.
-	/// </summary>
-	public enum StatusBarStatus
+	public class StatusBarStatus : IEquatable<StatusBarStatus>
 	{
-		CriticalUpdate,
-		OptionalUpdate,
-		Connecting,
-		Synchronizing,
-		Loading,
-		BroadcastingTransaction,
-		SigningTransaction,
-		AcquiringSignatureFromHardwareWallet,
-		AcquiringXpubFromHardwareWallet,
-		ConnectingToHardwareWallet,
-		SettingUpHardwareWallet,
-		BuildingTransaction,
-		DequeuingSelectedCoins,
-		Ready
+		public StatusBarStatusType Type { get; }
+		public int ProgressPercentage { get; }
+
+		public StatusBarStatus(StatusBarStatusType type, int progressPercentage = -1)
+		{
+			Type = type;
+			ProgressPercentage = progressPercentage;
+		}
+
+		#region EqualityAndComparison
+
+		public override bool Equals(object obj) => obj is StatusBarStatus rpcStatus && this == rpcStatus;
+
+		public bool Equals(StatusBarStatus other) => this == other;
+
+		public override int GetHashCode() => Type.GetHashCode() ^ ProgressPercentage.GetHashCode();
+
+		public static bool operator ==(StatusBarStatus x, StatusBarStatus y) => y?.Type == x?.Type && y?.ProgressPercentage == x?.ProgressPercentage;
+
+		public static bool operator !=(StatusBarStatus x, StatusBarStatus y) => !(x == y);
+
+		#endregion EqualityAndComparison
 	}
 }

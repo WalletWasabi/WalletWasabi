@@ -383,7 +383,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						try
 						{
 							IsHardwareBusy = true;
-							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.SettingUpHardwareWallet);
+							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatusType.SettingUpHardwareWallet);
 
 							// Setup may take a while for users to write down stuff.
 							using (var ctsSetup = new CancellationTokenSource(TimeSpan.FromMinutes(21)))
@@ -400,13 +400,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 								}
 							}
 
-							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.ConnectingToHardwareWallet);
+							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatusType.ConnectingToHardwareWallet);
 							await EnumerateHardwareWalletsAsync();
 						}
 						finally
 						{
 							IsHardwareBusy = false;
-							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.SettingUpHardwareWallet, StatusBarStatus.ConnectingToHardwareWallet);
+							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatusType.SettingUpHardwareWallet, StatusBarStatusType.ConnectingToHardwareWallet);
 						}
 
 						return await LoadKeyManagerAsync(requirePassword, isHardwareWallet);
@@ -446,13 +446,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 					try
 					{
-						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.AcquiringXpubFromHardwareWallet);
+						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatusType.AcquiringXpubFromHardwareWallet);
 						extPubKey = await client.GetXpubAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, KeyManager.DefaultAccountKeyPath, cts.Token);
 					}
 					finally
 					{
 						cts?.Dispose();
-						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.AcquiringXpubFromHardwareWallet);
+						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatusType.AcquiringXpubFromHardwareWallet);
 					}
 
 					Logger.LogInfo("Hardware wallet was not used previously on this computer. Creating a new wallet file.");

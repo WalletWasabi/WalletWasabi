@@ -299,13 +299,20 @@ namespace WalletWasabi.Services
 			LoadStatusReport txProcessReport = new LoadStatusReport(LoadStatus.ProcessingTransactions);
 			txProcessReport.AllTransactionsToBeProcessed = (uint)txsToProcess.Length;
 			uint processedTxCounter = 0;
+			int prevPercentage = -1;
 			foreach (var processResult in TransactionProcessor.Process(txsToProcess))
 			{
 				processedTxCounter++;
 				txProcessReport.TransactionsProcessed = processedTxCounter;
-				OnLoadStatusChanged?.Invoke(this, txProcessReport);
+
+				if (prevPercentage != txProcessReport.TransactionProcessProgressPercentage)
+				{
+					OnLoadStatusChanged?.Invoke(this, txProcessReport);
+					prevPercentage = txProcessReport.TransactionProcessProgressPercentage;
+				}
 			}
 
+			prevPercentage = -1;
 			// Go through the filters and queue to download the matches.
 			await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel, bestHeight) =>
 				{
@@ -316,7 +323,12 @@ namespace WalletWasabi.Services
 						LoadStatusReport filterProcessReport = new LoadStatusReport(LoadStatus.ProcessingFilters);
 						filterProcessReport.FiltersProcessed = filterModel.Header.Height - bestKeyManagerHeightUint;
 						filterProcessReport.AllFiltersToBeProcessed = bestHeight - bestKeyManagerHeightUint;
-						OnLoadStatusChanged?.Invoke(this, filterProcessReport);
+
+						if (prevPercentage != filterProcessReport.FilterProcessProgressPercentage)
+						{
+							OnLoadStatusChanged?.Invoke(this, filterProcessReport);
+							prevPercentage = filterProcessReport.FilterProcessProgressPercentage;
+						}
 					}
 				},
 				new Height(bestKeyManagerHeight.Value + 1));
