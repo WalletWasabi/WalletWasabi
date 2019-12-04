@@ -1,3 +1,4 @@
+using Avalonia.Threading;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -33,13 +34,19 @@ namespace WalletWasabi.Gui.Models.StatusBarStatuses
 			lock (ActiveStatusesLock)
 			{
 				ret = ActiveStatuses.Add(status);
-				if (ret)
-				{
-					CurrentStatus = ActiveStatuses.Min();
-				}
+			}
+
+			if (ret)
+			{
+				AdjustCurrentStatus();
 			}
 
 			return ret;
+		}
+
+		private void AdjustCurrentStatus()
+		{
+			Dispatcher.UIThread.PostLogException(() => CurrentStatus = ActiveStatuses.Min());
 		}
 
 		public bool TryRemoveStatus(params StatusPriority[] statuses)
@@ -51,11 +58,11 @@ namespace WalletWasabi.Gui.Models.StatusBarStatuses
 				{
 					ret = ActiveStatuses.Remove(status) || ret;
 				}
+			}
 
-				if (ret)
-				{
-					CurrentStatus = ActiveStatuses.Min();
-				}
+			if (ret)
+			{
+				AdjustCurrentStatus();
 			}
 
 			return ret;
