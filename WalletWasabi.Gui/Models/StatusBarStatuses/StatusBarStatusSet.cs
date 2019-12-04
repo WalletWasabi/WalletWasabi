@@ -5,7 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 
-namespace WalletWasabi.Gui.Models
+namespace WalletWasabi.Gui.Models.StatusBarStatuses
 {
 	public class StatusBarStatusSet : ReactiveObject
 	{

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace WalletWasabi.Gui.Models
+namespace WalletWasabi.Gui.Models.StatusBarStatuses
 {
 	/// <summary>
 	/// Order matter: piority the lower.

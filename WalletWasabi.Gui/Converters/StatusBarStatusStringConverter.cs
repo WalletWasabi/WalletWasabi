@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Gui.Models;
+using WalletWasabi.Gui.Models.StatusBarStatuses;
 
 namespace WalletWasabi.Gui.Converters
 {
