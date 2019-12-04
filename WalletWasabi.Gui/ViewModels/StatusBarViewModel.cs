@@ -101,6 +101,51 @@ namespace WalletWasabi.Gui.ViewModels
 				.Subscribe(x => DownloadingBlock = x.EventArgs)
 				.DisposeWith(Disposables);
 
+			Observable.FromEventPattern<bool>(typeof(WalletService), nameof(WalletService.InitializingChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					if (x.EventArgs)
+					{
+						TryAddStatus(StatusType.WalletLoading);
+					}
+					else
+					{
+						TryRemoveStatus(StatusType.WalletLoading);
+					}
+				})
+				.DisposeWith(Disposables);
+
+			Observable.FromEventPattern<bool>(typeof(WalletService), nameof(WalletService.InitializingTransactionsChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					if (x.EventArgs)
+					{
+						TryAddStatus(StatusType.WalletProcessingTransactions);
+					}
+					else
+					{
+						TryRemoveStatus(StatusType.WalletProcessingTransactions);
+					}
+				})
+				.DisposeWith(Disposables);
+
+			Observable.FromEventPattern<bool>(typeof(WalletService), nameof(WalletService.InitializingFiltersChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					if (x.EventArgs)
+					{
+						TryAddStatus(StatusType.WalletProcessingFilters);
+					}
+					else
+					{
+						TryRemoveStatus(StatusType.WalletProcessingFilters);
+					}
+				})
+				.DisposeWith(Disposables);
+
 			Synchronizer.WhenAnyValue(x => x.TorStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(status => Tor = UseTor ? status : TorStatus.TurnedOff)
