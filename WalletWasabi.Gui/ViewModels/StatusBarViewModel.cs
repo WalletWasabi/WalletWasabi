@@ -48,10 +48,10 @@ namespace WalletWasabi.Gui.ViewModels
 		private int _peers;
 		private ObservableAsPropertyHelper<int> _filtersLeft;
 		private string _btcPrice;
-		private ObservableAsPropertyHelper<StatusBarStatus> _status;
+		private ObservableAsPropertyHelper<StatusPriority> _status;
 		private bool _downloadingBlock;
 		public Global Global { get; }
-		private StatusBarStatusSet ActiveStatuses { get; }
+		private StatusSet ActiveStatuses { get; }
 
 		public StatusBarViewModel(Global global)
 		{
@@ -61,7 +61,7 @@ namespace WalletWasabi.Gui.ViewModels
 			Tor = TorStatus.NotRunning;
 			Peers = 0;
 			BtcPrice = "$0";
-			ActiveStatuses = new StatusBarStatusSet();
+			ActiveStatuses = new StatusSet();
 		}
 
 		public void Initialize(NodesCollection nodes, WasabiSynchronizer synchronizer)
@@ -146,11 +146,11 @@ namespace WalletWasabi.Gui.ViewModels
 					(int filtersLeft, bool downloadingBlock) = tup;
 					if (filtersLeft == 0 && !downloadingBlock)
 					{
-						TryRemoveStatus(StatusBarStatus.Synchronizing);
+						TryRemoveStatus(StatusPriority.Synchronizing);
 					}
 					else
 					{
-						TryAddStatus(StatusBarStatus.Synchronizing);
+						TryAddStatus(StatusPriority.Synchronizing);
 					}
 				});
 
@@ -161,11 +161,11 @@ namespace WalletWasabi.Gui.ViewModels
 					(TorStatus tor, BackendStatus backend, int peers) = tup;
 					if (tor == TorStatus.NotRunning || backend != BackendStatus.Connected || peers < 1)
 					{
-						TryAddStatus(StatusBarStatus.Connecting);
+						TryAddStatus(StatusPriority.Connecting);
 					}
 					else
 					{
-						TryRemoveStatus(StatusBarStatus.Connecting);
+						TryRemoveStatus(StatusPriority.Connecting);
 					}
 				});
 
@@ -175,20 +175,20 @@ namespace WalletWasabi.Gui.ViewModels
 				{
 					if (x.BackendCompatible)
 					{
-						TryRemoveStatus(StatusBarStatus.CriticalUpdate);
+						TryRemoveStatus(StatusPriority.CriticalUpdate);
 					}
 					else
 					{
-						TryAddStatus(StatusBarStatus.CriticalUpdate);
+						TryAddStatus(StatusPriority.CriticalUpdate);
 					}
 
 					if (x.ClientUpToDate)
 					{
-						TryRemoveStatus(StatusBarStatus.OptionalUpdate);
+						TryRemoveStatus(StatusPriority.OptionalUpdate);
 					}
 					else
 					{
-						TryAddStatus(StatusBarStatus.OptionalUpdate);
+						TryAddStatus(StatusPriority.OptionalUpdate);
 					}
 
 					UpdateAvailable = !x.ClientUpToDate;
@@ -273,7 +273,7 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _btcPrice, value);
 		}
 
-		public StatusBarStatus Status => _status?.Value ?? StatusBarStatus.Loading;
+		public StatusPriority Status => _status?.Value ?? StatusPriority.Loading;
 
 		public bool DownloadingBlock
 		{
@@ -323,7 +323,7 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		public void TryAddStatus(StatusBarStatus status)
+		public void TryAddStatus(StatusPriority status)
 		{
 			try
 			{
@@ -335,7 +335,7 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		public void TryRemoveStatus(params StatusBarStatus[] statuses)
+		public void TryRemoveStatus(params StatusPriority[] statuses)
 		{
 			try
 			{

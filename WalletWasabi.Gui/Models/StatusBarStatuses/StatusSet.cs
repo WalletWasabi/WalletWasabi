@@ -7,27 +7,27 @@ using System.Text;
 
 namespace WalletWasabi.Gui.Models.StatusBarStatuses
 {
-	public class StatusBarStatusSet : ReactiveObject
+	public class StatusSet : ReactiveObject
 	{
-		private StatusBarStatus _status;
+		private StatusPriority _status;
 
-		private HashSet<StatusBarStatus> ActiveStatuses { get; }
+		private HashSet<StatusPriority> ActiveStatuses { get; }
 		private object ActiveStatusesLock { get; }
 
-		public StatusBarStatusSet()
+		public StatusSet()
 		{
-			ActiveStatuses = new HashSet<StatusBarStatus>() { StatusBarStatus.Ready };
+			ActiveStatuses = new HashSet<StatusPriority>() { StatusPriority.Ready };
 			ActiveStatusesLock = new object();
-			CurrentStatus = StatusBarStatus.Loading;
+			CurrentStatus = StatusPriority.Loading;
 		}
 
-		public StatusBarStatus CurrentStatus
+		public StatusPriority CurrentStatus
 		{
 			get => _status;
 			set => this.RaiseAndSetIfChanged(ref _status, value);
 		}
 
-		public bool TryAddStatus(StatusBarStatus status)
+		public bool TryAddStatus(StatusPriority status)
 		{
 			bool ret;
 			lock (ActiveStatusesLock)
@@ -42,12 +42,12 @@ namespace WalletWasabi.Gui.Models.StatusBarStatuses
 			return ret;
 		}
 
-		public bool TryRemoveStatus(params StatusBarStatus[] statuses)
+		public bool TryRemoveStatus(params StatusPriority[] statuses)
 		{
 			bool ret = false;
 			lock (ActiveStatusesLock)
 			{
-				foreach (StatusBarStatus status in statuses.ToHashSet())
+				foreach (StatusPriority status in statuses.ToHashSet())
 				{
 					ret = ActiveStatuses.Remove(status) || ret;
 				}

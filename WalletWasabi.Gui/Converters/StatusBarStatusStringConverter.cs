@@ -12,30 +12,30 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is StatusBarStatus status)
+			if (value is StatusPriority status)
 			{
 				return status switch
 				{
-					StatusBarStatus.Ready => "Ready",
-					StatusBarStatus.CriticalUpdate => "THE BACKEND WAS UPGRADED WITH BREAKING CHANGES - PLEASE UPDATE YOUR WASABI WALLET!",
-					StatusBarStatus.OptionalUpdate => "A new version of Wasabi Wallet is available.",
-					StatusBarStatus.Connecting => "Connecting...",
-					StatusBarStatus.Synchronizing => "Synchronizing...",
-					StatusBarStatus.Loading => "Loading...",
-					StatusBarStatus.SettingUpHardwareWallet => "Setting up hardware wallet...",
-					StatusBarStatus.ConnectingToHardwareWallet => "Connecting to hardware wallet...",
-					StatusBarStatus.AcquiringXpubFromHardwareWallet => "Acquiring xpub from hardware wallet...",
-					StatusBarStatus.AcquiringSignatureFromHardwareWallet => "Acquiring signature from hardware wallet...",
-					StatusBarStatus.BuildingTransaction => "Building transaction...",
-					StatusBarStatus.SigningTransaction => "Signing transaction...",
-					StatusBarStatus.BroadcastingTransaction => "Broadcasting transaction...",
-					StatusBarStatus.DequeuingSelectedCoins => "Dequeuing selected coins...",
+					StatusPriority.Ready => "Ready",
+					StatusPriority.CriticalUpdate => "THE BACKEND WAS UPGRADED WITH BREAKING CHANGES - PLEASE UPDATE YOUR WASABI WALLET!",
+					StatusPriority.OptionalUpdate => "A new version of Wasabi Wallet is available.",
+					StatusPriority.Connecting => "Connecting...",
+					StatusPriority.Synchronizing => "Synchronizing...",
+					StatusPriority.Loading => "Loading...",
+					StatusPriority.SettingUpHardwareWallet => "Setting up hardware wallet...",
+					StatusPriority.ConnectingToHardwareWallet => "Connecting to hardware wallet...",
+					StatusPriority.AcquiringXpubFromHardwareWallet => "Acquiring xpub from hardware wallet...",
+					StatusPriority.AcquiringSignatureFromHardwareWallet => "Acquiring signature from hardware wallet...",
+					StatusPriority.BuildingTransaction => "Building transaction...",
+					StatusPriority.SigningTransaction => "Signing transaction...",
+					StatusPriority.BroadcastingTransaction => "Broadcasting transaction...",
+					StatusPriority.DequeuingSelectedCoins => "Dequeuing selected coins...",
 					_ => status.ToString()
 				};
 			}
 			else
 			{
-				throw new TypeArgumentException(value, typeof(StatusBarStatus), nameof(value));
+				throw new TypeArgumentException(value, typeof(StatusPriority), nameof(value));
 			}
 		}
 
