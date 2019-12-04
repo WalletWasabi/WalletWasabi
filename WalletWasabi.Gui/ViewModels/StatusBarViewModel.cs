@@ -101,6 +101,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.Subscribe(x => DownloadingBlock = x.EventArgs)
 				.DisposeWith(Disposables);
 
+			IDisposable walletCheckingInterwal = null;
 			Observable.FromEventPattern<bool>(typeof(WalletService), nameof(WalletService.InitializingChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
@@ -108,9 +109,22 @@ namespace WalletWasabi.Gui.ViewModels
 					if (x.EventArgs)
 					{
 						TryAddStatus(StatusType.WalletLoading);
+
+						if (walletCheckingInterwal is null)
+						{
+							walletCheckingInterwal = Observable.Interval(TimeSpan.FromSeconds(1))
+							   .ObserveOn(RxApp.MainThreadScheduler)
+							   .Subscribe(_ =>
+							   {
+								   // ToDo: here monitor the status of the loading.
+							   }).DisposeWith(Disposables);
+						}
 					}
 					else
 					{
+						walletCheckingInterwal?.Dispose();
+						walletCheckingInterwal = null;
+
 						TryRemoveStatus(StatusType.WalletLoading);
 					}
 				})
