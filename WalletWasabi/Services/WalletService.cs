@@ -38,8 +38,6 @@ namespace WalletWasabi.Services
 
 		public static event EventHandler<bool> InitializingChanged;
 
-		public static event EventHandler<bool> InitializingTransactionsChanged;
-
 		public BitcoinStore BitcoinStore { get; }
 		public KeyManager KeyManager { get; }
 		public WasabiSynchronizer Synchronizer { get; }
@@ -272,15 +270,7 @@ namespace WalletWasabi.Services
 			KeyManager.AssertNetworkOrClearBlockState(Network);
 			Height bestKeyManagerHeight = KeyManager.GetBestHeight();
 
-			try
-			{
-				InitializingTransactionsChanged?.Invoke(null, true);
-				TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
-			}
-			finally
-			{
-				InitializingTransactionsChanged?.Invoke(null, false);
-			}
+			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
 
 			// Go through the filters and queue to download the matches.
 			await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) =>
