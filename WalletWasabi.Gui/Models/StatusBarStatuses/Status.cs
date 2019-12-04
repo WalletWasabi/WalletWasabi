@@ -5,9 +5,9 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Models.StatusBarStatuses
 {
-	public class Status
+	public class Status : IEquatable<Status>
 	{
-		public static Status Started(StatusType type) => new Status(type, 0);
+		public static Status Set(StatusType type) => new Status(type, 0);
 
 		public static Status Completed(StatusType type) => new Status(type, 100);
 
@@ -19,6 +19,8 @@ namespace WalletWasabi.Gui.Models.StatusBarStatuses
 
 		public StatusType Type { get; }
 		public int Percentage { get; }
+
+		public bool IsCompleted => Percentage == 100;
 
 		public override string ToString()
 		{
@@ -50,5 +52,19 @@ namespace WalletWasabi.Gui.Models.StatusBarStatuses
 				return $"{friendlyName} {Percentage}%";
 			}
 		}
+
+		#region EqualityAndComparison
+
+		public override bool Equals(object obj) => obj is Status rpcStatus && this == rpcStatus;
+
+		public bool Equals(Status other) => this == other;
+
+		public override int GetHashCode() => Type.GetHashCode() ^ Percentage.GetHashCode();
+
+		public static bool operator ==(Status x, Status y) => y?.Type == x?.Type && y?.Percentage == x?.Percentage;
+
+		public static bool operator !=(Status x, Status y) => !(x == y);
+
+		#endregion EqualityAndComparison
 	}
 }

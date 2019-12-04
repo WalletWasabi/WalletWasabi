@@ -10,62 +10,81 @@ namespace WalletWasabi.Gui.Models.StatusBarStatuses
 {
 	public class StatusSet : ReactiveObject
 	{
-		private StatusType _status;
+		private Status _status;
 
-		private HashSet<StatusType> ActiveStatuses { get; }
+		private HashSet<Status> ActiveStatuses { get; }
 		private object ActiveStatusesLock { get; }
 
 		public StatusSet()
 		{
-			ActiveStatuses = new HashSet<StatusType>() { StatusType.Ready };
+			ActiveStatuses = new HashSet<Status>() { Status.Set(StatusType.Ready) };
 			ActiveStatusesLock = new object();
-			CurrentStatus = StatusType.Loading;
+			CurrentStatus = Status.Set(StatusType.Loading);
 		}
 
-		public StatusType CurrentStatus
+		public Status CurrentStatus
 		{
 			get => _status;
 			set => this.RaiseAndSetIfChanged(ref _status, value);
 		}
 
-		public bool TryAddStatus(StatusType status)
+		public void Complete(params StatusType[] statuses)
+			=> Complete(statuses as IEnumerable<StatusType>);
+
+		public void Complete(IEnumerable<StatusType> statuses)
+			=> Set(statuses.Select(x => Status.Completed(x)));
+
+		public void Set(params StatusType[] statuses)
+			=> Set(statuses as IEnumerable<StatusType>);
+
+		public void Set(IEnumerable<StatusType> statuses)
+			=> Set(statuses.Select(x => Status.Set(x)));
+
+		public void Set(params Status[] statuses)
+			=> Set(statuses as IEnumerable<Status>);
+
+		public void Set(IEnumerable<Status> statuses)
 		{
-			bool ret;
+			Status updateWith = null;
 			lock (ActiveStatusesLock)
 			{
-				ret = ActiveStatuses.Add(status);
-			}
+				var updated = false;
 
-			if (ret)
-			{
-				AdjustCurrentStatus();
-			}
-
-			return ret;
-		}
-
-		private void AdjustCurrentStatus()
-		{
-			Dispatcher.UIThread.PostLogException(() => CurrentStatus = ActiveStatuses.Min());
-		}
-
-		public bool TryRemoveStatus(params StatusType[] statuses)
-		{
-			bool ret = false;
-			lock (ActiveStatusesLock)
-			{
-				foreach (StatusType status in statuses.ToHashSet())
+				foreach (var status in statuses)
 				{
-					ret = ActiveStatuses.Remove(status) || ret;
+					if (status.IsCompleted)
+					{
+						updated = ActiveStatuses.RemoveWhere(x => x.Type == status.Type) == 1 || updated;
+					}
+					else
+					{
+						var found = ActiveStatuses.FirstOrDefault(x => x.Type == status.Type);
+						if (found is { Percentage: var perc })
+						{
+							if (perc != status.Percentage)
+							{
+								ActiveStatuses.Remove(found);
+								updated = ActiveStatuses.Add(status) || updated;
+							}
+						}
+						else
+						{
+							updated = ActiveStatuses.Add(status) || updated;
+						}
+					}
+				}
+
+				if (updated && ActiveStatuses.Any())
+				{
+					var priority = ActiveStatuses.Min(x => x.Type);
+					updateWith = ActiveStatuses.First(x => x.Type == priority);
 				}
 			}
 
-			if (ret)
+			if (updateWith is { })
 			{
-				AdjustCurrentStatus();
+				Dispatcher.UIThread.PostLogException(() => CurrentStatus = updateWith);
 			}
-
-			return ret;
 		}
 	}
 }

@@ -331,7 +331,7 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			try
 			{
-				ActiveStatuses.TryAddStatus(status);
+				ActiveStatuses.Set(status);
 			}
 			catch (Exception ex)
 			{
@@ -343,7 +343,7 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			try
 			{
-				ActiveStatuses.TryRemoveStatus(statuses);
+				ActiveStatuses.Complete(statuses);
 			}
 			catch (Exception ex)
 			{
