@@ -609,7 +609,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			try
 			{
 				IsBusy = true;
-				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.Loading);
+				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.WalletLoading);
 
 				var keyManager = await LoadKeyManagerAsync(IsPasswordRequired, IsHardwareWallet);
 				if (keyManager is null)
@@ -646,7 +646,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 			finally
 			{
-				MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.Loading);
+				MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.WalletLoading);
 				IsBusy = false;
 			}
 		}
