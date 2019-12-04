@@ -101,6 +101,61 @@ namespace WalletWasabi.Gui.ViewModels
 				.Subscribe(x => DownloadingBlock = x.EventArgs)
 				.DisposeWith(Disposables);
 
+			IDisposable walletCheckingInterval = null;
+			Observable.FromEventPattern<bool>(typeof(WalletService), nameof(WalletService.InitializingChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					if (x.EventArgs)
+					{
+						TryAddStatus(StatusType.WalletLoading);
+
+						if (walletCheckingInterval is null)
+						{
+							walletCheckingInterval = Observable.Interval(TimeSpan.FromSeconds(1))
+							   .ObserveOn(RxApp.MainThreadScheduler)
+							   .Subscribe(_ =>
+							   {
+								   var global = Global;
+								   var walletService = global?.WalletService;
+								   if (walletService is { })
+								   {
+									   var segwitActivationHeight = SmartHeader.GetStartingHeader(walletService.Network).Height;
+									   if (walletService.LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
+											&& lastProcessedFilterHeight > segwitActivationHeight
+											&& global?.BitcoinStore?.SmartHeaderChain?.TipHeight is uint tipHeight
+											&& tipHeight > segwitActivationHeight)
+									   {
+										   var allFilters = tipHeight - segwitActivationHeight;
+										   var processedFilters = lastProcessedFilterHeight - segwitActivationHeight;
+										   var perc = allFilters == 0 ?
+												100
+												: ((decimal)processedFilters / allFilters * 100);
+										   TryAddStatus(StatusType.WalletProcessingFilters, (ushort)perc);
+									   }
+
+									   var txProcessor = walletService.TransactionProcessor;
+									   if (txProcessor is { })
+									   {
+										   var perc = txProcessor.QueuedTxCount == 0 ?
+												100
+												: ((decimal)txProcessor.QueuedProcessedTxCount / txProcessor.QueuedTxCount * 100);
+										   TryAddStatus(StatusType.WalletProcessingTransactions, (ushort)perc);
+									   }
+								   }
+							   }).DisposeWith(Disposables);
+						}
+					}
+					else
+					{
+						walletCheckingInterval?.Dispose();
+						walletCheckingInterval = null;
+
+						TryRemoveStatus(StatusType.WalletLoading, StatusType.WalletProcessingFilters, StatusType.WalletProcessingTransactions);
+					}
+				})
+				.DisposeWith(Disposables);
+
 			Synchronizer.WhenAnyValue(x => x.TorStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(status => Tor = UseTor ? status : TorStatus.TurnedOff)
@@ -327,11 +382,11 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		public void TryAddStatus(StatusType status)
+		public void TryAddStatus(StatusType status, ushort percentage = 0)
 		{
 			try
 			{
-				ActiveStatuses.Set(status);
+				ActiveStatuses.Set(new Status(status, percentage));
 			}
 			catch (Exception ex)
 			{

@@ -36,23 +36,7 @@ namespace WalletWasabi.Services
 	{
 		public static event EventHandler<bool> DownloadingBlockChanged;
 
-		// So we will make sure when blocks are downloading with multiple wallet services, they do not conflict.
-		private static AsyncLock BlockDownloadLock { get; } = new AsyncLock();
-
-		private static bool DownloadingBlockBacking;
-
-		public static bool DownloadingBlock
-		{
-			get => DownloadingBlockBacking;
-			set
-			{
-				if (value != DownloadingBlockBacking)
-				{
-					DownloadingBlockBacking = value;
-					DownloadingBlockChanged?.Invoke(null, value);
-				}
-			}
-		}
+		public static event EventHandler<bool> InitializingChanged;
 
 		public BitcoinStore BitcoinStore { get; }
 		public KeyManager KeyManager { get; }
@@ -251,24 +235,33 @@ namespace WalletWasabi.Services
 
 		public async Task InitializeAsync(CancellationToken cancel)
 		{
-			if (!Synchronizer.IsRunning)
+			try
 			{
-				throw new NotSupportedException($"{nameof(Synchronizer)} is not running.");
+				InitializingChanged?.Invoke(null, true);
+
+				if (!Synchronizer.IsRunning)
+				{
+					throw new NotSupportedException($"{nameof(Synchronizer)} is not running.");
+				}
+
+				while (!BitcoinStore.IsInitialized)
+				{
+					await Task.Delay(100).ConfigureAwait(false);
+
+					cancel.ThrowIfCancellationRequested();
+				}
+
+				await RuntimeParams.LoadAsync();
+
+				using (await HandleFiltersLock.LockAsync())
+				{
+					await LoadWalletStateAsync(cancel);
+					await LoadDummyMempoolAsync();
+				}
 			}
-
-			while (!BitcoinStore.IsInitialized)
+			finally
 			{
-				await Task.Delay(100).ConfigureAwait(false);
-
-				cancel.ThrowIfCancellationRequested();
-			}
-
-			await RuntimeParams.LoadAsync();
-
-			using (await HandleFiltersLock.LockAsync())
-			{
-				await LoadWalletStateAsync(cancel);
-				await LoadDummyMempoolAsync();
+				InitializingChanged?.Invoke(null, false);
 			}
 		}
 
@@ -281,13 +274,13 @@ namespace WalletWasabi.Services
 
 			// Go through the filters and queue to download the matches.
 			await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) =>
+			{
+				if (filterModel.Filter != null) // Filter can be null if there is no bech32 tx.
 				{
-					if (filterModel.Filter != null) // Filter can be null if there is no bech32 tx.
-					{
-						await ProcessFilterModelAsync(filterModel, cancel);
-					}
-				},
-				new Height(bestKeyManagerHeight.Value + 1));
+					await ProcessFilterModelAsync(filterModel, cancel);
+				}
+			},
+			new Height(bestKeyManagerHeight.Value + 1));
 		}
 
 		private async Task LoadDummyMempoolAsync()
@@ -333,24 +326,24 @@ namespace WalletWasabi.Services
 		private async Task ProcessFilterModelAsync(FilterModel filterModel, CancellationToken cancel)
 		{
 			var matchFound = filterModel.Filter.MatchAny(KeyManager.GetPubKeyScriptBytes(), filterModel.FilterKey);
-			if (!matchFound)
+			if (matchFound)
 			{
-				return;
+				Block currentBlock = await FetchBlockAsync(filterModel.Header.BlockHash, cancel); // Wait until not downloaded.
+				var height = new Height(filterModel.Header.Height);
+
+				var txsToProcess = new List<SmartTransaction>();
+				for (int i = 0; i < currentBlock.Transactions.Count; i++)
+				{
+					Transaction tx = currentBlock.Transactions[i];
+					txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime));
+				}
+				TransactionProcessor.Process(txsToProcess);
+				KeyManager.SetBestHeight(height);
+
+				NewBlockProcessed?.Invoke(this, currentBlock);
 			}
 
-			Block currentBlock = await FetchBlockAsync(filterModel.Header.BlockHash, cancel); // Wait until not downloaded.
-			var height = new Height(filterModel.Header.Height);
-
-			var txsToProcess = new List<SmartTransaction>();
-			for (int i = 0; i < currentBlock.Transactions.Count; i++)
-			{
-				Transaction tx = currentBlock.Transactions[i];
-				txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime));
-			}
-			TransactionProcessor.Process(txsToProcess);
-			KeyManager.SetBestHeight(height);
-
-			NewBlockProcessed?.Invoke(this, currentBlock);
+			LastProcessedFilter = filterModel;
 		}
 
 		private Node _localBitcoinCoreNode = null;
@@ -420,8 +413,7 @@ namespace WalletWasabi.Services
 			Block block = null;
 			try
 			{
-				await BlockDownloadLock.LockAsync();
-				DownloadingBlock = true;
+				DownloadingBlockChanged?.Invoke(null, true);
 
 				while (true)
 				{
@@ -508,8 +500,7 @@ namespace WalletWasabi.Services
 			}
 			finally
 			{
-				DownloadingBlock = false;
-				BlockDownloadLock.ReleaseLock();
+				DownloadingBlockChanged?.Invoke(null, false);
 			}
 
 			return block;
@@ -789,6 +780,7 @@ namespace WalletWasabi.Services
 		public bool IsDisposed => _disposedValue;
 
 		public CoreNode CoreNode { get; }
+		public FilterModel LastProcessedFilter { get; private set; }
 
 		protected virtual void Dispose(bool disposing)
 		{
