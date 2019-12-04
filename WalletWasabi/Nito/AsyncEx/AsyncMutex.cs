@@ -401,18 +401,29 @@ namespace Nito.AsyncEx
 				}
 			}
 
+			var lastLog = DateTime.MinValue;
+			var lastNumberOfAliveMutexes = 0;
+
 			while (true)
 			{
 				lock (AsyncMutexesLock)
 				{
-					bool stillRunning = AsyncMutexes.Any(am => am.Value.IsAlive);
-					if (!stillRunning)
+					int numberOfAliveMutexes = AsyncMutexes.Count(am => am.Value.IsAlive);
+					if (numberOfAliveMutexes == 0)
 					{
 						return;
 					}
-					Logger.LogDebug($"Waiting for: {string.Join(", ", AsyncMutexes.Where(am => am.Value.IsAlive).Select(m => m.Value.ShortName))}.");
+
+					// Log every 10 second or status change.
+					if ((DateTime.Now - lastLog) > TimeSpan.FromSeconds(10) || lastNumberOfAliveMutexes != numberOfAliveMutexes)
+					{
+						Logger.LogDebug($"Waiting for: {string.Join(", ", AsyncMutexes.Where(am => am.Value.IsAlive).Select(m => m.Value.ShortName))}.");
+						lastNumberOfAliveMutexes = numberOfAliveMutexes;
+						lastLog = DateTime.Now;
+					}
 				}
-				await Task.Delay(200).ConfigureAwait(false);
+
+				await Task.Delay(500).ConfigureAwait(false);
 				if (DateTime.Now - start > TimeSpan.FromSeconds(60))
 				{
 					var mutexesAlive = AsyncMutexes.Where(am => am.Value.IsAlive).Select(m => m.Value.ShortName);
