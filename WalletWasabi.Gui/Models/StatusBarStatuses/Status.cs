@@ -31,7 +31,7 @@ namespace WalletWasabi.Gui.Models.StatusBarStatuses
 				StatusType.OptionalUpdate => "A new version of Wasabi Wallet is available.",
 				StatusType.Connecting => "Connecting...",
 				StatusType.Synchronizing => "Synchronizing...",
-				StatusType.WalletProcessingFilters => "Processing filters...",
+				StatusType.WalletProcessingFilters => "Processing block filters...",
 				StatusType.WalletProcessingTransactions => "Processing transactions...",
 				StatusType.WalletLoading => "Loading wallet...",
 				StatusType.Loading => "Loading...",

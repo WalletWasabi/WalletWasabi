@@ -190,12 +190,12 @@ namespace WalletWasabi.Gui.ViewModels
 				.Subscribe(e => OnResponseArrivedIsGenSocksServFail(e.EventArgs))
 				.DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.FiltersLeft, x => x.UseBitcoinCore, x => x.BitcoinCoreStatus)
+			this.WhenAnyValue(x => x.FiltersLeft, x => x.DownloadingBlock, x => x.UseBitcoinCore, x => x.BitcoinCoreStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(tup =>
 				{
-					(int filtersLeft, bool useCore, RpcStatus coreStatus) = tup;
-					if (filtersLeft == 0 && (!useCore || coreStatus?.Synchronized is true))
+					(int filtersLeft, bool downloadingBlock, bool useCore, RpcStatus coreStatus) = tup;
+					if (filtersLeft == 0 && !downloadingBlock && (!useCore || coreStatus?.Synchronized is true))
 					{
 						TryRemoveStatus(StatusType.Synchronizing);
 					}
