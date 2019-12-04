@@ -42,23 +42,6 @@ namespace WalletWasabi.Services
 
 		public static event EventHandler<bool> InitializingFiltersChanged;
 
-		// So we will make sure when blocks are downloading with multiple wallet services, they do not conflict.
-		private static AsyncLock BlockDownloadLock { get; } = new AsyncLock();
-
-		private static bool DownloadingBlockBacking;
-
-		public static bool DownloadingBlock
-		{
-			get => DownloadingBlockBacking;
-			set
-			{
-				if (value != DownloadingBlockBacking)
-				{
-					DownloadingBlockBacking = value;
-				}
-			}
-		}
-
 		public BitcoinStore BitcoinStore { get; }
 		public KeyManager KeyManager { get; }
 		public WasabiSynchronizer Synchronizer { get; }
@@ -448,8 +431,7 @@ namespace WalletWasabi.Services
 			Block block = null;
 			try
 			{
-				await BlockDownloadLock.LockAsync();
-				DownloadingBlock = true;
+				DownloadingBlockChanged?.Invoke(null, true);
 
 				while (true)
 				{
@@ -536,8 +518,7 @@ namespace WalletWasabi.Services
 			}
 			finally
 			{
-				DownloadingBlock = false;
-				BlockDownloadLock.ReleaseLock();
+				DownloadingBlockChanged?.Invoke(null, false);
 			}
 
 			return block;
