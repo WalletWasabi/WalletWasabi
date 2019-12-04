@@ -139,12 +139,12 @@ namespace WalletWasabi.Gui.ViewModels
 				.Subscribe(e => OnResponseArrivedIsGenSocksServFail(e.EventArgs))
 				.DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.FiltersLeft, x => x.DownloadingBlock)
+			this.WhenAnyValue(x => x.FiltersLeft, x => x.DownloadingBlock, x => x.UseBitcoinCore, x => x.BitcoinCoreStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(tup =>
 				{
-					(int filtersLeft, bool downloadingBlock) = tup;
-					if (filtersLeft == 0 && !downloadingBlock)
+					(int filtersLeft, bool downloadingBlock, bool useCore, RpcStatus coreStatus) = tup;
+					if (filtersLeft == 0 && !downloadingBlock && (!useCore || coreStatus?.Synchronized is true))
 					{
 						TryRemoveStatus(StatusPriority.Synchronizing);
 					}
@@ -154,12 +154,15 @@ namespace WalletWasabi.Gui.ViewModels
 					}
 				});
 
-			this.WhenAnyValue(x => x.Tor, x => x.Backend, x => x.Peers)
+			this.WhenAnyValue(x => x.Tor, x => x.Backend, x => x.Peers, x => x.UseBitcoinCore, x => x.BitcoinCoreStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(tup =>
 				{
-					(TorStatus tor, BackendStatus backend, int peers) = tup;
-					if (tor == TorStatus.NotRunning || backend != BackendStatus.Connected || peers < 1)
+					(TorStatus tor, BackendStatus backend, int peers, bool useCore, RpcStatus coreStatus) = tup;
+
+					// The source of the p2p connection comes from if we use Core for it or the network.
+					var p2pConnected = useCore ? coreStatus?.Success is true : peers >= 1;
+					if (tor == TorStatus.NotRunning || backend != BackendStatus.Connected || !p2pConnected)
 					{
 						TryAddStatus(StatusPriority.Connecting);
 					}
