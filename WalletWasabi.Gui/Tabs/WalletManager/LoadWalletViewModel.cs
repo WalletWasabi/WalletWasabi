@@ -646,7 +646,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 			finally
 			{
-				MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.WalletLoading);
+				MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.WalletLoading, StatusType.WalletProcessingTransactions, StatusType.WalletProcessingFilters);
 				IsBusy = false;
 			}
 		}
