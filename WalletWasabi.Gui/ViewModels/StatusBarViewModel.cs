@@ -120,12 +120,17 @@ namespace WalletWasabi.Gui.ViewModels
 								   var walletService = global?.WalletService;
 								   if (walletService is { })
 								   {
+									   var segwitActivationHeight = SmartHeader.GetStartingHeader(walletService.Network).Height;
 									   if (walletService.LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
-											&& global?.BitcoinStore?.SmartHeaderChain?.TipHeight is uint tipHeight)
+											&& lastProcessedFilterHeight > segwitActivationHeight
+											&& global?.BitcoinStore?.SmartHeaderChain?.TipHeight is uint tipHeight
+											&& tipHeight > segwitActivationHeight)
 									   {
-										   var perc = tipHeight == 0 ?
+										   var allFilters = tipHeight - segwitActivationHeight;
+										   var processedFilters = lastProcessedFilterHeight - segwitActivationHeight;
+										   var perc = allFilters == 0 ?
 												100
-												: ((decimal)lastProcessedFilterHeight / tipHeight * 100);
+												: ((decimal)processedFilters / allFilters * 100);
 										   TryAddStatus(StatusType.WalletProcessingFilters, (ushort)perc);
 									   }
 
