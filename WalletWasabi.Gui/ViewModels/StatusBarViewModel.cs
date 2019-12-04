@@ -116,13 +116,27 @@ namespace WalletWasabi.Gui.ViewModels
 							   .ObserveOn(RxApp.MainThreadScheduler)
 							   .Subscribe(_ =>
 							   {
-								   if (Global?.WalletService?.LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
-										&& Global?.BitcoinStore?.SmartHeaderChain?.TipHeight is uint tipHeight)
+								   var global = Global;
+								   var walletService = global?.WalletService;
+								   if (walletService is { })
 								   {
-									   var perc = tipHeight == 0 ?
-											100
-											: ((decimal)lastProcessedFilterHeight / tipHeight * 100);
-									   TryAddStatus(StatusType.WalletProcessingFilters, (ushort)perc);
+									   if (walletService.LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
+											&& global?.BitcoinStore?.SmartHeaderChain?.TipHeight is uint tipHeight)
+									   {
+										   var perc = tipHeight == 0 ?
+												100
+												: ((decimal)lastProcessedFilterHeight / tipHeight * 100);
+										   TryAddStatus(StatusType.WalletProcessingFilters, (ushort)perc);
+									   }
+
+									   var txProcessor = walletService.TransactionProcessor;
+									   if (txProcessor is { })
+									   {
+										   var perc = txProcessor.QueuedTxCount == 0 ?
+												100
+												: ((decimal)txProcessor.QueuedProcessedTxCount / txProcessor.QueuedTxCount * 100);
+										   TryAddStatus(StatusType.WalletProcessingTransactions, (ushort)perc);
+									   }
 								   }
 							   }).DisposeWith(Disposables);
 						}
