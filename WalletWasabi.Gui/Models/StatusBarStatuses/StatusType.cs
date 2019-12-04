@@ -7,7 +7,7 @@ namespace WalletWasabi.Gui.Models.StatusBarStatuses
 	/// <summary>
 	/// Order: piority the lower.
 	/// </summary>
-	public enum StatusPriority
+	public enum StatusType
 	{
 		CriticalUpdate,
 		OptionalUpdate,

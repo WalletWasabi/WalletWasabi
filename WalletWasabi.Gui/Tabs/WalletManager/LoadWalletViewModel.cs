@@ -384,7 +384,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						try
 						{
 							IsHardwareBusy = true;
-							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusPriority.SettingUpHardwareWallet);
+							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.SettingUpHardwareWallet);
 
 							// Setup may take a while for users to write down stuff.
 							using (var ctsSetup = new CancellationTokenSource(TimeSpan.FromMinutes(21)))
@@ -401,13 +401,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 								}
 							}
 
-							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusPriority.ConnectingToHardwareWallet);
+							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.ConnectingToHardwareWallet);
 							await EnumerateHardwareWalletsAsync();
 						}
 						finally
 						{
 							IsHardwareBusy = false;
-							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusPriority.SettingUpHardwareWallet, StatusPriority.ConnectingToHardwareWallet);
+							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.SettingUpHardwareWallet, StatusType.ConnectingToHardwareWallet);
 						}
 
 						return await LoadKeyManagerAsync(requirePassword, isHardwareWallet);
@@ -447,13 +447,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 					try
 					{
-						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusPriority.AcquiringXpubFromHardwareWallet);
+						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.AcquiringXpubFromHardwareWallet);
 						extPubKey = await client.GetXpubAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, KeyManager.DefaultAccountKeyPath, cts.Token);
 					}
 					finally
 					{
 						cts?.Dispose();
-						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusPriority.AcquiringXpubFromHardwareWallet);
+						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.AcquiringXpubFromHardwareWallet);
 					}
 
 					Logger.LogInfo("Hardware wallet was not used previously on this computer. Creating a new wallet file.");
@@ -609,7 +609,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			try
 			{
 				IsBusy = true;
-				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusPriority.Loading);
+				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.Loading);
 
 				var keyManager = await LoadKeyManagerAsync(IsPasswordRequired, IsHardwareWallet);
 				if (keyManager is null)
@@ -646,7 +646,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 			finally
 			{
-				MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusPriority.Loading);
+				MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.Loading);
 				IsBusy = false;
 			}
 		}

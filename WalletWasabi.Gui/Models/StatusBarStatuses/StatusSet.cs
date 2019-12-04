@@ -10,25 +10,25 @@ namespace WalletWasabi.Gui.Models.StatusBarStatuses
 {
 	public class StatusSet : ReactiveObject
 	{
-		private StatusPriority _status;
+		private StatusType _status;
 
-		private HashSet<StatusPriority> ActiveStatuses { get; }
+		private HashSet<StatusType> ActiveStatuses { get; }
 		private object ActiveStatusesLock { get; }
 
 		public StatusSet()
 		{
-			ActiveStatuses = new HashSet<StatusPriority>() { StatusPriority.Ready };
+			ActiveStatuses = new HashSet<StatusType>() { StatusType.Ready };
 			ActiveStatusesLock = new object();
-			CurrentStatus = StatusPriority.Loading;
+			CurrentStatus = StatusType.Loading;
 		}
 
-		public StatusPriority CurrentStatus
+		public StatusType CurrentStatus
 		{
 			get => _status;
 			set => this.RaiseAndSetIfChanged(ref _status, value);
 		}
 
-		public bool TryAddStatus(StatusPriority status)
+		public bool TryAddStatus(StatusType status)
 		{
 			bool ret;
 			lock (ActiveStatusesLock)
@@ -49,12 +49,12 @@ namespace WalletWasabi.Gui.Models.StatusBarStatuses
 			Dispatcher.UIThread.PostLogException(() => CurrentStatus = ActiveStatuses.Min());
 		}
 
-		public bool TryRemoveStatus(params StatusPriority[] statuses)
+		public bool TryRemoveStatus(params StatusType[] statuses)
 		{
 			bool ret = false;
 			lock (ActiveStatusesLock)
 			{
-				foreach (StatusPriority status in statuses.ToHashSet())
+				foreach (StatusType status in statuses.ToHashSet())
 				{
 					ret = ActiveStatuses.Remove(status) || ret;
 				}
