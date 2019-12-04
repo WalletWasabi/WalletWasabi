@@ -116,7 +116,14 @@ namespace WalletWasabi.Gui.ViewModels
 							   .ObserveOn(RxApp.MainThreadScheduler)
 							   .Subscribe(_ =>
 							   {
-								   // ToDo: here monitor the status of the loading.
+								   if (Global?.WalletService?.LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
+										&& Global?.BitcoinStore?.SmartHeaderChain?.TipHeight is uint tipHeight)
+								   {
+									   var perc = tipHeight == 0 ?
+											100
+											: ((decimal)lastProcessedFilterHeight / tipHeight * 100);
+									   TryAddStatus(StatusType.WalletProcessingFilters, (ushort)perc);
+								   }
 							   }).DisposeWith(Disposables);
 						}
 					}
@@ -125,7 +132,7 @@ namespace WalletWasabi.Gui.ViewModels
 						walletCheckingInterwal?.Dispose();
 						walletCheckingInterwal = null;
 
-						TryRemoveStatus(StatusType.WalletLoading);
+						TryRemoveStatus(StatusType.WalletLoading, StatusType.WalletProcessingFilters, StatusType.WalletProcessingTransactions);
 					}
 				})
 				.DisposeWith(Disposables);
@@ -141,21 +148,6 @@ namespace WalletWasabi.Gui.ViewModels
 					else
 					{
 						TryRemoveStatus(StatusType.WalletProcessingTransactions);
-					}
-				})
-				.DisposeWith(Disposables);
-
-			Observable.FromEventPattern<bool>(typeof(WalletService), nameof(WalletService.InitializingFiltersChanged))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					if (x.EventArgs)
-					{
-						TryAddStatus(StatusType.WalletProcessingFilters);
-					}
-					else
-					{
-						TryRemoveStatus(StatusType.WalletProcessingFilters);
 					}
 				})
 				.DisposeWith(Disposables);
@@ -199,12 +191,12 @@ namespace WalletWasabi.Gui.ViewModels
 				.Subscribe(e => OnResponseArrivedIsGenSocksServFail(e.EventArgs))
 				.DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.FiltersLeft, x => x.DownloadingBlock, x => x.UseBitcoinCore, x => x.BitcoinCoreStatus)
+			this.WhenAnyValue(x => x.FiltersLeft, x => x.UseBitcoinCore, x => x.BitcoinCoreStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(tup =>
 				{
-					(int filtersLeft, bool downloadingBlock, bool useCore, RpcStatus coreStatus) = tup;
-					if (filtersLeft == 0 && !downloadingBlock && (!useCore || coreStatus?.Synchronized is true))
+					(int filtersLeft, bool useCore, RpcStatus coreStatus) = tup;
+					if (filtersLeft == 0 && (!useCore || coreStatus?.Synchronized is true))
 					{
 						TryRemoveStatus(StatusType.Synchronizing);
 					}
@@ -386,11 +378,11 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		public void TryAddStatus(StatusType status)
+		public void TryAddStatus(StatusType status, ushort percentage = 0)
 		{
 			try
 			{
-				ActiveStatuses.Set(status);
+				ActiveStatuses.Set(new Status(status, percentage));
 			}
 			catch (Exception ex)
 			{
