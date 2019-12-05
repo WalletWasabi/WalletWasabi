@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Dialogs;
 using Avalonia.Rendering;
 using Avalonia.Threading;
 using AvalonStudio.Shell;
@@ -12,7 +13,6 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.Controls.LockScreen;
-using WalletWasabi.Gui.ManagedDialogs;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 
@@ -105,7 +105,7 @@ namespace WalletWasabi.Gui
 			{
 				result
 					.UseWin32()
-					.UseSkia();
+					.UseSkia();					
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
@@ -115,8 +115,9 @@ namespace WalletWasabi.Gui
 				}
 
 				result.UsePlatformDetect()
-					.UseManagedSystemDialogs();
+					.UseManagedSystemDialogs();					
 			}
+			
 			else
 			{
 				result.UsePlatformDetect()
@@ -134,10 +135,10 @@ namespace WalletWasabi.Gui
 				AvaloniaLocator.CurrentMutable.Bind<IRenderTimer>().ToConstant(new DefaultRenderTimer(60));
 			});
 			return result
-				.With(new Win32PlatformOptions { AllowEglInitialization = true, UseDeferredRendering = true })
-				.With(new X11PlatformOptions { UseGpu = useGpuLinux, WmClass = "Wasabi Wallet" })
-				.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = true })
-				.With(new MacOSPlatformOptions { ShowInDock = true });
+				.With(new Win32PlatformOptions { AllowEglInitialization = true, UseDeferredRendering = true,  })
+				.With(new X11PlatformOptions { UseGpu = useGpuLinux, WmClass = "Wasabi Wallet", })
+				.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = true, OverlayPopups = true })
+				.With(new MacOSPlatformOptions { ShowInDock = true, });
 		}
 	}
 }
