@@ -117,7 +117,6 @@ namespace WalletWasabi.Gui
 				result.UsePlatformDetect()
 					.UseManagedSystemDialogs();					
 			}
-			
 			else
 			{
 				result.UsePlatformDetect();
