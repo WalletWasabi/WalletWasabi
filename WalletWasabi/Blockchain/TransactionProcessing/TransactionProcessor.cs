@@ -22,6 +22,13 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 
 		public event EventHandler<ProcessedResult> WalletRelevantTransactionProcessed;
 
+		#region Progress
+
+		public int QueuedTxCount { get; private set; }
+		public int QueuedProcessedTxCount { get; private set; }
+
+		#endregion Progress
+
 		public TransactionProcessor(
 			AllTransactionStore transactionStore,
 			KeyManager keyManager,
@@ -40,9 +47,19 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 
 			lock (Lock)
 			{
-				foreach (var tx in txs)
+				try
 				{
-					rets.Add(ProcessNoLock(tx));
+					QueuedTxCount = txs.Count();
+					foreach (var tx in txs)
+					{
+						rets.Add(ProcessNoLock(tx));
+						QueuedProcessedTxCount++;
+					}
+				}
+				finally
+				{
+					QueuedTxCount = 0;
+					QueuedProcessedTxCount = 0;
 				}
 			}
 
@@ -59,7 +76,15 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			ProcessedResult ret;
 			lock (Lock)
 			{
-				ret = ProcessNoLock(tx);
+				try
+				{
+					QueuedTxCount = 1;
+					ret = ProcessNoLock(tx);
+				}
+				finally
+				{
+					QueuedTxCount = 0;
+				}
 			}
 			if (ret.IsNews)
 			{
@@ -157,7 +182,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					if (allReceivedInternal)
 					{
 						// It is likely a coinjoin if the diff between receive and sent amount is small and have at least 2 equal outputs.
-						Money spentAmount = Coins.OutPoints(tx.Transaction.Inputs.ToTxoRefs()).TotalAmount();
+						Money spentAmount = Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.ToTxoRefs()).TotalAmount();
 						Money receivedAmount = tx.Transaction.Outputs.Where(x => receiveKeys.Any(y => y.P2wpkhScript == x.ScriptPubKey)).Sum(x => x.Value);
 						bool receivedAlmostAsMuchAsSpent = spentAmount.Almost(receivedAmount, Money.Coins(0.005m));
 

@@ -10,7 +10,7 @@ public static class TorHttpClientExtensions
 	/// <remarks>
 	/// Throws OperationCancelledException if <paramref name="cancel"/> is set.
 	/// </remarks>
-	public static async Task<HttpResponseMessage> SendAndRetryAsync(this TorHttpClient client, HttpMethod method, HttpStatusCode expectedCode, string relativeUri, int retry = 2, HttpContent content = null, CancellationToken cancel = default)
+	public static async Task<HttpResponseMessage> SendAndRetryAsync(this ITorHttpClient client, HttpMethod method, HttpStatusCode expectedCode, string relativeUri, int retry = 2, HttpContent content = null, CancellationToken cancel = default)
 	{
 		HttpResponseMessage response = null;
 		while (retry-- > 0)

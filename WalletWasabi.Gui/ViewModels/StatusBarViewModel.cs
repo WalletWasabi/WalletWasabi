@@ -19,7 +19,7 @@ using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Gui.Dialogs;
-using WalletWasabi.Gui.Models;
+using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.Tabs;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -48,10 +48,10 @@ namespace WalletWasabi.Gui.ViewModels
 		private int _peers;
 		private ObservableAsPropertyHelper<int> _filtersLeft;
 		private string _btcPrice;
-		private ObservableAsPropertyHelper<StatusBarStatus> _status;
+		private ObservableAsPropertyHelper<string> _status;
 		private bool _downloadingBlock;
 		public Global Global { get; }
-		private StatusBarStatusSet ActiveStatuses { get; }
+		private StatusSet ActiveStatuses { get; }
 
 		public StatusBarViewModel(Global global)
 		{
@@ -61,7 +61,7 @@ namespace WalletWasabi.Gui.ViewModels
 			Tor = TorStatus.NotRunning;
 			Peers = 0;
 			BtcPrice = "$0";
-			ActiveStatuses = new StatusBarStatusSet();
+			ActiveStatuses = new StatusSet();
 		}
 
 		public void Initialize(NodesCollection nodes, WasabiSynchronizer synchronizer)
@@ -81,6 +81,7 @@ namespace WalletWasabi.Gui.ViewModels
 			BitcoinCoreStatus = rpcMonitor?.RpcStatus ?? RpcStatus.Unresponsive;
 
 			_status = ActiveStatuses.WhenAnyValue(x => x.CurrentStatus)
+				.Select(x => x.ToString())
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.ToProperty(this, x => x.Status)
 				.DisposeWith(Disposables);
@@ -98,6 +99,61 @@ namespace WalletWasabi.Gui.ViewModels
 			Observable.FromEventPattern<bool>(typeof(WalletService), nameof(WalletService.DownloadingBlockChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => DownloadingBlock = x.EventArgs)
+				.DisposeWith(Disposables);
+
+			IDisposable walletCheckingInterval = null;
+			Observable.FromEventPattern<bool>(typeof(WalletService), nameof(WalletService.InitializingChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					if (x.EventArgs)
+					{
+						TryAddStatus(StatusType.WalletLoading);
+
+						if (walletCheckingInterval is null)
+						{
+							walletCheckingInterval = Observable.Interval(TimeSpan.FromSeconds(1))
+							   .ObserveOn(RxApp.MainThreadScheduler)
+							   .Subscribe(_ =>
+							   {
+								   var global = Global;
+								   var walletService = global?.WalletService;
+								   if (walletService is { })
+								   {
+									   var segwitActivationHeight = SmartHeader.GetStartingHeader(walletService.Network).Height;
+									   if (walletService.LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
+											&& lastProcessedFilterHeight > segwitActivationHeight
+											&& global?.BitcoinStore?.SmartHeaderChain?.TipHeight is uint tipHeight
+											&& tipHeight > segwitActivationHeight)
+									   {
+										   var allFilters = tipHeight - segwitActivationHeight;
+										   var processedFilters = lastProcessedFilterHeight - segwitActivationHeight;
+										   var perc = allFilters == 0 ?
+												100
+												: ((decimal)processedFilters / allFilters * 100);
+										   TryAddStatus(StatusType.WalletProcessingFilters, (ushort)perc);
+									   }
+
+									   var txProcessor = walletService.TransactionProcessor;
+									   if (txProcessor is { })
+									   {
+										   var perc = txProcessor.QueuedTxCount == 0 ?
+												100
+												: ((decimal)txProcessor.QueuedProcessedTxCount / txProcessor.QueuedTxCount * 100);
+										   TryAddStatus(StatusType.WalletProcessingTransactions, (ushort)perc);
+									   }
+								   }
+							   }).DisposeWith(Disposables);
+						}
+					}
+					else
+					{
+						walletCheckingInterval?.Dispose();
+						walletCheckingInterval = null;
+
+						TryRemoveStatus(StatusType.WalletLoading, StatusType.WalletProcessingFilters, StatusType.WalletProcessingTransactions);
+					}
+				})
 				.DisposeWith(Disposables);
 
 			Synchronizer.WhenAnyValue(x => x.TorStatus)
@@ -139,33 +195,36 @@ namespace WalletWasabi.Gui.ViewModels
 				.Subscribe(e => OnResponseArrivedIsGenSocksServFail(e.EventArgs))
 				.DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.FiltersLeft, x => x.DownloadingBlock)
+			this.WhenAnyValue(x => x.FiltersLeft, x => x.DownloadingBlock, x => x.UseBitcoinCore, x => x.BitcoinCoreStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(tup =>
 				{
-					(int filtersLeft, bool downloadingBlock) = tup;
-					if (filtersLeft == 0 && !downloadingBlock)
+					(int filtersLeft, bool downloadingBlock, bool useCore, RpcStatus coreStatus) = tup;
+					if (filtersLeft == 0 && !downloadingBlock && (!useCore || coreStatus?.Synchronized is true))
 					{
-						TryRemoveStatus(StatusBarStatus.Synchronizing);
+						TryRemoveStatus(StatusType.Synchronizing);
 					}
 					else
 					{
-						TryAddStatus(StatusBarStatus.Synchronizing);
+						TryAddStatus(StatusType.Synchronizing);
 					}
 				});
 
-			this.WhenAnyValue(x => x.Tor, x => x.Backend, x => x.Peers)
+			this.WhenAnyValue(x => x.Tor, x => x.Backend, x => x.Peers, x => x.UseBitcoinCore, x => x.BitcoinCoreStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(tup =>
 				{
-					(TorStatus tor, BackendStatus backend, int peers) = tup;
-					if (tor == TorStatus.NotRunning || backend != BackendStatus.Connected || peers < 1)
+					(TorStatus tor, BackendStatus backend, int peers, bool useCore, RpcStatus coreStatus) = tup;
+
+					// The source of the p2p connection comes from if we use Core for it or the network.
+					var p2pConnected = useCore ? coreStatus?.Success is true : peers >= 1;
+					if (tor == TorStatus.NotRunning || backend != BackendStatus.Connected || !p2pConnected)
 					{
-						TryAddStatus(StatusBarStatus.Connecting);
+						TryAddStatus(StatusType.Connecting);
 					}
 					else
 					{
-						TryRemoveStatus(StatusBarStatus.Connecting);
+						TryRemoveStatus(StatusType.Connecting);
 					}
 				});
 
@@ -175,20 +234,20 @@ namespace WalletWasabi.Gui.ViewModels
 				{
 					if (x.BackendCompatible)
 					{
-						TryRemoveStatus(StatusBarStatus.CriticalUpdate);
+						TryRemoveStatus(StatusType.CriticalUpdate);
 					}
 					else
 					{
-						TryAddStatus(StatusBarStatus.CriticalUpdate);
+						TryAddStatus(StatusType.CriticalUpdate);
 					}
 
 					if (x.ClientUpToDate)
 					{
-						TryRemoveStatus(StatusBarStatus.OptionalUpdate);
+						TryRemoveStatus(StatusType.OptionalUpdate);
 					}
 					else
 					{
-						TryAddStatus(StatusBarStatus.OptionalUpdate);
+						TryAddStatus(StatusType.OptionalUpdate);
 					}
 
 					UpdateAvailable = !x.ClientUpToDate;
@@ -209,6 +268,10 @@ namespace WalletWasabi.Gui.ViewModels
 			}, this.WhenAnyValue(x => x.UpdateAvailable, x => x.CriticalUpdateAvailable, (x, y) => x || y));
 
 			this.RaisePropertyChanged(nameof(UpdateCommand)); // The binding happens after the constructor. So, if the command is not in constructor, then we need this line.
+
+			UpdateCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public ReactiveCommand<Unit, Unit> UpdateCommand { get; set; }
@@ -269,7 +332,7 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _btcPrice, value);
 		}
 
-		public StatusBarStatus Status => _status?.Value ?? StatusBarStatus.Loading;
+		public string Status => _status?.Value ?? "Loading...";
 
 		public bool DownloadingBlock
 		{
@@ -319,11 +382,11 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		public void TryAddStatus(StatusBarStatus status)
+		public void TryAddStatus(StatusType status, ushort percentage = 0)
 		{
 			try
 			{
-				ActiveStatuses.TryAddStatus(status);
+				ActiveStatuses.Set(new Status(status, percentage));
 			}
 			catch (Exception ex)
 			{
@@ -331,11 +394,11 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		public void TryRemoveStatus(params StatusBarStatus[] statuses)
+		public void TryRemoveStatus(params StatusType[] statuses)
 		{
 			try
 			{
-				ActiveStatuses.TryRemoveStatus(statuses);
+				ActiveStatuses.Complete(statuses);
 			}
 			catch (Exception ex)
 			{

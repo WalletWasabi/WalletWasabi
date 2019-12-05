@@ -22,9 +22,11 @@ using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
+using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
@@ -62,7 +64,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _amountWaterMarkText;
 		private bool _isBusy;
 		private bool _isHardwareBusy;
-		private ObservableAsPropertyHelper<bool> _isCustomFee;
+		private bool _isCustomFee;
 
 		private const string SendTransactionButtonTextString = "Send Transaction";
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
@@ -227,7 +229,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				try
 				{
 					IsBusy = true;
-					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BuildingTransaction);
+					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.BuildingTransaction);
 
 					var label = new SmartLabel(_labelSuggestion.Label);
 					_labelSuggestion.Label = label;
@@ -289,13 +291,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					var intent = new PaymentIntent(address, moneyRequest, label);
 					try
 					{
-						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.DequeuingSelectedCoins);
+						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.DequeuingSelectedCoins);
 						TxoRef[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => x.Model.GetTxoRef()).ToArray();
 						if (toDequeue != null && toDequeue.Any())
 						{
-							var reason = "Coins dequeued, because of normal send.";
-							await Global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, reason);
-							NotificationHelpers.Warning(reason, "");
+							await Global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, DequeueReason.TransactionBuilding);
 						}
 					}
 					catch
@@ -305,7 +305,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					finally
 					{
-						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.DequeuingSelectedCoins);
+						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.DequeuingSelectedCoins);
 					}
 
 					if (!KeyManager.IsWatchOnly)
@@ -352,7 +352,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						return;
 					}
 
-					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.SigningTransaction);
+					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.SigningTransaction);
 					SmartTransaction signedTransaction = result.Transaction;
 
 					if (IsHardwareWallet && !result.Signed) // If hardware but still has a privkey then it's password, then meh.
@@ -360,7 +360,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						try
 						{
 							IsHardwareBusy = true;
-							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.AcquiringSignatureFromHardwareWallet);
+							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.AcquiringSignatureFromHardwareWallet);
 							var client = new HwiClient(Global.Network);
 
 							using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
@@ -383,12 +383,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 						finally
 						{
-							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.AcquiringSignatureFromHardwareWallet);
+							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.AcquiringSignatureFromHardwareWallet);
 							IsHardwareBusy = false;
 						}
 					}
 
-					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.BroadcastingTransaction);
+					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.BroadcastingTransaction);
 					await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(signedTransaction));
 
 					ResetUi();
@@ -408,7 +408,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				finally
 				{
-					MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.BuildingTransaction, StatusBarStatus.SigningTransaction, StatusBarStatus.BroadcastingTransaction);
+					MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.BuildingTransaction, StatusType.SigningTransaction, StatusType.BroadcastingTransaction);
 					IsBusy = false;
 				}
 			},
@@ -444,8 +444,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(UserFeeTextKeyUpCommand.ThrownExceptions)
 				.Merge(FeeSliderClickedCommand.ThrownExceptions)
 				.Merge(HighLightFeeSliderCommand.ThrownExceptions)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(ex => NotificationHelpers.Warning(ex.ToTypeMessageString()));
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex =>
+				{
+					NotificationHelpers.Warning(ex.ToTypeMessageString());
+					Logger.LogError(ex);
+				});
 		}
 
 		public SuggestLabelViewModel LabelSuggestion => _labelSuggestion;
@@ -853,7 +857,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _feeControlOpacity, value);
 		}
 
-		public bool IsCustomFee => _isCustomFee?.Value ?? false;
+		public bool IsCustomFee 
+		{
+			get => _isCustomFee;
+			private set => this.RaiseAndSetIfChanged(ref _isCustomFee, value);
+		}
 
 		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
 
@@ -906,8 +914,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SetFeesAndTexts());
 
-			_isCustomFee = Global.UiConfig.WhenAnyValue(x => x.IsCustomFee)
-				.ToProperty(this, x => x.IsCustomFee, scheduler: RxApp.MainThreadScheduler)
+			Global.UiConfig.WhenAnyValue(x => x.IsCustomFee)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => IsCustomFee = x)
 				.DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.IsCustomFee)

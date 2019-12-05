@@ -1079,6 +1079,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		public async Task BroadcastCoinJoinIfFullySignedAsync()
 		{
+			Transaction broadcasted = null;
 			using (await RoundSynchronizerLock.LockAsync().ConfigureAwait(false))
 			{
 				// Check if fully signed.
@@ -1104,7 +1105,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						}
 
 						await RpcClient.SendRawTransactionAsync(SignedCoinJoin).ConfigureAwait(false);
-						CoinJoinBroadcasted?.Invoke(this, SignedCoinJoin);
+						broadcasted = SignedCoinJoin;
 						Succeed(syncLock: false);
 						Logger.LogInfo($"Round ({RoundId}): Successfully broadcasted the CoinJoin: {SignedCoinJoin.GetHash()}.");
 					}
@@ -1114,6 +1115,11 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						Logger.LogError(ex);
 					}
 				}
+			}
+
+			if (broadcasted is { })
+			{
+				CoinJoinBroadcasted?.Invoke(this, broadcasted);
 			}
 		}
 

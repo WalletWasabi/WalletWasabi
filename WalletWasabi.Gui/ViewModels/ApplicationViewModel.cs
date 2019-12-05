@@ -5,8 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Text;
 using WalletWasabi.Gui.Tabs;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -15,9 +17,11 @@ namespace WalletWasabi.Gui.ViewModels
 		public ApplicationViewModel(Global global)
 		{
 			AboutCommand = ReactiveCommand.Create(() =>
-			{
-				IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(global));
-			});
+				IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(global)));
+
+			AboutCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public ReactiveCommand<Unit, Unit> AboutCommand { get; }

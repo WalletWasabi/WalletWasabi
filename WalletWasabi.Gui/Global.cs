@@ -26,6 +26,8 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.CoinJoin.Client.Clients;
+using WalletWasabi.CoinJoin.Client.Clients.Queuing;
+using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
@@ -133,7 +135,7 @@ namespace WalletWasabi.Gui
 			if (enqueuedCoins.Any())
 			{
 				Logger.LogWarning("Unregistering coins in CoinJoin process.");
-				await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins, "Process was signaled to kill.");
+				await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins, DequeueReason.ApplicationExit);
 			}
 		}
 
@@ -482,8 +484,45 @@ namespace WalletWasabi.Gui
 				CoinJoinProcessor.AddWalletService(WalletService);
 
 				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
+				ChaumianClient.OnDequeue += ChaumianClient_OnDequeued;
 			}
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
+		}
+
+		private void ChaumianClient_OnDequeued(object sender, DequeueResult e)
+		{
+			try
+			{
+				if (UiConfig?.LurkingWifeMode is true)
+				{
+					return;
+				}
+
+				foreach (var success in e.Successful.Where(x => x.Value.Any()))
+				{
+					DequeueReason reason = success.Key;
+					if (reason != DequeueReason.Spent)
+					{
+						var type = reason == DequeueReason.UserRequested ? NotificationType.Information : NotificationType.Warning;
+						var message = reason == DequeueReason.UserRequested ? "" : reason.ToFriendlyString();
+						var title = success.Value.Count() == 1 ? $"Coin ({success.Value.First().Amount.ToString(false, true)}) Dequeued" : $"{success.Value.Count()} Coins Dequeued";
+						NotificationHelpers.Notify(message, title, type);
+					}
+				}
+
+				foreach (var failure in e.Unsuccessful.Where(x => x.Value.Any()))
+				{
+					DequeueReason reason = failure.Key;
+					var type = NotificationType.Warning;
+					var message = reason.ToFriendlyString();
+					var title = failure.Value.Count() == 1 ? $"Couldn't Dequeue Coin ({failure.Value.First().Amount.ToString(false, true)})" : $"Couldn't Dequeue {failure.Value.Count()} Coins";
+					NotificationHelpers.Notify(message, title, type);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex);
+			}
 		}
 
 		private void TransactionProcessor_WalletRelevantTransactionProcessed(object sender, ProcessedResult e)
@@ -499,7 +538,6 @@ namespace WalletWasabi.Gui
 
 				// ToDo
 				// Double spent.
-				// CoinJoin?
 				// Anonymity set gained?
 				// Received dust
 
@@ -563,6 +601,10 @@ namespace WalletWasabi.Gui
 					if (isConfirmedSpent && receiveSpentDiff == miningFee)
 					{
 						NotifyAndLog($"Mining Fee: {amountString} BTC", "Self Spend Confirmed", NotificationType.Information, e);
+					}
+					else if (isConfirmedSpent && receiveSpentDiff.Almost(Money.Zero, Money.Coins(0.01m)) && e.IsLikelyOwnCoinJoin)
+					{
+						NotifyAndLog($"CoinJoin Confirmed!", "", NotificationType.Information, e);
 					}
 					else if (incoming > Money.Zero)
 					{
@@ -656,6 +698,7 @@ namespace WalletWasabi.Gui
 			if (walletService is { })
 			{
 				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
+				ChaumianClient.OnDequeue -= ChaumianClient_OnDequeued;
 			}
 
 			try
