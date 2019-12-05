@@ -120,8 +120,7 @@ namespace WalletWasabi.Gui
 			
 			else
 			{
-				result.UsePlatformDetect()
-					.UseManagedSystemDialogs();
+				result.UsePlatformDetect();
 			}
 
 			// TODO remove this overriding of RenderTimer when Avalonia 0.9 is released.
@@ -135,10 +134,10 @@ namespace WalletWasabi.Gui
 				AvaloniaLocator.CurrentMutable.Bind<IRenderTimer>().ToConstant(new DefaultRenderTimer(60));
 			});
 			return result
-				.With(new Win32PlatformOptions { AllowEglInitialization = true, UseDeferredRendering = true,  })
-				.With(new X11PlatformOptions { UseGpu = useGpuLinux, WmClass = "Wasabi Wallet", })
-				.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = true, OverlayPopups = true })
-				.With(new MacOSPlatformOptions { ShowInDock = true, });
+				.With(new Win32PlatformOptions { AllowEglInitialization = true, UseDeferredRendering = true  })
+				.With(new X11PlatformOptions { UseGpu = useGpuLinux, WmClass = "Wasabi Wallet" })
+				.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = true })
+				.With(new MacOSPlatformOptions { ShowInDock = true });
 		}
 	}
 }
