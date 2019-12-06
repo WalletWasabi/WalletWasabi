@@ -418,7 +418,7 @@ namespace Nito.AsyncEx
 					return;
 				}
 
-				// Log every 10 second or status change.
+				// Log every 10 seconds or status change.
 				if ((DateTimeOffset.UtcNow - lastLog) > TimeSpan.FromSeconds(10) || lastNumberOfAliveMutexes != numberOfAliveMutexes)
 				{
 					Logger.LogDebug($"Waiting for: {string.Join(", ", asyncMutexes.Where(am => am.Value.IsAlive).Select(m => m.Value.ShortName))}.");
