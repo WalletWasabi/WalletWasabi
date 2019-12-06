@@ -108,5 +108,7 @@ namespace WalletWasabi.Helpers
 		public const double TransactionRBFSignalRate = 0.02; // 2% RBF transactions
 
 		public const decimal DefaultDustThreshold = 0.00005m;
+
+		public const long MaxSatoshiesSupply = 2100000000000000l;
 	}
 }
