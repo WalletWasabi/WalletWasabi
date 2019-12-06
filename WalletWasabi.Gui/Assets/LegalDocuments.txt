@@ -1,5 +1,5 @@
 =========================================
-|        I. TERMS AND CONDITIONS        |
+I. TERMS AND CONDITIONS
 =========================================
 
 PLEASE READ THESE TERMS OF USE CAREFULLY. BY CLICKING AGREE, OR BY ACCESSING OR DOWNLOADING OUR SOFTWARE (AS DEFINED BELOW), YOU AGREE TO BE BOUND BY THESE TERMS OF USE AND ALL TERMS INCORPORATED BY REFERENCE.
@@ -155,7 +155,7 @@ www.zksnacks.com(*)
 
 
 =========================================
-|          II. PRIVACY POLICY           |
+II. PRIVACY POLICY
 =========================================
 
 Thank you for your interest in zkSNACKs. The protection of your privacy and thus the protection of your (personal) data is Our highest priority. This policy describes the ways zkSNACKs collects, stores, uses and protects personal information. The purpose of this policy is to ensure that zkSNACKs complies with applicable European Union (EU) and other statutory data protection laws and regulations, and ensures that users are provided privacy protection.
@@ -208,7 +208,7 @@ In case you have any questions concerning zkSNACKs’ Data Protection Declaratio
 
 
 =========================================
-| III. LEGAL STATEMENT OF WASABI WALLET |
+III. LEGAL STATEMENT OF WASABI WALLET
 =========================================
 
 The purpose of Wasabi Wallet is to provide privacy for its users’ Bitcoin transactions. This means that with the use of the wallet we would like to enable the users to make Bitcoin payments in a way that their spending history, address balances, etc. are not visible for the receiver party. This does not necessarily mean that the user stays anonymous, since the receiver party might have to identify the sending party.
