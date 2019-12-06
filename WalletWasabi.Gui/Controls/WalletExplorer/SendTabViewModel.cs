@@ -597,7 +597,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (IsMax)
 			{
 				AmountText = AllSelectedAmount == Money.Zero
-					? "No Coins Selected"
+					? FeePercentage >= 100
+						? "Too high fee" 
+						: "No Coins Selected"
 					: $"~ {AllSelectedAmount.ToString(false, true)}";
 			}
 		}
@@ -657,6 +659,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				if (all != 0)
 				{
 					FeePercentage = 100 * (decimal)EstimatedBtcFee.Satoshi / all;
+				}
+				else
+				{
+					FeePercentage = 0;
 				}
 			}
 			else
