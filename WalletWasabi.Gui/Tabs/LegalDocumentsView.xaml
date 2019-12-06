@@ -2,8 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              x:Class="WalletWasabi.Gui.Tabs.LegalDocumentsView">
-  <controls:GroupBox Title="{Binding Title}" BorderThickness="0" Classes="docTabContainer">
-    <Grid Classes="content" Margin="10">
+  <controls:GroupBox Title="{Binding Title}" BorderThickness="0" Classes="docTabContainer" Margin="0">
+    <Grid Classes="content">
       <controls:ExtendedTextBox Text="{Binding Text}" Classes="selectableTextBlock" TextWrapping="Wrap" AcceptsReturn="True" />
     </Grid>
   </controls:GroupBox>
