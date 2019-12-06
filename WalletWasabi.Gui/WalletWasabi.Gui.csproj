@@ -46,19 +46,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AvaloniaResource Remove="Assets\LegalDocuments.txt" />
-    <AvaloniaResource Remove="Tabs\LegalDocumentsView.xaml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="Assets\LegalDocuments.txt" />
     <None Remove="Extensions\DummyHack.txt" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Assets\LegalDocuments.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
     <EmbeddedResource Include="Extensions\DummyHack.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
@@ -80,10 +71,5 @@
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="Tabs\LegalDocumentsView.xaml.cs">
-      <DependentUpon>LegalDocumentsView.xaml</DependentUpon>
-    </Compile>
-  </ItemGroup>
 
 </Project>
