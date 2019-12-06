@@ -61,7 +61,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public bool IsDesktopWallet => LoadWalletType == LoadWalletType.Desktop;
 
 		public LoadWalletViewModel(WalletManagerViewModel owner, LoadWalletType loadWalletType)
-			: base(loadWalletType == LoadWalletType.Password ? "Test Password" : (loadWalletType == LoadWalletType.Desktop ? "Load Wallet" : "Hardware Wallet"))
+			: base(loadWalletType == LoadWalletType.Password ? Constants.TestPasswordTabTitle : (loadWalletType == LoadWalletType.Desktop ? Constants.LoadWalletTabTitle : Constants.HardwareWalletTabTitle))
 		{
 			Owner = owner;
 			Password = "";
@@ -303,7 +303,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			TrySetWalletStates();
 
-			if (!CanLoadWallet && Wallets.Count > 0)
+			if (!CanLoadWallet && Wallets.Count > 0 && Title != Constants.TestPasswordTabTitle)
 			{
 				NotificationHelpers.Warning("There is already an open wallet. Restart the application in order to open a different one.");
 			}

@@ -108,5 +108,11 @@ namespace WalletWasabi.Helpers
 		public const double TransactionRBFSignalRate = 0.02; // 2% RBF transactions
 
 		public const decimal DefaultDustThreshold = 0.00005m;
+
+		public const string LoadWalletTabTitle = "Load Wallet";
+
+		public const string TestPasswordTabTitle = "Test Password";
+
+		public const string HardwareWalletTabTitle = "Hardware Wallet";
 	}
 }
