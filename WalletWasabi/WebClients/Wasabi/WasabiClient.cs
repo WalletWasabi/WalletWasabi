@@ -266,5 +266,26 @@ namespace WalletWasabi.WebClients.Wasabi
 		}
 
 		#endregion software
+
+		#region wasabi
+
+		public async Task<string> GetLegalDocumentsAsync(CancellationToken cancel)
+		{
+			using var response = await TorClient.SendAndRetryAsync(
+				HttpMethod.Get,
+				HttpStatusCode.OK,
+				$"/api/v{Constants.BackendMajorVersion}/wasabi/legaldocuments",
+				cancel: cancel).ConfigureAwait(false);
+			if (response.StatusCode != HttpStatusCode.OK)
+			{
+				await response.ThrowRequestExceptionFromContentAsync();
+			}
+
+			using HttpContent content = response.Content;
+			var ret = await content.ReadAsStringAsync().ConfigureAwait(false);
+			return ret;
+		}
+
+		#endregion wasabi
 	}
 }
