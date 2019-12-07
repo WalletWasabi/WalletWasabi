@@ -141,19 +141,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
 
-		public void OnTermsClicked()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel(Global));
-		}
-
-		public void OnPrivacyClicked()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel(Global));
-		}
-
 		public void OnLegalClicked()
 		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel(Global));
+			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(Global));
 		}
 
 		public override void OnCategorySelected()
