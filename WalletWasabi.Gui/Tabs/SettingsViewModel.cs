@@ -376,7 +376,7 @@ namespace WalletWasabi.Gui.Tabs
 
 		private void OpenConfigFile()
 		{
-			IoHelpers.OpenFileInTextEditor(Global.Config.FilePath);
+			FileHelpers.OpenFileInTextEditor(Global.Config.FilePath);
 		}
 
 		#region Validation
