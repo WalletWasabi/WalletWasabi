@@ -21,7 +21,7 @@ namespace WalletWasabi.Legal
 		{
 			var legalFolderPath = Path.Combine(dataDir, LegalFolderName);
 			IoHelpers.EnsureDirectoryExists(legalFolderPath);
-			var filePaths = Directory.EnumerateFiles(legalFolderPath, "*.txt", SearchOption.AllDirectories);
+			var filePaths = Directory.EnumerateFiles(legalFolderPath, "*.txt", SearchOption.TopDirectoryOnly);
 
 			// If more than one file found, then something strange happened, delete the dir and start from zero.
 			if (filePaths.Count() > 1)
