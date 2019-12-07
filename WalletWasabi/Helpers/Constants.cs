@@ -109,6 +109,6 @@ namespace WalletWasabi.Helpers
 
 		public const decimal DefaultDustThreshold = 0.00005m;
 
-		public const long MaxSatoshiesSupply = 2100000000000000l;
+		public const long MaxSatoshisSupply = 2_100_000_000_000_000L;
 	}
 }
