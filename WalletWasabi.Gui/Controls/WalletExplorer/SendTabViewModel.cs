@@ -536,7 +536,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					// In decimal ',' means order of magnitude.
 					// User could think it is decimal point but 3,5 means 35 Satoshi.
 					// For this reason we treat ',' as an invalid character.
-					if (!UserFeeText.Contains(",") && decimal.TryParse(UserFeeText, out decimal userFee))
+					if (TryParseUserFee(out decimal userFee))
 					{
 						FeeRate = new FeeRate(userFee);
 						feeTarget = Constants.SevenDaysConfirmationTarget;
@@ -723,6 +723,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _amountText, value);
 		}
 
+		private bool TryParseUserFee(out decimal userFee)
+		{
+			userFee = default;
+			var userFeeText = UserFeeText;
+			return !userFeeText.Contains(",")
+				&& decimal.TryParse(userFeeText, out userFee)
+				&& (userFee * 1_000) < Constants.MaxSatoshisSupply
+				&& userFee > 0;
+		}
+
+		public ErrorDescriptors ValidateUserFeeText()
+		{
+			return TryParseUserFee(out _)
+				? ErrorDescriptors.Empty
+				: new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid fee."));
+		}
+
+		[ValidateMethod(nameof(ValidateUserFeeText))]
 		public string UserFeeText
 		{
 			get => _userFeeText;
@@ -857,7 +875,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _feeControlOpacity, value);
 		}
 
-		public bool IsCustomFee 
+		public bool IsCustomFee
 		{
 			get => _isCustomFee;
 			private set => this.RaiseAndSetIfChanged(ref _isCustomFee, value);
