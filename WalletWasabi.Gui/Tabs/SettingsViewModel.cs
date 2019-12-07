@@ -99,21 +99,21 @@ namespace WalletWasabi.Gui.Tabs
 			SetClearPinCommand = ReactiveCommand.Create(() =>
 				{
 					var pinBoxText = PinBoxText?.Trim();
-					if (string.IsNullOrWhiteSpace(pinBoxText))
+					if (string.IsNullOrEmpty(PinBoxText))
 					{
-						NotificationHelpers.Error("Please provide a PIN.");
+						NotificationHelpers.Error("Please provide a PIN");
 						return;
 					}
 
-					if (pinBoxText.Length > 10)
-					{
-						NotificationHelpers.Error("PIN is too long.");
-						return;
-					}
-
-					if (pinBoxText.Any(x => !char.IsDigit(x)))
+					if (PinBoxText.Any(x => !char.IsDigit(x)))
 					{
 						NotificationHelpers.Error("Invalid PIN.");
+						return;
+					}
+
+					if (PinBoxText.Length > 10)
+					{
+						NotificationHelpers.Error("PIN is too long.");
 						return;
 					}
 
