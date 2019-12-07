@@ -9,7 +9,7 @@ namespace WalletWasabi.Gui.Tabs
 {
 	public class LegalDocumentsViewModel : TextResourceViewModelBase
 	{
-		public LegalDocumentsViewModel(Global global) : base(global, "Legal Documents", LegalDocuments.AvaloniaTarget)
+		public LegalDocumentsViewModel(Global global) : base(global, "Legal Documents", filePath: LegalDocuments.FilePath)
 		{
 		}
 	}

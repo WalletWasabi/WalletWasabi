@@ -18,10 +18,20 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private string _text;
 
-		protected TextResourceViewModelBase(Global global, string title, Uri target) : base(global, title)
+		protected TextResourceViewModelBase(Global global, string title, Uri avaloniaTarget = null, string filePath = null) : base(global, title)
 		{
 			Text = "";
-			Target = target;
+			if (avaloniaTarget is null && string.IsNullOrWhiteSpace(filePath))
+			{
+				throw new ArgumentNullException($"{avaloniaTarget} and {filePath}, both cannot be null.");
+			}
+			else if (avaloniaTarget is { } && filePath is { })
+			{
+				throw new ArgumentException($"{avaloniaTarget} and {filePath}, one of them must be null.");
+			}
+
+			AvaloniaTarget = avaloniaTarget;
+			FilePath = filePath;
 		}
 
 		public string Text
@@ -30,13 +40,20 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _text, value);
 		}
 
-		public Uri Target { get; }
+		public Uri AvaloniaTarget { get; }
+		public string FilePath { get; }
 
 		private async Task<string> LoadDocumentAsync(Uri target)
 		{
 			var assetLocator = AvaloniaLocator.Current.GetService<IAssetLoader>();
-
 			using var stream = assetLocator.Open(target);
+			using var reader = new StreamReader(stream);
+			return await reader.ReadToEndAsync();
+		}
+
+		private async Task<string> LoadDocumentAsync(string path)
+		{
+			using var stream = File.OpenRead(path);
 			using var reader = new StreamReader(stream);
 			return await reader.ReadToEndAsync();
 		}
@@ -46,12 +63,24 @@ namespace WalletWasabi.Gui.ViewModels
 			base.OnOpen();
 
 			Disposables = new CompositeDisposable();
-			LoadDocumentAsync(Target)
-				.ToObservable(RxApp.TaskpoolScheduler)
-				.Take(1)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => Text = x)
-				.DisposeWith(Disposables);
+			if (AvaloniaTarget is { })
+			{
+				LoadDocumentAsync(AvaloniaTarget)
+					.ToObservable(RxApp.TaskpoolScheduler)
+					.Take(1)
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(x => Text = x)
+					.DisposeWith(Disposables);
+			}
+			else
+			{
+				LoadDocumentAsync(FilePath)
+					.ToObservable(RxApp.TaskpoolScheduler)
+					.Take(1)
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(x => Text = x)
+					.DisposeWith(Disposables);
+			}
 		}
 
 		public override bool OnClose()

@@ -12,6 +12,5 @@ namespace WalletWasabi.Legal
 		public const string LegalFolderName = "Legal";
 		public const string AssetsFoldername = "Assets";
 		public static readonly string FilePath = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), LegalFolderName, AssetsFoldername, FileName);
-		public static readonly Uri AvaloniaTarget = new Uri($"avares://WalletWasabi/{LegalFolderName}/{AssetsFoldername}/{FileName}");
 	}
 }
