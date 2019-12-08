@@ -188,9 +188,11 @@ namespace WalletWasabi.Gui.Tabs
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(LurkingWifeMode)))
 				.DisposeWith(Disposables);
 
-			_isPinSet = Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
+			_isPinSet = Global.UiConfig
+				.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
 				.ToProperty(this, x => x.IsPinSet, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
+			this.RaisePropertyChanged(nameof(IsPinSet)); // Fire now otherwise the button won't update for restart.
 
 			Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee)
 				.Throttle(TimeSpan.FromSeconds(1))
