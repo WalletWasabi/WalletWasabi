@@ -37,11 +37,11 @@
                     </Style>
                   </Grid.Styles>
                   <Border Background="Transparent" IsVisible="{Binding Confirmed}" Grid.Column="0" ToolTip.Tip="{Binding Confirmations, StringFormat=\{0\} Confirmations}">
-                    <DrawingPresenter HorizontalAlignment="Center" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource ConfirmationIcon}"/>
+                    <DrawingPresenter HorizontalAlignment="Center" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource ConfirmationIcon}" />
                   </Border>
                   <TextBlock Classes="monospaceFont" Text="{Binding DateTime, ConverterParameter=11, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="1" />
                   <TextBlock Classes="monospaceFont" Text="{Binding AmountBtc, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="2" Foreground="{Binding AmountBtc, Converter={StaticResource MoneyBrushConverter}}" />
-                  <controls:ExtendedTextBox Classes="monospaceFont selectableTextBlock Transparent" IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding TransactionId, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="3" />
+                  <TextBlock Classes="monospaceFont" IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding TransactionId, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="3" />
                   <Grid IsVisible="{Binding ClipboardNotificationVisible}" Grid.Column="3">
                     <Grid Opacity="{Binding ClipboardNotificationOpacity}">
                       <Grid.Transitions>
