@@ -28,6 +28,15 @@
             <controls:SortingArrow Grid.Column="3" Command="{Binding SortCommand}" Text="Transaction ID" SortDirection="{Binding TransactionSortDirection}" />
           </Grid>
           <controls:ExtendedListBox Items="{Binding Transactions}" SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}">
+            <controls:ExtendedListBox.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="Copy transaction ID" Command="{Binding CopyTransactionId}">
+                  <MenuItem.Icon>
+                    <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource ReceiveTabView_CopyIcon}" />
+                  </MenuItem.Icon>
+                </MenuItem>
+              </ContextMenu>
+            </controls:ExtendedListBox.ContextMenu>
             <controls:ExtendedListBox.ItemTemplate>
               <DataTemplate>
                 <Grid ColumnDefinitions="40, 160, 150, *">
