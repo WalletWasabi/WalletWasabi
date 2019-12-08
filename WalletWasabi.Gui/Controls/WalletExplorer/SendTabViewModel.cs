@@ -598,7 +598,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				AmountText = AllSelectedAmount == Money.Zero
 					? FeePercentage >= 100
-						? "Too high fee" 
+						? "Too high fee"
 						: "No Coins Selected"
 					: $"~ {AllSelectedAmount.ToString(false, true)}";
 			}
@@ -733,7 +733,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			userFee = default;
 			var userFeeText = UserFeeText;
-			return !userFeeText.Contains(",")
+			return
+				userFeeText is { }
+				&& !userFeeText.Contains(",")
 				&& decimal.TryParse(userFeeText, out userFee)
 				&& (userFee * 1_000) < Constants.MaxSatoshisSupply
 				&& userFee > 0;
