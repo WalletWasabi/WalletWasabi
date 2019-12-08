@@ -59,7 +59,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				.Subscribe(ex => Logger.LogError(ex));
 
 			this.WhenAnyValue(x => x.PinInput)
-				.Throttle(TimeSpan.FromSeconds(1))
+				.Throttle(TimeSpan.FromSeconds(2.5))
 				.Where(x => !string.IsNullOrWhiteSpace(x))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
