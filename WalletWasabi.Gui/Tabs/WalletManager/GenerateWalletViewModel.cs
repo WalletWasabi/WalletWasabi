@@ -73,7 +73,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					PasswordHelper.Guard(Password); // Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password bacause of compatibility.
 
 					var km = KeyManager.CreateNew(out Mnemonic mnemonic, Password);
-					km.SetBlockchainState(Global.Network, new Height(Global.BitcoinStore.SmartHeaderChain.TipHeight));
+					km.SetNetwork(Global.Network);
+					km.SetBestHeight(new Height(Global.BitcoinStore.SmartHeaderChain.TipHeight));
 					km.SetFilePath(walletFilePath);
 					km.ToFile();
 

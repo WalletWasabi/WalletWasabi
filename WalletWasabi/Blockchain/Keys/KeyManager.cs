@@ -675,12 +675,11 @@ namespace WalletWasabi.Blockchain.Keys
 			return res;
 		}
 
-		public void SetBlockchainState(Network network, Height height)
+		public void SetNetwork(Network network)
 		{
 			lock (BlockchainStateLock)
 			{
 				BlockchainState.Network = network;
-				BlockchainState.Height = height;
 				ToFileNoBlockchainStateLock();
 			}
 		}
