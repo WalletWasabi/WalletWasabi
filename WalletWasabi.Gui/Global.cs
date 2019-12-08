@@ -626,7 +626,7 @@ namespace WalletWasabi.Gui
 		{
 			message = Guard.Correct(message);
 			title = Guard.Correct(title);
-			NotificationHelpers.Notify(message, title, notificationType, () => IoHelpers.OpenFileInTextEditor(Logger.FilePath));
+			NotificationHelpers.Notify(message, title, notificationType, () => FileHelpers.OpenFileInTextEditor(Logger.FilePath));
 			Logger.LogInfo($"Transaction Notification ({notificationType}): {title} - {message} - {e.Transaction.GetHash()}");
 		}
 

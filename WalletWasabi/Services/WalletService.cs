@@ -290,36 +290,44 @@ namespace WalletWasabi.Services
 				return;
 			}
 
-			try
+			// Only clean the mempool if we're fully synchronized.
+			if (BitcoinStore.SmartHeaderChain.HashesLeft == 0)
 			{
-				using var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint);
-				var compactness = 10;
-
-				var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
-
-				var txsToProcess = new List<SmartTransaction>();
-				foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
+				try
 				{
-					uint256 hash = tx.GetHash();
-					if (mempoolHashes.Contains(hash.ToString().Substring(0, compactness)))
+					using var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint);
+					var compactness = 10;
+
+					var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
+
+					var txsToProcess = new List<SmartTransaction>();
+					foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
 					{
-						txsToProcess.Add(tx);
-						Logger.LogInfo($"Transaction was successfully tested against the backend's mempool hashes: {hash}.");
+						uint256 hash = tx.GetHash();
+						if (mempoolHashes.Contains(hash.ToString().Substring(0, compactness)))
+						{
+							txsToProcess.Add(tx);
+							Logger.LogInfo($"Transaction was successfully tested against the backend's mempool hashes: {hash}.");
+						}
+						else
+						{
+							BitcoinStore.TransactionStore.MempoolStore.TryRemove(tx.GetHash(), out _);
+						}
 					}
-					else
-					{
-						BitcoinStore.TransactionStore.MempoolStore.TryRemove(tx.GetHash(), out _);
-					}
+
+					TransactionProcessor.Process(txsToProcess);
 				}
+				catch (Exception ex)
+				{
+					// When there's a connection failure do not clean the transactions, add them to processing.
+					TransactionProcessor.Process(BitcoinStore.TransactionStore.MempoolStore.GetTransactions());
 
-				TransactionProcessor.Process(txsToProcess);
+					Logger.LogWarning(ex);
+				}
 			}
-			catch (Exception ex)
+			else
 			{
-				// When there's a connection failure do not clean the transactions, add them to processing.
 				TransactionProcessor.Process(BitcoinStore.TransactionStore.MempoolStore.GetTransactions());
-
-				Logger.LogWarning(ex);
 			}
 		}
 

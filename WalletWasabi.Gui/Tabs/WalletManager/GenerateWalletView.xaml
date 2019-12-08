@@ -25,11 +25,7 @@
       <CheckBox IsChecked="{Binding TermsAccepted,Mode=TwoWay}" TextBlock.FontSize="10">
         <StackPanel Orientation="Horizontal">
           <TextBlock Text="I agree to the " />
-          <Button Content="Terms and Conditions" Classes="activeHyperLink" Command="{Binding OnTermsClicked}" />
-          <TextBlock Text=", " />
-          <Button Content="Privacy Policy" Classes="activeHyperLink" Command="{Binding OnPrivacyClicked}" />
-          <TextBlock Text=", and " />
-          <Button Content="Legal Issues" Classes="activeHyperLink" Command="{Binding OnLegalClicked}" />
+          <Button Content="Terms and Conditions, Privacy Policy, and Legal Issues" Classes="activeHyperLink" Command="{Binding OnLegalClicked}" />
           <TextBlock Text=" documents." />
         </StackPanel>
       </CheckBox>
