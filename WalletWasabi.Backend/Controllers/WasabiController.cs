@@ -17,7 +17,7 @@ namespace WalletWasabi.Backend.Controllers
 	public class WasabiController : Controller
 	{
 		/// <summary>
-		/// Gets the latest legal document.
+		/// Gets the latest legal documents.
 		/// </summary>
 		/// <returns>Returns the legal documents.</returns>
 		/// <response code="200">Returns the legal documents.</response>
