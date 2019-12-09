@@ -100,9 +100,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			ToggleQrCode = ReactiveCommand.Create(() => ToggleSelectedAddress(), isCoinListItemSelected);
 
-#pragma warning disable IDE0053 // Use expression body for lambda expressions
-			ChangeLabelCommand = ReactiveCommand.Create(() => { SelectedAddress.InEditMode = true; });
-#pragma warning restore IDE0053 // Use expression body for lambda expressions
+			ChangeLabelCommand = ReactiveCommand.Create(() =>
+			{
+				var selectedAddress = SelectedAddress;
+				if (selectedAddress is { })
+				{
+					SelectedAddress.InEditMode = true;
+				}
+			});
 
 			DisplayAddressOnHwCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
