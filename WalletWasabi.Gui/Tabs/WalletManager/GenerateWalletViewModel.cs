@@ -70,7 +70,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				try
 				{
-					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, Password, walletFilePath, Global);
+					PasswordHelper.Guard(Password); // Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password bacause of compatibility.						Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, Password, walletFilePath, Global);
+
+					var km = KeyManager.CreateNew(out Mnemonic mnemonic, Password);
+					km.SetNetwork(Global.Network);
+					km.SetBestHeight(new Height(Global.BitcoinStore.SmartHeaderChain.TipHeight));
+					km.SetFilePath(walletFilePath);
+					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, km, mnemonic);
 				}
 				catch (Exception ex)
 				{
