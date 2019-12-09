@@ -325,7 +325,13 @@
                         <p class="card-text border-top p-2" itemprop="text">
                             A mechanism by which multiple participants combine their coins (or UTXOs, to be more precise) into one large transaction with multiple inputs and multiple outputs. An observer cannot determine which output belongs to which input, and neither can the participants themselves. This makes it difficult for outside parties to trace where a particular coin originated from and where it was sent to (as opposed to regular bitcoin transactions, where there is usually one sender and one receiver).
                             <br /><br />
-                            In very simple terms, coinjoin means: “when you want to make a transaction, find someone else who also wants to make a transaction and make a joint transaction together”.
+                            This can be done with non-custodial software like Wasabi that eliminates the risk of funds disappearing or being stolen. Each of the signatures are created on the participants’ computers, so anyone trying to connect the signatures is unable to alter the transaction or redirect the funds. The funds will always be in a Bitcoin address that you control.                            <br /><br />
+                            <br /><br />
+                            It’s possible to do this in a decentralized way so that the service does not rely on external parties or centralized servers. It just needs the participants of the transaction.
+                            <br /><br />
+                            CoinJoin can be applied multiple times, and as many transactions are grouped together, participants may save on transaction fees. CoinJoin is the preferred method of gaining privacy in the Bitcoin network. It is even possible that this functionality might one day be included directly on the protocol level as standard, as some altcoins already do.
+                            <br /><br />
+                            In very simple terms, CoinJoin means: “when you want to make a transaction, find someone else who also wants to make a transaction and make a joint transaction together”.
                             <br /><br />
                             <small>Further reading: <a href="https://en.bitcoin.it/wiki/CoinJoin" target="_blank">en.bitcoin.it/wiki/CoinJoin</a></small>
                         </p>
@@ -339,7 +345,8 @@
                     </label>
                     <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
                         <p class="card-text border-top p-2" itemprop="text">
-                            No, Wasabi's coinjoin implementation is trustless by design. The participants do not need to trust each other or any third party. Both the sending address (the coinjoin input) and the receiving address (the coinjoin output) are controlled by your own private keys. Wasabi merely coordinates the process of combining the inputs of the participants into one single transaction, but the wallet can neither steal your coins, nor figure out which outputs belong to which inputs. <br /><br />
+                            No, Wasabi's coinjoin implementation is trustless by design. The participants do not need to trust each other or any third party. Both the sending address (the coinjoin input) and the receiving address (the coinjoin output) are controlled by your own private keys. Wasabi merely coordinates the process of combining the inputs of the participants into one single transaction, but the wallet can neither steal your coins, nor figure out which outputs belong to which inputs.
+                            <br /><br />
                             <small>Further reading: <a href="https://github.com/nopara73/ZeroLink#ii-chaumian-coinjoin" target="_blank">Chaumian Coinjoin</a></small>
                         </p>
                     </div>
@@ -378,11 +385,9 @@
                     </label>
                     <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
                         <p class="card-text border-top p-2" itemprop="text">
-                            Wasabi generates Bech32 addresses only, also known as bc1 addresses or native SegWit addresses. These addresses start with the characters bc1... Some wallets/exchanges do not yet support this type of address and may give an error message (e.g. "unknown bitcoin address"). The solution is to manage your funds with a wallet which does support Bech32, <a href="https://en.bitcoin.it/wiki/Bech32_adoption" target="
-                ">see list</a>.
+                            Wasabi generates Bech32 addresses only, also known as bc1 addresses or native SegWit addresses. These addresses start with the characters bc1... Some wallets/exchanges do not yet support this type of address and may give an error message (e.g. "unknown bitcoin address"). The solution is to manage your funds with a wallet which does support Bech32. To check Bech32 adoption and exchange/wallet support you can follow <a href="https://en.bitcoin.it/wiki/Bech32_adoption" rel="external nofollow" target="_blank">Bitcoin.it Wiki</a> and <a href="https://whensegwit.com/#who" rel="external nofollow" target="_blank">When Segwit? website</a>.
                             <br /><br />
-                            Be careful, if you send all your coins from an old wallet to a new wallet (from the table above) in one transaction then you will merge all your coins which is bad for privacy - instead, send the coins individually or if possible import the seed in the new wallet.
-                        </p>
+                            Be careful, if you send all your coins from an old wallet to a new wallet (from the table above) in one transaction then you will merge all your coins which is bad for privacy - instead, send the coins individually or if possible import the seed in the new wallet.                        </p>
                     </div>
                 </div>
 
@@ -412,6 +417,14 @@
                             The anonymity set is effectively the size of the group you are hiding in.
                             <br /><br />
                             If 3 people take part in a CoinJoin (with equal size inputs) and there are 3 outputs then each of those output coins has an anonymity set of 3.
+                            <br /><br />
+                            <code>
+                            0.1 BTC (Alice)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.1 BTC (Anon set 3)<br>
+                            0.3 BTC (Bob)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;->&nbsp;&nbsp;0.1 BTC (Anon set 3)<br>
+                            0.4 BTC (Charlie)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.1 BTC (Anon set 3)<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.2 BTC (Change Coin Bob)<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.3 BTC (Change Coin Charlie)<br>
+                            </code>
                             <br /><br />
                             There is no way to know which of the anon set output coins are owned by which of the input owners. All an observer knows is that a specific anon set output coin is owned by one of the owners of one of the input Coins i.e. 3 people - hence an anonymity set of 3.
                             <br /><br />
@@ -486,6 +499,8 @@
                             - Open a lightning channel.
                             <br />
                             The ultimate solution is to 'close the loop' i.e. spend a change coin without merging it with other coins, do not generate it in the first place by sending whole coins.
+                            <br /><br />
+                            <small>Further reading: <a href="https://docs.wasabiwallet.io/using-wasabi/ChangeCoins.html" target="_blank">Chaumian Coinjoin</a></small>
                         </p>
                     </div>
                 </div>
