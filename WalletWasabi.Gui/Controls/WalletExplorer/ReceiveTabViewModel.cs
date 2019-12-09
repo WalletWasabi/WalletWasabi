@@ -78,7 +78,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.WhenAnyValue(x => x.SelectedAddress)
 				.Select(x => x is { })
 				.ToProperty(this, x => x.IsItemSelected, scheduler: RxApp.MainThreadScheduler);
-			IObservable<bool> canExecuteContextMenuItem = this.WhenAnyValue(x => x.IsItemSelected);
+
+			IObservable<bool> canExecuteContextMenuItem = this.WhenAnyValue(x => x.IsItemSelected).ObserveOn(RxApp.MainThreadScheduler);
 
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
 				{
