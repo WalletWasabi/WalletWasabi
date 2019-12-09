@@ -92,12 +92,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			CopyAddress = ReactiveCommand.CreateFromTask(async () =>
 			{
-				if (SelectedAddress is null)
+				var selectedAddress = SelectedAddress;
+				if (selectedAddress is null)
 				{
 					return;
 				}
 
-				await SelectedAddress.TryCopyToClipboardAsync();
+				await selectedAddress.TryCopyToClipboardAsync();
 			}, canExecuteContextMenuItem);
 
 			CopyLabel = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(SelectedAddress?.Label ?? string.Empty), canExecuteContextMenuItem);
