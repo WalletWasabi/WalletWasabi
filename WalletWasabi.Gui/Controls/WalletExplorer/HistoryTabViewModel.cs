@@ -9,6 +9,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
@@ -23,6 +24,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
+		public ReactiveCommand<Unit, Unit> CopyTransactionId { get; }
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 
 		public HistoryTabViewModel(WalletViewModel walletViewModel)
@@ -30,22 +32,31 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Transactions = new ObservableCollection<TransactionViewModel>();
 
-			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
-				{
-					if (Global.UiConfig?.Autocopy is false || transaction is null)
-					{
-						return;
-					}
-
-					await transaction.TryCopyTxIdToClipboardAsync();
-				});
-
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);
-			SortCommand.ThrownExceptions
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogError(ex));
-
 			DateSortDirection = SortOrder.Decreasing;
+
+			var isCoinListItemSelected = this.WhenAnyValue(x => x.SelectedTransaction).Select(tx => tx is { });
+
+			CopyTransactionId = ReactiveCommand.CreateFromTask(async () =>
+			{
+				if (SelectedTransaction is null)
+				{
+					return;
+				}
+
+				await SelectedTransaction.TryCopyTxIdToClipboardAsync();
+			},
+			isCoinListItemSelected);
+
+			Observable
+				.Merge(SortCommand.ThrownExceptions)
+				.Merge(CopyTransactionId.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex =>
+				{
+					NotificationHelpers.Error(ex.ToTypeMessageString());
+					Logger.LogWarning(ex);
+				});
 
 			_ = TryRewriteTableAsync();
 		}
