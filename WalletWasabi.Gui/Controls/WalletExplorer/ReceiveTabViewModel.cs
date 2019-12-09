@@ -93,44 +93,63 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				await SelectedAddress.TryCopyToClipboardAsync();
-			},
-			isCoinListItemSelected);
+			}, isCoinListItemSelected);
 
-			CopyLabel = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(SelectedAddress.Label ?? string.Empty), isCoinListItemSelected);
+			CopyLabel = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(SelectedAddress?.Label ?? string.Empty), isCoinListItemSelected);
 
-			ToggleQrCode = ReactiveCommand.Create(() => ToggleSelectedAddress(), isCoinListItemSelected);
+			ToggleQrCode = ReactiveCommand.Create(() =>
+			{
+				var selectedAddress = SelectedAddress;
+				if (selectedAddress is null)
+				{
+					return;
+				}
+
+				selectedAddress.IsExpanded = !selectedAddress.IsExpanded;
+			}, isCoinListItemSelected);
 
 			ChangeLabelCommand = ReactiveCommand.Create(() =>
 			{
 				var selectedAddress = SelectedAddress;
-				if (selectedAddress is { })
+				if (selectedAddress is null)
 				{
-					SelectedAddress.InEditMode = true;
+					return;
 				}
-			});
+
+				SelectedAddress.InEditMode = true;
+			}, isCoinListItemSelected);
 
 			DisplayAddressOnHwCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
+				var selectedAddress = SelectedAddress;
+				if (selectedAddress is null)
+				{
+					return;
+				}
+
 				var client = new HwiClient(Global.Network);
 				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 				try
 				{
-					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, SelectedAddress.Model.FullKeyPath, cts.Token);
+					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, selectedAddress.Model.FullKeyPath, cts.Token);
 				}
 				catch (HwiException)
 				{
 					await PinPadViewModel.UnlockAsync(Global);
-					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, SelectedAddress.Model.FullKeyPath, cts.Token);
+					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, selectedAddress.Model.FullKeyPath, cts.Token);
 				}
-			});
+			}, isCoinListItemSelected);
 
 			SaveQRCodeCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				if (SelectedAddress is { })
+				var selectedAddress = SelectedAddress;
+				if (selectedAddress is null)
 				{
-					await SelectedAddress.SaveQRCodeAsync();
+					return;
 				}
-			});
+
+				await selectedAddress.SaveQRCodeAsync();
+			}, isCoinListItemSelected);
 
 			Observable
 				.Merge(DisplayAddressOnHwCommand.ThrownExceptions)
@@ -149,11 +168,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public SuggestLabelViewModel LabelSuggestion => _labelSuggestion;
-
-		private void ToggleSelectedAddress()
-		{
-			SelectedAddress.IsExpanded = !SelectedAddress.IsExpanded;
-		}
 
 		public override void OnOpen()
 		{
