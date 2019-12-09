@@ -75,6 +75,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
 				{
+					this.RaisePropertyChanged(nameof(IsItemSelected));
+
 					if (Global.UiConfig?.Autocopy is false || address is null)
 					{
 						return;
@@ -226,5 +228,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _selectedAddress;
 			set => this.RaiseAndSetIfChanged(ref _selectedAddress, value);
 		}
+
+		public bool IsItemSelected => SelectedAddress is { };
 	}
 }
