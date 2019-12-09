@@ -21,21 +21,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			_mnemonicWords = mnemonic.ToString();
 
 			ConfirmCommand = ReactiveCommand.Create(() =>
-				{
-					DoConfirmCommand(keyManager);
-					owner.SelectTestPassword();
-				});
+			{
+				keyManager.ToFile();
+				NotificationHelpers.Success("Wallet is successfully generated!");
+				owner.SelectTestPassword();
+			});
 
 			ConfirmCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
-		}
-
-		private void DoConfirmCommand(KeyManager keyManager)
-		{
-			keyManager.ToFile();
-
-			NotificationHelpers.Success("Wallet is successfully generated!");
 		}
 
 		public string MnemonicWords
