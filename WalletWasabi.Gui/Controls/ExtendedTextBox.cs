@@ -12,6 +12,7 @@ using AvalonStudio.Extensibility.Theme;
 using ReactiveUI;
 using System;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -23,6 +24,7 @@ namespace WalletWasabi.Gui.Controls
 	{
 		private TextPresenter _presenter;
 		private MenuItem _pasteItem = null;
+		private CompositeDisposable _disposables;
 
 		private Subject<string> _textPasted;
 
@@ -30,9 +32,11 @@ namespace WalletWasabi.Gui.Controls
 
 		public ExtendedTextBox()
 		{
+			_disposables = new CompositeDisposable();
+
 			_textPasted = new Subject<string>();
 
-			CopyCommand = ReactiveCommand.CreateFromTask(async () => await CopyAsync());
+			CopyCommand = ReactiveCommand.CreateFromTask(CopyAsync);
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -187,6 +191,10 @@ namespace WalletWasabi.Gui.Controls
 				Items = new Avalonia.Controls.Controls()
 			};
 
+			Observable.FromEventPattern(ContextMenu, nameof(ContextMenu.MenuClosed))
+				.Subscribe(_ => Focus())
+				.DisposeWith(_disposables);
+
 			var menuItems = (ContextMenu.Items as Avalonia.Controls.Controls);
 			if (IsCopyEnabled)
 			{
@@ -198,6 +206,13 @@ namespace WalletWasabi.Gui.Controls
 				CreatePasteItem();
 				menuItems.Add(_pasteItem);
 			}
+		}
+
+		protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+		{
+			base.OnDetachedFromVisualTree(e);
+
+			_disposables?.Dispose();
 		}
 
 		protected override void OnLostFocus(RoutedEventArgs e)
