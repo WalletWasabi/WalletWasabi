@@ -29,6 +29,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private AddressViewModel _selectedAddress;
 		private SuggestLabelViewModel _labelSuggestion;
 		private ObservableAsPropertyHelper<bool> _isItemSelected;
+		private ObservableAsPropertyHelper<bool> _isItemExpanded;
+		private ObservableAsPropertyHelper<string> _expandMenuCaption;
 
 		public ReactiveCommand<Unit, Unit> CopyAddress { get; }
 		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
@@ -78,10 +80,30 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.WhenAnyValue(x => x.SelectedAddress)
 				.Select(x => x is { })
 				.ToProperty(this, x => x.IsItemSelected, scheduler: RxApp.MainThreadScheduler);
+
 			IObservable<bool> canExecuteContextMenuItem = this.WhenAnyValue(x => x.IsItemSelected);
 
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
 				{
+					// Dispose the subscriptions if there were any.
+					_isItemExpanded?.Dispose();
+					_expandMenuCaption?.Dispose();
+
+					if (address is { })
+					{
+						_isItemExpanded = address
+							.WhenAnyValue(x => x.IsExpanded)
+							.ToProperty(this, x => x.IsItemExpanded, scheduler: RxApp.MainThreadScheduler);
+
+						_expandMenuCaption = address
+							.WhenAnyValue(x => x.ExpandMenuCaption)
+							.ToProperty(this, x => x.ExpandMenuCaption, scheduler: RxApp.MainThreadScheduler);
+
+						// Trigger the update.
+						this.RaisePropertyChanged(nameof(IsItemExpanded));
+						this.RaisePropertyChanged(nameof(ExpandMenuCaption));
+					}
+
 					if (Global.UiConfig?.Autocopy is false || address is null)
 					{
 						return;
@@ -234,5 +256,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public bool IsItemSelected => _isItemSelected?.Value ?? default;
+		public bool IsItemExpanded => _isItemExpanded?.Value ?? default;
+		public string ExpandMenuCaption => _expandMenuCaption?.Value ?? "Select a receive address";
 	}
 }
