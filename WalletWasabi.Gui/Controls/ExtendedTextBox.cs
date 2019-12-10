@@ -192,6 +192,7 @@ namespace WalletWasabi.Gui.Controls
 			};
 
 			Observable.FromEventPattern(ContextMenu, nameof(ContextMenu.MenuClosed))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => Focus())
 				.DisposeWith(Disposables);
 
