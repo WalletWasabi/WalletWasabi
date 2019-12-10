@@ -31,6 +31,7 @@ namespace WalletWasabi.Gui
 			try
 			{
 				Global = new Global();
+
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
 				AvaloniaGlobalComponent.AvaloniaInstance = Global;
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -43,7 +44,8 @@ namespace WalletWasabi.Gui
 				}
 				Logger.LogSoftwareStarted("Wasabi GUI");
 
-				BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMainAsync, args);
+				await Global.InitializeNoWalletAsync();
+				BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMain, args);
 			}
 			catch (Exception ex)
 			{
@@ -64,7 +66,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private static async void AppMainAsync(string[] args)
+		private static void AppMain(string[] args)
 		{
 			(Application.Current as App).SetDataContext(Global);
 			AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
@@ -72,8 +74,6 @@ namespace WalletWasabi.Gui
 			StatusBar = new StatusBarViewModel(Global);
 			MainWindowViewModel.Instance.StatusBar = StatusBar;
 			MainWindowViewModel.Instance.LockScreen = new LockScreenViewModel(Global);
-
-			await Global.InitializeNoWalletAsync();
 
 			StatusBar.Initialize(Global.Nodes.ConnectedNodes, Global.Synchronizer);
 
