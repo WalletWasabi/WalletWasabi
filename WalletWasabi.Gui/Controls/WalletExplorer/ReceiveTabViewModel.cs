@@ -88,6 +88,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					// Dispose the subscriptions if there were any.
 					_isItemExpanded?.Dispose();
 					_expandMenuCaption?.Dispose();
+					_isItemExpanded = null;
+					_expandMenuCaption = null;
 
 					if (address is { })
 					{
@@ -98,6 +100,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						_expandMenuCaption = address
 							.WhenAnyValue(x => x.ExpandMenuCaption)
 							.ToProperty(this, x => x.ExpandMenuCaption, scheduler: RxApp.MainThreadScheduler);
+
+						Observable
+							.Merge(_isItemExpanded.ThrownExceptions)
+							.Merge(_expandMenuCaption.ThrownExceptions)
+							.Subscribe(OnException);
 
 						// Trigger the update.
 						this.RaisePropertyChanged(nameof(IsItemExpanded));
@@ -188,11 +195,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(GenerateCommand.ThrownExceptions)
 				.Merge(SaveQRCodeCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex =>
-				{
-					NotificationHelpers.Error(ex.ToTypeMessageString());
-					Logger.LogWarning(ex);
-				});
+				.Subscribe(OnException);
 		}
 
 		public SuggestLabelViewModel LabelSuggestion => _labelSuggestion;
@@ -217,6 +220,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Disposables = null;
 
 			return base.OnClose();
+		}
+
+		private void OnException(Exception ex)
+		{
+			NotificationHelpers.Error(ex.ToTypeMessageString());
+			Logger.LogWarning(ex);
 		}
 
 		private void InitializeAddresses()
