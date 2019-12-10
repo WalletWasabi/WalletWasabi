@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <PlatformTarget>x64</PlatformTarget>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <LangVersion>latest</LangVersion>
     <NoWarn>1701;1702;1705;1591;1573;CA1031</NoWarn>
@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp3.0\WalletWasabi.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netcoreapp3.1\WalletWasabi.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

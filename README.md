@@ -41,7 +41,7 @@ For step by step instructions of PGP verification and package installation, see 
 ## Get The Requirements
 
 1. Get Git: https://git-scm.com/downloads
-2. Get .NET Core 3.0 SDKs: https://www.microsoft.com/net/download (Note, you can disable .NET's telemetry by typing `export DOTNET_CLI_TELEMETRY_OPTOUT=1` on Linux and OSX or `setx DOTNET_CLI_TELEMETRY_OPTOUT 1` on Windows.)
+2. Get .NET Core 3.1 SDK: https://www.microsoft.com/net/download (Note, you can disable .NET's telemetry by typing `export DOTNET_CLI_TELEMETRY_OPTOUT=1` on Linux and OSX or `setx DOTNET_CLI_TELEMETRY_OPTOUT 1` on Windows.)
 
 ## Get Wasabi
 
