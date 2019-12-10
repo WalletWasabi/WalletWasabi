@@ -24,7 +24,7 @@ namespace WalletWasabi.Gui.Controls
 	{
 		private TextPresenter _presenter;
 		private MenuItem _pasteItem = null;
-		private CompositeDisposable _disposables;
+		private CompositeDisposable Disposables { get; }
 
 		private Subject<string> _textPasted;
 
@@ -32,7 +32,7 @@ namespace WalletWasabi.Gui.Controls
 
 		public ExtendedTextBox()
 		{
-			_disposables = new CompositeDisposable();
+			Disposables = new CompositeDisposable();
 
 			_textPasted = new Subject<string>();
 
@@ -193,7 +193,7 @@ namespace WalletWasabi.Gui.Controls
 
 			Observable.FromEventPattern(ContextMenu, nameof(ContextMenu.MenuClosed))
 				.Subscribe(_ => Focus())
-				.DisposeWith(_disposables);
+				.DisposeWith(Disposables);
 
 			var menuItems = (ContextMenu.Items as Avalonia.Controls.Controls);
 			if (IsCopyEnabled)
@@ -212,7 +212,7 @@ namespace WalletWasabi.Gui.Controls
 		{
 			base.OnDetachedFromVisualTree(e);
 
-			_disposables?.Dispose();
+			Disposables?.Dispose();
 		}
 
 		protected override void OnLostFocus(RoutedEventArgs e)
