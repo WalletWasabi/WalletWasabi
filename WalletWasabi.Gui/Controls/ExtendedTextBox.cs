@@ -124,7 +124,7 @@ namespace WalletWasabi.Gui.Controls
 				return "";
 			}
 
-			return text.Substring(start, end - start);
+			return text[start..end];
 		}
 
 		protected virtual async Task CopyAsync()
