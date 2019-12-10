@@ -1,6 +1,6 @@
 ![](https://i.imgur.com/4GO7nnY.png)
 
-| Code Quality           | Windows Tests           | Linux Tests             | OSX Tests               | License                   |
+| Code Quality           | Windows Tests           | Linux Tests             | macOS Tests             | License                   |
 | :----------------------| :-----------------------| :-----------------------| :-----------------------| :-------------------------|
 | [![CodeFactor][9]][10] | [![Build Status][1]][2] | [![Build Status][3]][4] | [![Build Status][5]][6] | [![GitHub license][7]][8] |
 
@@ -41,7 +41,7 @@ For step by step instructions of PGP verification and package installation, see 
 ## Get The Requirements
 
 1. Get Git: https://git-scm.com/downloads
-2. Get .NET Core 3.1 SDK: https://dotnet.microsoft.com/download/dotnet-core (You can disable .NET's telemetry using this command `export DOTNET_CLI_TELEMETRY_OPTOUT=1` on Linux and OSX, or `setx DOTNET_CLI_TELEMETRY_OPTOUT 1` on Windows.)
+2. Get .NET Core 3.1 SDK: https://dotnet.microsoft.com/download/dotnet-core (You can disable .NET's telemetry using this command `export DOTNET_CLI_TELEMETRY_OPTOUT=1` on Linux and macOS, or `setx DOTNET_CLI_TELEMETRY_OPTOUT 1` on Windows.)
 
 ## Get Wasabi
 
