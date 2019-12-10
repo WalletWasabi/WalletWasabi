@@ -406,7 +406,23 @@ namespace WalletWasabi.Gui.Tabs
 
 			if (uint.TryParse(value, out uint result))
 			{
-				ValidatePrivacyLevelValue(privacyLevel, result, out bool isUnderMinimumPrivacyLevel, out uint minimumPrivacyLevel, out bool isAboveMaximumPrivacyLevel, out uint maximumPrivacyLevel);
+				bool isUnderMinimumPrivacyLevel;
+				uint minimumPrivacyLevel;
+				bool isAboveMaximumPrivacyLevel;
+				uint maximumPrivacyLevel;
+
+				if (privacyLevel == nameof(SomePrivacyLevel))
+				{
+					ValidateSomePrivacyLevelValue(result, out isUnderMinimumPrivacyLevel, out minimumPrivacyLevel, out isAboveMaximumPrivacyLevel, out maximumPrivacyLevel);
+				}
+				else if (privacyLevel == nameof(FinePrivacyLevel))
+				{
+					ValidateFinePrivacyLevelValue(result, out isUnderMinimumPrivacyLevel, out minimumPrivacyLevel, out isAboveMaximumPrivacyLevel, out maximumPrivacyLevel);
+				}
+				else
+				{
+					ValidateStrongPrivacyLevelValue(result, out isUnderMinimumPrivacyLevel, out minimumPrivacyLevel, out isAboveMaximumPrivacyLevel, out maximumPrivacyLevel);
+				}
 
 				if (isUnderMinimumPrivacyLevel)
 				{
@@ -423,7 +439,7 @@ namespace WalletWasabi.Gui.Tabs
 			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid privacy level."));
 		}
 
-		private void ValidatePrivacyLevelValue(string privacyLevel, uint result, out bool isUnderMinimumPrivacyLevel, out uint minimumPrivacyLevel, out bool isAboveMaximumPrivacyLevel, out uint maximumPrivacyLevel)
+		private void ValidateSomePrivacyLevelValue(uint result, out bool isUnderMinimumPrivacyLevel, out uint minimumPrivacyLevel, out bool isAboveMaximumPrivacyLevel, out uint maximumPrivacyLevel)
 		{
 			isUnderMinimumPrivacyLevel = false;
 			minimumPrivacyLevel = 2;
@@ -431,108 +447,119 @@ namespace WalletWasabi.Gui.Tabs
 			isAboveMaximumPrivacyLevel = false;
 			maximumPrivacyLevel = uint.MaxValue;
 
-			if (privacyLevel == nameof(SomePrivacyLevel))
+			if (result < 2)
 			{
-				if (result < 2)
+				isUnderMinimumPrivacyLevel = true;
+			}
+			else
+			{
+				uint.TryParse(FinePrivacyLevel, out uint fineValue);
+				if (result >= fineValue)
 				{
-					isUnderMinimumPrivacyLevel = true;
-				}
-				else
-				{
-					uint.TryParse(FinePrivacyLevel, out uint fineValue);
-					if (result >= fineValue)
+					if (fineValue > 2)
 					{
-						if (fineValue > 2)
+						isAboveMaximumPrivacyLevel = true;
+						maximumPrivacyLevel = fineValue - 1;
+					}
+					else
+					{
+						uint.TryParse(StrongPrivacyLevel, out uint strongValue);
+						if (result >= strongValue - 1 || result >= maximumPrivacyLevel - 1)
 						{
 							isAboveMaximumPrivacyLevel = true;
-							maximumPrivacyLevel = fineValue - 1;
-						}
-						else
-						{
-							uint.TryParse(StrongPrivacyLevel, out uint strongValue);
-							if (result >= strongValue - 1 || result >= maximumPrivacyLevel - 1)
-							{
-								isAboveMaximumPrivacyLevel = true;
-								maximumPrivacyLevel = strongValue > 3 ? strongValue - 2 : maximumPrivacyLevel - 2;
-							}
+							maximumPrivacyLevel = strongValue > 3 ? strongValue - 2 : maximumPrivacyLevel - 2;
 						}
 					}
 				}
 			}
-			else if (privacyLevel == nameof(FinePrivacyLevel))
+		}
+
+		private void ValidateFinePrivacyLevelValue(uint result, out bool isUnderMinimumPrivacyLevel, out uint minimumPrivacyLevel, out bool isAboveMaximumPrivacyLevel, out uint maximumPrivacyLevel)
+		{
+			isUnderMinimumPrivacyLevel = false;
+			minimumPrivacyLevel = 2;
+
+			isAboveMaximumPrivacyLevel = false;
+			maximumPrivacyLevel = uint.MaxValue;
+
+			uint.TryParse(SomePrivacyLevel, out uint someValue);
+			if (result < 3)
 			{
-				uint.TryParse(SomePrivacyLevel, out uint someValue);
-				if (result < 3)
+				isUnderMinimumPrivacyLevel = true;
+				minimumPrivacyLevel = result < someValue ? someValue + 1 : 3;
+			}
+			else
+			{
+				if (result <= someValue)
 				{
 					isUnderMinimumPrivacyLevel = true;
-					minimumPrivacyLevel = result < someValue ? someValue + 1 : 3;
+					minimumPrivacyLevel = someValue + 1;
 				}
-				else
+
+				uint.TryParse(StrongPrivacyLevel, out uint strongValue);
+				if (result >= strongValue)
 				{
-					if (result <= someValue)
+					if (strongValue > 3)
+					{
+						if (strongValue > someValue + 1)
+						{
+							isAboveMaximumPrivacyLevel = true;
+							maximumPrivacyLevel = strongValue - 1;
+						}
+					}
+					else
+					{
+						if (result == maximumPrivacyLevel)
+						{
+							isAboveMaximumPrivacyLevel = true;
+							maximumPrivacyLevel -= 1;
+						}
+					}
+				}
+			}
+		}
+
+		private void ValidateStrongPrivacyLevelValue(uint result, out bool isUnderMinimumPrivacyLevel, out uint minimumPrivacyLevel, out bool isAboveMaximumPrivacyLevel, out uint maximumPrivacyLevel)
+		{
+			isUnderMinimumPrivacyLevel = false;
+			minimumPrivacyLevel = 2;
+
+			isAboveMaximumPrivacyLevel = false;
+			maximumPrivacyLevel = uint.MaxValue;
+
+			uint.TryParse(FinePrivacyLevel, out uint fineValue);
+			if (result > fineValue)
+			{
+				if (fineValue <= 2)
+				{
+					uint.TryParse(SomePrivacyLevel, out uint someValue);
+					if (result > someValue + 1)
+					{
+						if (result <= minimumPrivacyLevel + 1)
+						{
+							isUnderMinimumPrivacyLevel = true;
+							minimumPrivacyLevel += 2;
+						}
+					}
+					else
 					{
 						isUnderMinimumPrivacyLevel = true;
-						minimumPrivacyLevel = someValue + 1;
-					}
-
-					uint.TryParse(StrongPrivacyLevel, out uint strongValue);
-					if (result >= strongValue)
-					{
-						if (strongValue > 3)
-						{
-							if (strongValue > someValue + 1)
-							{
-								isAboveMaximumPrivacyLevel = true;
-								maximumPrivacyLevel = strongValue - 1;
-							}
-						}
-						else
-						{
-							if (result == maximumPrivacyLevel)
-							{
-								isAboveMaximumPrivacyLevel = true;
-								maximumPrivacyLevel -= 1;
-							}
-						}
+						minimumPrivacyLevel = someValue > 1 ? someValue + 2 : minimumPrivacyLevel + 2;
 					}
 				}
 			}
 			else
 			{
-				uint.TryParse(FinePrivacyLevel, out uint fineValue);
-				if (result > fineValue)
+				isUnderMinimumPrivacyLevel = true;
+
+				if (fineValue > 2)
 				{
-					if (fineValue <= 2)
-					{
-						uint.TryParse(SomePrivacyLevel, out uint someValue);
-						if (result > someValue + 1)
-						{
-							if (result <= minimumPrivacyLevel + 1)
-							{
-								isUnderMinimumPrivacyLevel = true;
-								minimumPrivacyLevel += 2;
-							}
-						}
-						else
-						{
-							isUnderMinimumPrivacyLevel = true;
-							minimumPrivacyLevel = someValue > 1 ? someValue + 2 : minimumPrivacyLevel + 2;
-						}
-					}
+					minimumPrivacyLevel = fineValue + 1;
 				}
 				else
 				{
-					isUnderMinimumPrivacyLevel = true;
-
-					if (fineValue > 2)
-					{
-						minimumPrivacyLevel = fineValue + 1;
-					}
-					else
-					{
-						uint.TryParse(SomePrivacyLevel, out uint someValue);
-						minimumPrivacyLevel = someValue > 1 ? someValue + 2 : minimumPrivacyLevel + 2;
-					}
+					uint.TryParse(SomePrivacyLevel, out uint someValue);
+					minimumPrivacyLevel = someValue > 1 ? someValue + 2 : minimumPrivacyLevel + 2;
 				}
 			}
 		}
