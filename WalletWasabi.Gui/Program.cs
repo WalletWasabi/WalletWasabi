@@ -53,7 +53,7 @@ namespace WalletWasabi.Gui
 			finally
 			{
 				StatusBar?.Dispose();
-				await Global.DisposeAsync();
+				await Global.DisposeAsync().ConfigureAwait(false);
 				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 
