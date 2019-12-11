@@ -17,6 +17,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
@@ -73,7 +74,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				TransactionString = textToPaste;
 			});
 
-			BroadcastTransactionCommand = ReactiveCommand.CreateFromTask(async () => await OnDoTransactionBroadcastAsync());
+			BroadcastTransactionCommand = ReactiveCommand.CreateFromTask(
+				async () => await OnDoTransactionBroadcastAsync(),
+				this.WhenAny(x => x.TransactionString, (transactionString) => (!string.IsNullOrWhiteSpace(transactionString.Value)))
+					.ObserveOn(RxApp.MainThreadScheduler));
 
 			ImportTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -204,7 +208,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.BroadcastingTransaction);
 				await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(transaction));
 
-				NotificationHelpers.Success("Transaction is successfully sent!");
+				NotificationHelpers.Success("Transaction is successfully broadcasted!", "");
 				TransactionString = "";
 			}
 			catch (PSBTException ex)

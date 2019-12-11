@@ -9,6 +9,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
@@ -19,10 +20,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private CompositeDisposable Disposables { get; set; }
 
 		private ObservableCollection<TransactionViewModel> _transactions;
+		private ObservableAsPropertyHelper<bool> _isItemSelected;
 		private TransactionViewModel _selectedTransaction;
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
+		public ReactiveCommand<Unit, Unit> CopyTransactionId { get; }
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 
 		public HistoryTabViewModel(WalletViewModel walletViewModel)
@@ -30,22 +33,35 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Transactions = new ObservableCollection<TransactionViewModel>();
 
-			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
-				{
-					if (Global.UiConfig?.Autocopy is false || transaction is null)
-					{
-						return;
-					}
-
-					await transaction.TryCopyTxIdToClipboardAsync();
-				});
-
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);
-			SortCommand.ThrownExceptions
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogError(ex));
-
 			DateSortDirection = SortOrder.Decreasing;
+
+			_isItemSelected = this
+				.WhenAnyValue(x => x.SelectedTransaction)
+				.Select(x => x is { })
+				.ToProperty(this, x => x.IsItemSelected, scheduler: RxApp.MainThreadScheduler);
+			IObservable<bool> canExecuteContextMenuItem = this.WhenAnyValue(x => x.IsItemSelected);
+
+			CopyTransactionId = ReactiveCommand.CreateFromTask(async () =>
+			{
+				var selectedTransaction = SelectedTransaction;
+				if (selectedTransaction is null)
+				{
+					return;
+				}
+
+				await selectedTransaction.TryCopyTxIdToClipboardAsync();
+			}, canExecuteContextMenuItem);
+
+			Observable
+				.Merge(SortCommand.ThrownExceptions)
+				.Merge(CopyTransactionId.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex =>
+				{
+					NotificationHelpers.Error(ex.ToTypeMessageString());
+					Logger.LogWarning(ex);
+				});
 
 			_ = TryRewriteTableAsync();
 		}
@@ -123,6 +139,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _transactions;
 			set => this.RaiseAndSetIfChanged(ref _transactions, value);
 		}
+
+		public bool IsItemSelected => _isItemSelected?.Value ?? default;
 
 		public TransactionViewModel SelectedTransaction
 		{

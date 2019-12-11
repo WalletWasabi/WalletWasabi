@@ -26,7 +26,7 @@ namespace System
 			}
 		}
 
-		public static Dictionary<string, string> BitcoinCoreTranslations { get; } = new Dictionary<string, string>
+		public static Dictionary<string, string> Translations { get; } = new Dictionary<string, string>
 		{
 			["too-long-mempool-chain"] = "At least one coin you are trying to spend is part of long or heavy chain of unconfirmed transactions. You must wait for some previous transactions to confirm.",
 			["bad-txns-inputs-missingorspent"] = "At least one coin you are trying to spend is already spent.",
@@ -34,10 +34,12 @@ namespace System
 			["txn-mempool-conflict"] = "At least one coin you are trying to spend is already spent.",
 			["bad-txns-inputs-duplicate"] = "The transaction contains duplicated inputs.",
 			["bad-txns-nonfinal"] = "The transaction is not final and cannot be broadcasted.",
-			["bad-txns-oversize"] = "The transaction is too big."
+			["bad-txns-oversize"] = "The transaction is too big.",
+
+			["invalid password"] = "Wrong password."
 		};
 
-		public static string ToUserFriendlyString(this HttpRequestException ex)
+		public static string ToUserFriendlyString(this Exception ex)
 		{
 			var trimmed = Guard.Correct(ex.Message);
 			if (trimmed.Length == 0)
@@ -46,7 +48,7 @@ namespace System
 			}
 			else
 			{
-				foreach (KeyValuePair<string, string> pair in BitcoinCoreTranslations)
+				foreach (KeyValuePair<string, string> pair in Translations)
 				{
 					if (trimmed.Contains(pair.Key, StringComparison.InvariantCultureIgnoreCase))
 					{

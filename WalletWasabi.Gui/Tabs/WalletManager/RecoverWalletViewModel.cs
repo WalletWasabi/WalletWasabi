@@ -77,7 +77,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					try
 					{
 						var mnemonic = new Mnemonic(MnemonicWords);
-						KeyManager.Recover(mnemonic, Password, walletFilePath, keyPath, MinGapLimit);
+						var km = KeyManager.Recover(mnemonic, Password, filePath: null, keyPath, MinGapLimit);
+						km.SetNetwork(Global.Network);
+						km.SetFilePath(walletFilePath);
+						km.ToFile();
 
 						NotificationHelpers.Success("Wallet is successfully recovered!");
 
@@ -152,21 +155,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		}
 
 		public ReactiveCommand<Unit, Unit> RecoverCommand { get; }
-
-		public void OnTermsClicked()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel(Global));
-		}
-
-		public void OnPrivacyClicked()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel(Global));
-		}
-
-		public void OnLegalClicked()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel(Global));
-		}
 
 		public override void OnCategorySelected()
 		{

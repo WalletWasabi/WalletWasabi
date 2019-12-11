@@ -209,6 +209,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					Logger.LogWarning(ex);
 				}
+
+				Password = string.Empty;
 			}
 			finally
 			{

@@ -28,6 +28,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
 		private SuggestLabelViewModel _labelSuggestion;
+		private ObservableAsPropertyHelper<bool> _isItemSelected;
 
 		public ReactiveCommand<Unit, Unit> CopyAddress { get; }
 		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
@@ -73,6 +74,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					 });
 				});
 
+			_isItemSelected = this
+				.WhenAnyValue(x => x.SelectedAddress)
+				.Select(x => x is { })
+				.ToProperty(this, x => x.IsItemSelected, scheduler: RxApp.MainThreadScheduler);
+			IObservable<bool> canExecuteContextMenuItem = this.WhenAnyValue(x => x.IsItemSelected);
+
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
 				{
 					if (Global.UiConfig?.Autocopy is false || address is null)
@@ -83,49 +90,72 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					await address.TryCopyToClipboardAsync();
 				});
 
-			var isCoinListItemSelected = this.WhenAnyValue(x => x.SelectedAddress).Select(coin => coin is { });
-
 			CopyAddress = ReactiveCommand.CreateFromTask(async () =>
 			{
-				if (SelectedAddress is null)
+				var selectedAddress = SelectedAddress;
+				if (selectedAddress is null)
 				{
 					return;
 				}
 
-				await SelectedAddress.TryCopyToClipboardAsync();
-			},
-			isCoinListItemSelected);
+				await selectedAddress.TryCopyToClipboardAsync();
+			}, canExecuteContextMenuItem);
 
-			CopyLabel = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(SelectedAddress.Label ?? string.Empty), isCoinListItemSelected);
+			CopyLabel = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(SelectedAddress?.Label ?? string.Empty), canExecuteContextMenuItem);
 
-			ToggleQrCode = ReactiveCommand.Create(() => ToggleSelectedAddress(), isCoinListItemSelected);
+			ToggleQrCode = ReactiveCommand.Create(() =>
+			{
+				var selectedAddress = SelectedAddress;
+				if (selectedAddress is null)
+				{
+					return;
+				}
 
-#pragma warning disable IDE0053 // Use expression body for lambda expressions
-			ChangeLabelCommand = ReactiveCommand.Create(() => { SelectedAddress.InEditMode = true; });
-#pragma warning restore IDE0053 // Use expression body for lambda expressions
+				selectedAddress.IsExpanded = !selectedAddress.IsExpanded;
+			}, canExecuteContextMenuItem);
+
+			ChangeLabelCommand = ReactiveCommand.Create(() =>
+			{
+				var selectedAddress = SelectedAddress;
+				if (selectedAddress is null)
+				{
+					return;
+				}
+
+				SelectedAddress.InEditMode = true;
+			}, canExecuteContextMenuItem);
 
 			DisplayAddressOnHwCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
+				var selectedAddress = SelectedAddress;
+				if (selectedAddress is null)
+				{
+					return;
+				}
+
 				var client = new HwiClient(Global.Network);
 				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 				try
 				{
-					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, SelectedAddress.Model.FullKeyPath, cts.Token);
+					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, selectedAddress.Model.FullKeyPath, cts.Token);
 				}
 				catch (HwiException)
 				{
 					await PinPadViewModel.UnlockAsync(Global);
-					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, SelectedAddress.Model.FullKeyPath, cts.Token);
+					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, selectedAddress.Model.FullKeyPath, cts.Token);
 				}
-			});
+			}, canExecuteContextMenuItem);
 
 			SaveQRCodeCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				if (SelectedAddress is { })
+				var selectedAddress = SelectedAddress;
+				if (selectedAddress is null)
 				{
-					await SelectedAddress.SaveQRCodeAsync();
+					return;
 				}
-			});
+
+				await selectedAddress.SaveQRCodeAsync();
+			}, canExecuteContextMenuItem);
 
 			Observable
 				.Merge(DisplayAddressOnHwCommand.ThrownExceptions)
@@ -144,11 +174,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public SuggestLabelViewModel LabelSuggestion => _labelSuggestion;
-
-		private void ToggleSelectedAddress()
-		{
-			SelectedAddress.IsExpanded = !SelectedAddress.IsExpanded;
-		}
 
 		public override void OnOpen()
 		{
@@ -207,5 +232,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _selectedAddress;
 			set => this.RaiseAndSetIfChanged(ref _selectedAddress, value);
 		}
+
+		public bool IsItemSelected => _isItemSelected?.Value ?? default;
 	}
 }

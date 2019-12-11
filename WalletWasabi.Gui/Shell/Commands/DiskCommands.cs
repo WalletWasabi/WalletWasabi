@@ -4,6 +4,7 @@ using System;
 using System.Composition;
 using System.IO;
 using System.Reactive.Linq;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Shell.Commands
@@ -69,17 +70,17 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnOpenLogFile()
 		{
-			IoHelpers.OpenFileInTextEditor(Logger.FilePath);
+			FileHelpers.OpenFileInTextEditor(Logger.FilePath);
 		}
 
 		private void OnOpenTorLogFile()
 		{
-			IoHelpers.OpenFileInTextEditor(Global.TorLogsFile);
+			FileHelpers.OpenFileInTextEditor(Global.TorLogsFile);
 		}
 
 		private void OnOpenConfigFile()
 		{
-			IoHelpers.OpenFileInTextEditor(Global.Config.FilePath);
+			FileHelpers.OpenFileInTextEditor(Global.Config.FilePath);
 		}
 
 		[ExportCommandDefinition("File.Open.DataFolder")]

@@ -22,7 +22,7 @@
       <sys:Double x:Key="FontSizeSmall">12</sys:Double>
       <sys:Double x:Key="FontSizeNormal">14</sys:Double>
       <sys:Double x:Key="FontSizeLarge">16</sys:Double>
-      <FontFamily x:Key="MonospacedFont">avares://WalletWasabi.Gui/Assets#Cascadia Code</FontFamily>
+      <FontFamily x:Key="MonospacedFont">avares://WalletWasabi.Gui/Assets#Cascadia Mono</FontFamily>
       <converters:ErrorSeverityColorConverter x:Key="ErrorSeverityColorConverter" />
       <converters:ErrorDescriptorToBorderColorConverter x:Key="ErrorDescriptorToBorderColorConverter" />
     </Style.Resources>

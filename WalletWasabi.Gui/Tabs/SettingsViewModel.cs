@@ -98,27 +98,29 @@ namespace WalletWasabi.Gui.Tabs
 
 			SetClearPinCommand = ReactiveCommand.Create(() =>
 				{
-					var pinBoxText = PinBoxText?.Trim();
-					if (string.IsNullOrWhiteSpace(pinBoxText))
+					var pinBoxText = PinBoxText;
+					if (string.IsNullOrEmpty(pinBoxText))
 					{
 						NotificationHelpers.Error("Please provide a PIN.");
 						return;
 					}
 
-					if (pinBoxText.Length > 10)
-					{
-						NotificationHelpers.Error("PIN is too long.");
-						return;
-					}
-
-					if (pinBoxText.Any(x => !char.IsDigit(x)))
+					var trimmedPinBoxText = pinBoxText?.Trim();
+					if (string.IsNullOrEmpty(trimmedPinBoxText)
+						|| trimmedPinBoxText.Any(x => !char.IsDigit(x)))
 					{
 						NotificationHelpers.Error("Invalid PIN.");
 						return;
 					}
 
+					if (trimmedPinBoxText.Length > 10)
+					{
+						NotificationHelpers.Error("PIN is too long.");
+						return;
+					}
+
 					var uiConfigPinHash = Global.UiConfig.LockScreenPinHash;
-					var enteredPinHash = HashHelpers.GenerateSha256Hash(pinBoxText);
+					var enteredPinHash = HashHelpers.GenerateSha256Hash(trimmedPinBoxText);
 
 					if (IsPinSet)
 					{
@@ -186,9 +188,11 @@ namespace WalletWasabi.Gui.Tabs
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(LurkingWifeMode)))
 				.DisposeWith(Disposables);
 
-			_isPinSet = Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
+			_isPinSet = Global.UiConfig
+				.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
 				.ToProperty(this, x => x.IsPinSet, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
+			this.RaisePropertyChanged(nameof(IsPinSet)); // Fire now otherwise the button won't update for restart.
 
 			Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee)
 				.Throttle(TimeSpan.FromSeconds(1))
@@ -374,7 +378,7 @@ namespace WalletWasabi.Gui.Tabs
 
 		private void OpenConfigFile()
 		{
-			IoHelpers.OpenFileInTextEditor(Global.Config.FilePath);
+			FileHelpers.OpenFileInTextEditor(Global.Config.FilePath);
 		}
 
 		#region Validation
