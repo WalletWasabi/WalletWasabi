@@ -45,7 +45,7 @@
                 <Grid.ContextMenu>
                   <ContextMenu>
                     <MenuItem Header="{Binding ExpandMenuCaption}"
-                              Command="{Binding $parent[controls:ExtendedListBox].DataContext.ToggleQrCode}">
+                              Command="{Binding ToggleQrCode}">
                       <MenuItem.Icon>
                         <DrawingPresenter HorizontalAlignment="Left"
                                           Height="16"
@@ -55,7 +55,7 @@
                       </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="Save QR Code"
-                              Command="{Binding $parent[controls:ExtendedListBox].DataContext.SaveQRCodeCommand}"
+                              Command="{Binding SaveQRCodeCommand}"
                               IsVisible="{Binding IsExpanded}">
                       <MenuItem.Icon>
                         <Path HorizontalAlignment="Left"
@@ -65,7 +65,7 @@
                       </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="Copy address"
-                              Command="{Binding $parent[controls:ExtendedListBox].DataContext.CopyAddress}">
+                              Command="{Binding CopyAddress}">
                       <MenuItem.Icon>
                         <DrawingPresenter HorizontalAlignment="Left"
                                           Height="16"
@@ -75,7 +75,7 @@
                       </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="Copy label"
-                              Command="{Binding $parent[controls:ExtendedListBox].DataContext.CopyLabel}">
+                              Command="{Binding CopyLabel}">
                       <MenuItem.Icon>
                         <DrawingPresenter HorizontalAlignment="Left"
                                           Height="16"
@@ -85,7 +85,7 @@
                       </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="Change Label"
-                              Command="{Binding $parent[controls:ExtendedListBox].DataContext.ChangeLabelCommand}">
+                              Command="{Binding ChangeLabelCommand}">
                       <MenuItem.Icon>
                         <DrawingPresenter HorizontalAlignment="Left"
                                           Height="16"

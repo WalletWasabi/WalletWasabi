@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.ViewModels
@@ -25,6 +26,13 @@ namespace WalletWasabi.Gui.ViewModels
 		private string _label;
 		private bool _inEditMode;
 		private ObservableAsPropertyHelper<string> _expandMenuCaption;
+
+		public ReactiveCommand<Unit, Unit> CopyAddress { get; }
+		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
+		public ReactiveCommand<Unit, Unit> ToggleQrCode { get; }
+		public ReactiveCommand<Unit, Unit> ChangeLabelCommand { get; }
+		public ReactiveCommand<Unit, Unit> SaveQRCodeCommand { get; }
+
 
 		public HdPubKey Model { get; }
 		public Global Global { get; }
@@ -82,6 +90,36 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.ToProperty(this, x => x.ExpandMenuCaption)
 				.DisposeWith(Disposables);
+
+
+			CopyAddress = ReactiveCommand.CreateFromTask(async () => await TryCopyToClipboardAsync());
+
+			CopyLabel = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Label ?? string.Empty));
+
+			SaveQRCodeCommand = ReactiveCommand.CreateFromTask(async () => await SaveQRCodeAsync());
+
+			ToggleQrCode = ReactiveCommand.Create(() =>
+			{
+				IsExpanded = !IsExpanded;
+			});
+
+			ChangeLabelCommand = ReactiveCommand.Create(() =>
+			{
+				InEditMode = true;
+			});
+
+			Observable
+				.Merge(ChangeLabelCommand.ThrownExceptions)
+				.Merge(ToggleQrCode.ThrownExceptions)
+				.Merge(CopyAddress.ThrownExceptions)
+				.Merge(CopyLabel.ThrownExceptions)
+				.Merge(SaveQRCodeCommand.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex =>
+				{
+					NotificationHelpers.Error(ex.ToTypeMessageString());
+					Logger.LogWarning(ex);
+				});
 		}
 
 		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
