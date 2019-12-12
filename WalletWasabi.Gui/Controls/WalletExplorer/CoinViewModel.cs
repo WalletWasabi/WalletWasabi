@@ -26,11 +26,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<bool> _confirmed;
 		private ObservableAsPropertyHelper<bool> _unavailable;
 		public Global Global { get; set; }
+		public CoinListViewModel ParentViewModel { get; }
 
-		public CoinViewModel(Global global, SmartCoin model)
+		public ReactiveCommand<Unit, Unit> EnqueueCoin { get; }
+		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
+
+		public CoinViewModel(Global global, SmartCoin model, CoinListViewModel coinListViewModel)
 		{
 			Model = model;
 			Global = global;
+			ParentViewModel = coinListViewModel;
 
 			RefreshSmartCoinStatus();
 
@@ -83,6 +88,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					this.RaisePropertyChanged(nameof(AmountBtc));
 					this.RaisePropertyChanged(nameof(Clusters));
 				}).DisposeWith(Disposables);
+
+			DequeueCoin = ReactiveCommand.Create(() => ParentViewModel.InvokeDequeueCoinsPressed(this), this.WhenAnyValue(x => x.CoinJoinInProgress));
 		}
 
 		public SmartCoin Model { get; }

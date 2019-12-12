@@ -58,8 +58,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public Global Global { get; }
 		public CoinListContainerType CoinListContainerType { get; }
-		public ReactiveCommand<Unit, Unit> EnqueueCoin { get; }
-		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
 		public ReactiveCommand<Unit, Unit> SelectAllCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SelectPrivateCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SelectNonPrivateCheckBoxCommand { get; }
@@ -67,9 +65,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> InitList { get; }
 
 		public event EventHandler DequeueCoinsPressed;
-
 		public event EventHandler CoinListShown;
-
 		public event EventHandler SelectionChanged;
 
 		public ReadOnlyObservableCollection<CoinViewModel> Coins => _coinViewModels;
@@ -79,19 +75,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _myComparer;
 			set => this.RaiseAndSetIfChanged(ref _myComparer, value);
 		}
-
-		public CoinViewModel SelectedCoin
-		{
-			get => _selectedCoin;
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _selectedCoin, value);
-				this.RaisePropertyChanged(nameof(CanDeqeue));
-			}
-		}
-
-		public bool CanDeqeue => SelectedCoin?.CoinJoinInProgress ?? false;
-
+ 
 		public bool? SelectAllCheckBoxState
 		{
 			get => _selectAllCheckBoxState;
@@ -114,6 +98,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _amountSortDirection;
 			set => this.RaiseAndSetIfChanged(ref _amountSortDirection, value);
+		}
+
+		internal void OnDequeueCoinsPressed(CoinViewModel coinViewModel)
+		{
+			throw new NotImplementedException();
 		}
 
 		public SortOrder PrivacySortDirection
@@ -327,17 +316,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				});
 
-			DequeueCoin = ReactiveCommand.Create(() =>
-				{
-					if (SelectedCoin is null)
-					{
-						return;
-					}
-
-					DequeueCoinsPressed?.Invoke(this, EventArgs.Empty);
-				},
-				this.WhenAnyValue(x => x.CanDeqeue));
-
 			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
 				{
 					switch (SelectAllCheckBoxState)
@@ -400,7 +378,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(SelectNonPrivateCheckBoxCommand.ThrownExceptions)
 				.Merge(SelectPrivateCheckBoxCommand.ThrownExceptions)
 				.Merge(SelectAllCheckBoxCommand.ThrownExceptions)
-				.Merge(DequeueCoin.ThrownExceptions)
 				.Merge(SortCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
@@ -449,7 +426,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 						RootList.RemoveMany(coinToRemove.Select(kp => kp.Value));
 
-						var newCoinViewModels = coinToAdd.Select(c => new CoinViewModel(Global, c)).ToArray();
+						var newCoinViewModels = coinToAdd.Select(c => new CoinViewModel(Global, c, this)).ToArray();
 						foreach (var cvm in newCoinViewModels)
 						{
 							SubscribeToCoinEvents(cvm);
@@ -582,6 +559,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			// Do not dispose the RootList here. It will be reused next time when you open CoinJoinTab or SendTab.
 			Disposables?.Dispose();
 			Disposables = null;
+		}
+
+		internal void InvokeDequeueCoinsPressed(CoinViewModel target)
+		{
+			DequeueCoinsPressed.Invoke(target, EventArgs.Empty);
 		}
 	}
 }
