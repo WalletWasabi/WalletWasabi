@@ -410,10 +410,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				catch (HttpRequestException ex)
 				{
 					NotificationHelpers.Error(ex.ToUserFriendlyString());
+					Logger.LogError(ex);
 				}
 				catch (Exception ex)
 				{
 					NotificationHelpers.Error(ex.ToTypeMessageString());
+					Logger.LogError(ex);
 				}
 				finally
 				{
@@ -453,6 +455,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(UserFeeTextKeyUpCommand.ThrownExceptions)
 				.Merge(FeeSliderClickedCommand.ThrownExceptions)
 				.Merge(HighLightFeeSliderCommand.ThrownExceptions)
+				.Merge(AmountKeyUpCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
