@@ -74,31 +74,27 @@
       </StackPanel>
       <controls:BusyIndicator IsBusy="{Binding IsCoinListLoading}" Text="Loading...">
         <controls:ExtendedListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
-          <controls:ExtendedListBox.ContextMenu>
-            <ContextMenu>
-              <!--Enqueuing needs password, TODO: jump to password box OR display pw box in context menu + send button-->
-              <MenuItem Command="{Binding EnqueueCoin}" IsVisible="false">
-                <MenuItem.Header>
-                  <Grid>
-                    <Grid.ColumnDefinitions>
-                      <ColumnDefinition />
-                      <ColumnDefinition />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="Enqueue Coin, password:" VerticalAlignment="Center" />
-                    <TextBox Width="50" Grid.Column="1" />
-                  </Grid>
-                </MenuItem.Header>
-              </MenuItem>
-              <MenuItem Header="Dequeue from CoinJoin" Command="{Binding DequeueCoin}">
-                <MenuItem.Icon>
-                  <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource CoinListView_DequeueCoin}" />
-                </MenuItem.Icon>
-              </MenuItem>
-            </ContextMenu>
-          </controls:ExtendedListBox.ContextMenu>
           <controls:ExtendedListBox.ItemTemplate>
             <DataTemplate>
               <Grid>
+                <Grid.ContextMenu>
+                  <ContextMenu>
+                    <!--Enqueuing needs password, TODO: jump to password box OR display pw box in context menu + send button-->
+                    <MenuItem Command="{Binding $parent[controls:ExtendedListBox].DataContext.EnqueueCoin}" IsVisible="false">
+                      <MenuItem.Header>
+                        <Grid ColumnDefinitions="Auto,Auto">
+                          <TextBlock Text="Enqueue Coin, password:" VerticalAlignment="Center" />
+                          <TextBox Width="50" Grid.Column="1" />
+                        </Grid>
+                      </MenuItem.Header>
+                    </MenuItem>
+                    <MenuItem Header="Dequeue from CoinJoin" Command="{Binding $parent[controls:ExtendedListBox].DataContext.DequeueCoin}">
+                      <MenuItem.Icon>
+                        <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource CoinListView_DequeueCoin}" />
+                      </MenuItem.Icon>
+                    </MenuItem>
+                  </ContextMenu>
+                </Grid.ContextMenu>
                 <Expander Name="coinExpander" ExpandDirection="Down" Classes="coloredExpander" Background="{Binding ElementName=coinExpander, Path=IsExpanded, Converter={StaticResource CoinItemExpanderColorConverter}}">
                   <Grid HorizontalAlignment="Left" ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" MaxWidth="800" Margin="35 10 0 25">
                     <TextBlock Classes="monospaceFont" Text="Transaction Id:" Grid.Row="0" />
