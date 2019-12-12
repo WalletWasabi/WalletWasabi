@@ -27,7 +27,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
 
-			CopyTransactionId = ReactiveCommand.CreateFromTask(async () => await TryCopyTxIdToClipboardAsync());
+			CopyTransactionId = ReactiveCommand.CreateFromTask(TryCopyTxIdToClipboardAsync);
 
 			CopyTransactionId
 				.ThrownExceptions
