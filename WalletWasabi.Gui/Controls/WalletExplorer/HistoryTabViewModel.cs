@@ -24,7 +24,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
-		public ReactiveCommand<Unit, Unit> CopyTransactionId { get; }
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 
 		public HistoryTabViewModel(WalletViewModel walletViewModel)
@@ -34,21 +33,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);
 			DateSortDirection = SortOrder.Decreasing;
-
-			CopyTransactionId = ReactiveCommand.CreateFromTask(async () =>
-			{
-				var selectedTransaction = SelectedTransaction;
-				if (selectedTransaction is null)
-				{
-					return;
-				}
-
-				await selectedTransaction.TryCopyTxIdToClipboardAsync();
-			});
-
+ 
 			Observable
 				.Merge(SortCommand.ThrownExceptions)
-				.Merge(CopyTransactionId.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
