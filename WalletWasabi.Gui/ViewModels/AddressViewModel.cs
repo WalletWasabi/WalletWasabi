@@ -33,7 +33,6 @@ namespace WalletWasabi.Gui.ViewModels
 		public ReactiveCommand<Unit, Unit> ChangeLabelCommand { get; }
 		public ReactiveCommand<Unit, Unit> SaveQRCodeCommand { get; }
 
-
 		public HdPubKey Model { get; }
 		public Global Global { get; }
 
@@ -90,7 +89,6 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.ToProperty(this, x => x.ExpandMenuCaption)
 				.DisposeWith(Disposables);
-
 
 			CopyAddress = ReactiveCommand.CreateFromTask(async () => await TryCopyToClipboardAsync());
 
