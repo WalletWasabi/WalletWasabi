@@ -90,11 +90,11 @@ namespace WalletWasabi.Gui.ViewModels
 				.ToProperty(this, x => x.ExpandMenuCaption)
 				.DisposeWith(Disposables);
 
-			CopyAddress = ReactiveCommand.CreateFromTask(async () => await TryCopyToClipboardAsync());
+			CopyAddress = ReactiveCommand.CreateFromTask(TryCopyToClipboardAsync);
 
 			CopyLabel = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Label ?? string.Empty));
 
-			SaveQRCodeCommand = ReactiveCommand.CreateFromTask(async () => await SaveQRCodeAsync());
+			SaveQRCodeCommand = ReactiveCommand.CreateFromTask(SaveQRCodeAsync);
 
 			ToggleQrCode = ReactiveCommand.Create(() =>
 			{
