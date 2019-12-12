@@ -135,12 +135,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						SetAmountWatermark(Money.Zero);
 					}
+
+					SetFees();
 				});
 
 			AmountKeyUpCommand = ReactiveCommand.Create((KeyEventArgs key) =>
 			{
 				var amount = AmountText;
-				if (!IsMax)
+				if (IsMax)
+				{
+					SetAmountIfMax();
+				}
+				else
 				{
 					// Correct amount
 					Regex digitsOnly = new Regex(@"[^\d,.]");
@@ -167,8 +173,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						AmountText = betterAmount;
 					}
 				}
-
-				SetFeesAndTexts();
 			});
 
 			this.WhenAnyValue(x => x.IsBusy)
@@ -510,6 +514,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFeesAndTexts()
 		{
+			SetFees();
+
+			SetAmountIfMax();
+		}
+
+		private void SetFees()
+		{
 			AllFeeEstimate allFeeEstimate = Global.FeeProviders?.AllFeeEstimate;
 
 			if (allFeeEstimate is { })
@@ -558,7 +569,79 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 
-				SetFees(allFeeEstimate, feeTarget);
+				if (IsSliderFeeUsed)
+				{
+					FeeRate = allFeeEstimate.GetFeeRate(feeTarget);
+					UserFeeText = FeeRate.SatoshiPerByte.ToString();
+				}
+
+				IEnumerable<SmartCoin> selectedCoins = CoinList.Coins.Where(cvm => cvm.IsSelected).Select(x => x.Model);
+
+				int vsize = 150;
+				if (selectedCoins.Any())
+				{
+					if (IsMax)
+					{
+						vsize = NBitcoinHelpers.CalculateVsizeAssumeSegwit(selectedCoins.Count(), 1);
+					}
+					else
+					{
+						if (Money.TryParse(AmountText.TrimStart('~', ' '), out Money amount))
+						{
+							var inNum = 0;
+							var amountSoFar = Money.Zero;
+							foreach (SmartCoin coin in selectedCoins.OrderByDescending(x => x.Amount))
+							{
+								amountSoFar += coin.Amount;
+								inNum++;
+								if (amountSoFar > amount)
+								{
+									break;
+								}
+							}
+							vsize = NBitcoinHelpers.CalculateVsizeAssumeSegwit(inNum, 2);
+						}
+						// Else whatever, do not change.
+					}
+				}
+
+				if (FeeRate != null)
+				{
+					EstimatedBtcFee = FeeRate.GetTotalFee(vsize);
+				}
+				else
+				{
+					// This should not happen. Never.
+					// If SatoshiPerByteFeeRate is null we will have problems when building the tx.
+					EstimatedBtcFee = Money.Zero;
+				}
+
+				long all = selectedCoins.Sum(x => x.Amount);
+				if (IsMax)
+				{
+					if (all != 0)
+					{
+						FeePercentage = 100 * (decimal)EstimatedBtcFee.Satoshi / all;
+					}
+					else
+					{
+						FeePercentage = 0;
+					}
+				}
+				else
+				{
+					if (Money.TryParse(AmountText.TrimStart('~', ' '), out Money amount) && amount.Satoshi != 0)
+					{
+						FeePercentage = 100 * (decimal)EstimatedBtcFee.Satoshi / amount.Satoshi;
+					}
+				}
+
+				if (UsdExchangeRate != 0)
+				{
+					UsdFee = EstimatedBtcFee.ToUsd(UsdExchangeRate);
+				}
+
+				AllSelectedAmount = Math.Max(Money.Zero, all - EstimatedBtcFee);
 				if (FeeRate is null)
 				{
 					FeeText = "";
@@ -593,8 +676,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 			}
-
-			SetAmountIfMax();
 		}
 
 		private void SetAmountIfMax()
@@ -607,83 +688,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						: "No Coins Selected"
 					: $"~ {AllSelectedAmount.ToString(false, true)}";
 			}
-		}
-
-		private void SetFees(AllFeeEstimate allFeeEstimate, int feeTarget)
-		{
-			if (IsSliderFeeUsed)
-			{
-				FeeRate = allFeeEstimate.GetFeeRate(feeTarget);
-				UserFeeText = FeeRate.SatoshiPerByte.ToString();
-			}
-
-			IEnumerable<SmartCoin> selectedCoins = CoinList.Coins.Where(cvm => cvm.IsSelected).Select(x => x.Model);
-
-			int vsize = 150;
-			if (selectedCoins.Any())
-			{
-				if (IsMax)
-				{
-					vsize = NBitcoinHelpers.CalculateVsizeAssumeSegwit(selectedCoins.Count(), 1);
-				}
-				else
-				{
-					if (Money.TryParse(AmountText.TrimStart('~', ' '), out Money amount))
-					{
-						var inNum = 0;
-						var amountSoFar = Money.Zero;
-						foreach (SmartCoin coin in selectedCoins.OrderByDescending(x => x.Amount))
-						{
-							amountSoFar += coin.Amount;
-							inNum++;
-							if (amountSoFar > amount)
-							{
-								break;
-							}
-						}
-						vsize = NBitcoinHelpers.CalculateVsizeAssumeSegwit(inNum, 2);
-					}
-					// Else whatever, do not change.
-				}
-			}
-
-			if (FeeRate != null)
-			{
-				EstimatedBtcFee = FeeRate.GetTotalFee(vsize);
-			}
-			else
-			{
-				// This should not happen. Never.
-				// If SatoshiPerByteFeeRate is null we will have problems when building the tx.
-				EstimatedBtcFee = Money.Zero;
-			}
-
-			long all = selectedCoins.Sum(x => x.Amount);
-			if (IsMax)
-			{
-				if (all != 0)
-				{
-					FeePercentage = 100 * (decimal)EstimatedBtcFee.Satoshi / all;
-				}
-				else
-				{
-					FeePercentage = 0;
-				}
-			}
-			else
-			{
-				if (Money.TryParse(AmountText.TrimStart('~', ' '), out Money amount) && amount.Satoshi != 0)
-				{
-					FeePercentage = 100 * (decimal)EstimatedBtcFee.Satoshi / amount.Satoshi;
-				}
-			}
-
-			if (UsdExchangeRate != 0)
-			{
-				UsdFee = EstimatedBtcFee.ToUsd(UsdExchangeRate);
-			}
-
-			AllSelectedAmount = Math.Max(Money.Zero, all - EstimatedBtcFee);
 		}
 
 		private void SetFeeTargetLimits()
