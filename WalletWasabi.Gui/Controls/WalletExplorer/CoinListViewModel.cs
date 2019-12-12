@@ -36,7 +36,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ReadOnlyObservableCollection<CoinViewModel> _coinViewModels;
 		private SortExpressionComparer<CoinViewModel> _myComparer;
 
-		private CoinViewModel _selectedCoin;
 		private bool? _selectAllCheckBoxState;
 		private SortOrder _statusSortDirection;
 		private SortOrder _privacySortDirection;

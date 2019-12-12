@@ -10,7 +10,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Hwi;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.ViewModels
@@ -32,14 +34,18 @@ namespace WalletWasabi.Gui.ViewModels
 		public ReactiveCommand<Unit, Unit> ToggleQrCode { get; }
 		public ReactiveCommand<Unit, Unit> ChangeLabelCommand { get; }
 		public ReactiveCommand<Unit, Unit> SaveQRCodeCommand { get; }
+		public ReactiveCommand<Unit, Unit> DisplayAddressOnHwCommand { get; }
 
-		public HdPubKey Model { get; }
 		public Global Global { get; }
+		public HdPubKey Model { get; }
+		public ReceiveTabViewModel ParentViewModel { get; }
 
-		public AddressViewModel(HdPubKey model, Global global)
+		public AddressViewModel(Global global, HdPubKey model, ReceiveTabViewModel receiveTabViewModel)
 		{
 			Global = global;
 			Model = model;
+			ParentViewModel = receiveTabViewModel;
+
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
 			_label = model.Label;
@@ -101,16 +107,19 @@ namespace WalletWasabi.Gui.ViewModels
 				IsExpanded = !IsExpanded;
 			});
 
-			ChangeLabelCommand = ReactiveCommand.Create(() =>
+			ChangeLabelCommand = ReactiveCommand.Create(() => 
 			{
 				InEditMode = true;
 			});
+
+			DisplayAddressOnHwCommand = ReactiveCommand.CreateFromTask(async () => await ParentViewModel.DoDisplayAddressAsync(this));
 
 			Observable
 				.Merge(ChangeLabelCommand.ThrownExceptions)
 				.Merge(ToggleQrCode.ThrownExceptions)
 				.Merge(CopyAddress.ThrownExceptions)
 				.Merge(CopyLabel.ThrownExceptions)
+				.Merge(DisplayAddressOnHwCommand.ThrownExceptions)
 				.Merge(SaveQRCodeCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>

@@ -94,9 +94,9 @@
                                           Drawing="{StaticResource ReceiveTabView_ChangeLabel}" />
                       </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem IsVisible="{Binding $parent[controls:ExtendedListBox].DataContext.IsHardwareWallet}"
+                    <MenuItem IsVisible="{Binding ParentViewModel.IsHardwareWallet}"
                               Header="Display address on hardware wallet"
-                              Command="{Binding $parent[controls:ExtendedListBox].DataContext.DisplayAddressOnHwCommand}">
+                              Command="{Binding DisplayAddressOnHwCommand}">
                       <MenuItem.Icon>
                         <DrawingPresenter HorizontalAlignment="Left"
                                           Height="16"
