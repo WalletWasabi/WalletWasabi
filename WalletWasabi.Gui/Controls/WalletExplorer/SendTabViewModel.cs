@@ -123,6 +123,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			SetFeesAndTexts();
 
+			this.WhenAnyValue(x => x.AmountText)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					if (Money.TryParse(x.TrimStart('~', ' '), out Money amountBtc))
+					{
+						SetAmountWatermark(amountBtc);
+					}
+					else
+					{
+						SetAmountWatermark(Money.Zero);
+					}
+				});
+
 			AmountKeyUpCommand = ReactiveCommand.Create((KeyEventArgs key) =>
 			{
 				var amount = AmountText;
@@ -152,15 +166,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						AmountText = betterAmount;
 					}
-				}
-
-				if (Money.TryParse(amount.TrimStart('~', ' '), out Money amountBtc))
-				{
-					SetAmountWatermark(amountBtc);
-				}
-				else
-				{
-					SetAmountWatermark(Money.Zero);
 				}
 
 				SetFeesAndTexts();
