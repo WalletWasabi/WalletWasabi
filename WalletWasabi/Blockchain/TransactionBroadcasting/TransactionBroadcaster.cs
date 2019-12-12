@@ -153,7 +153,6 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 
 		public async Task SendTransactionAsync(SmartTransaction transaction)
 		{
-			bool tryRemoveFromBroadcastStore = true;
 			try
 			{
 				// Broadcast to a random node.
@@ -194,6 +193,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 					{
 						Logger.LogInfo($"RPC could not broadcast transaction. Reason: {ex2.Message}.");
 						Logger.LogDebug(ex2);
+
 						await BroadcastTransactionToBackendAsync(transaction).ConfigureAwait(false);
 					}
 				}
