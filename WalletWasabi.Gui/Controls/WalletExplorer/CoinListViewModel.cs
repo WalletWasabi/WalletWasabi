@@ -99,12 +99,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _amountSortDirection;
 			set => this.RaiseAndSetIfChanged(ref _amountSortDirection, value);
 		}
-
-		internal void OnDequeueCoinsPressed(CoinViewModel coinViewModel)
-		{
-			throw new NotImplementedException();
-		}
-
+ 
 		public SortOrder PrivacySortDirection
 		{
 			get => _privacySortDirection;
