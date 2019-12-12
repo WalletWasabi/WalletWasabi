@@ -153,6 +153,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 
 		public async Task SendTransactionAsync(SmartTransaction transaction)
 		{
+			bool tryRemoveFromBroadcastStore = true;
 			try
 			{
 				// Broadcast to a random node.
@@ -191,9 +192,13 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 					}
 					catch (Exception ex2)
 					{
+						if (ex2.Message.Contains("missing-inputs", StringComparison.InvariantCultureIgnoreCase))
+						{
+							tryRemoveFromBroadcastStore = false;
+						}
+
 						Logger.LogInfo($"RPC could not broadcast transaction. Reason: {ex2.Message}.");
 						Logger.LogDebug(ex2);
-
 						await BroadcastTransactionToBackendAsync(transaction).ConfigureAwait(false);
 					}
 				}
@@ -204,7 +209,10 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 			}
 			finally
 			{
-				BitcoinStore.MempoolService.TryRemoveFromBroadcastStore(transaction.GetHash(), out _); // Remove it just to be sure. Probably has been removed previously.
+				if (tryRemoveFromBroadcastStore)
+				{
+					BitcoinStore.MempoolService.TryRemoveFromBroadcastStore(transaction.GetHash(), out _); // Remove it just to be sure. Probably has been removed previously.
+				}
 			}
 		}
 
