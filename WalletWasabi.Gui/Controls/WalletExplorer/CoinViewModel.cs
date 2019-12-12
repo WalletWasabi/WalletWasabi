@@ -9,9 +9,11 @@ using System.Reactive.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.CoinJoin.Common.Models;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -90,6 +92,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}).DisposeWith(Disposables);
 
 			DequeueCoin = ReactiveCommand.Create(() => ParentViewModel.InvokeDequeueCoinsPressed(this), this.WhenAnyValue(x => x.CoinJoinInProgress));
+
+			Observable
+				.Merge(EnqueueCoin.ThrownExceptions)
+				.Merge(DequeueCoin.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex =>
+				{
+					NotificationHelpers.Error(ex.ToTypeMessageString());
+					Logger.LogWarning(ex);
+				});
 		}
 
 		public SmartCoin Model { get; }
