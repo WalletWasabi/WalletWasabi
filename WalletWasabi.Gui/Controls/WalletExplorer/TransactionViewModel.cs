@@ -29,11 +29,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			CopyTransactionId = ReactiveCommand.CreateFromTask(async () => await TryCopyTxIdToClipboardAsync());
 
-			CopyTransactionId.ThrownExceptions.Subscribe(ex =>
-			{
-				NotificationHelpers.Error(ex.ToTypeMessageString());
-				Logger.LogWarning(ex);
-			});
+			CopyTransactionId
+				.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex =>
+				{
+					NotificationHelpers.Error(ex.ToTypeMessageString());
+					Logger.LogWarning(ex);
+				});
 		}
 
 		public void Refresh()
