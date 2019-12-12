@@ -28,18 +28,18 @@
             <controls:SortingArrow Grid.Column="3" Command="{Binding SortCommand}" Text="Transaction ID" SortDirection="{Binding TransactionSortDirection}" />
           </Grid>
           <controls:ExtendedListBox Items="{Binding Transactions}" SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}">
-            <controls:ExtendedListBox.ContextMenu>
-              <ContextMenu IsVisible="{Binding IsItemSelected}">
-                <MenuItem Header="Copy transaction ID" Command="{Binding CopyTransactionId}">
-                  <MenuItem.Icon>
-                    <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource ReceiveTabView_CopyIcon}" />
-                  </MenuItem.Icon>
-                </MenuItem>
-              </ContextMenu>
-            </controls:ExtendedListBox.ContextMenu>
             <controls:ExtendedListBox.ItemTemplate>
               <DataTemplate>
                 <Grid ColumnDefinitions="40, 160, 150, *">
+                  <Grid.ContextMenu>
+                    <ContextMenu>
+                      <MenuItem Header="Copy transaction ID" Command="{Binding $parent[controls:ExtendedListBox].DataContext.CopyTransactionId}">
+                        <MenuItem.Icon>
+                          <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource ReceiveTabView_CopyIcon}" />
+                        </MenuItem.Icon>
+                      </MenuItem>
+                    </ContextMenu>
+                  </Grid.ContextMenu>
                   <Grid.Styles>
                     <Style Selector="TextBlock">
                       <Setter Property="VerticalAlignment" Value="Center" />
