@@ -126,7 +126,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 						}
 					}
 
-					throw ex2;
+					throw;
 				}
 			}
 
