@@ -74,18 +74,19 @@
       </StackPanel>
       <controls:BusyIndicator IsBusy="{Binding IsCoinListLoading}" Text="Loading...">
         <controls:ExtendedListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
-          <controls:ExtendedListBox.ContextMenu>
-            <ContextMenu>
-              <MenuItem Header="Dequeue from CoinJoin" Command="{Binding DequeueCoin}">
-                <MenuItem.Icon>
-                  <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource CoinListView_DequeueCoin}" />
-                </MenuItem.Icon>
-              </MenuItem>
-            </ContextMenu>
-          </controls:ExtendedListBox.ContextMenu>
           <controls:ExtendedListBox.ItemTemplate>
             <DataTemplate>
               <Grid>
+                <Grid.ContextMenu>
+                  <!-- If you want to add more items to the context menu and you want the Send tab to show it too, then place IsVisible="{Binding InCoinJoinContainer}" directly to the Dequeue MenuItem. -->
+                  <ContextMenu IsVisible="{Binding InCoinJoinContainer}">
+                    <MenuItem  Header="Dequeue from CoinJoin" Command="{Binding DequeueCoin}">
+                      <MenuItem.Icon>
+                        <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource CoinListView_DequeueCoin}" />
+                      </MenuItem.Icon>
+                    </MenuItem>
+                  </ContextMenu>
+                </Grid.ContextMenu>
                 <Expander Name="coinExpander" ExpandDirection="Down" Classes="coloredExpander" Background="{Binding ElementName=coinExpander, Path=IsExpanded, Converter={StaticResource CoinItemExpanderColorConverter}}">
                   <Grid HorizontalAlignment="Left" ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" MaxWidth="800" Margin="35 10 0 25">
                     <TextBlock Classes="monospaceFont" Text="Transaction Id:" Grid.Row="0" />

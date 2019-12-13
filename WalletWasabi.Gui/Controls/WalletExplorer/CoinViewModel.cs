@@ -25,12 +25,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<bool> _unspent;
 		private ObservableAsPropertyHelper<bool> _confirmed;
 		private ObservableAsPropertyHelper<bool> _unavailable;
-		public Global Global { get; set; }
 
-		public CoinViewModel(Global global, SmartCoin model)
+		public CoinListViewModel Owner { get; }
+		public Global Global { get; set; }
+		public bool InCoinJoinContainer { get; }
+
+		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
+
+		public CoinViewModel(CoinListViewModel owner, Global global, SmartCoin model)
 		{
 			Model = model;
+			Owner = owner;
 			Global = global;
+			InCoinJoinContainer = owner.CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel;
 
 			RefreshSmartCoinStatus();
 
@@ -83,6 +90,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					this.RaisePropertyChanged(nameof(AmountBtc));
 					this.RaisePropertyChanged(nameof(Clusters));
 				}).DisposeWith(Disposables);
+
+			DequeueCoin = ReactiveCommand.Create(() => Owner.PressDequeue(Model), this.WhenAnyValue(x => x.CoinJoinInProgress));
+
+			DequeueCoin.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logging.Logger.LogError(ex)); // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
 		}
 
 		public SmartCoin Model { get; }
