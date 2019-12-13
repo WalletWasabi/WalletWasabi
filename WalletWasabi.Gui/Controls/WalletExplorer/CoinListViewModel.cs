@@ -58,7 +58,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public Global Global { get; }
 		public CoinListContainerType CoinListContainerType { get; }
-		public ReactiveCommand<Unit, Unit> EnqueueCoin { get; }
 		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
 		public ReactiveCommand<Unit, Unit> SelectAllCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SelectPrivateCheckBoxCommand { get; }
