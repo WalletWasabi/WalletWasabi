@@ -28,6 +28,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private ObservableAsPropertyHelper<string> _expandMenuCaption;
 		public ReactiveCommand<Unit, bool> ToggleQrCode { get; }
 		public ReactiveCommand<Unit, Unit> SaveQRCode { get; }
+		public ReactiveCommand<Unit, Unit> CopyAddress { get; }
 
 		public HdPubKey Model { get; }
 		public Global Global { get; }
@@ -90,9 +91,12 @@ namespace WalletWasabi.Gui.ViewModels
 
 			SaveQRCode = ReactiveCommand.CreateFromTask(SaveQRCodeAsync);
 
+			CopyAddress = ReactiveCommand.CreateFromTask(TryCopyToClipboardAsync);
+
 			Observable
 				.Merge(ToggleQrCode.ThrownExceptions)
 				.Merge(SaveQRCode.ThrownExceptions)
+				.Merge(CopyAddress.ThrownExceptions)
 				.Subscribe(ex =>
 				{
 					NotificationHelpers.Error(ex.ToTypeMessageString());
