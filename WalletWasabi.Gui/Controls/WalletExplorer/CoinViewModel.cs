@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<bool> _confirmed;
 		private ObservableAsPropertyHelper<bool> _unavailable;
 		public Global Global { get; set; }
-		public CoinListViewModel ParentViewModel { get; }
+		private CoinListViewModel ParentViewModel { get; }
 
 		public ReactiveCommand<Unit, Unit> EnqueueCoin { get; }
 		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
