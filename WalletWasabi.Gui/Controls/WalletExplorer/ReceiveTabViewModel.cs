@@ -29,7 +29,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private AddressViewModel _selectedAddress;
 		private SuggestLabelViewModel _labelSuggestion;
 
-		public ReactiveCommand<Unit, Unit> DisplayAddressOnHwCommand { get; }
 		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
 
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
@@ -61,7 +60,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							 NotificationHelpers.Warning($"{nameof(KeyManager.MinGapLimit)} increased from {prevMinGapLimit} to {minGapLimit}.");
 						 }
 
-						 var newAddress = new AddressViewModel(newKey, Global);
+						 var newAddress = new AddressViewModel(newKey, Global, KeyManager);
 						 Addresses.Insert(0, newAddress);
 						 SelectedAddress = newAddress;
 						 _labelSuggestion.Label = "";
@@ -79,29 +78,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					await address.TryCopyToClipboardAsync();
 				});
 
-			DisplayAddressOnHwCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				var selectedAddress = SelectedAddress;
-				if (selectedAddress is null)
-				{
-					return;
-				}
-
-				var client = new HwiClient(Global.Network);
-				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-				try
-				{
-					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, selectedAddress.Model.FullKeyPath, cts.Token);
-				}
-				catch (HwiException)
-				{
-					await PinPadViewModel.UnlockAsync(Global);
-					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, selectedAddress.Model.FullKeyPath, cts.Token);
-				}
-			});
-
 			Observable
-				.Merge(DisplayAddressOnHwCommand.ThrownExceptions)
 				.Merge(GenerateCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
@@ -150,7 +127,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				IEnumerable<HdPubKey> keys = walletService.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
 				foreach (HdPubKey key in keys)
 				{
-					_addresses.Add(new AddressViewModel(key, Global));
+					_addresses.Add(new AddressViewModel(key, Global, KeyManager));
 				}
 			}
 			catch (Exception ex)

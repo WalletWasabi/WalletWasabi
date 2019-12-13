@@ -10,7 +10,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Hwi;
+using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.ViewModels
@@ -31,13 +34,18 @@ namespace WalletWasabi.Gui.ViewModels
 		public ReactiveCommand<Unit, Unit> CopyAddress { get; }
 		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
 		public ReactiveCommand<Unit, bool> ChangeLabel { get; }
+		public ReactiveCommand<Unit, Unit> DisplayAddressOnHw { get; }
 
 		public HdPubKey Model { get; }
 		public Global Global { get; }
+		public KeyManager KeyManager { get; }
+		public bool IsHardwareWallet { get; }
 
-		public AddressViewModel(HdPubKey model, Global global)
+		public AddressViewModel(HdPubKey model, Global global, KeyManager km)
 		{
 			Global = global;
+			KeyManager = km;
+			IsHardwareWallet = km.IsHardwareWallet;
 			Model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
@@ -99,12 +107,28 @@ namespace WalletWasabi.Gui.ViewModels
 
 			ChangeLabel = ReactiveCommand.Create(() => InEditMode = true);
 
+			DisplayAddressOnHw = ReactiveCommand.CreateFromTask(async () =>
+			{
+				var client = new HwiClient(Global.Network);
+				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+				try
+				{
+					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, Model.FullKeyPath, cts.Token);
+				}
+				catch (HwiException)
+				{
+					await PinPadViewModel.UnlockAsync(Global);
+					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, Model.FullKeyPath, cts.Token);
+				}
+			});
+
 			Observable
 				.Merge(ToggleQrCode.ThrownExceptions)
 				.Merge(SaveQRCode.ThrownExceptions)
 				.Merge(CopyAddress.ThrownExceptions)
 				.Merge(CopyLabel.ThrownExceptions)
 				.Merge(ChangeLabel.ThrownExceptions)
+				.Merge(DisplayAddressOnHw.ThrownExceptions)
 				.Subscribe(ex =>
 				{
 					NotificationHelpers.Error(ex.ToTypeMessageString());
