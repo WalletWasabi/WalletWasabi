@@ -20,7 +20,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private CompositeDisposable Disposables { get; set; }
 
 		private ObservableCollection<TransactionViewModel> _transactions;
-		private ObservableAsPropertyHelper<bool> _isItemSelected;
 		private TransactionViewModel _selectedTransaction;
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
@@ -36,12 +35,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);
 			DateSortDirection = SortOrder.Decreasing;
 
-			_isItemSelected = this
-				.WhenAnyValue(x => x.SelectedTransaction)
-				.Select(x => x is { })
-				.ToProperty(this, x => x.IsItemSelected, scheduler: RxApp.MainThreadScheduler);
-			IObservable<bool> canExecuteContextMenuItem = this.WhenAnyValue(x => x.IsItemSelected);
-
 			CopyTransactionId = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var selectedTransaction = SelectedTransaction;
@@ -51,7 +44,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				await selectedTransaction.TryCopyTxIdToClipboardAsync();
-			}, canExecuteContextMenuItem);
+			});
 
 			Observable
 				.Merge(SortCommand.ThrownExceptions)
@@ -139,8 +132,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _transactions;
 			set => this.RaiseAndSetIfChanged(ref _transactions, value);
 		}
-
-		public bool IsItemSelected => _isItemSelected?.Value ?? default;
 
 		public TransactionViewModel SelectedTransaction
 		{
