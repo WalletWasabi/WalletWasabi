@@ -94,7 +94,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			DequeueCoin = ReactiveCommand.Create(() => ParentViewModel.InvokeDequeueCoinsPressed(this), this.WhenAnyValue(x => x.CoinJoinInProgress));
 
 			Observable
-				.Merge(EnqueueCoin.ThrownExceptions)
 				.Merge(DequeueCoin.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
