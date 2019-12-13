@@ -30,7 +30,7 @@
           <controls:ExtendedListBox Items="{Binding Transactions}" SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}">
             <controls:ExtendedListBox.ItemTemplate>
               <DataTemplate>
-                <Grid ColumnDefinitions="40, 160, 150, *">
+                <Grid ColumnDefinitions="40, 160, 150, *" Background="Transparent">
                   <Grid.ContextMenu>
                     <ContextMenu>
                       <MenuItem Header="Copy transaction ID" Command="{Binding CopyTransactionId}">
