@@ -31,7 +31,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ReactiveCommand<Unit, Unit> CopyAddress { get; }
 		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
-		public ReactiveCommand<Unit, Unit> ToggleQrCode { get; }
 		public ReactiveCommand<Unit, Unit> ChangeLabelCommand { get; }
 		public ReactiveCommand<Unit, Unit> DisplayAddressOnHwCommand { get; }
 		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
@@ -97,17 +96,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			CopyLabel = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(SelectedAddress?.Label ?? string.Empty));
 
-			ToggleQrCode = ReactiveCommand.Create(() =>
-			{
-				var selectedAddress = SelectedAddress;
-				if (selectedAddress is null)
-				{
-					return;
-				}
-
-				selectedAddress.IsExpanded = !selectedAddress.IsExpanded;
-			});
-
 			ChangeLabelCommand = ReactiveCommand.Create(() =>
 			{
 				var selectedAddress = SelectedAddress;
@@ -154,7 +142,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Observable
 				.Merge(DisplayAddressOnHwCommand.ThrownExceptions)
 				.Merge(ChangeLabelCommand.ThrownExceptions)
-				.Merge(ToggleQrCode.ThrownExceptions)
 				.Merge(CopyAddress.ThrownExceptions)
 				.Merge(CopyLabel.ThrownExceptions)
 				.Merge(GenerateCommand.ThrownExceptions)
