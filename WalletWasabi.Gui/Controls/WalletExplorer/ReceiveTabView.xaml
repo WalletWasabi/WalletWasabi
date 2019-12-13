@@ -39,43 +39,43 @@
               <Setter Property="Padding" Value="0 0 5 0" />
             </Style>
           </controls:ExtendedListBox.Styles>
-          <controls:ExtendedListBox.ContextMenu>
-            <ContextMenu IsVisible="{Binding IsItemSelected}">
-              <MenuItem Header="{Binding SelectedAddress.ExpandMenuCaption}" Command="{Binding ToggleQrCode}">
-                <MenuItem.Icon>
-                  <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource ReceiveTabView_ToggleQrCode}" />
-                </MenuItem.Icon>
-              </MenuItem>
-              <MenuItem Header="Save QR Code" Command="{Binding SaveQRCodeCommand}" IsVisible="{Binding SelectedAddress.IsExpanded}">
-                <MenuItem.Icon>
-                  <Path HorizontalAlignment="Left" Data="M13,9V3.5L18.5,9M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z" Stretch="Fill" Fill="#22B14C" />
-                </MenuItem.Icon>
-              </MenuItem>
-              <MenuItem Header="Copy address" Command="{Binding CopyAddress}">
-                <MenuItem.Icon>
-                  <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource ReceiveTabView_CopyIcon}" />
-                </MenuItem.Icon>
-              </MenuItem>
-              <MenuItem Header="Copy label" Command="{Binding CopyLabel}">
-                <MenuItem.Icon>
-                  <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource ReceiveTabView_CopyIcon}" />
-                </MenuItem.Icon>
-              </MenuItem>
-              <MenuItem Header="Change Label" Command="{Binding ChangeLabelCommand}">
-                <MenuItem.Icon>
-                  <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource ReceiveTabView_ChangeLabel}" />
-                </MenuItem.Icon>
-              </MenuItem>
-              <MenuItem IsVisible="{Binding IsHardwareWallet}" Header="Display address on hardware wallet" Command="{Binding DisplayAddressOnHwCommand}">
-                <MenuItem.Icon>
-                  <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource ReceiveTabView_IsHardwareWallet}" />
-                </MenuItem.Icon>
-              </MenuItem>
-            </ContextMenu>
-          </controls:ExtendedListBox.ContextMenu>
           <controls:ExtendedListBox.ItemTemplate>
             <DataTemplate>
               <Grid>
+                <Grid.ContextMenu>
+                  <ContextMenu>
+                    <MenuItem Header="{Binding ExpandMenuCaption}" Command="{Binding ToggleQrCode}">
+                      <MenuItem.Icon>
+                        <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource ReceiveTabView_ToggleQrCode}" />
+                      </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Save QR Code" Command="{Binding SaveQRCode}" IsVisible="{Binding IsExpanded}">
+                      <MenuItem.Icon>
+                        <Path HorizontalAlignment="Left" Data="M13,9V3.5L18.5,9M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z" Stretch="Fill" Fill="#22B14C" />
+                      </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Copy address" Command="{Binding CopyAddress}">
+                      <MenuItem.Icon>
+                        <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource ReceiveTabView_CopyIcon}" />
+                      </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Copy label" Command="{Binding CopyLabel}">
+                      <MenuItem.Icon>
+                        <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource ReceiveTabView_CopyIcon}" />
+                      </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Change Label" Command="{Binding ChangeLabel}">
+                      <MenuItem.Icon>
+                        <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource ReceiveTabView_ChangeLabel}" />
+                      </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem IsVisible="{Binding IsHardwareWallet}" Header="Display address on hardware wallet" Command="{Binding DisplayAddressOnHw}">
+                      <MenuItem.Icon>
+                        <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource ReceiveTabView_IsHardwareWallet}" />
+                      </MenuItem.Icon>
+                    </MenuItem>
+                  </ContextMenu>
+                </Grid.ContextMenu>
                 <Expander Name="coinExpander" ExpandDirection="Down" IsExpanded="{Binding IsExpanded}" Classes="coloredExpander" Background="{Binding ElementName=coinExpander, Path=IsExpanded, Converter={StaticResource CoinItemExpanderColorConverter}}">
                   <StackPanel Orientation="Horizontal" Spacing="16" Margin="35 10 0 5">
                     <controls:QrCode Height="220" Matrix="{Binding QrCode}" SaveCommand="{Binding ExecuteSaveQRCodeCommand, Mode=OneWayToSource}" HorizontalAlignment="Left" />

@@ -28,15 +28,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
 		private SuggestLabelViewModel _labelSuggestion;
-		private ObservableAsPropertyHelper<bool> _isItemSelected;
 
-		public ReactiveCommand<Unit, Unit> CopyAddress { get; }
-		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
-		public ReactiveCommand<Unit, Unit> ToggleQrCode { get; }
-		public ReactiveCommand<Unit, Unit> ChangeLabelCommand { get; }
-		public ReactiveCommand<Unit, Unit> DisplayAddressOnHwCommand { get; }
 		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
-		public ReactiveCommand<Unit, Unit> SaveQRCodeCommand { get; }
 
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
@@ -67,20 +60,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							 NotificationHelpers.Warning($"{nameof(KeyManager.MinGapLimit)} increased from {prevMinGapLimit} to {minGapLimit}.");
 						 }
 
-						 var newAddress = new AddressViewModel(newKey, Global);
+						 var newAddress = new AddressViewModel(newKey, Global, KeyManager);
 						 Addresses.Insert(0, newAddress);
 						 SelectedAddress = newAddress;
 						 _labelSuggestion.Label = "";
 					 });
 				});
 
-			_isItemSelected = this
-				.WhenAnyValue(x => x.SelectedAddress)
-				.Select(x => x is { })
-				.ToProperty(this, x => x.IsItemSelected, scheduler: RxApp.MainThreadScheduler);
-			IObservable<bool> canExecuteContextMenuItem = this.WhenAnyValue(x => x.IsItemSelected);
-
-			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
+			this.WhenAnyValue(x => x.SelectedAddress)
+				.Subscribe(async address =>
 				{
 					if (Global.UiConfig?.Autocopy is false || address is null)
 					{
@@ -90,81 +78,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					await address.TryCopyToClipboardAsync();
 				});
 
-			CopyAddress = ReactiveCommand.CreateFromTask(async () =>
-			{
-				var selectedAddress = SelectedAddress;
-				if (selectedAddress is null)
-				{
-					return;
-				}
-
-				await selectedAddress.TryCopyToClipboardAsync();
-			}, canExecuteContextMenuItem);
-
-			CopyLabel = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(SelectedAddress?.Label ?? string.Empty), canExecuteContextMenuItem);
-
-			ToggleQrCode = ReactiveCommand.Create(() =>
-			{
-				var selectedAddress = SelectedAddress;
-				if (selectedAddress is null)
-				{
-					return;
-				}
-
-				selectedAddress.IsExpanded = !selectedAddress.IsExpanded;
-			}, canExecuteContextMenuItem);
-
-			ChangeLabelCommand = ReactiveCommand.Create(() =>
-			{
-				var selectedAddress = SelectedAddress;
-				if (selectedAddress is null)
-				{
-					return;
-				}
-
-				SelectedAddress.InEditMode = true;
-			}, canExecuteContextMenuItem);
-
-			DisplayAddressOnHwCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				var selectedAddress = SelectedAddress;
-				if (selectedAddress is null)
-				{
-					return;
-				}
-
-				var client = new HwiClient(Global.Network);
-				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-				try
-				{
-					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, selectedAddress.Model.FullKeyPath, cts.Token);
-				}
-				catch (HwiException)
-				{
-					await PinPadViewModel.UnlockAsync(Global);
-					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, selectedAddress.Model.FullKeyPath, cts.Token);
-				}
-			}, canExecuteContextMenuItem);
-
-			SaveQRCodeCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				var selectedAddress = SelectedAddress;
-				if (selectedAddress is null)
-				{
-					return;
-				}
-
-				await selectedAddress.SaveQRCodeAsync();
-			}, canExecuteContextMenuItem);
-
 			Observable
-				.Merge(DisplayAddressOnHwCommand.ThrownExceptions)
-				.Merge(ChangeLabelCommand.ThrownExceptions)
-				.Merge(ToggleQrCode.ThrownExceptions)
-				.Merge(CopyAddress.ThrownExceptions)
-				.Merge(CopyLabel.ThrownExceptions)
 				.Merge(GenerateCommand.ThrownExceptions)
-				.Merge(SaveQRCodeCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
@@ -202,17 +117,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			try
 			{
 				_addresses?.Clear();
-				var walletService = Global.WalletService;
 
-				if (walletService is null)
-				{
-					return;
-				}
-
-				IEnumerable<HdPubKey> keys = walletService.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
+				IEnumerable<HdPubKey> keys = KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
 				foreach (HdPubKey key in keys)
 				{
-					_addresses.Add(new AddressViewModel(key, Global));
+					_addresses.Add(new AddressViewModel(key, Global, KeyManager));
 				}
 			}
 			catch (Exception ex)
@@ -232,7 +141,5 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _selectedAddress;
 			set => this.RaiseAndSetIfChanged(ref _selectedAddress, value);
 		}
-
-		public bool IsItemSelected => _isItemSelected?.Value ?? default;
 	}
 }
