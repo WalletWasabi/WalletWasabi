@@ -34,7 +34,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> ChangeLabelCommand { get; }
 		public ReactiveCommand<Unit, Unit> DisplayAddressOnHwCommand { get; }
 		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
-		public ReactiveCommand<Unit, Unit> SaveQRCodeCommand { get; }
 
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
@@ -128,24 +127,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
-			SaveQRCodeCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				var selectedAddress = SelectedAddress;
-				if (selectedAddress is null)
-				{
-					return;
-				}
-
-				await selectedAddress.SaveQRCodeAsync();
-			});
-
 			Observable
 				.Merge(DisplayAddressOnHwCommand.ThrownExceptions)
 				.Merge(ChangeLabelCommand.ThrownExceptions)
 				.Merge(CopyAddress.ThrownExceptions)
 				.Merge(CopyLabel.ThrownExceptions)
 				.Merge(GenerateCommand.ThrownExceptions)
-				.Merge(SaveQRCodeCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{

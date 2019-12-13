@@ -27,6 +27,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private bool _inEditMode;
 		private ObservableAsPropertyHelper<string> _expandMenuCaption;
 		public ReactiveCommand<Unit, bool> ToggleQrCode { get; }
+		public ReactiveCommand<Unit, Unit> SaveQRCode { get; }
 
 		public HdPubKey Model { get; }
 		public Global Global { get; }
@@ -87,8 +88,11 @@ namespace WalletWasabi.Gui.ViewModels
 
 			ToggleQrCode = ReactiveCommand.Create(() => IsExpanded = !IsExpanded);
 
+			SaveQRCode = ReactiveCommand.CreateFromTask(SaveQRCodeAsync);
+
 			Observable
 				.Merge(ToggleQrCode.ThrownExceptions)
+				.Merge(SaveQRCode.ThrownExceptions)
 				.Subscribe(ex =>
 				{
 					NotificationHelpers.Error(ex.ToTypeMessageString());
