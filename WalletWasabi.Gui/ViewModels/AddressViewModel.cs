@@ -29,6 +29,7 @@ namespace WalletWasabi.Gui.ViewModels
 		public ReactiveCommand<Unit, bool> ToggleQrCode { get; }
 		public ReactiveCommand<Unit, Unit> SaveQRCode { get; }
 		public ReactiveCommand<Unit, Unit> CopyAddress { get; }
+		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
 
 		public HdPubKey Model { get; }
 		public Global Global { get; }
@@ -93,10 +94,13 @@ namespace WalletWasabi.Gui.ViewModels
 
 			CopyAddress = ReactiveCommand.CreateFromTask(TryCopyToClipboardAsync);
 
+			CopyLabel = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Label ?? string.Empty));
+
 			Observable
 				.Merge(ToggleQrCode.ThrownExceptions)
 				.Merge(SaveQRCode.ThrownExceptions)
 				.Merge(CopyAddress.ThrownExceptions)
+				.Merge(CopyLabel.ThrownExceptions)
 				.Subscribe(ex =>
 				{
 					NotificationHelpers.Error(ex.ToTypeMessageString());

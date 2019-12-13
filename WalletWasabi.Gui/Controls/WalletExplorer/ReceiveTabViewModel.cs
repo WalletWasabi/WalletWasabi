@@ -29,7 +29,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private AddressViewModel _selectedAddress;
 		private SuggestLabelViewModel _labelSuggestion;
 
-		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
 		public ReactiveCommand<Unit, Unit> ChangeLabelCommand { get; }
 		public ReactiveCommand<Unit, Unit> DisplayAddressOnHwCommand { get; }
 		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
@@ -81,8 +80,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					await address.TryCopyToClipboardAsync();
 				});
 
-			CopyLabel = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(SelectedAddress?.Label ?? string.Empty));
-
 			ChangeLabelCommand = ReactiveCommand.Create(() =>
 			{
 				var selectedAddress = SelectedAddress;
@@ -118,7 +115,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Observable
 				.Merge(DisplayAddressOnHwCommand.ThrownExceptions)
 				.Merge(ChangeLabelCommand.ThrownExceptions)
-				.Merge(CopyLabel.ThrownExceptions)
 				.Merge(GenerateCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
