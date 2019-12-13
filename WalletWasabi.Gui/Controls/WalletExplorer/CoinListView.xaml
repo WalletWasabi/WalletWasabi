@@ -78,7 +78,6 @@
             <DataTemplate>
               <Grid>
                 <Grid.ContextMenu>
-                  <!-- If you want to add more items to the context menu and you want the Send tab to show it too, then place IsVisible="{Binding InCoinJoinContainer}" directly to the Dequeue MenuItem. -->
                   <ContextMenu>
                     <MenuItem Header="{Binding ExpandMenuCaption}" Command="{Binding ToggleDetails}">
                       <MenuItem.Icon>
