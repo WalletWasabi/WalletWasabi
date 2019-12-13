@@ -29,7 +29,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private AddressViewModel _selectedAddress;
 		private SuggestLabelViewModel _labelSuggestion;
 
-		public ReactiveCommand<Unit, Unit> ChangeLabelCommand { get; }
 		public ReactiveCommand<Unit, Unit> DisplayAddressOnHwCommand { get; }
 		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
 
@@ -80,17 +79,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					await address.TryCopyToClipboardAsync();
 				});
 
-			ChangeLabelCommand = ReactiveCommand.Create(() =>
-			{
-				var selectedAddress = SelectedAddress;
-				if (selectedAddress is null)
-				{
-					return;
-				}
-
-				SelectedAddress.InEditMode = true;
-			});
-
 			DisplayAddressOnHwCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var selectedAddress = SelectedAddress;
@@ -114,7 +102,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Observable
 				.Merge(DisplayAddressOnHwCommand.ThrownExceptions)
-				.Merge(ChangeLabelCommand.ThrownExceptions)
 				.Merge(GenerateCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
