@@ -117,14 +117,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			try
 			{
 				_addresses?.Clear();
-				var walletService = Global.WalletService;
 
-				if (walletService is null)
-				{
-					return;
-				}
-
-				IEnumerable<HdPubKey> keys = walletService.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
+				IEnumerable<HdPubKey> keys = KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
 				foreach (HdPubKey key in keys)
 				{
 					_addresses.Add(new AddressViewModel(key, Global, KeyManager));
