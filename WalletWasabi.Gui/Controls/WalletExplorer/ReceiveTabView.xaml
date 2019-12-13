@@ -38,7 +38,7 @@
             <Style Selector="ListBoxItem">
               <Setter Property="Padding" Value="0 0 5 0" />
             </Style>
-          </controls:ExtendedListBox.Styles> 
+          </controls:ExtendedListBox.Styles>
           <controls:ExtendedListBox.ItemTemplate>
             <DataTemplate>
               <Grid>

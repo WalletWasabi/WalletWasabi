@@ -33,7 +33,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);
 			DateSortDirection = SortOrder.Decreasing;
- 
+
 			Observable
 				.Merge(SortCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)

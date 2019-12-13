@@ -107,7 +107,7 @@ namespace WalletWasabi.Gui.ViewModels
 				IsExpanded = !IsExpanded;
 			});
 
-			ChangeLabelCommand = ReactiveCommand.Create(() => 
+			ChangeLabelCommand = ReactiveCommand.Create(() =>
 			{
 				InEditMode = true;
 			});

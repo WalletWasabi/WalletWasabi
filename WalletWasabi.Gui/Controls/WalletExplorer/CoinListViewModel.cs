@@ -64,7 +64,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> InitList { get; }
 
 		public event EventHandler DequeueCoinsPressed;
+
 		public event EventHandler CoinListShown;
+
 		public event EventHandler SelectionChanged;
 
 		public ReadOnlyObservableCollection<CoinViewModel> Coins => _coinViewModels;
@@ -74,7 +76,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _myComparer;
 			set => this.RaiseAndSetIfChanged(ref _myComparer, value);
 		}
- 
+
 		public bool? SelectAllCheckBoxState
 		{
 			get => _selectAllCheckBoxState;
@@ -98,7 +100,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _amountSortDirection;
 			set => this.RaiseAndSetIfChanged(ref _amountSortDirection, value);
 		}
- 
+
 		public SortOrder PrivacySortDirection
 		{
 			get => _privacySortDirection;
