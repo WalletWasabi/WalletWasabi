@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Dialogs;
 using Avalonia.Rendering;
 using Avalonia.Threading;
 using AvalonStudio.Shell;
@@ -12,7 +13,6 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.Controls.LockScreen;
-using WalletWasabi.Gui.ManagedDialogs;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 
@@ -115,12 +115,11 @@ namespace WalletWasabi.Gui
 				}
 
 				result.UsePlatformDetect()
-					.UseManagedSystemDialogs();
+					.UseManagedSystemDialogs<AppBuilder, WasabiWindow>();
 			}
 			else
 			{
-				result.UsePlatformDetect()
-					.UseManagedSystemDialogs();
+				result.UsePlatformDetect();
 			}
 
 			// TODO remove this overriding of RenderTimer when Avalonia 0.9 is released.
