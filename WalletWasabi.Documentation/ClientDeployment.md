@@ -53,8 +53,19 @@
 3. Make sure CI and CodeFactor checks out.
 4. [Deploy testnet and mainnet backend.](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/BackendDeployment.md#update)
 
-# 6. Announce
+# 6. Update `backport` branch
+
+If it's a major release, then the backport branch must be rebased, so we can start backporting stuff.
+
+```sh
+git checkout --track upstream/backport
+git rebase upstream/master
+git push -u upstream/backport
+```
+
+# 7. Announce
 
 1. [Twitter](https://twitter.com) (tag @wasabiwallet #Bitcoin #Privacy).
 2. Submit to [/r/WasabiWallet](https://old.reddit.com/r/WasabiWallet/) and [/r/Bitcoin](https://old.reddit.com/r/Bitcoin/).
+
 
