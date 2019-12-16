@@ -1,6 +1,7 @@
 using NBitcoin;
 using System;
 using System.IO;
+using System.Linq;
 using System.Security;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -83,6 +84,19 @@ namespace WalletWasabi.Tests.UnitTests
 			var newKey = differentManager.GenerateNewKey("some-label", KeyState.Clean, true, false);
 			Assert.Equal(newKey.Index, differentManager.MinGapLimit);
 			Assert.Equal("999'/999'/999'/1/55", newKey.FullKeyPath.ToString());
+		}
+
+		[Fact]
+		public void CanHandleGap()
+		{
+			string password = "password";
+			var manager = KeyManager.CreateNew(out Mnemonic mnemonic, password);
+
+			manager.AssertCleanKeysIndexed();
+			var lastKey = manager.GetKeys(KeyState.Clean, isInternal: false).Last();
+			lastKey.SetKeyState(KeyState.Used);
+			var newKeys = manager.AssertCleanKeysIndexed();
+			Assert.Equal(manager.MinGapLimit, newKeys.Count());
 		}
 
 		[Fact]
