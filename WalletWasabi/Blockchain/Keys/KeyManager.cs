@@ -530,6 +530,33 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 		}
 
+		public int GetConsecutiveKeysCount(KeyState? keyState = null, bool? isInternal = null)
+		{
+			var keys = GetKeys(KeyState.Clean, isInternal);
+			var keyCount = keys.Count();
+			if (keyCount < 2) return keyCount;
+
+			var largerConsecutiveSequence = 1;
+			var consecutives = 1;
+			for(int i = 1; i < keyCount; i++)
+			{
+				if(keys.ElementAt(i).Index == keys.ElementAt(i-1).Index + 1)
+				{
+					consecutives++;
+				}
+				else
+				{
+					if(consecutives > largerConsecutiveSequence)
+					{
+						largerConsecutiveSequence = consecutives;
+						consecutives = 1;
+					}
+				}
+			}
+
+			return Math.Max(consecutives, largerConsecutiveSequence);
+		}
+
 		public IEnumerable<byte[]> GetPubKeyScriptBytes()
 		{
 			lock (HdPubKeyScriptBytesLock)
@@ -617,18 +644,18 @@ namespace WalletWasabi.Blockchain.Keys
 
 			if (isInternal is null)
 			{
-				while (GetKeys(KeyState.Clean, true).Count() < MinGapLimit)
+				while (GetConsecutiveKeysCount(KeyState.Clean, true) < MinGapLimit)
 				{
 					newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, true, toFile: false));
 				}
-				while (GetKeys(KeyState.Clean, false).Count() < MinGapLimit)
+				while (GetConsecutiveKeysCount(KeyState.Clean, false) < MinGapLimit)
 				{
 					newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false, toFile: false));
 				}
 			}
 			else
 			{
-				while (GetKeys(KeyState.Clean, isInternal).Count() < MinGapLimit)
+				while (GetConsecutiveKeysCount(KeyState.Clean, isInternal) < MinGapLimit)
 				{
 					newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, (bool)isInternal, toFile: false));
 				}
