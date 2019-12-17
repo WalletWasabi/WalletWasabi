@@ -122,16 +122,6 @@ namespace WalletWasabi.Gui
 				result.UsePlatformDetect();
 			}
 
-			// TODO remove this overriding of RenderTimer when Avalonia 0.9 is released.
-			// fixes "Thread Leak" issue in 0.8.1 Avalonia.
-			var old = result.WindowingSubsystemInitializer;
-
-			result.UseWindowingSubsystem(() =>
-			{
-				old();
-
-				AvaloniaLocator.CurrentMutable.Bind<IRenderTimer>().ToConstant(new DefaultRenderTimer(60));
-			});
 			return result
 				.With(new Win32PlatformOptions { AllowEglInitialization = true, UseDeferredRendering = true })
 				.With(new X11PlatformOptions { UseGpu = useGpuLinux, WmClass = "Wasabi Wallet" })
