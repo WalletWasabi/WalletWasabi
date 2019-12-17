@@ -24,10 +24,8 @@ namespace WalletWasabi.Gui.Shell.Commands
 		public CommandDefinition LockScreenCommand { get; }
 
 		[ImportingConstructor]
-		public SystemCommands(CommandIconService commandIconService, AvaloniaGlobalComponent global)
+		public SystemCommands(CommandIconService commandIconService)
 		{
-			Global = Guard.NotNull(nameof(Global), global.Global);
-
 			ExitCommand = new CommandDefinition(
 				"Exit",
 				commandIconService.GetCompletionKindImage("Exit"),

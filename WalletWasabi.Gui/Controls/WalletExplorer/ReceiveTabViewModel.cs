@@ -18,6 +18,7 @@ using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
+using Splat;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -29,12 +30,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private AddressViewModel _selectedAddress;
 		private SuggestLabelViewModel _labelSuggestion;
 
+		private Global Global { get; }
+
 		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
 
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
 		{
-			_labelSuggestion = new SuggestLabelViewModel(Global);
+			Global = Locator.Current.GetService<Global>();
+
+			_labelSuggestion = new SuggestLabelViewModel();
 			_addresses = new ObservableCollection<AddressViewModel>();
 			_labelSuggestion.Label = "";
 
@@ -60,7 +65,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							 NotificationHelpers.Warning($"{nameof(KeyManager.MinGapLimit)} increased from {prevMinGapLimit} to {minGapLimit}.");
 						 }
 
-						 var newAddress = new AddressViewModel(newKey, Global, KeyManager);
+						 var newAddress = new AddressViewModel(newKey, KeyManager);
 						 Addresses.Insert(0, newAddress);
 						 SelectedAddress = newAddress;
 						 _labelSuggestion.Label = "";
@@ -121,7 +126,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				IEnumerable<HdPubKey> keys = KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
 				foreach (HdPubKey key in keys)
 				{
-					_addresses.Add(new AddressViewModel(key, Global, KeyManager));
+					_addresses.Add(new AddressViewModel(key, KeyManager));
 				}
 			}
 			catch (Exception ex)

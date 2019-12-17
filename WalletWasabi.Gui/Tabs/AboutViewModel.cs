@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui.Tabs
 	{
 		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
 
-		public AboutViewModel(Global global) : base(global, "About")
+		public AboutViewModel() : base("About")
 		{
 			OpenBrowserCommand = ReactiveCommand.Create<string>(x => IoHelpers.OpenBrowser(x));
 

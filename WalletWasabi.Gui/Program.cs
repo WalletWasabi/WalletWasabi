@@ -6,6 +6,7 @@ using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.IO;
 using System.Reactive.Concurrency;
@@ -31,8 +32,10 @@ namespace WalletWasabi.Gui
 			try
 			{
 				Global = new Global();
+				
+				Locator.CurrentMutable.RegisterConstant(Global);
+
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
-				AvaloniaGlobalComponent.AvaloniaInstance = Global;
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
@@ -66,10 +69,9 @@ namespace WalletWasabi.Gui
 
 		private static async void AppMainAsync(string[] args)
 		{
-			(Application.Current as App).SetDataContext(Global);
 			AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
-			MainWindowViewModel.Instance = new MainWindowViewModel { Global = Global };
-			StatusBar = new StatusBarViewModel(Global);
+			MainWindowViewModel.Instance = new MainWindowViewModel();
+			StatusBar = new StatusBarViewModel();
 			MainWindowViewModel.Instance.StatusBar = StatusBar;
 			MainWindowViewModel.Instance.LockScreen = new LockScreenViewModel(Global);
 

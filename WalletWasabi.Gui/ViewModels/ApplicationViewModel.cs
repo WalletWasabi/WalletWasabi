@@ -14,10 +14,10 @@ namespace WalletWasabi.Gui.ViewModels
 {
 	public class ApplicationViewModel : ViewModelBase
 	{
-		public ApplicationViewModel(Global global)
+		public ApplicationViewModel()
 		{
 			AboutCommand = ReactiveCommand.Create(() =>
-				IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(global)));
+				IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel()));
 
 			AboutCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)

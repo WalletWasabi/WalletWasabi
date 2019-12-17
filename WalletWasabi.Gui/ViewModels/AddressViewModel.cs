@@ -1,6 +1,7 @@
 using Avalonia;
 using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Linq;
 using System.Reactive;
@@ -37,13 +38,13 @@ namespace WalletWasabi.Gui.ViewModels
 		public ReactiveCommand<Unit, Unit> DisplayAddressOnHw { get; }
 
 		public HdPubKey Model { get; }
-		public Global Global { get; }
+		private Global Global { get; }
 		public KeyManager KeyManager { get; }
 		public bool IsHardwareWallet { get; }
 
-		public AddressViewModel(HdPubKey model, Global global, KeyManager km)
+		public AddressViewModel(HdPubKey model, KeyManager km)
 		{
-			Global = global;
+			Global = Locator.Current.GetService<Global>();
 			KeyManager = km;
 			IsHardwareWallet = km.IsHardwareWallet;
 			Model = model;

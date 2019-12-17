@@ -10,16 +10,13 @@ namespace WalletWasabi.Gui
 		public App()
 		{
 			Name = "Wasabi Wallet";
+
+			DataContext = new ApplicationViewModel();
 		}
 
 		public override void Initialize()
 		{
 			AvaloniaXamlLoader.Load(this);
-		}
-
-		public void SetDataContext(Global global)
-		{
-			DataContext = new ApplicationViewModel(global);
 		}
 
 		public override void OnFrameworkInitializationCompleted()
