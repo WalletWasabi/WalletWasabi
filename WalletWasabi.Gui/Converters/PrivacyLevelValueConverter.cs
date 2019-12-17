@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using AvalonStudio.Commands;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -37,7 +38,7 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is int integer)
 			{
-				var config = Application.Current.Resources[Global.ConfigResourceKey] as Config;
+				var config = Locator.Current.GetService<Global>().Config;
 				string shield;
 				string toolTip = null;
 				if (integer < config.PrivacyLevelSome)

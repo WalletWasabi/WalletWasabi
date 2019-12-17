@@ -36,6 +36,8 @@ namespace WalletWasabi.Gui
 
 		public MainWindow()
 		{
+			Global = Locator.Current.GetService<Global>();
+
 			InitializeComponent();
 #if DEBUG
 			this.AttachDevTools();
@@ -51,7 +53,7 @@ namespace WalletWasabi.Gui
 			Locator.CurrentMutable.RegisterConstant<INotificationManager>(notificationManager);
 		}
 
-		public Global Global => MainWindowViewModel.Instance.Global;
+		public Global Global { get; }
 
 		private void InitializeComponent()
 		{
@@ -70,7 +72,6 @@ namespace WalletWasabi.Gui
 					try
 					{
 						Global.InitializeUiConfig(uiConfig);
-						Application.Current.Resources.AddOrReplace(Global.UiConfigResourceKey, Global.UiConfig);
 						Logger.LogInfo($"{nameof(Global.UiConfig)} is successfully initialized.");
 
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -92,18 +93,6 @@ namespace WalletWasabi.Gui
 					}
 				},
 				onError: ex => Logger.LogError(ex));
-		}
-
-		protected override void OnDataContextEndUpdate()
-		{
-			if (Global is null)
-			{
-				return;
-			}
-
-			Application.Current.Resources.AddOrReplace(Global.GlobalResourceKey, Global);
-			Application.Current.Resources.AddOrReplace(Global.ConfigResourceKey, Global.Config);
-			Application.Current.Resources.AddOrReplace(Global.UiConfigResourceKey, Global.UiConfig);
 		}
 
 		private int _closingState;
