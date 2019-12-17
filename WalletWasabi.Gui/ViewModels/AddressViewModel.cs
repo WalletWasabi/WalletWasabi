@@ -118,7 +118,7 @@ namespace WalletWasabi.Gui.ViewModels
 				}
 				catch (HwiException)
 				{
-					await PinPadViewModel.UnlockAsync(Global);
+					await PinPadViewModel.UnlockAsync();
 					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, Model.FullKeyPath, cts.Token);
 				}
 			});

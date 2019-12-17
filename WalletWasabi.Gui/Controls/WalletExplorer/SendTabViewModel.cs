@@ -385,7 +385,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							}
 							catch (HwiException)
 							{
-								await PinPadViewModel.UnlockAsync(Global);
+								await PinPadViewModel.UnlockAsync();
 								signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
 							}
 							signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction);

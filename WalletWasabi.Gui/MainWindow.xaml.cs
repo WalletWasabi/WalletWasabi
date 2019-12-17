@@ -53,7 +53,7 @@ namespace WalletWasabi.Gui
 			Locator.CurrentMutable.RegisterConstant<INotificationManager>(notificationManager);
 		}
 
-		public Global Global { get; }
+		private Global Global { get; }
 
 		private void InitializeComponent()
 		{
@@ -135,7 +135,7 @@ namespace WalletWasabi.Gui
 
 				if (!MainWindowViewModel.Instance.CanClose)
 				{
-					var dialog = new CannotCloseDialogViewModel(Global);
+					var dialog = new CannotCloseDialogViewModel();
 
 					closeApplication = await MainWindowViewModel.Instance.ShowDialogAsync(dialog); // start the deque process with a dialog
 				}

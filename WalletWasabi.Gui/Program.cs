@@ -73,7 +73,7 @@ namespace WalletWasabi.Gui
 			MainWindowViewModel.Instance = new MainWindowViewModel();
 			StatusBar = new StatusBarViewModel();
 			MainWindowViewModel.Instance.StatusBar = StatusBar;
-			MainWindowViewModel.Instance.LockScreen = new LockScreenViewModel(Global);
+			MainWindowViewModel.Instance.LockScreen = new LockScreenViewModel();
 
 			await Global.InitializeNoWalletAsync();
 
