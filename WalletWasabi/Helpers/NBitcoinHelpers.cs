@@ -115,25 +115,6 @@ namespace WalletWasabi.Helpers
 			return ba;
 		}
 
-		public static HDFingerprint BetterParseHDFingerprint(string hdFingerprintString, bool reverseByteOrder = false)
-		{
-			hdFingerprintString = Guard.NotNullOrEmptyOrWhitespace(nameof(hdFingerprintString), hdFingerprintString, trim: true);
-
-			HDFingerprint hdfp;
-			try
-			{
-				var hdfpu = uint.Parse(hdFingerprintString);
-				hdfp = new HDFingerprint(hdfpu);
-			}
-			catch
-			{
-				// Try hex, Old wallet format was like this.
-				var bytes = ByteHelpers.FromHex(hdFingerprintString);
-				hdfp = reverseByteOrder ? new HDFingerprint(bytes.Reverse().ToArray()) : new HDFingerprint(bytes);
-			}
-			return hdfp;
-		}
-
 		public static async Task<AddressManager> LoadAddressManagerFromPeerFileAsync(string filePath, Network expectedNetwork = null)
 		{
 			byte[] data, hash;
