@@ -530,9 +530,9 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 		}
 
-		public int CountConsecutiveCleanKeys(bool? isInternal = null)
+		public int CountConsecutiveCleanKeys(bool isInternal)
 		{
-			var keys = GetKeys(KeyState.Clean, isInternal).ToArray();
+			var keys = GetKeys(KeyState.Clean, isInternal).OrderBy(x => x.Index).ToArray();
 			var keyCount = keys.Length;
 			if (keyCount < 2)
 			{
@@ -642,7 +642,14 @@ namespace WalletWasabi.Blockchain.Keys
 		{
 			var newKeys = new List<HdPubKey>();
 
-			if (isInternal is null)
+			if (isInternal.HasValue)
+			{
+				while (CountConsecutiveCleanKeys(isInternal.Value) < MinGapLimit)
+				{
+					newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, (bool)isInternal, toFile: false));
+				}
+			}
+			else
 			{
 				while (CountConsecutiveCleanKeys(true) < MinGapLimit)
 				{
@@ -651,13 +658,6 @@ namespace WalletWasabi.Blockchain.Keys
 				while (CountConsecutiveCleanKeys(false) < MinGapLimit)
 				{
 					newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false, toFile: false));
-				}
-			}
-			else
-			{
-				while (CountConsecutiveCleanKeys(isInternal) < MinGapLimit)
-				{
-					newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, (bool)isInternal, toFile: false));
 				}
 			}
 
