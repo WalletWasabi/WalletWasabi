@@ -90,7 +90,7 @@ namespace WalletWasabi.Tests.UnitTests
 		public void CanHandleGap()
 		{
 			string password = "password";
-			var manager = KeyManager.CreateNew(out Mnemonic mnemonic, password);
+			var manager = KeyManager.CreateNew(out _, password);
 
 			manager.AssertCleanKeysIndexed();
 			var lastKey = manager.GetKeys(KeyState.Clean, isInternal: false).Last();

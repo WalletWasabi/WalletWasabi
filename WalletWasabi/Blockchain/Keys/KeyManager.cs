@@ -532,25 +532,25 @@ namespace WalletWasabi.Blockchain.Keys
 
 		public int GetConsecutiveKeysCount(KeyState? keyState = null, bool? isInternal = null)
 		{
-			var keys = GetKeys(KeyState.Clean, isInternal);
-			var keyCount = keys.Count();
-			if (keyCount < 2) return keyCount;
+			var keys = GetKeys(KeyState.Clean, isInternal).ToArray();
+			var keyCount = keys.Length;
+			if (keyCount < 2)
+			{
+				return keyCount;
+			}
 
 			var largerConsecutiveSequence = 1;
 			var consecutives = 1;
-			for(int i = 1; i < keyCount; i++)
+			for (int i = 1; i < keyCount; i++)
 			{
-				if(keys.ElementAt(i).Index == keys.ElementAt(i-1).Index + 1)
+				if (keys[i].Index == keys[i - 1].Index + 1)
 				{
 					consecutives++;
 				}
-				else
+				else if (consecutives > largerConsecutiveSequence)
 				{
-					if(consecutives > largerConsecutiveSequence)
-					{
-						largerConsecutiveSequence = consecutives;
-						consecutives = 1;
-					}
+					largerConsecutiveSequence = consecutives;
+					consecutives = 1;
 				}
 			}
 
