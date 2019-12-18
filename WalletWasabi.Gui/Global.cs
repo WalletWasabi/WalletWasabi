@@ -360,13 +360,6 @@ namespace WalletWasabi.Gui
 				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, Nodes, BitcoinCoreNode?.RpcClient);
 				CoinJoinProcessor = new CoinJoinProcessor(Synchronizer, BitcoinCoreNode?.RpcClient);
 			}
-			catch (Exception ex)
-			{
-				Logger.LogCritical(ex);
-				InitializationCompleted = true;
-				await DisposeAsync().ConfigureAwait(false);
-				Environment.Exit(1);
-			}
 			finally
 			{
 				InitializationCompleted = true;
@@ -774,7 +767,7 @@ namespace WalletWasabi.Gui
 			{
 				StoppingCts?.Cancel();
 
-				if(!InitializationStarted)
+				if (!InitializationStarted)
 				{
 					return;
 				}
