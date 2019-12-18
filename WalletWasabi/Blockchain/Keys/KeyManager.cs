@@ -646,7 +646,7 @@ namespace WalletWasabi.Blockchain.Keys
 			{
 				while (CountConsecutiveCleanKeys(isInternal.Value) < MinGapLimit)
 				{
-					newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, (bool)isInternal, toFile: false));
+					newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, isInternal.Value, toFile: false));
 				}
 			}
 			else
