@@ -426,7 +426,7 @@ namespace Nito.AsyncEx
 					lastLog = DateTimeOffset.UtcNow;
 				}
 
-				await Task.Delay(500).ConfigureAwait(false);
+				await Task.Delay(100).ConfigureAwait(false);
 				if (DateTimeOffset.UtcNow - start > TimeSpan.FromSeconds(60))
 				{
 					var mutexesAlive = asyncMutexes.Where(am => am.Value.IsAlive).Select(m => m.Value.ShortName);
