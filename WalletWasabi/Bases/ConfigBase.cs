@@ -64,7 +64,14 @@ namespace WalletWasabi.Bases
 			}
 			else
 			{
-				await LoadFileAsync();
+				try
+				{
+					await LoadFileAsync();
+				}
+				catch(JsonReaderException)
+				{
+					Logger.LogInfo($"{GetType().Name} file is corrupted. Create default version at path: `{FilePath}`.");
+				}
 			}
 
 			await ToFileAsync();
