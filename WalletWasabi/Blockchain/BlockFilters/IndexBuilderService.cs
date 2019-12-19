@@ -162,7 +162,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 								}
 
 								// If not synchronized or already 5 min passed since last update, get the latest blockchain info.
-								if (!syncInfo.IsCoreSynchornized || syncInfo.BlockchainInfoUpdated - DateTimeOffset.UtcNow > TimeSpan.FromMinutes(5))
+								if (!syncInfo.IsCoreSynchornized || DateTimeOffset.UtcNow - syncInfo.BlockchainInfoUpdated > TimeSpan.FromMinutes(5))
 								{
 									syncInfo = await GetSyncInfoAsync();
 								}
