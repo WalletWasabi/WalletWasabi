@@ -68,9 +68,9 @@ namespace WalletWasabi.Bases
 				{
 					await LoadFileAsync();
 				}
-				catch(JsonReaderException)
+				catch (JsonReaderException)
 				{
-					Logger.LogInfo($"{GetType().Name} file is corrupted. Create default version at path: `{FilePath}`.");
+					Logger.LogInfo($"{GetType().Name} file has been deleted because it was corrupted. Recreated default version at path: `{FilePath}`.");
 				}
 			}
 
