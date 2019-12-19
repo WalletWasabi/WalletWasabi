@@ -1,0 +1,28 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
+             x:Class="WalletWasabi.Gui.Controls.WalletExplorer.CoinDetailsGrid">
+  <controls:GroupBox Title="Details" Padding="10" Margin="10">
+    <Grid HorizontalAlignment="Left" ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+      <TextBlock Classes="monospaceFont" Text="Transaction Id:" Grid.Row="0" />
+      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding SelectedCoin.TransactionId}" Background="Transparent" Grid.Column="1" Grid.Row="0" />
+      <TextBlock Classes="monospaceFont" Text="Output Index:" Grid.Row="1" />
+      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding SelectedCoin.OutputIndex}" Grid.Column="1" Grid.Row="1" />
+      <TextBlock Classes="monospaceFont" Text="Label:" Grid.Row="2" />
+      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding SelectedCoin.Label}" Grid.Column="1" Grid.Row="2" />
+      <TextBlock Classes="monospaceFont" Text="Address:" Grid.Row="3" />
+      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding SelectedCoin.Address}" Grid.Column="1" Grid.Row="3" />
+      <TextBlock Classes="monospaceFont" Text="Confirmations:" Grid.Row="4" />
+      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding SelectedCoin.Confirmations}" Grid.Column="1" Grid.Row="4" />
+      <TextBlock Classes="monospaceFont" Text="Anonymity Set:" Grid.Row="5" />
+      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding SelectedCoin.AnonymitySet}" Grid.Column="1" Grid.Row="5" />
+      <TextBlock Classes="monospaceFont" Text="Key Path:" Grid.Row="6" />
+      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding SelectedCoin.KeyPath}" Grid.Column="1" Grid.Row="6" />
+      <TextBlock Classes="monospaceFont" Text="Public Key:" Grid.Row="7" />
+      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding SelectedCoin.PubKey}" Grid.Column="1" Grid.Row="7" />
+    </Grid>
+  </controls:GroupBox>
+</UserControl>

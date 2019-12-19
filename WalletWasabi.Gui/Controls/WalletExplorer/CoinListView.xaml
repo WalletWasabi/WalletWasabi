@@ -1,6 +1,7 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+             xmlns:walexp="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui"
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
@@ -23,6 +24,9 @@
       <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}" />
     </Style>
     <Style Selector="TextBox.Transparent">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Grid#PART_CoinDetailsGrid[IsEnabled=True]">
       <Setter Property="Background" Value="Transparent" />
     </Style>
   </UserControl.Styles>
@@ -91,26 +95,6 @@
                     </MenuItem>
                   </ContextMenu>
                 </Grid.ContextMenu>
-                <Expander Name="coinExpander" IsExpanded="{Binding IsExpanded}" ExpandDirection="Down" Classes="coloredExpander" Background="{Binding ElementName=coinExpander, Path=IsExpanded, Converter={StaticResource CoinItemExpanderColorConverter}}">
-                  <Grid HorizontalAlignment="Left" ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" MaxWidth="800" Margin="35 10 0 25">
-                    <TextBlock Classes="monospaceFont" Text="Transaction Id:" Grid.Row="0" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding TransactionId}" Background="Transparent" Grid.Column="1" Grid.Row="0" />
-                    <TextBlock Classes="monospaceFont" Text="Output Index:" Grid.Row="1" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding OutputIndex}" Grid.Column="1" Grid.Row="1" />
-                    <TextBlock Classes="monospaceFont" Text="Label:" Grid.Row="2" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Label}" Grid.Column="1" Grid.Row="2" />
-                    <TextBlock Classes="monospaceFont" Text="Address:" Grid.Row="3" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Address}" Grid.Column="1" Grid.Row="3" />
-                    <TextBlock Classes="monospaceFont" Text="Confirmations:" Grid.Row="4" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Confirmations}" Grid.Column="1" Grid.Row="4" />
-                    <TextBlock Classes="monospaceFont" Text="Anonymity Set:" Grid.Row="5" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding AnonymitySet}" Grid.Column="1" Grid.Row="5" />
-                    <TextBlock Classes="monospaceFont" Text="Key Path:" Grid.Row="6" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding KeyPath}" Grid.Column="1" Grid.Row="6" />
-                    <TextBlock Classes="monospaceFont" Text="Public Key:" Grid.Row="7" />
-                    <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding PubKey}" Grid.Column="1" Grid.Row="7" />
-                  </Grid>
-                </Expander>
                 <Grid Margin="30 0 0 0" VerticalAlignment="Top">
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="30" />
@@ -139,5 +123,6 @@
         </controls:ExtendedListBox>
       </controls:BusyIndicator>
     </DockPanel>
+    <walexp:CoinDetailsGrid VerticalAlignment="Bottom" Background="Black" HorizontalAlignment="Stretch" SelectedCoin="{Binding SelectedCoin}" />
   </Grid>
 </UserControl>
