@@ -132,6 +132,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		private Global Global { get; }
+
 		public override void OnOpen()
 		{
 			base.OnOpen();

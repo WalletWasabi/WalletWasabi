@@ -22,6 +22,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private ViewModelBase _currentView;
 		private LoadWalletViewModel LoadWalletViewModelDesktop { get; }
 		private LoadWalletViewModel LoadWalletViewModelHardware { get; }
+
 		public WalletManagerViewModel() : base("Wallet Manager")
 		{
 			LoadWalletViewModelDesktop = new LoadWalletViewModel(this, LoadWalletType.Desktop);

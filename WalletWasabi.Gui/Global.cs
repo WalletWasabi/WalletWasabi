@@ -39,7 +39,7 @@ using WalletWasabi.TorSocks5;
 namespace WalletWasabi.Gui
 {
 	public class Global
-	{ 
+	{
 		public const string ThemeBackgroundBrushResourceKey = "ThemeBackgroundBrush";
 		public const string ApplicationAccentForegroundBrushResourceKey = "ApplicationAccentForegroundBrush";
 

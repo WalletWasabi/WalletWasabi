@@ -32,7 +32,7 @@ namespace WalletWasabi.Gui
 			try
 			{
 				Global = new Global();
-				
+
 				Locator.CurrentMutable.RegisterConstant(Global);
 
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
