@@ -213,7 +213,7 @@ namespace WalletWasabi.BitcoinCore
 				throw new BitcoindException($"'bitcoind {arguments}' exited with incorrect exit code: {exitCode}.");
 			}
 			var firstLine = responseString.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).First();
-			var versionString = firstLine.TrimStart("Bitcoin Core Daemon version v", StringComparison.OrdinalIgnoreCase);
+			string versionString = firstLine.Split("version v", StringSplitOptions.RemoveEmptyEntries).Last();
 			var version = new Version(versionString);
 			return version;
 		}
