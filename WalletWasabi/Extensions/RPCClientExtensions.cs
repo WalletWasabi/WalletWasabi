@@ -124,6 +124,7 @@ namespace NBitcoin.RPC
 		{
 			try
 			{
+				// ToDo: after https://github.com/MetacoSA/NBitcoin/pull/789 merged replace with UpdatimeAsync.
 				await rpc.GetBlockchainInfoAsync().ConfigureAwait(false);
 			}
 			catch (Exception ex)
