@@ -136,10 +136,15 @@ namespace WalletWasabi.Gui
 		}
 
 		private bool InitializationCompleted { get; set; } = false;
+
+		private bool InitializationStarted { get; set; } = false;
+
 		private CancellationTokenSource StoppingCts { get; set; } = new CancellationTokenSource();
 
 		public async Task InitializeNoWalletAsync()
 		{
+			InitializationStarted = true;
+
 			try
 			{
 				WalletService = null;
@@ -764,6 +769,12 @@ namespace WalletWasabi.Gui
 			try
 			{
 				StoppingCts?.Cancel();
+
+				if (!InitializationStarted)
+				{
+					return;
+				}
+
 				while (!InitializationCompleted)
 				{
 					await Task.Delay(100);

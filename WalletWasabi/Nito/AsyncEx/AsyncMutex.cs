@@ -141,13 +141,13 @@ namespace Nito.AsyncEx
 						else
 						{
 							// The mutex already exists so we will try to acquire it.
-							DateTime start = DateTime.Now;
+							var start = DateTimeOffset.UtcNow;
 							bool acquired = false;
 
 							// Timeout logic.
 							while (true)
 							{
-								if (DateTime.Now - start > TimeSpan.FromSeconds(90))
+								if (DateTimeOffset.UtcNow - start > TimeSpan.FromSeconds(90))
 								{
 									throw new TimeoutException("Could not acquire mutex in time.");
 								}
@@ -347,13 +347,13 @@ namespace Nito.AsyncEx
 		{
 			try
 			{
-				var start = DateTime.Now;
+				var start = DateTimeOffset.UtcNow;
 				while (IsAlive)
 				{
 					SetCommand(2);
 					MutexThread?.Join(TimeSpan.FromSeconds(1));
 
-					if (DateTime.Now - start > TimeSpan.FromSeconds(10))
+					if (DateTimeOffset.UtcNow - start > TimeSpan.FromSeconds(10))
 					{
 						throw new TimeoutException($"Could not stop {nameof(MutexThread)}, aborting it.");
 					}
@@ -392,7 +392,7 @@ namespace Nito.AsyncEx
 
 		public static async Task WaitForAllMutexToCloseAsync()
 		{
-			DateTime start = DateTime.Now;
+			var start = DateTimeOffset.UtcNow;
 			lock (AsyncMutexesLock)
 			{
 				foreach (var mutex in AsyncMutexes)
@@ -401,21 +401,35 @@ namespace Nito.AsyncEx
 				}
 			}
 
+			var lastLog = DateTimeOffset.MinValue;
+			var lastNumberOfAliveMutexes = 0;
+
 			while (true)
 			{
+				KeyValuePair<string, AsyncMutex>[] asyncMutexes = null;
 				lock (AsyncMutexesLock)
 				{
-					bool stillRunning = AsyncMutexes.Any(am => am.Value.IsAlive);
-					if (!stillRunning)
-					{
-						return;
-					}
-					Logger.LogDebug($"Waiting for: {string.Join(", ", AsyncMutexes.Where(am => am.Value.IsAlive).Select(m => m.Value.ShortName))}.");
+					asyncMutexes = AsyncMutexes.ToArray();
 				}
-				await Task.Delay(200).ConfigureAwait(false);
-				if (DateTime.Now - start > TimeSpan.FromSeconds(60))
+
+				int numberOfAliveMutexes = asyncMutexes.Count(am => am.Value.IsAlive);
+				if (numberOfAliveMutexes == 0)
 				{
-					var mutexesAlive = AsyncMutexes.Where(am => am.Value.IsAlive).Select(m => m.Value.ShortName);
+					return;
+				}
+
+				// Log every 10 seconds or status change.
+				if ((DateTimeOffset.UtcNow - lastLog) > TimeSpan.FromSeconds(10) || lastNumberOfAliveMutexes != numberOfAliveMutexes)
+				{
+					Logger.LogDebug($"Waiting for: {string.Join(", ", asyncMutexes.Where(am => am.Value.IsAlive).Select(m => m.Value.ShortName))}.");
+					lastNumberOfAliveMutexes = numberOfAliveMutexes;
+					lastLog = DateTimeOffset.UtcNow;
+				}
+
+				await Task.Delay(100).ConfigureAwait(false);
+				if (DateTimeOffset.UtcNow - start > TimeSpan.FromSeconds(60))
+				{
+					var mutexesAlive = asyncMutexes.Where(am => am.Value.IsAlive).Select(m => m.Value.ShortName);
 					var names = string.Join(", ", mutexesAlive);
 					throw new TimeoutException($"{nameof(AsyncMutex)}(es) still alive after Timeout: {names}.");
 				}
