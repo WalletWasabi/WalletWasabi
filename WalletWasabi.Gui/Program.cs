@@ -52,13 +52,12 @@ namespace WalletWasabi.Gui
 			}
 			finally
 			{
-				StatusBar?.Dispose();
-				await Global.DisposeAsync().ConfigureAwait(false);
 				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
-
 				if (runGui)
 				{
+					StatusBar?.Dispose();
+					await Global.DisposeAsync().ConfigureAwait(false);
 					Logger.LogSoftwareStopped("Wasabi GUI");
 				}
 			}
