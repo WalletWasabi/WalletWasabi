@@ -10,7 +10,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Gui.Controls.SuggestLabelView">
   <StackPanel Spacing="8">
-    <controls:ExtendedTextBox x:Name="LabelTextBox" Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True" IsReadOnly="{Binding IsMax}" ToolTip.Tip="{Binding LabelToolTip}" CaretIndex="{Binding CaretIndex}">
+    <controls:ExtendedTextBox x:Name="LabelTextBox" Text="{Binding Label}" Watermark="Involved Parties" UseFloatingWatermark="True" IsReadOnly="{Binding IsMax}" ToolTip.Tip="{Binding LabelToolTip}" CaretIndex="{Binding CaretIndex}">
       <i:Interaction.Behaviors>
         <behaviors:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />
         <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
