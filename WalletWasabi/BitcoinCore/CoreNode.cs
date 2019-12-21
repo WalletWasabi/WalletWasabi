@@ -59,6 +59,7 @@ namespace WalletWasabi.BitcoinCore
 					var configString = await File.ReadAllTextAsync(configPath).ConfigureAwait(false);
 					coreNode.Config.TryAdd(configString);
 				}
+				cancel.ThrowIfCancellationRequested();
 
 				var configDic = coreNode.Config.ToDictionary();
 				string rpcUser = null;
@@ -140,11 +141,13 @@ namespace WalletWasabi.BitcoinCore
 				{
 					await coreNode.TryStopAsync(false).ConfigureAwait(false);
 				}
+				cancel.ThrowIfCancellationRequested();
 
 				if (coreNodeParams.TryDeleteDataDir)
 				{
 					await IoHelpers.DeleteRecursivelyWithMagicDustAsync(coreNode.DataDir).ConfigureAwait(false);
 				}
+				cancel.ThrowIfCancellationRequested();
 
 				IoHelpers.EnsureDirectoryExists(coreNode.DataDir);
 
@@ -192,6 +195,7 @@ namespace WalletWasabi.BitcoinCore
 					IoHelpers.EnsureContainingDirectoryExists(configPath);
 					await File.WriteAllTextAsync(configPath, coreNode.Config.ToString());
 				}
+				cancel.ThrowIfCancellationRequested();
 
 				// If it isn't already running, then we run it.
 				if (await coreNode.RpcClient.TestAsync().ConfigureAwait(false) is null)
@@ -201,12 +205,14 @@ namespace WalletWasabi.BitcoinCore
 				else
 				{
 					coreNode.Bridge = new BitcoindRpcProcessBridge(coreNode.RpcClient, coreNode.DataDir, printToConsole: false);
-					await coreNode.Bridge.StartAsync().ConfigureAwait(false);
+					await coreNode.Bridge.StartAsync(cancel).ConfigureAwait(false);
 					Logger.LogInfo("Started Bitcoin Core.");
 				}
+				cancel.ThrowIfCancellationRequested();
 
 				coreNode.P2pNode = new P2pNode(coreNode.Network, coreNode.P2pEndPoint, coreNode.MempoolService, coreNodeParams.UserAgent);
 				await coreNode.P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
+				cancel.ThrowIfCancellationRequested();
 
 				coreNode.HostedServices.Register(new BlockNotifier(TimeSpan.FromSeconds(7), new RpcWrappedClient(coreNode.RpcClient), coreNode.P2pNode), "Block Notifier");
 				coreNode.HostedServices.Register(new RpcMonitor(TimeSpan.FromSeconds(7), coreNode.RpcClient), "RPC Monitor");
