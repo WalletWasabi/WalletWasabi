@@ -35,7 +35,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 			CachedPid = null;
 		}
 
-		public async Task StartAsync()
+		public async Task StartAsync(CancellationToken cancel)
 		{
 			var ptcv = PrintToConsole ? 1 : 0;
 			using var process = Start($"{NetworkTranslator.GetCommandLineArguments(Network)} -datadir={DataDir} -printtoconsole={ptcv}", false);
@@ -43,18 +43,33 @@ namespace WalletWasabi.BitcoinCore.Processes
 			await PidFile.SerializeAsync(process.Id).ConfigureAwait(false);
 			CachedPid = process.Id;
 
+			string latestFailureMessage = null;
 			while (true)
 			{
 				var ex = await RpcClient.TestAsync().ConfigureAwait(false);
 				if (ex is null)
 				{
+					Logger.LogInfo($"RPC connection is sucessfully established.");
 					break;
+				}
+				else if (latestFailureMessage != ex.Message)
+				{
+					latestFailureMessage = ex.Message;
+					Logger.LogInfo($"Bitcoin Core is not yet ready... Reason: {latestFailureMessage}");
 				}
 
 				if (process is null || process.HasExited)
 				{
 					throw ex;
 				}
+
+				if (cancel.IsCancellationRequested)
+				{
+					await StopAsync(true).ConfigureAwait(false);
+					cancel.ThrowIfCancellationRequested();
+				}
+
+				await Task.Delay(100).ConfigureAwait(false); // So to leave some breathing room before the next check.
 			}
 		}
 
