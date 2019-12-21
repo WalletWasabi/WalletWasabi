@@ -63,7 +63,8 @@ namespace WalletWasabi.BitcoinCore
 				var configDic = coreNode.Config.ToDictionary();
 				string rpcUser = null;
 				string rpcPassword = null;
-				EndPoint whitebind = null;
+				string whitebindPermissions = null;
+				EndPoint whitebindEndPoint = null;
 				string rpcHost = null;
 				int? rpcPort = null;
 				string rpcCookieFilePath = null;
@@ -88,10 +89,22 @@ namespace WalletWasabi.BitcoinCore
 					{
 						rpcPassword = rp;
 					}
-					if (wbs != null && EndPointParser.TryParse(wbs, coreNode.Network.DefaultPort, out EndPoint wb))
+
+					// https://github.com/bitcoin/bitcoin/pull/16248
+					var wbsParts = wbs?.Split('@');
+					if (wbsParts is { })
 					{
-						whitebind = wb;
+						if (EndPointParser.TryParse(wbsParts.LastOrDefault(), coreNode.Network.DefaultPort, out EndPoint wbEndPoint))
+						{
+							whitebindEndPoint = wbEndPoint;
+						}
+
+						if (wbsParts.Length > 1)
+						{
+							whitebindPermissions = wbsParts.First();
+						}
 					}
+
 					if (rpst != null)
 					{
 						rpcHost = rpst;
@@ -115,7 +128,7 @@ namespace WalletWasabi.BitcoinCore
 					authString = $"{rpcUser}:{rpcPassword}";
 				}
 
-				coreNode.P2pEndPoint = whitebind ?? coreNodeParams.P2pEndPointStrategy.EndPoint;
+				coreNode.P2pEndPoint = whitebindEndPoint ?? coreNodeParams.P2pEndPointStrategy.EndPoint;
 				rpcHost ??= coreNodeParams.RpcEndPointStrategy.EndPoint.GetHostOrDefault();
 				rpcPort ??= coreNodeParams.RpcEndPointStrategy.EndPoint.GetPortOrDefault();
 				EndPointParser.TryParse($"{rpcHost}:{rpcPort}", coreNode.Network.RPCPort, out EndPoint rpce);
@@ -136,11 +149,12 @@ namespace WalletWasabi.BitcoinCore
 				IoHelpers.EnsureDirectoryExists(coreNode.DataDir);
 
 				var configPrefix = NetworkTranslator.GetConfigPrefix(coreNode.Network);
+				var whiteBindPermissionsPart = whitebindPermissions is { } ? $"{whitebindPermissions}@" : "";
 				var desiredConfigLines = new List<string>()
 				{
 					$"{configPrefix}.server			= 1",
 					$"{configPrefix}.listen			= 1",
-					$"{configPrefix}.whitebind		= {coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
+					$"{configPrefix}.whitebind		= {whiteBindPermissionsPart}{coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
 					$"{configPrefix}.rpchost		= {coreNode.RpcEndPoint.GetHostOrDefault()}",
 					$"{configPrefix}.rpcport		= {coreNode.RpcEndPoint.GetPortOrDefault()}"
 				};
