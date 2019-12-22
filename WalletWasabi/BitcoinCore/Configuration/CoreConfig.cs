@@ -1,3 +1,4 @@
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,7 +46,11 @@ namespace WalletWasabi.BitcoinCore.Configuration
 			{
 				if (line.HasKeyValuePair)
 				{
-					var foundLine = Lines.FirstOrDefault(x => x.Key == line.Key);
+					var foundLine = Lines.FirstOrDefault(x =>
+							x.Key == line.Key
+							|| $"main.{x.Key}" == line.Key
+							|| x.Key == $"main.{line.Key}");
+
 					if (foundLine is null)
 					{
 						Lines.Add(line);
