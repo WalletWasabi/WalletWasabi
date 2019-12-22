@@ -78,15 +78,15 @@ namespace WalletWasabi.BitcoinCore
 					var rpst = configDic.TryGet($"{networkPrefixWithDot}rpchost");
 					var rpts = configDic.TryGet($"{networkPrefixWithDot}rpcport");
 
-					if (rpcc != null)
+					if (rpcc is { })
 					{
 						rpcCookieFilePath = rpcc;
 					}
-					if (ru != null)
+					if (ru is { })
 					{
 						rpcUser = ru;
 					}
-					if (rp != null)
+					if (rp is { })
 					{
 						rpcPassword = rp;
 					}
@@ -106,18 +106,18 @@ namespace WalletWasabi.BitcoinCore
 						}
 					}
 
-					if (rpst != null)
+					if (rpst is { })
 					{
 						rpcHost = rpst;
 					}
-					if (rpts != null && int.TryParse(rpts, out int rpt))
+					if (rpts is { } && int.TryParse(rpts, out int rpt))
 					{
 						rpcPort = rpt;
 					}
 				}
 
 				string authString;
-				bool cookieAuth = rpcCookieFilePath != null;
+				bool cookieAuth = rpcCookieFilePath is { };
 				if (cookieAuth)
 				{
 					authString = $"cookiefile={rpcCookieFilePath}";
@@ -168,12 +168,12 @@ namespace WalletWasabi.BitcoinCore
 					desiredConfigLines.Add($"{configPrefix}.rpcpassword	= {coreNode.RpcClient.CredentialString.UserPassword.Password}");
 				}
 
-				if (coreNodeParams.TxIndex != null)
+				if (coreNodeParams.TxIndex is { })
 				{
 					desiredConfigLines.Add($"{configPrefix}.txindex = {coreNodeParams.TxIndex}");
 				}
 
-				if (coreNodeParams.Prune != null)
+				if (coreNodeParams.Prune is { })
 				{
 					desiredConfigLines.Add($"{configPrefix}.prune = {coreNodeParams.Prune}");
 				}
@@ -269,7 +269,7 @@ namespace WalletWasabi.BitcoinCore
 			Exception exThrown = null;
 
 			BitcoindRpcProcessBridge bridge = null;
-			if (Bridge != null)
+			if (Bridge is { })
 			{
 				bridge = Bridge;
 			}
@@ -278,7 +278,7 @@ namespace WalletWasabi.BitcoinCore
 				bridge = new BitcoindRpcProcessBridge(RpcClient, DataDir, printToConsole: false);
 			}
 
-			if (bridge != null)
+			if (bridge is { })
 			{
 				try
 				{
