@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Configuration;
+using WalletWasabi.BitcoinCore.Configuration.Whitening;
 using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinCore.Processes;
@@ -61,60 +62,14 @@ namespace WalletWasabi.BitcoinCore
 				}
 				cancel.ThrowIfCancellationRequested();
 
-				var configDic = coreNode.Config.ToDictionary();
-				string rpcUser = null;
-				string rpcPassword = null;
-				string whitebindPermissions = null;
-				EndPoint whitebindEndPoint = null;
-				string rpcHost = null;
-				int? rpcPort = null;
-				string rpcCookieFilePath = null;
-				foreach (var networkPrefixWithDot in NetworkTranslator.GetConfigPrefixesWithDots(coreNode.Network))
-				{
-					var rpcc = configDic.TryGet($"{networkPrefixWithDot}rpccookiefile");
-					var ru = configDic.TryGet($"{networkPrefixWithDot}rpcuser");
-					var rp = configDic.TryGet($"{networkPrefixWithDot}rpcpassword");
-					var wbs = configDic.TryGet($"{networkPrefixWithDot}whitebind");
-					var rpst = configDic.TryGet($"{networkPrefixWithDot}rpchost");
-					var rpts = configDic.TryGet($"{networkPrefixWithDot}rpcport");
+				var configTranslator = new CoreConfigTranslator(coreNode.Config, coreNode.Network);
 
-					if (rpcc is { })
-					{
-						rpcCookieFilePath = rpcc;
-					}
-					if (ru is { })
-					{
-						rpcUser = ru;
-					}
-					if (rp is { })
-					{
-						rpcPassword = rp;
-					}
-
-					// https://github.com/bitcoin/bitcoin/pull/16248
-					var wbsParts = wbs?.Split('@');
-					if (wbsParts is { })
-					{
-						if (EndPointParser.TryParse(wbsParts.LastOrDefault(), coreNode.Network.DefaultPort, out EndPoint wbEndPoint))
-						{
-							whitebindEndPoint = wbEndPoint;
-						}
-
-						if (wbsParts.Length > 1)
-						{
-							whitebindPermissions = wbsParts.First();
-						}
-					}
-
-					if (rpst is { })
-					{
-						rpcHost = rpst;
-					}
-					if (rpts is { } && int.TryParse(rpts, out int rpt))
-					{
-						rpcPort = rpt;
-					}
-				}
+				string rpcUser = configTranslator.TryGetRpcUser();
+				string rpcPassword = configTranslator.TryGetRpcPassword();
+				string rpcCookieFilePath = configTranslator.TryGetRpcCookieFile();
+				string rpcHost = configTranslator.TryGetRpcHost();
+				int? rpcPort = configTranslator.TryGetRpcPort();
+				WhiteBind whiteBind = configTranslator.TryGetWhiteBind();
 
 				string authString;
 				bool cookieAuth = rpcCookieFilePath is { };
@@ -129,7 +84,7 @@ namespace WalletWasabi.BitcoinCore
 					authString = $"{rpcUser}:{rpcPassword}";
 				}
 
-				coreNode.P2pEndPoint = whitebindEndPoint ?? coreNodeParams.P2pEndPointStrategy.EndPoint;
+				coreNode.P2pEndPoint = whiteBind?.EndPoint ?? coreNodeParams.P2pEndPointStrategy.EndPoint;
 				rpcHost ??= coreNodeParams.RpcEndPointStrategy.EndPoint.GetHostOrDefault();
 				rpcPort ??= coreNodeParams.RpcEndPointStrategy.EndPoint.GetPortOrDefault();
 				EndPointParser.TryParse($"{rpcHost}:{rpcPort}", coreNode.Network.RPCPort, out EndPoint rpce);
@@ -152,7 +107,7 @@ namespace WalletWasabi.BitcoinCore
 				IoHelpers.EnsureDirectoryExists(coreNode.DataDir);
 
 				var configPrefix = NetworkTranslator.GetConfigPrefix(coreNode.Network);
-				var whiteBindPermissionsPart = whitebindPermissions is { } ? $"{whitebindPermissions}@" : "";
+				var whiteBindPermissionsPart = !string.IsNullOrWhiteSpace(whiteBind?.Permissions) ? $"{whiteBind?.Permissions}@" : "";
 				var desiredConfigLines = new List<string>()
 				{
 					$"{configPrefix}.server			= 1",
