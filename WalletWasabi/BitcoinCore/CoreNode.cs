@@ -57,7 +57,7 @@ namespace WalletWasabi.BitcoinCore
 				if (File.Exists(configPath))
 				{
 					var configString = await File.ReadAllTextAsync(configPath).ConfigureAwait(false);
-					coreNode.Config.TryAdd(configString);
+					coreNode.Config.AddOrUpdate(configString); // Bitcoin Core considers the last entry to be valid.
 				}
 				cancel.ThrowIfCancellationRequested();
 
