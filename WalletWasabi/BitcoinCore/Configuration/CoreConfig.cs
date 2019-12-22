@@ -48,7 +48,7 @@ namespace WalletWasabi.BitcoinCore.Configuration
 				{
 					var foundLine = Lines.FirstOrDefault(x =>
 							x.Key == line.Key
-							|| $"main.{x.Key}" == line.Key
+							|| line.Key == $"main.{x.Key}"
 							|| x.Key == $"main.{line.Key}");
 
 					if (foundLine is null)
