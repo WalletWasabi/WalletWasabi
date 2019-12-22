@@ -46,7 +46,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					_labelSuggestion.Label = label;
 					if (label.IsEmpty)
 					{
-						NotificationHelpers.Warning("Label is required.");
+						NotificationHelpers.Warning("Involved Parties are required.");
 						return;
 					}
 

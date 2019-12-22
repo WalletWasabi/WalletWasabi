@@ -244,7 +244,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					_labelSuggestion.Label = label;
 					if (!IsMax && label.IsEmpty)
 					{
-						NotificationHelpers.Warning($"{nameof(_labelSuggestion.Label)} is required.", "");
+						NotificationHelpers.Warning("Involved Parties are required.", "");
 						return;
 					}
 
