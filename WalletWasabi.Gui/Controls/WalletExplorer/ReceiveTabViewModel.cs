@@ -28,7 +28,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
-		private SuggestLabelViewModel _labelSuggestion;
 
 		private Global Global { get; }
 
@@ -38,17 +37,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			: base("Receive", walletViewModel)
 		{
 			Global = Locator.Current.GetService<Global>();
-
-			_labelSuggestion = new SuggestLabelViewModel();
+			LabelSuggestion = new SuggestLabelViewModel(Global);
 			_addresses = new ObservableCollection<AddressViewModel>();
-			_labelSuggestion.Label = "";
+			LabelSuggestion.Label = "";
 
 			InitializeAddresses();
 
 			GenerateCommand = ReactiveCommand.Create(() =>
 				{
-					var label = new SmartLabel(_labelSuggestion.Label);
-					_labelSuggestion.Label = label;
+					var label = new SmartLabel(LabelSuggestion.Label);
+					LabelSuggestion.Label = label;
 					if (label.IsEmpty)
 					{
 						NotificationHelpers.Warning("Label is required.");
@@ -68,7 +66,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						 var newAddress = new AddressViewModel(newKey, KeyManager);
 						 Addresses.Insert(0, newAddress);
 						 SelectedAddress = newAddress;
-						 _labelSuggestion.Label = "";
+						 LabelSuggestion.Label = "";
 					 });
 				});
 
@@ -93,7 +91,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 		}
 
-		public SuggestLabelViewModel LabelSuggestion => _labelSuggestion;
+		public SuggestLabelViewModel LabelSuggestion { get; }
 
 		public override void OnOpen()
 		{
