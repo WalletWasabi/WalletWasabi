@@ -215,6 +215,9 @@ dotnet_naming_style.T_pascal_case_style.capitalization = pascal_case
 # IDE0056: Use index operator
 csharp_style_prefer_index_operator = true:error
 
+# IDE0032: Use auto property
+dotnet_style_prefer_auto_properties = true:error
+
 [*.xaml]
 indent_style = space
 indent_size = 2

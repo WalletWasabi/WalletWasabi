@@ -76,8 +76,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isSliderFeeUsed = true;
 		private double _feeControlOpacity;
 
-		private SuggestLabelViewModel _labelSuggestion;
-
 		private FeeDisplayFormat FeeDisplayFormat
 		{
 			get => _feeDisplayFormat;
@@ -90,7 +88,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void ResetUi()
 		{
-			_labelSuggestion.Reset();
+			LabelSuggestion.Reset();
 			Address = "";
 			Password = "";
 			AllSelectedAmount = Money.Zero;
@@ -102,7 +100,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public SendTabViewModel(WalletViewModel walletViewModel, bool isTransactionBuilder = false)
 			: base(isTransactionBuilder ? "Build Transaction" : "Send", walletViewModel)
 		{
-			_labelSuggestion = new SuggestLabelViewModel(Global);
+			LabelSuggestion = new SuggestLabelViewModel(Global);
 			IsTransactionBuilder = isTransactionBuilder;
 			BuildTransactionButtonText = IsTransactionBuilder ? BuildTransactionButtonTextString : SendTransactionButtonTextString;
 
@@ -224,7 +222,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SmartLabel label = url.Label;
 				if (!label.IsEmpty)
 				{
-					_labelSuggestion.Label = label;
+					LabelSuggestion.Label = label;
 				}
 
 				if (url.Amount != null)
@@ -240,11 +238,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					IsBusy = true;
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.BuildingTransaction);
 
-					var label = new SmartLabel(_labelSuggestion.Label);
-					_labelSuggestion.Label = label;
+					var label = new SmartLabel(LabelSuggestion.Label);
+					LabelSuggestion.Label = label;
 					if (!IsMax && label.IsEmpty)
 					{
-						NotificationHelpers.Warning($"{nameof(_labelSuggestion.Label)} is required.", "");
+						NotificationHelpers.Warning($"{nameof(LabelSuggestion.Label)} is required.", "");
 						return;
 					}
 
@@ -464,7 +462,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 		}
 
-		public SuggestLabelViewModel LabelSuggestion => _labelSuggestion;
+		public SuggestLabelViewModel LabelSuggestion { get; }
 
 		private void SetSendText()
 		{
