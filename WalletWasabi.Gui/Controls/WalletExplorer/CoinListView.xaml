@@ -97,7 +97,7 @@
                     <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding TransactionId}" Background="Transparent" Grid.Column="1" Grid.Row="0" />
                     <TextBlock Classes="monospaceFont" Text="Output Index:" Grid.Row="1" />
                     <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding OutputIndex}" Grid.Column="1" Grid.Row="1" />
-                    <TextBlock Classes="monospaceFont" Text="Label:" Grid.Row="2" />
+                    <TextBlock Classes="monospaceFont" Text="Involved Parties:" Grid.Row="2" />
                     <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Label}" Grid.Column="1" Grid.Row="2" />
                     <TextBlock Classes="monospaceFont" Text="Address:" Grid.Row="3" />
                     <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Address}" Grid.Column="1" Grid.Row="3" />
