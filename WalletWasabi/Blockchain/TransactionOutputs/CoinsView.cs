@@ -57,7 +57,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public ICoinsView FilterBy(Func<SmartCoin, bool> expression) => new CoinsView(Coins.Where(expression));
 
-		public ICoinsView OutPoints(IEnumerable<TxoRef> outPoints) => new CoinsView(Coins.Where(x => outPoints.Any(y => y == x.GetTxoRef())));
+		public ICoinsView OutPoints(IEnumerable<OutPoint> outPoints) => new CoinsView(Coins.Where(x => outPoints.Any(y => y == x.GetOutPoint())));
 
 		public SmartCoin GetByOutPoint(OutPoint outpoint) => Coins.FirstOrDefault(x => x.GetOutPoint() == outpoint);
 

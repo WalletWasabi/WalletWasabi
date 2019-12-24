@@ -112,11 +112,11 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					foreach (SmartCoin coin in Coins.AsAllCoinsView())
 					{
 						var spent = false;
-						foreach (TxoRef spentOutput in coin.SpentOutputs)
+						foreach (OutPoint spentOutput in coin.SpentOutputs)
 						{
 							foreach (TxIn txIn in tx.Transaction.Inputs)
 							{
-								if (spentOutput.TransactionId == txIn.PrevOut.Hash && spentOutput.Index == txIn.PrevOut.N) // Do not do (spentOutput == txIn.PrevOut), it's faster this way, because it won't check for null.
+								if (spentOutput == txIn.PrevOut)
 								{
 									doubleSpends.Add(coin);
 									spent = true;
@@ -185,7 +185,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					if (allReceivedInternal)
 					{
 						// It is likely a coinjoin if the diff between receive and sent amount is small and have at least 2 equal outputs.
-						Money spentAmount = Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.ToTxoRefs()).TotalAmount();
+						Money spentAmount = Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.ToOutPoints()).TotalAmount();
 						Money receivedAmount = tx.Transaction.Outputs.Where(x => receiveKeys.Any(y => y.P2wpkhScript == x.ScriptPubKey)).Sum(x => x.Value);
 						bool receivedAlmostAsMuchAsSpent = spentAmount.Almost(receivedAmount, Money.Coins(0.005m));
 
@@ -211,14 +211,14 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 						}
 
 						foundKey.SetKeyState(KeyState.Used, KeyManager);
-						spentOwnCoins ??= Coins.OutPoints(tx.Transaction.Inputs.ToTxoRefs()).ToList();
+						spentOwnCoins ??= Coins.OutPoints(tx.Transaction.Inputs.ToOutPoints()).ToList();
 						var anonset = tx.Transaction.GetAnonymitySet(i);
 						if (spentOwnCoins.Count != 0)
 						{
 							anonset += spentOwnCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because do not count own.
 						}
 
-						SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, result.IsLikelyOwnCoinJoin, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
+						SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToOutPoints().ToArray(), tx.Height, tx.IsRBF, anonset, result.IsLikelyOwnCoinJoin, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
 
 						result.ReceivedCoins.Add(newCoin);
 						// If we did not have it.

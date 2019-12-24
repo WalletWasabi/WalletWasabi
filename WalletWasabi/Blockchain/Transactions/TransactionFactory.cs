@@ -38,7 +38,7 @@ namespace WalletWasabi.Blockchain.Transactions
 		public BuildTransactionResult BuildTransaction(
 			PaymentIntent payments,
 			FeeRate feeRate,
-			IEnumerable<TxoRef> allowedInputs = null)
+			IEnumerable<OutPoint> allowedInputs = null)
 			=> BuildTransaction(payments, () => feeRate, allowedInputs, () => LockTime.Zero);
 
 		/// <exception cref="ArgumentException"></exception>
@@ -47,7 +47,7 @@ namespace WalletWasabi.Blockchain.Transactions
 		public BuildTransactionResult BuildTransaction(
 			PaymentIntent payments,
 			Func<FeeRate> feeRateFetcher,
-			IEnumerable<TxoRef> allowedInputs = null,
+			IEnumerable<OutPoint> allowedInputs = null,
 			Func<LockTime> lockTimeSelector = null)
 		{
 			payments = Guard.NotNull(nameof(payments), payments);
@@ -72,7 +72,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				}
 
 				allowedSmartCoinInputs = allowedSmartCoinInputs
-					.Where(x => allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index))
+					.Where(x => allowedInputs.Any(y => y == x.GetOutPoint()))
 					.ToList();
 
 				// Add those that have the same script, because common ownership is already exposed.
@@ -261,7 +261,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				TxOut output = tx.Outputs[i];
 				var anonset = tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because count own only once.
 				var foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
-				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, anonset, isLikelyCoinJoinOutput: false, pubKey: foundKey);
+				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToOutPoints().ToArray(), Height.Unknown, tx.RBF, anonset, isLikelyCoinJoinOutput: false, pubKey: foundKey);
 				label = SmartLabel.Merge(label, coin.Label); // foundKey's label is already added to the coinlabel.
 
 				if (foundKey is null)

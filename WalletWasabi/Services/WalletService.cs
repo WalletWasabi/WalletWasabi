@@ -126,7 +126,7 @@ namespace WalletWasabi.Services
 			{
 				foreach (var coin in e.NewlySpentCoins.Concat(e.ReplacedCoins).Concat(e.SuccessfullyDoubleSpentCoins).Distinct())
 				{
-					ChaumianClient.ExposedLinks.TryRemove(coin.GetTxoRef(), out _);
+					ChaumianClient.ExposedLinks.TryRemove(coin.GetOutPoint(), out _);
 				}
 			}
 			catch (Exception ex)
@@ -139,7 +139,7 @@ namespace WalletWasabi.Services
 				IEnumerable<SmartCoin> newCoins = e.NewlyReceivedCoins.Concat(e.RestoredCoins).Distinct();
 				if (newCoins.Any())
 				{
-					if (ChaumianClient.State.Contains(e.Transaction.Transaction.Inputs.Select(x => x.PrevOut.ToTxoRef())))
+					if (ChaumianClient.State.Contains(e.Transaction.Transaction.Inputs.Select(x => x.PrevOut)))
 					{
 						var coinsToQueue = new HashSet<SmartCoin>();
 						foreach (var newCoin in newCoins)
@@ -687,7 +687,7 @@ namespace WalletWasabi.Services
 			PaymentIntent payments,
 			FeeStrategy feeStrategy,
 			bool allowUnconfirmed = false,
-			IEnumerable<TxoRef> allowedInputs = null)
+			IEnumerable<OutPoint> allowedInputs = null)
 		{
 			var builder = new TransactionFactory(Network, KeyManager, Coins, password, allowUnconfirmed);
 			return builder.BuildTransaction(
