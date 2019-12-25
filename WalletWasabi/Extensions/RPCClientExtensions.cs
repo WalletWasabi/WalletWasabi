@@ -124,7 +124,7 @@ namespace NBitcoin.RPC
 		{
 			try
 			{
-				await rpc.GetBlockchainInfoAsync().ConfigureAwait(false);
+				await rpc.UptimeAsync().ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
