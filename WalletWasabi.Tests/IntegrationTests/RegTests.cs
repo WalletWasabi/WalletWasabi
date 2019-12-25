@@ -1235,8 +1235,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				false));
 
 			// Get some money, make it confirm.
-			var key = keyManager.GetNextReceiveKey("foo label", out _);
-			var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
+			var txId = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("foo", out _).GetP2wpkhAddress(network), Money.Coins(1m));
 
 			// Generate some coins
 			await rpc.GenerateAsync(2);
@@ -1271,7 +1270,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, true));
 
 				// Add new money with no confirmation
-				var txId2 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(2m));
+				var txId2 = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("bar", out _).GetP2wpkhAddress(network), Money.Coins(2m));
 				await Task.Delay(1000); // Wait tx to arrive and get processed.
 
 				// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are NOT allowed)
