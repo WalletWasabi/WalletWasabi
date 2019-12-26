@@ -19,6 +19,7 @@ using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Logging;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.Tabs
 {
@@ -89,7 +90,7 @@ namespace WalletWasabi.Gui.Tabs
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(x => Global.UiConfig.IsCustomFee = x);
 
-			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
+			OpenConfigFileCommand = ReactiveCommand.CreateFromTask(OpenConfigFile);
 
 			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
 				{
@@ -392,9 +393,9 @@ namespace WalletWasabi.Gui.Tabs
 			});
 		}
 
-		private void OpenConfigFile()
+		private Task OpenConfigFile()
 		{
-			FileHelpers.OpenFileInTextEditor(Global.Config.FilePath);
+			return FileHelpers.OpenFileInTextEditorAsync(Global.Config.FilePath);
 		}
 
 		#region Validation

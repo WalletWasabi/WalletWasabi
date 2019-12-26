@@ -254,11 +254,11 @@ namespace WalletWasabi.Gui.ViewModels
 					CriticalUpdateAvailable = !x.BackendCompatible;
 				});
 
-			UpdateCommand = ReactiveCommand.Create(() =>
+			UpdateCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				try
 				{
-					IoHelpers.OpenBrowser("https://wasabiwallet.io/#download");
+					await IoHelpers.OpenBrowserAsync("https://wasabiwallet.io/#download");
 				}
 				catch (Exception ex)
 				{

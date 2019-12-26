@@ -142,7 +142,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			EnumerateHardwareWalletsCommand = ReactiveCommand.CreateFromTask(async () => await EnumerateHardwareWalletsAsync());
 
-			OpenBrowserCommand = ReactiveCommand.Create<string>(x => IoHelpers.OpenBrowser(x));
+			OpenBrowserCommand = ReactiveCommand.Create<string>(async x => await IoHelpers.OpenBrowserAsync(x));
 
 			Observable
 				.Merge(OpenBrowserCommand.ThrownExceptions)

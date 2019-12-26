@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
@@ -9,7 +10,7 @@ namespace WalletWasabi.Gui.Helpers
 {
 	public static class FileHelpers
 	{
-		public static void OpenFileInTextEditor(string filePath)
+		public static async Task OpenFileInTextEditorAsync(string filePath)
 		{
 			if (File.Exists(filePath))
 			{
@@ -17,7 +18,7 @@ namespace WalletWasabi.Gui.Helpers
 				{
 					// If no associated application/json MimeType is found xdg-open opens retrun error
 					// but it tries to open it anyway using the console editor (nano, vim, other..)
-					EnvironmentHelpers.ShellExec($"gedit {filePath} || xdg-open {filePath}", waitForExit: false);
+					await EnvironmentHelpers.ShellExecAsync($"gedit {filePath} || xdg-open {filePath}", waitForExit: false);
 				}
 				else
 				{
@@ -37,7 +38,7 @@ namespace WalletWasabi.Gui.Helpers
 						if (openWithNotepad)
 						{
 							// Open file using Notepad.
-							using Process process = Process.Start(new ProcessStartInfo
+							using Process notepadProcess = Process.Start(new ProcessStartInfo
 							{
 								FileName = "notepad.exe",
 								Arguments = filePath,
@@ -49,14 +50,13 @@ namespace WalletWasabi.Gui.Helpers
 					}
 
 					// Open file wtih the default editor.
-					using (Process process = Process.Start(new ProcessStartInfo
+					using Process defaultEditorProcess = Process.Start(new ProcessStartInfo
 					{
 						FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? filePath : "open",
 						Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e {filePath}" : "",
 						CreateNoWindow = true,
 						UseShellExecute = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-					}))
-					{ }
+					});
 				}
 			}
 			else

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,6 +70,15 @@ namespace System.Diagnostics
 			{
 				Logger.LogError(ex, nameof(ProcessExtensions));
 			}
+		}
+
+		public static TaskAwaiter<int> GetAwaiter(this Process process)
+		{
+			var tcs = new TaskCompletionSource<int>();
+			process.EnableRaisingEvents = true;
+			process.Exited += (s, e) => tcs.TrySetResult(process.ExitCode);
+			if (process.HasExited) tcs.TrySetResult(process.ExitCode);
+			return tcs.Task.GetAwaiter();
 		}
 	}
 }

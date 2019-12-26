@@ -2,9 +2,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -144,13 +141,13 @@ namespace System.IO
 			}
 		}
 
-		public static void OpenBrowser(string url)
+		public static async Task OpenBrowserAsync(string url)
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
 				// If no associated application/json MimeType is found xdg-open opens retrun error
 				// but it tries to open it anyway using the console editor (nano, vim, other..)
-				EnvironmentHelpers.ShellExec($"xdg-open {url}", waitForExit: false);
+				await EnvironmentHelpers.ShellExecAsync($"xdg-open {url}", waitForExit: false);
 			}
 			else
 			{
