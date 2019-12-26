@@ -399,12 +399,14 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							transaction.Outputs.AddWithOptimize(coordinatorFee, coordinatorAddress);
 						}
 
+						// https://github.com/zkSNACKs/WalletWasabi/pull/2899#issuecomment-569039237
 						// 7. Create the unsigned transaction.
-						var builder = Network.CreateTransactionBuilder();
-						UnsignedCoinJoin = builder
-							.ContinueToBuild(transaction)
-							.AddCoins(spentCoins) // It makes sure the UnsignedCoinJoin goes through TransactionBuilder optimizations.
-							.BuildTransaction(false);
+						UnsignedCoinJoin = transaction.Clone();
+						//var builder = Network.CreateTransactionBuilder();
+						//UnsignedCoinJoin = builder
+						//	.ContinueToBuild(transaction)
+						//	.AddCoins(spentCoins) // It makes sure the UnsignedCoinJoin goes through TransactionBuilder optimizations.
+						//	.BuildTransaction(false);
 
 						// 8. Try optimize fees.
 						await TryOptimizeFeesAsync(spentCoins);
