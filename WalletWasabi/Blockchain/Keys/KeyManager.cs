@@ -456,7 +456,7 @@ namespace WalletWasabi.Blockchain.Keys
 		{
 			if (label.IsEmpty)
 			{
-				throw new InvalidOperationException("Involved Parties are required.");
+				throw new InvalidOperationException("Observers are required.");
 			}
 
 			minGapLimitIncreased = false;
