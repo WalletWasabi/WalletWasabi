@@ -63,10 +63,10 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			Assert.Null(translator.TryGetRpcPort());
 
 			config.AddOrUpdate("main.rpcport=1");
-			Assert.Equal(1, translator.TryGetRpcPort());
+			Assert.Equal((ushort)1, translator.TryGetRpcPort());
 
 			config.AddOrUpdate("rpcport=2");
-			Assert.Equal(2, translator.TryGetRpcPort());
+			Assert.Equal((ushort)2, translator.TryGetRpcPort());
 
 			config.AddOrUpdate("main.rpcport=foo");
 			Assert.Null(translator.TryGetRpcPort());
