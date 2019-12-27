@@ -49,7 +49,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 				var ex = await RpcClient.TestAsync().ConfigureAwait(false);
 				if (ex is null)
 				{
-					Logger.LogInfo($"RPC connection is sucessfully established.");
+					Logger.LogInfo($"RPC connection is successfully established.");
 					break;
 				}
 				else if (latestFailureMessage != ex.Message)
