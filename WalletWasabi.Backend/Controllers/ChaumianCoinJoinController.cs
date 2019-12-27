@@ -618,15 +618,7 @@ namespace WalletWasabi.Backend.Controllers
 			{
 				case RoundPhase.Signing:
 					{
-						var hex = round.UnsignedCoinJoinHex;
-						if (hex is { })
-						{
-							return Ok(hex);
-						}
-						else
-						{
-							return NotFound("Hex not found. This is impossible.");
-						}
+						return Ok(round.GetUnsignedCoinJoinHex());
 					}
 				default:
 					{
@@ -697,21 +689,21 @@ namespace WalletWasabi.Backend.Controllers
 								{
 									return BadRequest($"Malformed witness is provided. Details: {ex.Message}");
 								}
-								int maxIndex = round.CoinJoin.Inputs.Count - 1;
+								int maxIndex = round.UnsignedCoinJoin.Inputs.Count - 1;
 								if (maxIndex < index)
 								{
 									return BadRequest($"Index out of range. Maximum value: {maxIndex}. Provided value: {index}");
 								}
 
 								// Check duplicates.
-								if (round.CoinJoin.Inputs[index].HasWitScript())
+								if (round.SignedCoinJoin.Inputs[index].HasWitScript())
 								{
 									return BadRequest("Input is already signed.");
 								}
 
 								// Verify witness.
 								// 1. Copy UnsignedCoinJoin.
-								Transaction cjCopy = Transaction.Parse(round.CoinJoin.ToHex(), Network);
+								Transaction cjCopy = Transaction.Parse(round.UnsignedCoinJoin.ToHex(), Network);
 								// 2. Sign the copy.
 								cjCopy.Inputs[index].WitScript = witness;
 								// 3. Convert the current input to IndexedTxIn.
@@ -725,7 +717,7 @@ namespace WalletWasabi.Backend.Controllers
 								}
 
 								// Finally add it to our CJ.
-								round.CoinJoin.Inputs[index].WitScript = witness;
+								round.SignedCoinJoin.Inputs[index].WitScript = witness;
 							}
 
 							alice.State = AliceState.SignedCoinJoin;

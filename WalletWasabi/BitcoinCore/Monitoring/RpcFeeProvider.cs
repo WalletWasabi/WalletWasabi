@@ -46,7 +46,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 			}
 			catch
 			{
-				if (AllFeeEstimate is { })
+				if (AllFeeEstimate != null)
 				{
 					AllFeeEstimate = new AllFeeEstimate(AllFeeEstimate, false);
 				}

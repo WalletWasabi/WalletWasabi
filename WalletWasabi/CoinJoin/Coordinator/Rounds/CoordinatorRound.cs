@@ -49,11 +49,21 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		public Money FeePerInputs { get; private set; }
 		public Money FeePerOutputs { get; private set; }
 
-		public string UnsignedCoinJoinHex { get; private set; }
+		public Transaction UnsignedCoinJoin { get; private set; }
+		private string _unsignedCoinJoinHex;
 
 		public MixingLevelCollection MixingLevels { get; }
 
-		public Transaction CoinJoin { get; private set; }
+		public string GetUnsignedCoinJoinHex()
+		{
+			if (_unsignedCoinJoinHex is null)
+			{
+				_unsignedCoinJoinHex = UnsignedCoinJoin.ToHex();
+			}
+			return _unsignedCoinJoinHex;
+		}
+
+		public Transaction SignedCoinJoin { get; private set; }
 
 		private List<Alice> Alices { get; }
 		private List<Bob> Bobs { get; } // Do not make it a hashset or do not make Bob IEquitable!!!
@@ -180,7 +190,10 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					MixingLevels.AddNewLevel();
 				}
 
-				CoinJoin = null;
+				_unsignedCoinJoinHex = null;
+
+				UnsignedCoinJoin = null;
+				SignedCoinJoin = null;
 
 				Alices = new List<Alice>();
 				Bobs = new List<Bob>();
@@ -389,20 +402,26 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 							transaction.Outputs.AddWithOptimize(coordinatorFee, coordinatorAddress);
 						}
 
-						// 7. Try optimize fees.
-						await TryOptimizeFeesAsync(transaction, spentCoins).ConfigureAwait(false);
+						// 7. Create the unsigned transaction.
+						var builder = Network.CreateTransactionBuilder();
+						UnsignedCoinJoin = builder
+							.ContinueToBuild(transaction)
+							.AddCoins(spentCoins) // It makes sure the UnsignedCoinJoin goes through TransactionBuilder optimizations.
+							.BuildTransaction(false);
 
-						// 8. Shuffle.
-						transaction.Inputs.Shuffle();
-						transaction.Outputs.Shuffle();
+						// 8. Try optimize fees.
+						await TryOptimizeFeesAsync(spentCoins).ConfigureAwait(false);
 
-						// 9. Sort inputs and outputs by amount so the coinjoin looks better in a block explorer.
-						transaction.Inputs.SortByAmount(spentCoins);
-						transaction.Outputs.SortByAmount();
+						// 9. Shuffle.
+						UnsignedCoinJoin.Inputs.Shuffle();
+						UnsignedCoinJoin.Outputs.Shuffle();
+
+						// 10. Sort inputs and outputs by amount so the coinjoin looks better in a block explorer.
+						UnsignedCoinJoin.Inputs.SortByAmount(spentCoins);
+						UnsignedCoinJoin.Outputs.SortByAmount();
 						//Note: We shuffle then sort because inputs and outputs could have equal values
 
-						CoinJoin = transaction;
-						UnsignedCoinJoinHex = transaction.ToHex();
+						SignedCoinJoin = Transaction.Parse(UnsignedCoinJoin.ToHex(), Network);
 
 						Phase = RoundPhase.Signing;
 					}
@@ -695,16 +714,16 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			return acceptedBlindedOutputScriptsCount;
 		}
 
-		private async Task TryOptimizeFeesAsync(Transaction transaction, IEnumerable<Coin> spentCoins)
+		private async Task TryOptimizeFeesAsync(IEnumerable<Coin> spentCoins)
 		{
 			try
 			{
 				await TryOptimizeConfirmationTargetAsync(spentCoins.Select(x => x.Outpoint.Hash).ToHashSet()).ConfigureAwait(false);
 
 				// 8.1. Estimate the current FeeRate. Note, there are no signatures yet!
-				int estimatedSigSizeBytes = transaction.Inputs.Count * Constants.P2wpkhInputSizeInBytes;
-				int estimatedFinalTxSize = transaction.GetSerializedSize() + estimatedSigSizeBytes;
-				Money fee = transaction.GetFee(spentCoins.ToArray());
+				int estimatedSigSizeBytes = UnsignedCoinJoin.Inputs.Count * Constants.P2wpkhInputSizeInBytes;
+				int estimatedFinalTxSize = UnsignedCoinJoin.GetSerializedSize() + estimatedSigSizeBytes;
+				Money fee = UnsignedCoinJoin.GetFee(spentCoins.ToArray());
 
 				// There is a currentFeeRate null check later.
 				FeeRate currentFeeRate = null;
@@ -742,9 +761,9 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						Money toSave = fee - feeShouldBePaid;
 
 						// 8.2.2. Get the outputs to divide the savings between.
-						int maxMixCount = transaction.GetIndistinguishableOutputs(includeSingle: true).Max(x => x.count);
-						Money bestMixAmount = transaction.GetIndistinguishableOutputs(includeSingle: true).Where(x => x.count == maxMixCount).Max(x => x.value);
-						int bestMixCount = transaction.GetIndistinguishableOutputs(includeSingle: true).First(x => x.value == bestMixAmount).count;
+						int maxMixCount = UnsignedCoinJoin.GetIndistinguishableOutputs(includeSingle: true).Max(x => x.count);
+						Money bestMixAmount = UnsignedCoinJoin.GetIndistinguishableOutputs(includeSingle: true).Where(x => x.count == maxMixCount).Max(x => x.value);
+						int bestMixCount = UnsignedCoinJoin.GetIndistinguishableOutputs(includeSingle: true).First(x => x.value == bestMixAmount).count;
 
 						// 8.2.3. Get the savings per best mix outputs.
 						long toSavePerBestMixOutputs = toSave.Satoshi / bestMixCount;
@@ -752,7 +771,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						// 8.2.4. Modify the best mix outputs in the transaction.
 						if (toSavePerBestMixOutputs > 0)
 						{
-							foreach (TxOut output in transaction.Outputs.Where(x => x.Value == bestMixAmount))
+							foreach (TxOut output in UnsignedCoinJoin.Outputs.Where(x => x.Value == bestMixAmount))
 							{
 								output.Value += toSavePerBestMixOutputs;
 							}
@@ -1064,35 +1083,35 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			using (await RoundSynchronizerLock.LockAsync().ConfigureAwait(false))
 			{
 				// Check if fully signed.
-				if (CoinJoin.Inputs.All(x => x.HasWitScript()))
+				if (SignedCoinJoin.Inputs.All(x => x.HasWitScript()))
 				{
 					Logger.LogInfo($"Round ({RoundId}): Trying to broadcast coinjoin.");
 
 					try
 					{
 						Coin[] spentCoins = Alices.SelectMany(x => x.Inputs).ToArray();
-						Money networkFee = CoinJoin.GetFee(spentCoins);
+						Money networkFee = SignedCoinJoin.GetFee(spentCoins);
 						Logger.LogInfo($"Round ({RoundId}): Network Fee: {networkFee.ToString(false, false)} BTC.");
-						Logger.LogInfo($"Round ({RoundId}): Coordinator Fee: {CoinJoin.Outputs.SingleOrDefault(x => x.ScriptPubKey == Constants.GetCoordinatorAddress(Network).ScriptPubKey)?.Value?.ToString(false, false) ?? "0"} BTC.");
-						FeeRate feeRate = CoinJoin.GetFeeRate(spentCoins);
+						Logger.LogInfo($"Round ({RoundId}): Coordinator Fee: {SignedCoinJoin.Outputs.SingleOrDefault(x => x.ScriptPubKey == Constants.GetCoordinatorAddress(Network).ScriptPubKey)?.Value?.ToString(false, false) ?? "0"} BTC.");
+						FeeRate feeRate = SignedCoinJoin.GetFeeRate(spentCoins);
 						Logger.LogInfo($"Round ({RoundId}): Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
-						Logger.LogInfo($"Round ({RoundId}): Number of inputs: {CoinJoin.Inputs.Count}.");
-						Logger.LogInfo($"Round ({RoundId}): Number of outputs: {CoinJoin.Outputs.Count}.");
-						Logger.LogInfo($"Round ({RoundId}): Serialized Size: {CoinJoin.GetSerializedSize() / 1024} KB.");
-						Logger.LogInfo($"Round ({RoundId}): VSize: {CoinJoin.GetVirtualSize() / 1024} KB.");
-						foreach (var o in CoinJoin.GetIndistinguishableOutputs(includeSingle: false))
+						Logger.LogInfo($"Round ({RoundId}): Number of inputs: {SignedCoinJoin.Inputs.Count}.");
+						Logger.LogInfo($"Round ({RoundId}): Number of outputs: {SignedCoinJoin.Outputs.Count}.");
+						Logger.LogInfo($"Round ({RoundId}): Serialized Size: {SignedCoinJoin.GetSerializedSize() / 1024} KB.");
+						Logger.LogInfo($"Round ({RoundId}): VSize: {SignedCoinJoin.GetVirtualSize() / 1024} KB.");
+						foreach (var o in SignedCoinJoin.GetIndistinguishableOutputs(includeSingle: false))
 						{
 							Logger.LogInfo($"Round ({RoundId}): There are {o.count} occurrences of {o.value.ToString(true, false)} BTC output.");
 						}
 
-						await RpcClient.SendRawTransactionAsync(CoinJoin).ConfigureAwait(false);
-						broadcasted = CoinJoin;
+						await RpcClient.SendRawTransactionAsync(SignedCoinJoin).ConfigureAwait(false);
+						broadcasted = SignedCoinJoin;
 						Succeed(syncLock: false);
-						Logger.LogInfo($"Round ({RoundId}): Successfully broadcasted the CoinJoin: {CoinJoin.GetHash()}.");
+						Logger.LogInfo($"Round ({RoundId}): Successfully broadcasted the CoinJoin: {SignedCoinJoin.GetHash()}.");
 					}
 					catch (Exception ex)
 					{
-						Abort($"Could not broadcast the CoinJoin: {CoinJoin.GetHash()}.", syncLock: false);
+						Abort($"Could not broadcast the CoinJoin: {SignedCoinJoin.GetHash()}.", syncLock: false);
 						Logger.LogError(ex);
 					}
 				}
