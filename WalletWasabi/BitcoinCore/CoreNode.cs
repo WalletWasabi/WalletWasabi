@@ -14,7 +14,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Configuration;
-using WalletWasabi.BitcoinCore.Configuration.Whitening;
 using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinCore.Processes;
@@ -58,21 +57,53 @@ namespace WalletWasabi.BitcoinCore
 				if (File.Exists(configPath))
 				{
 					var configString = await File.ReadAllTextAsync(configPath).ConfigureAwait(false);
-					coreNode.Config.AddOrUpdate(configString); // Bitcoin Core considers the last entry to be valid.
+					coreNode.Config.TryAdd(configString);
 				}
-				cancel.ThrowIfCancellationRequested();
 
-				var configTranslator = new CoreConfigTranslator(coreNode.Config, coreNode.Network);
+				var configDic = coreNode.Config.ToDictionary();
+				string rpcUser = null;
+				string rpcPassword = null;
+				EndPoint whitebind = null;
+				string rpcHost = null;
+				int? rpcPort = null;
+				string rpcCookieFilePath = null;
+				foreach (var networkPrefixWithDot in NetworkTranslator.GetConfigPrefixesWithDots(coreNode.Network))
+				{
+					var rpcc = configDic.TryGet($"{networkPrefixWithDot}rpccookiefile");
+					var ru = configDic.TryGet($"{networkPrefixWithDot}rpcuser");
+					var rp = configDic.TryGet($"{networkPrefixWithDot}rpcpassword");
+					var wbs = configDic.TryGet($"{networkPrefixWithDot}whitebind");
+					var rpst = configDic.TryGet($"{networkPrefixWithDot}rpchost");
+					var rpts = configDic.TryGet($"{networkPrefixWithDot}rpcport");
 
-				string rpcUser = configTranslator.TryGetRpcUser();
-				string rpcPassword = configTranslator.TryGetRpcPassword();
-				string rpcCookieFilePath = configTranslator.TryGetRpcCookieFile();
-				string rpcHost = configTranslator.TryGetRpcHost();
-				int? rpcPort = configTranslator.TryGetRpcPort();
-				WhiteBind whiteBind = configTranslator.TryGetWhiteBind();
+					if (rpcc != null)
+					{
+						rpcCookieFilePath = rpcc;
+					}
+					if (ru != null)
+					{
+						rpcUser = ru;
+					}
+					if (rp != null)
+					{
+						rpcPassword = rp;
+					}
+					if (wbs != null && EndPointParser.TryParse(wbs, coreNode.Network.DefaultPort, out EndPoint wb))
+					{
+						whitebind = wb;
+					}
+					if (rpst != null)
+					{
+						rpcHost = rpst;
+					}
+					if (rpts != null && int.TryParse(rpts, out int rpt))
+					{
+						rpcPort = rpt;
+					}
+				}
 
 				string authString;
-				bool cookieAuth = rpcCookieFilePath is { };
+				bool cookieAuth = rpcCookieFilePath != null;
 				if (cookieAuth)
 				{
 					authString = $"cookiefile={rpcCookieFilePath}";
@@ -84,7 +115,7 @@ namespace WalletWasabi.BitcoinCore
 					authString = $"{rpcUser}:{rpcPassword}";
 				}
 
-				coreNode.P2pEndPoint = whiteBind?.EndPoint ?? coreNodeParams.P2pEndPointStrategy.EndPoint;
+				coreNode.P2pEndPoint = whitebind ?? coreNodeParams.P2pEndPointStrategy.EndPoint;
 				rpcHost ??= coreNodeParams.RpcEndPointStrategy.EndPoint.GetHostOrDefault();
 				rpcPort ??= coreNodeParams.RpcEndPointStrategy.EndPoint.GetPortOrDefault();
 				EndPointParser.TryParse($"{rpcHost}:{rpcPort}", coreNode.Network.RPCPort, out EndPoint rpce);
@@ -96,23 +127,20 @@ namespace WalletWasabi.BitcoinCore
 				{
 					await coreNode.TryStopAsync(false).ConfigureAwait(false);
 				}
-				cancel.ThrowIfCancellationRequested();
 
 				if (coreNodeParams.TryDeleteDataDir)
 				{
 					await IoHelpers.DeleteRecursivelyWithMagicDustAsync(coreNode.DataDir).ConfigureAwait(false);
 				}
-				cancel.ThrowIfCancellationRequested();
 
 				IoHelpers.EnsureDirectoryExists(coreNode.DataDir);
 
 				var configPrefix = NetworkTranslator.GetConfigPrefix(coreNode.Network);
-				var whiteBindPermissionsPart = !string.IsNullOrWhiteSpace(whiteBind?.Permissions) ? $"{whiteBind?.Permissions}@" : "";
 				var desiredConfigLines = new List<string>()
 				{
 					$"{configPrefix}.server			= 1",
 					$"{configPrefix}.listen			= 1",
-					$"{configPrefix}.whitebind		= {whiteBindPermissionsPart}{coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
+					$"{configPrefix}.whitebind		= {coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
 					$"{configPrefix}.rpchost		= {coreNode.RpcEndPoint.GetHostOrDefault()}",
 					$"{configPrefix}.rpcport		= {coreNode.RpcEndPoint.GetPortOrDefault()}"
 				};
@@ -123,12 +151,12 @@ namespace WalletWasabi.BitcoinCore
 					desiredConfigLines.Add($"{configPrefix}.rpcpassword	= {coreNode.RpcClient.CredentialString.UserPassword.Password}");
 				}
 
-				if (coreNodeParams.TxIndex is { })
+				if (coreNodeParams.TxIndex != null)
 				{
 					desiredConfigLines.Add($"{configPrefix}.txindex = {coreNodeParams.TxIndex}");
 				}
 
-				if (coreNodeParams.Prune is { })
+				if (coreNodeParams.Prune != null)
 				{
 					desiredConfigLines.Add($"{configPrefix}.prune = {coreNodeParams.Prune}");
 				}
@@ -148,9 +176,8 @@ namespace WalletWasabi.BitcoinCore
 					|| !File.Exists(configPath))
 				{
 					IoHelpers.EnsureContainingDirectoryExists(configPath);
-					await File.WriteAllTextAsync(configPath, coreNode.Config.ToString()).ConfigureAwait(false);
+					await File.WriteAllTextAsync(configPath, coreNode.Config.ToString());
 				}
-				cancel.ThrowIfCancellationRequested();
 
 				// If it isn't already running, then we run it.
 				if (await coreNode.RpcClient.TestAsync().ConfigureAwait(false) is null)
@@ -160,14 +187,12 @@ namespace WalletWasabi.BitcoinCore
 				else
 				{
 					coreNode.Bridge = new BitcoindRpcProcessBridge(coreNode.RpcClient, coreNode.DataDir, printToConsole: false);
-					await coreNode.Bridge.StartAsync(cancel).ConfigureAwait(false);
+					await coreNode.Bridge.StartAsync().ConfigureAwait(false);
 					Logger.LogInfo("Started Bitcoin Core.");
 				}
-				cancel.ThrowIfCancellationRequested();
 
 				coreNode.P2pNode = new P2pNode(coreNode.Network, coreNode.P2pEndPoint, coreNode.MempoolService, coreNodeParams.UserAgent);
 				await coreNode.P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
-				cancel.ThrowIfCancellationRequested();
 
 				coreNode.HostedServices.Register(new BlockNotifier(TimeSpan.FromSeconds(7), new RpcWrappedClient(coreNode.RpcClient), coreNode.P2pNode), "Block Notifier");
 				coreNode.HostedServices.Register(new RpcMonitor(TimeSpan.FromSeconds(7), coreNode.RpcClient), "RPC Monitor");
@@ -188,7 +213,7 @@ namespace WalletWasabi.BitcoinCore
 				throw new BitcoindException($"'bitcoind {arguments}' exited with incorrect exit code: {exitCode}.");
 			}
 			var firstLine = responseString.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).First();
-			string versionString = firstLine.Split("version v", StringSplitOptions.RemoveEmptyEntries).Last();
+			var versionString = firstLine.TrimStart("Bitcoin Core Daemon version v", StringComparison.OrdinalIgnoreCase);
 			var version = new Version(versionString);
 			return version;
 		}
@@ -224,7 +249,7 @@ namespace WalletWasabi.BitcoinCore
 			Exception exThrown = null;
 
 			BitcoindRpcProcessBridge bridge = null;
-			if (Bridge is { })
+			if (Bridge != null)
 			{
 				bridge = Bridge;
 			}
@@ -233,7 +258,7 @@ namespace WalletWasabi.BitcoinCore
 				bridge = new BitcoindRpcProcessBridge(RpcClient, DataDir, printToConsole: false);
 			}
 
-			if (bridge is { })
+			if (bridge != null)
 			{
 				try
 				{

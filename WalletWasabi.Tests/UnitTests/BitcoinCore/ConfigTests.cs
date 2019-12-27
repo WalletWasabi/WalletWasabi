@@ -9,24 +9,6 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 	public class ConfigTests
 	{
 		[Fact]
-		public void RemovesEmptyDuplications()
-		{
-			var configStringBuilder = new StringBuilder("foo=bar");
-			configStringBuilder.Append(Environment.NewLine);
-			configStringBuilder.Append(Environment.NewLine);
-			configStringBuilder.Append(Environment.NewLine);
-			configStringBuilder.Append("bar=bar");
-			var config = new CoreConfig();
-			config.AddOrUpdate(configStringBuilder.ToString());
-			var expectedConfig =
-@"foo = bar
-
-bar = bar
-";
-			Assert.Equal(expectedConfig, config.ToString());
-		}
-
-		[Fact]
 		public void CanParse()
 		{
 			var testConfig =
@@ -45,10 +27,10 @@ foo
 bar
 #qoo=boo";
 			var coreConfig = new CoreConfig();
-			coreConfig.AddOrUpdate(testConfig);
+			coreConfig.TryAdd(testConfig);
 
 			var expectedConfig =
-@"foo = bar
+@"foo = buz
 
 foo bar = buz quxx
 
@@ -68,7 +50,7 @@ bar
 			Assert.False(configDic.TryGetValue("bar", out _));
 			Assert.True(configDic.TryGetValue("foo bar", out string v3));
 
-			Assert.Equal("bar", v1);
+			Assert.Equal("buz", v1);
 			Assert.Equal("1", v2);
 			Assert.Equal("buz quxx", v3);
 
@@ -91,11 +73,11 @@ bar
 			var add2 = "foo=bar";
 			var add3 = "too=0";
 
-			coreConfig.AddOrUpdate(add1);
+			coreConfig.TryAdd(add1);
 			coreConfig2.AddOrUpdate(add1);
-			coreConfig.AddOrUpdate(add2);
+			coreConfig.TryAdd(add2);
 			coreConfig2.AddOrUpdate(add2);
-			coreConfig.AddOrUpdate(add3);
+			coreConfig.TryAdd(add3);
 			coreConfig2.AddOrUpdate(add3);
 
 			configDic = coreConfig.ToDictionary();
@@ -105,8 +87,8 @@ bar
 			Assert.True(configDic.TryGetValue("foo", out string fooValue));
 			Assert.True(configDic.TryGetValue("too", out string tooValue));
 			Assert.Equal("1", mooValue);
-			Assert.Equal("bar", fooValue);
-			Assert.Equal("0", tooValue);
+			Assert.Equal("buz", fooValue);
+			Assert.Equal("1", tooValue);
 
 			Assert.True(configDic2.TryGetValue("moo", out mooValue));
 			Assert.True(configDic2.TryGetValue("foo", out fooValue));
@@ -116,15 +98,15 @@ bar
 			Assert.Equal("0", tooValue);
 
 			expectedConfig =
-@"foo = bar
+@"foo = buz
 
 foo bar = buz quxx
 
+too = 1
 foo
 bar
 #qoo=boo
 moo = 1
-too = 0
 ";
 
 			Assert.Equal(expectedConfig, coreConfig.ToString());
@@ -150,7 +132,7 @@ too = 0
 @"foo=bar
 buz=qux";
 			var coreConfig = new CoreConfig();
-			coreConfig.AddOrUpdate(testConfig);
+			coreConfig.TryAdd(testConfig);
 
 			var expectedConfig =
 @"foo = bar
@@ -183,7 +165,7 @@ bar=4
 buz=1
 test.buz=2";
 			var coreConfig = new CoreConfig();
-			coreConfig.AddOrUpdate(testConfig);
+			coreConfig.TryAdd(testConfig);
 
 			var expectedConfig =
 @"qux = 1
