@@ -42,10 +42,10 @@ namespace WalletWasabi.BitcoinCore.Configuration
 
 		public string TryGetRpcHost() => TryGetValue("rpchost");
 
-		public int? TryGetRpcPort()
+		public ushort? TryGetRpcPort()
 		{
 			var stringValue = TryGetValue("rpcport");
-			if (stringValue is { } && int.TryParse(stringValue, out int value))
+			if (stringValue is { } && ushort.TryParse(stringValue, out ushort value))
 			{
 				return value;
 			}
