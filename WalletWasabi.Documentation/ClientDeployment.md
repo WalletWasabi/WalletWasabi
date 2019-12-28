@@ -65,10 +65,9 @@ Backport is a branch. It is used for creating silent releases (hotfixes, small i
 ## Merge PR into backport
 
 1. There is a PR which is merged to master and selected to backport. 
-2. Checkout the current backport branch to a new local branch like bp_whatever.
-`git checkout -b bp_whatever upstream/backport`
+2. Checkout the current backport branch to a new local branch like bp_whatever: `git checkout -b bp_whatever upstream/backport`
 3. Go to the merged PR / Commits and copy the hash of the commit.
-4. Cherry pick.
+4. Cherry pick: 
 `git cherry-pick 35c4db348__hash of the commit__06abcd9278c`
 5. git push origin bp_whatever.
 6. Create a PR into upstream/backport name it as: [Backport] Whatever.
