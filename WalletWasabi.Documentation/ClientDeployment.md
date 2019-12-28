@@ -68,4 +68,18 @@ git push -u upstream/backport
 1. [Twitter](https://twitter.com) (tag @wasabiwallet #Bitcoin #Privacy).
 2. Submit to [/r/WasabiWallet](https://old.reddit.com/r/WasabiWallet/) and [/r/Bitcoin](https://old.reddit.com/r/Bitcoin/).
 
+# 8. Backport
+
+1. There is a PR which is merged to master and selected to backport. 
+2. Checkout the current backport branch to a new local branch like bp_whatever
+`git checkout -b bp_whatever upstream/backport`
+3. Go to the merged PR / Commits and copy the hash of the commit.
+4. Cherry pick
+`git cherry-pick 35c4db348__hash of the commit__06abcd9278c`
+5. git push origin bp_whatever
+6. Create a PR into upstream/backport name it as: [Backport] Whatever
+
+Notes:
+- In Backport the index.html does not need to be maintained.
+
 
