@@ -28,522 +28,538 @@
 </head>
 <body>
     <div itemscope itemtype="https://schema.org/SoftwareApplication">
-        <link itemprop="applicationCategory" href="https://schema.org/FinanceApplication" />
-        <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-            <meta itemprop="name" content="Wasabi Wallet">
-            <meta itemprop="price" content="0">
-            <meta itemprop="priceCurrency" content="BTC">
-        </div>
-        <!-- Header -->
-        <header>
-            <nav class="navbar navbar-expand-lg navbar-dark bg-dark m-auto rounded-bottom">
-                <a class="navbar-brand" href="#">
-                    <img src="images/wasabi-wallet-logo.svg?ver=1.1.0" style="height: 40px; width: auto" alt="">
-                </a>
-                <input type="checkbox" id="navbar-toggle-cbox">
-                <label for="navbar-toggle-cbox" class="navbar-toggler border-0 p-0 collapsed" data-toggle="collapse" data-target="#navbarColor02" aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </label>
-
-                <div class="collapse navbar-collapse pt-2 pt-sm-0" id="navbarColor02">
-                    <ul class="navbar-nav ml-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="https://docs.wasabiwallet.io" target="_blank">docs</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#faq">faq</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="https://github.com/zkSNACKs/WalletWasabi/" target="_blank">github</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="https://docs.wasabiwallet.io/building-wasabi/Dojo.html" target="_blank">dojo</a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
-        </header>
-
-        <main role="main">
-
-            <!-- Hero Section -->
-            <section class="hero">
-                <div class="row row-eq-height">
-                    <div class="col-12 col-sm-5">
-                        <div class="hero-image">
-                            <span class="text-lowercase mb-0 px-2 pb-5 mobile-heading d-sm-none">Unfairly Private</span>
-                        </div>
-                    </div>
-
-                    <div class="col-sm-7 col-xl-4 offset-xl-1 align-self-center">
-                        <div class="px-2 py-4 pt-5 mb-2 mb-sm-0">
-                            <h1 class="text-lowercase mb-lg-3 d-none d-sm-block mt-3 mt-lg-0">Reclaim your privacy now</h1>
-                            <p class="mb-lg-3"><span itemprop="name">Wasabi</span> is an open-source, non-custodial, privacy-focused Bitcoin wallet for <span itemprop="availableOnDevice">Desktop</span>, that implements trustless coin shuffling with mathematically provable anonymity - <a href="https://github.com/nopara73/ZeroLink/" target="_blank">Chaumian CoinJoin</a>.</p>
-
-                            <a href="#download" class="text-uppercase text-dark arrow-right text-center animated-link">
-                                <span data-hover="Download now">Download now</span>
-                                <svg class="align-middle d-inline-block ml-1" width="92" height="9" xmlns="http://www.w3.org/2000/svg"><path d="M89.795 5H.248V4H89.8L86.776.975l.707-.707 4.206 4.207-.481.48V5h-.044l-.18.18.016.017-3.535 3.535-.701-.7z" fill="#211B24" fill-rule="nonzero" /></svg>
-                            </a>
-
-                            <ul class="download-links mt-2">
-                                <li class="download-link mr-2">
-                                    <a href="#download">
-                                        <svg width="25" height="30" xmlns="http://www.w3.org/2000/svg"><g fill="#72BD81" fill-rule="nonzero"><path d="M1.351 11.028c-2.536 4.401-.924 11.08 1.881 15.13C4.632 28.183 6.049 30 7.991 30c.036 0 .073 0 .11-.002.913-.037 1.572-.317 2.21-.589.715-.305 1.455-.62 2.615-.62 1.104 0 1.809.305 2.49.6.672.29 1.364.591 2.386.572 2.187-.04 3.53-2.002 4.714-3.732a16.542 16.542 0 0 0 2.065-4.23l.009-.027a.246.246 0 0 0-.13-.302l-.019-.007c-.385-.158-3.763-1.656-3.798-5.74-.033-3.319 2.534-5.076 3.049-5.395l.024-.015a.246.246 0 0 0 .07-.345c-1.772-2.593-4.488-2.984-5.582-3.03a4.922 4.922 0 0 0-.486-.025c-1.285 0-2.515.485-3.503.875-.682.27-1.272.502-1.678.502-.457 0-1.05-.236-1.736-.508-.917-.364-1.958-.777-3.059-.777h-.077c-2.56.039-4.98 1.503-6.314 3.823z" /><path d="M18.207 0c-1.55.063-3.41 1.018-4.522 2.32-.945 1.094-1.868 2.92-1.625 4.758a.246.246 0 0 0 .225.213c.104.008.211.013.318.013 1.516 0 3.151-.839 4.268-2.19 1.176-1.426 1.77-3.256 1.59-4.895A.247.247 0 0 0 18.207 0z" /></g></svg>
-                                    </a>
-                                </li>
-                                <li class="download-link mr-2">
-                                    <a href="#download">
-                                        <svg width="26" height="30" xmlns="http://www.w3.org/2000/svg"><path d="M24.852 24.087c-.88-.36-1.256-.838-1.22-1.551.038-.833-.435-1.443-.66-1.684.136-.518.532-2.309.001-3.865-.57-1.665-2.314-4.208-4.112-6.708-.736-1.027-.771-2.143-.811-3.435-.039-1.233-.082-2.63-.77-4.183C16.533.97 15.033 0 13.166 0c-1.111 0-2.252.347-3.13.953-1.796 1.24-1.559 3.944-1.402 5.733.022.245.042.477.054.674.105 1.753.01 2.676-.115 2.957-.08.183-.477.705-.897 1.258-.434.572-.926 1.22-1.33 1.824-.48.726-.87 1.837-1.245 2.91-.275.787-.535 1.53-.787 1.973-.48.853-.36 1.649-.26 2.017-.182.126-.444.374-.665.841-.268.57-.81.877-1.938 1.094-.519.106-.876.324-1.063.648-.272.471-.124 1.063.011 1.468.2.595.076.971-.15 1.655-.053.158-.112.336-.172.533-.094.311-.06.594.101.84.426.652 1.67.882 2.949 1.033.764.09 1.6.396 2.41.692.792.29 1.611.589 2.356.68.113.014.225.021.333.021a1.961 1.961 0 0 0 1.794-1.053c.404-.082 1.798-.346 3.234-.382 1.433-.04 2.82.243 3.213.33.124.237.45.777.969 1.055.285.156.682.246 1.089.246.434 0 1.26-.103 1.915-.79.652-.692 2.282-1.575 3.472-2.219.266-.144.514-.278.732-.4.668-.37 1.033-.9 1-1.453-.026-.459-.33-.862-.792-1.05zm-14.8-.133c-.084-.586-.838-1.167-1.711-1.84-.714-.551-1.524-1.175-1.747-1.703-.46-1.09-.097-3.007.536-3.994.313-.494.569-1.244.816-1.968.267-.783.543-1.592.852-1.946.489-.553.94-1.63 1.02-2.477.458.437 1.169.992 1.825.992.1 0 .199-.014.293-.04.449-.13 1.109-.511 1.747-.88.551-.318 1.23-.71 1.485-.746.438.629 2.983 6.261 3.243 8.07a8.552 8.552 0 0 1-.12 3.077 2.264 2.264 0 0 0-.303-.021c-.71 0-.897.387-.946.618-.126.6-.139 2.52-.14 2.95-.257.326-1.553 1.86-3.414 2.136a14.78 14.78 0 0 1-2.104.166c-.545 0-.893-.042-1.038-.064l-.935-1.07c.369-.182.738-.566.64-1.26zM11.237 6.31c-.03.012-.058.026-.086.04a1.742 1.742 0 0 0-.02-.192c-.102-.588-.491-1.014-.926-1.014a.655.655 0 0 0-.1.008c-.259.043-.462.237-.573.512.098-.604.44-1.051.846-1.051.477 0 .88.643.88 1.404 0 .095-.007.19-.02.293zm3.707.453c.044-.14.067-.29.067-.446 0-.69-.438-1.23-.996-1.23-.546 0-.99.552-.99 1.23 0 .046.002.093.006.139a18.063 18.063 0 0 0-.085-.032 1.881 1.881 0 0 1-.094-.592c0-.825.527-1.496 1.175-1.496s1.175.671 1.175 1.496c0 .343-.094.67-.258.93zm-.478 1.606c-.01.041-.03.06-.249.174-.11.058-.249.13-.422.235l-.115.07c-.464.281-1.551.94-1.846.979-.2.027-.324-.051-.603-.24a8.7 8.7 0 0 0-.201-.134c-.502-.33-.825-.693-.862-.835.164-.127.57-.443.778-.63.422-.393.846-.657 1.056-.657.011 0 .021.001.032.003.247.044.856.287 1.3.464.206.082.383.153.508.198.394.135.6.308.624.373zM18.003 26.7c.222-1.001.477-2.364.436-3.167-.01-.182-.026-.38-.041-.573-.03-.359-.073-.892-.028-1.05a.192.192 0 0 1 .03-.011c.001.459.101 1.375.834 1.694.218.095.467.143.74.143.735 0 1.549-.36 1.882-.693.196-.196.362-.437.477-.627.025.074.041.171.033.296-.044.677.285 1.575.912 1.906l.09.048c.224.117.817.429.826.576 0 0-.005.018-.038.048-.148.136-.67.403-1.176.66-.896.458-1.912.977-2.368 1.457-.642.676-1.369 1.13-1.808 1.13a.475.475 0 0 1-.143-.02c-.477-.15-.869-.837-.658-1.817zm-16.24-2.555c-.05-.227-.088-.407-.046-.58.03-.13.666-.267.937-.326.382-.083.777-.169 1.036-.326.349-.211.538-.602.705-.946.12-.249.245-.506.394-.59a.084.084 0 0 1 .045-.011c.278 0 .862.584 1.198 1.107.085.132.243.397.426.703.547.914 1.295 2.167 1.686 2.587.352.377.922 1.103.782 1.725-.103.483-.65.875-.778.962a.797.797 0 0 1-.173.016c-.748 0-2.23-.622-3.025-.956l-.118-.05c-.444-.186-1.17-.304-1.87-.417-.559-.09-1.323-.214-1.45-.326-.102-.115.017-.49.122-.82a5.32 5.32 0 0 0 .196-.74c.061-.41-.01-.744-.068-1.012z" fill="#72BD81" fill-rule="nonzero" /></svg>
-                                    </a>
-                                </li>
-                                <li class="download-link">
-                                    <a href="#download">
-                                        <svg width="30" height="30" xmlns="http://www.w3.org/2000/svg"><g fill="#72BD81" fill-rule="nonzero"><path d="M0 25.822l12.272 1.691V15.8H0zM0 14.287h12.272V2.43L0 4.121zM13.622 27.693l16.32 2.25V15.798h-16.32zM13.622 2.25v12.037h16.32V0z" /></g></svg>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <img src="images/shader-wasabi.svg?ver=1.1.0" class="shader" />
-            </section>
-
-            <!-- Features Bar -->
-            <section class="features box-shadow-lg mx-auto mb-5 mb-sm-2">
-                <div class="row row-eq-height">
-                    <div class="col-6 col-sm-3 p-0 border-right border-bottom border-bottom-sm-0">
-                        <a href="https://docs.wasabiwallet.io/why-wasabi/BitcoinPrivacy.html#transaction-graph" class="feature text-center py-3 px-2 px-md-3 d-block text-dark" target="_blank">
-                            <svg class="d-block mb-2 m-auto" width="54" height="50" xmlns="http://www.w3.org/2000/svg"><g fill="#000" fill-rule="nonzero"><path d="M1.786 0H3.57v1.786H1.786zM1.786 8.929H3.57v1.785H1.786zM1.786 17.857H3.57v1.786H1.786zM36.607 0h15.179v1.786H36.607zM36.607 8.929h15.179v1.785H36.607zM36.607 17.857h15.179v1.786H36.607zM1.786 30.357H3.57v1.786H1.786zM1.786 39.286H3.57v1.785H1.786zM1.786 48.214H3.57V50H1.786zM36.607 30.357h15.179v1.786H36.607zM36.607 39.286h15.179v1.785H36.607zM36.607 48.214h15.179V50H36.607zM53.571 24.107h-2.843a2.679 2.679 0 0 0-2.514-1.786h-3.571a2.679 2.679 0 0 0-2.514 1.786h-1.222a2.679 2.679 0 0 0-2.514-1.786H34.82a2.679 2.679 0 0 0-2.514 1.786h-1.221a2.679 2.679 0 0 0-2.515-1.786H25a2.679 2.679 0 0 0-2.514 1.786h-1.222a2.679 2.679 0 0 0-2.514-1.786h-3.571a2.679 2.679 0 0 0-2.515 1.786h-1.221a2.679 2.679 0 0 0-2.514-1.786H5.357a2.679 2.679 0 0 0-2.514 1.786H0v1.786h2.843a2.679 2.679 0 0 0 2.514 1.786H8.93a2.679 2.679 0 0 0 2.514-1.786h1.221a2.679 2.679 0 0 0 2.515 1.786h3.571a2.679 2.679 0 0 0 2.514-1.786h1.222A2.679 2.679 0 0 0 25 27.679h3.571a2.679 2.679 0 0 0 2.515-1.786h1.221a2.679 2.679 0 0 0 2.514 1.786h3.572a2.679 2.679 0 0 0 2.514-1.786h1.222a2.679 2.679 0 0 0 2.514 1.786h3.571a2.679 2.679 0 0 0 2.514-1.786h2.843v-1.786zM5.357 25.893v-1.786H8.93v1.786H5.357zm9.822 0v-1.786h3.571v1.786h-3.571zm9.821 0v-1.786h3.571v1.786H25zm9.821 0v-1.786h3.572v1.786H34.82zm9.822 0v-1.786h3.571v1.786h-3.571zM34.821 19.643H25a.893.893 0 0 1-.883-.76L21.553 1.785H5.357V0h16.964c.442 0 .818.323.883.76l2.565 17.097h9.052v1.786z" /><path d="M19.643 10.714H5.357V8.93h13.856L26.09.335A.892.892 0 0 1 26.786 0h8.035v1.786h-7.607l-6.875 8.593a.892.892 0 0 1-.696.335zM20.536 19.643H5.357v-1.786h14.714l5.982-8.547a.893.893 0 0 1 .733-.381h8.035v1.785h-7.57l-5.982 8.549a.893.893 0 0 1-.733.38zM34.821 50H25a.893.893 0 0 1-.883-.76l-2.564-17.097H5.357v-1.786h16.964c.442 0 .818.324.883.76l2.565 17.097h9.052V50z" /><path d="M19.643 41.071H5.357v-1.785h13.856l6.876-8.594a.892.892 0 0 1 .697-.335h8.035v1.786h-7.607l-6.875 8.593a.892.892 0 0 1-.696.335zM20.536 50H5.357v-1.786h14.714l5.982-8.547a.893.893 0 0 1 .733-.381h8.035v1.785h-7.57l-5.982 8.549a.893.893 0 0 1-.733.38z" /></g></svg>
-                            <br />
-                            <span class="text-uppercase font-weight-bold">Built-In CoinJoins</span>
-                        </a>
-                    </div>
-                    <div class="col-6 col-sm-3 p-0 border-right border-bottom border-bottom-sm-0">
-                        <a href="https://docs.wasabiwallet.io/why-wasabi/BitcoinPrivacy.html#network-snooping" class="feature text-center py-3 px-2 px-md-3 d-block text-dark" target="_blank">
-                            <svg class="d-block mb-2 m-auto" width="37" height="50" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M36.771 33.89A13.673 13.673 0 0 0 31.326 23l-5.555-4.167a5.862 5.862 0 0 1-2.333-4.666v-.834H21.77v-.774a7.308 7.308 0 0 1 2.155-5.202A6.823 6.823 0 0 0 25.938 2.5v-.833h-.833a6.823 6.823 0 0 0-4.857 2.011c-.49.493-.933 1.028-1.327 1.6a11.883 11.883 0 0 0-2.293-3.266A6.823 6.823 0 0 0 11.77 0h-.833v.833A6.823 6.823 0 0 0 12.95 5.69a7.308 7.308 0 0 1 2.155 5.202v2.441h-1.667v.834a5.862 5.862 0 0 1-2.333 4.666L5.55 23c-6.012 4.506-7.233 13.032-2.728 19.044a13.603 13.603 0 0 0 10.644 5.443A4.126 4.126 0 0 0 12.605 50h1.666a2.495 2.495 0 0 1 1.784-2.383 2.464 2.464 0 0 0-.117.716V50h1.667v-1.667a.833.833 0 0 1 1.666 0V50h1.667v-1.667a2.464 2.464 0 0 0-.118-.715A2.495 2.495 0 0 1 22.605 50h1.666a4.126 4.126 0 0 0-.865-2.513c7.414-.138 13.355-6.183 13.365-13.598zM21.426 4.856a5.173 5.173 0 0 1 2.766-1.445 5.173 5.173 0 0 1-1.444 2.766 8.963 8.963 0 0 0-2.643 6.381v-2.155c0-.283-.012-.566-.032-.847-.007-.091-.02-.181-.028-.271a12.062 12.062 0 0 0-.065-.573c-.015-.108-.036-.215-.055-.321-.03-.172-.06-.343-.097-.514-.025-.115-.055-.23-.083-.346-.025-.1-.045-.201-.073-.301a10.133 10.133 0 0 1 1.754-2.374zm-7.298-.345a5.167 5.167 0 0 1-1.444-2.766A5.173 5.173 0 0 1 15.45 3.19a10.233 10.233 0 0 1 2.988 7.214v2.93H16.77v-2.441a8.962 8.962 0 0 0-2.643-6.381zM1.77 33.889a12 12 0 0 1 4.778-9.556l5.555-4.166A7.538 7.538 0 0 0 15.057 15h.007a11.147 11.147 0 0 1-3.25 7.113l-3.846 3.845c-4.922 4.913-4.93 12.887-.017 17.809.452.452.937.87 1.452 1.248A11.954 11.954 0 0 1 1.77 33.889zm5.392-4.043c.517-1 1.187-1.913 1.983-2.71l3.846-3.845a12.808 12.808 0 0 0 3.748-8.248 22.377 22.377 0 0 1-3.375 11l-1.577 2.525a16.089 16.089 0 0 0-2.142 11.725 8.916 8.916 0 0 0 2.201 4.301c-5.366-2.779-7.463-9.382-4.684-14.748zm9.841 15.845a7.3 7.3 0 0 1-5.726-5.726h.002a14.43 14.43 0 0 1 1.917-10.513l1.578-2.523a24.033 24.033 0 0 0 3.53-10.262h.266A24.035 24.035 0 0 0 22.1 26.928l1.577 2.524a14.43 14.43 0 0 1 1.917 10.513 7.3 7.3 0 0 1-8.589 5.726zm10.226-5.398a16.089 16.089 0 0 0-2.142-11.725l-1.578-2.523a22.377 22.377 0 0 1-3.253-9.378h.098a12.805 12.805 0 0 0 3.525 6.624l3.846 3.846c4.275 4.27 4.278 11.199.008 15.474a10.941 10.941 0 0 1-2.71 1.982 8.915 8.915 0 0 0 2.206-4.3zm.243 4.722c5.602-4.12 6.804-12.003 2.683-17.605-.378-.515-.796-1-1.248-1.452l-3.846-3.845A11.147 11.147 0 0 1 21.812 15h.007a7.538 7.538 0 0 0 2.952 5.167l5.555 4.166c5.275 3.953 6.346 11.433 2.394 16.707a11.933 11.933 0 0 1-5.247 3.975z" fill="#000" fill-rule="nonzero" />
-                            </svg>
-                            <br />
-                            <span class="text-uppercase font-weight-bold">TOR Integration</span>
-                        </a>
-                    </div>
-                    <div class="col-6 col-sm-3 p-0 border-right">
-                        <a href="https://docs.wasabiwallet.io/why-wasabi/BitcoinPrivacy.html#inputs-and-outputs" class="feature text-center py-3 px-2 px-md-3 d-block text-dark" target="_blank">
-                            <svg class="d-block mb-2 m-auto" width="50" height="50" xmlns="http://www.w3.org/2000/svg"><g fill="#000" fill-rule="nonzero"><path d="M45.161 27.852c0-1.979-.317-3.933-.943-5.812a44.429 44.429 0 0 1-2.283-14.067V1.35L37.346 2.66a14.787 14.787 0 0 1-11.573-1.525L25 .673l-.773.463A14.787 14.787 0 0 1 12.654 2.66L8.064 1.35v6.623c0 4.788-.767 9.521-2.282 14.067a18.353 18.353 0 0 0-.943 5.812c0 7.005 3.892 13.303 10.158 16.435L25 49.29l10.003-5.002c6.266-3.133 10.158-9.43 10.158-16.435zM34.282 42.844l-8.476 4.238v-4.34h-1.612v4.34l-8.476-4.238C10 39.986 6.452 34.241 6.452 27.852c0-1.805.289-3.588.86-5.302A46.005 46.005 0 0 0 9.676 7.973V3.489l2.535.723c3.978 1.138 8.323.665 11.982-1.235v11.575a10.493 10.493 0 0 0-5.961 2.446l1.043 1.231a8.872 8.872 0 0 1 5.724-2.1c4.891 0 8.871 3.98 8.871 8.871a8.873 8.873 0 0 1-2.1 5.725l1.23 1.042c.3-.355.567-.733.816-1.122h3.28v4.032h1.613v-5.645h-4.047a10.45 10.45 0 0 0 .785-3.226h3.262v-1.612h-3.267a10.4 10.4 0 0 0-1.152-4.033h4.419v-7.258h-1.613v5.645h-3.85a10.463 10.463 0 0 0-7.44-3.99V2.976c3.66 1.899 8.003 2.373 11.98 1.235l2.536-.723v4.485c0 4.962.795 9.866 2.366 14.577.57 1.713.86 3.496.86 5.3 0 6.39-3.55 12.135-9.267 14.993z" /><path d="M23.387 32.258H25v-1.613h.806a3.229 3.229 0 0 0 3.226-3.226c0-.962-.423-1.828-1.094-2.419a3.218 3.218 0 0 0 1.094-2.42 3.229 3.229 0 0 0-3.226-3.225H25v-1.613h-1.613v1.613h-2.42v11.29h2.42v1.613zm-.806-11.29h3.225c.89 0 1.613.723 1.613 1.613s-.723 1.613-1.613 1.613h-3.225v-3.226zm0 4.838h3.225c.89 0 1.613.724 1.613 1.613 0 .89-.723 1.613-1.613 1.613h-3.225v-3.226zM11.29 9.677h1.613v1.613H11.29zM11.29 36.29h1.613v1.613H11.29zM8.065 24.194h1.612v1.612H8.065zM37.097 9.677h1.613v1.613h-1.613zM37.097 36.29h1.613v1.613h-1.613zM40.323 24.194h1.612v1.612h-1.612zM1.613 45.161h1.613v1.613H1.613zM0 46.774h1.613v1.613H0zM1.613 48.387h1.613V50H1.613zM3.226 46.774h1.613v1.613H3.226zM9.677 45.968h1.613v1.613H9.677zM3.226 38.71h1.613v1.613H3.226zM46.774 45.161h1.613v1.613h-1.613zM48.387 46.774H50v1.613h-1.613zM46.774 48.387h1.613V50h-1.613zM45.161 46.774h1.613v1.613h-1.613zM38.71 45.968h1.613v1.613H38.71zM45.161 38.71h1.613v1.613h-1.613zM1.613 3.226h1.613v1.613H1.613zM0 1.613h1.613v1.613H0zM1.613 0h1.613v1.613H1.613zM3.226 1.613h1.613v1.613H3.226zM3.226 9.677h1.613v1.613H3.226zM46.774 3.226h1.613v1.613h-1.613zM48.387 1.613H50v1.613h-1.613zM46.774 0h1.613v1.613h-1.613zM45.161 1.613h1.613v1.613h-1.613zM45.161 9.677h1.613v1.613h-1.613z" /><path d="M30.724 31.771a8.872 8.872 0 0 1-5.724 2.1c-4.891 0-8.871-3.98-8.871-8.871 0-2.092.746-4.125 2.1-5.725l-1.23-1.042c-.086.102-.162.21-.243.315h-3.853v-5.645H11.29v7.258h4.425a10.49 10.49 0 0 0-1.163 4.033H11.29v1.612h3.267a10.43 10.43 0 0 0 .768 3.226H11.29v5.645h1.613v-4.032h3.277a10.48 10.48 0 0 0 8.014 4.798v5.686h1.612v-5.68a10.493 10.493 0 0 0 5.961-2.447l-1.043-1.231z" /></g></svg>
-                            <br />
-                            <span class="text-uppercase font-weight-bold">Coin-Control Features</span>
-                        </a>
-                    </div>
-                    <div class="col-6 col-sm-3 p-0">
-                        <a href="https://docs.wasabiwallet.io/why-wasabi/10Commandments.html#_2-verify-the-integrity-of-your-software" class="feature text-center py-3 px-2 px-md-3 d-block text-dark" target="_blank">
-                            <svg class="d-block mb-2 m-auto" width="52" height="50" xmlns="http://www.w3.org/2000/svg"><g fill="#000" fill-rule="nonzero"><path d="M51.911 15.242C51.152 6.888 45.239.827 37.839.827c-4.93 0-9.444 2.653-11.984 6.905C23.338 3.425 19.009.826 14.158.826 6.759.826.845 6.887.087 15.241c-.06.369-.306 2.311.442 5.478 1.078 4.568 3.568 8.723 7.199 12.013l18.115 16.439 18.426-16.438c3.631-3.291 6.121-7.445 7.199-12.014.748-3.166.502-5.108.443-5.477zm-2.39 5.019c-.984 4.172-3.265 7.973-6.59 10.985L25.855 46.481 9.072 31.25c-3.331-3.018-5.611-6.818-6.596-10.99-.708-2.997-.417-4.69-.416-4.701l.015-.101c.65-7.319 5.731-12.632 12.083-12.632 4.687 0 8.813 2.88 10.771 7.515l.921 2.183.921-2.183c1.927-4.564 6.271-7.514 11.069-7.514 6.351 0 11.433 5.313 12.096 12.727.002.016.293 1.71-.415 4.707z" /><path d="M15.999 6.904c-5.514 0-10 4.486-10 10a1 1 0 1 0 2 0c0-4.411 3.589-8 8-8a1 1 0 1 0 0-2z" /></g></svg>
-                            <br />
-                            <span class="text-uppercase font-weight-bold">Free &amp; Open Source</span>
-                        </a>
-                    </div>
-                </div>
-            </section>
-
-            <!-- CoinJoins Section -->
-            <section class="coinjoins mb-4">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-sm-6">
-                            <h2 class="text-lowercase mb-4">Make your Bitcoin fungible</h2>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-6">
-                            <p class="mb-2">
-                                Wasabi implements trustless coin-shuffling using <a href="https://github.com/nopara73/ZeroLink/" target="_blank">Chaumian CoinJoins</a> over the Tor anonymity network. The CoinJoin coordinator cannot steal from, nor breach the privacy of the participants.
-                            </p>
-                            <a class="mb-3 d-inline-block" href="https://docs.wasabiwallet.io/using-wasabi/CoinJoin.html" target="_blank">
-                                <small>Learn more about CoinJoins ></small>
-                            </a>
-
-                            <div class="coinjoin-txs box-shadow-lg">
-                                <div class="card bg-dark mb-3">
-                                    <span class="card-header text-uppercase text-light">
-                                        <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg"><g id="Page-1" fill="none" fill-rule="evenodd"><g id="Desktop-HD" transform="translate(-162 -1867)" fill="#A7F5A3" fill-rule="nonzero"><g id="Group-27" transform="translate(120 1235)"><g id="Group-26" transform="translate(.755 50)"><g id="Group-15" transform="translate(.245 542)"><g id="Group-6" transform="translate(41 40)"><g id="icon-wifi-signal"><path d="M2.5 18A2.503 2.503 0 0 1 0 15.5C0 14.121 1.121 13 2.5 13S5 14.121 5 15.5 3.879 18 2.5 18z" id="signal-0" /><path d="M10.8 16a1.2 1.2 0 0 1-1.2-1.2c0-3.529-2.871-6.4-6.4-6.4a1.2 1.2 0 0 1 0-2.4c2.35 0 4.56.915 6.223 2.577A8.742 8.742 0 0 1 12 14.8a1.2 1.2 0 0 1-1.2 1.2z" id="signal-1" /><path d="M16.756 17a1.244 1.244 0 0 1-1.244-1.244c0-7.316-5.952-13.268-13.268-13.268a1.244 1.244 0 0 1 0-2.488 15.702 15.702 0 0 1 11.141 4.615A15.701 15.701 0 0 1 18 15.756c0 .687-.557 1.244-1.244 1.244z" id="signal-2" /></g></g></g></g></g></g></g></svg> Wasabi CoinJoin Examples
-                                    </span>
-                                    <input type="checkbox" id="cjTxs" class="toggle-input toggle-xs" />
-                                    <label class="text-light pl-2 mb-2 d-block d-sm-none toggle-label toggle-xs" for="cjTxs">
-                                        View transactions
-                                    </label>
-                                    <ul class="list-group list-group-flush toggle-content toggle-xs">
-                                        <li class="tx list-group-item text-ellipsis">
-                                            <img src="images/icon-external.svg?ver=1.1.0" />
-                                            <a class="text-light" href="https://blockstream.info/tx/e4a789d16a24a6643dfee06e018ad27648b896daae6a3577ae0f4eddcc4d9174" target="_blank"> e4a789d16a24a6643dfee06e018ad27648b896daae6a3577ae0f4eddcc4d9174 </a>
-                                        </li>
-                                        <li class="tx list-group-item text-ellipsis">
-                                            <img src="images/icon-external.svg?ver=1.1.0" />
-                                            <a class="text-light" href="https://blockstream.info/tx/c69aed505ca50473e2883130221915689c1474be3c66bcf7ac7dc0e26246afc8" target="_blank"> c69aed505ca50473e2883130221915689c1474be3c66bcf7ac7dc0e26246afc8 </a>
-                                        </li>
-                                        <li class="tx list-group-item text-ellipsis">
-                                            <img src="images/icon-external.svg?ver=1.1.0" />
-                                            <a class="text-light" href="https://blockstream.info/tx/ef329b3ed8e790f10f0b522346f1b3d9f1c9d45dfa5b918e92d6f0a25d91c7ce" target="_blank"> ef329b3ed8e790f10f0b522346f1b3d9f1c9d45dfa5b918e92d6f0a25d91c7ce </a>
-                                        </li>
-                                        <li class="tx list-group-item text-ellipsis">
-                                            <img src="images/icon-external.svg?ver=1.1.0" />
-                                            <a class="text-light" href="https://blockstream.info/tx/f82206145413db5c1272d5609c88581c414815e36e400aee6410e0de9a2d46b5" target="_blank"> f82206145413db5c1272d5609c88581c414815e36e400aee6410e0de9a2d46b5 </a>
-                                        </li>
-                                        <li class="tx list-group-item text-ellipsis">
-                                            <img src="images/icon-external.svg?ver=1.1.0" />
-                                            <a class="text-light" href="https://blockstream.info/tx/a7157780b7c696ab24767113d9d34cdbc0eba5c394c89aec4ed1a9feb326bea5" target="_blank"> a7157780b7c696ab24767113d9d34cdbc0eba5c394c89aec4ed1a9feb326bea5 </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-sm-6">
-                            <img class="illustration" src="images/illustration-coinjoin.svg?ver=1.1.0" />
-                        </div>
-                    </div>
-                </div>
-                <div class="shader"></div>
-            </section>
-
-            <!-- Downloads Section -->
-            <section class="download mb-4" id="download">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-lg-6 offset-lg-6">
-                            <h2 class="text-right text-lowercase">Available for <br /><span itemprop="operatingSystem">Mac</span>, <span itemprop="operatingSystem">Windows</span> &amp; <span itemprop="operatingSystem">Linux</span></h2>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="container">
-                    <div class="row align-items-end">
-                        <div class="col-sm-6 order-sm-6">
-                            <div class="my-4 text-center">
-                                <span class="text-uppercase font-weight-bold">Download Wasabi Wallet <span itemprop="softwareVersion">1.1.10.1</span></span>
-                                <br />
-                                <small><a href="https://github.com/zkSNACKs/WalletWasabi#build-from-source-code" class="text-muted">Or build it from source</a></small>
-                                <br />
-                                <small><a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt">PGP</a> / <a href="https://github.com/zkSNACKs/WalletWasabi/releases" itemprop="releaseNotes">RELEASE NOTES</a></small>
-                            </div>
-                            <div class="row">
-                                <div class="col-6">
-                                    <div class="text-center mb-4 ">
-                                        <img class="d-block mx-auto mb-2" src="images/icon-colored-finder.svg?ver=1.1.0" />
-
-                                        <!-- macOS Download Link -->
-                                        <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.10.1/Wasabi-1.1.10.1.dmg" itemprop="downloadUrl" class="btn btn-success btn-block btn-labeled text-uppercase font-weight-bold mb-1">
-                                            <span class="btn-label"><svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g fill="#FFF" fill-rule="nonzero"><path d="M7.874 0c-.232 0-.417.175-.417.39v10.473L5.545 9.087a.44.44 0 0 0-.592 0 .368.368 0 0 0 0 .55l2.627 2.44a.434.434 0 0 0 .298.113.44.44 0 0 0 .297-.114l2.627-2.44a.368.368 0 0 0 0-.549.44.44 0 0 0-.592 0l-1.912 1.776V.39C8.295.175 8.107 0 7.874 0zM15.597 15.238H.403A.392.392 0 0 0 0 15.62c0 .21.18.381.403.381h15.194c.223 0 .403-.17.403-.381 0-.21-.18-.38-.403-.38z" /></g></svg></span>
-                                            macOS 10.13+
-                                        </a>
-                                        <small class="text-muted float-left">.dmg</small>
-                                        <small class="float-right">
-                                            <!-- macOS Signature Link -->
-                                            <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.10.1/Wasabi-1.1.10.1.dmg.asc" class="text-uppercase">Signature</a>&nbsp;/
-                                            <!-- macOS Installation Guide Link -->
-                                            <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#macos" class="text-uppercase">Guide</a>
-                                        </small>
-                                    </div>
-                                </div>
-
-                                <div class="col-6">
-                                    <div class="text-center mb-4 ">
-                                        <img class="d-block mx-auto mb-2" src="images/icon-colored-windows.svg?ver=1.1.0" />
-
-                                        <!-- Windows Download Link -->
-                                        <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.10.1/Wasabi-1.1.10.1.msi" itemprop="downloadUrl" class="btn btn-success btn-block btn-labeled text-uppercase font-weight-bold mb-1">
-                                            <span class="btn-label"><svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g fill="#FFF" fill-rule="nonzero"><path d="M7.874 0c-.232 0-.417.175-.417.39v10.473L5.545 9.087a.44.44 0 0 0-.592 0 .368.368 0 0 0 0 .55l2.627 2.44a.434.434 0 0 0 .298.113.44.44 0 0 0 .297-.114l2.627-2.44a.368.368 0 0 0 0-.549.44.44 0 0 0-.592 0l-1.912 1.776V.39C8.295.175 8.107 0 7.874 0zM15.597 15.238H.403A.392.392 0 0 0 0 15.62c0 .21.18.381.403.381h15.194c.223 0 .403-.17.403-.381 0-.21-.18-.38-.403-.38z" /></g></svg></span>
-                                            Windows 7+
-                                        </a>
-                                        <small class="text-muted float-left">.msi</small>
-                                        <small class="float-right">
-                                            <!-- Windows Signature Link -->
-                                            <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.10.1/Wasabi-1.1.10.1.msi.asc" class="text-uppercase">Signature</a>&nbsp;/
-                                            <!-- Windows Installation Guide Link -->
-                                            <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#windows" class="text-uppercase">Guide</a>
-                                        </small>
-                                    </div>
-                                </div>
-
-                                <div class="col-6">
-                                    <div class="text-center mb-4 ">
-                                        <img class="d-block mx-auto mb-2" src="images/icon-colored-ubuntu.svg?ver=1.1.0" />
-
-                                        <!-- Debian/Ubuntu Download Link -->
-                                        <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.10.1/Wasabi-1.1.10.1.deb" itemprop="downloadUrl" class="btn btn-success btn-block btn-labeled text-uppercase font-weight-bold mb-1">
-                                            <span class="btn-label"><svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g fill="#FFF" fill-rule="nonzero"><path d="M7.874 0c-.232 0-.417.175-.417.39v10.473L5.545 9.087a.44.44 0 0 0-.592 0 .368.368 0 0 0 0 .55l2.627 2.44a.434.434 0 0 0 .298.113.44.44 0 0 0 .297-.114l2.627-2.44a.368.368 0 0 0 0-.549.44.44 0 0 0-.592 0l-1.912 1.776V.39C8.295.175 8.107 0 7.874 0zM15.597 15.238H.403A.392.392 0 0 0 0 15.62c0 .21.18.381.403.381h15.194c.223 0 .403-.17.403-.381 0-.21-.18-.38-.403-.38z" /></g></svg></span>
-                                            Debian / Ubuntu
-                                        </a>
-                                        <small class="text-muted float-left">.deb</small>
-                                        <small class="float-right">
-                                            <!-- Debian/Ubuntu Signature Link -->
-                                            <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.10.1/Wasabi-1.1.10.1.deb.asc" class="text-uppercase">Signature</a>&nbsp;/
-                                            <!-- Debian/Ubuntu Installation Guide Link -->
-                                            <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#debian-and-ubuntu" class="text-uppercase">Guide</a>
-                                        </small>
-                                    </div>
-                                </div>
-
-                                <div class="col-6">
-                                    <div class="text-center mb-4 ">
-                                        <img class="d-block mx-auto mb-2" src="images/icon-colored-linux.svg?ver=1.1.0" />
-
-                                        <!-- Linux Download Link -->
-                                        <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.10.1/WasabiLinux-1.1.10.1.tar.gz" itemprop="downloadUrl" class="btn btn-success btn-block btn-labeled text-uppercase font-weight-bold mb-1">
-                                            <span class="btn-label"><svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g fill="#FFF" fill-rule="nonzero"><path d="M7.874 0c-.232 0-.417.175-.417.39v10.473L5.545 9.087a.44.44 0 0 0-.592 0 .368.368 0 0 0 0 .55l2.627 2.44a.434.434 0 0 0 .298.113.44.44 0 0 0 .297-.114l2.627-2.44a.368.368 0 0 0 0-.549.44.44 0 0 0-.592 0l-1.912 1.776V.39C8.295.175 8.107 0 7.874 0zM15.597 15.238H.403A.392.392 0 0 0 0 15.62c0 .21.18.381.403.381h15.194c.223 0 .403-.17.403-.381 0-.21-.18-.38-.403-.38z" /></g></svg></span>
-                                            Other Linux
-                                        </a>
-                                        <small class="text-muted float-left">.tar.gz</small>
-                                        <small class="float-right">
-                                            <!-- Linux Signature Link -->
-                                            <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.10.1/WasabiLinux-1.1.10.1.tar.gz.asc" class="text-uppercase">Signature</a>&nbsp;/
-                                            <!-- Linux Installation Guide Link -->
-                                            <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#other-linux" class="text-uppercase">Guide</a>
-                                        </small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-sm-6 order-sm-1">
-                            <img class="screenshot" itemprop="screenshot" src="images/wasabi-wallet-laptop.png?ver=1.1.0" />
-                        </div>
-                    </div>
-                </div>
-
-                <div class="shader"></div>
-            </section>
-
-            <!-- FAQs Section -->
-            <section class="faq mb-0" id="faq">
-                <div class="container" itemscope itemtype="https://schema.org/FAQPage">
-                    <h2 class="text-center text-lowercase mb-4">Frequently Asked Questions</h2>
-
-                    <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                        <input type="checkbox" id="faq1" class="toggle-input" />
-                        <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq1" itemprop="name">
-                            What is a “CoinJoin”?
-                        </label>
-                        <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                            <p class="card-text border-top p-2" itemprop="text">
-                                A mechanism by which multiple participants combine their coins (or UTXOs, to be more precise) into one large transaction with multiple inputs and multiple outputs. An observer cannot determine which output belongs to which input, and neither can the participants themselves. This makes it difficult for outside parties to trace where a particular coin originated from and where it was sent to (as opposed to regular bitcoin transactions, where there is usually one sender and one receiver).
-                                <br /><br />
-                                In very simple terms, coinjoin means: “when you want to make a transaction, find someone else who also wants to make a transaction and make a joint transaction together”.
-                                <br /><br />
-                                <small>Further reading: <a href="https://en.bitcoin.it/wiki/CoinJoin" target="_blank">en.bitcoin.it/wiki/CoinJoin</a></small>
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                        <input type="checkbox" id="faq2" class="toggle-input" />
-                        <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq2" itemprop="name">
-                            Do I need to trust Wasabi with my coins?
-                        </label>
-                        <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                            <p class="card-text border-top p-2" itemprop="text">
-                                No, Wasabi's coinjoin implementation is trustless by design. The participants do not need to trust each other or any third party. Both the sending address (the coinjoin input) and the receiving address (the coinjoin output) are controlled by your own private keys. Wasabi merely coordinates the process of combining the inputs of the participants into one single transaction, but the wallet can neither steal your coins, nor figure out which outputs belong to which inputs. <br /><br />
-                                <small>Further reading: <a href="https://github.com/nopara73/ZeroLink#ii-chaumian-coinjoin" target="_blank">Chaumian Coinjoin</a></small>
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                        <input type="checkbox" id="faq3" class="toggle-input" />
-                        <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq3" itemprop="name">
-                            Can I hurt my privacy using Wasabi?
-                        </label>
-                        <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                            <p class="card-text border-top p-2" itemprop="text">
-                                No. The worst thing that can happen (through user’s negligence post-mix) is that the level of your privacy stays the same as before coinjoin. It is crucial to understand that Wasabi is not a fool-proof solution if you neglect to practice coin control after the mixing process.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                        <input type="checkbox" id="faq4" class="toggle-input" />
-                        <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq4" itemprop="name">
-                            Do I need to run Tor?
-                        </label>
-                        <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                            <p class="card-text border-top p-2" itemprop="text">
-                                All Wasabi network traffic goes via Tor by default - no need to set up Tor yourself. If you do already have Tor, and it is running, then Wasabi will try to use that first.
-                                <br /><br />
-                                You can turn off Tor in the Settings. Note that in this case you are still private, except when you coinjoin and when you broadcast a transaction. In the first case, the coordinator would know the links between your inputs and outputs based on your IP address. In the second case, if you happen to broadcast a transaction of yours to a full node that is spying on you, it will know the link between your transaction and your IP address.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                        <input type="checkbox" id="faq5" class="toggle-input" />
-                        <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq5" itemprop="name">
-                            My wallet cannot send to Bech32 addresses - what wallets can I use instead?
-                        </label>
-                        <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                            <p class="card-text border-top p-2" itemprop="text">
-                                Wasabi generates Bech32 addresses only, also known as bc1 addresses or native SegWit addresses. These addresses start with the characters bc1... Some wallets/exchanges do not yet support this type of address and may give an error message (e.g. "unknown bitcoin address"). The solution is to manage your funds with a wallet which does support Bech32, <a href="https://en.bitcoin.it/wiki/Bech32_adoption" target="
-                ">see list</a>.
-                                <br /><br />
-                                Be careful, if you send all your coins from an old wallet to a new wallet (from the table above) in one transaction then you will merge all your coins which is bad for privacy - instead, send the coins individually or if possible import the seed in the new wallet.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                        <input type="checkbox" id="faq6" class="toggle-input" />
-                        <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq6" itemprop="name">
-                            What are the fees for CoinJoins?
-                        </label>
-                        <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                            <p class="card-text border-top p-2" itemprop="text">
-                                You currently pay a fee of 0.003% * anonymity set. If the anonymity set of a coin is 50 then you pay 0.003% * 50 (=0.15%). If you set the target anonymity set to 53 then Wasabi will continue mixing until this is reached, so you may end up with an anonymity set of say 60, and you will pay 0.003% * 60 (=0.18%).
-                                <br /><br />
-                                There are also edge cases where you do not pay the full fee or where you pay more. For example if you're the smallest registrant to a round, you will never pay a fee. Also when you are remixing and you cannot pay the full fee with your input, then you only pay as much as you have, but if the change amount leftover would be too small, then that is also added to the fee. Currently the minimum change amount to be paid out is 0.7% of the base denomination (~0.1BTC.)
-                                <br /><br />
-                                It is also possible that you get more back from mixing than you put in. This happens when network fees go down between the start of the round and its end. In this case, the difference is split between the active outputs of the mix.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                        <input type="checkbox" id="faq7" class="toggle-input" />
-                        <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq7" itemprop="name">
-                            What is an "Anonymity Set"?
-                        </label>
-                        <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                            <p class="card-text border-top p-2" itemprop="text">
-                                The anonymity set is effectively the size of the group you are hiding in.
-                                <br /><br />
-                                If 3 people take part in a CoinJoin (with equal size inputs) and there are 3 outputs then each of those output coins has an anonymity set of 3.
-                                <br /><br />
-                                There is no way to know which of the anon set output coins are owned by which of the input owners. All an observer knows is that a specific anon set output coin is owned by one of the owners of one of the input Coins i.e. 3 people - hence an anonymity set of 3.
-                                <br /><br />
-                                Your Wasabi software has limited information on what the anonymity set should be, so the anonymity set that the software presents you is just an estimation, not an accurate value. With Wasabi we are trying to do lower estimations, rather than higher ones.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                        <input type="checkbox" id="faq8" class="toggle-input" />
-                        <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq8" itemprop="name">
-                            Can I recombine my mixed coins?
-                        </label>
-                        <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                            <p class="card-text border-top p-2" itemprop="text">
-                                It is advisable to limit the recombining of mixed coins because it can only decrease the privacy of said coins. This links all the consolidated UTXOs in one transaction, creating only one output, which then clearly controls all these funds. That said, if you combine less than 1 BTC it is less likely to reveal your pre-coinjoin transaction history. The potential issue comes when you spend that coin. Depending on what you do with the coin you might reduce the privacy of the resulting change (if you send half your coin to an exchange for example, as they will know that you own the coin change). As a result it is best not to recombine ALL your mixed change, though you may wish to recombine some coins if you are planning on hodling for many years as this will reduce the fees required to spend the coins later.
-                                <br /><br />
-                                <small>Further reading: <a href="https://www.reddit.com/r/WasabiWallet/comments/avxbjy/combining_mixed_coins_privacy_megathread/" target="_blank">[Reddit] Combining Mixed Coins</a></small>
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                        <input type="checkbox" id="faq9" class="toggle-input" />
-                        <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq9" itemprop="name">
-                            Am I safe to send my mixed coins to my hardware wallet?
-                        </label>
-                        <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                            <p class="card-text border-top p-2" itemprop="text">
-                                Most hardware wallets communicate with servers to provide you with your balance. This reveals your public key to the server, which damages your privacy - the hardware company can now theoretically link together all your addresses. As a result it is not recommended that you send your mixed coins to an address associated with your hardware wallet unless you are confident that you have set up your hardware wallet in a way that it does not communicate with a 3rd party server (see below).
-                                <br /><br />
-                                You can however manage your hardware wallet with the Wasabi interface. Alternatively you can use your hardware wallet with Electrum, which connects to your Bitcoin Core full node through <a href="https://github.com/chris-belcher/electrum-personal-server" target="_blank">Electrum Personal Server</a>.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                        <input type="checkbox" id="faq10" class="toggle-input" />
-                        <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq10" itemprop="name">
-                            How can I set up my hardware wallet with Wasabi properly?
-                        </label>
-                        <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                            <p class="card-text border-top p-2" itemprop="text">
-                                You can use popular hardware wallets with Wasabi directly including Coldcard, Trezor and Ledger devices. Plug in the device, and select Hardware Wallet in the starting page of Wasabi. You will be able to send and receive bitcoin, but you will not be able to coinjoin the funds directly. For this, the private key needs to be hot in Wasabi. You can also import and export PSBT over SD card to communicate with your ColdCard Wallet.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                        <input type="checkbox" id="faq11" class="toggle-input" />
-                        <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq11" itemprop="name">
-                            What to do with "change"?
-                        </label>
-                        <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                            <p class="card-text border-top p-2" itemprop="text">
-                                There are no hard and fast rules for what to do with the change. Generally try to avoid the change and use the Max button extensively at sending. The most problematic type of change is what has anonymity set 1 (red shield.) You should treat it as a kind of toxic waste (handled with great care).
-                                <br /><br />
-                                <span class="text-danger">Warning You want to avoid merging anonymity set 1 coins with anonymity set > 1 coins wherever possible, because this will link your anonymity set > 1 coin to the coin you merge it with.</span> Note that, this is also true if you merge them in a mix, however that is slightly less problematic, because some blockchain analysis techniques become computationally infeasible.
-                                <br /><br />
-                                It is also important that you do not send different coins to the same receiving address (even if performed as separate transactions) as this will also link the coins together, damaging your privacy.
-                                <br /><br />
-                                Your Options:
-                                <br />
-                                - If you do not care about linking the history of the coins because they are all from the same source then you could combine them in a mix (queue all the change from the same source until you reach the minimum input required to mix, currently ~ 0.1 BTC).
-                                <br />
-                                - Mix with Joinmarket.
-                                <br />
-                                - Donate them (e.g. to the EFF)
-                                <br />
-                                - Spend them on something that is not a particular privacy risk (eg. gift cards).
-                                <br />
-                                - Open a lightning channel.
-                                <br />
-                                The ultimate solution is to 'close the loop' i.e. spend a change coin without merging it with other coins, do not generate it in the first place by sending whole coins.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                        <input type="checkbox" id="faq12" class="toggle-input" />
-                        <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq12" itemprop="name">
-                            Privacy wallet alternatives to Wasabi?
-                        </label>
-                        <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                            <p class="card-text border-top p-2" itemprop="text">
-                                Other than Wasabi Wallet, as of 2019, <a href="https://github.com/JoinMarket-Org/joinmarket-clientserver" target="_blank">JoinMarket</a> is the only sound privacy enhancing concept that has a production ready implementation.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="my-4 text-center">
-                        <p>Couldn’t find your question? <br /><a href="https://docs.wasabiwallet.io/FAQ/" class="" target="_blank">Read our extended FAQs in the documentation ></a></p>
-                    </div>
-                </div>
-
-                <img src="images/shader-loop.svg?ver=1.1.0" class="shader" />
-            </section>
-        </main>
-
-        <!-- Footer -->
-        <footer class="footer bg-dark">
-            <div class="text-center">
-                <p class="text-light p-2 mb-0 text-ellipsis">
-                    <img src="images/icon-colored-onion.png?ver=1.1.0" class="" style="width: 17px; height: auto" alt="other_network">&nbsp;
-                    <small class="align-middle" itemprop="sameAs">http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion</small>
-                </p>
+        <link itemprop="applicationCategory" href="https://schema.org/FinanceApplication"/>
+            <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+                <meta itemprop="name" content="Wasabi Wallet">
+                <meta itemprop="price" content="0">
+                <meta itemprop="priceCurrency" content="BTC">
             </div>
-            <hr class="m-0" />
-            <div class="container pt-2 pb-2">
+    <!-- Header -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark m-auto rounded-bottom">
+            <a class="navbar-brand" href="#">
+                <img src="images/wasabi-wallet-logo.svg?ver=1.1.0" style="height: 40px; width: auto" alt="">
+            </a>
+            <input type="checkbox" id="navbar-toggle-cbox">
+            <label for="navbar-toggle-cbox" class="navbar-toggler border-0 p-0 collapsed" data-toggle="collapse" data-target="#navbarColor02" aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </label>
+
+            <div class="collapse navbar-collapse pt-2 pt-sm-0" id="navbarColor02">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://docs.wasabiwallet.io" target="_blank">docs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#faq">faq</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://github.com/zkSNACKs/WalletWasabi/" target="_blank">github</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://docs.wasabiwallet.io/building-wasabi/Dojo.html" target="_blank">dojo</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main">
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="row row-eq-height">
+                <div class="col-12 col-sm-5">
+                    <div class="hero-image">
+                        <span class="text-lowercase mb-0 px-2 pb-5 mobile-heading d-sm-none">Unfairly Private</span>
+                    </div>
+                </div>
+
+                <div class="col-sm-7 col-xl-4 offset-xl-1 align-self-center">
+                    <div class="px-2 py-4 pt-5 mb-2 mb-sm-0">
+                        <h1 class="text-lowercase mb-lg-3 d-none d-sm-block mt-3 mt-lg-0">Reclaim your privacy now</h1>
+                        <p class="mb-lg-3"><span itemprop="name">Wasabi</span> is an open-source, non-custodial, privacy-focused Bitcoin wallet for <span itemprop="availableOnDevice">Desktop</span>, that implements trustless coin shuffling with mathematically provable anonymity - <a href="https://github.com/nopara73/ZeroLink/" target="_blank">Chaumian CoinJoin</a>.</p>
+
+                        <a href="#download" class="text-uppercase text-dark arrow-right text-center animated-link">
+                            <span data-hover="Download now">Download now</span>
+                            <svg class="align-middle d-inline-block ml-1" width="92" height="9" xmlns="http://www.w3.org/2000/svg"><path d="M89.795 5H.248V4H89.8L86.776.975l.707-.707 4.206 4.207-.481.48V5h-.044l-.18.18.016.017-3.535 3.535-.701-.7z" fill="#211B24" fill-rule="nonzero" /></svg>
+                        </a>
+
+                        <ul class="download-links mt-2">
+                            <li class="download-link mr-2">
+                                <a href="#download">
+                                    <svg width="25" height="30" xmlns="http://www.w3.org/2000/svg"><g fill="#72BD81" fill-rule="nonzero"><path d="M1.351 11.028c-2.536 4.401-.924 11.08 1.881 15.13C4.632 28.183 6.049 30 7.991 30c.036 0 .073 0 .11-.002.913-.037 1.572-.317 2.21-.589.715-.305 1.455-.62 2.615-.62 1.104 0 1.809.305 2.49.6.672.29 1.364.591 2.386.572 2.187-.04 3.53-2.002 4.714-3.732a16.542 16.542 0 0 0 2.065-4.23l.009-.027a.246.246 0 0 0-.13-.302l-.019-.007c-.385-.158-3.763-1.656-3.798-5.74-.033-3.319 2.534-5.076 3.049-5.395l.024-.015a.246.246 0 0 0 .07-.345c-1.772-2.593-4.488-2.984-5.582-3.03a4.922 4.922 0 0 0-.486-.025c-1.285 0-2.515.485-3.503.875-.682.27-1.272.502-1.678.502-.457 0-1.05-.236-1.736-.508-.917-.364-1.958-.777-3.059-.777h-.077c-2.56.039-4.98 1.503-6.314 3.823z" /><path d="M18.207 0c-1.55.063-3.41 1.018-4.522 2.32-.945 1.094-1.868 2.92-1.625 4.758a.246.246 0 0 0 .225.213c.104.008.211.013.318.013 1.516 0 3.151-.839 4.268-2.19 1.176-1.426 1.77-3.256 1.59-4.895A.247.247 0 0 0 18.207 0z" /></g></svg>
+                                </a>
+                            </li>
+                            <li class="download-link mr-2">
+                                <a href="#download">
+                                    <svg width="26" height="30" xmlns="http://www.w3.org/2000/svg"><path d="M24.852 24.087c-.88-.36-1.256-.838-1.22-1.551.038-.833-.435-1.443-.66-1.684.136-.518.532-2.309.001-3.865-.57-1.665-2.314-4.208-4.112-6.708-.736-1.027-.771-2.143-.811-3.435-.039-1.233-.082-2.63-.77-4.183C16.533.97 15.033 0 13.166 0c-1.111 0-2.252.347-3.13.953-1.796 1.24-1.559 3.944-1.402 5.733.022.245.042.477.054.674.105 1.753.01 2.676-.115 2.957-.08.183-.477.705-.897 1.258-.434.572-.926 1.22-1.33 1.824-.48.726-.87 1.837-1.245 2.91-.275.787-.535 1.53-.787 1.973-.48.853-.36 1.649-.26 2.017-.182.126-.444.374-.665.841-.268.57-.81.877-1.938 1.094-.519.106-.876.324-1.063.648-.272.471-.124 1.063.011 1.468.2.595.076.971-.15 1.655-.053.158-.112.336-.172.533-.094.311-.06.594.101.84.426.652 1.67.882 2.949 1.033.764.09 1.6.396 2.41.692.792.29 1.611.589 2.356.68.113.014.225.021.333.021a1.961 1.961 0 0 0 1.794-1.053c.404-.082 1.798-.346 3.234-.382 1.433-.04 2.82.243 3.213.33.124.237.45.777.969 1.055.285.156.682.246 1.089.246.434 0 1.26-.103 1.915-.79.652-.692 2.282-1.575 3.472-2.219.266-.144.514-.278.732-.4.668-.37 1.033-.9 1-1.453-.026-.459-.33-.862-.792-1.05zm-14.8-.133c-.084-.586-.838-1.167-1.711-1.84-.714-.551-1.524-1.175-1.747-1.703-.46-1.09-.097-3.007.536-3.994.313-.494.569-1.244.816-1.968.267-.783.543-1.592.852-1.946.489-.553.94-1.63 1.02-2.477.458.437 1.169.992 1.825.992.1 0 .199-.014.293-.04.449-.13 1.109-.511 1.747-.88.551-.318 1.23-.71 1.485-.746.438.629 2.983 6.261 3.243 8.07a8.552 8.552 0 0 1-.12 3.077 2.264 2.264 0 0 0-.303-.021c-.71 0-.897.387-.946.618-.126.6-.139 2.52-.14 2.95-.257.326-1.553 1.86-3.414 2.136a14.78 14.78 0 0 1-2.104.166c-.545 0-.893-.042-1.038-.064l-.935-1.07c.369-.182.738-.566.64-1.26zM11.237 6.31c-.03.012-.058.026-.086.04a1.742 1.742 0 0 0-.02-.192c-.102-.588-.491-1.014-.926-1.014a.655.655 0 0 0-.1.008c-.259.043-.462.237-.573.512.098-.604.44-1.051.846-1.051.477 0 .88.643.88 1.404 0 .095-.007.19-.02.293zm3.707.453c.044-.14.067-.29.067-.446 0-.69-.438-1.23-.996-1.23-.546 0-.99.552-.99 1.23 0 .046.002.093.006.139a18.063 18.063 0 0 0-.085-.032 1.881 1.881 0 0 1-.094-.592c0-.825.527-1.496 1.175-1.496s1.175.671 1.175 1.496c0 .343-.094.67-.258.93zm-.478 1.606c-.01.041-.03.06-.249.174-.11.058-.249.13-.422.235l-.115.07c-.464.281-1.551.94-1.846.979-.2.027-.324-.051-.603-.24a8.7 8.7 0 0 0-.201-.134c-.502-.33-.825-.693-.862-.835.164-.127.57-.443.778-.63.422-.393.846-.657 1.056-.657.011 0 .021.001.032.003.247.044.856.287 1.3.464.206.082.383.153.508.198.394.135.6.308.624.373zM18.003 26.7c.222-1.001.477-2.364.436-3.167-.01-.182-.026-.38-.041-.573-.03-.359-.073-.892-.028-1.05a.192.192 0 0 1 .03-.011c.001.459.101 1.375.834 1.694.218.095.467.143.74.143.735 0 1.549-.36 1.882-.693.196-.196.362-.437.477-.627.025.074.041.171.033.296-.044.677.285 1.575.912 1.906l.09.048c.224.117.817.429.826.576 0 0-.005.018-.038.048-.148.136-.67.403-1.176.66-.896.458-1.912.977-2.368 1.457-.642.676-1.369 1.13-1.808 1.13a.475.475 0 0 1-.143-.02c-.477-.15-.869-.837-.658-1.817zm-16.24-2.555c-.05-.227-.088-.407-.046-.58.03-.13.666-.267.937-.326.382-.083.777-.169 1.036-.326.349-.211.538-.602.705-.946.12-.249.245-.506.394-.59a.084.084 0 0 1 .045-.011c.278 0 .862.584 1.198 1.107.085.132.243.397.426.703.547.914 1.295 2.167 1.686 2.587.352.377.922 1.103.782 1.725-.103.483-.65.875-.778.962a.797.797 0 0 1-.173.016c-.748 0-2.23-.622-3.025-.956l-.118-.05c-.444-.186-1.17-.304-1.87-.417-.559-.09-1.323-.214-1.45-.326-.102-.115.017-.49.122-.82a5.32 5.32 0 0 0 .196-.74c.061-.41-.01-.744-.068-1.012z" fill="#72BD81" fill-rule="nonzero" /></svg>
+                                </a>
+                            </li>
+                            <li class="download-link">
+                                <a href="#download">
+                                    <svg width="30" height="30" xmlns="http://www.w3.org/2000/svg"><g fill="#72BD81" fill-rule="nonzero"><path d="M0 25.822l12.272 1.691V15.8H0zM0 14.287h12.272V2.43L0 4.121zM13.622 27.693l16.32 2.25V15.798h-16.32zM13.622 2.25v12.037h16.32V0z" /></g></svg>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <img src="images/shader-wasabi.svg?ver=1.1.0" class="shader" />
+        </section>
+
+        <!-- Features Bar -->
+        <section class="features box-shadow-lg mx-auto mb-5 mb-sm-2">
+            <div class="row row-eq-height">
+                <div class="col-6 col-sm-3 p-0 border-right border-bottom border-bottom-sm-0">
+                    <a href="https://docs.wasabiwallet.io/why-wasabi/BitcoinPrivacy.html#transaction-graph" class="feature text-center py-3 px-2 px-md-3 d-block text-dark" target="_blank">
+                        <svg class="d-block mb-2 m-auto" width="54" height="50" xmlns="http://www.w3.org/2000/svg"><g fill="#000" fill-rule="nonzero"><path d="M1.786 0H3.57v1.786H1.786zM1.786 8.929H3.57v1.785H1.786zM1.786 17.857H3.57v1.786H1.786zM36.607 0h15.179v1.786H36.607zM36.607 8.929h15.179v1.785H36.607zM36.607 17.857h15.179v1.786H36.607zM1.786 30.357H3.57v1.786H1.786zM1.786 39.286H3.57v1.785H1.786zM1.786 48.214H3.57V50H1.786zM36.607 30.357h15.179v1.786H36.607zM36.607 39.286h15.179v1.785H36.607zM36.607 48.214h15.179V50H36.607zM53.571 24.107h-2.843a2.679 2.679 0 0 0-2.514-1.786h-3.571a2.679 2.679 0 0 0-2.514 1.786h-1.222a2.679 2.679 0 0 0-2.514-1.786H34.82a2.679 2.679 0 0 0-2.514 1.786h-1.221a2.679 2.679 0 0 0-2.515-1.786H25a2.679 2.679 0 0 0-2.514 1.786h-1.222a2.679 2.679 0 0 0-2.514-1.786h-3.571a2.679 2.679 0 0 0-2.515 1.786h-1.221a2.679 2.679 0 0 0-2.514-1.786H5.357a2.679 2.679 0 0 0-2.514 1.786H0v1.786h2.843a2.679 2.679 0 0 0 2.514 1.786H8.93a2.679 2.679 0 0 0 2.514-1.786h1.221a2.679 2.679 0 0 0 2.515 1.786h3.571a2.679 2.679 0 0 0 2.514-1.786h1.222A2.679 2.679 0 0 0 25 27.679h3.571a2.679 2.679 0 0 0 2.515-1.786h1.221a2.679 2.679 0 0 0 2.514 1.786h3.572a2.679 2.679 0 0 0 2.514-1.786h1.222a2.679 2.679 0 0 0 2.514 1.786h3.571a2.679 2.679 0 0 0 2.514-1.786h2.843v-1.786zM5.357 25.893v-1.786H8.93v1.786H5.357zm9.822 0v-1.786h3.571v1.786h-3.571zm9.821 0v-1.786h3.571v1.786H25zm9.821 0v-1.786h3.572v1.786H34.82zm9.822 0v-1.786h3.571v1.786h-3.571zM34.821 19.643H25a.893.893 0 0 1-.883-.76L21.553 1.785H5.357V0h16.964c.442 0 .818.323.883.76l2.565 17.097h9.052v1.786z" /><path d="M19.643 10.714H5.357V8.93h13.856L26.09.335A.892.892 0 0 1 26.786 0h8.035v1.786h-7.607l-6.875 8.593a.892.892 0 0 1-.696.335zM20.536 19.643H5.357v-1.786h14.714l5.982-8.547a.893.893 0 0 1 .733-.381h8.035v1.785h-7.57l-5.982 8.549a.893.893 0 0 1-.733.38zM34.821 50H25a.893.893 0 0 1-.883-.76l-2.564-17.097H5.357v-1.786h16.964c.442 0 .818.324.883.76l2.565 17.097h9.052V50z" /><path d="M19.643 41.071H5.357v-1.785h13.856l6.876-8.594a.892.892 0 0 1 .697-.335h8.035v1.786h-7.607l-6.875 8.593a.892.892 0 0 1-.696.335zM20.536 50H5.357v-1.786h14.714l5.982-8.547a.893.893 0 0 1 .733-.381h8.035v1.785h-7.57l-5.982 8.549a.893.893 0 0 1-.733.38z" /></g></svg>
+                        <br />
+                        <span class="text-uppercase font-weight-bold">Built-In CoinJoins</span>
+                    </a>
+                </div>
+                <div class="col-6 col-sm-3 p-0 border-right border-bottom border-bottom-sm-0">
+                    <a href="https://docs.wasabiwallet.io/why-wasabi/BitcoinPrivacy.html#network-snooping" class="feature text-center py-3 px-2 px-md-3 d-block text-dark" target="_blank">
+                        <svg class="d-block mb-2 m-auto" width="37" height="50" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M36.771 33.89A13.673 13.673 0 0 0 31.326 23l-5.555-4.167a5.862 5.862 0 0 1-2.333-4.666v-.834H21.77v-.774a7.308 7.308 0 0 1 2.155-5.202A6.823 6.823 0 0 0 25.938 2.5v-.833h-.833a6.823 6.823 0 0 0-4.857 2.011c-.49.493-.933 1.028-1.327 1.6a11.883 11.883 0 0 0-2.293-3.266A6.823 6.823 0 0 0 11.77 0h-.833v.833A6.823 6.823 0 0 0 12.95 5.69a7.308 7.308 0 0 1 2.155 5.202v2.441h-1.667v.834a5.862 5.862 0 0 1-2.333 4.666L5.55 23c-6.012 4.506-7.233 13.032-2.728 19.044a13.603 13.603 0 0 0 10.644 5.443A4.126 4.126 0 0 0 12.605 50h1.666a2.495 2.495 0 0 1 1.784-2.383 2.464 2.464 0 0 0-.117.716V50h1.667v-1.667a.833.833 0 0 1 1.666 0V50h1.667v-1.667a2.464 2.464 0 0 0-.118-.715A2.495 2.495 0 0 1 22.605 50h1.666a4.126 4.126 0 0 0-.865-2.513c7.414-.138 13.355-6.183 13.365-13.598zM21.426 4.856a5.173 5.173 0 0 1 2.766-1.445 5.173 5.173 0 0 1-1.444 2.766 8.963 8.963 0 0 0-2.643 6.381v-2.155c0-.283-.012-.566-.032-.847-.007-.091-.02-.181-.028-.271a12.062 12.062 0 0 0-.065-.573c-.015-.108-.036-.215-.055-.321-.03-.172-.06-.343-.097-.514-.025-.115-.055-.23-.083-.346-.025-.1-.045-.201-.073-.301a10.133 10.133 0 0 1 1.754-2.374zm-7.298-.345a5.167 5.167 0 0 1-1.444-2.766A5.173 5.173 0 0 1 15.45 3.19a10.233 10.233 0 0 1 2.988 7.214v2.93H16.77v-2.441a8.962 8.962 0 0 0-2.643-6.381zM1.77 33.889a12 12 0 0 1 4.778-9.556l5.555-4.166A7.538 7.538 0 0 0 15.057 15h.007a11.147 11.147 0 0 1-3.25 7.113l-3.846 3.845c-4.922 4.913-4.93 12.887-.017 17.809.452.452.937.87 1.452 1.248A11.954 11.954 0 0 1 1.77 33.889zm5.392-4.043c.517-1 1.187-1.913 1.983-2.71l3.846-3.845a12.808 12.808 0 0 0 3.748-8.248 22.377 22.377 0 0 1-3.375 11l-1.577 2.525a16.089 16.089 0 0 0-2.142 11.725 8.916 8.916 0 0 0 2.201 4.301c-5.366-2.779-7.463-9.382-4.684-14.748zm9.841 15.845a7.3 7.3 0 0 1-5.726-5.726h.002a14.43 14.43 0 0 1 1.917-10.513l1.578-2.523a24.033 24.033 0 0 0 3.53-10.262h.266A24.035 24.035 0 0 0 22.1 26.928l1.577 2.524a14.43 14.43 0 0 1 1.917 10.513 7.3 7.3 0 0 1-8.589 5.726zm10.226-5.398a16.089 16.089 0 0 0-2.142-11.725l-1.578-2.523a22.377 22.377 0 0 1-3.253-9.378h.098a12.805 12.805 0 0 0 3.525 6.624l3.846 3.846c4.275 4.27 4.278 11.199.008 15.474a10.941 10.941 0 0 1-2.71 1.982 8.915 8.915 0 0 0 2.206-4.3zm.243 4.722c5.602-4.12 6.804-12.003 2.683-17.605-.378-.515-.796-1-1.248-1.452l-3.846-3.845A11.147 11.147 0 0 1 21.812 15h.007a7.538 7.538 0 0 0 2.952 5.167l5.555 4.166c5.275 3.953 6.346 11.433 2.394 16.707a11.933 11.933 0 0 1-5.247 3.975z" fill="#000" fill-rule="nonzero" />
+                        </svg>
+                        <br />
+                        <span class="text-uppercase font-weight-bold">TOR Integration</span>
+                    </a>
+                </div>
+                <div class="col-6 col-sm-3 p-0 border-right">
+                    <a href="https://docs.wasabiwallet.io/why-wasabi/BitcoinPrivacy.html#inputs-and-outputs" class="feature text-center py-3 px-2 px-md-3 d-block text-dark" target="_blank">
+                        <svg class="d-block mb-2 m-auto" width="50" height="50" xmlns="http://www.w3.org/2000/svg"><g fill="#000" fill-rule="nonzero"><path d="M45.161 27.852c0-1.979-.317-3.933-.943-5.812a44.429 44.429 0 0 1-2.283-14.067V1.35L37.346 2.66a14.787 14.787 0 0 1-11.573-1.525L25 .673l-.773.463A14.787 14.787 0 0 1 12.654 2.66L8.064 1.35v6.623c0 4.788-.767 9.521-2.282 14.067a18.353 18.353 0 0 0-.943 5.812c0 7.005 3.892 13.303 10.158 16.435L25 49.29l10.003-5.002c6.266-3.133 10.158-9.43 10.158-16.435zM34.282 42.844l-8.476 4.238v-4.34h-1.612v4.34l-8.476-4.238C10 39.986 6.452 34.241 6.452 27.852c0-1.805.289-3.588.86-5.302A46.005 46.005 0 0 0 9.676 7.973V3.489l2.535.723c3.978 1.138 8.323.665 11.982-1.235v11.575a10.493 10.493 0 0 0-5.961 2.446l1.043 1.231a8.872 8.872 0 0 1 5.724-2.1c4.891 0 8.871 3.98 8.871 8.871a8.873 8.873 0 0 1-2.1 5.725l1.23 1.042c.3-.355.567-.733.816-1.122h3.28v4.032h1.613v-5.645h-4.047a10.45 10.45 0 0 0 .785-3.226h3.262v-1.612h-3.267a10.4 10.4 0 0 0-1.152-4.033h4.419v-7.258h-1.613v5.645h-3.85a10.463 10.463 0 0 0-7.44-3.99V2.976c3.66 1.899 8.003 2.373 11.98 1.235l2.536-.723v4.485c0 4.962.795 9.866 2.366 14.577.57 1.713.86 3.496.86 5.3 0 6.39-3.55 12.135-9.267 14.993z" /><path d="M23.387 32.258H25v-1.613h.806a3.229 3.229 0 0 0 3.226-3.226c0-.962-.423-1.828-1.094-2.419a3.218 3.218 0 0 0 1.094-2.42 3.229 3.229 0 0 0-3.226-3.225H25v-1.613h-1.613v1.613h-2.42v11.29h2.42v1.613zm-.806-11.29h3.225c.89 0 1.613.723 1.613 1.613s-.723 1.613-1.613 1.613h-3.225v-3.226zm0 4.838h3.225c.89 0 1.613.724 1.613 1.613 0 .89-.723 1.613-1.613 1.613h-3.225v-3.226zM11.29 9.677h1.613v1.613H11.29zM11.29 36.29h1.613v1.613H11.29zM8.065 24.194h1.612v1.612H8.065zM37.097 9.677h1.613v1.613h-1.613zM37.097 36.29h1.613v1.613h-1.613zM40.323 24.194h1.612v1.612h-1.612zM1.613 45.161h1.613v1.613H1.613zM0 46.774h1.613v1.613H0zM1.613 48.387h1.613V50H1.613zM3.226 46.774h1.613v1.613H3.226zM9.677 45.968h1.613v1.613H9.677zM3.226 38.71h1.613v1.613H3.226zM46.774 45.161h1.613v1.613h-1.613zM48.387 46.774H50v1.613h-1.613zM46.774 48.387h1.613V50h-1.613zM45.161 46.774h1.613v1.613h-1.613zM38.71 45.968h1.613v1.613H38.71zM45.161 38.71h1.613v1.613h-1.613zM1.613 3.226h1.613v1.613H1.613zM0 1.613h1.613v1.613H0zM1.613 0h1.613v1.613H1.613zM3.226 1.613h1.613v1.613H3.226zM3.226 9.677h1.613v1.613H3.226zM46.774 3.226h1.613v1.613h-1.613zM48.387 1.613H50v1.613h-1.613zM46.774 0h1.613v1.613h-1.613zM45.161 1.613h1.613v1.613h-1.613zM45.161 9.677h1.613v1.613h-1.613z" /><path d="M30.724 31.771a8.872 8.872 0 0 1-5.724 2.1c-4.891 0-8.871-3.98-8.871-8.871 0-2.092.746-4.125 2.1-5.725l-1.23-1.042c-.086.102-.162.21-.243.315h-3.853v-5.645H11.29v7.258h4.425a10.49 10.49 0 0 0-1.163 4.033H11.29v1.612h3.267a10.43 10.43 0 0 0 .768 3.226H11.29v5.645h1.613v-4.032h3.277a10.48 10.48 0 0 0 8.014 4.798v5.686h1.612v-5.68a10.493 10.493 0 0 0 5.961-2.447l-1.043-1.231z" /></g></svg>
+                        <br />
+                        <span class="text-uppercase font-weight-bold">Coin-Control Features</span>
+                    </a>
+                </div>
+                <div class="col-6 col-sm-3 p-0">
+                    <a href="https://docs.wasabiwallet.io/why-wasabi/10Commandments.html#_2-verify-the-integrity-of-your-software" class="feature text-center py-3 px-2 px-md-3 d-block text-dark" target="_blank">
+                        <svg class="d-block mb-2 m-auto" width="52" height="50" xmlns="http://www.w3.org/2000/svg"><g fill="#000" fill-rule="nonzero"><path d="M51.911 15.242C51.152 6.888 45.239.827 37.839.827c-4.93 0-9.444 2.653-11.984 6.905C23.338 3.425 19.009.826 14.158.826 6.759.826.845 6.887.087 15.241c-.06.369-.306 2.311.442 5.478 1.078 4.568 3.568 8.723 7.199 12.013l18.115 16.439 18.426-16.438c3.631-3.291 6.121-7.445 7.199-12.014.748-3.166.502-5.108.443-5.477zm-2.39 5.019c-.984 4.172-3.265 7.973-6.59 10.985L25.855 46.481 9.072 31.25c-3.331-3.018-5.611-6.818-6.596-10.99-.708-2.997-.417-4.69-.416-4.701l.015-.101c.65-7.319 5.731-12.632 12.083-12.632 4.687 0 8.813 2.88 10.771 7.515l.921 2.183.921-2.183c1.927-4.564 6.271-7.514 11.069-7.514 6.351 0 11.433 5.313 12.096 12.727.002.016.293 1.71-.415 4.707z" /><path d="M15.999 6.904c-5.514 0-10 4.486-10 10a1 1 0 1 0 2 0c0-4.411 3.589-8 8-8a1 1 0 1 0 0-2z" /></g></svg>
+                        <br />
+                        <span class="text-uppercase font-weight-bold">Free &amp; Open Source</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- CoinJoins Section -->
+        <section class="coinjoins mb-4">
+            <div class="container">
                 <div class="row">
-                    <div class="col-sm-6 text-center-xs">
-                        <a href="https://wasabiwallet.io/swagger/" class="text-light p-1 mr-xl-3" target="_blank">API</a>
-                        <div itemscope itemtype="http://schema.org/Organization">
-                            <a href="https://zksnacks.com/" class="text-light p-1 mr-xl-3" target="_blank" itemprop="name">company (zkSNACKs)</a>
-                        </div>
-                        <a href="https://github.com/zkSNACKs/Meta/blob/master/WasabiPressKit.zip" class="text-light p-1 mr-xl-3" target="_blank">press kit</a>
+                    <div class="col-sm-6">
+                        <h2 class="text-lowercase mb-4">Make your Bitcoin fungible</h2>
                     </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <p class="mb-2">
+                            Wasabi implements trustless coin-shuffling using <a href="https://github.com/nopara73/ZeroLink/" target="_blank">Chaumian CoinJoins</a> over the Tor anonymity network. The CoinJoin coordinator cannot steal from, nor breach the privacy of the participants.
+                        </p>
+                        <a class="mb-3 d-inline-block" href="https://docs.wasabiwallet.io/using-wasabi/CoinJoin.html" target="_blank">
+                          <small>Learn more about CoinJoins ></small>
+                        </a>
 
-                    <!-- Social Links -->
-                    <div itemscope itemtype="http://schema.org/Organization" class="col-sm-6 text-right text-center-xs mt-2 mt-sm-0">
-                        <a href="https://twitter.com/wasabiwallet" itemprop="sameAs" class="p-1" target="_blank"><svg width="31" height="25" xmlns="http://www.w3.org/2000/svg"><path d="M11.37 24.943a26.15 26.15 0 0 1-4.04-.32c-2.403-.378-4.836-1.635-5.524-2.011L0 21.624l1.955-.643c2.137-.702 3.437-1.138 5.046-1.82-1.611-.781-2.853-2.185-3.45-4l-.456-1.38.373.057a6.782 6.782 0 0 1-.849-1.047c-.77-1.17-1.177-2.598-1.09-3.823l.085-1.205.721.28a6.745 6.745 0 0 1-.653-1.833c-.315-1.569-.052-3.235.742-4.693L3.053.363l.84 1.01C6.552 4.566 9.92 6.46 13.915 7.015c-.163-1.125-.04-2.211.364-3.184.471-1.134 1.31-2.095 2.424-2.78A7.28 7.28 0 0 1 20.928.014c1.579.097 3.011.688 4.15 1.71.555-.144.964-.298 1.518-.506.333-.125.71-.268 1.183-.43l1.74-.6-1.135 3.242c.075-.006.153-.011.233-.015l1.86-.084-1.1 1.502c-.062.086-.078.11-.1.144-.09.133-.2.3-1.708 2.314-.378.504-.566 1.16-.531 1.85.134 2.617-.187 4.985-.955 7.037-.726 1.942-1.85 3.608-3.343 4.952-1.847 1.663-4.201 2.802-6.999 3.384a21.546 21.546 0 0 1-4.371.429z" fill="#C8C2CB" fill-rule="nonzero" /></svg></a>
-                        <a href="https://www.reddit.com/r/WasabiWallet/" itemprop="sameAs" class="p-1" target="_blank"><svg width="30" height="25" xmlns="http://www.w3.org/2000/svg"><g fill="#C8C2CB" fill-rule="nonzero"><path d="M11.132 13.91a.99.99 0 0 0-1.979 0 .99.99 0 0 0 1.979 0zM18.43 13.91a.99.99 0 0 0 1.978 0 .99.99 0 0 0-1.978 0z" /><path d="M29.561 12.056a3.653 3.653 0 0 0-3.648-3.65c-.786 0-1.542.253-2.163.711-2.084-1.425-4.796-2.313-7.676-2.52l1.988-4.638 4.224 1.163A2.725 2.725 0 0 0 24.985 5.5c1.5 0 2.721-1.221 2.721-2.722 0-1.5-1.22-2.721-2.721-2.721a2.722 2.722 0 0 0-2.356 1.362L17.793.089a.866.866 0 0 0-1.026.494L14.205 6.56c-3.145.1-6.138 1.013-8.395 2.556a3.643 3.643 0 0 0-2.16-.71A3.653 3.653 0 0 0 0 12.056c0 1.35.73 2.556 1.876 3.188-.014.174-.02.348-.02.522 0 2.523 1.386 4.872 3.904 6.616 2.421 1.676 5.625 2.6 9.02 2.6 3.396 0 6.6-.924 9.02-2.6 2.519-1.744 3.906-4.093 3.906-6.616 0-.173-.007-.346-.02-.52a3.632 3.632 0 0 0 1.875-3.19zM7.421 13.91c0-1.5 1.221-2.721 2.721-2.721 1.501 0 2.722 1.22 2.722 2.72 0 1.501-1.221 2.722-2.722 2.722-1.5 0-2.721-1.22-2.721-2.721zm12.555 5.792c-1.321 1.002-3.215 1.578-5.195 1.578-1.981 0-3.875-.576-5.195-1.578a.866.866 0 0 1 1.047-1.38c1.026.779 2.537 1.226 4.148 1.226 1.61 0 3.121-.447 4.147-1.226a.866.866 0 0 1 1.048 1.38zm-.557-3.07c-1.5 0-2.722-1.222-2.722-2.722s1.221-2.721 2.722-2.721c1.5 0 2.721 1.22 2.721 2.72 0 1.501-1.22 2.722-2.721 2.722z" /></g></svg></a>
-                        <a href="https://github.com/zkSNACKs/WalletWasabi/" itemprop="sameAs" class="p-1" target="_blank"><svg width="26" height="25" xmlns="http://www.w3.org/2000/svg"><path d="M23.842 6.385a12.723 12.723 0 0 0-4.65-4.65C17.234.592 15.097.021 12.778.021c-2.318 0-4.456.572-6.414 1.714a12.721 12.721 0 0 0-4.65 4.65C.57 8.343 0 10.481 0 12.8c0 2.784.812 5.288 2.437 7.512 1.625 2.224 3.725 3.763 6.298 4.617.3.056.521.016.665-.116a.65.65 0 0 0 .217-.5l-.009-.898a148.59 148.59 0 0 1-.008-1.48L9.217 22a4.882 4.882 0 0 1-.923.058 7.036 7.036 0 0 1-1.157-.116c-.4-.072-.77-.238-1.114-.5a2.111 2.111 0 0 1-.732-1.022l-.167-.383a4.157 4.157 0 0 0-.524-.848c-.238-.311-.48-.522-.723-.633l-.117-.083a1.221 1.221 0 0 1-.216-.2.913.913 0 0 1-.15-.233c-.033-.078-.006-.141.083-.191.09-.05.25-.075.483-.075l.332.05c.222.044.497.177.824.4.327.22.596.51.807.864.255.455.563.802.923 1.04.36.239.724.358 1.09.358.366 0 .682-.028.948-.083a3.31 3.31 0 0 0 .749-.25c.1-.743.372-1.315.815-1.714-.632-.066-1.2-.166-1.705-.3a6.79 6.79 0 0 1-1.564-.649 4.48 4.48 0 0 1-1.34-1.114c-.354-.444-.646-1.026-.873-1.747-.227-.721-.34-1.553-.34-2.496 0-1.342.437-2.485 1.314-3.427-.41-1.01-.372-2.141.116-3.394.322-.1.799-.025 1.43.224.633.25 1.096.464 1.39.64.294.178.53.328.707.45a11.814 11.814 0 0 1 3.195-.432c1.098 0 2.163.144 3.195.432l.632-.4c.432-.265.943-.51 1.53-.731.588-.222 1.038-.283 1.349-.183.498 1.253.543 2.385.132 3.394.877.943 1.315 2.085 1.315 3.427 0 .943-.114 1.778-.341 2.504-.227.727-.521 1.309-.882 1.747-.36.438-.81.807-1.348 1.107-.538.3-1.06.515-1.564.649a11.38 11.38 0 0 1-1.705.3c.577.498.865 1.286.865 2.362v3.51c0 .2.07.366.208.5.139.132.358.171.657.115 2.574-.854 4.673-2.393 6.298-4.617 1.625-2.223 2.437-4.727 2.437-7.512 0-2.317-.572-4.455-1.714-6.413z" fill="#C8C2CB" fill-rule="nonzero" /></svg></a>
+                        <div class="coinjoin-txs box-shadow-lg">
+                            <div class="card bg-dark mb-3">
+                                <span class="card-header text-uppercase text-light">
+                                    <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg"><g id="Page-1" fill="none" fill-rule="evenodd"><g id="Desktop-HD" transform="translate(-162 -1867)" fill="#A7F5A3" fill-rule="nonzero"><g id="Group-27" transform="translate(120 1235)"><g id="Group-26" transform="translate(.755 50)"><g id="Group-15" transform="translate(.245 542)"><g id="Group-6" transform="translate(41 40)"><g id="icon-wifi-signal"><path d="M2.5 18A2.503 2.503 0 0 1 0 15.5C0 14.121 1.121 13 2.5 13S5 14.121 5 15.5 3.879 18 2.5 18z" id="signal-0" /><path d="M10.8 16a1.2 1.2 0 0 1-1.2-1.2c0-3.529-2.871-6.4-6.4-6.4a1.2 1.2 0 0 1 0-2.4c2.35 0 4.56.915 6.223 2.577A8.742 8.742 0 0 1 12 14.8a1.2 1.2 0 0 1-1.2 1.2z" id="signal-1" /><path d="M16.756 17a1.244 1.244 0 0 1-1.244-1.244c0-7.316-5.952-13.268-13.268-13.268a1.244 1.244 0 0 1 0-2.488 15.702 15.702 0 0 1 11.141 4.615A15.701 15.701 0 0 1 18 15.756c0 .687-.557 1.244-1.244 1.244z" id="signal-2" /></g></g></g></g></g></g></g></svg> Wasabi CoinJoin Examples
+                                </span>
+                                <input type="checkbox" id="cjTxs" class="toggle-input toggle-xs" />
+                                <label class="text-light pl-2 mb-2 d-block d-sm-none toggle-label toggle-xs" for="cjTxs">
+                                    View transactions
+                                </label>
+                                <ul class="list-group list-group-flush toggle-content toggle-xs">
+                                    <li class="tx list-group-item text-ellipsis">
+                                        <img src="images/icon-external.svg?ver=1.1.0" />
+                                        <a class="text-light" href="https://blockstream.info/tx/e4a789d16a24a6643dfee06e018ad27648b896daae6a3577ae0f4eddcc4d9174" target="_blank"> e4a789d16a24a6643dfee06e018ad27648b896daae6a3577ae0f4eddcc4d9174 </a>
+                                    </li>
+                                    <li class="tx list-group-item text-ellipsis">
+                                        <img src="images/icon-external.svg?ver=1.1.0" />
+                                        <a class="text-light" href="https://blockstream.info/tx/c69aed505ca50473e2883130221915689c1474be3c66bcf7ac7dc0e26246afc8" target="_blank"> c69aed505ca50473e2883130221915689c1474be3c66bcf7ac7dc0e26246afc8 </a>
+                                    </li>
+                                    <li class="tx list-group-item text-ellipsis">
+                                        <img src="images/icon-external.svg?ver=1.1.0" />
+                                        <a class="text-light" href="https://blockstream.info/tx/ef329b3ed8e790f10f0b522346f1b3d9f1c9d45dfa5b918e92d6f0a25d91c7ce" target="_blank"> ef329b3ed8e790f10f0b522346f1b3d9f1c9d45dfa5b918e92d6f0a25d91c7ce </a>
+                                    </li>
+                                    <li class="tx list-group-item text-ellipsis">
+                                        <img src="images/icon-external.svg?ver=1.1.0" />
+                                        <a class="text-light" href="https://blockstream.info/tx/f82206145413db5c1272d5609c88581c414815e36e400aee6410e0de9a2d46b5" target="_blank"> f82206145413db5c1272d5609c88581c414815e36e400aee6410e0de9a2d46b5 </a>
+                                    </li>
+                                    <li class="tx list-group-item text-ellipsis">
+                                        <img src="images/icon-external.svg?ver=1.1.0" />
+                                        <a class="text-light" href="https://blockstream.info/tx/a7157780b7c696ab24767113d9d34cdbc0eba5c394c89aec4ed1a9feb326bea5" target="_blank"> a7157780b7c696ab24767113d9d34cdbc0eba5c394c89aec4ed1a9feb326bea5 </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <img class="illustration" src="images/illustration-coinjoin.svg?ver=1.1.0" />
                     </div>
                 </div>
             </div>
-            <div class="pt-0 pb-2">
-                <div class="container text-center">
-                    <a href="https://weareblock.space" rel="nofollow" class="d-block text-light" style="color: #FF859D !important;" target="_blank"><small>designed with <svg width="13" height="12" xmlns="http://www.w3.org/2000/svg"><path d="M6.461 2.12C6.986.872 8.184 0 9.58 0c1.878 0 3.23 1.612 3.4 3.533 0 0 .092.477-.11 1.336a5.908 5.908 0 0 1-1.794 3L6.461 12 1.925 7.87A5.907 5.907 0 0 1 .13 4.867c-.202-.858-.11-1.335-.11-1.335C.19 1.612 1.543 0 3.42 0c1.395 0 2.515.872 3.04 2.12z" fill="#FF859D" fill-rule="nonzero" /></svg> (not js) by blockspace</small></a>
+            <div class="shader"></div>
+        </section>
+
+        <!-- Downloads Section -->
+        <section class="download mb-4" id="download">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-6 offset-lg-6">
+                        <h2 class="text-right text-lowercase">Available for <br /><span itemprop="operatingSystem">Mac</span>, <span itemprop="operatingSystem">Windows</span> &amp; <span itemprop="operatingSystem">Linux</span></h2>
+                    </div>
                 </div>
             </div>
-        </footer>
+
+            <div class="container">
+                <div class="row align-items-end">
+                    <div class="col-sm-6 order-sm-6">
+                        <div class="my-4 text-center">
+                            <span class="text-uppercase font-weight-bold">Download Wasabi Wallet <span itemprop="softwareVersion">1.1.10.2</span></span>
+                            <br />
+                            <small><a href="https://github.com/zkSNACKs/WalletWasabi#build-from-source-code" class="text-muted">Or build it from source</a></small>
+                            <br />
+                            <small><a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt">PGP</a> / <a href="https://github.com/zkSNACKs/WalletWasabi/releases" itemprop="releaseNotes">RELEASE NOTES</a></small>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="text-center mb-4 ">
+                                    <img class="d-block mx-auto mb-2" src="images/icon-colored-finder.svg?ver=1.1.0" />
+
+                                    <!-- macOS Download Link -->
+                                    <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.10.2/Wasabi-1.1.10.2.dmg" itemprop="downloadUrl" class="btn btn-success btn-block btn-labeled text-uppercase font-weight-bold mb-1">
+                                        <span class="btn-label"><svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g fill="#FFF" fill-rule="nonzero"><path d="M7.874 0c-.232 0-.417.175-.417.39v10.473L5.545 9.087a.44.44 0 0 0-.592 0 .368.368 0 0 0 0 .55l2.627 2.44a.434.434 0 0 0 .298.113.44.44 0 0 0 .297-.114l2.627-2.44a.368.368 0 0 0 0-.549.44.44 0 0 0-.592 0l-1.912 1.776V.39C8.295.175 8.107 0 7.874 0zM15.597 15.238H.403A.392.392 0 0 0 0 15.62c0 .21.18.381.403.381h15.194c.223 0 .403-.17.403-.381 0-.21-.18-.38-.403-.38z" /></g></svg></span>
+                                        macOS 10.13+
+                                    </a>
+                                    <small class="text-muted float-left">.dmg</small>
+                                    <small class="float-right">
+                                        <!-- macOS Signature Link -->
+                                        <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.10.2/Wasabi-1.1.10.2.dmg.asc" class="text-uppercase">Signature</a>&nbsp;/
+                                        <!-- macOS Installation Guide Link -->
+                                        <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#macos" class="text-uppercase">Guide</a>
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="text-center mb-4 ">
+                                    <img class="d-block mx-auto mb-2" src="images/icon-colored-windows.svg?ver=1.1.0" />
+
+                                    <!-- Windows Download Link -->
+                                    <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.10.2/Wasabi-1.1.10.2.msi" itemprop="downloadUrl" class="btn btn-success btn-block btn-labeled text-uppercase font-weight-bold mb-1">
+                                        <span class="btn-label"><svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g fill="#FFF" fill-rule="nonzero"><path d="M7.874 0c-.232 0-.417.175-.417.39v10.473L5.545 9.087a.44.44 0 0 0-.592 0 .368.368 0 0 0 0 .55l2.627 2.44a.434.434 0 0 0 .298.113.44.44 0 0 0 .297-.114l2.627-2.44a.368.368 0 0 0 0-.549.44.44 0 0 0-.592 0l-1.912 1.776V.39C8.295.175 8.107 0 7.874 0zM15.597 15.238H.403A.392.392 0 0 0 0 15.62c0 .21.18.381.403.381h15.194c.223 0 .403-.17.403-.381 0-.21-.18-.38-.403-.38z" /></g></svg></span>
+                                        Windows 7+
+                                    </a>
+                                    <small class="text-muted float-left">.msi</small>
+                                    <small class="float-right">
+                                        <!-- Windows Signature Link -->
+                                        <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.10.2/Wasabi-1.1.10.2.msi.asc" class="text-uppercase">Signature</a>&nbsp;/
+                                        <!-- Windows Installation Guide Link -->
+                                        <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#windows" class="text-uppercase">Guide</a>
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="text-center mb-4 ">
+                                    <img class="d-block mx-auto mb-2" src="images/icon-colored-ubuntu.svg?ver=1.1.0" />
+
+                                    <!-- Debian/Ubuntu Download Link -->
+                                    <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.10.2/Wasabi-1.1.10.2.deb" itemprop="downloadUrl" class="btn btn-success btn-block btn-labeled text-uppercase font-weight-bold mb-1">
+                                        <span class="btn-label"><svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g fill="#FFF" fill-rule="nonzero"><path d="M7.874 0c-.232 0-.417.175-.417.39v10.473L5.545 9.087a.44.44 0 0 0-.592 0 .368.368 0 0 0 0 .55l2.627 2.44a.434.434 0 0 0 .298.113.44.44 0 0 0 .297-.114l2.627-2.44a.368.368 0 0 0 0-.549.44.44 0 0 0-.592 0l-1.912 1.776V.39C8.295.175 8.107 0 7.874 0zM15.597 15.238H.403A.392.392 0 0 0 0 15.62c0 .21.18.381.403.381h15.194c.223 0 .403-.17.403-.381 0-.21-.18-.38-.403-.38z" /></g></svg></span>
+                                        Debian / Ubuntu
+                                    </a>
+                                    <small class="text-muted float-left">.deb</small>
+                                    <small class="float-right">
+                                        <!-- Debian/Ubuntu Signature Link -->
+                                        <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.10.2/Wasabi-1.1.10.2.deb.asc" class="text-uppercase">Signature</a>&nbsp;/
+                                        <!-- Debian/Ubuntu Installation Guide Link -->
+                                        <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#debian-and-ubuntu" class="text-uppercase">Guide</a>
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="text-center mb-4 ">
+                                    <img class="d-block mx-auto mb-2" src="images/icon-colored-linux.svg?ver=1.1.0" />
+
+                                    <!-- Linux Download Link -->
+                                    <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.10.2/WasabiLinux-1.1.10.2.tar.gz" itemprop="downloadUrl" class="btn btn-success btn-block btn-labeled text-uppercase font-weight-bold mb-1">
+                                        <span class="btn-label"><svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g fill="#FFF" fill-rule="nonzero"><path d="M7.874 0c-.232 0-.417.175-.417.39v10.473L5.545 9.087a.44.44 0 0 0-.592 0 .368.368 0 0 0 0 .55l2.627 2.44a.434.434 0 0 0 .298.113.44.44 0 0 0 .297-.114l2.627-2.44a.368.368 0 0 0 0-.549.44.44 0 0 0-.592 0l-1.912 1.776V.39C8.295.175 8.107 0 7.874 0zM15.597 15.238H.403A.392.392 0 0 0 0 15.62c0 .21.18.381.403.381h15.194c.223 0 .403-.17.403-.381 0-.21-.18-.38-.403-.38z" /></g></svg></span>
+                                        Other Linux
+                                    </a>
+                                    <small class="text-muted float-left">.tar.gz</small>
+                                    <small class="float-right">
+                                        <!-- Linux Signature Link -->
+                                        <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.10.2/WasabiLinux-1.1.10.2.tar.gz.asc" class="text-uppercase">Signature</a>&nbsp;/
+                                        <!-- Linux Installation Guide Link -->
+                                        <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#other-linux" class="text-uppercase">Guide</a>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 order-sm-1">
+                        <img class="screenshot" itemprop="screenshot" src="images/wasabi-wallet-laptop.png?ver=1.1.0" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="shader"></div>
+        </section>
+
+        <!-- FAQs Section -->
+        <section class="faq mb-0" id="faq">
+            <div class="container" itemscope itemtype="https://schema.org/FAQPage">
+                <h2 class="text-center text-lowercase mb-4">Frequently Asked Questions</h2>
+
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <input type="checkbox" id="faq1" class="toggle-input" />
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq1" itemprop="name">
+                        What is a “CoinJoin”?
+                    </label>
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
+                            A mechanism by which multiple participants combine their coins (or UTXOs, to be more precise) into one large transaction with multiple inputs and multiple outputs. An observer cannot determine which output belongs to which input, and neither can the participants themselves. This makes it difficult for outside parties to trace where a particular coin originated from and where it was sent to (as opposed to regular bitcoin transactions, where there is usually one sender and one receiver).
+                            <br /><br />
+                            This can be done with non-custodial software like Wasabi that eliminates the risk of funds disappearing or being stolen. Each of the signatures are created on the participants’ computers, so anyone trying to connect the signatures is unable to alter the transaction or redirect the funds. The funds will always be in a Bitcoin address that you control.
+                            <br /><br />
+                            It’s possible to do this in a decentralized way so that the service does not rely on external parties or centralized servers. It just needs the participants of the transaction.
+                            <br /><br />
+                            CoinJoin can be applied multiple times, and as many transactions are grouped together, participants may save on transaction fees. CoinJoin is the preferred method of gaining privacy in the Bitcoin network.
+                            <br /><br />
+                            CoinJoin means: “when you want to make a transaction, find someone else who also wants to make a transaction and make a joint transaction together”.
+                            <br /><br />
+                            <small>Further reading: <a href="https://en.bitcoin.it/wiki/CoinJoin" target="_blank">en.bitcoin.it/wiki/CoinJoin</a></small>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <input type="checkbox" id="faq2" class="toggle-input" />
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq2" itemprop="name">
+                        Do I need to trust Wasabi with my coins?
+                    </label>
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
+                            No, Wasabi's coinjoin implementation is trustless by design. The participants do not need to trust each other or any third party. Both the sending address (the coinjoin input) and the receiving address (the coinjoin output) are controlled by your own private keys. Wasabi merely coordinates the process of combining the inputs of the participants into one single transaction, but the wallet can neither steal your coins, nor figure out which outputs belong to which inputs.
+                            <br /><br />
+                            <small>Further reading: <a href="https://github.com/nopara73/ZeroLink#ii-chaumian-coinjoin" target="_blank">Chaumian Coinjoin</a></small>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <input type="checkbox" id="faq3" class="toggle-input" />
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq3" itemprop="name">
+                        Can I hurt my privacy using Wasabi?
+                    </label>
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
+                            No. The worst thing that can happen (through user’s negligence post-mix) is that the level of your privacy stays the same as before coinjoin. It is crucial to understand that Wasabi is not a fool-proof solution if you neglect to practice coin control after the mixing process.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <input type="checkbox" id="faq4" class="toggle-input" />
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq4" itemprop="name">
+                        Do I need to run Tor?
+                    </label>
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
+                            All Wasabi network traffic goes via Tor by default - no need to set up Tor yourself. If you do already have Tor, and it is running, then Wasabi will try to use that first.
+                            <br /><br />
+                            You can turn off Tor in the Settings. Note that in this case you are still private, except when you coinjoin and when you broadcast a transaction. In the first case, the coordinator would know the links between your inputs and outputs based on your IP address. In the second case, if you happen to broadcast a transaction of yours to a full node that is spying on you, it will know the link between your transaction and your IP address.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <input type="checkbox" id="faq5" class="toggle-input" />
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq5" itemprop="name">
+                        My wallet cannot send to Bech32 addresses - what wallets can I use instead?
+                    </label>
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
+                            Wasabi generates Bech32 addresses only, also known as native SegWit addresses or bc1 addresses, because these addresses start with the characters bc1... Some wallets/exchanges do not yet support this type of address and may give an error message (e.g. "unknown bitcoin address"). The hack is to manage your funds with a wallet which does support Bech32. To check Bech32 adoption and exchange/wallet support you can follow <a href="https://en.bitcoin.it/wiki/Bech32_adoption" rel="external nofollow" target="_blank">Bitcoin.it Wiki</a> and <a href="https://whensegwit.com/#who" rel="external nofollow" target="_blank">When Segwit? website</a>.
+                            <br /><br />
+                            Be careful, if you send all your coins from an old wallet to a new wallet (from the table above) in one transaction then you will merge all your coins which is bad for privacy - instead, send the coins individually or if possible import the seed in the new wallet.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <input type="checkbox" id="faq6" class="toggle-input" />
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq6" itemprop="name">
+                        What are the fees for CoinJoins?
+                    </label>
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
+                            You currently pay a fee of 0.003% * anonymity set. If the anonymity set of a coin is 50 then you pay 0.003% * 50 (=0.15%). If you set the target anonymity set to 53 then Wasabi will continue mixing until this is reached, so you may end up with an anonymity set of say 60, and you will pay 0.003% * 60 (=0.18%).
+                            <br /><br />
+                            There are also edge cases where you do not pay the full fee or where you pay more. For example if you're the smallest registrant to a round, you will never pay a fee. Also when you are remixing and you cannot pay the full fee with your input, then you only pay as much as you have, but if the change amount leftover would be too small, then that is also added to the fee. Currently the minimum change amount to be paid out is 0.7% of the base denomination (~0.1BTC.)
+                            <br /><br />
+                            It is also possible that you get more back from mixing than you put in. This happens when network fees go down between the start of the round and its end. In this case, the difference is split between the active outputs of the mix.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <input type="checkbox" id="faq7" class="toggle-input" />
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq7" itemprop="name">
+                        What is an "Anonymity Set"?
+                    </label>
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
+                            The anonymity set is effectively the size of the group you are hiding in.
+                            <br /><br />
+                            If 3 people take part in a CoinJoin (with equal size inputs) and there are 3 outputs then each of those output coins has an anonymity set of 3.
+                            <br /><br />
+                            <code>
+                            0.1 BTC (Alice)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.1 BTC (Anon set 3)<br>
+                            0.3 BTC (Bob)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;->&nbsp;&nbsp;0.1 BTC (Anon set 3)<br>
+                            0.4 BTC (Charlie)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.1 BTC (Anon set 3)<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.2 BTC (Change Coin Bob)<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.3 BTC (Change Coin Charlie)<br>
+                            </code>
+                            <br /><br />
+                            There is no way to know which of the anon set output coins are owned by which of the input owners. All an observer knows is that a specific anon set output coin is owned by one of the owners of one of the input Coins i.e. 3 people - hence an anonymity set of 3.
+                            <br /><br />
+                            Your Wasabi software has limited information on what the anonymity set should be, so the anonymity set that the software presents you is just an estimation, not an accurate value. With Wasabi we are trying to do lower estimations, rather than higher ones.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <input type="checkbox" id="faq8" class="toggle-input" />
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq8" itemprop="name">
+                        Can I recombine my mixed coins?
+                    </label>
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
+                            It is advisable to limit the recombining of mixed coins because it can only decrease the privacy of said coins. This links all the consolidated UTXOs in one transaction, creating only one output, which then clearly controls all these funds. That said, if you combine less than 1 BTC it is less likely to reveal your pre-coinjoin transaction history. The potential issue comes when you spend that coin. Depending on what you do with the coin you might reduce the privacy of the resulting change (if you send half your coin to an exchange for example, as they will know that you own the coin change). As a result it is best not to recombine ALL your mixed change, though you may wish to recombine some coins if you are planning on hodling for many years as this will reduce the fees required to spend the coins later.
+                            <br /><br />
+                            <small>Further reading: <a href="https://www.reddit.com/r/WasabiWallet/comments/avxbjy/combining_mixed_coins_privacy_megathread/" target="_blank">[Reddit] Combining Mixed Coins</a></small>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <input type="checkbox" id="faq9" class="toggle-input" />
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq9" itemprop="name">
+                        Am I safe to send my mixed coins to my hardware wallet?
+                    </label>
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
+                            Most hardware wallets communicate with servers to provide you with your balance. This reveals your public key to the server, which damages your privacy - the hardware company can now theoretically link together all your addresses. As a result it is not recommended that you send your mixed coins to an address associated with your hardware wallet unless you are confident that you have set up your hardware wallet in a way that it does not communicate with a 3rd party server (see below).
+                            <br /><br />
+                            You can however manage your hardware wallet with the Wasabi interface. Alternatively you can use your hardware wallet with Electrum, which connects to your Bitcoin Core full node through <a href="https://github.com/chris-belcher/electrum-personal-server" target="_blank">Electrum Personal Server</a>.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <input type="checkbox" id="faq10" class="toggle-input" />
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq10" itemprop="name">
+                        How can I set up my hardware wallet with Wasabi properly?
+                    </label>
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
+                            You can use popular hardware wallets with Wasabi directly including Coldcard, Trezor and Ledger devices. Plug in the device, and select Hardware Wallet in the starting page of Wasabi. You will be able to send and receive bitcoin, but you will not be able to coinjoin the funds directly. For this, the private key needs to be hot in Wasabi. You can also import and export PSBT over SD card to communicate with your ColdCard Wallet.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <input type="checkbox" id="faq11" class="toggle-input" />
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq11" itemprop="name">
+                        What to do with "change"?
+                    </label>
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
+                            There are no hard and fast rules for what to do with the change. Generally try to avoid the change and use the Max button extensively at sending. The most problematic type of change is what has anonymity set 1 (red shield.) You should treat it as a kind of toxic waste (handled with great care).
+                            <br /><br />
+                            <span class="text-danger">Warning You want to avoid merging anonymity set 1 coins with anonymity set > 1 coins wherever possible, because this will link your anonymity set > 1 coin to the coin you merge it with.</span> Note that, this is also true if you merge them in a mix, however that is slightly less problematic, because some blockchain analysis techniques become computationally infeasible.
+                            <br /><br />
+                            It is also important that you do not send different coins to the same receiving address (even if performed as separate transactions) as this will also link the coins together, damaging your privacy.
+                            <br /><br />
+                            Your Options:
+                            <br />
+                            - If you do not care about linking the history of the coins because they are all from the same source then you could combine them in a mix (queue all the change from the same source until you reach the minimum input required to mix, currently ~ 0.1 BTC).
+                            <br />
+                            - Mix with Joinmarket.
+                            <br />
+                            - Donate them (e.g. to the EFF)
+                            <br />
+                            - Spend them on something that is not a particular privacy risk (eg. gift cards).
+                            <br />
+                            - Open a lightning channel.
+                            <br />
+                            The ultimate solution is to 'close the loop' i.e. spend a change coin without merging it with other coins, do not generate it in the first place by sending whole coins.
+                            <br /><br />
+                            <small>Further reading: <a href="https://docs.wasabiwallet.io/using-wasabi/ChangeCoins.html" target="_blank">Chaumian Coinjoin</a></small>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card bg-white box-shadow border-light mb-2" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <input type="checkbox" id="faq12" class="toggle-input" />
+                    <label class="card-header bg-light font-weight-bold text-uppercase border-0 toggle-label pr-3" for="faq12" itemprop="name">
+                        Privacy wallet alternatives to Wasabi?
+                    </label>
+                    <div class="card-body toggle-content p-0" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p class="card-text border-top p-2" itemprop="text">
+                            Other than Wasabi Wallet, as of 2019, <a href="https://github.com/JoinMarket-Org/joinmarket-clientserver" target="_blank">JoinMarket</a> is the only sound privacy enhancing concept that has a production ready implementation.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="my-4 text-center">
+                    <p>Couldn’t find your question? <br /><a href="https://docs.wasabiwallet.io/FAQ/" class="" target="_blank">Read our extended FAQs in the documentation ></a></p>
+                </div>
+            </div>
+
+            <img src="images/shader-loop.svg?ver=1.1.0" class="shader" />
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer bg-dark">
+        <div class="text-center">
+            <p class="text-light p-2 mb-0 text-ellipsis">
+                <img src="images/icon-colored-onion.png?ver=1.1.0" class="" style="width: 17px; height: auto" alt="other_network">&nbsp;
+                <small class="align-middle" itemprop="sameAs">http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion</small>
+            </p>
+        </div>
+        <hr class="m-0" />
+        <div class="container pt-2 pb-2">
+            <div class="row">
+                <div class="col-sm-6 text-center-xs">
+                    <a href="https://wasabiwallet.io/swagger/" class="text-light p-1 mr-xl-3" target="_blank">API</a>
+                    <div itemscope itemtype="http://schema.org/Organization">
+                    <a href="https://zksnacks.com/" class="text-light p-1 mr-xl-3" target="_blank" itemprop="name">company (zkSNACKs)</a>
+                    </div>
+                    <a href="https://github.com/zkSNACKs/Meta/blob/master/WasabiPressKit.zip" class="text-light p-1 mr-xl-3" target="_blank">press kit</a>
+                </div>
+
+                <!-- Social Links -->
+                <div itemscope itemtype="http://schema.org/Organization" class="col-sm-6 text-right text-center-xs mt-2 mt-sm-0">
+                    <a href="https://twitter.com/wasabiwallet" itemprop="sameAs" class="p-1" target="_blank"><svg width="31" height="25" xmlns="http://www.w3.org/2000/svg"><path d="M11.37 24.943a26.15 26.15 0 0 1-4.04-.32c-2.403-.378-4.836-1.635-5.524-2.011L0 21.624l1.955-.643c2.137-.702 3.437-1.138 5.046-1.82-1.611-.781-2.853-2.185-3.45-4l-.456-1.38.373.057a6.782 6.782 0 0 1-.849-1.047c-.77-1.17-1.177-2.598-1.09-3.823l.085-1.205.721.28a6.745 6.745 0 0 1-.653-1.833c-.315-1.569-.052-3.235.742-4.693L3.053.363l.84 1.01C6.552 4.566 9.92 6.46 13.915 7.015c-.163-1.125-.04-2.211.364-3.184.471-1.134 1.31-2.095 2.424-2.78A7.28 7.28 0 0 1 20.928.014c1.579.097 3.011.688 4.15 1.71.555-.144.964-.298 1.518-.506.333-.125.71-.268 1.183-.43l1.74-.6-1.135 3.242c.075-.006.153-.011.233-.015l1.86-.084-1.1 1.502c-.062.086-.078.11-.1.144-.09.133-.2.3-1.708 2.314-.378.504-.566 1.16-.531 1.85.134 2.617-.187 4.985-.955 7.037-.726 1.942-1.85 3.608-3.343 4.952-1.847 1.663-4.201 2.802-6.999 3.384a21.546 21.546 0 0 1-4.371.429z" fill="#C8C2CB" fill-rule="nonzero" /></svg></a>
+                    <a href="https://www.reddit.com/r/WasabiWallet/" itemprop="sameAs" class="p-1" target="_blank"><svg width="30" height="25" xmlns="http://www.w3.org/2000/svg"><g fill="#C8C2CB" fill-rule="nonzero"><path d="M11.132 13.91a.99.99 0 0 0-1.979 0 .99.99 0 0 0 1.979 0zM18.43 13.91a.99.99 0 0 0 1.978 0 .99.99 0 0 0-1.978 0z" /><path d="M29.561 12.056a3.653 3.653 0 0 0-3.648-3.65c-.786 0-1.542.253-2.163.711-2.084-1.425-4.796-2.313-7.676-2.52l1.988-4.638 4.224 1.163A2.725 2.725 0 0 0 24.985 5.5c1.5 0 2.721-1.221 2.721-2.722 0-1.5-1.22-2.721-2.721-2.721a2.722 2.722 0 0 0-2.356 1.362L17.793.089a.866.866 0 0 0-1.026.494L14.205 6.56c-3.145.1-6.138 1.013-8.395 2.556a3.643 3.643 0 0 0-2.16-.71A3.653 3.653 0 0 0 0 12.056c0 1.35.73 2.556 1.876 3.188-.014.174-.02.348-.02.522 0 2.523 1.386 4.872 3.904 6.616 2.421 1.676 5.625 2.6 9.02 2.6 3.396 0 6.6-.924 9.02-2.6 2.519-1.744 3.906-4.093 3.906-6.616 0-.173-.007-.346-.02-.52a3.632 3.632 0 0 0 1.875-3.19zM7.421 13.91c0-1.5 1.221-2.721 2.721-2.721 1.501 0 2.722 1.22 2.722 2.72 0 1.501-1.221 2.722-2.722 2.722-1.5 0-2.721-1.22-2.721-2.721zm12.555 5.792c-1.321 1.002-3.215 1.578-5.195 1.578-1.981 0-3.875-.576-5.195-1.578a.866.866 0 0 1 1.047-1.38c1.026.779 2.537 1.226 4.148 1.226 1.61 0 3.121-.447 4.147-1.226a.866.866 0 0 1 1.048 1.38zm-.557-3.07c-1.5 0-2.722-1.222-2.722-2.722s1.221-2.721 2.722-2.721c1.5 0 2.721 1.22 2.721 2.72 0 1.501-1.22 2.722-2.721 2.722z" /></g></svg></a>
+                    <a href="https://github.com/zkSNACKs/WalletWasabi/" itemprop="sameAs" class="p-1" target="_blank"><svg width="26" height="25" xmlns="http://www.w3.org/2000/svg"><path d="M23.842 6.385a12.723 12.723 0 0 0-4.65-4.65C17.234.592 15.097.021 12.778.021c-2.318 0-4.456.572-6.414 1.714a12.721 12.721 0 0 0-4.65 4.65C.57 8.343 0 10.481 0 12.8c0 2.784.812 5.288 2.437 7.512 1.625 2.224 3.725 3.763 6.298 4.617.3.056.521.016.665-.116a.65.65 0 0 0 .217-.5l-.009-.898a148.59 148.59 0 0 1-.008-1.48L9.217 22a4.882 4.882 0 0 1-.923.058 7.036 7.036 0 0 1-1.157-.116c-.4-.072-.77-.238-1.114-.5a2.111 2.111 0 0 1-.732-1.022l-.167-.383a4.157 4.157 0 0 0-.524-.848c-.238-.311-.48-.522-.723-.633l-.117-.083a1.221 1.221 0 0 1-.216-.2.913.913 0 0 1-.15-.233c-.033-.078-.006-.141.083-.191.09-.05.25-.075.483-.075l.332.05c.222.044.497.177.824.4.327.22.596.51.807.864.255.455.563.802.923 1.04.36.239.724.358 1.09.358.366 0 .682-.028.948-.083a3.31 3.31 0 0 0 .749-.25c.1-.743.372-1.315.815-1.714-.632-.066-1.2-.166-1.705-.3a6.79 6.79 0 0 1-1.564-.649 4.48 4.48 0 0 1-1.34-1.114c-.354-.444-.646-1.026-.873-1.747-.227-.721-.34-1.553-.34-2.496 0-1.342.437-2.485 1.314-3.427-.41-1.01-.372-2.141.116-3.394.322-.1.799-.025 1.43.224.633.25 1.096.464 1.39.64.294.178.53.328.707.45a11.814 11.814 0 0 1 3.195-.432c1.098 0 2.163.144 3.195.432l.632-.4c.432-.265.943-.51 1.53-.731.588-.222 1.038-.283 1.349-.183.498 1.253.543 2.385.132 3.394.877.943 1.315 2.085 1.315 3.427 0 .943-.114 1.778-.341 2.504-.227.727-.521 1.309-.882 1.747-.36.438-.81.807-1.348 1.107-.538.3-1.06.515-1.564.649a11.38 11.38 0 0 1-1.705.3c.577.498.865 1.286.865 2.362v3.51c0 .2.07.366.208.5.139.132.358.171.657.115 2.574-.854 4.673-2.393 6.298-4.617 1.625-2.223 2.437-4.727 2.437-7.512 0-2.317-.572-4.455-1.714-6.413z" fill="#C8C2CB" fill-rule="nonzero" /></svg></a>
+                </div>
+            </div>
+        </div>
+        <div class="pt-0 pb-2">
+            <div class="container text-center">
+                <a href="https://weareblock.space" rel="nofollow" class="d-block text-light" style="color: #FF859D !important;" target="_blank"><small>designed with <svg width="13" height="12" xmlns="http://www.w3.org/2000/svg"><path d="M6.461 2.12C6.986.872 8.184 0 9.58 0c1.878 0 3.23 1.612 3.4 3.533 0 0 .092.477-.11 1.336a5.908 5.908 0 0 1-1.794 3L6.461 12 1.925 7.87A5.907 5.907 0 0 1 .13 4.867c-.202-.858-.11-1.335-.11-1.335C.19 1.612 1.543 0 3.42 0c1.395 0 2.515.872 3.04 2.12z" fill="#FF859D" fill-rule="nonzero" /></svg> (not js) by blockspace</small></a>
+            </div>
+        </div>
+    </footer>
     </div>
 </body>
 </html>
