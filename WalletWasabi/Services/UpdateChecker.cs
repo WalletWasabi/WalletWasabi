@@ -35,7 +35,7 @@ namespace WalletWasabi.Services
 		public UpdateChecker(TimeSpan period, WasabiClient client) : base(period)
 		{
 			WasabiClient = Guard.NotNull(nameof(client), client);
-			UpdateStatus = new UpdateStatus(true, true);
+			UpdateStatus = new UpdateStatus(true, true, new Version(0, 0));
 		}
 
 		protected override async Task ActionAsync(CancellationToken cancel)

@@ -20,7 +20,7 @@ namespace WalletWasabi.Legal
 		public string FilePath { get; }
 		public Version Version { get; }
 
-		public static async Task<LegalDocuments> CreateAsync(string dataDir, Func<Uri> destAction, EndPoint torSocks, CancellationToken cancel)
+		public static LegalDocuments TryLoadAgreed(string dataDir)
 		{
 			string filePath;
 			Version version;
@@ -32,10 +32,9 @@ namespace WalletWasabi.Legal
 			// If more than one file found, then something strange happened, delete the dir and start from zero.
 			if (filePaths.Count() > 1)
 			{
-				Directory.Delete(legalFolderPath, true);
+				IoHelpers.CleanDirectory(legalFolderPath);
 				filePaths = Enumerable.Empty<string>();
 			}
-			IoHelpers.EnsureDirectoryExists(legalFolderPath);
 
 			var existingFilePath = filePaths.FirstOrDefault();
 			if (existingFilePath is { })
@@ -49,30 +48,37 @@ namespace WalletWasabi.Legal
 				{
 					File.Delete(existingFilePath);
 
-					return await FetchLatestFromBackendNewAsync(legalFolderPath, destAction, torSocks, cancel).ConfigureAwait(false);
+					return null;
 				}
 			}
 			else
 			{
-				return await FetchLatestFromBackendNewAsync(legalFolderPath, destAction, torSocks, cancel).ConfigureAwait(false);
+				return null;
 			}
 
 			return new LegalDocuments(version, filePath);
 		}
 
-		public static async Task<LegalDocuments> FetchLatestFromBackendNewAsync(string legalFolderPath, Func<Uri> destAction, EndPoint torSocks, CancellationToken cancel)
+		public static async Task<(LegalDocuments legalDocuments, string content)> FetchLatestAsync(string dataDir, Func<Uri> destAction, EndPoint torSocks, CancellationToken cancel)
 		{
 			string filePath;
 			Version version;
 
+			var legalFolderPath = Path.Combine(dataDir, LegalFolderName);
 			using var client = new WasabiClient(destAction, torSocks);
 			var versions = await client.GetVersionsAsync(cancel).ConfigureAwait(false);
 			version = versions.LegalDocumentsVersion;
 			filePath = Path.Combine(legalFolderPath, $"{version}.txt");
 			var legal = await client.GetLegalDocumentsAsync(cancel).ConfigureAwait(false);
-			await File.WriteAllTextAsync(filePath, legal).ConfigureAwait(false);
 
-			return new LegalDocuments(version, filePath);
+			return (new LegalDocuments(version, filePath), legal);
+		}
+
+		public async Task ToFileAsync(string legal)
+		{
+			var legalFolderPath = Path.GetDirectoryName(FilePath);
+			IoHelpers.CleanDirectory(legalFolderPath);
+			await File.WriteAllTextAsync(FilePath, legal).ConfigureAwait(false);
 		}
 
 		public LegalDocuments(Version version, string filePath)

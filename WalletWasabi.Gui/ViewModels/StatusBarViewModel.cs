@@ -22,6 +22,7 @@ using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.Tabs;
 using WalletWasabi.Helpers;
+using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -230,7 +231,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			this.WhenAnyValue(x => x.UpdateStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
+				.Subscribe(async x =>
 				{
 					if (x.BackendCompatible)
 					{
@@ -252,6 +253,14 @@ namespace WalletWasabi.Gui.ViewModels
 
 					UpdateAvailable = !x.ClientUpToDate;
 					CriticalUpdateAvailable = !x.BackendCompatible;
+
+					if (Global.LegalDocuments is null || Global.LegalDocuments.Version != x.LegalDocumentsVersion)
+					{
+						var legalResp = await LegalDocuments.FetchLatestAsync(Global.DataDir, () => Global.Config.GetCurrentBackendUri(), Global.Config.TorSocks5EndPoint, CancellationToken.None);
+						var legalDoc = legalResp.legalDocuments;
+						await legalDoc.ToFileAsync(legalResp.content);
+						Global.LegalDocuments = legalDoc;
+					}
 				});
 
 			UpdateCommand = ReactiveCommand.Create(() =>
