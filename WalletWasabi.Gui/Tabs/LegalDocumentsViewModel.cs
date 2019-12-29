@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.Tabs
 		public ReactiveCommand<Unit, Unit> AgreeClicked { get; set; }
 		public LegalDocuments LegalDoc { get; }
 
-		public bool IsAgreed { get; }
+		public bool IsAgreed { get; set; }
 
 		public LegalDocumentsViewModel(Global global, string content = null, LegalDocuments legalDoc = null) : base(global, "Legal Documents", new TextResource() { FilePath = legalDoc?.FilePath, Content = content })
 		{
@@ -29,6 +29,7 @@ namespace WalletWasabi.Gui.Tabs
 
 			AgreeClicked = ReactiveCommand.CreateFromTask(async () =>
 			{
+				IsAgreed = true;
 				await LegalDoc.ToFileAsync(TextResource.Content);
 				Global.LegalDocuments = LegalDoc;
 				OnClose();
@@ -42,6 +43,15 @@ namespace WalletWasabi.Gui.Tabs
 					NotificationHelpers.Error(ex.ToTypeMessageString());
 					Logging.Logger.LogError(ex);
 				});
+		}
+
+		public override bool OnClose()
+		{
+			if (!IsAgreed)
+			{
+				return false;
+			}
+			return base.OnClose();
 		}
 	}
 }
