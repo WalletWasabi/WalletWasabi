@@ -41,6 +41,7 @@ namespace WalletWasabi.Gui.Tabs
 		private string _strongPrivacyLevel;
 		private string _dustThreshold;
 		private string _pinBoxText;
+		private bool TabOpened { get; set; }
 
 		private ObservableAsPropertyHelper<bool> _isPinSet;
 
@@ -156,53 +157,63 @@ namespace WalletWasabi.Gui.Tabs
 
 		public override void OnOpen()
 		{
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+			try
+			{
+				Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Config.LoadOrCreateDefaultFileAsync(Global.Config.FilePath)
-				.ToObservable(RxApp.TaskpoolScheduler)
-				.Take(1)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					Network = x.Network;
-					TorSocks5EndPoint = x.TorSocks5EndPoint.ToString(-1);
-					UseTor = x.UseTor;
-					StartLocalBitcoinCoreOnStartup = x.StartLocalBitcoinCoreOnStartup;
-					StopLocalBitcoinCoreOnShutdown = x.StopLocalBitcoinCoreOnShutdown;
+				Config.LoadOrCreateDefaultFileAsync(Global.Config.FilePath)
+					.ToObservable(RxApp.TaskpoolScheduler)
+					.Take(1)
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(x =>
+					{
+						Network = x.Network;
+						TorSocks5EndPoint = x.TorSocks5EndPoint.ToString(-1);
+						UseTor = x.UseTor;
+						StartLocalBitcoinCoreOnStartup = x.StartLocalBitcoinCoreOnStartup;
+						StopLocalBitcoinCoreOnShutdown = x.StopLocalBitcoinCoreOnShutdown;
 
-					SomePrivacyLevel = x.PrivacyLevelSome.ToString();
-					FinePrivacyLevel = x.PrivacyLevelFine.ToString();
-					StrongPrivacyLevel = x.PrivacyLevelStrong.ToString();
+						SomePrivacyLevel = x.PrivacyLevelSome.ToString();
+						FinePrivacyLevel = x.PrivacyLevelFine.ToString();
+						StrongPrivacyLevel = x.PrivacyLevelStrong.ToString();
 
-					DustThreshold = x.DustThreshold.ToString();
+						DustThreshold = x.DustThreshold.ToString();
 
-					BitcoinP2pEndPoint = x.GetP2PEndpoint().ToString(defaultPort: -1);
-					LocalBitcoinCoreDataDir = x.LocalBitcoinCoreDataDir;
+						BitcoinP2pEndPoint = x.GetP2PEndpoint().ToString(defaultPort: -1);
+						LocalBitcoinCoreDataDir = x.LocalBitcoinCoreDataDir;
 
-					IsModified = !Global.Config.AreDeepEqual(x);
-				})
-				.DisposeWith(Disposables);
+						IsModified = !Global.Config.AreDeepEqual(x);
+					})
+					.DisposeWith(Disposables);
 
-			Global.UiConfig
-				.WhenAnyValue(x => x.LurkingWifeMode)
-				.Subscribe(_ => this.RaisePropertyChanged(nameof(LurkingWifeMode)))
-				.DisposeWith(Disposables);
+				Global.UiConfig
+					.WhenAnyValue(x => x.LurkingWifeMode)
+					.Subscribe(_ => this.RaisePropertyChanged(nameof(LurkingWifeMode)))
+					.DisposeWith(Disposables);
 
-			_isPinSet = Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
-				.ToProperty(this, x => x.IsPinSet, scheduler: RxApp.MainThreadScheduler)
-				.DisposeWith(Disposables);
+				_isPinSet = Global.UiConfig
+					.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
+					.ToProperty(this, x => x.IsPinSet, scheduler: RxApp.MainThreadScheduler)
+					.DisposeWith(Disposables);
+				this.RaisePropertyChanged(nameof(IsPinSet)); // Fire now otherwise the button won't update for restart.
 
-			Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee)
-				.Throttle(TimeSpan.FromSeconds(1))
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(async _ => await Global.UiConfig.ToFileAsync())
-				.DisposeWith(Disposables);
+				Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee)
+					.Throttle(TimeSpan.FromSeconds(1))
+					.ObserveOn(RxApp.TaskpoolScheduler)
+					.Subscribe(async _ => await Global.UiConfig.ToFileAsync())
+					.DisposeWith(Disposables);
 
-			base.OnOpen();
+				base.OnOpen();
+			}
+			finally
+			{
+				TabOpened = true;
+			}
 		}
 
 		public override bool OnClose()
 		{
+			TabOpened = false;
 			Disposables?.Dispose();
 			Disposables = null;
 
@@ -318,6 +329,13 @@ namespace WalletWasabi.Gui.Tabs
 
 		private void Save()
 		{
+			// While the Tab is opening we are setting properties with loading and also LostFocus command called by Avalonia
+			// Those would trigger the Save function before we load the config.
+			if (!TabOpened)
+			{
+				return;
+			}
+
 			var network = Network;
 			if (network is null)
 			{

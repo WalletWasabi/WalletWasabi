@@ -4,8 +4,11 @@ using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Globalization;
+using System.Reactive;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 
@@ -16,12 +19,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private TransactionInfo Model { get; }
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
+		public ReactiveCommand<Unit, Unit> CopyTransactionId { get; }
 
 		public TransactionViewModel(TransactionInfo model)
 		{
 			Model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
+
+			CopyTransactionId = ReactiveCommand.CreateFromTask(TryCopyTxIdToClipboardAsync);
+
+			CopyTransactionId.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex =>
+				{
+					NotificationHelpers.Error(ex.ToTypeMessageString());
+					Logger.LogWarning(ex);
+				});
 		}
 
 		public void Refresh()

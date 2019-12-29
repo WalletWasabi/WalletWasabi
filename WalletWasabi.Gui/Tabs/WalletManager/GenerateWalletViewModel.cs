@@ -35,14 +35,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				this.WhenAnyValue(x => x.Password).Select(pw => !ValidatePassword().HasErrors),
 				(terms, pw) => terms && pw);
 
-			GenerateCommand = ReactiveCommand.Create(DoGenerateCommand, canGenerate);
+			NextCommand = ReactiveCommand.Create(DoNextCommand, canGenerate);
 
-			GenerateCommand.ThrownExceptions
+			NextCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
-		private void DoGenerateCommand()
+		private void DoNextCommand()
 		{
 			WalletName = Guard.Correct(WalletName);
 
@@ -72,11 +72,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					PasswordHelper.Guard(Password); // Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password bacause of compatibility.
 
-					KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
-
-					NotificationHelpers.Success("Wallet is successfully generated!");
-
-					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, mnemonic);
+					var km = KeyManager.CreateNew(out Mnemonic mnemonic, Password);
+					km.SetNetwork(Global.Network);
+					km.SetBestHeight(new Height(Global.BitcoinStore.SmartHeaderChain.TipHeight));
+					km.SetFilePath(walletFilePath);
+					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, km, mnemonic);
 				}
 				catch (Exception ex)
 				{
@@ -139,7 +139,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _termsAccepted, value);
 		}
 
-		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
+		public ReactiveCommand<Unit, Unit> NextCommand { get; }
 
 		public void OnLegalClicked()
 		{

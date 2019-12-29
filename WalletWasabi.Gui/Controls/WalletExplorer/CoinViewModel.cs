@@ -9,6 +9,7 @@ using System.Reactive.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.CoinJoin.Common.Models;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
@@ -25,12 +26,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<bool> _unspent;
 		private ObservableAsPropertyHelper<bool> _confirmed;
 		private ObservableAsPropertyHelper<bool> _unavailable;
-		public Global Global { get; set; }
+		private ObservableAsPropertyHelper<string> _cluster;
+		private ObservableAsPropertyHelper<string> _expandMenuCaption;
+		private bool _isExpanded;
+		public ReactiveCommand<Unit, bool> ToggleDetails { get; }
 
-		public CoinViewModel(Global global, SmartCoin model)
+		public CoinListViewModel Owner { get; }
+		public Global Global { get; set; }
+		public bool InCoinJoinContainer { get; }
+
+		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
+
+		public CoinViewModel(CoinListViewModel owner, Global global, SmartCoin model)
 		{
 			Model = model;
+			Owner = owner;
 			Global = global;
+			InCoinJoinContainer = owner.CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel;
 
 			RefreshSmartCoinStatus();
 
@@ -49,6 +61,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_confirmed = Model
 				.WhenAnyValue(x => x.Confirmed)
 				.ToProperty(this, x => x.Confirmed, scheduler: RxApp.MainThreadScheduler)
+				.DisposeWith(Disposables);
+
+			_cluster = Model
+				.WhenAnyValue(x => x.Clusters, x => x.Clusters.Labels)
+				.Select(x => x.Item2.ToString())
+				.ToProperty(this, x => x.Clusters, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
 			_unavailable = Model
@@ -83,6 +101,29 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					this.RaisePropertyChanged(nameof(AmountBtc));
 					this.RaisePropertyChanged(nameof(Clusters));
 				}).DisposeWith(Disposables);
+
+			DequeueCoin = ReactiveCommand.Create(() => Owner.PressDequeue(Model), this.WhenAnyValue(x => x.CoinJoinInProgress));
+
+			_expandMenuCaption = this
+				.WhenAnyValue(x => x.IsExpanded)
+				.Select(x => (x ? "Hide " : "Show ") + "Details")
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.ToProperty(this, x => x.ExpandMenuCaption)
+				.DisposeWith(Disposables);
+
+			ToggleDetails = ReactiveCommand.Create(() => IsExpanded = !IsExpanded);
+
+			ToggleDetails.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex =>
+				{
+					NotificationHelpers.Error(ex.ToTypeMessageString());
+					Logging.Logger.LogWarning(ex);
+				});
+
+			DequeueCoin.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logging.Logger.LogError(ex)); // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
 		}
 
 		public SmartCoin Model { get; }
@@ -96,6 +137,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public bool Unspent => _unspent?.Value ?? false;
 
 		public string Address => Model.ScriptPubKey.GetDestinationAddress(Global.Network).ToString();
+
+		public bool IsExpanded
+		{
+			get => _isExpanded;
+			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
+		}
 
 		public int Confirmations => Model.Height.Type == HeightType.Chain
 			? (int)Global.BitcoinStore.SmartHeaderChain.TipHeight - Model.Height.Value + 1
@@ -126,8 +173,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string AmountBtc => Model.Amount.ToString(false, true);
 
-		public string Label => Model.Label;
-
 		public int Height => Model.Height;
 
 		public string TransactionId => Model.TransactionId.ToString();
@@ -138,7 +183,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string InCoinJoin => Model.CoinJoinInProgress ? "Yes" : "No";
 
-		public string Clusters => Model.Clusters.Labels; // If the value is null the bind do not update the view. It shows the previous state for example: ##### even if PrivMode false.
+		public string Clusters => _cluster?.Value ?? "";
 
 		public string PubKey => Model.HdPubKey?.PubKey?.ToString() ?? "";
 
@@ -149,6 +194,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _status;
 			set => this.RaiseAndSetIfChanged(ref _status, value);
 		}
+
+		public string ExpandMenuCaption => _expandMenuCaption?.Value ?? string.Empty;
 
 		private void RefreshSmartCoinStatus()
 		{

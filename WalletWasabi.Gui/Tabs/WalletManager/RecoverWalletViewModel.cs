@@ -77,7 +77,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					try
 					{
 						var mnemonic = new Mnemonic(MnemonicWords);
-						KeyManager.Recover(mnemonic, Password, walletFilePath, keyPath, MinGapLimit);
+						var km = KeyManager.Recover(mnemonic, Password, filePath: null, keyPath, MinGapLimit);
+						km.SetNetwork(Global.Network);
+						km.SetFilePath(walletFilePath);
+						km.ToFile();
 
 						NotificationHelpers.Success("Wallet is successfully recovered!");
 

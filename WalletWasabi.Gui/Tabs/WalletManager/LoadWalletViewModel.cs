@@ -126,8 +126,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 							reverseByteOrder = true;
 						}
 					}
-					HDFingerprint mfp = NBitcoinHelpers.BetterParseHDFingerprint(mfpString, reverseByteOrder: reverseByteOrder);
+
+					var bytes = ByteHelpers.FromHex(Guard.NotNullOrEmptyOrWhitespace(nameof(mfpString), mfpString, trim: true));
+					HDFingerprint mfp = reverseByteOrder ? new HDFingerprint(bytes.Reverse().ToArray()) : new HDFingerprint(bytes);
+
 					ExtPubKey extPubKey = NBitcoinHelpers.BetterParseExtPubKey(xpubString);
+
 					Logger.LogInfo("Creating a new wallet file.");
 					var walletName = Global.GetNextHardwareWalletName(customPrefix: "Coldcard");
 					var walletFullPath = Global.GetWalletFullPath(walletName);

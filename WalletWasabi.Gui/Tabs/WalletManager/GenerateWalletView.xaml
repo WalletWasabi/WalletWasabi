@@ -15,7 +15,7 @@
           <controls:ExtendedTextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
           <controls:TogglePasswordBox Text="{Binding Password}" Watermark="Choose a password">
             <i:Interaction.Behaviors>
-              <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
+              <behaviors:CommandOnEnterBehavior Command="{Binding NextCommand}" />
             </i:Interaction.Behaviors>
           </controls:TogglePasswordBox>
         </StackPanel>
@@ -29,7 +29,7 @@
           <TextBlock Text=" documents." />
         </StackPanel>
       </CheckBox>
-      <Button Content="Generate" Command="{Binding GenerateCommand}" DockPanel.Dock="Right" />
+      <Button Content="Next" Command="{Binding NextCommand}" DockPanel.Dock="Right" />
       <Grid></Grid>
     </DockPanel>
   </StackPanel>

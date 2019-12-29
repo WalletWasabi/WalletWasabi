@@ -142,16 +142,22 @@ namespace WalletWasabi.Gui
 		}
 
 		private bool InitializationCompleted { get; set; } = false;
+
+		private bool InitializationStarted { get; set; } = false;
+
 		private CancellationTokenSource StoppingCts { get; set; } = new CancellationTokenSource();
 
 		public async Task InitializeNoWalletAsync()
 		{
+			InitializationStarted = true;
+
 			try
 			{
 				WalletService = null;
 				ChaumianClient = null;
 				AddressManager = null;
 				TorManager = null;
+				var cancel = StoppingCts.Token;
 
 				#region ConfigInitialization
 
@@ -161,9 +167,9 @@ namespace WalletWasabi.Gui
 
 				#endregion ConfigInitialization
 
-				LegalDocuments = new LegalDocuments(DataDir);
+				cancel.ThrowIfCancellationRequested();
 
-				BitcoinStore = new BitcoinStore();
+				LegalDocuments = new LegalDocuments(DataDir);				BitcoinStore = new BitcoinStore();
 				var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
 				var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 
@@ -206,6 +212,8 @@ namespace WalletWasabi.Gui
 
 				#endregion ProcessKillSubscription
 
+				cancel.ThrowIfCancellationRequested();
+
 				#region TorProcessInitialization
 
 				if (Config.UseTor)
@@ -225,11 +233,15 @@ namespace WalletWasabi.Gui
 
 				#endregion TorProcessInitialization
 
+				cancel.ThrowIfCancellationRequested();
+
 				#region BitcoinStoreInitialization
 
 				await bstoreInitTask;
 
 				#endregion BitcoinStoreInitialization
+
+				cancel.ThrowIfCancellationRequested();
 
 				#region BitcoinCoreInitialization
 
@@ -251,7 +263,7 @@ namespace WalletWasabi.Gui
 									txIndex: null,
 									prune: null,
 									userAgent: $"/WasabiClient:{Constants.ClientVersion.ToString()}/"),
-								CancellationToken.None)
+								cancel)
 							.ConfigureAwait(false);
 					}
 				}
@@ -260,7 +272,7 @@ namespace WalletWasabi.Gui
 					Logger.LogError(ex);
 				}
 
-				await HostedServices.StartAllAsync(StoppingCts.Token).ConfigureAwait(false);
+				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
 				var feeProviderList = new List<IFeeProvider>
 				{
@@ -277,11 +289,15 @@ namespace WalletWasabi.Gui
 
 				#endregion BitcoinCoreInitialization
 
+				cancel.ThrowIfCancellationRequested();
+
 				#region MempoolInitialization
 
 				connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
 
 				#endregion MempoolInitialization
+
+				cancel.ThrowIfCancellationRequested();
 
 				#region AddressManagerInitialization
 
@@ -289,6 +305,8 @@ namespace WalletWasabi.Gui
 				connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
 
 				#endregion AddressManagerInitialization
+
+				cancel.ThrowIfCancellationRequested();
 
 				#region P2PInitialization
 
@@ -341,6 +359,8 @@ namespace WalletWasabi.Gui
 
 				#endregion P2PInitialization
 
+				cancel.ThrowIfCancellationRequested();
+
 				#region SynchronizerInitialization
 
 				var requestInterval = TimeSpan.FromSeconds(30);
@@ -356,8 +376,17 @@ namespace WalletWasabi.Gui
 
 				#endregion SynchronizerInitialization
 
+				cancel.ThrowIfCancellationRequested();
+
 				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, Nodes, BitcoinCoreNode?.RpcClient);
 				CoinJoinProcessor = new CoinJoinProcessor(Synchronizer, BitcoinCoreNode?.RpcClient);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogCritical(ex);
+				InitializationCompleted = true;
+				await DisposeAsync().ConfigureAwait(false);
+				Environment.Exit(1);
 			}
 			finally
 			{
@@ -765,6 +794,12 @@ namespace WalletWasabi.Gui
 			try
 			{
 				StoppingCts?.Cancel();
+
+				if (!InitializationStarted)
+				{
+					return;
+				}
+
 				while (!InitializationCompleted)
 				{
 					await Task.Delay(100);
