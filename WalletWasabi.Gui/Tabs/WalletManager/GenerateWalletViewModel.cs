@@ -30,10 +30,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			Owner = owner;
 
-			IObservable<bool> canGenerate = Observable.CombineLatest(
-				this.WhenAnyValue(x => x.TermsAccepted),
-				this.WhenAnyValue(x => x.Password).Select(pw => !ValidatePassword().HasErrors),
-				(terms, pw) => terms && pw);
+			IObservable<bool> canGenerate = this.WhenAnyValue(x => x.Password).Select(pw => !ValidatePassword().HasErrors);
 
 			NextCommand = ReactiveCommand.Create(DoNextCommand, canGenerate);
 
@@ -53,12 +50,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 
 			string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
-
-			if (!TermsAccepted)
-			{
-				NotificationHelpers.Error("Terms are not accepted.");
-			}
-			else if (string.IsNullOrWhiteSpace(WalletName))
+			if (string.IsNullOrWhiteSpace(WalletName))
 			{
 				NotificationHelpers.Error("Invalid wallet name.");
 			}
@@ -133,18 +125,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _walletName, value);
 		}
 
-		public bool TermsAccepted
-		{
-			get => _termsAccepted;
-			set => this.RaiseAndSetIfChanged(ref _termsAccepted, value);
-		}
-
 		public ReactiveCommand<Unit, Unit> NextCommand { get; }
-
-		public void OnLegalClicked()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(Global));
-		}
 
 		public override void OnCategorySelected()
 		{
@@ -152,7 +133,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			Password = "";
 			WalletName = Global.GetNextWalletName();
-			TermsAccepted = false;
 		}
 	}
 }
