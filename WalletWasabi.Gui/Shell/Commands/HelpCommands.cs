@@ -10,6 +10,7 @@ using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Tabs;
 using WalletWasabi.Logging;
 
@@ -88,7 +89,11 @@ namespace WalletWasabi.Gui.Shell.Commands
 				.Merge(DocsCommand.GetReactiveCommand().ThrownExceptions)
 				.Merge(LegalDocumentsCommand.GetReactiveCommand().ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogError(ex));
+				.Subscribe(ex =>
+				{
+					NotificationHelpers.Error(ex.ToTypeMessageString());
+					Logger.LogError(ex);
+				});
 		}
 
 		[ExportCommandDefinition("Help.About")]

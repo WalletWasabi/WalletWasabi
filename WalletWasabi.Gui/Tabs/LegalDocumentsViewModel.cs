@@ -9,7 +9,7 @@ namespace WalletWasabi.Gui.Tabs
 {
 	public class LegalDocumentsViewModel : TextResourceViewModelBase
 	{
-		public LegalDocumentsViewModel(Global global) : base(global, "Legal Documents", filePath: global.LegalDocuments.FilePath)
+		public LegalDocumentsViewModel(Global global) : base(global, "Legal Documents", filePath: global.LegalDocuments?.FilePath ?? throw new InvalidOperationException($"The latest {nameof(LegalDocuments)} are not yet acquired from the Wasabi backend."))
 		{
 		}
 	}

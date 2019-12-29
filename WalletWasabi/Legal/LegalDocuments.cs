@@ -2,9 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Legal
 {
@@ -17,8 +20,11 @@ namespace WalletWasabi.Legal
 		public string FilePath { get; }
 		public Version Version { get; }
 
-		public LegalDocuments(string dataDir)
+		public static async Task<LegalDocuments> CreateAsync(string dataDir, Func<Uri> destAction, EndPoint torSocks, CancellationToken cancel)
 		{
+			string filePath;
+			Version version;
+
 			var legalFolderPath = Path.Combine(dataDir, LegalFolderName);
 			IoHelpers.EnsureDirectoryExists(legalFolderPath);
 			var filePaths = Directory.EnumerateFiles(legalFolderPath, "*.txt", SearchOption.TopDirectoryOnly);
@@ -32,28 +38,47 @@ namespace WalletWasabi.Legal
 			IoHelpers.EnsureDirectoryExists(legalFolderPath);
 
 			var existingFilePath = filePaths.FirstOrDefault();
-			var desiredFilePath = Path.Combine(legalFolderPath, $"{Constants.LegalDocumentsVersion.ToString()}.txt");
 			if (existingFilePath is { })
 			{
 				var verString = Path.GetFileNameWithoutExtension(existingFilePath);
-				if (Version.TryParse(verString, out Version version))
+				if (Version.TryParse(verString, out version))
 				{
-					FilePath = existingFilePath;
-					Version = version;
+					filePath = existingFilePath;
 				}
 				else
 				{
 					File.Delete(existingFilePath);
 
-					File.Copy(EmbeddedFilePath, desiredFilePath);
-					Version = Constants.LegalDocumentsVersion;
+					return await FetchLatestFromBackendNewAsync(legalFolderPath, destAction, torSocks, cancel).ConfigureAwait(false);
 				}
 			}
 			else
 			{
-				File.Copy(EmbeddedFilePath, desiredFilePath);
-				Version = Constants.LegalDocumentsVersion;
+				return await FetchLatestFromBackendNewAsync(legalFolderPath, destAction, torSocks, cancel).ConfigureAwait(false);
 			}
+
+			return new LegalDocuments(version, filePath);
+		}
+
+		public static async Task<LegalDocuments> FetchLatestFromBackendNewAsync(string legalFolderPath, Func<Uri> destAction, EndPoint torSocks, CancellationToken cancel)
+		{
+			string filePath;
+			Version version;
+
+			using var client = new WasabiClient(destAction, torSocks);
+			var versions = await client.GetVersionsAsync(cancel).ConfigureAwait(false);
+			version = versions.LegalDocumentsVersion;
+			filePath = Path.Combine(legalFolderPath, $"{version}.txt");
+			var legal = await client.GetLegalDocumentsAsync(cancel).ConfigureAwait(false);
+			await File.WriteAllTextAsync(filePath, legal).ConfigureAwait(false);
+
+			return new LegalDocuments(version, filePath);
+		}
+
+		public LegalDocuments(Version version, string filePath)
+		{
+			Version = Guard.NotNull(nameof(version), version);
+			FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath);
 		}
 	}
 }

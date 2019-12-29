@@ -237,14 +237,9 @@ namespace WalletWasabi.WebClients.Wasabi
 
 		#region software
 
-		public async Task<(Version ClientVersion, int BackendMajorVersion)> GetVersionsAsync(CancellationToken cancel)
+		public async Task<(Version ClientVersion, int BackendMajorVersion, Version LegalDocumentsVersion)> GetVersionsAsync(CancellationToken cancel)
 		{
 			using var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, "/api/software/versions", cancel: cancel);
-			if (response.StatusCode == HttpStatusCode.NotFound)
-			{
-				// Meaning this things was not just yet implemented on the running server.
-				return (new Version(0, 7), 1);
-			}
 
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
@@ -253,7 +248,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 			using HttpContent content = response.Content;
 			var resp = await content.ReadAsJsonAsync<VersionsResponse>();
-			return (Version.Parse(resp.ClientVersion), int.Parse(resp.BackendMajorVersion));
+			return (Version.Parse(resp.ClientVersion), int.Parse(resp.BackendMajorVersion), Version.Parse(resp.LegalDocumentsVersion));
 		}
 
 		public async Task<UpdateStatus> CheckUpdatesAsync(CancellationToken cancel)

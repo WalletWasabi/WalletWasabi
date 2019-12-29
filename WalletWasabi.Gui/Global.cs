@@ -169,9 +169,9 @@ namespace WalletWasabi.Gui
 
 				cancel.ThrowIfCancellationRequested();
 
-				LegalDocuments = new LegalDocuments(DataDir);
 				BitcoinStore = new BitcoinStore();
 				var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
+				var legalTask = LegalDocuments.CreateAsync(DataDir, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint, cancel);
 				var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 
 				AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
@@ -376,6 +376,12 @@ namespace WalletWasabi.Gui
 				Logger.LogInfo("Start synchronizing filters...");
 
 				#endregion SynchronizerInitialization
+
+				#region LegalDocumentsInitialization
+
+				LegalDocuments = await legalTask.ConfigureAwait(false);
+
+				#endregion LegalDocumentsInitialization
 
 				cancel.ThrowIfCancellationRequested();
 

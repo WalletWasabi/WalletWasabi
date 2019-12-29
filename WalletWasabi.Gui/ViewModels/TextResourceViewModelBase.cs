@@ -23,11 +23,11 @@ namespace WalletWasabi.Gui.ViewModels
 			Text = "";
 			if (avaloniaTarget is null && string.IsNullOrWhiteSpace(filePath))
 			{
-				throw new ArgumentNullException($"{avaloniaTarget} and {filePath}, both cannot be null.");
+				throw new ArgumentException($"{nameof(avaloniaTarget)} and {nameof(filePath)}, both cannot be null.");
 			}
 			else if (avaloniaTarget is { } && filePath is { })
 			{
-				throw new ArgumentException($"{avaloniaTarget} and {filePath}, one of them must be null.");
+				throw new ArgumentException($"{nameof(avaloniaTarget)} and {nameof(filePath)}, one of them must be null.");
 			}
 
 			AvaloniaTarget = avaloniaTarget;
