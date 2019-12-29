@@ -36,6 +36,8 @@ namespace WalletWasabi.Gui.ViewModels
 		private WasabiSynchronizer Synchronizer { get; set; }
 		private SmartHeaderChain HashChain { get; set; }
 
+		private bool InLegalTrouble { get; set; } = false;
+
 		private bool UseTor { get; set; }
 
 		private RpcStatus _bitcoinCoreStatus;
@@ -254,12 +256,28 @@ namespace WalletWasabi.Gui.ViewModels
 					UpdateAvailable = !x.ClientUpToDate;
 					CriticalUpdateAvailable = !x.BackendCompatible;
 
-					if (Global.LegalDocuments is null || Global.LegalDocuments.Version != x.LegalDocumentsVersion)
+					// No locking should be fine as it's happening on the same thread.
+					if (InLegalTrouble)
 					{
-						var legalResp = await LegalDocuments.FetchLatestAsync(Global.DataDir, () => Global.Config.GetCurrentBackendUri(), Global.Config.TorSocks5EndPoint, CancellationToken.None);
-						var legalDoc = legalResp.legalDocuments;
-						await legalDoc.ToFileAsync(legalResp.content);
-						Global.LegalDocuments = legalDoc;
+						return;
+					}
+
+					try
+					{
+						InLegalTrouble = true;
+						if (Global.LegalDocuments is null || Global.LegalDocuments.Version != x.LegalDocumentsVersion)
+						{
+							var legalResp = await LegalDocuments.FetchLatestAsync(Global.DataDir, () => Global.Config.GetCurrentBackendUri(), Global.Config.TorSocks5EndPoint, CancellationToken.None);
+							var legalDoc = legalResp.legalDocuments;
+
+							// ToDo: Don't save to file until the user agrees.
+							await legalDoc.ToFileAsync(legalResp.content);
+							Global.LegalDocuments = legalDoc;
+						}
+					}
+					finally
+					{
+						InLegalTrouble = false;
 					}
 				});
 
