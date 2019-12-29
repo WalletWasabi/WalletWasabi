@@ -27,6 +27,7 @@ namespace WalletWasabi.Legal
 			if (filePaths.Count() > 1)
 			{
 				Directory.Delete(legalFolderPath, true);
+				filePaths = Enumerable.Empty<string>();
 			}
 			IoHelpers.EnsureDirectoryExists(legalFolderPath);
 
