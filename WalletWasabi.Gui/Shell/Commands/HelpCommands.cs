@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.Models.TextResourcing;
 using WalletWasabi.Gui.Tabs;
 using WalletWasabi.Logging;
 
@@ -80,7 +81,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 			LegalDocumentsCommand = new CommandDefinition(
 				"Legal Documents",
 				commandIconService.GetCompletionKindImage("LegalDocuments"),
-				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(Global))));
+				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(Global, legalDoc: Global?.LegalDocuments))));
 
 			Observable
 				.Merge(AboutCommand.GetReactiveCommand().ThrownExceptions)

@@ -9,6 +9,8 @@ using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Models.TextResourcing;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -18,20 +20,10 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private string _text;
 
-		protected TextResourceViewModelBase(Global global, string title, Uri avaloniaTarget = null, string filePath = null) : base(global, title)
+		protected TextResourceViewModelBase(Global global, string title, TextResource textResource) : base(global, title)
 		{
 			Text = "";
-			if (avaloniaTarget is null && string.IsNullOrWhiteSpace(filePath))
-			{
-				throw new ArgumentException($"{nameof(avaloniaTarget)} and {nameof(filePath)}, both cannot be null.");
-			}
-			else if (avaloniaTarget is { } && filePath is { })
-			{
-				throw new ArgumentException($"{nameof(avaloniaTarget)} and {nameof(filePath)}, one of them must be null.");
-			}
-
-			AvaloniaTarget = avaloniaTarget;
-			FilePath = filePath;
+			TextResource = Guard.NotNull(nameof(textResource), textResource);
 		}
 
 		public string Text
@@ -40,8 +32,7 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _text, value);
 		}
 
-		public Uri AvaloniaTarget { get; }
-		public string FilePath { get; }
+		public TextResource TextResource { get; }
 
 		private async Task<string> LoadDocumentAsync(Uri target)
 		{
@@ -63,18 +54,22 @@ namespace WalletWasabi.Gui.ViewModels
 			base.OnOpen();
 
 			Disposables = new CompositeDisposable();
-			if (AvaloniaTarget is { })
+			if (TextResource.HasContent)
 			{
-				LoadDocumentAsync(AvaloniaTarget)
+				Text = TextResource.Content;
+			}
+			else if (TextResource.HasAvaloniaTarget)
+			{
+				LoadDocumentAsync(TextResource.AvaloniaTarget)
 					.ToObservable(RxApp.TaskpoolScheduler)
 					.Take(1)
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Subscribe(x => Text = x)
 					.DisposeWith(Disposables);
 			}
-			else
+			else if (TextResource.HasFilePath)
 			{
-				LoadDocumentAsync(FilePath)
+				LoadDocumentAsync(TextResource.FilePath)
 					.ToObservable(RxApp.TaskpoolScheduler)
 					.Take(1)
 					.ObserveOn(RxApp.MainThreadScheduler)

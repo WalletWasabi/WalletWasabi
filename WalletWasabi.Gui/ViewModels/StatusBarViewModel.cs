@@ -20,6 +20,7 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
+using WalletWasabi.Gui.Models.TextResourcing;
 using WalletWasabi.Gui.Tabs;
 using WalletWasabi.Helpers;
 using WalletWasabi.Legal;
@@ -268,11 +269,8 @@ namespace WalletWasabi.Gui.ViewModels
 						if (Global.LegalDocuments is null || Global.LegalDocuments.Version != x.LegalDocumentsVersion)
 						{
 							var legalResp = await LegalDocuments.FetchLatestAsync(Global.DataDir, () => Global.Config.GetCurrentBackendUri(), Global.Config.TorSocks5EndPoint, CancellationToken.None);
-							var legalDoc = legalResp.legalDocuments;
 
-							// ToDo: Don't save to file until the user agrees.
-							await legalDoc.ToFileAsync(legalResp.content);
-							Global.LegalDocuments = legalDoc;
+							IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(Global, legalResp.content, legalResp.legalDocuments));
 						}
 					}
 					finally
@@ -297,8 +295,8 @@ namespace WalletWasabi.Gui.ViewModels
 			this.RaisePropertyChanged(nameof(UpdateCommand)); // The binding happens after the constructor. So, if the command is not in constructor, then we need this line.
 
 			UpdateCommand.ThrownExceptions
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogError(ex));
+							.ObserveOn(RxApp.TaskpoolScheduler)
+							.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public ReactiveCommand<Unit, Unit> UpdateCommand { get; set; }
