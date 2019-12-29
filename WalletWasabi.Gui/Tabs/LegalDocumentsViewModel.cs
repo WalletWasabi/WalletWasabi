@@ -5,6 +5,8 @@ using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Logging;
 using Avalonia.Platform;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
 using ReactiveUI;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models.TextResourcing;
