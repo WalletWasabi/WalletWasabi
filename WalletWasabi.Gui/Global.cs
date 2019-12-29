@@ -169,7 +169,8 @@ namespace WalletWasabi.Gui
 
 				cancel.ThrowIfCancellationRequested();
 
-				LegalDocuments = new LegalDocuments(DataDir);				BitcoinStore = new BitcoinStore();
+				LegalDocuments = new LegalDocuments(DataDir);
+				BitcoinStore = new BitcoinStore();
 				var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
 				var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 
