@@ -9,7 +9,7 @@
   <DockPanel LastChildFill="True">
     <Button Command="{Binding ToggleDetails}"
             DockPanel.Dock="Top"
-            Content="Details"
+            Content="{Binding ExpandedDetailsButtonCaption}"
             HorizontalAlignment="Stretch" />
     <Grid Margin="10"
           IsVisible="{Binding IsDetailsExpanded}">
