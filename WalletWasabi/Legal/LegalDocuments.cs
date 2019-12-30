@@ -22,9 +22,6 @@ namespace WalletWasabi.Legal
 
 		public static LegalDocuments TryLoadAgreed(string dataDir)
 		{
-			string filePath;
-			Version version;
-
 			var legalFolderPath = Path.Combine(dataDir, LegalFolderName);
 			IoHelpers.EnsureDirectoryExists(legalFolderPath);
 			var filePaths = Directory.EnumerateFiles(legalFolderPath, "*.txt", SearchOption.TopDirectoryOnly);
@@ -40,23 +37,18 @@ namespace WalletWasabi.Legal
 			if (existingFilePath is { })
 			{
 				var verString = Path.GetFileNameWithoutExtension(existingFilePath);
-				if (Version.TryParse(verString, out version))
+				if (Version.TryParse(verString, out Version version))
 				{
-					filePath = existingFilePath;
+					string filePath = existingFilePath;
+					return new LegalDocuments(version, filePath);
 				}
 				else
 				{
 					File.Delete(existingFilePath);
-
-					return null;
 				}
 			}
-			else
-			{
-				return null;
-			}
 
-			return new LegalDocuments(version, filePath);
+			return null;
 		}
 
 		public static async Task<(LegalDocuments legalDocuments, string content)> FetchLatestAsync(string dataDir, Func<Uri> destAction, EndPoint torSocks, CancellationToken cancel)
