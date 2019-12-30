@@ -76,6 +76,7 @@
           <TextBlock Text="Merging unmixed coins with mixed ones undoes the mixes." Classes="warningMessage" IsVisible="{Binding LabelExposeCommonOwnershipWarning}" />
         </StackPanel>
       </StackPanel>
+      <walexp:CoinDetailsGrid DockPanel.Dock="Bottom" Background="Black" HorizontalAlignment="Stretch"/>
       <controls:BusyIndicator IsBusy="{Binding IsCoinListLoading}" Text="Loading...">
         <controls:ExtendedListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
           <controls:ExtendedListBox.ItemTemplate>
@@ -123,6 +124,5 @@
         </controls:ExtendedListBox>
       </controls:BusyIndicator>
     </DockPanel>
-    <walexp:CoinDetailsGrid VerticalAlignment="Bottom" Background="Black" HorizontalAlignment="Stretch" SelectedCoin="{Binding SelectedCoin}" />
   </Grid>
 </UserControl>

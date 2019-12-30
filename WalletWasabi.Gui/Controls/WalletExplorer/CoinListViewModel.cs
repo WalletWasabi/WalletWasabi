@@ -53,6 +53,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ShieldState _selectAllPrivateShieldState;
 		private ShieldState _selectAllNonPrivateShieldState;
 		private bool _isCoinListLoading;
+		private bool _isDetailsExpanded;
 		private object SelectionChangedLock { get; } = new object();
 		private object StateChangedLock { get; } = new object();
 
@@ -63,7 +64,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> SelectNonPrivateCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 		public ReactiveCommand<Unit, Unit> InitList { get; }
-
+		public ReactiveCommand<Unit, bool> ToggleDetails { get; }
 		public event EventHandler<SmartCoin> DequeueCoinsPressed;
 
 		public event EventHandler CoinListShown;
@@ -135,6 +136,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _isAnyCoinSelected;
 			set => this.RaiseAndSetIfChanged(ref _isAnyCoinSelected, value);
+		}
+
+		public bool IsDetailsExpanded
+		{
+			get => _isDetailsExpanded;
+			set => this.RaiseAndSetIfChanged(ref _isDetailsExpanded, value);
 		}
 
 		public bool LabelExposeCommonOwnershipWarning
@@ -381,12 +388,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				CoinListShown?.Invoke(this, null); // Trigger this event to refresh the list.
 			});
 
+			ToggleDetails = ReactiveCommand.Create(() => IsDetailsExpanded = !IsDetailsExpanded);
+ 
 			Observable
 				.Merge(InitList.ThrownExceptions)
 				.Merge(SelectNonPrivateCheckBoxCommand.ThrownExceptions)
 				.Merge(SelectPrivateCheckBoxCommand.ThrownExceptions)
 				.Merge(SelectAllCheckBoxCommand.ThrownExceptions)
 				.Merge(SortCommand.ThrownExceptions)
+				.Merge(ToggleDetails.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
