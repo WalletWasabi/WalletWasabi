@@ -90,6 +90,10 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 						{
 							coin.Clusters = cluster;
 						}
+						else
+						{
+							ClustersByScriptPubKey.Add(coin.ScriptPubKey, coin.Clusters);
+						}
 						InvalidateSnapshot = true;
 					}
 				}

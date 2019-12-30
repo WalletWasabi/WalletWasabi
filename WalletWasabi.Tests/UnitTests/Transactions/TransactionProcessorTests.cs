@@ -833,6 +833,34 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal("A, B, C, D", newPaymentCoin.Clusters.Labels);
 		}
 
+
+		[Fact]
+		public async Task SameScriptClusterAfterSpendingAsync()
+		{
+			// If there are two coins with the same scriptPubKey after we spend one of them,
+			// both have to share the same cluster. 
+			//
+			// --tx0---> (A) -->
+			//                 
+			// --tx1---> (A) ---tx2---> (B - cluster (B, A))
+			var transactionProcessor = await CreateTransactionProcessorAsync();
+			var key = transactionProcessor.NewKey("A");
+			var tx0 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m));
+			transactionProcessor.Process(tx0);
+
+			var tx1 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m));
+			var result = transactionProcessor.Process(tx1);
+
+			key = transactionProcessor.NewKey("B");
+			var tx2 = CreateSpendingTransaction(result.ReceivedCoins[0].GetCoin(), key.P2wpkhScript);
+			transactionProcessor.Process(tx2);
+
+			var coins = transactionProcessor.Coins;
+			Assert.Equal(coins.First().Clusters, coins.Last().Clusters);
+			Assert.Equal("A, B", coins.First().Clusters.Labels.ToString());
+		}
+
+
 		[Fact]
 		public async Task SameClusterAfterReplacedByFeeAsync()
 		{
