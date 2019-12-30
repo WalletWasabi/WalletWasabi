@@ -7,7 +7,7 @@ namespace WalletWasabi.Backend.Controllers
 	public class HomeController : Controller
 	{
 		[HttpGet("")]
-		public ActionResult Index()
+		public IActionResult Index()
 		{
 			string host = HttpContext?.Request?.Host.Host;
 
