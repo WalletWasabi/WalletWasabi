@@ -27,7 +27,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<bool> _confirmed;
 		private ObservableAsPropertyHelper<bool> _unavailable;
 		private ObservableAsPropertyHelper<string> _cluster;
-		// private ObservableAsPropertyHelper<string> _expandMenuCaption; 
 		public CoinListViewModel Owner { get; }
 		public Global Global { get; set; }
 		public bool InCoinJoinContainer { get; }
@@ -101,13 +100,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			DequeueCoin = ReactiveCommand.Create(() => Owner.PressDequeue(Model), this.WhenAnyValue(x => x.CoinJoinInProgress));
 
-			// _expandMenuCaption = this
-			// 	.WhenAnyValue(x => x.IsExpanded)
-			// 	.Select(x => (x ? "Hide " : "Show ") + "Details")
-			// 	.ObserveOn(RxApp.MainThreadScheduler)
-			// 	.ToProperty(this, x => x.ExpandMenuCaption)
-			// 	.DisposeWith(Disposables);
-
 			DequeueCoin.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logging.Logger.LogError(ex)); // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
@@ -175,8 +167,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _status;
 			set => this.RaiseAndSetIfChanged(ref _status, value);
 		}
-
-		// public string ExpandMenuCaption => _expandMenuCaption?.Value ?? string.Empty;
 
 		private void RefreshSmartCoinStatus()
 		{
