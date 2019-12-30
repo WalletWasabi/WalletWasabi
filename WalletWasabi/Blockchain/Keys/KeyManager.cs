@@ -535,26 +535,26 @@ namespace WalletWasabi.Blockchain.Keys
 			var keyIndexes = GetKeys(KeyState.Clean, isInternal).Select(x => x.Index).ToArray();
 
 			var hs = keyIndexes.ToHashSet();
-			int largerConsecutiveSequence = 0; 
+			int largerConsecutiveSequence = 0;
 
-			for (int i = 0; i < keyIndexes.Length; ++i) 
-			{ 
-				if (!hs.Contains(keyIndexes[i] - 1)) 
-				{ 
-					int j = keyIndexes[i]; 
-					while (hs.Contains(j)) 
-					{ 
-						j++; 
-					} 
-	
+			for (int i = 0; i < keyIndexes.Length; ++i)
+			{
+				if (!hs.Contains(keyIndexes[i] - 1))
+				{
+					int j = keyIndexes[i];
+					while (hs.Contains(j))
+					{
+						j++;
+					}
+
 					var sequenceLength = j - keyIndexes[i];
-					if (largerConsecutiveSequence < sequenceLength) 
-					{ 
-						largerConsecutiveSequence = sequenceLength; 
-					} 
-				} 
-			} 
-			return largerConsecutiveSequence; 
+					if (largerConsecutiveSequence < sequenceLength)
+					{
+						largerConsecutiveSequence = sequenceLength;
+					}
+				}
+			}
+			return largerConsecutiveSequence;
 		}
 
 		public IEnumerable<byte[]> GetPubKeyScriptBytes()
