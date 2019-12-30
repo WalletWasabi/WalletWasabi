@@ -1235,8 +1235,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				false));
 
 			// Get some money, make it confirm.
-			var key = keyManager.GetNextReceiveKey("foo label", out _);
-			var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
+			var txId = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("foo", out _).GetP2wpkhAddress(network), Money.Coins(1m));
 
 			// Generate some coins
 			await rpc.GenerateAsync(2);
@@ -1271,7 +1270,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, true));
 
 				// Add new money with no confirmation
-				var txId2 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(2m));
+				var txId2 = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("bar", out _).GetP2wpkhAddress(network), Money.Coins(2m));
 				await Task.Delay(1000); // Wait tx to arrive and get processed.
 
 				// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are NOT allowed)
@@ -2374,19 +2373,12 @@ namespace WalletWasabi.Tests.IntegrationTests
 				var partSignedCj1 = Transaction.Parse(unsignedCoinJoin.ToHex(), network);
 				var partSignedCj2 = Transaction.Parse(unsignedCoinJoin.ToHex(), network);
 
-				var builder = Network.RegTest.CreateTransactionBuilder();
-				partSignedCj1 = builder
-					.ContinueToBuild(partSignedCj1)
-					.AddKeys(key1)
-					.AddCoins(new Coin(tx1, input1.N))
-					.BuildTransaction(true);
-
-				builder = Network.RegTest.CreateTransactionBuilder();
-				partSignedCj2 = builder
-					.ContinueToBuild(partSignedCj2)
-					.AddKeys(key2)
-					.AddCoins(new Coin(tx2, input2.N))
-					.BuildTransaction(true);
+				partSignedCj1.Sign(
+					key1.GetBitcoinSecret(network),
+					new Coin(tx1, input1.N));
+				partSignedCj2.Sign(
+					key2.GetBitcoinSecret(network),
+					new Coin(tx2, input2.N));
 
 				var myDic1 = new Dictionary<int, WitScript>();
 				var myDic2 = new Dictionary<int, WitScript>();
@@ -2547,12 +2539,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 				}
 
 				// Sign the transaction
-				var builder = Network.RegTest.CreateTransactionBuilder();
-				var partSignedCj = builder
-					.ContinueToBuild(unsignedTransaction)
-					.AddKeys(inputs.Select(x => x.key).ToArray())
-					.AddCoins(inputs.Select(x => x.coin))
-					.BuildTransaction(true);
+				var partSignedCj = unsignedTransaction.Clone();
+				partSignedCj.Sign(
+					inputs.Select(x => x.key.GetBitcoinSecret(network)),
+					inputs.Select(x => x.coin));
 
 				var witnesses = partSignedCj.Inputs
 					.AsIndexedInputs()
@@ -3015,11 +3005,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 			foreach (var user in users)
 			{
 				var partSignedCj = Transaction.Parse(unsignedCoinJoin.ToHex(), network);
-				partSignedCj = Network.RegTest.CreateTransactionBuilder()
-							.ContinueToBuild(partSignedCj)
-							.AddKeys(user.userInputData.Select(x => x.key).ToArray())
-							.AddCoins(user.userInputData.Select(x => new Coin(x.tx, x.input.N)).ToArray())
-							.BuildTransaction(true);
+				partSignedCj.Sign(
+					user.userInputData.Select(x => x.key.GetBitcoinSecret(network)),
+					user.userInputData.Select(x => new Coin(x.tx, x.input.N)));
 
 				var myDic = new Dictionary<int, WitScript>();
 
