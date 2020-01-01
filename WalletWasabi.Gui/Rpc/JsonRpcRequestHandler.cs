@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -16,9 +14,9 @@ namespace WalletWasabi.Gui.Rpc
 	/// It parses the json request, parses the parameters, invoke the service
 	/// methods and handles the errors.
 	///</summary>
-	public class JsonRpcRequestHandler
+	public class JsonRpcRequestHandler<TService>
 	{
-		private static JsonSerializerSettings DefaultSettings = new JsonSerializerSettings
+		private static readonly JsonSerializerSettings DefaultSettings = new JsonSerializerSettings
 		{
 			NullValueHandling = NullValueHandling.Ignore,
 			ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
@@ -29,19 +27,25 @@ namespace WalletWasabi.Gui.Rpc
 			}
 		};
 
-		private static JsonSerializer DefaultSerializer = JsonSerializer.Create(DefaultSettings);
+		private static readonly JsonSerializer DefaultSerializer = JsonSerializer.Create(DefaultSettings);
 
-		private readonly object _service;
+		private readonly TService _service;
 		private readonly JsonRpcServiceMetadataProvider _metadataProvider;
 
-		public JsonRpcRequestHandler(object service)
+		public JsonRpcRequestHandler(TService service)
 		{
 			_service = service;
-			_metadataProvider = new JsonRpcServiceMetadataProvider(_service);
+			_metadataProvider = new JsonRpcServiceMetadataProvider(typeof(TService));
 		}
 
-		public async Task<string> HandleAsync(string body, CancellationTokenSource cts)
-		{
+		/// <summary>
+		/// Perses the request and dispatch it to the correct service's method.
+		/// <summary>
+		/// <param name="body">The raw rpc request.</param>
+		/// <param name="cancellationToken">The cancellation token that will be past to the service handler in case it expects/accept one.</param>
+		/// <returns>The response that, after serialization, is returned as response.</returns>
+		public async Task<string> HandleAsync(string body, CancellationToken cancellationToken)
+		{			
 			if(!JsonRpcRequest.TryParse(body, out var jsonRpcRequest))
 			{
 				return JsonRpcResponse.CreateErrorResponse(null, JsonRpcErrorCodes.ParseError).ToJson(DefaultSettings);
@@ -81,13 +85,13 @@ namespace WalletWasabi.Gui.Rpc
 				}
 
 				// Special case: if there is a missing parameter and the procedure is expecting a CancellationTokenSource
-				// then pass the cts we have. This will allow us to cancel async requests when the server is stopped. 
+				// then pass the cancellationToken we have. This will allow us to cancel async requests when the server is stopped. 
 				if (parameters.Count == methodParameters.Count -1)
 				{
 					var position = methodParameters.FindIndex(x=>x.type == typeof(CancellationTokenSource));
 					if(position > -1)
 					{
-						parameters.Insert(position, cts);
+						parameters.Insert(position, cancellationToken);
 					}
 				}
 				if (parameters.Count != methodParameters.Count)
