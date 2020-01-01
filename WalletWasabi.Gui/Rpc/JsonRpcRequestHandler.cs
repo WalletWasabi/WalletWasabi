@@ -40,7 +40,7 @@ namespace WalletWasabi.Gui.Rpc
 
 		/// <summary>
 		/// Perses the request and dispatch it to the correct service's method.
-		/// <summary>
+		/// </summary>
 		/// <param name="body">The raw rpc request.</param>
 		/// <param name="cancellationToken">The cancellation token that will be past to the service handler in case it expects/accept one.</param>
 		/// <returns>The response that, after serialization, is returned as response.</returns>
@@ -88,7 +88,7 @@ namespace WalletWasabi.Gui.Rpc
 				// then pass the cancellationToken we have. This will allow us to cancel async requests when the server is stopped. 
 				if (parameters.Count == methodParameters.Count -1)
 				{
-					var position = methodParameters.FindIndex(x=>x.type == typeof(CancellationTokenSource));
+					var position = methodParameters.FindIndex(x=>x.type == typeof(CancellationToken));
 					if(position > -1)
 					{
 						parameters.Insert(position, cancellationToken);

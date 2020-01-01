@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -9,31 +8,6 @@ using Xunit;
 
 namespace WalletWasabi.Tests
 {
-	class TesteableRpcService
-	{
-		public void UnpublishedProcedure() { }
-
-		[JsonRpcMethod("say")]
-		public string Echo(string text) => text;
-
-		[JsonRpcMethod("substract")]
-		public int Substract(int minuend, int subtrahend) => minuend - subtrahend;
-
-		[JsonRpcMethod("substractasync")]
-		public async Task<int> SubstractAsync(int minuend, int subtrahend) => await Task.FromResult(minuend - subtrahend);
-
-		[JsonRpcMethod("writelog")]
-		public void Log(string logEntry) { }
-
-		[JsonRpcMethod("fail")]
-		public void Failure() => throw new InvalidOperationException("the error");
-
-		[JsonRpcMethod("format")]
-		public async Task FormatHardDriveAsync(string unit, CancellationTokenSource cts)
-		{
-			await Task.FromResult((JsonRpcResponse)null);
-		}
-	}
 
 	public class RpcTests
 	{
@@ -41,12 +15,11 @@ namespace WalletWasabi.Tests
 		[MemberData(nameof(RequestResponse))]
 		public async Task ParsingRequestTestsAsync(string request, string expectedResponse)
 		{
-			var handler = new JsonRpcRequestHandler(new TesteableRpcService());
+			var handler = new JsonRpcRequestHandler<TesteableRpcService>(new TesteableRpcService());
 
-			var response = await handler.HandleAsync(request, new CancellationTokenSource());
+			var response = await handler.HandleAsync(request, CancellationToken.None);
 			Assert.Equal(expectedResponse, response);
 		}
-
 
 		public static IEnumerable<object[]> RequestResponse =>
 			new[]
@@ -100,7 +73,6 @@ namespace WalletWasabi.Tests
 					Request("7", "substractasync", new { minuend = 42, subtrahend = 23}),
 					Ok("7", 19)}
 		}.Select(x => x.Skip(1).ToArray());
-
 
 		private static string Request(string id, string methodName, params object[] parameters)
 		{
