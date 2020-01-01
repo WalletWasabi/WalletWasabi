@@ -23,9 +23,9 @@ namespace WalletWasabi.Gui.Rpc
 				new Dictionary<string, JsonRpcMethodMetadata>();
 		private Type _serviceType;
 
-		public JsonRpcServiceMetadataProvider(object service)
+		public JsonRpcServiceMetadataProvider(Type serviceType)
 		{
-			_serviceType = service.GetType();
+			_serviceType = serviceType;
 		}
 
 		/// <summary>

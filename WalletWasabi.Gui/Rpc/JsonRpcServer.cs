@@ -4,8 +4,6 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using WalletWasabi.Gui.Models;
 
 namespace WalletWasabi.Gui.Rpc
@@ -42,7 +40,7 @@ namespace WalletWasabi.Gui.Rpc
 			Task.Run(async ()=>{
 				try
 				{
-					var handler = new JsonRpcRequestHandler(_service);
+					var handler = new JsonRpcRequestHandler<WasabiJsonRpcService>(_service);
 
 					while (IsRunning)
 					{
@@ -59,7 +57,7 @@ namespace WalletWasabi.Gui.Rpc
 							var identity = (HttpListenerBasicIdentity)context.User?.Identity;
 							if (!_config.RequiresCredentials || CheckValidCredentials(identity))
 							{
-								var result = await handler.HandleAsync(body, _cts);
+								var result = await handler.HandleAsync(body, _cts.Token);
 								
 								// result is null only when the request is a notification.
 								if(!string.IsNullOrEmpty(result))
