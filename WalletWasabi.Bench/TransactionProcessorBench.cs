@@ -18,10 +18,12 @@ using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.TransactionProcessing;
+using BenchmarkDotNet.Jobs;
 
 namespace WalletWasabi.Bench
 {
-	[CoreJob, RankColumn]
+	[SimpleJob(RuntimeMoniker.NetCoreApp31), RankColumn]
 	public class TransactionProcessorBench
 	{
 		private TransactionProcessor _tp;
