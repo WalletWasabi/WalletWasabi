@@ -21,11 +21,11 @@ namespace WalletWasabi.Gui.Rpc
 		/// Keeps the directory of procedures' metadata
 		private Dictionary<string, JsonRpcMethodMetadata> _proceduresDirectory = 
 				new Dictionary<string, JsonRpcMethodMetadata>();
-		private Type _serviceType;
+		private Type ServiceType { get; }
 
 		public JsonRpcServiceMetadataProvider(Type serviceType)
 		{
-			_serviceType = serviceType;
+			ServiceType = serviceType;
 		}
 
 		/// <summary>
@@ -56,7 +56,7 @@ namespace WalletWasabi.Gui.Rpc
 
 		internal IEnumerable<JsonRpcMethodMetadata> EnumetareServiceInfo()
 		{
-			var publicMethods = _serviceType.GetMethods();
+			var publicMethods = ServiceType.GetMethods();
 			foreach(var methodInfo in publicMethods)
 			{
 				var attrs = methodInfo.GetCustomAttributes();

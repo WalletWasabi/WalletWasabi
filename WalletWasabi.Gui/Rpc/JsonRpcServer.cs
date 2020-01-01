@@ -13,38 +13,38 @@ namespace WalletWasabi.Gui.Rpc
 		private long _running;
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
-		private CancellationTokenSource _cts { get; }
+		private CancellationTokenSource Cancellation { get; }
 
-		private HttpListener _listener;
-		private WasabiJsonRpcService _service;		
-		private JsonRpcServerConfiguration _config;
+		private HttpListener Listener { get; }
+		private WasabiJsonRpcService Service { get; }
+		private JsonRpcServerConfiguration Config { get; }
 
 		public JsonRpcServer(Global global, JsonRpcServerConfiguration config)
 		{
-			_config = config;
-			_listener = new HttpListener();
-			_listener.AuthenticationSchemes = AuthenticationSchemes.Basic | AuthenticationSchemes.Anonymous;
-			foreach(var prefix in _config.Prefixes)
+			Config = config;
+			Listener = new HttpListener();
+			Listener.AuthenticationSchemes = AuthenticationSchemes.Basic | AuthenticationSchemes.Anonymous;
+			foreach(var prefix in Config.Prefixes)
 			{
-				_listener.Prefixes.Add(prefix);
+				Listener.Prefixes.Add(prefix);
 			}
-			_cts = new CancellationTokenSource();
-			_service = new WasabiJsonRpcService(global);
+			Cancellation = new CancellationTokenSource();
+			Service = new WasabiJsonRpcService(global);
 		}
 
 		public void Start()
 		{
 			Interlocked.Exchange(ref _running, 1);
-			_listener.Start();
+			Listener.Start();
 
-			Task.Run(async ()=>{
+			Task.Factory.StartNew(async _=>{
 				try
 				{
-					var handler = new JsonRpcRequestHandler<WasabiJsonRpcService>(_service);
+					var handler = new JsonRpcRequestHandler<WasabiJsonRpcService>(Service);
 
 					while (IsRunning)
 					{
-						var context = _listener.GetContext();
+						var context = Listener.GetContext();
 						var request = context.Request;
 						var response = context.Response;
 
@@ -55,9 +55,9 @@ namespace WalletWasabi.Gui.Rpc
 								body = await reader.ReadToEndAsync();
 
 							var identity = (HttpListenerBasicIdentity)context.User?.Identity;
-							if (!_config.RequiresCredentials || CheckValidCredentials(identity))
+							if (!Config.RequiresCredentials || CheckValidCredentials(identity))
 							{
-								var result = await handler.HandleAsync(body, _cts.Token);
+								var result = await handler.HandleAsync(body, Cancellation.Token);
 								
 								// result is null only when the request is a notification.
 								if(!string.IsNullOrEmpty(result))
@@ -85,24 +85,24 @@ namespace WalletWasabi.Gui.Rpc
 				{
 					Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
 				}
-			});
+			}, Cancellation.Token, TaskCreationOptions.LongRunning);
 		}
 
 		internal void Stop()
 		{
 			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.;
-			_listener.Stop();
-			_cts.Cancel();
+			Listener.Stop();
+			Cancellation.Cancel();
 			while (IsStopping)
 			{
 				Task.Delay(50).GetAwaiter().GetResult();
 			}
-			_cts.Dispose();
+			Cancellation.Dispose();
 		}
 
 		private bool CheckValidCredentials(HttpListenerBasicIdentity identity)
 		{
-			return identity != null && (identity.Name == _config.JsonRpcUser && identity.Password == _config.JsonRpcPassword);
+			return identity != null && (identity.Name == Config.JsonRpcUser && identity.Password == Config.JsonRpcPassword);
 		}
 	}
 }
