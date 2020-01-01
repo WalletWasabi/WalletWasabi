@@ -10,7 +10,7 @@
         <Grid Classes="content">
           <StackPanel IsVisible="{Binding IsPasswordRequired}" Spacing="8">
             <StackPanel>
-              <TextBlock Text="Select a wallet to test its password!" FontWeight="Bold" />
+              <TextBlock Text="Select a wallet to test it's password!" FontWeight="Bold" />
             </StackPanel>
             <controls:TogglePasswordBox Text="{Binding Password}">
               <i:Interaction.Behaviors>
