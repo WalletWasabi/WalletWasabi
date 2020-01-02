@@ -1,5 +1,4 @@
-﻿
-namespace WalletWasabi.Blockchain.TransactionOutputs
+﻿namespace WalletWasabi.Blockchain.TransactionOutputs
 {
 	public enum LinkType
 	{
