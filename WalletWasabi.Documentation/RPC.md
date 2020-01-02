@@ -33,7 +33,7 @@ Current version only handles the following method `listunspentcoins`, `getstatus
 
 ## getstatus
 
-Returns information useful to understand the real status wasabi and its synchronization status.
+Returns information useful to understand the status Wasabi and its synchronization status.
 
 ```bash
 curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"getstatus"}' http://127.0.0.1:18099/
@@ -152,13 +152,13 @@ $ curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"listunspentcoins"}'
 }
 ```
 
-In case there is no wallet opened it will return:
+In case there is no wallet open it will return:
 ```json
 {
   "jsonrpc": "2.0",
   "error": {
     "code": -32603,
-    "message": "There is not wallet loaded."
+    "message": "There is no wallet loaded."
   },
   "id": "1"
 }
@@ -166,7 +166,7 @@ In case there is no wallet opened it will return:
 
 ## getwalletinfo
 
-Returns information about the current loaded wallet (this method could be extended to return info about any other wallet)
+Returns information about the current loaded wallet.
 
 ```bash
 curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"getwalletinfo"}' http://127.0.0.1:18099/
@@ -188,14 +188,14 @@ Wzv6LjLPukmeR11ebWhLPLVVRjqbfyknJZdiwRWCyJcKeDdsC8",
 }
 ```
 
-In case there is no wallet opened it will return:
+In case there is no wallet open it will return:
 
 ```json
 {
   "jsonrpc": "2.0",
   "error": {
     "code": -32603,
-    "message": "There is not wallet loaded."
+    "message": "There is no wallet loaded."
   },
   "id": "1"
 }
@@ -203,7 +203,7 @@ In case there is no wallet opened it will return:
 
 ## getnewaddress
 
-Creates and returns info about the created address.
+Creates an address and returns detailed information about it.
 
 ```bash
 curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"getnewaddress","params":["payment order #178659"]}' http://127.0.0.1:18099/
@@ -223,14 +223,14 @@ curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"getnewaddress","param
 }
 ```
 
-In case there is no wallet opened it will return:
+In case there is no wallet open it will return:
 
 ```json
 {
   "jsonrpc": "2.0",
   "error": {
     "code": -32603,
-    "message": "There is not wallet loaded."
+    "message": "There is no wallet loaded."
   },
   "id": "1"
 }
@@ -251,17 +251,22 @@ In case an empty label is provided:
 
 ## send
 
-Build and broadcast a transaction
+Builds and broadcasts a transaction.
 
 ```bash
 curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"send", "params": { "payments":[ {"sendto": "tb1qgvnht40a08gumw32kp05hs8mny954hp2snhxcz", "amount": 15000, "label": "To David" }, {"sendto":"tb1qpyhfrpys6skr2mmnc35p3dp7zlv9ew4k0gn7qm", "amount": 86200, "label": "To Michael"} ], "coins":[{"transactionid":"ab83d9d0b2a9873b8ab0dc48b618098f3e7fbd807e27a10f789e9bc330ca89f7", "index":0}], "feeTarget":2, "password": "password1234" }}' http://127.0.0.1:18099/
 ```
 
 ```json
-{"jsonrpc":"2.0","result": {"txid":"c493bf3d9e0279968bf677f0b3661f8f67823b6d7524b9c8a278701d0fb357a5","tx":"0100000000010121e11e8682d93ec842eb41f7271e8922b31591cdbb8b54cdda680cf1e0f65e8c0000000000ffffffff0247590000000000001600143cc0c9d8649532ad77fe0ac5032c1c9ad9529109983a00000000000016001497ff0a7a7ab2078d379e21aade978b6c1bdcba480247304402206bdbf36d0be8062e69b22441ed496ce6b5d639663bd4e580d11b71e34d79c6760220375219a8eb695f15a992b502ff4b639ea809547a3b7f0596cf9a69c1ae1d0df60121033e8670324ec33f15dcb17f346c1927ee3b717070596e397eb00020899c9c913300000000"}}
+{
+  "jsonrpc":"2.0",
+  "result": {
+    "txid":"c493bf3d9e0279968bf677f0b3661f8f67823b6d7524b9c8a278701d0fb357a5","tx":"0100000000010121e11e8682d93ec842eb41f7271e8922b31591cdbb8b54cdda680cf1e0f65e8c0000000000ffffffff0247590000000000001600143cc0c9d8649532ad77fe0ac5032c1c9ad9529109983a00000000000016001497ff0a7a7ab2078d379e21aade978b6c1bdcba480247304402206bdbf36d0be8062e69b22441ed496ce6b5d639663bd4e580d11b71e34d79c6760220375219a8eb695f15a992b502ff4b639ea809547a3b7f0596cf9a69c1ae1d0df60121033e8670324ec33f15dcb17f346c1927ee3b717070596e397eb00020899c9c913300000000"
+  }
+}
 ```
 
-The fees for the transaction will be added on top of the sum of values of the outputs. If you have
+The fees for the transaction will be added on top of the sum of the outputs' amounts. If you have
 three outputs with 0.4, 0.3 and 0.3 BTC, the amount of BTC in the inputs must be at least
 0.4+0.3+0.3 + mining fees.
 
@@ -273,17 +278,24 @@ the output amounts summed up.  ( 0.4 - (mining fee) ) + 0.3 + 0.3
 curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"send", "params": { "payments":[ {"sendto": "tb1qgvnht40a08gumw32kp05hs8mny954hp2snhxcz", "amount": 15000, "label": "To David", "subtractFee": true }, {"sendto":"tb1qpyhfrpys6skr2mmnc35p3dp7zlv9ew4k0gn7qm", "amount": 86200, "label": "To Michael"} ], "coins":[{"transactionid":"ab83d9d0b2a9873b8ab0dc48b618098f3e7fbd807e27a10f789e9bc330ca89f7", "index":0}], "feeTarget":2 }}' http://127.0.0.1:18099/
 ```
 
-In case of error it is reported in the error:
+In case of error, it is reported in the json's error object:
 
 ```bash
  curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"send", "params": { "payments": [{ "sendto": "tb1qnmfmkylkd548bbbcd9115b322891e27f741eb42c83ed982861ee121", "amount": 2015663, "label": "test" }], "coins":[{"transactionid":"c68dacd548bbbcd9115b38ed982861ee121c5ef6e0f1022891e27f741eb42c83", "index":0}], "feeTarget": 2 }}' http://127.0.0.1:18099/
 ```
 
 ```json
-{"jsonrpc":"2.0","error":{"code":-32603,"message":"Needed: 0.02015663 BTC, got only: 0.001 BTC."},"id":"1"}
+{
+  "jsonrpc":"2.0",
+  "error":{
+    "code":-32603,
+    "message":"Needed: 0.02015663 BTC, got only: 0.001 BTC."
+  },
+  "id":"1"
+}
 ```
 
-**Note**: error codes are generic and not wasabi specific.
+**Note**: error codes are generic and not Wasabi specific.
 
 ## gethistory
 
@@ -330,7 +342,7 @@ curl --data-binary '{"jsonrpc":"2.0","id":"1","method":"listkeys"}' http://127.0
 ```json
   "jsonrpc": "2.0",
   "result": [
-    [{
+    {
       "fullKeyPath": "84'/0'/0'/0/1",
       "internal": false,
       "keyState": 1,
@@ -362,17 +374,18 @@ curl --data-binary '{"jsonrpc":"2.0","id":"1","method":"listkeys"}' http://127.0
 }
 ```
 
-## enqueue / dequeue
+
+## enqueue
 
 Enqueue coins in order to participate in coinjoin.
-
-### enqueue
 
 ```bash
 curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"enqueue", "params": { "coins": [{"transactionId": "ba70587b37ba8b4de143929994d3b8ee2810340cef23e8016020687716117a52", "index":"12"}]} }' http://127.0.0.1:18099/
 ```
 
-### dequeue
+## dequeue
+
+Dequeues coins that were queued to participate in a CoinJoin.
 
 ```bash
 curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"dequeue", "params": { "coins": [{"transactionId": "ba70587b37ba8b4de143929994d3b8ee2810340cef23e8016020687716117a52", "index":"12"}]} }' http://127.0.0.1:18099/
@@ -380,7 +393,7 @@ curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"dequeue", "params": {
 
 ## stop
 
-Stops and exit Wasabi.
+Stops and exits Wasabi.
 
 ```bash
 curl -s --data-binary '{"jsonrpc":"2.0", "method":"stop"}' http://127.0.0.1:18099/
