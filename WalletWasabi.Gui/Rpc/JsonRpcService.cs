@@ -12,13 +12,13 @@ namespace WalletWasabi.Gui.Rpc
 	/// Provides two methods for responding to the clients with a **result** for valid
 	/// requests or with **error** in case the request is invalid or there is a problem.
 	///
-	/// Also, it loads and serves information about the service. This is, it discovers
+	/// Also, it loads and serves information about the service. It discovers
 	/// (using reflection) the methods that have to be invoked and the parameters it
 	/// receives. 
 	///</summary>
 	public class JsonRpcServiceMetadataProvider
 	{
-		/// Keeps the directory of procedures' metadata
+		// Keeps the directory of procedures' metadata
 		private Dictionary<string, JsonRpcMethodMetadata> _proceduresDirectory = 
 				new Dictionary<string, JsonRpcMethodMetadata>();
 		private Type ServiceType { get; }

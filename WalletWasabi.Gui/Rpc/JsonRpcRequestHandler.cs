@@ -11,7 +11,7 @@ namespace WalletWasabi.Gui.Rpc
 {
 	///<summary>
 	/// This class coordinates all the major steps in processing the RPC call.
-	/// It parses the json request, parses the parameters, invoke the service
+	/// It parses the json request, parses the parameters, invokes the service
 	/// methods and handles the errors.
 	///</summary>
 	public class JsonRpcRequestHandler<TService>
@@ -39,10 +39,10 @@ namespace WalletWasabi.Gui.Rpc
 		}
 
 		/// <summary>
-		/// Perses the request and dispatch it to the correct service's method.
+		/// Parses the request and dispatches it to the correct service's method.
 		/// </summary>
 		/// <param name="body">The raw rpc request.</param>
-		/// <param name="cancellationToken">The cancellation token that will be past to the service handler in case it expects/accept one.</param>
+		/// <param name="cancellationToken">The cancellation token that will be past to the service handler in case it expects/accepts one.</param>
 		/// <returns>The response that, after serialization, is returned as response.</returns>
 		public async Task<string> HandleAsync(string body, CancellationToken cancellationToken)
 		{			

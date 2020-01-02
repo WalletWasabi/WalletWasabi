@@ -14,7 +14,7 @@ namespace WalletWasabi.Gui.Rpc
 	///             member MAY be omitted.
 	/// + id      - An identifier established by the Client that MUST contain a String, Number, or NULL value if included. 
 	///             If it is not included it is assumed to be a notification. The value SHOULD normally not be Null [1] and
-	///             Numbers SHOULD NOT contain fractional parts [2]
+	///             Numbers SHOULD NOT contain fractional parts [2].
 	/// </summary>
 	public class JsonRpcRequest
 	{
@@ -37,7 +37,7 @@ namespace WalletWasabi.Gui.Rpc
 		}
 
 		/// <summary>
-		/// Constructor used to deserialize the requests
+		/// Constructor used to deserialize the requests.
 		/// </summary>
 		[JsonConstructor]
 		public  JsonRpcRequest(string jsonrpc, string id, string method, JToken parameters)
