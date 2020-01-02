@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 
@@ -160,11 +161,6 @@ namespace WalletWasabi.Helpers
 			return fileNameWithoutExtension;
 		}
 
-		public static void ShellExec(string cmd, bool waitForExit = true)
-		{
-			ShellExecAsync(cmd, waitForExit).GetAwaiter().GetResult();
-		}
-
 		/// <summary>
 		/// Executes a command with bash.
 		/// https://stackoverflow.com/a/47918132/2061103
@@ -187,7 +183,8 @@ namespace WalletWasabi.Helpers
 			);
 			if(waitForExit)
 			{
-				var exitCode = await process; 
+				await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
+				var exitCode = process.ExitCode; 
 				if (exitCode != 0)
 				{
 					Logger.LogError($"{nameof(ShellExecAsync)} command: {cmd} exited with exit code: {exitCode}, instead of 0.");
