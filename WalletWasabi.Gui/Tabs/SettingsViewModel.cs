@@ -90,7 +90,7 @@ namespace WalletWasabi.Gui.Tabs
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(x => Global.UiConfig.IsCustomFee = x);
 
-			OpenConfigFileCommand = ReactiveCommand.CreateFromTask(OpenConfigFile);
+			OpenConfigFileCommand = ReactiveCommand.CreateFromTask(OpenConfigFileAsync);
 
 			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
 				{
@@ -393,9 +393,9 @@ namespace WalletWasabi.Gui.Tabs
 			});
 		}
 
-		private Task OpenConfigFile()
+		private async Task OpenConfigFileAsync()
 		{
-			return FileHelpers.OpenFileInTextEditorAsync(Global.Config.FilePath);
+			await FileHelpers.OpenFileInTextEditorAsync(Global.Config.FilePath);
 		}
 
 		#region Validation

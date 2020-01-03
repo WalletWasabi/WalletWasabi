@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui.Helpers
 				{
 					// If no associated application/json MimeType is found xdg-open opens retrun error
 					// but it tries to open it anyway using the console editor (nano, vim, other..)
-					await EnvironmentHelpers.ShellExecAsync($"gedit {filePath} || xdg-open {filePath}", waitForExit: false);
+					await EnvironmentHelpers.ShellExecAsync($"gedit {filePath} || xdg-open {filePath}", waitForExit: false).ConfigureAwait(false);
 				}
 				else
 				{
