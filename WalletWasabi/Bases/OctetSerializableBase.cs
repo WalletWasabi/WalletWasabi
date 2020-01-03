@@ -57,7 +57,7 @@ namespace WalletWasabi.Bases
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is OctetSerializableBase octetSerializableBase && this == octetSerializableBase;
+		public override bool Equals(object obj) => Equals(obj as OctetSerializableBase);
 
 		public bool Equals(OctetSerializableBase other) => this == other;
 
