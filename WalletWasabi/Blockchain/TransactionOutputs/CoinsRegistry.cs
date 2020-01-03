@@ -131,7 +131,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 						SpentCoins.Remove(toRemove);
 
 						CoinsCreatedByTransaction[toRemove.TransactionId].Remove(toRemove);
-						if(toRemove.SpenderTransactionId != null)
+						if (toRemove.SpenderTransactionId is { })
 						{
 							CoinsDestroyedByTransaction[toRemove.SpenderTransactionId].Remove(toRemove);
 						}
