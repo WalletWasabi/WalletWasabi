@@ -179,7 +179,7 @@ namespace WalletWasabi.Blockchain.Keys
 			return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, true, minGapLimit, new BlockchainState(), filePath, keyPath);
 		}
 
-		public void SetMinGapLimit(int? minGapLimit)
+		private void SetMinGapLimit(int? minGapLimit)
 		{
 			MinGapLimit = minGapLimit is int val ? Math.Max(AbsoluteMinGapLimit, val) : AbsoluteMinGapLimit;
 			// AssertCleanKeysIndexed(); Do not do this. Wallet file is null yet.
@@ -206,7 +206,7 @@ namespace WalletWasabi.Blockchain.Keys
 					}
 		}
 
-		public void ToFileNoBlockchainStateLock()
+		private void ToFileNoBlockchainStateLock()
 		{
 			lock (HdPubKeysLock)
 				lock (ToFileLock)
