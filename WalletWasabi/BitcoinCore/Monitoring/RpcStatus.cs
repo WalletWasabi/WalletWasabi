@@ -52,7 +52,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is RpcStatus rpcStatus && this == rpcStatus;
+		public override bool Equals(object obj) => Equals(obj as RpcStatus);
 
 		public bool Equals(RpcStatus other) => this == other;
 
