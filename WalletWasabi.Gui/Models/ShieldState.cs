@@ -38,7 +38,7 @@ namespace WalletWasabi.Gui.Models
 				IsPrivacySomeVisible,
 				IsPrivacyFineVisible,
 				IsPrivacyStrongVisible,
-				IsPrivacySaiyanVisible,
+				IsPrivacySaiyanVisible
 			};
 
 			uint result = 0;
