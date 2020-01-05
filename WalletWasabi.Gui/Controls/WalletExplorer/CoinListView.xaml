@@ -81,10 +81,10 @@
         <controls:ExtendedListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
           <controls:ExtendedListBox.ItemTemplate>
             <DataTemplate>
-              <Grid>
+              <Grid Background="Transparent">
                 <Grid.ContextMenu>
                   <ContextMenu>
-                    <MenuItem Header="{Binding ExpandMenuCaption}" Command="{Binding ToggleDetails}">
+                    <MenuItem Header="{Binding Owner.ExpandedDetailsCaption}" Command="{Binding Owner.ToggleDetails}">
                       <MenuItem.Icon>
                         <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource CoinListView_More}" />
                       </MenuItem.Icon>
