@@ -67,7 +67,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 
 		#region Equality
 
-		public override bool Equals(object obj) => obj is AllFeeEstimate feeEstimate && this == feeEstimate;
+		public override bool Equals(object obj) => Equals(obj as AllFeeEstimate);
 
 		public bool Equals(AllFeeEstimate other) => this == other;
 

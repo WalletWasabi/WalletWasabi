@@ -49,7 +49,7 @@ namespace WalletWasabi.Http.Models
 
 		#region Equality
 
-		public override bool Equals(object obj) => obj is HttpProtocol protocol && this == protocol;
+		public override bool Equals(object obj) => Equals(obj as HttpProtocol);
 
 		public bool Equals(HttpProtocol other) => this == other;
 
