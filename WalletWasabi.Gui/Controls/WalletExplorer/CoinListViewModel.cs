@@ -35,7 +35,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private ReadOnlyObservableCollection<CoinViewModel> _coinViewModels;
 		private SortExpressionComparer<CoinViewModel> _myComparer;
-		private ObservableAsPropertyHelper<string> _expandedDetailsCaption; 
+		private ObservableAsPropertyHelper<string> _expandedDetailsCaption;
 
 		private CoinViewModel _selectedCoin;
 		private bool? _selectAllCheckBoxState;
@@ -66,7 +66,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 		public ReactiveCommand<Unit, Unit> InitList { get; }
 		public ReactiveCommand<Unit, bool> ToggleDetails { get; }
-		
+
 		public event EventHandler<SmartCoin> DequeueCoinsPressed;
 
 		public event EventHandler CoinListShown;
@@ -393,7 +393,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			});
 
 			ToggleDetails = ReactiveCommand.Create(() => IsDetailsExpanded = !IsDetailsExpanded);
- 
+
 			_expandedDetailsCaption = this.WhenAnyValue(x => x.IsDetailsExpanded)
 				.Select(x => (x ? "Hide " : "Show ") + "Details")
 				.ObserveOn(RxApp.MainThreadScheduler)

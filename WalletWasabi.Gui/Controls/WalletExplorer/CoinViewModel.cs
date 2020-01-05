@@ -116,7 +116,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public bool Unspent => _unspent?.Value ?? false;
 
 		public string Address => Model.ScriptPubKey.GetDestinationAddress(Global.Network).ToString();
- 
+
 		public int Confirmations => Model.Height.Type == HeightType.Chain
 			? (int)Global.BitcoinStore.SmartHeaderChain.TipHeight - Model.Height.Value + 1
 			: 0;
