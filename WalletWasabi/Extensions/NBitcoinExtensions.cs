@@ -124,6 +124,21 @@ namespace NBitcoin
 				.Where(x => includeSingle || x.Value > 1);
 		}
 
+		/// <summary>
+		/// A rating of the coinjoin based on the number of equal outputs.
+		/// https://github.com/zkSNACKs/WalletWasabi/issues/2940
+		/// </summary>
+		public static decimal CalculateWasabiCoinJoinQuality(this Transaction me)
+		{
+			decimal wcq = 0m;
+			foreach (var o in me.GetIndistinguishableOutputs(includeSingle: false))
+			{
+				// Number of participants (o.count) gained (o.count) anonymity for (o.value.ToDecimal(MoneyUnit.BTC)) bitcoins.
+				wcq += o.count * o.count * o.value.ToDecimal(MoneyUnit.BTC);
+			}
+			return wcq;
+		}
+
 		public static int GetAnonymitySet(this Transaction me, int outputIndex)
 		{
 			// 1. Get the output corresponting to the output index.

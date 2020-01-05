@@ -30,6 +30,13 @@ namespace WalletWasabi.CoinJoin.Coordinator
 		private AsyncLock CoinJoinsLock { get; }
 
 		private List<uint256> UnconfirmedCoinJoins { get; }
+		public Transaction LastCoinJoin { get; private set; }
+
+		/// <summary>
+		/// true: increased
+		/// false: decreased
+		/// </summary>
+		public bool LastTimeoutAdjustmentDirection { get; private set; } = true;
 
 		public event EventHandler<Transaction> CoinJoinBroadcasted;
 
@@ -318,10 +325,34 @@ namespace WalletWasabi.CoinJoin.Coordinator
 								if (newDenominationToGetInWithactiveOutputs > Money.Coins(0.01m))
 								{
 									RoundConfig.Denomination = newDenominationToGetInWithactiveOutputs;
-									await RoundConfig.ToFileAsync().ConfigureAwait(false);
 								}
 							}
 						}
+
+						// Adjust timeout: https://github.com/zkSNACKs/WalletWasabi/issues/2940
+						// If there was no last coinjoin, don't touch the timeout.
+						if (LastCoinJoin is { })
+						{
+							// If the new coinjoin is better than the previous one then double down on the previous timeout adjustment, else reverse it.
+							var newIsBetter = round.CoinJoin.CalculateWasabiCoinJoinQuality() > LastCoinJoin.CalculateWasabiCoinJoinQuality();
+							if (!newIsBetter)
+							{
+								LastTimeoutAdjustmentDirection = !LastTimeoutAdjustmentDirection;
+							}
+
+							if (LastTimeoutAdjustmentDirection)
+							{
+								RoundConfig.InputRegistrationTimeout += 60;
+							}
+							else
+							{
+								RoundConfig.InputRegistrationTimeout = Math.Max(60, RoundConfig.InputRegistrationTimeout - 60);
+							}
+						}
+						LastCoinJoin = round.CoinJoin;
+
+						// Serialize config (it's for updating the denomination, too, not only the inputreg timeout.
+						await RoundConfig.ToFileAsync().ConfigureAwait(false);
 					}
 				}
 
