@@ -11,7 +11,7 @@ namespace WalletWasabi.Packager
 	{
 		public static void Sign()
 		{
-			if(!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
 				throw new NotSupportedException("This signing methon only valid on macOS!");
 			}
@@ -30,17 +30,61 @@ namespace WalletWasabi.Packager
 			IoHelpers.DeleteRecursivelyWithMagicDustAsync(workingDir).GetAwaiter().GetResult();
 			Directory.CreateDirectory(workingDir);
 
-			var unsignedDmgPath = files[0];
-			var versionPrefix = unsignedDmgPath.Split('-').Last().TrimEnd(".zip", StringComparison.InvariantCultureIgnoreCase); // Example: "/Users/user/Desktop/Wasabi-unsigned-1.1.10.2.dmg".
+			var zipPath = files[0];
+			var versionPrefix = zipPath.Split('-').Last().TrimEnd(".zip", StringComparison.InvariantCultureIgnoreCase); // Example: "/Users/user/Desktop/Wasabi-unsigned-1.1.10.2.dmg".
 
 			var dmgPath = Path.Combine(workingDir, "dmg");
-			var appPath = Path.Combine(dmgPath, "Wasabi Wallet.app");
-			var binPath = Path.Combine(appPath, "Contents","MacOS");
+			var appName = "Wasabi Wallet.app";
+			var appPath = Path.Combine(dmgPath, appName);
+			var binPath = Path.Combine(appPath, "Contents", "MacOS");
 
 			// Copy the published files.
 			IoHelpers.EnsureDirectoryExists(binPath);
-			ZipFile.ExtractToDirectory(unsignedDmgPath, binPath);
+			ZipFile.ExtractToDirectory(zipPath, binPath);
 
+			var contentsPath = Path.GetFullPath(Path.Combine(Program.PackagerProjectDirectory.Replace("\\", "//"), "Content", "Osx"));
+			IoHelpers.CopyFilesRecursively(new DirectoryInfo(Path.Combine(contentsPath, "App")), new DirectoryInfo(appPath));
+			var infoFilePath = Path.Combine(appPath, "Contents", "Info.plist");
+			var lines = File.ReadAllLines(infoFilePath);
+			string bundleIdentifier = null;
+
+			for (int i = 0; i < lines.Length; i++)
+			{
+				string line = lines[i];
+				if (!line.TrimStart().StartsWith("<key>", StringComparison.InvariantCultureIgnoreCase))
+				{
+					continue;
+				}
+
+				if (line.Contains("CFBundleShortVersionString", StringComparison.InvariantCulture) ||
+					line.Contains("CFBundleVersion", StringComparison.InvariantCulture))
+				{
+					lines[i + 1] = $"<string>{versionPrefix}</string>";
+				}
+				else if (line.Contains("CFBundleIdentifier", StringComparison.InvariantCulture))
+				{
+					bundleIdentifier = lines[i + 1];
+				}
+			}
+
+			IoHelpers.DeleteRecursivelyWithMagicDustAsync(infoFilePath).GetAwaiter().GetResult();
+			File.WriteAllLines(infoFilePath,lines);
+
+			var entitlementsPath = Path.Combine(contentsPath, "entitlements.plist");
+			if (!File.Exists(entitlementsPath))
+			{
+				throw new FileNotFoundException($"entitlements.plist file missing: {entitlementsPath}");
+			}
+
+			using (var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "codesign",
+				Arguments = $"--sign \"L233B2JQ68\" --verbose --deep --force --options runtime --timestamp --entitlements \"{entitlementsPath}\" \"{appName}\"",
+				WorkingDirectory = dmgPath
+			}))
+			{
+				process.WaitForExit();
+			}
 
 		}
 
