@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
 
@@ -17,10 +18,12 @@ namespace WalletWasabi.Packager
 
 			string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
-			var files = Directory.GetFiles(desktopPath, "Wasabi-unsigned-*.dmg"); //Example: Wasabi-unsigned-1.1.10.2.dmg
+			var srcZipFileNamePattern = "Wasabi-osx-*.zip";
+
+			var files = Directory.GetFiles(desktopPath, srcZipFileNamePattern); //Example: Wasabi-osx-1.1.10.2.zip
 			if (files.Length != 1)
 			{
-				throw new InvalidDataException("Wasabi-unsigned dmg file missing or there are more on Desktop! There must be exactly one!");
+				throw new InvalidDataException($"{srcZipFileNamePattern} file missing or there are more on Desktop! There must be exactly one!");
 			}
 
 			var workingDir = Path.Combine(desktopPath, "wasabiTemp");
@@ -29,6 +32,15 @@ namespace WalletWasabi.Packager
 
 			var unsignedDmgPath = files[0];
 			var versionPrefix = unsignedDmgPath.Split('-').Last().TrimEnd(".zip", StringComparison.InvariantCultureIgnoreCase); // Example: "/Users/user/Desktop/Wasabi-unsigned-1.1.10.2.dmg".
+
+			var dmgPath = Path.Combine(workingDir, "dmg");
+			var appPath = Path.Combine(dmgPath, "Wasabi Wallet.app");
+			var binPath = Path.Combine(appPath, "Contents","MacOS");
+
+			// Copy the published files.
+			IoHelpers.EnsureDirectoryExists(binPath);
+			ZipFile.ExtractToDirectory(unsignedDmgPath, binPath);
+
 
 		}
 
