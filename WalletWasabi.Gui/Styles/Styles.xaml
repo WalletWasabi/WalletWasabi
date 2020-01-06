@@ -268,7 +268,7 @@
   <Style Selector="ListBoxItem:selected Grid Expander:expanded /template/ ToggleButton#PART_toggle /template/ Border > Grid > Border">
     <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
   </Style>
-  
+
   <!-- Dock doesnt have feature to disable resizing. Make the Splitters that allow resize
        not visible to hit testing, in order to disable them.-->
   <Style Selector="dock|ProportionalStackPanelSplitter">
