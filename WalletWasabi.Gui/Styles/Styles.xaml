@@ -3,6 +3,7 @@
         xmlns:dock="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
         xmlns:shell="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"
         xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
+        xmlns:shell="clr-namespace:AvalonStudio.Controls;assembly=AvalonStudio.Shell.Extensibility"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
   <Style>
@@ -28,7 +29,7 @@
     </Style.Resources>
   </Style>
 
-  <Style Selector="TabStripItem">
+  <Style Selector="shell|DocumentTabControl /template/ TabStripItem">
     <Setter Property="VerticalContentAlignment" Value="Center"/>
   </Style>
   
