@@ -682,7 +682,7 @@ namespace WalletWasabi.Packager
 
 					string uncompressedDmgFileName = $"Wasabi-uncompressed.dmg";
 					string uncompressedDmgFilePath = Path.Combine(BinDistDirectory, uncompressedDmgFileName);
-					string dmgFileName = $"Wasabi-{VersionPrefix}.dmg";
+					string dmgFileName = $"Wasabi-unsigned-{VersionPrefix}.dmg";
 					using (var process = Process.Start(new ProcessStartInfo
 					{
 						FileName = "cmd",
