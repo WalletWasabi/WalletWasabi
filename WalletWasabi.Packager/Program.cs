@@ -60,6 +60,13 @@ namespace WalletWasabi.Packager
 
 		private static void Main(string[] args)
 		{
+
+			if (MacSignTools.IsMacSignMode(args))
+			{
+				MacSignTools.Sign();
+				return;
+			}
+
 			// If I want a list of up to date onions run it with '--getonions'.
 			if (IsGetOnionsMode(args))
 			{
