@@ -36,7 +36,7 @@
   </i:Interaction.Behaviors>
   <Grid IsSharedSizeScope="True">
     <DockPanel LastChildFill="True">
-      <Grid Margin="30 0 0 0" DockPanel.Dock="Top">
+      <Grid DockPanel.Dock="Top">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="30" />
           <ColumnDefinition Width="30" />
@@ -96,7 +96,7 @@
                     </MenuItem>
                   </ContextMenu>
                 </Grid.ContextMenu>
-                <Grid Margin="30 0 0 0" VerticalAlignment="Top">
+                <Grid VerticalAlignment="Top">
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="30" />
                     <ColumnDefinition Width="30" />
