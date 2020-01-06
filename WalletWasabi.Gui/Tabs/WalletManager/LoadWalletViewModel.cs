@@ -479,7 +479,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						}
 						if (!selectedWallet.HardwareWalletInfo.Fingerprint.HasValue)
 						{
-							throw new InvalidOperationException("Wallet doesn't contain the fingerprint.");
+							throw new InvalidOperationException("Hardware wallet did not provide fingerprint.");
 						}
 						KeyManager.CreateNewHardwareWalletWatchOnly(selectedWallet.HardwareWalletInfo.Fingerprint.Value, extPubKey, path);
 					}
