@@ -3,15 +3,6 @@ using Newtonsoft.Json;
 
 namespace WalletWasabi.Gui.Rpc
 {
-	public enum JsonRpcErrorCodes
-	{
-		ParseError     = -32700,  // Invalid JSON was received by the server. An error occurred on the server while parsing the JSON text. 
-		InvalidRequest = -32600,  // The JSON sent is not a valid Request object.
-		MethodNotFound = -32601,  // The method does not exist / is not available.
-		InvalidParams  = -32602,  // Invalid method parameter(s).
-		InternalError  = -32603,  // Internal JSON-RPC error.
-	}
-
 	public class JsonRpcResponse 
 	{
 		// Default error messages for standard JsonRpcErrorCodes 
@@ -39,6 +30,7 @@ namespace WalletWasabi.Gui.Rpc
 		{
 			return new JsonRpcResponse(id, result, null);
 		}
+		
 		public static JsonRpcResponse CreateErrorResponse(string id, JsonRpcErrorCodes code, string message=null)
 		{
 			var error = new { 
@@ -57,7 +49,7 @@ namespace WalletWasabi.Gui.Rpc
 
 		private static string GetMessage(JsonRpcErrorCodes code)
 		{
-			if(Messages.TryGetValue(code, out var message))
+			if (Messages.TryGetValue(code, out var message))
 			{
 				return message;
 			}

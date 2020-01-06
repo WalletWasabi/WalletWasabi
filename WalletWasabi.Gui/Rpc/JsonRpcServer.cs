@@ -60,7 +60,7 @@ namespace WalletWasabi.Gui.Rpc
 								var result = await handler.HandleAsync(body, Cancellation.Token);
 								
 								// result is null only when the request is a notification.
-								if(!string.IsNullOrEmpty(result))
+								if (!string.IsNullOrEmpty(result))
 								{
 									response.ContentType = "application/json-rpc";
 									var output = response.OutputStream;
@@ -102,7 +102,7 @@ namespace WalletWasabi.Gui.Rpc
 
 		private bool CheckValidCredentials(HttpListenerBasicIdentity identity)
 		{
-			return identity != null && (identity.Name == Config.JsonRpcUser && identity.Password == Config.JsonRpcPassword);
+			return identity is {} && (identity.Name == Config.JsonRpcUser && identity.Password == Config.JsonRpcPassword);
 		}
 	}
 }

@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace WalletWasabi.Gui.Rpc
 {
@@ -34,11 +32,11 @@ namespace WalletWasabi.Gui.Rpc
 		/// </summary>
 		public bool TryGetMetadata(string methodName, out JsonRpcMethodMetadata metadata)
 		{
-			if( _proceduresDirectory.Count == 0)
+			if ( _proceduresDirectory.Count == 0)
 			{
 				LoadServiceMetadata();
 			}
-			if( !_proceduresDirectory.TryGetValue(methodName, out metadata))
+			if (!_proceduresDirectory.TryGetValue(methodName, out metadata))
 			{
 				metadata = null;
 				return false;
@@ -48,7 +46,7 @@ namespace WalletWasabi.Gui.Rpc
 
 		private void LoadServiceMetadata()
 		{
-			foreach(var info in EnumetareServiceInfo())
+			foreach (var info in EnumetareServiceInfo())
 			{
 				_proceduresDirectory.Add(info.Name, info);
 			}
@@ -57,15 +55,15 @@ namespace WalletWasabi.Gui.Rpc
 		internal IEnumerable<JsonRpcMethodMetadata> EnumetareServiceInfo()
 		{
 			var publicMethods = ServiceType.GetMethods();
-			foreach(var methodInfo in publicMethods)
+			foreach (var methodInfo in publicMethods)
 			{
 				var attrs = methodInfo.GetCustomAttributes();
-				foreach(Attribute attr in attrs)
+				foreach (Attribute attr in attrs)
 				{
 					if (attr is JsonRpcMethodAttribute)
 					{
 						var parameters = new List<(string name, Type type)>();
-						foreach(var p in methodInfo.GetParameters())
+						foreach (var p in methodInfo.GetParameters())
 						{
 							parameters.Add((p.Name, p.ParameterType));
 						}

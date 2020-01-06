@@ -29,13 +29,13 @@ namespace WalletWasabi.Gui.Rpc
 
 		private static readonly JsonSerializer DefaultSerializer = JsonSerializer.Create(DefaultSettings);
 
-		private readonly TService _service;
-		private readonly JsonRpcServiceMetadataProvider _metadataProvider;
+		private TService Service { get; }
+		private JsonRpcServiceMetadataProvider MetadataProvider { get; }
 
 		public JsonRpcRequestHandler(TService service)
 		{
-			_service = service;
-			_metadataProvider = new JsonRpcServiceMetadataProvider(typeof(TService));
+			Service = service;
+			MetadataProvider = new JsonRpcServiceMetadataProvider(typeof(TService));
 		}
 
 		/// <summary>
@@ -46,13 +46,13 @@ namespace WalletWasabi.Gui.Rpc
 		/// <returns>The response that, after serialization, is returned as response.</returns>
 		public async Task<string> HandleAsync(string body, CancellationToken cancellationToken)
 		{			
-			if(!JsonRpcRequest.TryParse(body, out var jsonRpcRequest))
+			if (!JsonRpcRequest.TryParse(body, out var jsonRpcRequest))
 			{
 				return JsonRpcResponse.CreateErrorResponse(null, JsonRpcErrorCodes.ParseError).ToJson(DefaultSettings);
 			}
 			var methodName = jsonRpcRequest.Method;
 
-			if(!_metadataProvider.TryGetMetadata(methodName, out var prodecureMetadata))
+			if (!MetadataProvider.TryGetMetadata(methodName, out var prodecureMetadata))
 			{
 				return Error(JsonRpcErrorCodes.MethodNotFound, $"'{methodName}' method not found.", jsonRpcRequest.Id);
 			}
@@ -75,7 +75,7 @@ namespace WalletWasabi.Gui.Rpc
 					for (int i = 0; i < methodParameters.Count; i++)
 					{
 						var param = methodParameters[i];
-						if(!jobj.ContainsKey(param.name))
+						if (!jobj.ContainsKey(param.name))
 						{
 							return Error(JsonRpcErrorCodes.InvalidParams, 
 								$"A value for the '{param.name}' is missing.", jsonRpcRequest.Id);
@@ -89,7 +89,7 @@ namespace WalletWasabi.Gui.Rpc
 				if (parameters.Count == methodParameters.Count -1)
 				{
 					var position = methodParameters.FindIndex(x=>x.type == typeof(CancellationToken));
-					if(position > -1)
+					if (position > -1)
 					{
 						parameters.Insert(position, cancellationToken);
 					}
@@ -99,7 +99,7 @@ namespace WalletWasabi.Gui.Rpc
 					return Error(JsonRpcErrorCodes.InvalidParams, 
 						$"{methodParameters.Count} parameters were expected but {parameters.Count} were received.", jsonRpcRequest.Id);
 				}
-				var result =  prodecureMetadata.MethodInfo.Invoke(_service, parameters.ToArray());
+				var result =  prodecureMetadata.MethodInfo.Invoke(Service, parameters.ToArray());
 
 				if (jsonRpcRequest.IsNotification) // the client is not interested in getting a response
 				{
@@ -107,9 +107,9 @@ namespace WalletWasabi.Gui.Rpc
 				}
 
 				JsonRpcResponse response = null;
-				if(prodecureMetadata.MethodInfo.IsAsync())
+				if (prodecureMetadata.MethodInfo.IsAsync())
 				{
-					if(!prodecureMetadata.MethodInfo.ReturnType.IsGenericType)
+					if (!prodecureMetadata.MethodInfo.ReturnType.IsGenericType)
 					{
 						await (Task)result;
 						response = JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id, null);
@@ -139,9 +139,9 @@ namespace WalletWasabi.Gui.Rpc
 		private string Error(JsonRpcErrorCodes code, string reason, string id)
 		{
 			var response = JsonRpcResponse.CreateErrorResponse(id, code, reason);
-			return id == null 
-				? string.Empty 
-				: response.ToJson(DefaultSettings);
+			return id is {} 
+				? response.ToJson(DefaultSettings)
+				: string.Empty;
 		}
 	}
 }
