@@ -73,7 +73,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 		{
 			var global = Locator.Current.GetService<Global>();
 
-			var walletManagerViewModel = IoC.Get<IShell>().GetOrCreateByType<WalletManagerViewModel>();
+			var walletManagerViewModel = IoC.Get<IShell>().GetOrCreate<WalletManagerViewModel>();
 			if (Directory.Exists(global.WalletsDir) && Directory.EnumerateFiles(global.WalletsDir).Any())
 			{
 				walletManagerViewModel.SelectLoadWallet();
