@@ -134,7 +134,7 @@ namespace NBitcoin
 			foreach (var o in me.GetIndistinguishableOutputs(includeSingle: false))
 			{
 				// Number of participants (o.count) gained (o.count) anonymity for (o.value.ToDecimal(MoneyUnit.BTC)) bitcoins.
-				wcq += o.count * o.count * o.value.ToDecimal(MoneyUnit.BTC);
+				wcq += o.count * o.value.ToDecimal(MoneyUnit.BTC);
 			}
 			return wcq;
 		}
