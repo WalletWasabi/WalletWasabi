@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator.Banning;
+using WalletWasabi.CoinJoin.Coordinator.Dynamic;
 using WalletWasabi.CoinJoin.Coordinator.Participants;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Crypto;
@@ -30,13 +31,6 @@ namespace WalletWasabi.CoinJoin.Coordinator
 		private AsyncLock CoinJoinsLock { get; }
 
 		private List<uint256> UnconfirmedCoinJoins { get; }
-		public Transaction LastCoinJoin { get; private set; }
-
-		/// <summary>
-		/// true: increased
-		/// false: decreased
-		/// </summary>
-		public bool LastTimeoutAdjustmentDirection { get; private set; } = true;
 
 		public event EventHandler<Transaction> CoinJoinBroadcasted;
 
@@ -49,6 +43,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 		public BlockNotifier BlockNotifier { get; }
 
 		public string FolderPath { get; }
+		public CoinJoinStatistics Stats { get; }
 
 		public UtxoReferee UtxoReferee { get; }
 
@@ -62,6 +57,8 @@ namespace WalletWasabi.CoinJoin.Coordinator
 
 			Rounds = new List<CoordinatorRound>();
 			RoundsListLock = new AsyncLock();
+
+			Stats = new CoinJoinStatistics(TimeSpan.FromDays(1));
 
 			CoinJoins = new List<uint256>();
 			UnconfirmedCoinJoins = new List<uint256>();
@@ -325,34 +322,47 @@ namespace WalletWasabi.CoinJoin.Coordinator
 								if (newDenominationToGetInWithactiveOutputs > Money.Coins(0.01m))
 								{
 									RoundConfig.Denomination = newDenominationToGetInWithactiveOutputs;
+									await RoundConfig.ToFileAsync().ConfigureAwait(false);
 								}
 							}
 						}
 
+						var newIntervalTriggered = Stats.Register(round.CoinJoin);
 						// Adjust timeout: https://github.com/zkSNACKs/WalletWasabi/issues/2940
-						// If there was no last coinjoin, don't touch the timeout.
-						if (LastCoinJoin is { })
+						if (newIntervalTriggered && Stats.GetAverageWcqs().Count() > 2)
 						{
-							// If the new coinjoin is better than the previous one then double down on the previous timeout adjustment, else reverse it.
-							var newIsBetter = round.CoinJoin.CalculateWasabiCoinJoinQuality() > LastCoinJoin.CalculateWasabiCoinJoinQuality();
-							if (!newIsBetter)
-							{
-								LastTimeoutAdjustmentDirection = !LastTimeoutAdjustmentDirection;
-							}
+							var lastTwo = Stats.GetAverageWcqs().TakeLast(2).ToArray();
+							var older = lastTwo[0];
+							var newer = lastTwo[1];
 
-							if (LastTimeoutAdjustmentDirection)
+							// If the older is better, then double down, else flip.
+							if (older > newer)
 							{
-								RoundConfig.InputRegistrationTimeout += 60;
+								if (Stats.LastTimeoutAdjustment == TimeoutAdjustment.Up)
+								{
+									RoundConfig.InputRegistrationTimeout = Math.Max(60, RoundConfig.InputRegistrationTimeout * (4 / 3));
+								}
+								else
+								{
+									RoundConfig.InputRegistrationTimeout = Math.Max(60, RoundConfig.InputRegistrationTimeout * (2 / 3));
+								}
+								await RoundConfig.ToFileAsync().ConfigureAwait(false);
 							}
-							else
+							else if (newer > older)
 							{
-								RoundConfig.InputRegistrationTimeout = Math.Max(60, RoundConfig.InputRegistrationTimeout - 60);
+								if (Stats.LastTimeoutAdjustment == TimeoutAdjustment.Up)
+								{
+									RoundConfig.InputRegistrationTimeout = Math.Max(60, RoundConfig.InputRegistrationTimeout * (2 / 3));
+									Stats.LastTimeoutAdjustment = TimeoutAdjustment.Down;
+								}
+								else
+								{
+									RoundConfig.InputRegistrationTimeout = Math.Max(60, RoundConfig.InputRegistrationTimeout * (4 / 3));
+									Stats.LastTimeoutAdjustment = TimeoutAdjustment.Up;
+								}
+								await RoundConfig.ToFileAsync().ConfigureAwait(false);
 							}
 						}
-						LastCoinJoin = round.CoinJoin;
-
-						// Serialize config (it's for updating the denomination, too, not only the inputreg timeout.
-						await RoundConfig.ToFileAsync().ConfigureAwait(false);
 					}
 				}
 
