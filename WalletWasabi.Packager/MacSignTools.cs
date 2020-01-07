@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace WalletWasabi.Packager
 {
@@ -16,7 +17,8 @@ namespace WalletWasabi.Packager
 				throw new NotSupportedException("This signing methon only valid on macOS!");
 			}
 
-			// Phase: finding the zip file on desktop which contains the compiled binaries from Windows.
+			Console.WriteLine("Phase: finding the zip file on desktop which contains the compiled binaries from Windows.");
+
 			string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
 			var srcZipFileNamePattern = "Wasabi-osx-*.zip";
@@ -36,17 +38,23 @@ namespace WalletWasabi.Packager
 			var resPath = Path.Combine(appPath, "Contents", "Resources");
 			var infoFilePath = Path.Combine(appPath, "Contents", "Info.plist");
 			var dmgFilePath = Path.Combine(workingDir, $"Wasabi-{versionPrefix}.dmg");
+			var appNotarizeFilePath = Path.Combine(workingDir, $"Wasabi-{versionPrefix}.zip");
 			var contentsPath = Path.GetFullPath(Path.Combine(Program.PackagerProjectDirectory.Replace("\\", "//"), "Content", "Osx"));
 			var entitlementsPath = Path.Combine(contentsPath, "entitlements.plist");
 
 			var signArguments = $"--sign \"L233B2JQ68\" --verbose --deep --force --options runtime --timestamp --entitlements \"{entitlementsPath}\"";
-			// Phase: creating the working directory.
+
+			Console.WriteLine("Phase: creating the working directory.");
+
+			Console.WriteLine("Enter appleId (email):");
+			var appleId = Console.ReadLine();
+			Console.WriteLine("Enter password:");
+			var password = Console.ReadLine();
 
 			IoHelpers.DeleteRecursivelyWithMagicDustAsync(workingDir).GetAwaiter().GetResult();
 			Directory.CreateDirectory(workingDir);
 
-
-			// Phase: creating the app.
+			Console.WriteLine("Phase: creating the app.");
 
 			IoHelpers.EnsureDirectoryExists(binPath);
 			ZipFile.ExtractToDirectory(zipPath, binPath); // Copy the binaries.
@@ -54,7 +62,7 @@ namespace WalletWasabi.Packager
 
 			IoHelpers.CopyFilesRecursively(new DirectoryInfo(Path.Combine(contentsPath, "App")), new DirectoryInfo(appPath));
 
-			// Update the plist file with current information for example with version.
+			Console.WriteLine("Update the plist file with current information for example with version.");
 
 			var lines = File.ReadAllLines(infoFilePath);
 			string bundleIdentifier = null;
@@ -80,7 +88,7 @@ namespace WalletWasabi.Packager
 			IoHelpers.DeleteRecursivelyWithMagicDustAsync(infoFilePath).GetAwaiter().GetResult();
 			File.WriteAllLines(infoFilePath, lines);
 
-			// Signing the files in app.
+			Console.WriteLine("Signing the files in app.");
 
 			if (!File.Exists(entitlementsPath))
 			{
@@ -97,7 +105,7 @@ namespace WalletWasabi.Packager
 				process.WaitForExit();
 			}
 
-			// Phase: verify the sign.
+			Console.WriteLine("Phase: verifying the signature.");
 
 			using (var process = Process.Start(new ProcessStartInfo
 			{
@@ -115,7 +123,14 @@ namespace WalletWasabi.Packager
 				}
 			}
 
-			// Phase: creating the dmg.
+			Console.WriteLine("Phase: notarize the app.");
+
+			ZipFile.CreateFromDirectory(appPath, appNotarizeFilePath);
+			Notarize(appleId, password, appNotarizeFilePath, bundleIdentifier);
+			Staple(appPath);
+
+			Console.WriteLine("Phase: creating the dmg.");
+			
 			if (File.Exists(dmgFilePath))
 			{
 				File.Delete(dmgFilePath);
@@ -137,6 +152,8 @@ namespace WalletWasabi.Packager
 				$"\"{appPath}\""
 			};
 
+			Console.WriteLine("Phase: creating dmg.");
+
 			using (var process = Process.Start(new ProcessStartInfo
 			{
 				FileName = "create-dmg",
@@ -147,7 +164,7 @@ namespace WalletWasabi.Packager
 				process.WaitForExit();
 			}
 
-			// Phase: signing the dmg file.
+			Console.WriteLine("Phase: signing the dmg file.");
 
 			using (var process = Process.Start(new ProcessStartInfo
 			{
@@ -159,7 +176,7 @@ namespace WalletWasabi.Packager
 				process.WaitForExit();
 			}
 
-			// Phase: verify the sign.
+			Console.WriteLine("Phase: verifying the signature.");
 
 			using (var process = Process.Start(new ProcessStartInfo
 			{
@@ -177,8 +194,13 @@ namespace WalletWasabi.Packager
 				}
 			}
 
+			Console.WriteLine("Phase: notarize dmg");
+			Notarize(appleId, password, dmgFilePath,bundleIdentifier);
 
+			Console.WriteLine("Phase: staple dmp");
+			Staple(dmgFilePath);
 
+			Console.WriteLine("Phase: finish.");
 		}
 
 		public static bool IsMacSignMode(string[] args)
@@ -200,6 +222,96 @@ namespace WalletWasabi.Packager
 			}
 
 			return macSign;
+		}
+
+		private static void Notarize(string appleId, string password, string filePath, string bundleIdentifier)
+		{
+			string uploadId = null;
+
+			Console.WriteLine("Start notarizing, uploading file.");
+
+			using (var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "xcrun",
+				Arguments = $"altool --notarize-app -t osx -f \"{filePath}\" --primary-bundle-id \"{bundleIdentifier}\" -u \"{appleId}\" -p \"{password}\" --output-format xml",
+				RedirectStandardOutput = true,
+			}))
+			{
+				process.WaitForExit();
+				string result = process.StandardOutput.ReadToEnd();
+
+				if (result.Contains("The software asset has already been uploaded. The upload ID is"))
+				{
+					// Example: The software asset has already been uploaded. The upload ID is 7689dc08-d6c8-4783-8d28-33e575f5c967
+					uploadId = result.Split('"').First(line => line.Contains("The software asset has already been uploaded.")).Split("The upload ID is").Last().Trim();
+				}
+				else if (result.Contains("No errors uploading"))
+				{
+					// Example: <key>RequestUUID</key>\n\t\t<string>2a2a164f-2ae7-4293-8357-5d5a5cdd580a</string>
+	
+					var lines = result.Split('\n');
+
+					for (int i = 0; i < lines.Length; i++)
+					{
+						string line = lines[i].Trim();
+						if (!line.TrimStart().StartsWith("<key>", StringComparison.InvariantCultureIgnoreCase))
+						{
+							continue;
+						}
+
+						if (line.Contains("<key>RequestUUID</key>", StringComparison.InvariantCulture))
+						{
+							uploadId = lines[i + 1].Trim().Replace("<string>", "").Replace("</string>", "");
+						}
+					}
+				}
+			}
+
+			if (uploadId is null)
+			{
+				throw new InvalidOperationException("Cannot get uploadId. Notarization failed.");
+			}
+
+			while (true) // Wait for the notarization.
+			{
+
+				Console.WriteLine("Checking notarization status.");
+				using var process = Process.Start(new ProcessStartInfo
+				{
+					FileName = "xcrun",
+					Arguments = $"altool --notarization-info \"{uploadId}\" -u \"{appleId}\" -p \"{password}\"",
+					RedirectStandardError = true,
+				});
+				process.WaitForExit();
+				string result = process.StandardError.ReadToEnd();
+				if (result.Contains("Status Message: Package Approved"))
+				{
+					break;
+				}
+				if (result.Contains("Status: in progress"))
+				{
+					Thread.Sleep(2000);
+					continue;
+				}
+				if (result.Contains("Could not find the RequestUUID"))
+				{
+					Thread.Sleep(2000);
+					continue;
+				}
+				
+				throw new InvalidOperationException(result);
+			}
+
+
+		}
+		private static void Staple(string filePath)
+		{
+			using var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "xcrun",
+				Arguments = $"stapler staple \"{filePath}\"",
+			});
+			process.WaitForExit();
 		}
 	}
 }
