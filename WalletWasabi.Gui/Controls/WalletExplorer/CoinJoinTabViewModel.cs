@@ -22,6 +22,7 @@ using WalletWasabi.Gui.Helpers;
 using System.Security;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using Splat;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -53,10 +54,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
 		{
+			Global = Locator.Current.GetService<Global>();
+
 			Password = "";
 			TimeLeftTillRoundTimeout = TimeSpan.Zero;
 
-			CoinsList = new CoinListViewModel(Global, CoinListContainerType.CoinJoinTabViewModel);
+			CoinsList = new CoinListViewModel(CoinListContainerType.CoinJoinTabViewModel);
 
 			Observable
 				.FromEventPattern<SmartCoin>(CoinsList, nameof(CoinsList.DequeueCoinsPressed))
@@ -127,6 +130,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
+
+		private Global Global { get; }
 
 		public override void OnOpen()
 		{

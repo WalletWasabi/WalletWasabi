@@ -7,6 +7,7 @@ using Avalonia.Xaml.Interactivity;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -75,7 +76,7 @@ namespace WalletWasabi.Gui.Behaviors
 
 		public PasteAddressOnClickBehavior()
 		{
-			Global = Application.Current.Resources[Global.GlobalResourceKey] as Global;
+			Global = Locator.Current.GetService<Global>();
 		}
 
 		protected override void OnAttached()
