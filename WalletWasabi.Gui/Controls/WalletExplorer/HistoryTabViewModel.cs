@@ -1,5 +1,6 @@
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -24,11 +25,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
+
+		private Global Global { get; }
+
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 
 		public HistoryTabViewModel(WalletViewModel walletViewModel)
 			: base("History", walletViewModel)
 		{
+			Global = Locator.Current.GetService<Global>();
+
 			Transactions = new ObservableCollection<TransactionViewModel>();
 
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);

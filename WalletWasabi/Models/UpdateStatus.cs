@@ -19,7 +19,7 @@ namespace WalletWasabi.Models
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is UpdateStatus updateStatus && this == updateStatus;
+		public override bool Equals(object obj) => Equals(obj as UpdateStatus);
 
 		public bool Equals(UpdateStatus other) => this == other;
 

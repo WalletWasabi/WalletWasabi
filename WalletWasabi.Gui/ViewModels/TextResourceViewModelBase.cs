@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private string _text;
 
-		protected TextResourceViewModelBase(Global global, string title, TextResource textResource) : base(global, title)
+		protected TextResourceViewModelBase(string title, TextResource textResource) : base(title)
 		{
 			Text = "";
 			TextResource = Guard.NotNull(nameof(textResource), textResource);

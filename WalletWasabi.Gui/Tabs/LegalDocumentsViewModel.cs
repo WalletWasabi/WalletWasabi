@@ -22,7 +22,7 @@ namespace WalletWasabi.Gui.Tabs
 
 		public bool IsAgreed { get; set; }
 
-		public LegalDocumentsViewModel(Global global, string content = null, LegalDocuments legalDoc = null) : base(global, "Legal Documents", new TextResource() { FilePath = legalDoc?.FilePath, Content = content })
+		public LegalDocumentsViewModel(string content = null, LegalDocuments legalDoc = null) : base(global, "Legal Documents", new TextResource() { FilePath = legalDoc?.FilePath, Content = content })
 		{
 			LegalDoc = legalDoc;
 			IsAgreed = content is null; // If content wasn't provided, then the filepath must had been provided. If the file exists, then it's agreed.

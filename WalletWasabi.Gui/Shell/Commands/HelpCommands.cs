@@ -19,16 +19,13 @@ namespace WalletWasabi.Gui.Shell.Commands
 {
 	internal class HelpCommands
 	{
-		public Global Global { get; }
-
 		[ImportingConstructor]
-		public HelpCommands(CommandIconService commandIconService, AvaloniaGlobalComponent global)
+		public HelpCommands(CommandIconService commandIconService)
 		{
-			Global = global.Global;
 			AboutCommand = new CommandDefinition(
 				"About",
 				commandIconService.GetCompletionKindImage("About"),
-				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global))));
+				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel())));
 
 			CustomerSupportCommand = new CommandDefinition(
 				"Customer Support",
@@ -42,7 +39,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 						catch (Exception ex)
 						{
 							Logger.LogWarning(ex);
-							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
+							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
 						}
 					}));
 
@@ -58,7 +55,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 						catch (Exception ex)
 						{
 							Logger.LogWarning(ex);
-							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
+							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
 						}
 					}));
 
@@ -74,14 +71,14 @@ namespace WalletWasabi.Gui.Shell.Commands
 						catch (Exception ex)
 						{
 							Logger.LogWarning(ex);
-							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
+							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
 						}
 					}));
 
 			LegalDocumentsCommand = new CommandDefinition(
 				"Legal Documents",
 				commandIconService.GetCompletionKindImage("LegalDocuments"),
-				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(Global, legalDoc: Global?.LegalDocuments))));
+				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(Global?.LegalDocuments))));
 
 			Observable
 				.Merge(AboutCommand.GetReactiveCommand().ThrownExceptions)

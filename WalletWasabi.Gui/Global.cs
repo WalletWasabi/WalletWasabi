@@ -41,10 +41,6 @@ namespace WalletWasabi.Gui
 {
 	public class Global
 	{
-		public const string GlobalResourceKey = "Wasabi.Ui.Global";
-		public const string ConfigResourceKey = "Wasabi.Ui.Config";
-		public const string UiConfigResourceKey = "Wasabi.Ui.UiConfig";
-
 		public const string ThemeBackgroundBrushResourceKey = "ThemeBackgroundBrush";
 		public const string ApplicationAccentForegroundBrushResourceKey = "ApplicationAccentForegroundBrush";
 

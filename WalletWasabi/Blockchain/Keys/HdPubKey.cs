@@ -117,7 +117,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 		#region Equality
 
-		public override bool Equals(object obj) => obj is HdPubKey pubKey && this == pubKey;
+		public override bool Equals(object obj) => Equals(obj as HdPubKey);
 
 		public bool Equals(HdPubKey other) => this == other;
 

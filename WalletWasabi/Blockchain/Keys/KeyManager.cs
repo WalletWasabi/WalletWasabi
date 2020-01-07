@@ -179,7 +179,7 @@ namespace WalletWasabi.Blockchain.Keys
 			return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, true, minGapLimit, new BlockchainState(), filePath, keyPath);
 		}
 
-		public void SetMinGapLimit(int? minGapLimit)
+		private void SetMinGapLimit(int? minGapLimit)
 		{
 			MinGapLimit = minGapLimit is int val ? Math.Max(AbsoluteMinGapLimit, val) : AbsoluteMinGapLimit;
 			// AssertCleanKeysIndexed(); Do not do this. Wallet file is null yet.
@@ -206,7 +206,7 @@ namespace WalletWasabi.Blockchain.Keys
 					}
 		}
 
-		public void ToFileNoBlockchainStateLock()
+		private void ToFileNoBlockchainStateLock()
 		{
 			lock (HdPubKeysLock)
 				lock (ToFileLock)
@@ -532,29 +532,29 @@ namespace WalletWasabi.Blockchain.Keys
 
 		public int CountConsecutiveCleanKeys(bool isInternal)
 		{
-			var keys = GetKeys(KeyState.Clean, isInternal).OrderBy(x => x.Index).ToArray();
-			var keyCount = keys.Length;
-			if (keyCount < 2)
-			{
-				return keyCount;
-			}
+			var keyIndexes = GetKeys(KeyState.Clean, isInternal).Select(x => x.Index).ToArray();
 
-			var largerConsecutiveSequence = 1;
-			var consecutives = 1;
-			for (int i = 1; i < keyCount; i++)
+			var hs = keyIndexes.ToHashSet();
+			int largerConsecutiveSequence = 0;
+
+			for (int i = 0; i < keyIndexes.Length; ++i)
 			{
-				if (keys[i].Index == keys[i - 1].Index + 1)
+				if (!hs.Contains(keyIndexes[i] - 1))
 				{
-					consecutives++;
-				}
-				else if (consecutives > largerConsecutiveSequence)
-				{
-					largerConsecutiveSequence = consecutives;
-					consecutives = 1;
+					int j = keyIndexes[i];
+					while (hs.Contains(j))
+					{
+						j++;
+					}
+
+					var sequenceLength = j - keyIndexes[i];
+					if (largerConsecutiveSequence < sequenceLength)
+					{
+						largerConsecutiveSequence = sequenceLength;
+					}
 				}
 			}
-
-			return Math.Max(consecutives, largerConsecutiveSequence);
+			return largerConsecutiveSequence;
 		}
 
 		public IEnumerable<byte[]> GetPubKeyScriptBytes()
