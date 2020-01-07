@@ -27,6 +27,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<bool> _unspent;
 		private ObservableAsPropertyHelper<bool> _confirmed;
 		private ObservableAsPropertyHelper<bool> _unavailable;
+		private ObservableAsPropertyHelper<string> _cluster;
 		private ObservableAsPropertyHelper<string> _expandMenuCaption;
 		private bool _isExpanded;
 		public ReactiveCommand<Unit, bool> ToggleDetails { get; }
@@ -62,6 +63,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_confirmed = Model
 				.WhenAnyValue(x => x.Confirmed)
 				.ToProperty(this, x => x.Confirmed, scheduler: RxApp.MainThreadScheduler)
+				.DisposeWith(Disposables);
+
+			_cluster = Model
+				.WhenAnyValue(x => x.Clusters, x => x.Clusters.Labels)
+				.Select(x => x.Item2.ToString())
+				.ToProperty(this, x => x.Clusters, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
 			_unavailable = Model
@@ -168,8 +175,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string AmountBtc => Model.Amount.ToString(false, true);
 
-		public string Label => Model.Label;
-
 		public int Height => Model.Height;
 
 		public string TransactionId => Model.TransactionId.ToString();
@@ -180,7 +185,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string InCoinJoin => Model.CoinJoinInProgress ? "Yes" : "No";
 
-		public string Clusters => Model.Clusters.Labels; // If the value is null the bind do not update the view. It shows the previous state for example: ##### even if PrivMode false.
+		public string Clusters => _cluster?.Value ?? "";
 
 		public string PubKey => Model.HdPubKey?.PubKey?.ToString() ?? "";
 

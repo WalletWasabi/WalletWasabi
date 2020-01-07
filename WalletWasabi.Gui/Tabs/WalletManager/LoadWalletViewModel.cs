@@ -482,6 +482,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 							await EnumerateHardwareWalletsAsync();
 							selectedWallet = Wallets.FirstOrDefault(x => x.HardwareWalletInfo.Model == selectedWallet.HardwareWalletInfo.Model && x.HardwareWalletInfo.Path == selectedWallet.HardwareWalletInfo.Path);
 						}
+						if (!selectedWallet.HardwareWalletInfo.Fingerprint.HasValue)
+						{
+							throw new InvalidOperationException("Hardware wallet did not provide fingerprint.");
+						}
 						KeyManager.CreateNewHardwareWalletWatchOnly(selectedWallet.HardwareWalletInfo.Fingerprint.Value, extPubKey, path);
 					}
 				}

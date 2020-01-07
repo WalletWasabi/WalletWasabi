@@ -49,7 +49,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					LabelSuggestion.Label = label;
 					if (label.IsEmpty)
 					{
-						NotificationHelpers.Warning("Label is required.");
+						NotificationHelpers.Warning("Observers are required.");
 						return;
 					}
 

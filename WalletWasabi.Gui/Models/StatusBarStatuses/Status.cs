@@ -58,7 +58,7 @@ namespace WalletWasabi.Gui.Models.StatusBarStatuses
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is Status rpcStatus && this == rpcStatus;
+		public override bool Equals(object obj) => Equals(obj as Status);
 
 		public bool Equals(Status other) => this == other;
 

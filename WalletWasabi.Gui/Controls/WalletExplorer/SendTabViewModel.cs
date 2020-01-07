@@ -246,7 +246,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					LabelSuggestion.Label = label;
 					if (!IsMax && label.IsEmpty)
 					{
-						NotificationHelpers.Warning($"{nameof(LabelSuggestion.Label)} is required.", "");
+						NotificationHelpers.Warning("Observers are required.", "");
 						return;
 					}
 
