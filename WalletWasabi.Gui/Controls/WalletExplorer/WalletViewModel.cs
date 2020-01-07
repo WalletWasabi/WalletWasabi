@@ -42,7 +42,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			var global = Locator.Current.GetService<Global>();
 
-			_title = Path.GetFileNameWithoutExtension(global.WalletService.KeyManager.FilePath);
+			Title = Path.GetFileNameWithoutExtension(global.WalletService.KeyManager.FilePath);
 
 			WalletService = global.WalletService;
 			var keyManager = WalletService.KeyManager;
