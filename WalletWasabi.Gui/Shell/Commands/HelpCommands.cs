@@ -5,6 +5,7 @@ using AvalonStudio.Commands;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Composition;
 using System.IO;
@@ -78,7 +79,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 			LegalDocumentsCommand = new CommandDefinition(
 				"Legal Documents",
 				commandIconService.GetCompletionKindImage("LegalDocuments"),
-				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(Global?.LegalDocuments))));
+				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(legalDoc: Locator.Current.GetService<Global>()?.LegalDocuments))));
 
 			Observable
 				.Merge(AboutCommand.GetReactiveCommand().ThrownExceptions)

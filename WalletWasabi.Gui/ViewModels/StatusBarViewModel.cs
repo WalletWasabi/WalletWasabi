@@ -271,7 +271,7 @@ namespace WalletWasabi.Gui.ViewModels
 						{
 							var legalResp = await LegalDocuments.FetchLatestAsync(Global.DataDir, () => Global.Config.GetCurrentBackendUri(), Global.Config.TorSocks5EndPoint, CancellationToken.None);
 
-							IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(Global, legalResp.content, legalResp.legalDocuments));
+							IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(legalResp.content, legalResp.legalDocuments));
 						}
 					}
 					finally
