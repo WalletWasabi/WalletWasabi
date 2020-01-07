@@ -17,7 +17,7 @@
 	<key>CFBundleVersion</key>
 	<string>?</string>
 	<key>CFBundleExecutable</key>
-	<string>WalletWasabi.Gui</string>
+	<string>wassabee</string>
 	<key>CFBundleName</key>
 	<string>Wasabi Wallet</string>
 	<key>CFBundleIdentifier</key>
