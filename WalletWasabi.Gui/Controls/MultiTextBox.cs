@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -191,7 +192,7 @@ namespace WalletWasabi.Gui.Controls
 			try
 			{
 				var eventArgs = eventPattern?.EventArgs as PointerPressedEventArgs;
-				var uiConfig = Application.Current.Resources[Global.UiConfigResourceKey] as UiConfig;
+				var uiConfig = Locator.Current.GetService<Global>().UiConfig;
 				if (uiConfig?.Autocopy is true && eventArgs?.GetCurrentPoint(this).Properties.IsLeftButtonPressed == true)
 				{
 					if (CopyOnClick)
