@@ -104,7 +104,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			: base(isTransactionBuilder ? "Build Transaction" : "Send", walletViewModel)
 		{
 			Global = Locator.Current.GetService<Global>();
-			LabelSuggestion = new SuggestLabelViewModel(Global);
+			LabelSuggestion = new SuggestLabelViewModel();
 			IsTransactionBuilder = isTransactionBuilder;
 			BuildTransactionButtonText = IsTransactionBuilder ? BuildTransactionButtonTextString : SendTransactionButtonTextString;
 
