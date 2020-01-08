@@ -18,9 +18,9 @@ namespace WalletWasabi.Gui.Shell.Commands
 		{
 			var onOpenDataFolder = ReactiveCommand.Create(OnOpenDataFolder);
 			var onOpenWalletsFolder = ReactiveCommand.Create(OnOpenWalletsFolder);
-			var onOpenLogFile = ReactiveCommand.Create(OnOpenLogFileAsync);
-			var onOpenTorLogFile = ReactiveCommand.Create(OnOpenTorLogFileAsync);
-			var onOpenConfigFile = ReactiveCommand.Create(OnOpenConfigFileAsync);
+			var onOpenLogFile = ReactiveCommand.CreateFromTask(OnOpenLogFileAsync);
+			var onOpenTorLogFile = ReactiveCommand.CreateFromTask(OnOpenTorLogFileAsync);
+			var onOpenConfigFile = ReactiveCommand.CreateFromTask(OnOpenConfigFileAsync);
 
 			Observable
 				.Merge(onOpenConfigFile.ThrownExceptions)
