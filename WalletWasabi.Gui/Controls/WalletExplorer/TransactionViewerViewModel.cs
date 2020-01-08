@@ -5,6 +5,7 @@ using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.IO;
 using System.Linq;
@@ -23,6 +24,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	public class TransactionViewerViewModel : WalletActionViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
+		private Global Global { get; }
 
 		private string _txId;
 		private string _psbtJsonText;
@@ -66,7 +68,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public TransactionViewerViewModel(WalletViewModel walletViewModel) : base("Transaction", walletViewModel)
 		{
-			OpenTransactionBroadcaster = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel(Global)));
+			Global = Locator.Current.GetService<Global>();
+
+			OpenTransactionBroadcaster = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel()));
 			ExportBinaryPsbt = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var psbtExtension = "psbt";

@@ -23,13 +23,13 @@
               <StackPanel Orientation="Vertical" Spacing="5">
                 <StackPanel Margin="0 10" Spacing="5">
                   <TextBlock>Network</TextBlock>
-                  <DropDown Items="{Binding Networks}" SelectedItem="{Binding Network}">
-                    <DropDown.ItemTemplate>
+                  <ComboBox Items="{Binding Networks}" SelectedItem="{Binding Network}">
+                    <ComboBox.ItemTemplate>
                       <DataTemplate>
                         <TextBlock Text="{Binding Converter={StaticResource NetworkStringConverter}}" />
                       </DataTemplate>
-                    </DropDown.ItemTemplate>
-                  </DropDown>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
                 </StackPanel>
                 <controls:GroupBox Title="{Binding BitcoinCoreVersion, StringFormat=Local Bitcoin Core v\{0\}, Converter={StaticResource VersionStringConverter}}" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
                   <StackPanel Orientation="Vertical" Spacing="5">

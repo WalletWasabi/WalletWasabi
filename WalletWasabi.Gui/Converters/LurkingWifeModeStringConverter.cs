@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Data.Converters;
 using NBitcoin;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -13,7 +14,7 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			var uiConfig = Application.Current.Resources[Global.UiConfigResourceKey] as UiConfig;
+			var uiConfig = Locator.Current.GetService<Global>().UiConfig;
 			if (uiConfig.LurkingWifeMode is true)
 			{
 				int len = 10;

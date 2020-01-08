@@ -49,11 +49,42 @@
 # 5. Notify
 
 1. Refresh website download and signature links.
-2. Update InstallationGuide and DeterministicBuildGuide download links, [here](https://github.com/molnard/WasabiDoc/blob/master/docs/.vuepress/variables.js#L3)
+2. Update InstallationGuide and DeterministicBuildGuide download links, [here](https://github.com/zkSNACKs/WasabiDoc/blob/master/docs/.vuepress/variables.js)
 3. Make sure CI and CodeFactor checks out.
 4. [Deploy testnet and mainnet backend.](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/BackendDeployment.md#update)
 
-# 6. Update `backport` branch
+# 6. Announce
+
+1. [Twitter](https://twitter.com) (tag @wasabiwallet #Bitcoin #Privacy).
+2. Submit to [/r/WasabiWallet](https://old.reddit.com/r/WasabiWallet/) and [/r/Bitcoin](https://old.reddit.com/r/Bitcoin/).
+
+# 7. Backporting
+
+Backport is a branch. It is used for creating silent releases (hotfixes, small improvements) on top of the last released version. For this reason it has to be maintained with special care. 
+
+## Merge PR into backport
+
+1. There is a PR which is merged to master and selected to backport. 
+2. Checkout the current backport branch to a new local branch like bp_whatever: `git checkout -b bp_whatever upstream/backport`
+3. Go to the merged PR / Commits and copy the hash of the commit.
+4. Cherry pick: 
+`git cherry-pick 35c4db348__hash of the commit__06abcd9278c`
+5. git push origin bp_whatever.
+6. Create a PR into upstream/backport name it as: [Backport] Whatever.
+
+Notes:
+- In Backport the index.html does not need to be maintained.
+
+## Create squash commit
+Squash commit makes cherry-picking easier as you only need to do that for one commit. Squash commit "merge" together multiple commits. GitHub has an easy solution to do this. 
+
+1. Merge the PR into the master as usually.
+2. Revert the merge.
+3. Revert the reverted merge, so the original PR will be in the master.
+4. Go to the PR which reverted the revert you will find the only one commit there - it will be the squash commit.
+5. Cherry pick the squash commit into backport.
+
+## Rebase backport after release
 
 If it's a major release, then the backport branch must be rebased, so we can start backporting stuff.
 
@@ -62,10 +93,4 @@ git checkout --track upstream/backport
 git rebase upstream/master
 git push -u upstream/backport
 ```
-
-# 7. Announce
-
-1. [Twitter](https://twitter.com) (tag @wasabiwallet #Bitcoin #Privacy).
-2. Submit to [/r/WasabiWallet](https://old.reddit.com/r/WasabiWallet/) and [/r/Bitcoin](https://old.reddit.com/r/Bitcoin/).
-
 

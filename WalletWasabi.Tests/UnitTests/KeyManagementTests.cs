@@ -167,6 +167,35 @@ namespace WalletWasabi.Tests.UnitTests
 			}
 		}
 
+		[Fact]
+		public void GapCountingTests()
+		{
+			var km = KeyManager.CreateNew(out _, "");
+			Assert.Equal(0, km.CountConsecutiveCleanKeys(true));
+			Assert.Equal(0, km.CountConsecutiveCleanKeys(false));
+
+			var k = km.GenerateNewKey("", KeyState.Clean, true);
+			Assert.Equal(1, km.CountConsecutiveCleanKeys(true));
+
+			km.GenerateNewKey("", KeyState.Locked, true);
+			Assert.Equal(1, km.CountConsecutiveCleanKeys(true));
+
+			k.SetKeyState(KeyState.Used);
+			Assert.Equal(0, km.CountConsecutiveCleanKeys(true));
+
+			for (int i = 0; i < 100; i++)
+			{
+				var k2 = km.GenerateNewKey("", KeyState.Clean, true);
+				if (i == 50)
+				{
+					k = k2;
+				}
+			}
+			Assert.Equal(100, km.CountConsecutiveCleanKeys(true));
+			k.SetKeyState(KeyState.Locked);
+			Assert.Equal(50, km.CountConsecutiveCleanKeys(true));
+		}
+
 		private static void DeleteFileAndDirectoryIfExists(string filePath)
 		{
 			var dir = Path.GetDirectoryName(filePath);

@@ -13,6 +13,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Models;
 using WalletWasabi.Gui.Helpers;
 using System.Reactive.Linq;
+using Splat;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -27,8 +28,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _extendedAccountPrivateKey;
 		private string _extendedAccountZprv;
 
+		private Global Global { get; }
+
 		public WalletInfoViewModel(WalletViewModel walletViewModel) : base(walletViewModel.Name, walletViewModel)
 		{
+			Global = Locator.Current.GetService<Global>();
+
 			ClearSensitiveData(true);
 
 			ToggleSensitiveKeysCommand = ReactiveCommand.Create(() =>

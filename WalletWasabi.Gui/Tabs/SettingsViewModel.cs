@@ -19,6 +19,7 @@ using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Logging;
+using Splat;
 
 namespace WalletWasabi.Gui.Tabs
 {
@@ -46,6 +47,8 @@ namespace WalletWasabi.Gui.Tabs
 		private ObservableAsPropertyHelper<bool> _isPinSet;
 
 		public bool IsPinSet => _isPinSet?.Value ?? false;
+
+		private Global Global { get; }
 		private AsyncLock ConfigLock { get; } = new AsyncLock();
 
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
@@ -53,8 +56,10 @@ namespace WalletWasabi.Gui.Tabs
 		public ReactiveCommand<Unit, Unit> SetClearPinCommand { get; }
 		public ReactiveCommand<Unit, Unit> TextBoxLostFocusCommand { get; }
 
-		public SettingsViewModel(Global global) : base(global, "Settings")
+		public SettingsViewModel() : base("Settings")
 		{
+			Global = Locator.Current.GetService<Global>();
+
 			Autocopy = Global.UiConfig?.Autocopy is true;
 			CustomFee = Global.UiConfig?.IsCustomFee is true;
 

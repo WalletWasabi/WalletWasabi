@@ -18,6 +18,7 @@ using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
+using Splat;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -27,26 +28,28 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
-		private SuggestLabelViewModel _labelSuggestion;
+
+		private Global Global { get; }
 
 		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
 
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
 		{
-			_labelSuggestion = new SuggestLabelViewModel(Global);
+			Global = Locator.Current.GetService<Global>();
+			LabelSuggestion = new SuggestLabelViewModel();
 			_addresses = new ObservableCollection<AddressViewModel>();
-			_labelSuggestion.Label = "";
+			LabelSuggestion.Label = "";
 
 			InitializeAddresses();
 
 			GenerateCommand = ReactiveCommand.Create(() =>
 				{
-					var label = new SmartLabel(_labelSuggestion.Label);
-					_labelSuggestion.Label = label;
+					var label = new SmartLabel(LabelSuggestion.Label);
+					LabelSuggestion.Label = label;
 					if (label.IsEmpty)
 					{
-						NotificationHelpers.Warning("Label is required.");
+						NotificationHelpers.Warning("Observers are required.");
 						return;
 					}
 
@@ -60,10 +63,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							 NotificationHelpers.Warning($"{nameof(KeyManager.MinGapLimit)} increased from {prevMinGapLimit} to {minGapLimit}.");
 						 }
 
-						 var newAddress = new AddressViewModel(newKey, Global, KeyManager);
+						 var newAddress = new AddressViewModel(newKey, KeyManager);
 						 Addresses.Insert(0, newAddress);
 						 SelectedAddress = newAddress;
-						 _labelSuggestion.Label = "";
+						 LabelSuggestion.Label = "";
 					 });
 				});
 
@@ -88,7 +91,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 		}
 
-		public SuggestLabelViewModel LabelSuggestion => _labelSuggestion;
+		public SuggestLabelViewModel LabelSuggestion { get; }
 
 		public override void OnOpen()
 		{
@@ -121,7 +124,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				IEnumerable<HdPubKey> keys = KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
 				foreach (HdPubKey key in keys)
 				{
-					_addresses.Add(new AddressViewModel(key, Global, KeyManager));
+					_addresses.Add(new AddressViewModel(key, KeyManager));
 				}
 			}
 			catch (Exception ex)

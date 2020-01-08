@@ -4,6 +4,7 @@ using AvalonStudio.Shell;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -42,6 +43,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private CompositeDisposable Disposables { get; set; }
 
+		private Global Global { get; }
+
 		private string _buildTransactionButtonText;
 		private bool _isMax;
 		private string _amountText;
@@ -76,8 +79,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isSliderFeeUsed = true;
 		private double _feeControlOpacity;
 
-		private SuggestLabelViewModel _labelSuggestion;
-
 		private FeeDisplayFormat FeeDisplayFormat
 		{
 			get => _feeDisplayFormat;
@@ -90,7 +91,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void ResetUi()
 		{
-			_labelSuggestion.Reset();
+			LabelSuggestion.Reset();
 			Address = "";
 			Password = "";
 			AllSelectedAmount = Money.Zero;
@@ -102,14 +103,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public SendTabViewModel(WalletViewModel walletViewModel, bool isTransactionBuilder = false)
 			: base(isTransactionBuilder ? "Build Transaction" : "Send", walletViewModel)
 		{
-			_labelSuggestion = new SuggestLabelViewModel(Global);
+			Global = Locator.Current.GetService<Global>();
+			LabelSuggestion = new SuggestLabelViewModel();
 			IsTransactionBuilder = isTransactionBuilder;
 			BuildTransactionButtonText = IsTransactionBuilder ? BuildTransactionButtonTextString : SendTransactionButtonTextString;
 
 			ResetUi();
 			SetAmountWatermark(Money.Zero);
 
-			CoinList = new CoinListViewModel(Global, CoinListContainerType.SendTabViewModel);
+			CoinList = new CoinListViewModel(CoinListContainerType.SendTabViewModel);
 
 			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -224,7 +226,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SmartLabel label = url.Label;
 				if (!label.IsEmpty)
 				{
-					_labelSuggestion.Label = label;
+					LabelSuggestion.Label = label;
 				}
 
 				if (url.Amount != null)
@@ -240,11 +242,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					IsBusy = true;
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.BuildingTransaction);
 
-					var label = new SmartLabel(_labelSuggestion.Label);
-					_labelSuggestion.Label = label;
+					var label = new SmartLabel(LabelSuggestion.Label);
+					LabelSuggestion.Label = label;
 					if (!IsMax && label.IsEmpty)
 					{
-						NotificationHelpers.Warning($"{nameof(_labelSuggestion.Label)} is required.", "");
+						NotificationHelpers.Warning("Observers are required.", "");
 						return;
 					}
 
@@ -380,7 +382,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							}
 							catch (HwiException)
 							{
-								await PinPadViewModel.UnlockAsync(Global);
+								await PinPadViewModel.UnlockAsync();
 								signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
 							}
 							signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction);
@@ -464,7 +466,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 		}
 
-		public SuggestLabelViewModel LabelSuggestion => _labelSuggestion;
+		public SuggestLabelViewModel LabelSuggestion { get; }
 
 		private void SetSendText()
 		{

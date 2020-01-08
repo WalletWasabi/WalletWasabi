@@ -5,6 +5,7 @@ using AvalonStudio.Documents;
 using AvalonStudio.Extensibility;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.IO;
 using System.Linq;
@@ -31,6 +32,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _caretIndex;
 
 		private CompositeDisposable Disposables { get; set; }
+
+		private Global Global { get; }
+
 		public ReactiveCommand<Unit, Unit> PasteCommand { get; set; }
 		public ReactiveCommand<Unit, Unit> BroadcastTransactionCommand { get; set; }
 		public ReactiveCommand<Unit, Unit> ImportTransactionCommand { get; set; }
@@ -59,8 +63,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
 		}
 
-		public TransactionBroadcasterViewModel(Global global) : base(global, "Transaction Broadcaster")
+		public TransactionBroadcasterViewModel() : base("Transaction Broadcaster")
 		{
+			Global = Locator.Current.GetService<Global>();
+
 			ButtonText = "Broadcast Transaction";
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () =>

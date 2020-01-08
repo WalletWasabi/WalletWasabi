@@ -23,8 +23,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private LoadWalletViewModel LoadWalletViewModelDesktop { get; }
 		private LoadWalletViewModel LoadWalletViewModelHardware { get; }
 
-		[ImportingConstructor]
-		public WalletManagerViewModel(AvaloniaGlobalComponent global) : base(global.Global, "Wallet Manager")
+		public WalletManagerViewModel() : base("Wallet Manager")
 		{
 			LoadWalletViewModelDesktop = new LoadWalletViewModel(this, LoadWalletType.Desktop);
 			LoadWalletViewModelHardware = new LoadWalletViewModel(this, LoadWalletType.Hardware);

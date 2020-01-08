@@ -8,10 +8,10 @@ namespace WalletWasabi.Helpers
 {
 	public static class Constants
 	{
-		public static readonly Version ClientVersion = new Version(1, 1, 10, 0);
+		public static readonly Version ClientVersion = new Version(1, 1, 10, 2);
 		public const string BackendMajorVersion = "3";
 		public static readonly Version HwiVersion = new Version("1.0.3");
-		public static readonly Version BitcoinCoreVersion = new Version("0.18.1");
+		public static readonly Version BitcoinCoreVersion = new Version("0.19.0.1");
 
 		/// <summary>
 		/// By changing this, we can force to start over the transactions file, so old incorrect transactions would be cleared.
