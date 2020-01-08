@@ -42,17 +42,17 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnGenerateWallet()
 		{
-			IoC.Get<IShell>().GetOrCreate<WalletManagerViewModel>().SelectGenerateWallet();
+			IoC.Get<IShell>().GetOrCreateByType<WalletManagerViewModel>().SelectGenerateWallet();
 		}
 
 		private void OnRecoverWallet()
 		{
-			IoC.Get<IShell>().GetOrCreate<WalletManagerViewModel>().SelectRecoverWallet();
+			IoC.Get<IShell>().GetOrCreateByType<WalletManagerViewModel>().SelectRecoverWallet();
 		}
 
 		private void OnLoadWallet()
 		{
-			IoC.Get<IShell>().GetOrCreate<WalletManagerViewModel>().SelectLoadWallet();
+			IoC.Get<IShell>().GetOrCreateByType<WalletManagerViewModel>().SelectLoadWallet();
 		}
 
 		[ExportCommandDefinition("File.GenerateWallet")]
