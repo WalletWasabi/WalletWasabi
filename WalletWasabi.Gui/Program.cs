@@ -42,7 +42,7 @@ namespace WalletWasabi.Gui
 					return;
 				}
 
-				if (await Global.InitializeUiConfigAsync())
+				if (Global.InitializeUiConfigAsync().Result)
 				{
 					Logger.LogInfo($"{nameof(Global.UiConfig)} is successfully initialized.");
 				}
