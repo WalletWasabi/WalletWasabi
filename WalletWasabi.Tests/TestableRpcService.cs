@@ -5,7 +5,7 @@ using WalletWasabi.Gui.Rpc;
 
 namespace WalletWasabi.Tests
 {
-	internal class TesteableRpcService
+	internal class TestableRpcService
 	{
 		public void UnpublishedProcedure()
 		{

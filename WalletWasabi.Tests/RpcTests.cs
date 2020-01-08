@@ -14,7 +14,7 @@ namespace WalletWasabi.Tests
 		[MemberData(nameof(RequestResponse))]
 		public async Task ParsingRequestTestsAsync(string request, string expectedResponse)
 		{
-			var handler = new JsonRpcRequestHandler<TesteableRpcService>(new TesteableRpcService());
+			var handler = new JsonRpcRequestHandler<TestableRpcService>(new TestableRpcService());
 
 			var response = await handler.HandleAsync(request, CancellationToken.None);
 			Assert.Equal(expectedResponse, response);
