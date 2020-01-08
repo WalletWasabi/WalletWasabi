@@ -8,7 +8,6 @@ using Xunit;
 
 namespace WalletWasabi.Tests
 {
-
 	public class RpcTests
 	{
 		[Theory]

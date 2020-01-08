@@ -5,9 +5,11 @@ using WalletWasabi.Gui.Rpc;
 
 namespace WalletWasabi.Tests
 {
-	class TesteableRpcService
+	internal class TesteableRpcService
 	{
-		public void UnpublishedProcedure() { }
+		public void UnpublishedProcedure()
+		{
+		}
 
 		[JsonRpcMethod("say")]
 		public string Echo(string text) => text;
