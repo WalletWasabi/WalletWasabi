@@ -53,7 +53,7 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is Cluster clus && this == clus;
+		public override bool Equals(object obj) => Equals(obj as Cluster);
 
 		public bool Equals(Cluster other) => this == other;
 

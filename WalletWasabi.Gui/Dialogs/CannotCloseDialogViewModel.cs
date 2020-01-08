@@ -1,6 +1,7 @@
 using Avalonia.Threading;
 using AvalonStudio.Extensibility.Dialogs;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Linq;
 using System.Reactive;
@@ -36,7 +37,7 @@ namespace WalletWasabi.Gui.Dialogs
 			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
 		}
 
-		private readonly Global Global;
+		private Global Global { get; }
 
 		public string OperationMessage
 		{
@@ -50,9 +51,9 @@ namespace WalletWasabi.Gui.Dialogs
 		//http://blog.stephencleary.com/2013/01/async-oop-2-constructors.html
 		public Task Initialization { get; private set; }
 
-		public CannotCloseDialogViewModel(Global global) : base("", false, false)
+		public CannotCloseDialogViewModel() : base("", false, false)
 		{
-			Global = global;
+			Global = Locator.Current.GetService<Global>();
 			OperationMessage = "Dequeuing coins...Please wait";
 			var canCancel = this.WhenAnyValue(x => x.IsBusy);
 			var canOk = this.WhenAnyValue(x => x.IsBusy, (isbusy) => !isbusy);

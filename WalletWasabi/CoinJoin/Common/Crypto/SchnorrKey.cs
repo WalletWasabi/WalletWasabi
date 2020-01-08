@@ -30,7 +30,7 @@ namespace WalletWasabi.CoinJoin.Common.Crypto
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is SchnorrKey schnorrKey && this == schnorrKey;
+		public override bool Equals(object obj) => Equals(obj as SchnorrKey);
 
 		public bool Equals(SchnorrKey other) => this == other;
 

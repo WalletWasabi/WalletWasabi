@@ -4,6 +4,7 @@ using AvalonStudio.Shell;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -41,6 +42,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	public class SendTabViewModel : WalletActionViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
+
+		private Global Global { get; }
 
 		private string _buildTransactionButtonText;
 		private bool _isMax;
@@ -100,14 +103,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public SendTabViewModel(WalletViewModel walletViewModel, bool isTransactionBuilder = false)
 			: base(isTransactionBuilder ? "Build Transaction" : "Send", walletViewModel)
 		{
-			LabelSuggestion = new SuggestLabelViewModel(Global);
+			Global = Locator.Current.GetService<Global>();
+			LabelSuggestion = new SuggestLabelViewModel();
 			IsTransactionBuilder = isTransactionBuilder;
 			BuildTransactionButtonText = IsTransactionBuilder ? BuildTransactionButtonTextString : SendTransactionButtonTextString;
 
 			ResetUi();
 			SetAmountWatermark(Money.Zero);
 
-			CoinList = new CoinListViewModel(Global, CoinListContainerType.SendTabViewModel);
+			CoinList = new CoinListViewModel(CoinListContainerType.SendTabViewModel);
 
 			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -378,7 +382,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							}
 							catch (HwiException)
 							{
-								await PinPadViewModel.UnlockAsync(Global);
+								await PinPadViewModel.UnlockAsync();
 								signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
 							}
 							signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction);
