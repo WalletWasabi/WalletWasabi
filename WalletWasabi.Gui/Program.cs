@@ -42,6 +42,16 @@ namespace WalletWasabi.Gui
 					return;
 				}
 
+				if (await Global.InitializeUiConfigAsync())
+				{
+					Logger.LogInfo($"{nameof(Global.UiConfig)} is successfully initialized.");
+				}
+				else
+				{
+					Logger.LogError("Failed to initialize UIConfig.");
+					return;
+				}
+				
 				Logger.LogSoftwareStarted("Wasabi GUI");
 
 				BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMainAsync, args);
