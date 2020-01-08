@@ -47,7 +47,6 @@ namespace WalletWasabi.Gui
 
 		private void InitializeComponent()
 		{
-			
 			AvaloniaXamlLoader.Load(this);
 		}
 
