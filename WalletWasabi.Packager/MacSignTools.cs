@@ -51,6 +51,15 @@ namespace WalletWasabi.Packager
 			Console.WriteLine("Enter password:");
 			var password = Console.ReadLine();
 
+			using (var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "chmod",
+				Arguments = $"-R 775 \"{workingDir}\"",
+			}))
+			{
+				process.WaitForExit();
+			}
+
 			IoHelpers.DeleteRecursivelyWithMagicDustAsync(workingDir).GetAwaiter().GetResult();
 			Directory.CreateDirectory(workingDir);
 
@@ -87,6 +96,26 @@ namespace WalletWasabi.Packager
 			}
 			IoHelpers.DeleteRecursivelyWithMagicDustAsync(infoFilePath).GetAwaiter().GetResult();
 			File.WriteAllLines(infoFilePath, lines);
+
+			using (var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "chmod",
+				Arguments = $"-R u+rwX,go+rX,go-w \"{appPath}\"",
+				WorkingDirectory = workingDir
+			}))
+			{
+				process.WaitForExit();
+			}
+
+			using (var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "chmod",
+				Arguments = $"-R u+x \"{Path.Combine(appPath,"Contents", "MacOS")}\"",
+				WorkingDirectory = workingDir
+			}))
+			{
+				process.WaitForExit();
+			}
 
 			Console.WriteLine("Signing the files in app.");
 
