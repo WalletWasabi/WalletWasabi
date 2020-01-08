@@ -77,20 +77,6 @@ namespace WalletWasabi.Gui
 
 		private static async void AppMainAsync(string[] args)
 		{
-			try
-			{
-				var uiConfigFilePath = Path.Combine(Global.DataDir, "UiConfig.json");
-				var uiConfig = new UiConfig(uiConfigFilePath);
-				await uiConfig.LoadOrCreateDefaultFileAsync();
-
-				Global.InitializeUiConfig(uiConfig);
-				Logger.LogInfo($"{nameof(Global.UiConfig)} is successfully initialized.");
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
-
 			AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
 			MainWindowViewModel.Instance = new MainWindowViewModel();
 			StatusBar = new StatusBarViewModel();
