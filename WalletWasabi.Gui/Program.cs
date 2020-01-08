@@ -79,7 +79,6 @@ namespace WalletWasabi.Gui
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
-
 			}
 
 			AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
