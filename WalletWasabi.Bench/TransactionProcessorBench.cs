@@ -97,7 +97,7 @@ namespace WalletWasabi.Bench
 			await bitcoinStore.InitializeAsync(dir, Network.Main);
 
 			var workDir = Path.Combine(datadir, EnvironmentHelpers.GetMethodName());
-			var feeProviders = new FeeProviders(new[]{ synchronizer });
+			var feeProviders = new FeeProviders(new[] { synchronizer });
 
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, chaumianClient, nodes, workDir, serviceConfiguration, feeProviders);
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
