@@ -5,6 +5,7 @@ using System;
 using System.Composition;
 using System.IO;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
 
@@ -17,9 +18,9 @@ namespace WalletWasabi.Gui.Shell.Commands
 		{
 			var onOpenDataFolder = ReactiveCommand.Create(OnOpenDataFolder);
 			var onOpenWalletsFolder = ReactiveCommand.Create(OnOpenWalletsFolder);
-			var onOpenLogFile = ReactiveCommand.Create(OnOpenLogFile);
-			var onOpenTorLogFile = ReactiveCommand.Create(OnOpenTorLogFile);
-			var onOpenConfigFile = ReactiveCommand.Create(OnOpenConfigFile);
+			var onOpenLogFile = ReactiveCommand.CreateFromTask(OnOpenLogFileAsync);
+			var onOpenTorLogFile = ReactiveCommand.CreateFromTask(OnOpenTorLogFileAsync);
+			var onOpenConfigFile = ReactiveCommand.CreateFromTask(OnOpenConfigFileAsync);
 
 			Observable
 				.Merge(onOpenConfigFile.ThrownExceptions)
@@ -70,23 +71,21 @@ namespace WalletWasabi.Gui.Shell.Commands
 			IoHelpers.OpenFolderInFileExplorer(global.WalletsDir);
 		}
 
-		private void OnOpenLogFile()
+		private async Task OnOpenLogFileAsync()
 		{
-			FileHelpers.OpenFileInTextEditor(Logger.FilePath);
+			await FileHelpers.OpenFileInTextEditorAsync(Logger.FilePath);
 		}
 
-		private void OnOpenTorLogFile()
+		private async Task OnOpenTorLogFileAsync()
 		{
 			var global = Locator.Current.GetService<Global>();
-
-			FileHelpers.OpenFileInTextEditor(global.TorLogsFile);
+			await FileHelpers.OpenFileInTextEditorAsync(global.TorLogsFile);
 		}
 
-		private void OnOpenConfigFile()
+		private async Task OnOpenConfigFileAsync()
 		{
 			var global = Locator.Current.GetService<Global>();
-
-			FileHelpers.OpenFileInTextEditor(global.Config.FilePath);
+			await FileHelpers.OpenFileInTextEditorAsync(global.Config.FilePath);
 		}
 
 		[ExportCommandDefinition("File.Open.DataFolder")]

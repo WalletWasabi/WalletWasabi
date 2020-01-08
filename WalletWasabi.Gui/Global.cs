@@ -653,7 +653,7 @@ namespace WalletWasabi.Gui
 		{
 			message = Guard.Correct(message);
 			title = Guard.Correct(title);
-			NotificationHelpers.Notify(message, title, notificationType, () => FileHelpers.OpenFileInTextEditor(Logger.FilePath));
+			NotificationHelpers.Notify(message, title, notificationType, async () => await FileHelpers.OpenFileInTextEditorAsync(Logger.FilePath));
 			Logger.LogInfo($"Transaction Notification ({notificationType}): {title} - {message} - {e.Transaction.GetHash()}");
 		}
 
