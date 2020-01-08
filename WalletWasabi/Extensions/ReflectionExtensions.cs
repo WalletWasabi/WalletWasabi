@@ -10,7 +10,7 @@ namespace System.Reflection
 
 			var attrib = (AsyncStateMachineAttribute)mi.GetCustomAttribute(attType);
 
-			return (attrib != null);
+			return attrib != null;
 		}
 	}
 }

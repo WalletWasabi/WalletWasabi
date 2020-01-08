@@ -80,7 +80,7 @@ namespace WalletWasabi.Tests
 				jsonrpc = "2.0",
 				method = methodName,
 				@params = parameters.Length == 1 && (parameters[0].GetType().IsClass && !(parameters[0] is string)) ? parameters[0] : parameters,
-				id = id
+				id
 			});
 		}
 
@@ -90,7 +90,7 @@ namespace WalletWasabi.Tests
 			{
 				jsonrpc = "2.0",
 				result = content,
-				id = id
+				id
 			});
 		}
 
@@ -100,7 +100,7 @@ namespace WalletWasabi.Tests
 			{
 				jsonrpc = "2.0",
 				error = new { code, message },
-				id = id
+				id
 			});
 		}
 

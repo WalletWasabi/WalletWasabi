@@ -51,9 +51,8 @@ namespace WalletWasabi.Gui.Rpc
 
                         if (request.HttpMethod == "POST")
                         {
-                            string body;
-                            using (var reader = new StreamReader(request.InputStream))
-                                body = await reader.ReadToEndAsync();
+                            using var reader = new StreamReader(request.InputStream);
+                            string body = await reader.ReadToEndAsync();
 
                             var identity = (HttpListenerBasicIdentity)context.User?.Identity;
                             if (!Config.RequiresCredentials || CheckValidCredentials(identity))

@@ -36,7 +36,7 @@ namespace WalletWasabi.Gui.Rpc
         {
             var error = new
             {
-                code = code,
+                code,
                 message = message ?? GetMessage(code)
             };
             return new JsonRpcResponse(id, null, error);
