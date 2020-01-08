@@ -2,6 +2,7 @@ using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,10 +25,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _walletName;
 		private bool _termsAccepted;
 		public WalletManagerViewModel Owner { get; }
-		public Global Global => Owner.Global;
+
+		private Global Global { get; }
 
 		public GenerateWalletViewModel(WalletManagerViewModel owner) : base("Generate Wallet")
 		{
+			Global = Locator.Current.GetService<Global>();
 			Owner = owner;
 
 			IObservable<bool> canGenerate = Observable.CombineLatest(
@@ -143,7 +146,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public void OnLegalClicked()
 		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(Global));
+			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel());
 		}
 
 		public override void OnCategorySelected()

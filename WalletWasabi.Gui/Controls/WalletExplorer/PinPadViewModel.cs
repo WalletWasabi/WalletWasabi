@@ -2,6 +2,7 @@ using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,7 +40,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _maskedPin, value);
 		}
 
-		public PinPadViewModel(Global global) : base(global, "Pin Pad")
+		public PinPadViewModel() : base("Pin Pad")
 		{
 			SendPinCommand = ReactiveCommand.Create(() =>
 				{
@@ -76,22 +77,26 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			return base.OnClose();
 		}
 
-		public static async Task UnlockAsync(Global global)
+		public static async Task UnlockAsync()
 		{
+			var global = Locator.Current.GetService<Global>();
+
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 			var client = new HwiClient(global.Network);
 			IEnumerable<HwiEnumerateEntry> hwiEntries = await client.EnumerateAsync(cts.Token);
 
 			foreach (var hwiEntry in hwiEntries.Where(x => x.NeedsPinSent is true))
 			{
-				await UnlockAsync(global, hwiEntry);
+				await UnlockAsync(hwiEntry);
 			}
 		}
 
-		public static async Task UnlockAsync(Global global, HwiEnumerateEntry hwiEntry)
+		public static async Task UnlockAsync(HwiEnumerateEntry hwiEntry)
 		{
 			// Make sure to select back the document that was selected.
 			var selectedDocument = IoC.Get<IShell>().SelectedDocument;
+			var global = Locator.Current.GetService<Global>();
+
 			try
 			{
 				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
@@ -102,7 +107,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				PinPadViewModel pinpad = IoC.Get<IShell>().Documents.OfType<PinPadViewModel>().FirstOrDefault();
 				if (pinpad is null)
 				{
-					pinpad = new PinPadViewModel(global);
+					pinpad = new PinPadViewModel();
 					IoC.Get<IShell>().AddOrSelectDocument(pinpad);
 				}
 				var result = await pinpad.ShowDialogAsync();
