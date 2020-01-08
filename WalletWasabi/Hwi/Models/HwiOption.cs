@@ -40,7 +40,7 @@ namespace WalletWasabi.Hwi.Models
 
 		#region Equality
 
-		public override bool Equals(object obj) => obj is HwiOption pubKey && this == pubKey;
+		public override bool Equals(object obj) => Equals(obj as HwiOption);
 
 		public bool Equals(HwiOption other) => this == other;
 

@@ -53,7 +53,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.MixingLevels
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is MixingLevel level && this == level;
+		public override bool Equals(object obj) => Equals(obj as MixingLevel);
 
 		public bool Equals(MixingLevel other) => this == other;
 

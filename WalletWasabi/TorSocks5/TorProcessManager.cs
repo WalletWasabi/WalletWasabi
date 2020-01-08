@@ -74,7 +74,7 @@ namespace WalletWasabi.TorSocks5
 						{
 							if (!fullBaseDirectory.StartsWith('/'))
 							{
-								fullBaseDirectory.Insert(0, "/");
+								fullBaseDirectory = fullBaseDirectory.Insert(0, "/");
 							}
 
 							torPath = $@"{torDir}/Tor/tor";

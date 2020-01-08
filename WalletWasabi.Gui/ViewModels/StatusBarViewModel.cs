@@ -4,6 +4,7 @@ using AvalonStudio.Shell;
 using NBitcoin.Protocol;
 using Nito.AsyncEx;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -50,12 +51,12 @@ namespace WalletWasabi.Gui.ViewModels
 		private string _btcPrice;
 		private ObservableAsPropertyHelper<string> _status;
 		private bool _downloadingBlock;
-		public Global Global { get; }
+		private Global Global { get; }
 		private StatusSet ActiveStatuses { get; }
 
-		public StatusBarViewModel(Global global)
+		public StatusBarViewModel()
 		{
-			Global = global;
+			Global = Locator.Current.GetService<Global>();
 			Backend = BackendStatus.NotConnected;
 			UseTor = false;
 			Tor = TorStatus.NotRunning;
@@ -263,7 +264,7 @@ namespace WalletWasabi.Gui.ViewModels
 				catch (Exception ex)
 				{
 					Logger.LogWarning(ex);
-					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
+					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
 				}
 			}, this.WhenAnyValue(x => x.UpdateAvailable, x => x.CriticalUpdateAvailable, (x, y) => x || y));
 

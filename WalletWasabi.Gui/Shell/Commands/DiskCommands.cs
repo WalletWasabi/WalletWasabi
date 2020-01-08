@@ -1,5 +1,6 @@
 using AvalonStudio.Commands;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Composition;
 using System.IO;
@@ -12,12 +13,9 @@ namespace WalletWasabi.Gui.Shell.Commands
 {
 	internal class DiskCommands
 	{
-		private readonly Global Global;
-
 		[ImportingConstructor]
-		public DiskCommands(CommandIconService commandIconService, AvaloniaGlobalComponent global)
+		public DiskCommands(CommandIconService commandIconService)
 		{
-			Global = global.Global;
 			var onOpenDataFolder = ReactiveCommand.Create(OnOpenDataFolder);
 			var onOpenWalletsFolder = ReactiveCommand.Create(OnOpenWalletsFolder);
 			var onOpenLogFile = ReactiveCommand.Create(OnOpenLogFileAsync);
@@ -61,12 +59,16 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnOpenDataFolder()
 		{
-			IoHelpers.OpenFolderInFileExplorer(Global.DataDir);
+			var global = Locator.Current.GetService<Global>();
+
+			IoHelpers.OpenFolderInFileExplorer(global.DataDir);
 		}
 
 		private void OnOpenWalletsFolder()
 		{
-			IoHelpers.OpenFolderInFileExplorer(Global.WalletsDir);
+			var global = Locator.Current.GetService<Global>();
+
+			IoHelpers.OpenFolderInFileExplorer(global.WalletsDir);
 		}
 
 		private async Task OnOpenLogFileAsync()
@@ -76,12 +78,14 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private async Task OnOpenTorLogFileAsync()
 		{
-			await FileHelpers.OpenFileInTextEditorAsync(Global.TorLogsFile);
+			var global = Locator.Current.GetService<Global>();
+			await FileHelpers.OpenFileInTextEditorAsync(global.TorLogsFile);
 		}
 
 		private async Task OnOpenConfigFileAsync()
 		{
-			await FileHelpers.OpenFileInTextEditorAsync(Global.Config.FilePath);
+			var global = Locator.Current.GetService<Global>();
+			await FileHelpers.OpenFileInTextEditorAsync(global.Config.FilePath);
 		}
 
 		[ExportCommandDefinition("File.Open.DataFolder")]

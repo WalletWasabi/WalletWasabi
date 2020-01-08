@@ -319,7 +319,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is SmartCoin coin && this == coin;
+		public override bool Equals(object obj) => Equals(obj as SmartCoin);
 
 		public bool Equals(SmartCoin other) => this == other;
 
