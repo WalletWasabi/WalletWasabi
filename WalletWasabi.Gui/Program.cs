@@ -1,19 +1,15 @@
 using Avalonia;
 using Avalonia.Dialogs;
-using Avalonia.Rendering;
 using Avalonia.Threading;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
 using NBitcoin;
-using ReactiveUI;
 using Splat;
 using System;
 using System.IO;
-using System.Reactive.Concurrency;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
-using WalletWasabi.Gui.Controls.LockScreen;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 
@@ -40,10 +36,12 @@ namespace WalletWasabi.Gui
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
 				runGui = await CommandInterpreter.ExecuteCommandsAsync(Global, args);
+				
 				if (!runGui)
 				{
 					return;
 				}
+
 				Logger.LogSoftwareStarted("Wasabi GUI");
 
 				BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMainAsync, args);
@@ -69,11 +67,25 @@ namespace WalletWasabi.Gui
 
 		private static async void AppMainAsync(string[] args)
 		{
+			try
+			{
+				var uiConfigFilePath = Path.Combine(Global.DataDir, "UiConfig.json");
+				var uiConfig = new UiConfig(uiConfigFilePath);
+				await uiConfig.LoadOrCreateDefaultFileAsync();
+
+				Global.InitializeUiConfig(uiConfig);
+				Logger.LogInfo($"{nameof(Global.UiConfig)} is successfully initialized.");
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+
+			}
+
 			AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
 			MainWindowViewModel.Instance = new MainWindowViewModel();
 			StatusBar = new StatusBarViewModel();
 			MainWindowViewModel.Instance.StatusBar = StatusBar;
-			MainWindowViewModel.Instance.LockScreen = new LockScreenViewModel();
 
 			await Global.InitializeNoWalletAsync();
 
