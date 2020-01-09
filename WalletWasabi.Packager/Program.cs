@@ -385,6 +385,19 @@ namespace WalletWasabi.Packager
 					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
 					Console.WriteLine($"Deleted {publishedFolder}");
 				}
+				else if (target.StartsWith("osx", StringComparison.OrdinalIgnoreCase))
+				{
+					string dmgFilePath = Path.Combine(BinDistDirectory, $"Wasabi-{VersionPrefix}.dmg");
+					if (!File.Exists(dmgFilePath))
+					{
+						throw new Exception(".dmg does not exist.");
+					}
+					string zipFilePath = Path.Combine(BinDistDirectory, $"Wasabi-osx-{VersionPrefix}.zip");
+					if (File.Exists(zipFilePath))
+					{
+						File.Delete(zipFilePath);
+					}
+				}
 			}
 
 			Console.WriteLine("Signing final files...");
