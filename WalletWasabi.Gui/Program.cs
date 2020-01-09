@@ -17,7 +17,6 @@ namespace WalletWasabi.Gui
 {
 	internal class Program
 	{
-		private static StatusBarViewModel StatusBar = null;
 		private static Global Global;
 #pragma warning disable IDE1006 // Naming Styles
 
@@ -63,7 +62,7 @@ namespace WalletWasabi.Gui
 			}
 			finally
 			{
-				StatusBar?.Dispose();
+				MainWindowViewModel.Instance?.Dispose();
 				await Global.DisposeAsync().ConfigureAwait(false);
 				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
@@ -79,12 +78,10 @@ namespace WalletWasabi.Gui
 		{
 			AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
 			MainWindowViewModel.Instance = new MainWindowViewModel();
-			StatusBar = new StatusBarViewModel();
-			MainWindowViewModel.Instance.StatusBar = StatusBar;
 
 			await Global.InitializeNoWalletAsync();
 
-			StatusBar.Initialize(Global.Nodes.ConnectedNodes, Global.Synchronizer);
+			MainWindowViewModel.Instance.Initialize();
 
 			if (Global.Network != Network.Main)
 			{

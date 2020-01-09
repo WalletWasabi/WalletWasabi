@@ -97,6 +97,18 @@ namespace WalletWasabi.Gui.ViewModels
 			DisplayWalletManager();
 		}
 
+		public void Initialize ()
+		{
+			var global = Locator.Current.GetService<Global>();
+
+			StatusBar.Initialize(global.Nodes.ConnectedNodes, global.Synchronizer);
+		}
+
+		public void Dispose ()
+		{
+			StatusBar?.Dispose();
+		}
+
 		private void DisplayWalletManager()
 		{
 			var walletManagerViewModel = IoC.Get<WalletManagerViewModel>();
