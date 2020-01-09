@@ -82,7 +82,7 @@
         <controls:ExtendedListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
           <controls:ExtendedListBox.ItemTemplate>
             <DataTemplate>
-              <Grid Background="Transparent">
+              <Grid Background="Transparent" Margin="0,0,0,4">
                 <Grid.ContextMenu>
                   <ContextMenu>
                     <MenuItem Header="{Binding Owner.ExpandedDetailsCaption}" Command="{Binding Owner.ToggleDetails}">
