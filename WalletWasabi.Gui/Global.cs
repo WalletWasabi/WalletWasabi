@@ -40,10 +40,6 @@ namespace WalletWasabi.Gui
 {
 	public class Global
 	{
-		public const string GlobalResourceKey = "Wasabi.Ui.Global";
-		public const string ConfigResourceKey = "Wasabi.Ui.Config";
-		public const string UiConfigResourceKey = "Wasabi.Ui.UiConfig";
-
 		public const string ThemeBackgroundBrushResourceKey = "ThemeBackgroundBrush";
 		public const string ApplicationAccentForegroundBrushResourceKey = "ApplicationAccentForegroundBrush";
 
@@ -657,7 +653,7 @@ namespace WalletWasabi.Gui
 		{
 			message = Guard.Correct(message);
 			title = Guard.Correct(title);
-			NotificationHelpers.Notify(message, title, notificationType, () => FileHelpers.OpenFileInTextEditor(Logger.FilePath));
+			NotificationHelpers.Notify(message, title, notificationType, async () => await FileHelpers.OpenFileInTextEditorAsync(Logger.FilePath));
 			Logger.LogInfo($"Transaction Notification ({notificationType}): {title} - {message} - {e.Transaction.GetHash()}");
 		}
 

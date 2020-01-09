@@ -1,6 +1,7 @@
 using Avalonia;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Globalization;
 using System.Linq;
@@ -33,17 +34,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<bool> _unavailable;
 		private ObservableAsPropertyHelper<string> _cluster;
 		public CoinListViewModel Owner { get; }
-		public Global Global { get; set; }
+		private Global Global { get; }
 		public bool InCoinJoinContainer { get; }
 
 		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
 		public ReactiveCommand<Unit, Unit> CopyClustersToClipboard { get; }
 
-		public CoinViewModel(CoinListViewModel owner, Global global, SmartCoin model)
+		public CoinViewModel(CoinListViewModel owner, SmartCoin model)
 		{
+			Global = Locator.Current.GetService<Global>();
+
 			Model = model;
 			Owner = owner;
-			Global = global;
 			InCoinJoinContainer = owner.CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel;
 
 			RefreshSmartCoinStatus();

@@ -18,6 +18,7 @@ using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
+using Splat;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -57,8 +58,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isDetailsExpanded;
 		private object SelectionChangedLock { get; } = new object();
 		private object StateChangedLock { get; } = new object();
-
-		public Global Global { get; }
+		private Global Global { get; }
 		public CoinListContainerType CoinListContainerType { get; }
 		public ReactiveCommand<Unit, Unit> SelectAllCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SelectPrivateCheckBoxCommand { get; }
@@ -257,9 +257,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public CoinListViewModel(Global global, CoinListContainerType coinListContainerType)
+		public CoinListViewModel(CoinListContainerType coinListContainerType)
 		{
-			Global = global;
+			Global = Locator.Current.GetService<Global>();
+
 			CoinListContainerType = coinListContainerType;
 			AmountSortDirection = SortOrder.Decreasing;
 
@@ -453,7 +454,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 						RootList.RemoveMany(coinToRemove.Select(kp => kp.Value));
 
-						var newCoinViewModels = coinToAdd.Select(c => new CoinViewModel(this, Global, c)).ToArray();
+						var newCoinViewModels = coinToAdd.Select(c => new CoinViewModel(this, c)).ToArray();
 						foreach (var cvm in newCoinViewModels)
 						{
 							SubscribeToCoinEvents(cvm);

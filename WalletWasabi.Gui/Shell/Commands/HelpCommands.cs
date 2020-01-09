@@ -17,69 +17,66 @@ namespace WalletWasabi.Gui.Shell.Commands
 {
 	internal class HelpCommands
 	{
-		public Global Global { get; }
-
 		[ImportingConstructor]
-		public HelpCommands(CommandIconService commandIconService, AvaloniaGlobalComponent global)
+		public HelpCommands(CommandIconService commandIconService)
 		{
-			Global = global.Global;
 			AboutCommand = new CommandDefinition(
 				"About",
 				commandIconService.GetCompletionKindImage("About"),
-				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global))));
+				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel())));
 
 			CustomerSupportCommand = new CommandDefinition(
 				"Customer Support",
 				commandIconService.GetCompletionKindImage("CustomerSupport"),
-				ReactiveCommand.Create(() =>
+				ReactiveCommand.CreateFromTask(async () =>
 					{
 						try
 						{
-							IoHelpers.OpenBrowser("https://www.reddit.com/r/WasabiWallet/");
+							await IoHelpers.OpenBrowserAsync("https://www.reddit.com/r/WasabiWallet/");
 						}
 						catch (Exception ex)
 						{
 							Logger.LogWarning(ex);
-							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
+							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
 						}
 					}));
 
 			ReportBugCommand = new CommandDefinition(
 				"Report Bug",
 				commandIconService.GetCompletionKindImage("ReportBug"),
-				ReactiveCommand.Create(() =>
+				ReactiveCommand.CreateFromTask(async () =>
 					{
 						try
 						{
-							IoHelpers.OpenBrowser("https://github.com/zkSNACKs/WalletWasabi/issues");
+							await IoHelpers.OpenBrowserAsync("https://github.com/zkSNACKs/WalletWasabi/issues");
 						}
 						catch (Exception ex)
 						{
 							Logger.LogWarning(ex);
-							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
+							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
 						}
 					}));
 
 			DocsCommand = new CommandDefinition(
 				"Documentation",
 				commandIconService.GetCompletionKindImage("Documentation"),
-				ReactiveCommand.Create(() =>
+				ReactiveCommand.CreateFromTask(async () =>
 					{
 						try
 						{
-							IoHelpers.OpenBrowser("https://docs.wasabiwallet.io/");
+							await IoHelpers.OpenBrowserAsync("https://docs.wasabiwallet.io/");
 						}
 						catch (Exception ex)
 						{
 							Logger.LogWarning(ex);
-							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
+							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
 						}
 					}));
 
 			LegalDocumentsCommand = new CommandDefinition(
 				"Legal Documents",
 				commandIconService.GetCompletionKindImage("LegalDocuments"),
-				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(Global))));
+				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel())));
 
 			Observable
 				.Merge(AboutCommand.GetReactiveCommand().ThrownExceptions)

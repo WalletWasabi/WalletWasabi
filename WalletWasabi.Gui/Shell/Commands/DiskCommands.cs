@@ -1,9 +1,11 @@
 using AvalonStudio.Commands;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Composition;
 using System.IO;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
 
@@ -11,17 +13,14 @@ namespace WalletWasabi.Gui.Shell.Commands
 {
 	internal class DiskCommands
 	{
-		private readonly Global Global;
-
 		[ImportingConstructor]
-		public DiskCommands(CommandIconService commandIconService, AvaloniaGlobalComponent global)
+		public DiskCommands(CommandIconService commandIconService)
 		{
-			Global = global.Global;
 			var onOpenDataFolder = ReactiveCommand.Create(OnOpenDataFolder);
 			var onOpenWalletsFolder = ReactiveCommand.Create(OnOpenWalletsFolder);
-			var onOpenLogFile = ReactiveCommand.Create(OnOpenLogFile);
-			var onOpenTorLogFile = ReactiveCommand.Create(OnOpenTorLogFile);
-			var onOpenConfigFile = ReactiveCommand.Create(OnOpenConfigFile);
+			var onOpenLogFile = ReactiveCommand.CreateFromTask(OnOpenLogFileAsync);
+			var onOpenTorLogFile = ReactiveCommand.CreateFromTask(OnOpenTorLogFileAsync);
+			var onOpenConfigFile = ReactiveCommand.CreateFromTask(OnOpenConfigFileAsync);
 
 			Observable
 				.Merge(onOpenConfigFile.ThrownExceptions)
@@ -60,27 +59,33 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnOpenDataFolder()
 		{
-			IoHelpers.OpenFolderInFileExplorer(Global.DataDir);
+			var global = Locator.Current.GetService<Global>();
+
+			IoHelpers.OpenFolderInFileExplorer(global.DataDir);
 		}
 
 		private void OnOpenWalletsFolder()
 		{
-			IoHelpers.OpenFolderInFileExplorer(Global.WalletsDir);
+			var global = Locator.Current.GetService<Global>();
+
+			IoHelpers.OpenFolderInFileExplorer(global.WalletsDir);
 		}
 
-		private void OnOpenLogFile()
+		private async Task OnOpenLogFileAsync()
 		{
-			FileHelpers.OpenFileInTextEditor(Logger.FilePath);
+			await FileHelpers.OpenFileInTextEditorAsync(Logger.FilePath);
 		}
 
-		private void OnOpenTorLogFile()
+		private async Task OnOpenTorLogFileAsync()
 		{
-			FileHelpers.OpenFileInTextEditor(Global.TorLogsFile);
+			var global = Locator.Current.GetService<Global>();
+			await FileHelpers.OpenFileInTextEditorAsync(global.TorLogsFile);
 		}
 
-		private void OnOpenConfigFile()
+		private async Task OnOpenConfigFileAsync()
 		{
-			FileHelpers.OpenFileInTextEditor(Global.Config.FilePath);
+			var global = Locator.Current.GetService<Global>();
+			await FileHelpers.OpenFileInTextEditorAsync(global.Config.FilePath);
 		}
 
 		[ExportCommandDefinition("File.Open.DataFolder")]
