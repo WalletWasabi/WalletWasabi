@@ -31,7 +31,6 @@
     </Style>
   </UserControl.Styles>
   <i:Interaction.Behaviors>
-    <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedCoin}" />
     <behaviors:CommandOnFirstVisible Command="{Binding InitList}" />
   </i:Interaction.Behaviors>
   <Grid IsSharedSizeScope="True">
@@ -116,7 +115,7 @@
                   <Panel Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent" DataContext="{Binding AnonymitySet, Converter={StaticResource PrivacyLevelValueConverter}}" ToolTip.Tip="{Binding ToolTip}">
                     <DrawingPresenter Drawing="{Binding Icon}" Height="16" Width="16" Margin="0 0 25 0" />
                   </Panel>
-                  <controls:ExtendedTextBox Grid.Column="5" Classes="selectableTextBlock" Background="Transparent" Text="{Binding Clusters, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
+                  <TextBlock Grid.Column="5" Background="Transparent" Text="{Binding Clusters, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
                 </Grid>
               </Grid>
             </DataTemplate>
