@@ -18,6 +18,7 @@
 3. Clone WalletWasabi repository.
 4. Get files from zkSNACKs safe storage: macdevsign.p12 and macsignpassw.txt. Copy them to desktop.
 5. Run WalletWasabi.Packager/Content/Osx/addcert.sh => Go to terminal ./addcert.sh - might run chmod a+rx addcert.sh.
+6. Install `brew install create-dmg` https://github.com/andreyvit/create-dmg
 
 ## Procedure in a few words
 
