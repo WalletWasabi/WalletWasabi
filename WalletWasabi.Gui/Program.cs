@@ -83,11 +83,6 @@ namespace WalletWasabi.Gui
 
 			MainWindowViewModel.Instance.Initialize();
 
-			if (Global.Network != Network.Main)
-			{
-				MainWindowViewModel.Instance.Title += $" - {Global.Network}";
-			}
-
 			Dispatcher.UIThread.Post(GC.Collect);
 		}
 

@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Extensibility.Dialogs;
 using AvalonStudio.Shell;
+using NBitcoin;
 using ReactiveUI;
 using Splat;
 using System.IO;
@@ -32,7 +33,7 @@ namespace WalletWasabi.Gui.ViewModels
 		public double Height
 		{
 			get => _height;
-			internal set => this.RaiseAndSetIfChanged(ref _height, value);
+			set => this.RaiseAndSetIfChanged(ref _height, value);
 		}
 
 		private double _width;
@@ -40,7 +41,7 @@ namespace WalletWasabi.Gui.ViewModels
 		public double Width
 		{
 			get => _width;
-			internal set => this.RaiseAndSetIfChanged(ref _width, value);
+			set => this.RaiseAndSetIfChanged(ref _width, value);
 		}
 
 		private WindowState _windowState;
@@ -48,7 +49,7 @@ namespace WalletWasabi.Gui.ViewModels
 		public WindowState WindowState
 		{
 			get => _windowState;
-			internal set => this.RaiseAndSetIfChanged(ref _windowState, value);
+			set => this.RaiseAndSetIfChanged(ref _windowState, value);
 		}
 
 		private StatusBarViewModel _statusBar;
@@ -56,7 +57,7 @@ namespace WalletWasabi.Gui.ViewModels
 		public StatusBarViewModel StatusBar
 		{
 			get => _statusBar;
-			internal set => this.RaiseAndSetIfChanged(ref _statusBar, value);
+			set => this.RaiseAndSetIfChanged(ref _statusBar, value);
 		}
 
 		private LockScreenViewModel _lockScreen;
@@ -64,7 +65,7 @@ namespace WalletWasabi.Gui.ViewModels
 		public LockScreenViewModel LockScreen
 		{
 			get => _lockScreen;
-			internal set => this.RaiseAndSetIfChanged(ref _lockScreen, value);
+			set => this.RaiseAndSetIfChanged(ref _lockScreen, value);
 		}
 
 		public ReactiveCommand<Unit, Unit> LockScreenCommand { get; }
@@ -102,6 +103,11 @@ namespace WalletWasabi.Gui.ViewModels
 			var global = Locator.Current.GetService<Global>();
 
 			StatusBar.Initialize(global.Nodes.ConnectedNodes, global.Synchronizer);
+
+			if (global.Network != Network.Main)
+			{
+				MainWindowViewModel.Instance.Title += $" - {global.Network}";
+			}
 		}
 
 		public void Dispose ()
