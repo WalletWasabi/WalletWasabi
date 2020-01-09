@@ -68,7 +68,6 @@ namespace WalletWasabi.Packager
 			IoHelpers.EnsureDirectoryExists(binPath);
 			ZipFile.ExtractToDirectory(zipPath, binPath); // Copy the binaries.
 
-
 			IoHelpers.CopyFilesRecursively(new DirectoryInfo(Path.Combine(contentsPath, "App")), new DirectoryInfo(appPath));
 
 			Console.WriteLine("Update the plist file with current information for example with version.");
@@ -110,7 +109,7 @@ namespace WalletWasabi.Packager
 			using (var process = Process.Start(new ProcessStartInfo
 			{
 				FileName = "chmod",
-				Arguments = $"-R u+x \"{Path.Combine(appPath,"Contents", "MacOS")}\"",
+				Arguments = $"-R u+x \"{Path.Combine(appPath, "Contents", "MacOS")}\"",
 				WorkingDirectory = workingDir
 			}))
 			{
@@ -159,7 +158,7 @@ namespace WalletWasabi.Packager
 			Staple(appPath);
 
 			Console.WriteLine("Phase: creating the dmg.");
-			
+
 			if (File.Exists(dmgFilePath))
 			{
 				File.Delete(dmgFilePath);
@@ -224,7 +223,7 @@ namespace WalletWasabi.Packager
 			}
 
 			Console.WriteLine("Phase: notarize dmg");
-			Notarize(appleId, password, dmgFilePath,bundleIdentifier);
+			Notarize(appleId, password, dmgFilePath, bundleIdentifier);
 
 			Console.WriteLine("Phase: staple dmp");
 			Staple(dmgFilePath);
@@ -234,23 +233,7 @@ namespace WalletWasabi.Packager
 
 		public static bool IsMacSignMode(string[] args)
 		{
-			return true; // TODO: debug purposes, remove this before final merge.
-			bool macSign = false;
-			if (args != null)
-			{
-				foreach (var arg in args)
-				{
-					var targ = arg.Trim().TrimStart('-');
-					if (targ.Equals("reduceonions", StringComparison.OrdinalIgnoreCase) ||
-						targ.Equals("reduceonion", StringComparison.OrdinalIgnoreCase))
-					{
-						macSign = true;
-						break;
-					}
-				}
-			}
-
-			return macSign;
+			return RuntimeInformation.IsOSPlatform(OSPlatform.OSX); // For now this is enough. If you run it on macOS you want to sign.
 		}
 
 		private static void Notarize(string appleId, string password, string filePath, string bundleIdentifier)
@@ -277,7 +260,7 @@ namespace WalletWasabi.Packager
 				else if (result.Contains("No errors uploading"))
 				{
 					// Example: <key>RequestUUID</key>\n\t\t<string>2a2a164f-2ae7-4293-8357-5d5a5cdd580a</string>
-	
+
 					var lines = result.Split('\n');
 
 					for (int i = 0; i < lines.Length; i++)
@@ -303,7 +286,6 @@ namespace WalletWasabi.Packager
 
 			while (true) // Wait for the notarization.
 			{
-
 				Console.WriteLine("Checking notarization status.");
 				using var process = Process.Start(new ProcessStartInfo
 				{
@@ -327,12 +309,11 @@ namespace WalletWasabi.Packager
 					Thread.Sleep(2000);
 					continue;
 				}
-				
+
 				throw new InvalidOperationException(result);
 			}
-
-
 		}
+
 		private static void Staple(string filePath)
 		{
 			using var process = Process.Start(new ProcessStartInfo
