@@ -34,8 +34,8 @@
 
 ## Source
 
-https://github.com/zkSNACKs/WalletWasabi/pull/2886
-https://github.com/btcpayserver/BTCPayServer.Vault/blob/master/Build/travis/applesign.sh
-https://github.com/zkSNACKs/WalletWasabi/pull/928/commits/e38ed672dee25f6e45a3eb16584887cc6d48c4e6#diff-fcfcbe3692989568120c615d76ece2b2
-https://developer.apple.com/library/archive/technotes/tn2206/_index.html
-https://developer.apple.com/developer-id/
+- https://github.com/zkSNACKs/WalletWasabi/pull/2886
+- https://github.com/btcpayserver/BTCPayServer.Vault/blob/master/Build/travis/applesign.sh
+- https://github.com/zkSNACKs/WalletWasabi/pull/928/commits/e38ed672dee25f6e45a3eb16584887cc6d48c4e6#diff-fcfcbe3692989568120c615d76ece2b2
+- https://developer.apple.com/library/archive/technotes/tn2206/_index.html
+- https://developer.apple.com/developer-id/
