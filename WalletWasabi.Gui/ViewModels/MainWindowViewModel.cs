@@ -99,7 +99,7 @@ namespace WalletWasabi.Gui.ViewModels
 			DisplayWalletManager();
 		}
 
-		public void Initialize ()
+		public void Initialize()
 		{
 			var global = Locator.Current.GetService<Global>();
 
