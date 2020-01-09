@@ -1,3 +1,4 @@
+using Avalonia;
 using NBitcoin;
 using ReactiveUI;
 using System;
@@ -6,6 +7,8 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.CoinJoin.Common.Models;
@@ -13,6 +16,8 @@ using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
+using WalletWasabi.Logging;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -32,6 +37,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public bool InCoinJoinContainer { get; }
 
 		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
+		public ReactiveCommand<Unit, Unit> CopyClustersToClipboard { get; }
 
 		public CoinViewModel(CoinListViewModel owner, Global global, SmartCoin model)
 		{
@@ -100,9 +106,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			DequeueCoin = ReactiveCommand.Create(() => Owner.PressDequeue(Model), this.WhenAnyValue(x => x.CoinJoinInProgress));
 
-			DequeueCoin.ThrownExceptions
+			CopyClustersToClipboard = ReactiveCommand.CreateFromTask(TryCopyClustersToClipboardAsync, 
+																		this.WhenAnyValue(x => x.Clusters)
+																			.Select(x => !string.IsNullOrEmpty(x)));
+
+			Observable
+				.Merge(DequeueCoin.ThrownExceptions) // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
+				.Merge(CopyClustersToClipboard.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logging.Logger.LogError(ex)); // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
+				.Subscribe(ex => Logging.Logger.LogError(ex));
 		}
 
 		public SmartCoin Model { get; }
@@ -238,6 +250,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public CompositeDisposable GetDisposables() => Disposables;
+
+		public async Task TryCopyClustersToClipboardAsync()
+		{
+			try
+			{
+				await Application.Current.Clipboard.SetTextAsync(Clusters);
+			}
+			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
+			{
+				Logger.LogTrace(ex);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex);
+			}
+		}
 
 		#region IDisposable Support
 
