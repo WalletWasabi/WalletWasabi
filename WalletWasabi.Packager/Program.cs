@@ -96,10 +96,8 @@ namespace WalletWasabi.Packager
 			if (DoPublish || OnlyBinaries)
 			{
 				Publish();
-				if (OnlyBinaries)
-				{
-					IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
-				}
+
+				IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
 			}
 
 			if (!OnlyBinaries)
