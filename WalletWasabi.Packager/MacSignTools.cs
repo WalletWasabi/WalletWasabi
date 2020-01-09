@@ -29,7 +29,6 @@ namespace WalletWasabi.Packager
 			}
 			var zipPath = files[0];
 			var versionPrefix = zipPath.Split('-').Last().TrimEnd(".zip", StringComparison.InvariantCultureIgnoreCase); // Example: "/Users/user/Desktop/Wasabi-unsigned-1.1.10.2.dmg".
-
 			var workingDir = Path.Combine(desktopPath, "wasabiTemp");
 			var dmgPath = Path.Combine(workingDir, "dmg");
 			var appName = "Wasabi Wallet.app";
@@ -37,7 +36,8 @@ namespace WalletWasabi.Packager
 			var binPath = Path.Combine(appPath, "Contents", "MacOS");
 			var resPath = Path.Combine(appPath, "Contents", "Resources");
 			var infoFilePath = Path.Combine(appPath, "Contents", "Info.plist");
-			var dmgFilePath = Path.Combine(workingDir, $"Wasabi-{versionPrefix}.dmg");
+			var dmgFileName = $"Wasabi-{versionPrefix}.dmg";
+			var dmgFilePath = Path.Combine(workingDir, dmgFileName);
 			var appNotarizeFilePath = Path.Combine(workingDir, $"Wasabi-{versionPrefix}.zip");
 			var contentsPath = Path.GetFullPath(Path.Combine(Program.PackagerProjectDirectory.Replace("\\", "//"), "Content", "Osx"));
 			var entitlementsPath = Path.Combine(contentsPath, "entitlements.plist");
@@ -51,16 +51,7 @@ namespace WalletWasabi.Packager
 			Console.WriteLine("Enter password:");
 			var password = Console.ReadLine();
 
-			using (var process = Process.Start(new ProcessStartInfo
-			{
-				FileName = "chmod",
-				Arguments = $"-R 775 \"{workingDir}\"",
-			}))
-			{
-				process.WaitForExit();
-			}
-
-			IoHelpers.DeleteRecursivelyWithMagicDustAsync(workingDir).GetAwaiter().GetResult();
+			DeleteWithChmod(workingDir);
 			Directory.CreateDirectory(workingDir);
 
 			Console.WriteLine("Phase: creating the app.");
@@ -228,6 +219,10 @@ namespace WalletWasabi.Packager
 			Console.WriteLine("Phase: staple dmp");
 			Staple(dmgFilePath);
 
+			File.Move(dmgFilePath, Path.Combine(desktopPath, dmgFileName));
+			DeleteWithChmod(workingDir);
+			File.Delete(zipPath);
+
 			Console.WriteLine("Phase: finish.");
 		}
 
@@ -322,6 +317,20 @@ namespace WalletWasabi.Packager
 				Arguments = $"stapler staple \"{filePath}\"",
 			});
 			process.WaitForExit();
+		}
+
+		private static void DeleteWithChmod(string path)
+		{
+			using (var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "chmod",
+				Arguments = $"-R 775 \"{path}\"",
+			}))
+			{
+				process.WaitForExit();
+			}
+
+			IoHelpers.DeleteRecursivelyWithMagicDustAsync(path).GetAwaiter().GetResult();
 		}
 	}
 }
