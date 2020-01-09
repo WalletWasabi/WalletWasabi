@@ -5,6 +5,7 @@ using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
 using Splat;
+using System;
 using System.IO;
 using System.Linq;
 using System.Reactive;
@@ -15,7 +16,7 @@ using WalletWasabi.Gui.Tabs.WalletManager;
 
 namespace WalletWasabi.Gui.ViewModels
 {
-	public class MainWindowViewModel : ViewModelBase
+	public class MainWindowViewModel : ViewModelBase, IDisposable
 	{
 		private ModalDialogViewModelBase _modalDialog;
 		private bool _canClose = true;
@@ -110,11 +111,6 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		public void Dispose ()
-		{
-			StatusBar?.Dispose();
-		}
-
 		private void DisplayWalletManager()
 		{
 			var walletManagerViewModel = IoC.Get<WalletManagerViewModel>();
@@ -160,5 +156,29 @@ namespace WalletWasabi.Gui.ViewModels
 			get => _canClose;
 			set => this.RaiseAndSetIfChanged(ref _canClose, value);
 		}
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					StatusBar?.Dispose();
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }
