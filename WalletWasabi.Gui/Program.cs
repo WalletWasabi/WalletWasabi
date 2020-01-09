@@ -3,7 +3,6 @@ using Avalonia.Dialogs;
 using Avalonia.Threading;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
-using NBitcoin;
 using Splat;
 using System;
 using System.IO;
