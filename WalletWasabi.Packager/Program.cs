@@ -698,16 +698,17 @@ namespace WalletWasabi.Packager
 						process.StandardInput.WriteLine($"wsl genisoimage -D -V \"Wasabi Wallet\" -no-pad -apple -r -dir-mode 755 -o \"{uncompressedDmgFileName}\" \"{new DirectoryInfo(publishedFolder).Name}\" && exit");
 						process.WaitForExit();
 					}
-					// cd ~
-					// git clone https://github.com/planetbeing/libdmg-hfsplus.git && cd libdmg-hfsplus
+					// Build libdmg-hfsplus for building a macOS DMG on WSL:
+					//
 					// https://github.com/planetbeing/libdmg-hfsplus/issues/14
+					// sudo apt-get install libssl1.0-dev zlib1g-dev
+					//
+					// cd ~
+					// curl --location -o libdmg-hfsplus-7ac55ec64c96f7800d9818ce64c79670e7f02b67.tar.gz https://github.com/planetbeing/libdmg-hfsplus/archive/7ac55ec64c96f7800d9818ce64c79670e7f02b67.tar.gz
+					// tar --no-same-owner -xf libdmg-hfsplus-7ac55ec64c96f7800d9818ce64c79670e7f02b67.tar.gz
+					// cd libdmg-hfsplus-7ac55ec64c96f7800d9818ce64c79670e7f02b67
 					// mkdir build && cd build
-					// sudo apt-get install zlib1g-dev
 					// cmake ..
-					// cd build
-					// sudo apt-get install libssl1.0-dev
-					// cmake ..
-					// cd ~/libdmg-hfsplus/build/
 					// make
 					using (var process = Process.Start(new ProcessStartInfo
 					{
@@ -716,7 +717,7 @@ namespace WalletWasabi.Packager
 						WorkingDirectory = BinDistDirectory
 					}))
 					{
-						process.StandardInput.WriteLine($"wsl ~/libdmg-hfsplus/build/dmg/./dmg dmg \"{uncompressedDmgFileName}\" \"{dmgFileName}\" && exit");
+						process.StandardInput.WriteLine($"wsl ~/libdmg-hfsplus-7ac55ec64c96f7800d9818ce64c79670e7f02b67/build/dmg/./dmg dmg \"{uncompressedDmgFileName}\" \"{dmgFileName}\" && exit");
 						process.WaitForExit();
 					}
 
