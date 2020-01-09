@@ -46,7 +46,7 @@ namespace WalletWasabi.Gui
 				}
 				else
 				{
-					Logger.LogError($"Failed to initialize {nameof(UiConfig)}.");
+					Logger.LogError($"Failed to initialize {nameof(Global.UiConfig)}.");
 					return;
 				}
 				
