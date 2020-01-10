@@ -41,8 +41,11 @@ namespace WalletWasabi.Packager
 			var appNotarizeFilePath = Path.Combine(workingDir, $"Wasabi-{versionPrefix}.zip");
 			var contentsPath = Path.GetFullPath(Path.Combine(Program.PackagerProjectDirectory.Replace("\\", "//"), "Content", "Osx"));
 			var entitlementsPath = Path.Combine(contentsPath, "entitlements.plist");
+			var entitlementsSandBoxPath = Path.Combine(contentsPath, "entitlements_sandbox.plist");
+			var torZipDirPath = Path.Combine(binPath, "TorDaemons", "tor-osx64");
+			var torZipPath = $"{torZipDirPath}.zip";
 
-			var signArguments = $"--sign \"L233B2JQ68\" --verbose --deep --force --options runtime --timestamp --entitlements \"{entitlementsPath}\"";
+			var signArguments = $"--sign \"L233B2JQ68\" --verbose --options runtime --timestamp";
 
 			Console.WriteLine("Phase: creating the working directory.");
 
@@ -51,8 +54,10 @@ namespace WalletWasabi.Packager
 			Console.WriteLine("Enter password:");
 			var password = Console.ReadLine();
 
-			DeleteWithChmod(workingDir);
-			Directory.CreateDirectory(workingDir);
+			if (Directory.Exists(workingDir))
+			{
+				DeleteWithChmod(workingDir);
+			}
 
 			Console.WriteLine("Phase: creating the app.");
 
@@ -97,31 +102,60 @@ namespace WalletWasabi.Packager
 				process.WaitForExit();
 			}
 
-			using (var process = Process.Start(new ProcessStartInfo
+			var filesToCheck = new[] { entitlementsPath, entitlementsSandBoxPath, torZipPath };
+
+			foreach (var file in filesToCheck)
 			{
-				FileName = "chmod",
-				Arguments = $"-R u+x \"{Path.Combine(appPath, "Contents", "MacOS")}\"",
-				WorkingDirectory = workingDir
-			}))
-			{
-				process.WaitForExit();
+				if (!File.Exists(file))
+				{
+					throw new FileNotFoundException($"File missing: {file}");
+				}
 			}
+
+			// Tor already signed by: The Tor Project, Inc (MADPSAYN6T)
+
+			var exacutableFileNames = new[] { "wassabee","bitcoind","hwi"};
 
 			Console.WriteLine("Signing the files in app.");
 
-			if (!File.Exists(entitlementsPath))
+			foreach (var file in Directory.GetFiles(appPath, "*.*", SearchOption.AllDirectories))
 			{
-				throw new FileNotFoundException($"entitlements.plist file missing: {entitlementsPath}");
-			}
+				
+				var fileName = new FileInfo(file).Name;
 
-			using (var process = Process.Start(new ProcessStartInfo
-			{
-				FileName = "codesign",
-				Arguments = $"{signArguments} \"{appPath}\"",
-				WorkingDirectory = dmgPath
-			}))
-			{
-				process.WaitForExit();
+				if (fileName == ".DS_Store")
+				{
+					File.Delete(file);
+					continue;
+				}
+
+				var isExecutable = exacutableFileNames.Contains(fileName);
+
+
+				if (isExecutable)
+				{
+					using (var process = Process.Start(new ProcessStartInfo
+					{
+						FileName = "chmod",
+						Arguments = $"u+x \"{file}\"",
+						WorkingDirectory = workingDir
+					}))
+					{
+						process.WaitForExit();
+					}
+				}
+
+				var entitlementArgs = isExecutable ? entitlementsSandBoxPath : entitlementsPath;
+
+				using (var process = Process.Start(new ProcessStartInfo
+				{
+					FileName = "codesign",
+					Arguments = $"{signArguments} --entitlements \"{entitlementArgs}\" \"{file}\"",
+					WorkingDirectory = dmgPath
+				}))
+				{
+					process.WaitForExit();
+				}
 			}
 
 			Console.WriteLine("Phase: verifying the signature.");
@@ -155,7 +189,7 @@ namespace WalletWasabi.Packager
 				File.Delete(dmgFilePath);
 			}
 
-			var dmgArguments = new string[]
+			var dmgArguments = string.Join(" ", new string[]
 			{
 				"--volname \"Wallet Wasabi\"",
 				$"--volicon \"{Path.Combine(resPath, "WasabiLogo.icns")}\"",
@@ -169,14 +203,14 @@ namespace WalletWasabi.Packager
 				"--no-internet-enable",
 				$"\"{dmgFilePath}\"",
 				$"\"{appPath}\""
-			};
+			});
 
 			Console.WriteLine("Phase: creating dmg.");
 
 			using (var process = Process.Start(new ProcessStartInfo
 			{
 				FileName = "create-dmg",
-				Arguments = string.Join(" ", dmgArguments),
+				Arguments = dmgArguments,
 				WorkingDirectory = dmgPath
 			}))
 			{
