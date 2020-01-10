@@ -136,55 +136,25 @@ namespace WalletWasabi.Packager
 
 				if (isExecutable)
 				{
-					using (var process = Process.Start(new ProcessStartInfo
+					using var process = Process.Start(new ProcessStartInfo
 					{
 						FileName = "chmod",
 						Arguments = $"u+x \"{file}\"",
 						WorkingDirectory = workingDir
-						
-					}))
-					{
-						process.WaitForExit();
-					}
+
+					});
+					process.WaitForExit();
 				}
 
 				var entitlementArgs = isExecutable ? entitlementsSandBoxPath : entitlementsPath;
 
-				using (var process = Process.Start(new ProcessStartInfo
-				{
-					FileName = "codesign",
-					Arguments = $"{signArguments} --entitlements \"{entitlementArgs}\" \"{file}\"",
-					WorkingDirectory = dmgPath,
-					RedirectStandardError = true
-				}))
-				{
-					process.WaitForExit();
-					var result = process.StandardError.ReadToEnd();
-					if (result.Contains("code object is not signed at all"))
-					{
-						throw new InvalidOperationException(result);
-					}
-					Console.WriteLine(result);
-				}
+				Sign($"{signArguments} --entitlements \"{entitlementArgs}\" \"{file}\"", dmgPath);
+
 			}
 
 			Console.WriteLine("Phase: verifying the signature.");
 
-			using (var process = Process.Start(new ProcessStartInfo
-			{
-				FileName = "codesign",
-				Arguments = $"-dv --verbose=4 \"{appPath}\"",
-				WorkingDirectory = dmgPath,
-				RedirectStandardError = true,
-			}))
-			{
-				process.WaitForExit();
-				string result = process.StandardError.ReadToEnd();
-				if (!result.Contains("Authority=Developer ID Application: zkSNACKs Ltd."))
-				{
-					throw new InvalidOperationException(result);
-				}
-			}
+			Verify(appPath);
 
 			Console.WriteLine("Phase: notarize the app.");
 
@@ -231,33 +201,11 @@ namespace WalletWasabi.Packager
 
 			UnlockKeychain();
 
-			using (var process = Process.Start(new ProcessStartInfo
-			{
-				FileName = "codesign",
-				Arguments = $"{signArguments} \"{dmgFilePath}\"",
-				WorkingDirectory = dmgPath
-			}))
-			{
-				process.WaitForExit();
-			}
+			Sign($"{signArguments} --entitlements \"{entitlementsPath}\" \"{dmgFilePath}\"", dmgPath);
 
 			Console.WriteLine("Phase: verifying the signature.");
 
-			using (var process = Process.Start(new ProcessStartInfo
-			{
-				FileName = "codesign",
-				Arguments = $"-dv --verbose=4 \"{appPath}\"",
-				WorkingDirectory = dmgPath,
-				RedirectStandardError = true,
-			}))
-			{
-				process.WaitForExit();
-				string result = process.StandardError.ReadToEnd();
-				if (!result.Contains("Authority=Developer ID Application: zkSNACKs Ltd."))
-				{
-					throw new InvalidOperationException(result);
-				}
-			}
+			Verify(dmgFilePath);
 
 			Console.WriteLine("Phase: notarize dmg");
 			Notarize(appleId, password, dmgFilePath, bundleIdentifier);
@@ -381,13 +329,45 @@ namespace WalletWasabi.Packager
 
 		private static void UnlockKeychain()
 		{
-			using (var process = Process.Start(new ProcessStartInfo
+			using var process = Process.Start(new ProcessStartInfo
 			{
 				FileName = "security",
 				Arguments = $"unlock-keychain -p \"mysecretpassword\" build.keychain",
-			}))
+			});
+			process.WaitForExit();
+		}
+
+		private static void Sign(string arguments,string workingDir)
+		{
+			using var process = Process.Start(new ProcessStartInfo
 			{
-				process.WaitForExit();
+				FileName = "codesign",
+				Arguments = arguments,
+				WorkingDirectory = workingDir,
+				RedirectStandardError = true
+			});
+			process.WaitForExit();
+			var result = process.StandardError.ReadToEnd();
+			if (result.Contains("code object is not signed at all"))
+			{
+				throw new InvalidOperationException(result);
+			}
+			Console.WriteLine(result);
+		}
+
+		private static void Verify(string path)
+		{
+			using var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "codesign",
+				Arguments = $"-dv --verbose=4 \"{path}\"",
+				RedirectStandardError = true,
+			});
+			process.WaitForExit();
+			string result = process.StandardError.ReadToEnd();
+			if (!result.Contains("Authority=Developer ID Application: zkSNACKs Ltd."))
+			{
+				throw new InvalidOperationException(result);
 			}
 		}
 	}
