@@ -77,7 +77,7 @@ namespace WalletWasabi.Packager
 				if (line.Contains("CFBundleShortVersionString", StringComparison.InvariantCulture) ||
 					line.Contains("CFBundleVersion", StringComparison.InvariantCulture))
 				{
-					lines[i + 1] = lines[i + 1].Replace("?", $"{versionPrefix}");
+					lines[i + 1] = lines[i + 1].Replace("?", $"{Version.Parse(versionPrefix).ToString(3)}"); // Apple allow only 3 version tags in plist.
 				}
 				else if (line.Contains("CFBundleIdentifier", StringComparison.InvariantCulture))
 				{
