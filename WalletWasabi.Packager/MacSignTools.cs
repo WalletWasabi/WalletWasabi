@@ -118,6 +118,8 @@ namespace WalletWasabi.Packager
 
 			Console.WriteLine("Signing the files in app.");
 
+			UnlockKeychain();
+
 			foreach (var file in Directory.GetFiles(appPath, "*.*", SearchOption.AllDirectories))
 			{
 				
@@ -130,7 +132,6 @@ namespace WalletWasabi.Packager
 				}
 
 				var isExecutable = exacutableFileNames.Contains(fileName);
-
 
 				if (isExecutable)
 				{
@@ -218,6 +219,8 @@ namespace WalletWasabi.Packager
 			}
 
 			Console.WriteLine("Phase: signing the dmg file.");
+
+			UnlockKeychain();
 
 			using (var process = Process.Start(new ProcessStartInfo
 			{
@@ -365,6 +368,18 @@ namespace WalletWasabi.Packager
 			}
 
 			IoHelpers.DeleteRecursivelyWithMagicDustAsync(path).GetAwaiter().GetResult();
+		}
+
+		private static void UnlockKeychain()
+		{
+			using (var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "security",
+				Arguments = $"unlock-keychain -p \"mysecretpassword\" build.keychain",
+			}))
+			{
+				process.WaitForExit();
+			}
 		}
 	}
 }
