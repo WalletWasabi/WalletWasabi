@@ -44,6 +44,7 @@ namespace WalletWasabi.Packager
 			var entitlementsSandBoxPath = Path.Combine(contentsPath, "entitlements_sandbox.plist");
 			var torZipDirPath = Path.Combine(binPath, "TorDaemons", "tor-osx64");
 			var torZipPath = $"{torZipDirPath}.zip";
+			var desktopDmgFilePath = Path.Combine(desktopPath, dmgFileName);
 
 			var signArguments = $"--sign \"L233B2JQ68\" --verbose --options runtime --timestamp";
 
@@ -57,6 +58,11 @@ namespace WalletWasabi.Packager
 			if (Directory.Exists(workingDir))
 			{
 				DeleteWithChmod(workingDir);
+			}
+
+			if (File.Exists(desktopDmgFilePath))
+			{
+				File.Delete(desktopDmgFilePath);
 			}
 
 			Console.WriteLine("Phase: creating the app.");
@@ -213,7 +219,7 @@ namespace WalletWasabi.Packager
 			Console.WriteLine("Phase: staple dmp");
 			Staple(dmgFilePath);
 
-			File.Move(dmgFilePath, Path.Combine(desktopPath, dmgFileName));
+			File.Move(dmgFilePath, desktopDmgFilePath);
 			DeleteWithChmod(workingDir);
 			File.Delete(zipPath);
 
@@ -352,7 +358,7 @@ namespace WalletWasabi.Packager
 			{
 				throw new InvalidOperationException(result);
 			}
-			Console.WriteLine(result);
+			Console.WriteLine(result.Trim());
 		}
 
 		private static void Verify(string path)
