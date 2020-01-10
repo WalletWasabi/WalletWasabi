@@ -153,7 +153,7 @@ namespace WalletWasabi.Gui
 							Global.UiConfig.WindowState = WindowState;
 							Global.UiConfig.Width = Width;
 							Global.UiConfig.Height = Height;
-							Global.UiConfig.Tab = IoC.Get<IShell>().SelectedDocument.Title;
+							Global.UiConfig.LastActiveTab = IoC.Get<IShell>().SelectedDocument.Title;
 							await Global.UiConfig.ToFileAsync();
 							Logger.LogInfo($"{nameof(Global.UiConfig)} is saved.");
 						}

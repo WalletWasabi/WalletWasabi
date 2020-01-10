@@ -87,11 +87,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			historyTab.DisplayActionTab();
 
 			// Select tab
-			if (receiveDominant || global.UiConfig.Tab == receiveTab.Title)
+			if (receiveDominant || global.UiConfig.LastActiveTab == receiveTab.Title)
 			{
 				receiveTab.DisplayActionTab(); // So receive should be shown to the user.
 			}
-			else if (global.UiConfig.Tab == historyTab.Title)
+			else if (global.UiConfig.LastActiveTab == historyTab.Title)
 			{
 				historyTab.DisplayActionTab(); // So history should be shown to the user.
 			}
