@@ -162,6 +162,18 @@ namespace WalletWasabi.Packager
 
 			Verify(appPath);
 
+			// Building a package - this is not required now. This code will be useful later - do not delete!
+			//var pkgPath = Path.Combine(workingDir, $"Wasabi-{versionPrefix}.pkg");
+			//using (var process = Process.Start(new ProcessStartInfo
+			//{
+			//	FileName = "productbuild",
+			//	Arguments = $"--component \"{appPath}\" /Applications \"{pkgPath}\" --sign \"L233B2JQ68\"",
+			//	WorkingDirectory = dmgPath
+			//}))
+			//{
+			//	process.WaitForExit();
+			//}
+
 			Console.WriteLine("Phase: notarize the app.");
 
 			ZipFile.CreateFromDirectory(appPath, appNotarizeFilePath);
@@ -279,9 +291,11 @@ namespace WalletWasabi.Packager
 				throw new InvalidOperationException("Cannot get uploadId. Notarization failed.");
 			}
 
+			Stopwatch sw = new Stopwatch();
+			sw.Start();
 			while (true) // Wait for the notarization.
 			{
-				Console.WriteLine("Checking notarization status.");
+				Console.WriteLine($"Checking notarization status. Elapsed time: {sw.Elapsed.ToString()}");
 				using var process = Process.Start(new ProcessStartInfo
 				{
 					FileName = "xcrun",
@@ -296,12 +310,12 @@ namespace WalletWasabi.Packager
 				}
 				if (result.Contains("Status: in progress"))
 				{
-					Thread.Sleep(2000);
+					Thread.Sleep(4000);
 					continue;
 				}
 				if (result.Contains("Could not find the RequestUUID"))
 				{
-					Thread.Sleep(2000);
+					Thread.Sleep(4000);
 					continue;
 				}
 
