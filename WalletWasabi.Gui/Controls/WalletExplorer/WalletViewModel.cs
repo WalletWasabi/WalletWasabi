@@ -91,6 +91,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				receiveTab.DisplayActionTab(); // So receive should be shown to the user.
 			}
+			else if (global.UiConfig.LastActiveTab == sendTab?.Title)
+			{
+				sendTab.DisplayActionTab(); // So send should be shown to the user.
+			}
 			else if (global.UiConfig.LastActiveTab == historyTab.Title)
 			{
 				historyTab.DisplayActionTab(); // So history should be shown to the user.
