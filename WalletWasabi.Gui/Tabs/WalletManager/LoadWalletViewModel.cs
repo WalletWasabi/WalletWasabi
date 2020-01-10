@@ -637,7 +637,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					// Open Wallet Explorer tabs
 					if (Global.WalletService.Coins.Any())
 					{
-						// If already have coins then open with History tab first.
+						// If already have coins then open the tab that was selected when Wasabi closed first.
 						IoC.Get<WalletExplorerViewModel>().OpenWallet(Global.WalletService, receiveDominant: false);
 					}
 					else // Else open with Receive tab first.
