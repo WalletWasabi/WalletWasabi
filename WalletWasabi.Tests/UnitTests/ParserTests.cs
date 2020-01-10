@@ -40,7 +40,7 @@ namespace WalletWasabi.Tests.UnitTests
 				$" {host}/ ",
 			};
 
-			var inputsWithtPorts = new[]
+			var inputsWithPorts = new[]
 			{
 				$"{host}:5000",
 				$"bitcoin-p2p://{host}:5000",
@@ -101,7 +101,7 @@ namespace WalletWasabi.Tests.UnitTests
 			}
 
 			// Default port is not used.
-			foreach (var inputString in inputsWithtPorts)
+			foreach (var inputString in inputsWithPorts)
 			{
 				var success = EndPointParser.TryParse(inputString, 12345, out EndPoint ep);
 				AssertEndPointParserOutputs(success, ep, host, 5000);
