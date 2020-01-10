@@ -120,7 +120,8 @@ namespace WalletWasabi.Packager
 
 			UnlockKeychain();
 
-			foreach (var file in Directory.GetFiles(appPath, "*.*", SearchOption.AllDirectories))
+			// Wassabee has to be signed at the end. Otherwise codesing witt throw a submodule not signed error.
+			foreach (var file in Directory.GetFiles(appPath, "*.*", SearchOption.AllDirectories).OrderBy(file => new FileInfo(file).Name == "wassabee").ToList())
 			{
 				
 				var fileName = new FileInfo(file).Name;
@@ -140,6 +141,7 @@ namespace WalletWasabi.Packager
 						FileName = "chmod",
 						Arguments = $"u+x \"{file}\"",
 						WorkingDirectory = workingDir
+						
 					}))
 					{
 						process.WaitForExit();
@@ -152,10 +154,17 @@ namespace WalletWasabi.Packager
 				{
 					FileName = "codesign",
 					Arguments = $"{signArguments} --entitlements \"{entitlementArgs}\" \"{file}\"",
-					WorkingDirectory = dmgPath
+					WorkingDirectory = dmgPath,
+					RedirectStandardError = true
 				}))
 				{
 					process.WaitForExit();
+					var result = process.StandardError.ReadToEnd();
+					if (result.Contains("code object is not signed at all"))
+					{
+						throw new InvalidOperationException(result);
+					}
+					Console.WriteLine(result);
 				}
 			}
 
