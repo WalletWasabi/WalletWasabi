@@ -120,6 +120,7 @@ namespace WalletWasabi.Packager
 
 			// Tor already signed by: The Tor Project, Inc (MADPSAYN6T)
 
+			// Can be automated: find -H YourAppBundle -print0 | xargs -0 file | grep "Mach-O .*executable"
 			var exacutableFileNames = new[] { "wassabee","bitcoind","hwi"};
 
 			Console.WriteLine("Signing the files in app.");
