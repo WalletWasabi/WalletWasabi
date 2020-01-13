@@ -339,7 +339,7 @@ namespace WalletWasabi.Packager
 			using (var process = Process.Start(new ProcessStartInfo
 			{
 				FileName = "chmod",
-				Arguments = $"-R 775 \"{path}\"",
+				Arguments = $"-R ugo+rwx \"{path}\"",
 			}))
 			{
 				process.WaitForExit();
