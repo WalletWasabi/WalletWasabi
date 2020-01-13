@@ -19,7 +19,7 @@ namespace WalletWasabi.Gui
 		private static Global Global;
 #pragma warning disable IDE1006 // Naming Styles
 
-		private static async Task Main(string[] args)
+		private static void Main(string[] args)
 #pragma warning restore IDE1006 // Naming Styles
 		{
 			bool runGui = false;
@@ -33,7 +33,7 @@ namespace WalletWasabi.Gui
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-				runGui = await CommandInterpreter.ExecuteCommandsAsync(Global, args);
+				runGui = CommandInterpreter.ExecuteCommandsAsync(Global, args).Result;
 				
 				if (!runGui)
 				{
@@ -62,7 +62,7 @@ namespace WalletWasabi.Gui
 			finally
 			{
 				MainWindowViewModel.Instance?.Dispose();
-				await Global.DisposeAsync().ConfigureAwait(false);
+				Global.DisposeAsync().Wait();
 				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 
