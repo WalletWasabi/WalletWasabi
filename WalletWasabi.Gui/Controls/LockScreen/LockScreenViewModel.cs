@@ -4,6 +4,7 @@ using System.Reactive.Disposables;
 using WalletWasabi.Helpers;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
+using Splat;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
@@ -11,11 +12,8 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 	{
 		private CompositeDisposable Disposables { get; }
 
-		public Global Global { get; }
-
-		public LockScreenViewModel(Global global)
+		public LockScreenViewModel()
 		{
-			Global = Guard.NotNull(nameof(Global), global);
 			Disposables = new CompositeDisposable();
 		}
 
@@ -40,7 +38,9 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 		public void Initialize()
 		{
-			Global.UiConfig
+			var global = Locator.Current.GetService<Global>();
+
+			global.UiConfig
 				.WhenAnyValue(x => x.LockScreenActive)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.BindTo(this, y => y.IsLocked)
@@ -48,21 +48,21 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 			this.WhenAnyValue(x => x.IsLocked)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.BindTo(Global.UiConfig, y => y.LockScreenActive)
+				.BindTo(global.UiConfig, y => y.LockScreenActive)
 				.DisposeWith(Disposables);
 
-			_pinHash = Global.UiConfig
-							 .WhenAnyValue(x => x.LockScreenPinHash)
-							 .ObserveOn(RxApp.MainThreadScheduler)
-							 .Do(x => CheckLockScreenType(x))
-							 .ToProperty(this, x => x.PinHash);
+			_pinHash = global.UiConfig
+				.WhenAnyValue(x => x.LockScreenPinHash)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Do(x => CheckLockScreenType(x))
+				.ToProperty(this, x => x.PinHash);
 		}
 
 		private void CheckLockScreenType(string currentHash)
 		{
 			ActiveLockScreen?.Dispose();
 
-			if (currentHash != string.Empty)
+			if (currentHash.Length != 0)
 			{
 				ActiveLockScreen = new PinLockScreenViewModel(this);
 			}

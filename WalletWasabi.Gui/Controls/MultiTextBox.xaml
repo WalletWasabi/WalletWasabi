@@ -7,6 +7,8 @@
     <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}" />
     <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}" />
+    <Setter Property="SelectionBrush" Value="{DynamicResource HighlightBrush}"/>
+    <Setter Property="SelectionForegroundBrush" Value="{DynamicResource HighlightForegroundBrush}"/>
     <Setter Property="Padding" Value="4" />
     <Setter Property="Template">
       <ControlTemplate>
@@ -45,7 +47,10 @@
                       SelectionEnd="{TemplateBinding SelectionEnd}"
                       TextAlignment="{TemplateBinding TextAlignment}"
                       TextWrapping="{TemplateBinding TextWrapping}"
-                      PasswordChar="{TemplateBinding PasswordChar}" />
+                      PasswordChar="{TemplateBinding PasswordChar}" 
+                      SelectionBrush="{TemplateBinding SelectionBrush}"
+                      SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                      CaretBrush="{TemplateBinding CaretBrush}"/>
                   </Panel>
                 </ScrollViewer>
               </DataValidationErrors>
@@ -60,8 +65,5 @@
   </Style>
   <Style Selector="controls|MultiTextBox:focus /template/ Border#border">
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighBrush}" />
-  </Style>
-  <Style Selector="controls|MultiTextBox:error /template/ Border#border">
-    <Setter Property="BorderBrush" Value="{DynamicResource ErrorBrush}" />
   </Style>
 </Styles>

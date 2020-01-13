@@ -1,9 +1,11 @@
+using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.JsonConverters;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Backend.Models.Responses
 {
@@ -16,10 +18,13 @@ namespace WalletWasabi.Backend.Models.Responses
 
 		public int BestHeight { get; set; }
 
-		public IEnumerable<CcjRunningRoundState> CcjRoundStates { get; set; }
+		public IEnumerable<RoundStateResponse> CcjRoundStates { get; set; }
 
 		public AllFeeEstimate AllFeeEstimate { get; set; }
 
 		public IEnumerable<ExchangeRate> ExchangeRates { get; set; }
+
+		[JsonProperty(ItemConverterType = typeof(Uint256JsonConverter))]
+		public IEnumerable<uint256> UnconfirmedCoinJoins { get; set; }
 	}
 }

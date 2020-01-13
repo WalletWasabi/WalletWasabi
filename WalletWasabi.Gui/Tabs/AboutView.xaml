@@ -1,12 +1,30 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
+             x:Class="WalletWasabi.Gui.Tabs.AboutView">
+  <UserControl.Resources>
+    <converters:VersionStringConverter x:Key="VersionStringConverter" />
+  </UserControl.Resources>
   <controls:GroupBox Title="{Binding Title}" BorderThickness="0" Classes="docTabContainer">
     <StackPanel>
       <Grid Classes="content" Margin="0 10 0 0">
         <StackPanel Orientation="Vertical">
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Current Version: " />
-            <controls:ExtendedTextBox Text="{Binding VersionText}" Classes="selectableTextBlock" />
+            <controls:ExtendedTextBox Text="{Binding ClientVersion, Converter={StaticResource VersionStringConverter}}" Classes="selectableTextBlock" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Compatible Coordinator Version: " />
+            <controls:ExtendedTextBox Text="{Binding BackendMajorVersion}" Classes="selectableTextBlock" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Compatible Bitcoin Core Version: " />
+            <controls:ExtendedTextBox Text="{Binding BitcoinCoreVersion, Converter={StaticResource VersionStringConverter}}" Classes="selectableTextBlock" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Compatible Hardware Wallet Interface Version: " />
+            <controls:ExtendedTextBox Text="{Binding HwiVersion, Converter={StaticResource VersionStringConverter}}" Classes="selectableTextBlock" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Clearnet Website: " />
@@ -35,6 +53,10 @@
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="FAQ: " />
             <Button Content="{Binding FAQLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding FAQLink}" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Documentation: " />
+            <Button Content="{Binding DocsLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding DocsLink}" />
           </StackPanel>
         </StackPanel>
       </Grid>

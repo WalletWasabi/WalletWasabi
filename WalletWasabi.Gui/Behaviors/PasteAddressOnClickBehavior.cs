@@ -7,6 +7,7 @@ using Avalonia.Xaml.Interactivity;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -16,7 +17,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-	internal class PasteAddressOnClickBehavior : CommandBasedBehavior<TextBox>
+	public class PasteAddressOnClickBehavior : CommandBasedBehavior<TextBox>
 	{
 		private CompositeDisposable Disposables { get; set; }
 		private Global Global { get; }
@@ -75,7 +76,7 @@ namespace WalletWasabi.Gui.Behaviors
 
 		public PasteAddressOnClickBehavior()
 		{
-			Global = Application.Current.Resources[Global.GlobalResourceKey] as Global;
+			Global = Locator.Current.GetService<Global>();
 		}
 
 		protected override void OnAttached()
@@ -85,12 +86,12 @@ namespace WalletWasabi.Gui.Behaviors
 			Disposables = new CompositeDisposable
 			{
 				AssociatedObject.GetObservable(InputElement.IsFocusedProperty).Subscribe(focused =>
-				{
-					if (!focused)
 					{
-						MyTextBoxState = TextBoxState.None;
-					}
-				}),
+						if (!focused)
+						{
+							MyTextBoxState = TextBoxState.None;
+						}
+					}),
 				AssociatedObject
 					.GetObservable(InputElement.KeyUpEvent)
 					.Throttle(TimeSpan.FromMilliseconds(500)) // Do not remove this we need to make sure we are running on a separate Task.
@@ -115,63 +116,63 @@ namespace WalletWasabi.Gui.Behaviors
 
 			Disposables.Add(
 				AssociatedObject.GetObservable(InputElement.PointerReleasedEvent).Subscribe(async pointer =>
-				{
-					if (Global.UiConfig.Autocopy is false)
 					{
-						return;
-					}
+						if (Global.UiConfig.Autocopy is false)
+						{
+							return;
+						}
 
-					switch (MyTextBoxState)
-					{
-						case TextBoxState.AddressInsert:
-							{
-								string text = await Application.Current.Clipboard.GetTextAsync();
-								ProcessText(text);
-								MyTextBoxState = TextBoxState.NormalTextBoxOperation;
-							}
-							break;
+						switch (MyTextBoxState)
+						{
+							case TextBoxState.AddressInsert:
+								{
+									string text = await Application.Current.Clipboard.GetTextAsync();
+									ProcessText(text);
+									MyTextBoxState = TextBoxState.NormalTextBoxOperation;
+								}
+								break;
 
-						case TextBoxState.SelectAll:
-							{
-								AssociatedObject.SelectionStart = 0;
-								AssociatedObject.SelectionEnd = AssociatedObject.Text.Length;
-								MyTextBoxState = TextBoxState.NormalTextBoxOperation;
-							}
-							break;
-					}
-				})
+							case TextBoxState.SelectAll:
+								{
+									AssociatedObject.SelectionStart = 0;
+									AssociatedObject.SelectionEnd = AssociatedObject.Text.Length;
+									MyTextBoxState = TextBoxState.NormalTextBoxOperation;
+								}
+								break;
+						}
+					})
 			);
 
 			Disposables.Add(
 				AssociatedObject.GetObservable(InputElement.PointerEnterEvent).Subscribe(async pointerEnter =>
-				{
-					if (!(Global.UiConfig.Autocopy is true))
 					{
-						return;
-					}
+						if (!(Global.UiConfig.Autocopy is true))
+						{
+							return;
+						}
 
-					if (!AssociatedObject.IsFocused && MyTextBoxState == TextBoxState.NormalTextBoxOperation)
-					{
-						MyTextBoxState = TextBoxState.None;
-					}
+						if (!AssociatedObject.IsFocused && MyTextBoxState == TextBoxState.NormalTextBoxOperation)
+						{
+							MyTextBoxState = TextBoxState.None;
+						}
 
-					if (MyTextBoxState == TextBoxState.NormalTextBoxOperation)
-					{
-						return;
-					}
+						if (MyTextBoxState == TextBoxState.NormalTextBoxOperation)
+						{
+							return;
+						}
 
-					if (string.IsNullOrEmpty(AssociatedObject.Text))
-					{
-						string text = await Application.Current.Clipboard.GetTextAsync();
-						MyTextBoxState = AddressStringParser.TryParse(text, Global.Network, out _)
-							? TextBoxState.AddressInsert
-							: TextBoxState.NormalTextBoxOperation;
-					}
-					else
-					{
-						MyTextBoxState = TextBoxState.SelectAll;
-					}
-				})
+						if (string.IsNullOrEmpty(AssociatedObject.Text))
+						{
+							string text = await Application.Current.Clipboard.GetTextAsync();
+							MyTextBoxState = AddressStringParser.TryParse(text, Global.Network, out _)
+								? TextBoxState.AddressInsert
+								: TextBoxState.NormalTextBoxOperation;
+						}
+						else
+						{
+							MyTextBoxState = TextBoxState.SelectAll;
+						}
+					})
 			);
 
 			base.OnAttached();

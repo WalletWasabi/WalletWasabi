@@ -4,9 +4,13 @@ using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Globalization;
+using System.Reactive;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -15,12 +19,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private TransactionInfo Model { get; }
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
+		public ReactiveCommand<Unit, Unit> CopyTransactionId { get; }
 
 		public TransactionViewModel(TransactionInfo model)
 		{
 			Model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
+
+			CopyTransactionId = ReactiveCommand.CreateFromTask(TryCopyTxIdToClipboardAsync);
+
+			CopyTransactionId.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex =>
+				{
+					NotificationHelpers.Error(ex.ToTypeMessageString());
+					Logger.LogWarning(ex);
+				});
 		}
 
 		public void Refresh()
@@ -82,15 +97,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				await Task.Delay(1000, cancelToken);
 				ClipboardNotificationVisible = false;
 			}
-			catch (Exception ex) when (ex is OperationCanceledException
-									|| ex is TaskCanceledException
-									|| ex is TimeoutException)
+			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
 			{
-				Logging.Logger.LogTrace<AddressViewModel>(ex);
+				Logger.LogTrace(ex);
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning<AddressViewModel>(ex);
+				Logger.LogWarning(ex);
 			}
 			finally
 			{

@@ -40,7 +40,7 @@ namespace WalletWasabi.WebClients
 				catch (Exception ex)
 				{
 					// Ignore it and try with the next one
-					Logger.LogTrace<ExchangeRateProvider>(ex);
+					Logger.LogTrace(ex);
 				}
 			}
 			return exchangeRates;

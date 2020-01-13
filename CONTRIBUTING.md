@@ -143,3 +143,7 @@ public class RepositoryViewModel : ReactiveObject
 ```
 
 **DO** always subscribe to these `ObservableAsPropertyHelper`s after their initialization is done.
+
+## No code in Code-behind files (.xaml.cs)
+
+All the logic should go into `ViewModels` or `Behaviors`.

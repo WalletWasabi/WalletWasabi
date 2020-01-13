@@ -8,6 +8,9 @@ using WalletWasabi.Gui.ViewModels;
 using System.IO;
 using ReactiveUI;
 using System.Reactive;
+using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
+using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Tabs
 {
@@ -15,26 +18,19 @@ namespace WalletWasabi.Gui.Tabs
 	{
 		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
 
-		public AboutViewModel(Global global) : base(global, "About")
+		public AboutViewModel() : base("About")
 		{
-			Version = WalletWasabi.Helpers.Constants.ClientVersion;
+			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
-			OpenBrowserCommand = ReactiveCommand.Create<string>(x =>
-			{
-				try
-				{
-					IoHelpers.OpenBrowser(x);
-				}
-				catch (Exception ex)
-				{
-					Logging.Logger.LogError<AboutViewModel>(ex);
-				}
-			});
+			OpenBrowserCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
-		public Version Version { get; }
-
-		public string VersionText => $"v{Version}";
+		public Version ClientVersion => Constants.ClientVersion;
+		public string BackendMajorVersion => Constants.BackendMajorVersion;
+		public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
+		public Version HwiVersion => Constants.HwiVersion;
 
 		public string ClearnetLink => "https://wasabiwallet.io/";
 
@@ -42,12 +38,14 @@ namespace WalletWasabi.Gui.Tabs
 
 		public string SourceCodeLink => "https://github.com/zkSNACKs/WalletWasabi/";
 
-		public string StatusPageLink => "https://stats.uptimerobot.com/W7q65in4y";
+		public string StatusPageLink => "https://stats.uptimerobot.com/YQqGyUL8A7";
 
 		public string CustomerSupportLink => "https://www.reddit.com/r/WasabiWallet/";
 
 		public string BugReportLink => "https://github.com/zkSNACKs/WalletWasabi/issues/";
 
-		public string FAQLink => "https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/FAQ.md";
+		public string FAQLink => "https://docs.wasabiwallet.io/FAQ/";
+
+		public string DocsLink => "https://docs.wasabiwallet.io/";
 	}
 }

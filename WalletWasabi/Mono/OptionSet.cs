@@ -266,7 +266,7 @@ namespace Mono.Options
 					added.Add(option.Names[i]);
 				}
 			}
-			catch (Exception)
+			catch
 			{
 				foreach (string name in added)
 				{
@@ -658,11 +658,11 @@ namespace Mono.Options
 		{
 			Option p;
 			string rn;
-			if (n.Length >= 1 && (n[n.Length - 1] == '+' || n[n.Length - 1] == '-') &&
+			if (n.Length >= 1 && (n[^1] == '+' || n[^1] == '-') &&
 					Contains((rn = n.Substring(0, n.Length - 1))))
 			{
 				p = this[rn];
-				string v = n[n.Length - 1] == '+' ? option : null;
+				string v = n[^1] == '+' ? option : null;
 				c.OptionName = option;
 				c.Option = p;
 				c.OptionValues.Add(v);
@@ -912,7 +912,7 @@ namespace Mono.Options
 				// for maxIndex=1 it can be {foo} or {0:foo}
 				if (maxIndex == 1)
 				{
-					argName = parts[parts.Length - 1];
+					argName = parts[^1];
 				}
 				// look for {i:foo} if maxIndex > 1
 				if (maxIndex > 1 && parts.Length == 2 &&

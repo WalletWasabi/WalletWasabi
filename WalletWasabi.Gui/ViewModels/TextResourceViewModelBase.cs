@@ -16,9 +16,9 @@ namespace WalletWasabi.Gui.ViewModels
 	{
 		protected CompositeDisposable Disposables { get; private set; }
 
-		public string _text;
+		private string _text;
 
-		public TextResourceViewModelBase(Global global, string title, Uri target) : base(global, title)
+		protected TextResourceViewModelBase(string title, Uri target) : base(title)
 		{
 			Text = "";
 			Target = target;
@@ -36,11 +36,9 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			var assetLocator = AvaloniaLocator.Current.GetService<IAssetLoader>();
 
-			using (var stream = assetLocator.Open(target))
-			using (var reader = new StreamReader(stream))
-			{
-				return await reader.ReadToEndAsync();
-			}
+			using var stream = assetLocator.Open(target);
+			using var reader = new StreamReader(stream);
+			return await reader.ReadToEndAsync();
 		}
 
 		public override void OnOpen()

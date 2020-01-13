@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using WalletWasabi.Exceptions;
 
 namespace WalletWasabi.Gui.Converters
 {
@@ -12,7 +13,6 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is decimal usdExchangeRate)
 			{
-				// When the amount starts with a '~' then Max is selected
 				return $"Exchange Rate: {(long)usdExchangeRate} BTC/USD.";
 			}
 			else

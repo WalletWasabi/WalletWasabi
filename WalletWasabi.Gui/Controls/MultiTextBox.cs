@@ -7,12 +7,14 @@ using Avalonia.Input;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls
 {
@@ -23,25 +25,25 @@ namespace WalletWasabi.Gui.Controls
 		private CompositeDisposable Disposables { get; set; }
 
 		public static readonly StyledProperty<bool> ClipboardNotificationVisibleProperty =
-		AvaloniaProperty.Register<MultiTextBox, bool>(nameof(ClipboardNotificationVisible), defaultBindingMode: BindingMode.TwoWay);
+			AvaloniaProperty.Register<MultiTextBox, bool>(nameof(ClipboardNotificationVisible), defaultBindingMode: BindingMode.TwoWay);
 
 		public static readonly StyledProperty<double> ClipboardNotificationOpacityProperty =
-		AvaloniaProperty.Register<MultiTextBox, double>(nameof(ClipboardNotificationOpacity), defaultBindingMode: BindingMode.TwoWay);
+			AvaloniaProperty.Register<MultiTextBox, double>(nameof(ClipboardNotificationOpacity), defaultBindingMode: BindingMode.TwoWay);
 
 		public static readonly StyledProperty<ReactiveCommand<Unit, Unit>> CopyToClipboardCommandProperty =
-		AvaloniaProperty.Register<MultiTextBox, ReactiveCommand<Unit, Unit>>(nameof(CopyToClipboardCommand), defaultBindingMode: BindingMode.TwoWay);
+			AvaloniaProperty.Register<MultiTextBox, ReactiveCommand<Unit, Unit>>(nameof(CopyToClipboardCommand), defaultBindingMode: BindingMode.TwoWay);
 
 		public static readonly StyledProperty<bool> PasteOnClickProperty =
-		AvaloniaProperty.Register<MultiTextBox, bool>(nameof(PasteOnClick), defaultBindingMode: BindingMode.TwoWay);
+			AvaloniaProperty.Register<MultiTextBox, bool>(nameof(PasteOnClick), defaultBindingMode: BindingMode.TwoWay);
 
 		public static readonly StyledProperty<bool> CopyOnClickProperty =
-		AvaloniaProperty.Register<MultiTextBox, bool>(nameof(CopyOnClick), defaultBindingMode: BindingMode.TwoWay);
+			AvaloniaProperty.Register<MultiTextBox, bool>(nameof(CopyOnClick), defaultBindingMode: BindingMode.TwoWay);
 
 		public static readonly StyledProperty<bool> TextVisibleProperty =
-		AvaloniaProperty.Register<MultiTextBox, bool>(nameof(TextVisible), defaultBindingMode: BindingMode.TwoWay);
+			AvaloniaProperty.Register<MultiTextBox, bool>(nameof(TextVisible), defaultBindingMode: BindingMode.TwoWay);
 
 		public static readonly StyledProperty<bool> IsSelectableProperty =
-		AvaloniaProperty.Register<MultiTextBox, bool>(nameof(IsSelectable), defaultBindingMode: BindingMode.TwoWay);
+			AvaloniaProperty.Register<MultiTextBox, bool>(nameof(IsSelectable), defaultBindingMode: BindingMode.TwoWay);
 
 		public bool ClipboardNotificationVisible
 		{
@@ -89,10 +91,11 @@ namespace WalletWasabi.Gui.Controls
 
 			Disposables = new CompositeDisposable();
 
-			CopyToClipboardCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				await TryCopyToClipboardAsync();
-			});
+			CopyToClipboardCommand = ReactiveCommand.CreateFromTask(async () => await TryCopyToClipboardAsync());
+
+			CopyToClipboardCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
@@ -111,28 +114,25 @@ namespace WalletWasabi.Gui.Controls
 				.Subscribe(async x => await OnClickedAsync(x))
 				.DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.ClipboardNotificationVisible).Subscribe(visible =>
-			{
-				TextVisible = !visible;
-			});
+			this.WhenAnyValue(x => x.ClipboardNotificationVisible).Subscribe(visible => TextVisible = !visible);
 
-			this.WhenAnyValue(x => x.SelectionStart).Subscribe(s =>
-			{
-				if (!IsSelectable)
+			this.WhenAnyValue(x => x.SelectionStart).Subscribe(_ =>
 				{
-					SelectionEnd = CaretIndex;
-					SelectionStart = CaretIndex;
-				}
-			});
+					if (!IsSelectable)
+					{
+						SelectionEnd = CaretIndex;
+						SelectionStart = CaretIndex;
+					}
+				});
 
-			this.WhenAnyValue(x => x.SelectionEnd).Subscribe(s =>
-			{
-				if (!IsSelectable)
+			this.WhenAnyValue(x => x.SelectionEnd).Subscribe(_ =>
 				{
-					SelectionEnd = CaretIndex;
-					SelectionStart = CaretIndex;
-				}
-			});
+					if (!IsSelectable)
+					{
+						SelectionEnd = CaretIndex;
+						SelectionStart = CaretIndex;
+					}
+				});
 		}
 
 		public async Task TryCopyToClipboardAsync()
@@ -163,15 +163,9 @@ namespace WalletWasabi.Gui.Controls
 				await Task.Delay(1000, cancelToken);
 				ClipboardNotificationVisible = false;
 			}
-			catch (Exception ex) when (ex is OperationCanceledException
-									|| ex is TaskCanceledException
-									|| ex is TimeoutException)
+			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
 			{
-				Logging.Logger.LogTrace<MultiTextBox>(ex);
-			}
-			catch (Exception ex)
-			{
-				Logging.Logger.LogWarning<MultiTextBox>(ex);
+				Logger.LogTrace(ex);
 			}
 			finally
 			{
@@ -189,7 +183,7 @@ namespace WalletWasabi.Gui.Controls
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning<MultiTextBox>(ex);
+				Logger.LogWarning(ex);
 			}
 		}
 
@@ -198,8 +192,8 @@ namespace WalletWasabi.Gui.Controls
 			try
 			{
 				var eventArgs = eventPattern?.EventArgs as PointerPressedEventArgs;
-				var uiConfig = Application.Current.Resources[Global.UiConfigResourceKey] as UiConfig;
-				if (uiConfig?.Autocopy is true && eventArgs?.MouseButton == MouseButton.Left)
+				var uiConfig = Locator.Current.GetService<Global>().UiConfig;
+				if (uiConfig?.Autocopy is true && eventArgs?.GetCurrentPoint(this).Properties.IsLeftButtonPressed == true)
 				{
 					if (CopyOnClick)
 					{
@@ -218,7 +212,7 @@ namespace WalletWasabi.Gui.Controls
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning<MultiTextBox>(ex);
+				Logger.LogWarning(ex);
 			}
 		}
 

@@ -6,6 +6,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Dialogs
 {
@@ -26,19 +27,19 @@ namespace WalletWasabi.Gui.Dialogs
 			var canOk = this.WhenAnyValue(x => x.TextInput)
 				.Select(x => !string.IsNullOrWhiteSpace(TextInput));
 
-			OKCommand = ReactiveCommand.Create(() =>
-			{
-				Close(true);
-			}, canOk);
+			OKCommand = ReactiveCommand.Create(() => Close(true), canOk);
 
 			CancelCommand = ReactiveCommand.Create(() =>
-			{
-				TextInput = "";
-				Close(false);
-			});
+				{
+					TextInput = "";
+					Close(false);
+				});
 
-			OKCommand.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<TextInputDialogViewModel>);
-			CancelCommand.ThrownExceptions.Subscribe(Logging.Logger.LogWarning<TextInputDialogViewModel>);
+			Observable
+				.Merge(OKCommand.ThrownExceptions)
+				.Merge(CancelCommand.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogWarning(ex));
 		}
 
 		public string TextInput

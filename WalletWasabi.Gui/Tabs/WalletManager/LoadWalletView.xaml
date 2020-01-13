@@ -1,7 +1,9 @@
 <UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui">
+             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
+             x:Class="WalletWasabi.Gui.Tabs.WalletManager.LoadWalletView">
   <DockPanel LastChildFill="True">
     <StackPanel DockPanel.Dock="Bottom" Spacing="10">
       <controls:GroupBox IsVisible="{Binding !IsDesktopWallet}" TextBlock.FontSize="30" Padding="30" Margin="20 0">
@@ -10,28 +12,27 @@
             <StackPanel>
               <TextBlock Text="Select a wallet to test its password!" FontWeight="Bold" />
             </StackPanel>
-            <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" />
-            <StackPanel>
-              <TextBlock Text="Why the unconventional password masking?" FontWeight="Bold" />
-              <TextBlock Text="We received numerous reports on losing or mistyping passwords. This experiment aims to disrupt users' typical workflow at wallet generation, forcing them to pay more attention than otherwise would." TextWrapping="Wrap" />
-            </StackPanel>
+            <controls:TogglePasswordBox Text="{Binding Password}">
+              <i:Interaction.Behaviors>
+                <behaviors:CommandOnEnterBehavior Command="{Binding LoadCommand}" />
+              </i:Interaction.Behaviors>
+            </controls:TogglePasswordBox>
           </StackPanel>
           <StackPanel IsVisible="{Binding IsHardwareWallet}" Spacing="8">
             <StackPanel>
               <TextBlock Text="Limitations?" FontWeight="Bold" />
-              <TextBlock Text="- Currently all hardware wallets on the market are incompatible with coinjoins." />
-              <TextBlock Text="- Only bech32 keypaths are supported, so your legacy hardware wallet transactions won't show up in Wasabi." />
+              <TextBlock Text="- Currently all hardware wallets are incompatible with coinjoins." />
+              <TextBlock Text="- Only bech32 keypaths are supported, your legacy hardware wallet transactions won't show up." />
             </StackPanel>
             <StackPanel>
-              <TextBlock Text="Which hardware wallets are currently supported?" FontWeight="Bold" />
-              <TextBlock Text="- Coldcard Mk1, Mk2, Ledger Nano S, Trezor One, and Trezor T." TextWrapping="Wrap" />
-              <TextBlock Text="- While other hardware wallets may also work, they were not tested by Wasabi developers." TextWrapping="Wrap" />
+              <TextBlock Text="Which hardware wallets are supported?" FontWeight="Bold" />
+              <TextBlock Text="- Coldcard, Ledger Nano S, Trezor One, and Trezor T." TextWrapping="Wrap" />
+              <TextBlock Text="- While other hardware wallets may work, they were not tested by Wasabi developers." TextWrapping="Wrap" />
             </StackPanel>
           </StackPanel>
         </Grid>
       </controls:GroupBox>
-      <StackPanel DockPanel.Dock="Bottom" Margin="20 10">
-        <DockPanel LastChildFill="True">
+      <DockPanel LastChildFill="True" Margin="20 10">
           <Button IsVisible="{Binding IsPasswordRequired}" Content="Test Password" Command="{Binding TestPasswordCommand}" DockPanel.Dock="Right" Margin="10 0 0 0" />
           <Button Command="{Binding LoadCommand}" DockPanel.Dock="Right">
             <StackPanel Orientation="Horizontal">
@@ -39,6 +40,7 @@
               <TextBlock Text="{Binding LoadButtonText}" />
             </StackPanel>
           </Button>
+          <Button IsVisible="{Binding IsHardwareWallet}" Content="Search Hardware Wallets" Command="{Binding EnumerateHardwareWalletsCommand}" DockPanel.Dock="Right" Margin="0 0 10 0" />
           <Button IsVisible="{Binding IsHardwareWallet}" Content="Import Coldcard" Command="{Binding ImportColdcardCommand}" DockPanel.Dock="Right" Margin="0 0 10 0" />
           <Button IsVisible="{Binding IsDesktopWallet}" Command="{Binding OpenFolderCommand}" DockPanel.Dock="Right" Margin="0 0 10 0">
             <StackPanel Orientation="Horizontal" Spacing="8">
@@ -48,10 +50,6 @@
           </Button>
           <Grid></Grid>
         </DockPanel>
-        <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
-        <TextBlock Text="{Binding ValidationMessage}" Classes="errorMessage" />
-        <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
-      </StackPanel>
     </StackPanel>
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" BorderThickness="0">
       <DockPanel LastChildFill="True">
@@ -61,9 +59,10 @@
               <controls:Spinner Height="15" Width="15" Margin="0 0 8 0" />
               <TextBlock Text="Looking for hardware wallets..." FontWeight="Bold" />
             </StackPanel>
-            <TextBlock Text="Make sure you set up and logged into the device, usually with a PIN. Some hardware wallets are picky about their USB cables, so you may want to try out multiple ones." TextWrapping="Wrap" />
-            <TextBlock IsVisible="{Binding IsLinux}" Text="Also make sure that you properly applied udev rules. These are necessary for the devices to be reachable on Linux environments:" TextWrapping="Wrap" />
-            <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Be sure to set up and log into the device, usually with a PIN." TextWrapping="Wrap" />
+            <TextBlock Text="Hardware wallets are picky about their USB cables, so try out multiple ones." TextWrapping="Wrap" />
+            <TextBlock IsVisible="{Binding IsLinux}" Text="Make sure that you properly applied udev rules. These are necessary for the devices to be reachable on Linux environments:" TextWrapping="Wrap" />
+            <StackPanel IsVisible="{Binding IsLinux}" Orientation="Horizontal">
               <Button Content="{Binding UDevRulesLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding UDevRulesLink}" />
             </StackPanel>
           </StackPanel>
@@ -75,7 +74,8 @@
                 <TextBlock Text="{Binding WalletName}">
                   <i:Interaction.Behaviors>
                     <behaviors:CommandOnDoubleClickBehavior Command="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=DataContext.LoadCommand}" />
-                  </i:Interaction.Behaviors></TextBlock>
+                  </i:Interaction.Behaviors>
+                </TextBlock>
               </DataTemplate>
             </controls:ExtendedListBox.ItemTemplate>
           </controls:ExtendedListBox>

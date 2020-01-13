@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using static WalletWasabi.Http.Constants;
 
@@ -7,17 +9,19 @@ namespace WalletWasabi.Http.Models
 {
 	public class StatusLine : StartLine
 	{
-		public HttpStatusCode StatusCode { get; private set; }
+		public HttpStatusCode StatusCode { get; }
 
-		public StatusLine(HttpProtocol protocol, HttpStatusCode status)
+		public StatusLine(HttpProtocol protocol, HttpStatusCode status) : base(protocol)
 		{
-			Protocol = protocol;
 			StatusCode = status;
-
-			StartLineString = Protocol + SP + (int)StatusCode + SP + StatusCode.ToReasonString() + CRLF;
 		}
 
-		public static StatusLine CreateNew(string statusLineString)
+		public override string ToString()
+		{
+			return $"{Protocol}{SP}{(int)StatusCode}{SP}{StatusCode.ToReasonString()}{CRLF}";
+		}
+
+		public static StatusLine Parse(string statusLineString)
 		{
 			try
 			{
@@ -45,7 +49,7 @@ namespace WalletWasabi.Http.Models
 			}
 			catch (Exception ex)
 			{
-				Logger.LogTrace<StatusLine>(ex); // Often happens when internet connection is lost mid request.
+				Logger.LogTrace(ex); // Often happens when internet connection is lost mid request.
 				throw new NotSupportedException($"Invalid {nameof(StatusLine)}: {statusLineString}.", ex);
 			}
 		}

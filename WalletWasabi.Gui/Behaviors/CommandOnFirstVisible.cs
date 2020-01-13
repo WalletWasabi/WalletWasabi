@@ -5,7 +5,7 @@ using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-	internal class CommandOnFirstVisible : CommandBasedBehavior<InputElement>
+	public class CommandOnFirstVisible : CommandBasedBehavior<InputElement>
 	{
 		private CompositeDisposable Disposables { get; set; }
 
@@ -16,11 +16,9 @@ namespace WalletWasabi.Gui.Behaviors
 			base.OnAttached();
 
 			Observable.FromEventPattern(AssociatedObject, nameof(AssociatedObject.AttachedToVisualTree))
-			.Take(1) // Only on first appearance.
-			.Subscribe(_ =>
-			{
-				ExecuteCommand();
-			}).DisposeWith(Disposables);
+				.Take(1) // Only on first appearance.
+				.Subscribe(_ => ExecuteCommand())
+				.DisposeWith(Disposables);
 		}
 
 		protected override void OnDetaching()

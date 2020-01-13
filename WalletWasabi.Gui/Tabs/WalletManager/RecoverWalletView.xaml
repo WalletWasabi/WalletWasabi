@@ -1,17 +1,23 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui">
+             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
+             x:Class="WalletWasabi.Gui.Tabs.WalletManager.RecoverWalletView">
   <StackPanel Margin="10" Spacing="10">
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="30">
       <Grid Classes="content">
         <StackPanel Spacing="8">
           <StackPanel>
             <TextBlock Text="Warning!" Foreground="{DynamicResource IndianRedWarningMessage}" FontWeight="Bold" />
-            <TextBlock Text="At recovery, the wallet is unable to check if your password is correct or not. If you provide the wrong password, a wallet will be recovered with the provided Recovery Words and password combination." TextWrapping="Wrap" />
+            <TextBlock Text="At recovery, the wallet is unable to check if your password is correct or not. If you provide a wrong password, a wallet will be recovered with the provided Recovery Words and password combination." TextWrapping="Wrap" />
           </StackPanel>
           <controls:ExtendedTextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
-          <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" />
+          <controls:TogglePasswordBox Text="{Binding Password}">
+            <i:Interaction.Behaviors>
+              <behaviors:CommandOnEnterBehavior Command="{Binding RecoverCommand}" />
+            </i:Interaction.Behaviors>
+          </controls:TogglePasswordBox>
           <controls:ExtendedTextBox Text="{Binding MnemonicWords}" Watermark="Recovery Words" UseFloatingWatermark="True" CaretIndex="{Binding CaretIndex}">
             <i:Interaction.Behaviors>
               <behaviors:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />
@@ -48,6 +54,5 @@
       <Button Content="Recover" Command="{Binding RecoverCommand}" DockPanel.Dock="Right" />
       <Grid></Grid>
     </DockPanel>
-    <TextBlock Text="{Binding ValidationMessage}" Classes="errorMessage" />
   </StackPanel>
 </UserControl>

@@ -3,7 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.Monitoring;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -48,9 +51,9 @@ namespace NBitcoin.RPC
 				{
 					return await rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode);
 				}
-				catch (RPCException ex)
+				catch (Exception ex) when (ex is RPCException || ex is NoEstimationException)
 				{
-					Logger.LogTrace<RPCClient>(ex);
+					Logger.LogTrace(ex);
 					// Hopefully Bitcoin Core brainfart: https://github.com/bitcoin/bitcoin/issues/14431
 					for (int i = 2; i <= Constants.SevenDaysConfirmationTarget; i++)
 					{
@@ -58,9 +61,9 @@ namespace NBitcoin.RPC
 						{
 							return await rpc.EstimateSmartFeeAsync(i, estimateMode);
 						}
-						catch (RPCException ex2)
+						catch (Exception ex2) when (ex2 is RPCException || ex2 is NoEstimationException)
 						{
-							Logger.LogTrace<RPCClient>(ex2);
+							Logger.LogTrace(ex2);
 						}
 					}
 				}
@@ -104,21 +107,56 @@ namespace NBitcoin.RPC
 
 		private static EstimateSmartFeeResponse SimulateRegTestFeeEstimation(int confirmationTarget, EstimateSmartFeeMode estimateMode)
 		{
-			int satoshiPerBytes = estimateMode == EstimateSmartFeeMode.Conservative
+			int satoshiPerByte = estimateMode == EstimateSmartFeeMode.Conservative
 				? (Constants.SevenDaysConfirmationTarget + 1 + 6 - confirmationTarget) / 7
 				: (Constants.SevenDaysConfirmationTarget + 1 + 5 - confirmationTarget) / 7; // Economical
 
-			Money feePerK = Money.Satoshis(satoshiPerBytes * 1000);
+			Money feePerK = Money.Satoshis(satoshiPerByte * 1000);
 			FeeRate feeRate = new FeeRate(feePerK);
 			var resp = new EstimateSmartFeeResponse { Blocks = confirmationTarget, FeeRate = feeRate };
 			return resp;
 		}
 
+		/// <summary>
+		/// If null is returned, no exception is thrown, so the test was successful.
+		/// </summary>
+		public static async Task<Exception> TestAsync(this RPCClient rpc)
+		{
+			try
+			{
+				await rpc.UptimeAsync().ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				return ex;
+			}
+
+			return null;
+		}
+
 		public static async Task<AllFeeEstimate> EstimateAllFeeAsync(this RPCClient rpc, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tolerateBitcoinCoreBrainfuck = true)
 		{
-			var estimations = await rpc.EstimateHalfFeesAsync(new Dictionary<int, int>(), 2, 0, Constants.SevenDaysConfirmationTarget, 0, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck);
-			var allFeeEstimate = new AllFeeEstimate(estimateMode, estimations);
+			var rpcStatus = await rpc.GetRpcStatusAsync(CancellationToken.None).ConfigureAwait(false);
+			var estimations = await rpc.EstimateHalfFeesAsync(new Dictionary<int, int>(), 2, 0, Constants.SevenDaysConfirmationTarget, 0, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck).ConfigureAwait(false);
+			var allFeeEstimate = new AllFeeEstimate(estimateMode, estimations, rpcStatus.Synchronized);
 			return allFeeEstimate;
+		}
+
+		public static async Task<RpcStatus> GetRpcStatusAsync(this RPCClient rpc, CancellationToken cancel)
+		{
+			try
+			{
+				var bci = await rpc.GetBlockchainInfoAsync().ConfigureAwait(false);
+				cancel.ThrowIfCancellationRequested();
+				var pi = await rpc.GetPeersInfoAsync().ConfigureAwait(false);
+
+				return RpcStatus.Responsive(bci.Headers, bci.Blocks, pi.Length);
+			}
+			catch (Exception ex) when (!(ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException))
+			{
+				Logger.LogTrace(ex);
+				return RpcStatus.Unresponsive;
+			}
 		}
 
 		private static async Task<Dictionary<int, int>> EstimateHalfFeesAsync(this RPCClient rpc, IDictionary<int, int> estimations, int smallTarget, int smallFee, int largeTarget, int largeFee, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tolerateBitcoinCoreBrainfuck = true)

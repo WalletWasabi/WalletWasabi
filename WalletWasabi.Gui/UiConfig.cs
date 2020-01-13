@@ -24,10 +24,12 @@ namespace WalletWasabi.Gui
 		private bool _lurkingWifeMode;
 		private bool _lockScreenActive;
 		private string _lockScreenPinHash;
+		private bool _isCustomFee;
+		private bool _autocopy;
 
 		[JsonProperty(PropertyName = "WindowState")]
 		[JsonConverter(typeof(WindowStateAfterStartJsonConverter))]
-		public WindowState WindowState { get; internal set; } = Avalonia.Controls.WindowState.Maximized;
+		public WindowState WindowState { get; internal set; } = WindowState.Maximized;
 
 		[DefaultValue(530)]
 		[JsonProperty(PropertyName = "Height", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -47,7 +49,19 @@ namespace WalletWasabi.Gui
 
 		[DefaultValue(true)]
 		[JsonProperty(PropertyName = "Autocopy", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public bool Autocopy { get; internal set; }
+		public bool Autocopy
+		{
+			get => _autocopy;
+			set => RaiseAndSetIfChanged(ref _autocopy, value);
+		}
+
+		[DefaultValue(false)]
+		[JsonProperty(PropertyName = "IsCustomFee", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool IsCustomFee
+		{
+			get => _isCustomFee;
+			set => RaiseAndSetIfChanged(ref _isCustomFee, value);
+		}
 
 		[DefaultValue(false)]
 		[JsonProperty(PropertyName = "LurkingWifeMode", DefaultValueHandling = DefaultValueHandling.Populate)]

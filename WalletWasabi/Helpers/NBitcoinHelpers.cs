@@ -66,33 +66,53 @@ namespace WalletWasabi.Helpers
 			ExtPubKey epk;
 			try
 			{
-				epk = ExtPubKey.Parse(extPubKeyString);  // Starts with "ExtPubKey": "xpub...
+				epk = ExtPubKey.Parse(extPubKeyString, Network.Main); // Starts with "ExtPubKey": "xpub...
 			}
 			catch
 			{
-				// Try hex, Old wallet format was like this.
-				epk = new ExtPubKey(ByteHelpers.FromHex(extPubKeyString)); // Starts with "ExtPubKey": "hexbytes...
+				try
+				{
+					epk = ExtPubKey.Parse(extPubKeyString, Network.TestNet); // Starts with "ExtPubKey": "xpub...
+				}
+				catch
+				{
+					try
+					{
+						epk = ExtPubKey.Parse(extPubKeyString, Network.RegTest); // Starts with "ExtPubKey": "xpub...
+					}
+					catch
+					{
+						// Try hex, Old wallet format was like this.
+						epk = new ExtPubKey(ByteHelpers.FromHex(extPubKeyString)); // Starts with "ExtPubKey": "hexbytes...
+					}
+				}
 			}
+
 			return epk;
 		}
 
-		public static HDFingerprint BetterParseHDFingerprint(string hdFingerprintString, bool reverseByteOrder = false)
+		public static BitcoinAddress BetterParseBitcoinAddress(string bitcoinAddressString)
 		{
-			hdFingerprintString = Guard.NotNullOrEmptyOrWhitespace(nameof(hdFingerprintString), hdFingerprintString, trim: true);
+			bitcoinAddressString = Guard.NotNullOrEmptyOrWhitespace(nameof(bitcoinAddressString), bitcoinAddressString, trim: true);
 
-			HDFingerprint hdfp;
+			BitcoinAddress ba;
 			try
 			{
-				var hdfpu = uint.Parse(hdFingerprintString);
-				hdfp = new HDFingerprint(hdfpu);
+				ba = BitcoinAddress.Create(bitcoinAddressString, Network.Main);
 			}
 			catch
 			{
-				// Try hex, Old wallet format was like this.
-				var bytes = ByteHelpers.FromHex(hdFingerprintString);
-				hdfp = reverseByteOrder ? new HDFingerprint(bytes.Reverse().ToArray()) : new HDFingerprint(bytes);
+				try
+				{
+					ba = BitcoinAddress.Create(bitcoinAddressString, Network.TestNet);
+				}
+				catch
+				{
+					ba = BitcoinAddress.Create(bitcoinAddressString, Network.RegTest);
+				}
 			}
-			return hdfp;
+
+			return ba;
 		}
 
 		public static async Task<AddressManager> LoadAddressManagerFromPeerFileAsync(string filePath, Network expectedNetwork = null)

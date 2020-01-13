@@ -12,21 +12,21 @@ namespace WalletWasabi.Gui.Controls
 
 		public ExtendedListBox()
 		{
-			AddHandler(PointerPressedEvent, (sender, e) =>
-			{
-				if (e.MouseButton == MouseButton.Left || e.MouseButton == MouseButton.Right)
+			AddHandler(PointerPressedEvent,
+				(sender, e) =>
 				{
-					UpdateSelectionFromEventSource(
-						e.Source,
-						true,
-						(e.InputModifiers & InputModifiers.Shift) != 0,
-						(e.InputModifiers & InputModifiers.Control) != 0);
-				}
-			}, RoutingStrategies.Tunnel, true);
-		}
+					var properties = e.GetCurrentPoint(this).Properties;
 
-		protected override void OnPointerPressed(PointerPressedEventArgs e)
-		{
+					if (properties.IsLeftButtonPressed || properties.IsRightButtonPressed)
+					{
+						UpdateSelectionFromEventSource(
+							e.Source,
+							true,
+							e.KeyModifiers.HasFlag(KeyModifiers.Shift),
+							e.KeyModifiers.HasFlag(KeyModifiers.Control));
+					}
+				},
+				RoutingStrategies.Tunnel, true);
 		}
 	}
 }

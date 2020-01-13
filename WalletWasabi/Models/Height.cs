@@ -24,6 +24,10 @@ namespace WalletWasabi.Models
 		/// <returns></returns>
 		public static Height Unknown { get; } = new Height(HeightType.Unknown);
 
+		public Height(uint height) : this((int)height)
+		{
+		}
+
 		/// <summary>
 		/// Creates and initializes a new Height instance
 		/// </summary>
@@ -37,7 +41,7 @@ namespace WalletWasabi.Models
 		{
 			if (height < 0)
 			{
-				throw new ArgumentException($"{nameof(height)} : {height} cannot be less than zero");
+				throw new ArgumentException($"{nameof(height)}: {height} cannot be less than zero");
 			}
 
 			if (height == Unknown.Value)
@@ -64,7 +68,7 @@ namespace WalletWasabi.Models
 			height = default;
 
 			var correct = Guard.Correct(heightOrHeightType);
-			if (correct == "")
+			if (correct.Length == 0)
 			{
 				return false;
 			}
@@ -265,7 +269,7 @@ namespace WalletWasabi.Models
 		/// <summary>
 		/// Performs a comparison and return if left-side value is greater than right-side value.
 		/// </summary>
-		/// <param name="x">The left-hand Height  value to compare.</param>
+		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Int32 value to compare.</param>
 		/// <returns>true if left-hand value is greater than right-side value; otherwise false.</returns>
 		public static bool operator >(Height x, int y) => x.Value > y;

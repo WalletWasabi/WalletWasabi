@@ -24,7 +24,7 @@ namespace WalletWasabi.Helpers
 			{
 				if (InternalInstance is null)
 				{
-					throw new InvalidOperationException("Not loaded! Use LoadAsync() first!");
+					throw new InvalidOperationException($"Not loaded! Use {nameof(LoadAsync)}() first!");
 				}
 
 				if (string.IsNullOrEmpty(FileDir))
@@ -68,7 +68,7 @@ namespace WalletWasabi.Helpers
 			}
 			catch (Exception ex)
 			{
-				Logger.LogInfo<RuntimeParams>($"Could not save RuntimeParams: {ex}.");
+				Logger.LogInfo($"Could not save {nameof(RuntimeParams)}: {ex}.");
 			}
 		}
 
@@ -88,7 +88,7 @@ namespace WalletWasabi.Helpers
 			}
 			catch (Exception ex)
 			{
-				Logger.LogInfo<RuntimeParams>($"Could not load RuntimeParams: {ex}.");
+				Logger.LogInfo($"Could not load {nameof(RuntimeParams)}: {ex}.");
 			}
 			InternalInstance = new RuntimeParams();
 		}

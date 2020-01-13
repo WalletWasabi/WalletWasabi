@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.BouncyCastle.Math;
 using NBitcoin.Crypto;
@@ -14,15 +15,15 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models;
-using WalletWasabi.Backend.Models.Requests;
-using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.CoinJoin.Common.Models;
+using WalletWasabi.CoinJoin.Coordinator;
+using WalletWasabi.CoinJoin.Coordinator.MixingLevels;
+using WalletWasabi.CoinJoin.Coordinator.Participants;
+using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
-using WalletWasabi.Models.ChaumianCoinJoin;
-using WalletWasabi.Services;
 using static NBitcoin.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.Backend.Controllers
@@ -34,13 +35,15 @@ namespace WalletWasabi.Backend.Controllers
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class ChaumianCoinJoinController : Controller
 	{
+		private IMemoryCache Cache { get; }
 		public Global Global { get; }
 		private RPCClient RpcClient => Global.RpcClient;
 		private Network Network => Global.Config.Network;
-		private CcjCoordinator Coordinator => Global.Coordinator;
+		private Coordinator Coordinator => Global.Coordinator;
 
-		public ChaumianCoinJoinController(Global global)
+		public ChaumianCoinJoinController(IMemoryCache memoryCache, Global global)
 		{
+			Cache = memoryCache;
 			Global = global;
 		}
 
@@ -53,18 +56,18 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(200)]
 		public IActionResult GetStates()
 		{
-			IEnumerable<CcjRunningRoundState> response = GetStatesCollection();
+			IEnumerable<RoundStateResponse> response = GetStatesCollection();
 
 			return Ok(response);
 		}
 
-		internal IEnumerable<CcjRunningRoundState> GetStatesCollection()
+		internal IEnumerable<RoundStateResponse> GetStatesCollection()
 		{
-			var response = new List<CcjRunningRoundState>();
+			var response = new List<RoundStateResponse>();
 
-			foreach (CcjRound round in Coordinator.GetRunningRounds())
+			foreach (CoordinatorRound round in Coordinator.GetRunningRounds())
 			{
-				var state = new CcjRunningRoundState
+				var state = new RoundStateResponse
 				{
 					Phase = round.Phase,
 					SchnorrPubKeys = round.MixingLevels.SchnorrPubKeys,
@@ -115,9 +118,9 @@ namespace WalletWasabi.Backend.Controllers
 
 			using (await InputsLock.LockAsync())
 			{
-				CcjRound round = Coordinator.TryGetRound(request.RoundId);
+				CoordinatorRound round = Coordinator.TryGetRound(request.RoundId);
 
-				if (round is null || round.Phase != CcjRoundPhase.InputRegistration)
+				if (round is null || round.Phase != RoundPhase.InputRegistration)
 				{
 					return NotFound("No such running round in InputRegistration. Try another round.");
 				}
@@ -217,7 +220,7 @@ namespace WalletWasabi.Backend.Controllers
 						if (getTxOutResponse.Confirmations <= 0)
 						{
 							// If it spends a CJ then it may be acceptable to register.
-							if (!await Coordinator.ContainsCoinJoinAsync(inputProof.Input.TransactionId))
+							if (!await Coordinator.ContainsUnconfirmedCoinJoinAsync(inputProof.Input.TransactionId))
 							{
 								return BadRequest("Provided input is neither confirmed, nor is from an unconfirmed coinjoin.");
 							}
@@ -316,7 +319,7 @@ namespace WalletWasabi.Backend.Controllers
 					alice.BlindedOutputSignatures = blindSignatures.ToArray();
 
 					// Check if phase changed since.
-					if (round.Status != CcjRoundStatus.Running || round.Phase != CcjRoundPhase.InputRegistration)
+					if (round.Status != CoordinatorRoundStatus.Running || round.Phase != RoundPhase.InputRegistration)
 					{
 						return StatusCode(StatusCodes.Status503ServiceUnavailable, "The state of the round changed while handling the request. Try again.");
 					}
@@ -328,7 +331,7 @@ namespace WalletWasabi.Backend.Controllers
 
 						if (round.CountAlices() >= round.AnonymitySet)
 						{
-							await round.ExecuteNextPhaseAsync(CcjRoundPhase.ConnectionConfirmation);
+							await round.ExecuteNextPhaseAsync(RoundPhase.ConnectionConfirmation);
 						}
 					}
 
@@ -341,7 +344,7 @@ namespace WalletWasabi.Backend.Controllers
 				}
 				catch (Exception ex)
 				{
-					Logger.LogDebug<ChaumianCoinJoinController>(ex);
+					Logger.LogDebug(ex);
 					return BadRequest(ex.Message);
 				}
 			}
@@ -369,28 +372,28 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest();
 			}
 
-			(CcjRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, CcjRoundPhase.ConnectionConfirmation, out IActionResult returnFailureResponse);
+			(CoordinatorRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, RoundPhase.ConnectionConfirmation, out IActionResult returnFailureResponse);
 			if (returnFailureResponse != null)
 			{
 				return returnFailureResponse;
 			}
 
-			CcjRoundPhase phase = round.Phase;
+			RoundPhase phase = round.Phase;
 
 			// Start building the response.
-			var resp = new ConnConfResp
+			var resp = new ConnectionConfirmationResponse
 			{
 				CurrentPhase = phase
 			};
 
 			switch (phase)
 			{
-				case CcjRoundPhase.InputRegistration:
+				case RoundPhase.InputRegistration:
 					{
 						round.StartAliceTimeout(alice.UniqueId);
 						break;
 					}
-				case CcjRoundPhase.ConnectionConfirmation:
+				case RoundPhase.ConnectionConfirmation:
 					{
 						alice.State = AliceState.ConnectionConfirmed;
 
@@ -410,7 +413,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 				default:
 					{
-						TryLogLateRequest(roundId, CcjRoundPhase.ConnectionConfirmation);
+						TryLogLateRequest(roundId, RoundPhase.ConnectionConfirmation);
 						return Gone($"Participation can be only confirmed from InputRegistration or ConnectionConfirmation phase. Current phase: {phase}.");
 					}
 			}
@@ -445,7 +448,7 @@ namespace WalletWasabi.Backend.Controllers
 				return returnFailureResponse;
 			}
 
-			CcjRound round = Coordinator.TryGetRound(roundId);
+			CoordinatorRound round = Coordinator.TryGetRound(roundId);
 			if (round is null)
 			{
 				return Ok("Round not found.");
@@ -458,15 +461,15 @@ namespace WalletWasabi.Backend.Controllers
 				return Ok("Alice not found.");
 			}
 
-			if (round.Status != CcjRoundStatus.Running)
+			if (round.Status != CoordinatorRoundStatus.Running)
 			{
 				return Gone("Round is not running.");
 			}
 
-			CcjRoundPhase phase = round.Phase;
+			RoundPhase phase = round.Phase;
 			switch (phase)
 			{
-				case CcjRoundPhase.InputRegistration:
+				case RoundPhase.InputRegistration:
 					{
 						round.RemoveAlicesBy(uniqueIdGuid);
 						return NoContent();
@@ -504,23 +507,23 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest();
 			}
 
-			CcjRound round = Coordinator.TryGetRound(roundId);
+			CoordinatorRound round = Coordinator.TryGetRound(roundId);
 			if (round is null)
 			{
-				TryLogLateRequest(roundId, CcjRoundPhase.OutputRegistration);
+				TryLogLateRequest(roundId, RoundPhase.OutputRegistration);
 				return NotFound("Round not found.");
 			}
 
-			if (round.Status != CcjRoundStatus.Running)
+			if (round.Status != CoordinatorRoundStatus.Running)
 			{
-				TryLogLateRequest(roundId, CcjRoundPhase.OutputRegistration);
+				TryLogLateRequest(roundId, RoundPhase.OutputRegistration);
 				return Gone("Round is not running.");
 			}
 
-			CcjRoundPhase phase = round.Phase;
-			if (phase != CcjRoundPhase.OutputRegistration)
+			RoundPhase phase = round.Phase;
+			if (phase != RoundPhase.OutputRegistration)
 			{
-				TryLogLateRequest(roundId, CcjRoundPhase.OutputRegistration);
+				TryLogLateRequest(roundId, RoundPhase.OutputRegistration);
 				return Conflict($"Output registration can only be done from OutputRegistration phase. Current phase: {phase}.");
 			}
 
@@ -535,7 +538,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			if (request.OutputAddress == Constants.GetCoordinatorAddress(Network))
 			{
-				Logger.LogWarning<ChaumianCoinJoinController>($"Bob is registering the coordinator's address. Address: {request.OutputAddress}, Level: {request.Level}, Signature: {request.UnblindedSignature}.");
+				Logger.LogWarning($"Bob is registering the coordinator's address. Address: {request.OutputAddress}, Level: {request.Level}, Signature: {request.UnblindedSignature}.");
 			}
 
 			if (request.Level > round.MixingLevels.GetMaxLevel())
@@ -571,7 +574,7 @@ namespace WalletWasabi.Backend.Controllers
 					int blindSigCount = round.CountBlindSignatures();
 					if (bobCount == blindSigCount) // If there'll be more bobs, then round failed. Someone may broke the crypto.
 					{
-						await round.ExecuteNextPhaseAsync(CcjRoundPhase.Signing);
+						await round.ExecuteNextPhaseAsync(RoundPhase.Signing);
 					}
 				}
 
@@ -604,22 +607,30 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest();
 			}
 
-			(CcjRound round, _) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, CcjRoundPhase.Signing, out IActionResult returnFailureResponse);
+			(CoordinatorRound round, _) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, RoundPhase.Signing, out IActionResult returnFailureResponse);
 			if (returnFailureResponse != null)
 			{
 				return returnFailureResponse;
 			}
 
-			CcjRoundPhase phase = round.Phase;
+			RoundPhase phase = round.Phase;
 			switch (phase)
 			{
-				case CcjRoundPhase.Signing:
+				case RoundPhase.Signing:
 					{
-						return Ok(round.GetUnsignedCoinJoinHex());
+						var hex = round.UnsignedCoinJoinHex;
+						if (hex is { })
+						{
+							return Ok(hex);
+						}
+						else
+						{
+							return NotFound("Hex not found. This is impossible.");
+						}
 					}
 				default:
 					{
-						TryLogLateRequest(roundId, CcjRoundPhase.Signing);
+						TryLogLateRequest(roundId, RoundPhase.Signing);
 						return Conflict($"CoinJoin can only be requested from Signing phase. Current phase: {phase}.");
 					}
 			}
@@ -655,7 +666,7 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest();
 			}
 
-			(CcjRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, CcjRoundPhase.Signing, out IActionResult returnFailureResponse);
+			(CoordinatorRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, RoundPhase.Signing, out IActionResult returnFailureResponse);
 			if (returnFailureResponse != null)
 			{
 				return returnFailureResponse;
@@ -667,10 +678,10 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest("Alice did not provide enough witnesses.");
 			}
 
-			CcjRoundPhase phase = round.Phase;
+			RoundPhase phase = round.Phase;
 			switch (phase)
 			{
-				case CcjRoundPhase.Signing:
+				case RoundPhase.Signing:
 					{
 						using (await SigningLock.LockAsync())
 						{
@@ -686,21 +697,21 @@ namespace WalletWasabi.Backend.Controllers
 								{
 									return BadRequest($"Malformed witness is provided. Details: {ex.Message}");
 								}
-								int maxIndex = round.UnsignedCoinJoin.Inputs.Count - 1;
+								int maxIndex = round.CoinJoin.Inputs.Count - 1;
 								if (maxIndex < index)
 								{
 									return BadRequest($"Index out of range. Maximum value: {maxIndex}. Provided value: {index}");
 								}
 
 								// Check duplicates.
-								if (round.SignedCoinJoin.Inputs[index].HasWitScript())
+								if (round.CoinJoin.Inputs[index].HasWitScript())
 								{
-									return BadRequest($"Input is already signed.");
+									return BadRequest("Input is already signed.");
 								}
 
 								// Verify witness.
 								// 1. Copy UnsignedCoinJoin.
-								Transaction cjCopy = Transaction.Parse(round.UnsignedCoinJoin.ToHex(), Network);
+								Transaction cjCopy = Transaction.Parse(round.CoinJoin.ToHex(), Network);
 								// 2. Sign the copy.
 								cjCopy.Inputs[index].WitScript = witness;
 								// 3. Convert the current input to IndexedTxIn.
@@ -710,11 +721,11 @@ namespace WalletWasabi.Backend.Controllers
 								// 5. Verify if currentIndexedInput is correctly signed, if not, return the specific error.
 								if (!currentIndexedInput.VerifyScript(registeredCoin, out ScriptError error))
 								{
-									return BadRequest($"Invalid witness is provided. ScriptError: {error}.");
+									return BadRequest($"Invalid witness is provided. {nameof(ScriptError)}: {error}.");
 								}
 
 								// Finally add it to our CJ.
-								round.SignedCoinJoin.Inputs[index].WitScript = witness;
+								round.CoinJoin.Inputs[index].WitScript = witness;
 							}
 
 							alice.State = AliceState.SignedCoinJoin;
@@ -726,10 +737,29 @@ namespace WalletWasabi.Backend.Controllers
 					}
 				default:
 					{
-						TryLogLateRequest(roundId, CcjRoundPhase.Signing);
+						TryLogLateRequest(roundId, RoundPhase.Signing);
 						return Conflict($"CoinJoin can only be requested from Signing phase. Current phase: {phase}.");
 					}
 			}
+		}
+
+		/// <summary>
+		/// Gets the list of unconfirmed CoinJoin transaction Ids.
+		/// </summary>
+		/// <returns>The list of CoinJoin transactions in the mempool.</returns>
+		/// <response code="200">An array of transaction Ids</response>
+		[HttpGet("unconfirmed-coinjoins")]
+		[ProducesResponseType(200)]
+		public async Task<IActionResult> GetUnconfirmedCoinjoinsAsync()
+		{
+			IEnumerable<string> unconfirmedCoinJoinString = (await GetUnconfirmedCoinJoinCollectionAsync()).Select(x => x.ToString());
+			return Ok(unconfirmedCoinJoinString);
+		}
+
+		internal async Task<IEnumerable<uint256>> GetUnconfirmedCoinJoinCollectionAsync()
+		{
+			var unconfirmedCoinJoins = await Global.Coordinator.GetUnconfirmedCoinJoinsAsync();
+			return unconfirmedCoinJoins;
 		}
 
 		private Guid GetGuidOrFailureResponse(string uniqueId, out IActionResult returnFailureResponse)
@@ -737,7 +767,7 @@ namespace WalletWasabi.Backend.Controllers
 			returnFailureResponse = null;
 			if (string.IsNullOrWhiteSpace(uniqueId) || !ModelState.IsValid)
 			{
-				returnFailureResponse = BadRequest("Invalid uniqueId provided.");
+				returnFailureResponse = BadRequest($"Invalid {nameof(uniqueId)} provided.");
 			}
 
 			Guid aliceGuid = Guid.Empty;
@@ -747,19 +777,19 @@ namespace WalletWasabi.Backend.Controllers
 			}
 			catch (Exception ex)
 			{
-				Logger.LogDebug<ChaumianCoinJoinController>(ex);
-				returnFailureResponse = BadRequest("Invalid uniqueId provided.");
+				Logger.LogDebug(ex);
+				returnFailureResponse = BadRequest($"Invalid {nameof(uniqueId)} provided.");
 			}
 			if (aliceGuid == Guid.Empty) // Probably not possible
 			{
-				Logger.LogDebug<ChaumianCoinJoinController>($"Empty uniqueId GID provided in {nameof(GetCoinJoin)} function.");
-				returnFailureResponse = BadRequest("Invalid uniqueId provided.");
+				Logger.LogDebug($"Empty {nameof(uniqueId)} GID provided in {nameof(GetCoinJoin)} function.");
+				returnFailureResponse = BadRequest($"Invalid {nameof(uniqueId)} provided.");
 			}
 
 			return aliceGuid;
 		}
 
-		private (CcjRound round, Alice alice) GetRunningRoundAndAliceOrFailureResponse(long roundId, string uniqueId, CcjRoundPhase desiredPhase, out IActionResult returnFailureResponse)
+		private (CoordinatorRound round, Alice alice) GetRunningRoundAndAliceOrFailureResponse(long roundId, string uniqueId, RoundPhase desiredPhase, out IActionResult returnFailureResponse)
 		{
 			returnFailureResponse = null;
 
@@ -771,7 +801,7 @@ namespace WalletWasabi.Backend.Controllers
 				return (null, null);
 			}
 
-			CcjRound round = Coordinator.TryGetRound(roundId);
+			CoordinatorRound round = Coordinator.TryGetRound(roundId);
 
 			if (round is null)
 			{
@@ -787,7 +817,7 @@ namespace WalletWasabi.Backend.Controllers
 				return (round, null);
 			}
 
-			if (round.Status != CcjRoundStatus.Running)
+			if (round.Status != CoordinatorRoundStatus.Running)
 			{
 				TryLogLateRequest(roundId, desiredPhase);
 				returnFailureResponse = Gone("Round is not running.");
@@ -796,19 +826,19 @@ namespace WalletWasabi.Backend.Controllers
 			return (round, alice);
 		}
 
-		private static void TryLogLateRequest(long roundId, CcjRoundPhase desiredPhase)
+		private static void TryLogLateRequest(long roundId, RoundPhase desiredPhase)
 		{
 			try
 			{
-				DateTimeOffset ended = CcjRound.PhaseTimeoutLog.TryGet((roundId, desiredPhase));
+				DateTimeOffset ended = CoordinatorRound.PhaseTimeoutLog.TryGet((roundId, desiredPhase));
 				if (ended != default)
 				{
-					Logger.LogInfo<ChaumianCoinJoinController>($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {desiredPhase} {(int)(DateTimeOffset.UtcNow - ended).TotalSeconds} seconds late.");
+					Logger.LogInfo($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {desiredPhase} {(int)(DateTimeOffset.UtcNow - ended).TotalSeconds} seconds late.");
 				}
 			}
 			catch (Exception ex)
 			{
-				Logger.LogDebug<ChaumianCoinJoinController>(ex);
+				Logger.LogDebug(ex);
 			}
 		}
 

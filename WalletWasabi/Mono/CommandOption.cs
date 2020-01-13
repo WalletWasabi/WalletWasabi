@@ -178,7 +178,7 @@ namespace Mono.Options
 
 		protected override void OnParseComplete(OptionContext c)
 		{
-			throw new NotSupportedException("CommandOption.OnParseComplete should not be invoked.");
+			throw new NotSupportedException($"{nameof(CommandOption)}.{nameof(CommandOption.OnParseComplete)} should not be invoked.");
 		}
 	}
 }

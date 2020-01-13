@@ -2,9 +2,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -25,7 +22,7 @@ namespace System.IO
 				}
 				catch (DirectoryNotFoundException)
 				{
-					return;  // good!
+					return; // good!
 				}
 				catch (IOException)
 				{
@@ -34,7 +31,7 @@ namespace System.IO
 						throw;
 					}
 					// System.IO.IOException: The directory is not empty
-					Logger.LogDebug($"Gnomes prevent deletion of {destinationDir}! Applying magic dust, attempt #{gnomes}.", nameof(IoHelpers));
+					Logger.LogDebug($"Gnomes prevent deletion of {destinationDir}! Applying magic dust, attempt #{gnomes}.");
 
 					// see http://stackoverflow.com/questions/329355/cannot-delete-directory-with-directory-deletepath-true for more magic
 					await Task.Delay(100);
@@ -47,7 +44,7 @@ namespace System.IO
 						throw;
 					}
 					// Wait, maybe another software make us authorized a little later
-					Logger.LogDebug($"Gnomes prevent deletion of {destinationDir}! Applying magic dust, attempt #{gnomes}.", nameof(IoHelpers));
+					Logger.LogDebug($"Gnomes prevent deletion of {destinationDir}! Applying magic dust, attempt #{gnomes}.");
 
 					// see http://stackoverflow.com/questions/329355/cannot-delete-directory-with-directory-deletepath-true for more magic
 					await Task.Delay(100);
@@ -89,6 +86,16 @@ namespace System.IO
 			}
 		}
 
+		public static void EnsureFileExists(string filePath)
+		{
+			if (!File.Exists(filePath))
+			{
+				EnsureContainingDirectoryExists(filePath);
+
+				File.Create(filePath)?.Dispose();
+			}
+		}
+
 		public static byte[] GetHashFile(string filePath)
 		{
 			var bytes = File.ReadAllBytes(filePath);
@@ -111,7 +118,7 @@ namespace System.IO
 				}
 				return false;
 			}
-			catch (Exception)
+			catch
 			{
 				return false;
 			}
@@ -121,7 +128,7 @@ namespace System.IO
 		{
 			if (Directory.Exists(dirPath))
 			{
-				using (Process process = Process.Start(new ProcessStartInfo
+				using Process process = Process.Start(new ProcessStartInfo
 				{
 					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
 						? "explorer.exe"
@@ -130,83 +137,27 @@ namespace System.IO
 							: "xdg-open"),
 					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"\"{dirPath}\"" : dirPath,
 					CreateNoWindow = true
-				}))
-				{ }
+				});
 			}
 		}
 
-		public static void OpenFileInTextEditor(string filePath)
-		{
-			if (File.Exists(filePath))
-			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-				{
-					// If no associated application/json MimeType is found xdg-open opens retrun error
-					// but it tries to open it anyway using the console editor (nano, vim, other..)
-					EnvironmentHelpers.ShellExec($"gedit {filePath} || xdg-open {filePath}", waitForExit: false);
-				}
-				else
-				{
-					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-					{
-						bool openWithNotepad = true; // If there is an exception with the registry read we use notepad.
-
-						try
-						{
-							openWithNotepad = !EnvironmentHelpers.IsFileTypeAssociated("json");
-						}
-						catch (Exception ex)
-						{
-							Logger.LogError(ex, nameof(IoHelpers));
-						}
-
-						if (openWithNotepad)
-						{
-							// Open file using Notepad.
-							using (Process process = Process.Start(new ProcessStartInfo
-							{
-								FileName = "notepad.exe",
-								Arguments = filePath,
-								CreateNoWindow = true,
-								UseShellExecute = false
-							}))
-							{ }
-
-							return; // Opened with notepad, return.
-						}
-					}
-
-					// Open file wtih the default editor.
-					using (Process process = Process.Start(new ProcessStartInfo
-					{
-						FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? filePath : "open",
-						Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e {filePath}" : "",
-						CreateNoWindow = true,
-						UseShellExecute = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-					}))
-					{ }
-				}
-			}
-		}
-
-		public static void OpenBrowser(string url)
+		public static async Task OpenBrowserAsync(string url)
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
 				// If no associated application/json MimeType is found xdg-open opens retrun error
 				// but it tries to open it anyway using the console editor (nano, vim, other..)
-				EnvironmentHelpers.ShellExec($"xdg-open {url}", waitForExit: false);
+				await EnvironmentHelpers.ShellExecAsync($"xdg-open {url}", waitForExit: false).ConfigureAwait(false);
 			}
 			else
 			{
-				using (Process process = Process.Start(new ProcessStartInfo
+				using Process process = Process.Start(new ProcessStartInfo
 				{
 					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? url : "open",
 					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e {url}" : "",
 					CreateNoWindow = true,
 					UseShellExecute = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-				}))
-				{ }
+				});
 			}
 		}
 

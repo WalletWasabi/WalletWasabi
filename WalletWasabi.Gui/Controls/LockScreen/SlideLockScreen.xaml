@@ -1,6 +1,7 @@
 ﻿<lockscreen:SlideLockScreen xmlns="https://github.com/avaloniaui"
-                            xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
                             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                            xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
+                            x:Class="WalletWasabi.Gui.Controls.LockScreen.SlideLockScreen"
                             IsLocked="{Binding IsLocked}"
                             Offset="{Binding Offset}">
   <lockscreen:SlideLockScreen.Clock>
@@ -8,86 +9,52 @@
   </lockscreen:SlideLockScreen.Clock>
   <lockscreen:SlideLockScreen.Styles>
     <Styles>
-      <Styles.Resources>
-        <Template x:Key="Chevron">
-          <Path Stretch="Uniform" Fill="{DynamicResource ThemeForegroundBrush}" Data="M 478.97852 464.25977
-                      L 446.12109 470.33203
-                      L 446.12109 478.72461
-                      L 478.97852 472.65234
-                      L 511.83398 478.72461
-                      L 511.83398 470.33203
-                      L 478.97852 464.25977 z " />
-        </Template>
-      </Styles.Resources>
-      <Style Selector="Border.Chevron">
-        <Setter Property="Width" Value="103" />
-        <Setter Property="Height" Value="50" />
-        <Setter Property="Child" Value="{StaticResource Chevron}" />
-      </Style>
-      <Style Selector="Grid[IsVisible=true] Border.Chev1">
-        <Style.Animations>
-          <Animation Duration="0:0:1.5" Easing="QuarticEaseInOut" IterationCount="Infinite">
-            <KeyFrame Cue="0%">
-              <Setter Property="Opacity" Value="0" />
-              <Setter Property="TranslateTransform.Y" Value="100" />
-            </KeyFrame>
-            <KeyFrame Cue="90%">
-              <Setter Property="Opacity" Value="{Binding #Shade.Opacity}" />
-              <Setter Property="TranslateTransform.Y" Value="0" />
-            </KeyFrame>
-            <KeyFrame Cue="100%">
-              <Setter Property="Opacity" Value="0" />
-              <Setter Property="TranslateTransform.Y" Value="0" />
-            </KeyFrame>
-          </Animation>
-        </Style.Animations>
-      </Style>
-      <Style Selector="Grid[IsVisible=true] Border.Chev2">
-        <Style.Animations>
-          <Animation Delay="0:0:0.3" Duration="0:0:1.5" Easing="QuarticEaseInOut" IterationCount="Infinite">
-            <KeyFrame Cue="0%">
-              <Setter Property="Opacity" Value="0" />
-              <Setter Property="TranslateTransform.Y" Value="100" />
-            </KeyFrame>
-            <KeyFrame Cue="90%">
-              <Setter Property="Opacity" Value="{Binding #Shade.Opacity}" />
-              <Setter Property="TranslateTransform.Y" Value="0" />
-            </KeyFrame>
-            <KeyFrame Cue="100%">
-              <Setter Property="Opacity" Value="0" />
-              <Setter Property="TranslateTransform.Y" Value="0" />
-            </KeyFrame>
-          </Animation>
-        </Style.Animations>
-      </Style>
-      <Style Selector="Grid[IsVisible=true] Border.Chev3">
-        <Style.Animations>
-          <Animation Delay="0:0:0.6" Duration="0:0:1.5" Easing="QuarticEaseInOut" IterationCount="Infinite">
-            <KeyFrame Cue="0%">
-              <Setter Property="Opacity" Value="0" />
-              <Setter Property="TranslateTransform.Y" Value="100" />
-            </KeyFrame>
-            <KeyFrame Cue="90%">
-              <Setter Property="Opacity" Value="{Binding #Shade.Opacity}" />
-              <Setter Property="TranslateTransform.Y" Value="0" />
-            </KeyFrame>
-            <KeyFrame Cue="100%">
-              <Setter Property="Opacity" Value="0" />
-              <Setter Property="TranslateTransform.Y" Value="0" />
-            </KeyFrame>
-          </Animation>
-        </Style.Animations>
-      </Style>
       <Style Selector="lockscreen|SlideLockScreen.statechanged">
         <Style.Animations>
-          <Animation FillMode="Both" Duration="0:0:1.5" Easing="QuarticEaseInOut">
+          <Animation FillMode="Both"
+                     Duration="0:0:1.5"
+                     Easing="QuarticEaseInOut">
             <KeyFrame Cue="0%">
-              <Setter Property="DoneAnimating" Value="False" />
+              <Setter Property="DoneAnimating"
+                      Value="False" />
             </KeyFrame>
             <KeyFrame Cue="100%">
-              <Setter Property="Opacity" Value="{Binding TargetOpacity}" />
-              <Setter Property="Offset" Value="{Binding TargetOffset}" />
-              <Setter Property="DoneAnimating" Value="True" />
+              <Setter Property="Opacity"
+                      Value="{Binding TargetOpacity}" />
+              <Setter Property="Offset"
+                      Value="{Binding TargetOffset}" />
+              <Setter Property="DoneAnimating"
+                      Value="True" />
+            </KeyFrame>
+          </Animation>
+        </Style.Animations>
+      </Style>
+      <Style Selector="lockscreen|SlideLockScreen[IsLocked=true]">
+        <Style.Animations>
+          <Animation FillMode="Both"
+                     Duration="0:0:1.5">
+            <KeyFrame Cue="0%">
+              <Setter Property="IsVisible"
+                      Value="True" />
+            </KeyFrame>
+            <KeyFrame Cue="100%">
+              <Setter Property="IsVisible"
+                      Value="True" />
+            </KeyFrame>
+          </Animation>
+        </Style.Animations>
+      </Style>
+      <Style Selector="lockscreen|SlideLockScreen[IsLocked=false]">
+        <Style.Animations>
+          <Animation FillMode="Both"
+                     Duration="0:0:1.5">
+            <KeyFrame Cue="99%">
+              <Setter Property="IsVisible"
+                      Value="True" />
+            </KeyFrame>
+            <KeyFrame Cue="100%">
+              <Setter Property="IsVisible"
+                      Value="False" />
             </KeyFrame>
           </Animation>
         </Style.Animations>
@@ -95,15 +62,32 @@
     </Styles>
   </lockscreen:SlideLockScreen.Styles>
   <Grid>
-    <Grid x:Name="Shade" Background="{DynamicResource ThemeBackgroundBrush}">
-      <Grid IsVisible="{Binding IsUserDragging}" VerticalAlignment="Center" HorizontalAlignment="Center">
-        <Border Classes="Chevron Chev1" />
-        <Border Classes="Chevron Chev2" />
-        <Border Classes="Chevron Chev3" />
+    <Grid x:Name="Shade"
+          Background="{DynamicResource ThemeBackgroundBrush}">
+      <Grid Width="300"
+            Height="300"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Center"
+            Opacity="0.1">
+        <Grid.RenderTransform>
+          <RotateTransform Angle="180" />
+        </Grid.RenderTransform>
+        <DrawingPresenter>
+          <DrawingPresenter.Drawing>
+            <DrawingGroup>
+              <DrawingGroup.Children>
+                <GeometryDrawing Brush="{DynamicResource ThemeForegroundBrush}"
+                                 Geometry="m 739.704 1057.251 c -13.9 0.375 -26.676 0.375 -38.699 0 v 0 l -0.375 63.874 c -68.006 0 -147.659 -18.786 -198.004 -67.632 v 0 l -3.006 -3.005 -0.752 -3.757 c -18.786 -74.02 8.641 -236.335 166.069 -332.146 v 0 C 501.498 869.01 521.035 1010.284 525.919 1035.459 v 0 c 45.089 41.33 116.474 54.104 146.156 55.984 v 0 l -0.376 -36.071 c -39.45 -4.509 -81.156 -15.405 -114.218 -39.452 v 0 c -7.515 -54.856 15.403 -118.73 48.468 -173.211 v 0 c 26.3 -43.961 59.363 -78.904 97.31 -112.719 v 0 l 17.085 186.413 h -0.042 L 671.324 802.13 c -30.058 35.318 -83.786 110.089 -85.665 197.259 v 0 c 40.578 20.666 86.416 27.052 131.502 27.428 v 0 c 45.838 0.376 96.56 -6.388 137.89 -27.428 v 0 C 853.173 912.219 799.444 837.448 769.386 802.13 v 0 l -48.979 114.273 h -0.042 L 737.449 729.99 c 37.95 33.815 71.013 68.758 97.312 112.719 v 0 c 33.063 54.481 55.983 118.355 48.468 173.211 v 0 c -32.687 24.047 -74.767 33.816 -114.218 38.7 v 0 l -0.375 36.823 c 29.681 -1.88 101.067 -14.654 146.154 -55.984 v 0 c 4.885 -25.175 24.423 -166.449 -139.017 -320.874 v 0 c 157.427 95.811 184.855 258.126 166.069 332.146 v 0 l -0.75 3.757 -3.007 3.005 c -50.348 48.846 -129.999 67.632 -198.005 67.632 v 0 z" />
+              </DrawingGroup.Children>
+            </DrawingGroup>
+          </DrawingPresenter.Drawing>
+        </DrawingPresenter>
       </Grid>
-      <Grid VerticalAlignment="Bottom" HorizontalAlignment="Center">
-        <Border Classes="Chevron" Opacity="0.4" />
-      </Grid>
+      <TextBlock Text="Click and Drag upwards to unlock."
+                 VerticalAlignment="Bottom"
+                 HorizontalAlignment="Center"
+                 Margin="20"
+                 Opacity="0.5" />
     </Grid>
     <Thumb x:Name="PART_DragThumb">
       <Thumb.Template>

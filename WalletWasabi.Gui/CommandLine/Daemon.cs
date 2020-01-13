@@ -4,8 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Helpers;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.CommandLine
@@ -23,7 +24,7 @@ namespace WalletWasabi.Gui.CommandLine
 		{
 			try
 			{
-				Logger.LogStarting("Wasabi Daemon");
+				Logger.LogSoftwareStarted("Wasabi Daemon");
 
 				KeyManager keyManager = TryGetKeyManagerFromWalletName(walletName);
 				if (keyManager is null)
@@ -33,6 +34,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 				string password = null;
 				var count = 3;
+				string compatibilityPassword = null;
 				do
 				{
 					if (password != null)
@@ -51,9 +53,22 @@ namespace WalletWasabi.Gui.CommandLine
 					Console.Write("Password: ");
 
 					password = PasswordConsole.ReadPassword();
-					password = Guard.Correct(password);
+					if (PasswordHelper.IsTooLong(password, out password))
+					{
+						Console.WriteLine(PasswordHelper.PasswordTooLongMessage);
+					}
+					if (PasswordHelper.IsTrimable(password, out password))
+					{
+						Console.WriteLine(PasswordHelper.TrimWarnMessage);
+					}
 				}
-				while (!keyManager.TestPassword(password));
+				while (!PasswordHelper.TryPassword(keyManager, password, out compatibilityPassword));
+
+				if (compatibilityPassword != null)
+				{
+					password = compatibilityPassword;
+					Logger.LogInfo(PasswordHelper.CompatibilityPasswordWarnMessage);
+				}
 
 				Logger.LogInfo("Correct password.");
 
@@ -101,7 +116,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 				if (!Global.KillRequested) // This only has to run if it finishes by itself. Otherwise the Ctrl+c runs it.
 				{
-					await Global.ChaumianClient?.DequeueAllCoinsFromMixAsync("Stopping Wasabi.");
+					await Global.ChaumianClient?.DequeueAllCoinsFromMixAsync(DequeueReason.ApplicationExit);
 				}
 			}
 			catch
@@ -113,7 +128,7 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			finally
 			{
-				Logger.LogInfo($"Daemon stopped.");
+				Logger.LogInfo($"{nameof(Daemon)} stopped.");
 			}
 		}
 
@@ -129,7 +144,7 @@ namespace WalletWasabi.Gui.CommandLine
 					if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
 					{
 						// The selected wallet is not available any more (someone deleted it?).
-						Logger.LogCritical("The selected wallet does not exist, did you delete it?", nameof(Daemon));
+						Logger.LogCritical("The selected wallet does not exist, did you delete it?");
 						return null;
 					}
 
@@ -139,21 +154,21 @@ namespace WalletWasabi.Gui.CommandLine
 					}
 					catch (Exception ex)
 					{
-						Logger.LogCritical(ex, nameof(Daemon));
+						Logger.LogCritical(ex);
 						return null;
 					}
 				}
 
 				if (keyManager is null)
 				{
-					Logger.LogCritical("Wallet was not supplied. Add --wallet:WalletName", nameof(Daemon));
+					Logger.LogCritical("Wallet was not supplied. Add --wallet:WalletName");
 				}
 
 				return keyManager;
 			}
 			catch (Exception ex)
 			{
-				Logger.LogCritical(ex, nameof(Daemon));
+				Logger.LogCritical(ex);
 				return null;
 			}
 		}
@@ -162,18 +177,17 @@ namespace WalletWasabi.Gui.CommandLine
 		{
 			try
 			{
-				if (mixAll)
+				var coinsView = Global.WalletService.Coins;
+				var coinsToMix = coinsView.Available();
+				if (!mixAll)
 				{
-					await Global.ChaumianClient.QueueCoinsToMixAsync(password, Global.WalletService.Coins.Where(x => !x.Unavailable).ToArray());
+					coinsToMix = coinsToMix.FilterBy(x => x.AnonymitySet < Global.WalletService.ServiceConfiguration.MixUntilAnonymitySet);
 				}
-				else
-				{
-					await Global.ChaumianClient.QueueCoinsToMixAsync(password, Global.WalletService.Coins.Where(x => !x.Unavailable && x.AnonymitySet < Global.WalletService.ServiceConfiguration.MixUntilAnonymitySet).ToArray());
-				}
+				await Global.ChaumianClient.QueueCoinsToMixAsync(password, coinsToMix.ToArray());
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning(ex, nameof(Daemon));
+				Logger.LogWarning(ex);
 			}
 		}
 	}

@@ -3,10 +3,12 @@
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui">
+             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
+             x:Class="WalletWasabi.Gui.Tabs.SettingsView">
   <UserControl.Resources>
     <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
     <converters:NetworkStringConverter x:Key="NetworkStringConverter" />
+    <converters:VersionStringConverter x:Key="VersionStringConverter" />
   </UserControl.Resources>
   <DockPanel LastChildFill="true">
     <StackPanel DockPanel.Dock="Top" IsVisible="{Binding IsModified}" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 5 10 5">
@@ -21,16 +23,40 @@
               <StackPanel Orientation="Vertical" Spacing="5">
                 <StackPanel Margin="0 10" Spacing="5">
                   <TextBlock>Network</TextBlock>
-                  <DropDown Items="{Binding Networks}" SelectedItem="{Binding Network}">
-                    <DropDown.ItemTemplate>
+                  <ComboBox Items="{Binding Networks}" SelectedItem="{Binding Network}">
+                    <ComboBox.ItemTemplate>
                       <DataTemplate>
                         <TextBlock Text="{Binding Converter={StaticResource NetworkStringConverter}}" />
                       </DataTemplate>
-                    </DropDown.ItemTemplate>
-                  </DropDown>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
                 </StackPanel>
-                <controls:GroupBox Title="{Binding Network, StringFormat=My Node for \{0\}, Converter={StaticResource NetworkStringConverter}}" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+                <controls:GroupBox Title="{Binding BitcoinCoreVersion, StringFormat=Local Bitcoin Core v\{0\}, Converter={StaticResource VersionStringConverter}}" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
                   <StackPanel Orientation="Vertical" Spacing="5">
+                    <TextBlock Classes="warningMessage">Work in progress...</TextBlock>
+                    <TextBlock>Use your own or Wasabi's built-in Bitcoin Core.</TextBlock>
+                    <TextBlock>Expect high CPU, network usage and 300+ GB disk space requirement.</TextBlock>
+                    <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
+                      <ToggleButton IsChecked="{Binding StartLocalBitcoinCoreOnStartup}" Content="{Binding StartLocalBitcoinCoreOnStartup, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" />
+                      <TextBlock VerticalAlignment="Center">Run Bitcoin Core at Wasabi's startup.</TextBlock>
+                    </StackPanel>
+                    <StackPanel Margin="0 10" Spacing="5" IsVisible="{Binding StartLocalBitcoinCoreOnStartup}">
+                      <TextBlock>Bitcoin Core Data Folder</TextBlock>
+                      <TextBox Text="{Binding LocalBitcoinCoreDataDir}">
+                        <i:Interaction.Behaviors>
+                          <behaviors:CommandOnLostFocusBehavior Command="{Binding TextBoxLostFocusCommand}" />
+                        </i:Interaction.Behaviors>
+                      </TextBox>
+                    </StackPanel>
+                    <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5" IsVisible="{Binding StartLocalBitcoinCoreOnStartup}">
+                      <ToggleButton IsChecked="{Binding StopLocalBitcoinCoreOnShutdown}" Content="{Binding StopLocalBitcoinCoreOnShutdown, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" />
+                      <TextBlock VerticalAlignment="Center">Stop Bitcoin Core when Wasabi is shut down.</TextBlock>
+                    </StackPanel>
+                  </StackPanel>
+                </controls:GroupBox>
+                <controls:GroupBox IsVisible="{Binding !StartLocalBitcoinCoreOnStartup}" Title="{Binding Network, StringFormat=Alternative Block Source for \{0\}, Converter={StaticResource NetworkStringConverter}}" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+                  <StackPanel Orientation="Vertical" Spacing="5">
+                    <TextBlock>Set Wasabi to download blocks from a full node you control.</TextBlock>
                     <StackPanel Margin="0 10" Spacing="5">
                       <TextBlock>Bitcoin P2P Endpoint</TextBlock>
                       <TextBox Text="{Binding BitcoinP2pEndPoint}">
@@ -49,7 +75,7 @@
                   <ToggleButton IsChecked="{Binding UseTor}" Content="{Binding UseTor, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" />
                   <TextBlock VerticalAlignment="Center">Tor can be turned off for debugging.</TextBlock>
                 </StackPanel>
-                <StackPanel Margin="0 10" Spacing="5">
+                <StackPanel Margin="0 10" Spacing="5" IsVisible="{Binding UseTor}">
                   <TextBlock>Tor SOCKS5 Endpoint</TextBlock>
                   <TextBox Text="{Binding TorSocks5EndPoint}">
                     <i:Interaction.Behaviors>
@@ -63,7 +89,11 @@
               <StackPanel Orientation="Vertical" Spacing="5">
                 <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
                   <ToggleButton IsChecked="{Binding Autocopy}" Content="{Binding Autocopy, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" />
-                  <TextBlock VerticalAlignment="Center">Autocopy/Autopaste of bitcoin addresses, bitcoin urls, transaction ids, etc...</TextBlock>
+                  <TextBlock VerticalAlignment="Center">Auto Copy/Paste bitcoin addresses, bitcoin urls, etc...</TextBlock>
+                </StackPanel>
+                <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
+                  <ToggleButton IsChecked="{Binding CustomFee}" Content="{Binding CustomFee, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" />
+                  <TextBlock VerticalAlignment="Center">Manual fee entry.</TextBlock>
                 </StackPanel>
                 <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
                   <ToggleButton IsChecked="{Binding LurkingWifeMode}" Content="{Binding LurkingWifeMode, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" Command="{Binding LurkingWifeModeCommand}" />
@@ -71,15 +101,14 @@
                 </StackPanel>
               </StackPanel>
             </controls:GroupBox>
-            <controls:GroupBox Title="Screen Lock" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+            <controls:GroupBox Title="Lock Screen" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
               <StackPanel Orientation="Vertical" Spacing="5">
                 <StackPanel Margin="0 10" Orientation="Vertical" Spacing="5">
-                  <TextBlock Margin="0 10" VerticalAlignment="Center">Note that, if you forget your PIN, you can clear it by manually deleting the hashed PIN from your UI config file.</TextBlock>
+                  <TextBlock Margin="0 10" VerticalAlignment="Center">If you forget the PIN, clear it by manually deleting the hashed PIN from your UiConfig file.</TextBlock>
                   <DockPanel LastChildFill="True">
                     <Button DockPanel.Dock="Left" Content="{Binding IsPinSet, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Clear:Set}" Margin="0 0 10 0" Command="{Binding SetClearPinCommand}" />
-                    <controls:NoparaPasswordBox Watermark="PIN" Password="{Binding PinBoxText}" UseFloatingWatermark="True" />
+                    <controls:TogglePasswordBox Watermark="PIN" Text="{Binding PinBoxText}" />
                   </DockPanel>
-                  <TextBlock Text="{Binding PinWarningMessage}" Classes="warningMessage" Margin="0 0 3 0" />
                 </StackPanel>
               </StackPanel>
             </controls:GroupBox>
@@ -114,7 +143,7 @@
             <controls:GroupBox Title="Other settings" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
               <StackPanel Orientation="Vertical" Spacing="5">
                 <StackPanel Margin="0 10" Spacing="5">
-                  <TextBlock ToolTip.Tip="Under the dust threshold coins are not appearing in the coin lists.">Dust Threshold (BTC)</TextBlock>
+                  <TextBlock ToolTip.Tip="Coins under the dust threshold won't appear in the coin lists.">Dust Threshold (BTC)</TextBlock>
                   <TextBox Text="{Binding DustThreshold}">
                     <i:Interaction.Behaviors>
                       <behaviors:CommandOnLostFocusBehavior Command="{Binding TextBoxLostFocusCommand}" />

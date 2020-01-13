@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -23,7 +24,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
-	public class WasabiSynchronizer : NotifyPropertyChangedBase
+	public class WasabiSynchronizer : NotifyPropertyChangedBase, IFeeProvider
 	{
 		#region MembersPropertiesEvents
 
@@ -44,12 +45,20 @@ namespace WalletWasabi.Services
 			private set => RaiseAndSetIfChanged(ref _usdExchangeRate, value);
 		}
 
+		public event EventHandler<AllFeeEstimate> AllFeeEstimateChanged;
+
 		private AllFeeEstimate _allFeeEstimate;
 
 		public AllFeeEstimate AllFeeEstimate
 		{
 			get => _allFeeEstimate;
-			private set => RaiseAndSetIfChanged(ref _allFeeEstimate, value);
+			private set
+			{
+				if (RaiseAndSetIfChanged(ref _allFeeEstimate, value))
+				{
+					AllFeeEstimateChanged?.Invoke(this, value);
+				}
+			}
 		}
 
 		private TorStatus _torStatus;
@@ -142,7 +151,7 @@ namespace WalletWasabi.Services
 				{
 					DateTimeOffset lastFeeQueried = DateTimeOffset.UtcNow - feeQueryRequestInterval;
 					bool ignoreRequestInterval = false;
-					var hashChain = BitcoinStore.HashChain;
+					var hashChain = BitcoinStore.SmartHeaderChain;
 					EnableRequests();
 					while (IsRunning)
 					{
@@ -211,7 +220,7 @@ namespace WalletWasabi.Services
 								ignoreRequestInterval = false;
 							}
 
-							hashChain.UpdateServerTipHeight(response.BestHeight);
+							hashChain.UpdateServerTipHeight((uint)response.BestHeight);
 							ExchangeRate exchangeRate = response.ExchangeRates.FirstOrDefault();
 							if (exchangeRate != default && exchangeRate.Rate != 0)
 							{
@@ -223,18 +232,18 @@ namespace WalletWasabi.Services
 								var filters = response.Filters;
 
 								var firstFilter = filters.First();
-								if (hashChain.TipHeight + 1 != firstFilter.BlockHeight)
+								if (hashChain.TipHeight + 1 != firstFilter.Header.Height)
 								{
 									// We have a problem.
 									// We have wrong filters, the heights are not in sync with the server's.
-									Logger.LogError<WasabiSynchronizer>($"Inconsistent index state detected.{Environment.NewLine}" +
+									Logger.LogError($"Inconsistent index state detected.{Environment.NewLine}" +
 										$"{nameof(hashChain)}.{nameof(hashChain.TipHeight)}:{hashChain.TipHeight}{Environment.NewLine}" +
 										$"{nameof(hashChain)}.{nameof(hashChain.HashesLeft)}:{hashChain.HashesLeft}{Environment.NewLine}" +
 										$"{nameof(hashChain)}.{nameof(hashChain.TipHash)}:{hashChain.TipHash}{Environment.NewLine}" +
 										$"{nameof(hashChain)}.{nameof(hashChain.HashCount)}:{hashChain.HashCount}{Environment.NewLine}" +
 										$"{nameof(hashChain)}.{nameof(hashChain.ServerTipHeight)}:{hashChain.ServerTipHeight}{Environment.NewLine}" +
-										$"{nameof(firstFilter)}.{nameof(firstFilter.BlockHash)}:{firstFilter.BlockHash}{Environment.NewLine}" +
-										$"{nameof(firstFilter)}.{nameof(firstFilter.BlockHeight)}:{firstFilter.BlockHeight}");
+										$"{nameof(firstFilter)}.{nameof(firstFilter.Header)}.{nameof(firstFilter.Header.BlockHash)}:{firstFilter.Header.BlockHash}{Environment.NewLine}" +
+										$"{nameof(firstFilter)}.{nameof(firstFilter.Header)}.{nameof(firstFilter.Header.Height)}:{firstFilter.Header.Height}");
 
 									await BitcoinStore.IndexStore.RemoveAllImmmatureFiltersAsync(Cancel.Token, deleteAndCrashIfMature: true);
 								}
@@ -244,11 +253,11 @@ namespace WalletWasabi.Services
 
 									if (filters.Count() == 1)
 									{
-										Logger.LogInfo<WasabiSynchronizer>($"Downloaded filter for block {firstFilter.BlockHeight}.");
+										Logger.LogInfo($"Downloaded filter for block {firstFilter.Header.Height}.");
 									}
 									else
 									{
-										Logger.LogInfo<WasabiSynchronizer>($"Downloaded filters for blocks from {firstFilter.BlockHeight} to {filters.Last().BlockHeight}.");
+										Logger.LogInfo($"Downloaded filters for blocks from {firstFilter.Header.Height} to {filters.Last().Header.Height}.");
 									}
 								}
 							}
@@ -257,7 +266,7 @@ namespace WalletWasabi.Services
 								// Reorg happened
 								// 1. Rollback index
 								FilterModel reorgedFilter = await BitcoinStore.IndexStore.RemoveLastFilterAsync(Cancel.Token);
-								Logger.LogInfo<WasabiSynchronizer>($"REORG Invalid Block: {reorgedFilter.BlockHash}");
+								Logger.LogInfo($"REORG Invalid Block: {reorgedFilter.Header.BlockHash}.");
 
 								ignoreRequestInterval = true;
 							}
@@ -277,25 +286,23 @@ namespace WalletWasabi.Services
 						}
 						catch (ConnectionException ex)
 						{
-							Logger.LogError<CcjClient>(ex);
+							Logger.LogError(ex);
 							try
 							{
 								await Task.Delay(3000, Cancel.Token); // Give other threads time to do stuff.
 							}
 							catch (TaskCanceledException ex2)
 							{
-								Logger.LogTrace<CcjClient>(ex2);
+								Logger.LogTrace(ex2);
 							}
 						}
-						catch (Exception ex) when (ex is OperationCanceledException
-												|| ex is TaskCanceledException
-												|| ex is TimeoutException)
+						catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
 						{
-							Logger.LogTrace<WasabiSynchronizer>(ex);
+							Logger.LogTrace(ex);
 						}
 						catch (Exception ex)
 						{
-							Logger.LogError<WasabiSynchronizer>(ex);
+							Logger.LogError(ex);
 						}
 						finally
 						{
@@ -308,7 +315,7 @@ namespace WalletWasabi.Services
 								}
 								catch (TaskCanceledException ex)
 								{
-									Logger.LogTrace<CcjClient>(ex);
+									Logger.LogTrace(ex);
 								}
 							}
 						}
@@ -348,15 +355,6 @@ namespace WalletWasabi.Services
 		private void DoNotGenSocksServFail()
 		{
 			ResponseArrivedIsGenSocksServFail?.Invoke(this, false);
-		}
-
-		public Money GetFeeRate(int feeTarget)
-		{
-			if (AllFeeEstimate is null)
-			{
-				throw new InvalidOperationException("Cannot get fee estimations.");
-			}
-			return AllFeeEstimate.GetFeeRate(feeTarget);
 		}
 
 		#endregion Methods

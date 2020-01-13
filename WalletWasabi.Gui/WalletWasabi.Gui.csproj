@@ -3,9 +3,9 @@
   <PropertyGroup>
     <PlatformTarget>x64</PlatformTarget>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <NoWarn>1701;1702;1705;1591;1573</NoWarn>
+    <NoWarn>1701;1702;1705;1591;1573;CA1031</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -26,23 +26,15 @@
     <!-- owners is not supported in MSBuild -->
   </PropertyGroup>
 
-  <PropertyGroup>
-    <ServerGarbageCollection>false</ServerGarbageCollection>
-    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
-    <RetainVMGarbageCollection>false</RetainVMGarbageCollection>
-    <ThreadPoolMinThreads>4</ThreadPoolMinThreads>
-    <ThreadPoolMaxThreads>25</ThreadPoolMaxThreads>
-  </PropertyGroup>
-
   <ItemGroup>
     <Compile Update="**\*.xaml.cs">
       <DependentUpon>%(Filename)</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="**\*.xaml;Assets\*" Exclude="bin\**;obj\**;**\*.xproj;packages\**;@(EmbeddedResource)" />
+    <AvaloniaResource Include="**\*.xaml;Assets\*" Exclude="bin\**;obj\**;**\*.xproj;packages\**;@(EmbeddedResource)" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp2.2\WalletWasabi.Gui.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netcoreapp3.1\WalletWasabi.Gui.xml</DocumentationFile>
     <OutputPath />
   </PropertyGroup>
 
@@ -64,7 +56,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AvalonStudio.Shell" Version="0.8.1" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.9.1" />
+    <PackageReference Include="AvalonStudio.Shell" Version="0.9.0" />
+    <PackageReference Include="Dock.Avalonia.Themes.Default" Version="0.9.0" />
+    <PackageReference Include="Dock.Avalonia.Themes.Metro" Version="0.9.0" />
+    <PackageReference Include="System.Runtime" Version="4.3.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -74,5 +70,6 @@
   <ItemGroup>
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
   </ItemGroup>
+
 
 </Project>

@@ -11,119 +11,81 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Tabs;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
 	internal class HelpCommands
 	{
-		public Global Global { get; }
-
 		[ImportingConstructor]
-		public HelpCommands(CommandIconService commandIconService, AvaloniaGlobalComponent global)
+		public HelpCommands(CommandIconService commandIconService)
 		{
-			Global = global.Global;
 			AboutCommand = new CommandDefinition(
 				"About",
 				commandIconService.GetCompletionKindImage("About"),
-				ReactiveCommand.Create(() =>
-				{
-					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
-				}));
+				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel())));
 
 			CustomerSupportCommand = new CommandDefinition(
 				"Customer Support",
 				commandIconService.GetCompletionKindImage("CustomerSupport"),
-				ReactiveCommand.Create(() =>
-				{
-					try
+				ReactiveCommand.CreateFromTask(async () =>
 					{
-						IoHelpers.OpenBrowser("https://www.reddit.com/r/WasabiWallet/");
-					}
-					catch (Exception ex)
-					{
-						Logging.Logger.LogWarning<HelpCommands>(ex);
-						IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
-					}
-				}));
+						try
+						{
+							await IoHelpers.OpenBrowserAsync("https://www.reddit.com/r/WasabiWallet/");
+						}
+						catch (Exception ex)
+						{
+							Logger.LogWarning(ex);
+							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
+						}
+					}));
 
 			ReportBugCommand = new CommandDefinition(
 				"Report Bug",
 				commandIconService.GetCompletionKindImage("ReportBug"),
-				ReactiveCommand.Create(() =>
-				{
-					try
+				ReactiveCommand.CreateFromTask(async () =>
 					{
-						IoHelpers.OpenBrowser("https://github.com/zkSNACKs/WalletWasabi/issues");
-					}
-					catch (Exception ex)
-					{
-						Logging.Logger.LogWarning<HelpCommands>(ex);
-						IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
-					}
-				}));
-
-			FaqCommand = new CommandDefinition(
-				"FAQ",
-				commandIconService.GetCompletionKindImage("Faq"),
-				ReactiveCommand.Create(() =>
-				{
-					try
-					{
-						IoHelpers.OpenBrowser("https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/FAQ.md");
-					}
-					catch (Exception ex)
-					{
-						Logging.Logger.LogWarning<HelpCommands>(ex);
-						IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
-					}
-				}));
-
-			PrivacyPolicyCommand = new CommandDefinition(
-				"Privacy Policy",
-				commandIconService.GetCompletionKindImage("PrivacyPolicy"),
-				ReactiveCommand.Create(() =>
-				{
-					IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel(Global));
-				}));
-
-			TermsAndConditionsCommand = new CommandDefinition(
-				"Terms and Conditions",
-				commandIconService.GetCompletionKindImage("TermsAndConditions"),
-				ReactiveCommand.Create(() =>
-				{
-					IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel(Global));
-				}));
-
-			LegalIssuesCommand = new CommandDefinition(
-				"Legal Issues",
-				commandIconService.GetCompletionKindImage("LegalIssues"),
-				ReactiveCommand.Create(() =>
-				{
-					IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel(Global));
-				}));
-
-#if DEBUG
-			DevToolsCommand = new CommandDefinition(
-				"Dev Tools",
-				commandIconService.GetCompletionKindImage("DevTools"),
-				ReactiveCommand.Create(() =>
-				{
-					var devTools = new DevTools(Application.Current.Windows.FirstOrDefault());
-
-					var devToolsWindow = new Window
-					{
-						Width = 1024,
-						Height = 512,
-						Content = devTools,
-						DataTemplates =
+						try
 						{
-							new ViewLocator<Avalonia.Diagnostics.ViewModels.ViewModelBase>()
+							await IoHelpers.OpenBrowserAsync("https://github.com/zkSNACKs/WalletWasabi/issues");
 						}
-					};
+						catch (Exception ex)
+						{
+							Logger.LogWarning(ex);
+							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
+						}
+					}));
 
-					devToolsWindow.Show();
-				}));
-#endif
+			DocsCommand = new CommandDefinition(
+				"Documentation",
+				commandIconService.GetCompletionKindImage("Documentation"),
+				ReactiveCommand.CreateFromTask(async () =>
+					{
+						try
+						{
+							await IoHelpers.OpenBrowserAsync("https://docs.wasabiwallet.io/");
+						}
+						catch (Exception ex)
+						{
+							Logger.LogWarning(ex);
+							IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
+						}
+					}));
+
+			LegalDocumentsCommand = new CommandDefinition(
+				"Legal Documents",
+				commandIconService.GetCompletionKindImage("LegalDocuments"),
+				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel())));
+
+			Observable
+				.Merge(AboutCommand.GetReactiveCommand().ThrownExceptions)
+				.Merge(CustomerSupportCommand.GetReactiveCommand().ThrownExceptions)
+				.Merge(ReportBugCommand.GetReactiveCommand().ThrownExceptions)
+				.Merge(DocsCommand.GetReactiveCommand().ThrownExceptions)
+				.Merge(LegalDocumentsCommand.GetReactiveCommand().ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		[ExportCommandDefinition("Help.About")]
@@ -135,23 +97,10 @@ namespace WalletWasabi.Gui.Shell.Commands
 		[ExportCommandDefinition("Help.ReportBug")]
 		public CommandDefinition ReportBugCommand { get; }
 
-		[ExportCommandDefinition("Help.Faq")]
-		public CommandDefinition FaqCommand { get; }
+		[ExportCommandDefinition("Help.Documentation")]
+		public CommandDefinition DocsCommand { get; }
 
-		[ExportCommandDefinition("Help.PrivacyPolicy")]
-		public CommandDefinition PrivacyPolicyCommand { get; }
-
-		[ExportCommandDefinition("Help.TermsAndConditions")]
-		public CommandDefinition TermsAndConditionsCommand { get; }
-
-		[ExportCommandDefinition("Help.LegalIssues")]
-		public CommandDefinition LegalIssuesCommand { get; }
-
-#if DEBUG
-
-		[ExportCommandDefinition("Help.DevTools")]
-		public CommandDefinition DevToolsCommand { get; }
-
-#endif
+		[ExportCommandDefinition("Help.LegalDocuments")]
+		public CommandDefinition LegalDocumentsCommand { get; }
 	}
 }

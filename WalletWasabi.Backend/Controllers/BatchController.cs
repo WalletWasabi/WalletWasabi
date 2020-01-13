@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Backend.Controllers
@@ -16,7 +17,7 @@ namespace WalletWasabi.Backend.Controllers
 	/// To make batched requests.
 	/// </summary>
 	[Produces("application/json")]
-	[Route("api/v" + Helpers.Constants.BackendMajorVersion + "/btc/[controller]")]
+	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class BatchController : Controller
 	{
 		public Global Global { get; }
@@ -52,7 +53,10 @@ namespace WalletWasabi.Backend.Controllers
 				}
 			}
 
-			var knownHash = new uint256(bestKnownBlockHash);
+			if (!uint256.TryParse(bestKnownBlockHash, out var knownHash))
+			{
+				return BadRequest($"Invalid {nameof(bestKnownBlockHash)}.");
+			}
 
 			(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, maxNumberOfFilters, out bool found);
 
@@ -80,6 +84,8 @@ namespace WalletWasabi.Backend.Controllers
 			}
 
 			response.ExchangeRates = await OffchainController.GetExchangeRatesCollectionAsync();
+
+			response.UnconfirmedCoinJoins = await ChaumianCoinJoinController.GetUnconfirmedCoinJoinCollectionAsync();
 
 			return Ok(response);
 		}

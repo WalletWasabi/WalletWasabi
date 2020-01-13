@@ -11,7 +11,7 @@ namespace WalletWasabi.Crypto
 	{
 		// This constant is used to determine the keysize of the encryption algorithm in bits.
 		// We divide this by 8 within the code below to get the equivalent number of bytes.
-		private const int Keysize = 128;
+		private const int KeySize = 128;
 
 		// This constant determines the number of iterations for the password bytes generation function.
 		private const int DerivationIterations = 1000;
@@ -28,25 +28,19 @@ namespace WalletWasabi.Crypto
 
 			using (var password = new Rfc2898DeriveBytes(passPhrase, salt, DerivationIterations))
 			{
-				key = password.GetBytes(Keysize / 8);
-				using (var aes = CreateAES())
+				key = password.GetBytes(KeySize / 8);
+				using var aes = CreateAES();
+				aes.GenerateIV();
+				iv = aes.IV;
+				using var encryptor = aes.CreateEncryptor(key, iv);
+				using var memoryStream = new MemoryStream();
+				using (var cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
 				{
-					aes.GenerateIV();
-					iv = aes.IV;
-					using (var encryptor = aes.CreateEncryptor(key, iv))
-					{
-						using (var memoryStream = new MemoryStream())
-						{
-							using (var cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
-							{
-								cryptoStream.Write(plainTextBytes, 0, plainTextBytes.Length);
-								cryptoStream.FlushFinalBlock();
-								cryptoStream.Close();
-							}
-							cipherTextBytes = memoryStream.ToArray();
-						}
-					}
+					cryptoStream.Write(plainTextBytes, 0, plainTextBytes.Length);
+					cryptoStream.FlushFinalBlock();
+					cryptoStream.Close();
 				}
+				cipherTextBytes = memoryStream.ToArray();
 			}
 
 			using (var memoryStream = new MemoryStream())
@@ -76,51 +70,41 @@ namespace WalletWasabi.Crypto
 			byte[] key = null;
 			byte[] iv = null;
 
-			using (var memoryStream = new MemoryStream(cipherTextBytesWithSaltAndIv))
+			using var memoryStream = new MemoryStream(cipherTextBytesWithSaltAndIv);
+			var cipherLength = 0;
+			using (var reader = new BinaryReader(memoryStream, Encoding.UTF8, true))
 			{
-				var cipherLength = 0;
-				using (var reader = new BinaryReader(memoryStream, Encoding.UTF8, true))
+				var salt = reader.ReadBytes(KeySize / 8);
+				iv = reader.ReadBytes(KeySize / 8);
+				var authenticationCode = reader.ReadBytes(32);
+				cipherLength = (int)(memoryStream.Length - memoryStream.Position);
+				var cipher = reader.ReadBytes(cipherLength);
+
+				using (var password = new Rfc2898DeriveBytes(passPhrase, salt, DerivationIterations))
 				{
-					var salt = reader.ReadBytes(Keysize / 8);
-					iv = reader.ReadBytes(Keysize / 8);
-					var authenticationCode = reader.ReadBytes(32);
-					cipherLength = (int)(memoryStream.Length - memoryStream.Position);
-					var cipher = reader.ReadBytes(cipherLength);
-
-					using (var password = new Rfc2898DeriveBytes(passPhrase, salt, DerivationIterations))
-					{
-						key = password.GetBytes(Keysize / 8);
-					}
-
-					using (var hmac = new HMACSHA256(key))
-					{
-						var calculatedAuthenticationCode = hmac.ComputeHash(iv.Concat(cipher).ToArray());
-						for (var i = 0; i < calculatedAuthenticationCode.Length; i++)
-						{
-							if (calculatedAuthenticationCode[i] != authenticationCode[i])
-							{
-								throw new CryptographicException("Message Authentication failed. Message has been modified or wrong password");
-							}
-						}
-					}
+					key = password.GetBytes(KeySize / 8);
 				}
 
-				using (var aes = CreateAES())
+				using var hmac = new HMACSHA256(key);
+				var calculatedAuthenticationCode = hmac.ComputeHash(iv.Concat(cipher).ToArray());
+				for (var i = 0; i < calculatedAuthenticationCode.Length; i++)
 				{
-					using (var decryptor = aes.CreateDecryptor(key, iv))
+					if (calculatedAuthenticationCode[i] != authenticationCode[i])
 					{
-						memoryStream.Seek(-cipherLength, SeekOrigin.End);
-						using (var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
-						{
-							var plainTextBytes = new byte[cipherLength];
-							var decryptedByteCount = cryptoStream.Read(plainTextBytes, 0, plainTextBytes.Length);
-							memoryStream.Close();
-							cryptoStream.Close();
-							return Encoding.UTF8.GetString(plainTextBytes, 0, decryptedByteCount);
-						}
+						throw new CryptographicException("Message Authentication failed. Message has been modified or wrong password");
 					}
 				}
 			}
+
+			using var aes = CreateAES();
+			using var decryptor = aes.CreateDecryptor(key, iv);
+			memoryStream.Seek(-cipherLength, SeekOrigin.End);
+			using var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read);
+			var plainTextBytes = new byte[cipherLength];
+			var decryptedByteCount = cryptoStream.Read(plainTextBytes, 0, plainTextBytes.Length);
+			memoryStream.Close();
+			cryptoStream.Close();
+			return Encoding.UTF8.GetString(plainTextBytes, 0, decryptedByteCount);
 		}
 
 		private static AesManaged CreateAES()

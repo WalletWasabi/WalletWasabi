@@ -1,14 +1,17 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Notifications;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Native;
+using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Extensibility.Theme;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Controls;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.ComponentModel;
 using System.Composition;
@@ -20,9 +23,10 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Dialogs;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Hwi;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui
 {
@@ -32,22 +36,24 @@ namespace WalletWasabi.Gui
 
 		public MainWindow()
 		{
+			Global = Locator.Current.GetService<Global>();
+
 			InitializeComponent();
 #if DEBUG
 			this.AttachDevTools();
 #endif
 
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			var notificationManager = new WindowNotificationManager(this)
 			{
-				HasSystemDecorations = true;
+				Position = NotificationPosition.BottomRight,
+				MaxItems = 4,
+				Margin = new Thickness(0, 0, 15, 40)
+			};
 
-				// This will need implementing properly once this is supported by avalonia itself.
-				var color = (ColorTheme.CurrentTheme.Background as SolidColorBrush).Color;
-				(PlatformImpl as WindowImpl).SetTitleBarColor(color);
-			}
+			Locator.CurrentMutable.RegisterConstant<INotificationManager>(notificationManager);
 		}
 
-		public Global Global => MainWindowViewModel.Instance.Global;
+		private Global Global { get; }
 
 		private void InitializeComponent()
 		{
@@ -66,8 +72,7 @@ namespace WalletWasabi.Gui
 					try
 					{
 						Global.InitializeUiConfig(uiConfig);
-						Application.Current.Resources.AddOrReplace(Global.UiConfigResourceKey, Global.UiConfig);
-						Logging.Logger.LogInfo<UiConfig>("UiConfig is successfully initialized.");
+						Logger.LogInfo($"{nameof(Global.UiConfig)} is successfully initialized.");
 
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
@@ -84,21 +89,10 @@ namespace WalletWasabi.Gui
 					}
 					catch (Exception ex)
 					{
-						Logging.Logger.LogError<MainWindowViewModel>(ex);
+						Logger.LogError(ex);
 					}
-				}, onError: ex => Logging.Logger.LogError<MainWindowViewModel>(ex));
-		}
-
-		protected override void OnDataContextEndUpdate()
-		{
-			if (Global is null)
-			{
-				return;
-			}
-
-			Application.Current.Resources.AddOrReplace(Global.GlobalResourceKey, Global);
-			Application.Current.Resources.AddOrReplace(Global.ConfigResourceKey, Global.Config);
-			Application.Current.Resources.AddOrReplace(Global.UiConfigResourceKey, Global.UiConfig);
+				},
+				onError: ex => Logger.LogError(ex));
 		}
 
 		private int _closingState;
@@ -125,7 +119,7 @@ namespace WalletWasabi.Gui
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogError<MainWindow>(ex);
+				Logger.LogError(ex);
 			}
 		}
 
@@ -141,7 +135,7 @@ namespace WalletWasabi.Gui
 
 				if (!MainWindowViewModel.Instance.CanClose)
 				{
-					var dialog = new CannotCloseDialogViewModel(Global);
+					var dialog = new CannotCloseDialogViewModel();
 
 					closeApplication = await MainWindowViewModel.Instance.ShowDialogAsync(dialog); // start the deque process with a dialog
 				}
@@ -160,22 +154,22 @@ namespace WalletWasabi.Gui
 							Global.UiConfig.Width = Width;
 							Global.UiConfig.Height = Height;
 							await Global.UiConfig.ToFileAsync();
-							Logging.Logger.LogInfo<UiConfig>("UiConfig is saved.");
+							Logger.LogInfo($"{nameof(Global.UiConfig)} is saved.");
 						}
 
 						Hide();
 						var wm = IoC.Get<IShell>().Documents?.OfType<WalletManagerViewModel>().FirstOrDefault();
-						if (wm != null)
+						if (wm is { })
 						{
 							wm.OnClose();
-							Logging.Logger.LogInfo<MainWindowViewModel>($"{nameof(WalletManagerViewModel)} closed, hwi enumeration stopped.");
+							Logger.LogInfo($"{nameof(WalletManagerViewModel)} closed.");
 						}
 
 						await Global.DisposeAsync();
 					}
 					catch (Exception ex)
 					{
-						Logging.Logger.LogWarning<MainWindow>(ex);
+						Logger.LogWarning(ex);
 					}
 
 					Interlocked.Exchange(ref _closingState, 2); //now we can close the app
@@ -186,7 +180,7 @@ namespace WalletWasabi.Gui
 			catch (Exception ex)
 			{
 				Interlocked.Exchange(ref _closingState, 0); //something happened back to starting point
-				Logging.Logger.LogWarning<MainWindow>(ex);
+				Logger.LogWarning(ex);
 			}
 			finally
 			{

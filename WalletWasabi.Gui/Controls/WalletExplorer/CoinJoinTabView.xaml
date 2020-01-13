@@ -1,11 +1,12 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
-             xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
+             xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui"
+             x:Class="WalletWasabi.Gui.Controls.WalletExplorer.CoinJoinTabView">
   <UserControl.Resources>
     <converters:CoinJoinedVisibilityConverter x:Key="CoinJoinedVisibilityConverter" />
     <converters:MoneyStringConverter x:Key="MoneyStringConverter" />
@@ -28,7 +29,7 @@
           <Setter Property="Padding" Value="0 0 5 0" />
         </Style>
       </Grid.Styles>
-      <local:CoinListView DataContext="{Binding CoinsList}" />
+      <local:CoinListView SelectAllPrivateVisible="False" DataContext="{Binding CoinsList}" />
     </Grid>
     <Grid Grid.Row="1">
       <Grid.RowDefinitions>
@@ -109,11 +110,11 @@
             </StackPanel>
           </StackPanel>
           <StackPanel IsVisible="{Binding !IsWatchOnly}" Grid.Column="0" Spacing="10">
-            <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" Margin="0 20 0 0">
+            <controls:TogglePasswordBox Text="{Binding Password}" Margin="0 20 0 0" MinWidth="200">
               <i:Interaction.Behaviors>
                 <behaviors:CommandOnEnterBehavior Command="{Binding EnqueueCommand}" />
               </i:Interaction.Behaviors>
-            </controls:NoparaPasswordBox>
+            </controls:TogglePasswordBox>
             <DockPanel Grid.Row="0" Grid.Column="1" LastChildFill="True" IsEnabled="{Binding !IsEnqueueBusy}">
               <Button Command="{Binding EnqueueCommand}" DockPanel.Dock="Right">
                 <StackPanel Orientation="Horizontal">
@@ -130,7 +131,6 @@
                 </StackPanel>
               </Button>
             </DockPanel>
-            <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
           </StackPanel>
         </Grid>
       </controls:GroupBox>

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using static WalletWasabi.Http.Constants;
 
@@ -49,33 +50,31 @@ namespace WalletWasabi.Http.Models
 			return ToString(true);
 		}
 
-		public static HeaderField CreateNew(string fieldString)
+		public static async Task<HeaderField> CreateNewAsync(string fieldString)
 		{
 			fieldString = fieldString.TrimEnd(CRLF, StringComparison.Ordinal);
 
-			using (var reader = new StringReader(fieldString))
+			using var reader = new StringReader(fieldString);
+			var name = reader.ReadPart(':');
+			// if empty
+			if (string.IsNullOrEmpty(name?.Trim()))
 			{
-				var name = reader.ReadPart(':');
-				// if empty
-				if (name is null || name.Trim() == "")
-				{
-					throw new FormatException($"Wrong {nameof(HeaderField)}: {fieldString}.");
-				}
-				// https://tools.ietf.org/html/rfc7230#section-3.2.4
-				// No whitespace is allowed between the header field-name and colon.
-				// A proxy MUST remove any such whitespace from a response message before forwarding the message downstream.
-				name = name.TrimEnd();
-				// whitespace not allowed
-				if (name != name.Trim())
-				{
-					throw new FormatException($"Wrong {nameof(HeaderField)}: {fieldString}.");
-				}
-
-				var value = reader.ReadToEnd();
-				value = Guard.Correct(value);
-
-				return new HeaderField(name, value);
+				throw new FormatException($"Wrong {nameof(HeaderField)}: {fieldString}.");
 			}
+			// https://tools.ietf.org/html/rfc7230#section-3.2.4
+			// No whitespace is allowed between the header field-name and colon.
+			// A proxy MUST remove any such whitespace from a response message before forwarding the message downstream.
+			name = name.TrimEnd();
+			// whitespace not allowed
+			if (name != name.Trim())
+			{
+				throw new FormatException($"Wrong {nameof(HeaderField)}: {fieldString}.");
+			}
+
+			var value = await reader.ReadToEndAsync().ConfigureAwait(false);
+			value = Guard.Correct(value);
+
+			return new HeaderField(name, value);
 		}
 	}
 }

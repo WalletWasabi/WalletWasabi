@@ -1,46 +1,47 @@
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend;
+using WalletWasabi.BitcoinCore;
+using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Models.ChaumianCoinJoin;
-using WalletWasabi.Tests.NodeBuilding;
+using WalletWasabi.Services;
+using WalletWasabi.Tests.Helpers;
 
 namespace WalletWasabi.Tests.XunitConfiguration
 {
 	public class RegTestFixture : IDisposable
 	{
 		public string BackendEndPoint { get; internal set; }
-		public IWebHost BackendHost { get; internal set; }
-		public NodeBuilder BackendNodeBuilder { get; internal set; }
+		public IHost BackendHost { get; internal set; }
 		public CoreNode BackendRegTestNode { get; internal set; }
 		public Backend.Global Global { get; }
 
 		public RegTestFixture()
 		{
-			BackendNodeBuilder = NodeBuilder.CreateAsync(nameof(RegTestFixture)).GetAwaiter().GetResult();
-			BackendNodeBuilder.CreateNodeAsync().GetAwaiter().GetResult();
-			BackendNodeBuilder.StartAllAsync().GetAwaiter().GetResult();
-			BackendRegTestNode = BackendNodeBuilder.Nodes[0];
+			RuntimeParams.SetDataDir(Path.Combine(Tests.Global.Instance.DataDir, "RegTests", "Backend"));
+			RuntimeParams.LoadAsync().GetAwaiter().GetResult();
+			var hostedServices = new HostedServices();
+			BackendRegTestNode = TestNodeBuilder.CreateAsync(hostedServices, callerFilePath: "RegTests", callerMemberName: "BitcoinCoreData").GetAwaiter().GetResult();
 
-			var connectionString = $"{BackendRegTestNode.Creds.UserName}:{BackendRegTestNode.Creds.Password}";
-
-			var testnetBackendDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests", "Backend"));
+			var testnetBackendDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests", "RegTests", "Backend"));
 			IoHelpers.DeleteRecursivelyWithMagicDustAsync(testnetBackendDir).GetAwaiter().GetResult();
 			Thread.Sleep(100);
 			Directory.CreateDirectory(testnetBackendDir);
 			Thread.Sleep(100);
 			var config = new Config(
-				BackendNodeBuilder.Network, connectionString,
+				BackendRegTestNode.RpcClient.Network, BackendRegTestNode.RpcClient.CredentialString.ToString(),
 				new IPEndPoint(IPAddress.Loopback, Network.Main.DefaultPort),
 				new IPEndPoint(IPAddress.Loopback, Network.TestNet.DefaultPort),
 				BackendRegTestNode.P2pEndPoint,
@@ -60,35 +61,40 @@ namespace WalletWasabi.Tests.XunitConfiguration
 				.AddInMemoryCollection(new[] { new KeyValuePair<string, string>("datadir", testnetBackendDir) })
 				.Build();
 			BackendEndPoint = $"http://localhost:{new Random().Next(37130, 38000)}/";
-			BackendHost = WebHost.CreateDefaultBuilder()
-					.UseStartup<Startup>()
-					.UseConfiguration(conf)
-					.UseWebRoot("../../../../WalletWasabi.Backend/wwwroot")
-					.UseUrls(BackendEndPoint)
+
+			BackendHost = Host.CreateDefaultBuilder()
+					.ConfigureWebHostDefaults(webBuilder => webBuilder
+							.UseStartup<Startup>()
+							.UseConfiguration(conf)
+							.UseWebRoot("../../../../WalletWasabi.Backend/wwwroot")
+							.UseUrls(BackendEndPoint))
 					.Build();
+
 			Global = (Backend.Global)BackendHost.Services.GetService(typeof(Backend.Global));
+			Global.HostedServices = hostedServices;
 			var hostInitializationTask = BackendHost.RunWithTasksAsync();
-			Logger.LogInfo($"Started Backend webhost: {BackendEndPoint}", nameof(Global));
+			Logger.LogInfo($"Started Backend webhost: {BackendEndPoint}");
 
 			var delayTask = Task.Delay(3000);
 			Task.WaitAny(delayTask, hostInitializationTask); // Wait for server to initialize (Without this OSX CI will fail)
 		}
 
-		public static CcjRoundConfig CreateRoundConfig(Money denomination,
-												int confirmationTarget,
-												double confirmationTargetReductionRate,
-												decimal coordinatorFeePercent,
-												int anonymitySet,
-												long inputRegistrationTimeout,
-												long connectionConfirmationTimeout,
-												long outputRegistrationTimeout,
-												long signingTimeout,
-												int dosSeverity,
-												long dosDurationHours,
-												bool dosNoteBeforeBan,
-												int maximumMixingLevelCount)
+		public static CoordinatorRoundConfig CreateRoundConfig(
+			Money denomination,
+			int confirmationTarget,
+			double confirmationTargetReductionRate,
+			decimal coordinatorFeePercent,
+			int anonymitySet,
+			long inputRegistrationTimeout,
+			long connectionConfirmationTimeout,
+			long outputRegistrationTimeout,
+			long signingTimeout,
+			int dosSeverity,
+			long dosDurationHours,
+			bool dosNoteBeforeBan,
+			int maximumMixingLevelCount)
 		{
-			return new CcjRoundConfig
+			return new CoordinatorRoundConfig
 			{
 				Denomination = denomination,
 				ConfirmationTarget = confirmationTarget,
@@ -106,14 +112,32 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			};
 		}
 
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					BackendHost?.StopAsync().GetAwaiter().GetResult();
+					BackendHost?.Dispose();
+					BackendRegTestNode?.TryStopAsync().GetAwaiter().GetResult();
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
 		public void Dispose()
 		{
-			// Cleanup tests...
-
-			BackendHost?.StopAsync().GetAwaiter().GetResult();
-			BackendHost?.Dispose();
-			BackendRegTestNode?.TryKillAsync(cleanFolder: true).GetAwaiter().GetResult();
-			BackendNodeBuilder?.Dispose();
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
 		}
+
+		#endregion IDisposable Support
 	}
 }

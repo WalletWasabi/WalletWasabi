@@ -1,5 +1,4 @@
-<UserControl x:Class="WalletWasabi.Gui.Controls.WalletExplorer.TransactionViewerView"
-             xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -7,45 +6,37 @@
              xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom"
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui"
+             x:Class="WalletWasabi.Gui.Controls.WalletExplorer.TransactionViewerView"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450">
   <UserControl.Resources>
     <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
   </UserControl.Resources>
   <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
-    <DockPanel LastChildFill="True">
-      <Grid Classes="content" DockPanel.Dock="Bottom">
-        <DockPanel LastChildFill="True">
-          <Button DockPanel.Dock="Right" Command="{Binding ExportBinaryPsbtCommand}" Content="Export Binary PSBT" />
-          <StackPanel Orientation="Vertical">
-            <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
-            <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
-          </StackPanel>
-        </DockPanel>
-      </Grid>
-      <Grid Classes="content" ScrollViewer.VerticalScrollBarVisibility="Auto">
-        <Grid.RowDefinitions>
-          <RowDefinition Height="26" />
-          <RowDefinition Height="1*" />
-          <RowDefinition Height="1*" />
-          <RowDefinition Height="1*" />
-        </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0 8 0 0" Spacing="5">
-          <TextBlock Text="Transaction ID:" FontWeight="Bold" />
-          <controls:ExtendedTextBox Text="{Binding TxId, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock" />
+    <Grid Classes="content">
+      <DockPanel LastChildFill="True">
+        <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="10">
+          <Button Command="{Binding OpenTransactionBroadcaster}" Content="Open Transaction Broadcaster" />
+          <Button Command="{Binding ExportBinaryPsbt}" Content="Export Binary PSBT" />
         </StackPanel>
-        <DockPanel LastChildFill="True" Grid.Row="1" Margin="0 8 0 0">
-          <TextBlock DockPanel.Dock="Top" Text="PSBT Json" FontWeight="Bold" />
-          <controls:MultiTextBox Margin="0 8 0 0" Text="{Binding PsbtJsonText, ConverterParameter=1536, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" CopyOnClick="{Binding !IsLurkingWifeMode}" IsSelectable="False" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
-        </DockPanel>
-        <DockPanel LastChildFill="True" Grid.Row="2" Margin="0 8 0 0">
-          <TextBlock DockPanel.Dock="Top" Text="Transaction Hex" FontWeight="Bold" />
-          <controls:MultiTextBox Margin="0 8 0 0" Text="{Binding TransactionHexText, ConverterParameter=382, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" CopyOnClick="{Binding !IsLurkingWifeMode}" IsSelectable="False" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
-        </DockPanel>
-        <DockPanel LastChildFill="True" Grid.Row="3" Margin="0 8 0 0">
-          <TextBlock DockPanel.Dock="Top" Text="PSBT Base64 String" FontWeight="Bold" />
-          <controls:MultiTextBox Margin="0 8" VerticalAlignment="Stretch" Text="{Binding PsbtBase64Text, ConverterParameter=472, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" CopyOnClick="{Binding !IsLurkingWifeMode}" IsSelectable="False" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
-        </DockPanel>
-      </Grid>
-    </DockPanel>
+        <Grid ScrollViewer.VerticalScrollBarVisibility="Auto" RowDefinitions="26,1*,1*,1*">
+          <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0 8 0 0" Spacing="5">
+            <TextBlock Text="Transaction ID:" FontWeight="Bold" />
+            <controls:ExtendedTextBox Text="{Binding TxId, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock" />
+          </StackPanel>
+          <DockPanel LastChildFill="True" Grid.Row="1" Margin="0 8 0 0">
+            <TextBlock DockPanel.Dock="Top" Text="PSBT Json" FontWeight="Bold" />
+            <controls:MultiTextBox Margin="0 8 0 0" Text="{Binding PsbtJsonText, ConverterParameter=1536, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" CopyOnClick="{Binding !IsLurkingWifeMode}" IsSelectable="False" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
+          </DockPanel>
+          <DockPanel LastChildFill="True" Grid.Row="2" Margin="0 8 0 0">
+            <TextBlock DockPanel.Dock="Top" Text="Transaction Hex" FontWeight="Bold" />
+            <controls:MultiTextBox Margin="0 8 0 0" Text="{Binding TransactionHexText, ConverterParameter=382, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" CopyOnClick="{Binding !IsLurkingWifeMode}" IsSelectable="False" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
+          </DockPanel>
+          <DockPanel LastChildFill="True" Grid.Row="3" Margin="0 8 0 0">
+            <TextBlock DockPanel.Dock="Top" Text="PSBT Base64 String" FontWeight="Bold" />
+            <controls:MultiTextBox Margin="0 8" VerticalAlignment="Stretch" Text="{Binding PsbtBase64Text, ConverterParameter=472, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" CopyOnClick="{Binding !IsLurkingWifeMode}" IsSelectable="False" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
+          </DockPanel>
+        </Grid>
+      </DockPanel>
+    </Grid>
   </controls:GroupBox>
 </UserControl>

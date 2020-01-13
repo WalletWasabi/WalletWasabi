@@ -1,5 +1,9 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+             x:Class="WalletWasabi.Gui.Tabs.WalletManager.GenerateWalletView"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui">
   <StackPanel Margin="10" Spacing="10">
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="30">
       <Grid Classes="content">
@@ -9,7 +13,11 @@
             <TextBlock Text="You cannot recover your wallet without your password. Therefore we strongly advise you to use a password that you will not forget." TextWrapping="Wrap" />
           </StackPanel>
           <controls:ExtendedTextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
-          <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Choose a password" UseFloatingWatermark="True" />
+          <controls:TogglePasswordBox Text="{Binding Password}" Watermark="Choose a password">
+            <i:Interaction.Behaviors>
+              <behaviors:CommandOnEnterBehavior Command="{Binding NextCommand}" />
+            </i:Interaction.Behaviors>
+          </controls:TogglePasswordBox>
         </StackPanel>
       </Grid>
     </controls:GroupBox>
@@ -17,17 +25,12 @@
       <CheckBox IsChecked="{Binding TermsAccepted,Mode=TwoWay}" TextBlock.FontSize="10">
         <StackPanel Orientation="Horizontal">
           <TextBlock Text="I agree to the " />
-          <Button Content="Terms and Conditions" Classes="activeHyperLink" Command="{Binding OnTermsClicked}" />
-          <TextBlock Text=", " />
-          <Button Content="Privacy Policy" Classes="activeHyperLink" Command="{Binding OnPrivacyClicked}" />
-          <TextBlock Text=", and " />
-          <Button Content="Legal Issues" Classes="activeHyperLink" Command="{Binding OnLegalClicked}" />
+          <Button Content="Terms and Conditions, Privacy Policy, and Legal Issues" Classes="activeHyperLink" Command="{Binding OnLegalClicked}" />
           <TextBlock Text=" documents." />
         </StackPanel>
       </CheckBox>
-      <Button Content="Generate" Command="{Binding GenerateCommand}" DockPanel.Dock="Right" />
+      <Button Content="Next" Command="{Binding NextCommand}" DockPanel.Dock="Right" />
       <Grid></Grid>
     </DockPanel>
-    <TextBlock Text="{Binding ValidationMessage}" Classes="errorMessage" />
   </StackPanel>
 </UserControl>

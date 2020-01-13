@@ -5,11 +5,14 @@ using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
-using WalletWasabi.Models.ChaumianCoinJoin;
 using static NBitcoin.Crypto.SchnorrBlinding;
 
 namespace NBitcoin
@@ -23,30 +26,28 @@ namespace NBitcoin
 				node.VersionHandshake(cancellationToken);
 			}
 
-			using (var listener = node.CreateListener())
-			{
-				var getdata = new GetDataPayload(new InventoryVector(node.AddSupportedOptions(InventoryType.MSG_BLOCK), hash));
-				await node.SendMessageAsync(getdata);
-				cancellationToken.ThrowIfCancellationRequested();
+			using var listener = node.CreateListener();
+			var getdata = new GetDataPayload(new InventoryVector(node.AddSupportedOptions(InventoryType.MSG_BLOCK), hash));
+			await node.SendMessageAsync(getdata).ConfigureAwait(false);
+			cancellationToken.ThrowIfCancellationRequested();
 
-				// Bitcoin Core processes the messages sequentially and does not send a NOTFOUND message if the remote node is pruned and the data not available.
-				// A good way to get any feedback about whether the node knows the block or not is to send a ping request.
-				// If block is not known by the remote node, the pong will be sent immediately, else it will be sent after the block download.
-				ulong pingNonce = RandomUtils.GetUInt64();
-				await node.SendMessageAsync(new PingPayload() { Nonce = pingNonce });
-				while (true)
+			// Bitcoin Core processes the messages sequentially and does not send a NOTFOUND message if the remote node is pruned and the data not available.
+			// A good way to get any feedback about whether the node knows the block or not is to send a ping request.
+			// If block is not known by the remote node, the pong will be sent immediately, else it will be sent after the block download.
+			ulong pingNonce = RandomUtils.GetUInt64();
+			await node.SendMessageAsync(new PingPayload() { Nonce = pingNonce }).ConfigureAwait(false);
+			while (true)
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+				var message = listener.ReceiveMessage(cancellationToken);
+				if (message.Message.Payload is NotFoundPayload ||
+					(message.Message.Payload is PongPayload p && p.Nonce == pingNonce))
 				{
-					cancellationToken.ThrowIfCancellationRequested();
-					var message = listener.ReceiveMessage(cancellationToken);
-					if (message.Message.Payload is NotFoundPayload ||
-						(message.Message.Payload is PongPayload p && p.Nonce == pingNonce))
-					{
-						throw new InvalidOperationException($"Disconnected local node, because it does not have the block data.");
-					}
-					else if (message.Message.Payload is BlockPayload b && b.Object?.GetHash() == hash)
-					{
-						return b.Object;
-					}
+					throw new InvalidOperationException($"Disconnected local node, because it does not have the block data.");
+				}
+				else if (message.Message.Payload is BlockPayload b && b.Object?.GetHash() == hash)
+				{
+					return b.Object;
 				}
 			}
 		}
@@ -102,12 +103,25 @@ namespace NBitcoin
 			return false;
 		}
 
+		public static bool HasIndistinguishableOutputs(this Transaction me)
+		{
+			var hashset = new HashSet<long>();
+			foreach (var name in me.Outputs.Select(x => x.Value))
+			{
+				if (!hashset.Add(name))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
 		public static IEnumerable<(Money value, int count)> GetIndistinguishableOutputs(this Transaction me, bool includeSingle)
 		{
 			return me.Outputs.GroupBy(x => x.Value)
-			   .ToDictionary(x => x.Key, y => y.Count())
-			   .Select(x => (x.Key, x.Value))
-			   .Where(x => includeSingle || x.Value > 1);
+				.ToDictionary(x => x.Key, y => y.Count())
+				.Select(x => (x.Key, x.Value))
+				.Where(x => includeSingle || x.Value > 1);
 		}
 
 		public static int GetAnonymitySet(this Transaction me, int outputIndex)
@@ -163,10 +177,10 @@ namespace NBitcoin
 			return VerifySignature(dataHash, signature, signer.Key.PubKey);
 		}
 
-		public static uint256 BlindScript(this Requester requester, PubKey signerPubKey, PubKey RPubKey, Script script)
+		public static uint256 BlindScript(this Requester requester, PubKey signerPubKey, PubKey rPubKey, Script script)
 		{
 			var msg = new uint256(Hashes.SHA256(script.ToBytes()));
-			return requester.BlindMessage(msg, RPubKey, signerPubKey);
+			return requester.BlindMessage(msg, rPubKey, signerPubKey);
 		}
 
 		public static Signer CreateSigner(this SchnorrKey schnorrKey)
@@ -243,25 +257,60 @@ namespace NBitcoin
 			return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
 		}
 
-		public static async Task StopAsync(this RPCClient rpc)
-		{
-			await rpc.SendCommandAsync("stop");
-		}
-
 		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt)
 		{
-			return psbt.ExtractSmartTransaction(Height.Unknown);
+			var extractedTx = psbt.ExtractTransaction();
+			return new SmartTransaction(extractedTx, Height.Unknown);
 		}
 
-		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt, Height height, uint256 blockHash = null, int blockIndex = 0, string label = "", DateTimeOffset? firstSeenIfMempoolTime = null, bool isReplacement = false)
+		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt, SmartTransaction unsignedSmartTransaction)
 		{
 			var extractedTx = psbt.ExtractTransaction();
-			return new SmartTransaction(extractedTx, height, blockHash, blockIndex, label, firstSeenIfMempoolTime, isReplacement);
+			return new SmartTransaction(extractedTx,
+				unsignedSmartTransaction.Height,
+				unsignedSmartTransaction.BlockHash,
+				unsignedSmartTransaction.BlockIndex,
+				unsignedSmartTransaction.Label,
+				unsignedSmartTransaction.IsReplacement,
+				unsignedSmartTransaction.FirstSeen);
 		}
 
 		public static void SortByAmount(this TxOutList list)
 		{
 			list.Sort((x, y) => x.Value.CompareTo(y.Value));
+		}
+
+		/// <param name="startWithM">The keypath will start with m/ or not.</param>
+		/// <param name="format">h or ', eg.: m/84h/0h/0 or m/84'/0'/0</param>
+		public static string ToString(this KeyPath me, bool startWithM, string format)
+		{
+			var toStringBuilder = new StringBuilder(me.ToString());
+
+			if (startWithM)
+			{
+				toStringBuilder.Insert(0, "m/");
+			}
+
+			if (format == "h")
+			{
+				toStringBuilder.Replace('\'', 'h');
+			}
+
+			return toStringBuilder.ToString();
+		}
+
+		public static BitcoinWitPubKeyAddress TransformToNetworkNetwork(this BitcoinWitPubKeyAddress me, Network desiredNetwork)
+		{
+			Network originalNetwork = me.Network;
+
+			if (originalNetwork == desiredNetwork)
+			{
+				return me;
+			}
+
+			var newAddress = new BitcoinWitPubKeyAddress(me.Hash, desiredNetwork);
+
+			return newAddress;
 		}
 
 		public static void SortByAmount(this TxInList list, List<Coin> coins)
@@ -272,6 +321,77 @@ namespace NBitcoin
 				map.Add(list.Single(x => x.PrevOut == coin.Outpoint), coin);
 			}
 			list.Sort((x, y) => map[x].Amount.CompareTo(map[y].Amount));
+		}
+
+		public static Money GetTotalFee(this FeeRate me, int vsize)
+		{
+			return Money.Satoshis(Math.Round(me.SatoshiPerByte * vsize));
+		}
+
+		public static IEnumerable<TransactionDependencyNode> ToDependencyGraph(this IEnumerable<Transaction> txs)
+		{
+			var lookup = new Dictionary<uint256, TransactionDependencyNode>();
+			foreach (var tx in txs)
+			{
+				lookup.Add(tx.GetHash(), new TransactionDependencyNode { Transaction = tx });
+			}
+
+			foreach (var node in lookup.Values)
+			{
+				foreach (var input in node.Transaction.Inputs)
+				{
+					if (lookup.TryGetValue(input.PrevOut.Hash, out var parent))
+					{
+						if (!node.Parents.Contains(parent))
+						{
+							node.Parents.Add(parent);
+						}
+						if (!parent.Children.Contains(node))
+						{
+							parent.Children.Add(node);
+						}
+					}
+				}
+			}
+			var nodes = lookup.Values;
+			return nodes.Where(x => !x.Parents.Any());
+		}
+
+		public static IEnumerable<Transaction> OrderByDependency(this IEnumerable<TransactionDependencyNode> roots)
+		{
+			var parentCounter = new Dictionary<TransactionDependencyNode, int>();
+
+			void Walk(TransactionDependencyNode node)
+			{
+				if (!parentCounter.ContainsKey(node))
+				{
+					parentCounter.Add(node, node.Parents.Count());
+					foreach (var child in node.Children)
+					{
+						Walk(child);
+					}
+				}
+			}
+
+			foreach (var root in roots)
+			{
+				Walk(root);
+			}
+
+			var nodes = parentCounter.Where(x => x.Value == 0).Select(x => x.Key).Distinct().ToArray();
+			while (nodes.Any())
+			{
+				foreach (var node in nodes)
+				{
+					yield return node.Transaction;
+					parentCounter.Remove(node);
+					foreach (var child in node.Children)
+					{
+						parentCounter[child] = parentCounter[child] - 1;
+					}
+				}
+				nodes = parentCounter.Where(x => x.Value == 0).Select(x => x.Key).Distinct().ToArray();
+			}
 		}
 	}
 }

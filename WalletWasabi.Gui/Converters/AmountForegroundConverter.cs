@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using WalletWasabi.Exceptions;
 
 namespace WalletWasabi.Gui.Converters
 {
@@ -17,6 +18,7 @@ namespace WalletWasabi.Gui.Converters
 				return amount.StartsWith("~")
 					? Brushes.ForestGreen
 					: amount.Equals("No Coins Selected", StringComparison.OrdinalIgnoreCase)
+					  || amount.Equals("Too high fee", StringComparison.OrdinalIgnoreCase)
 						? Brushes.IndianRed
 						: Brushes.White;
 			}

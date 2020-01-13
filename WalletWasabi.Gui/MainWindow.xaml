@@ -1,4 +1,5 @@
 <cont:MetroWindow xmlns="https://github.com/avaloniaui"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                   xmlns:cont="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"
                   xmlns:wasabi="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
                   xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
@@ -10,8 +11,8 @@
                   xmlns:id="clr-namespace:Dock.Avalonia;assembly=Dock.Avalonia"
                   xmlns:idc="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
                   xmlns:beh="clr-namespace:AvalonStudio.Utils.Behaviors;assembly=AvalonStudio.Utils"
-                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                  Icon="resm:WalletWasabi.Gui.Assets.WasabiLogo256.png?assembly=WalletWasabi.Gui"
+                  x:Class="WalletWasabi.Gui.MainWindow"
+                  Icon="avares://WalletWasabi.Gui/Assets/WasabiLogo256.png"
                   Title="{Binding Title}"
                   MinWidth="1100" MinHeight="530"
                   FontFamily="{DynamicResource UiFont}" FontSize="14"
@@ -19,28 +20,14 @@
                   Width="{Binding Width}" Height="{Binding Height}"
                   WindowState="{Binding WindowState}"
                   UseLayoutRounding="True"
-                  RenderOptions.BitmapInterpolationMode="HighQuality"
-                  id:DragBehavior.IsEnabled="False" id:DropBehavior.IsEnabled="False">
+                  RenderOptions.BitmapInterpolationMode="HighQuality">
   <cont:MetroWindow.TitleBarContent>
-    <StackPanel Orientation="Horizontal" IsVisible="{Binding !$parent[cont|MetroWindow].DataContext.LockScreen.IsLocked}">
-      <menu:MainMenuView DataContext="{Binding Shell.MainMenu}" Margin="4 0 0 0" Foreground="{DynamicResource ThemeForegroundBrush}" VerticalAlignment="Stretch" FontSize="13" />
-      <Button Command="{Binding LockScreenCommand}" Margin="10 0" Background="Transparent" BorderBrush="Transparent">
-        <StackPanel Orientation="Horizontal" Spacing="8">
-          <DrawingPresenter Height="10" Width="10" Drawing="{StaticResource Lock}" />
-          <TextBlock FontSize="13" Text="Lock Screen" />
-        </StackPanel>
-      </Button>
+    <StackPanel Orientation="Horizontal" IsVisible="{Binding !LockScreen.IsLocked}">
+      <menu:MainMenuView DataContext="{Binding Shell.MainMenu}" Margin="4 0 0 0" Foreground="{DynamicResource ThemeForegroundBrush}" VerticalAlignment="Stretch" FontSize="13" />      
     </StackPanel>
   </cont:MetroWindow.TitleBarContent>
-  <cont:MetroWindow.Styles>
-    <Style Selector="Menu > MenuItem:selected /template/ Border#root">
-      <Setter Property="Background" Value="{DynamicResource ThemeControlMidBrush}" />
-    </Style>
-    <Style Selector="Menu > MenuItem">
-      <Setter Property="Padding" Value="7 0" />
-    </Style>
-  </cont:MetroWindow.Styles>
-  <Grid>
+
+  <Grid  id:DockProperties.IsDragEnabled="False" id:DockProperties.IsDropEnabled="False">
     <DockPanel LastChildFill="True">
       <wasabi:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" />
       <shell:ShellView DataContext="{Binding Shell}" />

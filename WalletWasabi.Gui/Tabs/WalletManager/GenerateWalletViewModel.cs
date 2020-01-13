@@ -2,14 +2,20 @@ using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
@@ -18,78 +24,67 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _password;
 		private string _walletName;
 		private bool _termsAccepted;
-		private string _validationMessage;
 		public WalletManagerViewModel Owner { get; }
-		public Global Global => Owner.Global;
+
+		private Global Global { get; }
 
 		public GenerateWalletViewModel(WalletManagerViewModel owner) : base("Generate Wallet")
 		{
+			Global = Locator.Current.GetService<Global>();
 			Owner = owner;
 
-			GenerateCommand = ReactiveCommand.Create(DoGenerateCommand,
-			this.WhenAnyValue(x => x.TermsAccepted));
+			IObservable<bool> canGenerate = Observable.CombineLatest(
+				this.WhenAnyValue(x => x.TermsAccepted),
+				this.WhenAnyValue(x => x.Password).Select(pw => !ValidatePassword().HasErrors),
+				(terms, pw) => terms && pw);
 
-			this.WhenAnyValue(x => x.Password).Subscribe(x =>
-			{
-				try
-				{
-					if (x.NotNullAndNotEmpty())
-					{
-						char lastChar = x.Last();
-						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
-						{
-							Password = x.TrimEnd('\r', '\n');
-							if (TermsAccepted)
-							{
-								DoGenerateCommand();
-							}
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					Logger.LogTrace(ex);
-				}
-			});
+			NextCommand = ReactiveCommand.Create(DoNextCommand, canGenerate);
+
+			NextCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
-		private void DoGenerateCommand()
+		private void DoNextCommand()
 		{
 			WalletName = Guard.Correct(WalletName);
 
 			if (!ValidateWalletName(WalletName))
 			{
-				ValidationMessage = $"The name {WalletName} is not valid.";
+				NotificationHelpers.Error("Invalid wallet name.");
 				return;
 			}
 
 			string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
-			Password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
 
 			if (!TermsAccepted)
 			{
-				ValidationMessage = "Terms are not accepted.";
+				NotificationHelpers.Error("Terms are not accepted.");
 			}
 			else if (string.IsNullOrWhiteSpace(WalletName))
 			{
-				ValidationMessage = $"The name {WalletName} is not valid.";
+				NotificationHelpers.Error("Invalid wallet name.");
 			}
 			else if (File.Exists(walletFilePath))
 			{
-				ValidationMessage = $"The name {WalletName} is already taken.";
+				NotificationHelpers.Error("Wallet name is already taken.");
 			}
 			else
 			{
 				try
 				{
-					KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
+					PasswordHelper.Guard(Password); // Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password bacause of compatibility.
 
-					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, mnemonic);
+					var km = KeyManager.CreateNew(out Mnemonic mnemonic, Password);
+					km.SetNetwork(Global.Network);
+					km.SetBestHeight(new Height(Global.BitcoinStore.SmartHeaderChain.TipHeight));
+					km.SetFilePath(walletFilePath);
+					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, km, mnemonic);
 				}
 				catch (Exception ex)
 				{
-					ValidationMessage = ex.ToTypeMessageString();
-					Logger.LogError<GenerateWalletViewModel>(ex);
+					NotificationHelpers.Error(ex.ToTypeMessageString());
+					Logger.LogError(ex);
 				}
 			}
 		}
@@ -109,6 +104,26 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			return isValid && !isReserved;
 		}
 
+		public ErrorDescriptors ValidatePassword()
+		{
+			string password = Password;
+
+			var errors = new ErrorDescriptors();
+
+			if (PasswordHelper.IsTrimable(password, out _))
+			{
+				errors.Add(new ErrorDescriptor(ErrorSeverity.Error, "Leading and trailing white spaces are not allowed!"));
+			}
+
+			if (PasswordHelper.IsTooLong(password, out _))
+			{
+				errors.Add(new ErrorDescriptor(ErrorSeverity.Error, PasswordHelper.PasswordTooLongMessage));
+			}
+
+			return errors;
+		}
+
+		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
 		{
 			get => _password;
@@ -127,27 +142,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _termsAccepted, value);
 		}
 
-		public string ValidationMessage
-		{
-			get => _validationMessage;
-			set => this.RaiseAndSetIfChanged(ref _validationMessage, value);
-		}
-
-		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
-
-		public void OnTermsClicked()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel(Global));
-		}
-
-		public void OnPrivacyClicked()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel(Global));
-		}
+		public ReactiveCommand<Unit, Unit> NextCommand { get; }
 
 		public void OnLegalClicked()
 		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel(Global));
+			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel());
 		}
 
 		public override void OnCategorySelected()
@@ -157,7 +156,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			Password = "";
 			WalletName = Global.GetNextWalletName();
 			TermsAccepted = false;
-			ValidationMessage = "";
 		}
 	}
 }

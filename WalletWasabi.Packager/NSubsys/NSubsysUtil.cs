@@ -14,51 +14,49 @@ namespace NSubsys
 		/// </summary>
 		public static bool ProcessFile(string exeFilePath)
 		{
-			Console.WriteLine("NSubsys: Subsystem Changer for Windows PE files.");
-			Console.WriteLine($"NSubsys: Target EXE {exeFilePath}.");
-			using (var peFile = new PeUtility(exeFilePath))
+			Console.WriteLine($"{nameof(NSubsys)}: Subsystem Changer for Windows PE files.");
+			Console.WriteLine($"{nameof(NSubsys)}: Target EXE {exeFilePath}.");
+			using var peFile = new PeUtility(exeFilePath);
+			SubSystemType subsysVal;
+			var subsysOffset = peFile.MainHeaderOffset;
+
+			subsysVal = (SubSystemType)peFile.OptionalHeader.Subsystem;
+			subsysOffset += Marshal.OffsetOf<ImageOptionalHeader>(nameof(ImageOptionalHeader.Subsystem)).ToInt32();
+
+			switch (subsysVal)
 			{
-				SubSystemType subsysVal;
-				var subsysOffset = peFile.MainHeaderOffset;
+				case SubSystemType.ImageSubSystemWindowsGui:
+					Console.WriteLine($"{nameof(NSubsys)}: Executable file is already a Win32 App!");
+					return true;
 
-				subsysVal = (SubSystemType)peFile.OptionalHeader.Subsystem;
-				subsysOffset += Marshal.OffsetOf<IMAGE_OPTIONAL_HEADER>(nameof(IMAGE_OPTIONAL_HEADER.Subsystem)).ToInt32();
+				case SubSystemType.ImageSubSystemWindowsCui:
+					Console.WriteLine($"{nameof(NSubsys)}: Console app detected...");
+					Console.WriteLine($"{nameof(NSubsys)}: Converting...");
 
-				switch (subsysVal)
-				{
-					case PeUtility.SubSystemType.IMAGE_SUBSYSTEM_WINDOWS_GUI:
-						Console.WriteLine("NSubsys: Executable file is already a Win32 App!");
-						return true;
+					var subsysSetting = BitConverter.GetBytes((ushort)SubSystemType.ImageSubSystemWindowsGui);
 
-					case PeUtility.SubSystemType.IMAGE_SUBSYSTEM_WINDOWS_CUI:
-						Console.WriteLine("NSubsys: Console app detected...");
-						Console.WriteLine("NSubsys: Converting...");
+					if (!BitConverter.IsLittleEndian)
+					{
+						Array.Reverse(subsysSetting);
+					}
 
-						var subsysSetting = BitConverter.GetBytes((ushort)SubSystemType.IMAGE_SUBSYSTEM_WINDOWS_GUI);
+					if (peFile.Stream.CanWrite)
+					{
+						peFile.Stream.Seek(subsysOffset, SeekOrigin.Begin);
+						peFile.Stream.Write(subsysSetting, 0, subsysSetting.Length);
+						Console.WriteLine($"{nameof(NSubsys)}: Conversion Complete...");
+					}
+					else
+					{
+						Console.WriteLine($"{nameof(NSubsys)}: Can't write changes!");
+						Console.WriteLine($"{nameof(NSubsys)}: Conversion Failed...");
+					}
 
-						if (!BitConverter.IsLittleEndian)
-						{
-							Array.Reverse(subsysSetting);
-						}
+					return true;
 
-						if (peFile.Stream.CanWrite)
-						{
-							peFile.Stream.Seek(subsysOffset, SeekOrigin.Begin);
-							peFile.Stream.Write(subsysSetting, 0, subsysSetting.Length);
-							Console.WriteLine("NSubsys: Conversion Complete...");
-						}
-						else
-						{
-							Console.WriteLine("NSubsys: Can't write changes!");
-							Console.WriteLine("NSubsys: Conversion Failed...");
-						}
-
-						return true;
-
-					default:
-						Console.WriteLine($"NSubsys: Unsupported subsystem number: {subsysVal}.");
-						return false;
-				}
+				default:
+					Console.WriteLine($"{nameof(NSubsys)}: Unsupported subsystem number: {subsysVal}.");
+					return false;
 			}
 		}
 	}

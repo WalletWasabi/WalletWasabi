@@ -28,7 +28,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 					break;
 
 				default:
-					throw new InvalidOperationException("There is no such AppendOption");
+					throw new InvalidOperationException($"There is no such {nameof(AppendOption)}.");
 			}
 		}
 
@@ -60,7 +60,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 					break;
 
 				default:
-					throw new InvalidOperationException("There is no such AppendOption");
+					throw new InvalidOperationException($"There is no such {nameof(AppendOption)}.");
 			}
 
 			//ECI table. Source 01 URL: http://strokescribe.com/en/ECI.html
@@ -91,65 +91,65 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 				Initialize(AppendOption.NameToValue);
 			}
 
-			if (_nameToValue.TryGetValue(encodingName, out int ECIValue))
+			if (_nameToValue.TryGetValue(encodingName, out int eCIValue))
 			{
-				return ECIValue;
+				return eCIValue;
 			}
 			else
 			{
-				throw new ArgumentOutOfRangeException($"ECI does not contain encoding: {encodingName}");
+				throw new ArgumentOutOfRangeException($"ECI does not contain encoding: {encodingName}.");
 			}
 		}
 
-		internal string GetECINameByValue(int ECIValue)
+		internal string GetECINameByValue(int eCIValue)
 		{
 			if (_valueToName is null)
 			{
 				Initialize(AppendOption.ValueToName);
 			}
 
-			if (_valueToName.TryGetValue(ECIValue, out string ECIName))
+			if (_valueToName.TryGetValue(eCIValue, out string eCIName))
 			{
-				return ECIName;
+				return eCIName;
 			}
 			else
 			{
-				throw new ArgumentOutOfRangeException($"ECI does not contain value: {ECIValue}");
+				throw new ArgumentOutOfRangeException($"ECI does not contain value: {eCIValue}.");
 			}
 		}
 
 		/// <remarks>ISO/IEC 18004:2006E ECI Designator Page 24</remarks>
-		/// <param name="ECIValue">Range: 0 ~ 999999</param>
+		/// <param name="eCIValue">Range: 0 ~ 999999</param>
 		/// <returns>Number of Codewords(Byte) for ECI Assignment Value</returns>
-		private static int NumOfCodewords(int ECIValue)
+		private static int NumOfCodewords(int eCIValue)
 		{
-			if (ECIValue >= 0 && ECIValue <= 127)
+			if (eCIValue >= 0 && eCIValue <= 127)
 			{
 				return 1;
 			}
-			else if (ECIValue > 127 && ECIValue <= 16383)
+			else if (eCIValue > 127 && eCIValue <= 16383)
 			{
 				return 2;
 			}
-			else if (ECIValue > 16383 && ECIValue <= 999999)
+			else if (eCIValue > 16383 && eCIValue <= 999999)
 			{
 				return 3;
 			}
 			else
 			{
-				throw new ArgumentOutOfRangeException("ECIValue should be in range: 0 to 999999");
+				throw new ArgumentOutOfRangeException($"{nameof(eCIValue)} should be in range: 0 to 999999.");
 			}
 		}
 
 		/// <remarks>ISO/IEC 18004:2006E ECI Designator Page 24</remarks>
-		/// <param name="ECIValue">Range: 0 ~ 999999</param>
+		/// <param name="eCIValue">Range: 0 ~ 999999</param>
 		/// <returns>Number of bits for ECI Assignment Value</returns>
-		private static int NumOfAssignmentBits(int ECIValue) => NumOfCodewords(ECIValue) * 8;
+		private static int NumOfAssignmentBits(int eCIValue) => NumOfCodewords(eCIValue) * 8;
 
 		/// <remarks>ISO/IEC 18004:2006E ECI Designator Page 24</remarks>
-		/// <param name="ECIValue">Range: 0 ~ 999999</param>
+		/// <param name="eCIValue">Range: 0 ~ 999999</param>
 		/// <returns>Number of bits for ECI Header</returns>
-		internal static int NumOfECIHeaderBits(int ECIValue) => NumOfAssignmentBits(ECIValue) + 4;
+		internal static int NumOfECIHeaderBits(int eCIValue) => NumOfAssignmentBits(eCIValue) + 4;
 
 		/// <returns>ECI table in Dictionary collection</returns>
 		public Dictionary<string, int> GetECITable()
@@ -233,7 +233,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 					break;
 
 				default:
-					throw new InvalidOperationException("Assignment Codewords should be either 1, 2 or 3");
+					throw new InvalidOperationException("Assignment Codewords should be either 1, 2 or 3.");
 			}
 
 			dataBits.Add(eciValue, eciAssignmentBits);

@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.Collections.Generic;
-using WalletWasabi.Models;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 
 namespace System.Linq
 {
@@ -58,6 +59,18 @@ namespace System.Linq
 			}
 		}
 
+		public static void AddToValueList<TKey, TValue, Telem>(this Dictionary<TKey, TValue> myDic, TKey key, Telem elem) where TValue : List<Telem>
+		{
+			if (myDic.ContainsKey(key))
+			{
+				myDic[key].Add(elem);
+			}
+			else
+			{
+				myDic.Add(key, new List<Telem>() { elem } as TValue);
+			}
+		}
+
 		// https://stackoverflow.com/a/2992364
 		public static void RemoveByValue<TKey, TValue>(this SortedDictionary<TKey, TValue> me, TValue value)
 		{
@@ -80,6 +93,29 @@ namespace System.Linq
 		public static bool NotNullAndNotEmpty<T>(this IEnumerable<T> source)
 		{
 			return !(source is null) && source.Any();
+		}
+
+		public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
+			this IEnumerable<T> items,
+			int ofLength)
+		{
+			return (ofLength == 1)
+				? items.Select(item => new[] { item })
+				: items.SelectMany((item, i) => items
+					.Skip(i + 1)
+					.CombinationsWithoutRepetition(ofLength - 1)
+					.Select(result => new T[] { item }
+					.Concat(result)));
+		}
+
+		public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
+			this IEnumerable<T> items,
+			int ofLength,
+			int upToLength)
+		{
+			return Enumerable
+				.Range(ofLength, Math.Max(0, upToLength - ofLength + 1))
+				.SelectMany(len => items.CombinationsWithoutRepetition(ofLength: len));
 		}
 
 		public static IEnumerable<IEnumerable<T>> GetPermutations<T>(this IEnumerable<T> items, int count)
@@ -134,6 +170,28 @@ namespace System.Linq
 			=> me
 				.OrderBy(x => x.Height)
 				.ThenBy(x => x.BlockIndex)
-				.ThenBy(x => x.FirstSeenIfMempoolTime ?? DateTime.UtcNow);
+				.ThenBy(x => x.FirstSeen);
+
+		public static IOrderedEnumerable<TransactionSummary> OrderByBlockchain(this IEnumerable<TransactionSummary> me)
+			=> me
+				.OrderBy(x => x.Height)
+				.ThenBy(x => x.BlockIndex)
+				.ThenBy(x => x.DateTime);
+
+		public static IEnumerable<string> ToBlockchainOrderedLines(this IEnumerable<SmartTransaction> me)
+			=> me
+				.OrderByBlockchain()
+				.Select(x => x.ToLine());
+
+		/// <summary>
+		/// https://stackoverflow.com/a/24087164/2061103
+		/// </summary>
+		public static IEnumerable<IEnumerable<T>> ChunkBy<T>(this IEnumerable<T> source, int chunkSize)
+		{
+			return source
+				.Select((x, i) => new { Index = i, Value = x })
+				.GroupBy(x => x.Index / chunkSize)
+				.Select(x => x.Select(v => v.Value));
+		}
 	}
 }

@@ -18,7 +18,7 @@ namespace System.Net.Http
 			var h = host.Trim().TrimEnd('/').TrimStart(uriScheme.ToString() + "://", StringComparison.OrdinalIgnoreCase);
 			// https://tools.ietf.org/html/rfc7230#section-2.7.1
 			// A sender MUST NOT generate an "http" URI with an empty host identifier.
-			if (h == "")
+			if (h.Length == 0)
 			{
 				throw new FormatException("Host identifier is empty.");
 			}
@@ -49,7 +49,7 @@ namespace System.Net.Http
 					// if the currently iterated scheme does not equal the provided scheme
 					if (scheme != uriScheme)
 					{
-						throw new FormatException("uriScheme not consistent with host identifier.");
+						throw new FormatException($"{nameof(uriScheme)} not consistent with host identifier.");
 					}
 				}
 			}

@@ -8,7 +8,7 @@ using System.Text;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-	internal class CommandOnLostFocusBehavior : CommandBasedBehavior<Control>
+	public class CommandOnLostFocusBehavior : CommandBasedBehavior<Control>
 	{
 		private CompositeDisposable Disposables { get; set; }
 
@@ -18,10 +18,7 @@ namespace WalletWasabi.Gui.Behaviors
 
 			base.OnAttached();
 
-			Disposables.Add(AssociatedObject.AddHandler(InputElement.LostFocusEvent, (sender, e) =>
-			{
-				e.Handled = ExecuteCommand();
-			}));
+			Disposables.Add(AssociatedObject.AddHandler(InputElement.LostFocusEvent, (sender, e) => e.Handled = ExecuteCommand()));
 		}
 
 		protected override void OnDetaching()

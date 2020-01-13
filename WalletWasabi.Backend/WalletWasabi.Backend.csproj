@@ -2,10 +2,10 @@
 
   <PropertyGroup>
     <PlatformTarget>x64</PlatformTarget>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <NoWarn>1701;1702;1705;1591;1573</NoWarn>
-    <Version>3.0</Version>
+    <NoWarn>1701;1702;1705;1591;1573;CA1031</NoWarn>
+    <Version>3.1</Version>
     <Product>WalletWasabiApi</Product>
     <Copyright>MIT</Copyright>
     <PackageTags>walletwasabi, wasabiwallet, wasabi, hiddenwallet, wallet, bitcoin, hbitcoin, nbitcoin, magicalcryptowallet, magicalwallet, tor, chaum, chaumian, zerolink, coinjoin, fungibility, privacy, anonymity</PackageTags>
@@ -22,12 +22,12 @@
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp2.2\WalletWasabi.Backend.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netcoreapp3.1\WalletWasabi.Backend.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <!-- Needed for Swagger! -->
-    <DocumentationFile>bin\Release\netcoreapp2.2\WalletWasabi.Backend.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\netcoreapp3.1\WalletWasabi.Backend.xml</DocumentationFile>
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
     <ErrorReport>none</ErrorReport>
@@ -38,12 +38,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Folder Include="wwwroot\unversioned\" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.0.0-rc4" />
   </ItemGroup>
   
 </Project>

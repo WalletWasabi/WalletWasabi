@@ -7,9 +7,13 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Services;
+using WalletWasabi.Models;
+using WalletWasabi.Gui.Helpers;
+using System.Reactive.Linq;
+using Splat;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -24,33 +28,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _extendedAccountPrivateKey;
 		private string _extendedAccountZprv;
 
+		private Global Global { get; }
+
 		public WalletInfoViewModel(WalletViewModel walletViewModel) : base(walletViewModel.Name, walletViewModel)
 		{
-			ClearSensitiveData(true);
-			SetWarningMessage("");
+			Global = Locator.Current.GetService<Global>();
 
-			this.WhenAnyValue(x => x.Password).Subscribe(x =>
-			{
-				try
-				{
-					if (x.NotNullAndNotEmpty())
-					{
-						char lastChar = x.Last();
-						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
-						{
-							Password = x.TrimEnd('\r', '\n');
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					Logging.Logger.LogTrace(ex);
-				}
-			});
+			ClearSensitiveData(true);
 
 			ToggleSensitiveKeysCommand = ReactiveCommand.Create(() =>
-			{
-				try
 				{
 					if (ShowSensitiveKeys)
 					{
@@ -58,9 +44,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					else
 					{
-						Password = Guard.Correct(Password);
-						var secret = KeyManager.GetMasterExtKey(Password);
+						var secret = PasswordHelper.GetMasterExtKey(KeyManager, Password, out string isCompatibilityPasswordUsed);
 						Password = "";
+
+						if (isCompatibilityPasswordUsed != null)
+						{
+							NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
+						}
 
 						string master = secret.GetWif(Global.Network).ToWif();
 						string account = secret.Derive(KeyManager.AccountKeyPath).GetWif(Global.Network).ToWif();
@@ -68,12 +58,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						string accountZ = secret.Derive(KeyManager.AccountKeyPath).ToZPrv(Global.Network);
 						SetSensitiveData(master, account, masterZ, accountZ);
 					}
-				}
-				catch (Exception ex)
+				});
+
+			ToggleSensitiveKeysCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex =>
 				{
-					SetWarningMessage(ex.ToTypeMessageString());
-				}
-			});
+					Logging.Logger.LogError(ex);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
+				});
 		}
 
 		private void ClearSensitiveData(bool passwordToo)
@@ -104,6 +97,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _showSensitiveKeys, value);
 		}
 
+		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+
+		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
 		{
 			get => _password;
@@ -143,20 +139,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ShowSensitiveKeys = true;
 
 			Dispatcher.UIThread.PostLogException(async () =>
-			{
-				try
 				{
-					await Task.Delay(21000, Closing.Token);
-				}
-				catch (TaskCanceledException)
-				{
-					// Ignore
-				}
-				finally
-				{
-					ClearSensitiveData(false);
-				}
-			});
+					try
+					{
+						await Task.Delay(21000, Closing.Token);
+					}
+					catch (TaskCanceledException)
+					{
+						// Ignore
+					}
+					finally
+					{
+						ClearSensitiveData(false);
+					}
+				});
 		}
 
 		public override void OnOpen()
@@ -166,10 +162,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Closing = new CancellationTokenSource();
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(ExtendedAccountPublicKey));
-				this.RaisePropertyChanged(nameof(ExtendedAccountZpub));
-			}).DisposeWith(Disposables);
+				{
+					this.RaisePropertyChanged(nameof(ExtendedAccountPublicKey));
+					this.RaisePropertyChanged(nameof(ExtendedAccountZpub));
+				}).DisposeWith(Disposables);
 
 			Closing.DisposeWith(Disposables);
 

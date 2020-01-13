@@ -10,23 +10,14 @@ namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 	{
 		internal Penalty CreateByRule(PenaltyRules penaltyRule)
 		{
-			switch (penaltyRule)
+			return penaltyRule switch
 			{
-				case PenaltyRules.Rule01:
-					return new Penalty1();
-
-				case PenaltyRules.Rule02:
-					return new Penalty2();
-
-				case PenaltyRules.Rule03:
-					return new Penalty3();
-
-				case PenaltyRules.Rule04:
-					return new Penalty4();
-
-				default:
-					throw new ArgumentException($"Unsupport penalty rule : {penaltyRule}", nameof(penaltyRule));
-			}
+				PenaltyRules.Rule01 => new Penalty1(),
+				PenaltyRules.Rule02 => new Penalty2(),
+				PenaltyRules.Rule03 => new Penalty3(),
+				PenaltyRules.Rule04 => new Penalty4(),
+				_ => throw new ArgumentException($"Unsupport penalty rule: {penaltyRule}", nameof(penaltyRule))
+			};
 		}
 
 		internal IEnumerable<Penalty> AllRules()

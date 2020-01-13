@@ -1,3 +1,5 @@
+using System;
+
 namespace Gma.QrCodeNet.Encoding.Versions
 {
 	internal struct QRCodeVersion
@@ -19,25 +21,16 @@ namespace Gma.QrCodeNet.Encoding.Versions
 			DimensionForVersion = 17 + (versionNum * 4);
 		}
 
-		internal ErrorCorrectionBlocks GetECBlocksByLevel(Gma.QrCodeNet.Encoding.ErrorCorrectionLevel ECLevel)
+		internal ErrorCorrectionBlocks GetECBlocksByLevel(ErrorCorrectionLevel eCLevel)
 		{
-			switch (ECLevel)
+			return eCLevel switch
 			{
-				case ErrorCorrectionLevel.L:
-					return ECBlocks[0];
-
-				case ErrorCorrectionLevel.M:
-					return ECBlocks[1];
-
-				case ErrorCorrectionLevel.Q:
-					return ECBlocks[2];
-
-				case ErrorCorrectionLevel.H:
-					return ECBlocks[3];
-
-				default:
-					throw new System.ArgumentOutOfRangeException("Invalide ErrorCorrectionLevel");
-			}
+				ErrorCorrectionLevel.L => ECBlocks[0],
+				ErrorCorrectionLevel.M => ECBlocks[1],
+				ErrorCorrectionLevel.Q => ECBlocks[2],
+				ErrorCorrectionLevel.H => ECBlocks[3],
+				_ => throw new ArgumentOutOfRangeException($"Invalid {nameof(ErrorCorrectionLevel)}.")
+			};
 		}
 	}
 }

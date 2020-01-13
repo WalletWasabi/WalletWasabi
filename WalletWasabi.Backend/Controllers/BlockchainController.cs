@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -19,7 +20,7 @@ namespace WalletWasabi.Backend.Controllers
 	/// To interact with the Bitcoin Blockchain.
 	/// </summary>
 	[Produces("application/json")]
-	[Route("api/v" + Helpers.Constants.BackendMajorVersion + "/btc/[controller]")]
+	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class BlockchainController : Controller
 	{
 		private IMemoryCache Cache { get; }
@@ -85,7 +86,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			foreach (int target in confirmationTargetsInts)
 			{
-				// 1. Use the sanity check that under 2 satoshi per bytes should not be displayed. To correct possible rounding errors.
+				// 1. Use the sanity check that under 2 satoshi per byte should not be displayed. To correct possible rounding errors.
 				// 2. Use the RPCResponse.Blocks output to avoid redundant RPC queries.
 				// 3. Use caching.
 				var conservativeResponse = await GetEstimateSmartFeeAsync(target, EstimateSmartFeeMode.Conservative);
@@ -153,10 +154,10 @@ namespace WalletWasabi.Backend.Controllers
 		/// <param name="compactness">Can strip the last x characters from the hashes.</param>
 		/// <returns>A collection of transaction hashes.</returns>
 		/// <response code="200">A collection of transaction hashes.</response>
-		/// <response code="404">Invalid model state.</response>
+		/// <response code="400">Invalid model state.</response>
 		[HttpGet("mempool-hashes")]
 		[ProducesResponseType(200)]
-		[ProducesResponseType(404)]
+		[ProducesResponseType(400)]
 		[ResponseCache(Duration = 3, Location = ResponseCacheLocation.Client)]
 		public async Task<IActionResult> GetMempoolHashesAsync([FromQuery]int compactness = 64)
 		{
@@ -196,6 +197,107 @@ namespace WalletWasabi.Backend.Controllers
 			return hashes;
 		}
 
+		public static Dictionary<uint256, string> TransactionHexCache { get; } = new Dictionary<uint256, string>();
+		public static object TransactionHexCacheLock { get; } = new object();
+
+		/// <summary>
+		/// Attempts to get transactions.
+		/// </summary>
+		/// <param name="transactionIds">The transactions the client is interested in.</param>
+		/// <returns>200 Ok on with the list of found transactions. This list can be empty if none of the transactions are found.</returns>
+		/// <response code="200">Returns the list of transactions hexes. The list can be empty.</response>
+		/// <response code="400">Something went wrong.</response>
+		[HttpGet("transaction-hexes")]
+		[ProducesResponseType(200)]
+		[ProducesResponseType(400)]
+		public async Task<IActionResult> GetTransactionsAsync([FromQuery, Required]IEnumerable<string> transactionIds)
+		{
+			if (!ModelState.IsValid)
+			{
+				return BadRequest("Invalid transaction Ids.");
+			}
+
+			var maxTxToRequest = 10;
+			if (transactionIds.Count() > maxTxToRequest)
+			{
+				return BadRequest($"Maximum {maxTxToRequest} transactions can be requested.");
+			}
+
+			var parsedIds = new List<uint256>();
+			try
+			{
+				// Remove duplicates, do not use Distinct(), order is not guaranteed.
+				foreach (var txid in transactionIds.Select(x => new uint256(x)))
+				{
+					if (!parsedIds.Contains(txid))
+					{
+						parsedIds.Add(txid);
+					}
+				}
+			}
+			catch
+			{
+				return BadRequest("Invalid transaction Ids.");
+			}
+
+			try
+			{
+				var hexes = new Dictionary<uint256, string>();
+				var queryRpc = false;
+				RPCClient batchingRpc = null;
+				List<Task<Transaction>> tasks = null;
+				lock (TransactionHexCacheLock)
+				{
+					foreach (var txid in parsedIds)
+					{
+						if (TransactionHexCache.TryGetValue(txid, out string hex))
+						{
+							hexes.Add(txid, hex);
+						}
+						else
+						{
+							if (!queryRpc)
+							{
+								queryRpc = true;
+								batchingRpc = RpcClient.PrepareBatch();
+								tasks = new List<Task<Transaction>>();
+							}
+							tasks.Add(batchingRpc.GetRawTransactionAsync(txid));
+						}
+					}
+				}
+
+				if (queryRpc)
+				{
+					await batchingRpc.SendBatchAsync();
+
+					foreach (var txTask in tasks)
+					{
+						var tx = await txTask;
+						string hex = tx.ToHex();
+						hexes.Add(tx.GetHash(), hex);
+
+						lock (TransactionHexCacheLock)
+						{
+							if (TransactionHexCache.TryAdd(tx.GetHash(), hex) && TransactionHexCache.Count >= 1000)
+							{
+								TransactionHexCache.Remove(TransactionHexCache.Keys.First());
+							}
+						}
+					}
+				}
+
+				// Order hexes according to the order of the query.
+				var orderedResult = parsedIds.Where(x => hexes.ContainsKey(x)).Select(x => hexes[x]);
+				return Ok(orderedResult);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogDebug(ex);
+				return BadRequest(ex.Message);
+			}
+		}
+
 		/// <summary>
 		/// Attempts to broadcast a transaction.
 		/// </summary>
@@ -227,7 +329,7 @@ namespace WalletWasabi.Backend.Controllers
 			}
 			catch (Exception ex)
 			{
-				Logger.LogDebug<BlockchainController>(ex);
+				Logger.LogDebug(ex);
 				return BadRequest("Invalid hex.");
 			}
 
@@ -241,7 +343,7 @@ namespace WalletWasabi.Backend.Controllers
 			}
 			catch (RPCException ex)
 			{
-				Logger.LogDebug<BlockchainController>(ex);
+				Logger.LogDebug(ex);
 				return BadRequest(ex.Message);
 			}
 

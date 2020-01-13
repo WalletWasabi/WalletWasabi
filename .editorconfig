@@ -103,24 +103,32 @@ csharp_prefer_braces = true:error
 #do not suggest readonly fields
 dotnet_style_readonly_field = false:error
 
+# use expression body for lambdas
+csharp_style_expression_bodied_lambdas = true:suggestion
 
-# name all constant fields using PascalCase
-dotnet_naming_rule.constant_fields_should_be_pascal_case.severity = error
-dotnet_naming_rule.constant_fields_should_be_pascal_case.symbols  = constant_fields
-dotnet_naming_rule.constant_fields_should_be_pascal_case.style    = pascal_case_style
+# IDE0066: Convert switch statement to expression
+csharp_style_prefer_switch_expression = true:error
 
-dotnet_naming_symbols.constant_fields.applicable_kinds   = field
-dotnet_naming_symbols.constant_fields.required_modifiers = const
+# IDE0063: Use simple 'using' statement
+csharp_prefer_simple_using_statement = true:error
+
+# IDE0054: Use compound assignment
+dotnet_style_prefer_compound_assignment = true:error
+
+# IDE0062: Make local function 'static'
+csharp_prefer_static_local_function = true:error
+
+
+# name all constant or static fields using PascalCase
+dotnet_naming_rule.constant_or_static_fields_should_be_pascal_case.severity = error
+dotnet_naming_rule.constant_or_static_fields_should_be_pascal_case.symbols  = constant_or_static_fields
+dotnet_naming_rule.constant_or_static_fields_should_be_pascal_case.style    = pascal_case_style
+
+dotnet_naming_symbols.constant_or_static_fields.applicable_kinds   = field
+dotnet_naming_symbols.constant_or_static_fields.required_modifiers = const
+dotnet_naming_symbols.constant_or_static_fields.required_modifiers = static
 
 dotnet_naming_style.pascal_case_style.capitalization = pascal_case
-
-# name all static fields using PascalCase
-dotnet_naming_rule.static_fields_should_be_pascal_case.severity = error
-dotnet_naming_rule.static_fields_should_be_pascal_case.symbols  = static_fields
-dotnet_naming_rule.static_fields_should_be_pascal_case.style    = pascal_case_style
-
-dotnet_naming_symbols.static_fields.applicable_kinds   = field
-dotnet_naming_symbols.static_fields.required_modifiers = static
 
 # name all readonly fields using PascalCase
 dotnet_naming_rule.readonly_fields_should_be_pascal_case.severity = error
@@ -136,10 +144,22 @@ dotnet_naming_rule.camel_case_for_private_internal_fields.symbols  = private_int
 dotnet_naming_rule.camel_case_for_private_internal_fields.style    = camel_case_underscore_style
 
 dotnet_naming_symbols.private_internal_fields.applicable_kinds = field
-dotnet_naming_symbols.private_internal_fields.applicable_accessibilities = private, internal, protected
+dotnet_naming_symbols.private_internal_fields.applicable_accessibilities = private, internal
 
 dotnet_naming_style.camel_case_underscore_style.required_prefix = _
-dotnet_naming_style.camel_case_underscore_style.capitalization = camel_case 
+dotnet_naming_style.camel_case_underscore_style.capitalization = camel_case
+
+# No other public/protected/protected_internal/private_protected fields are allowed
+dotnet_naming_rule.disallowed_fields_rule.severity = error
+dotnet_naming_rule.disallowed_fields_rule.symbols  = disallowed_fields_symbols
+dotnet_naming_rule.disallowed_fields_rule.style    = disallowed_fields_style
+
+dotnet_naming_symbols.disallowed_fields_symbols.applicable_kinds           = field
+dotnet_naming_symbols.disallowed_fields_symbols.applicable_accessibilities = public, protected_internal, protected, private_protected
+# disallowed_fields_style - Anything that has this style applied is marked as disallowed
+dotnet_naming_style.disallowed_fields_style.capitalization  = all_upper
+dotnet_naming_style.disallowed_fields_style.required_prefix = ____RULE_VIOLATION____
+dotnet_naming_style.disallowed_fields_style.required_suffix = ____RULE_VIOLATION____
 
 # async methods should end with Async suffix
 dotnet_naming_rule.async_methods_end_with_async.severity = warning
@@ -169,10 +189,8 @@ dotnet_naming_rule.most_members_must_be_pascal_case.severity = error
 dotnet_naming_rule.most_members_must_be_pascal_case.symbols  = most_members_symbols
 dotnet_naming_rule.most_members_must_be_pascal_case.style    = pascal_case_style
 
-dotnet_naming_symbols.most_members_symbols.applicable_kinds   = class, struct, enum, property, method, event, namespace
+dotnet_naming_symbols.most_members_symbols.applicable_kinds   = class, struct, enum, property, method, event, namespace, local_function
 dotnet_naming_symbols.most_members_symbols.applicable_accessibilities = *
-
-dotnet_naming_style.pascal_case_style.capitalization = pascal_case
 
 # name Local variables & parameters using camelCase
 dotnet_naming_rule.local_variables_and_parameters_camel_case.severity = error
@@ -193,6 +211,12 @@ dotnet_naming_symbols.type_parameters_symbols.applicable_kinds = type_parameter
 dotnet_naming_style.T_pascal_case_style.required_prefix = T
 dotnet_naming_style.T_pascal_case_style.capitalization = pascal_case
 
+
+# IDE0056: Use index operator
+csharp_style_prefer_index_operator = true:error
+
+# IDE0032: Use auto property
+dotnet_style_prefer_auto_properties = true:error
 
 [*.xaml]
 indent_style = space
