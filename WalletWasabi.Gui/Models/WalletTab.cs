@@ -4,9 +4,12 @@ using System.Text;
 
 namespace WalletWasabi.Gui.Models
 {
-	public enum CoinListContainerType
+	public enum WalletTab
 	{
-		SendTabViewModel,
-		CoinJoinTabViewModel
+		Send,
+		CoinJoin,
+		Receive,
+		History,
+		Build
 	}
 }

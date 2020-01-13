@@ -11,6 +11,7 @@ using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Services;
 using WalletWasabi.Logging;
 using Splat;
+using WalletWasabi.Gui.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -87,21 +88,35 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			historyTab.DisplayActionTab();
 
 			// Select tab
-			if (receiveDominant || global.UiConfig.LastActiveTab == receiveTab.Title)
+			if (receiveDominant)
 			{
-				receiveTab.DisplayActionTab(); // So receive should be shown to the user.
-			}
-			else if (global.UiConfig.LastActiveTab == sendTab?.Title)
-			{
-				sendTab.DisplayActionTab(); // So send should be shown to the user.
-			}
-			else if (global.UiConfig.LastActiveTab == historyTab.Title)
-			{
-				historyTab.DisplayActionTab(); // So history should be shown to the user.
+				receiveTab.DisplayActionTab();
 			}
 			else
 			{
-				coinjoinTab.DisplayActionTab(); // So coinjoin should be shown to the user.
+				switch (global.UiConfig.LastActiveTab)
+				{
+					case WalletTab.Send when sendTab is { }:
+						sendTab.DisplayActionTab();
+						break;
+
+					case WalletTab.Receive:
+						receiveTab.DisplayActionTab();
+						break;
+
+					case WalletTab.History:
+						historyTab.DisplayActionTab();
+						break;
+
+					case WalletTab.Build:
+						buildTab.DisplayActionTab();
+						break;
+
+					case WalletTab.CoinJoin:
+					default:
+						coinjoinTab.DisplayActionTab();
+						break;
+				}
 			}
 
 			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>

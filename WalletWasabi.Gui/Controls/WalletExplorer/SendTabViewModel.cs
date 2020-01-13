@@ -101,7 +101,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public SendTabViewModel(WalletViewModel walletViewModel, bool isTransactionBuilder = false)
-			: base(isTransactionBuilder ? "Build Transaction" : "Send", walletViewModel)
+			: base(isTransactionBuilder ? "Build Transaction" : "Send",
+				  walletViewModel,
+				  isTransactionBuilder ? WalletTab.Build : WalletTab.Send)
 		{
 			Global = Locator.Current.GetService<Global>();
 			LabelSuggestion = new SuggestLabelViewModel();
@@ -111,7 +113,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ResetUi();
 			SetAmountWatermark(Money.Zero);
 
-			CoinList = new CoinListViewModel(CoinListContainerType.SendTabViewModel);
+			CoinList = new CoinListViewModel(WalletTab.Send);
 
 			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)

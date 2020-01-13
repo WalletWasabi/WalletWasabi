@@ -11,6 +11,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
@@ -31,7 +32,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 
 		public HistoryTabViewModel(WalletViewModel walletViewModel)
-			: base("History", walletViewModel)
+			: base("History", walletViewModel, WalletTab.History)
 		{
 			Global = Locator.Current.GetService<Global>();
 

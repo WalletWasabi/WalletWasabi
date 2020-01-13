@@ -19,6 +19,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
 using Splat;
+using WalletWasabi.Gui.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -34,7 +35,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
 
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
-			: base("Receive", walletViewModel)
+			: base("Receive", walletViewModel, WalletTab.Receive)
 		{
 			Global = Locator.Current.GetService<Global>();
 			LabelSuggestion = new SuggestLabelViewModel();

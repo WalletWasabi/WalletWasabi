@@ -47,9 +47,9 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "FeeDisplayFormat", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public int FeeDisplayFormat { get; internal set; }
 
-		[DefaultValue("")]
-		[JsonProperty(PropertyName = "LastActiveTab", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public string LastActiveTab { get; internal set; }
+		[JsonProperty(PropertyName = "LastActiveTab")]
+		[JsonConverter(typeof(WalletTabJsonConverter))]
+		public WalletTab LastActiveTab { get; internal set; } = WalletTab.CoinJoin;
 
 		[DefaultValue(true)]
 		[JsonProperty(PropertyName = "Autocopy", DefaultValueHandling = DefaultValueHandling.Populate)]

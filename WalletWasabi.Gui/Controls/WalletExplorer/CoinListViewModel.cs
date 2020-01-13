@@ -57,7 +57,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private object SelectionChangedLock { get; } = new object();
 		private object StateChangedLock { get; } = new object();
 		private Global Global { get; }
-		public CoinListContainerType CoinListContainerType { get; }
+		public WalletTab WalletTab { get; }
 		public ReactiveCommand<Unit, Unit> SelectAllCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SelectPrivateCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SelectNonPrivateCheckBoxCommand { get; }
@@ -246,11 +246,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public CoinListViewModel(CoinListContainerType coinListContainerType)
+		public CoinListViewModel(WalletTab walletTab)
 		{
 			Global = Locator.Current.GetService<Global>();
 
-			CoinListContainerType = coinListContainerType;
+			WalletTab = walletTab;
 			AmountSortDirection = SortOrder.Decreasing;
 
 			CoinJoinStatusWidth = new GridLength(0);
@@ -499,7 +499,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						SelectedAmount = selectedCoins.Sum(x => x.Amount);
 						IsAnyCoinSelected = selectedCoins.Any();
 
-						LabelExposeCommonOwnershipWarning = CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel
+						LabelExposeCommonOwnershipWarning = WalletTab == WalletTab.CoinJoin
 							? false
 							: selectedCoins
 								.Where(c => c.AnonymitySet == 1)

@@ -52,14 +52,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private TargetPrivacy _targetPrivacy;
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
-			: base("CoinJoin", walletViewModel)
+			: base("CoinJoin", walletViewModel, WalletTab.CoinJoin)
 		{
 			Global = Locator.Current.GetService<Global>();
 
 			Password = "";
 			TimeLeftTillRoundTimeout = TimeSpan.Zero;
 
-			CoinsList = new CoinListViewModel(CoinListContainerType.CoinJoinTabViewModel);
+			CoinsList = new CoinListViewModel(WalletTab.CoinJoin);
 
 			Observable
 				.FromEventPattern<SmartCoin>(CoinsList, nameof(CoinsList.DequeueCoinsPressed))

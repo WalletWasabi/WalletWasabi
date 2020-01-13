@@ -44,7 +44,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Model = model;
 			Owner = owner;
-			InCoinJoinContainer = owner.CoinListContainerType == CoinListContainerType.CoinJoinTabViewModel;
+			InCoinJoinContainer = owner.WalletTab == WalletTab.CoinJoin;
 
 			RefreshSmartCoinStatus();
 

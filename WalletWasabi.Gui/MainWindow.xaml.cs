@@ -24,6 +24,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
@@ -153,7 +154,8 @@ namespace WalletWasabi.Gui
 							Global.UiConfig.WindowState = WindowState;
 							Global.UiConfig.Width = Width;
 							Global.UiConfig.Height = Height;
-							Global.UiConfig.LastActiveTab = IoC.Get<IShell>().SelectedDocument?.Title;
+							Global.UiConfig.LastActiveTab = GetLastActiveTab(IoC.Get<IShell>().SelectedDocument?.Title);
+
 							await Global.UiConfig.ToFileAsync();
 							Logger.LogInfo($"{nameof(Global.UiConfig)} is saved.");
 						}
@@ -193,6 +195,35 @@ namespace WalletWasabi.Gui
 						Global.ChaumianClient.IsQuitPending = false; //re-enable enqueuing coins
 					}
 				}
+			}
+		}
+
+		private WalletTab GetLastActiveTab(string tabTitle)
+		{
+			if (tabTitle is null)
+			{
+				return WalletTab.CoinJoin;
+			}
+
+			if (tabTitle.StartsWith("Send", StringComparison.OrdinalIgnoreCase))
+			{
+				return WalletTab.Send;
+			}
+			else if (tabTitle.StartsWith("Receive", StringComparison.OrdinalIgnoreCase))
+			{
+				return WalletTab.Receive;
+			}
+			else if (tabTitle.StartsWith("History", StringComparison.OrdinalIgnoreCase))
+			{
+				return WalletTab.History;
+			}
+			else if (tabTitle.StartsWith("Build", StringComparison.OrdinalIgnoreCase))
+			{
+				return WalletTab.Build;
+			}
+			else
+			{
+				return WalletTab.CoinJoin;
 			}
 		}
 
