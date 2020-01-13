@@ -27,13 +27,13 @@
     <title>Wasabi Wallet - Unfairly Private</title>
 </head>
 <body>
-    <div itemscope itemtype="https://schema.org/SoftwareApplication">
-        <link itemprop="applicationCategory" href="https://schema.org/FinanceApplication"/>
-            <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-                <meta itemprop="name" content="Wasabi Wallet">
-                <meta itemprop="price" content="0">
-                <meta itemprop="priceCurrency" content="BTC">
-            </div>
+<div itemscope itemtype="https://schema.org/SoftwareApplication">
+    <link itemprop="applicationCategory" href="https://schema.org/FinanceApplication"/>
+    <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+        <meta itemprop="name" content="Wasabi Wallet">
+        <meta itemprop="price" content="0">
+        <meta itemprop="priceCurrency" content="BTC">
+    </div>
     <!-- Header -->
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark m-auto rounded-bottom">
@@ -58,6 +58,9 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="https://docs.wasabiwallet.io/building-wasabi/Dojo.html" target="_blank">dojo</a>
+                    </li>
+                    <li class="nav-item" id="get-wasabi">
+                        <a class="nav-link" href="#download">get wasabi</a>
                     </li>
                 </ul>
             </div>
@@ -159,7 +162,7 @@
                             Wasabi implements trustless coin-shuffling using <a href="https://github.com/nopara73/ZeroLink/" target="_blank">Chaumian CoinJoins</a> over the Tor anonymity network. The CoinJoin coordinator cannot steal from, nor breach the privacy of the participants.
                         </p>
                         <a class="mb-3 d-inline-block" href="https://docs.wasabiwallet.io/using-wasabi/CoinJoin.html" target="_blank">
-                          <small>Learn more about CoinJoins ></small>
+                            <small>Learn more about CoinJoins ></small>
                         </a>
 
                         <div class="coinjoin-txs box-shadow-lg">
@@ -420,11 +423,11 @@
                             If 3 people take part in a CoinJoin (with equal size inputs) and there are 3 outputs then each of those output coins has an anonymity set of 3.
                             <br /><br />
                             <code>
-                            0.1 BTC (Alice)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.1 BTC (Anon set 3)<br>
-                            0.3 BTC (Bob)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;->&nbsp;&nbsp;0.1 BTC (Anon set 3)<br>
-                            0.4 BTC (Charlie)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.1 BTC (Anon set 3)<br>
-                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.2 BTC (Change Coin Bob)<br>
-                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.3 BTC (Change Coin Charlie)<br>
+                                0.1 BTC (Alice)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.1 BTC (Anon set 3)<br>
+                                0.3 BTC (Bob)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;->&nbsp;&nbsp;0.1 BTC (Anon set 3)<br>
+                                0.4 BTC (Charlie)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.1 BTC (Anon set 3)<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.2 BTC (Change Coin Bob)<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.3 BTC (Change Coin Charlie)<br>
                             </code>
                             <br /><br />
                             There is no way to know which of the anon set output coins are owned by which of the input owners. All an observer knows is that a specific anon set output coin is owned by one of the owners of one of the input Coins i.e. 3 people - hence an anonymity set of 3.
@@ -541,7 +544,7 @@
                 <div class="col-sm-6 text-center-xs">
                     <a href="https://wasabiwallet.io/swagger/" class="text-light p-1 mr-xl-3" target="_blank">API</a>
                     <div itemscope itemtype="http://schema.org/Organization">
-                    <a href="https://zksnacks.com/" class="text-light p-1 mr-xl-3" target="_blank" itemprop="name">company (zkSNACKs)</a>
+                        <a href="https://zksnacks.com/" class="text-light p-1 mr-xl-3" target="_blank" itemprop="name">company (zkSNACKs)</a>
                     </div>
                     <a href="https://github.com/zkSNACKs/Meta/blob/master/WasabiPressKit.zip" class="text-light p-1 mr-xl-3" target="_blank">press kit</a>
                 </div>
@@ -560,6 +563,6 @@
             </div>
         </div>
     </footer>
-    </div>
+</div>
 </body>
 </html>
