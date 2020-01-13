@@ -47,13 +47,13 @@ namespace WalletWasabi.Gui.Rpc
 
         private void LoadServiceMetadata()
         {
-            foreach (var info in EnumetareServiceInfo())
+            foreach (var info in EnumerateServiceInfo())
             {
                 _proceduresDirectory.Add(info.Name, info);
             }
         }
 
-        internal IEnumerable<JsonRpcMethodMetadata> EnumetareServiceInfo()
+        internal IEnumerable<JsonRpcMethodMetadata> EnumerateServiceInfo()
         {
             var publicMethods = ServiceType.GetMethods();
             foreach (var methodInfo in publicMethods)
