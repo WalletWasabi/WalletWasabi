@@ -60,7 +60,7 @@ namespace WalletWasabi.Packager
 
 		private static void Main(string[] args)
 		{
-			if (MacSignTools.IsMacSignMode(args))
+			if (MacSignTools.IsMacSignMode())
 			{
 				MacSignTools.Sign();
 				return;
