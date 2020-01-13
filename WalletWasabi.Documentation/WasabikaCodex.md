@@ -1,19 +1,19 @@
 
 ## Daily routine
 
-1. Check code review requests. [link](https://github.com/zkSNACKs/WalletWasabi/pulls) __Reviews / Awaiting review from you__
+1. [Check code review requests](https://github.com/zkSNACKs/WalletWasabi/pulls). __Reviews / Awaiting review from you__.
 2. Check [priority issues!](https://github.com/zkSNACKs/WalletWasabi/pulls?q=is%3Aopen+is%3Apr+label%3Apriority). Take it or set Assignees and Labels if you can.
-3. Check your own PR-s and answer if necessary. [link](https://github.com/pulls?utf8=%E2%9C%93&q=is%3Aopen+is%3Apr+repo%3AzkSNACKs%2FWalletWasabi+) __Click Created__
+3. Check your [own PR-s and answer](https://github.com/pulls?utf8=%E2%9C%93&q=is%3Aopen+is%3Apr+repo%3AzkSNACKs%2FWalletWasabi+) if necessary. __Click Created__.
    - If you need help use __@mention__.
    - If you need review __set Reviewers__.
-4. Check assigned issues. [link](https://github.com/zkSNACKs/WalletWasabi/issues) __Click Assignee / Select your profile__
-5. Check mentions. [link](https://github.com/pulls?utf8=%E2%9C%93&q=is%3Aopen+archived%3Afalse+repo%3AzkSNACKs%2FWalletWasabi+) __Click Mentioned__
+4. Check [assigned issues](https://github.com/zkSNACKs/WalletWasabi/issues) __Click Assignee / Select your profile__.
+5. Check [mentions](https://github.com/pulls?utf8=%E2%9C%93&q=is%3Aopen+archived%3Afalse+repo%3AzkSNACKs%2FWalletWasabi+) __Click Mentioned__.
 6. Check the bell.
-7. Work on anything you want - manage task progress in [Todo board](https://github.com/molnard/WalletWasabi/projects/1)
+7. Work on anything you want - assign it to yourself. 
 
 ## Weekly routine
 
-- Wednesday: Developer meeting
+- Wednesday: Developer meeting. Use [dev meeting board](https://github.com/orgs/zkSNACKs/projects/1) to manage tasks.
 - Pair programming hour.
 
 ## Monthly routine
@@ -22,7 +22,7 @@
 
 ## Roadmap
 
-https://github.com/molnard/WalletWasabi/projects/2
+https://github.com/zkSNACKs/WalletWasabi/projects/8
 
 ## Code review (CR)
 
@@ -38,7 +38,7 @@ https://github.com/molnard/WalletWasabi/projects/2
 
 __Tips__: if the PR is too big ask for breakdown.
 
-__Fact__: code review is the top rated code improvement tool. It is the only one scientifically proven methodology to improve code quality.
+__Fact__: code review is the top rated code improvement tool.
 
 ## Creating Pull Request
 
@@ -47,6 +47,7 @@ __Fact__: code review is the top rated code improvement tool. It is the only one
   - If it fixes issues [add keyword](https://help.github.com/en/articles/closing-issues-using-keywords).
   - Add related issues and PR links.
   - Add Sub-Tasks with checkboxes.
+- If the PR is not ready or Work in progress(WIP) create a Draft Pull Request - so nobody will spend time to revire q temporary code, but can see the progress there. 
 - Implement feature.
 - Always fix CI.
 - Set Reviewers.
