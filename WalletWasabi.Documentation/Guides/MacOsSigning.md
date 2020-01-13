@@ -7,7 +7,7 @@
 3. Create a New Certificate https://developer.apple.com/account/resources/certificates/list type: Developer ID Application (This certificate is used to code sign your app for distribution outside of the Mac App Store.)
 4. Download the .cer file.
 5. Use Keychain Access to export Personal Information Exchange (.p12) file. https://knowledge.digicert.com/solution/SO25463.html
-6. Download the .p12 file to desktop and run WalletWasabi.Packager/Content/Osx/addcert.sh => Go to terminal ./addcert.sh - might run chmod a+rx addcert.sh.
+6. Copy the .p12 file to desktop and run WalletWasabi.Packager/Content/Osx/addcert.sh => Go to terminal ./addcert.sh - might run chmod u+x addcert.sh.
 7. Get application specific password: https://support.apple.com/en-us/HT204397. Use label: "notarizate".
 8. Now you can use set up the environment.
 
