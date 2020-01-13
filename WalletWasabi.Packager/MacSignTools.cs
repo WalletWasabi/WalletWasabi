@@ -14,7 +14,7 @@ namespace WalletWasabi.Packager
 		{
 			if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				throw new NotSupportedException("This signing methon only valid on macOS!");
+				throw new NotSupportedException("This signing method is only valid on macOS!");
 			}
 
 			Console.WriteLine("Phase: finding the zip file on desktop which contains the compiled binaries from Windows.");
