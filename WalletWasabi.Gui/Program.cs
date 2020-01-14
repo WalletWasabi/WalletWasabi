@@ -17,10 +17,8 @@ namespace WalletWasabi.Gui
 	internal class Program
 	{
 		private static Global Global;
-#pragma warning disable IDE1006 // Naming Styles
 
 		private static void Main(string[] args)
-#pragma warning restore IDE1006 // Naming Styles
 		{
 			bool runGui = false;
 			try
