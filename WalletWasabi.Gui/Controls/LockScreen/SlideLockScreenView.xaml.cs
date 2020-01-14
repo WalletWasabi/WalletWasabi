@@ -12,10 +12,10 @@ using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
-	public class SlideLockScreen : UserControl
+	public class SlideLockScreenView : UserControl
 	{
-		public static readonly DirectProperty<SlideLockScreen, bool> IsLockedProperty =
-			AvaloniaProperty.RegisterDirect<SlideLockScreen, bool>(nameof(IsLocked), o => o.IsLocked, (o, v) => o.IsLocked = v);
+		public static readonly DirectProperty<SlideLockScreenView, bool> IsLockedProperty =
+			AvaloniaProperty.RegisterDirect<SlideLockScreenView, bool>(nameof(IsLocked), o => o.IsLocked, (o, v) => o.IsLocked = v);
 
 		private bool _isLocked;
 
@@ -25,8 +25,8 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			set => SetAndRaise(IsLockedProperty, ref _isLocked, value);
 		}
 
-		public static readonly DirectProperty<SlideLockScreen, double> OffsetProperty =
-			AvaloniaProperty.RegisterDirect<SlideLockScreen, double>(nameof(Offset), o => o.Offset, (o, v) => o.Offset = v);
+		public static readonly DirectProperty<SlideLockScreenView, double> OffsetProperty =
+			AvaloniaProperty.RegisterDirect<SlideLockScreenView, double>(nameof(Offset), o => o.Offset, (o, v) => o.Offset = v);
 
 		private double _offset;
 
@@ -36,8 +36,8 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			set => SetAndRaise(OffsetProperty, ref _offset, value);
 		}
 
-		public static readonly DirectProperty<SlideLockScreen, bool> DoneAnimatingProperty =
-			AvaloniaProperty.RegisterDirect<SlideLockScreen, bool>(nameof(DoneAnimating), o => o.DoneAnimating, (o, v) => o.DoneAnimating = v);
+		public static readonly DirectProperty<SlideLockScreenView, bool> DoneAnimatingProperty =
+			AvaloniaProperty.RegisterDirect<SlideLockScreenView, bool>(nameof(DoneAnimating), o => o.DoneAnimating, (o, v) => o.DoneAnimating = v);
 
 		private bool _doneAnimating;
 
@@ -50,7 +50,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		private TranslateTransform TargetTransform { get; } = new TranslateTransform();
 		private Thumb DragThumb { get; }
 
-		public SlideLockScreen() : base()
+		public SlideLockScreenView() : base()
 		{
 			InitializeComponent();
 
@@ -78,36 +78,36 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			this.WhenAnyValue(x => x.Offset)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => TargetTransform.Y = x)
-				.DisposeWith(vm.Disposables);
+				;//.DisposeWith(vm.Disposables);
 
 			this.WhenAnyValue(x => x.Bounds)
 				.Select(x => x.Height)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => vm.BoundsHeight = x)
-				.DisposeWith(vm.Disposables);
+				;//.DisposeWith(vm.Disposables);
 
 			this.WhenAnyValue(x => x.DoneAnimating)
 				.Where(x => x)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => vm.StateChanged = false)
-				.DisposeWith(vm.Disposables);
+				;//.DisposeWith(vm.Disposables);
 
 			Observable.FromEventPattern(DragThumb, nameof(DragThumb.DragCompleted))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => vm.IsUserDragging = false)
-				.DisposeWith(vm.Disposables);
+				;//.DisposeWith(vm.Disposables);
 
 			Observable.FromEventPattern(DragThumb, nameof(DragThumb.DragStarted))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => vm.IsUserDragging = true)
-				.DisposeWith(vm.Disposables);
+				;//.DisposeWith(vm.Disposables);
 
 			Observable.FromEventPattern<VectorEventArgs>(DragThumb, nameof(DragThumb.DragDelta))
 				.Where(e => e.EventArgs.Vector.Y < 0)
 				.Select(e => e.EventArgs.Vector.Y)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => vm.Offset = x)
-				.DisposeWith(vm.Disposables);
+				;//.DisposeWith(vm.Disposables);
 
 			vm.WhenAnyValue(x => x.StateChanged)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -122,11 +122,11 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 						Classes.Remove("statechanged");
 					}
 				})
-				.DisposeWith(vm.Disposables);
+				;//.DisposeWith(vm.Disposables);
 
 			Clock.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(vm.OnClockTick)
-				.DisposeWith(vm.Disposables);
+				;//.DisposeWith(vm.Disposables);
 		}
 	}
 }

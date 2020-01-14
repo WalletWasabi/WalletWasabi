@@ -8,7 +8,7 @@ using Avalonia;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
-	public class SlideLockScreenViewModel : ViewModelBase, ILockScreenViewModel
+	public class SlideLockScreenViewModel : LockScreenViewModelBase
 	{
 		private enum SlideLockState
 		{
@@ -18,10 +18,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		}
 
 		private SlideLockState _state = SlideLockState.Idle;
-		public CompositeDisposable Disposables { get; }
-		private LockScreenViewModel _parentVM;
-		private ObservableAsPropertyHelper<bool> _isLocked;
-		public bool IsLocked => _isLocked?.Value ?? false;
+		
 
 		private bool _isUserDragging;
 
@@ -76,18 +73,8 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		public readonly double ThresholdPercent = 1 / 6d;
 		public readonly double Stiffness = 0.12d;
 
-		public SlideLockScreenViewModel(LockScreenViewModel lockScreenViewModel)
+		protected override void OnInitialise(CompositeDisposable disposables)
 		{
-			_parentVM = Guard.NotNull(nameof(lockScreenViewModel), lockScreenViewModel);
-
-			Disposables = new CompositeDisposable();
-
-			_isLocked = _parentVM
-				.WhenAnyValue(x => x.IsLocked)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.ToProperty(this, x => x.IsLocked)
-				.DisposeWith(Disposables);
-
 			this.WhenAnyValue(x => x.TargetOffset)
 				.DistinctUntilChanged()
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -96,12 +83,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 					StateChanged = false;
 					StateChanged = true;
 				})
-				.DisposeWith(Disposables);
-		}
-
-		public void Dispose()
-		{
-			Disposables?.Dispose();
+				.DisposeWith(disposables);
 		}
 
 		internal void OnClockTick(TimeSpan _)
@@ -138,7 +120,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 					break;
 
 				case SlideLockState.UserDragPassedThreshold:
-					_parentVM.IsLocked = false;
+					IsLocked = false;
 					_state = SlideLockState.Idle;
 					break;
 			}

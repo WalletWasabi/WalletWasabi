@@ -9,6 +9,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls.LockScreen;
@@ -61,9 +62,9 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _statusBar, value);
 		}
 
-		private LockScreenViewModel _lockScreen;
+		private LockScreenViewModelBase _lockScreen;
 
-		public LockScreenViewModel LockScreen
+		public LockScreenViewModelBase LockScreen
 		{
 			get => _lockScreen;
 			set => this.RaiseAndSetIfChanged(ref _lockScreen, value);
@@ -92,11 +93,9 @@ namespace WalletWasabi.Gui.ViewModels
 
 			StatusBar = new StatusBarViewModel();
 
-			LockScreen = new LockScreenViewModel();
-
-			LockScreen.Initialize();
-
 			DisplayWalletManager();
+
+
 		}
 
 		public void Initialize()
@@ -108,6 +107,44 @@ namespace WalletWasabi.Gui.ViewModels
 			if (global.Network != Network.Main)
 			{
 				MainWindowViewModel.Instance.Title += $" - {global.Network}";
+			}
+
+			InitialiseLockScreen(global.UiConfig);
+		}
+
+		private void InitialiseLockScreen (UiConfig uiConfig)
+		{
+			uiConfig
+			.WhenAnyValue(x => x.LockScreenPinHash)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(CheckLockScreenType);
+
+			uiConfig
+				.WhenAnyValue(x => x.LockScreenActive)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					if (x)
+					{
+						CheckLockScreenType(uiConfig.LockScreenPinHash);
+					}
+					else
+					{
+						LockScreen.IsLocked = false;
+					}
+				});
+				
+		}
+
+		private void CheckLockScreenType(string currentHash)
+		{
+			if (currentHash.Length != 0)
+			{
+				LockScreen = new PinLockScreenViewModel();
+			}
+			else
+			{
+				LockScreen = new SlideLockScreenViewModel();
 			}
 		}
 

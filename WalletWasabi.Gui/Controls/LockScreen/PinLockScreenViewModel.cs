@@ -7,34 +7,16 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
+using Splat;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
-	public class PinLockScreenViewModel : ViewModelBase, ILockScreenViewModel
+	public class PinLockScreenViewModel : LockScreenViewModelBase
 	{
-		private LockScreenViewModel ParentVM { get; }
+		private string _pinInput;		
 
-		private CompositeDisposable Disposables { get; }
-
-		public ReactiveCommand<string, Unit> KeyPadCommand { get; }
-
-		private ObservableAsPropertyHelper<bool> _isLocked;
-		public bool IsLocked => _isLocked?.Value ?? false;
-
-		private string _pinInput;
-
-		public string PinInput
+		public PinLockScreenViewModel()
 		{
-			get => _pinInput;
-			set => this.RaiseAndSetIfChanged(ref _pinInput, value);
-		}
-
-		public PinLockScreenViewModel(LockScreenViewModel lockScreenViewModel)
-		{
-			ParentVM = Guard.NotNull(nameof(lockScreenViewModel), lockScreenViewModel);
-
-			Disposables = new CompositeDisposable();
-
 			KeyPadCommand = ReactiveCommand.Create<string>((arg) =>
 			{
 				if (arg == "BACK")
@@ -64,7 +46,9 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
-					if (ParentVM.PinHash != HashHelpers.GenerateSha256Hash(x))
+					var global = Locator.Current.GetService<Global>();
+
+					if (global.UiConfig.LockScreenPinHash != HashHelpers.GenerateSha256Hash(x))
 					{
 						NotificationHelpers.Error("PIN is incorrect!");
 					}
@@ -76,18 +60,14 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
-					if (ParentVM.PinHash == HashHelpers.GenerateSha256Hash(x))
+					var global = Locator.Current.GetService<Global>();
+
+					if (global.UiConfig.LockScreenPinHash == HashHelpers.GenerateSha256Hash(x))
 					{
-						ParentVM.IsLocked = false;
+						IsLocked = false;
 						PinInput = string.Empty;
 					}
 				});
-
-			_isLocked = ParentVM
-				.WhenAnyValue(x => x.IsLocked)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.ToProperty(this, x => x.IsLocked)
-				.DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.IsLocked)
 				.Where(x => !x)
@@ -95,9 +75,17 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				.Subscribe(_ => PinInput = string.Empty);
 		}
 
-		public void Dispose()
+		protected override void OnInitialise(CompositeDisposable disposables)
 		{
-			Disposables?.Dispose();
+			var global = Locator.Current.GetService<Global>();
 		}
+
+		public string PinInput
+		{
+			get => _pinInput;
+			set => this.RaiseAndSetIfChanged(ref _pinInput, value);
+		}
+
+		public ReactiveCommand<string, Unit> KeyPadCommand { get; }
 	}
 }

@@ -1,15 +1,15 @@
-﻿<lockscreen:SlideLockScreen xmlns="https://github.com/avaloniaui"
+﻿<lockscreen:SlideLockScreenView xmlns="https://github.com/avaloniaui"
                             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                             xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
-                            x:Class="WalletWasabi.Gui.Controls.LockScreen.SlideLockScreen"
+                            x:Class="WalletWasabi.Gui.Controls.LockScreen.SlideLockScreenView"
                             IsLocked="{Binding IsLocked}"
                             Offset="{Binding Offset}">
-  <lockscreen:SlideLockScreen.Clock>
+  <lockscreen:SlideLockScreenView.Clock>
     <Clock />
-  </lockscreen:SlideLockScreen.Clock>
-  <lockscreen:SlideLockScreen.Styles>
+  </lockscreen:SlideLockScreenView.Clock>
+  <lockscreen:SlideLockScreenView.Styles>
     <Styles>
-      <Style Selector="lockscreen|SlideLockScreen.statechanged">
+      <Style Selector="lockscreen|SlideLockScreenView.statechanged">
         <Style.Animations>
           <Animation FillMode="Both"
                      Duration="0:0:1.5"
@@ -29,7 +29,7 @@
           </Animation>
         </Style.Animations>
       </Style>
-      <Style Selector="lockscreen|SlideLockScreen[IsLocked=true]">
+      <Style Selector="lockscreen|SlideLockScreenView[IsLocked=true]">
         <Style.Animations>
           <Animation FillMode="Both"
                      Duration="0:0:1.5">
@@ -44,7 +44,7 @@
           </Animation>
         </Style.Animations>
       </Style>
-      <Style Selector="lockscreen|SlideLockScreen[IsLocked=false]">
+      <Style Selector="lockscreen|SlideLockScreenView[IsLocked=false]">
         <Style.Animations>
           <Animation FillMode="Both"
                      Duration="0:0:1.5">
@@ -60,7 +60,7 @@
         </Style.Animations>
       </Style>
     </Styles>
-  </lockscreen:SlideLockScreen.Styles>
+  </lockscreen:SlideLockScreenView.Styles>
   <Grid>
     <Grid x:Name="Shade"
           Background="{DynamicResource ThemeBackgroundBrush}">
@@ -97,4 +97,4 @@
       </Thumb.Template>
     </Thumb>
   </Grid>
-</lockscreen:SlideLockScreen>
+</lockscreen:SlideLockScreenView>
