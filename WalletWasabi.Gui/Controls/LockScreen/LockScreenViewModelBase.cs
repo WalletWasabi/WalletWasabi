@@ -31,6 +31,8 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				.DisposeWith(Disposables);
 
 			IsLocked = global.UiConfig.LockScreenActive;
+
+			OnInitialise(Disposables);
 		}
 		
 		public bool IsLocked
