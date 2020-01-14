@@ -38,7 +38,7 @@ namespace WalletWasabi.Gui
 					return;
 				}
 
-				if (Global.InitializeUiConfigAsync().Result)
+				if (Global.InitializeUiConfigAsync().GetAwaiter().GetResult())
 				{
 					Logger.LogInfo($"{nameof(Global.UiConfig)} is successfully initialized.");
 				}
@@ -60,7 +60,7 @@ namespace WalletWasabi.Gui
 			finally
 			{
 				MainWindowViewModel.Instance?.Dispose();
-				Global.DisposeAsync().Wait();
+				Global.DisposeAsync().GetAwaiter().GetResult();
 				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 
