@@ -50,7 +50,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		private TranslateTransform TargetTransform { get; } = new TranslateTransform();
 		private Thumb DragThumb { get; }
 
-		public SlideLockScreenView() : base()
+		public SlideLockScreenView()
 		{
 			InitializeComponent();
 
@@ -64,6 +64,15 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 					OnDataContextChanged();
 				}
 			};
+
+			this.GetObservable(OffsetProperty)
+				.Subscribe(x =>
+				{
+					if (Bounds.Height > 0)
+					{
+						Opacity = ((Bounds.Height - -x) / Bounds.Height);
+					}
+				});
 		}
 
 		private void InitializeComponent()

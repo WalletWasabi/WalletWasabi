@@ -15,16 +15,11 @@
                      Duration="0:0:1.5"
                      Easing="QuarticEaseInOut">
             <KeyFrame Cue="0%">
-              <Setter Property="DoneAnimating"
-                      Value="False" />
+              <Setter Property="DoneAnimating" Value="False" />
             </KeyFrame>
             <KeyFrame Cue="100%">
-              <Setter Property="Opacity"
-                      Value="{Binding TargetOpacity}" />
-              <Setter Property="Offset"
-                      Value="{Binding TargetOffset}" />
-              <Setter Property="DoneAnimating"
-                      Value="True" />
+              <Setter Property="Offset" Value="{Binding TargetOffset}" />
+              <Setter Property="DoneAnimating" Value="True" />
             </KeyFrame>
           </Animation>
         </Style.Animations>
