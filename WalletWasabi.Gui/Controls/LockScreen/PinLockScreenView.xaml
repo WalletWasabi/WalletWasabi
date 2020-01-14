@@ -5,15 +5,13 @@
                           x:Class="WalletWasabi.Gui.Controls.LockScreen.PinLockScreenView"
                           IsLocked="{Binding IsLocked}">
   <lockscreen:PinLockScreenView.Styles>
-    <Style Selector="Grid.Shade">
-      <Setter Property="Opacity" Value="0" />
-      <Setter Property="TranslateTransform.Y" Value="-100" />
-    </Style>
     <Style Selector="lockscreen|PinLockScreenView[IsLocked=true] Grid.Shade">
       <Style.Animations>
         <Animation FillMode="Both" Duration="0:0:1.5" Easing="QuarticEaseInOut">
           <KeyFrame Cue="0%">
             <Setter Property="IsVisible" Value="True" />
+            <Setter Property="TranslateTransform.Y" Value="-100" />
+            <Setter Property="Opacity" Value="0" />
           </KeyFrame>
           <KeyFrame Cue="100%">
             <Setter Property="Opacity" Value="1" />

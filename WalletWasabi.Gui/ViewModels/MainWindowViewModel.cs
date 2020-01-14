@@ -91,11 +91,11 @@ namespace WalletWasabi.Gui.ViewModels
 				WindowState = WindowState.Maximized;
 			}
 
+			InitialiseLockScreen(global.UiConfig);
+
 			StatusBar = new StatusBarViewModel();
 
 			DisplayWalletManager();
-
-
 		}
 
 		public void Initialize()
@@ -108,17 +108,10 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				MainWindowViewModel.Instance.Title += $" - {global.Network}";
 			}
-
-			InitialiseLockScreen(global.UiConfig);
 		}
 
 		private void InitialiseLockScreen (UiConfig uiConfig)
 		{
-			uiConfig
-			.WhenAnyValue(x => x.LockScreenPinHash)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(CheckLockScreenType);
-
 			uiConfig
 				.WhenAnyValue(x => x.LockScreenActive)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -130,7 +123,7 @@ namespace WalletWasabi.Gui.ViewModels
 					}
 					else
 					{
-						LockScreen.IsLocked = false;
+						LockScreen = null;
 					}
 				});
 				
