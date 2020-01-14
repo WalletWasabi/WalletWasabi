@@ -21,7 +21,10 @@ namespace WalletWasabi.Tests
 		public async Task<int> SubstractAsync(int minuend, int subtrahend) => await Task.FromResult(minuend - subtrahend);
 
 		[JsonRpcMethod("writelog")]
-		public void Log(string logEntry) { }
+		public void Log(string logEntry)
+		{ 
+			Unused(logEntry); 
+		}
 
 		[JsonRpcMethod("fail")]
 		public void Failure() => throw new InvalidOperationException("the error");
@@ -29,7 +32,15 @@ namespace WalletWasabi.Tests
 		[JsonRpcMethod("format")]
 		public async Task FormatHardDriveAsync(string unit, CancellationToken ct)
 		{
+			Unused(unit); 
+			Unused(ct); 
 			await Task.FromResult((JsonRpcResponse)null);
 		}
+
+		#pragma warning disable IDE0060 // unused parameter
+		private void Unused(object item)
+		{
+		}
+		#pragma warning restore IDE0060
 	}
 }
