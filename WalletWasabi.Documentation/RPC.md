@@ -1,6 +1,6 @@
 # Wasabi Remote Procedure Call interface
 
-Wasabi Wallet provides an RPC interface to interact with the wallet programmatically. The RPC server is listening by default on port 18099.
+Wasabi Wallet provides an RPC interface to interact with the wallet programmatically. The RPC server is listening by default on port 37128.
 
 ## Limitations
 
@@ -13,7 +13,7 @@ The RPC server has to be configured and enabled. This is done in the `Config.jso
 
 * JsonRpcServerEnabled: [true | false]  (default: false)
 * JsonRpcServerPrefixes: [an array of string with prefixes]
-	(default: [	"http://127.0.0.1:18099/", "http://localhost:18099/"])
+	(default: [	"http://127.0.0.1:37128/", "http://localhost:37128/"])
 
 # Authentication
 
@@ -36,7 +36,7 @@ Current version only handles the following method `listunspentcoins`, `getstatus
 Returns information useful to understand the status Wasabi and its synchronization status.
 
 ```bash
-curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"getstatus"}' http://127.0.0.1:18099/
+curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"getstatus"}' http://127.0.0.1:37128/
 ```
 ```json
 {
@@ -111,7 +111,7 @@ curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"getstatus"}' http://1
 Returns the list of confirmed and unconfirmed coins that are unspent.
 
 ```bash
-$ curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"listunspentcoins"}' http://127.0.0.1:18099/
+$ curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"listunspentcoins"}' http://127.0.0.1:37128/
 ```
 ```json
 {
@@ -169,7 +169,7 @@ In case there is no wallet open it will return:
 Returns information about the current loaded wallet.
 
 ```bash
-curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"getwalletinfo"}' http://127.0.0.1:18099/
+curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"getwalletinfo"}' http://127.0.0.1:37128/
 ```
 
 ```json
@@ -206,7 +206,7 @@ In case there is no wallet open it will return:
 Creates an address and returns detailed information about it.
 
 ```bash
-curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"getnewaddress","params":["payment order #178659"]}' http://127.0.0.1:18099/
+curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"getnewaddress","params":["payment order #178659"]}' http://127.0.0.1:37128/
 ```
 
 ```json
@@ -254,7 +254,7 @@ In case an empty label is provided:
 Builds and broadcasts a transaction.
 
 ```bash
-curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"send", "params": { "payments":[ {"sendto": "tb1qgvnht40a08gumw32kp05hs8mny954hp2snhxcz", "amount": 15000, "label": "To David" }, {"sendto":"tb1qpyhfrpys6skr2mmnc35p3dp7zlv9ew4k0gn7qm", "amount": 86200, "label": "To Michael"} ], "coins":[{"transactionid":"ab83d9d0b2a9873b8ab0dc48b618098f3e7fbd807e27a10f789e9bc330ca89f7", "index":0}], "feeTarget":2, "password": "password1234" }}' http://127.0.0.1:18099/
+curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"send", "params": { "payments":[ {"sendto": "tb1qgvnht40a08gumw32kp05hs8mny954hp2snhxcz", "amount": 15000, "label": "To David" }, {"sendto":"tb1qpyhfrpys6skr2mmnc35p3dp7zlv9ew4k0gn7qm", "amount": 86200, "label": "To Michael"} ], "coins":[{"transactionid":"ab83d9d0b2a9873b8ab0dc48b618098f3e7fbd807e27a10f789e9bc330ca89f7", "index":0}], "feeTarget":2, "password": "password1234" }}' http://127.0.0.1:37128/
 ```
 
 ```json
@@ -275,13 +275,13 @@ will be subtracted from the output in which `subtractFee` was set to `true` so t
 the output amounts summed up.  ( 0.4 - (mining fee) ) + 0.3 + 0.3
 
 ```bash
-curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"send", "params": { "payments":[ {"sendto": "tb1qgvnht40a08gumw32kp05hs8mny954hp2snhxcz", "amount": 15000, "label": "To David", "subtractFee": true }, {"sendto":"tb1qpyhfrpys6skr2mmnc35p3dp7zlv9ew4k0gn7qm", "amount": 86200, "label": "To Michael"} ], "coins":[{"transactionid":"ab83d9d0b2a9873b8ab0dc48b618098f3e7fbd807e27a10f789e9bc330ca89f7", "index":0}], "feeTarget":2 }}' http://127.0.0.1:18099/
+curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"send", "params": { "payments":[ {"sendto": "tb1qgvnht40a08gumw32kp05hs8mny954hp2snhxcz", "amount": 15000, "label": "To David", "subtractFee": true }, {"sendto":"tb1qpyhfrpys6skr2mmnc35p3dp7zlv9ew4k0gn7qm", "amount": 86200, "label": "To Michael"} ], "coins":[{"transactionid":"ab83d9d0b2a9873b8ab0dc48b618098f3e7fbd807e27a10f789e9bc330ca89f7", "index":0}], "feeTarget":2 }}' http://127.0.0.1:37128/
 ```
 
 In case of error, it is reported in the json's error object:
 
 ```bash
- curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"send", "params": { "payments": [{ "sendto": "tb1qnmfmkylkd548bbbcd9115b322891e27f741eb42c83ed982861ee121", "amount": 2015663, "label": "test" }], "coins":[{"transactionid":"c68dacd548bbbcd9115b38ed982861ee121c5ef6e0f1022891e27f741eb42c83", "index":0}], "feeTarget": 2 }}' http://127.0.0.1:18099/
+ curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"send", "params": { "payments": [{ "sendto": "tb1qnmfmkylkd548bbbcd9115b322891e27f741eb42c83ed982861ee121", "amount": 2015663, "label": "test" }], "coins":[{"transactionid":"c68dacd548bbbcd9115b38ed982861ee121c5ef6e0f1022891e27f741eb42c83", "index":0}], "feeTarget": 2 }}' http://127.0.0.1:37128/
 ```
 
 ```json
@@ -302,7 +302,7 @@ In case of error, it is reported in the json's error object:
 Returns the list of all transactions sent and received.
 
 ```bash
-curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"gethistory"}' http:/127.0.0.1:18099
+curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"gethistory"}' http:/127.0.0.1:37128
 ```
 
 ```json
@@ -336,7 +336,7 @@ curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"gethistory"}' http:/1
 Returns the list of all the generated keys.
 
 ```bash
-curl --data-binary '{"jsonrpc":"2.0","id":"1","method":"listkeys"}' http://127.0.0.1:18099/
+curl --data-binary '{"jsonrpc":"2.0","id":"1","method":"listkeys"}' http://127.0.0.1:37128/
 ```
 
 ```json
@@ -380,7 +380,7 @@ curl --data-binary '{"jsonrpc":"2.0","id":"1","method":"listkeys"}' http://127.0
 Enqueue coins in order to participate in coinjoin.
 
 ```bash
-curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"enqueue", "params": { "coins": [{"transactionId": "ba70587b37ba8b4de143929994d3b8ee2810340cef23e8016020687716117a52", "index":"12"}]} }' http://127.0.0.1:18099/
+curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"enqueue", "params": { "coins": [{"transactionId": "ba70587b37ba8b4de143929994d3b8ee2810340cef23e8016020687716117a52", "index":"12"}]} }' http://127.0.0.1:37128/
 ```
 
 ## dequeue
@@ -388,7 +388,7 @@ curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"enqueue", "params": {
 Dequeues coins that were queued to participate in a CoinJoin.
 
 ```bash
-curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"dequeue", "params": { "coins": [{"transactionId": "ba70587b37ba8b4de143929994d3b8ee2810340cef23e8016020687716117a52", "index":"12"}]} }' http://127.0.0.1:18099/
+curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"dequeue", "params": { "coins": [{"transactionId": "ba70587b37ba8b4de143929994d3b8ee2810340cef23e8016020687716117a52", "index":"12"}]} }' http://127.0.0.1:37128/
 ```
 
 ## stop
@@ -396,7 +396,7 @@ curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"dequeue", "params": {
 Stops and exits Wasabi.
 
 ```bash
-curl -s --data-binary '{"jsonrpc":"2.0", "method":"stop"}' http://127.0.0.1:18099/
+curl -s --data-binary '{"jsonrpc":"2.0", "method":"stop"}' http://127.0.0.1:37128/
 ```
 
 ------
@@ -406,7 +406,7 @@ curl -s --data-binary '{"jsonrpc":"2.0", "method":"stop"}' http://127.0.0.1:1809
 ### Method not found
 
 ```bash
-$ curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"howknows"}' http://127.0.0.1:18099/
+$ curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"howknows"}' http://127.0.0.1:37128/
 {
   "jsonrpc": "2.0",
   "error": {
@@ -419,7 +419,7 @@ $ curl -s --data-binary '{"jsonrpc":"2.0","id":"1","method":"howknows"}' http://
 
 ### Parse error
 ```bash
-$ curl -s --data-binary '{"jsonrpc":"2.0" []}' http://127.0.0.1:18099/
+$ curl -s --data-binary '{"jsonrpc":"2.0" []}' http://127.0.0.1:37128/
 ```
 
 ```json
@@ -435,7 +435,7 @@ $ curl -s --data-binary '{"jsonrpc":"2.0" []}' http://127.0.0.1:18099/
 ### Mismatching parameters
 
 ```bash
-$ curl -s --data-binary '{"jsonrpc":"2.0", "method": "getnewaddress", "params": { "lable": "label with a type" }, "id":"1" }' http://127.0.0.1:18099/
+$ curl -s --data-binary '{"jsonrpc":"2.0", "method": "getnewaddress", "params": { "lable": "label with a type" }, "id":"1" }' http://127.0.0.1:37128/
 ```
 
 ```json
