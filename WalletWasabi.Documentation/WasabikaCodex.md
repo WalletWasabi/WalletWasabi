@@ -7,7 +7,7 @@
    - If you need help use __@mention__.
    - If you need review __set Reviewers__.
 4. Check [assigned issues](https://github.com/zkSNACKs/WalletWasabi/issues) __Click Assignee / Select your profile__.
-5. Check [mentions](https://github.com/pulls?utf8=%E2%9C%93&q=is%3Aopen+archived%3Afalse+repo%3AzkSNACKs%2FWalletWasabi+) __Click Mentioned__.
+5. Check [mentions](https://github.com/pulls?utf8=%E2%9C%93&q=is%3Aopen+repo%3AzkSNACKs%2FWalletWasabi+) __Click Mentioned__.
 6. Check the bell.
 7. Work on anything you want - assign it to yourself. 
 
