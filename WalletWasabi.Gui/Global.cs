@@ -817,10 +817,11 @@ namespace WalletWasabi.Gui
 
 				await DisposeInWalletDependentServicesAsync();
 
-				if (RpcServer != null)
+				var rpcServer = RpcServer; 
+				if (rpcServer is {})
 				{
-					RpcServer.Stop();
-					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
+					rpcServer.Stop();
+					Logger.LogInfo($"{nameof(rpcServer)} is stopped.", nameof(Global));
 				}
 
 				var feeProviders = FeeProviders;
