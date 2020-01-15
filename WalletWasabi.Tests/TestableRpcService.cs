@@ -22,8 +22,8 @@ namespace WalletWasabi.Tests
 
 		[JsonRpcMethod("writelog")]
 		public void Log(string logEntry)
-		{ 
-			Unused(logEntry); 
+		{
+			Unused(logEntry);
 		}
 
 		[JsonRpcMethod("fail")]
@@ -32,15 +32,17 @@ namespace WalletWasabi.Tests
 		[JsonRpcMethod("format")]
 		public async Task FormatHardDriveAsync(string unit, CancellationToken ct)
 		{
-			Unused(unit); 
-			Unused(ct); 
+			Unused(unit);
+			Unused(ct);
 			await Task.FromResult((JsonRpcResponse)null);
 		}
 
-		#pragma warning disable IDE0060 // unused parameter
+#pragma warning disable IDE0060 // unused parameter
+
 		private void Unused(object item)
 		{
 		}
-		#pragma warning restore IDE0060
+
+#pragma warning restore IDE0060
 	}
 }
