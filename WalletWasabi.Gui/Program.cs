@@ -18,6 +18,8 @@ namespace WalletWasabi.Gui
 	{
 		private static Global Global;
 
+		/// Warning! In Avalonia applications Main must not be async. Otherwise application may not run on OSX.
+		/// see https://github.com/AvaloniaUI/Avalonia/wiki/Unresolved-platform-support-issues
 		private static void Main(string[] args)
 		{
 			bool runGui = false;

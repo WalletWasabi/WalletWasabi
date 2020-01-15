@@ -114,12 +114,6 @@ namespace WalletWasabi.Services
 				Directory.CreateDirectory(BlocksFolderPath);
 			}
 
-			var walletName = "UnnamedWallet";
-			if (!string.IsNullOrWhiteSpace(KeyManager.FilePath))
-			{
-				walletName = Path.GetFileNameWithoutExtension(KeyManager.FilePath);
-			}
-
 			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
 			BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
 			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;

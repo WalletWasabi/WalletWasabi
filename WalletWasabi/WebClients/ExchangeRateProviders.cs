@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
-using WalletWasabi.WebClients.BitcoinAverage;
 using WalletWasabi.WebClients.BlockchainInfo;
 using WalletWasabi.WebClients.Coinbase;
 using WalletWasabi.WebClients.Gemini;
@@ -18,7 +17,6 @@ namespace WalletWasabi.WebClients
 	{
 		private readonly IExchangeRateProvider[] ExchangeRateProviders =
 		{
-			new BitcoinAverageExchangeRateProvider(),
 			new SmartBitExchangeRateProvider(new SmartBitClient(Network.Main, disposeHandler: true)),
 			new BlockchainInfoExchangeRateProvider(),
 			new CoinbaseExchangeRateProvider(),
