@@ -370,7 +370,7 @@ namespace WalletWasabi.Gui
 				if (jsonRpcServerConfig.IsEnabled)
 				{
 					RpcServer = new JsonRpcServer(this, jsonRpcServerConfig);
-					RpcServer.Start();
+					await RpcServer.StartAsync(cancel).ConfigureAwait(false);
 				}
 
 				#endregion JsonRpcServerInitialization
@@ -820,8 +820,9 @@ namespace WalletWasabi.Gui
 				var rpcServer = RpcServer; 
 				if (rpcServer is {})
 				{
-					rpcServer.Stop();
-					Logger.LogInfo($"{nameof(rpcServer)} is stopped.", nameof(Global));
+					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
+					await rpcServer.StopAsync(cts.Token);
+					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
 				}
 
 				var feeProviders = FeeProviders;

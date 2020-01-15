@@ -4,15 +4,14 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
+using WalletWasabi.Logging;
 using WalletWasabi.Gui.Models;
 
 namespace WalletWasabi.Gui.Rpc
 {
-	public class JsonRpcServer
+	public class JsonRpcServer : BackgroundService
 	{
-		private long _running;
-		public bool IsRunning => Interlocked.Read(ref _running) == 1;
-		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 		private CancellationTokenSource Cancellation { get; }
 
 		private HttpListener Listener { get; }
@@ -32,72 +31,85 @@ namespace WalletWasabi.Gui.Rpc
 			Service = new WasabiJsonRpcService(global);
 		}
 
-		public void Start()
+		public override async Task StartAsync(CancellationToken cancellationToken)
 		{
-			Interlocked.Exchange(ref _running, 1);
 			Listener.Start();
+			await base.StartAsync(cancellationToken);
+		}
 
-			Task.Factory.StartNew(async _ =>
+		public override async Task StopAsync(CancellationToken cancellationToken)
+		{
+			await base.StopAsync(cancellationToken);
+			Listener.Stop();
+		}
+
+		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+		{
+			var handler = new JsonRpcRequestHandler<WasabiJsonRpcService>(Service);
+
+			while (!stoppingToken.IsCancellationRequested)
 			{
 				try
 				{
-					var handler = new JsonRpcRequestHandler<WasabiJsonRpcService>(Service);
+					var context = await GetHttpContext(stoppingToken);
+					var request = context.Request;
+					var response = context.Response;
 
-					while (IsRunning)
+					if (request.HttpMethod == "POST")
 					{
-						var context = Listener.GetContext();
-						var request = context.Request;
-						var response = context.Response;
+						using var reader = new StreamReader(request.InputStream);
+						string body = await reader.ReadToEndAsync().ConfigureAwait(false);
 
-						if (request.HttpMethod == "POST")
+						var identity = (HttpListenerBasicIdentity)context.User?.Identity;
+						if (!Config.RequiresCredentials || CheckValidCredentials(identity))
 						{
-							using var reader = new StreamReader(request.InputStream);
-							string body = await reader.ReadToEndAsync();
+							var result = await handler.HandleAsync(body, stoppingToken).ConfigureAwait(false);
 
-							var identity = (HttpListenerBasicIdentity)context.User?.Identity;
-							if (!Config.RequiresCredentials || CheckValidCredentials(identity))
+							// result is null only when the request is a notification.
+							if (!string.IsNullOrEmpty(result))
 							{
-								var result = await handler.HandleAsync(body, Cancellation.Token);
-
-								// result is null only when the request is a notification.
-								if (!string.IsNullOrEmpty(result))
-								{
-									response.ContentType = "application/json-rpc";
-									var output = response.OutputStream;
-									var buffer = Encoding.UTF8.GetBytes(result);
-									await output.WriteAsync(buffer, 0, buffer.Length);
-									await output.FlushAsync();
-								}
-							}
-							else
-							{
-								response.StatusCode = (int)HttpStatusCode.Unauthorized;
+								response.ContentType = "application/json-rpc";
+								var output = response.OutputStream;
+								var buffer = Encoding.UTF8.GetBytes(result);
+								await output.WriteAsync(buffer, 0, buffer.Length, stoppingToken);
+								await output.FlushAsync(stoppingToken);
 							}
 						}
 						else
 						{
-							response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
+							response.StatusCode = (int)HttpStatusCode.Unauthorized;
 						}
-						response.Close();
 					}
+					else
+					{
+						response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
+					}
+					response.Close();
 				}
-				finally
+				catch(OperationCanceledException)
 				{
-					Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
+					break;
 				}
-			}, Cancellation.Token, TaskCreationOptions.LongRunning);
+				catch(Exception ex)
+				{
+					Logger.LogError(ex);
+				}
+			}
 		}
 
-		internal void Stop()
+		private async Task<HttpListenerContext> GetHttpContext(CancellationToken cancellationToken)
 		{
-			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.;
-			Listener.Stop();
-			Cancellation.Cancel();
-			while (IsStopping)
+			var getHttpContextTask = Listener.GetContextAsync();
+			var tcs = new TaskCompletionSource<bool>();
+			using (cancellationToken.Register(state => ((TaskCompletionSource<bool>)state).TrySetResult(true), tcs))
 			{
-				Task.Delay(50).GetAwaiter().GetResult();
+				var firstTaskToComplete = await Task.WhenAny(getHttpContextTask, tcs.Task).ConfigureAwait(false);
+				if (getHttpContextTask != firstTaskToComplete)
+				{
+					cancellationToken.ThrowIfCancellationRequested();
+				}
 			}
-			Cancellation.Dispose();
+			return await getHttpContextTask;
 		}
 
 		private bool CheckValidCredentials(HttpListenerBasicIdentity identity)
