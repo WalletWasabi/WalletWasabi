@@ -56,27 +56,30 @@ namespace System.Net
 
 				var parts = endPointString.Split(':', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim().TrimEnd('/').TrimEnd()).ToArray();
 
-				var isDefaultPortInvalid = !ushort.TryParse(defaultPort.ToString(), out ushort dp) || dp < IPEndPoint.MinPort || dp > IPEndPoint.MaxPort;
-				int port;
 				if (parts.Length == 0)
 				{
 					return false;
 				}
-				else if (parts.Length == 1)
+
+				ushort p;
+				int port;
+
+				if (parts.Length == 1)
 				{
-					if (isDefaultPortInvalid)
+					if (IsValidPort(defaultPort.ToString(), out p))
 					{
-						return false;
+						port = p;
 					}
 					else
 					{
-						port = defaultPort;
+						return false;
 					}
 				}
 				else if (parts.Length == 2)
 				{
 					var portString = parts[1];
-					if (ushort.TryParse(portString, out ushort p) && p >= IPEndPoint.MinPort && p <= IPEndPoint.MaxPort)
+
+					if (IsValidPort(portString, out p))
 					{
 						port = p;
 					}
@@ -90,7 +93,8 @@ namespace System.Net
 					return false;
 				}
 
-				string host = parts[0];
+				var host = parts[0];
+
 				if (host == "localhost")
 				{
 					host = IPAddress.Loopback.ToString();
@@ -111,6 +115,12 @@ namespace System.Net
 			{
 				return false;
 			}
+		}
+
+		// Checks a port is a number within the valid port range (0 - 65535).
+		private static bool IsValidPort(string port, out ushort p)
+		{
+			return ushort.TryParse(port, out p);
 		}
 	}
 }
