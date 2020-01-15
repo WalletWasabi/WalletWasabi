@@ -47,7 +47,7 @@ __Fact__: code review is the top rated code improvement tool.
   - If it fixes issues [add keyword](https://help.github.com/en/articles/closing-issues-using-keywords).
   - Add related issues and PR links.
   - Add Sub-Tasks with checkboxes.
-- If the PR is not ready or Work in progress(WIP) create a Draft Pull Request - so nobody will spend time to revire q temporary code, but can see the progress there. 
+- If the PR is not ready or Work in progress (WIP) create a Draft Pull Request - so nobody will spend time to review a temporary code, but can see the progress there.
 - Implement feature.
 - Always fix CI.
 - Set Reviewers.
