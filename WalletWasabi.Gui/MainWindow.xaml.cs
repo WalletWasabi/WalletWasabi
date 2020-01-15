@@ -1,29 +1,17 @@
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using Avalonia.Markup.Xaml;
-using Avalonia.Media;
-using Avalonia.Native;
-using Avalonia.Threading;
 using AvalonStudio.Extensibility;
-using AvalonStudio.Extensibility.Theme;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Controls;
-using NBitcoin;
-using ReactiveUI;
 using Splat;
 using System;
 using System.ComponentModel;
-using System.Composition;
-using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Dialogs;
-using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
@@ -51,48 +39,15 @@ namespace WalletWasabi.Gui
 			};
 
 			Locator.CurrentMutable.RegisterConstant<INotificationManager>(notificationManager);
+
+			Closing += MainWindow_ClosingAsync;
 		}
 
 		private Global Global { get; }
 
 		private void InitializeComponent()
 		{
-			Closing += MainWindow_ClosingAsync;
 			AvaloniaXamlLoader.Load(this);
-			DisplayWalletManager();
-
-			var uiConfigFilePath = Path.Combine(Global.DataDir, "UiConfig.json");
-			var uiConfig = new UiConfig(uiConfigFilePath);
-			uiConfig.LoadOrCreateDefaultFileAsync()
-				.ToObservable(RxApp.TaskpoolScheduler)
-				.Take(1)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					try
-					{
-						Global.InitializeUiConfig(uiConfig);
-						Logger.LogInfo($"{nameof(Global.UiConfig)} is successfully initialized.");
-
-						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-						{
-							MainWindowViewModel.Instance.Width = uiConfig.Width;
-							MainWindowViewModel.Instance.Height = uiConfig.Height;
-							MainWindowViewModel.Instance.WindowState = uiConfig.WindowState;
-						}
-						else
-						{
-							MainWindowViewModel.Instance.WindowState = WindowState.Maximized;
-						}
-
-						MainWindowViewModel.Instance.LockScreen.Initialize();
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
-					}
-				},
-				onError: ex => Logger.LogError(ex));
 		}
 
 		private int _closingState;
@@ -192,23 +147,6 @@ namespace WalletWasabi.Gui
 						Global.ChaumianClient.IsQuitPending = false; //re-enable enqueuing coins
 					}
 				}
-			}
-		}
-
-		private void DisplayWalletManager()
-		{
-			var walletManagerViewModel = IoC.Get<WalletManagerViewModel>();
-			IoC.Get<IShell>().AddDocument(walletManagerViewModel);
-
-			var isAnyDesktopWalletAvailable = Directory.Exists(Global.WalletsDir) && Directory.EnumerateFiles(Global.WalletsDir).Any();
-
-			if (isAnyDesktopWalletAvailable)
-			{
-				walletManagerViewModel.SelectLoadWallet();
-			}
-			else
-			{
-				walletManagerViewModel.SelectGenerateWallet();
 			}
 		}
 	}

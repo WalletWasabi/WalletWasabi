@@ -87,9 +87,24 @@ namespace WalletWasabi.Gui
 			HostedServices = new HostedServices();
 		}
 
-		public void InitializeUiConfig(UiConfig uiConfig)
+		public async Task<bool> InitializeUiConfigAsync()
 		{
-			UiConfig = Guard.NotNull(nameof(uiConfig), uiConfig);
+			try
+			{
+				var uiConfigFilePath = Path.Combine(DataDir, "UiConfig.json");
+				var uiConfig = new UiConfig(uiConfigFilePath);
+				await uiConfig.LoadOrCreateDefaultFileAsync().ConfigureAwait(false);
+
+				UiConfig = uiConfig;
+
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
+
+			return false;
 		}
 
 		private int _isDesperateDequeuing = 0;
