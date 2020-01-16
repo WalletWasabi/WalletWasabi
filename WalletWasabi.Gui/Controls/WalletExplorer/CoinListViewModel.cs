@@ -46,7 +46,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool? _selectPrivateCheckBoxState;
 		private bool? _selectNonPrivateCheckBoxState;
 		private GridLength _coinJoinStatusWidth;
-		private SortOrder _clustersSortDirection;
+		private SortOrder _observersSortDirection;
 		private Money _selectedAmount;
 		private bool _isAnyCoinSelected;
 		private bool _labelExposeCommonOwnershipWarning;
@@ -124,10 +124,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _privacySortDirection, value);
 		}
 
-		public SortOrder ClustersSortDirection
+		public SortOrder ObserversSortDirection
 		{
-			get => _clustersSortDirection;
-			set => this.RaiseAndSetIfChanged(ref _clustersSortDirection, value);
+			get => _observersSortDirection;
+			set => this.RaiseAndSetIfChanged(ref _observersSortDirection, value);
 		}
 
 		public Money SelectedAmount
@@ -169,11 +169,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					? sortExpression.ThenByAscending(cvm => cvm.AnonymitySet)
 					: sortExpression.ThenByDescending(cvm => cvm.AnonymitySet);
 			}
-			else if (ClustersSortDirection != SortOrder.None)
+			else if (ObserversSortDirection != SortOrder.None)
 			{
-				MyComparer = ClustersSortDirection == SortOrder.Increasing
-					? sortExpression.ThenByAscending(cvm => cvm.Clusters)
-					: sortExpression.ThenByDescending(cvm => cvm.Clusters);
+				MyComparer = ObserversSortDirection == SortOrder.Increasing
+					? sortExpression.ThenByAscending(cvm => cvm.Observers)
+					: sortExpression.ThenByDescending(cvm => cvm.Observers);
 			}
 			else if (StatusSortDirection != SortOrder.None)
 			{
@@ -296,11 +296,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						PrivacySortDirection = SortOrder.None;
 						StatusSortDirection = SortOrder.None;
-						ClustersSortDirection = SortOrder.None;
+						ObserversSortDirection = SortOrder.None;
 					}
 				});
 
-			this.WhenAnyValue(x => x.ClustersSortDirection)
+			this.WhenAnyValue(x => x.ObserversSortDirection)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
@@ -320,7 +320,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						AmountSortDirection = SortOrder.None;
 						PrivacySortDirection = SortOrder.None;
-						ClustersSortDirection = SortOrder.None;
+						ObserversSortDirection = SortOrder.None;
 					}
 				});
 
@@ -332,7 +332,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						AmountSortDirection = SortOrder.None;
 						StatusSortDirection = SortOrder.None;
-						ClustersSortDirection = SortOrder.None;
+						ObserversSortDirection = SortOrder.None;
 					}
 				});
 

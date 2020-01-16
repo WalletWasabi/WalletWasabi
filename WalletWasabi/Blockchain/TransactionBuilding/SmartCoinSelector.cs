@@ -32,14 +32,14 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 
 			// Get unique clusters.
 			IEnumerable<Cluster> uniqueClusters = UnspentCoins
-				.Select(coin => coin.Clusters)
+				.Select(coin => coin.Observers)
 				.Distinct();
 
 			// Build all the possible coin clusters, except when it's computationally too expensive.
 			List<IEnumerable<SmartCoin>> coinClusters = uniqueClusters.Count() < 10
 				? uniqueClusters
 					.CombinationsWithoutRepetition(ofLength: 1, upToLength: 6)
-					.Select(clusterCombination => UnspentCoins.Where(coin => clusterCombination.Contains(coin.Clusters)))
+					.Select(clusterCombination => UnspentCoins.Where(coin => clusterCombination.Contains(coin.Observers)))
 					.ToList()
 				: new List<IEnumerable<SmartCoin>>();
 
@@ -47,7 +47,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 
 			// This operation is doing super advanced grouping on the coin clusters and adding properties to each of them.
 			var sayajinCoinClusters = coinClusters
-				.Select(coins => (Coins: coins, Privacy: 1.0m / (1 + coins.Sum(x => x.Clusters.Labels.Count()))))
+				.Select(coins => (Coins: coins, Privacy: 1.0m / (1 + coins.Sum(x => x.Observers.Labels.Count()))))
 				.Select(group => new
 				{
 					group.Coins,

@@ -43,7 +43,7 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 				{
 					Coins.Insert(insertPosition++, coin);
 				}
-				coin.Clusters = this;
+				coin.Observers = this;
 			}
 			if (insertPosition > 0) // at least one element was inserted
 			{

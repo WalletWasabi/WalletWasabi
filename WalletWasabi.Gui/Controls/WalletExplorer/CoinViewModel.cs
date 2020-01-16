@@ -32,13 +32,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<bool> _unspent;
 		private ObservableAsPropertyHelper<bool> _confirmed;
 		private ObservableAsPropertyHelper<bool> _unavailable;
-		private ObservableAsPropertyHelper<string> _cluster;
+		private ObservableAsPropertyHelper<string> _observers;
 		public CoinListViewModel Owner { get; }
 		private Global Global { get; }
 		public bool InCoinJoinContainer { get; }
 
 		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
-		public ReactiveCommand<Unit, Unit> CopyClustersToClipboard { get; }
+		public ReactiveCommand<Unit, Unit> CopyAmountToClipboard { get; }
+		public ReactiveCommand<Unit, Unit> CopyObserversToClipboard { get; }
 
 		public CoinViewModel(CoinListViewModel owner, SmartCoin model)
 		{
@@ -67,10 +68,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ToProperty(this, x => x.Confirmed, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
-			_cluster = Model
-				.WhenAnyValue(x => x.Clusters, x => x.Clusters.Labels)
+			_observers = Model
+				.WhenAnyValue(x => x.Observers, x => x.Observers.Labels)
 				.Select(x => x.Item2.ToString())
-				.ToProperty(this, x => x.Clusters, scheduler: RxApp.MainThreadScheduler)
+				.ToProperty(this, x => x.Observers, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
 			_unavailable = Model
@@ -103,18 +104,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(_ =>
 				{
 					this.RaisePropertyChanged(nameof(AmountBtc));
-					this.RaisePropertyChanged(nameof(Clusters));
+					this.RaisePropertyChanged(nameof(Observers));
 				}).DisposeWith(Disposables);
 
 			DequeueCoin = ReactiveCommand.Create(() => Owner.PressDequeue(Model), this.WhenAnyValue(x => x.CoinJoinInProgress));
 
-			CopyClustersToClipboard = ReactiveCommand.CreateFromTask(TryCopyClustersToClipboardAsync, 
-																		this.WhenAnyValue(x => x.Clusters)
+			CopyAmountToClipboard = ReactiveCommand.CreateFromTask(async () => await TryCopyToClipboardAsync(AmountBtc),
+																		this.WhenAnyValue(x => x.AmountBtc)
+																			.Select(x => !string.IsNullOrEmpty(x)));
+			CopyObserversToClipboard = ReactiveCommand.CreateFromTask(async () => await TryCopyToClipboardAsync(Observers),
+																		this.WhenAnyValue(x => x.Observers)
 																			.Select(x => !string.IsNullOrEmpty(x)));
 
 			Observable
 				.Merge(DequeueCoin.ThrownExceptions) // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
-				.Merge(CopyClustersToClipboard.ThrownExceptions)
+				.Merge(CopyAmountToClipboard.ThrownExceptions)
+				.Merge(CopyObserversToClipboard.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logging.Logger.LogError(ex));
 		}
@@ -170,7 +175,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string InCoinJoin => Model.CoinJoinInProgress ? "Yes" : "No";
 
-		public string Clusters => _cluster?.Value ?? "";
+		public string Observers => _observers?.Value ?? "";
 
 		public string PubKey => Model.HdPubKey?.PubKey?.ToString() ?? "";
 
@@ -253,11 +258,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CompositeDisposable GetDisposables() => Disposables;
 
-		public async Task TryCopyClustersToClipboardAsync()
+		public async Task TryCopyToClipboardAsync(string what)
 		{
 			try
 			{
-				await Application.Current.Clipboard.SetTextAsync(Clusters);
+				await Application.Current.Clipboard.SetTextAsync(what);
 			}
 			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
 			{

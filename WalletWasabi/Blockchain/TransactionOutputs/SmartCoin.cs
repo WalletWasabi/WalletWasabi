@@ -179,7 +179,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			set => RaiseAndSetIfChanged(ref _secret, value);
 		}
 
-		public Cluster Clusters
+		public Cluster Observers
 		{
 			get => _clusters;
 			set => RaiseAndSetIfChanged(ref _clusters, value);
@@ -288,7 +288,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 			Label = SmartLabel.Merge(HdPubKey?.Label, label);
 
-			Clusters = new Cluster(this);
+			Observers = new Cluster(this);
 
 			SetConfirmed();
 			SetUnspent();
