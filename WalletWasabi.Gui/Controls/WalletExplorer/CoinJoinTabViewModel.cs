@@ -59,7 +59,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Password = "";
 			TimeLeftTillRoundTimeout = TimeSpan.Zero;
 
-			CoinsList = new CoinListViewModel(CoinListContainerType.CoinJoinTabViewModel);
+			CoinsList = new CoinListViewModel();
 
 			Observable
 				.FromEventPattern<SmartCoin>(CoinsList, nameof(CoinsList.DequeueCoinsPressed))
