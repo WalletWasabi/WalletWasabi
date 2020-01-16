@@ -112,7 +112,7 @@
                         <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource CoinListView_DequeueCoin}" />
                       </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Copy Cluster Text" Command="{Binding CopyClustersToClipboard}">
+                    <MenuItem Header="Copy Cluster" Command="{Binding CopyClustersToClipboard}">
                       <MenuItem.Icon>
                         <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource CopyIcon}" />
                       </MenuItem.Icon>
