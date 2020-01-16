@@ -13,7 +13,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
@@ -27,7 +26,6 @@ using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
-using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Rpc;
@@ -91,9 +89,24 @@ namespace WalletWasabi.Gui
 			HostedServices = new HostedServices();
 		}
 
-		public void InitializeUiConfig(UiConfig uiConfig)
+		public async Task<bool> InitializeUiConfigAsync()
 		{
-			UiConfig = Guard.NotNull(nameof(uiConfig), uiConfig);
+			try
+			{
+				var uiConfigFilePath = Path.Combine(DataDir, "UiConfig.json");
+				var uiConfig = new UiConfig(uiConfigFilePath);
+				await uiConfig.LoadOrCreateDefaultFileAsync().ConfigureAwait(false);
+
+				UiConfig = uiConfig;
+
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
+
+			return false;
 		}
 
 		private int _isDesperateDequeuing = 0;
