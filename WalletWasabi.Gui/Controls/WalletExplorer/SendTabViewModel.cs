@@ -41,6 +41,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class SendTabViewModel : WalletActionViewModel
 	{
+		// dummy comment
 		private CompositeDisposable Disposables { get; set; }
 
 		private Global Global { get; }
