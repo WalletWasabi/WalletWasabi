@@ -191,7 +191,11 @@ namespace WalletWasabi.Gui
 				#region ProcessKillSubscription
 
 				AppDomain.CurrentDomain.ProcessExit += async (s, e) => await TryDesperateDequeueAllCoinsAsync();
-				Console.CancelKeyPress += async (s, e) => { e.Cancel = true; await StopAndExitAsync(); };
+				Console.CancelKeyPress += async (s, e) => 
+				{ 
+					e.Cancel = true; 
+					await StopAndExitAsync(); 
+				};
 
 				#endregion ProcessKillSubscription
 
