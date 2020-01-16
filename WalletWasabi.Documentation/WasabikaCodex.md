@@ -18,7 +18,11 @@
 
 ## Monthly routine
 
-- Go through all Issues and Pull requests and triage them.
+- Nothing here yet.
+
+## Yearly routine
+
+- Working holiday with every colleagues.
 
 ## Roadmap
 
