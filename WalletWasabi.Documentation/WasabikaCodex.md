@@ -42,7 +42,7 @@ https://github.com/zkSNACKs/WalletWasabi/projects/8
 
 __Tips__: if the PR is too big ask for breakdown.
 
-__Fact__: code review is the top rated code improvement tool.
+__Fact__: code review is one of the few scientifically proven code improvement tools.
 
 ## Creating Pull Request
 
