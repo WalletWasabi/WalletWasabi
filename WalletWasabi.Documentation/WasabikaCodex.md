@@ -1,14 +1,16 @@
 
 ## Daily routine
 
+*if you have https://github.com/notifications/beta use it instead of the links mentioned below.*
+
 1. [Check code review requests](https://github.com/zkSNACKs/WalletWasabi/pulls). __Click Reviews / Select Awaiting review from you__.
-2. Check [priority issues and PR-s!](https://github.com/zkSNACKs/WalletWasabi/labels/priority). Take it or set Assignees and Labels if you can.
-3. Check your [own PR-s and answer](https://github.com/pulls?utf8=%E2%9C%93&q=is%3Aopen+is%3Apr+repo%3AzkSNACKs%2FWalletWasabi+) if necessary. __Click Created__.
+2. Check [priority issues and PRs!](https://github.com/zkSNACKs/WalletWasabi/labels/priority). Take it or set Assignees and Labels if you can.
+3. Check your [own PRs and answer](https://github.com/pulls?utf8=%E2%9C%93&q=is%3Aopen+is%3Apr+repo%3AzkSNACKs%2FWalletWasabi+) if necessary. __Click Created__.
    - If you need help use __@mention__.
-   - If you need review __set Reviewers__.
-4. Check [assigned issues](https://github.com/zkSNACKs/WalletWasabi/issues) __Click Assignee / Select your profile__.
-5. Check [mentions](https://github.com/pulls?utf8=%E2%9C%93&q=is%3Aopen+repo%3AzkSNACKs%2FWalletWasabi+) __Click Mentioned__.
-6. Check the bell.
+   - If you need review set __Reviewers__.
+4. Check [assigned issues](https://github.com/zkSNACKs/WalletWasabi/issues). __Click Assignee / Select your profile__.
+5. Check [mentions](https://github.com/pulls?utf8=%E2%9C%93&q=is%3Aopen+repo%3AzkSNACKs%2FWalletWasabi+). __Click Mentioned__.
+6. Check the [notifications](https://github.com/notifications).
 7. Work on anything you want - assign it to yourself.
 
 ## Weekly routine
